@@ -41,6 +41,12 @@ npm install -g newman
 # Install Playwright and Firefox Browser
 npm install -g @playwright/test && npx playwright install firefox
 
+# Install Python Tools
+uv tool install mypy 
+uv tool install ruff 
+uv tool install basedpyright
+uv tool install pytest
+
 # Start Local Postgres with Docker Compose on Port 5433
 docker-compose -f .devcontainer/docker-compose.yml up -d
 
