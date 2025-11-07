@@ -44,11 +44,11 @@
 - **MCP Funnel** - Allows to plug-in more MCP servers as needed without wasting context
 
 ### 🛠️ Testing and Quality via Automated Tool Installation
-- **uv/pytest** - Unit and integration testing with uv
+- **uv/pytest** - Unit and integration testing with uv and pytest
 - **Newman** - API end-to-end testing with Postman collections
-- **CodeRabbit CLI** - AI-powered code review for race conditions, security, best practices
-- **Qlty** - Automated code quality hooks
-- **Basedpyright** - Type checking with enhanced features
+- **CodeRabbit** - AI-powered code review for quality and security
+- **Qlty** - Automated code quality hooks for all programming languages
+- **Basedpyright** - Python Type checking with enhanced features
 - **Ruff** - Fast Python linter and formatter
 
 ### 🐳 Automated Dev Container Setup (VS Code / Cursor / Windsurf)
