@@ -16,8 +16,8 @@ Stop vibe coding, start shipping systematically with Spec-Driven Development, TD
 
 #### 🆕 What's New in v2.1.0
 
-- **Automated Rules Builder** - Modular system that auto-generates Slash Commands and Skills from markdown rules
-- **`/quick` Command** - Alternative to spec-driven workflow for fast fixes and refactoring without enforced TDD
+- **Automated Rules Builder** - Modular system that auto-generates Slash Commands and Skills
+- **`/quick` Command** - Alternative to spec-driven workflow for fast fixes and refactoring
 
 ---
 
