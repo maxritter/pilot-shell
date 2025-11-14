@@ -14,7 +14,7 @@ Start shipping systematically with Spec-Driven Development, Skills, TDD, Semanti
 
 ---
 
-#### 🆕 What's New in v2.1.0
+#### 🆕 What's New in v2.1.x
 
 - **One-Line Installation** - Install into any existing project with a single curl command
 - **Modular Rules System** - Configurable rules builder system for Slash Commands and Skills
