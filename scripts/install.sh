@@ -422,7 +422,8 @@ main() {
     # Ask about Python support
     echo "Do you want to install advanced Python features?"
     echo "This includes: uv, ruff, mypy, basedpyright, and Python quality hooks"
-    read -r -p "Install Python support? (y/n): " -n 1 INSTALL_PYTHON < /dev/tty
+    read -r -p "Install Python support? (Y/n): " INSTALL_PYTHON < /dev/tty
+    INSTALL_PYTHON=${INSTALL_PYTHON:-Y}
     echo ""
     echo ""
 
