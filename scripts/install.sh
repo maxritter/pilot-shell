@@ -569,7 +569,7 @@ with open('$PROJECT_DIR/.claude/settings.local.json', 'w') as f:
     echo -e "${BLUE}What's next?${NC} Follow these steps to get started:"
     echo ""
     echo -e "${YELLOW}STEP 1: Reload Your Shell${NC}"
-    echo "   → Run: source ~/.zshrc  (or ~/.bashrc for bash)"
+    echo "   → Run: source ~/.zshrc  (or 'source ~/.bashrc' for bash or ’source ~/.config/fish/config.fish' for fish)"
     echo ""
     echo -e "${YELLOW}STEP 2: Start Claude Code${NC}"
     echo "   → Launch with: cc"

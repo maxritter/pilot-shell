@@ -23,8 +23,8 @@ if [[ -z $files ]]; then
 	exit 0
 fi
 
-# Skip Python files (handled by Python hook) and test files
-if [[ $files == *.py ]] || [[ $files == *test* ]]; then
+# Skip Python files (handled by Python hook), test files, and scripts directory
+if [[ $files == *.py ]] || [[ $files == *test* ]] || [[ $files == *scripts/* ]]; then
 	exit 0
 fi
 
