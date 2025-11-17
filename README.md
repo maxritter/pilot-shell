@@ -23,7 +23,7 @@ Start shipping systematically with Spec-Driven Development, Skills, TDD, Semanti
 Run this shell command in **any project directory** for a **fresh install** or to **update to the latest version**:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/maxritter/claude-codepro/v2.3.2/scripts/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/maxritter/claude-codepro/v2.3.3/scripts/install.sh | bash
 ```
 
 ---
