@@ -23,49 +23,26 @@
 ### Documentation & Research
 
 **Ref** (`mcp__Ref__`)
-- `ref_search_documentation(query)` - Search web/GitHub docs
-- `ref_read_url(url)` - Read content from URL
+- `ref_search_documentation(query)` - Unified search for:
+  - Web documentation and GitHub docs
+  - Code snippets and examples
+  - Library documentation
+  - Private code repositories
+  - Technical articles and guides
+- `ref_read_url(url)` - Read and parse content from URLs (including raw GitHub URLs)
 
-**Context7** (`mcp__context7__`)
-- `resolve-library-id(libraryName)` - Get library ID
-- `get-library-docs(context7CompatibleLibraryID)` - Get docs
+**Ref.tools is the unified solution for:**
+- Code snippets
+- Web search and documentation
+- Web scraping
+- Private code search
+- GitHub repository search
 
-### Web Scraping & Crawling (FireCrawl via MCP Funnel)
-
-**FireCrawl MCP server provides powerful web scraping tools via MCP Funnel:**
-
-**Discover FireCrawl tools:**
-```
-mcp__mcp-funnel__discover_tools_by_words(words="firecrawl", enable=true)
-```
-
-**Available FireCrawl capabilities:**
-
-1. **firecrawl_scrape** - Scrape single page (fastest, most reliable)
-   - Best for: Single page content extraction
-   - Returns: Markdown, HTML, or other formats
-   - Use `maxAge` parameter for 500% faster cached scrapes
-
-2. **firecrawl_search** - Web search with optional scraping
-   - Best for: Finding information across multiple websites
-   - Supports search operators: `site:`, `inurl:`, `intitle:`, etc.
-   - Returns: Search results with optional scraped content
-
-3. **firecrawl_map** - Discover all URLs on a website
-   - Best for: Finding URLs before deciding what to scrape
-   - Returns: Array of URLs found on site
-
-4. **firecrawl_crawl** - Crawl entire website
-   - Best for: Comprehensive coverage of multiple pages
-   - Warning: Can be slow, may exceed token limits
-   - Returns: Operation ID for status checking
-
-5. **firecrawl_extract** - Extract structured data using LLM
-   - Best for: Extracting specific structured data
-   - Supports custom prompts and JSON schemas
-   - Returns: Structured data as defined by schema
-
-**Optimal workflow:** Search first with `firecrawl_search`, then scrape specific pages with `firecrawl_scrape`
+**Usage patterns:**
+- Always search first: `ref_search_documentation("library feature")`
+- Read specific pages: `ref_read_url("https://raw.githubusercontent.com/...")`
+- Use exact URLs from search results including hash fragments
+- For GitHub content, use raw.githubusercontent.com URLs
 
 ### Tool Discovery
 
@@ -75,9 +52,9 @@ mcp__mcp-funnel__discover_tools_by_words(words="firecrawl", enable=true)
 - `bridge_tool_request(tool, arguments)` - Execute discovered tools
 
 **When to use MCP Funnel:**
-- Need web scraping/crawling (FireCrawl)
-- Looking for specialized tools
+- Looking for specialized tools not covered by core MCP servers
 - Exploring available capabilities
+- Need to extend functionality with additional MCP servers
 
 Use MCP Funnel to discover additional tools when needed - many more MCP servers available.
 
@@ -95,6 +72,5 @@ Use MCP Funnel to discover additional tools when needed - many more MCP servers 
 **When stuck:**
 - Query Cipher for past solutions
 - Search codebase for similar patterns
-- Use Ref to find external documentation
-- Use Context7 for library-specific docs
-- Use MCP Funnel to discover specialized tools (e.g., FireCrawl for web scraping)
+- Use Ref to find external documentation, code examples, and library docs
+- Use MCP Funnel to discover specialized tools when needed

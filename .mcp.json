@@ -4,15 +4,6 @@
       "type": "http",
       "url": "https://api.ref.tools/mcp?apiKey=${REF_API_KEY}"
     },
-    "context7": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp",
-        "--api-key",
-        "${CONTEXT7_API_KEY}"
-      ]
-    },
     "claude-context": {
       "command": "npx",
       "args": [

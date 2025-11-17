@@ -89,14 +89,8 @@ get_api_config() {
 	OPENAI_API_KEY)
 		echo "2. OpenAI API Key - For Memory LLM Calls|Low-usage LLM calls in Cipher memory system|https://platform.openai.com/account/api-keys"
 		;;
-	CONTEXT7_API_KEY)
-		echo "3. Context7 API Key - Free Library Documentation|Up-to-date library documentation access|https://context7.com/dashboard"
-		;;
 	REF_API_KEY)
-		echo "4. Ref API Key - Free Documentation Search|Searching public and private documentation|https://ref.tools/dashboard"
-		;;
-	FIRECRAWL_API_KEY)
-		echo "5. Firecrawl API Key - Web Crawling|Web scraping and crawling capabilities|https://www.firecrawl.dev/app"
+		echo "3. Ref API Key - Unified Documentation & Web Search|Searching documentation, code snippets, web scraping, and library docs|https://ref.tools/dashboard"
 		;;
 	esac
 }
@@ -143,8 +137,8 @@ setup_env_file() {
 		echo ""
 	fi
 
-	# OpenAI, Context7, Ref, Firecrawl
-	for key in OPENAI_API_KEY CONTEXT7_API_KEY REF_API_KEY FIRECRAWL_API_KEY; do
+	# OpenAI and Ref
+	for key in OPENAI_API_KEY REF_API_KEY; do
 		if ! $APPEND_MODE || ! key_is_set "$key" "$ENV_FILE"; then
 			local config_data
 			config_data=$(get_api_config "$key")
@@ -177,9 +171,7 @@ setup_env_file() {
 		add_env_key "VECTOR_STORE_USERNAME" "${VECTOR_STORE_USERNAME}" "" "$ENV_FILE"
 		add_env_key "VECTOR_STORE_PASSWORD" "${VECTOR_STORE_PASSWORD}" "" "$ENV_FILE"
 		add_env_key "OPENAI_API_KEY" "${OPENAI_API_KEY}" "OpenAI API Key - Used for Persistent Memory LLM Calls (Low Usage)" "$ENV_FILE"
-		add_env_key "CONTEXT7_API_KEY" "${CONTEXT7_API_KEY}" "Context7 API Key - Free Tier Available" "$ENV_FILE"
-		add_env_key "REF_API_KEY" "${REF_API_KEY}" "Ref API Key - Free Tier Available" "$ENV_FILE"
-		add_env_key "FIRECRAWL_API_KEY" "${FIRECRAWL_API_KEY}" "Firecrawl API Key - Free Tier Available" "$ENV_FILE"
+		add_env_key "REF_API_KEY" "${REF_API_KEY}" "Ref API Key - Free Tier Available - Unified Documentation & Web Search" "$ENV_FILE"
 		add_env_key "USE_ASK_CIPHER" "true" "Configuration Settings" "$ENV_FILE"
 		add_env_key "VECTOR_STORE_TYPE" "milvus" "" "$ENV_FILE"
 		add_env_key "FASTMCP_LOG_LEVEL" "ERROR" "" "$ENV_FILE"
@@ -200,17 +192,10 @@ VECTOR_STORE_PASSWORD=${VECTOR_STORE_PASSWORD}
 # Create at https://platform.openai.com/account/api-keys
 OPENAI_API_KEY=${OPENAI_API_KEY}
 
-# Context7 API Key - Free Tier Available, Limit Tokens to 2000 in Libraries -> Token Limit
-# Create at https://context7.com/dashboard
-CONTEXT7_API_KEY=${CONTEXT7_API_KEY}
-
 # Ref API Key - Free Tier Available, You can add your own Resources in the UI
+# Unified solution for documentation search, web scraping, code snippets, and library docs
 # Create at https://ref.tools/dashboard
 REF_API_KEY=${REF_API_KEY}
-
-# Firecrawl API Key - Free Tier Available, Used for Web Crawling
-# Create at https://www.firecrawl.dev/app
-FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}
 
 # Configuration Settings - No need to adjust
 USE_ASK_CIPHER=true

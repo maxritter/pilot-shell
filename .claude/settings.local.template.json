@@ -49,8 +49,6 @@
       "mcp__mcp-funnel__get_tool_schema",
       "mcp__mcp-funnel__bridge_tool_request",
       "mcp__cipher__ask_cipher",
-      "mcp__context7__resolve-library-id",
-      "mcp__context7__get-library-docs",
       "mcp__mcp-funnel__load_toolset",
       "SlashCommand(/remember:*)",
       "SlashCommand(/implement:*)",
@@ -63,7 +61,6 @@
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "Ref",
-    "context7",
     "claude-context",
     "cipher",
     "mcp-funnel"

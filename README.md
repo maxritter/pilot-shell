@@ -53,9 +53,9 @@ curl -sSL https://raw.githubusercontent.com/maxritter/claude-codepro/v2.3.8/scri
 
 ### 🔌 Enhanced Context and Capabilities via MCP Servers
 
-- **Cipher & Claude Context** - Cross-session memory and semantic code search for optimal context
-- **Context7 & Ref** - Up-to-date library documentation with limited context blur
-- **FireCrawl** - Web scraping and search for dynamic data retrieval in MarkDown format
+- **Cipher** - Cross-session memory for persistent knowledge and learnings stored in Vector DB
+- **Claude Context** - Semantic code search for optimal codebase context retrieval
+- **Ref** - Unified documentation search, web scraping, code snippets, and library docs
 - **MCP Funnel** - Allows to plug-in more MCP servers as needed without wasting context
 
 ### 🛠️ Testing and Quality via Automated Tool Installation
@@ -175,9 +175,7 @@ Contributions welcome: custom skills, MCP integrations, workflow improvements, b
 - **[campfirein/cipher](https://github.com/campfirein/cipher)** - CC Cross-session memory
 - **[zilliztech/claude-context](https://github.com/zilliztech/claude-context)** - CC Semantic code search
 - **[sirmalloc/ccstatusline](https://github.com/sirmalloc/ccstatusline)** - CC Status line integration
-- **[upstash/context7](https://github.com/upstash/context7)** - MCP Library documentation
-- **[ref-tools/ref-tools-mcp](https://github.com/ref-tools/ref-tools-mcp)** - MCP Documentation search
-- **[mendableai/firecrawl-mcp](https://github.com/mendableai/firecrawl)** - MCP Web scraping
+- **[ref-tools/ref-tools-mcp](https://github.com/ref-tools/ref-tools-mcp)** - MCP Unified documentation, web scraping, and code search
 - **[chris-schra/mcp-funnel](https://github.com/chris-schra/mcp-funnel)** - MCP Tool filtering
 - **[postmanlabs/newman](https://github.com/postmanlabs/newman)** - End-to-End API testing
 - **[astral-sh/uv](https://github.com/astral-sh/uv)** - Fast Python package manager

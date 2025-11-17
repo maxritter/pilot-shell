@@ -1,13 +1,5 @@
 {
-  "servers": {
-    "firecrawl-mcp": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "firecrawl-mcp"
-      ]
-    }
-  },
+  "servers": {},
   "exposeTools": [],
   "alwaysVisibleTools": [],
   "exposeCoreTools": [
