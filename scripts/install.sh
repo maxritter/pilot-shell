@@ -102,32 +102,43 @@ _bootstrap_download() {
 	fi
 }
 
+# Library modules list (single source of truth)
+# Add new modules here and they'll be automatically downloaded and checked
+LIB_MODULES=(
+	"ui.sh"
+	"utils.sh"
+	"download.sh"
+	"files.sh"
+	"dependencies.sh"
+	"shell.sh"
+	"migration.sh"
+	"setup-env.sh"
+)
+
 # Download library modules
 download_lib_modules() {
 	local lib_dir="$PROJECT_DIR/scripts/lib"
 	mkdir -p "$lib_dir"
 
-	local modules=(
-		"ui.sh"
-		"utils.sh"
-		"download.sh"
-		"files.sh"
-		"dependencies.sh"
-		"shell.sh"
-		"migration.sh"
-		"setup-env.sh"
-	)
-
-	for module in "${modules[@]}"; do
+	for module in "${LIB_MODULES[@]}"; do
 		if ! _bootstrap_download "scripts/lib/$module" "$lib_dir/$module"; then
 			echo "Warning: Failed to download lib/$module" >&2
 		fi
 	done
 }
 
-# Download library modules if they don't exist or if running via curl | bash
-# Check for essential modules (ui.sh, utils.sh) and new modules (migration.sh)
-if [[ ! -f "$PROJECT_DIR/scripts/lib/ui.sh" ]] || [[ ! -f "$PROJECT_DIR/scripts/lib/utils.sh" ]] || [[ ! -f "$PROJECT_DIR/scripts/lib/migration.sh" ]]; then
+# Check if ALL library modules exist
+check_modules_exist() {
+	for module in "${LIB_MODULES[@]}"; do
+		if [[ ! -f "$PROJECT_DIR/scripts/lib/$module" ]]; then
+			return 1  # At least one module missing
+		fi
+	done
+	return 0  # All modules exist
+}
+
+# Download library modules if ANY are missing (e.g., running via curl | bash or new modules added)
+if ! check_modules_exist; then
 	download_lib_modules
 fi
 

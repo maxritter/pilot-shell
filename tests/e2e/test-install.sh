@@ -317,6 +317,62 @@ test_invalid_arguments() {
 }
 
 # =============================================================================
+# Test: Bootstrap Module Download (Simulates curl | bash)
+# =============================================================================
+
+test_bootstrap_download() {
+	print_section "Test: Bootstrap Module Download"
+
+	local test_dir="$TEST_DIR/test-bootstrap"
+	mkdir -p "$test_dir"
+	cd "$test_dir"
+
+	print_test "Simulating fresh curl | bash installation"
+
+	# Copy ONLY install.sh (simulate curl | bash)
+	cp "$PROJECT_ROOT/scripts/install.sh" "$test_dir/"
+
+	# Run in local mode but remove one module to force download check
+	export INSTALL_PYTHON=Y
+	export OVERWRITE_SETTINGS=N
+
+	print_test "Running install.sh to trigger module downloads"
+
+	if bash "$PROJECT_ROOT/scripts/install.sh" --local --non-interactive --skip-env 2>&1 | tee install.log; then
+		print_success "Installation completed with module download"
+	else
+		print_error "Installation failed"
+		cat install.log
+		return 1
+	fi
+
+	# Verify all library modules were downloaded
+	print_test "Verifying all library modules were downloaded"
+
+	local required_modules=(
+		"ui.sh"
+		"utils.sh"
+		"download.sh"
+		"files.sh"
+		"dependencies.sh"
+		"shell.sh"
+		"migration.sh"
+		"setup-env.sh"
+	)
+
+	for module in "${required_modules[@]}"; do
+		if [[ -f "$test_dir/scripts/lib/$module" ]]; then
+			print_success "Module downloaded: $module"
+		else
+			print_error "Module missing: $module"
+			return 1
+		fi
+	done
+
+	print_success "Bootstrap download test passed"
+}
+
+# =============================================================================
 # Main Test Runner
 # =============================================================================
 
@@ -333,6 +389,7 @@ main() {
 	test_help_flag || true
 	test_idempotency || true
 	test_invalid_arguments || true
+	test_bootstrap_download || true
 
 	# Print summary
 	print_section "Test Summary"
