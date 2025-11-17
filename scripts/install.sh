@@ -210,6 +210,33 @@ build_rules() {
 }
 
 # =============================================================================
+# Statusline Configuration
+# =============================================================================
+
+# Copy statusline configuration to user's home directory
+# Always overwrites to ensure latest config is used
+install_statusline_config() {
+	print_status "Installing statusline configuration..."
+
+	local source_config="$PROJECT_DIR/.claude/statusline.json"
+	local target_dir="$HOME/.config/ccstatusline"
+	local target_config="$target_dir/settings.json"
+
+	# Check if source config exists
+	if [[ ! -f "$source_config" ]]; then
+		print_warning "statusline.json not found in .claude directory, skipping"
+		return
+	fi
+
+	# Create target directory if it doesn't exist
+	mkdir -p "$target_dir"
+
+	# Copy config (always overwrite)
+	cp "$source_config" "$target_config"
+	print_success "Installed statusline configuration to ~/.config/ccstatusline/settings.json"
+}
+
+# =============================================================================
 # Main Installation Flow
 # =============================================================================
 
@@ -446,6 +473,14 @@ main() {
 
 	print_section "Building Rules"
 	build_rules
+	echo ""
+
+	# =============================================================================
+	# Install Statusline Configuration
+	# =============================================================================
+
+	print_section "Installing Statusline Configuration"
+	install_statusline_config
 	echo ""
 
 	# =============================================================================

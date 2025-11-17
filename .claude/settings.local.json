@@ -85,9 +85,10 @@
       }
     ]
   },
-   "statusLine": {
+  "statusLine": {
     "type": "command",
-    "command": "npx -y @owloops/claude-powerline@latest --config=.claude/statusline.config.json"
+    "command": "npx -y ccstatusline@latest",
+    "padding": 0
   },
   "outputStyle": "default",
   "spinnerTipsEnabled": false,

@@ -174,7 +174,7 @@ Contributions welcome: custom skills, MCP integrations, workflow improvements, b
 - **[buildermethods/agent-os](https://github.com/buildermethods/agent-os)** - CC Spec-Driven inspiration
 - **[campfirein/cipher](https://github.com/campfirein/cipher)** - CC Cross-session memory
 - **[zilliztech/claude-context](https://github.com/zilliztech/claude-context)** - CC Semantic code search
-- **[Owloops/claude-powerline](https://github.com/Owloops/claude-powerline)** - CC Status line integration
+- **[sirmalloc/ccstatusline](https://github.com/sirmalloc/ccstatusline)** - CC Status line integration
 - **[upstash/context7](https://github.com/upstash/context7)** - MCP Library documentation
 - **[ref-tools/ref-tools-mcp](https://github.com/ref-tools/ref-tools-mcp)** - MCP Documentation search
 - **[mendableai/firecrawl-mcp](https://github.com/mendableai/firecrawl)** - MCP Web scraping
