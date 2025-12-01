@@ -277,7 +277,7 @@ jobs:
           persist-credentials: false
 
       - name: Download premium artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           path: premium-binaries
 
