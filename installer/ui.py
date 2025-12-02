@@ -83,7 +83,7 @@ class Console:
         tagline.append("  ✨ ", style="yellow")
         tagline.append("Professional Development Environment for Claude Code", style="bold white")
         tagline.append(" ✨", style="yellow")
-        self._console.print(tagline, justify="center")
+        self._console.print(tagline)
         self._console.print()
 
         # Feature highlights in a styled panel

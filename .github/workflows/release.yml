@@ -32,30 +32,27 @@ jobs:
 
   build-installer-linux:
     name: Build Installer Linux ${{ matrix.arch }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     needs: quality
     strategy:
       fail-fast: false
       matrix:
         include:
           - arch: x86_64
+            runner: ubuntu-latest
             artifact: ccp-installer-linux-x86_64
           - arch: arm64
+            runner: ubuntu-24.04-arm
             artifact: ccp-installer-linux-arm64
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Set up QEMU for ARM64
-        if: matrix.arch == 'arm64'
-        uses: docker/setup-qemu-action@v3
-
       - name: Build binary
         run: |
           # Build in Docker with Ubuntu 20.04 for GLIBC 2.31 compatibility
           docker run --rm \
-            --platform linux/${{ matrix.arch }} \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
             ubuntu:20.04 \

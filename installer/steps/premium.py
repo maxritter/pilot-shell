@@ -190,9 +190,23 @@ class PremiumStep(BaseStep):
 
     def check(self, ctx: InstallContext) -> bool:
         """Check if premium setup is needed."""
-        # No premium key means skip this step
+        settings_file = ctx.project_dir / ".claude" / "settings.local.json"
+
+        # If no premium key, check if we need to clean up premium hooks
         if not ctx.premium_key:
-            return True
+            # Check if settings file has premium hooks that need removal
+            if settings_file.exists():
+                try:
+                    settings = json.loads(settings_file.read_text())
+                    hooks = settings.get("hooks", {})
+                    for hook_type in ["PreToolUse", "PostToolUse", "Stop"]:
+                        for hook_group in hooks.get(hook_type, []):
+                            for hook in hook_group.get("hooks", []):
+                                if "ccp-premium" in hook.get("command", ""):
+                                    return False  # Need to run cleanup
+                except (json.JSONDecodeError, OSError):
+                    pass
+            return True  # No cleanup needed
 
         # Check if premium binary already exists
         bin_dir = ctx.project_dir / ".claude" / "bin"

@@ -48,19 +48,36 @@ class FinalizeStep(BaseStep):
             ui.section("Building Rules")
             ui.status("Running rules build script...")
 
-        try:
-            subprocess.run(
-                [sys.executable, str(build_script)],
-                check=True,
-                capture_output=True,
-                cwd=ctx.project_dir,
-            )
-            if ui:
-                ui.success("Rules built successfully")
-        except subprocess.CalledProcessError:
-            if ui:
-                ui.error("Failed to build rules")
-                ui.warning("You may need to run 'python3 .claude/rules/build.py' manually")
+        # Try uv first, then fall back to sys.executable
+        python_commands = [
+            ["uv", "run", "python", str(build_script)],
+            [sys.executable, str(build_script)],
+            ["python3", str(build_script)],
+        ]
+
+        for cmd in python_commands:
+            try:
+                # Check if command exists (for uv)
+                if cmd[0] == "uv" and shutil.which("uv") is None:
+                    continue
+
+                subprocess.run(
+                    cmd,
+                    check=True,
+                    capture_output=True,
+                    cwd=ctx.project_dir,
+                )
+                if ui:
+                    ui.success("Rules built successfully")
+                return
+            except subprocess.CalledProcessError:
+                continue
+            except FileNotFoundError:
+                continue
+
+        if ui:
+            ui.error("Failed to build rules")
+            ui.warning("You may need to run 'uv run python .claude/rules/build.py' manually")
 
     def _install_statusline_config(self, ctx: InstallContext) -> None:
         """Install statusline configuration to user config directory."""
