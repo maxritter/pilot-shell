@@ -278,17 +278,8 @@ class Console:
             return default
 
         self._console.print()
-        confirm_fn = getattr(inquirer, "confirm")
-        result = confirm_fn(
-            message=message,
-            default=default,
-            style={
-                "questionmark": "#ff9d00 bold",
-                "question": "",
-                "answer": "#5fd700",
-            },
-        ).execute()
-        return result
+        confirm_prompt = getattr(inquirer, "confirm")
+        return confirm_prompt(message=message, default=default).execute()  # type: ignore[no-any-return]
 
     def select(self, message: str, choices: list[str]) -> str:
         """Prompt for single selection from choices with styled menu."""
@@ -296,18 +287,8 @@ class Console:
             return choices[0] if choices else ""
 
         self._console.print()
-        select_fn = getattr(inquirer, "select")
-        return select_fn(
-            message=message,
-            choices=choices,
-            style={
-                "questionmark": "#ff9d00 bold",
-                "question": "",
-                "pointer": "#ff9d00 bold",
-                "highlighted": "#ff9d00 bold",
-                "answer": "#5fd700",
-            },
-        ).execute()
+        select_prompt = getattr(inquirer, "select")
+        return select_prompt(message=message, choices=choices).execute()  # type: ignore[no-any-return]
 
     def input(self, message: str, default: str = "") -> str:
         """Prompt for text input with styled prompt."""
@@ -315,16 +296,8 @@ class Console:
             return default
 
         self._console.print()
-        text_fn = getattr(inquirer, "text")
-        return text_fn(
-            message=message,
-            default=default,
-            style={
-                "questionmark": "#ff9d00 bold",
-                "question": "",
-                "answer": "#5fd700",
-            },
-        ).execute()
+        text_prompt = getattr(inquirer, "text")
+        return text_prompt(message=message, default=default).execute()  # type: ignore[no-any-return]
 
     def password(self, message: str) -> str:
         """Prompt for hidden password input."""
