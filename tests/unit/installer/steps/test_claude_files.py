@@ -2,11 +2,104 @@
 
 from __future__ import annotations
 
+import json
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-
 import pytest
+
+
+class TestProcessSettings:
+    """Test the process_settings function."""
+
+    def test_process_settings_preserves_python_hook_when_enabled(self):
+        """process_settings keeps Python hook when install_python=True."""
+        from installer.steps.claude_files import PYTHON_CHECKER_HOOK, process_settings
+
+        settings = {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": "Write|Edit|MultiEdit",
+                        "hooks": [
+                            {"type": "command", "command": "python3 .claude/hooks/file_checker_qlty.py"},
+                            {"type": "command", "command": PYTHON_CHECKER_HOOK},
+                        ],
+                    }
+                ]
+            }
+        }
+
+        result = process_settings(json.dumps(settings), install_python=True)
+        parsed = json.loads(result)
+
+        hooks = parsed["hooks"]["PostToolUse"][0]["hooks"]
+        commands = [h["command"] for h in hooks]
+        assert PYTHON_CHECKER_HOOK in commands
+        assert len(hooks) == 2
+
+    def test_process_settings_removes_python_hook_when_disabled(self):
+        """process_settings removes Python hook when install_python=False."""
+        from installer.steps.claude_files import PYTHON_CHECKER_HOOK, process_settings
+
+        settings = {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": "Write|Edit|MultiEdit",
+                        "hooks": [
+                            {"type": "command", "command": "python3 .claude/hooks/file_checker_qlty.py"},
+                            {"type": "command", "command": PYTHON_CHECKER_HOOK},
+                        ],
+                    }
+                ]
+            }
+        }
+
+        result = process_settings(json.dumps(settings), install_python=False)
+        parsed = json.loads(result)
+
+        hooks = parsed["hooks"]["PostToolUse"][0]["hooks"]
+        commands = [h["command"] for h in hooks]
+        assert PYTHON_CHECKER_HOOK not in commands
+        assert "python3 .claude/hooks/file_checker_qlty.py" in commands
+        assert len(hooks) == 1
+
+    def test_process_settings_handles_missing_hooks(self):
+        """process_settings handles settings without hooks gracefully."""
+        from installer.steps.claude_files import process_settings
+
+        settings = {"model": "opus", "env": {"key": "value"}}
+
+        result = process_settings(json.dumps(settings), install_python=False)
+        parsed = json.loads(result)
+
+        assert parsed["model"] == "opus"
+        assert parsed["env"]["key"] == "value"
+
+    def test_process_settings_preserves_other_settings(self):
+        """process_settings preserves all other settings unchanged."""
+        from installer.steps.claude_files import PYTHON_CHECKER_HOOK, process_settings
+
+        settings = {
+            "model": "opus",
+            "env": {"DISABLE_TELEMETRY": "true"},
+            "permissions": {"allow": ["Read", "Write"]},
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": "Write|Edit|MultiEdit",
+                        "hooks": [{"type": "command", "command": PYTHON_CHECKER_HOOK}],
+                    }
+                ]
+            },
+        }
+
+        result = process_settings(json.dumps(settings), install_python=False)
+        parsed = json.loads(result)
+
+        assert parsed["model"] == "opus"
+        assert parsed["env"]["DISABLE_TELEMETRY"] == "true"
+        assert parsed["permissions"]["allow"] == ["Read", "Write"]
 
 
 class TestClaudeFilesStep:
@@ -79,11 +172,10 @@ class TestClaudeFilesStep:
 
         step = ClaudeFilesStep()
         with tempfile.TemporaryDirectory() as tmpdir:
-            # Create source with both settings files
+            # Create source with settings file
             source_claude = Path(tmpdir) / "source" / ".claude"
             source_claude.mkdir(parents=True)
-            (source_claude / "settings.local.json").write_text('{"python": true}')
-            (source_claude / "settings.local.base.json").write_text('{"python": false}')
+            (source_claude / "settings.local.json").write_text('{"hooks": {}}')
 
             dest_dir = Path(tmpdir) / "dest"
             dest_dir.mkdir()
@@ -102,20 +194,32 @@ class TestClaudeFilesStep:
             assert (dest_dir / ".claude" / "settings.local.json").exists()
 
     def test_claude_files_installs_python_settings_when_enabled(self):
-        """ClaudeFilesStep installs Python settings when install_python=True."""
+        """ClaudeFilesStep preserves Python hooks when install_python=True."""
         import json
 
         from installer.context import InstallContext
-        from installer.steps.claude_files import ClaudeFilesStep
+        from installer.steps.claude_files import PYTHON_CHECKER_HOOK, ClaudeFilesStep
         from installer.ui import Console
 
         step = ClaudeFilesStep()
         with tempfile.TemporaryDirectory() as tmpdir:
-            # Create source with both settings files
+            # Create source with settings file containing Python hook
             source_claude = Path(tmpdir) / "source" / ".claude"
             source_claude.mkdir(parents=True)
-            (source_claude / "settings.local.json").write_text('{"hasPythonHooks": true}')
-            (source_claude / "settings.local.base.json").write_text('{"hasPythonHooks": false}')
+            settings_with_python = {
+                "hooks": {
+                    "PostToolUse": [
+                        {
+                            "matcher": "Write|Edit|MultiEdit",
+                            "hooks": [
+                                {"type": "command", "command": "python3 .claude/hooks/file_checker_qlty.py"},
+                                {"type": "command", "command": PYTHON_CHECKER_HOOK},
+                            ],
+                        }
+                    ]
+                }
+            }
+            (source_claude / "settings.local.json").write_text(json.dumps(settings_with_python))
 
             dest_dir = Path(tmpdir) / "dest"
             dest_dir.mkdir()
@@ -131,27 +235,42 @@ class TestClaudeFilesStep:
 
             step.run(ctx)
 
-            # settings.local.json should contain Python hooks config
+            # settings.local.json should contain Python hooks
             settings_file = dest_dir / ".claude" / "settings.local.json"
             assert settings_file.exists()
             settings = json.loads(settings_file.read_text())
-            assert settings["hasPythonHooks"] is True
+            # Python hook should be preserved
+            hooks = settings["hooks"]["PostToolUse"][0]["hooks"]
+            commands = [h["command"] for h in hooks]
+            assert PYTHON_CHECKER_HOOK in commands
 
-    def test_claude_files_installs_base_settings_when_python_disabled(self):
-        """ClaudeFilesStep installs base settings (no Python hooks) when install_python=False."""
+    def test_claude_files_removes_python_hooks_when_python_disabled(self):
+        """ClaudeFilesStep removes Python hooks when install_python=False."""
         import json
 
         from installer.context import InstallContext
-        from installer.steps.claude_files import ClaudeFilesStep
+        from installer.steps.claude_files import PYTHON_CHECKER_HOOK, ClaudeFilesStep
         from installer.ui import Console
 
         step = ClaudeFilesStep()
         with tempfile.TemporaryDirectory() as tmpdir:
-            # Create source with both settings files
+            # Create source with settings file containing Python hook
             source_claude = Path(tmpdir) / "source" / ".claude"
             source_claude.mkdir(parents=True)
-            (source_claude / "settings.local.json").write_text('{"hasPythonHooks": true}')
-            (source_claude / "settings.local.base.json").write_text('{"hasPythonHooks": false}')
+            settings_with_python = {
+                "hooks": {
+                    "PostToolUse": [
+                        {
+                            "matcher": "Write|Edit|MultiEdit",
+                            "hooks": [
+                                {"type": "command", "command": "python3 .claude/hooks/file_checker_qlty.py"},
+                                {"type": "command", "command": PYTHON_CHECKER_HOOK},
+                            ],
+                        }
+                    ]
+                }
+            }
+            (source_claude / "settings.local.json").write_text(json.dumps(settings_with_python))
 
             dest_dir = Path(tmpdir) / "dest"
             dest_dir.mkdir()
@@ -167,11 +286,16 @@ class TestClaudeFilesStep:
 
             step.run(ctx)
 
-            # settings.local.json should contain base config (no Python hooks)
+            # settings.local.json should NOT contain Python hooks
             settings_file = dest_dir / ".claude" / "settings.local.json"
             assert settings_file.exists()
             settings = json.loads(settings_file.read_text())
-            assert settings["hasPythonHooks"] is False
+            # Python hook should be removed
+            hooks = settings["hooks"]["PostToolUse"][0]["hooks"]
+            commands = [h["command"] for h in hooks]
+            assert PYTHON_CHECKER_HOOK not in commands
+            # Other hooks should still be present
+            assert "python3 .claude/hooks/file_checker_qlty.py" in commands
 
     def test_claude_files_skips_python_when_disabled(self):
         """ClaudeFilesStep skips Python files when install_python=False."""
@@ -187,9 +311,8 @@ class TestClaudeFilesStep:
             source_hooks.mkdir(parents=True)
             (source_hooks / "file_checker_python.py").write_text("# python hook")
             (source_hooks / "other_hook.sh").write_text("# other hook")
-            # Add settings files (required by the step)
-            (source_claude / "settings.local.json").write_text('{"python": true}')
-            (source_claude / "settings.local.base.json").write_text('{"python": false}')
+            # Add settings file (required by the step)
+            (source_claude / "settings.local.json").write_text('{"hooks": {}}')
 
             dest_dir = Path(tmpdir) / "dest"
             dest_dir.mkdir()

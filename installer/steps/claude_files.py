@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from installer.downloads import DownloadConfig, download_file, get_repo_files
 from installer.steps.base import BaseStep
@@ -11,9 +12,36 @@ from installer.steps.base import BaseStep
 if TYPE_CHECKING:
     from installer.context import InstallContext
 
-# Settings file names in the repository
-SETTINGS_BASE_FILE = "settings.local.base.json"  # Without Python hooks
-SETTINGS_PYTHON_FILE = "settings.local.json"  # With Python hooks
+# Settings file name in the repository (contains all hooks)
+SETTINGS_FILE = "settings.local.json"
+
+# Python-specific hook that gets removed when install_python=False
+PYTHON_CHECKER_HOOK = "python3 .claude/hooks/file_checker_python.py"
+
+
+def process_settings(settings_content: str, install_python: bool) -> str:
+    """Process settings JSON, optionally removing Python-specific hooks.
+
+    Args:
+        settings_content: Raw JSON content of the settings file
+        install_python: Whether Python support is being installed
+
+    Returns:
+        Processed JSON string with Python hooks removed if install_python=False
+    """
+    config: dict[str, Any] = json.loads(settings_content)
+
+    if not install_python:
+        # Remove Python checker hook from PostToolUse
+        post_tool_use = config.get("hooks", {}).get("PostToolUse", [])
+        for hook_group in post_tool_use:
+            if "hooks" in hook_group:
+                hook_group["hooks"] = [
+                    h for h in hook_group["hooks"]
+                    if h.get("command") != PYTHON_CHECKER_HOOK
+                ]
+
+    return json.dumps(config, indent=2) + "\n"
 
 
 class ClaudeFilesStep(BaseStep):
@@ -65,9 +93,8 @@ class ClaudeFilesStep(BaseStep):
             "other": [],
         }
 
-        # Track settings files for special handling
-        settings_base_path: str | None = None
-        settings_python_path: str | None = None
+        # Track settings file for special handling
+        settings_path: str | None = None
 
         for file_path in claude_files:
             if not file_path:
@@ -79,12 +106,9 @@ class ClaudeFilesStep(BaseStep):
             if file_path.endswith(".pyc"):
                 continue
 
-            # Track settings files for later - don't add to categories yet
-            if SETTINGS_BASE_FILE in file_path:
-                settings_base_path = file_path
-                continue
-            if SETTINGS_PYTHON_FILE in file_path and SETTINGS_BASE_FILE not in file_path:
-                settings_python_path = file_path
+            # Track settings file for later - don't add to categories yet
+            if SETTINGS_FILE in file_path:
+                settings_path = file_path
                 continue
 
             if not ctx.install_python:
@@ -135,28 +159,31 @@ class ClaudeFilesStep(BaseStep):
                     else:
                         failed_files.append(file_path)
 
-        # Install the appropriate settings file based on Python support
-        # When install_python=True: use settings.local.json (with Python hooks)
-        # When install_python=False: use settings.local.base.json (without Python hooks)
-        settings_source = settings_python_path if ctx.install_python else settings_base_path
+        # Install settings file, processing it to remove Python hooks if needed
         settings_dest = ctx.project_dir / ".claude" / "settings.local.json"
 
-        if settings_source:
+        if settings_path:
             if ui:
                 with ui.spinner("Installing settings..."):
-                    if download_file(settings_source, settings_dest, config):
+                    success = self._install_settings(
+                        settings_path, settings_dest, config, ctx.install_python
+                    )
+                    if success:
                         file_count += 1
                         installed_files.append(str(settings_dest))
                         ui.success("Installed settings.local.json")
                     else:
-                        failed_files.append(settings_source)
+                        failed_files.append(settings_path)
                         ui.warning("Failed to install settings.local.json")
             else:
-                if download_file(settings_source, settings_dest, config):
+                success = self._install_settings(
+                    settings_path, settings_dest, config, ctx.install_python
+                )
+                if success:
                     file_count += 1
                     installed_files.append(str(settings_dest))
                 else:
-                    failed_files.append(settings_source)
+                    failed_files.append(settings_path)
 
         ctx.config["installed_files"] = installed_files
 
@@ -189,6 +216,40 @@ class ClaudeFilesStep(BaseStep):
                     ui.print(f"  - {failed}")
                 if len(failed_files) > 5:
                     ui.print(f"  ... and {len(failed_files) - 5} more")
+
+    def _install_settings(
+        self,
+        source_path: str,
+        dest_path: Path,
+        config: DownloadConfig,
+        install_python: bool,
+    ) -> bool:
+        """Download and process settings file, removing Python hooks if needed.
+
+        Args:
+            source_path: Path to settings file in repository
+            dest_path: Local destination path
+            config: Download configuration
+            install_python: Whether Python support is being installed
+
+        Returns:
+            True if successful, False otherwise
+        """
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_file = Path(tmpdir) / "settings.json"
+            if not download_file(source_path, temp_file, config):
+                return False
+
+            try:
+                settings_content = temp_file.read_text()
+                processed_content = process_settings(settings_content, install_python)
+                dest_path.parent.mkdir(parents=True, exist_ok=True)
+                dest_path.write_text(processed_content)
+                return True
+            except (json.JSONDecodeError, OSError, IOError):
+                return False
 
     def rollback(self, ctx: InstallContext) -> None:
         """Remove installed files."""
