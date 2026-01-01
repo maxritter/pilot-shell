@@ -33,14 +33,17 @@ def process_settings(settings_content: str, install_python: bool) -> str:
 
     if not install_python:
         # Remove Python checker hook from PostToolUse
-        post_tool_use = config.get("hooks", {}).get("PostToolUse", [])
+        # Use `or []` to handle None values (key exists but value is null)
+        post_tool_use = config.get("hooks", {}).get("PostToolUse") or []
         for hook_group in post_tool_use:
             # Skip malformed entries that aren't dicts
             if not isinstance(hook_group, dict):
                 continue
-            if "hooks" in hook_group:
+            # Only process if hooks is a non-null list
+            hooks_list = hook_group.get("hooks")
+            if isinstance(hooks_list, list):
                 hook_group["hooks"] = [
-                    h for h in hook_group["hooks"]
+                    h for h in hooks_list
                     if not isinstance(h, dict) or h.get("command") != PYTHON_CHECKER_HOOK
                 ]
 

@@ -140,6 +140,44 @@ class TestProcessSettings:
         # Python hook should be removed
         assert {"type": "command", "command": PYTHON_CHECKER_HOOK} not in hooks
 
+    def test_process_settings_handles_null_post_tool_use(self):
+        """process_settings handles PostToolUse being null gracefully."""
+        from installer.steps.claude_files import process_settings
+
+        # PostToolUse explicitly set to null
+        settings = {"hooks": {"PostToolUse": None, "PreToolUse": []}}
+
+        # Should not raise an exception
+        result = process_settings(json.dumps(settings), install_python=False)
+        parsed = json.loads(result)
+
+        # Structure should be preserved
+        assert parsed["hooks"]["PostToolUse"] is None
+        assert parsed["hooks"]["PreToolUse"] == []
+
+    def test_process_settings_handles_null_hooks_in_group(self):
+        """process_settings handles hooks being null inside a hook group gracefully."""
+        from installer.steps.claude_files import process_settings
+
+        # hooks inside a hook group is null
+        settings = {
+            "hooks": {
+                "PostToolUse": [
+                    {"matcher": "Write|Edit", "hooks": None},
+                    {"matcher": "Bash", "hooks": [{"type": "command", "command": "echo test"}]},
+                ]
+            }
+        }
+
+        # Should not raise an exception
+        result = process_settings(json.dumps(settings), install_python=False)
+        parsed = json.loads(result)
+
+        # First group should have hooks unchanged (null)
+        assert parsed["hooks"]["PostToolUse"][0]["hooks"] is None
+        # Second group should have hooks preserved
+        assert len(parsed["hooks"]["PostToolUse"][1]["hooks"]) == 1
+
 
 class TestClaudeFilesStep:
     """Test ClaudeFilesStep class."""
