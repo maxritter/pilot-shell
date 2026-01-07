@@ -42,10 +42,6 @@
       "WebSearch",
       "Write",
       "mcp__ide__getDiagnostics",
-      "mcp__claude-context__index_codebase",
-      "mcp__claude-context__get_indexing_status",
-      "mcp__claude-context__search_code",
-      "mcp__claude-context__clear_index",
       "mcp__Ref__ref_search_documentation",
       "mcp__Ref__ref_read_url",
       "mcp__tavily__tavily-search",
@@ -64,7 +60,6 @@
   "model": "opus",
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "claude-context",
     "tavily",
     "Ref"
   ],

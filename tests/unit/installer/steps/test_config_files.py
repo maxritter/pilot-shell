@@ -32,7 +32,6 @@ class TestMCPConfigMerge:
 
             new_config = {
                 "mcpServers": {
-                    "claude-context": {"command": "npx", "args": ["claude-context"]},
                     "tavily": {"command": "npx", "args": ["tavily"]},
                     "Ref": {"command": "npx", "args": ["ref"]},
                 }
@@ -40,9 +39,8 @@ class TestMCPConfigMerge:
 
             added = merge_mcp_config(config_file, new_config)
 
-            assert added == 3
+            assert added == 2  # tavily and Ref only (claude-context removed)
             result = json.loads(config_file.read_text())
-            assert "claude-context" in result["mcpServers"]
             assert "tavily" in result["mcpServers"]
             assert "Ref" in result["mcpServers"]
 
@@ -58,7 +56,6 @@ class TestMCPConfigMerge:
 
             new_config = {
                 "mcpServers": {
-                    "claude-context": {"command": "npx", "args": ["claude-context"]},
                     "tavily": {"command": "npx", "args": ["tavily"]},
                     "Ref": {"command": "npx", "args": ["ref"]},
                 }
@@ -66,10 +63,9 @@ class TestMCPConfigMerge:
 
             added = merge_mcp_config(config_file, new_config)
 
-            assert added == 3
+            assert added == 2  # tavily and Ref only (claude-context removed)
             result = json.loads(config_file.read_text())
             assert "my-custom-server" in result["mcpServers"]
-            assert "claude-context" in result["mcpServers"]
             assert "tavily" in result["mcpServers"]
             assert "Ref" in result["mcpServers"]
 
@@ -82,7 +78,6 @@ class TestMCPConfigMerge:
 
             existing = {
                 "mcpServers": {
-                    "claude-context": {"command": "custom-command"},
                     "my-server": {"command": "my-tool"},
                 }
             }
@@ -90,7 +85,6 @@ class TestMCPConfigMerge:
 
             new_config = {
                 "mcpServers": {
-                    "claude-context": {"command": "npx", "args": ["claude-context"]},
                     "tavily": {"command": "npx", "args": ["tavily"]},
                     "Ref": {"command": "npx", "args": ["ref"]},
                 }
@@ -100,8 +94,6 @@ class TestMCPConfigMerge:
 
             assert added == 2  # Only tavily and Ref added
             result = json.loads(config_file.read_text())
-            # Original claude-context preserved (not overwritten)
-            assert result["mcpServers"]["claude-context"]["command"] == "custom-command"
             assert "tavily" in result["mcpServers"]
             assert "Ref" in result["mcpServers"]
             assert "my-server" in result["mcpServers"]
@@ -116,7 +108,7 @@ class TestMCPConfigMerge:
 
             new_config = {
                 "mcpServers": {
-                    "claude-context": {"command": "npx"},
+                    "tavily": {"command": "npx"},
                 }
             }
 
@@ -124,7 +116,7 @@ class TestMCPConfigMerge:
 
             assert added == 1
             result = json.loads(config_file.read_text())
-            assert "claude-context" in result["mcpServers"]
+            assert "tavily" in result["mcpServers"]
 
     def test_merge_handles_invalid_json(self):
         """Merging handles invalid JSON in existing file."""
@@ -136,7 +128,7 @@ class TestMCPConfigMerge:
 
             new_config = {
                 "mcpServers": {
-                    "claude-context": {"command": "npx"},
+                    "tavily": {"command": "npx"},
                 }
             }
 
@@ -144,7 +136,7 @@ class TestMCPConfigMerge:
 
             assert added == 1
             result = json.loads(config_file.read_text())
-            assert "claude-context" in result["mcpServers"]
+            assert "tavily" in result["mcpServers"]
 
     def test_merge_no_backup_created(self):
         """Merging does not create backup files."""
@@ -158,7 +150,7 @@ class TestMCPConfigMerge:
 
             new_config = {
                 "mcpServers": {
-                    "claude-context": {"command": "npx"},
+                    "tavily": {"command": "npx"},
                 }
             }
 
@@ -275,7 +267,6 @@ class TestMCPConfigInstallation:
                                 json.dumps(
                                     {
                                         "mcpServers": {
-                                            "claude-context": {"command": "npx"},
                                             "tavily": {"command": "npx"},
                                             "Ref": {"command": "npx"},
                                         }
@@ -328,7 +319,6 @@ class TestMCPConfigInstallation:
                                 json.dumps(
                                     {
                                         "mcpServers": {
-                                            "claude-context": {"command": "npx"},
                                             "tavily": {"command": "npx"},
                                             "Ref": {"command": "npx"},
                                         }
@@ -344,7 +334,6 @@ class TestMCPConfigInstallation:
                     mcp_file = project_dir / ".mcp.json"
                     result = json.loads(mcp_file.read_text())
                     assert "user-server" in result["mcpServers"], "User server preserved"
-                    assert "claude-context" in result["mcpServers"], "claude-context added"
                     assert "tavily" in result["mcpServers"], "tavily added"
                     assert "Ref" in result["mcpServers"], "Ref added"
 

@@ -1,12 +1,5 @@
 {
   "mcpServers": {
-    "claude-context": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@zilliz/claude-context-mcp@latest"
-      ]
-    },
     "tavily": {
       "command": "npx",
       "args": [

@@ -49,7 +49,7 @@
     },
     /* https://github.com/devcontainers/features/tree/main/src/node */
     "ghcr.io/devcontainers/features/node:1": {
-      "version": "22", // Claude Context is not compatible with later versions
+      "version": "22",
       "nvm": "latest",
       "pnpm": "latest"
     },

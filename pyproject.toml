@@ -7,7 +7,7 @@ readme = "README.md"
 dependencies = [
     "rich>=14.0.0",
     "httpx>=0.28.1",
-    "typer>=0.21.0",
+    "typer>=0.21.1",
     "platformdirs>=4.3.6",
     "pyinstaller>=6.17.0",
 ]

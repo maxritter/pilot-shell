@@ -1,32 +1,5 @@
 ## MCP Tools - Core Workflow Integration
 
-### Claude Context - Semantic Code Search
-
-**Tools:**
-- `mcp_claude-context_index_codebase` - Index repository for search
-- `mcp_claude-context_search_code` - Find code patterns semantically
-- `mcp_claude-context_get_indexing_status` - Check if index is ready
-
-**Search patterns:**
-```
-"authentication middleware implementation"
-"error handling in API routes"
-"database connection pooling"
-"test fixtures for user model"
-```
-
-**When to use:**
-- Finding existing implementations to follow patterns
-- Locating where specific functionality lives
-- Understanding how features are structured
-- Before writing new code: Search for similar existing code
-
-**Workflow:**
-1. Check indexing status first
-2. If not indexed, index the codebase
-3. Search for relevant patterns
-4. Review results to understand existing approaches
-
 ### Tavily - Web Search & Site Mapping ONLY
 
 **IMPORTANT:** Use Tavily ONLY for web searches and site mapping. **NEVER use Tavily to fetch/extract content from specific URLs.**

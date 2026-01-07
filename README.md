@@ -66,7 +66,7 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/claude-codepro/v3.3.7/ins
 ### 🔌 Enhanced Context and Capabilities via MCP Servers
 
 - **Claude Mem** - Cross-session persistent memory system that automatically ingest context
-- **Claude Context** - Local vector store based semantic code search for token-efficient retrieval
+- **Vexor** - Local vector store based semantic code search for token-efficient retrieval
 - **Tavily** - Real-time web search capabilities and powerful web mapping tool
 - **Ref** - AI-powered code context retrieval, similar to Context7 but uses less context
 - **MCP Lazy Loading** - Intelligently reduces context usage by lazy loading MCP servers
@@ -91,20 +91,15 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/claude-codepro/v3.3.7/ins
 
 ## 📒 How-to-use
 
-### ⚙️ Configuration
+### 👣 First Steps
 
-1. Open Claude Code in the IDE Terminal, Extension or an external Terminal with the `ccp` command
+- Use the `ccp` alias command inside the dev container to open Claude CodePro in any terminal
+- Start with `/plan` - Provide your input and it will ask clarifying questions to create a spec
+- Use `/implement` to execute the spec with automatic TDD, best practices and context management
+- When context fills up, run `/clear` then continue with `/implement` mentioning your plan file
+- After spec completion, run `/verify` to run end-to-end review, all tests, and quality checks
 
-2. In CC, run `/config` and make sure the configuration looks similar to this screenshot
-   <img src="docs/img/ide-setup-config.png" alt="Setup config Screenshot" width="600">
-
-3. In CC, run `/ide` to connect to VS Code diagnostics and make sure all MCP servers for `/mcp` are online
-   <img src="docs/img/ide-setup-mcp.png" alt="Setup mcp Screenshot" width="600">
-
-4. In CC, run `/context` to verify context looks similar to this screenshot with rules loaded
-   <img src="docs/img/ide-setup-context.png" alt="Setup context Screenshot" width="600">
-
-### ⚠️ Important: Context Management
+### Context Management
 
 **Never use `/compact`** - Claude CodePro is designed to use the full 200k context window:
 
@@ -115,13 +110,6 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/claude-codepro/v3.3.7/ins
 - **Claude Mem auto-injects** relevant context from your previous session when you continue with `/implement`
 
 This approach ensures maximum context utilization and seamless session continuity via persistent memory.
-
-### 👣 First Steps
-
-- Start with `/plan` - Provide your input and it will ask clarifying questions to create a spec
-- Use `/implement` to execute the spec with automatic TDD, best practices and context management
-- When context fills up, run `/clear` then continue with `/implement` mentioning your plan file
-- After spec completion, run `/verify` to run end-to-end review, all tests, and quality checks
 
 ### 🎯 Customizing Rules
 
@@ -148,7 +136,7 @@ paths: src/**/*.py
 - **[obra/superpowers](https://github.com/obra/superpowers)** - CC Skills inspiration
 - **[buildermethods/agent-os](https://github.com/buildermethods/agent-os)** - CC Spec-Driven inspiration
 - **[thedotmack/claude-mem](https://github.com/thedotmack/claude-mem)** - CC Persistent Memory system
-- **[zilliztech/claude-context](https://github.com/zilliztech/claude-context)** - CC Semantic code search
+- **[scarletkc/vexor](https://github.com/scarletkc/vexor)** - CC Semantic code search
 - **[sirmalloc/ccstatusline](https://github.com/sirmalloc/ccstatusline)** - CC Status line integration
 - **[Piebald-AI/tweakcc](https://github.com/Piebald-AI/tweakcc)** - CC Customizations and tweaks for LSP
 - **[tavily-ai/tavily-mcp](https://github.com/tavily-ai/tavily-mcp)** - Web search and mapping capabilities

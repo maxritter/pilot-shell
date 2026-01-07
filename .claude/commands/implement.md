@@ -49,17 +49,16 @@ Update counts:
 
 | Tool | When to Use | Example |
 |------|-------------|---------|
-| **claude-context** | Find related code | `mcp__claude-context__search_code` - "error handling patterns" |
 | **Ref** | Library API lookup | `mcp__Ref__ref_search_documentation` - "pytest fixtures" |
 | **tavily** | Research solutions | `mcp__tavily__tavily-search` - Debug errors, find examples |
 
-**Before starting, ensure codebase is indexed for semantic search:**
-```
-mcp__claude-context__get_indexing_status(path="/absolute/path/to/project")
+**Before starting, verify Vexor is available for semantic search:**
+```bash
+vexor --version
 ```
 
 **During implementation:**
-- Use `mcp__claude-context__search_code` to find similar implementations and patterns
+- Use `vexor search "query" --mode code` to find similar implementations and patterns
 - Use `mcp__Ref__ref_search_documentation` when unsure about library/framework APIs
 - Use `mcp__tavily__tavily-search` to research error messages or find solutions
 

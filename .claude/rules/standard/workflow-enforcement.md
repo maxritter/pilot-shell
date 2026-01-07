@@ -18,7 +18,7 @@
 
 | Instead of Sub-Agent | Use These Directly |
 |----------------------|---------------------|
-| `Task(subagent_type="Explore")` | `Read`, `Grep`, `Glob`, `mcp__claude-context__search_code` |
+| `Task(subagent_type="Explore")` | `Read`, `Grep`, `Glob` |
 | `Task(subagent_type="Plan")` | `/plan` slash command |
 | `Task(subagent_type="general-purpose")` | Direct tool calls (Read, Grep, Bash, etc.) |
 

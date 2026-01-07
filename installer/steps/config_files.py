@@ -13,7 +13,7 @@ from installer.steps.base import BaseStep
 if TYPE_CHECKING:
     from installer.context import InstallContext
 
-REQUIRED_MCP_SERVERS = {"claude-context", "tavily", "Ref"}
+REQUIRED_MCP_SERVERS = {"tavily", "Ref"}
 
 
 def merge_mcp_config(config_file: Path, new_config: dict[str, Any]) -> int:

@@ -59,7 +59,7 @@ const Index = () => {
         "name": "What MCP servers are included?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Claude CodePro includes Claude Mem, Claude Context, Tavily, Ref, and MCP Lazy Loading - all pre-configured and ready to use."
+          "text": "Claude CodePro includes Claude Mem, Vexor, Tavily, Ref, and MCP Lazy Loading - all pre-configured and ready to use."
         }
       }
     ]

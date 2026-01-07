@@ -287,6 +287,58 @@ def _configure_claude_mem_defaults() -> bool:
         return False
 
 
+def _configure_vexor_defaults() -> bool:
+    """Configure Vexor with recommended defaults for semantic search."""
+    import json
+
+    config_dir = Path.home() / ".vexor"
+    config_path = config_dir / "config.json"
+
+    try:
+        config_dir.mkdir(parents=True, exist_ok=True)
+
+        if config_path.exists():
+            config = json.loads(config_path.read_text())
+        else:
+            config = {}
+
+        config.update(
+            {
+                "model": "text-embedding-3-small",
+                "batch_size": 64,
+                "embed_concurrency": 4,
+                "extract_concurrency": 4,
+                "extract_backend": "auto",
+                "provider": "openai",
+                "auto_index": True,
+                "local_cuda": False,
+                "rerank": "bm25",
+            }
+        )
+        config_path.write_text(json.dumps(config, indent=2) + "\n")
+        return True
+    except Exception:
+        return False
+
+
+def install_vexor() -> bool:
+    """Install Vexor semantic search tool and configure defaults."""
+    if command_exists("vexor"):
+        _configure_vexor_defaults()
+        return True
+
+    try:
+        subprocess.run(
+            ["uv", "tool", "install", "vexor"],
+            check=True,
+            capture_output=True,
+        )
+        _configure_vexor_defaults()
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
 def install_claude_mem() -> bool:
     """Install claude-mem plugin via claude plugin marketplace."""
     try:
@@ -306,76 +358,6 @@ def install_claude_mem() -> bool:
 
     _configure_claude_mem_defaults()
     return True
-
-
-MILVUS_COMPOSE_URL = (
-    "https://raw.githubusercontent.com/maxritter/claude-codepro/main/.claude/scripts/milvus/docker-compose.yml"
-)
-MILVUS_COMPOSE_LOCAL_PATH = ".claude/scripts/milvus/docker-compose.yml"
-
-
-def _milvus_containers_running() -> bool:
-    """Check if Milvus containers are already running."""
-    try:
-        result = subprocess.run(
-            ["docker", "ps", "--filter", "name=milvus-standalone", "--format", "{{.Names}}"],
-            capture_output=True,
-            text=True,
-        )
-        return "milvus-standalone" in result.stdout
-    except Exception:
-        return False
-
-
-def install_local_milvus(ui: Any = None, local_mode: bool = False, local_repo_dir: Path | None = None) -> bool:
-    """Start local Milvus via docker compose in ~/.claude/milvus/."""
-    import shutil
-
-    if _milvus_containers_running():
-        return True
-
-    milvus_dir = Path.home() / ".claude" / "milvus"
-    compose_file = milvus_dir / "docker-compose.yml"
-
-    milvus_dir.mkdir(parents=True, exist_ok=True)
-
-    if local_mode and local_repo_dir:
-        source_file = local_repo_dir / MILVUS_COMPOSE_LOCAL_PATH
-        if source_file.exists():
-            shutil.copy2(source_file, compose_file)
-        else:
-            return False
-    else:
-        if not _run_bash_with_retry(f"curl -fsSL -o {compose_file} {MILVUS_COMPOSE_URL}"):
-            return False
-
-    try:
-        process = subprocess.Popen(
-            ["sudo", "docker", "compose", "--progress=plain", "up", "-d"],
-            cwd=milvus_dir,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-        )
-
-        output_lines = []
-        if process.stdout:
-            for line in process.stdout:
-                line = _strip_ansi(line.rstrip())
-                output_lines.append(line)
-                if line and ui:
-                    ui.print(f"  {line}")
-
-        process.wait()
-
-        if process.returncode != 0:
-            output_text = "\n".join(output_lines)
-            if "is already in use" in output_text or "Conflict" in output_text:
-                return True
-
-        return process.returncode == 0
-    except Exception:
-        return False
 
 
 def _install_with_spinner(ui: Any, name: str, install_fn: Any, *args: Any) -> bool:
@@ -441,15 +423,8 @@ class DependenciesStep(BaseStep):
         if _install_with_spinner(ui, "claude-mem plugin", install_claude_mem):
             installed.append("claude_mem")
 
-        if ui:
-            ui.status("Starting local Milvus for Claude Context...")
-        if install_local_milvus(ui, ctx.local_mode, ctx.local_repo_dir):
-            installed.append("local_milvus")
-            if ui:
-                ui.success("Local Milvus started")
-        else:
-            if ui:
-                ui.warning("Could not start Milvus - please install manually")
+        if _install_with_spinner(ui, "Vexor semantic search", install_vexor):
+            installed.append("vexor")
 
         qlty_result = install_qlty(ctx.project_dir)
         if qlty_result[0]:

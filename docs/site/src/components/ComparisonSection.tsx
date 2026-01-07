@@ -112,7 +112,7 @@ const ComparisonSection = () => {
                 </div>
                 <div className="text-green-400/80 flex items-center gap-2 text-xs">
                   <Search className="h-3 w-3 flex-shrink-0" />
-                  <span>Claude Context: Semantic search indexed</span>
+                  <span>Vexor: Local semantic code search</span>
                 </div>
                 <div className="text-green-400/80 flex items-center gap-2 text-xs">
                   <FileCode2 className="h-3 w-3 flex-shrink-0" />

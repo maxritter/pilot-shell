@@ -12,7 +12,7 @@ model: opus
 
 ### Phase 0: Custom MCP Servers Configuration
 
-**Purpose:** Document any custom MCP servers the user has added beyond the standard ones (claude-context, tavily, Ref).
+**Purpose:** Document any custom MCP servers the user has added beyond the standard ones (tavily, Ref).
 
 1. **Ask user about custom MCP servers:**
 
@@ -42,7 +42,7 @@ model: opus
      }
    }
 
-   Note: claude-context, tavily, and Ref are already configured.
+   Note: tavily and Ref are already configured.
    ```
 
    Then ask for confirmation:
@@ -60,7 +60,7 @@ model: opus
    ```
 
    Parse the JSON and filter out standard servers:
-   - Exclude: `claude-context`, `tavily`, `Ref`
+   - Exclude: `tavily`, `Ref`
    - Keep: All other servers as "custom"
 
 4. **If custom servers found, create `.claude/rules/custom/mcp-tools.md`:**
@@ -70,7 +70,7 @@ model: opus
    ```markdown
    ## Custom MCP Servers
 
-   This project uses the following custom MCP servers in addition to the standard ones (claude-context, tavily, Ref).
+   This project uses the following custom MCP servers in addition to the standard ones (tavily, Ref).
 
    ### [Server Name]
 
@@ -186,43 +186,49 @@ model: opus
    Write(file_path=".claude/rules/custom/project.md", content=generated_content)
    ```
 
-### Phase 3: Initialize Semantic Search
+### Phase 3: Initialize Semantic Search with Vexor
 
 1. **Get current working directory as absolute path:**
    ```bash
    pwd
    ```
 
-2. **Check Claude Context indexing status:**
-   ```python
-   mcp__claude-context__get_indexing_status(path="/absolute/path/to/project")
+2. **Check if Vexor is available:**
+   ```bash
+   vexor --version
    ```
 
-3. **If not indexed or index is stale, start indexing:**
-   ```python
-   mcp__claude-context__index_codebase(
-       path="/absolute/path/to/project",
-       splitter="ast",
-       force=False
-   )
+   If not installed, inform user:
+   ```
+   Vexor CLI is not installed. Please install it to enable semantic code search.
+   See: https://github.com/anthropics/vexor for installation instructions.
    ```
 
-   Note: Ignore patterns are configured directly in the MCP server, no need to pass them here.
-
-4. **Monitor indexing progress (check every 10 seconds until complete):**
-   ```python
-   # Keep checking until status shows "indexed" or error
-   mcp__claude-context__get_indexing_status(path="/absolute/path/to/project")
+3. **Run initial indexing with a test search:**
+   ```bash
+   vexor search "main entry point" --path /absolute/path/to/project --mode code --top 3
    ```
 
-5. **Verify indexing with a test search:**
-   ```python
-   mcp__claude-context__search_code(
-       path="/absolute/path/to/project",
-       query="main entry point function",
-       limit=3
-   )
+   Note: First search will trigger indexing automatically (may take a minute for large codebases).
+
+   Common exclusion patterns are respected via `.gitignore`. For additional exclusions:
+   ```bash
+   vexor search "query" --exclude-pattern "tests/**" --exclude-pattern ".js"
    ```
+
+4. **Verify indexing with a broader search:**
+   ```bash
+   vexor search "configuration loading" --path /absolute/path/to/project --mode code --top 5
+   ```
+
+5. **Document available search modes for the project:**
+
+   | Mode | Best For | Example |
+   |------|----------|---------|
+   | `code` | Python, JS, TS source files | `vexor search "API handler" --mode code` |
+   | `outline` | Markdown documentation | `vexor search "authentication" --mode outline --ext .md` |
+   | `name` | Finding files by name | `vexor search "config" --mode name` |
+   | `auto` | Mixed content (default) | `vexor search "database connection"` |
 
 ### Phase 4: Completion Summary
 
@@ -236,13 +242,13 @@ Display a summary like:
 │   ✓ .claude/rules/custom/project.md                        │
 │   ✓ .claude/rules/custom/mcp-tools.md (if custom servers)  │
 │                                                             │
-│ Semantic Search:                                            │
-│   ✓ Claude Context index initialized                       │
-│   ✓ Excluded: node_modules, __pycache__, .venv, cdk.out... │
-│   ✓ Indexed X files                                        │
+│ Semantic Search (Vexor):                                    │
+│   ✓ Vexor CLI available                                    │
+│   ✓ Initial index built (respects .gitignore)              │
+│   ✓ Test search successful                                 │
 │                                                             │
 │ MCP Servers:                                                │
-│   ✓ Standard: claude-context, tavily, Ref                  │
+│   ✓ Standard: tavily, Ref                                  │
 │   ✓ Custom: [list custom server names or "none"]           │
 ├─────────────────────────────────────────────────────────────┤
 │ Next Steps:                                                 │
@@ -250,41 +256,57 @@ Display a summary like:
 │   2. Use /plan to create a feature plan                    │
 │   3. Use /implement to execute the plan                    │
 │   4. Use /verify to verify implementation                  │
+│                                                             │
+│ Semantic Search Usage:                                      │
+│   vexor search "your query" --mode code --top 5            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ## Error Handling
 
 - **If tree command not available:** Use `ls -la` recursively with depth limit
-- **If indexing fails:** Log error, continue with other steps, suggest manual indexing
+- **If Vexor not installed:** Inform user and provide installation link, continue with other steps
+- **If Vexor indexing is slow:** Run `vexor search` with `--no-cache` to rebuild the index fresh
 - **If README.md missing:** Ask user for brief project description
 - **If package.json/pyproject.toml missing:** Infer from file extensions and directory structure
-- **If indexing gets stuck:** Clear index and retry with `force=true`
+- **If Vexor search returns no results:** Check path is correct, try broader query, or use `--no-respect-gitignore` if files are ignored
 
 ## Important Notes
 
-- Always use absolute paths for MCP tools
+- Use absolute paths when specifying `--path` for Vexor
 - Don't overwrite existing project.md without confirmation
 - Keep project.md concise - it will be included in every Claude Code session
 - Focus on information that helps Claude understand how to work with this codebase
+- Vexor respects `.gitignore` by default - use `--no-respect-gitignore` to include ignored files
 
 ## Indexing Exclusion Patterns
 
-The following patterns are excluded from semantic indexing to keep the index fast and relevant:
+Vexor respects `.gitignore` by default, so common patterns like `node_modules/`, `__pycache__/`, `.venv/`, etc. are automatically excluded if they're in your `.gitignore`.
+
+**For additional exclusions during search, use `--exclude-pattern`:**
+
+```bash
+# Exclude test files
+vexor search "database" --exclude-pattern "tests/**"
+
+# Exclude specific extensions
+vexor search "config" --exclude-pattern ".js" --exclude-pattern ".css"
+
+# Multiple exclusions
+vexor search "handler" --exclude-pattern "vendor/**" --exclude-pattern "*.min.js"
+```
+
+**Common patterns typically in `.gitignore`:**
 
 | Pattern | Reason |
 |---------|--------|
-| `node_modules/**` | NPM dependencies |
-| `__pycache__/**`, `*.pyc`, `*.pyo` | Python bytecode |
-| `.venv/**`, `venv/**`, `.uv/**` | Python virtual environments |
-| `.git/**` | Git internals |
-| `dist/**`, `build/**`, `target/**` | Build outputs |
-| `cdk.out/**` | CDK synthesized CloudFormation |
-| `.mypy_cache/**`, `.pytest_cache/**`, `.ruff_cache/**` | Tool caches |
-| `coverage/**`, `.coverage/**` | Test coverage data |
-| `*.egg-info/**` | Python packaging |
-| `.next/**` | Next.js build output |
-| `.tox/**` | Tox testing environments |
-| `.cache/**` | Generic cache directories |
-| `.terraform/**` | Terraform state/modules |
-| `vendor/**` | Vendored dependencies |
+| `node_modules/` | NPM dependencies |
+| `__pycache__/`, `*.pyc` | Python bytecode |
+| `.venv/`, `venv/` | Python virtual environments |
+| `dist/`, `build/` | Build outputs |
+| `.mypy_cache/`, `.pytest_cache/` | Tool caches |
+| `coverage/` | Test coverage data |
+| `.next/` | Next.js build output |
+
+**To include ignored files:** Use `--no-respect-gitignore`
+**To include hidden files:** Use `--include-hidden`

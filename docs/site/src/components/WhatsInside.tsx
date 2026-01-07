@@ -40,7 +40,7 @@ const insideItems: InsideItem[] = [
     title: "MCP Servers",
     items: [
       "Claude Mem - Cross-session persistent memory",
-      "Claude Context - Local semantic code search",
+      "Vexor - Local semantic code search",
       "Tavily - Web search and mapping",
       "Ref - AI-powered code context retrieval",
       "MCP Lazy Loading - Reduces MCP context usage",

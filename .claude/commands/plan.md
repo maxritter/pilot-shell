@@ -180,15 +180,14 @@ Questions:
 
 | Tool | When to Use | Example |
 |------|-------------|---------|
-| **claude-context** | Semantic code search | `mcp__claude-context__search_code` - Find implementations by concept |
 | **Ref** | Library/framework docs | `mcp__Ref__ref_search_documentation` - Look up API usage |
 | **tavily** | External research | `mcp__tavily__tavily-search` - Research best practices |
 
-**Before exploring, check if codebase is indexed:**
+**Before exploring, verify Vexor is available:**
+```bash
+vexor --version
 ```
-mcp__claude-context__get_indexing_status(path="/absolute/path/to/project")
-```
-If not indexed, run: `mcp__claude-context__index_codebase(path="...")`
+First search will trigger automatic indexing. Use `vexor search "query" --mode code` for semantic code search.
 
 **Exploration areas (in order):**
 
@@ -204,7 +203,7 @@ If not indexed, run: `mcp__claude-context__index_codebase(path="...")`
 - You must maintain full context throughout the planning process
 
 **For each area:**
-- Use `mcp__claude-context__search_code` for semantic searches like "authentication middleware" or "database connection handling"
+- Use `vexor search "query" --mode code` for semantic searches like "authentication middleware" or "database connection handling"
 - Use `mcp__Ref__ref_search_documentation` when you need library/framework API details
 - Use `mcp__tavily__tavily-search` for researching patterns, best practices, or unfamiliar technologies
 - Use `Read`, `Grep`, `Glob` tools directly for file exploration

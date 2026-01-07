@@ -37,7 +37,7 @@ class TestDependenciesStep:
     @patch("installer.steps.dependencies.install_dotenvx")
     @patch("installer.steps.dependencies.run_qlty_check")
     @patch("installer.steps.dependencies.install_qlty")
-    @patch("installer.steps.dependencies.install_local_milvus")
+    @patch("installer.steps.dependencies.install_vexor")
     @patch("installer.steps.dependencies.install_claude_mem")
     @patch("installer.steps.dependencies.install_typescript_lsp")
     @patch("installer.steps.dependencies.run_tweakcc")
@@ -50,7 +50,7 @@ class TestDependenciesStep:
         mock_tweakcc,
         mock_typescript_lsp,
         mock_claude_mem,
-        mock_milvus,
+        mock_vexor,
         mock_qlty,
         mock_qlty_check,
         mock_dotenvx,
@@ -66,7 +66,7 @@ class TestDependenciesStep:
         mock_tweakcc.return_value = True
         mock_typescript_lsp.return_value = True
         mock_claude_mem.return_value = True
-        mock_milvus.return_value = True
+        mock_vexor.return_value = True
         mock_qlty.return_value = (True, False)
         mock_dotenvx.return_value = True
 
@@ -89,7 +89,7 @@ class TestDependenciesStep:
     @patch("installer.steps.dependencies.install_dotenvx")
     @patch("installer.steps.dependencies.run_qlty_check")
     @patch("installer.steps.dependencies.install_qlty")
-    @patch("installer.steps.dependencies.install_local_milvus")
+    @patch("installer.steps.dependencies.install_vexor")
     @patch("installer.steps.dependencies.install_claude_mem")
     @patch("installer.steps.dependencies.install_pyright_lsp")
     @patch("installer.steps.dependencies.install_typescript_lsp")
@@ -108,7 +108,7 @@ class TestDependenciesStep:
         mock_typescript_lsp,
         mock_pyright_lsp,
         mock_claude_mem,
-        mock_milvus,
+        mock_vexor,
         mock_qlty,
         mock_qlty_check,
         mock_dotenvx,
@@ -127,7 +127,7 @@ class TestDependenciesStep:
         mock_typescript_lsp.return_value = True
         mock_pyright_lsp.return_value = True
         mock_claude_mem.return_value = True
-        mock_milvus.return_value = True
+        mock_vexor.return_value = True
         mock_qlty.return_value = (True, False)
         mock_dotenvx.return_value = True
 
@@ -442,3 +442,82 @@ class TestClaudeMemInstall:
         result = install_claude_mem()
 
         assert result is True
+
+
+class TestVexorInstall:
+    """Test Vexor semantic search installation."""
+
+    def test_install_vexor_exists(self):
+        """install_vexor function exists."""
+        from installer.steps.dependencies import install_vexor
+
+        assert callable(install_vexor)
+
+    @patch("installer.steps.dependencies._configure_vexor_defaults")
+    @patch("installer.steps.dependencies.command_exists")
+    def test_install_vexor_skips_if_exists(self, mock_cmd_exists, mock_config):
+        """install_vexor skips installation if already installed."""
+        from installer.steps.dependencies import install_vexor
+
+        mock_cmd_exists.return_value = True
+        mock_config.return_value = True
+
+        result = install_vexor()
+
+        assert result is True
+        mock_config.assert_called_once()
+
+    @patch("installer.steps.dependencies._configure_vexor_defaults")
+    @patch("subprocess.run")
+    @patch("installer.steps.dependencies.command_exists")
+    def test_install_vexor_uses_uv_tool(self, mock_cmd_exists, mock_run, mock_config):
+        """install_vexor uses uv tool install."""
+        from installer.steps.dependencies import install_vexor
+
+        mock_cmd_exists.return_value = False
+        mock_run.return_value = MagicMock(returncode=0)
+        mock_config.return_value = True
+
+        result = install_vexor()
+
+        assert result is True
+        mock_run.assert_called_once()
+        call_args = mock_run.call_args[0][0]
+        assert call_args == ["uv", "tool", "install", "vexor"]
+        mock_config.assert_called_once()
+
+    def test_configure_vexor_defaults_creates_config(self):
+        """_configure_vexor_defaults creates config file."""
+        from installer.steps.dependencies import _configure_vexor_defaults
+        import json
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                result = _configure_vexor_defaults()
+
+                assert result is True
+                config_path = Path(tmpdir) / ".vexor" / "config.json"
+                assert config_path.exists()
+                config = json.loads(config_path.read_text())
+                assert config["model"] == "text-embedding-3-small"
+                assert config["provider"] == "openai"
+                assert config["rerank"] == "bm25"
+
+    def test_configure_vexor_defaults_merges_existing(self):
+        """_configure_vexor_defaults merges with existing config."""
+        from installer.steps.dependencies import _configure_vexor_defaults
+        import json
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config_dir = Path(tmpdir) / ".vexor"
+            config_dir.mkdir()
+            config_path = config_dir / "config.json"
+            config_path.write_text(json.dumps({"custom_key": "custom_value"}))
+
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                result = _configure_vexor_defaults()
+
+                assert result is True
+                config = json.loads(config_path.read_text())
+                assert config["custom_key"] == "custom_value"
+                assert config["model"] == "text-embedding-3-small"

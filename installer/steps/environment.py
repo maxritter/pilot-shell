@@ -138,7 +138,7 @@ class EnvironmentStep(BaseStep):
                 ui.print()
                 ui.rule("1. OpenAI API Key - Semantic Code Search")
                 ui.print()
-                ui.print("  [bold]Used for:[/bold] Generating embeddings for Claude Context semantic search")
+                ui.print("  [bold]Used for:[/bold] Generating embeddings for Vexor semantic search (cheap)")
                 ui.print("  [bold]Why:[/bold] Powers fast, intelligent code search across your codebase")
                 ui.print("  [bold]Create at:[/bold] [cyan]https://platform.openai.com/api-keys[/cyan]")
                 ui.print()
