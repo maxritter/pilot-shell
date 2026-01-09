@@ -44,6 +44,14 @@ const Footer = () => {
               </li>
               <li>
                 <button
+                  onClick={() => smoothScrollTo('licensing')}
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Licensing
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => smoothScrollTo('faq')}
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
@@ -55,6 +63,7 @@ const Footer = () => {
 
           <div className="flex flex-col items-start gap-4">
             <h3 className="text-sm font-medium">Connect</h3>
+            <p className="text-xs text-muted-foreground">Follow on LinkedIn for updates</p>
             <nav className="flex gap-3" aria-label="Social media links">
               <Button
                 size="icon"
@@ -82,7 +91,7 @@ const Footer = () => {
                 className="border-primary/50 hover:bg-primary/10 transition-all duration-300 hover:scale-110 hover:border-primary"
                 asChild
               >
-                <a href="mailto:contact@claude-code.pro" aria-label="Email">
+                <a href="mailto:mail@maxritter.net" aria-label="Email">
                   <Mail className="h-5 w-5" />
                 </a>
               </Button>
@@ -93,7 +102,7 @@ const Footer = () => {
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Claude CodePro. Open source under AGPL-3.0. Created by{" "}
+              © {new Date().getFullYear()} Claude CodePro. Dual-licensed: AGPL-3.0 (free) or Commercial. Created by{" "}
               <a
                 href="https://maxritter.net/"
                 target="_blank"

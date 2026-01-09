@@ -12,7 +12,7 @@ interface SEOProps {
 
 const SEO = ({
   title = "Claude CodePro - Professional Development Environment for Claude Code",
-  description = "Start shipping systematically with Spec-Driven Development, TDD, Semantic Search, Persistent Memory, Context Management, Quality Hooks, and Modular Rules System. Free and open source.",
+  description = "Start shipping systematically with Spec-Driven Development, TDD, Semantic Search, Persistent Memory, Context Management, Quality Hooks, and Modular Rules System. Free for individuals, commercial license for companies.",
   keywords = "Claude CodePro, Claude Code, AI-assisted development, Spec-Driven Development, TDD, Test-Driven Development, Context Engineering, professional developers, dev containers, plugins, modular rules, semantic search, persistent memory",
   canonicalUrl = "https://www.claude-code.pro",
   ogImage = "https://storage.googleapis.com/gpt-engineer-file-uploads/qmjt5RyHpNP9GFnerZmcYYkrVd13/social-images/social-1762415471953-share.png",

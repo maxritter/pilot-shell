@@ -5,6 +5,7 @@ import WorkflowSteps from "@/components/WorkflowSteps";
 import WhatsInside from "@/components/WhatsInside";
 import InstallSection from "@/components/InstallSection";
 import RequirementsSection from "@/components/RequirementsSection";
+import LicensingSection from "@/components/LicensingSection";
 import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -35,7 +36,7 @@ const Index = () => {
         "name": "Is Claude CodePro free?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes! Claude CodePro is completely free and open source under the AGPL-3.0 license."
+          "text": "Free for individuals, freelancers, and open source projects under AGPL-3.0. Companies using it in proprietary/closed-source products need a commercial license. Contact mail@maxritter.net for licensing."
         }
       },
       {
@@ -60,6 +61,14 @@ const Index = () => {
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Spec-Driven Mode (/spec) creates a plan for your approval before implementation - great for new features. Quick Mode lets you just chat for bug fixes and small changes. Both modes get Endless Mode and TDD enforcement."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do you offer professional services?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! Max Ritter (the author) is a freelancer near Munich, Germany, offering custom development, enterprise integration, training, and consulting in DevOps, Data Engineering, and AI. Contact mail@maxritter.net."
         }
       }
     ]
@@ -104,7 +113,7 @@ const Index = () => {
     <>
       <SEO
         title="Claude CodePro - Professional Development Environment for Claude Code"
-        description="Start shipping systematically with Automated Context Management, Spec-Driven Development, Skills, TDD, LSP, Semantic Search, Persistent Memory, Quality Hooks, and more. Free and open source."
+        description="Start shipping systematically with Automated Context Management, Spec-Driven Development, Skills, TDD, LSP, Semantic Search, Persistent Memory, Quality Hooks, and more. Free for individuals, commercial license for companies."
         structuredData={[faqStructuredData, breadcrumbStructuredData, softwareStructuredData]}
       />
       <NavBar />
@@ -115,6 +124,7 @@ const Index = () => {
         <WorkflowSteps />
         <InstallSection />
         <RequirementsSection />
+        <LicensingSection />
         <FAQ />
         <Footer />
       </main>

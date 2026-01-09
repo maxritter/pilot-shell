@@ -20,7 +20,7 @@ const faqs: FaqItem[] = [
   },
   {
     question: "Is Claude CodePro free?",
-    answer: "Yes! Claude CodePro is completely free and open source under the AGPL-3.0 license. You can install it into any project and use all features without any cost.",
+    answer: "Free for individuals, freelancers, and open source projects under AGPL-3.0. Companies using it in proprietary/closed-source products need a commercial license. Contact mail@maxritter.net for licensing.",
   },
   {
     question: "What IDEs are supported?",
@@ -29,6 +29,14 @@ const faqs: FaqItem[] = [
   {
     question: "Do I need Docker?",
     answer: "Yes, you need a container runtime like Docker Desktop or OrbStack (macOS). Claude CodePro runs inside a Dev Container to provide complete isolation, consistent tooling, and cross-platform compatibility.",
+  },
+  {
+    question: "Can I contribute or request features?",
+    answer: "Pull requests are welcome! Issues are disabled as this project evolves alongside the author's freelance work. If you want a feature, submit a PR. For custom development or enterprise needs, contact mail@maxritter.net.",
+  },
+  {
+    question: "Do you offer professional services?",
+    answer: "Yes! Max Ritter (the author) is a freelancer near Munich, Germany, offering custom development, enterprise integration, training, and consulting in DevOps, Data Engineering, and AI. Contact mail@maxritter.net.",
   },
 ];
 

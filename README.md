@@ -13,7 +13,7 @@ Start shipping systematically with Endless Mode, Spec-Driven Development, Skills
 ![Spec-Driven](https://img.shields.io/badge/Spec-Driven-yellow.svg)
 ![TDD](https://img.shields.io/badge/TDD-Enforcement-green.svg)
 
-#### [Star this repository ](https://github.com/maxritter/claude-codepro) - [Visit the website](https://claude-code.pro)
+#### ⭐ [Star this repository](https://github.com/maxritter/claude-codepro) · 🌐 [Visit the website](https://claude-code.pro) · 💼 [Follow for updates](https://www.linkedin.com/in/rittermax/) · ✉️ [Get in touch](mailto:mail@maxritter.net)
 
 </div>
 
@@ -168,6 +168,67 @@ Both `/spec` and Quick Mode use the full 200K context window with automatic mana
 - **Automatic handoffs** - When context nears the limit, state is saved and work continues in a new session
 - **Claude Mem preserves understanding** - Relevant observations flow across sessions
 - **Auto-compact disabled** - Installation disables auto-compact, giving you 20% more usable context
+
+---
+
+## 📜 License
+
+Claude CodePro is dual-licensed:
+
+### Open Source (AGPL-3.0)
+
+Free for:
+- **Individuals** - Personal projects and learning
+- **Freelancers** - Client work and consulting
+- **Open Source Projects** - Projects that release source under AGPL-3.0
+
+### Commercial License
+
+**Companies using Claude CodePro in proprietary/closed-source products must obtain a commercial license.**
+
+This applies to:
+- Companies with closed-source software
+- Internal tools at companies that don't want to open-source
+- SaaS products using Claude CodePro
+
+**Contact:** [mail@maxritter.net](mailto:mail@maxritter.net) for commercial licensing inquiries.
+
+---
+
+## 🤝 Contributing
+
+**Pull Requests are welcome!** If you have new features, improvements, or bug fixes, feel free to open a PR.
+
+**Note:** Issues are disabled. This project evolves alongside my professional work as a freelancer, and I don't have the capacity to maintain a public issue tracker. If you want a feature or find a bug, the best way to contribute is to submit a PR.
+
+---
+
+## 💼 Professional Services
+
+I'm **Max Ritter**, a senior IT freelancer based near **Munich, Germany**, specializing in:
+
+- **AWS Cloud** - Cloud Infrastructure, Architecture & Development
+- **Data Engineering** - Data Pipelines, ETL, Analytics Infrastructure
+- **Artificial Intelligence** - LLM Integration, AI-Assisted Development, Agents
+- **DevOps** - CI/CD, Infrastructure as Code, Automation
+
+### Paid Services Available
+
+| Service | Description |
+|---------|-------------|
+| **Custom Development** | Claude CodePro doesn't work in your setup? Containerized environment issues? Specific software restrictions? I can customize it for your needs. |
+| **Enterprise Integration** | Need Claude CodePro integrated into your company's existing toolchain and workflows? |
+| **Consulting** | General DevOps, Data Engineering, or AI consulting for your projects |
+
+### Contact & Connect
+
+| | |
+|---|---|
+| ✉️ **Email** | [mail@maxritter.net](mailto:mail@maxritter.net) |
+| 💼 **LinkedIn** | [linkedin.com/in/rittermax](https://www.linkedin.com/in/rittermax/) |
+| 📄 **CV** | [flowcv.com/resume/hcaa0q4wdd](https://flowcv.com/resume/hcaa0q4wdd) |
+| 📝 **Blog** | [blog.maxritter.net](http://blog.maxritter.net/) |
+| 🌐 **Website** | [maxritter.net](https://maxritter.net) |
 
 ---
 
