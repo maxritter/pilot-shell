@@ -20,6 +20,23 @@ description: Execute implementation plans in batches with Claude CodePro
 
 **Execute tasks continuously with full quality. Hand off cleanly when context is high.**
 
+## Feedback Loop Awareness
+
+**This skill may be called multiple times in a feedback loop:**
+
+```
+/implement → /verify → issues found → /implement → /verify → ... → VERIFIED
+```
+
+**When called after /verify found issues:**
+1. Read the plan - /verify will have added fix tasks (marked with `[MISSING]` or similar)
+2. Check the `Iterations` field in the plan header
+3. **Report iteration start:** "🔄 Starting Iteration N implementation..."
+4. Focus on uncompleted tasks `[ ]` - these are the fixes needed
+5. Complete all fix tasks, then set status to COMPLETE as normal
+
+**The loop continues automatically until all checks pass (VERIFIED) or context hits 90%.**
+
 ## ⛔ CRITICAL: Task Completion Tracking is MANDATORY
 
 **After completing EACH task, you MUST:**

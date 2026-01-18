@@ -1,6 +1,6 @@
 # Workflow Enforcement Rules
 
-**Rule:** Follow the /plan → /implement → /verify workflow exactly. No shortcuts. No sub-agents.
+**Rule:** Follow the /plan → /implement → /verify workflow with automatic feedback loop. No shortcuts. No sub-agents.
 
 ---
 
@@ -62,20 +62,29 @@ EnterPlanMode()  # ❌ BANNED
 
 ---
 
-## Plan-Implement-Verify Lifecycle
+## Plan-Implement-Verify Lifecycle (with Feedback Loop)
 
-The project uses a three-phase workflow that must be followed strictly:
+The project uses a three-phase workflow with **automatic feedback loop**:
+
+```
+/plan → User Approval → /implement → /verify
+                              ↑          ↓
+                              └── if issues found ──┘
+```
 
 | Phase | Command | Status | Next Action |
 |-------|---------|--------|-------------|
 | Planning | `/plan` | Creates plan with `Status: PENDING` | Ask user approval, then auto-continue |
 | Implementation | `/implement` | Updates to `Status: COMPLETE` | Auto-continue to `/verify` |
 | Verification | `/verify` | Updates to `Status: VERIFIED` | Done |
+| **Feedback Loop** | `/verify` finds issues | Sets `Status: PENDING`, increments `Iterations` | Auto-continue to `/implement` |
 
 **Status values in plan files:**
-- `PENDING` - Tasks remain to be implemented
+- `PENDING` - Tasks remain to be implemented (or fix tasks added by /verify)
 - `COMPLETE` - All tasks implemented (set by /implement)
 - `VERIFIED` - Verification passed (set by /verify)
+
+**The feedback loop continues automatically until VERIFIED or context limit (90%).**
 
 ## Mandatory Task Completion Tracking
 
@@ -175,8 +184,9 @@ When a plan reaches `Status: COMPLETE`, the supervisor verifies:
    - No "❌ MISSING" or "⬜ Not mapped" entries
 
 4. **Status Progression:**
-   - PENDING → COMPLETE → VERIFIED
-   - Never skip states
+   - PENDING → COMPLETE → VERIFIED (happy path)
+   - PENDING → COMPLETE → PENDING → COMPLETE → VERIFIED (with feedback loop)
+   - Never skip states, but can loop back from COMPLETE to PENDING
 
 ## Common Violations and Fixes
 
@@ -206,4 +216,5 @@ When a plan reaches `Status: COMPLETE`, the supervisor verifies:
 | Complete a task | Edit plan: `[ ]` → `[x]`, update counts | Checkbox changed, counts match |
 | Finish /implement | Set `Status: COMPLETE` | All `[x]`, counts show 0 remaining |
 | Pass /verify | Set `Status: VERIFIED` | All checks passed |
-| Find missing feature | Add task with `[MISSING]` prefix | Set `Status: PENDING` |
+| /verify finds issues | Add fix tasks, set `Status: PENDING`, increment `Iterations` | Loop back to /implement |
+| Start new iteration | Report "🔄 Iteration N" | Check `Iterations` field in plan |

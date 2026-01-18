@@ -14,7 +14,9 @@ description: Run tests and fix issues end-to-end with Claude CodePro
 
 ## The Process
 
-Tests → Program execution → **Rules compliance audit** → Call chain analysis → Coverage → Quality checks → Code review → E2E → Final verification
+**Unit tests → Integration tests → Program execution (with log inspection) → Rules audit → Coverage → Quality → Code review → E2E tests → Final verification**
+
+**All test levels are MANDATORY:** Unit tests alone are insufficient. You must run integration tests AND E2E tests AND execute the actual program with real data.
 
 Active verification with comprehensive code review that immediately fixes issues as discovered, ensuring all tests pass, code quality is high, and system works end-to-end.
 
@@ -36,10 +38,21 @@ Run integration tests and fix any failures immediately.
 
 Run the actual program and verify real output.
 
+**Execution checklist:**
+- [ ] Build/compile succeeds without warnings
+- [ ] Program starts without errors
+- [ ] **Inspect logs** - Check for errors, warnings, stack traces
+- [ ] Verify expected output matches actual output
+- [ ] Test with real/sample data, not just mocks
+
 **If bugs are found:**
-1. Fix bugs immediately (no need to add tasks for minor fixes)
-2. Re-run to verify the fix worked
-3. Continue verification - do not stop or hand off to user
+
+| Bug Type | Action |
+|----------|--------|
+| **Minor** (typo, off-by-one, missing import) | Fix immediately, re-run, continue verification |
+| **Major** (logic error, missing function, architectural issue) | Add task to plan, set PENDING, exit verify → loop back |
+
+**Rule of thumb:** If you can fix it in < 5 minutes without writing new tests, fix inline. Otherwise, add a task.
 
 ### Step 3a: Feature Parity Check (if applicable)
 
@@ -62,25 +75,25 @@ This is a serious issue - the implementation is incomplete.
    - Update the Progress Tracking section with new task count
    - Add note: `> Extended [Date]: Tasks X-Y added for missing features found during verification`
 
-2. **Set plan status to PENDING:**
+2. **Set plan status to PENDING and increment Iterations:**
    ```
-   Edit the plan file and change the Status line:
+   Edit the plan file:
    Status: COMPLETE  →  Status: PENDING
+   Iterations: N     →  Iterations: N+1
    ```
 
 3. **Inform user:**
    ```
-   ⚠️ VERIFICATION FAILED - Missing Features Detected
+   🔄 Iteration N+1: Missing features detected, looping back to implement...
 
    Found [N] missing features that need implementation:
    - [Feature 1]
    - [Feature 2]
-   - ...
 
    The plan has been updated with [N] new tasks.
    ```
 
-4. **STOP** - Do not continue verification
+4. **EXIT verify process** - Do not continue to Step 4+. The /spec workflow will automatically loop back to /implement.
 
 ### Step 4: Rules Compliance Audit
 
@@ -183,9 +196,11 @@ Run automated quality tools and fix any issues found.
 
 **If issues found:** Document and fix immediately
 
-### Step 9: E2E Verification (if applicable)
+### Step 9: E2E Verification (MANDATORY for apps with UI/API)
 
-Run end-to-end tests as appropriate for the application type.
+**⚠️ Unit + Integration tests are NOT enough. You MUST also run E2E tests.**
+
+Run end-to-end tests to verify the complete user workflow works.
 
 #### For APIs: Manual or Automated API Testing
 
@@ -240,19 +255,20 @@ curl -X DELETE http://localhost:8000/api/resource/1
    Edit the plan file and change the Status line:
    Status: COMPLETE  →  Status: VERIFIED
    ```
-2. Inform user: "✅ Verification complete. Plan status updated to VERIFIED."
+2. Read the Iterations count from the plan file
+3. Inform user: "✅ Iteration N: All checks passed - VERIFIED"
 
 **When verification FAILS (missing features, serious bugs, or unfixed rule violations):**
 
 1. Add new tasks to the plan for missing features/bugs
-2. **Set status back to PENDING:**
+2. **Set status back to PENDING and increment Iterations:**
    ```
-   Edit the plan file and change the Status line:
+   Edit the plan file:
    Status: COMPLETE  →  Status: PENDING
+   Iterations: N     →  Iterations: N+1
    ```
-3. Inform user: "⚠️ Found issues. Fixing and re-verifying..."
-4. Automatically fix bugs one after another
-5. After fixing, **loop back to Step 1** and re-run verification
-6. **The /spec workflow handles this automatically** - do not tell user to run another command
+3. Inform user: "🔄 Iteration N+1: Issues found, fixing and re-verifying..."
+4. **The /spec workflow handles this automatically** - do not tell user to run another command
+5. /spec will re-read status, see PENDING, and run /implement again
 
 **Fix immediately | Test after each fix | No "should work" - verify it works | Keep fixing until green**

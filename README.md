@@ -96,6 +96,7 @@ Claude CodePro is designed to be token-efficient, but quality has its cost. For 
 - **Approval** - You review, edit if needed, and approve the plan before implementation
 - **Implementation** - Executes the plan with TDD enforcement and context management
 - **Verification** - Runs tests, quality checks, and validates completion based on the plan
+- **Feedback Loop** - If verification finds issues, automatically loops back to fix and re-verify
 
 ### Modular Rules System
 

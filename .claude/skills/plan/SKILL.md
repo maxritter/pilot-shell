@@ -301,8 +301,10 @@ Questions:
 Created: [Date]
 Status: PENDING
 Approved: No
+Iterations: 0
 
 > **Status Lifecycle:** PENDING → COMPLETE → VERIFIED
+> **Iterations:** Tracks implement→verify cycles (incremented by /verify)
 > - PENDING: Initial state, awaiting implementation
 > - COMPLETE: All tasks implemented (set by /implement)
 > - VERIFIED: Rules supervisor passed (set automatically)

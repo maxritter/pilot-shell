@@ -79,7 +79,9 @@ ELSE:
 
 The continuation file provides guaranteed context even if Claude Mem injection is delayed.
 
-### Step 2: Execute Based on Status
+### Step 2: Execute Based on Status (FEEDBACK LOOP)
+
+**This step is a LOOP that continues until Status is VERIFIED.**
 
 After reading the plan file's Status and Approved fields:
 
@@ -89,6 +91,37 @@ After reading the plan file's Status and Approved fields:
 | PENDING | Yes | Use Skill tool to run /implement with plan-path |
 | COMPLETE | * | Use Skill tool to run /verify with plan-path |
 | VERIFIED | * | Report completion and ask follow-up (Step 3) |
+
+**⚠️ CRITICAL: After /verify completes, RE-READ the plan file status!**
+
+```
+LOOP:
+  1. Read plan file status
+  2. Dispatch based on status (table above)
+  3. After skill completes, go back to step 1
+  4. EXIT loop only when: Status == VERIFIED OR context >= 90%
+```
+
+**Why this matters:**
+- /verify may find issues and set Status back to PENDING
+- /verify adds fix tasks to the plan
+- The loop automatically re-runs /implement to fix issues
+- Continues until everything passes (VERIFIED)
+
+**Between iterations:**
+1. Check context: `.claude/bin/ccp check-context --json`
+2. If context >= 90%: hand off cleanly (don't rush!)
+3. If context 80-89%: continue but wrap up current task with quality
+4. If context < 80%: continue the loop freely
+
+**Report iteration progress (only after first loop-back):**
+```
+🔄 Starting Iteration 1 implementation...  (after first verify failure)
+✅ Iteration 1: All checks passed - VERIFIED
+
+🔄 Starting Iteration 2 implementation...  (if it loops again)
+✅ Iteration 2: All checks passed - VERIFIED
+```
 
 ### Step 2a: ⛔ MANDATORY User Approval Gate
 
@@ -207,15 +240,27 @@ User selects: "Yes, proceed with implementation"
 
 3. Edit plan file: change "Approved: No" to "Approved: Yes"
    Use Skill(implement, docs/plans/2026-01-07-calculator.md)
-   → Implementation complete
+   → All tasks complete, Status: COMPLETE
 
-4. Read plan file, Status: COMPLETE
+4. Re-read plan file, Status: COMPLETE
    Use Skill(verify, docs/plans/2026-01-07-calculator.md)
-   → Verification passed
+   → Found 2 failing tests, added fix tasks, Status: PENDING, Iterations: 0 → 1
 
-5. Read plan file, Status: VERIFIED
-   Report: "Workflow complete! Is there anything else?"
+5. 🔄 Re-read plan file, Status: PENDING, Iterations: 1
+   Report: "🔄 Starting Iteration 1 implementation..."
+   Use Skill(implement, docs/plans/2026-01-07-calculator.md)
+   → Fix tasks complete, Status: COMPLETE
+
+6. Re-read plan file, Status: COMPLETE
+   Use Skill(verify, docs/plans/2026-01-07-calculator.md)
+   → All checks passed, Status: VERIFIED
+
+7. ✅ Read plan file, Status: VERIFIED, Iterations: 1
+   Report: "✅ Iteration 1: All checks passed - VERIFIED"
+   "Workflow complete! Is there anything else?"
 ```
+
+**The loop continues automatically until VERIFIED - no manual intervention needed.**
 
 ## Quality Over Speed - CRITICAL
 
@@ -232,10 +277,11 @@ User selects: "Yes, proceed with implementation"
 1. **Run /setup first** - Use `/setup` command to initialize project before first /spec
 2. **Always use Skill tool** - don't just describe, actually invoke
 3. **NEVER skip user approval** - Use AskUserQuestion to get approval, then update `Approved: Yes` yourself
-4. **Continue automatically after approval** - Don't tell user to run another command
+4. **Feedback loop is automatic** - After /verify, re-read status and continue if not VERIFIED
 5. **Plan file is source of truth** - survives session clears
-6. **Check context regularly** - trigger clear before hitting 100%
+6. **Check context between iterations** - hand off at 90%, wrap up at 80%
 7. **Trust the wrapper** - handles session restarts automatically
 8. **Always ask follow-up** - After VERIFIED, ask if user needs anything else
+9. **Report iteration progress** - Show "🔄 Iteration N" so user sees the loop working
 
 ARGUMENTS: $ARGUMENTS

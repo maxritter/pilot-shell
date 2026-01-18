@@ -35,8 +35,8 @@ const steps: Step[] = [
     number: 4,
     icon: CheckCircle2,
     command: "/spec",
-    title: "Verify",
-    description: "Runs tests, quality checks, and validates completion based on the plan.",
+    title: "Verify & Loop",
+    description: "Runs tests and quality checks. If issues found, loops back to fix automatically.",
   },
 ];
 
