@@ -6,7 +6,7 @@ import platform
 import stat
 import subprocess
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import httpx
 
@@ -45,26 +45,32 @@ def _get_platform_binary_name() -> str | None:
     return f"ccp-{os_name}-{arch}"
 
 
-def _get_installed_version(ccp_path: Path) -> str | None:
+def _get_installed_version(ccp_path: Path, ui: Any = None) -> str | None:
     """Get the version of the installed CCP binary."""
     if not ccp_path.exists():
         return None
 
-    try:
-        result = subprocess.run(
-            [str(ccp_path), "--version"],
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        if result.returncode == 0:
-            output = result.stdout.strip()
-            if "v" in output:
-                return output.split("v")[-1].strip()
-    except (subprocess.SubprocessError, OSError):
-        pass
+    def _run_version() -> str | None:
+        try:
+            result = subprocess.run(
+                [str(ccp_path), "--version"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode == 0:
+                output = result.stdout.strip()
+                if "v" in output:
+                    return output.split("v")[-1].strip()
+        except (subprocess.SubprocessError, OSError):
+            pass
+        return None
 
-    return None
+    if ui:
+        with ui.spinner("Checking CCP version..."):
+            return _run_version()
+    else:
+        return _run_version()
 
 
 def _download_binary(version: str, dest_path: Path) -> bool:
@@ -104,6 +110,11 @@ class CcpBinaryStep(BaseStep):
 
     name = "ccp_binary"
 
+    def __init__(self) -> None:
+        """Initialize step with version cache."""
+        self._cached_version: str | None = None
+        self._version_checked: bool = False
+
     def check(self, ctx: InstallContext) -> bool:
         """Check if CCP binary needs to be updated.
 
@@ -112,13 +123,18 @@ class CcpBinaryStep(BaseStep):
         ccp_path = ctx.project_dir / ".claude" / "bin" / "ccp"
 
         if not ccp_path.exists():
+            self._version_checked = True
+            self._cached_version = None
             return False
 
         target_version = INSTALLER_VERSION or ctx.config.get("target_version")
         if not target_version:
             return True
 
-        installed_version = _get_installed_version(ccp_path)
+        installed_version = _get_installed_version(ccp_path, ctx.ui)
+        self._version_checked = True
+        self._cached_version = installed_version
+
         if not installed_version:
             return False
 
@@ -135,7 +151,10 @@ class CcpBinaryStep(BaseStep):
                 ui.info("CCP binary version unknown, skipping update")
             return
 
-        installed_version = _get_installed_version(ccp_path)
+        if self._version_checked:
+            installed_version = self._cached_version
+        else:
+            installed_version = _get_installed_version(ccp_path, ui)
 
         if installed_version == target_version:
             if ui:

@@ -76,7 +76,9 @@ def _register_email(
     if not subscribe:
         cmd.append("--no-subscribe")
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    with console.spinner("Registering..."):
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+
     if result.returncode == 0:
         return True
     else:
@@ -106,11 +108,14 @@ def _validate_license_key(
         console.info("License will be validated on first run")
         return True
 
-    result = subprocess.run(
-        [str(bin_path), "activate", license_key, "--json"],
-        capture_output=True,
-        text=True,
-    )
+    with console.spinner("Validating license key..."):
+        result = subprocess.run(
+            [str(bin_path), "activate", license_key, "--json"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+
     if result.returncode == 0:
         console.print()
         console.success("License activated successfully!")
@@ -125,7 +130,12 @@ def _validate_license_key(
         return False
 
 
-def _get_license_info(project_dir: Path, local: bool = False, local_repo_dir: Path | None = None) -> dict | None:
+def _get_license_info(
+    project_dir: Path,
+    local: bool = False,
+    local_repo_dir: Path | None = None,
+    console: Console | None = None,
+) -> dict | None:
     """Get current license information using ccp binary.
 
     Returns dict with: tier, email, created_at, expires_at, days_remaining, is_expired
@@ -140,22 +150,29 @@ def _get_license_info(project_dir: Path, local: bool = False, local_repo_dir: Pa
     if not bin_path.exists():
         return None
 
-    try:
-        result = subprocess.run(
-            [str(bin_path), "status", "--json"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-        output = result.stdout.strip() or result.stderr.strip()
-        if output:
-            data = json.loads(output)
-            if not data.get("success", True) and "expired" in data.get("error", "").lower():
-                data["is_expired"] = True
-            return data
-    except (subprocess.SubprocessError, json.JSONDecodeError):
-        pass
-    return None
+    def _run_status() -> dict | None:
+        try:
+            result = subprocess.run(
+                [str(bin_path), "status", "--json"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            output = result.stdout.strip() or result.stderr.strip()
+            if output:
+                data = json.loads(output)
+                if not data.get("success", True) and "expired" in data.get("error", "").lower():
+                    data["is_expired"] = True
+                return data
+        except (subprocess.SubprocessError, json.JSONDecodeError):
+            pass
+        return None
+
+    if console:
+        with console.spinner("Checking license status..."):
+            return _run_status()
+    else:
+        return _run_status()
 
 
 def rollback_completed_steps(ctx: InstallContext, steps: list[BaseStep]) -> None:
@@ -231,7 +248,7 @@ def install(
     if not ccp_step.check(ccp_ctx):
         ccp_step.run(ccp_ctx)
 
-    license_info = _get_license_info(project_dir, local, effective_local_repo_dir)
+    license_info = _get_license_info(project_dir, local, effective_local_repo_dir, console)
     license_acknowledged = license_info is not None and license_info.get("tier") in ("free", "trial", "commercial")
 
     if not skip_prompts and license_acknowledged and license_info:
@@ -291,7 +308,6 @@ def install(
                     console.error("License key is required")
                     continue
 
-                console.status("Validating license key...")
                 validated = _validate_license_key(console, project_dir, license_key, local, effective_local_repo_dir)
                 if validated:
                     break
@@ -363,7 +379,6 @@ def install(
                         console.print("  [dim]Please try again.[/dim]")
                     continue
 
-                console.status("Validating license key...")
                 validated = _validate_license_key(console, project_dir, license_key, local, effective_local_repo_dir)
                 if validated:
                     use_type = "commercial"

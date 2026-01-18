@@ -277,9 +277,6 @@ jobs:
           python -m ccp.build
           chmod 755 ccp/dist/ccp-darwin-x86_64
 
-      - name: Sign binary (ad-hoc)
-        run: codesign --force --sign - ccp/dist/ccp-darwin-x86_64
-
       - name: Upload binary to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -340,9 +337,6 @@ jobs:
           pip install pyinstaller rich httpx typer platformdirs
           python -m ccp.build
           chmod 755 ccp/dist/ccp-darwin-arm64
-
-      - name: Sign binary (ad-hoc)
-        run: codesign --force --sign - ccp/dist/ccp-darwin-arm64
 
       - name: Upload binary to release
         env:
