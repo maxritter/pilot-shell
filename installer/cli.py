@@ -364,9 +364,8 @@ def install(
         console.print("  [bold cyan]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold cyan]")
         console.print()
 
-        from ccp.auth import has_used_trial
-
-        trial_used = has_used_trial()
+        trial_marker_file = Path.home() / ".config" / "claude-codepro" / ".trial_used"
+        trial_used = trial_marker_file.exists()
 
         if trial_used:
             console.print("  [bold yellow]Trial already used on this machine.[/bold yellow]")
