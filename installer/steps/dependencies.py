@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from installer.platform_utils import command_exists
+from installer.platform_utils import command_exists, has_nvidia_gpu
 from installer.steps.base import BaseStep
 
 if TYPE_CHECKING:
@@ -392,113 +392,146 @@ def _configure_claude_mem_defaults() -> bool:
         return False
 
 
-def _configure_vexor_defaults() -> bool:
-    """Configure Vexor with recommended defaults for semantic search (OpenAI)."""
-    import json
+def _get_vexor_pip_path() -> Path | None:
+    """Get path to pip in vexor's uv tool environment."""
+    vexor_pip = Path.home() / ".local" / "share" / "uv" / "tools" / "vexor" / "bin" / "pip"
+    return vexor_pip if vexor_pip.exists() else None
 
-    config_dir = Path.home() / ".vexor"
-    config_path = config_dir / "config.json"
 
-    try:
-        config_dir.mkdir(parents=True, exist_ok=True)
-
-        if config_path.exists():
-            config = json.loads(config_path.read_text())
-        else:
-            config = {}
-
-        config.update(
-            {
-                "model": "text-embedding-3-small",
-                "batch_size": 64,
-                "embed_concurrency": 4,
-                "extract_concurrency": 4,
-                "extract_backend": "auto",
-                "provider": "openai",
-                "auto_index": True,
-                "local_cuda": False,
-                "rerank": "bm25",
-            }
-        )
-        config_path.write_text(json.dumps(config, indent=2) + "\n")
-        return True
-    except Exception:
+def _fix_vexor_onnxruntime_conflict() -> bool:
+    """Remove CPU-only onnxruntime from vexor to fix CUDA provider conflict."""
+    vexor_pip = _get_vexor_pip_path()
+    if not vexor_pip:
         return False
 
-
-def _configure_vexor_local() -> bool:
-    """Configure Vexor for local embeddings (no API key needed)."""
-    import json
-
-    config_dir = Path.home() / ".vexor"
-    config_path = config_dir / "config.json"
-
     try:
-        config_dir.mkdir(parents=True, exist_ok=True)
-
-        if config_path.exists():
-            config = json.loads(config_path.read_text())
-        else:
-            config = {}
-
-        config.update(
-            {
-                "model": "intfloat/multilingual-e5-small",
-                "batch_size": 64,
-                "embed_concurrency": 4,
-                "extract_concurrency": 4,
-                "extract_backend": "auto",
-                "provider": "local",
-                "auto_index": True,
-                "local_cuda": False,
-                "rerank": "bm25",
-            }
-        )
-        config_path.write_text(json.dumps(config, indent=2) + "\n")
-        return True
-    except Exception:
-        return False
-
-
-def _setup_vexor_local_model(ui: Any = None) -> bool:
-    """Download and setup the local embedding model for Vexor."""
-    if ui:
-        ui.print("  [dim]Downloading local embedding model (this may take a few minutes)...[/dim]")
-
-    try:
-        process = subprocess.Popen(
-            ["vexor", "local", "--setup", "--model", "intfloat/multilingual-e5-small"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+        result = subprocess.run(
+            [str(vexor_pip), "list"],
+            capture_output=True,
             text=True,
         )
+        packages = result.stdout.lower()
 
-        if process.stdout:
-            for line in process.stdout:
-                line = line.rstrip()
-                if line and ui:
-                    if any(kw in line.lower() for kw in ["download", "model", "%", "mb", "complete"]):
-                        ui.print(f"  {line}")
+        if "onnxruntime-gpu" in packages and "onnxruntime " in packages:
+            subprocess.run(
+                [str(vexor_pip), "uninstall", "-y", "onnxruntime"],
+                capture_output=True,
+            )
+        return True
+    except subprocess.SubprocessError:
+        return False
 
-        process.wait()
-        return process.returncode == 0
+
+def _configure_vexor_defaults(
+    provider_mode: str = "cpu",
+    api_key: str | None = None,
+) -> bool:
+    """Configure Vexor with defaults based on provider mode.
+
+    Args:
+        provider_mode: One of "cuda", "cpu", or "openai"
+        api_key: OpenAI API key (used if provider_mode is "openai")
+    """
+    import json
+
+    config_dir = Path.home() / ".vexor"
+    config_path = config_dir / "config.json"
+
+    try:
+        config_dir.mkdir(parents=True, exist_ok=True)
+
+        if config_path.exists():
+            config = json.loads(config_path.read_text())
+        else:
+            config = {}
+
+        config.update(
+            {
+                "batch_size": 64,
+                "embed_concurrency": 4,
+                "extract_concurrency": 4,
+                "extract_backend": "auto",
+                "auto_index": True,
+                "rerank": "bm25",
+            }
+        )
+
+        if provider_mode == "cuda":
+            config.update(
+                {
+                    "provider": "local",
+                    "local_cuda": True,
+                    "model": "intfloat/multilingual-e5-small",
+                }
+            )
+            config.pop("api_key", None)
+        elif provider_mode == "openai":
+            config.update(
+                {
+                    "provider": "openai",
+                    "local_cuda": False,
+                    "model": "text-embedding-3-small",
+                }
+            )
+            if api_key:
+                config["api_key"] = api_key
+        else:
+            config.update(
+                {
+                    "provider": "local",
+                    "local_cuda": False,
+                    "model": "intfloat/multilingual-e5-small",
+                }
+            )
+            config.pop("api_key", None)
+
+        config_path.write_text(json.dumps(config, indent=2) + "\n")
+        return True
     except Exception:
         return False
 
 
-def install_vexor(use_local: bool = False, ui: Any = None) -> bool:
-    """Install Vexor semantic search tool and configure defaults."""
-    if use_local:
-        if not _run_bash_with_retry("uv pip install 'vexor[local]'"):
-            return False
-        _configure_vexor_local()
-        return _setup_vexor_local_model(ui)
-    else:
-        if command_exists("vexor"):
-            _configure_vexor_defaults()
-            return True
-        _configure_vexor_defaults()
+def install_vexor(
+    provider_mode: str | None = None,
+    api_key: str | None = None,
+) -> bool:
+    """Install Vexor semantic search tool and configure defaults.
+
+    Args:
+        provider_mode: One of "cuda", "cpu", or "openai". If None, auto-detects based on GPU.
+        api_key: OpenAI API key (used if provider_mode is "openai")
+    """
+    if provider_mode is None:
+        gpu_available = has_nvidia_gpu()
+        provider_mode = "cuda" if gpu_available else "cpu"
+
+    if command_exists("vexor"):
+        if provider_mode == "cuda":
+            _fix_vexor_onnxruntime_conflict()
+        _configure_vexor_defaults(provider_mode, api_key)
         return True
+
+    try:
+        if provider_mode == "cuda":
+            package = "vexor[local-cuda]"
+        elif provider_mode == "openai":
+            package = "vexor"
+        else:
+            package = "vexor[local]"
+
+        subprocess.run(
+            ["uv", "tool", "install", package],
+            check=True,
+            capture_output=True,
+        )
+
+        if provider_mode == "cuda":
+            _fix_vexor_onnxruntime_conflict()
+
+        _configure_vexor_defaults(provider_mode, api_key)
+        return True
+    except subprocess.CalledProcessError:
+        return False
 
 
 def _ensure_maxritter_marketplace() -> bool:
@@ -724,19 +757,44 @@ class DependenciesStep(BaseStep):
                 if ui:
                     ui.warning("Could not install agent-browser - please install manually")
 
-        if not ctx.enable_openai_embeddings:
+        gpu_info = has_nvidia_gpu(verbose=True)
+        gpu_available = gpu_info["detected"] if isinstance(gpu_info, dict) else gpu_info
+
+        if gpu_available:
+            provider_mode = "cuda"
+            api_key = None
             if ui:
-                ui.status("Installing Vexor with local embeddings...")
-            if install_vexor(use_local=True, ui=ui):
-                installed.append("vexor")
-                if ui:
-                    ui.success("Vexor installed with local embeddings")
-            else:
-                if ui:
-                    ui.warning("Could not install Vexor local - please install manually")
+                method = gpu_info.get("method", "unknown") if isinstance(gpu_info, dict) else "unknown"
+                ui.status(f"NVIDIA GPU detected via {method}")
         else:
-            if _install_with_spinner(ui, "Vexor semantic search", install_vexor):
-                installed.append("vexor")
+            if ui:
+                ui.info("CUDA/GPU not available.")
+
+            api_key = os.environ.get("OPENAI_API_KEY")
+
+            if ui and not ctx.non_interactive:
+                use_openai = ui.confirm(
+                    "Use OpenAI API for embeddings instead of CPU?",
+                    default=ctx.enable_openai_embeddings,
+                )
+                provider_mode = "openai" if use_openai else "cpu"
+            else:
+                provider_mode = "openai" if ctx.enable_openai_embeddings else "cpu"
+
+            if ui:
+                if provider_mode == "openai":
+                    ui.info("Using OpenAI embeddings")
+                else:
+                    ui.info("Using CPU for local embeddings")
+
+        if _install_with_spinner(
+            ui,
+            "Vexor semantic search",
+            install_vexor,
+            provider_mode,
+            api_key if provider_mode == "openai" else None,
+        ):
+            installed.append("vexor")
 
         qlty_result = install_qlty(ctx.project_dir)
         if qlty_result[0]:

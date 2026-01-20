@@ -539,28 +539,122 @@ class TestVexorInstall:
         mock_cmd_exists.return_value = True
         mock_config.return_value = True
 
-        result = install_vexor()
+        result = install_vexor(provider_mode="cpu")
 
         assert result is True
-        mock_config.assert_called_once()
+        mock_config.assert_called_once_with("cpu", None)
 
-    def test_configure_vexor_defaults_creates_config(self):
-        """_configure_vexor_defaults creates config file."""
+    @patch("installer.steps.dependencies._configure_vexor_defaults")
+    @patch("installer.steps.dependencies._fix_vexor_onnxruntime_conflict")
+    @patch("installer.steps.dependencies.command_exists")
+    def test_install_vexor_cuda_mode_fixes_onnxruntime(self, mock_cmd_exists, mock_fix, mock_config):
+        """install_vexor in cuda mode calls _fix_vexor_onnxruntime_conflict."""
+        from installer.steps.dependencies import install_vexor
+
+        mock_cmd_exists.return_value = True
+        mock_fix.return_value = True
+        mock_config.return_value = True
+
+        result = install_vexor(provider_mode="cuda")
+
+        assert result is True
+        mock_fix.assert_called_once()
+        mock_config.assert_called_once_with("cuda", None)
+
+    @patch("installer.steps.dependencies._configure_vexor_defaults")
+    @patch("subprocess.run")
+    @patch("installer.steps.dependencies.command_exists")
+    def test_install_vexor_installs_correct_package_for_cuda(self, mock_cmd_exists, mock_run, mock_config):
+        """install_vexor installs vexor[local-cuda] for cuda mode."""
+        from installer.steps.dependencies import install_vexor
+
+        mock_cmd_exists.return_value = False
+        mock_run.return_value = MagicMock(returncode=0)
+        mock_config.return_value = True
+
+        with patch("installer.steps.dependencies._fix_vexor_onnxruntime_conflict", return_value=True):
+            result = install_vexor(provider_mode="cuda")
+
+        assert result is True
+        # Check that uv tool install was called with vexor[local-cuda]
+        install_calls = [c for c in mock_run.call_args_list if "uv" in str(c)]
+        assert len(install_calls) >= 1
+        assert "vexor[local-cuda]" in str(install_calls[0])
+
+    @patch("installer.steps.dependencies._configure_vexor_defaults")
+    @patch("subprocess.run")
+    @patch("installer.steps.dependencies.command_exists")
+    def test_install_vexor_installs_correct_package_for_openai(self, mock_cmd_exists, mock_run, mock_config):
+        """install_vexor installs vexor for openai mode."""
+        from installer.steps.dependencies import install_vexor
+
+        mock_cmd_exists.return_value = False
+        mock_run.return_value = MagicMock(returncode=0)
+        mock_config.return_value = True
+
+        result = install_vexor(provider_mode="openai", api_key="sk-test")
+
+        assert result is True
+        install_calls = [c for c in mock_run.call_args_list if "uv" in str(c)]
+        assert len(install_calls) >= 1
+        # For openai mode, just "vexor" (no extras)
+        call_str = str(install_calls[0])
+        assert "vexor" in call_str
+        assert "local" not in call_str
+
+    def test_configure_vexor_defaults_cpu_mode(self):
+        """_configure_vexor_defaults configures CPU mode correctly."""
         import json
 
         from installer.steps.dependencies import _configure_vexor_defaults
 
         with tempfile.TemporaryDirectory() as tmpdir:
             with patch.object(Path, "home", return_value=Path(tmpdir)):
-                result = _configure_vexor_defaults()
+                result = _configure_vexor_defaults(provider_mode="cpu")
 
                 assert result is True
                 config_path = Path(tmpdir) / ".vexor" / "config.json"
                 assert config_path.exists()
                 config = json.loads(config_path.read_text())
+                assert config["model"] == "intfloat/multilingual-e5-small"
+                assert config["provider"] == "local"
+                assert config["local_cuda"] is False
+                assert config["rerank"] == "bm25"
+
+    def test_configure_vexor_defaults_cuda_mode(self):
+        """_configure_vexor_defaults configures CUDA mode correctly."""
+        import json
+
+        from installer.steps.dependencies import _configure_vexor_defaults
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                result = _configure_vexor_defaults(provider_mode="cuda")
+
+                assert result is True
+                config_path = Path(tmpdir) / ".vexor" / "config.json"
+                config = json.loads(config_path.read_text())
+                assert config["model"] == "intfloat/multilingual-e5-small"
+                assert config["provider"] == "local"
+                assert config["local_cuda"] is True
+
+    def test_configure_vexor_defaults_openai_mode(self):
+        """_configure_vexor_defaults configures OpenAI mode correctly."""
+        import json
+
+        from installer.steps.dependencies import _configure_vexor_defaults
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                result = _configure_vexor_defaults(provider_mode="openai", api_key="sk-test123")
+
+                assert result is True
+                config_path = Path(tmpdir) / ".vexor" / "config.json"
+                config = json.loads(config_path.read_text())
                 assert config["model"] == "text-embedding-3-small"
                 assert config["provider"] == "openai"
-                assert config["rerank"] == "bm25"
+                assert config["local_cuda"] is False
+                assert config["api_key"] == "sk-test123"
 
     def test_configure_vexor_defaults_merges_existing(self):
         """_configure_vexor_defaults merges with existing config."""
@@ -575,9 +669,249 @@ class TestVexorInstall:
             config_path.write_text(json.dumps({"custom_key": "custom_value"}))
 
             with patch.object(Path, "home", return_value=Path(tmpdir)):
-                result = _configure_vexor_defaults()
+                result = _configure_vexor_defaults(provider_mode="cpu")
 
                 assert result is True
                 config = json.loads(config_path.read_text())
                 assert config["custom_key"] == "custom_value"
-                assert config["model"] == "text-embedding-3-small"
+                assert config["model"] == "intfloat/multilingual-e5-small"
+
+
+class TestVexorCudaHelpers:
+    """Test vexor CUDA helper functions."""
+
+    def test_get_vexor_pip_path_returns_path_when_exists(self):
+        """_get_vexor_pip_path returns Path when pip exists in vexor env."""
+        from installer.steps.dependencies import _get_vexor_pip_path
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            vexor_bin = Path(tmpdir) / ".local" / "share" / "uv" / "tools" / "vexor" / "bin"
+            vexor_bin.mkdir(parents=True)
+            pip_path = vexor_bin / "pip"
+            pip_path.touch()
+
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                result = _get_vexor_pip_path()
+
+                assert result is not None
+                assert str(result).endswith("pip")
+
+    def test_get_vexor_pip_path_returns_none_when_missing(self):
+        """_get_vexor_pip_path returns None when pip doesn't exist."""
+        from installer.steps.dependencies import _get_vexor_pip_path
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                result = _get_vexor_pip_path()
+
+                assert result is None
+
+    @patch("subprocess.run")
+    def test_fix_vexor_onnxruntime_conflict_removes_cpu_onnxruntime(self, mock_run):
+        """_fix_vexor_onnxruntime_conflict removes onnxruntime when onnxruntime-gpu exists."""
+        from installer.steps.dependencies import _fix_vexor_onnxruntime_conflict
+
+        mock_run.return_value = MagicMock(
+            stdout="onnxruntime-gpu 1.16.0\nonnxruntime 1.16.0\nnumpy 1.24.0",
+            returncode=0,
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            vexor_bin = Path(tmpdir) / ".local" / "share" / "uv" / "tools" / "vexor" / "bin"
+            vexor_bin.mkdir(parents=True)
+            pip_path = vexor_bin / "pip"
+            pip_path.touch()
+
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                result = _fix_vexor_onnxruntime_conflict()
+
+                assert result is True
+                # Should have called pip list and pip uninstall
+                assert mock_run.call_count >= 2
+
+    @patch("subprocess.run")
+    def test_fix_vexor_onnxruntime_conflict_skips_when_no_conflict(self, mock_run):
+        """_fix_vexor_onnxruntime_conflict does nothing when no conflict exists."""
+        from installer.steps.dependencies import _fix_vexor_onnxruntime_conflict
+
+        mock_run.return_value = MagicMock(
+            stdout="onnxruntime-gpu 1.16.0\nnumpy 1.24.0",
+            returncode=0,
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            vexor_bin = Path(tmpdir) / ".local" / "share" / "uv" / "tools" / "vexor" / "bin"
+            vexor_bin.mkdir(parents=True)
+            pip_path = vexor_bin / "pip"
+            pip_path.touch()
+
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                result = _fix_vexor_onnxruntime_conflict()
+
+                assert result is True
+                # Should only call pip list, not uninstall
+                assert mock_run.call_count == 1
+
+    def test_fix_vexor_onnxruntime_conflict_returns_false_when_no_pip(self):
+        """_fix_vexor_onnxruntime_conflict returns False when vexor pip doesn't exist."""
+        from installer.steps.dependencies import _fix_vexor_onnxruntime_conflict
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                result = _fix_vexor_onnxruntime_conflict()
+
+                assert result is False
+
+
+class TestDependenciesStepGpuDetection:
+    """Test DependenciesStep GPU detection integration."""
+
+    @patch("installer.steps.dependencies.run_qlty_check")
+    @patch("installer.steps.dependencies.install_qlty")
+    @patch("installer.steps.dependencies.install_vexor")
+    @patch("installer.steps.dependencies.install_context7")
+    @patch("installer.steps.dependencies.install_claude_mem")
+    @patch("installer.steps.dependencies.install_claude_code")
+    @patch("installer.steps.dependencies.install_nodejs")
+    @patch("installer.steps.dependencies.has_nvidia_gpu")
+    def test_uses_cuda_when_gpu_detected(
+        self,
+        mock_gpu,
+        mock_nodejs,
+        mock_claude,
+        mock_claude_mem,
+        mock_context7,
+        mock_vexor,
+        mock_qlty,
+        mock_qlty_check,
+    ):
+        """DependenciesStep uses CUDA mode when GPU is detected."""
+        from installer.context import InstallContext
+        from installer.steps.dependencies import DependenciesStep
+        from installer.ui import Console
+
+        mock_gpu.return_value = {"detected": True, "method": "nvidia_smi"}
+        mock_nodejs.return_value = True
+        mock_claude.return_value = (True, "latest")
+        mock_claude_mem.return_value = True
+        mock_context7.return_value = True
+        mock_vexor.return_value = True
+        mock_qlty.return_value = (True, False)
+
+        step = DependenciesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            ctx = InstallContext(
+                project_dir=Path(tmpdir),
+                enable_python=False,
+                enable_typescript=False,
+                ui=Console(non_interactive=True),
+            )
+
+            step.run(ctx)
+
+            # Should call has_nvidia_gpu with verbose=True
+            mock_gpu.assert_called_once_with(verbose=True)
+            # Should call install_vexor with cuda mode
+            mock_vexor.assert_called_once_with("cuda", None)
+
+    @patch("installer.steps.dependencies.run_qlty_check")
+    @patch("installer.steps.dependencies.install_qlty")
+    @patch("installer.steps.dependencies.install_vexor")
+    @patch("installer.steps.dependencies.install_context7")
+    @patch("installer.steps.dependencies.install_claude_mem")
+    @patch("installer.steps.dependencies.install_claude_code")
+    @patch("installer.steps.dependencies.install_nodejs")
+    @patch("installer.steps.dependencies.has_nvidia_gpu")
+    def test_uses_flag_in_non_interactive_mode(
+        self,
+        mock_gpu,
+        mock_nodejs,
+        mock_claude,
+        mock_claude_mem,
+        mock_context7,
+        mock_vexor,
+        mock_qlty,
+        mock_qlty_check,
+    ):
+        """DependenciesStep uses enable_openai_embeddings flag in non-interactive mode."""
+        from installer.context import InstallContext
+        from installer.steps.dependencies import DependenciesStep
+        from installer.ui import Console
+
+        mock_gpu.return_value = {"detected": False, "error": "not found"}
+        mock_nodejs.return_value = True
+        mock_claude.return_value = (True, "latest")
+        mock_claude_mem.return_value = True
+        mock_context7.return_value = True
+        mock_vexor.return_value = True
+        mock_qlty.return_value = (True, False)
+
+        step = DependenciesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Test with enable_openai_embeddings=True
+            ctx = InstallContext(
+                project_dir=Path(tmpdir),
+                enable_python=False,
+                enable_typescript=False,
+                enable_openai_embeddings=True,
+                non_interactive=True,
+                ui=Console(non_interactive=True),
+            )
+
+            step.run(ctx)
+
+            # Should call install_vexor with openai mode
+            mock_vexor.assert_called_once()
+            call_args = mock_vexor.call_args[0]
+            assert call_args[0] == "openai"
+
+    @patch("installer.steps.dependencies.run_qlty_check")
+    @patch("installer.steps.dependencies.install_qlty")
+    @patch("installer.steps.dependencies.install_vexor")
+    @patch("installer.steps.dependencies.install_context7")
+    @patch("installer.steps.dependencies.install_claude_mem")
+    @patch("installer.steps.dependencies.install_claude_code")
+    @patch("installer.steps.dependencies.install_nodejs")
+    @patch("installer.steps.dependencies.has_nvidia_gpu")
+    def test_uses_cpu_when_no_gpu_and_flag_false(
+        self,
+        mock_gpu,
+        mock_nodejs,
+        mock_claude,
+        mock_claude_mem,
+        mock_context7,
+        mock_vexor,
+        mock_qlty,
+        mock_qlty_check,
+    ):
+        """DependenciesStep uses CPU mode when no GPU and flag is False."""
+        from installer.context import InstallContext
+        from installer.steps.dependencies import DependenciesStep
+        from installer.ui import Console
+
+        mock_gpu.return_value = {"detected": False, "error": "not found"}
+        mock_nodejs.return_value = True
+        mock_claude.return_value = (True, "latest")
+        mock_claude_mem.return_value = True
+        mock_context7.return_value = True
+        mock_vexor.return_value = True
+        mock_qlty.return_value = (True, False)
+
+        step = DependenciesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Test with enable_openai_embeddings=False
+            ctx = InstallContext(
+                project_dir=Path(tmpdir),
+                enable_python=False,
+                enable_typescript=False,
+                enable_openai_embeddings=False,
+                non_interactive=True,
+                ui=Console(non_interactive=True),
+            )
+
+            step.run(ctx)
+
+            # Should call install_vexor with cpu mode
+            mock_vexor.assert_called_once()
+            call_args = mock_vexor.call_args[0]
+            assert call_args[0] == "cpu"
