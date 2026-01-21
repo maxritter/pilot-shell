@@ -45,6 +45,6 @@ jobs:
 
       - name: Run unit tests with coverage
         run: |
-          python3 -m pytest tests/unit/installer/ -v \
-            --cov=installer \
+          python3 -m pytest installer/tests/unit/ ccp/tests/unit/ -v \
+            --cov=installer --cov=ccp \
             --cov-report=term --cov-report=xml
