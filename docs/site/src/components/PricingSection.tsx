@@ -21,7 +21,7 @@ const PricingSection = () => {
       <div className="max-w-6xl mx-auto">
         <SectionHeader
           title="Pricing"
-          subtitle="7-day free trial. Then choose your plan."
+          subtitle="Get instant access to best practices from daily production usage — a shortcut to state-of-the-art Claude Code development."
         />
 
         <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
@@ -80,11 +80,11 @@ const PricingSection = () => {
               </li>
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                <span className="text-muted-foreground text-sm">Continuous updates</span>
+                <span className="text-muted-foreground text-sm">Latest learnings from daily usage</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                <span className="text-muted-foreground text-sm">Basic support via GitHub</span>
+                <span className="text-muted-foreground text-sm">Support via GitHub</span>
               </li>
             </ul>
 

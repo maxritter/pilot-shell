@@ -14,10 +14,10 @@ const ComparisonSection = () => {
           className={`text-center mb-12 animate-on-scroll ${headerInView ? "in-view" : ""}`}
         >
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
-            The Difference
+            Why Claude CodePro?
           </h2>
           <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
-            Same task. Different results.
+            Same task. Different results. Skip weeks of setup and get production-grade workflows instantly.
           </p>
         </div>
 

@@ -106,6 +106,6 @@ mcp-cli filesystem/search_files '{"path": "src/", "pattern": "*.ts"}' --json | j
 | Discovering available tools | `mcp-cli` or `mcp-cli <server> -d` |
 | Complex JSON arguments with quotes | Use stdin: `mcp-cli server/tool -` |
 
-### Setup
+### Sync
 
-Run `/setup` after adding servers to `mcp_servers.json` to generate custom rules with tool documentation.
+Run `/sync` after adding servers to `mcp_servers.json` to generate custom rules with tool documentation.

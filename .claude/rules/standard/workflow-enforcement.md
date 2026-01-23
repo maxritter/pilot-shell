@@ -62,6 +62,27 @@ EnterPlanMode()  # ❌ BANNED
 
 ---
 
+## ⛔ ABSOLUTE BAN: No Direct Implementation in /spec
+
+**The /spec command is an ORCHESTRATOR. It NEVER writes implementation code.**
+
+This is a HARD RULE with NO EXCEPTIONS:
+- ❌ Writing tests directly after plan approval - BANNED
+- ❌ Writing implementation code after plan approval - BANNED
+- ❌ Editing source files while in /spec orchestration - BANNED
+- ❌ Any implementation work outside of /implement skill - BANNED
+
+**The correct flow after user approves a plan:**
+```
+1. Edit plan: Approved: No → Approved: Yes
+2. IMMEDIATELY invoke: Skill(implement, "docs/plans/YYYY-MM-DD-feature.md")
+3. NOTHING ELSE - /implement does the actual work
+```
+
+**If you catch yourself about to write code after plan approval: STOP. Invoke /implement instead.**
+
+---
+
 ## Plan-Implement-Verify Lifecycle (with Feedback Loop)
 
 The project uses a three-phase workflow with **automatic feedback loop**:
@@ -85,6 +106,38 @@ The project uses a three-phase workflow with **automatic feedback loop**:
 - `VERIFIED` - Verification passed (set by /verify)
 
 **The feedback loop continues automatically until VERIFIED or context limit (90%).**
+
+---
+
+## ⛔ CRITICAL: Automatic Continuation is MANDATORY
+
+**"Auto-continue" means /spec MUST invoke the next skill in the SAME response.**
+
+When /implement finishes (Status: COMPLETE):
+```
+/spec receives control back
+→ /spec reads plan: Status: COMPLETE
+→ /spec IMMEDIATELY invokes: Skill(verify, plan-path)
+→ All in ONE response - no stopping
+```
+
+When /verify finishes (Status: PENDING or VERIFIED):
+```
+/spec receives control back
+→ /spec reads plan: Status: ???
+→ If PENDING: IMMEDIATELY invoke Skill(implement, plan-path)
+→ If VERIFIED: Report completion
+→ All in ONE response - no stopping
+```
+
+**⛔ VIOLATION: Ending a response after /implement without invoking /verify**
+- Saying "Proceeding to verification..." then stopping = VIOLATION
+- Announcing completion then waiting for user = VIOLATION
+- Any gap between /implement completing and /verify starting = VIOLATION
+
+**The word "automatic" means NO USER INTERVENTION REQUIRED between phases.**
+
+---
 
 ## Mandatory Task Completion Tracking
 

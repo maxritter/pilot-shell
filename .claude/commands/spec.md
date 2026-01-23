@@ -8,8 +8,6 @@ allowed-tools: Skill
 
 **For new features, major changes, and complex work.** Creates a spec, gets your approval, implements with TDD, and verifies completion.
 
-**Prerequisite:** Run `/setup` once before first use to initialize project context.
-
 ## Arguments
 
 ```
@@ -22,13 +20,33 @@ allowed-tools: Skill
 
 **This is the #1 rule of /spec: NEVER stop between phases.**
 
-After ANY skill (/plan, /implement, /verify) completes:
-1. **IMMEDIATELY re-read the plan file status**
-2. **IMMEDIATELY invoke the next skill based on status**
-3. **NEVER just announce what will happen next - DO IT**
+**When a skill (/implement, /verify) finishes and returns control to you:**
+1. **IMMEDIATELY** use Read tool to check plan file Status
+2. **IN THE SAME RESPONSE**, invoke the next skill based on status
+3. **DO NOT** end your response without invoking the next skill (unless VERIFIED)
+
+**After /implement completes → IMMEDIATELY invoke /verify:**
+```
+1. Read plan file → Status: COMPLETE
+2. IN THIS SAME MESSAGE: Skill(verify, "docs/plans/...")
+```
+
+**After /verify completes → Re-read status and continue:**
+```
+1. Read plan file → Status: VERIFIED? Done. Status: PENDING? Continue.
+2. If PENDING: IN THIS SAME MESSAGE: Skill(implement, "docs/plans/...")
+```
 
 ❌ **WRONG:** "The workflow will now continue to implementation..."
-✅ **RIGHT:** `Skill(implement, "docs/plans/...")` [actually invoke it]
+❌ **WRONG:** "✅ All tasks complete. Proceeding to verification..." [then stopping]
+❌ **WRONG:** Ending your message after /implement without invoking /verify
+✅ **RIGHT:** `Skill(verify, "docs/plans/...")` [actually invoke it in same response]
+
+**⛔ ABSOLUTE BAN: Never write implementation code directly in /spec**
+- The /spec command is an ORCHESTRATOR only
+- It invokes /plan, /implement, /verify via the Skill tool
+- It NEVER writes code, tests, or implementation files directly
+- ALL implementation happens inside the /implement skill
 
 **The ONLY time you stop is:**
 - When plan needs user approval (handled by /plan skill asking via AskUserQuestion)
@@ -153,7 +171,8 @@ LOOP:
 
    **If user approves ("Yes, proceed..."):**
    - Edit the plan file to change `Approved: No` to `Approved: Yes`
-   - Immediately proceed to run /implement with Skill tool
+   - **IMMEDIATELY invoke Skill(implement, plan-path) - NO OTHER ACTIONS**
+   - Do NOT write any code directly - that's /implement's job
    - Do NOT ask the user to run another command
 
    **If user wants changes ("No, I need to make changes"):**
@@ -285,14 +304,13 @@ User selects: "Yes, proceed with implementation"
 
 ## Important
 
-1. **Run /setup first** - Use `/setup` command to initialize project before first /spec
-2. **Always use Skill tool** - don't just describe, actually invoke
-3. **NEVER skip user approval** - Use AskUserQuestion to get approval, then update `Approved: Yes` yourself
-4. **Feedback loop is automatic** - After /verify, re-read status and continue if not VERIFIED
-5. **Plan file is source of truth** - survives session clears
-6. **Check context between iterations** - hand off at 90%, wrap up at 80%
-7. **Trust the wrapper** - handles session restarts automatically
-8. **Always ask follow-up** - After VERIFIED, ask if user needs anything else
-9. **Report iteration progress** - Show "🔄 Iteration N" so user sees the loop working
+1. **Always use Skill tool** - don't just describe, actually invoke
+2. **NEVER skip user approval** - Use AskUserQuestion to get approval, then update `Approved: Yes` yourself
+3. **Feedback loop is automatic** - After /verify, re-read status and continue if not VERIFIED
+4. **Plan file is source of truth** - survives session clears
+5. **Check context between iterations** - hand off at 90%, wrap up at 80%
+6. **Trust the wrapper** - handles session restarts automatically
+7. **Always ask follow-up** - After VERIFIED, ask if user needs anything else
+8. **Report iteration progress** - Show "🔄 Iteration N" so user sees the loop working
 
 ARGUMENTS: $ARGUMENTS

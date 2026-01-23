@@ -421,7 +421,8 @@ Iterations: 0
    **If user approves ("Yes, proceed..."):**
    - Edit the plan file to change `Approved: No` to `Approved: Yes`
    - Tell user: "Plan approved. Proceeding with implementation..."
-   - The /spec workflow will continue to /implement automatically
+   - **EXIT /plan immediately - /spec will invoke /implement**
+   - Do NOT write any implementation code - that's /implement's job
 
    **If user wants changes ("No, I need to make changes"):**
    - Tell user: "Please edit the plan file at `<plan-path>`, then say 'ready' when done"

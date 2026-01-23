@@ -4,7 +4,7 @@
 
 ### Production-Grade Development Environment for Claude Code
 
-TDD enforced. Quality automated. Ship with confidence. 🚀
+Quality automated. Continuously improved. TDD enforced. Ship with confidence. 🚀
 
 [![Version](https://img.shields.io/github/v/release/maxritter/claude-codepro?label=Version&color=orange)](https://github.com/maxritter/claude-codepro/releases)
 [![Stars](https://img.shields.io/github/stars/maxritter/claude-codepro?style=flat&color=yellow)](https://github.com/maxritter/claude-codepro/stargazers)
@@ -27,7 +27,7 @@ TDD enforced. Quality automated. Ship with confidence. 🚀
 curl -fsSL https://raw.githubusercontent.com/maxritter/claude-codepro/v5.1.9/install.sh | bash
 ```
 
-Then run `ccp` and `/setup` once. Use `/spec` or the quick mode for full quality.
+Then run `ccp` and `/sync` once. Use `/spec` or the quick mode for full quality.
 
 ---
 
@@ -92,7 +92,7 @@ You'll be asked to choose between **Dev Container** or **Local Installation**.
 
 - **Standard Rules** - Best-Practices for TDD, Context Management, etc. in `.claude/rules/standard/`
 - **Custom Rules** - Project-specific rules in `.claude/rules/custom/` (never touched by updates)
-- **Command Skills** - Workflow-specific modes: `/spec`, `/setup`, `/plan`, `/implement`, `/verify`
+- **Command Skills** - Workflow-specific modes: `/spec`, `/sync`, `/plan`, `/implement`, `/verify`
 - **Standards Skills** - Best-Practices for Frontend, Backend, Testing, etc. automatically injected
 
 ### 🧠 Enhanced Context Capabilities
@@ -139,13 +139,13 @@ Same task. Different results.
 
 ## ⚡ Usage
 
-### 🔧 First Time Setup
+### 🔄 Sync Project Rules
 
-Run `/setup` once per project to initialize context and semantic search:
+Run `/sync` to sync project rules with your codebase. Run it once initially, then anytime after major changes:
 
 ```bash
 ccp
-> /setup
+> /sync
 ```
 
 ### 📋 Spec-Driven Mode
@@ -194,7 +194,7 @@ Claude CodePro uses [Claude Code's modular rules](https://code.claude.com/docs/e
 
 ## 🤝 Contributing
 
-**Pull Requests** - New features, improvements, and bug fixes are welcome. Open a PR to contribute.
+**Pull Requests** - New features, improvements, and bug fixes are welcome. Fun fact: CCP is built with CCP — a self-improving loop where your contributions make the tool that makes contributions better. 🔄
 
 **Issues** - Found a bug or have a feature request? [Open an issue](https://github.com/maxritter/claude-codepro/issues).
 
@@ -204,11 +204,13 @@ Claude CodePro uses [Claude Code's modular rules](https://code.claude.com/docs/e
 
 > **Try free for 7 days** — No signup, no credit card. Just install and go.
 
+**Why subscribe?** Claude CodePro is actively developed with daily usage in production environments. Your subscription gives you instant access to the latest best practices, workflows, and learnings — a shortcut to state-of-the-art Claude Code development without spending weeks figuring it out yourself.
+
 After your trial, choose the tier that fits your needs [here](https://license.claude-code.pro):
 
 | Tier | Includes |
 |:-----|:---------|
-| **Standard** | All features, updates, GitHub support |
-| **Enterprise** | Standard + dedicated email support, training |
+| **Standard** | All features, continuous updates with latest learnings, GitHub support |
+| **Enterprise** | Standard + dedicated email support and optional training sessions |
 
 See the [LICENSE](LICENSE) file for full terms.

@@ -225,3 +225,18 @@ Before marking complete:
 - [ ] "Out of Scope" items were intentional removals (user confirmed), not forgotten migrations
 
 **If you cannot check ALL boxes, the migration is INCOMPLETE. Add new tasks.**
+
+---
+
+## ⛔ WHEN THIS SKILL COMPLETES - CRITICAL
+
+**When all tasks are done and Status is set to COMPLETE, this skill ends.**
+
+**Control returns to /spec. /spec MUST then:**
+1. Re-read the plan file to confirm Status: COMPLETE
+2. **IMMEDIATELY invoke Skill(verify, plan-path) in the same response**
+3. **DO NOT** end the response without invoking /verify
+
+**The phrase "Proceeding to verification..." means NOTHING if you don't actually invoke /verify.**
+
+**This skill's job is done. /spec takes over and MUST continue the workflow.**

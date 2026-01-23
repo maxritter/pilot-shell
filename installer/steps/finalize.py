@@ -57,7 +57,7 @@ class FinalizeStep(BaseStep):
         steps.append(
             (
                 "Custom MCP Servers (Optional)",
-                "Add your MCP servers to mcp_servers.json, then run /setup\n"
+                "Add your MCP servers to mcp_servers.json, then run /sync\n"
                 "     to generate documentation. Use mcp-cli to interact with them.",
             )
         )
