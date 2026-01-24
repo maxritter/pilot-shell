@@ -269,12 +269,15 @@ jobs:
           This is a development pre-release for testing. Not for production use."
           fi
 
-          # Use --target to ensure tag is created at the correct commit
+          # Create tag at current HEAD (which is the correct commit from checkout)
+          # Then create release from that tag
+          git tag "$VERSION"
+          git push origin "$VERSION"
+
           gh release create "$VERSION" \
             --title "Dev Pre-release $VERSION" \
             --notes "$NOTES" \
             --prerelease \
-            --target "${{ steps.version.outputs.COMMIT_SHA }}" \
             artifacts/ccp-linux-x86_64/ccp-linux-x86_64.so \
             artifacts/ccp-linux-arm64/ccp-linux-arm64.so \
             artifacts/ccp-darwin-x86_64/ccp-darwin-x86_64.so \
