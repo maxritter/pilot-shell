@@ -144,8 +144,6 @@ def _configure_zsh_fzf(zshrc: Path, ui) -> bool:
 
     content = zshrc.read_text()
     if FZF_MARKER in content:
-        if ui:
-            ui.info("fzf already configured")
         return False
 
     with open(zshrc, "a") as f:
@@ -170,8 +168,7 @@ def _configure_zsh_dotenv(zshrc: Path, ui) -> bool:
             ui.success("Added dotenv plugin")
         modified = True
     elif "dotenv" in content:
-        if ui:
-            ui.info("dotenv plugin already configured")
+        pass
 
     if DOTENV_MARKER not in content:
         content = zshrc.read_text()
@@ -187,8 +184,6 @@ def _configure_zsh_dotenv(zshrc: Path, ui) -> bool:
         if ui:
             ui.success("Added ZSH_DOTENV_PROMPT setting")
         modified = True
-    elif ui:
-        ui.info("ZSH_DOTENV_PROMPT already configured")
 
     return modified
 
@@ -200,8 +195,6 @@ def _configure_bun_path(config_file: Path, ui, quiet: bool = False) -> bool:
 
     content = config_file.read_text()
     if BUN_PATH_MARKER in content or ".bun/bin" in content:
-        if ui and not quiet:
-            ui.info(f"bun PATH already configured in {config_file.name}")
         return False
 
     if "fish" in config_file.name:
@@ -212,7 +205,7 @@ def _configure_bun_path(config_file: Path, ui, quiet: bool = False) -> bool:
     with open(config_file, "a") as f:
         f.write(bun_path_line)
 
-    if ui:
+    if ui and not quiet:
         ui.success(f"Added bun to PATH in {config_file.name}")
     return True
 
@@ -223,8 +216,6 @@ def _set_zsh_default_shell(ui) -> bool:
 
     current_shell = os.environ.get("SHELL", "")
     if current_shell.endswith("/zsh"):
-        if ui:
-            ui.info("zsh already default shell")
         return False
 
     zsh_path = subprocess.run(["which", "zsh"], capture_output=True, text=True).stdout.strip()

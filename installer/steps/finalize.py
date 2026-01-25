@@ -2,9 +2,33 @@
 
 from __future__ import annotations
 
+import re
+import subprocess
+from pathlib import Path
+
 from installer import __version__
 from installer.context import InstallContext
 from installer.steps.base import BaseStep
+
+
+def _get_ccp_version() -> str:
+    """Get version from CCP binary, fallback to installer version."""
+    ccp_path = Path.cwd() / ".claude" / "bin" / "ccp"
+    if ccp_path.exists():
+        try:
+            result = subprocess.run(
+                [str(ccp_path), "--version"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode == 0:
+                match = re.search(r"CodePro v(.+)$", result.stdout.strip())
+                if match:
+                    return match.group(1)
+        except Exception:
+            pass
+    return __version__
 
 
 class FinalizeStep(BaseStep):
@@ -98,5 +122,5 @@ class FinalizeStep(BaseStep):
             ui.print()
             ui.print("  [bold yellow]⭐ Star this repo:[/bold yellow] https://github.com/maxritter/claude-codepro")
             ui.print()
-            ui.print(f"  [dim]Installed version: {__version__}[/dim]")
+            ui.print(f"  [dim]Installed version: {_get_ccp_version()}[/dim]")
             ui.print()

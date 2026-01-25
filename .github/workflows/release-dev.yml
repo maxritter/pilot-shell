@@ -2,7 +2,14 @@
 name: Dev Pre-release
 
 "on":
+  push:
+    branches:
+      - dev
   workflow_dispatch:
+
+concurrency:
+  group: dev-prerelease
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -209,10 +216,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Cleaning up old dev pre-releases (keeping 5 most recent)..."
+          echo "Cleaning up old dev pre-releases (keeping only the latest)..."
 
           gh api repos/${{ github.repository }}/releases \
-            --jq '[.[] | select(.prerelease and (.tag_name | startswith("dev-")))] | sort_by(.created_at) | reverse | .[5:] | .[].tag_name' \
+            --jq '[.[] | select(.prerelease and (.tag_name | startswith("dev-")))] | sort_by(.created_at) | reverse | .[1:] | .[].tag_name' \
             | while read -r tag; do
                 if [ -n "$tag" ]; then
                   echo "Deleting old pre-release: $tag"

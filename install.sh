@@ -50,10 +50,8 @@ get_latest_prerelease() {
 		return 1
 	fi
 
-	# Extract dev-* releases with their created_at timestamp, sort by timestamp, get latest
-	# Format: created_at|tag_name, then sort by created_at descending
-	echo "$releases" | tr ',' '\n' | grep -E '"(tag_name|created_at)"' | paste - - | \
-		grep 'dev-' | sed 's/.*"created_at"[^"]*"\([^"]*\)".*"tag_name"[^"]*"\([^"]*\)".*/\1|\2/' | \
+	echo "$releases" | tr ',' '\n' | grep -E '"(tag_name|created_at)"' | paste - - |
+		grep 'dev-' | sed 's/.*"tag_name"[^"]*"\([^"]*\)".*"created_at"[^"]*"\([^"]*\)".*/\2|\1/' |
 		sort -t'|' -k1 -r | head -1 | cut -d'|' -f2
 }
 
@@ -144,28 +142,21 @@ install_uv() {
 	echo "  [OK] uv installed"
 }
 
-show_macos_gatekeeper_help() {
-	if [ "$(uname)" != "Darwin" ]; then
-		return
-	fi
-
-	local ccp_path="$PWD/.claude/bin/ccp"
-	if [ -f "$ccp_path" ]; then
-		if ! "$ccp_path" --version >/dev/null 2>&1; then
-			echo ""
-			echo "  ⚠️  macOS Gatekeeper may be blocking the CCP binary"
-			echo ""
-			echo "  To fix this, follow these steps:"
-			echo "    1. Open System Settings → Privacy & Security"
-			echo "    2. Scroll down to find a message about 'ccp' being blocked"
-			echo "    3. Click 'Allow Anyway'"
-			echo "    4. Run 'ccp' once in terminal, then click 'Open' when prompted"
-			echo ""
-			echo "  Or run this command to remove the quarantine flag:"
-			echo "    xattr -cr $PWD/.claude/bin"
-			echo ""
-		fi
-	fi
+show_macos_gatekeeper_warning() {
+	echo ""
+	echo "  ⚠️  macOS Gatekeeper is blocking the CCP binary"
+	echo ""
+	echo "  The installer requires CCP to verify your license."
+	echo "  Please follow these steps to unblock it:"
+	echo ""
+	echo "    1. Open System Settings → Privacy & Security"
+	echo "    2. Scroll down to find a message about 'ccp' being blocked"
+	echo "    3. Click 'Allow Anyway'"
+	echo "    4. Re-run this installer"
+	echo ""
+	echo "  Or run this command to remove the quarantine flag:"
+	echo "    xattr -cr $PWD/.claude/bin"
+	echo ""
 }
 
 confirm_local_install() {
@@ -242,7 +233,6 @@ download_installer() {
 	rm -rf "$installer_dir"
 	mkdir -p "$installer_dir/installer"
 
-	# Dev versions don't have 'v' prefix
 	local tag_ref=""
 	case "$VERSION" in
 	dev-*) tag_ref="$VERSION" ;;
@@ -308,7 +298,6 @@ get_local_so_name() {
 	Darwin) platform_tag="darwin" ;;
 	esac
 
-	# Assumes Python 3.12 which is what uv provides
 	echo "ccp.cpython-312-${platform_tag}.so"
 }
 
@@ -325,17 +314,18 @@ download_ccp_binary() {
 
 	so_name=$(get_local_so_name)
 
-	# Build download URL based on version type
 	case "$VERSION" in
 	dev-*) base_url="https://github.com/${REPO}/releases/download/${VERSION}" ;;
 	*) base_url="https://github.com/${REPO}/releases/download/v${VERSION}" ;;
 	esac
 
+	if [ -d "$bin_dir" ]; then
+		rm -rf "$bin_dir"
+	fi
 	mkdir -p "$bin_dir"
 
 	echo "  [..] Downloading CCP binary (${platform_suffix})..."
 
-	# Download .so file
 	local so_url="${base_url}/ccp-${platform_suffix}.so"
 	local so_path="${bin_dir}/${so_name}"
 
@@ -353,7 +343,6 @@ download_ccp_binary() {
 
 	chmod +x "$so_path"
 
-	# Download wrapper script
 	local wrapper_url="${base_url}/ccp"
 	local wrapper_path="${bin_dir}/ccp"
 
@@ -373,12 +362,38 @@ download_ccp_binary() {
 
 	chmod +x "$wrapper_path"
 
-	# Remove quarantine on macOS
-	if [ "$(uname -s)" = "Darwin" ]; then
+	echo "  [..] Verifying CCP binary..."
+	local ccp_version
+	ccp_version=$("$wrapper_path" --version 2>/dev/null) || true
+
+	if [ -z "$ccp_version" ] && [ "$(uname -s)" = "Darwin" ]; then
+		echo "  [..] Removing macOS quarantine attributes..."
 		xattr -cr "$bin_dir" 2>/dev/null || true
+		spctl --add "$wrapper_path" 2>/dev/null || true
+		spctl --add "$so_path" 2>/dev/null || true
+		ccp_version=$("$wrapper_path" --version 2>/dev/null) || true
 	fi
 
-	echo "  [OK] CCP binary installed (${VERSION})"
+	if [ -z "$ccp_version" ]; then
+		if [ "$(uname -s)" = "Darwin" ]; then
+			show_macos_gatekeeper_warning
+			exit 1
+		else
+			echo "  [!!] CCP binary failed to execute"
+			return 1
+		fi
+	fi
+
+	# Extract version (handles both "v5.2.2" and "vdev-xxx" formats)
+	local installed_version
+	installed_version=$(echo "$ccp_version" | sed -n 's/.*CodePro v\(.*\)/\1/p')
+
+	if [ -z "$installed_version" ]; then
+		echo "  [!!] Could not determine CCP version"
+		return 1
+	fi
+
+	echo "  [OK] CCP binary ready (v${installed_version})"
 }
 
 run_installer() {
@@ -390,7 +405,6 @@ run_installer() {
 
 	export PYTHONPATH="$installer_dir:${PYTHONPATH:-}"
 
-	# Pass target version for dev installs so installer downloads from correct tag
 	local version_arg=""
 	if [ -n "$VERSION" ] && [ "$VERSION" != "$DEFAULT_VERSION" ]; then
 		version_arg="--target-version $VERSION"
@@ -474,10 +488,4 @@ fi
 download_installer
 download_ccp_binary
 
-# shellcheck disable=SC2086
 run_installer $INSTALLER_ARGS
-
-saved_mode=$(get_saved_install_mode)
-if [ "$saved_mode" = "local" ] || is_in_container; then
-	show_macos_gatekeeper_help
-fi

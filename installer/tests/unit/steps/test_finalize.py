@@ -4,9 +4,65 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
+
+
+class TestGetCcpVersion:
+    """Test _get_ccp_version function."""
+
+    @patch("installer.steps.finalize.subprocess.run")
+    def test_returns_version_from_ccp_binary(self, mock_run):
+        """_get_ccp_version returns version from ccp --version output."""
+        from installer.steps.finalize import _get_ccp_version
+
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout="Claude CodePro v5.2.3",
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch("installer.steps.finalize.Path.cwd", return_value=Path(tmpdir)):
+                # Create fake ccp binary
+                bin_dir = Path(tmpdir) / ".claude" / "bin"
+                bin_dir.mkdir(parents=True)
+                ccp_path = bin_dir / "ccp"
+                ccp_path.write_text("#!/bin/bash\necho 'Claude CodePro v5.2.3'")
+
+                version = _get_ccp_version()
+                assert version == "5.2.3"
+
+    @patch("installer.steps.finalize.subprocess.run")
+    def test_returns_dev_version_from_ccp_binary(self, mock_run):
+        """_get_ccp_version returns dev version from ccp --version output."""
+        from installer.steps.finalize import _get_ccp_version
+
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout="Claude CodePro vdev-abc1234-20260125",
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch("installer.steps.finalize.Path.cwd", return_value=Path(tmpdir)):
+                bin_dir = Path(tmpdir) / ".claude" / "bin"
+                bin_dir.mkdir(parents=True)
+                ccp_path = bin_dir / "ccp"
+                ccp_path.write_text("#!/bin/bash")
+
+                version = _get_ccp_version()
+                assert version == "dev-abc1234-20260125"
+
+    def test_returns_fallback_when_ccp_not_found(self):
+        """_get_ccp_version returns installer version when ccp not found."""
+        from installer import __version__
+        from installer.steps.finalize import _get_ccp_version
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch("installer.steps.finalize.Path.cwd", return_value=Path(tmpdir)):
+                # No ccp binary exists
+                version = _get_ccp_version()
+                assert version == __version__
 
 
 class TestFinalizeStep:

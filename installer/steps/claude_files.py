@@ -218,8 +218,6 @@ class ClaudeFilesStep(BaseStep):
 
             for name, has_files, dir_path in dirs_to_clear:
                 if dir_path.exists() and has_files:
-                    if ui:
-                        ui.status(f"Clearing old {name}...")
                     try:
                         shutil.rmtree(dir_path)
                     except (OSError, IOError) as e:
@@ -233,8 +231,6 @@ class ClaudeFilesStep(BaseStep):
                     if cmd_file.is_file() and cmd_file.suffix == ".md":
                         name = cmd_file.stem
                         if name in standard_command_names:
-                            if ui:
-                                ui.status(f"Clearing old command: {name}...")
                             try:
                                 cmd_file.unlink()
                             except (OSError, IOError) as e:
@@ -248,11 +244,6 @@ class ClaudeFilesStep(BaseStep):
                     if skill_subdir.is_dir():
                         name = skill_subdir.name
                         if name in migrated_to_commands or name.startswith("standards-"):
-                            if ui:
-                                if name in migrated_to_commands:
-                                    ui.status(f"Migrating skill to command: {name}...")
-                                else:
-                                    ui.status(f"Clearing old skill: {name}...")
                             try:
                                 shutil.rmtree(skill_subdir)
                             except (OSError, IOError) as e:
@@ -261,8 +252,6 @@ class ClaudeFilesStep(BaseStep):
 
             scripts_dir = ctx.project_dir / ".claude" / "scripts"
             if scripts_dir.exists():
-                if ui:
-                    ui.status("Removing deprecated scripts folder...")
                 try:
                     shutil.rmtree(scripts_dir)
                 except (OSError, IOError) as e:

@@ -121,6 +121,8 @@ def _start_trial(
                 data = json.loads(output)
                 if data.get("error") == "trial_already_used":
                     console.error("Trial has already been used on this machine")
+                    console.print("  [cyan]Subscribe at: https://license.claude-code.pro[/cyan]")
+                    console.print("  [bold green]Use code TRIAL50OFF for 50% off your first month![/bold green]")
                 else:
                     console.error(f"Failed to start trial: {data.get('error', 'Unknown error')}")
             except json.JSONDecodeError:
