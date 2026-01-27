@@ -2,9 +2,9 @@
 
 **Rule:** Evaluate sessions for extractable knowledge. Only act when there's something valuable.
 
-### Context Warning Response (80%+)
+### Context Warning Response (90%+)
 
-When the context monitor shows the `/learn check` reminder at 80%+ context:
+When the context monitor shows the `/learn check` reminder at 90%+ context:
 
 1. **Quickly evaluate:** Does this session have a non-obvious solution OR repeatable workflow?
 2. **If YES** → Invoke `Skill(learn)` to extract the knowledge before handoff
