@@ -268,6 +268,8 @@ def main() -> int:
     if target_file.suffix != ".py":
         return 0
 
+    strip_inline_comments(target_file)
+
     if "test" in target_file.name or "spec" in target_file.name:
         return 0
 

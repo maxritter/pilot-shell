@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -13,6 +14,79 @@ RED = "\033[0;31m"
 GREEN = "\033[0;32m"
 YELLOW = "\033[0;33m"
 NC = "\033[0m"
+
+PRESERVE_COMMENT_PATTERNS = re.compile(
+    r"//\s*nolint|"
+    r"//\s*TODO|"
+    r"//\s*FIXME|"
+    r"//\s*XXX|"
+    r"//\s*NOTE|"
+    r"//\s*go:",
+    re.IGNORECASE,
+)
+
+
+def strip_inline_comments(file_path: Path) -> bool:
+    """Remove inline // comments from Go file.
+
+    Removes:
+    - End-of-line comments: `code  // comment` -> `code`
+    - Full-line comments: `// comment` -> (line removed)
+
+    Preserves:
+    - nolint directives, go: directives
+    - TODO, FIXME, XXX, NOTE markers
+    - URLs containing //
+
+    Returns True if file was modified.
+    """
+    try:
+        content = file_path.read_text()
+        lines = content.splitlines(keepends=True)
+    except Exception:
+        return False
+
+    new_lines = []
+    modified = False
+
+    for line in lines:
+        if "//" not in line:
+            new_lines.append(line)
+            continue
+
+        if '"//' in line or "'//" in line or "`//" in line:
+            new_lines.append(line)
+            continue
+
+        if "://" in line:
+            new_lines.append(line)
+            continue
+
+        match = re.search(r"//.*$", line)
+        if not match:
+            new_lines.append(line)
+            continue
+
+        comment = match.group(0)
+
+        if PRESERVE_COMMENT_PATTERNS.search(comment):
+            new_lines.append(line)
+            continue
+
+        before_comment = line[: match.start()].rstrip()
+
+        if before_comment:
+            new_lines.append(before_comment + "\n")
+            modified = True
+        else:
+            modified = True
+
+    if modified:
+        new_content = "".join(new_lines)
+        file_path.write_text(new_content)
+        return True
+
+    return False
 
 
 def find_git_root() -> Path | None:
@@ -158,6 +232,8 @@ def main() -> int:
 
     if target_file.suffix != ".go":
         return 0
+
+    strip_inline_comments(target_file)
 
     if target_file.name.endswith("_test.go"):
         return 0

@@ -417,8 +417,10 @@ def main() -> int:
         debug_log(f"File extension {target_file.suffix} not in {TS_EXTENSIONS}, skipping")
         return 0
 
+    strip_inline_comments(target_file)
+
     if "test" in target_file.name or "spec" in target_file.name:
-        debug_log("Test/spec file, skipping")
+        debug_log("Test/spec file, skipping linting (comments already stripped)")
         return 0
 
     project_root = find_project_root(target_file)
