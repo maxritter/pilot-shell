@@ -15,7 +15,7 @@ const Logo = ({ variant = "hero" }: LogoProps) => {
     <div className={`inline-block ${paddingClass}`}>
       <img
         src={logoPng}
-        alt="Claude Pilot - Production-Grade Development Environment for Claude Code"
+        alt="Claude Pilot - Claude Code, Done Right"
         className={`${sizeClass} h-auto animate-glow`}
         loading={variant === "hero" ? "eager" : "lazy"}
       />

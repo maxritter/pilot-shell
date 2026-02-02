@@ -111,7 +111,7 @@ const WhatsInside = () => {
         >
           <SectionHeader
             title="What's Inside"
-            subtitle="Everything you need for professional AI-assisted development"
+            subtitle="The tools that make Claude Code reliable"
           />
         </div>
 

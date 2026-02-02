@@ -14,7 +14,7 @@ const Index = () => {
     "@type": "WebSite",
     "name": "Claude Pilot",
     "url": "https://www.claude-pilot.com",
-    "description": "Production-Grade Development Environment for Claude Code",
+    "description": "Claude Code, Done Right. Tests enforced, context preserved, quality automated.",
     "publisher": {
       "@type": "Organization",
       "name": "Claude Pilot",
@@ -46,7 +46,7 @@ const Index = () => {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "Claude Pilot",
-    "description": "Production-grade AI development for Claude Code. TDD enforced, quality automated, ship with confidence.",
+    "description": "Claude is powerful but inconsistent. Pilot adds the structure it needs. Tests enforced, context preserved, quality automated.",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Linux, macOS, Windows",
     "offers": {
@@ -67,8 +67,8 @@ const Index = () => {
   return (
     <>
       <SEO
-        title="Claude Pilot - Production-Grade Development Environment for Claude Code"
-        description="Production-grade AI development for Claude Code. TDD enforced, quality automated, ship with confidence. Free for personal use, students, and nonprofits."
+        title="Claude Pilot - Claude Code, Done Right"
+        description="Claude is powerful but inconsistent. Pilot adds the structure it needs. Tests enforced, context preserved, quality automated."
         structuredData={[websiteStructuredData, breadcrumbStructuredData, softwareStructuredData]}
       />
       <NavBar />

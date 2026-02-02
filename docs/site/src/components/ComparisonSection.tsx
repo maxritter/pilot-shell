@@ -14,10 +14,10 @@ const ComparisonSection = () => {
           className={`text-center mb-12 animate-on-scroll ${headerInView ? "in-view" : ""}`}
         >
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Why Claude Pilot?
+            Before & After
           </h2>
           <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
-            Same task. Different results. Skip weeks of setup and get production-grade workflows instantly.
+            Same prompt. Different outcome. Structure makes the difference.
           </p>
         </div>
 
@@ -157,8 +157,8 @@ const ComparisonSection = () => {
         {/* Bottom highlight */}
         <div className="mt-12 text-center">
           <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto">
-            <span className="text-primary font-medium">Production-grade code you can ship with confidence.</span>
-            {" "}Systematic. Tested. Verified.
+            <span className="text-primary font-medium">Code you can actually ship.</span>
+            {" "}Tested. Verified. Done.
           </p>
         </div>
       </div>

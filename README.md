@@ -2,40 +2,53 @@
 
 <img src="docs/img/logo.png" alt="Claude Pilot" width="400">
 
-### Pilot Takes Control of Claude Code
+### Claude Code, Done Right
 
-Quality on autopilot. Context optimized. Testing enforced.</br>
-All systems go. Pilot engaged. Ready for takeoff.
+Claude is powerful but inconsistent. Pilot adds the structure it needs:</br>
+**Tests enforced. Context preserved. Quality automated.**
 
 [![Version](https://img.shields.io/github/v/release/maxritter/claude-pilot?label=Version&color=orange)](https://github.com/maxritter/claude-pilot/releases)
 [![Stars](https://img.shields.io/github/stars/maxritter/claude-pilot?style=flat&color=yellow)](https://github.com/maxritter/claude-pilot/stargazers)
 [![Last Commit](https://img.shields.io/github/last-commit/maxritter/claude-pilot?color=blue)](https://github.com/maxritter/claude-pilot/commits/main)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/maxritter/claude-pilot/pulls)
 
-#### ⭐ [Star this repository](https://github.com/maxritter/claude-pilot) · 🌐 [Visit the website](https://claude-pilot.com) · 🔔 [Follow for updates](https://www.linkedin.com/in/rittermax/)
+⭐ [Star this repo](https://github.com/maxritter/claude-pilot) · 🌐 [Website](https://claude-pilot.com) · 🔔 [Follow for updates](https://www.linkedin.com/in/rittermax/)
 
 </div>
 
 ---
 
-## ⚡ TL;DR
+## TL;DR
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/maxritter/claude-pilot/main/install.sh | bash
 ```
 
-Inside Claude Code, type `/sync` to sync rules and skills. Use `/spec` for Spec-Driven Development or Quick Mode for fast fixes.
+Run `/sync` to load rules. Use `/spec` for planned features or just chat for quick fixes. Pilot does the rest.
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 
+- [The Problem](#-the-problem)
 - [Getting Started](#-getting-started)
 - [What's Inside](#-whats-inside)
-- [Why Claude Pilot?](#-why-claude-pilot)
 - [Usage](#-usage)
-- [Contributing](#-contributing)
 - [License](#-license)
+- [Contributing](#-contributing)
+
+---
+
+## 🎯 The Problem
+
+Claude Code writes code fast. But without structure, you get:
+
+- **No tests** — Code ships without verification
+- **Context decay** — Quality degrades as the context window fills
+- **Session amnesia** — Every restart, you re-explain everything
+- **Inconsistent results** — Same prompt, different outcomes
+
+Sound familiar? Pilot adds the structure Claude needs to be reliable.
 
 ---
 
@@ -119,20 +132,15 @@ VERSION=5.4.12 curl -fsSL https://raw.githubusercontent.com/maxritter/claude-pil
 
 ---
 
-## 🔄 Why Claude Pilot?
+## 🔄 Before & After
 
-Same task. Different results.
-
-| Ad-hoc Prompting                 | With Claude Pilot                                   |
-| -------------------------------- | ----------------------------------------------------- |
-| ❌ Writes code without tests     | ✅ TDD enforced — tests first, then implementation    |
-| ❌ No quality checks             | ✅ Auto-formatted, linted, type-checked on every edit |
-| ❌ Inconsistent workflow         | ✅ Structured Plan → Implement → Verify cycle         |
-| ❌ Context lost between sessions | ✅ Persistent memory carries observations forward     |
-| ❌ No codebase awareness         | ✅ Semantic search understands your code              |
-| ❌ Hope it works                 | ✅ Verified before marked complete                    |
-
-**The result:** Production-grade code you can ship with confidence. Systematic. Tested. Verified.
+| Without Pilot | With Pilot |
+| ------------- | ---------- |
+| Writes code, skips tests | TDD enforced — tests first |
+| No quality checks | Auto-linted, formatted, type-checked |
+| Context degrades mid-task | Endless Mode preserves context |
+| Every session starts fresh | Persistent memory across sessions |
+| Hope it works | Verified before marked complete |
 
 ---
 

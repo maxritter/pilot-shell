@@ -11,7 +11,7 @@ const Footer = () => {
           <div className="flex flex-col gap-3">
             <Logo variant="footer" />
             <p className="text-sm text-muted-foreground max-w-xs">
-              Production-Grade Development Environment for Claude Code
+              Claude Code, Done Right
             </p>
           </div>
 

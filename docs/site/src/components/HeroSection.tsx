@@ -26,8 +26,8 @@ const HeroSection = () => {
         {/* Badge */}
         <div className="animate-fade-in mb-4 xs:mb-6">
           <Badge variant="outline" className="px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 text-[10px] xs:text-xs sm:text-sm border-primary/50 text-primary">
-            <span className="hidden xs:inline">Pilot Takes Control of Claude Code</span>
-            <span className="xs:hidden">Pilot Takes Control</span>
+            <span className="hidden xs:inline">Claude Code, Done Right</span>
+            <span className="xs:hidden">Done Right</span>
           </Badge>
         </div>
 
@@ -39,10 +39,10 @@ const HeroSection = () => {
         {/* Subtitle */}
         <div className="animate-fade-in animation-delay-200 mb-6 xs:mb-8 px-1">
           <p className="text-muted-foreground text-[11px] xs:text-xs sm:text-sm md:text-base lg:text-lg max-w-[90%] xs:max-w-xl sm:max-w-2xl mx-auto leading-relaxed">
-            Quality on autopilot. Context optimized. Testing enforced.
+            Claude is powerful but inconsistent. Pilot adds the structure it needs.
           </p>
           <p className="text-muted-foreground/70 text-[10px] xs:text-xs sm:text-sm md:text-base max-w-[90%] xs:max-w-xl sm:max-w-2xl mx-auto mt-2 leading-relaxed">
-            All systems go. Pilot engaged. Ready for takeoff.
+            Tests enforced. Context preserved. Quality automated.
           </p>
         </div>
 

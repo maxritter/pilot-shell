@@ -137,9 +137,8 @@ class Console:
         self._console.print(logo)
 
         tagline = Text()
-        tagline.append("  ✨ ", style="yellow")
-        tagline.append("Pilot Takes Control of Claude Code", style="bold white")
-        tagline.append(" ✨", style="yellow")
+        tagline.append("  ✈ ", style="cyan")
+        tagline.append("Claude Code, Done Right", style="bold white")
         self._console.print(tagline)
         self._console.print()
 
