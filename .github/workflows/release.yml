@@ -471,6 +471,13 @@ jobs:
           echo "${{ github.event.inputs.changelog }}" > CHANGELOG.md
           echo "Using custom changelog content"
 
+      - name: Sync with remote before release
+        if: github.event_name != 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main
+
       - name: Create release with semantic-release
         if: github.event_name != 'workflow_dispatch'
         id: semantic
@@ -500,8 +507,22 @@ jobs:
           VERSION="${{ needs.prepare-release.outputs.version }}"
           echo "Uploading artifacts for v${VERSION}"
 
-          # Wait a moment for the release to be fully created
-          sleep 5
+          # Wait for release to exist with retry logic
+          MAX_RETRIES=12
+          RETRY_DELAY=5
+          for i in $(seq 1 $MAX_RETRIES); do
+            if gh release view "v${VERSION}" >/dev/null 2>&1; then
+              echo "Release v${VERSION} found"
+              break
+            fi
+            if [ $i -eq $MAX_RETRIES ]; then
+              echo "Release v${VERSION} not found after ${MAX_RETRIES} retries"
+              echo "Creating release manually..."
+              gh release create "v${VERSION}" --title "v${VERSION}" --notes "Release v${VERSION}"
+            fi
+            echo "Waiting for release... (attempt $i/$MAX_RETRIES)"
+            sleep $RETRY_DELAY
+          done
 
           # Upload all .so files
           gh release upload "v${VERSION}" \

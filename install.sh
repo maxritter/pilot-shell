@@ -2,9 +2,7 @@
 
 set -e
 
-REPO_PRIMARY="maxritter/claude-pilot"
-REPO_FALLBACK="maxritter/claude-codepro"
-REPO="$REPO_PRIMARY"
+REPO="maxritter/claude-pilot"
 
 VERSION="${VERSION:-}"
 VERSION="${VERSION#v}"
@@ -41,8 +39,7 @@ while [ $# -gt 0 ]; do
 done
 
 get_latest_release() {
-	local repo="$1"
-	local api_url="https://api.github.com/repos/${repo}/releases/latest"
+	local api_url="https://api.github.com/repos/${REPO}/releases/latest"
 	local version=""
 
 	if command -v curl >/dev/null 2>&1; then
@@ -58,36 +55,12 @@ get_latest_release() {
 	return 1
 }
 
-check_repo_exists() {
-	local repo="$1"
-	local version="$2"
-	local api_url
-
-	case "$version" in
-	dev-*) api_url="https://api.github.com/repos/${repo}/releases/tags/${version}" ;;
-	*) api_url="https://api.github.com/repos/${repo}/releases/tags/v${version}" ;;
-	esac
-
-	if command -v curl >/dev/null 2>&1; then
-		curl -fsSL "$api_url" >/dev/null 2>&1 && return 0
-	elif command -v wget >/dev/null 2>&1; then
-		wget -q --spider "$api_url" 2>/dev/null && return 0
-	fi
-	return 1
-}
-
 if [ -z "$VERSION" ]; then
 	echo "  [..] Fetching latest version..."
-	VERSION=$(get_latest_release "$REPO_PRIMARY") || true
-	if [ -z "$VERSION" ]; then
-		VERSION=$(get_latest_release "$REPO_FALLBACK") || true
-		if [ -n "$VERSION" ]; then
-			REPO="$REPO_FALLBACK"
-		fi
-	fi
+	VERSION=$(get_latest_release) || true
 	if [ -z "$VERSION" ]; then
 		echo "  [!!] Failed to fetch latest version from GitHub."
-		echo "  [!!] Please specify a version: VERSION=5.4.12 curl ... | bash"
+		echo "  [!!] Please specify a version: VERSION=6.0.0 curl ... | bash"
 		exit 1
 	fi
 	echo "  [OK] Latest version: $VERSION"
@@ -95,19 +68,6 @@ else
 	echo "  Using specified version: $VERSION"
 	if [ "$SKIP_VERSION_CHECK" = true ]; then
 		echo "  [..] Skipping version check (--skip-version-check)"
-		# Default to fallback repo for dev versions when skipping check
-		REPO="$REPO_FALLBACK"
-	elif ! check_repo_exists "$REPO_PRIMARY" "$VERSION"; then
-		if check_repo_exists "$REPO_FALLBACK" "$VERSION"; then
-			REPO="$REPO_FALLBACK"
-			echo "  [..] Using fallback repository: $REPO_FALLBACK"
-		else
-			echo "  [!!] Version $VERSION not found in either repository."
-			echo "  [!!] Please verify the version exists at:"
-			echo "       https://github.com/${REPO_PRIMARY}/releases"
-			echo "  [!!] If you're rate-limited, try: --skip-version-check"
-			exit 1
-		fi
 	fi
 fi
 

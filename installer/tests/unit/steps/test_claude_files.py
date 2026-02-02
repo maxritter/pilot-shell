@@ -804,60 +804,14 @@ class TestDirectoryClearing:
             assert not (old_plugin / "scripts").exists()
 
 
-class TestRepoFallback:
-    """Tests for repository fallback logic."""
+class TestResolveRepoUrl:
+    """Tests for _resolve_repo_url method."""
 
-    def test_resolve_repo_url_returns_primary_when_available(self):
-        """_resolve_repo_url returns primary repo when it responds successfully."""
-        import urllib.error
-        from unittest.mock import MagicMock
-
+    def test_resolve_repo_url_returns_correct_url(self):
+        """_resolve_repo_url returns the repository URL."""
         from installer.steps.claude_files import ClaudeFilesStep
 
         step = ClaudeFilesStep()
-
-        mock_response = MagicMock()
-        mock_response.status = 200
-        mock_response.__enter__ = MagicMock(return_value=mock_response)
-        mock_response.__exit__ = MagicMock(return_value=False)
-
-        with patch("urllib.request.urlopen", return_value=mock_response):
-            result = step._resolve_repo_url("v5.0.0")
-
-        assert result == "https://github.com/maxritter/claude-pilot"
-
-    def test_resolve_repo_url_falls_back_when_primary_fails(self):
-        """_resolve_repo_url returns fallback repo when primary fails."""
-        import urllib.error
-        from unittest.mock import MagicMock
-
-        from installer.steps.claude_files import ClaudeFilesStep
-
-        step = ClaudeFilesStep()
-
-        def side_effect(req, timeout=None):
-            if "claude-pilot" in req.full_url:
-                raise urllib.error.URLError("Not found")
-            mock_response = MagicMock()
-            mock_response.status = 200
-            mock_response.__enter__ = MagicMock(return_value=mock_response)
-            mock_response.__exit__ = MagicMock(return_value=False)
-            return mock_response
-
-        with patch("urllib.request.urlopen", side_effect=side_effect):
-            result = step._resolve_repo_url("v5.0.0")
-
-        assert result == "https://github.com/maxritter/claude-codepro"
-
-    def test_resolve_repo_url_returns_primary_when_both_fail(self):
-        """_resolve_repo_url returns primary repo as default when both fail."""
-        import urllib.error
-
-        from installer.steps.claude_files import ClaudeFilesStep
-
-        step = ClaudeFilesStep()
-
-        with patch("urllib.request.urlopen", side_effect=urllib.error.URLError("Network error")):
-            result = step._resolve_repo_url("v5.0.0")
+        result = step._resolve_repo_url("v5.0.0")
 
         assert result == "https://github.com/maxritter/claude-pilot"

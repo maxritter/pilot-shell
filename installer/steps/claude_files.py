@@ -13,8 +13,7 @@ from installer.steps.base import BaseStep
 
 SETTINGS_FILE = "settings.json"
 
-REPO_URL_PRIMARY = "https://github.com/maxritter/claude-pilot"
-REPO_URL_FALLBACK = "https://github.com/maxritter/claude-codepro"
+REPO_URL = "https://github.com/maxritter/claude-pilot"
 
 SKIP_PATTERNS = (
     "__pycache__",
@@ -189,24 +188,8 @@ class ClaudeFilesStep(BaseStep):
         )
 
     def _resolve_repo_url(self, branch: str) -> str:
-        """Try primary repo, fallback to secondary if release not found."""
-        import urllib.error
-        import urllib.request
-
-        for repo_url in [REPO_URL_PRIMARY, REPO_URL_FALLBACK]:
-            repo = repo_url.replace("https://github.com/", "")
-            api_url = f"https://api.github.com/repos/{repo}/git/refs/tags/{branch}"
-
-            try:
-                req = urllib.request.Request(api_url)
-                req.add_header("User-Agent", "pilot-installer")
-                with urllib.request.urlopen(req, timeout=5) as response:
-                    if response.status == 200:
-                        return repo_url
-            except (urllib.error.URLError, TimeoutError, Exception):
-                continue
-
-        return REPO_URL_PRIMARY
+        """Return the repository URL."""
+        return REPO_URL
 
     def _handle_no_files(self, ui: Any, config: DownloadConfig) -> None:
         """Handle case when no pilot files are found."""

@@ -230,19 +230,6 @@ def test_install_sh_has_auto_version_fetch():
     assert "tag_name" in content, "Must parse tag_name from API response"
 
 
-def test_install_sh_has_repo_fallback():
-    """Verify install.sh has repo fallback from claude-pilot to claude-codepro."""
-    install_sh = Path(__file__).parent.parent.parent.parent / "install.sh"
-    content = install_sh.read_text()
-
-    assert "REPO_PRIMARY" in content, "Must have REPO_PRIMARY variable"
-    assert "REPO_FALLBACK" in content, "Must have REPO_FALLBACK variable"
-    assert "claude-pilot" in content, "Primary repo must be claude-pilot"
-    assert "claude-codepro" in content, "Fallback repo must be claude-codepro"
-    assert "check_repo_exists()" in content, "Must have check_repo_exists function"
-    assert "Using fallback repository" in content, "Must have fallback message"
-
-
 def test_install_sh_supports_version_env_var():
     """Verify install.sh supports VERSION environment variable."""
     install_sh = Path(__file__).parent.parent.parent.parent / "install.sh"
