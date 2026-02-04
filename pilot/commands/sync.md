@@ -152,7 +152,7 @@ When an error occurs in our application, we have established a consistent patter
 
 **Build/update the semantic search index before exploration.**
 
-> **Note:** First-time indexing can take several minutes as embeddings are generated locally using CPU (or GPU if available). Subsequent syncs are much faster due to caching.
+> **Note:** First-time indexing can take 5-15 minutes as embeddings are generated locally. Processing time depends on hardware: GPU-accelerated systems are faster, CPU-only systems take longer. Subsequent syncs are much faster due to caching.
 
 1. **Check Vexor availability:**
    ```bash
@@ -165,7 +165,7 @@ When an error occurs in our application, we have established a consistent patter
    ```bash
    vexor index --path /absolute/path/to/project
    ```
-   Use Bash with `timeout: 300000` (5 minutes) for first-time indexing.
+   Use Bash with `timeout: 900000` (15 minutes) for first-time indexing.
 
 4. **Verify index is working:**
    ```bash

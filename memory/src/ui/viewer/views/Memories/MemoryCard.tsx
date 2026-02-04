@@ -6,6 +6,7 @@ interface Memory {
   type: string;
   title: string;
   content: string;
+  facts: string[];
   project: string;
   timestamp: string;
   concepts?: string[];
@@ -89,9 +90,18 @@ export function MemoryCard({
               <span className="text-xs text-base-content/50">#{memory.id}</span>
             </div>
             <h3 className="font-medium text-sm line-clamp-2">{memory.title}</h3>
-            {isGrid && (
+            {isGrid && memory.facts && memory.facts.length > 0 ? (
+              <ul className="text-xs text-base-content/60 mt-1 space-y-0.5 list-disc list-inside">
+                {memory.facts.slice(0, 3).map((fact, i) => (
+                  <li key={i} className="line-clamp-1">{fact}</li>
+                ))}
+                {memory.facts.length > 3 && (
+                  <li className="text-base-content/40">+{memory.facts.length - 3} more</li>
+                )}
+              </ul>
+            ) : isGrid && memory.content ? (
               <p className="text-xs text-base-content/60 mt-1 line-clamp-3">{memory.content}</p>
-            )}
+            ) : null}
           </div>
         </div>
 

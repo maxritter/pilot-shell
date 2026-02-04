@@ -13,6 +13,7 @@ interface Memory {
   type: string;
   title: string;
   content: string;
+  facts: string[];
   project: string;
   timestamp: string;
   concepts?: string[];
@@ -30,7 +31,6 @@ export function MemoriesView() {
   const [isDeleting, setIsDeleting] = useState(false);
   const toast = useToast();
 
-  // Get project from URL query params
   const getProjectFromUrl = (): string | null => {
     const hash = window.location.hash;
     const queryIndex = hash.indexOf('?');
@@ -41,7 +41,6 @@ export function MemoriesView() {
 
   const [projectFilter, setProjectFilter] = useState<string | null>(getProjectFromUrl);
 
-  // Update project filter when URL changes
   useEffect(() => {
     const handleHashChange = () => {
       setProjectFilter(getProjectFromUrl());
@@ -65,13 +64,13 @@ export function MemoriesView() {
       const response = await fetch(`/api/observations?${params}`);
       const data = await response.json();
 
-      // Map API response to Memory format
       const items = data.items || data.observations || [];
       setMemories(items.map((item: any) => ({
         id: item.id,
         type: item.type || 'observation',
         title: item.title || 'Untitled',
         content: item.narrative || item.content || '',
+        facts: item.facts ? (typeof item.facts === 'string' ? JSON.parse(item.facts) : item.facts) : [],
         project: item.project || 'unknown',
         timestamp: formatTimestamp(item.created_at),
         concepts: item.concepts ? (typeof item.concepts === 'string' ? JSON.parse(item.concepts) : item.concepts) : [],
@@ -151,7 +150,6 @@ export function MemoriesView() {
       const ids = Array.from(selectedIds).join(',');
       const url = `/api/export?format=${format}&ids=${ids}`;
 
-      // Trigger download
       const response = await fetch(url);
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);

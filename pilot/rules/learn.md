@@ -22,6 +22,8 @@ When the context monitor shows the `/learn check` reminder at 90%+ context:
 | **Tool integration** | Figured out how to use tool/API in undocumented way |
 | **Trial-and-error** | Tried multiple approaches before finding what worked |
 | **Repeatable workflow** | Multi-step task that will recur; worth standardizing |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs |
+| **User-facing automation** | Built something user will ask for again (reports, status checks) |
 
 ### What NOT to Extract (Stay Silent)
 
@@ -34,7 +36,9 @@ When the context monitor shows the `/learn check` reminder at 90%+ context:
 ### Quick Decision Tree
 
 ```
-Hook fires → Was there non-obvious discovery OR multi-step reusable workflow?
+Hook fires → Was there non-obvious discovery OR multi-step reusable workflow OR external service query?
 ├─ YES → Invoke Skill(learn)
 └─ NO  → Output nothing, let stop proceed
 ```
+
+**Note:** External service queries (Jira, GitHub, Confluence) are almost always worth extracting - users frequently repeat these requests.

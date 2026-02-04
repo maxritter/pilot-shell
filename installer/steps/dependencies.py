@@ -177,9 +177,9 @@ def _configure_claude_defaults() -> bool:
 
 
 def _get_forced_claude_version(project_dir: Path) -> str | None:
-    """Check settings.local.json for FORCE_CLAUDE_VERSION in env section."""
-
-    settings_path = project_dir / ".claude" / "settings.local.json"
+    """Check ~/.claude/settings.json for FORCE_CLAUDE_VERSION in env section."""
+    _ = project_dir  # Not used, settings are global
+    settings_path = Path.home() / ".claude" / "settings.json"
     if settings_path.exists():
         try:
             settings = json.loads(settings_path.read_text())
@@ -626,7 +626,7 @@ def _install_claude_code_with_ui(ui: Any, project_dir: Path) -> bool:
             if version != "latest":
                 ui.success(f"Claude Code installed (pinned to v{version})")
                 ui.info(f"Version {version} is the last stable release tested with Pilot")
-                ui.info("To change: edit FORCE_CLAUDE_VERSION in .claude/settings.local.json")
+                ui.info("To change: edit FORCE_CLAUDE_VERSION in ~/.claude/settings.json")
             else:
                 ui.success("Claude Code installed (latest)")
             ui.success("Claude Code config defaults applied")

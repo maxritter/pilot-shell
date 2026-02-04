@@ -6,6 +6,7 @@ interface Memory {
   type: string;
   title: string;
   content: string;
+  facts: string[];
   project: string;
   timestamp: string;
   concepts?: string[];
@@ -76,9 +77,17 @@ export function MemoryDetailModal({ memory, onClose }: MemoryDetailModalProps) {
           {/* Content */}
           {activeTab === 'content' && (
             <div className="bg-base-200 rounded-lg p-4 max-h-96 overflow-y-auto">
-              <pre className="text-sm whitespace-pre-wrap break-words">
-                {memory.content || 'No content available'}
-              </pre>
+              {memory.facts && memory.facts.length > 0 ? (
+                <ul className="text-sm space-y-2 list-disc list-inside">
+                  {memory.facts.map((fact, i) => (
+                    <li key={i}>{fact}</li>
+                  ))}
+                </ul>
+              ) : (
+                <pre className="text-sm whitespace-pre-wrap break-words">
+                  {memory.content || 'No content available'}
+                </pre>
+              )}
             </div>
           )}
 

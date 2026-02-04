@@ -41,6 +41,8 @@ Invoke `/learn` after ANY task involving:
 | **Tool integration** | Figured out how to use tool/API in undocumented way |
 | **Trial-and-error** | Tried multiple approaches before finding what worked |
 | **Repeatable workflow** | Multi-step task that will recur; worth standardizing |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs |
+| **User-facing automation** | Built something user will ask for again (reports, status checks) |
 
 ### Step 0.2: Quality Criteria
 
@@ -130,8 +132,11 @@ Ask yourself:
 2. "Would future-me benefit from having this documented?"
 3. "Was the solution non-obvious from documentation alone?"
 4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
 
 **If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
 
 ---
 
