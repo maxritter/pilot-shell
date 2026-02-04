@@ -19,7 +19,7 @@ describe('HealthMonitor', () => {
       const result = await isPortInUse(37777);
 
       expect(result).toBe(true);
-      expect(global.fetch).toHaveBeenCalledWith('http://127.0.0.1:37777/api/health');
+      expect(global.fetch).toHaveBeenCalledWith('http://127.0.0.1:37777/api/health', {});
     });
 
     it('should return false for free port (connection refused)', async () => {

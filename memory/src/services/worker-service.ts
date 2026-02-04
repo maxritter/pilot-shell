@@ -308,9 +308,16 @@ export class WorkerService {
       this.coreReady = true;
       logger.info('SYSTEM', 'Core services ready (hooks can proceed)');
 
-      const mcpServerPath = path.join(__dirname, 'mcp-server.cjs');
+      const possibleMcpPaths = [
+        path.join(__dirname, 'mcp-server.cjs'),
+        path.join(__dirname, '..', 'servers', 'mcp-server.ts'),
+        path.join(__dirname, '..', '..', 'servers', 'mcp-server.ts'),
+      ];
+      const mcpServerPath = possibleMcpPaths.find(p => existsSync(p)) || possibleMcpPaths[0];
+      const isTsFile = mcpServerPath.endsWith('.ts');
+
       const transport = new StdioClientTransport({
-        command: 'node',
+        command: isTsFile ? 'bun' : 'node',
         args: [mcpServerPath],
         env: process.env as Record<string, string>
       });

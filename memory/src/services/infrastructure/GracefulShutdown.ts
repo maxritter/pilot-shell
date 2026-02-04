@@ -17,6 +17,28 @@ import {
   removePidFile
 } from './ProcessManager.js';
 
+/** Timeout for each shutdown step (ms) */
+const SHUTDOWN_STEP_TIMEOUT_MS = 5000;
+
+/**
+ * Run an async operation with a timeout. Returns true if completed, false if timed out.
+ */
+async function withTimeout<T>(
+  operation: Promise<T>,
+  timeoutMs: number,
+  operationName: string
+): Promise<{ completed: boolean; result?: T }> {
+  const timeoutPromise = new Promise<{ completed: false }>((resolve) =>
+    setTimeout(() => {
+      logger.warn('SYSTEM', `${operationName} timed out after ${timeoutMs}ms`);
+      resolve({ completed: false });
+    }, timeoutMs)
+  );
+
+  const resultPromise = operation.then(result => ({ completed: true as const, result }));
+  return Promise.race([resultPromise, timeoutPromise]);
+}
+
 export interface ShutdownableService {
   shutdownAll(): Promise<void>;
 }
@@ -49,40 +71,53 @@ export interface GracefulShutdownConfig {
 export async function performGracefulShutdown(config: GracefulShutdownConfig): Promise<void> {
   logger.info('SYSTEM', 'Shutdown initiated');
 
-  // Clean up PID file on shutdown
   removePidFile();
 
-  // STEP 1: Enumerate all child processes BEFORE we start closing things
-  const childPids = await getChildProcesses(process.pid);
+  const childPidsResult = await withTimeout(
+    getChildProcesses(process.pid),
+    SHUTDOWN_STEP_TIMEOUT_MS,
+    'Enumerate child processes'
+  );
+  const childPids = childPidsResult.completed ? (childPidsResult.result ?? []) : [];
   logger.info('SYSTEM', 'Found child processes', { count: childPids.length, pids: childPids });
 
-  // STEP 2: Close HTTP server first
   if (config.server) {
-    await closeHttpServer(config.server);
+    await withTimeout(
+      closeHttpServer(config.server),
+      SHUTDOWN_STEP_TIMEOUT_MS,
+      'Close HTTP server'
+    );
     logger.info('SYSTEM', 'HTTP server closed');
   }
 
-  // STEP 3: Shutdown active sessions
-  await config.sessionManager.shutdownAll();
+  await withTimeout(
+    config.sessionManager.shutdownAll(),
+    SHUTDOWN_STEP_TIMEOUT_MS,
+    'Shutdown sessions'
+  );
 
-  // STEP 4: Close MCP client connection (signals child to exit gracefully)
   if (config.mcpClient) {
-    await config.mcpClient.close();
+    await withTimeout(
+      config.mcpClient.close(),
+      SHUTDOWN_STEP_TIMEOUT_MS,
+      'Close MCP client'
+    );
     logger.info('SYSTEM', 'MCP client closed');
   }
 
-  // STEP 5: Close database connection (includes ChromaSync cleanup)
   if (config.dbManager) {
-    await config.dbManager.close();
+    await withTimeout(
+      config.dbManager.close(),
+      SHUTDOWN_STEP_TIMEOUT_MS,
+      'Close database'
+    );
   }
 
-  // STEP 6: Force kill any remaining child processes (Windows zombie port fix)
   if (childPids.length > 0) {
     logger.info('SYSTEM', 'Force killing remaining children');
     for (const pid of childPids) {
       await forceKillProcess(pid);
     }
-    // Wait for children to fully exit
     await waitForProcessesExit(childPids, 5000);
   }
 
@@ -94,20 +129,16 @@ export async function performGracefulShutdown(config: GracefulShutdownConfig): P
  * Windows needs extra time to release sockets properly
  */
 async function closeHttpServer(server: http.Server): Promise<void> {
-  // Close all active connections
   server.closeAllConnections();
 
-  // Give Windows time to close connections before closing server (prevents zombie ports)
   if (process.platform === 'win32') {
     await new Promise(r => setTimeout(r, 500));
   }
 
-  // Close the server
   await new Promise<void>((resolve, reject) => {
     server.close(err => err ? reject(err) : resolve());
   });
 
-  // Extra delay on Windows to ensure port is fully released
   if (process.platform === 'win32') {
     await new Promise(r => setTimeout(r, 500));
     logger.info('SYSTEM', 'Waited for Windows port cleanup');

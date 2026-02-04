@@ -8,6 +8,7 @@
 
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import { homedir } from 'os';
 import type { ModeConfig, ObservationType, ObservationConcept } from './types.js';
 import { logger } from '../../utils/logger.js';
 import { getPackageRoot } from '../../shared/paths.js';
@@ -18,19 +19,21 @@ export class ModeManager {
   private modesDir: string;
 
   private constructor() {
-    // Modes are in plugin/modes/
-    // getPackageRoot() points to plugin/ in production and src/ in development
-    // We want to ensure we find the modes directory which is at the project root/plugin/modes
     const packageRoot = getPackageRoot();
-    
-    // Check for plugin/modes relative to package root (covers both dev and prod if paths are right)
+
     const possiblePaths = [
-      join(packageRoot, 'modes'),           // Production (plugin/modes)
-      join(packageRoot, '..', 'plugin', 'modes'), // Development (src/../plugin/modes)
+      join(packageRoot, 'modes'),
+      join(packageRoot, '..', 'pilot', 'modes'),
+      join(packageRoot, '..', '..', 'pilot', 'modes'),
+      join(homedir(), '.claude', 'pilot', 'modes'),
     ];
 
     const foundPath = possiblePaths.find(p => existsSync(p));
     this.modesDir = foundPath || possiblePaths[0];
+
+    if (!foundPath) {
+      logger.warn('SYSTEM', 'No modes directory found', { searched: possiblePaths });
+    }
   }
 
   /**
@@ -57,7 +60,6 @@ export class ModeManager {
       return { hasParent: false, parentId: '', overrideId: '' };
     }
 
-    // Support only one level: code--ko, not code--ko--verbose
     if (parts.length > 2) {
       throw new Error(
         `Invalid mode inheritance: ${modeId}. Only one level of inheritance supported (parent--override)`
@@ -67,7 +69,7 @@ export class ModeManager {
     return {
       hasParent: true,
       parentId: parts[0],
-      overrideId: modeId // Use the full modeId (e.g., code--es) to find the override file
+      overrideId: modeId
     };
   }
 
@@ -96,10 +98,8 @@ export class ModeManager {
       const baseValue = base[key];
 
       if (this.isPlainObject(overrideValue) && this.isPlainObject(baseValue)) {
-        // Recursively merge nested objects
         result[key] = this.deepMerge(baseValue, overrideValue as any);
       } else {
-        // Replace arrays and primitives completely
         result[key] = overrideValue as T[Extract<keyof T, string>];
       }
     }
@@ -133,7 +133,6 @@ export class ModeManager {
   loadMode(modeId: string): ModeConfig {
     const inheritance = this.parseInheritance(modeId);
 
-    // No inheritance - load file directly (existing behavior)
     if (!inheritance.hasParent) {
       try {
         const mode = this.loadModeFile(modeId);
@@ -145,7 +144,6 @@ export class ModeManager {
         return mode;
       } catch (error) {
         logger.warn('SYSTEM', `Mode file not found: ${modeId}, falling back to 'code'`);
-        // If we're already trying to load 'code', throw to prevent infinite recursion
         if (modeId === 'code') {
           throw new Error('Critical: code.json mode file missing');
         }
@@ -153,10 +151,8 @@ export class ModeManager {
       }
     }
 
-    // Has inheritance - load parent and merge with override
     const { parentId, overrideId } = inheritance;
 
-    // Load parent mode recursively
     let parentMode: ModeConfig;
     try {
       parentMode = this.loadMode(parentId);
@@ -165,7 +161,6 @@ export class ModeManager {
       parentMode = this.loadMode('code');
     }
 
-    // Load override file
     let overrideConfig: Partial<ModeConfig>;
     try {
       overrideConfig = this.loadModeFile(overrideId);
@@ -176,14 +171,12 @@ export class ModeManager {
       return parentMode;
     }
 
-    // Validate override file loaded successfully
     if (!overrideConfig) {
       logger.warn('SYSTEM', `Invalid override file: ${overrideId}, using parent mode '${parentId}' only`);
       this.activeMode = parentMode;
       return parentMode;
     }
 
-    // Deep merge override onto parent
     const mergedMode = this.deepMerge(parentMode, overrideConfig);
     this.activeMode = mergedMode;
 

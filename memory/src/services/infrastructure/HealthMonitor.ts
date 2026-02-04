@@ -12,6 +12,23 @@
 import { logger } from '../../utils/logger.js';
 import { getWorkerHost } from '../../shared/worker-utils.js';
 
+/** Default timeout for health check fetches (ms) */
+const FETCH_TIMEOUT_MS = 5000;
+
+/**
+ * Fetch with timeout using Promise.race (avoids AbortSignal.timeout Windows Bun libuv issue)
+ */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs: number = FETCH_TIMEOUT_MS
+): Promise<Response> {
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error(`Fetch timeout after ${timeoutMs}ms`)), timeoutMs)
+  );
+  return Promise.race([fetch(url, options), timeoutPromise]);
+}
+
 declare const __DEFAULT_PACKAGE_VERSION__: string;
 const BUILT_IN_VERSION = typeof __DEFAULT_PACKAGE_VERSION__ !== 'undefined'
   ? __DEFAULT_PACKAGE_VERSION__
@@ -32,10 +49,9 @@ function formatWorkerUrl(port: number): string {
  */
 export async function isPortInUse(port: number): Promise<boolean> {
   try {
-    // Note: Removed AbortSignal.timeout to avoid Windows Bun cleanup issue (libuv assertion)
-    const response = await fetch(`${formatWorkerUrl(port)}/api/health`);
+    const response = await fetchWithTimeout(`${formatWorkerUrl(port)}/api/health`);
     return response.ok;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -50,8 +66,7 @@ export async function waitForHealth(port: number, timeoutMs: number = 30000): Pr
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     try {
-      // Note: Removed AbortSignal.timeout to avoid Windows Bun cleanup issue (libuv assertion)
-      const response = await fetch(`${formatWorkerUrl(port)}/api/readiness`);
+      const response = await fetchWithTimeout(`${formatWorkerUrl(port)}/api/readiness`);
       if (response.ok) return true;
     } catch (error) {
       logger.debug('SYSTEM', 'Service not ready yet, will retry', { port }, error as Error);
@@ -81,19 +96,21 @@ export async function waitForPortFree(port: number, timeoutMs: number = 10000): 
  */
 export async function httpShutdown(port: number): Promise<boolean> {
   try {
-    // Note: Removed AbortSignal.timeout to avoid Windows Bun cleanup issue (libuv assertion)
-    const response = await fetch(`${formatWorkerUrl(port)}/api/admin/shutdown`, {
-      method: 'POST'
-    });
+    const response = await fetchWithTimeout(
+      `${formatWorkerUrl(port)}/api/admin/shutdown`,
+      { method: 'POST' }
+    );
     if (!response.ok) {
       logger.warn('SYSTEM', 'Shutdown request returned error', { port, status: response.status });
       return false;
     }
     return true;
   } catch (error) {
-    if (error instanceof Error && error.message?.includes('ECONNREFUSED')) {
-      logger.debug('SYSTEM', 'Worker already stopped', { port }, error);
-      return false;
+    if (error instanceof Error) {
+      if (error.message?.includes('ECONNREFUSED') || error.message?.includes('Fetch timeout')) {
+        logger.debug('SYSTEM', 'Worker already stopped or not responding', { port });
+        return false;
+      }
     }
     logger.error('SYSTEM', 'Shutdown request failed unexpectedly', { port }, error as Error);
     return false;
@@ -114,7 +131,7 @@ export function getInstalledPluginVersion(): string {
  */
 export async function getRunningWorkerVersion(port: number): Promise<string | null> {
   try {
-    const response = await fetch(`${formatWorkerUrl(port)}/api/version`);
+    const response = await fetchWithTimeout(`${formatWorkerUrl(port)}/api/version`);
     if (!response.ok) return null;
     const data = await response.json() as { version: string };
     return data.version;
