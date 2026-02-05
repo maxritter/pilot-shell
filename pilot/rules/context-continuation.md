@@ -13,16 +13,16 @@
 - If context is high, finish the CURRENT task properly, then hand off cleanly
 - Do NOT skip tests, compress explanations, or cut corners to "beat" context limits
 
-**The context limit is not your enemy.** It's just a checkpoint. The plan file, Claude Mem, and continuation files ensure seamless handoff. Trust the system.
+**The context limit is not your enemy.** It's just a checkpoint. The plan file, Pilot Memory, and continuation files ensure seamless handoff. Trust the system.
 
 ## How It Works
 
 This enables "endless mode" for any development session, not just /spec workflows:
 
 1. **Context Monitor** warns at 80% and 90% usage
-2. **You save state** to Claude Mem before clearing
+2. **You save state** to Pilot Memory before clearing
 3. **Pilot restarts** Claude with continuation prompt
-4. **Claude Mem injects** your saved state
+4. **Pilot Memory injects** your saved state
 5. **You continue** where you left off
 
 ## When Context Warning Appears
@@ -125,10 +125,10 @@ Then execute the send-clear command (do NOT wait for user response):
 ```
 
 This triggers session continuation in Endless Mode:
-1. Waits 10s for Claude Mem to capture the session
+1. Waits 10s for Pilot Memory to capture the session
 2. Waits 5s for graceful shutdown (SessionEnd hooks run)
 3. Waits 5s for session hooks to complete
-4. Waits 3s for Claude Mem initialization
+4. Waits 3s for Pilot Memory initialization
 5. Restarts Claude with the continuation prompt
 
 Or if no active session, inform user:
@@ -139,7 +139,7 @@ Context at 90%. Please run `/clear` and then tell me to continue where I left of
 **Step 4: After Restart**
 
 The new session receives:
-- Claude Mem context injection (including your Session End Summary)
+- Pilot Memory context injection (including your Session End Summary)
 - A continuation prompt instructing you to resume
 
 ## Resuming After Session Restart
@@ -152,7 +152,7 @@ When a new session starts with a continuation prompt:
    ```
    If it exists, read it and use it as your source of truth.
 
-2. **Also check Claude Mem** for injected context about "Session Continuation"
+2. **Also check Pilot Memory** for injected context about "Session Continuation"
 
 3. **Acknowledge the continuation** - Tell user: "Continuing from previous session..."
 
@@ -171,7 +171,7 @@ If you're in a /spec workflow (plan file exists):
 
 If you're in general development (no plan file):
 - Use this continuation protocol
-- Claude Mem observations are your source of truth
+- Pilot Memory observations are your source of truth
 
 ## Quick Reference
 
@@ -203,5 +203,5 @@ If you're in general development (no plan file):
 
 1. **Don't ignore 90% warnings** - Context will fail at 100%
 2. **Save before clearing** - Lost context cannot be recovered
-3. **Claude Mem is essential** - It bridges sessions with observations
+3. **Pilot Memory is essential** - It bridges sessions with observations
 4. **Trust the injected context** - It's your previous session's state

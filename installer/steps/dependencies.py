@@ -178,7 +178,7 @@ def _configure_claude_defaults() -> bool:
 
 def _get_forced_claude_version(project_dir: Path) -> str | None:
     """Check ~/.claude/settings.json for FORCE_CLAUDE_VERSION in env section."""
-    _ = project_dir  # Not used, settings are global
+    _ = project_dir
     settings_path = Path.home() / ".claude" / "settings.json"
     if settings_path.exists():
         try:
@@ -217,8 +217,8 @@ def _migrate_legacy_plugins(ui: Any = None) -> None:
 
     MCP servers are now defined in plugin/.mcp.json, so we clean up:
     - Context7 from official marketplace
-    - claude-mem from thedotmack marketplace
-    - claude-mem from customable (maxritter) marketplace
+    - pilot-memory from thedotmack marketplace
+    - pilot-memory from customable (maxritter) marketplace
     - LSP plugins (basedpyright, typescript-lsp, gopls) from claude-code-lsps
     - thedotmack marketplace
     - customable marketplace
@@ -233,7 +233,7 @@ def _migrate_legacy_plugins(ui: Any = None) -> None:
 
     plugins_to_remove = [
         "context7",
-        "claude-mem",
+        "pilot-memory",
         "basedpyright",
         "typescript-lsp",
         "vtsls",
@@ -562,57 +562,11 @@ def _install_plugin_dependencies(_project_dir: Path, ui: Any = None) -> bool:
     return success
 
 
-def _patch_claude_mem_config() -> bool:
-    """Patch claude-mem settings with required configuration.
-
-    Creates ~/.claude-mem/settings.json if it doesn't exist.
-    Always patches the required fields to ensure correct configuration.
-    """
-    settings_dir = Path.home() / ".claude-mem"
-    settings_path = settings_dir / "settings.json"
-
-    required_settings = {
-        "CLAUDE_MEM_MODEL": "haiku",
-        "CLAUDE_MEM_CONTEXT_OBSERVATIONS": "50",
-        "CLAUDE_MEM_CONTEXT_FULL_COUNT": "10",
-        "CLAUDE_MEM_CONTEXT_FULL_FIELD": "facts",
-        "CLAUDE_MEM_CONTEXT_SESSION_COUNT": "10",
-        "CLAUDE_MEM_CHROMA_ENABLED": True,
-        "CLAUDE_MEM_VECTOR_DB": "chroma",
-    }
-
-    try:
-        settings_dir.mkdir(parents=True, exist_ok=True)
-
-        if settings_path.exists():
-            settings = json.loads(settings_path.read_text())
-        else:
-            settings = {}
-
-        settings.update(required_settings)
-        settings_path.write_text(json.dumps(settings, indent=2) + "\n")
-        return True
-    except Exception:
-        return False
-
-
-def _setup_claude_mem(ui: Any) -> bool:
-    """Migrate legacy plugins and configure claude-mem settings.
-
-    Claude-mem MCP server is now defined in plugin/.mcp.json.
-    This function removes any legacy plugin installations and patches
-    the claude-mem config with required settings.
-    """
+def _setup_pilot_memory(ui: Any) -> bool:
+    """Migrate legacy plugins."""
     _migrate_legacy_plugins(ui)
     if ui:
-        ui.success("claude-mem legacy plugins cleaned")
-
-    if _patch_claude_mem_config():
-        if ui:
-            ui.success("claude-mem config patched")
-    else:
-        if ui:
-            ui.warning("Could not patch claude-mem config")
+        ui.success("pilot-memory legacy plugins cleaned")
 
     return True
 
@@ -723,8 +677,8 @@ class DependenciesStep(BaseStep):
         if _install_claude_code_with_ui(ui, ctx.project_dir):
             installed.append("claude_code")
 
-        if _setup_claude_mem(ui):
-            installed.append("claude_mem")
+        if _setup_pilot_memory(ui):
+            installed.append("pilot_memory")
 
         if _install_with_spinner(ui, "Plugin dependencies", _install_plugin_dependencies, ctx.project_dir, ui):
             installed.append("plugin_deps")

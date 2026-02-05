@@ -96,6 +96,63 @@ jobs:
             --cov=installer --cov=launcher \
             --cov-report=term --cov-report=xml
 
+  console-tests:
+    name: Console Unit Tests
+    runs-on: ubuntu-latest
+    needs: check-trigger
+    if: needs.check-trigger.outputs.should_run == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        working-directory: console
+        run: bun install
+
+      - name: Run console tests
+        working-directory: console
+        run: bun test
+
+  console-build:
+    name: Console Build & Typecheck
+    runs-on: ubuntu-latest
+    needs: check-trigger
+    if: needs.check-trigger.outputs.should_run == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        working-directory: console
+        run: bun install
+
+      - name: Typecheck
+        working-directory: console
+        run: bun run typecheck
+
+      - name: Build hooks
+        working-directory: console
+        run: bun run build
+
+      - name: Build viewer
+        working-directory: console
+        run: bun run build:viewer
+
   # Determine the version to release (semantic-release dry-run or manual input)
   prepare-release:
     name: Prepare Release
@@ -373,6 +430,8 @@ jobs:
     needs:
       - prepare-release
       - python-tests
+      - console-tests
+      - console-build
       - build-pilot-x86
       - build-pilot-arm64
       - build-pilot-darwin-x86
@@ -394,6 +453,8 @@ jobs:
 
           ### Build Status
           - ✅ Python unit tests passed
+          - ✅ Console unit tests passed
+          - ✅ Console build & typecheck passed
           - ✅ Linux x86_64 build ready
           - ✅ Linux arm64 build ready
           - ✅ Darwin x86_64 build ready
@@ -499,7 +560,7 @@ jobs:
           sed -i 's/^__version__ = ".*"/__version__ = "'"${VERSION}"'"/' installer/__init__.py launcher/__init__.py
 
           # Update version in README.md
-          sed -i "s/VERSION=[0-9.]* curl/VERSION=${VERSION} curl/g" README.md
+          sed -i "s/export VERSION=[0-9.]*/export VERSION=${VERSION}/g" README.md
 
           echo "Version files updated:"
           grep __version__ installer/__init__.py launcher/__init__.py

@@ -12,7 +12,6 @@ class TestCommandExists:
         """command_exists finds common system commands."""
         from installer.platform_utils import command_exists
 
-        # These should exist on any Unix-like system
         assert command_exists("ls") is True
         assert command_exists("cat") is True
 
@@ -41,7 +40,6 @@ class TestShellConfig:
 
         result = get_shell_config_files()
         path_names = [p.name for p in result]
-        # Should include at least one of these common configs
         common_configs = [".bashrc", ".zshrc", "config.fish"]
         assert any(name in path_names for name in common_configs)
 
@@ -55,3 +53,34 @@ class TestIsInDevcontainer:
 
         result = is_in_devcontainer()
         assert isinstance(result, bool)
+
+
+class TestIsAptAvailable:
+    """Test apt availability detection."""
+
+    def test_is_apt_available_returns_bool(self):
+        """is_apt_available returns boolean."""
+        from installer.platform_utils import is_apt_available
+
+        result = is_apt_available()
+        assert isinstance(result, bool)
+
+
+class TestIsLinux:
+    """Test Linux platform detection."""
+
+    def test_is_linux_returns_bool(self):
+        """is_linux returns boolean."""
+        from installer.platform_utils import is_linux
+
+        result = is_linux()
+        assert isinstance(result, bool)
+
+    def test_is_linux_matches_platform(self):
+        """is_linux matches platform.system() check."""
+        import platform
+
+        from installer.platform_utils import is_linux
+
+        expected = platform.system() == "Linux"
+        assert is_linux() == expected

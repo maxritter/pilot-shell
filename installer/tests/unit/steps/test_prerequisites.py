@@ -206,6 +206,58 @@ class TestPrerequisitesHelpers:
         assert "bun" in HOMEBREW_PACKAGES
         assert "uv" in HOMEBREW_PACKAGES
         assert "go" in HOMEBREW_PACKAGES
+        assert "ripgrep" in HOMEBREW_PACKAGES
+
+    def test_get_command_for_package_maps_ripgrep_to_rg(self):
+        """_get_command_for_package returns 'rg' for ripgrep package."""
+        from installer.steps.prerequisites import _get_command_for_package
+
+        assert _get_command_for_package("ripgrep") == "rg"
+
+    @patch("installer.steps.prerequisites.is_linux")
+    @patch("installer.steps.prerequisites.is_apt_available")
+    def test_install_ripgrep_via_apt_skips_on_non_linux(self, mock_apt, mock_linux):
+        """_install_ripgrep_via_apt returns False on non-Linux systems."""
+        from installer.steps.prerequisites import _install_ripgrep_via_apt
+
+        mock_linux.return_value = False
+        mock_apt.return_value = True
+
+        result = _install_ripgrep_via_apt()
+        assert result is False
+
+    @patch("installer.steps.prerequisites.is_linux")
+    @patch("installer.steps.prerequisites.is_apt_available")
+    def test_install_ripgrep_via_apt_skips_without_apt(self, mock_apt, mock_linux):
+        """_install_ripgrep_via_apt returns False when apt not available."""
+        from installer.steps.prerequisites import _install_ripgrep_via_apt
+
+        mock_linux.return_value = True
+        mock_apt.return_value = False
+
+        result = _install_ripgrep_via_apt()
+        assert result is False
+
+    @patch("subprocess.run")
+    @patch("installer.steps.prerequisites.is_linux")
+    @patch("installer.steps.prerequisites.is_apt_available")
+    def test_install_ripgrep_via_apt_runs_update_and_install(self, mock_apt, mock_linux, mock_run):
+        """_install_ripgrep_via_apt runs apt-get update then install."""
+        from installer.steps.prerequisites import _install_ripgrep_via_apt
+
+        mock_linux.return_value = True
+        mock_apt.return_value = True
+        mock_run.return_value = MagicMock(returncode=0)
+
+        result = _install_ripgrep_via_apt()
+
+        assert result is True
+        assert mock_run.call_count == 2
+        first_call = mock_run.call_args_list[0]
+        assert "update" in first_call[0][0]
+        second_call = mock_run.call_args_list[1]
+        assert "install" in second_call[0][0]
+        assert "ripgrep" in second_call[0][0]
 
     @patch("subprocess.run")
     def test_add_bun_tap_runs_brew_tap(self, mock_run):

@@ -75,7 +75,6 @@ All notable changes to Claude Pilot will be documented in this file.
 ### Bug Fixes
 
 - Shorten banner tagline to fit within box width
-- Update claude-mem config tests to expect chroma enabled
 - Remove claude alias and update branding to Production-Grade Development
 
 ## [6.0.2] - 2026-02-02

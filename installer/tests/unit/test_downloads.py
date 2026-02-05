@@ -180,26 +180,23 @@ class TestTreeCaching:
 
     def test_get_repo_files_uses_cached_response_on_304(self):
         """get_repo_files returns cached files when API returns 304."""
-        from unittest.mock import MagicMock, patch
+        from unittest.mock import patch
 
-        from installer.downloads import DownloadConfig, FileInfo, get_repo_files
+        from installer.downloads import DownloadConfig, get_repo_files
 
         config = DownloadConfig(
             repo_url="https://github.com/test/repo",
             repo_branch="main",
         )
 
-        cached_files = [{"path": "pilot/test.py", "sha": "abc123"}]
-
         with tempfile.TemporaryDirectory() as tmpdir:
             cache_path = Path(tmpdir) / "cache.json"
-            cache_data = {"main": {"etag": '"cached-etag"', "files": cached_files}}
             cache_path.parent.mkdir(parents=True, exist_ok=True)
             cache_path.write_text('{"main": {"etag": "\\"cached-etag\\"", "files": [{"path": "pilot/test.py", "sha": "abc123"}]}}')
 
             with patch("installer.downloads.get_cache_path", return_value=cache_path):
                 error_304 = urllib.error.HTTPError(
-                    url="test", code=304, msg="Not Modified", hdrs={}, fp=None
+                    url="test", code=304, msg="Not Modified", hdrs=None, fp=None  # type: ignore[arg-type]
                 )
                 with patch("urllib.request.urlopen", side_effect=error_304):
                     files = get_repo_files("pilot", config)

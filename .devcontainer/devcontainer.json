@@ -31,11 +31,11 @@
     }
   },
   "forwardPorts": [
-    37777 // claude-mem
+    41777 // pilot-console
   ],
   "portsAttributes": {
-    "37777": {
-      "label": "claude-mem"
+    "41777": {
+      "label": "Pilot Console"
     }
   },
   /* GET FROM: https://containers.dev/features */
@@ -84,7 +84,9 @@
     /* https://github.com/braun-daniel/devcontainer-features/blob/main/src/spaceship */
     "ghcr.io/braun-daniel/devcontainer-features/spaceship:1": {},
     /* https://github.com/braun-daniel/devcontainer-features/blob/main/src/fzf */
-    "ghcr.io/braun-daniel/devcontainer-features/fzf:1": {}
+    "ghcr.io/braun-daniel/devcontainer-features/fzf:1": {},
+    /* https://github.com/jungaretti/features/tree/main/src/ripgrep */
+    "ghcr.io/jungaretti/features/ripgrep:1": {}
   },
   "postCreateCommand": "curl -fsSL https://raw.githubusercontent.com/maxritter/claude-pilot/main/install.sh | bash",
   "remoteUser": "root",

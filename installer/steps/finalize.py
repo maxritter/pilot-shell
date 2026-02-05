@@ -106,16 +106,16 @@ class FinalizeStep(BaseStep):
         if ctx.is_local_install:
             steps.append(
                 (
-                    "Claude Pilot UI",
-                    "Open http://localhost:37777 → Browse memories, sessions, tags, and live activity",
+                    "Claude Pilot Console",
+                    "Open http://localhost:41777 → Browse memories, sessions, tags, and live activity",
                 )
             )
         else:
             steps.append(
                 (
-                    "Claude Pilot UI",
-                    "Open http://localhost:37777 → Browse memories, sessions, tags, and live activity\n"
-                    "     (Check VS Code Ports tab if 37777 is unavailable - may be 37778)",
+                    "Claude Pilot Console",
+                    "Open http://localhost:41777 → Browse memories, sessions, tags, and live activity\n"
+                    "     (Check VS Code Ports tab if 41777 is unavailable - may be another port)",
                 )
             )
 

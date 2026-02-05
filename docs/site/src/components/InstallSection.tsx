@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Check, Copy, Terminal, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useInView } from "@/hooks/use-in-view";
+import ImageModal from "@/components/ImageModal";
 
 const InstallSection = () => {
   const [copied, setCopied] = useState(false);
@@ -85,6 +86,18 @@ const InstallSection = () => {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Demo GIF */}
+        <div className={`mt-10 ${codeInView ? "animate-fade-in-up animation-delay-200" : "opacity-0"}`}>
+          <div className="relative rounded-xl overflow-hidden border border-border/50 shadow-2xl shadow-primary/10">
+            <ImageModal
+              src="/demo.gif"
+              alt="Claude Pilot Demo"
+              className="w-full rounded-xl"
+            />
+            <p className="text-xs text-muted-foreground text-center mt-2 mb-1">Click to enlarge</p>
           </div>
         </div>
       </div>

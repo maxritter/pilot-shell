@@ -35,14 +35,14 @@ class TestDependenciesStep:
 
     @patch("installer.steps.dependencies.install_vexor")
     @patch("installer.steps.dependencies._install_plugin_dependencies")
-    @patch("installer.steps.dependencies._setup_claude_mem")
+    @patch("installer.steps.dependencies._setup_pilot_memory")
     @patch("installer.steps.dependencies.install_claude_code")
     @patch("installer.steps.dependencies.install_nodejs")
     def test_dependencies_run_installs_core(
         self,
         mock_nodejs,
         mock_claude,
-        mock_setup_claude_mem,
+        mock_setup_pilot_memory,
         mock_plugin_deps,
         mock_vexor,
     ):
@@ -53,7 +53,7 @@ class TestDependenciesStep:
 
         mock_nodejs.return_value = True
         mock_claude.return_value = (True, "latest")
-        mock_setup_claude_mem.return_value = True
+        mock_setup_pilot_memory.return_value = True
         mock_plugin_deps.return_value = True
         mock_vexor.return_value = True
 
@@ -73,7 +73,7 @@ class TestDependenciesStep:
 
     @patch("installer.steps.dependencies.install_vexor")
     @patch("installer.steps.dependencies._install_plugin_dependencies")
-    @patch("installer.steps.dependencies._setup_claude_mem")
+    @patch("installer.steps.dependencies._setup_pilot_memory")
     @patch("installer.steps.dependencies.install_claude_code")
     @patch("installer.steps.dependencies.install_python_tools")
     @patch("installer.steps.dependencies.install_uv")
@@ -84,7 +84,7 @@ class TestDependenciesStep:
         mock_uv,
         mock_python_tools,
         mock_claude,
-        mock_setup_claude_mem,
+        mock_setup_pilot_memory,
         mock_plugin_deps,
         mock_vexor,
     ):
@@ -97,7 +97,7 @@ class TestDependenciesStep:
         mock_uv.return_value = True
         mock_python_tools.return_value = True
         mock_claude.return_value = (True, "latest")
-        mock_setup_claude_mem.return_value = True
+        mock_setup_pilot_memory.return_value = True
         mock_plugin_deps.return_value = True
         mock_vexor.return_value = True
 
@@ -305,7 +305,7 @@ class TestMigrateLegacyPlugins:
 
                 expected_plugins = [
                     "context7",
-                    "claude-mem",
+                    "pilot-memory",
                     "basedpyright",
                     "typescript-lsp",
                     "vtsls",
@@ -369,107 +369,24 @@ class TestMigrateLegacyPlugins:
                 _migrate_legacy_plugins(ui=None)
 
 
-class TestSetupClaudeMem:
-    """Test claude-mem setup (legacy plugin migration and config patching)."""
+class TestSetupPilotMemory:
+    """Test pilot-memory setup (legacy plugin migration and config patching)."""
 
-    def test_setup_claude_mem_exists(self):
-        """_setup_claude_mem function exists."""
-        from installer.steps.dependencies import _setup_claude_mem
+    def test_setup_pilot_memory_exists(self):
+        """_setup_pilot_memory function exists."""
+        from installer.steps.dependencies import _setup_pilot_memory
 
-        assert callable(_setup_claude_mem)
+        assert callable(_setup_pilot_memory)
 
-    @patch("installer.steps.dependencies._patch_claude_mem_config")
     @patch("installer.steps.dependencies._migrate_legacy_plugins")
-    def test_setup_claude_mem_calls_migration_and_patches_config(self, mock_migrate, mock_patch):
-        """_setup_claude_mem calls legacy plugin migration and patches config."""
-        from installer.steps.dependencies import _setup_claude_mem
+    def test_setup_pilot_memory_calls_migration(self, mock_migrate):
+        """_setup_pilot_memory calls legacy plugin migration."""
+        from installer.steps.dependencies import _setup_pilot_memory
 
-        mock_patch.return_value = True
-
-        result = _setup_claude_mem(ui=None)
+        result = _setup_pilot_memory(ui=None)
 
         assert result is True
         mock_migrate.assert_called_once()
-        mock_patch.assert_called_once()
-
-    def test_patch_claude_mem_config_creates_file(self):
-        """_patch_claude_mem_config creates config file if it doesn't exist."""
-        import json
-
-        from installer.steps.dependencies import _patch_claude_mem_config
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with patch.object(Path, "home", return_value=Path(tmpdir)):
-                result = _patch_claude_mem_config()
-
-                assert result is True
-                config_path = Path(tmpdir) / ".claude-mem" / "settings.json"
-                assert config_path.exists()
-                config = json.loads(config_path.read_text())
-                assert config["CLAUDE_MEM_MODEL"] == "haiku"
-                assert config["CLAUDE_MEM_CONTEXT_OBSERVATIONS"] == "50"
-                assert config["CLAUDE_MEM_CONTEXT_FULL_COUNT"] == "10"
-                assert config["CLAUDE_MEM_CONTEXT_FULL_FIELD"] == "facts"
-                assert config["CLAUDE_MEM_CONTEXT_SESSION_COUNT"] == "10"
-                assert config["CLAUDE_MEM_CHROMA_ENABLED"] is True
-                assert config["CLAUDE_MEM_VECTOR_DB"] == "chroma"
-
-    def test_patch_claude_mem_config_merges_existing(self):
-        """_patch_claude_mem_config merges with existing config."""
-        import json
-
-        from installer.steps.dependencies import _patch_claude_mem_config
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            config_dir = Path(tmpdir) / ".claude-mem"
-            config_dir.mkdir(parents=True)
-            config_path = config_dir / "settings.json"
-            config_path.write_text(
-                json.dumps(
-                    {
-                        "CLAUDE_MEM_MODEL": "sonnet",
-                        "CUSTOM_SETTING": "custom_value",
-                    }
-                )
-            )
-
-            with patch.object(Path, "home", return_value=Path(tmpdir)):
-                result = _patch_claude_mem_config()
-
-                assert result is True
-                config = json.loads(config_path.read_text())
-                assert config["CLAUDE_MEM_MODEL"] == "haiku"
-                assert config["CUSTOM_SETTING"] == "custom_value"
-                assert config["CLAUDE_MEM_VECTOR_DB"] == "chroma"
-
-    def test_patch_claude_mem_config_overwrites_incorrect_values(self):
-        """_patch_claude_mem_config overwrites incorrect values."""
-        import json
-
-        from installer.steps.dependencies import _patch_claude_mem_config
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            config_dir = Path(tmpdir) / ".claude-mem"
-            config_dir.mkdir(parents=True)
-            config_path = config_dir / "settings.json"
-            config_path.write_text(
-                json.dumps(
-                    {
-                        "CLAUDE_MEM_MODEL": "opus",
-                        "CLAUDE_MEM_CHROMA_ENABLED": False,
-                        "CLAUDE_MEM_VECTOR_DB": "none",
-                    }
-                )
-            )
-
-            with patch.object(Path, "home", return_value=Path(tmpdir)):
-                result = _patch_claude_mem_config()
-
-                assert result is True
-                config = json.loads(config_path.read_text())
-                assert config["CLAUDE_MEM_MODEL"] == "haiku"
-                assert config["CLAUDE_MEM_CHROMA_ENABLED"] is True
-                assert config["CLAUDE_MEM_VECTOR_DB"] == "chroma"
 
 
 class TestVexorInstall:

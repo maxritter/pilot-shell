@@ -33,7 +33,7 @@ model: opus
 - 1.4 Design decisions (Question Batch 2)
 - 1.5 Write implementation tasks
 - 1.6 Write full plan
-- 1.7 **Plan verification** ⚠️ MANDATORY
+- 1.7 Plan verification
 - 1.8 Get user approval → PHASE 2
 
 **Phase 2 (Implementation):**
@@ -50,7 +50,7 @@ model: opus
 - 3.5 Call chain analysis
 - 3.6 Coverage check
 - 3.7 Quality checks
-- 3.8 **Code review verification** ⚠️ MANDATORY
+- 3.8 Code review verification
 - 3.9 E2E tests
 - 3.10 Final verification
 - 3.11 Update plan status → VERIFIED or loop back
@@ -540,7 +540,7 @@ Iterations: 0
 - [Decisions deferred to implementation]
 ```
 
-### Step 1.7: Plan Verification (⚠️ MANDATORY)
+### Step 1.7: Plan Verification
 
 **⛔ THIS STEP IS NON-NEGOTIABLE. You MUST run plan verification before asking for approval.**
 
@@ -998,7 +998,7 @@ Verify test coverage meets requirements.
 
 Run automated quality tools and fix any issues found.
 
-### Step 3.8: Code Review Verification (⚠️ MANDATORY)
+### Step 3.8: Code Review Verification
 
 **⛔ THIS STEP IS NON-NEGOTIABLE. You MUST run code verification.**
 

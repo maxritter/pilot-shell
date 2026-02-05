@@ -38,8 +38,9 @@ After installation, run `pilot` to launch Claude Pilot. Use `/sync` to load rule
 
 - [The Problem](#-the-problem)
 - [Getting Started](#-getting-started)
-- [What's Inside](#-whats-inside)
 - [Usage](#-usage)
+- [Claude Pilot Console](#-claude-pilot-console)
+- [What's Inside](#-whats-inside)
 - [License](#-license)
 - [Contributing](#-contributing)
 
@@ -62,15 +63,11 @@ Sound familiar? Pilot fixes that.
 
 ### ✅ Prerequisites
 
-Choose your installation method:
+**Claude Subscription:** [Max](https://www.anthropic.com/max), [Team](https://claude.ai/pricing/team), or [Enterprise](https://www.anthropic.com/enterprise) recommended
 
-**Option A: 🍺 Local Installation**
-
-Install directly on your system using Homebrew. Works on macOS, Linux, and Windows (WSL2).
-
-**Option B: 🐳 Dev Container**
-
-Pre-configured, isolated environment with all tools ready. No system conflicts and works on any OS.
+**Choose your environment:**
+- **🍺 Local Installation** — Install directly on your system using Homebrew. Works on macOS, Linux, and Windows (WSL2).
+- **🐳 Dev Container** — Pre-configured, isolated environment with all tools ready. No system conflicts and works on any OS.
 
 ### 🔧 Installation
 
@@ -87,7 +84,8 @@ After installation, run `pilot` or `ccp` in your project folder to start Claude 
 If the current version has issues, you can install a specific stable version (see [releases](https://github.com/maxritter/claude-pilot/releases)):
 
 ```bash
-VERSION=6.0.13 curl -fsSL https://raw.githubusercontent.com/maxritter/claude-pilot/main/install.sh | bash
+export VERSION=6.0.13
+curl -fsSL https://raw.githubusercontent.com/maxritter/claude-pilot/main/install.sh | bash
 ```
 
 ---
@@ -181,6 +179,12 @@ Add your own MCP servers in two locations:
 | `mcp_servers.json` | Called via mcp-cli; instructions never enter context | Heavy servers (many tools) |
 
 Run `/sync` after adding servers to generate documentation.
+
+### 🖥️ Claude Pilot Console
+
+Access the web-based Claude Pilot Console at **http://localhost:41777** to visualize your development workflow:
+
+<img src="docs/img/console.png" alt="Claude Pilot Console" width="700">
 
 ---
 

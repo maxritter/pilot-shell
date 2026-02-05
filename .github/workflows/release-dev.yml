@@ -50,6 +50,63 @@ jobs:
             --cov=installer --cov=launcher \
             --cov-report=term --cov-report=xml
 
+  console-tests:
+    name: Console Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        working-directory: console
+        run: bun install
+
+      - name: Run console tests
+        working-directory: console
+        run: bun test
+
+  console-build:
+    name: Console Build & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        working-directory: console
+        run: bun install
+
+      - name: Typecheck
+        working-directory: console
+        run: bun run typecheck
+
+      - name: Build hooks
+        working-directory: console
+        run: bun run build
+
+      - name: Build viewer
+        working-directory: console
+        run: bun run build:viewer
+
   build-pilot-arm64:
     name: Build Pilot Linux arm64
     runs-on: ubuntu-24.04-arm
@@ -150,6 +207,8 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - python-tests
+      - console-tests
+      - console-build
       - build-pilot-arm64
       - build-pilot-darwin-arm64
     steps:

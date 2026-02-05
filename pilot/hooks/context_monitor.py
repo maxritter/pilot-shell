@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 import time
 from pathlib import Path
@@ -18,7 +19,53 @@ CACHE_TTL = 30
 RED = "\033[0;31m"
 YELLOW = "\033[0;33m"
 CYAN = "\033[0;36m"
+MAGENTA = "\033[0;35m"
 NC = "\033[0m"
+
+
+def find_active_spec() -> tuple[Path | None, str | None]:
+    """Find an active spec file (PENDING or COMPLETE status)."""
+    plans_dir = Path("docs/plans")
+    if not plans_dir.exists():
+        return None, None
+
+    plan_files = sorted(plans_dir.glob("*.md"), reverse=True)
+
+    for plan_file in plan_files:
+        try:
+            content = plan_file.read_text()
+            status_match = re.search(r"^Status:\s*(\w+)", content, re.MULTILINE)
+            if status_match:
+                status = status_match.group(1).upper()
+                if status in ("PENDING", "COMPLETE"):
+                    return plan_file, status
+        except OSError:
+            continue
+
+    return None, None
+
+
+def print_spec_warning(spec_path: Path, spec_status: str) -> None:
+    """Print spec-specific warning at high context."""
+    if spec_status == "COMPLETE":
+        print(f"{MAGENTA}{'=' * 60}{NC}", file=sys.stderr)
+        print(f"{MAGENTA}⛔ ACTIVE SPEC AT STATUS: COMPLETE - VERIFICATION REQUIRED{NC}", file=sys.stderr)
+        print(f"{MAGENTA}{'=' * 60}{NC}", file=sys.stderr)
+        print(f"{MAGENTA}Spec: {spec_path}{NC}", file=sys.stderr)
+        print("", file=sys.stderr)
+        print(f"{MAGENTA}You MUST run Phase 3 VERIFICATION before handoff:{NC}", file=sys.stderr)
+        print(f"{MAGENTA}  1. Run tests and type checking{NC}", file=sys.stderr)
+        print(f"{MAGENTA}  2. Execute actual program{NC}", file=sys.stderr)
+        print(f"{MAGENTA}  3. Run code review (spec-verifier agent){NC}", file=sys.stderr)
+        print(f"{MAGENTA}  4. Update status to VERIFIED{NC}", file=sys.stderr)
+        print(f"{MAGENTA}  5. THEN do handoff{NC}", file=sys.stderr)
+        print("", file=sys.stderr)
+        print(f"{MAGENTA}DO NOT summarize and stop. VERIFICATION is NON-NEGOTIABLE.{NC}", file=sys.stderr)
+        print(f"{MAGENTA}{'=' * 60}{NC}", file=sys.stderr)
+    elif spec_status == "PENDING":
+        print(f"{YELLOW}📋 Active spec: {spec_path} (Status: PENDING){NC}", file=sys.stderr)
+        print(f"{YELLOW}   Continue implementation or get approval before handoff.{NC}", file=sys.stderr)
+        print("", file=sys.stderr)
 
 
 def get_current_session_id() -> str:
@@ -177,15 +224,31 @@ def run_context_monitor() -> int:
         if percentage >= threshold and threshold not in shown_learn:
             print("", file=sys.stderr)
             print(
-                f"{CYAN}💡 Context {percentage:.0f}% - Online Learning reminder:{NC}",
+                f"{CYAN}💡 Context {percentage:.0f}% - Pattern Recognition Check:{NC}",
                 file=sys.stderr,
             )
             print(
-                f"{CYAN}   Did you discover a non-obvious solution or repeatable workflow?{NC}",
+                f"{CYAN}   Did this session involve any of these?{NC}",
                 file=sys.stderr,
             )
             print(
-                f"{CYAN}   If yes, invoke Skill(learn) to extract it for future sessions.{NC}",
+                f"{CYAN}   • Undocumented API/tool integration figured out{NC}",
+                file=sys.stderr,
+            )
+            print(
+                f"{CYAN}   • Multi-step workflow that will recur{NC}",
+                file=sys.stderr,
+            )
+            print(
+                f"{CYAN}   • Workaround for a common limitation{NC}",
+                file=sys.stderr,
+            )
+            print(
+                f"{CYAN}   • Non-obvious debugging solution{NC}",
+                file=sys.stderr,
+            )
+            print(
+                f"{CYAN}   If yes → Invoke Skill(learn) now. It will evaluate if worth capturing.{NC}",
                 file=sys.stderr,
             )
             new_learn_shown.append(threshold)
@@ -194,6 +257,13 @@ def run_context_monitor() -> int:
     if percentage >= THRESHOLD_STOP:
         save_cache(total_tokens, session_id, new_learn_shown if new_learn_shown else None)
         print("", file=sys.stderr)
+
+        spec_path, spec_status = find_active_spec()
+        if spec_path and spec_status:
+            print_spec_warning(spec_path, spec_status)
+            if spec_status == "COMPLETE":
+                return 2
+
         print(f"{RED}⚠️  CONTEXT {percentage:.0f}% - HANDOFF NOW (not optional){NC}", file=sys.stderr)
         print(f"{RED}STOP current work. Your NEXT actions must be:{NC}", file=sys.stderr)
         print(
@@ -202,7 +272,7 @@ def run_context_monitor() -> int:
         )
         print(f"{RED}2. Write /tmp/claude-continuation.md (include Active Plan path if found){NC}", file=sys.stderr)
         print(
-            f"{RED}3. /learn check: Non-obvious solution or repeatable workflow? If yes, invoke Skill(learn) before handoff.{NC}",
+            f"{RED}3. /learn check: Reusable pattern discovered? Invoke Skill(learn) automatically.{NC}",
             file=sys.stderr,
         )
         print(

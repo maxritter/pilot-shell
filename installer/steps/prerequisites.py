@@ -7,7 +7,13 @@ import subprocess
 from pathlib import Path
 
 from installer.context import InstallContext
-from installer.platform_utils import command_exists, is_homebrew_available, is_in_devcontainer
+from installer.platform_utils import (
+    command_exists,
+    is_apt_available,
+    is_homebrew_available,
+    is_in_devcontainer,
+    is_linux,
+)
 from installer.steps.base import BaseStep
 
 HOMEBREW_PACKAGES = [
@@ -21,6 +27,7 @@ HOMEBREW_PACKAGES = [
     "uv",
     "go",
     "gopls",
+    "ripgrep",
 ]
 
 
@@ -118,8 +125,29 @@ def _get_command_for_package(package: str) -> str:
         "uv": "uv",
         "go": "go",
         "gopls": "gopls",
+        "ripgrep": "rg",
     }
     return package_to_command.get(package, package)
+
+
+def _install_ripgrep_via_apt() -> bool:
+    """Install ripgrep via apt on Debian/Ubuntu Linux."""
+    if not is_linux() or not is_apt_available():
+        return False
+    try:
+        subprocess.run(
+            ["sudo", "apt-get", "update", "-qq"],
+            capture_output=True,
+            check=False,
+        )
+        result = subprocess.run(
+            ["sudo", "apt-get", "install", "-y", "ripgrep"],
+            capture_output=True,
+            check=False,
+        )
+        return result.returncode == 0
+    except (subprocess.SubprocessError, OSError):
+        return False
 
 
 class PrerequisitesStep(BaseStep):
@@ -197,3 +225,14 @@ class PrerequisitesStep(BaseStep):
                     ui.warning(f"Could not install {package} - please install manually")
             else:
                 _install_homebrew_package(package)
+
+        if not command_exists("rg") and is_linux() and is_apt_available():
+            if ui:
+                with ui.spinner("Installing ripgrep via apt..."):
+                    success = _install_ripgrep_via_apt()
+                if success:
+                    ui.success("ripgrep installed via apt")
+                else:
+                    ui.warning("Could not install ripgrep - please run: sudo apt-get install ripgrep")
+            else:
+                _install_ripgrep_via_apt()

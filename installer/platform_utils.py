@@ -45,6 +45,18 @@ def is_homebrew_available() -> bool:
     return shutil.which("brew") is not None
 
 
+def is_apt_available() -> bool:
+    """Check if apt is available (Debian/Ubuntu Linux)."""
+    return shutil.which("apt-get") is not None
+
+
+def is_linux() -> bool:
+    """Check if running on Linux."""
+    import platform
+
+    return platform.system() == "Linux"
+
+
 def get_shell_config_files() -> list[Path]:
     """Get list of shell configuration files for the current user."""
     home = Path.home()

@@ -1,5 +1,26 @@
 # Workflow Enforcement Rules
 
+## Task Complexity Triage
+
+**Before starting any task, classify its complexity:**
+
+| Complexity | Characteristics | Action |
+|------------|-----------------|--------|
+| **Trivial** | Single file, obvious fix, <5 min | Execute directly, no planning needed |
+| **Moderate** | 2-5 files, clear scope, straightforward | Use TaskCreate/TaskUpdate to track, then execute |
+| **Complex** | Architectural impact, ambiguous requirements, 5+ files | Use `/spec` for full planning workflow |
+
+**Decision Checklist:**
+- [ ] Does it touch more than 5 files? → `/spec`
+- [ ] Are requirements ambiguous or incomplete? → `/spec`
+- [ ] Does it change core architecture or interfaces? → `/spec`
+- [ ] Will it take multiple sessions? → `/spec`
+- [ ] Is it a simple bug fix or small feature? → Execute directly with task tracking
+
+**Match effort to complexity.** Don't over-engineer trivial tasks with full specs. Don't under-plan complex work by skipping `/spec`.
+
+---
+
 ## ⭐ MANDATORY: Task Management for Non-Spec Work
 
 **Outside of /spec workflows, ALWAYS use task management tools to track work.**

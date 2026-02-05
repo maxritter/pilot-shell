@@ -25,6 +25,20 @@ When the context monitor shows the `/learn check` reminder at 90%+ context:
 | **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs |
 | **User-facing automation** | Built something user will ask for again (reports, status checks) |
 
+### Proactive Pattern Recognition
+
+**When you detect a potential skill candidate, invoke `Skill(learn)` automatically.**
+
+Don't ask "should I learn this?" - invoke the learn command and let IT evaluate whether it's worth capturing.
+
+**Patterns that trigger automatic invocation:**
+- Undocumented API or tool integration figured out
+- Multi-step workflow that will likely recur
+- Workaround for a common limitation
+- Non-obvious debugging solution
+
+The learn command will decide if it's actually valuable and handle user interaction if needed.
+
 ### What NOT to Extract (Stay Silent)
 
 - Simple tasks (reading files, running commands, answering questions)

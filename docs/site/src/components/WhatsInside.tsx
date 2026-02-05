@@ -7,6 +7,7 @@ import {
   Infinity as InfinityIcon,
 } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
+import ImageModal from "@/components/ImageModal";
 
 interface InsideItem {
   icon: React.ElementType;
@@ -52,12 +53,12 @@ const insideItems: InsideItem[] = [
   {
     icon: Plug2,
     title: "Enhanced Context",
-    description: "Zero API keys required",
+    description: "Memory, search & visual dashboard",
     items: [
+      "Pilot Console at localhost:41777",
       "Persistent memory across sessions",
       "Semantic search (local embeddings)",
       "Context7 docs + GitHub code search",
-      "Browser automation for E2E tests",
     ],
   },
   {
@@ -166,6 +167,26 @@ const WhatsInside = () => {
               </div>
             );
           })}
+        </div>
+
+        {/* Console Screenshot */}
+        <div className={`mt-16 ${gridInView ? "animate-fade-in-up animation-delay-500" : "opacity-0"}`}>
+          <div className="text-center mb-6">
+            <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">
+              Pilot Console
+            </h3>
+            <p className="text-muted-foreground text-sm sm:text-base">
+              Visual dashboard at localhost:41777
+            </p>
+          </div>
+          <div className="relative rounded-xl overflow-hidden border border-border/50 shadow-2xl shadow-primary/10 max-w-4xl mx-auto">
+            <ImageModal
+              src="/console.png"
+              alt="Claude Pilot Console Dashboard"
+              className="w-full rounded-xl"
+            />
+            <p className="text-xs text-muted-foreground text-center mt-2 mb-1">Click to enlarge</p>
+          </div>
         </div>
       </div>
     </section>

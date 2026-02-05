@@ -24,13 +24,13 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "sed -i 's/^__version__ = \".*\"/__version__ = \"${nextRelease.version}\"/' installer/__init__.py launcher/__init__.py && sed -i 's/VERSION=[0-9.]* curl/VERSION=${nextRelease.version} curl/g' README.md"
+        "prepareCmd": "sed -i 's/^__version__ = \".*\"/__version__ = \"${nextRelease.version}\"/' installer/__init__.py launcher/__init__.py && sed -i 's/export VERSION=[0-9.]*/export VERSION=${nextRelease.version}/g' README.md && sed -i 's/\"version\": \"[0-9.]*\"/\"version\": \"${nextRelease.version}\"/' console/package.json pilot/package.json pilot/plugin.json"
       }
     ],
     [
       "@semantic-release/git",
       {
-        "assets": ["installer/__init__.py", "launcher/__init__.py", "README.md", "CHANGELOG.md"],
+        "assets": ["installer/__init__.py", "launcher/__init__.py", "README.md", "CHANGELOG.md", "console/package.json", "pilot/package.json", "pilot/plugin.json"],
         "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
     ],

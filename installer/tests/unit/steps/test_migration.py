@@ -404,3 +404,156 @@ class TestMigrateCustomRules:
             assert count == 1
             assert (new_rules_dir / "new-rule.md").exists()
             assert (new_rules_dir / "new-rule.md").read_text() == "# New rule"
+
+
+class TestDetectOldMemoryFolder:
+    """Test _detect_old_memory_folder function."""
+
+    def test_detects_old_memory_folder(self):
+        """_detect_old_memory_folder returns True when ~/.claude-mem exists."""
+        from installer.steps.migration import _detect_old_memory_folder
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                old_mem_dir = Path(tmpdir) / ".claude-mem"
+                old_mem_dir.mkdir(parents=True)
+
+                assert _detect_old_memory_folder() is True
+
+    def test_returns_false_when_no_old_memory_folder(self):
+        """_detect_old_memory_folder returns False when ~/.claude-mem doesn't exist."""
+        from installer.steps.migration import _detect_old_memory_folder
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                assert _detect_old_memory_folder() is False
+
+
+class TestMigrateMemoryFolder:
+    """Test _migrate_memory_folder function."""
+
+    def test_migrates_memory_folder_to_pilot_directory(self):
+        """_migrate_memory_folder moves ~/.claude-mem to ~/.pilot/memory."""
+        from installer.steps.migration import _migrate_memory_folder
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                old_mem_dir = Path(tmpdir) / ".claude-mem"
+                old_mem_dir.mkdir(parents=True)
+                (old_mem_dir / "settings.json").write_text('{"test": true}')
+                (old_mem_dir / "logs").mkdir()
+                (old_mem_dir / "logs" / "app.log").write_text("log content")
+
+                result = _migrate_memory_folder()
+
+                assert result["migrated"] is True
+                assert result["files_moved"] >= 2
+                new_mem_dir = Path(tmpdir) / ".pilot" / "memory"
+                assert new_mem_dir.exists()
+                assert (new_mem_dir / "settings.json").exists()
+                assert (new_mem_dir / "logs" / "app.log").exists()
+                assert not old_mem_dir.exists()
+
+    def test_renames_database_file(self):
+        """_migrate_memory_folder renames claude-mem.db to pilot-memory.db."""
+        from installer.steps.migration import _migrate_memory_folder
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                old_mem_dir = Path(tmpdir) / ".claude-mem"
+                old_mem_dir.mkdir(parents=True)
+                (old_mem_dir / "claude-mem.db").write_text("db content")
+                (old_mem_dir / "claude-mem.db-shm").write_text("shm content")
+                (old_mem_dir / "claude-mem.db-wal").write_text("wal content")
+
+                result = _migrate_memory_folder()
+
+                assert result["db_renamed"] is True
+                new_mem_dir = Path(tmpdir) / ".pilot" / "memory"
+                assert (new_mem_dir / "pilot-memory.db").exists()
+                assert (new_mem_dir / "pilot-memory.db-shm").exists()
+                assert (new_mem_dir / "pilot-memory.db-wal").exists()
+                assert not (new_mem_dir / "claude-mem.db").exists()
+
+    def test_returns_not_migrated_when_no_old_folder(self):
+        """_migrate_memory_folder returns migrated=False when no old folder exists."""
+        from installer.steps.migration import _migrate_memory_folder
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                result = _migrate_memory_folder()
+
+                assert result["migrated"] is False
+                assert result["files_moved"] == 0
+
+    def test_overwrites_existing_files_in_destination(self):
+        """_migrate_memory_folder overwrites existing files in ~/.pilot/memory."""
+        from installer.steps.migration import _migrate_memory_folder
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                old_mem_dir = Path(tmpdir) / ".claude-mem"
+                old_mem_dir.mkdir(parents=True)
+                (old_mem_dir / "settings.json").write_text('{"from": "old"}')
+
+                new_mem_dir = Path(tmpdir) / ".pilot" / "memory"
+                new_mem_dir.mkdir(parents=True)
+                (new_mem_dir / "settings.json").write_text('{"from": "new"}')
+
+                result = _migrate_memory_folder()
+
+                assert result["migrated"] is True
+                assert (new_mem_dir / "settings.json").read_text() == '{"from": "old"}'
+
+
+class TestMigrationStepWithMemory:
+    """Test MigrationStep integration with memory folder migration."""
+
+    def test_check_returns_false_when_old_memory_exists(self):
+        """MigrationStep.check returns False when ~/.claude-mem exists."""
+        from installer.context import InstallContext
+        from installer.steps.migration import MigrationStep
+        from installer.ui import Console
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                project_dir = Path(tmpdir) / "project"
+                project_dir.mkdir()
+                old_mem_dir = Path(tmpdir) / ".claude-mem"
+                old_mem_dir.mkdir()
+
+                ctx = InstallContext(
+                    project_dir=project_dir,
+                    ui=Console(non_interactive=True),
+                )
+                step = MigrationStep()
+
+                assert step.check(ctx) is False
+
+    def test_run_migrates_memory_folder(self):
+        """MigrationStep.run migrates ~/.claude-mem to ~/.pilot/memory."""
+        from installer.context import InstallContext
+        from installer.steps.migration import MigrationStep
+        from installer.ui import Console
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                project_dir = Path(tmpdir) / "project"
+                project_dir.mkdir()
+                old_mem_dir = Path(tmpdir) / ".claude-mem"
+                old_mem_dir.mkdir()
+                (old_mem_dir / "claude-mem.db").write_text("db content")
+                (old_mem_dir / "settings.json").write_text('{"test": true}')
+
+                ctx = InstallContext(
+                    project_dir=project_dir,
+                    ui=Console(non_interactive=True),
+                )
+                step = MigrationStep()
+                step.run(ctx)
+
+                new_mem_dir = Path(tmpdir) / ".pilot" / "memory"
+                assert new_mem_dir.exists()
+                assert (new_mem_dir / "pilot-memory.db").exists()
+                assert (new_mem_dir / "settings.json").exists()
+                assert not old_mem_dir.exists()

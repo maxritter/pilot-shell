@@ -10,6 +10,65 @@ from installer.context import InstallContext
 from installer.steps.base import BaseStep
 
 
+def _detect_old_memory_folder() -> bool:
+    """Detect if old ~/.claude-mem folder exists."""
+    old_memory_dir = Path.home() / ".claude-mem"
+    return old_memory_dir.exists()
+
+
+def _migrate_memory_folder() -> dict:
+    """Migrate ~/.claude-mem to ~/.pilot/memory.
+
+    Moves all files and subfolders, renaming claude-mem.db to pilot-memory.db.
+    Returns migration info dict.
+    """
+    old_memory_dir = Path.home() / ".claude-mem"
+    new_memory_dir = Path.home() / ".pilot" / "memory"
+
+    result = {
+        "migrated": False,
+        "files_moved": 0,
+        "db_renamed": False,
+        "error": None,
+    }
+
+    if not old_memory_dir.exists():
+        return result
+
+    try:
+        new_memory_dir.mkdir(parents=True, exist_ok=True)
+
+        for item in old_memory_dir.iterdir():
+            src = item
+            if item.name == "claude-mem.db":
+                dest = new_memory_dir / "pilot-memory.db"
+                result["db_renamed"] = True
+            elif item.name == "claude-mem.db-shm":
+                dest = new_memory_dir / "pilot-memory.db-shm"
+            elif item.name == "claude-mem.db-wal":
+                dest = new_memory_dir / "pilot-memory.db-wal"
+            else:
+                dest = new_memory_dir / item.name
+
+            if dest.exists():
+                if item.is_dir():
+                    shutil.rmtree(dest)
+                else:
+                    dest.unlink()
+
+            shutil.move(str(src), str(dest))
+            result["files_moved"] += 1
+
+        if old_memory_dir.exists() and not any(old_memory_dir.iterdir()):
+            old_memory_dir.rmdir()
+
+        result["migrated"] = True
+    except (OSError, IOError) as e:
+        result["error"] = str(e)
+
+    return result
+
+
 def _detect_codepro_installation(project_dir: Path) -> bool:
     """Detect if old CodePro installation exists in project directory."""
     old_ccp_dir = project_dir / ".claude" / "ccp"
@@ -205,7 +264,8 @@ class MigrationStep(BaseStep):
         """
         has_project_codepro = _detect_codepro_installation(ctx.project_dir)
         has_global_codepro = _detect_global_codepro()
-        return not has_project_codepro and not has_global_codepro
+        has_old_memory = _detect_old_memory_folder()
+        return not has_project_codepro and not has_global_codepro and not has_old_memory
 
     def run(self, ctx: InstallContext) -> None:
         """Run migration from CodePro to Pilot."""
@@ -213,16 +273,18 @@ class MigrationStep(BaseStep):
 
         has_project_codepro = _detect_codepro_installation(ctx.project_dir)
         has_global_codepro = _detect_global_codepro()
+        has_old_memory = _detect_old_memory_folder()
 
-        if not has_project_codepro and not has_global_codepro:
+        if not has_project_codepro and not has_global_codepro and not has_old_memory:
             return
 
         if ui:
-            ui.status("Migrating from CodePro to Pilot...")
+            ui.status("Migrating to Pilot...")
 
         migrated_config = False
         removed_folders: list[str] = []
         migrated_rules = 0
+        memory_result: dict = {}
 
         if has_global_codepro:
             if _migrate_global_config():
@@ -235,6 +297,9 @@ class MigrationStep(BaseStep):
             migrated_rules = _migrate_custom_rules(ctx.project_dir)
             removed_folders.extend(_cleanup_old_folders(ctx.project_dir))
 
+        if has_old_memory:
+            memory_result = _migrate_memory_folder()
+
         if ui:
             if migrated_config:
                 ui.success("Config migrated to ~/.pilot/config.json")
@@ -242,6 +307,11 @@ class MigrationStep(BaseStep):
                 ui.success(f"Migrated {migrated_rules} custom rules to .claude/rules/")
             if removed_folders:
                 ui.success(f"Cleaned up {len(removed_folders)} old CodePro folders")
+            if memory_result.get("migrated"):
+                msg = "Memory migrated to ~/.pilot/memory/"
+                if memory_result.get("db_renamed"):
+                    msg += " (database renamed)"
+                ui.success(msg)
             ui.success("Migration complete")
 
         ctx.config["migration"] = {

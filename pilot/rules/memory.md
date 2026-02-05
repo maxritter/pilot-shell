@@ -1,4 +1,4 @@
-## Persistent Memory via Claude-Mem MCP
+## Persistent Memory via Pilot Console MCP
 
 Search past work, decisions, and context across sessions. Follow the 3-layer workflow for token efficiency.
 
@@ -53,4 +53,4 @@ Use `<private>` tags to exclude content from storage:
 
 ### Web Viewer
 
-Access at `http://localhost:37777` for real-time observation stream.
+Access at `http://localhost:41777` for real-time observation stream.

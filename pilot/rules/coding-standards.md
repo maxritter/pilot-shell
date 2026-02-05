@@ -1,6 +1,16 @@
 ## Coding Standards
 
-Apply these standards to all code changes. Prioritize simplicity, clarity, and maintainability.
+Apply these standards to all code changes.
+
+### Priority Order (When Trade-offs Arise)
+
+**Correctness > Maintainability > Performance > Brevity**
+
+When you must choose between competing concerns:
+1. **Correctness** - Code must work correctly. Never sacrifice correctness for anything.
+2. **Maintainability** - Code others can understand and modify. Prefer readable over clever.
+3. **Performance** - Fast enough for the use case. Don't optimize prematurely.
+4. **Brevity** - Concise is nice, but never at the cost of the above.
 
 ### Core Principles
 
@@ -26,13 +36,33 @@ Use descriptive names that reveal intent without requiring comments:
 
 **Function Size**: Keep functions small and focused. Extract complex logic into well-named helper functions.
 
+### Before Modifying Code
+
+**Dependency Check**: Before modifying any function or feature, identify downstream consumers:
+1. Use `Grep` or LSP `findReferences` to find all callers
+2. Check if your changes affect return types, parameters, or behavior
+3. Plan to update all affected call sites
+
+This catches breaking changes before you make them, not during verification.
+
+### Self-Correction
+
+**Fix obvious mistakes immediately without asking permission:**
+- Syntax errors, typos, missing imports
+- Off-by-one errors discovered during testing
+- Minor formatting issues
+
+For low-level errors discovered during execution, correct and continue. Don't stop to report every minor fix. Reserve user communication for decisions, not status updates on trivial fixes.
+
 ### Quality Checks
 
-**Diagnostics**: Use `getDiagnostics` tool before starting work and after making changes. Fix all errors before considering the task complete.
+**Diagnostics**: Check diagnostics before starting work and after making changes. Fix all errors before considering the task complete.
 
 **Formatting**: Let automated formatters handle code style. Don't manually format code.
 
 **Backward Compatibility**: Only add compatibility logic when explicitly required by the user. Don't assume you need to support old versions.
+
+**Use Fast Tools**: Prefer `rg` (ripgrep) over grep/find for searching. It's 5-10x faster and already installed.
 
 ### Decision Framework
 
