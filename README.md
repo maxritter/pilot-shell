@@ -13,7 +13,7 @@ Ship code you can actually trust. Pilot is your quality autopilot.</br>
 [![Last Commit](https://img.shields.io/github/last-commit/maxritter/claude-pilot?color=blue)](https://github.com/maxritter/claude-pilot/commits/main)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/maxritter/claude-pilot/pulls)
 
-⭐ [Star this repo](https://github.com/maxritter/claude-pilot) · 🌐 [Website](https://claude-pilot.com) · 🔔 [Follow for updates](https://www.linkedin.com/in/rittermax/) · 📋 [Changelog](https://pilot.openchangelog.com/) · 📄 [License](LICENSE)
+⭐ [Star this repo](https://github.com/maxritter/claude-pilot) · 🌐 [Website](https://www.claude-pilot.com) · 🔔 [Follow for updates](https://www.linkedin.com/in/rittermax/) · 📋 [Changelog](https://pilot.openchangelog.com/) · 📄 [License](LICENSE)
 
 <br>
 
@@ -409,12 +409,12 @@ Access the web-based Claude Pilot Console at **http://localhost:41777** to visua
 
 Claude Pilot is source-available under a commercial license. See the [LICENSE](LICENSE) file for full terms.
 
-| Tier     | Seats | Includes                                                     |
-| :------- | :---- | :----------------------------------------------------------- |
-| **Solo** | 1     | All features, continuous updates, GitHub support             |
+| Tier     | Seats | Includes                                                                  |
+| :------- | :---- | :------------------------------------------------------------------------ |
+| **Solo** | 1     | All features, continuous updates, GitHub support                          |
 | **Team** | Multi | Solo + multiple seats, dedicated email support, priority feature requests |
 
-Details and licensing at [claude-pilot.com](https://claude-pilot.com).
+Details and licensing at [claude-pilot.com](https://www.claude-pilot.com).
 
 ---
 
