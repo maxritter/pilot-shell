@@ -140,7 +140,7 @@ const Footer = () => {
           <p className="text-sm text-muted-foreground text-center">
             © {new Date().getFullYear()}{" "}
             <a
-              href="https://www.claude-pilot.com/"
+              href="https://claude-pilot.com/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:underline"

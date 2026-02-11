@@ -13,7 +13,7 @@ Ship code you can actually trust. Pilot is your quality autopilot.</br>
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/maxritter/claude-pilot/pulls)
 [![Star History](https://img.shields.io/badge/Star_History-chart-yellow)](https://star-history.com/#maxritter/claude-pilot&Date)
 
-⭐ [Star this repo](https://github.com/maxritter/claude-pilot) · 🌐 [Website](https://www.claude-pilot.com) · 🔔 [Follow for updates](https://www.linkedin.com/in/rittermax/) · 📋 [Changelog](https://pilot.openchangelog.com/) · 📄 [License](LICENSE)
+⭐ [Star this repo](https://github.com/maxritter/claude-pilot) · 🌐 [Website](https://claude-pilot.com) · 🔔 [Follow for updates](https://www.linkedin.com/in/rittermax/) · 📋 [Changelog](https://pilot.openchangelog.com/) · 📄 [License](LICENSE)
 
 <br>
 
@@ -213,12 +213,12 @@ Discuss  →  Plan  →  Approve  →  Implement  →  Verify  →  Done
 
 Pilot uses the right model for each phase — Opus where reasoning quality matters most, Sonnet where speed and cost matter:
 
-| Phase | Model | Why |
-| ----- | ----- | --- |
-| **Planning** | Opus | Exploring your codebase, designing architecture, and writing the spec requires deep reasoning. A good plan is the foundation of everything. |
-| **Plan Verification** | Opus | Catching gaps, missing edge cases, and requirement mismatches before implementation saves expensive rework. |
-| **Implementation** | Sonnet | With a solid plan, writing code is straightforward. Sonnet is fast, cost-effective, and produces high-quality code when guided by a clear spec. |
-| **Code Verification** | Opus | Independent code review against the plan requires the same reasoning depth as planning — catching subtle bugs, logic errors, and spec deviations. |
+| Phase                 | Model  | Why                                                                                                                                               |
+| --------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Planning**          | Opus   | Exploring your codebase, designing architecture, and writing the spec requires deep reasoning. A good plan is the foundation of everything.       |
+| **Plan Verification** | Opus   | Catching gaps, missing edge cases, and requirement mismatches before implementation saves expensive rework.                                       |
+| **Implementation**    | Sonnet | With a solid plan, writing code is straightforward. Sonnet is fast, cost-effective, and produces high-quality code when guided by a clear spec.   |
+| **Code Verification** | Opus   | Independent code review against the plan requires the same reasoning depth as planning — catching subtle bugs, logic errors, and spec deviations. |
 
 **The insight:** Implementation is the easy part when the plan is good and verification is thorough. Pilot invests reasoning power where it has the highest impact — planning and verification — and uses fast execution where a clear spec makes quality predictable.
 
@@ -261,42 +261,42 @@ The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing
 <details>
 <summary><b>Session & Context</b></summary>
 
-| Command | Purpose |
-| ------- | ------- |
-| `pilot` | Start Claude with Endless Mode, auto-update, and license check |
-| `pilot run [args...]` | Same as above, with optional flags (e.g., `--skip-update-check`) |
-| `pilot check-context --json` | Get current context usage percentage |
-| `pilot send-clear <plan.md>` | Trigger Endless Mode continuation with plan context |
-| `pilot send-clear --general` | Trigger continuation without a plan |
-| `pilot register-plan <path> <status>` | Associate a plan file with the current session |
+| Command                               | Purpose                                                          |
+| ------------------------------------- | ---------------------------------------------------------------- |
+| `pilot`                               | Start Claude with Endless Mode, auto-update, and license check   |
+| `pilot run [args...]`                 | Same as above, with optional flags (e.g., `--skip-update-check`) |
+| `pilot check-context --json`          | Get current context usage percentage                             |
+| `pilot send-clear <plan.md>`          | Trigger Endless Mode continuation with plan context              |
+| `pilot send-clear --general`          | Trigger continuation without a plan                              |
+| `pilot register-plan <path> <status>` | Associate a plan file with the current session                   |
 
 </details>
 
 <details>
 <summary><b>Worktree Isolation</b></summary>
 
-| Command | Purpose |
-| ------- | ------- |
-| `pilot worktree create --json <slug>` | Create isolated git worktree for safe experimentation |
-| `pilot worktree detect --json <slug>` | Check if a worktree already exists |
-| `pilot worktree diff --json <slug>` | List changed files in the worktree |
-| `pilot worktree sync --json <slug>` | Squash merge worktree changes back to base branch |
-| `pilot worktree cleanup --json <slug>` | Remove worktree and branch when done |
-| `pilot worktree status --json` | Show active worktree info for current session |
+| Command                                | Purpose                                               |
+| -------------------------------------- | ----------------------------------------------------- |
+| `pilot worktree create --json <slug>`  | Create isolated git worktree for safe experimentation |
+| `pilot worktree detect --json <slug>`  | Check if a worktree already exists                    |
+| `pilot worktree diff --json <slug>`    | List changed files in the worktree                    |
+| `pilot worktree sync --json <slug>`    | Squash merge worktree changes back to base branch     |
+| `pilot worktree cleanup --json <slug>` | Remove worktree and branch when done                  |
+| `pilot worktree status --json`         | Show active worktree info for current session         |
 
 </details>
 
 <details>
 <summary><b>License & Auth</b></summary>
 
-| Command | Purpose |
-| ------- | ------- |
-| `pilot activate <key>` | Activate a license key on this machine |
-| `pilot deactivate` | Deactivate license on this machine |
-| `pilot status [--json]` | Show current license status |
-| `pilot verify [--json]` | Verify license (used by hooks) |
-| `pilot trial --check [--json]` | Check trial eligibility |
-| `pilot trial --start [--json]` | Start a trial |
+| Command                        | Purpose                                |
+| ------------------------------ | -------------------------------------- |
+| `pilot activate <key>`         | Activate a license key on this machine |
+| `pilot deactivate`             | Deactivate license on this machine     |
+| `pilot status [--json]`        | Show current license status            |
+| `pilot verify [--json]`        | Verify license (used by hooks)         |
+| `pilot trial --check [--json]` | Check trial eligibility                |
+| `pilot trial --start [--json]` | Start a trial                          |
 
 </details>
 
@@ -497,8 +497,6 @@ Access the web-based Claude Pilot Console at **http://localhost:41777** to visua
 
 > "Endless Mode solved the problem I didn't know how to fix. Complex refactors used to stall at 60% because Claude lost track of what it was doing. Now it hands off cleanly and the next session picks up exactly where the last one stopped."
 
-_Using Pilot professionally? [Share your experience](https://github.com/maxritter/claude-pilot/issues) or reach out on [LinkedIn](https://www.linkedin.com/in/rittermax/)._
-
 ---
 
 ## License
@@ -510,7 +508,7 @@ Claude Pilot is source-available under a commercial license. See the [LICENSE](L
 | **Solo** | 1     | All features, continuous updates, GitHub support                          |
 | **Team** | Multi | Solo + multiple seats, dedicated email support, priority feature requests |
 
-Details and licensing at [claude-pilot.com](https://www.claude-pilot.com).
+Details and licensing at [claude-pilot.com](https://claude-pilot.com).
 
 ---
 

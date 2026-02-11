@@ -19,15 +19,15 @@ const Index = () => {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "Claude Pilot",
-    "url": "https://www.claude-pilot.com",
+    "url": "https://claude-pilot.com",
     "description": "Ship code you can actually trust. Pilot is your quality autopilot. Tests enforced, context preserved, quality automated.",
     "publisher": {
       "@type": "Organization",
       "name": "Claude Pilot",
-      "url": "https://www.claude-pilot.com",
+      "url": "https://claude-pilot.com",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://www.claude-pilot.com/logo.png"
+        "url": "https://claude-pilot.com/logo.png"
       },
       "sameAs": [
         "https://github.com/maxritter/claude-pilot"
@@ -43,7 +43,7 @@ const Index = () => {
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": "https://www.claude-pilot.com"
+        "item": "https://claude-pilot.com"
       }
     ]
   };

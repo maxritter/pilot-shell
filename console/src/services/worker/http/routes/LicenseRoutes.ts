@@ -17,6 +17,7 @@ export interface LicenseResponse {
   email: string | null;
   daysRemaining: number | null;
   isExpired: boolean;
+  seatsTotal: number | null;
 }
 
 const FALLBACK_RESPONSE: LicenseResponse = {
@@ -25,6 +26,7 @@ const FALLBACK_RESPONSE: LicenseResponse = {
   email: null,
   daysRemaining: null,
   isExpired: false,
+  seatsTotal: null,
 };
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
@@ -77,6 +79,7 @@ export class LicenseRoutes extends BaseRouteHandler {
           email: data.email ?? null,
           daysRemaining: data.days_remaining ?? null,
           isExpired: false,
+          seatsTotal: data.seats_total ?? null,
         };
       }
 
@@ -90,6 +93,7 @@ export class LicenseRoutes extends BaseRouteHandler {
         email: data.email ?? null,
         daysRemaining: data.days_remaining ?? null,
         isExpired: true,
+        seatsTotal: null,
       };
     } catch {
       return { ...FALLBACK_RESPONSE };
