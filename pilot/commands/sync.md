@@ -333,7 +333,56 @@ MCP servers can be configured in two locations:
    - Exclude Pilot core servers: `context7`, `mem-search`, `web-search`, `web-fetch`, `grep-mcp`
    - Note which config file each server comes from
 
-#### Step 6.2: Document User MCP Servers
+#### Step 6.2: Smoke-Test MCP Servers
+
+**Test every tool on each user server to surface auth, permission, and connectivity issues.**
+
+For each user server discovered in Step 6.1:
+
+1. **Load the server's tools:**
+   - For `.mcp.json` servers: use `ToolSearch` with `+<server-name>` to load tools
+   - For `mcp_servers.json` servers: use `mcp-cli <server-name> -d` to list tools
+
+2. **Probe each tool with a minimal read-only call:**
+   - For `.mcp.json` servers: call each tool directly with minimal/empty arguments (prefer list/get operations over create/delete)
+   - For `mcp_servers.json` servers:
+     ```bash
+     mcp-cli <server-name>/<tool-name> '{}' 2>&1 | head -20
+     ```
+   - **Safety:** Only call read-only tools (list, get, search, describe). Skip tools that create, update, delete, or modify state. When unsure, check the tool schema first.
+
+3. **Record results per tool:**
+
+   | Result | Meaning | Action |
+   |--------|---------|--------|
+   | Success (data returned) | Tool works, auth valid | Document as working |
+   | Auth/permission error | Missing or expired credentials | Flag in report, note in docs |
+   | Connection error | Server unreachable or misconfigured | Flag in report |
+   | Schema/param error | Tool works but needs specific args | Document required params |
+   | Timeout | Server slow or hanging | Flag in report |
+
+4. **Report findings to user:**
+   ```
+   MCP Server Health Check:
+
+   ✅ polar — 3/3 tools working
+   ⚠️ typefully — 4/5 tools working, 1 permission error
+     └ typefully_create_draft: requires WRITE permission (read-only tools work)
+
+   ❌ my-api — 0/2 tools working (connection refused)
+   ```
+
+5. **If issues found, use AskUserQuestion:**
+   ```
+   Question: "Found MCP server issues. How to proceed?"
+   Header: "MCP Issues"
+   Options:
+   - "Document working tools only" - Skip broken tools/servers
+   - "Document all with status notes" - Include broken tools with error notes
+   - "Skip MCP sync" - Don't document any MCP servers
+   ```
+
+#### Step 6.3: Document User MCP Servers
 
 For each user-configured server (not Pilot core):
 
@@ -357,9 +406,11 @@ For each user-configured server (not Pilot core):
    - "Skip" - Keep existing documentation
    ```
 
-#### Step 6.3: Write MCP Documentation
+#### Step 6.4: Write MCP Documentation
 
-If user approves, create/update `.claude/rules/mcp-servers.md`:
+If user approves, create/update `.claude/rules/mcp-servers.md`.
+
+Include smoke-test results from Step 6.2 — mark tools with their tested status:
 
 ```markdown
 ## User MCP Servers
@@ -370,12 +421,14 @@ Custom MCP servers configured for this project.
 
 **Source:** `.mcp.json` or `mcp_servers.json`
 **Purpose:** [Brief description]
+**Status:** ✅ All tools working | ⚠️ Partial | ❌ Broken
 
 **Available Tools:**
 
-| Tool | Description |
-|------|-------------|
-| `tool-name` | What it does |
+| Tool | Status | Description |
+|------|--------|-------------|
+| `list_items` | ✅ | Lists all items |
+| `create_item` | ⚠️ Needs WRITE permission | Creates a new item |
 
 **Example Usage:**
 ```bash
@@ -383,7 +436,7 @@ mcp-cli server-name/tool-name '{"param": "value"}'
 ```
 ```
 
-#### Step 6.4: Skip Conditions
+#### Step 6.5: Skip Conditions
 
 Skip MCP documentation if:
 - No `.mcp.json` AND no `mcp_servers.json` exists
