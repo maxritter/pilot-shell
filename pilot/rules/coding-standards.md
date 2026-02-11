@@ -36,6 +36,8 @@ Use descriptive names that reveal intent without requiring comments:
 
 **Function Size**: Keep functions small and focused. Extract complex logic into well-named helper functions.
 
+**File Size**: Production code files must stay under 300 lines. Above 500 lines is a hard limit — stop and refactor immediately by splitting into focused modules. If you're about to add code that would push a file past 300 lines, split first, then add. Test files are exempt.
+
 ### Before Modifying Code
 
 **Dependency Check**: Before modifying any function or feature, identify downstream consumers:

@@ -15,6 +15,9 @@ GREEN = "\033[0;32m"
 YELLOW = "\033[0;33m"
 NC = "\033[0m"
 
+FILE_LENGTH_WARN = 300
+FILE_LENGTH_CRITICAL = 500
+
 PRESERVE_COMMENT_PATTERNS = re.compile(
     r"//\s*nolint|"
     r"//\s*TODO|"
@@ -119,6 +122,32 @@ def get_edited_file_from_stdin() -> Path | None:
     except Exception:
         pass
     return None
+
+
+def check_file_length(file_path: Path) -> bool:
+    """Warn if file exceeds length thresholds. Returns True if warning was emitted."""
+    try:
+        line_count = len(file_path.read_text().splitlines())
+    except Exception:
+        return False
+
+    if line_count > FILE_LENGTH_CRITICAL:
+        print("", file=sys.stderr)
+        print(
+            f"{RED}🛑 FILE TOO LONG: {file_path.name} has {line_count} lines (limit: {FILE_LENGTH_CRITICAL}){NC}",
+            file=sys.stderr,
+        )
+        print("   Split into smaller, focused modules (<300 lines each).", file=sys.stderr)
+        return True
+    elif line_count > FILE_LENGTH_WARN:
+        print("", file=sys.stderr)
+        print(
+            f"{YELLOW}⚠️  FILE GROWING LONG: {file_path.name} has {line_count} lines (warn: {FILE_LENGTH_WARN}){NC}",
+            file=sys.stderr,
+        )
+        print("   Consider splitting before it grows further.", file=sys.stderr)
+        return True
+    return False
 
 
 def auto_format(file_path: Path) -> bool:
@@ -237,6 +266,8 @@ def main() -> int:
 
     if target_file.name.endswith("_test.go"):
         return 0
+
+    check_file_length(target_file)
 
     has_go = shutil.which("go") is not None
     has_gofmt = shutil.which("gofmt") is not None

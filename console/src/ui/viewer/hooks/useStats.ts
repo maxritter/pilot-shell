@@ -4,15 +4,31 @@ import { useProject } from '../context';
 interface Stats {
   observations: number;
   summaries: number;
+  sessions: number;
   lastObservationAt: string | null;
   projects: number;
 }
+
+interface SpecStats {
+  totalSpecs: number;
+  verified: number;
+  inProgress: number;
+  pending: number;
+  avgIterations: number;
+  totalTasksCompleted: number;
+  totalTasks: number;
+  completionTimeline: Array<{ date: string; count: number }>;
+  recentlyVerified: Array<{ name: string; verifiedAt: string }>;
+}
+
+type ObservationTimeline = Array<{ date: string; count: number }>;
 
 interface WorkerStatus {
   status: 'online' | 'offline' | 'processing';
   version?: string;
   uptime?: string;
   queueDepth?: number;
+  workspaceProject?: string;
 }
 
 interface VexorStatus {
@@ -40,6 +56,7 @@ interface PlanInfo {
   phase: 'plan' | 'implement' | 'verify';
   iterations: number;
   approved: boolean;
+  worktree: boolean;
   filePath?: string;
 }
 
@@ -62,6 +79,8 @@ interface UseStatsResult {
   recentActivity: ActivityItem[];
   planStatus: PlanStatus;
   gitInfo: GitInfo;
+  specStats: SpecStats;
+  observationTimeline: ObservationTimeline;
   isLoading: boolean;
   refreshStats: () => Promise<void>;
 }
@@ -74,6 +93,7 @@ export function useStats(): UseStatsResult {
   const [stats, setStats] = useState<Stats>({
     observations: 0,
     summaries: 0,
+    sessions: 0,
     lastObservationAt: null,
     projects: 0,
   });
@@ -91,11 +111,18 @@ export function useStats(): UseStatsResult {
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   const [planStatus, setPlanStatus] = useState<PlanStatus>({ active: false, plans: [] });
   const [gitInfo, setGitInfo] = useState<GitInfo>({ branch: null, staged: 0, unstaged: 0, untracked: 0 });
+  const [specStats, setSpecStats] = useState<SpecStats>({
+    totalSpecs: 0, verified: 0, inProgress: 0, pending: 0,
+    avgIterations: 0, totalTasksCompleted: 0, totalTasks: 0,
+    completionTimeline: [], recentlyVerified: [],
+  });
+  const [observationTimeline, setObservationTimeline] = useState<ObservationTimeline>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadVexorStatus = useCallback(async () => {
     try {
-      const res = await fetch('/api/vexor/status');
+      const vexorParam = selectedProject ? `?project=${encodeURIComponent(selectedProject)}` : '';
+      const res = await fetch(`/api/vexor/status${vexorParam}`);
       const data = await res.json();
       setVexorStatus({
         isIndexed: data.isIndexed ?? false,
@@ -107,18 +134,20 @@ export function useStats(): UseStatsResult {
       });
     } catch {
     }
-  }, []);
+  }, [selectedProject]);
 
   const loadStats = useCallback(async () => {
     const projectParam = selectedProject ? `?project=${encodeURIComponent(selectedProject)}` : '';
     try {
-      const [statsRes, healthRes, activityRes, projectsRes, planRes, gitRes] = await Promise.all([
+      const [statsRes, healthRes, activityRes, projectsRes, planRes, gitRes, specStatsRes, timelineRes] = await Promise.all([
         fetch(`/api/stats${projectParam}`),
         fetch('/health'),
         fetch(`/api/observations?limit=5${selectedProject ? `&project=${encodeURIComponent(selectedProject)}` : ''}`),
         fetch('/api/projects'),
-        fetch('/api/plan'),
-        fetch('/api/git'),
+        fetch(`/api/plan${projectParam}`),
+        fetch(`/api/git${projectParam}`),
+        fetch(`/api/plans/stats${projectParam}`).catch(() => null),
+        fetch(`/api/analytics/timeline?range=30d${selectedProject ? `&project=${encodeURIComponent(selectedProject)}` : ''}`).catch(() => null),
       ]);
 
       const statsData = await statsRes.json();
@@ -127,6 +156,16 @@ export function useStats(): UseStatsResult {
       const projectsData = await projectsRes.json();
       const planData = await planRes.json();
       const gitData = await gitRes.json();
+
+      if (specStatsRes?.ok) {
+        const specData = await specStatsRes.json();
+        setSpecStats(specData);
+      }
+
+      if (timelineRes?.ok) {
+        const tlData = await timelineRes.json();
+        setObservationTimeline(tlData.data || []);
+      }
 
       const rawItems = activityData.items || activityData.observations || activityData || [];
       const recentItems = Array.isArray(rawItems) ? rawItems : [];
@@ -138,6 +177,7 @@ export function useStats(): UseStatsResult {
       setStats({
         observations: statsData.database?.observations || 0,
         summaries: statsData.database?.summaries || 0,
+        sessions: statsData.database?.sessions || 0,
         lastObservationAt: lastObsTimestamp ? formatTimestamp(lastObsTimestamp) : null,
         projects: projectList.length,
       });
@@ -149,6 +189,7 @@ export function useStats(): UseStatsResult {
         version: statsData.worker?.version,
         uptime: statsData.worker?.uptime ? formatUptime(statsData.worker.uptime) : undefined,
         queueDepth: healthData.queueDepth || 0,
+        workspaceProject: statsData.worker?.workspaceProject,
       });
 
       const items = activityData.items || activityData.observations || activityData || [];
@@ -228,6 +269,8 @@ export function useStats(): UseStatsResult {
     recentActivity,
     planStatus,
     gitInfo,
+    specStats,
+    observationTimeline,
     isLoading,
     refreshStats: loadStats,
   };

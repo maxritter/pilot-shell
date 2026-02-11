@@ -237,28 +237,62 @@ def _get_continuation_path() -> str:
     return str(Path.home() / ".pilot" / "sessions" / pilot_session_id / "continuation.md")
 
 
+def _read_statusline_context_pct() -> float | None:
+    """Read authoritative context percentage from statusline cache.
+
+    Returns None if cache is missing, corrupt, or stale (>60s old).
+    """
+    pilot_session_id = os.environ.get("PILOT_SESSION_ID", "").strip()
+    if not pilot_session_id:
+        return None
+    cache_file = Path.home() / ".pilot" / "sessions" / pilot_session_id / "context-pct.json"
+    if not cache_file.exists():
+        return None
+    try:
+        data = json.loads(cache_file.read_text())
+        ts = data.get("ts")
+        if ts is None or time.time() - ts > 60:
+            return None
+        pct = data.get("pct")
+        return float(pct) if pct is not None else None
+    except (json.JSONDecodeError, OSError, ValueError, TypeError):
+        return None
+
+
+def _resolve_context(session_id: str) -> tuple[float, int, list[int], bool] | None:
+    """Resolve context percentage and tokens. Returns (pct, tokens, shown_learn, shown_80) or None."""
+    statusline_pct = _read_statusline_context_pct()
+    if statusline_pct is not None:
+        shown_learn, shown_80_warn = get_session_flags(session_id)
+        return statusline_pct, int(statusline_pct / 100 * 200000), shown_learn, shown_80_warn
+
+    cached_tokens, is_cached, shown_learn, shown_80_warn = get_cached_context(session_id)
+    if is_cached:
+        return (cached_tokens / 200000) * 100, cached_tokens, shown_learn, shown_80_warn
+
+    session_file = find_session_file(session_id)
+    if not session_file:
+        return None
+
+    actual_tokens = get_actual_token_count(session_file)
+    if actual_tokens is None:
+        return None
+
+    shown_learn, shown_80_warn = get_session_flags(session_id)
+    return (actual_tokens / 200000) * 100, actual_tokens, shown_learn, shown_80_warn
+
+
 def run_context_monitor() -> int:
     """Run context monitoring and return exit code."""
     session_id = get_current_session_id()
     if not session_id:
         return 0
 
-    cached_tokens, is_cached, shown_learn, shown_80_warn = get_cached_context(session_id)
-    if is_cached:
-        total_tokens = cached_tokens
-    else:
-        session_file = find_session_file(session_id)
-        if not session_file:
-            return 0
+    resolved = _resolve_context(session_id)
+    if resolved is None:
+        return 0
 
-        actual_tokens = get_actual_token_count(session_file)
-        if actual_tokens is None:
-            return 0
-
-        total_tokens = actual_tokens
-        shown_learn, shown_80_warn = get_session_flags(session_id)
-
-    percentage = (total_tokens / 200000) * 100
+    percentage, total_tokens, shown_learn, shown_80_warn = resolved
 
     new_learn_shown: list[int] = []
     for threshold in LEARN_THRESHOLDS:

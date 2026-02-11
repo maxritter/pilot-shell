@@ -12,6 +12,18 @@ import path from "path";
 import { getPackageRoot } from "../../../shared/paths.js";
 import { logger } from "../../../utils/logger.js";
 
+const LOCALHOST_PATTERNS = [
+  /^https?:\/\/localhost(:\d+)?$/,
+  /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
+  /^https?:\/\/\[::1\](:\d+)?$/,
+];
+
+/** Check if an origin is a localhost address (or undefined for non-browser clients). */
+export function isAllowedOrigin(origin: string | undefined): boolean {
+  if (origin === undefined) return true;
+  return LOCALHOST_PATTERNS.some((pattern) => pattern.test(origin));
+}
+
 /**
  * Create all middleware for the worker service
  * @param summarizeRequestBody - Function to summarize request bodies for logging
@@ -24,7 +36,18 @@ export function createMiddleware(
 
   middlewares.push(express.json({ limit: "50mb" }));
 
-  middlewares.push(cors());
+  middlewares.push(
+    cors({
+      origin: (origin, callback) => {
+        if (isAllowedOrigin(origin)) {
+          callback(null, true);
+        } else {
+          logger.warn("SECURITY", "CORS request blocked", { origin });
+          callback(null, false);
+        }
+      },
+    }),
+  );
 
   middlewares.push(cookieParser());
 

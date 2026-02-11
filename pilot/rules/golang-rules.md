@@ -112,6 +112,7 @@ Before completing Go work:
 - [ ] Linting clean: `golangci-lint run`
 - [ ] No ignored errors
 - [ ] Dependencies tidy: `go mod tidy`
+- [ ] No production file exceeds 300 lines (500 = hard limit, refactor immediately)
 
 ### Quick Reference
 

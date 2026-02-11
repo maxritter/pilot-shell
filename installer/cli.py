@@ -99,10 +99,10 @@ def _start_trial(
                 data = json.loads(output)
                 if data.get("error") == "trial_already_used":
                     console.error("Trial has already been used on this machine")
-                    console.print("  [cyan]Subscribe at: https://license.claude-pilot.com[/cyan]")
-                    console.print("  [bold green]Use code TRIAL50OFF for 50% off your first month![/bold green]")
+                    console.print("  [cyan]Subscribe at: https://www.claude-pilot.com[/cyan]")
                 else:
-                    console.error(f"Failed to start trial: {data.get('error', 'Unknown error')}")
+                    detail = data.get("detail", data.get("error", "Unknown error"))
+                    console.error(f"Failed to start trial: {detail}")
             except json.JSONDecodeError:
                 console.error(f"Failed to start trial: {output}")
         else:
@@ -232,12 +232,12 @@ def _prompt_license_key(
         if attempt < max_attempts - 1:
             console.print()
             console.print("  [dim]Please check your license key and try again.[/dim]")
-            console.print("  [dim]Subscribe: https://license.claude-pilot.com[/dim]")
+            console.print("  [dim]Subscribe: https://www.claude-pilot.com[/dim]")
             console.print()
 
     console.print()
     console.error(f"License validation failed after {max_attempts} attempts.")
-    console.print("  [bold]Subscribe at:[/bold] [cyan]https://license.claude-pilot.com[/cyan]")
+    console.print("  [bold]Subscribe at:[/bold] [cyan]https://www.claude-pilot.com[/cyan]")
     console.print()
     return False
 
@@ -272,12 +272,12 @@ def _handle_license_flow(
     console.print("  [bold green]7-day free trial[/bold green] to explore all features")
     console.print()
     console.print("  [bold]After trial, choose a plan:[/bold]")
-    console.print("    • [bold]Standard[/bold]")
-    console.print("    • [bold]Enterprise[/bold] (priority support + feature requests)")
+    console.print("    • [bold]Solo[/bold]")
+    console.print("    • [bold]Team[/bold] (priority support + feature requests)")
     console.print()
     console.print("  [bold cyan]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold cyan]")
     console.print()
-    console.print("  [dim]Subscribe: https://license.claude-pilot.com[/dim]")
+    console.print("  [dim]Subscribe: https://www.claude-pilot.com[/dim]")
     console.print()
     console.print("  [bold cyan]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold cyan]")
     console.print()
@@ -291,8 +291,6 @@ def _handle_license_flow(
         console.print("  [bold yellow]Trial has expired on this machine.[/bold yellow]")
         console.print("  Please enter a license key to continue.")
         console.print()
-        console.print("  [bold green]Use code TRIAL50OFF for 50% off your first month![/bold green]")
-        console.print("  [dim](Regular pricing applies after first month)[/dim]")
         console.print()
         if not _prompt_license_key(console, project_dir):
             return 1
@@ -303,12 +301,12 @@ def _handle_license_flow(
             console.success("Your 7-day trial has started!")
             console.print("  All features are unlocked for 7 days.")
             console.print()
-            console.print("  [bold]Subscribe after trial:[/bold] [cyan]https://license.claude-pilot.com[/cyan]")
+            console.print("  [bold]Subscribe after trial:[/bold] [cyan]https://www.claude-pilot.com[/cyan]")
             console.print()
         else:
             console.print()
             console.error("Could not start trial. Please enter a license key.")
-            console.print("  [bold]Subscribe at:[/bold] [cyan]https://license.claude-pilot.com[/cyan]")
+            console.print("  [bold]Subscribe at:[/bold] [cyan]https://www.claude-pilot.com[/cyan]")
             console.print()
             return 1
 
@@ -380,7 +378,13 @@ def cmd_install(args: argparse.Namespace) -> int:
     saved_config = load_config()
 
     license_info = _get_license_info(project_dir, args.local, effective_local_repo_dir, console)
-    license_acknowledged = license_info is not None and license_info.get("tier") in ("trial", "standard", "enterprise")
+    license_acknowledged = license_info is not None and license_info.get("tier") in (
+        "trial",
+        "solo",
+        "team",
+        "standard",
+        "enterprise",
+    )
 
     console.banner(license_info=license_info)
 

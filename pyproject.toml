@@ -14,6 +14,7 @@ readme = "README.md"
 dependencies = [
     "rich>=14.0.0",
     "platformdirs>=4.3.6",
+    "cryptography>=44.0.0",
     "Cython>=3.0.0",
     "setuptools>=61.0",
 ]

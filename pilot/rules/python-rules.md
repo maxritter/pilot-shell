@@ -96,6 +96,7 @@ Before completing Python work:
 - [ ] Type checking: `basedpyright src`
 - [ ] Coverage ≥ 80%
 - [ ] No unused imports (check with `getDiagnostics`)
+- [ ] No production file exceeds 300 lines (500 = hard limit, refactor immediately)
 
 ### Quick Reference
 

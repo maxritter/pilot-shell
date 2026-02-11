@@ -224,6 +224,11 @@ __marimo__/
 # Claude Code
 CLAUDE.md
 .devcontainer
+.playwright-*/
+.vercel
+.mcp.json
+.env**
+playwright/
 .claude.backup.*
 *.backup
 .claude/config/
@@ -239,3 +244,4 @@ bun.lock
 
 # Kiro
 .kiro/
+.worktrees/

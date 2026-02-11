@@ -29,7 +29,7 @@ const insideItems: InsideItem[] = [
     icon: Workflow,
     title: "Spec-Driven Development",
     description: "Plan → Approve → Implement → Verify",
-    summary: "A structured workflow with human review gates, mandatory TDD, and sub-agent verification. Loops back automatically if any check fails.",
+    summary: "A structured workflow with human review gates, parallel task execution via sub-agents, mandatory TDD, and independent code review. Loops back automatically if any check fails.",
   },
   {
     icon: ShieldCheck,
@@ -63,9 +63,9 @@ const insideItems: InsideItem[] = [
   },
   {
     icon: GitBranch,
-    title: "Online Learning",
-    description: "Captures discoveries as reusable skills",
-    summary: "Automatically extracts non-obvious debugging patterns and workarounds into .claude/skills/ with quality gates to ensure reusability.",
+    title: "Isolated Workspaces",
+    description: "Safe experimentation, clean git history",
+    summary: "Spec implementation runs in isolated git worktrees. Review changes, squash merge when verified, or discard without touching your main branch. Worktree state survives session restarts.",
   },
 ];
 

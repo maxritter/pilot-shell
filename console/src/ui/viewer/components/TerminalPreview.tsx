@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useLayoutEffect, useState } from 'react';
 import AnsiToHtml from 'ansi-to-html';
+import { sanitizeHtml } from '../utils/sanitize.js';
 
 interface TerminalPreviewProps {
   content: string;
@@ -21,15 +22,13 @@ export function TerminalPreview({ content, isLoading = false, className = '' }: 
   const [wordWrap, setWordWrap] = useState(true);
 
   const html = useMemo(() => {
-    // Save scroll position before content changes
     if (preRef.current) {
       scrollTopRef.current = preRef.current.scrollTop;
     }
     if (!content) return '';
-    return ansiConverter.toHtml(content);
+    return sanitizeHtml(ansiConverter.toHtml(content));
   }, [content]);
 
-  // Restore scroll position after render
   useLayoutEffect(() => {
     if (preRef.current && scrollTopRef.current > 0) {
       preRef.current.scrollTop = scrollTopRef.current;

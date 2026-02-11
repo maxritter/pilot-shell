@@ -1,10 +1,11 @@
-import { FileText, Code2, CheckCircle2, RefreshCw, Zap, Search, MessageSquare, Shield, Bug, Brain } from "lucide-react";
+import { FileText, Code2, CheckCircle2, RefreshCw, Zap, Search, MessageSquare, Shield, Bug, Brain, GitBranch } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
 
 const specSteps = [
+  { icon: MessageSquare, title: "Discuss", desc: "Clarifies gray areas" },
   { icon: FileText, title: "Plan", desc: "Explores codebase, generates spec" },
   { icon: CheckCircle2, title: "Approve", desc: "You review and approve" },
-  { icon: Code2, title: "Implement", desc: "TDD enforced execution" },
+  { icon: Code2, title: "Implement", desc: "Parallel TDD execution" },
   { icon: RefreshCw, title: "Verify", desc: "Tests pass or loops back" },
 ];
 
@@ -17,9 +18,10 @@ const planDetails = [
 ];
 
 const implementDetails = [
-  { icon: Bug, text: "Writes a failing test first (RED phase of TDD)" },
-  { icon: Code2, text: "Implements code to make the test pass (GREEN phase)" },
-  { icon: RefreshCw, text: "Refactors while keeping tests green (REFACTOR phase)" },
+  { icon: GitBranch, text: "Analyzes task graph and spawns parallel sub-agents for independent tasks" },
+  { icon: Code2, text: "Each sub-agent runs TDD in its own context window (RED → GREEN → REFACTOR)" },
+  { icon: RefreshCw, text: "After each wave, runs full test suite to catch cross-task conflicts" },
+  { icon: Bug, text: "Falls back to sequential execution only when tasks share files or depend on each other" },
   { icon: Shield, text: "Quality hooks auto-lint, format, and type-check every edit" },
 ];
 

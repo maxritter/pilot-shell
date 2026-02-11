@@ -4,18 +4,20 @@
 
 **Default mode is quick mode (direct execution).** Only suggest `/spec` for high-complexity tasks, and always let the user decide.
 
-| Complexity | Characteristics | Action |
-|------------|-----------------|--------|
-| **Trivial** | Single file, obvious fix | Execute directly, no planning needed |
-| **Moderate** | 2-5 files, clear scope, straightforward | Use TaskCreate/TaskUpdate to track, then execute |
-| **High** | Major architectural change, cross-cutting refactor, new subsystem, 10+ files | **Ask user** if they want `/spec` or quick mode |
+| Complexity   | Characteristics                                                              | Action                                           |
+| ------------ | ---------------------------------------------------------------------------- | ------------------------------------------------ |
+| **Trivial**  | Single file, obvious fix                                                     | Execute directly, no planning needed             |
+| **Moderate** | 2-5 files, clear scope, straightforward                                      | Use TaskCreate/TaskUpdate to track, then execute |
+| **High**     | Major architectural change, cross-cutting refactor, new subsystem, 10+ files | **Ask user** if they want `/spec` or quick mode  |
 
 **When to suggest /spec (ask, never auto-invoke):**
+
 - Major new subsystem or architectural redesign
 - Cross-cutting changes spanning 10+ files with unclear dependencies
 - Multi-session work where a plan file is essential for continuity
 
 **Stay in quick mode for everything else**, including:
+
 - Bug fixes of any size
 - Features touching 2-8 files with clear scope
 - Refactors with well-understood boundaries
@@ -35,23 +37,23 @@ This prevents forgetting steps, manages dependencies, shows the user real-time p
 
 ### When to Create Tasks (DO IT!)
 
-| Situation | Action |
-|-----------|--------|
-| User asks for 2+ things | Create a task for each |
-| Work has multiple steps | Create tasks with dependencies |
-| Complex investigation | Create tasks for each area to explore |
-| Bug fix with verification | Task for fix, task for test, task for verify |
-| Any non-trivial request | Break it down into tasks FIRST |
+| Situation                    | Action                                                  |
+| ---------------------------- | ------------------------------------------------------- |
+| User asks for 2+ things      | Create a task for each                                  |
+| Work has multiple steps      | Create tasks with dependencies                          |
+| Complex investigation        | Create tasks for each area to explore                   |
+| Bug fix with verification    | Task for fix, task for test, task for verify            |
+| Any non-trivial request      | Break it down into tasks FIRST                          |
 | `/spec` implementation phase | Create tasks from plan (see Step 2.2 in spec-implement) |
 
 ### Task Management Tools
 
-| Tool | Purpose | Use When |
-|------|---------|----------|
-| `TaskCreate` | Create new task | Starting any piece of work |
-| `TaskList` | See all tasks | Check progress, find next task, resume after handoff |
-| `TaskGet` | Full task details | Need description/context |
-| `TaskUpdate` | Change status/deps | Starting, completing, or blocking tasks |
+| Tool         | Purpose            | Use When                                             |
+| ------------ | ------------------ | ---------------------------------------------------- |
+| `TaskCreate` | Create new task    | Starting any piece of work                           |
+| `TaskList`   | See all tasks      | Check progress, find next task, resume after handoff |
+| `TaskGet`    | Full task details  | Need description/context                             |
+| `TaskUpdate` | Change status/deps | Starting, completing, or blocking tasks              |
 
 ### Task Workflow
 
@@ -81,6 +83,7 @@ This prevents forgetting steps, manages dependencies, shows the user real-time p
 **Tasks persist across session handoffs via `CLAUDE_CODE_TASK_LIST_ID`.**
 
 When resuming in a new session:
+
 1. Run `TaskList` first - existing tasks from the prior session are already there
 2. **Delete stale tasks** that are no longer relevant to current work
 3. Do NOT recreate tasks that already exist and are still relevant
@@ -122,32 +125,43 @@ Tasks 3 and 4 won't show as ready until Task 2 completes.
 
 ## ⛔ ABSOLUTE BANS
 
-### No Sub-Agents (Except Verification Steps)
-**NEVER use the Task tool to spawn sub-agents during planning exploration or implementation.**
+### No Ad-Hoc Sub-Agents (Exceptions: Verification + Parallel Waves)
+
+**NEVER use the Task tool to spawn sub-agents for exploration or ad-hoc implementation.**
+
 - Use `Read`, `Grep`, `Glob`, `Bash` directly for targeted lookups
 - Use `vexor search` for semantic/intent-based codebase exploration (replaces Explore agent)
-- Sub-agents lose context and make mistakes during implementation
+- Ad-hoc sub-agents lose context and make mistakes
 
 **⛔ Explore agent is BANNED.** It produces low-quality results compared to `vexor search`. For codebase exploration:
 
-| Need | Use | NOT |
-|------|-----|-----|
+| Need                                           | Use                                | NOT          |
+| ---------------------------------------------- | ---------------------------------- | ------------ |
 | Semantic questions ("where is X implemented?") | `vexor search "query" --mode code` | Task/Explore |
-| Exact text/pattern match | `Grep` or `Glob` | Task/Explore |
-| Specific file content | `Read` | Task/Explore |
+| Exact text/pattern match                       | `Grep` or `Glob`                   | Task/Explore |
+| Specific file content                          | `Read`                             | Task/Explore |
 
-**Exception: Verification steps in /spec workflow.**
+**Exception 1: Verification steps in /spec workflow.**
 
 There are TWO verification points that use a single verifier sub-agent each:
 
-| Phase Skill | Agent | Purpose |
-|-------------|-------|---------|
-| **`spec-plan` (Step 1.7)** | `plan-verifier` | Verify plan captures user requirements before approval |
-| **`spec-verify` (Step 3.5)** | `spec-verifier` | Verify code implements the plan correctly |
+| Phase Skill                  | Agent           | Purpose                                                |
+| ---------------------------- | --------------- | ------------------------------------------------------ |
+| **`spec-plan` (Step 1.7)**   | `plan-verifier` | Verify plan captures user requirements before approval |
+| **`spec-verify` (Step 3.5)** | `spec-verifier` | Verify code implements the plan correctly              |
+
+**Exception 2: Parallel wave execution in spec-implement.**
+
+When independent tasks exist in a plan, `spec-implement` spawns `pilot:spec-implementer` subagents to run them in parallel waves (see Step 2.3a in spec-implement). Each implementer gets the task definition, plan context, and project root — it does NOT need full session context.
+
+| Phase Skill                      | Agent              | Purpose                                                  |
+| -------------------------------- | ------------------ | -------------------------------------------------------- |
+| **`spec-implement` (Step 2.3a)** | `spec-implementer` | Execute one independent task with TDD in a parallel wave |
 
 **⛔ VERIFICATION STEPS ARE MANDATORY - NEVER SKIP THEM.**
 
 Even if:
+
 - Context is getting high (do handoff AFTER verification)
 - The plan/code seems simple or correct
 - You're confident in your work
@@ -156,22 +170,56 @@ Even if:
 **None of these are valid reasons to skip verification. ALWAYS RUN THE VERIFIER.**
 
 **⚠️ Sub-agents do NOT inherit rules.** Rules are loaded by Claude Code at session start, but Task sub-agents start fresh. The verifier agents have key rules embedded directly and can read rule files from:
+
 - `~/.claude/rules/*.md` (global rules)
 - `.claude/rules/*.md` (project rules)
 
 Note: Task management tools (TaskCreate, TaskList, etc.) are ALWAYS allowed.
 
 ### No Background Tasks
+
 **NEVER use `run_in_background=true` on Bash or any other tool.**
+
 - Run ALL commands synchronously — no exceptions
 - Use `timeout` parameter if needed (up to 600000ms)
 - Background tasks lose visibility, create orphan processes, and waste context on polling
 - This is enforced by the `tool_redirect` hook — background Bash calls are blocked with exit code 2
 
 ### No Built-in Plan Mode
+
 **NEVER use `EnterPlanMode` or `ExitPlanMode` tools.**
+
 - Use `/spec` command instead
 - Built-in plan mode is incompatible with this workflow
+
+## Deviation Handling During Implementation
+
+**When you discover unplanned work during implementation, apply these rules automatically.**
+
+| Type                 | Trigger                                                                                      | Action                                                           | User Input? |
+| -------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ----------- |
+| **Bug Found**        | Code doesn't work as intended (errors, wrong output, type errors)                            | Auto-fix inline, add/update tests, document in plan as deviation | No          |
+| **Missing Critical** | Feature won't work without this (missing validation, error handling, null checks)            | Auto-add to current task scope, implement, document              | No          |
+| **Blocking Issue**   | Can't proceed without fixing (broken import, missing dependency, wrong types)                | Auto-fix, document, continue task                                | No          |
+| **Architectural**    | Fix requires significant structural change (new DB table, switching libraries, breaking API) | **STOP** — use `AskUserQuestion` to present options              | **Yes**     |
+
+**Rules for auto-fix (Bug, Missing Critical, Blocking):**
+
+- Fix inline without asking permission
+- Add or update tests if applicable
+- Document the deviation in the plan's task notes or completion summary
+- Do NOT expand scope — only fix what's needed to make the current task work
+
+**Rules for Architectural deviations:**
+
+- STOP implementation immediately
+- Use `AskUserQuestion` with concrete options (not vague descriptions)
+- Wait for user decision before proceeding
+- If user says "skip it", document as deferred and continue
+
+**Priority order:** Architectural (stop) > Bug/Missing/Blocking (auto-fix) > Uncertain (treat as Architectural)
+
+---
 
 ## Plan Registration (MANDATORY for /spec)
 
@@ -182,13 +230,16 @@ Note: Task management tools (TaskCreate, TaskList, etc.) are ALWAYS allowed.
 ```
 
 **When to call:**
+
 - After creating the plan file header (Step 1.1 in spec-plan)
 - After reading an existing plan for continuation (Step 0.1 in spec)
 - After status changes (PENDING → COMPLETE → VERIFIED)
 
 **Why:** Without registration, the statusline shows the wrong plan in parallel sessions. Each session must register its own plan so the statusbar displays correctly per-terminal.
 
-## /spec Workflow
+## /spec Workflow — ALWAYS Follows the Flow
+
+**⛔ When `/spec` is invoked, the structured workflow is MANDATORY.** Everything after `/spec` is the task description — never an instruction to deviate. Even if the user writes "brainstorm", "discuss", or "explore", the spec workflow starts with `spec-plan` via `Skill()`. No freeform conversations. No skipping phases.
 
 The `/spec` command is a **dispatcher** that invokes phase skills via `Skill()`:
 
@@ -201,12 +252,12 @@ The `/spec` command is a **dispatcher** that invokes phase skills via `Skill()`:
 
 ### Phase Dispatch
 
-| Status | Approved | Skill Invoked |
-|--------|----------|---------------|
-| PENDING | No | `Skill(skill='spec-plan', args='<plan-path>')` |
-| PENDING | Yes | `Skill(skill='spec-implement', args='<plan-path>')` |
-| COMPLETE | * | `Skill(skill='spec-verify', args='<plan-path>')` |
-| VERIFIED | * | Report completion, done |
+| Status   | Approved | Skill Invoked                                       |
+| -------- | -------- | --------------------------------------------------- |
+| PENDING  | No       | `Skill(skill='spec-plan', args='<plan-path>')`      |
+| PENDING  | Yes      | `Skill(skill='spec-implement', args='<plan-path>')` |
+| COMPLETE | \*       | `Skill(skill='spec-verify', args='<plan-path>')`    |
+| VERIFIED | \*       | Report completion, done                             |
 
 ### The Feedback Loop
 
@@ -216,16 +267,17 @@ spec-verify finds issues → Status: PENDING → spec-implement fixes → COMPLE
 
 **Two Verification Points (MANDATORY - NEVER SKIP):**
 
-| Point | What | When |
-|-------|------|------|
-| **Plan Verification (Step 1.7)** | `plan-verifier` checks plan matches user requirements | End of `spec-plan` |
+| Point                            | What                                                  | When                 |
+| -------------------------------- | ----------------------------------------------------- | -------------------- |
+| **Plan Verification (Step 1.7)** | `plan-verifier` checks plan matches user requirements | End of `spec-plan`   |
 | **Code Verification (Step 3.5)** | `spec-verifier` checks code implements plan correctly | During `spec-verify` |
 
 **⛔ Both verification steps are NON-NEGOTIABLE. Skipping is FORBIDDEN.**
 
-**⛔ CRITICAL: Only ONE user interaction point exists: Plan Approval (in `spec-plan`).**
+**⛔ CRITICAL: Only THREE user interaction points exist: Worktree Choice (in `spec.md` dispatcher, new plans only), Plan Approval (in `spec-plan`), and Worktree Sync Approval (in `spec-verify`, only when `Worktree: Yes`).**
 
 Everything else is automatic:
+
 - Plan verification findings are fixed automatically before showing to user
 - Implementation proceeds without asking
 - Code verification findings are fixed automatically (must_fix AND should_fix)
@@ -237,13 +289,40 @@ Everything else is automatic:
 The user approved the plan. Verification fixes are part of that approval.
 
 **Status values in plan files:**
+
 - `PENDING` - Awaiting implementation (or fixes from verify)
 - `COMPLETE` - All tasks done, ready for verification
 - `VERIFIED` - All checks passed, workflow complete
 
+### Worktree Isolation (Optional)
+
+Worktree isolation is controlled by the `Worktree:` field in the plan header (default: `Yes`). The user chooses at the START of the `/spec` flow (before planning begins) whether to use isolation. The dispatcher asks the worktree question and passes the choice to `spec-plan`, which writes it into the plan header at creation time.
+
+**When `Worktree: Yes` (default):**
+
+1. After plan approval, a worktree is created at `.worktrees/spec-<slug>-<hash>/`
+2. All implementation happens in the worktree — the main branch is untouched
+3. After verification passes, the user reviews changed files and approves sync
+4. Sync performs a squash merge back to the base branch, then cleans up the worktree
+
+**When `Worktree: No`:**
+
+- Implementation happens directly on the current branch
+- No worktree creation, sync, or cleanup steps
+- spec-verify Step 3.11b is skipped automatically
+
+**Key details:**
+
+- `.worktrees/` is auto-added to `.gitignore`
+- Worktree state is tracked per-session and survives Endless Mode restarts
+- `pilot worktree status` shows current worktree state
+- If the user discards changes, the worktree is removed without merging
+- Plans missing the `Worktree:` field default to `Yes` for backward compatibility
+
 ## Task Completion Tracking
 
 **Update the plan file after EACH task:**
+
 1. Change `[ ]` to `[x]` for completed task
 2. Update counts: increment Done, decrement Left
 3. Do this IMMEDIATELY, not at the end
@@ -272,7 +351,7 @@ Each phase needs significant context headroom. Starting a new phase above 80% ri
 
 ## No Stopping - Automatic Continuation
 
-**The ONLY user interaction point is plan approval.**
+**The ONLY user interaction points are worktree choice (new plans only), plan approval, and worktree sync approval (when `Worktree: Yes`).**
 
 - Never stop after writing continuation file - trigger clear immediately
 - Never wait for user acknowledgment before session handoff

@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Card, CardBody, Badge, Icon, Button, Spinner, Progress, Tooltip, ScopeBadge } from '../../components/ui';
+import { Card, CardBody, Badge, Icon, Button, Spinner, Progress, Tooltip } from '../../components/ui';
 import { SpecContent } from './SpecContent';
+import { WorktreePanel } from './WorktreePanel';
 import { TIMING } from '../../constants/timing';
+import { useProject } from '../../context';
 
 interface PlanInfo {
   name: string;
@@ -11,6 +13,7 @@ interface PlanInfo {
   phase: 'plan' | 'implement' | 'verify';
   iterations: number;
   approved: boolean;
+  worktree: boolean;
   filePath: string;
   modifiedAt: string;
 }
@@ -66,6 +69,7 @@ function parsePlanContent(content: string): ParsedPlan {
 }
 
 export function SpecView() {
+  const { selectedProject } = useProject();
   const [specs, setSpecs] = useState<PlanInfo[]>([]);
   const [selectedSpec, setSelectedSpec] = useState<string | null>(null);
   const [content, setContent] = useState<PlanContent | null>(null);
@@ -74,9 +78,11 @@ export function SpecView() {
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const projectParam = selectedProject ? `?project=${encodeURIComponent(selectedProject)}` : '';
+
   const loadSpecs = useCallback(async () => {
     try {
-      const res = await fetch('/api/plans/active');
+      const res = await fetch(`/api/plans/active${projectParam}`);
       const data = await res.json();
       setSpecs(data.specs || []);
 
@@ -90,7 +96,7 @@ export function SpecView() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedSpec]);
+  }, [selectedSpec, projectParam]);
 
   const loadContent = useCallback(async (filePath: string, background = false) => {
     if (!background) {
@@ -98,7 +104,7 @@ export function SpecView() {
     }
     setError(null);
     try {
-      const res = await fetch(`/api/plan/content?path=${encodeURIComponent(filePath)}`);
+      const res = await fetch(`/api/plan/content?path=${encodeURIComponent(filePath)}${selectedProject ? `&project=${encodeURIComponent(selectedProject)}` : ''}`);
       if (!res.ok) {
         throw new Error('Failed to load spec content');
       }
@@ -112,7 +118,7 @@ export function SpecView() {
         setIsLoadingContent(false);
       }
     }
-  }, []);
+  }, [selectedProject]);
 
   const deleteSpec = useCallback(async (filePath: string) => {
     if (!confirm(`Delete spec "${filePath.split('/').pop()}"? This cannot be undone.`)) {
@@ -189,11 +195,10 @@ export function SpecView() {
 
   return (
     <div className="space-y-6">
-      {/* Spec selector: tabs for active, dropdown for archived */}
-      <div className="flex items-center gap-2">
-        <ScopeBadge project={null} workspace />
-      </div>
-      <div className="flex items-center gap-2">
+      {/* Header: title + spec selector */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <h1 className="text-2xl font-bold mr-auto">Specifications</h1>
+
         {/* Active plan tabs */}
         {activeSpecs.length > 0 && (
           <div role="tablist" className="flex items-center gap-1.5 flex-shrink-0">
@@ -229,7 +234,7 @@ export function SpecView() {
         {/* Archived plans dropdown */}
         {archivedSpecs.length > 0 && (
           <select
-            className="select select-bordered select-sm ml-auto"
+            className="select select-bordered select-sm"
             value={currentSpec?.status === 'VERIFIED' ? selectedSpec || '' : ''}
             onChange={(e) => setSelectedSpec(e.target.value)}
           >
@@ -258,7 +263,6 @@ export function SpecView() {
               size="sm"
               onClick={() => deleteSpec(selectedSpec)}
               disabled={isDeleting}
-              className={archivedSpecs.length === 0 ? 'ml-auto' : ''}
             >
               <Icon icon="lucide:trash-2" size={16} className="text-error" />
             </Button>
@@ -345,6 +349,17 @@ export function SpecView() {
                   {!currentSpec.approved && currentSpec.status === 'PENDING' && (
                     <Badge variant="warning" size="xs">Awaiting Approval</Badge>
                   )}
+                  {currentSpec.worktree ? (
+                    <div className="flex items-center gap-1">
+                      <Icon icon="lucide:git-branch" size={12} />
+                      <span>Worktree</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <Icon icon="lucide:git-commit" size={12} />
+                      <span>Direct</span>
+                    </div>
+                  )}
                   {currentSpec.modifiedAt && (
                     <div className="flex items-center gap-1">
                       <Icon icon="lucide:calendar" size={12} />
@@ -361,6 +376,9 @@ export function SpecView() {
               )}
             </CardBody>
           </Card>
+
+          {/* Worktree isolation panel */}
+          <WorktreePanel />
 
           {/* Implementation Tasks - Markdown */}
           {parsed.implementationSection && (

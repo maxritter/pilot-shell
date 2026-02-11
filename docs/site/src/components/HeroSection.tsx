@@ -26,6 +26,17 @@ const HeroSection = () => {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(var(--background))_70%)]" />
 
       <div className="relative z-10 text-center max-w-4xl mx-auto w-full">
+        {/* Status indicator */}
+        <div className="animate-fade-in-up mb-3 xs:mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/20 font-mono text-[10px] xs:text-xs text-primary/80">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/60 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+            </span>
+            PILOT ONLINE
+          </div>
+        </div>
+
         {/* Badge */}
         <div className="animate-fade-in-up mb-4 xs:mb-6">
           <Badge

@@ -8,12 +8,12 @@ Ship code you can actually trust. Pilot is your quality autopilot.</br>
 **Tests enforced. Context preserved. Quality automated.**
 
 [![Version](https://img.shields.io/github/v/release/maxritter/claude-pilot?label=Version&color=orange)](https://github.com/maxritter/claude-pilot/releases)
-[![Opus 4.6](https://img.shields.io/badge/Claude-Opus_4.6-blueviolet)](https://www.anthropic.com/claude/opus)
 [![Stars](https://img.shields.io/github/stars/maxritter/claude-pilot?style=flat&color=yellow)](https://github.com/maxritter/claude-pilot/stargazers)
 [![Last Commit](https://img.shields.io/github/last-commit/maxritter/claude-pilot?color=blue)](https://github.com/maxritter/claude-pilot/commits/main)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/maxritter/claude-pilot/pulls)
+[![Star History](https://img.shields.io/badge/Star_History-chart-yellow)](https://star-history.com/#maxritter/claude-pilot&Date)
 
-⭐ [Star this repo](https://github.com/maxritter/claude-pilot) · 🌐 [Website](https://claude-pilot.com) · 🔔 [Follow for updates](https://www.linkedin.com/in/rittermax/) · 📋 [Changelog](https://pilot.openchangelog.com/) · 📄 [License](LICENSE)
+⭐ [Star this repo](https://github.com/maxritter/claude-pilot) · 🌐 [Website](https://www.claude-pilot.com) · 🔔 [Follow for updates](https://www.linkedin.com/in/rittermax/) · 📋 [Changelog](https://pilot.openchangelog.com/) · 📄 [License](LICENSE)
 
 <br>
 
@@ -39,8 +39,6 @@ Claude Code writes code fast. But without structure, it skips tests, loses conte
 
 So I built Pilot. Instead of adding process on top, it bakes quality into every interaction. Linting, formatting, and type checking run as enforced hooks on every edit. TDD is mandatory, not suggested. Context is monitored and preserved across sessions. Every piece of work goes through verification before it's marked done.
 
-The complexity is in the system, not in your workflow.
-
 ---
 
 ## Before & After
@@ -54,7 +52,20 @@ The complexity is in the system, not in your workflow.
 | Hope it works              | Verifier sub-agents perform code review before marking complete |
 | No codebase knowledge      | Production-tested rules loaded into every session               |
 | Generic suggestions        | Coding skills activated dynamically when relevant               |
+| Changes mixed into branch  | Isolated worktrees — review and squash merge when verified      |
 | Manual tool setup          | MCP servers + language servers pre-configured and ready         |
+
+---
+
+## Why This Approach Works
+
+There are other AI coding frameworks out there. I tried them. They add complexity — dozens of agents, elaborate scaffolding, thousands of lines of instruction files — but the output doesn't improve proportionally. More machinery burns more tokens, increases latency, and creates more failure modes. Complexity is not a feature.
+
+**Pilot optimizes for output quality, not system complexity.** The rules are minimal and focused. There's no big learning curve, no project scaffolding to set up, no state files to manage. You install it, run `pilot`, and the quality guardrails are just there — hooks, TDD, type checking, formatting — enforced automatically on every edit, in every session.
+
+This isn't a vibe coding tool. It's built for developers who ship to production and need code that actually works. Every rule in the system comes from daily professional use: real bugs caught, real regressions prevented, real sessions where the AI cut corners and the hooks stopped it. The rules are continuously refined based on what measurably improves output.
+
+The system stays fast because it stays simple. Quick mode is direct execution with zero overhead — no sub-agents, no plan files, no directory scaffolding. You describe the task and it gets done. `/spec` adds structure only when you need it: plan verification, TDD enforcement, independent code review, parallel execution. Both modes share the same quality hooks. Both modes hand off cleanly across sessions with Endless Mode.
 
 ---
 
@@ -62,7 +73,7 @@ The complexity is in the system, not in your workflow.
 
 ### Prerequisites
 
-**Claude Subscription:** [Max](https://www.anthropic.com/max), [Team](https://claude.ai/pricing/team), or [Enterprise](https://www.anthropic.com/enterprise) recommended
+**Claude Subscription:** [Max](https://claude.com/pricing), [Team Premium](https://claude.com/pricing#team-&-enterprise), or [Enterprise](https://claude.com/pricing#team-&-enterprise) recommended; using the API may lead to much higher costs
 
 ### Installation
 
@@ -85,7 +96,7 @@ After installation, run `pilot` or `ccp` in your project folder to start Claude 
 8-step installer with progress tracking, rollback on failure, and idempotent re-runs:
 
 1. **Prerequisites** — Checks Homebrew, Node.js, Python 3.12+, uv, git
-2. **Dependencies** — Installs Vexor, agent-browser, mcp-cli, Claude Code
+2. **Dependencies** — Installs Vexor, playwright-cli, mcp-cli, Claude Code
 3. **Shell integration** — Auto-configures bash, fish, and zsh with `pilot` alias
 4. **Config & Claude files** — Sets up `.claude/` plugin, rules, skills, hooks, MCP servers
 5. **VS Code extensions** — Installs recommended extensions for your stack
@@ -146,9 +157,18 @@ pilot
 ```
 
 ```
-Plan  →  Approve  →  Implement  →  Verify
-                                ↑       ↓
-                                └─ Loop─┘
+Discuss  →  Plan  →  Approve  →  Implement  →  Verify  →  Done
+                                     │              ↑       ↓
+                                     │              └─ Loop─┘
+                                     │
+                            ┌────────┼────────┐
+                            ▼        ▼        ▼
+                         Task 1   Task 2   Task 3    ← parallel waves
+                         (TDD)    (TDD)    (TDD)       for independent
+                            │        │        │          tasks
+                            └────────┼────────┘
+                                     ▼
+                              Merge & Verify
 ```
 
 <details>
@@ -166,10 +186,13 @@ Plan  →  Approve  →  Implement  →  Verify
 <details>
 <summary><b>Implement Phase</b></summary>
 
-1. Writes a failing test first (RED phase of TDD)
-2. Implements code to make the test pass (GREEN phase)
-3. Refactors while keeping tests green (REFACTOR phase)
-4. Quality hooks auto-lint, format, and type-check every file edit
+1. Creates an isolated git worktree on a dedicated branch — main branch stays clean
+2. Analyzes task graph to detect independent tasks — groups them into parallel waves
+3. Spawns `spec-implementer` sub-agents for each independent task in a wave, executing TDD in parallel with fresh context windows
+4. Falls back to sequential execution only when tasks share files or have linear dependencies
+5. Each task follows strict TDD: write failing test (RED), implement to pass (GREEN), refactor (REFACTOR)
+6. Quality hooks auto-lint, format, and type-check every file edit
+7. After each wave, runs the full test suite to catch cross-task conflicts before proceeding
 
 </details>
 
@@ -182,6 +205,7 @@ Plan  →  Approve  →  Implement  →  Verify
 4. **Spec-verifier sub-agent** performs independent code review against the plan
 5. Auto-fixes all findings, then re-verifies until clean
 6. Loops back to implementation if structural issues remain
+7. On success, shows diff summary and offers to squash merge worktree back to main branch
 
 </details>
 
@@ -266,7 +290,7 @@ After **every single file edit**, these hooks fire:
 | `file_checker_go.py`     | Blocking     | Runs gofmt + golangci-lint + type checking on `.go` files. Auto-fixes formatting.                                                                                    |
 | `tdd_enforcer.py`        | Non-blocking | Checks if implementation files were modified without failing tests first. Shows reminder to write tests. Excludes test files, docs, config, TSX, and infrastructure. |
 | Memory observer          | Async        | Captures development observations to persistent memory.                                                                                                              |
-| `context_monitor.py`     | Non-blocking | Monitors context window usage. Warns as usage grows, forces handoff before hitting limits. Caches for 15 seconds to avoid spam.                                       |
+| `context_monitor.py`     | Non-blocking | Monitors context window usage. Warns as usage grows, forces handoff before hitting limits. Caches for 15 seconds to avoid spam.                                      |
 
 #### PreToolUse (before search, web, or task tools)
 
@@ -330,7 +354,7 @@ Production-tested best practices loaded into **every session**. These aren't sug
 - `context7-docs.md` — Library documentation: fetching API docs for any dependency
 - `grep-mcp.md` — GitHub code search: finding real-world usage patterns across repos
 - `web-search.md` — Web search via DuckDuckGo, Bing, Exa with query syntax and filtering
-- `agent-browser.md` — Headless browser for E2E UI testing with page navigation and screenshots
+- `playwright-cli.md` — Browser automation for E2E UI testing with page navigation, screenshots, tracing, and network mocking
 - `mcp-cli.md` — MCP command line: listing servers, running tools, custom configuration
 
 </details>
@@ -402,16 +426,30 @@ Access the web-based Claude Pilot Console at **http://localhost:41777** to visua
 
 ---
 
+## What Users Say
+
+<!-- Replace with real testimonials from GitHub issues, discussions, or direct feedback as they come in -->
+
+> "I stopped reviewing every line Claude writes. The hooks catch formatting and type errors automatically, TDD catches logic errors, and the spec verifier catches everything else. I review the plan, approve it, and the output is production-ready."
+
+> "Other frameworks I tried added so much overhead that half my tokens went to the system itself. Pilot is lean — quick mode has zero scaffolding, and even /spec only adds structure where it matters. More of my context goes to actual work."
+
+> "Endless Mode solved the problem I didn't know how to fix. Complex refactors used to stall at 60% because Claude lost track of what it was doing. Now it hands off cleanly and the next session picks up exactly where the last one stopped."
+
+_Using Pilot professionally? [Share your experience](https://github.com/maxritter/claude-pilot/issues) or reach out on [LinkedIn](https://www.linkedin.com/in/rittermax/)._
+
+---
+
 ## License
 
 Claude Pilot is source-available under a commercial license. See the [LICENSE](LICENSE) file for full terms.
 
-| Tier           | Includes                                                         |
-| :------------- | :--------------------------------------------------------------- |
-| **Standard**   | All features, continuous updates, GitHub support                 |
-| **Enterprise** | Standard + dedicated email support and priority feature requests |
+| Tier     | Seats | Includes                                                                  |
+| :------- | :---- | :------------------------------------------------------------------------ |
+| **Solo** | 1     | All features, continuous updates, GitHub support                          |
+| **Team** | Multi | Solo + multiple seats, dedicated email support, priority feature requests |
 
-Details and licensing at [license.claude-pilot.com](https://license.claude-pilot.com).
+Details and licensing at [claude-pilot.com](https://www.claude-pilot.com).
 
 ---
 

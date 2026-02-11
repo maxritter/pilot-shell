@@ -67,6 +67,7 @@
       "Skill(sync)",
       "Skill(learn)",
       "Task(spec-verifier:*)",
+      "Task(spec-implementer:*)",
       "Task(plan-verifier:*)",
       "LSP"
     ],

@@ -8,6 +8,8 @@
 import express, { type Request, type Response } from "express";
 import { BaseRouteHandler } from "../BaseRouteHandler.js";
 import { logger } from "../../../../utils/logger.js";
+import type { DatabaseManager } from "../../DatabaseManager.js";
+import { resolveProjectRoot } from "./utils/resolveProjectRoot.js";
 import type { Subprocess } from "bun";
 
 export interface VexorStatus {
@@ -106,9 +108,15 @@ export function parseVexorSearchOutput(output: string): VexorSearchResult[] {
 }
 
 export class VexorRoutes extends BaseRouteHandler {
+  private dbManager: DatabaseManager | null;
   private activeProcesses = new Set<Subprocess>();
-  private statusCache: { data: VexorStatus; timestamp: number } | null = null;
+  private statusCache = new Map<string, { data: VexorStatus; timestamp: number }>();
   private _isReindexing = false;
+
+  constructor(dbManager?: DatabaseManager) {
+    super();
+    this.dbManager = dbManager ?? null;
+  }
 
   setupRoutes(app: express.Application): void {
     app.get("/api/vexor/status", this.handleStatus.bind(this));
@@ -127,9 +135,12 @@ export class VexorRoutes extends BaseRouteHandler {
     logger.debug("HTTP", "VexorRoutes disposed, killed active processes");
   }
 
-  private handleStatus = this.wrapHandler(async (_req: Request, res: Response): Promise<void> => {
-    if (this.statusCache && Date.now() - this.statusCache.timestamp < STATUS_CACHE_TTL_MS) {
-      res.json({ ...this.statusCache.data, isReindexing: this._isReindexing });
+  private handleStatus = this.wrapHandler(async (req: Request, res: Response): Promise<void> => {
+    const project = req.query.project as string | undefined;
+    const projectRoot = resolveProjectRoot(this.dbManager, project);
+    const cached = this.statusCache.get(projectRoot);
+    if (cached && Date.now() - cached.timestamp < STATUS_CACHE_TTL_MS) {
+      res.json({ ...cached.data, isReindexing: this._isReindexing });
       return;
     }
 
@@ -139,15 +150,13 @@ export class VexorRoutes extends BaseRouteHandler {
       return;
     }
 
-    const projectRoot = process.env.CLAUDE_PROJECT_ROOT || process.cwd();
-
     try {
       const output = await this.runVexorCommand(
         [vexorPath, "index", "--show", "--path", projectRoot],
         STATUS_TIMEOUT_MS,
       );
       const status = parseVexorIndexOutput(output);
-      this.statusCache = { data: status, timestamp: Date.now() };
+      this.statusCache.set(projectRoot, { data: status, timestamp: Date.now() });
       res.json({ ...status, isReindexing: this._isReindexing });
     } catch (error) {
       logger.error("HTTP", "Vexor status failed", {}, error as Error);
@@ -173,7 +182,8 @@ export class VexorRoutes extends BaseRouteHandler {
       return;
     }
 
-    const projectRoot = process.env.CLAUDE_PROJECT_ROOT || process.cwd();
+    const project = req.query.project as string | undefined;
+    const projectRoot = resolveProjectRoot(this.dbManager, project);
     const top = parseInt(req.query.top as string, 10) || 20;
     const mode = (req.query.mode as string) || "auto";
 
@@ -200,7 +210,7 @@ export class VexorRoutes extends BaseRouteHandler {
     }
   });
 
-  private handleReindex = this.wrapHandler(async (_req: Request, res: Response): Promise<void> => {
+  private handleReindex = this.wrapHandler(async (req: Request, res: Response): Promise<void> => {
     if (this._isReindexing) {
       res.status(409).json({ error: "Reindexing already in progress" });
       return;
@@ -212,9 +222,10 @@ export class VexorRoutes extends BaseRouteHandler {
       return;
     }
 
-    const projectRoot = process.env.CLAUDE_PROJECT_ROOT || process.cwd();
+    const project = req.query.project as string | undefined;
+    const projectRoot = resolveProjectRoot(this.dbManager, project);
     this._isReindexing = true;
-    this.statusCache = null;
+    this.statusCache.clear();
 
     res.json({ started: true });
 
@@ -232,7 +243,7 @@ export class VexorRoutes extends BaseRouteHandler {
       logger.error("HTTP", "Vexor reindex failed", {}, error as Error);
     } finally {
       this._isReindexing = false;
-      this.statusCache = null;
+      this.statusCache.clear();
     }
   });
 

@@ -47,6 +47,7 @@ export const sessionInitHandler: EventHandler = {
           contentSessionId: sessionId,
           project,
           prompt,
+          projectRoot: cwd,
         }),
       },
       { endpointConfig },

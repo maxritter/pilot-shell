@@ -7,13 +7,22 @@
 
 import { Database } from "bun:sqlite";
 import express, { Request, Response } from "express";
-import { readdirSync, readFileSync, statSync, existsSync, unlinkSync } from "fs";
-import { execSync } from "child_process";
+import { readFileSync, existsSync, statSync, unlinkSync } from "fs";
 import path from "path";
 import { BaseRouteHandler } from "../BaseRouteHandler.js";
-import { logger } from "../../../../utils/logger.js";
 import type { DatabaseManager } from "../../DatabaseManager.js";
 import type { SSEBroadcaster } from "../../SSEBroadcaster.js";
+import { resolveProjectRoot } from "./utils/resolveProjectRoot.js";
+import { getGitInfo } from "./utils/gitInfo.js";
+import {
+  getActivePlans,
+  getAllPlans,
+  getActiveSpecs,
+  getPlanStats,
+  parsePlanContent,
+} from "./utils/planFileReader.js";
+import type { PlanInfo } from "./utils/planFileReader.js";
+import type { GitInfo } from "./utils/gitInfo.js";
 import {
   associatePlan,
   getPlanForSession,
@@ -22,24 +31,7 @@ import {
   clearPlanAssociation,
 } from "../../../sqlite/plans/store.js";
 
-export interface GitInfo {
-  branch: string | null;
-  staged: number;
-  unstaged: number;
-  untracked: number;
-}
-
-export interface PlanInfo {
-  name: string;
-  status: "PENDING" | "COMPLETE" | "VERIFIED";
-  completed: number;
-  total: number;
-  phase: "plan" | "implement" | "verify";
-  iterations: number;
-  approved: boolean;
-  filePath: string;
-  modifiedAt: string;
-}
+export type { PlanInfo, GitInfo };
 
 export class PlanRoutes extends BaseRouteHandler {
   private dbManager: DatabaseManager | null;
@@ -63,6 +55,7 @@ export class PlanRoutes extends BaseRouteHandler {
     app.get("/api/plans/active", this.handleGetActiveSpecs.bind(this));
     app.get("/api/plan/content", this.handleGetPlanContent.bind(this));
     app.delete("/api/plan", this.handleDeletePlan.bind(this));
+    app.get("/api/plans/stats", this.handleGetPlanStats.bind(this));
     app.get("/api/git", this.handleGetGitInfo.bind(this));
 
     app.post("/api/sessions/:sessionDbId/plan", this.handleAssociatePlan.bind(this));
@@ -79,59 +72,45 @@ export class PlanRoutes extends BaseRouteHandler {
     app.put("/api/sessions/:sessionDbId/plan/status", this.handleUpdatePlanStatus.bind(this));
   }
 
-  /**
-   * Get active plan info (most recent non-VERIFIED plan modified today)
-   */
-  private handleGetActivePlan = this.wrapHandler((_req: Request, res: Response): void => {
-    const projectRoot = process.env.CLAUDE_PROJECT_ROOT || process.cwd();
-    const plans = this.getActivePlans(projectRoot);
-
-    res.json({
-      active: plans.length > 0,
-      plans,
-      plan: plans[0] || null,
-    });
+  private handleGetPlanStats = this.wrapHandler((req: Request, res: Response): void => {
+    const project = req.query.project as string | undefined;
+    const projectRoot = resolveProjectRoot(this.dbManager, project);
+    res.json(getPlanStats(projectRoot));
   });
 
-  /**
-   * Get all plans from docs/plans/ directory
-   */
-  private handleGetAllPlans = this.wrapHandler((_req: Request, res: Response): void => {
-    const projectRoot = process.env.CLAUDE_PROJECT_ROOT || process.cwd();
-    const plans = this.getAllPlans(projectRoot);
-    res.json({ plans });
+  private handleGetActivePlan = this.wrapHandler((req: Request, res: Response): void => {
+    const project = req.query.project as string | undefined;
+    const projectRoot = resolveProjectRoot(this.dbManager, project);
+    const plans = getActivePlans(projectRoot);
+    res.json({ active: plans.length > 0, plans, plan: plans[0] || null });
   });
 
-  /**
-   * Get git repository info (branch, staged/unstaged counts)
-   */
-  private handleGetGitInfo = this.wrapHandler((_req: Request, res: Response): void => {
-    const projectRoot = process.env.CLAUDE_PROJECT_ROOT || process.cwd();
-    const gitInfo = this.getGitInfo(projectRoot);
-    res.json(gitInfo);
+  private handleGetAllPlans = this.wrapHandler((req: Request, res: Response): void => {
+    const project = req.query.project as string | undefined;
+    const projectRoot = resolveProjectRoot(this.dbManager, project);
+    res.json({ plans: getAllPlans(projectRoot) });
   });
 
-  /**
-   * Get active specs for the Spec viewer.
-   * Returns plans with PENDING/COMPLETE status + most recent VERIFIED plan.
-   */
-  private handleGetActiveSpecs = this.wrapHandler((_req: Request, res: Response): void => {
-    const projectRoot = process.env.CLAUDE_PROJECT_ROOT || process.cwd();
-    const specs = this.getActiveSpecs(projectRoot);
-    res.json({ specs });
+  private handleGetGitInfo = this.wrapHandler((req: Request, res: Response): void => {
+    const project = req.query.project as string | undefined;
+    const projectRoot = resolveProjectRoot(this.dbManager, project);
+    res.json(getGitInfo(projectRoot));
   });
 
-  /**
-   * Get plan content by path.
-   * Returns raw markdown content for rendering in the Spec viewer.
-   */
+  private handleGetActiveSpecs = this.wrapHandler((req: Request, res: Response): void => {
+    const project = req.query.project as string | undefined;
+    const projectRoot = resolveProjectRoot(this.dbManager, project);
+    res.json({ specs: getActiveSpecs(projectRoot) });
+  });
+
   private handleGetPlanContent = this.wrapHandler((req: Request, res: Response): void => {
-    const projectRoot = process.env.CLAUDE_PROJECT_ROOT || process.cwd();
+    const project = req.query.project as string | undefined;
+    const projectRoot = resolveProjectRoot(this.dbManager, project);
     const plansDir = path.join(projectRoot, "docs", "plans");
     const requestedPath = req.query.path as string | undefined;
 
     if (!requestedPath) {
-      const specs = this.getActiveSpecs(projectRoot);
+      const specs = getActiveSpecs(projectRoot);
       if (specs.length === 0) {
         res.status(404).json({ error: "No active specs found" });
         return;
@@ -139,12 +118,7 @@ export class PlanRoutes extends BaseRouteHandler {
       const firstSpec = specs[0];
       try {
         const content = readFileSync(firstSpec.filePath, "utf-8");
-        res.json({
-          content,
-          name: firstSpec.name,
-          status: firstSpec.status,
-          filePath: firstSpec.filePath,
-        });
+        res.json({ content, name: firstSpec.name, status: firstSpec.status, filePath: firstSpec.filePath });
       } catch {
         res.status(404).json({ error: "Plan file not found" });
       }
@@ -167,7 +141,7 @@ export class PlanRoutes extends BaseRouteHandler {
     const content = readFileSync(resolvedPath, "utf-8");
     const fileName = path.basename(resolvedPath);
     const stat = statSync(resolvedPath);
-    const planInfo = this.parsePlanContent(content, fileName, resolvedPath, stat.mtime);
+    const planInfo = parsePlanContent(content, fileName, resolvedPath, stat.mtime);
 
     res.json({
       content,
@@ -177,10 +151,6 @@ export class PlanRoutes extends BaseRouteHandler {
     });
   });
 
-
-  /**
-   * Delete a plan file from the filesystem.
-   */
   private handleDeletePlan = this.wrapHandler((req: Request, res: Response): void => {
     const projectRoot = process.env.CLAUDE_PROJECT_ROOT || process.cwd();
     const plansDir = path.join(projectRoot, "docs", "plans");
@@ -256,9 +226,7 @@ export class PlanRoutes extends BaseRouteHandler {
     if (sessionDbId === null) return;
     const db = this.getDb(res);
     if (!db) return;
-
-    const plan = getPlanForSession(db, sessionDbId);
-    res.json({ plan });
+    res.json({ plan: getPlanForSession(db, sessionDbId) });
   });
 
   private handleGetSessionPlanByContentId = this.wrapHandler((req: Request, res: Response): void => {
@@ -269,9 +237,7 @@ export class PlanRoutes extends BaseRouteHandler {
     }
     const db = this.getDb(res);
     if (!db) return;
-
-    const plan = getPlanByContentSessionId(db, contentSessionId);
-    res.json({ plan });
+    res.json({ plan: getPlanByContentSessionId(db, contentSessionId) });
   });
 
   private handleClearSessionPlan = this.wrapHandler((req: Request, res: Response): void => {
@@ -279,7 +245,6 @@ export class PlanRoutes extends BaseRouteHandler {
     if (sessionDbId === null) return;
     const db = this.getDb(res);
     if (!db) return;
-
     clearPlanAssociation(db, sessionDbId);
     this.broadcastPlanChange();
     res.json({ success: true });
@@ -295,200 +260,20 @@ export class PlanRoutes extends BaseRouteHandler {
     }
     const db = this.getDb(res);
     if (!db) return;
-
     updatePlanStatus(db, sessionDbId, req.body.status);
     this.broadcastPlanChange();
-    const plan = getPlanForSession(db, sessionDbId);
-    res.json({ plan });
+    res.json({ plan: getPlanForSession(db, sessionDbId) });
   });
 
-  /** Broadcast plan_association_changed SSE event to connected clients. */
   private broadcastPlanChange(): void {
-    this.sseBroadcaster?.broadcast({
-      type: "plan_association_changed",
-    });
+    this.sseBroadcaster?.broadcast({ type: "plan_association_changed" });
   }
 
-  /** Get the raw bun:sqlite Database from dbManager, or send 503 if unavailable. */
   private getDb(res: Response): Database | null {
     if (!this.dbManager) {
       res.status(503).json({ error: "Database not available" });
       return null;
     }
     return this.dbManager.getSessionStore().db;
-  }
-
-  /**
-   * Get info about active plan from docs/plans/ directory.
-   * Only considers specs modified today to avoid showing stale plans.
-   */
-  private getActivePlans(projectRoot: string): PlanInfo[] {
-    const plansDir = path.join(projectRoot, "docs", "plans");
-    if (!existsSync(plansDir)) {
-      return [];
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const activePlans: PlanInfo[] = [];
-
-    try {
-      const planFiles = readdirSync(plansDir)
-        .filter((f) => f.endsWith(".md"))
-        .sort()
-        .reverse();
-
-      for (const planFile of planFiles) {
-        const filePath = path.join(plansDir, planFile);
-        const stat = statSync(filePath);
-        const mtime = new Date(stat.mtime);
-        mtime.setHours(0, 0, 0, 0);
-
-        if (mtime.getTime() !== today.getTime()) {
-          continue;
-        }
-
-        const content = readFileSync(filePath, "utf-8");
-        const planInfo = this.parsePlanContent(content, planFile, filePath, stat.mtime);
-
-        if (planInfo && planInfo.status !== "VERIFIED") {
-          activePlans.push(planInfo);
-        }
-      }
-    } catch (error) {
-      logger.error("HTTP", "Failed to read active plans", {}, error as Error);
-    }
-
-    return activePlans;
-  }
-
-  /**
-   * Get all specs for the Spec viewer, sorted by modification date (newest first).
-   */
-  private getActiveSpecs(projectRoot: string): PlanInfo[] {
-    return this.getAllPlans(projectRoot)
-      .sort((a, b) => new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime());
-  }
-
-  /**
-   * Get all plans from docs/plans/ directory
-   */
-  private getAllPlans(projectRoot: string): PlanInfo[] {
-    const plansDir = path.join(projectRoot, "docs", "plans");
-    if (!existsSync(plansDir)) {
-      return [];
-    }
-
-    const plans: PlanInfo[] = [];
-
-    try {
-      const planFiles = readdirSync(plansDir)
-        .filter((f) => f.endsWith(".md"))
-        .sort()
-        .reverse();
-
-      for (const planFile of planFiles) {
-        const filePath = path.join(plansDir, planFile);
-        const stat = statSync(filePath);
-        const content = readFileSync(filePath, "utf-8");
-        const planInfo = this.parsePlanContent(content, planFile, filePath, stat.mtime);
-
-        if (planInfo) {
-          plans.push(planInfo);
-        }
-      }
-    } catch (error) {
-      logger.error("HTTP", "Failed to read all plans", {}, error as Error);
-    }
-
-    return plans.slice(0, 10);
-  }
-
-  /**
-   * Parse plan file content to extract status information
-   */
-  private parsePlanContent(content: string, fileName: string, filePath: string, modifiedAt: Date): PlanInfo | null {
-    const statusMatch = content.match(/^Status:\s*(\w+)/m);
-    if (!statusMatch) {
-      return null;
-    }
-
-    const status = statusMatch[1] as "PENDING" | "COMPLETE" | "VERIFIED";
-
-    const completedTasks = (content.match(/^- \[x\] Task \d+:/gm) || []).length;
-    const remainingTasks = (content.match(/^- \[ \] Task \d+:/gm) || []).length;
-    const total = completedTasks + remainingTasks;
-
-    const approvedMatch = content.match(/^Approved:\s*(\w+)/m);
-    const approved = approvedMatch ? approvedMatch[1].toLowerCase() === "yes" : false;
-
-    const iterMatch = content.match(/^Iterations:\s*(\d+)/m);
-    const iterations = iterMatch ? parseInt(iterMatch[1], 10) : 0;
-
-    let phase: "plan" | "implement" | "verify";
-    if (status === "PENDING" && !approved) {
-      phase = "plan";
-    } else if (status === "PENDING" && approved) {
-      phase = "implement";
-    } else {
-      phase = "verify";
-    }
-
-    let name = fileName.replace(".md", "");
-    if (name.match(/^\d{4}-\d{2}-\d{2}-/)) {
-      name = name.split("-").slice(3).join("-");
-    }
-
-    return {
-      name,
-      status,
-      completed: completedTasks,
-      total,
-      phase,
-      iterations,
-      approved,
-      filePath,
-      modifiedAt: modifiedAt.toISOString(),
-    };
-  }
-
-  /**
-   * Get git repository info
-   */
-  private getGitInfo(projectRoot: string): GitInfo {
-    try {
-      const branch = execSync("git rev-parse --abbrev-ref HEAD", {
-        cwd: projectRoot,
-        encoding: "utf-8",
-        timeout: 2000,
-      }).trim();
-
-      const status = execSync("git status --porcelain", {
-        cwd: projectRoot,
-        encoding: "utf-8",
-        timeout: 2000,
-      });
-
-      let staged = 0;
-      let unstaged = 0;
-      let untracked = 0;
-
-      for (const line of status.split("\n")) {
-        if (!line) continue;
-        const idx = line[0] || " ";
-        const wt = line[1] || " ";
-
-        if (idx === "?" && wt === "?") {
-          untracked++;
-        } else {
-          if (idx !== " " && idx !== "?") staged++;
-          if (wt !== " ") unstaged++;
-        }
-      }
-
-      return { branch, staged, unstaged, untracked };
-    } catch {
-      return { branch: null, staged: 0, unstaged: 0, untracked: 0 };
-    }
   }
 }

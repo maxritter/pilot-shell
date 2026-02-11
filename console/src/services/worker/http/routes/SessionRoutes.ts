@@ -508,7 +508,7 @@ export class SessionRoutes extends BaseRouteHandler {
    * Returns: { sessionDbId, promptNumber, skipped: boolean, reason?: string }
    */
   private handleSessionInitByClaudeId = this.wrapHandler((req: Request, res: Response): void => {
-    const { contentSessionId, project, prompt } = req.body;
+    const { contentSessionId, project, prompt, projectRoot } = req.body;
 
     logger.info("HTTP", "SessionRoutes: handleSessionInitByClaudeId called", {
       contentSessionId,
@@ -523,6 +523,10 @@ export class SessionRoutes extends BaseRouteHandler {
     const store = this.dbManager.getSessionStore();
 
     const sessionDbId = store.createSDKSession(contentSessionId, project, prompt);
+
+    if (projectRoot) {
+      store.upsertProjectRoot(project, projectRoot);
+    }
 
     const dbSession = store.getSessionById(sessionDbId);
     const isNewSession = !dbSession?.memory_session_id;

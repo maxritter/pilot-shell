@@ -17,7 +17,12 @@ export async function hookCommand(platform: string, event: string): Promise<void
     console.log(JSON.stringify(output));
     process.exit(result.exitCode ?? HOOK_EXIT_CODES.SUCCESS);
   } catch (error) {
-    console.error(`Hook error: ${error}`);
-    process.exit(HOOK_EXIT_CODES.BLOCKING_ERROR);
+    console.error(`Hook error (fail-open): ${error}`);
+    if (event === "context") {
+      console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: "" } }));
+    } else {
+      console.log(JSON.stringify({ continue: true, suppressOutput: true }));
+    }
+    process.exit(HOOK_EXIT_CODES.SUCCESS);
   }
 }

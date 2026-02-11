@@ -17,6 +17,24 @@ query-docs(libraryId="/npm/lib", query="specific question")
 ```
 Both parameters required. Descriptive queries enable server-side reranking.
 
+### Cognitive Biases That Derail Debugging
+
+| Bias | Trap | Antidote |
+|------|------|----------|
+| **Confirmation** | Only look for evidence supporting your hypothesis | Actively seek disconfirming evidence: "What would prove me wrong?" |
+| **Anchoring** | First explanation becomes your anchor | Generate 3+ independent hypotheses before investigating any |
+| **Availability** | Recent bugs → assume similar cause | Treat each bug as novel until evidence says otherwise |
+| **Sunk Cost** | Spent ages on one path, keep going despite evidence | "If I started fresh right now, would I take this same path?" |
+
+### Meta-Debugging: When You Wrote the Code
+
+When debugging code you wrote (or that an earlier session wrote), you're fighting your own mental model.
+
+- **Treat your code as foreign** — Read it as if someone else wrote it
+- **Your design decisions are hypotheses, not facts** — The code's behavior is truth; your mental model is a guess
+- **Prioritize code you touched** — If you modified 100 lines and something breaks, those are prime suspects
+- **The hardest admission:** "I implemented this wrong" — not "requirements were unclear"
+
 ### Phase 1: Root Cause Investigation
 
 Complete ALL before proposing fixes:
@@ -35,10 +53,12 @@ Complete ALL before proposing fixes:
 
 ### Phase 3: Hypothesis and Testing
 
-1. **Form specific hypothesis** - "X is root cause because Y"
-2. **Test with minimal change** - One variable at a time
+1. **Form specific, falsifiable hypothesis** - Not "something is wrong with state" but "state resets because component remounts on route change"
+2. **Test with minimal change** - One variable at a time. Multiple changes = no idea what mattered
 3. **Verify result** - Worked → Phase 4; Failed → new hypothesis, return to step 1
 4. **Acknowledge uncertainty** - Say so explicitly, never guess
+
+**When to restart from scratch:** 3+ fixes that didn't work, you can't explain the current behavior, or the fix works but you don't know why (that's luck, not debugging).
 
 ### Phase 4: Implementation
 

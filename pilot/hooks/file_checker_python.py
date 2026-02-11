@@ -14,7 +14,11 @@ from pathlib import Path
 
 RED = "\033[0;31m"
 GREEN = "\033[0;32m"
+YELLOW = "\033[0;33m"
 NC = "\033[0m"
+
+FILE_LENGTH_WARN = 300
+FILE_LENGTH_CRITICAL = 500
 
 
 def find_git_root() -> Path | None:
@@ -113,6 +117,32 @@ def strip_inline_comments(file_path: Path) -> bool:
         file_path.write_text(new_content)
         return True
 
+    return False
+
+
+def check_file_length(file_path: Path) -> bool:
+    """Warn if file exceeds length thresholds. Returns True if warning was emitted."""
+    try:
+        line_count = len(file_path.read_text().splitlines())
+    except Exception:
+        return False
+
+    if line_count > FILE_LENGTH_CRITICAL:
+        print("", file=sys.stderr)
+        print(
+            f"{RED}🛑 FILE TOO LONG: {file_path.name} has {line_count} lines (limit: {FILE_LENGTH_CRITICAL}){NC}",
+            file=sys.stderr,
+        )
+        print(f"   Split into smaller, focused modules (<{FILE_LENGTH_WARN} lines each).", file=sys.stderr)
+        return True
+    elif line_count > FILE_LENGTH_WARN:
+        print("", file=sys.stderr)
+        print(
+            f"{YELLOW}⚠️  FILE GROWING LONG: {file_path.name} has {line_count} lines (warn: {FILE_LENGTH_WARN}){NC}",
+            file=sys.stderr,
+        )
+        print("   Consider splitting before it grows further.", file=sys.stderr)
+        return True
     return False
 
 
@@ -272,6 +302,8 @@ def main() -> int:
 
     if "test" in target_file.name or "spec" in target_file.name:
         return 0
+
+    check_file_length(target_file)
 
     has_ruff = shutil.which("ruff") is not None
     has_basedpyright = shutil.which("basedpyright") is not None

@@ -1,0 +1,61 @@
+---
+name: Deploy Website
+
+"on":
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - "docs/site/**"
+      - ".github/workflows/deploy-website.yml"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deploy environment"
+        required: true
+        type: choice
+        options:
+          - preview
+          - production
+        default: preview
+
+concurrency:
+  group: deploy-website-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install git-crypt
+        run: sudo apt-get update && sudo apt-get install -y git-crypt
+
+      - name: Unlock repository
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
+          VERCEL_PROJECT_ID: prj_TXccrJI83HyNvQUZxqStUFgus9NB
+        run: |
+          DEPLOY_URL=$(vercel deploy --token=$VERCEL_TOKEN ${{ (github.ref == 'refs/heads/main' || inputs.environment == 'production') && '--prod' || '' }})
+          echo "Deployed to: $DEPLOY_URL"

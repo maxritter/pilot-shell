@@ -63,7 +63,9 @@ import { RetentionRoutes } from "./worker/http/routes/RetentionRoutes.js";
 import { MetricsRoutes } from "./worker/http/routes/MetricsRoutes.js";
 import { AuthRoutes } from "./worker/http/routes/AuthRoutes.js";
 import { PlanRoutes } from "./worker/http/routes/PlanRoutes.js";
+import { WorktreeRoutes } from "./worker/http/routes/WorktreeRoutes.js";
 import { VexorRoutes } from "./worker/http/routes/VexorRoutes.js";
+import { LicenseRoutes } from "./worker/http/routes/LicenseRoutes.js";
 import { MetricsService } from "./worker/MetricsService.js";
 import { startRetentionScheduler, stopRetentionScheduler } from "./worker/RetentionScheduler.js";
 
@@ -199,6 +201,26 @@ export class WorkerService {
    * Register all route handlers with the server
    */
   private registerRoutes(): void {
+    this.server.app.get("/api/context/inject", async (req, res, next) => {
+      const timeoutMs = 300000;
+      try {
+        const timeoutPromise = new Promise<void>((_, reject) =>
+          setTimeout(() => reject(new Error("Initialization timeout")), timeoutMs),
+        );
+
+        await Promise.race([this.initializationComplete, timeoutPromise]);
+
+        if (!this.searchRoutes) {
+          res.status(503).json({ error: "Search routes not initialized" });
+          return;
+        }
+
+        next();
+      } catch {
+        res.status(503).json({ error: "Service initialization timed out" });
+      }
+    });
+
     this.server.registerRoutes(new AuthRoutes());
 
     this.server.registerRoutes(new ViewerRoutes(this.sseBroadcaster, this.dbManager, this.sessionManager));
@@ -220,30 +242,17 @@ export class WorkerService {
     this.server.registerRoutes(new BackupRoutes(this.dbManager));
     this.server.registerRoutes(new RetentionRoutes(this.dbManager));
     this.server.registerRoutes(new PlanRoutes(this.dbManager, this.sseBroadcaster));
+    this.server.registerRoutes(new WorktreeRoutes());
 
     this.metricsService = new MetricsService(this.dbManager, this.sessionManager, this.startTime);
     this.server.registerRoutes(new MetricsRoutes(this.metricsService));
 
-    this.vexorRoutes = new VexorRoutes();
+    this.vexorRoutes = new VexorRoutes(this.dbManager);
     this.server.registerRoutes(this.vexorRoutes);
 
+    this.server.registerRoutes(new LicenseRoutes());
+
     startRetentionScheduler(this.dbManager);
-
-    this.server.app.get("/api/context/inject", async (req, res, next) => {
-      const timeoutMs = 300000;
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Initialization timeout")), timeoutMs),
-      );
-
-      await Promise.race([this.initializationComplete, timeoutPromise]);
-
-      if (!this.searchRoutes) {
-        res.status(503).json({ error: "Search routes not initialized" });
-        return;
-      }
-
-      next();
-    });
   }
 
   /**
@@ -280,6 +289,10 @@ export class WorkerService {
       logger.info("SYSTEM", `Mode loaded: ${modeId}`);
 
       await this.dbManager.initialize();
+
+      const projectRoot = process.env.CLAUDE_PROJECT_ROOT || process.cwd();
+      const projectName = path.basename(projectRoot);
+      this.dbManager.getSessionStore().upsertProjectRoot(projectName, projectRoot);
 
       const { PendingMessageStore } = await import("./sqlite/PendingMessageStore.js");
       const pendingStore = new PendingMessageStore(this.dbManager.getSessionStore().db, 3);
@@ -595,7 +608,6 @@ export class WorkerService {
   }
 }
 
-
 async function main() {
   const command = process.argv[2];
   const port = getWorkerPort();
@@ -612,7 +624,7 @@ async function main() {
         logger.error("SYSTEM", "License verification failed");
         exitWithStatus(
           "error",
-          "UNLICENSED: Using Claude Pilot without a valid license is not permitted. Subscribe at https://license.claude-pilot.com - Use code TRIAL50OFF for 50% off! Then run: pilot activate <LICENSE_KEY>",
+          "UNLICENSED: Using Claude Pilot without a valid license is not permitted. Subscribe at https://www.claude-pilot.com then run: pilot activate <LICENSE_KEY>",
         );
       }
 

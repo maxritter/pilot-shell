@@ -63,6 +63,8 @@ export class DataRoutes extends BaseRouteHandler {
     app.delete("/api/observation/:id", this.handleDeleteObservation.bind(this));
     app.post("/api/observations/delete", this.handleBulkDeleteObservations.bind(this));
 
+    app.get("/api/project-roots", this.handleGetProjectRoots.bind(this));
+
     app.get("/api/analytics/timeline", this.handleGetAnalyticsTimeline.bind(this));
     app.get("/api/analytics/types", this.handleGetAnalyticsTypes.bind(this));
     app.get("/api/analytics/projects", this.handleGetAnalyticsProjects.bind(this));
@@ -387,10 +389,13 @@ export class DataRoutes extends BaseRouteHandler {
 
     const sessionStats = this.sessionManager.getSessionStats();
 
+    const workspaceProject = path.basename(process.env.CLAUDE_PROJECT_ROOT || process.cwd());
+
     res.json({
       worker: {
         version,
         uptime,
+        workspaceProject,
         activeSessions: sessionStats.activeSessions,
         sessionsWithGenerators: sessionStats.sessionsWithGenerators,
         queueDepth: sessionStats.totalQueueDepth,
@@ -430,6 +435,16 @@ export class DataRoutes extends BaseRouteHandler {
     const projects = rows.map((row) => row.project);
 
     res.json({ projects });
+  });
+
+  /**
+   * Get all known project roots
+   * GET /api/project-roots
+   */
+  private handleGetProjectRoots = this.wrapHandler((req: Request, res: Response): void => {
+    const store = this.dbManager.getSessionStore();
+    const roots = store.getAllProjectRoots();
+    res.json({ roots });
   });
 
   /**

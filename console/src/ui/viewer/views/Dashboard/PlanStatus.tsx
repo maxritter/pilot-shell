@@ -8,6 +8,7 @@ interface PlanInfo {
   phase: 'plan' | 'implement' | 'verify';
   iterations: number;
   approved: boolean;
+  worktree: boolean;
   filePath?: string;
 }
 

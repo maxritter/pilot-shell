@@ -32,6 +32,9 @@ PRESERVE_COMMENT_PATTERNS = re.compile(
     re.IGNORECASE,
 )
 
+FILE_LENGTH_WARN = 300
+FILE_LENGTH_CRITICAL = 500
+
 DEBUG = os.environ.get("HOOK_DEBUG", "").lower() == "true"
 
 
@@ -183,6 +186,32 @@ def strip_inline_comments(file_path: Path) -> bool:
         file_path.write_text(new_content)
         return True
 
+    return False
+
+
+def check_file_length(file_path: Path) -> bool:
+    """Warn if file exceeds length thresholds. Returns True if warning was emitted."""
+    try:
+        line_count = len(file_path.read_text().splitlines())
+    except Exception:
+        return False
+
+    if line_count > FILE_LENGTH_CRITICAL:
+        print("", file=sys.stderr)
+        print(
+            f"{RED}🛑 FILE TOO LONG: {file_path.name} has {line_count} lines (limit: {FILE_LENGTH_CRITICAL}){NC}",
+            file=sys.stderr,
+        )
+        print("   Split into smaller, focused modules (<300 lines each).", file=sys.stderr)
+        return True
+    elif line_count > FILE_LENGTH_WARN:
+        print("", file=sys.stderr)
+        print(
+            f"{YELLOW}⚠️  FILE GROWING LONG: {file_path.name} has {line_count} lines (warn: {FILE_LENGTH_WARN}){NC}",
+            file=sys.stderr,
+        )
+        print("   Consider splitting before it grows further.", file=sys.stderr)
+        return True
     return False
 
 
@@ -423,9 +452,16 @@ def main() -> int:
         debug_log("Test/spec file, skipping linting (comments already stripped)")
         return 0
 
+    check_file_length(target_file)
+
     project_root = find_project_root(target_file)
     debug_log(f"Project root: {project_root}")
 
+    return run_lint_checks(target_file, project_root)
+
+
+def run_lint_checks(target_file: Path, project_root: Path | None) -> int:
+    """Run linting tools and display results."""
     has_eslint = find_tool("eslint", project_root) is not None
     has_tsc = find_tool("tsc", project_root) is not None and target_file.suffix in {".ts", ".tsx", ".mts"}
 
@@ -437,15 +473,13 @@ def main() -> int:
 
     auto_format(target_file, project_root)
 
-    results = {}
-    has_issues = False
+    results: dict[str, str] = {}
 
     if has_eslint:
         debug_log("Starting ESLint check...")
         eslint_issues, eslint_output = run_eslint_check(target_file, project_root)
         if eslint_issues:
             debug_log("ESLint found issues")
-            has_issues = True
             results["eslint"] = eslint_output
         else:
             debug_log("ESLint check passed")
@@ -455,12 +489,11 @@ def main() -> int:
         tsc_issues, tsc_output = run_tsc_check(target_file, project_root)
         if tsc_issues:
             debug_log("TypeScript found issues")
-            has_issues = True
             results["tsc"] = tsc_output
         else:
             debug_log("TypeScript check passed")
 
-    if has_issues:
+    if results:
         debug_log("Issues found, displaying results")
         print("", file=sys.stderr)
         print(
@@ -477,12 +510,12 @@ def main() -> int:
         print(f"{RED}Fix TypeScript issues above before continuing{NC}", file=sys.stderr)
         debug_log("Exiting with code 2 (issues found)")
         return 2
-    else:
-        debug_log("All checks passed")
-        print("", file=sys.stderr)
-        print(f"{GREEN}✅ TypeScript: All checks passed{NC}", file=sys.stderr)
-        debug_log("Exiting with code 0 (success)")
-        return 0
+
+    debug_log("All checks passed")
+    print("", file=sys.stderr)
+    print(f"{GREEN}✅ TypeScript: All checks passed{NC}", file=sys.stderr)
+    debug_log("Exiting with code 0 (success)")
+    return 0
 
 
 if __name__ == "__main__":

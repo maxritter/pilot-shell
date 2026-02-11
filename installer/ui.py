@@ -162,8 +162,9 @@ class Console:
 
         tier = license_info.get("tier") if license_info else None
 
-        if tier in ("standard", "enterprise"):
-            tier_display = "Standard" if tier == "standard" else "Enterprise"
+        if tier in ("solo", "team", "standard", "enterprise"):
+            tier_map = {"solo": "Solo", "standard": "Solo", "team": "Team", "enterprise": "Team"}
+            tier_display = tier_map.get(tier, tier.title())
             email = license_info.get("email", "") if license_info else ""
             license_text = Text()
             license_text.append("  ✓ ", style="green")
@@ -179,17 +180,14 @@ class Console:
                 license_text.append("  ⚠ ", style="red")
                 license_text.append("Trial Expired", style="bold red")
                 license_text.append(" — Subscribe: ", style="dim white")
-                license_text.append("https://license.claude-pilot.com\n", style="cyan")
-                license_text.append("     Use code ", style="dim white")
-                license_text.append("TRIAL50OFF", style="bold green")
-                license_text.append(" for 50% off first month", style="dim white")
+                license_text.append("https://www.claude-pilot.com", style="cyan")
             else:
                 expires_at = license_info.get("expires_at") if license_info else None
                 time_str = _get_trial_time_str(days, expires_at)
                 license_text.append("  ⏳ ", style="yellow")
                 license_text.append(f"Trial ({time_str} remaining)", style="bold yellow")
                 license_text.append(" — Subscribe: ", style="dim white")
-                license_text.append("https://license.claude-pilot.com", style="cyan")
+                license_text.append("https://www.claude-pilot.com", style="cyan")
             self._console.print(license_text)
             self._console.print()
 

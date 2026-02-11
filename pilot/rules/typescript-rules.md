@@ -106,6 +106,7 @@ Verify:
 - [ ] Explicit return types on exports
 - [ ] No `any` types (use `unknown` instead)
 - [ ] Correct lock file committed
+- [ ] No production file exceeds 300 lines (500 = hard limit, refactor immediately)
 
 ### Quick Reference
 

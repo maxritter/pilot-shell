@@ -30,13 +30,24 @@ export async function readJsonFromStdin(): Promise<unknown> {
       resolve(undefined);
     }, 100);
 
+    let safetyTimeout: ReturnType<typeof setTimeout> | undefined;
+
     process.stdin.on("data", (chunk) => {
       clearTimeout(timeout);
+      if (safetyTimeout) clearTimeout(safetyTimeout);
       input += chunk;
+      safetyTimeout = setTimeout(() => {
+        try {
+          resolve(input.trim() ? JSON.parse(input) : undefined);
+        } catch (e) {
+          reject(new Error(`Failed to parse hook input: ${e}`));
+        }
+      }, 3000);
     });
 
     process.stdin.on("end", () => {
       clearTimeout(timeout);
+      if (safetyTimeout) clearTimeout(safetyTimeout);
       try {
         resolve(input.trim() ? JSON.parse(input) : undefined);
       } catch (e) {
@@ -46,6 +57,7 @@ export async function readJsonFromStdin(): Promise<unknown> {
 
     process.stdin.on("error", () => {
       clearTimeout(timeout);
+      if (safetyTimeout) clearTimeout(safetyTimeout);
       resolve(undefined);
     });
   });

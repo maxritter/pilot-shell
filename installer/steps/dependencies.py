@@ -441,9 +441,9 @@ def _get_playwright_cache_dirs() -> list[Path]:
     return dirs
 
 
-def _is_agent_browser_ready() -> bool:
-    """Check if agent-browser is installed and Chromium is available."""
-    if not command_exists("agent-browser"):
+def _is_playwright_cli_ready() -> bool:
+    """Check if playwright-cli is installed and Chromium is available."""
+    if not command_exists("playwright-cli"):
         return False
 
     for cache_dir in _get_playwright_cache_dirs():
@@ -461,33 +461,33 @@ def _is_agent_browser_ready() -> bool:
     return False
 
 
-def install_agent_browser(ui: Any = None) -> bool:
-    """Install agent-browser CLI for headless browser automation.
+def install_playwright_cli(ui: Any = None) -> bool:
+    """Install playwright-cli for headless browser automation.
 
     Shows verbose output during installation with download progress.
     Skips verbose output if already installed.
     """
-    if _is_agent_browser_ready():
+    if _is_playwright_cli_ready():
         return True
 
-    if not _run_bash_with_retry("npm install -g agent-browser"):
+    if not _run_bash_with_retry("npm install -g @playwright/cli@latest"):
         return False
 
-    if _is_agent_browser_ready():
+    if _is_playwright_cli_ready():
         return True
 
     try:
         if ui:
             with ui.spinner("Downloading Chromium browser..."):
                 result = subprocess.run(
-                    ["bash", "-c", "echo 'y' | agent-browser install --with-deps"],
+                    ["playwright-cli", "install-browser"],
                     capture_output=True,
                     text=True,
                 )
             return result.returncode == 0
         else:
             result = subprocess.run(
-                ["bash", "-c", "echo 'y' | agent-browser install --with-deps"],
+                ["playwright-cli", "install-browser"],
                 capture_output=True,
                 text=True,
             )
@@ -564,17 +564,17 @@ def _install_claude_code_with_ui(ui: Any, project_dir: Path) -> bool:
         return success
 
 
-def _install_agent_browser_with_ui(ui: Any) -> bool:
-    """Install agent-browser with UI feedback."""
+def _install_playwright_cli_with_ui(ui: Any) -> bool:
+    """Install playwright-cli with UI feedback."""
     if ui:
-        ui.status("Installing agent-browser...")
-    if install_agent_browser(ui):
+        ui.status("Installing playwright-cli...")
+    if install_playwright_cli(ui):
         if ui:
-            ui.success("agent-browser installed")
+            ui.success("playwright-cli installed")
         return True
     else:
         if ui:
-            ui.warning("Could not install agent-browser - please install manually")
+            ui.warning("Could not install playwright-cli - please install manually")
         return False
 
 
@@ -661,8 +661,8 @@ class DependenciesStep(BaseStep):
         if _install_with_spinner(ui, "vtsls (TypeScript LSP server)", install_typescript_lsp):
             installed.append("typescript_lsp")
 
-        if _install_agent_browser_with_ui(ui):
-            installed.append("agent_browser")
+        if _install_playwright_cli_with_ui(ui):
+            installed.append("playwright_cli")
 
         if _install_vexor_with_ui(ui):
             installed.append("vexor")

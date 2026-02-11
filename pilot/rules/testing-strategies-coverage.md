@@ -163,16 +163,16 @@ Run actual pipeline, verify:
 
 **For Frontend/UI (MANDATORY for web apps):**
 
-Use `agent-browser` to test actual UI rendering and user workflows:
+Use `playwright-cli` to test actual UI rendering and user workflows:
 
 ```bash
-agent-browser open http://localhost:3000
-agent-browser snapshot -i                    # Get interactive elements
-agent-browser fill @e1 "test@example.com"    # Fill form
-agent-browser click @e2                      # Submit
-agent-browser wait --load networkidle
-agent-browser snapshot -i                    # Verify result
-agent-browser close
+playwright-cli open http://localhost:3000
+playwright-cli snapshot                      # Get interactive elements with refs
+playwright-cli fill e1 "test@example.com"    # Fill form
+playwright-cli click e2                      # Submit
+playwright-cli run-code "async page => { await page.waitForLoadState('networkidle'); }"
+playwright-cli snapshot                      # Verify result
+playwright-cli close
 ```
 
 Test assertions:
@@ -181,7 +181,7 @@ Test assertions:
 - Navigation works between pages
 - Data displays correctly after CRUD
 
-**Why:** API tests verify backend works. Agent Browser verifies **what the user sees**. See `agent-browser.md` for full command reference.
+**Why:** API tests verify backend works. playwright-cli verifies **what the user sees**. See `playwright-cli.md` for full command reference.
 
 ### ⛔ CRITICAL: Mandatory Mocking in Unit Tests
 

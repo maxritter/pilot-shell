@@ -3,12 +3,11 @@ import { WorkerStatus } from './WorkerStatus';
 import { VexorStatus } from './VexorStatus';
 import { PlanStatus } from './PlanStatus';
 import { GitStatus } from './GitStatus';
-import { RecentActivity } from './RecentActivity';
 import { useStats } from '../../hooks/useStats';
 import { useProject } from '../../context';
 
 export function DashboardView() {
-  const { stats, workerStatus, vexorStatus, recentActivity, planStatus, gitInfo, isLoading } = useStats();
+  const { stats, workerStatus, vexorStatus, planStatus, gitInfo, specStats, isLoading } = useStats();
   const { selectedProject } = useProject();
 
   if (isLoading) {
@@ -28,16 +27,11 @@ export function DashboardView() {
         </p>
       </div>
 
-      {/* Project-scoped data */}
-      <div className="space-y-4">
-        <StatsGrid stats={stats} selectedProject={selectedProject} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <RecentActivity items={recentActivity} />
-        </div>
-      </div>
+      {/* Stats Grid */}
+      <StatsGrid stats={stats} specStats={specStats} />
 
-      {/* Workspace-level status (not affected by project filter) */}
-      <div className="space-y-4">
+      {/* Workspace-level status (shown when no project filter or matching workspace project) */}
+      {(!selectedProject || selectedProject === workerStatus.workspaceProject) && <div className="space-y-4">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-base-content/40">Workspace</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <PlanStatus plans={planStatus.plans} />
@@ -55,7 +49,7 @@ export function DashboardView() {
           />
           <GitStatus gitInfo={gitInfo} />
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

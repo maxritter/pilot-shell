@@ -87,7 +87,7 @@ const rulesCategories = [
   {
     icon: Search,
     category: "Tool Integration",
-    rules: ["Vexor semantic search", "Context7 library docs", "grep-mcp GitHub search", "Web search + fetch", "Agent browser (E2E)", "MCP CLI"],
+    rules: ["Vexor semantic search", "Context7 library docs", "grep-mcp GitHub search", "Web search + fetch", "Playwright CLI (E2E)", "MCP CLI"],
   },
   {
     icon: GitBranch,

@@ -1,7 +1,7 @@
 ---
 description: Manage Team Vault - share and install rules, commands, skills across your team via sx
 user-invocable: true
-model: opus
+model: sonnet
 ---
 
 # /vault - Team Vault Management
@@ -23,6 +23,7 @@ sx is a team asset manager that uses a private Git repository as a shared vault.
    If not installed: inform user sx is required for Team Vault. It can be installed via the Pilot installer or from [skills.new](https://skills.new).
 
 2. **Check vault configuration:**
+
    ```bash
    sx config 2>&1
    ```

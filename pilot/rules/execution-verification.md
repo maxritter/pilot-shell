@@ -12,7 +12,7 @@ When you:
 - Add a provider/widget → RUN the module that uses it
 - Add file parsing → PARSE a real file
 - Add network calls → MAKE a real call (or verify mock is tested separately)
-- Add frontend UI → OPEN it with `agent-browser` and verify it renders
+- Add frontend UI → OPEN it with `playwright-cli` and verify it renders
 
 **Example of what NOT to do:**
 ```
@@ -98,14 +98,14 @@ pip install dist/*.whl && run-command
 # Start the app (if not already running)
 # Use the project's start command from Runtime Environment section
 
-# Open with agent-browser and verify UI
-agent-browser open http://localhost:3000
-agent-browser snapshot -i
+# Open with playwright-cli and verify UI
+playwright-cli open http://localhost:3000
+playwright-cli snapshot
 # Interact and verify workflows work
-agent-browser fill @e1 "test"
-agent-browser click @e2
-agent-browser snapshot -i  # Verify result rendered
-agent-browser close
+playwright-cli fill e1 "test"
+playwright-cli click e2
+playwright-cli snapshot  # Verify result rendered
+playwright-cli close
 ```
 
 **Verify:** UI renders, forms work, navigation functions, data displays correctly.

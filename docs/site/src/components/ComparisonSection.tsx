@@ -1,21 +1,28 @@
 import { Clock, Zap, AlertTriangle, CheckCircle2, Brain, FileCode2, ShieldCheck, X, Check } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
 
+const painSolution = [
+  {
+    audience: "Losing context mid-task",
+    pain: ["Context degrades halfway through", "Every session starts from scratch", "Manual copy-paste to continue"],
+    solution: ["Endless Mode auto-hands off", "Persistent memory across sessions", "Seamless continuation files"],
+  },
+  {
+    audience: "Inconsistent code quality",
+    pain: ["No tests written", "No linting or formatting", "Hope-driven development"],
+    solution: ["TDD enforced on every feature", "Hooks auto-lint, format, type-check", "Verifier agents review code"],
+  },
+  {
+    audience: "No structure or planning",
+    pain: ["Jumps straight to coding", "No codebase exploration", "Scope creep and rework"],
+    solution: ["/spec plans before coding", "Semantic search explores codebase", "Approval gate before implementation"],
+  },
+];
+
 const ComparisonSection = () => {
   const [headerRef, headerInView] = useInView<HTMLDivElement>();
   const [cardsRef, cardsInView] = useInView<HTMLDivElement>();
   const [tableRef, tableInView] = useInView<HTMLDivElement>();
-
-  const comparison = [
-    { without: "Writes code, skips tests", with: "TDD enforced — RED, GREEN, REFACTOR on every feature" },
-    { without: "No quality checks", with: "Hooks auto-lint, format, type-check on every file edit" },
-    { without: "Context degrades mid-task", with: "Endless Mode with automatic session handoff" },
-    { without: "Every session starts fresh", with: "Persistent memory across sessions via Pilot Console" },
-    { without: "Hope it works", with: "Verifier sub-agents perform code review before marking complete" },
-    { without: "No codebase knowledge", with: "Production-tested rules loaded into every session" },
-    { without: "Generic suggestions", with: "Coding skills activated dynamically when relevant" },
-    { without: "Manual tool setup", with: "MCP servers + language servers pre-configured and ready" },
-  ];
 
   return (
     <section id="problem" className="py-16 lg:py-24 px-4 sm:px-6 relative">
@@ -167,40 +174,35 @@ const ComparisonSection = () => {
           </div>
         </div>
 
-        {/* Before & After Table */}
+        {/* Pain → Solution Cards */}
         <div
           ref={tableRef}
-          className={`mt-12 glass rounded-2xl p-6 animate-on-scroll ${tableInView ? "in-view" : ""}`}
+          className={`mt-12 grid md:grid-cols-3 gap-6 ${tableInView ? "animate-fade-in-up" : "opacity-0"}`}
         >
-          <h3 className="text-xl font-bold text-foreground mb-6 text-center">Before & After</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 text-muted-foreground font-medium">Without Pilot</th>
-                  <th className="text-left py-3 px-4 text-muted-foreground font-medium">With Pilot</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparison.map((row, i) => (
-                  <tr key={i} className="border-b border-border/50 last:border-0">
-                    <td className="py-3 px-4 text-slate-400">
-                      <span className="flex items-center gap-2">
-                        <X className="h-4 w-4 text-destructive flex-shrink-0" />
-                        {row.without}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-foreground">
-                      <span className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-primary flex-shrink-0" />
-                        {row.with}
-                      </span>
-                    </td>
-                  </tr>
+          {painSolution.map((card) => (
+            <div key={card.audience} className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm overflow-hidden hover:border-primary/30 transition-colors">
+              <div className="px-5 pt-5 pb-3">
+                <h4 className="text-sm font-semibold text-foreground mb-1">{card.audience}</h4>
+              </div>
+              <div className="px-5 pb-4 space-y-2">
+                {card.pain.map((p) => (
+                  <div key={p} className="flex items-start gap-2 text-xs text-slate-400">
+                    <X className="h-3.5 w-3.5 text-destructive flex-shrink-0 mt-0.5" />
+                    <span>{p}</span>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+              <div className="flex justify-center py-2 text-primary text-lg">&darr;</div>
+              <div className="px-5 pb-5 space-y-2 border-t border-primary/20 pt-4 bg-primary/[0.03]">
+                {card.solution.map((s) => (
+                  <div key={s} className="flex items-start gap-2 text-xs text-foreground/80">
+                    <Check className="h-3.5 w-3.5 text-primary flex-shrink-0 mt-0.5" />
+                    <span>{s}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Bottom highlight */}
