@@ -4,6 +4,7 @@ argument-hint: "<path/to/plan.md>"
 user-invocable: false
 model: opus
 ---
+
 # /spec-verify - Verification Phase
 
 **Phase 3 of the /spec workflow.** Runs comprehensive verification: tests, process compliance, code review, program execution, E2E tests, and edge case testing.
@@ -17,15 +18,15 @@ model: opus
 
 ## ⛔ KEY CONSTRAINTS (Rules Summary)
 
-| # | Rule |
-|---|------|
-| 1 | **NEVER SKIP verification** - Code review (Step 3.5) is mandatory. No exceptions. |
-| 2 | **NO stopping** - Everything is automatic. Never ask "Should I fix these?" |
-| 3 | **Fix ALL findings automatically** - must_fix AND should_fix. No permission needed. |
-| 4 | **Quality over speed** - Never rush due to context pressure |
-| 5 | **Plan file is source of truth** - Survives session clears |
-| 6 | **Code changes finish BEFORE runtime testing** - Code review and fixes happen before build/deploy/E2E |
-| 7 | **Re-verification after fixes is MANDATORY** - Fixes can introduce new bugs. Always re-verify. |
+| #   | Rule                                                                                                  |
+| --- | ----------------------------------------------------------------------------------------------------- |
+| 1   | **NEVER SKIP verification** - Code review (Step 3.5) is mandatory. No exceptions.                     |
+| 2   | **NO stopping** - Everything is automatic. Never ask "Should I fix these?"                            |
+| 3   | **Fix ALL findings automatically** - must_fix AND should_fix. No permission needed.                   |
+| 4   | **Quality over speed** - Never rush due to context pressure                                           |
+| 5   | **Plan file is source of truth** - Survives session clears                                            |
+| 6   | **Code changes finish BEFORE runtime testing** - Code review and fixes happen before build/deploy/E2E |
+| 7   | **Re-verification after fixes is MANDATORY** - Fixes can introduce new bugs. Always re-verify.        |
 
 ---
 
@@ -80,6 +81,7 @@ Run mechanical verification tools. These check process adherence that the code r
 **For refactoring/migration tasks only:** Verify ALL original functionality is preserved.
 
 **Process:**
+
 1. Compare old implementation with new implementation
 2. Create checklist of features from old code
 3. Verify each feature exists in new code
@@ -97,6 +99,7 @@ This is a serious issue - the implementation is incomplete.
    - Add note: `> Extended [Date]: Tasks X-Y added for missing features found during verification`
 
 2. **Set plan status to PENDING and increment Iterations:**
+
    ```
    Edit the plan file:
    Status: COMPLETE  →  Status: PENDING
@@ -106,6 +109,7 @@ This is a serious issue - the implementation is incomplete.
 3. **Register status change:** `~/.pilot/bin/pilot register-plan "<plan_path>" "PENDING" 2>/dev/null || true`
 
 4. **Inform user:**
+
    ```
    🔄 Iteration N+1: Missing features detected, looping back to implement...
 
@@ -144,6 +148,7 @@ This is a serious issue - the implementation is incomplete.
 **⛔ THIS STEP IS NON-NEGOTIABLE. You MUST run code verification.**
 
 **⚠️ SKIPPING THIS STEP IS FORBIDDEN.** Even if:
+
 - You're confident the code is correct
 - Context is getting high (do handoff AFTER verification, not instead of it)
 - Tests pass (tests don't catch everything)
@@ -154,6 +159,7 @@ This is a serious issue - the implementation is incomplete.
 #### 3.5a: Identify Changed Files
 
 Get list of files changed in this implementation:
+
 ```bash
 git status --short  # Shows staged and unstaged changes
 ```
@@ -189,6 +195,7 @@ Task(
 ```
 
 The verifier:
+
 - Receives the plan file path as source of truth
 - Reads ALL rule files (global + project) and enforces them
 - Reviews changed files against plan requirements
@@ -225,6 +232,7 @@ This is part of the automated /spec workflow. The user approved the plan - verif
 3. **suggestions** - Implement if reasonable and quick
 
 **For each fix:**
+
 1. Implement the fix
 2. Run relevant tests to verify
 3. Log: "✅ Fixed: [issue title]"
@@ -290,6 +298,7 @@ If the project builds artifacts that are deployed separately from source (e.g., 
 Run the actual program and verify real output.
 
 **Execution checklist:**
+
 - [ ] Program starts without errors
 - [ ] **Inspect logs** - Check for errors, warnings, stack traces
 - [ ] **Verify output correctness** - Fetch source data independently, compare against program output
@@ -297,6 +306,7 @@ Run the actual program and verify real output.
 
 **⛔ Output Correctness - MANDATORY:**
 If code processes external data, ALWAYS verify by fetching source data independently and comparing:
+
 ```bash
 # Fetch actual source data (database query, API call, file contents)
 # Compare counts/content with what your code returned
@@ -305,9 +315,9 @@ If code processes external data, ALWAYS verify by fetching source data independe
 
 **If bugs are found:**
 
-| Bug Type | Action |
-|----------|--------|
-| **Minor** (typo, off-by-one, missing import) | Fix immediately, re-run, continue verification |
+| Bug Type                                                       | Action                                                                                                                      |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Minor** (typo, off-by-one, missing import)                   | Fix immediately, re-run, continue verification                                                                              |
 | **Major** (logic error, missing function, architectural issue) | Add task to plan, set PENDING, **⛔ Context Guard** (spec.md 0.3), then `Skill(skill='spec-implement', args='<plan-path>')` |
 
 ### Step 3.9: Goal Verification and DoD Audit
@@ -330,12 +340,14 @@ Verify each level against the actual codebase and running program. If any level 
 
 ```markdown
 ### Task N: [title]
+
 - [ ] DoD criterion 1 → [evidence: command output / API response / screenshot]
 - [ ] DoD criterion 2 → [evidence]
-...
+      ...
 ```
 
 **If any criterion is unmet (at either goal or task level):**
+
 - If fixable inline → fix immediately
 - If structural → add task to plan and loop back to implementation
 
@@ -357,15 +369,16 @@ Walk through the main user scenario described in the plan. Every view, every int
 
 After the happy path passes, test failure modes. **This is not optional.**
 
-| Category | What to test | Example |
-|----------|-------------|---------|
-| **Empty state** | No data, no items, no results | Empty database, no projects, search returns nothing |
-| **Invalid input** | Bad parameters, wrong types | SQL injection in query params, empty strings, special characters |
-| **Stale state** | Cached/stored data references something deleted | localStorage has project name that no longer exists |
-| **Error state** | Backend unreachable, API returns error | What does the UI show when fetch fails? |
-| **Boundary** | Maximum values, zero values, single item | Exactly 1 project, 0 observations, 100-char project name |
+| Category          | What to test                                    | Example                                                          |
+| ----------------- | ----------------------------------------------- | ---------------------------------------------------------------- |
+| **Empty state**   | No data, no items, no results                   | Empty database, no projects, search returns nothing              |
+| **Invalid input** | Bad parameters, wrong types                     | SQL injection in query params, empty strings, special characters |
+| **Stale state**   | Cached/stored data references something deleted | localStorage has project name that no longer exists              |
+| **Error state**   | Backend unreachable, API returns error          | What does the UI show when fetch fails?                          |
+| **Boundary**      | Maximum values, zero values, single item        | Exactly 1 project, 0 observations, 100-char project name         |
 
 For each edge case:
+
 1. Set up the condition
 2. Exercise the UI/API
 3. Verify the result is reasonable (not blank, not broken, not stuck, no unhandled errors)
@@ -387,6 +400,7 @@ Run the test suite and type checker one final time to catch any regressions from
 This is the THIRD user interaction point in the `/spec` workflow (first is worktree choice, second is plan approval).
 
 1. **Check for active worktree:**
+
    ```bash
    uv run python -c "
    from launcher.worktree import detect_worktree
@@ -403,6 +417,7 @@ This is the THIRD user interaction point in the `/spec` workflow (first is workt
 2. **If no worktree is active:** Skip to Step 3.12 (this is a non-worktree spec run or worktree was already synced).
 
 3. **Show diff summary:**
+
    ```bash
    uv run python -c "
    from launcher.worktree import detect_worktree, list_worktree_changes
@@ -419,6 +434,7 @@ This is the THIRD user interaction point in the `/spec` workflow (first is workt
    ```
 
 4. **Ask user for sync decision:**
+
    ```
    AskUserQuestion:
      question: "Sync worktree changes to <base_branch>?"
@@ -431,6 +447,7 @@ This is the THIRD user interaction point in the `/spec` workflow (first is workt
 5. **Handle user choice:**
 
    **If "Yes, squash merge":**
+
    ```bash
    uv run python -c "
    from launcher.worktree import detect_worktree, sync_worktree, cleanup_worktree
@@ -447,6 +464,7 @@ This is the THIRD user interaction point in the `/spec` workflow (first is workt
        print(json.dumps({'success': False, 'error': result.error}))
    "
    ```
+
    Then clear worktree from wrapper: `~/.pilot/bin/pilot pipe clear-worktree`
    Report: "✅ Changes synced to `<base_branch>` — N files changed, commit `<hash>`"
 
@@ -454,6 +472,7 @@ This is the THIRD user interaction point in the `/spec` workflow (first is workt
    Report: "Worktree preserved at `<worktree_path>`. You can sync later via `pilot worktree sync <plan-slug>` or discard via `pilot worktree cleanup <plan-slug>`."
 
    **If "Discard all changes":**
+
    ```bash
    uv run python -c "
    from launcher.worktree import detect_worktree, cleanup_worktree
@@ -466,6 +485,7 @@ This is the THIRD user interaction point in the `/spec` workflow (first is workt
    print('DISCARDED')
    "
    ```
+
    Then clear worktree from wrapper: `~/.pilot/bin/pilot pipe clear-worktree`
    Report: "Worktree and branch discarded."
 
@@ -483,6 +503,7 @@ This is the THIRD user interaction point in the `/spec` workflow (first is workt
 2. **Register status change:** `~/.pilot/bin/pilot register-plan "<plan_path>" "VERIFIED" 2>/dev/null || true`
 3. Read the Iterations count from the plan file
 4. Report completion:
+
    ```
    ✅ Workflow complete! Plan status: VERIFIED
 
@@ -519,6 +540,7 @@ After each major operation, check context:
 ```
 
 **Between iterations:**
+
 1. If context >= 90%: hand off cleanly (don't rush!)
 2. If context 80-89%: continue but wrap up current task with quality
 3. If context < 80%: continue the loop freely
@@ -539,12 +561,15 @@ Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
 **Current Task:** Step 3.N - [description]
 
 **Completed This Session:**
+
 - [x] [What was finished]
 
 **Next Steps:**
+
 1. [What to do immediately when resuming]
 
 **Context:**
+
 - [Key decisions or blockers]
 ```
 

@@ -1,7 +1,8 @@
 ---
 description: Extract reusable knowledge into skills - online learning system
-model: opus
+model: sonnet
 ---
+
 # /learn - Online Learning System
 
 **Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
@@ -10,15 +11,16 @@ model: opus
 
 ## TABLE OF CONTENTS
 
-| Phase | Description | Steps |
-|-------|-------------|-------|
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
 | **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
-| **Phase 1** | Evaluate: assess if knowledge is worth extracting | 1.1 |
-| **Phase 2** | Check Existing: search for related skills | 2.1 |
-| **Phase 3** | Create Skill: write the skill file | 3.1–3.2 |
-| **Phase 4** | Quality Gates: final checklist before saving | 4.1 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
 
 **Quick Step Reference:**
+
 - 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
 - 1.1 Self-evaluation questions
 - 2.1 Search existing skills
@@ -33,20 +35,21 @@ model: opus
 
 Invoke `/learn` after ANY task involving:
 
-| Trigger | Example |
-|---------|---------|
-| **Non-obvious debugging** | Spent 10+ minutes investigating; solution wasn't in docs |
-| **Misleading errors** | Error message pointed wrong direction; found real cause |
-| **Workarounds** | Found limitation and creative solution |
-| **Tool integration** | Figured out how to use tool/API in undocumented way |
-| **Trial-and-error** | Tried multiple approaches before finding what worked |
-| **Repeatable workflow** | Multi-step task that will recur; worth standardizing |
-| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs |
-| **User-facing automation** | Built something user will ask for again (reports, status checks) |
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
 
 ### Step 0.2: Quality Criteria
 
 Skills must be:
+
 - **Reusable**: Will help with future tasks (not just this instance)
 - **Non-trivial**: Required discovery, OR is a valuable workflow pattern
 - **Verified**: Solution actually worked, not theoretical
@@ -62,6 +65,7 @@ Skills must be:
 **Location:** `.claude/skills/[skill-name]/SKILL.md`
 
 **Template:**
+
 ```markdown
 ---
 name: descriptive-kebab-case-name
@@ -77,21 +81,27 @@ version: 1.0.0
 # Skill Name
 
 ## Problem
+
 [Clear description of the problem]
 
 ## Context / Trigger Conditions
+
 [When to use - exact error messages, symptoms, scenarios]
 
 ## Solution
+
 [Step-by-step solution]
 
 ## Verification
+
 [How to verify it worked]
 
 ## Example
+
 [Concrete example]
 
 ## References
+
 [Links to documentation]
 ```
 
@@ -101,6 +111,7 @@ version: 1.0.0
 The description field is CRITICAL for skill discovery:
 
 **Good:**
+
 ```yaml
 description: |
   Fix for "ENOENT: no such file or directory" errors in npm monorepos.
@@ -109,6 +120,7 @@ description: |
 ```
 
 **Bad:**
+
 ```yaml
 description: Helps with npm problems in monorepos.
 ```
@@ -116,6 +128,7 @@ description: Helps with npm problems in monorepos.
 </details>
 
 **Guidelines:**
+
 - **Concise** - Claude is smart; only add what it doesn't know
 - **Under 500 lines** - Move large docs to `references/`
 - **Examples over explanations** - Show, don't tell
@@ -153,11 +166,11 @@ ls ~/.claude/pilot/skills/ 2>/dev/null
 rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
 ```
 
-| Found | Action |
-|-------|--------|
-| Nothing related | Create new skill |
-| Same trigger and fix | Update existing (bump version) |
-| Partial overlap | Update existing with new variant |
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
 
 ---
 
@@ -201,7 +214,9 @@ description: |
   to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
   function with only 1 reference (definition) or only test refs is dead code.
 ---
+
 # LSP Dead Code Finder
+
 ...
 ```
 

@@ -4,6 +4,7 @@ argument-hint: "<task description> or <path/to/plan.md>"
 user-invocable: false
 model: opus
 ---
+
 # /spec-plan - Planning Phase
 
 **Phase 1 of the /spec workflow.** Explores the codebase, designs an implementation plan, verifies it, and gets user approval.
@@ -16,18 +17,18 @@ model: opus
 
 ## ⛔ KEY CONSTRAINTS (Rules Summary)
 
-| # | Rule |
-|---|------|
-| 1 | **NO sub-agents during planning** - Use direct tools only. Exception: Step 1.7 uses `plan-verifier`. |
-| 2 | **NEVER SKIP verification** - Plan verification (Step 1.7) is mandatory. No exceptions. |
-| 3 | **ONLY stopping point is plan approval** - Everything else is automatic. Never ask "Should I fix these?" |
-| 4 | **Batch questions together** - Don't interrupt user flow |
-| 5 | **Run explorations sequentially** - One at a time, never in parallel |
-| 6 | **NEVER write code during planning** - Separate phases |
-| 7 | **NEVER assume - verify by reading files** |
-| 8 | **Re-read plan after user edits** - Before asking for approval again |
-| 9 | **Quality over speed** - Never rush due to context pressure |
-| 10 | **Plan file is source of truth** - Survives session clears |
+| #   | Rule                                                                                                     |
+| --- | -------------------------------------------------------------------------------------------------------- |
+| 1   | **NO sub-agents during planning** - Use direct tools only. Exception: Step 1.7 uses `plan-verifier`.     |
+| 2   | **NEVER SKIP verification** - Plan verification (Step 1.7) is mandatory. No exceptions.                  |
+| 3   | **ONLY stopping point is plan approval** - Everything else is automatic. Never ask "Should I fix these?" |
+| 4   | **Batch questions together** - Don't interrupt user flow                                                 |
+| 5   | **Run explorations sequentially** - One at a time, never in parallel                                     |
+| 6   | **NEVER write code during planning** - Separate phases                                                   |
+| 7   | **NEVER assume - verify by reading files**                                                               |
+| 8   | **Re-read plan after user edits** - Before asking for approval again                                     |
+| 9   | **Quality over speed** - Never rush due to context pressure                                              |
+| 10  | **Plan file is source of truth** - Survives session clears                                               |
 
 ---
 
@@ -37,35 +38,38 @@ model: opus
 
 **Questions are grouped into batches for smooth user experience:**
 
-| Batch | When | Purpose |
-|-------|------|---------|
-| **Batch 1** | Phase 0 (before exploration) | Clarify task, scope, priorities |
-| **Batch 2** | Phase 2 (after exploration) | Architecture choices, design decisions |
+| Batch       | When                         | Purpose                                |
+| ----------- | ---------------------------- | -------------------------------------- |
+| **Batch 1** | Phase 0 (before exploration) | Clarify task, scope, priorities        |
+| **Batch 2** | Phase 2 (after exploration)  | Architecture choices, design decisions |
 
 **When to Use AskUserQuestion:**
 
-| Situation | Example Question |
-|-----------|------------------|
-| **Unclear requirements** | "Should this feature support batch processing or single items only?" |
-| **Multiple valid approaches** | Present 2-3 options with trade-offs for user to choose |
-| **Ambiguous scope** | "Should we include error recovery, or fail fast?" |
-| **Technology choices** | "Prefer async/await or callbacks for this integration?" |
-| **Priority decisions** | "Performance or simplicity - which matters more here?" |
-| **Missing domain knowledge** | "How does the existing auth flow work in production?" |
+| Situation                     | Example Question                                                     |
+| ----------------------------- | -------------------------------------------------------------------- |
+| **Unclear requirements**      | "Should this feature support batch processing or single items only?" |
+| **Multiple valid approaches** | Present 2-3 options with trade-offs for user to choose               |
+| **Ambiguous scope**           | "Should we include error recovery, or fail fast?"                    |
+| **Technology choices**        | "Prefer async/await or callbacks for this integration?"              |
+| **Priority decisions**        | "Performance or simplicity - which matters more here?"               |
+| **Missing domain knowledge**  | "How does the existing auth flow work in production?"                |
 
 **Questioning philosophy — Dream extraction, not requirements gathering:**
+
 - **Start open, then narrow** — Begin with "What does success look like?" before diving into specifics
 - **Follow energy** — If the user is excited about a detail, explore it; if they're vague, they may not care about the specifics
 - **Challenge vagueness** — "Fast" means what? Sub-100ms? Under 2 seconds? Make abstract concrete
 - **Present interpretations as options** — "I think you mean X — should we do X (simple, covers 80%) or Y (comprehensive, handles edge cases)?" is better than "What do you want?"
 
 **Anti-patterns to avoid:**
+
 - **Checklist walking** — Don't ask every possible question; focus on genuine ambiguities
 - **Canned questions** — Adapt questions to the specific task, not generic templates
 - **Shallow acceptance** — Don't accept "it should work well" — ask what "well" means concretely
 - **Interrogation** — 1-2 focused questions are better than 4 vague ones
 
 **Key principles:**
+
 - Present options, not open-ended questions when possible
 - Include trade-offs for each option
 - **Batch related questions together** — don't interrupt user flow
@@ -94,25 +98,27 @@ model: opus
 **After exploration but BEFORE creating tasks:**
 
 1. **List ALL files being replaced:**
+
    ```markdown
    ## Feature Inventory - Files Being Replaced
 
-   | Old File | Functions/Classes | Status |
-   |----------|-------------------|--------|
+   | Old File         | Functions/Classes                | Status        |
+   | ---------------- | -------------------------------- | ------------- |
    | `old/module1.py` | `func_a()`, `func_b()`, `ClassX` | ⬜ Not mapped |
-   | `old/module2.py` | `func_c()`, `func_d()` | ⬜ Not mapped |
+   | `old/module2.py` | `func_c()`, `func_d()`           | ⬜ Not mapped |
    ```
 
 2. **Map EVERY function/feature to a new task:**
+
    ```markdown
    ## Feature Mapping - Old → New
 
-   | Old Feature | New Location | Task # |
-   |-------------|--------------|--------|
-   | `module1.func_a()` | `new/step1.py` | Task 3 |
-   | `module1.func_b()` | `new/step1.py` | Task 3 |
-   | `module2.func_c()` | `new/step2.py` | Task 5 |
-   | `module2.func_d()` | ❌ MISSING | ⚠️ NEEDS TASK |
+   | Old Feature        | New Location   | Task #        |
+   | ------------------ | -------------- | ------------- |
+   | `module1.func_a()` | `new/step1.py` | Task 3        |
+   | `module1.func_b()` | `new/step1.py` | Task 3        |
+   | `module2.func_c()` | `new/step2.py` | Task 5        |
+   | `module2.func_d()` | ❌ MISSING     | ⚠️ NEEDS TASK |
    ```
 
 3. **Verify 100% coverage before proceeding:**
@@ -124,11 +130,11 @@ model: opus
 
 **CRITICAL: "Out of Scope" has a precise meaning:**
 
-| Phrase | Meaning | Requires Task? |
-|--------|---------|----------------|
-| "Out of Scope: Changes to X" | X will be migrated AS-IS, no modifications | ✅ YES - migration task |
-| "Out of Scope: Feature X" | X is intentionally REMOVED/not included | ❌ NO - but needs user confirmation |
-| "Out of Scope: New features for X" | X migrates as-is, no NEW features added | ✅ YES - migration task |
+| Phrase                             | Meaning                                    | Requires Task?                      |
+| ---------------------------------- | ------------------------------------------ | ----------------------------------- |
+| "Out of Scope: Changes to X"       | X will be migrated AS-IS, no modifications | ✅ YES - migration task             |
+| "Out of Scope: Feature X"          | X is intentionally REMOVED/not included    | ❌ NO - but needs user confirmation |
+| "Out of Scope: New features for X" | X migrates as-is, no NEW features added    | ✅ YES - migration task             |
 
 ### Pre-Task Verification Gate
 
@@ -163,6 +169,7 @@ model: opus
 3. **Create directory if needed:** `mkdir -p docs/plans`
 
 4. **Write initial header immediately (with worktree choice from dispatcher):**
+
    ```markdown
    # [Feature Name] Implementation Plan
 
@@ -175,16 +182,20 @@ model: opus
    > Planning in progress...
 
    ## Summary
+
    **Goal:** [Task description from user]
 
    ---
-   *Exploring codebase and gathering requirements...*
+
+   _Exploring codebase and gathering requirements..._
    ```
 
 5. **Register plan association (MANDATORY):**
+
    ```bash
    ~/.pilot/bin/pilot register-plan "<plan_path>" "PENDING" 2>/dev/null || true
    ```
+
    This tells the statusline which plan belongs to THIS session. Without it, parallel sessions show the wrong plan.
 
 6. **Why this matters:**
@@ -202,6 +213,7 @@ model: opus
 **First, clearly state your understanding of the task.**
 
 Before any exploration:
+
 1. Restate what the user is asking for in your own words
 2. Identify the core problem being solved
 3. List any assumptions you're making
@@ -210,13 +222,13 @@ Before any exploration:
 
 Analyze the task description to find ambiguities that NEED resolution before planning. Different types of work have different gray areas:
 
-| Domain | Typical Gray Areas |
-|--------|-------------------|
-| **Something users SEE** (UI/frontend) | Layout density, interaction patterns, responsive breakpoints, empty states, loading states |
-| **Something users CALL** (API/backend) | Response shape, error codes, auth model, pagination, rate limiting |
-| **Something users RUN** (CLI/scripts) | Output format, flags/options, exit codes, interactive vs non-interactive |
-| **Something users STORE** (data/config) | Schema shape, migration strategy, validation rules, default values |
-| **Something users READ** (docs/content) | Audience level, structure, examples needed, update frequency |
+| Domain                                  | Typical Gray Areas                                                                         |
+| --------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Something users SEE** (UI/frontend)   | Layout density, interaction patterns, responsive breakpoints, empty states, loading states |
+| **Something users CALL** (API/backend)  | Response shape, error codes, auth model, pagination, rate limiting                         |
+| **Something users RUN** (CLI/scripts)   | Output format, flags/options, exit codes, interactive vs non-interactive                   |
+| **Something users STORE** (data/config) | Schema shape, migration strategy, validation rules, default values                         |
+| **Something users READ** (docs/content) | Audience level, structure, examples needed, update frequency                               |
 
 **Scope guardrail:** Questions should clarify HOW to implement the task, not WHETHER to expand scope. If discussion surfaces new feature ideas, capture them as "Deferred Ideas" in the plan's Open Questions section — don't add them to scope.
 
@@ -232,12 +244,12 @@ If the task is clear and unambiguous with no meaningful gray areas, skip directl
 
 #### 🔧 Tools for Exploration
 
-| Tool | When to Use | Example |
-|------|-------------|---------|
-| **Context7** | Library/framework docs | `resolve-library-id(query="your question", libraryName="lib")` then `query-docs(libraryId, query)` |
-| **Vexor** | Semantic code search | `vexor search "query" --mode code` |
-| **grep-mcp** | Real-world GitHub examples | `searchGitHub(query="FastMCP", language=["Python"])` |
-| **Read/Grep/Glob** | Direct file exploration | Use directly, no sub-agents |
+| Tool               | When to Use                | Example                                                                                            |
+| ------------------ | -------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Context7**       | Library/framework docs     | `resolve-library-id(query="your question", libraryName="lib")` then `query-docs(libraryId, query)` |
+| **Vexor**          | Semantic code search       | `vexor search "query" --mode code`                                                                 |
+| **grep-mcp**       | Real-world GitHub examples | `searchGitHub(query="FastMCP", language=["Python"])`                                               |
+| **Read/Grep/Glob** | Direct file exploration    | Use directly, no sub-agents                                                                        |
 
 **Exploration areas (in order):**
 
@@ -247,11 +259,13 @@ If the task is clear and unambiguous with no meaningful gray areas, skip directl
 4. **Tests** - Test infrastructure, existing patterns, available fixtures
 
 **For each area:**
+
 - Document hypotheses (not conclusions)
 - Note full file paths for relevant code
 - Track questions that remain unanswered
 
 **After explorations complete:**
+
 1. Read each identified file to verify hypotheses
 2. Build a complete mental model of current architecture
 3. Identify integration points and potential risks
@@ -264,6 +278,7 @@ If the task is clear and unambiguous with no meaningful gray areas, skip directl
 Summarize what you found, then use AskUserQuestion with all decisions at once.
 
 **After user answers:**
+
 - Incorporate their choices into the plan design
 - Proceed to Step 1.5 — the user will review the full plan at Step 1.8
 
@@ -272,6 +287,7 @@ Summarize what you found, then use AskUserQuestion with all decisions at once.
 **Task Granularity**
 
 Each task should be:
+
 - **Independently testable** — has its own tests that pass without other tasks being complete
 - **Focused** — touches 2-4 files max; more means it should be split
 - **Verifiable** — produces an observable result (test output, API response, UI change)
@@ -279,10 +295,12 @@ Each task should be:
 Split a task if it has multiple unrelated DoD criteria. Merge tasks if one can't be tested without the other. Don't create tasks for setup/boilerplate that have no standalone value — fold them into the first task that uses them.
 
 **For each task, populate:**
+
 - **Dependencies** — Which tasks must complete first? Use `None` for independent tasks. This enables wave-based parallel execution during implementation.
 - **Verify** — What concrete commands prove this task is done? Include test commands, build commands, or curl/CLI invocations. The implementation phase runs these after completing each task.
 
 **Task Structure:**
+
 ```markdown
 ### Task N: [Component Name]
 
@@ -291,22 +309,26 @@ Split a task if it has multiple unrelated DoD criteria. Merge tasks if one can't
 **Dependencies:** [None | Task X, Task Y — tasks that must complete before this one]
 
 **Files:**
+
 - Create: `exact/path/to/file.py`
 - Modify: `exact/path/to/existing.py`
 - Test: `tests/exact/path/to/test.py`
 
 **Key Decisions / Notes:**
+
 - [Technical approach or algorithm to use]
 - [Which existing pattern to follow, with file:line reference]
 - [Integration points with other tasks or existing code]
 
 **Definition of Done:**
+
 - [ ] All tests pass (unit, integration if applicable)
 - [ ] No diagnostics errors (linting, type checking)
 - [ ] [Task-specific criterion with observable outcome]
 - [ ] [Task-specific criterion with observable outcome]
 
 **Verify:**
+
 - `uv run pytest tests/path/to/test.py -q` — task-specific tests pass
 - [Additional verification command or check]
 ```
@@ -316,17 +338,20 @@ Split a task if it has multiple unrelated DoD criteria. Merge tasks if one can't
 **⚠️ DoD criteria must be verifiable.** The verification phase checks each criterion against the actual code and running program. Replace the `[Task-specific criterion]` placeholders with criteria that can be checked with a specific test, command, or observation.
 
 ✅ Good DoD examples:
+
 - "GET /api/users?role=admin returns only admin users"
 - "Form shows validation error when email field is empty"
 - "CLI exits with code 1 and prints usage when no arguments given"
 - "Retry logic attempts 3 times with exponential backoff before failing"
 
 ❌ Bad DoD (never use these):
+
 - "Feature works correctly"
 - "Edge cases handled appropriately"
 - "Error messages are clear and actionable"
 
 **Zero-context assumption:**
+
 - Assume implementer knows nothing about codebase
 - Provide exact file paths
 - Explain domain concepts
@@ -350,6 +375,7 @@ Worktree: Yes
 
 > **Status Lifecycle:** PENDING → COMPLETE → VERIFIED
 > **Iterations:** Tracks implement→verify cycles (incremented by verify phase)
+>
 > - PENDING: Initial state, awaiting implementation
 > - COMPLETE: All tasks implemented
 > - VERIFIED: All checks passed
@@ -358,6 +384,7 @@ Worktree: Yes
 > **Worktree:** Set at plan creation (from dispatcher). `Yes` uses git worktree isolation; `No` works directly on current branch
 
 ## Summary
+
 **Goal:** [One sentence describing what this builds]
 
 **Architecture:** [2-3 sentences about chosen approach]
@@ -367,14 +394,17 @@ Worktree: Yes
 ## Scope
 
 ### In Scope
+
 - [What WILL be changed/built]
 - [Specific components affected]
 
 ### Out of Scope
+
 - [What will NOT be changed]
 - [Explicit boundaries]
 
 ## Prerequisites
+
 - [Any requirements before starting]
 - [Dependencies that must exist]
 - [Environment setup needed]
@@ -406,10 +436,10 @@ Worktree: Yes
 
 ### Files Being Replaced
 
-| Old File | Functions/Classes | Mapped to Task |
-|----------|-------------------|----------------|
-| `old/file1.py` | `func_a()`, `func_b()` | Task 3 |
-| `old/file2.py` | `ClassX`, `func_c()` | Task 4, Task 5 |
+| Old File       | Functions/Classes      | Mapped to Task |
+| -------------- | ---------------------- | -------------- |
+| `old/file1.py` | `func_a()`, `func_b()` | Task 3         |
+| `old/file2.py` | `ClassX`, `func_c()`   | Task 4, Task 5 |
 
 ### Feature Mapping Verification
 
@@ -433,6 +463,7 @@ Worktree: Yes
 ## Implementation Tasks
 
 ### Task 1: [Component Name]
+
 **Objective:** ...
 **Dependencies:** None
 **Files:** ...
@@ -441,6 +472,7 @@ Worktree: Yes
 **Verify:** [Concrete commands to verify this task]
 
 ### Task 2: [Component Name]
+
 **Objective:** ...
 **Dependencies:** Task 1
 **Files:** ...
@@ -449,6 +481,7 @@ Worktree: Yes
 **Verify:** [Concrete commands to verify this task]
 
 ## Testing Strategy
+
 - Unit tests: [What to test in isolation]
 - Integration tests: [What to test together]
 - Manual verification: [Steps to verify manually]
@@ -457,8 +490,8 @@ Worktree: Yes
 
 > Consider: breaking changes, backward compatibility, data loss/migration, performance regression, security implications, state management complexity, cross-component coupling, external dependency failures.
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
+| Risk     | Likelihood   | Impact       | Mitigation                           |
+| -------- | ------------ | ------------ | ------------------------------------ |
 | [Risk 1] | Low/Med/High | Low/Med/High | [Concrete, implementable mitigation] |
 
 **⚠️ Risk mitigations are commitments.** The verification phase (spec-verifier) will check that every mitigation listed here is actually implemented in code. Write mitigations as concrete, implementable behaviors, not vague statements.
@@ -467,10 +500,12 @@ Worktree: Yes
 ❌ Bad: "Handle edge cases appropriately"
 
 ## Open Questions
+
 - [Any remaining questions for the user]
 - [Decisions deferred to implementation]
 
 ### Deferred Ideas
+
 - [Ideas surfaced during discussion that are out of scope for this plan]
 ```
 
@@ -499,6 +534,7 @@ Task(
 ```
 
 The verifier:
+
 - Reviews plan against original user request
 - Checks if clarification answers are incorporated
 - Identifies missing requirements or scope issues
@@ -508,10 +544,10 @@ The verifier:
 
 After verification completes, fix all issues by severity:
 
-| Severity | Action |
-|----------|--------|
-| **must_fix** | Fix immediately - update plan before proceeding |
-| **should_fix** | Fix immediately - update plan before proceeding |
+| Severity       | Action                                               |
+| -------------- | ---------------------------------------------------- |
+| **must_fix**   | Fix immediately - update plan before proceeding      |
+| **should_fix** | Fix immediately - update plan before proceeding      |
 | **suggestion** | Incorporate if reasonable, or note in Open Questions |
 
 **Only proceed to Step 1.8 after all must_fix and should_fix issues are resolved.**
@@ -528,6 +564,7 @@ After verification completes, fix all issues by severity:
    - Tech stack / approach
 
 2. **Use AskUserQuestion to request approval:**
+
    ```
    Question: "Do you approve this plan for implementation?"
    Header: "Plan Review"
@@ -573,6 +610,7 @@ After each major operation, check context:
 ```
 
 **Between iterations:**
+
 1. If context >= 90%: hand off cleanly (don't rush!)
 2. If context 80-89%: continue but wrap up current task with quality
 3. If context < 80%: continue the loop freely
@@ -593,12 +631,15 @@ Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
 **Current Task:** [description of where you are in planning]
 
 **Completed This Session:**
+
 - [x] [What was finished]
 
 **Next Steps:**
+
 1. [What to do immediately when resuming]
 
 **Context:**
+
 - [Key decisions or blockers]
 ```
 

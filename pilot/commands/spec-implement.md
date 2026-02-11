@@ -2,7 +2,7 @@
 description: "Spec implementation phase - TDD loop for each task in the plan"
 argument-hint: "<path/to/plan.md>"
 user-invocable: false
-model: opus
+model: sonnet
 ---
 
 # /spec-implement - Implementation Phase
@@ -212,13 +212,13 @@ TaskCreate: "Task 4: Add documentation"            → id=4, addBlockedBy: [2]
 
 #### Execution Mode Decision Table
 
-| Condition                           | Execution Mode                                       |
-| ----------------------------------- | ---------------------------------------------------- |
-| Plan has `Wave:` markers on tasks   | **Parallel** — follow wave grouping from plan        |
+| Condition                           | Execution Mode                                         |
+| ----------------------------------- | ------------------------------------------------------ |
+| Plan has `Wave:` markers on tasks   | **Parallel** — follow wave grouping from plan          |
 | Tasks have no shared files or deps  | **Parallel** — auto-detect waves from dependency graph |
-| Tasks share files in "Modify" lists | **Sequential** — conflict risk                       |
-| Only 1 task remaining               | **Sequential** — no parallelism benefit              |
-| All tasks depend on each other      | **Sequential** — linear dependency chain             |
+| Tasks share files in "Modify" lists | **Sequential** — conflict risk                         |
+| Only 1 task remaining               | **Sequential** — no parallelism benefit                |
+| All tasks depend on each other      | **Sequential** — linear dependency chain               |
 
 #### Wave Detection Algorithm
 
@@ -263,11 +263,13 @@ Task(
 **Send ALL implementer calls in ONE message** for true parallelism.
 
 **3. Collect results** from each implementer:
+
 - Parse the JSON output for status, files_changed, dod_checklist
 - Verify each task's DoD criteria are met
 - If any implementer reports `failed` or `blocked`, handle before proceeding
 
 **4. After all implementers in a wave complete:**
+
 - Run the full test suite to check for cross-task conflicts
 - Update plan checkboxes for all completed tasks (Step 2.4)
 - Mark completed tasks in the task list

@@ -13,6 +13,7 @@ You verify that implementation plans correctly capture user requirements before 
 ## Scope
 
 The orchestrator provides:
+
 - `plan_file`: Path to the plan file being verified
 - `user_request`: The original user request/task description
 - `clarifications`: Any Q&A exchanges that clarified requirements (optional)
@@ -98,28 +99,37 @@ For EVERY plan you review, verify:
 ## Common Issues to Watch For
 
 ### Missing Requirements
+
 User asked for X, but no task implements X.
 
 ### Scope Creep
+
 Plan includes tasks for features user didn't request.
 
 ### Lost Clarifications
+
 User answered "use PostgreSQL" but plan mentions "database TBD".
 
 ### Vague Tasks
+
 Task says "implement feature" without specific files, tests, or acceptance criteria.
 
 ### Contradictions
+
 User said "keep it simple" but plan includes complex abstractions.
 
 ### Incomplete DoD
+
 DoD says "tests pass" but doesn't specify what tests or coverage.
 
 ### Unverifiable Risk Mitigations
+
 Plan says "handle edge cases appropriately" — this is not implementable. Must specify WHICH edge cases and WHAT behavior. The spec-verifier checks every risk mitigation against actual code, so vague mitigations cause verification failures.
 
 ### Vague DoD
+
 DoD says "feature works correctly" — the spec-verifier cannot check this. Must say something like "API returns filtered results when ?project= parameter is provided; returns all results when omitted; returns empty results for nonexistent project."
 
 ### Missing Runtime Environment
+
 Plan describes a web API or service but doesn't document how to start it, what port it listens on, or where artifacts deploy. The verification phase needs this to run execution tests.
