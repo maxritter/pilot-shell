@@ -4,13 +4,15 @@ import NavBar from '@/components/NavBar';
 import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
 import { articles } from '@/content/blog';
-import { Search, Clock, BookOpen } from 'lucide-react';
+import { Search, Clock, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const ROTATING_WORDS = ['Guides', 'Tutorials', 'Insights', 'Tips', 'Workflows'];
+const ARTICLES_PER_PAGE = 24;
 
 const BlogPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [rotatingIndex, setRotatingIndex] = useState(0);
 
   const [fadeClass, setFadeClass] = useState('opacity-100 translate-y-0');
@@ -58,6 +60,16 @@ const BlogPage = () => {
 
     return result;
   }, [searchQuery, activeTag]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeTag]);
+
+  const totalPages = Math.ceil(filteredArticles.length / ARTICLES_PER_PAGE);
+  const paginatedArticles = filteredArticles.slice(
+    (currentPage - 1) * ARTICLES_PER_PAGE,
+    currentPage * ARTICLES_PER_PAGE
+  );
 
   const blogStructuredData = {
     "@context": "https://schema.org",
@@ -145,7 +157,7 @@ const BlogPage = () => {
 
           {/* Articles Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {filteredArticles.map((article) => (
+            {paginatedArticles.map((article) => (
               <Link
                 key={article.slug}
                 to={`/blog/${article.slug}`}
@@ -195,6 +207,41 @@ const BlogPage = () => {
               </Link>
             ))}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-12 max-w-5xl mx-auto">
+              <button
+                onClick={() => { setCurrentPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg border border-border bg-card text-muted-foreground hover:border-primary/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  className={`min-w-[2.25rem] h-9 px-2 rounded-lg border text-sm font-medium transition-colors ${
+                    page === currentPage
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-card text-muted-foreground border-border hover:border-primary/50'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={() => { setCurrentPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg border border-border bg-card text-muted-foreground hover:border-primary/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                aria-label="Next page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
           {/* Empty State */}
           {filteredArticles.length === 0 && (
