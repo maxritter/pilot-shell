@@ -88,6 +88,8 @@ Background agents' return values can be lost after completion. To guarantee find
 echo $PILOT_SESSION_ID
 ```
 
+**⚠️ Validate the session ID is set.** If `$PILOT_SESSION_ID` is empty, fall back to `"default"` to avoid writing to `~/.pilot/sessions//`.
+
 Define output paths (replace `<session-id>` with the resolved value):
 - **Compliance findings:** `~/.pilot/sessions/<session-id>/findings-compliance.json`
 - **Quality findings:** `~/.pilot/sessions/<session-id>/findings-quality.json`
@@ -264,7 +266,10 @@ The two review agents (launched in Step 3.0) should be done or nearly done by no
    - `~/.pilot/sessions/<session-id>/findings-quality.json`
 3. **Parse the JSON** from each file to get the structured findings
 
-**If a findings file is missing** (agent failed to write), fall back to the agent's direct return value from TaskOutput. If both are unavailable, re-launch the agent synchronously (without `run_in_background`).
+**If a findings file is missing** (agent failed to write):
+1. Fall back to the agent's direct return value from `TaskOutput`
+2. If the return value is also empty or unavailable, re-launch that specific agent synchronously (without `run_in_background`) with the same prompt
+3. If the synchronous re-launch also fails, log the failure and continue with findings from the other agent only
 
 **Expected timeline:**
 - Agents were launched before Step 3.1 (tests, lint, feature parity, call chain)

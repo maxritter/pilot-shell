@@ -13,12 +13,20 @@ const BlogPage = () => {
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [rotatingIndex, setRotatingIndex] = useState(0);
 
-  useEffect(() => {
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReduced) return;
+  const [fadeClass, setFadeClass] = useState('opacity-100 translate-y-0');
 
+  useEffect(() => {
     const interval = setInterval(() => {
-      setRotatingIndex((prev) => (prev + 1) % ROTATING_WORDS.length);
+      setFadeClass('opacity-0 -translate-y-2');
+      setTimeout(() => {
+        setRotatingIndex((prev) => (prev + 1) % ROTATING_WORDS.length);
+        setFadeClass('opacity-0 translate-y-2');
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setFadeClass('opacity-100 translate-y-0');
+          });
+        });
+      }, 200);
     }, 2500);
     return () => clearInterval(interval);
   }, []);
@@ -82,8 +90,7 @@ const BlogPage = () => {
               <span>Claude Pilot </span>
               <span className="relative inline-block">
                 <span
-                  key={rotatingIndex}
-                  className="inline-block bg-primary/20 text-primary px-4 py-1 rounded-lg animate-fade-in-up"
+                  className={`inline-block bg-primary/20 text-primary px-4 py-1 rounded-lg transition-all duration-200 ${fadeClass}`}
                 >
                   {ROTATING_WORDS[rotatingIndex]}
                 </span>
@@ -98,7 +105,7 @@ const BlogPage = () => {
           <div className="max-w-5xl mx-auto mb-8">
             <div className="flex items-center gap-3 flex-wrap">
               {/* Search Bar */}
-              <div className="relative w-56">
+              <div className="relative w-72">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
@@ -120,7 +127,7 @@ const BlogPage = () => {
               >
                 All
               </button>
-              {allTags.slice(0, 4).map((tag) => (
+              {allTags.map((tag) => (
                 <button
                   key={tag}
                   onClick={() => setActiveTag(activeTag === tag ? null : tag)}

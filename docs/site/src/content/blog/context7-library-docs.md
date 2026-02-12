@@ -1,3 +1,14 @@
+---
+slug: "context7-library-docs"
+title: "Context7: Access Library Docs Directly in Claude Code"
+description: "Give Claude access to current documentation for thousands of libraries. Stop getting deprecated APIs and outdated patterns."
+date: "2026-01-15"
+author: "Max Ritter"
+tags: [Guide, MCP]
+readingTime: 3
+keywords: "Context7, Claude Code documentation, MCP server, library docs, Claude Code MCP, up-to-date docs"
+---
+
 # Context7: Access Library Docs Directly in Claude Code
 
 Claude's training data has a cutoff date. Libraries update constantly — new APIs, changed parameters, deprecated methods. Context7 gives Claude access to current documentation for thousands of libraries, directly in your session.

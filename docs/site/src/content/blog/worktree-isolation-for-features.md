@@ -1,3 +1,14 @@
+---
+slug: "worktree-isolation-for-features"
+title: "Git Worktree Isolation for AI-Built Features"
+description: "Run AI work on a separate branch so your main branch stays clean. Squash merge when verified, discard if something goes wrong."
+date: "2026-01-27"
+author: "Max Ritter"
+tags: [Guide, Git]
+readingTime: 4
+keywords: "git worktree, Claude Code isolation, feature branches, squash merge, Claude Code git, safe AI development"
+---
+
 # Git Worktree Isolation for AI-Built Features
 
 When Claude builds a feature, it modifies files directly on your working branch. If something goes wrong — a bad refactor, a broken integration — you're left cleaning up the mess. Worktree isolation solves this by running AI work on a separate branch in a separate directory.

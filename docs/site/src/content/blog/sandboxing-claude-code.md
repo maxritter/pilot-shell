@@ -1,121 +1,147 @@
-# Sandboxing Claude Code for Safe Execution
+---
+slug: "sandboxing-claude-code"
+title: "Running Claude Code in a Dev Container"
+description: "Run Claude Code safely inside a dev container. Full isolation, reproducible environments, and IDE support for VS Code, Cursor, and Windsurf."
+date: "2026-01-22"
+author: "Max Ritter"
+tags: [Guide, Security]
+readingTime: 4
+keywords: "Claude Code dev container, devcontainer, Claude Code Docker, Claude Code isolation, dev container setup, VS Code dev container, Claude Code sandbox"
+---
 
-Claude Code runs shell commands on your machine. While it follows safety rules, defense in depth means adding OS-level sandboxing. This guide covers filesystem and network isolation on macOS and Linux.
+# Running Claude Code in a Dev Container
 
-## Why Sandbox?
+Claude Code runs shell commands on your machine. For full isolation, run it inside a dev container. Your host stays clean, your project gets a reproducible environment, and Claude operates in a safe sandbox.
 
-Claude Code has built-in safeguards — permission prompts, tool restrictions, and rules. But these are software-level controls. Sandboxing adds OS-level enforcement:
+## Why Dev Containers?
 
-- **Filesystem isolation** — Claude can only access project files, not your home directory secrets
-- **Network restrictions** — Prevent unintended external connections
-- **Process limits** — Contain resource usage
+Dev containers solve multiple problems at once:
 
-## macOS Seatbelt
+- **Isolation** — Claude can only access the container filesystem, not your host machine
+- **Reproducibility** — Same tools, same versions, every time, on every machine
+- **Safety** — Destructive commands stay contained — worst case, rebuild the container
+- **Team consistency** — Everyone works in the same environment regardless of their OS
 
-macOS includes a sandboxing framework called Seatbelt. Create a profile that restricts Claude Code:
+## How It Works
 
-```scheme
-;; claude-sandbox.sb
-(version 1)
-(deny default)
+A dev container is a Docker container configured for development. Your IDE connects to it over SSH or a remote protocol, and all commands (including Claude Code) run inside it.
 
-;; Allow read/write to project directory
-(allow file-read* file-write*
-  (subpath "/Users/you/projects/my-app"))
-
-;; Allow read to system libraries and tools
-(allow file-read*
-  (subpath "/usr/lib")
-  (subpath "/usr/bin")
-  (subpath "/usr/local"))
-
-;; Allow network for API calls
-(allow network-outbound
-  (remote tcp "*:443"))
-
-;; Allow process execution
-(allow process-exec)
+```
+┌─────────────────────────────────────────┐
+│ Host Machine                            │
+│  ┌───────────────────────────────────┐  │
+│  │ Dev Container                     │  │
+│  │  ├── Project files (mounted)      │  │
+│  │  ├── Claude Code                  │  │
+│  │  ├── Node/Python/Go toolchain     │  │
+│  │  └── All commands run here        │  │
+│  └───────────────────────────────────┘  │
+│  IDE connects via remote protocol       │
+└─────────────────────────────────────────┘
 ```
 
-Run Claude Code with the sandbox:
+## Setting Up a Dev Container
 
-```bash
-sandbox-exec -f claude-sandbox.sb claude
-```
-
-## Linux Bubblewrap
-
-On Linux, use `bubblewrap` (bwrap) for namespace-based isolation:
-
-```bash
-bwrap \
-  --ro-bind /usr /usr \
-  --ro-bind /lib /lib \
-  --ro-bind /lib64 /lib64 \
-  --ro-bind /bin /bin \
-  --bind ~/projects/my-app ~/projects/my-app \
-  --dev /dev \
-  --proc /proc \
-  --tmpfs /tmp \
-  --unshare-net \
-  claude
-```
-
-Key flags:
-- `--ro-bind` — Read-only access to system directories
-- `--bind` — Read-write access to your project
-- `--unshare-net` — No network access (remove if Claude needs API access)
-- `--tmpfs /tmp` — Isolated temporary directory
-
-## Docker-Based Isolation
-
-For the most portable approach, run Claude Code in a container:
-
-```dockerfile
-FROM node:20-slim
-RUN npm install -g @anthropic-ai/claude-code
-WORKDIR /app
-ENTRYPOINT ["claude"]
-```
-
-```bash
-docker run -it \
-  -v $(pwd):/app \
-  -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \
-  claude-sandbox
-```
-
-## Permission Configuration
-
-Complement sandboxing with Claude Code's built-in permissions:
+Create `.devcontainer/devcontainer.json` in your project:
 
 ```json
 {
-  "permissions": {
-    "allow": [
-      "Read",
-      "Edit",
-      "Write",
-      "Bash(npm test)",
-      "Bash(npm run build)"
-    ],
-    "deny": [
-      "Bash(rm -rf *)",
-      "Bash(curl *)",
-      "Bash(wget *)"
-    ]
+  "name": "My Project",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {}
+  },
+  "postCreateCommand": "npm install && npm install -g @anthropic-ai/claude-code",
+  "forwardPorts": [3000, 8080],
+  "remoteEnv": {
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
   }
 }
 ```
 
-## Which Approach to Use
+This gives you:
+- A Node.js 20 environment with TypeScript support
+- Claude Code installed globally
+- Your API key forwarded from the host
+- Port forwarding for development servers
 
-| Concern | Solution |
-|---------|----------|
-| General safety | Claude Code permissions (built-in) |
-| Filesystem protection | Seatbelt (macOS) or bwrap (Linux) |
-| Network isolation | bwrap `--unshare-net` or firewall rules |
-| Full isolation | Docker container |
-| Team standardization | Docker + shared config |
+## IDE Support
 
-Start with permissions. Add OS-level sandboxing for sensitive projects or shared machines.
+Dev containers work with all major editors:
+
+| Editor | How to Open |
+|--------|------------|
+| **VS Code** | Install "Dev Containers" extension, then `Ctrl+Shift+P` → "Reopen in Container" |
+| **Cursor** | Same as VS Code — uses the same extension |
+| **Windsurf** | Same as VS Code — uses the same extension |
+| **JetBrains** | Built-in dev container support via Gateway |
+| **Terminal only** | `devcontainer up --workspace-folder .` via the CLI |
+
+## Running Claude Code Inside
+
+Once inside the dev container, Claude Code works exactly as it does locally:
+
+```bash
+# Start Claude Code
+claude
+
+# Or use Pilot for the full experience
+pilot
+```
+
+Everything Claude does — file edits, shell commands, test runs — happens inside the container. Your host filesystem is untouched.
+
+## Claude Pilot + Dev Containers
+
+Pilot's installer detects dev containers automatically. Run the installer inside the container and it sets up everything:
+
+```bash
+# Inside the dev container
+curl -fsSL https://claude-pilot.com/install | bash
+```
+
+Pilot installs its hooks, rules, and tools into the container environment. When you rebuild the container, run the installer again (add it to `postCreateCommand` for automation).
+
+## Custom Dockerfile for Full Control
+
+For projects needing specific tools, use a Dockerfile:
+
+```dockerfile
+FROM mcr.microsoft.com/devcontainers/base:ubuntu
+
+# Install project dependencies
+RUN apt-get update && apt-get install -y \
+    python3 python3-pip nodejs npm git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Claude Code
+RUN npm install -g @anthropic-ai/claude-code
+
+# Install Pilot
+RUN curl -fsSL https://claude-pilot.com/install | bash
+```
+
+Reference it in `devcontainer.json`:
+
+```json
+{
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteEnv": {
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
+  }
+}
+```
+
+## Best Practices
+
+1. **Pin versions** — Use specific image tags, not `latest`
+2. **Forward your API key** — Use `remoteEnv` with `localEnv` so keys stay on your host
+3. **Add `postCreateCommand`** — Automate dependency installation and tool setup
+4. **Mount only what's needed** — The default mounts your project folder only
+5. **Use features** — Dev container features add tools without bloating your Dockerfile
+
+## Key Takeaway
+
+Dev containers give you isolation without complexity. No custom sandbox profiles, no OS-specific tooling — just a standardized container that works everywhere. Claude Code runs safely inside, and your host machine stays clean.

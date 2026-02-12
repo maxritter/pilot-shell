@@ -164,7 +164,8 @@ export class VaultRoutes extends BaseRouteHandler {
 
     const timeoutId = setTimeout(() => {
       try {
-        proc.kill();
+        proc.kill("SIGTERM");
+        setTimeout(() => { try { proc.kill("SIGKILL"); } catch {} }, 1000);
       } catch {}
     }, timeoutMs);
 

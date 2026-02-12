@@ -1,42 +1,47 @@
 import { BlogArticle } from './types';
-import { tddWithClaudeCode } from './tdd-with-claude-code';
-import { managingContextLongSessions } from './managing-context-long-sessions';
-import { claudeCodeRulesGuide } from './claude-code-rules-guide';
-import { claudeCodeHooksGuide } from './claude-code-hooks-guide';
-import { mcpServersClaudeCode } from './mcp-servers-claude-code';
-import { specDrivenDevelopment } from './spec-driven-development';
-import { endlessModeExplained } from './endless-mode-explained';
-import { persistentMemoryAcrossSessions } from './persistent-memory-across-sessions';
-import { claudeCodeSettingsReference } from './claude-code-settings-reference';
-import { claudeCodeTaskManagement } from './claude-code-task-management';
-import { terminalSetupForClaudeCode } from './terminal-setup-for-claude-code';
-import { selfValidatingAiAgents } from './self-validating-ai-agents';
-import { slashCommandsAndInit } from './slash-commands-and-init';
-import { worktreeIsolationForFeatures } from './worktree-isolation-for-features';
-import { onlineLearningTeachingClaude } from './online-learning-teaching-claude';
-import { sandboxingClaudeCode } from './sandboxing-claude-code';
-import { teamVaultSharingAiAssets } from './team-vault-sharing-ai-assets';
-import { choosingTheRightClaudeModel } from './choosing-the-right-claude-model';
-import { context7LibraryDocs } from './context7-library-docs';
 
-export const articles: BlogArticle[] = [
-  tddWithClaudeCode,
-  managingContextLongSessions,
-  claudeCodeRulesGuide,
-  claudeCodeHooksGuide,
-  mcpServersClaudeCode,
-  specDrivenDevelopment,
-  endlessModeExplained,
-  persistentMemoryAcrossSessions,
-  claudeCodeSettingsReference,
-  claudeCodeTaskManagement,
-  terminalSetupForClaudeCode,
-  selfValidatingAiAgents,
-  slashCommandsAndInit,
-  worktreeIsolationForFeatures,
-  onlineLearningTeachingClaude,
-  sandboxingClaudeCode,
-  teamVaultSharingAiAssets,
-  choosingTheRightClaudeModel,
-  context7LibraryDocs,
-].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+/**
+ * Auto-discover blog articles from .md files with YAML frontmatter.
+ * Adding a new article only requires creating the .md file — no imports to maintain.
+ */
+const modules = import.meta.glob('./*.md', { eager: true, query: '?raw', import: 'default' }) as Record<string, string>;
+
+function parseFrontmatter(raw: string): { meta: Record<string, string | number | string[]>; content: string } | null {
+  const match = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+  if (!match) return null;
+
+  const meta: Record<string, string | number | string[]> = {};
+  for (const line of match[1].split('\n')) {
+    const kv = line.match(/^(\w+):\s*(.+)$/);
+    if (!kv) continue;
+    const [, key, val] = kv;
+    if (val.startsWith('[')) {
+      meta[key] = val.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, ''));
+    } else if (/^\d+$/.test(val)) {
+      meta[key] = parseInt(val, 10);
+    } else {
+      meta[key] = val.replace(/^["']|["']$/g, '');
+    }
+  }
+  return { meta, content: match[2] };
+}
+
+export const articles: BlogArticle[] = Object.values(modules)
+  .map((raw) => {
+    const parsed = parseFrontmatter(raw as string);
+    if (!parsed) return null;
+    const { meta, content } = parsed;
+    return {
+      slug: meta.slug,
+      title: meta.title,
+      description: meta.description,
+      date: meta.date,
+      author: meta.author || 'Max Ritter',
+      tags: meta.tags || [],
+      readingTime: meta.readingTime || Math.ceil(content.split(/\s+/).length / 200),
+      content,
+      keywords: meta.keywords || '',
+    } as BlogArticle;
+  })
+  .filter((a): a is BlogArticle => a !== null)
+  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

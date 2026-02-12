@@ -1,3 +1,14 @@
+---
+slug: "self-validating-ai-agents"
+title: "Building Self-Validating AI Agents with Claude Code"
+description: "Use Stop hooks, PostToolUse validation, and review agents to ensure Claude checks its own work before responding."
+date: "2026-02-03"
+author: "Max Ritter"
+tags: [Guide, Agents]
+readingTime: 4
+keywords: "Claude Code agents, self-validating AI, Stop hook, AI code review, Claude Code validation, AI quality assurance"
+---
+
 # Building Self-Validating AI Agents with Claude Code
 
 The most common failure mode in AI-assisted development: Claude says "done" but the work is incomplete. Self-validating agents solve this by checking their own output before responding.

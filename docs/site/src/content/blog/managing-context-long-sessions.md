@@ -1,3 +1,14 @@
+---
+slug: "managing-context-long-sessions"
+title: "Managing Context in Long Claude Code Sessions"
+description: "Learn how the context window works, what happens when it fills up, and strategies to keep long Claude Code sessions productive without losing progress."
+date: "2026-02-10"
+author: "Max Ritter"
+tags: [Guide, Workflow]
+readingTime: 7
+keywords: "Claude Code context limit, Claude Code session memory, Claude Code long sessions, context window management, autocompaction, Endless Mode"
+---
+
 # Managing Context in Long Claude Code Sessions
 
 If you've used Claude Code for more than a quick one-off task, you've hit the wall. You're deep into a refactor, everything is flowing, and suddenly Claude starts forgetting what you told it ten minutes ago. Your carefully built context — the files you discussed, the decisions you made, the architecture you agreed on — evaporates.

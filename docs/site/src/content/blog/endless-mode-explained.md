@@ -1,3 +1,14 @@
+---
+slug: "endless-mode-explained"
+title: "How Endless Mode Keeps Claude Working Without Limits"
+description: "Claude Code has a context limit. Endless Mode automatically saves state and restarts sessions so your work never stops."
+date: "2026-02-09"
+author: "Max Ritter"
+tags: [Feature, Workflow]
+readingTime: 4
+keywords: "Claude Code context limit, Endless Mode, Claude Code session, context window, Claude Code unlimited, session continuation"
+---
+
 # How Endless Mode Keeps Claude Working Without Limits
 
 Claude Code has a context window — a fixed amount of text it can process at once. When a session fills up, Claude loses track of earlier work, makes mistakes, or stops entirely. Endless Mode solves this by automatically saving state and restarting sessions before context runs out.

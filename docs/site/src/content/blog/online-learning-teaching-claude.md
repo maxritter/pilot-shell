@@ -1,3 +1,14 @@
+---
+slug: "online-learning-teaching-claude"
+title: "Online Learning: Teaching Claude Your Patterns"
+description: "Automatically capture debugging solutions, workarounds, and workflows as reusable skills. Claude gets smarter with every session."
+date: "2026-01-24"
+author: "Max Ritter"
+tags: [Feature, Learning]
+readingTime: 4
+keywords: "Claude Code learning, AI skills, online learning, Claude Code patterns, team knowledge, AI workflows"
+---
+
 # Online Learning: Teaching Claude Your Patterns
 
 Every team has unique patterns — internal APIs, deployment processes, coding conventions that aren't in any documentation. Claude doesn't know these. Online learning captures them automatically so Claude gets smarter with every session.

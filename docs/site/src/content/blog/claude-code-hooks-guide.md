@@ -1,3 +1,14 @@
+---
+slug: "claude-code-hooks-guide"
+title: "A Practical Guide to Claude Code Hooks"
+description: "Learn how to use Claude Code hooks to auto-lint, block dangerous commands, load context, and verify work. Includes configuration examples."
+date: "2026-02-12"
+author: "Max Ritter"
+tags: [Guide, Hooks]
+readingTime: 5
+keywords: "Claude Code hooks, PreToolUse, PostToolUse, Stop hook, SessionStart, Claude Code automation, Claude Code settings"
+---
+
 # A Practical Guide to Claude Code Hooks
 
 Hooks let you run custom scripts at key moments during a Claude Code session. They're the primary mechanism for enforcing workflows, automating checks, and injecting context — without relying on Claude to remember to do it.

@@ -118,9 +118,9 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/claude-pilot/main/install
 
 ## How It Works
 
-### /sync — Sync Rules & Skills
+### /sync — Sync Rules & Standards
 
-Run `/sync` to sync custom rules and skills with your codebase. Explores your codebase, builds a semantic search index, discovers undocumented patterns, updates project documentation, and creates new skills. Run it once initially, then anytime again:
+Run `/sync` to sync rules and standards with your codebase. Explores your codebase, builds a semantic search index, discovers undocumented patterns, updates project documentation, and creates new custom skills. Run it once initially, then anytime again:
 
 ```bash
 pilot
@@ -133,13 +133,13 @@ pilot
 | Phase | Action                                                          |
 | ----- | --------------------------------------------------------------- |
 | 0     | Load reference guidelines, output locations, error handling     |
-| 1     | Read existing rules and skills from `.claude/`                  |
+| 1     | Read existing rules and standards from `.claude/`               |
 | 2     | Build Vexor semantic search index (first run may take 5-15 min) |
 | 3     | Explore codebase with Vexor/Grep to find patterns               |
 | 4     | Compare discovered vs documented patterns                       |
 | 5     | Sync/update `project.md` with tech stack and commands           |
 | 6     | Sync MCP server documentation                                   |
-| 7     | Update existing skills that have changed                        |
+| 7     | Update existing custom skills that have changed                 |
 | 8     | Discover and document new undocumented patterns as rules        |
 | 9     | Create new skills via `/learn` command                          |
 | 10    | Report summary of all changes                                   |
@@ -296,7 +296,7 @@ The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing
 
 All commands support `--json` for structured output. Multiple Pilot sessions can run in parallel on the same project — each session tracks its own worktree and context state independently.
 
-### Rules & Commands
+### Rules, Commands & Skills
 
 Create your own in your project's `.claude/` folder:
 
@@ -304,8 +304,9 @@ Create your own in your project's `.claude/` folder:
 | ------------ | ----------------------------------------------- | ---------------------------------------- |
 | **Rules**    | Every session, or conditionally by file type    | Guidelines Claude should always follow   |
 | **Commands** | On demand via `/command`                        | Specific workflows or multi-step tasks   |
+| **Skills**   | On demand, created via `/learn`                 | Reusable knowledge from past sessions    |
 
-Claude Pilot automatically installs best-practice rules, commands, and coding standards. Standards rules use `paths` frontmatter to activate only when you're working with matching file types (e.g., Python standards load only when editing `.py` files).
+Claude Pilot automatically installs best-practice rules, commands, and coding standards. Standards rules use `paths` frontmatter to activate only when you're working with matching file types (e.g., Python standards load only when editing `.py` files). Custom skills are created by `/learn` when it detects non-obvious discoveries, workarounds, or reusable workflows — and can be shared across your team via `/vault`.
 
 ### Custom MCP Servers
 
@@ -542,7 +543,7 @@ Pilot's quality hooks (auto-formatting, linting, type checking) currently suppor
 <details>
 <summary><b>Can I use Pilot on multiple projects?</b></summary>
 
-Yes. Pilot installs once and works across all your projects. Each project can have its own `.claude/` rules, skills, and MCP servers. Run `/sync` in each project to generate project-specific documentation and skills.
+Yes. Pilot installs once and works across all your projects. Each project can have its own `.claude/` rules, custom skills, and MCP servers. Run `/sync` in each project to generate project-specific documentation and standards.
 
 </details>
 

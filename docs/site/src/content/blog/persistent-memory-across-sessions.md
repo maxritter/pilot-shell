@@ -1,3 +1,14 @@
+---
+slug: "persistent-memory-across-sessions"
+title: "Persistent Memory: How Claude Remembers Across Sessions"
+description: "Stop repeating yourself every session. Learn how Pilot gives Claude persistent memory for decisions, discoveries, and project context."
+date: "2026-02-08"
+author: "Max Ritter"
+tags: [Feature, Memory]
+readingTime: 4
+keywords: "Claude Code memory, persistent memory, Claude Code sessions, AI memory, Claude Code context, session continuity"
+---
+
 # Persistent Memory: How Claude Remembers Across Sessions
 
 Every Claude Code session starts with a blank slate. Claude doesn't remember what you did yesterday, what decisions you made, or what bugs you fixed. Persistent memory changes this — it gives Claude access to observations from every past session.

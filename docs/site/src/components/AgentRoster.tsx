@@ -72,7 +72,7 @@ const agents = [
     color: "text-cyan-400",
     bgColor: "bg-cyan-400/10",
     borderColor: "border-cyan-400/30",
-    desc: "14 coding standards activated conditionally by file type — Python, TypeScript, Go, API design, testing, and more.",
+    desc: "13 coding standards activated conditionally by file type — API design, accessibility, components, responsive design, testing, and more.",
   },
   {
     name: "WORKTREE",

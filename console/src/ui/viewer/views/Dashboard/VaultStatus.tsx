@@ -25,6 +25,7 @@ interface VaultStatusProps {
   assets: VaultAsset[];
   catalog: VaultCatalogItem[];
   isInstalling: boolean;
+  isLoading?: boolean;
 }
 
 const TYPE_ICONS: Record<string, string> = {
@@ -46,7 +47,24 @@ function formatVaultUrl(url: string): string {
 }
 
 export function VaultStatus(props: VaultStatusProps) {
-  const { installed, version, configured, vaultUrl, assets, catalog } = props;
+  const { installed, version, configured, vaultUrl, assets, catalog, isLoading } = props;
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardBody>
+          <div className="flex items-center justify-between mb-4">
+            <CardTitle>Team Vault</CardTitle>
+            <Badge variant="ghost">Loading...</Badge>
+          </div>
+          <div className="space-y-3 animate-pulse">
+            <div className="h-4 bg-base-300 rounded w-3/4"></div>
+            <div className="h-4 bg-base-300 rounded w-1/2"></div>
+          </div>
+        </CardBody>
+      </Card>
+    );
+  }
 
   const installedNames = new Set(assets.map(a => a.name));
   const availableCount = catalog.filter(c => !installedNames.has(c.name)).length;

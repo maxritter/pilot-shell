@@ -1,3 +1,14 @@
+---
+slug: "terminal-setup-for-claude-code"
+title: "Terminal Setup Tips for Claude Code"
+description: "Configure your terminal for the best Claude Code experience. Shift+Enter, vim mode, notifications, status line, and font recommendations."
+date: "2026-02-05"
+author: "Max Ritter"
+tags: [Guide, Setup]
+readingTime: 4
+keywords: "Claude Code terminal, Claude Code setup, iTerm2 Claude Code, VS Code terminal, Claude Code vim mode, terminal configuration"
+---
+
 # Terminal Setup Tips for Claude Code
 
 A well-configured terminal makes Claude Code faster and more pleasant to use. These tips cover line breaks, vim mode, notifications, and settings for popular terminals.

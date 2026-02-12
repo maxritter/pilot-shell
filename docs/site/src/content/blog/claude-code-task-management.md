@@ -1,3 +1,14 @@
+---
+slug: "claude-code-task-management"
+title: "Multi-Session Task Management in Claude Code"
+description: "Track work across sessions with built-in task management. Dependencies, progress tracking, and cross-session persistence."
+date: "2026-02-06"
+author: "Max Ritter"
+tags: [Guide, Workflow]
+readingTime: 4
+keywords: "Claude Code tasks, task management, multi-session, Claude Code workflow, task dependencies, progress tracking"
+---
+
 # Multi-Session Task Management in Claude Code
 
 Claude Code includes a built-in task system for coordinating work across sessions. Tasks persist between sessions, support dependencies, and show real-time progress in your terminal.

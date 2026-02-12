@@ -1,3 +1,14 @@
+---
+slug: "tdd-with-claude-code"
+title: "Enforcing Test-Driven Development with Claude Code"
+description: "Learn why AI-generated code needs TDD, how to enforce it with hooks and rules, and how Pilot automates the red-green-refactor cycle."
+date: "2026-02-12"
+author: "Max Ritter"
+tags: [Guide, Testing]
+readingTime: 5
+keywords: "Claude Code TDD, AI test-driven development, Claude Code testing, enforce tests Claude, TDD enforcement, red-green-refactor, AI code quality"
+---
+
 # Enforcing Test-Driven Development with Claude Code
 
 AI-generated code is only as reliable as the tests that verify it. Claude writes syntactically correct code fast — but it doesn't know your business logic quirks or undocumented edge cases. TDD makes the test the specification: Claude implements exactly what the tests require, nothing more.

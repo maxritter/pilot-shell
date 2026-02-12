@@ -1,3 +1,14 @@
+---
+slug: "choosing-the-right-claude-model"
+title: "Choosing the Right Claude Model for Your Task"
+description: "Compare Opus, Sonnet, and Haiku for coding tasks. Match the model to the complexity and save money without sacrificing quality."
+date: "2026-01-17"
+author: "Max Ritter"
+tags: [Guide, Models]
+readingTime: 4
+keywords: "Claude models comparison, Claude Opus, Claude Sonnet, Claude Haiku, Claude Code model selection, AI model pricing"
+---
+
 # Choosing the Right Claude Model for Your Task
 
 Claude Code supports multiple models with different strengths. Picking the right one for each task saves money and gets better results.
@@ -7,8 +18,8 @@ Claude Code supports multiple models with different strengths. Picking the right
 | Model | Best For | Speed | Cost |
 |-------|---------|-------|------|
 | **Opus 4.6** | Complex architecture, multi-file refactors, debugging | Slower | Higher |
-| **Sonnet 4** | General development, most coding tasks | Fast | Medium |
-| **Haiku 3.5** | Quick lookups, simple edits, formatting | Fastest | Lowest |
+| **Sonnet 4.5** | General development, most coding tasks | Fast | Medium |
+| **Haiku 4.5** | Quick lookups, simple edits, formatting | Fastest | Lowest |
 
 ## When to Use Each
 
@@ -24,7 +35,7 @@ Use for tasks that require deep reasoning:
 
 Opus thinks more carefully and catches subtle issues that faster models miss.
 
-### Sonnet 4
+### Sonnet 4.5
 
 The default for most work:
 
@@ -35,9 +46,9 @@ The default for most work:
 - Standard bug fixes
 - API endpoint implementation
 
-Sonnet handles 90% of coding tasks well. Start here unless you have a reason to upgrade.
+Sonnet 4.5 handles 90% of coding tasks well. Start here unless you have a reason to upgrade.
 
-### Haiku 3.5
+### Haiku 4.5
 
 Use for high-volume, low-complexity tasks:
 
@@ -63,7 +74,7 @@ Or set a default in settings:
 
 ```json
 {
-  "model": "claude-sonnet-4-20250514"
+  "model": "claude-sonnet-4-5-20241219"
 }
 ```
 

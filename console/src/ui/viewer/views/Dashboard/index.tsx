@@ -47,7 +47,7 @@ export function DashboardView() {
             queueDepth={workerStatus.queueDepth}
           />
           <PlanStatus plans={planStatus.plans} />
-          <VaultStatus {...vaultStatus} />
+          <VaultStatus {...vaultStatus} isLoading={isLoading} />
         </div>
       </div>}
     </div>

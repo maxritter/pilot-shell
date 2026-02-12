@@ -1,3 +1,14 @@
+---
+slug: "team-vault-sharing-ai-assets"
+title: "Sharing AI Assets Across Your Team with Vault"
+description: "Sync rules, commands, skills, and hooks across your team. Keep every developer\'s Claude consistent with a shared vault."
+date: "2026-01-20"
+author: "Max Ritter"
+tags: [Feature, Teams]
+readingTime: 4
+keywords: "Claude Code team, shared rules, team vault, AI assets, Claude Code configuration, team consistency"
+---
+
 # Sharing AI Assets Across Your Team with Vault
 
 Every team member configures Claude Code differently — different rules, different commands, different workflows. This creates inconsistency: one developer's Claude follows TDD, another's doesn't. Vault solves this by syncing AI assets through a shared Git repository.
