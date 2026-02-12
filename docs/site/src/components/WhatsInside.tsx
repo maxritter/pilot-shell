@@ -39,9 +39,9 @@ const insideItems: InsideItem[] = [
   },
   {
     icon: FileCode2,
-    title: "Rules, Commands & Skills",
-    description: "Rules · Commands · Skills",
-    summary: "Production-tested best practices loaded every session. Structured workflows via /spec, /sync, /vault, /learn. Custom rules and skills survive updates.",
+    title: "Rules, Commands & Standards",
+    description: "Rules · Commands · Standards",
+    summary: "Production-tested best practices loaded every session. Coding standards activate by file type. Structured workflows via /spec, /sync, /vault, /learn. Custom rules survive updates.",
   },
   {
     icon: Plug2,

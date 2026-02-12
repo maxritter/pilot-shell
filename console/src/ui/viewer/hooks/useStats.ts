@@ -72,10 +72,38 @@ interface GitInfo {
   untracked: number;
 }
 
+interface VaultAsset {
+  name: string;
+  version: string;
+  type: string;
+  clients: string[];
+  status: string;
+  scope: string;
+}
+
+interface VaultCatalogItem {
+  name: string;
+  type: string;
+  latestVersion: string;
+  versionsCount: number;
+}
+
+export interface VaultStatus {
+  installed: boolean;
+  version: string | null;
+  configured: boolean;
+  vaultUrl: string | null;
+  profile: string | null;
+  assets: VaultAsset[];
+  catalog: VaultCatalogItem[];
+  isInstalling: boolean;
+}
+
 interface UseStatsResult {
   stats: Stats;
   workerStatus: WorkerStatus;
   vexorStatus: VexorStatus;
+  vaultStatus: VaultStatus;
   recentActivity: ActivityItem[];
   planStatus: PlanStatus;
   gitInfo: GitInfo;
@@ -117,7 +145,20 @@ export function useStats(): UseStatsResult {
     completionTimeline: [], recentlyVerified: [],
   });
   const [observationTimeline, setObservationTimeline] = useState<ObservationTimeline>([]);
+  const [vaultStatus, setVaultStatus] = useState<VaultStatus>({
+    installed: false, version: null, configured: false, vaultUrl: null,
+    profile: null, assets: [], catalog: [], isInstalling: false,
+  });
   const [isLoading, setIsLoading] = useState(true);
+
+  const loadVaultStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/vault/status');
+      const data = await res.json();
+      setVaultStatus(data);
+    } catch {
+    }
+  }, []);
 
   const loadVexorStatus = useCallback(async () => {
     try {
@@ -233,6 +274,7 @@ export function useStats(): UseStatsResult {
 
   useEffect(() => {
     loadVexorStatus();
+    loadVaultStatus();
     const vexorInterval = setInterval(loadVexorStatus, VEXOR_POLL_INTERVAL_MS);
 
     const eventSource = new EventSource('/stream');
@@ -260,12 +302,13 @@ export function useStats(): UseStatsResult {
       clearInterval(vexorInterval);
       eventSource.close();
     };
-  }, [loadVexorStatus]);
+  }, [loadVexorStatus, loadVaultStatus]);
 
   return {
     stats,
     workerStatus,
     vexorStatus,
+    vaultStatus,
     recentActivity,
     planStatus,
     gitInfo,

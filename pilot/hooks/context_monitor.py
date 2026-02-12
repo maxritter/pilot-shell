@@ -74,7 +74,7 @@ def print_spec_warning(spec_path: Path, spec_status: str) -> None:
         print(f"{MAGENTA}You MUST run Phase 3 VERIFICATION before handoff:{NC}", file=sys.stderr)
         print(f"{MAGENTA}  1. Run tests and type checking{NC}", file=sys.stderr)
         print(f"{MAGENTA}  2. Execute actual program{NC}", file=sys.stderr)
-        print(f"{MAGENTA}  3. Run code review (spec-verifier agent){NC}", file=sys.stderr)
+        print(f"{MAGENTA}  3. Run code review (spec-reviewer agents){NC}", file=sys.stderr)
         print(f"{MAGENTA}  4. Update status to VERIFIED{NC}", file=sys.stderr)
         print(f"{MAGENTA}  5. THEN do handoff{NC}", file=sys.stderr)
         print("", file=sys.stderr)
@@ -221,10 +221,9 @@ def _read_statusline_context_pct() -> float | None:
         if ts is None or time.time() - ts > 60:
             return None
         cached_session_id = data.get("session_id")
-        if cached_session_id:
-            current_session_id = get_current_session_id()
-            if current_session_id and cached_session_id != current_session_id:
-                return None
+        current_session_id = get_current_session_id()
+        if cached_session_id and current_session_id and cached_session_id != current_session_id:
+            return None
         pct = data.get("pct")
         return float(pct) if pct is not None else None
     except (json.JSONDecodeError, OSError, ValueError, TypeError):

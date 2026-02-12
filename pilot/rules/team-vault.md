@@ -18,12 +18,17 @@ Share AI assets (rules, skills, commands, agents, hooks) across your team using 
 sx config                              # Show config, vault URL, installed assets
 sx vault list                          # List all vault assets with versions
 
-# Pull team assets
+# Pull team assets (installs to project .claude/ or ~/.claude/ based on scope)
 sx install --repair                    # Fetch and install, fix discrepancies
+sx install --repair --target /path     # Install for a project you're not inside (CI/Docker)
 
-# Push assets to team
-sx add .claude/skills/my-skill --yes --type skill --name "my-skill" --no-install
-sx add .claude/rules/my-rule.md --yes --type rule --name "my-rule" --no-install
+# Push assets to team (project-scoped — recommended)
+REPO=$(git remote get-url origin)
+sx add .claude/skills/my-skill --yes --type skill --name "my-skill" --no-install --scope-repo $REPO
+sx add .claude/rules/my-rule.md --yes --type rule --name "my-rule" --no-install --scope-repo $REPO
+
+# Push assets globally (all repos)
+sx add .claude/rules/my-rule.md --yes --type rule --name "my-rule" --no-install --scope-global
 
 # Browse
 sx vault show <asset-name>             # Show asset details and versions
@@ -45,18 +50,24 @@ sx remove <asset-name> --yes           # Remove from lock file (stays in vault)
 
 ### Scoping
 
-Assets can be installed globally or per-repository:
+| Scope | Installs to | Use When |
+|-------|-------------|----------|
+| Project (`--scope-repo`) | `project/.claude/` | **Recommended.** Assets stay with the project. |
+| Global (`--scope-global`) | `~/.claude/` | Personal tools needed in all repos. |
+| Path (`--scope-repo "url#path"`) | `project/path/.claude/` | Monorepo — different assets per service. |
 
 ```bash
-# All repos (default for --yes)
-sx add ./asset --yes --scope-global
-
-# Specific repo
+# Project-scoped (recommended)
 sx add ./asset --yes --scope-repo git@github.com:org/repo.git
 
-# Specific paths within repo
+# Global (all repos)
+sx add ./asset --yes --scope-global
+
+# Monorepo path-scoped
 sx add ./asset --yes --scope-repo "git@github.com:org/repo.git#backend,frontend"
 ```
+
+To change an existing asset's scope, run `sx add <name>` again to reconfigure interactively.
 
 ### Versioning
 
@@ -74,6 +85,9 @@ sx init --type git --repo-url git@github.com:org/team-vault.git
 # Local directory
 sx init --type path --repo-url /path/to/vault
 
+# Skills.new (managed service)
+sx init --type sleuth
+
 # Verify
 sx vault list
 ```
@@ -83,4 +97,5 @@ sx vault list
 - Always use `--no-install` when pushing your own assets (they're already local)
 - Use `--name` to control the asset name in the vault
 - Run `sx install --repair` after pulling to fix any missing installations
+- Use `--target` to install for a project from outside it (CI pipelines, Docker)
 - Multiple profiles supported via `--profile` flag or `SX_PROFILE` env var

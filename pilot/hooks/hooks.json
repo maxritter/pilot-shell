@@ -33,7 +33,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "WebSearch|WebFetch|Grep|Task|EnterPlanMode|ExitPlanMode",
+        "matcher": "Bash|WebSearch|WebFetch|Grep|Task|EnterPlanMode|ExitPlanMode",
         "hooks": [
           {
             "type": "command",
@@ -93,7 +93,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun \"${CLAUDE_PLUGIN_ROOT}/scripts/worker-service.cjs\" stop",
+            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/session_end.py\"",
             "timeout": 15
           }
         ]

@@ -16,7 +16,10 @@ export function WorkerStatus({ status, version, uptime, queueDepth = 0 }: Worker
     <Card>
       <CardBody>
         <div className="flex items-center justify-between mb-4">
-          <CardTitle>Worker Status</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle>Worker Status</CardTitle>
+            <Badge variant="ghost" size="sm">Workspace</Badge>
+          </div>
           <Badge variant={isOnline ? 'success' : 'error'}>
             {isOnline ? 'Online' : 'Offline'}
           </Badge>

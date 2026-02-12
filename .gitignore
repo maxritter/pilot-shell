@@ -239,6 +239,7 @@ playwright/
 docs/plans
 docs/license
 docs/video
+docs/slides
 .install-version
 bun.lock
 

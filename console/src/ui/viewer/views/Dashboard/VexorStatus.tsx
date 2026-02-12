@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Card, CardBody, CardTitle, Badge, Icon } from '../../components/ui';
 
 interface VexorStatusProps {
@@ -24,45 +23,15 @@ function formatIndexAge(generatedAt: string | null): string {
 }
 
 export function VexorStatus({ isIndexed, files, generatedAt, isReindexing }: VexorStatusProps) {
-  const [localReindexing, setLocalReindexing] = useState(false);
-  const reindexActive = isReindexing || localReindexing;
-
-  const handleReindex = async () => {
-    setLocalReindexing(true);
-    try {
-      const res = await fetch('/api/vexor/reindex', { method: 'POST' });
-      if (!res.ok) {
-        const data = await res.json();
-        console.error('Reindex failed:', data.error);
-      }
-    } catch (error) {
-      console.error('Reindex request failed:', error);
-    }
-
-    const poll = setInterval(async () => {
-      try {
-        const res = await fetch('/api/vexor/status');
-        const data = await res.json();
-        if (!data.isReindexing) {
-          clearInterval(poll);
-          setLocalReindexing(false);
-        }
-      } catch {
-        clearInterval(poll);
-        setLocalReindexing(false);
-      }
-    }, 5000);
-  };
-
   return (
     <Card>
-      <CardBody>
+      <CardBody className="flex flex-col">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <CardTitle>Codebase Indexing</CardTitle>
             <Badge variant="ghost" size="sm">Workspace</Badge>
           </div>
-          {reindexActive ? (
+          {isReindexing ? (
             <Badge variant="warning">
               <Icon icon="lucide:refresh-cw" size={12} className="mr-1 animate-spin" />
               Indexing...
@@ -73,7 +42,7 @@ export function VexorStatus({ isIndexed, files, generatedAt, isReindexing }: Vex
             </Badge>
           )}
         </div>
-        <div className="space-y-3">
+        <div className="space-y-3 flex-1">
           <div className="flex items-center gap-2 text-sm">
             <Icon icon="lucide:file-search" size={16} className="text-base-content/50" />
             <span className="text-base-content/70">Files:</span>
@@ -84,16 +53,6 @@ export function VexorStatus({ isIndexed, files, generatedAt, isReindexing }: Vex
             <span className="text-base-content/70">Last indexed:</span>
             <span>{formatIndexAge(generatedAt)}</span>
           </div>
-        </div>
-        <div className="mt-4">
-          <button
-            className="btn btn-sm btn-outline gap-2"
-            onClick={handleReindex}
-            disabled={reindexActive}
-          >
-            <Icon icon="lucide:refresh-cw" size={14} className={reindexActive ? 'animate-spin' : ''} />
-            {reindexActive ? 'Rebuilding Index...' : 'Re-index'}
-          </button>
         </div>
       </CardBody>
     </Card>

@@ -1,11 +1,14 @@
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Github, Linkedin, Mail, ScrollText, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
-import { smoothScrollTo } from "@/utils/smoothScroll";
+import { navigateToSection } from "@/utils/navigateToSection";
 import { useInView } from "@/hooks/use-in-view";
 
 const Footer = () => {
   const [footerRef, footerInView] = useInView<HTMLElement>();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   return (
     <footer
@@ -27,7 +30,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <button
-                  onClick={() => smoothScrollTo('installation')}
+                  onClick={() => navigateToSection('installation', location.pathname, navigate)}
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   Getting Started
@@ -35,7 +38,7 @@ const Footer = () => {
               </li>
               <li>
                 <button
-                  onClick={() => smoothScrollTo('problem')}
+                  onClick={() => navigateToSection('problem', location.pathname, navigate)}
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   The Problem
@@ -43,7 +46,7 @@ const Footer = () => {
               </li>
               <li>
                 <button
-                  onClick={() => smoothScrollTo('workflow')}
+                  onClick={() => navigateToSection('workflow', location.pathname, navigate)}
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   Usage
@@ -51,7 +54,7 @@ const Footer = () => {
               </li>
               <li>
                 <button
-                  onClick={() => smoothScrollTo('features')}
+                  onClick={() => navigateToSection('features', location.pathname, navigate)}
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   What's Inside
@@ -59,7 +62,7 @@ const Footer = () => {
               </li>
               <li>
                 <button
-                  onClick={() => smoothScrollTo('deep-dive')}
+                  onClick={() => navigateToSection('deep-dive', location.pathname, navigate)}
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   Under the Hood
@@ -67,7 +70,7 @@ const Footer = () => {
               </li>
               <li>
                 <button
-                  onClick={() => smoothScrollTo('pricing')}
+                  onClick={() => navigateToSection('pricing', location.pathname, navigate)}
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   Pricing
@@ -75,11 +78,19 @@ const Footer = () => {
               </li>
               <li>
                 <button
-                  onClick={() => smoothScrollTo('faq')}
+                  onClick={() => navigateToSection('faq', location.pathname, navigate)}
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   FAQ
                 </button>
+              </li>
+              <li>
+                <Link
+                  to="/blog"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Blog
+                </Link>
               </li>
               <li>
                 <a

@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.go"
+---
+
 ## Go Development Standards
 
 **Standards:** Use go modules | go test for tests | gofmt + go vet + golangci-lint for quality | Self-documenting code
@@ -31,16 +36,42 @@ go mod verify
 go test ./...                           # All tests
 go test ./... -v                        # Verbose (only when debugging)
 go test ./... -short                    # Skip long-running tests
+go test ./... -race                     # With race detector
 go test ./... -cover                    # With coverage
 go test -coverprofile=coverage.out ./...  # Coverage report
 
 # Code quality
 gofmt -w .                              # Format code
+goimports -w .                          # Format + organize imports
 go vet ./...                            # Static analysis
 golangci-lint run                       # Comprehensive linting
 ```
 
 **Why minimal output?** Verbose test output consumes context tokens rapidly. Only add `-v` when debugging specific failing tests.
+
+**Table-driven tests:** Preferred for testing multiple cases:
+```go
+func TestValidateEmail(t *testing.T) {
+    tests := []struct {
+        name    string
+        email   string
+        wantErr bool
+    }{
+        {"valid email", "user@example.com", false},
+        {"missing @", "userexample.com", true},
+        {"empty", "", true},
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            err := ValidateEmail(tt.email)
+            if (err != nil) != tt.wantErr {
+                t.Errorf("ValidateEmail(%q) error = %v, wantErr %v", tt.email, err, tt.wantErr)
+            }
+        })
+    }
+}
+```
 
 ### Code Style Essentials
 
@@ -51,6 +82,7 @@ golangci-lint run                       # Comprehensive linting
 - **Exported:** PascalCase (e.g., `ProcessOrder`, `UserService`)
 - **Unexported:** camelCase (e.g., `processOrder`, `userService`)
 - **Acronyms:** ALL CAPS (e.g., `HTTPServer`, `XMLParser`, `userID`)
+- **Interfaces:** Often use -er suffix (e.g., `Reader`, `Writer`, `Handler`)
 
 **Comments:** Write self-documenting code. Comments for exported functions should start with the function name:
 ```go
@@ -79,6 +111,47 @@ result, _ := doSomething()
 ```go
 if err != nil {
     return fmt.Errorf("processing user %s: %w", userID, err)
+}
+```
+
+**Custom errors:** Use sentinel errors for domain-specific error types:
+```go
+var ErrNotFound = errors.New("not found")
+var ErrInvalidInput = errors.New("invalid input")
+
+if errors.Is(err, ErrNotFound) {
+    // handle not found
+}
+```
+
+### Common Patterns
+
+**Context propagation:** Always pass context as first parameter:
+```go
+func ProcessRequest(ctx context.Context, req Request) (Response, error) {
+    result, err := db.QueryContext(ctx, query)
+    if err != nil {
+        return Response{}, err
+    }
+    return Response{Data: result}, nil
+}
+```
+
+**Defer for cleanup:**
+```go
+f, err := os.Open(path)
+if err != nil {
+    return nil, err
+}
+defer f.Close()
+```
+
+**Struct initialization with named fields:**
+```go
+user := User{
+    ID:    "123",
+    Name:  "Alice",
+    Email: "alice@example.com",
 }
 ```
 

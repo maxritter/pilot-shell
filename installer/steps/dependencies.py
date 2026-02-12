@@ -403,11 +403,20 @@ def install_mcp_cli() -> bool:
 
 
 def install_sx() -> bool:
-    """Install sx (sleuth.io skills exchange) for team skill sharing."""
-    if command_exists("sx"):
-        return True
+    """Install sx (sleuth.io skills exchange) for team asset sharing."""
+    if not command_exists("sx"):
+        if not _run_bash_with_retry("curl -fsSL https://raw.githubusercontent.com/sleuth-io/sx/main/install.sh | bash"):
+            return False
 
-    return _run_bash_with_retry("curl -fsSL https://raw.githubusercontent.com/sleuth-io/sx/main/install.sh | bash")
+    return True
+
+
+def update_sx() -> bool:
+    """Update sx to the latest version."""
+    if not command_exists("sx"):
+        return False
+
+    return _run_bash_with_retry("sx update")
 
 
 def _is_vtsls_installed() -> bool:
@@ -667,8 +676,9 @@ class DependenciesStep(BaseStep):
         if _install_vexor_with_ui(ui):
             installed.append("vexor")
 
-        if _install_with_spinner(ui, "sx (skills exchange)", install_sx):
+        if _install_with_spinner(ui, "sx (team assets)", install_sx):
             installed.append("sx")
+            _install_with_spinner(ui, "sx update", update_sx)
 
         _clean_mcp_servers_from_claude_config(ui)
 

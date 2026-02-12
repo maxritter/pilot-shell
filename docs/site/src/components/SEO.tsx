@@ -7,7 +7,7 @@ interface SEOProps {
   canonicalUrl?: string;
   ogImage?: string;
   type?: string;
-  structuredData?: object;
+  structuredData?: object | object[];
 }
 
 const SEO = ({

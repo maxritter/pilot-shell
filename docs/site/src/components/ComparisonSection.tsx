@@ -137,7 +137,7 @@ const ComparisonSection = () => {
                 </div>
                 <div className="text-primary/80 flex items-center gap-2 text-xs">
                   <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                  <span>Rules + Skills loaded</span>
+                  <span>Rules + Standards loaded</span>
                 </div>
                 <div className="border-t border-border/50 pt-2.5 text-xs">
                   <span className="text-primary">→ Planning:</span>

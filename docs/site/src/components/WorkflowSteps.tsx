@@ -233,7 +233,7 @@ const WorkflowSteps = () => {
                 <code className="text-sm font-medium text-primary">/sync</code>
               </div>
               <p className="text-xs text-muted-foreground">
-                Syncs rules and skills with your codebase — explores patterns, updates project docs, discovers undocumented conventions, creates new skills.
+                Syncs rules and standards with your codebase — explores patterns, updates project docs, discovers undocumented conventions, creates new skills.
               </p>
             </div>
             <div className="rounded-xl p-4 border border-border/40 bg-background/30">

@@ -66,8 +66,10 @@
       "Skill(spec-verify)",
       "Skill(sync)",
       "Skill(learn)",
-      "Task(spec-verifier:*)",
+      "Task(spec-reviewer-compliance:*)",
+      "Task(spec-reviewer-quality:*)",
       "Task(plan-verifier:*)",
+      "Task(plan-challenger:*)",
       "LSP"
     ],
     "deny": []
@@ -81,6 +83,7 @@
   },
   "outputStyle": "default",
   "spinnerTipsEnabled": false,
+  "prefersReducedMotion": true,
   "showTurnDuration": false,
   "alwaysThinkingEnabled": true,
   "attribution": {
@@ -88,7 +91,7 @@
     "pr": ""
   },
   "companyAnnouncements": [
-    "🚀 Open the Claude Pilot Console at http://localhost:41777 📊"
+    "🔵 Open the Claude Pilot Console at: http://localhost:41777"
   ],
   "respectGitignore": false,
   "cleanupPeriodDays": 31

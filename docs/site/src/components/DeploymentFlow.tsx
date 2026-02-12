@@ -20,7 +20,7 @@ const steps = [
   {
     icon: Settings,
     label: "Configure",
-    detail: "Step-based installer deploys rules, hooks, skills, MCP servers, and language servers.",
+    detail: "Step-based installer deploys rules, hooks, standards, MCP servers, and language servers.",
     color: "text-amber-400",
     bgColor: "bg-amber-400/10",
     borderColor: "border-amber-400/30",
@@ -52,7 +52,7 @@ const steps = [
   {
     icon: CheckCircle2,
     label: "Ready",
-    detail: "Full system online — rules loaded, hooks armed, skills available, memory active.",
+    detail: "Full system online — rules loaded, hooks armed, standards active, memory active.",
     color: "text-emerald-400",
     bgColor: "bg-emerald-400/10",
     borderColor: "border-emerald-400/30",

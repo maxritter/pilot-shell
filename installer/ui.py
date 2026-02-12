@@ -179,7 +179,9 @@ class Console:
             if is_expired:
                 license_text.append("  ⚠ ", style="red")
                 license_text.append("Trial Expired", style="bold red")
-                license_text.append(" — Subscribe: ", style="dim white")
+                license_text.append(" — 50% off: ", style="bold yellow")
+                license_text.append("TRIAL50OFF", style="bold white")
+                license_text.append(" — ", style="dim white")
                 license_text.append("https://claude-pilot.com", style="cyan")
             else:
                 expires_at = license_info.get("expires_at") if license_info else None

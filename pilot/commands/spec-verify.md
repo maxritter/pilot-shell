@@ -23,7 +23,7 @@ hooks:
 
 | #   | Rule                                                                                                  |
 | --- | ----------------------------------------------------------------------------------------------------- |
-| 1   | **NEVER SKIP verification** - Code review (Step 3.5) is mandatory. No exceptions.                     |
+| 1   | **NEVER SKIP verification** - Code review (Step 3.0/3.5) launches `spec-reviewer-compliance` + `spec-reviewer-quality` via the **Task tool** (`subagent_type="pilot:spec-reviewer-compliance"` and `"pilot:spec-reviewer-quality"`). Mandatory. No exceptions. |
 | 2   | **NO stopping** - Everything is automatic. Never ask "Should I fix these?"                            |
 | 3   | **Fix ALL findings automatically** - must_fix AND should_fix. No permission needed.                   |
 | 4   | **Quality over speed** - Never rush due to context pressure                                           |
@@ -39,7 +39,7 @@ The verification process is split into two phases. All code changes (from review
 
 ```
 Phase A — Finalize the code:
-  Tests → Process Compliance → Code Review → Fix → Re-verify loop
+  Launch Reviewers (parallel) → Tests → Process Compliance → Feature Parity → Call Chain → Collect Review Results → Fix → Re-verify loop
 
 Phase B — Verify the running program:
   Build → Deploy → Code Identity Check → Program Execution → DoD Audit → E2E → Edge Cases
@@ -55,6 +55,101 @@ Final:
 ---
 
 ## Phase A: Finalize the Code
+
+### Step 3.0: Launch Code Review Agents (Early Launch)
+
+**⛔ CRITICAL: Launch review agents IMMEDIATELY at the start of Phase A, before any other verification steps.**
+
+This early-launch pattern maximizes efficiency: agents begin reading the plan and reviewing code while the main session continues with automated checks (tests, lint, feature parity, call chain). By the time Step 3.5 collects results, agents are done or nearly done.
+
+#### 3.0a: Identify Changed Files
+
+Get list of files changed in this implementation:
+
+```bash
+git status --short  # Shows staged and unstaged changes
+```
+
+#### 3.0b: Gather Context for the Reviewers
+
+Collect information needed for actionable findings:
+
+1. **Test framework constraints** — What can/can't the test framework test? (e.g., "SSR-only via renderToString — no client-side effects or state testing possible")
+2. **Runtime environment** — How to start the program, what port, where artifacts are deployed
+3. **Plan risks section** — Copy the Risks and Mitigations table from the plan (if present)
+
+#### 3.0c: Resolve Session Path for Findings Persistence
+
+**⛔ CRITICAL: Agents write findings to files so they survive agent lifecycle cleanup.**
+
+Background agents' return values can be lost after completion. To guarantee findings are retrievable, each agent writes its JSON to a known file path.
+
+```bash
+echo $PILOT_SESSION_ID
+```
+
+Define output paths (replace `<session-id>` with the resolved value):
+- **Compliance findings:** `~/.pilot/sessions/<session-id>/findings-compliance.json`
+- **Quality findings:** `~/.pilot/sessions/<session-id>/findings-quality.json`
+
+#### 3.0d: Launch Both Reviewers in Parallel
+
+Spawn 2 agents in parallel using TWO Task tool calls in a SINGLE message. Set `run_in_background=true` on both.
+
+**Agent 1: spec-reviewer-compliance** (plan alignment, DoD, risk mitigations)
+```
+Task(
+  subagent_type="pilot:spec-reviewer-compliance",
+  run_in_background=true,
+  prompt="""
+  **Plan file:** <plan-path>
+  **Changed files:** [file list from git status]
+  **Output path:** <absolute path to findings-compliance.json>
+
+  **Runtime environment:** [how to start, port, deploy path, etc.]
+  **Test framework constraints:** [what the test framework can/cannot test]
+  **Plan risks section:** [copy risks table if present, or "None listed"]
+
+  Verify this implementation matches the plan. Check spec compliance, DoD criteria,
+  and risk mitigations. Read the plan file first to understand requirements, then
+  verify the changed files implement them correctly.
+
+  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
+  """
+)
+```
+
+**Agent 2: spec-reviewer-quality** (code quality, security, testing, performance)
+```
+Task(
+  subagent_type="pilot:spec-reviewer-quality",
+  run_in_background=true,
+  prompt="""
+  **Plan file:** <plan-path>
+  **Changed files:** [file list from git status]
+  **Output path:** <absolute path to findings-quality.json>
+
+  **Runtime environment:** [how to start, port, deploy path, etc.]
+  **Test framework constraints:** [what the test framework can/cannot test]
+
+  Review code quality, security, testing adequacy, performance, and error handling.
+  Read all rule files first, then verify the changed files follow all standards.
+
+  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
+  """
+)
+```
+
+The reviewers work in parallel:
+
+- **spec-reviewer-compliance**: Verifies implementation matches plan, DoD criteria met, risk mitigations implemented
+- **spec-reviewer-quality**: Verifies code quality, security, testing, performance, error handling
+
+Both agents start immediately and work in the background while Steps 3.1-3.4 proceed.
+
+#### 3.0e: Continue with Automated Checks
+
+**Do NOT wait for agent results.** Proceed immediately to Step 3.1. The agents work in the background while you run tests, linters, feature parity, and call chain analysis.
 
 ### Step 3.1: Run & Fix Tests
 
@@ -77,7 +172,7 @@ Run mechanical verification tools. These check process adherence that the code r
 
 **Fix all errors before proceeding.** Warnings are acceptable; errors are blockers.
 
-**Note:** The spec-verifier agent handles code quality, spec compliance, and rules enforcement. This step only covers mechanical tool checks that produce binary pass/fail results.
+**Note:** The review agents (launched in Step 3.0) handle code quality, spec compliance, and rules enforcement. This step only covers mechanical tool checks that produce binary pass/fail results.
 
 ### Step 3.3: Feature Parity Check (if applicable)
 
@@ -146,9 +241,9 @@ This is a serious issue - the implementation is incomplete.
    - External system impacts
    - Global state modifications
 
-### Step 3.5: Code Review Verification
+### Step 3.5: Collect Review Results
 
-**⛔ THIS STEP IS NON-NEGOTIABLE. You MUST run code verification.**
+**⛔ THIS STEP IS NON-NEGOTIABLE. You MUST collect and process review findings.**
 
 **⚠️ SKIPPING THIS STEP IS FORBIDDEN.** Even if:
 
@@ -157,56 +252,57 @@ This is a serious issue - the implementation is incomplete.
 - Tests pass (tests don't catch everything)
 - The implementation seems simple
 
-**None of these are valid reasons to skip. ALWAYS VERIFY.**
+**None of these are valid reasons to skip. ALWAYS COLLECT AND PROCESS RESULTS.**
 
-#### 3.5a: Identify Changed Files
+#### 3.5a: Retrieve Findings from Persistent Files
 
-Get list of files changed in this implementation:
+The two review agents (launched in Step 3.0) should be done or nearly done by now. Their findings are persisted to files in the session directory.
 
-```bash
-git status --short  # Shows staged and unstaged changes
-```
+1. **Wait for both agents** — Use `TaskOutput` with `block=true` to wait for completion
+2. **Read findings from files** — Use the Read tool on the paths defined in Step 3.0c:
+   - `~/.pilot/sessions/<session-id>/findings-compliance.json`
+   - `~/.pilot/sessions/<session-id>/findings-quality.json`
+3. **Parse the JSON** from each file to get the structured findings
 
-#### 3.5b: Gather Context for the Verifier
+**If a findings file is missing** (agent failed to write), fall back to the agent's direct return value from TaskOutput. If both are unavailable, re-launch the agent synchronously (without `run_in_background`).
 
-Before launching the agent, gather information it needs for actionable findings:
+**Expected timeline:**
+- Agents were launched before Step 3.1 (tests, lint, feature parity, call chain)
+- Steps 3.1-3.4 typically take 2-5 minutes
+- Agents typically complete in 3-7 minutes
+- Net result: Agents finish around the same time as Step 3.4, minimal or zero wait time
 
-1. **Test framework constraints** — What can/can't the test framework test? (e.g., "SSR-only via renderToString — no client-side effects or state testing possible")
-2. **Runtime environment** — How to start the program, what port, where artifacts are deployed
-3. **Plan risks section** — Copy the Risks and Mitigations table from the plan (if present)
+#### 3.5b: Merge and Deduplicate Findings
 
-#### 3.5c: Launch Code Verification
+After BOTH agents complete:
 
-Spawn 1 `spec-verifier` agent using the Task tool:
+1. **Collect findings** from both agents
+2. **Deduplicate**: If both agents found the same issue (same file and line), keep the one with higher severity
+3. **Combine** into a single findings list
 
-```
-Task(
-  subagent_type="pilot:spec-verifier",
-  prompt="""
-  **Plan file:** <plan-path>
-  **Changed files:** [file list from git status]
+The merged list contains:
+- All spec compliance, risk mitigation, and DoD issues (from spec-reviewer-compliance)
+- All code quality, security, testing, performance, and error handling issues (from spec-reviewer-quality)
 
-  **Runtime environment:** [how to start, port, deploy path, etc.]
-  **Test framework constraints:** [what the test framework can/cannot test]
-  **Plan risks section:** [copy risks table if present, or "None listed"]
+#### 3.5c: Review Agent Results
 
-  Review the implementation against the plan. Read the plan file first to understand
-  the requirements, then verify the changed files implement them correctly.
-  You may read related files for context as needed.
-  """
-)
-```
+The reviewers have examined the code from two perspectives:
 
-The verifier:
+**spec-reviewer-compliance** verified:
+- Implementation matches plan specification
+- All risk mitigations from plan are implemented
+- Each task's Definition of Done criteria are met
+- No out-of-scope features added
 
-- Receives the plan file path as source of truth
-- Reads ALL rule files (global + project) and enforces them
-- Reviews changed files against plan requirements
-- Verifies plan risk mitigations were implemented
-- Checks each task's Definition of Done criteria
-- Can read related files for context (imports, dependencies, etc.)
-- Runs with fresh context (no anchoring bias)
-- Returns structured JSON findings
+**spec-reviewer-quality** verified:
+- All rule files (global + project) are followed
+- Code quality standards met
+- Security vulnerabilities absent
+- Tests exist for new code
+- Error handling is present
+- Performance issues absent
+
+Both ran with fresh context (no anchoring bias) and returned structured JSON findings.
 
 #### 3.5d: Report Findings
 
@@ -246,10 +342,14 @@ This is part of the automated /spec workflow. The user approved the plan - verif
 
 After implementing ALL code review findings from Step 3.5e:
 
-1. **Re-run the spec-verifier agent** with the same parameters as Step 3.5c
-2. If new must_fix or should_fix issues found → fix them and re-run again
-3. Maximum 3 iterations of the fix → re-verify cycle
-4. **Only proceed to Phase B when the verifier returns zero must_fix and zero should_fix**
+1. **Re-run BOTH review agents** in parallel (same parameters as Step 3.0d, with `run_in_background=true` and output paths):
+   - `spec-reviewer-compliance` → writes to `findings-compliance.json`
+   - `spec-reviewer-quality` → writes to `findings-quality.json`
+2. **Wait for completion**, then **read findings from files** (same as Step 3.5a)
+3. **Merge and deduplicate findings** (same process as Step 3.5b)
+4. If new must_fix or should_fix issues found → fix them and re-run both agents again
+5. Maximum 3 iterations of the fix → re-verify cycle
+6. **Only proceed to Phase B when BOTH reviewers return zero must_fix and zero should_fix**
 
 If iterations exhausted with remaining issues, add them to plan. **⛔ Phase Transition Context Guard** (spec.md Section 0.3) before invoking `Skill(skill='spec-implement', args='<plan-path>')`
 

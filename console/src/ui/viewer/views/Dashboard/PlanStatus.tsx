@@ -55,7 +55,10 @@ export function PlanStatus({ plans }: PlanStatusProps) {
       <Card>
         <CardBody>
           <div className="flex items-center justify-between mb-4">
-            <CardTitle>Specification Status</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle>Specification Status</CardTitle>
+              <Badge variant="ghost" size="sm">Workspace</Badge>
+            </div>
             <Badge variant="ghost">Quick Mode</Badge>
           </div>
           <div className="text-sm text-base-content/60">
@@ -71,7 +74,10 @@ export function PlanStatus({ plans }: PlanStatusProps) {
     <Card>
       <CardBody>
         <div className="flex items-center justify-between mb-4">
-          <CardTitle>Specification Status</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle>Specification Status</CardTitle>
+            <Badge variant="ghost" size="sm">Workspace</Badge>
+          </div>
           <Badge variant="info">{plans.length} active</Badge>
         </div>
         <div className="space-y-2">

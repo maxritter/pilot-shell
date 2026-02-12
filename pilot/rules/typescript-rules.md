@@ -1,3 +1,13 @@
+---
+paths:
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/*.js"
+  - "**/*.jsx"
+  - "**/*.mjs"
+  - "**/*.mts"
+---
+
 ## TypeScript Development Standards
 
 **Standards:** Detect package manager | Strict types | No `any` | Self-documenting code
@@ -55,6 +65,40 @@ export function calculateDiscount(price: number, rate: number): number { ... }
 ```
 
 **Import order:** Node built-ins → External packages → Internal modules → Relative imports
+```typescript
+import { readFile } from 'node:fs/promises';
+import express from 'express';
+import { User } from '@/models/user';
+import { formatPrice } from './utils';
+```
+
+### Common Patterns
+
+**Prefer `node:` prefix for built-in modules:**
+```typescript
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+```
+
+**Use `const` assertions for literal types:**
+```typescript
+const ROLES = ['admin', 'user', 'guest'] as const;
+type Role = typeof ROLES[number]; // 'admin' | 'user' | 'guest'
+```
+
+**Don't swallow errors:**
+```typescript
+try {
+  await process();
+} catch (error) {
+  logger.error('Processing failed', { error });
+  throw error;
+}
+```
+
+### File Organization
+
+**Prefer editing existing files over creating new ones.** Use kebab-case for file names (`user-service.ts`), `.test.ts` or `.spec.ts` for tests.
 
 ### Testing - Minimal Output
 
@@ -70,19 +114,11 @@ npm test -- --bail                      # Stop on first failure
 # --verbose, --expand, --debug
 ```
 
-**Why minimal output?** Verbose test output consumes context tokens rapidly. Use `--silent` or minimal reporters by default. Only add verbose flags when debugging a specific failing test.
-
 **Diagnostics & Type Checking - also minimize output:**
 ```bash
 # Limit output when many errors exist
 tsc --noEmit 2>&1 | head -50            # Cap type checker output
 eslint . --format compact               # Shorter than default stylish format
-
-# When many errors exist, fix incrementally:
-# 1. Run tool, note first few errors
-# 2. Fix those specific errors
-# 3. Re-run to see next batch
-# DON'T dump 100+ errors into context at once
 ```
 
 ### Verification Checklist
@@ -94,12 +130,12 @@ Before completing TypeScript work, **always run** (using detected package manage
 3. **Format:** `prettier --write .` or project's `format` script
 4. **Tests:** Project's `test` script (with minimal output flags)
 
+**Tip:** Check `package.json` scripts first — projects often have custom configurations.
+
 **⚠️ BLOCKERS - Do NOT mark work complete if:**
 - Type checking fails (`tsc --noEmit` has errors)
 - Lint errors exist (warnings OK, errors are blockers)
 - Tests fail
-
-**If `tsc --noEmit` shows errors:** STOP. Fix type errors before proceeding.
 
 Verify:
 - [ ] All commands pass without errors

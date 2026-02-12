@@ -66,13 +66,13 @@ const agents = [
     desc: "Implements each task with strict TDD in the main context. Full access to quality hooks, rules, and project context.",
   },
   {
-    name: "SKILLS",
+    name: "STANDARDS",
     role: "Knowledge Base",
     icon: Cpu,
     color: "text-cyan-400",
     bgColor: "bg-cyan-400/10",
     borderColor: "border-cyan-400/30",
-    desc: "14 coding standards activated dynamically — Python, TypeScript, Go, API design, testing, and more.",
+    desc: "14 coding standards activated conditionally by file type — Python, TypeScript, Go, API design, testing, and more.",
   },
   {
     name: "WORKTREE",

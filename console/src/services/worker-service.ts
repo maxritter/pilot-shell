@@ -66,6 +66,7 @@ import { PlanRoutes } from "./worker/http/routes/PlanRoutes.js";
 import { WorktreeRoutes } from "./worker/http/routes/WorktreeRoutes.js";
 import { VexorRoutes } from "./worker/http/routes/VexorRoutes.js";
 import { LicenseRoutes } from "./worker/http/routes/LicenseRoutes.js";
+import { VaultRoutes } from "./worker/http/routes/VaultRoutes.js";
 import { MetricsService } from "./worker/MetricsService.js";
 import { startRetentionScheduler, stopRetentionScheduler } from "./worker/RetentionScheduler.js";
 
@@ -251,6 +252,7 @@ export class WorkerService {
     this.server.registerRoutes(this.vexorRoutes);
 
     this.server.registerRoutes(new LicenseRoutes());
+    this.server.registerRoutes(new VaultRoutes());
 
     startRetentionScheduler(this.dbManager);
   }

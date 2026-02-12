@@ -120,13 +120,19 @@ Options:
 
 ## Pull: Install Team Assets
 
-Fetch and install all team assets from the vault:
+Assets are installed **per-project** by default — they go to the project's `.claude/` directory, not `~/.claude/`. This keeps each project self-contained with exactly the assets it needs.
 
 ```bash
 sx install --repair
 ```
 
-The `--repair` flag verifies assets are actually installed and fixes any discrepancies (missing files, broken symlinks).
+The `--repair` flag verifies assets are actually installed and fixes any discrepancies (missing files, broken symlinks). Project-scoped assets install to `.claude/` in the current project; global assets install to `~/.claude/`.
+
+**For CI/automation** where you're not inside the project directory:
+
+```bash
+sx install --repair --target /path/to/project
+```
 
 **After install, show what was installed:**
 
@@ -170,7 +176,17 @@ Options:
 - "[command] <name>" - <description from frontmatter>
 ```
 
-### Step P.3: Ask About Scope
+### Step P.3: Detect Git Remote
+
+Auto-detect the project's git remote URL for project-scoped installation:
+
+```bash
+git remote get-url origin 2>/dev/null
+```
+
+Store this as `<repo-url>` for use in the push commands below.
+
+### Step P.4: Ask About Scope
 
 For each selected asset:
 
@@ -178,30 +194,26 @@ For each selected asset:
 Question: "Where should <asset-name> be installed for team members?"
 Header: "Scope"
 Options:
-- "Global (Recommended)" - Available in all repositories
-- "This repo only" - Only installed for this specific repository
+- "This project (Recommended)" - Installed to .claude/ when teammates work in this repo
+- "Global" - Installed to ~/.claude/ for all repositories
 - "Custom repos" - Install for specific repositories (I'll provide URLs)
 ```
 
-### Step P.4: Push Each Asset
+### Step P.5: Push Each Asset
 
 ```bash
-# Skills
-sx add .claude/skills/<name> --yes --type skill --name "<name>" --no-install --scope-global
-
-# Rules
-sx add .claude/rules/<name>.md --yes --type rule --name "<name>" --no-install --scope-global
-
-# Commands
-sx add .claude/commands/<name>.md --yes --type command --name "<name>" --no-install --scope-global
-
-# For repo-scoped assets
+# Project-scoped (recommended) — installs to .claude/ in the project
 sx add .claude/skills/<name> --yes --type skill --name "<name>" --no-install --scope-repo <repo-url>
+sx add .claude/rules/<name>.md --yes --type rule --name "<name>" --no-install --scope-repo <repo-url>
+sx add .claude/commands/<name>.md --yes --type command --name "<name>" --no-install --scope-repo <repo-url>
+
+# Global — installs to ~/.claude/ everywhere
+sx add .claude/skills/<name> --yes --type skill --name "<name>" --no-install --scope-global
 ```
 
 **Note:** Always use `--no-install` when pushing your own assets — they're already installed locally.
 
-### Step P.5: Verify Push
+### Step P.6: Verify Push
 
 ```bash
 sx vault list
@@ -346,6 +358,23 @@ sx uninstall --all --yes
 | `agent`   | `--type agent`   | `.claude/agents/<name>.md`   | Sub-agent definitions                           |
 | `hook`    | `--type hook`    | Hook scripts                 | Quality automation, CI integration              |
 | `mcp`     | `--type mcp`     | MCP server configs           | External tool integrations                      |
+
+## Scoping
+
+Assets can be installed at different levels:
+
+| Scope | Installs to | Use When |
+| ----- | ----------- | -------- |
+| Project (`--scope-repo`) | `project/.claude/` | **Default.** Assets stay with the project. |
+| Global (`--scope-global`) | `~/.claude/` | Personal tools needed everywhere. |
+| Path (`--scope-repo "url#path"`) | `project/path/.claude/` | Monorepo — different assets per service. |
+
+**Project-scoped is recommended** because:
+- Each project explicitly tracks which vault assets it uses
+- No global pollution from multiple projects
+- New team members get exactly the right assets when they clone the repo
+
+To change an existing asset's scope, run `sx add <name>` again (without a path) to reconfigure it interactively.
 
 ## Versioning
 

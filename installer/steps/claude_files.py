@@ -247,6 +247,8 @@ class ClaudeFilesStep(BaseStep):
         home_claude_dir = Path.home() / ".claude"
         home_pilot_plugin_dir = home_claude_dir / "pilot"
 
+        self._cleanup_legacy_standards_skills(home_pilot_plugin_dir)
+
         source_is_destination = (
             config.local_mode and config.local_repo_dir and config.local_repo_dir.resolve() == ctx.project_dir.resolve()
         )
@@ -268,6 +270,26 @@ class ClaudeFilesStep(BaseStep):
         _clear_directory_contents(home_pilot_plugin_dir)
 
         self._cleanup_legacy_project_dirs(ctx)
+
+    def _cleanup_legacy_standards_skills(self, plugin_dir: Path) -> None:
+        """Remove old standards-* skill directories from plugin skills folder.
+
+        Standards were migrated from pilot/skills/ to pilot/rules/ with frontmatter.
+        Runs unconditionally (before source_is_destination check) to clean up stale installs.
+        """
+        skills_dir = plugin_dir / "skills"
+        if not skills_dir.exists():
+            return
+
+        for item in skills_dir.iterdir():
+            if item.is_dir() and item.name.startswith("standards-"):
+                _clear_directory_safe(item)
+
+        if skills_dir.exists() and not any(skills_dir.iterdir()):
+            try:
+                skills_dir.rmdir()
+            except (OSError, IOError):
+                pass
 
     def _cleanup_legacy_project_dirs(self, ctx: InstallContext) -> None:
         """Remove legacy project-level directories."""

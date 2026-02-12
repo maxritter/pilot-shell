@@ -83,17 +83,34 @@ This prevents forgetting steps, manages dependencies, shows the user real-time p
 
 **Why:** Stale tasks from previous sessions clutter the task list, confuse progress tracking, and waste the user's attention. A clean task list = clear focus.
 
+### ⛔ Cross-Session Task Isolation
+
+**Tasks are scoped to the current session via `CLAUDE_CODE_TASK_LIST_ID`.** Each Pilot session gets a unique task namespace (`pilot-{PID}`). Tasks from other parallel sessions are invisible to `TaskList`/`TaskGet`/`TaskUpdate` — this isolation is enforced at the infrastructure level.
+
+**However, Pilot Memory is shared across ALL sessions.** The startup context injection may include observations from parallel sessions that reference task IDs, plan progress, or implementation details from a different terminal. **These are informational background only.**
+
+**Rules:**
+- **NEVER act on task references from Pilot Memory** that don't appear in your own `TaskList` output
+- If the startup context mentions "Task 15 completed" or "Task 16 in_progress" but `TaskList` returns empty or different tasks, those belong to another session — ignore them
+- **`TaskList` is the sole source of truth** for what tasks exist in your session
+- Do NOT create tasks to "mirror" or "continue" tasks you see in memory observations from another session
+- Do NOT reference other sessions' task IDs in your work
+
+**Quick check:** If unsure whether a task reference is yours, run `TaskList`. If it's not there, it's not yours.
+
 ### Session Continuations
 
 **Tasks persist across session handoffs via `CLAUDE_CODE_TASK_LIST_ID`.**
 
-When resuming in a new session:
+When resuming in a **continuation of the same session** (same `CLAUDE_CODE_TASK_LIST_ID`):
 
 1. Run `TaskList` first - existing tasks from the prior session are already there
 2. **Delete stale tasks** that are no longer relevant to current work
 3. Do NOT recreate tasks that already exist and are still relevant
 4. Review statuses to find where the previous session left off
 5. Resume the first uncompleted task
+
+**This does NOT apply to parallel sessions.** A quick-mode terminal and a spec-mode terminal have different `CLAUDE_CODE_TASK_LIST_ID` values and completely independent task lists.
 
 ### Dependencies - Don't Forget Them!
 
@@ -146,14 +163,18 @@ Tasks 3 and 4 won't show as ready until Task 2 completes.
 | Exact text/pattern match                       | `Grep` or `Glob`                   | Task/Explore |
 | Specific file content                          | `Read`                             | Task/Explore |
 
-**Exception 1: Verification steps in /spec workflow.**
+**Exception: Verification sub-agents in /spec workflow — launched via the Task tool.**
 
-There are TWO verification points that use a single verifier sub-agent each:
+The **Task tool** is the ONLY allowed mechanism for spawning sub-agents. It is used exclusively for /spec verification steps, where paired review agents run in parallel. No other use of the Task tool for sub-agents is permitted.
 
-| Phase Skill                  | Agent           | Purpose                                                |
-| ---------------------------- | --------------- | ------------------------------------------------------ |
-| **`spec-plan` (Step 1.7)**   | `plan-verifier` | Verify plan captures user requirements before approval |
-| **`spec-verify` (Step 3.5)** | `spec-verifier` | Verify code implements the plan correctly              |
+There are TWO verification points, each launching TWO agents via `Task()`:
+
+| Phase Skill                  | Task Tool Calls (Parallel)                              | `subagent_type`                                         |
+| ---------------------------- | ------------------------------------------------------- | ------------------------------------------------------- |
+| **`spec-plan` (Step 1.7)**   | `plan-verifier` + `plan-challenger`                     | `pilot:plan-verifier` + `pilot:plan-challenger`         |
+| **`spec-verify` (Step 3.0, 3.5)** | `spec-reviewer-compliance` + `spec-reviewer-quality` | `pilot:spec-reviewer-compliance` + `pilot:spec-reviewer-quality` |
+
+**How to launch:** Use TWO `Task()` calls in a SINGLE message with `subagent_type="pilot:*"`. In `spec-verify`, also set `run_in_background=true` so agents work while automated checks proceed. See `spec-plan.md` Step 1.7 and `spec-verify.md` Step 3.0d for exact syntax.
 
 **⛔ VERIFICATION STEPS ARE MANDATORY - NEVER SKIP THEM.**
 
@@ -175,12 +196,14 @@ Note: Task management tools (TaskCreate, TaskList, etc.) are ALWAYS allowed.
 
 ### No Background Tasks
 
-**NEVER use `run_in_background=true` on Bash or any other tool.**
+**NEVER use `run_in_background=true` on Bash.**
 
-- Run ALL commands synchronously — no exceptions
+- Run ALL Bash commands synchronously — no exceptions
 - Use `timeout` parameter if needed (up to 600000ms)
-- Background tasks lose visibility, create orphan processes, and waste context on polling
+- Background Bash tasks lose visibility, create orphan processes, and waste context on polling
 - This is enforced by the `tool_redirect` hook — background Bash calls are blocked with exit code 2
+
+**Exception:** Task tool may use `run_in_background=true` for parallel review agents in /spec verification steps (Steps 1.7 and 3.0). These agents persist findings to session files for reliable retrieval.
 
 ### No Built-in Plan Mode
 
@@ -266,8 +289,8 @@ spec-verify finds issues → Status: PENDING → spec-implement fixes → COMPLE
 
 | Point                            | What                                                  | When                 |
 | -------------------------------- | ----------------------------------------------------- | -------------------- |
-| **Plan Verification (Step 1.7)** | `plan-verifier` checks plan matches user requirements | End of `spec-plan`   |
-| **Code Verification (Step 3.5)** | `spec-verifier` checks code implements plan correctly | During `spec-verify` |
+| **Plan Verification (Step 1.7)** | `plan-verifier` + `plan-challenger` (parallel) check plan matches user requirements and challenge assumptions | End of `spec-plan`   |
+| **Code Verification (Step 3.0, 3.5)** | `spec-reviewer-compliance` + `spec-reviewer-quality` (parallel) check code implements plan correctly | During `spec-verify` |
 
 **⛔ Both verification steps are NON-NEGOTIABLE. Skipping is FORBIDDEN.**
 

@@ -1,3 +1,15 @@
+---
+paths:
+  - "**/test_*.py"
+  - "**/*_test.py"
+  - "**/tests/**"
+  - "**/conftest.py"
+  - "**/*.test.*"
+  - "**/*.spec.*"
+  - "**/__tests__/**"
+  - "**/*_test.go"
+---
+
 ## Testing Strategies and Coverage
 
 **Core Rule:** Unit tests for logic, integration tests for interactions, E2E tests for workflows. Minimum 80% coverage required.
@@ -290,6 +302,66 @@ Is this a complete user workflow?
 ├─ YES → E2E test (test entire flow)
 └─ NO → Unit or integration test
 ```
+
+### Testing Anti-Patterns
+
+**Anti-Pattern: Asserting on Mock Existence**
+
+Don't verify mocks are present; test real behavior.
+
+```typescript
+// BAD: Testing mock exists
+test('renders sidebar', () => {
+  render(<Page />);
+  expect(screen.getByTestId('sidebar-mock')).toBeInTheDocument();
+});
+
+// GOOD: Test real behavior
+test('renders sidebar', () => {
+  render(<Page />);
+  expect(screen.getByRole('navigation')).toBeInTheDocument();
+});
+```
+
+**Detection:** If assertion contains `*-mock` or only checks `toHaveBeenCalled` without verifying behavior, delete or rewrite.
+
+**Anti-Pattern: Test-Only Methods in Production Code**
+
+Never add methods to production classes that are only called from tests.
+
+```typescript
+// BAD: Production method only used in tests
+class Session {
+  async destroy() { /* only called in afterEach */ }
+}
+
+// GOOD: Test utility function
+// test-utils.ts
+export async function cleanupSession(session: Session) {
+  const workspace = session.getWorkspaceInfo();
+  if (workspace) await workspaceManager.destroyWorkspace(workspace.id);
+}
+```
+
+**Detection:** Before adding a method to a production class, search: is it only called from test files? If yes, create a test utility instead.
+
+**Anti-Pattern: Incomplete Mock Data**
+
+Mock data must match real API/response structure completely.
+
+```typescript
+// BAD: Missing fields — code accessing response.metadata.requestId silently fails
+const mockResponse = { status: 'success', data: { userId: '123' } };
+
+// GOOD: Complete structure
+const mockResponse = {
+  status: 'success',
+  data: { userId: '123', name: 'Alice' },
+  metadata: { requestId: 'req-789', timestamp: 1234567890 }
+};
+```
+
+**Before creating mock data:** Check real API response, include ALL fields, use realistic values.
 
 ### Completion Checklist
 

@@ -95,25 +95,25 @@ const rulesCategories = [
   {
     icon: BookOpen,
     category: "Learning & Knowledge",
-    rules: ["Online learning system", "Skill extraction patterns"],
+    rules: ["Online learning system", "Knowledge extraction patterns"],
   },
 ];
 
-const skillsList = [
-  { name: "Python Standards", desc: "uv, pytest, ruff, basedpyright, type hints" },
-  { name: "TypeScript Standards", desc: "npm/pnpm, Jest, ESLint, Prettier, React" },
-  { name: "Go Standards", desc: "Modules, testing, formatting, error handling" },
-  { name: "Testing Patterns", desc: "Unit, integration, mocking, coverage goals" },
-  { name: "API Design", desc: "RESTful patterns, error handling, versioning" },
-  { name: "Data Models", desc: "Schemas, type safety, migrations, relations" },
-  { name: "Components", desc: "Reusable patterns, props, documentation" },
-  { name: "CSS / Styling", desc: "Naming, organization, responsive, performance" },
-  { name: "Responsive Design", desc: "Mobile-first, breakpoints, touch interactions" },
-  { name: "Design System", desc: "Color palette, typography, spacing, consistency" },
-  { name: "Accessibility", desc: "WCAG, ARIA, keyboard nav, screen readers" },
-  { name: "DB Migrations", desc: "Schema changes, data transforms, rollbacks" },
-  { name: "Query Optimization", desc: "Indexing, N+1 problems, performance" },
-  { name: "Test Organization", desc: "File structure, naming, fixtures, setup" },
+const standardsList = [
+  { name: "Python", desc: "uv, pytest, ruff, basedpyright, type hints", ext: "*.py" },
+  { name: "TypeScript", desc: "npm/pnpm, Jest, ESLint, Prettier, React", ext: "*.ts, *.tsx" },
+  { name: "Go", desc: "Modules, testing, formatting, error handling", ext: "*.go" },
+  { name: "Testing", desc: "Unit, integration, mocking, coverage goals", ext: "*test*, *spec*" },
+  { name: "API Design", desc: "RESTful patterns, error handling, versioning", ext: "*route*, *api*" },
+  { name: "Data Models", desc: "Schemas, type safety, migrations, relations", ext: "*model*, *schema*" },
+  { name: "Components", desc: "Reusable patterns, props, documentation", ext: "*.tsx, *.vue" },
+  { name: "CSS / Styling", desc: "Naming, organization, responsive, performance", ext: "*.css, *.scss" },
+  { name: "Responsive Design", desc: "Mobile-first, breakpoints, touch interactions", ext: "*.css, *.tsx" },
+  { name: "Design System", desc: "Color palette, typography, spacing, consistency", ext: "*.css, *.tsx" },
+  { name: "Accessibility", desc: "WCAG, ARIA, keyboard nav, screen readers", ext: "*.tsx, *.html" },
+  { name: "DB Migrations", desc: "Schema changes, data transforms, rollbacks", ext: "*migration*" },
+  { name: "Query Optimization", desc: "Indexing, N+1 problems, performance", ext: "*query*, *dao*" },
+  { name: "Test Organization", desc: "File structure, naming, fixtures, setup", ext: "*test*, *spec*" },
 ];
 
 const mcpServers = [
@@ -128,7 +128,7 @@ const DeepDiveSection = () => {
   const [headerRef, headerInView] = useInView<HTMLDivElement>();
   const [hooksRef, hooksInView] = useInView<HTMLDivElement>();
   const [rulesRef, rulesInView] = useInView<HTMLDivElement>();
-  const [skillsRef, skillsInView] = useInView<HTMLDivElement>();
+  const [standardsRef, standardsInView] = useInView<HTMLDivElement>();
   const [mcpRef, mcpInView] = useInView<HTMLDivElement>();
   const [contextRef, contextInView] = useInView<HTMLDivElement>();
 
@@ -147,7 +147,7 @@ const DeepDiveSection = () => {
           </h2>
           <p className="text-muted-foreground text-lg sm:text-xl max-w-3xl mx-auto">
             Pilot isn't a thin wrapper — it's a deeply engineered system with rules, hooks,
-            skills, language servers, and MCP servers working together on every edit.
+            standards, language servers, and MCP servers working together on every edit.
           </p>
         </div>
 
@@ -282,29 +282,30 @@ const DeepDiveSection = () => {
           </div>
         </div>
 
-        {/* Skills Grid */}
+        {/* Standards Grid */}
         <div
-          ref={skillsRef}
-          className={`mb-16 ${skillsInView ? "animate-fade-in-up" : "opacity-0"}`}
+          ref={standardsRef}
+          className={`mb-16 ${standardsInView ? "animate-fade-in-up" : "opacity-0"}`}
         >
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
               <Cpu className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-foreground">Built-in Coding Skills</h3>
-              <p className="text-sm text-muted-foreground">Dynamically activated when relevant — specialized knowledge on demand</p>
+              <h3 className="text-2xl font-bold text-foreground">Built-in Coding Standards</h3>
+              <p className="text-sm text-muted-foreground">Conditional rules activated by file type — loaded only when working with matching files</p>
             </div>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {skillsList.map((skill) => (
+            {standardsList.map((standard) => (
               <div
-                key={skill.name}
+                key={standard.name}
                 className="rounded-xl p-4 border border-border/50 bg-card/30 backdrop-blur-sm hover:border-primary/30 transition-colors"
               >
-                <h4 className="font-medium text-foreground text-sm mb-1">{skill.name}</h4>
-                <p className="text-xs text-muted-foreground">{skill.desc}</p>
+                <h4 className="font-medium text-foreground text-sm mb-1">{standard.name}</h4>
+                <p className="text-xs text-muted-foreground mb-2">{standard.desc}</p>
+                <p className="text-[10px] text-muted-foreground/60 font-mono">{standard.ext}</p>
               </div>
             ))}
           </div>

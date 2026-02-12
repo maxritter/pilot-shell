@@ -1,13 +1,13 @@
 import { StatsGrid } from './StatsGrid';
 import { WorkerStatus } from './WorkerStatus';
 import { VexorStatus } from './VexorStatus';
+import { VaultStatus } from './VaultStatus';
 import { PlanStatus } from './PlanStatus';
-import { GitStatus } from './GitStatus';
 import { useStats } from '../../hooks/useStats';
 import { useProject } from '../../context';
 
 export function DashboardView() {
-  const { stats, workerStatus, vexorStatus, planStatus, gitInfo, specStats, isLoading } = useStats();
+  const { stats, workerStatus, vexorStatus, vaultStatus, planStatus, specStats, isLoading } = useStats();
   const { selectedProject } = useProject();
 
   if (isLoading) {
@@ -33,21 +33,21 @@ export function DashboardView() {
       {/* Workspace-level status (shown when no project filter or matching workspace project) */}
       {(!selectedProject || selectedProject === workerStatus.workspaceProject) && <div className="space-y-4">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-base-content/40">Workspace</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <PlanStatus plans={planStatus.plans} />
-          <WorkerStatus
-            status={workerStatus.status}
-            version={workerStatus.version}
-            uptime={workerStatus.uptime}
-            queueDepth={workerStatus.queueDepth}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 [&>*]:h-full">
           <VexorStatus
             isIndexed={vexorStatus.isIndexed}
             files={vexorStatus.files}
             generatedAt={vexorStatus.generatedAt}
             isReindexing={vexorStatus.isReindexing}
           />
-          <GitStatus gitInfo={gitInfo} />
+          <WorkerStatus
+            status={workerStatus.status}
+            version={workerStatus.version}
+            uptime={workerStatus.uptime}
+            queueDepth={workerStatus.queueDepth}
+          />
+          <PlanStatus plans={planStatus.plans} />
+          <VaultStatus {...vaultStatus} />
         </div>
       </div>}
     </div>

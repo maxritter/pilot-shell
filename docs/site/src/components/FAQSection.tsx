@@ -26,17 +26,17 @@ const faqItems = [
   {
     question: "Does Pilot work with any programming language?",
     answer:
-      "Pilot's quality hooks (auto-formatting, linting, type checking) currently support Python, TypeScript/JavaScript, and Go out of the box. TDD enforcement, spec-driven development, Endless Mode, persistent memory, and all rules and skills work with any language that Claude Code supports. You can add custom hooks for additional languages.",
+      "Pilot's quality hooks (auto-formatting, linting, type checking) currently support Python, TypeScript/JavaScript, and Go out of the box. TDD enforcement, spec-driven development, Endless Mode, persistent memory, and all rules and standards work with any language that Claude Code supports. You can add custom hooks for additional languages.",
   },
   {
     question: "Can I use Pilot on multiple projects?",
     answer:
-      "Yes. Pilot installs once and works across all your projects. Each project can have its own rules, skills, and MCP servers in the .claude/ folder. Run /sync in each project to generate project-specific documentation and skills.",
+      "Yes. Pilot installs once and works across all your projects. Each project can have its own rules, standards, and MCP servers in the .claude/ folder. Run /sync in each project to generate project-specific documentation and standards.",
   },
   {
     question: "Can I customize the rules and hooks?",
     answer:
-      "Yes. All rules are markdown files you can edit, extend, or replace. Hooks are Python scripts you can modify. Skills are dynamically loaded and can be customized or created via /learn. Project-specific rules override global defaults. Use /vault to share customizations across your team.",
+      "Yes. All rules are markdown files you can edit, extend, or replace. Hooks are Python scripts you can modify. Built-in coding standards are conditional rules that activate by file type and can be customized. You can also create custom skills via /learn. Project-specific rules override global defaults. Use /vault to share customizations across your team.",
   },
 ];
 

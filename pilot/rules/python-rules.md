@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.py"
+---
+
 ## Python Development Standards
 
 **Standards:** Always use uv | pytest for tests | ruff for quality | Self-documenting code
@@ -58,24 +63,102 @@ basedpyright src 2>&1 | head -50        # Limit type checker output if many erro
 # DON'T dump 100+ errors into context at once
 ```
 
-### Code Style Essentials
+### Code Style
 
 **Docstrings:** One-line for most functions. Multi-line only for complex logic.
 ```python
 def calculate_total(items: list[Item]) -> float:
     """Calculate total price of all items."""
     return sum(item.price for item in items)
+
+def process_payment(order_id: str, payment_method: str) -> PaymentResult:
+    """
+    Process payment for order using specified method.
+
+    Validates payment method, charges customer, updates order status,
+    and sends confirmation email. Rolls back on any failure.
+    """
 ```
 
-**Type Hints:** Required on all public function signatures.
+**Don't document obvious behavior:**
 ```python
-def process_order(order_id: str, user_id: int) -> Order:
-    pass
+# BAD - docstring adds no value
+def get_user_email(user_id: str) -> str:
+    """Get the email address for a user by their ID."""
+
+# GOOD - name is self-explanatory, no docstring needed
+def get_user_email(user_id: str) -> str:
+    return db.query(User).filter_by(id=user_id).first().email
+```
+
+**Type Hints:** Required on all public function signatures. Use modern syntax (Python 3.10+):
+```python
+# Good - modern syntax
+def get_users(ids: list[int]) -> list[User]: ...
+def find_item(name: str) -> Item | None: ...
+
+# Avoid - old style
+from typing import List, Optional
+def get_users(ids: List[int]) -> List[User]: ...
 ```
 
 **Imports:** Standard library → Third-party → Local. Ruff auto-sorts with `ruff check . --fix`.
+```python
+import os
+from datetime import datetime
+
+import pytest
+from sqlalchemy import Column, Integer
+
+from app.models import User
+from app.services import EmailService
+```
 
 **Comments:** Write self-documenting code. Use comments only for complex algorithms, non-obvious business logic, or workarounds.
+
+### Common Patterns
+
+**Avoid bare `except`:**
+```python
+# BAD
+try:
+    process()
+except:
+    pass
+
+# GOOD
+try:
+    process()
+except ValueError as e:
+    logger.error(f"Invalid value: {e}")
+    raise
+```
+
+**Use context managers for resources:**
+```python
+with open(file_path) as f:
+    data = f.read()
+
+with db.session() as session:
+    user = session.query(User).first()
+```
+
+**Prefer pathlib over os.path:**
+```python
+from pathlib import Path
+config_path = Path(__file__).parent / "config.yaml"
+
+# Avoid
+import os
+config_path = os.path.join(os.path.dirname(__file__), "config.yaml")
+```
+
+### File Organization
+
+**Prefer editing existing files over creating new ones.** Before creating a new Python file, ask:
+1. Can this fit in an existing module?
+2. Is there a related file to extend?
+3. Does this truly need to be separate?
 
 ### Project Configuration
 

@@ -1,7 +1,9 @@
+import { Suspense, lazy } from "react";
 import { Github, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import Logo from "@/components/Logo";
+
+const VoxelLogo3D = lazy(() => import("@/components/VoxelLogo3D"));
 
 const HeroSection = () => {
   const scrollToInstall = () => {
@@ -48,9 +50,11 @@ const HeroSection = () => {
           </Badge>
         </div>
 
-        {/* Logo */}
-        <div className="animate-fade-in-up animation-delay-100">
-          <Logo variant="hero" />
+        {/* 3D Voxel Logo */}
+        <div className="animate-fade-in-up animation-delay-100 flex justify-center">
+          <Suspense fallback={<div className="w-[80vw] max-w-[220px] xs:max-w-[270px] sm:max-w-[380px] md:max-w-[460px] lg:max-w-[540px] aspect-[2/1]" />}>
+            <VoxelLogo3D />
+          </Suspense>
         </div>
 
         {/* Subtitle */}
@@ -76,8 +80,8 @@ const HeroSection = () => {
           </div>
           <div className="w-px h-8 bg-border/50 hidden xs:block" />
           <div className="text-center">
-            <div className="text-lg xs:text-xl sm:text-2xl font-bold text-primary">Skills</div>
-            <div className="text-[9px] xs:text-[10px] sm:text-xs text-muted-foreground">On-Demand</div>
+            <div className="text-lg xs:text-xl sm:text-2xl font-bold text-primary">Standards</div>
+            <div className="text-[9px] xs:text-[10px] sm:text-xs text-muted-foreground">By File Type</div>
           </div>
           <div className="w-px h-8 bg-border/50 hidden xs:block" />
           <div className="text-center">

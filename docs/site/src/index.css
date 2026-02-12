@@ -260,4 +260,24 @@ html {
   .stagger-children.in-view > *:nth-child(4) { transition-delay: 300ms; opacity: 1; transform: translateY(0); }
   .stagger-children.in-view > *:nth-child(5) { transition-delay: 400ms; opacity: 1; transform: translateY(0); }
   .stagger-children.in-view > *:nth-child(6) { transition-delay: 500ms; opacity: 1; transform: translateY(0); }
+
+  /* Prose dark theme overrides for blog articles */
+  .prose-invert {
+    --tw-prose-body: hsl(0 0% 85%);
+    --tw-prose-headings: hsl(0 0% 98%);
+    --tw-prose-lead: hsl(0 0% 75%);
+    --tw-prose-links: hsl(209 72% 63%);
+    --tw-prose-bold: hsl(0 0% 98%);
+    --tw-prose-counters: hsl(0 0% 75%);
+    --tw-prose-bullets: hsl(0 0% 55%);
+    --tw-prose-hr: hsl(0 0% 20%);
+    --tw-prose-quotes: hsl(0 0% 90%);
+    --tw-prose-quote-borders: hsl(209 72% 63% / 0.3);
+    --tw-prose-captions: hsl(0 0% 65%);
+    --tw-prose-code: hsl(0 0% 98%);
+    --tw-prose-pre-code: hsl(0 0% 85%);
+    --tw-prose-pre-bg: hsl(0 0% 10%);
+    --tw-prose-th-borders: hsl(0 0% 20%);
+    --tw-prose-td-borders: hsl(0 0% 15%);
+  }
 }

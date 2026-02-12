@@ -22,7 +22,7 @@ hooks:
 
 | #   | Rule                                                                                                     |
 | --- | -------------------------------------------------------------------------------------------------------- |
-| 1   | **NO sub-agents during planning** - Use direct tools only. Exception: Step 1.7 uses `plan-verifier`.     |
+| 1   | **NO sub-agents during planning** - Use direct tools only. Exception: Step 1.7 launches `plan-verifier` + `plan-challenger` via the **Task tool** (`subagent_type="pilot:plan-verifier"` and `"pilot:plan-challenger"`). |
 | 2   | **NEVER SKIP verification** - Plan verification (Step 1.7) is mandatory. No exceptions.                  |
 | 3   | **ONLY stopping point is plan approval** - Everything else is automatic. Never ask "Should I fix these?" |
 | 4   | **Batch questions together** - Don't interrupt user flow                                                 |
@@ -495,7 +495,7 @@ Worktree: Yes
 | -------- | ------------ | ------------ | ------------------------------------ |
 | [Risk 1] | Low/Med/High | Low/Med/High | [Concrete, implementable mitigation] |
 
-**⚠️ Risk mitigations are commitments.** The verification phase (spec-verifier) will check that every mitigation listed here is actually implemented in code. Write mitigations as concrete, implementable behaviors, not vague statements.
+**⚠️ Risk mitigations are commitments.** The verification phase (spec-reviewer-compliance) will check that every mitigation listed here is actually implemented in code. Write mitigations as concrete, implementable behaviors, not vague statements.
 
 ✅ Good: "If selected project not in available list, reset to null (All Projects)"
 ❌ Bad: "Handle edge cases appropriately"
@@ -514,12 +514,23 @@ Worktree: Yes
 
 **⛔ THIS STEP IS NON-NEGOTIABLE. You MUST run plan verification before asking for approval.**
 
-Before presenting the plan to the user, verify it with a dedicated verifier agent. This catches missing requirements, scope issues, and misalignments BEFORE the user sees the plan.
+Before presenting the plan to the user, verify it with TWO dedicated reviewer agents running in parallel. This provides both alignment checking (plan-verifier) and adversarial review (plan-challenger) BEFORE the user sees the plan.
 
-#### Launch Plan Verification
+#### Resolve Session Path for Findings Persistence
 
-Spawn 1 `plan-verifier` agent using the Task tool:
+```bash
+echo $PILOT_SESSION_ID
+```
 
+Define output paths (replace `<session-id>` with the resolved value):
+- **Verifier findings:** `~/.pilot/sessions/<session-id>/findings-plan-verifier.json`
+- **Challenger findings:** `~/.pilot/sessions/<session-id>/findings-plan-challenger.json`
+
+#### Launch Plan Verification (Parallel Review)
+
+Spawn 2 agents in parallel using TWO Task tool calls in a SINGLE message:
+
+**Agent 1: plan-verifier** (alignment and completeness)
 ```
 Task(
   subagent_type="pilot:plan-verifier",
@@ -527,23 +538,54 @@ Task(
   **Plan file:** <plan-path>
   **User request:** <original task description from user>
   **Clarifications:** <any Q&A that clarified requirements>
+  **Output path:** <absolute path to findings-plan-verifier.json>
 
   Verify this plan correctly captures the user's requirements.
   Check for missing features, scope issues, and ambiguities.
+
+  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
   """
 )
 ```
 
-The verifier:
+**Agent 2: plan-challenger** (adversarial review)
+```
+Task(
+  subagent_type="pilot:plan-challenger",
+  prompt="""
+  **Plan file:** <plan-path>
+  **User request:** <original task description from user>
+  **Clarifications:** <any Q&A that clarified requirements>
+  **Output path:** <absolute path to findings-plan-challenger.json>
 
-- Reviews plan against original user request
-- Checks if clarification answers are incorporated
-- Identifies missing requirements or scope issues
-- Returns structured JSON findings
+  Challenge this plan from an adversarial perspective.
+  Find untested assumptions, missing failure modes, and hidden dependencies.
+
+  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
+  """
+)
+```
+
+The verifiers work in parallel:
+
+- **plan-verifier**: Reviews plan against original user request, checks if clarification answers are incorporated, identifies missing requirements or scope issues
+- **plan-challenger**: Challenges assumptions, finds failure modes, questions optimism, identifies architectural weaknesses
+
+Both agents persist their findings JSON to the session directory for reliable retrieval.
+
+#### Collect and Merge Findings
+
+After BOTH agents complete:
+
+1. **Read findings from files** using the Read tool on the paths defined above
+2. **Fall back** to agent return values if files are missing
+3. Collect findings from both agents
+4. **Deduplicate**: If both agents found the same issue, keep the one with higher severity
+5. Combine into a single findings list
 
 #### Fix All Findings
 
-After verification completes, fix all issues by severity:
+After merging findings, fix all issues by severity:
 
 | Severity       | Action                                               |
 | -------------- | ---------------------------------------------------- |

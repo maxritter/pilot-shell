@@ -99,6 +99,9 @@ def _start_trial(
                 data = json.loads(output)
                 if data.get("error") == "trial_already_used":
                     console.error("Trial has already been used on this machine")
+                    console.print(
+                        "  [bold yellow]50% off your first month:[/bold yellow] [bold white]TRIAL50OFF[/bold white]"
+                    )
                     console.print("  [cyan]Subscribe at: https://claude-pilot.com[/cyan]")
                 else:
                     detail = data.get("detail", data.get("error", "Unknown error"))
@@ -237,6 +240,7 @@ def _prompt_license_key(
 
     console.print()
     console.error(f"License validation failed after {max_attempts} attempts.")
+    console.print("  [bold yellow]50% off your first month:[/bold yellow] [bold white]TRIAL50OFF[/bold white]")
     console.print("  [bold]Subscribe at:[/bold] [cyan]https://claude-pilot.com[/cyan]")
     console.print()
     return False
@@ -256,6 +260,9 @@ def _handle_license_flow(
         is_expired = license_info.get("is_expired", False)
 
         if tier == "trial" and is_expired:
+            console.print()
+            console.print("  [bold yellow]50% off your first month:[/bold yellow] [bold white]TRIAL50OFF[/bold white]")
+            console.print("  [cyan]Subscribe at: https://claude-pilot.com[/cyan]")
             console.print()
             console.print("  [bold]Enter your license key to continue:[/bold]")
             console.print()
@@ -289,8 +296,10 @@ def _handle_license_flow(
 
     if trial_used and not can_reactivate:
         console.print("  [bold yellow]Trial has expired on this machine.[/bold yellow]")
-        console.print("  Please enter a license key to continue.")
+        console.print("  [bold yellow]50% off your first month:[/bold yellow] [bold white]TRIAL50OFF[/bold white]")
+        console.print("  [cyan]Subscribe at: https://claude-pilot.com[/cyan]")
         console.print()
+        console.print("  Please enter a license key to continue.")
         console.print()
         if not _prompt_license_key(console, project_dir):
             return 1

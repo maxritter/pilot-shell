@@ -104,7 +104,7 @@ const PricingSection = () => {
             <ul className="space-y-3 mb-8">
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">Rules, hooks, skills, LSPs, MCP servers</span>
+                <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">Rules, hooks, standards, LSPs, MCP servers</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
@@ -204,7 +204,7 @@ const PricingSection = () => {
             <div className="flex flex-col items-center gap-2">
               <Sparkles className="h-6 w-6 text-primary" />
               <p className="text-sm text-muted-foreground">
-                <span className="text-foreground font-medium">Continuous updates</span> from daily production usage — new rules, skills, and optimizations shipped regularly
+                <span className="text-foreground font-medium">Continuous updates</span> from daily production usage — new rules, standards, and optimizations shipped regularly
               </p>
             </div>
           </div>
