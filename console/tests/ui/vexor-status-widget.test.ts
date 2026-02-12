@@ -73,7 +73,7 @@ describe("VexorStatus Widget", () => {
       expect(html).toContain("Never");
     });
 
-    it("renders reindex button", async () => {
+    it("renders display-only mode without reindex button", async () => {
       const { VexorStatus } = await import(
         "../../src/ui/viewer/views/Dashboard/VexorStatus.js"
       );
@@ -87,10 +87,12 @@ describe("VexorStatus Widget", () => {
         })
       );
 
-      expect(html).toContain("Re-index");
+      expect(html).not.toContain("Re-index");
+      expect(html).toContain("Codebase Indexing");
+      expect(html).toContain("100");
     });
 
-    it("renders indexing state when isReindexing is true", async () => {
+    it("renders indexing badge when isReindexing is true", async () => {
       const { VexorStatus } = await import(
         "../../src/ui/viewer/views/Dashboard/VexorStatus.js"
       );
@@ -105,7 +107,6 @@ describe("VexorStatus Widget", () => {
       );
 
       expect(html).toContain("Indexing...");
-      expect(html).toContain("Rebuilding Index...");
     });
   });
 
