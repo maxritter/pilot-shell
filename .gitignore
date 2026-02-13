@@ -236,7 +236,6 @@ playwright/
 .claude/rules/
 
 # Build artifacts
-scripts/
 docs/plans
 docs/license
 docs/video
