@@ -243,6 +243,9 @@ docs/slides
 .install-version
 bun.lock
 
+# Cursor (created by sx install for Cursor client)
+.cursor/
+
 # Kiro
 .kiro/
 .worktrees/

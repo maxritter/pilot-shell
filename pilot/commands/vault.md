@@ -213,6 +213,11 @@ sx add .claude/skills/<name> --yes --type skill --name "<name>" --scope-global
 
 **Warning:** Do NOT use `--no-install` — it skips updating the vault lockfile, making assets invisible to `sx install` for teammates.
 
+**Note:** sx installs to all detected clients (Claude Code + Cursor). If `.cursor/` is not in `.gitignore`, add it:
+```bash
+echo '.cursor/' >> .gitignore 2>/dev/null
+```
+
 ### Step P.6: Verify Push
 
 ```bash

@@ -98,3 +98,4 @@ sx vault list
 - Always use `sx install --repair --target .` to install assets to the current project
 - Use `--target /path` to install for a project from outside it (CI pipelines, Docker)
 - Multiple profiles supported via `--profile` flag or `SX_PROFILE` env var
+- **Add `.cursor/` to `.gitignore`** — sx installs to all detected clients (including Cursor), which creates `.cursor/` in the project directory. Gitignore it to avoid polluting version control.
