@@ -22,6 +22,18 @@ Editing files is normal development work. The rule only restricts git commands t
 
 **"Fix this bug" does NOT mean "commit it". Wait for explicit git instructions.**
 
+### ⛔ ABSOLUTE BAN: Never Override .gitignore
+
+**NEVER use `git add -f` or `git add --force` to stage gitignored files.** No exceptions.
+
+If `git add` fails because a path is in `.gitignore`:
+1. **STOP** — the file is ignored for a reason
+2. **Tell the user** the file is gitignored and cannot be staged
+3. **Ask the user** if they want to update `.gitignore` to unignore it
+4. **NEVER force-add it** — this bypasses project safeguards and can leak secrets, local configs, or proprietary assets into the repository
+
+This applies even if the user says "stage everything" or "push all changes" — gitignored files are excluded from "everything" by design.
+
 ### What You Can Do
 
 Execute these commands freely to understand repository state:
