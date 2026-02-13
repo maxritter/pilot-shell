@@ -2,6 +2,13 @@
 
 All notable changes to Claude Pilot will be documented in this file.
 
+## [6.5.2] - 2026-02-13
+
+### Bug Fixes
+
+- Add .cursor/ to .gitignore and update vault docs
+- Improve vault workflow and usage tab performance
+
 ## [6.5.1] - 2026-02-13
 
 ### Bug Fixes
