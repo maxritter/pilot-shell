@@ -101,53 +101,6 @@ def get_current_session_id() -> str:
     return ""
 
 
-def find_session_file(session_id: str) -> Path | None:
-    """Find session file for given session ID."""
-    projects_dir = Path.home() / ".claude" / "projects"
-    if not projects_dir.exists():
-        return None
-    for project_dir in projects_dir.iterdir():
-        if project_dir.is_dir():
-            session_file = project_dir / f"{session_id}.jsonl"
-            if session_file.exists():
-                return session_file
-    return None
-
-
-def get_actual_token_count(session_file: Path) -> int | None:
-    """Get actual token count from the most recent API usage data."""
-    last_usage = None
-
-    try:
-        with session_file.open() as f:
-            for line in f:
-                try:
-                    msg = json.loads(line)
-                    if msg.get("type") != "assistant":
-                        continue
-
-                    message = msg.get("message", {})
-                    if not isinstance(message, dict):
-                        continue
-
-                    usage = message.get("usage")
-                    if usage:
-                        last_usage = usage
-                except (json.JSONDecodeError, KeyError):
-                    continue
-    except OSError:
-        return None
-
-    if not last_usage:
-        return None
-
-    input_tokens = last_usage.get("input_tokens", 0)
-    cache_creation = last_usage.get("cache_creation_input_tokens", 0)
-    cache_read = last_usage.get("cache_read_input_tokens", 0)
-
-    return input_tokens + cache_creation + cache_read
-
-
 def get_session_flags(session_id: str) -> tuple[list[int], bool]:
     """Get shown flags for this session (learn thresholds, 80% warning)."""
     if get_session_cache_path().exists():
@@ -230,29 +183,60 @@ def _read_statusline_context_pct() -> float | None:
         return None
 
 
+def _is_throttled(session_id: str) -> bool:
+    """Check if context monitoring should be throttled (skipped).
+
+    Returns True if:
+    - Last check was < 30 seconds ago AND
+    - Last cached context was < 80%
+
+    Always returns False at 80%+ context (never throttle high context).
+    """
+    cache_path = get_session_cache_path()
+    if not cache_path.exists():
+        return False
+
+    try:
+        with cache_path.open() as f:
+            cache = json.load(f)
+            if cache.get("session_id") != session_id:
+                return False
+
+            timestamp = cache.get("timestamp")
+            if timestamp is None:
+                return False
+
+            if time.time() - timestamp < 30:
+                tokens = cache.get("tokens", 0)
+                percentage = (tokens / 200000) * 100
+                if percentage < THRESHOLD_WARN:
+                    return True
+
+            return False
+    except (json.JSONDecodeError, OSError, KeyError):
+        return False
+
+
 def _resolve_context(session_id: str) -> tuple[float, int, list[int], bool] | None:
-    """Resolve context percentage and tokens. Returns (pct, tokens, shown_learn, shown_80) or None."""
+    """Resolve context percentage and tokens. Returns (pct, tokens, shown_learn, shown_80) or None.
+    Uses the session-scoped statusline cache (context-pct.json) which is
+    written by the statusline process for this specific Pilot session.
+    """
     statusline_pct = _read_statusline_context_pct()
-    if statusline_pct is not None:
-        shown_learn, shown_80_warn = get_session_flags(session_id)
-        return statusline_pct, int(statusline_pct / 100 * 200000), shown_learn, shown_80_warn
-
-    session_file = find_session_file(session_id)
-    if not session_file:
-        return None
-
-    actual_tokens = get_actual_token_count(session_file)
-    if actual_tokens is None:
+    if statusline_pct is None:
         return None
 
     shown_learn, shown_80_warn = get_session_flags(session_id)
-    return (actual_tokens / 200000) * 100, actual_tokens, shown_learn, shown_80_warn
+    return statusline_pct, int(statusline_pct / 100 * 200000), shown_learn, shown_80_warn
 
 
 def run_context_monitor() -> int:
     """Run context monitoring and return exit code."""
     session_id = get_current_session_id()
     if not session_id:
+        return 0
+
+    if _is_throttled(session_id):
         return 0
 
     resolved = _resolve_context(session_id)

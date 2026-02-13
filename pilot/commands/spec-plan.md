@@ -577,13 +577,17 @@ Both agents persist their findings JSON to the session directory for reliable re
 
 #### Collect and Merge Findings
 
-After BOTH background agents complete (use Read tool to check output files, retry if not yet written):
+**⛔ NEVER use `TaskOutput` to retrieve agent results.** TaskOutput dumps the full verbose agent transcript (all JSON messages, hook progress, tool calls) into context, wasting thousands of tokens. Instead, poll the output files with the Read tool.
 
-1. **Read findings from files** using the Read tool on the paths defined above
-2. **Fall back** to agent return values if files are missing
-3. Collect findings from both agents
-4. **Deduplicate**: If both agents found the same issue, keep the one with higher severity
-5. Combine into a single findings list
+**Polling approach:**
+
+1. **Wait briefly** (the agents write findings JSON to the session directory when done)
+2. **Read findings from files** using the Read tool on the paths defined above
+3. **If a file doesn't exist yet**, wait a few seconds and retry (agents may still be running)
+4. **If a file is still missing after 2-3 retries**, re-launch that specific agent synchronously (without `run_in_background`) with the same prompt
+5. Collect findings from both agents
+6. **Deduplicate**: If both agents found the same issue, keep the one with higher severity
+7. Combine into a single findings list
 
 #### Fix All Findings
 

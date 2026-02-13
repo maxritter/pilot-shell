@@ -743,3 +743,37 @@ class TestPrecacheNpxMcpServers:
         assert _extract_npx_package_name("open-websearch@latest") == "open-websearch"
         assert _extract_npx_package_name("@upstash/context7-mcp") == "@upstash/context7-mcp"
         assert _extract_npx_package_name("@scope/pkg@1.0.0") == "@scope/pkg"
+
+    @patch("installer.steps.dependencies.subprocess.run")
+    def test_is_ccusage_installed_returns_true_when_present(self, mock_run):
+        """_is_ccusage_installed returns True when ccusage is globally installed."""
+        from installer.steps.dependencies import _is_ccusage_installed
+
+        mock_run.return_value = MagicMock(returncode=0, stdout="ccusage@1.0.0")
+        assert _is_ccusage_installed() is True
+
+    @patch("installer.steps.dependencies.subprocess.run")
+    def test_is_ccusage_installed_returns_false_when_missing(self, mock_run):
+        """_is_ccusage_installed returns False when ccusage is not installed."""
+        from installer.steps.dependencies import _is_ccusage_installed
+
+        mock_run.return_value = MagicMock(returncode=1, stdout="")
+        assert _is_ccusage_installed() is False
+
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    @patch("installer.steps.dependencies._is_ccusage_installed", return_value=False)
+    def test_install_ccusage_installs_when_not_present(self, mock_check, mock_run):
+        """install_ccusage runs npm install when ccusage not present."""
+        from installer.steps.dependencies import install_ccusage
+
+        result = install_ccusage()
+        assert result is True
+        mock_run.assert_called_once_with("npm install -g ccusage@latest")
+
+    @patch("installer.steps.dependencies._is_ccusage_installed", return_value=True)
+    def test_install_ccusage_skips_when_already_installed(self, mock_check):
+        """install_ccusage returns True without installing when already present."""
+        from installer.steps.dependencies import install_ccusage
+
+        result = install_ccusage()
+        assert result is True

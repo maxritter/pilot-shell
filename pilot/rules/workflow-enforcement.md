@@ -204,6 +204,8 @@ Note: Task management tools (TaskCreate, TaskList, etc.) are ALWAYS allowed.
 
 **Task tool** may also use `run_in_background=true` for parallel review agents in /spec verification steps (Steps 1.7 and 3.0).
 
+**⛔ NEVER use `TaskOutput` to retrieve verification agent results.** TaskOutput dumps the full verbose agent transcript (all JSON messages, hook progress, tool calls) into context, wasting thousands of tokens. Instead, agents write their findings to JSON files in the session directory — use the Read tool to poll those files.
+
 ### No Built-in Plan Mode
 
 **NEVER use `EnterPlanMode` or `ExitPlanMode` tools.**

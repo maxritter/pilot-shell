@@ -75,7 +75,7 @@ The system stays fast because it stays simple. Quick mode is direct execution wi
 
 ### Prerequisites
 
-**Claude Subscription:** [Max](https://claude.com/pricing), [Team Premium](https://claude.com/pricing#team-&-enterprise), or [Enterprise](https://claude.com/pricing#team-&-enterprise) recommended; using the API may lead to much higher costs
+**Claude Subscription:** Solo developers should choose [Max 5x](https://claude.com/pricing) for moderate usage or [Max 20x](https://claude.com/pricing) for heavy usage. Teams and companies should use [Team Premium](https://claude.com/pricing) which provides 6.25x usage per member plus SSO, admin tools, and billing management. Using the API instead may lead to much higher costs.
 
 ### Installation
 
@@ -545,7 +545,7 @@ All external tools and dependencies that Pilot installs and uses are open source
 <details>
 <summary><b>Do I need a separate Anthropic subscription?</b></summary>
 
-Yes. Pilot enhances Claude Code — it doesn't replace it. You need an active Claude subscription (Max, Team, or Enterprise) or an Anthropic API key. Pilot adds quality automation on top of whatever Claude Code access you already have.
+Yes. Pilot enhances Claude Code — it doesn't replace it. You need an active Claude subscription — [Max 5x or 20x](https://claude.com/pricing) for solo developers, or [Team Premium](https://claude.com/pricing) for teams and companies. Using the Anthropic API directly is also possible but may lead to much higher costs. Pilot adds quality automation on top of whatever Claude Code access you already have.
 
 </details>
 

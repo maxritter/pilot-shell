@@ -1,16 +1,12 @@
 {
   "env": {
-    "ENABLE_TOOL_SEARCH": "true",
-    "ENABLE_LSP_TOOL": "true",
     "CLAUDE_CODE_ENABLE_TASKS": "true",
     "CLAUDE_CODE_HIDE_ACCOUNT_INFO": "true",
-    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "128000",
     "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "true",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "false",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "true",
-    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "100",
-    "MAX_THINKING_TOKENS": "63999",
-    "MAX_MCP_OUTPUT_TOKENS": "22000",
+    "ENABLE_TOOL_SEARCH": "true",
+    "ENABLE_LSP_TOOL": "true",
     "DISABLE_AUTO_COMPACT": "true",
     "DISABLE_COMPACT": "true",
     "DISABLE_MICROCOMPACT": "false",
@@ -74,7 +70,6 @@
     ],
     "deny": []
   },
-  "model": "opus",
   "enableAllProjectMcpServers": true,
   "statusLine": {
     "type": "command",

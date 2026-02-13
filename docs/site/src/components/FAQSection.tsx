@@ -21,7 +21,7 @@ const faqItems = [
   {
     question: "Do I need a separate Anthropic subscription?",
     answer:
-      "Yes. Pilot enhances Claude Code \u2014 it doesn't replace it. You need an active Claude subscription (Max, Team, or Enterprise) or an Anthropic API key. Pilot adds quality automation on top of whatever Claude Code access you already have.",
+      "Yes. Pilot enhances Claude Code \u2014 it doesn't replace it. You need an active Claude subscription \u2014 Max 5x or 20x for solo developers, or Team Premium for teams and companies. Using the Anthropic API directly is also possible but may lead to much higher costs. Pilot adds quality automation on top of whatever Claude Code access you already have.",
   },
   {
     question: "Does Pilot work with any programming language?",

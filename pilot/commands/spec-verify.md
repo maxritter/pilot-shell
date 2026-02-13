@@ -260,16 +260,19 @@ This is a serious issue - the implementation is incomplete.
 
 The two review agents (launched in Step 3.0) should be done or nearly done by now. Their findings are persisted to files in the session directory.
 
-1. **Wait for both agents** — Use `TaskOutput` with `block=true` to wait for completion
-2. **Read findings from files** — Use the Read tool on the paths defined in Step 3.0c:
+**⛔ NEVER use `TaskOutput` to retrieve agent results.** TaskOutput dumps the full verbose agent transcript (all JSON messages, hook progress, tool calls) into context, wasting thousands of tokens. Instead, poll the output files with the Read tool.
+
+**Polling approach:**
+
+1. **Read findings from files** — Use the Read tool on the paths defined in Step 3.0c:
    - `~/.pilot/sessions/<session-id>/findings-compliance.json`
    - `~/.pilot/sessions/<session-id>/findings-quality.json`
+2. **If a file doesn't exist yet**, wait a few seconds and retry (agents may still be running)
 3. **Parse the JSON** from each file to get the structured findings
 
-**If a findings file is missing** (agent failed to write):
-1. Fall back to the agent's direct return value from `TaskOutput`
-2. If the return value is also empty or unavailable, re-launch that specific agent synchronously (without `run_in_background`) with the same prompt
-3. If the synchronous re-launch also fails, log the failure and continue with findings from the other agent only
+**If a findings file is still missing after 2-3 retries** (agent failed to write):
+1. Re-launch that specific agent synchronously (without `run_in_background`) with the same prompt
+2. If the synchronous re-launch also fails, log the failure and continue with findings from the other agent only
 
 **Expected timeline:**
 - Agents were launched before Step 3.1 (tests, lint, feature parity, call chain)

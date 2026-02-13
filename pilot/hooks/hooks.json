@@ -57,12 +57,17 @@
         ]
       },
       {
-        "matcher": "*",
+        "matcher": "Read|Write|Edit|MultiEdit|Bash|Task|Skill|Grep|Glob",
         "hooks": [
           {
             "type": "command",
             "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/context_monitor.py\""
-          },
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
           {
             "type": "command",
             "command": "bun \"${CLAUDE_PLUGIN_ROOT}/scripts/worker-service.cjs\" hook claude-code observation",

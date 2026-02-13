@@ -160,10 +160,12 @@ def _configure_claude_defaults() -> bool:
             "verbose": True,
             "autoCompactEnabled": False,
             "autoConnectIde": True,
+            "showExpandedTodos": True,
             "autoUpdates": False,
             "lspRecommendationDisabled": True,
             "showTurnDuration": False,
             "terminalProgressBarEnabled": True,
+            "preferredNotifChannel": "iterm2_with_bell",
         }
     )
     settings_ok = _patch_claude_settings(
@@ -437,6 +439,26 @@ def install_typescript_lsp() -> bool:
     if _is_vtsls_installed():
         return True
     return _run_bash_with_retry("npm install -g @vtsls/language-server typescript")
+
+
+def _is_ccusage_installed() -> bool:
+    """Check if ccusage is installed globally."""
+    try:
+        result = subprocess.run(
+            ["npm", "list", "-g", "ccusage"],
+            capture_output=True,
+            text=True,
+        )
+        return result.returncode == 0 and "ccusage" in result.stdout
+    except Exception:
+        return False
+
+
+def install_ccusage() -> bool:
+    """Install ccusage globally for usage tracking."""
+    if _is_ccusage_installed():
+        return True
+    return _run_bash_with_retry("npm install -g ccusage@latest")
 
 
 def _get_playwright_cache_dirs() -> list[Path]:
@@ -798,6 +820,9 @@ class DependenciesStep(BaseStep):
 
         if _install_with_spinner(ui, "vtsls (TypeScript LSP server)", install_typescript_lsp):
             installed.append("typescript_lsp")
+
+        if _install_with_spinner(ui, "ccusage (usage tracking)", install_ccusage):
+            installed.append("ccusage")
 
         if _install_playwright_cli_with_ui(ui):
             installed.append("playwright_cli")
