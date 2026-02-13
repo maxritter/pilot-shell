@@ -91,7 +91,16 @@ jobs:
           track_progress: true
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
-          prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number || inputs.pr_number }}'
+          prompt: |
+            /code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number || inputs.pr_number }}
+
+            IMPORTANT: The following paths are git-crypt encrypted and will appear as binary data.
+            Do NOT flag them as issues or claim you cannot verify their contents:
+            - launcher/**
+            - console/src/**
+            - console/scripts/**
+            - docs/site/api/**
+            Skip these paths entirely in your review. Only review non-encrypted files.
 
       # Incremental review on push (synchronize) - only review the delta
       - name: Incremental code review
@@ -105,6 +114,14 @@ jobs:
           plugins: 'code-review@claude-code-plugins'
           prompt: |
             /code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}
+
+            IMPORTANT: The following paths are git-crypt encrypted and will appear as binary data.
+            Do NOT flag them as issues or claim you cannot verify their contents:
+            - launcher/**
+            - console/src/**
+            - console/scripts/**
+            - docs/site/api/**
+            Skip these paths entirely in your review. Only review non-encrypted files.
 
             IMPORTANT - INCREMENTAL REVIEW MODE:
             This PR was already reviewed. A new push just landed with changes to: ${{ steps.changes.outputs.files }}
