@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Pre-commit hook: auto-rebuild console build artifacts
+# Ensures pilot/scripts/*.cjs and pilot/ui/ assets are always in sync with console/src/
+
+set -e
+
+# Build artifacts that must stay in sync with console source
+ARTIFACTS=(
+  "pilot/scripts/mcp-server.cjs"
+  "pilot/scripts/worker-service.cjs"
+  "pilot/scripts/context-generator.cjs"
+  "pilot/scripts/worker-wrapper.cjs"
+  "pilot/ui/viewer-bundle.js"
+  "pilot/ui/viewer.css"
+)
+
+# Check if any console source files are staged
+CONSOLE_CHANGED=$(git diff --cached --name-only -- 'console/src/' 'console/scripts/' 'console/package.json' 'console/tsconfig.json' 'console/vite.config.ts' | head -1)
+
+if [ -z "$CONSOLE_CHANGED" ]; then
+  exit 0
+fi
+
+echo "[pre-commit] Console source changed — rebuilding artifacts..."
+
+# Verify node_modules exist
+if [ ! -d "console/node_modules" ]; then
+  echo "[pre-commit] ERROR: console/node_modules missing. Run: cd console && npm install"
+  exit 1
+fi
+
+# Rebuild
+cd console
+if ! npm run build 2>&1 | tail -3; then
+  echo "[pre-commit] ERROR: Console build failed. Fix build errors before committing."
+  exit 1
+fi
+cd ..
+
+# Stage the rebuilt artifacts
+git add "${ARTIFACTS[@]}"
+
+echo "[pre-commit] Console artifacts rebuilt and staged."
