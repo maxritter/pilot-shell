@@ -23,8 +23,8 @@ class TestVSCodeExtensionsStep:
         assert all(isinstance(ext, str) for ext in CONTAINER_EXTENSIONS)
 
     @patch("installer.steps.vscode_extensions._get_ide_cli")
-    def test_no_cli_shows_warning(self, mock_get_cli):
-        """When no IDE CLI found, shows warning message."""
+    def test_no_cli_shows_info(self, mock_get_cli):
+        """When no IDE CLI found, shows info message."""
         mock_get_cli.return_value = None
         ctx = MagicMock()
         ctx.ui = MagicMock()
@@ -32,7 +32,7 @@ class TestVSCodeExtensionsStep:
         step = VSCodeExtensionsStep()
         step.run(ctx)
 
-        ctx.ui.warning.assert_called()
+        ctx.ui.info.assert_called()
 
     @patch("installer.steps.vscode_extensions._get_ide_cli")
     @patch("installer.steps.vscode_extensions._get_installed_extensions")

@@ -2,6 +2,7 @@ import { Check, X } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
 
 const forYou = [
+  "You have an existing codebase — especially a complex one",
   "You take code quality seriously",
   "You want tested, verified code — not vibes",
   "You trust structured workflows over ad-hoc prompting",

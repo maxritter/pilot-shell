@@ -34,7 +34,7 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/claude-pilot/main/install
 
 I'm a senior IT freelancer from Germany. My clients hire me to ship production-quality code — tested, typed, formatted, and reviewed. When something goes into production under my name, quality isn't optional.
 
-Claude Code writes code fast. But without structure, it skips tests, loses context, and produces inconsistent results. I tried other frameworks — they burned tokens on bloated prompts without adding real value. Some added process without enforcement. Others were prompt templates that Claude ignored when context got tight. None made Claude reliably produce production-grade code.
+Claude Code writes code fast. But without structure, it skips tests, loses context, and produces inconsistent results — especially on complex, established codebases where there are real conventions to follow and real regressions to catch. I tried other frameworks — they burned tokens on bloated prompts without adding real value. Some added process without enforcement. Others were prompt templates that Claude ignored when context got tight. None made Claude reliably produce production-grade code.
 
 So I built Pilot. Instead of adding process on top, it bakes quality into every interaction. Linting, formatting, and type checking run as enforced hooks on every edit. TDD is mandatory, not suggested. Context is monitored and preserved across sessions. Every piece of work goes through verification before it's marked done.
 
@@ -61,7 +61,7 @@ So I built Pilot. Instead of adding process on top, it bakes quality into every 
 
 There are other AI coding frameworks out there. I tried them. They add complexity — dozens of agents, elaborate scaffolding, thousands of lines of instruction files — but the output doesn't improve proportionally. More machinery burns more tokens, increases latency, and creates more failure modes. Complexity is not a feature.
 
-**Pilot optimizes for output quality, not system complexity.** The rules are minimal and focused. There's no big learning curve, no project scaffolding to set up, no state files to manage. You install it, run `pilot`, and the quality guardrails are just there — hooks, TDD, type checking, formatting — enforced automatically on every edit, in every session.
+**Pilot optimizes for output quality, not system complexity.** The rules are minimal and focused. There's no big learning curve, no project scaffolding to set up, no state files to manage. You install it in any existing project — no matter how complex — run `pilot`, then `/sync` to learn your codebase, and the quality guardrails are just there — hooks, TDD, type checking, formatting — enforced automatically on every edit, in every session.
 
 This isn't a vibe coding tool. It's built for developers who ship to production and need code that actually works. Every rule in the system comes from daily professional use: real bugs caught, real regressions prevented, real sessions where the AI cut corners and the hooks stopped it. The rules are continuously refined based on what measurably improves output.
 
@@ -79,7 +79,7 @@ The system stays fast because it stays simple. Quick mode is direct execution wi
 
 ### Installation
 
-`cd` into your project folder, then run:
+**Works with any existing project.** Pilot doesn't scaffold or restructure your code — it installs alongside your project and adapts to your conventions. `cd` into your project folder, then run:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/maxritter/claude-pilot/main/install.sh | bash
@@ -123,7 +123,7 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/claude-pilot/main/install
 
 ### /sync — Sync Rules & Standards
 
-Run `/sync` to sync rules and standards with your codebase. Explores your codebase, builds a semantic search index, discovers undocumented patterns, updates project documentation, and creates new custom skills. Run it once initially, then anytime again:
+Run `/sync` to learn your existing codebase and sync rules with it. Explores your project structure, builds a semantic search index, discovers your conventions and undocumented patterns, updates project documentation, and creates new custom skills. This is how Pilot adapts to your project — not the other way around. Run it once initially, then anytime again:
 
 ```bash
 pilot
@@ -546,6 +546,13 @@ All external tools and dependencies that Pilot installs and uses are open source
 <summary><b>Do I need a separate Anthropic subscription?</b></summary>
 
 Yes. Pilot enhances Claude Code — it doesn't replace it. You need an active Claude subscription — [Max 5x or 20x](https://claude.com/pricing) for solo developers, or [Team Premium](https://claude.com/pricing) for teams and companies. Using the Anthropic API directly is also possible but may lead to much higher costs. Pilot adds quality automation on top of whatever Claude Code access you already have.
+
+</details>
+
+<details>
+<summary><b>Does Pilot work with existing projects?</b></summary>
+
+Yes — that's the primary use case. Pilot doesn't scaffold or restructure your code. You install it, run `/sync`, and it explores your codebase to discover your tech stack, conventions, and patterns. From there, every session has full context about your project. The more complex and established your codebase, the more value Pilot adds — quality hooks catch regressions, Endless Mode preserves context across long sessions, and `/spec` plans features against your real architecture.
 
 </details>
 

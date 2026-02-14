@@ -70,79 +70,21 @@ class FinalizeStep(BaseStep):
 
             if reload_cmds:
                 cmd_str = " or ".join(reload_cmds)
-                steps.append(
-                    (
-                        "Reload your shell",
-                        f"Run: {cmd_str} (or restart terminal)",
-                    )
-                )
-        else:
+                steps.append(("Reload shell", f"{cmd_str} (or restart terminal)"))
+        elif not ctx.is_local_install:
             project_slug = ctx.project_dir.name.lower().replace(" ", "-").replace("_", "-")
             steps.append(
                 (
                     "Connect to dev container",
-                    f"Option A: Use VS Code's integrated terminal (required for image pasting)\n"
-                    f"     Option B: Use your favorite terminal (iTerm, Warp, etc.) and run:\n"
-                    f'     docker exec -it $(docker ps --filter "name={project_slug}" -q) zsh',
+                    f'docker exec -it $(docker ps --filter "name={project_slug}" -q) zsh',
                 )
             )
 
-        steps.extend(
-            [
-                ("Start Claude Pilot", "Run: pilot (in your project folder)"),
-                ("Connect IDE", "Run: /ide → Enables real-time diagnostics"),
-            ]
-        )
-
-        steps.append(
-            (
-                "Team Vault (Optional)",
-                "/vault → Share rules, commands, and skills via a private Git repository\n"
-                "     Run: sx install --repair --target . → Pull team assets before syncing",
-            )
-        )
-
-        steps.append(
-            (
-                "Custom MCP Servers (Optional)",
-                "Add lightweight servers to .mcp.json (instructions load into context)\n"
-                "     Add heavy servers to mcp_servers.json (zero context cost via mcp-cli)\n"
-                "     Then run /sync to generate documentation.",
-            )
-        )
-
-        if ctx.is_local_install:
-            steps.append(
-                (
-                    "Claude Pilot Console",
-                    "Open http://localhost:41777 → Browse specifications, memories, sessions and search",
-                )
-            )
-        else:
-            steps.append(
-                (
-                    "Claude Pilot Console",
-                    "Open http://localhost:41777 → Browse specifications, memories, sessions and search\n"
-                    "     (Check VS Code Ports tab if 41777 is unavailable - may be another port)",
-                )
-            )
-
-        steps.extend(
-            [
-                (
-                    "Spec-Driven Mode",
-                    '/spec "your task" → For new features with planning and verification',
-                ),
-                (
-                    "Quick Mode",
-                    "Just chat → For bug fixes and small changes without a spec",
-                ),
-                (
-                    "Multi-Session",
-                    "Run multiple pilot sessions in the same project — each session is isolated",
-                ),
-            ]
-        )
+        steps.append(("Start Pilot", "Run: pilot (in your project folder)"))
+        steps.append(("Team Vault", "/vault → Pull shared rules and skills from your team"))
+        steps.append(("Sync codebase", "/sync → Learns your conventions and generates project rules"))
+        steps.append(("Start building", '/spec "task" for planned features, or just chat for quick fixes'))
+        steps.append(("Claude Pilot Console", "http://localhost:41777"))
 
         ui.next_steps(steps)
 

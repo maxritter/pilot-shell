@@ -145,19 +145,19 @@ class Console:
         self._console.print("  [bold white]What You're Getting[/bold white]")
         self._console.print()
         self._console.print(
-            "    [yellow]♾️[/yellow]  [bold green]Endless Mode[/bold green] [white]— Seamless continuity across sessions[/white]"
+            "    [yellow]🔍[/yellow] [bold green]/sync[/bold green]          [white]— Learns your existing codebase and conventions[/white]"
         )
         self._console.print(
-            "    [yellow]📋[/yellow] [bold green]Two Dev Modes[/bold green] [white]— /spec for planning, Quick Mode for fixes[/white]"
+            "    [yellow]🛠️[/yellow]  [bold green]Quality Hooks[/bold green]  [white]— TDD, linting, type checking on every edit[/white]"
         )
         self._console.print(
-            "    [yellow]💡[/yellow] [bold green]Rules System[/bold green] [white]— Standards + custom rules as project memory[/white]"
+            "    [yellow]♾️[/yellow]  [bold green]Endless Mode[/bold green]   [white]— Never lose context, seamless session handoff[/white]"
         )
         self._console.print(
-            "    [yellow]🛠️[/yellow]  [bold green]Quality Hooks[/bold green] [white]— TDD, linting, type checking, context monitor[/white]"
+            "    [yellow]📋[/yellow] [bold green]/spec[/bold green]          [white]— Plan, implement, verify with code review[/white]"
         )
         self._console.print(
-            "    [yellow]🔌[/yellow] [bold green]Capabilities[/bold green] [white]— Vexor, Context7, web-search, mcp-cli[/white]"
+            "    [yellow]🧠[/yellow] [bold green]Memory & Search[/bold green] [white]— Persistent context, semantic code search[/white]"
         )
         self._console.print()
 

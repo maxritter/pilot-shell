@@ -94,7 +94,7 @@ class VSCodeExtensionsStep(BaseStep):
         cli = _get_ide_cli()
         if not cli:
             if ui:
-                ui.warning("No IDE CLI found - extensions will install when IDE connects")
+                ui.info("No IDE CLI found — extensions will install when IDE connects")
                 ui.print("  [dim]Supported: VS Code, Cursor, Windsurf[/dim]")
             return
 

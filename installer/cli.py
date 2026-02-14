@@ -269,22 +269,6 @@ def _handle_license_flow(
         return None
 
     console.print()
-    console.print("  [bold cyan]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold cyan]")
-    console.print("  [bold]📜 License Agreement[/bold]")
-    console.print("  [bold cyan]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold cyan]")
-    console.print()
-    console.print("  [bold green]7-day free trial[/bold green] to explore all features")
-    console.print()
-    console.print("  [bold]After trial, choose a plan:[/bold]")
-    console.print("    • [bold]Solo[/bold]")
-    console.print("    • [bold]Team[/bold] (priority support + feature requests)")
-    console.print()
-    console.print("  [bold cyan]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold cyan]")
-    console.print()
-    console.print("  [dim]Subscribe: https://claude-pilot.com[/dim]")
-    console.print()
-    console.print("  [bold cyan]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold cyan]")
-    console.print()
 
     with console.spinner("Checking trial eligibility..."):
         trial_used, can_reactivate = _check_trial_used(project_dir, local_mode, local_repo_dir)

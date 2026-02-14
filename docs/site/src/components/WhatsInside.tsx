@@ -161,8 +161,8 @@ const WhatsInside = () => {
             What's Inside
           </h2>
           <p className="text-muted-foreground text-lg sm:text-xl max-w-3xl mx-auto">
-            A production-grade system — not a prompt template. Every component is designed to enforce
-            quality, preserve context, and automate verification across your entire development workflow.
+            A production-grade system — not a prompt template. Installs into any existing codebase,
+            learns your conventions, and enforces quality across your entire development workflow.
           </p>
         </div>
 
