@@ -2,6 +2,13 @@
 
 All notable changes to Claude Pilot will be documented in this file.
 
+## [6.5.8] - 2026-02-15
+
+### Bug Fixes
+
+- Remove unreliable session ID cross-check in context monitor
+- Use runtime container detection in installer, improve UX and polling
+
 ## [6.5.7] - 2026-02-14
 
 ### Bug Fixes
