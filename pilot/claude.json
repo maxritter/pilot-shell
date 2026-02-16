@@ -1,6 +1,5 @@
 {
   "installMethod": "npm",
-  "theme": "dark",
   "showExpandedTodos": true,
   "autoUpdates": false,
   "lspRecommendationDisabled": true,

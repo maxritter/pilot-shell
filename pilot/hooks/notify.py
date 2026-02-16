@@ -82,7 +82,8 @@ def send_notification(title: str, message: str) -> None:
     else:
         return
 
-    _play_sound(system)
+    if system != "Darwin":
+        _play_sound(system)
 
     def _run_notification():
         subprocess.run(cmd, capture_output=True, check=False)

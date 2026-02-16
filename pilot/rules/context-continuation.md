@@ -14,9 +14,9 @@ When context reaches ~83%, Claude Code's auto-compaction automatically:
 
 | Level | What Happens |
 |-------|--------------|
-| < 75% | Work normally |
-| 75%   | Informational notice: "Auto-compact will handle context management automatically" |
-| 80%+  | Caution: "Auto-compact will trigger shortly. Complete current work — do NOT start new complex tasks" |
+| < 65% | Work normally |
+| 65%   | Informational notice: "Auto-compact will handle context management automatically" |
+| 75%+  | Caution: "Auto-compact approaching. Complete current work — do NOT start new complex tasks" |
 | ~83%  | Auto-compaction fires automatically — state preserved, context restored |
 
 ## ⛔ NEVER Rush — Quality Is Always Priority #1
@@ -40,7 +40,7 @@ Work spans compaction cycles seamlessly via:
 
 - ❌ Worrying about when to `/compact` (auto-compact handles this)
 - ❌ Writing continuation files (PreCompact hook captures state)
-- ❌ Stopping work at 80% (complete current task, then auto-compact fires)
+- ❌ Stopping work at 75% (complete current task, then auto-compact fires)
 - ❌ Worrying about context percentage (informational only)
 - ❌ Rushing to finish before compaction (quality over speed, always)
 

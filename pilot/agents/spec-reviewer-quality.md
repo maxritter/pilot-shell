@@ -35,7 +35,7 @@ Rules to SKIP (not relevant to code review):
 - `pilot-memory.md` — memory and learning systems
 - `playwright-cli.md` — browser automation
 - `team-vault.md` — vault management
-- `workflow-enforcement.md` — task/workflow orchestration
+- `task-and-workflow.md` — task/workflow orchestration
 
 **DO NOT skip this step. DO NOT proceed to code review until you have read the quality-relevant rules.**
 

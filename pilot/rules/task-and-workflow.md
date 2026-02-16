@@ -1,4 +1,4 @@
-# Workflow Enforcement Rules
+# Task and Workflow Rules
 
 ## Task Complexity Triage
 
@@ -25,11 +25,18 @@
 | User asks for 2+ things | Create a task for each |
 | Work has multiple steps | Create tasks with dependencies |
 | **Deferring a user request** | **TaskCreate IMMEDIATELY — never just say "noted"** |
+| **User sends new request mid-task** | **TaskCreate for the new request BEFORE continuing current work** |
 | `/spec` implementation phase | Create tasks from plan |
 
-### ⛔ Never "Note" Without a Task
+### ⛔ Never Drop a User Request
 
-Call `TaskCreate` immediately with the request, then continue current work. The task list is your memory.
+**The #1 failure mode is losing user requests during context-switches.** When the user sends a new request while you're working on something else:
+
+1. **STOP** current work momentarily
+2. **TaskCreate** for the new request with full details
+3. **Resume** current work
+
+The task list is your memory — if it's not in the task list, it will be forgotten. Never rely on "I'll get to it after this" without a task.
 
 ### Session Start: Clean Up Stale Tasks
 

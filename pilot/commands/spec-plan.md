@@ -31,7 +31,7 @@ hooks:
 | 7   | **NEVER assume - verify by reading files**                                                               |
 | 8   | **Re-read plan after user edits** - Before asking for approval again                                     |
 | 9   | **Quality over speed** - Never rush due to context pressure                                              |
-| 10  | **Plan file is source of truth** - Survives session clears                                               |
+| 10  | **Plan file is source of truth** - Survives across auto-compaction cycles                                               |
 
 ---
 
@@ -204,7 +204,7 @@ hooks:
 6. **Why this matters:**
    - Status bar shows "Spec: <name> [/plan]" immediately
    - User sees progress even during exploration phase
-   - Plan file exists for continuation if session clears
+   - Plan file exists for continuation across auto-compaction cycles
    - Plan is correctly associated with this specific terminal
 
 **CRITICAL:** Do this FIRST, before any exploration or questions.
@@ -628,7 +628,6 @@ Both agents persist their findings JSON to the session directory for reliable re
 
    **If user approves (selects "Yes" or any approval option):**
    - Update `Approved: No` → `Approved: Yes` in the plan file
-   - **⛔ Context check:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, auto-compact may fire during the next phase — complete current work first.
    - **Invoke implementation phase:** `Skill(skill='spec-implement', args='<plan-path>')`
 
    **If user selects "No, I need to make changes":**

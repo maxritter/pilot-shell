@@ -24,7 +24,7 @@ model: sonnet
 | 3   | **Update plan checkboxes AND task status after EACH task** - Not at the end                                                                                                        |
 | 4   | **NEVER SKIP TASKS** - Every task MUST be fully implemented                                                                                                                        |
 | 5   | **Quality over speed** - Never rush due to context pressure                                                                                                                        |
-| 6   | **Plan file is source of truth** - Survives session clears                                                                                                                         |
+| 6   | **Plan file is source of truth** - Survives across auto-compaction cycles                                                                                                                         |
 | 7   | **NEVER assume - verify by reading files**                                                                                                                                         |
 | 8   | **Task management is MANDATORY** - Use TaskCreate/TaskUpdate for progress tracking                                                                                                 |
 
@@ -209,7 +209,6 @@ TaskCreate: "Task 4: Add documentation"            → id=4, addBlockedBy: [2]
    Use `feat(spec):` for new features, `fix(spec):` for bug fixes, `test(spec):` for test-only tasks, `refactor(spec):` for refactoring. Skip this step when `Worktree: No` (normal git rules apply).
 10. **Mark task as `completed`** - `TaskUpdate(taskId="<id>", status="completed")`
 11. **UPDATE PLAN FILE IMMEDIATELY** (see Step 2.4)
-12. **Check context usage** - Run `~/.pilot/bin/pilot check-context --json`
 
 **⚠️ NEVER SKIP TASKS:**
 
@@ -259,8 +258,7 @@ Update counts:
    Status: PENDING  →  Status: COMPLETE
    ```
 4. **Register status change:** `~/.pilot/bin/pilot register-plan "<plan_path>" "COMPLETE" 2>/dev/null || true`
-5. **⛔ Context check:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, auto-compact may fire during the next phase — complete current work first.
-6. **Invoke verification phase:** `Skill(skill='spec-verify', args='<plan-path>')`
+5. **Invoke verification phase:** `Skill(skill='spec-verify', args='<plan-path>')`
 
 ---
 

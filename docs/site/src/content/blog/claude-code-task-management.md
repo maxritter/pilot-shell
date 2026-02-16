@@ -68,7 +68,7 @@ This visibility is especially valuable for long features where you need to track
 
 ## Cross-Session Persistence
 
-Tasks survive session restarts. When auto-compaction triggers, the new session picks up the task list exactly where the old one left off. At the start of a new session, Claude checks `TaskList` to find where to resume.
+Tasks survive auto-compaction. When auto-compaction triggers, the task list is preserved exactly where it left off. Claude checks `TaskList` to find where to resume and continues seamlessly.
 
 Stale tasks from previous sessions are cleaned up automatically — each session starts by reviewing the task list and removing anything no longer relevant.
 

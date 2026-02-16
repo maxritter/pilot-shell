@@ -160,7 +160,7 @@ Claude Code passes context to hooks via environment variables:
 Claude Pilot installs several hooks automatically:
 
 - **TDD Enforcer** (PostToolUse): Reminds Claude to write tests before production code
-- **Context Monitor** (PostToolUse): Tracks context usage and prepares for auto-compaction at 90%
+- **Context Monitor** (PostToolUse): Tracks context usage and warns at 65%+ and 75%+ as compaction approaches
 - **Tool Redirect** (PreToolUse): Blocks inefficient tools and suggests better alternatives
 - **PreCompact** (PreCompact): Captures active plan, task progress, and key context to memory before compaction
 - **Session End** (SessionEnd): Stops worker daemon when no other sessions are active and sends completion notifications

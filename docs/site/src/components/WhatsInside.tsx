@@ -66,7 +66,7 @@ const insideItems: InsideItem[] = [
     icon: GitBranch,
     title: "Isolated Workspaces",
     description: "Safe experimentation, clean git history",
-    summary: "Spec implementation runs in isolated git worktrees. Review changes, squash merge when verified, or discard without touching your main branch. Worktree state survives session restarts.",
+    summary: "Spec implementation runs in isolated git worktrees. Review changes, squash merge when verified, or discard without touching your main branch. Worktree state survives across auto-compaction cycles.",
   },
 ];
 

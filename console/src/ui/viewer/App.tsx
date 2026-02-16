@@ -4,9 +4,11 @@ import { Router, useRouter } from './router';
 import { DashboardView, MemoriesView, SessionsView, SpecView, UsageView, VaultView } from './views';
 import { LogsDrawer } from './components/LogsModal';
 import { CommandPalette } from './components/CommandPalette';
+import { LicenseGate } from './components/LicenseGate';
 import { useTheme } from './hooks/useTheme';
 import { useStats } from './hooks/useStats';
 import { useHotkeys } from './hooks/useHotkeys';
+import { useLicense } from './hooks/useLicense';
 import { ToastProvider, ProjectProvider } from './context';
 
 const routes = [
@@ -25,6 +27,7 @@ export function App() {
   const { path, navigate } = useRouter();
   const { resolvedTheme, setThemePreference } = useTheme();
   const { workerStatus } = useStats();
+  const { license, isLoading: licenseLoading, refetch: refetchLicense } = useLicense();
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
@@ -78,6 +81,24 @@ export function App() {
   );
 
   useHotkeys(handleShortcut);
+
+  const isLicenseValid = !licenseLoading && license?.valid === true && !license.isExpired;
+
+  if (licenseLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-base-200" data-theme={resolvedTheme === 'dark' ? 'claude-pilot' : 'claude-pilot-light'}>
+        <span className="loading loading-spinner loading-lg text-primary" />
+      </div>
+    );
+  }
+
+  if (!isLicenseValid) {
+    return (
+      <div data-theme={resolvedTheme === 'dark' ? 'claude-pilot' : 'claude-pilot-light'}>
+        <LicenseGate license={license} onActivated={refetchLicense} />
+      </div>
+    );
+  }
 
   return (
     <ProjectProvider>

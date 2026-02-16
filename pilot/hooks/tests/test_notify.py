@@ -177,8 +177,8 @@ class TestSendNotification:
     @patch("notify.subprocess.Popen")
     @patch("notify.subprocess.run")
     @patch("notify.ThreadPoolExecutor")
-    def test_plays_sound_via_afplay_on_macos(self, mock_executor, mock_run, mock_popen, mock_which, mock_platform):
-        """Should play sound via afplay on macOS independently of notification."""
+    def test_skips_afplay_on_macos_because_osascript_plays_sound(self, mock_executor, mock_run, mock_popen, mock_which, mock_platform):
+        """Should NOT play sound via afplay on macOS — osascript handles it."""
         mock_platform.return_value = "Darwin"
         mock_which.return_value = "/usr/bin/osascript"
 
@@ -188,10 +188,7 @@ class TestSendNotification:
 
         send_notification("Test", "Message")
 
-        mock_popen.assert_called_once()
-        popen_cmd = mock_popen.call_args[0][0]
-        assert popen_cmd[0] == "afplay"
-        assert "Glass.aiff" in popen_cmd[1]
+        mock_popen.assert_not_called()
 
     @patch("notify.platform.system")
     @patch("notify.shutil.which")

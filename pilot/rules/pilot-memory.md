@@ -29,7 +29,7 @@ Use `<private>` tags to exclude content from storage. Web viewer at `http://loca
 
 **Evaluate sessions for extractable knowledge. Only act when valuable.**
 
-At 75%+ context (when `/learn check` reminder fires):
+At 65%+ context (when `/learn check` reminder fires):
 1. Does this session have a non-obvious solution OR repeatable workflow?
 2. **YES** → Invoke `Skill(learn)` before auto-compaction
 3. **NO** → Proceed silently, no mention needed

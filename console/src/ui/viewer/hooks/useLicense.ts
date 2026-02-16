@@ -26,6 +26,8 @@ export function useLicense(): UseLicenseResult {
 
   useEffect(() => {
     fetchLicense();
+    const interval = setInterval(() => fetchLicense(true), 60_000);
+    return () => clearInterval(interval);
   }, [fetchLicense]);
 
   const refetch = useCallback(() => fetchLicense(true), [fetchLicense]);

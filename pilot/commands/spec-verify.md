@@ -27,7 +27,7 @@ hooks:
 | 2   | **NO stopping** - Everything is automatic. Never ask "Should I fix these?"                            |
 | 3   | **Fix ALL findings automatically** - must_fix AND should_fix. No permission needed.                   |
 | 4   | **Quality over speed** - Never rush due to context pressure                                           |
-| 5   | **Plan file is source of truth** - Survives session clears                                            |
+| 5   | **Plan file is source of truth** - Survives across auto-compaction cycles                                            |
 | 6   | **Code changes finish BEFORE runtime testing** - Code review and fixes happen before build/deploy/E2E |
 | 7   | **Re-verification after fixes is MANDATORY** - Fixes can introduce new bugs. Always re-verify.        |
 
@@ -220,8 +220,7 @@ This is a serious issue - the implementation is incomplete.
    The plan has been updated with [N] new tasks.
    ```
 
-5. **⛔ Context check:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, auto-compact may fire during the next phase — complete current work first.
-6. **Invoke implementation phase:** `Skill(skill='spec-implement', args='<plan-path>')`
+5. **Invoke implementation phase:** `Skill(skill='spec-implement', args='<plan-path>')`
 
 ### Step 3.4: Call Chain Analysis
 
@@ -329,7 +328,7 @@ Re-verification is **only required when fixes are structural enough to warrant l
 2. Fix any new must_fix or should_fix findings
 3. Maximum 2 iterations before adding remaining issues to plan
 
-If issues require going back to implementation, add tasks to plan. **⛔ Context check:** Run `~/.pilot/bin/pilot check-context --json` — if >= 80%, auto-compact may fire during implementation. Then invoke `Skill(skill='spec-implement', args='<plan-path>')`
+If issues require going back to implementation, add tasks to plan. Then invoke `Skill(skill='spec-implement', args='<plan-path>')`
 
 ---
 
@@ -573,8 +572,7 @@ This is the THIRD user interaction point in the `/spec` workflow (first is workt
    ```
 3. **Register status change:** `~/.pilot/bin/pilot register-plan "<plan_path>" "PENDING" 2>/dev/null || true`
 4. Inform user: "🔄 Iteration N+1: Issues found, fixing and re-verifying..."
-5. **⛔ Context check:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, auto-compact may fire during the next phase — complete current work first.
-6. **Invoke implementation phase:** `Skill(skill='spec-implement', args='<plan-path>')`
+5. **Invoke implementation phase:** `Skill(skill='spec-implement', args='<plan-path>')`
 
 ---
 

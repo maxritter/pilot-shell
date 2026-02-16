@@ -49,7 +49,7 @@ const hooksPipeline = [
     hooks: [
       "File checker: auto-format, lint, type-check (Python, TypeScript, Go)",
       "TDD enforcer: warns if no failing test exists",
-      "Context monitor: warns at 75%+, caution at 80%+",
+      "Context monitor: warns at 65%+, caution at 75%+",
       "Memory observation: captures development context (async)",
     ],
     color: "text-primary",
@@ -216,7 +216,7 @@ const DeepDiveSection = () => {
             <div className="rounded-2xl p-5 border border-amber-400/30 bg-card/30 backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-3">
                 <AlertTriangle className="h-5 w-5 text-amber-400" />
-                <span className="text-lg font-bold text-foreground">75%</span>
+                <span className="text-lg font-bold text-foreground">65%</span>
                 <span className="text-xs text-amber-400 font-medium">INFO</span>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -226,7 +226,7 @@ const DeepDiveSection = () => {
             <div className="rounded-2xl p-5 border border-orange-500/30 bg-card/30 backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-3">
                 <AlertTriangle className="h-5 w-5 text-orange-500" />
-                <span className="text-lg font-bold text-foreground">80%</span>
+                <span className="text-lg font-bold text-foreground">75%</span>
                 <span className="text-xs text-orange-500 font-medium">CAUTION</span>
               </div>
               <p className="text-sm text-muted-foreground">

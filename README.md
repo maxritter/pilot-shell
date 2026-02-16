@@ -351,7 +351,7 @@ After **every single file edit**, these hooks fire:
 | -------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `file_checker.py`    | Blocking     | Dispatches to language-specific checkers: Python (ruff + basedpyright), TypeScript (Prettier + ESLint + tsc), Go (gofmt + golangci-lint). Auto-fixes formatting.     |
 | `tdd_enforcer.py`    | Non-blocking | Checks if implementation files were modified without failing tests first. Shows reminder to write tests. Excludes test files, docs, config, TSX, and infrastructure. |
-| `context_monitor.py` | Non-blocking | Monitors context usage. Warns at 75%+ (informational) and 80%+ (caution). Prompts `/learn` at key thresholds.                                                       |
+| `context_monitor.py` | Non-blocking | Monitors context usage. Warns at 65%+ (informational) and 75%+ (caution). Prompts `/learn` at key thresholds.                                                       |
 | Memory observer      | Async        | Captures development observations to persistent memory.                                                                                                              |
 
 #### PreCompact (before auto-compaction)
@@ -390,7 +390,7 @@ Production-tested best practices loaded into **every session**. These aren't sug
 <details>
 <summary><b>Core Workflow (3 rules)</b></summary>
 
-- `workflow-enforcement.md` — Task management, /spec orchestration, deviation handling
+- `task-and-workflow.md` — Task management, /spec orchestration, deviation handling
 - `testing.md` — TDD workflow, test strategy, coverage requirements
 - `verification.md` — Execution verification, completion requirements
 

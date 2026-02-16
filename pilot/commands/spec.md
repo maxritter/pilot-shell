@@ -147,7 +147,7 @@ Is there anything else you'd like me to help with?
 | 8   | **Re-read plan after user edits** - Before asking for approval again                                                                                                                                                                                             |
 | 9   | **TDD is MANDATORY** - No production code without failing test first                                                                                                                                                                                             |
 | 10  | **Update plan checkboxes after EACH task** - Not at the end                                                                                                                                                                                                      |
-| 11  | **Quality over speed** - Never rush due to context pressure. At 90%+ context, complete current work but do NOT start new complex tasks or multi-file changes                                                                                                                     |
-| 12  | **Plan file is source of truth** - Survives session clears and auto-compaction                                                                                                               |
+| 11  | **Quality over speed** - Never rush due to context pressure. Complete current work with full quality — auto-compaction handles the rest                                                                                                                     |
+| 12  | **Plan file is source of truth** - Survives across auto-compaction cycles                                                                                                               |
 
 ARGUMENTS: $ARGUMENTS

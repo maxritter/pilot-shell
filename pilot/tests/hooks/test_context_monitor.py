@@ -7,7 +7,7 @@ from context_monitor import _is_throttled, _resolve_context
 
 
 def test_throttle_skips_when_recent_and_low_context(tmp_path, monkeypatch):
-    """Throttle returns True when last check was < 30s ago and context < 80%."""
+    """Throttle returns True when last check was < 30s ago and context < 65%."""
     cache_file = tmp_path / "context_cache.json"
     monkeypatch.setattr("context_monitor.get_session_cache_path", lambda: cache_file)
 
@@ -22,7 +22,7 @@ def test_throttle_skips_when_recent_and_low_context(tmp_path, monkeypatch):
 
 
 def test_throttle_allows_when_high_context(tmp_path, monkeypatch):
-    """Throttle returns False when context >= 80% (never skip high context)."""
+    """Throttle returns False when context >= 65% (never skip high context)."""
     cache_file = tmp_path / "context_cache.json"
     monkeypatch.setattr("context_monitor.get_session_cache_path", lambda: cache_file)
 

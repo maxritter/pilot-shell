@@ -17,9 +17,9 @@ from _util import (
     get_session_cache_path,
 )
 
-THRESHOLD_WARN = 75
-THRESHOLD_AUTOCOMPACT = 80
-LEARN_THRESHOLDS = [40, 60, 75]
+THRESHOLD_WARN = 65
+THRESHOLD_AUTOCOMPACT = 75
+LEARN_THRESHOLDS = [40, 55, 65]
 
 
 def get_current_session_id() -> str:
@@ -38,7 +38,7 @@ def get_current_session_id() -> str:
 
 
 def get_session_flags(session_id: str) -> tuple[list[int], bool]:
-    """Get shown flags for this session (learn thresholds, 75% warning)."""
+    """Get shown flags for this session (learn thresholds, warn-once flag)."""
     if get_session_cache_path().exists():
         try:
             with get_session_cache_path().open() as f:
@@ -120,9 +120,9 @@ def _is_throttled(session_id: str) -> bool:
 
     Returns True if:
     - Last check was < 30 seconds ago AND
-    - Last cached context was < 75%
+    - Last cached context was < 65%
 
-    Always returns False at 75%+ context (never throttle high context).
+    Always returns False at 65%+ context (never throttle high context).
     """
     cache_path = get_session_cache_path()
     if not cache_path.exists():
