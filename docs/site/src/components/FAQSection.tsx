@@ -26,12 +26,12 @@ const faqItems = [
   {
     question: "Does Pilot work with existing projects?",
     answer:
-      "Yes \u2014 that's the primary use case. Pilot doesn't scaffold or restructure your code. You install it, run /sync, and it explores your codebase to discover your tech stack, conventions, and patterns. From there, every session has full context about your project. The more complex and established your codebase, the more value Pilot adds \u2014 quality hooks catch regressions, Endless Mode preserves context across long sessions, and /spec plans features against your real architecture.",
+      "Yes \u2014 that's the primary use case. Pilot doesn't scaffold or restructure your code. You install it, run /sync, and it explores your codebase to discover your tech stack, conventions, and patterns. From there, every session has full context about your project. The more complex and established your codebase, the more value Pilot adds \u2014 quality hooks catch regressions, auto-compaction preserves context across long sessions, and /spec plans features against your real architecture.",
   },
   {
     question: "Does Pilot work with any programming language?",
     answer:
-      "Pilot's quality hooks (auto-formatting, linting, type checking) currently support Python, TypeScript/JavaScript, and Go out of the box. TDD enforcement, spec-driven development, Endless Mode, persistent memory, and all rules and standards work with any language that Claude Code supports. You can add custom hooks for additional languages.",
+      "Pilot's quality hooks (auto-formatting, linting, type checking) currently support Python, TypeScript/JavaScript, and Go out of the box. TDD enforcement, spec-driven development, auto-compaction, persistent memory, and all rules and standards work with any language that Claude Code supports. You can add custom hooks for additional languages.",
   },
   {
     question: "Can I use Pilot on multiple projects?",

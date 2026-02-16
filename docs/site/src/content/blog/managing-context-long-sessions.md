@@ -6,7 +6,7 @@ date: "2026-02-10"
 author: "Max Ritter"
 tags: [Guide, Workflow]
 readingTime: 7
-keywords: "Claude Code context limit, Claude Code session memory, Claude Code long sessions, context window management, autocompaction, Endless Mode"
+keywords: "Claude Code context limit, Claude Code session memory, Claude Code long sessions, context window management, autocompaction, context management"
 ---
 
 # Managing Context in Long Claude Code Sessions
@@ -93,15 +93,15 @@ This creates a ceiling on the complexity of work you can do with AI assistance. 
 
 What's needed is a way to make sessions **continuous** — to preserve the accumulated understanding across context boundaries, automatically, without manual intervention.
 
-## Endless Mode: Automatic Session Continuity
+## Intelligent Context Management: Automatic Continuity
 
-This is the problem that Claude Pilot's Endless Mode was designed to solve. Instead of treating the context limit as a hard wall that destroys your progress, Endless Mode turns it into a seamless checkpoint.
+This is the problem that Claude Pilot's context management was designed to solve. Instead of treating the context limit as a hard wall that destroys your progress, auto-compaction turns it into a seamless checkpoint.
 
 Here's how it works:
 
 ### 1. Context Monitoring
 
-A background hook continuously tracks context usage percentage. At 80%, it warns that context is getting high. At 90%, it triggers the handoff protocol.
+A background hook continuously tracks context usage percentage. At 80%, it warns that context is getting high. At 90%, auto-compaction triggers and state is preserved via hooks.
 
 ### 2. State Preservation
 
@@ -112,11 +112,11 @@ Before the session clears, the current state is captured:
 - What needs to happen next
 - Key decisions and their rationale
 
-This state is written to a structured continuation file and saved to persistent memory (observations that survive across sessions).
+This state is saved to persistent memory (observations that survive across compaction cycles and sessions).
 
-### 3. Automatic Restart
+### 3. Automatic Restoration
 
-The session clears and immediately restarts with the preserved context injected. The new session picks up exactly where the old one left off — same task, same progress, same understanding of the codebase.
+After compaction, the session continues with preserved context injected. Work picks up exactly where it left off — same task, same progress, same understanding of the codebase.
 
 ### 4. Persistent Memory
 
@@ -128,7 +128,7 @@ Beyond session continuity, a persistent memory system (powered by SQLite and MCP
 
 ### The Result
 
-With Endless Mode, a complex refactor that would normally require 3-4 separate sessions (each losing context from the previous ones) becomes one continuous flow. The developer never has to re-explain context, re-read files, or re-make decisions.
+With auto-compaction and persistent memory, a complex refactor that would normally require 3-4 separate sessions (each losing context from the previous ones) becomes one continuous flow. The developer never has to re-explain context, re-read files, or re-make decisions.
 
 The context window still has a fixed size, but its boundary becomes invisible. Work flows continuously across session boundaries as if the window were infinite.
 
@@ -173,4 +173,4 @@ The developers who get the most out of Claude Code aren't the ones who write the
 
 ---
 
-*Claude Pilot provides Endless Mode for automatic session continuity, persistent memory across sessions, and context monitoring hooks. [Get started with Claude Pilot](https://claude-pilot.com/#installation) to make your Claude Code sessions flow without interruption.*
+*Claude Pilot provides intelligent context management with auto-compaction, persistent memory across sessions, and context monitoring hooks. [Get started with Claude Pilot](https://claude-pilot.com/#installation) to make your Claude Code sessions flow without interruption.*

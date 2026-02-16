@@ -22,9 +22,9 @@ interface InsideItem {
 const insideItems: InsideItem[] = [
   {
     icon: InfinityIcon,
-    title: "Endless Mode",
+    title: "Intelligent Context",
     description: "Never lose context mid-task",
-    summary: "Context monitor tracks usage and automatically hands off to a new session at critical thresholds. State is preserved, memory persists, and multiple sessions run in parallel without interference.",
+    summary: "Auto-compaction fires at ~83% context — hooks capture state before compaction and restore it after. No process restart, no lost context. Multiple sessions run in parallel without interference.",
   },
   {
     icon: Workflow,

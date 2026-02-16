@@ -61,7 +61,6 @@ spec-verify finds issues → Status: PENDING → spec-implement fixes → COMPLE
 ```
 /spec <task-description>           # Start new workflow from task
 /spec <path/to/plan.md>            # Continue existing plan
-/spec --continue <path/to/plan.md> # Resume after session clear
 ```
 
 Parse the arguments: $ARGUMENTS
@@ -69,14 +68,7 @@ Parse the arguments: $ARGUMENTS
 ### Determine Current State
 
 ```
-IF arguments start with "--continue":
-    plan_path = extract path after "--continue"
-    1. Read ~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md if it exists
-    2. Delete the continuation file after reading
-    3. Read plan file, check Status AND Approved fields
-    → Dispatch to appropriate phase based on status
-
-ELIF arguments end with ".md" AND file exists:
+IF arguments end with ".md" AND file exists:
     plan_path = arguments
     → Read plan file, check Status AND Approved fields
     → Dispatch to appropriate phase based on status
@@ -103,7 +95,7 @@ AskUserQuestion:
 
 **Append the choice to the spec-plan args:** `Skill(skill='spec-plan', args='<task_description> --worktree=yes')` or `--worktree=no`.
 
-**This question is ONLY asked for new plans.** When continuing an existing plan (`--continue` or `.md` path), the `Worktree:` field is already set in the plan header.
+**This question is ONLY asked for new plans.** When continuing an existing plan (`.md` path), the `Worktree:` field is already set in the plan header.
 
 **After reading the plan file, register the plan association (non-blocking):**
 
@@ -124,8 +116,6 @@ Read the plan file and dispatch based on Status and Approved fields:
 | COMPLETE | \*       | `Skill(skill='spec-verify', args='<plan-path>')`                                          |
 | VERIFIED | \*       | Report completion, workflow done                                                          |
 
-**⛔ Phase Transition Context Guard applies before every dispatch (see Section 0.3).**
-
 **Invoke the appropriate Skill immediately. Do not duplicate phase logic here.**
 
 ### Report Completion (VERIFIED)
@@ -140,83 +130,6 @@ Is there anything else you'd like me to help with?
 ```
 
 ---
-
-## 0.3 Phase Transition Context Guard
-
-**⛔ MANDATORY: Before EVERY `Skill()` call that transitions to another phase, check context:**
-
-```bash
-~/.pilot/bin/pilot check-context --json
-```
-
-| Percentage | Action                                              |
-| ---------- | --------------------------------------------------- |
-| **< 80%**  | Proceed with phase transition                       |
-| **>= 80%** | **Do NOT invoke the next phase.** Hand off instead. |
-
-Each phase (plan, implement, verify) needs significant context to complete. Starting a new phase above 80% risks overshooting to 100% — the worst-case scenario where all work is lost.
-
-**When >= 80%:** Write continuation file, trigger `send-clear`. The next session dispatches to the correct phase automatically based on plan status.
-
-**This applies to ALL transitions:** plan→implement, implement→verify, verify→implement (feedback loop), and dispatcher→any phase.
-
----
-
-## 0.4 Context Management (90% Handoff)
-
-After each major operation, check context:
-
-```bash
-~/.pilot/bin/pilot check-context --json
-```
-
-**Between iterations:**
-
-1. If context >= 90%: hand off cleanly (don't rush!)
-2. If context 80-89%: continue but wrap up current task with quality
-3. If context < 80%: continue the loop freely
-
-If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
-
-**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
-
-**Step 1: Write continuation file (GUARANTEED BACKUP)**
-
-Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
-
-```markdown
-# Session Continuation (/spec)
-
-**Plan:** <plan-path>
-**Phase:** [planning|implementation|verification]
-**Current Task:** Task N - [description]
-
-**Completed This Session:**
-
-- [x] [What was finished]
-
-**Next Steps:**
-
-1. [What to do immediately when resuming]
-
-**Context:**
-
-- [Key decisions or blockers]
-```
-
-**Step 2: Trigger session clear**
-
-```bash
-~/.pilot/bin/pilot send-clear <plan-path>
-```
-
-Pilot will restart with `/spec --continue <plan-path>`
-
-### Error Handling
-
-**No Active Session:** If `send-clear` fails, tell user: "Context at X%. Please run `/clear` manually, then `/spec --continue <plan-path>`"
-
-**Plan File Not Found:** Tell user: "Plan file not found: <path>" and ask if they want to create a new plan.
 
 ---
 
@@ -234,8 +147,7 @@ Pilot will restart with `/spec --continue <plan-path>`
 | 8   | **Re-read plan after user edits** - Before asking for approval again                                                                                                                                                                                             |
 | 9   | **TDD is MANDATORY** - No production code without failing test first                                                                                                                                                                                             |
 | 10  | **Update plan checkboxes after EACH task** - Not at the end                                                                                                                                                                                                      |
-| 11  | **Quality over speed** - Never rush due to context pressure. But at 90%+ context, handoff overrides everything - do NOT start new fix cycles                                                                                                                     |
-| 12  | **Plan file is source of truth** - Survives session clears                                                                                                                                                                                                       |
-| 13  | **Phase Transition Context Guard** - Check context before EVERY phase transition. If >= 80%, hand off instead of starting next phase (Section 0.3)                                                                                                               |
+| 11  | **Quality over speed** - Never rush due to context pressure. At 90%+ context, complete current work but do NOT start new complex tasks or multi-file changes                                                                                                                     |
+| 12  | **Plan file is source of truth** - Survives session clears and auto-compaction                                                                                                               |
 
 ARGUMENTS: $ARGUMENTS

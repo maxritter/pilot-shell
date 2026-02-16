@@ -271,7 +271,7 @@ const WorkflowSteps = () => {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div className="rounded-xl p-3 border border-border/40 bg-background/30">
               <code className="text-xs font-medium text-primary">pilot</code>
-              <p className="text-[11px] text-muted-foreground mt-1">Start Claude with Endless Mode, auto-update, and license verification</p>
+              <p className="text-[11px] text-muted-foreground mt-1">Start Claude with Pilot enhancements, auto-update, and license verification</p>
             </div>
             <div className="rounded-xl p-3 border border-border/40 bg-background/30">
               <code className="text-xs font-medium text-primary">pilot activate &lt;key&gt;</code>
@@ -291,7 +291,7 @@ const WorkflowSteps = () => {
             </div>
             <div className="rounded-xl p-3 border border-border/40 bg-background/30">
               <code className="text-xs font-medium text-primary">pilot check-context</code>
-              <p className="text-[11px] text-muted-foreground mt-1">Monitor context usage for Endless Mode handoffs</p>
+              <p className="text-[11px] text-muted-foreground mt-1">Monitor context usage — auto-compaction handles limits</p>
             </div>
           </div>
           <p className="text-[11px] text-muted-foreground/60 text-center mt-4">

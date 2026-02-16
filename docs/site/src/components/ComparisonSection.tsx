@@ -5,7 +5,7 @@ const painSolution = [
   {
     audience: "Losing context mid-task",
     pain: ["Context degrades halfway through", "Every session starts from scratch", "Manual copy-paste to continue"],
-    solution: ["Endless Mode auto-hands off", "Persistent memory across sessions", "Seamless continuation files"],
+    solution: ["Auto-compaction at 90% context", "Persistent memory across sessions", "Hooks preserve and restore state"],
   },
   {
     audience: "Inconsistent code quality",

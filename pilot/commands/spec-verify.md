@@ -220,7 +220,7 @@ This is a serious issue - the implementation is incomplete.
    The plan has been updated with [N] new tasks.
    ```
 
-5. **⛔ Phase Transition Context Guard:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, hand off instead (see spec.md Section 0.3).
+5. **⛔ Context check:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, auto-compact may fire during the next phase — complete current work first.
 6. **Invoke implementation phase:** `Skill(skill='spec-implement', args='<plan-path>')`
 
 ### Step 3.4: Call Chain Analysis
@@ -250,7 +250,7 @@ This is a serious issue - the implementation is incomplete.
 **⚠️ SKIPPING THIS STEP IS FORBIDDEN.** Even if:
 
 - You're confident the code is correct
-- Context is getting high (do handoff AFTER verification, not instead of it)
+- Context is getting high (finish verification first — auto-compact handles context automatically)
 - Tests pass (tests don't catch everything)
 - The implementation seems simple
 
@@ -317,23 +317,19 @@ This is part of the automated /spec workflow. The user approved the plan - verif
 2. Run relevant tests to verify
 3. Log: "✅ Fixed: [issue title]"
 
-### Step 3.6: Re-verification Loop (MANDATORY)
+### Step 3.6: Re-verification (Only When Looping Back to Implementation)
 
-**⛔ This step is NON-NEGOTIABLE. Fixes can introduce new bugs.**
+Re-verification is **only required when fixes are structural enough to warrant looping back to the implementation phase** (e.g., adding new plan tasks, architectural changes, major logic rewrites).
 
-After implementing ALL code review findings from Step 3.5c:
+**Skip re-verification when:** Fixes were localized (terminology cleanup, error handling improvements, test updates, docstring fixes, minor bug fixes). Run tests + lint to confirm fixes don't break anything, then proceed to Phase B.
 
-1. **Re-run BOTH review agents** in parallel (same parameters as Step 3.0d, with `run_in_background=true` and output paths):
-   - `spec-reviewer-compliance` → writes to `findings-compliance.json`
-   - `spec-reviewer-quality` → writes to `findings-quality.json`
-2. **Use the same progressive polling approach as Step 3.5a** — fix findings from whichever agent finishes first, then handle the second when ready
-3. If new must_fix or should_fix issues found → fix them and re-run both agents again
-4. Maximum 3 iterations of the fix → re-verify cycle
-5. **Only proceed to Phase B when BOTH reviewers return zero must_fix and zero should_fix**
+**Re-verify when:** Fixes required new functionality, changed APIs, modified hook behavior, or added significant new code paths. In this case:
 
-If iterations exhausted with remaining issues, add them to plan. **⛔ Phase Transition Context Guard** (spec.md Section 0.3) before invoking `Skill(skill='spec-implement', args='<plan-path>')`
+1. Re-run BOTH review agents in parallel (same as Step 3.0d)
+2. Fix any new must_fix or should_fix findings
+3. Maximum 2 iterations before adding remaining issues to plan
 
-**The only stopping point in /spec is plan approval. Everything else is automatic.**
+If issues require going back to implementation, add tasks to plan. **⛔ Context check:** Run `~/.pilot/bin/pilot check-context --json` — if >= 80%, auto-compact may fire during implementation. Then invoke `Skill(skill='spec-implement', args='<plan-path>')`
 
 ---
 
@@ -577,59 +573,13 @@ This is the THIRD user interaction point in the `/spec` workflow (first is workt
    ```
 3. **Register status change:** `~/.pilot/bin/pilot register-plan "<plan_path>" "PENDING" 2>/dev/null || true`
 4. Inform user: "🔄 Iteration N+1: Issues found, fixing and re-verifying..."
-5. **⛔ Phase Transition Context Guard:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, hand off instead (see spec.md Section 0.3).
+5. **⛔ Context check:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, auto-compact may fire during the next phase — complete current work first.
 6. **Invoke implementation phase:** `Skill(skill='spec-implement', args='<plan-path>')`
 
 ---
 
-## Context Management (90% Handoff)
+## Context Management
 
-After each major operation, check context:
-
-```bash
-~/.pilot/bin/pilot check-context --json
-```
-
-**Between iterations:**
-
-1. If context >= 90%: hand off cleanly (don't rush!)
-2. If context 80-89%: continue but wrap up current task with quality
-3. If context < 80%: continue the loop freely
-
-If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
-
-**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
-
-**Step 1: Write continuation file (GUARANTEED BACKUP)**
-
-Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
-
-```markdown
-# Session Continuation (/spec)
-
-**Plan:** <plan-path>
-**Phase:** verification
-**Current Task:** Step 3.N - [description]
-
-**Completed This Session:**
-
-- [x] [What was finished]
-
-**Next Steps:**
-
-1. [What to do immediately when resuming]
-
-**Context:**
-
-- [Key decisions or blockers]
-```
-
-**Step 2: Trigger session clear**
-
-```bash
-~/.pilot/bin/pilot send-clear <plan-path>
-```
-
-Pilot will restart with `/spec --continue <plan-path>`
+Context is managed automatically by auto-compaction at 90%. No agent action needed — just keep working.
 
 ARGUMENTS: $ARGUMENTS

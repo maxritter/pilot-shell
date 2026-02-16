@@ -7,10 +7,9 @@
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "true",
     "ENABLE_TOOL_SEARCH": "true",
     "ENABLE_LSP_TOOL": "true",
-    "DISABLE_AUTO_COMPACT": "true",
-    "DISABLE_COMPACT": "true",
+    "DISABLE_COMPACT": "false",
+    "DISABLE_AUTO_COMPACT": "false",
     "DISABLE_MICROCOMPACT": "false",
-    "DISABLE_AUTO_COMPACT_THRESHOLD": "100",
     "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "true",
     "DISABLE_INSTALLATION_CHECKS": "true",
     "DISABLE_ERROR_REPORTING": "true",
@@ -70,24 +69,23 @@
     ],
     "deny": []
   },
+  "terminalProgressBarEnabled": true,
   "enableAllProjectMcpServers": true,
+  "spinnerTipsEnabled": false,
+  "prefersReducedMotion": true,
+  "showTurnDuration": false,
+  "alwaysThinkingEnabled": true,
+  "respectGitignore": false,
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "statusLine": {
     "type": "command",
     "command": "~/.pilot/bin/pilot statusline",
     "padding": 0
   },
-  "outputStyle": "default",
-  "spinnerTipsEnabled": false,
-  "prefersReducedMotion": true,
-  "showTurnDuration": false,
-  "alwaysThinkingEnabled": true,
-  "attribution": {
-    "commit": "",
-    "pr": ""
-  },
   "companyAnnouncements": [
     "🔵 Console: http://localhost:41777 | 📋 /spec — plan, build & verify | 🔄 /sync — sync rules | 🧠 /learn — extract skills | 🏦 /vault — share with team"
-  ],
-  "respectGitignore": false,
-  "cleanupPeriodDays": 31
+  ]
 }

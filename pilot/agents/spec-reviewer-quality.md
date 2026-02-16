@@ -19,8 +19,8 @@ You review implementation code for quality, security, testing, performance, and 
 Read **quality-relevant** rules only. Skip workflow/tool rules (context-continuation, pilot-cli, memory, web-search, etc.) — they don't apply to code review.
 
 ```bash
-# 1. Read coding standards and language-specific rules
-ls ~/.claude/rules/{coding-standards,tdd-enforcement,execution-verification,verification-before-completion,systematic-debugging,testing-*,python-rules,typescript-rules,golang-rules,standards-*}.md
+# 1. Read quality-relevant rules (testing, verification, practices, language standards)
+ls ~/.claude/rules/{testing,verification,development-practices,standards-*}.md
 
 # 2. Read ALL project rules (these are few and always relevant)
 ls .claude/rules/*.md
@@ -29,13 +29,11 @@ ls .claude/rules/*.md
 **For EACH matched rule file, use the Read tool to read it completely.**
 
 Rules to SKIP (not relevant to code review):
-- `context-continuation.md`, `context7-docs.md` — session management
-- `gh-cli.md`, `git-operations.md` — git/GitHub workflow
-- `grep-mcp.md`, `mcp-cli.md` — tool usage
-- `learn.md`, `memory.md` — learning/memory systems
-- `pilot-cli.md` — CLI reference
+- `context-continuation.md` — session management
+- `cli-tools.md` — CLI references (Pilot, MCP-CLI, Vexor)
+- `research-tools.md` — Context7, grep-mcp, web search, gh CLI
+- `pilot-memory.md` — memory and learning systems
 - `playwright-cli.md` — browser automation
-- `vexor-search.md`, `web-search.md` — search tools
 - `team-vault.md` — vault management
 - `workflow-enforcement.md` — task/workflow orchestration
 
@@ -62,7 +60,7 @@ Key rules are summarized below, but you MUST read the full rule files for comple
 - Tests MUST have been written BEFORE the implementation
 - If you see implementation without corresponding test = **must_fix**
 
-### Testing Standards (standards-testing, testing-strategies-coverage)
+### Testing Standards (testing.md, standards-*)
 
 - Unit tests MUST mock ALL external calls (HTTP, subprocess, file I/O, databases)
 - Tests making real network calls = **must_fix** (causes hangs/flakiness)

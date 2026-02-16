@@ -17,6 +17,16 @@
             "timeout": 15
           }
         ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/post_compact_restore.py\"",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -99,6 +109,17 @@
           {
             "type": "command",
             "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/session_end.py\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/pre_compact.py\"",
             "timeout": 15
           }
         ]

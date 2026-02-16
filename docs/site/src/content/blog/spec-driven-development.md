@@ -83,7 +83,7 @@ This triggers the full plan → implement → verify pipeline. Pilot handles:
 - **Plan verification** — Two review agents challenge the plan before you see it
 - **Worktree isolation** — Implementation happens on a separate branch so your main branch stays clean
 - **TDD enforcement** — Hooks ensure tests are written before production code
-- **Automatic handoffs** — If context fills up, Pilot saves state and continues in a new session via Endless Mode
+- **Automatic context management** — If context fills up, auto-compaction preserves state and work continues seamlessly
 - **Progress tracking** — Real-time task status visible in your terminal
 
 The only manual steps are approving the plan and (optionally) reviewing the final changes before merging.

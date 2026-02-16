@@ -145,7 +145,7 @@ class Console:
         self._console.print("  [bold white]What You're Getting[/bold white]")
         self._console.print()
         self._console.print(
-            "    [yellow]♾️[/yellow]  [bold green]Endless Mode[/bold green]   [white]— Seamless continuity across sessions, automatic handoffs[/white]"
+            "    [yellow]🧠[/yellow]  [bold green]Intelligent Context[/bold green] [white]— Auto-compaction preserves state via hooks — no context is ever lost[/white]"
         )
         self._console.print(
             "    [yellow]📋[/yellow] [bold green]Spec-Driven[/bold green]    [white]— /spec for planning, approval gate, TDD implementation[/white]"

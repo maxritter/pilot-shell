@@ -87,7 +87,7 @@ Or set a default in settings:
 
 ## Context Window
 
-All current Claude models support 200K token context windows. Opus 4.6 also has a 1M token context beta for extremely large codebases. For most projects, 200K is sufficient — Pilot's Endless Mode handles the rest.
+All current Claude models support 200K token context windows. Opus 4.6 also has a 1M token context beta for extremely large codebases. For most projects, 200K is sufficient — Pilot's auto-compaction and persistent memory handle the rest.
 
 ## Key Insight
 

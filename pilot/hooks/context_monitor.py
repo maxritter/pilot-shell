@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import sys
 import time
 from pathlib import Path
@@ -13,77 +12,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from _util import (
     CYAN,
-    MAGENTA,
     NC,
-    RED,
     YELLOW,
     get_session_cache_path,
-    get_session_plan_path,
 )
 
-THRESHOLD_WARN = 80
-THRESHOLD_STOP = 90
-THRESHOLD_CRITICAL = 95
-LEARN_THRESHOLDS = [40, 60, 80]
-
-
-def find_active_spec() -> tuple[Path | None, str | None]:
-    """Find the active spec for THIS session via session-scoped active_plan.json."""
-    plan_json = get_session_plan_path()
-    if not plan_json.exists():
-        return None, None
-
-    try:
-        data = json.loads(plan_json.read_text())
-        plan_path_str = data.get("plan_path", "")
-    except (json.JSONDecodeError, OSError):
-        return None, None
-
-    if not plan_path_str:
-        return None, None
-
-    plan_file = Path(plan_path_str)
-    if not plan_file.is_absolute():
-        project_root = os.environ.get("CLAUDE_PROJECT_ROOT", str(Path.cwd()))
-        plan_file = Path(project_root) / plan_file
-    if not plan_file.exists():
-        return None, None
-
-    try:
-        content = plan_file.read_text()
-        status_match = re.search(r"^Status:\s*(\w+)", content, re.MULTILINE)
-        if not status_match:
-            return None, None
-        status = status_match.group(1).upper()
-        if status in ("PENDING", "COMPLETE"):
-            return plan_file, status
-    except OSError:
-        pass
-
-    return None, None
-
-
-def print_spec_warning(spec_path: Path, spec_status: str) -> None:
-    """Print spec-specific warning at high context."""
-    if spec_status == "COMPLETE":
-        print(f"{MAGENTA}{'=' * 60}{NC}", file=sys.stderr)
-        print(f"{MAGENTA}⛔ ACTIVE SPEC AT STATUS: COMPLETE - VERIFICATION REQUIRED{NC}", file=sys.stderr)
-        print(f"{MAGENTA}{'=' * 60}{NC}", file=sys.stderr)
-        print(f"{MAGENTA}Spec: {spec_path}{NC}", file=sys.stderr)
-        print("", file=sys.stderr)
-        print(f"{MAGENTA}You MUST run Phase 3 VERIFICATION before handoff:{NC}", file=sys.stderr)
-        print(f"{MAGENTA}  1. Run tests and type checking{NC}", file=sys.stderr)
-        print(f"{MAGENTA}  2. Execute actual program{NC}", file=sys.stderr)
-        print(f"{MAGENTA}  3. Run code review (spec-reviewer agents){NC}", file=sys.stderr)
-        print(f"{MAGENTA}  4. Update status to VERIFIED{NC}", file=sys.stderr)
-        print(f"{MAGENTA}  5. THEN do handoff{NC}", file=sys.stderr)
-        print("", file=sys.stderr)
-        print(f"{MAGENTA}DO NOT summarize and stop. VERIFICATION is NON-NEGOTIABLE.{NC}", file=sys.stderr)
-        print(f"{MAGENTA}{'=' * 60}{NC}", file=sys.stderr)
-    elif spec_status == "PENDING":
-        print(f"{YELLOW}📋 Active spec: {spec_path} (Status: PENDING){NC}", file=sys.stderr)
-        print(f"{YELLOW}   Continue implementation or get approval before handoff.{NC}", file=sys.stderr)
-        print("", file=sys.stderr)
+THRESHOLD_WARN = 75
+THRESHOLD_AUTOCOMPACT = 80
+LEARN_THRESHOLDS = [40, 60, 75]
 
 
 def get_current_session_id() -> str:
@@ -102,7 +38,7 @@ def get_current_session_id() -> str:
 
 
 def get_session_flags(session_id: str) -> tuple[list[int], bool]:
-    """Get shown flags for this session (learn thresholds, 80% warning)."""
+    """Get shown flags for this session (learn thresholds, 75% warning)."""
     if get_session_cache_path().exists():
         try:
             with get_session_cache_path().open() as f:
@@ -151,17 +87,11 @@ def save_cache(
         pass
 
 
-def _get_continuation_path() -> str:
-    """Get the absolute continuation file path for the current Pilot session."""
-    pilot_session_id = os.environ.get("PILOT_SESSION_ID", "").strip() or "default"
-    return str(Path.home() / ".pilot" / "sessions" / pilot_session_id / "continuation.md")
-
-
 def _read_statusline_context_pct() -> float | None:
     """Read authoritative context percentage from statusline cache.
 
     Returns None if cache is missing, corrupt, stale (>60s), or from a
-    different Claude Code session (e.g. after send-clear restart).
+    different Claude Code session (e.g. after compaction).
     """
     pilot_session_id = os.environ.get("PILOT_SESSION_ID", "").strip()
     if not pilot_session_id:
@@ -190,9 +120,9 @@ def _is_throttled(session_id: str) -> bool:
 
     Returns True if:
     - Last check was < 30 seconds ago AND
-    - Last cached context was < 80%
+    - Last cached context was < 75%
 
-    Always returns False at 80%+ context (never throttle high context).
+    Always returns False at 75%+ context (never throttle high context).
     """
     cache_path = get_session_cache_path()
     if not cache_path.exists():
@@ -257,55 +187,32 @@ def run_context_monitor() -> int:
             new_learn_shown.append(threshold)
             break
 
-    continuation_path = _get_continuation_path()
-
-    if percentage >= THRESHOLD_CRITICAL:
+    if percentage >= THRESHOLD_AUTOCOMPACT:
         save_cache(total_tokens, session_id, new_learn_shown if new_learn_shown else None)
         print("", file=sys.stderr)
-        print(f"{RED}🚨 CONTEXT {percentage:.0f}% - CRITICAL: HANDOFF NOW IN THIS TURN{NC}", file=sys.stderr)
-        print(f"{RED}Do NOT write code, fix errors, or run commands.{NC}", file=sys.stderr)
-        print(f"{RED}Execute BOTH steps below in THIS SINGLE TURN (no stopping between):{NC}", file=sys.stderr)
-        print(f"{RED}  1. Write {continuation_path}{NC}", file=sys.stderr)
-        print(f"{RED}  2. Run: ~/.pilot/bin/pilot send-clear [plan-path|--general]{NC}", file=sys.stderr)
         print(
-            f"{RED}Do NOT output a summary and stop. Do NOT wait for user. Execute send-clear NOW.{NC}", file=sys.stderr
+            f"{YELLOW}⚠️  Context at {percentage:.0f}%. Auto-compact approaching — no rush, no context is lost.{NC}",
+            file=sys.stderr,
         )
-        return 2
-
-    if percentage >= THRESHOLD_STOP:
-        save_cache(total_tokens, session_id, new_learn_shown if new_learn_shown else None)
-        print("", file=sys.stderr)
-
-        spec_path, spec_status = find_active_spec()
-        if spec_path and spec_status:
-            print_spec_warning(spec_path, spec_status)
-            if spec_status == "COMPLETE":
-                return 2
-
-        print(f"{RED}⚠️  CONTEXT {percentage:.0f}% - MANDATORY HANDOFF{NC}", file=sys.stderr)
-        print(f"{RED}Do NOT start new tasks or fix cycles. Execute handoff in a SINGLE TURN:{NC}", file=sys.stderr)
-        print(f"{RED}  1. Write {continuation_path}{NC}", file=sys.stderr)
-        print(f"{RED}  2. Run: ~/.pilot/bin/pilot send-clear [plan-path|--general]{NC}", file=sys.stderr)
         print(
-            f"{RED}Do NOT summarize and stop. The send-clear command triggers automatic restart.{NC}", file=sys.stderr
+            f"{YELLOW}Complete current task with full quality. Do NOT cut corners or skip verification.{NC}",
+            file=sys.stderr,
         )
         return 2
 
     if percentage >= THRESHOLD_WARN and not shown_80_warn:
         save_cache(total_tokens, session_id, new_learn_shown if new_learn_shown else None, shown_80_warn=True)
         print("", file=sys.stderr)
-        print(f"{YELLOW}⚠️  CONTEXT {percentage:.0f}% - PREPARE FOR HANDOFF{NC}", file=sys.stderr)
         print(
-            f"{YELLOW}Finish current task with full quality, then hand off. Never rush - next session continues seamlessly!{NC}",
+            f"{CYAN}💡 Context at {percentage:.0f}%. Auto-compact will handle context management automatically. No rush.{NC}",
             file=sys.stderr,
         )
-        return 2
+        return 0
 
     if percentage >= THRESHOLD_WARN and shown_80_warn:
         if new_learn_shown:
             save_cache(total_tokens, session_id, new_learn_shown)
-        print(f"{YELLOW}Context: {percentage:.0f}%{NC}", file=sys.stderr)
-        return 2
+        return 0
 
     if new_learn_shown:
         save_cache(total_tokens, session_id, new_learn_shown)

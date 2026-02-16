@@ -152,4 +152,4 @@ Claude Pilot ships with pre-configured MCP servers that integrate into its workf
 - **GitHub Code Search** — Find production code examples from millions of repositories
 - **Context7** — Access library documentation directly during implementation
 
-These servers are configured automatically during installation — no manual setup needed. They power Pilot's ability to maintain context across unlimited sessions through Endless Mode.
+These servers are configured automatically during installation — no manual setup needed. They power Pilot's intelligent context management through auto-compaction and persistent memory.

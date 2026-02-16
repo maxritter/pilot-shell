@@ -187,7 +187,7 @@ describe("Cross-session memory isolation (integration)", () => {
     });
   });
 
-  describe("Scenario: Session with handover (new content_session_id, same plan)", () => {
+  describe("Scenario: Continued session (new content_session_id, same plan)", () => {
     it("sees observations from all sessions associated with the same plan", () => {
       store.createSDKSession("cc-uuid-session-1-continued", PROJECT, "continue auth");
       store.updateMemorySessionId(4, "mem-session-1-cont");

@@ -21,9 +21,10 @@ import { useInView } from "@/hooks/use-in-view";
 const hooksPipeline = [
   {
     trigger: "SessionStart",
-    description: "On startup, clear, or compact",
+    description: "On startup, clear, or after compaction",
     hooks: [
       "Load persistent memory from Pilot Console",
+      "Restore plan state after compaction (post_compact_restore.py)",
       "Initialize session tracking (async)",
     ],
     color: "text-sky-400",
@@ -31,71 +32,84 @@ const hooksPipeline = [
     borderColor: "border-sky-400/30",
   },
   {
-    trigger: "PostToolUse",
-    description: "After every Write / Edit operation",
-    hooks: [
-      "File checker: auto-format, lint, type-check (Python, TypeScript, Go)",
-      "TDD enforcer: warns if no failing test exists",
-      "Memory observation: captures development context",
-      "Context monitor: automatic session handoff",
-    ],
-    color: "text-primary",
-    bgColor: "bg-primary/10",
-    borderColor: "border-primary/30",
-  },
-  {
     trigger: "PreToolUse",
     description: "Before search, web, or task tools",
     hooks: [
-      "Tool redirect: routes tools to correct context",
+      "Block WebSearch/WebFetch — redirect to MCP alternatives",
+      "Block EnterPlanMode/ExitPlanMode — project uses /spec",
+      "Hint vexor for semantic Grep patterns",
     ],
     color: "text-amber-400",
     bgColor: "bg-amber-400/10",
     borderColor: "border-amber-400/30",
   },
   {
+    trigger: "PostToolUse",
+    description: "After every Write / Edit / MultiEdit",
+    hooks: [
+      "File checker: auto-format, lint, type-check (Python, TypeScript, Go)",
+      "TDD enforcer: warns if no failing test exists",
+      "Context monitor: warns at 75%+, caution at 80%+",
+      "Memory observation: captures development context (async)",
+    ],
+    color: "text-primary",
+    bgColor: "bg-primary/10",
+    borderColor: "border-primary/30",
+  },
+  {
+    trigger: "PreCompact",
+    description: "Before auto-compaction fires at ~83%",
+    hooks: [
+      "Capture active plan, task list, and key context to memory",
+    ],
+    color: "text-violet-400",
+    bgColor: "bg-violet-400/10",
+    borderColor: "border-violet-400/30",
+  },
+  {
     trigger: "Stop",
     description: "When Claude tries to finish",
     hooks: [
       "Spec stop guard: blocks if verification incomplete",
-      "Session summary: saves observations to memory",
+      "Session summary: saves observations to memory (async)",
     ],
     color: "text-rose-400",
     bgColor: "bg-rose-400/10",
     borderColor: "border-rose-400/30",
+  },
+  {
+    trigger: "SessionEnd",
+    description: "When the session closes",
+    hooks: [
+      "Stop worker daemon if no other sessions active",
+      "Send OS notification (spec complete or session ended)",
+    ],
+    color: "text-slate-400",
+    bgColor: "bg-slate-400/10",
+    borderColor: "border-slate-400/30",
   },
 ];
 
 const rulesCategories = [
   {
     icon: Shield,
-    category: "Quality Enforcement",
-    rules: ["TDD enforcement", "Verification before completion", "Execution verification", "Workflow enforcement"],
+    category: "Core Workflow",
+    rules: ["Workflow enforcement & /spec orchestration", "TDD & test strategy", "Execution verification & completion"],
   },
   {
     icon: Brain,
-    category: "Context Management",
-    rules: ["Context continuation (Endless Mode)", "Persistent memory system", "Coding standards"],
-  },
-  {
-    icon: FileCode2,
-    category: "Language Standards",
-    rules: ["Python (uv + pytest + ruff + basedpyright)", "TypeScript (ESLint + Prettier + vtsls)", "Go (gofmt + golangci-lint + gopls)"],
+    category: "Development Practices",
+    rules: ["Project policies & debugging", "Auto-compaction & context management", "Persistent memory & online learning"],
   },
   {
     icon: Search,
-    category: "Tool Integration",
-    rules: ["Vexor semantic search", "Context7 library docs", "grep-mcp GitHub search", "Web search + fetch", "Playwright CLI (E2E)", "MCP CLI"],
+    category: "Tools",
+    rules: ["Context7 + grep-mcp + web search + GitHub CLI", "Pilot CLI + MCP-CLI + Vexor search", "Playwright CLI (E2E browser testing)"],
   },
   {
     icon: GitBranch,
-    category: "Development Workflow",
-    rules: ["Git operations", "GitHub CLI", "Systematic debugging", "Testing strategies & coverage"],
-  },
-  {
-    icon: BookOpen,
-    category: "Learning & Knowledge",
-    rules: ["Online learning system", "Knowledge extraction patterns"],
+    category: "Collaboration",
+    rules: ["Team Vault asset sharing via sx"],
   },
 ];
 
@@ -103,17 +117,8 @@ const standardsList = [
   { name: "Python", desc: "uv, pytest, ruff, basedpyright, type hints", ext: "*.py" },
   { name: "TypeScript", desc: "npm/pnpm, Jest, ESLint, Prettier, React", ext: "*.ts, *.tsx" },
   { name: "Go", desc: "Modules, testing, formatting, error handling", ext: "*.go" },
-  { name: "Testing", desc: "Unit, integration, mocking, coverage goals", ext: "*test*, *spec*" },
-  { name: "API Design", desc: "RESTful patterns, error handling, versioning", ext: "*route*, *api*" },
-  { name: "Data Models", desc: "Schemas, type safety, migrations, relations", ext: "*model*, *schema*" },
-  { name: "Components", desc: "Reusable patterns, props, documentation", ext: "*.tsx, *.vue" },
-  { name: "CSS / Styling", desc: "Naming, organization, responsive, performance", ext: "*.css, *.scss" },
-  { name: "Responsive Design", desc: "Mobile-first, breakpoints, touch interactions", ext: "*.css, *.tsx" },
-  { name: "Design System", desc: "Color palette, typography, spacing, consistency", ext: "*.css, *.tsx" },
-  { name: "Accessibility", desc: "WCAG, ARIA, keyboard nav, screen readers", ext: "*.tsx, *.html" },
-  { name: "DB Migrations", desc: "Schema changes, data transforms, rollbacks", ext: "*migration*" },
-  { name: "Query Optimization", desc: "Indexing, N+1 problems, performance", ext: "*query*, *dao*" },
-  { name: "Test Organization", desc: "File structure, naming, fixtures, setup", ext: "*test*, *spec*" },
+  { name: "Frontend", desc: "Components, CSS, accessibility, responsive, design", ext: "*.tsx, *.jsx, *.html, *.vue, *.css" },
+  { name: "Backend", desc: "API design, data models, queries, migrations", ext: "**/models/**, **/routes/**, **/api/**" },
 ];
 
 const mcpServers = [
@@ -162,7 +167,7 @@ const DeepDiveSection = () => {
             </div>
             <div>
               <h3 className="text-2xl font-bold text-foreground">Hooks Pipeline</h3>
-              <p className="text-sm text-muted-foreground">Hooks fire automatically at every stage of development</p>
+              <p className="text-sm text-muted-foreground">12 hooks across 6 lifecycle events — fire automatically at every stage</p>
             </div>
           </div>
 
@@ -202,7 +207,7 @@ const DeepDiveSection = () => {
               <Gauge className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-foreground">Context Monitor & Endless Mode</h3>
+              <h3 className="text-2xl font-bold text-foreground">Context Monitor & Auto-Compaction</h3>
               <p className="text-sm text-muted-foreground">Intelligent context management with automatic session continuity</p>
             </div>
           </div>
@@ -211,31 +216,31 @@ const DeepDiveSection = () => {
             <div className="rounded-2xl p-5 border border-amber-400/30 bg-card/30 backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-3">
                 <AlertTriangle className="h-5 w-5 text-amber-400" />
-                <span className="text-lg font-bold text-foreground">80%</span>
-                <span className="text-xs text-amber-400 font-medium">WARN</span>
+                <span className="text-lg font-bold text-foreground">75%</span>
+                <span className="text-xs text-amber-400 font-medium">INFO</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Prepare for continuation. Pilot begins saving state, wrapping up current work, and preparing handoff notes for the next session.
+                Informational notice. Auto-compaction will handle context management automatically. No action needed — work continues normally.
               </p>
             </div>
             <div className="rounded-2xl p-5 border border-orange-500/30 bg-card/30 backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-3">
                 <AlertTriangle className="h-5 w-5 text-orange-500" />
-                <span className="text-lg font-bold text-foreground">90%</span>
-                <span className="text-xs text-orange-500 font-medium">CRITICAL</span>
+                <span className="text-lg font-bold text-foreground">80%</span>
+                <span className="text-xs text-orange-500 font-medium">CAUTION</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Mandatory handoff. Pilot saves session state to <code className="text-primary text-xs">~/.pilot/sessions/</code>, writes a continuation file, and seamlessly picks up in a new session.
+                Auto-compaction approaching. Complete current task with full quality — no rush, no context is lost. Hooks capture state to persistent memory.
               </p>
             </div>
             <div className="rounded-2xl p-5 border border-rose-500/30 bg-card/30 backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-3">
                 <AlertTriangle className="h-5 w-5 text-rose-500" />
-                <span className="text-lg font-bold text-foreground">95%</span>
-                <span className="text-xs text-rose-500 font-medium">URGENT</span>
+                <span className="text-lg font-bold text-foreground">~83%</span>
+                <span className="text-xs text-rose-500 font-medium">AUTO-COMPACT</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Emergency handoff. All progress is preserved — no work lost. Multiple Pilot sessions can run in parallel on the same project without interference.
+                Auto-compaction fires. All progress preserved — recent files rehydrated, task list restored, plan state re-injected. Work resumes seamlessly.
               </p>
             </div>
           </div>

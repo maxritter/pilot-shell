@@ -7,7 +7,7 @@ const testimonials = [
     role: "Senior Developer",
   },
   {
-    quote: "Endless Mode is a game-changer. I used to lose context halfway through complex refactors. Now it just hands off cleanly and picks up exactly where it left off.",
+    quote: "Auto-compaction is a game-changer. I used to lose context halfway through complex refactors. Now it kicks in seamlessly and Claude just keeps going without missing a beat.",
     role: "Full-Stack Engineer",
   },
   {

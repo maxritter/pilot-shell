@@ -14,7 +14,6 @@ from session_end import main
 
 class TestSessionEndNotifications:
     @patch("session_end._get_active_session_count")
-    @patch("session_end._is_session_handing_off")
     @patch("session_end._sessions_base")
     @patch("session_end.subprocess.run")
     @patch("session_end.send_notification")
@@ -24,12 +23,10 @@ class TestSessionEndNotifications:
         mock_notify,
         mock_subprocess,
         mock_sessions_base,
-        mock_handoff,
         mock_count,
     ):
         """Should send notification when session ends cleanly (no VERIFIED plan)."""
         mock_count.return_value = 1
-        mock_handoff.return_value = False
 
         with tempfile.TemporaryDirectory() as tmpdir:
             session_dir = Path(tmpdir) / "default"
@@ -44,7 +41,6 @@ class TestSessionEndNotifications:
             mock_notify.assert_called_once_with("Pilot", "Claude session ended")
 
     @patch("session_end._get_active_session_count")
-    @patch("session_end._is_session_handing_off")
     @patch("session_end._sessions_base")
     @patch("session_end.subprocess.run")
     @patch("session_end.send_notification")
@@ -54,12 +50,10 @@ class TestSessionEndNotifications:
         mock_notify,
         mock_subprocess,
         mock_sessions_base,
-        mock_handoff,
         mock_count,
     ):
         """Should send specific message when VERIFIED plan completes."""
         mock_count.return_value = 1
-        mock_handoff.return_value = False
 
         with tempfile.TemporaryDirectory() as tmpdir:
             session_dir = Path(tmpdir) / "test123"
@@ -74,22 +68,6 @@ class TestSessionEndNotifications:
 
             assert result == 0
             mock_notify.assert_called_once_with("Pilot", "Spec complete — all checks passed")
-
-    @patch("session_end._get_active_session_count")
-    @patch("session_end._is_session_handing_off")
-    @patch("session_end.send_notification")
-    @patch("os.environ", {"CLAUDE_PLUGIN_ROOT": "/plugin"})
-    def test_no_notification_during_endless_mode_restart(
-        self, mock_notify, mock_handoff, mock_count
-    ):
-        """Should NOT send notification during endless mode handoff."""
-        mock_count.return_value = 1
-        mock_handoff.return_value = True
-
-        result = main()
-
-        assert result == 0
-        mock_notify.assert_not_called()
 
     @patch("session_end._get_active_session_count")
     @patch("session_end.send_notification")

@@ -46,7 +46,7 @@ So I built Pilot. Instead of adding process on top, it bakes quality into every 
 | --------------------------- | --------------------------------------------------------------- |
 | Writes code, skips tests    | TDD enforced — RED, GREEN, REFACTOR on every feature            |
 | No quality checks           | Hooks auto-lint, format, type-check on every file edit          |
-| Context degrades mid-task   | Endless Mode with automatic session handoff                     |
+| Context degrades mid-task   | Intelligent context management with auto-compaction             |
 | Every session starts fresh  | Persistent memory across sessions via Pilot Console             |
 | Hope it works               | Verifier sub-agents perform code review before marking complete |
 | No codebase knowledge       | Production-tested rules loaded into every session               |
@@ -65,9 +65,9 @@ There are other AI coding frameworks out there. I tried them. They add complexit
 
 This isn't a vibe coding tool. It's built for developers who ship to production and need code that actually works. Every rule in the system comes from daily professional use: real bugs caught, real regressions prevented, real sessions where the AI cut corners and the hooks stopped it. The rules are continuously refined based on what measurably improves output.
 
-**The result: you can actually walk away.** Start a `/spec` task, approve the plan, then go grab a coffee. When you come back, the work is done — tested, verified, formatted, and ready to ship. Endless Mode handles session continuity automatically, quality hooks catch every mistake along the way, and verifier agents review the code before marking it complete. No babysitting required.
+**The result: you can actually walk away.** Start a `/spec` task, approve the plan, then go grab a coffee. When you come back, the work is done — tested, verified, formatted, and ready to ship. Auto-compaction handles session continuity automatically, quality hooks catch every mistake along the way, and verifier agents review the code before marking it complete. No babysitting required.
 
-The system stays fast because it stays simple. Quick mode is direct execution with zero overhead — no sub-agents, no plan files, no directory scaffolding. You describe the task and it gets done. `/spec` adds structure only when you need it: plan verification, TDD enforcement, independent code review, automated quality checks. Both modes share the same quality hooks. Both modes hand off cleanly across sessions with Endless Mode.
+The system stays fast because it stays simple. Quick mode is direct execution with zero overhead — no sub-agents, no plan files, no directory scaffolding. You describe the task and it gets done. `/spec` adds structure only when you need it: plan verification, TDD enforcement, independent code review, automated quality checks. Both modes share the same quality hooks. Both modes benefit from automatic context compaction and persistent memory.
 
 ---
 
@@ -253,18 +253,16 @@ pilot
 
 ### Pilot CLI
 
-The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing, and context. Run `pilot` or `ccp` with no arguments to start Claude with Endless Mode.
+The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing, and context. Run `pilot` or `ccp` with no arguments to start Claude with Pilot enhancements.
 
 <details>
 <summary><b>Session & Context</b></summary>
 
 | Command                               | Purpose                                                          |
 | ------------------------------------- | ---------------------------------------------------------------- |
-| `pilot`                               | Start Claude with Endless Mode, auto-update, and license check   |
+| `pilot`                               | Start Claude with Pilot enhancements, auto-update, and license check |
 | `pilot run [args...]`                 | Same as above, with optional flags (e.g., `--skip-update-check`) |
 | `pilot check-context --json`          | Get current context usage percentage                             |
-| `pilot send-clear <plan.md>`          | Trigger Endless Mode continuation with plan context              |
-| `pilot send-clear --general`          | Trigger continuation without a plan                              |
 | `pilot register-plan <path> <status>` | Associate a plan file with the current session                   |
 | `pilot sessions [--json]`             | Show count of active Pilot sessions                              |
 
@@ -329,14 +327,21 @@ Run `/sync` after adding servers to generate documentation.
 
 ### The Hooks Pipeline
 
-**Hooks** fire automatically at every stage of development:
+**12 hooks** fire automatically across 6 lifecycle events:
 
 #### SessionStart (on startup, clear, or compact)
 
-| Hook            | Type     | What it does                                       |
-| --------------- | -------- | -------------------------------------------------- |
-| Memory loader   | Blocking | Loads persistent context from Pilot Console memory |
-| Session tracker | Async    | Initializes user message tracking for the session  |
+| Hook                        | Type     | What it does                                                          |
+| --------------------------- | -------- | --------------------------------------------------------------------- |
+| Memory loader               | Blocking | Loads persistent context from Pilot Console memory                    |
+| `post_compact_restore.py`   | Blocking | After auto-compaction: re-injects active plan, task state, and context |
+| Session tracker             | Async    | Initializes user message tracking for the session                     |
+
+#### PreToolUse (before search, web, or task tools)
+
+| Hook               | Type     | What it does                                                                                                                               |
+| ------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `tool_redirect.py` | Blocking | Blocks WebSearch/WebFetch (MCP alternatives exist), EnterPlanMode/ExitPlanMode (/spec conflict). Hints vexor for semantic Grep patterns. |
 
 #### PostToolUse (after every Write / Edit / MultiEdit)
 
@@ -346,14 +351,14 @@ After **every single file edit**, these hooks fire:
 | -------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `file_checker.py`    | Blocking     | Dispatches to language-specific checkers: Python (ruff + basedpyright), TypeScript (Prettier + ESLint + tsc), Go (gofmt + golangci-lint). Auto-fixes formatting.     |
 | `tdd_enforcer.py`    | Non-blocking | Checks if implementation files were modified without failing tests first. Shows reminder to write tests. Excludes test files, docs, config, TSX, and infrastructure. |
+| `context_monitor.py` | Non-blocking | Monitors context usage. Warns at 75%+ (informational) and 80%+ (caution). Prompts `/learn` at key thresholds.                                                       |
 | Memory observer      | Async        | Captures development observations to persistent memory.                                                                                                              |
-| `context_monitor.py` | Non-blocking | Monitors context window usage. Warns as usage grows, forces handoff before hitting limits. Caches for 15 seconds to avoid spam.                                      |
 
-#### PreToolUse (before search, web, or task tools)
+#### PreCompact (before auto-compaction)
 
-| Hook               | Type     | What it does                                                                                                                                                   |
-| ------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tool_redirect.py` | Blocking | Routes WebSearch, WebFetch, Grep, Task, and plan mode tools to appropriate contexts. Prevents tools from being accidentally lost during plan/implement phases. |
+| Hook              | Type     | What it does                                                                                            |
+| ----------------- | -------- | ------------------------------------------------------------------------------------------------------- |
+| `pre_compact.py`  | Blocking | Captures Pilot state (active plan, task list, key context) to persistent memory before compaction fires. |
 
 #### Stop (when Claude tries to finish)
 
@@ -362,13 +367,19 @@ After **every single file edit**, these hooks fire:
 | `spec_stop_guard.py` | Blocking | If an active spec exists with PENDING or COMPLETE status, **blocks stopping**. Forces verification to complete before the session can end. |
 | Session summarizer   | Async    | Saves session observations to persistent memory for future sessions.                                                                       |
 
-### Endless Mode
+#### SessionEnd (when the session closes)
 
-The context monitor tracks usage in real-time and manages multi-session continuity:
+| Hook              | Type     | What it does                                                                                          |
+| ----------------- | -------- | ----------------------------------------------------------------------------------------------------- |
+| `session_end.py`  | Blocking | Stops the worker daemon when no other Pilot sessions are active. Sends OS notification on completion. |
 
-- As context grows, Pilot warns, then forces a handoff before hitting limits
-- Session state is saved to `~/.pilot/sessions/` with continuation files — picks up seamlessly in the next session
-- During `/spec`, Pilot won't start a new phase when context is high — it hands off instead
+### Intelligent Context Management
+
+The context monitor tracks usage in real-time, and auto-compaction handles context limits transparently:
+
+- At ~83% context, Claude's built-in compaction fires automatically — no process restart needed
+- `pre_compact.py` captures Pilot state (active plan, tasks, key context) to persistent memory
+- `post_compact_restore.py` re-injects Pilot context after compaction — agent continues seamlessly
 - Multiple Pilot sessions can run in parallel on the same project without interference
 - Status line shows live context usage, memory status, active plan, and license info
 
@@ -377,54 +388,36 @@ The context monitor tracks usage in real-time and manages multi-session continui
 Production-tested best practices loaded into **every session**. These aren't suggestions — they're enforced standards.
 
 <details>
-<summary><b>Quality Enforcement (4 rules)</b></summary>
+<summary><b>Core Workflow (3 rules)</b></summary>
 
-- `tdd-enforcement.md` — Mandatory RED → GREEN → REFACTOR cycle with verification checklist
-- `verification-before-completion.md` — Never mark task complete without full verification
-- `execution-verification.md` — How to verify code actually works (run it, test it, smoke test it)
-- `workflow-enforcement.md` — Systematic approach to problem-solving
-
-</details>
-
-<details>
-<summary><b>Context Management (3 rules)</b></summary>
-
-- `context-continuation.md` — Endless Mode protocol (thresholds, handoff format, multi-session parallel)
-- `memory.md` — 3-layer persistent memory workflow (search → timeline → observations)
-- `coding-standards.md` — General naming, organization, documentation, performance
+- `workflow-enforcement.md` — Task management, /spec orchestration, deviation handling
+- `testing.md` — TDD workflow, test strategy, coverage requirements
+- `verification.md` — Execution verification, completion requirements
 
 </details>
 
 <details>
-<summary><b>Language Standards (3 rules)</b></summary>
+<summary><b>Development Practices (3 rules)</b></summary>
 
-- `python-rules.md` — uv for packages, pytest for testing, ruff for linting, basedpyright for types
-- `typescript-rules.md` — npm/pnpm, Jest, ESLint, Prettier, React component patterns
-- `golang-rules.md` — Go modules, testing conventions, code organization, common patterns
-
-</details>
-
-<details>
-<summary><b>Tool Integration (6 rules)</b></summary>
-
-- `vexor-search.md` — Semantic code search: indexing, querying, token-efficient retrieval
-- `context7-docs.md` — Library documentation: fetching API docs for any dependency
-- `grep-mcp.md` — GitHub code search: finding real-world usage patterns across repos
-- `web-search.md` — Web search via DuckDuckGo, Bing, Exa with query syntax and filtering
-- `playwright-cli.md` — Browser automation for E2E UI testing with page navigation, screenshots, tracing, and network mocking
-- `mcp-cli.md` — MCP command line: listing servers, running tools, custom configuration
+- `development-practices.md` — Project policies, debugging methodology, git rules
+- `context-continuation.md` — Auto-compaction and context management protocol
+- `pilot-memory.md` — Persistent memory workflow, online learning triggers
 
 </details>
 
 <details>
-<summary><b>Development Workflow (6 rules)</b></summary>
+<summary><b>Tools (3 rules)</b></summary>
 
-- `git-operations.md` — Commit messages, branching strategy, PR workflow
-- `gh-cli.md` — GitHub CLI: issues, PRs, releases, code search
-- `systematic-debugging.md` — Root cause analysis, hypothesis testing, minimal reproducible examples
-- `testing-strategies-coverage.md` — Unit vs integration vs E2E, coverage metrics, mock strategies
-- `learn.md` — Online learning system: when and how to extract knowledge into skills
-- `team-vault.md` — Team Vault: sx usage patterns, asset scoping, versioning, error handling
+- `research-tools.md` — Context7, grep-mcp, web search, GitHub CLI
+- `cli-tools.md` — Pilot CLI, MCP-CLI, Vexor semantic search
+- `playwright-cli.md` — Browser automation for E2E UI testing
+
+</details>
+
+<details>
+<summary><b>Collaboration (1 rule)</b></summary>
+
+- `team-vault.md` — Team Vault asset sharing via sx
 
 </details>
 
@@ -432,21 +425,13 @@ Production-tested best practices loaded into **every session**. These aren't sug
 
 Conditional rules activated by file type — loaded only when working with matching files:
 
-| Standard           | Activates On                        | Coverage                                                         |
-| ------------------ | ----------------------------------- | ---------------------------------------------------------------- |
-| Python             | `*.py`                              | uv, pytest, ruff, basedpyright, type hints, docstrings           |
-| TypeScript         | `*.ts`, `*.tsx`, `*.js`, `*.jsx`    | npm/pnpm, Jest, ESLint, Prettier, React patterns                 |
-| Go                 | `*.go`                              | Modules, testing, formatting, error handling                     |
-| Testing Strategies | `*test*`, `*spec*`                  | Unit vs integration vs E2E, mocking, coverage goals              |
-| API Design         | `*route*`, `*endpoint*`, `*api*`    | RESTful patterns, response envelopes, error handling, versioning |
-| Data Models        | `*model*`, `*schema*`, `*entity*`   | Database schemas, type safety, migrations, relationships         |
-| Components         | `*component*`, `*.tsx`, `*.vue`     | Reusable patterns, props design, documentation, testing          |
-| CSS / Styling      | `*.css`, `*.scss`, `*.tailwind*`    | Naming conventions, organization, responsive design, performance |
-| Responsive Design  | `*.css`, `*.scss`, `*.tsx`          | Mobile-first, breakpoints, Flexbox/Grid, touch interactions      |
-| Design System      | `*.css`, `*.tsx`, `*.vue`           | Color palette, typography, spacing, component consistency        |
-| Accessibility      | `*.tsx`, `*.jsx`, `*.vue`, `*.html` | WCAG compliance, ARIA attributes, keyboard nav, screen readers   |
-| DB Migrations      | `*migration*`, `*alembic*`          | Schema changes, data transformation, rollback strategy           |
-| Query Optimization | `*query*`, `*repository*`, `*dao*`  | Indexing, N+1 problems, query patterns, performance              |
+| Standard  | Activates On                                     | Coverage                                                                          |
+| --------- | ------------------------------------------------ | --------------------------------------------------------------------------------- |
+| Python    | `*.py`                                           | uv, pytest, ruff, basedpyright, type hints, docstrings                            |
+| TypeScript| `*.ts`, `*.tsx`, `*.js`, `*.jsx`                 | npm/pnpm, Jest, ESLint, Prettier, React patterns                                  |
+| Go        | `*.go`                                           | Modules, testing, formatting, error handling                                       |
+| Frontend  | `*.tsx`, `*.jsx`, `*.html`, `*.vue`, `*.css`     | Components, CSS methodology, accessibility, responsive design, design principles   |
+| Backend   | `**/models/**`, `**/routes/**`, `**/api/**`, etc | API design, data models, query optimization, migrations                            |
 
 ### MCP Servers
 
@@ -490,7 +475,7 @@ Access the web-based Claude Pilot Console to visualize your development workflow
 
 > "Other frameworks I tried added so much overhead that half my tokens went to the system itself. Pilot is lean — quick mode has zero scaffolding, and even /spec only adds structure where it matters. More of my context goes to actual work."
 
-> "Endless Mode solved the problem I didn't know how to fix. Complex refactors used to stall at 60% because Claude lost track of what it was doing. Now it hands off cleanly and the next session picks up exactly where the last one stopped."
+> "Auto-compaction solved the problem I didn't know how to fix. Complex refactors used to stall at 60% because Claude lost track of what it was doing. Now compaction kicks in seamlessly and Claude just keeps going without missing a beat."
 
 ---
 
@@ -552,14 +537,14 @@ Yes. Pilot enhances Claude Code — it doesn't replace it. You need an active Cl
 <details>
 <summary><b>Does Pilot work with existing projects?</b></summary>
 
-Yes — that's the primary use case. Pilot doesn't scaffold or restructure your code. You install it, run `/sync`, and it explores your codebase to discover your tech stack, conventions, and patterns. From there, every session has full context about your project. The more complex and established your codebase, the more value Pilot adds — quality hooks catch regressions, Endless Mode preserves context across long sessions, and `/spec` plans features against your real architecture.
+Yes — that's the primary use case. Pilot doesn't scaffold or restructure your code. You install it, run `/sync`, and it explores your codebase to discover your tech stack, conventions, and patterns. From there, every session has full context about your project. The more complex and established your codebase, the more value Pilot adds — quality hooks catch regressions, auto-compaction preserves context across long sessions, and `/spec` plans features against your real architecture.
 
 </details>
 
 <details>
 <summary><b>Does Pilot work with any programming language?</b></summary>
 
-Pilot's quality hooks (auto-formatting, linting, type checking) currently support Python, TypeScript/JavaScript, and Go out of the box. TDD enforcement, spec-driven development, Endless Mode, persistent memory, and all rules and standards work with any language that Claude Code supports. You can add custom hooks for additional languages.
+Pilot's quality hooks (auto-formatting, linting, type checking) currently support Python, TypeScript/JavaScript, and Go out of the box. TDD enforcement, spec-driven development, auto-compaction, persistent memory, and all rules and standards work with any language that Claude Code supports. You can add custom hooks for additional languages.
 
 </details>
 

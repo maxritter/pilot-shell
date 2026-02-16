@@ -78,4 +78,4 @@ Pilot includes a real-time viewer at `http://localhost:41777` where you can brow
 
 With persistent memory, session 50 of a project is as productive as session 1. Claude knows your architecture, your conventions, your past decisions, and your preferences — without you repeating any of it.
 
-Combined with Endless Mode, this means Claude can work on multi-week projects with full continuity. The context window limits a single session, but memory bridges the gaps between them.
+Combined with auto-compaction, this means Claude can work on multi-week projects with full continuity. The context window limits a single session, but memory bridges the gaps between compaction boundaries.

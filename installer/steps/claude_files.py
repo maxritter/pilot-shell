@@ -50,6 +50,53 @@ def process_settings(settings_content: str) -> str:
     return json.dumps(config, indent=2) + "\n"
 
 
+def patch_global_settings(
+    global_settings: dict[str, Any],
+    local_settings: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Remove Pilot-managed keys from global settings that exist in settings.local.json.
+
+    Returns patched dict if changes were made, None if no changes needed.
+    Never touches 'permissions' — only env vars and other top-level keys.
+    """
+    modified = False
+
+    if "env" in global_settings and "env" in local_settings:
+        for key in local_settings["env"]:
+            if key in global_settings["env"]:
+                del global_settings["env"][key]
+                modified = True
+        if not global_settings["env"]:
+            del global_settings["env"]
+
+    skip_keys = {"permissions", "env"}
+    for key in list(local_settings.keys()):
+        if key in skip_keys:
+            continue
+        if key in global_settings:
+            del global_settings[key]
+            modified = True
+
+    return global_settings if modified else None
+
+
+def merge_app_config(
+    target: dict[str, Any],
+    source: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Merge app-level preferences from source into target (~/.claude.json).
+
+    Sets each key from source in target. Returns patched dict if changes were made,
+    None if all keys already match.
+    """
+    modified = False
+    for key, value in source.items():
+        if key not in target or target[key] != value:
+            target[key] = value
+            modified = True
+    return target if modified else None
+
+
 def _should_skip_file(file_path: str) -> bool:
     """Check if a file should be skipped during installation."""
     if not file_path:
@@ -390,6 +437,9 @@ class ClaudeFilesStep(BaseStep):
         if not ctx.local_mode:
             self._update_hooks_config(home_pilot_plugin_dir)
 
+        self._merge_app_config(ctx)
+        self._patch_overlapping_settings(ctx)
+        self._cleanup_stale_rules(ctx)
         self._ensure_project_rules_dir(ctx)
 
     def _make_scripts_executable(self, plugin_dir: Path) -> None:
@@ -430,6 +480,87 @@ class ClaudeFilesStep(BaseStep):
             hooks_json_path.write_text(json.dumps(hooks_config, indent=2) + "\n")
         except (json.JSONDecodeError, OSError, IOError):
             pass
+
+    def _merge_app_config(self, ctx: InstallContext) -> None:
+        """Merge app-level preferences from pilot/claude.json into ~/.claude.json.
+
+        Reads the installed claude.json template and merges its keys into the
+        user's ~/.claude.json. Preserves all existing app state (projects,
+        oauthAccount, caches, etc.) — only sets keys defined in the template.
+        """
+        template_path = Path.home() / ".claude" / "pilot" / "claude.json"
+        if not template_path.exists():
+            return
+
+        claude_json_path = Path.home() / ".claude.json"
+
+        try:
+            source = json.loads(template_path.read_text())
+        except (json.JSONDecodeError, OSError, IOError):
+            return
+
+        try:
+            target = json.loads(claude_json_path.read_text()) if claude_json_path.exists() else {}
+        except (json.JSONDecodeError, OSError, IOError):
+            target = {}
+
+        patched = merge_app_config(target, source)
+        if patched is not None:
+            try:
+                claude_json_path.write_text(json.dumps(patched, indent=2) + "\n")
+            except (OSError, IOError):
+                pass
+
+    def _patch_overlapping_settings(self, ctx: InstallContext) -> None:
+        """Patch global and project settings.json to avoid overriding settings.local.json.
+
+        Both ~/.claude/settings.json and <project>/.claude/settings.json can
+        override settings.local.json. Remove overlapping env vars and non-permission
+        top-level keys from both so settings.local.json takes clean precedence.
+        """
+        local_settings_path = ctx.project_dir / ".claude" / "settings.local.json"
+        if not local_settings_path.exists():
+            return
+
+        try:
+            local_settings = json.loads(local_settings_path.read_text())
+        except (json.JSONDecodeError, OSError, IOError):
+            return
+
+        paths_to_patch = [
+            Path.home() / ".claude" / "settings.json",
+            ctx.project_dir / ".claude" / "settings.json",
+        ]
+
+        for settings_path in paths_to_patch:
+            if not settings_path.exists():
+                continue
+            try:
+                target_settings = json.loads(settings_path.read_text())
+                patched = patch_global_settings(target_settings, local_settings)
+                if patched is not None:
+                    settings_path.write_text(json.dumps(patched, indent=2) + "\n")
+            except (json.JSONDecodeError, OSError, IOError):
+                continue
+
+    def _cleanup_stale_rules(self, ctx: InstallContext) -> None:
+        """Remove stale rule files from ~/.claude/rules/ not present in this installation.
+
+        ~/.claude/rules/ is purely installer-managed (user rules go in project .claude/rules/).
+        Any file there that wasn't just installed is stale from a previous version.
+        """
+        global_rules_dir = Path.home() / ".claude" / "rules"
+        if not global_rules_dir.exists():
+            return
+
+        installed = {Path(p).resolve() for p in ctx.config.get("installed_files", [])}
+
+        for item in global_rules_dir.iterdir():
+            if item.is_file() and item.resolve() not in installed:
+                try:
+                    item.unlink()
+                except (OSError, IOError):
+                    pass
 
     def _ensure_project_rules_dir(self, ctx: InstallContext) -> None:
         """Ensure project rules directory exists."""

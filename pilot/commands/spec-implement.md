@@ -36,7 +36,7 @@ model: sonnet
 
 - Context warnings are informational, not emergencies
 - Work spans sessions seamlessly via plan file and continuation mechanisms
-- Finish the CURRENT task with full quality, then hand off cleanly
+- Finish the CURRENT task with full quality — auto-compact will handle context seamlessly
 - Do NOT skip tests, compress code, or cut corners to "beat" context limits
 - **Quality is the #1 metric** - a well-done task split across sessions beats rushed work
 
@@ -125,7 +125,7 @@ spec-implement → spec-verify → issues found → spec-implement → spec-veri
 
 **After reading the plan, set up task tracking using the Task management tools.**
 
-This makes implementation progress visible in the terminal (Ctrl+T), enables dependency tracking, and persists across session handoffs via `CLAUDE_CODE_TASK_LIST_ID`.
+This makes implementation progress visible in the terminal (Ctrl+T), enables dependency tracking, and persists across auto-compactions via `CLAUDE_CODE_TASK_LIST_ID`.
 
 **Process:**
 
@@ -169,7 +169,7 @@ TaskCreate: "Task 4: Add documentation"            → id=4, addBlockedBy: [2]
 
 - User sees real-time progress in their terminal via status spinners
 - Dependencies prevent skipping ahead when tasks have ordering requirements
-- Tasks persist across session handoffs (stored in `~/.claude/tasks/`)
+- Tasks persist across auto-compactions (stored in `~/.claude/tasks/`)
 - Continuation sessions pick up exactly where the previous session left off
 
 ---
@@ -259,7 +259,7 @@ Update counts:
    Status: PENDING  →  Status: COMPLETE
    ```
 4. **Register status change:** `~/.pilot/bin/pilot register-plan "<plan_path>" "COMPLETE" 2>/dev/null || true`
-5. **⛔ Phase Transition Context Guard:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, hand off instead (see spec.md Section 0.3).
+5. **⛔ Context check:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, auto-compact may fire during the next phase — complete current work first.
 6. **Invoke verification phase:** `Skill(skill='spec-verify', args='<plan-path>')`
 
 ---
@@ -303,54 +303,8 @@ If you notice ANY of these, STOP and report to user:
 
 ---
 
-## Context Management (90% Handoff)
+## Context Management
 
-After each major operation, check context:
-
-```bash
-~/.pilot/bin/pilot check-context --json
-```
-
-**Between iterations:**
-
-1. If context >= 90%: hand off cleanly (don't rush!)
-2. If context 80-89%: continue but wrap up current task with quality
-3. If context < 80%: continue the loop freely
-
-If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
-
-**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
-
-**Step 1: Write continuation file (GUARANTEED BACKUP)**
-
-Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
-
-```markdown
-# Session Continuation (/spec)
-
-**Plan:** <plan-path>
-**Phase:** implementation
-**Current Task:** Task N - [description]
-
-**Completed This Session:**
-
-- [x] [What was finished]
-
-**Next Steps:**
-
-1. [What to do immediately when resuming]
-
-**Context:**
-
-- [Key decisions or blockers]
-```
-
-**Step 2: Trigger session clear**
-
-```bash
-~/.pilot/bin/pilot send-clear <plan-path>
-```
-
-Pilot will restart with `/spec --continue <plan-path>`
+Context is managed automatically by auto-compaction at 90%. No agent action needed — just keep working.
 
 ARGUMENTS: $ARGUMENTS

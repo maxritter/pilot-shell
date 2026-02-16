@@ -39,13 +39,13 @@ const agents = [
     desc: "Persistent observations across sessions. Past decisions, debugging context, and learnings — always available.",
   },
   {
-    name: "ENDLESS",
+    name: "CONTEXT",
     role: "Session Manager",
     icon: InfinityIcon,
     color: "text-amber-400",
     bgColor: "bg-amber-400/10",
     borderColor: "border-amber-400/30",
-    desc: "Monitors context usage and auto-hands off at critical thresholds. No work lost, ever.",
+    desc: "Monitors context usage. Auto-compaction preserves state via hooks — no work lost, ever.",
   },
   {
     name: "PLANNER",

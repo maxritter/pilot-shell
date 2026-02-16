@@ -68,7 +68,7 @@ This visibility is especially valuable for long features where you need to track
 
 ## Cross-Session Persistence
 
-Tasks survive session restarts. When Endless Mode triggers a handoff, the new session picks up the task list exactly where the old one left off. At the start of a new session, Claude checks `TaskList` to find where to resume.
+Tasks survive session restarts. When auto-compaction triggers, the new session picks up the task list exactly where the old one left off. At the start of a new session, Claude checks `TaskList` to find where to resume.
 
 Stale tasks from previous sessions are cleaned up automatically — each session starts by reviewing the task list and removing anything no longer relevant.
 
@@ -84,4 +84,4 @@ Stale tasks from previous sessions are cleaned up automatically — each session
 
 ## How Pilot Uses Tasks
 
-During `/spec` implementation, Pilot automatically creates tasks from the plan. Each plan task becomes a tracked item with proper dependencies. The TDD loop runs for each task in sequence, with real-time progress visible in your terminal throughout. When context fills up and Endless Mode triggers a handoff, the next session reads the task list and continues from the first uncompleted task.
+During `/spec` implementation, Pilot automatically creates tasks from the plan. Each plan task becomes a tracked item with proper dependencies. The TDD loop runs for each task in sequence, with real-time progress visible in your terminal throughout. When context fills up and auto-compaction triggers, the task list is preserved and work continues from the first uncompleted task.

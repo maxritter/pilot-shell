@@ -133,7 +133,7 @@ Skills developed through context management:
 - Creating modular, well-documented code
 - Writing precise, actionable requests
 
-These skills make you more effective even with unlimited context, similar to how optimizing for slower hardware teaches fundamental performance principles.
+These skills make you more effective even with intelligent context management, similar to how optimizing for slower hardware teaches fundamental performance principles.
 
 ## [Recovery Techniques](#recovery-techniques)
 

@@ -1,0 +1,11 @@
+{
+  "installMethod": "npm",
+  "theme": "dark",
+  "showExpandedTodos": true,
+  "autoUpdates": false,
+  "lspRecommendationDisabled": true,
+  "autoCompactEnabled": true,
+  "autoConnectIde": true,
+  "verbose": true,
+  "showSpinnerTree": false
+}
