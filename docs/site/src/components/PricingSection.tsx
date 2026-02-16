@@ -111,7 +111,7 @@ const PricingSection = () => {
               </li>
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">Intelligent context management + persistent memory</span>
+                <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">Context preservation + persistent memory</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />

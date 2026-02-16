@@ -93,7 +93,7 @@ This creates a ceiling on the complexity of work you can do with AI assistance. 
 
 What's needed is a way to make sessions **continuous** — to preserve the accumulated understanding across context boundaries, automatically, without manual intervention.
 
-## Intelligent Context Management: Automatic Continuity
+## Context Preservation: Automatic Continuity
 
 This is the problem that Claude Pilot's context management was designed to solve. Instead of treating the context limit as a hard wall that destroys your progress, auto-compaction turns it into a seamless checkpoint.
 

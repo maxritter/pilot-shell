@@ -373,7 +373,7 @@ After **every single file edit**, these hooks fire:
 | ----------------- | -------- | ----------------------------------------------------------------------------------------------------- |
 | `session_end.py`  | Blocking | Stops the worker daemon when no other Pilot sessions are active. Sends OS notification on completion. |
 
-### Intelligent Context Management
+### Context Preservation
 
 The context monitor tracks usage in real-time, and auto-compaction handles context limits transparently:
 
@@ -383,9 +383,9 @@ The context monitor tracks usage in real-time, and auto-compaction handles conte
 - Multiple Pilot sessions can run in parallel on the same project without interference
 - Status line shows live context usage, memory status, active plan, and license info
 
-### Built-in Rules
+### Built-in Rules & Standards
 
-Production-tested best practices loaded into **every session**. These aren't suggestions — they're enforced standards.
+Production-tested best practices loaded into **every session**. These aren't suggestions — they're enforced standards. Coding standards activate conditionally by file type.
 
 <details>
 <summary><b>Core Workflow (3 rules)</b></summary>
@@ -421,17 +421,18 @@ Production-tested best practices loaded into **every session**. These aren't sug
 
 </details>
 
-### Built-in Coding Standards
+<details>
+<summary><b>Coding Standards (5 standards, activated by file type)</b></summary>
 
-Conditional rules activated by file type — loaded only when working with matching files:
+| Standard   | Activates On                                      | Coverage                                                    |
+| ---------- | ------------------------------------------------- | ----------------------------------------------------------- |
+| Python     | `*.py`                                            | uv, pytest, ruff, basedpyright, type hints                  |
+| TypeScript | `*.ts`, `*.tsx`, `*.js`, `*.jsx`                  | npm/pnpm, Jest, ESLint, Prettier, React patterns            |
+| Go         | `*.go`                                            | Modules, testing, formatting, error handling                 |
+| Frontend   | `*.tsx`, `*.jsx`, `*.html`, `*.vue`, `*.css`      | Components, CSS, accessibility, responsive design            |
+| Backend    | `**/models/**`, `**/routes/**`, `**/api/**`, etc. | API design, data models, query optimization, migrations      |
 
-| Standard  | Activates On                                     | Coverage                                                                          |
-| --------- | ------------------------------------------------ | --------------------------------------------------------------------------------- |
-| Python    | `*.py`                                           | uv, pytest, ruff, basedpyright, type hints, docstrings                            |
-| TypeScript| `*.ts`, `*.tsx`, `*.js`, `*.jsx`                 | npm/pnpm, Jest, ESLint, Prettier, React patterns                                  |
-| Go        | `*.go`                                           | Modules, testing, formatting, error handling                                       |
-| Frontend  | `*.tsx`, `*.jsx`, `*.html`, `*.vue`, `*.css`     | Components, CSS methodology, accessibility, responsive design, design principles   |
-| Backend   | `**/models/**`, `**/routes/**`, `**/api/**`, etc. | API design, data models, query optimization, migrations                            |
+</details>
 
 ### MCP Servers
 
@@ -439,7 +440,7 @@ External context always available to every session:
 
 | Server         | Purpose                                                          |
 | -------------- | ---------------------------------------------------------------- |
-| **Context7**   | Library documentation lookup — get API docs for any dependency   |
+| **lib-docs**   | Library documentation lookup — get API docs for any dependency   |
 | **mem-search** | Persistent memory search — recall context from past sessions     |
 | **web-search** | Web search via DuckDuckGo, Bing, and Exa                         |
 | **grep-mcp**   | GitHub code search — find real-world usage patterns across repos |

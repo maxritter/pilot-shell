@@ -8,7 +8,7 @@ import DeploymentFlow from "@/components/DeploymentFlow";
 import WhatsInside from "@/components/WhatsInside";
 import TechStack from "@/components/TechStack";
 import DeepDiveSection from "@/components/DeepDiveSection";
-import QualifierSection from "@/components/QualifierSection";
+
 import PricingSection from "@/components/PricingSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import FAQSection from "@/components/FAQSection";
@@ -89,7 +89,6 @@ const Index = () => {
         <WhatsInside />
         <TechStack />
         <DeepDiveSection />
-        <QualifierSection />
         <PricingSection />
         <TestimonialsSection />
         <FAQSection />

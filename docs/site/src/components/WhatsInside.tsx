@@ -21,12 +21,6 @@ interface InsideItem {
 
 const insideItems: InsideItem[] = [
   {
-    icon: InfinityIcon,
-    title: "Intelligent Context",
-    description: "Never lose context mid-task",
-    summary: "Auto-compaction fires at ~83% context — hooks capture state before compaction and restore it after. No process restart, no lost context. Multiple sessions run in parallel without interference.",
-  },
-  {
     icon: Workflow,
     title: "Spec-Driven Development",
     description: "Plan → Approve → Implement → Verify",
@@ -43,6 +37,12 @@ const insideItems: InsideItem[] = [
     title: "Rules, Commands & Standards",
     description: "Rules · Commands · Standards",
     summary: "Production-tested best practices loaded every session. Coding standards activate by file type. Structured workflows via /spec, /sync, /vault, /learn. Custom rules survive updates.",
+  },
+  {
+    icon: InfinityIcon,
+    title: "Persistent Memory",
+    description: "Context carries across sessions",
+    summary: "Every decision, discovery, and debugging insight is captured to Pilot Console. Pick up any project after days or weeks — Claude already knows your architecture, patterns, and past work.",
   },
   {
     icon: Plug2,

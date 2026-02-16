@@ -60,9 +60,16 @@ def _validate_license_key(console: Console, project_dir: Path, license_key: str)
         return True
     else:
         console.print()
-        console.error("License validation failed")
-        if result.stderr:
-            console.print(f"  [dim]{result.stderr.strip()}[/dim]")
+        error_msg = ""
+        if result.stdout:
+            try:
+                data = json.loads(result.stdout.strip())
+                error_msg = data.get("error", "")
+            except (json.JSONDecodeError, ValueError):
+                pass
+        if not error_msg and result.stderr:
+            error_msg = result.stderr.strip()
+        console.error(f"License validation failed{': ' + error_msg if error_msg else ''}")
         console.print()
         return False
 

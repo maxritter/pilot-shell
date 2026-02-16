@@ -145,16 +145,16 @@ class Console:
         self._console.print("  [bold white]What You're Getting[/bold white]")
         self._console.print()
         self._console.print(
-            "    [yellow]🧠[/yellow]  [bold green]Intelligent Context[/bold green] [white]— Auto-compaction preserves state via hooks — no context is ever lost[/white]"
+            "    [yellow]📋[/yellow] [bold green]Spec-Driven[/bold green]       [white]— /spec for planning, approval gate, TDD implementation[/white]"
         )
         self._console.print(
-            "    [yellow]📋[/yellow] [bold green]Spec-Driven[/bold green]    [white]— /spec for planning, approval gate, TDD implementation[/white]"
+            "    [yellow]✅[/yellow] [bold green]Quality Hooks[/bold green]     [white]— TDD enforcer, auto-linting, type checking, LSP integration[/white]"
         )
         self._console.print(
-            "    [yellow]📚[/yellow] [bold green]Rules & Skills[/bold green]  [white]— Best practices loaded automatically, fully customizable[/white]"
+            "    [yellow]📚[/yellow] [bold green]Rules & Skills[/bold green]    [white]— Best practices loaded automatically, fully customizable[/white]"
         )
         self._console.print(
-            "    [yellow]✅[/yellow] [bold green]Quality Hooks[/bold green]  [white]— TDD enforcer, auto-linting, type checking, LSP integration[/white]"
+            "    [yellow]🧠[/yellow]  [bold green]Persistent Memory[/bold green] [white]— Context carries across sessions via Pilot Console[/white]"
         )
         self._console.print()
 

@@ -109,20 +109,22 @@ const rulesCategories = [
   {
     icon: GitBranch,
     category: "Collaboration",
-    rules: ["Team Vault asset sharing via sx"],
+    rules: ["Team Vault asset sharing via sx", "Custom rules, commands & skills", "Shareable across teams via Git"],
+  },
+  {
+    icon: Cpu,
+    category: "Language Standards",
+    rules: ["Python — uv, pytest, ruff, basedpyright", "TypeScript — npm/pnpm, Jest, ESLint, Prettier", "Go — Modules, testing, formatting, error handling"],
+  },
+  {
+    icon: Layers,
+    category: "Architecture Standards",
+    rules: ["Frontend — Components, CSS, accessibility, responsive", "Backend — API design, data models, migrations", "Activated by file type — loaded only when needed"],
   },
 ];
 
-const standardsList = [
-  { name: "Python", desc: "uv, pytest, ruff, basedpyright, type hints", ext: "*.py" },
-  { name: "TypeScript", desc: "npm/pnpm, Jest, ESLint, Prettier, React", ext: "*.ts, *.tsx" },
-  { name: "Go", desc: "Modules, testing, formatting, error handling", ext: "*.go" },
-  { name: "Frontend", desc: "Components, CSS, accessibility, responsive, design", ext: "*.tsx, *.jsx, *.html, *.vue, *.css" },
-  { name: "Backend", desc: "API design, data models, queries, migrations", ext: "**/models/**, **/routes/**, **/api/**" },
-];
-
 const mcpServers = [
-  { icon: BookOpen, name: "Context7", desc: "Library documentation lookup — get API docs for any dependency" },
+  { icon: BookOpen, name: "lib-docs", desc: "Library documentation lookup — get API docs for any dependency" },
   { icon: Brain, name: "mem-search", desc: "Persistent memory search — recall context from past sessions" },
   { icon: Globe, name: "web-search", desc: "Web search via DuckDuckGo, Bing, and Exa" },
   { icon: Search, name: "grep-mcp", desc: "GitHub code search — find real-world usage patterns" },
@@ -133,7 +135,6 @@ const DeepDiveSection = () => {
   const [headerRef, headerInView] = useInView<HTMLDivElement>();
   const [hooksRef, hooksInView] = useInView<HTMLDivElement>();
   const [rulesRef, rulesInView] = useInView<HTMLDivElement>();
-  const [standardsRef, standardsInView] = useInView<HTMLDivElement>();
   const [mcpRef, mcpInView] = useInView<HTMLDivElement>();
   const [contextRef, contextInView] = useInView<HTMLDivElement>();
 
@@ -171,23 +172,23 @@ const DeepDiveSection = () => {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {hooksPipeline.map((stage) => (
               <div
                 key={stage.trigger}
-                className={`rounded-2xl p-5 sm:p-6 border ${stage.borderColor} bg-card/30 backdrop-blur-sm`}
+                className={`rounded-2xl p-5 border ${stage.borderColor} bg-card/30 backdrop-blur-sm`}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-                  <div className={`${stage.bgColor} px-3 py-1.5 rounded-lg inline-flex items-center gap-2 w-fit`}>
+                <div className="mb-3">
+                  <div className={`${stage.bgColor} px-3 py-1.5 rounded-lg inline-flex items-center gap-2 w-fit mb-2`}>
                     <Terminal className={`h-4 w-4 ${stage.color}`} />
                     <code className={`text-sm font-semibold ${stage.color}`}>{stage.trigger}</code>
                   </div>
-                  <span className="text-sm text-muted-foreground">{stage.description}</span>
+                  <p className="text-xs text-muted-foreground">{stage.description}</p>
                 </div>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                <div className="space-y-1.5">
                   {stage.hooks.map((hook) => (
-                    <div key={hook} className="flex items-start gap-2 text-sm text-muted-foreground">
-                      <CheckCircle2 className={`h-4 w-4 ${stage.color} flex-shrink-0 mt-0.5`} />
+                    <div key={hook} className="flex items-start gap-2 text-xs text-muted-foreground">
+                      <CheckCircle2 className={`h-3.5 w-3.5 ${stage.color} flex-shrink-0 mt-0.5`} />
                       <span>{hook}</span>
                     </div>
                   ))}
@@ -208,7 +209,7 @@ const DeepDiveSection = () => {
             </div>
             <div>
               <h3 className="text-2xl font-bold text-foreground">Context Monitor & Auto-Compaction</h3>
-              <p className="text-sm text-muted-foreground">Intelligent context management with automatic session continuity</p>
+              <p className="text-sm text-muted-foreground">Automatic context preservation with seamless session continuity</p>
             </div>
           </div>
 
@@ -256,8 +257,8 @@ const DeepDiveSection = () => {
               <Layers className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-foreground">Built-in Rules</h3>
-              <p className="text-sm text-muted-foreground">Loaded every session — production-tested best practices always in context</p>
+              <h3 className="text-2xl font-bold text-foreground">Built-in Rules & Standards</h3>
+              <p className="text-sm text-muted-foreground">Loaded every session — production-tested best practices and coding standards always in context</p>
             </div>
           </div>
 
@@ -284,35 +285,6 @@ const DeepDiveSection = () => {
                 </div>
               );
             })}
-          </div>
-        </div>
-
-        {/* Standards Grid */}
-        <div
-          ref={standardsRef}
-          className={`mb-16 ${standardsInView ? "animate-fade-in-up" : "opacity-0"}`}
-        >
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-              <Cpu className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold text-foreground">Built-in Coding Standards</h3>
-              <p className="text-sm text-muted-foreground">Conditional rules activated by file type — loaded only when working with matching files</p>
-            </div>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {standardsList.map((standard) => (
-              <div
-                key={standard.name}
-                className="rounded-xl p-4 border border-border/50 bg-card/30 backdrop-blur-sm hover:border-primary/30 transition-colors"
-              >
-                <h4 className="font-medium text-foreground text-sm mb-1">{standard.name}</h4>
-                <p className="text-xs text-muted-foreground mb-2">{standard.desc}</p>
-                <p className="text-[10px] text-muted-foreground/60 font-mono">{standard.ext}</p>
-              </div>
-            ))}
           </div>
         </div>
 
