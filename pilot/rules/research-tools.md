@@ -38,9 +38,9 @@ searchGitHub(query="getServerSession", repo="vercel/next-auth")
 
 Parameters: `query`, `language`, `repo`, `path`, `useRegexp`, `matchCase`
 
-### Web Search / Fetch (MCP)
+### Web Search / Fetch
 
-**Use MCP tools for web access. Built-in WebSearch/WebFetch are blocked by hook.**
+**⛔ NEVER use built-in `WebFetch` or `WebSearch` — they are blocked by hook and will fail.** Always use MCP alternatives via `ToolSearch("web-fetch")` or `ToolSearch("web-search")` first.
 
 | Need | Tool |
 |------|------|
@@ -48,8 +48,6 @@ Parameters: `query`, `language`, `repo`, `path`, `useRegexp`, `matchCase`
 | GitHub README | `web-search/fetchGithubReadme` |
 | Fetch full page | `web-fetch/fetch_url` (Playwright, no truncation) |
 | Fetch multiple | `web-fetch/fetch_urls` |
-
-Built-in `WebFetch` truncates at ~8KB — MCP tools provide full content.
 
 ### GitHub CLI (gh)
 

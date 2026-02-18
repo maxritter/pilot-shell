@@ -6,9 +6,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from 'recharts';
-import { ChartTooltip } from '../Dashboard/charts/ChartTooltip';
-import { formatStarCount } from '../../utils/formatNumber';
+} from "recharts";
+import { ChartTooltip } from "../Dashboard/charts/ChartTooltip";
+import { formatStarCount } from "../../utils/formatNumber";
 
 interface MonthlyUsageData {
   month: string;
@@ -30,10 +30,16 @@ export function MonthlyCostChart({ monthly }: MonthlyCostChartProps) {
   }
 
   return (
-    <div className="h-64 w-full">
+    <div className="h-80 w-full">
       <ResponsiveContainer width="100%" height="100%" debounce={50}>
-        <BarChart data={monthly} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-base-content/10" />
+        <BarChart
+          data={monthly}
+          margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+        >
+          <CartesianGrid
+            strokeDasharray="3 3"
+            className="stroke-base-content/10"
+          />
           <XAxis
             dataKey="month"
             tick={{ fontSize: 12 }}
@@ -63,8 +69,10 @@ export function MonthlyCostChart({ monthly }: MonthlyCostChartProps) {
               <ChartTooltip
                 labelFormatter={(label) => `Month: ${label}`}
                 valueFormatter={(value, name) => {
-                  if (name === 'totalCost') return [`${Number(value).toFixed(2)}$`, 'Cost'];
-                  if (name === 'totalTokens') return [formatStarCount(Number(value)), 'Tokens'];
+                  if (name === "totalCost")
+                    return [`${Number(value).toFixed(2)}$`, "Cost"];
+                  if (name === "totalTokens")
+                    return [formatStarCount(Number(value)), "Tokens"];
                   return [value, name];
                 }}
               />

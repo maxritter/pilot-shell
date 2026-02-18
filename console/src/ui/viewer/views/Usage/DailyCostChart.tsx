@@ -6,9 +6,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from 'recharts';
-import { ChartTooltip } from '../Dashboard/charts/ChartTooltip';
-import { formatStarCount } from '../../utils/formatNumber';
+} from "recharts";
+import { ChartTooltip } from "../Dashboard/charts/ChartTooltip";
+import { formatStarCount } from "../../utils/formatNumber";
 
 interface DailyUsageData {
   date: string;
@@ -31,15 +31,18 @@ export function DailyCostChart({ daily }: DailyCostChartProps) {
 
   const formattedData = daily.map((item) => ({
     ...item,
-    displayDate: item.date.includes('-')
+    displayDate: item.date.includes("-")
       ? `${item.date.slice(5, 7)}/${item.date.slice(8, 10)}`
       : `${item.date.slice(4, 6)}/${item.date.slice(6, 8)}`,
   }));
 
   return (
-    <div className="h-64 w-full">
+    <div className="h-80 w-full">
       <ResponsiveContainer width="100%" height="100%" debounce={50}>
-        <AreaChart data={formattedData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+        <AreaChart
+          data={formattedData}
+          margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+        >
           <defs>
             <linearGradient id="dailyCostGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.6} />
@@ -50,7 +53,10 @@ export function DailyCostChart({ daily }: DailyCostChartProps) {
               <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-base-content/10" />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            className="stroke-base-content/10"
+          />
           <XAxis
             dataKey="displayDate"
             tick={{ fontSize: 12 }}
@@ -80,8 +86,10 @@ export function DailyCostChart({ daily }: DailyCostChartProps) {
               <ChartTooltip
                 labelFormatter={(label) => `Date: ${label}`}
                 valueFormatter={(value, name) => {
-                  if (name === 'totalCost') return [`${Number(value).toFixed(2)}$`, 'Cost'];
-                  if (name === 'totalTokens') return [formatStarCount(Number(value)), 'Tokens'];
+                  if (name === "totalCost")
+                    return [`${Number(value).toFixed(2)}$`, "Cost"];
+                  if (name === "totalTokens")
+                    return [formatStarCount(Number(value)), "Tokens"];
                   return [value, name];
                 }}
               />

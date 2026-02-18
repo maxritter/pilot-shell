@@ -1,34 +1,55 @@
-import React, { useState } from 'react';
+import { useState } from "react";
 import {
   MODEL_CHOICES_FULL,
   MODEL_CHOICES_AGENT,
   DEFAULT_SETTINGS,
+  MODEL_DISPLAY_NAMES,
   useSettings,
-} from '../../hooks/useSettings.js';
-import { ModelSelect } from './ModelSelect.js';
+} from "../../hooks/useSettings.js";
+import { ModelSelect } from "./ModelSelect.js";
 
-// Source: https://www.anthropic.com/pricing
+// Source: https://platform.claude.com/docs/en/about-claude/pricing
+
+const SPEC_COMMANDS = ["spec", "spec-plan", "spec-implement", "spec-verify"];
+const GENERAL_COMMANDS = ["vault", "sync", "learn"];
 
 const COMMAND_LABELS: Record<string, string> = {
-  spec: '/spec (dispatcher)',
-  'spec-plan': '/spec planning phase',
-  'spec-implement': '/spec implementation phase',
-  'spec-verify': '/spec verification phase',
-  vault: '/vault',
-  sync: '/sync',
-  learn: '/learn',
+  spec: "/spec (dispatcher)",
+  "spec-plan": "/spec planning",
+  "spec-implement": "/spec implement",
+  "spec-verify": "/spec verify",
+  vault: "/vault",
+  sync: "/sync",
+  learn: "/learn",
 };
 
 const AGENT_LABELS: Record<string, string> = {
-  'plan-challenger': 'plan-challenger (adversarial reviewer)',
-  'plan-verifier': 'plan-verifier (alignment checker)',
-  'spec-reviewer-compliance': 'spec-reviewer-compliance (code vs plan)',
-  'spec-reviewer-quality': 'spec-reviewer-quality (code review)',
+  "plan-challenger": "plan-challenger",
+  "plan-verifier": "plan-verifier",
+  "spec-reviewer-compliance": "spec-reviewer-compliance",
+  "spec-reviewer-quality": "spec-reviewer-quality",
 };
 
+function DefaultLabel({ model }: { model: string }) {
+  return (
+    <span className="text-xs text-base-content/40">
+      {MODEL_DISPLAY_NAMES[model] ?? model}
+    </span>
+  );
+}
+
 export function SettingsView() {
-  const { settings, isLoading, error, isDirty, saved, updateModel, updateCommand, updateAgent, save } =
-    useSettings();
+  const {
+    settings,
+    isLoading,
+    error,
+    isDirty,
+    saved,
+    updateModel,
+    updateCommand,
+    updateAgent,
+    save,
+  } = useSettings();
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -38,7 +59,7 @@ export function SettingsView() {
     try {
       await save();
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'Failed to save');
+      setSaveError(err instanceof Error ? err.message : "Failed to save");
     } finally {
       setIsSaving(false);
     }
@@ -49,7 +70,7 @@ export function SettingsView() {
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">Settings</h1>
         <div className="space-y-4">
-          {[...Array(3)].map((_, i) => (
+          {[...Array(2)].map((_, i) => (
             <div key={i} className="card bg-base-200 animate-pulse">
               <div className="card-body">
                 <div className="h-4 bg-base-300 rounded w-32 mb-4" />
@@ -74,32 +95,17 @@ export function SettingsView() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20">
       <div>
         <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="text-base-content/60">Configure model selection for Claude Pilot</p>
+        <p className="text-base-content/60">
+          Model selection for Claude Pilot. Restart Pilot after saving to apply.
+        </p>
+        <p className="text-base-content/40 text-xs mt-1">
+          1M context models require an Enterprise or Max (20×) subscription.
+          Only select them if you already have access.
+        </p>
       </div>
-
-      {/* 1M context warning */}
-      <div className="alert alert-info">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current shrink-0 w-5 h-5">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <div className="text-sm">
-          <span className="font-semibold">Sonnet 4.6 1M and Opus 4.6 1M</span> require a compatible Anthropic subscription with 1M context access.
-          Not all users have access. These variants are only available for the main session and commands — never for sub-agents.
-        </div>
-      </div>
-
-      {/* Restart notice */}
-      {saved && (
-        <div className="alert alert-success">
-          <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span>Settings saved. <strong>Restart Pilot</strong> to apply changes.</span>
-        </div>
-      )}
 
       {saveError && (
         <div className="alert alert-error">
@@ -107,80 +113,59 @@ export function SettingsView() {
         </div>
       )}
 
-      {/* Section 1: Main Model (Quick Mode) */}
+      {/* Section 1: General — Main model + utility commands */}
       <div className="card bg-base-200">
         <div className="card-body">
-          <h2 className="card-title text-base">Main Model</h2>
-          <p className="text-sm text-base-content/70 mb-4">
-            Used for Quick Mode (direct chat). Changing this also sets the baseline for new commands without explicit config.
-          </p>
-          <div className="flex items-center gap-4">
-            <ModelSelect
-              value={settings.model}
-              choices={MODEL_CHOICES_FULL}
-              onChange={updateModel}
-              id="main-model"
-            />
-            <div className="text-xs text-base-content/50">
-              {settings.model.includes('[1m]') ? '1M context' : '200K context'}
-              {settings.model.startsWith('opus') ? ' · ~1.67× cost of Sonnet' : ''}
-            </div>
-          </div>
-
-          {/* Cost/performance context */}
-          <div className="mt-4 p-3 bg-base-100 rounded-lg">
-            <p className="text-xs font-semibold text-base-content/70 mb-2">Model comparison</p>
-            <div className="grid grid-cols-2 gap-2 text-xs text-base-content/60">
-              <div>
-                <span className="font-mono text-primary">Sonnet 4.6</span>
-                <div>$3/$15 per MTok · Fast, near Opus quality</div>
-                <div className="text-base-content/40">Best for implementation & most tasks</div>
-              </div>
-              <div>
-                <span className="font-mono text-secondary">Opus 4.6</span>
-                <div>$5/$25 per MTok · Deepest reasoning</div>
-                <div className="text-base-content/40">Best for planning & complex analysis</div>
-              </div>
-            </div>
-            <p className="text-xs text-base-content/40 mt-2">
-              Sonnet 4.6 often matches Opus quality. Default routing uses Opus only for planning & verification.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Section 2: Commands */}
-      <div className="card bg-base-200">
-        <div className="card-body">
-          <h2 className="card-title text-base">Commands</h2>
-          <p className="text-sm text-base-content/70 mb-4">
-            Model used when each slash command is invoked. Defaults use Opus for planning/verification, Sonnet for execution.
-          </p>
+          <h2 className="card-title text-base">General</h2>
           <div className="overflow-x-auto">
             <table className="table table-sm">
               <thead>
                 <tr>
-                  <th>Command</th>
+                  <th>Setting</th>
                   <th>Model</th>
-                  <th className="text-base-content/50">Context</th>
+                  <th className="text-base-content/40">Default</th>
                 </tr>
               </thead>
               <tbody>
-                {Object.keys(DEFAULT_SETTINGS.commands).map((cmd) => (
+                <tr>
+                  <td>
+                    <span className="font-mono text-sm">Main session</span>
+                    <div className="text-xs text-base-content/50">
+                      Quick Mode / direct chat
+                    </div>
+                  </td>
+                  <td>
+                    <ModelSelect
+                      value={settings.model}
+                      choices={MODEL_CHOICES_FULL}
+                      onChange={updateModel}
+                      id="main-model"
+                    />
+                  </td>
+                  <td>
+                    <DefaultLabel model={DEFAULT_SETTINGS.model} />
+                  </td>
+                </tr>
+                {GENERAL_COMMANDS.map((cmd) => (
                   <tr key={cmd}>
                     <td>
-                      <span className="font-mono text-sm">{COMMAND_LABELS[cmd] ?? cmd}</span>
+                      <span className="font-mono text-sm">
+                        {COMMAND_LABELS[cmd] ?? cmd}
+                      </span>
                     </td>
                     <td>
                       <ModelSelect
-                        value={settings.commands[cmd] ?? DEFAULT_SETTINGS.commands[cmd]}
+                        value={
+                          settings.commands[cmd] ??
+                          DEFAULT_SETTINGS.commands[cmd]
+                        }
                         choices={MODEL_CHOICES_FULL}
                         onChange={(model) => updateCommand(cmd, model)}
                         id={`cmd-${cmd}`}
                       />
                     </td>
-                    <td className="text-xs text-base-content/40">
-                      {(settings.commands[cmd] ?? '').includes('[1m]') ? '1M' : '200K'}
+                    <td>
+                      <DefaultLabel model={DEFAULT_SETTINGS.commands[cmd]} />
                     </td>
                   </tr>
                 ))}
@@ -190,12 +175,56 @@ export function SettingsView() {
         </div>
       </div>
 
-      {/* Section 3: Sub-Agents */}
+      {/* Section 2: Spec Flow — spec commands + sub-agents */}
       <div className="card bg-base-200">
         <div className="card-body">
-          <h2 className="card-title text-base">Sub-Agents</h2>
-          <p className="text-sm text-base-content/70 mb-4">
-            Models used by verification sub-agents spawned during <code className="bg-base-300 px-1 rounded">/spec</code>. Limited to Sonnet or Opus — 1M context is not available for sub-agents.
+          <h2 className="card-title text-base">Spec Flow</h2>
+          <p className="text-sm text-base-content/70 mb-2">
+            Defaults use Opus for planning/verification, Sonnet for execution.
+          </p>
+
+          {/* Spec commands */}
+          <div className="overflow-x-auto">
+            <table className="table table-sm">
+              <thead>
+                <tr>
+                  <th>Command</th>
+                  <th>Model</th>
+                  <th className="text-base-content/40">Default</th>
+                </tr>
+              </thead>
+              <tbody>
+                {SPEC_COMMANDS.map((cmd) => (
+                  <tr key={cmd}>
+                    <td>
+                      <span className="font-mono text-sm">
+                        {COMMAND_LABELS[cmd] ?? cmd}
+                      </span>
+                    </td>
+                    <td>
+                      <ModelSelect
+                        value={
+                          settings.commands[cmd] ??
+                          DEFAULT_SETTINGS.commands[cmd]
+                        }
+                        choices={MODEL_CHOICES_FULL}
+                        onChange={(model) => updateCommand(cmd, model)}
+                        id={`cmd-${cmd}`}
+                      />
+                    </td>
+                    <td>
+                      <DefaultLabel model={DEFAULT_SETTINGS.commands[cmd]} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Sub-agents */}
+          <h3 className="text-sm font-semibold mt-4 mb-1">Sub-Agents</h3>
+          <p className="text-xs text-base-content/50 mb-2">
+            1M context not available for sub-agents.
           </p>
           <div className="overflow-x-auto">
             <table className="table table-sm">
@@ -203,21 +232,30 @@ export function SettingsView() {
                 <tr>
                   <th>Agent</th>
                   <th>Model</th>
+                  <th className="text-base-content/40">Default</th>
                 </tr>
               </thead>
               <tbody>
                 {Object.keys(DEFAULT_SETTINGS.agents).map((agent) => (
                   <tr key={agent}>
                     <td>
-                      <span className="font-mono text-sm">{AGENT_LABELS[agent] ?? agent}</span>
+                      <span className="font-mono text-sm">
+                        {AGENT_LABELS[agent] ?? agent}
+                      </span>
                     </td>
                     <td>
                       <ModelSelect
-                        value={settings.agents[agent] ?? DEFAULT_SETTINGS.agents[agent]}
+                        value={
+                          settings.agents[agent] ??
+                          DEFAULT_SETTINGS.agents[agent]
+                        }
                         choices={MODEL_CHOICES_AGENT}
                         onChange={(model) => updateAgent(agent, model)}
                         id={`agent-${agent}`}
                       />
+                    </td>
+                    <td>
+                      <DefaultLabel model={DEFAULT_SETTINGS.agents[agent]} />
                     </td>
                   </tr>
                 ))}
@@ -227,17 +265,50 @@ export function SettingsView() {
         </div>
       </div>
 
-      {/* Save button */}
-      <div className="flex items-center gap-4 pb-4">
+      {/* Pricing reference — collapsible */}
+      <details className="collapse collapse-arrow bg-base-200 rounded-lg">
+        <summary className="collapse-title text-sm font-medium py-3 min-h-0">
+          Pricing reference
+        </summary>
+        <div className="collapse-content text-xs text-base-content/50">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-0.5 mb-2">
+            <span>
+              <span className="font-mono">Sonnet 4.6</span> — $3 / $15 per MTok
+            </span>
+            <span>
+              <span className="font-mono">Opus 4.6</span> — $5 / $25 per MTok
+            </span>
+            <span>
+              <span className="font-mono">Sonnet 4.6 1M</span> — $3‑6 /
+              $15‑22.50
+            </span>
+            <span>
+              <span className="font-mono">Opus 4.6 1M</span> — $5‑10 / $25‑37.50
+            </span>
+          </div>
+          <p className="text-base-content/40">
+            1M variants use standard rates up to 200K tokens, then 2× input /
+            1.5× output above. Requires Max or Enterprise subscription.
+          </p>
+        </div>
+      </details>
+
+      {/* Sticky save bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-300 px-6 py-3 flex items-center gap-4 z-50">
         <button
-          className={`btn btn-primary ${isSaving ? 'loading' : ''}`}
+          className={`btn btn-primary btn-sm ${isSaving ? "loading" : ""}`}
           onClick={handleSave}
           disabled={isSaving || !isDirty}
         >
-          {isSaving ? 'Saving...' : 'Save Settings'}
+          {isSaving ? "Saving..." : "Save Settings"}
         </button>
         {isDirty && !saved && (
           <span className="text-sm text-base-content/50">Unsaved changes</span>
+        )}
+        {saved && (
+          <span className="text-sm text-success">
+            Saved — restart Pilot to apply
+          </span>
         )}
       </div>
     </div>

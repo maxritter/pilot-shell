@@ -20,7 +20,7 @@ export interface ModelSettings {
 }
 
 export const DEFAULT_SETTINGS: ModelSettings = {
-  model: 'sonnet',
+  model: 'opus',
   commands: {
     spec: 'sonnet',
     'spec-plan': 'opus',

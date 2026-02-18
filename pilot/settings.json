@@ -1,10 +1,8 @@
 {
-  "model": "sonnet",
   "env": {
     "CLAUDE_CODE_ENABLE_TASKS": "true",
     "CLAUDE_CODE_HIDE_ACCOUNT_INFO": "true",
     "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "true",
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "false",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "true",
     "ENABLE_TOOL_SEARCH": "true",
     "ENABLE_LSP_TOOL": "true",

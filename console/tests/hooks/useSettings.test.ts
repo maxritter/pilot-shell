@@ -38,9 +38,9 @@ describe('useSettings', () => {
     expect(MODEL_DISPLAY_NAMES['opus[1m]']).toContain('1M');
   });
 
-  it('DEFAULT_SETTINGS has sonnet as main model (no 1M)', async () => {
+  it('DEFAULT_SETTINGS has opus as main model (no 1M)', async () => {
     const { DEFAULT_SETTINGS } = await import('../../src/ui/viewer/hooks/useSettings.js');
-    expect(DEFAULT_SETTINGS.model).toBe('sonnet');
+    expect(DEFAULT_SETTINGS.model).toBe('opus');
     expect(DEFAULT_SETTINGS.model).not.toContain('[1m]');
   });
 

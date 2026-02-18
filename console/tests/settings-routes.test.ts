@@ -90,8 +90,8 @@ describe('SettingsRoutes', () => {
   });
 
   describe('DEFAULT_SETTINGS', () => {
-    it('should have sonnet as default main model', () => {
-      expect(DEFAULT_SETTINGS.model).toBe('sonnet');
+    it('should have opus as default main model', () => {
+      expect(DEFAULT_SETTINGS.model).toBe('opus');
     });
 
     it('should have no 1M models in defaults', () => {
@@ -245,10 +245,10 @@ describe('SettingsRoutes', () => {
 
     it('should write atomically using temp file', async () => {
       const writtenPaths: string[] = [];
-      const origWriteFileSync = fs.writeFileSync.bind(fs);
+      const origWriteFileSync = fs.writeFileSync as Function;
       const spy = spyOn(fs, 'writeFileSync').mockImplementation((p: fs.PathOrFileDescriptor, ...args: any[]) => {
         writtenPaths.push(String(p));
-        return origWriteFileSync(p, ...args);
+        return origWriteFileSync.call(fs, p, ...args);
       });
 
       const m = makeMockRes();
@@ -257,8 +257,7 @@ describe('SettingsRoutes', () => {
 
       spy.mockRestore();
 
-      const hasTmp = writtenPaths.some(p => p.includes('.tmp') || p !== configPath);
-      expect(hasTmp).toBe(true);
+      expect(writtenPaths.some(p => p.includes('.tmp'))).toBe(true);
       expect(fs.existsSync(configPath)).toBe(true);
     });
 
