@@ -23,6 +23,27 @@ Slug = plan filename without date prefix and `.md`. `create` auto-stashes uncomm
 
 ---
 
+### Vexor — Semantic Code Search
+
+**⛔ First choice for codebase search — always try before Grep, Glob, or Explore sub-agents.** Finds by intent, not exact text. Zero context cost until you read results.
+
+Set `timeout: 60000` — indexing can happen on first run. Never run in background.
+
+```bash
+vexor "<QUERY>" [--path <ROOT>] [--mode <MODE>] [--ext .py,.md] [--exclude-pattern <PATTERN>] [--top 5]
+```
+
+| Mode | Best For |
+|------|----------|
+| `auto` | Default — routes by file type |
+| `code` | Code-aware chunking (best for codebases) |
+| `outline` | Markdown headings (best for docs) |
+| `full` | Full file contents (highest recall) |
+
+`vexor index` to pre-build, `vexor index --clear` to rebuild.
+
+---
+
 ### MCP-CLI
 
 Access custom MCP servers through the command line.
@@ -46,23 +67,3 @@ Add `-d` for descriptions, `-j` for JSON, `-r` for raw. Stdin for complex JSON: 
 
 **Routing:** Pilot core servers → direct tool calls via ToolSearch. User servers → `mcp-cli`. Run `/sync` after adding servers.
 
----
-
-### Vexor — Semantic Code Search
-
-First choice for codebase exploration. Find files by intent, not exact text. Outperforms Explore sub-agents on large codebases — zero context cost until you read results, no token waste from sub-agent transcripts.
-
-Important: Set `timeout: 60000` on Bash as indexing can happen, never run in background.
-
-```bash
-vexor "<QUERY>" [--path <ROOT>] [--mode <MODE>] [--ext .py,.md] [--exclude-pattern <PATTERN>] [--top 5]
-```
-
-| Mode | Best For |
-|------|----------|
-| `auto` | Default — routes by file type |
-| `code` | Code-aware chunking (best for codebases) |
-| `outline` | Markdown headings (best for docs) |
-| `full` | Full file contents (highest recall) |
-
-First search builds index automatically. `vexor index` to pre-build, `vexor index --clear` to rebuild.

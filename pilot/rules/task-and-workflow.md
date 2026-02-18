@@ -54,7 +54,11 @@ When resuming same session (same `CLAUDE_CODE_TASK_LIST_ID`): run `TaskList` fir
 
 ## Sub-Agent and Tool Usage
 
-**Prefer direct tools over sub-agents.** For codebase exploration, use `vexor` first — it finds files by intent via semantic search, scales to large codebases, and costs zero context until you read the results. Fall back to Grep/Glob for exact pattern matches. Only use Task/Explore sub-agents when you need multi-step reasoning across many files that direct tools can't cover in 2-3 queries.
+**⛔ ALWAYS try vexor before any other codebase search tool.** Vexor finds files by intent via semantic search, scales to any codebase size, and costs zero context until you read results. It outperforms Explore sub-agents — no token waste from sub-agent transcripts.
+
+**Search fallback chain:** `vexor` → `Grep`/`Glob` (exact patterns only) → `Task/Explore` (multi-step reasoning, last resort)
+
+Never open an Explore sub-agent or reach for Grep/Glob until vexor has been tried and missed.
 
 ### /spec Verification Agents (MANDATORY)
 

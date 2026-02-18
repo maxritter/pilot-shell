@@ -1,5 +1,15 @@
 ## Research Tools
 
+### Vexor — Codebase Search (ALWAYS FIRST)
+
+**⛔ Try vexor before Grep, Glob, or any Explore sub-agent.** Finds by intent, not exact text. Zero context cost until you read results.
+
+**Fallback chain:** Vexor → Grep/Glob (exact patterns) → Explore sub-agent (multi-step reasoning only)
+
+Full reference in `cli-tools.md`.
+
+---
+
 ### Context7 — Library Documentation
 
 **MANDATORY: Use before writing code with unfamiliar libraries.**
@@ -56,11 +66,11 @@ gh api repos/{owner}/{repo}/pulls/123/comments
 
 | Need | Best Tool |
 |------|-----------|
-| **Codebase exploration** | **Vexor** (semantic search — find by intent, not exact text) |
-| Exact pattern match | Grep / Glob |
+| **Any codebase question** | **Vexor first — always** |
+| Exact pattern / known symbol | Grep / Glob (only after vexor misses) |
 | Library/framework docs | Context7 |
 | Production code examples | grep-mcp |
 | Web research | web-search/search |
 | GitHub operations | gh CLI |
 
-**Codebase search priority:** Vexor → Grep/Glob → Explore sub-agent. Vexor handles large codebases efficiently where Explore sub-agents waste tokens re-reading files. Use Explore only when multi-step reasoning across many files is needed.
+**⛔ Never reach for Grep, Glob, or an Explore sub-agent before trying vexor.** Vexor finds by intent across any codebase size. Grep/Glob are for exact patterns when you already know what to search for. Explore sub-agents only when multi-step reasoning across many files is unavoidable.
