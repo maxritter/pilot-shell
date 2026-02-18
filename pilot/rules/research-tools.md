@@ -1,5 +1,15 @@
 ## Research Tools
 
+### Vexor — Codebase Search (ALWAYS FIRST)
+
+**⛔ Try vexor before Grep, Glob, or any Explore sub-agent.** Finds by intent, not exact text. Zero context cost until you read results.
+
+**Fallback chain:** Vexor → Grep/Glob (exact patterns) → Explore sub-agent (multi-step reasoning only)
+
+Full reference in `cli-tools.md`.
+
+---
+
 ### Context7 — Library Documentation
 
 **MANDATORY: Use before writing code with unfamiliar libraries.**
@@ -28,9 +38,9 @@ searchGitHub(query="getServerSession", repo="vercel/next-auth")
 
 Parameters: `query`, `language`, `repo`, `path`, `useRegexp`, `matchCase`
 
-### Web Search / Fetch (MCP)
+### Web Search / Fetch
 
-**Use MCP tools for web access. Built-in WebSearch/WebFetch are blocked by hook.**
+**⛔ NEVER use built-in `WebFetch` or `WebSearch` — they are blocked by hook and will fail.** Always use MCP alternatives via `ToolSearch("web-fetch")` or `ToolSearch("web-search")` first.
 
 | Need | Tool |
 |------|------|
@@ -38,8 +48,6 @@ Parameters: `query`, `language`, `repo`, `path`, `useRegexp`, `matchCase`
 | GitHub README | `web-search/fetchGithubReadme` |
 | Fetch full page | `web-fetch/fetch_url` (Playwright, no truncation) |
 | Fetch multiple | `web-fetch/fetch_urls` |
-
-Built-in `WebFetch` truncates at ~8KB — MCP tools provide full content.
 
 ### GitHub CLI (gh)
 
@@ -56,11 +64,11 @@ gh api repos/{owner}/{repo}/pulls/123/comments
 
 | Need | Best Tool |
 |------|-----------|
-| **Codebase exploration** | **Vexor** (semantic search — find by intent, not exact text) |
-| Exact pattern match | Grep / Glob |
+| **Any codebase question** | **Vexor first — always** |
+| Exact pattern / known symbol | Grep / Glob (only after vexor misses) |
 | Library/framework docs | Context7 |
 | Production code examples | grep-mcp |
 | Web research | web-search/search |
 | GitHub operations | gh CLI |
 
-**Codebase search priority:** Vexor → Grep/Glob → Explore sub-agent. Vexor handles large codebases efficiently where Explore sub-agents waste tokens re-reading files. Use Explore only when multi-step reasoning across many files is needed.
+**⛔ Never reach for Grep, Glob, or an Explore sub-agent before trying vexor.** Vexor finds by intent across any codebase size. Grep/Glob are for exact patterns when you already know what to search for. Explore sub-agents only when multi-step reasoning across many files is unavoidable.

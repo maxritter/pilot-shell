@@ -101,6 +101,13 @@ def is_linux_arm64() -> bool:
     return platform.system() == "Linux" and platform.machine() in ("aarch64", "arm64")
 
 
+def is_macos_arm64() -> bool:
+    """Check if running on macOS with Apple Silicon (M-series chip)."""
+    import platform
+
+    return platform.system() == "Darwin" and platform.machine() == "arm64"
+
+
 def get_shell_config_files() -> list[Path]:
     """Get list of shell configuration files for the current user."""
     home = Path.home()

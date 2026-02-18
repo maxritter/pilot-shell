@@ -24,59 +24,96 @@ const insideItems: InsideItem[] = [
     icon: Workflow,
     title: "Spec-Driven Development",
     description: "Plan → Approve → Implement → Verify",
-    summary: "A structured workflow with human review gates, sequential TDD, mandatory verification, and independent code review. Loops back automatically if any check fails.",
+    summary:
+      "A structured workflow with human review gates, sequential TDD, mandatory verification, and independent code review. Loops back automatically if any check fails.",
   },
   {
     icon: ShieldCheck,
     title: "Quality Automation",
     description: "Hooks on every file edit",
-    summary: "Auto-formatting, linting, and type checking for Python, TypeScript, and Go. TDD enforcer warns when code changes lack tests. Status line shows live session info.",
+    summary:
+      "Auto-formatting, linting, and type checking for Python, TypeScript, and Go. TDD enforcer warns when code changes lack tests. Status line shows live session info.",
   },
   {
     icon: FileCode2,
     title: "Rules, Commands & Standards",
     description: "Rules · Commands · Standards",
-    summary: "Production-tested best practices loaded every session. Coding standards activate by file type. Structured workflows via /spec, /sync, /vault, /learn. Custom rules survive updates.",
+    summary:
+      "Production-tested best practices loaded every session. Coding standards activate by file type. Structured workflows via /spec, /sync, /vault, /learn. Custom rules survive updates.",
   },
   {
     icon: InfinityIcon,
     title: "Persistent Memory",
     description: "Context carries across sessions",
-    summary: "Every decision, discovery, and debugging insight is captured to Pilot Console. Pick up any project after days or weeks — Claude already knows your architecture, patterns, and past work.",
+    summary:
+      "Every decision, discovery, and debugging insight is captured to Pilot Console. Pick up any project after days or weeks — Claude already knows your architecture, patterns, and past work.",
   },
   {
     icon: Plug2,
     title: "Enhanced Context",
     description: "MCP servers + language servers",
-    summary: "Library docs, persistent memory, web search, GitHub code search, and real-time LSP diagnostics — all pre-configured and always available.",
+    summary:
+      "Library docs, persistent memory, web search, GitHub code search, and real-time LSP diagnostics — all pre-configured and always available.",
   },
   {
     icon: Container,
     title: "One-Command Installer",
     description: "Ready in minutes, auto-updates",
-    summary: "Step-based installer with progress tracking, rollback on failure, and idempotent re-runs. Shell integration, Dev Container support, and automated updates.",
+    summary:
+      "Step-based installer with progress tracking, rollback on failure, and idempotent re-runs. Shell integration, Dev Container support, and automated updates.",
   },
   {
     icon: Users,
     title: "Team Vault",
     description: "Share knowledge across your team",
-    summary: "Push and pull rules, commands, and skills via a private Git repo. Automatic versioning. Works with GitHub, GitLab, and Bitbucket.",
+    summary:
+      "Push and pull rules, commands, and skills via a private Git repo. Automatic versioning. Works with GitHub, GitLab, and Bitbucket.",
   },
   {
     icon: GitBranch,
     title: "Isolated Workspaces",
     description: "Safe experimentation, clean git history",
-    summary: "Spec implementation runs in isolated git worktrees. Review changes, squash merge when verified, or discard without touching your main branch. Worktree state survives across auto-compaction cycles.",
+    summary:
+      "Spec implementation runs in isolated git worktrees. Review changes, squash merge when verified, or discard without touching your main branch. Worktree state survives across auto-compaction cycles.",
   },
 ];
 
 const consoleSlides = [
-  { label: "Dashboard", src: "/console/dashboard.png", alt: "Console Dashboard — stats, workspace status, and spec progress" },
-  { label: "Specifications", src: "/console/specification.png", alt: "Specification view — plan details, task progress, and implementation notes" },
-  { label: "Memories", src: "/console/memories.png", alt: "Memories view — browsable observation cards with type filters" },
-  { label: "Sessions", src: "/console/sessions.png", alt: "Sessions view — active sessions with observation and prompt counts" },
-  { label: "Usage", src: "/console/usage.png", alt: "Usage view — daily costs, token charts, and model routing strategy" },
-  { label: "Vault", src: "/console/vault.png", alt: "Vault view — shared team assets with version tracking" },
+  {
+    label: "Dashboard",
+    src: "/console/dashboard.png",
+    alt: "Console Dashboard — stats, workspace status, and spec progress",
+  },
+  {
+    label: "Settings",
+    src: "/console/settings.png",
+    alt: "Settings view — model selection per command, sub-agent, and session with defaults",
+  },
+  {
+    label: "Specifications",
+    src: "/console/specification.png",
+    alt: "Specification view — plan details, task progress, and implementation notes",
+  },
+  {
+    label: "Memories",
+    src: "/console/memories.png",
+    alt: "Memories view — browsable observation cards with type filters",
+  },
+  {
+    label: "Sessions",
+    src: "/console/sessions.png",
+    alt: "Sessions view — active sessions with observation and prompt counts",
+  },
+  {
+    label: "Usage",
+    src: "/console/usage.png",
+    alt: "Usage view — daily costs, token charts, and model routing strategy",
+  },
+  {
+    label: "Vault",
+    src: "/console/vault.png",
+    alt: "Vault view — shared team assets with version tracking",
+  },
 ];
 
 const ConsoleShowcase = ({ visible }: { visible: boolean }) => {
@@ -84,13 +121,16 @@ const ConsoleShowcase = ({ visible }: { visible: boolean }) => {
   const slide = consoleSlides[index];
 
   return (
-    <div className={`mt-16 ${visible ? "animate-fade-in-up animation-delay-500" : "opacity-0"}`}>
+    <div
+      className={`mt-16 ${visible ? "animate-fade-in-up animation-delay-500" : "opacity-0"}`}
+    >
       <div className="text-center mb-6">
         <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">
           Pilot Console
         </h3>
         <p className="text-muted-foreground text-sm sm:text-base">
-          Real-time observations, session management, usage analytics, and semantic search
+          Real-time observations, session management, usage analytics, and
+          semantic search
         </p>
       </div>
 
@@ -105,23 +145,27 @@ const ConsoleShowcase = ({ visible }: { visible: boolean }) => {
         </div>
 
         {/* Thumbnail strip */}
-        <div className="grid grid-cols-6 gap-2 sm:gap-3 mt-4">
+        <div className="grid grid-cols-7 gap-2 sm:gap-3 mt-4">
           {consoleSlides.map((s, i) => (
             <button
               key={i}
               onClick={() => setIndex(i)}
               className={`group/thumb relative rounded-lg overflow-hidden border-2 transition-all duration-200
-                ${i === index
-                  ? "border-primary shadow-md shadow-primary/20"
-                  : "border-transparent opacity-60 hover:opacity-100 hover:border-border"
+                ${
+                  i === index
+                    ? "border-primary shadow-md shadow-primary/20"
+                    : "border-transparent opacity-60 hover:opacity-100 hover:border-border"
                 }`}
             >
               <img src={s.src} alt={s.label} className="w-full rounded-md" />
-              <div className={`absolute inset-x-0 bottom-0 py-1 text-[10px] sm:text-xs font-medium text-center
-                ${i === index
-                  ? "bg-primary/90 text-primary-foreground"
-                  : "bg-background/80 text-muted-foreground group-hover/thumb:text-foreground"
-                }`}>
+              <div
+                className={`absolute inset-x-0 bottom-0 py-1 text-[10px] sm:text-xs font-medium text-center
+                ${
+                  i === index
+                    ? "bg-primary/90 text-primary-foreground"
+                    : "bg-background/80 text-muted-foreground group-hover/thumb:text-foreground"
+                }`}
+              >
                 {s.label}
               </div>
             </button>
@@ -161,8 +205,9 @@ const WhatsInside = () => {
             What's Inside
           </h2>
           <p className="text-muted-foreground text-lg sm:text-xl max-w-3xl mx-auto">
-            A production-grade system — not a prompt template. Installs into any existing codebase,
-            learns your conventions, and enforces quality across your entire development workflow.
+            A production-grade system — not a prompt template. Installs into any
+            existing codebase, learns your conventions, and enforces quality
+            across your entire development workflow.
           </p>
         </div>
 
@@ -183,8 +228,10 @@ const WhatsInside = () => {
               >
                 {/* Icon and Title */}
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center
-                    group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+                  <div
+                    className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center
+                    group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300"
+                  >
                     <Icon className="h-5 w-5 text-primary" />
                   </div>
                   <div>

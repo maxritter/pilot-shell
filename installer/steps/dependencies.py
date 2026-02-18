@@ -9,8 +9,11 @@ from pathlib import Path
 from typing import Any
 
 from installer.context import InstallContext
-from installer.platform_utils import command_exists, is_linux_arm64, npm_global_cmd
+from installer.platform_utils import command_exists, is_linux_arm64, is_macos_arm64, npm_global_cmd
 from installer.steps.base import BaseStep
+
+VEXOR_FORK_URL = "https://github.com/maxritter/vexor.git"
+VEXOR_MLX_BRANCH = "mlx-support"
 
 MAX_RETRIES = 3
 RETRY_DELAY = 2
@@ -255,6 +258,87 @@ def _is_vexor_local_model_installed() -> bool:
     return False
 
 
+def _is_vexor_mlx_installed() -> bool:
+    """Check if vexor is installed with MLX support (not the CPU-only version).
+
+    Uses uv to inspect vexor's tool environment — no python3 assumption needed.
+    """
+    if not command_exists("vexor"):
+        return False
+
+    try:
+        dir_result = subprocess.run(
+            ["uv", "tool", "dir"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if dir_result.returncode != 0:
+            return False
+        vexor_env = Path(dir_result.stdout.strip()) / "vexor"
+        if not vexor_env.exists():
+            return False
+
+        result = subprocess.run(
+            ["uv", "pip", "show", "mlx-embedding-models", "--python", str(vexor_env)],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
+def _clone_vexor_fork() -> Path | None:
+    """Clone the vexor fork with MLX support to ~/.pilot/vexor."""
+    vexor_dir = Path.home() / ".pilot" / "vexor"
+
+    if vexor_dir.exists():
+        try:
+            subprocess.run(
+                ["git", "fetch", "origin", VEXOR_MLX_BRANCH],
+                capture_output=True,
+                cwd=vexor_dir,
+                timeout=60,
+            )
+            subprocess.run(
+                ["git", "checkout", VEXOR_MLX_BRANCH],
+                capture_output=True,
+                cwd=vexor_dir,
+                timeout=30,
+            )
+            subprocess.run(
+                ["git", "pull", "origin", VEXOR_MLX_BRANCH],
+                capture_output=True,
+                cwd=vexor_dir,
+                timeout=60,
+            )
+            return vexor_dir
+        except Exception:
+            return None
+
+    try:
+        vexor_dir.parent.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            ["git", "clone", "--branch", VEXOR_MLX_BRANCH, "--single-branch", VEXOR_FORK_URL, str(vexor_dir)],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if result.returncode == 0:
+            return vexor_dir
+    except Exception:
+        pass
+    return None
+
+
+def _install_vexor_from_local(vexor_dir: Path, extra: str = "local-mlx") -> bool:
+    """Install vexor from a local clone with the specified extra."""
+    cmd = f'uv tool install "{vexor_dir}[{extra}]" --reinstall'
+    return _run_bash_with_retry(cmd, timeout=300)
+
+
 def _setup_vexor_local_model(ui: Any = None) -> bool:
     """Download and setup the local embedding model for Vexor."""
     if _is_vexor_local_model_installed():
@@ -278,8 +362,15 @@ def _setup_vexor_local_model(ui: Any = None) -> bool:
 
 
 def install_vexor(use_local: bool = False, ui: Any = None) -> bool:
-    """Install Vexor semantic search tool and configure defaults."""
+    """Install Vexor semantic search tool and configure defaults.
+
+    On macOS arm64, installs from fork with MLX support for Apple Silicon GPU.
+    On other platforms, installs the standard CPU-based local embeddings.
+    """
     if use_local:
+        if is_macos_arm64():
+            return _install_vexor_mlx(ui)
+
         if command_exists("vexor") and _is_vexor_local_model_installed():
             _configure_vexor_local()
             return True
@@ -294,6 +385,34 @@ def install_vexor(use_local: bool = False, ui: Any = None) -> bool:
             return True
         _configure_vexor_defaults()
         return True
+
+
+def _install_vexor_mlx(ui: Any = None) -> bool:
+    """Install Vexor with MLX support from fork for macOS Apple Silicon."""
+    if _is_vexor_mlx_installed() and _is_vexor_local_model_installed():
+        _configure_vexor_local()
+        return True
+
+    vexor_dir = _clone_vexor_fork()
+    if vexor_dir is None:
+        if ui:
+            ui.warning("Could not clone MLX fork — falling back to CPU embeddings")
+        if not command_exists("vexor"):
+            if not _run_bash_with_retry("uv tool install 'vexor[local]'"):
+                return False
+        _configure_vexor_local()
+        return _setup_vexor_local_model(ui)
+
+    if not _install_vexor_from_local(vexor_dir, extra="local-mlx"):
+        if ui:
+            ui.warning("MLX install failed — falling back to CPU embeddings")
+        if not _run_bash_with_retry("uv tool install 'vexor[local]'"):
+            return False
+        _configure_vexor_local()
+        return _setup_vexor_local_model(ui)
+
+    _configure_vexor_local()
+    return _setup_vexor_local_model(ui)
 
 
 def install_mcp_cli() -> bool:
@@ -346,6 +465,30 @@ def install_typescript_lsp() -> bool:
     if _is_vtsls_installed():
         return True
     return _run_bash_with_retry(npm_global_cmd("npm install -g @vtsls/language-server typescript"))
+
+
+def install_prettier() -> bool:
+    """Install prettier code formatter globally for TypeScript/JavaScript files."""
+    if command_exists("prettier"):
+        return True
+    return _run_bash_with_retry(npm_global_cmd("npm install -g prettier"))
+
+
+def install_golangci_lint() -> bool:
+    """Install golangci-lint for comprehensive Go code linting.
+
+    Skips if Go is not installed, since golangci-lint requires it.
+    Uses the official install script to place the binary in $(go env GOPATH)/bin.
+    """
+    if command_exists("golangci-lint"):
+        return True
+    if not command_exists("go"):
+        return False
+    install_cmd = (
+        "curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh"
+        " | sh -s -- -b $(go env GOPATH)/bin"
+    )
+    return _run_bash_with_retry(install_cmd, timeout=120)
 
 
 def _is_ccusage_installed() -> bool:
@@ -547,8 +690,12 @@ def _install_vexor_with_ui(ui: Any) -> bool:
     """Install Vexor with local embeddings (GPU auto-detected)."""
     from installer.platform_utils import has_nvidia_gpu
 
-    use_cuda = has_nvidia_gpu()
-    mode_str = "CUDA" if use_cuda else "CPU"
+    if is_macos_arm64():
+        mode_str = "MLX"
+    elif has_nvidia_gpu():
+        mode_str = "CUDA"
+    else:
+        mode_str = "CPU"
 
     if ui:
         ui.status(f"Installing Vexor with local embeddings ({mode_str})...")
@@ -694,6 +841,12 @@ class DependenciesStep(BaseStep):
 
         if _install_with_spinner(ui, "vtsls (TypeScript LSP server)", install_typescript_lsp):
             installed.append("typescript_lsp")
+
+        if _install_with_spinner(ui, "prettier (TypeScript formatter)", install_prettier):
+            installed.append("prettier")
+
+        if _install_with_spinner(ui, "golangci-lint (Go linter)", install_golangci_lint):
+            installed.append("golangci_lint")
 
         if _install_with_spinner(ui, "ccusage (usage tracking)", install_ccusage):
             installed.append("ccusage")
