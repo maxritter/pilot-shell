@@ -2,6 +2,12 @@
 
 All notable changes to Claude Pilot will be documented in this file.
 
+## [6.8.0] - 2026-02-18
+
+### Features
+
+- Model selection settings, Apple Silicon Vexor acceleration, and worktree sync fixes 
+
 ## [6.7.7] - 2026-02-17
 
 ### Bug Fixes
