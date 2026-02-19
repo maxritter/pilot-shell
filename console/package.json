@@ -27,7 +27,7 @@
     "express": "^4.18.2",
     "glob": "^11.0.3",
     "handlebars": "^4.7.8",
-    "isomorphic-dompurify": "3.0.0-rc.2",
+    "isomorphic-dompurify": "3.0.0-rc.3",
     "yaml": "^2.8.2",
     "zod": "^3.23.8",
     "zod-to-json-schema": "^3.24.6"
