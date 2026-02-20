@@ -249,6 +249,10 @@ bun.lock
 # Cursor (created by sx install for Cursor client)
 .cursor/
 
+# GitHub Copilot (created by sx install for Copilot client)
+.github/skills/
+.github/instructions/
+
 # Kiro
 .kiro/
 .worktrees/

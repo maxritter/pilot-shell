@@ -22,7 +22,17 @@ sx is a team asset manager that uses a private Git repository as a shared vault.
 
    If not installed: inform user sx is required for Team Vault. It can be installed via the Pilot installer or from [skills.new](https://skills.new).
 
-2. **Check vault configuration:**
+2. **Ensure only Claude Code receives assets:**
+
+   sx installs to all detected clients by default. Disable non-Claude clients to avoid polluting `.cursor/` and `.github/` directories:
+
+   ```bash
+   sx clients disable cursor 2>/dev/null; sx clients disable github-copilot 2>/dev/null
+   ```
+
+   This is idempotent — safe to run every time. Only Claude Code should receive vault assets.
+
+3. **Check vault configuration:**
 
    ```bash
    sx config 2>&1
@@ -103,7 +113,7 @@ Options:
 - "Pull" - Install or update team assets from the vault
 - "Push" - Share your local rules, skills, or commands with the team
 - "Browse" - See what's in the vault and check versions
-- "Manage" - Remove assets, switch profiles, update sx
+- "Manage" - Remove assets, clients, profiles, update sx
 ```
 
 Execute the selected operation below, then return to this menu when done:
@@ -160,9 +170,17 @@ ls .claude/commands/*.md 2>/dev/null
 
 # List custom agents
 ls .claude/agents/*.md 2>/dev/null
+
+# List hook scripts (check hooks.json for custom hooks)
+cat .claude/hooks.json 2>/dev/null || cat pilot/hooks/hooks.json 2>/dev/null
+
+# List MCP server configs
+cat .mcp.json 2>/dev/null
 ```
 
 Filter out standard Pilot assets (those installed by the installer, not created by the user).
+
+**Note:** Hooks and MCP configs can also be shared via vault. Hooks support both script-based (packaged with the hook script) and command-based (config-only) modes. MCP configs can be shared as config-only assets (just the connection config) or packaged with server code.
 
 ### Step P.2: Ask What to Share
 
@@ -174,6 +192,9 @@ Options:
 - "[skill] <name>" - <brief description from SKILL.md>
 - "[rule] <name>" - <first line of rule file>
 - "[command] <name>" - <description from frontmatter>
+- "[agent] <name>" - <agent description>
+- "[hook] <name>" - <hook event and purpose>
+- "[mcp] <name>" - <MCP server purpose>
 ```
 
 ### Step P.3: Detect Git Remote
@@ -206,6 +227,13 @@ Options:
 sx add .claude/skills/<name> --yes --type skill --name "<name>" --scope-repo <repo-url>
 sx add .claude/rules/<name>.md --yes --type rule --name "<name>" --scope-repo <repo-url>
 sx add .claude/commands/<name>.md --yes --type command --name "<name>" --scope-repo <repo-url>
+sx add .claude/agents/<name>.md --yes --type agent --name "<name>" --scope-repo <repo-url>
+
+# Hooks (script-based — package the hook script)
+sx add ./path/to/hook-script --yes --type hook --name "<name>" --scope-repo <repo-url>
+
+# MCP servers (config-only — just the connection config)
+sx add ./path/to/mcp-config --yes --type mcp --name "<name>" --scope-repo <repo-url>
 
 # Global — installs to ~/.claude/ everywhere
 sx add .claude/skills/<name> --yes --type skill --name "<name>" --scope-global
@@ -213,10 +241,11 @@ sx add .claude/skills/<name> --yes --type skill --name "<name>" --scope-global
 
 **Warning:** Do NOT use `--no-install` — it skips updating the vault lockfile, making assets invisible to `sx install` for teammates.
 
-**Note:** sx installs to all detected clients (Claude Code + Cursor). If `.cursor/` is not in `.gitignore`, add it:
+**Note:** sx installs to all detected clients by default (Claude Code, Cursor, GitHub Copilot). Copilot uses `.github/skills/` and `.github/instructions/` which conflicts with tracked `.github/` files. If `.cursor/` or Copilot asset directories are not in `.gitignore`, add them:
 
 ```bash
-echo '.cursor/' >> .gitignore 2>/dev/null
+# Add gitignore entries for non-Claude client directories
+echo -e '.cursor/\n.github/skills/\n.github/instructions/' >> .gitignore 2>/dev/null
 ```
 
 ### Step P.6: Verify Push
@@ -280,9 +309,9 @@ Question: "What would you like to manage?"
 Header: "Manage"
 Options:
 - "Remove an asset" - Unlink an asset from your lock file
+- "Manage clients" - Enable/disable AI clients that receive assets
 - "Switch profile" - Change vault configuration profile
 - "Update sx" - Check for and install sx updates
-- "Uninstall all" - Remove all installed vault assets
 ```
 
 ### Remove an Asset
@@ -300,7 +329,39 @@ sx remove <asset-name> --yes
 
 The asset stays in the vault for other team members — only your local installation is affected.
 
-### Switch Profile
+### Manage Clients
+
+sx auto-detects AI coding assistants and installs assets to all of them. Use `sx clients` to control which clients receive assets:
+
+```bash
+# List detected clients and their status
+sx clients
+
+# Disable a client (stops receiving assets)
+sx clients disable <client-id>
+
+# Re-enable a client
+sx clients enable <client-id>
+
+# Reset to default (all detected clients enabled)
+sx clients reset
+```
+
+Client IDs: `claude-code`, `cursor`, `github-copilot`
+
+**Client compatibility — not all asset types work with all clients:**
+
+| Asset Type | Claude Code | Cursor | Copilot |
+|-----------|-------------|--------|---------|
+| `skill` | Yes | Yes | Yes |
+| `rule` | Yes | Yes | Yes |
+| `command` | Yes | Yes | Yes |
+| `agent` | Yes | — | Yes |
+| `hook` | Yes | Yes | — |
+| `mcp` | Yes | Yes | Yes |
+| `claude-code-plugin` | Yes | — | — |
+
+### Profile Management
 
 sx supports multiple vault configurations (e.g., different teams, different projects):
 
@@ -313,6 +374,9 @@ sx profile use <profile-name>
 
 # Add a new profile
 sx profile add <profile-name>
+
+# Remove a profile
+sx profile remove <profile-name>
 ```
 
 Ask user what profile operation they need.
@@ -363,7 +427,8 @@ sx uninstall --all --yes
 | `command` | `--type command` | `.claude/commands/<name>.md` | Custom slash commands                           |
 | `agent`   | `--type agent`   | `.claude/agents/<name>.md`   | Sub-agent definitions                           |
 | `hook`    | `--type hook`    | Hook scripts                 | Quality automation, CI integration              |
-| `mcp`     | `--type mcp`     | MCP server configs           | External tool integrations                      |
+| `mcp`     | `--type mcp`     | MCP server configs           | External tool integrations (config-only or packaged) |
+| `claude-code-plugin` | `--type claude-code-plugin` | Plugin bundles | Claude Code plugin bundles (commands, skills, agents, hooks, MCP) |
 
 ## Scoping
 
