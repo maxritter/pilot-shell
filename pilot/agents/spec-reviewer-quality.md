@@ -3,6 +3,7 @@ name: spec-reviewer-quality
 description: Verifies code quality, testing adequacy, security, performance, and error handling. Returns structured JSON findings.
 tools: Read, Grep, Glob, Write, Bash(git diff:*), Bash(git log:*)
 model: opus
+background: true
 permissionMode: plan
 ---
 
@@ -29,6 +30,7 @@ ls .claude/rules/*.md
 **For EACH matched rule file, use the Read tool to read it completely.**
 
 Rules to SKIP (not relevant to code review):
+
 - `context-continuation.md` — session management
 - `cli-tools.md` — CLI references (Pilot, Vexor)
 - `research-tools.md` — Context7, grep-mcp, web search, gh CLI
@@ -60,7 +62,7 @@ Key rules are summarized below, but you MUST read the full rule files for comple
 - Tests MUST have been written BEFORE the implementation
 - If you see implementation without corresponding test = **must_fix**
 
-### Testing Standards (testing.md, standards-*)
+### Testing Standards (testing.md, standards-\*)
 
 - Unit tests MUST mock ALL external calls (HTTP, subprocess, file I/O, databases)
 - Tests making real network calls = **must_fix** (causes hangs/flakiness)
@@ -238,11 +240,13 @@ Test exists but only checks that function doesn't crash, not that it returns cor
 ## Important Notes
 
 **You are NOT responsible for:**
+
 - Checking if implementation matches the plan (compliance reviewer does this)
 - Verifying risk mitigations are implemented (compliance reviewer does this)
 - Checking DoD criteria are met (compliance reviewer does this)
 
 **You ARE responsible for:**
+
 - Reading ALL rule files first (mandatory)
 - Finding security vulnerabilities
 - Finding bugs and logic errors

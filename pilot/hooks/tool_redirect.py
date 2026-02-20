@@ -116,14 +116,14 @@ BLOCKS: dict[str, dict] = {
         "example": 'mcp-cli call plugin_pilot_web-fetch/fetch_url \'{"url": "..."}\'',
     },
     "EnterPlanMode": {
-        "message": "EnterPlanMode is blocked (project uses /spec workflow)",
-        "alternative": "Use Skill(skill='spec') for dispatch, or invoke phases directly: spec-plan, spec-implement, spec-verify",
-        "example": "Skill(skill='spec', args='task description') or Skill(skill='spec-plan', args='task description')",
+        "message": "BLOCKED: EnterPlanMode is FORBIDDEN. Plan mode is completely disabled in this project.",
+        "alternative": "Do NOT use plan mode under any circumstances. Use /spec for structured planning, or execute directly for simple tasks",
+        "example": "Skill(skill='spec', args='task description')",
     },
     "ExitPlanMode": {
-        "message": "ExitPlanMode is blocked (project uses /spec workflow)",
-        "alternative": "Use AskUserQuestion for plan approval, then Skill(skill='spec-implement', args='plan-path')",
-        "example": "AskUserQuestion to confirm plan, then Skill(skill='spec-implement', args='plan-path')",
+        "message": "BLOCKED: ExitPlanMode is FORBIDDEN. Plan mode is completely disabled in this project.",
+        "alternative": "Do NOT use plan mode under any circumstances. Use /spec for structured planning, or execute directly for simple tasks",
+        "example": "Skill(skill='spec', args='task description')",
     },
     "Task": {
         "message": "Task(subagent_type='Plan') is blocked (project uses /spec workflow)",
@@ -144,11 +144,12 @@ def _format_example(redirect_info: dict, pattern: str | None = None) -> str:
 
 
 def block(redirect_info: dict, pattern: str | None = None) -> int:
-    """Output deny JSON to stdout and return 0."""
+    """Output deny JSON to stdout and return 2 (non-zero reinforces block)."""
     example = _format_example(redirect_info, pattern)
     reason = f"{redirect_info['message']}\n-> {redirect_info['alternative']}\nExample: {example}"
+    sys.stderr.write(f"\033[0;31m[Pilot] {redirect_info['message']}\033[0m\n")
     print(pre_tool_use_deny(reason))
-    return 0
+    return 2
 
 
 def hint(redirect_info: dict, pattern: str | None = None) -> int:

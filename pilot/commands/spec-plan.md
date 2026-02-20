@@ -560,7 +560,7 @@ Define output paths (replace `<session-id>` with the resolved value):
 
 #### Launch Plan Verification (Parallel Review)
 
-**⛔ CRITICAL: You MUST send BOTH Task calls in a SINGLE message.** Set `run_in_background=true` on both so they run in parallel. If you send them in separate messages, the first blocks and the second waits — defeating the purpose.
+**⛔ CRITICAL: You MUST send BOTH Task calls in a SINGLE message.** Both agents have `background: true` in their definitions, so they run in the background automatically. As a fallback, also set `run_in_background=true` on both. If you send them in separate messages, the first blocks and the second waits — defeating the purpose.
 
 **Agent 1: plan-verifier** (alignment and completeness)
 ```

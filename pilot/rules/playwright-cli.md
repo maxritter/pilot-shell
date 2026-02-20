@@ -2,15 +2,37 @@
 
 **MANDATORY for E2E testing of any app with a UI.** API tests verify backend; playwright-cli verifies what the user sees.
 
+### Session Isolation (Parallel Workflows)
+
+**⛔ MANDATORY when running inside `/spec` or any parallel workflow.** Without session isolation, parallel agents share the default browser instance and overwrite each other's state (wrong pages, failed snapshots, broken interactions).
+
+**Use `-s=$PILOT_SESSION_ID` on ALL `playwright-cli` commands:**
+
+```bash
+# Resolve session name once at the start of E2E testing
+PW_SESSION="${PILOT_SESSION_ID:-default}"
+
+# All subsequent commands use -s=
+playwright-cli -s="$PW_SESSION" open <url>
+playwright-cli -s="$PW_SESSION" snapshot
+playwright-cli -s="$PW_SESSION" click e1
+playwright-cli -s="$PW_SESSION" close       # Always close when done
+```
+
+**Why:** Each `/spec` session gets a unique `PILOT_SESSION_ID`. The `-s=` flag gives each session its own isolated browser instance, preventing parallel workflows from interfering with each other.
+
+**⛔ NEVER use bare `playwright-cli` commands (without `-s=`) during `/spec` workflows.** This causes cross-session interference that is extremely difficult to debug.
+
 ### Core Workflow
 
 ```bash
-playwright-cli open <url>        # 1. Open browser
-playwright-cli snapshot          # 2. Get elements with refs (e1, e2, ...)
-playwright-cli fill e1 "text"    # 3. Interact using refs
-playwright-cli click e2
-playwright-cli snapshot          # 4. Re-snapshot to verify result
-playwright-cli close             # 5. Clean up
+PW_SESSION="${PILOT_SESSION_ID:-default}"
+playwright-cli -s="$PW_SESSION" open <url>        # 1. Open browser
+playwright-cli -s="$PW_SESSION" snapshot          # 2. Get elements with refs (e1, e2, ...)
+playwright-cli -s="$PW_SESSION" fill e1 "text"    # 3. Interact using refs
+playwright-cli -s="$PW_SESSION" click e2
+playwright-cli -s="$PW_SESSION" snapshot          # 4. Re-snapshot to verify result
+playwright-cli -s="$PW_SESSION" close             # 5. Clean up
 ```
 
 ### Command Reference
@@ -59,6 +81,8 @@ playwright-cli -s=public open https://example.com
 playwright-cli list          # List sessions
 playwright-cli close-all     # Close all
 ```
+
+**In `/spec` workflows**, the session name is always `$PILOT_SESSION_ID` — never invent custom names. This ensures each parallel spec run is fully isolated.
 
 ### E2E Checklist
 

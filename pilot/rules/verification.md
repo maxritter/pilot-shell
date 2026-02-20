@@ -6,7 +6,7 @@
 
 Unit tests with mocks prove nothing about real-world behavior. After tests pass:
 
-- CLI command → **run it** | API endpoint → **call it** | Frontend UI → **open with playwright-cli**
+- CLI command → **run it** | API endpoint → **call it** | Frontend UI → **open with `playwright-cli -s="${PILOT_SESSION_ID:-default}"`** (session isolation — see `playwright-cli.md`)
 - Any runnable program → **run it**
 
 **When:** After tests pass, after refactoring, after changing imports/deps/config, before marking any task complete.

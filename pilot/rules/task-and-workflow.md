@@ -1,5 +1,11 @@
 # Task and Workflow Rules
 
+## ⛔ NEVER Use Built-in Plan Mode
+
+**`EnterPlanMode` and `ExitPlanMode` are BLOCKED. Do NOT call them under any circumstances.** They are intercepted by hooks and will fail. This project uses `/spec` for structured planning instead.
+
+---
+
 ## Task Complexity Triage
 
 **Default mode is quick mode (direct execution).** `/spec` is ONLY used when the user explicitly types `/spec`.
@@ -64,12 +70,14 @@ When resuming same session (same `CLAUDE_CODE_TASK_LIST_ID`): run `TaskList` fir
 
 The Task tool spawns verification sub-agents at two points:
 
-| Phase | Agents (parallel, both `run_in_background=true`) | `subagent_type` |
-|-------|--------------------------------------------------|-----------------|
+| Phase | Agents (parallel, run in background) | `subagent_type` |
+|-------|--------------------------------------|-----------------|
 | `spec-plan` Step 1.7 | plan-verifier + plan-challenger | `pilot:plan-verifier` + `pilot:plan-challenger` |
 | `spec-verify` Step 3.0, 3.5 | spec-reviewer-compliance + spec-reviewer-quality | `pilot:spec-reviewer-compliance` + `pilot:spec-reviewer-quality` |
 
-**Launch with TWO `Task()` calls in a SINGLE message, both with `run_in_background=true`.** Without it, they run sequentially.
+All verification agents have `background: true` in their agent definitions, so they run in the background automatically. **As a fallback**, also pass `run_in_background=true` in the Task() call.
+
+**Launch with TWO `Task()` calls in a SINGLE message.** If sent in separate messages, the first blocks and the second waits.
 
 **⛔ NEVER skip verification. ⛔ NEVER use `TaskOutput` to retrieve results** (dumps full transcript, wastes tokens). Agents write findings to JSON files — poll with Read tool, `sleep 10` between attempts.
 
@@ -78,10 +86,6 @@ The Task tool spawns verification sub-agents at two points:
 ### Background Bash
 
 Use `run_in_background=true` only for long-running processes (dev servers, watchers). Prefer synchronous for tests, linting, git, installs.
-
-### No Built-in Plan Mode
-
-**NEVER use `EnterPlanMode` or `ExitPlanMode`.** Use `/spec` instead.
 
 ---
 

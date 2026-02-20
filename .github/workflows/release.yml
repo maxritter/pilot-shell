@@ -133,7 +133,7 @@ jobs:
 
       - name: Run unit tests with coverage
         run: |
-          python3 -m pytest installer/tests/unit/ launcher/tests/unit/ -v \
+          python3 -m pytest installer/tests/unit/ launcher/tests/unit/ pilot/hooks/tests/ -v \
             --cov=installer --cov=launcher \
             --cov-report=term --cov-report=xml
 

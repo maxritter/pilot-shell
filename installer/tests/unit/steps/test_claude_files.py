@@ -160,8 +160,8 @@ class TestClaudeFilesStep:
 
             assert (home_dir / ".claude" / "rules" / "rule.md").exists()
 
-    def test_claude_files_installs_settings(self):
-        """ClaudeFilesStep installs settings to ~/.claude/settings.json."""
+    def test_claude_files_installs_settings_to_plugin_dir(self):
+        """ClaudeFilesStep installs settings to ~/.claude/pilot/settings.json."""
         from installer.context import InstallContext
         from installer.steps.claude_files import ClaudeFilesStep
         from installer.ui import Console
@@ -188,8 +188,137 @@ class TestClaudeFilesStep:
             with patch("installer.steps.claude_files.Path.home", return_value=home_dir):
                 step.run(ctx)
 
-            assert (home_dir / ".claude" / "settings.json").exists()
-            assert not (dest_dir / ".claude" / "settings.local.json").exists()
+            assert (home_dir / ".claude" / "pilot" / "settings.json").exists()
+            assert not (home_dir / ".claude" / "settings.json").exists()
+
+
+class TestSettingsMigration:
+    """Test migration of old merged ~/.claude/settings.json to plugin settings."""
+
+    def test_migrates_user_customizations_from_old_settings(self):
+        """User-added keys survive migration; Pilot-managed keys are removed."""
+        from installer.context import InstallContext
+        from installer.steps.claude_files import ClaudeFilesStep
+        from installer.ui import Console
+
+        step = ClaudeFilesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            home_dir = Path(tmpdir) / "home"
+            home_dir.mkdir()
+
+            home_claude = home_dir / ".claude"
+            home_claude.mkdir()
+
+            baseline = {"env": {"A": "1"}, "permissions": {"allow": ["Bash"]}}
+            (home_claude / ".pilot-settings-baseline.json").write_text(
+                json.dumps(baseline)
+            )
+
+            current = {
+                "env": {"A": "changed"},
+                "permissions": {"allow": ["Bash"]},
+                "myKey": "user-value",
+            }
+            (home_claude / "settings.json").write_text(json.dumps(current))
+
+            source_pilot = Path(tmpdir) / "source" / "pilot"
+            source_pilot.mkdir(parents=True)
+            (source_pilot / "settings.json").write_text(
+                json.dumps({"env": {"A": "1"}, "permissions": {"allow": ["Bash"]}})
+            )
+
+            dest_dir = Path(tmpdir) / "dest"
+            dest_dir.mkdir()
+
+            ctx = InstallContext(
+                project_dir=dest_dir,
+                ui=Console(non_interactive=True),
+                local_mode=True,
+                local_repo_dir=Path(tmpdir) / "source",
+            )
+
+            with patch("installer.steps.claude_files.Path.home", return_value=home_dir):
+                step.run(ctx)
+
+            settings_path = home_claude / "settings.json"
+            assert settings_path.exists()
+            migrated = json.loads(settings_path.read_text())
+            assert migrated["myKey"] == "user-value"
+            assert migrated["env"] == {"A": "changed"}
+            assert "permissions" not in migrated
+            assert not (home_claude / ".pilot-settings-baseline.json").exists()
+
+    def test_migration_removes_settings_when_no_user_changes(self):
+        """If user made no changes, old settings.json is deleted entirely."""
+        from installer.context import InstallContext
+        from installer.steps.claude_files import ClaudeFilesStep
+        from installer.ui import Console
+
+        step = ClaudeFilesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            home_dir = Path(tmpdir) / "home"
+            home_dir.mkdir()
+
+            home_claude = home_dir / ".claude"
+            home_claude.mkdir()
+
+            baseline = {"env": {"A": "1"}}
+            (home_claude / ".pilot-settings-baseline.json").write_text(
+                json.dumps(baseline)
+            )
+            (home_claude / "settings.json").write_text(json.dumps(baseline))
+
+            source_pilot = Path(tmpdir) / "source" / "pilot"
+            source_pilot.mkdir(parents=True)
+            (source_pilot / "settings.json").write_text(json.dumps({"env": {"A": "1"}}))
+
+            dest_dir = Path(tmpdir) / "dest"
+            dest_dir.mkdir()
+
+            ctx = InstallContext(
+                project_dir=dest_dir,
+                ui=Console(non_interactive=True),
+                local_mode=True,
+                local_repo_dir=Path(tmpdir) / "source",
+            )
+
+            with patch("installer.steps.claude_files.Path.home", return_value=home_dir):
+                step.run(ctx)
+
+            assert not (home_claude / "settings.json").exists()
+            assert not (home_claude / ".pilot-settings-baseline.json").exists()
+
+    def test_no_migration_without_baseline(self):
+        """Without baseline file, migration is skipped (clean install)."""
+        from installer.context import InstallContext
+        from installer.steps.claude_files import ClaudeFilesStep
+        from installer.ui import Console
+
+        step = ClaudeFilesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            home_dir = Path(tmpdir) / "home"
+            home_dir.mkdir()
+            (home_dir / ".claude").mkdir()
+
+            source_pilot = Path(tmpdir) / "source" / "pilot"
+            source_pilot.mkdir(parents=True)
+            (source_pilot / "settings.json").write_text(json.dumps({"env": {"A": "1"}}))
+
+            dest_dir = Path(tmpdir) / "dest"
+            dest_dir.mkdir()
+
+            ctx = InstallContext(
+                project_dir=dest_dir,
+                ui=Console(non_interactive=True),
+                local_mode=True,
+                local_repo_dir=Path(tmpdir) / "source",
+            )
+
+            with patch("installer.steps.claude_files.Path.home", return_value=home_dir):
+                step.run(ctx)
+
+            assert (home_dir / ".claude" / "pilot" / "settings.json").exists()
+            assert not (home_dir / ".claude" / "settings.json").exists()
 
 
 class TestClaudeFilesCustomRulesPreservation:

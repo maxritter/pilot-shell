@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 import json
-import sys
 import tempfile
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
 from tdd_enforcer import (
     _find_test_dirs,
     _pascal_to_kebab,
@@ -33,6 +31,9 @@ class TestShouldSkip:
         assert should_skip("/project/node_modules/foo.ts") is True
         assert should_skip("/project/dist/bundle.js") is True
         assert should_skip("/project/__pycache__/mod.pyc") is True
+
+    def test_skips_migrations(self):
+        assert should_skip("src/migrations/001_init.py") is True
 
     def test_does_not_skip_source_files(self):
         assert should_skip("/project/src/app.py") is False

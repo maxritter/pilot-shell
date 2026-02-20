@@ -1,7 +1,8 @@
 """Unified quality gate — file length + TDD enforcement in a single hook.
 
-Runs both checks and produces one combined blocking output to avoid
-duplicate system-reminders from multiple hooks in the same group.
+Runs both checks and produces one combined warning via additionalContext
+to avoid duplicate system-reminders from multiple hooks in the same group.
+Warnings are non-blocking — they inform but never prevent edits.
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from _checkers.go import check_go
 from _checkers.python import check_python
 from _checkers.typescript import TS_EXTENSIONS, check_typescript
-from _util import find_git_root, post_tool_use_block
+from _util import find_git_root, post_tool_use_context
 from tdd_enforcer import (
     has_go_test_file,
     has_python_test_file,
@@ -95,7 +96,7 @@ def main() -> int:
 
     reasons = [r for r in (file_reason, tdd_reason) if r]
     if reasons:
-        print(post_tool_use_block("\n".join(reasons)))
+        print(post_tool_use_context("\n".join(reasons)))
 
     return 0
 

@@ -26,13 +26,13 @@ class TestCheckGoVetCounting:
 
         with (
             patch("_checkers.go.strip_go_comments"),
-            patch("_checkers.go.check_file_length"),
+            patch("_checkers.go.check_file_length", return_value=""),
             patch("_checkers.go.shutil.which", side_effect=lambda name: f"/usr/bin/{name}" if name == "go" else None),
             patch("_checkers.go.subprocess.run", return_value=mock_result),
         ):
             exit_code, reason = check_go(go_file)
 
-        assert exit_code == 2
+        assert exit_code == 0
         assert "1 vet" in reason, f"Expected '1 vet' but got: {reason}"
 
     def test_vet_count_with_multiple_issues_and_header(self, tmp_path: Path) -> None:
@@ -51,13 +51,13 @@ class TestCheckGoVetCounting:
 
         with (
             patch("_checkers.go.strip_go_comments"),
-            patch("_checkers.go.check_file_length"),
+            patch("_checkers.go.check_file_length", return_value=""),
             patch("_checkers.go.shutil.which", side_effect=lambda name: f"/usr/bin/{name}" if name == "go" else None),
             patch("_checkers.go.subprocess.run", return_value=mock_result),
         ):
             exit_code, reason = check_go(go_file)
 
-        assert exit_code == 2
+        assert exit_code == 0
         assert "2 vet" in reason, f"Expected '2 vet' but got: {reason}"
 
     def test_vet_header_only_output_means_no_issues(self, tmp_path: Path) -> None:
@@ -72,7 +72,7 @@ class TestCheckGoVetCounting:
 
         with (
             patch("_checkers.go.strip_go_comments"),
-            patch("_checkers.go.check_file_length"),
+            patch("_checkers.go.check_file_length", return_value=""),
             patch("_checkers.go.shutil.which", side_effect=lambda name: f"/usr/bin/{name}" if name == "go" else None),
             patch("_checkers.go.subprocess.run", return_value=mock_vet),
         ):
@@ -100,7 +100,7 @@ class TestCheckGoCleanFile:
     """Clean files should pass."""
 
     def test_clean_file_returns_success(self, tmp_path: Path) -> None:
-        """Clean Go file should return exit 2 with empty reason."""
+        """Clean Go file should return exit 0 with empty reason."""
         go_file = tmp_path / "main.go"
         go_file.write_text("package main\n")
 
@@ -111,11 +111,11 @@ class TestCheckGoCleanFile:
 
         with (
             patch("_checkers.go.strip_go_comments"),
-            patch("_checkers.go.check_file_length"),
+            patch("_checkers.go.check_file_length", return_value=""),
             patch("_checkers.go.shutil.which", side_effect=lambda name: f"/usr/bin/{name}" if name == "go" else None),
             patch("_checkers.go.subprocess.run", return_value=mock_result),
         ):
             exit_code, reason = check_go(go_file)
 
-        assert exit_code == 2
+        assert exit_code == 0
         assert reason == ""

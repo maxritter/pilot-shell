@@ -214,7 +214,7 @@ class TestCheckTypescriptNoTools:
 
         with (
             patch("_checkers.typescript.strip_typescript_comments"),
-            patch("_checkers.typescript.check_file_length"),
+            patch("_checkers.typescript.check_file_length", return_value=""),
             patch("_checkers.typescript.find_project_root", return_value=None),
             patch("_checkers.typescript.find_tool", return_value=None),
         ):
@@ -253,14 +253,14 @@ class TestCheckTypescriptEslintIssues:
 
         with (
             patch("_checkers.typescript.strip_typescript_comments"),
-            patch("_checkers.typescript.check_file_length"),
+            patch("_checkers.typescript.check_file_length", return_value=""),
             patch("_checkers.typescript.find_project_root", return_value=None),
             patch("_checkers.typescript.find_tool", side_effect=lambda name, _: f"/usr/bin/{name}" if name in ("prettier", "eslint") else None),
             patch("_checkers.typescript.subprocess.run", side_effect=run_side_effect),
         ):
             exit_code, reason = check_typescript(ts_file)
 
-        assert exit_code == 2
+        assert exit_code == 0
         assert "3 eslint" in reason
 
 
@@ -268,7 +268,7 @@ class TestCheckTypescriptCleanFile:
     """Clean files should pass."""
 
     def test_clean_file_returns_success(self, tmp_path: Path) -> None:
-        """Clean TS file returns exit 2 with empty reason."""
+        """Clean TS file returns exit 0 with empty reason."""
         ts_file = tmp_path / "app.ts"
         ts_file.write_text("const x = 1;\n")
 
@@ -284,14 +284,14 @@ class TestCheckTypescriptCleanFile:
 
         with (
             patch("_checkers.typescript.strip_typescript_comments"),
-            patch("_checkers.typescript.check_file_length"),
+            patch("_checkers.typescript.check_file_length", return_value=""),
             patch("_checkers.typescript.find_project_root", return_value=None),
             patch("_checkers.typescript.find_tool", side_effect=lambda name, _: f"/usr/bin/{name}" if name in ("prettier", "eslint") else None),
             patch("_checkers.typescript.subprocess.run", side_effect=run_side_effect),
         ):
             exit_code, reason = check_typescript(ts_file)
 
-        assert exit_code == 2
+        assert exit_code == 0
         assert reason == ""
 
 
@@ -317,7 +317,7 @@ class TestCheckTypescriptTscNotCalled:
 
         with (
             patch("_checkers.typescript.strip_typescript_comments"),
-            patch("_checkers.typescript.check_file_length"),
+            patch("_checkers.typescript.check_file_length", return_value=""),
             patch("_checkers.typescript.find_project_root", return_value=None),
             patch("_checkers.typescript.find_tool", side_effect=lambda name, _: f"/usr/bin/{name}"),
             patch("_checkers.typescript.subprocess.run", side_effect=run_side_effect),

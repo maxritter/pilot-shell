@@ -141,7 +141,7 @@ class TestCheckPythonNoTools:
 
         with (
             patch("_checkers.python.strip_python_comments"),
-            patch("_checkers.python.check_file_length"),
+            patch("_checkers.python.check_file_length", return_value=""),
             patch("_checkers.python.shutil.which", return_value=None),
         ):
             exit_code, reason = check_python(py_file)
@@ -180,13 +180,13 @@ class TestCheckPythonRuffIssues:
 
         with (
             patch("_checkers.python.strip_python_comments"),
-            patch("_checkers.python.check_file_length"),
+            patch("_checkers.python.check_file_length", return_value=""),
             patch("_checkers.python.shutil.which", side_effect=which_side_effect),
             patch("_checkers.python.subprocess.run", side_effect=run_side_effect),
         ):
             exit_code, reason = check_python(py_file)
 
-        assert exit_code == 2
+        assert exit_code == 0
         assert "2 ruff" in reason
 
     def test_ruff_clean_output_no_issues(self, tmp_path: Path) -> None:
@@ -203,13 +203,13 @@ class TestCheckPythonRuffIssues:
 
         with (
             patch("_checkers.python.strip_python_comments"),
-            patch("_checkers.python.check_file_length"),
+            patch("_checkers.python.check_file_length", return_value=""),
             patch("_checkers.python.shutil.which", side_effect=which_side_effect),
             patch("_checkers.python.subprocess.run", return_value=mock_result),
         ):
             exit_code, reason = check_python(py_file)
 
-        assert exit_code == 2
+        assert exit_code == 0
         assert reason == ""
 
 
@@ -233,7 +233,7 @@ class TestCheckPythonRuffOnly:
 
         with (
             patch("_checkers.python.strip_python_comments"),
-            patch("_checkers.python.check_file_length"),
+            patch("_checkers.python.check_file_length", return_value=""),
             patch("_checkers.python.shutil.which", side_effect=which_side_effect),
             patch("_checkers.python.subprocess.run", side_effect=run_side_effect),
         ):

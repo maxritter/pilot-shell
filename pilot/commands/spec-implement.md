@@ -203,7 +203,7 @@ TaskCreate: "Task 4: Add documentation"            → id=4, addBlockedBy: [2]
    - Implement minimal code to pass
    - Refactor if needed (keep tests green)
 5. **Verify tests pass** - Run the project's test runner (e.g., `uv run pytest -q`, `bun test`, `npm test`)
-6. **Run actual program** - Use the plan's Runtime Environment section to start the service/program. Show real output with sample data.
+6. **Run actual program** - Use the plan's Runtime Environment section to start the service/program. Show real output with sample data. Check port availability first: `lsof -i :<port>`. **If using `playwright-cli`, use session isolation:** `playwright-cli -s="${PILOT_SESSION_ID:-default}" open <url>` (see `playwright-cli.md`). Always close the session after verification.
 7. **Check diagnostics** - Must be zero errors
 8. **Validate Definition of Done** - Check all criteria from plan
 9. **Per-task commit (worktree mode only)** - If `Worktree: Yes` in the plan, commit task changes immediately:

@@ -11,7 +11,6 @@ from installer.context import InstallContext
 from installer.downloads import (
     DownloadConfig,
     FileInfo,
-    download_file,
     download_files_parallel,
     get_repo_files,
 )
@@ -20,7 +19,6 @@ from installer.steps.settings_merge import (
     cleanup_managed_files,
     load_manifest,
     merge_app_config,
-    merge_settings,
     save_manifest,
 )
 
@@ -77,9 +75,7 @@ def _should_skip_file(file_path: str) -> bool:
 
 def _categorize_file(file_path: str) -> str:
     """Determine which category a file belongs to."""
-    if file_path == "pilot/settings.json" or file_path.endswith("/settings.json"):
-        return "settings"
-    elif "/commands/" in file_path:
+    if "/commands/" in file_path:
         return "commands"
     elif "/rules/" in file_path:
         return "rules"
@@ -182,7 +178,6 @@ class ClaudeFilesStep(BaseStep):
             "commands": [],
             "rules": [],
             "pilot_plugin": [],
-            "settings": [],
         }
 
         for file_info in pilot_files:
@@ -281,7 +276,6 @@ class ClaudeFilesStep(BaseStep):
             "commands": "slash commands",
             "rules": "standard rules",
             "pilot_plugin": "Pilot plugin files",
-            "settings": "settings",
         }
 
         for category, file_infos in categories.items():
@@ -311,21 +305,6 @@ class ClaudeFilesStep(BaseStep):
         failed: list[str] = []
 
         def install_files() -> None:
-            if category == "settings":
-                for file_info in file_infos:
-                    file_path = file_info.path
-                    dest_file = self._get_dest_path(category, file_path, ctx)
-                    success = self._install_settings(
-                        file_path,
-                        dest_file,
-                        config,
-                    )
-                    if success:
-                        installed.append(str(dest_file))
-                    else:
-                        failed.append(file_path)
-                return
-
             dest_paths = [self._get_dest_path(category, fi.path, ctx) for fi in file_infos]
             results = download_files_parallel(file_infos, dest_paths, config)
 
@@ -358,8 +337,6 @@ class ClaudeFilesStep(BaseStep):
         elif category == "pilot_plugin":
             rel_path = Path(file_path).relative_to("pilot")
             return home_pilot_plugin_dir / rel_path
-        elif category == "settings":
-            return home_claude_dir / SETTINGS_FILE
         else:
             return ctx.project_dir / file_path
 
@@ -374,6 +351,8 @@ class ClaudeFilesStep(BaseStep):
         if not ctx.local_mode:
             self._update_hooks_config(home_pilot_plugin_dir)
 
+        self._update_plugin_settings(home_pilot_plugin_dir)
+        self._migrate_old_settings()
         self._merge_app_config()
         self._cleanup_stale_rules(ctx)
         self._save_pilot_manifest(ctx)
@@ -531,58 +510,62 @@ class ClaudeFilesStep(BaseStep):
             if len(failed_files) > 5:
                 ui.print(f"  ... and {len(failed_files) - 5} more")
 
-    def _install_settings(
-        self,
-        source_path: str,
-        dest_path: Path,
-        config: DownloadConfig,
-    ) -> bool:
-        """Download, merge, and install settings to ~/.claude/settings.json.
+    def _update_plugin_settings(self, plugin_dir: Path) -> None:
+        """Patch paths in the plugin settings.json after installation."""
+        settings_path = plugin_dir / SETTINGS_FILE
+        if not settings_path.exists():
+            return
+        try:
+            content = settings_path.read_text()
+            patched = patch_claude_paths(content)
+            if patched != content:
+                settings_path.write_text(patched)
+        except (OSError, IOError):
+            pass
 
-        Uses three-way merge to preserve user customizations:
-        - baseline (~/.claude/.pilot-settings-baseline.json) = what Pilot installed last time
-        - current (~/.claude/settings.json) = what's on disk now (may have user changes)
-        - incoming (downloaded settings.json) = new Pilot settings
+    def _migrate_old_settings(self) -> None:
+        """Remove Pilot-managed entries from old ~/.claude/settings.json.
+
+        Previous versions merged settings into ~/.claude/settings.json.
+        Now settings live in the plugin directory. This extracts any
+        user-only customizations and removes Pilot-managed entries.
         """
-        import tempfile
+        home_claude_dir = Path.home() / ".claude"
+        baseline_path = home_claude_dir / SETTINGS_BASELINE_FILE
+        settings_path = home_claude_dir / SETTINGS_FILE
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            temp_file = Path(tmpdir) / "settings.json"
-            if not download_file(source_path, temp_file, config):
-                return False
+        if not baseline_path.exists():
+            return
 
-            try:
-                raw_content = temp_file.read_text()
-                processed_content = patch_claude_paths(process_settings(raw_content))
-                incoming: dict[str, Any] = json.loads(processed_content)
+        try:
+            baseline = json.loads(baseline_path.read_text())
+        except (json.JSONDecodeError, OSError, IOError):
+            baseline_path.unlink(missing_ok=True)
+            return
 
-                dest_path.parent.mkdir(parents=True, exist_ok=True)
-                baseline_path = dest_path.parent / SETTINGS_BASELINE_FILE
+        if not settings_path.exists():
+            baseline_path.unlink(missing_ok=True)
+            return
 
-                current: dict[str, Any] | None = None
-                baseline: dict[str, Any] | None = None
+        try:
+            current = json.loads(settings_path.read_text())
+        except (json.JSONDecodeError, OSError, IOError):
+            baseline_path.unlink(missing_ok=True)
+            return
 
-                if dest_path.exists():
-                    try:
-                        current = json.loads(dest_path.read_text())
-                    except (json.JSONDecodeError, OSError, IOError):
-                        current = None
+        user_settings: dict[str, Any] = {}
+        for key, value in current.items():
+            if key not in baseline:
+                user_settings[key] = value
+            elif value != baseline[key]:
+                user_settings[key] = value
 
-                if baseline_path.exists():
-                    try:
-                        baseline = json.loads(baseline_path.read_text())
-                    except (json.JSONDecodeError, OSError, IOError):
-                        baseline = None
+        try:
+            if user_settings:
+                settings_path.write_text(json.dumps(user_settings, indent=2) + "\n")
+            else:
+                settings_path.unlink()
+        except (OSError, IOError):
+            pass
 
-                if current is not None:
-                    merged = merge_settings(baseline, current, incoming)
-                else:
-                    merged = incoming
-
-                dest_path.write_text(json.dumps(merged, indent=2) + "\n")
-
-                baseline_path.write_text(json.dumps(incoming, indent=2) + "\n")
-
-                return True
-            except (json.JSONDecodeError, OSError, IOError):
-                return False
+        baseline_path.unlink(missing_ok=True)

@@ -61,6 +61,8 @@ Mock at module level (where imported, not where defined). Test > 1s = likely unm
 
 Use `playwright-cli` to verify what the user sees. See `playwright-cli.md` for commands.
 
+**⛔ Session isolation:** In `/spec` workflows or any parallel context, ALWAYS use `-s="${PILOT_SESSION_ID:-default}"` on all `playwright-cli` commands to prevent cross-session browser interference. See `playwright-cli.md` Session Isolation section.
+
 ### Anti-Patterns
 
 - **Dependent tests** — each test must work independently

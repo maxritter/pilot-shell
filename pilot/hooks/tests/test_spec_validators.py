@@ -34,7 +34,7 @@ class TestSpecPlanValidator:
             assert result.returncode == 0, f"Should allow stop when plan exists. stderr: {result.stderr}"
 
     def test_blocks_stop_when_no_plan(self):
-        """Should block stop when no plan file exists."""
+        """Should output block decision when no plan file exists."""
         with tempfile.TemporaryDirectory() as tmpdir:
             result = subprocess.run(
                 ["uv", "run", "python", "pilot/hooks/spec_plan_validator.py"],
@@ -44,8 +44,8 @@ class TestSpecPlanValidator:
                 cwd=PROJECT_ROOT,
             )
 
-            assert result.returncode == 2, f"Should block stop when plan missing. stderr: {result.stderr}"
-            assert "Plan file not created yet" in result.stderr
+            assert result.returncode == 0, f"Unexpected return code. stderr: {result.stderr}"
+            assert "Plan file not created yet" in result.stdout
 
     def test_escape_hatch_allows_stop(self):
         """Should allow stop when stop_hook_active is true (escape hatch)."""
@@ -59,7 +59,6 @@ class TestSpecPlanValidator:
             )
 
             assert result.returncode == 0, f"Escape hatch should allow stop. stderr: {result.stderr}"
-
 
     def test_allows_stop_when_asking_user_question(self):
         """Should allow stop when AskUserQuestion was the last tool."""
@@ -130,7 +129,7 @@ class TestSpecVerifyValidator:
                 active_plan_json.unlink(missing_ok=True)
 
     def test_blocks_stop_when_status_complete(self):
-        """Should block stop when plan status is still COMPLETE."""
+        """Should output block decision when plan status is still COMPLETE."""
         with tempfile.TemporaryDirectory() as tmpdir:
             plan_path = Path(tmpdir) / "docs" / "plans" / "2026-02-11-test.md"
             plan_path.parent.mkdir(parents=True, exist_ok=True)
@@ -139,8 +138,8 @@ class TestSpecVerifyValidator:
             active_plan_json = self._setup_active_plan(plan_path)
             try:
                 result = self._run_validator({"project_root": tmpdir, "stop_hook_active": False})
-                assert result.returncode == 2, f"Should block stop when COMPLETE. stderr: {result.stderr}"
-                assert "status was not updated" in result.stderr.lower()
+                assert result.returncode == 0, f"Unexpected return code. stderr: {result.stderr}"
+                assert "status was not updated" in result.stdout.lower()
             finally:
                 active_plan_json.unlink(missing_ok=True)
 

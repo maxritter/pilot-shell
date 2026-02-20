@@ -1,62 +1,57 @@
-"""Tests for session_end hook."""
+"""Tests for session_end hook — worker stop behavior."""
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
+import os
 from unittest.mock import MagicMock, patch
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from session_end import main
+import session_end
 
 
-class TestSessionEndWorkerStop:
-    @patch("session_end._get_active_session_count")
-    @patch("session_end.subprocess.run")
-    @patch("os.environ", {"CLAUDE_PLUGIN_ROOT": "/plugin"})
-    def test_stops_worker_on_clean_session_end(
-        self,
-        mock_subprocess,
-        mock_count,
+def test_returns_early_without_plugin_root():
+    """Should return 0 when CLAUDE_PLUGIN_ROOT is not set."""
+    with patch.dict(os.environ, {}, clear=True):
+        os.environ.pop("CLAUDE_PLUGIN_ROOT", None)
+        result = session_end.main()
+
+    assert result == 0
+
+
+def test_skips_stop_when_other_sessions_active():
+    """Should skip worker stop when other Pilot sessions are running."""
+    with (
+        patch.dict(os.environ, {"CLAUDE_PLUGIN_ROOT": "/fake/plugin"}),
+        patch("session_end._get_active_session_count", return_value=2),
+        patch("session_end.subprocess.run") as mock_run,
     ):
-        """Should stop worker when session count <= 1."""
-        mock_count.return_value = 1
-        mock_subprocess.return_value = MagicMock(returncode=0)
+        result = session_end.main()
 
-        result = main()
+    assert result == 0
+    mock_run.assert_not_called()
 
-        assert result == 0
-        mock_subprocess.assert_called_once()
 
-    @patch("session_end._get_active_session_count")
-    @patch("session_end.subprocess.run")
-    @patch("os.environ", {"CLAUDE_PLUGIN_ROOT": "/plugin"})
-    def test_stops_worker_when_zero_sessions(
-        self,
-        mock_subprocess,
-        mock_count,
+def test_stops_worker_when_no_other_sessions():
+    """Should stop worker when this is the only active session."""
+    with (
+        patch.dict(os.environ, {"CLAUDE_PLUGIN_ROOT": "/fake/plugin"}),
+        patch("session_end._get_active_session_count", return_value=1),
+        patch("session_end.subprocess.run", return_value=MagicMock(returncode=0)) as mock_run,
     ):
-        """Should stop worker when count is 0 (current session already gone)."""
-        mock_count.return_value = 0
-        mock_subprocess.return_value = MagicMock(returncode=0)
+        result = session_end.main()
 
-        result = main()
+    assert result == 0
+    mock_run.assert_called_once()
+    assert "stop" in str(mock_run.call_args)
 
-        assert result == 0
-        mock_subprocess.assert_called_once()
 
-    @patch("session_end._get_active_session_count")
-    @patch("os.environ", {"CLAUDE_PLUGIN_ROOT": "/plugin"})
-    def test_skips_stop_when_other_sessions_running(self, mock_count):
-        """Should skip worker stop when other sessions are still running."""
-        mock_count.return_value = 2
+def test_stops_worker_when_zero_sessions():
+    """Should stop worker and return 0 when no sessions active."""
+    with (
+        patch.dict(os.environ, {"CLAUDE_PLUGIN_ROOT": "/fake/plugin"}),
+        patch("session_end._get_active_session_count", return_value=0),
+        patch("session_end.subprocess.run", return_value=MagicMock(returncode=0)) as mock_run,
+    ):
+        result = session_end.main()
 
-        result = main()
-
-        assert result == 0
-
-    @patch("os.environ", {})
-    def test_returns_0_when_no_plugin_root(self):
-        """Should return 0 when CLAUDE_PLUGIN_ROOT is not set."""
-        result = main()
-        assert result == 0
+    assert result == 0
+    mock_run.assert_called_once()

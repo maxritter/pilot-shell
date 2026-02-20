@@ -336,6 +336,55 @@ class TestVexorInstall:
                 assert config["model"] == "text-embedding-3-small"
 
 
+    @patch("installer.steps.dependencies._setup_vexor_local_model")
+    @patch("installer.steps.dependencies._configure_vexor_local")
+    @patch("installer.steps.dependencies._run_bash_with_retry")
+    @patch("installer.steps.dependencies.is_macos_arm64")
+    @patch("installer.steps.dependencies._is_vexor_local_model_installed")
+    @patch("installer.steps.dependencies.command_exists")
+    def test_install_vexor_local_succeeds_when_model_download_fails(
+        self, mock_cmd, mock_model, mock_mac, mock_bash, mock_config, mock_setup
+    ):
+        """install_vexor returns True when vexor installed but model pre-download fails."""
+        from installer.steps.dependencies import install_vexor
+
+        mock_cmd.return_value = False
+        mock_model.return_value = False
+        mock_mac.return_value = False
+        mock_bash.return_value = True
+        mock_config.return_value = True
+        mock_setup.return_value = False
+
+        mock_ui = MagicMock()
+        result = install_vexor(use_local=True, ui=mock_ui)
+
+        assert result is True
+        mock_ui.info.assert_called_once_with("Embedding model will download on first use")
+
+    @patch("installer.steps.dependencies._setup_vexor_local_model")
+    @patch("installer.steps.dependencies._configure_vexor_local")
+    @patch("installer.steps.dependencies._run_bash_with_retry")
+    @patch("installer.steps.dependencies.is_macos_arm64")
+    @patch("installer.steps.dependencies._is_vexor_local_model_installed")
+    @patch("installer.steps.dependencies.command_exists")
+    def test_install_vexor_local_fails_when_binary_install_fails(
+        self, mock_cmd, mock_model, mock_mac, mock_bash, mock_config, mock_setup
+    ):
+        """install_vexor returns False when vexor binary installation fails."""
+        from installer.steps.dependencies import install_vexor
+
+        mock_cmd.return_value = False
+        mock_model.return_value = False
+        mock_mac.return_value = False
+        mock_bash.return_value = False
+
+        result = install_vexor(use_local=True)
+
+        assert result is False
+        mock_config.assert_not_called()
+        mock_setup.assert_not_called()
+
+
 class TestInstallPluginDependencies:
     """Test plugin dependencies installation via bun/npm install."""
 

@@ -1,13 +1,30 @@
-"""Tests for _util.py model config helper functions."""
+"""Tests for _util.py — model config, JSON helpers, session paths, and shared utilities."""
 
 from __future__ import annotations
 
 import json
 import sys
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+from _util import (
+    BLUE,
+    CYAN,
+    FILE_LENGTH_CRITICAL,
+    FILE_LENGTH_WARN,
+    GREEN,
+    MAGENTA,
+    NC,
+    RED,
+    YELLOW,
+    _sessions_base,
+    find_git_root,
+    get_edited_file_from_stdin,
+    get_session_cache_path,
+    get_session_plan_path,
+    is_waiting_for_user_input,
+    read_hook_stdin,
+)
 
 
 class TestReadModelFromConfig:
@@ -216,3 +233,197 @@ class TestCheckFileLength:
         f.write_text("\n".join(f"line {i}" for i in range(550)))
         result = check_file_length(f)
         assert "\033[" not in result
+
+
+
+
+class TestColorConstants:
+    """Color constants are defined and non-empty."""
+
+    def test_all_colors_defined(self):
+        assert RED
+        assert YELLOW
+        assert GREEN
+        assert CYAN
+        assert BLUE
+        assert MAGENTA
+        assert NC
+
+
+class TestFileLengthConstants:
+    """File length constants have expected values."""
+
+    def test_warn_threshold(self):
+        assert FILE_LENGTH_WARN == 300
+
+    def test_critical_threshold(self):
+        assert FILE_LENGTH_CRITICAL == 500
+
+
+
+
+class TestSessionsBase:
+    """Tests for _sessions_base()."""
+
+    def test_returns_path_under_home(self):
+        base = _sessions_base()
+        assert isinstance(base, Path)
+        assert base == Path.home() / ".pilot" / "sessions"
+
+
+class TestGetSessionCachePath:
+    """Tests for get_session_cache_path()."""
+
+    @patch.dict("os.environ", {"PILOT_SESSION_ID": "test-session-123"})
+    def test_with_session_id(self):
+        path = get_session_cache_path()
+        assert isinstance(path, Path)
+        assert "test-session-123" in str(path)
+        assert path.name == "context-cache.json"
+
+    @patch.dict("os.environ", {}, clear=True)
+    def test_defaults_to_default(self):
+        path = get_session_cache_path()
+        assert isinstance(path, Path)
+        assert "default" in str(path)
+
+
+class TestGetSessionPlanPath:
+    """Tests for get_session_plan_path()."""
+
+    @patch.dict("os.environ", {"PILOT_SESSION_ID": "test-session-456"})
+    def test_returns_session_scoped_plan_path(self):
+        path = get_session_plan_path()
+        assert isinstance(path, Path)
+        assert "test-session-456" in str(path)
+        assert path.name == "active_plan.json"
+
+
+
+
+class TestFindGitRoot:
+    """Tests for find_git_root()."""
+
+    @patch("subprocess.run")
+    def test_returns_root_when_in_repo(self, mock_run):
+        mock_run.return_value = MagicMock(returncode=0, stdout="/home/user/repo\n")
+        result = find_git_root()
+        assert result == Path("/home/user/repo")
+
+    @patch("subprocess.run")
+    def test_returns_none_when_not_in_repo(self, mock_run):
+        mock_run.return_value = MagicMock(returncode=1, stdout="")
+        result = find_git_root()
+        assert result is None
+
+    @patch("subprocess.run", side_effect=Exception("Git not found"))
+    def test_handles_exception(self, mock_run):
+        result = find_git_root()
+        assert result is None
+
+
+
+
+class TestReadHookStdin:
+    """Tests for read_hook_stdin()."""
+
+    def test_parses_valid_json(self, monkeypatch):
+        test_data = {"tool_name": "Write", "tool_input": {"file_path": "test.py"}}
+        monkeypatch.setattr("sys.stdin", MagicMock(read=lambda: json.dumps(test_data)))
+        result = read_hook_stdin()
+        assert result == test_data
+
+    def test_returns_empty_dict_on_invalid_json(self, monkeypatch):
+        monkeypatch.setattr("sys.stdin", MagicMock(read=lambda: "not json"))
+        result = read_hook_stdin()
+        assert result == {}
+
+    def test_returns_empty_dict_on_empty_input(self, monkeypatch):
+        monkeypatch.setattr("sys.stdin", MagicMock(read=lambda: ""))
+        result = read_hook_stdin()
+        assert result == {}
+
+
+class TestGetEditedFileFromStdin:
+    """Tests for get_edited_file_from_stdin()."""
+
+    def test_extracts_file_path(self, monkeypatch):
+        test_data = {"tool_input": {"file_path": "/path/to/file.py"}}
+        with patch("select.select") as mock_select:
+            mock_select.return_value = ([sys.stdin], [], [])
+            monkeypatch.setattr("sys.stdin", MagicMock(read=lambda: json.dumps(test_data)))
+            with patch("json.load", return_value=test_data):
+                result = get_edited_file_from_stdin()
+                assert result == Path("/path/to/file.py")
+
+    def test_returns_none_without_file_path(self, monkeypatch):
+        test_data = {"tool_input": {}}
+        with patch("select.select") as mock_select:
+            mock_select.return_value = ([sys.stdin], [], [])
+            with patch("json.load", return_value=test_data):
+                result = get_edited_file_from_stdin()
+                assert result is None
+
+    def test_returns_none_when_stdin_empty(self, monkeypatch):
+        with patch("select.select") as mock_select:
+            mock_select.return_value = ([], [], [])
+            result = get_edited_file_from_stdin()
+            assert result is None
+
+
+
+
+class TestIsWaitingForUserInput:
+    """Tests for is_waiting_for_user_input()."""
+
+    def test_returns_true_when_last_tool_is_ask_user_question(self, tmp_path):
+        transcript = tmp_path / "transcript.jsonl"
+        msg = {
+            "type": "assistant",
+            "message": {
+                "content": [
+                    {"type": "tool_use", "name": "AskUserQuestion", "input": {}}
+                ]
+            },
+        }
+        transcript.write_text(json.dumps(msg) + "\n")
+        assert is_waiting_for_user_input(str(transcript)) is True
+
+    def test_returns_false_when_last_tool_is_not_ask(self, tmp_path):
+        transcript = tmp_path / "transcript.jsonl"
+        msg = {
+            "type": "assistant",
+            "message": {
+                "content": [{"type": "tool_use", "name": "Write", "input": {}}]
+            },
+        }
+        transcript.write_text(json.dumps(msg) + "\n")
+        assert is_waiting_for_user_input(str(transcript)) is False
+
+    def test_returns_false_for_missing_file(self):
+        assert is_waiting_for_user_input("/nonexistent/transcript.jsonl") is False
+
+    def test_returns_false_for_empty_transcript(self, tmp_path):
+        transcript = tmp_path / "transcript.jsonl"
+        transcript.write_text("")
+        assert is_waiting_for_user_input(str(transcript)) is False
+
+    def test_uses_last_assistant_message(self, tmp_path):
+        transcript = tmp_path / "transcript.jsonl"
+        ask_msg = {
+            "type": "assistant",
+            "message": {
+                "content": [
+                    {"type": "tool_use", "name": "AskUserQuestion", "input": {}}
+                ]
+            },
+        }
+        write_msg = {
+            "type": "assistant",
+            "message": {
+                "content": [{"type": "tool_use", "name": "Write", "input": {}}]
+            },
+        }
+        lines = [json.dumps(ask_msg), json.dumps(write_msg)]
+        transcript.write_text("\n".join(lines) + "\n")
+        assert is_waiting_for_user_input(str(transcript)) is False

@@ -97,7 +97,7 @@ Define output paths (replace `<session-id>` with the resolved value):
 
 #### 3.0d: Launch Both Reviewers in Parallel
 
-Spawn 2 agents in parallel using TWO Task tool calls in a SINGLE message. Set `run_in_background=true` on both.
+Spawn 2 agents in parallel using TWO Task tool calls in a SINGLE message. Both agents have `background: true` in their definitions, so they run in the background automatically. As a fallback, also set `run_in_background=true` on both.
 
 **Agent 1: spec-reviewer-compliance** (plan alignment, DoD, risk mitigations)
 
@@ -357,6 +357,8 @@ If the project builds artifacts that are deployed separately from source (e.g., 
 2. Copy new builds to the installed location
 3. Restart any running services that use the old artifacts
 
+**⚠️ Parallel spec warning:** Deploy paths are shared OS resources. If another `/spec` session deploys to the same path, Code Identity Verification (3.7c) becomes unreliable. Check `ps aux | grep <service>` before restarting shared services.
+
 **If no separate deployment is needed, skip to 3.7c.**
 
 #### 3.7c: Code Identity Verification (MANDATORY)
@@ -379,6 +381,8 @@ If the project builds artifacts that are deployed separately from source (e.g., 
 ### Step 3.8: Program Execution Verification
 
 Run the actual program and verify real output.
+
+**⚠️ Parallel spec warning:** Before starting a server, check if the port is already in use: `lsof -i :<port>`. If another `/spec` session occupies it, wait for it to finish Phase B or use a different port.
 
 **Execution checklist:**
 
@@ -438,13 +442,36 @@ Verify each level against the actual codebase and running program. If any level 
 
 **⚠️ Unit + Integration tests are NOT enough. You MUST also run E2E tests.**
 
+#### 3.10.0: Resolve Playwright Session (MANDATORY before any playwright-cli usage)
+
+**⛔ Parallel `/spec` sessions WILL interfere if you use bare `playwright-cli` commands.** Always use a session-scoped browser instance.
+
+```bash
+PW_SESSION="${PILOT_SESSION_ID:-default}"
+```
+
+**ALL `playwright-cli` commands in this phase MUST use `-s="$PW_SESSION"`:**
+
+```bash
+playwright-cli -s="$PW_SESSION" open <url>
+playwright-cli -s="$PW_SESSION" snapshot
+playwright-cli -s="$PW_SESSION" click e1
+# ... etc
+```
+
+**Cleanup at the end of E2E testing (after Step 3.10b):**
+
+```bash
+playwright-cli -s="$PW_SESSION" close
+```
+
 #### 3.10a: Happy Path Testing
 
 Test the primary user workflow end-to-end.
 
 **For APIs:** Test endpoints with curl. Verify status codes, response content, and state changes.
 
-**For Frontend/UI:** Use `playwright-cli` to verify UI renders and workflows complete. See `~/.claude/rules/playwright-cli.md`.
+**For Frontend/UI:** Use `playwright-cli -s="$PW_SESSION"` to verify UI renders and workflows complete. See `~/.claude/rules/playwright-cli.md`.
 
 Walk through the main user scenario described in the plan. Every view, every interaction, every state transition.
 
@@ -465,6 +492,12 @@ For each edge case:
 1. Set up the condition
 2. Exercise the UI/API
 3. Verify the result is reasonable (not blank, not broken, not stuck, no unhandled errors)
+
+**After all E2E testing completes, close the playwright session:**
+
+```bash
+playwright-cli -s="$PW_SESSION" close
+```
 
 ### Step 3.11: Final Regression Check
 
