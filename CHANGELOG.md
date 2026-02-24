@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.0.1] - 2026-02-24
+
+### Bug Fixes
+
+- Update version to 7.0.0 in console and plugin packages
+
 ## [7.0.0] - 2026-02-24
 
 ### Features
