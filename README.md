@@ -28,48 +28,13 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 
 ## Why I Built This
 
-I'm Max, a senior IT freelancer from Germany. My clients hire me to ship production-quality code — tested, typed, formatted, and reviewed. When something goes into production under my name, quality isn't optional.
+I'm Max, a senior IT freelancer from Germany. My clients hire me to ship production-quality code — tested, typed, formatted, and reviewed.
 
 Claude Code writes code fast. But without structure, it skips tests, loses context, and produces inconsistent results — especially on complex, established codebases where there are real conventions to follow and real regressions to catch. I tried other frameworks. Most of them add complexity — dozens of agents, elaborate scaffolding, thousands of lines of instruction files — but the output doesn't get better. You just burn more tokens, wait longer, and deal with more things breaking.
 
 So I built Pilot Shell. Instead of adding process on top, it bakes quality into every interaction. Linting, formatting, and type checking run as enforced hooks on every edit. TDD is mandatory, not suggested. Context is preserved across sessions. Every rule exists because I hit a real problem: a bug that slipped through, a regression that shouldn't have happened, a session where Claude cut corners and nobody caught it.
 
 This isn't a vibe coding tool, it's true agentic engineering, made simple. You install it in any existing project, run `pilot`, then `/sync` to learn your codebase. The guardrails are just there. The end result is that you can walk away — start a `/spec` task, approve the plan, go grab a coffee. When you come back, the work is tested, verified, formatted, and ready to ship.
-
----
-
-## Demo
-
-A full-stack project — created from scratch with a single prompt, then extended with **3 features built in parallel** using `/spec`. Every line of code was planned, implemented, tested, and verified entirely by AI. Zero manual code edits, zero bug fixes by a human.
-
-<div align="center">
-
-<a href="https://youtu.be/S7faAK931NU">
-  <img src="https://img.youtube.com/vi/S7faAK931NU/maxresdefault.jpg" alt="Watch the Pilot Shell Demo" width="700">
-</a>
-
-**[Watch the full demo on YouTube](https://youtu.be/S7faAK931NU)** · **[Browse the demo repository](https://github.com/maxritter/pilot-shell-demo)**
-
-</div>
-
-Each `/spec` prompt one-shotted a complete feature — plan, TDD implementation, automated verification, and squash merge — all running simultaneously in isolated git worktrees.
-
----
-
-## Before & After
-
-| Without Pilot Shell         | With Pilot Shell                                                |
-| --------------------------- | --------------------------------------------------------------- |
-| Writes code, skips tests    | TDD enforced — RED, GREEN, REFACTOR on every feature            |
-| No quality checks           | Hooks auto-lint, format, type-check on every file edit          |
-| Context degrades mid-task   | Hooks preserve and restore state across compaction cycles       |
-| Every session starts fresh  | Persistent memory across sessions via Pilot Shell Console       |
-| Hope it works               | Verifier sub-agents perform code review before marking complete |
-| No codebase knowledge       | Production-tested rules loaded into every session               |
-| Generic suggestions         | Coding standards activated conditionally by file type           |
-| Changes mixed into branch   | Isolated worktrees — review and squash merge when verified      |
-| Manual tool setup           | MCP servers + language servers pre-configured and ready         |
-| Requires constant oversight | Start a task, grab a coffee, come back to verified results      |
 
 ---
 
@@ -110,77 +75,41 @@ After installation, run `pilot` or `ccp` in your project folder to start Pilot S
 
 </details>
 
-### Installing a Specific Version
+<details>
+<summary><b>Installing a specific version or uninstalling</b></summary>
 
-If the current version has issues, you can install a specific stable version (see [releases](https://github.com/maxritter/pilot-shell/releases)):
+**Specific version** (see [releases](https://github.com/maxritter/pilot-shell/releases)):
 
 ```bash
 export VERSION=7.0.2
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
 ```
 
-### Uninstalling
-
-To completely remove Pilot Shell:
+**Uninstall** — removes the Pilot binary, plugin files, managed commands/rules, settings and shell aliases:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash
 ```
 
-This removes the Pilot binary, plugin files, managed commands/rules, settings and shell aliases.
+</details>
 
 ---
 
 ## How It Works
 
-### /sync — Sync Rules & Standards
-
-Run `/sync` to learn your existing codebase and sync rules with it. Explores your project structure, builds a semantic search index, discovers your conventions and undocumented patterns, updates project documentation, and creates new custom skills. This is how Pilot Shell adapts to your project — not the other way around. Run it once initially, then anytime again:
-
-```bash
-pilot
-> /sync
-```
-
-<details>
-<summary><b>What <code>/sync</code> does in detail</b></summary>
-
-| Phase | Action                                                          |
-| ----- | --------------------------------------------------------------- |
-| 0     | Load reference guidelines, output locations, error handling     |
-| 1     | Read existing rules and standards from `.claude/`               |
-| 2     | Build Vexor semantic search index (first run may take 5-15 min) |
-| 3     | Explore codebase with Vexor/Grep to find patterns               |
-| 4     | Compare discovered vs documented patterns                       |
-| 5     | Sync/update `project.md` with tech stack and commands           |
-| 6     | Sync MCP server documentation                                   |
-| 7     | Update existing custom skills that have changed                 |
-| 8     | Discover and document new undocumented patterns as rules        |
-| 9     | Create new skills via `/learn` command                          |
-| 10    | Report summary of all changes                                   |
-
-</details>
-
 ### /spec — Spec-Driven Development
 
-Best for features, bug fixes, refactoring, or when you want to review a plan before implementation. Auto-detects whether the task is a feature or bug fix and adapts the planning flow accordingly.
+Features, bug fixes, refactoring — describe it and `/spec` handles the rest. Auto-detects the task type and adapts the flow.
 
 ```bash
 pilot
 > /spec "Add user authentication with OAuth and JWT tokens"
-> /spec "Fix the crash when deleting nodes with two children"
 ```
 
 ```
-Discuss  →  Plan  →  Approve  →  Implement  →  Verify  →  Done
-                                     │              ↑       ↓
-                                     │              └─ Loop─┘
-                                     ▼
-                                  Task 1 (TDD)
-                                     ▼
-                                  Task 2 (TDD)
-                                     ▼
-                                  Task 3 (TDD)
+Plan  →  Approve  →  Implement (TDD)  →  Verify  →  Done
+                                            ↑         ↓
+                                            └── Loop──┘
 ```
 
 <details>
@@ -188,21 +117,19 @@ Discuss  →  Plan  →  Approve  →  Implement  →  Verify  →  Done
 
 1. Explores entire codebase with semantic search (Vexor)
 2. Asks clarifying questions before committing to a design
-3. Writes detailed spec to `docs/plans/` as reviewed markdown with scope, tasks, and definition of done
-4. **Plan-verifier sub-agent** independently validates completeness and alignment with your request
-5. Auto-fixes any issues found by the verifier
-6. Waits for your approval — you can edit the plan first
+3. Writes detailed spec to `docs/plans/` with scope, tasks, and definition of done
+4. **Plan-verifier sub-agent** independently validates completeness
+5. Waits for your approval — you can edit the plan first
 
 </details>
 
 <details>
 <summary><b>Implement Phase</b></summary>
 
-1. Creates an isolated git worktree on a dedicated branch — main branch stays clean
-2. Implements each task sequentially with strict TDD (RED → GREEN → REFACTOR)
-3. Quality hooks auto-lint, format, and type-check every file edit
+1. Creates an isolated git worktree — main branch stays clean
+2. Implements each task with strict TDD (RED → GREEN → REFACTOR)
+3. Quality hooks auto-lint, format, and type-check every edit
 4. Runs full test suite after each task to catch regressions early
-5. All tasks execute in the main context with full access to hooks and rules
 
 </details>
 
@@ -210,50 +137,219 @@ Discuss  →  Plan  →  Approve  →  Implement  →  Verify  →  Done
 <summary><b>Verify Phase</b></summary>
 
 1. Runs full test suite — unit, integration, and E2E
-2. Type checking and linting across the entire project
-3. Executes actual program to verify real-world behavior (not just tests)
-4. **Three review sub-agents** run in parallel: compliance (plan alignment), quality (code standards), and goal (verifies the implementation achieves its intended outcome)
-5. Auto-fixes all findings, then re-verifies until clean
-6. Loops back to implementation if structural issues remain
-7. On success, shows diff summary and offers to squash merge worktree back to main branch
+2. Executes actual program to verify real-world behavior (not just tests)
+3. **Three review sub-agents** in parallel: compliance, quality, and goal verification
+4. Auto-fixes all findings, re-verifies until clean
+5. Squash merges worktree back to main branch on success
 
 </details>
 
 ### Quick Mode
 
-Just chat. No plan file, no approval gate. All quality hooks and TDD enforcement still apply. Best for small tasks, exploration, and quick questions.
+Just chat — no plan, no approval gate. Quality hooks and TDD enforcement still apply. Best for small tasks and exploration.
 
-```bash
-pilot
-> Add a loading spinner to the submit button
-```
+### Other Commands
 
-### /learn — Online Learning
+| Command  | What it does                                                                                                                                        |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/sync`  | Explores your codebase, discovers conventions, builds a search index, updates project rules. Run once initially, then anytime your project changes. |
+| `/learn` | Captures non-obvious discoveries as reusable skills. Triggers automatically or on demand.                                                           |
+| `/vault` | Shares rules, commands, and skills across your team via a private Git repository.                                                                   |
 
-Capture non-obvious discoveries as reusable skills. Triggered automatically after 10+ minute investigations, or manually:
+### Extensibility
 
-```bash
-pilot
-> /learn "Extract the debugging workflow we used for the race condition"
-```
+Create your own rules, commands, and skills in `.claude/` — all plain markdown. Add MCP servers in `.mcp.json` and run `/sync` to generate docs.
 
-### /vault — Team Vault
+| Type         | Loaded                                       | Best for                               |
+| ------------ | -------------------------------------------- | -------------------------------------- |
+| **Rules**    | Every session, or conditionally by file type | Guidelines Claude should always follow |
+| **Commands** | On demand via `/command`                     | Specific workflows or multi-step tasks |
+| **Skills**   | On demand, created via `/learn`              | Reusable knowledge from past sessions  |
 
-Share rules, commands, and skills across your team via a private Git repository:
+---
 
-```bash
-pilot
-> /vault
-```
+## Demo
 
-- **Private** — Use any Git repo (GitHub, GitLab, Bitbucket — public or private)
-- **Pull** — Install shared assets from your team's vault
-- **Push** — Share your custom rules and skills with teammates
-- **Version** — Assets are versioned automatically (v1, v2, v3...)
+A full-stack project — created from scratch with a single prompt, then extended with **3 features built in parallel** using `/spec`. Every line of code was planned, implemented, tested, and verified entirely by AI. Zero manual code edits, zero bug fixes by a human. **[Watch the demo and browse the code →](https://github.com/maxritter/pilot-shell-demo)**
 
-### Pilot CLI
+---
 
-The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing, and context. Run `pilot` or `ccp` with no arguments to start Claude with Pilot Shell enhancements.
+## Under the Hood
+
+### The Hooks Pipeline
+
+Hooks fire automatically across the entire lifecycle — formatting, linting, type checking, TDD enforcement, context preservation, and memory capture. Every file edit triggers quality checks. Every session start restores state. Every session end persists context.
+
+<details>
+<summary><b>All hooks by lifecycle event</b></summary>
+
+#### SessionStart (on startup, clear, or compact)
+
+| Hook                      | Type     | What it does                                                           |
+| ------------------------- | -------- | ---------------------------------------------------------------------- |
+| Memory loader             | Blocking | Loads persistent context from Pilot Shell Console memory               |
+| `post_compact_restore.py` | Blocking | After auto-compaction: re-injects active plan, task state, and context |
+| Session tracker           | Async    | Initializes user message tracking for the session                      |
+
+#### PreToolUse (before search, web, or task tools)
+
+| Hook               | Type     | What it does                                                                                                                             |
+| ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `tool_redirect.py` | Blocking | Blocks WebSearch/WebFetch (MCP alternatives exist), EnterPlanMode/ExitPlanMode (/spec conflict). Hints vexor for semantic Grep patterns. |
+
+#### PostToolUse (after every Write / Edit / MultiEdit)
+
+| Hook                 | Type         | What it does                                                                                                                                                         |
+| -------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `file_checker.py`    | Blocking     | Dispatches to language-specific checkers: Python (ruff + basedpyright), TypeScript (Prettier + ESLint + tsc), Go (gofmt + golangci-lint). Auto-fixes formatting.     |
+| `tdd_enforcer.py`    | Non-blocking | Checks if implementation files were modified without failing tests first. Shows reminder to write tests. Excludes test files, docs, config, TSX, and infrastructure. |
+| `context_monitor.py` | Non-blocking | Monitors context usage. Warns at ~80% (informational) and ~90%+ (caution). Prompts `/learn` at key thresholds.                                                       |
+| Memory observer      | Async        | Captures development observations to persistent memory.                                                                                                              |
+
+#### PreCompact (before auto-compaction)
+
+| Hook             | Type     | What it does                                                                                                   |
+| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
+| `pre_compact.py` | Blocking | Captures Pilot Shell state (active plan, task list, key context) to persistent memory before compaction fires. |
+
+#### Stop (when Claude tries to finish)
+
+| Hook                 | Type     | What it does                                                                                                                               |
+| -------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `spec_stop_guard.py` | Blocking | If an active spec exists with PENDING or COMPLETE status, **blocks stopping**. Forces verification to complete before the session can end. |
+| Session summarizer   | Async    | Saves session observations to persistent memory for future sessions.                                                                       |
+
+#### SessionEnd (when the session closes)
+
+| Hook             | Type     | What it does                                                                                                   |
+| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
+| `session_end.py` | Blocking | Stops the worker daemon when no other Pilot Shell sessions are active. Sends real-time dashboard notification. |
+
+</details>
+
+### Context Preservation
+
+Pilot Shell preserves context automatically across compaction boundaries. Before compaction fires, hooks capture the active plan, task list, and key decisions to persistent memory. After compaction, hooks restore everything — work continues exactly where it left off. Multiple sessions can run in parallel on the same project without interference.
+
+<details>
+<summary><b>How the effective context display works</b></summary>
+
+Claude Code reserves ~16.5% of the context window as a compaction buffer, triggering auto-compaction at ~83.5% raw usage. Pilot Shell rescales this to an **effective 0–100% range** so the status bar fills naturally to 100% right before compaction fires. A `▓` buffer indicator at the end of the bar shows the reserved zone. The context monitor warns at ~80% effective (informational) and ~90%+ effective (caution) — no confusing raw percentages.
+
+</details>
+
+### Smart Model Routing
+
+Opus for planning and verification — where reasoning quality matters most. Sonnet for implementation — where a clear spec makes fast execution predictable. All model assignments are configurable per-component via the Pilot Shell Console settings.
+
+<details>
+<summary><b>Phase-by-phase breakdown</b></summary>
+
+| Phase                 | Default | Why                                                                                                                                               |
+| --------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Planning**          | Opus    | Exploring your codebase, designing architecture, and writing the spec requires deep reasoning. A good plan is the foundation of everything.       |
+| **Plan Verification** | Opus    | Catching gaps, missing edge cases, and requirement mismatches before implementation saves expensive rework.                                       |
+| **Implementation**    | Sonnet  | With a solid plan, writing code is straightforward. Sonnet is fast, cost-effective, and produces high-quality code when guided by a clear spec.   |
+| **Code Verification** | Opus    | Independent code review against the plan requires the same reasoning depth as planning — catching subtle bugs, logic errors, and spec deviations. |
+
+Choose between Sonnet 4.6 and Opus 4.6 for the main session, each command, and sub-agents. A global "Extended Context (1M)" toggle enables the 1M token context window across all models simultaneously. **Note:** 1M context models require a Max (20x) or Enterprise subscription — not available to all users.
+
+</details>
+
+### Built-in Rules & Standards
+
+Production-tested best practices loaded into every session. Core rules cover workflow, testing, verification, debugging, and tools. Coding standards activate conditionally by file type. These aren't suggestions, they're enforced.
+
+<details>
+<summary><b>Core Workflow</b></summary>
+
+- `task-and-workflow.md` — Task management, /spec orchestration, deviation handling
+- `testing.md` — TDD workflow, test strategy, coverage requirements
+- `verification.md` — Execution verification, completion requirements
+
+</details>
+
+<details>
+<summary><b>Development Practices</b></summary>
+
+- `development-practices.md` — Project policies, debugging methodology, git rules
+- `context-continuation.md` — Auto-compaction and context management protocol
+- `pilot-memory.md` — Persistent memory workflow, online learning triggers
+
+</details>
+
+<details>
+<summary><b>Tools</b></summary>
+
+- `research-tools.md` — Context7, grep-mcp, web search, GitHub CLI
+- `cli-tools.md` — Pilot CLI, Vexor semantic search
+- `playwright-cli.md` — Browser automation for E2E UI testing
+
+</details>
+
+<details>
+<summary><b>Collaboration</b></summary>
+
+- `team-vault.md` — Team Vault asset sharing via sx
+
+</details>
+
+<details>
+<summary><b>Coding Standards (activated by file type)</b></summary>
+
+| Standard   | Activates On                                      | Coverage                                                |
+| ---------- | ------------------------------------------------- | ------------------------------------------------------- |
+| Python     | `*.py`                                            | uv, pytest, ruff, basedpyright, type hints              |
+| TypeScript | `*.ts`, `*.tsx`, `*.js`, `*.jsx`                  | npm/pnpm, Jest, ESLint, Prettier, React patterns        |
+| Go         | `*.go`                                            | Modules, testing, formatting, error handling            |
+| Frontend   | `*.tsx`, `*.jsx`, `*.html`, `*.vue`, `*.css`      | Components, CSS, accessibility, responsive design       |
+| Backend    | `**/models/**`, `**/routes/**`, `**/api/**`, etc. | API design, data models, query optimization, migrations |
+
+</details>
+
+### MCP Servers
+
+MCP servers provide external context in every session — library docs, persistent memory, web search, GitHub code search, and web page fetching.
+
+<details>
+<summary><b>All servers</b></summary>
+
+| Server         | Purpose                                                          |
+| -------------- | ---------------------------------------------------------------- |
+| **lib-docs**   | Library documentation lookup — get API docs for any dependency   |
+| **mem-search** | Persistent memory search — recall context from past sessions     |
+| **web-search** | Web search via DuckDuckGo, Bing, and Exa                         |
+| **grep-mcp**   | GitHub code search — find real-world usage patterns across repos |
+| **web-fetch**  | Web page fetching — read documentation, APIs, references         |
+
+</details>
+
+### Language Servers (LSP)
+
+Real-time diagnostics and go-to-definition for Python (basedpyright), TypeScript (vtsls), and Go (gopls). Auto-installed, auto-configured via `.lsp.json`, and auto-restart on crash.
+
+### Pilot Shell Console
+
+A local web dashboard at `localhost:41777` with 7 views: workspace dashboard, spec progress tracking, browsable memory, session history, token usage analytics, team vault, and per-component model settings. Real-time notifications via SSE when Claude needs your input or a spec phase completes.
+
+<details>
+<summary><b>All views</b></summary>
+
+| View               | What it shows                                                                            |
+| ------------------ | ---------------------------------------------------------------------------------------- |
+| **Dashboard**      | Workspace status, active sessions, spec progress, git info, recent activity              |
+| **Specifications** | All spec plans with task progress, phase tracking, and iteration history                 |
+| **Memories**       | Browsable observations — decisions, discoveries, bugfixes — with type filters and search |
+| **Sessions**       | Active and past sessions with observation counts and duration                            |
+| **Usage**          | Daily token costs, model routing breakdown, and usage trends                             |
+| **Vault**          | Shared team assets with version tracking                                                 |
+| **Settings**       | Model selection per command/sub-agent, extended context toggle                           |
+
+</details>
+
+### Pilot Shell CLI
+
+The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing, and context. Run `pilot` or `ccp` to start Claude with Pilot Shell enhancements. All commands support `--json` for structured output.
 
 <details>
 <summary><b>Session & Context</b></summary>
@@ -295,193 +391,6 @@ The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing
 | `pilot trial --start [--json]` | Start a trial                          |
 
 </details>
-
-All commands support `--json` for structured output. Multiple Pilot Shell sessions can run in parallel on the same project — each session tracks its own worktree and context state independently.
-
-### Rules, Commands & Skills
-
-Create your own in your project's `.claude/` folder:
-
-| Type         | Loaded                                       | Best for                               |
-| ------------ | -------------------------------------------- | -------------------------------------- |
-| **Rules**    | Every session, or conditionally by file type | Guidelines Claude should always follow |
-| **Commands** | On demand via `/command`                     | Specific workflows or multi-step tasks |
-| **Skills**   | On demand, created via `/learn`              | Reusable knowledge from past sessions  |
-
-Pilot Shell automatically installs best-practice rules, commands, and coding standards. Standards rules use `paths` frontmatter to activate only when you're working with matching file types (e.g., Python standards load only when editing `.py` files). Custom skills are created by `/learn` when it detects non-obvious discoveries, workarounds, or reusable workflows — and can be shared across your team via `/vault`.
-
-### Custom MCP Servers
-
-Add your own MCP servers in `.mcp.json`. Run `/sync` after adding servers to generate documentation.
-
----
-
-## Under the Hood
-
-### The Hooks Pipeline
-
-**15 hooks** fire automatically across 6 lifecycle events:
-
-#### SessionStart (on startup, clear, or compact)
-
-| Hook                      | Type     | What it does                                                           |
-| ------------------------- | -------- | ---------------------------------------------------------------------- |
-| Memory loader             | Blocking | Loads persistent context from Pilot Shell Console memory               |
-| `post_compact_restore.py` | Blocking | After auto-compaction: re-injects active plan, task state, and context |
-| Session tracker           | Async    | Initializes user message tracking for the session                      |
-
-#### PreToolUse (before search, web, or task tools)
-
-| Hook               | Type     | What it does                                                                                                                             |
-| ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `tool_redirect.py` | Blocking | Blocks WebSearch/WebFetch (MCP alternatives exist), EnterPlanMode/ExitPlanMode (/spec conflict). Hints vexor for semantic Grep patterns. |
-
-#### PostToolUse (after every Write / Edit / MultiEdit)
-
-After **every single file edit**, these hooks fire:
-
-| Hook                 | Type         | What it does                                                                                                                                                         |
-| -------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `file_checker.py`    | Blocking     | Dispatches to language-specific checkers: Python (ruff + basedpyright), TypeScript (Prettier + ESLint + tsc), Go (gofmt + golangci-lint). Auto-fixes formatting.     |
-| `tdd_enforcer.py`    | Non-blocking | Checks if implementation files were modified without failing tests first. Shows reminder to write tests. Excludes test files, docs, config, TSX, and infrastructure. |
-| `context_monitor.py` | Non-blocking | Monitors context usage. Warns at ~80% (informational) and ~90%+ (caution). Prompts `/learn` at key thresholds.                                                       |
-| Memory observer      | Async        | Captures development observations to persistent memory.                                                                                                              |
-
-#### PreCompact (before auto-compaction)
-
-| Hook             | Type     | What it does                                                                                                   |
-| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
-| `pre_compact.py` | Blocking | Captures Pilot Shell state (active plan, task list, key context) to persistent memory before compaction fires. |
-
-#### Stop (when Claude tries to finish)
-
-| Hook                 | Type     | What it does                                                                                                                               |
-| -------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `spec_stop_guard.py` | Blocking | If an active spec exists with PENDING or COMPLETE status, **blocks stopping**. Forces verification to complete before the session can end. |
-| Session summarizer   | Async    | Saves session observations to persistent memory for future sessions.                                                                       |
-
-#### SessionEnd (when the session closes)
-
-| Hook             | Type     | What it does                                                                                                   |
-| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
-| `session_end.py` | Blocking | Stops the worker daemon when no other Pilot Shell sessions are active. Sends real-time dashboard notification. |
-
-### Context Preservation
-
-Pilot Shell preserves context automatically across compaction boundaries:
-
-- `pre_compact.py` captures Pilot Shell state (active plan, tasks, key context) to persistent memory
-- `post_compact_restore.py` re-injects Pilot Shell context after compaction — agent continues seamlessly
-- Multiple Pilot Shell sessions can run in parallel on the same project without interference
-- Status line shows live context usage, memory status, active plan, and license info
-
-**Effective context display:** Claude Code reserves ~16.5% of the context window as a compaction buffer, triggering auto-compaction at ~83.5% raw usage. Pilot Shell rescales this to an **effective 0–100% range** so the status bar fills naturally to 100% right before compaction fires. A `▓` buffer indicator at the end of the bar shows the reserved zone. The context monitor warns at ~80% effective (informational) and ~90%+ effective (caution) — no confusing raw percentages.
-
-### Smart Model Routing
-
-Pilot Shell uses the right model for each phase — Opus where reasoning quality matters most, Sonnet where speed and cost matter:
-
-| Phase                 | Default | Why                                                                                                                                               |
-| --------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Planning**          | Opus    | Exploring your codebase, designing architecture, and writing the spec requires deep reasoning. A good plan is the foundation of everything.       |
-| **Plan Verification** | Opus    | Catching gaps, missing edge cases, and requirement mismatches before implementation saves expensive rework.                                       |
-| **Implementation**    | Sonnet  | With a solid plan, writing code is straightforward. Sonnet is fast, cost-effective, and produces high-quality code when guided by a clear spec.   |
-| **Code Verification** | Opus    | Independent code review against the plan requires the same reasoning depth as planning — catching subtle bugs, logic errors, and spec deviations. |
-
-**The insight:** Implementation is the easy part when the plan is good and verification is thorough. Pilot Shell invests reasoning power where it has the highest impact — planning and verification — and uses fast execution where a clear spec makes quality predictable.
-
-**Configurable:** All model assignments are configurable per-component via the Pilot Shell Console settings. Choose between Sonnet 4.6 and Opus 4.6 for the main session, each command, and sub-agents. A global "Extended Context (1M)" toggle enables the 1M token context window across all models simultaneously. **Note:** 1M context models require a Max (20x) or Enterprise subscription — not available to all users.
-
-### Built-in Rules & Standards
-
-Production-tested best practices loaded into **every session**. These aren't suggestions — they're enforced standards. Coding standards activate conditionally by file type.
-
-<details>
-<summary><b>Core Workflow (3 rules)</b></summary>
-
-- `task-and-workflow.md` — Task management, /spec orchestration, deviation handling
-- `testing.md` — TDD workflow, test strategy, coverage requirements
-- `verification.md` — Execution verification, completion requirements
-
-</details>
-
-<details>
-<summary><b>Development Practices (3 rules)</b></summary>
-
-- `development-practices.md` — Project policies, debugging methodology, git rules
-- `context-continuation.md` — Auto-compaction and context management protocol
-- `pilot-memory.md` — Persistent memory workflow, online learning triggers
-
-</details>
-
-<details>
-<summary><b>Tools (3 rules)</b></summary>
-
-- `research-tools.md` — Context7, grep-mcp, web search, GitHub CLI
-- `cli-tools.md` — Pilot CLI, Vexor semantic search
-- `playwright-cli.md` — Browser automation for E2E UI testing
-
-</details>
-
-<details>
-<summary><b>Collaboration (1 rule)</b></summary>
-
-- `team-vault.md` — Team Vault asset sharing via sx
-
-</details>
-
-<details>
-<summary><b>Coding Standards (5 standards, activated by file type)</b></summary>
-
-| Standard   | Activates On                                      | Coverage                                                |
-| ---------- | ------------------------------------------------- | ------------------------------------------------------- |
-| Python     | `*.py`                                            | uv, pytest, ruff, basedpyright, type hints              |
-| TypeScript | `*.ts`, `*.tsx`, `*.js`, `*.jsx`                  | npm/pnpm, Jest, ESLint, Prettier, React patterns        |
-| Go         | `*.go`                                            | Modules, testing, formatting, error handling            |
-| Frontend   | `*.tsx`, `*.jsx`, `*.html`, `*.vue`, `*.css`      | Components, CSS, accessibility, responsive design       |
-| Backend    | `**/models/**`, `**/routes/**`, `**/api/**`, etc. | API design, data models, query optimization, migrations |
-
-</details>
-
-### MCP Servers
-
-External context always available to every session:
-
-| Server         | Purpose                                                          |
-| -------------- | ---------------------------------------------------------------- |
-| **lib-docs**   | Library documentation lookup — get API docs for any dependency   |
-| **mem-search** | Persistent memory search — recall context from past sessions     |
-| **web-search** | Web search via DuckDuckGo, Bing, and Exa                         |
-| **grep-mcp**   | GitHub code search — find real-world usage patterns across repos |
-| **web-fetch**  | Web page fetching — read documentation, APIs, references         |
-
-### Language Servers (LSP)
-
-Real-time diagnostics and go-to-definition, auto-installed and configured:
-
-| Language       | Server       | Capabilities                                                                         |
-| -------------- | ------------ | ------------------------------------------------------------------------------------ |
-| **Python**     | basedpyright | Strict type checking, diagnostics, go-to-definition. Auto-restarts on crash (max 3). |
-| **TypeScript** | vtsls        | Full TypeScript support with Vue compatibility. Auto-restarts on crash (max 3).      |
-| **Go**         | gopls        | Official Go language server. Auto-restarts on crash (max 3).                         |
-
-All configured via `.lsp.json` with stdio transport.
-
-### Pilot Shell Console
-
-A local web dashboard at `localhost:41777` for monitoring and managing your Pilot Shell sessions.
-
-| View               | What it shows                                                                            |
-| ------------------ | ---------------------------------------------------------------------------------------- |
-| **Dashboard**      | Workspace status, active sessions, spec progress, git info, recent activity              |
-| **Specifications** | All spec plans with task progress, phase tracking, and iteration history                 |
-| **Memories**       | Browsable observations — decisions, discoveries, bugfixes — with type filters and search |
-| **Sessions**       | Active and past sessions with observation counts and duration                            |
-| **Usage**          | Daily token costs, model routing breakdown, and usage trends                             |
-| **Vault**          | Shared team assets with version tracking                                                 |
-| **Settings**       | Model selection per command/sub-agent, extended context toggle                           |
-
-**Smart Notifications** — Real-time alerts via SSE when Claude needs your input or a spec phase completes.
 
 ---
 
