@@ -1,13 +1,13 @@
 {
-  "name": "claude-pilot",
+  "name": "pilot-shell",
   "build": {
     "dockerfile": "Dockerfile"
   },
   "runArgs": [
     "--name",
-    "claude-pilot"
+    "pilot-shell"
   ],
-  "workspaceFolder": "/workspaces/claude-pilot",
+  "workspaceFolder": "/workspaces/pilot-shell",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -87,7 +87,7 @@
     /* https://github.com/jungaretti/features/tree/main/src/ripgrep */
     "ghcr.io/jungaretti/features/ripgrep:1": {}
   },
-  "postCreateCommand": "curl -fsSL https://raw.githubusercontent.com/maxritter/claude-pilot/main/install.sh | bash",
+  "postCreateCommand": "curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash",
   "remoteUser": "root",
   "containerUser": "root"
 }
