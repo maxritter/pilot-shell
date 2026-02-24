@@ -149,7 +149,7 @@ export function SpecView() {
       setIsDeleting(true);
       try {
         const res = await fetch(
-          `/api/plan?path=${encodeURIComponent(filePath)}`,
+          `/api/plan?path=${encodeURIComponent(filePath)}${selectedProject ? `&project=${encodeURIComponent(selectedProject)}` : ""}`,
           { method: "DELETE" },
         );
         if (!res.ok) throw new Error("Failed to delete spec");
@@ -163,7 +163,7 @@ export function SpecView() {
         setIsDeleting(false);
       }
     },
-    [loadSpecs],
+    [loadSpecs, selectedProject],
   );
 
   useEffect(() => {
@@ -284,6 +284,7 @@ export function SpecView() {
               const date = spec.modifiedAt ? new Date(spec.modifiedAt) : null;
               const dateStr = date
                 ? date.toLocaleDateString(undefined, {
+                    year: "numeric",
                     month: "short",
                     day: "numeric",
                   })

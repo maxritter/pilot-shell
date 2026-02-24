@@ -105,7 +105,14 @@ export function getWorktreePlansDirs(projectRoot: string): string[] {
         dirs.push(plansDir);
       }
     }
-  } catch {}
+  } catch (error) {
+    logger.error(
+      "HTTP",
+      "Failed to read worktrees directory",
+      { worktreesDir },
+      error as Error,
+    );
+  }
   return dirs;
 }
 

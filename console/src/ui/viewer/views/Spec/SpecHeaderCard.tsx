@@ -146,6 +146,7 @@ export function SpecHeaderCard({
               <Icon icon="lucide:calendar" size={12} />
               <span>
                 {new Date(spec.modifiedAt).toLocaleString(undefined, {
+                  year: "numeric",
                   month: "short",
                   day: "numeric",
                   hour: "2-digit",

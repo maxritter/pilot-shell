@@ -979,8 +979,8 @@ class TestInstallPbtTools:
 
     @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
     @patch("installer.steps.dependencies._is_fast_check_installed", return_value=False)
-    @patch("installer.steps.dependencies.command_exists", return_value=False)
-    def test_install_pbt_tools_installs_hypothesis_when_missing(self, _mock_cmd, _mock_fc, mock_run):
+    @patch("installer.steps.dependencies._is_hypothesis_installed", return_value=False)
+    def test_install_pbt_tools_installs_hypothesis_when_missing(self, _mock_hyp, _mock_fc, mock_run):
         """install_pbt_tools installs hypothesis when not already installed."""
         from installer.steps.dependencies import install_pbt_tools
 
@@ -991,8 +991,8 @@ class TestInstallPbtTools:
 
     @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
     @patch("installer.steps.dependencies._is_fast_check_installed", return_value=False)
-    @patch("installer.steps.dependencies.command_exists", return_value=True)
-    def test_install_pbt_tools_skips_hypothesis_when_present(self, _mock_cmd, _mock_fc, mock_run):
+    @patch("installer.steps.dependencies._is_hypothesis_installed", return_value=True)
+    def test_install_pbt_tools_skips_hypothesis_when_present(self, _mock_hyp, _mock_fc, mock_run):
         """install_pbt_tools skips hypothesis install when already present."""
         from installer.steps.dependencies import install_pbt_tools
 
@@ -1003,8 +1003,8 @@ class TestInstallPbtTools:
 
     @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
     @patch("installer.steps.dependencies._is_fast_check_installed", return_value=False)
-    @patch("installer.steps.dependencies.command_exists", return_value=True)
-    def test_install_pbt_tools_installs_fast_check_when_missing(self, _mock_cmd, _mock_fc, mock_run):
+    @patch("installer.steps.dependencies._is_hypothesis_installed", return_value=True)
+    def test_install_pbt_tools_installs_fast_check_when_missing(self, _mock_hyp, _mock_fc, mock_run):
         """install_pbt_tools installs fast-check when not already installed."""
         from installer.steps.dependencies import install_pbt_tools
 
@@ -1015,8 +1015,8 @@ class TestInstallPbtTools:
 
     @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
     @patch("installer.steps.dependencies._is_fast_check_installed", return_value=True)
-    @patch("installer.steps.dependencies.command_exists", return_value=True)
-    def test_install_pbt_tools_skips_fast_check_when_present(self, _mock_cmd, _mock_fc, mock_run):
+    @patch("installer.steps.dependencies._is_hypothesis_installed", return_value=True)
+    def test_install_pbt_tools_skips_fast_check_when_present(self, _mock_hyp, _mock_fc, mock_run):
         """install_pbt_tools skips fast-check install when already present."""
         from installer.steps.dependencies import install_pbt_tools
 
@@ -1027,11 +1027,22 @@ class TestInstallPbtTools:
 
     @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
     @patch("installer.steps.dependencies._is_fast_check_installed", return_value=True)
-    @patch("installer.steps.dependencies.command_exists", return_value=True)
-    def test_install_pbt_tools_returns_true_when_all_present(self, _mock_cmd, _mock_fc, _mock_run):
+    @patch("installer.steps.dependencies._is_hypothesis_installed", return_value=True)
+    def test_install_pbt_tools_returns_true_when_all_present(self, _mock_hyp, _mock_fc, _mock_run):
         """install_pbt_tools returns True when all packages already installed."""
         from installer.steps.dependencies import install_pbt_tools
 
         result = install_pbt_tools()
 
         assert result is True
+
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=False)
+    @patch("installer.steps.dependencies._is_fast_check_installed", return_value=False)
+    @patch("installer.steps.dependencies._is_hypothesis_installed", return_value=False)
+    def test_install_pbt_tools_returns_false_on_install_failure(self, _mock_hyp, _mock_fc, _mock_run):
+        """install_pbt_tools returns False when installations fail."""
+        from installer.steps.dependencies import install_pbt_tools
+
+        result = install_pbt_tools()
+
+        assert result is False

@@ -401,7 +401,7 @@ Type: Bugfix
 **Verify:**
 
 - `uv run pytest -q` — all tests pass
-- `ruff check . --fix` (Python) or equivalent for the project
+- `uv run ruff check . --fix` (Python) or equivalent for the project
 
 ## Testing Strategy
 
