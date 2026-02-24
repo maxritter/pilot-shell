@@ -11,7 +11,7 @@ interface SEOProps {
 }
 
 const SEO = ({
-  title = "Pilot Shell - Claude Code is powerful. Pilot makes it reliable.",
+  title = "Pilot Shell - Claude Code is powerful. Pilot Shell makes it reliable.",
   description = "Start a task, grab a coffee, come back to production-grade code. Tests enforced, context preserved, quality automated.",
   keywords = "Pilot Shell, Claude Code, AI coding assistant, AI pair programming, TDD enforcement, Test-Driven Development, code quality automation, linting, formatting, type checking, spec-driven development, dev containers, VS Code, Cursor, Windsurf, Claude API, Anthropic, AI development tools, automated testing, code review, persistent memory, semantic code search",
   canonicalUrl = "https://pilot-shell.com",

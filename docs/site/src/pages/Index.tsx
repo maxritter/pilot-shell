@@ -76,7 +76,7 @@ const Index = () => {
   return (
     <>
       <SEO
-        title="Pilot Shell - Claude Code is powerful. Pilot makes it reliable."
+        title="Pilot Shell - Claude Code is powerful. Pilot Shell makes it reliable."
         description="Start a task, grab a coffee, come back to production-grade code. Tests enforced, context preserved, quality automated."
         structuredData={[
           websiteStructuredData,

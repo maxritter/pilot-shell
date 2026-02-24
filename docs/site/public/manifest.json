@@ -1,7 +1,7 @@
 {
   "name": "Pilot Shell",
   "short_name": "Pilot",
-  "description": "Claude Code is powerful. Pilot makes it reliable.",
+  "description": "Claude Code is powerful. Pilot Shell makes it reliable.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

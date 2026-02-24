@@ -40,7 +40,7 @@ const HeroSection = () => {
             className="px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 text-[10px] xs:text-xs sm:text-sm border-primary/50 text-primary"
           >
             <span className="hidden xs:inline">
-              Claude Code is powerful. Pilot makes it reliable.
+              Claude Code is powerful. Pilot Shell makes it reliable.
             </span>
             <span className="xs:hidden">Reliable Claude Code</span>
           </Badge>

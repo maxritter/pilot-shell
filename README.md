@@ -2,7 +2,7 @@
 
 <img src="docs/img/logo.png" alt="Pilot Shell" width="400">
 
-### Claude Code is powerful. Pilot makes it reliable.
+### Claude Code is powerful. Pilot Shell makes it reliable.
 
 Start a task, grab a coffee, come back to production-grade code.</br>
 **Tests enforced. Context preserved. Quality automated.**
@@ -614,6 +614,6 @@ See the full changelog at [pilot.openchangelog.com](https://pilot.openchangelog.
 
 <div align="center">
 
-**Claude Code is powerful. Pilot makes it reliable.**
+**Claude Code is powerful. Pilot Shell makes it reliable.**
 
 </div>
