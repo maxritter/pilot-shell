@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Card,
   CardBody,
-  Badge,
   Icon,
   Button,
   Spinner,
@@ -255,11 +254,11 @@ export function SpecView() {
                     }
                   />
                   <span className="truncate max-w-32">{spec.name}</span>
-                  {spec.specType === "Bugfix" && (
-                    <span className="text-[10px] text-warning font-normal">
-                      bugfix
-                    </span>
-                  )}
+                  <span
+                    className={`text-[10px] font-normal ${spec.specType === "Bugfix" ? "text-warning" : "text-info"}`}
+                  >
+                    {spec.specType === "Bugfix" ? "bugfix" : "feature"}
+                  </span>
                   {spec.total > 0 && (
                     <span className="text-[10px] opacity-60">
                       {spec.completed}/{spec.total}

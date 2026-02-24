@@ -110,11 +110,12 @@ export function SpecHeaderCard({
 
         {/* Metadata row */}
         <div className="flex items-center gap-4 mt-4 pt-4 border-t border-base-300/50 text-xs text-base-content/50">
-          {spec.specType === "Bugfix" && (
-            <Badge variant="warning" size="xs">
-              Bugfix
-            </Badge>
-          )}
+          <Badge
+            variant={spec.specType === "Bugfix" ? "warning" : "info"}
+            size="xs"
+          >
+            {spec.specType === "Bugfix" ? "Bugfix" : "Feature"}
+          </Badge>
           {spec.iterations > 0 && (
             <div className="flex items-center gap-1">
               <Icon icon="lucide:repeat" size={12} />

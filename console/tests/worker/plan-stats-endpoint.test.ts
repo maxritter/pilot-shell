@@ -57,6 +57,7 @@ describe("/api/plans/stats endpoint", () => {
   it("should parse specType from plan files", () => {
     expect(readerSource).toContain("specType");
     expect(readerSource).toContain('"Bugfix"');
+    expect(readerSource).toContain('"Feature"');
     expect(readerSource).toContain(/^Type:\s*(\w+)/m.source);
   });
 });

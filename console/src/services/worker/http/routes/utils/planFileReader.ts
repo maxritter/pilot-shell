@@ -53,8 +53,8 @@ export function parsePlanContent(
     : true;
 
   const typeMatch = content.match(/^Type:\s*(\w+)/m);
-  const specType =
-    typeMatch?.[1] === "Bugfix" ? ("Bugfix" as const) : undefined;
+  const specType: "Feature" | "Bugfix" =
+    typeMatch?.[1] === "Bugfix" ? "Bugfix" : "Feature";
 
   let phase: "plan" | "implement" | "verify";
   if (status === "PENDING" && !approved) {
@@ -79,7 +79,7 @@ export function parsePlanContent(
     iterations,
     approved,
     worktree,
-    ...(specType && { specType }),
+    specType,
     filePath,
     modifiedAt: modifiedAt.toISOString(),
   };
