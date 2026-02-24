@@ -1,3 +1,4 @@
 launcher/** filter=git-crypt diff=git-crypt
+launcher/**/__init__.py !filter !diff
 docs/site/api/** filter=git-crypt diff=git-crypt
 .gitattributes !filter !diff
