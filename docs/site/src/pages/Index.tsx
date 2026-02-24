@@ -2,14 +2,12 @@ import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/HeroSection";
 import InstallSection from "@/components/InstallSection";
 import ComparisonSection from "@/components/ComparisonSection";
-import DemoSection from "@/components/DemoSection";
 import AgentRoster from "@/components/AgentRoster";
 import WorkflowSteps from "@/components/WorkflowSteps";
-import DeploymentFlow from "@/components/DeploymentFlow";
 import WhatsInside from "@/components/WhatsInside";
 import TechStack from "@/components/TechStack";
 import DeepDiveSection from "@/components/DeepDiveSection";
-
+import DemoSection from "@/components/DemoSection";
 import PricingSection from "@/components/PricingSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import FAQSection from "@/components/FAQSection";
@@ -89,13 +87,12 @@ const Index = () => {
         <HeroSection />
         <InstallSection />
         <ComparisonSection />
-        <DemoSection />
         <AgentRoster />
         <WorkflowSteps />
-        <DeploymentFlow />
         <WhatsInside />
         <TechStack />
         <DeepDiveSection />
+        <DemoSection />
         <PricingSection />
         <TestimonialsSection />
         <FAQSection />

@@ -29,6 +29,12 @@ const faqItems = [
       "Yes. Pilot Shell enhances Claude Code \u2014 it doesn't replace it. You need an active Claude subscription \u2014 Max 5x or 20x for solo developers, or Team Premium for teams and companies. Using the Anthropic API directly is also possible but may lead to much higher costs. Pilot Shell adds quality automation on top of whatever Claude Code access you already have.",
   },
   {
+    question:
+      "Does Pilot Shell work with Codex, Gemini CLI, OpenCode, or other AI coding tools?",
+    answer:
+      "No. Pilot Shell is built exclusively for Claude Code. Every hook, rule, command, and workflow is engineered specifically for Claude\u2019s tool-use protocol, prompt format, and session lifecycle. Pilot Shell also only supports Claude Sonnet 4.6 and Claude Opus 4.6 \u2014 these are the models that produce the best results, and every rule and prompt is optimized for their behavior. Supporting other tools or models would mean compromising on quality, which is the opposite of what Pilot Shell is designed to do.",
+  },
+  {
     question: "Does Pilot Shell work with existing projects?",
     answer:
       "Yes \u2014 that's the primary use case. Pilot Shell doesn't scaffold or restructure your code. You install it, run /sync, and it explores your codebase to discover your tech stack, conventions, and patterns. From there, every session has full context about your project. The more complex and established your codebase, the more value Pilot Shell adds \u2014 quality hooks catch regressions, persistent memory preserves decisions across sessions, and /spec plans features against your real architecture.",

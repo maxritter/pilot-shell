@@ -7,7 +7,7 @@ import {
   Infinity as InfinityIcon,
   Users,
   GitBranch,
-  Bell,
+  Lightbulb,
 } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
 import ImageModal from "@/components/ImageModal";
@@ -46,35 +46,35 @@ const insideItems: InsideItem[] = [
     title: "Persistent Memory",
     description: "Context carries across sessions",
     summary:
-      "Every decision, discovery, and debugging insight is captured to Pilot Shell Console. Pick up any project after days or weeks — Claude already knows your architecture, patterns, and past work.",
+      "Decisions, discoveries, and debugging insights captured automatically. Pick up any project after days or weeks — Claude already knows your architecture and past work.",
   },
   {
     icon: Plug2,
     title: "Enhanced Context",
     description: "MCP servers + language servers",
     summary:
-      "Library docs, persistent memory, web search, GitHub code search, and real-time LSP diagnostics — all pre-configured and always available.",
+      "Library docs, persistent memory, web search, GitHub code search, and real-time LSP diagnostics — all pre-configured. No setup, no API keys, always available.",
   },
   {
-    icon: Bell,
-    title: "Smart Notifications",
-    description: "Real-time alerts when you're needed",
+    icon: Lightbulb,
+    title: "Online Learning",
+    description: "Grows smarter with every session",
     summary:
-      "Dashboard notifications fire automatically on spec status transitions and when Claude needs your input. Plan approvals, verification results, and session events appear instantly via SSE — no polling, no page refresh.",
+      "Extracts non-obvious debugging discoveries, workarounds, and tool integrations into reusable skills. Knowledge compounds — solutions found once are available forever.",
   },
   {
     icon: Users,
     title: "Team Vault",
     description: "Share knowledge across your team",
     summary:
-      "Push and pull rules, commands, and skills via a private Git repo. Automatic versioning. Works with GitHub, GitLab, and Bitbucket.",
+      "Push and pull rules, commands, and skills via a private Git repo. Automatic versioning, scoped installs, and works with GitHub, GitLab, and Bitbucket.",
   },
   {
     icon: GitBranch,
     title: "Isolated Workspaces",
     description: "Safe experimentation, clean git history",
     summary:
-      "Spec implementation runs in isolated git worktrees. Review changes, squash merge when verified, or discard without touching your main branch. Worktree state survives across auto-compaction cycles.",
+      "Spec work runs in isolated git worktrees. Review changes independently, squash merge when verified, or discard without touching your main branch.",
   },
 ];
 
@@ -270,6 +270,75 @@ const WhatsInside = () => {
               </div>
             );
           })}
+        </div>
+
+        {/* Pilot Shell CLI */}
+        <div
+          className={`mt-16 ${gridInView ? "animate-fade-in-up animation-delay-300" : "opacity-0"}`}
+        >
+          <div className="text-center mb-6">
+            <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">
+              Pilot Shell CLI
+            </h3>
+            <p className="text-muted-foreground text-sm sm:text-base">
+              The <code className="text-primary text-xs">pilot</code> binary
+              manages sessions, worktrees, licensing, and context
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-4xl mx-auto">
+            <div className="rounded-xl p-3 border border-border/40 bg-background/30">
+              <code className="text-xs font-medium text-primary">pilot</code>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Start Claude with Pilot enhancements, auto-update, and license
+                verification
+              </p>
+            </div>
+            <div className="rounded-xl p-3 border border-border/40 bg-background/30">
+              <code className="text-xs font-medium text-primary">
+                pilot activate &lt;key&gt;
+              </code>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Activate a license key on this machine
+              </p>
+            </div>
+            <div className="rounded-xl p-3 border border-border/40 bg-background/30">
+              <code className="text-xs font-medium text-primary">
+                pilot status
+              </code>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Show current license and session status
+              </p>
+            </div>
+            <div className="rounded-xl p-3 border border-border/40 bg-background/30">
+              <code className="text-xs font-medium text-primary">
+                pilot worktree create &lt;slug&gt;
+              </code>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Create isolated git worktree for safe experimentation
+              </p>
+            </div>
+            <div className="rounded-xl p-3 border border-border/40 bg-background/30">
+              <code className="text-xs font-medium text-primary">
+                pilot worktree sync &lt;slug&gt;
+              </code>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Squash merge worktree changes back to base branch
+              </p>
+            </div>
+            <div className="rounded-xl p-3 border border-border/40 bg-background/30">
+              <code className="text-xs font-medium text-primary">
+                pilot check-context
+              </code>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Monitor context usage — auto-compaction handles limits
+              </p>
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground/60 text-center mt-4">
+            All commands support <code className="text-primary/70">--json</code>{" "}
+            for structured output. Multiple sessions run in parallel without
+            interference.
+          </p>
         </div>
 
         {/* Console Screenshots */}

@@ -462,6 +462,13 @@ Yes. Pilot Shell enhances Claude Code — it doesn't replace it. You need an act
 </details>
 
 <details>
+<summary><b>Does Pilot Shell work with Codex, Gemini CLI, OpenCode, or other AI coding tools?</b></summary>
+
+No. Pilot Shell is built exclusively for Claude Code. Every hook, rule, command, and workflow is engineered specifically for Claude's tool-use protocol, prompt format, and session lifecycle. Pilot Shell also only supports Claude Sonnet 4.6 and Claude Opus 4.6 — these are the models that produce the best results, and every rule and prompt is optimized for their behavior. Supporting other tools or models would mean compromising on quality, which is the opposite of what Pilot Shell is designed to do.
+
+</details>
+
+<details>
 <summary><b>Does Pilot Shell work with existing projects?</b></summary>
 
 Yes — that's the primary use case. Pilot Shell doesn't scaffold or restructure your code. You install it, run `/sync`, and it explores your codebase to discover your tech stack, conventions, and patterns. From there, every session has full context about your project. The more complex and established your codebase, the more value Pilot Shell adds — quality hooks catch regressions, persistent memory preserves decisions across sessions, and `/spec` plans features against your real architecture.

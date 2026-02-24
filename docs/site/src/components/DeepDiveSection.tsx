@@ -58,7 +58,10 @@ const hooksPipeline = [
   {
     trigger: "PreCompact",
     description: "Before auto-compaction fires",
-    hooks: ["Capture active plan, task list, and key context to memory"],
+    hooks: [
+      "Capture active plan, task list, and key context to memory",
+      "Snapshot current progress so nothing is lost across cycles",
+    ],
     color: "text-violet-400",
     bgColor: "bg-violet-400/10",
     borderColor: "border-violet-400/30",
@@ -485,10 +488,8 @@ const DeepDiveSection = () => {
                   </p>
                 </div>
                 <p className="text-xs text-muted-foreground mt-3 pl-1">
-                  Add your own language servers via{" "}
-                  <code className="text-primary bg-primary/10 px-1 py-0.5 rounded">
-                    .lsp.json
-                  </code>
+                  Pilot Shell works with all programming languages. Add more
+                  language servers via Claude Code's MCP plugin system.
                 </p>
               </div>
             </div>

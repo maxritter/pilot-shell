@@ -18,7 +18,7 @@ const agents = [
     color: "text-primary",
     bgColor: "bg-primary/10",
     borderColor: "border-primary/30",
-    desc: "Auto-lints, formats, and type-checks on every file edit. Catches issues before they compile.",
+    desc: "Auto-lints, formats, and type-checks on every file edit. Catches issues before they compile, not after.",
   },
   {
     name: "VERIFIER",
@@ -27,7 +27,7 @@ const agents = [
     color: "text-emerald-400",
     bgColor: "bg-emerald-400/10",
     borderColor: "border-emerald-400/30",
-    desc: "Independent sub-agent that reviews code against the plan. Finds what tests miss.",
+    desc: "Independent sub-agent that reviews code against the plan. Catches gaps that tests alone miss.",
   },
   {
     name: "MEMORY",
@@ -45,7 +45,7 @@ const agents = [
     color: "text-amber-400",
     bgColor: "bg-amber-400/10",
     borderColor: "border-amber-400/30",
-    desc: "Monitors context usage. Hooks capture plan state and task progress before compaction, then restore it after — no work lost, ever.",
+    desc: "Captures plan state before compaction, restores it after. Work continues exactly where it left off.",
   },
   {
     name: "PLANNER",
@@ -63,7 +63,7 @@ const agents = [
     color: "text-rose-400",
     bgColor: "bg-rose-400/10",
     borderColor: "border-rose-400/30",
-    desc: "Implements each task with strict TDD in the main context. Full access to quality hooks, rules, and project context.",
+    desc: "Implements each task with strict TDD. Full access to quality hooks, rules, and project context.",
   },
   {
     name: "STANDARDS",
@@ -72,7 +72,7 @@ const agents = [
     color: "text-cyan-400",
     bgColor: "bg-cyan-400/10",
     borderColor: "border-cyan-400/30",
-    desc: "13 coding standards activated conditionally by file type — API design, accessibility, components, responsive design, testing, and more.",
+    desc: "Coding standards activated by file type — API design, accessibility, components, testing, and more.",
   },
   {
     name: "WORKTREE",
@@ -81,7 +81,7 @@ const agents = [
     color: "text-orange-400",
     bgColor: "bg-orange-400/10",
     borderColor: "border-orange-400/30",
-    desc: "Runs spec work in isolated git worktrees. Experiment safely, squash merge when verified.",
+    desc: "Runs spec work in isolated git worktrees. Experiment safely, squash merge when verified, discard if not.",
   },
 ];
 
@@ -102,7 +102,8 @@ const AgentRoster = () => {
             Meet the Squad
           </h2>
           <p className="text-muted-foreground text-lg sm:text-xl max-w-2xl mx-auto">
-            Pre-configured agents working on every session. Not personas — real automation.
+            Pre-configured agents working on every session. Not personas — real
+            automation.
           </p>
         </div>
 
@@ -119,8 +120,10 @@ const AgentRoster = () => {
                   hover:bg-card/50 hover:-translate-y-1 transition-all duration-300`}
               >
                 <div className="flex items-center gap-3 mb-3">
-                  <div className={`w-10 h-10 ${agent.bgColor} rounded-xl flex items-center justify-center
-                    group-hover:scale-110 transition-transform duration-300`}>
+                  <div
+                    className={`w-10 h-10 ${agent.bgColor} rounded-xl flex items-center justify-center
+                    group-hover:scale-110 transition-transform duration-300`}
+                  >
                     <Icon className={`h-5 w-5 ${agent.color}`} />
                   </div>
                   <div>

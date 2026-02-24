@@ -4,12 +4,8 @@ import {
   CheckCircle2,
   RefreshCw,
   Zap,
-  Search,
   MessageSquare,
-  Shield,
   Brain,
-  GitBranch,
-  Terminal,
 } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
 
@@ -21,67 +17,10 @@ const specSteps = [
   { icon: RefreshCw, title: "Verify", desc: "Tests pass or loops back" },
 ];
 
-const planDetails = [
-  {
-    icon: Search,
-    text: "Explores entire codebase with semantic search (Vexor)",
-  },
-  {
-    icon: MessageSquare,
-    text: "Asks clarifying questions before committing to a design",
-  },
-  {
-    icon: FileText,
-    text: "Writes detailed spec to docs/plans/ as reviewed markdown",
-  },
-  {
-    icon: Shield,
-    text: "Plan-verifier sub-agent validates completeness and alignment",
-  },
-  {
-    icon: CheckCircle2,
-    text: "Waits for your approval — you can edit the plan first",
-  },
-];
-
-const implementDetails = [
-  {
-    icon: GitBranch,
-    text: "Creates isolated git worktree on a dedicated branch",
-  },
-  {
-    icon: Code2,
-    text: "Implements each task sequentially with strict TDD (RED → GREEN → REFACTOR)",
-  },
-  {
-    icon: Shield,
-    text: "Quality hooks auto-lint, format, and type-check every edit",
-  },
-  {
-    icon: RefreshCw,
-    text: "Runs full test suite after each task to catch regressions",
-  },
-];
-
-const verifyDetails = [
-  {
-    icon: CheckCircle2,
-    text: "Runs full test suite — unit, integration, and E2E",
-  },
-  { icon: Shield, text: "Type checking and linting across the entire project" },
-  {
-    icon: Search,
-    text: "Three review sub-agents verify compliance, quality, and goal achievement",
-  },
-  { icon: FileText, text: "Validates every plan task was actually completed" },
-  { icon: RefreshCw, text: "Auto-fixes findings, loops back if issues remain" },
-];
-
 const WorkflowSteps = () => {
   const [headerRef, headerInView] = useInView<HTMLDivElement>();
   const [diagramRef, diagramInView] = useInView<HTMLDivElement>();
   const [modesRef, modesInView] = useInView<HTMLDivElement>();
-  const [detailsRef, detailsInView] = useInView<HTMLDivElement>();
   const [commandsRef, commandsInView] = useInView<HTMLDivElement>();
 
   return (
@@ -158,7 +97,7 @@ const WorkflowSteps = () => {
         {/* Spec-Driven Workflow Diagram */}
         <div
           ref={diagramRef}
-          className={`rounded-2xl p-6 border border-border/50 bg-card/30 backdrop-blur-sm mb-8 ${diagramInView ? "animate-fade-in-up animation-delay-200" : "opacity-0"}`}
+          className={`rounded-2xl p-6 border border-border/50 bg-card/30 backdrop-blur-sm mb-12 ${diagramInView ? "animate-fade-in-up animation-delay-200" : "opacity-0"}`}
         >
           <h3 className="text-base font-semibold text-foreground mb-6 text-center">
             <code className="text-primary">/spec</code> Workflow
@@ -196,93 +135,6 @@ const WorkflowSteps = () => {
           </div>
         </div>
 
-        {/* Detailed Phase Breakdowns */}
-        <div
-          ref={detailsRef}
-          className={`grid md:grid-cols-3 gap-6 mb-12 ${detailsInView ? "animate-fade-in-up" : "opacity-0"}`}
-        >
-          {/* Plan Phase */}
-          <div className="rounded-2xl p-5 border border-border/50 bg-card/30 backdrop-blur-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 bg-sky-400/10 rounded-lg flex items-center justify-center">
-                <FileText className="h-4 w-4 text-sky-400" />
-              </div>
-              <h4 className="font-semibold text-foreground">Plan Phase</h4>
-              <span className="ml-auto text-[10px] font-mono font-medium text-violet-400 bg-violet-400/10 px-2 py-0.5 rounded-full">
-                OPUS
-              </span>
-            </div>
-            <ul className="space-y-2.5">
-              {planDetails.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <li
-                    key={item.text}
-                    className="flex items-start gap-2 text-sm text-muted-foreground"
-                  >
-                    <Icon className="h-3.5 w-3.5 text-sky-400 flex-shrink-0 mt-0.5" />
-                    <span>{item.text}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-
-          {/* Implement Phase */}
-          <div className="rounded-2xl p-5 border border-border/50 bg-card/30 backdrop-blur-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Code2 className="h-4 w-4 text-primary" />
-              </div>
-              <h4 className="font-semibold text-foreground">Implement Phase</h4>
-              <span className="ml-auto text-[10px] font-mono font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                SONNET
-              </span>
-            </div>
-            <ul className="space-y-2.5">
-              {implementDetails.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <li
-                    key={item.text}
-                    className="flex items-start gap-2 text-sm text-muted-foreground"
-                  >
-                    <Icon className="h-3.5 w-3.5 text-primary flex-shrink-0 mt-0.5" />
-                    <span>{item.text}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-
-          {/* Verify Phase */}
-          <div className="rounded-2xl p-5 border border-border/50 bg-card/30 backdrop-blur-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 bg-emerald-400/10 rounded-lg flex items-center justify-center">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-              </div>
-              <h4 className="font-semibold text-foreground">Verify Phase</h4>
-              <span className="ml-auto text-[10px] font-mono font-medium text-violet-400 bg-violet-400/10 px-2 py-0.5 rounded-full">
-                OPUS
-              </span>
-            </div>
-            <ul className="space-y-2.5">
-              {verifyDetails.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <li
-                    key={item.text}
-                    className="flex items-start gap-2 text-sm text-muted-foreground"
-                  >
-                    <Icon className="h-3.5 w-3.5 text-emerald-400 flex-shrink-0 mt-0.5" />
-                    <span>{item.text}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        </div>
-
         {/* All Commands */}
         <div
           ref={commandsRef}
@@ -299,8 +151,7 @@ const WorkflowSteps = () => {
               </div>
               <p className="text-xs text-muted-foreground">
                 Spec-Driven Development — plan, approve, implement, verify.
-                Features and bug fixes. Auto-detects bugfix intent from the task
-                description.
+                Features and bug fixes. Auto-detects bugfix intent.
               </p>
             </div>
             <div className="rounded-xl p-4 border border-border/40 bg-background/30">
@@ -310,8 +161,7 @@ const WorkflowSteps = () => {
               </div>
               <p className="text-xs text-muted-foreground">
                 Syncs rules and standards with your codebase — explores
-                patterns, updates project docs, discovers undocumented
-                conventions, creates new skills.
+                patterns, discovers conventions, creates new skills.
               </p>
             </div>
             <div className="rounded-xl p-4 border border-border/40 bg-background/30">
@@ -321,7 +171,7 @@ const WorkflowSteps = () => {
               </div>
               <p className="text-xs text-muted-foreground">
                 Team Vault — push, pull, and browse shared rules, skills, and
-                commands across your team via sx.
+                commands. Automatic versioning via private Git repo.
               </p>
             </div>
             <div className="rounded-xl p-4 border border-border/40 bg-background/30">
@@ -330,79 +180,11 @@ const WorkflowSteps = () => {
                 <code className="text-sm font-medium text-primary">/learn</code>
               </div>
               <p className="text-xs text-muted-foreground">
-                Online learning — extracts non-obvious debugging discoveries,
-                workarounds, and tool integrations into reusable skills.
+                Online learning — extracts debugging discoveries, workarounds,
+                and tool integrations into reusable skills.
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Pilot CLI */}
-        <div
-          className={`rounded-2xl p-6 border border-border/50 bg-card/30 backdrop-blur-sm mt-8 ${commandsInView ? "animate-fade-in-up animation-delay-200" : "opacity-0"}`}
-        >
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Terminal className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-semibold text-foreground">Pilot CLI</h3>
-          </div>
-          <p className="text-sm text-muted-foreground text-center mb-5">
-            The <code className="text-primary text-xs">pilot</code> binary
-            manages sessions, worktrees, licensing, and context
-          </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <div className="rounded-xl p-3 border border-border/40 bg-background/30">
-              <code className="text-xs font-medium text-primary">pilot</code>
-              <p className="text-[11px] text-muted-foreground mt-1">
-                Start Claude with Pilot enhancements, auto-update, and license
-                verification
-              </p>
-            </div>
-            <div className="rounded-xl p-3 border border-border/40 bg-background/30">
-              <code className="text-xs font-medium text-primary">
-                pilot activate &lt;key&gt;
-              </code>
-              <p className="text-[11px] text-muted-foreground mt-1">
-                Activate a license key on this machine
-              </p>
-            </div>
-            <div className="rounded-xl p-3 border border-border/40 bg-background/30">
-              <code className="text-xs font-medium text-primary">
-                pilot status
-              </code>
-              <p className="text-[11px] text-muted-foreground mt-1">
-                Show current license and session status
-              </p>
-            </div>
-            <div className="rounded-xl p-3 border border-border/40 bg-background/30">
-              <code className="text-xs font-medium text-primary">
-                pilot worktree create &lt;slug&gt;
-              </code>
-              <p className="text-[11px] text-muted-foreground mt-1">
-                Create isolated git worktree for safe experimentation
-              </p>
-            </div>
-            <div className="rounded-xl p-3 border border-border/40 bg-background/30">
-              <code className="text-xs font-medium text-primary">
-                pilot worktree sync &lt;slug&gt;
-              </code>
-              <p className="text-[11px] text-muted-foreground mt-1">
-                Squash merge worktree changes back to base branch
-              </p>
-            </div>
-            <div className="rounded-xl p-3 border border-border/40 bg-background/30">
-              <code className="text-xs font-medium text-primary">
-                pilot check-context
-              </code>
-              <p className="text-[11px] text-muted-foreground mt-1">
-                Monitor context usage — auto-compaction handles limits
-              </p>
-            </div>
-          </div>
-          <p className="text-[11px] text-muted-foreground/60 text-center mt-4">
-            All commands support <code className="text-primary/70">--json</code>{" "}
-            for structured output. Multiple sessions run in parallel without
-            interference.
-          </p>
         </div>
       </div>
     </section>
