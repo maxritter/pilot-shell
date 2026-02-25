@@ -2,6 +2,18 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.0.3] - 2026-02-25
+
+### Bug Fixes
+
+- Add bugfix verify phase, Linux Homebrew fallback, and site/console improvements
+
+### Miscellaneous
+
+- Restructure docs page TOC into grouped categories and trim verbose sections
+- Trim site sections, reorder layout, and add compatibility FAQ
+- Streamline README structure and reduce visual clutter
+
 ## [7.0.2] - 2026-02-24
 
 ### Bug Fixes
