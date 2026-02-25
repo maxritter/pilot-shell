@@ -67,11 +67,15 @@ def install_nodejs() -> bool:
 
     nvm_dir = Path.home() / ".nvm"
     if not nvm_dir.exists():
-        if not _run_bash_with_retry("curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash"):
+        if not _run_bash_with_retry(
+            "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash",
+            timeout=180,
+        ):
             return False
 
     nvm_src = _get_nvm_source_cmd()
-    if not _run_bash_with_retry(f"{nvm_src}nvm install 22 && nvm use 22"):
+    nvm_cmd = f'export NVM_DIR="$HOME/.nvm" && {nvm_src}nvm install 22 && nvm use 22'
+    if not _run_bash_with_retry(nvm_cmd, timeout=300):
         return False
 
     nvm_versions = Path.home() / ".nvm" / "versions" / "node"

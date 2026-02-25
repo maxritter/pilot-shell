@@ -6,6 +6,7 @@ import os
 import subprocess
 import time
 from pathlib import Path
+from typing import Any
 
 from installer.context import InstallContext
 from installer.platform_utils import (
@@ -209,6 +210,97 @@ def _install_ripgrep_via_apt() -> bool:
         return False
 
 
+def _install_nodejs_via_pkg() -> bool:
+    """Install Node.js via system package manager (dnf or apt) on Linux."""
+    if is_dnf_available():
+        try:
+            subprocess.run(
+                ["sudo", "-n", "dnf", "module", "enable", "nodejs:20", "-y"],
+                capture_output=True,
+                check=False,
+                stdin=subprocess.DEVNULL,
+                timeout=60,
+            )
+            result = subprocess.run(
+                ["sudo", "-n", "dnf", "install", "-y", "nodejs", "npm"],
+                capture_output=True,
+                check=False,
+                stdin=subprocess.DEVNULL,
+                timeout=120,
+            )
+            return result.returncode == 0
+        except (subprocess.SubprocessError, OSError):
+            return False
+    elif is_apt_available():
+        try:
+            subprocess.run(
+                ["sudo", "-n", "apt-get", "update", "-qq"],
+                capture_output=True,
+                check=False,
+                stdin=subprocess.DEVNULL,
+                timeout=60,
+            )
+            result = subprocess.run(
+                ["sudo", "-n", "apt-get", "install", "-y", "nodejs", "npm"],
+                capture_output=True,
+                check=False,
+                stdin=subprocess.DEVNULL,
+                timeout=120,
+            )
+            return result.returncode == 0
+        except (subprocess.SubprocessError, OSError):
+            return False
+    return False
+
+
+def _install_bun_standalone() -> bool:
+    """Install bun via standalone installer when Homebrew is unavailable."""
+    try:
+        result = subprocess.run(
+            ["bash", "-c", "curl -fsSL https://bun.sh/install | bash"],
+            capture_output=True,
+            check=False,
+            stdin=subprocess.DEVNULL,
+            timeout=120,
+        )
+        if result.returncode == 0:
+            bun_bin = str(Path.home() / ".bun" / "bin")
+            if bun_bin not in os.environ.get("PATH", ""):
+                os.environ["PATH"] = f"{bun_bin}:{os.environ.get('PATH', '')}"
+            return command_exists("bun")
+        return False
+    except (subprocess.SubprocessError, OSError):
+        return False
+
+
+def _install_linux_fallbacks(ui: Any) -> None:
+    """Install critical tools via native methods when Homebrew is unavailable on Linux."""
+    if not is_linux():
+        return
+
+    if not command_exists("node"):
+        if ui:
+            with ui.spinner("Installing Node.js via system package manager..."):
+                success = _install_nodejs_via_pkg()
+            if success:
+                ui.success("Node.js installed via system package manager")
+            else:
+                ui.warning("Could not install Node.js - please install manually")
+        else:
+            _install_nodejs_via_pkg()
+
+    if not command_exists("bun"):
+        if ui:
+            with ui.spinner("Installing bun via standalone installer..."):
+                success = _install_bun_standalone()
+            if success:
+                ui.success("bun installed")
+            else:
+                ui.warning("Could not install bun - please install manually")
+        else:
+            _install_bun_standalone()
+
+
 class PrerequisitesStep(BaseStep):
     """Step that installs prerequisite packages for local installations."""
 
@@ -310,3 +402,6 @@ class PrerequisitesStep(BaseStep):
                     ui.warning("Could not install ripgrep - please run: sudo apt-get install ripgrep")
             else:
                 _install_ripgrep_via_apt()
+
+        if not is_homebrew_available():
+            _install_linux_fallbacks(ui)

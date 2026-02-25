@@ -45,6 +45,11 @@ const faqItems = [
       "Pilot Shell's quality hooks (auto-formatting, linting, type checking) currently support Python, TypeScript/JavaScript, and Go out of the box. TDD enforcement, spec-driven development, persistent memory, context preservation hooks, and all rules and standards work with any language that Claude Code supports. You can add custom hooks for additional languages.",
   },
   {
+    question: "Can I use one license on multiple machines?",
+    answer:
+      "Yes. A Solo license covers you across all your personal devices \u2014 workstation, laptop, VPS, Dev Containers. One subscription, one key, multiple machines. No need for a Team plan just because you work from more than one device. Team licenses are for multiple people, not multiple machines.",
+  },
+  {
     question: "Can I use Pilot Shell on multiple projects?",
     answer:
       "Yes. Pilot Shell installs once and works across all your projects. Each project can have its own rules, standards, and MCP servers in the .claude/ folder. Run /sync in each project to generate project-specific documentation and standards.",

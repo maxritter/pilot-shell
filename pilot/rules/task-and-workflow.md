@@ -75,7 +75,7 @@ The Task tool spawns verification sub-agents at two points:
 | `spec-plan` Step 1.7 (features only) | plan-verifier + plan-challenger | `pilot:plan-verifier` + `pilot:plan-challenger` |
 | `spec-verify` Step 3.0, 3.7 (features only) | spec-reviewer-compliance + spec-reviewer-quality + spec-reviewer-goal | `pilot:spec-reviewer-compliance` + `pilot:spec-reviewer-quality` + `pilot:spec-reviewer-goal` |
 
-**Note:** Bugfixes skip sub-agents in both planning and verification. `spec-bugfix-plan` skips plan verification agents — bugfix plans are tight enough (fixed task structure, behavior contract) that the user approval gate is sufficient. `spec-bugfix-verify` skips the three review agents — the Behavior Contract (Fix Property + Preservation Property) mathematically proves correctness through tests, making the agents redundant for bugfixes.
+**Note:** Bugfixes skip sub-agents in both planning and verification. `spec-bugfix-plan` skips plan verification agents — bugfix plans are right-sized (Compact 2-task default, Full 3-task for complex bugs, Behavior Contract) and the user approval gate is sufficient. `spec-bugfix-verify` skips the three review agents — the Behavior Contract (Fix Property + Preservation Property) mathematically proves correctness through tests, making the agents redundant for bugfixes.
 
 All verification agents have `background: true` in their agent definitions, so they run in the background automatically. **As a fallback**, also pass `run_in_background=true` in the Task() call.
 

@@ -102,18 +102,17 @@ const WorkflowSteps = () => {
           <h3 className="text-base font-semibold text-foreground mb-6 text-center">
             <code className="text-primary">/spec</code> Workflow
           </h3>
-          <div className="flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-4 sm:gap-6">
+
+          {/* Desktop: single row with arrows (≥768px) */}
+          <div className="hidden md:flex items-center justify-center gap-6">
             {specSteps.map((step, i) => (
-              <div
-                key={i}
-                className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6"
-              >
+              <div key={i} className="flex items-center gap-6">
                 <div className="flex flex-col items-center">
                   <div
-                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center
+                    className="w-16 h-16 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center
                     hover:bg-primary/20 hover:scale-110 transition-all duration-300"
                   >
-                    <step.icon className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+                    <step.icon className="h-7 w-7 text-primary" />
                   </div>
                   <span className="text-sm text-foreground mt-3 font-medium">
                     {step.title}
@@ -123,15 +122,44 @@ const WorkflowSteps = () => {
                   </span>
                 </div>
                 {i < specSteps.length - 1 && (
-                  <span className="hidden sm:block text-primary text-2xl font-light">
+                  <span className="text-primary text-2xl font-light">
                     &rarr;
                   </span>
                 )}
               </div>
             ))}
-            <span className="text-muted-foreground text-sm sm:ml-4 flex items-center gap-1">
+            <span className="text-muted-foreground text-sm ml-4 flex items-center gap-1">
               <RefreshCw className="h-4 w-4" /> Loop
             </span>
+          </div>
+
+          {/* Mobile: compact numbered list (<768px) */}
+          <div className="md:hidden space-y-3">
+            {specSteps.map((step, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center flex-shrink-0">
+                  <step.icon className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm text-foreground font-medium">
+                    {step.title}
+                  </span>
+                  <span className="text-xs text-muted-foreground ml-2">
+                    {step.desc}
+                  </span>
+                </div>
+                {i < specSteps.length - 1 && (
+                  <span className="text-primary/40 text-lg flex-shrink-0">
+                    ↓
+                  </span>
+                )}
+                {i === specSteps.length - 1 && (
+                  <span className="text-muted-foreground text-xs flex items-center gap-1 flex-shrink-0">
+                    <RefreshCw className="h-3 w-3" /> Loop
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 

@@ -476,6 +476,93 @@ class TestInstallPluginDependencies:
         assert result is False
 
 
+class TestNvmInstallBugCondition:
+    """Bug-condition tests: verify NVM installation uses 300s timeout and explicit NVM_DIR.
+
+    These tests FAIL on current code because timeout is 120s and NVM_DIR is not set.
+    They pass after the fix is implemented.
+    """
+
+    @patch("installer.steps.dependencies._run_bash_with_retry")
+    @patch("installer.steps.dependencies.command_exists")
+    def test_nvm_install_uses_300s_timeout(self, mock_cmd_exists, mock_run):
+        """nvm install 22 must use 300s timeout (not the default 120s)."""
+        from installer.steps.dependencies import install_nodejs
+
+        mock_cmd_exists.return_value = False
+        mock_run.return_value = True
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            home_dir = Path(tmpdir)
+            nvm_dir = home_dir / ".nvm"
+            nvm_dir.mkdir()
+            (nvm_dir / "nvm.sh").touch()
+
+            with patch.object(Path, "home", return_value=home_dir):
+                install_nodejs()
+
+        nvm_install_calls = [c for c in mock_run.call_args_list if "nvm install" in str(c)]
+        assert nvm_install_calls, "nvm install should be called"
+        for call in nvm_install_calls:
+            timeout = call.kwargs.get("timeout")
+            assert timeout == 300, f"Expected timeout=300 for nvm install, got timeout={timeout}"
+
+    @patch("installer.steps.dependencies._run_bash_with_retry")
+    @patch("installer.steps.dependencies.command_exists")
+    def test_nvm_install_sets_nvm_dir_in_command(self, mock_cmd_exists, mock_run):
+        """nvm install 22 command must explicitly export NVM_DIR before sourcing nvm.sh."""
+        from installer.steps.dependencies import install_nodejs
+
+        mock_cmd_exists.return_value = False
+        mock_run.return_value = True
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            home_dir = Path(tmpdir)
+            nvm_dir = home_dir / ".nvm"
+            nvm_dir.mkdir()
+            (nvm_dir / "nvm.sh").touch()
+
+            with patch.object(Path, "home", return_value=home_dir):
+                install_nodejs()
+
+        nvm_install_calls = [c for c in mock_run.call_args_list if "nvm install" in str(c)]
+        assert nvm_install_calls, "nvm install should be called"
+        nvm_cmd = nvm_install_calls[0][0][0]
+        assert "NVM_DIR" in nvm_cmd, f"NVM_DIR must be explicitly set in nvm install command, got: {nvm_cmd}"
+
+
+class TestNvmInstallPreservation:
+    """Preservation tests: NVM behavior that must NOT change after the timeout/NVM_DIR fix."""
+
+    @patch("installer.steps.dependencies.command_exists")
+    def test_preservation_install_nodejs_returns_true_when_node_installed(self, mock_cmd_exists):
+        """PRESERVATION: install_nodejs() returns True immediately when node is already in PATH."""
+        import os
+
+        from installer.steps.dependencies import install_nodejs
+
+        mock_cmd_exists.return_value = True
+        original_path = os.environ.get("PATH", "")
+        result = install_nodejs()
+        assert result is True
+        assert os.environ.get("PATH", "") == original_path
+
+    @patch("installer.steps.dependencies._run_bash_with_retry")
+    @patch("installer.steps.dependencies.command_exists")
+    def test_preservation_install_nodejs_returns_false_when_nvm_install_fails(self, mock_cmd_exists, mock_run):
+        """PRESERVATION: install_nodejs() returns False when NVM installation itself fails."""
+        from installer.steps.dependencies import install_nodejs
+
+        mock_cmd_exists.return_value = False
+        mock_run.return_value = False
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                result = install_nodejs()
+
+        assert result is False
+
+
 class TestInstallNodejsPathUpdate:
     """Test that install_nodejs updates PATH after NVM installation."""
 

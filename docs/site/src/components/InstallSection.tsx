@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Check, Copy, Terminal, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useInView } from "@/hooks/use-in-view";
+import ImageModal from "@/components/ImageModal";
 
 const InstallSection = () => {
   const [copied, setCopied] = useState(false);
@@ -111,11 +112,10 @@ const InstallSection = () => {
 
         {/* Demo GIF */}
         <div className="mt-10 rounded-xl overflow-hidden border border-border/50 shadow-2xl shadow-primary/10">
-          <img
+          <ImageModal
             src="/demo.gif"
             alt="Pilot Shell in action — spec-driven development with Claude Code"
             className="w-full"
-            loading="eager"
           />
         </div>
       </div>

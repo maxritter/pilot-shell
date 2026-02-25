@@ -418,6 +418,8 @@ Pilot Shell is source-available under a commercial license. See the [LICENSE](LI
 | **Solo** | 1     | All features, continuous updates, bug reports via [GitHub Issues][gh-issues] |
 | **Team** | Multi | Solo + multiple seats, priority email support, feature requests              |
 
+All plans work across multiple personal machines and Dev Containers — one subscription, all your devices.
+
 [gh-issues]: https://github.com/maxritter/pilot-shell/issues
 
 Details and licensing at [pilot-shell.com](https://pilot-shell.com).

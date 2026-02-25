@@ -51,7 +51,8 @@ const HeroSection = () => {
         {/* Subtitle */}
         <div className="animate-fade-in-up animation-delay-300 mb-6 xs:mb-8 px-1">
           <p className="text-foreground/90 text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl font-medium max-w-[90%] xs:max-w-xl sm:max-w-2xl mx-auto leading-relaxed">
-            The professional development environment for Claude Code.
+            The professional development environment{" "}
+            <span className="whitespace-nowrap">for Claude Code.</span>
           </p>
           <p className="text-muted-foreground text-[11px] xs:text-xs sm:text-sm md:text-base max-w-[90%] xs:max-w-xl sm:max-w-2xl mx-auto mt-1.5 leading-relaxed">
             Start a task, grab a coffee, come back to production-grade code.

@@ -640,3 +640,179 @@ class TestIsHomebrewAvailable:
 
         mock_which.return_value = None
         assert is_homebrew_available() is False
+
+
+class TestLinuxFallbackBugCondition:
+    """Bug-condition tests: verify Linux native fallbacks are called when Homebrew is unavailable.
+
+    These tests FAIL on current code because _install_nodejs_via_pkg and _install_bun_standalone
+    do not exist yet. They pass after the fix is implemented.
+    """
+
+    @patch("installer.steps.prerequisites._install_bun_standalone")
+    @patch("installer.steps.prerequisites._install_nodejs_via_pkg")
+    @patch("installer.steps.prerequisites._install_ripgrep_via_apt")
+    @patch("installer.steps.prerequisites.is_apt_available")
+    @patch("installer.steps.prerequisites._install_homebrew")
+    @patch("installer.steps.prerequisites._ensure_git_installed")
+    @patch("installer.steps.prerequisites.command_exists")
+    @patch("installer.steps.prerequisites.is_linux")
+    @patch("installer.steps.prerequisites.is_homebrew_available")
+    def test_linux_fallback_installs_nodejs_via_pkg_when_brew_unavailable(
+        self,
+        mock_brew_avail,
+        mock_linux,
+        mock_cmd_exists,
+        _mock_git,
+        mock_install_brew,
+        mock_apt,
+        _mock_ripgrep,
+        mock_nodejs_pkg,
+        _mock_bun_standalone,
+    ):
+        """On Linux without Homebrew, Node.js is installed via system package manager."""
+        from installer.context import InstallContext
+        from installer.steps.prerequisites import PrerequisitesStep
+        from installer.ui import Console
+
+        mock_brew_avail.return_value = False
+        mock_linux.return_value = True
+        mock_cmd_exists.return_value = False
+        mock_install_brew.return_value = False
+        mock_apt.return_value = True
+        mock_nodejs_pkg.return_value = True
+
+        step = PrerequisitesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            ctx = InstallContext(
+                project_dir=Path(tmpdir),
+                is_local_install=True,
+                ui=Console(non_interactive=True),
+            )
+            step.run(ctx)
+
+        mock_nodejs_pkg.assert_called_once()
+
+    @patch("installer.steps.prerequisites._install_bun_standalone")
+    @patch("installer.steps.prerequisites._install_nodejs_via_pkg")
+    @patch("installer.steps.prerequisites._install_ripgrep_via_apt")
+    @patch("installer.steps.prerequisites.is_apt_available")
+    @patch("installer.steps.prerequisites._install_homebrew")
+    @patch("installer.steps.prerequisites._ensure_git_installed")
+    @patch("installer.steps.prerequisites.command_exists")
+    @patch("installer.steps.prerequisites.is_linux")
+    @patch("installer.steps.prerequisites.is_homebrew_available")
+    def test_linux_fallback_installs_bun_standalone_when_brew_unavailable(
+        self,
+        mock_brew_avail,
+        mock_linux,
+        mock_cmd_exists,
+        _mock_git,
+        mock_install_brew,
+        mock_apt,
+        _mock_ripgrep,
+        _mock_nodejs_pkg,
+        mock_bun_standalone,
+    ):
+        """On Linux without Homebrew, bun is installed via standalone installer."""
+        from installer.context import InstallContext
+        from installer.steps.prerequisites import PrerequisitesStep
+        from installer.ui import Console
+
+        mock_brew_avail.return_value = False
+        mock_linux.return_value = True
+        mock_cmd_exists.return_value = False
+        mock_install_brew.return_value = False
+        mock_apt.return_value = True
+        mock_bun_standalone.return_value = True
+
+        step = PrerequisitesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            ctx = InstallContext(
+                project_dir=Path(tmpdir),
+                is_local_install=True,
+                ui=Console(non_interactive=True),
+            )
+            step.run(ctx)
+
+        mock_bun_standalone.assert_called_once()
+
+
+class TestLinuxFallbackPreservation:
+    """Preservation tests: behavior that must NOT change after the Linux fallback fix."""
+
+    @patch("installer.steps.prerequisites._install_homebrew_package")
+    @patch("installer.steps.prerequisites._add_bun_tap")
+    @patch("installer.steps.prerequisites._is_nvm_installed")
+    @patch("installer.steps.prerequisites.command_exists")
+    @patch("installer.steps.prerequisites.is_linux")
+    @patch("installer.steps.prerequisites.is_homebrew_available")
+    def test_preservation_brew_install_called_when_homebrew_available_on_linux(
+        self,
+        mock_brew_avail,
+        mock_linux,
+        mock_cmd_exists,
+        mock_nvm,
+        mock_tap,
+        mock_install,
+    ):
+        """PRESERVATION: On Linux when Homebrew IS available, brew install is used for packages."""
+        from installer.context import InstallContext
+        from installer.steps.prerequisites import HOMEBREW_PACKAGES, PrerequisitesStep
+        from installer.ui import Console
+
+        mock_brew_avail.return_value = True
+        mock_linux.return_value = True
+        mock_cmd_exists.return_value = False
+        mock_nvm.return_value = False
+        mock_tap.return_value = True
+        mock_install.return_value = True
+
+        step = PrerequisitesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            ctx = InstallContext(
+                project_dir=Path(tmpdir),
+                is_local_install=True,
+                ui=Console(non_interactive=True),
+            )
+            step.run(ctx)
+
+        assert mock_install.call_count == len(HOMEBREW_PACKAGES)
+
+    @patch("installer.steps.prerequisites._install_ripgrep_via_apt")
+    @patch("installer.steps.prerequisites.is_apt_available")
+    @patch("installer.steps.prerequisites._install_homebrew")
+    @patch("installer.steps.prerequisites.command_exists")
+    @patch("installer.steps.prerequisites.is_linux")
+    @patch("installer.steps.prerequisites.is_homebrew_available")
+    def test_preservation_macos_returns_early_without_linux_fallbacks(
+        self,
+        mock_brew_avail,
+        mock_linux,
+        mock_cmd_exists,
+        mock_install_brew,
+        mock_apt,
+        mock_ripgrep,
+    ):
+        """PRESERVATION: On macOS with Homebrew failure, run() exits early and no apt/ripgrep fallbacks run."""
+        from installer.context import InstallContext
+        from installer.steps.prerequisites import PrerequisitesStep
+        from installer.ui import Console
+
+        mock_brew_avail.return_value = False
+        mock_linux.return_value = False
+        mock_cmd_exists.return_value = True
+        mock_install_brew.return_value = False
+        mock_apt.return_value = True
+        mock_ripgrep.return_value = True
+
+        step = PrerequisitesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            ctx = InstallContext(
+                project_dir=Path(tmpdir),
+                is_local_install=True,
+                ui=Console(non_interactive=True),
+            )
+            step.run(ctx)
+
+        mock_ripgrep.assert_not_called()

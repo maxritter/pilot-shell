@@ -71,17 +71,19 @@ This is the core verification step for bugfixes — the equivalent of three revi
 
 1. **Read the Behavior Contract** from the plan file (the `## Behavior Contract` section)
 
-2. **Verify Fix Property (C ⟹ P):** Identify the bug-condition tests from Task 1. Run them individually:
+2. **Verify Fix Property (C ⟹ P):** Run the regression tests listed under **"Must Change"** in the Behavior Contract (the `Regression test:` line). Run each individually:
    ```bash
    uv run pytest <test-path>::<test-class>::<test-name> -q
    ```
    Each must PASS (green). If any fail, the fix is incomplete — fix immediately.
 
-3. **Verify Preservation Property (¬C ⟹ unchanged):** Identify the preservation tests from Task 2. Run them individually:
+3. **Verify Preservation Property (¬C ⟹ unchanged):** Check the **"Must NOT Change"** section's `Preservation:` line.
+   - If it lists explicit test names: run each individually and verify they PASS.
+   - If it says "Existing test suite": skip this step — the full suite run in Step 3.1 already verified preservation.
    ```bash
    uv run pytest <test-path>::<test-class>::<test-name> -q
    ```
-   Each must PASS (green). If any fail, the fix broke existing behavior — fix immediately.
+   If any fail, the fix broke existing behavior — fix immediately.
 
 4. **Cross-check scope:** Read the changed production files and confirm changes are limited to what the plan specifies. Flag any unplanned changes (scope creep). The fix should be minimal — if significant unplanned code was added, investigate whether the Behavior Contract still holds.
 
