@@ -92,10 +92,8 @@ HINTS: dict[str, dict] = {
             data.get("tool_input", {}).get("subagent_type", "")
             not in (
                 "Explore",
-                "pilot:spec-reviewer-compliance",
-                "pilot:spec-reviewer-quality",
-                "pilot:plan-verifier",
-                "pilot:plan-challenger",
+                "pilot:plan-reviewer",
+                "pilot:spec-reviewer",
                 "claude-code-guide",
             )
             if isinstance(data.get("tool_input"), dict)

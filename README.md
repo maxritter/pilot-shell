@@ -122,11 +122,11 @@ Plan  →  Approve  →  Implement (TDD)  →  Verify  →  Done
 
 Full exploration workflow for new functionality, refactoring, or architectural changes.
 
-**Plan:** Explores codebase with semantic search → asks clarifying questions → writes detailed spec with scope, tasks, and definition of done → **plan-verifier sub-agent** validates completeness → waits for your approval.
+**Plan:** Explores codebase with semantic search → asks clarifying questions → writes detailed spec with scope, tasks, and definition of done → **plan-reviewer sub-agent** validates completeness → waits for your approval.
 
 **Implement:** Creates an isolated git worktree → implements each task with strict TDD (RED → GREEN → REFACTOR) → quality hooks auto-lint, format, and type-check every edit → full test suite after each task.
 
-**Verify:** Full test suite + actual program execution → **three review sub-agents** in parallel (compliance, quality, goal) → auto-fixes findings → squash merges to main on success.
+**Verify:** Full test suite + actual program execution → **unified review sub-agent** (compliance + quality + goal) → auto-fixes findings → squash merges to main on success.
 
 </details>
 

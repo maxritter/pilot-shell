@@ -22,7 +22,7 @@ hooks:
 
 | #   | Rule                                                                                                     |
 | --- | -------------------------------------------------------------------------------------------------------- |
-| 1   | **NO sub-agents during planning** - Use direct tools only. Exception: Step 1.7 launches `plan-verifier` + `plan-challenger` via the **Task tool** (`subagent_type="pilot:plan-verifier"` and `"pilot:plan-challenger"`). |
+| 1   | **NO sub-agents during planning** - Use direct tools only. Exception: Step 1.7 launches `plan-reviewer` via the **Task tool** (`subagent_type="pilot:plan-reviewer"`). |
 | 2   | **NEVER SKIP verification** - Plan verification (Step 1.7) is mandatory. No exceptions.                  |
 | 3   | **ONLY stopping point is plan approval** - Everything else is automatic. Never ask "Should I fix these?" |
 | 4   | **Batch questions together** - Don't interrupt user flow                                                 |
@@ -571,14 +571,14 @@ Type: Feature
 | -------- | ------------ | ------------ | ------------------------------------ |
 | [Risk 1] | Low/Med/High | Low/Med/High | [Concrete, implementable mitigation] |
 
-**⚠️ Risk mitigations are commitments.** The verification phase (spec-reviewer-compliance) will check that every mitigation listed here is actually implemented in code. Write mitigations as concrete, implementable behaviors, not vague statements.
+**⚠️ Risk mitigations are commitments.** The verification phase (spec-reviewer) will check that every mitigation listed here is actually implemented in code. Write mitigations as concrete, implementable behaviors, not vague statements.
 
 ✅ Good: "If selected project not in available list, reset to null (All Projects)"
 ❌ Bad: "Handle edge cases appropriately"
 
 ## Goal Verification
 
-> Derived from the plan's goal using goal-backward methodology. The spec-reviewer-goal agent verifies these criteria during verification.
+> Derived from the plan's goal using goal-backward methodology. The spec-reviewer agent verifies these criteria during verification.
 
 ### Truths (what must be TRUE for the goal to be achieved)
 
@@ -609,7 +609,7 @@ Type: Feature
 
 **⛔ THIS STEP IS NON-NEGOTIABLE. You MUST run plan verification before asking for approval.**
 
-Before presenting the plan to the user, verify it with TWO dedicated reviewer agents running in parallel. This provides both alignment checking (plan-verifier) and adversarial review (plan-challenger) BEFORE the user sees the plan.
+Before presenting the plan to the user, verify it with the `plan-reviewer` agent. This unified agent performs both alignment checking (does the plan match user requirements?) and adversarial review (what could go wrong?) in a single pass.
 
 #### Resolve Session Path for Findings Persistence
 
@@ -617,74 +617,43 @@ Before presenting the plan to the user, verify it with TWO dedicated reviewer ag
 echo $PILOT_SESSION_ID
 ```
 
-Define output paths (replace `<session-id>` with the resolved value):
-- **Verifier findings:** `~/.pilot/sessions/<session-id>/findings-plan-verifier.json`
-- **Challenger findings:** `~/.pilot/sessions/<session-id>/findings-plan-challenger.json`
+Define output path (replace `<session-id>` with the resolved value):
+- **Reviewer findings:** `~/.pilot/sessions/<session-id>/findings-plan-reviewer.json`
 
-#### Launch Plan Verification (Parallel Review)
+#### Launch Plan Verification
 
-**⛔ CRITICAL: You MUST send BOTH Task calls in a SINGLE message.** Both agents have `background: true` in their definitions, so they run in the background automatically. As a fallback, also set `run_in_background=true` on both. If you send them in separate messages, the first blocks and the second waits — defeating the purpose.
+The agent has `background: true` in its definition, so it runs in the background automatically. As a fallback, also set `run_in_background=true`.
 
-**Agent 1: plan-verifier** (alignment and completeness)
 ```
 Task(
-  subagent_type="pilot:plan-verifier",
+  subagent_type="pilot:plan-reviewer",
   run_in_background=true,
   prompt="""
   **Plan file:** <plan-path>
   **User request:** <original task description from user>
   **Clarifications:** <any Q&A that clarified requirements>
-  **Output path:** <absolute path to findings-plan-verifier.json>
+  **Output path:** <absolute path to findings-plan-reviewer.json>
 
-  Verify this plan correctly captures the user's requirements.
-  Check for missing features, scope issues, and ambiguities.
+  Review this plan for both alignment with user requirements AND adversarial risks.
+  Check for missing features, scope issues, untested assumptions, and failure modes.
 
   **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
   """
 )
 ```
 
-**Agent 2: plan-challenger** (adversarial review)
-```
-Task(
-  subagent_type="pilot:plan-challenger",
-  run_in_background=true,
-  prompt="""
-  **Plan file:** <plan-path>
-  **User request:** <original task description from user>
-  **Clarifications:** <any Q&A that clarified requirements>
-  **Output path:** <absolute path to findings-plan-challenger.json>
+The agent reads the plan once and does both alignment and adversarial review, persisting a single findings JSON to the session directory for reliable retrieval.
 
-  Challenge this plan from an adversarial perspective.
-  Find untested assumptions, missing failure modes, and hidden dependencies.
+#### Collect and Fix Findings
 
-  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
-  """
-)
-```
+**⛔ NEVER use `TaskOutput` to retrieve agent results.** TaskOutput dumps the full verbose agent transcript into context, wasting thousands of tokens. Instead, poll the output file with the Read tool.
 
-The verifiers work in parallel:
+**⚠️ IMPORTANT: Wait between polling attempts.** Run `sleep 10` via Bash before each Read attempt. The agent typically takes 3-7 minutes. Rapid-fire Read calls waste context and produce dozens of "file not found" errors.
 
-- **plan-verifier**: Reviews plan against original user request, checks if clarification answers are incorporated, identifies missing requirements or scope issues
-- **plan-challenger**: Challenges assumptions, finds failure modes, questions optimism, identifies architectural weaknesses
-
-Both agents persist their findings JSON to the session directory for reliable retrieval.
-
-#### Collect and Fix Findings (Progressive)
-
-**⛔ NEVER use `TaskOutput` to retrieve agent results.** TaskOutput dumps the full verbose agent transcript (all JSON messages, hook progress, tool calls) into context, wasting thousands of tokens. Instead, poll the output files with the Read tool.
-
-**Progressive polling — fix findings as each agent completes:**
-
-**⚠️ IMPORTANT: Wait between polling attempts.** Run `sleep 10` via Bash before each Read attempt. Agents typically take 3-7 minutes. Rapid-fire Read calls waste context and produce dozens of "file not found" errors.
-
-1. **Wait 10 seconds, then attempt to read BOTH findings files** using the Read tool on the paths defined above
-2. **If neither file exists yet** → run `sleep 10` and retry. Repeat up to 30 times (5 minutes total) before considering the agents failed.
-3. **If one file exists but the other doesn't** → start fixing findings from the ready agent immediately (by severity: must_fix → should_fix → suggestion). Track which findings you fixed.
-4. After fixing the first batch, **wait 10 seconds and poll for the second file** (retry with `sleep 10` between attempts)
-5. **If a file is still missing after 30 retries**, re-launch that specific agent synchronously (without `run_in_background`) with the same prompt
-6. When the second file is ready, **skip findings that overlap** with already-fixed items from the first batch (same file + same issue), then fix the remaining findings
-7. **If both files are ready simultaneously**, deduplicate first (keep higher severity for duplicates on same file + line), then fix all
+1. **Wait 10 seconds, then attempt to read the findings file** using the Read tool on the path defined above
+2. **If the file doesn't exist yet** → run `sleep 10` and retry. Repeat up to 30 times (5 minutes total) before considering the agent failed.
+3. **If the file is still missing after 30 retries**, re-launch the agent synchronously (without `run_in_background`) with the same prompt
+4. **When the file is ready**, fix findings by severity: must_fix → should_fix → suggestion
 
 **Severity actions:**
 

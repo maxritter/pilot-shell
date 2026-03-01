@@ -211,6 +211,10 @@ class ClaudeFilesStep(BaseStep):
 
         self._cleanup_legacy_standards_skills(home_pilot_plugin_dir)
 
+        # Always clear ~/.claude/pilot/ — it's the installed destination, never the source repo.
+        # This removes stale files (e.g. deleted agents) that would otherwise persist.
+        _clear_directory_contents(home_pilot_plugin_dir)
+
         source_is_destination = (
             config.local_mode and config.local_repo_dir and config.local_repo_dir.resolve() == ctx.project_dir.resolve()
         )
@@ -222,8 +226,6 @@ class ClaudeFilesStep(BaseStep):
             self._seed_manifest_from_existing(home_claude_dir, manifest_path)
         cleanup_managed_files(home_claude_dir / "commands", manifest_path, "commands/")
         cleanup_managed_files(home_claude_dir / "rules", manifest_path, "rules/")
-
-        _clear_directory_contents(home_pilot_plugin_dir)
 
     def _cleanup_legacy_standards_skills(self, plugin_dir: Path) -> None:
         """Remove old standards-* skill directories from plugin skills folder.

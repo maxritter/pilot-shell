@@ -23,10 +23,8 @@ const SPEC_ROWS: { key: string; label: string }[] = [
 ];
 
 const AGENT_ROWS: { key: string; label: string }[] = [
-  { key: "plan-challenger", label: "plan-challenger" },
-  { key: "plan-verifier", label: "plan-verifier" },
-  { key: "spec-reviewer-compliance", label: "spec-reviewer-compliance" },
-  { key: "spec-reviewer-quality", label: "spec-reviewer-quality" },
+  { key: "plan-reviewer", label: "plan-reviewer" },
+  { key: "spec-reviewer", label: "spec-reviewer" },
 ];
 
 function DefaultBadge({ model }: { model: string }) {

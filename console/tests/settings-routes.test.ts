@@ -29,10 +29,8 @@ const FULL_CONFIG = JSON.stringify({
     learn: 'sonnet',
   },
   agents: {
-    'plan-challenger': 'opus',
-    'plan-verifier': 'sonnet',
-    'spec-reviewer-compliance': 'sonnet',
-    'spec-reviewer-quality': 'opus',
+    'plan-reviewer': 'opus',
+    'spec-reviewer': 'sonnet',
   },
 });
 
@@ -242,13 +240,13 @@ describe('SettingsRoutes', () => {
     it('should update agents', async () => {
       const m = makeMockRes();
       const req: Partial<Request> = {
-        body: { agents: { 'plan-verifier': 'opus' } },
+        body: { agents: { 'plan-reviewer': 'opus' } },
       };
 
       await (routes as any).handlePut(req as Request, m.res as Response);
 
       const saved = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-      expect(saved.agents['plan-verifier']).toBe('opus');
+      expect(saved.agents['plan-reviewer']).toBe('opus');
     });
 
     it('should return 400 for invalid main model', async () => {
@@ -281,7 +279,7 @@ describe('SettingsRoutes', () => {
     it('should return 400 for 1m agent model', async () => {
       const m = makeMockRes();
       const req: Partial<Request> = {
-        body: { agents: { 'plan-verifier': 'sonnet[1m]' } },
+        body: { agents: { 'plan-reviewer': 'sonnet[1m]' } },
       };
 
       await (routes as any).handlePut(req as Request, m.res as Response);

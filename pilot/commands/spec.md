@@ -41,7 +41,7 @@ This command is a **dispatcher** that determines which phase to run and invokes 
 /spec → Dispatcher → Detect type (LLM intent) → Feature: Skill('spec-plan') → Plan, verify, approve
                                                 → Bugfix:  Skill('spec-bugfix-plan') → Bug analysis, verify, approve
                    → Skill('spec-implement')   → TDD loop for each task (both types)
-                   → Feature: Skill('spec-verify')        → Tests, execution, code review, 3 sub-agents
+                   → Feature: Skill('spec-verify')        → Tests, execution, code review, 1 sub-agent
                    → Bugfix:  Skill('spec-bugfix-verify') → Behavior Contract audit, tests, process compliance
 ```
 
@@ -50,7 +50,7 @@ This command is a **dispatcher** that determines which phase to run and invokes 
 | **Feature Planning**    | `spec-plan`            | Explore → Design → Plan → Verify → Approve                     |
 | **Bugfix Planning**     | `spec-bugfix-plan`     | Bug analysis → Behavior Contract → Tasks → Approve              |
 | **Implementation**      | `spec-implement`       | TDD loop for each task (both types)                             |
-| **Feature Verification**| `spec-verify`          | Tests → Execution → 3 Review Agents → Code Review → E2E        |
+| **Feature Verification**| `spec-verify`          | Tests → Execution → Unified Review Agent → Code Review → E2E   |
 | **Bugfix Verification** | `spec-bugfix-verify`   | Behavior Contract Audit → Tests → Process Compliance            |
 
 ### Status-Based Flow
@@ -211,7 +211,7 @@ Is there anything else you'd like me to help with?
 
 | #   | Rule                                                                                                                                                                                                                                                             |
 | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **NO sub-agents except verification** - Phases 1 and 2 use direct tools only. Verification steps (Step 1.7 for features, Step 3.0/3.7) launch review agents via the **Task tool** (`subagent_type="pilot:*"`). Task tool is the ONLY allowed mechanism for sub-agents. |
+| 1   | **NO sub-agents except verification** - Phases 1 and 2 use direct tools only. Verification steps (Step 1.7 for features, Step 3.0/3.7) launch 1 review agent each via the **Task tool** (`subagent_type="pilot:plan-reviewer"` for planning, `"pilot:spec-reviewer"` for verification). Task tool is the ONLY allowed mechanism for sub-agents. |
 | 2   | **NEVER SKIP verification** - Plan verification (Step 1.7, features only) and Code verification (Step 3.7) are mandatory. Bugfix plans skip plan verification — the fixed task structure and user approval gate are sufficient.                                        |
 | 3   | **ONLY stopping point is plan approval** - Everything else is automatic. Never ask "Should I fix these?"                                                                                                                                                         |
 | 4   | **Batch questions together** - Don't interrupt user flow                                                                                                                                                                                                         |

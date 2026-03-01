@@ -64,15 +64,15 @@ When resuming same session (same `CLAUDE_CODE_TASK_LIST_ID`): run `TaskList` fir
 
 ### /spec Verification Agents (MANDATORY)
 
-| Phase | Agents (parallel, background) | `subagent_type` |
-|-------|-------------------------------|-----------------|
-| `spec-plan` 1.7 (features only) | plan-verifier + plan-challenger | `pilot:plan-verifier` + `pilot:plan-challenger` |
-| `spec-verify` 3.0, 3.7 (features only) | spec-reviewer-compliance + quality + goal | `pilot:spec-reviewer-compliance` + `pilot:spec-reviewer-quality` + `pilot:spec-reviewer-goal` |
+| Phase | Agent (background) | `subagent_type` |
+|-------|-------------------|-----------------|
+| `spec-plan` 1.7 (features only) | plan-reviewer | `pilot:plan-reviewer` |
+| `spec-verify` 3.0, 3.7 (features only) | spec-reviewer | `pilot:spec-reviewer` |
 
 **Bugfixes skip sub-agents** in both planning and verification — the Behavior Contract proves correctness through tests.
 
 **Rules:**
-- Launch all `Task()` calls in a SINGLE message (parallel, `run_in_background=true`)
+- Launch the `Task()` call with `run_in_background=true`
 - ⛔ NEVER skip verification or use `TaskOutput` (wastes tokens) — agents write to JSON files, poll with Read
 - Sub-agents do NOT inherit rules but can read from `~/.claude/rules/*.md` and `.claude/rules/*.md`
 

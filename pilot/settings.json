@@ -60,10 +60,8 @@
       "Skill(spec-bugfix-verify)",
       "Skill(sync)",
       "Skill(learn)",
-      "Task(spec-reviewer-compliance:*)",
-      "Task(spec-reviewer-quality:*)",
-      "Task(plan-verifier:*)",
-      "Task(plan-challenger:*)",
+      "Task(spec-reviewer:*)",
+      "Task(plan-reviewer:*)",
       "LSP"
     ],
     "deny": []

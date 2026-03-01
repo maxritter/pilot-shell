@@ -132,16 +132,13 @@ class TestHintedTools:
         assert result == 0
 
     def test_no_hint_task_spec_reviewer(self):
-        """Spec reviewer sub-agents should be allowed without hints."""
-        result = _run_with_input("Task", {"subagent_type": "pilot:spec-reviewer-compliance"})
+        """Unified spec reviewer should be allowed without hints."""
+        result = _run_with_input("Task", {"subagent_type": "pilot:spec-reviewer"})
         assert result == 0
 
-    def test_no_hint_task_plan_verifier(self):
-        result = _run_with_input("Task", {"subagent_type": "pilot:plan-verifier"})
-        assert result == 0
-
-    def test_no_hint_task_plan_challenger(self):
-        result = _run_with_input("Task", {"subagent_type": "pilot:plan-challenger"})
+    def test_no_hint_task_plan_reviewer(self):
+        """Unified plan reviewer should be allowed without hints."""
+        result = _run_with_input("Task", {"subagent_type": "pilot:plan-reviewer"})
         assert result == 0
 
 

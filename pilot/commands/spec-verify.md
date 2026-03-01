@@ -23,7 +23,7 @@ hooks:
 
 | #   | Rule                                                                                                                                                                                                                                                           |
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **NEVER SKIP verification** - Code review (Step 3.0/3.7) launches `spec-reviewer-compliance` + `spec-reviewer-quality` + `spec-reviewer-goal` via the **Task tool** (`subagent_type="pilot:spec-reviewer-compliance"`, `"pilot:spec-reviewer-quality"`, and `"pilot:spec-reviewer-goal"`). Mandatory. No exceptions. |
+| 1   | **NEVER SKIP verification** - Code review (Step 3.0/3.7) launches `spec-reviewer` via the **Task tool** (`subagent_type="pilot:spec-reviewer"`). Mandatory. No exceptions. |
 | 2   | **NO stopping** - Everything is automatic. Never ask "Should I fix these?"                                                                                                                                                                                     |
 | 3   | **Fix ALL findings automatically** - must_fix AND should_fix. No permission needed.                                                                                                                                                                            |
 | 4   | **Quality over speed** - Never rush due to context pressure                                                                                                                                                                                                    |
@@ -56,11 +56,11 @@ Final:
 
 ## Phase A: Finalize the Code
 
-### Step 3.0: Launch Code Review Agents (Early Launch)
+### Step 3.0: Launch Code Review Agent (Early Launch)
 
-**⛔ CRITICAL: Launch review agents IMMEDIATELY at the start of Phase A, before any other verification steps.**
+**⛔ CRITICAL: Launch the review agent IMMEDIATELY at the start of Phase A, before any other verification steps.**
 
-This early-launch pattern maximizes efficiency: agents begin reading the plan and reviewing code while the main session continues with automated checks (tests, lint, feature parity, call chain). By the time Step 3.7 collects results, agents are done or nearly done.
+This early-launch pattern maximizes efficiency: the agent begins reading the plan and reviewing code while the main session continues with automated checks (tests, lint, feature parity, call chain). By the time Step 3.7 collects results, the agent is done or nearly done.
 
 #### 3.0a: Identify Changed Files
 
@@ -70,7 +70,7 @@ Get list of files changed in this implementation:
 git status --short  # Shows staged and unstaged changes
 ```
 
-#### 3.0b: Gather Context for the Reviewers
+#### 3.0b: Gather Context for the Reviewer
 
 Collect information needed for actionable findings:
 
@@ -80,9 +80,9 @@ Collect information needed for actionable findings:
 
 #### 3.0c: Resolve Session Path for Findings Persistence
 
-**⛔ CRITICAL: Agents write findings to files so they survive agent lifecycle cleanup.**
+**⛔ CRITICAL: The agent writes findings to a file so they survive agent lifecycle cleanup.**
 
-Background agents' return values can be lost after completion. To guarantee findings are retrievable, each agent writes its JSON to a known file path.
+Background agents' return values can be lost after completion. To guarantee findings are retrievable, the agent writes its JSON to a known file path.
 
 ```bash
 echo $PILOT_SESSION_ID
@@ -90,102 +90,45 @@ echo $PILOT_SESSION_ID
 
 **⚠️ Validate the session ID is set.** If `$PILOT_SESSION_ID` is empty, fall back to `"default"` to avoid writing to `~/.pilot/sessions//`.
 
-Define output paths (replace `<session-id>` with the resolved value):
+Define output path (replace `<session-id>` with the resolved value):
 
-- **Compliance findings:** `~/.pilot/sessions/<session-id>/findings-compliance.json`
-- **Quality findings:** `~/.pilot/sessions/<session-id>/findings-quality.json`
-- **Goal findings:** `~/.pilot/sessions/<session-id>/findings-goal.json`
+- **Reviewer findings:** `~/.pilot/sessions/<session-id>/findings-spec-reviewer.json`
 
-#### 3.0d: Launch All Three Reviewers in Parallel
+#### 3.0d: Launch the Reviewer
 
-Spawn 3 agents in parallel using THREE Task tool calls in a SINGLE message. All agents have `background: true` in their definitions, so they run in the background automatically. As a fallback, also set `run_in_background=true` on all three.
-
-**Agent 1: spec-reviewer-compliance** (plan alignment, DoD, risk mitigations)
+The agent has `background: true` in its definition, so it runs in the background automatically. As a fallback, also set `run_in_background=true`.
 
 ```
 Task(
-  subagent_type="pilot:spec-reviewer-compliance",
+  subagent_type="pilot:spec-reviewer",
   run_in_background=true,
   prompt="""
   **Plan file:** <plan-path>
   **Changed files:** [file list from git status]
-  **Output path:** <absolute path to findings-compliance.json>
-
-  **Runtime environment:** [how to start, port, deploy path, etc.]
-  **Test framework constraints:** [what the test framework can/cannot test]
-  **Plan risks section:** [copy risks table if present, or "None listed"]
-
-  Verify this implementation matches the plan. Check spec compliance, DoD criteria,
-  and risk mitigations. Read the plan file first to understand requirements, then
-  verify the changed files implement them correctly.
-
-  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
-  """
-)
-```
-
-**Agent 2: spec-reviewer-quality** (code quality, security, testing, performance)
-
-```
-Task(
-  subagent_type="pilot:spec-reviewer-quality",
-  run_in_background=true,
-  prompt="""
-  **Plan file:** <plan-path>
-  **Changed files:** [file list from git status]
-  **Output path:** <absolute path to findings-quality.json>
+  **Output path:** <absolute path to findings-spec-reviewer.json>
 
   **Runtime environment:** [how to start, port, deploy path, etc.]
   **Test framework constraints:** [what the test framework can/cannot test]
 
-  Review code quality, security, testing adequacy, performance, and error handling.
-  Read all rule files first, then verify the changed files follow all standards.
-
-  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
-  """
-)
-```
-
-**Agent 3: spec-reviewer-goal** (goal achievement, artifact completeness, wiring)
-
-```
-Task(
-  subagent_type="pilot:spec-reviewer-goal",
-  run_in_background=true,
-  prompt="""
-  **Plan file:** <plan-path>
-  **Changed files:** [file list from git status]
-  **Output path:** <absolute path to findings-goal.json>
-
-  Verify this implementation achieves the plan's goal. Read the plan file first.
+  Review this implementation in three phases:
+  1. Compliance: verify implementation matches plan, DoD criteria met, risk mitigations implemented
+  2. Quality: read all quality-relevant rules, then check code quality, security, testing, performance, error handling
+  3. Goal: verify goal achievement, artifact completeness (exists/substantive/wired), stub detection, anti-patterns
 
   The plan may contain a `## Goal Verification` section with explicit `### Truths`,
-  `### Artifacts`, and `### Key Links` subsections. If present, use those as your
-  starting point for truth derivation (preferred over self-derivation). You may
-  supplement with additional truths if the section is incomplete.
-
-  If no `## Goal Verification` section exists, derive truths from the plan's
-  Summary/Goal using goal-backward methodology.
-
-  Check artifacts exist and are substantive (not stubs), and verify components
-  are wired together.
+  `### Artifacts`, and `### Key Links` subsections — use those as your starting point
+  if present.
 
   **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
   """
 )
 ```
 
-The reviewers work in parallel:
-
-- **spec-reviewer-compliance**: Verifies implementation matches plan, DoD criteria met, risk mitigations implemented
-- **spec-reviewer-quality**: Verifies code quality, security, testing, performance, error handling
-- **spec-reviewer-goal**: Verifies goal achievement, artifact completeness (exists/substantive/wired), stub detection, anti-patterns
-
-All three agents start immediately and work in the background while Steps 3.1-3.6 proceed.
+The agent reads the plan and changed files once and performs all three review phases, persisting a single findings JSON to the session directory.
 
 #### 3.0e: Continue with Automated Checks
 
-**Do NOT wait for agent results.** Proceed immediately to Step 3.1. The agents work in the background while you run tests, linters, verify commands, artifact checks, feature parity, and call chain analysis.
+**Do NOT wait for agent results.** Proceed immediately to Step 3.1. The agent works in the background while you run tests, linters, verify commands, artifact checks, feature parity, and call chain analysis.
 
 ### Step 3.1: Run & Fix Tests
 
@@ -242,9 +185,9 @@ This re-validates task-specific acceptance criteria that were checked during imp
 
 4. **If any file is MISSING** → this is a serious issue. Check if the file was accidentally deleted or never created. Fix immediately.
 
-5. **If any file appears orphaned** (no imports) → note it for cross-reference with the goal agent's deeper wiring analysis in Step 3.7.
+5. **If any file appears orphaned** (no imports) → note it for cross-reference with the spec-reviewer's deeper wiring analysis in Step 3.7.
 
-This is a fast sanity check (~30 seconds) that catches obvious issues before the goal agent's deeper analysis arrives.
+This is a fast sanity check (~30 seconds) that catches obvious issues before the spec-reviewer's deeper analysis arrives.
 
 ### Step 3.5: Feature Parity Check (if applicable)
 
@@ -325,41 +268,32 @@ This is a serious issue - the implementation is incomplete.
 
 **None of these are valid reasons to skip. ALWAYS COLLECT AND PROCESS RESULTS.**
 
-#### 3.7a: Retrieve and Fix Findings Progressively
+#### 3.7a: Retrieve and Fix Findings
 
-The three review agents (launched in Step 3.0) should be done or nearly done by now. Their findings are persisted to files in the session directory.
+The review agent (launched in Step 3.0) should be done or nearly done by now. Its findings are persisted to a file in the session directory.
 
-**⛔ NEVER use `TaskOutput` to retrieve agent results.** TaskOutput dumps the full verbose agent transcript (all JSON messages, hook progress, tool calls) into context, wasting thousands of tokens. Instead, poll the output files with the Read tool.
+**⛔ NEVER use `TaskOutput` to retrieve agent results.** TaskOutput dumps the full verbose agent transcript (all JSON messages, hook progress, tool calls) into context, wasting thousands of tokens. Instead, poll the output file with the Read tool.
 
-**Progressive polling — fix findings as each agent completes:**
+**⚠️ IMPORTANT: Wait between polling attempts.** Run `sleep 10` via Bash before each Read attempt. The agent typically takes 3-7 minutes. Rapid-fire Read calls waste context and produce dozens of "file not found" errors.
 
-**⚠️ IMPORTANT: Wait between polling attempts.** Run `sleep 10` via Bash before each Read attempt. Agents typically take 3-7 minutes. Rapid-fire Read calls waste context and produce dozens of "file not found" errors.
+1. **Wait 10 seconds, then attempt to read the findings file** using the Read tool on the path defined in Step 3.0c:
+   - `~/.pilot/sessions/<session-id>/findings-spec-reviewer.json`
+2. **If the file doesn't exist yet** → run `sleep 10` and retry. Repeat up to 50 times before considering the agent failed.
+3. **When the file is ready**, fix findings by severity: must_fix → should_fix → suggestion
 
-1. **Wait 10 seconds, then attempt to read ALL THREE findings files** using the Read tool on the paths defined in Step 3.0c:
-   - `~/.pilot/sessions/<session-id>/findings-compliance.json`
-   - `~/.pilot/sessions/<session-id>/findings-quality.json`
-   - `~/.pilot/sessions/<session-id>/findings-goal.json`
-2. **If no files exist yet** → run `sleep 10` and retry. Repeat up to 50 times before considering the agents failed.
-3. **As each file appears**, start fixing findings from that agent immediately (by severity: must_fix → should_fix → suggestion). Track which findings you fixed.
-4. After fixing a batch, **wait 10 seconds and poll for remaining files** (retry with `sleep 10` between attempts)
-5. When additional files are ready, **skip findings that overlap** with already-fixed items (same file + same issue), then fix the remaining findings
-6. **If all files are ready simultaneously**, deduplicate first, then fix all
+**If the findings file is still missing after 50 retries** (agent failed to write):
 
-**Deduplication across three agents:** When the same file + same issue appears in multiple agents' findings, keep the highest severity and merge all unique suggested_fixes. Priority for conflicting fix strategies: quality agent > compliance agent > goal agent (code correctness takes precedence over structural wiring).
+1. Re-launch the agent synchronously (without `run_in_background`) with the same prompt
+2. If the synchronous re-launch also fails, log the failure and continue
 
-**Goal agent's `truths` array** is reported separately (not deduplicated — it's a different data structure). Include goal achievement status in the report.
-
-**If a findings file is still missing after 50 retries** (agent failed to write):
-
-1. Re-launch that specific agent synchronously (without `run_in_background`) with the same prompt
-2. If the synchronous re-launch also fails, log the failure and continue with findings from the other agents only
+**The `truths` array** in the findings JSON captures goal verification status. Include it in the report.
 
 **Expected timeline:**
 
-- Agents were launched before Step 3.1 (tests, lint, verify commands, artifact checks, feature parity, call chain)
+- Agent was launched before Step 3.1 (tests, lint, verify commands, artifact checks, feature parity, call chain)
 - Steps 3.1-3.6 typically take 3-7 minutes
-- Agents typically complete in 3-7 minutes
-- Net result: Agents finish around the same time as Step 3.6, minimal or zero wait time
+- Agent typically completes in 3-7 minutes
+- Net result: Agent finishes around the same time as Step 3.6, minimal or zero wait time
 
 #### 3.7b: Report Findings
 
@@ -402,7 +336,7 @@ Re-verification is **only required when fixes are structural enough to warrant l
 
 **Re-verify when:** Fixes required new functionality, changed APIs, modified hook behavior, or added significant new code paths. In this case:
 
-1. Re-run ALL THREE review agents in parallel (same as Step 3.0d)
+1. Re-run the spec-reviewer agent (same as Step 3.0d)
 2. Fix any new must_fix or should_fix findings
 3. Maximum 2 iterations before adding remaining issues to plan
 
@@ -482,7 +416,7 @@ If code processes external data, ALWAYS verify by fetching source data independe
 
 ### Step 3.11: Per-Task DoD Audit
 
-**Task completion ≠ Goal achievement.** The `spec-reviewer-goal` agent (Step 3.0) already performed static goal-backward verification (truths → artifacts → wiring) in Phase A. Its `truths` array provides evidence of structural completeness. This step focuses on **runtime DoD verification** — checking each task's acceptance criteria against the running program.
+**Task completion ≠ Goal achievement.** The `spec-reviewer` agent (Step 3.0) already performed static goal-backward verification (truths → artifacts → wiring) in Phase A. Its `truths` array provides evidence of structural completeness. This step focuses on **runtime DoD verification** — checking each task's acceptance criteria against the running program.
 
 **For EACH task in the plan**, read its Definition of Done criteria and verify each criterion is met with evidence from the running program.
 

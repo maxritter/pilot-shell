@@ -29,10 +29,8 @@ export const DEFAULT_SETTINGS: ModelSettings = {
     learn: "sonnet",
   },
   agents: {
-    "plan-challenger": "sonnet",
-    "plan-verifier": "sonnet",
-    "spec-reviewer-compliance": "sonnet",
-    "spec-reviewer-quality": "opus",
+    "plan-reviewer": "sonnet",
+    "spec-reviewer": "sonnet",
   },
 };
 

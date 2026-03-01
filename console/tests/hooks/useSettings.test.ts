@@ -52,9 +52,9 @@ describe('useSettings', () => {
     }
   });
 
-  it('DEFAULT_SETTINGS has all four agents', async () => {
+  it('DEFAULT_SETTINGS has both agents', async () => {
     const { DEFAULT_SETTINGS } = await import('../../src/ui/viewer/hooks/useSettings.js');
-    const expected = ['plan-challenger', 'plan-verifier', 'spec-reviewer-compliance', 'spec-reviewer-quality'];
+    const expected = ['plan-reviewer', 'spec-reviewer'];
     for (const agent of expected) {
       expect(DEFAULT_SETTINGS.agents[agent]).toBeDefined();
     }
