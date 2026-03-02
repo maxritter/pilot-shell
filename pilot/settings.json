@@ -115,7 +115,7 @@
       "[PILOT] Create your own skills in .claude/skills/ (avoid standards-* prefix)",
       "[PILOT] Run /sync after adding MCP servers or changing project structure",
       "[PILOT] /sync discovers undocumented patterns in your codebase and generates rules automatically",
-      "[PILOT] /vault → Share rules, commands, and skills with your team via a private Git repository",
+      "[PILOT] Teams Dashboard → Manage shared skills, rules, and commands in the Console at localhost:41777/#/teams",
       "[PILOT] /learn extracts reusable knowledge from debugging sessions and workarounds into skills",
       "[PILOT] Both /spec and Quick Mode benefit from auto-compaction and persistent memory",
       "[PILOT] Multi-Session: Run multiple pilot sessions in the same project — each is fully isolated",
@@ -151,6 +151,6 @@
     "padding": 0
   },
   "companyAnnouncements": [
-    "🔵 Console: http://localhost:41777 | 📋 /spec — plan, build & verify | 🔄 /sync — sync rules | 🧠 /learn — extract skills | 🏦 /vault — share with team"
+    "🔵 Console: http://localhost:41777 | 📋 /spec — plan, build & verify | 🔄 /sync — sync rules | 🧠 /learn — extract skills"
   ]
 }

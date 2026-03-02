@@ -312,7 +312,7 @@ Production-tested best practices loaded into every session. Core rules cover wor
 <details>
 <summary><b>Collaboration</b></summary>
 
-- `team-vault.md` — Team Vault asset sharing via sx
+- `team-vault.md` — Team asset sharing via sx (Teams dashboard)
 
 </details>
 

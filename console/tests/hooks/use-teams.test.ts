@@ -1,7 +1,7 @@
 /**
- * useVault Hook Tests
+ * useTeams Hook Tests
  *
- * Tests for the vault hook's data merging logic, version comparison,
+ * Tests for the teams hook's data merging logic, version comparison,
  * and interface contract.
  */
 
@@ -9,24 +9,24 @@ import { describe, it, expect } from "bun:test";
 import { renderToString } from "react-dom/server";
 import React from "react";
 
-describe("useVault", () => {
+describe("useTeams", () => {
   it("hook is exported", async () => {
-    const mod = await import("../../src/ui/viewer/hooks/useVault.js");
-    expect(mod.useVault).toBeDefined();
-    expect(typeof mod.useVault).toBe("function");
+    const mod = await import("../../src/ui/viewer/hooks/useTeams.js");
+    expect(mod.useTeams).toBeDefined();
+    expect(typeof mod.useTeams).toBe("function");
   });
 
   it("mergeAssets is exported as a pure function", async () => {
-    const mod = await import("../../src/ui/viewer/hooks/useVault.js");
+    const mod = await import("../../src/ui/viewer/hooks/useTeams.js");
     expect(mod.mergeAssets).toBeDefined();
     expect(typeof mod.mergeAssets).toBe("function");
   });
 
   it("returns expected interface via SSR", async () => {
-    const { useVault } = await import("../../src/ui/viewer/hooks/useVault.js");
+    const { useTeams } = await import("../../src/ui/viewer/hooks/useTeams.js");
 
     function TestComponent() {
-      const result = useVault();
+      const result = useTeams();
       return React.createElement(
         "div",
         null,
@@ -44,7 +44,7 @@ describe("useVault", () => {
 
   describe("mergeAssets", () => {
     it("marks catalog-only items as not installed", async () => {
-      const { mergeAssets } = await import("../../src/ui/viewer/hooks/useVault.js");
+      const { mergeAssets } = await import("../../src/ui/viewer/hooks/useTeams.js");
       const catalog = [
         { name: "my-rule", type: "rule", latestVersion: "3", versionsCount: 3, updatedAt: "2026-02-14" },
       ];
@@ -60,7 +60,7 @@ describe("useVault", () => {
     });
 
     it("marks installed item with matching version as no update", async () => {
-      const { mergeAssets } = await import("../../src/ui/viewer/hooks/useVault.js");
+      const { mergeAssets } = await import("../../src/ui/viewer/hooks/useTeams.js");
       const catalog = [
         { name: "my-rule", type: "rule", latestVersion: "3", versionsCount: 3, updatedAt: "2026-02-14" },
       ];
@@ -79,7 +79,7 @@ describe("useVault", () => {
     });
 
     it("detects update when installed version < latest version (integer comparison)", async () => {
-      const { mergeAssets } = await import("../../src/ui/viewer/hooks/useVault.js");
+      const { mergeAssets } = await import("../../src/ui/viewer/hooks/useTeams.js");
       const catalog = [
         { name: "my-skill", type: "skill", latestVersion: "5", versionsCount: 5, updatedAt: "2026-02-14" },
       ];
@@ -93,7 +93,7 @@ describe("useVault", () => {
     });
 
     it("returns hasUpdate=false when versions cannot be parsed as integers", async () => {
-      const { mergeAssets } = await import("../../src/ui/viewer/hooks/useVault.js");
+      const { mergeAssets } = await import("../../src/ui/viewer/hooks/useTeams.js");
       const catalog = [
         { name: "odd-version", type: "rule", latestVersion: "abc", versionsCount: 1, updatedAt: "2026-02-14" },
       ];
@@ -107,7 +107,7 @@ describe("useVault", () => {
     });
 
     it("handles empty/null latestVersion gracefully", async () => {
-      const { mergeAssets } = await import("../../src/ui/viewer/hooks/useVault.js");
+      const { mergeAssets } = await import("../../src/ui/viewer/hooks/useTeams.js");
       const catalog = [
         { name: "empty-ver", type: "rule", latestVersion: "", versionsCount: 0, updatedAt: "" },
       ];
@@ -120,7 +120,7 @@ describe("useVault", () => {
     });
 
     it("merges multiple catalog and asset entries correctly", async () => {
-      const { mergeAssets } = await import("../../src/ui/viewer/hooks/useVault.js");
+      const { mergeAssets } = await import("../../src/ui/viewer/hooks/useTeams.js");
       const catalog = [
         { name: "rule-a", type: "rule", latestVersion: "3", versionsCount: 3, updatedAt: "2026-02-14" },
         { name: "skill-b", type: "skill", latestVersion: "2", versionsCount: 2, updatedAt: "2026-02-13" },
@@ -149,7 +149,7 @@ describe("useVault", () => {
     });
 
     it("strips 'v' prefix when comparing versions", async () => {
-      const { mergeAssets } = await import("../../src/ui/viewer/hooks/useVault.js");
+      const { mergeAssets } = await import("../../src/ui/viewer/hooks/useTeams.js");
       const catalog = [
         { name: "test", type: "rule", latestVersion: "3", versionsCount: 3, updatedAt: "" },
       ];
@@ -165,12 +165,16 @@ describe("useVault", () => {
 
   it("source contains API endpoint fetch logic", async () => {
     const fs = await import("fs");
-    const source = fs.readFileSync("src/ui/viewer/hooks/useVault.ts", "utf-8");
+    const source = fs.readFileSync("src/ui/viewer/hooks/useTeams.ts", "utf-8");
 
-    expect(source).toContain("/api/vault/status");
-    expect(source).toContain("/api/vault/detail/");
-    expect(source).toContain("/api/vault/install");
+    expect(source).toContain("/api/teams/status");
+    expect(source).toContain("/api/teams/detail/");
+    expect(source).toContain("/api/teams/install");
     expect(source).toContain("isInstalling");
     expect(source).toContain("mergeAssets");
+    expect(source).toContain("/api/teams/remove");
+    expect(source).toContain("removeAsset");
+    expect(source).toContain("/api/teams/init");
+    expect(source).toContain("initTeams");
   });
 });

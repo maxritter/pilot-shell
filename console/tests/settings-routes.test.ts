@@ -24,7 +24,6 @@ const FULL_CONFIG = JSON.stringify({
     'spec-plan': 'opus',
     'spec-implement': 'sonnet',
     'spec-verify': 'opus',
-    vault: 'sonnet',
     sync: 'sonnet',
     learn: 'sonnet',
   },

@@ -1,12 +1,16 @@
-import type { AssetDetail } from '../../hooks/useVault';
+import type { AssetDetail } from "../../hooks/useTeams";
 
-interface VaultAssetDetailProps {
+interface TeamsAssetDetailProps {
   detail: AssetDetail | null;
   isLoading: boolean;
   onRetry?: () => void;
 }
 
-export function VaultAssetDetail({ detail, isLoading, onRetry }: VaultAssetDetailProps) {
+export function TeamsAssetDetail({
+  detail,
+  isLoading,
+  onRetry,
+}: TeamsAssetDetailProps) {
   if (isLoading) {
     return (
       <div className="p-4 bg-base-200 rounded-b-lg flex items-center gap-2">
@@ -32,12 +36,16 @@ export function VaultAssetDetail({ detail, isLoading, onRetry }: VaultAssetDetai
   return (
     <div className="p-4 bg-base-200 rounded-b-lg space-y-3">
       {detail.metadata.description && (
-        <p className="text-sm text-base-content/70">{detail.metadata.description}</p>
+        <p className="text-sm text-base-content/70">
+          {detail.metadata.description}
+        </p>
       )}
 
       {detail.versions.length > 0 && (
         <div>
-          <h4 className="text-xs font-semibold text-base-content/50 uppercase mb-2">Version History</h4>
+          <h4 className="text-xs font-semibold text-base-content/50 uppercase mb-2">
+            Version History
+          </h4>
           <table className="table table-xs w-full">
             <thead>
               <tr>
@@ -50,7 +58,9 @@ export function VaultAssetDetail({ detail, isLoading, onRetry }: VaultAssetDetai
               {detail.versions.map((v) => (
                 <tr key={v.version}>
                   <td className="font-mono">v{v.version}</td>
-                  <td className="text-base-content/60">{v.createdAt ?? "\u2014"}</td>
+                  <td className="text-base-content/60">
+                    {v.createdAt ?? "\u2014"}
+                  </td>
                   <td>{v.filesCount}</td>
                 </tr>
               ))}

@@ -64,6 +64,6 @@ describe("Search view removal", () => {
     expect(source).toContain("<VexorStatus");
     expect(source).toContain("<WorkerStatus");
     expect(source).toContain("<PlanStatus");
-    expect(source).toContain("<VaultStatus");
+    expect(source).toContain("<TeamsStatus");
   });
 });

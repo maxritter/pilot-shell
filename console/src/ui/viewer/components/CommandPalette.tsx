@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Icon } from './ui';
-import { SHORTCUTS, getShortcutDisplay } from '../constants/shortcuts';
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { Icon } from "./ui";
+import { SHORTCUTS, getShortcutDisplay } from "../constants/shortcuts";
 
 interface CommandPaletteProps {
   open: boolean;
@@ -10,7 +10,7 @@ interface CommandPaletteProps {
   onToggleSidebar: () => void;
 }
 
-type CommandCategory = 'navigation' | 'action' | 'theme';
+type CommandCategory = "navigation" | "action" | "theme";
 
 interface InternalCommand {
   id: string;
@@ -28,7 +28,7 @@ export function CommandPalette({
   onToggleTheme,
   onToggleSidebar,
 }: CommandPaletteProps) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -36,51 +36,51 @@ export function CommandPalette({
   const commands = useMemo<InternalCommand[]>(() => {
     return [
       {
-        id: 'nav-dashboard',
-        label: 'Go to Dashboard',
-        shortcut: 'G D',
-        category: 'navigation',
-        icon: 'lucide:layout-dashboard',
-        action: () => onNavigate('/'),
+        id: "nav-dashboard",
+        label: "Go to Dashboard",
+        shortcut: "G D",
+        category: "navigation",
+        icon: "lucide:layout-dashboard",
+        action: () => onNavigate("/"),
       },
       {
-        id: 'nav-memories',
-        label: 'Go to Memories',
-        shortcut: 'G M',
-        category: 'navigation',
-        icon: 'lucide:brain',
-        action: () => onNavigate('/memories'),
+        id: "nav-memories",
+        label: "Go to Memories",
+        shortcut: "G M",
+        category: "navigation",
+        icon: "lucide:brain",
+        action: () => onNavigate("/memories"),
       },
       {
-        id: 'nav-usage',
-        label: 'Go to Usage',
-        shortcut: 'G U',
-        category: 'navigation',
-        icon: 'lucide:bar-chart-3',
-        action: () => onNavigate('/usage'),
+        id: "nav-usage",
+        label: "Go to Usage",
+        shortcut: "G U",
+        category: "navigation",
+        icon: "lucide:bar-chart-3",
+        action: () => onNavigate("/usage"),
       },
       {
-        id: 'nav-vault',
-        label: 'Go to Vault',
-        shortcut: 'G V',
-        category: 'navigation',
-        icon: 'lucide:archive',
-        action: () => onNavigate('/vault'),
+        id: "nav-teams",
+        label: "Go to Teams",
+        shortcut: "G V",
+        category: "navigation",
+        icon: "lucide:users",
+        action: () => onNavigate("/teams"),
       },
       {
-        id: 'action-theme',
-        label: 'Toggle Theme',
+        id: "action-theme",
+        label: "Toggle Theme",
         shortcut: getShortcutDisplay(SHORTCUTS.TOGGLE_THEME),
-        category: 'action',
-        icon: 'lucide:sun-moon',
+        category: "action",
+        icon: "lucide:sun-moon",
         action: onToggleTheme,
       },
       {
-        id: 'action-sidebar',
-        label: 'Toggle Sidebar',
+        id: "action-sidebar",
+        label: "Toggle Sidebar",
         shortcut: getShortcutDisplay(SHORTCUTS.TOGGLE_SIDEBAR),
-        category: 'action',
-        icon: 'lucide:panel-left',
+        category: "action",
+        icon: "lucide:panel-left",
         action: onToggleSidebar,
       },
     ];
@@ -92,7 +92,7 @@ export function CommandPalette({
     return commands.filter(
       (cmd) =>
         cmd.label.toLowerCase().includes(lowerQuery) ||
-        cmd.category.toLowerCase().includes(lowerQuery)
+        cmd.category.toLowerCase().includes(lowerQuery),
     );
   }, [commands, query]);
 
@@ -102,7 +102,7 @@ export function CommandPalette({
 
   useEffect(() => {
     if (open) {
-      setQuery('');
+      setQuery("");
       setSelectedIndex(0);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
@@ -111,7 +111,7 @@ export function CommandPalette({
   useEffect(() => {
     if (!listRef.current) return;
     const selected = listRef.current.querySelector('[data-selected="true"]');
-    selected?.scrollIntoView({ block: 'nearest' });
+    selected?.scrollIntoView({ block: "nearest" });
   }, [selectedIndex]);
 
   const executeCommand = (cmd: InternalCommand) => {
@@ -121,21 +121,23 @@ export function CommandPalette({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
         setSelectedIndex((i) => (i + 1) % filteredCommands.length);
         break;
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
-        setSelectedIndex((i) => (i - 1 + filteredCommands.length) % filteredCommands.length);
+        setSelectedIndex(
+          (i) => (i - 1 + filteredCommands.length) % filteredCommands.length,
+        );
         break;
-      case 'Enter':
+      case "Enter":
         e.preventDefault();
         if (filteredCommands[selectedIndex]) {
           executeCommand(filteredCommands[selectedIndex]);
         }
         break;
-      case 'Escape':
+      case "Escape":
         e.preventDefault();
         onClose();
         break;
@@ -150,13 +152,13 @@ export function CommandPalette({
       acc[cmd.category].push(cmd);
       return acc;
     },
-    {} as Record<string, InternalCommand[]>
+    {} as Record<string, InternalCommand[]>,
   );
 
   const categoryLabels: Record<string, string> = {
-    navigation: 'Navigation',
-    action: 'Actions',
-    theme: 'Theme',
+    navigation: "Navigation",
+    action: "Actions",
+    theme: "Theme",
   };
 
   let flatIndex = 0;
@@ -166,7 +168,11 @@ export function CommandPalette({
       <div className="modal-box max-w-xl p-0 overflow-hidden">
         {/* Search input */}
         <div className="flex items-center gap-2 p-3 border-b border-base-300">
-          <Icon icon="lucide:search" size={18} className="text-base-content/50" />
+          <Icon
+            icon="lucide:search"
+            size={18}
+            className="text-base-content/50"
+          />
           <input
             ref={inputRef}
             type="text"
@@ -182,7 +188,9 @@ export function CommandPalette({
         {/* Command list */}
         <div ref={listRef} className="max-h-80 overflow-y-auto p-2">
           {filteredCommands.length === 0 ? (
-            <div className="text-center py-8 text-base-content/50">No commands found</div>
+            <div className="text-center py-8 text-base-content/50">
+              No commands found
+            </div>
           ) : (
             Object.entries(groupedCommands).map(([category, cmds]) => (
               <div key={category}>
@@ -198,7 +206,9 @@ export function CommandPalette({
                       key={cmd.id}
                       data-selected={isSelected}
                       className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                        isSelected ? 'bg-primary text-primary-content' : 'hover:bg-base-200'
+                        isSelected
+                          ? "bg-primary text-primary-content"
+                          : "hover:bg-base-200"
                       }`}
                       onClick={() => executeCommand(cmd)}
                       onMouseEnter={() => setSelectedIndex(currentIndex)}
@@ -206,12 +216,16 @@ export function CommandPalette({
                       <Icon
                         icon={cmd.icon}
                         size={16}
-                        className={isSelected ? 'text-primary-content' : 'text-base-content/60'}
+                        className={
+                          isSelected
+                            ? "text-primary-content"
+                            : "text-base-content/60"
+                        }
                       />
                       <span className="flex-1">{cmd.label}</span>
                       {cmd.shortcut && (
                         <kbd
-                          className={`kbd kbd-sm ${isSelected ? 'bg-primary-content/20 text-primary-content' : ''}`}
+                          className={`kbd kbd-sm ${isSelected ? "bg-primary-content/20 text-primary-content" : ""}`}
                         >
                           {cmd.shortcut}
                         </kbd>

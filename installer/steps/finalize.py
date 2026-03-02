@@ -87,7 +87,6 @@ class FinalizeStep(BaseStep):
         steps.append(("🔄 /sync", "Learn your codebase conventions and generate project rules"))
         steps.append(("📋 /spec", "Plan, implement & verify features and bug fixes with TDD and code review"))
         steps.append(("🧠 /learn", "Extract reusable knowledge into skills from sessions"))
-        steps.append(("🏦 /vault", "Optional: Pull shared rules and skills from your team"))
         steps.append(("🔵 Pilot Shell Console", "Open in your browser at: http://localhost:41777"))
 
         ui.next_steps(steps)

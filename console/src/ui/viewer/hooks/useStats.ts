@@ -73,7 +73,7 @@ interface GitInfo {
   untracked: number;
 }
 
-interface VaultAsset {
+interface TeamsAsset {
   name: string;
   version: string;
   type: string;
@@ -82,29 +82,31 @@ interface VaultAsset {
   scope: string;
 }
 
-interface VaultCatalogItem {
+interface TeamsCatalogItem {
   name: string;
   type: string;
   latestVersion: string;
   versionsCount: number;
 }
 
-export interface VaultStatus {
+export interface TeamsStatusData {
   installed: boolean;
   version: string | null;
   configured: boolean;
-  vaultUrl: string | null;
+  repoUrl: string | null;
   profile: string | null;
-  assets: VaultAsset[];
-  catalog: VaultCatalogItem[];
+  assets: TeamsAsset[];
+  catalog: TeamsCatalogItem[];
   isInstalling: boolean;
 }
+
+export type TeamsStatus = TeamsStatusData;
 
 interface UseStatsResult {
   stats: Stats;
   workerStatus: WorkerStatus;
   vexorStatus: VexorStatus;
-  vaultStatus: VaultStatus;
+  teamsStatus: TeamsStatusData;
   recentActivity: ActivityItem[];
   planStatus: PlanStatus;
   gitInfo: GitInfo;
@@ -161,11 +163,11 @@ export function useStats(): UseStatsResult {
   });
   const [observationTimeline, setObservationTimeline] =
     useState<ObservationTimeline>([]);
-  const [vaultStatus, setVaultStatus] = useState<VaultStatus>({
+  const [teamsStatusData, setTeamsStatusData] = useState<TeamsStatusData>({
     installed: false,
     version: null,
     configured: false,
-    vaultUrl: null,
+    repoUrl: null,
     profile: null,
     assets: [],
     catalog: [],
@@ -173,11 +175,11 @@ export function useStats(): UseStatsResult {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadVaultStatus = useCallback(async () => {
+  const loadTeamsStatusData = useCallback(async () => {
     try {
-      const res = await fetch("/api/vault/status");
+      const res = await fetch("/api/teams/status");
       const data = await res.json();
-      setVaultStatus(data);
+      setTeamsStatusData(data);
     } catch {}
   }, []);
 
@@ -323,7 +325,7 @@ export function useStats(): UseStatsResult {
 
   useEffect(() => {
     loadVexorStatus();
-    loadVaultStatus();
+    loadTeamsStatusData();
     const vexorInterval = setInterval(loadVexorStatus, VEXOR_POLL_INTERVAL_MS);
 
     const eventSource = new EventSource("/stream");
@@ -354,13 +356,13 @@ export function useStats(): UseStatsResult {
       clearInterval(vexorInterval);
       eventSource.close();
     };
-  }, [loadVexorStatus, loadVaultStatus]);
+  }, [loadVexorStatus, loadTeamsStatusData]);
 
   return {
     stats,
     workerStatus,
     vexorStatus,
-    vaultStatus,
+    teamsStatus: teamsStatusData,
     recentActivity,
     planStatus,
     gitInfo,

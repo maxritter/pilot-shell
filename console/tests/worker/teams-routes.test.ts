@@ -1,23 +1,23 @@
 /**
- * VaultRoutes Tests
+ * TeamsRoutes Tests
  *
- * Tests for the Vault status and install API endpoints.
+ * Tests for the Teams status and install API endpoints.
  * Validates caching, timeout handling, concurrency protection, and error cases.
  */
 
 import { describe, it, expect } from "bun:test";
-import { VaultRoutes, type VaultStatus } from "../../src/services/worker/http/routes/VaultRoutes.js";
+import { TeamsRoutes, type TeamsStatusResponse } from "../../src/services/worker/http/routes/TeamsRoutes.js";
 
-describe("VaultRoutes", () => {
+describe("TeamsRoutes", () => {
   describe("class structure", () => {
     it("can be instantiated", () => {
-      const routes = new VaultRoutes();
+      const routes = new TeamsRoutes();
       expect(routes).toBeDefined();
-      expect(routes).toBeInstanceOf(VaultRoutes);
+      expect(routes).toBeInstanceOf(TeamsRoutes);
     });
 
-    it("registers status, install, and detail routes", () => {
-      const routes = new VaultRoutes();
+    it("registers all 8 routes", () => {
+      const routes = new TeamsRoutes();
       const registered: { method: string; path: string }[] = [];
       const fakeApp = {
         get: (path: string, _handler: any) => registered.push({ method: "GET", path }),
@@ -25,19 +25,178 @@ describe("VaultRoutes", () => {
       };
       routes.setupRoutes(fakeApp as any);
 
-      expect(registered).toContainEqual({ method: "GET", path: "/api/vault/status" });
-      expect(registered).toContainEqual({ method: "POST", path: "/api/vault/install" });
-      expect(registered).toContainEqual({ method: "GET", path: "/api/vault/detail/:name" });
+      expect(registered).toContainEqual({ method: "GET", path: "/api/teams/status" });
+      expect(registered).toContainEqual({ method: "POST", path: "/api/teams/install" });
+      expect(registered).toContainEqual({ method: "GET", path: "/api/teams/detail/:name" });
+      expect(registered).toContainEqual({ method: "POST", path: "/api/teams/push" });
+      expect(registered).toContainEqual({ method: "POST", path: "/api/teams/remove" });
+      expect(registered).toContainEqual({ method: "POST", path: "/api/teams/init" });
+      expect(registered).toContainEqual({ method: "GET", path: "/api/teams/discover" });
+      expect(registered).toContainEqual({ method: "POST", path: "/api/teams/update-asset" });
+      expect(registered.length).toBe(8);
+    });
+  });
+
+  describe("push endpoint behavior", () => {
+    it("returns 400 for missing required fields", async () => {
+      const routes = new TeamsRoutes();
+      let pushHandler: any;
+      const fakeApp = {
+        get: () => {},
+        post: (p: string, handler: any) => { if (p === "/api/teams/push") pushHandler = handler; },
+      };
+      routes.setupRoutes(fakeApp as any);
+
+      let statusCode = 200;
+      let responseData: any;
+      const fakeRes = {
+        status: (code: number) => { statusCode = code; return fakeRes; },
+        json: (data: any) => { responseData = data; },
+      };
+
+      await pushHandler({ body: { source: "path", type: "skill" } }, fakeRes);
+      expect(statusCode).toBe(400);
+      expect(responseData.error).toContain("required");
+    });
+
+    it("returns 400 for invalid asset name", async () => {
+      const routes = new TeamsRoutes();
+      let pushHandler: any;
+      const fakeApp = {
+        get: () => {},
+        post: (p: string, handler: any) => { if (p === "/api/teams/push") pushHandler = handler; },
+      };
+      routes.setupRoutes(fakeApp as any);
+
+      let statusCode = 200;
+      let responseData: any;
+      const fakeRes = {
+        status: (code: number) => { statusCode = code; return fakeRes; },
+        json: (data: any) => { responseData = data; },
+      };
+
+      await pushHandler({ body: { source: "path", type: "skill", name: "bad name!" } }, fakeRes);
+      expect(statusCode).toBe(400);
+      expect(responseData.error).toContain("Invalid asset name");
+    });
+
+    it("returns 400 for path outside project root", async () => {
+      const routes = new TeamsRoutes();
+      let pushHandler: any;
+      const fakeApp = {
+        get: () => {},
+        post: (p: string, handler: any) => { if (p === "/api/teams/push") pushHandler = handler; },
+      };
+      routes.setupRoutes(fakeApp as any);
+
+      let statusCode = 200;
+      let responseData: any;
+      const fakeRes = {
+        status: (code: number) => { statusCode = code; return fakeRes; },
+        json: (data: any) => { responseData = data; },
+      };
+
+      (routes as any).resolveSxBinary = () => null;
+      await pushHandler({ body: { source: "../../etc/passwd", type: "rule", name: "bad-path" } }, fakeRes);
+      expect(statusCode).toBe(400);
+      expect(responseData.error).toContain("project");
+    });
+  });
+
+  describe("remove endpoint behavior", () => {
+    it("returns 400 for invalid asset name", async () => {
+      const routes = new TeamsRoutes();
+      let removeHandler: any;
+      const fakeApp = {
+        get: () => {},
+        post: (p: string, handler: any) => { if (p === "/api/teams/remove") removeHandler = handler; },
+      };
+      routes.setupRoutes(fakeApp as any);
+
+      let statusCode = 200;
+      let responseData: any;
+      const fakeRes = {
+        status: (code: number) => { statusCode = code; return fakeRes; },
+        json: (data: any) => { responseData = data; },
+      };
+
+      await removeHandler({ body: { name: "bad name!" } }, fakeRes);
+      expect(statusCode).toBe(400);
+    });
+
+    it("returns success when sx remove succeeds", async () => {
+      const routes = new TeamsRoutes();
+      (routes as any).resolveSxBinary = () => "/usr/local/bin/sx";
+      (routes as any).runSxCommand = async () => "";
+
+      let removeHandler: any;
+      const fakeApp = {
+        get: () => {},
+        post: (p: string, handler: any) => { if (p === "/api/teams/remove") removeHandler = handler; },
+      };
+      routes.setupRoutes(fakeApp as any);
+
+      let responseData: any;
+      const fakeRes = { json: (data: any) => { responseData = data; }, status: () => fakeRes };
+
+      await removeHandler({ body: { name: "my-skill" } }, fakeRes);
+      expect(responseData.success).toBe(true);
+    });
+  });
+
+  describe("init endpoint behavior", () => {
+    it("returns 400 for missing fields", async () => {
+      const routes = new TeamsRoutes();
+      let initHandler: any;
+      const fakeApp = {
+        get: () => {},
+        post: (p: string, handler: any) => { if (p === "/api/teams/init") initHandler = handler; },
+      };
+      routes.setupRoutes(fakeApp as any);
+
+      let statusCode = 200;
+      const fakeRes = {
+        status: (code: number) => { statusCode = code; return fakeRes; },
+        json: () => {},
+      };
+
+      await initHandler({ body: { type: "git" } }, fakeRes);
+      expect(statusCode).toBe(400);
+    });
+  });
+
+  describe("discover endpoint behavior", () => {
+    it("returns assets array and repoUrl", async () => {
+      const routes = new TeamsRoutes();
+      const handlers: Record<string, any> = {};
+      const fakeApp = {
+        get: (p: string, handler: any) => { handlers[p] = handler; },
+        post: (p: string, handler: any) => { handlers[p] = handler; },
+      };
+      routes.setupRoutes(fakeApp as any);
+
+      const discoverHandler = handlers["/api/teams/discover"];
+      expect(discoverHandler).toBeDefined();
+
+      let responseData: any;
+      const fakeRes = { json: (data: any) => { responseData = data; }, status: () => fakeRes };
+
+      discoverHandler({}, fakeRes);
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(responseData).toBeDefined();
+      expect(Array.isArray(responseData.assets)).toBe(true);
+      expect("repoUrl" in responseData).toBe(true);
     });
   });
 
   describe("emptyStatus", () => {
     it("returns correct empty status shape", () => {
-      const status: VaultStatus = {
+      const status: TeamsStatusResponse = {
         installed: false,
         version: null,
         configured: false,
-        vaultUrl: null,
+        repoUrl: null,
         profile: null,
         assets: [],
         catalog: [],
@@ -47,7 +206,7 @@ describe("VaultRoutes", () => {
       expect(status.installed).toBe(false);
       expect(status.version).toBeNull();
       expect(status.configured).toBe(false);
-      expect(status.vaultUrl).toBeNull();
+      expect(status.repoUrl).toBeNull();
       expect(status.profile).toBeNull();
       expect(status.assets).toEqual([]);
       expect(status.catalog).toEqual([]);
@@ -55,13 +214,13 @@ describe("VaultRoutes", () => {
     });
   });
 
-  describe("VaultStatus type", () => {
-    it("accepts valid VaultAsset array", () => {
-      const status: VaultStatus = {
+  describe("TeamsStatusResponse type", () => {
+    it("accepts valid asset array", () => {
+      const status: TeamsStatusResponse = {
         installed: true,
         version: "1.2.3",
         configured: true,
-        vaultUrl: "git@github.com:org/vault.git",
+        repoUrl: "git@github.com:org/vault.git",
         profile: "default",
         assets: [
           {
@@ -93,11 +252,11 @@ describe("VaultRoutes", () => {
     });
 
     it("handles multiple assets with different scopes", () => {
-      const status: VaultStatus = {
+      const status: TeamsStatusResponse = {
         installed: true,
         version: "2.0.0",
         configured: true,
-        vaultUrl: "https://github.com/org/vault",
+        repoUrl: "https://github.com/org/vault",
         profile: "team",
         assets: [
           { name: "rule-a", version: "v1", type: "rule", clients: [], status: "installed", scope: "Global" },
@@ -109,7 +268,7 @@ describe("VaultRoutes", () => {
       };
 
       expect(status.assets).toHaveLength(3);
-      const scopes = status.assets.map((a) => a.scope);
+      const scopes = status.assets.map((a: { scope: string }) => a.scope);
       expect(scopes).toContain("Global");
       expect(scopes).toContain("repo1");
     });
@@ -117,7 +276,7 @@ describe("VaultRoutes", () => {
 
   describe("status endpoint behavior", () => {
     it("returns empty status when sx binary is not found", async () => {
-      const routes = new VaultRoutes();
+      const routes = new TeamsRoutes();
       let responseData: any;
       const fakeRes = {
         json: (data: any) => { responseData = data; },
@@ -127,7 +286,7 @@ describe("VaultRoutes", () => {
 
       let statusHandler: any;
       const fakeApp = {
-        get: (path: string, handler: any) => { if (path === "/api/vault/status") statusHandler = handler; },
+        get: (path: string, handler: any) => { if (path === "/api/teams/status") statusHandler = handler; },
         post: () => {},
       };
       routes.setupRoutes(fakeApp as any);
@@ -143,18 +302,18 @@ describe("VaultRoutes", () => {
     });
 
     it("returns cached status on second call within TTL", async () => {
-      const routes = new VaultRoutes();
+      const routes = new TeamsRoutes();
 
-      const cachedStatus: VaultStatus = {
+      const cachedStatus: TeamsStatusResponse = {
         installed: true, version: "1.0", configured: true,
-        vaultUrl: "https://repo", profile: null,
+        repoUrl: "https://repo", profile: null,
         assets: [], catalog: [], isInstalling: false,
       };
       (routes as any).statusCache = { data: cachedStatus, timestamp: Date.now() };
 
       let statusHandler: any;
       const fakeApp = {
-        get: (path: string, handler: any) => { if (path === "/api/vault/status") statusHandler = handler; },
+        get: (path: string, handler: any) => { if (path === "/api/teams/status") statusHandler = handler; },
         post: () => {},
       };
       routes.setupRoutes(fakeApp as any);
@@ -170,7 +329,7 @@ describe("VaultRoutes", () => {
     });
 
     it("fetches fresh status when cache is expired", async () => {
-      const routes = new VaultRoutes();
+      const routes = new TeamsRoutes();
       (routes as any).resolveSxBinary = () => "/usr/local/bin/sx";
       (routes as any).runSxCommand = async (args: string[]) => {
         if (args.includes("config")) {
@@ -182,7 +341,7 @@ describe("VaultRoutes", () => {
 
       let statusHandler: any;
       const fakeApp = {
-        get: (path: string, handler: any) => { if (path === "/api/vault/status") statusHandler = handler; },
+        get: (path: string, handler: any) => { if (path === "/api/teams/status") statusHandler = handler; },
         post: () => {},
       };
       routes.setupRoutes(fakeApp as any);
@@ -198,13 +357,13 @@ describe("VaultRoutes", () => {
     });
 
     it("returns empty status on JSON parse failure", async () => {
-      const routes = new VaultRoutes();
+      const routes = new TeamsRoutes();
       (routes as any).resolveSxBinary = () => "/usr/local/bin/sx";
       (routes as any).runSxCommand = async () => "not-json";
 
       let statusHandler: any;
       const fakeApp = {
-        get: (path: string, handler: any) => { if (path === "/api/vault/status") statusHandler = handler; },
+        get: (path: string, handler: any) => { if (path === "/api/teams/status") statusHandler = handler; },
         post: () => {},
       };
       routes.setupRoutes(fakeApp as any);
@@ -225,13 +384,13 @@ describe("VaultRoutes", () => {
 
   describe("install endpoint behavior", () => {
     it("returns 409 when installation already in progress", async () => {
-      const routes = new VaultRoutes();
+      const routes = new TeamsRoutes();
       (routes as any)._isInstalling = true;
 
       let installHandler: any;
       const fakeApp = {
         get: () => {},
-        post: (_path: string, handler: any) => { installHandler = handler; },
+        post: (p: string, handler: any) => { if (p === "/api/teams/install") installHandler = handler; },
       };
       routes.setupRoutes(fakeApp as any);
 
@@ -248,13 +407,13 @@ describe("VaultRoutes", () => {
     });
 
     it("returns 500 when sx binary is not found", async () => {
-      const routes = new VaultRoutes();
+      const routes = new TeamsRoutes();
       (routes as any).resolveSxBinary = () => null;
 
       let installHandler: any;
       const fakeApp = {
         get: () => {},
-        post: (_path: string, handler: any) => { installHandler = handler; },
+        post: (p: string, handler: any) => { if (p === "/api/teams/install") installHandler = handler; },
       };
       routes.setupRoutes(fakeApp as any);
 
@@ -271,14 +430,14 @@ describe("VaultRoutes", () => {
     });
 
     it("clears cache and resets isInstalling after install completes", async () => {
-      const routes = new VaultRoutes();
+      const routes = new TeamsRoutes();
       (routes as any).resolveSxBinary = () => "/usr/local/bin/sx";
       (routes as any).runSxCommand = async () => "";
 
       let installHandler: any;
       const fakeApp = {
         get: () => {},
-        post: (_path: string, handler: any) => { installHandler = handler; },
+        post: (p: string, handler: any) => { if (p === "/api/teams/install") installHandler = handler; },
       };
       routes.setupRoutes(fakeApp as any);
 
@@ -299,7 +458,7 @@ describe("VaultRoutes", () => {
     });
 
     it("passes --target with project root to install command", async () => {
-      const routes = new VaultRoutes();
+      const routes = new TeamsRoutes();
       (routes as any).resolveSxBinary = () => "/usr/local/bin/sx";
       let capturedArgs: string[] = [];
       (routes as any).runSxCommand = async (args: string[]) => { capturedArgs = args; return ""; };
@@ -307,7 +466,7 @@ describe("VaultRoutes", () => {
       let installHandler: any;
       const fakeApp = {
         get: () => {},
-        post: (_path: string, handler: any) => { installHandler = handler; },
+        post: (p: string, handler: any) => { if (p === "/api/teams/install") installHandler = handler; },
       };
       routes.setupRoutes(fakeApp as any);
 
@@ -327,14 +486,14 @@ describe("VaultRoutes", () => {
     });
 
     it("resets isInstalling even when install fails", async () => {
-      const routes = new VaultRoutes();
+      const routes = new TeamsRoutes();
       (routes as any).resolveSxBinary = () => "/usr/local/bin/sx";
       (routes as any).runSxCommand = async () => { throw new Error("install failed"); };
 
       let installHandler: any;
       const fakeApp = {
         get: () => {},
-        post: (_path: string, handler: any) => { installHandler = handler; },
+        post: (p: string, handler: any) => { if (p === "/api/teams/install") installHandler = handler; },
       };
       routes.setupRoutes(fakeApp as any);
 
@@ -352,7 +511,7 @@ describe("VaultRoutes", () => {
 
   describe("detail endpoint behavior", () => {
     it("returns asset detail with version history for valid name", async () => {
-      const routes = new VaultRoutes();
+      const routes = new TeamsRoutes();
       (routes as any).resolveSxBinary = () => "/usr/local/bin/sx";
       (routes as any).runSxCommand = async (args: string[]) => {
         if (args.includes("vault") && args.includes("show")) {
@@ -376,7 +535,7 @@ describe("VaultRoutes", () => {
       let detailHandler: any;
       const fakeApp = {
         get: (path: string, handler: any) => {
-          if (path === "/api/vault/detail/:name") detailHandler = handler;
+          if (path === "/api/teams/detail/:name") detailHandler = handler;
         },
         post: () => {},
       };
@@ -400,12 +559,12 @@ describe("VaultRoutes", () => {
     });
 
     it("returns 400 for asset name with special characters", async () => {
-      const routes = new VaultRoutes();
+      const routes = new TeamsRoutes();
 
       let detailHandler: any;
       const fakeApp = {
         get: (path: string, handler: any) => {
-          if (path === "/api/vault/detail/:name") detailHandler = handler;
+          if (path === "/api/teams/detail/:name") detailHandler = handler;
         },
         post: () => {},
       };
@@ -426,7 +585,7 @@ describe("VaultRoutes", () => {
     });
 
     it("returns 404 for nonexistent asset", async () => {
-      const routes = new VaultRoutes();
+      const routes = new TeamsRoutes();
       (routes as any).resolveSxBinary = () => "/usr/local/bin/sx";
       (routes as any).runSxCommand = async () => {
         throw new Error("sx exited with code 1: Asset not found");
@@ -435,7 +594,7 @@ describe("VaultRoutes", () => {
       let detailHandler: any;
       const fakeApp = {
         get: (path: string, handler: any) => {
-          if (path === "/api/vault/detail/:name") detailHandler = handler;
+          if (path === "/api/teams/detail/:name") detailHandler = handler;
         },
         post: () => {},
       };
@@ -456,7 +615,7 @@ describe("VaultRoutes", () => {
     });
 
     it("returns 502 for malformed sx output", async () => {
-      const routes = new VaultRoutes();
+      const routes = new TeamsRoutes();
       (routes as any).resolveSxBinary = () => "/usr/local/bin/sx";
       (routes as any).runSxCommand = async () => {
         return JSON.stringify({ type: "skill" });
@@ -465,7 +624,7 @@ describe("VaultRoutes", () => {
       let detailHandler: any;
       const fakeApp = {
         get: (path: string, handler: any) => {
-          if (path === "/api/vault/detail/:name") detailHandler = handler;
+          if (path === "/api/teams/detail/:name") detailHandler = handler;
         },
         post: () => {},
       };
@@ -486,7 +645,7 @@ describe("VaultRoutes", () => {
     });
 
     it("caches detail responses for 60s", async () => {
-      const routes = new VaultRoutes();
+      const routes = new TeamsRoutes();
       (routes as any).resolveSxBinary = () => "/usr/local/bin/sx";
       let callCount = 0;
       (routes as any).runSxCommand = async () => {
@@ -501,7 +660,7 @@ describe("VaultRoutes", () => {
       let detailHandler: any;
       const fakeApp = {
         get: (path: string, handler: any) => {
-          if (path === "/api/vault/detail/:name") detailHandler = handler;
+          if (path === "/api/teams/detail/:name") detailHandler = handler;
         },
         post: () => {},
       };
@@ -520,13 +679,13 @@ describe("VaultRoutes", () => {
     });
 
     it("returns 500 when sx binary is not found", async () => {
-      const routes = new VaultRoutes();
+      const routes = new TeamsRoutes();
       (routes as any).resolveSxBinary = () => null;
 
       let detailHandler: any;
       const fakeApp = {
         get: (path: string, handler: any) => {
-          if (path === "/api/vault/detail/:name") detailHandler = handler;
+          if (path === "/api/teams/detail/:name") detailHandler = handler;
         },
         post: () => {},
       };

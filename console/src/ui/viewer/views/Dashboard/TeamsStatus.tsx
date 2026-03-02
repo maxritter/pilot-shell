@@ -1,6 +1,6 @@
-import { Card, CardBody, CardTitle, Badge, Icon } from '../../components/ui';
+import { Card, CardBody, CardTitle, Badge, Icon } from "../../components/ui";
 
-interface VaultAsset {
+interface TeamsAsset {
   name: string;
   version: string;
   type: string;
@@ -9,43 +9,51 @@ interface VaultAsset {
   scope: string;
 }
 
-interface VaultCatalogItem {
+interface TeamsCatalogItem {
   name: string;
   type: string;
   latestVersion: string;
   versionsCount: number;
 }
 
-interface VaultStatusProps {
+interface TeamsStatusProps {
   installed: boolean;
   version: string | null;
   configured: boolean;
-  vaultUrl: string | null;
+  repoUrl: string | null;
   profile: string | null;
-  assets: VaultAsset[];
-  catalog: VaultCatalogItem[];
+  assets: TeamsAsset[];
+  catalog: TeamsCatalogItem[];
   isInstalling: boolean;
   isLoading?: boolean;
 }
 
-function formatVaultUrl(url: string): string {
+function formatRepoUrl(url: string): string {
   try {
     const u = new URL(url);
-    return (u.host + u.pathname).replace(/\.git$/, '');
+    return (u.host + u.pathname).replace(/\.git$/, "");
   } catch {
     return url;
   }
 }
 
-export function VaultStatus(props: VaultStatusProps) {
-  const { installed, version, configured, vaultUrl, assets, catalog, isLoading } = props;
+export function TeamsStatus(props: TeamsStatusProps) {
+  const {
+    installed,
+    version,
+    configured,
+    repoUrl,
+    assets,
+    catalog,
+    isLoading,
+  } = props;
 
   if (isLoading) {
     return (
       <Card>
         <CardBody>
           <div className="flex items-center justify-between mb-4">
-            <CardTitle>Vault</CardTitle>
+            <CardTitle>Teams</CardTitle>
             <Badge variant="ghost">Loading...</Badge>
           </div>
           <div className="space-y-3 animate-pulse">
@@ -57,19 +65,24 @@ export function VaultStatus(props: VaultStatusProps) {
     );
   }
 
-  const installedNames = new Set(assets.map(a => a.name));
-  const availableCount = catalog.filter(c => !installedNames.has(c.name)).length;
+  const installedNames = new Set(assets.map((a) => a.name));
+  const availableCount = catalog.filter(
+    (c) => !installedNames.has(c.name),
+  ).length;
 
   if (!installed) {
     return (
       <Card>
         <CardBody>
           <div className="flex items-center justify-between mb-4">
-            <CardTitle>Vault</CardTitle>
+            <CardTitle>Teams</CardTitle>
             <Badge variant="ghost">Not Installed</Badge>
           </div>
           <div className="text-sm text-base-content/60">
-            <p>sx is not installed. Run the Pilot installer or install from <span className="font-mono text-primary">skills.new</span>.</p>
+            <p>
+              sx is not installed. Run the Pilot installer to set up team
+              sharing.
+            </p>
           </div>
         </CardBody>
       </Card>
@@ -82,13 +95,23 @@ export function VaultStatus(props: VaultStatusProps) {
         <CardBody>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <CardTitle>Vault</CardTitle>
-              {version && <Badge variant="ghost" size="sm">v{version}</Badge>}
+              <CardTitle>Teams</CardTitle>
+              {version && (
+                <Badge variant="ghost" size="sm">
+                  v{version}
+                </Badge>
+              )}
             </div>
             <Badge variant="warning">Not Configured</Badge>
           </div>
           <div className="text-sm text-base-content/60">
-            <p>sx is installed but no vault is configured. Run <span className="font-mono text-primary">/vault</span> to set up.</p>
+            <p>
+              sx is installed but no repository is configured. Open the{" "}
+              <a href="#/teams" className="text-primary hover:underline">
+                Teams page
+              </a>{" "}
+              to set up.
+            </p>
           </div>
         </CardBody>
       </Card>
@@ -100,25 +123,35 @@ export function VaultStatus(props: VaultStatusProps) {
       <CardBody className="flex flex-col">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <CardTitle>Vault</CardTitle>
-            <Badge variant="ghost" size="sm">Workspace</Badge>
+            <CardTitle>Teams</CardTitle>
+            <Badge variant="ghost" size="sm">
+              Workspace
+            </Badge>
           </div>
           <Badge variant="success">Connected</Badge>
         </div>
 
         <div className="space-y-3 flex-1">
-          {/* Vault URL */}
-          {vaultUrl && (
+          {repoUrl && (
             <div className="flex items-center gap-2 text-sm">
-              <Icon icon="lucide:git-branch" size={16} className="text-base-content/50" />
-              <span className="text-base-content/70">Vault:</span>
-              <span className="font-mono text-xs truncate">{formatVaultUrl(vaultUrl)}</span>
+              <Icon
+                icon="lucide:git-branch"
+                size={16}
+                className="text-base-content/50"
+              />
+              <span className="text-base-content/70">Repository:</span>
+              <span className="font-mono text-xs truncate">
+                {formatRepoUrl(repoUrl)}
+              </span>
             </div>
           )}
 
-          {/* Counts */}
           <div className="flex items-center gap-2 text-sm">
-            <Icon icon="lucide:package" size={16} className="text-base-content/50" />
+            <Icon
+              icon="lucide:package"
+              size={16}
+              className="text-base-content/50"
+            />
             <span className="text-base-content/70">Installed:</span>
             <span className="font-semibold">{assets.length}</span>
             {availableCount > 0 && (
@@ -129,8 +162,12 @@ export function VaultStatus(props: VaultStatusProps) {
           </div>
 
           <div className="flex items-center gap-2 text-sm">
-            <Icon icon="lucide:cloud" size={16} className="text-base-content/50" />
-            <span className="text-base-content/70">In vault:</span>
+            <Icon
+              icon="lucide:cloud"
+              size={16}
+              className="text-base-content/50"
+            />
+            <span className="text-base-content/70">In catalog:</span>
             <span className="font-semibold">{catalog.length}</span>
           </div>
         </div>

@@ -5,7 +5,7 @@
 
 export interface Shortcut {
   key: string;
-  modifiers?: ('ctrl' | 'meta' | 'shift' | 'alt')[];
+  modifiers?: ("ctrl" | "meta" | "shift" | "alt")[];
   description: string;
   action: string;
 }
@@ -18,64 +18,80 @@ export interface SequenceShortcut {
 
 export const SHORTCUTS: Record<string, Shortcut> = {
   COMMAND_PALETTE: {
-    key: 'k',
-    modifiers: ['ctrl', 'meta'],
-    description: 'Open command palette',
-    action: 'openCommandPalette',
+    key: "k",
+    modifiers: ["ctrl", "meta"],
+    description: "Open command palette",
+    action: "openCommandPalette",
   },
   SEARCH: {
-    key: '/',
-    modifiers: ['ctrl', 'meta'],
-    description: 'Focus search',
-    action: 'focusSearch',
+    key: "/",
+    modifiers: ["ctrl", "meta"],
+    description: "Focus search",
+    action: "focusSearch",
   },
   ESCAPE: {
-    key: 'Escape',
-    description: 'Close modal/palette',
-    action: 'escape',
+    key: "Escape",
+    description: "Close modal/palette",
+    action: "escape",
   },
   TOGGLE_THEME: {
-    key: 't',
-    modifiers: ['ctrl', 'meta'],
-    description: 'Toggle theme',
-    action: 'toggleTheme',
+    key: "t",
+    modifiers: ["ctrl", "meta"],
+    description: "Toggle theme",
+    action: "toggleTheme",
   },
   TOGGLE_SIDEBAR: {
-    key: 'b',
-    modifiers: ['ctrl', 'meta'],
-    description: 'Toggle sidebar',
-    action: 'toggleSidebar',
+    key: "b",
+    modifiers: ["ctrl", "meta"],
+    description: "Toggle sidebar",
+    action: "toggleSidebar",
   },
 } as const;
 
 export const SEQUENCE_SHORTCUTS: SequenceShortcut[] = [
-  { sequence: ['g', 'd'], description: 'Go to Dashboard', action: 'navigate:/' },
-  { sequence: ['g', 'm'], description: 'Go to Memories', action: 'navigate:/memories' },
-  { sequence: ['g', 'v'], description: 'Go to Vault', action: 'navigate:/vault' },
+  {
+    sequence: ["g", "d"],
+    description: "Go to Dashboard",
+    action: "navigate:/",
+  },
+  {
+    sequence: ["g", "m"],
+    description: "Go to Memories",
+    action: "navigate:/memories",
+  },
+  {
+    sequence: ["g", "v"],
+    description: "Go to Teams",
+    action: "navigate:/teams",
+  },
 ];
 
 export interface Command {
   id: string;
   label: string;
   shortcut?: string;
-  category: 'navigation' | 'action' | 'theme' | 'project';
+  category: "navigation" | "action" | "theme" | "project";
   action: () => void;
 }
 
 export function getShortcutDisplay(shortcut: Shortcut): string {
-  const isMac = typeof navigator !== 'undefined' && navigator.platform.includes('Mac');
+  const isMac =
+    typeof navigator !== "undefined" && navigator.platform.includes("Mac");
   const parts: string[] = [];
 
-  if (shortcut.modifiers?.includes('ctrl') || shortcut.modifiers?.includes('meta')) {
-    parts.push(isMac ? '⌘' : 'Ctrl');
+  if (
+    shortcut.modifiers?.includes("ctrl") ||
+    shortcut.modifiers?.includes("meta")
+  ) {
+    parts.push(isMac ? "⌘" : "Ctrl");
   }
-  if (shortcut.modifiers?.includes('shift')) {
-    parts.push(isMac ? '⇧' : 'Shift');
+  if (shortcut.modifiers?.includes("shift")) {
+    parts.push(isMac ? "⇧" : "Shift");
   }
-  if (shortcut.modifiers?.includes('alt')) {
-    parts.push(isMac ? '⌥' : 'Alt');
+  if (shortcut.modifiers?.includes("alt")) {
+    parts.push(isMac ? "⌥" : "Alt");
   }
 
   parts.push(shortcut.key.toUpperCase());
-  return parts.join(isMac ? '' : '+');
+  return parts.join(isMac ? "" : "+");
 }

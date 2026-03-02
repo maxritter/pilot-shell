@@ -16,6 +16,6 @@ describe('views/index exports', () => {
     expect(typeof mod.SessionsView).toBe('function');
     expect(typeof mod.SpecView).toBe('function');
     expect(typeof mod.UsageView).toBe('function');
-    expect(typeof mod.VaultView).toBe('function');
+    expect(typeof mod.TeamsView).toBe('function');
   });
 });

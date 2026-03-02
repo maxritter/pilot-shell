@@ -1,40 +1,39 @@
-## Team Vault (sx)
+## Teams (sx)
 
 Share AI assets (rules, skills, commands, agents, hooks, MCP configs) across your team using `sx` and a private Git repository.
+
+### Primary Interface
+
+**Use the Teams page in the Pilot Shell Console dashboard** (`http://localhost:41777/#/teams`) — browse assets, push local assets, configure the repository. Teams features require a **Team plan** license.
 
 ### When to Use
 
 | Situation | Action |
 |-----------|--------|
-| User says "share", "push", "vault" | Use `/vault` command |
-| After `/sync` creates new rules/skills | Suggest `/vault` to share |
-| User wants team consistency | Set up vault + push standards |
+| User says "share", "push", "team" | Direct to Teams page in Console |
+| After `/sync` creates new rules/skills | Suggest pushing via Teams page |
+| User wants team consistency | Set up repository via Teams page configuration section |
 | New team member onboarding | `sx install --repair --target .` |
 
-### Quick Reference
+### sx CLI Quick Reference
+
+For power users or CI/CD. The Console Teams page wraps these commands in a UI.
 
 ```bash
-# Check status
-sx config                              # Show config, vault URL, installed assets
+# Status
+sx config                              # Show config, repository URL, installed assets
 sx vault list                          # List all vault assets with versions
 
-# Pull team assets (always use --target to install to project .claude/)
+# Pull team assets
 sx install --repair --target .         # Fetch and install to current project
-sx install --repair --target /path     # Install for a project you're not inside (CI/Docker)
 
-# Push assets to team (project-scoped — recommended)
+# Push assets (project-scoped — recommended)
 REPO=$(git remote get-url origin)
 sx add .claude/skills/my-skill --yes --type skill --name "my-skill" --scope-repo $REPO
-sx add .claude/rules/my-rule.md --yes --type rule --name "my-rule" --scope-repo $REPO
 
-# Push assets globally (all repos)
-sx add .claude/rules/my-rule.md --yes --type rule --name "my-rule" --scope-global
-
-# Browse
+# Browse & remove
 sx vault show <asset-name>             # Show asset details and versions
-
-# Remove
-sx remove <asset-name> --yes           # Remove from lock file (stays in vault)
+sx remove <asset-name> --yes           # Remove from lock file
 ```
 
 ### Asset Types
@@ -47,7 +46,6 @@ sx remove <asset-name> --yes           # Remove from lock file (stays in vault)
 | `agent` | `--type agent` | `.claude/agents/<name>.md` |
 | `hook` | `--type hook` | Hook scripts |
 | `mcp` | `--type mcp` | MCP server configs |
-| `claude-code-plugin` | `--type claude-code-plugin` | Plugin bundles |
 
 ### Scoping
 
@@ -55,63 +53,18 @@ sx remove <asset-name> --yes           # Remove from lock file (stays in vault)
 |-------|-------------|----------|
 | Project (`--scope-repo`) | `project/.claude/` | **Recommended.** Assets stay with the project. |
 | Global (`--scope-global`) | `~/.claude/` | Personal tools needed in all repos. |
-| Path (`--scope-repo "url#path"`) | `project/path/.claude/` | Monorepo — different assets per service. |
-
-```bash
-# Project-scoped (recommended)
-sx add ./asset --yes --scope-repo git@github.com:org/repo.git
-
-# Global (all repos)
-sx add ./asset --yes --scope-global
-
-# Monorepo path-scoped
-sx add ./asset --yes --scope-repo "git@github.com:org/repo.git#backend,frontend"
-```
-
-To change an existing asset's scope, run `sx add <name>` again to reconfigure interactively.
-
-### Versioning
-
-- Vault auto-increments versions: v1 -> v2 -> v3 on each `sx add`
-- `sx vault list` shows latest version and total version count
-- `sx vault show <name>` shows all versions
 
 ### Setup (First Time)
 
+Use the **configuration section** in the Console Teams page, or via CLI:
+
 ```bash
-# Git repo (most common)
 sx init --type git --repo-url git@github.com:org/team-vault.git
-
-# Local directory
 sx init --type path --repo-url /path/to/vault
-
-# Skills.new (managed service)
-sx init --type sleuth
-
-# Verify
-sx vault list
 ```
-
-### Roles (Skills.new Only)
-
-```bash
-sx role list                # List available roles
-sx role set <role-slug>     # Set active role (controls which skills are available)
-sx role current             # Show current role
-sx role clear               # Clear active role
-```
-
-Only works with `sleuth` vault type (skills.new).
-
-### Supported Clients
-
-sx installs to all detected clients: `claude-code`, `cursor`, `github-copilot`, `gemini`. Disable non-Claude clients: `sx clients disable <client-id>`.
 
 ### Tips
 
-- Do NOT use `--no-install` when pushing — it skips the vault lockfile update, making assets invisible to teammates
-- Use `--name` to control the asset name in the vault
-- Always use `sx install --repair --target .` to install assets to the current project
-- Use `--target /path` to install for a project from outside it (CI pipelines, Docker)
+- Always use `sx install --repair --target .` to install assets
+- **Add `.cursor/` and `.gemini/` to `.gitignore`** — sx installs to all detected clients
 - Multiple profiles supported via `--profile` flag or `SX_PROFILE` env var
-- **Add `.cursor/` and `.gemini/` to `.gitignore`** — sx installs to all detected clients, which creates client directories in the project. Gitignore them to avoid polluting version control.

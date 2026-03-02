@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Icon, Badge, Tabs } from "../../components/ui";
-import type { MergedAsset, AssetDetail } from "../../hooks/useVault";
-import { VaultAssetDetail } from "./VaultAssetDetail";
+import type { MergedAsset, AssetDetail } from "../../hooks/useTeams";
+import { TeamsAssetDetail } from "./TeamsAssetDetail";
 
 const TYPE_ICONS: Record<string, string> = {
   skill: "lucide:wand-2",
@@ -33,7 +34,7 @@ const TABS = [
   { id: "mcp", label: "MCP" },
 ];
 
-interface VaultAssetTableProps {
+interface TeamsAssetTableProps {
   assets: MergedAsset[];
   searchQuery: string;
   activeTab: string;
@@ -44,9 +45,12 @@ interface VaultAssetTableProps {
   fetchDetail: (name: string) => Promise<void>;
   detailCache: Map<string, AssetDetail>;
   loadingDetails: Set<string>;
+  tier: string | null;
+  onUpdate: (asset: MergedAsset) => void;
+  onRemove: (name: string) => Promise<void>;
 }
 
-export function VaultAssetTable({
+export function TeamsAssetTable({
   assets,
   searchQuery,
   activeTab,
@@ -57,7 +61,10 @@ export function VaultAssetTable({
   fetchDetail,
   detailCache,
   loadingDetails,
-}: VaultAssetTableProps) {
+  tier,
+  onUpdate,
+  onRemove,
+}: TeamsAssetTableProps) {
   const filtered = assets.filter((a) => {
     const matchesTab = activeTab === "all" || a.type === activeTab;
     const matchesSearch =
@@ -94,6 +101,7 @@ export function VaultAssetTable({
                 <th>Installed</th>
                 <th>Latest</th>
                 <th>Scope</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -106,6 +114,9 @@ export function VaultAssetTable({
                   fetchDetail={fetchDetail}
                   detail={detailCache.get(asset.name) ?? null}
                   isLoadingDetail={loadingDetails.has(asset.name)}
+                  tier={tier}
+                  onUpdate={onUpdate}
+                  onRemove={onRemove}
                 />
               ))}
             </tbody>
@@ -123,6 +134,9 @@ function AssetRow({
   fetchDetail,
   detail,
   isLoadingDetail,
+  tier,
+  onUpdate,
+  onRemove,
 }: {
   asset: MergedAsset;
   isExpanded: boolean;
@@ -130,15 +144,38 @@ function AssetRow({
   fetchDetail: (name: string) => Promise<void>;
   detail: AssetDetail | null;
   isLoadingDetail: boolean;
+  tier: string | null;
+  onUpdate: (asset: MergedAsset) => void;
+  onRemove: (name: string) => Promise<void>;
 }) {
   const iconName = TYPE_ICONS[asset.type] ?? "lucide:package";
   const badgeVariant = TYPE_BADGE_VARIANT[asset.type] ?? "ghost";
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
 
   const handleClick = () => {
     onClick();
     if (!isExpanded && !detail && !isLoadingDetail) {
       fetchDetail(asset.name);
     }
+  };
+
+  const handleRemoveClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirmRemove) {
+      setConfirmRemove(true);
+      setTimeout(() => setConfirmRemove(false), 3000);
+      return;
+    }
+    setConfirmRemove(false);
+    setIsRemoving(true);
+    await onRemove(asset.name);
+    setIsRemoving(false);
+  };
+
+  const handleActionClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onUpdate(asset);
   };
 
   return (
@@ -170,11 +207,53 @@ function AssetRow({
         <td className="text-sm text-base-content/60">
           {asset.scope ?? "\u2014"}
         </td>
+        <td onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-1">
+            {!asset.installed && (
+              <button
+                className="btn btn-ghost btn-xs gap-1"
+                title="Sync all team assets to install"
+                onClick={handleActionClick}
+              >
+                <Icon icon="lucide:download" size={12} />
+                Install
+              </button>
+            )}
+            {asset.hasUpdate && (
+              <button
+                className="btn btn-warning btn-xs gap-1"
+                onClick={handleActionClick}
+              >
+                <Icon icon="lucide:refresh-cw" size={12} />
+                Update
+              </button>
+            )}
+            {asset.installed && tier === "team" && (
+              <button
+                className={`btn btn-xs gap-1 ${confirmRemove ? "btn-error" : "btn-ghost"}`}
+                disabled={isRemoving}
+                onClick={handleRemoveClick}
+              >
+                {isRemoving ? (
+                  <span className="loading loading-spinner loading-xs" />
+                ) : (
+                  <>
+                    <Icon
+                      icon={confirmRemove ? "lucide:check" : "lucide:trash-2"}
+                      size={12}
+                    />
+                    {confirmRemove ? "Confirm?" : "Remove"}
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </td>
       </tr>
       {isExpanded && (
         <tr>
-          <td colSpan={5} className="p-0">
-            <VaultAssetDetail
+          <td colSpan={6} className="p-0">
+            <TeamsAssetDetail
               detail={detail}
               isLoading={isLoadingDetail}
               onRetry={() => fetchDetail(asset.name)}

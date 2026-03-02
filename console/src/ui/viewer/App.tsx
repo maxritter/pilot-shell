@@ -8,7 +8,7 @@ import {
   SettingsView,
   SpecView,
   UsageView,
-  VaultView,
+  TeamsView,
 } from "./views";
 import { LogsDrawer } from "./components/LogsModal";
 import { CommandPalette } from "./components/CommandPalette";
@@ -26,7 +26,7 @@ const routes = [
   { path: "/memories/:type", component: MemoriesView },
   { path: "/sessions", component: SessionsView },
   { path: "/usage", component: UsageView },
-  { path: "/vault", component: VaultView },
+  { path: "/teams", component: TeamsView },
   { path: "/settings", component: SettingsView },
 ];
 

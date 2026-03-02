@@ -12,7 +12,7 @@ describe('SidebarNav', () => {
   it('source includes Settings nav item', async () => {
     const { readFileSync } = await import('fs');
     const src = readFileSync(new URL('../../src/ui/viewer/layouts/Sidebar/SidebarNav.tsx', import.meta.url), 'utf-8');
-    expect(src).toContain("'#/settings'");
+    expect(src).toContain('#/settings');
     expect(src).toContain('Settings');
     expect(src).toContain('lucide:settings');
   });

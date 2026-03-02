@@ -1,7 +1,7 @@
 import { StatsGrid } from "./StatsGrid";
 import { WorkerStatus } from "./WorkerStatus";
 import { VexorStatus } from "./VexorStatus";
-import { VaultStatus } from "./VaultStatus";
+import { TeamsStatus } from "./TeamsStatus";
 import { PlanStatus } from "./PlanStatus";
 import { useStats } from "../../hooks/useStats";
 import { useProject } from "../../context";
@@ -11,7 +11,7 @@ export function DashboardView() {
     stats,
     workerStatus,
     vexorStatus,
-    vaultStatus,
+    teamsStatus,
     planStatus,
     specStats,
     isLoading,
@@ -49,7 +49,7 @@ export function DashboardView() {
           isReindexing={vexorStatus.isReindexing}
         />
         <PlanStatus plans={planStatus.plans} />
-        <VaultStatus {...vaultStatus} isLoading={isLoading} />
+        <TeamsStatus {...teamsStatus} isLoading={isLoading} />
         <WorkerStatus
           status={workerStatus.status}
           version={workerStatus.version}

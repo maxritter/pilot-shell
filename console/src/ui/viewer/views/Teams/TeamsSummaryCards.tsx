@@ -1,15 +1,18 @@
-import type { MergedAsset } from '../../hooks/useVault';
+import type { MergedAsset } from "../../hooks/useTeams";
 
-interface VaultSummaryCardsProps {
+interface TeamsSummaryCardsProps {
   assets: MergedAsset[];
 }
 
-export function VaultSummaryCards({ assets }: VaultSummaryCardsProps) {
+export function TeamsSummaryCards({ assets }: TeamsSummaryCardsProps) {
   const total = assets.length;
-  const counts = assets.reduce((acc, a) => {
-    acc[a.type] = (acc[a.type] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const counts = assets.reduce(
+    (acc, a) => {
+      acc[a.type] = (acc[a.type] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
   const skills = counts.skill || 0;
   const rules = counts.rule || 0;
   const commands = counts.command || 0;
@@ -21,7 +24,7 @@ export function VaultSummaryCards({ assets }: VaultSummaryCardsProps) {
         <div className="stat">
           <div className="stat-title">Total Assets</div>
           <div className="stat-value text-primary">{total}</div>
-          <div className="stat-desc">In vault catalog</div>
+          <div className="stat-desc">In catalog</div>
         </div>
       </div>
 
@@ -43,7 +46,9 @@ export function VaultSummaryCards({ assets }: VaultSummaryCardsProps) {
 
       <div className="stats shadow bg-base-200">
         <div className="stat">
-          <div className="stat-title">{other > 0 ? "Commands & Other" : "Commands"}</div>
+          <div className="stat-title">
+            {other > 0 ? "Commands & Other" : "Commands"}
+          </div>
           <div className="stat-value">{commands + other}</div>
           <div className="stat-desc">Slash commands</div>
         </div>

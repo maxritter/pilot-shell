@@ -44,12 +44,13 @@ describe('useSettings', () => {
     }
   });
 
-  it('DEFAULT_SETTINGS has all seven commands', async () => {
+  it('DEFAULT_SETTINGS has all six commands', async () => {
     const { DEFAULT_SETTINGS } = await import('../../src/ui/viewer/hooks/useSettings.js');
-    const expected = ['spec', 'spec-plan', 'spec-implement', 'spec-verify', 'vault', 'sync', 'learn'];
+    const expected = ['spec', 'spec-plan', 'spec-implement', 'spec-verify', 'sync', 'learn'];
     for (const cmd of expected) {
       expect(DEFAULT_SETTINGS.commands[cmd]).toBeDefined();
     }
+    expect(DEFAULT_SETTINGS.commands['vault']).toBeUndefined();
   });
 
   it('DEFAULT_SETTINGS has both agents', async () => {
