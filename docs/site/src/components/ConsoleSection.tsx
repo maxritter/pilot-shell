@@ -39,12 +39,6 @@ const consoleSlides = [
     alt: "Usage view — daily costs, token charts, and model routing strategy",
     desc: "Daily token costs, model routing breakdown, and usage trends over time.",
   },
-  {
-    label: "Teams",
-    src: "/console/vault.png",
-    alt: "Teams view — shared team assets with version tracking",
-    desc: "Shared team assets — rules, commands, and skills — with automatic versioning.",
-  },
 ];
 
 const ConsoleSection = () => {
@@ -93,7 +87,7 @@ const ConsoleSection = () => {
             </div>
 
             {/* Thumbnail strip */}
-            <div className="grid grid-cols-7 gap-2 sm:gap-3 mt-3">
+            <div className="grid grid-cols-6 gap-2 sm:gap-3 mt-3">
               {consoleSlides.map((s, i) => (
                 <button
                   key={i}

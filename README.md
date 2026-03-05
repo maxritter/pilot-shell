@@ -46,7 +46,9 @@ This isn't a vibe coding tool, it's true agentic engineering, but without the ad
 
 ### Prerequisites
 
-**Claude Subscription:** Solo developers should choose [Max 5x](https://claude.com/pricing) for moderate usage or [Max 20x](https://claude.com/pricing) for heavy usage. Teams should use [Team Premium](https://claude.com/pricing) (6.25x usage per member, SSO, admin tools, billing management). Companies with stricter compliance or procurement requirements should use [Enterprise](https://claude.com/pricing).
+**Claude Code:** Pilot Shell installs on top of Claude Code — install it first [via npm](https://www.npmjs.com/package/@anthropic-ai/claude-code) or the [native installer](https://docs.anthropic.com/en/docs/claude-code/setup).
+
+**Claude Subscription:** Solo developers should choose [Max 5x](https://claude.com/pricing) for moderate usage or [Max 20x](https://claude.com/pricing) for heavy usage. Teams should use [Team Premium](https://claude.com/pricing) (6.25x usage per member, SSO, admin tools, billing management). Companies with stricter compliance or procurement requirements should use [Enterprise](https://claude.com/pricing) (API based pricing applies per usage).
 
 **Terminal:** [cmux](https://www.cmux.dev/) is the best terminal for Pilot Shell on macOS — built on the Ghostty rendering engine with native split panes, workspace tabs, and Claude Code notification hooks. On Linux, [Ghostty](https://ghostty.org/download) is the recommended terminal. Both are free and open source.
 
@@ -71,7 +73,7 @@ After installation, `cd` into any project and run `pilot` or `ccp` to start Pilo
 8-step installer with progress tracking, rollback on failure, and idempotent re-runs:
 
 1. **Prerequisites** — Checks Homebrew, Node.js, Python 3.12+, uv, git
-2. **Dependencies** — Installs Vexor, playwright-cli, Claude Code, property-based testing tools
+2. **Dependencies** — Installs Vexor, playwright-cli, language servers, property-based testing tools
 3. **Shell integration** — Auto-configures bash, fish, and zsh with `pilot` alias
 4. **Config & Claude files** — Sets up `.claude/` plugin, rules, commands, hooks, MCP servers
 5. **VS Code extensions** — Installs recommended extensions for your stack
@@ -157,7 +159,7 @@ Just chat — no plan, no approval gate. Quality hooks and TDD enforcement still
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/sync`  | Explores your codebase, discovers conventions, builds a search index, updates project rules. Run once initially, then anytime your project changes. |
 | `/learn` | Captures non-obvious discoveries as reusable skills. Triggers automatically or on demand.                                                           |
-| Teams    | Share rules, skills, commands, and agents across your team via the Console dashboard (Team plan).                                                    |
+| Teams    | Share rules, skills, commands, and agents across your team via the Console dashboard (Team plan).                                                   |
 
 ### Extensibility
 
@@ -187,6 +189,22 @@ A local web dashboard with 7 views and real-time notifications when Claude needs
 | **Usage**          | Daily token costs, model routing breakdown, and usage trends                             |
 | **Teams**          | Shared team assets with push, install, and management (Team plan)                        |
 | **Settings**       | Model selection per command/sub-agent, extended context toggle                           |
+
+</details>
+
+### Team Asset Sharing
+
+Share rules, skills, commands, and agents across your team from a central, private Git repository:
+
+<img src="docs/img/teams.png" alt="Teams Dashboard — shared asset management" width="700">
+
+<details>
+<summary><b>What Teams includes</b></summary>
+
+- **Shared asset management** — Push and install rules, skills, commands, and agents from the Console UI
+- **Project-scoped** — Assets are tied to repositories, so each project gets exactly what it needs
+- **Automatic versioning** — See installed vs. latest versions at a glance
+- **Guided onboarding** — New team members get a step-by-step screen to setup
 
 </details>
 
@@ -269,11 +287,11 @@ Opus for planning — where reasoning quality matters most. Sonnet for implement
 <details>
 <summary><b>Phase-by-phase breakdown</b></summary>
 
-| Phase                 | Default | Why                                                                                                                                               |
-| --------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Planning**          | Opus    | Exploring your codebase, designing architecture, and writing the spec requires deep reasoning. A good plan is the foundation of everything.       |
-| **Plan Verification** | Sonnet  | The plan-reviewer sub-agent validates completeness and challenges assumptions. Conditional: skipped for simple plans (≤3 tasks, clear scope).     |
-| **Implementation**    | Sonnet  | With a solid plan, writing code is straightforward. Sonnet is fast, cost-effective, and produces high-quality code when guided by a clear spec.   |
+| Phase                 | Default | Why                                                                                                                                                |
+| --------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Planning**          | Opus    | Exploring your codebase, designing architecture, and writing the spec requires deep reasoning. A good plan is the foundation of everything.        |
+| **Plan Verification** | Sonnet  | The plan-reviewer sub-agent validates completeness and challenges assumptions. Conditional: skipped for simple plans (≤3 tasks, clear scope).      |
+| **Implementation**    | Sonnet  | With a solid plan, writing code is straightforward. Sonnet is fast, cost-effective, and produces high-quality code when guided by a clear spec.    |
 | **Code Verification** | Sonnet  | The unified spec-reviewer agent handles deep code review (compliance + quality + goal). The orchestrator runs mechanical checks and applies fixes. |
 
 Choose between Sonnet 4.6 and Opus 4.6 for the main session, each command, and sub-agents. A global "Extended Context (1M)" toggle enables the 1M token context window across all models simultaneously. **Note:** 1M context models require a Max (20x) or Enterprise subscription — not available to all users.
@@ -415,10 +433,10 @@ The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing
 
 Pilot Shell is source-available under a commercial license. See the [LICENSE](LICENSE) file for full terms.
 
-| Tier     | Seats | Includes                                                                     |
-| :------- | :---- | :--------------------------------------------------------------------------- |
-| **Solo** | 1     | All features, continuous updates, bug reports via [GitHub Issues][gh-issues] |
-| **Team** | Multi | Solo + Teams Dashboard, shared asset management, priority support            |
+| Tier     | Seats | Includes                                                                            |
+| :------- | :---- | :---------------------------------------------------------------------------------- |
+| **Solo** | 1     | All features, continuous updates, community support via [GitHub Issues][gh-issues]   |
+| **Team** | Multi | Solo + team asset sharing, seat management, priority support                         |
 
 All plans work across multiple personal machines and Dev Containers — one subscription, all your devices.
 

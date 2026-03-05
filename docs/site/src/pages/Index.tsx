@@ -9,10 +9,10 @@ import ConsoleSection from "@/components/ConsoleSection";
 import TechStack from "@/components/TechStack";
 import DeepDiveSection from "@/components/DeepDiveSection";
 import DemoSection from "@/components/DemoSection";
+import TeamsDashboardSection from "@/components/TeamsDashboardSection";
 import PricingSection from "@/components/PricingSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import FAQSection from "@/components/FAQSection";
-import WorkshopsSection from "@/components/WorkshopsSection";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 
@@ -94,10 +94,10 @@ const Index = () => {
         <ConsoleSection />
         <TechStack />
         <DeepDiveSection />
-        <DemoSection />
+        <TeamsDashboardSection />
         <PricingSection />
-        <WorkshopsSection />
         <TestimonialsSection />
+        <DemoSection />
         <FAQSection />
         <Footer />
       </main>

@@ -122,7 +122,7 @@ const rulesCategories = [
     icon: GitBranch,
     category: "Collaboration",
     rules: [
-      "Team Vault asset sharing via sx",
+      "Teams asset sharing via sx",
       "Custom rules, commands & skills",
       "Shareable across teams via Git",
     ],

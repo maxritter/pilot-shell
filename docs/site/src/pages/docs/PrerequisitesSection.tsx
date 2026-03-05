@@ -1,4 +1,4 @@
-import { CreditCard, Monitor, CheckCircle2 } from "lucide-react";
+import { CreditCard, Monitor, CheckCircle2, Terminal } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
 
 const subscriptionTiers = [
@@ -55,6 +55,30 @@ const PrerequisitesSection = () => {
               What you need before installing Pilot
             </p>
           </div>
+        </div>
+
+        <div className="rounded-xl p-4 border border-primary/20 bg-primary/5 mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Terminal className="h-4 w-4 text-primary" />
+            <h3 className="font-semibold text-foreground text-sm">
+              Claude Code (Required)
+            </h3>
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Pilot Shell installs <span className="text-foreground font-medium">on top of Claude Code</span> — you must install it first.
+            Install via npm:{" "}
+            <code className="text-primary bg-primary/10 px-1 py-0.5 rounded">npm install -g @anthropic-ai/claude-code</code>
+            {" "}or use the{" "}
+            <a
+              href="https://docs.anthropic.com/en/docs/claude-code/setup"
+              className="text-primary hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              native installer
+            </a>
+            . Pilot Shell does not install or update Claude Code for you.
+          </p>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-6">

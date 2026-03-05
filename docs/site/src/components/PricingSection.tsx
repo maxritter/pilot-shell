@@ -124,25 +124,25 @@ const PricingSection = () => {
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
-                  Rules, hooks, standards, LSPs, MCP servers
+                  Rules, hooks, standards, LSPs, MCPs
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
-                  Context preservation + persistent memory
+                  Spec-driven mode, memory system, browser dashboard
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
-                  Latest learnings from daily usage
+                  Continuous updates with new features and improvements
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
-                  Continuous updates + bug reports via GitHub
+                  Community support via GitHub Issues
                 </span>
               </li>
             </ul>
@@ -195,19 +195,19 @@ const PricingSection = () => {
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
-                  Teams Dashboard — manage shared assets in the Console
+                  Team asset sharing — manage shared assets in the Teams console dashboard
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
-                  Push skills, rules, commands to your team vault
+                  Seat management — assign and manage all seats for your team in the portal
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
-                  Seat-based + priority support + manage seats via portal
+                  Priority support — direct support on issues and feature requests
                 </span>
               </li>
             </ul>

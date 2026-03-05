@@ -62,7 +62,7 @@ const insideItems: InsideItem[] = [
   },
   {
     icon: Users,
-    title: "Team Vault",
+    title: "Team Sharing",
     description: "Share knowledge across your team",
     summary:
       "Push and pull rules, commands, and skills via a private Git repo. Automatic versioning, scoped installs, and works with GitHub, GitLab, and Bitbucket.",

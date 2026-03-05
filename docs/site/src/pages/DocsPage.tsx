@@ -50,12 +50,12 @@ const tocGroups: TocGroup[] = [
       { id: "spec", label: "/spec — Spec-Driven Dev" },
       { id: "quick-mode", label: "Quick Mode" },
       { id: "learn", label: "/learn — Online Learning" },
-      { id: "teams", label: "Teams — Asset Sharing" },
     ],
   },
   {
     title: "System",
     items: [
+      { id: "teams", label: "Teams — Asset Sharing" },
       { id: "hooks", label: "Hooks Pipeline" },
       { id: "context-preservation", label: "Context Preservation" },
       { id: "rules", label: "Rules & Standards" },

@@ -28,9 +28,9 @@ const consoleViews = [
     desc: "Daily token costs, model routing breakdown (Opus vs Sonnet distribution), and usage trends over time.",
   },
   {
-    view: "Vault",
-    icon: "🔒",
-    desc: "Shared team assets with version tracking — see what's installed, when it was updated, and what version.",
+    view: "Teams",
+    icon: "👥",
+    desc: "Shared team assets with version tracking — push, install, and manage rules, skills, commands, and agents.",
   },
   {
     view: "Settings",

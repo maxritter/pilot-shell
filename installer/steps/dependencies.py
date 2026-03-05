@@ -108,86 +108,6 @@ def install_python_tools() -> bool:
     return True
 
 
-def _get_forced_claude_version() -> str | None:
-    """Check ~/.claude/settings.json for FORCE_CLAUDE_VERSION in env section."""
-    settings_path = Path.home() / ".claude" / "settings.json"
-    if settings_path.exists():
-        try:
-            settings = json.loads(settings_path.read_text())
-            return settings.get("env", {}).get("FORCE_CLAUDE_VERSION")
-        except (json.JSONDecodeError, OSError):
-            pass
-    return None
-
-
-def _clean_npm_stale_dirs() -> None:
-    """Remove stale .claude-code-* temp dirs that cause npm ENOTEMPTY errors."""
-    import shutil
-
-    if not command_exists("npm"):
-        return
-
-    try:
-        result = subprocess.run(
-            ["npm", "root", "-g"],
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode != 0:
-            return
-
-        node_modules_dir = Path(result.stdout.strip())
-        anthropic_dir = node_modules_dir / "@anthropic-ai"
-        if not anthropic_dir.exists():
-            return
-
-        for stale_dir in anthropic_dir.glob(".claude-code-*"):
-            if stale_dir.is_dir():
-                shutil.rmtree(stale_dir, ignore_errors=True)
-    except Exception:
-        pass
-
-
-def _get_installed_claude_version() -> str | None:
-    """Probe the actual installed Claude Code version via claude --version."""
-    try:
-        result = subprocess.run(
-            ["claude", "--version"],
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            return result.stdout.strip()
-    except Exception:
-        pass
-    return None
-
-
-def install_claude_code(ui: Any = None) -> tuple[bool, str]:
-    """Install/upgrade Claude Code CLI via npm and configure defaults."""
-    _clean_npm_stale_dirs()
-
-    forced_version = _get_forced_claude_version()
-    version = forced_version if forced_version else "latest"
-
-    if version != "latest":
-        npm_cmd = npm_global_cmd(f"npm install -g @anthropic-ai/claude-code@{version}")
-        if ui:
-            ui.status(f"Installing Claude Code v{version}...")
-    else:
-        npm_cmd = npm_global_cmd("npm install -g @anthropic-ai/claude-code")
-        if ui:
-            ui.status("Installing Claude Code...")
-
-    if not _run_bash_with_retry(npm_cmd):
-        if command_exists("claude"):
-            actual_version = _get_installed_claude_version()
-            return True, actual_version or version
-        return False, version
-
-    return True, version
-
-
 def _configure_vexor_defaults() -> bool:
     """Configure Vexor with recommended defaults for semantic search (OpenAI)."""
 
@@ -788,26 +708,6 @@ def _setup_pilot_memory(ui: Any) -> bool:
     return True
 
 
-def _install_claude_code_with_ui(ui: Any) -> bool:
-    """Install Claude Code with UI feedback."""
-    if ui:
-        ui.status("Installing Claude Code via npm...")
-        success, version = install_claude_code(ui)
-        if success:
-            if version != "latest":
-                ui.success(f"Claude Code installed (pinned to v{version})")
-                ui.info(f"Version {version} is the last stable release tested with Pilot")
-                ui.info("To change: edit FORCE_CLAUDE_VERSION in ~/.claude/settings.json")
-            else:
-                ui.success("Claude Code installed (latest)")
-        else:
-            ui.warning("Could not install Claude Code - please install manually")
-        return success
-    else:
-        success, _ = install_claude_code()
-        return success
-
-
 def _install_playwright_cli_with_ui(ui: Any) -> bool:
     """Install playwright-cli with UI feedback."""
     if ui:
@@ -988,9 +888,6 @@ class DependenciesStep(BaseStep):
 
         if _install_with_spinner(ui, "Python tools", install_python_tools):
             installed.append("python_tools")
-
-        if _install_claude_code_with_ui(ui):
-            installed.append("claude_code")
 
         if _setup_pilot_memory(ui):
             installed.append("pilot_memory")

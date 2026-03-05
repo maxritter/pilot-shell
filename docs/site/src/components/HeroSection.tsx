@@ -125,7 +125,7 @@ const HeroSection = () => {
             Quality Hooks
           </Badge>
           <Badge variant="secondary" className="text-[10px] xs:text-xs">
-            Team Vault
+            Team Sharing
           </Badge>
         </div>
 
