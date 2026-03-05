@@ -228,13 +228,15 @@ CLAUDE.md
 .vercel
 .mcp.json
 demo
+sx.json
 .env**
 playwright/
 .claude.backup.*
 *.backup
-.claude/config/
 .claude/skills/
 .claude/rules/
+.claude/commands/
+.claude/agents/
 .claude/.pilot-*-baseline.json
 .DS_Store
 

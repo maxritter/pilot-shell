@@ -113,7 +113,7 @@ Run all mechanical checks in sequence. Fix any failures before proceeding.
 3. **Linter** — `ruff check` / `eslint`. Errors are blockers, warnings acceptable.
 4. **Coverage** — Verify ≥ 80%.
 5. **Build** — Clean build, zero errors.
-6. **File length** — Changed production files (non-test): >400 lines must be refactored, >600 is a hard blocker.
+6. **File length** — Changed production files (non-test): >800 lines consider splitting, >1000 flag for review.
 7. **Plan verify commands** — For each task's `Verify:` section, run each command wrapped in `timeout 30 <cmd> || echo 'TIMEOUT'`. Defer server-dependent commands (containing `curl`, `localhost`, `http://`, `playwright-cli`) to Phase B.
 
 ### Step 3.3: Feature Parity Check (migration/refactoring only)

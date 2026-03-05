@@ -204,21 +204,21 @@ class TestCheckFileLength:
         from _util import check_file_length
 
         f = tmp_path / "growing.py"
-        f.write_text("\n".join(f"line {i}" for i in range(450)))
+        f.write_text("\n".join(f"line {i}" for i in range(850)))
         result = check_file_length(f)
         assert "growing.py" in result
-        assert "450" in result
-        assert "400" in result
+        assert "850" in result
+        assert "800" in result
 
     def test_returns_critical_for_very_long_file(self, tmp_path: Path) -> None:
         from _util import check_file_length
 
         f = tmp_path / "huge.py"
-        f.write_text("\n".join(f"line {i}" for i in range(650)))
+        f.write_text("\n".join(f"line {i}" for i in range(1050)))
         result = check_file_length(f)
         assert "huge.py" in result
-        assert "650" in result
-        assert "600" in result
+        assert "1050" in result
+        assert "1000" in result
 
     def test_returns_empty_for_nonexistent_file(self, tmp_path: Path) -> None:
         from _util import check_file_length
@@ -230,7 +230,7 @@ class TestCheckFileLength:
         from _util import check_file_length
 
         f = tmp_path / "big.py"
-        f.write_text("\n".join(f"line {i}" for i in range(650)))
+        f.write_text("\n".join(f"line {i}" for i in range(1050)))
         result = check_file_length(f)
         assert "\033[" not in result
 
@@ -254,10 +254,10 @@ class TestFileLengthConstants:
     """File length constants have expected values."""
 
     def test_warn_threshold(self):
-        assert FILE_LENGTH_WARN == 400
+        assert FILE_LENGTH_WARN == 800
 
     def test_critical_threshold(self):
-        assert FILE_LENGTH_CRITICAL == 600
+        assert FILE_LENGTH_CRITICAL == 1000
 
 
 

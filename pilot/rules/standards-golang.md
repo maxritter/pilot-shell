@@ -68,4 +68,4 @@ pkg/         # Public packages
 - [ ] `golangci-lint run` — clean
 - [ ] `go mod tidy` — deps tidy
 - [ ] No ignored errors
-- [ ] No production file exceeds 400 lines (600 = hard limit)
+- [ ] Production files ideally under 800 lines (1000+ = consider splitting)

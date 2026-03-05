@@ -62,7 +62,7 @@ const faqItems = [
   {
     question: "Can I add my own rules, commands, and skills?",
     answer:
-      "Yes. Create your own in your project\u2019s .claude/ folder \u2014 rules, commands, and skills are all plain markdown files. Your project-level assets are loaded alongside Pilot Shell\u2019s built-in defaults and take precedence when they overlap. /sync auto-discovers your codebase patterns and generates project-specific rules for you. /learn extracts reusable knowledge from sessions into custom skills. Hooks can be extended for additional languages. Use /vault to share your custom assets across your team.",
+      "Yes. Create your own in your project\u2019s .claude/ folder \u2014 rules, commands, and skills are all plain markdown files. Your project-level assets are loaded alongside Pilot Shell\u2019s built-in defaults and take precedence when they overlap. /sync auto-discovers your codebase patterns and generates project-specific rules for you. /learn extracts reusable knowledge from sessions into custom skills. Hooks can be extended for additional languages. Use the Teams dashboard in the Console to share your custom assets across your team.",
   },
 ];
 

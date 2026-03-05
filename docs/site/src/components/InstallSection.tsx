@@ -98,10 +98,8 @@ const InstallSection = () => {
                   <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
                     /learn
                   </code>{" "}
-                  extracts knowledge,{" "}
-                  <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-                    /vault
-                  </code>{" "}
+                  extracts knowledge, the{" "}
+                  <strong>Teams dashboard</strong>{" "}
                   shares with your team.
                 </p>
               </div>

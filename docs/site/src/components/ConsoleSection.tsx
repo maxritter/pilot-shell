@@ -40,9 +40,9 @@ const consoleSlides = [
     desc: "Daily token costs, model routing breakdown, and usage trends over time.",
   },
   {
-    label: "Vault",
+    label: "Teams",
     src: "/console/vault.png",
-    alt: "Vault view — shared team assets with version tracking",
+    alt: "Teams view — shared team assets with version tracking",
     desc: "Shared team assets — rules, commands, and skills — with automatic versioning.",
   },
 ];

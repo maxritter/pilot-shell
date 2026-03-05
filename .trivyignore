@@ -5,9 +5,9 @@
 #   CVE-2024-12345                     # Suppress a specific CVE
 #   generic-api-key:path/to/file.txt   # Suppress a secret finding in a specific file
 #
-# Note: launcher/ and docs/site/api/ are excluded from scanning via skip-dirs
-# in the workflow because they are git-crypt encrypted — their binary content
-# would produce false-positive secret detections.
+# Note: launcher/, console/, and docs/site/api/ are git-crypt encrypted.
+# In CI, the security-scan job decrypts them before scanning.
+# The pre-commit hook skips launcher/ and docs/site/api/ via skip-dirs.
 #
 # See: https://aquasecurity.github.io/trivy/latest/docs/configuration/filtering/
 

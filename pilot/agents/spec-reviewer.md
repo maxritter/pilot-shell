@@ -49,7 +49,7 @@ Quality-relevant rules to read:
 ```
 
 Rules to SKIP (not relevant to code review):
-- `context-management.md`, `cli-tools.md`, `research-tools.md`, `pilot-memory.md`, `playwright-cli.md`, `team-vault.md`, `task-and-workflow.md`, `mcp-servers.md`
+- `context-management.md`, `cli-tools.md`, `research-tools.md`, `pilot-memory.md`, `playwright-cli.md`, `task-and-workflow.md`, `mcp-servers.md`
 
 ### Step 2: Read Changed Files
 

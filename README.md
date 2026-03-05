@@ -157,7 +157,6 @@ Just chat — no plan, no approval gate. Quality hooks and TDD enforcement still
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/sync`  | Explores your codebase, discovers conventions, builds a search index, updates project rules. Run once initially, then anytime your project changes. |
 | `/learn` | Captures non-obvious discoveries as reusable skills. Triggers automatically or on demand.                                                           |
-| `/vault` | Shares rules, commands, and skills across your team via a private Git repository.                                                                   |
 
 ### Extensibility
 
@@ -516,7 +515,7 @@ Yes. Pilot Shell installs once globally and works across all your projects — y
 <details>
 <summary><b>Can I add my own rules, commands, and skills?</b></summary>
 
-Yes. Create your own in your project's `.claude/` folder — rules, commands, and skills are all plain markdown files. Your project-level assets are loaded alongside Pilot Shell's built-in defaults and take precedence when they overlap. `/sync` auto-discovers your codebase patterns and generates project-specific rules for you. `/learn` extracts reusable knowledge from sessions into custom skills. Hooks can be extended for additional languages. Use `/vault` to share your custom assets across your team.
+Yes. Create your own in your project's `.claude/` folder — rules, commands, and skills are all plain markdown files. Your project-level assets are loaded alongside Pilot Shell's built-in defaults and take precedence when they overlap. `/sync` auto-discovers your codebase patterns and generates project-specific rules for you. `/learn` extracts reusable knowledge from sessions into custom skills. Hooks can be extended for additional languages. Use the Teams dashboard in the Console to share your custom assets across your team.
 
 </details>
 

@@ -20,8 +20,8 @@ BLUE = "\033[0;34m"
 MAGENTA = "\033[0;35m"
 NC = "\033[0m"
 
-FILE_LENGTH_WARN = 400
-FILE_LENGTH_CRITICAL = 600
+FILE_LENGTH_WARN = 800
+FILE_LENGTH_CRITICAL = 1000
 
 _AUTOCOMPACT_BUFFER_TOKENS = 33_000
 
@@ -178,13 +178,13 @@ def check_file_length(file_path: Path) -> str:
 
     if line_count > FILE_LENGTH_CRITICAL:
         return (
-            f"FILE TOO LONG: {file_path.name} has {line_count} lines (limit: {FILE_LENGTH_CRITICAL}). "
-            f"Split into smaller, focused modules (<{FILE_LENGTH_WARN} lines each)."
+            f"Note: {file_path.name} has {line_count} lines (>{FILE_LENGTH_CRITICAL}). "
+            f"Consider splitting if this file is the focus of your current task."
         )
     elif line_count > FILE_LENGTH_WARN:
         return (
-            f"FILE GROWING LONG: {file_path.name} has {line_count} lines (warn: {FILE_LENGTH_WARN}). "
-            f"Consider splitting before it grows further."
+            f"Note: {file_path.name} has {line_count} lines (>{FILE_LENGTH_WARN}). "
+            f"Keep an eye on size — no action needed unless you're already refactoring this file."
         )
     return ""
 

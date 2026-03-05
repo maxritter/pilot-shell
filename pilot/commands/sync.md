@@ -10,7 +10,7 @@ model: sonnet
 
 **Flow:** Read existing → Index → Explore → Compare → Sync project/MCP/skills → Discover new rules/skills → Summary
 
-**Team sharing:** Use `/vault` after sync to push/pull assets via sx.
+**Team sharing:** Use the Teams page in the Console dashboard to push/pull assets via sx.
 
 ---
 
@@ -23,11 +23,23 @@ model: sonnet
 - **Write concise rules** — every word costs tokens in context
 - **Idempotent** — running multiple times produces consistent results
 
+### Project Slug
+
+Derive the project slug from the git repo or directory name. Use it as a prefix for ALL created rules and skills to avoid name collisions across repositories.
+
+```bash
+# Derive slug: git repo name (preferred) or directory basename
+SLUG=$(basename "$(git remote get-url origin 2>/dev/null | sed 's/\.git$//')" 2>/dev/null || basename "$PWD")
+# Result: "pilot-shell", "my-api", "acme-backend"
+```
+
+Use `{slug}-` prefix on everything: `{slug}-project.md`, `{slug}-mcp-servers.md`, `{slug}-{topic}.md`, `.claude/skills/{slug}-{name}/`.
+
 ### Output Locations
 
-**Custom rules** in `.claude/rules/`: `project.md` (tech stack, structure), `mcp-servers.md` (custom MCP servers), `[pattern-name].md` (tribal knowledge).
+**Custom rules** in `.claude/rules/`: `{slug}-project.md` (tech stack, structure), `{slug}-mcp-servers.md` (custom MCP servers), `{slug}-{pattern-name}.md` (tribal knowledge).
 
-**Custom skills** in `.claude/skills/[name]/SKILL.md`: workflows, tool integrations, domain expertise.
+**Custom skills** in `.claude/skills/{slug}-{name}/SKILL.md`: workflows, tool integrations, domain expertise.
 
 Use unique names (not `plan`, `implement`, `verify`, `standards-*`) for custom skills.
 
@@ -57,10 +69,28 @@ Rules load every session — every word costs tokens.
 
 **MANDATORY FIRST STEP.**
 
-1. `ls -la .claude/rules/*.md 2>/dev/null` — read each rule file
-2. `ls -la .claude/skills/*/SKILL.md 2>/dev/null` — read each skill file
-3. Check for legacy CLAUDE.md: `ls CLAUDE.md claude.md .claude.md 2>/dev/null` — read if found
-4. Build mental inventory: documented rules, documented skills, CLAUDE.md contents (if any), potential gaps, possibly outdated items
+1. Derive the project slug (see Phase 0 → Project Slug)
+2. `ls -la .claude/rules/*.md 2>/dev/null` — read each rule file
+3. `ls -la .claude/skills/*/SKILL.md 2>/dev/null` — read each skill file
+4. Check for legacy CLAUDE.md: `ls CLAUDE.md claude.md .claude.md 2>/dev/null` — read if found
+5. **Detect unscoped legacy files** — look for `project.md`, `mcp-servers.md`, or any rule/skill without the `{slug}-` prefix. If found, flag them for migration in Phase 1.5.
+6. Build mental inventory: documented rules, documented skills, CLAUDE.md contents (if any), potential gaps, possibly outdated items, legacy unscoped files
+
+### Phase 1.5: Migrate Unscoped Assets — CONDITIONAL
+
+**Only if Phase 1 found rules or skills without the `{slug}-` prefix** (e.g., `project.md` instead of `{slug}-project.md`, or `.claude/skills/my-skill/` instead of `.claude/skills/{slug}-my-skill/`).
+
+AskUserQuestion: "Found unscoped assets that should be prefixed with '{slug}-' for better Team sharing. Migrate now?"
+- **"Yes, migrate all"** — For each unscoped file: rename to `{slug}-{name}`, update any internal references. Delete the old file.
+- **"Review each"** — Show each file, let user decide per-file.
+- **"Skip"** — Leave as-is, continue sync.
+
+**Migration rules:**
+- `project.md` → `{slug}-project.md`
+- `mcp-servers.md` → `{slug}-mcp-servers.md`
+- `{topic}.md` → `{slug}-{topic}.md` (unless it's a Pilot-managed standard rule)
+- `.claude/skills/{name}/` → `.claude/skills/{slug}-{name}/` (update `name:` in frontmatter too)
+- Do NOT migrate files from `~/.claude/rules/` — those are global Pilot rules, not project-scoped
 
 ## Phase 2: Initialize Vexor Index
 
@@ -86,22 +116,24 @@ Rules load every session — every word costs tokens.
 
 ## Phase 5: Sync Project Rule
 
-**Update `.claude/rules/project.md` with current project state.**
+**Update `.claude/rules/{slug}-project.md` with current project state.**
+
+Also look for a legacy unscoped `project.md` — if found, migrate its content into `{slug}-project.md` and delete the old file.
 
 ### Step 5.0: Handle Existing CLAUDE.md — CONDITIONAL
 
 **Only if Phase 1 found a CLAUDE.md file (any variant).**
 
-If both CLAUDE.md AND `.claude/rules/project.md` exist: read both, check for redundant content. If CLAUDE.md has unique content not in project.md, offer to merge it in. If fully redundant, suggest removing CLAUDE.md.
+If both CLAUDE.md AND `{slug}-project.md` exist: read both, check for redundant content. If CLAUDE.md has unique content not in the project rule, offer to merge it in. If fully redundant, suggest removing CLAUDE.md.
 
-If CLAUDE.md exists but NO `.claude/rules/project.md`: AskUserQuestion:
-- "Migrate to modular rules (Recommended)" — Split CLAUDE.md into `.claude/rules/project.md` + topic-specific rule files. Advantages: smaller context per session, topic-specific loading, survives Pilot updates, team-shareable via `/vault`.
-- "Keep CLAUDE.md as-is" — Skip creating project.md. CLAUDE.md stays as the single source of project context.
-- "Create project.md alongside CLAUDE.md" — Keep both. project.md gets tech stack/structure, CLAUDE.md keeps custom instructions.
+If CLAUDE.md exists but NO `{slug}-project.md`: AskUserQuestion:
+- "Migrate to modular rules (Recommended)" — Split CLAUDE.md into `.claude/rules/{slug}-project.md` + topic-specific rule files. Advantages: smaller context per session, topic-specific loading, survives Pilot updates, team-shareable via Teams dashboard.
+- "Keep CLAUDE.md as-is" — Skip creating project rule. CLAUDE.md stays as the single source of project context.
+- "Create project rule alongside CLAUDE.md" — Keep both. Project rule gets tech stack/structure, CLAUDE.md keeps custom instructions.
 
-**If migrating:** Read CLAUDE.md, identify logical sections (project overview, tech stack, conventions, patterns, etc.). Create `project.md` from overview/stack/structure sections. Create additional rule files for distinct topics (e.g., `conventions.md`, `api-patterns.md`). AskUserQuestion to confirm the split before writing. After writing, ask: "Remove CLAUDE.md?" | "Rename to CLAUDE.md.bak" | "Keep both".
+**If migrating:** Read CLAUDE.md, identify logical sections (project overview, tech stack, conventions, patterns, etc.). Create `{slug}-project.md` from overview/stack/structure sections. Create additional rule files for distinct topics (e.g., `{slug}-conventions.md`, `{slug}-api-patterns.md`). AskUserQuestion to confirm the split before writing. After writing, ask: "Remove CLAUDE.md?" | "Rename to CLAUDE.md.bak" | "Keep both".
 
-### Step 5.1: Create or Update project.md
+### Step 5.1: Create or Update {slug}-project.md
 
 If exists: compare tech stack, verify structure/commands, update timestamp, preserve custom sections.
 
@@ -157,11 +189,13 @@ For each user server:
 
 #### Step 6.3: Document
 
-Compare against existing `mcp-servers.md`. If changes detected, ask user: "Update all" | "Review each" | "Skip"
+Compare against existing `{slug}-mcp-servers.md`. If changes detected, ask user: "Update all" | "Review each" | "Skip"
+
+Also look for a legacy unscoped `mcp-servers.md` — if found, migrate content into `{slug}-mcp-servers.md` and delete the old file.
 
 #### Step 6.4: Write
 
-Create/update `.claude/rules/mcp-servers.md`:
+Create/update `.claude/rules/{slug}-mcp-servers.md`:
 
 ```markdown
 ### [server-name]
@@ -194,7 +228,7 @@ If obsolete: AskUserQuestion "Yes, remove it" | "Keep it" | "Update instead". If
 2. Prioritize by: frequency, uniqueness, mistake likelihood
 3. AskUserQuestion (multiSelect): which areas to document
 4. For each: ask clarifying questions, draft rule, confirm before creating
-5. Write to `.claude/rules/[pattern-name].md`
+5. Write to `.claude/rules/{slug}-{pattern-name}.md`
 
 **Rule format:** Standard Name → When to Apply → The Pattern (code) → Why (if not obvious) → Common Mistakes → Good/Bad examples.
 
@@ -211,4 +245,4 @@ Skills are appropriate for: multi-step workflows, tool integrations, reusable sc
 
 Report: Vexor index status, rules updated, new rules created, skills updated, new skills created, skills removed, unchanged items.
 
-Then offer: "Share via Team Vault" (`Skill(skill='vault')`) | "Discover more standards" | "Create more skills" | "Done"
+Then offer: "Share via Teams dashboard" (direct user to Console Teams page) | "Discover more standards" | "Create more skills" | "Done"

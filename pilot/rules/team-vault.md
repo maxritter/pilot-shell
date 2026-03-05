@@ -44,8 +44,6 @@ sx remove <asset-name> --yes           # Remove from lock file
 | `rule` | `--type rule` | `.claude/rules/<name>.md` |
 | `command` | `--type command` | `.claude/commands/<name>.md` |
 | `agent` | `--type agent` | `.claude/agents/<name>.md` |
-| `hook` | `--type hook` | Hook scripts |
-| `mcp` | `--type mcp` | MCP server configs |
 
 ### Scoping
 
@@ -59,12 +57,11 @@ sx remove <asset-name> --yes           # Remove from lock file
 Use the **configuration section** in the Console Teams page, or via CLI:
 
 ```bash
-sx init --type git --repo-url git@github.com:org/team-vault.git
-sx init --type path --repo-url /path/to/vault
+sx init --type git --repo-url git@github.com:org/team-repo.git
+sx init --type path --repo-url /path/to/repo
 ```
 
 ### Tips
 
 - Always use `sx install --repair --target .` to install assets
-- **Add `.cursor/` and `.gemini/` to `.gitignore`** — sx installs to all detected clients
 - Multiple profiles supported via `--profile` flag or `SX_PROFILE` env var

@@ -108,7 +108,7 @@ const LearnSection = () => {
             stored in <code className="text-primary">.claude/skills/</code>.
             They're loaded on-demand when relevant, created by{" "}
             <code className="text-primary">/learn</code>, and shareable across
-            your team via <code className="text-primary">/vault</code>. Skills
+            your team via the <strong>Teams dashboard</strong>. Skills
             follow a frontmatter format that describes when they apply.
           </p>
         </div>

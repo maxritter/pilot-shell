@@ -13,7 +13,7 @@ const syncPhases = [
   },
   { phase: 3, action: "Explore codebase with Vexor/Grep to find patterns" },
   { phase: 4, action: "Compare discovered vs documented patterns" },
-  { phase: 5, action: "Sync/update project.md with tech stack and commands" },
+  { phase: 5, action: "Sync/update project rule with tech stack and commands" },
   { phase: 6, action: "Sync MCP server documentation" },
   { phase: 7, action: "Update existing custom skills that have changed" },
   {

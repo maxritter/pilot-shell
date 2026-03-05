@@ -20,7 +20,7 @@ import SyncSection from "./docs/SyncSection";
 import SpecSection from "./docs/SpecSection";
 import QuickModeSection from "./docs/QuickModeSection";
 import LearnSection from "./docs/LearnSection";
-import VaultSection from "./docs/VaultSection";
+import TeamsSection from "./docs/TeamsSection";
 import HooksSection from "./docs/HooksSection";
 import ContextSection from "./docs/ContextSection";
 import RulesSection from "./docs/RulesSection";
@@ -50,7 +50,7 @@ const tocGroups: TocGroup[] = [
       { id: "spec", label: "/spec — Spec-Driven Dev" },
       { id: "quick-mode", label: "Quick Mode" },
       { id: "learn", label: "/learn — Online Learning" },
-      { id: "vault", label: "/vault — Team Vault" },
+      { id: "teams", label: "Teams — Asset Sharing" },
     ],
   },
   {
@@ -219,7 +219,7 @@ const DocsPage = () => {
               <SpecSection />
               <QuickModeSection />
               <LearnSection />
-              <VaultSection />
+              <TeamsSection />
               <HooksSection />
               <ContextSection />
               <RulesSection />

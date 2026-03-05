@@ -144,7 +144,7 @@ During installation, Pilot sets up:
 
 - **Hooks** for TDD enforcement, context monitoring, and tool redirection
 - **MCP servers** for persistent memory, web search, and documentation
-- **Custom commands** for `/spec`, `/sync`, `/learn`, and `/vault`
+- **Custom commands** for `/spec`, `/sync`, and `/learn`
 - **Rules** for coding standards, testing strategies, and workflow enforcement
 
 These are installed as project settings so they're shared with your team and version-controlled. You can customize any of them by editing the files directly.

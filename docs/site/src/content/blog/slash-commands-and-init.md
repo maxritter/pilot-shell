@@ -126,6 +126,5 @@ Pilot installs several commands that power its workflow:
 - `/spec` — Triggers the spec-driven development pipeline
 - `/sync` — Synchronizes rules and skills with the codebase
 - `/learn` — Extracts reusable knowledge into skills
-- `/vault` — Manages shared team assets
 
 These commands are markdown files that orchestrate multi-step workflows, proving that slash commands scale from simple shortcuts to complex automations.

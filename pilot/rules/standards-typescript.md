@@ -57,7 +57,7 @@ Check `package.json` scripts first — projects often have custom configurations
 - [ ] Explicit return types on exports
 - [ ] No `any` types
 - [ ] Correct lock file committed
-- [ ] No production file exceeds 400 lines (600 = hard limit)
+- [ ] Production files ideally under 800 lines (1000+ = consider splitting)
 
 ### Quick Reference
 

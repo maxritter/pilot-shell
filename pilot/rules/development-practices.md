@@ -1,10 +1,19 @@
 ## Development Practices
 
+### Codebase Search — Vexor First
+
+**⛔ Always use `vexor` as the first tool for codebase search.** It finds files by intent, not exact text, and costs zero context until you read results. Only fall back to Grep/Glob when you need an exact symbol or pattern match that vexor missed.
+
+```bash
+vexor "how is authentication handled" --mode code --top 5   # Semantic search
+vexor "database connection setup" --mode code               # Intent-based discovery
+```
+
 ### Project-Specific Policies
 
-**File Size:** Production code under 400 lines. 600 is hard limit — stop and refactor. Test files exempt.
+**File Size:** Aim for production files under 800 lines. Over 1000 lines is a signal to consider splitting — but only when it's the focus of the current task, not as a side-refactor. Test files exempt.
 
-**Dependency Check:** Before modifying any function, use `vexor`, `Grep`, or LSP `findReferences` to find all callers. Update all affected call sites.
+**Dependency Check:** Before modifying any function, use `vexor` first (then `Grep` or LSP `findReferences` if needed) to find all callers. Update all affected call sites.
 
 **Self-Correction:** Fix obvious mistakes (syntax errors, typos, missing imports) in code you are actively writing. Do not auto-fix errors in code the user edited — report them and let the user decide.
 

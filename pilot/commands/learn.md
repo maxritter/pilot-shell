@@ -32,13 +32,26 @@ model: sonnet
 
 **Do NOT extract:** Single-step tasks, one-off fixes, knowledge in official docs.
 
+### Project Slug
+
+Prefix ALL created skills with the project slug to avoid name collisions across repos.
+
+```bash
+SLUG=$(basename "$(git remote get-url origin 2>/dev/null | sed 's/\.git$//')" 2>/dev/null || basename "$PWD")
+# Result: "pilot-shell", "my-api", "acme-backend"
+```
+
+Skill directory: `.claude/skills/{slug}-{name}/SKILL.md`
+
+**Keep names short.** The slug provides context; the name should be 1-3 words max. Examples: `pilot-shell-lsp-cleaner`, `my-api-auth-flow`, `acme-deploy`. Avoid redundant words like "handler", "helper", "workflow".
+
 ### Skill Structure
 
-**Location:** `.claude/skills/[skill-name]/SKILL.md`
+**Location:** `.claude/skills/{slug}-{skill-name}/SKILL.md`
 
 ```markdown
 ---
-name: descriptive-kebab-case-name
+name: {slug}-descriptive-kebab-case-name
 description: |
   [CRITICAL: Describe WHEN to use, not HOW it works. Include trigger conditions, scenarios, exact error messages.]
 author: Claude Code
@@ -60,7 +73,7 @@ version: 1.0.0
 ✅ `"Fix for ENOENT errors in npm monorepos. Use when: (1) npm run fails with ENOENT, (2) symlinked deps cause failures."`
 ❌ `"Extract and organize npm monorepo fixes by analyzing symlinks and paths."`
 
-**Guidelines:** Concise (Claude is smart). Under 600 lines. Examples over explanations.
+**Guidelines:** Concise (Claude is smart). Under 1000 lines. Examples over explanations.
 
 ---
 
@@ -97,7 +110,7 @@ rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
 
 ## Phase 3: Create Skill
 
-Write to `.claude/skills/[skill-name]/SKILL.md` using the template from Phase 0. Ensure description contains specific trigger conditions.
+Write to `.claude/skills/{slug}-{skill-name}/SKILL.md` using the template from Phase 0. Ensure description contains specific trigger conditions and the name is prefixed with the project slug.
 
 ---
 
@@ -115,10 +128,10 @@ Write to `.claude/skills/[skill-name]/SKILL.md` using the template from Phase 0.
 
 **Scenario:** Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
 
-**Result:** `.claude/skills/lsp-dead-code-finder/SKILL.md`
+**Result:** `.claude/skills/my-project-lsp-cleaner/SKILL.md`
 
 ```yaml
-name: lsp-dead-code-finder
+name: my-project-lsp-cleaner
 description: |
   Find dead/unused code using LSP findReferences. Use when: (1) user asks
   to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:

@@ -1,18 +1,18 @@
-import { Users, CheckCircle2, Lock } from "lucide-react";
+import { Users, CheckCircle2 } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
 
 const teamsFeatures = [
   {
-    title: "Teams Dashboard",
-    desc: "Browse, push, and manage shared assets directly in the Console UI",
+    title: "Console Dashboard",
+    desc: "Browse, push, install, and remove assets from a visual Teams page",
   },
   {
-    title: "Push & Pull",
-    desc: "Share custom rules, skills, and commands with teammates via Git vault",
+    title: "Private Git Repo",
+    desc: "Use any Git repo — GitHub, GitLab, Bitbucket, public or private",
   },
   {
-    title: "Vault Setup",
-    desc: "Configure your team vault (Git repo, local path, or Skills.new) from the UI",
+    title: "Push & Install",
+    desc: "Push local assets to the repo, install team assets to your project",
   },
   {
     title: "Versioned",
@@ -41,12 +41,6 @@ const assetTypes = [
     path: ".claude/agents/<name>.md",
     desc: "Sub-agent definitions",
   },
-  { type: "hook", path: "Hook scripts", desc: "Quality enforcement hooks" },
-  {
-    type: "mcp",
-    path: "MCP server configs",
-    desc: "External tool integrations",
-  },
 ];
 
 const TeamsSection = () => {
@@ -63,30 +57,21 @@ const TeamsSection = () => {
             <Users className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-foreground">Teams</h2>
+            <h2 className="text-xl font-bold text-foreground">
+              Teams — Asset Sharing
+            </h2>
             <p className="text-sm text-muted-foreground">
-              Share assets across your team via the Console dashboard
+              Share rules, commands, and skills across your team via the Console
+              dashboard
             </p>
           </div>
         </div>
 
-        <div className="rounded-xl p-3 border border-indigo-500/30 bg-indigo-500/5 mb-5 flex items-center gap-2">
-          <Lock className="h-4 w-4 text-indigo-500 flex-shrink-0" />
-          <p className="text-xs text-muted-foreground">
-            <span className="font-semibold text-indigo-400">
-              Team plan feature.
-            </span>{" "}
-            Teams functionality requires a Team plan subscription. Solo users
-            can browse assets in read-only mode.
-          </p>
-        </div>
-
         <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
-          The Teams page in the Pilot Shell Console lets your team share custom
-          assets — rules, commands, skills, hooks — via a private Git
-          repository. Browse assets, push local assets to the vault, configure
-          vault settings, and manage roles — all from the dashboard UI. Assets
-          are versioned, so updates propagate automatically on next sync.
+          The Teams page in the Pilot Console lets your team share custom
+          assets — rules, skills, commands, and agents — via a private Git
+          repository. Browse assets, push local files, install team assets, and
+          manage versions — all from a visual dashboard. No CLI needed.
         </p>
 
         <div className="grid sm:grid-cols-2 gap-3 mb-6">
@@ -103,28 +88,19 @@ const TeamsSection = () => {
           ))}
         </div>
 
-        <h3 className="font-semibold text-foreground text-sm mb-2">
-          Advanced: sx CLI
-        </h3>
+        <h3 className="font-semibold text-foreground text-sm mb-2">Setup</h3>
         <p className="text-xs text-muted-foreground mb-3">
-          Power users and CI/CD pipelines can use the sx CLI directly. The
-          Console Teams page wraps these commands.
+          Open the Console dashboard and navigate to the Teams page. Click{" "}
+          <strong>Configure Repository</strong> to connect your team's Git repo.
+          Or use the CLI:
         </p>
         <div className="bg-background/80 rounded-lg p-3 font-mono text-xs border border-border/50 text-muted-foreground mb-5">
           <div className="text-muted-foreground/60 mb-1">
-            # Pull team assets and install to current project
+            # Initialize with your team's private repo
           </div>
           <div>
-            <span className="text-primary">$</span> sx install --repair --target
-            .
-          </div>
-          <div className="mt-2 text-muted-foreground/60">
-            # Push a custom skill
-          </div>
-          <div>
-            <span className="text-primary">$</span> sx add
-            .claude/skills/my-skill --yes --type skill --name "my-skill"
-            --scope-repo $REPO
+            <span className="text-primary">$</span> sx init --type git
+            --repo-url git@github.com:org/team-repo.git
           </div>
         </div>
 
@@ -167,14 +143,37 @@ const TeamsSection = () => {
           </table>
         </div>
 
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div className="rounded-xl p-4 border border-primary/30 bg-primary/5">
+            <h4 className="font-medium text-foreground text-sm mb-1">
+              Project-scoped
+              <span className="text-xs text-primary font-medium ml-2">
+                Recommended
+              </span>
+            </h4>
+            <p className="text-xs text-muted-foreground">
+              Assets install to the project's{" "}
+              <code className="text-primary">.claude/</code>. Stays with the
+              repo, visible to all contributors.
+            </p>
+          </div>
+          <div className="rounded-xl p-4 border border-border/50 bg-card/30">
+            <h4 className="font-medium text-foreground text-sm mb-1">Global</h4>
+            <p className="text-xs text-muted-foreground">
+              Assets install to <code className="text-primary">~/.claude/</code>{" "}
+              and apply across all your projects on this machine.
+            </p>
+          </div>
+        </div>
+
         <div className="mt-4 rounded-xl p-3 border border-border/50 bg-card/30">
           <div className="flex items-start gap-2">
             <CheckCircle2 className="h-3.5 w-3.5 text-primary flex-shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground leading-relaxed">
               Assets are auto-versioned — each push creates v1, v2, v3…
-              Teammates pull the latest version. Use{" "}
-              <code className="text-primary">sx vault show &lt;name&gt;</code>{" "}
-              to see all versions of an asset.
+              Teammates install the latest version from the Teams dashboard.
+              Background sync keeps everything up to date when you open the
+              page.
             </p>
           </div>
         </div>

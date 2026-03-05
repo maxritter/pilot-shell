@@ -1,7 +1,7 @@
 ---
 slug: "team-vault-sharing-ai-assets"
 title: "Sharing AI Assets Across Your Team with Vault"
-description: "Sync rules, commands, skills, and hooks across your team. Keep every developer\'s Claude consistent with a shared vault."
+description: "Sync rules, skills, commands, and agents across your team. Keep every developer\'s Claude consistent with a shared repository."
 date: "2026-01-20"
 author: "Max Ritter"
 tags: [Feature, Teams]
@@ -88,8 +88,8 @@ Roll back by publishing a previous version.
 
 1. **Developer discovers pattern** — A debugging workflow that saves time
 2. **Capture with /learn** — Pilot extracts it as a skill
-3. **Share with /vault** — Push to the team vault
-4. **Team installs** — `sx install --repair` on their machines
+3. **Share via Teams** — Push to the team repository from the Console dashboard
+4. **Team installs** — Install from the Teams page or `sx install --repair`
 5. **Everyone benefits** — Claude knows the pattern in all sessions
 
 This creates a flywheel: the more the team uses Claude, the smarter everyone's Claude gets.

@@ -76,7 +76,7 @@ Full test suite. Fix any failures immediately.
 
 1. Type checker — zero errors
 2. Linter — errors are blockers
-3. File length — >400 lines refactor, >600 hard blocker
+3. File length — >800 lines consider splitting, >1000 flag for review
 
 ### Step 3.4: Plan Verify Commands
 

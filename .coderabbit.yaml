@@ -23,6 +23,7 @@ reviews:
   path_filters:
     # Exclude git-crypt encrypted directories from reviews (see .gitattributes)
     - "!launcher/**"
+    - "!console/**"
     - "!pilot/**"
     - "!docs/site/api/**"
 

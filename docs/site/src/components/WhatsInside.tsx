@@ -37,7 +37,7 @@ const insideItems: InsideItem[] = [
     title: "Rules, Commands & Standards",
     description: "Rules · Commands · Standards",
     summary:
-      "Production-tested best practices loaded every session. Coding standards activate by file type. Structured workflows via /spec, /sync, /vault, /learn. Custom rules survive updates.",
+      "Production-tested best practices loaded every session. Coding standards activate by file type. Structured workflows via /spec, /sync, /learn. Team sharing via Console dashboard. Custom rules survive updates.",
   },
   {
     icon: InfinityIcon,

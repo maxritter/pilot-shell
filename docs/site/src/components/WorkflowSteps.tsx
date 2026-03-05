@@ -195,11 +195,11 @@ const WorkflowSteps = () => {
             <div className="rounded-xl p-4 border border-border/40 bg-background/30">
               <div className="flex items-center gap-2 mb-2">
                 <Brain className="h-4 w-4 text-primary" />
-                <code className="text-sm font-medium text-primary">/vault</code>
+                <span className="text-sm font-medium text-primary">Teams</span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Team Vault — push, pull, and browse shared rules, skills, and
-                commands. Automatic versioning via private Git repo.
+                Teams dashboard — push, install, and browse shared rules,
+                skills, and commands. Automatic versioning via private Git repo.
               </p>
             </div>
             <div className="rounded-xl p-4 border border-border/40 bg-background/30">

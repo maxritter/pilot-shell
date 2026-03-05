@@ -490,6 +490,10 @@ def install_sx() -> bool:
         if not _run_bash_with_retry("curl -fsSL https://raw.githubusercontent.com/sleuth-io/sx/main/install.sh | bash"):
             return False
 
+    # Disable all clients except claude-code to prevent .cursor/.gemini folders
+    for client in ("gemini", "cursor", "github-copilot", "codex"):
+        _run_bash_with_retry(f"sx clients disable {client}")
+
     return True
 
 
