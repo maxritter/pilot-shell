@@ -1,5 +1,9 @@
 launcher/** filter=git-crypt diff=git-crypt
 launcher/**/__init__.py !filter !diff
 console/** filter=git-crypt diff=git-crypt
+console/.gitignore !filter !diff
+console/package.json !filter !diff
+console/bun.lock !filter !diff
+console/tsconfig.json !filter !diff
 docs/site/api/** filter=git-crypt diff=git-crypt
 .gitattributes !filter !diff

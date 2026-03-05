@@ -195,19 +195,19 @@ const PricingSection = () => {
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
-                  Seat-based — each member gets their own key
+                  Teams Dashboard — manage shared assets in the Console
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
-                  Priority email support + feature requests
+                  Push skills, rules, commands to your team vault
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
-                  Manage seats via portal — add, reassign, revoke
+                  Seat-based + priority support + manage seats via portal
                 </span>
               </li>
             </ul>

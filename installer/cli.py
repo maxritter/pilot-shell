@@ -341,8 +341,6 @@ def cmd_install(args: argparse.Namespace) -> int:
         "trial",
         "solo",
         "team",
-        "standard",
-        "enterprise",
     )
 
     console.banner(license_info=license_info)

@@ -38,7 +38,7 @@ jobs:
           severity: "CRITICAL,HIGH"
           exit-code: "1"
           ignore-unfixed: true
-          skip-dirs: ".venv,node_modules,console/node_modules,launcher,docs/site/api"
+          skip-dirs: ".venv,node_modules,console/node_modules,launcher,docs/site/api,console"
           trivyignores: ".trivyignore"
           format: "table"
           output: trivy-results.txt

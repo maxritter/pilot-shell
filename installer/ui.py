@@ -160,8 +160,8 @@ class Console:
 
         tier = license_info.get("tier") if license_info else None
 
-        if tier in ("solo", "team", "standard", "enterprise"):
-            tier_map = {"solo": "Solo", "standard": "Solo", "team": "Team", "enterprise": "Team"}
+        if tier in ("solo", "team"):
+            tier_map = {"solo": "Solo", "team": "Team"}
             tier_display = tier_map.get(tier, tier.title())
             email = license_info.get("email", "") if license_info else ""
             license_text = Text()

@@ -157,6 +157,7 @@ Just chat — no plan, no approval gate. Quality hooks and TDD enforcement still
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/sync`  | Explores your codebase, discovers conventions, builds a search index, updates project rules. Run once initially, then anytime your project changes. |
 | `/learn` | Captures non-obvious discoveries as reusable skills. Triggers automatically or on demand.                                                           |
+| Teams    | Share rules, skills, commands, and agents across your team via the Console dashboard (Team plan).                                                    |
 
 ### Extensibility
 
@@ -184,7 +185,7 @@ A local web dashboard with 7 views and real-time notifications when Claude needs
 | **Memories**       | Browsable observations — decisions, discoveries, bugfixes — with type filters and search |
 | **Sessions**       | Active and past sessions with observation counts and duration                            |
 | **Usage**          | Daily token costs, model routing breakdown, and usage trends                             |
-| **Vault**          | Shared team assets with version tracking                                                 |
+| **Teams**          | Shared team assets with push, install, and management (Team plan)                        |
 | **Settings**       | Model selection per command/sub-agent, extended context toggle                           |
 
 </details>
@@ -313,7 +314,7 @@ Production-tested best practices loaded into every session. Core rules cover wor
 <details>
 <summary><b>Collaboration</b></summary>
 
-- `team-vault.md` — Team asset sharing via sx (Teams dashboard)
+- `team-vault.md` — Teams asset sharing via sx
 
 </details>
 
@@ -417,7 +418,7 @@ Pilot Shell is source-available under a commercial license. See the [LICENSE](LI
 | Tier     | Seats | Includes                                                                     |
 | :------- | :---- | :--------------------------------------------------------------------------- |
 | **Solo** | 1     | All features, continuous updates, bug reports via [GitHub Issues][gh-issues] |
-| **Team** | Multi | Solo + multiple seats, priority email support, feature requests              |
+| **Team** | Multi | Solo + Teams Dashboard, shared asset management, priority support            |
 
 All plans work across multiple personal machines and Dev Containers — one subscription, all your devices.
 

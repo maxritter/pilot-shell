@@ -35,9 +35,11 @@ hooks:
 
 **⛔ ALWAYS use the `AskUserQuestion` tool** — never list numbered questions in plain text. Each question gets its own entry with predefined options users can select. This provides a structured form UI that is much easier to answer than freeform numbered lists.
 
-**Questions batched into max 2 interactions:** Batch 1 (before exploration) clarifies task/scope/priorities. Batch 2 (after exploration) resolves architecture/design decisions.
+**⛔ Default is to ASK, not skip.** Every plan benefits from at least one round of user alignment. Only skip questions when the task is a single-file change with zero ambiguity.
 
-**Principles:** Present options with trade-offs (not open-ended). Start open, narrow down. Challenge vagueness — make abstract concrete. 1-2 focused questions beat 4 vague ones. Questions clarify HOW to implement, not whether to expand scope. Skip if task is clear and unambiguous.
+**Questions batched into max 2 interactions:** Batch 1 (before exploration) clarifies task/scope/priorities. Batch 2 (after exploration) resolves architecture/design decisions. **Both batches are expected for most tasks** — skipping both is the exception, not the norm.
+
+**Principles:** Present options with trade-offs (not open-ended). Start open, narrow down. Challenge vagueness — make abstract concrete. 1-2 focused questions beat 4 vague ones. Questions clarify HOW to implement, not whether to expand scope.
 
 ## Extending Existing Plans
 
@@ -115,13 +117,13 @@ When adding tasks to an existing plan: load it, parse structure, verify compatib
    | CLI/scripts | Output format, flags, exit codes |
    | Data/config | Schema, migration, validation, defaults |
 
-3. **If gray areas exist** → notify, then use `AskUserQuestion` (Batch 1) with each question as a separate entry with predefined options:
+3. **Ask Batch 1 questions** → notify, then use `AskUserQuestion` with each question as a separate entry with predefined options:
    ```bash
    ~/.pilot/bin/pilot notify plan_approval "Input Needed" "<plan_name> — clarification questions" --plan-path "<plan_path>" 2>/dev/null || true
    ```
    Each question must have 2-4 concrete options. Use `multiSelect: true` when choices aren't mutually exclusive.
 
-If task is clear, skip to Step 1.3.
+   Even when the task seems clear, ask about: scope boundaries (what's explicitly out), priority trade-offs (speed vs completeness), or behavioral expectations (error handling, edge cases). **Only skip if the task is a trivial single-file change.**
 
 ### Step 1.3: Exploration
 
@@ -148,7 +150,7 @@ For each: document hypotheses, note full file paths, track unanswered questions.
 
 ### Step 1.4: Design Decisions
 
-Summarize findings. Notify, then use `AskUserQuestion` (Batch 2) — each decision as a separate question with concrete options:
+**⛔ Do NOT skip this step.** After exploration, there are always design choices to validate — even confirming the "obvious" approach ensures alignment. Summarize findings, notify, then use `AskUserQuestion` (Batch 2) — each decision as a separate question with concrete options:
 
 ```bash
 ~/.pilot/bin/pilot notify plan_approval "Design Decisions" "<plan_name> — architecture choices" --plan-path "<plan_path>" 2>/dev/null || true
