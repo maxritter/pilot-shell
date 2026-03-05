@@ -145,19 +145,13 @@ class TestCheckTypescriptEslintIssues:
             ],
         }])
 
-        mock_prettier = MagicMock(returncode=0, stdout="", stderr="")
         mock_eslint = MagicMock(returncode=1, stdout=eslint_json, stderr="")
-
-        def run_side_effect(cmd, **_kwargs):
-            if "eslint" in cmd[0]:
-                return mock_eslint
-            return mock_prettier
 
         with (
             patch("_checkers.typescript.check_file_length", return_value=""),
             patch("_checkers.typescript.find_project_root", return_value=None),
-            patch("_checkers.typescript.find_tool", side_effect=lambda name, _: f"/usr/bin/{name}" if name in ("prettier", "eslint") else None),
-            patch("_checkers.typescript.subprocess.run", side_effect=run_side_effect),
+            patch("_checkers.typescript.find_tool", side_effect=lambda name, _: f"/usr/bin/{name}" if name == "eslint" else None),
+            patch("_checkers.typescript.subprocess.run", return_value=mock_eslint),
         ):
             exit_code, reason = check_typescript(ts_file)
 
@@ -175,19 +169,13 @@ class TestCheckTypescriptCleanFile:
 
         eslint_json = json.dumps([{"filePath": str(ts_file), "errorCount": 0, "warningCount": 0, "messages": []}])
 
-        mock_prettier = MagicMock(returncode=0, stdout="", stderr="")
         mock_eslint = MagicMock(returncode=0, stdout=eslint_json, stderr="")
-
-        def run_side_effect(cmd, **_kwargs):
-            if "eslint" in cmd[0]:
-                return mock_eslint
-            return mock_prettier
 
         with (
             patch("_checkers.typescript.check_file_length", return_value=""),
             patch("_checkers.typescript.find_project_root", return_value=None),
-            patch("_checkers.typescript.find_tool", side_effect=lambda name, _: f"/usr/bin/{name}" if name in ("prettier", "eslint") else None),
-            patch("_checkers.typescript.subprocess.run", side_effect=run_side_effect),
+            patch("_checkers.typescript.find_tool", side_effect=lambda name, _: f"/usr/bin/{name}" if name == "eslint" else None),
+            patch("_checkers.typescript.subprocess.run", return_value=mock_eslint),
         ):
             exit_code, reason = check_typescript(ts_file)
 
@@ -213,6 +201,50 @@ class TestCheckTypescriptCommentsPreserved:
         assert "// important doc comment" in ts_file.read_text()
 
 
+class TestCheckTypescriptReadOnly:
+    """Hooks must never modify user files."""
+
+    def test_no_write_commands_invoked(self, tmp_path: Path) -> None:
+        """check_typescript must not run prettier --write or any formatting command."""
+        ts_file = tmp_path / "app.ts"
+        ts_file.write_text("const x = 1;\n")
+
+        eslint_json = json.dumps([{"filePath": str(ts_file), "errorCount": 0, "warningCount": 0, "messages": []}])
+        mock_result = MagicMock(returncode=0, stdout=eslint_json, stderr="")
+        called_commands: list[list[str]] = []
+
+        def run_side_effect(cmd, **_kwargs):
+            called_commands.append(list(cmd))
+            return mock_result
+
+        with (
+            patch("_checkers.typescript.check_file_length", return_value=""),
+            patch("_checkers.typescript.find_project_root", return_value=None),
+            patch("_checkers.typescript.find_tool", side_effect=lambda name, _: f"/usr/bin/{name}" if name == "eslint" else None),
+            patch("_checkers.typescript.subprocess.run", side_effect=run_side_effect),
+        ):
+            check_typescript(ts_file)
+
+        for cmd in called_commands:
+            assert "--write" not in cmd, f"Hook must not run prettier --write: {cmd}"
+            assert "--fix" not in cmd, f"Hook must not run eslint --fix: {cmd}"
+
+    def test_file_content_unchanged_after_check(self, tmp_path: Path) -> None:
+        """File content must be identical before and after check_typescript."""
+        ts_file = tmp_path / "app.ts"
+        original = "const x = 'single quotes';\n"
+        ts_file.write_text(original)
+
+        with (
+            patch("_checkers.typescript.check_file_length", return_value=""),
+            patch("_checkers.typescript.find_project_root", return_value=None),
+            patch("_checkers.typescript.find_tool", return_value=None),
+        ):
+            check_typescript(ts_file)
+
+        assert ts_file.read_text() == original
+
+
 class TestCheckTypescriptTscNotCalled:
     """Verify tsc is NOT called (removed from per-edit hooks)."""
 
@@ -222,16 +254,13 @@ class TestCheckTypescriptTscNotCalled:
         ts_file.write_text("const x = 1;\n")
 
         eslint_json = json.dumps([{"filePath": str(ts_file), "errorCount": 0, "warningCount": 0, "messages": []}])
-        mock_prettier = MagicMock(returncode=0, stdout="", stderr="")
         mock_eslint = MagicMock(returncode=0, stdout=eslint_json, stderr="")
 
         called_commands: list[list[str]] = []
 
         def run_side_effect(cmd, **_kwargs):
             called_commands.append(cmd)
-            if "eslint" in cmd[0]:
-                return mock_eslint
-            return mock_prettier
+            return mock_eslint
 
         with (
             patch("_checkers.typescript.check_file_length", return_value=""),

@@ -58,30 +58,16 @@ class TestCheckPythonRuffIssues:
         py_file = tmp_path / "app.py"
         py_file.write_text("x = 1\n")
 
-        mock_format = MagicMock(returncode=0, stdout="", stderr="")
-        mock_fix = MagicMock(returncode=0, stdout="", stderr="")
         mock_check = MagicMock(
             returncode=1,
             stdout="app.py:1:1: F401 unused import\napp.py:2:1: E302 expected 2 blank lines\n",
             stderr="",
         )
 
-        def run_side_effect(cmd, **_kwargs):
-            if "format" in cmd:
-                return mock_format
-            if "--select" in cmd:
-                return mock_fix
-            return mock_check
-
-        def which_side_effect(name):
-            if name == "ruff":
-                return "/usr/bin/ruff"
-            return None
-
         with (
             patch("_checkers.python.check_file_length", return_value=""),
-            patch("_checkers.python.shutil.which", side_effect=which_side_effect),
-            patch("_checkers.python.subprocess.run", side_effect=run_side_effect),
+            patch("_checkers.python.shutil.which", return_value="/usr/bin/ruff"),
+            patch("_checkers.python.subprocess.run", return_value=mock_check),
         ):
             exit_code, reason = check_python(py_file)
 
@@ -126,6 +112,47 @@ class TestCheckPythonCommentsPreserved:
             check_python(py_file)
 
         assert "# important doc comment" in py_file.read_text()
+
+
+class TestCheckPythonReadOnly:
+    """Hooks must never modify user files."""
+
+    def test_no_write_commands_invoked(self, tmp_path: Path) -> None:
+        """check_python must not run ruff format or ruff check --fix."""
+        py_file = tmp_path / "app.py"
+        py_file.write_text("x = 1\n")
+
+        mock_result = MagicMock(returncode=0, stdout="", stderr="")
+        called_commands: list[list[str]] = []
+
+        def run_side_effect(cmd, **_kwargs):
+            called_commands.append(list(cmd))
+            return mock_result
+
+        with (
+            patch("_checkers.python.check_file_length", return_value=""),
+            patch("_checkers.python.shutil.which", return_value="/usr/bin/ruff"),
+            patch("_checkers.python.subprocess.run", side_effect=run_side_effect),
+        ):
+            check_python(py_file)
+
+        for cmd in called_commands:
+            assert "format" not in cmd, f"Hook must not run ruff format: {cmd}"
+            assert "--fix" not in cmd, f"Hook must not run ruff --fix: {cmd}"
+
+    def test_file_content_unchanged_after_check(self, tmp_path: Path) -> None:
+        """File content must be identical before and after check_python."""
+        py_file = tmp_path / "app.py"
+        original = "x = 'single quotes'\nimport os, sys\n"
+        py_file.write_text(original)
+
+        with (
+            patch("_checkers.python.check_file_length", return_value=""),
+            patch("_checkers.python.shutil.which", return_value=None),
+        ):
+            check_python(py_file)
+
+        assert py_file.read_text() == original
 
 
 class TestCheckPythonRuffOnly:

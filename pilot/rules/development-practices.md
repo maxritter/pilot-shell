@@ -6,7 +6,7 @@
 
 **Dependency Check:** Before modifying any function, use `vexor`, `Grep`, or LSP `findReferences` to find all callers. Update all affected call sites.
 
-**Self-Correction:** Fix obvious mistakes (syntax errors, typos, missing imports) immediately without asking. Reserve communication for decisions.
+**Self-Correction:** Fix obvious mistakes (syntax errors, typos, missing imports) in code you are actively writing. Do not auto-fix errors in code the user edited — report them and let the user decide.
 
 **Diagnostics:** Check before starting work and after changes. Fix all errors before marking complete.
 

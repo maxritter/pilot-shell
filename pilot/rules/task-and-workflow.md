@@ -1,8 +1,10 @@
 # Task and Workflow Rules
 
-## ⛔ NEVER Use Built-in Plan Mode
+## Plan Mode
 
-**`EnterPlanMode` and `ExitPlanMode` are BLOCKED. Do NOT call them under any circumstances.** They are intercepted by hooks and will fail. This project uses `/spec` for structured planning instead.
+CC's native plan mode is fully supported. When the user switches to plan mode, **respect it** — present proposed changes and wait for approval before editing files.
+
+For complex features or bugfixes, `/spec` provides a more thorough workflow with TDD, verification, and code review.
 
 ---
 
@@ -83,7 +85,9 @@ Use `run_in_background=true` only for long-running processes (dev servers, watch
 
 ---
 
-## Deviation Handling During Implementation
+## Deviation Handling During /spec Implementation
+
+**These rules apply only during `/spec` workflows.** Outside of `/spec`, always respect the user's current mode.
 
 | Type | Trigger | Action | User Input? |
 |------|---------|--------|-------------|
@@ -153,7 +157,7 @@ spec-verify (or spec-bugfix-verify) finds issues → Status: PENDING → spec-im
 
 Everything else is automatic. **NEVER ask "Should I fix these findings?"** — verification fixes are part of the approved plan.
 
-**Stop Guard:** When the stop guard blocks a stop during `/spec`, do NOT acknowledge it, output resume instructions, or say goodbye. Continue working — proceed with next task or invoke the next phase.
+**Stop Guard:** When the stop guard blocks a stop during `/spec`, do NOT acknowledge it, output resume instructions, or say goodbye. Your **very next action** must be a tool call (TaskList, Read plan file, or code change). Never produce a text-only response after a stop block — immediately resume the current task or invoke the next phase. This also applies after user interruptions ("Continue", new messages mid-task) — re-read the plan and resume from where you left off.
 
 **Status values:** `PENDING` (awaiting implementation), `COMPLETE` (ready for verification), `VERIFIED` (done)
 

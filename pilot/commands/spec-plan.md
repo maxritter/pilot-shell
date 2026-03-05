@@ -21,8 +21,11 @@ hooks:
 ## ⛔ Critical Constraints
 
 - **NO sub-agents during planning** except Step 1.7 (plan-reviewer)
+- **NEVER skip plan-reviewer** when criteria are met (>3 tasks, migration, open questions) — context level is NOT a valid reason to skip
 - **NEVER write code during planning** — planning and implementation are separate phases
 - **NEVER assume — verify by reading files**
+- **ONLY stopping point is plan approval** — everything else is automatic. Never ask "Should I fix these?"
+- **Re-read plan after user edits** — before asking for approval again
 - **Plan file is source of truth** — survives across auto-compaction cycles
 - **Quality over speed** — never rush due to context pressure
 
@@ -269,6 +272,12 @@ SESS_ID=$(echo $PILOT_SESSION_ID)
 ```
 
 Output path: `~/.pilot/sessions/<SESS_ID>/findings-plan-reviewer.json`
+
+**⛔ Delete stale findings before launching** (same path may exist from a previous `/spec` in this session):
+
+```bash
+rm -f "$OUTPUT_PATH"
+```
 
 ```
 Task(

@@ -18,15 +18,6 @@ def check_python(file_path: Path) -> tuple[int, str]:
     length_warning = check_file_length(file_path)
 
     ruff_bin = shutil.which("ruff")
-    if ruff_bin:
-        try:
-            subprocess.run(
-                [ruff_bin, "check", "--select", "I,RUF022", "--fix", str(file_path)], capture_output=True, check=False
-            )
-            subprocess.run([ruff_bin, "format", str(file_path)], capture_output=True, check=False)
-        except Exception:
-            pass
-
     if not ruff_bin:
         return 0, length_warning
 

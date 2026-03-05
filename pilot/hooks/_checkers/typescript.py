@@ -1,4 +1,4 @@
-"""TypeScript/JavaScript file checker — prettier, eslint."""
+"""TypeScript/JavaScript file checker — eslint."""
 
 from __future__ import annotations
 
@@ -45,22 +45,13 @@ def find_tool(tool_name: str, project_root: Path | None) -> str | None:
 
 
 def check_typescript(file_path: Path) -> tuple[int, str]:
-    """Check TypeScript file with prettier and eslint. Returns (0, reason)."""
+    """Check TypeScript file with eslint. Returns (0, reason)."""
     if ".test." in file_path.name or ".spec." in file_path.name:
         return 0, ""
 
     length_warning = check_file_length(file_path)
 
     project_root = find_project_root(file_path)
-
-    prettier_bin = find_tool("prettier", project_root)
-    if prettier_bin:
-        try:
-            subprocess.run(
-                [prettier_bin, "--write", str(file_path)], capture_output=True, check=False, cwd=project_root
-            )
-        except Exception:
-            pass
 
     eslint_bin = find_tool("eslint", project_root)
 

@@ -95,6 +95,46 @@ class TestCheckGoCommentsPreserved:
         assert "// important doc comment" in go_file.read_text()
 
 
+class TestCheckGoReadOnly:
+    """Hooks must never modify user files."""
+
+    def test_no_write_commands_invoked(self, tmp_path: Path) -> None:
+        """check_go must not run gofmt -w or any formatting command."""
+        go_file = tmp_path / "main.go"
+        go_file.write_text("package main\n")
+
+        mock_result = MagicMock(returncode=0, stdout="", stderr="")
+        called_commands: list[list[str]] = []
+
+        def run_side_effect(cmd, **_kwargs):
+            called_commands.append(list(cmd))
+            return mock_result
+
+        with (
+            patch("_checkers.go.check_file_length", return_value=""),
+            patch("_checkers.go.shutil.which", side_effect=lambda name: f"/usr/bin/{name}" if name in ("go", "golangci-lint") else None),
+            patch("_checkers.go.subprocess.run", side_effect=run_side_effect),
+        ):
+            check_go(go_file)
+
+        for cmd in called_commands:
+            assert "-w" not in cmd, f"Hook must not run gofmt -w: {cmd}"
+
+    def test_file_content_unchanged_after_check(self, tmp_path: Path) -> None:
+        """File content must be identical before and after check_go."""
+        go_file = tmp_path / "main.go"
+        original = "package main\n\nfunc main() {\n\tx := 1\n}\n"
+        go_file.write_text(original)
+
+        with (
+            patch("_checkers.go.check_file_length", return_value=""),
+            patch("_checkers.go.shutil.which", return_value=None),
+        ):
+            check_go(go_file)
+
+        assert go_file.read_text() == original
+
+
 class TestCheckGoTestFileSkip:
     """Test files should skip validation."""
 

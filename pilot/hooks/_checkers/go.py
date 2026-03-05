@@ -1,4 +1,4 @@
-"""Go file checker — gofmt, go vet, golangci-lint."""
+"""Go file checker — go vet, golangci-lint."""
 
 from __future__ import annotations
 
@@ -10,24 +10,17 @@ from _util import check_file_length
 
 
 def check_go(file_path: Path) -> tuple[int, str]:
-    """Check Go file with gofmt, go vet, and golangci-lint. Returns (0, reason)."""
+    """Check Go file with go vet and golangci-lint. Returns (0, reason)."""
     if file_path.name.endswith("_test.go"):
         return 0, ""
 
     length_warning = check_file_length(file_path)
 
     go_bin = shutil.which("go")
-    gofmt_bin = shutil.which("gofmt")
     golangci_lint_bin = shutil.which("golangci-lint")
 
     if not go_bin:
         return 0, length_warning
-
-    if gofmt_bin:
-        try:
-            subprocess.run([gofmt_bin, "-w", str(file_path)], capture_output=True, check=False)
-        except Exception:
-            pass
 
     results: dict[str, tuple] = {}
     has_issues = False

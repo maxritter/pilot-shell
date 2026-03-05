@@ -79,6 +79,12 @@ Output path: `~/.pilot/sessions/<session-id>/findings-spec-reviewer.json`
 
 #### 3.1b: Launch
 
+**⛔ Delete stale findings before launching** (same path may exist from a previous `/spec` in this session):
+
+```bash
+rm -f "$OUTPUT_PATH"
+```
+
 ```
 Task(
   subagent_type="pilot:spec-reviewer",

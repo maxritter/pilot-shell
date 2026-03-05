@@ -22,6 +22,7 @@ model: sonnet
 - **NEVER SKIP TASKS** — every task must be fully implemented, no "MVP scope" exceptions
 - **Quality over speed** — never rush due to context pressure. Context warnings are informational. Finish current task with full quality — auto-compaction handles the rest.
 - **Plan file is source of truth** — re-read after auto-compaction, don't rely on conversation memory
+- **NEVER stop during implementation** — the stop guard blocks premature exits. If blocked: your very next action must be a tool call (TaskList, Read plan, or code change). After user interruptions or "Continue" messages: re-read the plan and resume from the current task. Never produce text-only responses when work remains.
 
 ---
 

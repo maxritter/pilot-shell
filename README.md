@@ -46,7 +46,9 @@ This isn't a vibe coding tool, it's true agentic engineering, but without the ad
 
 ### Prerequisites
 
-**Claude Subscription:** Solo developers should choose [Max 5x](https://claude.com/pricing) for moderate usage or [Max 20x](https://claude.com/pricing) for heavy usage. Teams and companies should use [Team Premium](https://claude.com/pricing) which provides 6.25x usage per member plus SSO, admin tools, and billing management. Using the API instead may lead to much higher costs.
+**Claude Subscription:** Solo developers should choose [Max 5x](https://claude.com/pricing) for moderate usage or [Max 20x](https://claude.com/pricing) for heavy usage. Teams should use [Team Premium](https://claude.com/pricing) (6.25x usage per member, SSO, admin tools, billing management). Companies with stricter compliance or procurement requirements should use [Enterprise](https://claude.com/pricing).
+
+**Terminal:** [cmux](https://www.cmux.dev/) is the best terminal for Pilot Shell on macOS — built on the Ghostty rendering engine with native split panes, workspace tabs, and Claude Code notification hooks. On Linux, [Ghostty](https://ghostty.org/download) is the recommended terminal. Both are free and open source.
 
 ### Installation
 
@@ -85,7 +87,7 @@ After installation, `cd` into any project and run `pilot` or `ccp` to start Pilo
 **Specific version** (see [releases](https://github.com/maxritter/pilot-shell/releases)):
 
 ```bash
-export VERSION=7.1.0
+export VERSION=7.1.5
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
 ```
 
@@ -470,7 +472,7 @@ All external tools and dependencies that Pilot Shell installs and uses are open 
 <details>
 <summary><b>Do I need a separate Anthropic subscription?</b></summary>
 
-Yes. Pilot Shell enhances Claude Code — it doesn't replace it. You need an active Claude subscription — [Max 5x or 20x](https://claude.com/pricing) for solo developers, or [Team Premium](https://claude.com/pricing) for teams and companies. Using the Anthropic API directly is also possible but may lead to much higher costs. Pilot Shell adds quality automation on top of whatever Claude Code access you already have.
+Yes. Pilot Shell enhances Claude Code — it doesn't replace it. You need an active Claude subscription — [Max 5x or 20x](https://claude.com/pricing) for solo developers, [Team Premium](https://claude.com/pricing) for teams, or [Enterprise](https://claude.com/pricing) for organizations with compliance or procurement requirements. Pilot Shell adds quality automation on top of whatever Claude Code access you already have.
 
 </details>
 

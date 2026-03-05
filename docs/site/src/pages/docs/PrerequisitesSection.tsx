@@ -14,8 +14,13 @@ const subscriptionTiers = [
   },
   {
     name: "Team Premium",
-    audience: "Teams & companies",
+    audience: "Teams",
     note: "6.25× usage per member + SSO, admin tools, billing management",
+  },
+  {
+    name: "Enterprise",
+    audience: "Companies",
+    note: "For organizations with compliance, procurement, or security requirements",
   },
 ];
 
@@ -62,9 +67,8 @@ const PrerequisitesSection = () => {
             </div>
             <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
               Pilot enhances Claude Code — it doesn't replace it. You need an
-              active Claude subscription. Using the Anthropic API directly is
-              possible but typically leads to much higher costs than a flat
-              subscription.
+              active Claude subscription. Solo developers, teams, and enterprise
+              organizations are all supported.
             </p>
             <div className="space-y-2">
               {subscriptionTiers.map((tier) => (

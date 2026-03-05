@@ -184,8 +184,8 @@ def run_context_monitor() -> int:
         save_cache(total_tokens, session_id, new_learn_shown if new_learn_shown else None)
         print(
             post_tool_use_context(
-                f"Context at {effective:.0f}%. Auto-compact approaching — no rush, no context is lost. "
-                f"Complete current task with full quality. Do NOT cut corners or skip verification."
+                f"Context at {effective:.0f}%. Auto-compact approaching — no context is lost. "
+                f"Continue all workflow steps normally. Do NOT skip steps, sub-agents, or verification."
             )
         )
         return 0
@@ -194,7 +194,7 @@ def run_context_monitor() -> int:
         save_cache(total_tokens, session_id, new_learn_shown if new_learn_shown else None, shown_80_warn=True)
         print(
             post_tool_use_context(
-                f"Context at {effective:.0f}%. Auto-compact will handle context management automatically. No rush."
+                f"Context at {effective:.0f}%. Auto-compact will handle context automatically. Continue working normally."
             )
         )
         return 0

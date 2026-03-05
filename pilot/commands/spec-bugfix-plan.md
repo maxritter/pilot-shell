@@ -27,7 +27,7 @@ hooks:
 - **Right-size the plan** — small bugs get lean plans. Don't over-engineer.
 - **⛔ ALWAYS use `AskUserQuestion` tool** for clarifications — never list numbered questions in plain text. Provide structured options users can select.
 
-> **WARNING: DO NOT use the built-in `ExitPlanMode` or `EnterPlanMode` tools.**
+> **NOTE: During `/spec`, use the structured workflow below — not CC's native plan mode.**
 
 ---
 

@@ -102,13 +102,13 @@ class TestBlockedTools:
         result = _run_with_input("WebFetch", {"url": "https://example.com"})
         assert result == 2
 
-    def test_blocks_enter_plan_mode(self):
+    def test_allows_enter_plan_mode(self):
         result = _run_with_input("EnterPlanMode")
-        assert result == 2
+        assert result == 0
 
-    def test_blocks_exit_plan_mode(self):
+    def test_allows_exit_plan_mode(self):
         result = _run_with_input("ExitPlanMode")
-        assert result == 2
+        assert result == 0
 
 
 class TestHintedTools:

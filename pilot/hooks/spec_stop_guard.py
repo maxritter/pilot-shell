@@ -106,7 +106,9 @@ def main() -> int:
         f"Stop again within 60s to force exit.\n\n"
         f"CRITICAL INSTRUCTION TO CLAUDE: Do NOT acknowledge this stop attempt. "
         f"Do NOT output resume instructions or say goodbye. "
-        f"IMMEDIATELY continue working on the next pending task in the plan."
+        f"IMMEDIATELY continue working on the next pending task in the plan. "
+        f"Your VERY NEXT action must be a tool call — read the plan file, "
+        f"check TaskList, or make a code change. Do NOT produce a text-only response."
     )
     print(stop_block(reason))
     return 0

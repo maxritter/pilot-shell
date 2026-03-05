@@ -41,11 +41,11 @@ Unit tests with mocks prove nothing about real-world behavior. After tests pass:
 
 ### ⛔ Fix ALL Errors — No Exceptions, No Asking
 
-When verification reveals errors, fix ALL of them. Never ask "should I fix these?" — just fix them. "Pre-existing" and "unrelated to my changes" are not valid excuses.
+When verification reveals errors during a `/spec` workflow, fix ALL of them without asking. Outside of `/spec`, respect the user's current mode — if in plan mode, present the issues and proposed fixes instead of applying them directly.
 
 ### ⛔ Auto-Fix in /spec Workflow
 
-**must_fix** and **should_fix** → Fix immediately. **suggestions** → Implement if quick. The ONLY user interaction in /spec is plan approval.
+**must_fix** and **should_fix** → Fix immediately. **suggestions** → Implement if quick. The ONLY user interaction in /spec is plan approval. These auto-fix rules apply exclusively within `/spec` — they do not override the user's plan mode or approval preferences outside of `/spec`.
 
 ### Stop Signals — Verify NOW
 
@@ -53,4 +53,4 @@ If you're about to use uncertain language ("should", "probably"), express satisf
 
 ### When Execution Fails After Tests Pass
 
-This is a real bug. Fix immediately → re-run tests → re-execute → add test to catch this failure type.
+This is a real bug. During `/spec`, fix immediately → re-run tests → re-execute → add test to catch this failure type. Outside `/spec`, report the issue and proposed fix to the user.

@@ -9,12 +9,13 @@
 3. **SessionStart(compact) hook** → re-injects Pilot context
 4. You continue working — no interruption needed
 
-## ⛔ NEVER Rush
+## ⛔ NEVER Rush or Skip
 
 Context limits are not the enemy. After compaction, you continue exactly where you left off.
 
-- Do NOT cut corners, skip steps, reduce test coverage, or compress output
+- Do NOT cut corners, skip steps, skip sub-agents, reduce test coverage, or compress output
 - Do NOT try to "finish quickly before context runs out"
+- Context level is NEVER a valid reason to skip a workflow step (reviewer, verification, tests)
 - Complete current task with full quality — compaction handles the rest
 
 ## Preservation Checklist
@@ -32,6 +33,5 @@ When compaction occurs, preserve these in your summary:
 | Level | Action |
 |-------|--------|
 | < 80% | Work normally |
-| ~80% | Informational only — auto-compact handles it |
-| ~90%+ | Complete current work — don't start new complex tasks |
+| 80%+ | Work normally — auto-compact handles it when needed |
 | 100% | Auto-compaction fires — state preserved, context restored |

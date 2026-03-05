@@ -113,16 +113,6 @@ BLOCKS: dict[str, dict] = {
         "alternative": "Use ToolSearch to load mcp__plugin_pilot_web-fetch__fetch_url, then call it directly",
         "example": 'ToolSearch(query="+web-fetch fetch") then mcp__plugin_pilot_web-fetch__fetch_url(url="...")',
     },
-    "EnterPlanMode": {
-        "message": "BLOCKED: EnterPlanMode is FORBIDDEN. Plan mode is completely disabled in this project.",
-        "alternative": "Do NOT use plan mode under any circumstances. Use /spec for structured planning, or execute directly for simple tasks",
-        "example": "Skill(skill='spec', args='task description')",
-    },
-    "ExitPlanMode": {
-        "message": "BLOCKED: ExitPlanMode is FORBIDDEN. Plan mode is completely disabled in this project.",
-        "alternative": "Do NOT use plan mode under any circumstances. Use /spec for structured planning, or execute directly for simple tasks",
-        "example": "Skill(skill='spec', args='task description')",
-    },
     "Task": {
         "message": "Task(subagent_type='Plan') is blocked (project uses /spec workflow)",
         "alternative": "Do planning work directly with Read, Grep, Glob tools. Use /spec for structured planning.",

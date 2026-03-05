@@ -2,6 +2,37 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [7.1.5] - 2026-03-05
+
+### Bug Fixes
+
+- Make hooks read-only, stop blocking plan mode, silence hook errors, optimize git statusline
+
+## [7.1.4] - 2026-03-05
+
+### Bug Fixes
+
+- Clean stale session state on /clear and prevent reviewer skip at high context
+
+## [7.1.3] - 2026-03-02
+
+### Bug Fixes
+
+- Add hash redirect so console dashboard loads without explicit /#/ fragment
+
+## [7.1.2] - 2026-03-02
+
+### Bug Fixes
+
+- Strengthen spec stop guard to prevent premature stops during /spec
+
+## [7.1.1] - 2026-03-02
+
+### Bug Fixes
+
+- Prevent worker from stopping when another session is still active
+- Optimize commands and rules for 52% token reduction without quality loss
+
 ## [7.1.0] - 2026-03-01
 
 ### Features

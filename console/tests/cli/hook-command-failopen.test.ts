@@ -66,13 +66,13 @@ describe("hookCommand fail-open", () => {
     expect(output.continue).toBe(true);
   });
 
-  it("should still log the error to stderr", async () => {
+  it("should not dump errors to stderr (logs to file only)", async () => {
     mockExecute.mockRejectedValue(new Error("Worker not running"));
 
     const { hookCommand } = await import("../../src/cli/hook-command.js");
     await hookCommand("claude", "observation");
 
-    expect(errorSpy).toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
   });
 
   it("should return hookSpecificOutput with empty additionalContext for context event", async () => {
