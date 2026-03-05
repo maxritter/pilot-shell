@@ -332,7 +332,7 @@ Production-tested best practices loaded into every session. Core rules cover wor
 <details>
 <summary><b>Collaboration</b></summary>
 
-- `team-vault.md` — Teams asset sharing via sx
+- `team-sharing.md` — Teams asset sharing via sx
 
 </details>
 
@@ -433,10 +433,10 @@ The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing
 
 Pilot Shell is source-available under a commercial license. See the [LICENSE](LICENSE) file for full terms.
 
-| Tier     | Seats | Includes                                                                            |
-| :------- | :---- | :---------------------------------------------------------------------------------- |
-| **Solo** | 1     | All features, continuous updates, community support via [GitHub Issues][gh-issues]   |
-| **Team** | Multi | Solo + team asset sharing, seat management, priority support                         |
+| Tier     | Seats | Includes                                                                           |
+| :------- | :---- | :--------------------------------------------------------------------------------- |
+| **Solo** | 1     | All features, continuous updates, community support via [GitHub Issues][gh-issues] |
+| **Team** | Multi | Solo + team asset sharing, seat management, priority support                       |
 
 All plans work across multiple personal machines and Dev Containers — one subscription, all your devices.
 

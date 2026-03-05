@@ -1,4 +1,4 @@
-## Teams (sx)
+## Team Sharing
 
 Share AI assets (rules, skills, commands, agents, hooks, MCP configs) across your team using `sx` and a private Git repository.
 
@@ -8,12 +8,12 @@ Share AI assets (rules, skills, commands, agents, hooks, MCP configs) across you
 
 ### When to Use
 
-| Situation | Action |
-|-----------|--------|
-| User says "share", "push", "team" | Direct to Teams page in Console |
-| After `/sync` creates new rules/skills | Suggest pushing via Teams page |
-| User wants team consistency | Set up repository via Teams page configuration section |
-| New team member onboarding | `sx install --repair --target .` |
+| Situation                              | Action                                                 |
+| -------------------------------------- | ------------------------------------------------------ |
+| User says "share", "push", "team"      | Direct to Teams page in Console                        |
+| After `/sync` creates new rules/skills | Suggest pushing via Teams page                         |
+| User wants team consistency            | Set up repository via Teams page configuration section |
+| New team member onboarding             | `sx install --repair --target .`                       |
 
 ### sx CLI Quick Reference
 
@@ -38,19 +38,19 @@ sx remove <asset-name> --yes           # Remove from lock file
 
 ### Asset Types
 
-| Type | Flag | Source Path |
-|------|------|-------------|
-| `skill` | `--type skill` | `.claude/skills/<name>/` |
-| `rule` | `--type rule` | `.claude/rules/<name>.md` |
+| Type      | Flag             | Source Path                  |
+| --------- | ---------------- | ---------------------------- |
+| `skill`   | `--type skill`   | `.claude/skills/<name>/`     |
+| `rule`    | `--type rule`    | `.claude/rules/<name>.md`    |
 | `command` | `--type command` | `.claude/commands/<name>.md` |
-| `agent` | `--type agent` | `.claude/agents/<name>.md` |
+| `agent`   | `--type agent`   | `.claude/agents/<name>.md`   |
 
 ### Scoping
 
-| Scope | Installs to | Use When |
-|-------|-------------|----------|
-| Project (`--scope-repo`) | `project/.claude/` | **Recommended.** Assets stay with the project. |
-| Global (`--scope-global`) | `~/.claude/` | Personal tools needed in all repos. |
+| Scope                     | Installs to        | Use When                                       |
+| ------------------------- | ------------------ | ---------------------------------------------- |
+| Project (`--scope-repo`)  | `project/.claude/` | **Recommended.** Assets stay with the project. |
+| Global (`--scope-global`) | `~/.claude/`       | Personal tools needed in all repos.            |
 
 ### Setup (First Time)
 
