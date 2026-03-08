@@ -47,12 +47,12 @@
       "WebSearch",
       "Write",
       "mcp__ide__*",
+      "mcp__plugin_pilot_probe__*",
       "mcp__plugin_pilot_mem-search__*",
       "mcp__plugin_pilot_context7__*",
       "mcp__plugin_pilot_web-search__*",
       "mcp__plugin_pilot_web-fetch__*",
-      "mcp__plugin_pilot_grep-mcp__grep_query",
-      "mcp__plugin_pilot_grep-mcp__searchGitHub",
+      "mcp__plugin_pilot_grep-mcp__*",
       "Skill(spec)",
       "Skill(spec-plan)",
       "Skill(spec-implement)",
@@ -85,7 +85,7 @@
       "[PILOT] Auto-compaction preserves state seamlessly — no context is ever lost between compaction cycles",
       "[PILOT] Context Monitor tracks usage — auto-compaction fires automatically, no context is ever lost",
       "[PILOT] Pilot Shell Console: Browse your memory, sessions, and specs at localhost:41777",
-      "[PILOT] Vexor: Semantic search that finds code by meaning, not just text matching",
+      "[PILOT] Probe: Semantic search that finds code by meaning, not just text matching",
       "[PILOT] Context7: Claude fetches up-to-date library docs when you use unfamiliar packages",
       "[PILOT] grep-mcp: Search 1M+ public GitHub repos for real-world code patterns and examples",
       "[PILOT] TDD Enforcer: Warns when modifying code without failing tests first",
@@ -152,6 +152,6 @@
     "padding": 0
   },
   "companyAnnouncements": [
-    "🔵 Console: http://localhost:41777 | 📋 /spec — plan, build & verify | 🔄 /sync — sync rules | 🧠 /learn — extract skills"
+    "👨‍✈️ Console: http://localhost:41777 | 📋 /spec — plan, build & verify | 🔄 /sync — sync rules | 🧠 /learn — extract skills"
   ]
 }

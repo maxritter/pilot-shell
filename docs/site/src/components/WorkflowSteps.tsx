@@ -37,7 +37,8 @@ const WorkflowSteps = () => {
             Usage
           </h2>
           <p className="text-muted-foreground text-lg sm:text-xl max-w-3xl mx-auto">
-            Two modes to match your workflow
+            Two modes — use <code className="text-primary">/spec</code> instead
+            of Claude Code's plan mode
           </p>
         </div>
 
@@ -60,7 +61,8 @@ const WorkflowSteps = () => {
                   </code>
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  For features, bug fixes, and complex changes
+                  Replaces plan mode — for features, bug fixes, and complex
+                  changes
                 </p>
               </div>
             </div>

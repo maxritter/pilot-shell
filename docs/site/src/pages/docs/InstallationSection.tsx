@@ -19,7 +19,7 @@ const installerSteps = [
   {
     step: 2,
     title: "Dependencies",
-    desc: "Installs Vexor (semantic search), playwright-cli, language servers",
+    desc: "Installs Probe (code search), playwright-cli, language servers",
   },
   {
     step: 3,

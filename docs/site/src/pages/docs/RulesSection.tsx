@@ -49,7 +49,7 @@ const ruleCategories = [
         file: "research-tools.md",
         desc: "Search priority and tool selection guide",
       },
-      { file: "cli-tools.md", desc: "Pilot CLI, Vexor semantic search" },
+      { file: "cli-tools.md", desc: "Pilot CLI, Probe code search" },
       {
         file: "playwright-cli.md",
         desc: "Browser automation for E2E UI testing",

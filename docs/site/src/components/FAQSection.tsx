@@ -21,7 +21,7 @@ const faqItems = [
   {
     question: "What are the licenses of Pilot Shell's dependencies?",
     answer:
-      "All external tools and dependencies that Pilot Shell installs and uses are open source with permissive licenses (MIT, Apache 2.0, BSD). This includes ruff, basedpyright, Prettier, ESLint, gofmt, uv, Vexor, playwright-cli, and all MCP servers. No copyleft or restrictive-licensed dependencies are introduced into your environment.",
+      "All external tools and dependencies that Pilot Shell installs and uses are open source with permissive licenses (MIT, Apache 2.0, BSD). This includes ruff, basedpyright, Prettier, ESLint, gofmt, uv, Probe, playwright-cli, and all MCP servers. No copyleft or restrictive-licensed dependencies are introduced into your environment.",
   },
   {
     question: "Do I need a separate Anthropic subscription?",

@@ -10,11 +10,8 @@ from pathlib import Path
 from typing import Any
 
 from installer.context import InstallContext
-from installer.platform_utils import command_exists, is_linux_arm64, is_macos_arm64, npm_global_cmd
+from installer.platform_utils import command_exists, is_linux_arm64, npm_global_cmd
 from installer.steps.base import BaseStep
-
-VEXOR_FORK_URL = "https://github.com/maxritter/vexor.git"
-VEXOR_MLX_BRANCH = "mlx-support"
 
 MAX_RETRIES = 3
 RETRY_DELAY = 2
@@ -108,300 +105,24 @@ def install_python_tools() -> bool:
     return True
 
 
-def _configure_vexor_defaults() -> bool:
-    """Configure Vexor with recommended defaults for semantic search (OpenAI)."""
-
-    config_dir = Path.home() / ".vexor"
-    config_path = config_dir / "config.json"
-
-    try:
-        config_dir.mkdir(parents=True, exist_ok=True)
-
-        if config_path.exists():
-            config = json.loads(config_path.read_text())
-        else:
-            config = {}
-
-        config.update(
-            {
-                "model": "text-embedding-3-small",
-                "batch_size": 64,
-                "embed_concurrency": 4,
-                "extract_concurrency": 4,
-                "extract_backend": "auto",
-                "provider": "openai",
-                "auto_index": True,
-                "local_cuda": False,
-                "rerank": "bm25",
-            }
-        )
-        config_path.write_text(json.dumps(config, indent=2) + "\n")
-        return True
-    except Exception:
-        return False
-
-
-def _configure_vexor_local(*, device: str = "cpu") -> bool:
-    """Configure Vexor for local embeddings (no API key needed)."""
-
-    config_dir = Path.home() / ".vexor"
-    config_path = config_dir / "config.json"
-
-    try:
-        config_dir.mkdir(parents=True, exist_ok=True)
-
-        if config_path.exists():
-            config = json.loads(config_path.read_text())
-        else:
-            config = {}
-
-        config.update(
-            {
-                "model": "intfloat/multilingual-e5-small",
-                "batch_size": 64,
-                "embed_concurrency": 4,
-                "extract_concurrency": 4,
-                "extract_backend": "auto",
-                "provider": "local",
-                "auto_index": True,
-                "local_device": device,
-                "rerank": "bm25",
-            }
-        )
-        config_path.write_text(json.dumps(config, indent=2) + "\n")
-        return True
-    except Exception:
-        return False
-
-
-def _is_vexor_local_model_installed() -> bool:
-    """Check if the local embedding model is already downloaded."""
-    cache_dirs = [
-        Path.home() / ".vexor" / "models",
-        Path.home() / ".cache" / "huggingface" / "hub",
-        Path.home() / ".cache" / "torch" / "sentence_transformers",
-    ]
-    model_name = "intfloat--multilingual-e5-small"
-
-    for cache_dir in cache_dirs:
-        if cache_dir.exists():
-            for model_dir in cache_dir.glob(f"*{model_name}*"):
-                if model_dir.is_dir():
-                    return True
-            for model_dir in cache_dir.glob(f"models--{model_name}*"):
-                if model_dir.is_dir():
-                    return True
-    return False
-
-
-def _get_uv_tool_vexor_bin() -> Path | None:
-    """Get the vexor binary from the uv tool environment (ignores PATH shadows)."""
-    try:
-        result = subprocess.run(["uv", "tool", "dir"], capture_output=True, text=True, timeout=10)
-        if result.returncode != 0:
-            return None
-        vexor_bin = Path(result.stdout.strip()) / "vexor" / "bin" / "vexor"
-        return vexor_bin if vexor_bin.exists() else None
-    except Exception:
-        return None
-
-
-def _is_vexor_local_functional() -> bool:
-    """Runtime check: can vexor actually use local embeddings?
-
-    Uses the uv tool binary directly to avoid PATH shadows from project .venv.
-    Detects the broken state where vexor is installed but local model
-    dependencies are missing (e.g. 'Local model support is not installed').
-    """
-    vexor_bin = _get_uv_tool_vexor_bin()
-    if vexor_bin is None:
-        return False
-
+def _is_probe_installed() -> bool:
+    """Check if probe is already installed globally via npm."""
     try:
         result = subprocess.run(
-            [str(vexor_bin), "index", "--help"],
+            ["npm", "list", "-g", "@probelabs/probe", "--depth=0"],
             capture_output=True,
             text=True,
-            timeout=15,
         )
-        combined = result.stdout + result.stderr
-        if "Local model support is not installed" in combined:
-            return False
-        return True
+        return result.returncode == 0 and "@probelabs/probe" in result.stdout
     except Exception:
         return False
 
 
-def _is_vexor_mlx_installed() -> bool:
-    """Check if vexor is installed with MLX support (not the CPU-only version).
-
-    Uses uv to inspect vexor's tool environment — no python3 assumption needed.
-    """
-    if not command_exists("vexor"):
-        return False
-
-    try:
-        dir_result = subprocess.run(
-            ["uv", "tool", "dir"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-        if dir_result.returncode != 0:
-            return False
-        vexor_env = Path(dir_result.stdout.strip()) / "vexor"
-        if not vexor_env.exists():
-            return False
-
-        result = subprocess.run(
-            ["uv", "pip", "show", "mlx-embedding-models", "--python", str(vexor_env)],
-            capture_output=True,
-            text=True,
-            timeout=15,
-        )
-        return result.returncode == 0
-    except Exception:
-        return False
-
-
-def _clone_vexor_fork() -> Path | None:
-    """Clone the vexor fork with MLX support to ~/.pilot/vexor."""
-    vexor_dir = Path.home() / ".pilot" / "vexor"
-
-    if vexor_dir.exists():
-        try:
-            r1 = subprocess.run(
-                ["git", "fetch", "origin", VEXOR_MLX_BRANCH],
-                capture_output=True,
-                cwd=vexor_dir,
-                timeout=60,
-            )
-            r2 = subprocess.run(
-                ["git", "checkout", VEXOR_MLX_BRANCH],
-                capture_output=True,
-                cwd=vexor_dir,
-                timeout=30,
-            )
-            r3 = subprocess.run(
-                ["git", "pull", "origin", VEXOR_MLX_BRANCH],
-                capture_output=True,
-                cwd=vexor_dir,
-                timeout=60,
-            )
-            if r1.returncode != 0 or r2.returncode != 0 or r3.returncode != 0:
-                return None
-            return vexor_dir
-        except Exception:
-            return None
-
-    try:
-        vexor_dir.parent.mkdir(parents=True, exist_ok=True)
-        result = subprocess.run(
-            ["git", "clone", "--branch", VEXOR_MLX_BRANCH, "--single-branch", VEXOR_FORK_URL, str(vexor_dir)],
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
-        if result.returncode == 0:
-            return vexor_dir
-    except Exception:
-        pass
-    return None
-
-
-def _install_vexor_from_local(vexor_dir: Path, extra: str = "local-mlx") -> bool:
-    """Install vexor from a local clone with the specified extra."""
-    mlx_deps = " --with mlx --with mlx-embedding-models" if "mlx" in extra else ""
-    cmd = f'uv tool install "{vexor_dir}[{extra}]" --reinstall{mlx_deps}'
-    return _run_bash_with_retry(cmd, timeout=300)
-
-
-def _setup_vexor_local_model(ui: Any = None, *, device: str = "auto") -> bool:
-    """Download and setup the local embedding model for Vexor."""
-    if _is_vexor_local_model_installed():
+def install_probe() -> bool:
+    """Install Probe code search tool globally via npm."""
+    if _is_probe_installed():
         return True
-
-    cmd = ["vexor", "local", "--setup", "--device", device, "--model", "intfloat/multilingual-e5-small"]
-    for attempt in range(MAX_RETRIES):
-        try:
-            if ui:
-                with ui.spinner("Downloading local embedding model..."):
-                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-            else:
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-            if result.returncode == 0:
-                return True
-        except Exception:
-            pass
-        if attempt < MAX_RETRIES - 1:
-            time.sleep(RETRY_DELAY)
-    return False
-
-
-def install_vexor(use_local: bool = False, ui: Any = None) -> bool:
-    """Install Vexor semantic search tool and configure defaults.
-
-    On macOS arm64, installs from fork with MLX support for Apple Silicon GPU.
-    On other platforms, installs the standard CPU-based local embeddings.
-    Model pre-download is best-effort; vexor downloads it on first use if needed.
-    """
-    if use_local:
-        if is_macos_arm64():
-            return _install_vexor_mlx(ui)
-
-        if command_exists("vexor") and _is_vexor_local_model_installed() and _is_vexor_local_functional():
-            _configure_vexor_local()
-            return True
-        if not command_exists("vexor") or not _is_vexor_local_functional():
-            if not _run_bash_with_retry("uv tool install 'vexor[local]' --reinstall"):
-                return False
-        _configure_vexor_local()
-        if not _setup_vexor_local_model(ui):
-            if ui:
-                ui.info("Embedding model will download on first use")
-        return True
-    else:
-        if command_exists("vexor"):
-            _configure_vexor_defaults()
-            return True
-        _configure_vexor_defaults()
-        return True
-
-
-def _install_vexor_mlx(ui: Any = None) -> bool:
-    """Install Vexor with MLX support from fork for macOS Apple Silicon."""
-    if _is_vexor_mlx_installed() and _is_vexor_local_model_installed() and _is_vexor_local_functional():
-        _configure_vexor_local(device="mlx")
-        return True
-
-    vexor_dir = _clone_vexor_fork()
-    if vexor_dir is None:
-        if ui:
-            ui.warning("Could not clone MLX fork — falling back to CPU embeddings")
-        if not _run_bash_with_retry("uv tool install 'vexor[local]' --reinstall"):
-            return False
-        _configure_vexor_local()
-        if not _setup_vexor_local_model(ui):
-            if ui:
-                ui.info("Embedding model will download on first use")
-        return True
-
-    if not _install_vexor_from_local(vexor_dir, extra="local-mlx"):
-        if ui:
-            ui.warning("MLX install failed — falling back to CPU embeddings")
-        if not _run_bash_with_retry("uv tool install 'vexor[local]' --reinstall"):
-            return False
-        _configure_vexor_local()
-        if not _setup_vexor_local_model(ui):
-            if ui:
-                ui.info("Embedding model will download on first use")
-        return True
-
-    _configure_vexor_local(device="mlx")
-    if not _setup_vexor_local_model(ui, device="mlx"):
-        if ui:
-            ui.info("Embedding model will download on first use")
-    return True
+    return _run_bash_with_retry(npm_global_cmd("npm install -g @probelabs/probe"))
 
 
 def install_sx() -> bool:
@@ -722,27 +443,18 @@ def _install_playwright_cli_with_ui(ui: Any) -> bool:
         return False
 
 
-def _install_vexor_with_ui(ui: Any) -> bool:
-    """Install Vexor with local embeddings (GPU auto-detected)."""
-    from installer.platform_utils import has_nvidia_gpu
-
-    if is_macos_arm64():
-        mode_str = "MLX"
-    elif has_nvidia_gpu():
-        mode_str = "CUDA"
-    else:
-        mode_str = "CPU"
-
+def _install_probe_with_ui(ui: Any) -> bool:
+    """Install Probe code search tool via npm."""
     if ui:
-        ui.status(f"Installing Vexor with local embeddings ({mode_str})...")
+        ui.status("Installing Probe (code search)...")
 
-    if install_vexor(use_local=True, ui=ui):
+    if install_probe():
         if ui:
-            ui.success(f"Vexor installed with local embeddings ({mode_str})")
+            ui.success("Probe installed")
         return True
     else:
         if ui:
-            ui.warning("Could not install Vexor - please install manually")
+            ui.warning("Could not install Probe - please install manually: npm install -g @probelabs/probe")
         return False
 
 
@@ -913,8 +625,8 @@ class DependenciesStep(BaseStep):
         if _install_playwright_cli_with_ui(ui):
             installed.append("playwright_cli")
 
-        if _install_vexor_with_ui(ui):
-            installed.append("vexor")
+        if _install_probe_with_ui(ui):
+            installed.append("probe")
 
         if _install_with_spinner(ui, "sx (team assets)", install_sx):
             installed.append("sx")

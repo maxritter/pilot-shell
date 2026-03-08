@@ -36,7 +36,11 @@ const QuickModeSection = () => {
           and Pilot gets it done — no spec file, no approval step, no directory
           scaffolding. Zero overhead on simple tasks. All quality guardrails
           still apply — hooks, TDD, type checking — but nothing slows down the
-          interaction.
+          interaction. When you need a plan, use{" "}
+          <code className="text-primary bg-primary/10 px-1 py-0.5 rounded">
+            /spec
+          </code>{" "}
+          — not Claude Code's built-in plan mode (Shift+Tab).
         </p>
 
         <div className="bg-background/80 rounded-lg p-3 font-mono text-sm border border-border/50 text-muted-foreground mb-6">

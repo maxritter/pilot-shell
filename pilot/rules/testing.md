@@ -91,7 +91,7 @@ Use `playwright-cli` with session isolation (`-s="${PILOT_SESSION_ID:-default}"`
 - **Dependent tests** — each test must work independently
 - **Testing implementation, not behavior** — assert outputs and state changes, not that specific mocks were called. `assert result == expected` not `mock.assert_called_with(...)`. If the implementation changes but behavior stays the same, tests should still pass.
 - **Incomplete mocks hiding structural assumptions** — mocks must mirror the complete real API structure, not just the fields you think you need. Partial mocks hide coupling to downstream fields and break when the real API returns additional or different data.
-- **Unmocked environment dependencies** — tests that rely on locally-installed tools (vexor, node, etc.) pass locally but fail in CI. Every subprocess call, PATH lookup, and filesystem check for external tools must be mocked in unit tests.
+- **Unmocked environment dependencies** — tests that rely on locally-installed tools (probe, node, etc.) pass locally but fail in CI. Every subprocess call, PATH lookup, and filesystem check for external tools must be mocked in unit tests.
 - **Unnecessary mocks** — only for external deps
 - **Test-only methods in production** — never add methods, properties, or flags to production classes purely for test access. If you need internal state for testing, refactor the design so the behavior is observable through public interfaces.
 - **Mocking without understanding** — before mocking a dependency, understand what it actually does. A mock that doesn't reflect real behavior is a lie — tests pass against the lie, then fail against reality.

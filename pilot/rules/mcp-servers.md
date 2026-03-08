@@ -12,6 +12,41 @@ All Pilot MCP servers use the `mcp__plugin_pilot_` prefix. Tools are available i
 
 ---
 
+### probe — Code Search Agent
+
+**Purpose:** Semantic codebase search and AST-aware code extraction. Primary search tool for understanding code by intent.
+
+**⛔ Use Probe MCP FIRST for all codebase searches.** Fallback: Probe CLI → Grep/Glob.
+
+| Tool | Purpose |
+|------|---------|
+| `search_code` | Semantic search — natural language questions about the codebase |
+| `extract_code` | AST-aware code extraction by file path, line, or symbol name |
+
+```
+# Discover tools
+ToolSearch(query="+probe search")
+
+# Semantic search — ask questions about the codebase
+mcp__plugin_pilot_probe__search_code(query="how does authentication work?")
+mcp__plugin_pilot_probe__search_code(query="where is config loaded", path="/abs/path/to/project")
+
+# Extract code by line, range, or symbol
+mcp__plugin_pilot_probe__extract_code(
+  path="/abs/path/to/project",
+  files=["src/auth.ts#authenticate", "src/config.ts:42", "src/utils.ts:10-50"]
+)
+```
+
+`extract_code` formats: `"file.ts"` (whole file), `"file.ts:42"` (block at line), `"file.ts:10-50"` (range), `"file.ts#symbolName"` (by symbol).
+
+**MCP config** (already in `pilot/.mcp.json`):
+```json
+{"probe": {"command": "npx", "args": ["-y", "@probelabs/probe@latest", "agent", "--mcp"]}}
+```
+
+---
+
 ### mem-search — Persistent Memory
 
 **Purpose:** Search past work, decisions, and context across sessions.
@@ -139,6 +174,8 @@ Options: `waitUntil` (load/domcontentloaded/networkidle), `returnHtml`, `waitFor
 
 | Need | Server | Tool |
 |------|--------|------|
+| **Codebase search** | **probe** | `search_code` |
+| Extract code block | probe | `extract_code` |
 | Past work / decisions | mem-search | `search` → `timeline` → `get_observations` |
 | Library/framework docs | context7 | `resolve-library-id` → `query-docs` |
 | Web search | web-search | `search` |

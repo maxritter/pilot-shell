@@ -6,7 +6,7 @@
 
 ### Claude Code is powerful. Pilot Shell makes it reliable.
 
-Start a task, grab a coffee, come back to production-grade code.</br>
+Start a task, grab a coffee, come back to production-grade code.`</br>`
 **Tests enforced. Context preserved. Quality automated.**
 
 [![Stars](https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&color=F59E0B)](https://github.com/maxritter/pilot-shell/stargazers)
@@ -73,7 +73,7 @@ After installation, `cd` into any project and run `pilot` or `ccp` to start Pilo
 8-step installer with progress tracking, rollback on failure, and idempotent re-runs:
 
 1. **Prerequisites** — Checks Homebrew, Node.js, Python 3.12+, uv, git
-2. **Dependencies** — Installs Vexor, playwright-cli, language servers, property-based testing tools
+2. **Dependencies** — Installs Probe, playwright-cli, language servers, property-based testing tools
 3. **Shell integration** — Auto-configures bash, fish, and zsh with `pilot` alias
 4. **Config & Claude files** — Sets up `.claude/` plugin, rules, commands, hooks, MCP servers
 5. **VS Code extensions** — Installs recommended extensions for your stack
@@ -106,6 +106,8 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstal
 ## How It Works
 
 ### /spec — Spec-Driven Development
+
+**`/spec` replaces Claude Code's built-in plan mode** (Shift+Tab). It provides a complete planning workflow with TDD, verification, and code review — use `/spec` instead of plan mode for all planned work.
 
 Features, bug fixes, refactoring — describe it and `/spec` handles the rest. Auto-detects whether it's a feature or a bugfix and adapts the workflow.
 
@@ -151,25 +153,25 @@ Investigation-first workflow for targeted fixes. Finds the root cause before tou
 
 ### Quick Mode
 
-Just chat — no plan, no approval gate. Quality hooks and TDD enforcement still apply. Best for small tasks and exploration.
+Just chat — no plan, no approval gate. Quality hooks and TDD enforcement still apply. Best for small tasks and exploration. For anything that needs a plan, use `/spec` — not Claude Code's built-in plan mode.
 
 ### Other Commands
 
-| Command  | What it does                                                                                                                                        |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Command    | What it does                                                                                                                                        |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/sync`  | Explores your codebase, discovers conventions, builds a search index, updates project rules. Run once initially, then anytime your project changes. |
 | `/learn` | Captures non-obvious discoveries as reusable skills. Triggers automatically or on demand.                                                           |
-| Teams    | Share rules, skills, commands, and agents across your team via the Console dashboard (Team plan).                                                   |
+| Teams      | Share rules, skills, commands, and agents across your team via the Console dashboard (Team plan).                                                   |
 
 ### Extensibility
 
 Create your own rules, commands, and skills in `.claude/` — all plain markdown. Add MCP servers in `.mcp.json` and run `/sync` to generate docs.
 
-| Type         | Loaded                                       | Best for                               |
-| ------------ | -------------------------------------------- | -------------------------------------- |
+| Type               | Loaded                                       | Best for                               |
+| ------------------ | -------------------------------------------- | -------------------------------------- |
 | **Rules**    | Every session, or conditionally by file type | Guidelines Claude should always follow |
-| **Commands** | On demand via `/command`                     | Specific workflows or multi-step tasks |
-| **Skills**   | On demand, created via `/learn`              | Reusable knowledge from past sessions  |
+| **Commands** | On demand via `/command`                   | Specific workflows or multi-step tasks |
+| **Skills**   | On demand, created via `/learn`            | Reusable knowledge from past sessions  |
 
 ### Pilot Shell Console
 
@@ -180,15 +182,15 @@ A local web dashboard with 7 views and real-time notifications when Claude needs
 <details>
 <summary><b>All views</b></summary>
 
-| View               | What it shows                                                                            |
-| ------------------ | ---------------------------------------------------------------------------------------- |
-| **Dashboard**      | Workspace status, active sessions, spec progress, git info, recent activity              |
-| **Specifications** | All spec plans with task progress, phase tracking, and iteration history                 |
+| View                     | What it shows                                                                              |
+| ------------------------ | ------------------------------------------------------------------------------------------ |
+| **Dashboard**      | Workspace status, active sessions, spec progress, git info, recent activity                |
+| **Specifications** | All spec plans with task progress, phase tracking, and iteration history                   |
 | **Memories**       | Browsable observations — decisions, discoveries, bugfixes — with type filters and search |
-| **Sessions**       | Active and past sessions with observation counts and duration                            |
-| **Usage**          | Daily token costs, model routing breakdown, and usage trends                             |
-| **Teams**          | Shared team assets with push, install, and management (Team plan)                        |
-| **Settings**       | Model selection per command/sub-agent, extended context toggle                           |
+| **Sessions**       | Active and past sessions with observation counts and duration                              |
+| **Usage**          | Daily token costs, model routing breakdown, and usage trends                               |
+| **Teams**          | Shared team assets with push, install, and management (Team plan)                          |
+| **Settings**       | Model selection per command/sub-agent, extended context toggle                             |
 
 </details>
 
@@ -227,44 +229,44 @@ Hooks fire automatically across the entire lifecycle — formatting, linting, ty
 
 #### SessionStart (on startup, clear, or compact)
 
-| Hook                      | Type     | What it does                                                           |
-| ------------------------- | -------- | ---------------------------------------------------------------------- |
-| Memory loader             | Blocking | Loads persistent context from Pilot Shell Console memory               |
+| Hook                        | Type     | What it does                                                           |
+| --------------------------- | -------- | ---------------------------------------------------------------------- |
+| Memory loader               | Blocking | Loads persistent context from Pilot Shell Console memory               |
 | `post_compact_restore.py` | Blocking | After auto-compaction: re-injects active plan, task state, and context |
-| Session tracker           | Async    | Initializes user message tracking for the session                      |
+| Session tracker             | Async    | Initializes user message tracking for the session                      |
 
 #### PreToolUse (before search, web, or task tools)
 
-| Hook               | Type     | What it does                                                                                                                             |
-| ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `tool_redirect.py` | Blocking | Blocks WebSearch/WebFetch (MCP alternatives exist), EnterPlanMode/ExitPlanMode (/spec conflict). Hints vexor for semantic Grep patterns. |
+| Hook                 | Type     | What it does                                                                                                                             |
+| -------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `tool_redirect.py` | Blocking | Blocks WebSearch/WebFetch (MCP alternatives exist), EnterPlanMode/ExitPlanMode (/spec conflict). Hints Probe MCP for semantic Grep patterns. |
 
 #### PostToolUse (after every Write / Edit / MultiEdit)
 
-| Hook                 | Type         | What it does                                                                                                                                                         |
-| -------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hook                   | Type         | What it does                                                                                                                                                         |
+| ---------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `file_checker.py`    | Blocking     | Dispatches to language-specific checkers: Python (ruff + basedpyright), TypeScript (Prettier + ESLint + tsc), Go (gofmt + golangci-lint). Auto-fixes formatting.     |
 | `tdd_enforcer.py`    | Non-blocking | Checks if implementation files were modified without failing tests first. Shows reminder to write tests. Excludes test files, docs, config, TSX, and infrastructure. |
-| `context_monitor.py` | Non-blocking | Monitors context usage. Warns at ~80% (informational) and ~90%+ (caution). Prompts `/learn` at key thresholds.                                                       |
-| Memory observer      | Async        | Captures development observations to persistent memory.                                                                                                              |
+| `context_monitor.py` | Non-blocking | Monitors context usage. Warns at ~80% (informational) and ~90%+ (caution). Prompts `/learn` at key thresholds.                                                     |
+| Memory observer        | Async        | Captures development observations to persistent memory.                                                                                                              |
 
 #### PreCompact (before auto-compaction)
 
-| Hook             | Type     | What it does                                                                                                   |
-| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
+| Hook               | Type     | What it does                                                                                                   |
+| ------------------ | -------- | -------------------------------------------------------------------------------------------------------------- |
 | `pre_compact.py` | Blocking | Captures Pilot Shell state (active plan, task list, key context) to persistent memory before compaction fires. |
 
 #### Stop (when Claude tries to finish)
 
-| Hook                 | Type     | What it does                                                                                                                               |
-| -------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `spec_stop_guard.py` | Blocking | If an active spec exists with PENDING or COMPLETE status, **blocks stopping**. Forces verification to complete before the session can end. |
-| Session summarizer   | Async    | Saves session observations to persistent memory for future sessions.                                                                       |
+| Hook                   | Type     | What it does                                                                                                                                    |
+| ---------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `spec_stop_guard.py` | Blocking | If an active spec exists with PENDING or COMPLETE status,**blocks stopping**. Forces verification to complete before the session can end. |
+| Session summarizer     | Async    | Saves session observations to persistent memory for future sessions.                                                                            |
 
 #### SessionEnd (when the session closes)
 
-| Hook             | Type     | What it does                                                                                                   |
-| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
+| Hook               | Type     | What it does                                                                                                   |
+| ------------------ | -------- | -------------------------------------------------------------------------------------------------------------- |
 | `session_end.py` | Blocking | Stops the worker daemon when no other Pilot Shell sessions are active. Sends real-time dashboard notification. |
 
 </details>
@@ -287,8 +289,8 @@ Opus for planning — where reasoning quality matters most. Sonnet for implement
 <details>
 <summary><b>Phase-by-phase breakdown</b></summary>
 
-| Phase                 | Default | Why                                                                                                                                                |
-| --------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Phase                       | Default | Why                                                                                                                                                |
+| --------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Planning**          | Opus    | Exploring your codebase, designing architecture, and writing the spec requires deep reasoning. A good plan is the foundation of everything.        |
 | **Plan Verification** | Sonnet  | The plan-reviewer sub-agent validates completeness and challenges assumptions on every feature spec.                                               |
 | **Implementation**    | Sonnet  | With a solid plan, writing code is straightforward. Sonnet is fast, cost-effective, and produces high-quality code when guided by a clear spec.    |
@@ -324,7 +326,7 @@ Production-tested best practices loaded into every session. Core rules cover wor
 <summary><b>Tools</b></summary>
 
 - `research-tools.md` — Search priority and tool selection guide
-- `cli-tools.md` — Pilot CLI, Vexor semantic search
+- `cli-tools.md` — Pilot CLI, Probe CLI semantic search
 - `playwright-cli.md` — Browser automation for E2E UI testing
 
 </details>
@@ -339,12 +341,12 @@ Production-tested best practices loaded into every session. Core rules cover wor
 <details>
 <summary><b>Coding Standards (activated by file type)</b></summary>
 
-| Standard   | Activates On                                      | Coverage                                                |
-| ---------- | ------------------------------------------------- | ------------------------------------------------------- |
-| Python     | `*.py`                                            | uv, pytest, ruff, basedpyright, type hints              |
-| TypeScript | `*.ts`, `*.tsx`, `*.js`, `*.jsx`                  | npm/pnpm, Jest, ESLint, Prettier, React patterns        |
-| Go         | `*.go`                                            | Modules, testing, formatting, error handling            |
-| Frontend   | `*.tsx`, `*.jsx`, `*.html`, `*.vue`, `*.css`      | Components, CSS, accessibility, responsive design       |
+| Standard   | Activates On                                            | Coverage                                                |
+| ---------- | ------------------------------------------------------- | ------------------------------------------------------- |
+| Python     | `*.py`                                                | uv, pytest, ruff, basedpyright, type hints              |
+| TypeScript | `*.ts`, `*.tsx`, `*.js`, `*.jsx`                | npm/pnpm, Jest, ESLint, Prettier, React patterns        |
+| Go         | `*.go`                                                | Modules, testing, formatting, error handling            |
+| Frontend   | `*.tsx`, `*.jsx`, `*.html`, `*.vue`, `*.css`  | Components, CSS, accessibility, responsive design       |
 | Backend    | `**/models/**`, `**/routes/**`, `**/api/**`, etc. | API design, data models, query optimization, migrations |
 
 </details>
@@ -356,11 +358,11 @@ MCP servers provide external context in every session — library docs, persiste
 <details>
 <summary><b>All servers</b></summary>
 
-| Server         | Purpose                                                          |
-| -------------- | ---------------------------------------------------------------- |
+| Server               | Purpose                                                           |
+| -------------------- | ----------------------------------------------------------------- |
 | **lib-docs**   | Library documentation lookup — get API docs for any dependency   |
 | **mem-search** | Persistent memory search — recall context from past sessions     |
-| **web-search** | Web search via DuckDuckGo, Bing, and Exa                         |
+| **web-search** | Web search via DuckDuckGo, Bing, and Exa                          |
 | **grep-mcp**   | GitHub code search — find real-world usage patterns across repos |
 | **web-fetch**  | Web page fetching — read documentation, APIs, references         |
 
@@ -377,10 +379,10 @@ The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing
 <details>
 <summary><b>Session & Context</b></summary>
 
-| Command                               | Purpose                                                                    |
-| ------------------------------------- | -------------------------------------------------------------------------- |
+| Command                                 | Purpose                                                                    |
+| --------------------------------------- | -------------------------------------------------------------------------- |
 | `pilot`                               | Start Claude with Pilot Shell enhancements, auto-update, and license check |
-| `pilot run [args...]`                 | Same as above, with optional flags (e.g., `--skip-update-check`)           |
+| `pilot run [args...]`                 | Same as above, with optional flags (e.g.,`--skip-update-check`)          |
 | `pilot check-context --json`          | Get current context usage percentage                                       |
 | `pilot register-plan <path> <status>` | Associate a plan file with the current session                             |
 | `pilot sessions [--json]`             | Show count of active Pilot Shell sessions                                  |
@@ -390,8 +392,8 @@ The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing
 <details>
 <summary><b>Worktree Isolation</b></summary>
 
-| Command                                | Purpose                                               |
-| -------------------------------------- | ----------------------------------------------------- |
+| Command                                  | Purpose                                               |
+| ---------------------------------------- | ----------------------------------------------------- |
 | `pilot worktree create --json <slug>`  | Create isolated git worktree for safe experimentation |
 | `pilot worktree detect --json <slug>`  | Check if a worktree already exists                    |
 | `pilot worktree diff --json <slug>`    | List changed files in the worktree                    |
@@ -404,8 +406,8 @@ The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing
 <details>
 <summary><b>License & Auth</b></summary>
 
-| Command                        | Purpose                                |
-| ------------------------------ | -------------------------------------- |
+| Command                          | Purpose                                |
+| -------------------------------- | -------------------------------------- |
 | `pilot activate <key>`         | Activate a license key on this machine |
 | `pilot deactivate`             | Deactivate license on this machine     |
 | `pilot status [--json]`        | Show current license status            |
@@ -433,15 +435,14 @@ The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing
 
 Pilot Shell is source-available under a commercial license. See the [LICENSE](LICENSE) file for full terms.
 
-| Tier     | Seats | Includes                                                                           |
-| :------- | :---- | :--------------------------------------------------------------------------------- |
-| **Solo** | 1     | All features, continuous updates, community support via [GitHub Issues][gh-issues] |
-| **Team** | Multi | Solo + team asset sharing, seat management, priority support                       |
+| Tier           | Seats | Includes                                                                          |
+| :------------- | :---- | :-------------------------------------------------------------------------------- |
+| **Solo** | 1     | All features, continuous updates, community support via[GitHub Issues][gh-issues] |
+| **Team** | Multi | Solo + team asset sharing, seat management, priority support                      |
 
 All plans work across multiple personal machines and Dev Containers — one subscription, all your devices.
 
 [gh-issues]: https://github.com/maxritter/pilot-shell/issues
-
 Details and licensing at [pilot-shell.com](https://pilot-shell.com).
 
 ---
@@ -459,12 +460,12 @@ Let's figure out if Pilot Shell is the right fit for your team and get everyone 
 <details>
 <summary><b>Does Pilot Shell send my code or data to external services?</b></summary>
 
-**No code, files, prompts, project data, or personal information ever leaves your machine through Pilot Shell.** All development tools — vector search (Vexor), persistent memory (Pilot Shell Console), session state, and quality hooks — run entirely locally.
+**No code, files, prompts, project data, or personal information ever leaves your machine through Pilot Shell.** All development tools — code search (Probe), persistent memory (Pilot Shell Console), session state, and quality hooks — run entirely locally.
 
 Pilot Shell makes external calls **only for licensing**. Here is the complete list:
 
-| When                              | Where             | What is sent                     |
-| --------------------------------- | ----------------- | -------------------------------- |
+| When                              | Where               | What is sent                     |
+| --------------------------------- | ------------------- | -------------------------------- |
 | License validation (once per 24h) | `api.polar.sh`    | License key, organization ID     |
 | License activation (once)         | `api.polar.sh`    | License key, machine fingerprint |
 | Trial start (once)                | `pilot-shell.com` | Hashed hardware fingerprint      |
@@ -483,7 +484,7 @@ Yes. Your source code, project files, and development context never leave your m
 <details>
 <summary><b>What are the licenses of Pilot Shell's dependencies?</b></summary>
 
-All external tools and dependencies that Pilot Shell installs and uses are open source with permissive licenses (MIT, Apache 2.0, BSD). This includes ruff, basedpyright, Prettier, ESLint, gofmt, uv, Vexor, playwright-cli, and all MCP servers. No copyleft or restrictive-licensed dependencies are introduced into your environment.
+All external tools and dependencies that Pilot Shell installs and uses are open source with permissive licenses (MIT, Apache 2.0, BSD). This includes ruff, basedpyright, Prettier, ESLint, gofmt, uv, Probe, playwright-cli, and all MCP servers. No copyleft or restrictive-licensed dependencies are introduced into your environment.
 
 </details>
 

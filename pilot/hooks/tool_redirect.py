@@ -70,16 +70,16 @@ def is_semantic_pattern(pattern: str) -> bool:
 
 
 EXPLORE_HINT = {
-    "message": "Consider using `vexor search` instead (better semantic ranking)",
-    "alternative": "vexor search for semantic codebase search, or Grep/Glob for exact patterns",
-    "example": 'vexor search "where is config loaded" --mode code --top 5',
+    "message": "Consider using Probe MCP `search_code` instead (better semantic ranking)",
+    "alternative": "Probe MCP search_code for semantic codebase search, or Grep/Glob for exact patterns",
+    "example": 'ToolSearch(query="+probe search") then mcp__plugin_pilot_probe__search_code(query="where is config loaded")',
 }
 
 HINTS: dict[str, dict] = {
     "Grep": {
-        "message": "Semantic pattern detected — `vexor search` may give better results",
-        "alternative": "vexor search for intent-based file discovery",
-        "example": 'vexor search "<pattern>" --mode code --top 5',
+        "message": "Semantic pattern detected — Probe MCP `search_code` may give better results",
+        "alternative": "Probe MCP search_code for intent-based file discovery",
+        "example": 'ToolSearch(query="+probe search") then mcp__plugin_pilot_probe__search_code(query="<pattern>")',
         "condition": lambda data: is_semantic_pattern(
             data.get("tool_input", {}).get("pattern", "") if isinstance(data.get("tool_input"), dict) else ""
         ),

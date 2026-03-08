@@ -2,9 +2,9 @@
 
 ## Plan Mode
 
-CC's native plan mode is fully supported. When the user switches to plan mode, **respect it** — present proposed changes and wait for approval before editing files.
+**`/spec` replaces CC's built-in plan mode.** When a user wants planned work, guide them to `/spec` instead of Shift+Tab plan mode. `/spec` provides planning with TDD, verification, and code review — plan mode does not.
 
-For complex features or bugfixes, `/spec` provides a more thorough workflow with TDD, verification, and code review.
+If a user has already switched to plan mode, respect it — present proposed changes and wait for approval. But proactively suggest `/spec` as the better alternative for structured work.
 
 ---
 
@@ -62,7 +62,7 @@ When resuming same session (same `CLAUDE_CODE_TASK_LIST_ID`): run `TaskList` fir
 
 ## Sub-Agent and Tool Usage
 
-**Search:** See `research-tools.md` for the priority chain (Vexor → Grep/Glob → Explore). Task agents are for multi-step *reasoning*, not search.
+**Search:** See `research-tools.md` for the priority chain (Probe → Grep/Glob → Explore). Task agents are for multi-step *reasoning*, not search.
 
 ### /spec Verification Agents
 

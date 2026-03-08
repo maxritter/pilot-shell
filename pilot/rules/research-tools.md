@@ -2,18 +2,19 @@
 
 ### Search Priority
 
-**⛔ Vexor first, always.** Finds by intent, not exact text. Zero context cost until you read results.
+**⛔ Probe MCP first, always.** Finds by intent, not exact text. Zero context cost until you read results.
 
-**Fallback chain:** Vexor → Grep/Glob (exact patterns) → Explore sub-agent (multi-step reasoning only)
+**Fallback chain:** Probe MCP (`search_code`) → Probe CLI → Grep/Glob (exact patterns) → Explore sub-agent (multi-step reasoning only)
 
-Full vexor reference in `cli-tools.md`. Full MCP tool reference in `mcp-servers.md`.
+Full Probe reference in `cli-tools.md` (CLI) and `mcp-servers.md` (MCP). Full MCP tool reference in `mcp-servers.md`.
 
 ### Tool Selection Guide
 
 | Need | Tool | Notes |
 |------|------|-------|
-| **Codebase search** | **Vexor** | Always first. Semantic, by intent. |
-| Exact pattern / known symbol | Grep / Glob | Only after vexor misses |
+| **Codebase search** | **Probe MCP** (`search_code`) | Always first. Semantic, by intent. |
+| Exact pattern / known symbol | Grep / Glob | Only after Probe misses |
+| Extract specific code block | Probe MCP (`extract_code`) | AST-aware, by line or symbol name |
 | Library/framework docs | Context7 (MCP) | `resolve-library-id` → `query-docs` |
 | Production code examples | grep-mcp (MCP) | Literal code patterns, not keywords |
 | Web search | web-search (MCP) | DuckDuckGo/Bing/Exa |

@@ -33,7 +33,7 @@ class TestDependenciesStep:
 
     @patch("installer.steps.dependencies.install_sx", return_value=True)
     @patch("installer.steps.dependencies.update_sx", return_value=True)
-    @patch("installer.steps.dependencies._install_vexor_with_ui", return_value=True)
+    @patch("installer.steps.dependencies._install_probe_with_ui", return_value=True)
     @patch("installer.steps.dependencies._install_playwright_cli_with_ui", return_value=True)
     @patch("installer.steps.dependencies.install_ccusage", return_value=True)
     @patch("installer.steps.dependencies.install_pbt_tools", return_value=True)
@@ -41,7 +41,6 @@ class TestDependenciesStep:
     @patch("installer.steps.dependencies.install_prettier", return_value=True)
     @patch("installer.steps.dependencies.install_typescript_lsp", return_value=True)
     @patch("installer.steps.dependencies._precache_npx_mcp_servers", return_value=True)
-    @patch("installer.steps.dependencies.install_vexor")
     @patch("installer.steps.dependencies._install_plugin_dependencies")
     @patch("installer.steps.dependencies._setup_pilot_memory")
     @patch("installer.steps.dependencies.install_python_tools")
@@ -54,7 +53,6 @@ class TestDependenciesStep:
         mock_python_tools,
         mock_setup_pilot_memory,
         mock_plugin_deps,
-        mock_vexor,
         _mock_precache,
         _mock_ts_lsp,
         _mock_prettier,
@@ -62,7 +60,7 @@ class TestDependenciesStep:
         _mock_pbt_tools,
         _mock_ccusage,
         _mock_playwright,
-        _mock_vexor_ui,
+        _mock_probe_ui,
         _mock_sx,
         _mock_update_sx,
     ):
@@ -76,7 +74,6 @@ class TestDependenciesStep:
         mock_python_tools.return_value = True
         mock_setup_pilot_memory.return_value = True
         mock_plugin_deps.return_value = True
-        mock_vexor.return_value = True
 
         step = DependenciesStep()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -133,114 +130,54 @@ class TestSetupPilotMemory:
         assert result is True
 
 
-class TestVexorInstall:
-    """Test Vexor semantic search installation."""
+class TestProbeInstall:
+    """Test Probe code search installation."""
 
-    def test_install_vexor_exists(self):
-        """install_vexor function exists."""
-        from installer.steps.dependencies import install_vexor
+    def test_install_probe_exists(self):
+        """install_probe function exists."""
+        from installer.steps.dependencies import install_probe
 
-        assert callable(install_vexor)
+        assert callable(install_probe)
 
-    @patch("installer.steps.dependencies._configure_vexor_defaults")
-    @patch("installer.steps.dependencies.command_exists")
-    def test_install_vexor_skips_if_exists(self, mock_cmd_exists, mock_config):
-        """install_vexor skips installation if already installed."""
-        from installer.steps.dependencies import install_vexor
+    @patch("installer.steps.dependencies._is_probe_installed")
+    def test_install_probe_skips_if_already_installed(self, mock_installed):
+        """install_probe skips installation if already installed."""
+        from installer.steps.dependencies import install_probe
 
-        mock_cmd_exists.return_value = True
-        mock_config.return_value = True
+        mock_installed.return_value = True
 
-        result = install_vexor()
+        result = install_probe()
 
         assert result is True
-        mock_config.assert_called_once()
 
-    def test_configure_vexor_defaults_creates_config(self):
-        """_configure_vexor_defaults creates config file."""
-        import json
-
-        from installer.steps.dependencies import _configure_vexor_defaults
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with patch.object(Path, "home", return_value=Path(tmpdir)):
-                result = _configure_vexor_defaults()
-
-                assert result is True
-                config_path = Path(tmpdir) / ".vexor" / "config.json"
-                assert config_path.exists()
-                config = json.loads(config_path.read_text())
-                assert config["model"] == "text-embedding-3-small"
-                assert config["provider"] == "openai"
-                assert config["rerank"] == "bm25"
-
-    def test_configure_vexor_defaults_merges_existing(self):
-        """_configure_vexor_defaults merges with existing config."""
-        import json
-
-        from installer.steps.dependencies import _configure_vexor_defaults
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            config_dir = Path(tmpdir) / ".vexor"
-            config_dir.mkdir()
-            config_path = config_dir / "config.json"
-            config_path.write_text(json.dumps({"custom_key": "custom_value"}))
-
-            with patch.object(Path, "home", return_value=Path(tmpdir)):
-                result = _configure_vexor_defaults()
-
-                assert result is True
-                config = json.loads(config_path.read_text())
-                assert config["custom_key"] == "custom_value"
-                assert config["model"] == "text-embedding-3-small"
-
-    @patch("installer.steps.dependencies._setup_vexor_local_model")
-    @patch("installer.steps.dependencies._configure_vexor_local")
     @patch("installer.steps.dependencies._run_bash_with_retry")
-    @patch("installer.steps.dependencies.is_macos_arm64")
-    @patch("installer.steps.dependencies._is_vexor_local_model_installed")
-    @patch("installer.steps.dependencies.command_exists")
-    def test_install_vexor_local_succeeds_when_model_download_fails(
-        self, mock_cmd, mock_model, mock_mac, mock_bash, mock_config, mock_setup
-    ):
-        """install_vexor returns True when vexor installed but model pre-download fails."""
-        from installer.steps.dependencies import install_vexor
+    @patch("installer.steps.dependencies._is_probe_installed")
+    def test_install_probe_runs_npm_install(self, mock_installed, mock_bash):
+        """install_probe runs npm install when not installed."""
+        from installer.steps.dependencies import install_probe
 
-        mock_cmd.return_value = False
-        mock_model.return_value = False
-        mock_mac.return_value = False
+        mock_installed.return_value = False
         mock_bash.return_value = True
-        mock_config.return_value = True
-        mock_setup.return_value = False
 
-        mock_ui = MagicMock()
-        result = install_vexor(use_local=True, ui=mock_ui)
+        result = install_probe()
 
         assert result is True
-        mock_ui.info.assert_called_once_with("Embedding model will download on first use")
+        mock_bash.assert_called_once()
+        call_args = mock_bash.call_args[0][0]
+        assert "@probelabs/probe" in call_args
 
-    @patch("installer.steps.dependencies._setup_vexor_local_model")
-    @patch("installer.steps.dependencies._configure_vexor_local")
     @patch("installer.steps.dependencies._run_bash_with_retry")
-    @patch("installer.steps.dependencies.is_macos_arm64")
-    @patch("installer.steps.dependencies._is_vexor_local_model_installed")
-    @patch("installer.steps.dependencies.command_exists")
-    def test_install_vexor_local_fails_when_binary_install_fails(
-        self, mock_cmd, mock_model, mock_mac, mock_bash, mock_config, mock_setup
-    ):
-        """install_vexor returns False when vexor binary installation fails."""
-        from installer.steps.dependencies import install_vexor
+    @patch("installer.steps.dependencies._is_probe_installed")
+    def test_install_probe_returns_false_on_failure(self, mock_installed, mock_bash):
+        """install_probe returns False when npm install fails."""
+        from installer.steps.dependencies import install_probe
 
-        mock_cmd.return_value = False
-        mock_model.return_value = False
-        mock_mac.return_value = False
+        mock_installed.return_value = False
         mock_bash.return_value = False
 
-        result = install_vexor(use_local=True)
+        result = install_probe()
 
         assert result is False
-        mock_config.assert_not_called()
-        mock_setup.assert_not_called()
 
 
 class TestInstallPluginDependencies:
@@ -724,273 +661,6 @@ class TestMacosArm64Detection:
         assert is_macos_arm64() is False
 
 
-class TestVexorMlxInstall:
-    """Test Vexor MLX installation for macOS Apple Silicon."""
-
-    @patch("installer.steps.dependencies.subprocess.run")
-    @patch("installer.steps.dependencies.command_exists", return_value=True)
-    def test_is_vexor_mlx_installed_true(self, _mock_cmd, mock_run):
-        """Returns True when uv pip show finds mlx-embedding-models in vexor's env."""
-        from installer.steps.dependencies import _is_vexor_mlx_installed
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            vexor_env = Path(tmpdir) / "vexor"
-            vexor_env.mkdir()
-
-            def run_side_effect(cmd, **kwargs):
-                if cmd == ["uv", "tool", "dir"]:
-                    return MagicMock(returncode=0, stdout=tmpdir + "\n")
-                return MagicMock(returncode=0, stdout="Name: mlx-embedding-models")
-
-            mock_run.side_effect = run_side_effect
-            assert _is_vexor_mlx_installed() is True
-
-    @patch("installer.steps.dependencies.subprocess.run")
-    @patch("installer.steps.dependencies.command_exists", return_value=True)
-    def test_is_vexor_mlx_installed_false_cpu_only(self, _mock_cmd, mock_run):
-        """Returns False when CPU-only vexor is installed (mlx-embedding-models absent)."""
-        from installer.steps.dependencies import _is_vexor_mlx_installed
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            vexor_env = Path(tmpdir) / "vexor"
-            vexor_env.mkdir()
-
-            def run_side_effect(cmd, **kwargs):
-                if cmd == ["uv", "tool", "dir"]:
-                    return MagicMock(returncode=0, stdout=tmpdir + "\n")
-                return MagicMock(returncode=1, stdout="", stderr="Package not found")
-
-            mock_run.side_effect = run_side_effect
-            assert _is_vexor_mlx_installed() is False
-
-    @patch("installer.steps.dependencies.subprocess.run")
-    @patch("installer.steps.dependencies.command_exists", return_value=True)
-    def test_is_vexor_mlx_installed_false_no_vexor_env(self, _mock_cmd, mock_run):
-        """Returns False when vexor tool env directory does not exist."""
-        from installer.steps.dependencies import _is_vexor_mlx_installed
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            mock_run.return_value = MagicMock(returncode=0, stdout=tmpdir + "\n")
-            assert _is_vexor_mlx_installed() is False
-
-    @patch("installer.steps.dependencies.command_exists", return_value=False)
-    def test_is_vexor_mlx_installed_false_no_vexor(self, _mock_cmd):
-        """Returns False when vexor is not installed at all."""
-        from installer.steps.dependencies import _is_vexor_mlx_installed
-
-        assert _is_vexor_mlx_installed() is False
-
-    @patch("installer.steps.dependencies.subprocess.run")
-    def test_clone_vexor_fork_clones_repo(self, mock_run):
-        """_clone_vexor_fork clones to ~/.pilot/vexor."""
-        from installer.steps.dependencies import _clone_vexor_fork
-
-        mock_run.return_value = MagicMock(returncode=0)
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with patch.object(Path, "home", return_value=Path(tmpdir)):
-                (Path(tmpdir) / ".pilot").mkdir()
-                result = _clone_vexor_fork()
-
-        assert result is not None
-        clone_call = mock_run.call_args[0][0]
-        assert "git" in clone_call
-        assert "clone" in clone_call
-        assert "mlx-support" in clone_call
-        assert "maxritter/vexor" in " ".join(clone_call)
-
-    @patch("installer.steps.dependencies.subprocess.run")
-    def test_clone_vexor_fork_updates_existing(self, mock_run):
-        """_clone_vexor_fork fetches and checks out when dir exists."""
-        from installer.steps.dependencies import _clone_vexor_fork
-
-        mock_run.return_value = MagicMock(returncode=0)
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            vexor_dir = Path(tmpdir) / ".pilot" / "vexor"
-            vexor_dir.mkdir(parents=True)
-
-            with patch.object(Path, "home", return_value=Path(tmpdir)):
-                result = _clone_vexor_fork()
-
-        assert result is not None
-        assert mock_run.call_count == 3
-
-    @patch("installer.steps.dependencies.subprocess.run")
-    def test_clone_vexor_fork_returns_none_on_failure(self, mock_run):
-        """_clone_vexor_fork returns None when clone fails."""
-        from installer.steps.dependencies import _clone_vexor_fork
-
-        mock_run.return_value = MagicMock(returncode=1, stderr="fatal: error")
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with patch.object(Path, "home", return_value=Path(tmpdir)):
-                (Path(tmpdir) / ".pilot").mkdir()
-                result = _clone_vexor_fork()
-
-        assert result is None
-
-    @patch("installer.steps.dependencies._setup_vexor_local_model", return_value=True)
-    @patch("installer.steps.dependencies._configure_vexor_local", return_value=True)
-    @patch("installer.steps.dependencies._install_vexor_from_local", return_value=True)
-    @patch("installer.steps.dependencies._clone_vexor_fork")
-    @patch("installer.steps.dependencies._is_vexor_local_model_installed", return_value=False)
-    @patch("installer.steps.dependencies._is_vexor_mlx_installed", return_value=False)
-    def test_install_vexor_mlx_full_flow(
-        self, _mock_mlx_check, _mock_model_check, mock_clone, mock_install, mock_config, mock_setup
-    ):
-        """_install_vexor_mlx clones fork and installs with MLX extra."""
-        from installer.steps.dependencies import _install_vexor_mlx
-
-        mock_clone.return_value = Path("/tmp/fake-vexor")
-        result = _install_vexor_mlx()
-
-        assert result is True
-        mock_clone.assert_called_once()
-        mock_install.assert_called_once_with(Path("/tmp/fake-vexor"), extra="local-mlx")
-        mock_config.assert_called_once()
-        mock_setup.assert_called_once()
-
-    @patch("installer.steps.dependencies._configure_vexor_local", return_value=True)
-    @patch("installer.steps.dependencies._is_vexor_local_functional", return_value=True)
-    @patch("installer.steps.dependencies._is_vexor_local_model_installed", return_value=True)
-    @patch("installer.steps.dependencies._is_vexor_mlx_installed", return_value=True)
-    def test_install_vexor_mlx_skips_if_already_installed(
-        self, _mock_mlx_check, _mock_model_check, _mock_functional, mock_config
-    ):
-        """_install_vexor_mlx skips clone when MLX vexor already installed."""
-        from installer.steps.dependencies import _install_vexor_mlx
-
-        result = _install_vexor_mlx()
-
-        assert result is True
-        mock_config.assert_called_once()
-
-    @patch("installer.steps.dependencies._setup_vexor_local_model", return_value=True)
-    @patch("installer.steps.dependencies._configure_vexor_local", return_value=True)
-    @patch("installer.steps.dependencies._install_vexor_from_local", return_value=True)
-    @patch("installer.steps.dependencies._clone_vexor_fork")
-    @patch("installer.steps.dependencies._is_vexor_local_functional", return_value=False)
-    @patch("installer.steps.dependencies._is_vexor_local_model_installed", return_value=True)
-    @patch("installer.steps.dependencies._is_vexor_mlx_installed", return_value=True)
-    def test_install_vexor_mlx_reinstalls_when_not_functional(
-        self, _mock_mlx, _mock_model, _mock_functional, mock_clone, mock_install, mock_config, mock_setup
-    ):
-        """_install_vexor_mlx reinstalls when MLX is present but not functional."""
-        from installer.steps.dependencies import _install_vexor_mlx
-
-        mock_clone.return_value = Path("/tmp/fake-vexor")
-        result = _install_vexor_mlx()
-
-        assert result is True
-        mock_clone.assert_called_once()
-
-    @patch("installer.steps.dependencies._setup_vexor_local_model", return_value=True)
-    @patch("installer.steps.dependencies._configure_vexor_local", return_value=True)
-    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
-    @patch("installer.steps.dependencies.command_exists", return_value=False)
-    @patch("installer.steps.dependencies._clone_vexor_fork", return_value=None)
-    @patch("installer.steps.dependencies._is_vexor_local_model_installed", return_value=False)
-    @patch("installer.steps.dependencies._is_vexor_mlx_installed", return_value=False)
-    def test_install_vexor_mlx_falls_back_to_cpu_on_clone_failure(
-        self, _mock_mlx, _mock_model, _mock_clone, _mock_cmd, mock_run, mock_config, mock_setup
-    ):
-        """_install_vexor_mlx falls back to CPU when clone fails."""
-        from installer.steps.dependencies import _install_vexor_mlx
-
-        result = _install_vexor_mlx()
-
-        assert result is True
-        mock_run.assert_called_once_with("uv tool install 'vexor[local]' --reinstall")
-
-    @patch("installer.steps.dependencies._install_vexor_mlx", return_value=True)
-    @patch("installer.steps.dependencies.is_macos_arm64", return_value=True)
-    def test_install_vexor_routes_to_mlx_on_macos_arm64(self, _mock_platform, mock_mlx):
-        """install_vexor routes to MLX path on macOS arm64."""
-        from installer.steps.dependencies import install_vexor
-
-        result = install_vexor(use_local=True)
-
-        assert result is True
-        mock_mlx.assert_called_once()
-
-
-class TestVexorLocalFunctional:
-    """Test vexor local functionality runtime check."""
-
-    @patch("installer.steps.dependencies.subprocess.run")
-    def test_get_uv_tool_vexor_bin_returns_path(self, mock_run):
-        """Returns vexor binary path when it exists in uv tool dir."""
-        from installer.steps.dependencies import _get_uv_tool_vexor_bin
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            vexor_bin = Path(tmpdir) / "vexor" / "bin" / "vexor"
-            vexor_bin.parent.mkdir(parents=True)
-            vexor_bin.touch()
-
-            mock_run.return_value = MagicMock(returncode=0, stdout=tmpdir + "\n")
-            result = _get_uv_tool_vexor_bin()
-
-            assert result == vexor_bin
-
-    @patch("installer.steps.dependencies.subprocess.run")
-    def test_get_uv_tool_vexor_bin_returns_none_when_missing(self, mock_run):
-        """Returns None when vexor binary doesn't exist in uv tool dir."""
-        from installer.steps.dependencies import _get_uv_tool_vexor_bin
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            mock_run.return_value = MagicMock(returncode=0, stdout=tmpdir + "\n")
-            result = _get_uv_tool_vexor_bin()
-
-            assert result is None
-
-    @patch("installer.steps.dependencies.subprocess.run")
-    def test_get_uv_tool_vexor_bin_returns_none_on_uv_failure(self, mock_run):
-        """Returns None when uv tool dir command fails."""
-        from installer.steps.dependencies import _get_uv_tool_vexor_bin
-
-        mock_run.return_value = MagicMock(returncode=1)
-        result = _get_uv_tool_vexor_bin()
-
-        assert result is None
-
-    @patch("installer.steps.dependencies._get_uv_tool_vexor_bin")
-    def test_is_vexor_local_functional_returns_false_when_no_binary(self, mock_bin):
-        """Returns False when uv tool vexor binary not found."""
-        from installer.steps.dependencies import _is_vexor_local_functional
-
-        mock_bin.return_value = None
-        assert _is_vexor_local_functional() is False
-
-    @patch("installer.steps.dependencies.subprocess.run")
-    @patch("installer.steps.dependencies._get_uv_tool_vexor_bin")
-    def test_is_vexor_local_functional_returns_true_when_working(self, mock_bin, mock_run):
-        """Returns True when vexor index --help runs without error message."""
-        from installer.steps.dependencies import _is_vexor_local_functional
-
-        mock_bin.return_value = Path("/fake/vexor")
-        mock_run.return_value = MagicMock(returncode=0, stdout="Usage: vexor index", stderr="")
-        assert _is_vexor_local_functional() is True
-
-    @patch("installer.steps.dependencies.subprocess.run")
-    @patch("installer.steps.dependencies._get_uv_tool_vexor_bin")
-    def test_is_vexor_local_functional_returns_false_when_broken(self, mock_bin, mock_run):
-        """Returns False when vexor reports local model support missing."""
-        from installer.steps.dependencies import _is_vexor_local_functional
-
-        mock_bin.return_value = Path("/fake/vexor")
-        mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="Local model support is not installed")
-        assert _is_vexor_local_functional() is False
-
-    @patch("installer.steps.dependencies.subprocess.run")
-    @patch("installer.steps.dependencies._get_uv_tool_vexor_bin")
-    def test_is_vexor_local_functional_handles_subprocess_exception(self, mock_bin, mock_run):
-        """Returns False when subprocess raises an exception."""
-        from installer.steps.dependencies import _is_vexor_local_functional
-
-        mock_bin.return_value = Path("/fake/vexor")
-        mock_run.side_effect = OSError("permission denied")
-        assert _is_vexor_local_functional() is False
 
 
 class TestInstallPrettier:

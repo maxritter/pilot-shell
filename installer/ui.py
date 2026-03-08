@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import getpass
 import sys
 from contextlib import contextmanager
 from typing import Any, Iterator, TextIO
@@ -99,12 +98,6 @@ class Console:
         if self._tty is None:
             self._tty = _get_tty_input()
         return self._tty
-
-    def close(self) -> None:
-        """Close TTY handle if opened."""
-        if self._tty is not None and self._tty is not sys.stdin:
-            self._tty.close()
-            self._tty = None
 
     @property
     def non_interactive(self) -> bool:
@@ -272,58 +265,6 @@ class Console:
         with self._console.status(f"[cyan]{message}[/cyan]", spinner="dots"):
             yield
 
-    def confirm(self, message: str, default: bool = True) -> bool:
-        """Prompt for yes/no confirmation."""
-        if self._non_interactive:
-            return default
-
-        default_str = "Y/n" if default else "y/N"
-        self._console.print()
-        self._console.print(f"  [bold cyan]?[/bold cyan] {message} \\[{default_str}]: ", end="")
-
-        try:
-            tty = self._get_input_stream()
-            response = tty.readline().strip().lower()
-        except (EOFError, KeyboardInterrupt, OSError):
-            self._console.print()
-            return default
-
-        if not response:
-            return default
-        return response in ("y", "yes", "true", "1")
-
-    def select(self, message: str, choices: list[str]) -> str:
-        """Prompt for single selection from choices."""
-        if self._non_interactive:
-            return choices[0] if choices else ""
-
-        self._console.print()
-        self._console.print(f"  [bold cyan]?[/bold cyan] {message}")
-        for i, choice in enumerate(choices, 1):
-            self._console.print(f"    [bold magenta]{i}.[/bold magenta] {choice}")
-
-        while True:
-            self._console.print(f"  Enter choice [1-{len(choices)}]: ", end="")
-
-            try:
-                tty = self._get_input_stream()
-                response = tty.readline().strip()
-            except (EOFError, KeyboardInterrupt, OSError):
-                self._console.print()
-                raise SystemExit(1)
-
-            if not response:
-                continue
-
-            try:
-                idx = int(response) - 1
-                if 0 <= idx < len(choices):
-                    return choices[idx]
-            except ValueError:
-                pass
-
-            self._console.print(f"  [yellow]Please enter a number between 1 and {len(choices)}[/yellow]")
-
     def input(self, message: str, default: str = "") -> str:
         """Prompt for text input."""
         if self._non_interactive:
@@ -345,21 +286,6 @@ class Console:
 
         return response if response else default
 
-    def password(self, message: str) -> str:
-        """Prompt for hidden password input."""
-        if self._non_interactive:
-            return ""
-
-        self._console.print()
-        self._console.print(f"  [bold cyan]?[/bold cyan] {message}: ", end="")
-
-        try:
-            tty = self._get_input_stream()
-            return getpass.getpass(prompt="", stream=tty)
-        except (EOFError, KeyboardInterrupt, OSError):
-            self._console.print()
-            return ""
-
     def print(self, message: str = "") -> None:
         """Print a plain message."""
         self._console.print(message)
@@ -367,8 +293,3 @@ class Console:
     def rule(self, title: str = "", style: str = "dim") -> None:
         """Print a horizontal rule."""
         self._console.print(Rule(title, style=style))
-
-    def newline(self, count: int = 1) -> None:
-        """Print one or more newlines."""
-        for _ in range(count):
-            self._console.print()

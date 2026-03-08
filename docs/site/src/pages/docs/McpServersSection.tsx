@@ -115,7 +115,7 @@ const McpServersSection = () => {
         <div className="mt-4 rounded-xl p-4 border border-primary/20 bg-primary/5">
           <p className="text-xs text-muted-foreground leading-relaxed">
             <span className="text-primary font-medium">Tool selection:</span>{" "}
-            Rules specify the preferred order — Vexor first for codebase
+            Rules specify the preferred order — Probe MCP first for codebase
             questions, lib-docs for library API lookups, grep-mcp for production
             code examples, web-search for current information. The{" "}
             <code className="text-primary">tool_redirect.py</code> hook blocks

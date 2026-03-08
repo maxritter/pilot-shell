@@ -68,7 +68,7 @@ confirm_uninstall() {
 	echo ""
 
 	if [ -d "$PILOT_DIR" ]; then
-		echo "    • Remove ~/.pilot/ (binary, installer, vexor fork)"
+		echo "    • Remove ~/.pilot/ (binary, installer)"
 	fi
 
 	if [ -d "$PILOT_PLUGIN_DIR" ]; then
@@ -366,7 +366,7 @@ print_summary() {
 	echo ""
 	echo "  To fully clean up third-party tools installed by Pilot:"
 	echo "    - Claude Code:    npm uninstall -g @anthropic-ai/claude-code"
-	echo "    - Vexor:          uv tool uninstall vexor"
+	echo "    - Probe:          npm uninstall -g @probelabs/probe"
 	echo "    - playwright-cli: npm uninstall -g @playwright/cli"
 	echo "    - ccusage:        npm uninstall -g ccusage"
 	echo "    - vtsls:          npm uninstall -g @vtsls/language-server typescript"

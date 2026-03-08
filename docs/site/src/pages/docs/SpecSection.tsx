@@ -82,6 +82,9 @@ const SpecSection = () => {
         </div>
 
         <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
+          <strong className="text-foreground">
+            Replaces Claude Code's built-in plan mode (Shift+Tab).
+          </strong>{" "}
           Best for complex features, refactoring tasks, or any work where you
           want to review a plan before implementation begins. The structured
           workflow prevents scope creep and ensures every task is tested and
@@ -157,7 +160,7 @@ const SpecSection = () => {
             </p>
             <div className="space-y-1.5">
               {[
-                "Codebase exploration with Vexor semantic search",
+                "Codebase exploration with Probe semantic search",
                 "Architecture design decisions via Q&A",
                 "Full plan with scope, risks, and DoD",
                 "Unified verification agent (compliance + quality + goal)",

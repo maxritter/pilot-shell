@@ -83,11 +83,11 @@ class FinalizeStep(BaseStep):
                 )
             )
 
-        steps.append(("👨‍✈️ Launch Pilot Shell", "Run: pilot (in your project folder)"))
-        steps.append(("🔄 /sync", "Learn your codebase conventions and generate project rules"))
-        steps.append(("📋 /spec", "Plan, implement & verify features and bug fixes with TDD and code review"))
-        steps.append(("🧠 /learn", "Extract reusable knowledge into skills from sessions"))
-        steps.append(("🔵 Pilot Shell Console", "Open in your browser at: http://localhost:41777"))
+        steps.append(("Launch Pilot Shell", "Run: pilot (in your project folder)"))
+        steps.append(("/sync", "Learn your codebase conventions and generate project rules"))
+        steps.append(("/spec", "Plan, implement & verify features and bug fixes (replaces Claude Code's plan mode)"))
+        steps.append(("/learn", "Extract reusable knowledge into skills from sessions"))
+        steps.append(("Pilot Shell Console", "Open in your browser at: http://localhost:41777"))
 
         ui.next_steps(steps)
 

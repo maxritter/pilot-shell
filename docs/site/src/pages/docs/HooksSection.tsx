@@ -50,7 +50,7 @@ const hookGroups = [
       {
         name: "tool_redirect.py",
         type: "Blocking",
-        desc: "Redirects to MCP alternatives, blocks plan mode conflicts, hints vexor for search",
+        desc: "Redirects to MCP alternatives, blocks plan mode conflicts, hints Probe MCP for search",
       },
     ],
   },

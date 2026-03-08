@@ -42,7 +42,7 @@ When called after verification: read plan, check `Iterations` field, report "Sta
 2. **Summarize understanding** — demonstrate comprehension
 3. **Check current state:** `git status --short`, `git diff --name-only`, plan progress (`[x]` vs `[ ]`)
 
-**Research tools during implementation:** Context7 (library docs), Vexor (find patterns), grep-mcp (production examples).
+**Research tools during implementation:** Context7 (library docs), Probe MCP `search_code` (find patterns), `extract_code` (extract code blocks), grep-mcp (production examples).
 
 ---
 

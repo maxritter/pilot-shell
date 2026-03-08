@@ -48,22 +48,6 @@ class TestConsole:
 class TestConsoleNonInteractive:
     """Test Console in non-interactive mode."""
 
-    def test_confirm_returns_default_in_non_interactive(self):
-        """In non-interactive mode, confirm returns default."""
-        from installer.ui import Console
-
-        console = Console(non_interactive=True)
-        assert console.confirm("Continue?", default=True) is True
-        assert console.confirm("Continue?", default=False) is False
-
-    def test_select_returns_first_in_non_interactive(self):
-        """In non-interactive mode, select returns first choice."""
-        from installer.ui import Console
-
-        console = Console(non_interactive=True)
-        result = console.select("Choose:", choices=["A", "B", "C"])
-        assert result == "A"
-
     def test_input_returns_default_in_non_interactive(self):
         """In non-interactive mode, input returns default."""
         from installer.ui import Console

@@ -47,7 +47,7 @@ Use unique names (not `plan`, `implement`, `verify`, `standards-*`) for custom s
 
 | Issue | Action |
 |-------|--------|
-| Vexor not installed | Use Grep/Glob, skip indexing |
+| Probe not installed | Use Grep/Glob for codebase exploration |
 | No MCP servers | Skip MCP documentation |
 | No README.md | Ask user for description |
 | No package.json/pyproject.toml | Infer from file extensions |
@@ -92,19 +92,21 @@ AskUserQuestion: "Found unscoped assets that should be prefixed with '{slug}-' f
 - `.claude/skills/{name}/` → `.claude/skills/{slug}-{name}/` (update `name:` in frontmatter too)
 - Do NOT migrate files from `~/.claude/rules/` — those are global Pilot rules, not project-scoped
 
-## Phase 2: Initialize Vexor Index
+## Phase 2: Check Probe Availability
 
-1. Check: `vexor --version` — if not installed, inform user, use Grep/Glob instead
-2. Build index (use `timeout: 900000` for first run): `vexor index --path /absolute/path/to/project`
-3. Verify: `vexor search "main entry point" --top 3`
-
-> First-time indexing can take 5-15 minutes. Subsequent syncs are faster due to caching.
+1. Check: `probe --version` — if not installed, inform user, use Grep/Glob instead
+2. Probe requires no pre-indexing — it searches directly on demand.
 
 ## Phase 3: Explore Codebase
 
 1. **Directory structure:** `tree -L 3 -I 'node_modules|.git|__pycache__|dist|build|.venv|.next|coverage|.cache|cdk.out'`
 2. **Technologies:** Check `package.json`, `pyproject.toml`, `tsconfig.json`, `go.mod`
-3. **Vexor searches:** API patterns, test patterns, configuration, gaps from Phase 1
+3. **Probe MCP searches:** API patterns, test patterns, configuration, gaps from Phase 1
+   ```
+   ToolSearch(query="+probe search")
+   mcp__plugin_pilot_probe__search_code(query="API endpoint patterns")
+   mcp__plugin_pilot_probe__search_code(query="test patterns and fixtures")
+   ```
 4. **Grep:** Response structures, naming conventions, import patterns
 5. **Read** 5-10 representative files in key areas
 
@@ -243,6 +245,6 @@ Skills are appropriate for: multi-step workflows, tool integrations, reusable sc
 
 ## Phase 10: Summary
 
-Report: Vexor index status, rules updated, new rules created, skills updated, new skills created, skills removed, unchanged items.
+Report: Probe availability, rules updated, new rules created, skills updated, new skills created, skills removed, unchanged items.
 
 Then offer: "Share via Teams dashboard" (direct user to Console Teams page) | "Discover more standards" | "Create more skills" | "Done"

@@ -36,7 +36,7 @@ const hooksPipeline = [
     hooks: [
       "Block WebSearch/WebFetch — redirect to MCP alternatives",
       "Block EnterPlanMode/ExitPlanMode — project uses /spec",
-      "Hint vexor for semantic Grep patterns",
+      "Hint Probe MCP for semantic Grep patterns",
     ],
     color: "text-amber-400",
     bgColor: "bg-amber-400/10",
@@ -114,7 +114,7 @@ const rulesCategories = [
     category: "Tools",
     rules: [
       "Context7 + grep-mcp + web search + GitHub CLI",
-      "Pilot CLI + Vexor search",
+      "Pilot CLI + Probe search",
       "Playwright CLI (E2E browser testing)",
     ],
   },

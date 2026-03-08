@@ -23,23 +23,31 @@ Slug = plan filename without date prefix and `.md`. `create` auto-stashes uncomm
 
 ---
 
-### Vexor — Semantic Code Search
+### Probe — Code Search (CLI)
 
-**⛔ First choice for codebase search — always try before Grep, Glob, or Explore sub-agents.** Finds by intent, not exact text. Zero context cost until you read results.
+**Secondary search tool.** Use Probe MCP (`search_code`/`extract_code`) first. Fall back to CLI for quick terminal searches when MCP is unavailable.
 
-Set the **Bash tool's** `timeout` parameter to `180000` (3 minutes) when calling vexor — indexing can happen on first run and 60s is often too tight. Never run in background. The `timeout` is NOT a vexor flag.
+Probe is installed globally via npm: `npm install -g @probelabs/probe`
 
 ```bash
-vexor "<QUERY>" [--path <ROOT>] [--mode <MODE>] [--ext .py,.md] [--exclude-pattern <PATTERN>] [--top 5]
+# Semantic search (Elasticsearch syntax)
+probe search "authentication AND login" ./src
+probe search "error AND handling" ./
+probe search "database NOT sqlite" ./
+
+# Extract code block by line or symbol
+probe extract src/auth.ts:42
+probe extract src/auth.ts#authenticate
+probe extract src/auth.ts:10-50
+
+# AST pattern matching
+probe query "async function $NAME($$$)" --language typescript
+probe query "class $CLASS: def __init__($$$)" --language python
 ```
 
-| Mode | Best For |
-|------|----------|
-| `auto` | Default — routes by file type |
-| `code` | Code-aware chunking (best for codebases) |
-| `outline` | Markdown headings (best for docs) |
-| `full` | Full file contents (highest recall) |
+**Search options:** `--max-tokens <n>`, `--max-results <n>`, `--allow-tests`, `--format markdown|json`
 
-`vexor index` to pre-build, `vexor index --clear` to rebuild.
+**File filters (inside query):** `ext:rs`, `file:src/**/*.py`, `dir:tests`
 
+`probe --version` to verify installation.
 
