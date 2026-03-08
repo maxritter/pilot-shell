@@ -57,9 +57,9 @@ const SyncSection = () => {
           <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
             /sync
           </code>{" "}
-          to explore your project structure, build a semantic search index,
-          discover your conventions and undocumented patterns, update project
-          documentation, and create new custom skills. This is how Pilot adapts
+          to explore your project structure, discover your conventions and
+          undocumented patterns, update project documentation, and create new
+          custom skills. This is how Pilot adapts
           to your project — not the other way around. Run it once initially,
           then any time your codebase changes significantly.
         </p>
