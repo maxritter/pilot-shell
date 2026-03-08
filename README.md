@@ -6,7 +6,7 @@
 
 ### Claude Code is powerful. Pilot Shell makes it reliable.
 
-Start a task, grab a coffee, come back to production-grade code.`</br>`
+Start a task, grab a coffee, come back to production-grade code.</br>
 **Tests enforced. Context preserved. Quality automated.**
 
 [![Stars](https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&color=F59E0B)](https://github.com/maxritter/pilot-shell/stargazers)
@@ -382,7 +382,7 @@ The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing
 | Command                                 | Purpose                                                                    |
 | --------------------------------------- | -------------------------------------------------------------------------- |
 | `pilot`                               | Start Claude with Pilot Shell enhancements, auto-update, and license check |
-| `pilot run [args...]`                 | Same as above, with optional flags (e.g.,`--skip-update-check`)          |
+| `pilot run [args...]`                 | Same as above, with optional flags (e.g., `--skip-update-check`)          |
 | `pilot check-context --json`          | Get current context usage percentage                                       |
 | `pilot register-plan <path> <status>` | Associate a plan file with the current session                             |
 | `pilot sessions [--json]`             | Show count of active Pilot Shell sessions                                  |
@@ -437,7 +437,7 @@ Pilot Shell is source-available under a commercial license. See the [LICENSE](LI
 
 | Tier           | Seats | Includes                                                                          |
 | :------------- | :---- | :-------------------------------------------------------------------------------- |
-| **Solo** | 1     | All features, continuous updates, community support via[GitHub Issues][gh-issues] |
+| **Solo** | 1     | All features, continuous updates, community support via [GitHub Issues][gh-issues] |
 | **Team** | Multi | Solo + team asset sharing, seat management, priority support                      |
 
 All plans work across multiple personal machines and Dev Containers — one subscription, all your devices.

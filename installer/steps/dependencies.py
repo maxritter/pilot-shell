@@ -112,6 +112,7 @@ def _is_probe_installed() -> bool:
             ["npm", "list", "-g", "@probelabs/probe", "--depth=0"],
             capture_output=True,
             text=True,
+            timeout=15,
         )
         return result.returncode == 0 and "@probelabs/probe" in result.stdout
     except Exception:
