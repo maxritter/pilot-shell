@@ -422,7 +422,7 @@ run_installer() {
 		local_arg="--local --local-repo-dir $(pwd)"
 	fi
 
-	if ! is_in_container && [ ! -d ".devcontainer" ]; then
+	if ! is_in_container && ([ ! -d ".devcontainer" ] || [ "$USE_LOCAL_INSTALLER" = true ] || [ "$RESTART_PILOT" = true ]); then
 		uv run --python 3.12 --no-project --with rich --with certifi \
 			python -m installer install --local-system $version_arg $local_arg "$@"
 	else
@@ -498,13 +498,17 @@ if ! is_in_container; then
 	echo "  Current project folder: $(pwd)"
 	echo ""
 
-	if [ -d ".devcontainer" ]; then
+	if [ -d ".devcontainer" ] && [ "$USE_LOCAL_INSTALLER" != true ] && [ "$RESTART_PILOT" != true ]; then
 		echo "  Detected .devcontainer - using Dev Container mode."
 		echo ""
 		setup_devcontainer
 	elif [ "$RESTART_PILOT" = true ]; then
 		echo "  Updating local installation..."
 		echo ""
+	elif [ "$USE_LOCAL_INSTALLER" = true ]; then
+		echo "  Local installation selected (--local)"
+		echo ""
+		confirm_local_install
 	else
 		echo "  Choose installation method:"
 		echo ""
