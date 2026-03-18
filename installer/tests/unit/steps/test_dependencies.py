@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -330,33 +331,35 @@ class TestInstallPluginDependencies:
 
         assert callable(_install_plugin_dependencies)
 
-    @patch("installer.steps.dependencies.Path")
-    def test_install_plugin_dependencies_returns_false_if_no_plugin_dir(self, mock_path):
+    def test_install_plugin_dependencies_returns_false_if_no_plugin_dir(self):
         """_install_plugin_dependencies returns False if plugin directory doesn't exist."""
         from installer.steps.dependencies import _install_plugin_dependencies
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            mock_path.home.return_value = Path(tmpdir)
-            result = _install_plugin_dependencies(Path(tmpdir), ui=None)
+            config_dir = Path(tmpdir) / "claude-config"
+            config_dir.mkdir()
+            # No "pilot" subdirectory
+
+            with patch("installer.steps.dependencies.get_claude_config_dir", return_value=config_dir):
+                result = _install_plugin_dependencies(Path(tmpdir), ui=None)
             assert result is False
 
-    @patch("installer.steps.dependencies.Path")
-    def test_install_plugin_dependencies_returns_false_if_no_package_json(self, mock_path):
+    def test_install_plugin_dependencies_returns_false_if_no_package_json(self):
         """_install_plugin_dependencies returns False if no package.json exists."""
         from installer.steps.dependencies import _install_plugin_dependencies
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            plugin_dir = Path(tmpdir) / ".claude" / "pilot"
+            config_dir = Path(tmpdir) / "claude-config"
+            plugin_dir = config_dir / "pilot"
             plugin_dir.mkdir(parents=True)
 
-            mock_path.home.return_value = Path(tmpdir)
-            result = _install_plugin_dependencies(Path(tmpdir), ui=None)
+            with patch("installer.steps.dependencies.get_claude_config_dir", return_value=config_dir):
+                result = _install_plugin_dependencies(Path(tmpdir), ui=None)
             assert result is False
 
     @patch("installer.steps.dependencies._run_bash_with_retry")
     @patch("installer.steps.dependencies.command_exists")
-    @patch("installer.steps.dependencies.Path")
-    def test_install_plugin_dependencies_runs_bun_install(self, mock_path, mock_cmd_exists, mock_run):
+    def test_install_plugin_dependencies_runs_bun_install(self, mock_cmd_exists, mock_run):
         """_install_plugin_dependencies runs bun install when bun is available."""
         from installer.steps.dependencies import _install_plugin_dependencies
 
@@ -364,20 +367,20 @@ class TestInstallPluginDependencies:
         mock_run.return_value = True
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            plugin_dir = Path(tmpdir) / ".claude" / "pilot"
+            config_dir = Path(tmpdir) / "claude-config"
+            plugin_dir = config_dir / "pilot"
             plugin_dir.mkdir(parents=True)
             (plugin_dir / "package.json").write_text('{"name": "test"}')
 
-            mock_path.home.return_value = Path(tmpdir)
-            result = _install_plugin_dependencies(Path(tmpdir), ui=None)
+            with patch("installer.steps.dependencies.get_claude_config_dir", return_value=config_dir):
+                result = _install_plugin_dependencies(Path(tmpdir), ui=None)
 
             assert result is True
             mock_run.assert_called_with("bun install", cwd=plugin_dir)
 
     @patch("installer.steps.dependencies._run_bash_with_retry")
     @patch("installer.steps.dependencies.command_exists")
-    @patch("installer.steps.dependencies.Path")
-    def test_install_plugin_dependencies_falls_back_to_npm(self, mock_path, mock_cmd_exists, mock_run):
+    def test_install_plugin_dependencies_falls_back_to_npm(self, mock_cmd_exists, mock_run):
         """_install_plugin_dependencies falls back to npm install when bun is unavailable."""
         from installer.steps.dependencies import _install_plugin_dependencies
 
@@ -385,32 +388,33 @@ class TestInstallPluginDependencies:
         mock_run.return_value = True
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            plugin_dir = Path(tmpdir) / ".claude" / "pilot"
+            config_dir = Path(tmpdir) / "claude-config"
+            plugin_dir = config_dir / "pilot"
             plugin_dir.mkdir(parents=True)
             (plugin_dir / "package.json").write_text('{"name": "test"}')
 
-            mock_path.home.return_value = Path(tmpdir)
-            result = _install_plugin_dependencies(Path(tmpdir), ui=None)
+            with patch("installer.steps.dependencies.get_claude_config_dir", return_value=config_dir):
+                result = _install_plugin_dependencies(Path(tmpdir), ui=None)
 
         assert result is True
         npm_calls = [c for c in mock_run.call_args_list if "npm" in str(c)]
         assert len(npm_calls) > 0, "npm install should be called when bun is unavailable"
 
     @patch("installer.steps.dependencies.command_exists")
-    @patch("installer.steps.dependencies.Path")
-    def test_install_plugin_dependencies_returns_false_when_no_package_manager(self, mock_path, mock_cmd_exists):
+    def test_install_plugin_dependencies_returns_false_when_no_package_manager(self, mock_cmd_exists):
         """_install_plugin_dependencies returns False when neither bun nor npm is available."""
         from installer.steps.dependencies import _install_plugin_dependencies
 
         mock_cmd_exists.return_value = False
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            plugin_dir = Path(tmpdir) / ".claude" / "pilot"
+            config_dir = Path(tmpdir) / "claude-config"
+            plugin_dir = config_dir / "pilot"
             plugin_dir.mkdir(parents=True)
             (plugin_dir / "package.json").write_text('{"name": "test"}')
 
-            mock_path.home.return_value = Path(tmpdir)
-            result = _install_plugin_dependencies(Path(tmpdir), ui=None)
+            with patch("installer.steps.dependencies.get_claude_config_dir", return_value=config_dir):
+                result = _install_plugin_dependencies(Path(tmpdir), ui=None)
 
         assert result is False
 
@@ -728,11 +732,12 @@ class TestPrecacheNpxMcpServers:
         }
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            plugin_dir = Path(tmpdir) / ".claude" / "pilot"
+            config_dir = Path(tmpdir) / "claude-config"
+            plugin_dir = config_dir / "pilot"
             plugin_dir.mkdir(parents=True)
             (plugin_dir / ".mcp.json").write_text(json.dumps(mcp_config))
 
-            with patch.object(Path, "home", return_value=Path(tmpdir)):
+            with patch("installer.steps.dependencies.get_claude_config_dir", return_value=config_dir):
                 with patch(
                     "installer.steps.dependencies._is_npx_package_cached",
                     return_value=True,
@@ -755,11 +760,12 @@ class TestPrecacheNpxMcpServers:
         }
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            plugin_dir = Path(tmpdir) / ".claude" / "pilot"
+            config_dir = Path(tmpdir) / "claude-config"
+            plugin_dir = config_dir / "pilot"
             plugin_dir.mkdir(parents=True)
             (plugin_dir / ".mcp.json").write_text(json.dumps(mcp_config))
 
-            with patch.object(Path, "home", return_value=Path(tmpdir)):
+            with patch("installer.steps.dependencies.get_claude_config_dir", return_value=config_dir):
                 with patch(
                     "installer.steps.dependencies._is_npx_package_cached",
                     return_value=True,
@@ -782,11 +788,12 @@ class TestPrecacheNpxMcpServers:
         mock_proc.wait = MagicMock(return_value=0)
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            plugin_dir = Path(tmpdir) / ".claude" / "pilot"
+            config_dir = Path(tmpdir) / "claude-config"
+            plugin_dir = config_dir / "pilot"
             plugin_dir.mkdir(parents=True)
             (plugin_dir / ".mcp.json").write_text(json.dumps(mcp_config))
 
-            with patch.object(Path, "home", return_value=Path(tmpdir)):
+            with patch("installer.steps.dependencies.get_claude_config_dir", return_value=config_dir):
                 with patch(
                     "installer.steps.dependencies._is_npx_package_cached",
                     return_value=False,
@@ -1140,3 +1147,68 @@ class TestInstallPbtTools:
         result = install_pbt_tools()
 
         assert result is False
+
+
+class TestClaudeConfigDirDependencies:
+    """Tests for CLAUDE_CONFIG_DIR support in dependencies.py."""
+
+    @patch("installer.steps.dependencies._run_bash_with_retry")
+    @patch("installer.steps.dependencies.command_exists")
+    def test_install_plugin_dependencies_uses_custom_config_dir(self, mock_cmd_exists, mock_run):
+        """_install_plugin_dependencies uses CLAUDE_CONFIG_DIR when set."""
+        from installer.steps.dependencies import _install_plugin_dependencies
+
+        mock_cmd_exists.side_effect = lambda cmd: cmd == "bun"
+        mock_run.return_value = True
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            custom_config = Path(tmpdir) / "custom-claude"
+            plugin_dir = custom_config / "pilot"
+            plugin_dir.mkdir(parents=True)
+            (plugin_dir / "package.json").write_text('{"name": "test"}')
+
+            with patch.dict(os.environ, {"CLAUDE_CONFIG_DIR": str(custom_config)}):
+                result = _install_plugin_dependencies(Path(tmpdir), ui=None)
+
+            assert result is True
+            mock_run.assert_called_with("bun install", cwd=plugin_dir)
+
+    def test_precache_npx_uses_custom_config_dir_no_mcp_json(self):
+        """_precache_npx_mcp_servers returns True with no .mcp.json in custom dir."""
+        from installer.steps.dependencies import _precache_npx_mcp_servers
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            custom_config = Path(tmpdir) / "custom-claude"
+            pilot_dir = custom_config / "pilot"
+            pilot_dir.mkdir(parents=True)
+
+            with patch.dict(os.environ, {"CLAUDE_CONFIG_DIR": str(custom_config)}):
+                result = _precache_npx_mcp_servers(None)
+
+            assert result is True
+
+    def test_precache_npx_reads_mcp_json_from_custom_config_dir(self):
+        """_precache_npx_mcp_servers reads .mcp.json from CLAUDE_CONFIG_DIR/pilot/."""
+        import json
+
+        from installer.steps.dependencies import _precache_npx_mcp_servers
+
+        mcp_config = {
+            "mcpServers": {
+                "web-fetch": {"command": "npx", "args": ["-y", "fetcher-mcp"]},
+            }
+        }
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            custom_config = Path(tmpdir) / "custom-claude"
+            pilot_dir = custom_config / "pilot"
+            pilot_dir.mkdir(parents=True)
+            (pilot_dir / ".mcp.json").write_text(json.dumps(mcp_config))
+
+            with (
+                patch.dict(os.environ, {"CLAUDE_CONFIG_DIR": str(custom_config)}),
+                patch("installer.steps.dependencies._is_npx_package_cached", return_value=True),
+            ):
+                result = _precache_npx_mcp_servers(None)
+
+            assert result is True

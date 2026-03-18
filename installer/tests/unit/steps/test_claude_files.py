@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -986,3 +987,126 @@ class TestResolveRepoUrl:
         result = step._resolve_repo_url("v5.0.0")
 
         assert result == "https://github.com/maxritter/pilot-shell"
+
+
+class TestClaudeConfigDir:
+    """Tests for get_claude_config_dir() and CLAUDE_CONFIG_DIR env var support."""
+
+    def test_returns_env_var_path_when_set(self):
+        """get_claude_config_dir() returns the env var path when CLAUDE_CONFIG_DIR is set."""
+        from installer.steps.claude_files import get_claude_config_dir
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            custom_dir = Path(tmpdir) / "custom-claude"
+            custom_dir.mkdir()
+
+            with patch.dict(os.environ, {"CLAUDE_CONFIG_DIR": str(custom_dir)}):
+                result = get_claude_config_dir()
+
+            assert result == custom_dir
+
+    def test_returns_default_when_env_var_unset(self):
+        """get_claude_config_dir() returns ~/.claude when CLAUDE_CONFIG_DIR is not set."""
+        from installer.steps.claude_files import get_claude_config_dir
+
+        env = os.environ.copy()
+        env.pop("CLAUDE_CONFIG_DIR", None)
+        with patch.dict(os.environ, env, clear=True):
+            result = get_claude_config_dir()
+
+        assert result == Path.home() / ".claude"
+
+    def test_raises_on_relative_path(self):
+        """get_claude_config_dir() raises ValueError when CLAUDE_CONFIG_DIR is a relative path."""
+        import pytest
+
+        from installer.steps.claude_files import get_claude_config_dir
+
+        with patch.dict(os.environ, {"CLAUDE_CONFIG_DIR": "relative/path"}):
+            with pytest.raises(ValueError, match="absolute path"):
+                get_claude_config_dir()
+
+    def test_run_installs_to_custom_config_dir(self):
+        """ClaudeFilesStep.run() installs files under CLAUDE_CONFIG_DIR when set."""
+        from installer.context import InstallContext
+        from installer.steps.claude_files import ClaudeFilesStep
+        from installer.ui import Console
+
+        step = ClaudeFilesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            custom_config_dir = Path(tmpdir) / "custom-claude"
+            custom_config_dir.mkdir()
+
+            home_dir = Path(tmpdir) / "home"
+            home_dir.mkdir()
+
+            source_pilot = Path(tmpdir) / "source" / "pilot"
+            source_pilot.mkdir(parents=True)
+            (source_pilot / "rules").mkdir()
+            (source_pilot / "rules" / "rule.md").write_text("rule content")
+
+            dest_dir = Path(tmpdir) / "dest"
+            dest_dir.mkdir()
+
+            ctx = InstallContext(
+                project_dir=dest_dir,
+                ui=Console(non_interactive=True),
+                local_mode=True,
+                local_repo_dir=Path(tmpdir) / "source",
+            )
+
+            with (
+                patch.dict(os.environ, {"CLAUDE_CONFIG_DIR": str(custom_config_dir)}),
+                patch("installer.steps.claude_files.Path.home", return_value=home_dir),
+            ):
+                step.run(ctx)
+
+            # Files should be in custom config dir, NOT in home_dir/.claude
+            assert (custom_config_dir / "rules" / "rule.md").exists()
+            assert not (home_dir / ".claude" / "rules" / "rule.md").exists()
+
+    def test_merge_app_config_writes_claude_json_to_home(self):
+        """_merge_app_config writes ~/.claude.json to $HOME even with custom CLAUDE_CONFIG_DIR."""
+        from installer.context import InstallContext
+        from installer.steps.claude_files import ClaudeFilesStep
+        from installer.ui import Console
+
+        step = ClaudeFilesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            custom_config_dir = Path(tmpdir) / "custom-claude"
+            custom_config_dir.mkdir()
+
+            home_dir = Path(tmpdir) / "home"
+            home_dir.mkdir()
+
+            source_pilot = Path(tmpdir) / "source" / "pilot"
+            source_pilot.mkdir(parents=True)
+            (source_pilot / "settings.json").write_text(json.dumps({"env": {"X": "1"}}))
+            (source_pilot / "claude.json").write_text(
+                json.dumps({"autoCompactEnabled": True, "theme": "dark"})
+            )
+
+            dest_dir = Path(tmpdir) / "dest"
+            dest_dir.mkdir()
+
+            ctx = InstallContext(
+                project_dir=dest_dir,
+                ui=Console(non_interactive=True),
+                local_mode=True,
+                local_repo_dir=Path(tmpdir) / "source",
+            )
+
+            with (
+                patch.dict(os.environ, {"CLAUDE_CONFIG_DIR": str(custom_config_dir)}),
+                patch("installer.steps.claude_files.Path.home", return_value=home_dir),
+            ):
+                step.run(ctx)
+
+            # ~/.claude.json should be at home_dir, NOT at custom_config_dir
+            claude_json_path = home_dir / ".claude.json"
+            assert claude_json_path.exists()
+            patched = json.loads(claude_json_path.read_text())
+            assert patched["autoCompactEnabled"] is True
+
+            # Should NOT exist at custom config dir
+            assert not (custom_config_dir / ".claude.json").exists()

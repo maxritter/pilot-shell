@@ -12,6 +12,7 @@ from typing import Any
 from installer.context import InstallContext
 from installer.platform_utils import command_exists, is_linux_arm64, npm_global_cmd
 from installer.steps.base import BaseStep
+from installer.steps.claude_files import get_claude_config_dir
 
 MAX_RETRIES = 3
 RETRY_DELAY = 2
@@ -466,7 +467,7 @@ def _install_plugin_dependencies(_project_dir: Path, ui: Any = None) -> bool:
     This installs all Node.js dependencies defined in plugin/package.json,
     which includes runtime dependencies for MCP servers and hooks.
     """
-    plugin_dir = Path.home() / ".claude" / "pilot"
+    plugin_dir = get_claude_config_dir() / "pilot"
 
     if not plugin_dir.exists():
         if ui:
@@ -541,7 +542,7 @@ def _precache_npx_mcp_servers(_ui: Any) -> bool:
     before returning, avoiding the race condition of launching the actual
     server and killing it mid-install.
     """
-    mcp_config_path = Path.home() / ".claude" / "pilot" / ".mcp.json"
+    mcp_config_path = get_claude_config_dir() / "pilot" / ".mcp.json"
     if not mcp_config_path.exists():
         return True
 

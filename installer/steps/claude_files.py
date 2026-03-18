@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 from pathlib import Path
 from typing import Any
@@ -45,6 +46,21 @@ SKIP_PATTERNS = (
 )
 
 SKIP_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".webp")
+
+
+def get_claude_config_dir() -> Path:
+    """Resolve the Claude config directory from CLAUDE_CONFIG_DIR env var.
+
+    Returns Path(CLAUDE_CONFIG_DIR) if set, otherwise ~/.claude.
+    Raises ValueError if CLAUDE_CONFIG_DIR is set to a relative path.
+    """
+    env_dir = os.environ.get("CLAUDE_CONFIG_DIR")
+    if env_dir:
+        p = Path(env_dir)
+        if not p.is_absolute():
+            raise ValueError(f"CLAUDE_CONFIG_DIR must be an absolute path, got: {env_dir}")
+        return p
+    return Path.home() / ".claude"
 
 
 def patch_claude_paths(content: str) -> str:
@@ -207,7 +223,7 @@ class ClaudeFilesStep(BaseStep):
         Uses manifests to track which files Pilot installed. Only removes
         Pilot-managed files — user-created files in commands/ and rules/ are preserved.
         """
-        home_claude_dir = Path.home() / ".claude"
+        home_claude_dir = get_claude_config_dir()
         home_pilot_plugin_dir = home_claude_dir / "pilot"
 
         self._cleanup_legacy_standards_skills(home_pilot_plugin_dir)
@@ -349,7 +365,7 @@ class ClaudeFilesStep(BaseStep):
 
     def _get_dest_path(self, category: str, file_path: str, ctx: InstallContext) -> Path:
         """Determine destination path based on category."""
-        home_claude_dir = Path.home() / ".claude"
+        home_claude_dir = get_claude_config_dir()
         home_pilot_plugin_dir = home_claude_dir / "pilot"
 
         if category == "commands":
@@ -368,7 +384,7 @@ class ClaudeFilesStep(BaseStep):
 
     def _post_install_processing(self, ctx: InstallContext, ui: Any) -> None:
         """Run post-installation processing tasks."""
-        home_pilot_plugin_dir = Path.home() / ".claude" / "pilot"
+        home_pilot_plugin_dir = get_claude_config_dir() / "pilot"
 
         self._make_scripts_executable(home_pilot_plugin_dir)
 
@@ -388,7 +404,7 @@ class ClaudeFilesStep(BaseStep):
         Records filenames (relative to their directory) so the next update
         can selectively remove only Pilot's files, preserving user files.
         """
-        home_claude_dir = Path.home() / ".claude"
+        home_claude_dir = get_claude_config_dir()
         installed = ctx.config.get("installed_files", [])
 
         commands_dir = home_claude_dir / "commands"
@@ -454,12 +470,12 @@ class ClaudeFilesStep(BaseStep):
         user's ~/.claude.json. Preserves all existing app state (projects,
         oauthAccount, caches, etc.) — only sets/updates keys defined in the template.
         """
-        template_path = Path.home() / ".claude" / "pilot" / "claude.json"
+        template_path = get_claude_config_dir() / "pilot" / "claude.json"
         if not template_path.exists():
             return
 
         claude_json_path = Path.home() / ".claude.json"
-        baseline_path = Path.home() / ".claude" / ".pilot-claude-baseline.json"
+        baseline_path = get_claude_config_dir() / ".pilot-claude-baseline.json"
 
         try:
             source = json.loads(template_path.read_text())
@@ -498,7 +514,7 @@ class ClaudeFilesStep(BaseStep):
         but are no longer part of the current installation. User-created rules
         are never touched.
         """
-        home_claude_dir = Path.home() / ".claude"
+        home_claude_dir = get_claude_config_dir()
         global_rules_dir = home_claude_dir / "rules"
         if not global_rules_dir.exists():
             return
