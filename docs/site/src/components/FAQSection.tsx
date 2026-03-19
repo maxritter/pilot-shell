@@ -74,7 +74,7 @@ const faqItems = [
   {
     question: "Can I add my own rules, commands, skills, and agents?",
     answer:
-      "Yes. Create your own in your project\u2019s .claude/ folder \u2014 rules, commands, skills, and agents are all plain markdown files. Your project-level assets load alongside Pilot Shell\u2019s built-in defaults and take precedence when they overlap. /setup-rules auto-discovers your codebase patterns and generates project-specific rules. /create-skill builds reusable skills from any topic interactively. View and manage all extensions on the Console Extensions page.",
+      "Yes. Create your own in your project\u2019s .claude/ folder \u2014 rules, commands, skills, and agents are all plain markdown files. Your project-level assets load alongside Pilot Shell\u2019s built-in defaults and take precedence when they overlap. /setup-rules auto-discovers your codebase patterns and generates project-specific rules. /create-skill builds reusable skills from any topic interactively. View and manage all extensions on the Console Extensions page. Team plan users can also share extensions via a connected git repository \u2014 push, pull, and compare versions with your team.",
   },
   {
     question: "Can I control Pilot Shell from my phone?",

@@ -50,7 +50,7 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 
 ### Installation
 
-**Works with any existing project.** Pilot Shell is installed on top of Claude Code and uses its build-in concepts like commands, rukes, hooks, skills, subagents, MCP, LSP and optimized settings to improve your experience:
+**Works with any existing project.** Pilot Shell is installed on top of Claude Code and uses its built-in concepts like commands, rules, hooks, skills, subagents, MCP, LSP and optimized settings to improve your experience:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
@@ -101,6 +101,67 @@ Pilot Shell works inside Dev Containers. Copy the [`.devcontainer`](https://gith
 ---
 
 ## How It Works
+
+### Pilot Shell Console
+
+A local web dashboard with different views and real-time notifications when Claude needs your input:
+
+<img src="docs/img/dashboard.png" alt="Pilot Shell Console — Dashboard" width="700">
+
+<details>
+<summary><b>All views</b></summary>
+
+| View              | What it shows                                                                                                                                |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dashboard**     | Workspace status, active sessions, spec progress, git info, recent activity                                                                  |
+| **Specification** | All spec plans with task progress, phase tracking, and iteration history                                                                     |
+| **Extensions**    | All extensions — local, plugin, and remote — with team sharing via git, diff view, push/pull, and color-coded categories                     |
+| **Changes**       | Git diff viewer with staged/unstaged files, branch info, and worktree context                                                                |
+| **Memories**      | Browsable observations — decisions, discoveries, bugfixes — with type filters and search                                                     |
+| **Sessions**      | Active and past sessions with observation counts and duration                                                                                |
+| **Usage**         | Daily token costs, model routing breakdown, and usage trends                                                                                 |
+| **Settings**      | Model selection per command/sub-agent, spec workflow toggles (worktree, questions, approval), reviewer toggles, context window auto-detected |
+| **Help**          | Documentation, guides, and quick-start resources                                                                                             |
+
+</details>
+
+### Status Line
+
+A three-line dashboard rendered below every Claude Code response. Replaces the default status line with real-time session metrics, spec progress, and version info — all color-coded.
+
+```
+Opus 4.6 [1M] | █████░▓ 60% | +156 -23 | main +2 ~3 | $1.45 | saved 12.5K (65%)
+Spec: my-feature feature [implement] ████░░░░ 3/6 [plan-rev spec-rev wt]
+Pilot 8.2.1 (Solo) · CC 2.1.79 (Max) · sessions 2 · memories 12
+```
+
+<details>
+<summary><b>All fields explained</b></summary>
+
+**Line 1 — Session Metrics** (separated by `|`):
+
+| Widget            | Description                                                                     |
+| ----------------- | ------------------------------------------------------------------------------- |
+| **Model**         | Active model in short form (`Opus 4.6 [1M]`)                                    |
+| **Context**       | Effective context usage with progress bar. Green < 80%, Yellow 80–95%, Red 95%+ |
+| **Lines changed** | `+added -removed` in session (hidden on Linux when usage data available)        |
+| **Git**           | Branch with staged (`+N`) / unstaged (`~N`) counts                              |
+| **Cost**          | Session cost in USD. Green < $1, Yellow $1–5, Red $5+                           |
+| **5h / 7d usage** | Rate limit usage with reset time (Linux only)                                   |
+| **RTK savings**   | Token savings from RTK proxy (shown when no usage data)                         |
+
+**Line 2 — Mode:**
+
+- **Quick Mode:** `Quick Mode · /spec for feature implementation and complex bugfixes`
+- **Spec Mode:** Plan name, type (`feature`/`bugfix`), phase (`plan`/`implement`/`verify`), progress bar, task count, iteration count, and config flags (`plan-rev`, `spec-rev`, `wt` — green = on, dim = off)
+
+**Line 3 — Version & Session Info:**
+
+`Pilot <version> (<tier>) · CC <version> (<subscription>) · sessions <N> · memories <N>`
+
+Pilot tier: Solo, Team, or Trial with time remaining. Claude subscription (Pro/Max/Team/Enterprise) detected via `claude auth status` and cached for 24 hours.
+
+</details>
 
 ### /spec — Spec-Driven Development
 
@@ -164,7 +225,7 @@ pilot
 <details>
 <summary><b>What /setup-rules Does</b></summary>
 
-12 phases that read your codebase and produce comprehensive AI context:
+11 phases that read your codebase and produce comprehensive AI context:
 
 0. **Reference** — load best practices for rule structure, path-scoping, and quality standards
 1. **Read existing rules** — inventory all `.claude/rules/` files, detect structure and path-scoping
@@ -235,68 +296,11 @@ Use `/setup-rules` to auto-generate rules from your codebase. Use `/create-skill
 
 **Global vs Project scope:** Extensions in `.claude/` are project-specific (commit them so teammates get them on `git clone`). Extensions in `~/.claude/` are personal and available across all your projects.
 
-Manage all extensions from the **Console Extensions page** — view, edit, rename, delete, and move extensions between project and global scope.
+**Team sharing (Team tier):** Connect a git repository to share extensions across your team. Push local extensions to the remote, pull remote ones to your machine, and compare versions with a built-in diff view. Supports subfolder paths for organized team repos.
 
-</details>
+**Plugin extensions:** Installed Claude Code plugins and their extensions (commands, skills, agents) are automatically discovered and shown in the Extensions page as read-only items.
 
-### Pilot Shell Console
-
-A local web dashboard with different views and real-time notifications when Claude needs your input:
-
-<img src="docs/img/dashboard.png" alt="Pilot Shell Console — Dashboard" width="700">
-
-<details>
-<summary><b>All views</b></summary>
-
-| View              | What it shows                                                                                                                                |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Dashboard**     | Workspace status, active sessions, spec progress, git info, recent activity                                                                  |
-| **Specification** | All spec plans with task progress, phase tracking, and iteration history                                                                     |
-| **Extensions**    | All Claude Code extensions — view, edit, rename, delete, and move skills, rules, commands, and agents with color-coded categories            |
-| **Changes**       | Git diff viewer with staged/unstaged files, branch info, and worktree context                                                                |
-| **Memories**      | Browsable observations — decisions, discoveries, bugfixes — with type filters and search                                                     |
-| **Sessions**      | Active and past sessions with observation counts and duration                                                                                |
-| **Usage**         | Daily token costs, model routing breakdown, and usage trends                                                                                 |
-| **Settings**      | Model selection per command/sub-agent, spec workflow toggles (worktree, questions, approval), reviewer toggles, context window auto-detected |
-| **Help**          | Documentation, guides, and quick-start resources                                                                                             |
-
-</details>
-
-### Status Line
-
-A three-line dashboard rendered below every Claude Code response. Replaces the default status line with real-time session metrics, spec progress, and version info — all color-coded.
-
-```
-Opus 4.6 [1M] | █████░▓ 60% | +156 -23 | main +2 ~3 | $1.45 | saved 12.5K (65%)
-Spec: my-feature feature [implement] ████░░░░ 3/6 [plan-rev spec-rev wt]
-Pilot 8.2.1 (Solo) · CC 2.1.79 (Max) · sessions 2 · memories 12
-```
-
-<details>
-<summary><b>All fields explained</b></summary>
-
-**Line 1 — Session Metrics** (separated by `|`):
-
-| Widget            | Description                                                                     |
-| ----------------- | ------------------------------------------------------------------------------- |
-| **Model**         | Active model in short form (`Opus 4.6 [1M]`)                                    |
-| **Context**       | Effective context usage with progress bar. Green < 80%, Yellow 80–95%, Red 95%+ |
-| **Lines changed** | `+added -removed` in session (hidden on Linux when usage data available)        |
-| **Git**           | Branch with staged (`+N`) / unstaged (`~N`) counts                              |
-| **Cost**          | Session cost in USD. Green < $1, Yellow $1–5, Red $5+                           |
-| **5h / 7d usage** | Rate limit usage with reset time (Linux only)                                   |
-| **RTK savings**   | Token savings from RTK proxy (shown when no usage data)                         |
-
-**Line 2 — Mode:**
-
-- **Quick Mode:** `Quick Mode · /spec for feature implementation and complex bugfixes`
-- **Spec Mode:** Plan name, type (`feature`/`bugfix`), phase (`plan`/`implement`/`verify`), progress bar, task count, iteration count, and config flags (`plan-rev`, `spec-rev`, `wt` — green = on, dim = off)
-
-**Line 3 — Version & Session Info:**
-
-`Pilot <version> (<tier>) · CC <version> (<subscription>) · sessions <N> · memories <N>`
-
-Pilot tier: Solo, Team, or Trial with time remaining. Claude subscription (Pro/Max/Team/Enterprise) detected via `claude auth status` and cached for 24 hours.
+Manage all extensions from the **Console Extensions page** — view, edit, rename, delete, move between scopes, compare diffs, and push/pull from a connected team remote.
 
 </details>
 
@@ -566,7 +570,7 @@ Pilot Shell is source-available under a commercial license. See the [LICENSE](LI
 | Tier     | Seats | Includes                                                                           |
 | :------- | :---- | :--------------------------------------------------------------------------------- |
 | **Solo** | 1     | All features, continuous updates, community support via [GitHub Issues][gh-issues] |
-| **Team** | Multi | Solo + team license management, seat management, priority support, team onboarding |
+| **Team** | Multi | Solo + extension sharing, seat management, priority support, team onboarding       |
 
 All plans work across multiple personal machines — one subscription, all your devices.
 

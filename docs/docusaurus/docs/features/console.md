@@ -20,7 +20,7 @@ $ open http://localhost:41777
 |------|-------------|
 | **Dashboard** | Workspace status, active sessions, spec progress, git info, recent activity. Your real-time command center. |
 | **Specifications** | All spec plans with task progress (checkboxes), phase tracking (PENDING/COMPLETE/VERIFIED), and iteration history. |
-| **Extensions** | Browse, edit, rename, delete, and move all extensions (skills, rules, commands, agents). Filter by scope and type with color-coded categories. Dual-scope duplicates are highlighted. |
+| **Extensions** | All extensions — local, plugin, and remote — with team sharing via git (push, pull, diff), color-coded categories, and scope filtering (All / Global / Project / Plugin / Remote). |
 | **Changes** | Git diff viewer with staged/unstaged files, branch info, and worktree context. |
 | **Memories** | Browsable observations — decisions, discoveries, bugfixes — with type filters, search, and timeline view. |
 | **Sessions** | Active and past sessions with observation counts, duration, and the ability to browse session context. |

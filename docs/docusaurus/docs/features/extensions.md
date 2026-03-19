@@ -1,21 +1,21 @@
 ---
 sidebar_position: 1
 title: Extensions
-description: Manage all Claude Code extensions — skills, rules, commands, and agents — from a unified interface
+description: Manage all Claude Code extensions — skills, rules, commands, and agents — from a unified interface with team sharing and plugin visibility
 ---
 
 # Extensions
 
-Extensions are the things that customize Claude Code behavior. Pilot Shell provides a unified view of all extensions across two scopes: **global** (your personal `~/.claude/` directory) and **project** (the `.claude/` directory in each project).
+Extensions are the things that customize Claude Code behavior. Pilot Shell provides a unified view of all extensions across multiple scopes: **global** (your personal `~/.claude/` directory), **project** (the `.claude/` directory in each project), **plugin** (installed Claude Code plugins), and **remote** (a connected team git repository).
 
 ## Extension Categories
 
-| Category | What it does | Location |
-|----------|--------------|----------|
-| **Skills** | Reusable workflows that load automatically when relevant | `.claude/skills/<name>/SKILL.md` |
-| **Rules** | Instructions Claude follows every session (or by file type) | `.claude/rules/<name>.md` |
-| **Commands** | Slash commands invoked on demand via `/<name>` | `.claude/commands/<name>.md` |
-| **Agents** | Sub-agent definitions for specialized tasks | `.claude/agents/<name>.md` |
+| Category     | What it does                                                | Location                         |
+| ------------ | ----------------------------------------------------------- | -------------------------------- |
+| **Skills**   | Reusable workflows that load automatically when relevant    | `.claude/skills/<name>/SKILL.md` |
+| **Rules**    | Instructions Claude follows every session (or by file type) | `.claude/rules/<name>.md`        |
+| **Commands** | Slash commands invoked on demand via `/<name>`              | `.claude/commands/<name>.md`     |
+| **Agents**   | Sub-agent definitions for specialized tasks                 | `.claude/agents/<name>.md`       |
 
 ## Scope: Global vs Project
 
@@ -23,17 +23,67 @@ Extensions are the things that customize Claude Code behavior. Pilot Shell provi
 
 **Project extensions** live in `.claude/` inside a specific project directory. They're visible only when that project is active and can be committed to the repository so teammates get them automatically.
 
+## Plugin Extensions
+
+Installed Claude Code plugins are automatically discovered and their extensions appear on the Extensions page. Plugin extensions are **read-only** — they come from the marketplace and cannot be edited, renamed, or deleted.
+
+- Plugins are tracked in `~/.claude/settings.json` under `enabledPlugins`
+- Plugin assets live at `~/.claude/plugins/marketplaces/<marketplace>/plugins/<name>/`
+- Each plugin extension shows its plugin name as a badge (e.g., "code-review", "feature-dev")
+- Filter by the **Plugin** scope button to see only plugin extensions
+
+Install plugins via the Claude Code CLI: `claude plugin install <name>`
+
+## Team Sharing (Team Tier)
+
+Share extensions with your team through a connected git repository. This feature is available on the Team plan.
+
+### How It Works
+
+Team sharing uses `~/.claude/` as a git repository with a scoped `.gitignore` that tracks **only** the four extension directories (skills, rules, commands, agents). Everything else in `~/.claude/` is ignored by git.
+
+### Connecting a Remote
+
+1. On the Console Extensions page, find the **Team Remote** card
+2. Enter a git remote URL (e.g., `https://github.com/org/team-extensions.git`)
+3. Optionally specify a **subfolder** if your extensions live in a subdirectory (e.g., `plugins/myteam`)
+4. Click **Connect** — Pilot initializes the git repo and verifies connectivity
+
+Authentication uses your existing system git credentials (SSH keys or credential helpers).
+
+### Browsing Remote Extensions
+
+After connecting, a **Remote** scope filter button appears in the filter bar. Select it to see all extensions available in the team repository. Each remote extension shows its file path in the repository.
+
+### Push and Pull
+
+- **Push to Remote** — From any local extension's detail modal, click the **Push** button to upload it to the team repository
+- **Download from Remote** — Click any remote extension and choose **Download to Global** or **Download to Project**
+- **Conflict detection** — If a local file differs from the remote version, Pilot shows a diff and lets you choose whether to overwrite
+
+### Comparing Versions
+
+When an extension exists both locally and in the remote, the detail modal shows a **Remote** compare button. This opens a side-by-side diff view (same as the project vs global diff) with options to sync in either direction:
+
+- **Use Remote → Local** — overwrite your local version with the remote
+- **Use Local → Remote** — push your local version to the remote
+
+### Subfolder Support
+
+Some teams organize their extensions repository with subfolder paths (e.g., `plugins/myteam/rules/`, `plugins/myteam/skills/`). When you specify a subfolder during connection, all browse/push/pull operations automatically translate between the subfolder-prefixed remote paths and your local `~/.claude/` paths.
+
 ## Console Extensions Page
 
 The [Pilot Console](/docs/features/console) provides a full management interface at `http://localhost:41777/#/extensions`.
 
 ### Viewing Extensions
 
-- All extensions from both scopes appear in a unified two-column grid
+- All extensions from all scopes appear in a unified two-column grid
 - Each category has a distinct color: Skills (violet), Rules (amber), Commands (green), Agents (blue)
-- Filter by **scope** (Global / Project / All) and **category** (Skills, Rules, Commands, Agents)
+- Filter by **scope** (All / Global / Project / Plugin / Remote) and **category** (Skills, Rules, Commands, Agents)
 - Search by name in the top-right search bar
 - Extensions that exist in both scopes show an "also in global/project" indicator so you can spot duplicates at a glance
+- Plugin extensions display the plugin name as a badge
 - Click any extension to see its full content
 
 ### Editing Extensions
@@ -45,6 +95,11 @@ Extensions support:
 - **Rename** — rename the file/directory
 - **Delete** — with confirmation prompt
 - **Move** — transfer between project and global scope (physically moves the file, not a copy)
+- **Compare** — diff between project and global versions, or between local and remote versions
+- **Push** — upload a local extension to the connected team remote
+- **Download** — pull a remote extension to local global or project scope
+
+Plugin extensions are read-only — edit, rename, delete, and move are not available.
 
 ### Moving Between Scopes
 
@@ -58,13 +113,6 @@ Create extensions manually or via Claude Code commands:
 - **Skills:** `/create-skill` — builds a reusable skill interactively from any topic
 - **Commands:** Create `.claude/commands/<name>.md` manually
 - **Agents:** Create `.claude/agents/<name>.md` manually
-
-## Distributing Extensions
-
-Share extensions across teams and organizations:
-
-- **[Claude Code Plugin Registry](https://github.com/anthropics/claude-code/blob/main/docs/plugin-marketplaces.md)** — publish and discover extensions via the official registry
-- **[Skillshare](https://github.com/runkids/skillshare)** — sync extensions org-wide via git remotes, with collect/sync workflow for keeping teams in sync
 
 ## File Locations Reference
 
@@ -87,4 +135,15 @@ Share extensions across teams and organizations:
 │   ├── rules/           ← project rules (committed to repo)
 │   ├── commands/        ← project commands
 │   └── agents/          ← project agents
+```
+
+### Plugin Extensions (read-only)
+
+```
+~/.claude/plugins/marketplaces/<marketplace>/plugins/<name>/
+├── .claude-plugin/plugin.json   ← plugin manifest
+├── skills/                      ← plugin skills
+├── rules/                       ← plugin rules
+├── commands/                    ← plugin commands
+└── agents/                      ← plugin agents
 ```

@@ -123,8 +123,8 @@ const rulesCategories = [
     category: "Extensions",
     rules: [
       "Skills, rules, commands, agents, MCP servers, hooks, and settings",
-      "Project scope (.claude/) or global scope (~/.claude/)",
-      "Manage everything from the Console — view, edit, rename, move",
+      "Project, global, plugin, and remote scopes with diff view",
+      "Team sharing via git — push, pull, and compare extensions",
     ],
   },
   {
@@ -216,7 +216,7 @@ const DeepDiveSection = () => {
                 Hooks Pipeline
               </h3>
               <p className="text-sm text-muted-foreground">
-                15 hooks across 6 lifecycle events — fire automatically at every
+                15 hooks across 7 lifecycle events — fire automatically at every
                 stage
               </p>
             </div>

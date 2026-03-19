@@ -93,6 +93,11 @@ class TestBlockedAgentTypes:
         assert "Probe CLI" in output
         assert "codebase-memory-mcp" in output
 
+    def test_blocks_plan_agent(self):
+        code, output = _run_with_input("Agent", {"subagent_type": "Plan", "prompt": "plan impl"})
+        assert code == 2
+        assert "/spec" in output
+
 
 class TestAgentWarning:
     """General Agent calls are warned (not blocked) — exit code 0 with context."""
@@ -104,11 +109,6 @@ class TestAgentWarning:
 
     def test_warns_agent_without_subagent_type(self):
         code, output = _run_with_input("Agent", {"prompt": "do something"})
-        assert code == 0
-        assert "additionalContext" in output
-
-    def test_warns_agent_plan(self):
-        code, output = _run_with_input("Agent", {"subagent_type": "Plan", "prompt": "plan impl"})
         assert code == 0
         assert "additionalContext" in output
 
@@ -263,3 +263,8 @@ class TestSubprocessIntegration:
         assert exit_code == 2
         assert "Probe CLI" in stdout
         assert "codebase-memory-mcp" in stdout
+
+    def test_plan_agent_blocked(self):
+        exit_code, stdout, _ = _run_subprocess("Agent", {"subagent_type": "Plan"})
+        assert exit_code == 2
+        assert "/spec" in stdout

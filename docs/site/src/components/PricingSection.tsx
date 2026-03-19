@@ -201,7 +201,7 @@ const PricingSection = () => {
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
-                  Team license management — assign and manage Pilot Shell for your whole team
+                  Extension sharing — share skills, rules, commands, and agents with your team
                 </span>
               </li>
               <li className="flex items-start gap-3">

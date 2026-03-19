@@ -89,7 +89,7 @@ Use EXACT parameter names — abbreviated names cause `InputValidationError`:
 
 ### Agent Tool — Prefer Direct Tools
 
-**Prefer doing work directly** with Probe CLI, codebase-memory-mcp, Grep/Glob, Bash, and other built-in tools instead of launching sub-agents. The Explore agent is blocked by hook — use Probe + codebase-memory-mcp instead.
+**Prefer doing work directly** with Probe CLI, codebase-memory-mcp, Grep/Glob, Bash, and other built-in tools instead of launching sub-agents. The Explore and Plan agents are blocked by hook — use Probe + codebase-memory-mcp instead of Explore, and `/spec` instead of Plan.
 
 **`/spec` reviewer agents** (`pilot:plan-reviewer`, `pilot:spec-reviewer`) pass through silently — these are expected parts of the workflow.
 

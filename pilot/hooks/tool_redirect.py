@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Hook to block built-in WebSearch/WebFetch and warn on general Agent sub-agent calls.
+"""Hook to block built-in WebSearch/WebFetch/Plan mode and warn on general Agent sub-agent calls.
 
 Agent calls for /spec workflow reviewers (pilot:plan-reviewer, pilot:spec-reviewer)
-pass through silently. Other Agent calls get a warning but are NOT blocked.
+pass through silently. Explore and Plan agents are hard-blocked.
+Other Agent calls get a warning but are NOT blocked.
 """
 
 from __future__ import annotations
@@ -43,22 +44,31 @@ AGENT_WARNING = (
     "Exception: /spec reviewer agents (pilot:plan-reviewer, pilot:spec-reviewer) are fine."
 )
 
-EXPLORE_BLOCK_REASON = (
-    "The Explore agent is blocked. Use Probe CLI for intent-based search and "
-    "codebase-memory-mcp (via ToolSearch) for structural analysis instead.\n"
-    "-> Probe: probe search \"query\" ./ --max-results 5 --max-tokens 2000\n"
-    "-> Graph: ToolSearch(query=\"+codebase-memory-mcp search\") then search_graph/trace_call_path/query_graph"
-)
+BLOCKED_AGENT_REASONS: dict[str, tuple[str, str]] = {
+    "Explore": (
+        "Explore agent blocked: use Probe CLI + codebase-memory-mcp",
+        "The Explore agent is blocked. Use Probe CLI for intent-based search and "
+        "codebase-memory-mcp (via ToolSearch) for structural analysis instead.\n"
+        "-> Probe: probe search \"query\" ./ --max-results 5 --max-tokens 2000\n"
+        "-> Graph: ToolSearch(query=\"+codebase-memory-mcp search\") then search_graph/trace_call_path/query_graph",
+    ),
+    "Plan": (
+        "Plan agent blocked: use /spec for structured planning",
+        "The Plan agent is blocked. Use /spec for structured planning with TDD, "
+        "verification, and code review instead.\n"
+        "-> Type /spec <task description> to start a structured planning workflow",
+    ),
+}
 
 # Agent sub-agent types that pass through without any warning
 SILENT_AGENT_TYPES: set[str] = {"pilot:plan-reviewer", "pilot:spec-reviewer"}
 
 # Agent sub-agent types that are hard-blocked
-BLOCKED_AGENT_TYPES: set[str] = {"Explore"}
+BLOCKED_AGENT_TYPES: set[str] = set(BLOCKED_AGENT_REASONS)
 
 
 def run_tool_redirect() -> int:
-    """Block WebSearch/WebFetch/Explore agent. Warn (don't block) on general Agent calls."""
+    """Block WebSearch/WebFetch/Explore/Plan agents. Warn (don't block) on general Agent calls."""
     try:
         hook_data = json.load(sys.stdin)
     except (json.JSONDecodeError, OSError):
@@ -72,8 +82,9 @@ def run_tool_redirect() -> int:
         if subagent_type in SILENT_AGENT_TYPES:
             return 0
         if subagent_type in BLOCKED_AGENT_TYPES:
-            sys.stderr.write(f"\033[0;31m[Pilot] Explore agent blocked: use Probe CLI + codebase-memory-mcp\033[0m\n")
-            print(pre_tool_use_deny(EXPLORE_BLOCK_REASON))
+            stderr_msg, deny_reason = BLOCKED_AGENT_REASONS[subagent_type]
+            sys.stderr.write(f"\033[0;31m[Pilot] {stderr_msg}\033[0m\n")
+            print(pre_tool_use_deny(deny_reason))
             return 2
         sys.stderr.write(f"\033[0;33m[Pilot] Agent sub-agent warning: prefer direct tools\033[0m\n")
         print(pre_tool_use_context(AGENT_WARNING))

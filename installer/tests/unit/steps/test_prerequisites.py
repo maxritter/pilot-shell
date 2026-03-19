@@ -888,7 +888,7 @@ class TestBrewUpgrade:
 
         mock_install.assert_not_called()
         upgraded = {call.args[0] for call in mock_upgrade.call_args_list}
-        assert "rtk" in upgraded
+        assert upgraded == {"rtk"}
 
     @patch("installer.steps.prerequisites._get_outdated_homebrew_packages")
     @patch("installer.steps.prerequisites._is_nvm_installed")

@@ -769,8 +769,6 @@ class TestGetSubscriptionType:
 
         mock_result = MagicMock(returncode=1, stdout="", stderr="not logged in")
         creds = {"claudeAiOauth": {"subscriptionType": "team"}}
-        creds_path = tmp_path / ".credentials.json"
-        creds_path.write_text(json.dumps(creds))
 
         with (
             patch("subprocess.run", return_value=mock_result),

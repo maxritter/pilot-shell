@@ -18,8 +18,8 @@ const consoleSlides = [
   {
     label: "Extensions",
     src: "/console/extensions.png",
-    alt: "Extensions view — color-coded skills, rules, commands, and agents",
-    desc: "Browse, edit, rename, and delete extensions. Color-coded categories with scope filtering.",
+    alt: "Extensions view — local, plugin, and remote extensions with team sharing",
+    desc: "Browse, edit, and share extensions. Team sharing via git with push, pull, and diff. Plugin extensions auto-discovered.",
   },
   {
     label: "Changes",
