@@ -156,7 +156,9 @@ When adding tasks to an existing plan: load it, parse structure, verify compatib
 
 **Areas (in order):** Architecture → Similar Features → Dependencies → Tests
 
-For each: document hypotheses, note full file paths, track unanswered questions. After exploration: read identified files to verify hypotheses, build complete mental model, identify integration points, note reusable patterns.
+**⛔ Dependency analysis (MANDATORY for 3+ file changes):** For every function you plan to modify, run `trace_call_path(function_name, direction="both", depth=2)` to map callers and callees. Also run `detect_changes(scope="all")` if there are existing uncommitted changes. Probe search is NOT sufficient — it finds text mentions, not actual call relationships.
+
+For each area: document hypotheses, note full file paths, track unanswered questions. After exploration: read identified files to verify hypotheses, build complete mental model, identify integration points, note reusable patterns.
 
 ### Step 1.3b: Present Findings & Scope Selection — CONDITIONAL
 

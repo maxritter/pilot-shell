@@ -120,11 +120,11 @@ const rulesCategories = [
   },
   {
     icon: GitBranch,
-    category: "Customize & Share",
+    category: "Extensions",
     rules: [
-      "Create rules, commands, skills & agents — all shareable",
-      "Share all 4 asset types across machines, teams, and orgs",
-      "Works with 50+ AI tools via Skillshare — one source of truth",
+      "Skills, rules, commands, agents, MCP servers, hooks, and settings",
+      "Project scope (.claude/) or global scope (~/.claude/)",
+      "Manage everything from the Console — view, edit, rename, move",
     ],
   },
   {

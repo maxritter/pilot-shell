@@ -31,30 +31,12 @@ SLUG=$(basename "$(git remote get-url origin 2>/dev/null | sed 's/\.git$//')" 2>
 
 **Skill scope:** Choose project or global based on reusability.
 
-| Scope | When | Create with | After creating |
-|-------|------|-------------|----------------|
-| **Project** (`.skillshare/skills/` exists) | Skill is specific to this repo | `skillshare new {slug}-{name} -p` | `skillshare sync -p` |
-| **Global** (`skillshare` installed) | Skill applies across projects | `skillshare new {slug}-{name} -g` | `skillshare sync -g` |
-| **Fallback** (no skillshare) | Direct creation | Write to `.claude/skills/{slug}-{name}/SKILL.md` | Nothing needed |
-
-**Priority:** Project (`-p`) if `.skillshare/skills/` exists → Global (`-g`) if `skillshare` is installed → Fallback.
+| Scope | When | Create in | After creating |
+|-------|------|-----------|----------------|
+| **Project** | Skill is specific to this repo | `.claude/skills/{slug}-{name}/SKILL.md` | Nothing needed |
+| **Global** | Skill applies across projects | `~/.claude/skills/{slug}-{name}/SKILL.md` | Nothing needed |
 
 **Naming rules:** Lowercase with hyphens only. The slug provides context; the name should be 1-3 words max that are descriptive (not generic). Examples: `pilot-shell-lsp-cleaner`, `my-api-auth-flow`, `acme-deploy`. Never use generic names like "helper", "utils", "tools", "handler", "workflow".
-
-**Organizing into folders (requires skillshare):** Use `--into` to group skills into subdirectories. Skillshare auto-flattens folder paths with `__` separators at the target (e.g., `frontend/react/my-skill/` → `frontend__react__my-skill` in `.claude/skills/`). Recommended structure for global skills:
-
-```
-~/.config/skillshare/skills/
-├── frontend/              # Personal organized skills
-│   └── react/
-├── utils/                 # Personal utilities
-│   └── code-review/
-├── _team-skills/          # Tracked repo (auto-updated)
-│   ├── deploy/
-│   └── security/
-└── _org-standards/        # Another tracked repo
-    └── compliance/
-```
 
 ### Use Case Categories
 
@@ -293,16 +275,13 @@ Ask yourself:
 ## Phase 2: Check Existing
 
 ```bash
-# Project skills (source + target)
-ls .skillshare/skills/ 2>/dev/null
+# Project skills
 ls .claude/skills/ 2>/dev/null
-rg -i "keyword" .skillshare/skills/ .claude/skills/ 2>/dev/null
-# Global skills (source + Pilot defaults)
-ls ~/.config/skillshare/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+# Global skills (user + Pilot defaults)
+ls ~/.claude/skills/ 2>/dev/null
 ls ~/.claude/pilot/skills/ 2>/dev/null
-rg -i "keyword" ~/.config/skillshare/skills/ ~/.claude/pilot/skills/ 2>/dev/null
-# Or use skillshare list for a merged view
-skillshare list -p 2>/dev/null; skillshare list -g 2>/dev/null
+rg -i "keyword" ~/.claude/skills/ ~/.claude/pilot/skills/ 2>/dev/null
 ```
 
 | Found | Action |
@@ -315,47 +294,26 @@ skillshare list -p 2>/dev/null; skillshare list -g 2>/dev/null
 
 ## Phase 3: Create Skill
 
-**Detect environment first:**
+**Create the skill directory and SKILL.md:**
 
 ```bash
-HAS_SKILLSHARE=$(command -v skillshare >/dev/null 2>&1 && echo true || echo false)
-HAS_PROJECT_MODE=$([ -d ".skillshare/skills" ] && echo true || echo false)
+# Project scope — skill lives in this repo's .claude/skills/
+mkdir -p .claude/skills/{slug}-{name}
+# Write SKILL.md (see template in Phase 0)
+
+# Global scope — skill applies across all projects
+mkdir -p ~/.claude/skills/{slug}-{name}
+# Write SKILL.md
 ```
 
-**Create the skill:**
+Skills in `.claude/skills/` (project) or `~/.claude/skills/` (global) are automatically available to Claude — no sync step needed.
 
-```bash
-if [ "$HAS_PROJECT_MODE" = true ]; then
-  # Project scope — skill lives in repo, shared via git
-  skillshare new {slug}-{name} -p
-  # Or into a subfolder: skillshare new {slug}-{name} -p --into {category}
-elif [ "$HAS_SKILLSHARE" = true ]; then
-  # Global scope — skill applies across all projects
-  skillshare new {slug}-{name} -g
-else
-  # No skillshare — create directly in Claude's skills directory
-  mkdir -p .claude/skills/{slug}-{name}
-  # Write SKILL.md directly
-fi
-```
-
-Edit the generated (or manually created) `SKILL.md` with the skill content using the template from Phase 0.
-
-**After creating (only if skillshare is available):** Sync to make the skill available to Claude.
-
-```bash
-if [ "$HAS_PROJECT_MODE" = true ]; then
-  skillshare sync -p
-elif [ "$HAS_SKILLSHARE" = true ]; then
-  skillshare sync -g
-fi
-# No sync needed for fallback — .claude/skills/ is already the target
-```
+Edit the created `SKILL.md` with the skill content using the template from Phase 0.
 
 **Portability checklist** — skills are shared with users who may NOT have Pilot Shell:
 
 - **Only use built-in Claude Code tools** in skill instructions: `Read`, `Write`, `Edit`, `Bash`, `Grep`, `Glob`, `Agent`, `WebFetch`, `WebSearch`, `Notebook`, `LSP`, `TodoRead`/`TodoWrite`
-- **Never reference Pilot-specific tools:** `probe search/extract/query`, `playwright-cli`, `skillshare`, `pilot` CLI, Pilot MCP servers (`mem-search`, `context7`, `grep-mcp`, `web-fetch`, `web-search`)
+- **Never reference Pilot-specific tools:** `probe search/extract/query`, `playwright-cli`, `pilot` CLI, Pilot MCP servers (`mem-search`, `context7`, `grep-mcp`, `web-fetch`, `web-search`)
 - **Substitute with built-in equivalents:** `probe search` → `Grep`/`Glob`, `playwright-cli` → `Bash` with `npx playwright`, web fetch → `WebFetch`
 - If a skill genuinely requires a non-standard tool, document it as a prerequisite in the skill body (not silently assume it exists)
 

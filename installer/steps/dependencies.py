@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
 import subprocess
 import time
 from pathlib import Path
@@ -138,82 +137,6 @@ def install_probe() -> bool:
     return _run_bash_with_retry(npm_global_cmd("npm install -g @probelabs/probe"))
 
 
-def install_skillshare() -> bool:
-    """Install Skillshare CLI binary and configure extras.
-
-    Skillshare is normally installed via Homebrew in the prerequisites step.
-    This function only runs the curl fallback if brew wasn't available (e.g.
-    dev containers). It then configures extras (non-destructive).
-    """
-    if not command_exists("skillshare"):
-        if not _run_bash_with_retry(
-            "curl -fsSL https://raw.githubusercontent.com/runkids/skillshare/main/install.sh | sh",
-            timeout=120,
-        ):
-            return False
-
-    _configure_skillshare_extras()
-
-    return True
-
-
-def _configure_skillshare_extras() -> None:
-    """Configure extras (rules, commands, agents) in skillshare global config.
-
-    Extras allow syncing non-skill resources to Claude's directories via
-    `skillshare sync --all` (Skillshare 0.17+). Uses merge mode so
-    user-created and Pilot-managed files coexist.
-
-    Sequencing (MUST be in this order):
-    1. Migrate old flat dirs -> new nested dirs (runs even when extras: in config)
-    2. Create new nested dirs if missing
-    3. Append extras: YAML block only if not already present
-    """
-    config_path = Path.home() / ".config" / "skillshare" / "config.yaml"
-    if not config_path.exists():
-        return
-
-    base = Path.home() / ".config" / "skillshare"
-    extras_base = base / "extras"
-
-    for name in ("rules", "commands", "agents"):
-        old_dir = base / name
-        new_dir = extras_base / name
-        if old_dir.is_dir() and not new_dir.exists():
-            try:
-                new_dir.parent.mkdir(parents=True, exist_ok=True)
-                shutil.move(str(old_dir), str(new_dir))
-            except OSError:
-                pass
-
-    for name in ("rules", "commands", "agents"):
-        (extras_base / name).mkdir(parents=True, exist_ok=True)
-
-    try:
-        content = config_path.read_text()
-    except OSError:
-        return
-
-    if "extras:" in content:
-        return
-
-    extras_block = (
-        "\nextras:\n"
-        "    - name: rules\n"
-        "      targets:\n"
-        "        - path: ~/.claude/rules\n"
-        "    - name: commands\n"
-        "      targets:\n"
-        "        - path: ~/.claude/commands\n"
-        "    - name: agents\n"
-        "      targets:\n"
-        "        - path: ~/.claude/agents\n"
-    )
-
-    try:
-        config_path.write_text(content.rstrip() + "\n" + extras_block)
-    except OSError:
-        return
 
 
 def _is_brew_managed(package: str) -> bool:
@@ -711,9 +634,6 @@ class DependenciesStep(BaseStep):
 
         if _install_with_spinner(ui, "codebase-memory-mcp (code intelligence)", install_codebase_memory_mcp):
             installed.append("codebase_memory_mcp")
-
-        if _install_with_spinner(ui, "Skillshare (skill sharing)", install_skillshare):
-            installed.append("skillshare")
 
         if _install_with_spinner(ui, "MCP server packages", _precache_npx_mcp_servers, ui):
             installed.append("mcp_npx_cache")

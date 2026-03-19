@@ -26,12 +26,13 @@ Pilot rescales the raw context usage to an **effective 0–100% range** so the s
 
 ## What Gets Preserved
 
+The PreCompact hook captures:
+
 - Active plan file path and current status (PENDING/COMPLETE/VERIFIED)
-- Task list with completion state and in-progress task
-- Key decisions made during the session
-- Recently modified files and their context
-- Error messages and debugging progress
-- Memory observations from the Pilot Shell Console
+- Task count and directory reference
+- Custom instructions from the session
+
+Memory observations (decisions, discoveries, bugfixes) persist independently in SQLite — they survive compaction regardless of hooks.
 
 :::tip Never rush due to context warnings
 Context limits are not an emergency — auto-compaction preserves everything and resumes seamlessly. Finish the current task with full quality. The only thing that matters is the output, not the context percentage.

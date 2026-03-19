@@ -175,12 +175,15 @@ mcp__plugin_pilot_codebase-memory-mcp__detect_changes(scope="all")
 mcp__plugin_pilot_codebase-memory-mcp__get_code_snippet(qualified_name="MyClass", auto_resolve=true, include_neighbors=true)
 ```
 
-**When to use over Probe:**
-- Call tracing / impact analysis (Probe can't do this)
-- Dead code detection (`max_degree=0, exclude_entry_points=true`)
-- Structural queries via Cypher (class methods, interface implementations)
-- Change blast radius analysis
-- Code snippets with caller/callee context
+**Primary use cases (Probe can't do these):**
+- **`trace_call_path`** — complete caller/callee graph with risk classification. The highest-value tool. Use before modifying any function during `/spec`.
+- **`detect_changes`** — maps git diff to affected symbols + blast radius. Use during planning.
+- Dead code detection (`search_graph` with `max_degree=0, exclude_entry_points=true`) — good starting point, but expect false positives from dynamic dispatch and CLI handlers.
+
+**Lower-value features (use selectively):**
+- `get_architecture` — hotspots/clusters polluted by minified JS bundles in mixed codebases. Useful if your project is pure Python/Go/TS source.
+- `query_graph` (Cypher) — powerful for cross-service HTTP edges and interface implementations.
+- `FILE_CHANGES_WITH` coupling — mostly shows obvious src↔test pairs. More useful in large, interconnected codebases.
 
 **When Probe is better:**
 - Intent-based search ("how does authentication work?")

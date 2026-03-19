@@ -8,7 +8,7 @@ description: Production-tested best practices loaded into every session
 
 Production-tested best practices loaded into every session.
 
-Rules are loaded automatically at session start. They're not suggestions — they're enforced standards. Coding standards load conditionally based on the file type being edited, keeping context lean. Your project-level rules in `.claude/rules/` are loaded alongside Pilot's built-ins and take precedence when they overlap.
+Rules load automatically at session start — they're enforced standards, not suggestions. Coding standards load conditionally by file type to keep context lean. Your project-level rules in `.claude/rules/` take precedence over Pilot's built-ins.
 
 ## Built-in Rule Categories
 
@@ -18,21 +18,16 @@ Rules are loaded automatically at session start. They're not suggestions — the
 - `testing.md` — TDD workflow, test strategy, coverage requirements (≥80%)
 - `verification.md` — Execution verification, completion requirements
 
-### Development Practices (2 rules)
+### Development Practices (3 rules)
 
 - `development-practices.md` — Project policies, systematic debugging, git rules
 - `context-management.md` — Auto-compaction and context preservation
+- `code-review-reception.md` — How to receive and act on code review feedback
 
-### Tools (4 rules)
+### Tools (2 rules)
 
-- `research-tools.md` — Search priority and tool selection guide
 - `cli-tools.md` — Pilot CLI, Probe code search, RTK token optimization
-- `mcp-servers.md` — MCP server reference including codebase-memory-mcp (code knowledge graph)
 - `playwright-cli.md` — Browser automation for E2E UI testing
-
-### Collaboration (1 rule)
-
-- `skill-sharing.md` — Skillshare CLI and three-tier sharing model
 
 ## Coding Standards — Activated by File Type
 
@@ -45,7 +40,7 @@ Rules are loaded automatically at session start. They're not suggestions — the
 | Backend | `**/models/**, **/routes/**, **/api/**` | API design, data models, query optimization, migrations |
 
 :::tip Custom rules
-Create `.claude/rules/my-rule.md` in your project. Add `paths: ["*.py"]` frontmatter to activate only for specific file types. Run `/setup-rules` to auto-discover patterns and generate project-specific rules for you.
+Create `.claude/rules/my-rule.md` in your project. Add `paths: ["*.py"]` frontmatter to activate only for specific file types. Run `/setup-rules` to auto-discover patterns and generate project-specific rules.
 :::
 
 :::info Monorepo support

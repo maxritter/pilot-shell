@@ -1,12 +1,12 @@
 ---
-sidebar_position: 2
-title: /spec — Spec-Driven Development
-description: Plan, implement, and verify complex features with full automation
+sidebar_position: 3
+title: /spec
+description: Plan, implement, and verify complex features with full automation using Spec-Driven Development
 ---
 
-# /spec — Spec-Driven Development
+# /spec
 
-Plan, implement, and verify complex features with full automation.
+Plan, implement, and verify complex features with full automation using Spec-Driven Development.
 
 **Replaces Claude Code's built-in plan mode (Shift+Tab).** Best for complex features, refactoring tasks, or any work where you want to review a plan before implementation begins. The structured workflow prevents scope creep and ensures every task is tested and verified before being marked complete.
 
@@ -74,20 +74,20 @@ All interaction points in `/spec` are configurable via **Console Settings → Sp
 
 ### Spec Workflow Toggles
 
-| Toggle | Default | Effect when disabled |
-|--------|---------|---------------------|
-| **Worktree Support** | On | Worktree is never used — implementation always runs on the current branch |
-| **Ask Questions** | On | Planning runs fully autonomous — no clarifying questions |
-| **Plan Approval** | On | Implementation starts immediately after planning — no approval gate |
+| Toggle               | Default | Effect when disabled                                                      |
+| -------------------- | ------- | ------------------------------------------------------------------------- |
+| **Worktree Support** | On      | Worktree is never used — implementation always runs on the current branch |
+| **Ask Questions**    | On      | Planning runs fully autonomous — no clarifying questions                  |
+| **Plan Approval**    | On      | Implementation starts immediately after planning — no approval gate       |
 
 When all three are disabled, `/spec` runs end-to-end without any user interaction. Start a task, come back to verified code.
 
 ### Reviewer Toggles
 
-| Toggle | Default | What it does |
-|--------|---------|--------------|
-| **Plan Review** | On | Validates the plan before implementation — checks alignment and flags risky assumptions |
-| **Spec Review** | On | Reviews code after implementation — compliance, security, test coverage, and goal achievement |
+| Toggle          | Default | What it does                                                                                  |
+| --------------- | ------- | --------------------------------------------------------------------------------------------- |
+| **Plan Review** | On      | Validates the plan before implementation — checks alignment and flags risky assumptions       |
+| **Spec Review** | On      | Reviews code after implementation — compliance, quality, and goal achievement |
 
 Both reviewers run in a separate context window and don't consume the main session's context budget.
 

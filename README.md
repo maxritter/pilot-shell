@@ -34,11 +34,11 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 
 ## Why I Built This
 
-Claude Code writes code fast. But without structure, it skips tests, loses context, and produces inconsistent results — especially on complex, established codebases where there are real conventions to follow and real regressions to catch. I tried other frameworks. Most of them add complexity — dozens of agents, elaborate scaffolding, thousands of lines of instruction files — but the output doesn't get better. You just burn more tokens, wait longer, and deal with more things breaking.
+**Claude Code writes code fast**. But without structure, it skips tests, loses context, and produces inconsistent results — especially on complex, established codebases where there are real conventions to follow and real regressions to catch. I tried other frameworks. Most of them add complexity — dozens of agents, elaborate scaffolding, thousands of lines of instruction files — but the output doesn't get a lot better. You just burn more tokens, wait longer and have to deal with a more complex setup.
 
-**So I built Pilot Shell**. Instead of adding process on top, it bakes quality into every interaction. Linting, formatting, and type checking run as enforced hooks on every edit. TDD is mandatory, not suggested. Context is preserved across sessions. Every rule exists because I hit a real problem: a bug that slipped through, a regression that shouldn't have happened, a session where Claude cut corners and nobody caught it.
+**So I built Pilot Shell**. Instead of adding process on top, it bakes quality into every interaction. Linting, formatting, and type checking run as enforced hooks on every edit. TDD is mandatory, not suggested. Context is preserved across sessions. Every rule exists because I hit a real problem: a bug that slipped through, a regression that shouldn't have happened, a session where Claude cut corners.
 
-This isn't a vibe coding tool, it's true agentic engineering, but without the added complexity. You install it once, run `pilot` in any project, then `/setup-rules` to generate your project rules. Automate your common workflows by invoking the `/create-skill` command. Start a `/spec` task and let it run — when it's done, the work is tested, verified and ready to ship. And with [Remote Control](https://youtu.be/Ko7_tC1fMMM?si=kWDzYiQvxlkZTrRK), you can monitor and steer sessions from your phone, tablet, or any browser.
+**This isn't a vibe coding tool**. It's true agentic engineering with many months of effort put into it, but without the added complexity. You install it once, run `pilot` in any project, then `/setup-rules` to generate your project rules. Automate your common workflows by invoking the `/create-skill` command. Start a `/spec` task and let it run — when it's done, the work is tested, verified and ready to ship.
 
 ---
 
@@ -50,7 +50,7 @@ This isn't a vibe coding tool, it's true agentic engineering, but without the ad
 
 ### Installation
 
-**Works with any existing project.** Pilot Shell doesn't scaffold or restructure your code — it installs globally and adapts to your conventions.
+**Works with any existing project.** Pilot Shell is installed on top of Claude Code and uses its build-in concepts like commands, rukes, hooks, skills, subagents, MCP, LSP and optimized settings to improve your experience:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
@@ -63,13 +63,13 @@ Installs globally on macOS, Linux, and Windows (WSL2). All tools and rules go to
 
 7-step installer with progress tracking, rollback on failure, and idempotent re-runs:
 
-1. **Prerequisites** — Checks Homebrew, Node.js, Python 3.12+, uv, git
-2. **Dependencies** — Installs Probe, RTK, codebase-memory-mcp, playwright-cli, language servers, property-based testing tools
-3. **Shell integration** — Auto-configures bash, fish, and zsh with `pilot` alias
-4. **Config & Claude files** — Sets up `.claude/` plugin, rules, commands, hooks, MCP servers
-5. **VS Code extensions** — Installs recommended extensions for your stack
-6. **Automated updater** — Checks for updates on launch with release notes and one-key upgrade
-7. **Cross-platform** — macOS, Linux, Windows (WSL2)
+1. **Prerequisites** — Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq
+2. **Claude files** — Sets up `~/.claude/` plugin — rules, commands, hooks, MCP servers
+3. **Config files** — Creates `.nvmrc` and project config
+4. **Dependencies** — Installs Probe, RTK, codebase-memory-mcp, playwright-cli, language servers
+5. **Shell integration** — Auto-configures bash, fish, and zsh with `pilot` alias
+6. **VS Code extensions** — Installs recommended extensions for your stack
+7. **Finalize** — Success message with next steps
 
 </details>
 
@@ -152,9 +152,9 @@ Investigation-first workflow for targeted fixes. Finds the root cause before tou
 
 Just chat — no plan, no approval gate. Quality hooks and TDD enforcement still apply. Best for small tasks and exploration. For anything that needs a plan, use `/spec` — not Claude Code's built-in plan mode.
 
-### /setup-rules — Generate Rules
+### /setup-rules — Generate Modular Rules
 
-Explores your codebase, discovers conventions, generates modular rules, documents MCP servers, and creates `AGENTS.md` for cross-tool compatibility. Run once initially, then anytime your project changes significantly.
+Explores your codebase, discovers conventions, generates modular rules and documents MCP servers. Run once initially, then anytime your project changes significantly.
 
 ```bash
 pilot
@@ -166,6 +166,7 @@ pilot
 
 12 phases that read your codebase and produce comprehensive AI context:
 
+0. **Reference** — load best practices for rule structure, path-scoping, and quality standards
 1. **Read existing rules** — inventory all `.claude/rules/` files, detect structure and path-scoping
 2. **Migrate unscoped assets** — prefix with project slug for better sharing
 3. **Quality audit** — check rules against best practices (size, specificity, stale references, conflicts)
@@ -174,17 +175,14 @@ pilot
 6. **Sync project rule** — update `{slug}-project.md` with current tech stack, structure, commands
 7. **Sync MCP docs** — smoke-test user MCP servers, document working tools
 8. **Discover new rules** — find undocumented patterns worth capturing
-9. **Generate AGENTS.md** — consolidate all rules into one file for Cursor, Codex, Gemini CLI, Copilot, and 50+ other AI tools. If an existing `AGENTS.md` is found (hand-written or from another tool), offers a migration path: merge, regenerate, or skip.
-10. **Cross-check** — validate all references, ensure consistency across generated files
-11. **Summary** — report all changes made
-
-**AGENTS.md** is a [universal standard](https://agents.md/) used by 60k+ open-source projects. `.claude/rules/` files are modular and only work with Claude Code — other tools can only read `AGENTS.md`. `/setup-rules` consolidates all your tribal knowledge (commit standards, architectural patterns, conventions, gotchas) into this one comprehensive file.
+9. **Cross-check** — validate all references, ensure consistency across generated files
+10. **Summary** — report all changes made
 
 **For monorepos:** Organizes rules in nested subdirectories by product and team, with `paths` frontmatter to scope rules to specific file types. Generates a `README.md` documenting the structure.
 
 </details>
 
-### /create-skill — Skill Creator
+### /create-skill — Reusable Skill Creator
 
 Builds a reusable skill from any topic — explores the codebase and creates it interactively with you. If no topic is given, evaluates the current session for extractable knowledge.
 
@@ -196,13 +194,14 @@ pilot
 <details>
 <summary><b>What /create-skill Does</b></summary>
 
-5 phases that turn domain knowledge into a reusable skill:
+6 phases that turn domain knowledge into a reusable skill:
 
 1. **Reference** — load use case categories, complexity spectrum, file structure template, description formula, security restrictions
 2. **Understand** — explore the codebase for relevant patterns, ask clarifying questions, or evaluate the current session for extractable knowledge
 3. **Check existing** — search project and global skills to avoid duplicates
-4. **Create** — generate with skillshare or write directly to `.claude/skills/`, apply portability and determinism checklists
+4. **Create** — write to `.claude/skills/` (project) or `~/.claude/skills/` (global), apply portability and determinism checklists
 5. **Quality gates** — structure checklist (SKILL.md naming, frontmatter fields), content checklist (error handling, examples, exclusions), triggering test (should/shouldn't trigger), iteration signals
+6. **Test & iterate** — run test prompts with sub-agents, evaluate results, optimize description triggering
 
 **Use case categories:**
 
@@ -216,30 +215,29 @@ pilot
 
 </details>
 
-### Customize & Share
+### Extensions
 
-Create your own rules, commands, skills, and agents — all plain markdown files in `.claude/`. Then share them across machines, projects, and organizations via [Skillshare](https://github.com/runkids/skillshare).
+Create your own rules, commands, skills, and agents — all plain markdown files in `.claude/`. Extensions live either in your project's `.claude/` directory or globally in `~/.claude/`.
 
-**Create assets in your project:**
+<details>
+<summary><b>Extension types</b></summary>
 
-| Asset        | Location            | When it loads                               |
+**Create extensions in your project:**
+
+| Extension    | Location            | When it loads                               |
 | ------------ | ------------------- | ------------------------------------------- |
+| **Skills**   | `.claude/skills/`   | Automatically when relevant                 |
 | **Rules**    | `.claude/rules/`    | Every session, or by file type              |
 | **Commands** | `.claude/commands/` | On demand via `/command-name`               |
-| **Skills**   | `.claude/skills/`   | Automatically when relevant                 |
 | **Agents**   | `.claude/agents/`   | Spawned as sub-agents for specialized tasks |
 
-Use `/setup-rules` to auto-generate rules and `AGENTS.md` from your codebase. Use `/create-skill` to capture workflows as reusable skills. Add MCP servers in `.mcp.json` and run `/setup-rules` to generate documentation. For monorepos, organize rules in subdirectories by team with `paths` frontmatter to scope by file type.
+Use `/setup-rules` to auto-generate rules from your codebase. Use `/create-skill` to capture workflows as reusable skills. For monorepos, organize rules in subdirectories by team with `paths` frontmatter to scope by file type.
 
-**Share all four asset types** — skills, rules, commands, and agents — across boundaries via [Skillshare](https://github.com/runkids/skillshare). Works with 50+ AI tools (Claude Code, Cursor, Codex, Windsurf, and more) so you have one source of truth for all your AI assets.
+**Global vs Project scope:** Extensions in `.claude/` are project-specific (commit them so teammates get them on `git clone`). Extensions in `~/.claude/` are personal and available across all your projects.
 
-| Mode                                                                                       | Scope                  | How it works                                                                       |
-| ------------------------------------------------------------------------------------------ | ---------------------- | ---------------------------------------------------------------------------------- |
-| [**Project**](https://skillshare.runkids.cc/docs/how-to/sharing/project-setup)             | Single repo, team-wide | Commit `.skillshare/skills/` to your repo — team members get assets on `git clone` |
-| [**Global**](https://skillshare.runkids.cc/docs/how-to/sharing/cross-machine-sync)         | Personal, all projects | Sync skills, rules, commands, and agents — push/pull across your machines via git  |
-| [**Organization**](https://skillshare.runkids.cc/docs/how-to/sharing/organization-sharing) | All projects, org-wide | Tracked repos distribute curated assets — hub index enables search                 |
+Manage all extensions from the **Console Extensions page** — view, edit, rename, delete, and move extensions between project and global scope.
 
-Manage sharing via the `skillshare` CLI and view all shared assets on the Console Share page.
+</details>
 
 ### Pilot Shell Console
 
@@ -254,19 +252,60 @@ A local web dashboard with different views and real-time notifications when Clau
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Dashboard**     | Workspace status, active sessions, spec progress, git info, recent activity                                                                  |
 | **Specification** | All spec plans with task progress, phase tracking, and iteration history                                                                     |
+| **Extensions**    | All Claude Code extensions — view, edit, rename, delete, and move skills, rules, commands, and agents with color-coded categories            |
 | **Changes**       | Git diff viewer with staged/unstaged files, branch info, and worktree context                                                                |
 | **Memories**      | Browsable observations — decisions, discoveries, bugfixes — with type filters and search                                                     |
 | **Sessions**      | Active and past sessions with observation counts and duration                                                                                |
-| **Share**         | Skill sharing — view assets, source/sync status, CLI reference                                                                               |
 | **Usage**         | Daily token costs, model routing breakdown, and usage trends                                                                                 |
 | **Settings**      | Model selection per command/sub-agent, spec workflow toggles (worktree, questions, approval), reviewer toggles, context window auto-detected |
 | **Help**          | Documentation, guides, and quick-start resources                                                                                             |
 
 </details>
 
+### Status Line
+
+A three-line dashboard rendered below every Claude Code response. Replaces the default status line with real-time session metrics, spec progress, and version info — all color-coded.
+
+```
+Opus 4.6 [1M] | █████░▓ 60% | +156 -23 | main +2 ~3 | $1.45 | saved 12.5K (65%)
+Spec: my-feature feature [implement] ████░░░░ 3/6 [plan-rev spec-rev wt]
+Pilot 8.2.1 (Solo) · CC 2.1.79 (Max) · sessions 2 · memories 12
+```
+
+<details>
+<summary><b>All fields explained</b></summary>
+
+**Line 1 — Session Metrics** (separated by `|`):
+
+| Widget            | Description                                                                     |
+| ----------------- | ------------------------------------------------------------------------------- |
+| **Model**         | Active model in short form (`Opus 4.6 [1M]`)                                    |
+| **Context**       | Effective context usage with progress bar. Green < 80%, Yellow 80–95%, Red 95%+ |
+| **Lines changed** | `+added -removed` in session (hidden on Linux when usage data available)        |
+| **Git**           | Branch with staged (`+N`) / unstaged (`~N`) counts                              |
+| **Cost**          | Session cost in USD. Green < $1, Yellow $1–5, Red $5+                           |
+| **5h / 7d usage** | Rate limit usage with reset time (Linux only)                                   |
+| **RTK savings**   | Token savings from RTK proxy (shown when no usage data)                         |
+
+**Line 2 — Mode:**
+
+- **Quick Mode:** `Quick Mode · /spec for feature implementation and complex bugfixes`
+- **Spec Mode:** Plan name, type (`feature`/`bugfix`), phase (`plan`/`implement`/`verify`), progress bar, task count, iteration count, and config flags (`plan-rev`, `spec-rev`, `wt` — green = on, dim = off)
+
+**Line 3 — Version & Session Info:**
+
+`Pilot <version> (<tier>) · CC <version> (<subscription>) · sessions <N> · memories <N>`
+
+Pilot tier: Solo, Team, or Trial with time remaining. Claude subscription (Pro/Max/Team/Enterprise) detected via `claude auth status` and cached for 24 hours.
+
+</details>
+
 ### Remote Control
 
 Control your Pilot Shell sessions from anywhere — your phone, tablet, or any browser. Start a `/spec` task at your desk, then monitor and steer it from the couch.
+
+<details>
+<summary><b>Setup and usage</b></summary>
 
 **Prerequisite:** [Remote Control](https://youtu.be/Ko7_tC1fMMM?si=kWDzYiQvxlkZTrRK) requires the native install of Claude Code (not the npm version). If you have the npm version installed, uninstall it first:
 
@@ -284,8 +323,7 @@ curl -fsSL https://claude.ai/install.sh | bash  # Install native version
 
 Once active, open the **Claude Mobile App** (iOS/Android) → **Code** tab. Your Pilot Shell session appears there with all rules, hooks, and MCP servers — the full Pilot Shell experience, from your phone. Your computer must stay awake for the connection to remain active — on macOS, use [Amphetamine](https://apps.apple.com/de/app/amphetamine/id937984704) to keep your Mac awake with the display off.
 
-<details>
-<summary><b>Start sessions via SSH from your phone</b></summary>
+**Start sessions via SSH from your phone:**
 
 The above assumes you start sessions via `pilot` on your computer first. To also **start new sessions from your phone**:
 
@@ -326,25 +364,25 @@ Hooks fire automatically across the entire lifecycle — formatting, linting, ty
 
 #### UserPromptSubmit (when the user sends a message)
 
-| Hook                | Type  | What it does                                                          |
-| ------------------- | ----- | --------------------------------------------------------------------- |
-| Session initializer | Async | Registers the session with the Console worker daemon on first message |
+| Hook                 | Type     | What it does                                                          |
+| -------------------- | -------- | --------------------------------------------------------------------- |
+| `spec_mode_guard.py` | Blocking | Blocks `/spec` in plan mode, warns when not in bypassPermissions mode |
+| Session initializer  | Async    | Registers the session with the Console worker daemon on first message |
 
-#### PreToolUse (before search, web, or task tools)
+#### PreToolUse (before Bash, search, web, or agent tools)
 
 | Hook                  | Type     | What it does                                                                                                                                      |
 | --------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `tool_redirect.py`    | Blocking | Blocks WebSearch/WebFetch (MCP alternatives exist), Explore agent (use Probe + codebase-memory-mcp), EnterPlanMode/ExitPlanMode (/spec conflict). |
 | `tool_token_saver.py` | Blocking | Rewrites Bash commands via RTK for token savings (60–90% reduction on dev operations).                                                            |
 
-#### PostToolUse (after every Write / Edit / MultiEdit)
+#### PostToolUse (after file edits, searches, and other tool calls)
 
-| Hook                    | Type         | What it does                                                                                                                                                         |
-| ----------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `file_checker.py`       | Blocking     | Dispatches to language-specific checkers: Python (ruff + basedpyright), TypeScript (Prettier + ESLint + tsc), Go (gofmt + golangci-lint). Auto-fixes formatting.     |
-| `file_checker.py` (TDD) | Non-blocking | Checks if implementation files were modified without failing tests first. Shows reminder to write tests. Excludes test files, docs, config, TSX, and infrastructure. |
-| `context_monitor.py`    | Non-blocking | Monitors context usage. Warns at ~80% (informational) and ~90%+ (caution). Informs when auto-compact is approaching.                                                 |
-| Memory observer         | Async        | Captures development observations to persistent memory.                                                                                                              |
+| Hook                 | Type         | What it does                                                                                                                                                   |
+| -------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `file_checker.py`    | Blocking     | Quality checks: Python (ruff), TypeScript (ESLint), Go (go vet + golangci-lint). Also warns when implementation files are edited without a failing test (TDD). |
+| `context_monitor.py` | Non-blocking | Tracks context usage 0-100% with warnings as compaction approaches.                                                                                            |
+| Memory observer      | Async        | Captures development observations to persistent memory.                                                                                                        |
 
 #### PreCompact (before auto-compaction)
 
@@ -354,12 +392,12 @@ Hooks fire automatically across the entire lifecycle — formatting, linting, ty
 
 #### Stop (when Claude tries to finish)
 
-| Hook                       | Type     | What it does                                                                                                                               |
-| -------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `spec_stop_guard.py`       | Blocking | If an active spec exists with PENDING or COMPLETE status, **blocks stopping**. Forces verification to complete before the session can end. |
-| `spec_plan_validator.py`   | Blocking | Verifies that the plan file was created with all required sections.                                                                        |
-| `spec_verify_validator.py` | Blocking | Verifies that the plan status was updated to VERIFIED before allowing the session to end.                                                  |
-| Session summarizer         | Async    | Saves session observations to persistent memory for future sessions.                                                                       |
+| Hook                 | Type     | What it does                                                                                                                               |
+| -------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `spec_stop_guard.py` | Blocking | If an active spec exists with PENDING or COMPLETE status, **blocks stopping**. Forces verification to complete before the session can end. |
+| Session summarizer   | Async    | Saves session observations to persistent memory for future sessions.                                                                       |
+
+Additionally, `spec_plan_validator.py` and `spec_verify_validator.py` run as command-scoped Stop hooks during `/spec` phases — they verify plan creation and VERIFIED status respectively.
 
 #### SessionEnd (when the session closes)
 
@@ -422,17 +460,8 @@ Production-tested best practices loaded into every session. Core rules cover wor
 <details>
 <summary><b>Tools</b></summary>
 
-- `research-tools.md` — Search priority and tool selection guide
 - `cli-tools.md` — Pilot CLI, Probe CLI semantic search, RTK token optimization
-- `mcp-servers.md` — MCP server reference including codebase-memory-mcp (code knowledge graph)
 - `playwright-cli.md` — Browser automation for E2E UI testing
-
-</details>
-
-<details>
-<summary><b>Collaboration</b></summary>
-
-- `skill-sharing.md` — Skillshare CLI reference and sharing modes
 
 </details>
 
@@ -458,7 +487,7 @@ MCP servers provide external context in every session — library docs, persiste
 
 | Server              | Purpose                                                                   |
 | ------------------- | ------------------------------------------------------------------------- |
-| **lib-docs**        | Library documentation lookup — get API docs for any dependency            |
+| **context7**        | Library documentation lookup — get API docs for any dependency            |
 | **mem-search**      | Persistent memory search — recall context from past sessions              |
 | **web-search**      | Web search via DuckDuckGo, Bing, and Exa                                  |
 | **grep-mcp**        | GitHub code search — find real-world usage patterns across repos          |
@@ -473,7 +502,7 @@ Real-time diagnostics and go-to-definition for Python (basedpyright), TypeScript
 
 ### Pilot Shell CLI
 
-The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing, and context. Run `pilot` or `ccp` to start Claude with Pilot Shell enhancements. All commands support `--json` for structured output.
+The `pilot` binary (`~/.pilot/bin/pilot`) manages sessions, worktrees, licensing, and context. Run `pilot` or `ccp` to start Claude with Pilot Shell enhancements. Most commands support `--json` for structured output.
 
 <details>
 <summary><b>Session & Context</b></summary>
@@ -661,7 +690,7 @@ You can also set a persistent default in `~/.claude/settings.json` by changing t
 <details>
 <summary><b>Can I add my own rules, commands, skills, and agents?</b></summary>
 
-Yes. Create your own in your project's `.claude/` folder — rules, commands, skills, and agents are all plain markdown files. Your project-level assets load alongside Pilot Shell's built-in defaults and take precedence when they overlap. `/setup-rules` auto-discovers your codebase patterns and generates project-specific rules and AGENTS.md. `/create-skill` builds reusable skills from any topic interactively. Manage sharing via the `skillshare` CLI and view all shared assets on the Console Share page.
+Yes. Create your own in your project's `.claude/` folder — rules, commands, skills, and agents are all plain markdown files. Your project-level assets load alongside Pilot Shell's built-in defaults and take precedence when they overlap. `/setup-rules` auto-discovers your codebase patterns and generates project-specific rules. `/create-skill` builds reusable skills from any topic interactively. View and manage all extensions on the Console Extensions page.
 
 For monorepos, organize rules in nested subdirectories by product and team (e.g. `.claude/rules/my-product/team-x/`). Team-level rules must use `paths` frontmatter so they only load when working on relevant files. `/setup-rules` validates this structure, enforces path-scoping, and generates a `README.md` to document the organization.
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 
 class TestMigrationV1:
@@ -570,3 +571,234 @@ class TestMigrationV5:
 
         assert result is True
         assert raw["extendedContext"] is True
+
+
+class TestMigrationV6:
+    """Migration v5 → v6: Disable reviewer sub-agents for non-Max users."""
+
+    def test_disables_agents_for_pro_users(self, tmp_path: Path) -> None:
+        """Pro users get sub-agents disabled."""
+        from installer.steps.config_migration import _migration_v6
+
+        raw: dict = {
+            "reviewerAgents": {"planReviewer": True, "specReviewer": True},
+        }
+
+        with patch("installer.steps.config_migration._get_subscription_type", return_value="pro"):
+            result = _migration_v6(raw)
+
+        assert result is True
+        assert raw["reviewerAgents"]["planReviewer"] is False
+        assert raw["reviewerAgents"]["specReviewer"] is False
+
+    def test_disables_agents_for_team_users(self, tmp_path: Path) -> None:
+        """Team users get sub-agents disabled."""
+        from installer.steps.config_migration import _migration_v6
+
+        raw: dict = {
+            "reviewerAgents": {"planReviewer": True, "specReviewer": True},
+        }
+
+        with patch("installer.steps.config_migration._get_subscription_type", return_value="team"):
+            result = _migration_v6(raw)
+
+        assert result is True
+        assert raw["reviewerAgents"]["planReviewer"] is False
+        assert raw["reviewerAgents"]["specReviewer"] is False
+
+    def test_disables_agents_for_enterprise_users(self, tmp_path: Path) -> None:
+        """Enterprise users get sub-agents disabled."""
+        from installer.steps.config_migration import _migration_v6
+
+        raw: dict = {
+            "reviewerAgents": {"planReviewer": True, "specReviewer": True},
+        }
+
+        with patch("installer.steps.config_migration._get_subscription_type", return_value="enterprise"):
+            result = _migration_v6(raw)
+
+        assert result is True
+        assert raw["reviewerAgents"]["planReviewer"] is False
+        assert raw["reviewerAgents"]["specReviewer"] is False
+
+    def test_preserves_agents_for_max_users(self, tmp_path: Path) -> None:
+        """Max users keep sub-agents enabled."""
+        from installer.steps.config_migration import _migration_v6
+
+        raw: dict = {
+            "reviewerAgents": {"planReviewer": True, "specReviewer": True},
+        }
+
+        with patch("installer.steps.config_migration._get_subscription_type", return_value="max"):
+            result = _migration_v6(raw)
+
+        assert result is False
+        assert raw["reviewerAgents"]["planReviewer"] is True
+        assert raw["reviewerAgents"]["specReviewer"] is True
+
+    def test_no_change_when_detection_fails(self, tmp_path: Path) -> None:
+        """When subscription can't be detected, leave settings unchanged."""
+        from installer.steps.config_migration import _migration_v6
+
+        raw: dict = {
+            "reviewerAgents": {"planReviewer": True, "specReviewer": True},
+        }
+
+        with patch("installer.steps.config_migration._get_subscription_type", return_value=None):
+            result = _migration_v6(raw)
+
+        assert result is False
+        assert raw["reviewerAgents"]["planReviewer"] is True
+        assert raw["reviewerAgents"]["specReviewer"] is True
+
+    def test_creates_reviewer_agents_when_missing(self, tmp_path: Path) -> None:
+        """Creates reviewerAgents dict with disabled values for non-Max users."""
+        from installer.steps.config_migration import _migration_v6
+
+        raw: dict = {"model": "opus"}
+
+        with patch("installer.steps.config_migration._get_subscription_type", return_value="pro"):
+            result = _migration_v6(raw)
+
+        assert result is True
+        assert raw["reviewerAgents"]["planReviewer"] is False
+        assert raw["reviewerAgents"]["specReviewer"] is False
+
+    def test_already_disabled_not_modified(self, tmp_path: Path) -> None:
+        """Already-disabled agents are not re-modified."""
+        from installer.steps.config_migration import _migration_v6
+
+        raw: dict = {
+            "reviewerAgents": {"planReviewer": False, "specReviewer": False},
+        }
+
+        with patch("installer.steps.config_migration._get_subscription_type", return_value="pro"):
+            result = _migration_v6(raw)
+
+        assert result is False
+        assert raw["reviewerAgents"]["planReviewer"] is False
+        assert raw["reviewerAgents"]["specReviewer"] is False
+
+    def test_full_migration_for_pro_user(self, tmp_path: Path) -> None:
+        """Full migrate_model_config disables agents for pro user at version 5."""
+        from installer.steps.config_migration import CURRENT_CONFIG_VERSION, migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(json.dumps({
+            "model": "opus",
+            "reviewerAgents": {"planReviewer": True, "specReviewer": True},
+            "extendedContext": True,
+            "_configVersion": 5,
+        }))
+
+        with patch("installer.steps.config_migration._get_subscription_type", return_value="pro"):
+            result = migrate_model_config(config_path)
+
+        assert result is True
+        migrated = json.loads(config_path.read_text())
+        assert migrated["reviewerAgents"]["planReviewer"] is False
+        assert migrated["reviewerAgents"]["specReviewer"] is False
+        assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
+
+    def test_full_migration_for_max_user_preserves_agents(self, tmp_path: Path) -> None:
+        """Full migrate_model_config preserves agents for max user at version 5."""
+        from installer.steps.config_migration import CURRENT_CONFIG_VERSION, migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(json.dumps({
+            "model": "opus",
+            "reviewerAgents": {"planReviewer": True, "specReviewer": True},
+            "extendedContext": True,
+            "_configVersion": 5,
+        }))
+
+        with patch("installer.steps.config_migration._get_subscription_type", return_value="max"):
+            result = migrate_model_config(config_path)
+
+        assert result is True
+        migrated = json.loads(config_path.read_text())
+        assert migrated["reviewerAgents"]["planReviewer"] is True
+        assert migrated["reviewerAgents"]["specReviewer"] is True
+        assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
+
+
+class TestGetSubscriptionType:
+    """Tests for _get_subscription_type helper."""
+
+    def test_returns_type_from_claude_auth_status(self) -> None:
+        """Should return subscription type from claude auth status."""
+        from installer.steps.config_migration import _get_subscription_type
+
+        mock_result = MagicMock(
+            returncode=0,
+            stdout='{"loggedIn": true, "subscriptionType": "max"}',
+        )
+
+        with patch("subprocess.run", return_value=mock_result):
+            result = _get_subscription_type()
+
+        assert result == "max"
+
+    def test_normalizes_to_lowercase(self) -> None:
+        """Should normalize subscription type to lowercase."""
+        from installer.steps.config_migration import _get_subscription_type
+
+        mock_result = MagicMock(
+            returncode=0,
+            stdout='{"loggedIn": true, "subscriptionType": "Pro"}',
+        )
+
+        with patch("subprocess.run", return_value=mock_result):
+            result = _get_subscription_type()
+
+        assert result == "pro"
+
+    def test_returns_none_when_claude_not_installed(self) -> None:
+        """Should return None when claude CLI is not available."""
+        from installer.steps.config_migration import _get_subscription_type
+
+        with patch("subprocess.run", side_effect=FileNotFoundError("claude not found")):
+            with patch("pathlib.Path.exists", return_value=False):
+                result = _get_subscription_type()
+
+        assert result is None
+
+    def test_falls_back_to_credentials_file(self, tmp_path: Path) -> None:
+        """Should fall back to credentials file when claude auth status fails."""
+        from installer.steps.config_migration import _get_subscription_type
+
+        mock_result = MagicMock(returncode=1, stdout="", stderr="not logged in")
+        creds = {"claudeAiOauth": {"subscriptionType": "team"}}
+        creds_path = tmp_path / ".credentials.json"
+        creds_path.write_text(json.dumps(creds))
+
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch("pathlib.Path.home", return_value=tmp_path),
+        ):
+            # Create the expected path structure
+            claude_dir = tmp_path / ".claude"
+            claude_dir.mkdir(exist_ok=True)
+            creds_file = claude_dir / ".credentials.json"
+            creds_file.write_text(json.dumps(creds))
+
+            result = _get_subscription_type()
+
+        assert result == "team"
+
+    def test_returns_none_when_no_subscription_type(self) -> None:
+        """Should return None when auth status has no subscriptionType."""
+        from installer.steps.config_migration import _get_subscription_type
+
+        mock_result = MagicMock(
+            returncode=0,
+            stdout='{"loggedIn": true}',
+        )
+
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch("pathlib.Path.exists", return_value=False),
+        ):
+            result = _get_subscription_type()
+
+        assert result is None

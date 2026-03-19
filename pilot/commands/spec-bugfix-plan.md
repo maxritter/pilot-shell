@@ -131,7 +131,9 @@ Read as many files as needed. For each: read completely, trace execution path fr
 - What data enters each component? What exits?
 - WHERE does it break? Run once to gather evidence, THEN investigate the failing component.
 
-Tools: Probe CLI `probe search` (find by intent), `probe extract` (extract functions by symbol), codebase-memory-mcp `trace_call_path` (who calls what), `detect_changes` (blast radius), Read/Grep/Glob (direct exploration).
+**⛔ Structural tracing (MANDATORY):** Run `trace_call_path(function_name, direction="both", depth=2)` on the function where the bug manifests AND the function at the root cause. This reveals the full call chain and blast radius — essential for understanding how bad data flows through the system.
+
+Tools: codebase-memory-mcp `trace_call_path` (call graph — use first for tracing), `detect_changes` (blast radius), Probe CLI `probe search` (find by intent), `probe extract` (extract functions by symbol), Read/Grep/Glob (direct exploration).
 
 ### 1.2.4: Pattern Analysis
 

@@ -18,12 +18,11 @@ Language servers (LSP) give Claude real-time diagnostics, type information, and 
 - Hover documentation for any symbol
 - Auto-restart on crash (max 3 attempts)
 
-> Configured with strict mode for maximum type safety. Works with uv virtual environments automatically.
+> Works with uv virtual environments automatically.
 
 ## TypeScript — vtsls
 
 - Full TypeScript and JavaScript support
-- Vue.js compatibility via Volar integration
 - Type checking across the entire project
 - Import auto-completion and refactoring
 - Auto-restart on crash (max 3 attempts)
@@ -41,15 +40,16 @@ Language servers (LSP) give Claude real-time diagnostics, type information, and 
 > Requires Go modules. Respects GOPATH and module proxy settings.
 
 :::tip Add custom language servers
-Add custom language servers via `.lsp.json` in your project root. All servers use stdio transport and support auto-restart configuration.
+Add custom language servers via `.lsp.json` in your project root. Each language key maps to its server configuration:
 
 ```json
 {
-  "servers": [{
-    "name": "rust-analyzer",
+  "rust": {
     "command": "rust-analyzer",
-    "args": []
-  }]
+    "args": [],
+    "transport": "stdio",
+    "maxRestarts": 3
+  }
 }
 ```
 :::

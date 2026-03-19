@@ -23,7 +23,7 @@
   "enableAllProjectMcpServers": true,
   "spinnerTipsOverride": {
     "tips": [
-      "[PILOT] Run /setup-rules after installation to generate project rules and AGENTS.md",
+      "[PILOT] Run /setup-rules after installation to generate project rules",
       "[PILOT] Use /spec for features AND bug fixes — structured planning, TDD, and code review for both",
       "[PILOT] Quick Mode: Just chat for small changes and exploration (all quality hooks still apply)",
       "[PILOT] Press Ctrl+R to search command history | Ctrl+C to cancel current operation",
@@ -41,7 +41,7 @@
       "[PILOT] grep-mcp: Search 1M+ public GitHub repos for real-world code patterns and examples",
       "[PILOT] TDD Enforcer: Warns when modifying code without failing tests first",
       "[PILOT] Quality hooks auto-run on every edit: Python, TypeScript, Go, and more",
-      "[PILOT] 17 hooks fire across 7 lifecycle events — quality enforcement is automatic and comprehensive",
+      "[PILOT] Hooks fire across 7 lifecycle events — quality enforcement is automatic and comprehensive",
       "[PILOT] Coding standards activate conditionally by file type — Python rules only load for .py files",
       "[PILOT] LSP: Language servers provide real-time diagnostics, go-to-definition, and hover info",
       "[PILOT] LSP servers (Python, TypeScript, Go) are installed automatically with Pilot",
@@ -87,7 +87,6 @@
       "[PILOT] codebase-memory-mcp: Code knowledge graph for call tracing, dead code detection, and impact analysis",
       "[PILOT] RTK: Token-optimized CLI proxy — saves 60-90% tokens on dev operations, transparent via hooks",
       "[PILOT] Spec Workflow Toggles: Configure worktree, questions, approval, and reviewers in Console Settings",
-      "[PILOT] Skillshare: Share skills, rules, commands, and agents across machines and teams via git",
       "[PILOT] Please star the repository: github.com/maxritter/pilot-shell",
       "[PILOT] Fun fact: Pilot is built with Pilot — a self-improving development loop"
     ],

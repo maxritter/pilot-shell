@@ -36,7 +36,6 @@ HOMEBREW_PACKAGES = [
     "jq",
     "ripgrep",
     "rtk",
-    "skillshare",
 ]
 
 # Packages with pinned major versions — upgrading could jump to an incompatible version.

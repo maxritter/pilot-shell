@@ -191,7 +191,7 @@ const WorkflowSteps = () => {
               </div>
               <p className="text-xs text-muted-foreground">
                 Generates project rules from your codebase — explores patterns,
-                documents conventions, creates AGENTS.md for cross-tool compatibility.
+                documents conventions and MCP servers.
               </p>
             </div>
             <div className="rounded-xl p-4 border border-border/40 bg-background/30">

@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-CURRENT_CONFIG_VERSION = 5
+CURRENT_CONFIG_VERSION = 6
 
 # Old agent names removed in v7.1 (merged into plan-reviewer + spec-reviewer)
 _STALE_AGENT_KEYS = frozenset(
@@ -65,6 +65,9 @@ def migrate_model_config(config_path: Path | None = None) -> bool:
 
     if version < 5:
         modified = _migration_v5(raw) or modified
+
+    if version < 6:
+        modified = _migration_v6(raw) or modified
 
     raw["_configVersion"] = CURRENT_CONFIG_VERSION
     modified = True
@@ -213,6 +216,83 @@ def _migration_v5(raw: dict[str, Any]) -> bool:
         return False
     raw["extendedContext"] = True
     return True
+
+
+def _get_subscription_type() -> str | None:
+    """Detect Claude Code subscription type via `claude auth status`.
+
+    Returns the raw subscriptionType string (e.g. "max", "pro", "team", "enterprise")
+    or None if detection fails.
+    """
+    import subprocess
+
+    # Primary: claude auth status (works on all platforms)
+    try:
+        result = subprocess.run(
+            ["claude", "auth", "status", "--json"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            sub_type = data.get("subscriptionType", "")
+            if sub_type:
+                return sub_type.lower()
+    except Exception:
+        pass
+
+    # Fallback: credentials file (Linux has claudeAiOauth, macOS may not)
+    creds_path = Path.home() / ".claude" / ".credentials.json"
+    try:
+        if creds_path.exists():
+            content = json.loads(creds_path.read_text())
+            oauth = content.get("claudeAiOauth", {})
+            sub_type = oauth.get("subscriptionType", "")
+            if sub_type:
+                return sub_type.lower()
+    except Exception:
+        pass
+
+    return None
+
+
+def _migration_v6(raw: dict[str, Any]) -> bool:
+    """v5 → v6: Disable reviewer sub-agents for non-Max users.
+
+    Sub-agents (plan-reviewer, spec-reviewer) consume ~150k extra tokens per
+    /spec run. Disable them for Pro, Team, and Enterprise users to reduce
+    token usage. Users can re-enable via Console Settings if desired.
+
+    Max users keep sub-agents enabled (they have higher rate limits).
+    If subscription type can't be detected, leave settings unchanged.
+    """
+    sub_type = _get_subscription_type()
+
+    # Can't detect → don't change anything (safe default)
+    if sub_type is None:
+        return False
+
+    # Max users keep current settings
+    if sub_type == "max":
+        return False
+
+    # Non-Max: disable both sub-agents
+    modified = False
+
+    reviewer_agents = raw.get("reviewerAgents")
+    if isinstance(reviewer_agents, dict):
+        if reviewer_agents.get("planReviewer") is True:
+            reviewer_agents["planReviewer"] = False
+            modified = True
+        if reviewer_agents.get("specReviewer") is True:
+            reviewer_agents["specReviewer"] = False
+            modified = True
+    else:
+        raw["reviewerAgents"] = {"planReviewer": False, "specReviewer": False}
+        modified = True
+
+    return modified
 
 
 def _write_atomic(path: Path, data: dict[str, Any]) -> None:

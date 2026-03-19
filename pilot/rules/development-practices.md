@@ -9,11 +9,21 @@ probe search "how is authentication handled" ./
 probe search "database connection setup" ./
 ```
 
+### Structural Analysis — codebase-memory-mcp
+
+**⛔ For call tracing, impact analysis, and dependency checks, use codebase-memory-mcp — not Probe.** Probe finds code by text/intent; codebase-memory-mcp traces actual call graphs.
+
+**Two high-value tools:**
+- **`trace_call_path(function_name, direction="both", depth=2)`** — complete caller/callee graph with risk classification. Use before modifying any function.
+- **`detect_changes(scope="all")`** — maps git diff to affected symbols + blast radius. Use during planning to scope impact.
+
+**Workflow:** `search_graph(name_pattern=".*Partial.*")` to discover exact name → `trace_call_path` → `get_code_snippet` for source.
+
 ### Project-Specific Policies
 
 **File Size:** Aim for production files under 800 lines. Over 1000 lines is a signal to consider splitting — but only when it's the focus of the current task, not as a side-refactor. Test files exempt.
 
-**Dependency Check:** Before modifying any function, use codebase-memory-mcp `trace_call_path` (structural, exact) or Probe CLI (intent-based) to find all callers. Fallback: `Grep` or LSP `findReferences`. Update all affected call sites.
+**Dependency Check:** Before modifying any function, use codebase-memory-mcp `trace_call_path(direction="both")` to find all callers and callees. This is the primary tool — it returns the actual call graph, not just text mentions. Fallback: Probe CLI, `Grep`, or LSP `findReferences`. Update all affected call sites.
 
 **Self-Correction:** Fix obvious mistakes (syntax errors, typos, missing imports) in code you are actively writing. Do not auto-fix errors in code the user edited — report them and let the user decide.
 

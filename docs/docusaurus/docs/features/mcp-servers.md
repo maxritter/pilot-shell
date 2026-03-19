@@ -10,7 +10,7 @@ External context always available to every session.
 
 Six MCP servers are pre-configured and always available. They're lazy-loaded via `ToolSearch` to keep context lean — discovered and called on demand. Add your own in `.mcp.json`, then run `/setup-rules` to generate documentation.
 
-## lib-docs (Context7)
+## context7
 
 **Library documentation lookup**
 
@@ -102,5 +102,5 @@ query_graph(query="MATCH (c:Class)-[:DEFINES_METHOD]->(m) RETURN c.name, m.name"
 | "Extract a specific function's source" | **Both** — Probe `extract` for line/symbol, codebase-memory for caller/callee context |
 
 :::info Tool selection
-Rules specify the preferred order — Probe CLI first for intent-based codebase questions, codebase-memory-mcp for structural queries (call tracing, impact analysis, dead code), lib-docs for library API lookups, grep-mcp for production code examples, web-search for current information. The `tool_redirect.py` hook blocks the built-in WebSearch/WebFetch and the Explore agent, redirecting to these alternatives.
+Rules specify the preferred order — Probe CLI first for intent-based codebase questions, codebase-memory-mcp for structural queries (call tracing, impact analysis, dead code), context7 for library API lookups, grep-mcp for production code examples, web-search for current information. The `tool_redirect.py` hook blocks the built-in WebSearch/WebFetch and the Explore agent, redirecting to these alternatives.
 :::

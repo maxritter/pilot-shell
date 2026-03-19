@@ -6,50 +6,56 @@ const consoleSlides = [
   {
     label: "Dashboard",
     src: "/console/dashboard.png",
-    alt: "Console Dashboard — stats, workspace status, and spec progress",
-    desc: "Workspace status, active sessions, spec progress, git info, and recent activity — all at a glance.",
-  },
-  {
-    label: "Settings",
-    src: "/console/settings.png",
-    alt: "Settings view — model selection per command, sub-agent, and session with defaults",
-    desc: "Choose models per command and sub-agent. Context window size auto-detected from your plan.",
+    alt: "Console Dashboard — grouped stats, workspace status, and spec progress",
+    desc: "Grouped stats for memory, specifications, and extensions. Workspace cards for usage, git, specs, and worker.",
   },
   {
     label: "Specifications",
-    src: "/console/specification.png",
-    alt: "Specification view — plan details, task progress, and implementation notes",
+    src: "/console/specifications.png",
+    alt: "Specification view — plan details, task progress, and phase tracking",
     desc: "All spec plans with task progress, phase tracking, and iteration history.",
+  },
+  {
+    label: "Extensions",
+    src: "/console/extensions.png",
+    alt: "Extensions view — color-coded skills, rules, commands, and agents",
+    desc: "Browse, edit, rename, and delete extensions. Color-coded categories with scope filtering.",
+  },
+  {
+    label: "Changes",
+    src: "/console/changes.png",
+    alt: "Changes view — git diff, staged files, and branch info",
+    desc: "Git changes, staged files, and diff viewer with branch and worktree context.",
   },
   {
     label: "Memories",
     src: "/console/memories.png",
-    alt: "Memories view — browsable observation cards with type filters",
-    desc: "Decisions, discoveries, and bugfixes captured across sessions — searchable with type filters.",
+    alt: "Memories view — captured decisions and patterns with semantic search",
+    desc: "Decisions, discoveries, and patterns captured automatically. Semantic search across all memories.",
   },
   {
     label: "Sessions",
     src: "/console/sessions.png",
     alt: "Sessions view — active sessions with observation and prompt counts",
-    desc: "Active and past sessions with observation counts, duration, and project context.",
+    desc: "Active and past sessions with observation counts, duration, and expandable timelines.",
   },
   {
     label: "Usage",
     src: "/console/usage.png",
-    alt: "Usage view — daily costs, token charts, and model routing strategy",
+    alt: "Usage view — daily costs, token charts, and model routing",
     desc: "Daily token costs, model routing breakdown, and usage trends over time.",
   },
   {
-    label: "Share",
-    src: "/console/share.png",
-    alt: "Share view — browse, edit, and manage skills, rules, commands, and agents",
-    desc: "Browse, edit, rename, and delete assets. Filter by scope and type. Push/pull to git remotes.",
+    label: "Settings",
+    src: "/console/settings.png",
+    alt: "Settings view — model selection per command, spec workflow toggles",
+    desc: "Choose models per command and sub-agent. Spec workflow toggles and reviewer configuration.",
   },
   {
-    label: "Changes",
-    src: "/console/changes.png",
-    alt: "Changes view — git diff, staged files, and commit management",
-    desc: "Git changes, staged files, and diff viewer with AI-generated commit messages.",
+    label: "Help",
+    src: "/console/help.png",
+    alt: "Help view — embedded documentation and quick-start guides",
+    desc: "Embedded documentation from pilot-shell.com — full technical reference without leaving the Console.",
   },
 ];
 
@@ -98,8 +104,8 @@ const ConsoleSection = () => {
               </p>
             </div>
 
-            {/* Thumbnail strip */}
-            <div className="grid grid-cols-8 gap-2 sm:gap-3 mt-3">
+            {/* Thumbnail strip — 9 tabs */}
+            <div className="grid grid-cols-9 gap-1.5 sm:gap-2 mt-3">
               {consoleSlides.map((s, i) => (
                 <button
                   key={i}
@@ -117,7 +123,7 @@ const ConsoleSection = () => {
                     className="w-full rounded-md"
                   />
                   <div
-                    className={`absolute inset-x-0 bottom-0 py-1 text-[10px] sm:text-xs font-medium text-center
+                    className={`absolute inset-x-0 bottom-0 py-0.5 text-[8px] sm:text-[10px] font-medium text-center
                     ${
                       i === index
                         ? "bg-primary/90 text-primary-foreground"

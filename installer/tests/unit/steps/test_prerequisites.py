@@ -829,10 +829,10 @@ class TestBrewUpgrade:
         from installer.steps.prerequisites import _get_outdated_homebrew_packages
 
         with patch("subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=0, stdout=b"rtk\nskillshare\nbun\n")
-            result = _get_outdated_homebrew_packages(["rtk", "skillshare", "gh", "bun"])
+            mock_run.return_value = MagicMock(returncode=0, stdout=b"rtk\nbun\n")
+            result = _get_outdated_homebrew_packages(["rtk", "gh", "bun"])
 
-        assert result == {"rtk", "skillshare", "bun"}
+        assert result == {"rtk", "bun"}
 
     def test_get_outdated_homebrew_packages_empty_when_all_up_to_date(self):
         """_get_outdated_homebrew_packages returns empty set when nothing is outdated."""
@@ -840,7 +840,7 @@ class TestBrewUpgrade:
 
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=0, stdout=b"")
-            result = _get_outdated_homebrew_packages(["rtk", "skillshare"])
+            result = _get_outdated_homebrew_packages(["rtk"])
 
         assert result == set()
 
@@ -874,7 +874,7 @@ class TestBrewUpgrade:
         mock_nvm.return_value = True
         mock_tap.return_value = True
         mock_install.return_value = True
-        mock_outdated.return_value = {"rtk", "skillshare"}
+        mock_outdated.return_value = {"rtk"}
         mock_upgrade.return_value = True
 
         step = PrerequisitesStep()
@@ -889,7 +889,6 @@ class TestBrewUpgrade:
         mock_install.assert_not_called()
         upgraded = {call.args[0] for call in mock_upgrade.call_args_list}
         assert "rtk" in upgraded
-        assert "skillshare" in upgraded
 
     @patch("installer.steps.prerequisites._get_outdated_homebrew_packages")
     @patch("installer.steps.prerequisites._is_nvm_installed")
@@ -921,4 +920,3 @@ class TestBrewUpgrade:
         assert "python@3.12" in HOMEBREW_NO_UPGRADE_PACKAGES
         assert "node@22" in HOMEBREW_NO_UPGRADE_PACKAGES
         assert "rtk" not in HOMEBREW_NO_UPGRADE_PACKAGES
-        assert "skillshare" not in HOMEBREW_NO_UPGRADE_PACKAGES

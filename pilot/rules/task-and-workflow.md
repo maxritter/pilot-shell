@@ -14,8 +14,9 @@ If a user has already switched to plan mode, respect it — present proposed cha
 
 | Complexity | Action |
 |------------|--------|
-| **Trivial** (single file, obvious fix) | Execute directly |
-| **Moderate** (2-5 files, clear scope) | Use TaskCreate/TaskUpdate to track, then execute |
+| **Trivial** (single file, obvious fix, no active tasks) | Execute directly |
+| **Any request while tasks exist** | **TaskCreate FIRST** — then execute or queue |
+| **Moderate** (2-5 files, clear scope) | TaskCreate, then execute |
 | **High** (architectural, 10+ files) | **Ask user** if they want `/spec` or quick mode |
 
 **⛔ NEVER auto-invoke `/spec` or `Skill('spec')`.** The user MUST explicitly type `/spec`. If you think it would help, ask — never invoke.
@@ -24,27 +25,39 @@ If a user has already switched to plan mode, respect it — present proposed cha
 
 ## Task Management
 
-**ALWAYS use task management tools for non-trivial work.**
+**⛔ ALWAYS use task management in quick mode.** Tasks are your working memory — without them, requests get lost during context switches and compaction. The only exception is a truly trivial one-shot with no other active work.
+
+### ⛔ Quick Mode: Task-First Rule
+
+**Every user request gets a task.** Before writing code, researching, or responding substantively:
+
+1. **TaskCreate** with clear subject and description
+2. **TaskUpdate** → `in_progress`
+3. Do the work
+4. **TaskUpdate** → `completed`
+
+Skip only when: single trivial request AND `TaskList` is empty (no active work).
+
+### ⛔ On-Demand Interrupts — Capture Before Anything Else
+
+**When the user sends a new request while you're working:**
+
+1. **STOP** current work immediately
+2. **TaskCreate** for the new request — this is your FIRST tool call, before any research or code
+3. Assess priority: new request urgent? → switch to it. Otherwise → resume current task
+
+The task list is your memory — if it's not in the task list, it will be forgotten. Never rely on "I'll get to it after this" without a task.
 
 ### When to Create Tasks
 
 | Situation | Action |
 |-----------|--------|
+| **Any user request** (quick mode default) | **TaskCreate FIRST** |
 | User asks for 2+ things | Create a task for each |
 | Work has multiple steps | Create tasks with dependencies |
 | **Deferring a user request** | **TaskCreate IMMEDIATELY — never just say "noted"** |
 | **User sends new request mid-task** | **TaskCreate for the new request BEFORE continuing current work** |
 | `/spec` implementation phase | Create tasks from plan |
-
-### ⛔ Never Drop a User Request
-
-**The #1 failure mode is losing user requests during context-switches.** When the user sends a new request while you're working on something else:
-
-1. **STOP** current work momentarily
-2. **TaskCreate** for the new request with full details
-3. **Resume** current work
-
-The task list is your memory — if it's not in the task list, it will be forgotten. Never rely on "I'll get to it after this" without a task.
 
 ### Session Start: Clean Up Stale Tasks
 
@@ -80,7 +93,8 @@ Use EXACT parameter names — abbreviated names cause `InputValidationError`:
 
 **`/spec` reviewer agents** (`pilot:plan-reviewer`, `pilot:spec-reviewer`) pass through silently — these are expected parts of the workflow.
 
-**Search priority:** Probe CLI (`probe search`) → codebase-memory-mcp (structural) → Grep/Glob (exact patterns). See `cli-tools.md` for Probe reference.
+**Search:** Probe CLI (`probe search`) → Grep/Glob (exact patterns). See `cli-tools.md` for Probe reference.
+**Structure:** codebase-memory-mcp `trace_call_path` (call graphs, impact) → `detect_changes` (blast radius). See `development-practices.md`.
 
 ### ⛔ Web Search/Fetch
 

@@ -1,10 +1,10 @@
 ---
-sidebar_position: 1
-title: Open Source Compliance
+sidebar_position: 4
+title: Open Source Tools
 description: Open-source tools installed alongside Pilot Shell
 ---
 
-# Open Source Compliance
+# Open Source Tools
 
 Pilot Shell installs the following open-source tools during setup. Each tool is installed only if not already present on your system. All tools retain their original licenses and are not modified or redistributed by Pilot Shell. **Claude Code** (proprietary, by Anthropic) is also installed automatically if missing — it is the foundation that Pilot Shell extends.
 
@@ -25,6 +25,7 @@ Pilot Shell installs the following open-source tools during setup. Each tool is 
 | [uv](https://github.com/astral-sh/uv) | Python package manager | MIT / Apache-2.0 |
 | [Go](https://github.com/golang/go) | Programming language runtime | BSD-3-Clause |
 | [gopls](https://github.com/golang/tools) | Go language server | BSD-3-Clause |
+| [jq](https://github.com/jqlang/jq) | JSON processor | MIT |
 | [ripgrep](https://github.com/BurntSushi/ripgrep) | Fast text search | Unlicense / MIT |
 
 ## Development Tools
@@ -50,7 +51,6 @@ Pilot Shell installs the following open-source tools during setup. Each tool is 
 | [RTK](https://github.com/rtk-ai/rtk) | Token-optimized CLI proxy (60-90% savings) | MIT |
 | [codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp) | Code knowledge graph and structural analysis | MIT |
 | [ccusage](https://github.com/ryoppippi/ccusage) | Claude Code usage analytics | MIT |
-| [Skillshare](https://github.com/runkids/skillshare) | AI skill sharing and sync | MIT |
 
 ## Plugin Runtime Dependencies
 

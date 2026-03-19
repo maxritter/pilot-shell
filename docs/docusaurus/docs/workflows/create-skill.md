@@ -1,10 +1,10 @@
 ---
-sidebar_position: 4
-title: /create-skill — Skill Creator
+sidebar_position: 2
+title: /create-skill
 description: Build reusable skills from any topic — explores the codebase and creates them interactively
 ---
 
-# /create-skill — Skill Creator
+# /create-skill
 
 Build a reusable skill from any topic.
 
@@ -19,15 +19,16 @@ $ pilot
 
 ## What /create-skill Does
 
-5 phases:
+6 phases:
 
 | Phase | Action |
 |-------|--------|
 | 0 | Load reference — use case categories, complexity spectrum, file structure, template, frontmatter fields, description formula, security restrictions |
 | 1 | Understand the topic — explore codebase for relevant patterns, or evaluate session for extractable knowledge |
 | 2 | Check existing skills — avoid duplicates, identify update opportunities |
-| 3 | Create skill — generate with skillshare or write directly, apply portability and determinism checklists |
+| 3 | Create skill — write to `.claude/skills/` (project) or `~/.claude/skills/` (global), apply portability and determinism checklists |
 | 4 | Quality gates — structure checklist, content checklist, triggering test, iteration signals |
+| 5 | Test & iterate — run test prompts with sub-agents, evaluate results, optimize description triggering |
 
 ## Use Case Categories
 

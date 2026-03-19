@@ -73,10 +73,10 @@ class FinalizeStep(BaseStep):
                 steps.append(("🔄 Reload shell", f"{cmd_str} (or restart terminal)"))
 
         steps.append(("Launch Pilot Shell", "Run: pilot (in your project folder)"))
-        steps.append(("/setup-rules", "Generate project rules, audit codebase, and create AGENTS.md"))
-        steps.append(("/create-skill", "Create well-structured reusable skills for your workflows"))
-        steps.append(("/spec", "Plan, implement & verify features and bug fixes (replaces CC plan mode)"))
         steps.append(("Pilot Shell Console", "Open in your browser at: http://localhost:41777"))
+        steps.append(("/spec", "Plan, implement & verify features and bug fixes (replaces CC plan mode)"))
+        steps.append(("/setup-rules", "Create modular and concise rules for your project codebase"))
+        steps.append(("/create-skill", "Create well-structured reusable skills for your workflows"))
 
         ui.next_steps(steps)
 

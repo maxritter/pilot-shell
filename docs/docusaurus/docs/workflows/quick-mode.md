@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 title: Quick Mode
 description: Direct execution — no plan file, no approval gate
 ---
@@ -24,7 +24,7 @@ $ pilot
 - TDD enforcement — write failing tests before implementation
 - Context preservation across auto-compaction cycles
 - Persistent memory for recalling past decisions and context
-- MCP servers (lib-docs, mem-search, web-search, grep-mcp, web-fetch, codebase-memory-mcp)
+- MCP servers (context7, mem-search, web-search, grep-mcp, web-fetch, codebase-memory-mcp)
 - Language servers — real-time diagnostics and go-to-definition
 
 :::tip When to use /spec instead
