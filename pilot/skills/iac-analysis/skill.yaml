@@ -1,0 +1,149 @@
+skill_contract_version: "0.1"
+extends: "../_base/contract.yaml"
+
+skill:
+  id: "iac-analysis"
+  category: "analysis"
+  version: "0.1"
+  description: "Detect misconfigurations and policy violations in infrastructure-as-code"
+
+execution:
+  mode: "read-only"
+  timeout_seconds: 120
+  max_tool_calls: 10
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+  bash_constraints:
+    deny_destructive: true
+    allowlist:
+      - git diff
+      - git show
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - scope
+    - artifacts
+  properties:
+    objective:
+      type: string
+    scope:
+      type: array
+      items:
+        type: string
+      description: "IaC directory paths or file globs"
+    artifacts:
+      type: array
+      items:
+        type: string
+      description: "IaC files, Terraform plans, or pre-run checkov/tfsec JSON reports"
+    constraints:
+      type: object
+      properties:
+        severity_threshold:
+          type: string
+          enum: [low, medium, high, critical]
+        frameworks:
+          type: array
+          items:
+            type: string
+            enum: [terraform, cloudformation, kubernetes, helm, dockerfile, bicep]
+        changed_only:
+          type: boolean
+    context:
+      type: object
+      properties:
+        environment:
+          type: string
+        cloud_provider:
+          type: string
+          enum: [aws, gcp, azure, multi, unknown]
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - findings
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      const: "iac-analysis"
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+    findings:
+      type: array
+      items:
+        type: object
+        required: [id, rule_id, severity, title, path, resource_kind, resource_name]
+        properties:
+          id:
+            type: string
+          rule_id:
+            type: string
+            description: "Provider rule id, e.g. CKV_AWS_20"
+          severity:
+            type: string
+            enum: [low, medium, high, critical]
+          type:
+            type: string
+            description: "Normalized finding type from normalization.yaml"
+          title:
+            type: string
+          path:
+            type: string
+          line:
+            type: integer
+          resource_kind:
+            type: string
+            description: "e.g. aws_s3_bucket, Deployment, SecurityGroup"
+          resource_name:
+            type: string
+          framework:
+            type: string
+            enum: [terraform, cloudformation, kubernetes, helm, dockerfile, bicep]
+          remediation:
+            type: object
+            properties:
+              guidance:
+                type: array
+                items:
+                  type: string
+              reference:
+                type: string
+          is_new_in_diff:
+            type: boolean
+          confidence:
+            type: string
+            enum: [high, medium, low]
+    artifacts_used:
+      type: array
+      items:
+        type: string
+    confidence:
+      type: string
+      enum: [high, medium, low]
+    metadata:
+      type: object
+      properties:
+        files_scanned:
+          type: integer
+        resources_evaluated:
+          type: integer
+        frameworks_detected:
+          type: array
+          items:
+            type: string
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true

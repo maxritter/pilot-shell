@@ -1,0 +1,143 @@
+facts_schema_version: "0.1"
+
+# The internal fact model is the bridge between scanner outputs, skill outputs,
+# and the policy engine. Rules evaluate facts, not raw scanner blobs.
+# This keeps provider-specific output formats out of the policy layer.
+
+facts:
+  # Finding facts — populated from normalized finding/v1 records
+  finding.id:
+    type: string
+    description: "Unique finding identifier"
+    example: "finding-001"
+
+  finding.type:
+    type: string
+    description: "Normalized finding type"
+    enum:
+      - public_bucket
+      - open_port
+      - hardcoded_secret
+      - insecure_dependency
+      - iac_misconfiguration
+      - sast_vulnerability
+      - policy_violation
+      - exposed_pii
+      - privilege_escalation
+      - supply_chain_risk
+    source: "normalization.yaml#kind.finding_types"
+
+  finding.severity:
+    type: string
+    enum: [low, medium, high, critical]
+    source: "normalization.yaml#severity.values"
+
+  finding.confidence:
+    type: string
+    enum: [low, medium, high]
+
+  finding.path:
+    type: string
+    description: "File path where the finding was detected"
+    example: "infra/s3.tf"
+
+  finding.source.scanner_type:
+    type: string
+    enum: [secrets, deps, iac, sast, custom]
+
+  finding.source.provider:
+    type: string
+    description: "Scanner tool that produced the finding"
+    example: "checkov"
+
+  finding.source.rule_id:
+    type: string
+    example: "CKV_AWS_20"
+
+  finding.package.name:
+    type: string
+    description: "Package name (dep-analysis findings)"
+
+  finding.package.version:
+    type: string
+    description: "Installed package version"
+
+  finding.package.ecosystem:
+    type: string
+    enum: [npm, pypi, go, cargo, maven, rubygems, nuget, unknown]
+
+  finding.network.exposure:
+    type: string
+    enum: [public, internal, none, unknown]
+
+  finding.secret.kind:
+    type: string
+    enum:
+      - api_key
+      - private_key
+      - password
+      - token
+      - certificate
+      - connection_string
+      - oauth_credential
+      - cloud_credential
+      - generic_secret
+
+  finding.is_new_in_diff:
+    type: boolean
+    description: "True if the finding was introduced by the current change"
+
+  # Policy context facts — populated by the agent at runtime
+  policy.context.environment:
+    type: string
+    description: "Deployment environment"
+    example: "staging"
+
+  policy.context.fail_on:
+    type: string
+    enum: [low, medium, high, critical]
+    description: "Minimum severity that triggers a non-allow decision"
+
+  # Git facts — populated from git context
+  git.branch:
+    type: string
+    example: "main"
+
+  git.base_ref:
+    type: string
+    example: "origin/main"
+
+  git.head_ref:
+    type: string
+
+  # Session facts — populated by the session context
+  session.actor:
+    type: string
+    description: "GitHub username or CI service account"
+    example: "esteban"
+
+  session.is_ci:
+    type: boolean
+
+  # Run facts — populated by the agent
+  run.command:
+    type: string
+    enum: [scan, deploy, pr, release, run]
+    description: "The triggering action being evaluated"
+
+condition_operators:
+  - equals
+  - not_equals
+  - in
+  - not_in
+  - contains
+  - regex
+  - gt
+  - gte
+  - lt
+  - lte
+
+logical_combinators:
+  - all
+  - any
+  - none

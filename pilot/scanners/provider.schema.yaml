@@ -1,0 +1,142 @@
+provider_schema_version: "0.1"
+
+# Schema for scanner provider configuration entries.
+# Each scanner type (secrets, deps, iac, sast) has a provider block
+# that declares which tool fulfills it, how it runs, how failures are handled,
+# and what normalized schema it emits.
+#
+# Provider configs are consumed by scanner adapter code and by agents
+# that invoke scanners. Vendor-specific flags go in args or a separate
+# config_file to keep the main config readable.
+
+schema:
+  type: object
+  required:
+    - provider
+    - mode
+    - normalize_to
+  properties:
+
+    provider:
+      type: string
+      description: "Tool name; must match an installed adapter"
+      examples: [gitleaks, osv, checkov, semgrep, trufflehog, trivy, tfsec]
+
+    mode:
+      type: string
+      enum: [blocking, advisory]
+      description: |
+        blocking: findings at or above the configured threshold halt the event
+        advisory: findings are reported but do not halt
+
+    timeout_seconds:
+      type: integer
+      minimum: 10
+      maximum: 600
+      default: 120
+
+    config_file:
+      type: string
+      description: "Path to provider-specific config file (e.g. .gitleaks.toml)"
+
+    normalize_to:
+      type: string
+      const: "finding/v1"
+      description: "All providers must normalize output to finding/v1"
+
+    paths:
+      type: array
+      items:
+        type: string
+      description: "Directories or file globs to scan; overrides global scope"
+
+    lockfiles:
+      type: array
+      items:
+        type: string
+      description: "Specific lockfiles for dep scanners"
+
+    rulesets:
+      type: array
+      items:
+        type: string
+      description: "Named rulesets for SAST scanners"
+
+    args:
+      type: object
+      description: "Provider-specific flags; see per-provider docs below"
+      additionalProperties: true
+
+    on_error:
+      type: object
+      properties:
+        strategy:
+          type: string
+          enum: [fail-closed, fail-open, warn]
+          default: fail-closed
+          description: |
+            fail-closed: treat scanner failure as a blocking error
+            fail-open: skip scanner results and continue
+            warn: emit a warning but allow the event to proceed
+        message:
+          type: string
+          description: "Message emitted when error strategy is triggered"
+
+# Per-provider args documentation:
+#
+# gitleaks:
+#   redact: bool        — redact secret values in report
+#   staged: bool        — scan staged files only (pre-commit mode)
+#   baseline: string    — path to baseline report to diff against
+#
+# trufflehog:
+#   only_verified: bool — only emit verified (live) secrets
+#   json: bool          — json output (required for normalization)
+#
+# osv:
+#   include_transitive: bool  — include transitive deps
+#   ignore_file: string       — path to .osv-ignore
+#
+# snyk:
+#   severity_threshold: string — low | medium | high | critical
+#   all_projects: bool
+#
+# checkov:
+#   framework: [terraform, kubernetes, dockerfile, bicep, cloudformation]
+#   skip_check: [CKV_AWS_20, ...]  — rules to suppress (prefer waivers)
+#   external_checks_dir: string
+#
+# tfsec:
+#   exclude: [aws-s3-*]
+#   config_file: string
+#
+# semgrep:
+#   config: [auto, p/security-audit, p/secrets]
+#   exclude: [tests/, fixtures/]
+#
+# trivy:
+#   scanners: [vuln, secret, config]
+#   severity: [HIGH, CRITICAL]
+#   ignore_unfixed: bool
+
+# Registered scanner types and their expected provider capabilities:
+#
+# secrets:
+#   purpose: detect credentials, keys, and tokens in code and history
+#   recommended_providers: [gitleaks, trufflehog]
+#   output_types: [hardcoded_secret]
+#
+# deps:
+#   purpose: identify vulnerable or malicious dependencies
+#   recommended_providers: [osv, snyk, trivy]
+#   output_types: [insecure_dependency, supply_chain_risk]
+#
+# iac:
+#   purpose: detect misconfigurations in infrastructure-as-code
+#   recommended_providers: [checkov, tfsec, trivy]
+#   output_types: [iac_misconfiguration, public_bucket, open_port, privilege_escalation]
+#
+# sast:
+#   purpose: detect source code vulnerabilities
+#   recommended_providers: [semgrep, codeql]
+#   output_types: [sast_vulnerability, exposed_pii]

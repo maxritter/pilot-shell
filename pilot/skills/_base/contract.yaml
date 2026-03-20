@@ -1,0 +1,94 @@
+skill_contract_version: "0.1"
+
+# Base contract inherited by all skills.
+# Each skill MUST declare its own id, category, version, and description,
+# then specialize input_schema, output_schema, and execution constraints.
+#
+# Dependency rule: agents call skills; skills NEVER call agents.
+# This keeps the dependency graph acyclic.
+
+execution:
+  mode: "read-only"               # read-only | bounded-write
+  timeout_seconds: 120
+  max_tool_calls: 6
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+  bash_constraints:
+    deny_destructive: true
+    allowlist: []                  # each skill adds its own safe commands
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - scope
+    - artifacts
+  properties:
+    objective:
+      type: string
+      description: "What the skill must determine or produce"
+    scope:
+      type: array
+      items:
+        type: string
+      description: "Paths, patterns, or identifiers bounding the analysis"
+    artifacts:
+      type: array
+      items:
+        type: string
+      description: "Files, refs, or prior skill outputs available as input"
+    constraints:
+      type: object
+      description: "Optional caller-imposed limits (e.g. severity_threshold)"
+    context:
+      type: object
+      description: "Optional ambient metadata (branch, actor, environment)"
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - findings
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      description: "Skill id that produced this output"
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+      description: "One or two sentence narrative of what was found"
+    findings:
+      type: array
+      items:
+        type: object
+      description: "Structured finding records; schema specialized per skill"
+    artifacts_used:
+      type: array
+      items:
+        type: string
+      description: "Exact paths or refs consumed during execution"
+    confidence:
+      type: string
+      enum: [high, medium, low]
+    metadata:
+      type: object
+      description: "Optional: timing, tool versions, counts"
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true
+
+normalization:
+  # All skills MUST use these shared vocabularies.
+  # Do not invent local severity or confidence labels.
+  severity_scale: [low, medium, high, critical]
+  confidence_scale: [low, medium, high]
+  decision_scale: [allow, warn, block, investigate]

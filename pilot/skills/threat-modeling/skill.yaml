@@ -1,0 +1,164 @@
+skill_contract_version: "0.1"
+extends: "../_base/contract.yaml"
+
+skill:
+  id: "threat-modeling"
+  category: "analysis"
+  version: "0.1"
+  description: "Identify assets, trust boundaries, entry points, and abuse cases from code and config"
+
+execution:
+  mode: "read-only"
+  timeout_seconds: 180
+  max_tool_calls: 12
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+  bash_constraints:
+    deny_destructive: true
+    allowlist:
+      - git diff
+      - git show
+      - git log
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - scope
+    - artifacts
+  properties:
+    objective:
+      type: string
+    scope:
+      type: array
+      items:
+        type: string
+    artifacts:
+      type: array
+      items:
+        type: string
+      description: "Changed surfaces output from diff-analysis, file paths, or architecture docs"
+    constraints:
+      type: object
+      properties:
+        focus:
+          type: array
+          items:
+            type: string
+            enum: [auth, network, data, supply-chain, infra, ci]
+    context:
+      type: object
+      properties:
+        environment:
+          type: string
+        actor:
+          type: string
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - assets
+    - trust_boundaries
+    - entry_points
+    - abuse_cases
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      const: "threat-modeling"
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+    assets:
+      type: array
+      items:
+        type: object
+        required: [id, name, sensitivity]
+        properties:
+          id:
+            type: string
+          name:
+            type: string
+          sensitivity:
+            type: string
+            enum: [low, medium, high, critical]
+          description:
+            type: string
+    trust_boundaries:
+      type: array
+      items:
+        type: object
+        required: [id, from, to, crossing_mechanism]
+        properties:
+          id:
+            type: string
+          from:
+            type: string
+          to:
+            type: string
+          crossing_mechanism:
+            type: string
+          risk_hint:
+            type: string
+            enum: [low, medium, high, critical]
+    entry_points:
+      type: array
+      items:
+        type: object
+        required: [id, path, kind, authentication]
+        properties:
+          id:
+            type: string
+          path:
+            type: string
+          kind:
+            type: string
+            enum: [http, rpc, cli, file, event, webhook, ci-trigger]
+          authentication:
+            type: string
+            enum: [none, token, oauth, mtls, iam, unknown]
+          authorization:
+            type: string
+    abuse_cases:
+      type: array
+      items:
+        type: object
+        required: [id, title, actor, technique, target_asset, severity]
+        properties:
+          id:
+            type: string
+          title:
+            type: string
+          actor:
+            type: string
+            enum: [external, insider, ci-pipeline, dependency, unknown]
+          technique:
+            type: string
+          target_asset:
+            type: string
+          severity:
+            type: string
+            enum: [low, medium, high, critical]
+          mitigations:
+            type: array
+            items:
+              type: string
+    artifacts_used:
+      type: array
+      items:
+        type: string
+    confidence:
+      type: string
+      enum: [high, medium, low]
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true

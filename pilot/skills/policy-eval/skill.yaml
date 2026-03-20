@@ -1,0 +1,151 @@
+skill_contract_version: "0.1"
+extends: "../_base/contract.yaml"
+
+skill:
+  id: "policy-eval"
+  category: "evaluation"
+  version: "0.1"
+  description: "Map evidence (normalized findings and facts) to policy decisions"
+
+execution:
+  mode: "read-only"
+  timeout_seconds: 60
+  max_tool_calls: 4
+  allowed_tools:
+    - Read
+    - Glob
+  bash_constraints:
+    deny_destructive: true
+    allowlist: []
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - artifacts
+    - policy_context
+  properties:
+    objective:
+      type: string
+    scope:
+      type: array
+      items:
+        type: string
+    artifacts:
+      type: array
+      items:
+        type: string
+      description: "Normalized finding/v1 records or prior skill outputs"
+    policy_context:
+      type: object
+      required:
+        - environment
+        - branch
+        - actor
+        - packs
+      properties:
+        environment:
+          type: string
+        branch:
+          type: string
+        actor:
+          type: string
+        packs:
+          type: array
+          items:
+            type: string
+          description: "Policy pack paths to load (e.g. policies/default)"
+        waivers_file:
+          type: string
+        fail_on:
+          type: string
+          enum: [low, medium, high, critical]
+    constraints:
+      type: object
+    context:
+      type: object
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - decision
+    - failed_rules
+    - waivers_applied
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      const: "policy-eval"
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+    decision:
+      type: string
+      enum: [allow, warn, block, investigate]
+    failed_rules:
+      type: array
+      items:
+        type: object
+        required: [rule_id, title, severity, finding_ref, effect]
+        properties:
+          rule_id:
+            type: string
+          title:
+            type: string
+          severity:
+            type: string
+            enum: [low, medium, high, critical]
+          finding_ref:
+            type: string
+          effect:
+            type: string
+            enum: [allow, warn, block]
+          message:
+            type: string
+    waivers_applied:
+      type: array
+      items:
+        type: object
+        required: [waiver_id, rule_id, reason, expires_at]
+        properties:
+          waiver_id:
+            type: string
+          rule_id:
+            type: string
+          reason:
+            type: string
+          approved_by:
+            type: string
+          expires_at:
+            type: string
+    passed_rules:
+      type: array
+      items:
+        type: object
+    artifacts_used:
+      type: array
+      items:
+        type: string
+    confidence:
+      type: string
+      enum: [high, medium, low]
+    metadata:
+      type: object
+      properties:
+        rules_evaluated:
+          type: integer
+        waivers_checked:
+          type: integer
+        pack_sources:
+          type: array
+          items:
+            type: string
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true

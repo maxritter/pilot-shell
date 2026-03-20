@@ -1,0 +1,130 @@
+skill_contract_version: "0.1"
+extends: "../_base/contract.yaml"
+
+skill:
+  id: "dep-analysis"
+  category: "analysis"
+  version: "0.1"
+  description: "Identify vulnerable, malicious, or policy-violating dependencies"
+
+execution:
+  mode: "read-only"
+  timeout_seconds: 120
+  max_tool_calls: 8
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+  bash_constraints:
+    deny_destructive: true
+    allowlist:
+      - git diff
+      - git show
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - scope
+    - artifacts
+  properties:
+    objective:
+      type: string
+    scope:
+      type: array
+      items:
+        type: string
+    artifacts:
+      type: array
+      items:
+        type: string
+      description: "Lockfiles, manifest files, or osv/snyk report paths"
+    constraints:
+      type: object
+      properties:
+        severity_threshold:
+          type: string
+          enum: [low, medium, high, critical]
+        include_transitive:
+          type: boolean
+          default: true
+        changed_only:
+          type: boolean
+          description: "Only evaluate deps that changed in the diff"
+    context:
+      type: object
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - findings
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      const: "dep-analysis"
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+    findings:
+      type: array
+      items:
+        type: object
+        required: [id, package_name, installed_version, severity, vuln_id, title]
+        properties:
+          id:
+            type: string
+          package_name:
+            type: string
+          installed_version:
+            type: string
+          fixed_version:
+            type: string
+          severity:
+            type: string
+            enum: [low, medium, high, critical]
+          vuln_id:
+            type: string
+            description: "CVE, GHSA, or OSV identifier"
+          title:
+            type: string
+          cwe:
+            type: array
+            items:
+              type: string
+          is_transitive:
+            type: boolean
+          introduced_by:
+            type: string
+            description: "Direct dep that pulls in this transitive dep"
+          is_new_in_diff:
+            type: boolean
+          remediation:
+            type: string
+          ecosystem:
+            type: string
+            enum: [npm, pypi, go, cargo, maven, rubygems, nuget, unknown]
+    artifacts_used:
+      type: array
+      items:
+        type: string
+    confidence:
+      type: string
+      enum: [high, medium, low]
+    metadata:
+      type: object
+      properties:
+        packages_evaluated:
+          type: integer
+        new_deps_in_diff:
+          type: integer
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true

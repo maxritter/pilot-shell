@@ -1,0 +1,169 @@
+rule_schema_version: "0.1"
+
+# Schema for individual policy rules.
+# Rules evaluate normalized facts (see facts.schema.yaml) and emit a decision.
+# Rules must not reference raw scanner output formats.
+#
+# Rules are organized into policy packs (directories).
+# The policy-eval skill loads packs and evaluates all applicable rules.
+
+schema:
+  type: object
+  required:
+    - id
+    - title
+    - severity
+    - applies_to
+    - match
+    - decision
+  properties:
+
+    id:
+      type: string
+      description: "Unique rule identifier, kebab-case"
+      pattern: "^[a-z][a-z0-9-]+$"
+      example: "no-public-storage"
+
+    title:
+      type: string
+      description: "Short human-readable rule name"
+      example: "Disallow public object storage"
+
+    description:
+      type: string
+      description: "Full description of what this rule enforces and why"
+
+    severity:
+      type: string
+      enum: [low, medium, high, critical]
+      description: "Inherent severity if this rule fires"
+
+    applies_to:
+      type: object
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            type: string
+            enum: [scan, run, deploy, pr, release]
+          description: "Which trigger events activate this rule"
+        targets:
+          type: array
+          items:
+            type: string
+            enum: [iac, secrets, deps, sast, code, ci, any]
+          description: "Which finding source types this rule applies to"
+        environments:
+          type: array
+          items:
+            type: string
+          description: "Restrict rule to these environments; empty = all"
+
+    match:
+      type: object
+      description: "Condition tree evaluated against facts"
+      oneOf:
+        - required: [all]
+          properties:
+            all:
+              type: array
+              items:
+                $ref: "#/definitions/condition"
+        - required: [any]
+          properties:
+            any:
+              type: array
+              items:
+                $ref: "#/definitions/condition"
+        - required: [none]
+          properties:
+            none:
+              type: array
+              items:
+                $ref: "#/definitions/condition"
+
+    decision:
+      type: object
+      required:
+        - effect
+      properties:
+        effect:
+          type: string
+          enum: [allow, warn, block]
+          description: "Effect if the rule matches"
+        message:
+          type: string
+          description: "Human-readable explanation shown in policy-eval output"
+
+    remediation:
+      type: object
+      properties:
+        guidance:
+          type: array
+          items:
+            type: string
+          description: "Ordered steps to resolve the violation"
+        reference:
+          type: string
+          description: "Link to internal runbook or external docs"
+
+    metadata:
+      type: object
+      properties:
+        tags:
+          type: array
+          items:
+            type: string
+        cwe:
+          type: array
+          items:
+            type: string
+        mitre_attack:
+          type: string
+
+definitions:
+  condition:
+    type: object
+    required:
+      - fact
+      - op
+      - value
+    properties:
+      fact:
+        type: string
+        description: "Fact path from facts.schema.yaml (e.g. finding.severity)"
+      op:
+        type: string
+        enum: [equals, not_equals, in, not_in, contains, regex, gt, gte, lt, lte]
+      value:
+        description: "Scalar, array, or regex string depending on op"
+
+# Example rule conforming to this schema:
+#
+# id: "no-public-storage"
+# title: "Disallow public object storage"
+# description: "Prevent public exposure of storage buckets in managed environments"
+# severity: "high"
+# applies_to:
+#   events: [scan, deploy, pr]
+#   targets: [iac]
+#   environments: [staging, prod]
+# match:
+#   all:
+#     - fact: "finding.type"
+#       op: "equals"
+#       value: "public_bucket"
+#     - fact: "policy.context.environment"
+#       op: "in"
+#       value: [staging, prod]
+# decision:
+#   effect: "block"
+#   message: "Public buckets are not allowed outside dev"
+# remediation:
+#   guidance:
+#     - "Set public_access_block = true"
+#     - "Restrict bucket policy principals"
+# metadata:
+#   tags: [storage, exposure]

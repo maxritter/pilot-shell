@@ -1,0 +1,142 @@
+skill_contract_version: "0.1"
+extends: "../_base/contract.yaml"
+
+skill:
+  id: "secret-hygiene"
+  category: "analysis"
+  version: "0.1"
+  description: "Detect, classify, and assess exposure of secrets in code and config"
+
+execution:
+  mode: "read-only"
+  timeout_seconds: 120
+  max_tool_calls: 8
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+  bash_constraints:
+    deny_destructive: true
+    allowlist:
+      - git log
+      - git show
+      - git diff
+      - git grep
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - scope
+    - artifacts
+  properties:
+    objective:
+      type: string
+    scope:
+      type: array
+      items:
+        type: string
+    artifacts:
+      type: array
+      items:
+        type: string
+    constraints:
+      type: object
+      properties:
+        check_history:
+          type: boolean
+          description: "Whether to search git history, not just working tree"
+        redact_values:
+          type: boolean
+          default: true
+    context:
+      type: object
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - findings
+    - exposure_assessment
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      const: "secret-hygiene"
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+    findings:
+      type: array
+      items:
+        type: object
+        required: [id, kind, severity, path, redacted_value, confidence]
+        properties:
+          id:
+            type: string
+          kind:
+            type: string
+            enum:
+              - api_key
+              - private_key
+              - password
+              - token
+              - certificate
+              - connection_string
+              - oauth_credential
+              - cloud_credential
+              - generic_secret
+          severity:
+            type: string
+            enum: [low, medium, high, critical]
+          path:
+            type: string
+          line:
+            type: integer
+          redacted_value:
+            type: string
+            description: "Partial value with center masked, e.g. ghp_xxxx...xxxx"
+          confidence:
+            type: string
+            enum: [high, medium, low]
+          in_history:
+            type: boolean
+            description: "True if found in git history rather than current tree"
+          commit_ref:
+            type: string
+    exposure_assessment:
+      type: object
+      required: [likely_live, locations, revoke_guidance]
+      properties:
+        likely_live:
+          type: boolean
+          description: "Best-effort assessment of whether the secret is still active"
+        locations:
+          type: array
+          items:
+            type: string
+          description: "All paths or refs where the secret appears"
+        revoke_guidance:
+          type: array
+          items:
+            type: string
+          description: "Ordered steps to revoke and rotate the secret"
+        blast_radius:
+          type: string
+          enum: [low, medium, high, critical]
+    artifacts_used:
+      type: array
+      items:
+        type: string
+    confidence:
+      type: string
+      enum: [high, medium, low]
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true

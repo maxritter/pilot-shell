@@ -1,0 +1,136 @@
+skill_contract_version: "0.1"
+extends: "../_base/contract.yaml"
+
+skill:
+  id: "diff-analysis"
+  category: "analysis"
+  version: "0.1"
+  description: "Extract security-relevant change signals from a git diff"
+
+execution:
+  mode: "read-only"
+  timeout_seconds: 120
+  max_tool_calls: 6
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+  bash_constraints:
+    deny_destructive: true
+    allowlist:
+      - git diff
+      - git status
+      - git show
+      - git log
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - scope
+    - artifacts
+  properties:
+    objective:
+      type: string
+    scope:
+      type: array
+      items:
+        type: string
+      description: "File globs or git refs bounding the diff surface"
+    artifacts:
+      type: array
+      items:
+        type: string
+      description: "Specific commit refs, branch names, or diff files"
+    constraints:
+      type: object
+      properties:
+        severity_threshold:
+          type: string
+          enum: [low, medium, high, critical]
+        changed_only:
+          type: boolean
+    context:
+      type: object
+      properties:
+        branch:
+          type: string
+        base_ref:
+          type: string
+        head_ref:
+          type: string
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - changed_surfaces
+    - findings
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      const: "diff-analysis"
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+    changed_surfaces:
+      type: array
+      items:
+        type: object
+        required: [path, kind, risk_hint]
+        properties:
+          path:
+            type: string
+          kind:
+            type: string
+            enum: [code, config, infra, ci, manifest, secret-surface]
+          risk_hint:
+            type: string
+            enum: [low, medium, high, critical]
+          lines_added:
+            type: integer
+          lines_removed:
+            type: integer
+    findings:
+      type: array
+      items:
+        type: object
+        required: [id, severity, title, path]
+        properties:
+          id:
+            type: string
+          severity:
+            type: string
+            enum: [low, medium, high, critical]
+          title:
+            type: string
+          path:
+            type: string
+          detail:
+            type: string
+    artifacts_used:
+      type: array
+      items:
+        type: string
+    confidence:
+      type: string
+      enum: [high, medium, low]
+    metadata:
+      type: object
+      properties:
+        files_changed:
+          type: integer
+        base_ref:
+          type: string
+        head_ref:
+          type: string
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true

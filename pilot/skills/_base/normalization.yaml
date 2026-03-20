@@ -1,0 +1,58 @@
+normalization_version: "0.1"
+
+# Shared vocabulary enforced across all skills.
+# Agents consume multiple skill outputs; without this shared vocabulary
+# they would need translation glue between every skill pair.
+# These are the ONLY valid values for their respective fields.
+
+severity:
+  values: [low, medium, high, critical]
+  mapping:
+    # Common upstream scanner mappings -> canonical
+    info: low
+    note: low
+    warning: medium
+    error: high
+    blocker: critical
+    # CVSS rough bands
+    cvss_0_3: low
+    cvss_4_6: medium
+    cvss_7_8: high
+    cvss_9_10: critical
+
+confidence:
+  values: [low, medium, high]
+  guidance:
+    high: "Direct evidence; deterministic match"
+    medium: "Strong indicator; may require confirmation"
+    low: "Heuristic or indirect signal; treat as advisory"
+
+decision:
+  values: [allow, warn, block, investigate]
+  semantics:
+    allow: "No action required; proceed"
+    warn: "Flag for human review but do not halt"
+    block: "Halt the triggering event (deploy, merge, run)"
+    investigate: "Escalate; requires human triage before decision"
+
+kind:
+  # Used in changed_surfaces.kind and finding.type groupings
+  surface_kinds: [code, config, infra, ci, manifest, secret-surface]
+  finding_types:
+    - public_bucket
+    - open_port
+    - hardcoded_secret
+    - insecure_dependency
+    - iac_misconfiguration
+    - sast_vulnerability
+    - policy_violation
+    - exposed_pii
+    - privilege_escalation
+    - supply_chain_risk
+
+evidence_reference:
+  # How findings link back to raw scanner output
+  format: "<report_path>#<rule_id_or_line>"
+  example: ".pilot-sec/reports/checkov.json#CKV_AWS_20"
+
+finding_schema_ref: "scanners/finding.schema.yaml"

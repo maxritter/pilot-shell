@@ -1,0 +1,119 @@
+waiver_schema_version: "0.1"
+
+# Schema for policy waivers.
+# Waivers are time-bounded, scoped exceptions to specific rules.
+# They must be attributable (approved_by), explainable (reason), and expiring.
+#
+# The policy-eval skill loads waivers from the configured waivers_file,
+# filters to non-expired, in-scope entries, and applies them before
+# determining the final decision.
+#
+# Expired waivers are NOT applied but are noted in policy-eval metadata.
+
+schema:
+  type: object
+  required:
+    - id
+    - rule_id
+    - scope
+    - reason
+    - approved_by
+    - expires_at
+  properties:
+
+    id:
+      type: string
+      description: "Unique waiver identifier"
+      pattern: "^waiver-[0-9]+$"
+      example: "waiver-001"
+
+    rule_id:
+      type: string
+      description: "The rule id being waived (must match rule.schema.yaml#id)"
+      example: "no-public-storage"
+
+    scope:
+      type: object
+      description: "Boundaries within which this waiver applies"
+      properties:
+        paths:
+          type: array
+          items:
+            type: string
+          description: "File path globs this waiver covers"
+        environments:
+          type: array
+          items:
+            type: string
+          description: "Environments this waiver is valid in; empty = all"
+        branches:
+          type: array
+          items:
+            type: string
+          description: "Git branch patterns this waiver applies to"
+        actors:
+          type: array
+          items:
+            type: string
+          description: "Specific actors (users, bots) this waiver is tied to"
+
+    reason:
+      type: string
+      description: "Justification for the exception; must be substantive"
+      minLength: 20
+
+    approved_by:
+      type: string
+      description: "Username of the person who authorized this waiver"
+      example: "esteban"
+
+    approved_at:
+      type: string
+      format: date-time
+      description: "ISO 8601 timestamp when the waiver was approved"
+
+    expires_at:
+      type: string
+      format: date-time
+      description: "ISO 8601 timestamp when the waiver expires; required"
+      example: "2026-06-30T00:00:00Z"
+
+    review_before:
+      type: string
+      format: date-time
+      description: "Optional earlier date to prompt review before expiry"
+
+    metadata:
+      type: object
+      properties:
+        ticket:
+          type: string
+          description: "Issue or ticket reference (e.g. JIRA-1234)"
+        notes:
+          type: string
+
+# Example waivers file conforming to this schema:
+#
+# waivers:
+#   - id: "waiver-001"
+#     rule_id: "no-public-storage"
+#     scope:
+#       paths: ["infra/dev/public-assets.tf"]
+#       environments: ["dev"]
+#     reason: "Temporary public asset hosting during migration to CloudFront"
+#     approved_by: "esteban"
+#     approved_at: "2026-01-15T12:00:00Z"
+#     expires_at: "2026-06-30T00:00:00Z"
+#     metadata:
+#       ticket: "INFRA-442"
+#
+#   - id: "waiver-002"
+#     rule_id: "no-open-ssh"
+#     scope:
+#       paths: ["infra/bastion.tf"]
+#       environments: ["staging"]
+#     reason: "Bastion host requires SSH access from VPN range; VPN CIDR restriction applied separately"
+#     approved_by: "security-team"
+#     approved_at: "2026-02-01T09:00:00Z"
+#     expires_at: "2026-04-01T00:00:00Z"
+#     review_before: "2026-03-15T00:00:00Z"

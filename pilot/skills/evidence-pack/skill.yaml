@@ -1,0 +1,149 @@
+skill_contract_version: "0.1"
+extends: "../_base/contract.yaml"
+
+skill:
+  id: "evidence-pack"
+  category: "collection"
+  version: "0.1"
+  description: "Collect and normalize evidence for release gates or audit records"
+
+execution:
+  mode: "read-only"
+  timeout_seconds: 180
+  max_tool_calls: 16
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+  bash_constraints:
+    deny_destructive: true
+    allowlist:
+      - git log
+      - git show
+      - git diff
+      - git rev-parse
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - scope
+    - artifacts
+  properties:
+    objective:
+      type: string
+    scope:
+      type: array
+      items:
+        type: string
+    artifacts:
+      type: array
+      items:
+        type: string
+      description: "Skill output files, scanner reports, CI log paths, or git refs"
+    constraints:
+      type: object
+      properties:
+        required_evidence_kinds:
+          type: array
+          items:
+            type: string
+            enum:
+              - secret-scan
+              - dep-scan
+              - iac-scan
+              - sast-scan
+              - policy-decision
+              - test-results
+              - threat-model
+        min_confidence:
+          type: string
+          enum: [low, medium, high]
+    context:
+      type: object
+      properties:
+        release_ref:
+          type: string
+        environment:
+          type: string
+        actor:
+          type: string
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - evidence
+    - missing_evidence
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      const: "evidence-pack"
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+    evidence:
+      type: array
+      items:
+        type: object
+        required: [id, kind, source, status, confidence, ref]
+        properties:
+          id:
+            type: string
+          kind:
+            type: string
+            enum:
+              - secret-scan
+              - dep-scan
+              - iac-scan
+              - sast-scan
+              - policy-decision
+              - test-results
+              - threat-model
+          source:
+            type: string
+          status:
+            type: string
+            enum: [passed, failed, partial, missing]
+          confidence:
+            type: string
+            enum: [high, medium, low]
+          ref:
+            type: string
+            description: "Path or identifier of the underlying artifact"
+          summary:
+            type: string
+          produced_at:
+            type: string
+            format: date-time
+    missing_evidence:
+      type: array
+      items:
+        type: string
+      description: "Kinds of evidence required but not found"
+    artifacts_used:
+      type: array
+      items:
+        type: string
+    confidence:
+      type: string
+      enum: [high, medium, low]
+    metadata:
+      type: object
+      properties:
+        release_ref:
+          type: string
+        evidence_count:
+          type: integer
+        missing_count:
+          type: integer
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true

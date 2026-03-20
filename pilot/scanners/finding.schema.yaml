@@ -1,0 +1,229 @@
+finding_schema_version: "0.1"
+schema_id: "finding/v1"
+
+# Normalized finding record.
+# Every scanner provider adapter MUST emit records conforming to this schema
+# regardless of the raw tool output format. This is what skills consume,
+# what the policy engine evaluates, and what audit records store.
+#
+# The schema_id "finding/v1" is the value of normalize_to in provider.schema.yaml.
+
+schema:
+  type: object
+  required:
+    - schema
+    - id
+    - source
+    - severity
+    - type
+    - title
+    - location
+  properties:
+
+    schema:
+      type: string
+      const: "finding/v1"
+      description: "Schema identifier; always finding/v1"
+
+    id:
+      type: string
+      description: "Unique finding id within the run; stable across identical findings"
+      example: "finding-001"
+
+    source:
+      type: object
+      required:
+        - scanner_type
+        - provider
+      properties:
+        scanner_type:
+          type: string
+          enum: [secrets, deps, iac, sast, custom]
+        provider:
+          type: string
+          description: "Tool that produced the finding"
+          example: "checkov"
+        rule_id:
+          type: string
+          description: "Provider-native rule identifier"
+          example: "CKV_AWS_20"
+        run_ref:
+          type: string
+          description: "Path or identifier of the raw scanner report"
+          example: ".pilot-sec/reports/checkov.json"
+
+    severity:
+      type: string
+      enum: [low, medium, high, critical]
+      description: "Normalized severity; see normalization.yaml#severity"
+
+    type:
+      type: string
+      description: "Normalized finding type"
+      enum:
+        - public_bucket
+        - open_port
+        - hardcoded_secret
+        - insecure_dependency
+        - iac_misconfiguration
+        - sast_vulnerability
+        - policy_violation
+        - exposed_pii
+        - privilege_escalation
+        - supply_chain_risk
+
+    title:
+      type: string
+      description: "Short description of the finding"
+
+    description:
+      type: string
+      description: "Full detail from the scanner"
+
+    location:
+      type: object
+      required:
+        - path
+      properties:
+        path:
+          type: string
+          description: "Relative file path where the finding was detected"
+        line:
+          type: integer
+        column:
+          type: integer
+        snippet:
+          type: string
+          description: "Code or config context; secrets must be redacted here"
+
+    resource:
+      type: object
+      description: "IaC or cloud resource context (iac, cloud findings)"
+      properties:
+        kind:
+          type: string
+          example: "aws_s3_bucket"
+        name:
+          type: string
+          example: "public_assets"
+        id:
+          type: string
+
+    package:
+      type: object
+      description: "Package context (dep findings)"
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        ecosystem:
+          type: string
+          enum: [npm, pypi, go, cargo, maven, rubygems, nuget, unknown]
+        fixed_version:
+          type: string
+        vuln_id:
+          type: string
+          description: "CVE, GHSA, or OSV identifier"
+
+    secret:
+      type: object
+      description: "Secret context (secrets findings)"
+      properties:
+        kind:
+          type: string
+          enum:
+            - api_key
+            - private_key
+            - password
+            - token
+            - certificate
+            - connection_string
+            - oauth_credential
+            - cloud_credential
+            - generic_secret
+        redacted_value:
+          type: string
+          description: "Partial value with center masked"
+        in_history:
+          type: boolean
+
+    network:
+      type: object
+      description: "Network context (iac, cloud findings)"
+      properties:
+        exposure:
+          type: string
+          enum: [public, internal, none, unknown]
+        port:
+          type: integer
+        protocol:
+          type: string
+
+    evidence:
+      type: object
+      properties:
+        message:
+          type: string
+        raw_ref:
+          type: string
+          description: "Pointer into the raw report, e.g. .pilot-sec/reports/checkov.json#CKV_AWS_20"
+
+    remediation:
+      type: object
+      properties:
+        guidance:
+          type: array
+          items:
+            type: string
+        reference:
+          type: string
+
+    confidence:
+      type: string
+      enum: [high, medium, low]
+
+    is_new_in_diff:
+      type: boolean
+      description: "True if this finding was introduced by the current change"
+
+    metadata:
+      type: object
+      properties:
+        cwe:
+          type: array
+          items:
+            type: string
+        mitre_attack:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+# Example normalized finding:
+#
+# schema: "finding/v1"
+# id: "finding-001"
+# source:
+#   scanner_type: "iac"
+#   provider: "checkov"
+#   rule_id: "CKV_AWS_20"
+#   run_ref: ".pilot-sec/reports/checkov.json"
+# severity: "high"
+# type: "public_bucket"
+# title: "S3 bucket allows public read access"
+# location:
+#   path: "infra/s3.tf"
+#   line: 42
+# resource:
+#   kind: "aws_s3_bucket"
+#   name: "public_assets"
+# evidence:
+#   message: "Public ACL detected"
+#   raw_ref: ".pilot-sec/reports/checkov.json#CKV_AWS_20"
+# remediation:
+#   guidance:
+#     - "Disable public ACL"
+# confidence: "high"
+# is_new_in_diff: true
