@@ -1,0 +1,164 @@
+# facts.schema.yaml
+# The canonical fact model used by the policy engine.
+# Rules reference facts by name. Skill outputs and scanner adapters must map to these facts.
+# This is the bridge between scanners, agents, and policy — no raw tool output in rules.
+
+version: "0.1"
+
+facts:
+  # ─── Finding facts ───────────────────────────────────────────────────────────
+  finding.type:
+    type: string
+    description: "Normalized finding kind (e.g. public_bucket, hardcoded_secret, vuln_dep)"
+    source: "scanner adapter or skill output"
+
+  finding.severity:
+    type: string
+    enum: [low, medium, high, critical]
+    description: "Normalized severity from normalization.yaml scale"
+    source: "scanner adapter or skill output"
+
+  finding.confidence:
+    type: string
+    enum: [low, medium, high]
+    description: "Confidence in the finding"
+    source: "skill output"
+
+  finding.path:
+    type: string
+    description: "File path where the finding was detected"
+    source: "scanner adapter or skill output"
+
+  finding.line:
+    type: integer
+    description: "Line number within the file"
+    source: "scanner adapter"
+
+  finding.kind:
+    type: string
+    description: "Surface kind (code | config | infra | iac | ci | manifest | secret-surface | dependency | workflow)"
+    source: "diff-analysis or scanner adapter"
+
+  # ─── Package / dependency facts ──────────────────────────────────────────────
+  finding.package.name:
+    type: string
+    description: "Package name for dependency findings"
+    source: "dep-analysis skill"
+
+  finding.package.version:
+    type: string
+    description: "Affected package version"
+    source: "dep-analysis skill"
+
+  finding.package.ecosystem:
+    type: string
+    description: "npm | pypi | go | maven | cargo | etc."
+    source: "dep-analysis skill"
+
+  finding.package.vuln_id:
+    type: string
+    description: "CVE, GHSA, or OSV identifier"
+    source: "dep-analysis skill"
+
+  # ─── Network / exposure facts ─────────────────────────────────────────────────
+  finding.network.exposure:
+    type: string
+    enum: [public, internal, private]
+    description: "Network exposure level of the affected resource"
+    source: "iac-analysis or attack-surface skill"
+
+  finding.network.ports:
+    type: array
+    items:
+      type: integer
+    description: "Exposed network ports"
+    source: "iac-analysis or attack-surface skill"
+
+  # ─── Secret facts ─────────────────────────────────────────────────────────────
+  finding.secret.kind:
+    type: string
+    description: "api-key | token | password | certificate | private-key | connection-string | generic"
+    source: "secret-hygiene skill"
+
+  finding.secret.likely_live:
+    type: boolean
+    description: "Whether the detected secret is likely still valid"
+    source: "secret-hygiene skill"
+
+  # ─── IAC / resource facts ────────────────────────────────────────────────────
+  finding.resource.kind:
+    type: string
+    description: "IaC resource type (e.g. aws_s3_bucket, Deployment)"
+    source: "iac-analysis skill"
+
+  finding.resource.name:
+    type: string
+    description: "IaC resource name or identifier"
+    source: "iac-analysis skill"
+
+  finding.misconfiguration_type:
+    type: string
+    description: "public-exposure | excessive-permissions | missing-encryption | missing-logging | missing-tls | insecure-default"
+    source: "iac-analysis skill"
+
+  # ─── Project context facts ───────────────────────────────────────────────────
+  project.environment:
+    type: string
+    description: "Current environment (dev | staging | prod)"
+    source: "config or session context"
+
+  project.name:
+    type: string
+    description: "Project identifier"
+    source: "config"
+
+  project.type:
+    type: string
+    description: "application | service | library | infra"
+    source: "config"
+
+  # ─── Git facts ───────────────────────────────────────────────────────────────
+  git.branch:
+    type: string
+    description: "Current branch name"
+    source: "git context"
+
+  git.base_ref:
+    type: string
+    description: "Base ref for diff (e.g. main)"
+    source: "git context"
+
+  git.changed_paths:
+    type: array
+    items:
+      type: string
+    description: "Files changed in the current diff"
+    source: "diff-analysis skill"
+
+  # ─── Session / actor facts ───────────────────────────────────────────────────
+  session.actor:
+    type: string
+    description: "Identity performing the action (user, CI bot, etc.)"
+    source: "session context"
+
+  session.trigger:
+    type: string
+    description: "What triggered the run (pr | deploy | scan | manual)"
+    source: "session context"
+
+  # ─── Run facts ───────────────────────────────────────────────────────────────
+  run.command:
+    type: string
+    description: "The command or action being evaluated"
+    source: "runtime"
+
+  run.mode:
+    type: string
+    enum: [observe, warn, enforce]
+    description: "Current policy enforcement mode"
+    source: "config"
+
+  run.timestamp:
+    type: string
+    description: "ISO 8601 timestamp of the evaluation run"
+    source: "runtime"

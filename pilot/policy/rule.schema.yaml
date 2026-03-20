@@ -1,0 +1,182 @@
+# rule.schema.yaml
+# Defines the structure of a policy rule.
+# Every rule file used by the policy-eval skill must conform to this schema.
+# Rules evaluate normalized facts — never raw scanner output.
+
+version: "0.1"
+
+schema:
+  type: object
+  required:
+    - id
+    - title
+    - severity
+    - applies_to
+    - match
+    - decision
+  properties:
+
+    id:
+      type: string
+      description: "Unique rule identifier (e.g. no-public-storage)"
+      pattern: "^[a-z][a-z0-9-]*$"
+
+    title:
+      type: string
+      description: "Short human-readable rule name"
+
+    description:
+      type: string
+      description: "Explains what the rule prevents and why it matters"
+
+    severity:
+      type: string
+      enum: [low, medium, high, critical]
+      description: "Baseline severity of a violation"
+
+    applies_to:
+      type: object
+      description: "Scopes this rule to specific events and targets"
+      properties:
+        events:
+          type: array
+          items:
+            type: string
+            enum: [scan, run, deploy, pr, release, manual]
+          description: "Which pipeline events trigger this rule"
+        targets:
+          type: array
+          items:
+            type: string
+            enum: [code, config, iac, cloud, ci, deps, secrets, any]
+          description: "Which finding domains this rule applies to"
+
+    match:
+      type: object
+      description: "Condition tree evaluated against the fact model"
+      # Exactly one of: all, any, none, or a single condition
+      properties:
+        all:
+          type: array
+          items:
+            $ref: "#/condition"
+          description: "All conditions must be true (AND)"
+        any:
+          type: array
+          items:
+            $ref: "#/condition"
+          description: "At least one condition must be true (OR)"
+        none:
+          type: array
+          items:
+            $ref: "#/condition"
+          description: "No conditions may be true (NOT)"
+
+    decision:
+      type: object
+      required: [effect, message]
+      properties:
+        effect:
+          type: string
+          enum: [allow, warn, block]
+          description: "allow = pass; warn = advisory; block = halt gated flow"
+        message:
+          type: string
+          description: "Human-readable explanation shown when rule fires"
+        override_severity:
+          type: string
+          enum: [low, medium, high, critical]
+          description: "Override the baseline severity for this specific match"
+
+    remediation:
+      type: object
+      properties:
+        guidance:
+          type: array
+          items:
+            type: string
+          description: "Ordered remediation steps"
+        links:
+          type: array
+          items:
+            type: string
+          description: "Reference URLs for remediation guidance"
+
+    metadata:
+      type: object
+      properties:
+        tags:
+          type: array
+          items:
+            type: string
+        owner:
+          type: string
+        references:
+          type: array
+          items:
+            type: string
+
+# ─── Condition schema ─────────────────────────────────────────────────────────
+condition:
+  type: object
+  required: [fact, op, value]
+  properties:
+    fact:
+      type: string
+      description: "Fact name from facts.schema.yaml (e.g. finding.severity)"
+    op:
+      type: string
+      enum:
+        - equals
+        - not_equals
+        - in
+        - not_in
+        - contains
+        - regex
+        - gt
+        - gte
+        - lt
+        - lte
+        - exists
+        - not_exists
+      description: "Comparison operator"
+    value:
+      description: "Value to compare against (type depends on fact and op)"
+    # Condition trees can be nested
+    all:
+      type: array
+      description: "Nested AND"
+    any:
+      type: array
+      description: "Nested OR"
+    none:
+      type: array
+      description: "Nested NOT"
+
+# ─── Example rule ─────────────────────────────────────────────────────────────
+example:
+  id: "no-public-storage"
+  title: "Disallow public object storage"
+  description: "Prevent public exposure of storage buckets in managed environments"
+  severity: "high"
+  applies_to:
+    events: [scan, run, deploy, pr]
+    targets: [iac, cloud]
+  match:
+    all:
+      - fact: "finding.type"
+        op: "equals"
+        value: "public_bucket"
+      - fact: "project.environment"
+        op: "in"
+        value: [staging, prod]
+  decision:
+    effect: "block"
+    message: "Public buckets are not allowed outside dev"
+  remediation:
+    guidance:
+      - "Set public_access_block = true"
+      - "Restrict bucket policy principals"
+  metadata:
+    tags: [storage, exposure]
+    owner: "security-team"

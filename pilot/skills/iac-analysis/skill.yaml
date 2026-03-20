@@ -1,0 +1,136 @@
+skill_contract_version: "0.1"
+
+skill:
+  id: "iac-analysis"
+  category: "analysis"
+  version: "0.1"
+  description: "Analyze infrastructure-as-code for security misconfigurations"
+
+execution:
+  mode: "read-only"
+  timeout_seconds: 180
+  max_tool_calls: 10
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+  bash_constraints:
+    deny_destructive: true
+    allowlist:
+      - "git diff"
+      - "git show"
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - scope
+    - artifacts
+  properties:
+    objective:
+      type: string
+    scope:
+      type: array
+      items:
+        type: string
+      description: "IaC file paths or directories (terraform, k8s, cloudformation, etc.)"
+    artifacts:
+      type: array
+      items:
+        type: string
+      description: "Checkov/tfsec/kube-score reports, IaC files"
+    constraints:
+      type: object
+      properties:
+        severity_filter:
+          type: string
+          enum: [low, medium, high, critical]
+        frameworks:
+          type: array
+          items:
+            type: string
+          description: "terraform | kubernetes | cloudformation | arm | bicep"
+        changed_only:
+          type: boolean
+          default: true
+    context:
+      type: object
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - findings
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      enum: ["iac-analysis"]
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+    findings:
+      type: array
+      items:
+        type: object
+        required: [id, severity, rule_id, resource_kind, resource_name, path, description]
+        properties:
+          id:
+            type: string
+          severity:
+            type: string
+            enum: [low, medium, high, critical]
+          rule_id:
+            type: string
+            description: "Checkov/tfsec rule ID (e.g. CKV_AWS_20)"
+          resource_kind:
+            type: string
+            description: "aws_s3_bucket | Deployment | SecurityGroup | etc."
+          resource_name:
+            type: string
+          path:
+            type: string
+          line:
+            type: integer
+          description:
+            type: string
+          misconfiguration_type:
+            type: string
+            description: "public-exposure | excessive-permissions | missing-encryption | missing-logging | missing-tls | insecure-default"
+          remediation:
+            type: array
+            items:
+              type: string
+          evidence_ref:
+            type: string
+    exposure_risks:
+      type: array
+      items:
+        type: object
+        properties:
+          resource:
+            type: string
+          exposure_type:
+            type: string
+          severity:
+            type: string
+            enum: [low, medium, high, critical]
+    artifacts_used:
+      type: array
+      items:
+        type: string
+    confidence:
+      type: string
+      enum: [high, medium, low]
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true
+
+normalization:
+  ref: "pilot/skills/_base/normalization.yaml"

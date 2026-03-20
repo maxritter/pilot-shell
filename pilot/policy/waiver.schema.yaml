@@ -1,0 +1,133 @@
+# waiver.schema.yaml
+# Defines the structure of a policy waiver.
+# Waivers are time-bounded, attributable exceptions to specific rules.
+# They must be structured — no loose comments or untracked exceptions.
+# The policy-eval skill checks waivers before emitting a block decision.
+
+version: "0.1"
+
+schema:
+  type: object
+  required: [waivers]
+  properties:
+    waivers:
+      type: array
+      items:
+        type: object
+        required:
+          - id
+          - rule_id
+          - scope
+          - reason
+          - approved_by
+          - expires_at
+        properties:
+
+          id:
+            type: string
+            description: "Unique waiver identifier (e.g. waiver-001)"
+            pattern: "^waiver-[a-z0-9-]+$"
+
+          rule_id:
+            type: string
+            description: "The rule ID this waiver covers (must match a rule in the active pack)"
+
+          scope:
+            type: object
+            description: "Limits where this waiver applies. Narrower is better."
+            properties:
+              paths:
+                type: array
+                items:
+                  type: string
+                description: "File paths or glob patterns where the waiver applies"
+              environments:
+                type: array
+                items:
+                  type: string
+                  enum: [dev, staging, prod, any]
+                description: "Environments where the waiver applies"
+              branches:
+                type: array
+                items:
+                  type: string
+                description: "Git branches where the waiver applies"
+              actors:
+                type: array
+                items:
+                  type: string
+                description: "Specific actors the waiver applies to"
+
+          reason:
+            type: string
+            description: "Business justification for the exception. Must be specific, not generic."
+
+          approved_by:
+            type: string
+            description: "Identity of the approver (person or team)"
+
+          approved_at:
+            type: string
+            format: date-time
+            description: "ISO 8601 timestamp when the waiver was approved"
+
+          expires_at:
+            type: string
+            format: date-time
+            description: "ISO 8601 timestamp when the waiver expires. Expired waivers are not honored."
+
+          tracking:
+            type: object
+            description: "Links to issue/ticket tracking the remediation"
+            properties:
+              issue:
+                type: string
+                description: "Issue or ticket URL or ID"
+              due_date:
+                type: string
+                format: date
+                description: "Target date to resolve the underlying issue"
+
+          conditions:
+            type: array
+            items:
+              type: string
+            description: "Conditions that must remain true for this waiver to apply (e.g. 'only for static assets')"
+
+# ─── Waiver evaluation rules ──────────────────────────────────────────────────
+evaluation_rules:
+  expiry:
+    description: "Waivers past expires_at are not honored. The policy-eval skill must check this."
+    action: "Treat expired waiver as absent; re-evaluate the rule without it."
+
+  scope_match:
+    description: "All scope fields must match the current context for the waiver to apply."
+    fields:
+      - "paths: current finding.path must match one of the scope paths (supports glob)"
+      - "environments: project.environment must be in scope.environments"
+      - "branches: git.branch must be in scope.branches (if specified)"
+      - "actors: session.actor must be in scope.actors (if specified)"
+
+  audit:
+    description: "Every waiver evaluation (applied or rejected) must be included in policy-eval output."
+
+# ─── Example waiver file ──────────────────────────────────────────────────────
+example:
+  waivers:
+    - id: "waiver-001"
+      rule_id: "no-public-storage"
+      scope:
+        paths:
+          - "infra/dev/public-assets.tf"
+        environments:
+          - "dev"
+      reason: "Temporary public asset hosting for static marketing content during migration to CDN. CDN migration tracked in issue #342."
+      approved_by: "esteban"
+      approved_at: "2026-01-15T09:00:00Z"
+      expires_at: "2026-06-30T00:00:00Z"
+      tracking:
+        issue: "https://github.com/org/repo/issues/342"
+        due_date: "2026-06-01"
+      conditions:
+        - "Applies only to infra/dev/ — never staging or prod"
+        - "Assets must be non-sensitive (no PII, no credentials)"

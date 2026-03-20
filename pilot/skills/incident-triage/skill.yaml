@@ -1,0 +1,151 @@
+skill_contract_version: "0.1"
+
+skill:
+  id: "incident-triage"
+  category: "analysis"
+  version: "0.1"
+  description: "Triage security signals into structured incident reports with prioritized response actions"
+
+execution:
+  mode: "read-only"
+  timeout_seconds: 120
+  max_tool_calls: 8
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+  bash_constraints:
+    deny_destructive: true
+    allowlist:
+      - "git log"
+      - "git show"
+      - "git diff"
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - scope
+    - artifacts
+  properties:
+    objective:
+      type: string
+    scope:
+      type: array
+      items:
+        type: string
+    artifacts:
+      type: array
+      items:
+        type: string
+      description: "Alert data, scan findings, skill outputs, log excerpts"
+    constraints:
+      type: object
+      properties:
+        severity_filter:
+          type: string
+          enum: [low, medium, high, critical]
+        time_window:
+          type: string
+          description: "ISO 8601 interval (e.g. PT24H for last 24 hours)"
+    context:
+      type: object
+      properties:
+        environment:
+          type: string
+        actor:
+          type: string
+        trigger:
+          type: string
+          description: "What initiated this triage (alert | scan | manual | pr)"
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - severity
+    - signals
+    - response_actions
+    - findings
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      enum: ["incident-triage"]
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+    severity:
+      type: string
+      enum: [low, medium, high, critical]
+      description: "Overall triage severity — highest signal severity"
+    signals:
+      type: array
+      items:
+        type: object
+        required: [id, kind, severity, description, source]
+        properties:
+          id:
+            type: string
+          kind:
+            type: string
+            description: "secret-exposure | vulnerability | misconfiguration | anomaly | policy-violation | supply-chain"
+          severity:
+            type: string
+            enum: [low, medium, high, critical]
+          description:
+            type: string
+          source:
+            type: string
+          correlated_signals:
+            type: array
+            items:
+              type: string
+            description: "IDs of related signals"
+          likely_false_positive:
+            type: boolean
+    response_actions:
+      type: array
+      items:
+        type: object
+        required: [priority, action, owner, urgency]
+        properties:
+          priority:
+            type: integer
+            minimum: 1
+          action:
+            type: string
+          owner:
+            type: string
+            description: "Team or role responsible"
+          urgency:
+            type: string
+            enum: [immediate | hours | days | sprint]
+          rationale:
+            type: string
+    escalate:
+      type: boolean
+      description: "Whether this requires immediate human escalation"
+    findings:
+      type: array
+      items:
+        type: object
+    artifacts_used:
+      type: array
+      items:
+        type: string
+    confidence:
+      type: string
+      enum: [high, medium, low]
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true
+
+normalization:
+  ref: "pilot/skills/_base/normalization.yaml"

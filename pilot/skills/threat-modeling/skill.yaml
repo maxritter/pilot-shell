@@ -1,0 +1,176 @@
+skill_contract_version: "0.1"
+
+skill:
+  id: "threat-modeling"
+  category: "analysis"
+  version: "0.1"
+  description: "Identify assets, trust boundaries, entry points, and abuse cases"
+
+execution:
+  mode: "read-only"
+  timeout_seconds: 180
+  max_tool_calls: 10
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+  bash_constraints:
+    deny_destructive: true
+    allowlist:
+      - "git diff"
+      - "git show"
+      - "git log"
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - scope
+    - artifacts
+  properties:
+    objective:
+      type: string
+    scope:
+      type: array
+      items:
+        type: string
+    artifacts:
+      type: array
+      items:
+        type: string
+      description: "Source files, architecture docs, IaC, API specs, changed files list"
+    constraints:
+      type: object
+      properties:
+        focus:
+          type: array
+          items:
+            type: string
+          description: "Constrain to specific threat categories (e.g. injection, privilege-escalation)"
+        changed_only:
+          type: boolean
+          default: false
+    context:
+      type: object
+      properties:
+        environment:
+          type: string
+        changed_surfaces:
+          type: array
+          description: "Output from diff-analysis skill, if available"
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - assets
+    - trust_boundaries
+    - entry_points
+    - abuse_cases
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      enum: ["threat-modeling"]
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+    assets:
+      type: array
+      items:
+        type: object
+        required: [id, name, sensitivity]
+        properties:
+          id:
+            type: string
+          name:
+            type: string
+          sensitivity:
+            type: string
+            enum: [low, medium, high, critical]
+          description:
+            type: string
+    trust_boundaries:
+      type: array
+      items:
+        type: object
+        required: [id, name, from, to]
+        properties:
+          id:
+            type: string
+          name:
+            type: string
+          from:
+            type: string
+          to:
+            type: string
+          controls:
+            type: array
+            items:
+              type: string
+    entry_points:
+      type: array
+      items:
+        type: object
+        required: [id, name, kind, risk_hint]
+        properties:
+          id:
+            type: string
+          name:
+            type: string
+          kind:
+            type: string
+            enum: [api, ui, file, network, event, cli, webhook, auth]
+          risk_hint:
+            type: string
+            enum: [low, medium, high, critical]
+          description:
+            type: string
+    abuse_cases:
+      type: array
+      items:
+        type: object
+        required: [id, title, threat_actor, entry_point, asset, severity]
+        properties:
+          id:
+            type: string
+          title:
+            type: string
+          threat_actor:
+            type: string
+          entry_point:
+            type: string
+          asset:
+            type: string
+          attack_path:
+            type: string
+          severity:
+            type: string
+            enum: [low, medium, high, critical]
+          mitigations:
+            type: array
+            items:
+              type: string
+    findings:
+      type: array
+      items:
+        type: object
+    artifacts_used:
+      type: array
+      items:
+        type: string
+    confidence:
+      type: string
+      enum: [high, medium, low]
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true
+
+normalization:
+  ref: "pilot/skills/_base/normalization.yaml"

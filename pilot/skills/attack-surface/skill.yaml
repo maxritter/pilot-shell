@@ -1,0 +1,153 @@
+skill_contract_version: "0.1"
+
+skill:
+  id: "attack-surface"
+  category: "analysis"
+  version: "0.1"
+  description: "Map the external and internal attack surface exposed by the system or change"
+
+execution:
+  mode: "read-only"
+  timeout_seconds: 120
+  max_tool_calls: 8
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+  bash_constraints:
+    deny_destructive: true
+    allowlist:
+      - "git diff"
+      - "git show"
+      - "git log"
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - scope
+    - artifacts
+  properties:
+    objective:
+      type: string
+    scope:
+      type: array
+      items:
+        type: string
+    artifacts:
+      type: array
+      items:
+        type: string
+      description: "Source files, API specs, IaC, diff-analysis output"
+    constraints:
+      type: object
+      properties:
+        changed_only:
+          type: boolean
+          default: false
+        include_internal:
+          type: boolean
+          default: true
+    context:
+      type: object
+      properties:
+        changed_surfaces:
+          type: array
+          description: "Output from diff-analysis skill"
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - endpoints
+    - permissions
+    - network_exposure
+    - findings
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      enum: ["attack-surface"]
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+    endpoints:
+      type: array
+      items:
+        type: object
+        required: [id, path, method, auth_required, risk_hint]
+        properties:
+          id:
+            type: string
+          path:
+            type: string
+          method:
+            type: string
+          auth_required:
+            type: boolean
+          risk_hint:
+            type: string
+            enum: [low, medium, high, critical]
+          accepts_input:
+            type: boolean
+          description:
+            type: string
+    permissions:
+      type: array
+      items:
+        type: object
+        required: [id, principal, resource, action, scope_risk]
+        properties:
+          id:
+            type: string
+          principal:
+            type: string
+          resource:
+            type: string
+          action:
+            type: string
+          scope_risk:
+            type: string
+            enum: [low, medium, high, critical]
+          description:
+            type: string
+    network_exposure:
+      type: array
+      items:
+        type: object
+        properties:
+          resource:
+            type: string
+          exposure:
+            type: string
+            enum: [public | internal | private]
+          ports:
+            type: array
+            items:
+              type: integer
+          risk_hint:
+            type: string
+            enum: [low, medium, high, critical]
+    findings:
+      type: array
+      items:
+        type: object
+    artifacts_used:
+      type: array
+      items:
+        type: string
+    confidence:
+      type: string
+      enum: [high, medium, low]
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true
+
+normalization:
+  ref: "pilot/skills/_base/normalization.yaml"

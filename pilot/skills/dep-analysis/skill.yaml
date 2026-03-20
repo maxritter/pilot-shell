@@ -1,0 +1,134 @@
+skill_contract_version: "0.1"
+
+skill:
+  id: "dep-analysis"
+  category: "analysis"
+  version: "0.1"
+  description: "Analyze dependencies for known vulnerabilities, license risk, and supply chain signals"
+
+execution:
+  mode: "read-only"
+  timeout_seconds: 120
+  max_tool_calls: 8
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+  bash_constraints:
+    deny_destructive: true
+    allowlist:
+      - "git diff"
+      - "git show"
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - scope
+    - artifacts
+  properties:
+    objective:
+      type: string
+    scope:
+      type: array
+      items:
+        type: string
+    artifacts:
+      type: array
+      items:
+        type: string
+      description: "Lock files, SBOM files, osv-scanner output, npm audit output"
+    constraints:
+      type: object
+      properties:
+        severity_filter:
+          type: string
+          enum: [low, medium, high, critical]
+        include_transitive:
+          type: boolean
+          default: true
+        changed_only:
+          type: boolean
+          default: false
+    context:
+      type: object
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - findings
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      enum: ["dep-analysis"]
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+    findings:
+      type: array
+      items:
+        type: object
+        required: [id, severity, package_name, package_version, vuln_id, description]
+        properties:
+          id:
+            type: string
+          severity:
+            type: string
+            enum: [low, medium, high, critical]
+          package_name:
+            type: string
+          package_version:
+            type: string
+          ecosystem:
+            type: string
+            description: "npm | pypi | go | maven | cargo | etc."
+          vuln_id:
+            type: string
+            description: "CVE, GHSA, or OSV ID"
+          description:
+            type: string
+          fixed_in:
+            type: string
+          is_transitive:
+            type: boolean
+          evidence_ref:
+            type: string
+    supply_chain_signals:
+      type: array
+      items:
+        type: object
+        properties:
+          package_name:
+            type: string
+          signal:
+            type: string
+            description: "typosquat | abandoned | recent-maintainer-change | no-provenance"
+          severity:
+            type: string
+            enum: [low, medium, high, critical]
+    newly_added:
+      type: array
+      items:
+        type: string
+      description: "Packages added in this diff (if changed_only context available)"
+    artifacts_used:
+      type: array
+      items:
+        type: string
+    confidence:
+      type: string
+      enum: [high, medium, low]
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true
+
+normalization:
+  ref: "pilot/skills/_base/normalization.yaml"

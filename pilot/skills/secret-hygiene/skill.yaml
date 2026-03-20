@@ -1,0 +1,142 @@
+skill_contract_version: "0.1"
+
+skill:
+  id: "secret-hygiene"
+  category: "analysis"
+  version: "0.1"
+  description: "Detect, classify, redact, and advise on response for exposed secrets"
+
+execution:
+  mode: "read-only"
+  timeout_seconds: 120
+  max_tool_calls: 8
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+  bash_constraints:
+    deny_destructive: true
+    allowlist:
+      - "git diff"
+      - "git log"
+      - "git show"
+      - "git ls-files"
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - scope
+    - artifacts
+  properties:
+    objective:
+      type: string
+    scope:
+      type: array
+      items:
+        type: string
+    artifacts:
+      type: array
+      items:
+        type: string
+      description: "Scan reports, diff files, source paths"
+    constraints:
+      type: object
+      properties:
+        severity_filter:
+          type: string
+          enum: [low, medium, high, critical]
+        include_git_history:
+          type: boolean
+          default: false
+    context:
+      type: object
+      properties:
+        base_ref:
+          type: string
+        head_ref:
+          type: string
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - findings
+    - exposure_assessment
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      enum: ["secret-hygiene"]
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+    findings:
+      type: array
+      items:
+        type: object
+        required: [id, severity, kind, path, description, redacted]
+        properties:
+          id:
+            type: string
+          severity:
+            type: string
+            enum: [low, medium, high, critical]
+          kind:
+            type: string
+            description: "api-key | token | password | certificate | private-key | connection-string | generic"
+          path:
+            type: string
+          line:
+            type: integer
+          description:
+            type: string
+          redacted:
+            type: boolean
+            description: "True if the value has been redacted in this output"
+          evidence_ref:
+            type: string
+          likely_valid:
+            type: boolean
+    exposure_assessment:
+      type: object
+      required: [likely_live, locations, revoke_guidance]
+      properties:
+        likely_live:
+          type: boolean
+          description: "Whether any detected secret is likely still valid/active"
+        locations:
+          type: array
+          items:
+            type: string
+          description: "Where the secret was found (current code | git history | PR diff)"
+        revoke_guidance:
+          type: array
+          items:
+            type: string
+          description: "Ordered steps to revoke and rotate"
+        notify_required:
+          type: boolean
+          description: "Whether security team notification is warranted"
+        blast_radius:
+          type: string
+          enum: [low, medium, high, critical]
+    artifacts_used:
+      type: array
+      items:
+        type: string
+    confidence:
+      type: string
+      enum: [high, medium, low]
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true
+
+normalization:
+  ref: "pilot/skills/_base/normalization.yaml"

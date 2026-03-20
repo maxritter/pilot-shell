@@ -1,0 +1,133 @@
+skill_contract_version: "0.1"
+
+skill:
+  id: "diff-analysis"
+  category: "analysis"
+  version: "0.1"
+  description: "Extract security-relevant change signals from a diff"
+
+execution:
+  mode: "read-only"
+  timeout_seconds: 120
+  max_tool_calls: 6
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+  bash_constraints:
+    deny_destructive: true
+    allowlist:
+      - "git diff"
+      - "git status"
+      - "git show"
+      - "git log"
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - scope
+    - artifacts
+  properties:
+    objective:
+      type: string
+    scope:
+      type: array
+      items:
+        type: string
+      description: "Paths or globs to analyze"
+    artifacts:
+      type: array
+      items:
+        type: string
+      description: "Diff files, patch files, or git refs"
+    constraints:
+      type: object
+      properties:
+        severity_filter:
+          type: string
+          enum: [low, medium, high, critical]
+        changed_only:
+          type: boolean
+          default: true
+    context:
+      type: object
+      properties:
+        base_ref:
+          type: string
+        head_ref:
+          type: string
+        pr_number:
+          type: string
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - changed_surfaces
+    - findings
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      enum: ["diff-analysis"]
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+    changed_surfaces:
+      type: array
+      items:
+        type: object
+        required: [path, kind, risk_hint]
+        properties:
+          path:
+            type: string
+          kind:
+            type: string
+            enum: [code, config, infra, ci, manifest, secret-surface, iac, dependency, workflow]
+          risk_hint:
+            type: string
+            enum: [low, medium, high, critical]
+          lines_changed:
+            type: integer
+          rationale:
+            type: string
+    findings:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          severity:
+            type: string
+            enum: [low, medium, high, critical]
+          kind:
+            type: string
+          path:
+            type: string
+          description:
+            type: string
+          evidence_ref:
+            type: string
+    artifacts_used:
+      type: array
+      items:
+        type: string
+    confidence:
+      type: string
+      enum: [high, medium, low]
+    metadata:
+      type: object
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true
+
+normalization:
+  ref: "pilot/skills/_base/normalization.yaml"

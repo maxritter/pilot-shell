@@ -1,0 +1,102 @@
+skill_contract_version: "0.1"
+
+# Base contract inherited by every skill.
+# Each skill specializes input_schema, output_schema, and execution constraints.
+# Skills never call agents. Agents call skills. The dependency graph is acyclic.
+
+execution:
+  mode: "read-only"             # read-only | bounded-write
+  timeout_seconds: 120
+  max_tool_calls: 6
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+  bash_constraints:
+    deny_destructive: true
+    allowlist: []               # Each skill declares its own allowlist
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - scope
+    - artifacts
+  properties:
+    objective:
+      type: string
+      description: "What the skill must accomplish in this invocation"
+    scope:
+      type: array
+      items:
+        type: string
+      description: "Paths, globs, or identifiers bounding the work"
+    artifacts:
+      type: array
+      items:
+        type: string
+      description: "Evidence inputs — files, reports, SBOMs, scan results, etc."
+    constraints:
+      type: object
+      description: "Optional runtime constraints (e.g. max_findings, severity_filter)"
+    context:
+      type: object
+      description: "Optional ambient context (git.branch, session.actor, environment)"
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - findings
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      description: "Skill ID that produced this output"
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+      description: "Human-readable summary of what was found or decided"
+    findings:
+      type: array
+      items:
+        type: object
+      description: "Structured results; shape is skill-specific"
+    artifacts_used:
+      type: array
+      items:
+        type: string
+      description: "Artifact paths actually consumed during execution"
+    confidence:
+      type: string
+      enum: [high, medium, low]
+    errors:
+      type: array
+      items:
+        type: string
+      description: "Errors encountered during partial execution"
+    metadata:
+      type: object
+      description: "Skill-specific supplementary data"
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true
+  # On hard failure, still emit status: failed with whatever was collected.
+  # Never silently discard evidence.
+
+normalization:
+  # All skills use the same vocabulary so agents can compose without translation.
+  severity_scale: [low, medium, high, critical]
+  confidence_scale: [low, medium, high]
+  decision_scale: [allow, warn, block, investigate]
+  # Severity mapping guidance:
+  #   low:      informational, no immediate action needed
+  #   medium:   should be addressed before release
+  #   high:     must be addressed; blocks in enforce mode
+  #   critical: immediate action required; always blocks

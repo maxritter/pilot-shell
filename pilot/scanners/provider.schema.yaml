@@ -1,0 +1,237 @@
+# provider.schema.yaml
+# Defines the configuration schema for scanner provider entries.
+# Each scanner type (secrets, deps, iac, sast) is fulfilled by a provider.
+# Providers are configured in the main pilot-sec config under scanners.providers.
+# All provider adapters must normalize output to finding/v1 (finding.schema.yaml).
+
+version: "0.1"
+
+schema:
+  type: object
+  description: "A single provider configuration block"
+  required:
+    - provider
+    - mode
+    - normalize_to
+  properties:
+
+    provider:
+      type: string
+      description: "Tool identifier"
+      enum:
+        - gitleaks
+        - truffelhog
+        - osv
+        - grype
+        - trivy
+        - checkov
+        - tfsec
+        - semgrep
+        - bandit
+        - kube-score
+        - custom
+
+    mode:
+      type: string
+      enum: [blocking, advisory, disabled]
+      description: |
+        blocking: findings at or above severity_threshold halt gated flows
+        advisory: findings are reported but never block
+        disabled: provider is configured but not run
+
+    normalize_to:
+      type: string
+      const: "finding/v1"
+      description: "All providers must normalize to finding/v1"
+
+    timeout_seconds:
+      type: integer
+      default: 120
+      description: "Per-provider timeout; overrides global scanner timeout"
+
+    config_file:
+      type: string
+      description: "Path to provider-specific config file (e.g. .gitleaks.toml)"
+
+    paths:
+      type: array
+      items:
+        type: string
+      description: "File paths or globs to scan; defaults to repo root"
+
+    lockfiles:
+      type: array
+      items:
+        type: string
+      description: "Lock files to analyze (dep providers only)"
+
+    rulesets:
+      type: array
+      items:
+        type: string
+      description: "Ruleset identifiers (sast providers)"
+
+    on_error:
+      type: object
+      description: "Behavior when the provider fails"
+      properties:
+        strategy:
+          type: string
+          enum: [fail-open, fail-closed, warn]
+          default: "fail-closed"
+          description: |
+            fail-open: treat as no findings; proceed
+            fail-closed: treat as blocking error; halt
+            warn: log and continue
+        message:
+          type: string
+          description: "Message to include when error strategy fires"
+
+    args:
+      type: object
+      description: "Provider-specific arguments passed to the tool"
+      # Shape is provider-specific; see per-provider examples below
+
+# ─── Per-provider args reference ─────────────────────────────────────────────
+
+provider_args:
+  gitleaks:
+    redact:
+      type: boolean
+      default: true
+      description: "Redact secret values from output"
+    staged:
+      type: boolean
+      default: false
+      description: "Scan staged changes only (pre-commit mode)"
+    baseline_path:
+      type: string
+      description: "Path to baseline JSON to suppress known findings"
+
+  osv:
+    include_transitive:
+      type: boolean
+      default: true
+      description: "Include transitive dependency vulnerabilities"
+    skip_unsupported:
+      type: boolean
+      default: false
+      description: "Skip lock files for unsupported ecosystems"
+
+  checkov:
+    framework:
+      type: array
+      items:
+        type: string
+        enum: [terraform, kubernetes, cloudformation, arm, bicep, dockerfile, github_actions]
+    skip_checks:
+      type: array
+      items:
+        type: string
+      description: "Checkov check IDs to skip (prefer waivers over blanket skips)"
+    compact:
+      type: boolean
+      default: true
+
+  semgrep:
+    config:
+      type: array
+      items:
+        type: string
+        description: "Semgrep ruleset or config path (auto | p/security-audit | etc.)"
+    exclude:
+      type: array
+      items:
+        type: string
+      description: "Paths to exclude"
+    severity:
+      type: string
+      enum: [INFO, WARNING, ERROR]
+      default: "WARNING"
+
+  tfsec:
+    minimum_severity:
+      type: string
+      enum: [LOW, MEDIUM, HIGH, CRITICAL]
+    include_passed:
+      type: boolean
+      default: false
+
+  grype:
+    scope:
+      type: string
+      enum: [squashed, all-layers]
+      default: "squashed"
+    only_fixed:
+      type: boolean
+      default: false
+
+  trivy:
+    scanners:
+      type: array
+      items:
+        type: string
+        enum: [vuln, secret, config, license]
+    ignore_unfixed:
+      type: boolean
+      default: false
+
+# ─── Full provider configuration examples ────────────────────────────────────
+
+examples:
+  secrets_provider:
+    provider: "gitleaks"
+    mode: "blocking"
+    normalize_to: "finding/v1"
+    timeout_seconds: 120
+    config_file: ".pilot-sec/providers/gitleaks.toml"
+    on_error:
+      strategy: "fail-closed"
+      message: "Secret scan failed; blocking as missing evidence"
+    args:
+      redact: true
+      staged: false
+
+  deps_provider:
+    provider: "osv"
+    mode: "advisory"
+    normalize_to: "finding/v1"
+    timeout_seconds: 180
+    lockfiles:
+      - "package-lock.json"
+      - "poetry.lock"
+    on_error:
+      strategy: "warn"
+      message: "Dependency scan failed; proceeding with advisory"
+    args:
+      include_transitive: true
+
+  iac_provider:
+    provider: "checkov"
+    mode: "blocking"
+    normalize_to: "finding/v1"
+    timeout_seconds: 180
+    paths:
+      - "infra/"
+      - "terraform/"
+    on_error:
+      strategy: "fail-closed"
+      message: "IaC scan failed; blocking deploy due to missing evidence"
+    args:
+      framework:
+        - terraform
+        - kubernetes
+      compact: true
+
+  sast_provider:
+    provider: "semgrep"
+    mode: "advisory"
+    normalize_to: "finding/v1"
+    timeout_seconds: 240
+    on_error:
+      strategy: "warn"
+    args:
+      config:
+        - "p/security-audit"
+        - "p/secrets"
+      severity: "WARNING"

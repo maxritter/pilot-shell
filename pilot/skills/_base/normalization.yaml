@@ -1,0 +1,74 @@
+# Shared normalization vocabulary for all skills.
+# Every skill that emits findings MUST map to these scales and kinds.
+# This file is the single source of truth for cross-skill comparability.
+
+version: "0.1"
+
+severity:
+  scale: [low, medium, high, critical]
+  definitions:
+    low:      "Informational. No immediate risk. Document and monitor."
+    medium:   "Risk present but exploitability is limited or conditional."
+    high:     "Significant risk; must remediate before release."
+    critical: "Immediate action required. Blocks all gated flows."
+
+confidence:
+  scale: [low, medium, high]
+  definitions:
+    low:    "Signal is ambiguous or derived from incomplete evidence."
+    medium: "Signal is plausible with supporting evidence but not definitive."
+    high:   "Signal is well-supported by direct evidence."
+
+decision:
+  scale: [allow, warn, block, investigate]
+  definitions:
+    allow:       "No action required. Proceed."
+    warn:        "Proceed with advisory logged. Human review recommended."
+    block:       "Halt gated flow. Requires remediation or approved waiver."
+    investigate: "Insufficient evidence to decide. Escalate for manual review."
+
+finding_kinds:
+  # Canonical kind vocabulary shared across all skill outputs.
+  # code surface
+  - code
+  - config
+  - secret-surface
+  # infrastructure
+  - infra
+  - iac
+  - cloud
+  # supply chain
+  - dependency
+  - manifest
+  # pipeline
+  - ci
+  - workflow
+  # runtime
+  - network-exposure
+  - permission
+
+finding_schema: "finding/v1"
+# Reference: pilot/scanners/finding.schema.yaml
+
+evidence_ref_format: "<report_path>#<rule_or_finding_id>"
+# Example: ".pilot-sec/reports/checkov.json#CKV_AWS_20"
+
+# Severity mapping from common tool outputs:
+tool_severity_map:
+  gitleaks:
+    HIGH: high
+    MEDIUM: medium
+    LOW: low
+  checkov:
+    HIGH: high
+    MEDIUM: medium
+    LOW: low
+  semgrep:
+    ERROR: critical
+    WARNING: high
+    INFO: low
+  osv:
+    CRITICAL: critical
+    HIGH: high
+    MODERATE: medium
+    LOW: low

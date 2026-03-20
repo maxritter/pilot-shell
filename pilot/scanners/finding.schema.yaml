@@ -1,0 +1,198 @@
+# finding.schema.yaml
+# The normalized finding record emitted by all scanner adapters.
+# Every provider (gitleaks, checkov, semgrep, osv, etc.) must map its raw output
+# to this schema before passing findings to skills or the policy engine.
+# This schema is the contract between scanner adapters and the rest of the system.
+
+version: "0.1"
+schema: "finding/v1"
+
+schema:
+  type: object
+  required:
+    - schema
+    - id
+    - source
+    - severity
+    - type
+    - title
+    - location
+    - evidence
+  properties:
+
+    schema:
+      type: string
+      const: "finding/v1"
+      description: "Schema version identifier"
+
+    id:
+      type: string
+      description: "Unique finding ID within this scan run (e.g. finding-001)"
+
+    # ─── Source provenance ───────────────────────────────────────────────────
+    source:
+      type: object
+      required: [scanner_type, provider]
+      properties:
+        scanner_type:
+          type: string
+          enum: [secrets, iac, deps, sast, code, network, custom]
+        provider:
+          type: string
+          description: "Tool that produced the finding (gitleaks | checkov | semgrep | osv | tfsec | kube-score)"
+        rule_id:
+          type: string
+          description: "Provider-native rule or check ID (e.g. CKV_AWS_20, CVE-2021-23337)"
+        rule_name:
+          type: string
+          description: "Human-readable rule name from the provider"
+
+    # ─── Classification ─────────────────────────────────────────────────────
+    severity:
+      type: string
+      enum: [low, medium, high, critical]
+      description: "Normalized severity — must use normalization.yaml scale"
+
+    type:
+      type: string
+      description: "Normalized finding type (e.g. public_bucket, hardcoded_secret, vuln_dep)"
+      # Provider-specific types must be mapped to normalized types by the adapter
+
+    title:
+      type: string
+      description: "Short human-readable finding title"
+
+    confidence:
+      type: string
+      enum: [low, medium, high]
+
+    # ─── Location ───────────────────────────────────────────────────────────
+    location:
+      type: object
+      required: [path]
+      properties:
+        path:
+          type: string
+          description: "Relative file path from repo root"
+        line:
+          type: integer
+          description: "Line number (1-indexed)"
+        line_end:
+          type: integer
+          description: "End line number for multi-line findings"
+        column:
+          type: integer
+
+    # ─── Resource (IaC / cloud) ──────────────────────────────────────────────
+    resource:
+      type: object
+      description: "Applicable to IaC and cloud findings"
+      properties:
+        kind:
+          type: string
+          description: "Resource type (e.g. aws_s3_bucket, Deployment)"
+        name:
+          type: string
+          description: "Resource name or identifier"
+        environment:
+          type: string
+
+    # ─── Package (dependency findings) ───────────────────────────────────────
+    package:
+      type: object
+      description: "Applicable to dependency findings"
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        ecosystem:
+          type: string
+          description: "npm | pypi | go | maven | cargo"
+        vuln_id:
+          type: string
+          description: "CVE, GHSA, or OSV ID"
+        fixed_in:
+          type: string
+        is_transitive:
+          type: boolean
+
+    # ─── Secret (secret findings) ────────────────────────────────────────────
+    secret:
+      type: object
+      description: "Applicable to secret/credential findings"
+      properties:
+        kind:
+          type: string
+          description: "api-key | token | password | certificate | private-key | connection-string | generic"
+        redacted:
+          type: boolean
+          const: true
+          description: "Always true — raw secret values must never appear in normalized findings"
+        likely_live:
+          type: boolean
+
+    # ─── Evidence ───────────────────────────────────────────────────────────
+    evidence:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          description: "What the scanner detected and why it matters"
+        raw_ref:
+          type: string
+          description: "Reference to raw scanner output: <report_path>#<rule_or_finding_id>"
+          # Example: ".pilot-sec/reports/checkov.json#CKV_AWS_20"
+        snippet:
+          type: string
+          description: "Relevant code or config snippet — must be redacted if it contains secret material"
+
+    # ─── Remediation ────────────────────────────────────────────────────────
+    remediation:
+      type: object
+      properties:
+        guidance:
+          type: array
+          items:
+            type: string
+        links:
+          type: array
+          items:
+            type: string
+
+    # ─── Suppression ────────────────────────────────────────────────────────
+    suppressed:
+      type: boolean
+      description: "True if this finding is suppressed by an inline annotation or ignore file"
+
+    suppression_reason:
+      type: string
+      description: "Why the finding was suppressed"
+
+# ─── Example normalized finding ──────────────────────────────────────────────
+example:
+  schema: "finding/v1"
+  id: "finding-001"
+  source:
+    scanner_type: "iac"
+    provider: "checkov"
+    rule_id: "CKV_AWS_20"
+    rule_name: "Ensure S3 bucket does not allow public read access"
+  severity: "high"
+  type: "public_bucket"
+  title: "S3 bucket allows public read access"
+  confidence: "high"
+  location:
+    path: "infra/s3.tf"
+    line: 42
+  resource:
+    kind: "aws_s3_bucket"
+    name: "public_assets"
+  evidence:
+    message: "Public ACL detected; bucket allows public read via acl = \"public-read\""
+    raw_ref: ".pilot-sec/reports/checkov.json#CKV_AWS_20"
+  remediation:
+    guidance:
+      - "Remove acl = \"public-read\""
+      - "Add aws_s3_bucket_public_access_block"

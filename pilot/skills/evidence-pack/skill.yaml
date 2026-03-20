@@ -1,0 +1,145 @@
+skill_contract_version: "0.1"
+
+skill:
+  id: "evidence-pack"
+  category: "collection"
+  version: "0.1"
+  description: "Collect and normalize evidence for release or audit"
+
+execution:
+  mode: "read-only"
+  timeout_seconds: 120
+  max_tool_calls: 8
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+  bash_constraints:
+    deny_destructive: true
+    allowlist:
+      - "git log"
+      - "git show"
+      - "git diff"
+      - "git describe"
+
+input_schema:
+  type: object
+  required:
+    - objective
+    - scope
+    - artifacts
+  properties:
+    objective:
+      type: string
+    scope:
+      type: array
+      items:
+        type: string
+    artifacts:
+      type: array
+      items:
+        type: string
+      description: "Report dirs, scan outputs, skill results to aggregate"
+    constraints:
+      type: object
+      properties:
+        required_evidence:
+          type: array
+          items:
+            type: string
+          description: "Evidence types that must be present (e.g. secrets-scan, iac-scan, sbom)"
+        audit_target:
+          type: string
+          description: "What this pack is evidence for (e.g. release-v1.2.0, PR-456)"
+    context:
+      type: object
+      properties:
+        environment:
+          type: string
+        actor:
+          type: string
+        timestamp:
+          type: string
+
+output_schema:
+  type: object
+  required:
+    - skill
+    - status
+    - summary
+    - evidence
+    - missing_evidence
+    - artifacts_used
+  properties:
+    skill:
+      type: string
+      enum: ["evidence-pack"]
+    status:
+      type: string
+      enum: [success, partial, failed]
+    summary:
+      type: string
+    evidence:
+      type: array
+      items:
+        type: object
+        required: [id, kind, source, status]
+        properties:
+          id:
+            type: string
+          kind:
+            type: string
+            description: "secrets-scan | iac-scan | dep-scan | sast-scan | diff-analysis | threat-model | policy-eval | sbom | test-results"
+          source:
+            type: string
+            description: "File path or skill output ref"
+          status:
+            type: string
+            enum: [present, missing, stale, invalid]
+          collected_at:
+            type: string
+          summary:
+            type: string
+          decision:
+            type: string
+            enum: [allow, warn, block, investigate]
+          findings_count:
+            type: object
+            properties:
+              critical: { type: integer }
+              high: { type: integer }
+              medium: { type: integer }
+              low: { type: integer }
+    missing_evidence:
+      type: array
+      items:
+        type: string
+      description: "Evidence kinds required but not found"
+    findings:
+      type: array
+      items:
+        type: object
+    artifacts_used:
+      type: array
+      items:
+        type: string
+    confidence:
+      type: string
+      enum: [high, medium, low]
+    metadata:
+      type: object
+      properties:
+        audit_target:
+          type: string
+        pack_complete:
+          type: boolean
+        generated_at:
+          type: string
+
+failure_contract:
+  return_partial_on_error: true
+  include_errors: true
+
+normalization:
+  ref: "pilot/skills/_base/normalization.yaml"
