@@ -3,7 +3,10 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["launcher*", "installer*"]
+include = ["launcher*", "installer*", "pilot_sec*"]
+
+[project.scripts]
+pilot-sec = "pilot_sec.cli:cli"
 
 [project]
 name = "pilot-shell"
@@ -17,6 +20,8 @@ dependencies = [
     "cryptography>=44.0.0",
     "Cython>=3.0.0",
     "setuptools>=61.0",
+    "click>=8.1.0",
+    "pyyaml>=6.0",
 ]
 
 [dependency-groups]
