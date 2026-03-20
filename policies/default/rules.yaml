@@ -1,0 +1,104 @@
+# Default security policy rules for pilot-shell
+#
+# Rules are evaluated in order by the PolicyEngine.
+# The built-in rules (in security/policy/engine.py) run first;
+# these YAML rules extend or override them.
+#
+# Schema per rule:
+#   name:            unique identifier (snake_case)
+#   description:     human-readable intent
+#   action:          block | warn | require | allow
+#   command_pattern: regex matched against the full command string (optional)
+#   min_risk_level:  INFO | LOW | MEDIUM | HIGH | CRITICAL (optional)
+#   tags:            list of risk tags (optional, OR-matched against finding tags)
+#   gate_env_var:    env var that bypasses a 'require' rule when set to 1/true/yes
+#   gate_description: instructions shown when the gate blocks execution
+
+rules:
+  # ── Unconditional blocks ──────────────────────────────────────────────────
+
+  - name: block-history-manipulation
+    description: Prevent git history rewrite commands (rebase -i, filter-branch, BFG)
+    action: block
+    command_pattern: "git\\s+(rebase\\s+-i|filter-branch|filter-repo)"
+
+  - name: block-sensitive-env-print
+    description: Block commands that print all env vars (may expose secrets in logs)
+    action: block
+    command_pattern: "\\benv\\b\\s*$|\\bprintenv\\b\\s*$|\\bset\\b\\s*$"
+
+  - name: block-credential-file-cat
+    description: Prevent reading known credential files (.env, .netrc, aws credentials)
+    action: block
+    command_pattern: "\\bcat\\b.*(\\.env|\\.netrc|credentials|id_rsa|id_ed25519|.*\\.pem)\\b"
+
+  - name: block-network-exfil-pattern
+    description: Block data exfiltration patterns (curl/nc piped from sensitive paths)
+    action: block
+    command_pattern: "\\b(curl|nc|ncat|wget)\\b.*\\|.*\\bcat\\b.*(/etc/passwd|/etc/shadow|\\.ssh/)"
+
+  - name: block-privilege-escalation
+    description: Block common privilege escalation techniques
+    action: block
+    command_pattern: "\\b(su\\s+-|sudo\\s+su|sudo\\s+bash|sudo\\s+-s)\\b"
+
+  # ── Gate-required (need explicit approval) ────────────────────────────────
+
+  - name: require-approval-aws-iam
+    description: AWS IAM mutations require explicit approval (privilege escalation risk)
+    action: require
+    command_pattern: "\\baws\\s+iam\\b.*(create|attach|put|add|delete|remove)\\b"
+    gate_env_var: PILOT_SEC_IAM_APPROVED
+    gate_description: >
+      Set PILOT_SEC_IAM_APPROVED=1 to allow AWS IAM mutations.
+      Review the exact IAM change before setting this gate.
+      Principle of least privilege: only grant what is strictly necessary.
+
+  - name: require-approval-k8s-rbac
+    description: Kubernetes RBAC changes require explicit approval
+    action: require
+    command_pattern: "\\bkubectl\\b.*(clusterrole|rolebinding|serviceaccount)\\b"
+    gate_env_var: PILOT_SEC_K8S_RBAC_APPROVED
+    gate_description: >
+      Set PILOT_SEC_K8S_RBAC_APPROVED=1 to allow Kubernetes RBAC mutations.
+
+  - name: require-approval-docker-privileged
+    description: Docker --privileged containers require explicit approval
+    action: require
+    command_pattern: "\\bdocker\\s+run\\b.*--privileged\\b"
+    gate_env_var: PILOT_SEC_DOCKER_PRIVILEGED_APPROVED
+    gate_description: >
+      Set PILOT_SEC_DOCKER_PRIVILEGED_APPROVED=1 to allow privileged containers.
+      Consider whether --cap-add achieves the same goal with a smaller blast radius.
+
+  # ── Warnings (allow + annotate) ───────────────────────────────────────────
+
+  - name: warn-git-commit-no-sign
+    description: Warn when committing without a GPG/SSH signature
+    action: warn
+    command_pattern: "\\bgit\\s+commit\\b(?!.*-S)(?!.*--gpg-sign)"
+
+  - name: warn-curl-http
+    description: Warn on HTTP (non-HTTPS) downloads — susceptible to MITM
+    action: warn
+    command_pattern: "\\b(curl|wget)\\b.*http://(?!localhost|127\\.0\\.0\\.1)"
+
+  - name: warn-npm-global-install
+    description: Warn on global npm installs — affects system-wide node environment
+    action: warn
+    command_pattern: "\\bnpm\\s+install\\b.*(-g|--global)\\b"
+
+  - name: warn-pip-no-venv
+    description: Warn when pip installs without an active virtual environment
+    action: warn
+    command_pattern: "\\bpip3?\\s+install\\b"
+
+  - name: warn-open-ports
+    description: Warn on commands that bind to 0.0.0.0 (all interfaces)
+    action: warn
+    command_pattern: "0\\.0\\.0\\.0:[0-9]+"
+
+  - name: warn-high-risk-default
+    description: General warning for all HIGH risk commands not otherwise matched
+    action: warn
+    min_risk_level: HIGH
