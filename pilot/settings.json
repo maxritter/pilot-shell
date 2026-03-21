@@ -16,11 +16,11 @@
     "DISABLE_INSTALLATION_CHECKS": "true"
   },
   "permissions": {
-    "defaultMode": "bypassPermissions"
+    "defaultMode": "default"
   },
-  "skipDangerousModePermissionPrompt": true,
+  "skipDangerousModePermissionPrompt": false,
   "terminalProgressBarEnabled": true,
-  "enableAllProjectMcpServers": true,
+  "enableAllProjectMcpServers": false,
   "spinnerTipsOverride": {
     "tips": [
       "[PILOT] Run /setup-rules after installation to generate project rules",
