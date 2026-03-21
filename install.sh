@@ -2,7 +2,7 @@
 
 set -e
 
-REPO="maxritter/pilot-shell"
+REPO="canstralian/pilot-shell-devsecops"
 
 VERSION="${VERSION:-}"
 VERSION="${VERSION#v}"

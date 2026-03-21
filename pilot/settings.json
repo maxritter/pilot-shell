@@ -16,11 +16,11 @@
     "DISABLE_INSTALLATION_CHECKS": "true"
   },
   "permissions": {
-    "defaultMode": "bypassPermissions"
+    "defaultMode": "default"
   },
-  "skipDangerousModePermissionPrompt": true,
+  "skipDangerousModePermissionPrompt": false,
   "terminalProgressBarEnabled": true,
-  "enableAllProjectMcpServers": true,
+  "enableAllProjectMcpServers": false,
   "spinnerTipsOverride": {
     "tips": [
       "[PILOT] Run /setup-rules after installation to generate project rules",
@@ -87,7 +87,6 @@
       "[PILOT] codebase-memory-mcp: Code knowledge graph for call tracing, dead code detection, and impact analysis",
       "[PILOT] RTK: Token-optimized CLI proxy — saves 60-90% tokens on dev operations, transparent via hooks",
       "[PILOT] Spec Workflow Toggles: Configure worktree, questions, approval, and reviewers in Console Settings",
-      "[PILOT] Please star the repository: github.com/maxritter/pilot-shell",
       "[PILOT] Fun fact: Pilot is built with Pilot — a self-improving development loop"
     ],
     "excludeDefault": true
