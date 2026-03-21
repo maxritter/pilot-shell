@@ -36,17 +36,20 @@ jobs:
           echo "Checking that test files are readable TypeScript (not binary/encrypted)..."
           FAILED=0
           while IFS= read -r -d '' file; do
-            if file "$file" | grep -qv 'ASCII\|UTF-8\|empty'; then
-              echo "ERROR: Binary or unreadable file detected: $file"
-              file "$file"
-              FAILED=1
-            fi
-          done < <(find tests/ console/tests/ -type f -name "*.ts" -print0 2>/dev/null)
+            TYPE=$(file --brief "$file")
+            case "$TYPE" in
+              *ASCII*|*UTF-8*|*empty*)
+                # readable text — OK
+                ;;
+              *)
+                echo "ERROR: Binary or unreadable file: $file ($TYPE)"
+                FAILED=1
+                ;;
+            esac
+          done < <(find console/tests/ -type f -name "*.ts" -print0)
           if [ "$FAILED" -eq 1 ]; then
             echo ""
-            echo "One or more test files appear binary. This usually means:"
-            echo "  1. git-crypt unlock failed (check GIT_CRYPT_KEY secret)"
-            echo "  2. Files were committed in an encrypted state without git-crypt"
+            echo "Files appear binary. Likely cause: GIT_CRYPT_KEY secret is missing or invalid."
             exit 1
           fi
           echo "All test files are valid text — git-crypt unlock succeeded."
@@ -87,6 +90,14 @@ jobs:
         run: |
           echo "### Console Test Coverage" >> $GITHUB_STEP_SUMMARY
           echo "Tests completed. See job logs for detailed coverage report." >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: console-coverage
+          path: console/coverage/
+          retention-days: 7
 
   python-tests:
     name: Python Unit Tests with Coverage
@@ -135,3 +146,13 @@ jobs:
           " 2>/dev/null || echo "N/A")
             echo "Overall line coverage: **${COVERAGE}**" >> $GITHUB_STEP_SUMMARY
           fi
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: python-coverage
+          path: |
+            coverage.xml
+            htmlcov/
+          retention-days: 7
