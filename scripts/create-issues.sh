@@ -8,13 +8,33 @@
 # Usage:
 #   ./scripts/create-issues.sh [--dry-run]
 #
-# Pass --dry-run to print the gh commands without executing them.
+# Pass --dry-run to print issue titles without creating them.
 
-set -euo pipefail
+set -uo pipefail
 
-REPO="canstralian/pilot-shell-devsecops"
 DRY_RUN=false
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=true
+
+# Derive repo from git remote, fall back to default
+REPO=$(git remote get-url origin 2>/dev/null \
+  | sed -E 's|.*github\.com[:/](.+/.+)(\.git)?$|\1|' \
+  || echo "canstralian/pilot-shell-devsecops")
+
+# Pre-flight checks
+if ! $DRY_RUN; then
+  if ! command -v gh &>/dev/null; then
+    echo "Error: 'gh' CLI not found. Install from https://cli.github.com" >&2
+    exit 1
+  fi
+  if ! gh auth status &>/dev/null; then
+    echo "Error: Not authenticated. Run 'gh auth login' first." >&2
+    exit 1
+  fi
+fi
+
+FAILURES=0
+PIDS=()
+TITLES=()
 
 create_issue() {
   local title="$1"
@@ -22,16 +42,24 @@ create_issue() {
   local labels="$3"
 
   if $DRY_RUN; then
-    echo "DRY RUN: gh issue create --repo \"$REPO\" --title \"$title\" --label \"$labels\""
+    echo "DRY RUN: $title  [$labels]"
     return
   fi
 
-  gh issue create \
-    --repo "$REPO" \
-    --title "$title" \
-    --body "$body" \
-    --label "$labels"
-  echo "Created: $title"
+  TITLES+=("$title")
+  (
+    if gh issue create \
+        --repo "$REPO" \
+        --title "$title" \
+        --body "$body" \
+        --label "$labels" &>/dev/null; then
+      echo "Created: $title"
+    else
+      echo "FAILED:  $title" >&2
+      exit 1
+    fi
+  ) &
+  PIDS+=($!)
 }
 
 # ── EPIC: Security Control Plane ────────────────────────────────────────────
@@ -288,5 +316,17 @@ Enable full reproducibility of runs.
 - [ ] Includes config + context snapshot" \
   "audit,reliability"
 
-echo ""
-echo "Done. 21 issues processed."
+# ── Wait for all background jobs ─────────────────────────────────────────────
+
+if ! $DRY_RUN; then
+  for pid in "${PIDS[@]}"; do
+    wait "$pid" || FAILURES=$((FAILURES + 1))
+  done
+
+  echo ""
+  echo "Done. $((${#PIDS[@]} - FAILURES))/${#PIDS[@]} issues created successfully."
+  [[ $FAILURES -gt 0 ]] && echo "$FAILURES issue(s) failed — check output above." >&2 && exit 1
+else
+  echo ""
+  echo "Done. 21 issues listed (dry run)."
+fi
