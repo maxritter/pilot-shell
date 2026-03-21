@@ -1,0 +1,31 @@
+name: Security Issue
+description: Report a security vulnerability in the DevSecOps fork
+title: '[Security]: '
+labels: 'type:security'
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Report suspected vulnerabilities responsibly by following our security policy.
+        Do not provide sensitive information here.
+  - type: input
+    id: summary
+    attributes:
+      label: Vulnerability summary
+      description: Concisely describe the vulnerability.
+      placeholder: Description of the issue
+      validations:
+        required: true 
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: Rate the severity of the vulnerability
+      options:
+        - High (Critical Impact)
+        - Medium (Potential Risk Exploit)
+  - type: textarea
+    id: details
+    attributes:
+      label: Additional Details
+      description: Any additional information can be included here.
