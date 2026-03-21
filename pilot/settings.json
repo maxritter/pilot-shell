@@ -16,11 +16,13 @@
     "DISABLE_INSTALLATION_CHECKS": "true"
   },
   "permissions": {
-    "defaultMode": "bypassPermissions"
+    // hardening: "bypassPermissions" silently approves all tool calls; use "default" to restore approval prompts
+    "defaultMode": "default"
   },
   "skipDangerousModePermissionPrompt": true,
   "terminalProgressBarEnabled": true,
-  "enableAllProjectMcpServers": true,
+  // hardening: auto-trusting all project MCP servers is a supply-chain risk; require explicit opt-in
+  "enableAllProjectMcpServers": false,
   "spinnerTipsOverride": {
     "tips": [
       "[PILOT] Run /setup-rules after installation to generate project rules",

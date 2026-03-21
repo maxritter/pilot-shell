@@ -2,6 +2,11 @@
 
 set -e
 
+# WARNING: This fork (canstralian/pilot-shell-devsecops) does not yet publish its own
+# release artifacts (binaries, installer archives). All downloads below resolve to
+# the upstream repository. Until fork-native releases exist, users are trusting
+# upstream's release pipeline, not this fork's. Do NOT change REPO to this fork's
+# path without first publishing verified release artifacts from this fork.
 REPO="maxritter/pilot-shell"
 
 VERSION="${VERSION:-}"
