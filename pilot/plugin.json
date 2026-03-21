@@ -1,12 +1,11 @@
 {
-  "name": "pilot-shell-plugin",
+  "name": "pilot-shell-devsecops-plugin",
   "version": "7.7.1",
-  "description": "Pilot Shell Plugin",
+  "description": "Pilot Shell DevSecOps Plugin — security-oriented fork",
   "author": {
-    "name": "Max Ritter",
-    "email": "mail@maxritter.net"
+    "name": "canstralian"
   },
-  "repository": "https://github.com/maxritter/pilot-shell",
+  "repository": "https://github.com/canstralian/pilot-shell-devsecops",
   "license": "Proprietary",
-  "keywords": ["pilot", "pilot-shell"]
+  "keywords": ["pilot", "pilot-shell", "devsecops", "security"]
 }

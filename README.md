@@ -1,95 +1,138 @@
 <div align="center">
 
-# Pilot Shell DevSecOps
+# pilot-shell-devsecops
 
-**Temporary README**
-
-A security-focused fork of Pilot Shell aimed at building a more controlled, auditable, and secure workflow for AI-assisted engineering.
+**A security-oriented fork of Pilot Shell for AI-assisted engineering with explicit trust
+boundaries, policy enforcement, and auditable workflows.**
 
 </div>
 
 ---
 
-## Status
+## What this is
 
-This repository is currently being repositioned as a DevSecOps-oriented fork.
+This is a fork of [`maxritter/pilot-shell`](https://github.com/maxritter/pilot-shell),
+adapted for teams and individuals who need AI-assisted development with stronger security
+controls, clearer governance, and verifiable delivery.
 
-The upstream project provides a strong workflow foundation around structured planning, testing, reusable rules, and AI-assisted implementation. This fork is intended to adapt that foundation toward secure software delivery, stronger governance, and clearer trust boundaries.
-
-At the moment, this README is intentionally temporary. It exists to signal direction while the repository, documentation, and workflows are being revised.
-
----
-
-## Fork Direction
-
-This fork is being shaped around a few core ideas:
-
-- secure-by-default workflows over convenience-first automation
-- explicit review and approval boundaries for meaningful actions
-- policy-backed development instead of informal prompt behavior
-- auditable plans, checks, and outcomes
-- local-first handling of code and context where practical
-- better alignment with DevSecOps practices across build, verification, and release
+The upstream project builds a structured development workflow on top of Claude Code:
+spec-driven planning, enforced verification, reusable rules, and lifecycle hooks. This fork
+preserves that foundation and extends it with a security-first operating model.
 
 ---
 
-## Intended Focus Areas
+## How this differs from upstream
 
-Planned areas of emphasis include:
+| Area | Upstream | This fork |
+|------|----------|-----------|
+| Permission default | `bypassPermissions` | `default` (approval required) — *planned* |
+| MCP server trust | Auto-trust all project servers | Explicit allowlist, pinned versions — *planned* |
+| Install integrity | No checksum/signature checks | Binary verification via GitHub Attestation — *planned* |
+| Security rules | Quality and workflow standards | Quality + security acceptance criteria — *planned* |
+| Bash enforcement | None | Command policy hook — *planned* |
+| SAST | None | `bandit`/`semgrep` on file write — *planned* |
+| Audit trail | Memory system (convenience) | Structured session audit log — *planned* |
+| SBOM | None | CycloneDX generation in CI — *planned* |
 
-- spec-driven development with security acceptance criteria
-- stronger verification beyond tests alone
-- safer permission and execution defaults
-- integration points for static analysis, secret scanning, dependency review, and policy checks
-- better documentation of data flows, trust boundaries, and operational assumptions
-- reusable rules and workflows for secure engineering teams
+Items marked *planned* are in the roadmap but not yet implemented. See
+[`docs/devsecops-fork-roadmap.md`](docs/devsecops-fork-roadmap.md) for the full plan with
+effort and risk ratings.
 
----
-
-## What This Repo Is Not Yet
-
-This repository should not yet be treated as a finished security platform or a complete DevSecOps framework.
-
-Some functionality may still reflect the upstream project. Some fork-specific security goals may still be in design or implementation. Until that work is complete, treat this repo as an evolving fork with a clear direction rather than a finalized product.
-
----
-
-## Near-Term Plan
-
-The short-term effort is focused on:
-
-1. Reworking the documentation to match the fork’s actual purpose
-2. Clarifying security posture and trust assumptions
-3. Defining safer defaults for execution and workflow control
-4. Adding DevSecOps-oriented checks and guidance
-5. Establishing a cleaner separation from the upstream product identity
+For a detailed diff of current vs. target state, see
+[`docs/fork-delta.md`](docs/fork-delta.md).
 
 ---
 
-## Notes on Upstream
+## Current status
 
-This repository builds on ideas and mechanics established by the upstream Pilot Shell project. Credit for the original workflow model belongs to that project.
+This fork is in active restructuring. The workflow core (spec commands, hooks, rules) is
+inherited from upstream and functional. Security-specific changes are being introduced
+incrementally, with small reviewable commits.
 
-This fork’s goal is not to duplicate the original positioning, but to evolve it toward a more security-conscious operating model.
+**Do not treat this repository as a finished security platform.** The upstream defaults
+(including `bypassPermissions`) are still present in some configuration files while
+replacement work is in progress. Validate the actual configuration before use.
+
+---
+
+## What you get today (inherited from upstream)
+
+- **Spec-driven development** — `/spec` command for structured planning, implementation,
+  and verification with a mandatory plan approval gate
+- **Lifecycle hooks** — 7 hook points (SessionStart, UserPromptSubmit, PreToolUse,
+  PostToolUse, Stop, SessionEnd, PreCompact) for automated quality enforcement
+- **Quality checks** — linting, type-checking, and TDD enforcement on every file write
+  (Python, TypeScript, Go)
+- **Pinned CI actions** — all GitHub Actions workflows reference commit SHAs, not floating
+  tags
+- **Trivy scanning** — vulnerability and secret scanning on every release path, blocking
+  on CRITICAL/HIGH
+- **Release approval gate** — manual approval required before any artifact is published
+  (`environment: production`)
+- **Build provenance attestation** — all release binaries attested via
+  `actions/attest-build-provenance`
+
+---
+
+## What is being added (this fork)
+
+The near-term implementation targets, in order:
+
+1. **Fix permission defaults** (P1-PERM) — change `bypassPermissions` to `default`
+2. **MCP trust lockdown** (P1-MCP) — disable auto-trust, pin versions, document data flows
+3. **Binary integrity verification** (P1-INSTALL) — verify checksums and attestations at
+   install time
+4. **High-risk path guard hook** (P2-HOOK-PATH) — block/warn on writes to CI, shell, and
+   secrets paths
+5. **SAST on file write** (P2-HOOK-SAST) — run `bandit`/`semgrep` after every write
+6. **Bash command policy hook** (P2-HOOK-BASH) — enforce a configurable command policy
+7. **SBOM in CI** (P2-SBOM) — CycloneDX SBOMs for Python and Node.js components
+8. **Security rules** (P3-RULES-SEC) — security acceptance criteria in spec workflows
+9. **Session audit log** (P3-AUDIT) — structured per-session activity record
+10. **Threat model** (P3-THREAT-MODEL) — documented trust boundaries and attack surface
+
+---
+
+## Constraints
+
+- The `pilot` binary is **proprietary** and not open-source. This fork cannot audit or
+  modify it. Security claims do not extend to binary internals.
+- License validation connects to Gumroad at runtime (inherited from upstream).
+- The installer currently still references the upstream GitHub repository for binaries.
+  Until this fork publishes its own releases, the install script pulls from upstream.
 
 ---
 
 ## Contributing
 
-Contributions are welcome, especially in areas such as:
+Contributions are welcome in the following areas:
 
-- documentation cleanup
-- security workflow design
-- policy and rules architecture
-- verification pipelines
-- secure defaults
-- threat modeling and trust-boundary analysis
+- Security rule authoring (OWASP-aligned, threat-model-grounded)
+- Hook implementations for the roadmap items above
+- Documentation of trust boundaries and data flows
+- CI/CD improvements (SBOM, license scanning, provenance)
+- Threat modeling
+
+All contributions should be small and reviewable. No vague security claims without
+supporting code or documentation.
 
 ---
 
-## Temporary Disclaimer
+## Repository layout
 
-Until the fork-specific architecture is fully documented, do not rely on this repository for strong security guarantees based on README language alone. Validate actual behavior, configurations, and controls in your environment.
+```
+pilot/
+  hooks/          Lifecycle hooks (quality, spec enforcement, memory)
+  rules/          Always-loaded markdown rules for Claude Code
+  commands/       On-demand slash commands (/spec, /setup-rules, etc.)
+  agents/         Sub-agent definitions (plan-reviewer, spec-reviewer)
+  settings.json   Claude Code plugin settings
+  .mcp.json       MCP server configuration
+installer/        Python installer (uv-based)
+launcher/         Python launcher (wraps the pilot binary)
+.github/          CI/CD workflows (release, deploy, claude)
+docs/             Fork documentation (roadmap, delta, threat model)
+```
 
 ---
 
