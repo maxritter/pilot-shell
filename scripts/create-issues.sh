@@ -10,7 +10,7 @@
 #
 # Pass --dry-run to print issue titles without creating them.
 
-set -uo pipefail
+set -euo pipefail
 
 DRY_RUN=false
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=true
