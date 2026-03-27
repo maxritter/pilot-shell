@@ -70,6 +70,18 @@ revocable license to:
       and may be used by You for any purpose, including commercial purposes,
       in perpetuity, even after Your Subscription ends.
 
+  (e) ENTERPRISE SOURCE CODE LICENSE. Subject to an active Enterprise
+      Subscription, the Licensor grants You the additional right to receive,
+      copy, modify, and create Derivative Works of the complete Software source
+      code, including Compiled Components, solely for Your internal business
+      purposes. This includes the right to fork, adapt, and deploy customized
+      versions of the Software within Your organization. This right does not
+      include the right to redistribute, sublicense, sell, or make available
+      any such Derivative Works to third parties outside Your organization.
+      The Enterprise Source Code License is available only to organizations
+      with one hundred (100) or more developer seats under a separate Enterprise
+      agreement with the Licensor.
+
 --------------------------------------------------------------------------------
 
 3. TRIAL PERIOD
@@ -94,9 +106,11 @@ You shall NOT, and shall not permit any third party to:
       non-commercial purposes;
 
   (b) CREATE OR DISTRIBUTE DERIVATIVE WORKS based on the Software or any
-      portion thereof. You may modify the Source Code for Your own internal use
-      as permitted under Section 2(c), but You may not distribute, publish, or
-      make available any Derivative Work to any third party;
+      portion thereof, except as expressly permitted under Section 2(e)
+      (Enterprise Source Code License). You may modify the Source Code for Your
+      own internal use as permitted under Section 2(c), but You may not
+      distribute, publish, or make available any Derivative Work to any third
+      party;
 
   (c) REBRAND, rename, or present the Software or any portion thereof as Your
       own product, or remove, alter, or obscure any proprietary notices,

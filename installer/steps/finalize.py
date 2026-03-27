@@ -42,7 +42,29 @@ class FinalizeStep(BaseStep):
 
     def run(self, ctx: InstallContext) -> None:
         """Run final cleanup tasks and display success."""
+        self._kill_stale_worker()
         self._display_success(ctx)
+
+    @staticmethod
+    def _kill_stale_worker() -> None:
+        """Kill any running Console worker so it restarts with the newly installed files."""
+        try:
+            result = subprocess.run(
+                ["lsof", "-ti", ":41777"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            pids = result.stdout.strip()
+            if pids:
+                for pid in pids.splitlines():
+                    subprocess.run(
+                        ["kill", "-9", pid.strip()],
+                        capture_output=True,
+                        timeout=5,
+                    )
+        except Exception:
+            pass
 
     def _display_success(self, ctx: InstallContext) -> None:
         """Display success panel with next steps."""

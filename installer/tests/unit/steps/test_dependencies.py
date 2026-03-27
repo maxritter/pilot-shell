@@ -33,7 +33,7 @@ class TestDependenciesStep:
 
     @patch("installer.steps.dependencies.install_rtk", return_value=True)
     @patch("installer.steps.dependencies.install_probe", return_value=True)
-    @patch("installer.steps.dependencies.install_playwright_cli", return_value=True)
+    @patch("installer.steps.dependencies.install_agent_browser", return_value=True)
     @patch("installer.steps.dependencies.install_ccusage", return_value=True)
     @patch("installer.steps.dependencies.install_pbt_tools", return_value=True)
     @patch("installer.steps.dependencies.install_golangci_lint", return_value=True)

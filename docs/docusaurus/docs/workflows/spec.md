@@ -51,8 +51,9 @@ Investigation-first flow for targeted fixes. Finds the root cause before touchin
 
 - Explores codebase with semantic search, asks clarifying questions
 - Writes detailed spec with scope, tasks, and definition of done
+- For UI/user-facing features: writes structured **E2E test scenarios** (TS-001, TS-002…) with step-by-step actions and expected results — these become the verification contract for the Verify phase
 - Plan-reviewer sub-agent validates completeness (optional, enabled by default)
-- Waits for your approval — edit the plan directly before accepting
+- Waits for your approval — edit the plan directly, or **annotate it visually** in the Console's Specifications tab (select any text, write a note — annotations save automatically). The agent reads your annotations at the approval checkpoint, revises the plan, and re-asks for approval
 
 ### Implement Phase
 
@@ -66,7 +67,9 @@ Investigation-first flow for targeted fixes. Finds the root cause before touchin
 - Full test suite + type checking + lint + build verification
 - Features: unified review sub-agent (optional, enabled by default)
 - Bugfixes: regression test + full suite — no sub-agents needed
+- For UI features: executes the plan's **E2E test scenarios** step-by-step via browser automation — tracks pass/fail per scenario, auto-fixes failures (up to 2 attempts), escalates persistent failures to known issues; results written back to the plan file
 - Auto-fixes findings, loops back until all checks pass
+- After automated checks pass, prompts you to **review code changes** in the Console's Changes tab — enable Review mode, add inline annotations on any diff line (they save automatically), and the agent addresses them before marking the spec as verified
 
 ## Configurable Toggles
 

@@ -73,10 +73,18 @@ Then execute that direction with precision across every detail below.
 - **Motion:** Every animation has purpose. Max 500ms. Always respect `prefers-reduced-motion`. Prefer one well-orchestrated page load with staggered reveals (`animation-delay`) over scattered micro-interactions. Use scroll-triggered animations and surprising hover states for high-impact moments. CSS-only for HTML; Motion library for React when available.
 - **Avoid AI aesthetic:** Purple gradients on white, symmetric 3-column grids, rounded cards with shadow, gradient text everywhere, overused font families (Inter, Space Grotesk), cookie-cutter component patterns.
 
+## Performance
+
+- **Cache expensive work:** Parsing, transforming, or filtering data in a render/update path must be memoized. If input hasn't changed, output must not be recomputed.
+- **Isolate re-renders:** List items should not re-render when unrelated parent state changes. Use framework memoization primitives on list item components.
+- **Minimize dependency weight:** Import only what you use. Full library imports where tree-shaken alternatives exist waste bandwidth and parse time.
+- **Polling-safe:** If the view refreshes on an interval, child components must not redo expensive work when the underlying data hasn't changed.
+
 ## Checklist
 
 - [ ] Components: single responsibility, typed props, local state
 - [ ] CSS: project methodology, design tokens, no `!important`
 - [ ] Accessible: keyboard, labels, contrast 4.5:1, alt text
 - [ ] Responsive: mobile-first, fluid, touch targets ≥ 44px
+- [ ] Performance: expensive work cached, re-renders isolated, deps tree-shaken, polling-safe
 - [ ] Design: intentional direction, visual depth, composition, no AI anti-patterns

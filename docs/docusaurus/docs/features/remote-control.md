@@ -88,33 +88,6 @@ For the SSH/Termius approach, you need network connectivity to your computer. In
 
 If Remote Control doesn't connect or shows authentication errors, run `/logout` followed by `/login` inside Claude Code. This re-authenticates your session and resolves most connection issues.
 
-## Telegram Integration
-
-Control Pilot Shell directly from Telegram. Send messages to your bot, and Claude responds in the same chat — with full access to your local environment, hooks, rules, and MCP servers.
-
-### Setup
-
-1. **Install the Telegram plugin** — follow the setup instructions at [claude-plugins-official/telegram](https://github.com/anthropics/claude-plugins-official/tree/main/external_plugins/telegram). This walks you through creating a Telegram bot, connecting it to your account, and installing the plugin via `claude plugin install`.
-
-2. **Start Pilot Shell** — run `pilot` as usual. Pilot Shell automatically detects the Telegram plugin and enables the `--channels` flag on launch. No extra configuration needed.
-
-3. **Message your bot** — open the Telegram chat with your bot and start sending messages. Claude receives them as channel messages and responds directly in the chat.
-
-### How It Works
-
-On every launch, Pilot Shell runs `claude plugin list --json` to check if the `telegram@claude-plugins-official` plugin is installed and enabled. When detected, it passes `--channels plugin:telegram@claude-plugins-official` to Claude Code, which activates the Telegram channel alongside your terminal session.
-
-This means you can interact with Claude from both your terminal and Telegram simultaneously — heavy coding from the terminal, quick checks and approvals from Telegram.
-
-### Use Cases
-
-| Pattern | Description |
-| ------- | ----------- |
-| **On-the-go approvals** | Approve `/spec` plans from Telegram while away from your desk |
-| **Quick questions** | Ask Claude about your codebase from your phone without opening a terminal |
-| **Progress updates** | Check on long-running tasks from anywhere |
-| **Multi-device** | Terminal for coding, Telegram for monitoring and quick interactions |
-
 ## Limitations
 
 - Your computer must stay awake (see above)

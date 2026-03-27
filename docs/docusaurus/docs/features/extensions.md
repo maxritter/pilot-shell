@@ -34,9 +34,9 @@ Installed Claude Code plugins are automatically discovered and their extensions 
 
 Install plugins via the Claude Code CLI: `claude plugin install <name>`
 
-## Team Sharing (Team Tier)
+## Team Sharing (Team and Enterprise)
 
-Share extensions with your team through a connected git repository. This feature is available on the Team plan.
+Share extensions with your team through a connected git repository. This feature is available on the Team and Enterprise plans.
 
 ### How It Works
 

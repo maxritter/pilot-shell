@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from installer.context import InstallContext
-from installer.platform_utils import command_exists, is_linux_arm64, npm_global_cmd
+from installer.platform_utils import command_exists, npm_global_cmd
 from installer.steps.base import BaseStep
 
 MAX_RETRIES = 3
@@ -321,88 +321,40 @@ def install_pbt_tools() -> bool:
     return ok
 
 
-def _get_playwright_cache_dirs() -> list[Path]:
-    """Get possible Playwright cache directories for the current platform."""
+def _is_agent_browser_ready() -> bool:
+    """Check if agent-browser is installed and Chrome is available."""
+    if not command_exists("agent-browser"):
+        return False
+
+    try:
+        result = subprocess.run(
+            ["agent-browser", "--version"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
+def install_agent_browser() -> bool:
+    """Install agent-browser for headless browser automation.
+
+    On Linux, installs with --with-deps for system dependencies.
+    """
     import platform
 
-    dirs = []
-    if platform.system() == "Darwin":
-        dirs.append(Path.home() / "Library" / "Caches" / "ms-playwright")
-    dirs.append(Path.home() / ".cache" / "ms-playwright")
-    return dirs
-
-
-def _is_playwright_cli_ready() -> bool:
-    """Check if playwright-cli is installed and Chromium is available."""
-    if not command_exists("playwright-cli"):
-        return False
-
-    for cache_dir in _get_playwright_cache_dirs():
-        if not cache_dir.exists():
-            continue
-
-        for chromium_dir in cache_dir.glob("chromium-*"):
-            if (chromium_dir / "INSTALLATION_COMPLETE").exists():
-                return True
-
-        for chromium_dir in cache_dir.glob("chromium_headless_shell-*"):
-            if (chromium_dir / "INSTALLATION_COMPLETE").exists():
-                return True
-
-    return False
-
-
-def _install_playwright_system_deps() -> bool:
-    """Install OS-level system dependencies required by Playwright browsers.
-
-    Runs 'npx playwright install-deps' which installs system libraries
-    (libglib, libatk, etc.) needed by Chromium. Required on Linux/devcontainers,
-    no-op on macOS.
-    """
-    cmd = ["npx", "-y", "playwright", "install-deps"]
-    for attempt in range(MAX_RETRIES):
-        try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-            if result.returncode == 0:
-                return True
-        except Exception:
-            pass
-        if attempt < MAX_RETRIES - 1:
-            time.sleep(RETRY_DELAY)
-    return False
-
-
-def install_playwright_cli() -> bool:
-    """Install playwright-cli for headless browser automation.
-
-    On Linux ARM64, installs chromium specifically (Chrome has no ARM64 builds).
-    """
-    if _is_playwright_cli_ready():
+    if _is_agent_browser_ready():
+        # Upgrade existing installation
+        _run_bash_with_retry("agent-browser upgrade", timeout=120)
         return True
 
-    if not _run_bash_with_retry(npm_global_cmd("npm install -g @playwright/cli@latest")):
+    if not _run_bash_with_retry(npm_global_cmd("npm install -g agent-browser")):
         return False
 
-    if _is_playwright_cli_ready():
-        _install_playwright_system_deps()
-        return True
-
-    install_cmd = ["playwright-cli", "install", "chromium"] if is_linux_arm64() else ["playwright-cli", "install"]
-
-    for attempt in range(MAX_RETRIES):
-        try:
-            result = subprocess.run(install_cmd, capture_output=True, text=True, timeout=300)
-            if result.returncode == 0:
-                break
-        except Exception:
-            pass
-        if attempt < MAX_RETRIES - 1:
-            time.sleep(RETRY_DELAY)
-            continue
-        return False
-
-    _install_playwright_system_deps()
-    return True
+    install_cmd = "agent-browser install --with-deps" if platform.system() == "Linux" else "agent-browser install"
+    return _run_bash_with_retry(install_cmd, timeout=300)
 
 
 def _install_with_spinner(ui: Any, name: str, install_fn: Any, *args: Any) -> bool:
@@ -623,8 +575,8 @@ class DependenciesStep(BaseStep):
         if _install_with_spinner(ui, "ccusage (usage tracking)", install_ccusage):
             installed.append("ccusage")
 
-        if _install_with_spinner(ui, "playwright-cli (browser automation)", install_playwright_cli):
-            installed.append("playwright_cli")
+        if _install_with_spinner(ui, "agent-browser (browser automation)", install_agent_browser):
+            installed.append("agent_browser")
 
         if _install_with_spinner(ui, "Probe (code search)", install_probe):
             installed.append("probe")

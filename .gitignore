@@ -224,6 +224,8 @@ __marimo__/
 # Claude Code
 CLAUDE.md
 AGENTS.md
+spec-annotate
+changes-header
 apm.yml
 .playwright-*/
 .apm
@@ -247,6 +249,7 @@ playwright/
 
 # Build artifacts
 docs/plans
+docs/plans/.annotations/
 docs/license
 docs/video
 docs/slides

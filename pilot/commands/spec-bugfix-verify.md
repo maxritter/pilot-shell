@@ -45,6 +45,7 @@ Run all tests. Fix any failures immediately. Re-run until green.
 1. **Type checker** — zero new errors
 2. **Linter** — errors are blockers, fix immediately
 3. **Build** (if applicable) — must succeed
+4. **Performance audit** — For changed files on hot paths: expensive uncached work? Heavy dependency imports with lighter alternatives? Repeated invocations redoing work when input hasn't changed? Structural issues — visible in source, no running program needed.
 
 ## Step 3.4: Plan Verify Commands
 
@@ -52,9 +53,32 @@ Run each task's `Verify:` commands. Defer server-dependent commands (containing 
 
 ## Step 3.5: Runtime Verification (only if deferred commands exist)
 
-If no server-dependent commands were deferred: skip to Final.
+If no server-dependent commands were deferred: skip to Step 3.5b.
 
 Otherwise: start service → run deferred commands → stop service → fix failures.
+
+## Step 3.5b: Verification Scenario (if exists in plan)
+
+Check whether the plan has a `## Verification Scenario` section (only present for UI-facing bugs).
+
+**If no Verification Scenario:** proceed to Final.
+
+**If Verification Scenario exists:**
+
+```bash
+AB_SESSION="${PILOT_SESSION_ID:-default}"
+```
+
+1. Execute each step from the scenario using `agent-browser --session "$AB_SESSION"`
+2. Verify the expected result for each step (snapshot after each interaction)
+3. **PASS:** Scenario confirms fix works — close browser, proceed to Final
+4. **FAIL (attempt 1):** Analyze root cause, implement fix, re-run tests, re-execute scenario
+5. **FAIL (attempt 2):** Implement second fix, re-run tests, re-execute scenario
+6. **FAIL after 2 attempts:** The bug is not fully fixed — set `Status: PENDING`, increment `Iterations`, invoke `Skill(skill='spec-implement', args='<plan-path>')`. Do not proceed to VERIFIED.
+
+```bash
+agent-browser --session "$AB_SESSION" close
+```
 
 ---
 
@@ -64,8 +88,7 @@ Otherwise: start service → run deferred commands → stop service → fix fail
 
 1. Detect: `~/.pilot/bin/pilot worktree detect --json <plan_slug>`
 2. If no worktree: skip to Step 3.8.
-3. Pre-sync: verify clean working tree on base branch
-4. Save plan to project root (only if gitignored):
+3. Save plan to project root (only if gitignored):
    `git -C <project_root> check-ignore -q docs/plans/<plan_filename>` — if exit 0: `cp <worktree_plan> <project_root>/docs/plans/`; if exit 1 (tracked): skip — squash merge brings the updated plan.
 5. Show diff: `~/.pilot/bin/pilot worktree diff --json <plan_slug>`
 6. Notify + AskUserQuestion: "Yes, squash merge" | "No, keep" | "Discard"
@@ -80,9 +103,46 @@ Otherwise: start service → run deferred commands → stop service → fix fail
 
 Full test suite + type checker + build. If any fails: fix on base branch, re-run.
 
-### Step 3.8: Update Plan Status
+### Step 3.7b: Check for Code Review Feedback
 
-**All passes:** Set `Status: VERIFIED`, register, report:
+**Run BEFORE marking VERIFIED.** Check if the user left code review annotations in the Console's Changes tab. Annotations auto-save — no "Send Feedback" button needed.
+
+Derive the annotation file path: `docs/plans/.annotations/<plan-filename>.json` (same basename as the plan, `.json` extension).
+
+Read the annotation file with the Read tool. If the file doesn't exist, treat as `NO_FEEDBACK`. If it exists, check whether `codeReviewAnnotations` has any entries (`FEEDBACK_EXISTS`) or is empty/missing (`NO_FEEDBACK`).
+
+**If `FEEDBACK_EXISTS`:** Each annotation in `codeReviewAnnotations` has `filePath`, `lineStart`, `text`. Fix all issues, clear annotations via `curl -s -X DELETE "http://localhost:41777/api/annotations/code-review?path=<encoded-plan-path>" > /dev/null 2>&1 || true`, re-run tests, continue to Step 3.8.
+**If `NO_FEEDBACK`:** continue to Step 3.8.
+
+### Step 3.8: Code Review Gate (User Confirmation)
+
+**⛔ MANDATORY before marking VERIFIED.**
+
+1. Notify:
+   ```bash
+   ~/.pilot/bin/pilot notify plan_approval "Bugfix Verification Complete" "<plan-slug> — please review changes" --plan-path "<plan_path>" 2>/dev/null || true
+   ```
+
+2. Tell the user:
+   ```
+   All automated checks passed. Please review the code changes in the Console's **Changes** tab.
+   You can leave inline annotations using the **Review** mode toggle — annotations save automatically.
+
+   Say **"approve"** to mark verified, or **"fix"** to have me address your annotations (I'll read them directly from the Console).
+   ```
+
+3. Wait for user response:
+   - "approve" / "lgtm" → proceed to Step 3.9
+   - "fix" / feedback → re-run Step 3.7b (check for code review annotations in JSON), fix issues, re-run tests, return to Step 3.8
+   - "continue" / "proceed" → treat as approval
+
+### Step 3.9: Update Plan Status
+
+**All passes and user approves:** Set `Status: VERIFIED`, register:
+```bash
+~/.pilot/bin/pilot register-plan "<plan_path>" "VERIFIED" 2>/dev/null || true
+```
+Report:
 ```
 Bugfix verified — regression test passes, full suite green.
 Run /clear before starting new work — this resets context while keeping project rules loaded.

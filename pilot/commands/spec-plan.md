@@ -206,6 +206,7 @@ Incorporate choices into plan design, proceed to Step 1.5.
 
 **Objective:** [1-2 sentences]
 **Dependencies:** [None | Task X, Task Y]
+**Mapped Scenarios:** [None | TS-001, TS-002]
 
 **Files:**
 
@@ -230,6 +231,8 @@ Incorporate choices into plan design, proceed to Step 1.5.
 
 **DoD must be verifiable.** ✅ "GET /api/users?role=admin returns only admin users" ❌ "Feature works correctly"
 
+**Performance considerations:** When a task processes data on a hot path (render loops, request handlers, polling callbacks), note it in Key Decisions. Flag: expensive computations that should be cached/memoized, heavy dependencies that have lighter alternatives, and repeated work that can be avoided when input hasn't changed.
+
 **Zero-context assumption:** Assume implementer knows nothing. Provide exact file paths, explain domain concepts, reference similar patterns.
 
 **Assumptions:** After creating tasks, write the `## Assumptions` section — one bullet per assumption: what you assume, which finding supports it, which task numbers depend on it. When implementation hits a surprise, this list tells the implementer which tasks are affected.
@@ -241,6 +244,37 @@ After creating tasks, derive for the `## Goal Verification` section:
 1. State the goal
 2. Derive 3-7 observable truths (falsifiable, user-perspective)
 3. For each truth, identify supporting artifacts (files with real implementation, not stubs)
+
+### Step 1.5.2: E2E Test Scenarios (Conditional)
+
+**Skip when:** Runtime profile would be Minimal (no UI, no server, no user-facing entry points). Use the same classification logic as `spec-verify` Step 3.0 — if Phase B would be skipped entirely, skip this step too.
+
+For features with UI or user-facing workflows, create structured E2E scenarios describing exactly how a user verifies the feature works. These become the verification contract for Phase B in `spec-verify` — the verifier executes them step by step rather than improvising.
+
+**Format — add as `## E2E Test Scenarios` section in the plan:**
+
+```markdown
+### TS-001: [Scenario Name]
+**Priority:** Critical | High | Medium
+**Preconditions:** [Required state — e.g., "logged in as admin", "no existing items"]
+**Mapped Tasks:** Task 1, Task 3
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | [Navigate / click / fill — concrete agent-browser action] | [What user sees] |
+| 2 | [Next action] | [Expected UI response] |
+```
+
+**Guidelines:**
+- 3–8 scenarios typical — focus on user-visible workflows, not unit-level behavior
+- **Critical** = must pass before deployment; **High** = essential UX; **Medium** = edge cases / error states
+- Every task that changes UI or user-visible behavior must be covered by at least one scenario
+- Steps must be executable via `agent-browser` (concrete: navigate, click, fill, snapshot — no "observe manually")
+- Test what users see, not internal implementation — same observable inputs and outputs
+
+When scenarios are written, update Goal Verification truths to reference them (e.g., "TS-001 passes end-to-end").
+
+---
 
 ### Step 1.6: Write Full Plan
 
@@ -309,6 +343,10 @@ Type: Feature
 
 ### Artifacts
 
+## E2E Test Scenarios (omit section for Minimal runtime profile)
+
+[Scenarios from Step 1.5.2]
+
 ## Progress Tracking
 
 - [ ] Task 1: [summary]
@@ -375,6 +413,24 @@ Then Read the file once. If not READY after 5 min, re-launch synchronously.
 
 **Fix findings:** must_fix → should_fix immediately. Suggestions if reasonable. Proceed after all must_fix/should_fix resolved.
 
+### Step 1.7b: Check for Console Annotation Feedback (Before Approval)
+
+**⛔ Run this BEFORE Step 1.8 (approval).** Check if the user has annotated the plan in the Console's Specifications tab. Annotations auto-save to the unified JSON file — no "Send Feedback" button needed.
+
+1. Derive the annotation file path from the plan path:
+   - Plan: `docs/plans/2026-03-26-my-feature.md` → Annotations: `docs/plans/.annotations/2026-03-26-my-feature.json`
+
+2. Read the annotation file with the Read tool. If the file doesn't exist, treat as `NO_FEEDBACK`. If it exists, check whether the `planAnnotations` array contains any entries (`FEEDBACK_EXISTS`) or is empty/missing (`NO_FEEDBACK`).
+
+3. **If `FEEDBACK_EXISTS`:**
+   - Each annotation in `planAnnotations` has `originalText` (selected text) and `text` (user's note)
+   - Incorporate ALL annotations into the plan: treat each annotation's `text` as the user's instruction for that passage
+   - After incorporating: clear plan annotations via API: `curl -s -X DELETE "http://localhost:41777/api/annotations/plan?path=<encoded-plan-path>" > /dev/null 2>&1 || true`
+   - Note: "Incorporated user annotations from Console — [N changes]"
+   - Proceed to Step 1.8 with the updated plan
+
+4. **If `NO_FEEDBACK`:** proceed directly to Step 1.8.
+
 ### Step 1.8: Get User Approval
 
 **⛔ If `PILOT_PLAN_APPROVAL_ENABLED` is `"false"` (from Step 0),** skip this step: set `Approved: Yes` in the plan file automatically and immediately invoke `Skill(skill='spec-implement', args='<plan-path>')`. No AskUserQuestion, no notification.
@@ -384,19 +440,21 @@ Then Read the file once. If not READY after 5 min, re-launch synchronously.
 0. Notify:
 
    ```bash
-   ~/.pilot/bin/pilot notify plan_approval "Plan Ready for Review" "<plan_name> — approval needed" --plan-path "<plan_path>" 2>/dev/null || true
+   ~/.pilot/bin/pilot notify plan_approval "Plan Ready for Review" "<plan_name> — annotate in Console or approve here" --plan-path "<plan_path>" 2>/dev/null || true
    ```
 
 1. Summarize: goal, key tasks, approach
 
 2. AskUserQuestion:
    - "Yes, proceed with implementation" — I've reviewed and it looks good
-   - "No, I need to make changes" — Let me edit first
+   - "No, I need to make changes" — Let me edit the plan file first
+   - "No, I'll annotate in the Console" — I'll use the Specifications tab to mark up the plan visually
 
    Note: `Worktree:` field was already set at creation time (Step 1.1). Do NOT ask again here.
 
 3. **If "Yes":** Set `Approved: Yes`, invoke `Skill(skill='spec-implement', args='<plan-path>')`
-   **If "No":** Tell user to edit plan, wait for "ready", re-read, ask again
+   **If "No, I need to make changes":** Tell user to edit plan directly or annotate in the Console's Specifications tab (annotations auto-save — no button needed), then say "ready". Wait. Re-run Step 1.7b (check for annotation feedback), re-read plan, ask again
+   **If "No, I'll annotate in the Console":** Tell user to annotate in the Console Specifications tab — annotations save automatically as they type. Say "ready" when done. Wait. Re-run Step 1.7b, re-read plan, ask again
    **If other feedback (config values, threshold changes, clarifications):** This is NOT approval — incorporate changes into plan, then re-ask with fresh AskUserQuestion.
 
 ARGUMENTS: $ARGUMENTS

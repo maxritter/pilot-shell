@@ -122,7 +122,8 @@ Task(
   **Runtime environment:** [how to start, port, deploy path]
   **Test framework constraints:** [what it can/cannot test]
 
-  Review implementation: compliance (plan match), quality (security, bugs, tests), goal (achievement, artifacts, wiring).
+  Review implementation: compliance (plan match), quality (security, bugs, tests, performance), goal (achievement, artifacts, wiring).
+  Performance: check for expensive uncached work on hot paths, heavy dependency imports with lighter alternatives, and repeated invocations that redo work when input hasn't changed.
   Write findings JSON to output_path using Write tool.
   IMPORTANT: Include the plan file path in your output JSON as the "plan_file" field.
   """
@@ -141,7 +142,8 @@ Run all mechanical checks in sequence. Fix any failures before proceeding.
 4. **Coverage** — Verify ≥ 80%.
 5. **Build** — Clean build, zero errors.
 6. **File length** — Changed production files (non-test): >800 lines consider splitting, >1000 flag for review.
-7. **Plan verify commands** — For each task's `Verify:` section, run each command wrapped in `timeout 30 <cmd> || echo 'TIMEOUT'`. Defer server-dependent commands (containing `curl`, `localhost`, `http://`, `playwright-cli`) to Phase B.
+7. **Plan verify commands** — For each task's `Verify:` section, run each command wrapped in `timeout 30 <cmd> || echo 'TIMEOUT'`. Defer server-dependent commands (containing `curl`, `localhost`, `http://`, `agent-browser`) to Phase B.
+8. **Performance audit** — For each changed file on a hot path (UI render, request handler, polling loop, CLI inner loop): is expensive work (parsing, serialization, I/O, dependency loading) cached/memoized? Are heavy dependencies imported fully when lighter alternatives exist? Does repeated invocation redo work when input hasn't changed? **This is a static code review — no running program needed.** Performance issues from missing caching are structural and visible in the source.
 
 ### Step 3.3: Feature Parity Check (migration/refactoring only)
 
@@ -261,18 +263,20 @@ List what was **NOT** verified and why. Include in the verification report (Step
 
 **If runtime profile is not Full:** Skip.
 
-#### 3.9a: Resolve Playwright Session
+#### 3.9a: Resolve Browser Session
 
 ```bash
-PW_SESSION="${PILOT_SESSION_ID:-default}"
-# ALL playwright-cli commands use: -s="$PW_SESSION"
+AB_SESSION="${PILOT_SESSION_ID:-default}"
+# ALL agent-browser commands use: --session "$AB_SESSION"
 ```
 
-#### 3.9b: Happy Path
+#### 3.9b: Check for Structured Scenarios
 
-Test the primary user workflow end-to-end. Walk through main scenario: every view, interaction, state transition.
+Read the plan's `## E2E Test Scenarios` section (if it exists).
 
-#### 3.9c: Edge Cases
+**If structured scenarios exist (TS-NNN format):** Follow 3.9c below.
+
+**If no structured scenarios:** Fall back to ad-hoc verification — test the primary user workflow (every view, interaction, state transition), then cover edge cases:
 
 | Category | What to test |
 |----------|-------------|
@@ -282,8 +286,51 @@ Test the primary user workflow end-to-end. Walk through main scenario: every vie
 | Error state | Backend unreachable |
 | Boundary | Max values, zero, single item |
 
+Then skip to 3.9e (close browser + write results).
+
+#### 3.9c: Execute Structured Scenarios
+
+Create one task per scenario for tracking. Execute Critical first, then High, then Medium.
+
+```
+TaskCreate(subject="TS-NNN: [name]", description="[priority] | [preconditions]")
+```
+
+**For each scenario:**
+
+1. `TaskUpdate → in_progress`
+2. Execute each step exactly as written using `agent-browser --session "$AB_SESSION"`:
+   - `open` / `goto` to navigate
+   - `snapshot -i` after each interaction to see updated refs
+   - `click`, `fill`, `press` per the step's action
+   - Verify the expected result by reading the snapshot output
+3. **PASS:** All steps match expected results → `TaskUpdate → completed`, note `TS-NNN: PASS`
+4. **FAIL:** Step result doesn't match expected:
+   - Analyze root cause, implement minimal fix, re-run relevant tests (stay in Phase B — no code changes that need re-review)
+   - Re-execute the scenario (counts as fix attempt 1)
+   - If still failing: implement second fix, re-execute (fix attempt 2)
+   - After 2 failed fix attempts: `TaskUpdate → completed`, note `TS-NNN: KNOWN_ISSUE — [description]`
+5. **Critical KNOWN_ISSUE** → set `Status: PENDING`, increment `Iterations`, register status change, invoke `Skill(skill='spec-implement', args='<plan-path>')` — do not proceed to VERIFIED
+6. **High/Medium KNOWN_ISSUE** → document and continue (non-blocking)
+
+#### 3.9d: Write E2E Results to Plan
+
+After all scenarios are executed, append to the plan file:
+
+```markdown
+## E2E Results
+
+| Scenario | Priority | Result | Fix Attempts | Notes |
+|----------|----------|--------|--------------|-------|
+| TS-001   | Critical | PASS   | 0            |       |
+| TS-002   | High     | PASS   | 1            | Fixed: missing validation on empty submit |
+| TS-003   | Medium   | KNOWN_ISSUE | 2       | Tooltip misaligned on narrow viewport |
+```
+
+#### 3.9e: Close Browser
+
 ```bash
-playwright-cli -s="$PW_SESSION" close  # Cleanup after E2E
+agent-browser --session "$AB_SESSION" close
 ```
 
 ---
@@ -302,34 +349,28 @@ Re-run full test suite + type checker + build one final time. If code changed du
 
 3. **If no worktree:** Skip to Step 3.13.
 
-4. **Pre-sync:** Verify clean working tree on base branch:
-   ```bash
-   git -C <project_root> status --porcelain
-   ```
-   If dirty: report "Cannot sync: main branch has uncommitted changes. Please commit or `git stash` first, then re-run `/spec <plan_path>`." Do NOT proceed.
-
-5. **Save plan to project root** (only if gitignored):
+4. **Save plan to project root** (only if gitignored):
    ```bash
    git -C <project_root> check-ignore -q docs/plans/<plan_filename>
    ```
    If exit 0 (ignored): `cp <worktree_plan_path> <project_root>/docs/plans/<plan_filename>`
    If exit 1 (tracked): skip — the squash merge will bring the updated plan.
 
-6. **Show diff:** `~/.pilot/bin/pilot worktree diff --json <plan_slug>`
+5. **Show diff:** `~/.pilot/bin/pilot worktree diff --json <plan_slug>`
 
-7. **Notify and ask:**
+6. **Notify and ask:**
    ```bash
    ~/.pilot/bin/pilot notify plan_approval "Worktree Sync" "<plan_name> — approve merge" --plan-path "<plan_path>" 2>/dev/null || true
    ```
    AskUserQuestion: "Yes, squash merge" (Recommended) | "No, keep worktree" | "Discard all changes"
 
-8. **Handle choice:**
+7. **Handle choice:**
 
    **Squash merge:**
    ```bash
    # ⛔ ALL THREE operations MUST be in ONE Bash call chained with &&
    # If sync fails, cleanup MUST NOT run — otherwise work is lost.
-   ~/.pilot/bin/pilot worktree sync --json <plan_slug> && PROJECT_ROOT=$(~/.pilot/bin/pilot worktree cleanup --force --json <plan_slug> | python3 -c "import sys,json; print(json.load(sys.stdin)['project_root'])") && cd "$PROJECT_ROOT"
+   ~/.pilot/bin/pilot worktree sync --json <plan_slug> && PROJECT_ROOT=$(~/.pilot/bin/pilot worktree cleanup --force --json <plan_slug> | sed -n 's/.*"project_root": *"\([^"]*\)".*/\1/p') && cd "$PROJECT_ROOT"
    ```
    ⛔ NEVER split sync, cleanup, or cd into separate Bash calls — compaction between them can cause work loss.
    ⛔ The `&&` chain ensures cleanup only runs after a successful sync.
@@ -350,9 +391,50 @@ If any fails: fix on base branch, re-run, commit fix separately (e.g., `fix: res
 
 **⛔ Do NOT proceed to Step 3.13 until all post-merge checks pass.**
 
-### Step 3.13: Update Plan Status
+### Step 3.12b: Check for Code Review Feedback
 
-**When ALL passes:**
+**Run BEFORE marking VERIFIED.** Check if the user has left code review annotations in the Console's Changes tab. Annotations auto-save to the unified JSON — no "Send Feedback" button needed.
+
+Derive the annotation file path: `docs/plans/.annotations/<plan-filename>.json` (same basename as the plan, `.json` extension).
+
+Read the annotation file with the Read tool. If the file doesn't exist, treat as `NO_FEEDBACK`. If it exists, check whether `codeReviewAnnotations` has any entries (`FEEDBACK_EXISTS`) or is empty/missing (`NO_FEEDBACK`).
+
+**If `FEEDBACK_EXISTS`:**
+1. Each annotation in `codeReviewAnnotations` has `filePath`, `lineStart`, `lineEnd`, `side`, and `text` (user's annotation)
+2. Fix all issues raised (each annotation = a required fix at the indicated file/line)
+3. Clear code review annotations: `curl -s -X DELETE "http://localhost:41777/api/annotations/code-review?path=<encoded-plan-path>" > /dev/null 2>&1 || true`
+4. Re-run tests and typecheck
+5. Continue to Step 3.13
+
+**If `NO_FEEDBACK`:** continue to Step 3.13.
+
+### Step 3.13: Code Review Gate (User Confirmation)
+
+**⛔ MANDATORY before marking VERIFIED.** All automated checks pass — but the user should review the actual code changes.
+
+1. Notify:
+   ```bash
+   ~/.pilot/bin/pilot notify plan_approval "Verification Complete — Review Changes" "<plan_name> — please review code in Changes tab" --plan-path "<plan_path>" 2>/dev/null || true
+   ```
+
+2. Tell the user:
+   ```
+   All automated checks passed. Please review the code changes in the Console's **Changes** tab.
+   You can leave inline annotations on specific lines using the **Review** mode toggle — annotations save automatically.
+
+   When done:
+   - Say **"approve"** or **"lgtm"** to mark the spec as verified
+   - Say **"fix"** to have me address your annotations (I'll read them directly from the Console)
+   ```
+
+3. Wait for user response:
+   - "approve" / "lgtm" / "looks good" → proceed to Step 3.14
+   - "fix" / any feedback → re-run Step 3.12b (check for code review annotations in JSON), fix issues, re-run tests, return to Step 3.13
+   - If user skips ("continue", "proceed") → treat as approval, proceed to Step 3.14
+
+### Step 3.14: Update Plan Status
+
+**When ALL passes AND user approves:**
 
 1. Set `Status: VERIFIED` in plan
 2. Register: `~/.pilot/bin/pilot register-plan "<plan_path>" "VERIFIED" 2>/dev/null || true`
@@ -370,7 +452,7 @@ If any fails: fix on base branch, re-run, commit fix separately (e.g., `fix: res
    Run /clear before starting new work — this resets context while keeping project rules loaded.
    ```
 
-**When verification FAILS (missing features, serious bugs):**
+**When verification FAILS (missing features, serious bugs — before reaching Step 3.13):**
 
 1. Add fix tasks to plan
 2. Set `Status: PENDING`, increment `Iterations`

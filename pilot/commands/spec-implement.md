@@ -94,13 +94,14 @@ All subsequent work happens inside the worktree directory.
    - Skip TDD for: docs, config, IaC, formatting-only changes
    - **Surprise discovery:** If something contradicts how you expected it to work, check plan's `## Assumptions` section — identify which task numbers are affected and note the invalidated assumption in the plan before continuing.
 5. **Verify tests pass** — run test suite
-6. **Run actual program** — use plan's Runtime Environment. Check port: `lsof -i :<port>`. If using playwright-cli: `-s="${PILOT_SESSION_ID:-default}"`
+6. **Run actual program** — use plan's Runtime Environment. Check port: `lsof -i :<port>`. If using agent-browser: `--session "${PILOT_SESSION_ID:-default}"`
 7. **Check diagnostics** — zero errors
 8. **Validate Definition of Done** — all criteria from plan
 9. **Self-review:** Completeness? Names clear? YAGNI? Tests verify behavior not implementation?
-10. **Per-task commit (worktree only):** `git add <files> && git commit -m "{type}(spec): {task-name}"`
-11. **Mark completed:** `TaskUpdate(taskId, status="completed")`
-12. **Update plan file immediately** (Step 2.4)
+10. **Performance:** Is any expensive work (parsing, transforming, I/O) running on a hot path without caching or memoization? Are heavy dependencies imported fully when a lighter/tree-shaken alternative exists? Does repeated invocation (polling, re-render, request loop) redo work when input hasn't changed?
+11. **Per-task commit (worktree only):** `git add <files> && git commit -m "{type}(spec): {task-name}"`
+12. **Mark completed:** `TaskUpdate(taskId, status="completed")`
+13. **Update plan file immediately** (Step 2.4)
 
 ---
 

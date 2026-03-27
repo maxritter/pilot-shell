@@ -210,6 +210,18 @@ Propose 2-3 fix approaches. For each:
 
 **Defense-in-depth:** When the bug was caused by invalid data flowing through multiple layers, plan validation at every layer the data passes through — not just the source. Entry point validation, business logic validation, environment guards where appropriate.
 
+**Verification Scenario (if UI-facing bug):** If the bug manifests in the UI or through user-visible behavior, add a single structured scenario to the plan describing the user steps that reproduce the bug and confirm the fix. Same format as feature E2E scenarios — concrete agent-browser steps with expected results. This serves as the acceptance test beyond the regression unit test.
+
+```markdown
+### TS-001: [Bug Trigger / Fix Confirmation]
+**Preconditions:** [State that triggers the bug]
+
+| Step | Action | Expected Result (after fix) |
+|------|--------|-----------------------------|
+| 1 | [User action that triggered bug] | [Correct behavior now shown] |
+| 2 | [Follow-up verification] | [No regression] |
+```
+
 ---
 
 ## Step 1.4: Write the Bugfix Plan
@@ -249,6 +261,16 @@ Type: Bugfix
 **Tests:** [test files to create/modify]
 **Defense-in-depth:** [additional validation layers, if applicable — skip for isolated fixes]
 
+## Verification Scenario (only for UI-facing bugs — omit otherwise)
+
+### TS-001: [Bug Trigger / Fix Confirmation]
+**Preconditions:** [State that triggers the bug]
+
+| Step | Action | Expected Result (after fix) |
+|------|--------|-----------------------------|
+| 1 | [User action that triggered bug] | [Correct behavior] |
+| 2 | [Follow-up verification] | [No regression] |
+
 ## Progress
 
 - [ ] Task 1: [title]
@@ -272,6 +294,19 @@ Type: Bugfix
 
 **Do NOT include:** "Goal Verification" sections, "Risks and Mitigations" table, "Assumptions" section, per-task "Definition of Done" checklists, per-task "Dependencies" field.
 
+**Include `## Verification Scenario` only for UI-facing bugs** (from the Verification Scenario guidance in Step 1.3). Omit entirely for backend/non-UI bugs.
+
+---
+
+## Step 1.4b: Check for Console Annotation Feedback (Before Approval)
+
+**⛔ Run this BEFORE Step 1.5 (approval).** Check if the user has annotated the plan in the Console's Specifications tab. Annotations auto-save to JSON — no "Send Feedback" button needed.
+
+1. Derive annotation file: `docs/plans/.annotations/<plan-filename>.json`
+2. Read the annotation file with the Read tool. If the file doesn't exist, treat as `NO_FEEDBACK`. If it exists, check whether `planAnnotations` has any entries (`FEEDBACK_EXISTS`) or is empty/missing (`NO_FEEDBACK`).
+3. **If `FEEDBACK_EXISTS`:** Each annotation in `planAnnotations` has `originalText` (selected passage) and `text` (user's note). Incorporate into plan, clear annotations via `curl -s -X DELETE "http://localhost:41777/api/annotations/plan?path=<encoded-plan-path>" > /dev/null 2>&1 || true`, note changes. Proceed to Step 1.5.
+4. **If `NO_FEEDBACK`:** proceed directly to Step 1.5.
+
 ---
 
 ## Step 1.5: Get User Approval
@@ -282,12 +317,12 @@ Type: Bugfix
 
 0. Notify:
    ```bash
-   ~/.pilot/bin/pilot notify plan_approval "Bugfix Plan Ready" "<plan-slug> — approval needed" --plan-path "<plan_path>" 2>/dev/null || true
+   ~/.pilot/bin/pilot notify plan_approval "Bugfix Plan Ready" "<plan-slug> — annotate in Console or approve here" --plan-path "<plan_path>" 2>/dev/null || true
    ```
 1. Summarize: symptom → root cause → fix approach → task structure
-2. AskUserQuestion: "Yes, proceed" | "No, let me edit"
+2. AskUserQuestion: "Yes, proceed" | "No, let me edit" | "No, I'll annotate in the Console"
 3. **Yes:** Set `Approved: Yes`, invoke `Skill(skill='spec-implement', args='<plan-path>')`
-   **No:** User edits, re-read, ask again. **Other:** Incorporate, re-ask.
+   **No (edit or annotate):** Tell user to edit the plan or annotate in the Console Specifications tab — annotations auto-save. Say "ready" when done. Re-run Step 1.4b (check for annotation feedback), re-read plan, ask again. **Other:** Incorporate, re-ask.
 
 ---
 

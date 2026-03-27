@@ -7,6 +7,7 @@ import {
   Search,
   Smartphone,
   Terminal,
+  Cpu,
 } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
 
@@ -68,6 +69,13 @@ const insideItems: InsideItem[] = [
       "Spec work runs in isolated git worktrees. Review changes independently, squash merge when verified, or discard without touching your main branch.",
   },
   {
+    icon: Cpu,
+    title: "Headless Mode",
+    description: "CI/CD, scripts, and automation",
+    summary:
+      "Run Pilot non-interactively with -p for CI/CD pipelines, PR reviews, and automated workflows. Full Claude Code CLI compatibility with license validation and Pilot plugin included.",
+  },
+  {
     icon: Terminal,
     title: "Console Dashboard",
     description: "Monitor, configure, and browse",
@@ -89,6 +97,7 @@ const WhatsInside = () => {
     "animation-delay-500",
     "animation-delay-0",
     "animation-delay-100",
+    "animation-delay-200",
   ];
 
   return (

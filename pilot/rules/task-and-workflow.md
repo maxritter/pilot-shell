@@ -158,8 +158,8 @@ Call after creating plan header, reading existing plan, and after status changes
 /spec → Dispatcher → Detect type (LLM intent) → Feature: Skill('spec-plan') → Plan, verify, approve
                                                 → Bugfix:  Skill('spec-bugfix-plan') → Root cause investigation, plan, approve
                    → Skill('spec-implement')   → TDD loop for each task (both types)
-                   → Feature: Skill('spec-verify')        → Tests, execution, code review, 1 review agent
-                   → Bugfix:  Skill('spec-bugfix-verify') → Tests, quality checks, fix confirmation
+                   → Feature: Skill('spec-verify')        → Tests, code review, structured E2E scenarios (TS-NNN)
+                   → Bugfix:  Skill('spec-bugfix-verify') → Tests, quality checks, verification scenario
 ```
 
 ### ⛔ Dispatcher Integrity
@@ -183,7 +183,7 @@ Call after creating plan header, reading existing plan, and after status changes
 | COMPLETE | * | Bugfix | `Skill(skill='spec-bugfix-verify', args='<plan-path>')` |
 | VERIFIED | * | * | Report completion, done |
 
-**`spec-implement` works identically for both plan types** — the plan file is the interface. **Verification dispatches by type:** features → `spec-verify` (1 review agent, automated checks, runtime profile-based E2E), bugfixes → `spec-bugfix-verify` (tests, quality checks, fix confirmation — no sub-agents).
+**`spec-implement` works identically for both plan types** — the plan file is the interface. **Verification dispatches by type:** features → `spec-verify` (1 review agent, automated checks, structured E2E via TS-NNN scenarios from the plan), bugfixes → `spec-bugfix-verify` (tests, quality checks, verification scenario — no sub-agents).
 
 ### Feedback Loop
 

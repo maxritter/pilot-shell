@@ -68,4 +68,5 @@ paths:
 - [ ] Models: timestamps, constraints, appropriate types
 - [ ] No N+1 queries, only required columns
 - [ ] Migrations: reversible, one change each, backwards compatible
+- [ ] Performance: hot-path results cached, no redundant I/O per request, heavy computations async
 - [ ] Tested: success and error cases

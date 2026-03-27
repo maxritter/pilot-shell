@@ -66,7 +66,7 @@ Installs globally on macOS, Linux, and Windows (WSL2). All tools and rules go to
 1. **Prerequisites** — Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq
 2. **Claude files** — Sets up `~/.claude/` plugin — rules, commands, hooks, MCP servers
 3. **Config files** — Creates `.nvmrc` and project config
-4. **Dependencies** — Installs Probe, RTK, codebase-memory-mcp, playwright-cli, language servers
+4. **Dependencies** — Installs Probe, RTK, codebase-memory-mcp, agent-browser, language servers
 5. **Shell integration** — Auto-configures bash, fish, and zsh with `pilot` alias
 6. **VS Code extensions** — Installs recommended extensions for your stack
 7. **Finalize** — Success message with next steps
@@ -114,9 +114,9 @@ A local web dashboard with different views and real-time notifications when Clau
 | View              | What it shows                                                                                                                                |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Dashboard**     | Workspace status, active sessions, spec progress, git info, recent activity                                                                  |
-| **Specification** | All spec plans with task progress, phase tracking, and iteration history                                                                     |
+| **Specification** | All spec plans with task progress, phase tracking, and iteration history. **Annotate mode** lets you mark up plans visually before approving — select text, write a note, and the agent reads your annotations at the next review checkpoint |
 | **Extensions**    | All extensions — local, plugin, and remote — with team sharing via git, diff view, push/pull, and color-coded categories                     |
-| **Changes**       | Git diff viewer with staged/unstaged files, branch info, and worktree context                                                                |
+| **Changes**       | Git diff viewer with staged/unstaged files, branch info, and worktree context. **Review mode** adds inline annotations on diff lines — the agent reads them directly before marking a spec as verified |
 | **Memories**      | Browsable observations — decisions, discoveries, bugfixes — with type filters and search                                                     |
 | **Sessions**      | Active and past sessions with observation counts and duration                                                                                |
 | **Usage**         | Daily token costs, model routing breakdown, and usage trends                                                                                 |
@@ -124,6 +124,10 @@ A local web dashboard with different views and real-time notifications when Clau
 | **Help**          | Documentation, guides, and quick-start resources                                                                                             |
 
 </details>
+
+**Visual Plan Annotation:** When a spec plan is pending approval, the Specifications tab defaults to Annotate mode. Select any text and write a note — annotations save automatically. The agent reads them at the next checkpoint, revises the plan accordingly, and asks for approval again.
+
+**Code Review:** After a spec completes all automated checks, the agent prompts you to review the changes in the Changes tab. Enable Review mode, click **+** on any diff line to add an inline annotation — they save automatically. The agent reads every annotation and addresses them before marking the spec as verified.
 
 ### Status Line
 
@@ -187,11 +191,11 @@ Plan  →  Approve  →  Implement (TDD)  →  Verify  →  Done
 
 Full exploration workflow for new functionality, refactoring, or architectural changes.
 
-**Plan:** Explores codebase with semantic search → asks clarifying questions → writes detailed spec with scope, tasks, and definition of done → **plan-reviewer sub-agent** validates completeness → waits for your approval.
+**Plan:** Explores codebase with semantic search → asks clarifying questions → writes detailed spec with scope, tasks, and definition of done → for UI features, writes **E2E test scenarios** (step-by-step, browser-executable) that become the verification contract → **plan-reviewer sub-agent** validates completeness → waits for your approval.
 
 **Implement:** Creates an isolated git worktree → implements each task with strict TDD (RED → GREEN → REFACTOR) → quality hooks auto-lint, format, and type-check every edit → full test suite after each task.
 
-**Verify:** Full test suite + actual program execution → **unified review sub-agent** (compliance + quality + goal) → auto-fixes findings → squash merges to main on success.
+**Verify:** Full test suite + actual program execution → **unified review sub-agent** (compliance + quality + goal) → for UI features, executes each E2E scenario step-by-step via browser automation (pass/fail tracked, results written to plan) → auto-fixes findings → squash merges to main on success.
 
 </details>
 
@@ -213,6 +217,16 @@ Investigation-first workflow for targeted fixes. Finds the root cause before tou
 ### Quick Mode
 
 Just chat — no plan, no approval gate. Quality hooks and TDD enforcement still apply. Best for small tasks and exploration. For anything that needs a plan, use `/spec` — not Claude Code's built-in plan mode.
+
+### Headless Mode
+
+Run Pilot non-interactively with `-p` for CI/CD pipelines, scripts, and automated workflows. All Claude Code CLI flags work — `--output-format`, `--allowedTools`, `--continue`, `--bare`, etc.
+
+```bash
+pilot -p "Run tests and fix failures" --allowedTools "Bash,Read,Edit"
+pilot -p "Summarize this project" --output-format json
+pilot -p "Review this PR for security issues" --bare --allowedTools "Read"
+```
 
 ### /setup-rules — Generate Modular Rules
 
@@ -349,7 +363,7 @@ For full details on every component, see the **[Documentation](https://pilot-she
 | [**Rules & Standards**](https://pilot-shell.com/docs/features/rules) | 9 built-in rules (workflow, testing, verification, debugging, tools) + 5 coding standards activated by file type (Python, TypeScript, Go, Frontend, Backend) |
 | [**MCP Servers**](https://pilot-shell.com/docs/features/mcp-servers) | 6 servers: library docs, persistent memory, web search, GitHub code search, web page fetching, code knowledge graph |
 | [**Language Servers**](https://pilot-shell.com/docs/features/language-servers) | Real-time diagnostics for Python (basedpyright), TypeScript (vtsls), Go (gopls). Auto-installed, auto-configured |
-| [**Pilot CLI**](https://pilot-shell.com/docs/features/cli) | Session management, worktree isolation, licensing, context monitoring. Run `pilot` or `ccp` to start |
+| [**Pilot CLI**](https://pilot-shell.com/docs/features/cli) | Session management, headless mode (`-p`) for CI/CD and scripts, worktree isolation, licensing, context monitoring. Run `pilot` or `ccp` to start |
 
 ---
 
@@ -369,12 +383,13 @@ For full details on every component, see the **[Documentation](https://pilot-she
 
 Pilot Shell is source-available under a commercial license. See the [LICENSE](LICENSE) file for full terms.
 
-| Tier     | Seats | Includes                                                                           |
-| :------- | :---- | :--------------------------------------------------------------------------------- |
-| **Solo** | 1     | All features, continuous updates, community support via [GitHub Issues][gh-issues] |
-| **Team** | Multi | Solo + extension sharing, seat management, priority support, team onboarding       |
+| Tier           | Seats | Includes                                                                                                        |
+| :------------- | :---- | :-------------------------------------------------------------------------------------------------------------- |
+| **Solo**       | 1     | All features, continuous updates, community support via [GitHub Issues][gh-issues]                              |
+| **Team**       | Multi | Solo + extension sharing, seat management, priority support, team onboarding                                    |
+| **Enterprise** | 100+  | Team + full source code access (launcher, console, all components), fork and modify rights, dedicated support   |
 
-All plans work across multiple personal machines — one subscription, all your devices.
+All plans start with a free 7-day trial — full features, no credit card required. All plans work across multiple personal machines — one subscription, all your devices.
 
 [gh-issues]: https://github.com/maxritter/pilot-shell/issues
 
@@ -384,9 +399,9 @@ Details and licensing at [pilot-shell.com](https://pilot-shell.com).
 
 ## Rolling Out for Your Team?
 
-Let's figure out if Pilot Shell is the right fit for your team and get everyone set up.
+I'd love to help figure out if Pilot Shell is the right fit for your team and get everyone set up. For organizations with 100+ developers, the **[Enterprise tier](https://form.typeform.com/to/J7h2jjfw)** includes full source code access.
 
-**[Book a Call](https://calendly.com/rittermax/pilot-shell)** · **[Send an Email](mailto:mail@maxritter.net)** · **[Connect on LinkedIn](https://www.linkedin.com/in/rittermax/)**
+**[Book a Call](https://calendly.com/rittermax/pilot-shell)** · **[Enterprise Inquiry](https://form.typeform.com/to/J7h2jjfw)** · **[Send an Email](mailto:mail@maxritter.net)** · **[Connect on LinkedIn](https://www.linkedin.com/in/rittermax/)**
 
 ---
 
@@ -419,7 +434,7 @@ Yes. Your source code, project files, and development context never leave your m
 <details>
 <summary><b>What are the licenses of Pilot Shell's dependencies?</b></summary>
 
-All external tools and dependencies that Pilot Shell installs and uses are open source with permissive licenses (MIT, Apache 2.0, BSD). This includes ruff, basedpyright, Prettier, ESLint, gofmt, uv, Probe, RTK, codebase-memory-mcp, playwright-cli, and all MCP servers. No copyleft or restrictive-licensed dependencies are introduced into your environment.
+All external tools and dependencies that Pilot Shell installs and uses are open source with permissive licenses (MIT, Apache 2.0, BSD). This includes ruff, basedpyright, Prettier, ESLint, gofmt, uv, Probe, RTK, codebase-memory-mcp, agent-browser, and all MCP servers. No copyleft or restrictive-licensed dependencies are introduced into your environment.
 
 </details>
 
@@ -498,7 +513,7 @@ For monorepos, organize rules in nested subdirectories by product and team (e.g.
 <details>
 <summary><b>Can I control Pilot Shell from my phone?</b></summary>
 
-Yes — using Claude Code's [Remote Control](https://youtu.be/Ko7_tC1fMMM?si=kWDzYiQvxlkZTrRK) feature or via **Telegram**. Start a session via `pilot` on your computer, then type `/remote-control` to make it accessible from the Claude Mobile App (iOS/Android) under the **Code** tab. You can also enable it globally via `/config` → "Enable Remote Control for all sessions". Remote Control requires the native install of Claude Code (`curl -fsSL https://claude.ai/install.sh | bash`), not the npm version. Your computer must stay awake — on macOS, use [Amphetamine](https://apps.apple.com/de/app/amphetamine/id937984704) to keep your Mac awake with the display off. To start sessions directly from your phone, install [Termius](https://termius.com/) on your mobile device, SSH into your computer, and run `pilot`. For SSH access outside your home network, install [Tailscale](https://tailscale.com/) on both devices — the Claude App approach works everywhere without extra setup. **Telegram:** Install the [Telegram plugin](https://github.com/anthropics/claude-plugins-official/tree/main/external_plugins/telegram), and Pilot Shell automatically detects it and enables the Telegram channel on launch. **Troubleshooting:** If Remote Control doesn't connect, run `/logout` followed by `/login` inside Claude Code to re-authenticate.
+Yes — using Claude Code's [Remote Control](https://youtu.be/Ko7_tC1fMMM?si=kWDzYiQvxlkZTrRK) feature. Start a session via `pilot` on your computer, then type `/remote-control` to make it accessible from the Claude Mobile App (iOS/Android) under the **Code** tab. You can also enable it globally via `/config` → "Enable Remote Control for all sessions". Remote Control requires the native install of Claude Code (`curl -fsSL https://claude.ai/install.sh | bash`), not the npm version. Your computer must stay awake — on macOS, use [Amphetamine](https://apps.apple.com/de/app/amphetamine/id937984704) to keep your Mac awake with the display off. To start sessions directly from your phone, install [Termius](https://termius.com/) on your mobile device, SSH into your computer, and run `pilot`. For SSH access outside your home network, install [Tailscale](https://tailscale.com/) on both devices — the Claude App approach works everywhere without extra setup. **Troubleshooting:** If Remote Control doesn't connect, run `/logout` followed by `/login` inside Claude Code to re-authenticate.
 
 </details>
 

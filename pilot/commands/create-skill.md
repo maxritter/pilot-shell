@@ -314,8 +314,8 @@ Edit the created `SKILL.md` with the skill content using the template from Phase
 **Portability checklist** — skills are shared with users who may NOT have Pilot Shell:
 
 - **Only use built-in Claude Code tools** in skill instructions: `Read`, `Write`, `Edit`, `Bash`, `Grep`, `Glob`, `Agent`, `WebFetch`, `WebSearch`, `Notebook`, `LSP`, `TodoRead`/`TodoWrite`
-- **Never reference Pilot-specific tools:** `probe search/extract/query`, `playwright-cli`, `pilot` CLI, Pilot MCP servers (`mem-search`, `context7`, `grep-mcp`, `web-fetch`, `web-search`)
-- **Substitute with built-in equivalents:** `probe search` → `Grep`/`Glob`, `playwright-cli` → `Bash` with `npx playwright`, web fetch → `WebFetch`
+- **Never reference Pilot-specific tools:** `probe search/extract/query`, `agent-browser`, `pilot` CLI, Pilot MCP servers (`mem-search`, `context7`, `grep-mcp`, `web-fetch`, `web-search`)
+- **Substitute with built-in equivalents:** `probe search` → `Grep`/`Glob`, `agent-browser` → `Bash` with `npx agent-browser`, web fetch → `WebFetch`
 - If a skill genuinely requires a non-standard tool, document it as a prerequisite in the skill body (not silently assume it exists)
 
 **Determinism checklist** — maximize reliability:

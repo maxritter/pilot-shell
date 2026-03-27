@@ -28,6 +28,30 @@ $ open http://localhost:41777
 | **Settings** | Model selection per command and sub-agent (Sonnet 4.6 vs Opus 4.6). Spec workflow toggles (worktree support, ask questions, plan approval). Reviewer toggles (plan reviewer, spec reviewer). Context window size auto-detected from Claude Code. |
 | **Help** | Embedded documentation from pilot-shell.com — full technical reference without leaving the Console. |
 
+## Plan Annotation & Code Review
+
+The Console provides two live annotation mechanisms that let you shape what gets built and verify what was built — without leaving the browser. Annotations save automatically as you write them; the agent reads them directly at review checkpoints.
+
+### Plan Annotation
+
+When a spec plan is in the planning phase (PENDING, not yet approved), the Specifications tab automatically opens in **Annotate mode**. You can also toggle between View and Annotate modes using the prominent toggle next to the "Specifications" heading.
+
+In Annotate mode, the entire plan is rendered as selectable text. Select any passage, write a free-text note in the popover that appears, and press Save. That's it — no type selection, no submit button. Your annotation is immediately saved and visible in the sidebar panel.
+
+The sidebar shows all your annotations with the selected text and your note. You can edit or delete any annotation at any time.
+
+When the agent reaches the approval checkpoint, it reads your annotations directly from the Console, incorporates every note into the plan, and asks for approval again. You don't need to do anything — just write your notes and say "ready" when done.
+
+### Code Review
+
+After a spec completes all automated verification checks, the agent prompts you to review the code changes before marking the spec as verified. The **Changes** tab is located right next to Specifications in the sidebar — switch there and enable **Review mode** using the toggle next to the "Changes" heading.
+
+In Review mode, a **+** button appears on hover for every diff line. Click it to open an inline annotation form below that line — write your note and press Save. The annotation appears in the panel at the bottom of the diff viewer.
+
+The agent reads your code review annotations directly from the Console before marking the spec as verified. Say "fix" to have it address your annotations, or "approve" to mark the spec as verified.
+
+Annotations persist across page reloads, so you can review asynchronously while the agent runs verification in the background.
+
 ## Smart Notifications via SSE
 
 The Console sends real-time alerts via Server-Sent Events when Claude needs your input or a significant phase completes. You don't need to watch the terminal constantly — the Console notifies you.

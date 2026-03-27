@@ -29,7 +29,7 @@ def alias_exists_in_file(config_file: Path) -> bool:
     """Check if claude/ccp/pilot alias already exists in config file."""
     if not config_file.exists():
         return False
-    content = config_file.read_text()
+    content = config_file.read_text(errors="replace")
     return (
         CLAUDE_ALIAS_MARKER in content
         or OLD_CLAUDE_PILOT_MARKER in content
@@ -45,7 +45,7 @@ def remove_old_alias(config_file: Path) -> bool:
     if not config_file.exists():
         return False
 
-    content = config_file.read_text()
+    content = config_file.read_text(errors="replace")
     has_old = (
         OLD_CCP_MARKER in content
         or OLD_CLAUDE_PILOT_MARKER in content

@@ -12,8 +12,8 @@ const consoleSlides = [
   {
     label: "Specifications",
     src: "/console/specifications.png",
-    alt: "Specification view — plan details, task progress, and phase tracking",
-    desc: "All spec plans with task progress, phase tracking, and iteration history.",
+    alt: "Specification view — plan annotation, task progress, and phase tracking",
+    desc: "All spec plans with task progress, phase tracking, and iteration history. Annotate mode lets you mark up plans visually — select any text and write a note. Annotations save automatically and the agent reads them at the next review checkpoint.",
   },
   {
     label: "Extensions",
@@ -24,8 +24,8 @@ const consoleSlides = [
   {
     label: "Changes",
     src: "/console/changes.png",
-    alt: "Changes view — git diff, staged files, and branch info",
-    desc: "Git changes, staged files, and diff viewer with branch and worktree context.",
+    alt: "Changes view — git diff, staged files, code review annotations",
+    desc: "Git changes, staged files, and diff viewer with branch and worktree context. Review mode adds inline annotations on any diff line — they save automatically and the agent reads them before marking a spec verified.",
   },
   {
     label: "Memories",

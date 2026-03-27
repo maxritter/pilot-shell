@@ -1,7 +1,5 @@
 {
   "env": {
-    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "128000",
-    "CLAUDE_CODE_EFFORT_LEVEL": "high",
     "CLAUDE_CODE_ENABLE_TASKS": "true",
     "CLAUDE_CODE_HIDE_ACCOUNT_INFO": "true",
     "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "false",
@@ -48,7 +46,7 @@
       "[PILOT] Add custom rules in .claude/rules/ to guide Claude's behavior",
       "[PILOT] MCP servers extend capabilities: web search, memory, docs, IDE integration",
       "[PILOT] Add custom MCP servers to .mcp.json, then run /setup-rules to generate documentation",
-      "[PILOT] playwright-cli enables headless browser automation, testing, and tracing",
+      "[PILOT] agent-browser enables headless browser automation, testing, and screenshots",
       "[PILOT] Quality hooks validate your code changes automatically before completion",
       "[PILOT] Spec-Driven: /spec → Plan → Approve → Implement → Verify (with feedback loop)",
       "[PILOT] Plans live in docs/plans/ as markdown — you can edit them before approval",
@@ -95,6 +93,7 @@
   "prefersReducedMotion": true,
   "showTurnDuration": true,
   "alwaysThinkingEnabled": true,
+  "autoDreamEnabled": true,
   "attribution": {
     "commit": "",
     "pr": ""

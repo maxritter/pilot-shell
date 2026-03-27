@@ -367,7 +367,7 @@ print_summary() {
 	echo "  To fully clean up third-party tools installed by Pilot:"
 	echo "    - Claude Code:    npm uninstall -g @anthropic-ai/claude-code"
 	echo "    - Probe:          npm uninstall -g @probelabs/probe"
-	echo "    - playwright-cli: npm uninstall -g @playwright/cli"
+	echo "    - agent-browser:  npm uninstall -g agent-browser"
 	echo "    - ccusage:        npm uninstall -g ccusage"
 	echo "    - vtsls:          npm uninstall -g @vtsls/language-server typescript"
 	echo "    - prettier:       npm uninstall -g prettier"

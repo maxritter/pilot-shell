@@ -27,6 +27,8 @@ probe search "database connection setup" ./
 
 **Self-Correction:** Fix obvious mistakes (syntax errors, typos, missing imports) in code you are actively writing. Do not auto-fix errors in code the user edited — report them and let the user decide.
 
+**Performance:** Expensive work on hot paths (render loops, request handlers, polling callbacks) must be cached or memoized. Use lighter alternatives for heavy dependencies. Repeated invocations must not redo work when input hasn't changed.
+
 **Diagnostics:** Check before starting work and after changes. Fix all errors before marking complete.
 
 **Formatting:** Let automated formatters handle style. **Backward Compatibility:** Only when explicitly required.

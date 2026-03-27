@@ -181,6 +181,20 @@ class TestAliasDetection:
             config.write_text("# some other config\n")
             assert alias_exists_in_file(config) is False
 
+    def test_alias_exists_in_file_handles_non_utf8_bytes(self):
+        """alias_exists_in_file handles shell configs with non-UTF-8 bytes."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = Path(tmpdir) / ".bashrc"
+            config.write_bytes(b"# config\n\x9c\xfe invalid bytes\nalias pilot='test'\n")
+            assert alias_exists_in_file(config) is True
+
+    def test_alias_exists_in_file_no_alias_with_non_utf8_bytes(self):
+        """alias_exists_in_file returns False for non-UTF-8 file without alias."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = Path(tmpdir) / ".bashrc"
+            config.write_bytes(b"# config\n\x9c\xfe invalid bytes\n")
+            assert alias_exists_in_file(config) is False
+
     def test_alias_exists_in_file_detects_claude_alias_without_marker(self):
         """alias_exists_in_file detects alias claude without marker."""
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -269,6 +283,20 @@ class TestAliasRemoval:
             assert result is True
             content = config.read_text()
             assert "alias claude" not in content
+
+    def test_remove_old_alias_handles_non_utf8_bytes(self):
+        """remove_old_alias handles shell configs with non-UTF-8 bytes."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = Path(tmpdir) / ".bashrc"
+            config.write_bytes(b"# before\n\x9c\xfe bytes\nalias ccp='old'\n# after\n")
+
+            result = remove_old_alias(config)
+
+            assert result is True
+            content = config.read_text(errors="replace")
+            assert "alias ccp" not in content
+            assert "# before" in content
+            assert "# after" in content
 
     def test_remove_old_alias_removes_fish_function(self):
         """remove_old_alias removes fish function definition."""

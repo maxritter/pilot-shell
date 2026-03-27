@@ -75,7 +75,7 @@ Mock at module level (where imported, not where defined). Test > 1s = likely unm
 
 ### E2E: Frontend/UI (MANDATORY for web apps)
 
-Use `playwright-cli` with session isolation (`-s="${PILOT_SESSION_ID:-default}"`) for all E2E verification. See `playwright-cli.md`.
+Use `agent-browser` with session isolation (`--session "${PILOT_SESSION_ID:-default}"`) for all E2E verification. See `agent-browser.md`.
 
 ### ⛔ Mock Audit on Dependency Changes
 
