@@ -370,7 +370,7 @@ Re-run full test suite + type checker + build one final time. If code changed du
    ```bash
    # ⛔ ALL THREE operations MUST be in ONE Bash call chained with &&
    # If sync fails, cleanup MUST NOT run — otherwise work is lost.
-   ~/.pilot/bin/pilot worktree sync --json <plan_slug> && PROJECT_ROOT=$(~/.pilot/bin/pilot worktree cleanup --force --json <plan_slug> | sed -n 's/.*"project_root": *"\([^"]*\)".*/\1/p') && cd "$PROJECT_ROOT"
+   ~/.pilot/bin/pilot worktree sync --json <plan_slug> && PROJECT_ROOT=$(~/.pilot/bin/pilot worktree cleanup --force --json <plan_slug> | jq -r '.project_root') && cd "$PROJECT_ROOT"
    ```
    ⛔ NEVER split sync, cleanup, or cd into separate Bash calls — compaction between them can cause work loss.
    ⛔ The `&&` chain ensures cleanup only runs after a successful sync.

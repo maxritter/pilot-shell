@@ -346,8 +346,7 @@ def install_agent_browser() -> bool:
     import platform
 
     if _is_agent_browser_ready():
-        # Upgrade existing installation
-        _run_bash_with_retry("agent-browser upgrade", timeout=120)
+        _run_bash_with_retry("agent-browser upgrade", timeout=120)  # best-effort; failure is non-fatal — existing version still works
         return True
 
     if not _run_bash_with_retry(npm_global_cmd("npm install -g agent-browser")):

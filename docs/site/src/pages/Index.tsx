@@ -1,7 +1,6 @@
 import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/HeroSection";
 import InstallSection from "@/components/InstallSection";
-import ComparisonSection from "@/components/ComparisonSection";
 import WorkflowSteps from "@/components/WorkflowSteps";
 import WhatsInside from "@/components/WhatsInside";
 import ConsoleSection from "@/components/ConsoleSection";
@@ -83,9 +82,8 @@ const Index = () => {
       <main className="min-h-screen bg-background">
         <HeroSection />
         <InstallSection />
-        <ComparisonSection />
-        <WorkflowSteps />
         <WhatsInside />
+        <WorkflowSteps />
         <ConsoleSection />
         <PricingSection />
         <TestimonialsSection />

@@ -8,7 +8,6 @@ import boxPng from "@/assets/box.png";
 
 const navLinks = [
   { label: "Getting Started", href: "#installation" },
-  { label: "The Problem", href: "#problem" },
   { label: "Demo", href: "#demo" },
   { label: "Usage", href: "#workflow" },
   { label: "What's Inside", href: "#features" },

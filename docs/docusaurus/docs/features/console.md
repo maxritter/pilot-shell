@@ -36,7 +36,7 @@ The Console provides two live annotation mechanisms that let you shape what gets
 
 When a spec plan is in the planning phase (PENDING, not yet approved), the Specifications tab automatically opens in **Annotate mode**. You can also toggle between View and Annotate modes using the prominent toggle next to the "Specifications" heading.
 
-In Annotate mode, the entire plan is rendered as selectable text. Select any passage, write a free-text note in the popover that appears, and press Save. That's it — no type selection, no submit button. Your annotation is immediately saved and visible in the sidebar panel.
+In Annotate mode, the entire plan is rendered as selectable text. Select any passage and write a free-text note in the popover that appears. That's it — no type selection, no submit button. Your annotation is immediately saved and visible in the sidebar panel.
 
 The sidebar shows all your annotations with the selected text and your note. You can edit or delete any annotation at any time.
 

@@ -2,12 +2,11 @@ import {
   Workflow,
   Plug2,
   GitBranch,
-  Lightbulb,
   Sparkles,
   Search,
-  Smartphone,
   Terminal,
-  Cpu,
+  Eye,
+  DollarSign,
 } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
 
@@ -21,66 +20,59 @@ interface InsideItem {
 const insideItems: InsideItem[] = [
   {
     icon: Workflow,
-    title: "Spec-Driven",
-    description: "Plan → Implement → Verify",
+    title: "Spec-Driven Development",
+    description: "Replaces plan mode",
     summary:
-      "A structured workflow with human review gates, sequential TDD, mandatory verification, and independent code review. Loops back automatically if any check fails.",
+      "/spec plans features and bugfixes, gets your approval, implements each task with TDD, then verifies with automated code review. Loops back if any check fails.",
   },
   {
-    icon: Sparkles,
-    title: "Customize & Share",
-    description: "Create assets, share everywhere",
+    icon: GitBranch,
+    title: "Context Engineering",
+    description: "Keep your context window lean",
     summary:
-      "Create and sharerules, commands, skills, and agents across machines via git, across teams via project repos, or org-wide via tracked repos. One source of truth for all your AI assets.",
+      "RTK compresses CLI output by 60\u201390%. Rules load only for matching file types. When compaction fires, hooks preserve and restore plan state automatically.",
+  },
+  {
+    icon: Terminal,
+    title: "Quality Hooks & Testing",
+    description: "Deterministic checks on every edit",
+    summary:
+      "15 hooks across 7 lifecycle events. Auto-lint, format, and type-check every file edit. TDD enforcer warns when implementation is written without a failing test.",
   },
   {
     icon: Plug2,
     title: "MCP Servers",
-    description: "Pre-configured external context",
+    description: "Pre-configured, no API keys",
     summary:
-      "Library docs, web search, GitHub code search, and persistent memory — all pre-configured MCP servers. No setup, no API keys, always available.",
+      "Library docs, web search, GitHub code search, persistent memory, web page fetching, and code knowledge graphs. Six servers installed and ready to use.",
   },
   {
-    icon: Smartphone,
-    title: "Remote Control",
-    description: "Control sessions from your phone",
+    icon: Eye,
+    title: "Language Servers",
+    description: "Real-time diagnostics on every edit",
     summary:
-      "Start a task at your desk, monitor and steer from your phone. Connect via the Claude Mobile App or any browser — your full local environment stays available.",
+      "Python (basedpyright), TypeScript (vtsls), Go (gopls). Auto-installed and auto-configured. Hooks catch formatting; LSPs provide type-level intelligence.",
   },
   {
     icon: Search,
     title: "Semantic Search",
     description: "Find code by intent, not keywords",
     summary:
-      "Probe CLI indexes your codebase for instant semantic search. Find authentication flows, error handling patterns, or any concept in under 300ms.",
+      "Probe CLI indexes your codebase for intent-based search and AST-aware extraction. codebase-memory-mcp traces call graphs and maps blast radius. Sub-300ms.",
   },
   {
-    icon: Lightbulb,
-    title: "Reusable Skills",
-    description: "Capture workflows as reusable knowledge",
+    icon: DollarSign,
+    title: "Cost Optimization",
+    description: "Right model, right task, visible spend",
     summary:
-      "Build skills from any topic — /create-skill explores the codebase and creates well-structured skills interactively. Team knowledge compounds and stays consistent.",
+      "Smart model routing: Opus for planning, Sonnet for implementation. RTK saves 60\u201390% on CLI token output. Usage tracking in Console shows daily cost and trends.",
   },
   {
-    icon: GitBranch,
-    title: "Isolated Workspaces",
-    description: "Safe experimentation, clean git history",
+    icon: Sparkles,
+    title: "Extensions & Sharing",
+    description: "Skills, rules, commands, agents",
     summary:
-      "Spec work runs in isolated git worktrees. Review changes independently, squash merge when verified, or discard without touching your main branch.",
-  },
-  {
-    icon: Cpu,
-    title: "Headless Mode",
-    description: "CI/CD, scripts, and automation",
-    summary:
-      "Run Pilot non-interactively with -p for CI/CD pipelines, PR reviews, and automated workflows. Full Claude Code CLI compatibility with license validation and Pilot plugin included.",
-  },
-  {
-    icon: Terminal,
-    title: "Console Dashboard",
-    description: "Monitor, configure, and browse",
-    summary:
-      "Web-based dashboard for memory browsing, model configuration, team asset management, and real-time session notifications. Runs locally on port 41777.",
+      "Create with /create-skill and /setup-rules. Share across machines via git, across teams via project repos. Seven extension types at four scopes \u2014 managed in Console.",
   },
 ];
 
@@ -97,7 +89,6 @@ const WhatsInside = () => {
     "animation-delay-500",
     "animation-delay-0",
     "animation-delay-100",
-    "animation-delay-200",
   ];
 
   return (
@@ -114,15 +105,15 @@ const WhatsInside = () => {
             What's Inside
           </h2>
           <p className="text-muted-foreground text-lg sm:text-xl max-w-3xl mx-auto">
-            A production-grade system — not a prompt template. Installs into any
-            project and enforces quality automatically.
+            One install command. Everything below is specific to Pilot Shell
+            — not a repackage of Claude Code features.
           </p>
         </div>
 
         {/* Feature Grid */}
         <div
           ref={gridRef}
-          className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+          className="grid md:grid-cols-2 lg:grid-cols-4 gap-5"
         >
           {insideItems.map((item, index) => {
             const Icon = item.icon;

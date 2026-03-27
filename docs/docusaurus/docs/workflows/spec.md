@@ -23,7 +23,7 @@ $ pilot
 Discuss → Plan → Approve → Implement → Verify → Done
 ```
 
-The only manual step is **Approve**. Everything else runs automatically. The Verify → Implement feedback loop repeats until all checks pass, then prompts for squash merge.
+Manual steps are **Approve** (required) and **Code Review** (optional, via Console). Everything else runs automatically. The Verify → Implement feedback loop repeats until all checks pass, then prompts for squash merge.
 
 ## Spec Types
 

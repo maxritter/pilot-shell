@@ -6,9 +6,6 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
-
 class TestGetPilotVersion:
     """Test _get_pilot_version function."""
 
@@ -88,6 +85,45 @@ class TestFinalizeStep:
             )
 
             assert step.check(ctx) is False
+
+
+class TestKillStaleWorker:
+    """Test FinalizeStep._kill_stale_worker."""
+
+    @patch("installer.steps.finalize.subprocess.run")
+    def test_kills_pids_found_by_lsof(self, mock_run):
+        """Calls kill -9 for each PID returned by lsof."""
+        from installer.steps.finalize import FinalizeStep
+
+        mock_run.side_effect = [
+            MagicMock(stdout="1234\n5678\n"),  # lsof result
+            MagicMock(),  # kill 1234
+            MagicMock(),  # kill 5678
+        ]
+
+        FinalizeStep._kill_stale_worker()
+
+        assert mock_run.call_count == 3
+        mock_run.assert_any_call(["kill", "-9", "1234"], capture_output=True, timeout=5)
+        mock_run.assert_any_call(["kill", "-9", "5678"], capture_output=True, timeout=5)
+
+    @patch("installer.steps.finalize.subprocess.run")
+    def test_does_nothing_when_no_pids(self, mock_run):
+        """Does not call kill when lsof returns no PIDs."""
+        from installer.steps.finalize import FinalizeStep
+
+        mock_run.return_value = MagicMock(stdout="")
+
+        FinalizeStep._kill_stale_worker()
+
+        mock_run.assert_called_once()  # only lsof, no kill
+
+    @patch("installer.steps.finalize.subprocess.run", side_effect=FileNotFoundError("lsof not found"))
+    def test_swallows_exception_when_lsof_missing(self, _mock_run):
+        """Does not raise when lsof is not installed."""
+        from installer.steps.finalize import FinalizeStep
+
+        FinalizeStep._kill_stale_worker()  # must not raise
 
 
 class TestFinalSuccessPanel:
