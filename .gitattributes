@@ -5,5 +5,6 @@ console/.gitignore !filter !diff
 console/package.json !filter !diff
 console/bun.lock !filter !diff
 console/tsconfig.json !filter !diff
+console/src/utils/logger.ts !filter !diff
 docs/site/api/** filter=git-crypt diff=git-crypt
 .gitattributes !filter !diff
