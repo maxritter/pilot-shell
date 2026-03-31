@@ -119,12 +119,13 @@ Task(
   run_in_background=true,
   prompt="""
   **Plan file:** <plan-path>
+  **User request:** <original task description that invoked /spec>
   **Changed files:** [file list]
   **Output path:** <absolute path to findings JSON>
   **Runtime environment:** [how to start, port, deploy path]
   **Test framework constraints:** [what it can/cannot test]
 
-  Review implementation: compliance (plan match), quality (security, bugs, tests, performance), goal (achievement, artifacts, wiring).
+  Review implementation: compliance (plan match + user request match), quality (security, bugs, tests, performance), goal (achievement, artifacts, wiring).
   Performance: check for expensive uncached work on hot paths, heavy dependency imports with lighter alternatives, and repeated invocations that redo work when input hasn't changed.
   Write findings JSON to output_path using Write tool.
   IMPORTANT: Include the plan file path in your output JSON as the "plan_file" field.
@@ -145,9 +146,9 @@ Launch Codex review NOW — it runs in parallel with the Claude reviewer above.
 CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | head -1)
 ```
 
-2. Launch adversarial review in background using `--scope working-tree` (reviews all uncommitted changes regardless of staging state — works in both worktree and non-worktree mode):
+2. Launch adversarial review in background using `--scope working-tree` (reviews all uncommitted changes regardless of staging state — works in both worktree and non-worktree mode). Include the plan's goal as focus text:
 ```bash
-node "$CODEX_COMPANION" adversarial-review --background --scope working-tree "Review changes against spec: <plan-path>"
+node "$CODEX_COMPANION" adversarial-review --background --scope working-tree "Challenge this implementation: <plan summary/goal>. Plan: <plan-path>. Focus on: wrong approach, missing edge cases, security gaps, untested paths, and design choices that could fail under load."
 ```
 Capture the job ID from stdout. **Do NOT wait** — proceed to Step 3.2 immediately.
 
@@ -207,14 +208,22 @@ For each fix: implement → run relevant tests → log "Fixed: [title]"
 
 **If Codex was launched in Step 3.1**, collect its results now:
 
+1. Wait for completion:
 ```bash
 node "$CODEX_COMPANION" status <jobId> --wait --timeout-ms 120000 --json
 ```
 
-**Handle Codex result:**
-- `waitTimedOut: true` → Codex timed out. Log "Codex review timed out — skipping" and continue without Codex findings.
-- `job.status` is `"cancelled"` or exit code non-zero → Codex crashed/failed. Log "Codex review failed: <failureMessage>" and continue without Codex findings.
-- `job.status` is `"completed"` → Parse output. Map severities: critical/high → must_fix, medium/low → should_fix. Fix all must_fix/should_fix.
+2. **Handle status:**
+   - `waitTimedOut: true` → Log "Codex review timed out — skipping" and continue.
+   - `job.status` is `"cancelled"` or exit code non-zero → Log "Codex review failed: <failureMessage>" and continue.
+   - `job.status` is `"completed"` → fetch the full result:
+
+3. Get review findings:
+```bash
+node "$CODEX_COMPANION" result <jobId> --json
+```
+
+4. Parse the result JSON — look for `verdict`, `findings`, `details`. Map severities: critical/high → must_fix, medium/low → should_fix. Fix all must_fix/should_fix.
 
 **Report:**
 ```

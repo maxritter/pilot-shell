@@ -321,20 +321,27 @@ Type: Bugfix
 CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | head -1)
 ```
 
-2. Launch adversarial review:
+2. Launch adversarial review with specific focus text:
 ```bash
-node "$CODEX_COMPANION" adversarial-review --background --base main "Adversarial review of bugfix plan: <plan-path>"
+node "$CODEX_COMPANION" adversarial-review --background --base main "Challenge this bugfix plan: <plan summary/root cause>. Plan: <plan-path>. Focus on: wrong root cause, incomplete fix, missing edge cases, regression risk, and whether the fix addresses symptoms vs cause."
 ```
 
-3. Collect results:
+3. Wait for completion:
 ```bash
 node "$CODEX_COMPANION" status <jobId> --wait --timeout-ms 120000 --json
 ```
 
-4. **Handle Codex result:**
+4. **Handle status:**
    - `waitTimedOut: true` → Log "Codex review timed out — skipping" and continue.
    - `job.status` is `"cancelled"` or exit code non-zero → Log "Codex review failed: <failureMessage>" and continue.
-   - `job.status` is `"completed"` → Parse output. Map severities: critical/high → must_fix, medium/low → should_fix. Fix all must_fix/should_fix in the plan.
+   - `job.status` is `"completed"` → fetch full result:
+
+5. Get review findings:
+```bash
+node "$CODEX_COMPANION" result <jobId> --json
+```
+
+6. Parse the result JSON — look for `verdict`, `findings`, `details`. Map severities: critical/high → must_fix, medium/low → should_fix. Fix all must_fix/should_fix in the plan.
 
 ---
 
