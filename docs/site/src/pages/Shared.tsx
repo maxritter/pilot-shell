@@ -16,6 +16,8 @@ import {
 } from "@/lib/sharing";
 import type { SharePayload } from "@/lib/sharing";
 
+const SHARE_BASE_URL = SHARE_BASE_URL;
+
 /** Check that the browser supports the APIs we need */
 function checkBrowserSupport(): string | null {
   if (typeof CompressionStream === "undefined") {
@@ -33,9 +35,6 @@ function checkBrowserSupport(): string | null {
 function extractFromPastedUrl(input: string): { data: string; key: string } | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
-  // If it already looks like a hash fragment without a URL prefix
-  if (trimmed.startsWith("#")) return parseHashFragment(trimmed);
-  // Full URL — find the # and parse
   return parseHashFragment(trimmed);
 }
 
@@ -137,7 +136,7 @@ export default function Shared() {
         planPath: payload.planPath,
         createdAt: Date.now(),
       };
-      const baseUrl = "https://pilot-shell.com/shared";
+      const baseUrl = SHARE_BASE_URL;
       const result = await generateWebFeedbackUrl(feedbackPayload, baseUrl);
       if (result) {
         await navigator.clipboard.writeText(result.url);
@@ -175,7 +174,7 @@ export default function Shared() {
       <SEO
         title="Shared Specification — Pilot Shell"
         description="View and annotate a securely shared spec from Pilot Shell. Everything is end-to-end encrypted in your browser — no data reaches our servers."
-        canonicalUrl="https://pilot-shell.com/shared"
+        canonicalUrl={SHARE_BASE_URL}
       />
       <NavBar />
 

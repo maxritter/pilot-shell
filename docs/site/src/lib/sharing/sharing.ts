@@ -22,12 +22,9 @@ export interface WebShareUrlResult {
   key: string;
 }
 
-/**
- * Generate a web share URL pointing to pilot-shell.com/shared.
- * Returns null if payload would exceed inline URL limits.
- */
-export async function generateWebShareUrl(
-  payload: SharePayload,
+/** Compress, encrypt, and build a URL. Returns null if too large or on error. */
+async function buildEncryptedUrl(
+  payload: unknown,
   baseUrl: string,
 ): Promise<WebShareUrlResult | null> {
   try {
@@ -45,27 +42,20 @@ export async function generateWebShareUrl(
   }
 }
 
-/**
- * Generate a web feedback URL pointing to pilot-shell.com/shared.
- * Returns null if payload would exceed inline URL limits.
- */
-export async function generateWebFeedbackUrl(
+/** Generate a web share URL. Returns null if payload would exceed inline URL limits. */
+export function generateWebShareUrl(
+  payload: SharePayload,
+  baseUrl: string,
+): Promise<WebShareUrlResult | null> {
+  return buildEncryptedUrl(payload, baseUrl);
+}
+
+/** Generate a web feedback URL. Returns null if payload would exceed inline URL limits. */
+export function generateWebFeedbackUrl(
   payload: FeedbackPayload,
   baseUrl: string,
 ): Promise<WebShareUrlResult | null> {
-  try {
-    const compressed = await compress(JSON.stringify(payload));
-    const { ciphertext, key } = await encrypt(compressed);
-
-    if (ciphertext.length > MAX_INLINE_BYTES) {
-      return null;
-    }
-
-    const url = `${baseUrl}#${ciphertext}?key=${key}`;
-    return { url, key };
-  } catch {
-    return null;
-  }
+  return buildEncryptedUrl(payload, baseUrl);
 }
 
 /**

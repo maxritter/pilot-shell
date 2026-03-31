@@ -71,8 +71,9 @@ def migrate_model_config(config_path: Path | None = None) -> bool:
     if version < 7:
         modified = _migration_v7(raw) or modified
 
-    raw["_configVersion"] = CURRENT_CONFIG_VERSION
-    modified = True
+    if raw.get("_configVersion") != CURRENT_CONFIG_VERSION:
+        raw["_configVersion"] = CURRENT_CONFIG_VERSION
+        modified = True
 
     if modified:
         _write_atomic(config_path, raw)

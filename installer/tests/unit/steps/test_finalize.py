@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 class TestGetPilotVersion:
     """Test _get_pilot_version function."""
@@ -90,22 +90,29 @@ class TestFinalizeStep:
 class TestKillStaleWorker:
     """Test FinalizeStep._kill_stale_worker."""
 
+    @patch("installer.steps.finalize.time.sleep")
     @patch("installer.steps.finalize.subprocess.run")
-    def test_kills_pids_found_by_lsof(self, mock_run):
-        """Calls kill -9 for each PID returned by lsof."""
+    def test_kills_pids_found_by_lsof(self, mock_run, _mock_sleep):
+        """Sends SIGTERM first, then SIGKILL if still alive."""
         from installer.steps.finalize import FinalizeStep
 
         mock_run.side_effect = [
             MagicMock(stdout="1234\n5678\n"),  # lsof result
-            MagicMock(),  # kill 1234
-            MagicMock(),  # kill 5678
+            MagicMock(),  # SIGTERM 1234
+            MagicMock(returncode=0),  # kill -0 1234 (still alive)
+            MagicMock(),  # SIGKILL 1234
+            MagicMock(),  # SIGTERM 5678
+            MagicMock(returncode=1),  # kill -0 5678 (already dead)
         ]
 
         FinalizeStep._kill_stale_worker()
 
-        assert mock_run.call_count == 3
+        mock_run.assert_any_call(["kill", "1234"], capture_output=True, timeout=5)
         mock_run.assert_any_call(["kill", "-9", "1234"], capture_output=True, timeout=5)
-        mock_run.assert_any_call(["kill", "-9", "5678"], capture_output=True, timeout=5)
+        mock_run.assert_any_call(["kill", "5678"], capture_output=True, timeout=5)
+        # 5678 died after SIGTERM — no SIGKILL
+        sigkill_5678_calls = [c for c in mock_run.call_args_list if c == call(["kill", "-9", "5678"], capture_output=True, timeout=5)]
+        assert len(sigkill_5678_calls) == 0
 
     @patch("installer.steps.finalize.subprocess.run")
     def test_does_nothing_when_no_pids(self, mock_run):
