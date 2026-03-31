@@ -15,9 +15,9 @@ Pilot automatically routes each phase to the right model. Rather than always usi
 | Phase | Model | Rationale |
 |-------|-------|-----------|
 | **Planning** | Opus | Exploring your codebase, designing architecture, and writing the spec requires deep reasoning. A good plan is the foundation — invest here. |
-| **Plan Verification** | Sonnet | The plan-reviewer sub-agent validates completeness and challenges assumptions on every feature spec. *(enabled by default — disable in Console Settings → Reviewers)* |
+| **Spec Review** | Sonnet | The spec-review sub-agent validates completeness and challenges assumptions on every feature spec. Optional Codex adversarial review provides an independent second opinion. *(enabled by default — disable in Console Settings → Reviewers)* |
 | **Implementation** | Sonnet | With a solid plan, writing code is straightforward. Sonnet is fast, cost-effective, and produces high-quality code when guided by a clear spec and strong hooks. |
-| **Code Verification** | Sonnet | The unified spec-reviewer agent handles deep code review (compliance + quality + goal). The orchestrator runs mechanical checks and applies fixes efficiently. *(enabled by default — disable in Console Settings → Reviewers)* |
+| **Changes Review** | Sonnet | The unified changes-review agent handles deep code review (compliance + quality + goal). The orchestrator runs mechanical checks and applies fixes efficiently. Optional Codex adversarial review for additional coverage. *(enabled by default — disable in Console Settings → Reviewers)* |
 
 ## The Insight
 
@@ -27,5 +27,5 @@ Pilot automatically routes each phase to the right model. Rather than always usi
 - The result: better output at lower cost than running Opus everywhere
 
 :::tip Fully configurable
-Configure via the Pilot Shell Console Settings tab (`localhost:41777/#/settings`). Choose between Sonnet 4.6 and Opus 4.6 for the main session, each command, and each sub-agent independently. Context window size (200K or 1M) is auto-detected from Claude Code based on your subscription plan — no manual configuration needed.
+Configure via the Pilot Shell Console Settings tab (`localhost:41777/#/settings`). Choose between Sonnet 4.6 and Opus 4.6 for the main session, each command, and each sub-agent independently. Context window size (200K or 1M) is configurable via the Extended Context toggle. API subscribers (Team, Enterprise) get 1M at no additional cost with all models. Max plan users must set all models to Opus — Sonnet 1M is not included in Max.
 :::

@@ -13,11 +13,11 @@ def test_removes_stale_findings_files_with_slug(tmp_path: Path):
     """Should delete slug-based reviewer findings from session directory."""
     session_dir = tmp_path / "sessions" / "1001"
     session_dir.mkdir(parents=True)
-    (session_dir / "findings-plan-reviewer-sku-builder-modal.json").write_text("{}")
-    (session_dir / "findings-spec-reviewer-sku-builder-modal.json").write_text("{}")
+    (session_dir / "findings-spec-review-sku-builder-modal.json").write_text("{}")
+    (session_dir / "findings-changes-review-sku-builder-modal.json").write_text("{}")
     # Also old format (no slug) for backward compat
-    (session_dir / "findings-plan-reviewer.json").write_text("{}")
-    (session_dir / "findings-spec-reviewer.json").write_text("{}")
+    (session_dir / "findings-spec-review.json").write_text("{}")
+    (session_dir / "findings-changes-review.json").write_text("{}")
 
     with (
         patch.dict(os.environ, {"PILOT_SESSION_ID": "1001"}),
@@ -26,10 +26,10 @@ def test_removes_stale_findings_files_with_slug(tmp_path: Path):
         result = session_clear.main()
 
     assert result == 0
-    assert not (session_dir / "findings-plan-reviewer-sku-builder-modal.json").exists()
-    assert not (session_dir / "findings-spec-reviewer-sku-builder-modal.json").exists()
-    assert not (session_dir / "findings-plan-reviewer.json").exists()
-    assert not (session_dir / "findings-spec-reviewer.json").exists()
+    assert not (session_dir / "findings-spec-review-sku-builder-modal.json").exists()
+    assert not (session_dir / "findings-changes-review-sku-builder-modal.json").exists()
+    assert not (session_dir / "findings-spec-review.json").exists()
+    assert not (session_dir / "findings-changes-review.json").exists()
 
 
 def test_removes_findings_from_multiple_specs(tmp_path: Path):
@@ -37,10 +37,10 @@ def test_removes_findings_from_multiple_specs(tmp_path: Path):
     session_dir = tmp_path / "sessions" / "1001"
     session_dir.mkdir(parents=True)
     # Two different specs ran in this session
-    (session_dir / "findings-plan-reviewer-dashboard-redesign.json").write_text("{}")
-    (session_dir / "findings-spec-reviewer-dashboard-redesign.json").write_text("{}")
-    (session_dir / "findings-plan-reviewer-webhook-ingestion.json").write_text("{}")
-    (session_dir / "findings-spec-reviewer-webhook-ingestion.json").write_text("{}")
+    (session_dir / "findings-spec-review-dashboard-redesign.json").write_text("{}")
+    (session_dir / "findings-changes-review-dashboard-redesign.json").write_text("{}")
+    (session_dir / "findings-spec-review-webhook-ingestion.json").write_text("{}")
+    (session_dir / "findings-changes-review-webhook-ingestion.json").write_text("{}")
 
     with (
         patch.dict(os.environ, {"PILOT_SESSION_ID": "1001"}),
@@ -60,8 +60,8 @@ def test_removes_all_stale_state(tmp_path: Path):
     for name in session_clear.STALE_FILES:
         (session_dir / name).write_text("stale")
     # Also create pattern-matched findings files
-    (session_dir / "findings-plan-reviewer-some-plan.json").write_text("stale")
-    (session_dir / "findings-spec-reviewer-some-plan.json").write_text("stale")
+    (session_dir / "findings-spec-review-some-plan.json").write_text("stale")
+    (session_dir / "findings-changes-review-some-plan.json").write_text("stale")
 
     with (
         patch.dict(os.environ, {"PILOT_SESSION_ID": "1001"}),

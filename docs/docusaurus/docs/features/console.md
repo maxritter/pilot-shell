@@ -25,7 +25,7 @@ $ open http://localhost:41777
 | **Memories** | Browsable observations — decisions, discoveries, bugfixes — with type filters, search, and timeline view. |
 | **Sessions** | Active and past sessions with observation counts, duration, and the ability to browse session context. |
 | **Usage** | Daily token costs, model routing breakdown (Opus vs Sonnet distribution), and usage trends over time. |
-| **Settings** | Model selection per command and sub-agent (Sonnet 4.6 vs Opus 4.6). Spec workflow toggles (worktree support, ask questions, plan approval). Reviewer toggles (plan reviewer, spec reviewer). Context window size auto-detected from Claude Code. |
+| **Settings** | Model selection per command and sub-agent (Sonnet 4.6 vs Opus 4.6). Spec workflow toggles (worktree support, ask questions, plan approval). Reviewer toggles (spec review, changes review) and optional Codex adversarial reviewers. Extended context (1M) toggle. |
 | **Help** | Embedded documentation from pilot-shell.com — full technical reference without leaving the Console. |
 
 ## Plan Annotation & Code Review
@@ -120,7 +120,7 @@ Choose between **Sonnet 4.6** ($3/$15 per MTok) and **Opus 4.6** ($5/$25 per MTo
 
 #### Extended Context (1M)
 
-Toggle for using the 1M token context window instead of 200K. Included at no additional cost with Max, Team, and Enterprise Claude plans. Disable only if your API plan doesn't support it.
+Toggle for using the 1M token context window instead of 200K. API subscribers (Team, Enterprise) get this at no additional cost with all models. Max plan users must set all models to Opus for 1M to work — Sonnet 1M is not included in Max.
 
 ### Spec Workflow
 
@@ -130,14 +130,19 @@ Two independent sub-agents that run in separate context windows during `/spec`:
 
 | Agent | Default | Description |
 |-------|---------|-------------|
-| **Plan Review** | On | Validates plans before implementation. Checks alignment with requirements and flags risky assumptions. |
-| **Spec Review** | On | Reviews code after implementation. Checks compliance, quality, and goal achievement. Reads all changed files. |
+| **Spec Review** | On | Validates plans before implementation. Checks alignment with requirements and flags risky assumptions. |
+| **Changes Review** | On | Reviews code after implementation. Checks compliance, security, test coverage, and goal achievement. Reads all changed files. |
 
 Each agent has its own model selector (Sonnet or Opus). Disabling an agent skips it entirely — no tokens consumed.
 
-:::tip Non-Max users
-During installation, Pilot automatically disables both review agents for Pro, Team, and Enterprise users to reduce token usage. You can re-enable them here if desired.
-:::
+#### Codex Reviewers (Optional)
+
+Adversarial review agents powered by OpenAI Codex that provide an independent second opinion:
+
+| Agent | Default | Description |
+|-------|---------|-------------|
+| **Codex Spec Review** | Off | Adversarial plan review — provides an independent second opinion on plans. |
+| **Codex Changes Review** | Off | Adversarial code review — provides an independent second opinion on implementations. |
 
 #### Automation
 
@@ -180,12 +185,16 @@ All settings are stored in `~/.pilot/config.json`:
     "create-skill": "opus"
   },
   "agents": {
-    "plan-reviewer": "sonnet",
-    "spec-reviewer": "sonnet"
+    "spec-review": "sonnet",
+    "changes-review": "sonnet"
   },
   "reviewerAgents": {
-    "planReviewer": true,
-    "specReviewer": true
+    "specReview": true,
+    "changesReview": true
+  },
+  "codexReviewers": {
+    "specReview": false,
+    "changesReview": false
   },
   "specWorkflow": {
     "worktreeSupport": true,

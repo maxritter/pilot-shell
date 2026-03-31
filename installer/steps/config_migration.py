@@ -11,9 +11,8 @@ import os
 from pathlib import Path
 from typing import Any
 
-CURRENT_CONFIG_VERSION = 6
+CURRENT_CONFIG_VERSION = 7
 
-# Old agent names removed in v7.1 (merged into plan-reviewer + spec-reviewer)
 _STALE_AGENT_KEYS = frozenset(
     {
         "plan-challenger",
@@ -68,6 +67,9 @@ def migrate_model_config(config_path: Path | None = None) -> bool:
 
     if version < 6:
         modified = _migration_v6(raw) or modified
+
+    if version < 7:
+        modified = _migration_v7(raw) or modified
 
     raw["_configVersion"] = CURRENT_CONFIG_VERSION
     modified = True
@@ -226,7 +228,6 @@ def _get_subscription_type() -> str | None:
     """
     import subprocess
 
-    # Primary: claude auth status (works on all platforms)
     try:
         result = subprocess.run(
             ["claude", "auth", "status", "--json"],
@@ -242,7 +243,6 @@ def _get_subscription_type() -> str | None:
     except Exception:
         pass
 
-    # Fallback: credentials file (Linux has claudeAiOauth, macOS may not)
     creds_path = Path.home() / ".claude" / ".credentials.json"
     try:
         if creds_path.exists():
@@ -269,15 +269,12 @@ def _migration_v6(raw: dict[str, Any]) -> bool:
     """
     sub_type = _get_subscription_type()
 
-    # Can't detect → don't change anything (safe default)
     if sub_type is None:
         return False
 
-    # Max users keep current settings
     if sub_type == "max":
         return False
 
-    # Non-Max: disable both sub-agents
     modified = False
 
     reviewer_agents = raw.get("reviewerAgents")
@@ -290,6 +287,40 @@ def _migration_v6(raw: dict[str, Any]) -> bool:
             modified = True
     else:
         raw["reviewerAgents"] = {"planReviewer": False, "specReviewer": False}
+        modified = True
+
+    return modified
+
+
+def _migration_v7(raw: dict[str, Any]) -> bool:
+    """v6 → v7: Rename reviewer agents and add Codex reviewer config.
+
+    - reviewerAgents: planReviewer → specReview, specReviewer → changesReview
+    - agents: plan-reviewer → spec-review, spec-reviewer → changes-review
+    - Add codexReviewers section with defaults (both disabled)
+    """
+    modified = False
+
+    reviewer_agents = raw.get("reviewerAgents")
+    if isinstance(reviewer_agents, dict):
+        if "planReviewer" in reviewer_agents:
+            reviewer_agents["specReview"] = reviewer_agents.pop("planReviewer")
+            modified = True
+        if "specReviewer" in reviewer_agents:
+            reviewer_agents["changesReview"] = reviewer_agents.pop("specReviewer")
+            modified = True
+
+    agents = raw.get("agents")
+    if isinstance(agents, dict):
+        if "plan-reviewer" in agents:
+            agents["spec-review"] = agents.pop("plan-reviewer")
+            modified = True
+        if "spec-reviewer" in agents:
+            agents["changes-review"] = agents.pop("spec-reviewer")
+            modified = True
+
+    if "codexReviewers" not in raw:
+        raw["codexReviewers"] = {"specReview": False, "changesReview": False}
         modified = True
 
     return modified

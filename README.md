@@ -48,6 +48,10 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 
 **Claude Subscription:** Solo developers should choose [Max 5x](https://claude.com/pricing) for moderate usage or [Max 20x](https://claude.com/pricing) for heavy usage. Teams should use [Team Premium](https://claude.com/pricing) (6.25x usage per member, SSO, admin tools, billing management). Companies with stricter compliance or procurement requirements should use [Enterprise](https://claude.com/pricing) (API based pricing applies per usage).
 
+**Chrome Extension (Recommended):** Install the [Claude Code Chrome extension](https://code.claude.com/docs/en/chrome) for browser automation and E2E testing. Pilot automatically detects it and prefers it over [agent-browser](https://agent-browser.dev/). In environments where the extension can't be installed (dev containers, headless CI), Pilot falls back to [agent-browser](https://agent-browser.dev/) automatically.
+
+**Codex Plugin (Optional):** Install the [Codex plugin](https://github.com/openai/codex-plugin-cc) for adversarial code review powered by OpenAI Codex. When enabled in Console Settings, Codex provides an independent second opinion during `/spec` planning and verification phases. Pilot auto-detects the plugin — enable the Codex reviewers in Settings when ready.
+
 ### Installation
 
 **Works with any existing project.** Pilot Shell is installed on top of Claude Code and uses its built-in concepts like commands, rules, hooks, skills, subagents, MCP, LSP and optimized settings to improve your experience:
@@ -66,37 +70,29 @@ Installs globally on macOS, Linux, and Windows (WSL2). All tools and rules go to
 1. **Prerequisites** — Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq
 2. **Claude files** — Sets up `~/.claude/` plugin — rules, commands, hooks, MCP servers
 3. **Config files** — Creates `.nvmrc` and project config
-4. **Dependencies** — Installs Probe, RTK, CodeGraph, agent-browser, language servers
+4. **Dependencies** — Installs Probe, RTK, CodeGraph, [agent-browser](https://agent-browser.dev/), language servers
 5. **Shell integration** — Auto-configures bash, fish, and zsh with `pilot` alias
 6. **VS Code extensions** — Installs recommended extensions for your stack
 7. **Finalize** — Success message with next steps
 
 </details>
 
-<details>
-<summary><b>Chrome Extension (Recommended)</b></summary>
+### Installing a Specific Version
 
-For the best browser automation and E2E testing experience, install the [Claude Code Chrome extension](https://code.claude.com/docs/en/chrome). Pilot automatically detects it and prefers it over agent-browser. In environments where the extension can't be installed (dev containers, headless CI), Pilot falls back to agent-browser automatically.
-
-</details>
-
-<details>
-<summary><b>Installing a specific version or uninstalling</b></summary>
-
-**Specific version** (see [releases](https://github.com/maxritter/pilot-shell/releases)):
+Pin to a specific release (see [releases](https://github.com/maxritter/pilot-shell/releases)):
 
 ```bash
 export VERSION=7.8.5
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
 ```
 
-**Uninstall** — removes the Pilot binary, plugin files, managed commands/rules, settings and shell aliases:
+### Uninstalling
+
+Removes the Pilot binary, plugin files, managed commands/rules, settings and shell aliases:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash
 ```
-
-</details>
 
 <details>
 <summary><b>Dev Container</b></summary>
@@ -127,7 +123,7 @@ A local web dashboard with different views and real-time notifications when Clau
 | **Memories**      | Browsable observations — decisions, discoveries, bugfixes — with type filters and search                                                     |
 | **Sessions**      | Active and past sessions with observation counts and duration                                                                                |
 | **Usage**         | Daily token costs, model routing breakdown, and usage trends                                                                                 |
-| **Settings**      | Model selection per command/sub-agent, spec workflow toggles (worktree, questions, approval), reviewer toggles, context window auto-detected |
+| **Settings**      | Model selection per command/sub-agent, spec workflow toggles (worktree, questions, approval), reviewer toggles (spec review, changes review, optional Codex), extended context (1M) toggle |
 | **Help**          | Documentation, guides, and quick-start resources                                                                                             |
 
 </details>
@@ -143,8 +139,8 @@ A local web dashboard with different views and real-time notifications when Clau
 A three-line dashboard rendered below every Claude Code response. Replaces the default status line with real-time session metrics, spec progress, and version info — all color-coded.
 
 ```
-Opus 4.6 [1M] | █████░▓ 60% | +156 -23 | main +2 ~3 | $1.45 | saved 12.5K (65%)
-Spec: my-feature feature [implement] ████░░░░ 3/6 [plan-rev spec-rev wt]
+Opus 4.6 [1M] | █████░▓ 60% [604K] | +156 -23 | main +2 ~3 | $1.45 | Savings: 65%
+Spec: my-feature feature [implement] ████░░░░ 3/6
 Pilot 8.2.1 (Solo) · CC 2.1.79 (Max) · sessions 2 · memories 12
 ```
 
@@ -155,17 +151,17 @@ Pilot 8.2.1 (Solo) · CC 2.1.79 (Max) · sessions 2 · memories 12
 
 | Widget            | Description                                                                     |
 | ----------------- | ------------------------------------------------------------------------------- |
-| **Model**         | Active model in short form (`Opus 4.6 [1M]`)                                    |
-| **Context**       | Effective context usage with progress bar. Green < 80%, Yellow 80–95%, Red 95%+ |
+| **Model**         | Active model in short form (`Opus 4.6 [1M]`, `Sonnet 4.6`)                      |
+| **Context**       | Effective context usage with progress bar, buffer indicator, and token count. Green < 80%, Yellow 80–95%, Red 95%+ |
 | **Lines changed** | `+added -removed` in session (hidden when usage API data available)             |
 | **Git**           | Branch with staged (`+N`) / unstaged (`~N`) counts                              |
 | **Cost**          | Session cost in USD. Green < $1, Yellow $1–5, Red $5+                           |           |
-| **RTK savings**   | Token savings from RTK proxy (shown when no usage data)                         |
+| **RTK savings**   | Token savings percentage from RTK proxy (`Savings: N%`), shown when no usage data |
 
 **Line 2 — Mode:**
 
 - **Quick Mode:** `Quick Mode · /spec for feature implementation and complex bugfixes`
-- **Spec Mode:** Plan name, type (`feature`/`bugfix`), phase (`plan`/`implement`/`verify`), progress bar, task count, iteration count, and config flags (`plan-rev`, `spec-rev`, `wt` — green = on, dim = off)
+- **Spec Mode:** Plan name, type (`feature`/`bugfix`), phase (`plan`/`implement`/`verify`), progress bar, task count, and iteration count
 
 **Line 3 — Version & Session Info:**
 
@@ -200,7 +196,7 @@ Plan  →  Approve  →  Implement (TDD)  →  Verify  →  Done
 
 Full exploration workflow for new functionality, refactoring, or architectural changes.
 
-**Plan:** Explores codebase with semantic search → asks clarifying questions → writes detailed spec with scope, tasks, and definition of done → for UI features, writes **E2E test scenarios** (step-by-step, browser-executable) that become the verification contract → **plan-reviewer sub-agent** validates completeness → waits for your approval.
+**Plan:** Explores codebase with semantic search → asks clarifying questions → writes detailed spec with scope, tasks, and definition of done → for UI features, writes **E2E test scenarios** (step-by-step, browser-executable) that become the verification contract → **spec-review sub-agent** validates completeness → waits for your approval. Optional **Codex adversarial review** provides an independent second opinion when enabled.
 
 **Implement:** Creates an isolated git worktree → implements each task with strict TDD (RED → GREEN → REFACTOR) → quality hooks auto-lint, format, and type-check every edit → full test suite after each task.
 
@@ -376,9 +372,9 @@ For full details on every component, see the **[Documentation](https://pilot-she
 
 | Component | What it does |
 | --- | --- |
-| [**Hooks Pipeline**](https://pilot-shell.com/docs/features/hooks) | Quality checks on every file edit (ruff, ESLint, go vet), TDD enforcement, token optimization via RTK (60–90% savings), memory capture, and session lifecycle management |
+| [**Hooks Pipeline**](https://pilot-shell.com/docs/features/hooks) | 15 hooks across 7 events — quality checks on every file edit (ruff, ESLint, go vet), TDD enforcement, token optimization via RTK (60–90% savings), memory capture, and session lifecycle management |
 | [**Context Optimization**](https://pilot-shell.com/docs/features/context-optimization) | Lean context strategies — conditional rule loading, progressive skill disclosure, lazy MCP tool loading, RTK output compression. Compaction resilience for 200K windows |
-| [**Smart Model Routing**](https://pilot-shell.com/docs/features/model-routing) | Opus for planning, Sonnet for implementation and verification. Configurable per-phase via Console Settings. Context window (200K/1M) auto-detected |
+| [**Smart Model Routing**](https://pilot-shell.com/docs/features/model-routing) | Opus for planning, Sonnet for implementation and verification. Configurable per-phase via Console Settings. 1M context available — included with API plans (Team, Enterprise); Max plan requires all models set to Opus |
 | [**Rules & Standards**](https://pilot-shell.com/docs/features/rules) | 9 built-in rules (workflow, testing, verification, debugging, tools) + 5 coding standards activated by file type (Python, TypeScript, Go, Frontend, Backend) |
 | [**MCP Servers**](https://pilot-shell.com/docs/features/mcp-servers) | 6 servers: library docs, persistent memory, web search, GitHub code search, web page fetching, code knowledge graph |
 | [**Language Servers**](https://pilot-shell.com/docs/features/language-servers) | Real-time diagnostics for Python (basedpyright), TypeScript (vtsls), Go (gopls). Auto-installed, auto-configured |
@@ -439,7 +435,7 @@ Pilot Shell makes external calls **only for licensing**. Here is the complete li
 | License activation (once)         | `api.polar.sh`    | License key, machine fingerprint |
 | Trial start (once)                | `pilot-shell.com` | Hashed hardware fingerprint      |
 
-That's it — three calls total, each sent at most once (validation re-checks daily). No OS, no architecture, no Python version, no locale, no analytics, no heartbeats. The validation result is cached locally, and Pilot Shell works fully offline for up to 7 days between checks. Beyond these licensing calls, the only external communication is between Claude Code and Anthropic's API — using your own subscription or API key.
+That's it — three calls total, each sent at most once (validation re-checks daily). No OS, no architecture, no Python version, no locale, no analytics, no heartbeats. The validation result is cached locally, and Pilot Shell works fully offline for up to 7 days between checks. Beyond these licensing calls, the only external communication is between Claude Code and Anthropic's API — using your own subscription or API key. If you enable the optional [Codex plugin](https://github.com/openai/codex-plugin-cc), adversarial reviews are sent to OpenAI's API — this is opt-in and disabled by default.
 
 </details>
 
@@ -454,6 +450,13 @@ Yes. Your source code, project files, and development context never leave your m
 <summary><b>Do I need a separate Anthropic subscription?</b></summary>
 
 Yes. Pilot Shell enhances Claude Code — it doesn't replace it. You need an active Claude subscription — [Max 5x or 20x](https://claude.com/pricing) for solo developers, [Team Premium](https://claude.com/pricing) for teams, or [Enterprise](https://claude.com/pricing) for organizations with compliance or procurement requirements. Pilot Shell adds quality automation on top of whatever Claude Code access you already have.
+
+</details>
+
+<details>
+<summary><b>Does Pilot Shell support AI models beyond Claude?</b></summary>
+
+Pilot Shell is built for Claude Code and uses Anthropic's Claude models (Opus, Sonnet) for all planning, implementation, and verification. Additionally, the optional [Codex plugin](https://github.com/openai/codex-plugin-cc) adds OpenAI-powered adversarial review during `/spec` — an independent second opinion on your plans and code changes. Codex reviewers are disabled by default and can be enabled in Console Settings → Spec Workflow → Codex Reviewers.
 
 </details>
 

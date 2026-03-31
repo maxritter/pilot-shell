@@ -20,8 +20,8 @@ hooks:
 
 ## ⛔ KEY CONSTRAINTS
 
-1. **Run code review when enabled** — Step 3.1 launches `spec-reviewer` via `Task(subagent_type="pilot:spec-reviewer")` when `PILOT_SPEC_REVIEWER_ENABLED` is not `"false"` (read in Step 0). To disable, use Console Settings → Reviewers → Code Review toggle.
-2. **Only spec-reviewer — NEVER plan-reviewer** — Do NOT launch `plan-reviewer` during verification. Do NOT read or reference `findings-plan-reviewer-*.json` files — they are stale artifacts from the planning phase that were already addressed during implementation. If you encounter a plan-reviewer findings file, **ignore it completely**.
+1. **Run code review when enabled** — Step 3.1 launches `changes-review` via `Task(subagent_type="pilot:changes-review")` when `PILOT_CHANGES_REVIEW_ENABLED` is not `"false"` (read in Step 0). To disable, use Console Settings → Reviewers → Changes Review toggle.
+2. **Only changes-review — NEVER spec-review** — Do NOT launch `spec-review` during verification. Do NOT read or reference `findings-spec-review-*.json` files — they are stale artifacts from the planning phase that were already addressed during implementation. If you encounter a spec-review findings file, **ignore it completely**.
 3. **NO stopping** — Everything automatic. Never ask "Should I fix these?"
 4. **Fix ALL findings** — must_fix AND should_fix. No permission needed.
 5. **Code changes finish BEFORE runtime testing** — Phase A then Phase B.
@@ -36,10 +36,12 @@ hooks:
 **⛔ Run FIRST, before any other step.** Read the reviewer toggle env var:
 
 ```bash
-echo "REVIEWER=$PILOT_SPEC_REVIEWER_ENABLED"
+echo "REVIEWER=$PILOT_CHANGES_REVIEW_ENABLED CODEX_CHG=$PILOT_CODEX_CHANGES_REVIEW_ENABLED"
 ```
 
-Reference this value in Steps 3.1, 3.4, and 3.5.
+**Then read the `Codex:` field from the plan header.** If `Codex: No` (or absent), override `CODEX_CHG` to `"false"` regardless of the env var. The user opted out of Codex for this session at `/spec` start.
+
+Reference these values in Steps 3.1, 3.4, and 3.5.
 
 ---
 
@@ -74,17 +76,17 @@ Read the plan's Runtime Environment section (if present) and the changed file ty
 
 ## Phase A: Finalize the Code
 
-### Step 3.0b: Clean Up Stale Plan-Reviewer Findings
+### Step 3.0b: Clean Up Stale Spec-Review Findings
 
-**⛔ ALWAYS run this step** — regardless of whether spec-reviewer is enabled. Plan-reviewer findings are stale artifacts from the planning phase that were already addressed during implementation.
+**⛔ ALWAYS run this step** — regardless of whether changes-review is enabled. Spec-review findings are stale artifacts from the planning phase that were already addressed during implementation.
 
 ```bash
-rm -f ~/.pilot/sessions/$PILOT_SESSION_ID/findings-plan-reviewer-*.json
+rm -f ~/.pilot/sessions/$PILOT_SESSION_ID/findings-spec-review-*.json
 ```
 
 ### Step 3.1: Launch Code Review Agent (Early)
 
-**⛔ If `PILOT_SPEC_REVIEWER_ENABLED` is `"false"` (from Step 0),** skip this step entirely and proceed to Step 3.2. (Automated checks in Step 3.2 still run; only the agent-based review is skipped.)
+**⛔ If `PILOT_CHANGES_REVIEW_ENABLED` is `"false"` (from Step 0),** skip this step entirely and proceed to Step 3.2. (Automated checks in Step 3.2 still run; only the agent-based review is skipped.)
 
 **When enabled:** Launch the reviewer IMMEDIATELY — it works in the background while you run automated checks.
 
@@ -101,19 +103,19 @@ Collect: changed files list, test framework constraints, runtime environment inf
 
 **Derive plan slug** from the plan filename: strip the date prefix (`YYYY-MM-DD-`) and `.md` extension. Example: `2026-03-02-sku-builder-modal-cleanup.md` → `sku-builder-modal-cleanup`.
 
-Output path: `~/.pilot/sessions/<session-id>/findings-spec-reviewer-<plan-slug>.json`
+Output path: `~/.pilot/sessions/<session-id>/findings-changes-review-<plan-slug>.json`
 
 #### 3.1b: Launch
 
-**⛔ Delete stale spec-reviewer findings before launching** (previous run may have left a file):
+**⛔ Delete stale changes-review findings before launching** (previous run may have left a file):
 
 ```bash
-rm -f ~/.pilot/sessions/$PILOT_SESSION_ID/findings-spec-reviewer-*.json
+rm -f ~/.pilot/sessions/$PILOT_SESSION_ID/findings-changes-review-*.json
 ```
 
 ```
 Task(
-  subagent_type="pilot:spec-reviewer",
+  subagent_type="pilot:changes-review",
   run_in_background=true,
   prompt="""
   **Plan file:** <plan-path>
@@ -130,7 +132,24 @@ Task(
 )
 ```
 
-**Do NOT wait.** Proceed to Step 3.2 immediately.
+**Do NOT wait.** Proceed to Codex launch (if enabled) or Step 3.2 immediately.
+
+#### Codex Adversarial Review (Optional — launch immediately after Claude reviewer)
+
+**If `PILOT_CODEX_CHANGES_REVIEW_ENABLED` is `"true"` (from Step 0):**
+
+Launch Codex review NOW — it runs in parallel with the Claude reviewer above.
+
+1. Detect companion path:
+```bash
+CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | head -1)
+```
+
+2. Launch adversarial review in background using `--scope working-tree` (reviews all uncommitted changes regardless of staging state — works in both worktree and non-worktree mode):
+```bash
+node "$CODEX_COMPANION" adversarial-review --background --scope working-tree "Review changes against spec: <plan-path>"
+```
+Capture the job ID from stdout. **Do NOT wait** — proceed to Step 3.2 immediately.
 
 ### Step 3.2: Automated Checks
 
@@ -157,24 +176,24 @@ Skip unless the plan has a Feature Inventory section.
 
 ### Step 3.4: Collect Review Results
 
-**⛔ If `PILOT_SPEC_REVIEWER_ENABLED` is `"false"` (from Step 0 — Step 3.1 was skipped),** skip this step entirely and proceed to Step 3.6 (Phase B). There are no findings to collect.
+**⛔ If `PILOT_CHANGES_REVIEW_ENABLED` is `"false"` (from Step 0 — Step 3.1 was skipped),** skip this step entirely and proceed to Step 3.6 (Phase B). There are no findings to collect.
 
 **When enabled — mandatory. Never skip** — even if you're confident, context is high, or tests pass.
 
 **⛔ NEVER use `TaskOutput`** to retrieve results — it dumps the full agent transcript into context, wasting thousands of tokens.
 
-**Wait for results (bash polling — NOT Read loop):**
+**Wait for Claude reviewer results (bash polling — NOT Read loop):**
 
 ```bash
 OUTPUT_PATH="<findings-path>"
-for i in $(seq 1 50); do [ -f "$OUTPUT_PATH" ] && echo "READY" && break; sleep 10; done
+for i in $(seq 1 250); do [ -f "$OUTPUT_PATH" ] && echo "READY" && break; sleep 2; done
 ```
 
 Then Read the file once. If not READY after ~8 min, re-launch synchronously.
 
 **⛔ Validate findings:** After reading the JSON, verify that the `plan_file` field matches the current plan path. If it doesn't match, the findings are stale from a previous `/spec` — delete the file, re-launch the reviewer, and wait again.
 
-#### Fix Findings
+#### Fix Claude Reviewer Findings
 
 **Fix automatically — no user permission needed.**
 
@@ -183,6 +202,19 @@ Then Read the file once. If not READY after ~8 min, re-launch synchronously.
 3. **suggestions** → Implement if quick
 
 For each fix: implement → run relevant tests → log "Fixed: [title]"
+
+#### Collect Codex Results (if launched)
+
+**If Codex was launched in Step 3.1**, collect its results now:
+
+```bash
+node "$CODEX_COMPANION" status <jobId> --wait --timeout-ms 120000 --json
+```
+
+**Handle Codex result:**
+- `waitTimedOut: true` → Codex timed out. Log "Codex review timed out — skipping" and continue without Codex findings.
+- `job.status` is `"cancelled"` or exit code non-zero → Codex crashed/failed. Log "Codex review failed: <failureMessage>" and continue without Codex findings.
+- `job.status` is `"completed"` → Parse output. Map severities: critical/high → must_fix, medium/low → should_fix. Fix all must_fix/should_fix.
 
 **Report:**
 ```
@@ -194,11 +226,11 @@ For each fix: implement → run relevant tests → log "Fixed: [title]"
 
 ### Step 3.5: Re-verification (Only for Structural Fixes)
 
-**⛔ If `PILOT_SPEC_REVIEWER_ENABLED` is `"false"` (from Step 0 — Steps 3.1/3.4 were skipped),** skip this step entirely and proceed to Phase B.
+**⛔ If `PILOT_CHANGES_REVIEW_ENABLED` is `"false"` (from Step 0 — Steps 3.1/3.4 were skipped),** skip this step entirely and proceed to Phase B.
 
 **When enabled:** **Skip** when fixes were localized (terminology, error handling, test updates, minor bugs). Run tests + lint to confirm, proceed to Phase B.
 
-**Re-verify** when fixes required new functionality, changed APIs, or significant new code paths: re-launch spec-reviewer, fix new findings. Max 2 iterations before adding remaining issues to plan.
+**Re-verify** when fixes required new functionality, changed APIs, or significant new code paths: re-launch changes-review, fix new findings. Max 2 iterations before adding remaining issues to plan.
 
 ---
 

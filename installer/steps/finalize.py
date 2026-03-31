@@ -95,6 +95,7 @@ class FinalizeStep(BaseStep):
                 steps.append(("🔄 Reload shell", f"{cmd_str} (or restart terminal)"))
 
         steps.append(("Claude Chrome Extension", "Install and enable for better browser automation"))
+        steps.append(("Codex Plugin (Optional)", "Adversarial review — install as additional Claude plugin"))
         steps.append(("Launch Pilot Shell", "Run 'pilot' in your project folder instead of 'claude'"))
         steps.append(("Pilot Shell Console", "Open the UI in your browser at: http://localhost:41777"))
         steps.append(("/spec", "Plan, implement & verify features and bug fixes (replaces CC plan mode)"))

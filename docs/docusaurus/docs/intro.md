@@ -49,7 +49,7 @@ cd your-project && pilot
 
 Pilot enhances Claude Code with:
 
-- **18 hooks** across 7 lifecycle events for automatic quality enforcement
+- **15 hooks** across 7 lifecycle events for automatic quality enforcement
 - **6 MCP servers** for library docs, memory, web search, code search, page fetching, and code intelligence
 - **3 language servers** (Python, TypeScript, Go) for real-time diagnostics
 - **Intelligent model routing** — Opus for planning, Sonnet for implementation

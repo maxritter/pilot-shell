@@ -24,8 +24,10 @@ STALE_FILES = [
 
 # Glob patterns for files with variable names (e.g. findings include plan slug)
 STALE_PATTERNS = [
-    "findings-plan-reviewer*.json",
-    "findings-spec-reviewer*.json",
+    "findings-spec-review*.json",
+    "findings-changes-review*.json",
+    "findings-codex-spec-review*.json",
+    "findings-codex-changes-review*.json",
 ]
 
 

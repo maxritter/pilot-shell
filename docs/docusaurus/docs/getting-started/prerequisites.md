@@ -23,6 +23,16 @@ Pilot enhances Claude Code — it doesn't replace it. You need an active Claude 
 | **Team Premium** | Teams | 6.25x usage per member + SSO, admin tools, billing management |
 | **Enterprise** | Companies | For organizations with compliance, procurement, or security requirements |
 
+## Optional: Codex Plugin
+
+Install the [Codex plugin](https://github.com/openai/codex-plugin-cc) for adversarial code review powered by OpenAI Codex. When enabled in Console Settings, Codex provides an independent second opinion during `/spec` planning and verification phases.
+
+```bash
+claude plugin install @openai/codex
+```
+
+After installation, run `/codex:setup` and enable the Codex reviewers in Console Settings → Spec Workflow → Codex Reviewers. Pilot auto-detects the plugin — Codex reviewer cards appear grayed out until the plugin is installed, then become toggleable.
+
 ## System Requirements
 
 Pilot installs once and works across all your projects. Each project can have its own `.claude/` rules and skills.

@@ -69,8 +69,9 @@ class TestMigrationV1:
         assert "spec-reviewer-compliance" not in agents
         assert "spec-reviewer-quality" not in agents
         assert "spec-reviewer-goal" not in agents
-        assert agents["plan-reviewer"] == "sonnet"
-        assert agents["spec-reviewer"] == "sonnet"
+        # v7 renames plan-reviewer → spec-review, spec-reviewer → changes-review
+        assert agents["spec-review"] == "sonnet"
+        assert agents["changes-review"] == "sonnet"
 
     def test_new_agent_keys_added_if_missing(self, tmp_path: Path) -> None:
         """New agent keys are added when they don't exist yet."""
@@ -88,8 +89,9 @@ class TestMigrationV1:
         migrate_model_config(config_path)
 
         migrated = json.loads(config_path.read_text())
-        assert migrated["agents"]["plan-reviewer"] == "sonnet"
-        assert migrated["agents"]["spec-reviewer"] == "sonnet"
+        # v1 adds plan-reviewer/spec-reviewer, then v7 renames them
+        assert migrated["agents"]["spec-review"] == "sonnet"
+        assert migrated["agents"]["changes-review"] == "sonnet"
 
     def test_config_version_set_after_migration(self, tmp_path: Path) -> None:
         """_configVersion is set to current after migration."""
@@ -300,9 +302,9 @@ class TestMigrationV3:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        # v4 re-enables after v3 disables
-        assert migrated["reviewerAgents"]["planReviewer"] is True
-        assert migrated["reviewerAgents"]["specReviewer"] is True
+        # v4 re-enables after v3 disables, then v7 renames keys
+        assert migrated["reviewerAgents"]["specReview"] is True
+        assert migrated["reviewerAgents"]["changesReview"] is True
         assert migrated["specWorkflow"]["worktreeSupport"] is True
         assert migrated["specWorkflow"]["askQuestionsDuringPlanning"] is True
         assert migrated["specWorkflow"]["planApproval"] is True
@@ -388,8 +390,9 @@ class TestMigrationV4:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        assert migrated["reviewerAgents"]["planReviewer"] is True
-        assert migrated["reviewerAgents"]["specReviewer"] is True
+        # v4 enables, then v7 renames keys
+        assert migrated["reviewerAgents"]["specReview"] is True
+        assert migrated["reviewerAgents"]["changesReview"] is True
         assert migrated["specWorkflow"]["worktreeSupport"] is True
         assert migrated["specWorkflow"]["askQuestionsDuringPlanning"] is True
         assert migrated["specWorkflow"]["planApproval"] is True
@@ -414,8 +417,9 @@ class TestMigrationV4:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        assert migrated["reviewerAgents"]["planReviewer"] is True
-        assert migrated["reviewerAgents"]["specReviewer"] is True
+        # v7 renames keys
+        assert migrated["reviewerAgents"]["specReview"] is True
+        assert migrated["reviewerAgents"]["changesReview"] is True
         assert migrated["specWorkflow"]["worktreeSupport"] is True
 
     def test_partial_disabled(self, tmp_path: Path) -> None:
@@ -438,8 +442,9 @@ class TestMigrationV4:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        assert migrated["reviewerAgents"]["planReviewer"] is True
-        assert migrated["reviewerAgents"]["specReviewer"] is True
+        # v4 enables both, then v7 renames
+        assert migrated["reviewerAgents"]["specReview"] is True
+        assert migrated["reviewerAgents"]["changesReview"] is True
         assert migrated["specWorkflow"]["worktreeSupport"] is True
 
     def test_missing_reviewer_agents_creates_enabled_defaults(self, tmp_path: Path) -> None:
@@ -457,8 +462,9 @@ class TestMigrationV4:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        assert migrated["reviewerAgents"]["planReviewer"] is True
-        assert migrated["reviewerAgents"]["specReviewer"] is True
+        # v4 creates with old names enabled, v7 renames
+        assert migrated["reviewerAgents"]["specReview"] is True
+        assert migrated["reviewerAgents"]["changesReview"] is True
 
     def test_missing_spec_workflow_creates_enabled_defaults(self, tmp_path: Path) -> None:
         """Missing specWorkflow key gets created with worktree enabled."""
@@ -696,8 +702,9 @@ class TestMigrationV6:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        assert migrated["reviewerAgents"]["planReviewer"] is False
-        assert migrated["reviewerAgents"]["specReviewer"] is False
+        # v6 disables, then v7 renames
+        assert migrated["reviewerAgents"]["specReview"] is False
+        assert migrated["reviewerAgents"]["changesReview"] is False
         assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
 
     def test_full_migration_for_max_user_preserves_agents(self, tmp_path: Path) -> None:
@@ -717,9 +724,85 @@ class TestMigrationV6:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        assert migrated["reviewerAgents"]["planReviewer"] is True
-        assert migrated["reviewerAgents"]["specReviewer"] is True
+        # v7 renames but preserves values
+        assert migrated["reviewerAgents"]["specReview"] is True
+        assert migrated["reviewerAgents"]["changesReview"] is True
         assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
+
+
+class TestMigrationV7:
+    """Migration v6 → v7: Rename reviewer agents and add Codex reviewer config."""
+
+    def test_renames_reviewer_agent_keys(self) -> None:
+        """planReviewer → specReview, specReviewer → changesReview."""
+        from installer.steps.config_migration import _migration_v7
+
+        raw: dict = {
+            "reviewerAgents": {"planReviewer": True, "specReviewer": False},
+        }
+
+        result = _migration_v7(raw)
+
+        assert result is True
+        assert raw["reviewerAgents"]["specReview"] is True
+        assert raw["reviewerAgents"]["changesReview"] is False
+        assert "planReviewer" not in raw["reviewerAgents"]
+        assert "specReviewer" not in raw["reviewerAgents"]
+
+    def test_renames_agent_model_keys(self) -> None:
+        """plan-reviewer → spec-review, spec-reviewer → changes-review."""
+        from installer.steps.config_migration import _migration_v7
+
+        raw: dict = {
+            "agents": {"plan-reviewer": "opus", "spec-reviewer": "sonnet"},
+        }
+
+        result = _migration_v7(raw)
+
+        assert result is True
+        assert raw["agents"]["spec-review"] == "opus"
+        assert raw["agents"]["changes-review"] == "sonnet"
+        assert "plan-reviewer" not in raw["agents"]
+        assert "spec-reviewer" not in raw["agents"]
+
+    def test_adds_codex_reviewers_defaults(self) -> None:
+        """codexReviewers added with both disabled."""
+        from installer.steps.config_migration import _migration_v7
+
+        raw: dict = {"model": "opus"}
+
+        result = _migration_v7(raw)
+
+        assert result is True
+        assert raw["codexReviewers"]["specReview"] is False
+        assert raw["codexReviewers"]["changesReview"] is False
+
+    def test_preserves_existing_codex_reviewers(self) -> None:
+        """Existing codexReviewers not overwritten."""
+        from installer.steps.config_migration import _migration_v7
+
+        raw: dict = {
+            "codexReviewers": {"specReview": True, "changesReview": True},
+        }
+
+        result = _migration_v7(raw)
+
+        assert result is False
+        assert raw["codexReviewers"]["specReview"] is True
+
+    def test_noop_when_already_migrated(self) -> None:
+        """No changes when keys already use new names."""
+        from installer.steps.config_migration import _migration_v7
+
+        raw: dict = {
+            "reviewerAgents": {"specReview": True, "changesReview": True},
+            "agents": {"spec-review": "sonnet", "changes-review": "sonnet"},
+            "codexReviewers": {"specReview": False, "changesReview": False},
+        }
+
+        result = _migration_v7(raw)
+
+        assert result is False
 
 
 class TestGetSubscriptionType:

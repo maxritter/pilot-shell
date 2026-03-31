@@ -1,6 +1,6 @@
 ## Code Review Reception
 
-When receiving code review feedback — from users, spec-reviewer agents, or external tools like CodeRabbit — apply these guidelines.
+When receiving code review feedback — from users, changes-review agents, or external tools like CodeRabbit — apply these guidelines.
 
 ### Response Sequence
 
@@ -19,7 +19,7 @@ If any item is unclear: **STOP** — do not implement anything yet. Ask for clar
 |--------|----------|
 | **User feedback** | Trusted — implement after understanding. Still ask if scope unclear. Skip to action or technical acknowledgment. |
 | **External reviewers** | Verify first: (1) technically correct for THIS codebase? (2) breaks existing functionality? (3) reason for current implementation? (4) conflicts with user's prior decisions? If conflicts → stop and discuss with user first. |
-| **Spec-reviewer agents** | `must_fix` and `should_fix` → fix immediately. `suggestion` → implement if quick. No discussion needed. |
+| **Review agents** (spec-review, changes-review, Codex) | `must_fix` and `should_fix` → fix immediately. `suggestion` → implement if quick. No discussion needed. |
 
 ### YAGNI Check
 

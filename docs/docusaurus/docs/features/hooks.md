@@ -1,14 +1,14 @@
 ---
 sidebar_position: 2
 title: Hooks Pipeline
-description: 18 hooks across 7 lifecycle events — fire automatically at every stage
+description: 15 hooks across 7 lifecycle events — fire automatically at every stage
 ---
 
 # Hooks Pipeline
 
-18 hooks across 7 lifecycle events — quality enforcement on autopilot.
+15 hooks across 7 lifecycle events — quality enforcement on autopilot.
 
-Blocking hooks reject actions or force fixes. Non-blocking hooks warn without interrupting. Async hooks run in the background.
+Blocking hooks reject actions or force fixes. Non-blocking hooks warn without interrupting. Async hooks run in the background. Two additional command-scoped Stop hooks run during `/spec` phases.
 
 ## SessionStart
 
@@ -20,7 +20,6 @@ Blocking hooks reject actions or force fixes. Non-blocking hooks warn without in
 | `post_compact_restore.py` | Blocking | Re-injects active plan, task state, and context after compaction |
 | `session_clear.py` | Blocking | Resets session state on /clear |
 | Session tracker | Async | Initializes message tracking |
-| CodeGraph init | Async | Initializes and syncs the code knowledge graph on startup |
 
 ## UserPromptSubmit
 
@@ -46,7 +45,6 @@ Blocking hooks reject actions or force fixes. Non-blocking hooks warn without in
 
 | Hook | Type | Description |
 |------|------|-------------|
-| CodeGraph mark-dirty | Async | Marks the code graph as stale when files are edited |
 | `file_checker.py` | Blocking | Quality checks: Python (ruff), TypeScript (ESLint), Go (go vet + golangci-lint). Also warns when implementation files are edited without a failing test (TDD) |
 | `context_monitor.py` | Non-blocking | Tracks context usage 0-100% with warnings as compaction approaches |
 | Memory observer | Async | Captures decisions, discoveries, and bugfixes to persistent memory |
@@ -67,7 +65,6 @@ Blocking hooks reject actions or force fixes. Non-blocking hooks warn without in
 |------|------|-------------|
 | `spec_stop_guard.py` | Blocking | Blocks stopping if an active spec hasn't completed verification |
 | Session summarizer | Async | Saves session observations to memory |
-| CodeGraph sync | Blocking | Re-syncs the code graph if marked dirty during the session |
 
 Additionally, `spec_plan_validator.py` and `spec_verify_validator.py` run as command-scoped Stop hooks during `/spec` phases — they verify plan creation and VERIFIED status respectively.
 

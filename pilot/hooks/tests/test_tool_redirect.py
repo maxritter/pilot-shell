@@ -139,13 +139,13 @@ class TestResearchAgentBlocked:
 class TestAllowedSpecReviewerAgents:
     """/spec reviewer agents pass through silently — no warning."""
 
-    def test_allows_plan_reviewer(self):
-        code, output = _run_with_input("Agent", {"subagent_type": "pilot:plan-reviewer", "prompt": "review plan"})
+    def test_allows_spec_review(self):
+        code, output = _run_with_input("Agent", {"subagent_type": "pilot:spec-review", "prompt": "review plan"})
         assert code == 0
         assert output == ""
 
-    def test_allows_spec_reviewer(self):
-        code, output = _run_with_input("Agent", {"subagent_type": "pilot:spec-reviewer", "prompt": "review code"})
+    def test_allows_changes_review(self):
+        code, output = _run_with_input("Agent", {"subagent_type": "pilot:changes-review", "prompt": "review code"})
         assert code == 0
         assert output == ""
 
@@ -280,7 +280,7 @@ class TestSubprocessIntegration:
         assert _is_denied(stdout)
 
     def test_spec_reviewers_silent(self):
-        for subagent in ["pilot:spec-reviewer", "pilot:plan-reviewer"]:
+        for subagent in ["pilot:changes-review", "pilot:spec-review"]:
             exit_code, stdout, _ = _run_subprocess("Agent", {"subagent_type": subagent})
             assert exit_code == 0
             assert not _is_denied(stdout)

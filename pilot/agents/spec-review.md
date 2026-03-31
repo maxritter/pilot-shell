@@ -1,6 +1,6 @@
 ---
-name: plan-reviewer
-description: Plan reviewer that verifies alignment with user requirements and challenges dangerous assumptions. Returns structured JSON findings.
+name: spec-review
+description: Spec review agent that verifies alignment with user requirements and challenges dangerous assumptions. Returns structured JSON findings.
 tools: Read, Grep, Glob, Write
 effort: high
 model: sonnet
@@ -8,7 +8,7 @@ background: true
 permissionMode: plan
 ---
 
-# Plan Reviewer
+# Spec Review
 
 Verify plans against user requirements and challenge dangerous assumptions. Combined alignment + adversarial review in one pass.
 

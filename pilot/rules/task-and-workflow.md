@@ -94,7 +94,7 @@ Use EXACT parameter names — abbreviated names cause `InputValidationError`:
 **Search:** Probe CLI (`probe search`) → Grep/Glob (exact patterns). See `cli-tools.md` for Probe reference.
 **Structure:** CodeGraph `codegraph_callers`/`codegraph_callees` (call graphs), `codegraph_impact` (blast radius). See `development-practices.md`.
 
-All other Agent sub-agent types (e.g., `pilot:spec-reviewer`, `pilot:plan-reviewer`, `general-purpose`) pass through.
+All other Agent sub-agent types (e.g., `pilot:changes-review`, `pilot:spec-review`, `general-purpose`) pass through.
 
 ### ⛔ Web Search/Fetch
 
@@ -185,7 +185,7 @@ Call after creating plan header, reading existing plan, and after status changes
 | COMPLETE | * | Bugfix | `Skill(skill='spec-bugfix-verify', args='<plan-path>')` |
 | VERIFIED | * | * | Report completion, done |
 
-**`spec-implement` works identically for both plan types** — the plan file is the interface. **Verification dispatches by type:** features → `spec-verify` (1 review agent, automated checks, structured E2E via TS-NNN scenarios from the plan), bugfixes → `spec-bugfix-verify` (tests, quality checks, verification scenario — no sub-agents).
+**`spec-implement` works identically for both plan types** — the plan file is the interface. **Verification dispatches by type:** features → `spec-verify` (1 review agent + optional Codex adversarial review, automated checks, structured E2E via TS-NNN scenarios from the plan), bugfixes → `spec-bugfix-verify` (tests, quality checks, verification scenario — no sub-agents). Codex reviewers are opt-in via Console Settings and run in parallel with Claude reviewers when enabled.
 
 ### Feedback Loop
 
@@ -195,7 +195,7 @@ spec-verify (or spec-bugfix-verify) finds issues → Status: PENDING → spec-im
 
 ### ⛔ Only FOUR User Interaction Points
 
-1. **Worktree Choice + Type Confirmation** (new plans only, in dispatcher — type only asked when ambiguous; skipped when `$PILOT_WORKTREE_ENABLED=false`)
+1. **Worktree Choice + Codex Opt-In + Type Confirmation** (new plans only, in dispatcher — type only asked when ambiguous; worktree skipped when `$PILOT_WORKTREE_ENABLED=false`; Codex skipped when not available or not enabled in config)
 2. **Plan Approval** (in spec-plan or spec-bugfix-plan; skipped when `$PILOT_PLAN_APPROVAL_ENABLED=false`)
 3. **Worktree Sync Approval** (in spec-verify/spec-bugfix-verify, only when `Worktree: Yes`)
 4. **Code Review Gate** (in spec-verify Step 3.13 / spec-bugfix-verify Step 3.8 — uses `AskUserQuestion` so the stop guard allows session exit while waiting)

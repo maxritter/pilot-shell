@@ -47,10 +47,10 @@ If you haven't completed Step 1.2, you cannot propose fixes. Symptom fixes are f
 **⛔ Run FIRST, before any other step.** Read all toggle env vars in a single Bash call:
 
 ```bash
-echo "QUESTIONS=$PILOT_PLAN_QUESTIONS_ENABLED APPROVAL=$PILOT_PLAN_APPROVAL_ENABLED"
+echo "QUESTIONS=$PILOT_PLAN_QUESTIONS_ENABLED CODEX_SPEC=$PILOT_CODEX_SPEC_REVIEW_ENABLED APPROVAL=$PILOT_PLAN_APPROVAL_ENABLED"
 ```
 
-Reference these values throughout: Steps 1.2.1/1.2.5 (questions) and 1.5 (approval).
+Reference these values throughout: Steps 1.2.1/1.2.5 (questions), 1.4c (Codex), and 1.5 (approval).
 
 ---
 
@@ -70,7 +70,7 @@ If you catch yourself thinking any of these, STOP. Return to Step 1.2.
 
 ## Step 1.1: Create Plan File Header (FIRST)
 
-1. **Parse worktree** from arguments: `--worktree=yes|no` (default: `No`). Strip flag.
+1. **Parse flags** from arguments: `--worktree=yes|no` (default: `No`), `--codex=yes|no` (default: `no`). Strip both flags.
 2. **Create worktree early (if yes):** Same pattern as spec-plan Step 1.1.
 3. **Generate filename:** `docs/plans/YYYY-MM-DD-<bug-slug>.md`
 4. **Fetch author email** (best-effort): same as spec-plan Step 1.1 step 4. If non-empty, include `Author: <email>` in header. If empty/fails, omit.
@@ -85,6 +85,7 @@ If you catch yourself thinking any of these, STOP. Return to Step 1.2.
    Approved: No
    Iterations: 0
    Worktree: [Yes|No]
+   Codex: [Yes|No]
    Type: Bugfix
 
    > Investigating bug...
@@ -310,6 +311,30 @@ Type: Bugfix
 2. Read the annotation file with the Read tool. If the file doesn't exist, treat as `NO_FEEDBACK`. If it exists, check whether `planAnnotations` has any entries (`FEEDBACK_EXISTS`) or is empty/missing (`NO_FEEDBACK`).
 3. **If `FEEDBACK_EXISTS`:** Each annotation in `planAnnotations` has `originalText` (selected passage) and `text` (user's note). Incorporate into plan, clear annotations via `curl -s -X DELETE "http://localhost:41777/api/annotations/plan?path=<encoded-plan-path>" > /dev/null 2>&1 || true`, note changes. Proceed to Step 1.5.
 4. **If `NO_FEEDBACK`:** proceed directly to Step 1.5.
+
+## Step 1.4c: Codex Adversarial Review (Optional)
+
+**If `PILOT_CODEX_SPEC_REVIEW_ENABLED` is `"true"` (from Step 0):**
+
+1. Detect companion path:
+```bash
+CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | head -1)
+```
+
+2. Launch adversarial review:
+```bash
+node "$CODEX_COMPANION" adversarial-review --background --base main "Adversarial review of bugfix plan: <plan-path>"
+```
+
+3. Collect results:
+```bash
+node "$CODEX_COMPANION" status <jobId> --wait --timeout-ms 120000 --json
+```
+
+4. **Handle Codex result:**
+   - `waitTimedOut: true` → Log "Codex review timed out — skipping" and continue.
+   - `job.status` is `"cancelled"` or exit code non-zero → Log "Codex review failed: <failureMessage>" and continue.
+   - `job.status` is `"completed"` → Parse output. Map severities: critical/high → must_fix, medium/low → should_fix. Fix all must_fix/should_fix in the plan.
 
 ---
 

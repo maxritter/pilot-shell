@@ -1,5 +1,6 @@
 {
   "env": {
+    "CLAUDE_CODE_NO_FLICKER": "true",
     "CLAUDE_CODE_ENABLE_TASKS": "true",
     "CLAUDE_CODE_HIDE_ACCOUNT_INFO": "true",
     "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "false",

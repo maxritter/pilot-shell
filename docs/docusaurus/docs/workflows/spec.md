@@ -52,7 +52,7 @@ Investigation-first flow for targeted fixes. Finds the root cause before touchin
 - Explores codebase with semantic search, asks clarifying questions
 - Writes detailed spec with scope, tasks, and definition of done
 - For UI/user-facing features: writes structured **E2E test scenarios** (TS-001, TS-002…) with step-by-step actions and expected results — these become the verification contract for the Verify phase
-- Plan-reviewer sub-agent validates completeness (optional, enabled by default)
+- Spec-review sub-agent validates completeness (optional, enabled by default)
 - Waits for your approval — edit the plan directly, or **annotate it visually** in the Console's Specifications tab (select any text, write a note — annotations save automatically). The agent reads your annotations at the approval checkpoint, revises the plan, and re-asks for approval
 
 ### Implement Phase
@@ -89,10 +89,10 @@ When all three are disabled, `/spec` runs end-to-end without any user interactio
 
 | Toggle          | Default | What it does                                                                                  |
 | --------------- | ------- | --------------------------------------------------------------------------------------------- |
-| **Plan Review** | On      | Validates the plan before implementation — checks alignment and flags risky assumptions       |
-| **Spec Review** | On      | Reviews code after implementation — compliance, quality, and goal achievement |
+| **Spec Review** | On      | Validates the plan before implementation — checks alignment and flags risky assumptions       |
+| **Changes Review** | On   | Reviews code after implementation — compliance, security, test coverage, and goal achievement |
 
-Both reviewers run in a separate context window and don't consume the main session's context budget.
+Both reviewers run in a separate context window and don't consume the main session's context budget. Optional **Codex adversarial reviewers** (off by default) provide an independent second opinion using OpenAI Codex.
 
 ## Worktree Isolation (Optional)
 

@@ -1,6 +1,6 @@
 ---
-name: spec-reviewer
-description: Spec reviewer that verifies plan compliance, code quality, and goal achievement in a single pass. Returns structured JSON findings.
+name: changes-review
+description: Changes review agent that verifies plan compliance, code quality, and goal achievement in a single pass. Returns structured JSON findings.
 tools: Read, Grep, Glob, Write, Bash(git diff:*), Bash(git log:*)
 effort: high
 model: sonnet
@@ -8,7 +8,7 @@ background: true
 permissionMode: plan
 ---
 
-# Spec Reviewer
+# Changes Review
 
 Verify implemented code against the plan: compliance, quality, and goal achievement in one pass.
 

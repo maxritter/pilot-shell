@@ -15,8 +15,8 @@ Pilot Shell replaces the default Claude Code status line with a rich, three-line
 The status line has three lines:
 
 ```
-Line 1: Opus 4.6 [1M] | █████░▓ 60% | +156 -23 | main +2 ~3 | $1.45 | saved 12.5K (65%)
-Line 2: Spec: my-feature feature [implement] ████░░░░ 3/6 [plan-rev spec-rev wt]
+Line 1: Opus 4.6 [1M] | █████░▓ 60% [604K] | +156 -23 | main +2 ~3 | $1.45 | Savings: 65%
+Line 2: Spec: my-feature feature [implement] ████░░░░ 3/6
 Line 3: Pilot 8.2.1 (Solo) · CC 2.1.79 (Max) · sessions 2 · memories 12
 ```
 
@@ -27,13 +27,13 @@ Widgets separated by `|`, from left to right:
 | Widget | Description | Color coding |
 |--------|-------------|--------------|
 | **Model** | Active model in short form (`Opus 4.6 [1M]`, `Sonnet 4.6`) | Cyan |
-| **Context** | Effective context usage with progress bar and buffer indicator (`▓`) | Green < 80%, Yellow 80–95%, Red 95%+ |
+| **Context** | Effective context usage with progress bar, buffer indicator (`▓`), and current token count (e.g., `[604K]`) | Green < 80%, Yellow 80–95%, Red 95%+ |
 | **Lines changed** | Session lines added/removed (`+156 -23`). Hidden when usage API data is available | Green for added, Red for removed |
 | **Git** | Branch name with staged (`+N`) and unstaged (`~N`) counts. Shows worktree branch with `wt` suffix when in a spec worktree | Magenta branch, Green staged, Yellow unstaged |
 | **Cost** | Session cost in USD | Green < $1, Yellow $1–5, Red $5+ |
 | **5h usage** | 5-hour usage limit percentage with reset time (requires OAuth credentials) | Green < 70%, Yellow 70–90%, Red 90%+ |
 | **7d usage** | Weekly usage limit percentage with reset time | Same as 5h |
-| **RTK savings** | Token savings from RTK proxy (shown when no usage data available) | Cyan |
+| **RTK savings** | Token savings percentage from RTK proxy (`Savings: N%`), shown when no usage data available | Cyan |
 
 :::info Usage API
 When OAuth credentials are present (`~/.claude/.credentials.json`), the Anthropic usage API provides 5-hour and weekly usage limits — these replace the lines-changed and RTK widgets. Without credentials, lines-changed and RTK savings are shown instead. This is credential-dependent, not platform-dependent.
@@ -48,7 +48,7 @@ Quick Mode · /spec for feature implementation and complex bugfixes
 
 **Spec Mode** (active `/spec` plan):
 ```
-Spec: my-feature feature [implement] ████░░░░ 3/6 iter:2 [plan-rev spec-rev wt]
+Spec: my-feature feature [implement] ████░░░░ 3/6 iter:2
 ```
 
 | Field | Description |
@@ -59,17 +59,6 @@ Spec: my-feature feature [implement] ████░░░░ 3/6 iter:2 [plan-r
 | **Progress bar** | Visual task completion (filled █ / empty ░) |
 | **Count** | Completed/total tasks |
 | **Iterations** | `iter:N` shown when verification has looped back (N > 0) |
-| **Config flags** | Spec workflow settings in brackets — green = on, dim = off |
-
-**Config flags:**
-
-| Flag | Setting | What it controls |
-|------|---------|-----------------|
-| `plan-rev` | Plan Review agent | Validates plans before implementation |
-| `spec-rev` | Spec Review agent | Reviews code after implementation |
-| `wt` | Worktree Support | Isolates changes in a git worktree |
-
-Configure these in the [Pilot Console Settings](/docs/features/console#settings) tab or directly in `~/.pilot/config.json`.
 
 ### Line 3 — Version & Session Info
 

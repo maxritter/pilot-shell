@@ -22,7 +22,7 @@ const faqItems = [
     question:
       "Does Pilot Shell work with other AI coding tools?",
     answer:
-      "Pilot Shell is built exclusively for Claude Code. Every hook, rule, command, and workflow is engineered specifically for Claude\u2019s tool-use protocol, prompt format, and session lifecycle. Pilot Shell also only supports Claude Sonnet 4.6 and Claude Opus 4.6 \u2014 these are the models that produce the best results, and every rule and prompt is optimized for their behavior. Supporting other tools or models would mean compromising on quality, which is the opposite of what Pilot Shell is designed to do.",
+      "Pilot Shell is built for Claude Code. Every hook, rule, command, and workflow is engineered specifically for Claude\u2019s tool-use protocol, prompt format, and session lifecycle. Pilot Shell supports Claude Sonnet 4.6 and Claude Opus 4.6 \u2014 these are the models that produce the best results, and every rule and prompt is optimized for their behavior. Additionally, the optional Codex plugin adds OpenAI-powered adversarial review during /spec \u2014 an independent second opinion on your plans and code changes. Codex reviewers are disabled by default and can be enabled in Console Settings.",
   },
   {
     question: "Does Pilot Shell work with existing projects?",
@@ -52,7 +52,7 @@ const faqItems = [
   {
     question: "Does Pilot Shell send my code or data to external services?",
     answer:
-      "No code, files, prompts, project data, or personal information ever leaves your machine through Pilot Shell. All development tools \u2014 vector search, persistent memory, session state, and quality hooks \u2014 run entirely locally. Pilot Shell makes exactly three external calls, all for licensing only: (1) License validation \u2014 once every 24 hours, sends your license key and organization ID to api.polar.sh. (2) License activation \u2014 one-time, sends license key and a machine fingerprint to api.polar.sh. (3) Trial start \u2014 one-time, sends a hashed hardware fingerprint to pilot-shell.com to generate a 7-day trial key. That\u2019s the complete list. No OS info, no version strings, no analytics, no telemetry, no heartbeats. The validation result is cached locally, and Pilot Shell works fully offline for up to 7 days.",
+      "No code, files, prompts, project data, or personal information ever leaves your machine through Pilot Shell. All development tools \u2014 vector search, persistent memory, session state, and quality hooks \u2014 run entirely locally. Pilot Shell makes exactly three external calls, all for licensing only: (1) License validation \u2014 once every 24 hours, sends your license key and organization ID to api.polar.sh. (2) License activation \u2014 one-time, sends license key and a machine fingerprint to api.polar.sh. (3) Trial start \u2014 one-time, sends a hashed hardware fingerprint to pilot-shell.com to generate a 7-day trial key. That\u2019s the complete list. No OS info, no version strings, no analytics, no telemetry, no heartbeats. The validation result is cached locally, and Pilot Shell works fully offline for up to 7 days. If you enable the optional Codex plugin, adversarial reviews are sent to OpenAI\u2019s API \u2014 this is opt-in and disabled by default.",
   },
   {
     question: "Can I use Pilot Shell inside a Dev Container?",

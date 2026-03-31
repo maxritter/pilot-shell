@@ -21,8 +21,8 @@ hooks:
 
 ## ⛔ Critical Constraints
 
-- **NO sub-agents during planning** except Step 1.7 (plan-reviewer, when enabled in settings)
-- **Run plan-reviewer when enabled** — it runs for every feature spec when `$PILOT_PLAN_REVIEWER_ENABLED` is not `"false"`. Context level is NOT a valid reason to skip. To disable, use Console Settings → Reviewers → Plan Review toggle.
+- **NO sub-agents during planning** except Step 1.7 (spec-review, when enabled in settings)
+- **Run spec-review when enabled** — it runs for every feature spec when `$PILOT_SPEC_REVIEW_ENABLED` is not `"false"`. Context level is NOT a valid reason to skip. To disable, use Console Settings → Reviewers → Spec Review toggle.
 - **NEVER write code during planning** — planning and implementation are separate phases
 - **NEVER assume — verify by reading files**
 - **ONLY stopping point is plan approval** — everything else is automatic. Never ask "Should I fix these?"
@@ -37,10 +37,10 @@ hooks:
 **⛔ Run FIRST, before any other step.** Read all toggle env vars in a single Bash call:
 
 ```bash
-echo "QUESTIONS=$PILOT_PLAN_QUESTIONS_ENABLED REVIEWER=$PILOT_PLAN_REVIEWER_ENABLED APPROVAL=$PILOT_PLAN_APPROVAL_ENABLED"
+echo "QUESTIONS=$PILOT_PLAN_QUESTIONS_ENABLED REVIEWER=$PILOT_SPEC_REVIEW_ENABLED CODEX_SPEC=$PILOT_CODEX_SPEC_REVIEW_ENABLED APPROVAL=$PILOT_PLAN_APPROVAL_ENABLED"
 ```
 
-Reference these values throughout: Steps 1.2/1.4 (questions), 1.7 (reviewer), and 1.8 (approval).
+Reference these values throughout: Steps 1.2/1.4 (questions), 1.7 (reviewer + Codex), and 1.8 (approval).
 
 ---
 
@@ -76,7 +76,7 @@ When adding tasks to an existing plan: load it, parse structure, verify compatib
 
 ### Step 1.1: Create Plan File Header (FIRST)
 
-1. **Parse worktree** from arguments: `--worktree=yes|no` (default: `Yes`). Strip flag from task description.
+1. **Parse flags** from arguments: `--worktree=yes|no` (default: `Yes`), `--codex=yes|no` (default: `no`). Strip both flags from task description.
 
 2. **Create worktree early (if yes):**
 
@@ -110,6 +110,7 @@ When adding tasks to an existing plan: load it, parse structure, verify compatib
    Approved: No
    Iterations: 0
    Worktree: [Yes|No]
+   Codex: [Yes|No]
    Type: Feature
 
    > Planning in progress...
@@ -377,9 +378,9 @@ Type: Feature
 
 ### Step 1.7: Plan Verification
 
-**⛔ If `PILOT_PLAN_REVIEWER_ENABLED` is `"false"` (from Step 0),** skip this step entirely and proceed to Step 1.8.
+**⛔ If `PILOT_SPEC_REVIEW_ENABLED` is `"false"` (from Step 0),** skip this step entirely and proceed to Step 1.8.
 
-**When enabled:** Run plan-reviewer for every feature spec. Small plans benefit from a second pair of eyes just as much as large ones — missing edge cases and unclear DoD criteria are size-independent.
+**When enabled:** Run spec-review for every feature spec. Small plans benefit from a second pair of eyes just as much as large ones — missing edge cases and unclear DoD criteria are size-independent.
 
 ```bash
 SESS_ID=$(echo $PILOT_SESSION_ID)
@@ -387,7 +388,7 @@ SESS_ID=$(echo $PILOT_SESSION_ID)
 
 **Derive plan slug** from the plan filename: strip the date prefix (`YYYY-MM-DD-`) and `.md` extension. Example: `2026-03-02-sku-builder-modal-cleanup.md` → `sku-builder-modal-cleanup`.
 
-Output path: `~/.pilot/sessions/<SESS_ID>/findings-plan-reviewer-<plan-slug>.json`
+Output path: `~/.pilot/sessions/<SESS_ID>/findings-spec-review-<plan-slug>.json`
 
 **⛔ Delete stale findings before launching** (previous run of the same plan may have left a file):
 
@@ -397,7 +398,7 @@ rm -f "$OUTPUT_PATH"
 
 ```
 Task(
-  subagent_type="pilot:plan-reviewer",
+  subagent_type="pilot:spec-review",
   run_in_background=true,
   prompt="""
   **Plan file:** <plan-path>
@@ -414,18 +415,52 @@ Task(
 
 **⛔ NEVER use `TaskOutput`** to retrieve results — it dumps the full agent transcript into context, wasting thousands of tokens.
 
-**Wait for results (bash polling — NOT Read loop):**
+#### Codex Adversarial Review (Optional — launch immediately after Claude reviewer)
+
+**If `PILOT_CODEX_SPEC_REVIEW_ENABLED` is `"true"` (from Step 0):**
+
+Launch Codex review NOW — it runs in parallel with the Claude reviewer above.
+
+1. Detect companion path:
+```bash
+CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | head -1)
+```
+
+2. Launch adversarial review in background:
+```bash
+node "$CODEX_COMPANION" adversarial-review --background --base main "Adversarial review of plan: <plan-path>"
+```
+Capture the job ID from stdout. **Do NOT wait** — proceed to collect whichever reviewer finishes first.
+
+#### Collect Review Results
+
+**Wait for Claude reviewer results (bash polling — NOT Read loop):**
 
 ```bash
 OUTPUT_PATH="<findings-path>"
-for i in $(seq 1 30); do [ -f "$OUTPUT_PATH" ] && echo "READY" && break; sleep 10; done
+for i in $(seq 1 150); do [ -f "$OUTPUT_PATH" ] && echo "READY" && break; sleep 2; done
 ```
 
 Then Read the file once. If not READY after 5 min, re-launch synchronously.
 
 **⛔ Validate findings:** After reading the JSON, verify that the `plan_file` field matches the current plan path. If it doesn't match, the findings are stale from a previous `/spec` — delete the file, re-launch the reviewer, and wait again.
 
-**Fix findings:** must_fix → should_fix immediately. Suggestions if reasonable. Proceed after all must_fix/should_fix resolved.
+**Fix Claude reviewer findings immediately** — must_fix → should_fix. Suggestions if reasonable.
+
+#### Collect Codex Results (if launched)
+
+**If Codex was launched above**, collect its results now:
+
+```bash
+node "$CODEX_COMPANION" status <jobId> --wait --timeout-ms 120000 --json
+```
+
+**Handle Codex result:**
+- `waitTimedOut: true` → Codex timed out. Log "Codex review timed out — skipping" and continue without Codex findings.
+- `job.status` is `"cancelled"` or exit code non-zero → Codex crashed/failed. Log "Codex review failed: <failureMessage>" and continue without Codex findings.
+- `job.status` is `"completed"` → Parse output. Map severities: critical/high → must_fix, medium/low → should_fix. Fix all must_fix/should_fix.
+
+**If Codex was NOT launched**, proceed after all Claude reviewer must_fix/should_fix resolved.
 
 ### Step 1.7b: Check for Console Annotation Feedback (Before Approval)
 

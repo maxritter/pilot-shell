@@ -8,7 +8,7 @@ description: Strategies for maximizing effective context usage across the 200K a
 
 Strategies for maximizing effective context usage.
 
-With 1M context windows (Max 20x and Enterprise subscriptions), compaction is rare — most sessions complete well within the available context. Pilot Shell's optimization strategies focus on **keeping context lean** so Claude spends tokens on your code, not on overhead.
+With 1M context windows (API subscribers on Team and Enterprise get this with all models; Max plan users must set all models to Opus), compaction is rare — most sessions complete well within the available context. Pilot Shell's optimization strategies focus on **keeping context lean** so Claude spends tokens on your code, not on overhead.
 
 ## Token Reduction
 

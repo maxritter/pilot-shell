@@ -63,22 +63,35 @@ ELSE:
 **⛔ MANDATORY FIRST STEP — read env vars before ANY user interaction:**
 
 ```bash
-echo "WORKTREE=$PILOT_WORKTREE_ENABLED QUESTIONS=$PILOT_PLAN_QUESTIONS_ENABLED APPROVAL=$PILOT_PLAN_APPROVAL_ENABLED"
+echo "WORKTREE=$PILOT_WORKTREE_ENABLED QUESTIONS=$PILOT_PLAN_QUESTIONS_ENABLED APPROVAL=$PILOT_PLAN_APPROVAL_ENABLED CODEX_AVAILABLE=$PILOT_CODEX_AVAILABLE CODEX_SPEC=$PILOT_CODEX_SPEC_REVIEW_ENABLED CODEX_CHG=$PILOT_CODEX_CHANGES_REVIEW_ENABLED"
 ```
 
 **⛔ When `WORKTREE` is `"false"`: NEVER mention worktree, NEVER ask about worktree, NEVER include worktree options.** Always pass `--worktree=no` silently.
 
-| WORKTREE | Type | Action |
-|----------|------|--------|
-| `false` | Clear | **Skip AskUserQuestion entirely** — invoke skill directly with `--worktree=no` |
-| `false` | Ambiguous | Ask type ONLY (no worktree options), then invoke with `--worktree=no` |
-| not `false` | Clear | Ask worktree only |
-| not `false` | Ambiguous | Combine type + worktree in single AskUserQuestion |
+**Codex per-session opt-in:** When `CODEX_AVAILABLE` is `"true"` AND at least one of `CODEX_SPEC`/`CODEX_CHG` is `"true"` (enabled in Console Settings), include a Codex question in the AskUserQuestion. When `CODEX_AVAILABLE` is `"false"` or both Codex toggles are `"false"`, skip the Codex question and pass `--codex=no` silently.
+
+**Note:** The `QUESTIONS` toggle (`PILOT_PLAN_QUESTIONS_ENABLED`) does NOT affect the Codex or worktree questions. That toggle only controls Q&A questions during planning (Steps 1.2/1.4 in spec-plan). The dispatcher-level session setup questions (worktree, Codex) are always asked when their respective features are available.
+
+| WORKTREE | Codex eligible | Type | Action |
+|----------|---------------|------|--------|
+| `false` | No | Clear | **Skip AskUserQuestion entirely** — invoke skill directly with `--worktree=no --codex=no` |
+| `false` | No | Ambiguous | Ask type ONLY, then invoke with `--worktree=no --codex=no` |
+| `false` | Yes | Clear | Ask Codex only, then invoke with `--worktree=no --codex=yes|no` |
+| `false` | Yes | Ambiguous | Ask type + Codex in single AskUserQuestion, then invoke with `--worktree=no --codex=yes|no` |
+| not `false` | No | Clear | Ask worktree only |
+| not `false` | No | Ambiguous | Ask type + worktree |
+| not `false` | Yes | Clear | Ask worktree + Codex |
+| not `false` | Yes | Ambiguous | Ask type + worktree + Codex |
+
+**Codex question format** (when included):
+
+> **Codex Cross-Review:** Enable OpenAI Codex as an additional adversarial reviewer for this session? (incurs OpenAI API costs)
+> Options: Yes (enable Codex reviewers) / No (Claude reviewers only)
 
 ### 0.1.3 Invoke Skill and STOP
 
-- **Bugfix:** `Skill(skill='spec-bugfix-plan', args='<task_description> --worktree=yes|no')`
-- **Feature:** `Skill(skill='spec-plan', args='<task_description> --worktree=yes|no')`
+- **Bugfix:** `Skill(skill='spec-bugfix-plan', args='<task_description> --worktree=yes|no --codex=yes|no')`
+- **Feature:** `Skill(skill='spec-plan', args='<task_description> --worktree=yes|no --codex=yes|no')`
 
 ## 0.2 Status-Based Dispatch (existing plans)
 
