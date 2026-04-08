@@ -117,7 +117,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
-          bun-version: latest
+          bun-version: "1.2.15"
 
       - name: Install dependencies
         working-directory: console
@@ -154,7 +154,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
-          bun-version: latest
+          bun-version: "1.2.15"
 
       - name: Install dependencies
         working-directory: console
