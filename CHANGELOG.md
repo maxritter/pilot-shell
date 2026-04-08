@@ -2,6 +2,17 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.0.0] - 2026-04-08
+
+### Bug Fixes
+
+- Pin Bun to 1.3.11 (1.2.15 lacks compression APIs, latest is unstable)
+
+### Features
+
+- Add Pilot Bot — persistent automation agent with scheduled tasks, background jobs, and optional Telegram
+- Complete Console overhaul — v8.0.0 
+
 ## [7.11.4] - 2026-04-07
 
 ### Bug Fixes
