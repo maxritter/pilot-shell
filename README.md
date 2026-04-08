@@ -2,27 +2,30 @@
 
 <img src="docs/img/logo.png" alt="Pilot Shell" width="400">
 
-**The professional development environment for [Claude Code](https://docs.anthropic.com/en/docs/claude-code)**
+### Make Claude Code production-ready.
 
-### Claude Code is powerful. Pilot Shell makes it reliable.
-
-From requirement to production-grade code. Planned, tested, verified.</br>
-**Tests enforced. Context optimized. Quality automated.**
+From requirement to production-grade code — planned, tested, verified.</br>
+**Spec-driven plans. Enforced quality gates. Persistent knowledge.**
 
 [![Stars](https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&color=F59E0B)](https://github.com/maxritter/pilot-shell/stargazers)
 [![Star History](https://img.shields.io/badge/Star_History-chart-8B5CF6)](https://star-history.com/#maxritter/pilot-shell&Date)
 [![Downloads](https://img.shields.io/github/downloads/maxritter/pilot-shell/total?color=3B82F6)](https://github.com/maxritter/pilot-shell/releases)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-10B981.svg)](https://github.com/maxritter/pilot-shell/pulls)
 
-⭐ [Star this repo](https://github.com/maxritter/pilot-shell) · 🌐 [Website](https://pilot-shell.com) · 📖 [Documentation](https://pilot-shell.com/docs) · 🆕 [Updates](https://www.linkedin.com/in/rittermax/) · 📋 [Changelog](https://pilot.openchangelog.com/)
-
-<br>
+<p>
+  <a href="#install">Install</a> •
+  <a href="#features">Features</a> •
+  <a href="#pilot-shell-console">Console</a> •
+  <a href="https://pilot-shell.com/docs">Docs</a> •
+  <a href="https://pilot-shell.com">Website</a> •
+  <a href="https://pilot.openchangelog.com/">Changelog</a>
+</p>
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
 ```
 
-**Works on macOS, Linux, and Windows (WSL2).**
+**macOS · Linux · Windows (WSL2)** — installs in under 2 minutes.
 
 <br>
 
@@ -32,23 +35,36 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 
 ---
 
-## Why I Built This
+---
 
-**Claude Code writes code fast**. But without structure, it skips tests, loses context, and produces inconsistent results — especially on complex, established codebases where there are real conventions to follow and real regressions to catch. I tried other frameworks. Most of them add complexity — dozens of agents, elaborate scaffolding, thousands of lines of instruction files — but the output doesn't get a lot better. You just burn more tokens, wait longer and have to deal with a more complex setup.
+## Why Pilot Shell
 
-**So I built Pilot Shell**. Spec-driven development plans, implements, and verifies features end-to-end. Context engineering preserves decisions and knowledge across sessions. Quality hooks enforce linting, formatting, type checking, and TDD on every edit — not as suggestions, but as gates. Semantic search and a code knowledge graph give Claude deep codebase understanding. Token optimization cuts costs by 60–90%. A modular extension system with team sharing makes everything reusable. MCP servers and language servers provide real-time diagnostics and library docs. Every component exists because I hit a real problem — and solved it structurally.
+**Claude Code writes code fast** — but without structure, it skips tests, loses context, and produces inconsistent results. Other frameworks add complexity (dozens of agents, thousands of lines of config) without meaningfully better output.
 
-**This isn't a vibe coding tool**, it's agentic engineering that produces production-grade results. You install it once, run `pilot` in any project, then `/setup-rules` to generate your project rules. Use `/prd` to brainstorm and turn vague ideas into clear requirements, then `/spec` to plan, implement, and verify — when it's done, the work is tested and ready to ship. As patterns emerge, `/create-skill` captures your workflows so they're reusable across projects.
+**Pilot Shell is different.** Every component solves a real problem:
+
+- **`/spec`** — plans, implements, and verifies features end-to-end with TDD
+- **`/prd`** — turns vague ideas into clear requirements with optional deep research
+- **Quality hooks** — enforce linting, formatting, type checking, and tests as gates (not suggestions)
+- **Context engineering** — preserves decisions and knowledge across sessions
+- **Code intelligence** — semantic search (Probe) + code knowledge graph (CodeGraph)
+- **Token optimization** — 60–90% cost reduction via RTK and context-mode
+- **Extensions** — reusable rules, skills, and MCP servers with team sharing
+- **Console** — local web dashboard with real-time notifications and session management
+
+**Not a vibe coding tool.** Agentic engineering that produces production-grade results. Install once, run `pilot`, then `/spec` for Spec-Driven Development. When it's done, the work is tested and ready to ship.
 
 ---
 
-## Getting Started
+<h2 id="install">Getting Started</h2>
 
 ### Prerequisites
 
 **Claude Code:** Install [Claude Code](https://code.claude.com/docs/en/quickstart) using the **native installer** before setting up Pilot Shell. If you have the `npm` or `brew` version installed, uninstall it first. If no Claude Code installation is detected, the Pilot installer will attempt to set it up for you.
 
 **Claude Subscription:** Solo developers should choose [Max 5x](https://claude.com/pricing) for moderate usage or [Max 20x](https://claude.com/pricing) for heavy usage. Teams should use [Team Premium](https://claude.com/pricing) (6.25x usage per member, SSO, admin tools, billing management). Companies with stricter compliance or procurement requirements should use [Enterprise](https://claude.com/pricing) (API based pricing applies per usage).
+
+**Terminal (Recommended):** [cmux](https://cmux.com) works great with Pilot Shell — its vertical tab layout lets you run multiple sessions side by side. Any modern terminal works: [Ghostty](https://ghostty.org/), [iTerm2](https://iterm2.com/), or the built-in macOS/Linux terminal.
 
 **Chrome Extension (Recommended):** Install the [Claude Code Chrome extension](https://code.claude.com/docs/en/chrome) for browser automation and E2E testing. Pilot automatically detects it and uses it as the preferred tool. When Chrome isn't available, Pilot falls back to [playwright-cli](https://github.com/microsoft/playwright-cli) (reliable element targeting, persistent sessions, tracing) or [agent-browser](https://agent-browser.dev/) (lightweight, fast startup).
 
@@ -72,7 +88,7 @@ Installs globally on macOS, Linux, and Windows (WSL2). All tools and rules go to
 1. **Prerequisites** — Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq
 2. **Claude files** — Sets up `~/.claude/` plugin — rules, commands, hooks, MCP servers
 3. **Config files** — Creates `.nvmrc` and project config
-4. **Dependencies** — Installs Probe, RTK, CodeGraph, [playwright-cli](https://github.com/microsoft/playwright-cli), [agent-browser](https://agent-browser.dev/), language servers
+4. **Dependencies** — Installs Probe, RTK, CodeGraph, context-mode (better-sqlite3), [playwright-cli](https://github.com/microsoft/playwright-cli), [agent-browser](https://agent-browser.dev/), language servers
 5. **Shell integration** — Auto-configures bash, fish, and zsh with `pilot` alias
 6. **VS Code extensions** — Installs recommended extensions for your stack
 7. **Finalize** — Success message with next steps
@@ -105,7 +121,7 @@ Pilot Shell works inside Dev Containers. Copy the [`.devcontainer`](https://gith
 
 ---
 
-## How It Works
+<h2 id="features">How It Works</h2>
 
 ### Pilot Shell Console
 
@@ -116,17 +132,20 @@ A local web dashboard with different views and real-time notifications when Clau
 <details>
 <summary><b>All views</b></summary>
 
+Each view with project-specific data has an inline **Project Filter** dropdown — switch projects without leaving the page. Dashboard stats tiles are clickable — navigate directly to the relevant view.
+
 | View              | What it shows                                                                                                                                |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Dashboard**     | Workspace status, active sessions, spec progress, git info, recent activity                                                                  |
-| **Specification** | All spec plans with task progress, phase tracking, and iteration history. **Annotate mode** lets you mark up plans visually before approving — select text or click **+** on any block to write a note. **Share with Teammate** generates a compressed share link; **Receive Feedback** imports their annotations with accept/reject controls |
-| **Extensions**    | All extensions — local, plugin, and remote — with team sharing via git, diff view, push/pull, and color-coded categories                     |
+| **Dashboard**     | Global command center — 8 clickable stat cards (Projects, Sessions, Active, Memories, Extensions, Requirements, Specifications, Changes), recent specifications, and recent memories. Active specs shown as pills in the top bar. |
+| **Sessions**      | Browse past sessions with search. Copy the session ID and use `/resume <session-id>` in Claude Code to jump back into any session.           |
+| **Memories**      | Browsable observations — decisions, discoveries, bugfixes — with type filters and search. Each memory shows its session — click to navigate. |
+| **Extensions**    | All extensions — local, plugin, and remote — with team sharing via git, diff view, push/pull, and color-coded categories.                    |
+| **Requirements**  | PRD documents with view/annotate modes. Latest shown as a tab, older ones in a Previous dropdown.                                           |
+| **Specifications** | All spec plans with task progress, phase tracking, and iteration history. **Annotate mode** lets you mark up plans visually before approving — select text or click **+** on any block to write a note. **Share with Teammate** generates a compressed share link; **Receive Feedback** imports their annotations with accept/reject controls |
 | **Changes**       | Git diff viewer with staged/unstaged files, branch info, and worktree context. **Review mode** adds inline annotations on diff lines — the agent reads them directly before marking a spec as verified |
-| **Memories**      | Browsable observations — decisions, discoveries, bugfixes — with type filters and search                                                     |
-| **Sessions**      | Active and past sessions with observation counts and duration                                                                                |
 | **Usage**         | Daily token costs, model routing breakdown, and usage trends                                                                                 |
-| **Settings**      | Model selection per command/sub-agent, spec workflow toggles (worktree, questions, approval), reviewer toggles (spec review, changes review, optional Codex), extended context (1M) toggle |
 | **Help**          | Documentation, guides, and quick-start resources                                                                                             |
+| **Settings**      | Model selection per command/sub-agent, spec workflow toggles (worktree, questions, approval), reviewer toggles (spec review, changes review, optional Codex), extended context (1M) toggle with pricing info |
 
 </details>
 
@@ -190,7 +209,7 @@ Pilot 8.2.1 (Solo) · CC 2.1.79 (Max) · sessions 2 · memories 12
 | **Lines changed** | `+added -removed` in session (hidden when usage API data available)             |
 | **Git**           | Branch with staged (`+N`) / unstaged (`~N`) counts                              |
 | **Cost**          | Session cost in USD. Green < $1, Yellow $1–5, Red $5+                           |           |
-| **RTK savings**   | Token savings percentage from RTK proxy (`Savings: N%`), shown when no usage data |
+| **Savings**       | Token savings percentage from RTK proxy (`Savings: N%`), shown when no usage data |
 
 **Line 2 — Mode:**
 
@@ -204,18 +223,6 @@ Pilot 8.2.1 (Solo) · CC 2.1.79 (Max) · sessions 2 · memories 12
 Pilot tier: Solo, Team, or Trial with time remaining. Claude subscription (Pro/Max/Team/Enterprise) detected via `claude auth status` and cached for 24 hours.
 
 </details>
-
-### /prd — Generate Product Requirements Documents
-
-**Use `/prd` before `/spec` when requirements are unclear.** It's a strategic thought partner that turns vague ideas into concrete Product Requirements Documents (PRDs) through one-on-one conversation — with optional research, challenging assumptions, exploring trade-offs, and defining scope before you commit to building.
-
-```bash
-pilot
-> /prd "Add real-time notifications for team updates"
-> /prd "We need better onboarding — users drop off after signup"
-```
-
-Choose a research tier at the start: **Quick** (skip), **Standard** (web search for competitors, prior art, best practices), or **Deep** (parallel research agents for comprehensive findings). The conversation produces a PRD with problem statement, core user flows, scope boundaries, and technical context — then offers to hand off directly to `/spec` for implementation. PRDs are saved to `docs/prd/` and visible in the Console's **Requirements** tab.
 
 ### /spec — Spec-Driven Development
 
@@ -264,6 +271,18 @@ Investigation-first workflow for targeted fixes. Finds the root cause before tou
 **Why this matters:** Root cause investigation prevents "fix one thing, break another." The regression test locks in the fix. No formal notation overhead — just trace, test, fix, verify.
 
 </details>
+
+### /prd — Generate Product Requirements Documents
+
+**Use `/prd` before `/spec` when requirements are unclear.** It's a strategic thought partner that turns vague ideas into concrete Product Requirements Documents (PRDs) through one-on-one conversation — with optional research, challenging assumptions, exploring trade-offs, and defining scope before you commit to building.
+
+```bash
+pilot
+> /prd "Add real-time notifications for team updates"
+> /prd "We need better onboarding — users drop off after signup"
+```
+
+Choose a research tier at the start: **Quick** (skip), **Standard** (web search for competitors, prior art, best practices), or **Deep** (parallel research agents for comprehensive findings). The conversation produces a PRD with problem statement, core user flows, scope boundaries, and technical context — then offers to hand off directly to `/spec` for implementation. PRDs are saved to `docs/prd/` and visible in the Console's **Requirements** tab.
 
 ### Quick Mode
 
@@ -418,11 +437,11 @@ For full details on every component, see the **[Documentation](https://pilot-she
 
 | Component | What it does |
 | --- | --- |
-| [**Hooks Pipeline**](https://pilot-shell.com/docs/features/hooks) | 15 hooks across 7 events — quality checks on every file edit (ruff, ESLint, go vet), TDD enforcement, token optimization via RTK (60–90% savings), memory capture, and session lifecycle management |
-| [**Context Optimization**](https://pilot-shell.com/docs/features/context-optimization) | Lean context strategies — conditional rule loading, progressive skill disclosure, lazy MCP tool loading, RTK output compression. Compaction resilience for 200K windows |
+| [**Hooks Pipeline**](https://pilot-shell.com/docs/features/hooks) | 21 hooks across 7 events — quality checks on every file edit (ruff, ESLint, go vet), TDD enforcement, token optimization via RTK (60–90% savings), context-mode sandbox routing, session continuity, memory capture, and session lifecycle management |
+| [**Context Optimization**](https://pilot-shell.com/docs/features/context-optimization) | Lean context strategies — context-mode sandbox (large outputs never enter context), RTK output compression, conditional rule loading, progressive skill disclosure, lazy MCP tool loading. Compaction resilience for 200K windows |
 | [**Smart Model Routing**](https://pilot-shell.com/docs/features/model-routing) | Opus for planning, Sonnet for implementation and verification. Configurable per-phase via Console Settings. 1M context available — included with API plans (Team, Enterprise); Max plan requires all models set to Opus |
 | [**Rules & Standards**](https://pilot-shell.com/docs/features/rules) | 9 built-in rules (workflow, testing, verification, debugging, tools) + 5 coding standards activated by file type (Python, TypeScript, Go, Frontend, Backend) |
-| [**MCP Servers**](https://pilot-shell.com/docs/features/mcp-servers) | 6 servers: library docs, persistent memory, web search, GitHub code search, web page fetching, code knowledge graph |
+| [**MCP Servers**](https://pilot-shell.com/docs/features/mcp-servers) | 7 servers: context-mode (FTS5 sandbox + code execution), library docs, persistent memory, web search, GitHub code search, web page fetching, code knowledge graph |
 | [**Language Servers**](https://pilot-shell.com/docs/features/language-servers) | Real-time diagnostics for Python (basedpyright), TypeScript (vtsls), Go (gopls). Auto-installed, auto-configured |
 | [**Pilot CLI**](https://pilot-shell.com/docs/features/cli) | Session management, headless mode (`-p`) for CI/CD and scripts, worktree isolation, licensing, context monitoring. Run `pilot` or `ccp` to start |
 
@@ -430,13 +449,11 @@ For full details on every component, see the **[Documentation](https://pilot-she
 
 ## What Users Say
 
-<!-- Replace with real testimonials from GitHub issues, discussions, or direct feedback as they come in -->
+> "Spec-driven development in Pilot Shell is incredible. I'm so impressed that I have to resist the urge to fix every issue all at once."
 
-> "I stopped reviewing every line Claude writes. The hooks catch formatting and type errors automatically, TDD catches logic errors, and the spec verifier catches everything else. I review the plan, approve it, and the output is production-grade."
+> "Instead of just letting Claude Code run on its own, you've managed to make it work in a much more organized, consistent, and reliable way within a workflow, which I think is fantastic. What you've built is truly impressive."
 
-> "Other frameworks I tried added so much overhead that half my tokens went to the system itself. Pilot Shell is lean — quick mode has zero scaffolding, and even /spec only adds structure where it matters. More of my context goes to actual work."
-
-> "The persistent memory changed everything. I can pick up a project after a week and Claude already knows my architecture decisions, the bugs we fixed, and why we chose certain patterns. No more re-explaining the same context every session."
+> "I have fallen in love with Pilot and just can't stand the idea of having to go back to native Claude."
 
 ---
 
@@ -449,20 +466,6 @@ Pilot Shell is source-available under a commercial license. See the [LICENSE](LI
 | **Solo**       | 1     | All features, continuous updates, community support via [GitHub Issues][gh-issues]                              |
 | **Team**       | Multi | Solo + extension sharing, seat management, priority support, team onboarding                                    |
 | **Enterprise** | 100+  | Team + full source code access (launcher, console, all components), dedicated support   |
-
-A **free 7-day trial** starts automatically on install — full features, no license required. All plans work across multiple personal machines — one subscription, all your devices.
-
-[gh-issues]: https://github.com/maxritter/pilot-shell/issues
-
-Details and licensing at [pilot-shell.com](https://pilot-shell.com).
-
----
-
-## Rolling Out for Your Team?
-
-I'd love to help figure out if Pilot Shell is the right fit for your team and get everyone set up. For organizations with 100+ developers, the **[Enterprise tier](https://form.typeform.com/to/J7h2jjfw)** includes full source code access.
-
-**[Book a Call](https://calendly.com/rittermax/pilot-shell)** · **[Enterprise Inquiry](https://form.typeform.com/to/J7h2jjfw)** · **[Send an Email](mailto:mail@maxritter.net)** · **[Connect on LinkedIn](https://www.linkedin.com/in/rittermax/)**
 
 ---
 
@@ -570,14 +573,12 @@ See the full changelog at [pilot.openchangelog.com](https://pilot.openchangelog.
 
 ## Contributing
 
-**Pull Requests** — New features, improvements, and bug fixes are welcome. You can improve Pilot Shell with Pilot Shell — a self-improving loop where your contributions make the tool that makes contributions better.
-
-**Bug Reports** — Found a bug? [Open an issue](https://github.com/maxritter/pilot-shell/issues) on GitHub.
+Found a bug or missing a feature? [Open an issue](https://github.com/maxritter/pilot-shell/issues) on GitHub.
 
 ---
 
 <div align="center">
 
-**Claude Code is powerful. Pilot Shell makes it reliable.**
+**Make Claude Code production-ready.**
 
 </div>

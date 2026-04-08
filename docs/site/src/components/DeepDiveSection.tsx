@@ -14,6 +14,7 @@ import {
   Cpu,
   RefreshCw,
   Route,
+  Box,
 } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
 
@@ -149,6 +150,11 @@ const rulesCategories = [
 
 const mcpServers = [
   {
+    icon: Box,
+    name: "context-mode",
+    desc: "Sandbox execution + FTS5 knowledge base — large outputs never enter context",
+  },
+  {
     icon: BookOpen,
     name: "lib-docs",
     desc: "Library documentation lookup — get API docs for any dependency",
@@ -216,7 +222,7 @@ const DeepDiveSection = () => {
                 Hooks Pipeline
               </h3>
               <p className="text-sm text-muted-foreground">
-                18 hooks across 7 lifecycle events — fire automatically at every
+                21 hooks across 7 lifecycle events — fire automatically at every
                 stage
               </p>
             </div>
@@ -270,10 +276,12 @@ const DeepDiveSection = () => {
                 </h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   These hooks keep your context lean.{" "}
-                  <span className="text-violet-400">RTK</span> compresses tool
-                  output by 60–90%. Rules load only for matching file types.
-                  Skills use progressive disclosure — frontmatter always,
-                  full content on demand. When compaction does fire,{" "}
+                  <span className="text-violet-400">context-mode</span> routes
+                  large outputs to a sandbox — up to 98% savings per command.{" "}
+                  <span className="text-violet-400">RTK</span> compresses
+                  remaining tool output by 60–90%. Rules load only for matching
+                  file types. Skills use progressive disclosure. When compaction
+                  fires,{" "}
                   <span className="text-sky-400">PreCompact</span> captures
                   state and <span className="text-sky-400">SessionStart</span>{" "}
                   restores it — no progress lost.

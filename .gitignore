@@ -269,3 +269,4 @@ bun.lock
 # Kiro
 .kiro/
 .worktrees/
+.env*.local

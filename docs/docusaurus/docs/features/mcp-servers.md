@@ -8,7 +8,34 @@ description: External context always available to every session
 
 External context always available to every session.
 
-Six MCP servers are pre-configured and always available. They're lazy-loaded via `ToolSearch` to keep context lean — discovered and called on demand. Add your own in `.mcp.json`, then run `/setup-rules` to generate documentation.
+Seven MCP servers are pre-configured and always available. They're lazy-loaded via `ToolSearch` to keep context lean — discovered and called on demand. Add your own in `.mcp.json`, then run `/setup-rules` to generate documentation.
+
+## context-mode
+
+**Context window protection — sandbox execution and FTS5 knowledge base**
+
+Keeps large outputs out of your context window. Commands that produce more than ~20 lines of output are routed to a sandboxed executor — only your printed summary enters context. An FTS5 knowledge base indexes content for later search. Integrated via [context-mode](https://github.com/mksglu/context-mode).
+
+```
+ctx_batch_execute(commands: [...], queries: ["find errors"])
+ctx_execute(language: "javascript", code: "const r = await fetch(...)")
+ctx_execute_file(path: "data.json", language: "javascript", code: "...")
+ctx_search(queries: ["auth flow", "login endpoint"])
+ctx_fetch_and_index(url: "https://docs.example.com", source: "docs")
+```
+
+**Key capabilities:**
+
+| Tool | Use case |
+|------|----------|
+| `ctx_batch_execute` | Run multiple commands + search in one call — replaces 30+ individual tool calls |
+| `ctx_execute` | Run code in sandbox (JS, Python, shell) — only stdout enters context |
+| `ctx_execute_file` | Process a file in sandbox — file content never enters context |
+| `ctx_search` | Query the FTS5 knowledge base with multiple queries in one call |
+| `ctx_fetch_and_index` | Fetch and index web pages — raw HTML never enters context |
+| `ctx_index` | Store content in the knowledge base for later search |
+
+**Routing hooks** automatically intercept tools that produce large output (Bash, Read, Grep, WebFetch) and suggest context-mode alternatives. curl/wget and WebFetch are blocked entirely — use `ctx_execute` or `ctx_fetch_and_index` instead.
 
 ## context7
 

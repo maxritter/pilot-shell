@@ -21,9 +21,7 @@ const Footer = () => {
           <div className="flex flex-col gap-3">
             <Logo variant="footer" />
             <p className="text-sm text-muted-foreground max-w-xs">
-              Claude Code is powerful.
-              <br />
-              Pilot Shell makes it reliable.
+              Make Claude Code production-ready.
             </p>
           </div>
 

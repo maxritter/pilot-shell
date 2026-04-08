@@ -14,19 +14,32 @@ The Console runs locally as a Bun/Express server with a React web UI. It's autom
 $ open http://localhost:41777
 ```
 
-## 9 Views
+## 10 Views
+
+Each view that supports project filtering has an inline **Project Filter** dropdown next to the title — switch projects without leaving the page. The **Dashboard** shows stats across all projects with clickable tiles that navigate to the relevant view.
 
 | View | Description |
 |------|-------------|
-| **Dashboard** | Workspace status, active sessions, spec progress, git info, recent activity. Your real-time command center. |
+| **Dashboard** | Global command center — 8 clickable stat cards (Projects, Sessions, Active, Memories, Extensions, Requirements, Specifications, Changes), recent specifications, and recent memories. Active specs shown as pills in the top bar. |
+| **Sessions** | Browse past sessions with search. Copy the session ID and use `/resume <session-id>` to jump back in. |
+| **Memories** | Browsable observations — decisions, discoveries, bugfixes — with type filters and search. Each memory shows which session it belongs to — click the session label to navigate directly to it. |
+| **Extensions** | All extensions — local, plugin, and remote — with team sharing via git (push, pull, diff), color-coded categories, and scope filtering. |
+| **Requirements** | PRD documents with view/annotate modes. Latest shown as a tab, older ones in a Previous dropdown. |
 | **Specifications** | All spec plans with task progress (checkboxes), phase tracking (PENDING/COMPLETE/VERIFIED), and iteration history. |
-| **Extensions** | All extensions — local, plugin, and remote — with team sharing via git (push, pull, diff), color-coded categories, and scope filtering (All / Global / Project / Plugin / Remote). |
-| **Changes** | Git diff viewer with staged/unstaged files, branch info, and worktree context. |
-| **Memories** | Browsable observations — decisions, discoveries, bugfixes — with type filters, search, and timeline view. |
-| **Sessions** | Active and past sessions with observation counts, duration, and the ability to browse session context. |
+| **Changes** | Git diff viewer with staged/unstaged files, branch info, worktree context, and inline code review. |
 | **Usage** | Daily token costs, model routing breakdown (Opus vs Sonnet distribution), and usage trends over time. |
-| **Settings** | Model selection per command and sub-agent (Sonnet 4.6 vs Opus 4.6). Spec workflow toggles (worktree support, ask questions, plan approval). Reviewer toggles (spec review, changes review) and optional Codex adversarial reviewers. Extended context (1M) toggle. |
 | **Help** | Embedded documentation from pilot-shell.com — full technical reference without leaving the Console. |
+| **Settings** | Model selection per command and sub-agent. Spec workflow toggles. Reviewer toggles and optional Codex adversarial reviewers. Extended context (1M) toggle with pricing info. |
+
+### Session Resume
+
+The Sessions tab shows the Claude Code session ID for each session with a **copy-to-clipboard** button. Use this ID to resume any past session:
+
+```bash
+/resume <session-id>
+```
+
+This lets you pick up exactly where you left off — all context, files, and conversation history are restored.
 
 ## Plan Annotation & Code Review
 

@@ -7,7 +7,7 @@ description: Complete technical reference for Pilot Shell
 
 # Pilot Shell Documentation
 
-**Pilot Shell** is the professional development environment for Claude Code. It provides spec-driven development, persistent memory, quality hooks, reusable skills, and a modular rules system.
+**Pilot Shell** makes Claude Code production-ready — spec-driven plans, enforced tests, persistent knowledge. It includes reusable skills, a modular rules system, and a local web dashboard.
 
 ## Quick Start
 

@@ -18,7 +18,7 @@ const Index = () => {
     name: "Pilot Shell",
     url: "https://pilot-shell.com",
     description:
-      "The professional development environment for Claude Code. From requirement to production-grade code. Planned, tested, verified. Tests enforced, Context optimized, quality automated.",
+      "Make Claude Code production-ready — spec-driven plans, enforced tests, persistent knowledge. From requirement to production-grade code. Planned, tested, verified. Spec-driven plans. Enforced quality gates. Persistent knowledge.",
     publisher: {
       "@type": "Organization",
       name: "Pilot Shell",
@@ -49,7 +49,7 @@ const Index = () => {
     "@type": "SoftwareApplication",
     name: "Pilot Shell",
     description:
-      "The professional development environment for Claude Code. Rules, automated hooks, coding standards, language servers, and MCP servers.",
+      "Make Claude Code production-ready — spec-driven plans, enforced tests, persistent knowledge. Rules, automated hooks, coding standards, language servers, and MCP servers.",
     applicationCategory: "DeveloperApplication",
     operatingSystem: "Linux, macOS, Windows",
     offers: {
@@ -70,8 +70,8 @@ const Index = () => {
   return (
     <>
       <SEO
-        title="Pilot Shell - Claude Code is powerful. Pilot Shell makes it reliable."
-        description="The professional development environment for Claude Code. From requirement to production-grade code. Planned, tested, verified. Tests enforced, Context optimized, quality automated."
+        title="Pilot Shell - Make Claude Code production-ready."
+        description="Make Claude Code production-ready — spec-driven plans, enforced tests, persistent knowledge. From requirement to production-grade code. Planned, tested, verified. Spec-driven plans. Enforced quality gates. Persistent knowledge."
         structuredData={[
           websiteStructuredData,
           breadcrumbStructuredData,

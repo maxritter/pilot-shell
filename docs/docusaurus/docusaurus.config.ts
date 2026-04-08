@@ -4,7 +4,7 @@ import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
   title: "Pilot Shell",
-  tagline: "The professional development environment for Claude Code",
+  tagline: "Make Claude Code production-ready — spec-driven plans, enforced tests, persistent knowledge",
   favicon: "img/favicon.png",
 
   url: "https://pilot-shell.com",

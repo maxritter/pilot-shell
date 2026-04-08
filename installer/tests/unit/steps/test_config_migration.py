@@ -286,8 +286,8 @@ class TestMigrationV3:
     the unit function directly.
     """
 
-    def test_v3_disables_then_v4_reenables(self, tmp_path: Path) -> None:
-        """v3 disables all three, then v4 re-enables them."""
+    def test_v3_disables_and_v4_preserves_user_choice(self, tmp_path: Path) -> None:
+        """v3 disables worktree, v4 no longer force-re-enables it (preserves user choice)."""
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
@@ -306,10 +306,11 @@ class TestMigrationV3:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        # v4 re-enables after v3 disables, then v7 renames keys
+        # v3 disables worktree, v4 re-enables reviewers but NOT worktree, v7 renames
         assert migrated["reviewerAgents"]["specReview"] is True
         assert migrated["reviewerAgents"]["changesReview"] is True
-        assert migrated["specWorkflow"]["worktreeSupport"] is True
+        # v4 no longer forces worktree back to True — respects whatever v3 set
+        assert migrated["specWorkflow"]["worktreeSupport"] is False
         assert migrated["specWorkflow"]["askQuestionsDuringPlanning"] is True
         assert migrated["specWorkflow"]["planApproval"] is True
 
@@ -372,10 +373,10 @@ class TestMigrationV3:
 
 
 class TestMigrationV4:
-    """Migration v3 → v4: Enable worktree support and reviewer subagents."""
+    """Migration v3 → v4: Enable reviewer subagents, preserve worktree user choice."""
 
-    def test_enables_all_three_when_disabled(self, tmp_path: Path) -> None:
-        """All three toggles are enabled when currently disabled."""
+    def test_enables_reviewers_preserves_worktree(self, tmp_path: Path) -> None:
+        """Reviewer agents are enabled but worktree is NOT force-enabled."""
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
@@ -394,10 +395,11 @@ class TestMigrationV4:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        # v4 enables, then v7 renames keys
+        # v4 enables reviewers, then v7 renames keys
         assert migrated["reviewerAgents"]["specReview"] is True
         assert migrated["reviewerAgents"]["changesReview"] is True
-        assert migrated["specWorkflow"]["worktreeSupport"] is True
+        # v4 no longer forces worktree — user's False is preserved
+        assert migrated["specWorkflow"]["worktreeSupport"] is False
         assert migrated["specWorkflow"]["askQuestionsDuringPlanning"] is True
         assert migrated["specWorkflow"]["planApproval"] is True
 
@@ -470,8 +472,8 @@ class TestMigrationV4:
         assert migrated["reviewerAgents"]["specReview"] is True
         assert migrated["reviewerAgents"]["changesReview"] is True
 
-    def test_missing_spec_workflow_creates_enabled_defaults(self, tmp_path: Path) -> None:
-        """Missing specWorkflow key gets created with worktree enabled."""
+    def test_missing_spec_workflow_creates_safe_defaults(self, tmp_path: Path) -> None:
+        """Missing specWorkflow key gets created with worktree disabled (safe default)."""
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
@@ -485,7 +487,7 @@ class TestMigrationV4:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        assert migrated["specWorkflow"]["worktreeSupport"] is True
+        assert migrated["specWorkflow"]["worktreeSupport"] is False
         assert migrated["specWorkflow"]["askQuestionsDuringPlanning"] is True
         assert migrated["specWorkflow"]["planApproval"] is True
 

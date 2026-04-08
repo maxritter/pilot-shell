@@ -60,6 +60,8 @@ Pilot Shell installs the following open-source tools during setup. Each tool is 
 |------|---------|---------|
 | [Transformers.js](https://github.com/xenova/transformers.js) | Local ML model inference for embeddings | Apache-2.0 |
 | [sharp](https://github.com/lovell/sharp) | High-performance image processing | Apache-2.0 |
+| [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) | SQLite bindings for context-mode FTS5 and session DB | MIT |
+| [Turndown](https://github.com/mixmark-io/turndown) | HTML-to-markdown conversion for context-mode web fetching | MIT |
 
 ## Testing Tools
 
@@ -79,6 +81,7 @@ Pilot Shell installs the following open-source tools during setup. Each tool is 
 
 | Tool | Purpose | License |
 |------|---------|---------|
+| [context-mode](https://github.com/mksglu/context-mode) | Sandbox execution + FTS5 knowledge base — keeps large outputs out of context | ELv2 |
 | [Context7](https://github.com/upstash/context7) | Library documentation lookup | MIT |
 | [open-websearch](https://github.com/Aas-ee/open-webSearch) | Web search (multi-engine, no API key) | MIT |
 | [fetcher-mcp](https://github.com/jae-jae/fetcher-mcp) | Web page fetching via Playwright | MIT |

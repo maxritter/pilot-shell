@@ -33,7 +33,7 @@ Widgets separated by `|`, from left to right:
 | **Cost** | Session cost in USD | Green < $1, Yellow $1–5, Red $5+ |
 | **5h usage** | 5-hour usage limit percentage with reset time (requires OAuth credentials) | Green < 70%, Yellow 70–90%, Red 90%+ |
 | **7d usage** | Weekly usage limit percentage with reset time | Same as 5h |
-| **RTK savings** | Token savings percentage from RTK proxy (`Savings: N%`), shown when no usage data available | Cyan |
+| **Savings** | Token savings percentage from RTK proxy (`Savings: N%`), shown when no usage data available | Cyan |
 
 :::info Usage API
 When OAuth credentials are present (`~/.claude/.credentials.json`), the Anthropic usage API provides 5-hour and weekly usage limits — these replace the lines-changed and RTK widgets. Without credentials, lines-changed and RTK savings are shown instead. This is credential-dependent, not platform-dependent.

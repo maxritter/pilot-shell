@@ -173,7 +173,6 @@ def install_python_tools() -> bool:
     return True
 
 
-
 def install_probe() -> bool:
     """Install or update Probe code search tool globally via npm."""
     if not _run_bash_with_retry(
@@ -205,7 +204,6 @@ def install_rtk() -> bool:
     return True
 
 
-
 def _symlink_to_pilot_bin(binary_name: str) -> None:
     """Create a symlink in ~/.pilot/bin/ pointing to the npm global binary.
 
@@ -228,7 +226,6 @@ def _symlink_to_pilot_bin(binary_name: str) -> None:
         link_path.symlink_to(source_path)
     except OSError:
         pass
-
 
 
 def install_codegraph() -> bool:
@@ -390,6 +387,49 @@ def install_ccusage() -> bool:
     return _run_bash_with_retry(
         npm_global_cmd("npm install -g ccusage@latest"),
         timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
+    )
+
+
+
+
+def install_context_mode_plugin() -> bool:
+    """Install or update the context-mode plugin via the Claude CLI plugin system.
+
+    Ensures the mksglu/context-mode marketplace is registered, then installs
+    or updates the context-mode@context-mode plugin at user scope.
+    """
+    if not command_exists("claude"):
+        return False
+
+    already_installed = False
+    try:
+        result = subprocess.run(
+            ["claude", "plugins", "list", "--json"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            plugins = json.loads(result.stdout)
+            already_installed = any(p.get("id") == "context-mode@context-mode" for p in plugins)
+    except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError):
+        pass
+
+    if already_installed:
+        return _run_bash_with_retry(
+            "claude plugins update context-mode@context-mode",
+            timeout=120,
+        )
+
+    if not _run_bash_with_retry(
+        "claude plugins marketplace add mksglu/context-mode",
+        timeout=60,
+    ):
+        return False
+
+    return _run_bash_with_retry(
+        "claude plugins install context-mode@context-mode",
+        timeout=120,
     )
 
 
@@ -816,6 +856,9 @@ class DependenciesStep(BaseStep):
                 installed.append("codegraph_init")
             elif ui:
                 ui.warning("Could not initialize CodeGraph - please run 'codegraph init -i' manually")
+
+            if _install_with_spinner(ui, "context-mode plugin", install_context_mode_plugin):
+                installed.append("context_mode_plugin")
 
             if _install_with_spinner(ui, "MCP server packages", _precache_npx_mcp_servers, ui):
                 installed.append("mcp_npx_cache")

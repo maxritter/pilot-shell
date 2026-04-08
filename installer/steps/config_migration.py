@@ -180,9 +180,13 @@ def _migration_v3(raw: dict[str, Any]) -> bool:
 
 
 def _migration_v4(raw: dict[str, Any]) -> bool:
-    """v3 → v4: Enable worktree support and reviewer subagents by default.
+    """v3 → v4: Enable reviewer subagents by default. Ensure specWorkflow exists.
 
-    Re-enables the features disabled in v3 now that token costs are acceptable.
+    Originally also force-enabled worktreeSupport, but that overwrote explicit
+    user preferences (if a user disabled worktree via Console Settings and their
+    _configVersion was < 4, this migration would re-enable it). Worktree is now
+    left at whatever value the user set — only the specWorkflow dict structure
+    is ensured to exist.
     """
     modified = False
 
@@ -198,14 +202,12 @@ def _migration_v4(raw: dict[str, Any]) -> bool:
         raw["reviewerAgents"] = {"planReviewer": True, "specReviewer": True}
         modified = True
 
+    # Ensure specWorkflow dict exists, but do NOT override worktreeSupport —
+    # the user may have explicitly disabled it via Console Settings.
     spec_workflow = raw.get("specWorkflow")
-    if isinstance(spec_workflow, dict):
-        if spec_workflow.get("worktreeSupport") is False:
-            spec_workflow["worktreeSupport"] = True
-            modified = True
-    else:
+    if not isinstance(spec_workflow, dict):
         raw["specWorkflow"] = {
-            "worktreeSupport": True,
+            "worktreeSupport": False,
             "askQuestionsDuringPlanning": True,
             "planApproval": True,
         }

@@ -4,18 +4,18 @@ import { useInView } from "@/hooks/use-in-view";
 const testimonials = [
   {
     quote:
-      "Pilot turned Claude Code from a fast prototype tool into something I trust for production code. The TDD enforcement alone saved me from shipping broken features twice in the first week.",
-    role: "Senior Developer",
+      "Spec-driven development in Pilot Shell is incredible. I'm so impressed that I have to resist the urge to fix every issue all at once.",
+    role: "Pilot Shell User",
   },
   {
     quote:
-      "The persistent memory is what sold me. I can pick up a project after a week and Claude already knows my architecture decisions, the bugs we fixed, and why we chose certain patterns. No more re-explaining everything.",
-    role: "Full-Stack Engineer",
+      "Instead of just letting Claude Code run on its own, you've managed to make it work in a much more organized, consistent, and reliable way within a workflow, which I think is fantastic. What you've built is truly impressive.",
+    role: "Pilot Shell User",
   },
   {
     quote:
-      "The /spec workflow forces me to think before I code. The plan verification catches gaps I would have missed, and the automated code review is better than most human reviews I've gotten.",
-    role: "Tech Lead",
+      "I have fallen in love with Pilot and just can't stand the idea of having to go back to native Claude.",
+    role: "Pilot Shell User",
   },
 ];
 
