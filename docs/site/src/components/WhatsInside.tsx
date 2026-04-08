@@ -5,8 +5,8 @@ import {
   Sparkles,
   Search,
   Terminal,
-  Eye,
   DollarSign,
+  Bot,
 } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
 
@@ -41,17 +41,10 @@ const insideItems: InsideItem[] = [
   },
   {
     icon: Plug2,
-    title: "MCP Servers",
-    description: "Pre-configured, no API keys",
+    title: "MCP & LSP Servers",
+    description: "Pre-configured, zero setup",
     summary:
-      "Library docs, web search, GitHub code search, persistent memory, web page fetching, and code knowledge graphs. Six servers installed and ready to use.",
-  },
-  {
-    icon: Eye,
-    title: "Language Servers",
-    description: "Real-time diagnostics on every edit",
-    summary:
-      "Python, TypeScript, and Go \u2014 auto-installed and auto-configured. Hooks catch formatting issues; language servers provide type-level intelligence and real-time diagnostics.",
+      "Six MCP servers (docs, search, memory, code graphs) plus Python, TypeScript, and Go language servers \u2014 all auto-installed. Real-time diagnostics and type intelligence on every edit.",
   },
   {
     icon: Search,
@@ -73,6 +66,13 @@ const insideItems: InsideItem[] = [
     description: "Skills, rules, commands, agents",
     summary:
       "Create custom skills and rules with built-in generators. Share across machines via git, across teams via project repos. Seven extension types at four scopes \u2014 managed in Console.",
+  },
+  {
+    icon: Bot,
+    title: "Pilot Bot",
+    description: "Automation agent, 24/7 operation",
+    summary:
+      "Persistent Claude Code session with scheduled tasks, background jobs, and heartbeat monitoring. Runs 24/7. Optional Telegram integration for bidirectional messaging.",
   },
 ];
 

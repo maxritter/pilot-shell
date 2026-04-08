@@ -51,8 +51,9 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 - **Token optimization** — 60–90% cost reduction via RTK and context-mode
 - **Extensions** — reusable rules, skills, and MCP servers with team sharing
 - **Console** — local web dashboard with real-time notifications and session management
+- **Pilot Bot** — persistent automation agent with scheduled tasks and background jobs
 
-**Not a vibe coding tool.** Agentic engineering that produces production-grade results. Install once, run `pilot`, then `/spec` for Spec-Driven Development. When it's done, the work is tested and ready to ship.
+Run `pilot` for Spec-Driven Development with `/spec`, or `pilot bot` for 24/7 automations.
 
 ---
 
@@ -68,7 +69,7 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 
 **Chrome Extension (Recommended):** Install the [Claude Code Chrome extension](https://code.claude.com/docs/en/chrome) for browser automation and E2E testing. Pilot automatically detects it and uses it as the preferred tool. When Chrome isn't available, Pilot falls back to [playwright-cli](https://github.com/microsoft/playwright-cli) (reliable element targeting, persistent sessions, tracing) or [agent-browser](https://agent-browser.dev/) (lightweight, fast startup).
 
-**Codex Plugin (Optional):** Install the [Codex plugin](https://github.com/openai/codex-plugin-cc) for adversarial code review powered by OpenAI Codex. When enabled in Console Settings, Codex provides an independent second opinion during `/spec` planning and verification phases. A [ChatGPT Plus](https://chatgpt.com/#pricing) subscription ($20/mo) covers the Codex API usage needed for code reviews.
+**Codex Plugin (Included):** The [Codex plugin](https://github.com/openai/codex-plugin-cc) is installed automatically with Pilot. It provides adversarial code review powered by OpenAI Codex — an independent second opinion during `/spec` planning and verification. Run `/codex:setup` once to authenticate, then enable reviewers in Console Settings → Reviewers. A [ChatGPT Plus](https://chatgpt.com/#pricing) subscription ($20/mo) covers the Codex API usage.
 
 ### Installation
 
@@ -184,6 +185,29 @@ After a spec completes all automated checks, the agent prompts you to review the
 3. **Agent addresses feedback** — the agent reads every annotation and resolves them before marking the spec as verified
 
 This gives you a final quality gate with direct, line-level feedback — the same workflow as a PR review, but before the code ever leaves your machine.
+
+</details>
+
+### Pilot Bot — Automation Agent
+
+Run Claude Code as a persistent automation agent with scheduled tasks, background jobs, heartbeat monitoring, and 24/7 operation. Optionally integrates with Telegram for bidirectional messaging.
+
+```bash
+pilot bot    # Launch automation session (auto-initializes on first run)
+```
+
+One command — auto-initializes `~/.pilot/bot/`, and starts a persistent Claude Code session in bot mode. Only one global bot instance runs at a time. Define scheduled jobs, automate recurring tasks, and monitor system health around the clock. If the [Telegram Channels plugin](https://github.com/anthropics/claude-plugins-official/tree/main/external_plugins/telegram) is installed, the bot auto-detects it and enables bidirectional messaging.
+
+<details>
+<summary><b>Bot skills</b></summary>
+
+| Skill | Purpose |
+|-------|---------|
+| `bot-boot` | Boot sequence — health check, job registration, heartbeat setup |
+| `bot-heartbeat` | Periodic health checks, notifies only when issues are detected |
+| `bot-jobs` | Manage scheduled jobs — add, remove, pause, resume, edit, list |
+| `bot-channel-task` | Channel task flow — acknowledge, execute, report (when Telegram is available) |
+| `bot-defaults` | Standard bot behaviors (dedup, reporting, error handling) |
 
 </details>
 
@@ -505,7 +529,7 @@ Yes. Pilot Shell enhances Claude Code — it doesn't replace it. You need an act
 <details>
 <summary><b>Does Pilot Shell support AI models beyond Claude?</b></summary>
 
-Pilot Shell is built for Claude Code and uses Anthropic's Claude models (Opus, Sonnet) for all planning, implementation, and verification. Additionally, the optional [Codex plugin](https://github.com/openai/codex-plugin-cc) adds OpenAI-powered adversarial review during `/spec` — an independent second opinion on your plans and code changes. Codex reviewers are disabled by default and can be enabled in Console Settings → Spec Workflow → Codex Reviewers.
+Pilot Shell is built for Claude Code and uses Anthropic's Claude models (Opus, Sonnet) for all planning, implementation, and verification. The [Codex plugin](https://github.com/openai/codex-plugin-cc) is included and adds OpenAI-powered adversarial review during `/spec` — an independent second opinion on your plans and code changes. Run `/codex:setup` to authenticate, then enable the reviewers in Console Settings → Reviewers.
 
 </details>
 

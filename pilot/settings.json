@@ -14,7 +14,8 @@
     "DISABLE_AUTO_COMPACT": "false",
     "DISABLE_MICROCOMPACT": "false",
     "DISABLE_AUTOUPDATER": "false",
-    "DISABLE_INSTALLATION_CHECKS": "false"
+    "DISABLE_INSTALLATION_CHECKS": "false",
+    "FORCE_AUTOUPDATE_PLUGINS": "true"
   },
   "permissions": {
     "defaultMode": "bypassPermissions"

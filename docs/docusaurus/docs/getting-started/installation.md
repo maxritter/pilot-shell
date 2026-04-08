@@ -36,15 +36,14 @@ For the best browser automation and E2E testing experience, install the [Claude 
 
 Pilot uses a 3-tier browser tool selection: **Chrome extension** (preferred) → **playwright-cli** (thorough E2E with persistent sessions, tracing, network mocking) → **agent-browser** (lightweight, fast startup). All three are installed automatically. In environments where Chrome can't be installed (dev containers, headless CI), Pilot falls back to the CLI tools automatically.
 
-## Codex Plugin (Optional)
+## Codex Plugin (Included)
 
-For adversarial code review powered by OpenAI Codex, install the [Codex plugin](https://github.com/openai/codex-plugin-cc):
+The [Codex plugin](https://github.com/openai/codex-plugin-cc) is installed automatically by the Pilot installer. To activate it:
 
-```bash
-claude plugin install @openai/codex
-```
+1. Run `/codex:setup` in any Pilot session to authenticate with your OpenAI account
+2. Enable the Codex reviewers in Console Settings → Reviewers
 
-After installation, run `/codex:setup` and enable the Codex reviewers in Console Settings → Spec Workflow → Codex Reviewers. Pilot auto-detects the plugin — when enabled, Codex provides an independent second opinion during `/spec` planning and verification phases. A [ChatGPT Plus](https://chatgpt.com/#pricing) subscription ($20/mo) covers the Codex API usage needed for code reviews.
+When enabled, Codex provides an independent adversarial review during `/spec` planning and verification phases. A [ChatGPT Plus](https://chatgpt.com/#pricing) subscription ($20/mo) covers the Codex API usage needed for code reviews.
 
 ## Dev Container
 

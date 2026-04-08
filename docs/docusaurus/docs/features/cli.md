@@ -69,6 +69,12 @@ All [Claude Code CLI flags](https://code.claude.com/docs/en/cli-reference) work 
 | `pilot notify <event> [data]` | Send a notification to the Console dashboard |
 | `pilot --version` | Show Pilot Shell version |
 
+## Bot Mode
+
+| Command | Description |
+|---------|-------------|
+| `pilot bot` | Launch Pilot Bot — persistent automation session with scheduled tasks, background jobs, and optional Telegram |
+
 ## Worktree Isolation
 
 | Command | Description |

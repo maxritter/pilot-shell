@@ -392,11 +392,26 @@ def install_ccusage() -> bool:
 
 
 
-def install_context_mode_plugin() -> bool:
-    """Install or update the context-mode plugin via the Claude CLI plugin system.
+def _refresh_marketplace(marketplace: str) -> bool:
+    """Refresh a marketplace to get latest plugin versions.
 
-    Ensures the mksglu/context-mode marketplace is registered, then installs
-    or updates the context-mode@context-mode plugin at user scope.
+    marketplace is in owner/repo format (e.g. "anthropics/claude-plugins-official").
+    The update command needs only the short name (e.g. "claude-plugins-official").
+    """
+    short_name = marketplace.split("/", 1)[-1] if "/" in marketplace else marketplace
+    return _run_bash_with_retry(
+        f"claude plugins marketplace update {short_name}",
+        timeout=60,
+    )
+
+
+def _install_or_update_plugin(
+    plugin_id: str,
+    marketplace: str,
+) -> bool:
+    """Install or update a Claude Code plugin via the marketplace.
+
+    Refreshes the marketplace first, then installs or updates the plugin.
     """
     if not command_exists("claude"):
         return False
@@ -411,26 +426,45 @@ def install_context_mode_plugin() -> bool:
         )
         if result.returncode == 0 and result.stdout.strip():
             plugins = json.loads(result.stdout)
-            already_installed = any(p.get("id") == "context-mode@context-mode" for p in plugins)
+            already_installed = any(p.get("id") == plugin_id for p in plugins)
     except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError):
         pass
 
     if already_installed:
+        _refresh_marketplace(marketplace)
         return _run_bash_with_retry(
-            "claude plugins update context-mode@context-mode",
+            f"claude plugins update {plugin_id}",
             timeout=120,
         )
 
     if not _run_bash_with_retry(
-        "claude plugins marketplace add mksglu/context-mode",
+        f"claude plugins marketplace add {marketplace}",
         timeout=60,
     ):
         return False
 
     return _run_bash_with_retry(
-        "claude plugins install context-mode@context-mode",
+        f"claude plugins install {plugin_id}",
         timeout=120,
     )
+
+
+def install_context_mode_plugin() -> bool:
+    """Install or update the context-mode plugin via the Claude CLI plugin system."""
+    return _install_or_update_plugin(
+        plugin_id="context-mode@context-mode",
+        marketplace="mksglu/context-mode",
+    )
+
+
+def install_codex_plugin() -> bool:
+    """Install or update the Codex plugin via the Claude CLI plugin system."""
+    return _install_or_update_plugin(
+        plugin_id="codex@openai-codex",
+        marketplace="openai/codex-plugin-cc",
+    )
+
+
 
 
 def install_pbt_tools() -> bool:
@@ -859,6 +893,9 @@ class DependenciesStep(BaseStep):
 
             if _install_with_spinner(ui, "context-mode plugin", install_context_mode_plugin):
                 installed.append("context_mode_plugin")
+
+            if _install_with_spinner(ui, "Codex plugin", install_codex_plugin):
+                installed.append("codex_plugin")
 
             if _install_with_spinner(ui, "MCP server packages", _precache_npx_mcp_servers, ui):
                 installed.append("mcp_npx_cache")

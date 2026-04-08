@@ -31,6 +31,7 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         "features/console",
+        "features/bot",
         "features/statusline",
         "features/model-routing",
         "features/rules",

@@ -101,10 +101,10 @@ class FinalizeStep(BaseStep):
                 getting_started.append(("🔄 Reload shell", f"{cmd_str} (or restart terminal)"))
 
         getting_started.extend([
-            ("Claude Chrome Extension", "Install and enable for better browser automation"),
-            ("Codex Plugin (Optional)", "Adversarial review — install as additional Claude plugin"),
             ("Launch Pilot Shell", "Run 'pilot' in your project folder instead of 'claude'"),
             ("Pilot Shell Console", "Open the UI in your browser at: http://localhost:41777"),
+            ("Pilot Bot", "Run 'pilot bot' for 24/7 automation with scheduled tasks"),
+            ("Chrome Extension", "Install and enable for better browser automation"),
         ])
 
         workflows: list[tuple[str, str]] = [

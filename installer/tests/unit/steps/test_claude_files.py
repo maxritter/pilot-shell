@@ -1184,3 +1184,16 @@ class TestCommandsToSkillsMigration:
             # Manifest does NOT contain user skill
             manifest = json.loads(manifest_path.read_text())
             assert not any("my-custom-skill" in f for f in manifest["files"])
+
+
+class TestBotSkillsCategory:
+    """Test that bot skills are categorized correctly."""
+
+    def test_bot_skills_categorized_as_skills(self):
+        from installer.steps.claude_files import _categorize_file
+
+        assert _categorize_file("pilot/skills/bot-boot/SKILL.md") == "skills"
+        assert _categorize_file("pilot/skills/bot-heartbeat/SKILL.md") == "skills"
+        assert _categorize_file("pilot/skills/bot-jobs/SKILL.md") == "skills"
+        assert _categorize_file("pilot/skills/bot-channel-task/SKILL.md") == "skills"
+        assert _categorize_file("pilot/skills/bot-defaults/SKILL.md") == "skills"

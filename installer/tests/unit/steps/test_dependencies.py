@@ -1207,8 +1207,11 @@ class TestInstallContextModePlugin:
         result = install_context_mode_plugin()
 
         assert result is True
-        mock_bash.assert_called_once()
-        assert "update" in mock_bash.call_args[0][0]
+        # marketplace refresh + plugin update = 2 calls
+        assert mock_bash.call_count == 2
+        calls = [c[0][0] for c in mock_bash.call_args_list]
+        assert any("marketplace update context-mode" in c for c in calls)
+        assert any("plugins update context-mode@context-mode" in c for c in calls)
 
     @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
     @patch("installer.steps.dependencies.subprocess.run")
