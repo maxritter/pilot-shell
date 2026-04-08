@@ -52,12 +52,6 @@ const consoleSlides = [
     desc: "Daily token costs, model routing breakdown, and usage trends over time.",
   },
   {
-    label: "Help",
-    src: "/console/settings.png",
-    alt: "Help view — embedded documentation",
-    desc: "Full technical reference from pilot-shell.com without leaving the Console.",
-  },
-  {
     label: "Settings",
     src: "/console/settings.png",
     alt: "Settings view — model selection per command, spec workflow toggles",

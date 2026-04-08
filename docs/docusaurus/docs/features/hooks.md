@@ -1,12 +1,12 @@
 ---
 sidebar_position: 2
 title: Hooks Pipeline
-description: 18 hooks across 7 lifecycle events — fire automatically at every stage
+description: 21 hooks across 7 lifecycle events — fire automatically at every stage
 ---
 
 # Hooks Pipeline
 
-18 hooks across 7 lifecycle events — quality enforcement on autopilot.
+21 hooks across 7 lifecycle events — quality enforcement on autopilot.
 
 Blocking hooks reject actions or force fixes. Non-blocking hooks warn without interrupting. Async hooks run in the background. Two additional command-scoped Stop hooks run during `/spec` phases. Context-mode hooks handle sandbox routing and session continuity.
 
