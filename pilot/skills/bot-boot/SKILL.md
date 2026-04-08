@@ -28,8 +28,8 @@ Environment variables available:
 
 | # | Action |
 |---|--------|
-| 3 | **Heartbeat registration** — Use CronList to check if a heartbeat cron already exists (look for 'bot-heartbeat' in prompt text). If it already exists, do nothing. If not found, use CronCreate with `schedule='*/30 * * * *'` and `prompt='Run /bot-heartbeat skill (invoke Skill tool with skill=bot-heartbeat)'`. |
-| 4 | **Jobs registration** — Read JOBS.yaml from `$PILOT_BOT_DIR`. If missing or empty (`jobs: {}`), skip. Otherwise use CronList to get existing crons, then for each job with `active: true`, register via CronCreate if not already registered (match by job ID in prompt content). |
+| 3 | **Heartbeat registration** — First load tools: `ToolSearch(query="select:CronList,CronCreate")`. Then use CronList to check if a heartbeat cron already exists (look for 'bot-heartbeat' in prompt text). If it already exists, do nothing. If not found, use CronCreate with `cron='*/30 * * * *'` and `prompt='Run /bot-heartbeat skill (invoke Skill tool with skill=bot-heartbeat)'`. |
+| 4 | **Jobs registration** — Read JOBS.yaml from `$PILOT_BOT_DIR`. If missing or empty (`jobs: {}`), skip. Otherwise use CronList to get existing crons, then for each job with `active: true`, register via CronCreate with `cron='<schedule>'` and `prompt='<prompt>'` if not already registered (match by job ID in prompt content). |
 
 ### #2 MCP health check
 

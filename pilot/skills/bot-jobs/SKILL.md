@@ -9,6 +9,8 @@ effort: medium
 
 Manage scheduled jobs defined in `JOBS.yaml` at `$PILOT_BOT_DIR`. All changes are written to YAML **and** live-synced with CronCreate/CronDelete immediately.
 
+**Before using cron tools:** Load them first with `ToolSearch(query="select:CronList,CronCreate,CronDelete")`. CronCreate uses `cron` (not `schedule`) as the parameter name for the cron expression.
+
 Users interact with this skill via conversation (e.g., "add a job that checks X every morning") — either through Telegram (if available) or directly in the Claude Code session. The bot calls this skill internally.
 
 ## Commands
@@ -74,7 +76,7 @@ Ask the user for each field:
 
 Then:
 1. Write the new job entry to `JOBS.yaml` using the Edit tool
-2. Run `CronCreate` with the schedule and prompt
+2. Run `CronCreate` with `cron='<cron expression>'` and `prompt='<prompt text>'`
 3. Confirm to the user
 
 #### remove
@@ -95,7 +97,7 @@ Then:
 
 1. Verify the job ID exists and is currently `active: false`
 2. Change `active: false` to `active: true` in `JOBS.yaml`
-3. Run `CronCreate` with the job's schedule and prompt
+3. Run `CronCreate` with `cron='<schedule>'` and `prompt='<prompt>'`
 4. Confirm to the user
 
 #### edit
