@@ -1,10 +1,9 @@
-import { useReducer, useCallback, useRef, type RefObject } from "react";
-import type { Annotation, PendingSelection } from "./types";
+import { useReducer, useCallback } from "react";
+import type { Annotation } from "./types";
 
 export interface AnnotationState {
   annotations: Annotation[];
   selectedAnnotationId: string | null;
-  pendingSelection: PendingSelection | null;
 }
 
 export type AnnotationAction =
@@ -12,13 +11,11 @@ export type AnnotationAction =
   | { type: "REMOVE_ANNOTATION"; id: string }
   | { type: "UPDATE_ANNOTATION"; id: string; updates: Partial<Pick<Annotation, "text">> }
   | { type: "CLEAR_ALL" }
-  | { type: "SET_PENDING_SELECTION"; selection: PendingSelection }
-  | { type: "CLEAR_PENDING_SELECTION" }
   | { type: "SELECT_ANNOTATION"; id: string | null }
   | { type: "SET_ANNOTATIONS"; annotations: Annotation[] };
 
 export function initialAnnotationState(): AnnotationState {
-  return { annotations: [], selectedAnnotationId: null, pendingSelection: null };
+  return { annotations: [], selectedAnnotationId: null };
 }
 
 export function createAnnotation(
@@ -41,7 +38,7 @@ export function annotationReducer(
 ): AnnotationState {
   switch (action.type) {
     case "ADD_ANNOTATION":
-      return { ...state, annotations: [...state.annotations, action.annotation], pendingSelection: null };
+      return { ...state, annotations: [...state.annotations, action.annotation] };
 
     case "REMOVE_ANNOTATION": {
       return {
@@ -59,12 +56,6 @@ export function annotationReducer(
 
     case "CLEAR_ALL":
       return { ...state, annotations: [], selectedAnnotationId: null };
-
-    case "SET_PENDING_SELECTION":
-      return { ...state, pendingSelection: action.selection };
-
-    case "CLEAR_PENDING_SELECTION":
-      return { ...state, pendingSelection: null };
 
     case "SELECT_ANNOTATION":
       return { ...state, selectedAnnotationId: action.id };
@@ -84,17 +75,11 @@ export interface UseAnnotationReturn {
   updateAnnotation: (id: string, updates: Partial<Pick<Annotation, "text">>) => void;
   clearAll: () => void;
   selectAnnotation: (id: string | null) => void;
-  setPendingSelection: (selection: PendingSelection) => void;
-  clearPendingSelection: () => void;
   setAnnotations: (annotations: Annotation[]) => void;
-  handleMouseUp: (e: React.MouseEvent) => void;
 }
 
-export function useAnnotation(
-  containerRef: RefObject<HTMLElement | null>,
-): UseAnnotationReturn {
+export function useAnnotation(): UseAnnotationReturn {
   const [state, dispatch] = useReducer(annotationReducer, undefined, initialAnnotationState);
-  const isSelectingRef = useRef(false);
 
   const addAnnotation = useCallback((annotation: Annotation) => {
     dispatch({ type: "ADD_ANNOTATION", annotation });
@@ -110,57 +95,7 @@ export function useAnnotation(
 
   const clearAll = useCallback(() => { dispatch({ type: "CLEAR_ALL" }); }, []);
   const selectAnnotation = useCallback((id: string | null) => { dispatch({ type: "SELECT_ANNOTATION", id }); }, []);
-  const setPendingSelection = useCallback((selection: PendingSelection) => { dispatch({ type: "SET_PENDING_SELECTION", selection }); }, []);
-  const clearPendingSelection = useCallback(() => { dispatch({ type: "CLEAR_PENDING_SELECTION" }); }, []);
   const setAnnotations = useCallback((annotations: Annotation[]) => { dispatch({ type: "SET_ANNOTATIONS", annotations }); }, []);
-
-  const handleMouseUp = useCallback(
-    (_e: React.MouseEvent) => {
-      requestAnimationFrame(() => {
-        const selection = window.getSelection?.();
-        if (!selection || selection.isCollapsed || !containerRef.current) {
-          clearPendingSelection();
-          return;
-        }
-
-        const selectedText = selection.toString().trim();
-        if (!selectedText) { clearPendingSelection(); return; }
-
-        const anchorNode = selection.anchorNode;
-        const focusNode = selection.focusNode;
-
-        const findBlockEl = (node: Node | null): Element | null => {
-          let el: Node | null = node;
-          while (el && el !== containerRef.current) {
-            if (el instanceof Element && el.hasAttribute("data-block-id")) return el;
-            el = el.parentNode;
-          }
-          return null;
-        };
-
-        const anchorBlock = findBlockEl(anchorNode);
-        const focusBlock = findBlockEl(focusNode);
-
-        if (!anchorBlock || !focusBlock || anchorBlock !== focusBlock) {
-          selection.removeAllRanges();
-          clearPendingSelection();
-          return;
-        }
-
-        const blockId = anchorBlock.getAttribute("data-block-id") ?? "";
-        const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-
-        isSelectingRef.current = true;
-        setPendingSelection({
-          blockId,
-          selectedText,
-          rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
-        });
-      });
-    },
-    [containerRef, clearPendingSelection, setPendingSelection],
-  );
 
   return {
     state,
@@ -169,9 +104,6 @@ export function useAnnotation(
     updateAnnotation,
     clearAll,
     selectAnnotation,
-    setPendingSelection,
-    clearPendingSelection,
     setAnnotations,
-    handleMouseUp,
   };
 }

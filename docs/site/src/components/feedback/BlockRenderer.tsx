@@ -10,7 +10,6 @@ interface BlockRendererProps {
   blocks: Block[];
   annotations: Annotation[];
   selectedAnnotationId: string | null;
-  onBlockMouseUp?: (e: React.MouseEvent) => void;
   onSelectAnnotation?: (id: string) => void;
   onQuickAnnotate?: (blockId: string, originalText: string, annotationText: string) => void;
 }
@@ -168,14 +167,14 @@ const BlockItem = function BlockItem({
                   "inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-full cursor-pointer transition-colors",
                   isSelected
                     ? "bg-primary text-primary-foreground font-bold"
-                    : "bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700"
+                    : "bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-700/50"
                 )}
                 title={ann.text}
                 onClick={(e) => { e.stopPropagation(); onSelectAnnotation?.(ann.id); }}
               >
                 <span className={cn(
                   "inline-flex items-center justify-center text-[9px] font-bold rounded-full w-4 h-4",
-                  isSelected ? "bg-primary-foreground/20" : "bg-amber-300/50 dark:bg-amber-700/50"
+                  isSelected ? "bg-primary-foreground/20" : "bg-blue-200/60 dark:bg-blue-700/40"
                 )}>
                   {globalIndex}
                 </span>
@@ -195,7 +194,6 @@ export function BlockRenderer({
   blocks,
   annotations,
   selectedAnnotationId,
-  onBlockMouseUp,
   onSelectAnnotation,
   onQuickAnnotate,
 }: BlockRendererProps) {
@@ -203,7 +201,6 @@ export function BlockRenderer({
     <div
       className="annotation-content select-text pl-8"
       style={{ overflowWrap: "break-word", wordBreak: "break-word" }}
-      onMouseUp={onBlockMouseUp}
     >
       {blocks.map((block) => (
         <BlockItem

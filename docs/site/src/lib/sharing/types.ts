@@ -29,6 +29,8 @@ export interface SharePayload {
   author?: string;
   /** Original plan file path */
   planPath?: string;
+  /** Whether this is a specification or requirement */
+  contentType?: "specification" | "requirement";
   /** Timestamp when the share was created */
   createdAt: number;
 }

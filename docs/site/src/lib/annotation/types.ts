@@ -28,8 +28,3 @@ export interface Block {
   startLine: number;
 }
 
-export interface PendingSelection {
-  blockId: string;
-  selectedText: string;
-  rect: { top: number; left: number; width: number; height: number };
-}

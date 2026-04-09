@@ -1,4 +1,4 @@
-export type { Annotation, Block, PendingSelection } from "./types";
+export type { Annotation, Block } from "./types";
 export { parseMarkdownToBlocks } from "./parser";
 export {
   useAnnotation,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link2, Shield, ArrowRight, AlertCircle, RefreshCw, MessageSquarePlus } from "lucide-react";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { BlockRenderer, AnnotationToolbar, FeedbackSidebar } from "@/components/feedback";
+import { BlockRenderer, FeedbackSidebar } from "@/components/feedback";
 import { parseMarkdownToBlocks, useAnnotation, createAnnotation } from "@/lib/annotation";
 import {
   parseHashFragment,
@@ -57,16 +57,13 @@ export default function Shared() {
   const [authorName, setAuthorName] = useState("Anonymous");
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const {
     state: annotationState,
     addAnnotation,
     removeAnnotation,
     updateAnnotation,
-    handleMouseUp,
-    clearPendingSelection,
-  } = useAnnotation(containerRef);
+  } = useAnnotation();
 
   const loadFromHashData = useCallback(async (data: string) => {
     setPageState({ status: "loading" });
@@ -82,7 +79,7 @@ export default function Shared() {
       }
       setPageState({ status: "ready", payload: result.payload });
     } catch {
-      setPageState({ status: "error", message: "Failed to load shared spec. The URL may be invalid." });
+      setPageState({ status: "error", message: "Failed to load shared document. The URL may be invalid." });
     }
   }, []);
 
@@ -106,21 +103,6 @@ export default function Shared() {
     await loadFromHashData(extracted.data);
   };
 
-  const handleAnnotationSubmit = useCallback(
-    (text: string) => {
-      if (!annotationState.pendingSelection) return;
-      const ann = createAnnotation(
-        annotationState.pendingSelection.blockId,
-        annotationState.pendingSelection.selectedText,
-        text,
-      );
-      addAnnotation(ann);
-      window.getSelection()?.removeAllRanges();
-      clearPendingSelection();
-    },
-    [annotationState.pendingSelection, addAnnotation, clearPendingSelection],
-  );
-
   const handleSendFeedback = useCallback(async () => {
     const payload = pageState.status === "ready" ? pageState.payload : null;
     if (!payload || annotationState.annotations.length === 0) return;
@@ -136,7 +118,7 @@ export default function Shared() {
       const result = await generateWebFeedbackUrl(feedbackPayload, baseUrl);
       if (result) {
         await navigator.clipboard.writeText(result.url);
-        toast({ title: "Feedback URL copied!", description: "Share it with the spec owner to import your annotations." });
+        toast({ title: "Feedback URL copied!", description: "Share it with the document owner to import your annotations." });
       } else {
         toast({
           title: "Feedback too large",
@@ -165,11 +147,13 @@ export default function Shared() {
     ? new Date(payload.createdAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
     : "";
 
+  const contentLabel = payload?.contentType === "requirement" ? "Requirement" : "Specification";
+
   return (
     <>
       <SEO
-        title="Shared Specification — Pilot Shell"
-        description="View and annotate a shared spec from Pilot Shell. Everything happens in your browser — no data reaches our servers."
+        title={`Shared ${contentLabel} — Pilot Shell`}
+        description={`View and annotate a shared ${contentLabel.toLowerCase()} from Pilot Shell. Everything happens in your browser — no data reaches our servers.`}
         canonicalUrl={SHARE_BASE_URL}
       />
       <NavBar />
@@ -191,9 +175,9 @@ export default function Shared() {
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 mb-2">
                 <Shield className="h-7 w-7 text-primary" />
               </div>
-              <h1 className="text-2xl font-semibold">View Shared Specification</h1>
+              <h1 className="text-2xl font-semibold">View Shared Document</h1>
               <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                Paste a share URL from Pilot Shell to view and annotate the spec, then send your feedback back.
+                Paste a share URL from Pilot Shell to view and annotate the document, then send your feedback back.
               </p>
             </div>
 
@@ -224,7 +208,7 @@ export default function Shared() {
                   <div className="space-y-1">
                     <p className="text-xs font-medium">No data sent to servers</p>
                     <p className="text-xs text-muted-foreground">
-                      The spec is embedded in the URL fragment, which is never transmitted over the network. Everything is decompressed entirely in your browser.
+                      The content is embedded in the URL fragment, which is never transmitted over the network. Everything is decompressed entirely in your browser.
                     </p>
                   </div>
                 </div>
@@ -233,7 +217,7 @@ export default function Shared() {
                 <ul className="space-y-1.5">
                   {[
                     "Paste the share URL and click Load",
-                    "Read the spec and add your annotations by selecting text",
+                    "Read the document and add annotations by clicking the + button on any block",
                     "Click Send Feedback to generate a URL to share back",
                   ].map((step, i) => (
                     <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
@@ -254,7 +238,7 @@ export default function Shared() {
           <div className="flex items-center justify-center min-h-[50vh]">
             <div className="text-center space-y-3">
               <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-sm text-muted-foreground">Loading shared specification…</p>
+              <p className="text-sm text-muted-foreground">Loading shared document…</p>
             </div>
           </div>
         )}
@@ -280,7 +264,7 @@ export default function Shared() {
             <MessageSquarePlus className="h-12 w-12 text-primary mx-auto" />
             <h2 className="text-xl font-semibold">This is a feedback URL</h2>
             <p className="text-sm text-muted-foreground">
-              This link contains annotation feedback, not a shared spec. Open it in Pilot Shell's Spec view by clicking "Receive Feedback" and pasting this URL.
+              This link contains annotation feedback, not a shared document. Open it in Pilot Shell's Spec view by clicking "Receive Feedback" and pasting this URL.
             </p>
             <Button variant="outline" onClick={() => setPageState({ status: "landing" })} className="gap-1.5">
               <Link2 size={14} />
@@ -304,7 +288,7 @@ export default function Shared() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-semibold">Shared Specification</span>
+                          <span className="text-sm font-semibold">Shared {contentLabel}</span>
                           <Badge variant="secondary" className="text-[10px] h-4 px-1.5">Annotatable</Badge>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
@@ -325,18 +309,15 @@ export default function Shared() {
                 {/* Spec content */}
                 <Card>
                   <CardContent className="p-5">
-                    <div ref={containerRef}>
-                      <BlockRenderer
-                        blocks={blocks}
-                        annotations={displayAnnotations}
-                        selectedAnnotationId={annotationState.selectedAnnotationId}
-                        onBlockMouseUp={handleMouseUp}
-                        onSelectAnnotation={() => {}}
-                        onQuickAnnotate={(blockId, originalText, text) => {
-                          addAnnotation(createAnnotation(blockId, originalText, text));
-                        }}
-                      />
-                    </div>
+                    <BlockRenderer
+                      blocks={blocks}
+                      annotations={displayAnnotations}
+                      selectedAnnotationId={annotationState.selectedAnnotationId}
+                      onSelectAnnotation={() => {}}
+                      onQuickAnnotate={(blockId, originalText, text) => {
+                        addAnnotation(createAnnotation(blockId, originalText, text));
+                      }}
+                    />
                   </CardContent>
                 </Card>
               </div>
@@ -363,15 +344,6 @@ export default function Shared() {
 
       {/* Only show footer in non-viewer states */}
       {pageState.status !== "ready" && <Footer />}
-
-      {/* Floating annotation toolbar */}
-      {pageState.status === "ready" && annotationState.pendingSelection && (
-        <AnnotationToolbar
-          selection={annotationState.pendingSelection}
-          onSubmit={handleAnnotationSubmit}
-          onDismiss={clearPendingSelection}
-        />
-      )}
     </>
   );
 }

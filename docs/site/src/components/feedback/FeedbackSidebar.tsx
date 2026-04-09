@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Send, ChevronRight, ChevronDown, MousePointer, X, Trash2 } from "lucide-react";
+import { Send, ChevronRight, ChevronDown, MessageSquarePlus, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -118,8 +118,11 @@ export function FeedbackSidebar({
           <p className="text-xs font-medium text-muted-foreground px-1 mb-1">Your Feedback</p>
           {recipientAnnotations.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center px-3">
-              <MousePointer size={24} className="text-muted-foreground/30 mb-2" />
-              <p className="text-xs text-muted-foreground/60">Select text to add feedback</p>
+              <MessageSquarePlus size={24} className="text-muted-foreground/30 mb-2" />
+              <p className="text-xs text-muted-foreground/60 mb-1">No annotations yet</p>
+              <p className="text-[10px] text-muted-foreground/40 leading-relaxed">
+                Hover over a block and click the + button to add a note.
+              </p>
             </div>
           ) : (
             <div className="space-y-1">
