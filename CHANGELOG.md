@@ -2,6 +2,17 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.0.5] - 2026-04-09
+
+### Bug Fixes
+
+- Skip CodeGraph indexing in non-git directories
+
+### Miscellaneous
+
+- Updated Readme
+- Improved Readme
+
 ## [8.0.4] - 2026-04-09
 
 ### Bug Fixes
