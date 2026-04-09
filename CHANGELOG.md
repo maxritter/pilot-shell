@@ -2,6 +2,16 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.0.3] - 2026-04-09
+
+### Bug Fixes
+
+- Improved Code Reviewer Stability, Codegraph Usage and Context Mode
+
+### Miscellaneous
+
+- Updated specifications images
+
 ## [8.0.2] - 2026-04-09
 
 ### Bug Fixes
