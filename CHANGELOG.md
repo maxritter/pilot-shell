@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.0.2] - 2026-04-09
+
+### Bug Fixes
+
+- Console dashboard overhaul — 2x2 recent cards, usage model breakdown, session filtering, spec tab consistency
+
 ## [8.0.1] - 2026-04-08
 
 ### Bug Fixes
