@@ -6,9 +6,12 @@ import json
 import os
 import shutil
 import subprocess
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from installer.context import InstallContext
 from installer.platform_utils import (
@@ -33,18 +36,17 @@ class _SudoReauthNeeded(Exception):
     """Raised when sudo -n fails and credentials need re-priming outside the spinner."""
 
 
-_last_retry_stderr: str = ""
+_thread_local = threading.local()
 
 _allow_sudo_fallback: bool = False
 
 
 def _clear_last_error() -> None:
-    global _last_retry_stderr
-    _last_retry_stderr = ""
+    _thread_local.last_retry_stderr = ""
 
 
 def _get_last_error() -> str:
-    return _last_retry_stderr
+    return getattr(_thread_local, "last_retry_stderr", "")
 
 
 def _run_bash_with_retry(command: str, cwd: Path | None = None, timeout: int = 120, stream: bool = False) -> bool:
@@ -63,7 +65,6 @@ def _run_bash_with_retry(command: str, cwd: Path | None = None, timeout: int = 1
     Note: stream=True commands inherit stdio (stderr not captured), so
     sudo failures can't be detected — the user sees the error directly.
     """
-    global _last_retry_stderr
     for attempt in range(MAX_RETRIES):
         try:
             if stream:
@@ -85,14 +86,14 @@ def _run_bash_with_retry(command: str, cwd: Path | None = None, timeout: int = 1
         except subprocess.CalledProcessError as e:
             if not stream and e.stderr:
                 stderr = e.stderr if isinstance(e.stderr, str) else e.stderr.decode(errors="replace")
-                _last_retry_stderr = stderr
+                _thread_local.last_retry_stderr = stderr
                 if _allow_sudo_fallback and "sudo:" in stderr and "sudo -n" in command:
                     raise _SudoReauthNeeded()
             if attempt < MAX_RETRIES - 1:
                 time.sleep(RETRY_DELAY)
             continue
         except subprocess.TimeoutExpired:
-            _last_retry_stderr = f"Command timed out after {timeout}s"
+            _thread_local.last_retry_stderr = f"Command timed out after {timeout}s"
             break
     return False
 
@@ -600,6 +601,111 @@ def install_playwright_cli() -> bool:
         return False
 
 
+@dataclass
+class _InstallTask:
+    """A single install operation that can run in parallel."""
+
+    name: str
+    key: str
+    fn: Callable[..., bool]
+    args: tuple[Any, ...] = ()
+
+
+@dataclass
+class _InstallResult:
+    """Result from a parallel install operation."""
+
+    name: str
+    key: str
+    success: bool
+    error: str = ""
+
+
+def _run_install_silent(task: _InstallTask) -> _InstallResult:
+    """Run an install function without UI, capturing result and error.
+
+    Thread-safe: uses thread-local error tracking.
+    """
+    _clear_last_error()
+    try:
+        success = task.fn(*task.args) if task.args else task.fn()
+        return _InstallResult(
+            name=task.name,
+            key=task.key,
+            success=success,
+            error=_get_last_error() if not success else "",
+        )
+    except _SudoReauthNeeded:
+        return _InstallResult(
+            name=task.name,
+            key=task.key,
+            success=False,
+            error="sudo credentials expired — re-run the installer",
+        )
+    except Exception as e:
+        return _InstallResult(
+            name=task.name,
+            key=task.key,
+            success=False,
+            error=str(e),
+        )
+
+
+def _run_parallel_installs(
+    tasks: list[_InstallTask],
+    ui: Any,
+    max_workers: int = 4,
+) -> list[str]:
+    """Run multiple installs in parallel with a progress bar.
+
+    Returns list of installed keys.
+    """
+    if not tasks:
+        return []
+
+    installed: list[str] = []
+    results: dict[str, _InstallResult] = {}
+
+    if ui:
+        with ui.progress(len(tasks), f"Installing {len(tasks)} packages") as progress:
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = {
+                    executor.submit(_run_install_silent, task): task
+                    for task in tasks
+                }
+                for future in as_completed(futures):
+                    task = futures[future]
+                    results[task.key] = future.result()
+                    progress.advance()
+    else:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {
+                executor.submit(_run_install_silent, task): task
+                for task in tasks
+            }
+            for future in as_completed(futures):
+                task = futures[future]
+                results[task.key] = future.result()
+
+    # Report results in original order
+    for task in tasks:
+        result = results[task.key]
+        if result.success:
+            if ui:
+                ui.success(f"{result.name} installed")
+            installed.append(result.key)
+        else:
+            if ui:
+                if result.error:
+                    last_line = result.error.strip().splitlines()[-1].strip()
+                    ui.warning(f"Could not install {result.name} — please install manually")
+                    ui.info(f"  Error: {last_line}")
+                else:
+                    ui.warning(f"Could not install {result.name} — please install manually")
+
+    return installed
+
+
 def _install_with_spinner(ui: Any, name: str, install_fn: Any, *args: Any) -> bool:
     """Run an installation function with a spinner.
 
@@ -607,7 +713,6 @@ def _install_with_spinner(ui: Any, name: str, install_fn: Any, *args: Any) -> bo
     user can see the password prompt, credentials are re-primed, and the
     install is retried once.
     """
-    global _last_retry_stderr
     _clear_last_error()
     if ui:
         try:
@@ -621,10 +726,10 @@ def _install_with_spinner(ui: Any, name: str, install_fn: Any, *args: Any) -> bo
                     with ui.spinner(f"Installing {name}..."):
                         result = install_fn(*args) if args else install_fn()
                 except _SudoReauthNeeded:
-                    _last_retry_stderr = "sudo credentials expired — re-run the installer"
+                    _thread_local.last_retry_stderr = "sudo credentials expired — re-run the installer"
                     result = False
             else:
-                _last_retry_stderr = "sudo credentials expired — re-run the installer"
+                _thread_local.last_retry_stderr = "sudo credentials expired — re-run the installer"
                 result = False
         if result:
             ui.success(f"{name} installed")
@@ -646,9 +751,9 @@ def _install_with_spinner(ui: Any, name: str, install_fn: Any, *args: Any) -> bo
                 try:
                     return install_fn(*args) if args else install_fn()
                 except _SudoReauthNeeded:
-                    _last_retry_stderr = "sudo credentials expired — re-run the installer"
+                    _thread_local.last_retry_stderr = "sudo credentials expired — re-run the installer"
                     return False
-            _last_retry_stderr = "sudo credentials expired — re-run the installer"
+            _thread_local.last_retry_stderr = "sudo credentials expired — re-run the installer"
             return False
 
 
@@ -819,7 +924,13 @@ class DependenciesStep(BaseStep):
         return False
 
     def run(self, ctx: InstallContext) -> None:
-        """Install all required dependencies."""
+        """Install all required dependencies.
+
+        Runs in three phases:
+        1. Foundation (sequential) — Claude Code, Node.js, uv (each depends on the previous)
+        2. Tools (parallel) — independent npm/uv/curl installs run concurrently
+        3. Post-install (sequential) — CodeGraph init, MCP cache (depend on phase 2 binaries)
+        """
         global _allow_sudo_fallback
         ui = ctx.ui
         installed: list[str] = []
@@ -833,6 +944,7 @@ class DependenciesStep(BaseStep):
                 elif ui:
                     ui.warning("Could not obtain sudo credentials — some installations may fail")
 
+            # --- Phase 1: Foundation (sequential — each depends on the previous) ---
             if _install_with_spinner(ui, "Claude Code", install_claude_code):
                 installed.append("claude_code")
 
@@ -842,45 +954,35 @@ class DependenciesStep(BaseStep):
             if _install_with_spinner(ui, "uv", install_uv):
                 installed.append("uv")
 
-            if _install_with_spinner(ui, "Python tools", install_python_tools):
-                installed.append("python_tools")
+            # --- Phase 2: Independent tools (parallel) ---
+            parallel_tasks = [
+                _InstallTask("Python tools", "python_tools", install_python_tools),
+                _InstallTask("Plugin dependencies", "plugin_deps", _install_plugin_dependencies, (ctx.project_dir, ui)),
+                _InstallTask("vtsls (TypeScript LSP server)", "typescript_lsp", install_typescript_lsp),
+                _InstallTask("prettier (TypeScript formatter)", "prettier", install_prettier),
+                _InstallTask("golangci-lint (Go linter)", "golangci_lint", install_golangci_lint),
+                _InstallTask("PBT tools (hypothesis, fast-check)", "pbt_tools", install_pbt_tools),
+                _InstallTask("ccusage (usage tracking)", "ccusage", install_ccusage),
+                _InstallTask("Probe (code search)", "probe", install_probe),
+                _InstallTask("RTK (token optimizer)", "rtk", install_rtk),
+                _InstallTask("CodeGraph (code intelligence)", "codegraph", install_codegraph),
+                _InstallTask("context-mode plugin", "context_mode_plugin", install_context_mode_plugin),
+                _InstallTask("Codex plugin", "codex_plugin", install_codex_plugin),
+            ]
+
+            installed.extend(_run_parallel_installs(parallel_tasks, ui))
 
             if _setup_pilot_memory(ui):
                 installed.append("pilot_memory")
 
-            if _install_with_spinner(ui, "Plugin dependencies", _install_plugin_dependencies, ctx.project_dir, ui):
-                installed.append("plugin_deps")
-
-            if _install_with_spinner(ui, "vtsls (TypeScript LSP server)", install_typescript_lsp):
-                installed.append("typescript_lsp")
-
-            if _install_with_spinner(ui, "prettier (TypeScript formatter)", install_prettier):
-                installed.append("prettier")
-
-            if _install_with_spinner(ui, "golangci-lint (Go linter)", install_golangci_lint):
-                installed.append("golangci_lint")
-
-            if _install_with_spinner(ui, "PBT tools (hypothesis, fast-check)", install_pbt_tools):
-                installed.append("pbt_tools")
-
-            if _install_with_spinner(ui, "ccusage (usage tracking)", install_ccusage):
-                installed.append("ccusage")
-
+            # Browser tools run sequentially (shared Chromium download cache)
             if _install_with_spinner(ui, "agent-browser (browser automation)", install_agent_browser):
                 installed.append("agent_browser")
 
             if _install_with_spinner(ui, "playwright-cli (advanced browser automation)", install_playwright_cli):
                 installed.append("playwright_cli")
 
-            if _install_with_spinner(ui, "Probe (code search)", install_probe):
-                installed.append("probe")
-
-            if _install_with_spinner(ui, "RTK (token optimizer)", install_rtk):
-                installed.append("rtk")
-
-            if _install_with_spinner(ui, "CodeGraph (code intelligence)", install_codegraph):
-                installed.append("codegraph")
-
+            # --- Phase 3: Post-install (depends on phase 2 binaries) ---
             needs_work = codegraph_needs_work(ctx.project_dir)
             if needs_work and ui:
                 ui.status("Initializing CodeGraph (indexing may take a few minutes)...")
@@ -889,13 +991,7 @@ class DependenciesStep(BaseStep):
                     ui.success("CodeGraph project initialized")
                 installed.append("codegraph_init")
             elif ui:
-                ui.warning("Could not initialize CodeGraph - please run 'codegraph init -i' manually")
-
-            if _install_with_spinner(ui, "context-mode plugin", install_context_mode_plugin):
-                installed.append("context_mode_plugin")
-
-            if _install_with_spinner(ui, "Codex plugin", install_codex_plugin):
-                installed.append("codex_plugin")
+                ui.warning("Could not initialize CodeGraph — please run 'codegraph init -i' manually")
 
             if _install_with_spinner(ui, "MCP server packages", _precache_npx_mcp_servers, ui):
                 installed.append("mcp_npx_cache")

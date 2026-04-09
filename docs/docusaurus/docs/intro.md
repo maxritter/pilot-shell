@@ -7,7 +7,16 @@ description: Complete technical reference for Pilot Shell
 
 # Pilot Shell Documentation
 
-**Pilot Shell** makes Claude Code production-ready — spec-driven plans, enforced tests, persistent knowledge. It includes reusable skills, a modular rules system, and a local web dashboard.
+**Pilot Shell** makes Claude Code production-ready. You get plans you can review before a single line is written, tests that are enforced — not optional, knowledge that persists across sessions, and quality gates that run automatically on every edit.
+
+No more re-explaining decisions, chasing skipped tests, or reviewing 15-file changes that were never scoped. Pilot adds the structure that turns fast AI output into reliable production code.
+
+## Why Pilot Shell
+
+- **Reliable output** — every feature goes through plan → implement → verify, with TDD at each step
+- **Persistent context** — architectural decisions, patterns, and project knowledge survive across sessions
+- **Automatic quality** — linting, formatting, type checking, and test enforcement happen as hooks, not suggestions
+- **Full visibility** — a local dashboard shows what's running, what changed, and what it cost
 
 ## Quick Start
 

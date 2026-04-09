@@ -5,9 +5,11 @@ from __future__ import annotations
 import json
 import subprocess
 import tempfile
+import time
 
 import pytest
 from pathlib import Path
+from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
 
@@ -1337,12 +1339,12 @@ class TestErrorCapture:
         import installer.steps.dependencies as deps
         from installer.steps.dependencies import _run_bash_with_retry
 
-        deps._last_retry_stderr = ""
+        deps._thread_local.last_retry_stderr = ""
         mock_run.side_effect = subprocess.CalledProcessError(
             1, "cmd", stderr=b"npm ERR! code EACCES\nnpm ERR! permission denied"
         )
         _run_bash_with_retry("npm install -g foo")
-        assert "permission denied" in deps._last_retry_stderr
+        assert "permission denied" in deps._get_last_error()
 
     def test_install_with_spinner_shows_error_detail(self):
         """_install_with_spinner shows last error line when install fails."""
@@ -1350,10 +1352,10 @@ class TestErrorCapture:
         from installer.steps.dependencies import _install_with_spinner
 
         ui = MagicMock()
-        deps._last_retry_stderr = ""
+        deps._thread_local.last_retry_stderr = ""
 
         def failing_install():
-            deps._last_retry_stderr = "npm ERR! code EACCES\nnpm ERR! permission denied /usr/lib"
+            deps._thread_local.last_retry_stderr = "npm ERR! code EACCES\nnpm ERR! permission denied /usr/lib"
             return False
 
         _install_with_spinner(ui, "TestPkg", failing_install)
@@ -1368,7 +1370,7 @@ class TestErrorCapture:
         from installer.steps.dependencies import _install_with_spinner
 
         ui = MagicMock()
-        deps._last_retry_stderr = ""
+        deps._thread_local.last_retry_stderr = ""
 
         _install_with_spinner(ui, "TestPkg", lambda: False)
         ui.warning.assert_called_once()
@@ -1418,7 +1420,7 @@ class TestInstallWithSpinnerSudoReauth:
         result = _install_with_spinner(ui, "TestPkg", install_fn)
         assert result is False
         mock_ensure.assert_called_once()
-        assert "sudo credentials expired" in deps._last_retry_stderr
+        assert "sudo credentials expired" in deps._get_last_error()
         ui.warning.assert_called_once()
 
     @patch("installer.steps.dependencies.start_sudo_keepalive")
@@ -1435,7 +1437,7 @@ class TestInstallWithSpinnerSudoReauth:
 
         result = _install_with_spinner(ui, "TestPkg", install_fn)
         assert result is False
-        assert "sudo credentials expired" in deps._last_retry_stderr
+        assert "sudo credentials expired" in deps._get_last_error()
 
 
 class TestDependenciesCleanup:
@@ -1530,6 +1532,10 @@ class TestDependenciesCleanup:
         from installer.context import InstallContext
         from installer.steps.dependencies import DependenciesStep
 
+        class _FakeProgress:
+            def advance(self, amount: int = 1) -> None:
+                pass
+
         class RecordingUI:
             quiet = False
 
@@ -1543,6 +1549,14 @@ class TestDependenciesCleanup:
                     yield
                 finally:
                     self.events.append(("spinner_end", message))
+
+            @contextmanager
+            def progress(self, total: int, description: str = "Processing"):
+                self.events.append(("progress_start", description))
+                try:
+                    yield _FakeProgress()
+                finally:
+                    self.events.append(("progress_end", description))
 
             def status(self, message: str) -> None:
                 self.events.append(("status", message))
@@ -1560,16 +1574,17 @@ class TestDependenciesCleanup:
         step = DependenciesStep()
         deps._allow_sudo_fallback = False
 
-        probe_attempts = 0
+        # Use agent-browser (still sequential) to test sudo reauth flow
+        ab_attempts = 0
 
-        def flaky_probe() -> bool:
-            nonlocal probe_attempts
-            probe_attempts += 1
-            if probe_attempts == 1:
+        def flaky_agent_browser() -> bool:
+            nonlocal ab_attempts
+            ab_attempts += 1
+            if ab_attempts == 1:
                 raise deps._SudoReauthNeeded()
             return True
 
-        with patch("installer.steps.dependencies.install_probe", side_effect=flaky_probe):
+        with patch("installer.steps.dependencies.install_agent_browser", side_effect=flaky_agent_browser):
             with tempfile.TemporaryDirectory() as tmpdir:
                 ctx = InstallContext(
                     project_dir=Path(tmpdir),
@@ -1578,27 +1593,208 @@ class TestDependenciesCleanup:
                 )
                 step.run(ctx)
 
-        assert probe_attempts == 2
+        assert ab_attempts == 2
         assert mock_ensure.call_count == 2
         assert mock_start.call_count == 2
         mock_stop.assert_called_once()
         assert deps._allow_sudo_fallback is False
-        assert "probe" in ctx.config["installed_dependencies"]
+        assert "agent_browser" in ctx.config["installed_dependencies"]
 
-        probe_flow = [
+        ab_flow = [
             event
             for event in ui.events
             if event[1] in {
-                "Installing Probe (code search)...",
+                "Installing agent-browser (browser automation)...",
                 "sudo credentials expired — re-authenticating...",
-                "Probe (code search) installed",
+                "agent-browser (browser automation) installed",
             }
         ]
-        assert probe_flow == [
-            ("spinner_start", "Installing Probe (code search)..."),
-            ("spinner_end", "Installing Probe (code search)..."),
+        assert ab_flow == [
+            ("spinner_start", "Installing agent-browser (browser automation)..."),
+            ("spinner_end", "Installing agent-browser (browser automation)..."),
             ("status", "sudo credentials expired — re-authenticating..."),
-            ("spinner_start", "Installing Probe (code search)..."),
-            ("spinner_end", "Installing Probe (code search)..."),
-            ("success", "Probe (code search) installed"),
+            ("spinner_start", "Installing agent-browser (browser automation)..."),
+            ("spinner_end", "Installing agent-browser (browser automation)..."),
+            ("success", "agent-browser (browser automation) installed"),
         ]
+
+
+class TestParallelInstalls:
+    """Tests for parallel installation infrastructure."""
+
+    def test_run_install_silent_success(self):
+        """_run_install_silent returns success result for passing install."""
+        from installer.steps.dependencies import _InstallTask, _run_install_silent
+
+        task = _InstallTask(name="TestPkg", key="test_pkg", fn=lambda: True)
+        result = _run_install_silent(task)
+
+        assert result.success is True
+        assert result.name == "TestPkg"
+        assert result.key == "test_pkg"
+        assert result.error == ""
+
+    def test_run_install_silent_failure(self):
+        """_run_install_silent captures error on failure."""
+        from installer.steps.dependencies import _InstallTask, _run_install_silent
+
+        def failing_fn():
+            from installer.steps.dependencies import _thread_local
+
+            _thread_local.last_retry_stderr = "npm ERR! code EACCES"
+            return False
+
+        task = _InstallTask(name="FailPkg", key="fail_pkg", fn=failing_fn)
+        result = _run_install_silent(task)
+
+        assert result.success is False
+        assert "EACCES" in result.error
+
+    def test_run_install_silent_catches_sudo_reauth(self):
+        """_run_install_silent catches _SudoReauthNeeded and returns failure."""
+        from installer.steps.dependencies import (
+            _InstallTask,
+            _SudoReauthNeeded,
+            _run_install_silent,
+        )
+
+        def sudo_fn():
+            raise _SudoReauthNeeded()
+
+        task = _InstallTask(name="SudoPkg", key="sudo_pkg", fn=sudo_fn)
+        result = _run_install_silent(task)
+
+        assert result.success is False
+        assert "sudo credentials expired" in result.error
+
+    def test_run_install_silent_catches_exceptions(self):
+        """_run_install_silent catches unexpected exceptions gracefully."""
+        from installer.steps.dependencies import _InstallTask, _run_install_silent
+
+        def exploding_fn():
+            raise RuntimeError("disk full")
+
+        task = _InstallTask(name="BoomPkg", key="boom_pkg", fn=exploding_fn)
+        result = _run_install_silent(task)
+
+        assert result.success is False
+        assert "disk full" in result.error
+
+    def test_run_parallel_installs_returns_installed_keys(self):
+        """_run_parallel_installs returns keys of successfully installed packages."""
+        from installer.steps.dependencies import _InstallTask, _run_parallel_installs
+
+        tasks = [
+            _InstallTask(name="Pkg A", key="pkg_a", fn=lambda: True),
+            _InstallTask(name="Pkg B", key="pkg_b", fn=lambda: True),
+            _InstallTask(name="Pkg C", key="pkg_c", fn=lambda: False),
+        ]
+
+        installed = _run_parallel_installs(tasks, ui=None)
+
+        assert "pkg_a" in installed
+        assert "pkg_b" in installed
+        assert "pkg_c" not in installed
+
+    def test_run_parallel_installs_with_ui_reports_results(self):
+        """_run_parallel_installs reports success/failure via UI."""
+        from installer.steps.dependencies import _InstallTask, _run_parallel_installs
+
+        class _FakeProgress:
+            def advance(self, amount: int = 1) -> None:
+                pass
+
+        class FakeUI:
+            def __init__(self):
+                self.successes = []
+                self.warnings = []
+                self.infos = []
+
+            @contextmanager
+            def progress(self, total, description="Processing"):
+                yield _FakeProgress()
+
+            def success(self, msg):
+                self.successes.append(msg)
+
+            def warning(self, msg):
+                self.warnings.append(msg)
+
+            def info(self, msg):
+                self.infos.append(msg)
+
+        ui = FakeUI()
+        tasks = [
+            _InstallTask(name="Good", key="good", fn=lambda: True),
+            _InstallTask(name="Bad", key="bad", fn=lambda: False),
+        ]
+
+        installed = _run_parallel_installs(tasks, ui=ui)
+
+        assert "good" in installed
+        assert "bad" not in installed
+        assert any("Good" in s for s in ui.successes)
+        assert any("Bad" in w for w in ui.warnings)
+
+    def test_run_parallel_installs_empty_list(self):
+        """_run_parallel_installs handles empty task list."""
+        from installer.steps.dependencies import _run_parallel_installs
+
+        installed = _run_parallel_installs([], ui=None)
+        assert installed == []
+
+    def test_parallel_installs_are_actually_concurrent(self):
+        """Verify parallel installs overlap in time (not sequential)."""
+        from installer.steps.dependencies import _InstallTask, _run_parallel_installs
+
+        def slow_fn():
+            time.sleep(0.3)
+            return True
+
+        tasks = [
+            _InstallTask(name=f"Pkg {i}", key=f"pkg_{i}", fn=slow_fn)
+            for i in range(4)
+        ]
+
+        start = time.monotonic()
+        installed = _run_parallel_installs(tasks, ui=None, max_workers=4)
+        elapsed = time.monotonic() - start
+
+        assert len(installed) == 4
+        # 4 tasks x 0.3s each = 1.2s sequential, should be ~0.3s parallel
+        assert elapsed < 0.8, f"Expected parallel execution but took {elapsed:.1f}s"
+
+    def test_thread_local_error_isolation(self):
+        """Thread-local error tracking isolates errors between parallel installs."""
+        from installer.steps.dependencies import _InstallTask, _run_install_silent, _thread_local
+
+        def fn_sets_error():
+            _thread_local.last_retry_stderr = "error from thread A"
+            return False
+
+        def fn_no_error():
+            _thread_local.last_retry_stderr = ""
+            return True
+
+        task_a = _InstallTask(name="A", key="a", fn=fn_sets_error)
+        task_b = _InstallTask(name="B", key="b", fn=fn_no_error)
+
+        result_a = _run_install_silent(task_a)
+        result_b = _run_install_silent(task_b)
+
+        assert result_a.success is False
+        assert "error from thread A" in result_a.error
+        assert result_b.success is True
+        assert result_b.error == ""
+
+    def test_install_task_with_args(self):
+        """_InstallTask passes args to fn correctly."""
+        from installer.steps.dependencies import _InstallTask, _run_install_silent
+
+        def fn_with_args(a, b):
+            return a + b == 3
+
+        task = _InstallTask(name="ArgPkg", key="arg", fn=fn_with_args, args=(1, 2))
+        result = _run_install_silent(task)
+
+        assert result.success is True
