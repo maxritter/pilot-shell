@@ -412,6 +412,23 @@ class TestInitializeCodegraph:
         assert result is False
 
     @patch("installer.steps.dependencies.command_exists", return_value=True)
+    @patch("installer.steps.dependencies._is_codegraph_indexed", return_value=True)
+    def test_works_in_git_subdirectory(self, _mock_indexed, _mock_cmd, tmp_path: Path):
+        """Works when .git is in a parent directory (monorepo subdirectory)."""
+        from installer.steps.dependencies import initialize_codegraph
+
+        (tmp_path / ".git").mkdir()
+        subdir = tmp_path / "packages" / "my-app"
+        subdir.mkdir(parents=True)
+        (subdir / ".codegraph").mkdir()
+        (subdir / ".codegraph" / "config.json").write_text(json.dumps({"enableEmbeddings": True}))
+
+        with patch("installer.steps.dependencies._run_bash_with_retry", return_value=True):
+            result = initialize_codegraph(subdir)
+
+        assert result is True
+
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
     @patch("installer.steps.dependencies._is_codegraph_indexed", return_value=False)
     def test_returns_false_when_init_fails(self, _mock_indexed, _mock_cmd, tmp_path: Path):
         """Returns False when codegraph init fails."""

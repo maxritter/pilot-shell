@@ -229,6 +229,18 @@ def _symlink_to_pilot_bin(binary_name: str) -> None:
         pass
 
 
+def _is_in_git_repo(directory: Path) -> bool:
+    """Check if directory is inside a git repository by walking up the tree."""
+    current = directory.resolve()
+    while True:
+        if (current / ".git").exists():
+            return True
+        parent = current.parent
+        if parent == current:
+            return False
+        current = parent
+
+
 def install_codegraph() -> bool:
     """Install or update CodeGraph for code knowledge graph and structural analysis."""
     if not _run_bash_with_retry(
@@ -289,7 +301,7 @@ def initialize_codegraph(project_dir: Path) -> bool:
     if not command_exists("codegraph"):
         return False
 
-    if not (project_dir / ".git").exists():
+    if not _is_in_git_repo(project_dir):
         return False
 
     codegraph_dir = project_dir / ".codegraph"
@@ -317,7 +329,7 @@ def codegraph_needs_work(project_dir: Path) -> bool:
     """
     if not command_exists("codegraph"):
         return False
-    if not (project_dir / ".git").exists():
+    if not _is_in_git_repo(project_dir):
         return False
     codegraph_dir = project_dir / ".codegraph"
     if not codegraph_dir.exists():
@@ -997,7 +1009,7 @@ class DependenciesStep(BaseStep):
                 if needs_work and ui:
                     ui.success("CodeGraph project initialized")
                 installed.append("codegraph_init")
-            elif ui:
+            elif needs_work and ui:
                 ui.warning("Could not initialize CodeGraph — please run 'codegraph init -i' manually")
 
             if _install_with_spinner(ui, "MCP server packages", _precache_npx_mcp_servers, ui):
