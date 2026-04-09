@@ -466,13 +466,19 @@ For full details on every component, see the **[Documentation](https://pilot-she
 
 | Component | What it does |
 | --- | --- |
-| [**Hooks Pipeline**](https://pilot-shell.com/docs/features/hooks) | 21 hooks across 7 events — quality checks on every file edit (ruff, ESLint, go vet), TDD enforcement, token optimization via RTK (60–90% savings), context-mode sandbox routing, session continuity, memory capture, and session lifecycle management |
-| [**Context Optimization**](https://pilot-shell.com/docs/features/context-optimization) | Lean context strategies — context-mode sandbox (large outputs never enter context), RTK output compression, conditional rule loading, progressive skill disclosure, lazy MCP tool loading. Compaction resilience for 200K windows |
+| [**Pilot Console**](https://pilot-shell.com/docs/features/console) | Local web dashboard at `localhost:41777` — 10 views for sessions, memories, specs, requirements, extensions, changes, usage, and settings. SQLite-backed, nothing leaves your machine |
+| [**Pilot Bot**](https://pilot-shell.com/docs/features/bot) | Persistent 24/7 automation agent with scheduled jobs, background tasks, heartbeat monitoring, and optional Telegram integration for bidirectional messaging |
+| [**Status Line**](https://pilot-shell.com/docs/features/statusline) | Real-time session dashboard below every response — model, context usage, git status, cost, spec progress, and savings metrics across 3 lines |
 | [**Smart Model Routing**](https://pilot-shell.com/docs/features/model-routing) | Opus for planning, Sonnet for implementation and verification. Configurable per-phase via Console Settings. 1M context available — included with API plans (Team, Enterprise); Max plan requires all models set to Opus |
 | [**Rules & Standards**](https://pilot-shell.com/docs/features/rules) | 9 built-in rules (workflow, testing, verification, debugging, tools) + 5 coding standards activated by file type (Python, TypeScript, Go, Frontend, Backend) |
+| [**Context Optimization**](https://pilot-shell.com/docs/features/context-optimization) | Lean context strategies — context-mode sandbox (large outputs never enter context), RTK output compression, conditional rule loading, progressive skill disclosure, lazy MCP tool loading. Compaction resilience for 200K windows |
+| [**Remote Control**](https://pilot-shell.com/docs/features/remote-control) | Control Pilot sessions from your phone, tablet, or any browser — send prompts, monitor progress, and receive notifications remotely |
+| [**Hooks Pipeline**](https://pilot-shell.com/docs/features/hooks) | 21 hooks across 7 events — quality checks on every file edit (ruff, ESLint, go vet), TDD enforcement, token optimization via RTK (60–90% savings), context-mode sandbox routing, session continuity, memory capture, and session lifecycle management |
+| [**Extensions**](https://pilot-shell.com/docs/features/extensions) | Unified view of skills, rules, commands, and agents across global, project, plugin, and remote scopes. Team sharing via git with push, pull, diff, and APM-compatible export |
+| [**Pilot CLI**](https://pilot-shell.com/docs/features/cli) | Session management, headless mode (`-p`) for CI/CD and scripts, worktree isolation, licensing, context monitoring. Run `pilot` or `ccp` to start |
 | [**MCP Servers**](https://pilot-shell.com/docs/features/mcp-servers) | 7 servers: context-mode (FTS5 sandbox + code execution), library docs, persistent memory, web search, GitHub code search, web page fetching, code knowledge graph |
 | [**Language Servers**](https://pilot-shell.com/docs/features/language-servers) | Real-time diagnostics for Python (basedpyright), TypeScript (vtsls), Go (gopls). Auto-installed, auto-configured |
-| [**Pilot CLI**](https://pilot-shell.com/docs/features/cli) | Session management, headless mode (`-p`) for CI/CD and scripts, worktree isolation, licensing, context monitoring. Run `pilot` or `ccp` to start |
+| [**Open Source Tools**](https://pilot-shell.com/docs/features/open-source-tools) | 20+ open-source tools installed alongside Pilot — Probe (semantic search), CodeGraph (code intelligence), RTK (token optimization), context-mode, language servers, and system prerequisites |
 
 ---
 
@@ -589,6 +595,15 @@ For monorepos, organize rules in nested subdirectories by product and team (e.g.
 <summary><b>Can I use Pilot Shell inside a Dev Container?</b></summary>
 
 Yes. Copy the `.devcontainer` folder from this repository into your project, adapt it to your needs (base image, extensions, dependencies), and install Pilot Shell inside the container. Everything works the same — hooks, rules, MCP servers, persistent memory, and the Console dashboard all run inside the container. This is a great option for teams that want a consistent, reproducible development environment.
+
+</details>
+
+<details>
+<summary><b>What's the difference between <code>pilot</code> and <code>pilot bot</code>?</b></summary>
+
+**`pilot`** is for interactive development — you chat with Claude, use `/spec` for planned work or quick mode for ad-hoc tasks, and drive every session yourself. It's your daily coding tool.
+
+**`pilot bot`** is for unattended automation — it launches Claude Code as a persistent background agent that runs 24/7. You define scheduled jobs (health checks, deployments, monitoring) and the bot executes them on a cron schedule with heartbeat monitoring. If the [Telegram plugin](https://github.com/anthropics/claude-plugins-official/tree/main/external_plugins/telegram) is installed, you can send tasks to the bot from your phone and receive results back. Think of `pilot` as your IDE and `pilot bot` as your ops assistant.
 
 </details>
 
