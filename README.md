@@ -82,6 +82,34 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 Installs globally on macOS, Linux, and Windows (WSL2). All tools and rules go to `~/.pilot/` and `~/.claude/`. After installation, `cd` into any project and run `pilot` or `ccp` to start.
 
 <details>
+<summary><b>Downgrade</b></summary>
+
+If you encounter an issue or unfixed bug in the latest version, you can always go back to a previous version (see [releases](https://github.com/maxritter/pilot-shell/releases)):
+
+```bash
+export VERSION=8.0.3
+curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
+```
+</details>
+
+<details>
+<summary><b>Uninstalling</b></summary>
+
+Removes the Pilot binary, plugin files, managed commands/rules, settings and shell aliases:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash
+```
+</details>
+
+<details>
+<summary><b>Using a Dev Container</b></summary>
+
+Pilot Shell works inside Dev Containers. Copy the [`.devcontainer`](https://github.com/maxritter/pilot-shell/tree/main/.devcontainer) folder from this repository into your project, adapt it to your needs (base image, extensions, dependencies), and run the installer inside the container. The installer auto-detects the container environment and skips system-level dependencies like Homebrew.
+
+</details>
+
+<details>
 <summary><b>What the installer does</b></summary>
 
 7-step installer with progress tracking, rollback on failure, and idempotent re-runs:
@@ -96,33 +124,97 @@ Installs globally on macOS, Linux, and Windows (WSL2). All tools and rules go to
 
 </details>
 
-### Installing a Specific Version
+---
 
-Pin to a specific release (see [releases](https://github.com/maxritter/pilot-shell/releases)):
+<h2 id="features">How It Works</h2>
 
 ```bash
 export VERSION=8.0.4
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
 ```
 
-### Uninstalling
+Just chat — no plan, no approval gate. Quality hooks and TDD enforcement still apply. Best for small tasks and exploration. For anything that needs a plan, use `/spec` — not Claude Code's built-in plan mode.
 
-Removes the Pilot binary, plugin files, managed commands/rules, settings and shell aliases:
+### /spec — Spec-Driven Development
+
+**`/spec` replaces Claude Code's built-in plan mode** (Shift+Tab). It provides a complete planning workflow with TDD, verification, and code review — use `/spec` instead of plan mode for all planned work.
+
+Features, bug fixes, refactoring — describe it and `/spec` handles the rest. Auto-detects whether it's a feature or a bugfix and adapts the workflow. Specs are saved to `docs/plans/` and visible in the Console's **Specification** tab.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash
+pilot
+> /spec "Add user authentication with OAuth and JWT tokens"   # → feature mode
+> /spec "Fix the crash when deleting nodes with two children"  # → bugfix mode (auto-detected)
 ```
 
-<details>
-<summary><b>Dev Container</b></summary>
+```
+Discuss  →  Plan  →  Approve  →  Implement (TDD)  →  Verify  →  Done
+                                                        ↑         ↓
+                                                        └── Loop──┘
+```
 
-Pilot Shell works inside Dev Containers. Copy the [`.devcontainer`](https://github.com/maxritter/pilot-shell/tree/main/.devcontainer) folder from this repository into your project, adapt it to your needs (base image, extensions, dependencies), and run the installer inside the container. The installer auto-detects the container environment and skips system-level dependencies like Homebrew.
+<img src="docs/img/specifications.png" alt="Pilot Shell Console — Specifications" width="700">
+
+<details>
+<summary><b>Feature Mode</b></summary>
+
+Full exploration workflow for new functionality, refactoring, or architectural changes.
+
+**Plan:** Explores codebase with semantic search → asks clarifying questions → writes detailed spec with scope, tasks, and definition of done → for UI features, writes **E2E test scenarios** (step-by-step, browser-executable) that become the verification contract → **spec-review sub-agent** validates completeness → waits for your approval. Optional **Codex adversarial review** provides an independent second opinion when enabled.
+
+**Implement:** Creates an isolated git worktree → implements each task with strict TDD (RED → GREEN → REFACTOR) → quality hooks auto-lint, format, and type-check every edit → full test suite after each task.
+
+**Verify:** Full test suite + actual program execution → **unified review sub-agent** (compliance + quality + goal) → for UI features, executes each E2E scenario step-by-step via browser automation (pass/fail tracked, results written to plan) → auto-fixes findings → squash merges to main on success.
 
 </details>
 
----
+<details>
+<summary><b>Bugfix Mode</b></summary>
 
-<h2 id="features">How It Works</h2>
+Investigation-first workflow for targeted fixes. Finds the root cause before touching any code.
+
+**Investigate:** Reproduces the bug → traces backward through the call chain to find the **root cause** at a specific `file:line` → compares against working code patterns → states the fix with confidence level. If 3+ hypotheses fail, escalates as an architectural problem.
+
+**Test-Before-Fix:** Writes a regression test that FAILS on current code → implements the minimal fix at the root cause → verifies all tests pass. Defense-in-depth validation at multiple layers when the bug involves data flowing through shared code paths.
+
+**Verify:** Lightweight verification — regression test confirmation → full test suite → lint + type check → quality checks. No review sub-agents — the regression test proves the fix works, the full suite proves nothing else broke.
+
+**Why this matters:** Root cause investigation prevents "fix one thing, break another." The regression test locks in the fix. No formal notation overhead — just trace, test, fix, verify.
+
+</details>
+
+### Status Line
+
+Pilot shell ships with its own advanced status line with real-time session metrics and spec progress:
+
+<img src="docs/img/statusline.png" alt="Pilot Shell Status Line" width="700">
+
+<details>
+<summary><b>All fields explained</b></summary>
+
+**Line 1 — Session Metrics** (separated by `|`):
+
+| Widget            | Description                                                                     |
+| ----------------- | ------------------------------------------------------------------------------- |
+| **Model**         | Active model in short form (`Opus 4.6 [1M]`, `Sonnet 4.6`)                      |
+| **Context**       | Effective context usage with progress bar, buffer indicator, and token count. Green < 80%, Yellow 80–95%, Red 95%+ |
+| **Lines changed** | `+added -removed` in session (hidden when usage API data available)             |
+| **Git**           | Branch with staged (`+N`) / unstaged (`~N`) counts                              |
+| **Cost**          | Session cost in USD. Green < $1, Yellow $1–5, Red $5+                           |           |
+| **Savings**       | Token savings percentage from RTK proxy (`Savings: N%`), shown when no usage data |
+
+**Line 2 — Mode:**
+
+- **Quick Mode:** `Quick Mode`
+- **Spec Mode:** Plan name, type (`feature`/`bugfix`), phase (`plan`/`implement`/`verify`), progress bar, task count, and iteration count
+
+**Line 3 — Version & Session Info:**
+
+`Pilot <version> (<tier>) · CC <version> (<subscription>) · sessions <N> · memories <N>`
+
+Pilot tier: Solo, Team, or Trial with time remaining. Claude subscription (Pro/Max/Team/Enterprise) detected via `claude auth status` and cached for 24 hours.
+
+</details>
 
 ### Pilot Shell Console
 
@@ -188,15 +280,69 @@ This gives you a final quality gate with direct, line-level feedback — the sam
 
 </details>
 
-### Pilot Bot — Automation Agent
+### Extensions
 
-Run Claude Code as a persistent automation agent with scheduled tasks, background jobs, heartbeat monitoring, and 24/7 operation. Optionally integrates with Telegram for bidirectional messaging.
+Rules, commands, skills, and agents — all plain markdown files in `.claude/` (project) or `~/.claude/` (global). The Console Extensions page lets you browse, edit, compare, and share everything from one place:
+
+<img src="docs/img/extensions.png" alt="Pilot Shell Console — Extensions" width="700">
+
+<details>
+<summary><b>Extension categories</b></summary>
+
+| Extension    | Location            | When it loads                               |
+| ------------ | ------------------- | ------------------------------------------- |
+| **Skills**   | `.claude/skills/`   | Automatically when relevant                 |
+| **Rules**    | `.claude/rules/`    | Every session, or by file type              |
+| **Commands** | `.claude/commands/` | On demand via `/command-name`               |
+| **Agents**   | `.claude/agents/`   | Spawned as sub-agents for specialized tasks |
+
+Use `/setup-rules` to auto-generate rules from your codebase. Use `/create-skill` to capture workflows as reusable skills.
+
+</details>
+
+<details>
+<summary><b>Scopes: Global, Project, Plugin</b></summary>
+
+**Project** extensions live in `.claude/` — commit them so teammates get them on `git clone`. **Global** extensions live in `~/.claude/` — personal and available across all projects. Move extensions between scopes with one click.
+
+**Plugin** extensions come from installed Claude Code plugins (`claude plugin install <name>`). They appear as read-only items — visible but not editable.
+
+</details>
+
+<details>
+<summary><b>Team sharing & APM (Team tier)</b></summary>
+
+Connect a git repository to share extensions across your team:
+
+- **Push** local extensions to the team remote
+- **Pull** remote extensions to your machine (global or project scope)
+- **Compare** local vs remote with a built-in side-by-side diff view
+- **Conflict detection** — when local and remote differ, choose which version to keep
+
+**APM format** — check one box and your remote becomes an [APM package](https://microsoft.github.io/apm/introduction/key-concepts/), directly installable via `apm install owner/repo` by anyone using Copilot, Cursor, OpenCode, or Claude. Extensions are automatically converted to APM conventions on push:
+
+| Pilot Shell | APM Remote |
+| --- | --- |
+| `rules/my-rule.md` | `instructions/my-rule.instructions.md` |
+| `commands/my-cmd.md` | `prompts/my-cmd.prompt.md` |
+| `skills/my-skill/SKILL.md` | `skills/my-skill/SKILL.md` |
+| `agents/my-agent.md` | `agents/my-agent.agent.md` |
+
+APM-compatible frontmatter is injected automatically. An `apm.yml` manifest is generated. Toggling APM on/off migrates existing extensions in a single commit.
+
+</details>
+
+### Pilot Bot
+
+Run Claude Code as a persistent 24/7 automation agent with scheduled tasks, background jobs and heartbeat monitoring:
 
 ```bash
 pilot bot    # Launch automation session (auto-initializes on first run)
 ```
 
-One command — auto-initializes `~/.pilot/bot/`, and starts a persistent Claude Code session in bot mode. Only one global bot instance runs at a time. Define scheduled jobs, automate recurring tasks, and monitor system health around the clock. If the [Telegram Channels plugin](https://github.com/anthropics/claude-plugins-official/tree/main/external_plugins/telegram) is installed, the bot auto-detects it and enables bidirectional messaging.
+Pilot Bot defines scheduled jobs, automates recurring tasks, and monitor system health around the clock. If the [Telegram Channels plugin](https://github.com/anthropics/claude-plugins-official/tree/main/external_plugins/telegram) is installed, the bot auto-detects it and enables bidirectional messaging. Similar to OpenClaw, but without the added complexity and costs.
+
+<img src="docs/img/bot.png" alt="Pilot Bot" width="700">
 
 <details>
 <summary><b>Bot skills</b></summary>
@@ -211,91 +357,6 @@ One command — auto-initializes `~/.pilot/bot/`, and starts a persistent Claude
 
 </details>
 
-### Status Line
-
-A three-line dashboard rendered below every Claude Code response. Replaces the default status line with real-time session metrics, spec progress, and version info — all color-coded.
-
-```
-Opus 4.6 [1M] | █████░▓ 60% [604K] | +156 -23 | main +2 ~3 | $1.45 | Savings: 65%
-Spec: my-feature feature [implement] ████░░░░ 3/6
-Pilot 8.2.1 (Solo) · CC 2.1.79 (Max) · sessions 2 · memories 12
-```
-
-<details>
-<summary><b>All fields explained</b></summary>
-
-**Line 1 — Session Metrics** (separated by `|`):
-
-| Widget            | Description                                                                     |
-| ----------------- | ------------------------------------------------------------------------------- |
-| **Model**         | Active model in short form (`Opus 4.6 [1M]`, `Sonnet 4.6`)                      |
-| **Context**       | Effective context usage with progress bar, buffer indicator, and token count. Green < 80%, Yellow 80–95%, Red 95%+ |
-| **Lines changed** | `+added -removed` in session (hidden when usage API data available)             |
-| **Git**           | Branch with staged (`+N`) / unstaged (`~N`) counts                              |
-| **Cost**          | Session cost in USD. Green < $1, Yellow $1–5, Red $5+                           |           |
-| **Savings**       | Token savings percentage from RTK proxy (`Savings: N%`), shown when no usage data |
-
-**Line 2 — Mode:**
-
-- **Quick Mode:** `Quick Mode`
-- **Spec Mode:** Plan name, type (`feature`/`bugfix`), phase (`plan`/`implement`/`verify`), progress bar, task count, and iteration count
-
-**Line 3 — Version & Session Info:**
-
-`Pilot <version> (<tier>) · CC <version> (<subscription>) · sessions <N> · memories <N>`
-
-Pilot tier: Solo, Team, or Trial with time remaining. Claude subscription (Pro/Max/Team/Enterprise) detected via `claude auth status` and cached for 24 hours.
-
-</details>
-
-### /spec — Spec-Driven Development
-
-**`/spec` replaces Claude Code's built-in plan mode** (Shift+Tab). It provides a complete planning workflow with TDD, verification, and code review — use `/spec` instead of plan mode for all planned work.
-
-Features, bug fixes, refactoring — describe it and `/spec` handles the rest. Auto-detects whether it's a feature or a bugfix and adapts the workflow. Specs are saved to `docs/plans/` and visible in the Console's **Specification** tab.
-
-```bash
-pilot
-> /spec "Add user authentication with OAuth and JWT tokens"   # → feature mode
-> /spec "Fix the crash when deleting nodes with two children"  # → bugfix mode (auto-detected)
-```
-
-```
-Discuss  →  Plan  →  Approve  →  Implement (TDD)  →  Verify  →  Done
-                                                        ↑         ↓
-                                                        └── Loop──┘
-```
-
-<img src="docs/img/specifications.png" alt="Pilot Shell Console — Specifications" width="700">
-
-<details>
-<summary><b>Feature Mode</b></summary>
-
-Full exploration workflow for new functionality, refactoring, or architectural changes.
-
-**Plan:** Explores codebase with semantic search → asks clarifying questions → writes detailed spec with scope, tasks, and definition of done → for UI features, writes **E2E test scenarios** (step-by-step, browser-executable) that become the verification contract → **spec-review sub-agent** validates completeness → waits for your approval. Optional **Codex adversarial review** provides an independent second opinion when enabled.
-
-**Implement:** Creates an isolated git worktree → implements each task with strict TDD (RED → GREEN → REFACTOR) → quality hooks auto-lint, format, and type-check every edit → full test suite after each task.
-
-**Verify:** Full test suite + actual program execution → **unified review sub-agent** (compliance + quality + goal) → for UI features, executes each E2E scenario step-by-step via browser automation (pass/fail tracked, results written to plan) → auto-fixes findings → squash merges to main on success.
-
-</details>
-
-<details>
-<summary><b>Bugfix Mode</b></summary>
-
-Investigation-first workflow for targeted fixes. Finds the root cause before touching any code.
-
-**Investigate:** Reproduces the bug → traces backward through the call chain to find the **root cause** at a specific `file:line` → compares against working code patterns → states the fix with confidence level. If 3+ hypotheses fail, escalates as an architectural problem.
-
-**Test-Before-Fix:** Writes a regression test that FAILS on current code → implements the minimal fix at the root cause → verifies all tests pass. Defense-in-depth validation at multiple layers when the bug involves data flowing through shared code paths.
-
-**Verify:** Lightweight verification — regression test confirmation → full test suite → lint + type check → quality checks. No review sub-agents — the regression test proves the fix works, the full suite proves nothing else broke.
-
-**Why this matters:** Root cause investigation prevents "fix one thing, break another." The regression test locks in the fix. No formal notation overhead — just trace, test, fix, verify.
-
-</details>
-
 ### /prd — Generate Product Requirements Documents
 
 **Use `/prd` before `/spec` when requirements are unclear.** It's a strategic thought partner that turns vague ideas into concrete Product Requirements Documents (PRDs) through one-on-one conversation — with optional research, challenging assumptions, exploring trade-offs, and defining scope before you commit to building.
@@ -307,30 +368,6 @@ pilot
 ```
 
 Choose a research tier at the start: **Quick** (skip), **Standard** (web search for competitors, prior art, best practices), or **Deep** (parallel research agents for comprehensive findings). The conversation produces a PRD with problem statement, core user flows, scope boundaries, and technical context — then offers to hand off directly to `/spec` for implementation. PRDs are saved to `docs/prd/` and visible in the Console's **Requirements** tab.
-
-### Quick Mode
-
-Just chat — no plan, no approval gate. Quality hooks and TDD enforcement still apply. Best for small tasks and exploration. For anything that needs a plan, use `/spec` — not Claude Code's built-in plan mode.
-
-### Claude CLI Flag Passthrough
-
-All Claude Code CLI flags work directly with `pilot` — current and future. Pilot forwards any flag it doesn't recognize to the Claude CLI automatically.
-
-```bash
-pilot --channels plugin:telegram@claude-plugins-official
-pilot --model opus --verbose
-pilot --resume
-```
-
-### Headless Mode
-
-Run Pilot non-interactively with `-p` for CI/CD pipelines, scripts, and automated workflows. All Claude Code CLI flags work — `--output-format`, `--allowedTools`, `--channels`, `--continue`, `--bare`, etc.
-
-```bash
-pilot -p "Run tests and fix failures" --allowedTools "Bash,Read,Edit"
-pilot -p "Summarize this project" --output-format json
-pilot --channels plugin:telegram@official -p "Check messages"
-```
 
 ### /setup-rules — Generate Modular Rules
 
@@ -395,57 +432,25 @@ pilot
 
 </details>
 
-### Extensions
+### Claude CLI Flag Passthrough
 
-Rules, commands, skills, and agents — all plain markdown files in `.claude/` (project) or `~/.claude/` (global). The Console Extensions page lets you browse, edit, compare, and share everything from one place. Team sharing supports [APM](https://github.com/microsoft/apm) format for cross-tool compatibility.
+All Claude Code CLI flags work directly with `pilot` — current and future. Pilot forwards any flag it doesn't recognize to the Claude CLI automatically.
 
-<img src="docs/img/extensions.png" alt="Pilot Shell Console — Extensions" width="700">
+```bash
+pilot --channels plugin:telegram@claude-plugins-official
+pilot --model opus --verbose
+pilot --resume
+```
 
-<details>
-<summary><b>Extension categories</b></summary>
+### Headless Mode
 
-| Extension    | Location            | When it loads                               |
-| ------------ | ------------------- | ------------------------------------------- |
-| **Skills**   | `.claude/skills/`   | Automatically when relevant                 |
-| **Rules**    | `.claude/rules/`    | Every session, or by file type              |
-| **Commands** | `.claude/commands/` | On demand via `/command-name`               |
-| **Agents**   | `.claude/agents/`   | Spawned as sub-agents for specialized tasks |
+Run Pilot non-interactively with `-p` for CI/CD pipelines, scripts, and automated workflows. All Claude Code CLI flags work — `--output-format`, `--allowedTools`, `--channels`, `--continue`, `--bare`, etc.
 
-Use `/setup-rules` to auto-generate rules from your codebase. Use `/create-skill` to capture workflows as reusable skills.
-
-</details>
-
-<details>
-<summary><b>Scopes: Global, Project, Plugin</b></summary>
-
-**Project** extensions live in `.claude/` — commit them so teammates get them on `git clone`. **Global** extensions live in `~/.claude/` — personal and available across all projects. Move extensions between scopes with one click.
-
-**Plugin** extensions come from installed Claude Code plugins (`claude plugin install <name>`). They appear as read-only items — visible but not editable.
-
-</details>
-
-<details>
-<summary><b>Team sharing & APM (Team tier)</b></summary>
-
-Connect a git repository to share extensions across your team:
-
-- **Push** local extensions to the team remote
-- **Pull** remote extensions to your machine (global or project scope)
-- **Compare** local vs remote with a built-in side-by-side diff view
-- **Conflict detection** — when local and remote differ, choose which version to keep
-
-**APM format** — check one box and your remote becomes an [APM package](https://microsoft.github.io/apm/introduction/key-concepts/), directly installable via `apm install owner/repo` by anyone using Copilot, Cursor, OpenCode, or Claude. Extensions are automatically converted to APM conventions on push:
-
-| Pilot Shell | APM Remote |
-| --- | --- |
-| `rules/my-rule.md` | `instructions/my-rule.instructions.md` |
-| `commands/my-cmd.md` | `prompts/my-cmd.prompt.md` |
-| `skills/my-skill/SKILL.md` | `skills/my-skill/SKILL.md` |
-| `agents/my-agent.md` | `agents/my-agent.agent.md` |
-
-APM-compatible frontmatter is injected automatically. An `apm.yml` manifest is generated. Toggling APM on/off migrates existing extensions in a single commit.
-
-</details>
+```bash
+pilot -p "Run tests and fix failures" --allowedTools "Bash,Read,Edit"
+pilot -p "Summarize this project" --output-format json
+pilot --channels plugin:telegram@official -p "Check messages"
+```
 
 ---
 
