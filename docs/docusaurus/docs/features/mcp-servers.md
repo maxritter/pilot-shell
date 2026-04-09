@@ -21,7 +21,6 @@ ctx_batch_execute(commands: [...], queries: ["find errors"])
 ctx_execute(language: "javascript", code: "const r = await fetch(...)")
 ctx_execute_file(path: "data.json", language: "javascript", code: "...")
 ctx_search(queries: ["auth flow", "login endpoint"])
-ctx_fetch_and_index(url: "https://docs.example.com", source: "docs")
 ```
 
 **Key capabilities:**
@@ -32,10 +31,9 @@ ctx_fetch_and_index(url: "https://docs.example.com", source: "docs")
 | `ctx_execute` | Run code in sandbox (JS, Python, shell) — only stdout enters context |
 | `ctx_execute_file` | Process a file in sandbox — file content never enters context |
 | `ctx_search` | Query the FTS5 knowledge base with multiple queries in one call |
-| `ctx_fetch_and_index` | Fetch and index web pages — raw HTML never enters context |
 | `ctx_index` | Store content in the knowledge base for later search |
 
-**Routing hooks** automatically intercept tools that produce large output (Bash, Read, Grep, WebFetch) and suggest context-mode alternatives. curl/wget and WebFetch are blocked entirely — use `ctx_execute` or `ctx_fetch_and_index` instead.
+**Routing hooks** automatically intercept tools that produce large output (Bash, Read, Grep, WebFetch) and suggest context-mode alternatives. curl/wget and WebFetch are blocked entirely — use dedicated web-fetch and web-search MCP servers instead.
 
 ## context7
 

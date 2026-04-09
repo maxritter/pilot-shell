@@ -98,8 +98,11 @@ Use EXACT parameter names — abbreviated names cause `InputValidationError`:
 The hook enforces BOTH `subagent_type` and description patterns. Using `general-purpose` with an "Explore codebase" description is the same violation as using `subagent_type="Explore"`.
 
 **Use direct tools instead:**
-- **Search:** CodeGraph `codegraph_search` (symbols) → Probe CLI `probe search` (intent) → Grep/Glob (exact text only, last resort). See `development-practices.md` for mandatory checkpoints.
-- **Structure:** CodeGraph `codegraph_callers`/`codegraph_callees` (call graphs), `codegraph_impact` (blast radius), `codegraph_files` (file tree).
+- **Orient:** `codegraph_context(task="...")` — ALWAYS start here for any new task
+- **Deep dive:** `codegraph_search` → `codegraph_explore(query="SymbolA SymbolB")` — full source code in one call
+- **Trace:** `codegraph_callers`/`codegraph_callees` (call graphs), `codegraph_impact` (blast radius), `codegraph_files` (file tree)
+- **Intent search:** Probe CLI `probe search` → Grep/Glob (exact text only, last resort)
+- See `development-practices.md` for mandatory checkpoints.
 
 **Exceptions (pass through silently regardless of description):** `web-search-agent`, `pilot:web-search-agent`, `pilot:changes-review`, `pilot:spec-review`. These are in `SILENT_AGENT_TYPES` and bypass all description checks.
 

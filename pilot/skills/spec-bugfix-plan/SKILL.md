@@ -121,7 +121,17 @@ If you catch yourself thinking any of these, STOP. Return to Step 1.2.
 
 ### 1.2.3: Trace the Root Cause
 
-**⛔ Use Probe and CodeGraph together.** `codegraph_context(task=<bug_description>)` to orient, `probe search` to find related patterns, `codegraph_search` to locate the specific symbol. Fall back to Grep/Glob only for exact patterns.
+**⛔ START WITH CODEGRAPH — before reading any files.**
+
+**Step 1: Orient with CodeGraph (MANDATORY FIRST ACTION):**
+```
+codegraph_context(task="<bug description and symptoms>")
+```
+This reveals entry points, related symbols, and code context for the bug area. Read the output carefully before diving deeper.
+
+**Step 2: Deep dive if needed:** Use `codegraph_search` to find the specific symbol, then `codegraph_explore(query="<symbol names>")` to get full source code from all relevant files in one call.
+
+**Step 3: Trace and investigate.** Use Probe for intent-based search (`probe search`), CodeGraph for structural tracing. Fall back to Grep/Glob only for exact patterns.
 
 Read as many files as needed. For each: read completely, trace execution path from user action to symptom, note specific lines where behavior diverges.
 
@@ -139,7 +149,7 @@ Read as many files as needed. For each: read completely, trace execution path fr
 
 **⛔ Structural tracing (MANDATORY):** Run `codegraph_callers` and `codegraph_callees` on the function where the bug manifests AND the function at the root cause. Then run `codegraph_impact` to see the full blast radius — essential for understanding how bad data flows through the system.
 
-Tools: CodeGraph (`codegraph_context`, `codegraph_callers`/`codegraph_callees`, `codegraph_impact`, `codegraph_search`), Probe CLI (`probe search` for intent, `probe extract` for symbols), Read/Grep/Glob for exact patterns.
+Tools: CodeGraph (`codegraph_context`, `codegraph_explore`, `codegraph_callers`/`codegraph_callees`, `codegraph_impact`, `codegraph_search`), Probe CLI (`probe search` for intent, `probe extract` for symbols), Read/Grep/Glob for exact patterns.
 
 ### 1.2.4: Pattern Analysis
 
@@ -318,23 +328,24 @@ Type: Bugfix
 
 1. Detect companion path, project root, and base branch:
 ```bash
-CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | head -1)
+CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | sort -V | tail -1)
 PROJECT_ROOT="${CLAUDE_PROJECT_ROOT:-$(pwd)}"
 # Use worktree base branch if in worktree, otherwise detect repo default branch
 BASE_BRANCH=$(~/.pilot/bin/pilot worktree status --json 2>/dev/null | grep -o '"base_branch":"[^"]*"' | cut -d'"' -f4)
 [ -z "$BASE_BRANCH" ] && BASE_BRANCH=$(cd "$PROJECT_ROOT" && git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||' || echo "main")
 ```
 
-2. Launch adversarial review with specific focus text from the project root:
+2. Launch adversarial review with specific focus text from the project root. **⛔ Use synchronous Bash (NOT `run_in_background`)** — the companion's `--background` flag already makes it non-blocking and returns the job ID immediately to stdout:
 ```bash
 cd "$PROJECT_ROOT" && node "$CODEX_COMPANION" adversarial-review --background --base "$BASE_BRANCH" "Challenge this bugfix plan: <plan summary/root cause>. Plan: <plan-path>. Focus on: wrong root cause, incomplete fix, missing edge cases, regression risk, and whether the fix addresses symptoms vs cause."
 ```
+Parse the job ID from stdout (format: `review-XXXXXXXX-YYYYYY`).
 
 **⛔ Use the companion's built-in wait — do NOT use `sleep` loops or poll output files manually.**
 
 3. Wait for completion (this blocks until Codex finishes or times out — no sleep needed):
 ```bash
-node "$CODEX_COMPANION" status <jobId> --wait --timeout-ms 120000 --json
+node "$CODEX_COMPANION" status <jobId> --wait --timeout-ms 300000 --json
 ```
 
 4. **Handle status:**

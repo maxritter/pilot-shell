@@ -144,15 +144,15 @@ Launch Codex review NOW — it runs in parallel with the Claude reviewer above.
 
 1. Detect companion path and ensure project root:
 ```bash
-CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | head -1)
+CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | sort -V | tail -1)
 PROJECT_ROOT="${CLAUDE_PROJECT_ROOT:-$(pwd)}"
 ```
 
-2. Launch adversarial review in background from the project root using `--scope working-tree` (reviews all uncommitted changes regardless of staging state — works in both worktree and non-worktree mode). Include the plan's goal as focus text:
+2. Launch adversarial review in background from the project root using `--scope working-tree` (reviews all uncommitted changes regardless of staging state — works in both worktree and non-worktree mode). **⛔ Use synchronous Bash (NOT `run_in_background`)** — the companion's `--background` flag already makes it non-blocking and returns the job ID immediately to stdout:
 ```bash
 cd "$PROJECT_ROOT" && node "$CODEX_COMPANION" adversarial-review --background --scope working-tree "Challenge this implementation: <plan summary/goal>. Plan: <plan-path>. Focus on: wrong approach, missing edge cases, security gaps, untested paths, and design choices that could fail under load."
 ```
-Capture the job ID from stdout. **Do NOT wait** — proceed to Step 3.2 immediately.
+Parse the job ID from stdout (format: `review-XXXXXXXX-YYYYYY`). **Do NOT wait** — proceed to Step 3.2 immediately.
 
 ### Step 3.2: Automated Checks
 
@@ -214,7 +214,7 @@ For each fix: implement → run relevant tests → log "Fixed: [title]"
 
 1. Wait for completion (this blocks until Codex finishes or times out — no sleep needed):
 ```bash
-node "$CODEX_COMPANION" status <jobId> --wait --timeout-ms 120000 --json
+node "$CODEX_COMPANION" status <jobId> --wait --timeout-ms 300000 --json
 ```
 
 2. **Handle status:**

@@ -119,7 +119,7 @@ class TestResearchAgentBlocked:
     def test_blocks_research_first_word(self):
         code, output = _run_with_input("Agent", {"description": "Research Extensions system", "prompt": "explore"})
         assert code == 2
-        assert "Probe" in output
+        assert "codegraph_context" in output
 
     def test_blocks_research_case_insensitive(self):
         code, output = _run_with_input("Agent", {"description": "research codebase architecture", "prompt": "explore"})

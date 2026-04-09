@@ -155,14 +155,35 @@ When adding tasks to an existing plan: load it, parse structure, verify compatib
 
 ### Step 1.3: Exploration
 
-**Explore systematically, one area at a time (sequentially, not parallel).**
+**⛔ START WITH CODEGRAPH — before reading any files or running any searches.**
 
-**⛔ Use Probe and CodeGraph as primary tools — they complement each other. Fall back to Grep/Glob only for exact patterns.**
+#### 1.3.1: Orient with CodeGraph (MANDATORY FIRST ACTION)
+
+```
+codegraph_context(task="<task description from user>")
+```
+
+This returns entry points, related symbols, and key code. Works best when the task maps to actual code symbols. If it returns irrelevant results (e.g., only tests or UI components), the task may be conceptual — supplement with Probe `probe search "how does X work"` for intent-based discovery.
+
+#### 1.3.2: Deep dive with CodeGraph explore
+
+After orienting, use `codegraph_search` to find specific symbol names, then:
+
+```
+codegraph_explore(query="SymbolA SymbolB relevant-file.ts")
+```
+
+This returns **full source code sections** from all relevant files in ONE call — replacing dozens of Read/Grep calls. Use specific symbol names (from search results), not natural language. Follow the call budget in the tool description.
+
+#### 1.3.3: Systematic exploration
+
+**Explore one area at a time (sequentially, not parallel).** Use CodeGraph and Probe as primary tools — Grep/Glob only for exact text patterns.
 
 | Need                            | Tool                                                    |
 | ------------------------------- | ------------------------------------------------------- |
-| **Orient on the task**          | CodeGraph `codegraph_context(task=<description>)`       |
-| **Understand a feature/concept**| Probe `probe search "how does X work"`                  |
+| **Orient on the task**          | CodeGraph `codegraph_context(task=<description>)` — already done in 1.3.1 |
+| **Deep understanding of code**  | CodeGraph `codegraph_search` → `codegraph_explore(query="<symbol names>")` |
+| **Understand a feature by intent** | Probe `probe search "how does X work"`               |
 | **Find symbols by name**        | CodeGraph `codegraph_search`                            |
 | **Extract code by symbol/line** | Probe `probe extract file.ts#symbol`                    |
 | **Project file structure**      | CodeGraph `codegraph_files`                             |
@@ -173,7 +194,9 @@ When adding tasks to an existing plan: load it, parse structure, verify compatib
 
 **Areas (in order):** Architecture → Similar Features → Dependencies → Tests
 
-**⛔ Dependency analysis (MANDATORY for 3+ file changes):** For every function you plan to modify, run `codegraph_callers` and `codegraph_callees` to map the call graph. Then run `codegraph_impact` to assess blast radius. Probe search is NOT sufficient — it finds text mentions, not actual call relationships.
+#### 1.3.4: Dependency analysis (MANDATORY for 3+ file changes)
+
+For every function you plan to modify: (1) `codegraph_callers` + `codegraph_callees` for the call graph, (2) `Grep` for the symbol name to catch callers the graph may miss, (3) `codegraph_impact` to assess blast radius. CodeGraph gives structure; Grep gives completeness — use both.
 
 For each area: document hypotheses, note full file paths, track unanswered questions. After exploration: read identified files to verify hypotheses, build complete mental model, identify integration points, note reusable patterns.
 
@@ -423,18 +446,18 @@ Launch Codex review NOW — it runs in parallel with the Claude reviewer above.
 
 1. Detect companion path, project root, and base branch:
 ```bash
-CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | head -1)
+CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | sort -V | tail -1)
 PROJECT_ROOT="${CLAUDE_PROJECT_ROOT:-$(pwd)}"
 # Use worktree base branch if in worktree, otherwise detect repo default branch
 BASE_BRANCH=$(~/.pilot/bin/pilot worktree status --json 2>/dev/null | grep -o '"base_branch":"[^"]*"' | cut -d'"' -f4)
 [ -z "$BASE_BRANCH" ] && BASE_BRANCH=$(cd "$PROJECT_ROOT" && git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||' || echo "main")
 ```
 
-2. Launch adversarial review in background from the project root. Include the plan's goal/summary as focus text so Codex knows what to challenge:
+2. Launch adversarial review in background from the project root. **⛔ Use synchronous Bash (NOT `run_in_background`)** — the companion's `--background` flag already makes it non-blocking and returns the job ID immediately to stdout:
 ```bash
 cd "$PROJECT_ROOT" && node "$CODEX_COMPANION" adversarial-review --background --base "$BASE_BRANCH" "Challenge this plan: <plan summary/goal>. Plan file: <plan-path>. Focus on: wrong assumptions, missing edge cases, scope gaps, and design choices that could fail under real-world conditions."
 ```
-Capture the job ID from stdout. **Do NOT wait** — proceed to collect whichever reviewer finishes first.
+Parse the job ID from stdout (format: `review-XXXXXXXX-YYYYYY`). **Do NOT wait** — proceed to collect whichever reviewer finishes first.
 
 #### Collect Review Results
 
@@ -459,7 +482,7 @@ Then Read the file once. If not READY after 5 min, re-launch synchronously.
 
 1. Wait for completion (this blocks until Codex finishes or times out — no sleep needed):
 ```bash
-node "$CODEX_COMPANION" status <jobId> --wait --timeout-ms 120000 --json
+node "$CODEX_COMPANION" status <jobId> --wait --timeout-ms 300000 --json
 ```
 
 2. **Handle status:**

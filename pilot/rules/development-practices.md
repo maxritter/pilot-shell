@@ -1,6 +1,6 @@
 ## Development Practices
 
-### Codebase Exploration — Probe + CodeGraph
+### Codebase Exploration — CodeGraph + Probe
 
 **⛔ STOP: Are you about to use Grep or Glob? Use CodeGraph or Probe FIRST.**
 
@@ -8,16 +8,35 @@ Grep and Glob are last-resort tools for exact text/regex patterns only. For ever
 
 **⛔ NEVER pass `projectPath` to CodeGraph tools when searching the current project.** Omit it — the MCP server already defaults to the right project. Passing it explicitly causes "not initialized" errors even when CodeGraph is working.
 
+#### CodeGraph-First Workflow
+
+**Every task starts with CodeGraph.** This is not optional — it's the single highest-value habit for efficient codebase work.
+
+```
+1. codegraph_context(task="<description>")     → Orient: entry points + related symbols
+2. codegraph_search(query="<symbol>")          → Find specific symbols by name
+3. codegraph_explore(query="<symbol names>")   → Deep dive: full source code sections in ONE call
+4. codegraph_callers/callees(symbol="<name>")  → Trace call flow before modifying
+5. codegraph_impact(symbol="<name>")           → Blast radius before committing to a change
+```
+
+**`codegraph_explore` is the most powerful tool** — one call returns full source code sections from all relevant files, grouped by file. It replaces dozens of Read/Grep calls. Use specific symbol names (from `codegraph_search`), not natural language. Budget: follow the limit in the tool description (scales by project size).
+
+**`codegraph_context` is the FIRST action for every task** — it returns entry points, related symbols, and code context. Works best when the task maps to actual code symbols (e.g., "license verification" finds auth.py). For conceptual/workflow queries that don't map to symbol names, supplement with Probe `probe search`.
+
+**`codegraph_callers` is essential but verify with Grep** — it finds most callers via the code graph but can miss some (especially indirect or dynamically-resolved calls). After running `codegraph_callers`, also `Grep` for the symbol name to catch anything the graph missed. Trust the graph for structure, verify with text search for completeness.
+
 #### Mandatory Checkpoints
 
 | Before you... | ⛔ STOP and use |
 |------|------|
+| **Start any new task** | `codegraph_context(task=<description>)` to orient — ALWAYS FIRST |
+| **Deeply understand a feature** | `codegraph_search` to find symbols → `codegraph_explore` with those symbol names |
 | **Search for a function/class/symbol** | `codegraph_search` (NOT Grep) |
-| **Start any new task** | `codegraph_context(task=<description>)` to orient |
-| **Modify a function** | `codegraph_callers` + `codegraph_callees` (NOT Grep for call sites) |
+| **Modify a function** | `codegraph_callers` + `codegraph_callees` THEN `Grep` for the symbol name (graph may miss some callers) |
 | **Plan a change** | `codegraph_impact` to check blast radius |
 | **Explore file structure** | `codegraph_files` (NOT Glob/ls) |
-| **Understand a feature** | Probe `probe search "how does auth work"` |
+| **Understand a feature by intent** | Probe `probe search "how does auth work"` |
 | **Extract code by symbol** | Probe `probe extract src/auth.ts#login` |
 | **Match AST patterns** | Probe `probe query "async function $NAME($$$)"` |
 | **Search exact text/regex** | Grep/Glob (the ONLY valid use case for these) |
@@ -26,7 +45,7 @@ Grep and Glob are last-resort tools for exact text/regex patterns only. For ever
 
 **File Size:** Aim for production files under 800 lines. Over 1000 lines is a signal to consider splitting — but only when it's the focus of the current task, not as a side-refactor. Test files exempt.
 
-**⛔ Dependency Check:** Before modifying any function, you MUST run `codegraph_callers` and `codegraph_callees`. This returns the actual call graph — not text mentions. Grep misses dynamic calls and catches false positives. Only fall back to Grep if CodeGraph is unavailable. Update all affected call sites.
+**⛔ Dependency Check:** Before modifying any function, you MUST run `codegraph_callers` and `codegraph_callees` for the call graph, THEN `Grep` for the symbol name to catch callers the graph may miss (especially indirect or dynamic calls). CodeGraph gives you structure; Grep gives you completeness. Use both. Update all affected call sites.
 
 **Self-Correction:** Fix obvious mistakes (syntax errors, typos, missing imports) in code you are actively writing. Do not auto-fix errors in code the user edited — report them and let the user decide.
 

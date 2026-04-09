@@ -145,15 +145,18 @@ Options: `waitUntil` (load/domcontentloaded/networkidle), `returnHtml`, `waitFor
 
 | Tool                | Purpose                                                    |
 | ------------------- | ---------------------------------------------------------- |
+| `codegraph_context` | **START HERE** — build relevant code context for a task    |
+| `codegraph_explore` | **Deep dive** — full source code from all relevant files in ONE call (replaces dozens of Read/Grep calls) |
 | `codegraph_search`  | Find symbols by name (functions, classes, types)           |
-| `codegraph_context` | Get relevant code context for a task description           |
 | `codegraph_callers` | Find all functions/methods that call a specific symbol     |
 | `codegraph_callees` | Find all functions/methods that a symbol calls             |
 | `codegraph_impact`  | Analyze blast radius of changing a symbol                  |
 | `codegraph_node`    | Get details and source code for a specific symbol          |
 | `codegraph_files`   | Get project file structure from the index                  |
 
-**Workflow:** `codegraph_search` to find symbol → `codegraph_callers`/`codegraph_callees` to trace flow → `codegraph_impact` before changes
+**Workflow:** `codegraph_context(task=...)` to orient → `codegraph_search` to find symbols → `codegraph_explore(query="SymbolA SymbolB file.ts")` for deep understanding → `codegraph_callers`/`codegraph_callees` to trace flow → `codegraph_impact` before changes
+
+**`codegraph_explore` tips:** Use specific symbol names and file names as query terms — NOT natural language. Run `codegraph_search` first to discover symbol names, then pass those names to `codegraph_explore`. Follow the call budget in the tool description.
 
 **⛔ NEVER pass `projectPath` when searching the current project.** The MCP server already defaults to the current project. Passing `projectPath` explicitly triggers a different code path that fails if `.codegraph/` isn't at that exact path. Only use `projectPath` for querying a genuinely different codebase.
 
@@ -168,12 +171,15 @@ codegraph_node(symbol="MyClass", includeCode=true)
 
 **Primary use cases (Probe can't do these):**
 
-- **`codegraph_callers`/`codegraph_callees`** — complete caller/callee graph. **⛔ MUST use before modifying any function.**
-- **`codegraph_impact`** — transitive blast radius analysis. **⛔ MUST use during planning to scope impact.**
 - **`codegraph_context`** — task-driven context retrieval. **⛔ MUST use at the start of every task to orient.**
+- **`codegraph_explore`** — deep dive with full source code. **⛔ Use for thorough understanding — one call replaces 10+ file reads.**
+- **`codegraph_callers`/`codegraph_callees`** — caller/callee graph (may miss some indirect callers — supplement with Grep). **⛔ MUST use before modifying any function.**
+- **`codegraph_impact`** — transitive blast radius analysis. **⛔ MUST use during planning to scope impact.**
 
 **⛔ CodeGraph replaces Grep/Glob for these — not "prefer", REPLACE:**
 
+- `codegraph_context` → task orientation (nothing else does this)
+- `codegraph_explore` → deep code understanding (NOT multiple Read calls)
 - `codegraph_search` → finding symbols (NOT Grep)
 - `codegraph_callers`/`codegraph_callees` → tracing code flow (NOT Grep)
 - `codegraph_impact` → pre-change analysis (nothing else does this)
@@ -194,9 +200,10 @@ codegraph_node(symbol="MyClass", includeCode=true)
 | **Codebase search**            | **Probe CLI** (`probe search`) | `cli-tools.md`                              |
 | Extract code block             | Probe CLI (`probe extract`)    | `cli-tools.md`                              |
 | AST pattern matching           | Probe CLI (`probe query`)      | `cli-tools.md`                              |
+| **Task orientation (FIRST)**   | CodeGraph                      | `codegraph_context`                         |
+| Deep code understanding        | CodeGraph                      | `codegraph_explore`                         |
 | Call tracing / impact analysis | CodeGraph                      | `codegraph_callers`, `codegraph_impact`     |
 | Symbol search                  | CodeGraph                      | `codegraph_search`                          |
-| Task context                   | CodeGraph                      | `codegraph_context`                         |
 | Past work / decisions          | mem-search                     | `search` → `timeline` → `get_observations` |
 | Library/framework docs         | context7                       | `resolve-library-id` → `query-docs`        |
 | Web search                     | web-search                     | `search`                                    |

@@ -43,28 +43,34 @@ BLOCKS: dict[str, dict[str, str]] = {
 }
 
 RESEARCH_BLOCK = (
-    "Research agent blocked: use Probe CLI, Grep/Glob, and CodeGraph directly",
+    "Research agent blocked: use CodeGraph + Probe CLI directly",
     "Research sub-agents are blocked. Use direct tools instead:\n"
-    "-> Probe: probe search \"query\" ./ --max-results 5 --max-tokens 2000\n"
-    "-> Grep/Glob: for exact pattern matching\n"
-    "-> Graph: codegraph_search/codegraph_callers/codegraph_callees/codegraph_impact",
+    "-> Orient: codegraph_context(task=\"...\") — ALWAYS start here\n"
+    "-> Deep dive: codegraph_search → codegraph_explore(query=\"SymbolA SymbolB\") — full source in one call\n"
+    "-> Trace: codegraph_callers/codegraph_callees/codegraph_impact\n"
+    "-> Intent search: probe search \"query\" ./ --max-results 5 --max-tokens 2000\n"
+    "-> Exact text: Grep/Glob (last resort)",
 )
 
 EXPLORE_BLOCK = (
-    "Explore-description agent blocked: use Probe CLI + CodeGraph directly",
-    "Agent with Explore description is blocked. Use Probe CLI for intent-based search and "
-    "CodeGraph for structural analysis instead.\n"
-    "-> Probe: probe search \"query\" ./ --max-results 5 --max-tokens 2000\n"
-    "-> Graph: codegraph_search/codegraph_callers/codegraph_callees/codegraph_impact/codegraph_context",
+    "Explore-description agent blocked: use CodeGraph + Probe CLI directly",
+    "Agent with Explore description is blocked. Use CodeGraph for structural analysis and "
+    "Probe CLI for intent-based search instead.\n"
+    "-> Orient: codegraph_context(task=\"...\") — ALWAYS start here\n"
+    "-> Deep dive: codegraph_search → codegraph_explore(query=\"SymbolA SymbolB\") — full source in one call\n"
+    "-> Trace: codegraph_callers/codegraph_callees/codegraph_impact\n"
+    "-> Intent search: probe search \"query\" ./ --max-results 5 --max-tokens 2000",
 )
 
 BLOCKED_AGENT_REASONS: dict[str, tuple[str, str]] = {
     "Explore": (
-        "Explore agent blocked: use Probe CLI + CodeGraph",
-        "The Explore agent is blocked. Use Probe CLI for intent-based search and "
-        "CodeGraph for structural analysis instead.\n"
-        "-> Probe: probe search \"query\" ./ --max-results 5 --max-tokens 2000\n"
-        "-> Graph: codegraph_search/codegraph_callers/codegraph_callees/codegraph_impact/codegraph_context",
+        "Explore agent blocked: use CodeGraph + Probe CLI",
+        "The Explore agent is blocked. Use CodeGraph for structural analysis and "
+        "Probe CLI for intent-based search instead.\n"
+        "-> Orient: codegraph_context(task=\"...\") — ALWAYS start here\n"
+        "-> Deep dive: codegraph_search → codegraph_explore(query=\"SymbolA SymbolB\") — full source in one call\n"
+        "-> Trace: codegraph_callers/codegraph_callees/codegraph_impact\n"
+        "-> Intent search: probe search \"query\" ./ --max-results 5 --max-tokens 2000",
     ),
     "Plan": (
         "Plan agent blocked: use /spec for structured planning",

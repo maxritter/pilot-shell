@@ -11,15 +11,16 @@ When you need to analyze, count, filter, compare, search, parse, transform, or p
 ### curl / wget — BLOCKED
 Any Bash command containing `curl` or `wget` is intercepted and replaced with an error. Do NOT retry.
 Instead use:
-- `ctx_fetch_and_index(url, source)` to fetch and index web pages
-- `ctx_execute(language: "javascript", code: "const r = await fetch(...)")` to run HTTP calls in sandbox
+- Web search MCP: `ToolSearch(query="+web-search search")` then call `mcp__plugin_pilot_web-search__search`
+- Web fetch MCP: `ToolSearch(query="+web-fetch fetch")` then call `mcp__plugin_pilot_web-fetch__fetch_url`
+- `ctx_execute(language: "javascript", code: "const r = await fetch(...)")` for API calls in sandbox
 
 ### Inline HTTP — BLOCKED
 Any Bash command containing `fetch('http`, `requests.get(`, `http.get(` is intercepted. Do NOT retry with Bash.
 Instead use `ctx_execute(language, code)` to run HTTP calls in sandbox.
 
 ### WebFetch — BLOCKED
-WebFetch calls are denied entirely. Use `ctx_fetch_and_index(url, source)` then `ctx_search(queries)`.
+WebFetch calls are denied entirely. Use web-fetch MCP: `ToolSearch(query="+web-fetch fetch")` then call `mcp__plugin_pilot_web-fetch__fetch_url(url="...")`.
 
 ## REDIRECTED Tools
 
@@ -41,7 +42,7 @@ Grep results can flood context. Use `ctx_execute(language: "shell", code: "grep 
 1. **GATHER**: `ctx_batch_execute(commands, queries)` — Primary tool. Runs all commands, auto-indexes output, returns search results. ONE call replaces 30+ individual calls.
 2. **FOLLOW-UP**: `ctx_search(queries: ["q1", "q2", ...])` — Query indexed content. Pass ALL questions as array in ONE call.
 3. **PROCESSING**: `ctx_execute(language, code)` | `ctx_execute_file(path, language, code)` — Sandbox execution. Only stdout enters context.
-4. **WEB**: `ctx_fetch_and_index(url, source)` then `ctx_search(queries)` — Fetch, chunk, index, query.
+4. **WEB**: Use dedicated MCP servers — `web-search` for searching, `web-fetch` for fetching pages. NOT context-mode.
 5. **INDEX**: `ctx_index(content, source)` — Store content in FTS5 knowledge base for later search.
 
 ## Decision Tree
@@ -56,7 +57,7 @@ About to run a command / read a file / call an API?
 │   └── Use ctx_execute or ctx_execute_file
 │
 ├── Fetching web documentation or HTML page?
-│   └── Use ctx_fetch_and_index → ctx_search
+│   └── Use web-fetch MCP (fetch_url) or web-search MCP (search)
 │
 ├── Processing output from another MCP tool?
 │   ├── Output already in context? → use it directly

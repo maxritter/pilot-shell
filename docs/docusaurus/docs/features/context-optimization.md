@@ -29,7 +29,6 @@ The biggest single source of context savings. When a command would dump 50KB+ of
 1. **`ctx_batch_execute`** — Run multiple commands + search in one call. Replaces 30+ individual tool calls.
 2. **`ctx_search`** — Query indexed content. Pass all questions as an array in one call.
 3. **`ctx_execute` / `ctx_execute_file`** — Run code in sandbox (JS, Python, shell). Only stdout enters context.
-4. **`ctx_fetch_and_index`** — Fetch and index web pages. Raw HTML never enters context.
 
 PreToolUse hooks automatically guide Claude toward these tools when it attempts commands that would produce large output. Session continuity hooks (PostToolUse, PreCompact, SessionStart) track 13 event categories across compactions so context-mode can restore session awareness after auto-compaction.
 
