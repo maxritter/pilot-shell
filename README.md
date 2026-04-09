@@ -137,12 +137,12 @@ Each view with project-specific data has an inline **Project Filter** dropdown �
 
 | View              | What it shows                                                                                                                                |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Dashboard**     | Global command center — 8 clickable stat cards (Projects, Sessions, Active, Memories, Extensions, Requirements, Specifications, Changes), recent specifications, and recent memories. Active specs shown as pills in the top bar. |
+| **Dashboard**     | Global command center — 8 clickable stat cards, 4 recent cards (Specifications, Requirements, Sessions, Memories) with "Show all" links. Active specs as pills in the top bar, notification bell in top right. |
 | **Sessions**      | Browse past sessions with search. Copy the session ID and use `/resume <session-id>` in Claude Code to jump back into any session.           |
 | **Memories**      | Browsable observations — decisions, discoveries, bugfixes — with type filters and search. Each memory shows its session — click to navigate. |
-| **Extensions**    | All extensions — local, plugin, and remote — with team sharing via git, diff view, push/pull, and color-coded categories.                    |
-| **Requirements**  | PRD documents with view/annotate modes. Latest shown as a tab, older ones in a Previous dropdown.                                           |
+| **Requirements**  | PRD documents with view/annotate modes. Selected shown as a tab, others in a Previous dropdown.                                             |
 | **Specifications** | All spec plans with task progress, phase tracking, and iteration history. **Annotate mode** lets you mark up plans visually before approving — select text or click **+** on any block to write a note. **Share with Teammate** generates a compressed share link; **Receive Feedback** imports their annotations with accept/reject controls |
+| **Extensions**    | All extensions — local, plugin, and remote — with team sharing via git, diff view, push/pull, and color-coded categories.                    |
 | **Changes**       | Git diff viewer with staged/unstaged files, branch info, and worktree context. **Review mode** adds inline annotations on diff lines — the agent reads them directly before marking a spec as verified |
 | **Usage**         | Daily token costs, model routing breakdown, and usage trends                                                                                 |
 | **Help**          | Documentation, guides, and quick-start resources                                                                                             |

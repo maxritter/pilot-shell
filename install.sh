@@ -488,7 +488,11 @@ if [ "$RESTART_PILOT" = true ]; then
 	PILOT_BIN="$HOME/.pilot/bin/pilot"
 	if [ -x "$PILOT_BIN" ]; then
 		echo ""
-		echo "  Restarting Pilot Shell..."
+		if [ "${PILOT_RESTART_BOT_MODE:-}" = "1" ]; then
+			echo "  Restarting Pilot Bot..."
+		else
+			echo "  Restarting Pilot Shell..."
+		fi
 		echo ""
 		exec "$PILOT_BIN" --skip-update-check
 	fi

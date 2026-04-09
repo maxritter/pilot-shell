@@ -22,7 +22,7 @@ const HeroSection = () => {
             From requirement to production-grade code — planned, tested, verified.
           </p>
           <p className="text-muted-foreground/70 text-[10px] xs:text-xs sm:text-sm md:text-base max-w-[90%] xs:max-w-xl sm:max-w-2xl mx-auto mt-1.5 leading-relaxed">
-            Spec-driven plans. Enforced quality gates. 24/7 automation agent.
+            Spec-driven plans. Enforced quality gates. Persistent knowledge.
           </p>
         </div>
 

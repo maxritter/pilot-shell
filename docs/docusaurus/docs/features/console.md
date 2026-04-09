@@ -20,13 +20,13 @@ Each view that supports project filtering has an inline **Project Filter** dropd
 
 | View | Description |
 |------|-------------|
-| **Dashboard** | Global command center — 8 clickable stat cards (Projects, Sessions, Active, Memories, Extensions, Requirements, Specifications, Changes), recent specifications, and recent memories. Active specs shown as pills in the top bar. |
+| **Dashboard** | Global command center — 8 clickable stat cards (Projects, Sessions, Active, Memories, Extensions, Requirements, Specifications, Changes), plus 4 recent cards (Specifications, Requirements, Sessions, Memories) with "Show all" links. Active specs shown as pills in the top bar, notification bell in the top right. |
 | **Sessions** | Browse past sessions with search. Copy the session ID and use `/resume <session-id>` to jump back in. |
 | **Memories** | Browsable observations — decisions, discoveries, bugfixes — with type filters and search. Each memory shows which session it belongs to — click the session label to navigate directly to it. |
+| **Requirements** | PRD documents with view/annotate modes. Selected shown as a tab, others in a Previous dropdown. |
+| **Specifications** | All spec plans with task progress (checkboxes), phase tracking (PENDING/COMPLETE/VERIFIED), and iteration history. Selected shown as a tab, others in a Previous dropdown. |
 | **Extensions** | All extensions — local, plugin, and remote — with team sharing via git (push, pull, diff), color-coded categories, and scope filtering. |
-| **Requirements** | PRD documents with view/annotate modes. Latest shown as a tab, older ones in a Previous dropdown. |
-| **Specifications** | All spec plans with task progress (checkboxes), phase tracking (PENDING/COMPLETE/VERIFIED), and iteration history. |
-| **Changes** | Git diff viewer with staged/unstaged files, branch info, worktree context, and inline code review. |
+| **Changes** | Git diff viewer with staged/unstaged files, branch info, worktree context, spec task correlation, and inline code review. |
 | **Usage** | Daily token costs, model routing breakdown (Opus vs Sonnet distribution), and usage trends over time. |
 | **Help** | Embedded documentation from pilot-shell.com — full technical reference without leaving the Console. |
 | **Settings** | Model selection per command and sub-agent. Spec workflow toggles. Reviewer toggles and optional Codex adversarial reviewers. Extended context (1M) toggle with pricing info. |
@@ -64,6 +64,19 @@ In Review mode, a **+** button appears on hover for every diff line. Click it to
 The agent reads your code review annotations directly from the Console before marking the spec as verified. Say "fix" to have it address your annotations, or "approve" to mark the spec as verified.
 
 Annotations persist across page reloads, so you can review asynchronously while the agent runs verification in the background.
+
+### Spec Task Correlation
+
+When a `/spec` task is active (PENDING or COMPLETE), the Changes tab automatically correlates each changed file with the spec task that touched it. This gives you instant traceability — if something looks wrong in a diff, you know exactly which task in the spec caused the change.
+
+**How it works:**
+
+- Each file in the file list shows a **T{N}** badge (e.g., `T1`, `T3`) linking it to the corresponding spec task
+- Hover over the badge to see the full task name
+- Click the **Spec** button in the file list header to switch to **group-by-spec** view — files are organized by spec name and task number, so you can review changes task by task
+- Correlation is parsed from the `**Files:**` section in each spec task, so it works automatically with any spec that follows the standard format
+
+This is especially useful when reviewing multi-task specs: instead of scrolling through a flat list of changed files, group by spec to see exactly which files belong to each task and review them in context.
 
 ### Spec Sharing
 

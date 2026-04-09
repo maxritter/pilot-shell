@@ -71,7 +71,7 @@ Investigation-first flow for targeted fixes. Finds the root cause before touchin
 - Bugfixes: regression test + full suite — no sub-agents needed
 - For UI features: executes the plan's **E2E test scenarios** step-by-step via browser automation (Claude Code Chrome → playwright-cli → agent-browser) — tracks pass/fail per scenario, auto-fixes failures (up to 2 attempts), escalates persistent failures to known issues; results written back to the plan file
 - Auto-fixes findings, loops back until all checks pass
-- After automated checks pass, prompts you to **review code changes** in the Console's Changes tab — enable Review mode, add inline annotations on any diff line (they save automatically), and the agent addresses them before marking the spec as verified
+- After automated checks pass, prompts you to **review code changes** in the Console's Changes tab — each file shows a **T{N}** badge linking it to the spec task that changed it, and you can click **Spec** to group files by task for focused review. Enable Review mode to add inline annotations on any diff line (they save automatically), and the agent addresses them before marking the spec as verified
 
 ## Configurable Toggles
 

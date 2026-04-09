@@ -6,8 +6,8 @@ const consoleSlides = [
   {
     label: "Dashboard",
     src: "/console/dashboard.png",
-    alt: "Console Dashboard — clickable stats, recent specifications, recent memories",
-    desc: "Global command center with clickable stats (Memory, Sessions, Specifications, Requirements, Extensions), recent specifications, and recent memories. Active specs shown as pills in the top bar.",
+    alt: "Console Dashboard — stats, recent specifications, sessions, requirements, memories",
+    desc: "Global command center with 8 clickable stat cards and 4 recent cards (Specifications, Requirements, Sessions, Memories) with quick navigation. Active specs as pills in the top bar, notification bell in top right.",
   },
   {
     label: "Sessions",
