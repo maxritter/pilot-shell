@@ -284,8 +284,12 @@ def initialize_codegraph(project_dir: Path) -> bool:
 
     Streams output so users see indexing progress.
     Skips indexing if already up to date.
+    Only indexes actual git repositories to avoid scanning unrelated files.
     """
     if not command_exists("codegraph"):
+        return False
+
+    if not (project_dir / ".git").exists():
         return False
 
     codegraph_dir = project_dir / ".codegraph"
@@ -309,8 +313,11 @@ def codegraph_needs_work(project_dir: Path) -> bool:
 
     Returns False (no work) when .codegraph/ exists and index is up to date.
     Used by the installer to decide whether to show progress messages.
+    Only applies to git repositories.
     """
     if not command_exists("codegraph"):
+        return False
+    if not (project_dir / ".git").exists():
         return False
     codegraph_dir = project_dir / ".codegraph"
     if not codegraph_dir.exists():

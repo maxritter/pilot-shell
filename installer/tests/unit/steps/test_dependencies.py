@@ -330,6 +330,7 @@ class TestInitializeCodegraph:
         """Skips index and just syncs when already indexed."""
         from installer.steps.dependencies import initialize_codegraph
 
+        (tmp_path / ".git").mkdir()
         codegraph_dir = tmp_path / ".codegraph"
         codegraph_dir.mkdir()
         (codegraph_dir / "config.json").write_text(json.dumps({"enableEmbeddings": True}))
@@ -358,6 +359,7 @@ class TestInitializeCodegraph:
         """Runs init, enables embeddings, index, sync in sequence."""
         from installer.steps.dependencies import initialize_codegraph
 
+        (tmp_path / ".git").mkdir()
         codegraph_dir = tmp_path / ".codegraph"
 
         def fake_bash(command: str, cwd: Path | None = None, timeout: int = 120, stream: bool = False) -> bool:
@@ -386,6 +388,7 @@ class TestInitializeCodegraph:
         """Index is called with stream=True for visible progress."""
         from installer.steps.dependencies import initialize_codegraph
 
+        (tmp_path / ".git").mkdir()
         codegraph_dir = tmp_path / ".codegraph"
         codegraph_dir.mkdir()
         (codegraph_dir / "config.json").write_text(json.dumps({"enableEmbeddings": True}))
@@ -400,11 +403,21 @@ class TestInitializeCodegraph:
         )
 
     @patch("installer.steps.dependencies.command_exists", return_value=True)
+    def test_returns_false_when_not_git_repo(self, _mock_cmd, tmp_path: Path):
+        """Returns False when directory is not a git repository."""
+        from installer.steps.dependencies import initialize_codegraph
+
+        result = initialize_codegraph(tmp_path)
+
+        assert result is False
+
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
     @patch("installer.steps.dependencies._is_codegraph_indexed", return_value=False)
     def test_returns_false_when_init_fails(self, _mock_indexed, _mock_cmd, tmp_path: Path):
         """Returns False when codegraph init fails."""
         from installer.steps.dependencies import initialize_codegraph
 
+        (tmp_path / ".git").mkdir()
         with patch("installer.steps.dependencies._run_bash_with_retry", return_value=False):
             result = initialize_codegraph(tmp_path)
 
@@ -416,6 +429,7 @@ class TestInitializeCodegraph:
         """Returns False when codegraph index fails."""
         from installer.steps.dependencies import initialize_codegraph
 
+        (tmp_path / ".git").mkdir()
         codegraph_dir = tmp_path / ".codegraph"
 
         def fake_bash(command: str, cwd: Path | None = None, timeout: int = 120, stream: bool = False) -> bool:
