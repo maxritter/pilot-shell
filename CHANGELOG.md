@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.0.6] - 2026-04-09
+
+### Bug Fixes
+
+- Walk up directory tree for git repo detection in CodeGraph guard
+
 ## [8.0.5] - 2026-04-09
 
 ### Bug Fixes
