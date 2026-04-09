@@ -2,6 +2,13 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.0.4] - 2026-04-09
+
+### Bug Fixes
+
+- Improved PRD and Spec Sharing / Annotation UI on pilot-shell.com
+- Improved Dependency Installation Speed for Installer and Updater
+
 ## [8.0.3] - 2026-04-09
 
 ### Bug Fixes
