@@ -77,9 +77,9 @@ class TestProcessSettings:
         """process_settings preserves all language hooks without filtering."""
         from installer.steps.claude_files import process_settings
 
-        python_hook = "uv run python ~/.claude/pilot/hooks/file_checker_python.py"
-        ts_hook = "uv run python ~/.claude/pilot/hooks/file_checker_ts.py"
-        go_hook = "uv run python ~/.claude/pilot/hooks/file_checker_go.py"
+        python_hook = "uv run --no-project python ~/.claude/pilot/hooks/file_checker_python.py"
+        ts_hook = "uv run --no-project python ~/.claude/pilot/hooks/file_checker_ts.py"
+        go_hook = "uv run --no-project python ~/.claude/pilot/hooks/file_checker_go.py"
         settings = {
             "hooks": {
                 "PostToolUse": [

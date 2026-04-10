@@ -320,6 +320,28 @@ class TestInstallCodegraph:
 
         assert result is False
 
+    def test_install_better_sqlite3_runs_global_npm_install(self):
+        """install_better_sqlite3 does a global npm install so Node's resolver finds it."""
+        from installer.steps.dependencies import install_better_sqlite3
+
+        with patch("installer.steps.dependencies._run_bash_with_retry", return_value=True) as mock_bash:
+            result = install_better_sqlite3()
+
+        assert result is True
+        mock_bash.assert_called_once()
+        call_args = str(mock_bash.call_args)
+        assert "better-sqlite3" in call_args
+        assert "-g" in call_args
+
+    def test_install_better_sqlite3_returns_false_on_failure(self):
+        """install_better_sqlite3 returns False when npm install fails."""
+        from installer.steps.dependencies import install_better_sqlite3
+
+        with patch("installer.steps.dependencies._run_bash_with_retry", return_value=False):
+            result = install_better_sqlite3()
+
+        assert result is False
+
 
 class TestInitializeCodegraph:
     """Tests for initialize_codegraph() — init, enable embeddings, index, sync."""

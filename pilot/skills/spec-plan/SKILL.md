@@ -7,7 +7,7 @@ effort: high
 model: opus
 hooks:
   Stop:
-    - command: uv run python "${CLAUDE_PLUGIN_ROOT}/hooks/spec_plan_validator.py"
+    - command: uv run --no-project python "${CLAUDE_PLUGIN_ROOT}/hooks/spec_plan_validator.py"
 ---
 
 # /spec-plan - Planning Phase
@@ -511,7 +511,7 @@ node "$CODEX_COMPANION" result <jobId> --json
 3. **If `FEEDBACK_EXISTS`:**
    - Each annotation in `planAnnotations` has `originalText` (selected text) and `text` (user's note)
    - Incorporate ALL annotations into the plan: treat each annotation's `text` as the user's instruction for that passage
-   - After incorporating: clear plan annotations via API: `curl -s -X DELETE "http://localhost:41777/api/annotations/plan?path=<encoded-plan-path>" > /dev/null 2>&1 || true`
+   - After incorporating: delete the annotation file: `rm -f "<annotation-file-path>"` (e.g. `rm -f "docs/plans/.annotations/2026-03-26-my-feature.json"`). Direct file deletion is used instead of the DELETE API because curl is blocked in several hook environments.
    - Note: "Incorporated user annotations from Console — [N changes]"
    - Proceed to Step 1.8 with the updated plan
 

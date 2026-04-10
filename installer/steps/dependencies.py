@@ -253,6 +253,29 @@ def install_codegraph() -> bool:
     return True
 
 
+def install_better_sqlite3() -> bool:
+    """Install native better-sqlite3 globally so CodeGraph can find it.
+
+    CodeGraph declares `better-sqlite3` as an `optionalDependencies`. npm
+    silently skips optional deps in several real-world scenarios (`--force`
+    global installs on some npm versions, `.npmrc` with `optional=false`,
+    prebuild-install network failures, platform/arch mismatches). When the
+    native module is missing, CodeGraph falls back to a WASM SQLite backend
+    that has known issues producing `SQLITE_CANTOPEN: unable to open database
+    file` on certain filesystems — users see this as "codegraph can't index
+    anything".
+
+    Installing better-sqlite3 at the GLOBAL npm root works because Node's
+    module resolver walks up from CodeGraph's package directory — eventually
+    hitting the global node_modules dir and finding better-sqlite3 as a
+    sibling of @colbymchenry/codegraph. No nested install, no tree walking.
+    """
+    return _run_bash_with_retry(
+        npm_global_cmd("npm install -g better-sqlite3 --no-audit --no-fund"),
+        timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
+    )
+
+
 def _is_codegraph_indexed(project_dir: Path) -> bool:
     """Check if codegraph has already been indexed.
 
@@ -985,6 +1008,7 @@ class DependenciesStep(BaseStep):
                 _InstallTask("Probe (code search)", "probe", install_probe),
                 _InstallTask("RTK (token optimizer)", "rtk", install_rtk),
                 _InstallTask("CodeGraph (code intelligence)", "codegraph", install_codegraph),
+                _InstallTask("better-sqlite3 (CodeGraph native backend)", "better_sqlite3", install_better_sqlite3),
                 _InstallTask("context-mode plugin", "context_mode_plugin", install_context_mode_plugin),
                 _InstallTask("Codex plugin", "codex_plugin", install_codex_plugin),
             ]

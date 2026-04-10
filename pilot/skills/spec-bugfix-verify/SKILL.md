@@ -7,7 +7,7 @@ effort: high
 model: sonnet
 hooks:
   Stop:
-    - command: uv run python "${CLAUDE_PLUGIN_ROOT}/hooks/spec_verify_validator.py"
+    - command: uv run --no-project python "${CLAUDE_PLUGIN_ROOT}/hooks/spec_verify_validator.py"
 ---
 
 # /spec-bugfix-verify - Bugfix Verification Phase
@@ -122,7 +122,7 @@ Derive the annotation file path: `docs/plans/.annotations/<plan-filename>.json` 
 
 Read the annotation file with the Read tool. If the file doesn't exist, treat as `NO_FEEDBACK`. If it exists, check whether `codeReviewAnnotations` has any entries (`FEEDBACK_EXISTS`) or is empty/missing (`NO_FEEDBACK`).
 
-**If `FEEDBACK_EXISTS`:** Each annotation in `codeReviewAnnotations` has `filePath`, `lineStart`, `text`. Fix all issues, clear annotations via `curl -s -X DELETE "http://localhost:41777/api/annotations/code-review?path=<encoded-plan-path>" > /dev/null 2>&1 || true`, re-run tests, continue to Step 3.8.
+**If `FEEDBACK_EXISTS`:** Each annotation in `codeReviewAnnotations` has `filePath`, `lineStart`, `text`. Fix all issues, delete the annotation file via `rm -f "<annotation-file-path>"` (e.g. `rm -f "docs/plans/.annotations/2026-03-26-my-bug.json"`), re-run tests, continue to Step 3.8.
 **If `NO_FEEDBACK`:** continue to Step 3.8.
 
 ### Step 3.8: Code Review Gate (User Confirmation)

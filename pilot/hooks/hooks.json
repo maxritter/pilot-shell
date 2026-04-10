@@ -23,7 +23,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/session_clear.py\"",
+            "command": "uv run --no-project python \"${CLAUDE_PLUGIN_ROOT}/hooks/session_clear.py\"",
             "timeout": 5
           }
         ]
@@ -33,7 +33,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/post_compact_restore.py\"",
+            "command": "uv run --no-project python \"${CLAUDE_PLUGIN_ROOT}/hooks/post_compact_restore.py\"",
             "timeout": 5
           }
         ]
@@ -44,7 +44,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/spec_mode_guard.py\""
+            "command": "uv run --no-project python \"${CLAUDE_PLUGIN_ROOT}/hooks/spec_mode_guard.py\""
           }
         ]
       },
@@ -65,7 +65,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/tool_redirect.py\""
+            "command": "uv run --no-project python \"${CLAUDE_PLUGIN_ROOT}/hooks/tool_redirect.py\""
           }
         ]
       },
@@ -74,7 +74,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/tool_token_saver.py\""
+            "command": "uv run --no-project python \"${CLAUDE_PLUGIN_ROOT}/hooks/tool_token_saver.py\""
           }
         ]
       }
@@ -85,7 +85,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/file_checker.py\""
+            "command": "uv run --no-project python \"${CLAUDE_PLUGIN_ROOT}/hooks/file_checker.py\""
           }
         ]
       },
@@ -94,7 +94,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/context_monitor.py\""
+            "command": "uv run --no-project python \"${CLAUDE_PLUGIN_ROOT}/hooks/context_monitor.py\""
           }
         ]
       },
@@ -115,7 +115,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/spec_stop_guard.py\""
+            "command": "uv run --no-project python \"${CLAUDE_PLUGIN_ROOT}/hooks/spec_stop_guard.py\""
           },
           {
             "type": "command",
@@ -131,7 +131,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/session_end.py\"",
+            "command": "uv run --no-project python \"${CLAUDE_PLUGIN_ROOT}/hooks/session_end.py\"",
             "timeout": 15
           }
         ]
@@ -142,7 +142,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/pre_compact.py\"",
+            "command": "uv run --no-project python \"${CLAUDE_PLUGIN_ROOT}/hooks/pre_compact.py\"",
             "timeout": 15
           }
         ]

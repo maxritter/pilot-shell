@@ -7,7 +7,7 @@ effort: high
 model: opus
 hooks:
   Stop:
-    - command: uv run python "${CLAUDE_PLUGIN_ROOT}/hooks/spec_plan_validator.py"
+    - command: uv run --no-project python "${CLAUDE_PLUGIN_ROOT}/hooks/spec_plan_validator.py"
 ---
 
 # /spec-bugfix-plan - Bugfix Planning Phase
@@ -319,7 +319,7 @@ Type: Bugfix
 
 1. Derive annotation file: `docs/plans/.annotations/<plan-filename>.json`
 2. Read the annotation file with the Read tool. If the file doesn't exist, treat as `NO_FEEDBACK`. If it exists, check whether `planAnnotations` has any entries (`FEEDBACK_EXISTS`) or is empty/missing (`NO_FEEDBACK`).
-3. **If `FEEDBACK_EXISTS`:** Each annotation in `planAnnotations` has `originalText` (selected passage) and `text` (user's note). Incorporate into plan, clear annotations via `curl -s -X DELETE "http://localhost:41777/api/annotations/plan?path=<encoded-plan-path>" > /dev/null 2>&1 || true`, note changes. Proceed to Step 1.5.
+3. **If `FEEDBACK_EXISTS`:** Each annotation in `planAnnotations` has `originalText` (selected passage) and `text` (user's note). Incorporate into plan, delete the annotation file via `rm -f "<annotation-file-path>"` (e.g. `rm -f "docs/plans/.annotations/2026-03-26-my-bug.json"`), note changes. Proceed to Step 1.5.
 4. **If `NO_FEEDBACK`:** proceed directly to Step 1.5.
 
 ## Step 1.4c: Codex Adversarial Review (Optional)

@@ -7,7 +7,7 @@ effort: high
 model: sonnet
 hooks:
   Stop:
-    - command: uv run python "${CLAUDE_PLUGIN_ROOT}/hooks/spec_verify_validator.py"
+    - command: uv run --no-project python "${CLAUDE_PLUGIN_ROOT}/hooks/spec_verify_validator.py"
 ---
 
 # /spec-verify - Verification Phase
@@ -459,7 +459,7 @@ Read the annotation file with the Read tool. If the file doesn't exist, treat as
 **If `FEEDBACK_EXISTS`:**
 1. Each annotation in `codeReviewAnnotations` has `filePath`, `lineStart`, `lineEnd`, `side`, and `text` (user's annotation)
 2. Fix all issues raised (each annotation = a required fix at the indicated file/line)
-3. Clear code review annotations: `curl -s -X DELETE "http://localhost:41777/api/annotations/code-review?path=<encoded-plan-path>" > /dev/null 2>&1 || true`
+3. Delete the annotation file: `rm -f "<annotation-file-path>"` (e.g. `rm -f "docs/plans/.annotations/2026-03-26-my-feature.json"`). By this phase, plan annotations were already consumed by `spec-plan`, so deleting the whole file is safe. Direct deletion avoids curl which is blocked in several hook environments.
 4. Re-run tests and typecheck
 5. Continue to Step 3.13
 
