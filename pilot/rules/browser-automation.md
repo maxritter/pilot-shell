@@ -33,7 +33,7 @@ Each tool has a distinct strength. **Quality and reliability are the priority** 
 
 ```
 ⚠️ Neither Claude Code Chrome nor agent-browser is available.
-Install the Chrome extension or run the Pilot Shell installer.
+Install the Claude Chrome extension or run the Pilot Shell installer.
 Falling back to playwright-cli.
 ```
 

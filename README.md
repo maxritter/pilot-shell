@@ -67,7 +67,7 @@ Run `pilot` for Spec-Driven Development with `/spec`, or `pilot bot` for 24/7 au
 
 **Terminal (Recommended):** [cmux](https://cmux.com) works great with Pilot Shell — its vertical tab layout lets you run multiple sessions side by side. Any modern terminal works: [Ghostty](https://ghostty.org/), [iTerm2](https://iterm2.com/), or the built-in macOS/Linux terminal.
 
-**Chrome Extension (Recommended):** Install the [Claude Code Chrome extension](https://code.claude.com/docs/en/chrome) for browser automation and E2E testing. Pilot automatically detects it and uses it as the preferred tool. When Chrome isn't available, Pilot falls back to [playwright-cli](https://github.com/microsoft/playwright-cli) (reliable element targeting, persistent sessions, tracing) or [agent-browser](https://agent-browser.dev/) (lightweight, fast startup).
+**Claude Chrome (Recommended):** Install the [Claude Code Chrome extension](https://code.claude.com/docs/en/chrome) for browser automation and E2E testing. Pilot automatically detects it and uses it as the preferred tool. When Chrome isn't available, Pilot falls back to [playwright-cli](https://github.com/microsoft/playwright-cli) (reliable element targeting, persistent sessions, tracing) or [agent-browser](https://agent-browser.dev/) (lightweight, fast startup).
 
 **Codex Plugin (Included):** The [Codex plugin](https://github.com/openai/codex-plugin-cc) is installed automatically with Pilot. It provides adversarial code review powered by OpenAI Codex — an independent second opinion during `/spec` planning and verification. Run `/codex:setup` once to authenticate, then enable reviewers in Console Settings → Reviewers. A [ChatGPT Plus](https://chatgpt.com/#pricing) subscription ($20/mo) covers the Codex API usage.
 

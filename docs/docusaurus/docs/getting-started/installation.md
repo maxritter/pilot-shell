@@ -30,7 +30,7 @@ Run from any directory — it installs globally to `~/.pilot/` and `~/.claude/`.
 | 6 | VS Code extensions | Installs recommended extensions for your language stack |
 | 7 | Finalize | Success message with next steps |
 
-## Chrome Extension (Recommended)
+## Claude Chrome (Recommended)
 
 For the best browser automation and E2E testing experience, install the [Claude Code Chrome extension](https://code.claude.com/docs/en/chrome). It provides richer visual context and direct access to your existing browser sessions.
 

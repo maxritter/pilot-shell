@@ -100,12 +100,14 @@ class FinalizeStep(BaseStep):
                 cmd_str = " or ".join(reload_cmds)
                 getting_started.append(("🔄 Reload shell", f"{cmd_str} (or restart terminal)"))
 
-        getting_started.extend([
-            ("Launch Pilot Shell", "Run 'pilot' in your project folder instead of 'claude'"),
-            ("Pilot Shell Console", "Open the UI in your browser at: http://localhost:41777"),
-            ("Pilot Bot", "Run 'pilot bot' for 24/7 automation with scheduled tasks"),
-            ("Chrome Extension", "Install and enable for better browser automation"),
-        ])
+        getting_started.extend(
+            [
+                ("Launch Pilot Shell", "Run 'pilot' in your project folder instead of 'claude'"),
+                ("Pilot Shell Console", "Open the UI in your browser at: http://localhost:41777"),
+                ("Pilot Bot", "Run 'pilot bot' for 24/7 automation with scheduled tasks"),
+                ("Claude Chrome", "Install and enable for better browser automation"),
+            ]
+        )
 
         workflows: list[tuple[str, str]] = [
             ("/setup-rules", "Create modular and concise rules for your project codebase"),
@@ -114,10 +116,12 @@ class FinalizeStep(BaseStep):
             ("/spec", "Plan, implement & verify features and bug fixes (replaces CC plan mode)"),
         ]
 
-        ui.next_steps([
-            ("Getting Started", getting_started),
-            ("Workflows", workflows),
-        ])
+        ui.next_steps(
+            [
+                ("Getting Started", getting_started),
+                ("Workflows", workflows),
+            ]
+        )
 
         if not ui.quiet:
             ui.rule()
