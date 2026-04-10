@@ -342,8 +342,6 @@ pilot bot    # Launch automation session (auto-initializes on first run)
 
 Pilot Bot defines scheduled jobs, automates recurring tasks, and monitor system health around the clock. If the [Telegram Channels plugin](https://github.com/anthropics/claude-plugins-official/tree/main/external_plugins/telegram) is installed, the bot auto-detects it and enables bidirectional messaging. Similar to OpenClaw, but without the added complexity and costs.
 
-<img src="docs/img/bot.png" alt="Pilot Bot" width="700">
-
 <details>
 <summary><b>Bot skills</b></summary>
 
