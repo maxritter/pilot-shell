@@ -2,6 +2,15 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.0.7] - 2026-04-10
+
+### Bug Fixes
+
+- Restore dom globals after terminal-preview-xss test to prevent portal ssr leak
+- Stop incomplete child_process mocks poisoning CI test runs
+- Add tool output compression + sandboxed content cards to Usage view
+- Hook venv sync, console annotation writes, codegraph native sqlite
+
 ## [8.0.6] - 2026-04-09
 
 ### Bug Fixes
