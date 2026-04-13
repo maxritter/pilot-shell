@@ -67,7 +67,7 @@ Run `pilot` for Spec-Driven Development with `/spec`, or `pilot bot` for 24/7 au
 
 **Terminal (Recommended):** [cmux](https://cmux.com) works great with Pilot Shell — its vertical tab layout lets you run multiple sessions side by side. Any modern terminal works: [Ghostty](https://ghostty.org/), [iTerm2](https://iterm2.com/), or the built-in macOS/Linux terminal.
 
-**Claude Chrome (Recommended):** Install the [Claude Code Chrome extension](https://code.claude.com/docs/en/chrome) for browser automation and E2E testing. Pilot automatically detects it and uses it as the preferred tool. When Chrome isn't available, Pilot falls back to [playwright-cli](https://github.com/microsoft/playwright-cli) (reliable element targeting, persistent sessions, tracing) or [agent-browser](https://agent-browser.dev/) (lightweight, fast startup).
+**Claude Chrome (Recommended):** Install the [Claude Code Chrome extension](https://code.claude.com/docs/en/chrome) for browser automation and E2E testing. Pilot automatically detects it and uses it as the preferred tool. When the extension isn't available, Pilot falls back to [Chrome DevTools MCP](https://github.com/anthropics/chrome-devtools-mcp) (direct CDP access, Lighthouse, performance tracing), then [playwright-cli](https://github.com/microsoft/playwright-cli) (persistent sessions, tracing) or [agent-browser](https://agent-browser.dev/) (lightweight, fast startup).
 
 **Codex Plugin (Included):** The [Codex plugin](https://github.com/openai/codex-plugin-cc) is installed automatically with Pilot. It provides adversarial code review powered by OpenAI Codex — an independent second opinion during `/spec` planning and verification. Run `/codex:setup` once to authenticate, then enable reviewers in Console Settings → Reviewers. A [ChatGPT Plus](https://chatgpt.com/#pricing) subscription ($20/mo) covers the Codex API usage.
 
@@ -117,7 +117,7 @@ Pilot Shell works inside Dev Containers. Copy the [`.devcontainer`](https://gith
 1. **Prerequisites** — Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq
 2. **Claude files** — Sets up `~/.claude/` plugin — rules, commands, hooks, MCP servers
 3. **Config files** — Creates `.nvmrc` and project config
-4. **Dependencies** — Installs Probe, RTK, CodeGraph, context-mode (better-sqlite3), [playwright-cli](https://github.com/microsoft/playwright-cli), [agent-browser](https://agent-browser.dev/), language servers
+4. **Dependencies** — Installs Probe, RTK, CodeGraph, context-mode (better-sqlite3), [Chrome DevTools MCP](https://github.com/anthropics/chrome-devtools-mcp), [playwright-cli](https://github.com/microsoft/playwright-cli), [agent-browser](https://agent-browser.dev/), language servers
 5. **Shell integration** — Auto-configures bash, fish, and zsh with `pilot` alias
 6. **VS Code extensions** — Installs recommended extensions for your stack
 7. **Finalize** — Success message with next steps
@@ -468,13 +468,13 @@ For full details on every component, see the **[Documentation](https://pilot-she
 | [**Pilot Bot**](https://pilot-shell.com/docs/features/bot) | Persistent 24/7 automation agent with scheduled jobs, background tasks, heartbeat monitoring, and optional Telegram integration for bidirectional messaging |
 | [**Status Line**](https://pilot-shell.com/docs/features/statusline) | Real-time session dashboard below every response — model, context usage, git status, cost, spec progress, and savings metrics across 3 lines |
 | [**Smart Model Routing**](https://pilot-shell.com/docs/features/model-routing) | Opus for planning, Sonnet for implementation and verification. Configurable per-phase via Console Settings. 1M context available — included with API plans (Team, Enterprise); Max plan requires all models set to Opus |
-| [**Rules & Standards**](https://pilot-shell.com/docs/features/rules) | 9 built-in rules (workflow, testing, verification, debugging, tools) + 5 coding standards activated by file type (Python, TypeScript, Go, Frontend, Backend) |
+| [**Rules & Standards**](https://pilot-shell.com/docs/features/rules) | 10 built-in rules for workflow, testing, verification, debugging, code review, tooling, and context protection + 5 coding standards activated by file type (Python, TypeScript, Go, Frontend, Backend) |
 | [**Context Optimization**](https://pilot-shell.com/docs/features/context-optimization) | Lean context strategies — context-mode sandbox (large outputs never enter context), RTK output compression, conditional rule loading, progressive skill disclosure, lazy MCP tool loading. Compaction resilience for 200K windows |
 | [**Remote Control**](https://pilot-shell.com/docs/features/remote-control) | Control Pilot sessions from your phone, tablet, or any browser — send prompts, monitor progress, and receive notifications remotely |
-| [**Hooks Pipeline**](https://pilot-shell.com/docs/features/hooks) | 21 hooks across 7 events — quality checks on every file edit (ruff, ESLint, go vet), TDD enforcement, token optimization via RTK (60–90% savings), context-mode sandbox routing, session continuity, memory capture, and session lifecycle management |
+| [**Hooks Pipeline**](https://pilot-shell.com/docs/features/hooks) | 15 hooks across 7 events — quality checks on every file edit (ruff, ESLint, go vet), TDD enforcement, token optimization via RTK (60–90% savings), session continuity, memory capture, and session lifecycle management |
 | [**Extensions**](https://pilot-shell.com/docs/features/extensions) | Unified view of skills, rules, commands, and agents across global, project, plugin, and remote scopes. Team sharing via git with push, pull, diff, and APM-compatible export |
 | [**Pilot CLI**](https://pilot-shell.com/docs/features/cli) | Session management, headless mode (`-p`) for CI/CD and scripts, worktree isolation, licensing, context monitoring. Run `pilot` or `ccp` to start |
-| [**MCP Servers**](https://pilot-shell.com/docs/features/mcp-servers) | 7 servers: context-mode (FTS5 sandbox + code execution), library docs, persistent memory, web search, GitHub code search, web page fetching, code knowledge graph |
+| [**MCP Servers**](https://pilot-shell.com/docs/features/mcp-servers) | 6 preconfigured MCP servers for library docs, persistent memory, web search, GitHub code search, web page fetching, and code knowledge graphs, plus the context-mode plugin for sandboxed execution |
 | [**Language Servers**](https://pilot-shell.com/docs/features/language-servers) | Real-time diagnostics for Python (basedpyright), TypeScript (vtsls), Go (gopls). Auto-installed, auto-configured |
 | [**Open Source Tools**](https://pilot-shell.com/docs/features/open-source-tools) | 20+ open-source tools installed alongside Pilot — Probe (semantic search), CodeGraph (code intelligence), RTK (token optimization), context-mode, language servers, and system prerequisites |
 

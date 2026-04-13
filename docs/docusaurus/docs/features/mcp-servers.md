@@ -8,13 +8,13 @@ description: External context always available to every session
 
 External context always available to every session.
 
-Seven MCP servers are pre-configured and always available. They're lazy-loaded via `ToolSearch` to keep context lean — discovered and called on demand. Add your own in `.mcp.json`, then run `/setup-rules` to generate documentation.
+Six MCP servers are pre-configured in `.mcp.json` and lazy-loaded via `ToolSearch` to keep context lean. Pilot also installs the `context-mode` and `chrome-devtools-mcp` Claude plugins alongside them. Add your own MCP entries in `.mcp.json`, then run `/setup-rules` to generate documentation.
 
-## context-mode
+## context-mode plugin
 
 **Context window protection — sandbox execution and FTS5 knowledge base**
 
-Keeps large outputs out of your context window. Commands that produce more than ~20 lines of output are routed to a sandboxed executor — only your printed summary enters context. An FTS5 knowledge base indexes content for later search. Integrated via [context-mode](https://github.com/mksglu/context-mode).
+Keeps large outputs out of your context window. Commands that produce more than ~20 lines of output are routed to a sandboxed executor — only your printed summary enters context. An FTS5 knowledge base indexes content for later search. This ships via the Claude plugin system, not as an entry inside `.mcp.json`. Integrated via [context-mode](https://github.com/mksglu/context-mode).
 
 ```
 ctx_batch_execute(commands: [...], queries: ["find errors"])
@@ -34,6 +34,36 @@ ctx_search(queries: ["auth flow", "login endpoint"])
 | `ctx_index` | Store content in the knowledge base for later search |
 
 **Routing hooks** automatically intercept tools that produce large output (Bash, Read, Grep, WebFetch) and suggest context-mode alternatives. curl/wget and WebFetch are blocked entirely — use dedicated web-fetch and web-search MCP servers instead.
+
+## chrome-devtools-mcp plugin
+
+**Browser automation via Chrome DevTools Protocol**
+
+Enterprise-friendly fallback when the Claude Code Chrome extension can't be installed. Connects directly to Chrome via CDP — no extension needed. Also provides Lighthouse audits, performance tracing, and device emulation that other browser tools lack. Integrated via [chrome-devtools-mcp](https://github.com/anthropics/chrome-devtools-mcp).
+
+```
+list_pages()
+navigate_page(type="url", url="http://localhost:3000")
+take_snapshot()  // a11y tree with uid refs
+click(uid="1_8")
+lighthouse_audit(device="desktop")
+performance_start_trace(autoStop=true, reload=true)
+```
+
+**Key capabilities:**
+
+| Tool | Use case |
+|------|----------|
+| `take_snapshot` | A11y tree with uid refs for clicking, filling, hovering |
+| `take_screenshot` | Visual capture of viewport or specific element |
+| `evaluate_script` | Run JavaScript in the page context |
+| `lighthouse_audit` | Accessibility, SEO, and best practices scores |
+| `performance_start_trace` | Core Web Vitals (LCP, CLS), performance insights |
+| `emulate` | Device viewport, mobile/touch, color scheme, CPU throttling |
+| `list_network_requests` | Inspect all network traffic with headers and bodies |
+| `list_console_messages` | Read console output filtered by type (error, warn, log) |
+
+**4-tier browser priority:** Claude Code Chrome → Chrome DevTools MCP → playwright-cli → agent-browser. See the `browser-automation.md` rule for detection and fallback logic.
 
 ## context7
 

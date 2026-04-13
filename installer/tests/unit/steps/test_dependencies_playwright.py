@@ -99,17 +99,71 @@ class TestInstallAgentBrowser:
         mock_run.assert_any_call("agent-browser install --with-deps", timeout=300)
 
     @patch("installer.steps.dependencies.is_linux_arm64", return_value=True)
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
     @patch("installer.steps.dependencies.npm_global_cmd", side_effect=lambda x: x)
     @patch("installer.steps.dependencies._run_bash_with_retry")
     @patch("installer.steps.dependencies._is_agent_browser_ready")
-    def test_installs_chromium_apt_on_linux_arm64(self, mock_ready, mock_run, _mock_npm, _mock_arm):
+    def test_installs_chromium_apt_on_linux_arm64(
+        self,
+        mock_ready,
+        mock_run,
+        _mock_npm,
+        _mock_command_exists,
+        _mock_arm,
+    ):
         """Installs system chromium via apt on Linux ARM64."""
         from installer.steps.dependencies import install_agent_browser
 
         mock_ready.return_value = False
         mock_run.return_value = True
         assert install_agent_browser() is True
-        mock_run.assert_any_call("apt-get update -qq && apt-get install -y -qq chromium", timeout=180)
+        mock_run.assert_any_call(
+            "sudo -n apt-get update -qq && sudo -n apt-get install -y -qq chromium",
+            timeout=180,
+        )
+
+    @patch("installer.steps.dependencies.is_linux_arm64", return_value=True)
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
+    @patch("installer.steps.dependencies.npm_global_cmd", side_effect=lambda x: x)
+    @patch("installer.steps.dependencies._run_bash_with_retry")
+    @patch("installer.steps.dependencies._is_agent_browser_ready")
+    def test_returns_false_when_chromium_install_fails_on_linux_arm64(
+        self,
+        mock_ready,
+        mock_run,
+        _mock_npm,
+        _mock_command_exists,
+        _mock_arm,
+    ):
+        """Returns False when chromium install fails on Linux ARM64."""
+        from installer.steps.dependencies import install_agent_browser
+
+        mock_ready.return_value = False
+        mock_run.side_effect = [True, False]
+
+        assert install_agent_browser() is False
+
+    @patch("installer.steps.dependencies.is_linux_arm64", return_value=True)
+    @patch("installer.steps.dependencies.command_exists", return_value=False)
+    @patch("installer.steps.dependencies.npm_global_cmd", side_effect=lambda x: x)
+    @patch("installer.steps.dependencies._run_bash_with_retry")
+    @patch("installer.steps.dependencies._is_agent_browser_ready")
+    def test_returns_false_when_apt_get_missing_on_linux_arm64(
+        self,
+        mock_ready,
+        mock_run,
+        _mock_npm,
+        _mock_command_exists,
+        _mock_arm,
+    ):
+        """Returns False when apt-get is unavailable on Linux ARM64."""
+        from installer.steps.dependencies import install_agent_browser
+
+        mock_ready.return_value = False
+        mock_run.return_value = True
+
+        assert install_agent_browser() is False
+        mock_run.assert_called_once_with("npm install -g agent-browser")
 
     @patch("installer.steps.dependencies._is_agent_browser_ready")
     @patch("installer.steps.dependencies._run_bash_with_retry")

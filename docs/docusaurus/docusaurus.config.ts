@@ -86,8 +86,8 @@ const config: Config = {
           title: "Docs",
           items: [
             { label: "Getting Started", to: "/docs/getting-started/prerequisites" },
-            { label: "Workflows", to: "/docs/workflows/sync" },
-            { label: "Features", to: "/docs/features/share" },
+            { label: "Spec Workflow", to: "/docs/workflows/spec" },
+            { label: "Hooks Pipeline", to: "/docs/features/hooks" },
           ],
         },
         {

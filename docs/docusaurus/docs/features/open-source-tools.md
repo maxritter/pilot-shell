@@ -69,6 +69,7 @@ Pilot Shell installs the following open-source tools during setup. Each tool is 
 
 | Tool | Purpose | License |
 |------|---------|---------|
+| [Chrome DevTools MCP](https://github.com/anthropics/chrome-devtools-mcp) | Browser automation via Chrome DevTools Protocol — Lighthouse, performance tracing, device emulation | Apache-2.0 |
 | [playwright-cli](https://github.com/microsoft/playwright-cli) | Browser automation — persistent sessions, tracing, network mocking | Apache-2.0 |
 | [agent-browser](https://github.com/vercel-labs/agent-browser) | Browser automation — lightweight, fast startup | Apache-2.0 |
 | [Chrome for Testing](https://developer.chrome.com/blog/chrome-for-testing/) | Headless browser engine (via playwright-cli / agent-browser) | BSD-3-Clause |

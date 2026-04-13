@@ -23,21 +23,32 @@ const hooksPipeline = [
     trigger: "SessionStart",
     description: "On startup, clear, or after compaction",
     hooks: [
-      "Load persistent memory from Pilot Shell Console",
-      "Restore plan state after compaction (post_compact_restore.py)",
-      "Initialize session tracking (async)",
+      "Worker bootstrap restores session context",
+      "post_compact_restore.py restores plan state after compaction",
+      "Background session tracking starts asynchronously",
     ],
     color: "text-sky-400",
     bgColor: "bg-sky-400/10",
     borderColor: "border-sky-400/30",
   },
   {
-    trigger: "PreToolUse",
-    description: "Before search, web, or task tools",
+    trigger: "UserPromptSubmit",
+    description: "When the user sends a message",
     hooks: [
-      "Block WebSearch/WebFetch — redirect to MCP alternatives",
-      "Block EnterPlanMode/ExitPlanMode — project uses /spec",
-      "Hint Probe CLI for semantic Grep patterns",
+      "spec_mode_guard.py blocks invalid /spec usage",
+      "Session registration starts in the background",
+    ],
+    color: "text-emerald-400",
+    bgColor: "bg-emerald-400/10",
+    borderColor: "border-emerald-400/30",
+  },
+  {
+    trigger: "PreToolUse",
+    description: "Before Bash, search, web, or agent tools",
+    hooks: [
+      "tool_redirect.py reroutes unsupported tools to approved alternatives",
+      "Plan mode conflicts are blocked before they execute",
+      "tool_token_saver.py rewrites Bash commands through RTK",
     ],
     color: "text-amber-400",
     bgColor: "bg-amber-400/10",
@@ -45,12 +56,11 @@ const hooksPipeline = [
   },
   {
     trigger: "PostToolUse",
-    description: "After every Write / Edit / MultiEdit",
+    description: "After edits, reads, searches, and task tools",
     hooks: [
-      "File checker: auto-format, lint, type-check (Python, TypeScript, Go)",
-      "TDD enforcer: warns if no failing test exists",
-      "Context monitor: tracks usage, warns before compaction",
-      "Memory observation: captures development context (async)",
+      "file_checker.py runs lint, type, and TDD checks on edits",
+      "context_monitor.py tracks usage before compaction",
+      "Memory observations are captured asynchronously",
     ],
     color: "text-primary",
     bgColor: "bg-primary/10",
@@ -60,8 +70,8 @@ const hooksPipeline = [
     trigger: "PreCompact",
     description: "Before auto-compaction fires",
     hooks: [
-      "Capture active plan, task list, and key context to memory",
-      "Snapshot current progress so nothing is lost across cycles",
+      "pre_compact.py snapshots the active plan and task list",
+      "Current progress is persisted before context is compacted",
     ],
     color: "text-violet-400",
     bgColor: "bg-violet-400/10",
@@ -71,8 +81,8 @@ const hooksPipeline = [
     trigger: "Stop",
     description: "When Claude tries to finish",
     hooks: [
-      "Spec stop guard: blocks if verification incomplete",
-      "Session summary: saves observations to memory (async)",
+      "spec_stop_guard.py blocks incomplete /spec verification",
+      "Session summaries save observations asynchronously",
     ],
     color: "text-rose-400",
     bgColor: "bg-rose-400/10",
@@ -82,8 +92,8 @@ const hooksPipeline = [
     trigger: "SessionEnd",
     description: "When the session closes",
     hooks: [
-      "Stop worker daemon if no other sessions active",
-      "Send real-time dashboard notification (session ended)",
+      "session_end.py stops the worker if no sessions remain",
+      "A dashboard notification marks the session complete",
     ],
     color: "text-slate-400",
     bgColor: "bg-slate-400/10",
@@ -105,18 +115,18 @@ const rulesCategories = [
     icon: Brain,
     category: "Development Practices",
     rules: [
-      "Project policies & debugging",
-      "Auto-compaction & context management",
-      "Persistent memory & reusable skills",
+      "Project policies, debugging, and git hygiene",
+      "Context management and compaction resilience",
+      "Code review reception and change handling",
     ],
   },
   {
     icon: Search,
     category: "Tools",
     rules: [
-      "Context7 + grep-mcp + web search + GitHub CLI",
-      "Pilot CLI + Probe search",
-      "Playwright CLI (E2E browser testing)",
+      "Pilot CLI, Probe search, and RTK token optimization",
+      "Browser automation: Chrome, Chrome DevTools MCP, playwright-cli, agent-browser",
+      "MCP server selection plus context-mode routing",
     ],
   },
   {
@@ -150,14 +160,14 @@ const rulesCategories = [
 
 const mcpServers = [
   {
-    icon: Box,
-    name: "context-mode",
-    desc: "Sandbox execution + FTS5 knowledge base — large outputs never enter context",
+    icon: BookOpen,
+    name: "context7",
+    desc: "Library documentation lookup for frameworks and dependencies",
   },
   {
-    icon: BookOpen,
-    name: "lib-docs",
-    desc: "Library documentation lookup — get API docs for any dependency",
+    icon: Box,
+    name: "codegraph",
+    desc: "Code knowledge graph for callers, impact analysis, and structural queries",
   },
   {
     icon: Brain,
@@ -222,7 +232,7 @@ const DeepDiveSection = () => {
                 Hooks Pipeline
               </h3>
               <p className="text-sm text-muted-foreground">
-                21 hooks across 7 lifecycle events — fire automatically at every
+                15 hooks across 7 lifecycle events — fire automatically at every
                 stage
               </p>
             </div>
@@ -419,7 +429,7 @@ const DeepDiveSection = () => {
                     MCP Servers
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    External context, always available
+                    Six preconfigured servers, lazy-loaded on demand
                   </p>
                 </div>
               </div>

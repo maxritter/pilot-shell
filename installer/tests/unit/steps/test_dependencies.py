@@ -46,6 +46,7 @@ class TestDependenciesStep:
     @patch("installer.steps.dependencies.install_prettier", return_value=True)
     @patch("installer.steps.dependencies.install_typescript_lsp", return_value=True)
     @patch("installer.steps.dependencies._precache_npx_mcp_servers", return_value=True)
+    @patch("installer.steps.dependencies.install_chrome_devtools_plugin", return_value=True)
     @patch("installer.steps.dependencies.install_context_mode_plugin", return_value=True)
     @patch("installer.steps.dependencies._install_plugin_dependencies")
     @patch("installer.steps.dependencies._setup_pilot_memory")
@@ -62,6 +63,7 @@ class TestDependenciesStep:
         mock_setup_pilot_memory,
         mock_plugin_deps,
         _mock_ctx_mode_plugin,
+        _mock_chrome_devtools_plugin,
         _mock_precache,
         _mock_ts_lsp,
         _mock_prettier,
@@ -1328,6 +1330,76 @@ class TestInstallContextModePlugin:
         assert "marketplace add" in mock_bash.call_args_list[0][0][0]
 
 
+class TestInstallChromeDevToolsPlugin:
+    """Tests for install_chrome_devtools_plugin() — Claude CLI plugin system."""
+
+    def test_install_chrome_devtools_plugin_exists(self):
+        """install_chrome_devtools_plugin function exists and is callable."""
+        from installer.steps.dependencies import install_chrome_devtools_plugin
+
+        assert callable(install_chrome_devtools_plugin)
+
+    @patch("installer.steps.dependencies.command_exists", return_value=False)
+    def test_returns_false_when_claude_not_installed(self, _mock_cmd):
+        """Returns False immediately when claude CLI is not available."""
+        from installer.steps.dependencies import install_chrome_devtools_plugin
+
+        result = install_chrome_devtools_plugin()
+        assert result is False
+
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    @patch("installer.steps.dependencies.subprocess.run")
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
+    def test_updates_when_already_installed(self, _mock_cmd, mock_sub, mock_bash):
+        """Runs 'claude plugins update' when plugin is already installed."""
+        from installer.steps.dependencies import install_chrome_devtools_plugin
+
+        mock_sub.return_value = MagicMock(
+            returncode=0,
+            stdout=json.dumps([{"id": "chrome-devtools-mcp@chrome-devtools-plugins", "version": "1.0.0"}]),
+        )
+
+        result = install_chrome_devtools_plugin()
+
+        assert result is True
+        assert mock_bash.call_count == 2
+        calls = [c[0][0] for c in mock_bash.call_args_list]
+        assert any("marketplace update chrome-devtools-mcp" in c for c in calls)
+        assert any("plugins update chrome-devtools-mcp@chrome-devtools-plugins" in c for c in calls)
+
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    @patch("installer.steps.dependencies.subprocess.run")
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
+    def test_fresh_install_adds_marketplace_then_installs(self, _mock_cmd, mock_sub, mock_bash):
+        """Adds marketplace and installs plugin when not already installed."""
+        from installer.steps.dependencies import install_chrome_devtools_plugin
+
+        mock_sub.return_value = MagicMock(returncode=0, stdout="[]")
+
+        result = install_chrome_devtools_plugin()
+
+        assert result is True
+        assert mock_bash.call_count == 2
+        assert "marketplace add" in mock_bash.call_args_list[0][0][0]
+        assert "plugins install" in mock_bash.call_args_list[1][0][0]
+
+    @patch("installer.steps.dependencies._run_bash_with_retry")
+    @patch("installer.steps.dependencies.subprocess.run")
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
+    def test_fresh_install_fails_if_marketplace_add_fails(self, _mock_cmd, mock_sub, mock_bash):
+        """Returns False when marketplace add fails."""
+        from installer.steps.dependencies import install_chrome_devtools_plugin
+
+        mock_sub.return_value = MagicMock(returncode=0, stdout="[]")
+        mock_bash.return_value = False
+
+        result = install_chrome_devtools_plugin()
+
+        assert result is False
+        mock_bash.assert_called_once()
+        assert "marketplace add" in mock_bash.call_args[0][0]
+
+
 class TestRunBashWithRetrySudoFallback:
     """Test sudo -n to sudo fallback in _run_bash_with_retry."""
 
@@ -1536,6 +1608,7 @@ class TestDependenciesCleanup:
     @patch("installer.steps.dependencies.ensure_sudo_credentials", side_effect=[True, True])
     @patch("installer.steps.dependencies.needs_sudo", return_value=True)
     @patch("installer.steps.dependencies._precache_npx_mcp_servers", return_value=True)
+    @patch("installer.steps.dependencies.install_chrome_devtools_plugin", return_value=True)
     @patch("installer.steps.dependencies.install_context_mode_plugin", return_value=True)
     @patch("installer.steps.dependencies.initialize_codegraph", return_value=True)
     @patch("installer.steps.dependencies.codegraph_needs_work", return_value=False)
@@ -1572,6 +1645,7 @@ class TestDependenciesCleanup:
         _mock_needs_work,
         _mock_initialize_codegraph,
         _mock_ctx_mode_plugin,
+        _mock_chrome_devtools_plugin,
         _mock_precache,
         _mock_needs_sudo,
         mock_ensure,

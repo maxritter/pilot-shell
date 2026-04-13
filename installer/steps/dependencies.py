@@ -508,6 +508,14 @@ def install_codex_plugin() -> bool:
     )
 
 
+def install_chrome_devtools_plugin() -> bool:
+    """Install or update the Chrome DevTools MCP plugin via the Claude CLI plugin system."""
+    return _install_or_update_plugin(
+        plugin_id="chrome-devtools-mcp@chrome-devtools-plugins",
+        marketplace="ChromeDevTools/chrome-devtools-mcp",
+    )
+
+
 
 
 def install_pbt_tools() -> bool:
@@ -578,8 +586,12 @@ def install_agent_browser() -> bool:
         return True
 
     if is_linux_arm64():
-        _run_bash_with_retry("apt-get update -qq && apt-get install -y -qq chromium", timeout=180)
-        return True
+        if not command_exists("apt-get"):
+            return False
+        return _run_bash_with_retry(
+            "sudo -n apt-get update -qq && sudo -n apt-get install -y -qq chromium",
+            timeout=180,
+        )
 
     import platform
 
@@ -977,7 +989,8 @@ class DependenciesStep(BaseStep):
         ui = ctx.ui
         installed: list[str] = []
         try:
-            if needs_sudo() and not ctx.non_interactive:
+            requires_elevation = needs_sudo() or (is_linux_arm64() and command_exists("apt-get"))
+            if requires_elevation and not ctx.non_interactive:
                 _allow_sudo_fallback = True
                 if ui:
                     ui.status("Some packages require elevated privileges — requesting sudo access...")
@@ -1011,6 +1024,7 @@ class DependenciesStep(BaseStep):
                 _InstallTask("better-sqlite3 (CodeGraph native backend)", "better_sqlite3", install_better_sqlite3),
                 _InstallTask("context-mode plugin", "context_mode_plugin", install_context_mode_plugin),
                 _InstallTask("Codex plugin", "codex_plugin", install_codex_plugin),
+                _InstallTask("Chrome DevTools MCP plugin", "chrome_devtools_plugin", install_chrome_devtools_plugin),
             ]
 
             installed.extend(_run_parallel_installs(parallel_tasks, ui))

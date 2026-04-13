@@ -8,7 +8,7 @@ description: Production-tested best practices loaded into every session
 
 Production-tested best practices loaded into every session.
 
-Rules load automatically at session start — they're enforced standards, not suggestions. Coding standards load conditionally by file type to keep context lean. Your project-level rules in `.claude/rules/` take precedence over Pilot's built-ins.
+Rules load automatically at session start — they're enforced standards, not suggestions. Pilot ships 10 built-in rules plus 5 coding standards. Coding standards load conditionally by file type to keep context lean. Your project-level rules in `.claude/rules/` take precedence over Pilot's built-ins.
 
 ## Built-in Rule Categories
 
@@ -24,10 +24,11 @@ Rules load automatically at session start — they're enforced standards, not su
 - `context-management.md` — Context optimization and compaction resilience
 - `code-review-reception.md` — How to receive and act on code review feedback
 
-### Tools (3 rules)
+### Tooling & Context (4 rules)
 
 - `cli-tools.md` — Pilot CLI, Probe code search, RTK token optimization
-- `browser-automation.md` — Browser automation for E2E UI testing (Chrome → playwright-cli → agent-browser)
+- `browser-automation.md` — Browser automation for E2E UI testing (Chrome → Chrome DevTools MCP → playwright-cli → agent-browser)
+- `context-mode.md` — Mandatory routing rules for large-output analysis and sandbox execution
 - `mcp-servers.md` — MCP server reference and tool selection guidance
 
 ## Coding Standards — Activated by File Type

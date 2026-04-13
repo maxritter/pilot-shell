@@ -30,14 +30,14 @@ const insideItems: InsideItem[] = [
     title: "Context Engineering",
     description: "Keep your context window lean",
     summary:
-      "Curated rules for best practices, TDD, debugging, and verification. Language-specific coding standards for TypeScript, Python, and frontend. Concise and modular \u2014 only what\u2019s relevant loads into context.",
+      "Curated rules for best practices, TDD, debugging, and verification. Language- and architecture-specific standards cover Python, TypeScript, Go, frontend, and backend. Concise and modular \u2014 only what\u2019s relevant loads into context.",
   },
   {
     icon: Terminal,
     title: "Quality Hooks & Testing",
     description: "Deterministic checks on every edit",
     summary:
-      "18 hooks across 7 lifecycle events. Auto-lint, format, and type-check every file edit. TDD enforcer warns when implementation is written without a failing test.",
+      "15 hooks across 7 lifecycle events. Auto-lint, format, and type-check every file edit. TDD enforcer warns when implementation is written without a failing test.",
   },
   {
     icon: Plug2,

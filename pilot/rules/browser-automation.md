@@ -2,20 +2,22 @@
 
 **MANDATORY for E2E testing of any app with a UI.** API tests verify backend; browser automation verifies what the user sees.
 
-### Tool Selection: 3-Tier Priority
+### Tool Selection: 4-Tier Priority
 
 Each tool has a distinct strength. **Quality and reliability are the priority** — use the tool that gives the most accurate verification for the situation.
 
 | Priority | Tool | Best For | Key Advantage |
 |----------|------|----------|---------------|
 | **1st** | Claude Code Chrome | Quick E2E, visual verification | Shares existing browser session, natural language `find` |
-| **2nd** | playwright-cli | Thorough E2E, complex workflows | Most reliable element targeting, persistent sessions, network mocking, tracing, multi-tab |
-| **3rd** | agent-browser | Lightweight checks, simple interactions | Concise output, fast startup |
+| **2nd** | Chrome DevTools MCP | DevTools-level debugging, performance audits | Direct CDP access, Lighthouse, performance tracing, no extension needed |
+| **3rd** | playwright-cli | Thorough E2E, complex workflows | Most reliable element targeting, persistent sessions, network mocking, tracing, multi-tab |
+| **4th** | agent-browser | Lightweight checks, simple interactions | Concise output, fast startup |
 
 ### When to Override Priority
 
 | Situation | Use Instead |
 |-----------|-------------|
+| Need Lighthouse audit or performance tracing | Chrome DevTools MCP |
 | Need network mocking, tracing, or video | playwright-cli |
 | Multi-tab workflow | playwright-cli |
 | Need persistent browser profile | playwright-cli (`--persistent`) |
@@ -26,16 +28,11 @@ Each tool has a distinct strength. **Quality and reliability are the priority** 
 ### Detection
 
 1. **Claude Code Chrome:** Check your available/deferred tools list for `mcp__claude-in-chrome__*` entries.
-2. **agent-browser:** `which agent-browser` (installed by Pilot Shell).
+2. **Chrome DevTools MCP:** Check your available/deferred tools list for `mcp__plugin_chrome-devtools-mcp_chrome-devtools__*` entries.
 3. **playwright-cli:** `which playwright-cli` (installed by Pilot Shell).
+4. **agent-browser:** `which agent-browser` (installed by Pilot Shell).
 
-**Fallback warning (output when neither Chrome nor agent-browser is available):**
-
-```
-⚠️ Neither Claude Code Chrome nor agent-browser is available.
-Install the Claude Chrome extension or run the Pilot Shell installer.
-Falling back to playwright-cli.
-```
+**Fallback chain:** If Claude Code Chrome is unavailable (enterprise restrictions, no extension), fall back to Chrome DevTools MCP. If neither Chrome tool is available, fall back to playwright-cli or agent-browser.
 
 ---
 
@@ -68,6 +65,25 @@ Load tools via `ToolSearch(query="select:mcp__claude-in-chrome__<tool_name>")` b
 **No session isolation needed** — Chrome tools operate on the user's actual browser instance. Each tool call targets a specific tab.
 
 **Important:** Avoid triggering JavaScript alerts/confirms/prompts — these block the extension. Use `javascript_tool` with `console.log` for debugging instead.
+
+---
+
+### Chrome DevTools MCP (Enterprise Fallback)
+
+**Fallback when Claude Code Chrome extension can't be installed.** Connects directly via Chrome DevTools Protocol — no extension needed. Also provides Lighthouse audits, performance tracing, and device emulation that other tools lack.
+
+Load tools via `ToolSearch(query="chrome-devtools-mcp", max_results=30)` before first use.
+
+**Core workflow:**
+
+1. `list_pages()` → `navigate_page(type="url", url=...)` — Open page
+2. `take_snapshot()` — A11y tree with uid refs (like agent-browser's `@e1` but uses `uid=`)
+3. `click(uid=...)` / `fill(uid=..., value=...)` — Interact
+4. `take_snapshot()` — Re-snapshot to verify (uids go stale after navigation)
+
+**Unique capabilities:** `lighthouse_audit`, `performance_start_trace`, `evaluate_script`, `emulate` (viewport/mobile/color scheme), `list_network_requests`, `list_console_messages`
+
+**No session isolation needed** — targets the selected page via `select_page`.
 
 ---
 
@@ -160,7 +176,7 @@ playwright-cli snapshot            # 4. Re-snapshot to verify
 playwright-cli close               # 5. Clean up
 ```
 
-**Key differences from agent-browser:** Refs are bare numbers (`e1` not `@e1`). Snapshots are saved to files. Use `--persistent` for sessions that survive restarts.
+**Key differences from other tools:** Refs are bare numbers (`e1` not `@e1`). Snapshots are saved to files. Use `--persistent` for sessions that survive restarts.
 
 #### Session Isolation
 

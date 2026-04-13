@@ -66,9 +66,10 @@ Check whether the plan has a `## Verification Scenario` section (only present fo
 
 **If Verification Scenario exists:**
 
-**Resolve browser tool (3-tier):** Check if `mcp__claude-in-chrome__*` tools are available → use Chrome. Otherwise use playwright-cli (preferred CLI) or agent-browser (lightweight). See `browser-automation.md`.
+**Resolve browser tool (4-tier):** Check if `mcp__claude-in-chrome__*` tools are available → use Chrome. Otherwise check for `mcp__plugin_chrome-devtools-mcp_chrome-devtools__*` → use Chrome DevTools MCP. Otherwise use playwright-cli (preferred CLI) or agent-browser (lightweight). See `browser-automation.md`.
 
 ```bash
+# Chrome DevTools MCP: load via ToolSearch(query="chrome-devtools-mcp", max_results=30)
 # playwright-cli:
 playwright-cli -s=$PILOT_SESSION_ID open <url>
 # agent-browser fallback:
@@ -78,6 +79,7 @@ agent-browser --session "$AB_SESSION" open <url>
 
 1. Execute each step from the scenario using the resolved browser tool
    - **Chrome:** `navigate`, `read_page`, `computer`/`form_input`
+   - **Chrome DevTools MCP:** `navigate_page`, `take_snapshot`, `click(uid=...)`/`fill(uid=...)`
    - **playwright-cli:** `open`/`goto`, `snapshot`, `click`/`fill` (bare refs: `e1`)
    - **agent-browser:** `open`/`goto`, `snapshot -i`, `click`/`fill` (refs: `@e1`)
 2. Verify the expected result for each step (read page after each interaction)
@@ -87,6 +89,7 @@ agent-browser --session "$AB_SESSION" open <url>
 6. **FAIL after 2 attempts:** The bug is not fully fixed — set `Status: PENDING`, increment `Iterations`, invoke `Skill(skill='spec-implement', args='<plan-path>')`. Do not proceed to VERIFIED.
 
 ```bash
+# Chrome DevTools MCP: no explicit close needed
 # playwright-cli: playwright-cli -s=$PILOT_SESSION_ID close
 # agent-browser: agent-browser --session "$AB_SESSION" close
 ```

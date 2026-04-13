@@ -1,14 +1,14 @@
 ---
 sidebar_position: 2
 title: Hooks Pipeline
-description: 21 hooks across 7 lifecycle events — fire automatically at every stage
+description: 15 hooks across 7 lifecycle events — fire automatically at every stage
 ---
 
 # Hooks Pipeline
 
-21 hooks across 7 lifecycle events — quality enforcement on autopilot.
+15 hooks across 7 lifecycle events — quality enforcement on autopilot.
 
-Blocking hooks reject actions or force fixes. Non-blocking hooks warn without interrupting. Async hooks run in the background. Two additional command-scoped Stop hooks run during `/spec` phases. Context-mode hooks handle sandbox routing and session continuity.
+Blocking hooks reject actions or force fixes. Non-blocking hooks warn without interrupting. Async hooks run in the background. Two additional command-scoped Stop hooks run during `/spec` phases.
 
 ## SessionStart
 
@@ -16,11 +16,10 @@ Blocking hooks reject actions or force fixes. Non-blocking hooks warn without in
 
 | Hook | Type | Description |
 |------|------|-------------|
-| Memory loader | Blocking | Loads persistent context from Console memory |
-| `post_compact_restore.py` | Blocking | Re-injects active plan, task state, and context after compaction |
-| `session_clear.py` | Blocking | Resets session state on /clear |
-| `sessionstart.mjs` | Blocking | Injects context-mode routing rules and restores session knowledge after compaction |
-| Session tracker | Async | Initializes message tracking |
+| Worker context bootstrap | Blocking | Restores session context through the worker service on startup, `/clear`, and after compaction |
+| `post_compact_restore.py` | Blocking | Re-injects the active plan and task state after compaction |
+| `session_clear.py` | Blocking | Resets Pilot session state on `/clear` |
+| Session tracker | Async | Starts background session activity tracking |
 
 ## UserPromptSubmit
 
@@ -29,28 +28,25 @@ Blocking hooks reject actions or force fixes. Non-blocking hooks warn without in
 | Hook | Type | Description |
 |------|------|-------------|
 | `spec_mode_guard.py` | Blocking | Blocks `/spec` in plan mode, warns when not in bypassPermissions mode |
-| `userpromptsubmit.mjs` | Blocking | Captures user prompts for context-mode session continuity |
 | Session initializer | Async | Registers the session with the Console worker daemon |
 
 ## PreToolUse
 
-*Before Bash, search, web, or agent tools*
+*Before Bash, search, web, or agent tools run*
 
 | Hook | Type | Description |
 |------|------|-------------|
-| `tool_redirect.py` | Blocking | Redirects to MCP alternatives, blocks Explore agent and plan mode conflicts |
+| `tool_redirect.py` | Blocking | Redirects to MCP alternatives, blocks unsupported web fetch paths, and enforces `/spec`-compatible tool usage |
 | `tool_token_saver.py` | Blocking | Rewrites Bash commands via RTK for token savings (60-90% reduction) |
-| `pretooluse.mjs` | Blocking | Routes large-output tools to context-mode sandbox, blocks curl/wget/WebFetch, injects subagent routing |
 
 ## PostToolUse
 
-*After file edits, searches, and other tool calls*
+*After file edits, reads, searches, and task tools*
 
 | Hook | Type | Description |
 |------|------|-------------|
 | `file_checker.py` | Blocking | Quality checks: Python (ruff), TypeScript (ESLint), Go (go vet + golangci-lint). Also warns when implementation files are edited without a failing test (TDD) |
 | `context_monitor.py` | Non-blocking | Tracks context usage 0-100% with warnings as compaction approaches |
-| `posttooluse.mjs` | Blocking | Captures session events (13 categories) to context-mode session DB |
 | Memory observer | Async | Captures decisions, discoveries, and bugfixes to persistent memory |
 
 ## PreCompact
@@ -60,7 +56,6 @@ Blocking hooks reject actions or force fixes. Non-blocking hooks warn without in
 | Hook | Type | Description |
 |------|------|-------------|
 | `pre_compact.py` | Blocking | Snapshots active plan and task list to memory |
-| `precompact.mjs` | Blocking | Builds context-mode resume snapshot from captured session events |
 
 ## Stop
 
@@ -82,5 +77,5 @@ Additionally, `spec_plan_validator.py` and `spec_verify_validator.py` run as com
 | `session_end.py` | Blocking | Stops worker daemon if no other sessions active, sends dashboard notification |
 
 :::info Closed loop
-When compaction fires, **PreCompact** captures your active plan and task list to persistent memory, and `precompact.mjs` builds a context-mode resume snapshot. **SessionStart** restores everything afterward — Pilot state from memory, session knowledge from context-mode — no progress lost.
+When compaction fires, **PreCompact** snapshots your active plan and task list to persistent memory. **SessionStart** restores the working state afterward through the worker service and `post_compact_restore.py` so progress survives compaction.
 :::

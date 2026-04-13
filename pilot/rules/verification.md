@@ -6,7 +6,7 @@
 
 Unit tests with mocks prove nothing about real-world behavior. After tests pass:
 
-- CLI command → **run it** | API endpoint → **call it** | Frontend UI → **use browser automation** (see `browser-automation.md` for 3-tier tool selection: Chrome → playwright-cli → agent-browser)
+- CLI command → **run it** | API endpoint → **call it** | Frontend UI → **use browser automation** (see `browser-automation.md` for 4-tier tool selection: Chrome → Chrome DevTools MCP → playwright-cli → agent-browser)
 - Any runnable program → **run it**
 
 **When:** After tests pass, after refactoring, after changing imports/deps/config, before marking any task complete.
@@ -21,7 +21,8 @@ Unit tests with mocks prove nothing about real-world behavior. After tests pass:
 
 1. Build/deploy the change
 2. **Resolve browser tool** (see `browser-automation.md` for full details):
-   - **Chrome available** (`mcp__claude-in-chrome__*` in tools list): Use Claude Code Chrome.
+   - **Chrome extension** (`mcp__claude-in-chrome__*` in tools list): Use Claude Code Chrome.
+   - **Chrome DevTools MCP** (`mcp__plugin_chrome-devtools-mcp_chrome-devtools__*` in tools list): Fallback when extension unavailable.
    - **Otherwise:** Use playwright-cli for thorough verification, or agent-browser for simple checks.
 3. Navigate to the affected page, interact with the changed UI, verify correct behavior
 4. Report what you saw — "UI works" requires browser evidence, not just "tests pass"
@@ -50,7 +51,7 @@ Unit tests with mocks prove nothing about real-world behavior. After tests pass:
 | "Tests pass" | Fresh run: 0 failures | Previous run, "should pass" |
 | "Build succeeds" | Build exit 0 | "Linter passed" |
 | "Bug fixed" | Reproducing test passes | "Code changed" |
-| "UI works" | Browser verification (Chrome `read_page`, playwright-cli `snapshot`, or agent-browser `snapshot -i`) | "API returns 200" |
+| "UI works" | Browser verification (Chrome `read_page`, DevTools MCP `take_snapshot`, playwright-cli `snapshot`, or agent-browser `snapshot -i`) | "API returns 200" |
 | "No perf regression" | Hot paths cache/memoize, no heavy full imports, no redundant work on repeat | "Tests pass" |
 
 ### ⛔ Fix ALL Errors — No Exceptions, No Asking
