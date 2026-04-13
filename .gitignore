@@ -270,3 +270,4 @@ bun.lock
 .kiro/
 .worktrees/
 .env*.local
+.omx/

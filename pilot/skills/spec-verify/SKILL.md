@@ -148,11 +148,11 @@ CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-
 PROJECT_ROOT="${CLAUDE_PROJECT_ROOT:-$(pwd)}"
 ```
 
-2. Launch adversarial review in background from the project root using `--scope working-tree` (reviews all uncommitted changes regardless of staging state — works in both worktree and non-worktree mode). **⛔ Use synchronous Bash (NOT `run_in_background`)** — the companion's `--background` flag already makes it non-blocking and returns the job ID immediately to stdout:
+2. Launch adversarial review in background using `--scope working-tree` (reviews all uncommitted changes regardless of staging state — works in both worktree and non-worktree mode). **⛔ Use `Bash(run_in_background=true)`** — the companion's `--background` flag is a no-op for reviews (only works for `task`), so we use Claude Code's background bash instead:
 ```bash
-cd "$PROJECT_ROOT" && node "$CODEX_COMPANION" adversarial-review --background --scope working-tree "Challenge this implementation: <plan summary/goal>. Plan: <plan-path>. Focus on: wrong approach, missing edge cases, security gaps, untested paths, and design choices that could fail under load."
+cd "$PROJECT_ROOT" && node "$CODEX_COMPANION" adversarial-review --scope working-tree "Challenge this implementation: <plan summary/goal>. Plan: <plan-path>. Focus on: wrong approach, missing edge cases, security gaps, untested paths, and design choices that could fail under load."
 ```
-Parse the job ID from stdout (format: `review-XXXXXXXX-YYYYYY`). **Do NOT wait** — proceed to Step 3.2 immediately.
+**Do NOT wait** — proceed to Step 3.2 immediately. You'll be notified when the background bash completes.
 
 ### Step 3.2: Automated Checks
 
@@ -208,26 +208,20 @@ For each fix: implement → run relevant tests → log "Fixed: [title]"
 
 #### Collect Codex Results (if launched)
 
-**If Codex was launched in Step 3.1**, collect its results now:
+**⛔ MANDATORY — NEVER skip or defer the Codex review.** If Codex was launched in Step 3.1, you MUST collect and act on its results before proceeding past Step 3.4. The Codex review runs as a `Bash(run_in_background=true)` — you will be automatically notified when it completes.
 
-**⛔ Use the companion's built-in wait — do NOT use `sleep` loops or poll output files manually.**
-
-1. Wait for completion (this blocks until Codex finishes or times out — no sleep needed):
+**⛔ If the notification hasn't arrived yet:** You MUST wait. Do NOT proceed to Phase B, do NOT say "still running, moving on." Read the output file to check completion status:
 ```bash
-node "$CODEX_COMPANION" status <jobId> --wait --timeout-ms 300000 --json
+# Check if the Codex background bash has completed
+cat <output_file_path> | tail -5
 ```
+If the output contains a `# Codex Adversarial Review` header with a `Verdict:` line, it's done. If not, wait and check again.
 
-2. **Handle status:**
-   - `waitTimedOut: true` → Log "Codex review timed out — skipping" and continue.
-   - `job.status` is `"cancelled"` or exit code non-zero → Log "Codex review failed: <failureMessage>" and continue.
-   - `job.status` is `"completed"` → fetch the full result:
+1. **When the notification arrives**, read the background bash output. The companion prints the full review to stdout. **Filter out `[codex]` prefixed log lines** — the actual review content is the non-prefixed lines. Use `ctx_execute_file` to extract only non-`[codex]` lines.
 
-3. Get review findings:
-```bash
-node "$CODEX_COMPANION" result <jobId> --json
-```
+2. **Parse the output:** Look for the `# Codex Adversarial Review` section. Extract `Verdict:` and `Findings:` lines. Map severities: `[high]` / `[critical]` → must_fix, `[medium]` / `[low]` → should_fix. Fix all must_fix/should_fix.
 
-4. Parse the result JSON — look for `verdict`, `findings`, `details`. Map severities: critical/high → must_fix, medium/low → should_fix. Fix all must_fix/should_fix.
+3. **If the background bash timed out or failed** (exit code non-zero): Re-launch synchronously (not in background) and wait for results. Only skip if the second attempt also fails.
 
 **Report:**
 ```

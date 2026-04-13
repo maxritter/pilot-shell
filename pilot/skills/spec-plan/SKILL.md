@@ -453,11 +453,11 @@ BASE_BRANCH=$(~/.pilot/bin/pilot worktree status --json 2>/dev/null | grep -o '"
 [ -z "$BASE_BRANCH" ] && BASE_BRANCH=$(cd "$PROJECT_ROOT" && git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||' || echo "main")
 ```
 
-2. Launch adversarial review in background from the project root. **⛔ Use synchronous Bash (NOT `run_in_background`)** — the companion's `--background` flag already makes it non-blocking and returns the job ID immediately to stdout:
+2. Launch adversarial review in background. **⛔ Use `Bash(run_in_background=true)`** — the companion's `--background` flag is a no-op for reviews (only works for `task`), so we use Claude Code's background bash instead. The review runs synchronously inside the bash, and you'll be notified when it completes:
 ```bash
-cd "$PROJECT_ROOT" && node "$CODEX_COMPANION" adversarial-review --background --base "$BASE_BRANCH" "Challenge this plan: <plan summary/goal>. Plan file: <plan-path>. Focus on: wrong assumptions, missing edge cases, scope gaps, and design choices that could fail under real-world conditions."
+cd "$PROJECT_ROOT" && node "$CODEX_COMPANION" adversarial-review --base "$BASE_BRANCH" "Challenge this plan: <plan summary/goal>. Plan file: <plan-path>. Focus on: wrong assumptions, missing edge cases, scope gaps, and design choices that could fail under real-world conditions."
 ```
-Parse the job ID from stdout (format: `review-XXXXXXXX-YYYYYY`). **Do NOT wait** — proceed to collect whichever reviewer finishes first.
+**Do NOT wait** — proceed to collect the Claude reviewer results first.
 
 #### Collect Review Results
 
@@ -476,26 +476,15 @@ Then Read the file once. If not READY after 5 min, re-launch synchronously.
 
 #### Collect Codex Results (if launched)
 
-**If Codex was launched above**, collect its results now:
+**⛔ MANDATORY — NEVER skip or defer the Codex review.** If Codex was launched above, you MUST collect and act on its results before proceeding. The Codex review runs as `Bash(run_in_background=true)` — you will be notified when it completes.
 
-**⛔ Use the companion's built-in wait — do NOT use `sleep` loops or poll output files manually.**
+**⛔ If the notification hasn't arrived yet:** Wait. Do NOT proceed. Check the output file to see if `# Codex Adversarial Review` with a `Verdict:` line is present.
 
-1. Wait for completion (this blocks until Codex finishes or times out — no sleep needed):
-```bash
-node "$CODEX_COMPANION" status <jobId> --wait --timeout-ms 300000 --json
-```
+1. **When the notification arrives**, read the background bash output. **Filter out `[codex]` prefixed log lines** — use `ctx_execute_file` to extract only non-`[codex]` lines.
 
-2. **Handle status:**
-   - `waitTimedOut: true` → Log "Codex review timed out — skipping" and continue.
-   - `job.status` is `"cancelled"` or exit code non-zero → Log "Codex review failed: <failureMessage>" and continue.
-   - `job.status` is `"completed"` → fetch the full result:
+2. **Parse the output:** Look for the `# Codex Adversarial Review` section. Extract `Verdict:` and `Findings:` lines. Map severities: `[high]` / `[critical]` → must_fix, `[medium]` / `[low]` → should_fix. Fix all must_fix/should_fix.
 
-3. Get review findings:
-```bash
-node "$CODEX_COMPANION" result <jobId> --json
-```
-
-4. Parse the result JSON — look for `verdict`, `findings`, `details`. Map severities: critical/high → must_fix, medium/low → should_fix. Fix all must_fix/should_fix.
+3. **If the background bash timed out or failed** (exit code non-zero): Re-launch synchronously and wait. Only skip if the second attempt also fails.
 
 **If Codex was NOT launched**, proceed after all Claude reviewer must_fix/should_fix resolved.
 
