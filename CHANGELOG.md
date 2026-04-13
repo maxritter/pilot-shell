@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.0.9] - 2026-04-13
+
+### Bug Fixes
+
+- Deduplicate plugin extensions across marketplaces and add progressive dashboard loading
+
 ## [8.0.8] - 2026-04-13
 
 ### Bug Fixes
