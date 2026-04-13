@@ -2,6 +2,17 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.0.8] - 2026-04-13
+
+### Bug Fixes
+
+- Add Chrome DevTools MCP plugin, update browser automation to 4-tier, fix auto-mode flag and docs
+
+### Miscellaneous
+
+- Updated Demo Gif
+- Updated Readme
+
 ## [8.0.7] - 2026-04-10
 
 ### Bug Fixes
