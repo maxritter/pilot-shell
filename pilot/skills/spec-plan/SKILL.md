@@ -77,9 +77,45 @@ When adding tasks to an existing plan: load it, parse structure, verify compatib
 
 ### Step 1.1: Create Plan File Header (FIRST)
 
-1. **Parse flags** from arguments: `--worktree=yes|no` (default: `Yes`). Strip the flag from task description.
+1. **Parse flags** from arguments: `--worktree=yes|no` or `--new-branch` (default: `Yes`). Strip the flag from task description.
 
-2. **Create worktree early (if yes):**
+2a. **Create new branch (if `--new-branch`):**
+
+   **Step 1 — Stash any uncommitted work** (prevents checkout conflicts):
+   ```bash
+   STASH_MSG="pilot-spec-$(date +%s)"
+   git stash push -m "$STASH_MSG" --include-untracked 2>/dev/null
+   STASHED=$?  # 0 = stashed something, 1 = nothing to stash
+   ```
+
+   **Step 2 — Detect default branch** (local-only, no network dependency):
+   ```bash
+   git fetch origin 2>/dev/null
+   DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||')
+   DEFAULT_BRANCH=${DEFAULT_BRANCH:-main}
+   ```
+
+   **Step 3 — Create and checkout the branch** (handle name collisions):
+   ```bash
+   BRANCH_NAME="feat/<plan_slug>"
+   # If branch already exists, append short timestamp
+   if git rev-parse --verify "$BRANCH_NAME" >/dev/null 2>&1; then
+     BRANCH_NAME="feat/<plan_slug>-$(date +%m%d-%H%M)"
+   fi
+   git checkout -b "$BRANCH_NAME" "origin/$DEFAULT_BRANCH"
+   ```
+
+   **Step 4 — Restore stash on failure:**
+   ```bash
+   # If checkout failed and we stashed, restore the stash
+   if [ $? -ne 0 ] && [ "$STASHED" -eq 0 ]; then
+     git stash pop 2>/dev/null
+   fi
+   ```
+
+   `<plan_slug>` is derived from the task description (same slug used for the plan filename). If checkout fails even after stashing (e.g. no origin remote), warn the user and fall back to current branch — the stash is restored automatically. After branch creation, continue with `Worktree: No` semantics (work directly on the new branch). Note: the stash remains in `git stash list` and can be recovered with `git stash pop` if needed.
+
+2b. **Create worktree early (if `--worktree=yes`):**
 
    ```bash
    ~/.pilot/bin/pilot worktree detect --json <plan_slug>
@@ -90,7 +126,7 @@ When adding tasks to an existing plan: load it, parse structure, verify compatib
 
    All file writes use the worktree path as base. If creation fails (old git): continue without worktree, set to `No`.
 
-3. **Generate filename:** `docs/plans/YYYY-MM-DD-<feature-slug>.md` — slug from first 3-4 words (lowercase, hyphens). If worktree active, use worktree path as base directory.
+3. **Generate filename:** (for both worktree and new-branch paths) `docs/plans/YYYY-MM-DD-<feature-slug>.md` — slug from first 3-4 words (lowercase, hyphens). If worktree active, use worktree path as base directory.
 
 4. **Fetch author email** (best-effort, do not fail if unavailable):
 

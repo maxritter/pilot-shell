@@ -176,7 +176,7 @@ Three toggles that control user interaction points during `/spec`. Disable all t
 
 | Toggle | Default | When enabled | When disabled |
 |--------|---------|-------------|---------------|
-| **Worktree Support** | On | Asks whether to isolate changes in a git worktree at the start of `/spec` | Worktree is always skipped — changes go directly on the current branch |
+| **Worktree Support** | On | Asks how to handle branching at the start of `/spec` — worktree, current branch, or new branch from default | Branch question is skipped — changes go directly on the current branch |
 | **Ask Questions** | On | Asks clarifying questions during planning to resolve ambiguities | Planning runs fully autonomous — makes default choices without asking |
 | **Plan Approval** | On | Requires your approval before implementation starts | Implementation begins automatically after planning completes |
 
@@ -184,7 +184,7 @@ Three toggles that control user interaction points during `/spec`. Disable all t
 
 To make `/spec` run end-to-end without any user interaction:
 
-1. Disable **Worktree Support** — skips the worktree prompt
+1. Disable **Worktree Support** — skips the branch strategy prompt
 2. Disable **Ask Questions** — planning makes autonomous decisions
 3. Disable **Plan Approval** — implementation starts automatically
 

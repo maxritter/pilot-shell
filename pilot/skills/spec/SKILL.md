@@ -82,10 +82,20 @@ echo "WORKTREE=$PILOT_WORKTREE_ENABLED QUESTIONS=$PILOT_PLAN_QUESTIONS_ENABLED A
 | not `false` | Clear | Ask worktree only |
 | not `false` | Ambiguous | Ask type + worktree |
 
+**Worktree question options (use these as predefined AskUserQuestion options):**
+
+| Option | Flag passed | Behavior |
+|--------|-------------|----------|
+| Use worktree (isolated branch, squash-merged after) | `--worktree=yes` | Creates isolated worktree |
+| Current branch | `--worktree=no` | Works on current branch as-is |
+| New branch from default branch | `--new-branch` | Creates a clean branch from origin/main (or master), checks it out, then works there |
+
+**⛔ When the user selects "New branch" or sends a custom response mentioning "new branch", "clean branch", or "branch from master/main": pass `--new-branch`, NOT `--worktree=yes`.** Custom responses requesting a new branch were previously misinterpreted as worktree requests.
+
 ### 0.1.3 Invoke Skill and STOP
 
-- **Bugfix:** `Skill(skill='spec-bugfix-plan', args='<task_description> --worktree=yes|no')`
-- **Feature:** `Skill(skill='spec-plan', args='<task_description> --worktree=yes|no')`
+- **Bugfix:** `Skill(skill='spec-bugfix-plan', args='<task_description> --worktree=yes|no|--new-branch')`
+- **Feature:** `Skill(skill='spec-plan', args='<task_description> --worktree=yes|no|--new-branch')`
 
 ## 0.2 Status-Based Dispatch (existing plans)
 

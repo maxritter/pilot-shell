@@ -59,7 +59,7 @@ Investigation-first flow for targeted fixes. Finds the root cause before touchin
 
 ### Implement Phase
 
-- Isolated git worktree on a dedicated branch (optional)
+- Isolated git worktree, new branch from default, or current branch (your choice)
 - Strict TDD for each task: RED → GREEN → REFACTOR
 - Quality hooks auto-lint, format, and type-check every edit
 - Full test suite after each task to catch regressions early
@@ -81,7 +81,7 @@ All interaction points in `/spec` are configurable via **Console Settings → Sp
 
 | Toggle               | Default | Effect when disabled                                                      |
 | -------------------- | ------- | ------------------------------------------------------------------------- |
-| **Worktree Support** | On      | Worktree is never used — implementation always runs on the current branch |
+| **Worktree Support** | On      | Worktree and new-branch options are hidden — implementation always runs on the current branch |
 | **Ask Questions**    | On      | Planning runs fully autonomous — no clarifying questions                  |
 | **Plan Approval**    | On      | Implementation starts immediately after planning — no approval gate       |
 
@@ -96,6 +96,14 @@ When all three are disabled, `/spec` runs end-to-end without any user interactio
 
 Both reviewers run in a separate context window and don't consume the main session's context budget. Optional **Codex adversarial reviewers** (off by default) provide an independent second opinion using OpenAI Codex.
 
-## Worktree Isolation (Optional)
+## Branch Strategy (Optional)
 
-When starting a `/spec` task, you can choose to work in an isolated git worktree. All implementation happens on a dedicated branch — `main` stays clean throughout. Pilot auto-stashes any uncommitted changes before creating the worktree and restores them after. After verification passes, choose to squash merge back. If the experiment doesn't work out, discard the worktree with no cleanup required.
+When starting a `/spec` task, you're asked how you want to work:
+
+| Option | What happens |
+| ------ | ------------ |
+| **Use worktree** | Creates an isolated git worktree on a dedicated branch. `main` stays clean. Pilot auto-stashes uncommitted changes, restores them after. Squash-merged after verification — or discard with no cleanup. |
+| **Current branch** | Works directly on whatever branch you're on. Simplest option when you're already on a clean feature branch. |
+| **New branch from default** | Fetches origin, creates `feat/<slug>` (or `fix/<slug>` for bugfixes) from `origin/main`, and checks it out. Best when your current branch isn't clean but you don't want full worktree isolation. |
+
+Disable the **Worktree Support** toggle in Console Settings to skip this question entirely — `/spec` will always use the current branch.
