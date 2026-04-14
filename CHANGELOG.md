@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.0.10] - 2026-04-14
+
+### Bug Fixes
+
+- Codegraph native SQLite repair, /spec new-branch option, session prompt display
+
 ## [8.0.9] - 2026-04-13
 
 ### Bug Fixes
