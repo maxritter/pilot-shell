@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.1.0] - 2026-04-15
+
+### Features
+
+- Add session details with JSONL stats, cost calculation, and enhanced UI
+
 ## [8.0.10] - 2026-04-14
 
 ### Bug Fixes
