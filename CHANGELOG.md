@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.2.0] - 2026-04-16
+
+### Features
+
+- Customization packs, Opus 4.7 support, and Codex bugfixes
+
 ## [8.1.0] - 2026-04-15
 
 ### Features
