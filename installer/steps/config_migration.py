@@ -219,7 +219,7 @@ def _migration_v4(raw: dict[str, Any]) -> bool:
 def _migration_v5(raw: dict[str, Any]) -> bool:
     """v4 → v5: Enable extended context (1M) by default.
 
-    1M context is now GA for Opus 4.6 and Sonnet 4.6. Set extendedContext
+    1M context is now GA for Opus 4.7 and Sonnet 4.6. Set extendedContext
     to true for all users. Users who don't have 1M access can disable it
     via Console Settings.
     """

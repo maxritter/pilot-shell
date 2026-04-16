@@ -39,6 +39,7 @@ const sidebars: SidebarsConfig = {
         "features/remote-control",
         "features/hooks",
         "features/extensions",
+        "features/customization",
         "features/cli",
         "features/mcp-servers",
         "features/language-servers",

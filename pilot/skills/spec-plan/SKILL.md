@@ -512,15 +512,17 @@ Then Read the file once. If not READY after 5 min, re-launch synchronously.
 
 #### Collect Codex Results (if launched)
 
-**⛔ MANDATORY — NEVER skip or defer the Codex review.** If Codex was launched above, you MUST collect and act on its results before proceeding. The Codex review runs as `Bash(run_in_background=true)` — you will be notified when it completes.
+**⛔ MANDATORY — NEVER skip or defer the Codex review.** If Codex was launched above, you MUST collect and act on its results before proceeding. The Codex review runs as `Bash(run_in_background=true)` — you will be automatically notified when it completes.
 
-**⛔ If the notification hasn't arrived yet:** Wait. Do NOT proceed. Check the output file to see if `# Codex Adversarial Review` with a `Verdict:` line is present.
+**⛔ The completion notification is the ONLY valid signal.** Do NOT read the output file to check if the review is done. The file may contain partial output from an in-progress review — reading it before the notification arrives leads to false conclusions ("no findings" when the review is still running). This is the #1 cause of premature Codex skip.
 
-1. **When the notification arrives**, read the background bash output. **Filter out `[codex]` prefixed log lines** — use `ctx_execute_file` to extract only non-`[codex]` lines.
+**⛔ If the notification hasn't arrived yet:** STOP. Do NOT proceed to Step 1.7b or approval. Do NOT read the output file. Do NOT conclude the review failed. Wait for the `<task-notification>` with `<status>completed</status>`. If you are tempted to check the file — that is the exact mistake this rule prevents.
 
-2. **Parse the output:** Look for the `# Codex Adversarial Review` section. Extract `Verdict:` and `Findings:` lines. Map severities: `[high]` / `[critical]` → must_fix, `[medium]` / `[low]` → should_fix. Fix all must_fix/should_fix.
+1. **When (and ONLY when) the completion notification arrives**, read the background bash output. **Filter out `[codex]` prefixed log lines** — use `ctx_execute_file` to extract only non-`[codex]` lines. Search for `# Codex Adversarial Review` section via `ctx_search`.
 
-3. **If the background bash timed out or failed** (exit code non-zero): Re-launch synchronously and wait. Only skip if the second attempt also fails.
+2. **Parse the output:** Extract `Verdict:` and `Findings:` lines. Map severities: `[high]` / `[critical]` → must_fix, `[medium]` / `[low]` → should_fix. Fix all must_fix/should_fix.
+
+3. **If the background bash timed out or failed** (exit code non-zero in the notification): Re-launch synchronously and wait. Only skip if the second attempt also fails.
 
 **If Codex was NOT launched**, proceed after all Claude reviewer must_fix/should_fix resolved.
 

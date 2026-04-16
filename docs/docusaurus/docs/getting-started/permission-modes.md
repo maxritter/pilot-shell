@@ -59,7 +59,7 @@ Claude Code's built-in plan mode (`Shift+Tab` → "plan") is unstructured — pl
 Pilot Shell passes `--enable-auto-mode` to Claude Code at launch, making Auto Mode available in the `Shift+Tab` permission cycle. Auto Mode lets Claude execute actions without showing permission prompts — a separate classifier model reviews each action before it runs and blocks anything that escalates beyond the task scope.
 
 :::warning Availability
-Auto Mode requires a **Team or Enterprise plan**, or **API access**. It is **not available on Pro or Max plans**. An admin must enable it in [Claude Code admin settings](https://claude.ai/admin-settings/claude-code) before users can turn it on. It also requires **Claude Sonnet 4.6 or Opus 4.6** — older models and third-party providers (Bedrock, Vertex, Foundry) are not supported.
+Auto Mode is available on **Max, Team, or Enterprise plans**, or with **API access**. It is **not available on the Pro plan**. On Team and Enterprise plans, an admin must enable it in [Claude Code admin settings](https://claude.ai/admin-settings/claude-code) before users can turn it on. It also requires **Claude Sonnet 4.6 or Opus 4.7** — older models and third-party providers (Bedrock, Vertex, Foundry) are not supported.
 :::
 
 ### How the Classifier Works

@@ -65,7 +65,7 @@ const insideItems: InsideItem[] = [
     title: "Extensions & Sharing",
     description: "Skills, rules, commands, agents",
     summary:
-      "Create custom skills and rules with built-in generators. Share across machines via git, across teams via project repos. Seven extension types at four scopes \u2014 managed in Console.",
+      "Create custom skills and rules with built-in generators. Share across machines via git, across teams via project repos. Customization packs let teams override workflows and skills via a git overlay. Seven extension types at four scopes \u2014 managed in Console.",
   },
   {
     icon: Bot,

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -397,6 +398,7 @@ class ClaudeFilesStep(BaseStep):
         migrate_model_config()
         self._cleanup_stale_managed_files(ctx)
         self._save_pilot_manifest(ctx)
+        self._reapply_customization(ui)
 
     def _save_pilot_manifest(self, ctx: InstallContext) -> None:
         """Save manifest of Pilot-managed files in skills/ and rules/.
@@ -422,6 +424,57 @@ class ClaudeFilesStep(BaseStep):
                 continue
 
         save_manifest(home_claude_dir / PILOT_MANIFEST_FILE, managed_files)
+
+    def _reapply_customization(self, ui: Any) -> None:
+        """Re-apply customization pack after core file installation.
+
+        Reads ~/.pilot/config.json for an active customization, then calls
+        the pilot binary to update and re-apply it. Non-fatal: warns on
+        failure but never breaks the core install.
+        """
+        config_path = Path.home() / ".pilot" / "config.json"
+        if not config_path.is_file():
+            return
+
+        try:
+            raw = json.loads(config_path.read_text())
+        except (json.JSONDecodeError, OSError):
+            return
+
+        cust = raw.get("customization")
+        if not isinstance(cust, dict) or not cust.get("source"):
+            return
+
+        pilot_bin = Path.home() / ".pilot" / "bin" / "pilot"
+        if not pilot_bin.is_file():
+            if ui:
+                ui.warning("Pilot binary not found — skipping customization re-apply")
+            return
+
+        try:
+            # Try update first (pulls latest from remote + applies)
+            result = subprocess.run(
+                [str(pilot_bin), "customize", "update", "--quiet", "--json"],
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+            if result.returncode != 0:
+                # Fall back to apply from cache (no network needed)
+                fallback = subprocess.run(
+                    [str(pilot_bin), "customize", "apply", "--quiet", "--json"],
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
+                )
+                if fallback.returncode != 0 and ui:
+                    ui.warning(
+                        f"Customization re-apply failed (update: {result.returncode}, "
+                        f"apply: {fallback.returncode})"
+                    )
+        except (subprocess.SubprocessError, OSError) as e:
+            if ui:
+                ui.warning(f"Customization re-apply failed: {e}")
 
     def _make_scripts_executable(self, plugin_dir: Path) -> None:
         """Make script files executable."""

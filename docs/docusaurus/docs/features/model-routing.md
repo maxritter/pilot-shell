@@ -27,5 +27,5 @@ Pilot automatically routes each phase to the right model. Rather than always usi
 - The result: better output at lower cost than running Opus everywhere
 
 :::tip Fully configurable
-Configure via the Pilot Shell Console Settings tab (`localhost:41777/#/settings`). Choose between Sonnet 4.6 and Opus 4.6 for the main session, each command, and each sub-agent independently. Context window size (200K or 1M) is configurable via the Extended Context toggle. API subscribers (Team, Enterprise) get 1M at no additional cost with all models. Max plan users must set all models to Opus — Sonnet 1M is not included in Max.
+Configure via the Pilot Shell Console Settings tab (`localhost:41777/#/settings`). Choose between Sonnet 4.6 and Opus 4.7 for the main session, each command, and each sub-agent independently. Context window size (200K or 1M) is configurable via the Extended Context toggle. API subscribers (Team, Enterprise) get 1M at no additional cost with all models. Max plan users must set all models to Opus — Sonnet 1M is not included in Max.
 :::

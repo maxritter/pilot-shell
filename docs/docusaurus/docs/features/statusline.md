@@ -15,7 +15,7 @@ Pilot Shell replaces the default Claude Code status line with a rich, three-line
 The status line has three lines:
 
 ```
-Line 1: Opus 4.6 [1M] | █████░▓ 60% [604K] | +156 -23 | main +2 ~3 | $1.45 | Savings: 65%
+Line 1: Opus 4.7 [1M] | █████░▓ 60% [604K] | +156 -23 | main +2 ~3 | $1.45 | Savings: 65%
 Line 2: Spec: my-feature feature [implement] ████░░░░ 3/6
 Line 3: Pilot 8.2.1 (Solo) · CC 2.1.79 (Max) · sessions 2 · memories 12
 ```
@@ -26,7 +26,7 @@ Widgets separated by `|`, from left to right:
 
 | Widget | Description | Color coding |
 |--------|-------------|--------------|
-| **Model** | Active model in short form (`Opus 4.6 [1M]`, `Sonnet 4.6`) | Cyan |
+| **Model** | Active model in short form (`Opus 4.7 [1M]`, `Sonnet 4.6`) | Cyan |
 | **Context** | Effective context usage with progress bar, buffer indicator (`▓`), and current token count (e.g., `[604K]`) | Green < 80%, Yellow 80–95%, Red 95%+ |
 | **Lines changed** | Session lines added/removed (`+156 -23`). Hidden when usage API data is available | Green for added, Red for removed |
 | **Git** | Branch name with staged (`+N`) and unstaged (`~N`) counts. Shows worktree branch with `wt` suffix when in a spec worktree | Magenta branch, Green staged, Yellow unstaged |

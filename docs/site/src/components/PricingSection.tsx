@@ -164,7 +164,13 @@ const PricingSection = () => {
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
-                  Extension sharing — share skills, rules, commands, and agents via git, with optional APM format
+                  Extension sharing — share skills, rules, commands, and agents via git
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" />
+                <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
+                  Customization packs — override workflows, skills, and rules via git
                 </span>
               </li>
               <li className="flex items-start gap-3">

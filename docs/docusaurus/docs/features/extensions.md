@@ -173,3 +173,7 @@ Create extensions manually or via Claude Code commands:
 ├── commands/                    ← plugin commands
 └── agents/                      ← plugin agents
 ```
+
+## See Also
+
+- **[Customization Packs](/docs/features/customization)** — for deeper workflow modification. Extensions are additive (new files alongside core); customization packs can **override** core Pilot files like the spec dispatcher. Available on Team and Enterprise plans.

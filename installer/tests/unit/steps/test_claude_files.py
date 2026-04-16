@@ -1197,3 +1197,88 @@ class TestBotSkillsCategory:
         assert _categorize_file("pilot/skills/bot-jobs/SKILL.md") == "skills"
         assert _categorize_file("pilot/skills/bot-channel-task/SKILL.md") == "skills"
         assert _categorize_file("pilot/skills/bot-defaults/SKILL.md") == "skills"
+
+
+class TestReapplyCustomization:
+    """Tests for _reapply_customization in ClaudeFilesStep."""
+
+    def test_calls_pilot_binary_when_customization_configured(self, tmp_path):
+        from unittest.mock import MagicMock, patch
+        import json
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        config_path = tmp_path / ".pilot" / "config.json"
+        config_path.parent.mkdir(parents=True)
+        config_path.write_text(json.dumps({
+            "customization": {"source": "https://github.com/org/repo.git", "branch": "main"}
+        }))
+
+        pilot_bin = tmp_path / ".pilot" / "bin" / "pilot"
+        pilot_bin.parent.mkdir(parents=True)
+        pilot_bin.touch()
+
+        step = ClaudeFilesStep()
+        ui = MagicMock()
+
+        with (
+            patch("installer.steps.claude_files.Path.home", return_value=tmp_path),
+            patch("installer.steps.claude_files.subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = MagicMock(returncode=0)
+            step._reapply_customization(ui)
+
+        mock_run.assert_called_once()
+        call_args = mock_run.call_args[0][0]
+        assert "customize" in call_args
+        assert "update" in call_args
+        assert "--quiet" in call_args
+
+    def test_skips_silently_when_no_customization(self, tmp_path):
+        from unittest.mock import MagicMock, patch
+        import json
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        config_path = tmp_path / ".pilot" / "config.json"
+        config_path.parent.mkdir(parents=True)
+        config_path.write_text(json.dumps({"model": "opus"}))
+
+        step = ClaudeFilesStep()
+        ui = MagicMock()
+
+        with (
+            patch("installer.steps.claude_files.Path.home", return_value=tmp_path),
+            patch("installer.steps.claude_files.subprocess.run") as mock_run,
+        ):
+            step._reapply_customization(ui)
+
+        mock_run.assert_not_called()
+
+    def test_warns_on_failure(self, tmp_path):
+        from unittest.mock import MagicMock, patch
+        import json
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        config_path = tmp_path / ".pilot" / "config.json"
+        config_path.parent.mkdir(parents=True)
+        config_path.write_text(json.dumps({
+            "customization": {"source": "https://github.com/org/repo.git"}
+        }))
+
+        pilot_bin = tmp_path / ".pilot" / "bin" / "pilot"
+        pilot_bin.parent.mkdir(parents=True)
+        pilot_bin.touch()
+
+        step = ClaudeFilesStep()
+        ui = MagicMock()
+
+        with (
+            patch("installer.steps.claude_files.Path.home", return_value=tmp_path),
+            patch("installer.steps.claude_files.subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = MagicMock(returncode=1)
+            step._reapply_customization(ui)
+
+        ui.warning.assert_called_once()

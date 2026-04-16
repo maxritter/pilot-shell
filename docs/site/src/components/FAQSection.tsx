@@ -22,7 +22,7 @@ const faqItems = [
     question:
       "Does Pilot Shell work with other AI coding tools?",
     answer:
-      "Pilot Shell is built for Claude Code. Every hook, rule, command, and workflow is engineered specifically for Claude\u2019s tool-use protocol, prompt format, and session lifecycle. Pilot Shell supports Claude Sonnet 4.6 and Claude Opus 4.6 \u2014 these are the models that produce the best results, and every rule and prompt is optimized for their behavior. Additionally, the optional Codex plugin adds OpenAI-powered adversarial review during /spec \u2014 an independent second opinion on your plans and code changes. Codex reviewers are disabled by default and can be enabled in Console Settings.",
+      "Pilot Shell is built for Claude Code. Every hook, rule, command, and workflow is engineered specifically for Claude\u2019s tool-use protocol, prompt format, and session lifecycle. Pilot Shell supports Claude Sonnet 4.6 and Claude Opus 4.7 \u2014 these are the models that produce the best results, and every rule and prompt is optimized for their behavior. Additionally, the optional Codex plugin adds OpenAI-powered adversarial review during /spec \u2014 an independent second opinion on your plans and code changes. Codex reviewers are disabled by default and can be enabled in Console Settings.",
   },
   {
     question: "Does Pilot Shell work with existing projects?",

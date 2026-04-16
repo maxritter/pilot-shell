@@ -24,7 +24,7 @@ Each view that supports project filtering has an inline **Project Filter** dropd
 | **Sessions** | Browse past sessions with search. Copy the session ID and use `/resume <session-id>` to jump back in. |
 | **Memories** | Browsable observations — decisions, discoveries, bugfixes — with type filters and search. Each memory shows which session it belongs to — click the session label to navigate directly to it. |
 | **Requirements** | PRD documents with view/annotate modes. Selected shown as a tab, others in a Previous dropdown. |
-| **Specifications** | All spec plans with task progress (checkboxes), phase tracking (PENDING/COMPLETE/VERIFIED), and iteration history. Selected shown as a tab, others in a Previous dropdown. |
+| **Specifications** | All spec plans with task progress (checkboxes), phase tracking (PENDING/COMPLETE/VERIFIED + custom statuses), and iteration history. Selected shown as a tab, others in a Previous dropdown. |
 | **Extensions** | All extensions — local, plugin, and remote — with team sharing via git (push, pull, diff), color-coded categories, and scope filtering. |
 | **Changes** | Git diff viewer with staged/unstaged files, branch info, worktree context, spec task correlation, and inline code review. |
 | **Usage** | Daily token costs, model routing breakdown (Opus vs Sonnet distribution), and usage trends over time. |
@@ -128,7 +128,7 @@ The Settings tab (`localhost:41777/#/settings`) controls how Pilot Shell behaves
 
 ### Model Preferences
 
-Choose between **Sonnet 4.6** ($3/$15 per MTok) and **Opus 4.6** ($5/$25 per MTok) for each component independently.
+Choose between **Sonnet 4.6** ($3/$15 per MTok) and **Opus 4.7** ($5/$25 per MTok) for each component independently.
 
 #### General
 

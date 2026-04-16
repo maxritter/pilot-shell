@@ -41,6 +41,16 @@ Grep and Glob are last-resort tools for exact text/regex patterns only. For ever
 | **Match AST patterns** | Probe `probe query "async function $NAME($$$)"` |
 | **Search exact text/regex** | Grep/Glob (the ONLY valid use case for these) |
 
+### Change Discipline
+
+**Think before coding.** Don't silently pick an interpretation and run with it. When a request is ambiguous, state your assumptions explicitly, present alternatives, and ask — before writing code.
+
+**Lineage test.** Every changed line must trace directly to the user's request. If it doesn't, revert it.
+
+**Orphan cleanup.** Remove imports/variables/functions that YOUR changes made unused. Don't touch pre-existing dead code — mention it, don't delete it.
+
+**Self-check.** Before submitting: "Would a senior engineer say this is overcomplicated?" If 200 lines could be 50, rewrite. Complexity is earned by actual requirements, not anticipated ones.
+
 ### Project-Specific Policies
 
 **File Size:** Aim for production files under 800 lines. Over 1000 lines is a signal to consider splitting — but only when it's the focus of the current task, not as a side-refactor. Test files exempt.

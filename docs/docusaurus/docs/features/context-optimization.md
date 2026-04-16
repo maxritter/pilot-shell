@@ -37,7 +37,7 @@ PreToolUse hooks automatically guide Claude toward these tools when it attempts 
 The status line shows context usage as a visual progress bar:
 
 ```
-Opus 4.6 [1M] | █████░▓ 60% | ...
+Opus 4.7 [1M] | █████░▓ 60% | ...
 ```
 
 Claude Code reserves ~16.5% of the context window as a compaction buffer, triggering auto-compaction at ~83.5% raw usage. Pilot Shell rescales this to an **effective 0–100% range** so the bar fills naturally to 100% right before compaction fires. A `▓` buffer indicator shows the reserved zone. The context monitor warns at ~80% effective (informational) and ~90%+ effective (caution).
