@@ -1,6 +1,6 @@
 ### Step 9: E2E Test Scenarios (Conditional)
 
-**Skip when:** Runtime profile would be Minimal (no UI, no server, no user-facing entry points). Use the same classification logic as `spec-verify` Step 3.0 — if Phase B would be skipped entirely, skip this step too.
+**Skip when:** Runtime profile would be Minimal (no UI, no server, no user-facing entry points). Use the same classification logic as `spec-verify` Step 2 — if Phase B would be skipped entirely, skip this step too.
 
 For features with UI or user-facing workflows, create structured E2E scenarios describing exactly how a user verifies the feature works. These become the verification contract for Phase B in `spec-verify` — the verifier executes them step by step rather than improvising.
 

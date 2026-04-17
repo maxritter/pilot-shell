@@ -40,7 +40,7 @@
 
 **Assumptions:** After creating tasks, write the `## Assumptions` section — one bullet per assumption: what you assume, which finding supports it, which task numbers depend on it. When implementation hits a surprise, this list tells the implementer which tasks are affected.
 
-#### Step 1.5.1: Goal Verification Criteria
+#### Step 8.1: Goal Verification Criteria
 
 After creating tasks, derive for the `## Goal Verification` section:
 

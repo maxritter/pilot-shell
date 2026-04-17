@@ -55,7 +55,7 @@ When `WORKTREE` is not `"false"` (3 options):
 
 **⛔ When the user selects "New branch" or sends a custom response mentioning "new branch", "clean branch", or "branch from master/main": pass `--new-branch`, NOT `--worktree=yes`.** Custom responses requesting a new branch were previously misinterpreted as worktree requests.
 
-### 0.1.3 Invoke Skill and STOP
+### 1.3 Invoke Skill and STOP
 
 - **Bugfix:** `Skill(skill='spec-bugfix-plan', args='<task_description> --worktree=yes|no|--new-branch')`
 - **Feature:** `Skill(skill='spec-plan', args='<task_description> --worktree=yes|no|--new-branch')`
