@@ -57,19 +57,19 @@ const HeroSection = () => {
           <div className="w-px h-8 bg-border/50 hidden xs:block" />
           <div className="text-center">
             <div className="text-lg xs:text-xl sm:text-2xl font-bold text-primary">
-              Hooks
+              Overlays
             </div>
             <div className="text-[9px] xs:text-[10px] sm:text-xs text-muted-foreground">
-              Quality Gates
+              Modify Defaults
             </div>
           </div>
           <div className="w-px h-8 bg-border/50 hidden xs:block" />
           <div className="text-center">
             <div className="text-lg xs:text-xl sm:text-2xl font-bold text-primary">
-              Bot
+              Hooks
             </div>
             <div className="text-[9px] xs:text-[10px] sm:text-xs text-muted-foreground">
-              Automation Agent
+              Quality Gates
             </div>
           </div>
         </div>
@@ -83,13 +83,13 @@ const HeroSection = () => {
             MCP Servers
           </Badge>
           <Badge variant="secondary" className="text-[10px] xs:text-xs">
-            Remote Control
+            LSP Servers
           </Badge>
           <Badge variant="secondary" className="text-[10px] xs:text-xs">
             Semantic Search
           </Badge>
           <Badge variant="secondary" className="text-[10px] xs:text-xs">
-            Reusable Skills
+            Pilot Bot
           </Badge>
         </div>
 

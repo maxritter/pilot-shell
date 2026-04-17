@@ -6,7 +6,7 @@ import {
   Search,
   Terminal,
   DollarSign,
-  Bot,
+  SlidersHorizontal,
 } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
 
@@ -65,14 +65,14 @@ const insideItems: InsideItem[] = [
     title: "Extensions & Sharing",
     description: "Skills, rules, commands, agents",
     summary:
-      "Create custom skills and rules with built-in generators. Share across machines via git, across teams via project repos. Customization lets teams overlay custom steps into core workflow skills (insert / replace / disable) and ship team rules, hooks, and agents \u2014 upstream drift is detected automatically. Seven extension types at four scopes \u2014 managed in Console.",
+      "Create custom skills and rules with built-in generators. Share across machines via git, across teams via project repos. Seven extension types at four scopes \u2014 managed in Console.",
   },
   {
-    icon: Bot,
-    title: "Pilot Bot",
-    description: "Automation agent, 24/7 operation",
+    icon: SlidersHorizontal,
+    title: "Customization",
+    description: "Modify what Pilot auto-installs",
     summary:
-      "Persistent Claude Code session with scheduled tasks, background jobs, and heartbeat monitoring. Runs 24/7. Optional Telegram integration for bidirectional messaging.",
+      "Tweak the built-in /spec workflow, adjust rules, add hooks and agents, change the configured MCP and LSP servers, override auto-applied Claude settings. Ship as a git repo for your team or a local directory for personal use. Upstream drift detected automatically.",
   },
 ];
 

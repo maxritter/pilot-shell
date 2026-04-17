@@ -1,25 +1,25 @@
 ---
 sidebar_position: 10
 title: Customization
-description: Extend Pilot Shell's skills, rules, hooks, and agents via a git-hosted customization repo
+description: Customize what Pilot Shell auto-installs — skills, rules, hooks, agents, MCP servers, LSP servers, and Claude settings
 ---
 
 # Customization
 
-Extend Pilot Shell with custom skills, rules, hooks, and agents — either shared across a team via a **git repository**, or kept private as a **local directory** on your machine. Available on **Team** and **Enterprise** plans.
+Customize everything Pilot Shell auto-installs on your machine. Tweak the built-in `/spec` workflow, modify existing rules, register additional hooks on top of Pilot's defaults, change which MCP or LSP servers get configured, adjust the auto-applied `settings.json` and `claude.json` — all without forking Pilot or hand-editing `~/.claude/` after every update. Available on **Team** and **Enterprise** plans.
 
-- **Team-wide (git URL):** publish the customization as a git repo; every developer runs `pilot customize install <git-url>` once, and `pilot customize update` pulls your team's latest.
+- **Team-wide (git URL):** publish your customization as a git repo; every developer runs `pilot customize install <git-url>` once, and `pilot customize update` pulls your team's latest.
 - **Individual (local path):** drop the same files into a folder on your machine (e.g. `~/my-pilot-patch/`) and run `pilot customize install ~/my-pilot-patch`. `pilot customize update` re-applies directly from the same folder, so your edits take effect on the next update.
 
 ## What you can customize
 
 | Target | What lives in the repo | How it composes |
 |--------|------------------------|-----------------|
-| **Skills** | `skills/<name>/...` + optional overlay ops in `customization.json` | Overlay ops (`insert_after`, `insert_before`, `replace`, `disable`) for core Pilot skills; whole skill directories are additive |
-| **Rules** | `rules/*.md` | Additive by default; same filename as a core rule → override |
-| **Hooks** | `hooks/*.sh` + `hooks/hooks.json` | Scripts copied as-is; `hooks.json` registers them with Claude Code |
-| **Agents** | `agents/*.md` | Additive |
-| **Top-level config** | `settings.json`, `claude.json`, `.mcp.json`, `.lsp.json` in the repo root | See [Overriding top-level config](#overriding-top-level-config) below |
+| **Skills** | `skills/<name>/...` + optional overlay ops in `customization.json` | Overlay ops (`insert_after`, `insert_before`, `replace`, `disable`) modify Pilot's built-in workflow skills (e.g. `/spec`, `/prd`); whole skill directories add new ones |
+| **Rules** | `rules/*.md` | New rules are additive; same filename as a core rule → modifies the built-in rule |
+| **Hooks** | `hooks/*.sh` + `hooks/hooks.json` | Scripts copied as-is; `hooks.json` registers additional hooks alongside Pilot's core hooks |
+| **Agents** | `agents/*.md` | Add new agents alongside Pilot's built-ins (e.g. plug extra reviewers into the spec workflow) |
+| **Top-level config** | `settings.json`, `claude.json`, `.mcp.json`, `.lsp.json` in the repo root | Modify the auto-applied Claude settings, app config, MCP server list, and LSP server list — see [Overriding top-level config](#overriding-top-level-config) below |
 
 ## File structure
 

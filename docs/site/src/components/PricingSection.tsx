@@ -170,7 +170,7 @@ const PricingSection = () => {
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
-                  Customization — overlay custom steps into core workflows (insert / replace / disable) and ship team rules, hooks, and agents from a git repo
+                  Customization — modify Pilot's built-in skills, rules, and auto-applied settings
                 </span>
               </li>
               <li className="flex items-start gap-3">

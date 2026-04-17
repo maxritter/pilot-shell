@@ -332,6 +332,67 @@ APM-compatible frontmatter is injected automatically. An `apm.yml` manifest is g
 
 </details>
 
+### Customization
+
+Customize everything Pilot auto-installs — tweak the built-in `/spec` workflow, modify existing rules, register additional hooks, add agents, and adjust the auto-applied `settings.json`, `claude.json`, `.mcp.json`, and `.lsp.json`. Source can be a **git repo** (team-wide) or a **local directory** (personal, no git needed). Team and Enterprise plans.
+
+```bash
+pilot customize install <git-url-or-path>    # Install and apply
+pilot customize update                       # Pull latest (git) or re-read (local)
+pilot customize status                       # Active source + drift warnings
+pilot customize remove                       # Restore Pilot defaults
+```
+
+<details>
+<summary><b>What you can customize</b></summary>
+
+| Target | How |
+|--------|-----|
+| **Skills** (built-in workflows like `/spec`, `/prd`) | Overlay ops in `customization.json`: `insert_after`, `insert_before`, `replace`, `disable` — or ship an entirely new skill folder |
+| **Rules** | New rules are additive; same filename as a core rule overrides it |
+| **Hooks** | Scripts copy to `~/.claude/pilot/hooks/`; ship `hooks.json` to register them alongside Pilot's built-ins |
+| **Agents** | Drop `.md` files to add review/helper agents into the spec workflow |
+| **MCP servers** | Top-level `.mcp.json` replaces the auto-configured server list |
+| **LSP servers** | Top-level `.lsp.json` replaces the auto-configured server list |
+| **Claude settings** | Top-level `settings.json` and `claude.json` deep-merge into the user's files — model prefs, permissions, env vars, etc. User state (oauth, projects) is preserved |
+
+Replaced skill fragments stay pinned to upstream by hash. `pilot customize status` surfaces drift when Pilot upgrades a replaced step; `pilot customize diff <skill>/<step-id>` shows what changed so you can port improvements. See the [Customization guide](https://pilot-shell.com/docs/features/customization) for the full schema.
+
+</details>
+
+<details>
+<summary><b>Repository / folder structure</b></summary>
+
+The layout is the same whether you publish it as a git repo or keep it as a local folder. Directory names map 1:1 to `~/.claude/`:
+
+```
+my-customization/
+├── customization.json          # Required: metadata + optional skill overlays
+├── settings.json               # Optional: deep-merges into ~/.claude/settings.json
+├── claude.json                 # Optional: deep-merges into ~/.claude.json
+├── .mcp.json                   # Optional: replaces ~/.claude/pilot/.mcp.json
+├── .lsp.json                   # Optional: replaces ~/.claude/pilot/.lsp.json
+├── skills/                     # → ~/.claude/skills/
+│   ├── spec-plan/steps/
+│   │   └── security-review.md  # New step injected into spec-plan
+│   └── team-deploy/            # Brand-new skill
+│       ├── manifest.json
+│       ├── orchestrator.md
+│       └── steps/01-stage.md
+├── rules/                      # → ~/.claude/rules/
+│   ├── team-standards.md       # Additive
+│   └── testing.md              # Overrides core (same filename)
+├── hooks/                      # → ~/.claude/pilot/hooks/
+│   ├── team-lint-check.sh
+│   └── hooks.json              # Registers team-lint-check.sh alongside Pilot's hooks
+└── agents/                     # → ~/.claude/pilot/agents/
+    └── team-reviewer.md
+```
+
+Only ship the files and directories you need. A repo with just `rules/` is a valid customization; so is one with just `.mcp.json`.
+
+</details>
+
 ### Pilot Bot
 
 Run Claude Code as a persistent 24/7 automation agent with scheduled tasks, background jobs and heartbeat monitoring:
@@ -473,7 +534,7 @@ For full details on every component, see the **[Documentation](https://pilot-she
 | [**Remote Control**](https://pilot-shell.com/docs/features/remote-control) | Control Pilot sessions from your phone, tablet, or any browser — send prompts, monitor progress, and receive notifications remotely |
 | [**Hooks Pipeline**](https://pilot-shell.com/docs/features/hooks) | 15 hooks across 7 events — quality checks on every file edit (ruff, ESLint, go vet), TDD enforcement, token optimization via RTK (60–90% savings), session continuity, memory capture, and session lifecycle management |
 | [**Extensions**](https://pilot-shell.com/docs/features/extensions) | Unified view of skills, rules, commands, and agents across global, project, plugin, and remote scopes. Team sharing via git with push, pull, diff, and APM-compatible export |
-| [**Customization**](https://pilot-shell.com/docs/features/customization) | Extend skills, rules, hooks, and agents via a git repo (team-wide) or a local directory (personal). Skill overlays (`insert_after` / `insert_before` / `replace` / `disable`) compose custom steps into core workflows without full-file forks. Fragments stay pinned to upstream by hash; `pilot customize status` surfaces drift; `pilot customize update` re-applies on demand. Team and Enterprise plans |
+| [**Customization**](https://pilot-shell.com/docs/features/customization) | Customize what Pilot auto-installs — tweak built-in skills (spec, prd, etc.), modify rules, register additional hooks, add agents, and adjust auto-applied MCP / LSP / Claude settings. Source is a git repo (team-wide) or local directory (personal). Skill overlays (`insert_after` / `insert_before` / `replace` / `disable`) modify core workflows without full-file forks; fragments stay pinned to upstream by hash with drift detection. Team and Enterprise plans |
 | [**Pilot CLI**](https://pilot-shell.com/docs/features/cli) | Session management, headless mode (`-p`) for CI/CD and scripts, worktree isolation, licensing, context monitoring. Run `pilot` or `ccp` to start |
 | [**MCP Servers**](https://pilot-shell.com/docs/features/mcp-servers) | 6 preconfigured MCP servers for library docs, persistent memory, web search, GitHub code search, web page fetching, and code knowledge graphs, plus the context-mode plugin for sandboxed execution |
 | [**Language Servers**](https://pilot-shell.com/docs/features/language-servers) | Real-time diagnostics for Python (basedpyright), TypeScript (vtsls), Go (gopls). Auto-installed, auto-configured |
@@ -587,6 +648,17 @@ You can also set a persistent default in `~/.claude/settings.json` by changing t
 Yes. Create your own in your project's `.claude/` folder — rules, commands, skills, and agents are all plain markdown files. Your project-level assets load alongside Pilot Shell's built-in defaults and take precedence when they overlap. `/setup-rules` auto-discovers your codebase patterns and generates project-specific rules. `/create-skill` builds reusable skills from any topic interactively. View and manage all extensions on the Console Extensions page.
 
 For monorepos, organize rules in nested subdirectories by product and team (e.g. `.claude/rules/my-product/team-x/`). Team-level rules must use `paths` frontmatter so they only load when working on relevant files. `/setup-rules` validates this structure, enforces path-scoping, and generates a `README.md` to document the organization.
+
+</details>
+
+<details>
+<summary><b>Can I customize Pilot's built-in workflows and defaults?</b></summary>
+
+Yes — the **Customization** feature on Team and Enterprise plans lets you modify what Pilot Shell auto-installs, not just add alongside it. Tweak the built-in `/spec` workflow (insert a security-review step, replace the planning template, disable a step you don't need), adjust existing rules, register additional hooks, add review agents, change which MCP or LSP servers get configured, and override the auto-applied `settings.json` and `claude.json`. Source is either a **git repo** for your team or a **local directory** for personal use — no git needed for a one-off tweak.
+
+On **Team**, every developer runs `pilot customize install <source>` once and stays in sync via `pilot customize update`. Skill overlays stay pinned to Pilot's upstream by hash, so when Pilot ships an improvement to a step you replaced, `pilot customize status` flags the drift and `pilot customize diff` shows you what changed.
+
+**Enterprise** adds full source-code access to Pilot itself (launcher, console, all components) on top of everything Team gets — so you can fork, audit, and modify the entire stack for regulated environments. See the [Customization guide](https://pilot-shell.com/docs/features/customization) for the full schema.
 
 </details>
 
