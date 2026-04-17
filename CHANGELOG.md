@@ -2,6 +2,16 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.2.3] - 2026-04-17
+
+### Bug Fixes
+
+- Drop skill banner, normalize step heading levels across workflow skills
+
+### Miscellaneous
+
+- Reframe customization docs and rework site hero/pillars
+
 ## [8.2.2] - 2026-04-17
 
 ### Bug Fixes
