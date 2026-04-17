@@ -2,6 +2,13 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.2.1] - 2026-04-17
+
+### Bug Fixes
+
+- Removed static effort for skills/commands to adjust based on global
+- Customization overrides, skill decomposition polish, generated artifacts untracked
+
 ## [8.2.0] - 2026-04-16
 
 ### Features
