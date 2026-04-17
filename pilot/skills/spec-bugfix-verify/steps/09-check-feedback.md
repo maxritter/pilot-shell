@@ -1,4 +1,4 @@
-### Step 9: Check for Code Review Feedback
+## Step 9: Check for Code Review Feedback
 
 **Run BEFORE marking VERIFIED.** Check if the user left code review annotations in the Console's Changes tab. Annotations auto-save — no "Send Feedback" button needed.
 

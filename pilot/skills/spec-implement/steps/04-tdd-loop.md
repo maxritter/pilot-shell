@@ -1,6 +1,6 @@
 ---
 
-### Step 4: TDD Loop
+## Step 4: TDD Loop
 
 **For EVERY task:**
 

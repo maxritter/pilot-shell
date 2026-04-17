@@ -1,8 +1,6 @@
 ---
 
-## Step 7: Final Worktree Sync (if worktree active)
-
-### Step 7: Worktree Sync (if worktree active)
+## Step 7: Worktree Sync (if worktree active)
 
 1. Detect: `~/.pilot/bin/pilot worktree detect --json <plan_slug>`
 2. If no worktree: skip to Step 10.

@@ -1,4 +1,4 @@
-### Step 10: Program Execution Verification
+## Step 10: Program Execution Verification
 
 **If runtime profile is Minimal:** Skip.
 

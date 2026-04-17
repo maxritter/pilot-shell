@@ -1,6 +1,6 @@
 ---
 
-### Step 1: Read Plan & Gather Context
+## Step 1: Read Plan & Gather Context
 
 1. **Read the COMPLETE plan** — understand architecture and design
 2. **Summarize understanding** — demonstrate comprehension

@@ -1,4 +1,4 @@
-### Step 11: Update Plan Status
+## Step 11: Update Plan Status
 
 **All passes and user approves:** Set `Status: VERIFIED`, register:
 ```bash

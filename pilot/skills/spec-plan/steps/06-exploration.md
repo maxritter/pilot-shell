@@ -1,4 +1,4 @@
-### Step 6: Exploration
+## Step 6: Exploration
 
 **⛔ START WITH CODEGRAPH — before reading any files or running any searches.**
 

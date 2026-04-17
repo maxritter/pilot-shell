@@ -1,4 +1,4 @@
-### Step 5: Automated Checks
+## Step 5: Automated Checks
 
 Run all mechanical checks in sequence. Fix any failures before proceeding.
 

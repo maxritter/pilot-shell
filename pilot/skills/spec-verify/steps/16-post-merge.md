@@ -1,4 +1,4 @@
-### Step 16: Post-Merge Verification (after squash merge only)
+## Step 16: Post-Merge Verification (after squash merge only)
 
 **Mandatory after successful worktree sync.** The squash merge can introduce breakage from base branch divergence.
 

@@ -1,4 +1,4 @@
-### Step 11: Per-Task DoD Audit
+## Step 11: Per-Task DoD Audit
 
 **If runtime profile is Minimal:** Skip.
 

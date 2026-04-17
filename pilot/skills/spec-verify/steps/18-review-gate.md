@@ -1,4 +1,4 @@
-### Step 18: Code Review Gate (User Confirmation)
+## Step 18: Code Review Gate (User Confirmation)
 
 **⛔ MANDATORY before marking VERIFIED.** All automated checks pass — but the user should review the actual code changes.
 

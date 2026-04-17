@@ -1,4 +1,4 @@
-### Step 6: Feature Parity Check (migration/refactoring only)
+## Step 6: Feature Parity Check (migration/refactoring only)
 
 Skip unless the plan has a Feature Inventory section.
 

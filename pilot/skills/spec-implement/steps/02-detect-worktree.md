@@ -1,6 +1,6 @@
 ---
 
-### Step 2: Detect or Resume Worktree (Conditional)
+## Step 2: Detect or Resume Worktree (Conditional)
 
 **Read `Worktree:` header from plan.** If `No` or missing: skip to Step 3.
 

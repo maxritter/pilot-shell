@@ -1,6 +1,6 @@
 ---
 
-### Step 5: Task Understanding, Discuss & Clarify
+## Step 5: Task Understanding, Discuss & Clarify
 
 1. Restate the task in your own words — core problem, assumptions
 2. **Scope check:** Does this task describe multiple independent subsystems (e.g., "build chat, file storage, billing, and analytics")? If so, flag immediately — don't spend questions refining details of a task that needs decomposition first. Suggest splitting into separate plans, one per subsystem, each producing working software on its own. Proceed with the first sub-task.

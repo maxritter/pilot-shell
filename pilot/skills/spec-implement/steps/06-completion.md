@@ -1,6 +1,6 @@
 ---
 
-### Step 6: All Tasks Complete → Verification
+## Step 6: All Tasks Complete → Verification
 
 1. Check diagnostics + run test suite
 2. **For migrations:** Feature parity check against old code. If features missing: add tasks, do NOT mark complete.

@@ -1,6 +1,6 @@
 ---
 
-### Step 10: Write Full Plan
+## Step 10: Write Full Plan
 
 **Save to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
 

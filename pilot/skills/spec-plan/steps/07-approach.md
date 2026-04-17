@@ -1,4 +1,4 @@
-### Step 7: Approach Selection & Design Decisions
+## Step 7: Approach Selection & Design Decisions
 
 **⛔ Do NOT skip this step.** After exploration, always propose competing approaches before committing to a design. Even when one approach seems obvious, stating alternatives with trade-offs validates the choice and surfaces blind spots.
 

@@ -1,4 +1,4 @@
-### Step 8: Re-verification (Only for Structural Fixes)
+## Step 8: Re-verification (Only for Structural Fixes)
 
 **⛔ If `PILOT_CHANGES_REVIEW_ENABLED` is `"false"` (from Step 0 — Steps 4/7 were skipped),** skip this step entirely and proceed to Phase B.
 

@@ -1,4 +1,4 @@
-### Step 15: Worktree Sync (if worktree active)
+## Step 15: Worktree Sync (if worktree active)
 
 1. Extract plan slug from path (strip date prefix and `.md`)
 

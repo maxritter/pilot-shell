@@ -1,4 +1,4 @@
-### Step 7: Collect Review Results
+## Step 7: Collect Review Results
 
 **⛔ If `PILOT_CHANGES_REVIEW_ENABLED` is `"false"` (from Step 0 — Step 4 was skipped),** skip this step entirely and proceed to Step 9 (Phase B). There are no findings to collect.
 

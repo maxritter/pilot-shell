@@ -1,4 +1,4 @@
-### Step 12: Not Verified Acknowledgment
+## Step 12: Not Verified Acknowledgment
 
 List what was **NOT** verified and why. Include in the verification report (Step 18). Every gap must have a reason:
 

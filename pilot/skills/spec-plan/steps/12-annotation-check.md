@@ -1,4 +1,4 @@
-### Step 12: Check for Console Annotation Feedback (Before Approval)
+## Step 12: Check for Console Annotation Feedback (Before Approval)
 
 **⛔ Run this BEFORE Step 13 (approval).** Check if the user has annotated the plan in the Console's Specifications tab. Annotations auto-save to the unified JSON file — no "Send Feedback" button needed.
 

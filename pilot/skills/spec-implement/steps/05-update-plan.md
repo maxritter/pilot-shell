@@ -1,6 +1,6 @@
 ---
 
-### Step 5: Update Plan After EACH Task
+## Step 5: Update Plan After EACH Task
 
 **⛔ NON-NEGOTIABLE.** After each task:
 1. Change `[ ]` → `[x]` for that task

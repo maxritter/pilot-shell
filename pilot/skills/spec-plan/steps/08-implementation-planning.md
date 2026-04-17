@@ -1,4 +1,4 @@
-### Step 8: Implementation Planning
+## Step 8: Implementation Planning
 
 **Task Granularity:** Each task: independently testable, focused (2-4 files max), verifiable. Split if multiple unrelated DoD criteria; merge if one can't be tested without the other. Don't create tasks for setup/boilerplate with no standalone value — fold into the first task that uses them.
 

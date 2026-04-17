@@ -1,4 +1,4 @@
-### Step 10: Code Review Gate (User Confirmation)
+## Step 10: Code Review Gate (User Confirmation)
 
 **⛔ MANDATORY before marking VERIFIED.**
 

@@ -1,4 +1,4 @@
-### Step 4: Launch Code Review Agent (Early)
+## Step 4: Launch Code Review Agent (Early)
 
 **⛔ If `PILOT_CHANGES_REVIEW_ENABLED` is `"false"` (from Step 0),** skip this step entirely and proceed to Step 5. (Automated checks in Step 5 still run; only the agent-based review is skipped.)
 

@@ -1,4 +1,4 @@
-### Step 9: E2E Test Scenarios (Conditional)
+## Step 9: E2E Test Scenarios (Conditional)
 
 **Skip when:** Runtime profile would be Minimal (no UI, no server, no user-facing entry points). Use the same classification logic as `spec-verify` Step 2 — if Phase B would be skipped entirely, skip this step too.
 

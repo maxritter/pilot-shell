@@ -1,4 +1,4 @@
-### Step 19: Update Plan Status
+## Step 19: Update Plan Status
 
 **When ALL passes AND user approves:**
 

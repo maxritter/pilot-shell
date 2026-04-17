@@ -1,4 +1,4 @@
-### Step 11: Plan Verification
+## Step 11: Plan Verification
 
 **⛔ If `PILOT_SPEC_REVIEW_ENABLED` is `"false"` (from Step 0),** skip this step entirely and proceed to Step 13.
 

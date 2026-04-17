@@ -1,12 +1,12 @@
 ---
 
-## Step 9: Phase B — Verify the Running Program
+## Phase B — Verify the Running Program
 
 All code is finalized. No more code changes except critical bugs found during execution.
 
 **If runtime profile is Minimal:** Run build check (Step 9a), then skip to Final section.
 
-### Step 9: Build, Deploy, and Verify Code Identity
+## Step 9: Build, Deploy, and Verify Code Identity
 
 #### 9a: Build
 
