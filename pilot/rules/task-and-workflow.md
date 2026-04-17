@@ -208,7 +208,7 @@ spec-verify (or spec-bugfix-verify) finds issues → Status: PENDING → spec-im
 1. **Worktree Choice + Type Confirmation** (new plans only, in dispatcher — type only asked when ambiguous; worktree skipped when `$PILOT_WORKTREE_ENABLED=false`; Codex controlled entirely by Console Settings)
 2. **Plan Approval** (in spec-plan or spec-bugfix-plan; skipped when `$PILOT_PLAN_APPROVAL_ENABLED=false`)
 3. **Worktree Sync Approval** (in spec-verify/spec-bugfix-verify, only when `Worktree: Yes`)
-4. **Code Review Gate** (in spec-verify Step 3.13 / spec-bugfix-verify Step 3.8 — uses `AskUserQuestion` so the stop guard allows session exit while waiting)
+4. **Code Review Gate** (in spec-verify Step 18 / spec-bugfix-verify Step 10 — uses `AskUserQuestion` so the stop guard allows session exit while waiting)
 
 Everything else is automatic. **NEVER ask "Should I fix these findings?"** — verification fixes are part of the approved plan.
 

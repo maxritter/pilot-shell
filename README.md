@@ -49,7 +49,7 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 - **Context engineering** — preserves decisions and knowledge across sessions
 - **Code intelligence** — semantic search (Probe) + code knowledge graph (CodeGraph)
 - **Token optimization** — 60–90% cost reduction via RTK and context-mode
-- **Extensions** — reusable rules, skills, and MCP servers with team sharing and [customization packs](https://pilot-shell.com/docs/features/customization)
+- **Extensions** — reusable rules, skills, and MCP servers with team sharing and [customization](https://pilot-shell.com/docs/features/customization)
 - **Console** — local web dashboard with real-time notifications and session management
 - **Pilot Bot** — persistent automation agent with scheduled tasks and background jobs
 
@@ -473,7 +473,7 @@ For full details on every component, see the **[Documentation](https://pilot-she
 | [**Remote Control**](https://pilot-shell.com/docs/features/remote-control) | Control Pilot sessions from your phone, tablet, or any browser — send prompts, monitor progress, and receive notifications remotely |
 | [**Hooks Pipeline**](https://pilot-shell.com/docs/features/hooks) | 15 hooks across 7 events — quality checks on every file edit (ruff, ESLint, go vet), TDD enforcement, token optimization via RTK (60–90% savings), session continuity, memory capture, and session lifecycle management |
 | [**Extensions**](https://pilot-shell.com/docs/features/extensions) | Unified view of skills, rules, commands, and agents across global, project, plugin, and remote scopes. Team sharing via git with push, pull, diff, and APM-compatible export |
-| [**Customization Packs**](https://pilot-shell.com/docs/features/customization) | Override core workflows, skills, rules, hooks, and agents via a git-based overlay. Teams maintain a customization repo; `pilot customize install` applies it, `pilot update` re-applies automatically. Team and Enterprise plans |
+| [**Customization**](https://pilot-shell.com/docs/features/customization) | Extend skills, rules, hooks, and agents via a git repo (team-wide) or a local directory (personal). Skill overlays (`insert_after` / `insert_before` / `replace` / `disable`) compose custom steps into core workflows without full-file forks. Fragments stay pinned to upstream by hash; `pilot customize status` surfaces drift; `pilot customize update` re-applies on demand. Team and Enterprise plans |
 | [**Pilot CLI**](https://pilot-shell.com/docs/features/cli) | Session management, headless mode (`-p`) for CI/CD and scripts, worktree isolation, licensing, context monitoring. Run `pilot` or `ccp` to start |
 | [**MCP Servers**](https://pilot-shell.com/docs/features/mcp-servers) | 6 preconfigured MCP servers for library docs, persistent memory, web search, GitHub code search, web page fetching, and code knowledge graphs, plus the context-mode plugin for sandboxed execution |
 | [**Language Servers**](https://pilot-shell.com/docs/features/language-servers) | Real-time diagnostics for Python (basedpyright), TypeScript (vtsls), Go (gopls). Auto-installed, auto-configured |
@@ -498,7 +498,7 @@ Pilot Shell is source-available under a commercial license. See the [LICENSE](LI
 | Tier           | Seats | Includes                                                                                                        |
 | :------------- | :---- | :-------------------------------------------------------------------------------------------------------------- |
 | **Solo**       | 1     | All features, continuous updates, community support via [GitHub Issues][gh-issues]                              |
-| **Team**       | Multi | Solo + extension sharing, customization packs, seat management, priority support                                |
+| **Team**       | Multi | Solo + extension sharing, customization, seat management, priority support                                      |
 | **Enterprise** | 100+  | Team + full source code access (launcher, console, all components), dedicated support   |
 
 ---

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "orchestrator": "orchestrator.md",
+  "steps": [
+    {
+      "id": "step-0-permission-mode",
+      "file": "steps/00-permission-mode.md"
+    },
+    {
+      "id": "step-1-parse-route",
+      "file": "steps/01-parse-route.md"
+    },
+    {
+      "id": "step-2-status-dispatch",
+      "file": "steps/02-status-dispatch.md"
+    }
+  ]
+}

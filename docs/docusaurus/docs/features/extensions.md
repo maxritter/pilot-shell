@@ -55,18 +55,12 @@ Authentication uses your existing system git credentials (SSH keys or credential
 
 After connecting, a **Remote** scope filter button appears in the filter bar. Select it to see all extensions available in the team repository. Each remote extension shows its file path in the repository.
 
-### Push and Pull
+### Push, Pull, and Diff
 
-- **Push to Remote** — From any local extension's detail modal, click the **Push** button to upload it to the team repository
+- **Push to Remote** — From any local extension's detail modal, click **Push** to upload it to the team repository
 - **Download from Remote** — Click any remote extension and choose **Download to Global** or **Download to Project**
-- **Conflict detection** — If a local file differs from the remote version, Pilot shows a diff and lets you choose whether to overwrite
-
-### Comparing Versions
-
-When an extension exists both locally and in the remote, the detail modal shows a **Remote** compare button. This opens a side-by-side diff view (same as the project vs global diff) with options to sync in either direction:
-
-- **Use Remote → Local** — overwrite your local version with the remote
-- **Use Local → Remote** — push your local version to the remote
+- **Diff and sync** — When an extension exists both locally and remotely, click the **Remote** compare button in the detail modal. A side-by-side diff view opens with sync options: **Use Remote → Local** or **Use Local → Remote**
+- **Conflict detection** — If a push would overwrite a differing remote version, Pilot shows the diff and lets you choose
 
 ### APM Format (Cross-Tool Compatibility)
 
@@ -176,4 +170,4 @@ Create extensions manually or via Claude Code commands:
 
 ## See Also
 
-- **[Customization Packs](/docs/features/customization)** — for deeper workflow modification. Extensions are additive (new files alongside core); customization packs can **override** core Pilot files like the spec dispatcher. Available on Team and Enterprise plans.
+- **[Customization](/docs/features/customization)** — for team-wide workflow modification. Extensions are project-scoped; customization is a git-hosted overlay that applies across every project via `pilot customize install`. It composes custom steps into core workflow skills and adds team rules, hooks, and agents. Available on Team and Enterprise plans.

@@ -3,6 +3,12 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Generated skill artifacts — SKILL.md and hashes.json are produced by
+# `pilot skill-build` at install time from manifest.json + steps/*.md.
+# They must never be committed from the source tree.
+pilot/skills/*/SKILL.md
+pilot/skills/*/hashes.json
+
 # C extensions
 *.so
 

@@ -18,7 +18,7 @@ No more re-explaining decisions, chasing skipped tests, or reviewing 15-file cha
 - **Automatic quality** — linting, formatting, type checking, and test enforcement happen as hooks, not suggestions
 - **Full visibility** — a local dashboard shows what's running, what changed, and what it cost
 
-## Quick Start
+## Quick start
 
 ```bash
 # Install
@@ -40,24 +40,6 @@ cd your-project && pilot
 > /spec "Add user authentication with OAuth"
 ```
 
-## What's Inside
-
-| Category | Highlights |
-|----------|-----------|
-| **[Getting Started](/docs/getting-started/prerequisites)** | Prerequisites, one-command installation |
-| **[Workflows](/docs/workflows/setup-rules)** | `/setup-rules`, `/create-skill`, `/prd`, `/spec`, Quick Mode |
-| **[Features](/docs/features/console)** | Pilot Console, statusline, model routing, rules, context optimization, remote control, hooks, extensions, Pilot CLI, MCP servers, language servers, open-source tools |
-
-## Key Commands
-
-| Command | Purpose |
-|---------|---------|
-| `pilot` or `ccp` | Start Claude with Pilot enhancements |
-| `/setup-rules` | Generate project rules and MCP docs |
-| `/prd "idea"` | Research → PRD → hand off to `/spec` |
-| `/spec "task"` | Plan → Implement → Verify with TDD |
-| `/create-skill` | Build a reusable skill from any topic |
-
 ## Architecture
 
 Pilot enhances Claude Code with:
@@ -68,3 +50,5 @@ Pilot enhances Claude Code with:
 - **Intelligent model routing** — Opus for planning, Sonnet for implementation
 - **Persistent memory** via local SQLite — decisions and context survive across sessions
 - **Pilot Console** — local web dashboard for monitoring, configuration, and skill sharing
+
+Explore the sidebar for [getting started](/docs/getting-started/prerequisites), [workflows](/docs/workflows/setup-rules), and [features](/docs/features/console).

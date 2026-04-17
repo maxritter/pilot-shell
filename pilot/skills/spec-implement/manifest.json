@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "orchestrator": "orchestrator.md",
+  "steps": [
+    {
+      "id": "step-1-read-plan",
+      "file": "steps/01-read-plan.md"
+    },
+    {
+      "id": "step-2-detect-worktree",
+      "file": "steps/02-detect-worktree.md"
+    },
+    {
+      "id": "step-3-setup-tasks",
+      "file": "steps/03-setup-tasks.md"
+    },
+    {
+      "id": "step-4-tdd-loop",
+      "file": "steps/04-tdd-loop.md"
+    },
+    {
+      "id": "step-5-update-plan",
+      "file": "steps/05-update-plan.md"
+    },
+    {
+      "id": "step-6-completion",
+      "file": "steps/06-completion.md"
+    },
+    {
+      "id": "step-7-migration-additions",
+      "file": "steps/07-migration-additions.md"
+    }
+  ]
+}

@@ -38,9 +38,9 @@ $ pilot
 | **Workflow Automation** | Multi-step processes with consistent methodology | Step-by-step gates, validation, iterative refinement |
 | **MCP Enhancement** | Workflow guidance on top of MCP tool access | Multi-MCP coordination, domain expertise, error handling |
 
-## Skill Complexity Spectrum
+## How big should a skill be
 
-Skills are designed with the simplest possible structure. Left = more reliable and cheaper to execute.
+Skills are designed with the simplest possible structure that does the job. Simpler = more reliable and cheaper to execute.
 
 | Level | Style | Best For |
 |-------|-------|----------|

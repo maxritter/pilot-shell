@@ -8,193 +8,145 @@ description: Local web dashboard at localhost:41777 — monitor and manage your 
 
 Local web dashboard at `localhost:41777` — monitor and manage your sessions.
 
-The Console runs locally as a Bun/Express server with a React web UI. It's automatically started when you launch Pilot and stopped when all sessions close. All data — memories, sessions, usage — is stored in a local SQLite database. Nothing leaves your machine.
+The Console runs locally as a Bun/Express server with a React web UI. It starts when you launch Pilot and stops when all sessions close. All data — memories, sessions, usage — lives in a local SQLite database. Nothing leaves your machine.
 
 ```bash
 $ open http://localhost:41777
 ```
 
-## 10 Views
+## Views
 
-Each view that supports project filtering has an inline **Project Filter** dropdown next to the title — switch projects without leaving the page. The **Dashboard** shows stats across all projects with clickable tiles that navigate to the relevant view.
+Each view that supports project filtering has an inline **Project Filter** dropdown next to the title. The **Dashboard** shows stats across all projects with clickable tiles that navigate to the relevant view.
 
 | View | Description |
 |------|-------------|
-| **Dashboard** | Global command center — 8 clickable stat cards (Projects, Sessions, Active, Memories, Extensions, Requirements, Specifications, Changes), plus 4 recent cards (Specifications, Requirements, Sessions, Memories) with "Show all" links. Active specs shown as pills in the top bar, notification bell in the top right. |
-| **Sessions** | Browse past sessions with search. Copy the session ID and use `/resume <session-id>` to jump back in. |
-| **Memories** | Browsable observations — decisions, discoveries, bugfixes — with type filters and search. Each memory shows which session it belongs to — click the session label to navigate directly to it. |
-| **Requirements** | PRD documents with view/annotate modes. Selected shown as a tab, others in a Previous dropdown. |
-| **Specifications** | All spec plans with task progress (checkboxes), phase tracking (PENDING/COMPLETE/VERIFIED + custom statuses), and iteration history. Selected shown as a tab, others in a Previous dropdown. |
-| **Extensions** | All extensions — local, plugin, and remote — with team sharing via git (push, pull, diff), color-coded categories, and scope filtering. |
-| **Changes** | Git diff viewer with staged/unstaged files, branch info, worktree context, spec task correlation, and inline code review. |
-| **Usage** | Daily token costs, model routing breakdown (Opus vs Sonnet distribution), and usage trends over time. |
-| **Help** | Embedded documentation from pilot-shell.com — full technical reference without leaving the Console. |
-| **Settings** | Model selection per command and sub-agent. Spec workflow toggles. Reviewer toggles and optional Codex adversarial reviewers. Extended context (1M) toggle with pricing info. |
+| **Dashboard** | Global command center — 8 clickable stat cards (Projects, Sessions, Active, Memories, Extensions, Requirements, Specifications, Changes), 4 recent-item cards with "Show all" links, active specs as pills in the top bar, notification bell in the top right. |
+| **Sessions** | Browse past sessions with search. Copy a session ID and run `/resume <session-id>` to jump back in — all context, files, and conversation history restored. |
+| **Memories** | Observations (decisions, discoveries, bugfixes) with type filters and search. Each memory links back to the session it came from. |
+| **Requirements** | PRD documents with view/annotate modes. Selected opens as a tab, others live in a Previous dropdown. |
+| **Specifications** | Spec plans with task progress, phase tracking (PENDING/COMPLETE/VERIFIED), and iteration history. Hosts Plan Annotation and Spec Sharing (below). |
+| **Extensions** | All extensions — local, plugin, remote — with team sharing via git (push, pull, diff), color-coded categories, and scope filtering. |
+| **Changes** | Git diff viewer with staged/unstaged files, branch info, worktree context. Hosts Code Review and Spec Task Correlation (below). |
+| **Usage** | Daily token costs, model routing breakdown (Opus vs Sonnet), and usage trends. |
+| **Help** | Embedded pilot-shell.com documentation — full technical reference without leaving the Console. |
+| **Settings** | Model selection, spec workflow toggles, reviewer toggles, extended context toggle. See [Settings](#settings) below. |
 
-### Session Resume
+## Plan Annotation
 
-The Sessions tab shows the Claude Code session ID for each session with a **copy-to-clipboard** button. Use this ID to resume any past session:
+When a spec plan is in the planning phase (PENDING, not yet approved), the Specifications tab auto-opens in **Annotate mode**. Toggle between View and Annotate using the control next to the "Specifications" heading.
 
-```bash
-/resume <session-id>
-```
+Select any passage and write a free-text note in the popover that appears — no type selection, no submit button. Annotations save immediately and appear in the sidebar panel, where you can edit or delete them.
 
-This lets you pick up exactly where you left off — all context, files, and conversation history are restored.
+When the agent reaches the approval checkpoint, it reads your annotations directly from the Console, incorporates every note into the plan, and asks for approval again. Just write your notes and say "ready" when done.
 
-## Plan Annotation & Code Review
+## Code Review
 
-The Console provides two live annotation mechanisms that let you shape what gets built and verify what was built — without leaving the browser. Annotations save automatically as you write them; the agent reads them directly at review checkpoints.
+After a spec completes automated verification, the agent prompts you to review the code changes. Switch to the **Changes** tab and enable **Review mode** using the toggle next to the "Changes" heading.
 
-### Plan Annotation
+In Review mode, a **+** button appears on hover for every diff line. Click it to open an inline annotation form — write your note and press Save. Annotations appear in a panel at the bottom of the diff viewer.
 
-When a spec plan is in the planning phase (PENDING, not yet approved), the Specifications tab automatically opens in **Annotate mode**. You can also toggle between View and Annotate modes using the prominent toggle next to the "Specifications" heading.
+The agent reads your code-review annotations directly from the Console before marking the spec verified. Say "fix" to have it address them, "approve" to mark the spec as verified. Annotations persist across page reloads, so you can review asynchronously while the agent runs verification in the background.
 
-In Annotate mode, the entire plan is rendered as selectable text. Select any passage and write a free-text note in the popover that appears. That's it — no type selection, no submit button. Your annotation is immediately saved and visible in the sidebar panel.
+## Spec Task Correlation
 
-The sidebar shows all your annotations with the selected text and your note. You can edit or delete any annotation at any time.
+When a `/spec` task is active, the Changes tab correlates each changed file with the spec task that touched it — instant traceability.
 
-When the agent reaches the approval checkpoint, it reads your annotations directly from the Console, incorporates every note into the plan, and asks for approval again. You don't need to do anything — just write your notes and say "ready" when done.
+- Each file in the file list shows a **T{N}** badge (e.g., `T1`, `T3`) linking it to the matching spec task
+- Hover the badge for the full task name
+- Click the **Spec** button to switch to **group-by-spec** view — files organized by spec name and task number
+- Correlation is parsed from the `**Files:**` section of each task, so any spec following the standard format works automatically
 
-### Code Review
+Especially useful for multi-task specs: instead of scrolling a flat file list, review changes task by task.
 
-After a spec completes all automated verification checks, the agent prompts you to review the code changes before marking the spec as verified. The **Changes** tab is located right next to Specifications in the sidebar — switch there and enable **Review mode** using the toggle next to the "Changes" heading.
+## Spec Sharing
 
-In Review mode, a **+** button appears on hover for every diff line. Click it to open an inline annotation form below that line — write your note and press Save. The annotation appears in the panel at the bottom of the diff viewer.
+Share specs with teammates for collaborative review — no cloud service required. Everything works locally with compressed URLs.
 
-The agent reads your code review annotations directly from the Console before marking the spec as verified. Say "fix" to have it address your annotations, or "approve" to mark the spec as verified.
+**Share:**
 
-Annotations persist across page reloads, so you can review asynchronously while the agent runs verification in the background.
+1. Open a spec, click **Share with Teammate** in the metadata row
+2. A share URL is generated — the spec content and your annotations are compressed into the URL fragment (per the HTTP spec, fragments are never sent to any server)
+3. Copy the URL and send it via Slack, email, or any channel
+4. The **Receive Feedback** dialog opens automatically so you're ready for their response
 
-### Spec Task Correlation
+**Review a shared spec:**
 
-When a `/spec` task is active (PENDING or COMPLETE), the Changes tab automatically correlates each changed file with the spec task that touched it. This gives you instant traceability — if something looks wrong in a diff, you know exactly which task in the spec caused the change.
+1. Your colleague opens the URL in their Pilot Console
+2. They see your spec and annotations as read-only highlights
+3. They add their own feedback via text selection or the **+** button on any block
+4. Click **Send Feedback** to generate a feedback URL
 
-**How it works:**
-
-- Each file in the file list shows a **T{N}** badge (e.g., `T1`, `T3`) linking it to the corresponding spec task
-- Hover over the badge to see the full task name
-- Click the **Spec** button in the file list header to switch to **group-by-spec** view — files are organized by spec name and task number, so you can review changes task by task
-- Correlation is parsed from the `**Files:**` section in each spec task, so it works automatically with any spec that follows the standard format
-
-This is especially useful when reviewing multi-task specs: instead of scrolling through a flat list of changed files, group by spec to see exactly which files belong to each task and review them in context.
-
-### Spec Sharing
-
-Share specifications with teammates for collaborative review — no cloud service required. Everything works entirely locally with compressed URLs.
-
-**Sharing a spec:**
-
-1. Open a spec in the Specifications tab
-2. Click **Share with Teammate** in the metadata row
-3. A share URL is generated — the spec content and your annotations are compressed and encoded in the URL fragment (never sent to any server)
-4. Copy the URL and send it to your colleague via Slack, email, or any channel
-5. The **Receive Feedback** dialog opens automatically so you're ready to import their response
-
-**Reviewing shared specs:**
-
-1. Your colleague opens the URL in their Pilot Console (`localhost:41777`)
-2. They see the full spec with your annotations displayed as read-only highlights
-3. They can add their own feedback — either by selecting text or clicking the **+** button on any block
-4. Click **Send Feedback** to generate a feedback URL and copy it to clipboard
-
-**Importing feedback:**
+**Import feedback:**
 
 1. Click **Receive Feedback** on the original spec
-2. Paste the feedback URL — a preview shows the incoming annotations
-3. Import adds annotations with `pending` status to your annotation panel
-4. **Accept** or **Reject** each annotation individually, or use **Accept All** / **Reject All**
-5. The view auto-switches to Annotate mode so you see the imported feedback immediately
+2. Paste the URL — a preview shows the incoming annotations
+3. **Accept** or **Reject** each annotation individually, or use **Accept All** / **Reject All**
 
-**Deduplication:** Importing the same feedback twice is safe — annotations matching existing ones (same text and selection) are automatically skipped.
-
-**Privacy:** All shared data lives in the URL fragment, which per the HTTP spec is never sent to any server — no data reaches pilot-shell.com or any third party. For specs larger than ~32KB compressed, an embedded paste service stores the compressed data locally in `~/.pilot/share/` with automatic 3-day expiry.
+Importing the same feedback twice is safe — annotations matching existing ones are skipped. For specs larger than ~32KB compressed, an embedded paste service stores the data locally in `~/.pilot/share/` with 3-day auto-expiry.
 
 :::tip Both annotation methods work everywhere
-The **+** button on each block and text selection both work on the normal review page and the shared spec feedback page. Use whichever is more convenient — the **+** button is more reliable for quick block-level comments.
+The **+** button and text selection both work on the normal review page and on shared feedback pages. The **+** button is more reliable for quick block-level comments.
 :::
 
-## Smart Notifications via SSE
+## Notifications
 
-The Console sends real-time alerts via Server-Sent Events when Claude needs your input or a significant phase completes. You don't need to watch the terminal constantly — the Console notifies you.
+The Console sends real-time alerts via Server-Sent Events when Claude needs your input or a significant phase completes — no need to watch the terminal.
 
-- Plan requires your approval — review and respond in the terminal or via notification
+- Plan requires your approval — review and respond
 - Spec phase completed — implementation done, verification starting
-- Clarification needed — Claude is waiting for design decisions before proceeding
+- Clarification needed — Claude is waiting for design decisions
 - Session ended — completion summary with observation count
 
 ## Settings
 
-The Settings tab (`localhost:41777/#/settings`) controls how Pilot Shell behaves. Changes are saved to `~/.pilot/config.json` and take effect after restarting Claude Code.
+The Settings tab (`localhost:41777/#/settings`) controls Pilot Shell behavior. Changes save to `~/.pilot/config.json` and take effect after restarting Claude Code.
 
-### Model Preferences
+### Model preferences
 
-Choose between **Sonnet 4.6** ($3/$15 per MTok) and **Opus 4.7** ($5/$25 per MTok) for each component independently.
+Choose between **Sonnet 4.6** ($3/$15 per MTok) and **Opus 4.7** ($5/$25 per MTok) independently per component.
 
-#### General
-
-| Setting | Default | Description |
-|---------|---------|-------------|
+| Component | Default | Scope |
+|-----------|---------|-------|
 | **Main Session** | Opus | Quick mode and direct chat |
-
-#### Spec Phases
-
-| Phase | Default | Description |
-|-------|---------|-------------|
 | **Planning** | Opus | Codebase exploration, architecture design, plan writing |
 | **Implementation** | Sonnet | TDD loop — write test, write code, verify |
 | **Verification** | Sonnet | Test execution, code review orchestration |
 
-#### Extended Context (1M)
+**Extended Context (1M):** toggle for the 1M token context window instead of 200K. API subscribers (Team, Enterprise) get this at no additional cost with all models. Max plan users must set all models to Opus — Sonnet 1M is not included in Max.
 
-Toggle for using the 1M token context window instead of 200K. API subscribers (Team, Enterprise) get this at no additional cost with all models. Max plan users must set all models to Opus for 1M to work — Sonnet 1M is not included in Max.
+### Review agents
 
-### Spec Workflow
+Two Claude sub-agents run in separate context windows during `/spec`. Each has its own model selector; disabling an agent skips it entirely.
 
-#### Review Agents
+| Agent | Default | Role |
+|-------|---------|------|
+| **Spec Review** | On | Validates plans before implementation. Checks alignment with requirements, flags risky assumptions. |
+| **Changes Review** | On | Reviews code after implementation. Checks compliance, security, test coverage, goal achievement. |
 
-Two independent sub-agents that run in separate context windows during `/spec`:
+**Codex adversarial reviewers (optional)** — OpenAI Codex agents that provide an independent second opinion.
 
-| Agent | Default | Description |
-|-------|---------|-------------|
-| **Spec Review** | On | Validates plans before implementation. Checks alignment with requirements and flags risky assumptions. |
-| **Changes Review** | On | Reviews code after implementation. Checks compliance, security, test coverage, and goal achievement. Reads all changed files. |
+| Agent | Default | Role |
+|-------|---------|------|
+| **Codex Spec Review** | Off | Adversarial plan review — second opinion before implementation. |
+| **Codex Changes Review** | Off | Adversarial code review — second opinion after implementation. |
 
-Each agent has its own model selector (Sonnet or Opus). Disabling an agent skips it entirely — no tokens consumed.
+### Automation toggles
 
-#### Codex Reviewers (Optional)
+Three toggles control user interaction points during `/spec`. Disable all three for fully autonomous end-to-end execution.
 
-Adversarial review agents powered by OpenAI Codex that provide an independent second opinion:
+| Toggle | Default | Enabled | Disabled |
+|--------|---------|---------|----------|
+| **Worktree Support** | On | Asks how to handle branching at `/spec` start | Skips the branch question — changes go on the current branch |
+| **Ask Questions** | On | Asks clarifying questions during planning | Planning makes autonomous default choices |
+| **Plan Approval** | On | Requires your approval before implementation starts | Implementation begins automatically after planning |
 
-| Agent | Default | Description |
-|-------|---------|-------------|
-| **Codex Spec Review** | Off | Adversarial plan review — provides an independent second opinion on plans. |
-| **Codex Changes Review** | Off | Adversarial code review — provides an independent second opinion on implementations. |
+With all three off, `/spec add user authentication` plans, implements, and verifies the feature end-to-end without checkpoints.
 
-#### Automation
-
-Three toggles that control user interaction points during `/spec`. Disable all three for fully autonomous operation.
-
-| Toggle | Default | When enabled | When disabled |
-|--------|---------|-------------|---------------|
-| **Worktree Support** | On | Asks how to handle branching at the start of `/spec` — worktree, current branch, or new branch from default | Branch question is skipped — changes go directly on the current branch |
-| **Ask Questions** | On | Asks clarifying questions during planning to resolve ambiguities | Planning runs fully autonomous — makes default choices without asking |
-| **Plan Approval** | On | Requires your approval before implementation starts | Implementation begins automatically after planning completes |
-
-#### Fully Autonomous Mode
-
-To make `/spec` run end-to-end without any user interaction:
-
-1. Disable **Worktree Support** — skips the branch strategy prompt
-2. Disable **Ask Questions** — planning makes autonomous decisions
-3. Disable **Plan Approval** — implementation starts automatically
-
-With all three off, typing `/spec add user authentication` will plan, implement, and verify the feature completely autonomously. You can review the output when it's done.
-
-:::warning Token usage
-Fully autonomous mode means no checkpoints — Claude will execute the entire workflow without asking. Make sure your prompt is specific enough to avoid misinterpretation. You can always interrupt with Escape.
+:::warning Token usage in autonomous mode
+No checkpoints means Claude executes the entire workflow without asking. Make sure your prompt is specific enough to avoid misinterpretation. You can always interrupt with Escape.
 :::
 
-### Config File
+### Config file
 
 All settings are stored in `~/.pilot/config.json`:
 
@@ -230,4 +182,4 @@ All settings are stored in `~/.pilot/config.json`:
 }
 ```
 
-You can edit this file directly — the Console Settings UI is a convenience wrapper. Changes require a Claude Code restart to take effect.
+You can edit this file directly — the Settings UI is a convenience wrapper. Changes require a Claude Code restart.

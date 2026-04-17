@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "orchestrator": "orchestrator.md",
+  "steps": [
+    {
+      "id": "step-1-reference",
+      "file": "steps/01-reference.md"
+    },
+    {
+      "id": "step-2-understand",
+      "file": "steps/02-understand.md"
+    },
+    {
+      "id": "step-3-check",
+      "file": "steps/03-check.md"
+    },
+    {
+      "id": "step-4-create",
+      "file": "steps/04-create.md"
+    },
+    {
+      "id": "step-5-quality",
+      "file": "steps/05-quality.md"
+    },
+    {
+      "id": "step-6-test",
+      "file": "steps/06-test.md"
+    },
+    {
+      "id": "step-7-anti-patterns",
+      "file": "steps/07-anti-patterns.md"
+    },
+    {
+      "id": "step-8-example",
+      "file": "steps/08-example.md"
+    }
+  ]
+}

@@ -358,11 +358,35 @@ class ClaudeFilesStep(BaseStep):
         if ui:
             with ui.spinner(f"Installing {category_display_name}..."):
                 install_files()
-            ui.success(f"Installed {len(file_infos)} {category_display_name}")
+            ui.success(self._format_install_summary(category, category_display_name, file_infos))
         else:
             install_files()
 
         return len(installed), installed, failed
+
+    def _format_install_summary(
+        self,
+        category: str,
+        category_display_name: str,
+        file_infos: list,
+    ) -> str:
+        """Summarize an install run. For skills, report skill count + file count
+        separately since a single decomposed skill contains manifest.json,
+        orchestrator.md, and step fragments — raw file counts mislead users.
+        """
+        file_count = len(file_infos)
+        if category == "skills":
+            skill_names: set[str] = set()
+            for fi in file_infos:
+                # fi.path is like "pilot/skills/<skill-name>/..."
+                parts = Path(fi.path).parts
+                if len(parts) >= 3 and parts[0] == "pilot" and parts[1] == "skills":
+                    skill_names.add(parts[2])
+            skill_count = len(skill_names)
+            if skill_count:
+                file_word = "file" if file_count == 1 else "files"
+                return f"Installed {skill_count} skills ({file_count} {file_word})"
+        return f"Installed {file_count} {category_display_name}"
 
     def _get_dest_path(self, category: str, file_path: str, ctx: InstallContext) -> Path:
         """Determine destination path based on category."""
@@ -397,6 +421,7 @@ class ClaudeFilesStep(BaseStep):
         self._merge_app_config()
         migrate_model_config()
         self._cleanup_stale_managed_files(ctx)
+        self._build_skill_md_files(ui)
         self._save_pilot_manifest(ctx)
         self._reapply_customization(ui)
 
@@ -425,8 +450,66 @@ class ClaudeFilesStep(BaseStep):
 
         save_manifest(home_claude_dir / PILOT_MANIFEST_FILE, managed_files)
 
+    def _build_skill_md_files(self, ui: Any) -> None:
+        """Generate SKILL.md for each decomposed skill by invoking `pilot skill-build`.
+
+        Iterates ~/.claude/skills/*/ and runs the subprocess for any skill directory
+        containing manifest.json. Skills without manifest.json are skipped (legacy
+        monolithic skills copied as-is during the fragment+manifest rollout window).
+
+        After Phase 2 of the workflow-decomposition rollout the nine decomposed
+        skills no longer ship a source-controlled SKILL.md, so this subprocess is
+        the sole materialization path. Failures must be fatal — a silent continue
+        would leave ~/.claude/skills/<skill>/SKILL.md missing, breaking /spec.
+        """
+        pilot_bin = Path.home() / ".pilot" / "bin" / "pilot"
+        skills_dir = get_claude_config_dir() / "skills"
+        if not skills_dir.is_dir():
+            return
+
+        decomposed = [p for p in sorted(skills_dir.iterdir()) if p.is_dir() and (p / "manifest.json").is_file()]
+        if not decomposed:
+            return  # nothing to build — legacy monolithic skills or no skills installed
+
+        if not pilot_bin.is_file():
+            raise RuntimeError(
+                "Pilot binary not found at ~/.pilot/bin/pilot — cannot generate SKILL.md "
+                "for decomposed skills. Install the pilot binary before running the installer."
+            )
+
+        failures: list[str] = []
+        for skill_dir in decomposed:
+            manifest = skill_dir / "manifest.json"
+            if not manifest.is_file():
+                continue
+            try:
+                result = subprocess.run(
+                    [str(pilot_bin), "skill-build", str(skill_dir), "--json"],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                )
+            except (subprocess.SubprocessError, OSError) as e:
+                failures.append(f"{skill_dir.name}: {e}")
+                continue
+            if result.returncode != 0:
+                err = result.stderr.strip() or result.stdout.strip() or f"exit {result.returncode}"
+                failures.append(f"{skill_dir.name}: {err}")
+
+        if failures:
+            if ui:
+                for msg in failures:
+                    ui.error(f"⚠ SKILL.md generation FAILED — {msg}")
+            raise RuntimeError(
+                "skill-build failed for "
+                + str(len(failures))
+                + " skill(s); aborting install before manifests are finalized. "
+                "Affected: "
+                + ", ".join(f.split(":", 1)[0] for f in failures)
+            )
+
     def _reapply_customization(self, ui: Any) -> None:
-        """Re-apply customization pack after core file installation.
+        """Re-apply customization after core file installation.
 
         Reads ~/.pilot/config.json for an active customization, then calls
         the pilot binary to update and re-apply it. Non-fatal: warns on
@@ -468,13 +551,17 @@ class ClaudeFilesStep(BaseStep):
                     timeout=60,
                 )
                 if fallback.returncode != 0 and ui:
-                    ui.warning(
-                        f"Customization re-apply failed (update: {result.returncode}, "
-                        f"apply: {fallback.returncode})"
+                    ui.error(
+                        f"⚠ Customization reapply FAILED (update: {result.returncode}, "
+                        f"apply: {fallback.returncode}) — your custom workflow may be broken. "
+                        f"Run `pilot customize status` after install."
                     )
         except (subprocess.SubprocessError, OSError) as e:
             if ui:
-                ui.warning(f"Customization re-apply failed: {e}")
+                ui.error(
+                    f"⚠ Customization reapply FAILED: {e} — your custom workflow may be broken. "
+                    f"Run `pilot customize status` after install."
+                )
 
     def _make_scripts_executable(self, plugin_dir: Path) -> None:
         """Make script files executable."""

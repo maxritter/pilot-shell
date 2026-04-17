@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "orchestrator": "orchestrator.md",
+  "steps": [
+    {
+      "id": "step-0-toggles",
+      "file": "steps/00-toggles.md"
+    },
+    {
+      "id": "step-1-process-overview",
+      "file": "steps/01-process-overview.md"
+    },
+    {
+      "id": "step-2-classify-runtime",
+      "file": "steps/02-classify-runtime.md"
+    },
+    {
+      "id": "step-3-phase-a-cleanup-stale",
+      "file": "steps/03-phase-a-cleanup-stale.md"
+    },
+    {
+      "id": "step-4-launch-review",
+      "file": "steps/04-launch-review.md"
+    },
+    {
+      "id": "step-5-automated-checks",
+      "file": "steps/05-automated-checks.md"
+    },
+    {
+      "id": "step-6-feature-parity",
+      "file": "steps/06-feature-parity.md"
+    },
+    {
+      "id": "step-7-collect-results",
+      "file": "steps/07-collect-results.md"
+    },
+    {
+      "id": "step-8-reverify",
+      "file": "steps/08-reverify.md"
+    },
+    {
+      "id": "step-9-phase-b-build",
+      "file": "steps/09-phase-b-build.md"
+    },
+    {
+      "id": "step-10-execution",
+      "file": "steps/10-execution.md"
+    },
+    {
+      "id": "step-11-dod-audit",
+      "file": "steps/11-dod-audit.md"
+    },
+    {
+      "id": "step-12-not-verified",
+      "file": "steps/12-not-verified.md"
+    },
+    {
+      "id": "step-13-e2e",
+      "file": "steps/13-e2e.md"
+    },
+    {
+      "id": "step-14-final-regression",
+      "file": "steps/14-final-regression.md"
+    },
+    {
+      "id": "step-15-worktree-sync",
+      "file": "steps/15-worktree-sync.md"
+    },
+    {
+      "id": "step-16-post-merge",
+      "file": "steps/16-post-merge.md"
+    },
+    {
+      "id": "step-17-check-feedback",
+      "file": "steps/17-check-feedback.md"
+    },
+    {
+      "id": "step-18-review-gate",
+      "file": "steps/18-review-gate.md"
+    },
+    {
+      "id": "step-19-update-status",
+      "file": "steps/19-update-status.md"
+    }
+  ]
+}

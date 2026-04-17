@@ -1051,9 +1051,7 @@ class TestCommandsToSkillsMigration:
 
             # Old manifest tracks commands
             manifest_path = home_dir / ".claude" / PILOT_MANIFEST_FILE
-            manifest_path.write_text(
-                json.dumps({"files": ["commands/spec.md", "commands/setup-rules.md"]}, indent=2)
-            )
+            manifest_path.write_text(json.dumps({"files": ["commands/spec.md", "commands/setup-rules.md"]}, indent=2))
 
             # Source now has skill folders
             source_dir = Path(tmpdir) / "source"
@@ -1203,16 +1201,16 @@ class TestReapplyCustomization:
     """Tests for _reapply_customization in ClaudeFilesStep."""
 
     def test_calls_pilot_binary_when_customization_configured(self, tmp_path):
-        from unittest.mock import MagicMock, patch
         import json
+        from unittest.mock import MagicMock, patch
 
         from installer.steps.claude_files import ClaudeFilesStep
 
         config_path = tmp_path / ".pilot" / "config.json"
         config_path.parent.mkdir(parents=True)
-        config_path.write_text(json.dumps({
-            "customization": {"source": "https://github.com/org/repo.git", "branch": "main"}
-        }))
+        config_path.write_text(
+            json.dumps({"customization": {"source": "https://github.com/org/repo.git", "branch": "main"}})
+        )
 
         pilot_bin = tmp_path / ".pilot" / "bin" / "pilot"
         pilot_bin.parent.mkdir(parents=True)
@@ -1235,8 +1233,8 @@ class TestReapplyCustomization:
         assert "--quiet" in call_args
 
     def test_skips_silently_when_no_customization(self, tmp_path):
-        from unittest.mock import MagicMock, patch
         import json
+        from unittest.mock import MagicMock, patch
 
         from installer.steps.claude_files import ClaudeFilesStep
 
@@ -1256,16 +1254,14 @@ class TestReapplyCustomization:
         mock_run.assert_not_called()
 
     def test_warns_on_failure(self, tmp_path):
-        from unittest.mock import MagicMock, patch
         import json
+        from unittest.mock import MagicMock, patch
 
         from installer.steps.claude_files import ClaudeFilesStep
 
         config_path = tmp_path / ".pilot" / "config.json"
         config_path.parent.mkdir(parents=True)
-        config_path.write_text(json.dumps({
-            "customization": {"source": "https://github.com/org/repo.git"}
-        }))
+        config_path.write_text(json.dumps({"customization": {"source": "https://github.com/org/repo.git"}}))
 
         pilot_bin = tmp_path / ".pilot" / "bin" / "pilot"
         pilot_bin.parent.mkdir(parents=True)
@@ -1281,4 +1277,191 @@ class TestReapplyCustomization:
             mock_run.return_value = MagicMock(returncode=1)
             step._reapply_customization(ui)
 
-        ui.warning.assert_called_once()
+        # Customization reapply failures now surface as visible errors, not silent warnings
+        ui.error.assert_called_once()
+        assert "FAILED" in ui.error.call_args.args[0]
+
+
+class TestBuildSkillMdFiles:
+    """Tests for the _build_skill_md_files method (Task 3: installer integration)."""
+
+    def _make_skill(self, skills_dir: Path, skill_name: str) -> Path:
+        """Create a skill directory with manifest.json, orchestrator, and one step."""
+        skill_dir = skills_dir / skill_name
+        skill_dir.mkdir(parents=True)
+        (skill_dir / "orchestrator.md").write_text("# Skill")
+        (skill_dir / "steps").mkdir()
+        (skill_dir / "steps" / "01.md").write_text("## Step 1\n\nContent.")
+        (skill_dir / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "version": 1,
+                    "orchestrator": "orchestrator.md",
+                    "steps": [{"id": "step-1", "file": "steps/01.md"}],
+                }
+            )
+        )
+        return skill_dir
+
+    def test_invokes_skill_build_subprocess_per_skill(self, tmp_path):
+        from unittest.mock import MagicMock, patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        skills_dir = tmp_path / ".claude" / "skills"
+        skills_dir.mkdir(parents=True)
+        self._make_skill(skills_dir, "skill-a")
+        self._make_skill(skills_dir, "skill-b")
+
+        pilot_bin = tmp_path / ".pilot" / "bin" / "pilot"
+        pilot_bin.parent.mkdir(parents=True)
+        pilot_bin.touch()
+
+        step = ClaudeFilesStep()
+        ui = MagicMock()
+
+        with (
+            patch("installer.steps.claude_files.Path.home", return_value=tmp_path),
+            patch(
+                "installer.steps.claude_files.get_claude_config_dir",
+                return_value=tmp_path / ".claude",
+            ),
+            patch("installer.steps.claude_files.subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+            step._build_skill_md_files(ui)
+
+        # Two skills → two subprocess invocations
+        assert mock_run.call_count == 2
+        # Each call: args start with pilot binary path and "skill-build"
+        for call in mock_run.call_args_list:
+            argv = call.args[0]
+            assert argv[0] == str(pilot_bin)
+            assert argv[1] == "skill-build"
+            assert argv[-1] == "--json"
+
+    def test_skips_skills_without_manifest(self, tmp_path):
+        """Skills without manifest.json (legacy monolithic) are skipped."""
+        from unittest.mock import MagicMock, patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        skills_dir = tmp_path / ".claude" / "skills"
+        skills_dir.mkdir(parents=True)
+        # Decomposed skill
+        self._make_skill(skills_dir, "new-skill")
+        # Legacy monolithic (no manifest.json)
+        (skills_dir / "legacy").mkdir()
+        (skills_dir / "legacy" / "SKILL.md").write_text("# Legacy")
+
+        pilot_bin = tmp_path / ".pilot" / "bin" / "pilot"
+        pilot_bin.parent.mkdir(parents=True)
+        pilot_bin.touch()
+
+        step = ClaudeFilesStep()
+        ui = MagicMock()
+
+        with (
+            patch("installer.steps.claude_files.Path.home", return_value=tmp_path),
+            patch(
+                "installer.steps.claude_files.get_claude_config_dir",
+                return_value=tmp_path / ".claude",
+            ),
+            patch("installer.steps.claude_files.subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+            step._build_skill_md_files(ui)
+
+        # Only the decomposed skill should trigger subprocess
+        assert mock_run.call_count == 1
+
+    def test_reports_failures_as_visible_errors(self, tmp_path):
+        """Subprocess failure surfaces via ui.error AND raises to abort the install."""
+        from unittest.mock import MagicMock, patch
+
+        import pytest
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        skills_dir = tmp_path / ".claude" / "skills"
+        skills_dir.mkdir(parents=True)
+        self._make_skill(skills_dir, "broken")
+
+        pilot_bin = tmp_path / ".pilot" / "bin" / "pilot"
+        pilot_bin.parent.mkdir(parents=True)
+        pilot_bin.touch()
+
+        step = ClaudeFilesStep()
+        ui = MagicMock()
+
+        with (
+            patch("installer.steps.claude_files.Path.home", return_value=tmp_path),
+            patch(
+                "installer.steps.claude_files.get_claude_config_dir",
+                return_value=tmp_path / ".claude",
+            ),
+            patch("installer.steps.claude_files.subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="malformed manifest")
+            with pytest.raises(RuntimeError, match="skill-build failed"):
+                step._build_skill_md_files(ui)
+
+        ui.error.assert_called_once()
+        assert "broken" in ui.error.call_args.args[0]
+        assert "FAILED" in ui.error.call_args.args[0]
+
+    def test_missing_pilot_binary_raises(self, tmp_path):
+        """Missing pilot binary is fatal — without it, decomposed skills cannot be materialized."""
+        from unittest.mock import MagicMock, patch
+
+        import pytest
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        skills_dir = tmp_path / ".claude" / "skills"
+        skills_dir.mkdir(parents=True)
+        self._make_skill(skills_dir, "some-skill")
+        # NO pilot binary created
+
+        step = ClaudeFilesStep()
+        ui = MagicMock()
+
+        with (
+            patch("installer.steps.claude_files.Path.home", return_value=tmp_path),
+            patch(
+                "installer.steps.claude_files.get_claude_config_dir",
+                return_value=tmp_path / ".claude",
+            ),
+            patch("installer.steps.claude_files.subprocess.run") as mock_run,
+        ):
+            with pytest.raises(RuntimeError, match="Pilot binary not found"):
+                step._build_skill_md_files(ui)
+
+        mock_run.assert_not_called()
+
+    def test_no_skills_dir_returns_silently(self, tmp_path):
+        from unittest.mock import MagicMock, patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        # No skills dir at all
+        pilot_bin = tmp_path / ".pilot" / "bin" / "pilot"
+        pilot_bin.parent.mkdir(parents=True)
+        pilot_bin.touch()
+
+        step = ClaudeFilesStep()
+        ui = MagicMock()
+
+        with (
+            patch("installer.steps.claude_files.Path.home", return_value=tmp_path),
+            patch(
+                "installer.steps.claude_files.get_claude_config_dir",
+                return_value=tmp_path / ".claude",
+            ),
+            patch("installer.steps.claude_files.subprocess.run") as mock_run,
+        ):
+            step._build_skill_md_files(ui)
+
+        mock_run.assert_not_called()
+        ui.warning.assert_not_called()
+        ui.error.assert_not_called()

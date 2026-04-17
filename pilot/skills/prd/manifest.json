@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "orchestrator": "orchestrator.md",
+  "steps": [
+    {
+      "id": "step-1-understand",
+      "file": "steps/01-understand.md"
+    },
+    {
+      "id": "step-2-research",
+      "file": "steps/02-research.md"
+    },
+    {
+      "id": "step-3-clarify",
+      "file": "steps/03-clarify.md"
+    },
+    {
+      "id": "step-4-propose",
+      "file": "steps/04-propose.md"
+    },
+    {
+      "id": "step-5-converge",
+      "file": "steps/05-converge.md"
+    },
+    {
+      "id": "step-6-write-prd",
+      "file": "steps/06-write-prd.md"
+    },
+    {
+      "id": "step-7-handoff",
+      "file": "steps/07-handoff.md"
+    },
+    {
+      "id": "step-8-anti-patterns",
+      "file": "steps/08-anti-patterns.md"
+    },
+    {
+      "id": "step-9-key-principles",
+      "file": "steps/09-key-principles.md"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "orchestrator": "orchestrator.md",
+  "steps": [
+    {
+      "id": "step-1-reference",
+      "file": "steps/01-reference.md"
+    },
+    {
+      "id": "step-2-read",
+      "file": "steps/02-read.md"
+    },
+    {
+      "id": "step-3-migrate",
+      "file": "steps/03-migrate.md"
+    },
+    {
+      "id": "step-4-audit",
+      "file": "steps/04-audit.md"
+    },
+    {
+      "id": "step-5-explore",
+      "file": "steps/05-explore.md"
+    },
+    {
+      "id": "step-6-compare",
+      "file": "steps/06-compare.md"
+    },
+    {
+      "id": "step-7-sync-project",
+      "file": "steps/07-sync-project.md"
+    },
+    {
+      "id": "step-8-sync-mcp",
+      "file": "steps/08-sync-mcp.md"
+    },
+    {
+      "id": "step-9-discover",
+      "file": "steps/09-discover.md"
+    },
+    {
+      "id": "step-10-cross-check",
+      "file": "steps/10-cross-check.md"
+    },
+    {
+      "id": "step-11-summary",
+      "file": "steps/11-summary.md"
+    }
+  ]
+}

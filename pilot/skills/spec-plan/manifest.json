@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "orchestrator": "orchestrator.md",
+  "steps": [
+    {
+      "id": "step-0-toggles",
+      "file": "steps/00-toggles.md"
+    },
+    {
+      "id": "step-1-asking-questions",
+      "file": "steps/01-asking-questions.md"
+    },
+    {
+      "id": "step-2-extending-plans",
+      "file": "steps/02-extending-plans.md"
+    },
+    {
+      "id": "step-3-migration-tasks",
+      "file": "steps/03-migration-tasks.md"
+    },
+    {
+      "id": "step-4-create-header",
+      "file": "steps/04-create-header.md"
+    },
+    {
+      "id": "step-5-task-understanding",
+      "file": "steps/05-task-understanding.md"
+    },
+    {
+      "id": "step-6-exploration",
+      "file": "steps/06-exploration.md"
+    },
+    {
+      "id": "step-7-approach",
+      "file": "steps/07-approach.md"
+    },
+    {
+      "id": "step-8-implementation-planning",
+      "file": "steps/08-implementation-planning.md"
+    },
+    {
+      "id": "step-9-e2e-scenarios",
+      "file": "steps/09-e2e-scenarios.md"
+    },
+    {
+      "id": "step-10-write-plan",
+      "file": "steps/10-write-plan.md"
+    },
+    {
+      "id": "step-11-plan-verification",
+      "file": "steps/11-plan-verification.md"
+    },
+    {
+      "id": "step-12-annotation-check",
+      "file": "steps/12-annotation-check.md"
+    },
+    {
+      "id": "step-13-approval",
+      "file": "steps/13-approval.md"
+    }
+  ]
+}
