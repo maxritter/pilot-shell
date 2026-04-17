@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.2.2] - 2026-04-17
+
+### Bug Fixes
+
+- Updated inconsistent steps in spec workflow
+
 ## [8.2.1] - 2026-04-17
 
 ### Bug Fixes
