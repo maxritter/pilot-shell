@@ -3,7 +3,6 @@ name: spec
 description: Spec-driven development - plan, implement, verify workflow with live Console annotations (annotate plans and code changes in real-time; agent reads annotations directly at review checkpoints)
 argument-hint: "<task description>" or "<path/to/plan.md>"
 user-invocable: true
-effort: high
 model: sonnet
 ---
 

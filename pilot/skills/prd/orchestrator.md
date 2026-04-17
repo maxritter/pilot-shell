@@ -3,7 +3,6 @@ name: prd
 description: "Generate Product Requirements Documents with optional research — brainstorm, challenge assumptions, define scope"
 argument-hint: "<idea or feature description>"
 user-invocable: true
-effort: high
 model: opus
 ---
 

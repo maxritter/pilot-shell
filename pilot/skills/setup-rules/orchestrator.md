@@ -2,7 +2,6 @@
 name: setup-rules
 description: Set up and audit project rules — reads codebase, generates modular rules, documents MCP servers
 user-invocable: true
-effort: max
 model: opus
 ---
 # /setup-rules - Set Up Project Rules

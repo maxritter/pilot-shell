@@ -2,7 +2,6 @@
 name: changes-review
 description: Changes review agent that verifies plan compliance, code quality, and goal achievement in a single pass. Returns structured JSON findings.
 tools: Read, Grep, Glob, Write, Bash(git diff:*), Bash(git log:*)
-effort: high
 model: sonnet
 background: true
 permissionMode: plan
