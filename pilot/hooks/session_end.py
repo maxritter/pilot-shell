@@ -3,15 +3,17 @@
 
 1. Marks the session as completed in the Console (so the sessions tab updates)
 2. Stops the worker only when the current session is the last active one
+
+Both side-effects are handed off to detached subprocesses so this hook never
+blocks on network or child-process I/O. Claude Code's harness may cancel the
+SessionEnd hook at any point; detaching guarantees the work still completes.
 """
 
 from __future__ import annotations
 
-import json
 import os
 import subprocess
 import sys
-import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -20,27 +22,52 @@ SESSIONS_DIR = Path.home() / ".pilot" / "sessions"
 SKIP_NAMES = {"default", "pipes"}
 CONSOLE_URL = "http://localhost:41777"
 
+# Inlined script run by the detached Console POST worker. Kept minimal so the
+# subprocess startup cost is the only overhead when Console is down.
+_COMPLETE_SESSION_WORKER = """
+import json, sys, urllib.request
+url, sid = sys.argv[1], sys.argv[2]
+req = urllib.request.Request(
+    url,
+    data=json.dumps({'contentSessionId': sid}).encode(),
+    headers={'Content-Type': 'application/json'},
+    method='POST',
+)
+try:
+    urllib.request.urlopen(req, timeout=5)
+except Exception:
+    pass
+"""
+
 
 def _complete_session() -> None:
     """Mark the current session as completed in the Console.
 
-    Fire-and-forget — silently ignores errors. The Console may already
-    be stopped or the session may not exist (e.g. private session).
+    Fully detached fire-and-forget. Spawns a short-lived Python subprocess
+    that does the POST so this hook never blocks on network I/O — the harness
+    can cancel the hook mid-flight and the notification still goes out in
+    its own process group. Errors inside the worker are swallowed.
     """
     session_id = os.environ.get("CLAUDE_SESSION_ID", "")
     if not session_id:
         return
 
-    payload = json.dumps({"contentSessionId": session_id}).encode()
-    req = urllib.request.Request(
-        f"{CONSOLE_URL}/api/sessions/complete",
-        data=payload,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
     try:
-        urllib.request.urlopen(req, timeout=5)
-    except Exception:
+        _ = subprocess.Popen(
+            [
+                sys.executable,
+                "-c",
+                _COMPLETE_SESSION_WORKER,
+                f"{CONSOLE_URL}/api/sessions/complete",
+                session_id,
+            ],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+            close_fds=True,
+        )
+    except OSError:
         pass
 
 
@@ -85,23 +112,25 @@ def main() -> int:
     if not plugin_root:
         return 0
 
-    # Mark session as completed in Console (fire-and-forget)
+    # Spawn the detached worker-stop BEFORE any network I/O so the critical
+    # side effect (releasing port 41777, closing SQLite WAL handles) survives
+    # even if the harness cancels this hook mid-flight.
+    if not _has_other_active_sessions():
+        stop_script = Path(plugin_root) / "scripts" / "worker-service.cjs"
+        try:
+            _ = subprocess.Popen(
+                ["bun", str(stop_script), "stop"],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+                close_fds=True,
+            )
+        except OSError:
+            pass
+
+    # Mark session as completed in Console (fully detached, never blocks)
     _complete_session()
-
-    if _has_other_active_sessions():
-        return 0
-
-    stop_script = Path(plugin_root) / "scripts" / "worker-service.cjs"
-    try:
-        subprocess.run(
-            ["bun", str(stop_script), "stop"],
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=15,
-        )
-    except subprocess.TimeoutExpired:
-        pass
 
     return 0
 
