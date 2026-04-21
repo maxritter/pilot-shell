@@ -112,7 +112,9 @@ Choose between **Sonnet 4.6** ($3/$15 per MTok) and **Opus 4.7** ($5/$25 per MTo
 | **Implementation** | Sonnet | TDD loop — write test, write code, verify |
 | **Verification** | Sonnet | Test execution, code review orchestration |
 
-**Extended Context (1M):** toggle for the 1M token context window instead of 200K. API subscribers (Team, Enterprise) get this at no additional cost with all models. Max plan users must set all models to Opus — Sonnet 1M is not included in Max.
+**Custom model IDs** — each dropdown also offers a **Custom…** option. Selecting it reveals a text input where you can pin an explicit Anthropic model ID such as `claude-opus-4-6`, `claude-opus-4-5`, or `claude-sonnet-4-5-20250929`. Useful for reproducibility, team standardization, or falling back to an older model when a newer release mis-triggers content filters on legitimate code. The value is passed through to Claude Code verbatim.
+
+**Extended Context (1M):** toggle for the 1M token context window instead of 200K. API subscribers (Team, Enterprise) get this at no additional cost with all models. Max plan users must set all models to Opus — Sonnet 1M is not included in Max. The toggle only applies to the `sonnet` and `opus` aliases; custom model IDs are sent verbatim, so pick the concrete ID for the context window you want.
 
 ### Review agents
 

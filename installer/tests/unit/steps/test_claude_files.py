@@ -1303,6 +1303,12 @@ class TestBuildSkillMdFiles:
         )
         return skill_dir
 
+    def _make_ctx(self, tmp_path: Path):
+        """Build a minimal InstallContext for _build_skill_md_files tests."""
+        from installer.context import InstallContext
+
+        return InstallContext(project_dir=tmp_path)
+
     def test_invokes_skill_build_subprocess_per_skill(self, tmp_path):
         from unittest.mock import MagicMock, patch
 
@@ -1329,7 +1335,7 @@ class TestBuildSkillMdFiles:
             patch("installer.steps.claude_files.subprocess.run") as mock_run,
         ):
             mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
-            step._build_skill_md_files(ui)
+            step._build_skill_md_files(self._make_ctx(tmp_path), ui)
 
         # Two skills → two subprocess invocations
         assert mock_run.call_count == 2
@@ -1370,7 +1376,7 @@ class TestBuildSkillMdFiles:
             patch("installer.steps.claude_files.subprocess.run") as mock_run,
         ):
             mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
-            step._build_skill_md_files(ui)
+            step._build_skill_md_files(self._make_ctx(tmp_path), ui)
 
         # Only the decomposed skill should trigger subprocess
         assert mock_run.call_count == 1
@@ -1404,7 +1410,7 @@ class TestBuildSkillMdFiles:
         ):
             mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="malformed manifest")
             with pytest.raises(RuntimeError, match="skill-build failed"):
-                step._build_skill_md_files(ui)
+                step._build_skill_md_files(self._make_ctx(tmp_path), ui)
 
         ui.error.assert_called_once()
         assert "broken" in ui.error.call_args.args[0]
@@ -1435,9 +1441,138 @@ class TestBuildSkillMdFiles:
             patch("installer.steps.claude_files.subprocess.run") as mock_run,
         ):
             with pytest.raises(RuntimeError, match="Pilot binary not found"):
-                step._build_skill_md_files(ui)
+                step._build_skill_md_files(self._make_ctx(tmp_path), ui)
 
         mock_run.assert_not_called()
+
+    def test_missing_fragments_are_redownloaded_before_build(self, tmp_path):
+        """When a fragment is missing on disk, re-download from the repo before skill-build."""
+        from unittest.mock import MagicMock, patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        skills_dir = tmp_path / ".claude" / "skills"
+        skills_dir.mkdir(parents=True)
+        skill_dir = self._make_skill(skills_dir, "prd")
+        missing = skill_dir / "steps" / "01.md"
+        missing.unlink()
+        assert not missing.exists()
+
+        pilot_bin = tmp_path / ".pilot" / "bin" / "pilot"
+        pilot_bin.parent.mkdir(parents=True)
+        pilot_bin.touch()
+
+        step = ClaudeFilesStep()
+        ui = MagicMock()
+        ctx = self._make_ctx(tmp_path)
+
+        def fake_download(_repo_path: str, dest: Path, _config) -> bool:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text("## Step 1\n\nRecovered.")
+            return True
+
+        with (
+            patch("installer.steps.claude_files.Path.home", return_value=tmp_path),
+            patch(
+                "installer.steps.claude_files.get_claude_config_dir",
+                return_value=tmp_path / ".claude",
+            ),
+            patch("installer.steps.claude_files.download_file", side_effect=fake_download) as mock_dl,
+            patch("installer.steps.claude_files.subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+            step._build_skill_md_files(ctx, ui)
+
+        assert missing.exists()
+        mock_dl.assert_called_once()
+        repo_path_arg = mock_dl.call_args.args[0]
+        assert repo_path_arg == "pilot/skills/prd/steps/01.md"
+        mock_run.assert_called_once()
+        assert str(missing) in ctx.config.get("installed_files", [])
+
+    def test_urllib_fallback_recovers_when_download_file_fails(self, tmp_path):
+        """If download_file returns False, the single-threaded urllib fallback takes over."""
+        from unittest.mock import MagicMock, patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        skills_dir = tmp_path / ".claude" / "skills"
+        skills_dir.mkdir(parents=True)
+        skill_dir = self._make_skill(skills_dir, "prd")
+        missing = skill_dir / "steps" / "01.md"
+        missing.unlink()
+
+        pilot_bin = tmp_path / ".pilot" / "bin" / "pilot"
+        pilot_bin.parent.mkdir(parents=True)
+        pilot_bin.touch()
+
+        step = ClaudeFilesStep()
+        ui = MagicMock()
+        ctx = self._make_ctx(tmp_path)
+
+        response_mock = MagicMock()
+        response_mock.__enter__ = MagicMock(return_value=response_mock)
+        response_mock.__exit__ = MagicMock(return_value=False)
+        response_mock.status = 200
+        response_mock.read.return_value = b"## Step 1\n\nFallback content."
+
+        with (
+            patch("installer.steps.claude_files.Path.home", return_value=tmp_path),
+            patch(
+                "installer.steps.claude_files.get_claude_config_dir",
+                return_value=tmp_path / ".claude",
+            ),
+            patch("installer.steps.claude_files.download_file", return_value=False) as mock_dl,
+            patch("urllib.request.urlopen", return_value=response_mock) as mock_urlopen,
+            patch("installer.steps.claude_files.subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+            step._build_skill_md_files(ctx, ui)
+
+        mock_dl.assert_called_once()
+        mock_urlopen.assert_called_once()
+        called_request = mock_urlopen.call_args.args[0]
+        assert "pilot/skills/prd/steps/01.md" in called_request.full_url
+        assert missing.is_file()
+        assert missing.read_bytes() == b"## Step 1\n\nFallback content."
+        assert str(missing) in ctx.config.get("installed_files", [])
+
+    def test_diagnostics_emitted_when_skill_build_fails(self, tmp_path):
+        """After recovery + skill-build failure, diagnostics print on-disk state and URLs."""
+        from unittest.mock import MagicMock, patch
+
+        import pytest
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        skills_dir = tmp_path / ".claude" / "skills"
+        skills_dir.mkdir(parents=True)
+        skill_dir = self._make_skill(skills_dir, "prd")
+
+        pilot_bin = tmp_path / ".pilot" / "bin" / "pilot"
+        pilot_bin.parent.mkdir(parents=True)
+        pilot_bin.touch()
+
+        step = ClaudeFilesStep()
+        ui = MagicMock()
+
+        with (
+            patch("installer.steps.claude_files.Path.home", return_value=tmp_path),
+            patch(
+                "installer.steps.claude_files.get_claude_config_dir",
+                return_value=tmp_path / ".claude",
+            ),
+            patch("installer.steps.claude_files.subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="boom")
+            with pytest.raises(RuntimeError):
+                step._build_skill_md_files(self._make_ctx(tmp_path), ui)
+
+        printed = "\n".join(call.args[0] for call in ui.print.call_args_list if call.args)
+        assert str(skill_dir) in printed
+        assert "manifest.json" in printed
+        assert "steps/01.md" in printed
+        assert "pilot/skills/prd/steps/01.md" in printed
 
     def test_no_skills_dir_returns_silently(self, tmp_path):
         from unittest.mock import MagicMock, patch
@@ -1460,7 +1595,7 @@ class TestBuildSkillMdFiles:
             ),
             patch("installer.steps.claude_files.subprocess.run") as mock_run,
         ):
-            step._build_skill_md_files(ui)
+            step._build_skill_md_files(self._make_ctx(tmp_path), ui)
 
         mock_run.assert_not_called()
         ui.warning.assert_not_called()

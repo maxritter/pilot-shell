@@ -40,12 +40,16 @@ Full exploration workflow for new functionality, refactoring, or any work where 
 
 ### Bugfix Spec (auto-detected)
 
-Investigation-first flow for targeted fixes. Finds the root cause before touching any code.
+Investigation-first flow for targeted fixes. Finds the root cause before touching any code, then enforces a uniform three-task structure so every bugfix follows the same process — no freewheeling.
 
-- Root cause tracing: backward through call chain to `file:line`
-- Pattern analysis: compare broken vs working code paths
-- Test-before-fix: regression test FAILS → fix → all tests PASS
-- Lightweight verify: regression test + full suite, no sub-agents
+- **Root cause tracing:** backward through the call chain to `file:line`, with CodeGraph caller/callee analysis
+- **Pattern analysis:** compare broken vs working code paths
+- **Behavior Contract:** every plan pins down `Given / When / Currently / Expected / Anti-regression` — the invariant the fix must produce and the behavior it must not break
+- **Three uniform tasks** (always, regardless of bug size):
+  1. **Write Reproducing Test (RED)** — must FAIL before any fix code exists
+  2. **Implement Fix at Root Cause** — reproducing test passes, full suite passes
+  3. **Quality Gate** — lint, type check, build, full suite green after any auto-fixes
+- **Verify audit:** authoritative full suite + always-on revert-test (proves the reproducing test would genuinely fail without the fix — rules out retroactive rubber-stamp tests) + root-cause-at-source audit (flags symptom patches and caller-side workarounds) + anti-regression spot-check — no sub-agents, tests carry the proof
 
 ## Three Phases
 

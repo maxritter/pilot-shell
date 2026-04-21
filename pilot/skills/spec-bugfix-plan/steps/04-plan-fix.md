@@ -32,23 +32,49 @@ Propose 2-3 fix approaches. For each:
 
 **Skip for trivial bugs:** If there is genuinely only one reasonable fix (e.g., typo, wrong variable name, missing import), note the approach briefly and proceed — don't manufacture fake alternatives.
 
-### Size the task structure
+### Behavior Contract (MANDATORY — write it before task structure)
 
-| Size                  | Criteria                         | Tasks                         |
-| --------------------- | -------------------------------- | ----------------------------- |
-| **Compact** (default) | ≤3 files, clear root cause       | 2: Fix (test + code) → Verify |
-| **Full**              | 4+ files, multiple failure modes | 3: Tests → Fix → Verify       |
+**Every bugfix plan must pin down the contract as an explicit before/after invariant.** This is what the reproducing test will encode and what verification will audit against. Without this, "the fix works" has no meaning.
 
-### Compact (most bugs)
+Write it in the plan like this:
 
-**Task 1: Fix** — Write regression test → verify FAILS → implement fix → verify all PASS.
-**Task 2: Verify** — Full test suite, lint, type check.
+```markdown
+## Behavior Contract
 
-### Full (complex bugs)
+**Given:** [precondition / state / input that triggers the bug]
+**When:** [the action or call that exercises the code path]
+**Currently (bug):** [actual, incorrect behavior — the symptom]
+**Expected (fix):** [correct behavior the fix must produce]
+**Anti-regression:** [what must still work — behavior the fix must NOT break]
+```
 
-**Task 1: Write Tests** — regression + preservation tests (if fix touches shared code paths).
-**Task 2: Implement Fix** — minimal fix at root cause.
-**Task 3: Verify** — full suite, lint, type check.
+The reproducing test encodes the `Currently → Expected` transition. Verification audits that the fix produced it without breaking `Anti-regression`.
+
+### Task structure — ONE uniform shape for every bugfix
+
+**⛔ Do NOT collapse these into fewer tasks. Do NOT merge test + fix into a single task.** Separate checkboxes = separate proof. Combining them is exactly where the process falls apart.
+
+**Task 1: Write Reproducing Test (RED)**
+- Write a test that encodes the Behavior Contract's `Currently → Expected` transition.
+- Test must exercise an existing public entry point (not helpers you plan to create).
+- Run it → **must FAIL** with an assertion or error that matches the documented symptom.
+- Commit the failing test BEFORE writing any fix code (worktree mode only).
+- Definition of Done: test exists, is named `test_<function>_<bug>_<expected>`, runs, fails with the expected error.
+
+**Task 2: Implement Fix at Root Cause**
+- Make the minimal change at `Root Cause: file:line` from the plan.
+- Fix at the source, not where the error appears. No catching/hiding/patching around the symptom.
+- Re-run the reproducing test → **must PASS**.
+- Run the full test suite → zero failures (no `Anti-regression` breakage). This is the anti-regression gate for the fix itself.
+- Definition of Done: reproducing test green, full suite green, diff touches root cause file.
+
+**Task 3: Quality Gate**
+- Lint, type check, build (if applicable), performance audit.
+- Re-run the full test suite at the END of this task. Lint/type auto-fixes can silently modify code — the suite must be green **after** those fixes, not before. A task checkbox goes green only when the suite is green for the code as it stands at that moment.
+- For UI-facing bugs: the `Verification Scenario` (TS-001) is executed in the verify phase (step 6), not here.
+- Definition of Done: lint clean, types clean, build green, full suite green, no performance regressions in the diff.
+
+**Scope scaling:** Lean bugs have short tasks (one-line test, one-line fix). Complex bugs have longer tasks (multiple assertions, defense-in-depth fix). The **number** of tasks is always three. The **content** of each task scales with the bug.
 
 **Regression tests must exercise existing public entry points** (not internal helpers you plan to create). The test answers: "Under the bug condition, does the system produce the correct result?"
 

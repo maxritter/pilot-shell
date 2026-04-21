@@ -47,7 +47,8 @@ export type Component =
   | "RETENTION"
   | "BACKUP"
   | "CLEANUP"
-  | "DATA";
+  | "DATA"
+  | "VECTOR_DB_GUARD";
 
 interface LogContext {
   sessionId?: number;

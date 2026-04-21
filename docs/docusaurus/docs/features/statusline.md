@@ -26,7 +26,7 @@ Widgets separated by `|`, from left to right:
 
 | Widget | Description | Color coding |
 |--------|-------------|--------------|
-| **Model** | Active model in short form (`Opus 4.7 [1M]`, `Sonnet 4.6`) | Cyan |
+| **Model** | Active model in short form (`Opus 4.7 [1M]`, `Sonnet 4.6`). Legacy / pinned IDs such as `claude-opus-4-6`, `claude-sonnet-4-5-20250929`, or retired `claude-3-*` variants resolve to friendly labels (`Opus 4.6`, `Sonnet 4.5`, `Sonnet 3.7`, …). Unknown IDs display verbatim. | Cyan |
 | **Context** | Effective context usage with progress bar, buffer indicator (`▓`), and current token count (e.g., `[604K]`) | Green < 80%, Yellow 80–95%, Red 95%+ |
 | **Lines changed** | Session lines added/removed (`+156 -23`). Hidden when usage API data is available | Green for added, Red for removed |
 | **Git** | Branch name with staged (`+N`) and unstaged (`~N`) counts. Shows worktree branch with `wt` suffix when in a spec worktree | Magenta branch, Green staged, Yellow unstaged |

@@ -421,7 +421,7 @@ class ClaudeFilesStep(BaseStep):
         self._merge_app_config()
         migrate_model_config()
         self._cleanup_stale_managed_files(ctx)
-        self._build_skill_md_files(ui)
+        self._build_skill_md_files(ctx, ui)
         self._save_pilot_manifest(ctx)
         self._reapply_customization(ui)
 
@@ -450,7 +450,7 @@ class ClaudeFilesStep(BaseStep):
 
         save_manifest(home_claude_dir / PILOT_MANIFEST_FILE, managed_files)
 
-    def _build_skill_md_files(self, ui: Any) -> None:
+    def _build_skill_md_files(self, ctx: InstallContext, ui: Any) -> None:
         """Generate SKILL.md for each decomposed skill by invoking `pilot skill-build`.
 
         Iterates ~/.claude/skills/*/ and runs the subprocess for any skill directory
@@ -461,6 +461,11 @@ class ClaudeFilesStep(BaseStep):
         skills no longer ship a source-controlled SKILL.md, so this subprocess is
         the sole materialization path. Failures must be fatal — a silent continue
         would leave ~/.claude/skills/<skill>/SKILL.md missing, breaking /spec.
+
+        Before each skill-build, missing fragments are re-downloaded from the
+        repository. This self-heals transient download failures during the main
+        install pass (flaky networks, proxy hiccups) that would otherwise abort
+        the install.
         """
         pilot_bin = Path.home() / ".pilot" / "bin" / "pilot"
         skills_dir = get_claude_config_dir() / "skills"
@@ -477,11 +482,19 @@ class ClaudeFilesStep(BaseStep):
                 "for decomposed skills. Install the pilot binary before running the installer."
             )
 
+        config = self._create_download_config(ctx)
+        installed_files: list[str] = list(ctx.config.get("installed_files", []))
+
         failures: list[str] = []
         for skill_dir in decomposed:
             manifest = skill_dir / "manifest.json"
             if not manifest.is_file():
                 continue
+
+            recovered = self._recover_missing_fragments(skill_dir, config, ui)
+            if recovered:
+                installed_files.extend(recovered)
+
             try:
                 result = subprocess.run(
                     [str(pilot_bin), "skill-build", str(skill_dir), "--json"],
@@ -491,10 +504,14 @@ class ClaudeFilesStep(BaseStep):
                 )
             except (subprocess.SubprocessError, OSError) as e:
                 failures.append(f"{skill_dir.name}: {e}")
+                self._log_skill_dir_diagnostics(skill_dir, config, ui)
                 continue
             if result.returncode != 0:
                 err = result.stderr.strip() or result.stdout.strip() or f"exit {result.returncode}"
                 failures.append(f"{skill_dir.name}: {err}")
+                self._log_skill_dir_diagnostics(skill_dir, config, ui)
+
+        ctx.config["installed_files"] = installed_files
 
         if failures:
             if ui:
@@ -504,9 +521,200 @@ class ClaudeFilesStep(BaseStep):
                 "skill-build failed for "
                 + str(len(failures))
                 + " skill(s); aborting install before manifests are finalized. "
-                "Affected: "
-                + ", ".join(f.split(":", 1)[0] for f in failures)
+                "Affected: " + ", ".join(f.split(":", 1)[0] for f in failures)
             )
+
+    def _recover_missing_fragments(
+        self,
+        skill_dir: Path,
+        config: DownloadConfig,
+        ui: Any,
+    ) -> list[str]:
+        """Ensure all fragments referenced by manifest.json exist on disk.
+
+        Returns a list of absolute dest paths that were successfully re-downloaded
+        (empty when nothing was missing or every download failed). Missing
+        fragments are re-fetched from the repository. Two-stage recovery:
+        (1) the parallel-install helper `download_file`, (2) a single-threaded
+        urllib fallback with expanded diagnostics so a persistent failure gives
+        actionable error output (URL, HTTP status, exception type).
+        """
+        try:
+            manifest_data = json.loads((skill_dir / "manifest.json").read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return []
+        if not isinstance(manifest_data, dict):
+            return []
+
+        skills_dir = get_claude_config_dir() / "skills"
+        required: list[str] = []
+        orchestrator = manifest_data.get("orchestrator")
+        if isinstance(orchestrator, str) and orchestrator:
+            required.append(orchestrator)
+        for step in manifest_data.get("steps", []) or []:
+            if isinstance(step, dict):
+                rel = step.get("file")
+                if isinstance(rel, str) and rel:
+                    required.append(rel)
+
+        recovered: list[str] = []
+        for rel_path in required:
+            dest = skill_dir / rel_path
+            if dest.is_file():
+                continue
+
+            try:
+                skill_rel = skill_dir.relative_to(skills_dir)
+            except ValueError:
+                continue
+            repo_path = f"pilot/skills/{skill_rel}/{rel_path}"
+
+            if ui:
+                ui.warning(f"Missing fragment after install: {dest} — attempting recovery")
+
+            if download_file(repo_path, dest, config) and dest.is_file():
+                recovered.append(str(dest))
+                continue
+
+            # Stage 2: single-threaded urllib fallback with diagnostics.
+            if self._direct_download_with_diagnostics(repo_path, dest, config, ui):
+                recovered.append(str(dest))
+
+        return recovered
+
+    def _direct_download_with_diagnostics(
+        self,
+        repo_path: str,
+        dest: Path,
+        config: DownloadConfig,
+        ui: Any,
+    ) -> bool:
+        """Direct urllib download that reports URL, status, and exception on failure.
+
+        Bypasses the thread pool entirely (useful when ThreadPoolExecutor +
+        DrvFs on WSL2 is suspected), reads the full body synchronously, writes
+        atomically via temp + os.replace. Returns True only when the file is on
+        disk with non-zero size after the write.
+        """
+        import urllib.error
+        import urllib.request
+
+        from installer.downloads import _get_ssl_context
+
+        if config.local_mode and config.local_repo_dir:
+            source_file = config.local_repo_dir / repo_path
+            if not source_file.is_file():
+                if ui:
+                    ui.error(f"  diagnostic: local source missing: {source_file}")
+                return False
+            try:
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                dest.write_bytes(source_file.read_bytes())
+                return dest.is_file() and dest.stat().st_size > 0
+            except OSError as e:
+                if ui:
+                    ui.error(f"  diagnostic: local copy failed: {type(e).__name__}: {e}")
+                return False
+
+        file_url = f"{config.repo_url}/raw/{config.repo_branch}/{repo_path}"
+        try:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            request = urllib.request.Request(file_url)
+            with urllib.request.urlopen(request, timeout=60.0, context=_get_ssl_context()) as response:
+                status = getattr(response, "status", None)
+                if status != 200:
+                    if ui:
+                        ui.error(f"  diagnostic: {file_url} returned HTTP {status}")
+                    return False
+                body = response.read()
+        except urllib.error.HTTPError as e:
+            if ui:
+                ui.error(f"  diagnostic: {file_url} HTTPError {e.code} {e.reason}")
+            return False
+        except (urllib.error.URLError, OSError, TimeoutError) as e:
+            if ui:
+                ui.error(f"  diagnostic: {file_url} {type(e).__name__}: {e}")
+            return False
+
+        if not body:
+            if ui:
+                ui.error(f"  diagnostic: {file_url} returned empty body")
+            return False
+
+        tmp = dest.with_suffix(dest.suffix + ".tmp")
+        try:
+            tmp.write_bytes(body)
+            os.replace(str(tmp), str(dest))
+        except OSError as e:
+            if ui:
+                ui.error(f"  diagnostic: write to {dest} failed: {type(e).__name__}: {e}")
+            return False
+
+        return dest.is_file() and dest.stat().st_size > 0
+
+    def _log_skill_dir_diagnostics(
+        self,
+        skill_dir: Path,
+        config: DownloadConfig,
+        ui: Any,
+    ) -> None:
+        """Dump on-disk state of a failed skill plus the URLs its manifest expected.
+
+        Runs only when skill-build fails — so the operator sees exactly what's
+        on disk vs. what's missing, with the exact URL that would have been
+        used. Cheap and safe to emit: a few `ui.print` lines per failure.
+        """
+        if not ui:
+            return
+
+        try:
+            ui.print(f"  diagnostic: skill dir = {skill_dir}")
+        except Exception:
+            return
+
+        try:
+            entries = sorted(p.relative_to(skill_dir).as_posix() for p in skill_dir.rglob("*") if p.is_file())
+            ui.print(f"  diagnostic: on-disk files ({len(entries)}):")
+            for entry in entries:
+                full = skill_dir / entry
+                size = full.stat().st_size if full.is_file() else 0
+                ui.print(f"    - {entry} ({size} bytes)")
+        except OSError as e:
+            ui.print(f"  diagnostic: could not list skill dir: {type(e).__name__}: {e}")
+
+        manifest_path = skill_dir / "manifest.json"
+        if not manifest_path.is_file():
+            ui.print("  diagnostic: manifest.json missing from skill dir")
+            return
+
+        try:
+            manifest_data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as e:
+            ui.print(f"  diagnostic: manifest.json unreadable: {type(e).__name__}: {e}")
+            return
+
+        skills_dir = get_claude_config_dir() / "skills"
+        try:
+            skill_rel = skill_dir.relative_to(skills_dir)
+        except ValueError:
+            return
+
+        required: list[str] = []
+        orchestrator = manifest_data.get("orchestrator")
+        if isinstance(orchestrator, str) and orchestrator:
+            required.append(orchestrator)
+        for step in manifest_data.get("steps", []) or []:
+            if isinstance(step, dict):
+                rel = step.get("file")
+                if isinstance(rel, str) and rel:
+                    required.append(rel)
+
+        ui.print(f"  diagnostic: manifest expects {len(required)} fragment file(s):")
+        for rel in required:
+            exists = (skill_dir / rel).is_file()
+            url = f"{config.repo_url}/raw/{config.repo_branch}/pilot/skills/{skill_rel}/{rel}"
+            marker = "OK" if exists else "MISSING"
+            ui.print(f"    [{marker}] {rel}  <- {url}")
 
     def _reapply_customization(self, ui: Any) -> None:
         """Re-apply customization after core file installation.
