@@ -2,6 +2,13 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.2.4] - 2026-04-21
+
+### Bug Fixes
+
+- Prevent vector-db disk exhaustion + model routing UI + project-scoped annotations
+- **hooks:** Make SessionEnd fully non-blocking so harness cancellation can't leak workers
+
 ## [8.2.3] - 2026-04-17
 
 ### Bug Fixes
