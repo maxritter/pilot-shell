@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.3.0] - 2026-04-23
+
+### Features
+
+- Cross-platform statusline usage, in-process skill build, console task cards
+
 ## [8.2.4] - 2026-04-21
 
 ### Bug Fixes
