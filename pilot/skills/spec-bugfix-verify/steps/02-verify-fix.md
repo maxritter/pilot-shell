@@ -65,7 +65,7 @@ Compare the diff to the plan's `Root Cause: file:line`:
 
 1. `git diff --name-only <base>..HEAD` — list files changed.
 2. **The root-cause file MUST be in the diff.** If it is not, the fix is at a symptom, not the source. STOP, set `Status: PENDING`, note "fix does not touch stated root cause" in the plan, return to `spec-implement`.
-3. **Flag symptom-patching smells in the diff:** new broad `try/except` around the failing call, `if value is None: return default` at the caller when the bug is that `value` is wrong upstream, swallowed exceptions, silently normalised bad inputs. If present, record a finding and require justification in the plan's Investigation section (sometimes a defensive layer is legitimate — defense-in-depth — but it must be documented, not snuck in).
+3. **Flag symptom-patching smells in the diff:** new broad `try/except` around the failing call, `if value is None: return default` at the caller when the bug is that `value` is wrong upstream, swallowed exceptions, silently normalised bad inputs, early-return on error conditions that hide wrong state from the caller, renamed/suppressed log lines that previously surfaced the bug. If present, record a finding and require justification in the plan's Investigation section (sometimes a defensive layer is legitimate — defense-in-depth — but it must be documented, not snuck in).
 
 ### 2.5 Anti-regression audit
 
@@ -74,3 +74,29 @@ Run the full test suite (already done in Step 1, re-run if the revert in 2.3 lef
 ### 2.6 Scope check
 
 Read changed files. Confirm changes match plan scope (Task 1 files + Task 2 files). Flag unplanned changes — they either belong in this plan (update the plan) or in a different plan (revert).
+
+### 2.7 Instrumentation cleanup
+
+Temporary diagnostics added during investigation must be marked `SPEC-DEBUG:` (see `spec-bugfix-plan` Step 3.3). Grep the diff for the marker:
+
+```bash
+if git diff <base>..HEAD | grep -n "SPEC-DEBUG"; then
+    echo "Temporary debug markers present — remove before continuing"
+    exit 1
+fi
+```
+
+Zero matches = clean. Any match = remove the markers in the diff and re-run this step. Non-marked `console.log`/`print` additions are also suspect; inspect them and justify or remove.
+
+### 2.8 Original symptom re-check (non-UI bugs)
+
+The regression test proves the tested scenario works. It does NOT prove the original symptom the user reported is gone — the test may sit below the layer the user interacts with.
+
+Re-run the original reproduction from the plan's `## Summary — Trigger:` line:
+
+- **CLI bug:** run the exact command the user ran
+- **API bug:** `curl` / HTTP client the endpoint with the user's input
+- **Library/SDK bug:** call the function from a Python/Node REPL with the user's args
+- **UI bug:** skip here — handled by Step 6 (Verification Scenario)
+
+**If the regression test passes but the original repro still shows the bug:** the test is at the wrong layer. Set `Status: PENDING`, note "test green but original repro still fails — layer mismatch" in the plan, and return to `spec-implement` to rewrite Task 1's test at the user's entry point. This is the "test-green but user-broken" failure mode — catching it here is the whole reason this step exists.

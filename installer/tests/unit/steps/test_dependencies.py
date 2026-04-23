@@ -761,6 +761,7 @@ class TestNvmInstallPreservation:
 
         assert result is False
 
+
 class TestInstallNodejsPathUpdate:
     """Test that install_nodejs updates PATH after NVM installation."""
 
@@ -1051,8 +1052,6 @@ class TestMacosArm64Detection:
         from installer.platform_utils import is_macos_arm64
 
         assert is_macos_arm64() is False
-
-
 
 
 class TestInstallPrettier:
@@ -1411,9 +1410,7 @@ class TestRunBashWithRetrySudoFallback:
 
         deps._allow_sudo_fallback = True
         try:
-            mock_run.side_effect = subprocess.CalledProcessError(
-                1, "cmd", stderr=b"sudo: a password is required"
-            )
+            mock_run.side_effect = subprocess.CalledProcessError(1, "cmd", stderr=b"sudo: a password is required")
             with pytest.raises(_SudoReauthNeeded):
                 _run_bash_with_retry("sudo -n npm install -g probe")
         finally:
@@ -1426,9 +1423,7 @@ class TestRunBashWithRetrySudoFallback:
         from installer.steps.dependencies import _run_bash_with_retry
 
         deps._allow_sudo_fallback = False
-        mock_run.side_effect = subprocess.CalledProcessError(
-            1, "cmd", stderr=b"sudo: a password is required"
-        )
+        mock_run.side_effect = subprocess.CalledProcessError(1, "cmd", stderr=b"sudo: a password is required")
         result = _run_bash_with_retry("sudo -n npm install -g probe")
         assert result is False
         # All 3 retries should keep sudo -n
@@ -1443,9 +1438,7 @@ class TestRunBashWithRetrySudoFallback:
 
         deps._allow_sudo_fallback = True
         try:
-            mock_run.side_effect = subprocess.CalledProcessError(
-                1, "cmd", stderr=b"npm ERR! code ENOENT"
-            )
+            mock_run.side_effect = subprocess.CalledProcessError(1, "cmd", stderr=b"npm ERR! code ENOENT")
             result = _run_bash_with_retry("sudo -n npm install -g probe")
             assert result is False
             # All retries should keep sudo -n (no fallback for non-sudo errors)
@@ -1730,7 +1723,8 @@ class TestDependenciesCleanup:
         ab_flow = [
             event
             for event in ui.events
-            if event[1] in {
+            if event[1]
+            in {
                 "Installing agent-browser (browser automation)...",
                 "sudo credentials expired — re-authenticating...",
                 "agent-browser (browser automation) installed",
@@ -1878,10 +1872,7 @@ class TestParallelInstalls:
             time.sleep(0.3)
             return True
 
-        tasks = [
-            _InstallTask(name=f"Pkg {i}", key=f"pkg_{i}", fn=slow_fn)
-            for i in range(4)
-        ]
+        tasks = [_InstallTask(name=f"Pkg {i}", key=f"pkg_{i}", fn=slow_fn) for i in range(4)]
 
         start = time.monotonic()
         installed = _run_parallel_installs(tasks, ui=None, max_workers=4)

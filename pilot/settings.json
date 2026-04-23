@@ -98,6 +98,7 @@
   "showTurnDuration": true,
   "alwaysThinkingEnabled": true,
   "showThinkingSummaries": true,
+  "showThinkingHint": true,
   "autoDreamEnabled": true,
   "attribution": {
     "commit": "",

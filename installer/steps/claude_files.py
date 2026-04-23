@@ -451,23 +451,25 @@ class ClaudeFilesStep(BaseStep):
         save_manifest(home_claude_dir / PILOT_MANIFEST_FILE, managed_files)
 
     def _build_skill_md_files(self, ctx: InstallContext, ui: Any) -> None:
-        """Generate SKILL.md for each decomposed skill by invoking `pilot skill-build`.
+        """Generate SKILL.md for each decomposed skill by concatenating fragments in-process.
 
-        Iterates ~/.claude/skills/*/ and runs the subprocess for any skill directory
-        containing manifest.json. Skills without manifest.json are skipped (legacy
-        monolithic skills copied as-is during the fragment+manifest rollout window).
+        Iterates ~/.claude/skills/*/ and builds for any skill directory containing
+        manifest.json. Skills without manifest.json are skipped (legacy monolithic
+        skills copied as-is during the fragment+manifest rollout window).
 
-        After Phase 2 of the workflow-decomposition rollout the nine decomposed
-        skills no longer ship a source-controlled SKILL.md, so this subprocess is
-        the sole materialization path. Failures must be fatal — a silent continue
-        would leave ~/.claude/skills/<skill>/SKILL.md missing, breaking /spec.
+        Builds in-process via the vendored installer.skill_builder — keeps the
+        installer independent of the pilot binary at runtime
+        (.claude/rules/pilot-shell-package-boundaries.md). Failures must be fatal:
+        a silent continue would leave ~/.claude/skills/<skill>/SKILL.md missing,
+        breaking /spec.
 
-        Before each skill-build, missing fragments are re-downloaded from the
-        repository. This self-heals transient download failures during the main
-        install pass (flaky networks, proxy hiccups) that would otherwise abort
-        the install.
+        Recovery is lazy: only on BuildError do we re-download missing fragments
+        and retry once. This self-heals transient download failures (flaky
+        networks, proxy hiccups) without paying stat-every-fragment overhead on
+        the happy path.
         """
-        pilot_bin = Path.home() / ".pilot" / "bin" / "pilot"
+        from installer.skill_builder import BuildError, write_skill_md
+
         skills_dir = get_claude_config_dir() / "skills"
         if not skills_dir.is_dir():
             return
@@ -476,40 +478,31 @@ class ClaudeFilesStep(BaseStep):
         if not decomposed:
             return  # nothing to build — legacy monolithic skills or no skills installed
 
-        if not pilot_bin.is_file():
-            raise RuntimeError(
-                "Pilot binary not found at ~/.pilot/bin/pilot — cannot generate SKILL.md "
-                "for decomposed skills. Install the pilot binary before running the installer."
-            )
-
         config = self._create_download_config(ctx)
         installed_files: list[str] = list(ctx.config.get("installed_files", []))
 
         failures: list[str] = []
         for skill_dir in decomposed:
-            manifest = skill_dir / "manifest.json"
-            if not manifest.is_file():
+            first_err: BuildError | OSError | None = None
+            try:
+                write_skill_md(skill_dir)
                 continue
+            except (BuildError, OSError) as err:
+                first_err = err
 
             recovered = self._recover_missing_fragments(skill_dir, config, ui)
             if recovered:
                 installed_files.extend(recovered)
+                try:
+                    write_skill_md(skill_dir)
+                    continue
+                except (BuildError, OSError) as retry_err:
+                    failures.append(f"{skill_dir.name}: {retry_err}")
+                    self._log_skill_dir_diagnostics(skill_dir, config, ui)
+                    continue
 
-            try:
-                result = subprocess.run(
-                    [str(pilot_bin), "skill-build", str(skill_dir), "--json"],
-                    capture_output=True,
-                    text=True,
-                    timeout=30,
-                )
-            except (subprocess.SubprocessError, OSError) as e:
-                failures.append(f"{skill_dir.name}: {e}")
-                self._log_skill_dir_diagnostics(skill_dir, config, ui)
-                continue
-            if result.returncode != 0:
-                err = result.stderr.strip() or result.stdout.strip() or f"exit {result.returncode}"
-                failures.append(f"{skill_dir.name}: {err}")
-                self._log_skill_dir_diagnostics(skill_dir, config, ui)
+            failures.append(f"{skill_dir.name}: {first_err}")
+            self._log_skill_dir_diagnostics(skill_dir, config, ui)
 
         ctx.config["installed_files"] = installed_files
 

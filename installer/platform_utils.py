@@ -32,7 +32,6 @@ def has_nvidia_gpu() -> bool:
     return False
 
 
-
 def command_exists(command: str) -> bool:
     """Check if a command exists in PATH."""
     return shutil.which(command) is not None

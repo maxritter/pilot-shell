@@ -9,6 +9,9 @@ __pycache__/
 pilot/skills/*/SKILL.md
 pilot/skills/*/hashes.json
 
+# Local reference clones (not part of this repo)
+claude-pace/
+
 # C extensions
 *.so
 

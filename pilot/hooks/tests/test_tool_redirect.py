@@ -103,7 +103,9 @@ class TestAgentPassthrough:
     """Non-blocked Agent calls pass through silently — no output."""
 
     def test_allows_agent_general_purpose(self):
-        code, output = _run_with_input("Agent", {"subagent_type": "general-purpose", "description": "Fix test failures", "prompt": "fix"})
+        code, output = _run_with_input(
+            "Agent", {"subagent_type": "general-purpose", "description": "Fix test failures", "prompt": "fix"}
+        )
         assert code == 0
         assert output == ""
 
@@ -140,7 +142,10 @@ class TestExploreDescriptionBlocked:
     """Agent with 'Explore' anywhere in description is blocked (regardless of subagent_type)."""
 
     def test_blocks_explore_first_word(self):
-        code, output = _run_with_input("Agent", {"subagent_type": "general-purpose", "description": "Explore console UI codebase", "prompt": "look around"})
+        code, output = _run_with_input(
+            "Agent",
+            {"subagent_type": "general-purpose", "description": "Explore console UI codebase", "prompt": "look around"},
+        )
         assert code == 2
         assert "Probe" in output
 
@@ -153,11 +158,15 @@ class TestExploreDescriptionBlocked:
         assert code == 2
 
     def test_blocks_explore_no_subagent_type(self):
-        code, output = _run_with_input("Agent", {"description": "Explore and understand the codebase", "prompt": "look"})
+        code, output = _run_with_input(
+            "Agent", {"description": "Explore and understand the codebase", "prompt": "look"}
+        )
         assert code == 2
 
     def test_allows_non_explore_description(self):
-        code, output = _run_with_input("Agent", {"subagent_type": "general-purpose", "description": "Fix test failures", "prompt": "fix"})
+        code, output = _run_with_input(
+            "Agent", {"subagent_type": "general-purpose", "description": "Fix test failures", "prompt": "fix"}
+        )
         assert code == 0
         assert output == ""
 
@@ -180,36 +189,62 @@ class TestAllowedWebSearchAgents:
     """web-search-agent passes through silently — used by /prd deep research."""
 
     def test_allows_web_search_agent(self):
-        code, output = _run_with_input("Agent", {"subagent_type": "web-search-agent", "description": "Research competitor landscape", "prompt": "search"})
+        code, output = _run_with_input(
+            "Agent",
+            {"subagent_type": "web-search-agent", "description": "Research competitor landscape", "prompt": "search"},
+        )
         assert code == 0
         assert output == ""
 
     def test_allows_pilot_web_search_agent(self):
-        code, output = _run_with_input("Agent", {"subagent_type": "pilot:web-search-agent", "description": "Research technical approaches", "prompt": "search"})
+        code, output = _run_with_input(
+            "Agent",
+            {
+                "subagent_type": "pilot:web-search-agent",
+                "description": "Research technical approaches",
+                "prompt": "search",
+            },
+        )
         assert code == 0
         assert output == ""
 
     def test_web_search_agent_bypasses_research_pattern(self):
         """web-search-agent with 'Research' description must NOT be blocked."""
-        code, output = _run_with_input("Agent", {"subagent_type": "web-search-agent", "description": "Research UX patterns for onboarding", "prompt": "search"})
+        code, output = _run_with_input(
+            "Agent",
+            {
+                "subagent_type": "web-search-agent",
+                "description": "Research UX patterns for onboarding",
+                "prompt": "search",
+            },
+        )
         assert code == 0
         assert output == ""
 
     def test_web_search_agent_bypasses_explore_pattern(self):
         """web-search-agent with 'Explore' description must NOT be blocked."""
-        code, output = _run_with_input("Agent", {"subagent_type": "web-search-agent", "description": "Explore competitor landscape", "prompt": "search"})
+        code, output = _run_with_input(
+            "Agent",
+            {"subagent_type": "web-search-agent", "description": "Explore competitor landscape", "prompt": "search"},
+        )
         assert code == 0
         assert output == ""
 
     def test_spec_review_bypasses_explore_pattern(self):
         """spec-review with 'Explore' description must NOT be blocked."""
-        code, output = _run_with_input("Agent", {"subagent_type": "pilot:spec-review", "description": "Explore alignment with spec", "prompt": "review"})
+        code, output = _run_with_input(
+            "Agent",
+            {"subagent_type": "pilot:spec-review", "description": "Explore alignment with spec", "prompt": "review"},
+        )
         assert code == 0
         assert output == ""
 
     def test_changes_review_bypasses_explore_pattern(self):
         """changes-review with 'Explore' description must NOT be blocked."""
-        code, output = _run_with_input("Agent", {"subagent_type": "pilot:changes-review", "description": "Explore code changes", "prompt": "review"})
+        code, output = _run_with_input(
+            "Agent",
+            {"subagent_type": "pilot:changes-review", "description": "Explore code changes", "prompt": "review"},
+        )
         assert code == 0
         assert output == ""
 
@@ -362,17 +397,23 @@ class TestSubprocessIntegration:
         assert "/spec" in stdout
 
     def test_explore_description_blocked(self):
-        exit_code, stdout, _ = _run_subprocess("Agent", {"subagent_type": "general-purpose", "description": "Explore console UI codebase"})
+        exit_code, stdout, _ = _run_subprocess(
+            "Agent", {"subagent_type": "general-purpose", "description": "Explore console UI codebase"}
+        )
         assert exit_code == 2
         assert _is_denied(stdout)
         assert "Probe" in stdout
 
     def test_web_search_agent_allowed_with_research_description(self):
-        exit_code, stdout, _ = _run_subprocess("Agent", {"subagent_type": "web-search-agent", "description": "Research competitor landscape"})
+        exit_code, stdout, _ = _run_subprocess(
+            "Agent", {"subagent_type": "web-search-agent", "description": "Research competitor landscape"}
+        )
         assert exit_code == 0
         assert not _is_denied(stdout)
 
     def test_web_search_agent_allowed_with_explore_description(self):
-        exit_code, stdout, _ = _run_subprocess("Agent", {"subagent_type": "web-search-agent", "description": "Explore alternatives"})
+        exit_code, stdout, _ = _run_subprocess(
+            "Agent", {"subagent_type": "web-search-agent", "description": "Explore alternatives"}
+        )
         assert exit_code == 0
         assert not _is_denied(stdout)

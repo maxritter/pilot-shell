@@ -89,9 +89,7 @@ class TestUnitMain:
     @patch("spec_stop_guard.get_stop_guard_path")
     @patch("spec_stop_guard.time.time")
     @patch("sys.stdin")
-    def test_allows_stop_on_cooldown_escape(
-        self, mock_stdin, mock_time, mock_guard_path, mock_waiting, mock_find_plan
-    ):
+    def test_allows_stop_on_cooldown_escape(self, mock_stdin, mock_time, mock_guard_path, mock_waiting, mock_find_plan):
         mock_find_plan.return_value = (Path("/plan.md"), "PENDING")
         mock_waiting.return_value = False
         mock_time.return_value = 100.0

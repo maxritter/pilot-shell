@@ -14,11 +14,21 @@ Pilot Shell replaces the default Claude Code status line with a rich, three-line
 
 The status line has three lines:
 
+**Subscription users** (Pro / Max — Claude Code emits `rate_limits` on stdin):
 ```
-Line 1: Opus 4.7 [1M] | █████░▓ 60% [604K] | +156 -23 | main +2 ~3 | $1.45 | Savings: 65%
+Line 1: Opus 4.7 [1M] | █████░▓ 60% | 5h: 42% ⇡ 2h | 7d: 18% ⇣ 4d | $1.45 | Savings: 65%
 Line 2: Spec: my-feature feature [implement] ████░░░░ 3/6
-Line 3: Pilot 8.2.1 (Solo) · CC 2.1.79 (Max) · sessions 2 · memories 12
+Line 3: Pilot 8.2.1 (Solo) · CC 2.1.80 (Max) · sessions 2 · memories 12
 ```
+
+**API / Enterprise users** (no `rate_limits` in stdin):
+```
+Line 1: Opus 4.7 [1M] | █████░▓ 60% | +156 -23 | main +2 ~3 | $1.45 | Savings: 65%
+Line 2: Spec: my-feature feature [implement] ████░░░░ 3/6
+Line 3: Pilot 8.2.1 (Solo) · CC 2.1.80 · sessions 2 · memories 12
+```
+
+The layout is symmetric: slots 3 and 4 swap between `5h | 7d` and `lines | git` based on what Claude Code provides on stdin. Cost and Savings always anchor the right side.
 
 ### Line 1 — Session Metrics
 
@@ -27,17 +37,29 @@ Widgets separated by `|`, from left to right:
 | Widget | Description | Color coding |
 |--------|-------------|--------------|
 | **Model** | Active model in short form (`Opus 4.7 [1M]`, `Sonnet 4.6`). Legacy / pinned IDs such as `claude-opus-4-6`, `claude-sonnet-4-5-20250929`, or retired `claude-3-*` variants resolve to friendly labels (`Opus 4.6`, `Sonnet 4.5`, `Sonnet 3.7`, …). Unknown IDs display verbatim. | Cyan |
-| **Context** | Effective context usage with progress bar, buffer indicator (`▓`), and current token count (e.g., `[604K]`) | Green < 80%, Yellow 80–95%, Red 95%+ |
-| **Lines changed** | Session lines added/removed (`+156 -23`). Hidden when usage API data is available | Green for added, Red for removed |
-| **Git** | Branch name with staged (`+N`) and unstaged (`~N`) counts. Shows worktree branch with `wt` suffix when in a spec worktree | Magenta branch, Green staged, Yellow unstaged |
+| **Context** | Effective context usage with progress bar and buffer indicator (`▓`). The session percentage alone is sufficient — no raw token count is shown. | Green < 80%, Yellow 80–95%, Red 95%+ |
+| **Lines changed** | Session lines added/removed (`+156 -23`). Hidden when `rate_limits` is present. | Green for added, Red for removed |
+| **Git** | Branch name with staged (`+N`) and unstaged (`~N`) counts. Shows worktree branch with `wt` suffix when in a spec worktree. Hidden when `rate_limits` is present. | Magenta branch, Green staged, Yellow unstaged |
 | **Cost** | Session cost in USD | Green < $1, Yellow $1–5, Red $5+ |
-| **5h usage** | 5-hour usage limit percentage with reset time (requires OAuth credentials) | Green < 70%, Yellow 70–90%, Red 90%+ |
-| **7d usage** | Weekly usage limit percentage with reset time | Same as 5h |
-| **Savings** | Token savings percentage from RTK proxy (`Savings: N%`), shown when no usage data available | Cyan |
+| **5h usage** | 5-hour usage percentage with pacing arrow and reset countdown (`5h: 42% ⇡ 2h`). See pacing rules below. Only shown when `rate_limits` is available. | Green < 70%, Yellow 70–90%, Red 90%+ |
+| **7d usage** | 7-day usage percentage with pacing arrow and reset countdown (`7d: 18% ⇣ 4d`). Only shown when `rate_limits` is available. | Same as 5h |
+| **Savings** | Token savings percentage from RTK proxy (`Savings: N%`). Always shown when RTK has data, regardless of whether usage info is present. | Cyan |
 
-:::info Usage API
-When OAuth credentials are present (`~/.claude/.credentials.json`), the Anthropic usage API provides 5-hour and weekly usage limits — these replace the lines-changed and RTK widgets. Without credentials, lines-changed and RTK savings are shown instead. This is credential-dependent, not platform-dependent.
+:::info Usage Limits — Cross-Platform
+Claude Code 2.1.80+ emits `rate_limits` directly on stdin for **subscription plans** (Pro / Max). Pilot reads these values with no network calls, no OAuth credentials, and no platform restrictions — it works identically on macOS, Linux, and Windows.
+
+**API / Enterprise users** do not receive `rate_limits`, so the status line falls back to showing lines-changed, git branch, and RTK savings instead. No configuration needed — the display adapts automatically to whatever data Claude Code provides.
 :::
+
+#### Pacing Arrow
+
+When a usage widget is shown, Pilot compares the used percentage to the *expected* percentage based on how much of the window has elapsed:
+
+- **⇡** (red) — burning quota **faster** than the clock. On track to hit the limit before reset.
+- **⇣** (green) — burning quota **slower** than the clock. Surplus budget available.
+- *(no arrow)* — within ±3 percentage points of linear pace. On schedule.
+
+Example: 150 minutes into the 5-hour window (half elapsed), used is 90% → `5h: 90% ⇡ 2h 30m` — clearly over pace and heading for the limit. Used 5% in the same situation → `5h: 5% ⇣ 2h 30m` — well under pace.
 
 ### Line 2 — Mode
 

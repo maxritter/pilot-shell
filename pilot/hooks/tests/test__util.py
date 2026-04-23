@@ -189,8 +189,6 @@ class TestCheckFileLength:
         assert "\033[" not in result
 
 
-
-
 class TestColorConstants:
     """Color constants are defined and non-empty."""
 
@@ -212,8 +210,6 @@ class TestFileLengthConstants:
 
     def test_critical_threshold(self):
         assert FILE_LENGTH_CRITICAL == 1000
-
-
 
 
 class TestSessionsBase:
@@ -253,8 +249,6 @@ class TestGetSessionPlanPath:
         assert path.name == "active_plan.json"
 
 
-
-
 class TestFindGitRoot:
     """Tests for find_git_root()."""
 
@@ -274,8 +268,6 @@ class TestFindGitRoot:
     def test_handles_exception(self, mock_run):
         result = find_git_root()
         assert result is None
-
-
 
 
 class TestReadHookStdin:
@@ -325,8 +317,6 @@ class TestGetEditedFileFromStdin:
             assert result is None
 
 
-
-
 class TestIsWaitingForUserInput:
     """Tests for is_waiting_for_user_input()."""
 
@@ -334,11 +324,7 @@ class TestIsWaitingForUserInput:
         transcript = tmp_path / "transcript.jsonl"
         msg = {
             "type": "assistant",
-            "message": {
-                "content": [
-                    {"type": "tool_use", "name": "AskUserQuestion", "input": {}}
-                ]
-            },
+            "message": {"content": [{"type": "tool_use", "name": "AskUserQuestion", "input": {}}]},
         }
         transcript.write_text(json.dumps(msg) + "\n")
         assert is_waiting_for_user_input(str(transcript)) is True
@@ -347,9 +333,7 @@ class TestIsWaitingForUserInput:
         transcript = tmp_path / "transcript.jsonl"
         msg = {
             "type": "assistant",
-            "message": {
-                "content": [{"type": "tool_use", "name": "Write", "input": {}}]
-            },
+            "message": {"content": [{"type": "tool_use", "name": "Write", "input": {}}]},
         }
         transcript.write_text(json.dumps(msg) + "\n")
         assert is_waiting_for_user_input(str(transcript)) is False
@@ -366,17 +350,11 @@ class TestIsWaitingForUserInput:
         transcript = tmp_path / "transcript.jsonl"
         ask_msg = {
             "type": "assistant",
-            "message": {
-                "content": [
-                    {"type": "tool_use", "name": "AskUserQuestion", "input": {}}
-                ]
-            },
+            "message": {"content": [{"type": "tool_use", "name": "AskUserQuestion", "input": {}}]},
         }
         write_msg = {
             "type": "assistant",
-            "message": {
-                "content": [{"type": "tool_use", "name": "Write", "input": {}}]
-            },
+            "message": {"content": [{"type": "tool_use", "name": "Write", "input": {}}]},
         }
         lines = [json.dumps(ask_msg), json.dumps(write_msg)]
         transcript.write_text("\n".join(lines) + "\n")

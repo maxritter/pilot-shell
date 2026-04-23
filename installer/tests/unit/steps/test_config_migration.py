@@ -15,10 +15,14 @@ class TestMigrationV1:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "commands": {"spec-verify": "opus", "spec-plan": "opus"},
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "commands": {"spec-verify": "opus", "spec-plan": "opus"},
+                }
+            )
+        )
 
         result = migrate_model_config(config_path)
 
@@ -34,10 +38,14 @@ class TestMigrationV1:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "commands": {"spec-verify": "sonnet"},
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "commands": {"spec-verify": "sonnet"},
+                }
+            )
+        )
 
         migrate_model_config(config_path)
 
@@ -50,18 +58,22 @@ class TestMigrationV1:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "agents": {
-                "plan-challenger": "sonnet",
-                "plan-verifier": "sonnet",
-                "spec-reviewer-compliance": "sonnet",
-                "spec-reviewer-quality": "opus",
-                "spec-reviewer-goal": "sonnet",
-                "plan-reviewer": "sonnet",
-                "spec-reviewer": "sonnet",
-            },
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "agents": {
+                        "plan-challenger": "sonnet",
+                        "plan-verifier": "sonnet",
+                        "spec-reviewer-compliance": "sonnet",
+                        "spec-reviewer-quality": "opus",
+                        "spec-reviewer-goal": "sonnet",
+                        "plan-reviewer": "sonnet",
+                        "spec-reviewer": "sonnet",
+                    },
+                }
+            )
+        )
 
         migrate_model_config(config_path)
 
@@ -81,13 +93,17 @@ class TestMigrationV1:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "agents": {
-                "plan-challenger": "sonnet",
-                "plan-verifier": "sonnet",
-            },
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "agents": {
+                        "plan-challenger": "sonnet",
+                        "plan-verifier": "sonnet",
+                    },
+                }
+            )
+        )
 
         migrate_model_config(config_path)
 
@@ -120,11 +136,15 @@ class TestMigrationV2:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "commands": {"sync": "sonnet", "learn": "sonnet"},
-            "_configVersion": 1,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "commands": {"sync": "sonnet", "learn": "sonnet"},
+                    "_configVersion": 1,
+                }
+            )
+        )
 
         result = migrate_model_config(config_path)
 
@@ -139,11 +159,15 @@ class TestMigrationV2:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "commands": {"sync": "opus", "learn": "opus"},
-            "_configVersion": 1,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "commands": {"sync": "opus", "learn": "opus"},
+                    "_configVersion": 1,
+                }
+            )
+        )
 
         result = migrate_model_config(config_path)
 
@@ -157,11 +181,15 @@ class TestMigrationV2:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "commands": {"sync": "opus", "learn": "sonnet"},
-            "_configVersion": 1,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "commands": {"sync": "opus", "learn": "sonnet"},
+                    "_configVersion": 1,
+                }
+            )
+        )
 
         result = migrate_model_config(config_path)
 
@@ -207,11 +235,15 @@ class TestMigrationIdempotency:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "commands": {"spec-verify": "opus"},
-            "agents": {"plan-challenger": "sonnet"},
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "commands": {"spec-verify": "opus"},
+                    "agents": {"plan-challenger": "sonnet"},
+                }
+            )
+        )
 
         migrate_model_config(config_path)
         first_result = config_path.read_text()
@@ -230,13 +262,17 @@ class TestMigrationPreservesExistingData:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "extendedContext": True,
-            "auto_update": True,
-            "commands": {"spec-verify": "opus"},
-            "agents": {},
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "extendedContext": True,
+                    "auto_update": True,
+                    "commands": {"spec-verify": "opus"},
+                    "agents": {},
+                }
+            )
+        )
 
         migrate_model_config(config_path)
 
@@ -291,16 +327,20 @@ class TestMigrationV3:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "reviewerAgents": {"planReviewer": True, "specReviewer": True},
-            "specWorkflow": {
-                "worktreeSupport": True,
-                "askQuestionsDuringPlanning": True,
-                "planApproval": True,
-            },
-            "_configVersion": 2,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "reviewerAgents": {"planReviewer": True, "specReviewer": True},
+                    "specWorkflow": {
+                        "worktreeSupport": True,
+                        "askQuestionsDuringPlanning": True,
+                        "planApproval": True,
+                    },
+                    "_configVersion": 2,
+                }
+            )
+        )
 
         result = migrate_model_config(config_path)
 
@@ -354,16 +394,20 @@ class TestMigrationV3:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "reviewerAgents": {"planReviewer": True, "specReviewer": True},
-            "specWorkflow": {
-                "worktreeSupport": True,
-                "askQuestionsDuringPlanning": False,
-                "planApproval": False,
-            },
-            "_configVersion": 2,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "reviewerAgents": {"planReviewer": True, "specReviewer": True},
+                    "specWorkflow": {
+                        "worktreeSupport": True,
+                        "askQuestionsDuringPlanning": False,
+                        "planApproval": False,
+                    },
+                    "_configVersion": 2,
+                }
+            )
+        )
 
         migrate_model_config(config_path)
 
@@ -380,16 +424,20 @@ class TestMigrationV4:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "reviewerAgents": {"planReviewer": False, "specReviewer": False},
-            "specWorkflow": {
-                "worktreeSupport": False,
-                "askQuestionsDuringPlanning": True,
-                "planApproval": True,
-            },
-            "_configVersion": 3,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "reviewerAgents": {"planReviewer": False, "specReviewer": False},
+                    "specWorkflow": {
+                        "worktreeSupport": False,
+                        "askQuestionsDuringPlanning": True,
+                        "planApproval": True,
+                    },
+                    "_configVersion": 3,
+                }
+            )
+        )
 
         result = migrate_model_config(config_path)
 
@@ -408,16 +456,20 @@ class TestMigrationV4:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "reviewerAgents": {"planReviewer": True, "specReviewer": True},
-            "specWorkflow": {
-                "worktreeSupport": True,
-                "askQuestionsDuringPlanning": True,
-                "planApproval": True,
-            },
-            "_configVersion": 3,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "reviewerAgents": {"planReviewer": True, "specReviewer": True},
+                    "specWorkflow": {
+                        "worktreeSupport": True,
+                        "askQuestionsDuringPlanning": True,
+                        "planApproval": True,
+                    },
+                    "_configVersion": 3,
+                }
+            )
+        )
 
         result = migrate_model_config(config_path)
 
@@ -433,16 +485,20 @@ class TestMigrationV4:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "reviewerAgents": {"planReviewer": False, "specReviewer": True},
-            "specWorkflow": {
-                "worktreeSupport": True,
-                "askQuestionsDuringPlanning": True,
-                "planApproval": True,
-            },
-            "_configVersion": 3,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "reviewerAgents": {"planReviewer": False, "specReviewer": True},
+                    "specWorkflow": {
+                        "worktreeSupport": True,
+                        "askQuestionsDuringPlanning": True,
+                        "planApproval": True,
+                    },
+                    "_configVersion": 3,
+                }
+            )
+        )
 
         result = migrate_model_config(config_path)
 
@@ -458,11 +514,15 @@ class TestMigrationV4:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "commands": {},
-            "_configVersion": 3,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "commands": {},
+                    "_configVersion": 3,
+                }
+            )
+        )
 
         result = migrate_model_config(config_path)
 
@@ -477,11 +537,15 @@ class TestMigrationV4:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "reviewerAgents": {"planReviewer": False, "specReviewer": False},
-            "_configVersion": 3,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "reviewerAgents": {"planReviewer": False, "specReviewer": False},
+                    "_configVersion": 3,
+                }
+            )
+        )
 
         result = migrate_model_config(config_path)
 
@@ -496,16 +560,20 @@ class TestMigrationV4:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "reviewerAgents": {"planReviewer": False, "specReviewer": False},
-            "specWorkflow": {
-                "worktreeSupport": False,
-                "askQuestionsDuringPlanning": False,
-                "planApproval": False,
-            },
-            "_configVersion": 3,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "reviewerAgents": {"planReviewer": False, "specReviewer": False},
+                    "specWorkflow": {
+                        "worktreeSupport": False,
+                        "askQuestionsDuringPlanning": False,
+                        "planApproval": False,
+                    },
+                    "_configVersion": 3,
+                }
+            )
+        )
 
         migrate_model_config(config_path)
 
@@ -522,11 +590,15 @@ class TestMigrationV5:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "extendedContext": False,
-            "_configVersion": 4,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "extendedContext": False,
+                    "_configVersion": 4,
+                }
+            )
+        )
 
         result = migrate_model_config(config_path)
 
@@ -539,11 +611,15 @@ class TestMigrationV5:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "extendedContext": True,
-            "_configVersion": 4,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "extendedContext": True,
+                    "_configVersion": 4,
+                }
+            )
+        )
 
         result = migrate_model_config(config_path)
 
@@ -556,10 +632,14 @@ class TestMigrationV5:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "_configVersion": 4,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "_configVersion": 4,
+                }
+            )
+        )
 
         result = migrate_model_config(config_path)
 
@@ -696,12 +776,16 @@ class TestMigrationV6:
         from installer.steps.config_migration import CURRENT_CONFIG_VERSION, migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "reviewerAgents": {"planReviewer": True, "specReviewer": True},
-            "extendedContext": True,
-            "_configVersion": 5,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "reviewerAgents": {"planReviewer": True, "specReviewer": True},
+                    "extendedContext": True,
+                    "_configVersion": 5,
+                }
+            )
+        )
 
         with patch("installer.steps.config_migration._get_subscription_type", return_value="pro"):
             result = migrate_model_config(config_path)
@@ -718,12 +802,16 @@ class TestMigrationV6:
         from installer.steps.config_migration import CURRENT_CONFIG_VERSION, migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "reviewerAgents": {"planReviewer": True, "specReviewer": True},
-            "extendedContext": True,
-            "_configVersion": 5,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "reviewerAgents": {"planReviewer": True, "specReviewer": True},
+                    "extendedContext": True,
+                    "_configVersion": 5,
+                }
+            )
+        )
 
         with patch("installer.steps.config_migration._get_subscription_type", return_value="max"):
             result = migrate_model_config(config_path)
@@ -899,11 +987,15 @@ class TestMigrationV8:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "commands": {"spec": "opus", "spec-plan": "opus"},
-            "_configVersion": 7,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "commands": {"spec": "opus", "spec-plan": "opus"},
+                    "_configVersion": 7,
+                }
+            )
+        )
 
         result = migrate_model_config(config_path)
 
@@ -918,16 +1010,20 @@ class TestMigrationV8:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "commands": {
-                "spec": "sonnet",
-                "spec-plan": "opus",
-                "spec-implement": "sonnet",
-                "spec-verify": "sonnet",
-            },
-            "_configVersion": 7,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "commands": {
+                        "spec": "sonnet",
+                        "spec-plan": "opus",
+                        "spec-implement": "sonnet",
+                        "spec-verify": "sonnet",
+                    },
+                    "_configVersion": 7,
+                }
+            )
+        )
 
         migrate_model_config(config_path)
 
@@ -942,11 +1038,15 @@ class TestMigrationV8:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "commands": {"spec": "opus", "spec-implement": "opus"},
-            "_configVersion": 7,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "commands": {"spec": "opus", "spec-implement": "opus"},
+                    "_configVersion": 7,
+                }
+            )
+        )
 
         migrate_model_config(config_path)
 
@@ -959,11 +1059,15 @@ class TestMigrationV8:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "extendedContext": False,
-            "_configVersion": 7,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "extendedContext": False,
+                    "_configVersion": 7,
+                }
+            )
+        )
 
         migrate_model_config(config_path)
 
@@ -975,12 +1079,16 @@ class TestMigrationV8:
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "skills": {"spec": "opus"},
-            "commands": {"spec": "sonnet"},
-            "_configVersion": 7,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "skills": {"spec": "opus"},
+                    "commands": {"spec": "sonnet"},
+                    "_configVersion": 7,
+                }
+            )
+        )
 
         migrate_model_config(config_path)
 
@@ -1129,16 +1237,20 @@ class TestMigrationV9:
         from installer.steps.config_migration import CURRENT_CONFIG_VERSION, migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "skills": {
-                "spec": "opus",
-                "spec-plan": "opus",
-                "spec-implement": "opus",
-                "spec-verify": "opus",
-            },
-            "_configVersion": 8,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "skills": {
+                        "spec": "opus",
+                        "spec-plan": "opus",
+                        "spec-implement": "opus",
+                        "spec-verify": "opus",
+                    },
+                    "_configVersion": 8,
+                }
+            )
+        )
 
         with patch("installer.steps.config_migration._get_subscription_type", return_value="pro"):
             result = migrate_model_config(config_path)
@@ -1157,16 +1269,20 @@ class TestMigrationV9:
         from installer.steps.config_migration import CURRENT_CONFIG_VERSION, migrate_model_config
 
         config_path = tmp_path / "config.json"
-        config_path.write_text(json.dumps({
-            "model": "opus",
-            "skills": {
-                "spec": "opus",
-                "spec-plan": "opus",
-                "spec-implement": "opus",
-                "spec-verify": "opus",
-            },
-            "_configVersion": 8,
-        }))
+        config_path.write_text(
+            json.dumps(
+                {
+                    "model": "opus",
+                    "skills": {
+                        "spec": "opus",
+                        "spec-plan": "opus",
+                        "spec-implement": "opus",
+                        "spec-verify": "opus",
+                    },
+                    "_configVersion": 8,
+                }
+            )
+        )
 
         with patch("installer.steps.config_migration._get_subscription_type", return_value="max"):
             result = migrate_model_config(config_path)

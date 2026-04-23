@@ -188,7 +188,7 @@ def download_files_parallel(
     file_infos: list[FileInfo],
     dest_paths: list[Path],
     config: DownloadConfig,
-    max_workers: int = 8,
+    max_workers: int = 16,
 ) -> list[bool]:
     """Download multiple files in parallel using ThreadPoolExecutor.
 

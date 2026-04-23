@@ -354,5 +354,3 @@ def run_tdd_enforcer() -> int:
         )
 
     return 0
-
-

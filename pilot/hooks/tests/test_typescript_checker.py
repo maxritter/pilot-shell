@@ -172,23 +172,30 @@ class TestCheckTypescriptEslintIssues:
         ts_file = tmp_path / "app.ts"
         ts_file.write_text("const x = 1;\n")
 
-        eslint_json = json.dumps([{
-            "filePath": str(ts_file),
-            "errorCount": 2,
-            "warningCount": 1,
-            "messages": [
-                {"line": 1, "ruleId": "no-unused-vars", "message": "x is unused", "severity": 2},
-                {"line": 2, "ruleId": "no-console", "message": "no console", "severity": 2},
-                {"line": 3, "ruleId": "semi", "message": "missing semi", "severity": 1},
-            ],
-        }])
+        eslint_json = json.dumps(
+            [
+                {
+                    "filePath": str(ts_file),
+                    "errorCount": 2,
+                    "warningCount": 1,
+                    "messages": [
+                        {"line": 1, "ruleId": "no-unused-vars", "message": "x is unused", "severity": 2},
+                        {"line": 2, "ruleId": "no-console", "message": "no console", "severity": 2},
+                        {"line": 3, "ruleId": "semi", "message": "missing semi", "severity": 1},
+                    ],
+                }
+            ]
+        )
 
         mock_eslint = MagicMock(returncode=1, stdout=eslint_json, stderr="")
 
         with (
             patch("_checkers.typescript.check_file_length", return_value=""),
             patch("_checkers.typescript.find_project_root", return_value=tmp_path),
-            patch("_checkers.typescript.find_tool", side_effect=lambda name, _: f"/usr/bin/{name}" if name == "eslint" else None),
+            patch(
+                "_checkers.typescript.find_tool",
+                side_effect=lambda name, _: f"/usr/bin/{name}" if name == "eslint" else None,
+            ),
             patch("_checkers.typescript._has_eslint_config", return_value=True),
             patch("_checkers.typescript.subprocess.run", return_value=mock_eslint),
         ):
@@ -213,7 +220,10 @@ class TestCheckTypescriptCleanFile:
         with (
             patch("_checkers.typescript.check_file_length", return_value=""),
             patch("_checkers.typescript.find_project_root", return_value=tmp_path),
-            patch("_checkers.typescript.find_tool", side_effect=lambda name, _: f"/usr/bin/{name}" if name == "eslint" else None),
+            patch(
+                "_checkers.typescript.find_tool",
+                side_effect=lambda name, _: f"/usr/bin/{name}" if name == "eslint" else None,
+            ),
             patch("_checkers.typescript._has_eslint_config", return_value=True),
             patch("_checkers.typescript.subprocess.run", return_value=mock_eslint),
         ):
@@ -260,7 +270,10 @@ class TestCheckTypescriptReadOnly:
         with (
             patch("_checkers.typescript.check_file_length", return_value=""),
             patch("_checkers.typescript.find_project_root", return_value=tmp_path),
-            patch("_checkers.typescript.find_tool", side_effect=lambda name, _: f"/usr/bin/{name}" if name == "eslint" else None),
+            patch(
+                "_checkers.typescript.find_tool",
+                side_effect=lambda name, _: f"/usr/bin/{name}" if name == "eslint" else None,
+            ),
             patch("_checkers.typescript._has_eslint_config", return_value=True),
             patch("_checkers.typescript.subprocess.run", side_effect=run_side_effect),
         ):

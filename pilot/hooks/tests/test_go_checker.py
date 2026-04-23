@@ -52,10 +52,7 @@ class TestCheckGoVetCounting:
         mock_result = MagicMock()
         mock_result.returncode = 2
         mock_result.stdout = ""
-        mock_result.stderr = (
-            "# command-line-arguments\n"
-            "vet: ./main.go:5:6: x declared and not used\n"
-        )
+        mock_result.stderr = "# command-line-arguments\nvet: ./main.go:5:6: x declared and not used\n"
 
         with (
             patch("_checkers.go.check_file_length", return_value=""),
@@ -150,7 +147,10 @@ class TestCheckGoReadOnly:
             patch("_checkers.go.check_file_length", return_value=""),
             patch("_checkers.go._has_go_project", return_value=True),
             patch("_checkers.go._has_golangci_config", return_value=True),
-            patch("_checkers.go.shutil.which", side_effect=lambda name: f"/usr/bin/{name}" if name in ("go", "golangci-lint") else None),
+            patch(
+                "_checkers.go.shutil.which",
+                side_effect=lambda name: f"/usr/bin/{name}" if name in ("go", "golangci-lint") else None,
+            ),
             patch("_checkers.go.subprocess.run", side_effect=run_side_effect),
         ):
             check_go(go_file)

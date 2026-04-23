@@ -197,11 +197,12 @@ Pilot shell ships with its own advanced status line with real-time session metri
 | Widget            | Description                                                                     |
 | ----------------- | ------------------------------------------------------------------------------- |
 | **Model**         | Active model in short form (`Opus 4.7 [1M]`, `Sonnet 4.6`)                      |
-| **Context**       | Effective context usage with progress bar, buffer indicator, and token count. Green < 80%, Yellow 80–95%, Red 95%+ |
-| **Lines changed** | `+added -removed` in session (hidden when usage API data available)             |
-| **Git**           | Branch with staged (`+N`) / unstaged (`~N`) counts                              |
-| **Cost**          | Session cost in USD. Green < $1, Yellow $1–5, Red $5+                           |           |
-| **Savings**       | Token savings percentage from RTK proxy (`Savings: N%`), shown when no usage data |
+| **Context**       | Effective context usage with progress bar and buffer indicator. Green < 80%, Yellow 80–95%, Red 95%+ |
+| **Lines changed** | `+added -removed` in session (hidden when `rate_limits` is available)           |
+| **Git**           | Branch with staged (`+N`) / unstaged (`~N`) counts (hidden when `rate_limits` is available) |
+| **5h / 7d usage** | Rate-limit percentage with pacing arrow and reset countdown (`5h: 42% ⇡ 2h`). ⇡ red = over pace, ⇣ green = under pace. Read cross-platform from Claude Code's `rate_limits` stdin field (Pro/Max subscriptions on Claude Code 2.1.80+). Replaces lines+git when present. |
+| **Cost**          | Session cost in USD. Green < $1, Yellow $1–5, Red $5+                           |
+| **Savings**       | Token savings percentage from RTK proxy (`Savings: N%`). Always shown when RTK has data. |
 
 **Line 2 — Mode:**
 

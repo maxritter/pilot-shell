@@ -67,21 +67,19 @@ class TestSpecPlanValidator:
             transcript = Path(tmpdir) / "transcript.jsonl"
             msg = {
                 "type": "assistant",
-                "message": {
-                    "content": [
-                        {"type": "tool_use", "name": "AskUserQuestion", "input": {}}
-                    ]
-                },
+                "message": {"content": [{"type": "tool_use", "name": "AskUserQuestion", "input": {}}]},
             }
             transcript.write_text(json.dumps(msg) + "\n")
 
             result = subprocess.run(
                 [sys.executable, "pilot/hooks/spec_plan_validator.py"],
-                input=json.dumps({
-                    "project_root": tmpdir,
-                    "stop_hook_active": False,
-                    "transcript_path": str(transcript),
-                }),
+                input=json.dumps(
+                    {
+                        "project_root": tmpdir,
+                        "stop_hook_active": False,
+                        "transcript_path": str(transcript),
+                    }
+                ),
                 capture_output=True,
                 text=True,
                 cwd=PROJECT_ROOT,
@@ -154,21 +152,19 @@ class TestSpecVerifyValidator:
             transcript = Path(tmpdir) / "transcript.jsonl"
             msg = {
                 "type": "assistant",
-                "message": {
-                    "content": [
-                        {"type": "tool_use", "name": "AskUserQuestion", "input": {}}
-                    ]
-                },
+                "message": {"content": [{"type": "tool_use", "name": "AskUserQuestion", "input": {}}]},
             }
             transcript.write_text(json.dumps(msg) + "\n")
 
             active_plan_json = self._setup_active_plan(plan_path)
             try:
-                result = self._run_validator({
-                    "project_root": tmpdir,
-                    "stop_hook_active": False,
-                    "transcript_path": str(transcript),
-                })
+                result = self._run_validator(
+                    {
+                        "project_root": tmpdir,
+                        "stop_hook_active": False,
+                        "transcript_path": str(transcript),
+                    }
+                )
                 assert result.returncode == 0, f"Should allow stop during AskUserQuestion. stderr: {result.stderr}"
             finally:
                 active_plan_json.unlink(missing_ok=True)

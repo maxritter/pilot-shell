@@ -100,7 +100,14 @@ class TestPrerequisitesStepRun:
     @patch("installer.steps.prerequisites.command_exists")
     @patch("installer.steps.prerequisites.is_homebrew_available")
     def test_prerequisites_run_skips_installed_packages(
-        self, mock_homebrew_available, mock_cmd_exists, mock_nvm_installed, mock_tap, mock_install, mock_outdated, mock_upgrade
+        self,
+        mock_homebrew_available,
+        mock_cmd_exists,
+        mock_nvm_installed,
+        mock_tap,
+        mock_install,
+        mock_outdated,
+        mock_upgrade,
     ):
         """PrerequisitesStep.run skips packages that are already installed and up-to-date."""
         from installer.context import InstallContext

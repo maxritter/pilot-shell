@@ -433,8 +433,6 @@ def install_ccusage() -> bool:
     )
 
 
-
-
 def _refresh_marketplace(marketplace: str) -> bool:
     """Refresh a marketplace to get latest plugin versions.
 
@@ -514,8 +512,6 @@ def install_chrome_devtools_plugin() -> bool:
         plugin_id="chrome-devtools-mcp@chrome-devtools-plugins",
         marketplace="ChromeDevTools/chrome-devtools-mcp",
     )
-
-
 
 
 def install_pbt_tools() -> bool:
@@ -723,20 +719,14 @@ def _run_parallel_installs(
     if ui:
         with ui.progress(len(tasks), f"Installing {len(tasks)} packages") as progress:
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                futures = {
-                    executor.submit(_run_install_silent, task): task
-                    for task in tasks
-                }
+                futures = {executor.submit(_run_install_silent, task): task for task in tasks}
                 for future in as_completed(futures):
                     task = futures[future]
                     results[task.key] = future.result()
                     progress.advance()
     else:
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {
-                executor.submit(_run_install_silent, task): task
-                for task in tasks
-            }
+            futures = {executor.submit(_run_install_silent, task): task for task in tasks}
             for future in as_completed(futures):
                 task = futures[future]
                 results[task.key] = future.result()

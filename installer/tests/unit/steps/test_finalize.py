@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, call, patch
 
+
 class TestGetPilotVersion:
     """Test _get_pilot_version function."""
 
@@ -111,7 +112,9 @@ class TestKillStaleWorker:
         mock_run.assert_any_call(["kill", "-9", "1234"], capture_output=True, timeout=5)
         mock_run.assert_any_call(["kill", "5678"], capture_output=True, timeout=5)
         # 5678 died after SIGTERM — no SIGKILL
-        sigkill_5678_calls = [c for c in mock_run.call_args_list if c == call(["kill", "-9", "5678"], capture_output=True, timeout=5)]
+        sigkill_5678_calls = [
+            c for c in mock_run.call_args_list if c == call(["kill", "-9", "5678"], capture_output=True, timeout=5)
+        ]
         assert len(sigkill_5678_calls) == 0
 
     @patch("installer.steps.finalize.subprocess.run")

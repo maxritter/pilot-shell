@@ -106,11 +106,15 @@ class TestIsThrottled:
         monkeypatch.setattr("context_monitor.get_session_cache_path", lambda: cache_file)
 
         session_id = "test-session-123"
-        cache_file.write_text(json.dumps({
-            "session_id": session_id,
-            "tokens": 100000,
-            "timestamp": time.time() - 5,
-        }))
+        cache_file.write_text(
+            json.dumps(
+                {
+                    "session_id": session_id,
+                    "tokens": 100000,
+                    "timestamp": time.time() - 5,
+                }
+            )
+        )
 
         assert _is_throttled(session_id) is True
 
@@ -120,11 +124,15 @@ class TestIsThrottled:
         monkeypatch.setattr("context_monitor._get_max_context_tokens", lambda: 200_000)
 
         session_id = "test-session-123"
-        cache_file.write_text(json.dumps({
-            "session_id": session_id,
-            "tokens": 170000,
-            "timestamp": time.time() - 5,
-        }))
+        cache_file.write_text(
+            json.dumps(
+                {
+                    "session_id": session_id,
+                    "tokens": 170000,
+                    "timestamp": time.time() - 5,
+                }
+            )
+        )
 
         assert _is_throttled(session_id) is False
 
@@ -133,11 +141,15 @@ class TestIsThrottled:
         monkeypatch.setattr("context_monitor.get_session_cache_path", lambda: cache_file)
 
         session_id = "test-session-123"
-        cache_file.write_text(json.dumps({
-            "session_id": session_id,
-            "tokens": 100000,
-            "timestamp": time.time() - 35,
-        }))
+        cache_file.write_text(
+            json.dumps(
+                {
+                    "session_id": session_id,
+                    "tokens": 100000,
+                    "timestamp": time.time() - 35,
+                }
+            )
+        )
 
         assert _is_throttled(session_id) is False
 
@@ -151,11 +163,15 @@ class TestIsThrottled:
         cache_file = tmp_path / "context_cache.json"
         monkeypatch.setattr("context_monitor.get_session_cache_path", lambda: cache_file)
 
-        cache_file.write_text(json.dumps({
-            "session_id": "other-session-456",
-            "tokens": 100000,
-            "timestamp": time.time() - 5,
-        }))
+        cache_file.write_text(
+            json.dumps(
+                {
+                    "session_id": "other-session-456",
+                    "tokens": 100000,
+                    "timestamp": time.time() - 5,
+                }
+            )
+        )
 
         assert _is_throttled("test-session-123") is False
 
@@ -192,12 +208,16 @@ class TestResolveContext:
         monkeypatch.setattr("context_monitor._get_max_context_tokens", lambda: 200_000)
 
         session_id = "test-session-123"
-        cache_file.write_text(json.dumps({
-            "session_id": session_id,
-            "tokens": 170000,
-            "timestamp": time.time() - 5,
-            "shown_80_warn": True,
-        }))
+        cache_file.write_text(
+            json.dumps(
+                {
+                    "session_id": session_id,
+                    "tokens": 170000,
+                    "timestamp": time.time() - 5,
+                    "shown_80_warn": True,
+                }
+            )
+        )
 
         result = _resolve_context(session_id)
 
@@ -409,12 +429,14 @@ class TestCacheAlwaysSavedAfterResolve:
         cache_file = session_base / "context-cache.json"
 
         cache_file.write_text(
-            json.dumps({
-                "tokens": 60000,
-                "timestamp": time.time() - 60,
-                "session_id": session_id,
-                "shown_80_warn": False,
-            })
+            json.dumps(
+                {
+                    "tokens": 60000,
+                    "timestamp": time.time() - 60,
+                    "session_id": session_id,
+                    "shown_80_warn": False,
+                }
+            )
         )
 
         with (
@@ -441,12 +463,14 @@ class TestCacheAlwaysSavedAfterResolve:
         cache_file = session_base / "context-cache.json"
 
         cache_file.write_text(
-            json.dumps({
-                "tokens": 100000,
-                "timestamp": time.time() - 10,
-                "session_id": session_id,
-                "shown_80_warn": False,
-            })
+            json.dumps(
+                {
+                    "tokens": 100000,
+                    "timestamp": time.time() - 10,
+                    "session_id": session_id,
+                    "shown_80_warn": False,
+                }
+            )
         )
 
         with (

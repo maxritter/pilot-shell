@@ -50,6 +50,8 @@ Write it in the plan like this:
 
 The reproducing test encodes the `Currently → Expected` transition. Verification audits that the fix produced it without breaking `Anti-regression`.
 
+**Write `Anti-regression:` specifically** — name the test(s), user flow, or API contract that must still pass. "Existing functionality" or "nothing else breaks" is not auditable. Example: `Anti-regression: test_search_with_filters_returns_200, test_search_pagination` — not `Anti-regression: existing search tests`.
+
 ### Task structure — ONE uniform shape for every bugfix
 
 **⛔ Do NOT collapse these into fewer tasks. Do NOT merge test + fix into a single task.** Separate checkboxes = separate proof. Combining them is exactly where the process falls apart.

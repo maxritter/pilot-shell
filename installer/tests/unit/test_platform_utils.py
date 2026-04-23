@@ -45,7 +45,6 @@ class TestShellConfig:
         assert any(name in path_names for name in common_configs)
 
 
-
 class TestIsAptAvailable:
     """Test apt availability detection."""
 

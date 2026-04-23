@@ -44,9 +44,7 @@ def get_session_flags(session_id: str) -> bool:
     return False
 
 
-def save_cache(
-    tokens: int, session_id: str, shown_80_warn: bool | None = None
-) -> None:
+def save_cache(tokens: int, session_id: str, shown_80_warn: bool | None = None) -> None:
     """Save context calculation to cache with session ID."""
     existing_80_warn = False
     if get_session_cache_path().exists():

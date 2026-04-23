@@ -62,7 +62,6 @@ def test_install_sh_is_executable_bash_script():
     assert content.startswith("#!/bin/bash"), "install.sh must start with bash shebang"
 
 
-
 def test_install_sh_uses_with_flags():
     """Verify install.sh uses --with flags for inline deps (no venv created)."""
     install_sh = Path(__file__).parent.parent.parent.parent / "install.sh"
@@ -81,7 +80,6 @@ def test_install_sh_uses_python_312():
     assert "--no-project" in content, "Must use --no-project to avoid modifying user's venv"
 
 
-
 def test_install_sh_skips_prompt_on_restart():
     """Verify install.sh skips install mode prompt during auto-updates."""
     install_sh = Path(__file__).parent.parent.parent.parent / "install.sh"
@@ -98,7 +96,6 @@ def test_install_sh_no_global_install_mode():
 
     assert "save_install_mode" not in content, "Must not save install_mode globally"
     assert "get_saved_install_mode" not in content, "Must not read global install_mode"
-
 
 
 def test_install_sh_has_auto_version_fetch():

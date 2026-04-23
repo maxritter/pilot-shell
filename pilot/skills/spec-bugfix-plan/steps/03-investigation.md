@@ -9,11 +9,13 @@
 1. Restate: **symptom** (what user observes), **trigger** (when/how), **expected behavior**
 2. If too vague: `AskUserQuestion` with ONE focused question
 3. Can you trigger it reliably? What are the exact steps?
-4. If not reproducible: gather more data, don't guess
+4. **If not reproducible after 2 focused attempts:** STOP investigating silently. `AskUserQuestion` for the missing signal — exact command, input, environment, stack trace, or a recording. A speculative fix for an unreproduced bug is roughly 50% wasted effort; asking is cheaper than guessing.
+5. **If intermittent (flaky / race / timing):** trigger it 10+ times, record how often it fires and what state correlates with failures. Flaky bugs need a test that **forces** the race (deterministic ordering, frozen clock, blocked event loop), not a test that hopes to hit it.
 
 ### 3.2: Check Recent Changes
 
 - What changed that could cause this? `git log --oneline -10 -- <file>`, `git diff`
+- **When a specific token appeared or disappeared:** `git log -S "<string>" -- <path>` finds commits that added/removed that exact string. For regex patterns: `git log -G "<pattern>"`. Faster than `git bisect` when the bug correlates with a specific symbol.
 - New dependencies, config changes, environmental differences?
 
 ### 3.3: Trace the Root Cause
@@ -43,6 +45,7 @@ Read as many files as needed. For each: read completely, trace execution path fr
 
 - What data enters each component? What exits?
 - WHERE does it break? Run once to gather evidence, THEN investigate the failing component.
+- **Mark every temporary log/print with `SPEC-DEBUG:`** (e.g. `console.log("SPEC-DEBUG: filters=", filters)`, `# SPEC-DEBUG: print(x)`). Verification greps the diff for this marker — any match fails verification and forces cleanup. This is the only way temporary diagnostics are allowed in the fix diff.
 
 **⛔ Structural tracing (MANDATORY):** Run `codegraph_callers` and `codegraph_callees` on the function where the bug manifests AND the function at the root cause. Then run `codegraph_impact` to see the full blast radius — essential for understanding how bad data flows through the system.
 
