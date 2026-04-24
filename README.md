@@ -87,7 +87,7 @@ Installs globally on macOS, Linux, and Windows (WSL2). All tools and rules go to
 If you encounter an issue or unfixed bug in the latest version, you can always go back to a previous version (see [releases](https://github.com/maxritter/pilot-shell/releases)):
 
 ```bash
-export VERSION=8.3.0
+export VERSION=8.4.0
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
 ```
 </details>
@@ -129,7 +129,7 @@ Pilot Shell works inside Dev Containers. Copy the [`.devcontainer`](https://gith
 <h2 id="features">How It Works</h2>
 
 ```bash
-export VERSION=8.3.0
+export VERSION=8.4.0
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
 ```
 

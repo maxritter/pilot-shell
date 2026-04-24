@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.4.0] - 2026-04-24
+
+### Features
+
+- Add /benchmark skill and evaluation framework
+
 ## [8.3.0] - 2026-04-23
 
 ### Features
