@@ -33,7 +33,7 @@ cd your-project && pilot
 # Create a reusable skill
 > /create-skill
 
-# Generate a PRD with optional research
+# Brainstorm a vague idea into a PRD (with optional research)
 > /prd "Add real-time notifications for team updates"
 
 # Plan and build a feature

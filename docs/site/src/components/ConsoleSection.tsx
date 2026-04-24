@@ -30,8 +30,8 @@ const consoleSlides = [
   {
     label: "Requirements",
     src: "/console/requirements.png",
-    alt: "Requirements view — PRD generation, research tiers, and requirement tracking",
-    desc: "Generate and manage Product Requirements Documents. Tiered deep research, requirement tracking, and share with your team.",
+    alt: "Requirements view — PRD brainstorming, research tiers, and requirement tracking",
+    desc: "Brainstorm vague ideas into Product Requirements Documents through back-and-forth conversation. Tiered deep research, requirement tracking, and team sharing.",
   },
   {
     label: "Specifications",

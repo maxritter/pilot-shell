@@ -2,6 +2,8 @@
 
 ## Step 4: Propose Approaches
 
+**Not the same as Step 2b (Ideate).** Ideate is divergent — pitching distinct *directions* when the problem itself is vague. Propose is convergent — once the problem is clear, pitching 2-3 concrete *implementation approaches* for that known problem. If you already did Ideate and the user picked a direction, Step 4 narrows that direction into approaches. If the input was concrete and you skipped Ideate, Step 4 is the first place options get presented.
+
 After understanding the problem:
 
 1. **Propose 2-3 approaches** with clear trade-offs

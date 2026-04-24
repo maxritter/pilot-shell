@@ -234,6 +234,8 @@ __marimo__/
 scheduled_tasks.lock
 CLAUDE.md
 AGENTS.md
+benchmarks/**
+skill-creator
 spec-annotate
 changes-header
 apm.yml
@@ -242,6 +244,8 @@ apm.yml
 .agents
 .codegraph
 .vercel
+.codex
+.mypy_cache
 .mcp.json
 demo
 skills-lock.json

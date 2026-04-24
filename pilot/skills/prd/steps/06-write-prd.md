@@ -75,10 +75,26 @@ If the command returns a non-empty email, include `Author: <email>` in the heade
 **Category selection:** During the conversation (Step 3 or Step 5), use `AskUserQuestion` to select the PRD category from the fixed set: Feature, Infrastructure, UX, API, Performance, Security, Documentation, Integration.
 
 After writing:
-1. **Self-review** — scan for placeholders, ambiguity, contradictions
-2. **Set Status to Final** when user confirms
-3. **Present to user** — summarize what the PRD covers
-4. **Use `AskUserQuestion`** to confirm:
+
+1. **Self-review (4-point scan)** — read the file with fresh eyes and fix issues inline:
+   - **Placeholders:** any `TBD`, `TODO`, bracketed `[...]` left from the template, or vague "etc." lists?
+   - **Internal consistency:** do scope, user flows, and decisions agree with each other? Does anything contradict?
+   - **Scope:** focused enough for one `/spec` plan, or did decomposition slip? If it grew during writing, split or trim.
+   - **Ambiguity:** could any requirement be read two different ways? Pick one and make it explicit.
+
+   **Calibration — only flag what would actually cause problems during `/spec`.** A missing section, a contradiction, or a requirement so ambiguous it could be built two different ways → fix it. Minor wording improvements, stylistic preferences, sections that are less detailed than others, or "this paragraph could be tighter" → leave it alone. The goal is a PRD that produces a correct plan, not a perfect document.
+
+2. **Tell the user the file is ready and ask them to read it.** Do NOT jump straight to a confirmation form — give them a chance to actually open the file first:
+
+   > "PRD written to `docs/prd/YYYY-MM-DD-<slug>.md`. Please open it in your editor and read it through, then let me know if anything needs to change before we hand off to `/spec`."
+
+   Wait for the user's response. They may reply with edits in chat ("change scope item 3 to ...") or confirm it's good.
+
+3. **Apply any requested changes** with `Edit` directly on the file — don't rewrite the whole document. Then re-run the 4-point scan and ask the user to re-read **only the changed sections**.
+
+4. **Set Status to Final** once the user approves.
+
+5. **Confirm next step with `AskUserQuestion`:**
    - "Looks good — proceed to handoff" — PRD is ready
-   - "I want to adjust something" — let me specify changes
+   - "I want to adjust something else" — let me specify changes
    - "Start over on a section" — a section needs rethinking

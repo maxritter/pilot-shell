@@ -44,7 +44,7 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 **Pilot Shell is different.** Every component solves a real problem:
 
 - **`/spec`** — plans, implements, and verifies features end-to-end with TDD
-- **`/prd`** — turns vague ideas into clear requirements with optional deep research
+- **`/prd`** — brainstorm vague ideas into clear requirements through back-and-forth conversation, with optional deep research
 - **Quality hooks** — enforce linting, formatting, type checking, and tests as gates (not suggestions)
 - **Context engineering** — preserves decisions and knowledge across sessions
 - **Code intelligence** — semantic search (Probe) + code knowledge graph (CodeGraph)
@@ -133,11 +133,11 @@ export VERSION=8.3.0
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
 ```
 
-Just chat — no plan, no approval gate. Quality hooks and TDD enforcement still apply. Best for small tasks and exploration. For anything that needs a plan, use `/spec` — not Claude Code's built-in plan mode.
+Just chat — no plan, no approval gate. [Quick mode](https://pilot-shell.com/docs/workflows/quick-mode) is the default: quality hooks and TDD enforcement still apply, best for small tasks and exploration. For anything that needs a plan, use `/spec` — not Claude Code's built-in plan mode.
 
 ### /spec — Spec-Driven Development
 
-**`/spec` replaces Claude Code's built-in plan mode** (Shift+Tab). It provides a complete planning workflow with TDD, verification, and code review — use `/spec` instead of plan mode for all planned work.
+**[`/spec`](https://pilot-shell.com/docs/workflows/spec) replaces Claude Code's built-in plan mode** (Shift+Tab). It provides a complete planning workflow with TDD, verification, and code review — use `/spec` instead of plan mode for all planned work.
 
 Features, bug fixes, refactoring — describe it and `/spec` handles the rest. Auto-detects whether it's a feature or a bugfix and adapts the workflow. Specs are saved to `docs/plans/` and visible in the Console's **Specification** tab.
 
@@ -201,7 +201,7 @@ Pilot shell ships with its own advanced status line with real-time session metri
 | **Lines changed** | `+added -removed` in session (hidden when `rate_limits` is available)           |
 | **Git**           | Branch with staged (`+N`) / unstaged (`~N`) counts (hidden when `rate_limits` is available) |
 | **5h / 7d usage** | Rate-limit percentage with pacing arrow and reset countdown (`5h: 42% ⇡ 2h`). ⇡ red = over pace, ⇣ green = under pace. Read cross-platform from Claude Code's `rate_limits` stdin field (Pro/Max subscriptions on Claude Code 2.1.80+). Replaces lines+git when present. |
-| **Cost**          | Session cost in USD. Green < $1, Yellow $1–5, Red $5+                           |
+| **Cost**          | Session cost in USD. Green < $1, Yellow $1–5, Red $5+. Hidden when `rate_limits` is available — on Pro/Max the subscription covers API usage, so the dollar figure is noise. |
 | **Savings**       | Token savings percentage from RTK proxy (`Savings: N%`). Always shown when RTK has data. |
 
 **Line 2 — Mode:**
@@ -417,9 +417,9 @@ Pilot Bot defines scheduled jobs, automates recurring tasks, and monitor system 
 
 </details>
 
-### /prd — Generate Product Requirements Documents
+### /prd — Brainstorm Ideas Into Product Requirements Documents
 
-**Use `/prd` before `/spec` when requirements are unclear.** It's a strategic thought partner that turns vague ideas into concrete Product Requirements Documents (PRDs) through one-on-one conversation — with optional research, challenging assumptions, exploring trade-offs, and defining scope before you commit to building.
+[`/prd`](https://pilot-shell.com/docs/workflows/prd) is the brainstorming surface for ideas that aren't specs yet — vague problem statements and fuzzy shapes. It pitches directions, pressure-tests them with you, and converges on a PRD you can hand to `/spec`. PRDs are saved to `docs/prd/` and visible in the Console's **Requirements** tab.
 
 ```bash
 pilot
@@ -427,11 +427,31 @@ pilot
 > /prd "We need better onboarding — users drop off after signup"
 ```
 
-Choose a research tier at the start: **Quick** (skip), **Standard** (web search for competitors, prior art, best practices), or **Deep** (parallel research agents for comprehensive findings). The conversation produces a PRD with problem statement, core user flows, scope boundaries, and technical context — then offers to hand off directly to `/spec` for implementation. PRDs are saved to `docs/prd/` and visible in the Console's **Requirements** tab.
+<details>
+<summary><b>What /prd Does</b></summary>
+
+**When to use `/prd` over `/spec`:** `/prd` is for **what** and **why**; `/spec` is for **how**. Reach for `/prd` first when you only have a problem statement, want to riff across multiple directions, or need scope boundaries defined before someone starts building.
+
+**Flow:** two modes, picked automatically from how fuzzy the idea is:
+
+1. **Ideate** — free-form prose, Claude pitches 3-5 directions, you react (only runs when the idea is vague)
+2. **Clarify → Converge → Write** — structured multiple-choice questions once the shape is known, then the PRD is written
+
+**Research tiers** (picked at the start):
+
+| Tier | Behavior |
+|------|----------|
+| **Quick** | Skip research |
+| **Standard** | Web search for competitors, prior art, best practices |
+| **Deep** | Parallel research agents for comprehensive findings |
+
+The final PRD covers problem statement, core user flows, scope boundaries, and technical context — then offers to hand off directly to `/spec` for implementation.
+
+</details>
 
 ### /setup-rules — Generate Modular Rules
 
-Explores your codebase, discovers conventions, generates modular rules and documents MCP servers. Run once initially, then anytime your project changes significantly.
+[`/setup-rules`](https://pilot-shell.com/docs/workflows/setup-rules) explores your codebase, discovers conventions, generates modular rules and documents MCP servers. Run once initially, then anytime your project changes significantly.
 
 ```bash
 pilot
@@ -461,7 +481,7 @@ pilot
 
 ### /create-skill — Reusable Skill Creator
 
-Builds a reusable skill from any topic — explores the codebase and creates it interactively with you. If no topic is given, evaluates the current session for extractable knowledge.
+[`/create-skill`](https://pilot-shell.com/docs/workflows/create-skill) builds a reusable skill from any topic — explores the codebase and creates it interactively with you. If no topic is given, evaluates the current session for extractable knowledge.
 
 ```bash
 pilot
@@ -489,6 +509,43 @@ pilot
 | **MCP Enhancement**           | Workflow guidance on top of MCP tool access, multi-MCP coordination        |
 
 **Skill structure:** Each skill is a folder with a `SKILL.md` file (case-sensitive), optional `scripts/`, `references/`, and `assets/` directories. The YAML frontmatter description determines when Claude loads the skill — it must include what the skill does, when to use it, and specific trigger phrases. Progressive disclosure keeps context lean: frontmatter loads always (~100 tokens), SKILL.md loads on activation, linked files load on demand.
+
+</details>
+
+### /benchmark — Measure Rule & Skill Impact
+
+[`/benchmark`](https://pilot-shell.com/docs/workflows/benchmark) runs your prompts with and without the target, grades outputs against falsifiable assertions, and shows the delta inline. Finishes with a concrete improvement plan — classified assertions and proposed edits — so you know what to change next.
+
+```bash
+pilot
+> /benchmark pilot/skills/create-skill
+> /benchmark pilot/rules/testing.md
+```
+
+<details>
+<summary><b>What /benchmark Does</b></summary>
+
+Six phases turn a rule or skill into a before/after comparison with an actionable plan:
+
+1. **Intake** — pick up an existing `benchmarks/<target>/evals.json` or author one
+2. **Target discovery** — classify as `skill` or `rules`
+3. **Author evals** — draft 3 falsifiable assertions; falsifiability gate ensures baseline actually fails
+4. **Execute** — run both configs in isolated sandboxes; grader subagent scores every assertion
+5. **Present findings** — headline delta + per-eval verdict matrix with evidence quotes
+6. **Improvement plan** — classify each assertion and propose concrete edits:
+
+   | Quadrant | `with` / `without` | Fix |
+   |---|---|---|
+   | **Signal** | ✓ / ✗ | Keep — rule is working |
+   | **Baseline** | ✓ / ✓ | Tighten the eval |
+   | **Unreachable** | ✗ / ✗ | Sharpen the target |
+   | **Regression** | ✗ / ✓ | Fix the target |
+
+   You pick: apply target edits, iterate on evals, both, or stop and save the plan.
+
+**Isolation:** each run gets its own sandbox directory; a globally-installed copy of the target in `~/.claude/` is auto-hidden for the duration and restored afterward.
+
+**Key flags:** `--runs N` (default 1), `--configs with,without`, `--workers N`, `--model`, `--no-isolate-global`.
 
 </details>
 
@@ -631,7 +688,7 @@ Yes. Pilot Shell installs once globally and works across all your projects — y
 
 Pilot Shell sets Claude Code to `bypassPermissions` mode by default so the `/spec` workflow can run autonomously — planning, implementing, and verifying without pausing for permission prompts at every tool call. This is what enables the end-to-end spec-driven development experience.
 
-**In Quick Mode (regular chat), you have full control.** Press `Shift+Tab` at any time to cycle through Claude Code's permission modes:
+**In Quick Mode (regular chat), you have full control.** Press `Shift+Tab` at any time to cycle through [Claude Code's permission modes](https://pilot-shell.com/docs/getting-started/permission-modes):
 
 | Mode             | Behavior                                              |
 | ---------------- | ----------------------------------------------------- |

@@ -4,7 +4,7 @@
 
 **After understanding the idea, ask the user which research tier they want.** Use `AskUserQuestion` with these options:
 
-- **Quick (Recommended for simple ideas)** — "Skip research, go straight to brainstorming"
+- **Quick (Recommended for simple ideas)** — "Skip research, go straight to brainstorming or clarification"
 - **Standard** — "Quick web research: competitors, prior art, best practices (5-10 searches)"
 - **Deep** — "Thorough parallel research: multiple angles, comprehensive findings (uses sub-agents, higher token cost)"
 
@@ -27,7 +27,7 @@ Skip this phase entirely. Proceed to Step 3.
    - Sources with links
    - Trade-offs and patterns discovered
    - Gaps or areas needing more exploration
-6. **Present summary to user** before proceeding to brainstorming
+6. **Present summary to user** before proceeding to ideation (Step 2b) or clarification (Step 3)
 
 ### Deep Tier
 

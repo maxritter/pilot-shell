@@ -90,7 +90,7 @@ const InstallSection = () => {
                   <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
                     /prd
                   </code>{" "}
-                  requirements{" → "}
+                  brainstorm{" → "}
                   <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
                     /spec
                   </code>{" "}

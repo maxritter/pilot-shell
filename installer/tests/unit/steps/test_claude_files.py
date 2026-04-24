@@ -994,6 +994,22 @@ class TestSkillsDeployment:
         assert _categorize_file("pilot/skills/setup-rules/SKILL.md") == "skills"
         assert _categorize_file("pilot/skills/mcp-servers/skill.md") == "skills"
 
+    def test_benchmark_skill_nested_files_categorized_as_skills(self):
+        """The benchmark skill ships scripts/ and agents/ subdirs.
+
+        Regression guard: ensure the categorizer treats these as skill content, not
+        as project-level Python source or rules.
+        """
+        from installer.steps.claude_files import _categorize_file
+
+        assert _categorize_file("pilot/skills/benchmark/SKILL.md") == "skills"
+        assert _categorize_file("pilot/skills/benchmark/manifest.json") == "skills"
+        assert _categorize_file("pilot/skills/benchmark/orchestrator.md") == "skills"
+        assert _categorize_file("pilot/skills/benchmark/steps/01-intake.md") == "skills"
+        assert _categorize_file("pilot/skills/benchmark/scripts/runner.py") == "skills"
+        assert _categorize_file("pilot/skills/benchmark/scripts/utils.py") == "skills"
+        assert _categorize_file("pilot/skills/benchmark/agents/grader.md") == "skills"
+
     def test_skills_deployed_to_root_skills_dir(self):
         """Skills are installed to ~/.claude/skills/<name>/ (root level, not plugin)."""
         from installer.context import InstallContext

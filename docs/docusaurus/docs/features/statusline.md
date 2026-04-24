@@ -16,7 +16,7 @@ The status line has three lines:
 
 **Subscription users** (Pro / Max — Claude Code emits `rate_limits` on stdin):
 ```
-Line 1: Opus 4.7 [1M] | █████░▓ 60% | 5h: 42% ⇡ 2h | 7d: 18% ⇣ 4d | $1.45 | Savings: 65%
+Line 1: Opus 4.7 [1M] | █████░▓ 60% | 5h: 42% ⇡ 2h | 7d: 18% ⇣ 4d | Savings: 65%
 Line 2: Spec: my-feature feature [implement] ████░░░░ 3/6
 Line 3: Pilot 8.2.1 (Solo) · CC 2.1.80 (Max) · sessions 2 · memories 12
 ```
@@ -28,7 +28,7 @@ Line 2: Spec: my-feature feature [implement] ████░░░░ 3/6
 Line 3: Pilot 8.2.1 (Solo) · CC 2.1.80 · sessions 2 · memories 12
 ```
 
-The layout is symmetric: slots 3 and 4 swap between `5h | 7d` and `lines | git` based on what Claude Code provides on stdin. Cost and Savings always anchor the right side.
+The layout is symmetric: slots 3 and 4 swap between `5h | 7d` and `lines | git` based on what Claude Code provides on stdin. Cost is shown only for API / Enterprise users — on Pro / Max the subscription covers usage, so a dollar figure is noise and is suppressed. Savings always anchors the right side.
 
 ### Line 1 — Session Metrics
 
@@ -40,7 +40,7 @@ Widgets separated by `|`, from left to right:
 | **Context** | Effective context usage with progress bar and buffer indicator (`▓`). The session percentage alone is sufficient — no raw token count is shown. | Green < 80%, Yellow 80–95%, Red 95%+ |
 | **Lines changed** | Session lines added/removed (`+156 -23`). Hidden when `rate_limits` is present. | Green for added, Red for removed |
 | **Git** | Branch name with staged (`+N`) and unstaged (`~N`) counts. Shows worktree branch with `wt` suffix when in a spec worktree. Hidden when `rate_limits` is present. | Magenta branch, Green staged, Yellow unstaged |
-| **Cost** | Session cost in USD | Green < $1, Yellow $1–5, Red $5+ |
+| **Cost** | Session cost in USD. Hidden when `rate_limits` is present — on Pro / Max the subscription covers API usage, so the dollar figure is noise. | Green < $1, Yellow $1–5, Red $5+ |
 | **5h usage** | 5-hour usage percentage with pacing arrow and reset countdown (`5h: 42% ⇡ 2h`). See pacing rules below. Only shown when `rate_limits` is available. | Green < 70%, Yellow 70–90%, Red 90%+ |
 | **7d usage** | 7-day usage percentage with pacing arrow and reset countdown (`7d: 18% ⇣ 4d`). Only shown when `rate_limits` is available. | Same as 5h |
 | **Savings** | Token savings percentage from RTK proxy (`Savings: N%`). Always shown when RTK has data, regardless of whether usage info is present. | Cyan |

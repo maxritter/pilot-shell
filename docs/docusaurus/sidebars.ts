@@ -22,6 +22,7 @@ const sidebars: SidebarsConfig = {
         "workflows/create-skill",
         "workflows/prd",
         "workflows/spec",
+        "workflows/benchmark",
         "workflows/quick-mode",
       ],
     },

@@ -17,6 +17,8 @@ Coverage areas (ask only where genuinely unclear):
 
 **Question format:** Every question must have 2-4 concrete options with trade-offs. Use `multiSelect: true` when choices aren't mutually exclusive. Include an "Other" option when the user might have a direction you haven't considered.
 
+**Per-question mode flexibility — slip into prose when needed.** Default is structured `AskUserQuestion`. But if the user's last answer opens a new unknown that doesn't have 2-4 obvious options yet — or if their answer is a question back to you ("what would you do here?") — drop into 1-2 prose turns to explore it (Ideate-style), then return to structured questions for the next decision point. The phase boundary between Ideate and Clarify is a default, not a wall. Don't force four options onto a question that genuinely needs open-ended exploration; equally, don't drift into endless prose when the next decision is a clean A/B/C choice.
+
 **Principles:**
 - Challenge assumptions — "You mentioned X. Have you considered Y?"
 - Surface trade-offs — "That's possible, but it comes at the cost of Z"

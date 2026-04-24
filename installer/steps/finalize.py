@@ -112,7 +112,7 @@ class FinalizeStep(BaseStep):
         workflows: list[tuple[str, str]] = [
             ("/setup-rules", "Create modular and concise rules for your project codebase"),
             ("/create-skill", "Create well-structured reusable skills for your workflows"),
-            ("/prd", "Generate product requirements with optional research before /spec"),
+            ("/prd", "Brainstorm ideas into PRDs with optional research before /spec"),
             ("/spec", "Plan, implement & verify features and bug fixes (replaces CC plan mode)"),
         ]
 

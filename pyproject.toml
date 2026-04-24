@@ -37,7 +37,12 @@ pythonpath = ["installer", "launcher", "."]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
-testpaths = ["launcher/tests", "installer/tests"]
+testpaths = [
+    "launcher/tests",
+    "installer/tests",
+    "pilot/hooks/tests",
+    "pilot/skills/benchmark/tests",
+]
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::pytest.PytestUnraisableExceptionWarning",
@@ -114,7 +119,12 @@ min_confidence = 80
 paths = ["installer"]
 
 [tool.basedpyright]
-include = ["installer", "launcher"]
+include = [
+    "installer",
+    "launcher",
+    "pilot/skills/benchmark/scripts",
+    "pilot/skills/benchmark/tests",
+]
 exclude = [
     "**/node_modules",
     "**/__pycache__",
@@ -124,7 +134,7 @@ exclude = [
     "**/build/**",
     "misc/",
 ]
-extraPaths = ["pilot/hooks"]
+extraPaths = ["pilot/hooks", "pilot/skills/benchmark"]
 venvPath = "."
 venv = ".venv"
 pythonVersion = "3.12"

@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "orchestrator": "orchestrator.md",
+  "steps": [
+    {
+      "id": "step-1-intake",
+      "file": "steps/01-intake.md"
+    },
+    {
+      "id": "step-2-target-discovery",
+      "file": "steps/02-target-discovery.md"
+    },
+    {
+      "id": "step-3-author-evals",
+      "file": "steps/03-author-evals.md"
+    },
+    {
+      "id": "step-4-execute",
+      "file": "steps/04-execute.md"
+    },
+    {
+      "id": "step-5-review-iterate",
+      "file": "steps/05-review-iterate.md"
+    }
+  ]
+}

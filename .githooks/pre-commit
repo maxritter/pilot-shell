@@ -32,6 +32,7 @@ fi
 # --- 1. Python unit tests ---
 LAUNCHER_CHANGED=$(git diff --cached --name-only -- 'launcher/' 'pilot/hooks/' | head -1)
 INSTALLER_CHANGED=$(git diff --cached --name-only -- 'installer/' | head -1)
+BENCHMARK_CHANGED=$(git diff --cached --name-only -- 'pilot/skills/benchmark/' | head -1)
 
 if [ -n "$LAUNCHER_CHANGED" ]; then
   echo "[pre-commit] Python source changed — running unit tests..."
@@ -43,6 +44,12 @@ if [ -n "$INSTALLER_CHANGED" ]; then
   echo "[pre-commit] Installer changed — running installer unit tests..."
   uv run pytest installer/tests/unit/ -q --tb=short 2>&1 | tail -20
   echo "[pre-commit] Installer unit tests passed."
+fi
+
+if [ -n "$BENCHMARK_CHANGED" ]; then
+  echo "[pre-commit] Benchmark skill changed — running benchmark unit tests..."
+  uv run pytest pilot/skills/benchmark/tests/ -q --tb=short 2>&1 | tail -20
+  echo "[pre-commit] Benchmark unit tests passed."
 fi
 
 # --- 2. Console unit tests ---

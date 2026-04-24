@@ -7,6 +7,7 @@ import {
   MessageSquare,
   Brain,
   Lightbulb,
+  Gauge,
 } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
 
@@ -61,13 +62,13 @@ const WorkflowSteps = () => {
                   </code>
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Define what to build
+                  Brainstorm what to build
                 </p>
               </div>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Strategic conversation with optional research. Challenges
-              assumptions, explores trade-offs, and produces a PRD — then
+              Back-and-forth brainstorming for vague ideas: Claude pitches
+              directions, pressure-tests them, and converges on a PRD — then
               hands off to /spec.
             </p>
           </div>
@@ -197,15 +198,15 @@ const WorkflowSteps = () => {
           <h3 className="text-lg font-semibold text-foreground mb-5 text-center">
             All Commands
           </h3>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="rounded-xl p-4 border border-border/40 bg-background/30">
               <div className="flex items-center gap-2 mb-2">
                 <Lightbulb className="h-4 w-4 text-primary" />
                 <code className="text-sm font-medium text-primary">/prd</code>
               </div>
               <p className="text-xs text-muted-foreground">
-                Generate PRDs with optional research — strategic conversation,
-                scope boundaries, then hand off to /spec.
+                Brainstorm vague ideas into PRDs — back-and-forth conversation,
+                optional deep research, then hand off to /spec.
               </p>
             </div>
             <div className="rounded-xl p-4 border border-border/40 bg-background/30">
@@ -236,6 +237,16 @@ const WorkflowSteps = () => {
               <p className="text-xs text-muted-foreground">
                 Build reusable skills from any topic — explores the codebase
                 and creates well-structured skills interactively.
+              </p>
+            </div>
+            <div className="rounded-xl p-4 border border-border/40 bg-background/30">
+              <div className="flex items-center gap-2 mb-2">
+                <Gauge className="h-4 w-4 text-primary" />
+                <code className="text-sm font-medium text-primary">/benchmark</code>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Measure rule and skill impact — runs with/without
+                comparisons, grades outputs, proposes concrete edits.
               </p>
             </div>
           </div>

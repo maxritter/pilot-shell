@@ -11,6 +11,10 @@
       "file": "steps/02-research.md"
     },
     {
+      "id": "step-2b-ideate",
+      "file": "steps/02b-ideate.md"
+    },
+    {
       "id": "step-3-clarify",
       "file": "steps/03-clarify.md"
     },

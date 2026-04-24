@@ -10,7 +10,7 @@ Plan, implement, and verify complex features with full automation using Spec-Dri
 
 **Replaces Claude Code's built-in plan mode (Shift+Tab).** Best for complex features, refactoring tasks, or any work where you want to review a plan before implementation begins. The structured workflow prevents scope creep and ensures every task is tested and verified before being marked complete.
 
-> **Tip:** For unclear requirements, use [`/prd`](/docs/workflows/prd) first to research and produce a PRD, then hand off to `/spec`.
+> **Tip:** For vague ideas or unclear requirements, use [`/prd`](/docs/workflows/prd) first to brainstorm back-and-forth and produce a PRD, then hand off to `/spec`.
 
 ```bash
 $ pilot
