@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [8.4.1] - 2026-04-27
+
+### Bug Fixes
+
+- Native usage analytics, ccusage scrub, hook + rules + site updates
+
 ## [8.4.0] - 2026-04-24
 
 ### Features
