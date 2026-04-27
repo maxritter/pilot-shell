@@ -7,15 +7,15 @@
   "cleanUrls": true,
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [{ "type": "host", "value": "claude-pilot.com" }],
-      "destination": "https://pilot-shell.com/:path*",
+      "destination": "https://pilot-shell.com/$1",
       "permanent": true
     },
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [{ "type": "host", "value": "www.claude-pilot.com" }],
-      "destination": "https://pilot-shell.com/:path*",
+      "destination": "https://pilot-shell.com/$1",
       "permanent": true
     }
   ],
