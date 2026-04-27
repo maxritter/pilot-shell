@@ -4,17 +4,19 @@
 
 Also look for a legacy unscoped `project.md` — if found, migrate its content into `{slug}-project.md` and delete the old file.
 
-### Step 7.1: Handle Existing CLAUDE.md — CONDITIONAL
+### Step 7.1: Handle Existing CLAUDE.md / AGENTS.md — CONDITIONAL
 
-**Only if Step 2 found a CLAUDE.md file.**
+**Only if Step 2 found a CLAUDE.md or AGENTS.md file.** Both are treated the same way as migration sources — AGENTS.md is the cross-framework convention used by Codex/Cursor/etc. and is common in repos migrating to Pilot.
 
-If both CLAUDE.md AND `{slug}-project.md` exist: merge unique content from CLAUDE.md into the project rule. If fully redundant, suggest removing CLAUDE.md.
+If a source file (CLAUDE.md or AGENTS.md) AND `{slug}-project.md` both exist: merge unique content from the source into the project rule. If fully redundant, suggest removing the source file (CLAUDE.md only — **never delete AGENTS.md**, it stays as the cross-framework anchor and is re-synced in Step 11).
 
-If CLAUDE.md exists but NO `{slug}-project.md`: AskUserQuestion:
+If a source file exists but NO `{slug}-project.md`: AskUserQuestion (substitute the actual filename):
 
-- **"Migrate to modular rules (Recommended)"** — Split into `{slug}-project.md` + topic-specific files. Read CLAUDE.md, identify logical sections, create rule files, confirm split before writing. Then ask: "Remove CLAUDE.md?" | "Rename to .bak" | "Keep both".
-- **"Keep CLAUDE.md as-is"** — Skip project rule creation.
-- **"Create alongside"** — Keep both. Project rule gets tech stack/structure, CLAUDE.md keeps custom instructions.
+- **"Migrate to modular rules (Recommended)"** — Split into `{slug}-project.md` + topic-specific files. Read the source, identify logical sections, create rule files, confirm split before writing. Then ask: for CLAUDE.md, "Remove CLAUDE.md?" | "Rename to .bak" | "Keep both". For AGENTS.md, **always keep it** — Step 11 will offer to sync the rules back into it.
+- **"Keep [source] as-is"** — Skip project rule creation.
+- **"Create alongside"** — Keep both. Project rule gets tech stack/structure, source keeps custom instructions.
+
+If both CLAUDE.md and AGENTS.md exist, process CLAUDE.md first, then AGENTS.md — deduplicate any content that already landed in rules from the first pass.
 
 ### Step 7.2: Create or Update {slug}-project.md
 

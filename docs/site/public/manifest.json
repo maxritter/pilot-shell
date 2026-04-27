@@ -1,7 +1,7 @@
 {
   "name": "Pilot Shell",
   "short_name": "Pilot",
-  "description": "Make Claude Code production-ready.",
+  "description": "The Claude Code engineering platform.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

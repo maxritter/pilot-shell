@@ -51,6 +51,7 @@ from scripts.utils import (
     TargetConfig,
     load_target_config,
     resolve_executor_model,
+    strip_conditional_loading_frontmatter,
 )
 
 
@@ -211,11 +212,90 @@ def _validate_target_path(source_path: Path) -> None:
         )
 
 
+_SKILL_FRONTMATTER_FILES: tuple[str, ...] = ("SKILL.md", "orchestrator.md")
+
+
+def _copy_md_stripping_conditional(src: Path, dest: Path) -> None:
+    """Copy a markdown file, removing path/paths frontmatter so the rule loads
+    unconditionally during the benchmark. Falls back to a plain copy when the
+    source has no conditional fields."""
+    try:
+        content = src.read_text()
+    except OSError:
+        shutil.copy2(src, dest)
+        return
+    stripped, removed = strip_conditional_loading_frontmatter(content)
+    if removed:
+        dest.write_text(stripped)
+        try:
+            shutil.copystat(src, dest)
+        except OSError:
+            pass
+    else:
+        shutil.copy2(src, dest)
+
+
+def _strip_skill_frontmatter_in_place(skill_dir: Path) -> None:
+    """After copytree, strip conditional-loading fields from SKILL.md /
+    orchestrator.md so the skill activates for every prompt during the run."""
+    for name in _SKILL_FRONTMATTER_FILES:
+        path = skill_dir / name
+        if not path.exists():
+            continue
+        try:
+            content = path.read_text()
+        except OSError:
+            continue
+        stripped, removed = strip_conditional_loading_frontmatter(content)
+        if removed:
+            path.write_text(stripped)
+
+
+def detect_conditional_loading(target: TargetConfig) -> list[tuple[Path, list[str]]]:
+    """Return ``[(file, [fields])]`` for target files that will be stripped.
+
+    Used solely to print a one-line announcement before the worker pool starts;
+    the actual stripping happens inside ``prepare_config_dir`` per worker.
+    """
+    target_type = target.get("type", "skill")
+    raw_path = target.get("path")
+    if not raw_path:
+        return []
+    source_path = Path(raw_path).expanduser().resolve()
+    if not source_path.exists():
+        return []
+
+    candidates: list[Path] = []
+    if target_type == "rules":
+        candidates = [source_path] if source_path.is_file() else list(source_path.rglob("*.md"))
+    elif target_type == "skill":
+        for name in _SKILL_FRONTMATTER_FILES:
+            candidate = source_path / name
+            if candidate.exists():
+                candidates.append(candidate)
+
+    findings: list[tuple[Path, list[str]]] = []
+    for path in candidates:
+        try:
+            content = path.read_text()
+        except OSError:
+            continue
+        _, removed = strip_conditional_loading_frontmatter(content)
+        if removed:
+            findings.append((path, removed))
+    return findings
+
+
 def prepare_config_dir(target: TargetConfig, config_kind: str, tmp_root: Path) -> Path:
     """Create an ephemeral project dir with `.claude/` populated for the config.
 
     `config_kind` is "with" or "without".
     Returns the path to the project directory the subprocess will use as cwd.
+
+    For the ``with`` config, ``path:``/``paths:`` frontmatter fields are stripped
+    from the installed copy so conditional-loading rules and skills activate
+    unconditionally during the benchmark (otherwise the rule may be dormant in
+    both configs and the delta collapses to zero).
     """
     dest = tmp_root / config_kind
     dest.mkdir(parents=True, exist_ok=True)
@@ -238,14 +318,15 @@ def prepare_config_dir(target: TargetConfig, config_kind: str, tmp_root: Path) -
         skill_name = target.get("name") or source_path.name
         skills_dir = claude_dir / "skills" / skill_name
         shutil.copytree(source_path, skills_dir)
+        _strip_skill_frontmatter_in_place(skills_dir)
     elif target_type == "rules":
         rules_dir = claude_dir / "rules"
         rules_dir.mkdir(exist_ok=True)
         if source_path.is_file():
-            shutil.copy2(source_path, rules_dir / source_path.name)
+            _copy_md_stripping_conditional(source_path, rules_dir / source_path.name)
         else:
             for md in source_path.rglob("*.md"):
-                shutil.copy2(md, rules_dir / md.name)
+                _copy_md_stripping_conditional(md, rules_dir / md.name)
     else:
         raise ValueError(f"unsupported target type: {target_type}")
 
@@ -534,6 +615,25 @@ def _warn_prompt_contamination(evals: list[EvalSpec]) -> None:
             print(f"  ⚠  eval-{eval_id} ({eval_name}): {warning}", file=sys.stderr)
 
 
+def _announce_conditional_loading(target: TargetConfig) -> None:
+    """Surface which target files will have path/paths frontmatter stripped.
+
+    Stripping happens silently inside prepare_config_dir on each worker; this
+    function prints a single up-front summary so the user knows the run is
+    measuring rule content, not rule activation.
+    """
+    findings = detect_conditional_loading(target)
+    if not findings:
+        return
+    print(
+        f"  🔓 stripping conditional-loading frontmatter from {len(findings)} file(s) "
+        "in the `with` copy so the target loads for every prompt:",
+        file=sys.stderr,
+    )
+    for path, fields in findings:
+        print(f"       {path.name}: {', '.join(fields)}", file=sys.stderr)
+
+
 def run_benchmark(
     config_path: Path,
     output_dir: Path,
@@ -561,6 +661,7 @@ def run_benchmark(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     _warn_prompt_contamination(evals)
+    _announce_conditional_loading(target)
     to_hide = _announce_contamination(target, isolate_global)
 
     plan = PlanHeader(

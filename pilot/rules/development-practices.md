@@ -51,6 +51,8 @@ Grep and Glob are last-resort tools for exact text/regex patterns only. For ever
 
 **Self-check.** Before submitting: "Would a senior engineer say this is overcomplicated?" If 200 lines could be 50, rewrite. Complexity is earned by actual requirements, not anticipated ones.
 
+**Never invent values.** File paths, env var names and values, API keys and secrets, IDs (UUIDs, FK ids, third-party object ids), URLs, ports, hostnames, version numbers, third-party service names, function/class/method names not verified to exist, and library API signatures must be authoritatively confirmed before use — read the code, run the command, or ask. Pattern-matching a plausible-looking value is the most dangerous failure mode for an autonomous agent (2026 Agentic Coding Trends Report ranks action-hallucination as the top-rated cause of agent-introduced incidents). If unsure, **STOP and ask**. The cost of asking is one round-trip; the cost of acting on a hallucinated value can be catastrophic. See *Evidence Before Claims* in `verification.md` for the post-action verification protocol.
+
 ### Project-Specific Policies
 
 **File Size:** Aim for production files under 800 lines. Over 1000 lines is a signal to consider splitting — but only when it's the focus of the current task, not as a side-refactor. Test files exempt.

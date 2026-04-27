@@ -110,3 +110,16 @@ Mock at module level (where imported, not where defined). Test > 1s = likely unm
 - [ ] **Full test suite passes (0 failures)** — not just your files
 - [ ] Coverage ≥ 80% verified
 - [ ] Actual program executed and verified
+
+### Assertion-Correctness Warning
+
+Industry research (HumanEval evaluation across four LLMs) found over **62% of LLM-generated test assertions were incorrect**. This is the single most likely failure mode in LLM-driven TDD: the test passes, but it's testing the wrong thing. A test asserted on the wrong field is worse than no test — it provides false confidence.
+
+Before committing any assertion, run these four mental checks:
+
+1. **One-character bug check** — would a one-character bug in the implementation still let this assertion pass? `assert result` (truthy) and `assert result == 42` (exact) catch very different things. If a tiny mistake survives the check, the assertion is too weak.
+2. **Right field check** — `response.status` vs `response.body.error` is a common confusion. Confirm the assertion targets the field that actually carries the meaning, not an adjacent field that happens to be set.
+3. **Computed value check** — for any expected value derived by hand, verify it via a second path (different code, manual calculation, reference doc). Don't trust your own arithmetic.
+4. **Spec-named behavior check** — assert on the behavior the spec/contract names, not the behavior you imagined. "User can perform X within rate limit" is named; "calls `_internal_fn` with status `'QUEUED'`" is mechanics.
+
+If you can't write a precise assertion because the spec is ambiguous, **STOP and ask** — don't pattern-match a plausible expected value. See also the existing RED step (above) for *why* a test must fail before you write code that makes it pass.

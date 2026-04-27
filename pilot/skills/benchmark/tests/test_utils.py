@@ -16,6 +16,7 @@ from scripts.utils import (
     parse_skill_frontmatter_field,
     parse_skill_md,
     resolve_executor_model,
+    strip_conditional_loading_frontmatter,
 )
 
 # ----------------------------------------------------------------------------
@@ -210,3 +211,110 @@ class TestGraderResultDataclasses:
         bad = GraderFailure(reason="grader-no-output")
         assert bad.graded is False
         assert bad.reason == "grader-no-output"
+
+
+# ----------------------------------------------------------------------------
+# strip_conditional_loading_frontmatter
+# ----------------------------------------------------------------------------
+
+
+class TestStripConditionalLoading:
+    def test_no_frontmatter_unchanged(self) -> None:
+        body = "# Heading\n\nbody text\n"
+        out, removed = strip_conditional_loading_frontmatter(body)
+        assert out == body
+        assert removed == []
+
+    def test_empty_string_unchanged(self) -> None:
+        out, removed = strip_conditional_loading_frontmatter("")
+        assert out == ""
+        assert removed == []
+
+    def test_frontmatter_without_conditional_fields_unchanged(self) -> None:
+        content = "---\nname: x\ndescription: y\n---\n# body\n"
+        out, removed = strip_conditional_loading_frontmatter(content)
+        assert out == content
+        assert removed == []
+
+    def test_strips_singular_path_inline(self) -> None:
+        content = "---\nname: x\npath: src/**/*.py\ndescription: y\n---\n# body\n"
+        out, removed = strip_conditional_loading_frontmatter(content)
+        assert removed == ["path"]
+        assert "path:" not in out
+        assert "name: x" in out
+        assert "description: y" in out
+
+    def test_strips_inline_paths_list(self) -> None:
+        content = '---\nname: x\npaths: ["**/*.py", "**/*.ts"]\n---\n# body\n'
+        out, removed = strip_conditional_loading_frontmatter(content)
+        assert removed == ["paths"]
+        assert "paths:" not in out
+        assert "**/*.py" not in out
+
+    def test_strips_multiline_paths_list(self) -> None:
+        # The real shape used by Pilot rules — `paths:` followed by indented `-` items.
+        content = (
+            "---\n"
+            "name: standards-python\n"
+            'paths:\n  - "**/*.py"\n  - "tests/**/*.py"\n'
+            "description: Python rules\n"
+            "---\n"
+            "# Python\n"
+        )
+        out, removed = strip_conditional_loading_frontmatter(content)
+        assert removed == ["paths"]
+        assert "**/*.py" not in out
+        assert "tests/**/*.py" not in out
+        assert "name: standards-python" in out
+        assert "description: Python rules" in out
+
+    def test_strips_both_path_and_paths(self) -> None:
+        content = (
+            "---\n"
+            "name: x\n"
+            "path: legacy/path.md\n"
+            "paths:\n  - new\n"
+            "---\n"
+            "# body\n"
+        )
+        out, removed = strip_conditional_loading_frontmatter(content)
+        assert sorted(removed) == ["path", "paths"]
+        assert "path:" not in out
+        assert "paths:" not in out
+        assert "name: x" in out
+
+    def test_preserves_indented_content_in_other_fields(self) -> None:
+        # An indented line that does NOT belong to paths shouldn't be eaten.
+        content = (
+            "---\n"
+            'description: |\n  multi\n  line\n'
+            'paths:\n  - "**/*.py"\n'
+            "name: x\n"
+            "---\n"
+            "# body\n"
+        )
+        out, removed = strip_conditional_loading_frontmatter(content)
+        assert removed == ["paths"]
+        assert "multi" in out and "line" in out
+        assert "**/*.py" not in out
+
+    def test_unterminated_frontmatter_unchanged(self) -> None:
+        # No closing --- → don't touch the file (avoid corrupting).
+        content = "---\npaths:\n  - foo\n# never closed\n"
+        out, removed = strip_conditional_loading_frontmatter(content)
+        assert out == content
+        assert removed == []
+
+    def test_only_strips_at_start_of_line(self) -> None:
+        # A `paths:` mention inside a description value (indented) is part of
+        # that field's continuation, not a separate key. We don't strip it.
+        content = (
+            "---\n"
+            "description: |\n"
+            "  the user types `paths:` to do X\n"
+            "name: x\n"
+            "---\n"
+        )
+        out, removed = strip_conditional_loading_frontmatter(content)
+        assert removed == []
+        assert "user types `paths:`" in out

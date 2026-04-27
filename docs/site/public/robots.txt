@@ -1,7 +1,18 @@
+User-agent: *
+Allow: /
+Disallow: /shared
+
+# Common bots get explicit allow lines for clarity
 User-agent: Googlebot
 Allow: /
 
 User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: YandexBot
 Allow: /
 
 User-agent: Twitterbot
@@ -10,8 +21,8 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
+User-agent: LinkedInBot
 Allow: /
 
-# Sitemap location
+# Sitemap index (references landing pages and docs)
 Sitemap: https://pilot-shell.com/sitemap.xml

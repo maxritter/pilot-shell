@@ -2,7 +2,7 @@
 
 <img src="docs/img/logo.png" alt="Pilot Shell" width="400">
 
-### Make Claude Code production-ready.
+### The Claude Code Engineering Platform.
 
 From requirement to production-grade code — planned, tested, verified.</br>
 **Spec-driven plans. Enforced quality gates. Persistent knowledge.**
@@ -127,11 +127,6 @@ Pilot Shell works inside Dev Containers. Copy the [`.devcontainer`](https://gith
 ---
 
 <h2 id="features">How It Works</h2>
-
-```bash
-export VERSION=8.4.0
-curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
-```
 
 Just chat — no plan, no approval gate. [Quick mode](https://pilot-shell.com/docs/workflows/quick-mode) is the default: quality hooks and TDD enforcement still apply, best for small tasks and exploration. For anything that needs a plan, use `/spec` — not Claude Code's built-in plan mode.
 
@@ -461,19 +456,20 @@ pilot
 <details>
 <summary><b>What /setup-rules Does</b></summary>
 
-11 phases that read your codebase and produce comprehensive AI context:
+12 phases that read your codebase and produce comprehensive AI context:
 
 0. **Reference** — load best practices for rule structure, path-scoping, and quality standards
-1. **Read existing rules** — inventory all `.claude/rules/` files, detect structure and path-scoping
+1. **Read existing rules** — inventory all `.claude/rules/` files, detect structure and path-scoping. Also detects `CLAUDE.md` and `AGENTS.md` (the cross-framework agent context file used by Codex, Cursor, etc.)
 2. **Migrate unscoped assets** — prefix with project slug for better sharing
 3. **Quality audit** — check rules against best practices (size, specificity, stale references, conflicts)
 4. **Explore codebase** — semantic search with Probe CLI, structural analysis with CodeGraph
 5. **Compare patterns** — discovered vs documented conventions
-6. **Sync project rule** — update `{slug}-project.md` with current tech stack, structure, commands
+6. **Sync project rule** — update `{slug}-project.md` with current tech stack, structure, commands. Migrates `CLAUDE.md` / `AGENTS.md` content into modular rules
 7. **Sync MCP docs** — smoke-test user MCP servers, document working tools
 8. **Discover new rules** — find undocumented patterns worth capturing
 9. **Cross-check** — validate all references, ensure consistency across generated files
-10. **Summary** — report all changes made
+10. **Sync AGENTS.md** — if `AGENTS.md` already exists, offer to re-export the updated rules into it so non-Claude agents see the same context. Always asks first, never creates the file if absent, preserves user-authored sections
+11. **Summary** — report all changes made
 
 **For monorepos:** Organizes rules in nested subdirectories by product and team, with `paths` frontmatter to scope rules to specific file types. Generates a `README.md` documenting the structure.
 
@@ -514,7 +510,7 @@ pilot
 
 ### /benchmark — Measure Rule & Skill Impact
 
-[`/benchmark`](https://pilot-shell.com/docs/workflows/benchmark) runs your prompts with and without the target, grades outputs against falsifiable assertions, and shows the delta inline. Finishes with a concrete improvement plan — classified assertions and proposed edits — so you know what to change next.
+[`/benchmark`](https://pilot-shell.com/docs/workflows/benchmark) runs your prompts with and without the target, grades outputs against falsifiable assertions, and shows a structured report you can absorb in 30 seconds — labeled verdict, quadrant breakdown, and only the divergent assertions in the drill-down. Finishes with a concrete improvement plan so you know exactly what to change next.
 
 ```bash
 pilot
@@ -531,21 +527,19 @@ Six phases turn a rule or skill into a before/after comparison with an actionabl
 2. **Target discovery** — classify as `skill` or `rules`
 3. **Author evals** — draft 3 falsifiable assertions; falsifiability gate ensures baseline actually fails
 4. **Execute** — run both configs in isolated sandboxes; grader subagent scores every assertion
-5. **Present findings** — headline delta + per-eval verdict matrix with evidence quotes
-6. **Improvement plan** — classify each assertion and propose concrete edits:
+5. **Present findings** — three layers, scannable top-to-bottom:
 
-   | Quadrant | `with` / `without` | Fix |
-   |---|---|---|
-   | **Signal** | ✓ / ✗ | Keep — rule is working |
-   | **Baseline** | ✓ / ✓ | Tighten the eval |
-   | **Unreachable** | ✗ / ✗ | Sharpen the target |
-   | **Regression** | ✗ / ✓ | Fix the target |
+   | Layer | Content |
+   |---|---|
+   | **Verdict** | One labeled sentence with a recommended next step. Delta bands: 🟢 Strong (≥ +0.50) / 🟢 Moderate (+0.20) / 🟡 Weak (+0.05) / ⚪ Indistinguishable (±0.05) / 🔴 Regression (< −0.05) |
+   | **Quadrant breakdown** | Counts each assertion as Signal (✓/✗) / Baseline (✓/✓) / Unreachable (✗/✗) / Regression (✗/✓). The dominant quadrant drives the plan |
+   | **Per-eval drill-down** | Only divergent assertions get a row; matching ones fold into header counts so the report stays under one screen |
 
-   You pick: apply target edits, iterate on evals, both, or stop and save the plan.
+6. **Improvement plan** — ≤ 5 ranked proposals in a uniform format (`[TARGET]` or `[EVALS]` tag, location, current quote, replacement, "Lever" line). You pick: apply target edits, iterate on evals, both, or save the plan and stop. Re-runs land in a fresh `runs/<ts>/` so iteration deltas stay legible.
 
-**Isolation:** each run gets its own sandbox directory; a globally-installed copy of the target in `~/.claude/` is auto-hidden for the duration and restored afterward.
+**Isolation:** each run gets its own sandbox directory; a globally-installed copy of the target in `~/.claude/` is auto-hidden for the duration and restored afterward (with on-disk recovery manifest covering SIGKILL / power loss / segfault). Conditional-loading frontmatter (`path:` / `paths:`) is stripped from the copy installed into the `with` sandbox so the target loads unconditionally for every prompt — without that, rules scoped to e.g. `paths: ["**/*.py"]` would stay dormant in both configs and the delta would collapse to 0.00. The source file is never modified.
 
-**Key flags:** `--runs N` (default 1), `--configs with,without`, `--workers N`, `--model`, `--no-isolate-global`.
+**Key flags:** `--runs N` (default 1), `--configs with,without`, `--workers N`, `--model`, `--no-isolate-global`, `--restore-hidden`.
 
 </details>
 
@@ -583,11 +577,11 @@ For full details on every component, see the **[Documentation](https://pilot-she
 
 | Component | What it does |
 | --- | --- |
-| [**Pilot Console**](https://pilot-shell.com/docs/features/console) | Local web dashboard at `localhost:41777` — 10 views for sessions, memories, specs, requirements, extensions, changes, usage, and settings. SQLite-backed, nothing leaves your machine |
+| [**Pilot Console**](https://pilot-shell.com/docs/features/console) | Local web dashboard at `localhost:41777` — 10 views (Dashboard, Sessions, Memories, Requirements, Specifications, Extensions, Changes, Usage, Help, Settings). SQLite-backed, nothing leaves your machine |
 | [**Pilot Bot**](https://pilot-shell.com/docs/features/bot) | Persistent 24/7 automation agent with scheduled jobs, background tasks, heartbeat monitoring, and optional Telegram integration for bidirectional messaging |
 | [**Status Line**](https://pilot-shell.com/docs/features/statusline) | Real-time session dashboard below every response — model, context usage, git status, cost, spec progress, and savings metrics across 3 lines |
 | [**Smart Model Routing**](https://pilot-shell.com/docs/features/model-routing) | Opus for planning, Sonnet for implementation and verification. Configurable per-phase via Console Settings, with a Custom… option for pinning explicit Anthropic model IDs (e.g. `claude-opus-4-6`). 1M context available — included with API plans (Team, Enterprise); Max plan requires all models set to Opus |
-| [**Rules & Standards**](https://pilot-shell.com/docs/features/rules) | 10 built-in rules for workflow, testing, verification, debugging, code review, tooling, and context protection + 5 coding standards activated by file type (Python, TypeScript, Go, Frontend, Backend) |
+| [**Rules & Standards**](https://pilot-shell.com/docs/features/rules) | 11 built-in rules for workflow, testing, verification, debugging, code review, documentation sync, tooling, and context protection + 5 coding standards activated by file type (Python, TypeScript, Go, Frontend, Backend) |
 | [**Context Optimization**](https://pilot-shell.com/docs/features/context-optimization) | Lean context strategies — context-mode sandbox (large outputs never enter context), RTK output compression, conditional rule loading, progressive skill disclosure, lazy MCP tool loading. Compaction resilience for 200K windows |
 | [**Remote Control**](https://pilot-shell.com/docs/features/remote-control) | Control Pilot sessions from your phone, tablet, or any browser — send prompts, monitor progress, and receive notifications remotely |
 | [**Hooks Pipeline**](https://pilot-shell.com/docs/features/hooks) | 15 hooks across 7 events — quality checks on every file edit (ruff, ESLint, go vet), TDD enforcement, token optimization via RTK (60–90% savings), session continuity, memory capture, and session lifecycle management |
@@ -752,6 +746,6 @@ Found a bug or missing a feature? [Open an issue](https://github.com/maxritter/p
 
 <div align="center">
 
-**Make Claude Code production-ready.**
+**The Claude Code Engineering Platform.**
 
 </div>

@@ -130,7 +130,7 @@ class Console:
 
         tagline = Text()
         tagline.append("  ✈ ", style="cyan")
-        tagline.append("Claude Code is powerful. Pilot Shell makes it reliable.", style="bold white")
+        tagline.append("The Claude Code engineering platform.", style="bold white")
         self._console.print(tagline)
         self._console.print("    From requirement to production-grade code. Planned, tested, verified.", style="muted")
         self._console.print()

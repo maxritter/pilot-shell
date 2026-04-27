@@ -19,7 +19,7 @@ const Logo = ({ variant = "hero" }: LogoProps) => {
         <source srcSet={logoWebp} type="image/webp" />
         <img
           src={logoPng}
-          alt="Pilot Shell - Make Claude Code production-ready."
+          alt="Pilot Shell — the Claude Code engineering platform"
           className={`${sizeClass} h-auto animate-glow`}
           loading={isEager ? "eager" : "lazy"}
           fetchPriority={isEager ? "high" : undefined}

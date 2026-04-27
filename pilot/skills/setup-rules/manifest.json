@@ -43,8 +43,12 @@
       "file": "steps/10-cross-check.md"
     },
     {
-      "id": "step-11-summary",
-      "file": "steps/11-summary.md"
+      "id": "step-11-sync-agents",
+      "file": "steps/11-sync-agents.md"
+    },
+    {
+      "id": "step-12-summary",
+      "file": "steps/12-summary.md"
     }
   ]
 }

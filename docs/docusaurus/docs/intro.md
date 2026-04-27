@@ -7,7 +7,7 @@ description: Complete technical reference for Pilot Shell
 
 # Pilot Shell Documentation
 
-**Pilot Shell** makes Claude Code production-ready. You get plans you can review before a single line is written, tests that are enforced — not optional, knowledge that persists across sessions, and quality gates that run automatically on every edit.
+**Pilot Shell** is the Claude Code engineering platform. You get plans you can review before a single line is written, tests that are enforced — not optional, knowledge that persists across sessions, and quality gates that run automatically on every edit.
 
 No more re-explaining decisions, chasing skipped tests, or reviewing 15-file changes that were never scoped. Pilot adds the structure that turns fast AI output into reliable production code.
 

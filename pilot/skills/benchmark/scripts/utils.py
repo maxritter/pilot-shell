@@ -3,9 +3,65 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, NotRequired, TypedDict, cast, final
+
+CONDITIONAL_LOADING_FIELDS: tuple[str, ...] = ("path", "paths")
+_CONDITIONAL_FIELD_RE = re.compile(r"^(?P<name>path|paths)\s*:")
+
+
+def strip_conditional_loading_frontmatter(content: str) -> tuple[str, list[str]]:
+    """Remove ``path:`` / ``paths:`` keys from a markdown file's YAML frontmatter.
+
+    Pilot rules use ``paths:`` to scope when Claude Code loads them (e.g.
+    ``paths: ["**/*.py"]`` for Python-only rules). When a benchmark's prompts
+    don't fall inside the glob, the rule stays dormant in the ``with`` config
+    and the delta collapses to zero — measuring activation, not the rule's
+    actual content. Stripping these fields from the copy installed into the
+    ``with`` sandbox forces unconditional loading so we measure the rule itself.
+
+    Returns ``(modified_content, removed_fields)``. ``modified_content`` is
+    returned unchanged when the file has no frontmatter or no conditional
+    fields. Multi-line list values (``paths:\\n  - a\\n  - b``) are stripped
+    along with their indented continuation lines.
+    """
+    if not content:
+        return content, []
+    lines = content.split("\n")
+    if lines[0].strip() != "---":
+        return content, []
+
+    end_idx: int | None = None
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            end_idx = i
+            break
+    if end_idx is None:
+        return content, []
+
+    removed: list[str] = []
+    new_front: list[str] = []
+    skipping = False
+    for line in lines[1:end_idx]:
+        if skipping:
+            if line and line[0] in (" ", "\t"):
+                continue
+            skipping = False
+
+        match = _CONDITIONAL_FIELD_RE.match(line)
+        if match is not None:
+            removed.append(match.group("name"))
+            skipping = True
+            continue
+        new_front.append(line)
+
+    if not removed:
+        return content, []
+
+    new_lines = [lines[0], *new_front, *lines[end_idx:]]
+    return "\n".join(new_lines), removed
 
 VALID_TARGET_TYPES: set[str] = {"skill", "rules"}
 

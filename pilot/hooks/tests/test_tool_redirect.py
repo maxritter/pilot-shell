@@ -417,3 +417,284 @@ class TestSubprocessIntegration:
         )
         assert exit_code == 0
         assert not _is_denied(stdout)
+
+
+class TestDangerousGitBlock:
+    """Dangerous-git pattern check on Bash commands.
+
+    The hook denies only TRULY irreversible variants (force push, mirror, colon-delete,
+    hard reset, force clean, force-delete branch, destructive checkout/restore).
+    Plain `git push` and `git commit` are NOT denied — pilot's social rule already
+    requires explicit user authorization.
+    """
+
+    @staticmethod
+    def _bash(command: str) -> tuple[int, str]:
+        return _run_with_input("Bash", {"command": command})
+
+    # ---- Block (deny) cases — irreversible variants ----
+
+    def test_blocks_git_push_force_long(self):
+        code, output = self._bash("git push --force origin main")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_push_force_short(self):
+        code, output = self._bash("git push -f origin main")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_push_force_with_lease(self):
+        code, output = self._bash("git push --force-with-lease origin main")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_push_mirror(self):
+        code, output = self._bash("git push --mirror origin")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_push_remote_branch_delete(self):
+        code, output = self._bash("git push origin :old-feature")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_reset_hard(self):
+        code, output = self._bash("git reset --hard HEAD~1")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_clean_f(self):
+        code, output = self._bash("git clean -f")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_clean_fd(self):
+        code, output = self._bash("git clean -fd")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_branch_force_delete(self):
+        code, output = self._bash("git branch -D feature")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_checkout_dot(self):
+        code, output = self._bash("git checkout .")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_checkout_dashdash_file(self):
+        code, output = self._bash("git checkout -- file.py")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_checkout_head_dashdash_file(self):
+        code, output = self._bash("git checkout HEAD -- file.py")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_restore_dot(self):
+        code, output = self._bash("git restore .")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_restore_worktree_combined(self):
+        code, output = self._bash("git restore --staged --worktree .")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_dash_C_push_force(self):
+        """`git -C path push --force` must normalize and deny."""
+        code, output = self._bash("git -C /repo push --force origin main")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_dash_c_push_force(self):
+        """`git -c key=val push --force` must normalize and deny."""
+        code, output = self._bash("git -c core.sshCommand=foo push --force origin main")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_bash_wrapped_force_push(self):
+        """`bash -c '...'` wrapping does not bypass — pattern matches the substring."""
+        code, output = self._bash("bash -c \"git push --force origin main\"")
+        assert code == 2
+        assert _is_denied(output)
+
+    # ---- Pass-through (safe) cases ----
+
+    def test_passes_git_status(self):
+        code, _ = self._bash("git status")
+        assert code == 0
+
+    def test_passes_git_diff(self):
+        code, _ = self._bash("git diff HEAD")
+        assert code == 0
+
+    def test_passes_git_log(self):
+        code, _ = self._bash("git log --oneline -10")
+        assert code == 0
+
+    def test_passes_git_pull(self):
+        code, _ = self._bash("git pull origin main")
+        assert code == 0
+
+    def test_passes_git_fetch(self):
+        code, _ = self._bash("git fetch origin")
+        assert code == 0
+
+    def test_passes_git_commit(self):
+        code, _ = self._bash('git commit -m "fix: foo"')
+        assert code == 0
+
+    def test_passes_git_push_plain(self):
+        """Plain `git push` is NOT denied — pilot's social rule covers authorization."""
+        code, _ = self._bash("git push")
+        assert code == 0
+
+    def test_passes_git_push_origin_main(self):
+        code, _ = self._bash("git push origin main")
+        assert code == 0
+
+    def test_passes_git_push_upstream(self):
+        code, _ = self._bash("git push -u origin feature")
+        assert code == 0
+
+    def test_passes_git_push_tags(self):
+        """`--tags` is additive, not destructive."""
+        code, _ = self._bash("git push --tags origin")
+        assert code == 0
+
+    def test_passes_git_push_dry_run(self):
+        """`--dry-run` is read-only across all git commands."""
+        code, _ = self._bash("git push --dry-run origin main")
+        assert code == 0
+
+    def test_passes_git_push_force_dry_run(self):
+        """`--dry-run` makes even force-push non-destructive — preview only."""
+        code, _ = self._bash("git push --force --dry-run origin main")
+        assert code == 0
+
+    def test_passes_git_checkout_branch_name(self):
+        code, _ = self._bash("git checkout main")
+        assert code == 0
+
+    def test_passes_git_restore_staged(self):
+        """`--staged` only unstages; working tree untouched."""
+        code, _ = self._bash("git restore --staged .")
+        assert code == 0
+
+    def test_passes_git_restore_file(self):
+        """File-scoped restore — explicit path, not the destructive `.` form."""
+        code, _ = self._bash("git restore src/config.py")
+        assert code == 0
+
+    def test_passes_git_restore_patch(self):
+        code, _ = self._bash("git restore --patch README.md")
+        assert code == 0
+
+    def test_passes_git_branch_lowercase_d(self):
+        """Soft delete; git refuses if branch is unmerged."""
+        code, _ = self._bash("git branch -d feature")
+        assert code == 0
+
+    def test_passes_npm_install_force(self):
+        """Non-git `--force` must pass through."""
+        code, _ = self._bash("npm install --force")
+        assert code == 0
+
+    def test_passes_docker_build_force_rm(self):
+        code, _ = self._bash("docker build --force-rm .")
+        assert code == 0
+
+    def test_passes_pip_install_force_reinstall(self):
+        code, _ = self._bash("pip install --force-reinstall package")
+        assert code == 0
+
+    def test_passes_pilot_worktree_cleanup_force(self):
+        """Pilot's `/spec` verify chain runs `pilot worktree cleanup --force` — must pass."""
+        code, _ = self._bash("~/.pilot/bin/pilot worktree cleanup --force --json my-slug")
+        assert code == 0
+
+    def test_passes_cp_force(self):
+        code, _ = self._bash("cp --force src dst")
+        assert code == 0
+
+    # ---- Codex adversarial review: bypass cases ----
+
+    def test_blocks_chained_dryrun_then_force_push(self):
+        """A `--dry-run` token in one segment must NOT mask a destructive command in the next."""
+        code, output = self._bash("echo --dry-run; git push --force origin main")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_dryrun_push_then_hard_reset(self):
+        """Same shape: dry-run push followed by hard reset — the reset must still deny."""
+        code, output = self._bash("git push --force --dry-run origin main; git reset --hard HEAD~1")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_checkout_with_arbitrary_ref(self):
+        """`git checkout HEAD~1 -- file.py` is destructive — overwrites working tree."""
+        code, output = self._bash("git checkout HEAD~1 -- file.py")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_checkout_with_branch_ref(self):
+        """`git checkout main -- file.py` is destructive too."""
+        code, output = self._bash("git checkout main -- file.py")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_clean_long_force(self):
+        """`git clean --force -d` is destructive — long form was missed by short-only regex."""
+        code, output = self._bash("git clean --force -d")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_push_long_delete(self):
+        """`git push origin --delete branch` is the long form of `:branch` colon-delete."""
+        code, output = self._bash("git push origin --delete old-feature")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_branch_long_force_delete(self):
+        """`git branch --delete --force feature` is the long form of `-D`."""
+        code, output = self._bash("git branch --delete --force feature")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_branch_force_delete_reversed(self):
+        """`git branch --force --delete feature` (option order swapped)."""
+        code, output = self._bash("git branch --force --delete feature")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_restore_with_source_dot(self):
+        """`git restore --source=HEAD~1 .` is working-tree destructive even without --worktree."""
+        code, output = self._bash("git restore --source=HEAD~1 .")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_restore_worktree_reversed(self):
+        """`git restore --worktree --staged .` (option order swapped) — still working-tree destructive."""
+        code, output = self._bash("git restore --worktree --staged .")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_push_force_with_lease_with_ref(self):
+        """`git push --force-with-lease=ref origin main` — explicit ref form."""
+        code, output = self._bash("git push --force-with-lease=feature origin main")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_passes_cd_then_safe_git(self):
+        """`cd /tmp && git status` — chained safe commands must pass."""
+        code, _ = self._bash("cd /tmp && git status")
+        assert code == 0
+
+    def test_passes_dryrun_segment_alone(self):
+        """`git push --dry-run origin main` in a single segment still passes."""
+        code, _ = self._bash("git push --dry-run origin main")
+        assert code == 0

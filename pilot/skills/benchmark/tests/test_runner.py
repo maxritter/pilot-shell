@@ -199,6 +199,89 @@ class TestPrepareConfigDir:
         with pytest.raises(ValueError, match="target.path is required"):
             _ = prepare_config_dir(target, "with", tmp_path)
 
+    def test_with_rules_target_strips_paths_frontmatter(self, tmp_path: Path) -> None:
+        """A rule whose frontmatter has `paths: [...]` should be installed
+        WITHOUT that field so the rule loads unconditionally during the run.
+        Otherwise the rule stays dormant and delta collapses to zero."""
+        rules_src = tmp_path / "src" / "rules"
+        rules_src.mkdir(parents=True)
+        original = (
+            "---\n"
+            "name: standards-python\n"
+            'paths:\n  - "**/*.py"\n'
+            "description: Python rules\n"
+            "---\n"
+            "# Python content\n"
+        )
+        _ = (rules_src / "standards-python.md").write_text(original)
+        target: TargetConfig = {
+            "type": "rules",
+            "path": str(rules_src),
+            "name": "standards-python",
+        }
+        dest_root = tmp_path / "dest"
+        dest_root.mkdir()
+        result = prepare_config_dir(target, "with", dest_root)
+        installed = (result / ".claude" / "rules" / "standards-python.md").read_text()
+        assert "paths:" not in installed
+        assert "**/*.py" not in installed
+        # Other frontmatter fields preserved.
+        assert "name: standards-python" in installed
+        assert "description: Python rules" in installed
+        assert "# Python content" in installed
+        # SOURCE file must be untouched.
+        assert (rules_src / "standards-python.md").read_text() == original
+
+    def test_with_rules_single_file_strips_paths(self, tmp_path: Path) -> None:
+        """Single-file rules target also gets its `paths:` stripped."""
+        rule_src = tmp_path / "rule.md"
+        original = "---\npaths:\n  - foo\nname: r\n---\nbody\n"
+        _ = rule_src.write_text(original)
+        target: TargetConfig = {"type": "rules", "path": str(rule_src), "name": "rule"}
+        dest_root = tmp_path / "dest"
+        dest_root.mkdir()
+        result = prepare_config_dir(target, "with", dest_root)
+        installed = (result / ".claude" / "rules" / "rule.md").read_text()
+        assert "paths:" not in installed
+        assert "name: r" in installed
+        assert rule_src.read_text() == original
+
+    def test_with_skill_target_strips_skill_md_paths(self, tmp_path: Path) -> None:
+        """SKILL.md frontmatter with conditional fields gets stripped on install."""
+        skill_src = tmp_path / "src" / "my-skill"
+        skill_src.mkdir(parents=True)
+        original = (
+            "---\n"
+            "name: my-skill\n"
+            "description: x\n"
+            "paths:\n  - src/**\n"
+            "---\n"
+            "# body\n"
+        )
+        _ = (skill_src / "SKILL.md").write_text(original)
+        target: TargetConfig = {"type": "skill", "path": str(skill_src), "name": "my-skill"}
+        dest_root = tmp_path / "dest"
+        dest_root.mkdir()
+        result = prepare_config_dir(target, "with", dest_root)
+        installed = (result / ".claude" / "skills" / "my-skill" / "SKILL.md").read_text()
+        assert "paths:" not in installed
+        assert "src/**" not in installed
+        assert "name: my-skill" in installed
+        assert (skill_src / "SKILL.md").read_text() == original
+
+    def test_with_rules_no_paths_field_unchanged(self, tmp_path: Path) -> None:
+        """When a rule has no conditional fields, the install is byte-identical
+        to the source — the strip path is purely additive."""
+        rule_src = tmp_path / "plain.md"
+        original = "---\nname: plain\n---\nhello\n"
+        _ = rule_src.write_text(original)
+        target: TargetConfig = {"type": "rules", "path": str(rule_src), "name": "plain"}
+        dest_root = tmp_path / "dest"
+        dest_root.mkdir()
+        result = prepare_config_dir(target, "with", dest_root)
+        installed = (result / ".claude" / "rules" / "plain.md").read_text()
+        assert installed == original
+
 
 # ----------------------------------------------------------------------------
 # _write_failed_marker

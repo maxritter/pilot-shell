@@ -18,14 +18,14 @@ The status line has three lines:
 ```
 Line 1: Opus 4.7 [1M] | █████░▓ 60% | 5h: 42% ⇡ 2h | 7d: 18% ⇣ 4d | Savings: 65%
 Line 2: Spec: my-feature feature [implement] ████░░░░ 3/6
-Line 3: Pilot 8.2.1 (Solo) · CC 2.1.80 (Max) · sessions 2 · memories 12
+Line 3: Pilot 8.4.0 (Solo) · CC 2.1.80 (Max) · sessions 2 · memories 12
 ```
 
 **API / Enterprise users** (no `rate_limits` in stdin):
 ```
 Line 1: Opus 4.7 [1M] | █████░▓ 60% | +156 -23 | main +2 ~3 | $1.45 | Savings: 65%
 Line 2: Spec: my-feature feature [implement] ████░░░░ 3/6
-Line 3: Pilot 8.2.1 (Solo) · CC 2.1.80 · sessions 2 · memories 12
+Line 3: Pilot 8.4.0 (Solo) · CC 2.1.80 · sessions 2 · memories 12
 ```
 
 The layout is symmetric: slots 3 and 4 swap between `5h | 7d` and `lines | git` based on what Claude Code provides on stdin. Cost is shown only for API / Enterprise users — on Pro / Max the subscription covers usage, so a dollar figure is noise and is suppressed. Savings always anchors the right side.
@@ -85,7 +85,7 @@ Spec: my-feature feature [implement] ████░░░░ 3/6 iter:2
 ### Line 3 — Version & Session Info
 
 ```
-Pilot 8.2.1 (Solo) · CC 2.1.79 (Max) · sessions 2 · memories 12
+Pilot 8.4.0 (Solo) · CC 2.1.79 (Max) · sessions 2 · memories 12
 ```
 
 | Field | Description |

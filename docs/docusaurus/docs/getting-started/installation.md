@@ -25,7 +25,7 @@ Run from any directory — it installs globally to `~/.pilot/` and `~/.claude/`.
 | 1 | Prerequisites | Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq |
 | 2 | Claude files | Sets up `~/.claude/` plugin — rules, commands, hooks, MCP servers |
 | 3 | Config files | Creates `.nvmrc` and project config |
-| 4 | Dependencies | Installs Probe, RTK, CodeGraph, Chrome DevTools MCP, playwright-cli, agent-browser, language servers |
+| 4 | Dependencies | Installs Probe, RTK, CodeGraph, context-mode (better-sqlite3), Chrome DevTools MCP, playwright-cli, agent-browser, language servers |
 | 5 | Shell integration | Auto-configures bash, fish, and zsh with the `pilot` alias |
 | 6 | VS Code extensions | Installs recommended extensions for your language stack |
 | 7 | Finalize | Success message with next steps |
@@ -52,7 +52,7 @@ Pilot Shell works inside Dev Containers. Copy the `.devcontainer` folder from th
 ## Install Specific Version
 
 ```bash
-export VERSION=7.5.7
+export VERSION=8.4.0
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
 ```
 

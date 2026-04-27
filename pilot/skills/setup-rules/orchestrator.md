@@ -8,6 +8,6 @@ model: opus
 
 **Set up and audit project rules.** Reads your codebase, generates modular rules, and documents MCP servers.
 
-**Flow:** Read existing → Migrate → Quality audit → Explore → Compare → Sync rules → Sync MCP → Discover rules → Cross-check → Summary
+**Flow:** Read existing → Migrate → Quality audit → Explore → Compare → Sync rules → Sync MCP → Discover rules → Cross-check → Sync AGENTS.md (if present) → Summary
 
 **Skill creation:** Use `/create-skill` to create workflow skills — `/setup-rules` focuses exclusively on rules and MCP documentation.

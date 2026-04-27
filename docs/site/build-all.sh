@@ -34,9 +34,16 @@ cp -r "$BUILD/assets/"* "$DIST/assets/"
 # Copy Docusaurus img (favicon etc.) — merge into existing img or create
 [ -d "$BUILD/img" ] && cp -r "$BUILD/img" "$DIST/img"
 
-# Copy sitemaps
+# Move Docusaurus's sitemap into /docs/ so it doesn't overwrite the Vite-generated
+# sitemap index at /sitemap.xml (which references both pages and docs sitemaps).
+if [ -f "$BUILD/sitemap.xml" ]; then
+  cp "$BUILD/sitemap.xml" "$DIST/docs/sitemap.xml"
+fi
+# Copy any other Docusaurus xml files (rss, atom, etc.) to /docs/
 for f in "$BUILD"/*.xml; do
-  [ -f "$f" ] && cp "$f" "$DIST/" 2>/dev/null || true
+  if [ -f "$f" ] && [ "$(basename "$f")" != "sitemap.xml" ]; then
+    cp "$f" "$DIST/docs/" 2>/dev/null || true
+  fi
 done
 
 echo "=== Build complete ==="

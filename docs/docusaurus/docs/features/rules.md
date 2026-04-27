@@ -8,7 +8,7 @@ description: Production-tested best practices loaded into every session
 
 Production-tested best practices loaded into every session.
 
-Rules load automatically at session start — they're enforced standards, not suggestions. Pilot ships 10 built-in rules plus 5 coding standards. Coding standards load conditionally by file type to keep context lean. Your project-level rules in `.claude/rules/` take precedence over Pilot's built-ins.
+Rules load automatically at session start — they're enforced standards, not suggestions. Pilot ships 11 built-in rules plus 5 coding standards. Coding standards load conditionally by file type to keep context lean. Your project-level rules in `.claude/rules/` take precedence over Pilot's built-ins.
 
 ## Built-in Rule Categories
 
@@ -18,11 +18,12 @@ Rules load automatically at session start — they're enforced standards, not su
 - `testing.md` — TDD workflow, test strategy, coverage requirements (≥80%)
 - `verification.md` — Execution verification, completion requirements
 
-### Development Practices (3 rules)
+### Development Practices (4 rules)
 
 - `development-practices.md` — Project policies, systematic debugging, git rules
 - `context-management.md` — Context optimization and compaction resilience
 - `code-review-reception.md` — How to receive and act on code review feedback
+- `documentation-sync.md` — Update affected docs (README, API docs, CLAUDE.md, AGENTS.md) in the same change as the code
 
 ### Tooling & Context (4 rules)
 

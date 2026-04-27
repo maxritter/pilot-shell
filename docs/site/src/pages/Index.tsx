@@ -16,18 +16,22 @@ const Index = () => {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "Pilot Shell",
-    url: "https://pilot-shell.com",
+    url: "https://pilot-shell.com/",
     description:
-      "Make Claude Code production-ready — spec-driven plans, enforced tests, persistent knowledge. From requirement to production-grade code. Planned, tested, verified. Spec-driven plans. Enforced quality gates. Persistent knowledge.",
+      "The Claude Code engineering platform: spec-driven planning, enforced TDD, persistent memory, and quality hooks. Make Claude Code production-ready.",
+    inLanguage: "en-US",
     publisher: {
       "@type": "Organization",
       name: "Pilot Shell",
-      url: "https://pilot-shell.com",
+      url: "https://pilot-shell.com/",
       logo: {
         "@type": "ImageObject",
         url: "https://pilot-shell.com/logo.png",
       },
-      sameAs: ["https://github.com/maxritter/pilot-shell"],
+      sameAs: [
+        "https://github.com/maxritter/pilot-shell",
+        "https://www.linkedin.com/in/rittermax/",
+      ],
     },
   };
 
@@ -39,7 +43,7 @@ const Index = () => {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://pilot-shell.com",
+        item: "https://pilot-shell.com/",
       },
     ],
   };
@@ -49,13 +53,15 @@ const Index = () => {
     "@type": "SoftwareApplication",
     name: "Pilot Shell",
     description:
-      "Make Claude Code production-ready — spec-driven plans, enforced tests, persistent knowledge. Rules, automated hooks, coding standards, language servers, and MCP servers.",
+      "The Claude Code engineering platform: spec-driven planning, enforced TDD, persistent memory, and quality hooks. Make Claude Code production-ready.",
     applicationCategory: "DeveloperApplication",
+    applicationSubCategory: "AI Development Tools",
     operatingSystem: "Linux, macOS, Windows",
     offers: {
       "@type": "Offer",
       price: "0",
       priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
     },
     author: {
       "@type": "Person",
@@ -70,8 +76,8 @@ const Index = () => {
   return (
     <>
       <SEO
-        title="Pilot Shell - Make Claude Code production-ready."
-        description="Make Claude Code production-ready — spec-driven plans, enforced tests, persistent knowledge. From requirement to production-grade code. Planned, tested, verified. Spec-driven plans. Enforced quality gates. Persistent knowledge."
+        title="Pilot Shell — The Claude Code Engineering Platform"
+        description="The Claude Code engineering platform: spec-driven planning, enforced TDD, persistent memory, and quality hooks for Python, TypeScript, and Go. Make Claude Code production-ready."
         structuredData={[
           websiteStructuredData,
           breadcrumbStructuredData,

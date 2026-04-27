@@ -40,7 +40,6 @@ class TestDependenciesStep:
     @patch("installer.steps.dependencies.install_rtk", return_value=True)
     @patch("installer.steps.dependencies.install_probe", return_value=True)
     @patch("installer.steps.dependencies.install_agent_browser", return_value=True)
-    @patch("installer.steps.dependencies.install_ccusage", return_value=True)
     @patch("installer.steps.dependencies.install_pbt_tools", return_value=True)
     @patch("installer.steps.dependencies.install_golangci_lint", return_value=True)
     @patch("installer.steps.dependencies.install_prettier", return_value=True)
@@ -69,7 +68,6 @@ class TestDependenciesStep:
         _mock_prettier,
         _mock_golangci_lint,
         _mock_pbt_tools,
-        _mock_ccusage,
         _mock_playwright,
         _mock_probe,
         _mock_rtk,
@@ -999,33 +997,6 @@ class TestPrecacheNpxMcpServers:
 
             mock_run.assert_not_called()
 
-    @patch("installer.steps.dependencies.command_exists", return_value=True)
-    def test_install_ccusage_skips_when_already_installed(self, _mock_cmd):
-        """install_ccusage returns True without npm when already exists (e.g., via brew)."""
-        from installer.steps.dependencies import install_ccusage
-
-        result = install_ccusage()
-        assert result is True
-
-    @patch("installer.steps.dependencies.command_exists", return_value=False)
-    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
-    def test_install_ccusage_runs_npm_fallback(self, _mock_run, _mock_cmd):
-        """install_ccusage runs npm install when not found."""
-        from installer.steps.dependencies import install_ccusage
-
-        result = install_ccusage()
-        assert result is True
-
-    @patch("installer.steps.dependencies.command_exists", return_value=False)
-    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=False)
-    def test_install_ccusage_returns_false_on_failure(self, _mock_run, _mock_cmd):
-        """install_ccusage returns False when npm install fails."""
-        from installer.steps.dependencies import install_ccusage
-
-        result = install_ccusage()
-        assert result is False
-
-
 class TestMacosArm64Detection:
     """Test macOS Apple Silicon detection."""
 
@@ -1608,7 +1579,6 @@ class TestDependenciesCleanup:
     @patch("installer.steps.dependencies.install_codegraph", return_value=True)
     @patch("installer.steps.dependencies.install_rtk", return_value=True)
     @patch("installer.steps.dependencies.install_agent_browser", return_value=True)
-    @patch("installer.steps.dependencies.install_ccusage", return_value=True)
     @patch("installer.steps.dependencies.install_pbt_tools", return_value=True)
     @patch("installer.steps.dependencies.install_golangci_lint", return_value=True)
     @patch("installer.steps.dependencies.install_prettier", return_value=True)
@@ -1631,7 +1601,6 @@ class TestDependenciesCleanup:
         _mock_prettier,
         _mock_golangci,
         _mock_pbt,
-        _mock_ccusage,
         _mock_agent_browser,
         _mock_rtk,
         _mock_codegraph,

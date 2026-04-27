@@ -25,7 +25,7 @@ const consoleSlides = [
     label: "Extensions",
     src: "/console/extensions.png",
     alt: "Extensions view — local, plugin, and remote extensions with team sharing",
-    desc: "Browse, edit, and share extensions. \"All Projects\" aggregates across every project. Team sharing via git with push, pull, and diff.",
+    desc: "Browse, edit, and share extensions across global, project, plugin, and remote scopes. Team sharing via git with push, pull, and diff.",
   },
   {
     label: "Requirements",

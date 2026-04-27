@@ -369,7 +369,6 @@ print_summary() {
 	echo "    - Claude Code:    npm uninstall -g @anthropic-ai/claude-code"
 	echo "    - Probe:          npm uninstall -g @probelabs/probe"
 	echo "    - agent-browser:  npm uninstall -g agent-browser"
-	echo "    - ccusage:        npm uninstall -g ccusage"
 	echo "    - vtsls:          npm uninstall -g @vtsls/language-server typescript"
 	echo "    - prettier:       npm uninstall -g prettier"
 	echo "    - golangci-lint:  rm -f \$(go env GOPATH)/bin/golangci-lint"

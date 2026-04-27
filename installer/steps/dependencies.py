@@ -425,14 +425,6 @@ def install_golangci_lint() -> bool:
     return _run_bash_with_retry(install_cmd, timeout=120)
 
 
-def install_ccusage() -> bool:
-    """Install or update ccusage globally for usage tracking."""
-    return _run_bash_with_retry(
-        npm_global_cmd("npm install -g ccusage@latest"),
-        timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
-    )
-
-
 def _refresh_marketplace(marketplace: str) -> bool:
     """Refresh a marketplace to get latest plugin versions.
 
@@ -1007,7 +999,6 @@ class DependenciesStep(BaseStep):
                 _InstallTask("prettier (TypeScript formatter)", "prettier", install_prettier),
                 _InstallTask("golangci-lint (Go linter)", "golangci_lint", install_golangci_lint),
                 _InstallTask("PBT tools (hypothesis, fast-check)", "pbt_tools", install_pbt_tools),
-                _InstallTask("ccusage (usage tracking)", "ccusage", install_ccusage),
                 _InstallTask("Probe (code search)", "probe", install_probe),
                 _InstallTask("RTK (token optimizer)", "rtk", install_rtk),
                 _InstallTask("CodeGraph (code intelligence)", "codegraph", install_codegraph),

@@ -118,6 +118,7 @@ const rulesCategories = [
       "Project policies, debugging, and git hygiene",
       "Context management and compaction resilience",
       "Code review reception and change handling",
+      "Documentation sync — keep README, API docs, and AGENTS.md current with code changes",
     ],
   },
   {

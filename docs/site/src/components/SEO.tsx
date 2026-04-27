@@ -11,10 +11,10 @@ interface SEOProps {
 }
 
 const SEO = ({
-  title = "Pilot Shell - Make Claude Code production-ready.",
-  description = "From requirement to production-grade code. Planned, tested, verified. Spec-driven plans. Enforced quality gates. Persistent knowledge.",
-  keywords = "Pilot Shell, Claude Code, AI coding assistant, AI pair programming, TDD enforcement, Test-Driven Development, code quality automation, linting, formatting, type checking, spec-driven development, VS Code, Cursor, Windsurf, Claude API, Anthropic, AI development tools, automated testing, code review, persistent memory, semantic code search",
-  canonicalUrl = "https://pilot-shell.com",
+  title = "Pilot Shell — The Claude Code Engineering Platform",
+  description = "The Claude Code engineering platform: spec-driven planning, enforced TDD, persistent memory, and quality hooks for Python, TypeScript, and Go. Make Claude Code production-ready.",
+  keywords = "Claude Code engineering platform, Claude Code, Claude Code platform, Claude Code framework, spec-driven development, Pilot Shell, Anthropic Claude, AI pair programming, TDD enforcement, AI coding agent, Claude Sonnet 4.6, Claude Opus 4.7, MCP servers, Claude Code productivity, AI development environment, Claude Code best practices",
+  canonicalUrl = "https://pilot-shell.com/",
   ogImage = "https://pilot-shell.com/logo.png",
   type = "website",
   structuredData

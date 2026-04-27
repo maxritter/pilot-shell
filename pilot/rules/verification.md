@@ -69,3 +69,29 @@ If you're about to use uncertain language ("should", "probably"), express satisf
 ### When Execution Fails After Tests Pass
 
 This is a real bug. During `/spec`, fix immediately → re-run tests → re-execute → add test to catch this failure type. Outside `/spec`, report the issue and proposed fix to the user.
+
+### Five Failure Modes Self-Check
+
+Before reporting completion, do an explicit pass against each of the five failure modes identified in the 2026 Agentic Coding Trends Report. These are the predictable ways autonomous agents go wrong; naming them keeps each one distinct in attention.
+
+#### Hallucinated Actions
+
+Did the implementation invent file paths, env var names, IDs, function names, library APIs, URLs, or other external values that aren't authoritatively confirmed? Common example: `process.env.STRIPE_SECRET_KEY` when the actual var is `STRIPE_SK`. See *Never invent values* in `development-practices.md` for the upstream rule.
+
+#### Scope Creep
+
+Does the diff touch files or behaviors outside the request? Bundled refactors, "while I'm here" cleanups, or stylistic changes that should be a separate PR? Apply the lineage test (`development-practices.md`) — every changed line must trace directly to the user's request.
+
+#### Cascading Errors
+
+Was a failure suppressed/caught/wrapped in a way that hides the root cause from callers? Silent fallbacks (try/except returning empty arrays, default values that paper over missing data, swallowed exceptions) mask bugs and metastasize them.
+
+#### Context Loss
+
+Does the diff contradict earlier decisions in the session, the plan, CLAUDE.md, or `CONTEXT.md`? Names, conventions, invariants applied inconsistently? Industry research finds ~65% of agent failures trace to context drift, not raw token exhaustion.
+
+#### Tool Misuse
+
+Wrong tool for the job (e.g., `Bash` for file reads when `Read` exists, MCP server when CLI was simpler), or right tool with wrong parameters (e.g., `Grep` without proper escaping, `Edit` without reading first)? Re-check against the tool selection guidance in `cli-tools.md` and `mcp-servers.md`.
+
+**If any mode flagged → fix and re-run, don't claim done.** See also *Stop Signals — Verify NOW* (above) for context-drift signals that warrant verification mid-work, and *Evidence Before Claims* (above) for the verification protocol when *Hallucinated Actions* or *Context Loss* are suspected. Five Failure Modes is the explicit pre-completion checklist; Stop Signals and Evidence Before Claims are the active-during-work guards.

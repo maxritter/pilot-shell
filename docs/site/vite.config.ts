@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import sitemapPlugin from "./vite-plugin-sitemap";
+import indexNowPlugin from "./vite-plugin-indexnow";
 
 const DOCUSAURUS_DEV_URL = "http://localhost:3000";
 
@@ -33,6 +34,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     mode === "development" && docusaurusRedirect(),
     sitemapPlugin(),
+    indexNowPlugin(),
   ].filter(Boolean),
   resolve: {
     alias: {
