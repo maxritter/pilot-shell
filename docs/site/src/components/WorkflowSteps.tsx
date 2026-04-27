@@ -199,56 +199,71 @@ const WorkflowSteps = () => {
             All Commands
           </h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="rounded-xl p-4 border border-border/40 bg-background/30">
+            <a
+              href="/docs/workflows/prd"
+              className="rounded-xl p-4 border border-border/40 bg-background/30 hover:border-primary/40 hover:bg-background/50 transition-all duration-200 group"
+            >
               <div className="flex items-center gap-2 mb-2">
                 <Lightbulb className="h-4 w-4 text-primary" />
                 <code className="text-sm font-medium text-primary">/prd</code>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground group-hover:text-foreground/80">
                 Brainstorm vague ideas into PRDs — back-and-forth conversation,
                 optional deep research, then hand off to /spec.
               </p>
-            </div>
-            <div className="rounded-xl p-4 border border-border/40 bg-background/30">
+            </a>
+            <a
+              href="/docs/workflows/spec"
+              className="rounded-xl p-4 border border-border/40 bg-background/30 hover:border-primary/40 hover:bg-background/50 transition-all duration-200 group"
+            >
               <div className="flex items-center gap-2 mb-2">
                 <FileText className="h-4 w-4 text-primary" />
                 <code className="text-sm font-medium text-primary">/spec</code>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground group-hover:text-foreground/80">
                 Spec-Driven Development — plan, approve, implement, verify.
                 Features and bug fixes. Auto-detects bugfix intent.
               </p>
-            </div>
-            <div className="rounded-xl p-4 border border-border/40 bg-background/30">
+            </a>
+            <a
+              href="/docs/workflows/setup-rules"
+              className="rounded-xl p-4 border border-border/40 bg-background/30 hover:border-primary/40 hover:bg-background/50 transition-all duration-200 group"
+            >
               <div className="flex items-center gap-2 mb-2">
                 <RefreshCw className="h-4 w-4 text-primary" />
                 <code className="text-sm font-medium text-primary">/setup-rules</code>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground group-hover:text-foreground/80">
                 Generates project rules from your codebase — explores patterns,
                 documents conventions and MCP servers.
               </p>
-            </div>
-            <div className="rounded-xl p-4 border border-border/40 bg-background/30">
+            </a>
+            <a
+              href="/docs/workflows/create-skill"
+              className="rounded-xl p-4 border border-border/40 bg-background/30 hover:border-primary/40 hover:bg-background/50 transition-all duration-200 group"
+            >
               <div className="flex items-center gap-2 mb-2">
                 <Brain className="h-4 w-4 text-primary" />
                 <code className="text-sm font-medium text-primary">/create-skill</code>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground group-hover:text-foreground/80">
                 Build reusable skills from any topic — explores the codebase
                 and creates well-structured skills interactively.
               </p>
-            </div>
-            <div className="rounded-xl p-4 border border-border/40 bg-background/30">
+            </a>
+            <a
+              href="/docs/workflows/benchmark"
+              className="rounded-xl p-4 border border-border/40 bg-background/30 hover:border-primary/40 hover:bg-background/50 transition-all duration-200 group"
+            >
               <div className="flex items-center gap-2 mb-2">
                 <Gauge className="h-4 w-4 text-primary" />
                 <code className="text-sm font-medium text-primary">/benchmark</code>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground group-hover:text-foreground/80">
                 Measure rule and skill impact — runs with/without
                 comparisons, grades outputs, proposes concrete edits.
               </p>
-            </div>
+            </a>
           </div>
         </div>
       </div>

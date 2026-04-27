@@ -54,7 +54,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="/docs/"
+                  href="/docs"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   Docs

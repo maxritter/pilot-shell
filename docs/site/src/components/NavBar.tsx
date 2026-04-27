@@ -69,7 +69,7 @@ const NavBar = () => {
             size="sm"
             className="hidden sm:inline-flex"
           >
-            <a href="/docs/">Docs</a>
+            <a href="/docs">Docs</a>
           </Button>
           <a
             href="https://pilot.openchangelog.com/"
@@ -133,7 +133,7 @@ const NavBar = () => {
             </button>
           ))}
           <a
-            href="/docs/"
+            href="/docs"
             className="block w-full text-left py-3 text-muted-foreground hover:text-foreground border-b border-border transition-colors"
           >
             Docs

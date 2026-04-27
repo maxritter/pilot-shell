@@ -115,7 +115,7 @@ const HeroSection = () => {
             asChild
             className="w-full sm:w-auto text-sm xs:text-base"
           >
-            <a href="/docs/">
+            <a href="/docs">
               <BookOpen className="mr-1.5 xs:mr-2 h-3.5 w-3.5 xs:h-4 xs:w-4" />
               Read Documentation
             </a>

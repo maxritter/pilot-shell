@@ -9,6 +9,10 @@ const config: Config = {
 
   url: "https://pilot-shell.com",
   baseUrl: "/",
+  // Match Vercel's `trailingSlash: false` so canonicals point to the actually-served URL.
+  // Without this, Docusaurus emits canonical=/docs/X/ but Vercel 308-redirects to /docs/X.
+  // Google sees the conflict and declines to index the entry point.
+  trailingSlash: false,
 
   organizationName: "maxritter",
   projectName: "pilot-shell",
@@ -48,6 +52,14 @@ const config: Config = {
   ],
 
   themeConfig: {
+    image: "https://pilot-shell.com/logo.png",
+    metadata: [
+      { name: "keywords", content: "Claude Code engineering platform, Claude Code, Claude Code platform, Claude Code framework, spec-driven development, Pilot Shell, TDD enforcement, AI coding agent, MCP servers, Claude Code best practices" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:site", content: "@maxritter" },
+      { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Pilot Shell" },
+    ],
     colorMode: {
       defaultMode: "dark",
       disableSwitch: false,

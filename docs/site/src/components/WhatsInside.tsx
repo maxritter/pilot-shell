@@ -7,6 +7,7 @@ import {
   Terminal,
   DollarSign,
   SlidersHorizontal,
+  ArrowRight,
 } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
 
@@ -15,6 +16,7 @@ interface InsideItem {
   title: string;
   description: string;
   summary: string;
+  href: string;
 }
 
 const insideItems: InsideItem[] = [
@@ -24,6 +26,7 @@ const insideItems: InsideItem[] = [
     description: "Replaces plan mode",
     summary:
       "/spec plans features and bugfixes, gets your approval, implements each task with TDD, then verifies with automated code review. Loops back if any check fails.",
+    href: "/docs/workflows/spec",
   },
   {
     icon: GitBranch,
@@ -31,6 +34,7 @@ const insideItems: InsideItem[] = [
     description: "Keep your context window lean",
     summary:
       "Curated rules for best practices, TDD, debugging, and verification. Language- and architecture-specific standards cover Python, TypeScript, Go, frontend, and backend. Concise and modular \u2014 only what\u2019s relevant loads into context.",
+    href: "/docs/features/context-optimization",
   },
   {
     icon: Terminal,
@@ -38,6 +42,7 @@ const insideItems: InsideItem[] = [
     description: "Deterministic checks on every edit",
     summary:
       "15 hooks across 7 lifecycle events. Auto-lint, format, and type-check every file edit. TDD enforcer warns when implementation is written without a failing test.",
+    href: "/docs/features/hooks",
   },
   {
     icon: Plug2,
@@ -45,6 +50,7 @@ const insideItems: InsideItem[] = [
     description: "Pre-configured, zero setup",
     summary:
       "Six MCP servers (docs, search, memory, code graphs) plus Python, TypeScript, and Go language servers \u2014 all auto-installed. Real-time diagnostics and type intelligence on every edit.",
+    href: "/docs/features/mcp-servers",
   },
   {
     icon: Search,
@@ -52,6 +58,7 @@ const insideItems: InsideItem[] = [
     description: "Find code by intent, not keywords",
     summary:
       "Search your codebase by intent, not just keywords. AST-aware extraction pulls exactly what\u2019s needed. Call graph tracing maps blast radius before you change anything. Sub-300ms.",
+    href: "/docs/features/open-source-tools",
   },
   {
     icon: DollarSign,
@@ -59,6 +66,7 @@ const insideItems: InsideItem[] = [
     description: "Right model, right task, visible spend",
     summary:
       "Smart model routing: Opus for planning, Sonnet for implementation. CLI proxy saves 60\u201390% on tool output tokens. Usage tracking in Console shows daily cost and trends.",
+    href: "/docs/features/model-routing",
   },
   {
     icon: Sparkles,
@@ -66,6 +74,7 @@ const insideItems: InsideItem[] = [
     description: "Skills, rules, commands, agents",
     summary:
       "Create custom skills and rules with built-in generators. Share across machines via git, across teams via project repos. Seven extension types at four scopes \u2014 managed in Console.",
+    href: "/docs/features/extensions",
   },
   {
     icon: SlidersHorizontal,
@@ -73,6 +82,7 @@ const insideItems: InsideItem[] = [
     description: "Modify what Pilot auto-installs",
     summary:
       "Tweak the built-in /spec workflow, adjust rules, add hooks and agents, change the configured MCP and LSP servers, override auto-applied Claude settings. Ship as a git repo for your team or a local directory for personal use. Upstream drift detected automatically.",
+    href: "/docs/features/customization",
   },
 ];
 
@@ -118,12 +128,14 @@ const WhatsInside = () => {
           {insideItems.map((item, index) => {
             const Icon = item.icon;
             return (
-              <div
+              <a
                 key={item.title}
+                href={item.href}
                 className={`group relative rounded-lg p-5 border border-border/50 bg-card
                   hover:border-primary/50 hover:bg-card hover:border-primary/50
-                  transition-all duration-300
+                  transition-all duration-300 block
                   ${gridInView ? `animate-fade-in-up ${animationDelays[index]}` : "opacity-0"}`}
+                aria-label={`Learn more about ${item.title}`}
               >
                 {/* Icon and Title */}
                 <div className="flex items-center gap-3 mb-3">
@@ -148,9 +160,15 @@ const WhatsInside = () => {
                   {item.summary}
                 </p>
 
+                {/* Learn more link */}
+                <div className="mt-3 flex items-center gap-1 text-[11px] text-primary/80 group-hover:text-primary transition-colors">
+                  <span>Learn more</span>
+                  <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+
                 {/* Subtle gradient overlay on hover */}
                 <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-              </div>
+              </a>
             );
           })}
         </div>

@@ -24,11 +24,22 @@ BUILD="$DOCUSAURUS_DIR/build"
 # Copy Docusaurus docs into Vite dist
 cp -r "$BUILD/docs" "$DIST/docs"
 
+# With Docusaurus `trailingSlash: false`, the docs entry page builds as `docs.html`
+# at the build root (not `docs/index.html`). Copy it so `/docs` resolves via Vercel's
+# cleanUrls — without this, /docs would fall through to the SPA rewrite and serve
+# the marketing page instead of the docs intro.
+[ -f "$BUILD/docs.html" ] && cp "$BUILD/docs.html" "$DIST/docs.html"
+
 # Merge Docusaurus assets into Vite assets (no filename conflicts — Vite uses hashes, Docusaurus uses css/js subdirs)
 cp -r "$BUILD/assets/"* "$DIST/assets/"
 
-# Copy search plugin files
-[ -d "$BUILD/search" ] && cp -r "$BUILD/search" "$DIST/search"
+# Copy search plugin files. With trailingSlash: false, search becomes search.html
+# (a file at root) instead of search/index.html.
+if [ -f "$BUILD/search.html" ]; then
+  cp "$BUILD/search.html" "$DIST/search.html"
+elif [ -d "$BUILD/search" ]; then
+  cp -r "$BUILD/search" "$DIST/search"
+fi
 [ -f "$BUILD/search-index.json" ] && cp "$BUILD/search-index.json" "$DIST/search-index.json"
 
 # Copy Docusaurus img (favicon etc.) — merge into existing img or create
