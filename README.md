@@ -44,8 +44,8 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 **Pilot Shell is different.** Every component solves a real problem:
 
 - **`/spec`** — plans, implements, and verifies features end-to-end with TDD
-- **`/prd`** — brainstorm vague ideas into clear requirements through back-and-forth conversation, with optional deep research
-- **Quality hooks** — enforce linting, formatting, type checking, and tests as gates (not suggestions)
+- **`/prd`** — brainstorm ideas into clear requirements through with optional deep research
+- **Quality hooks** — enforce linting, formatting, type checking, and tests as quality gates
 - **Context engineering** — preserves decisions and knowledge across sessions
 - **Code intelligence** — semantic search (Probe) + code knowledge graph (CodeGraph)
 - **Token optimization** — 60–90% cost reduction via RTK and context-mode
