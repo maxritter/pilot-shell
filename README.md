@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/maxritter-pilot-shell-badge.png)](https://mseep.ai/app/maxritter-pilot-shell)
+
 <div align="center">
 
 <img src="docs/img/logo.png" alt="Pilot Shell" width="400">
