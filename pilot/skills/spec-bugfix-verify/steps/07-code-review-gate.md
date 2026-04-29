@@ -1,4 +1,4 @@
-## Step 10: Code Review Gate (User Confirmation)
+## Step 7: Code Review Gate (User Confirmation)
 
 **⛔ MANDATORY before marking VERIFIED.**
 
@@ -19,8 +19,8 @@
    ```
 
 3. Handle response — **match strictly, never auto-approve ambiguous input:**
-   - **Approve:** Response is one of: "Approve", "approve", "lgtm", "looks good", "continue", "proceed" → proceed to Step 11
-   - **Fix:** Response matches "Fix" or mentions annotations/console feedback → re-run Step 9 (check for code review annotations in JSON), fix issues, re-run tests, return to Step 10
+   - **Approve:** Response is one of: "Approve", "approve", "lgtm", "looks good", "continue", "proceed" → proceed to Step 8
+   - **Fix:** Response matches "Fix" or mentions annotations/console feedback → re-run Step 6 (check for code review annotations in JSON), fix issues, re-run tests, return to Step 7
    - **Manual / custom text:** Response matches "Manual" OR is ANY other free-text/custom input → the user wants to pause. **Do NOT mark VERIFIED. Do NOT change plan status.** Use `AskUserQuestion` again (required so the stop guard allows the user to exit while waiting):
      ```
      AskUserQuestion(
@@ -30,6 +30,6 @@
      ```
      Then **stop and wait** for the user's next message.
    - **⛔ After Manual wait — re-evaluation of follow-up:** When the user responds after a Manual pause:
-     - Explicit approval ("approve", "lgtm", "looks good") → proceed to Step 11
-     - **Any other content** (error descriptions, screenshots, images, bug reports, or ANY non-approval text) → treat as **bug reports to fix**. Investigate the reported issues, implement fixes, re-run tests, then return to Step 10 (ask again).
-   - **⛔ NEVER treat ambiguous or custom responses as approval.** Only the explicit keywords listed under "Approve" advance to Step 11.
+     - Explicit approval ("approve", "lgtm", "looks good") → proceed to Step 8
+     - **Any other content** (error descriptions, screenshots, images, bug reports, or ANY non-approval text) → treat as **bug reports to fix**. Investigate the reported issues, implement fixes, re-run tests, then return to Step 7 (ask again).
+   - **⛔ NEVER treat ambiguous or custom responses as approval.** Only the explicit keywords listed under "Approve" advance to Step 8.

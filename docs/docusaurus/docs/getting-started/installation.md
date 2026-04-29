@@ -49,6 +49,13 @@ When enabled, Codex provides an independent adversarial review during `/spec` pl
 
 Pilot Shell works inside Dev Containers. Copy the `.devcontainer` folder from the [Pilot Shell repository](https://github.com/maxritter/pilot-shell/tree/main/.devcontainer) into your project, adapt it to your needs (base image, extensions, dependencies), and run the installer inside the container. The installer auto-detects the container environment and skips system-level dependencies like Homebrew.
 
+For tighter isolation when working with untrusted code, layer Claude Code's [`/sandbox`](https://code.claude.com/docs/en/sandboxing) on top — `bubblewrap`, `socat`, `iptables`, and `ipset` are pre-installed in the Dockerfile so it works out of the box on Linux.
+
+### Further reading
+
+- [Claude Code · Development containers](https://code.claude.com/docs/en/devcontainer) — Anthropic's reference container, persistent volumes, organization policy, network egress, the `--dangerously-skip-permissions` flag.
+- [Claude Code · Sandboxing](https://code.claude.com/docs/en/sandboxing) — Seatbelt (macOS) and bubblewrap (Linux/WSL2), `/sandbox` modes, `allowedDomains`, filesystem allow/deny rules, security limitations.
+
 ## Install Specific Version
 
 ```bash

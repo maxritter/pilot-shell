@@ -43,6 +43,17 @@ Task(
 
 Launch Codex review NOW — it runs in parallel with the Claude reviewer above.
 
+**⛔ Codex-once rule.** Codex runs at most once per `/spec` invocation. Before launching, check the sentinel file. If it exists, the review already ran in this session — skip the launch and the collection sub-step below. Plan iterations (annotation feedback, plan edits, fixing prior findings) do NOT trigger another Codex run.
+
+```bash
+SESS_ID="${PILOT_SESSION_ID:-default}"
+CODEX_FLAG="$HOME/.pilot/sessions/$SESS_ID/codex-ran-<plan-slug>.flag"
+if [ -f "$CODEX_FLAG" ]; then
+  echo "Codex already reviewed this plan in this session — skipping (codex-once)."
+  # Skip the launch and the Codex collection sub-step. Continue with Claude reviewer results only.
+fi
+```
+
 1. Detect companion path, project root, and base branch:
 ```bash
 CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | sort -V | tail -1)
@@ -79,12 +90,25 @@ Then Read the file once. If not READY after 5 min, re-launch synchronously.
 
 **⛔ The completion notification is the ONLY valid signal.** Do NOT read the output file to check if the review is done. The file may contain partial output from an in-progress review — reading it before the notification arrives leads to false conclusions ("no findings" when the review is still running). This is the #1 cause of premature Codex skip.
 
-**⛔ If the notification hasn't arrived yet:** STOP. Do NOT proceed to Step 12 or approval. Do NOT read the output file. Do NOT conclude the review failed. Wait for the `<task-notification>` with `<status>completed</status>`. If you are tempted to check the file — that is the exact mistake this rule prevents.
+**⛔ If the notification hasn't arrived yet:** Do NOT proceed to Step 12 or approval. Do NOT read the output file. Do NOT conclude the review failed. Wait for the `<task-notification>` with `<status>completed</status>`. If you are tempted to check the file — that is the exact mistake this rule prevents.
+
+**⛔ "Wait" does NOT mean "end your turn."** Ending the conversation turn lets the user think the workflow is finished and triggers a stop hook that pulls you out. Do not output a closing text message ("Waiting for codex…", "Holding for completion…"), do not call `ScheduleWakeup` as a substitute for staying engaged. Stay in-turn until the `<task-notification>` arrives. While waiting, do something productive in the same turn:
+- Re-read the plan file once and pre-emptively spot any gaps you would fix anyway.
+- If the user has queued a related request (e.g. a second bug to bundle), investigate / draft plan text for it now so you are ready to act when Codex completes.
+- Run sanity-check Bash one-liners that don't fork long-running processes (path checks, file existence, small `git log` queries).
+- As an absolute last resort with no other useful work, call `AskUserQuestion` to ask a short clarifying question — `AskUserQuestion` is the only tool whitelisted for a legitimate session-pause while a background task is in flight.
+
+The completion notification arrives automatically as a mid-turn tool-result-style event; you do not need to poll for it.
 
 1. **When (and ONLY when) the completion notification arrives**, read the background bash output. **Filter out `[codex]` prefixed log lines** — use `ctx_execute_file` to extract only non-`[codex]` lines. Search for `# Codex Adversarial Review` section via `ctx_search`.
 
 2. **Parse the output:** Extract `Verdict:` and `Findings:` lines. Map severities: `[high]` / `[critical]` → must_fix, `[medium]` / `[low]` → should_fix. Fix all must_fix/should_fix.
 
 3. **If the background bash timed out or failed** (exit code non-zero in the notification): Re-launch synchronously and wait. Only skip if the second attempt also fails.
+
+4. **Mark Codex as ran** so re-iterations of this plan within the same session do not re-run it:
+```bash
+mkdir -p "$(dirname "$CODEX_FLAG")" && touch "$CODEX_FLAG"
+```
 
 **If Codex was NOT launched**, proceed after all Claude reviewer must_fix/should_fix resolved.

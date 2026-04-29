@@ -25,7 +25,7 @@ const insideItems: InsideItem[] = [
     title: "Spec-Driven Development",
     description: "Replaces plan mode",
     summary:
-      "/spec plans features and bugfixes, gets your approval, implements each task with TDD, then verifies with automated code review. Loops back if any check fails.",
+      "/spec plans features end-to-end with TDD. /fix is the bugfix command — investigate, RED test, fix at the root cause, audit. Both honour the same approval and review toggles.",
     href: "/docs/workflows/spec",
   },
   {

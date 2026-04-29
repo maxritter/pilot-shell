@@ -1,6 +1,6 @@
 ---
 
-## Step 8: Get User Approval
+## Step 7: Get User Approval
 
 **⛔ If `PILOT_PLAN_APPROVAL_ENABLED` is `"false"` (from Step 0),** skip this step: set `Approved: Yes` in the plan file automatically and immediately invoke `Skill(skill='spec-implement', args='<plan-path>')`. No AskUserQuestion, no notification.
 

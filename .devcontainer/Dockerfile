@@ -22,6 +22,9 @@ RUN rm -rf /var/lib/apt/lists/* && \
         vim \
         netcat-openbsd \
         socat \
+        bubblewrap \
+        iptables \
+        ipset \
         chromium && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*

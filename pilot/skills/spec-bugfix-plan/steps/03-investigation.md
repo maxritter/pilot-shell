@@ -2,69 +2,73 @@
 
 ## Step 3: Root Cause Investigation
 
-**Complete each sub-step before the next. No shortcuts.**
+Complete each sub-step before the next. No shortcuts.
 
-### 3.1: Reproduce & Understand
+### 3.1 Reproduce & understand
 
-1. Restate: **symptom** (what user observes), **trigger** (when/how), **expected behavior**
-2. If too vague: `AskUserQuestion` with ONE focused question
-3. Can you trigger it reliably? What are the exact steps?
-4. **If not reproducible after 2 focused attempts:** STOP investigating silently. `AskUserQuestion` for the missing signal — exact command, input, environment, stack trace, or a recording. A speculative fix for an unreproduced bug is roughly 50% wasted effort; asking is cheaper than guessing.
-5. **If intermittent (flaky / race / timing):** trigger it 10+ times, record how often it fires and what state correlates with failures. Flaky bugs need a test that **forces** the race (deterministic ordering, frozen clock, blocked event loop), not a test that hopes to hit it.
+- Restate **symptom** (what user observes), **trigger** (when/how), **expected behaviour**.
+- Vague? One focused `AskUserQuestion`.
+- Reliable repro? Steps?
+- **Not reproducible after 2 attempts:** STOP guessing. `AskUserQuestion` for the missing signal — exact command, input, environment, stack trace, or recording.
+- **Intermittent (flaky / race):** trigger 10+ times, record state at failure. Flaky bugs need a test that **forces** the race (deterministic ordering, frozen clock, blocked event loop), not one that hopes to hit it.
 
-### 3.2: Check Recent Changes
+### 3.2 Recent changes
 
-- What changed that could cause this? `git log --oneline -10 -- <file>`, `git diff`
-- **When a specific token appeared or disappeared:** `git log -S "<string>" -- <path>` finds commits that added/removed that exact string. For regex patterns: `git log -G "<pattern>"`. Faster than `git bisect` when the bug correlates with a specific symbol.
-- New dependencies, config changes, environmental differences?
+- `git log --oneline -10 -- <file>`, `git diff` for the obvious suspects.
+- **A specific token appeared/disappeared?** `git log -S "<string>" -- <path>` (added/removed). Regex: `git log -G "<pattern>"`. Faster than bisect when correlated with a symbol.
+- New deps, config changes, env differences?
 
-### 3.3: Trace the Root Cause
+### 3.3 Trace the root cause
 
-**⛔ START WITH CODEGRAPH — before reading any files.**
+**Start with `codegraph_context(task="<bug description and symptoms>")`** — single call, returns entry points, related symbols, and code context. Read it before going deeper.
 
-**Step 1: Orient with CodeGraph (MANDATORY FIRST ACTION):**
+**Deep dive when needed:** `codegraph_search` to find a specific symbol, then `codegraph_explore(query="<symbol names>")` for full source from all relevant files in one call.
+
+**Backward tracing (symptom → source):**
+
+1. Find where the wrong behaviour appears — note `file:line`.
+2. `codegraph_callers` traces what called this with the bad value/state.
+3. Keep tracing until you find the **source** where the bad data originates.
+4. **Fix at the source, not where the error appears.**
+
+**Multi-component systems — instrument at boundaries before concluding:**
+
+```bash
+# Layer 1: entry point
+echo "=== enter handler — input: ==="
+echo "$INPUT"
+
+# Layer 2: business logic
+echo "=== leave handler / enter service — payload: ==="
+jq . <<< "$PAYLOAD"
+
+# Layer 3: storage
+echo "=== query result: ==="
+psql -c "SELECT id, status FROM jobs WHERE id=$JOB_ID"
 ```
-codegraph_context(task="<bug description and symptoms>")
-```
-This reveals entry points, related symbols, and code context for the bug area. Read the output carefully before diving deeper.
 
-**Step 2: Deep dive if needed:** Use `codegraph_search` to find the specific symbol, then `codegraph_explore(query="<symbol names>")` to get full source code from all relevant files in one call.
+This reveals **which** layer breaks. Investigate that layer next — don't speculate across layers.
 
-**Step 3: Trace and investigate.** Use Probe for intent-based search (`probe search`), CodeGraph for structural tracing. Fall back to Grep/Glob only for exact patterns.
+**⛔ Mark every temporary log/print with `SPEC-DEBUG:`** (e.g. `console.log("SPEC-DEBUG: filters=", filters)`, `# SPEC-DEBUG: print(x)`). Verification greps the diff for this marker — any match fails verification and forces cleanup. Only way temporary diagnostics are allowed in the fix diff.
 
-Read as many files as needed. For each: read completely, trace execution path from user action to symptom, note specific lines where behavior diverges.
+**Structural tracing — proportional to bug scope.** For bugs spanning 2+ files, modules, or components, run `codegraph_callers` + `codegraph_callees` on the root-cause function plus `codegraph_impact` for blast radius. For local bugs (typo, off-by-one, wrong constant in one function, missing null check at one call site), `codegraph_context` from above plus a targeted Read is enough — skip the full call-graph traversal.
 
-**Backward tracing technique (from symptom to source):**
+Tools: CodeGraph, Probe CLI (`probe search`/`probe extract`), Read/Grep/Glob for exact patterns.
 
-1. Find where the error/wrong behavior appears — note file:line
-2. Use `codegraph_callers` to trace what called this with the wrong value/state
-3. Keep tracing until you find the **source** — where the bad data originates
-4. **Fix at the source, not where the error appears**
+### 3.4 Pattern analysis
 
-**Multi-component systems:** Before concluding, instrument at component boundaries:
-
-- What data enters each component? What exits?
-- WHERE does it break? Run once to gather evidence, THEN investigate the failing component.
-- **Mark every temporary log/print with `SPEC-DEBUG:`** (e.g. `console.log("SPEC-DEBUG: filters=", filters)`, `# SPEC-DEBUG: print(x)`). Verification greps the diff for this marker — any match fails verification and forces cleanup. This is the only way temporary diagnostics are allowed in the fix diff.
-
-**⛔ Structural tracing (MANDATORY):** Run `codegraph_callers` and `codegraph_callees` on the function where the bug manifests AND the function at the root cause. Then run `codegraph_impact` to see the full blast radius — essential for understanding how bad data flows through the system.
-
-Tools: CodeGraph (`codegraph_context`, `codegraph_explore`, `codegraph_callers`/`codegraph_callees`, `codegraph_impact`, `codegraph_search`), Probe CLI (`probe search` for intent, `probe extract` for symbols), Read/Grep/Glob for exact patterns.
-
-### 3.4: Pattern Analysis
-
-1. Find **working examples** — similar code in the codebase that works correctly
+1. Find **working examples** — similar code in the codebase that works correctly.
 2. Compare: what's different between working and broken?
-3. List every difference, however small — don't assume "that can't matter"
+3. List every difference — don't assume "that can't matter".
 
-### 3.5: Root Cause Statement
+### 3.5 Root cause statement
 
 State clearly:
 
 - **Root cause:** `file/path.py:lineN` — `function_name()` does X but should do Y
-- **Why:** Explain WHY it causes the symptom (not just what's wrong)
+- **Why:** WHY it causes the symptom (not just what is wrong)
 - **Confidence:** High (traced fully) / Medium (strong hypothesis) / Low (needs more data)
 
-If confidence is Low: gather more evidence. Don't guess.
+Low confidence → gather more evidence. Don't guess.
 
-**Escalation:** If 3+ hypotheses have failed, STOP — this is likely an architectural problem, not a simple bug. `AskUserQuestion` to discuss with user before continuing.
+**Escalation:** if 3+ hypotheses have failed, this is likely architectural. STOP and `AskUserQuestion` before continuing.

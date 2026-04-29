@@ -234,6 +234,7 @@ class TestFinalSuccessPanel:
                 sections = mock_next_steps.call_args[0][0]
                 section_titles = [title for title, _ in sections]
                 assert section_titles == ["Getting Started", "Workflows"]
-                # Each section has 4 items
-                for _, items in sections:
-                    assert len(items) == 4
+                # Getting Started has 4 items, Workflows has 6 (incl. /fix and /benchmark)
+                expected_lengths = {"Getting Started": 4, "Workflows": 6}
+                for title, items in sections:
+                    assert len(items) == expected_lengths[title]

@@ -31,16 +31,12 @@
       "file": "steps/06-annotation-check.md"
     },
     {
-      "id": "step-7-codex-review",
-      "file": "steps/07-codex-review.md"
+      "id": "step-7-approval",
+      "file": "steps/07-approval.md"
     },
     {
-      "id": "step-8-approval",
-      "file": "steps/08-approval.md"
-    },
-    {
-      "id": "step-9-continuing",
-      "file": "steps/09-continuing.md"
+      "id": "step-8-continuing",
+      "file": "steps/08-continuing.md"
     }
   ]
 }

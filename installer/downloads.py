@@ -16,8 +16,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
-MAX_RETRIES = 3
-RETRY_BACKOFF = (1.0, 3.0)
+MAX_RETRIES = 5
+RETRY_BACKOFF = (1.0, 2.0, 5.0, 10.0, 20.0)
 
 _ssl_context: ssl.SSLContext | None = None
 
@@ -176,6 +176,12 @@ def download_file(
                             progress_callback(downloaded, total)
 
             return True
+        except urllib.error.HTTPError as e:
+            # 4xx → file genuinely missing, fail fast. 5xx → CDN hiccup, retry.
+            if 500 <= e.code < 600 and attempt < MAX_RETRIES - 1:
+                time.sleep(RETRY_BACKOFF[min(attempt, len(RETRY_BACKOFF) - 1)])
+                continue
+            return False
         except (urllib.error.URLError, OSError, TimeoutError):
             if attempt < MAX_RETRIES - 1:
                 time.sleep(RETRY_BACKOFF[min(attempt, len(RETRY_BACKOFF) - 1)])
@@ -188,12 +194,16 @@ def download_files_parallel(
     file_infos: list[FileInfo],
     dest_paths: list[Path],
     config: DownloadConfig,
-    max_workers: int = 16,
+    max_workers: int = 8,
 ) -> list[bool]:
     """Download multiple files in parallel using ThreadPoolExecutor.
 
     Returns a list of booleans indicating success/failure for each file,
     in the same order as the input lists.
+
+    After the parallel pass, any files that still failed get one more
+    sequential retry with a cool-down — handles burst-related CDN 502s
+    that don't recover within a single file's retry budget.
     """
     if len(file_infos) != len(dest_paths):
         raise ValueError("file_infos and dest_paths must have the same length")
@@ -215,6 +225,12 @@ def download_files_parallel(
                 results[index] = future.result()
             except Exception:
                 results[index] = False
+
+    failed_indices = [i for i, ok in enumerate(results) if not ok]
+    if failed_indices:
+        time.sleep(5.0)
+        for i in failed_indices:
+            results[i] = download_file(file_infos[i], dest_paths[i], config)
 
     return [r if r is not None else False for r in results]
 

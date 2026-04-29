@@ -17,6 +17,8 @@ hooks:
 **Output:** Approved bugfix plan at `docs/plans/YYYY-MM-DD-<slug>.md` with `Type: Bugfix`
 **Next:** On approval → `Skill(skill='spec-implement', args='<plan-path>')`
 
+**Note:** This skill is invoked when the user types `/spec "<bug description>"` — they chose the full spec workflow. For a bugfix workflow without a plan file, users invoke `/fix` directly (separate user-facing command). The two are distinct entry points — honour the user's choice.
+
 ---
 
 ## Iron Laws

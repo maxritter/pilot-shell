@@ -167,11 +167,17 @@ Call after creating plan header, reading existing plan, and after status changes
 **⛔ When `/spec` is invoked, the structured workflow is MANDATORY.** Everything after `/spec` is the task description.
 
 ```
-/spec → Dispatcher → Detect type (LLM intent) → Feature: Skill('spec-plan') → Plan, verify, approve
-                                                → Bugfix:  Skill('spec-bugfix-plan') → Root cause investigation, plan, approve
-                   → Skill('spec-implement')   → TDD loop for each task (both types)
-                   → Feature: Skill('spec-verify')        → Tests, code review, structured E2E scenarios (TS-NNN)
-                   → Bugfix:  Skill('spec-bugfix-verify') → Tests, quality checks, verification scenario
+/spec → Dispatcher → Detect type (LLM intent)
+                   → Feature: Skill('spec-plan') → Plan, verify, approve
+                              → Skill('spec-implement') → TDD loop for each task
+                              → Skill('spec-verify')    → Tests, code review, structured E2E (TS-NNN)
+                   → Bugfix:  Skill('spec-bugfix-plan') → Root-cause investigation, plan, approve
+                              → Skill('spec-implement')        → TDD loop for each task
+                              → Skill('spec-bugfix-verify')    → Behavior Contract audit, revert-test proof
+
+/fix  → Skill('fix') → Investigate, RED, fix, audit, done.
+        Always quick. If bug exceeds quick-lane scope, STOPS and tells the user to re-invoke with /spec.
+        Honour the user's command choice — don't silently switch lanes.
 ```
 
 ### ⛔ Dispatcher Integrity
@@ -208,7 +214,7 @@ spec-verify (or spec-bugfix-verify) finds issues → Status: PENDING → spec-im
 1. **Worktree Choice + Type Confirmation** (new plans only, in dispatcher — type only asked when ambiguous; worktree skipped when `$PILOT_WORKTREE_ENABLED=false`; Codex controlled entirely by Console Settings)
 2. **Plan Approval** (in spec-plan or spec-bugfix-plan; skipped when `$PILOT_PLAN_APPROVAL_ENABLED=false`)
 3. **Worktree Sync Approval** (in spec-verify/spec-bugfix-verify, only when `Worktree: Yes`)
-4. **Code Review Gate** (in spec-verify Step 18 / spec-bugfix-verify Step 10 — uses `AskUserQuestion` so the stop guard allows session exit while waiting)
+4. **Code Review Gate** (in spec-verify Step 18 / spec-bugfix-verify Step 7 — uses `AskUserQuestion` so the stop guard allows session exit while waiting)
 
 Everything else is automatic. **NEVER ask "Should I fix these findings?"** — verification fixes are part of the approved plan.
 

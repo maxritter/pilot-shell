@@ -16,7 +16,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
 from spec_stop_guard import main
 
 HOOK_PATH = Path(__file__).resolve().parent.parent / "spec_stop_guard.py"

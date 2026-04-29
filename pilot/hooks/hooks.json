@@ -61,7 +61,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash|WebSearch|WebFetch|Grep|Agent|EnterPlanMode|ExitPlanMode",
+        "matcher": "Bash|WebSearch|WebFetch|Grep|Glob|Agent|EnterPlanMode|ExitPlanMode",
         "hooks": [
           {
             "type": "command",

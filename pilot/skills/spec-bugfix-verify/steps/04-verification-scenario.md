@@ -1,8 +1,8 @@
-## Step 6: Verification Scenario (if exists in plan)
+## Step 4: Verification Scenario (if exists in plan)
 
 Check whether the plan has a `## Verification Scenario` section (only present for UI-facing bugs).
 
-**If no Verification Scenario:** proceed to Final.
+**If no Verification Scenario:** proceed to Step 5.
 
 **If Verification Scenario exists:**
 
@@ -23,7 +23,7 @@ agent-browser --session "$AB_SESSION" open <url>
    - **playwright-cli:** `open`/`goto`, `snapshot`, `click`/`fill` (bare refs: `e1`)
    - **agent-browser:** `open`/`goto`, `snapshot -i`, `click`/`fill` (refs: `@e1`)
 2. Verify the expected result for each step (read page after each interaction)
-3. **PASS:** Scenario confirms fix works — close browser (CLI tools only), proceed to Final
+3. **PASS:** Scenario confirms fix works — close browser (CLI tools only), proceed to Step 5
 4. **FAIL (attempt 1):** Analyze root cause, implement fix, re-run tests, re-execute scenario
 5. **FAIL (attempt 2):** Implement second fix, re-run tests, re-execute scenario
 6. **FAIL after 2 attempts:** The bug is not fully fixed — set `Status: PENDING`, increment `Iterations`, invoke `Skill(skill='spec-implement', args='<plan-path>')`. Do not proceed to VERIFIED.
