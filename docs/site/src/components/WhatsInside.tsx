@@ -25,7 +25,7 @@ const insideItems: InsideItem[] = [
     title: "Spec-Driven Development",
     description: "Replaces plan mode",
     summary:
-      "/spec plans features end-to-end with TDD. /fix is the bugfix command — investigate, RED test, fix at the root cause, audit. Both honour the same approval and review toggles.",
+      "/spec plans features end-to-end with TDD — explore, plan, approve, implement, verify. /fix runs the bugfix workflow with the same TDD discipline. Both honour your approval and review toggles.",
     href: "/docs/workflows/spec",
   },
   {
@@ -33,7 +33,7 @@ const insideItems: InsideItem[] = [
     title: "Context Engineering",
     description: "Keep your context window lean",
     summary:
-      "Curated rules for best practices, TDD, debugging, and verification. Language- and architecture-specific standards cover Python, TypeScript, Go, frontend, and backend. Concise and modular \u2014 only what\u2019s relevant loads into context.",
+      "Curated rules for best practices, TDD, debugging, and verification. Language- and architecture-specific standards for Python, TypeScript, Go, frontend, and backend \u2014 modular, only what\u2019s relevant loads.",
     href: "/docs/features/context-optimization",
   },
   {
@@ -41,7 +41,7 @@ const insideItems: InsideItem[] = [
     title: "Quality Hooks & Testing",
     description: "Deterministic checks on every edit",
     summary:
-      "15 hooks across 7 lifecycle events. Auto-lint, format, and type-check every file edit. TDD enforcer warns when implementation is written without a failing test.",
+      "15 hooks across 7 lifecycle events. Auto-lint, format, and type-check every file edit. The TDD enforcer warns when implementation lands without a failing test in place first.",
     href: "/docs/features/hooks",
   },
   {
@@ -49,7 +49,7 @@ const insideItems: InsideItem[] = [
     title: "MCP & LSP Servers",
     description: "Pre-configured, zero setup",
     summary:
-      "Six MCP servers (docs, search, memory, code graphs) plus Python, TypeScript, and Go language servers \u2014 all auto-installed. Real-time diagnostics and type intelligence on every edit.",
+      "Six MCP servers ship pre-configured: docs, web search, persistent memory, code graphs. Python, TypeScript, and Go language servers auto-install for real-time diagnostics on every edit.",
     href: "/docs/features/mcp-servers",
   },
   {
@@ -57,7 +57,7 @@ const insideItems: InsideItem[] = [
     title: "Semantic Search",
     description: "Find code by intent, not keywords",
     summary:
-      "Search your codebase by intent, not just keywords. AST-aware extraction pulls exactly what\u2019s needed. Call graph tracing maps blast radius before you change anything. Sub-300ms.",
+      "Search the codebase by intent, not keywords. AST-aware extraction pulls exactly what\u2019s needed. Call-graph tracing maps blast radius before you change anything. Sub-300ms results.",
     href: "/docs/features/open-source-tools",
   },
   {
@@ -65,7 +65,7 @@ const insideItems: InsideItem[] = [
     title: "Cost Optimization",
     description: "Right model, right task, visible spend",
     summary:
-      "Smart model routing: Opus for planning, Sonnet for implementation. CLI proxy saves 60\u201390% on tool output tokens. Usage tracking in Console shows daily cost and trends.",
+      "Smart model routing \u2014 Opus for planning and verification, Sonnet for implementation. CLI proxy saves 60\u201390% on tool-output tokens. Console tracks daily cost and trends over time.",
     href: "/docs/features/model-routing",
   },
   {
@@ -73,7 +73,7 @@ const insideItems: InsideItem[] = [
     title: "Extensions & Sharing",
     description: "Skills, rules, commands, agents",
     summary:
-      "Create custom skills and rules with built-in generators. Share across machines via git, across teams via project repos. Seven extension types at four scopes \u2014 managed in Console.",
+      "Create custom skills and rules with built-in generators. Share across machines via git, across teams via project repos. Seven extension types at four scopes, managed in the Console UI.",
     href: "/docs/features/extensions",
   },
   {
@@ -81,7 +81,7 @@ const insideItems: InsideItem[] = [
     title: "Customization",
     description: "Modify what Pilot auto-installs",
     summary:
-      "Tweak the built-in /spec workflow, adjust rules, add hooks and agents, change the configured MCP and LSP servers, override auto-applied Claude settings. Ship as a git repo for your team or a local directory for personal use. Upstream drift detected automatically.",
+      "Tweak the built-in /spec workflow, adjust rules, add hooks and agents, swap MCP/LSP servers, override Claude settings. Ship as a team git repo or a local dir. Upstream drift detected automatically.",
     href: "/docs/features/customization",
   },
 ];

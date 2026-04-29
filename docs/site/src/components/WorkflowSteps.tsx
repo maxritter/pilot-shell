@@ -8,6 +8,8 @@ import {
   Brain,
   Lightbulb,
   Gauge,
+  Bug,
+  ArrowRight,
 } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
 
@@ -49,9 +51,13 @@ const WorkflowSteps = () => {
           className={`grid md:grid-cols-3 gap-6 mb-12 ${modesInView ? "animate-fade-in-up" : "opacity-0"}`}
         >
           {/* Requirements Mode */}
-          <div className="group relative rounded-lg p-6 border border-border/50 bg-card hover:border-primary/30 transition-all duration-300">
+          <a
+            href="/docs/workflows/prd"
+            className="group relative rounded-lg p-6 border border-border/50 bg-card hover:border-primary/50 transition-all duration-300 block"
+            aria-label="Learn more about /prd"
+          >
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center">
+              <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                 <Lightbulb className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -66,17 +72,23 @@ const WorkflowSteps = () => {
                 </p>
               </div>
             </div>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Back-and-forth brainstorming for vague ideas: Claude pitches
-              directions, pressure-tests them, and converges on a PRD — then
-              hands off to /spec.
+            <p className="text-muted-foreground text-sm leading-relaxed group-hover:text-foreground/80 transition-colors duration-200">
+              Back-and-forth brainstorming for vague ideas. Claude pitches directions, pressure-tests them, and converges on a PRD that hands off cleanly to /spec.
             </p>
-          </div>
+            <div className="mt-3 flex items-center gap-1 text-xs text-primary/80 group-hover:text-primary transition-colors">
+              <span>Learn more</span>
+              <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </a>
 
           {/* Spec-Driven Mode */}
-          <div className="group relative rounded-lg p-6 border border-primary/50 bg-card hover:bg-card transition-all duration-300">
+          <a
+            href="/docs/workflows/spec"
+            className="group relative rounded-lg p-6 border border-primary/50 bg-card hover:border-primary transition-all duration-300 block"
+            aria-label="Learn more about /spec"
+          >
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-11 h-11 bg-primary/20 rounded-xl flex items-center justify-center">
+              <div className="w-11 h-11 bg-primary/20 rounded-xl flex items-center justify-center group-hover:bg-primary/30 group-hover:scale-110 transition-all duration-300">
                 <FileText className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -91,34 +103,45 @@ const WorkflowSteps = () => {
                 </p>
               </div>
             </div>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Creates a plan, gets your approval, implements with TDD, verifies
-              completion. Best for anything that touches multiple files or needs
-              careful planning.
+            <p className="text-muted-foreground text-sm leading-relaxed group-hover:text-foreground/80 transition-colors duration-200">
+              Creates a plan, gets your approval, implements each task with TDD, verifies completion. Best for features and anything multi-file that needs careful planning.
             </p>
-          </div>
+            <div className="mt-3 flex items-center gap-1 text-xs text-primary/80 group-hover:text-primary transition-colors">
+              <span>Learn more</span>
+              <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </a>
 
-          {/* Quick Mode */}
-          <div className="group relative rounded-lg p-6 border border-border/50 bg-card hover:border-primary/30 transition-all duration-300">
+          {/* Fix Flow */}
+          <a
+            href="/docs/workflows/fix"
+            className="group relative rounded-lg p-6 border border-border/50 bg-card hover:border-primary/50 transition-all duration-300 block"
+            aria-label="Learn more about /fix"
+          >
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center">
-                <Zap className="h-5 w-5 text-primary" />
+              <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+                <Bug className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-foreground">
-                  Quick Mode
+                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  Bugfix
+                  <code className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
+                    /fix
+                  </code>
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Small tasks and questions
+                  Investigate, test, fix, audit
                 </p>
               </div>
             </div>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Just chat — no plan file, no approval gate. All quality hooks and
-              TDD enforcement still apply. Great for small changes, questions,
-              and exploration.
+            <p className="text-muted-foreground text-sm leading-relaxed group-hover:text-foreground/80 transition-colors duration-200">
+              TDD bugfix workflow — traces the root cause, writes a failing test, fixes at the source, verifies end-to-end. Bails out to /spec when complexity warrants a plan.
             </p>
-          </div>
+            <div className="mt-3 flex items-center gap-1 text-xs text-primary/80 group-hover:text-primary transition-colors">
+              <span>Learn more</span>
+              <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </a>
         </div>
 
         {/* Spec-Driven Workflow Diagram */}
@@ -198,7 +221,7 @@ const WorkflowSteps = () => {
           <h3 className="text-lg font-semibold text-foreground mb-5 text-center">
             All Commands
           </h3>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <a
               href="/docs/workflows/prd"
               className="rounded-xl p-4 border border-border/40 bg-background/30 hover:border-primary/40 hover:bg-background/50 transition-all duration-200 group"
@@ -222,7 +245,20 @@ const WorkflowSteps = () => {
               </div>
               <p className="text-xs text-muted-foreground group-hover:text-foreground/80">
                 Spec-Driven Development — plan, approve, implement, verify.
-                Features and bug fixes. Auto-detects bugfix intent.
+                For features, refactoring, and architectural changes.
+              </p>
+            </a>
+            <a
+              href="/docs/workflows/fix"
+              className="rounded-xl p-4 border border-border/40 bg-background/30 hover:border-primary/40 hover:bg-background/50 transition-all duration-200 group"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Bug className="h-4 w-4 text-primary" />
+                <code className="text-sm font-medium text-primary">/fix</code>
+              </div>
+              <p className="text-xs text-muted-foreground group-hover:text-foreground/80">
+                Bugfix workflow — investigate, write a failing test, fix at the
+                root cause, audit end-to-end. Bails out for complex bugs.
               </p>
             </a>
             <a

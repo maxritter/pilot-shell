@@ -1,6 +1,5 @@
 import { GithubIcon, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import Logo from "@/components/Logo";
 
 const HeroSection = () => {
@@ -24,73 +23,6 @@ const HeroSection = () => {
           <p className="text-muted-foreground/70 text-[10px] xs:text-xs sm:text-sm md:text-base max-w-[90%] xs:max-w-xl sm:max-w-2xl mx-auto mt-1.5 leading-relaxed">
             Spec-driven plans. Enforced quality gates. Persistent knowledge.
           </p>
-        </div>
-
-        {/* Feature highlights */}
-        <div className="flex flex-wrap justify-center gap-3 xs:gap-4 sm:gap-6 mb-6 xs:mb-8 animate-fade-in-up animation-delay-400 px-2">
-          <div className="text-center">
-            <div className="text-lg xs:text-xl sm:text-2xl font-bold text-primary">
-              Spec-Driven
-            </div>
-            <div className="text-[9px] xs:text-[10px] sm:text-xs text-muted-foreground">
-              Plan → Build → Verify
-            </div>
-          </div>
-          <div className="w-px h-8 bg-border/50 hidden xs:block" />
-          <div className="text-center">
-            <div className="text-lg xs:text-xl sm:text-2xl font-bold text-primary">
-              TDD
-            </div>
-            <div className="text-[9px] xs:text-[10px] sm:text-xs text-muted-foreground">
-              Test-First
-            </div>
-          </div>
-          <div className="w-px h-8 bg-border/50 hidden xs:block" />
-          <div className="text-center">
-            <div className="text-lg xs:text-xl sm:text-2xl font-bold text-primary">
-              Memory
-            </div>
-            <div className="text-[9px] xs:text-[10px] sm:text-xs text-muted-foreground">
-              Persistent Context
-            </div>
-          </div>
-          <div className="w-px h-8 bg-border/50 hidden xs:block" />
-          <div className="text-center">
-            <div className="text-lg xs:text-xl sm:text-2xl font-bold text-primary">
-              Overlays
-            </div>
-            <div className="text-[9px] xs:text-[10px] sm:text-xs text-muted-foreground">
-              Modify Defaults
-            </div>
-          </div>
-          <div className="w-px h-8 bg-border/50 hidden xs:block" />
-          <div className="text-center">
-            <div className="text-lg xs:text-xl sm:text-2xl font-bold text-primary">
-              Hooks
-            </div>
-            <div className="text-[9px] xs:text-[10px] sm:text-xs text-muted-foreground">
-              Quality Gates
-            </div>
-          </div>
-        </div>
-
-        {/* Feature badges */}
-        <div className="flex flex-wrap justify-center gap-1.5 xs:gap-2 mb-6 xs:mb-8 animate-fade-in-up animation-delay-400 px-2">
-          <Badge variant="secondary" className="text-[10px] xs:text-xs">
-            Worktree Support
-          </Badge>
-          <Badge variant="secondary" className="text-[10px] xs:text-xs">
-            MCP Servers
-          </Badge>
-          <Badge variant="secondary" className="text-[10px] xs:text-xs">
-            LSP Servers
-          </Badge>
-          <Badge variant="secondary" className="text-[10px] xs:text-xs">
-            Semantic Search
-          </Badge>
-          <Badge variant="secondary" className="text-[10px] xs:text-xs">
-            Pilot Bot
-          </Badge>
         </div>
 
         {/* CTA Buttons */}

@@ -15,8 +15,8 @@
       "file": "steps/03-fix.md"
     },
     {
-      "id": "step-4-audit",
-      "file": "steps/04-audit.md"
+      "id": "step-4-verify-e2e",
+      "file": "steps/04-verify-e2e.md"
     },
     {
       "id": "step-5-quality",

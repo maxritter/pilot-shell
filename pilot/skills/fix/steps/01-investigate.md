@@ -35,7 +35,7 @@ For bugs that don't surface clearly through stack traces or static reading — U
 - Log computed intermediate results.
 - Log return values at layer boundaries.
 
-**Mark every temporary log with `SPEC-DEBUG:`** (e.g. `console.log("SPEC-DEBUG: filters=", filters)`). Step 4 audit greps for this marker — any unremoved match fails the audit.
+**Mark every temporary log with `SPEC-DEBUG:`** (e.g. `console.log("SPEC-DEBUG: filters=", filters)`). Step 3.5 greps for this marker — any unremoved match fails the diff sanity check.
 
 Skip 1.4 when the stack trace already names the failing line, or when a static read of the file is enough to see the bug. Skip is the default.
 

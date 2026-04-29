@@ -111,6 +111,6 @@
     "padding": 0
   },
   "companyAnnouncements": [
-    "/spec — features | /fix — bugfixes | /prd — requirements | /setup-rules | /create-skill | /benchmark"
+    "features: /spec | bugfixes: /fix | requirements: /prd | rules & skills: /setup-rules, /create-skill, /benchmark"
   ]
 }

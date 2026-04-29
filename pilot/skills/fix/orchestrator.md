@@ -1,6 +1,6 @@
 ---
 name: fix
-description: "Bugfix workflow — investigate, RED test, fix, audit, done. Standard command for bugs. Stops cleanly and asks the user to re-invoke with /spec when the bug exceeds this workflow's scope."
+description: "Bugfix workflow — investigate, RED test, fix, verify end-to-end, done. Standard command for bugs. Stops cleanly and asks the user to re-invoke with /spec when the bug exceeds this workflow's scope."
 argument-hint: "<bug description>"
 user-invocable: true
 model: opus
@@ -8,7 +8,7 @@ model: opus
 
 # /fix — Bugfix Workflow
 
-Bugfix workflow with RED-before-GREEN discipline. Investigate the bug, write the failing test, fix at the root cause, single-pass audit, done. No plan file, no approval gate mid-flow, no separate verify phase.
+Bugfix workflow with TDD. Investigate the bug, write the failing test, fix at the root cause, verify the fix end-to-end, done. No plan file, no approval gate mid-flow, no separate verify phase.
 
 ```bash
 > /fix "annotation persistence drops fields between save and reload"
@@ -24,9 +24,9 @@ Bugfix workflow with RED-before-GREEN discipline. Investigate the bug, write the
 
 ```
 1. NO FIXES WITHOUT ROOT CAUSE — traced to file:line, explained WHY.
-2. NO CODE WITHOUT A FAILING REPRODUCING TEST — RED before GREEN.
+2. NO CODE WITHOUT A FAILING REPRODUCING TEST — TDD.
 3. FIX AT THE SOURCE — not where the error appears.
-4. NEVER CLAIM DONE FROM UNIT TESTS ALONE — Step 4.3 mandates running the actual program (UI: Claude Code Chrome / Chrome DevTools MCP / playwright-cli / agent-browser; CLI/API/library: real invocation) and capturing concrete evidence.
+4. END-TO-END VERIFICATION IS MANDATORY — Step 4 runs the actual program (UI: Claude Code Chrome / Chrome DevTools MCP / playwright-cli / agent-browser; CLI/API/library: real invocation) and captures concrete evidence. Unit tests alone are never accepted as proof.
 5. STOP WHEN OVER YOUR HEAD — multi-component / architectural bugs need /spec.
 ```
 

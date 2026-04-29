@@ -94,7 +94,11 @@ const InstallSection = () => {
                   <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
                     /spec
                   </code>{" "}
-                  features &amp; bugfixes{" → "}
+                  features{" → "}
+                  <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                    /fix
+                  </code>{" "}
+                  bugfixes{" → "}
                   <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
                     /create-skill
                   </code>{" "}

@@ -13,7 +13,7 @@ The conventional `fix:` prefix triggers a patch release if/when this branch ship
 
 ### 6.2 Approval gate (only when enabled)
 
-⛔ **Before showing the approval question, you MUST have completed Step 4.3 with evidence.** "Tests pass" is not enough — the approval summary must include what you actually ran end-to-end and what you observed. If you cannot fill in `**E2E:**` below with concrete evidence, you have not finished Step 4.3 — go back, do not ask for approval.
+⛔ **Before showing the approval question, you MUST have completed Step 4 (Verify End-to-End) with evidence.** "Tests pass" is not enough — the approval summary must include what you actually ran and what you observed. If you cannot fill in `**E2E:**` below with concrete evidence, you have not finished Step 4 — go back, do not ask for approval.
 
 Read `PILOT_PLAN_APPROVAL_ENABLED`. If `"false"` → skip 6.2 entirely, mark done.
 

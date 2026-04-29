@@ -408,6 +408,79 @@ class TestDownloadFilesParallel:
                 config,
             )
 
+    def test_download_files_parallel_sequential_retry_recovers_failed_files(self, monkeypatch):
+        """After the parallel pass, files that failed get one sequential retry — and may succeed there."""
+        from unittest.mock import patch
+
+        from installer import downloads
+        from installer.downloads import (
+            DownloadConfig,
+            FileInfo,
+            download_files_parallel,
+        )
+
+        # Skip the 5-second cool-down between parallel and sequential pass.
+        monkeypatch.setattr(downloads.time, "sleep", lambda _seconds: None)
+
+        config = DownloadConfig(
+            repo_url="https://github.com/test/repo",
+            repo_branch="main",
+            local_mode=True,
+            local_repo_dir=Path("/tmp"),
+        )
+
+        # download_file is called once per file in parallel pass, then once more
+        # per failed file in the sequential retry pass. Use a per-path call counter
+        # so file-A fails in parallel and succeeds on retry, while file-B always succeeds.
+        call_counts: dict[str, int] = {}
+
+        def fake_download_file(file_info, _dest_path, _config):
+            call_counts[file_info.path] = call_counts.get(file_info.path, 0) + 1
+            if file_info.path == "flaky.txt":
+                # Fail on first (parallel) call, succeed on retry.
+                return call_counts[file_info.path] >= 2
+            return True
+
+        with patch("installer.downloads.download_file", side_effect=fake_download_file):
+            results = download_files_parallel(
+                [FileInfo(path="flaky.txt"), FileInfo(path="ok.txt")],
+                [Path("/tmp/flaky.txt"), Path("/tmp/ok.txt")],
+                config,
+            )
+
+        assert results == [True, True]
+        assert call_counts["flaky.txt"] == 2  # parallel + sequential retry
+        assert call_counts["ok.txt"] == 1  # parallel only — no retry needed
+
+    def test_download_files_parallel_sequential_retry_still_fails(self, monkeypatch):
+        """If the sequential retry pass also fails, the file's result is False."""
+        from unittest.mock import patch
+
+        from installer import downloads
+        from installer.downloads import (
+            DownloadConfig,
+            FileInfo,
+            download_files_parallel,
+        )
+
+        monkeypatch.setattr(downloads.time, "sleep", lambda _seconds: None)
+
+        config = DownloadConfig(
+            repo_url="https://github.com/test/repo",
+            repo_branch="main",
+            local_mode=True,
+            local_repo_dir=Path("/tmp"),
+        )
+
+        with patch("installer.downloads.download_file", return_value=False):
+            results = download_files_parallel(
+                [FileInfo(path="always-fails.txt")],
+                [Path("/tmp/always-fails.txt")],
+                config,
+            )
+
+        assert results == [False]
+
 
 class TestTreeJsonFallback:
     """Test tree.json release asset fallback for get_repo_files."""

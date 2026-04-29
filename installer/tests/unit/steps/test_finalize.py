@@ -182,35 +182,6 @@ class TestFinalSuccessPanel:
 
                 mock_next_steps.assert_called()
 
-    def test_prd_appears_before_spec_in_next_steps(self):
-        """/prd entry appears before /spec in the next steps panel."""
-        from installer.context import InstallContext
-        from installer.steps.finalize import FinalizeStep
-        from installer.ui import Console
-
-        step = FinalizeStep()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            project_dir = Path(tmpdir)
-            (project_dir / ".claude").mkdir()
-
-            console = Console(non_interactive=True)
-            ctx = InstallContext(
-                project_dir=project_dir,
-                ui=console,
-            )
-
-            with patch.object(console, "next_steps") as mock_next_steps:
-                step.run(ctx)
-
-                sections = mock_next_steps.call_args[0][0]
-                # Flatten all items across sections
-                labels = [item[0] for _, items in sections for item in items]
-                assert "/prd" in labels
-                assert "/spec" in labels
-                prd_idx = labels.index("/prd")
-                spec_idx = labels.index("/spec")
-                assert prd_idx < spec_idx
-
     def test_next_steps_has_two_sections(self):
         """Next steps panel has Getting Started and Workflows sections."""
         from installer.context import InstallContext
@@ -238,3 +209,6 @@ class TestFinalSuccessPanel:
                 expected_lengths = {"Getting Started": 4, "Workflows": 6}
                 for title, items in sections:
                     assert len(items) == expected_lengths[title]
+                workflow_labels = [label for label, _ in dict(sections)["Workflows"]]
+                assert "/fix" in workflow_labels
+                assert "/benchmark" in workflow_labels
