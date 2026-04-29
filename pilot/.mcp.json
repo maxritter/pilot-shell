@@ -2,20 +2,24 @@
   "mcpServers": {
     "context7": {
       "command": "npx",
+      "alwaysLoad": true,
       "args": ["-y", "@upstash/context7-mcp"]
     },
     "codegraph": {
       "type": "stdio",
       "command": "codegraph",
+      "alwaysLoad": true,
       "args": ["serve", "--mcp"]
     },
     "mem-search": {
       "type": "stdio",
       "command": "sh",
+      "alwaysLoad": true,
       "args": ["-c", "bun run ~/.claude/pilot/scripts/mcp-server.cjs"]
     },
     "web-search": {
       "command": "npx",
+      "alwaysLoad": true,
       "args": ["-y", "open-websearch"],
       "env": {
         "MODE": "stdio",
@@ -25,10 +29,12 @@
     },
     "grep-mcp": {
       "type": "http",
+      "alwaysLoad": true,
       "url": "https://mcp.grep.app"
     },
     "web-fetch": {
       "command": "npx",
+      "alwaysLoad": true,
       "args": ["-y", "fetcher-mcp"]
     }
   }

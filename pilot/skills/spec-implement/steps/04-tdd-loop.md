@@ -50,16 +50,14 @@ Minimal flow. No production code here, so most generic steps (call-chain analysi
 
 #### Task 2 — Implement Fix at Root Cause (GREEN)
 
-This is the only task that modifies production code. Full TDD discipline applies.
+This is the only task that modifies production code.
 
 1. Call-chain analysis: use plan's Investigation if it covers the function; otherwise run `codegraph_callers` + `codegraph_callees` on the root-cause function only.
 2. Make the minimal change at `Root Cause: file:line`. Fix at the source, not at the symptom.
 3. Forbidden: new broad `try/except` around the failing call, `if value is None: return default` at the caller when the bug is upstream, swallowed exceptions, silently normalised bad inputs. Legitimate defense-in-depth requires an explicit entry in the plan's `Defense-in-depth:` field.
-4. Re-run the reproducing test → **must PASS**.
-5. Run the full test suite → zero failures. This is the anti-regression check for this task.
-6. Diagnostics zero errors. Performance audit on the diff.
-7. Re-read the plan's `## Behavior Contract` and confirm: (a) reproducing test passes, (b) `Anti-regression` behavior still works, (c) diff touches the root-cause file. If any is false, return to step 2 — do not rationalize forward.
-8. Worktree mode: commit (`fix(spec): <bug>`). Update plan, mark task completed.
+4. Re-run the reproducing test → **must PASS**. Then run the test module(s) covering the root-cause file — fast, scoped (e.g. `pytest path/to/test_module.py -q`). The full anti-regression suite runs at the Quality Gate task, not here. Running the full suite per-fix-task is the single biggest token sink in bundled bugfix plans.
+5. Diagnostics zero errors. Confirm the diff touches the root-cause file from the plan.
+6. Worktree mode: commit (`fix(spec): <bug>`). Update plan, mark task completed.
 
 #### Task 3 — Quality Gate
 

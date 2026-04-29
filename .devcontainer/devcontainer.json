@@ -8,6 +8,9 @@
     "${localWorkspaceFolderBasename}"
   ],
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "mounts": [
+    "source=claude-code-config-${devcontainerId},target=/root/.claude,type=volume"
+  ],
   "customizations": {
     "vscode": {
       "extensions": [

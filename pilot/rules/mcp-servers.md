@@ -137,11 +137,9 @@ Options: `waitUntil` (load/domcontentloaded/networkidle), `returnHtml`, `waitFor
 
 ### CodeGraph — Code Knowledge Graph
 
-**Purpose:** Semantic code knowledge graph for symbol search, call tracing, impact analysis, and code context retrieval.
+**Purpose:** Semantic code knowledge graph for symbol search, call tracing, impact analysis, and code context retrieval. **The primary code-search tool** — replaces Grep/Glob for any structural query.
 
 **Complements Probe CLI:** Probe finds code by intent ("how does auth work?"). CodeGraph finds by structure ("who calls this?", "what's affected by changing this?").
-
-**Key tools:**
 
 | Tool                | Purpose                                                    |
 | ------------------- | ---------------------------------------------------------- |
@@ -154,11 +152,11 @@ Options: `waitUntil` (load/domcontentloaded/networkidle), `returnHtml`, `waitFor
 | `codegraph_node`    | Get details and source code for a specific symbol          |
 | `codegraph_files`   | Get project file structure from the index                  |
 
-**Workflow:** `codegraph_context(task=...)` to orient → `codegraph_search` to find symbols → `codegraph_explore(query="SymbolA SymbolB file.ts")` for deep understanding → `codegraph_callers`/`codegraph_callees` to trace flow → `codegraph_impact` before changes
+**Workflow:** `codegraph_context(task=...)` to orient → `codegraph_search` to find symbols → `codegraph_explore(query="SymbolA SymbolB file.ts")` for deep understanding → `codegraph_callers`/`codegraph_callees` to trace flow → `codegraph_impact` before changes.
 
-**`codegraph_explore` tips:** Use specific symbol names and file names as query terms — NOT natural language. Run `codegraph_search` first to discover symbol names, then pass those names to `codegraph_explore`. Follow the call budget in the tool description.
+**`codegraph_explore` tips:** use specific symbol names and file names as query terms — NOT natural language. Run `codegraph_search` first to discover symbol names. Follow the call budget in the tool description.
 
-**⛔ NEVER pass `projectPath` when searching the current project.** The MCP server already defaults to the current project. Passing `projectPath` explicitly triggers a different code path that fails if `.codegraph/` isn't at that exact path. Only use `projectPath` for querying a genuinely different codebase.
+**⛔ NEVER pass `projectPath` when searching the current project.** The MCP server defaults to the current project. Passing `projectPath` explicitly triggers a different code path that fails if `.codegraph/` isn't at that exact path. Only use `projectPath` for querying a genuinely different codebase.
 
 ```
 codegraph_search(query="Handler", kind="function")
@@ -169,27 +167,16 @@ codegraph_context(task="refactor authentication flow")
 codegraph_node(symbol="MyClass", includeCode=true)
 ```
 
-**Primary use cases (Probe can't do these):**
+**⛔ CodeGraph replaces Grep/Glob for code search:**
 
-- **`codegraph_context`** — task-driven context retrieval. **⛔ MUST use at the start of every task to orient.**
-- **`codegraph_explore`** — deep dive with full source code. **⛔ Use for thorough understanding — one call replaces 10+ file reads.**
-- **`codegraph_callers`/`codegraph_callees`** — caller/callee graph (may miss some indirect callers — supplement with Grep). **⛔ MUST use before modifying any function.**
-- **`codegraph_impact`** — transitive blast radius analysis. **⛔ MUST use during planning to scope impact.**
+- `codegraph_context` → task orientation. **MUST use first on every task.**
+- `codegraph_explore` → deep code understanding (NOT multiple Read calls).
+- `codegraph_search` → symbol search (NOT Grep).
+- `codegraph_callers`/`codegraph_callees` → call-flow tracing (NOT Grep). Supplement with Grep as a *completeness check* for indirect/dynamic callers.
+- `codegraph_impact` → pre-change blast radius.
+- `codegraph_files` → project file structure (NOT Glob/ls).
 
-**⛔ CodeGraph replaces Grep/Glob for these — not "prefer", REPLACE:**
-
-- `codegraph_context` → task orientation (nothing else does this)
-- `codegraph_explore` → deep code understanding (NOT multiple Read calls)
-- `codegraph_search` → finding symbols (NOT Grep)
-- `codegraph_callers`/`codegraph_callees` → tracing code flow (NOT Grep)
-- `codegraph_impact` → pre-change analysis (nothing else does this)
-- `codegraph_files` → project file structure (NOT Glob/ls)
-
-**When Probe is better:**
-
-- Intent-based search ("how does authentication work?")
-- Natural language queries
-- AST-aware code extraction by line/symbol
+For intent-based search ("how does authentication work?") and AST-aware extraction by line/symbol, use Probe CLI instead.
 
 ---
 

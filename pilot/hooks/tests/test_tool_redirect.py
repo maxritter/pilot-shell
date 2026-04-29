@@ -518,7 +518,7 @@ class TestDangerousGitBlock:
 
     def test_blocks_bash_wrapped_force_push(self):
         """`bash -c '...'` wrapping does not bypass — pattern matches the substring."""
-        code, output = self._bash("bash -c \"git push --force origin main\"")
+        code, output = self._bash('bash -c "git push --force origin main"')
         assert code == 2
         assert _is_denied(output)
 
@@ -698,3 +698,335 @@ class TestDangerousGitBlock:
         """`git push --dry-run origin main` in a single segment still passes."""
         code, _ = self._bash("git push --dry-run origin main")
         assert code == 0
+
+
+# ---------------------------------------------------------------------------
+# Search-nudge classifier tests (added 2026-04-29 for codegraph-probe-enforcement)
+# ---------------------------------------------------------------------------
+
+
+def _has_nudge(output: str) -> bool:
+    """Check whether the hook stdout contains an additionalContext nudge."""
+    if not output.strip():
+        return False
+    try:
+        data = json.loads(output.strip())
+    except (json.JSONDecodeError, ValueError):
+        return False
+    hook_output = data.get("hookSpecificOutput", {})
+    return bool(hook_output.get("additionalContext"))
+
+
+def _nudge_text(output: str) -> str:
+    """Extract additionalContext string (or empty)."""
+    try:
+        data = json.loads(output.strip())
+    except (json.JSONDecodeError, ValueError):
+        return ""
+    return data.get("hookSpecificOutput", {}).get("additionalContext", "")
+
+
+import pytest  # noqa: E402  — added at end-of-file to avoid touching original imports
+
+
+@pytest.fixture
+def fresh_throttle(tmp_path, monkeypatch):
+    """Redirect the throttle sentinel to a per-test file so each test starts fresh.
+
+    The implementation exposes `_throttle_sentinel_path()` returning the sentinel
+    Path; tests monkeypatch it to point at tmp_path.
+    """
+    import tool_redirect as tr
+
+    sentinel = tmp_path / "search_nudge_sent.json"
+    monkeypatch.setattr(tr, "_throttle_sentinel_path", lambda: sentinel)
+    return sentinel
+
+
+@pytest.mark.usefixtures("fresh_throttle")
+class TestSearchNudgeBashGrep:
+    """Bash(grep ...) recursive search → nudge."""
+
+    def test_nudges_grep_short_recursive(self):
+        code, output = _run_with_input("Bash", {"command": "grep -rn 'foo' ./src"})
+        assert code == 0
+        assert _has_nudge(output)
+        text = _nudge_text(output)
+        assert "codegraph_search" in text or "codegraph" in text
+        assert "probe search" in text or "probe" in text
+
+    def test_nudges_grep_capital_R(self):
+        code, output = _run_with_input("Bash", {"command": "grep -R pattern ."})
+        assert code == 0
+        assert _has_nudge(output)
+
+    def test_nudges_grep_long_recursive(self):
+        code, output = _run_with_input("Bash", {"command": "grep --recursive 'x' ."})
+        assert code == 0
+        assert _has_nudge(output)
+
+    def test_nudges_grep_recursive_listfiles(self):
+        code, output = _run_with_input("Bash", {"command": "grep -rl pattern ."})
+        assert code == 0
+        assert _has_nudge(output)
+
+    def test_nudges_grep_with_include(self):
+        code, output = _run_with_input("Bash", {"command": "grep --include='*.py' -r pattern ."})
+        assert code == 0
+        assert _has_nudge(output)
+
+    def test_nudges_grep_with_time_prefix(self):
+        code, output = _run_with_input("Bash", {"command": "time grep -r foo ."})
+        assert code == 0
+        assert _has_nudge(output)
+
+    def test_nudges_grep_with_sudo_prefix(self):
+        code, output = _run_with_input("Bash", {"command": "sudo grep -r foo ."})
+        assert code == 0
+        assert _has_nudge(output)
+
+    def test_nudges_grep_with_nice_prefix(self):
+        code, output = _run_with_input("Bash", {"command": "nice grep -r foo ."})
+        assert code == 0
+        assert _has_nudge(output)
+
+    def test_nudges_compound_segment(self):
+        code, output = _run_with_input("Bash", {"command": "cd src && grep -r foo ."})
+        assert code == 0
+        assert _has_nudge(output)
+
+
+@pytest.mark.usefixtures("fresh_throttle")
+class TestSearchNudgeBashRg:
+    def test_nudges_rg_default_recursive(self):
+        code, output = _run_with_input("Bash", {"command": "rg 'pattern' ."})
+        assert code == 0
+        assert _has_nudge(output)
+
+    def test_nudges_rg_no_path(self):
+        code, output = _run_with_input("Bash", {"command": "rg pattern"})
+        assert code == 0
+        assert _has_nudge(output)
+
+    def test_nudges_rg_files_mode(self):
+        code, output = _run_with_input("Bash", {"command": "rg --files"})
+        assert code == 0
+        assert _has_nudge(output)
+        assert "codegraph_files" in _nudge_text(output)
+
+
+@pytest.mark.usefixtures("fresh_throttle")
+class TestSearchNudgeBashFind:
+    def test_nudges_find_with_name(self):
+        code, output = _run_with_input("Bash", {"command": "find . -name '*.py'"})
+        assert code == 0
+        assert _has_nudge(output)
+        assert "codegraph_files" in _nudge_text(output)
+
+    def test_nudges_find_with_iname(self):
+        code, output = _run_with_input("Bash", {"command": "find . -iname '*.PY'"})
+        assert code == 0
+        assert _has_nudge(output)
+
+    def test_nudges_find_with_type_only(self):
+        code, output = _run_with_input("Bash", {"command": "find . -type f"})
+        assert code == 0
+        assert _has_nudge(output)
+
+    def test_nudges_find_with_type_and_delete(self):
+        code, output = _run_with_input("Bash", {"command": "find . -type f -delete"})
+        assert code == 0
+        assert _has_nudge(output)
+
+    def test_nudges_find_subdir_with_name(self):
+        code, output = _run_with_input("Bash", {"command": "find ./src -name '*.ts'"})
+        assert code == 0
+        assert _has_nudge(output)
+
+
+@pytest.mark.usefixtures("fresh_throttle")
+class TestSearchNudgeBashFdAg:
+    def test_nudges_fd_with_pattern(self):
+        code, output = _run_with_input("Bash", {"command": "fd config"})
+        assert code == 0
+        assert _has_nudge(output)
+
+    def test_nudges_fd_no_args(self):
+        code, output = _run_with_input("Bash", {"command": "fd"})
+        assert code == 0
+        assert _has_nudge(output)
+
+    def test_nudges_ag_basic(self):
+        code, output = _run_with_input("Bash", {"command": "ag 'TODO'"})
+        assert code == 0
+        assert _has_nudge(output)
+
+
+@pytest.mark.usefixtures("fresh_throttle")
+class TestSearchNudgeBuiltinTools:
+    """Built-in Grep / Glob tools."""
+
+    def test_nudges_grep_tool_call(self):
+        code, output = _run_with_input("Grep", {"pattern": "foo", "path": "./src"})
+        assert code == 0
+        assert _has_nudge(output)
+        text = _nudge_text(output)
+        assert "codegraph_search" in text
+
+    def test_nudges_grep_no_path(self):
+        code, output = _run_with_input("Grep", {"pattern": "foo"})
+        assert code == 0
+        assert _has_nudge(output)
+
+    def test_nudges_glob_tool_call(self):
+        code, output = _run_with_input("Glob", {"pattern": "**/*.py"})
+        assert code == 0
+        assert _has_nudge(output)
+        assert "codegraph_files" in _nudge_text(output)
+
+
+@pytest.mark.usefixtures("fresh_throttle")
+class TestSearchNudgeNegatives:
+    """Cases that must NOT produce a nudge."""
+
+    def test_no_nudge_grep_single_file(self):
+        code, output = _run_with_input("Bash", {"command": "grep ERROR /var/log/app.log"})
+        assert code == 0
+        assert not _has_nudge(output)
+
+    def test_no_nudge_grep_n_single_file(self):
+        code, output = _run_with_input("Bash", {"command": "grep -n pattern src/file.py"})
+        assert code == 0
+        assert not _has_nudge(output)
+
+    def test_no_nudge_rg_single_file(self):
+        code, output = _run_with_input("Bash", {"command": "rg pattern src/main.ts"})
+        assert code == 0
+        assert not _has_nudge(output)
+
+    def test_no_nudge_git_grep(self):
+        code, output = _run_with_input("Bash", {"command": "git grep 'foo'"})
+        assert code == 0
+        assert not _has_nudge(output)
+
+    def test_no_nudge_git_grep_with_args(self):
+        code, output = _run_with_input("Bash", {"command": "git grep -n pattern -- '*.py'"})
+        assert code == 0
+        assert not _has_nudge(output)
+
+    def test_no_nudge_curl_pipe_grep(self):
+        code, output = _run_with_input("Bash", {"command": "curl https://example.com | grep error"})
+        assert code == 0
+        assert not _has_nudge(output)
+
+    def test_no_nudge_cat_pipe_grep(self):
+        code, output = _run_with_input("Bash", {"command": "cat foo.log | grep WARN"})
+        assert code == 0
+        assert not _has_nudge(output)
+
+    def test_no_nudge_echo_pipe_grep(self):
+        code, output = _run_with_input("Bash", {"command": "echo $PATH | grep node"})
+        assert code == 0
+        assert not _has_nudge(output)
+
+    def test_no_nudge_xargs_grep(self):
+        # Composed command via xargs — pipeline filtering, lean conservative.
+        code, output = _run_with_input("Bash", {"command": "ls *.py | xargs grep foo"})
+        assert code == 0
+        assert not _has_nudge(output)
+
+    def test_no_nudge_npm_install(self):
+        code, output = _run_with_input("Bash", {"command": "npm install"})
+        assert code == 0
+        assert not _has_nudge(output)
+
+    def test_no_nudge_uv_pytest(self):
+        code, output = _run_with_input("Bash", {"command": "uv run pytest -q"})
+        assert code == 0
+        assert not _has_nudge(output)
+
+    def test_no_nudge_ls_grep_filter(self):
+        code, output = _run_with_input("Bash", {"command": "ls -la | grep '\\.py$'"})
+        assert code == 0
+        assert not _has_nudge(output)
+
+
+class TestSearchNudgeThrottle:
+    @pytest.mark.usefixtures("fresh_throttle")
+    def test_throttle_grep_only_first_call_nudges(self):
+        code1, out1 = _run_with_input("Grep", {"pattern": "foo"})
+        assert code1 == 0
+        assert _has_nudge(out1)
+        code2, out2 = _run_with_input("Grep", {"pattern": "bar"})
+        assert code2 == 0
+        assert not _has_nudge(out2)
+
+    @pytest.mark.usefixtures("fresh_throttle")
+    def test_throttle_separate_categories(self):
+        _, out1 = _run_with_input("Bash", {"command": "grep -r foo ."})
+        assert _has_nudge(out1)
+        # Different category — must still nudge
+        _, out2 = _run_with_input("Bash", {"command": "rg pattern ."})
+        assert _has_nudge(out2)
+
+    @pytest.mark.usefixtures("fresh_throttle")
+    def test_throttle_glob_separate_from_grep(self):
+        _, out1 = _run_with_input("Grep", {"pattern": "foo"})
+        assert _has_nudge(out1)
+        _, out2 = _run_with_input("Glob", {"pattern": "**/*.py"})
+        assert _has_nudge(out2)
+
+    def test_throttle_corrupt_sentinel_file(self, fresh_throttle):
+        # Pre-write malformed JSON; throttle should treat as never-sent.
+        fresh_throttle.parent.mkdir(parents=True, exist_ok=True)
+        fresh_throttle.write_text("not json {{{")
+        code, output = _run_with_input("Grep", {"pattern": "foo"})
+        assert code == 0
+        assert _has_nudge(output)
+
+    @pytest.mark.usefixtures("fresh_throttle")
+    def test_throttle_no_session_id(self, monkeypatch):
+        monkeypatch.delenv("PILOT_SESSION_ID", raising=False)
+        code, output = _run_with_input("Grep", {"pattern": "foo"})
+        assert code == 0
+        # With sentinel monkeypatched the env var isn't even read, but ensure no crash.
+        assert _has_nudge(output)
+
+
+@pytest.mark.usefixtures("fresh_throttle")
+class TestSearchNudgeSafety:
+    """Hook never denies, never crashes on bad input, preserves existing deny logic."""
+
+    def test_search_nudge_never_denies_on_bash_grep(self):
+        code, output = _run_with_input("Bash", {"command": "grep -r foo ."})
+        assert code == 0
+        try:
+            data = json.loads(output.strip())
+            assert data.get("permissionDecision") != "deny"
+        except (json.JSONDecodeError, ValueError):
+            pass  # additionalContext payload is fine
+
+    def test_search_nudge_never_denies_on_grep_tool(self):
+        code, output = _run_with_input("Grep", {"pattern": "foo"})
+        assert code == 0
+        assert not _is_denied(output)
+
+    def test_search_nudge_never_denies_on_glob_tool(self):
+        code, output = _run_with_input("Glob", {"pattern": "**/*.py"})
+        assert code == 0
+        assert not _is_denied(output)
+
+    def test_existing_dangerous_git_still_denies(self):
+        code, output = _run_with_input("Bash", {"command": "git push --force origin main"})
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_existing_websearch_still_denies(self):
+        code, output = _run_with_input("WebSearch", {"query": "x"})
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_existing_explore_agent_still_denies(self):
+        code, output = _run_with_input("Agent", {"subagent_type": "Explore", "prompt": "find files"})
+        assert code == 2
+        assert _is_denied(output)

@@ -55,6 +55,17 @@ Task(
 
 Launch Codex review NOW — it runs in parallel with the Claude reviewer above.
 
+**⛔ Codex-once rule.** Codex runs at most once per `/spec` invocation. Before launching, check the sentinel file. If it exists, the review already ran in this session — skip the launch and the collection sub-step in Step 7. Verify-phase iterations (re-verify after fixing findings, code-review-gate annotation fixes) do NOT trigger another Codex run.
+
+```bash
+SESS_ID="${PILOT_SESSION_ID:-default}"
+CODEX_FLAG="$HOME/.pilot/sessions/$SESS_ID/codex-ran-<plan-slug>.flag"
+if [ -f "$CODEX_FLAG" ]; then
+  echo "Codex already reviewed this plan in this session — skipping (codex-once)."
+  # Skip the launch below and the Codex collection sub-step in Step 7.
+fi
+```
+
 1. Detect companion path and ensure project root:
 ```bash
 CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | sort -V | tail -1)

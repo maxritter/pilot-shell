@@ -19,9 +19,11 @@ model: sonnet
 ## Workflow
 
 ```
-/spec → Detect type → Feature: Skill('spec-plan')       → Plan → Implement → Verify
+/spec → Detect type → Feature: Skill('spec-plan')        → Plan → Implement → Verify
                     → Bugfix:  Skill('spec-bugfix-plan') → Investigate → Plan → Implement → Verify
 ```
+
+For a bugfix workflow without a plan file, users invoke `/fix` directly — that's a separate command. `/spec` always runs the full spec workflow.
 
 | Phase | Skill | Model |
 |-------|-------|-------|
@@ -30,5 +32,6 @@ model: sonnet
 | Implementation | `spec-implement` | Sonnet |
 | Feature Verification | `spec-verify` | Sonnet |
 | Bugfix Verification | `spec-bugfix-verify` | Sonnet |
+| Bugfix (separate command, `/fix`) | `fix` | Opus |
 
 > **Note:** Implementation and verification default to **Sonnet** for most tiers (Pro, Team, Enterprise, API) where Sonnet 1M is included. **Max plan** users default to **Opus** since Sonnet 1M is not available on Max. Users can override via Console Settings.

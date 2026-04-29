@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "orchestrator": "orchestrator.md",
+  "steps": [
+    {
+      "id": "step-1-investigate",
+      "file": "steps/01-investigate.md"
+    },
+    {
+      "id": "step-2-red",
+      "file": "steps/02-red.md"
+    },
+    {
+      "id": "step-3-fix",
+      "file": "steps/03-fix.md"
+    },
+    {
+      "id": "step-4-audit",
+      "file": "steps/04-audit.md"
+    },
+    {
+      "id": "step-5-quality",
+      "file": "steps/05-quality.md"
+    },
+    {
+      "id": "step-6-finalise",
+      "file": "steps/06-finalise.md"
+    }
+  ]
+}

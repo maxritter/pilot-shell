@@ -1,83 +1,62 @@
 ## Step 2: Verify the Fix — Behavior Contract Audit
 
-**This step is the quality gate for bugfixes.** It audits that the process was followed, not just that tests pass. A retroactive test that passes proves nothing.
+Audits that the process was followed. A retroactive test that passes proves nothing.
 
 ### 2.1 Read the plan
 
-1. Read the plan's `## Behavior Contract` section. Note `Given / When / Currently / Expected / Anti-regression`.
-2. Read Task 1's `Entry point:` and the test file/name it specifies.
-3. Read `Root Cause: file:line` from the plan summary.
+Read: `## Behavior Contract`, Task 1's `Entry point:` and test file/name, `Root Cause: file:line` from the summary.
 
-**If `## Behavior Contract` is missing from the plan:** the plan was written before the updated template. Reconstruct it from Summary + Fix Approach and add it to the plan before continuing.
+If `## Behavior Contract` is missing (older plan): reconstruct from Summary + Fix Approach and add it to the plan before continuing.
 
 ### 2.2 Run the reproducing test
 
-```
+```bash
 uv run pytest <test-path>::<test-name> -q   # or language-appropriate equivalent
 ```
 
-Must PASS on the current (fixed) code. If not, the fix is incomplete — fix immediately, do not advance.
+Must PASS. If not, fix is incomplete — fix immediately.
 
-### 2.3 Prove the test is a genuine RED (always run — not optional)
+### 2.3 Prove the test is a genuine RED (always run)
 
-**A test only has value if it would fail without the fix.** Commit order alone does not prove that — a retroactively added `assert True`-style test also satisfies commit order. The only proof is to run the test against the pre-fix code and see it fail.
-
-**Always run this, regardless of worktree mode.** Cost is one extra run of the single reproducing test (seconds, not minutes) — cheap insurance that rules out the entire class of retroactive rubber-stamp tests.
-
-Use one atomic bash block with trap-based cleanup. This script is universal — it works in worktree mode (fix is committed) and non-worktree mode (fix is uncommitted). The `cp + trap` approach restores the file contents reliably regardless of how the fix was applied:
+A test only has value if it would fail without the fix. Run the test against pre-fix code; it must fail. One atomic bash with trap-based cleanup — touches only the root-cause file, always restores it (works in worktree and non-worktree mode):
 
 ```bash
 ROOT_CAUSE_FILE="<path from plan Summary>"
 TEST_CMD="<command that runs the single reproducing test>"
 
-# Back up the current (fixed) version and install a trap that always restores it
 BACKUP=$(mktemp)
 cp "$ROOT_CAUSE_FILE" "$BACKUP"
 trap 'cp "$BACKUP" "$ROOT_CAUSE_FILE" 2>/dev/null; rm -f "$BACKUP"; trap - EXIT INT TERM' EXIT INT TERM
 
-# Replace the root-cause file with its pre-fix content
 if ! git diff --quiet HEAD -- "$ROOT_CAUSE_FILE"; then
-    # Non-worktree / uncommitted fix: HEAD is the pre-fix version
     git show "HEAD:$ROOT_CAUSE_FILE" > "$ROOT_CAUSE_FILE"
 else
-    # Worktree / committed fix: last commit touching this file IS the fix commit
     FIX_COMMIT=$(git log --format=%H -1 -- "$ROOT_CAUSE_FILE")
     git show "${FIX_COMMIT}~1:$ROOT_CAUSE_FILE" > "$ROOT_CAUSE_FILE"
 fi
 
-# Run the reproducing test — must FAIL
 eval "$TEST_CMD"
-TEST_EXIT=$?
-# trap restores $ROOT_CAUSE_FILE from backup on exit (success or failure)
 ```
 
-Why `cp + trap` instead of `git stash`: stash modifies the index/working tree globally and can leave untracked files or produce merge conflicts on pop. `cp + trap` touches only the one file that matters and always restores it, even on crash.
+`cp + trap` instead of `git stash`: stash modifies index/working-tree globally and can leave untracked files or merge conflicts on pop. `cp + trap` touches one file and always restores it.
 
-**Interpretation:**
+Outcomes:
 
-- Test failed (non-zero exit) with an error matching `Currently (bug)` → RED is proven. Continue to 2.4.
-- Test passed without the fix → the test does not encode the bug. STOP, set `Status: PENDING`, note "reproducing test does not fail without fix" in the plan, and return to `spec-implement` — Task 1 must be rewritten.
-- Test errored for a reason unrelated to the bug (import error, missing fixture introduced by the fix, etc.) → not a valid signal. Investigate: either the test depends on something only the fix creates (design problem — test should target a stable entry point), or an unrelated change snuck into the fix commit. Resolve before accepting.
+- **Test failed with the documented `Currently (bug)` error** → RED proven.
+- **Test passed without fix** → test doesn't encode the bug. Set `Status: PENDING`, note "reproducing test does not fail without fix", return to `spec-implement`.
+- **Test errored unrelated** (import, missing fixture) → not a valid signal. Investigate: test depends on something only the fix creates (design problem) or unrelated change snuck in. Resolve before accepting.
 
-### 2.4 Root-cause-at-source audit
+### 2.4 Root-cause + scope audit
 
-Compare the diff to the plan's `Root Cause: file:line`:
+```bash
+git diff --name-only <base>..HEAD
+```
 
-1. `git diff --name-only <base>..HEAD` — list files changed.
-2. **The root-cause file MUST be in the diff.** If it is not, the fix is at a symptom, not the source. STOP, set `Status: PENDING`, note "fix does not touch stated root cause" in the plan, return to `spec-implement`.
-3. **Flag symptom-patching smells in the diff:** new broad `try/except` around the failing call, `if value is None: return default` at the caller when the bug is that `value` is wrong upstream, swallowed exceptions, silently normalised bad inputs, early-return on error conditions that hide wrong state from the caller, renamed/suppressed log lines that previously surfaced the bug. If present, record a finding and require justification in the plan's Investigation section (sometimes a defensive layer is legitimate — defense-in-depth — but it must be documented, not snuck in).
+1. **Root-cause file MUST be in the diff.** If not, fix is at symptom — set `Status: PENDING`, return to `spec-implement`.
+2. **Symptom-patching smells:** new broad `try/except` around the failing call, `if value is None: return default` at the caller when the bug is upstream, swallowed exceptions, silently normalised bad inputs, early returns hiding wrong state, renamed/suppressed log lines. Record + justify in Investigation, or revert.
+3. **Scope check:** diff matches plan scope (Task 1 tests + Task 2 root-cause file ± documented defense-in-depth). Unplanned changes belong elsewhere — revert or extend the plan.
 
-### 2.5 Anti-regression audit
-
-Run the full test suite (already done in Step 1, re-run if the revert in 2.3 left artifacts). Zero failures. The Behavior Contract's `Anti-regression:` line states what must still work — spot-check the tests covering it.
-
-### 2.6 Scope check
-
-Read changed files. Confirm changes match plan scope (Task 1 files + Task 2 files). Flag unplanned changes — they either belong in this plan (update the plan) or in a different plan (revert).
-
-### 2.7 Instrumentation cleanup
-
-Temporary diagnostics added during investigation must be marked `SPEC-DEBUG:` (see `spec-bugfix-plan` Step 3.3). Grep the diff for the marker:
+### 2.5 Instrumentation cleanup
 
 ```bash
 if git diff <base>..HEAD | grep -n "SPEC-DEBUG"; then
@@ -86,17 +65,24 @@ if git diff <base>..HEAD | grep -n "SPEC-DEBUG"; then
 fi
 ```
 
-Zero matches = clean. Any match = remove the markers in the diff and re-run this step. Non-marked `console.log`/`print` additions are also suspect; inspect them and justify or remove.
+Zero matches = clean. Any match = remove and re-run. Unmarked `console.log`/`print` additions are also suspect — inspect, justify, or remove.
 
-### 2.8 Original symptom re-check (non-UI bugs)
+### 2.6 Original symptom re-check — MANDATORY end-to-end verification
 
-The regression test proves the tested scenario works. It does NOT prove the original symptom the user reported is gone — the test may sit below the layer the user interacts with.
+⛔ **The regression test passing does NOT prove the bug is fixed.** Unit tests can sit below the user's layer. A green test plus a still-broken app is the most common "fixed but not really" failure mode. You MUST run the actual program with the original input and observe the symptom is gone.
 
-Re-run the original reproduction from the plan's `## Summary — Trigger:` line:
+**Skip is NOT an option.** Capture concrete evidence (command, output, page state, status code) — bare assertions are insufficient.
 
-- **CLI bug:** run the exact command the user ran
-- **API bug:** `curl` / HTTP client the endpoint with the user's input
-- **Library/SDK bug:** call the function from a Python/Node REPL with the user's args
-- **UI bug:** skip here — handled by Step 6 (Verification Scenario)
+Re-run the original repro from `## Summary — Trigger:` using the matching lane:
 
-**If the regression test passes but the original repro still shows the bug:** the test is at the wrong layer. Set `Status: PENDING`, note "test green but original repro still fails — layer mismatch" in the plan, and return to `spec-implement` to rewrite Task 1's test at the user's entry point. This is the "test-green but user-broken" failure mode — catching it here is the whole reason this step exists.
+| Bug surface | What to run | Evidence to capture |
+|-------------|-------------|---------------------|
+| **CLI** | The exact command the user ran | Command + relevant output lines + exit code |
+| **API** | `curl` / HTTP client with the user's input | Status code + the field/value that proves the fix |
+| **Library / SDK / function** | `python -c '...'`, `node -e '...'`, REPL, or scratch script | Invocation + returned value |
+| **Background job / cron / worker** | Trigger the job manually with the failing input | Run + log lines |
+| **UI** | **Skip here — handled by Step 4 (Verification Scenario)** with browser automation (Claude Code Chrome → Chrome DevTools MCP → playwright-cli → agent-browser per `browser-automation.md`) | — |
+
+**If the regression test passes but the original repro still fails:** test is at the wrong layer. Set `Status: PENDING`, note "test green but original repro still fails — layer mismatch", return to `spec-implement` to rewrite Task 1's test at the user's entry point.
+
+**If the running program is unavailable** (build broken, infra missing, integration env down): set `Status: PENDING`, note the blocker, escalate to the user. Do not advance to VERIFIED on tests alone.

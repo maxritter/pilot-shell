@@ -26,7 +26,7 @@
   "spinnerTipsOverride": {
     "tips": [
       "[PILOT] Run /setup-rules after installation to generate project rules",
-      "[PILOT] Use /spec for features AND bug fixes — structured planning, TDD, and code review for both",
+      "[PILOT] Use /spec for features and /fix for bugs — structured planning, TDD, and code review for both",
       "[PILOT] Quick Mode: Just chat for small changes and exploration (all quality hooks still apply)",
       "[PILOT] Press Ctrl+R to search command history | Ctrl+C to cancel current operation",
       "[PILOT] Press Escape twice to cancel a running operation",
@@ -111,6 +111,6 @@
     "padding": 0
   },
   "companyAnnouncements": [
-    "/spec — features & bugfixes | /prd — requirements with research | /setup-rules — modular rules | /create-skill — optimized skills"
+    "/spec — features | /fix — bugfixes | /prd — requirements | /setup-rules | /create-skill | /benchmark"
   ]
 }

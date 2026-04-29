@@ -15,36 +15,24 @@
       "file": "steps/03-quality-checks.md"
     },
     {
-      "id": "step-4-plan-verify",
-      "file": "steps/04-plan-verify.md"
+      "id": "step-4-verification-scenario",
+      "file": "steps/04-verification-scenario.md"
     },
     {
-      "id": "step-5-runtime-verification",
-      "file": "steps/05-runtime-verification.md"
+      "id": "step-5-final-worktree-sync",
+      "file": "steps/05-final-worktree-sync.md"
     },
     {
-      "id": "step-6-verification-scenario",
-      "file": "steps/06-verification-scenario.md"
+      "id": "step-6-check-feedback",
+      "file": "steps/06-check-feedback.md"
     },
     {
-      "id": "step-7-final-worktree-sync",
-      "file": "steps/07-final-worktree-sync.md"
+      "id": "step-7-code-review-gate",
+      "file": "steps/07-code-review-gate.md"
     },
     {
-      "id": "step-8-post-merge-verify",
-      "file": "steps/08-post-merge-verify.md"
-    },
-    {
-      "id": "step-9-check-feedback",
-      "file": "steps/09-check-feedback.md"
-    },
-    {
-      "id": "step-10-code-review-gate",
-      "file": "steps/10-code-review-gate.md"
-    },
-    {
-      "id": "step-11-update-status",
-      "file": "steps/11-update-status.md"
+      "id": "step-8-update-status",
+      "file": "steps/08-update-status.md"
     }
   ]
 }

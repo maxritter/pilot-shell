@@ -8,15 +8,14 @@ description: Plan, implement, and verify complex features with full automation u
 
 Plan, implement, and verify complex features with full automation using Spec-Driven Development.
 
-**Replaces Claude Code's built-in plan mode (Shift+Tab).** Best for complex features, refactoring tasks, or any work where you want to review a plan before implementation begins. The structured workflow prevents scope creep and ensures every task is tested and verified before being marked complete.
+**Replaces Claude Code's built-in plan mode (Shift+Tab).** Best for new features, refactoring, architectural changes — work where a plan and a design discussion add value before code. The structured workflow prevents scope creep and ensures every task is tested and verified before being marked complete.
 
-> **Tip:** For vague ideas or unclear requirements, use [`/prd`](/docs/workflows/prd) first to brainstorm back-and-forth and produce a PRD, then hand off to `/spec`.
+For bugfixes, use [`/fix`](/docs/workflows/fix). For vague ideas, use [`/prd`](/docs/workflows/prd) first to produce a PRD, then hand off to `/spec`.
 
 ```bash
 $ pilot
 > /spec "Add user authentication with OAuth and JWT tokens"
 > /spec "Migrate the REST API to GraphQL"
-> /spec "Fix the crash when deleting nodes with two children"  # bugfix auto-detected
 ```
 
 ## Workflow
@@ -38,18 +37,9 @@ Full exploration workflow for new functionality, refactoring, or any work where 
 - Full plan with scope, risks, and Definition of Done
 - Unified verification agent (optional, configurable in Console Settings)
 
-### Bugfix Spec (auto-detected)
+### Bugfixes
 
-Investigation-first flow for targeted fixes. Finds the root cause before touching any code, then enforces a uniform three-task structure so every bugfix follows the same process — no freewheeling.
-
-- **Root cause tracing:** backward through the call chain to `file:line`, with CodeGraph caller/callee analysis
-- **Pattern analysis:** compare broken vs working code paths
-- **Behavior Contract:** every plan pins down `Given / When / Currently / Expected / Anti-regression` — the invariant the fix must produce and the behavior it must not break
-- **Three uniform tasks** (always, regardless of bug size):
-  1. **Write Reproducing Test (RED)** — must FAIL before any fix code exists
-  2. **Implement Fix at Root Cause** — reproducing test passes, full suite passes
-  3. **Quality Gate** — lint, type check, build, full suite green after any auto-fixes
-- **Verify audit:** authoritative full suite + always-on revert-test (proves the reproducing test would genuinely fail without the fix — rules out retroactive rubber-stamp tests) + root-cause-at-source audit (flags symptom patches and caller-side workarounds) + anti-regression spot-check — no sub-agents, tests carry the proof
+For a bugfix workflow without a plan file, use [`/fix`](/docs/workflows/fix). When the user types `/spec` with a bug description, the full bugfix workflow runs — root-cause investigation, three-task structure (RED test → fix → quality gate), Behavior Contract audit, revert-test proof in verify, iteration cap at 3.
 
 ## Three Phases
 
@@ -66,7 +56,7 @@ Investigation-first flow for targeted fixes. Finds the root cause before touchin
 - Isolated git worktree, new branch from default, or current branch (your choice)
 - Strict TDD for each task: RED → GREEN → REFACTOR
 - Quality hooks auto-lint, format, and type-check every edit
-- Full test suite after each task to catch regressions early
+- Full test suite runs at the **Quality Gate** task (end), not after every task — running it per-fix-task is the single biggest token sink in bundled bugfix plans, so the targeted test module is used between fixes and the authoritative full-suite run happens once
 
 ### Verify Phase
 
@@ -100,6 +90,8 @@ When all three are disabled, `/spec` runs end-to-end without any user interactio
 
 Both reviewers run in a separate context window and don't consume the main session's context budget. Optional **Codex adversarial reviewers** (off by default) provide an independent second opinion using OpenAI Codex.
 
+**Codex runs at most once per `/spec` invocation.** Plan iterations (annotation feedback, verify re-runs, fixing prior findings) reuse the result of the first Codex review instead of re-launching — a sentinel file in the session directory enforces this. The bugfix planning phase no longer runs Codex at all; adversarial review is most valuable on real code, not on a plan.
+
 ## Branch Strategy (Optional)
 
 When starting a `/spec` task, you're asked how you want to work:
@@ -111,3 +103,5 @@ When starting a `/spec` task, you're asked how you want to work:
 | **New branch from default** | Fetches origin, creates `feat/<slug>` (or `fix/<slug>` for bugfixes) from `origin/main`, and checks it out. Best when your current branch isn't clean but you don't want full worktree isolation. |
 
 Disable the **Worktree Support** toggle in Console Settings to skip this question entirely — `/spec` will always use the current branch.
+
+For bugfixes, use [`/fix`](/docs/workflows/fix) — the worktree question is asked here in `/spec` because that's where it applies.

@@ -41,6 +41,13 @@ For each fix: implement → run relevant tests → log "Fixed: [title]"
 
 3. **If the background bash timed out or failed** (exit code non-zero in the notification): Re-launch synchronously (not in background) and wait for results. Only skip if the second attempt also fails.
 
+4. **Mark Codex as ran** so re-verify iterations within the same session do not re-run it:
+```bash
+SESS_ID="${PILOT_SESSION_ID:-default}"
+CODEX_FLAG="$HOME/.pilot/sessions/$SESS_ID/codex-ran-<plan-slug>.flag"
+mkdir -p "$(dirname "$CODEX_FLAG")" && touch "$CODEX_FLAG"
+```
+
 **Report:**
 ```
 ## Code Verification Complete

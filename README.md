@@ -44,6 +44,7 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 **Pilot Shell is different.** Every component solves a real problem:
 
 - **`/spec`** — plans, implements, and verifies features end-to-end with TDD
+- **`/fix`** — bugfix workflow with RED-before-GREEN discipline; bails out when complexity exceeds the standard fix lane
 - **`/prd`** — brainstorm ideas into clear requirements through with optional deep research
 - **Quality hooks** — enforce linting, formatting, type checking, and tests as quality gates
 - **Context engineering** — preserves decisions and knowledge across sessions
@@ -107,6 +108,8 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstal
 
 Pilot Shell works inside Dev Containers. Copy the [`.devcontainer`](https://github.com/maxritter/pilot-shell/tree/main/.devcontainer) folder from this repository into your project, adapt it to your needs (base image, extensions, dependencies), and run the installer inside the container. The installer auto-detects the container environment and skips system-level dependencies like Homebrew.
 
+For tighter isolation when working with untrusted code, combine the dev container with Claude Code's [`/sandbox`](https://code.claude.com/docs/en/sandboxing) — `bubblewrap`, `socat`, `iptables`, and `ipset` are pre-installed in the Dockerfile so it works out of the box on Linux. See Anthropic's [development containers](https://code.claude.com/docs/en/devcontainer) and [sandboxing](https://code.claude.com/docs/en/sandboxing) docs for hardening patterns (egress allowlist, managed settings, persistent volumes).
+
 </details>
 
 <details>
@@ -130,16 +133,16 @@ Pilot Shell works inside Dev Containers. Copy the [`.devcontainer`](https://gith
 
 Just chat — no plan, no approval gate. [Quick mode](https://pilot-shell.com/docs/workflows/quick-mode) is the default: quality hooks and TDD enforcement still apply, best for small tasks and exploration. For anything that needs a plan, use `/spec` — not Claude Code's built-in plan mode.
 
-### /spec — Spec-Driven Development
+### /spec — Spec-Driven Development (features)
 
-**[`/spec`](https://pilot-shell.com/docs/workflows/spec) replaces Claude Code's built-in plan mode** (Shift+Tab). It provides a complete planning workflow with TDD, verification, and code review — use `/spec` instead of plan mode for all planned work.
+**[`/spec`](https://pilot-shell.com/docs/workflows/spec) replaces Claude Code's built-in plan mode** (Shift+Tab) for new features, refactoring, and architectural work. It provides a complete planning workflow with TDD, verification, and code review.
 
-Features, bug fixes, refactoring — describe it and `/spec` handles the rest. Auto-detects whether it's a feature or a bugfix and adapts the workflow. Specs are saved to `docs/plans/` and visible in the Console's **Specification** tab.
+For bugs, use [`/fix`](https://pilot-shell.com/docs/workflows/fix) (see below). Specs are saved to `docs/plans/` and visible in the Console's **Specification** tab.
 
 ```bash
 pilot
-> /spec "Add user authentication with OAuth and JWT tokens"   # → feature mode
-> /spec "Fix the crash when deleting nodes with two children"  # → bugfix mode (auto-detected)
+> /spec "Add user authentication with OAuth and JWT tokens"
+> /spec "Migrate the REST API to GraphQL"
 ```
 
 ```
@@ -163,18 +166,46 @@ Full exploration workflow for new functionality, refactoring, or architectural c
 
 </details>
 
+### /fix — Bugfix Workflow
+
+**[`/fix`](https://pilot-shell.com/docs/workflows/fix) is the bugfix command.** Investigate the bug, write the failing test, fix at the root cause, single-pass audit, done. No plan file, no approval mid-flow, no separate verify phase.
+
+```bash
+pilot
+> /fix "annotation persistence drops fields between save and reload"
+> /fix "off-by-one in pagination at boundary"
+> /fix "wrong default for max_retries"
+```
+
+```
+Investigate  →  RED  →  Fix  →  Audit  →  Quality Gate  →  Done
+```
+
+If investigation reveals the bug is multi-component or architectural, `/fix` stops cleanly and tells you to re-invoke with `/spec`. `/fix` is always quick; `/spec` is the full workflow.
+
 <details>
-<summary><b>Bugfix Mode</b></summary>
+<summary><b>How <code>/fix</code> works</b></summary>
 
-Investigation-first workflow for targeted fixes. Finds the root cause before touching any code.
+For local bugs. Single file, obvious-once-traced root cause. No plan file, no approval mid-flow, no separate verify phase. RED-before-GREEN discipline still enforced — bugfixes without a failing test don't ship.
 
-**Investigate:** Reproduces the bug → traces backward through the call chain to find the **root cause** at a specific `file:line` → compares against working code patterns → states the fix with confidence level. If 3+ hypotheses fail, escalates as an architectural problem.
+- **Investigate:** Reproduce the bug → trace to root cause at `file:line` with `codegraph_context` + targeted reads → state confidence (High/Medium required to proceed). For UI / async / race bugs that don't surface from a static read, add temporary `SPEC-DEBUG:`-marked logs at component boundaries before tracing.
+- **RED:** Write the failing test via an existing public entry point → run, must fail with the documented symptom
+- **Fix:** Minimal change at the root cause. Symptom patches (`try/except` hiding the bug, swallowed returns) are forbidden. Targeted test module re-runs between fix iterations — full suite runs once at the Quality Gate, not per-fix-task.
+- **Audit:** Single-pass scope sanity + symptom-patching grep + **mandatory end-to-end verification** — re-runs the user's actual repro against the running program (Claude Code Chrome → Chrome DevTools MCP → playwright-cli → agent-browser for UI; CLI/API/REPL for non-UI). A passing unit test alone is never accepted as proof; concrete evidence (command + observation) is required in the completion report.
+- **Quality Gate:** Lint + types + build + full anti-regression suite, once
+- **Bail-out:** If investigation reveals the bug is multi-component, architectural, needs defense-in-depth at multiple layers, or two fix attempts have failed, `/fix` stops cleanly and tells you to re-invoke with `/spec`. It does not silently switch lanes.
 
-**Test-Before-Fix:** Writes a regression test that FAILS on current code → implements the minimal fix at the root cause → verifies all tests pass. Defense-in-depth validation at multiple layers when the bug involves data flowing through shared code paths.
+</details>
 
-**Verify:** Lightweight verification — regression test confirmation → full test suite → lint + type check → quality checks. No review sub-agents — the regression test proves the fix works, the full suite proves nothing else broke.
+<details>
+<summary><b>How <code>/spec</code> handles bugs</b></summary>
 
-**Why this matters:** Root cause investigation prevents "fix one thing, break another." The regression test locks in the fix. No formal notation overhead — just trace, test, fix, verify.
+When you type `/spec "<bug description>"`, the full bugfix workflow runs — for bugs that warrant a written plan, approval, code review, and the full verify ceremony.
+
+- **Behavior Contract:** every plan pins down `Given / When / Currently / Expected / Anti-regression` — the invariant the fix must produce and the behavior it must not break
+- **Three uniform tasks** (always, regardless of bug size): Write Reproducing Test (RED) → Implement Fix at Root Cause → Quality Gate
+- **Verify audit:** always-on `cp`+`trap` revert-test (proves the reproducing test would genuinely fail without the fix — rules out retroactive rubber-stamp tests) + root-cause-at-source audit (flags symptom patches and caller-side workarounds) + original-symptom re-check — no sub-agents, tests carry the proof
+- **Iteration cap at 3:** after three failed verify cycles, the workflow stops and asks if the bug is architectural rather than letting you loop forever
 
 </details>
 
@@ -718,6 +749,8 @@ On **Team**, every developer runs `pilot customize install <source>` once and st
 <summary><b>Can I use Pilot Shell inside a Dev Container?</b></summary>
 
 Yes. Copy the `.devcontainer` folder from this repository into your project, adapt it to your needs (base image, extensions, dependencies), and install Pilot Shell inside the container. Everything works the same — hooks, rules, MCP servers, persistent memory, and the Console dashboard all run inside the container. This is a great option for teams that want a consistent, reproducible development environment.
+
+For tighter isolation when working with untrusted code, layer Claude Code's [`/sandbox`](https://code.claude.com/docs/en/sandboxing) on top — the Dockerfile pre-installs `bubblewrap`, `socat`, `iptables`, and `ipset` so it works out of the box. See Anthropic's [development containers](https://code.claude.com/docs/en/devcontainer) and [sandboxing](https://code.claude.com/docs/en/sandboxing) docs for the hardening patterns.
 
 </details>
 
