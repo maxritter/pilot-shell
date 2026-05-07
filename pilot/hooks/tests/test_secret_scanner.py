@@ -89,18 +89,23 @@ class TestScanPositive:
     """Each rule must have at least one positive match."""
 
     def test_aws_access_key(self):
-        f = scan("My AWS key is AKIAIOSFODNN7EXAMPLE")
+        # Synthetic fixtures split via string concatenation so GitHub secret
+        # scanning doesn't false-positive on the AWS canonical example.
+        akia = "AKIA" + "IOSFODNN7EXAMPLE"
+        f = scan(f"My AWS key is {akia}")
         assert len(f) == 1
         assert f[0].rule_id == "aws-access-key"
         assert f[0].match_redacted == "AKIA****MPLE"
-        assert f[0].secret_value == "AKIAIOSFODNN7EXAMPLE"
+        assert f[0].secret_value == akia
 
     def test_aws_session_token(self):
-        f = scan("ASIAIOSFODNN7EXAMPLE here")
+        # Split to avoid GitHub secret-scanning alert on the synthetic fixture.
+        f = scan("ASIA" + "IOSFODNN7EXAMPLE" + " here")
         assert any(x.rule_id == "aws-access-key" for x in f)
 
     def test_gcp_api_key(self):
-        f = scan("AIzaSyD-abc123XYZ_qwerty456zxcvbnmasdfg")
+        # Split to avoid GitHub secret-scanning alert on the synthetic fixture.
+        f = scan("AIza" + "SyD-abc123XYZ_qwerty456zxcvbnmasdfg")
         assert any(x.rule_id == "gcp-api-key" for x in f)
 
     def test_pem_private_key(self):
@@ -122,7 +127,7 @@ class TestScanPositive:
         assert any(x.rule_id == "github-fine-grained" for x in f)
 
     def test_gitlab_pat(self):
-        f = scan("glpat-AbCdEfGhIjKlMnOpQrSt")  # 20 chars
+        f = scan("glpat-" + "AbCdEfGhIjKlMnOpQrSt")  # 20 chars
         assert any(x.rule_id == "gitlab-pat" for x in f)
 
     def test_npm_token(self):
@@ -130,7 +135,7 @@ class TestScanPositive:
         assert any(x.rule_id == "npm-token" for x in f)
 
     def test_slack_token(self):
-        f = scan("xoxb-1234567890-abcdef")
+        f = scan("xoxb-" + "1234567890-abcdef")
         assert any(x.rule_id == "slack-token" for x in f)
 
     def test_slack_webhook(self):
@@ -181,8 +186,8 @@ class TestScanPositive:
         assert any(x.rule_id == "openai-key" for x in f)
 
     def test_openai_project_key(self):
-        # Needs entropy >= 3.5
-        f = scan("sk-proj-Abcd1234EfGh5678IjKl9012MnOp3456QrSt7890")
+        # Needs entropy >= 3.5; split to avoid GitHub secret-scanning alert.
+        f = scan("sk-proj-" + "Abcd1234EfGh5678IjKl9012MnOp3456QrSt7890")
         assert any(x.rule_id == "openai-project-key" for x in f)
 
     def test_anthropic_key(self):
@@ -190,11 +195,16 @@ class TestScanPositive:
         assert any(x.rule_id == "anthropic-key" for x in f)
 
     def test_jwt(self):
-        f = scan("eyJhbGciOiJIUzI1NiIs.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJVadQssw5c")
+        # Split to avoid GitHub secret-scanning alert on this synthetic JWT.
+        f = scan(
+            "eyJhbGciOiJIUzI1NiIs."
+            + "eyJzdWIiOiIxMjM0NTY3ODkwIn0."
+            + "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJVadQssw5c"
+        )
         assert any(x.rule_id == "jwt" for x in f)
 
     def test_generic_secret(self):
-        f = scan("api_key: 'Abcd1234EfGh5678IjKl9012MnOp3456'")
+        f = scan("api_key: '" + "Abcd1234EfGh5678IjKl9012MnOp3456" + "'")
         assert any(x.rule_id == "generic-secret" for x in f)
 
     def test_env_assignment_high_entropy(self):
