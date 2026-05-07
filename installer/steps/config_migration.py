@@ -33,13 +33,20 @@ def migrate_model_config(config_path: Path | None = None) -> bool:
     if config_path is None:
         config_path = Path.home() / ".pilot" / "config.json"
 
-    if not config_path.exists():
-        return False
-
-    try:
-        raw: dict[str, Any] = json.loads(config_path.read_text())
-    except (OSError, json.JSONDecodeError):
-        return False
+    raw: dict[str, Any]
+    fresh_install = not config_path.exists()
+    if fresh_install:
+        # Fresh install: synthesize an empty config so subscription-aware
+        # migrations (notably v9's Max-vs-non-Max model defaulting) apply
+        # to the newly-created file. Without this, fresh Max installs land
+        # on the sonnet[1m] default in DEFAULT_MODEL_CONFIG and fail because
+        # Max plan doesn't include sonnet 1M.
+        raw = {}
+    else:
+        try:
+            raw = json.loads(config_path.read_text())
+        except (OSError, json.JSONDecodeError):
+            return False
 
     version = raw.get("_configVersion", 0)
     if not isinstance(version, int):

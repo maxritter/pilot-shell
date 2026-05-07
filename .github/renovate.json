@@ -10,6 +10,11 @@
   "prConcurrentLimit": 3,
   "prHourlyLimit": 1,
   "schedule": ["before 7am on monday"],
+  "dependencyDashboard": true,
+  "major": {
+    "enabled": false
+  },
+  "pinDigests": false,
   "packageRules": [
     {
       "description": "High-risk packages get individual PRs with extra labels (no grouping).",
@@ -40,6 +45,21 @@
         "bun-installer"
       ],
       "addLabels": ["needs-manual-bump"]
+    },
+    {
+      "description": "Group all minor/patch devDependency bumps into a single weekly PR per package.json. Cuts noise on the marketing site / docusaurus / pilot devDeps.",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch", "pin"],
+      "groupName": "dev-dependencies (weekly)",
+      "groupSlug": "dev-deps-weekly"
+    },
+    {
+      "description": "Skip the marketing site + docusaurus entirely — they are not on the supply-chain audit path. Re-enable per-package if a CVE forces it.",
+      "matchFileNames": [
+        "docs/site/**",
+        "docs/docusaurus/**"
+      ],
+      "enabled": false
     }
   ],
   "customManagers": [

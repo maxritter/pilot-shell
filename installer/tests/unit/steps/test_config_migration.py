@@ -222,13 +222,47 @@ class TestMigrationIdempotency:
         assert result is False
         assert json.loads(config_path.read_text()) == original
 
-    def test_skips_when_no_config_file(self, tmp_path: Path) -> None:
-        """Returns False when config file doesn't exist."""
+    def test_creates_subscription_aware_config_on_fresh_install(
+        self, tmp_path: Path
+    ) -> None:
+        """Fresh install (no config file) triggers a subscription-aware default write.
+
+        Regression: previously this returned False without writing, leaving fresh
+        Max installs to fall through to DEFAULT_MODEL_CONFIG's sonnet default for
+        spec-implement/spec-verify — which doesn't work on Max plan because Max
+        does not include sonnet 1M.
+        """
+        from installer.steps.config_migration import (
+            CURRENT_CONFIG_VERSION,
+            migrate_model_config,
+        )
+
+        config_path = tmp_path / "nonexistent.json"
+        with patch("installer.steps.config_migration._get_subscription_type", return_value="max"):
+            result = migrate_model_config(config_path)
+
+        assert result is True
+        assert config_path.exists()
+        written = json.loads(config_path.read_text())
+        assert written.get("_configVersion") == CURRENT_CONFIG_VERSION
+
+    def test_fresh_install_unknown_subscription_skips_write(self, tmp_path: Path) -> None:
+        """When subscription can't be detected, fresh install still writes a versioned config.
+
+        v9's safe-fallback rule (leave skills unchanged) still applies — it just
+        means the file gets `_configVersion: N` and no skill overrides, leaving
+        the read-time defaults to apply (which are safe `opus` after the
+        DEFAULT_MODEL_CONFIG fix).
+        """
         from installer.steps.config_migration import migrate_model_config
 
-        result = migrate_model_config(tmp_path / "nonexistent.json")
+        config_path = tmp_path / "nonexistent.json"
+        with patch("installer.steps.config_migration._get_subscription_type", return_value=None):
+            result = migrate_model_config(config_path)
 
-        assert result is False
+        # File is written with _configVersion bump even if no migration set fields.
+        assert result is True
+        assert config_path.exists()
 
     def test_second_run_is_noop(self, tmp_path: Path) -> None:
         """Running migration twice doesn't change anything the second time."""
