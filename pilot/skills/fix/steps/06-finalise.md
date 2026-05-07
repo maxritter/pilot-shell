@@ -56,46 +56,88 @@ Run **only** when the user explicitly picked "Run Codex adversarial review" in 6
    [ -z "$CODEX_COMPANION" ] && echo "MISSING"
    ```
 
-2. **Launch in background with a 10-minute timeout.** ⛔ `timeout=600000` is mandatory — Bash defaults to 2 min, which SIGKILLs Codex mid-investigation.
+2. **Build the review prompt file** by rendering the **template at `${CLAUDE_PLUGIN_ROOT}/agents/changes-review-codex.md`** (the same template `spec-verify` uses — single source of truth for code-review semantics).
+
+   For `/fix`, the "plan" is the conversation, not a file. Inline a one-page plan into a temp file so the template's `{{PLAN_PATH}}` substitution has something to point at:
+
+   ```bash
+   PROMPT_TEMPLATE="${CLAUDE_PLUGIN_ROOT}/agents/changes-review-codex.md"
+   PROMPT_FILE="/tmp/codex-fix-review-${PILOT_SESSION_ID:-default}-$$.md"
+   FIX_PLAN_FILE="/tmp/codex-fix-plan-${PILOT_SESSION_ID:-default}-$$.md"
+   cat > "$FIX_PLAN_FILE" <<'PLAN_EOF'
+   # /fix Bugfix Summary
+   Bug: <one-line bug>
+   Root cause: <file>:<line> — <what>
+   Fix: <one-line fix description>
+   Reproducing test: <test file>::<test name> (added in Step 3.3)
+   PLAN_EOF
+
+   PLAN_GOAL="Bugfix for: <one-line bug>. Root cause at <file>:<line>. The reproducing test must reliably fail before the fix and pass after."
+   BASE_REF="$(git rev-parse --abbrev-ref HEAD@{upstream} 2>/dev/null | sed 's|^[^/]*/||' || echo main)"
+   CHANGED_FILES=$(git status --short --untracked-files=all | awk '{print "- " $2}')
+
+   PLAN_PATH="$FIX_PLAN_FILE" PLAN_GOAL="$PLAN_GOAL" BASE_REF="$BASE_REF" CHANGED_FILES="$CHANGED_FILES" \
+   PROMPT_TEMPLATE="$PROMPT_TEMPLATE" PROMPT_FILE="$PROMPT_FILE" \
+   uv run --no-project python -c '
+   import os, pathlib
+   text = pathlib.Path(os.environ["PROMPT_TEMPLATE"]).read_text()
+   for key in ("PLAN_PATH", "PLAN_GOAL", "BASE_REF", "CHANGED_FILES"):
+       text = text.replace("{{" + key + "}}", os.environ[key])
+   pathlib.Path(os.environ["PROMPT_FILE"]).write_text(text)
+   '
+   ```
+
+3. **Launch the task in background.** Use `task --background --prompt-file` (the companion's own background mode is supported for `task` — unlike `review`/`adversarial-review`).
 
    ```
    Bash(
-     command="cd $PROJECT_ROOT && node $CODEX_COMPANION adversarial-review --scope working-tree \"Challenge this bugfix. Bug: <one-line bug>. Root cause: <file>:<line> — <what>. Fix: <one-line fix description>. Focus on: missed root-cause paths, fix-at-symptom mistakes, untested edge cases, regressions in adjacent code paths, and whether the test reliably encodes the bug.\"",
-     run_in_background=true,
-     timeout=600000
+     command="cd $PROJECT_ROOT && node $CODEX_COMPANION task --background --prompt-file \"$PROMPT_FILE\"",
+     run_in_background=false,
+     timeout=60000
    )
    ```
 
-   ⛔ **Wait for the completion notification.** Do NOT read the bash output file before the `<task-notification>` with `<status>completed</status>` arrives — partial output reads cause "no findings" false negatives. The notification is the only valid signal.
-
-3. **On completion notification, retrieve findings from the persistent job record** (not bash stdout — stdout can be truncated):
+   Capture the job ID from stdout (`task-…` token). Then poll for completion:
 
    ```bash
-   STATUS_JSON=$(node "$CODEX_COMPANION" status --json)
-   JOB_ID=$(printf '%s' "$STATUS_JSON" | python3 -c "
-   import json,sys
-   d=json.load(sys.stdin)
-   lf=d.get('latestFinished') or {}
-   if lf.get('kind')=='adversarial-review' and lf.get('status')=='completed':
-       print(lf['id']); sys.exit(0)
-   sys.exit(1)
-   ")
-   [ -n "$JOB_ID" ] && node "$CODEX_COMPANION" result "$JOB_ID" --json > /tmp/codex-fix-result-$$.json
+   JOB_ID="<captured-task-id>"
+   for i in $(seq 1 150); do
+     STATE=$(node "$CODEX_COMPANION" status "$JOB_ID" --json 2>/dev/null \
+       | uv run --no-project python -c "import json,sys; print((json.load(sys.stdin).get('job') or {}).get('status') or '')")
+     case "$STATE" in
+       completed) echo "READY"; break ;;
+       failed)    echo "FAILED"; break ;;
+     esac
+     sleep 4
+   done
    ```
 
-   Read the result via `ctx_execute_file` and extract `storedJob.rendered` (markdown report) and `storedJob.result.parsed` (`{verdict, summary, findings, next_steps}`). Verify `storedJob.status === "completed"` AND `storedJob.rendered` starts with `"# Codex Adversarial Review"` before parsing.
+   Run this as `Bash(run_in_background=true, timeout=600000)`. ⛔ **Wait for the completion notification** — do NOT read the result file before the `<task-notification>` with `<status>completed</status>` arrives.
 
-4. **Act on findings — same severity → action map as `/spec-verify`:**
+4. **On completion notification, retrieve findings via the companion's public interface:**
+
+   ```bash
+   node "$CODEX_COMPANION" result "$JOB_ID" --json > /tmp/codex-fix-result-$$.json
+   ```
+
+   Read `/tmp/codex-fix-result-$$.json` via `ctx_execute_file`. Verify `storedJob.status === "completed"`, then parse `storedJob.result.rawOutput` as JSON (`{verdict, summary, findings, next_steps}`). If JSON parse fails, fall back to `storedJob.rendered` and surface as a suggestion-level finding.
+
+5. **Act on findings — same severity → action map as `/spec-verify`:**
 
    | Severity | Action |
    |----------|--------|
-   | `[critical]` / `[high]` | **must_fix** — fix immediately, re-run the targeted test from Step 3.4 + the full suite from Step 5.2, then re-ask 6.2 |
-   | `[medium]` / `[low]` | **should_fix** — fix if it's a single-site change consistent with the original bug's lineage; if it would expand scope (3+ files, architectural), summarise to the user and let them decide whether to fix here or open a `/spec` follow-up |
-   | `[info]` | **suggestion** — mention in one line; do not auto-apply |
+   | `critical` / `high` | **must_fix** — fix immediately, re-run the targeted test from Step 3.4 + the full suite from Step 5.2, then re-ask 6.2 |
+   | `medium` / `low` | **should_fix** — fix if it's a single-site change consistent with the original bug's lineage; if it would expand scope (3+ files, architectural), summarise to the user and let them decide whether to fix here or open a `/spec` follow-up |
+   | `info` | **suggestion** — mention in one line; do not auto-apply |
 
    If verdict is `approve` and there are no must/should findings: report "Codex: approve — no blocking findings" and re-ask 6.2.
 
-5. **Launch failure handling.** If `$JOB_ID` is empty after the completion notification (companion exited non-zero, no review record): surface the captured stderr to the user, do **not** silently mark the bugfix done. Return to 6.2 with the Codex option removed.
+6. **Cleanup.** Delete the temp prompt and bugfix-summary files:
+   ```bash
+   rm -f "$PROMPT_FILE" "$FIX_PLAN_FILE"
+   ```
+
+7. **Launch failure handling.** If `$JOB_ID` is empty after the completion notification, or `storedJob.status` is `"failed"`: surface the captured stderr to the user, do **not** silently mark the bugfix done. Return to 6.2 with the Codex option removed.
 
 ### 6.3 Console notification (always, when binary present)
 

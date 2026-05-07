@@ -1,0 +1,83 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits"
+  ],
+  "rangeStrategy": "pin",
+  "automerge": false,
+  "labels": ["supply-chain"],
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 1,
+  "schedule": ["before 7am on monday"],
+  "packageRules": [
+    {
+      "description": "High-risk packages get individual PRs with extra labels (no grouping).",
+      "matchPackageNames": [
+        "@colbymchenry/codegraph",
+        "agent-browser",
+        "rtk-installer",
+        "golangci-lint-installer",
+        "claude-code-installer"
+      ],
+      "addLabels": ["supply-chain:high-risk"],
+      "groupName": null,
+      "automerge": false
+    },
+    {
+      "description": "Lower-risk dev-dep bumps may be grouped into a single weekly PR.",
+      "matchManagers": ["regex"],
+      "matchFileNames": ["installer/upstreams.yaml"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "manifest dev-dep updates",
+      "groupSlug": "manifest-dev-deps"
+    },
+    {
+      "description": "Curl entries that do not resolve to a GitHub repo (claude.ai/install.sh, astral.sh/uv/install.sh, bun.sh/install) cannot be auto-updated by Renovate's github-tags datasource. Flag them so the maintainer re-pins manually per the soft-pin SLA in docs/security/AUDIT.md.",
+      "matchPackageNames": [
+        "claude-code-installer",
+        "uv-installer",
+        "bun-installer"
+      ],
+      "addLabels": ["needs-manual-bump"]
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["^installer/upstreams\\.yaml$"],
+      "matchStrings": [
+        "id:\\s+(?<depName>[\\w-]+)\\n(?:[^\\n]+\\n){0,8}?\\s+source_type:\\s+npm\\n(?:[^\\n]+\\n){0,8}?\\s+source_url:\\s+(?<packageName>\"?[^\"\\n]+\"?)\\n(?:[^\\n]+\\n){0,8}?\\s+version:\\s+\"?(?<currentValue>[^\"\\n]+)\"?"
+      ],
+      "datasourceTemplate": "npm",
+      "versioningTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["^installer/upstreams\\.yaml$"],
+      "matchStrings": [
+        "id:\\s+(?<depName>[\\w-]+)\\n(?:[^\\n]+\\n){0,8}?\\s+source_type:\\s+pypi\\n(?:[^\\n]+\\n){0,8}?\\s+source_url:\\s+(?<packageName>[^\\n]+)\\n(?:[^\\n]+\\n){0,8}?\\s+version:\\s+\"?(?<currentValue>[^\"\\n]+)\"?"
+      ],
+      "datasourceTemplate": "pypi",
+      "versioningTemplate": "pep440"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["^installer/upstreams\\.yaml$"],
+      "matchStrings": [
+        "id:\\s+(?<depName>[\\w-]+)\\n(?:[^\\n]+\\n){0,8}?\\s+source_type:\\s+brew\\n(?:[^\\n]+\\n){0,8}?\\s+brew_formula:\\s+\"?(?<packageName>[^\"\\n]+)\"?\\n(?:[^\\n]+\\n){0,8}?\\s+version:\\s+\"?(?<currentValue>[^\"\\n]+)\"?"
+      ],
+      "datasourceTemplate": "homebrew",
+      "versioningTemplate": "loose"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["^installer/upstreams\\.yaml$"],
+      "matchStrings": [
+        "id:\\s+(?<depName>[\\w-]+)\\n(?:[^\\n]+\\n){0,8}?\\s+source_type:\\s+curl\\n(?:[^\\n]+\\n){0,8}?\\s+source_url:\\s+https:\\/\\/(?:raw\\.)?github(?:usercontent)?\\.com\\/(?<packageName>[^\\/]+\\/[^\\/]+)\\/[^\\n]+\\n(?:[^\\n]+\\n){0,8}?\\s+version:\\s+\"?(?<currentValue>[^\"\\n]+)\"?"
+      ],
+      "datasourceTemplate": "github-tags",
+      "versioningTemplate": "loose"
+    }
+  ]
+}

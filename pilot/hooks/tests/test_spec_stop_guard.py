@@ -349,6 +349,121 @@ class TestCooldownEscape:
         assert _is_blocked(stdout3)
 
 
+class TestRunawayCap:
+    """Tests for the MAX_BLOCKS runaway cap — prevents unbounded stop-block loops."""
+
+    def test_emits_escalation_at_max_blocks(self, tmp_path: Path) -> None:
+        from spec_stop_guard import MAX_BLOCKS
+
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+        plan_file = plans_dir / "2026-01-27-runaway.md"
+        plan_file.write_text("# Runaway Plan\n\nStatus: PENDING\nApproved: Yes\n")
+        _register_plan_for_session(plan_file, "PENDING")
+
+        last_stdout = ""
+        for i in range(MAX_BLOCKS):
+            exit_code, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+            assert exit_code == 0
+            assert _is_blocked(stdout), f"iteration {i}: should still block before cap"
+            last_stdout = stdout
+            _bump_state_timestamp(plan_file)
+
+        exit_code, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        assert exit_code == 0
+        assert _is_blocked(stdout), "MAX_BLOCKS-th call should still block, but with escalation message"
+        assert "RUNAWAY" in stdout or "runaway" in stdout
+        assert "AskUserQuestion" in stdout
+        assert "AskUserQuestion" not in last_stdout, "escalation message must only appear at the cap"
+
+    def test_allows_stop_after_escalation(self, tmp_path: Path) -> None:
+        from spec_stop_guard import MAX_BLOCKS
+
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+        plan_file = plans_dir / "2026-01-27-runaway.md"
+        plan_file.write_text("# Runaway\n\nStatus: PENDING\nApproved: Yes\n")
+        _register_plan_for_session(plan_file, "PENDING")
+
+        for _ in range(MAX_BLOCKS + 1):
+            _run_subprocess({"stop_hook_active": False}, plans_dir)
+            _bump_state_timestamp(plan_file)
+
+        exit_code, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        assert exit_code == 0
+        assert not _is_blocked(stdout), "after one escalation, next call must allow stop"
+
+    def test_ask_user_question_resets_counter(self, tmp_path: Path) -> None:
+        from spec_stop_guard import MAX_BLOCKS
+
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+        plan_file = plans_dir / "2026-01-27-aq.md"
+        plan_file.write_text("# AQ\n\nStatus: PENDING\nApproved: Yes\n")
+        _register_plan_for_session(plan_file, "PENDING")
+
+        for _ in range(MAX_BLOCKS - 1):
+            _run_subprocess({"stop_hook_active": False}, plans_dir)
+            _bump_state_timestamp(plan_file)
+
+        transcript_file = tmp_path / "session.jsonl"
+        assistant_msg = {
+            "type": "assistant",
+            "message": {"content": [{"type": "tool_use", "name": "AskUserQuestion", "input": {"question": "?"}}]},
+        }
+        transcript_file.write_text(json.dumps(assistant_msg) + "\n")
+        exit_code, stdout, _ = _run_subprocess(
+            {"stop_hook_active": False, "transcript_path": str(transcript_file)},
+            plans_dir,
+        )
+        assert exit_code == 0
+        assert not _is_blocked(stdout), "AskUserQuestion turn must be allowed (existing rule)"
+
+        exit_code, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        assert _is_blocked(stdout)
+        assert "RUNAWAY" not in stdout and "runaway" not in stdout, (
+            "counter should reset after AskUserQuestion — no escalation on the next block"
+        )
+
+    def test_plan_change_resets_counter(self, tmp_path: Path) -> None:
+        from spec_stop_guard import MAX_BLOCKS
+
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+
+        plan_a = plans_dir / "2026-01-27-plan-a.md"
+        plan_a.write_text("# A\n\nStatus: PENDING\nApproved: Yes\n")
+        _register_plan_for_session(plan_a, "PENDING")
+
+        for _ in range(MAX_BLOCKS - 1):
+            _run_subprocess({"stop_hook_active": False}, plans_dir)
+            _bump_state_timestamp(plan_a)
+
+        plan_b = plans_dir / "2026-01-27-plan-b.md"
+        plan_b.write_text("# B\n\nStatus: PENDING\nApproved: Yes\n")
+        _register_plan_for_session(plan_b, "PENDING")
+
+        exit_code, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        assert _is_blocked(stdout)
+        assert "RUNAWAY" not in stdout and "runaway" not in stdout, (
+            "switching to a different plan must reset the counter — no escalation on first block"
+        )
+
+
+def _bump_state_timestamp(plan_file: Path) -> None:
+    """Rewind the stop-guard state's timestamp so the next call doesn't escape via the 60s cooldown."""
+    state_file = _test_session_dir() / "spec-stop-guard"
+    if not state_file.exists():
+        return
+    try:
+        raw = state_file.read_text().strip()
+        data = json.loads(raw)
+    except (json.JSONDecodeError, ValueError):
+        return
+    data["ts"] = 0.0
+    state_file.write_text(json.dumps(data))
+
+
 class TestSessionScopedPlanDetection:
     """Tests that find_active_plan() uses session-scoped active_plan.json."""
 

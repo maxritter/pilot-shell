@@ -8,7 +8,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from scripts import isolation
 from scripts.isolation import (
     HIDDEN_RESTORE_QUEUE,
     HIDDEN_SUFFIX,
@@ -22,6 +21,7 @@ from scripts.isolation import (
 )
 from scripts.utils import TargetConfig
 
+from scripts import isolation
 
 # ----------------------------------------------------------------------------
 # detect_global_contamination

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import time
@@ -9,6 +10,8 @@ from pathlib import Path
 from typing import Any
 
 from installer.context import InstallContext
+from installer.manifest import UpstreamEntry
+from installer.manifest import cached_load as manifest_load
 from installer.platform_utils import (
     command_exists,
     is_apt_available,
@@ -22,23 +25,69 @@ from installer.steps.base import BaseStep
 MAX_RETRIES = 3
 RETRY_DELAY = 2
 
-HOMEBREW_PACKAGES = [
-    "git",
-    "gh",
-    "python@3.12",
-    "node@22",
-    "nvm",
-    "pnpm",
-    "bun",
-    "uv",
-    "go",
-    "gopls",
-    "jq",
-    "ripgrep",
-    "rtk",
-]
 
-HOMEBREW_NO_UPGRADE_PACKAGES = {"python@3.12", "node@22", "nvm", "git", "gh"}
+def _brew_entries() -> list[UpstreamEntry]:
+    """Manifest-driven list of every Homebrew formula Pilot installs."""
+    return [e for e in manifest_load().entries if e.source_type == "brew"]
+
+
+def _brew_formulas() -> list[str]:
+    """Formula names ordered by manifest position (replaces HOMEBREW_PACKAGES)."""
+    seen: set[str] = set()
+    out: list[str] = []
+    for e in _brew_entries():
+        f = e.brew_formula or ""
+        if f and f not in seen:
+            seen.add(f)
+            out.append(f)
+    return out
+
+
+def _brew_no_upgrade_formulas() -> set[str]:
+    """Formulas opted out of `brew upgrade` (replaces HOMEBREW_NO_UPGRADE_PACKAGES)."""
+    return {e.brew_formula for e in _brew_entries() if not e.auto_upgrade and e.brew_formula}
+
+
+# Module-level constants kept for backwards compat with any external readers;
+# they always reflect the current manifest state.
+HOMEBREW_PACKAGES = _brew_formulas()
+HOMEBREW_NO_UPGRADE_PACKAGES = _brew_no_upgrade_formulas()
+
+
+def _verify_homebrew_tap(formula: str) -> bool:
+    """Confirm the formula resolves from the manifest-declared tap.
+
+    Returns False on any mismatch — used as a hard gate before `brew install`.
+    Default expectation is `homebrew/core`; per-entry overrides (e.g. `bun`
+    from `oven-sh/bun`) come from the manifest.
+    """
+    expected_tap: str | None = None
+    for e in _brew_entries():
+        if e.brew_formula == formula:
+            expected_tap = e.brew_tap
+            break
+    if not expected_tap:
+        return False
+    try:
+        result = subprocess.run(
+            ["brew", "info", "--json=v2", formula],
+            capture_output=True,
+            check=False,
+            timeout=30,
+        )
+    except (subprocess.SubprocessError, OSError):
+        return False
+    if result.returncode != 0:
+        return False
+    try:
+        data = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return False
+    formulae = data.get("formulae", [])
+    if not formulae:
+        return False
+    tap = formulae[0].get("tap", "")
+    return tap == expected_tap
 
 
 def _is_nvm_installed() -> bool:
@@ -88,18 +137,24 @@ def _ensure_git_installed() -> bool:
 
 
 def _install_homebrew() -> bool:
-    """Install Homebrew non-interactively."""
+    """Install Homebrew non-interactively (manifest-pinned curl)."""
+    from installer.steps.dependencies import (
+        CurlPipeRunOptions,
+        _curl_pipe_from_manifest,
+    )
+
     try:
-        env = {**os.environ, "NONINTERACTIVE": "1"}
-        result = subprocess.run(
-            '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"',
-            shell=True,
-            check=False,
-            stdin=subprocess.DEVNULL,
-            env=env,
-            timeout=300,
+        ok = _curl_pipe_from_manifest(
+            "homebrew-installer",
+            CurlPipeRunOptions(
+                interpreter="/bin/bash",
+                env={"NONINTERACTIVE": "1"},
+                stdin_devnull=True,
+                timeout=300,
+                stream=True,
+            ),
         )
-        if result.returncode != 0:
+        if not ok:
             return False
 
         brew_paths = [
@@ -152,7 +207,11 @@ def _ensure_homebrew_in_path() -> None:
 
 
 def _install_homebrew_package(package: str) -> bool:
-    """Install a single Homebrew package."""
+    """Install a single Homebrew package after verifying its tap origin."""
+    if not _verify_homebrew_tap(package):
+        # Refuse to install from an unexpected tap — could be tap pollution
+        # or a typo. The supply-chain gate considers this a security failure.
+        return False
     for attempt in range(MAX_RETRIES):
         try:
             result = subprocess.run(
@@ -293,21 +352,22 @@ def _install_nodejs_via_pkg() -> bool:
 
 
 def _install_bun_standalone() -> bool:
-    """Install bun via standalone installer when Homebrew is unavailable."""
+    """Install bun via manifest-pinned curl installer."""
+    from installer.steps.dependencies import (
+        CurlPipeRunOptions,
+        _curl_pipe_from_manifest,
+    )
+
     try:
-        result = subprocess.run(
-            ["bash", "-c", "curl -fsSL https://bun.sh/install | bash"],
-            capture_output=True,
-            check=False,
-            stdin=subprocess.DEVNULL,
-            timeout=120,
-        )
-        if result.returncode == 0:
-            bun_bin = str(Path.home() / ".bun" / "bin")
-            if bun_bin not in os.environ.get("PATH", ""):
-                os.environ["PATH"] = f"{bun_bin}:{os.environ.get('PATH', '')}"
-            return command_exists("bun")
-        return False
+        if not _curl_pipe_from_manifest(
+            "bun-installer",
+            CurlPipeRunOptions(stdin_devnull=True, timeout=120),
+        ):
+            return False
+        bun_bin = str(Path.home() / ".bun" / "bin")
+        if bun_bin not in os.environ.get("PATH", ""):
+            os.environ["PATH"] = f"{bun_bin}:{os.environ.get('PATH', '')}"
+        return command_exists("bun")
     except (subprocess.SubprocessError, OSError):
         return False
 

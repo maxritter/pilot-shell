@@ -224,9 +224,10 @@ class TestPrerequisitesHelpers:
         assert "tap" in call_args
         assert "oven-sh/bun" in call_args
 
+    @patch("installer.steps.prerequisites._verify_homebrew_tap", return_value=True)
     @patch("subprocess.run")
-    def test_install_homebrew_package_runs_brew_install(self, mock_run):
-        """_install_homebrew_package runs brew install command."""
+    def test_install_homebrew_package_runs_brew_install(self, mock_run, _mock_verify):
+        """_install_homebrew_package runs brew install after tap verification."""
         from installer.steps.prerequisites import _install_homebrew_package
 
         mock_run.return_value = MagicMock(returncode=0)
@@ -239,6 +240,17 @@ class TestPrerequisitesHelpers:
         assert "brew" in call_args
         assert "install" in call_args
         assert "git" in call_args
+
+    @patch("installer.steps.prerequisites._verify_homebrew_tap", return_value=False)
+    @patch("subprocess.run")
+    def test_install_homebrew_package_refuses_unexpected_tap(self, mock_run, _mock_verify):
+        """_install_homebrew_package refuses to run brew install when tap mismatches."""
+        from installer.steps.prerequisites import _install_homebrew_package
+
+        result = _install_homebrew_package("git")
+
+        assert result is False
+        mock_run.assert_not_called()
 
     @patch("os.path.exists")
     def test_ensure_homebrew_in_path_adds_brew_path(self, mock_exists):
@@ -550,60 +562,106 @@ class TestPrerequisitesStepRunGitInstall:
         mock_git.assert_not_called()
 
 
+class TestManifestDrivenHomebrew:
+    """Manifest replaces hardcoded HOMEBREW_PACKAGES + HOMEBREW_NO_UPGRADE_PACKAGES."""
+
+    def test_brew_formulas_match_manifest(self):
+        """HOMEBREW_PACKAGES is built from manifest brew entries."""
+        from installer.manifest import load
+        from installer.steps.prerequisites import _brew_formulas
+
+        manifest_formulas = [
+            e.brew_formula for e in load().entries if e.source_type == "brew"
+        ]
+        assert _brew_formulas() == manifest_formulas
+
+    def test_no_upgrade_set_matches_manifest(self):
+        """HOMEBREW_NO_UPGRADE_PACKAGES = formulas with auto_upgrade=false."""
+        from installer.manifest import load
+        from installer.steps.prerequisites import _brew_no_upgrade_formulas
+
+        expected = {
+            e.brew_formula for e in load().entries
+            if e.source_type == "brew" and not e.auto_upgrade
+        }
+        assert _brew_no_upgrade_formulas() == expected
+        # Plan locks these specific formulas to manifest-pinned versions:
+        assert {"python@3.12", "node@22", "nvm", "git", "gh"} <= expected
+
+    @patch("subprocess.run")
+    def test_verify_homebrew_tap_accepts_homebrew_core(self, mock_run):
+        """_verify_homebrew_tap returns True for formulas from homebrew/core."""
+        from installer.steps.prerequisites import _verify_homebrew_tap
+
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout=b'{"formulae":[{"tap":"homebrew/core"}]}',
+        )
+        assert _verify_homebrew_tap("git") is True
+
+    @patch("subprocess.run")
+    def test_verify_homebrew_tap_rejects_unexpected_tap(self, mock_run):
+        """_verify_homebrew_tap returns False when formula resolves from a different tap."""
+        from installer.steps.prerequisites import _verify_homebrew_tap
+
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout=b'{"formulae":[{"tap":"shady/typosquat"}]}',
+        )
+        assert _verify_homebrew_tap("git") is False
+
+    @patch("subprocess.run")
+    def test_verify_homebrew_tap_accepts_oven_sh_for_bun(self, mock_run):
+        """_verify_homebrew_tap honors per-entry tap override (bun → oven-sh/bun)."""
+        from installer.steps.prerequisites import _verify_homebrew_tap
+
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout=b'{"formulae":[{"tap":"oven-sh/bun"}]}',
+        )
+        assert _verify_homebrew_tap("bun") is True
+
+    @patch("subprocess.run")
+    def test_verify_homebrew_tap_unknown_formula_returns_false(self, mock_run):
+        """Formulas not in manifest fail verification (no expected tap to compare)."""
+        from installer.steps.prerequisites import _verify_homebrew_tap
+
+        # Subprocess shouldn't even be called for unknown formulas.
+        assert _verify_homebrew_tap("not-in-manifest") is False
+        mock_run.assert_not_called()
+
+
 class TestInstallHomebrew:
     """Test _install_homebrew function."""
 
-    @patch("installer.steps.prerequisites.is_homebrew_available")
-    @patch("subprocess.run")
-    def test_install_homebrew_uses_string_command_with_noninteractive(self, mock_run, mock_brew_available):
-        """_install_homebrew passes a string (not list) to subprocess.run with shell=True and NONINTERACTIVE=1."""
+    @patch("installer.steps.prerequisites.is_homebrew_available", return_value=True)
+    def test_install_homebrew_routes_through_manifest_pinned_helper(self, _mock_brew_available):
+        """_install_homebrew uses the manifest-pinned curl helper with NONINTERACTIVE+stdin_devnull."""
         from installer.steps.prerequisites import _install_homebrew
 
-        mock_run.return_value = MagicMock(returncode=0)
-        mock_brew_available.return_value = True
+        with patch(
+            "installer.steps.dependencies._curl_pipe_from_manifest", return_value=True
+        ) as mock_helper:
+            ok = _install_homebrew()
 
-        _install_homebrew()
+        assert ok is True
+        mock_helper.assert_called_once()
+        assert mock_helper.call_args[0][0] == "homebrew-installer"
+        opts = mock_helper.call_args[0][1]
+        assert opts.env == {"NONINTERACTIVE": "1"}, "Homebrew install must set NONINTERACTIVE=1"
+        assert opts.stdin_devnull is True, "Homebrew install must redirect stdin to DEVNULL"
+        assert opts.interpreter == "/bin/bash"
+        assert opts.timeout >= 60
 
-        mock_run.assert_called_once()
-        call_kwargs = mock_run.call_args
-        cmd = call_kwargs[0][0]
-        assert isinstance(cmd, str), f"Expected string command, got {type(cmd)}"
-        assert "curl" in cmd
-        assert "Homebrew/install" in cmd
-        assert call_kwargs[1].get("shell") is True
-        env = call_kwargs[1].get("env", {})
-        assert env.get("NONINTERACTIVE") == "1", "Must set NONINTERACTIVE=1 for Homebrew"
-        assert "timeout" in call_kwargs[1], "Must have a timeout to prevent hanging"
-        assert call_kwargs[1]["timeout"] > 0
-
-    @patch("installer.steps.prerequisites.is_homebrew_available")
-    @patch("subprocess.run")
-    def test_install_homebrew_uses_devnull_stdin(self, mock_run, mock_brew_available):
-        """_install_homebrew passes stdin=DEVNULL to prevent interactive prompts."""
-        import subprocess as sp
-
+    @patch("installer.steps.prerequisites.is_homebrew_available", return_value=False)
+    def test_install_homebrew_returns_false_when_helper_fails(self, _mock_brew_available):
+        """_install_homebrew returns False when the manifest-pinned curl install fails."""
         from installer.steps.prerequisites import _install_homebrew
 
-        mock_run.return_value = MagicMock(returncode=0)
-        mock_brew_available.return_value = True
-
-        _install_homebrew()
-
-        call_kwargs = mock_run.call_args[1]
-        assert call_kwargs.get("stdin") == sp.DEVNULL, "Must use stdin=DEVNULL to prevent hanging on prompts"
-
-    @patch("installer.steps.prerequisites.is_homebrew_available")
-    @patch("subprocess.run")
-    def test_install_homebrew_returns_false_on_timeout(self, mock_run, _mock_brew_available):
-        """_install_homebrew returns False when subprocess times out."""
-        import subprocess as sp
-
-        from installer.steps.prerequisites import _install_homebrew
-
-        mock_run.side_effect = sp.TimeoutExpired(cmd="brew", timeout=300)
-
-        result = _install_homebrew()
-        assert result is False
+        with patch(
+            "installer.steps.dependencies._curl_pipe_from_manifest", return_value=False
+        ):
+            assert _install_homebrew() is False
 
 
 class TestIsHomebrewAvailable:

@@ -56,12 +56,17 @@ Bugfix workflow with TDD. Investigate the bug, write the failing test, fix at th
 
 You MUST stop and tell the user to re-invoke with `/spec` when ANY of these is true after Step 1 investigation:
 
-- Bug spans **3+ files** or **2+ components** (e.g. frontend + backend, multiple services).
-- Root cause is **architectural** (the pattern itself is wrong, not a single line).
-- Fix requires **defense-in-depth at multiple layers** (entry validation + business logic + storage).
-- **Confidence is Low** — you can't pin root cause to `file:line`.
-- The fix has **non-trivial UI implications** that warrant a recorded Verification Scenario.
+- **Confidence is Low** — you can't pin root cause to `file:line` after Step 1.
 - Two quick-lane fix attempts have already failed.
+- The fix has **non-trivial UI implications** that warrant a recorded Verification Scenario (multi-step user flow, regression-prone interaction, visual states the user would want recorded).
+- Fix introduces **new abstractions** — a new module, a new public API, a new data structure, a new workflow phase, or a new file that wasn't previously part of the surface area.
+- Fix requires **architectural redesign** — the existing pattern itself must change (e.g., swapping the storage layer, restructuring a state machine, replacing a contract). Adding a missing guard or a missing field along an existing pattern is **not** a redesign.
+- Net new production code is likely to exceed **~150 lines** (rough ceiling — if you can't size it yet, sketch the diff first).
+- The change crosses **independent components with unrelated logic** — e.g., a frontend bug AND an unrelated backend bug bundled together. Coordinated changes that apply the **same conceptual fix** at multiple guard sites do NOT trigger this — that's a single logical bug, multiple sites. Example of allowed: adding the same iteration cap to both a feature-verify orchestrator and a stop-guard hook because they are two layers of the same missing-budget defect.
+
+**Defense-in-depth nuance.** When the bug *is* "a guard is missing across N existing sites", fixing all N sites in one shot is the correct quick-lane move. That is not "defense-in-depth at multiple layers" in the bail-out sense — it's "one fix, applied consistently." Bail only when each layer needs **different** logic (entry validation + business rule + storage migration, each non-trivial).
+
+**Multi-file is fine** when files share the same pattern. The trigger is **abstraction count and logic divergence**, not file count.
 
 **How to bail out** — do all four:
 

@@ -125,12 +125,46 @@ check_uv() {
 }
 
 install_uv() {
-	echo "  [..] Installing uv..."
+	# Pinned via installer/upstreams.yaml (id: uv-installer). Drift checker
+	# enforces this stays in sync with the manifest.
+	local UV_INSTALL_URL="https://astral.sh/uv/install.sh"
+	local UV_INSTALL_SHA256="3a020f8d69019caca567c9038999d130b0ea85866483caf2042c386cb685aef4"
+	local tmp_uv
+	tmp_uv="$(mktemp -t pilot-uv-install.XXXXXX.sh)" || tmp_uv=/tmp/pilot-uv-install.sh
+	# Single cleanup path: trap on EXIT so the temp script is removed on every
+	# return, including sh-failure paths that lacked explicit rm.
+	# shellcheck disable=SC2064
+	trap "rm -f \"$tmp_uv\"" EXIT
+	chmod 600 "$tmp_uv" 2>/dev/null || true
+
+	echo "  [..] Installing uv (pinned)..."
 	if command -v curl >/dev/null 2>&1; then
-		curl -LsSf https://astral.sh/uv/install.sh | sh
+		curl -fsSL "$UV_INSTALL_URL" -o "$tmp_uv" || { echo "  [!!] curl failed"; exit 1; }
 	elif command -v wget >/dev/null 2>&1; then
-		wget -qO- https://astral.sh/uv/install.sh | sh
+		wget -qO "$tmp_uv" "$UV_INSTALL_URL" || { echo "  [!!] wget failed"; exit 1; }
+	else
+		echo "  [!!] Need curl or wget"; exit 1
 	fi
+
+	local actual_sha
+	if command -v shasum >/dev/null 2>&1; then
+		actual_sha="$(shasum -a 256 "$tmp_uv" | awk '{print $1}')"
+	elif command -v sha256sum >/dev/null 2>&1; then
+		actual_sha="$(sha256sum "$tmp_uv" | awk '{print $1}')"
+	else
+		echo "  [!!] Neither shasum nor sha256sum available — cannot verify uv installer"
+		exit 1
+	fi
+	if [ "$actual_sha" != "$UV_INSTALL_SHA256" ]; then
+		echo "  [!!] uv install.sh sha256 mismatch:"
+		echo "       expected: $UV_INSTALL_SHA256"
+		echo "       actual:   $actual_sha"
+		echo "       refusing to execute. Audit upstream and update installer/upstreams.yaml."
+		exit 1
+	fi
+	sh "$tmp_uv"
+	trap - EXIT
+	rm -f "$tmp_uv"
 
 	export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 
@@ -387,7 +421,12 @@ run_installer() {
 		system_arg="--local-system"
 	fi
 
-	uv run --python 3.12 --no-project --with rich --with certifi \
+	# Versions pinned via installer/upstreams.yaml (ids: rich, certifi, pyyaml).
+	# `--no-project` skips the editable project install — every runtime dep the
+	# installer module imports must be supplied via `--with`. PyYAML loads at
+	# manifest import (`installer/manifest.py`); omitting it breaks bootstrap.
+	uv run --python 3.12 --no-project \
+		--with rich==14.2.0 --with certifi==2026.4.22 --with PyYAML==6.0.3 \
 		python -m installer install $system_arg $version_arg $local_arg "$@"
 }
 

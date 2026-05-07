@@ -9,11 +9,13 @@ import subprocess
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
 from installer.context import InstallContext
+from installer.manifest import UpstreamEntry
+from installer.manifest import get as manifest_get
 from installer.platform_utils import (
     command_exists,
     ensure_sudo_credentials,
@@ -116,13 +118,17 @@ def _get_nvm_source_cmd() -> str:
 
 
 def install_claude_code() -> bool:
-    """Install Claude Code via native installer if not present."""
+    """Install Claude Code via native installer if not present.
+
+    Endpoint is vendor-managed (Anthropic redeploys at any time), so the
+    manifest entry is `soft_pin: true` — hash mismatch logs a re-pin warning
+    but proceeds. See docs/security/AUDIT.md for the re-pin SLA.
+    """
     if command_exists("claude"):
         return True
-
-    return _run_bash_with_retry(
-        "curl -fsSL https://claude.ai/install.sh | bash",
-        timeout=300,
+    return _curl_pipe_from_manifest(
+        "claude-code-installer",
+        CurlPipeRunOptions(timeout=300),
     )
 
 
@@ -133,10 +139,7 @@ def install_nodejs() -> bool:
 
     nvm_dir = Path.home() / ".nvm"
     if not nvm_dir.exists():
-        if not _run_bash_with_retry(
-            "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash",
-            timeout=180,
-        ):
+        if not _curl_pipe_from_manifest("nvm-curl", CurlPipeRunOptions(timeout=180)):
             return False
 
     nvm_src = _get_nvm_source_cmd()
@@ -156,11 +159,13 @@ def install_nodejs() -> bool:
 
 
 def install_uv() -> bool:
-    """Install uv package manager if not present."""
+    """Install uv package manager if not present (manifest-pinned curl)."""
     if command_exists("uv"):
         return True
-
-    return _run_bash_with_retry("curl -LsSf https://astral.sh/uv/install.sh | sh")
+    return _curl_pipe_from_manifest(
+        "uv-installer",
+        CurlPipeRunOptions(interpreter="sh", timeout=180),
+    )
 
 
 def install_python_tools() -> bool:
@@ -174,10 +179,147 @@ def install_python_tools() -> bool:
     return True
 
 
+@dataclass
+class CurlPipeRunOptions:
+    """Per-upstream knobs for curl-pipe execution.
+
+    interpreter: shell to invoke (`bash`, `sh`, `/bin/bash`, ...).
+    script_args: arguments appended after the script path.
+    env: environment variables prepended to the exec command.
+    stdin_devnull: redirect stdin from /dev/null (non-interactive installers).
+    cwd: working directory for the exec phase.
+    timeout: timeout in seconds for the exec phase.
+    stream: inherit stdout/stderr (long-running installs).
+    """
+
+    interpreter: str = "bash"
+    script_args: list[str] = field(default_factory=list)
+    env: dict[str, str] | None = None
+    stdin_devnull: bool = False
+    cwd: Path | None = None
+    timeout: int = 180
+    stream: bool = False
+
+
+def _curl_pipe_with_hash_verify(
+    url: str,
+    sha256: str,
+    *,
+    soft_pin: bool = False,
+    options: CurlPipeRunOptions | None = None,
+) -> bool:
+    """Download a script to an owner-only temp file, verify sha256, then execute.
+
+    Hard-pin (default): hash mismatch fails loud (returns False, no exec).
+    Soft-pin: hash mismatch logs the new hash + a re-pin reminder via
+    `_thread_local.last_retry_stderr`, then proceeds to execute.
+
+    The exec phase still flows through `_run_bash_with_retry` so sudo
+    keepalive and the `_SudoReauthNeeded` exception path are preserved.
+    """
+    import hashlib
+    import shlex
+    import tempfile
+
+    opts = options or CurlPipeRunOptions()
+    fd, tmp_str = tempfile.mkstemp(suffix=".sh")
+    tmp_path = Path(tmp_str)
+    try:
+        os.fchmod(fd, 0o600)
+        os.close(fd)
+        if not _run_bash_with_retry(f'curl -fsSL "{url}" -o "{tmp_path}"', timeout=60):
+            return False
+        actual = hashlib.sha256(tmp_path.read_bytes()).hexdigest()
+        if actual != sha256:
+            msg = (
+                f"sha256 mismatch for {url}: expected {sha256}, got {actual}. "
+                + (
+                    "WARNING: soft-pinned upstream changed; proceeding. "
+                    "Audit and re-pin (update manifest sha256 + last_audited)."
+                    if soft_pin
+                    else "Refusing to execute. Audit upstream and update manifest."
+                )
+            )
+            _thread_local.last_retry_stderr = msg
+            if not soft_pin:
+                return False
+        cmd_parts = [opts.interpreter, str(tmp_path), *opts.script_args]
+        quoted = " ".join(shlex.quote(p) for p in cmd_parts)
+        if opts.env:
+            env_prefix = " ".join(f"{k}={shlex.quote(v)}" for k, v in opts.env.items())
+            quoted = f"{env_prefix} {quoted}"
+        if opts.stdin_devnull:
+            quoted = f"{quoted} </dev/null"
+        return _run_bash_with_retry(
+            quoted, cwd=opts.cwd, timeout=opts.timeout, stream=opts.stream
+        )
+    finally:
+        try:
+            tmp_path.unlink()
+        except OSError:
+            pass
+
+
+def _curl_pipe_from_manifest(
+    entry_id: str, options: CurlPipeRunOptions | None = None
+) -> bool:
+    """Run `_curl_pipe_with_hash_verify` for a manifest curl entry.
+
+    Raises ManifestError when the entry has no sha256 — the schema validates
+    this at load time, so this is a defense-in-depth guard rather than a
+    common-path branch.
+    """
+    from installer.manifest import ManifestError
+
+    entry = manifest_get(entry_id)
+    if not entry.sha256:
+        raise ManifestError(
+            f"curl entry {entry.id} has no sha256; refusing to run curl-pipe"
+        )
+    return _curl_pipe_with_hash_verify(
+        entry.source_url,
+        entry.sha256,
+        soft_pin=entry.soft_pin,
+        options=options,
+    )
+
+
+def _npm_install_cmd(
+    *entries: UpstreamEntry,
+    force: bool = False,
+    extra_flags: tuple[str, ...] = (),
+) -> str:
+    """Build a manifest-pinned `npm install -g` command.
+
+    Every entry contributes `<source_url>@<version>`. Postinstall scripts are
+    denied (`--ignore-scripts`) unless ALL entries opt in via `scripts_policy:
+    allow`; mixing policies in one command is rejected so the security
+    contract is unambiguous.
+    """
+    if not entries:
+        raise ValueError("at least one manifest entry required")
+    policies = {e.scripts_policy for e in entries}
+    if len(policies) > 1:
+        raise ValueError(
+            "cannot mix scripts_policy=allow/deny in a single npm install command: "
+            f"{[e.id for e in entries]}"
+        )
+    flags: list[str] = []
+    if "deny" in policies:
+        flags.append("--ignore-scripts")
+    if force:
+        flags.append("--force")
+    flags.extend(extra_flags)
+    pkgs = " ".join(f"{e.source_url}@{e.version}" for e in entries)
+    flag_str = " ".join(flags)
+    cmd = f"npm install -g {flag_str} {pkgs}".replace("  ", " ").strip()
+    return npm_global_cmd(cmd)
+
+
 def install_probe() -> bool:
-    """Install or update Probe code search tool globally via npm."""
+    """Install or update Probe code search tool, manifest-pinned via npm."""
     if not _run_bash_with_retry(
-        npm_global_cmd("npm install -g @probelabs/probe"),
+        _npm_install_cmd(manifest_get("probe")),
         timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
     ):
         return False
@@ -196,9 +338,9 @@ def install_rtk() -> bool:
     if command_exists("rtk"):
         _symlink_to_pilot_bin("rtk")
         return True
-    if not _run_bash_with_retry(
-        "curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh",
-        timeout=120,
+    if not _curl_pipe_from_manifest(
+        "rtk-installer",
+        CurlPipeRunOptions(interpreter="sh", timeout=120),
     ):
         return False
     _symlink_to_pilot_bin("rtk")
@@ -244,7 +386,7 @@ def _is_in_git_repo(directory: Path) -> bool:
 def install_codegraph() -> bool:
     """Install or update CodeGraph for code knowledge graph and structural analysis."""
     if not _run_bash_with_retry(
-        npm_global_cmd("npm install -g @colbymchenry/codegraph --force"),
+        _npm_install_cmd(manifest_get("codegraph"), force=True),
         timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
     ):
         return False
@@ -269,9 +411,15 @@ def install_better_sqlite3() -> bool:
     module resolver walks up from CodeGraph's package directory — eventually
     hitting the global node_modules dir and finding better-sqlite3 as a
     sibling of @colbymchenry/codegraph. No nested install, no tree walking.
+
+    Manifest entry has scripts_policy: allow (native build via node-gyp);
+    --ignore-scripts is intentionally omitted.
     """
     return _run_bash_with_retry(
-        npm_global_cmd("npm install -g better-sqlite3 --no-audit --no-fund"),
+        _npm_install_cmd(
+            manifest_get("better-sqlite3"),
+            extra_flags=("--no-audit", "--no-fund"),
+        ),
         timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
     )
 
@@ -361,21 +509,21 @@ def codegraph_needs_work(project_dir: Path) -> bool:
 
 
 def install_typescript_lsp() -> bool:
-    """Install TypeScript language server and compiler globally."""
+    """Install TypeScript language server and compiler globally (manifest-pinned)."""
     if command_exists("vtsls"):
         return True
     return _run_bash_with_retry(
-        npm_global_cmd("npm install -g @vtsls/language-server typescript"),
+        _npm_install_cmd(manifest_get("vtsls"), manifest_get("typescript")),
         timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
     )
 
 
 def install_prettier() -> bool:
-    """Install prettier code formatter globally for TypeScript/JavaScript files."""
+    """Install prettier code formatter globally (manifest-pinned)."""
     if command_exists("prettier"):
         return True
     return _run_bash_with_retry(
-        npm_global_cmd("npm install -g prettier"),
+        _npm_install_cmd(manifest_get("prettier")),
         timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
     )
 
@@ -418,11 +566,29 @@ def install_golangci_lint() -> bool:
     if not command_exists("go"):
         if not _install_go_via_apt():
             return False
-    install_cmd = (
-        "curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh"
-        " | sh -s -- -b $(go env GOPATH)/bin"
+    # Resolve GOPATH concretely — _curl_pipe_with_hash_verify shell-quotes every
+    # script_args entry, so passing the literal `$(go env GOPATH)/bin` would
+    # arrive at the install script as a single-quoted string instead of the
+    # actual Go bin directory. The install would then drop binaries somewhere
+    # nonsensical and the symlink fallback in _is_golangci_lint_installed would
+    # never see them.
+    try:
+        gopath_result = subprocess.run(
+            ["go", "env", "GOPATH"], capture_output=True, text=True, timeout=10
+        )
+    except (subprocess.SubprocessError, OSError):
+        return False
+    gopath = gopath_result.stdout.strip()
+    if gopath_result.returncode != 0 or not gopath:
+        return False
+    return _curl_pipe_from_manifest(
+        "golangci-lint-installer",
+        CurlPipeRunOptions(
+            interpreter="sh",
+            script_args=["-s", "--", "-b", f"{gopath}/bin"],
+            timeout=120,
+        ),
     )
-    return _run_bash_with_retry(install_cmd, timeout=120)
 
 
 def _refresh_marketplace(marketplace: str) -> bool:
@@ -519,6 +685,7 @@ def install_pbt_tools() -> bool:
             ok = False
 
     if not command_exists("fast-check"):
+        fast_check_cmd = _npm_install_cmd(manifest_get("fast-check"))
         try:
             result = subprocess.run(
                 ["npm", "list", "-g", "fast-check", "--depth=0"],
@@ -527,16 +694,10 @@ def install_pbt_tools() -> bool:
                 timeout=15,
             )
             if result.returncode != 0 or "fast-check" not in result.stdout:
-                if not _run_bash_with_retry(
-                    npm_global_cmd("npm install -g fast-check"),
-                    timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
-                ):
+                if not _run_bash_with_retry(fast_check_cmd, timeout=GLOBAL_NPM_INSTALL_TIMEOUT):
                     ok = False
         except Exception:
-            if not _run_bash_with_retry(
-                npm_global_cmd("npm install -g fast-check"),
-                timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
-            ):
+            if not _run_bash_with_retry(fast_check_cmd, timeout=GLOBAL_NPM_INSTALL_TIMEOUT):
                 ok = False
 
     return ok
@@ -567,7 +728,7 @@ def install_agent_browser() -> bool:
     """
     had_browser = _is_agent_browser_ready()
 
-    if not _run_bash_with_retry(npm_global_cmd("npm install -g agent-browser")):
+    if not _run_bash_with_retry(_npm_install_cmd(manifest_get("agent-browser"))):
         return False
 
     if had_browser:
@@ -623,7 +784,7 @@ def install_playwright_cli() -> bool:
     only if Chromium is already present in the Playwright cache.
     """
     if not _run_bash_with_retry(
-        npm_global_cmd("npm install -g @playwright/cli@latest"),
+        _npm_install_cmd(manifest_get("playwright-cli")),
         timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
     ):
         return False
@@ -832,7 +993,7 @@ def _extract_npx_package_name(package: str) -> str:
     """Extract npm package name without version/tag suffix.
 
     Examples: "fetcher-mcp" → "fetcher-mcp",
-    "open-websearch@latest" → "open-websearch",
+    "open-websearch@2.1.9" → "open-websearch",
     "@upstash/context7-mcp" → "@upstash/context7-mcp",
     "@scope/pkg@1.0" → "@scope/pkg"
     """

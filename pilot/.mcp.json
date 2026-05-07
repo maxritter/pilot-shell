@@ -2,7 +2,7 @@
   "mcpServers": {
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"]
+      "args": ["-y", "@upstash/context7-mcp@2.2.4"]
     },
     "codegraph": {
       "type": "stdio",
@@ -16,7 +16,7 @@
     },
     "web-search": {
       "command": "npx",
-      "args": ["-y", "open-websearch"],
+      "args": ["-y", "open-websearch@2.1.9"],
       "env": {
         "MODE": "stdio",
         "DEFAULT_SEARCH_ENGINE": "duckduckgo",
@@ -29,7 +29,7 @@
     },
     "web-fetch": {
       "command": "npx",
-      "args": ["-y", "fetcher-mcp"]
+      "args": ["-y", "fetcher-mcp@0.3.9"]
     }
   }
 }

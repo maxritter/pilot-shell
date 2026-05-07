@@ -71,31 +71,61 @@ Launch Codex review NOW — it runs in parallel with the Claude reviewer above.
 
 ```bash
 SESS_ID="${PILOT_SESSION_ID:-default}"
-CODEX_FLAG="$HOME/.pilot/sessions/$SESS_ID/codex-ran-<plan-slug>.flag"
+CODEX_FLAG="$HOME/.pilot/sessions/$SESS_ID/codex-spec-review-ran-<plan-slug>.flag"
 if [ -f "$CODEX_FLAG" ]; then
   echo "Codex already reviewed this plan in this session — skipping (codex-once)."
   # Skip the launch and the Codex collection sub-step. Continue with Claude reviewer results only.
 fi
 ```
 
-1. Detect companion path, project root, and base branch:
+**⛔ DO NOT use `adversarial-review --base` or `adversarial-review --scope branch` for plans.** Those subcommands bundle a git diff and feed it to Codex as the review target. Plan files in `pilot-shell` are gitignored (see `.gitignore` line ~271 — `docs/plans` is excluded), so the bundled diff is empty, and Codex returns a meta-finding ("no implementation diff was provided") with zero substantive findings on the actual plan content. Use the `task` subcommand with `--prompt-file` instead — it lets Codex Read the plan file directly via its own tools, with no diff dependency. (The `adversarial-review` path remains correct for `spec-verify`, where there is real working-tree code to scan.)
+
+1. Detect companion path and project root:
 ```bash
 CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | sort -V | tail -1)
 PROJECT_ROOT="${CLAUDE_PROJECT_ROOT:-$(pwd)}"
-# Use worktree base branch if in worktree, otherwise detect repo default branch
-BASE_BRANCH=$(~/.pilot/bin/pilot worktree status --json 2>/dev/null | grep -o '"base_branch":"[^"]*"' | cut -d'"' -f4)
-[ -z "$BASE_BRANCH" ] && BASE_BRANCH=$(cd "$PROJECT_ROOT" && git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||' || echo "main")
 ```
 
-2. Launch adversarial review in background. **⛔ Use `Bash(run_in_background=true, timeout=600000)`** — the companion's `--background` flag is a no-op for reviews (only works for `task`), so we use Claude Code's background bash instead. **The `timeout=600000` (10 min, the Bash tool maximum) is MANDATORY** — Bash defaults to 120000 ms (2 min), which SIGKILLs the codex process mid-investigation and produces zero findings. Adversarial reviews on plans typically take 1–6 minutes; the 10-minute ceiling is the safety margin. The companion writes a persistent job record at `$CLAUDE_PLUGIN_DATA/state/<slug>-<hash>/jobs/review-<id>.json` (`status`, `rendered`, `result.parsed`) — that file, not the bash stdout, is the authoritative findings source after completion.
+2. Build the review prompt file by rendering the **template at `${CLAUDE_PLUGIN_ROOT}/agents/spec-review-codex.md`**. The template is the single source of truth for plan-review semantics — do NOT re-state the prompt inline in this skill. Substitute three placeholders:
+   - `{{PLAN_PATH}}` — absolute path to the plan file
+   - `{{PLAN_GOAL}}` — the 1–2 sentence Goal sentence from the plan's `## Summary`
+   - `{{CONTEXT_FILES}}` — newline-separated absolute paths to source/reference files the plan ports from or extends (use the files referenced in `## Context for Implementer`)
+
+```bash
+PROMPT_TEMPLATE="${CLAUDE_PLUGIN_ROOT}/agents/spec-review-codex.md"
+PROMPT_FILE="/tmp/codex-spec-review-${PILOT_SESSION_ID:-default}-<plan-slug>.md"
+
+# Set these before rendering:
+PLAN_PATH="/absolute/path/to/docs/plans/YYYY-MM-DD-<slug>.md"
+PLAN_GOAL="<one or two sentences from the plan Summary>"
+# CONTEXT_FILES is a newline-separated list — use printf to build it:
+CONTEXT_FILES=$(printf -- '- %s\n' \
+  /absolute/path/to/source-or-pattern-file-1 \
+  /absolute/path/to/source-or-pattern-file-2)
+
+PLAN_PATH="$PLAN_PATH" PLAN_GOAL="$PLAN_GOAL" CONTEXT_FILES="$CONTEXT_FILES" \
+PROMPT_TEMPLATE="$PROMPT_TEMPLATE" PROMPT_FILE="$PROMPT_FILE" \
+uv run --no-project python -c '
+import os, pathlib
+text = pathlib.Path(os.environ["PROMPT_TEMPLATE"]).read_text()
+for key in ("PLAN_PATH", "PLAN_GOAL", "CONTEXT_FILES"):
+    text = text.replace("{{" + key + "}}", os.environ[key])
+pathlib.Path(os.environ["PROMPT_FILE"]).write_text(text)
+'
+```
+
+3. Launch the task in background. **⛔ For `task`, the companion's `--background` flag IS supported (unlike `review`/`adversarial-review` where only Claude Code's `Bash(run_in_background=true)` detaches).** Use the companion's own background mode here — the launch command returns the job ID immediately on stdout. Capture the job ID for collection.
 
    ```
    Bash(
-     command="cd $PROJECT_ROOT && node $CODEX_COMPANION adversarial-review --base $BASE_BRANCH \"Challenge this plan: <plan summary/goal>. Plan file: <plan-path>. Focus on: wrong assumptions, missing edge cases, scope gaps, and design choices that could fail under real-world conditions.\"",
-     run_in_background=true,
-     timeout=600000
+     command="cd $PROJECT_ROOT && node $CODEX_COMPANION task --background --prompt-file \"$PROMPT_FILE\"",
+     run_in_background=false,
+     timeout=60000
    )
    ```
+
+   The stdout looks like: `Codex Task started in the background as task-<id>. Check /codex:status task-<id> for progress.` Extract the `task-…` token and store as `JOB_ID`.
+
 **Do NOT wait** — proceed to collect the Claude reviewer results first.
 
 #### Collect Review Results
@@ -129,53 +159,53 @@ Then Read the file once. If not READY after 5 min, re-launch synchronously.
 
 The completion notification arrives automatically as a mid-turn tool-result-style event; you do not need to poll for it.
 
-1. **When (and ONLY when) the completion notification arrives, retrieve the findings from the persistent job state — NOT from the bash stdout file.** The companion writes the rendered review to a job record that survives bash truncation, mid-flight kills, and shell-pipe weirdness. Use the companion's own `status` + `result` subcommands (the supported public interface in `lib/render.mjs:211-283` and `state.mjs:resolveJobsDir`):
+**Wait for completion via bash polling**, NOT by reading the state file directly while waiting. The polling bash returns when the job's `status` flips to `completed`/`failed`, which triggers the completion notification.
+
+```bash
+JOB_ID="<captured-task-id>"
+for i in $(seq 1 150); do
+  STATE=$(node "$CODEX_COMPANION" status "$JOB_ID" --json 2>/dev/null \
+    | uv run --no-project python -c "import json,sys; print((json.load(sys.stdin).get('job') or {}).get('status') or '')")
+  case "$STATE" in
+    completed) echo "READY"; break ;;
+    failed)    echo "FAILED"; break ;;
+  esac
+  sleep 4
+done
+```
+
+Run this as `Bash(run_in_background=true, timeout=600000)`. Plan reviews typically take 1–4 minutes (no diff context to load); the 10-minute ceiling is a safety margin.
+
+1. **When (and ONLY when) the completion notification arrives**, fetch the result via the companion's public interface:
 
    ```bash
-   STATUS_JSON=$(node "$CODEX_COMPANION" status --json)
-   JOB_ID=$(printf '%s' "$STATUS_JSON" | python3 -c "
-   import json,sys
-   d=json.load(sys.stdin)
-   lf=d.get('latestFinished') or {}
-   if lf.get('kind')=='adversarial-review' and lf.get('status')=='completed':
-       print(lf['id']); sys.exit(0)
-   for j in (d.get('running') or []):
-       if j.get('kind')=='adversarial-review':
-           print('STILL_RUNNING:'+j['id']); sys.exit(0)
-   sys.exit(1)
-   ")
+   node "$CODEX_COMPANION" result "$JOB_ID" --json > /tmp/codex-task-result-$$.json
    ```
 
-   - If `$JOB_ID` is empty → no adversarial-review job ran. Re-launch synchronously (foreground `Bash(timeout=600000)`).
-   - If `$JOB_ID` starts with `STILL_RUNNING:` → the bash was killed before the review completed (the most common failure mode pre-fix). Re-launch synchronously with foreground bash, `timeout=600000`. Do NOT trust any partial output.
-   - Else, fetch the rendered findings:
+   Read `/tmp/codex-task-result-$$.json` via `ctx_execute_file` (or Read for small payloads). The relevant fields:
+   - `storedJob.status` — must be `"completed"`. If not, treat as a re-launch trigger; do not silently proceed.
+   - `storedJob.result.rawOutput` — a string containing Codex's response. With our prompt, this is JSON matching the schema above.
+   - `storedJob.rendered` — same content rendered for display; useful as a fallback if `rawOutput` is malformed.
 
-     ```bash
-     node "$CODEX_COMPANION" result "$JOB_ID" --json > /tmp/codex-result-$$.json
-     ```
+2. **Parse `rawOutput` as JSON.** Extract `verdict`, `summary`, `findings`, `next_steps`. If `JSON.parse` fails (Codex deviated from the schema), fall back to `storedJob.rendered` — surface the rendered text to the user as a suggestion-level finding and continue. Do NOT re-launch on a parse failure; one Codex run per `/spec` is the rule.
 
-   Then read `/tmp/codex-result-$$.json` via `ctx_execute_file` and extract `storedJob.rendered` (the full markdown report) and `storedJob.result.parsed` (structured `{verdict, summary, findings, next_steps}`). **Verify before parsing**: `storedJob.status === "completed"` AND `storedJob.rendered` starts with `"# Codex Adversarial Review"`. If either check fails, treat as a re-launch trigger — do NOT silently proceed.
+   Severity → action map for the parsed findings:
+   - `critical` / `high` → must_fix
+   - `medium` / `low` → should_fix
+   - `info` → suggestion
 
-2. **Parse the rendered findings.** Format (from `lib/render.mjs:211-283`):
-   ```
-   # Codex Adversarial Review
-   Target: <branch>
-   Verdict: <approve|needs-attention|reject>
-   <summary>
-   Findings:
-   - [<severity>] <title> (<file>:<lines>)
-     <body>
-     Recommendation: <recommendation>
-   Next steps:
-   - <step>
-   ```
-   Severity → action map: `[critical]` / `[high]` → must_fix; `[medium]` / `[low]` → should_fix; `[info]` → suggestion. Fix every must_fix and should_fix inline.
+   Fix every must_fix and should_fix inline before requesting plan approval. Codex findings frequently surface architectural gaps (chained-command bypasses, fail-open paths, encoding edge cases) that the Claude reviewer misses — treat them with at least equal weight.
 
-3. **If `latestFinished` is absent and the bash exit code was non-zero in the notification** (genuine launch failure, not a timeout): re-launch synchronously and wait. If the second attempt also fails, escalate to the user with the captured error — do not silently proceed.
+3. **If `storedJob.status` is `"failed"`** (genuine launch failure, not a timeout): re-launch synchronously and wait. If the second attempt also fails, escalate to the user with the captured error — do not silently proceed.
 
 4. **Mark Codex as ran** so re-iterations of this plan within the same session do not re-run it:
 ```bash
 mkdir -p "$(dirname "$CODEX_FLAG")" && touch "$CODEX_FLAG"
+```
+
+5. **Cleanup:** delete the temp prompt file:
+```bash
+rm -f "$PROMPT_FILE"
 ```
 
 **If Codex was NOT launched**, proceed after all Claude reviewer must_fix/should_fix resolved.

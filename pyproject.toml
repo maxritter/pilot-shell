@@ -17,6 +17,7 @@ dependencies = [
     "cryptography>=46.0.6",
     "Cython>=3.0.0",
     "setuptools>=61.0",
+    "PyYAML>=6.0",
 ]
 
 [dependency-groups]

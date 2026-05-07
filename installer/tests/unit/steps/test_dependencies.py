@@ -6,11 +6,11 @@ import json
 import subprocess
 import tempfile
 import time
+from contextlib import contextmanager
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
-from pathlib import Path
-from contextlib import contextmanager
-from unittest.mock import MagicMock, patch
 
 
 class TestDependenciesStep:
@@ -120,26 +120,24 @@ class TestInstallClaudeCode:
         assert result is True
         mock_run.assert_not_called()
 
-    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
     @patch("installer.steps.dependencies.command_exists", return_value=False)
-    def test_install_claude_code_runs_native_installer(self, _mock_cmd, mock_run):
-        """install_claude_code runs the native installer when claude is not in PATH."""
+    def test_install_claude_code_runs_native_installer(self, _mock_cmd):
+        """install_claude_code routes through the manifest-pinned soft-pin curl helper."""
         from installer.steps.dependencies import install_claude_code
 
-        result = install_claude_code()
+        with patch(
+            "installer.steps.dependencies._curl_pipe_from_manifest", return_value=True
+        ) as mock_helper:
+            result = install_claude_code()
 
         assert result is True
-        mock_run.assert_called_once()
-        call_args = mock_run.call_args[0][0]
-        assert "claude.ai/install.sh" in call_args
-        assert mock_run.call_args[1].get("timeout") == 300 or (
-            len(mock_run.call_args[0]) > 1 or "timeout" in str(mock_run.call_args)
-        )
+        mock_helper.assert_called_once()
+        assert mock_helper.call_args[0][0] == "claude-code-installer"
 
-    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=False)
+    @patch("installer.steps.dependencies._curl_pipe_from_manifest", return_value=False)
     @patch("installer.steps.dependencies.command_exists", return_value=False)
-    def test_install_claude_code_returns_false_on_failure(self, _mock_cmd, mock_run):
-        """install_claude_code returns False when native installer fails."""
+    def test_install_claude_code_returns_false_on_failure(self, _mock_cmd, _mock_helper):
+        """install_claude_code returns False when the manifest-pinned curl install fails."""
         from installer.steps.dependencies import install_claude_code
 
         result = install_claude_code()
@@ -167,6 +165,48 @@ class TestDependencyInstallFunctions:
         from installer.steps.dependencies import install_python_tools
 
         assert callable(install_python_tools)
+
+    @patch("installer.steps.dependencies.command_exists", return_value=False)
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    def test_install_typescript_lsp_pins_vtsls_and_typescript(self, mock_run, _mock_cmd):
+        """install_typescript_lsp pins both vtsls and typescript with --ignore-scripts."""
+        from installer.manifest import get
+        from installer.steps.dependencies import install_typescript_lsp
+
+        result = install_typescript_lsp()
+        assert result is True
+        cmd = mock_run.call_args[0][0]
+        assert f"@vtsls/language-server@{get('vtsls').version}" in cmd
+        assert f"typescript@{get('typescript').version}" in cmd
+        assert "--ignore-scripts" in cmd
+
+    @patch("installer.steps.dependencies._is_agent_browser_ready", return_value=True)
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    def test_install_agent_browser_pins_version(self, mock_run, _mock_ready):
+        """install_agent_browser pins manifest version with --ignore-scripts."""
+        from installer.manifest import get
+        from installer.steps.dependencies import install_agent_browser
+
+        result = install_agent_browser()
+        assert result is True
+        first_cmd = mock_run.call_args_list[0][0][0]
+        assert f"agent-browser@{get('agent-browser').version}" in first_cmd
+        assert "--ignore-scripts" in first_cmd
+        assert "@latest" not in first_cmd
+
+    @patch("installer.steps.dependencies._is_playwright_cli_ready", return_value=True)
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    def test_install_playwright_cli_pins_version(self, mock_run, _mock_ready):
+        """install_playwright_cli pins manifest version with --ignore-scripts (no @latest)."""
+        from installer.manifest import get
+        from installer.steps.dependencies import install_playwright_cli
+
+        result = install_playwright_cli()
+        assert result is True
+        first_cmd = mock_run.call_args_list[0][0][0]
+        assert f"@playwright/cli@{get('playwright-cli').version}" in first_cmd
+        assert "--ignore-scripts" in first_cmd
+        assert "@latest" not in first_cmd
 
 
 class TestSetupPilotMemory:
@@ -198,7 +238,8 @@ class TestProbeInstall:
 
     @patch("installer.steps.dependencies._run_bash_with_retry")
     def test_install_probe_always_runs_npm_install(self, mock_bash):
-        """install_probe always runs npm install to update to latest."""
+        """install_probe runs npm install pinned to manifest version with --ignore-scripts."""
+        from installer.manifest import get
         from installer.steps.dependencies import install_probe
 
         mock_bash.return_value = True
@@ -208,7 +249,10 @@ class TestProbeInstall:
         assert result is True
         mock_bash.assert_called_once()
         call_args = mock_bash.call_args[0][0]
-        assert "@probelabs/probe" in call_args
+        expected_version = get("probe").version
+        assert f"@probelabs/probe@{expected_version}" in call_args
+        assert "--ignore-scripts" in call_args
+        assert "@latest" not in call_args
 
     @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
     def test_install_probe_uses_longer_timeout(self, mock_bash):
@@ -232,6 +276,248 @@ class TestProbeInstall:
         assert result is False
 
 
+class TestCurlPipeHashVerify:
+    """Tests for _curl_pipe_with_hash_verify — sha256-then-execute flow."""
+
+    @staticmethod
+    def _write_script(text: bytes, path: Path) -> None:
+        path.write_bytes(text)
+
+    def test_runs_when_hash_matches(self, tmp_path: Path):
+        """Helper executes interpreter command when sha256 matches."""
+        import hashlib
+
+        from installer.steps.dependencies import (
+            CurlPipeRunOptions,
+            _curl_pipe_with_hash_verify,
+        )
+
+        script_bytes = b"#!/bin/bash\necho ok\n"
+        digest = hashlib.sha256(script_bytes).hexdigest()
+        run_calls: list[tuple[str, dict]] = []
+
+        def _fake_run_bash(command: str, **kwargs):
+            run_calls.append((command, kwargs))
+            if command.startswith("curl -fsSL"):
+                # Extract output path from command (-o "<path>")
+                out = command.split('-o "')[1].split('"')[0]
+                Path(out).write_bytes(script_bytes)
+                return True
+            return True
+
+        with patch("installer.steps.dependencies._run_bash_with_retry", side_effect=_fake_run_bash):
+            ok = _curl_pipe_with_hash_verify(
+                "https://example.com/x.sh",
+                digest,
+                options=CurlPipeRunOptions(interpreter="bash"),
+            )
+        assert ok is True
+        # Two runs: curl-fetch + bash exec
+        assert len(run_calls) == 2
+        assert run_calls[0][0].startswith('curl -fsSL "https://example.com/x.sh"')
+        assert run_calls[1][0].startswith("bash ")
+
+    def test_hard_pin_mismatch_returns_false(self, tmp_path: Path):
+        """Hash mismatch with hard pin returns False and records diagnostic."""
+        from installer.steps.dependencies import (
+            _clear_last_error,
+            _curl_pipe_with_hash_verify,
+            _get_last_error,
+        )
+
+        _clear_last_error()
+        wrong_digest = "0" * 64
+
+        def _fake_run_bash(command: str, **kwargs):
+            if command.startswith("curl -fsSL"):
+                out = command.split('-o "')[1].split('"')[0]
+                Path(out).write_bytes(b"different bytes\n")
+                return True
+            pytest.fail("execute phase must NOT run on hash mismatch")
+            return False
+
+        with patch("installer.steps.dependencies._run_bash_with_retry", side_effect=_fake_run_bash):
+            ok = _curl_pipe_with_hash_verify("https://example.com/x.sh", wrong_digest)
+        assert ok is False
+        err = _get_last_error()
+        assert "sha256 mismatch" in err
+        assert wrong_digest in err
+
+    def test_soft_pin_mismatch_proceeds(self, tmp_path: Path):
+        """Soft-pin mismatch logs warning but still executes the script."""
+        from installer.steps.dependencies import (
+            _clear_last_error,
+            _curl_pipe_with_hash_verify,
+            _get_last_error,
+        )
+
+        _clear_last_error()
+        wrong_digest = "0" * 64
+        executed: list[bool] = []
+
+        def _fake_run_bash(command: str, **kwargs):
+            if command.startswith("curl -fsSL"):
+                out = command.split('-o "')[1].split('"')[0]
+                Path(out).write_bytes(b"different bytes\n")
+                return True
+            executed.append(True)
+            return True
+
+        with patch("installer.steps.dependencies._run_bash_with_retry", side_effect=_fake_run_bash):
+            ok = _curl_pipe_with_hash_verify(
+                "https://example.com/x.sh",
+                wrong_digest,
+                soft_pin=True,
+            )
+        assert ok is True
+        assert executed, "soft-pin must execute script on mismatch"
+        assert "soft-pinned" in _get_last_error().lower() or "soft" in _get_last_error().lower()
+
+    def test_temp_file_cleaned_up_on_success(self):
+        """Temp file is removed after successful execution."""
+        import hashlib
+
+        from installer.steps.dependencies import _curl_pipe_with_hash_verify
+
+        script_bytes = b"#!/bin/bash\nexit 0\n"
+        digest = hashlib.sha256(script_bytes).hexdigest()
+        captured_paths: list[str] = []
+
+        def _fake_run_bash(command: str, **kwargs):
+            if command.startswith("curl -fsSL"):
+                out = command.split('-o "')[1].split('"')[0]
+                captured_paths.append(out)
+                Path(out).write_bytes(script_bytes)
+                return True
+            return True
+
+        with patch("installer.steps.dependencies._run_bash_with_retry", side_effect=_fake_run_bash):
+            _curl_pipe_with_hash_verify("https://example.com/x.sh", digest)
+        assert captured_paths
+        assert not Path(captured_paths[0]).exists(), "temp file leaked"
+
+    def test_temp_file_cleaned_up_on_mismatch(self):
+        """Temp file is removed even when sha256 mismatch fails the install."""
+        from installer.steps.dependencies import _curl_pipe_with_hash_verify
+
+        captured_paths: list[str] = []
+
+        def _fake_run_bash(command: str, **kwargs):
+            if command.startswith("curl -fsSL"):
+                out = command.split('-o "')[1].split('"')[0]
+                captured_paths.append(out)
+                Path(out).write_bytes(b"bad bytes")
+                return True
+            return False
+
+        with patch("installer.steps.dependencies._run_bash_with_retry", side_effect=_fake_run_bash):
+            _curl_pipe_with_hash_verify("https://example.com/x.sh", "0" * 64)
+        assert captured_paths
+        assert not Path(captured_paths[0]).exists(), "temp file leaked on mismatch path"
+
+    def test_temp_file_has_owner_only_permissions(self):
+        """Temp file is created with 0o600 (owner-only) permissions."""
+        import hashlib
+
+        from installer.steps.dependencies import _curl_pipe_with_hash_verify
+
+        script_bytes = b"#!/bin/bash\nexit 0\n"
+        digest = hashlib.sha256(script_bytes).hexdigest()
+        observed_modes: list[int] = []
+
+        def _fake_run_bash(command: str, **kwargs):
+            if command.startswith("curl -fsSL"):
+                out = command.split('-o "')[1].split('"')[0]
+                # Mode at this point is what mkstemp + fchmod set.
+                observed_modes.append(Path(out).stat().st_mode & 0o777)
+                Path(out).write_bytes(script_bytes)
+                return True
+            return True
+
+        with patch("installer.steps.dependencies._run_bash_with_retry", side_effect=_fake_run_bash):
+            _curl_pipe_with_hash_verify("https://example.com/x.sh", digest)
+        assert observed_modes == [0o600]
+
+    def test_env_vars_wired_into_exec(self):
+        """CurlPipeRunOptions.env vars appear as a prefix on the exec command."""
+        import hashlib
+
+        from installer.steps.dependencies import (
+            CurlPipeRunOptions,
+            _curl_pipe_with_hash_verify,
+        )
+
+        script_bytes = b"#!/bin/bash\nexit 0\n"
+        digest = hashlib.sha256(script_bytes).hexdigest()
+        run_calls: list[str] = []
+
+        def _fake_run_bash(command: str, **kwargs):
+            run_calls.append(command)
+            if command.startswith("curl -fsSL"):
+                out = command.split('-o "')[1].split('"')[0]
+                Path(out).write_bytes(script_bytes)
+            return True
+
+        with patch("installer.steps.dependencies._run_bash_with_retry", side_effect=_fake_run_bash):
+            _curl_pipe_with_hash_verify(
+                "https://example.com/x.sh",
+                digest,
+                options=CurlPipeRunOptions(env={"NONINTERACTIVE": "1"}, stdin_devnull=True),
+            )
+        exec_cmd = run_calls[1]
+        assert "NONINTERACTIVE=1" in exec_cmd
+        assert exec_cmd.endswith("</dev/null")
+
+    def test_script_args_propagated(self):
+        """script_args are appended after the script path on the exec command."""
+        import hashlib
+
+        from installer.steps.dependencies import (
+            CurlPipeRunOptions,
+            _curl_pipe_with_hash_verify,
+        )
+
+        script_bytes = b"#!/bin/sh\nexit 0\n"
+        digest = hashlib.sha256(script_bytes).hexdigest()
+        run_calls: list[str] = []
+
+        def _fake_run_bash(command: str, **kwargs):
+            run_calls.append(command)
+            if command.startswith("curl -fsSL"):
+                out = command.split('-o "')[1].split('"')[0]
+                Path(out).write_bytes(script_bytes)
+            return True
+
+        with patch("installer.steps.dependencies._run_bash_with_retry", side_effect=_fake_run_bash):
+            _curl_pipe_with_hash_verify(
+                "https://example.com/x.sh",
+                digest,
+                options=CurlPipeRunOptions(
+                    interpreter="sh",
+                    script_args=["-s", "--", "-b", "$(go env GOPATH)/bin"],
+                ),
+            )
+        exec_cmd = run_calls[1]
+        assert exec_cmd.startswith("sh ")
+        assert "-s" in exec_cmd
+        assert "-b" in exec_cmd
+        assert "go env GOPATH" in exec_cmd
+
+    def test_curl_failure_returns_false_no_exec(self):
+        """When curl fetch fails, exec must not run and helper returns False."""
+        from installer.steps.dependencies import _curl_pipe_with_hash_verify
+
+        def _fake_run_bash(command: str, **kwargs):
+            if command.startswith("curl -fsSL"):
+                return False
+            pytest.fail("exec must not run when curl fetch fails")
+            return False
+
+        with patch("installer.steps.dependencies._run_bash_with_retry", side_effect=_fake_run_bash):
+            ok = _curl_pipe_with_hash_verify("https://example.com/x.sh", "0" * 64)
+        assert ok is False
+
+
 class TestInstallRtk:
     """Tests for install_rtk() — RTK CLI installation (brew primary, curl fallback)."""
 
@@ -249,26 +535,30 @@ class TestInstallRtk:
         result = install_rtk()
         assert result is True
 
+    @patch("installer.steps.dependencies._symlink_to_pilot_bin")
     @patch("installer.steps.dependencies.command_exists", return_value=False)
-    def test_install_rtk_runs_curl_fallback(self, _mock_cmd):
-        """install_rtk runs curl installer when rtk not found."""
+    def test_install_rtk_runs_curl_fallback(self, _mock_cmd, _mock_symlink):
+        """install_rtk routes through manifest-pinned curl helper for rtk-installer."""
         from installer.steps.dependencies import install_rtk
 
-        with patch("installer.steps.dependencies._run_bash_with_retry", return_value=True) as mock_bash:
+        with patch(
+            "installer.steps.dependencies._curl_pipe_from_manifest", return_value=True
+        ) as mock_helper:
             result = install_rtk()
 
         assert result is True
-        mock_bash.assert_called_once()
-        call_args = str(mock_bash.call_args)
-        assert "rtk-ai/rtk" in call_args
-        assert "install.sh" in call_args
+        mock_helper.assert_called_once()
+        assert mock_helper.call_args[0][0] == "rtk-installer"
+        opts = mock_helper.call_args[0][1]
+        assert opts.interpreter == "sh"
+        assert opts.timeout == 120
 
     @patch("installer.steps.dependencies.command_exists", return_value=False)
     def test_install_rtk_returns_false_when_curl_fails(self, _mock_cmd):
-        """install_rtk returns False when curl installer fails."""
+        """install_rtk returns False when manifest-pinned curl install fails."""
         from installer.steps.dependencies import install_rtk
 
-        with patch("installer.steps.dependencies._run_bash_with_retry", return_value=False):
+        with patch("installer.steps.dependencies._curl_pipe_from_manifest", return_value=False):
             result = install_rtk()
 
         assert result is False
@@ -285,7 +575,8 @@ class TestInstallCodegraph:
 
     @patch("installer.steps.dependencies._symlink_to_pilot_bin")
     def test_install_codegraph_always_runs_npm_install(self, mock_symlink):
-        """install_codegraph always runs npm install to update to latest."""
+        """install_codegraph pins version + --force + --ignore-scripts."""
+        from installer.manifest import get
         from installer.steps.dependencies import install_codegraph
 
         with patch("installer.steps.dependencies._run_bash_with_retry", return_value=True) as mock_bash:
@@ -294,8 +585,10 @@ class TestInstallCodegraph:
         assert result is True
         mock_bash.assert_called_once()
         call_args = str(mock_bash.call_args)
-        assert "@colbymchenry/codegraph" in call_args
+        expected_version = get("codegraph").version
+        assert f"@colbymchenry/codegraph@{expected_version}" in call_args
         assert "--force" in call_args
+        assert "--ignore-scripts" in call_args
         mock_symlink.assert_called_once_with("codegraph")
 
     @patch("installer.steps.dependencies._symlink_to_pilot_bin")
@@ -321,7 +614,8 @@ class TestInstallCodegraph:
         assert result is False
 
     def test_install_better_sqlite3_runs_global_npm_install(self):
-        """install_better_sqlite3 does a global npm install so Node's resolver finds it."""
+        """install_better_sqlite3 pins version; allows scripts (native build)."""
+        from installer.manifest import get
         from installer.steps.dependencies import install_better_sqlite3
 
         with patch("installer.steps.dependencies._run_bash_with_retry", return_value=True) as mock_bash:
@@ -330,8 +624,11 @@ class TestInstallCodegraph:
         assert result is True
         mock_bash.assert_called_once()
         call_args = str(mock_bash.call_args)
-        assert "better-sqlite3" in call_args
+        expected_version = get("better-sqlite3").version
+        assert f"better-sqlite3@{expected_version}" in call_args
         assert "-g" in call_args
+        # Native build needs scripts; --ignore-scripts MUST NOT be set.
+        assert "--ignore-scripts" not in call_args
 
     def test_install_better_sqlite3_returns_false_on_failure(self):
         """install_better_sqlite3 returns False when npm install fails."""
@@ -879,14 +1176,16 @@ class TestPrecacheNpxMcpServers:
                     assert _precache_npx_mcp_servers(None) is True
 
     def test_launches_and_kills_uncached_packages(self):
-        """Launches npx for uncached packages and kills after caching."""
+        """Launches npx for uncached pinned packages and kills after caching."""
         import json
 
+        from installer.manifest import get
         from installer.steps.dependencies import _precache_npx_mcp_servers
 
+        pinned_pkg = f"fetcher-mcp@{get('fetcher-mcp').version}"
         mcp_config = {
             "mcpServers": {
-                "web-fetch": {"command": "npx", "args": ["-y", "fetcher-mcp"]},
+                "web-fetch": {"command": "npx", "args": ["-y", pinned_pkg]},
             }
         }
 
@@ -910,6 +1209,9 @@ class TestPrecacheNpxMcpServers:
             popen_args = mock_popen.call_args[0][0]
             assert popen_args[:2] == ["npx", "-y"]
             assert "--package" in popen_args
+            # The --package value MUST be the pinned form, not bare "fetcher-mcp".
+            pkg_idx = popen_args.index("--package") + 1
+            assert popen_args[pkg_idx] == pinned_pkg
             assert "-c" in popen_args
             assert "true" in popen_args
             mock_proc.wait.assert_called_once()
@@ -1048,15 +1350,18 @@ class TestInstallPrettier:
     @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
     @patch("installer.steps.dependencies.command_exists", return_value=False)
     def test_install_prettier_installs_via_npm(self, _mock_cmd, mock_run):
-        """install_prettier uses npm install -g prettier when not in PATH."""
+        """install_prettier pins manifest version + --ignore-scripts."""
+        from installer.manifest import get
         from installer.steps.dependencies import install_prettier
 
         result = install_prettier()
 
         assert result is True
         mock_run.assert_called_once()
-        assert "prettier" in mock_run.call_args[0][0]
-        assert "npm install -g" in mock_run.call_args[0][0]
+        cmd = mock_run.call_args[0][0]
+        assert f"prettier@{get('prettier').version}" in cmd
+        assert "npm install -g" in cmd
+        assert "--ignore-scripts" in cmd
 
     @patch("installer.steps.dependencies._run_bash_with_retry", return_value=False)
     @patch("installer.steps.dependencies.command_exists", return_value=False)
@@ -1100,42 +1405,59 @@ class TestInstallGolangciLint:
         assert result is False
         mock_apt.assert_called_once()
 
-    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    @patch("installer.steps.dependencies.subprocess.run")
+    @patch("installer.steps.dependencies._curl_pipe_from_manifest", return_value=True)
     @patch("installer.steps.dependencies._install_go_via_apt", return_value=True)
     @patch("installer.steps.dependencies.command_exists")
-    def test_install_golangci_lint_installs_go_via_apt_then_lint(self, mock_cmd, mock_apt, mock_run):
-        """install_golangci_lint installs Go via apt when missing, then installs lint."""
+    def test_install_golangci_lint_installs_go_via_apt_then_lint(
+        self, mock_cmd, mock_apt, mock_helper, mock_sub
+    ):
+        """install_golangci_lint resolves GOPATH and runs manifest-pinned curl helper."""
         from installer.steps.dependencies import install_golangci_lint
 
         mock_cmd.side_effect = lambda cmd: False
+        mock_sub.return_value = MagicMock(returncode=0, stdout="/home/runner/go\n")
 
         result = install_golangci_lint()
 
         assert result is True
         mock_apt.assert_called_once()
-        assert "golangci-lint" in mock_run.call_args[0][0]
+        mock_helper.assert_called_once()
+        assert mock_helper.call_args[0][0] == "golangci-lint-installer"
+        opts = mock_helper.call_args[0][1]
+        assert opts.interpreter == "sh"
+        # GOPATH resolved to a concrete path, NOT the literal `$(go env GOPATH)`.
+        assert "-b" in opts.script_args
+        assert "/home/runner/go/bin" in opts.script_args
+        assert not any("$(" in arg for arg in opts.script_args), (
+            "script_args must not contain shell substitutions — the helper "
+            "shell-quotes each arg, so the substitution would be literalized."
+        )
 
-    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    @patch("installer.steps.dependencies.subprocess.run")
     @patch("installer.steps.dependencies.command_exists", side_effect=lambda cmd: cmd == "go")
     @patch("installer.steps.dependencies._is_golangci_lint_installed", return_value=False)
-    def test_install_golangci_lint_uses_official_script(self, mock_check, mock_cmd, mock_run):
-        """install_golangci_lint uses the official install.sh script."""
+    def test_install_golangci_lint_uses_official_script(self, mock_check, mock_cmd, mock_sub):
+        """install_golangci_lint routes through manifest-pinned curl helper with concrete GOPATH."""
         from installer.steps.dependencies import install_golangci_lint
 
-        result = install_golangci_lint()
+        mock_sub.return_value = MagicMock(returncode=0, stdout="/Users/runner/go\n")
+        with patch(
+            "installer.steps.dependencies._curl_pipe_from_manifest", return_value=True
+        ) as mock_helper:
+            result = install_golangci_lint()
 
         assert result is True
-        mock_run.assert_called_once()
-        call_args = mock_run.call_args[0][0]
-        assert "golangci-lint" in call_args
-        assert "install.sh" in call_args
-        assert "go env GOPATH" in call_args
+        mock_helper.assert_called_once()
+        assert mock_helper.call_args[0][0] == "golangci-lint-installer"
+        opts = mock_helper.call_args[0][1]
+        assert "/Users/runner/go/bin" in opts.script_args
 
-    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=False)
+    @patch("installer.steps.dependencies._curl_pipe_from_manifest", return_value=False)
     @patch("installer.steps.dependencies.command_exists", side_effect=lambda cmd: cmd == "go")
     @patch("installer.steps.dependencies._is_golangci_lint_installed", return_value=False)
-    def test_install_golangci_lint_returns_false_on_failure(self, mock_check, mock_cmd, mock_run):
-        """install_golangci_lint returns False when install script fails."""
+    def test_install_golangci_lint_returns_false_on_failure(self, mock_check, mock_cmd, mock_helper):
+        """install_golangci_lint returns False when manifest-pinned install fails."""
         from installer.steps.dependencies import install_golangci_lint
 
         result = install_golangci_lint()
@@ -1150,7 +1472,8 @@ class TestInstallPbtTools:
     @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
     @patch("installer.steps.dependencies.command_exists", return_value=False)
     def test_install_pbt_tools_installs_both_when_missing(self, _mock_cmd, mock_run, mock_sub):
-        """install_pbt_tools installs hypothesis and fast-check when not found."""
+        """install_pbt_tools installs hypothesis and pinned fast-check with --ignore-scripts."""
+        from installer.manifest import get
         from installer.steps.dependencies import install_pbt_tools
 
         mock_sub.return_value = MagicMock(returncode=1, stdout="")
@@ -1158,7 +1481,10 @@ class TestInstallPbtTools:
 
         calls = [str(c) for c in mock_run.call_args_list]
         assert any("hypothesis" in c for c in calls)
-        assert any("fast-check" in c for c in calls)
+        fast_check_cmds = [c for c in calls if "fast-check" in c]
+        assert fast_check_cmds, "fast-check install command missing"
+        assert all(f"fast-check@{get('fast-check').version}" in c for c in fast_check_cmds)
+        assert all("--ignore-scripts" in c for c in fast_check_cmds)
 
     @patch("installer.steps.dependencies.subprocess.run")
     @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
@@ -1176,9 +1502,9 @@ class TestInstallPbtTools:
         result = install_pbt_tools()
 
         assert result is True
-        timeout_by_command = {call.args[0]: call.kwargs["timeout"] for call in mock_run.call_args_list}
-        assert timeout_by_command["uv tool install hypothesis"] == UV_TOOL_INSTALL_TIMEOUT
-        assert timeout_by_command["npm install -g fast-check"] == GLOBAL_NPM_INSTALL_TIMEOUT
+        timeouts = [call.kwargs["timeout"] for call in mock_run.call_args_list]
+        assert UV_TOOL_INSTALL_TIMEOUT in timeouts
+        assert GLOBAL_NPM_INSTALL_TIMEOUT in timeouts
 
     @patch("installer.steps.dependencies.command_exists", return_value=True)
     def test_install_pbt_tools_returns_true_when_all_present(self, _mock_cmd):

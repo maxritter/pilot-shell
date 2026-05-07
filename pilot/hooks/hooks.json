@@ -52,6 +52,14 @@
         "hooks": [
           {
             "type": "command",
+            "command": "uv run --no-project python \"${CLAUDE_PLUGIN_ROOT}/hooks/credential_scanner.py\""
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
             "command": "bun \"${CLAUDE_PLUGIN_ROOT}/scripts/worker-service.cjs\" hook claude-code session-init",
             "async": true,
             "timeout": 15
@@ -77,6 +85,15 @@
             "command": "uv run --no-project python \"${CLAUDE_PLUGIN_ROOT}/hooks/tool_token_saver.py\""
           }
         ]
+      },
+      {
+        "matcher": "Read|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --no-project python \"${CLAUDE_PLUGIN_ROOT}/hooks/credential_scanner.py\""
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -86,6 +103,15 @@
           {
             "type": "command",
             "command": "uv run --no-project python \"${CLAUDE_PLUGIN_ROOT}/hooks/file_checker.py\""
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --no-project python \"${CLAUDE_PLUGIN_ROOT}/hooks/credential_scanner.py\""
           }
         ]
       },

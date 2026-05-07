@@ -26,7 +26,7 @@ For local bugs (single file, single function): one or two targeted `Read`s on th
 
 For bugs that span 2 files in the same component (e.g. service.ts + service.test.ts): targeted `Read`s. Still no full call-graph traversal.
 
-**Bail-out check at end of 1.3:** if your trace touched 3+ files, or you found yourself running `codegraph_callers`, or you can't pin file:line — stop and tell the user to use `/spec` (see orchestrator's bail-out triggers). Don't switch lanes silently.
+**Bail-out check at end of 1.3:** if you can't pin file:line, or each touched file would need **different** logic (not the same pattern repeated) — stop and tell the user to use `/spec` (see orchestrator's bail-out triggers for the full list). Multi-file traces are fine when each site needs the *same* fix; that's one logical bug, multiple guard sites. Don't switch lanes silently.
 
 ### 1.4 Instrument when needed (UI / async / race / timing bugs)
 

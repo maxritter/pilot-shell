@@ -96,5 +96,7 @@ Ghost constraints are the highest-value to find — they lock out options nobody
 - **⛔ Never `git add -f`** — if gitignored, tell the user.
 - **⛔ Never selectively unstage** — commit all staged changes as-is.
 - **⛔ Always `git push -u` on new branches** so the local branch tracks the correct remote.
+- **⛔ Respect the active branch. Never auto-branch.** Work on whatever branch the user has checked out. Do NOT run `git checkout -b`, do NOT switch branches, do NOT invent branch names (e.g. `<username>/<feature>`, `feat/<slug>`, `fix/<slug>`) unless the user explicitly asks for a new branch in *this* request. Project conventions in `CLAUDE.md` / `AGENTS.md` that mandate a branch-naming pattern do NOT count as a request to create one now — surface the convention and ask. The exception is `/spec` with `Worktree: Yes`, which manages branches in an isolated worktree.
 - **Read commands always allowed:** `status`, `diff`, `log`, `show`, `branch`.
-- **Exceptions:** explicit override ("checkout branch X"), and worktree during `/spec` (`Worktree: Yes`).
+- **Exceptions:** explicit override ("checkout branch X", "create a new branch for this"), and worktree during `/spec` (`Worktree: Yes`).
+- **Credential leak prevention:** `git commit` (and chained `git add … && git commit …`) is scanned at PreToolUse for staged secrets. See `security-credentials.md` for the rule set, `[allow-secret]` bypass, and toggle.

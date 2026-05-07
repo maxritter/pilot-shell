@@ -2,7 +2,9 @@
 
 ### 3.1 Make the minimal change
 
-Edit only the file at the root cause. One change, one variable, one logical fix. No "while I'm here" cleanups, no bundled refactoring, no formatting passes. **Lineage rule:** every changed line traces directly to the bug.
+Edit only the file(s) at the root cause. One logical fix. No "while I'm here" cleanups, no bundled refactoring, no formatting passes. **Lineage rule:** every changed line traces directly to the bug.
+
+**Multi-site is allowed when each site gets the same conceptual fix** (e.g., adding the same iteration cap to two parallel guard layers because the missing-budget defect lives at both). The constraint is *one logical change, repeated where the same pattern lives* — not "while I'm here, also tweak X."
 
 ### 3.2 Forbidden patterns — fix at source, not symptom
 
@@ -14,7 +16,7 @@ If the buggy data flows from upstream, fix upstream. Red flags in the diff:
 - Early return that hides wrong state from the caller.
 - Renamed/suppressed log lines that previously surfaced the bug.
 
-**Quick-lane fixes are single-site.** If you find yourself adding validation at 2+ layers (entry + business + storage, etc.) to make the bug "structurally impossible," you're in `/spec` territory — bail out. Defense-in-depth is a feature of `/spec`, not `/fix`. The one exception: a single boundary check that prevents the same root cause from re-entering through one other obvious path — document it in the Step 6 summary.
+**Quick-lane fixes are single-pattern.** If each candidate fix site needs **different** logic (entry validation + a business rule + a storage migration, each non-trivial), you're in `/spec` territory — bail out. Adding the *same* guard at multiple parallel sites is fine; that's still one logical change. The trigger is *logic divergence*, not site count.
 
 ### 3.3 Run the reproducing test — it MUST pass
 
@@ -46,7 +48,7 @@ git diff | grep -E "^\+.*\b(try:|except|catch \(|return None|return \[\]|return 
 
 - **Root-cause file IS in the diff.** If not, the fix is at a symptom — return to 3.1.
 - **No unplanned files appear.** If they do, revert them now.
-- **Diff is small** — usually < 20 lines. If it ballooned, the bug exceeds the quick lane — bail out.
+- **Diff is small** — usually < 20 lines for single-site fixes, < ~150 net new production lines for multi-site pattern fixes. If it ballooned past that ceiling, the bug exceeds the quick lane — bail out.
 - **Every grep match must be justified or reverted.** Look for symptom-patching, swallowed returns, or leftover `print` / `console.log` / `SPEC-DEBUG:` markers.
 
 ### 3.6 If your first fix doesn't work — one re-attempt, then bail out

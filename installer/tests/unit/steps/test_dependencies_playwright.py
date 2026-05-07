@@ -60,13 +60,16 @@ class TestInstallAgentBrowser:
     @patch("installer.steps.dependencies._run_bash_with_retry")
     @patch("installer.steps.dependencies._is_agent_browser_ready")
     def test_updates_npm_and_skips_chrome_when_already_ready(self, mock_ready, mock_run, _mock_npm):
-        """Updates npm package but skips Chrome install when already ready."""
+        """Updates npm package (manifest-pinned) but skips Chrome install when already ready."""
+        from installer.manifest import get
         from installer.steps.dependencies import install_agent_browser
 
         mock_ready.return_value = True
         mock_run.return_value = True
         assert install_agent_browser() is True
-        mock_run.assert_called_once_with("npm install -g agent-browser")
+        cmd = mock_run.call_args[0][0]
+        assert f"agent-browser@{get('agent-browser').version}" in cmd
+        assert "--ignore-scripts" in cmd
 
     @patch("platform.system", return_value="Darwin")
     @patch("installer.steps.dependencies.is_linux_arm64", return_value=False)
@@ -74,14 +77,17 @@ class TestInstallAgentBrowser:
     @patch("installer.steps.dependencies._run_bash_with_retry")
     @patch("installer.steps.dependencies._is_agent_browser_ready")
     def test_installs_npm_and_chrome_macos(self, mock_ready, mock_run, _mock_npm, _mock_arm, _mock_system):
-        """Installs agent-browser via npm then runs install on macOS."""
+        """Installs manifest-pinned agent-browser via npm then runs install on macOS."""
+        from installer.manifest import get
         from installer.steps.dependencies import install_agent_browser
 
         mock_ready.return_value = False
         mock_run.return_value = True
         assert install_agent_browser() is True
         assert mock_run.call_count == 2
-        mock_run.assert_any_call("npm install -g agent-browser")
+        first_cmd = mock_run.call_args_list[0][0][0]
+        assert f"agent-browser@{get('agent-browser').version}" in first_cmd
+        assert "--ignore-scripts" in first_cmd
         mock_run.assert_any_call("agent-browser install", timeout=300)
 
     @patch("platform.system", return_value="Linux")
@@ -163,7 +169,9 @@ class TestInstallAgentBrowser:
         mock_run.return_value = True
 
         assert install_agent_browser() is False
-        mock_run.assert_called_once_with("npm install -g agent-browser")
+        mock_run.assert_called_once()
+        cmd = mock_run.call_args[0][0]
+        assert "agent-browser@" in cmd  # manifest-pinned
 
     @patch("installer.steps.dependencies._is_agent_browser_ready")
     @patch("installer.steps.dependencies._run_bash_with_retry")
