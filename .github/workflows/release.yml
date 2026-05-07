@@ -62,8 +62,10 @@ jobs:
 
   supply-chain-gate:
     # Cross-workflow `needs:` doesn't link supply-chain.yml to this workflow.
-    # Instead, query the Checks API for the release SHA and fail if the
-    # `supply-chain` check did not succeed. See docs/security/AUDIT.md.
+    # Poll the Checks API for the `supply-chain` check on the release SHA and
+    # fail when it concludes anything other than `success`. Both workflows
+    # start on the same push, so we wait up to 12 min for it to land.
+    # See docs/security/AUDIT.md.
     name: Supply-Chain Gate
     permissions:
       contents: read
@@ -75,16 +77,28 @@ jobs:
       - uses: actions/github-script@v7
         with:
           script: |
-            const checks = await github.rest.checks.listForRef({
-              ...context.repo, ref: context.sha
-            });
-            const sc = checks.data.check_runs.find(r => r.name === 'supply-chain');
-            if (!sc || sc.conclusion !== 'success') {
-              core.setFailed(
-                `supply-chain check is ${sc?.conclusion ?? 'missing'} for ${context.sha}; ` +
-                `release blocked. Run/await .github/workflows/supply-chain.yml first.`
-              );
+            const sleep = ms => new Promise(r => setTimeout(r, ms));
+            const deadline = Date.now() + 12 * 60 * 1000;
+            let last = null;
+            while (Date.now() < deadline) {
+              const { data } = await github.rest.checks.listForRef({
+                ...context.repo, ref: context.sha
+              });
+              const sc = data.check_runs.find(r => r.name === 'supply-chain');
+              last = sc;
+              if (sc && sc.status === 'completed') {
+                if (sc.conclusion === 'success') return;
+                core.setFailed(
+                  `supply-chain check concluded ${sc.conclusion} for ${context.sha}; release blocked.`
+                );
+                return;
+              }
+              await sleep(20000);
             }
+            core.setFailed(
+              `supply-chain check did not complete within 12m for ${context.sha} ` +
+              `(last status: ${last?.status ?? 'missing'}); release blocked.`
+            );
 
   security-scan:
     name: Security Scan (Trivy)

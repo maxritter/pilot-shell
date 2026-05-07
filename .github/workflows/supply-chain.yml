@@ -1,6 +1,8 @@
 name: supply-chain
 
 on:
+  push:
+    branches: [main, dev]
   pull_request:
     branches: [main]
   schedule:

@@ -83,8 +83,10 @@ def _parse_noqa(line: str) -> tuple[bool, bool]:
 def _iter_lines(path: Path) -> list[_LineCtx]:
     out: list[_LineCtx] = []
     try:
-        text = path.read_text()
-    except OSError:
+        # Explicit UTF-8: pathlib.Path.read_text() uses the locale default, which
+        # is not always UTF-8 on CI runners (depends on $LANG / $LC_ALL).
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
         return out
     for i, line in enumerate(text.splitlines(), start=1):
         has_noqa, justified = _parse_noqa(line)
@@ -157,8 +159,8 @@ def _scan_python_or_shell(path: Path) -> list[Finding]:
 def _scan_mcp_json(path: Path) -> list[Finding]:
     findings: list[Finding] = []
     try:
-        doc = json.loads(path.read_text())
-    except (OSError, json.JSONDecodeError) as exc:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         return [Finding(file=path, line=0, message=f"could not parse JSON: {exc}")]
     servers = doc.get("mcpServers") or {}
     for name, cfg in servers.items():
@@ -192,8 +194,8 @@ def cross_reference_mcp(path: Path) -> list[Finding]:
 
     findings: list[Finding] = []
     try:
-        doc = json.loads(path.read_text())
-    except (OSError, json.JSONDecodeError):
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         return findings
     manifest = load()
     monitored_urls = {e.source_url for e in manifest.entries if e.source_type == "npm"}
