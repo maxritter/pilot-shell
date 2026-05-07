@@ -7,7 +7,6 @@
 #
 # Schema: installer/manifest.py:UpstreamEntry
 # Audit log: `git log -p installer/upstreams.yaml`
-# How to read: docs/security/AUDIT.md
 
 version: 1
 entries:
@@ -102,7 +101,7 @@ entries:
     sha256: "b315b46925a9bfb9422f2503dd5aa649f680832f4c076b22d87c39d578c3d830"
     # Anthropic-managed endpoint with no version stability guarantee. Soft-pin
     # behavior: hash mismatch logs a warning + new hash for the maintainer to
-    # re-pin, but proceeds. Re-pin SLA: 24 h audit, 48 h ship (docs/security/AUDIT.md).
+    # re-pin, but proceeds. Maintainer re-pins promptly when warning fires.
     soft_pin: true
     soft_pin_reason: "vendor-managed endpoint; Anthropic redeploys script at any time"
     last_audited: "2026-05-07"
@@ -326,6 +325,15 @@ entries:
     source_url: fetcher-mcp
     version: "0.3.9"
     # No public source repo declared in npm registry; manual audit only.
+    last_audited: "2026-05-07"
+
+  - id: zod
+    name: zod
+    source_type: npm
+    source_url: zod
+    version: "4.4.3"
+    # Peer dep auto-installed into open-websearch's npx cache when missing
+    # (see _fix_npx_peer_dependencies in installer/steps/dependencies.py).
     last_audited: "2026-05-07"
 
   # ---- PyPI bootstrap (Task 7) ----

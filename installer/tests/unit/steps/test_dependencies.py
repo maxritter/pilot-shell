@@ -1270,7 +1270,8 @@ class TestPrecacheNpxMcpServers:
         assert _extract_npx_package_name("@scope/pkg@1.0.0") == "@scope/pkg"
 
     def test_fix_npx_peer_dependencies_installs_zod(self):
-        """_fix_npx_peer_dependencies installs zod when open-websearch is cached but zod is missing."""
+        """_fix_npx_peer_dependencies installs manifest-pinned zod with --ignore-scripts."""
+        from installer.manifest import get
         from installer.steps.dependencies import _fix_npx_peer_dependencies
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -1282,7 +1283,12 @@ class TestPrecacheNpxMcpServers:
                     _fix_npx_peer_dependencies()
 
             mock_run.assert_called_once()
-            assert mock_run.call_args[0][0] == ["npm", "install", "zod"]
+            assert mock_run.call_args[0][0] == [
+                "npm",
+                "install",
+                "--ignore-scripts",
+                f"zod@{get('zod').version}",
+            ]
 
     def test_fix_npx_peer_dependencies_skips_when_zod_present(self):
         """_fix_npx_peer_dependencies skips when zod is already installed."""

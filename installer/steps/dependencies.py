@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -122,7 +123,7 @@ def install_claude_code() -> bool:
 
     Endpoint is vendor-managed (Anthropic redeploys at any time), so the
     manifest entry is `soft_pin: true` — hash mismatch logs a re-pin warning
-    but proceeds. See docs/security/AUDIT.md for the re-pin SLA.
+    but proceeds.
     """
     if command_exists("claude"):
         return True
@@ -243,6 +244,11 @@ def _curl_pipe_with_hash_verify(
             _thread_local.last_retry_stderr = msg
             if not soft_pin:
                 return False
+            # Soft-pin path: success-bound execution would bury the warning
+            # because the success path doesn't print last_retry_stderr. Emit
+            # to stderr now so the re-pin reminder is visible regardless of
+            # downstream exit status.
+            print(msg, file=sys.stderr)
         cmd_parts = [opts.interpreter, str(tmp_path), *opts.script_args]
         quoted = " ".join(shlex.quote(p) for p in cmd_parts)
         if opts.env:
@@ -1097,12 +1103,16 @@ def _fix_npx_peer_dependencies() -> None:
     npx_cache = Path.home() / ".npm" / "_npx"
     if not npx_cache.exists():
         return
+    zod_entry = manifest_get("zod")
+    zod_spec = f"{zod_entry.source_url}@{zod_entry.version}"
     for hash_dir in npx_cache.iterdir():
         nm = hash_dir / "node_modules"
         if (nm / "open-websearch").is_dir() and not (nm / "zod").is_dir():
             try:
+                # Manifest-pinned + --ignore-scripts (zod has no postinstall, but
+                # this matches the policy enforced everywhere else).
                 subprocess.run(
-                    ["npm", "install", "zod"],
+                    ["npm", "install", "--ignore-scripts", zod_spec],
                     cwd=hash_dir,
                     capture_output=True,
                     timeout=60,

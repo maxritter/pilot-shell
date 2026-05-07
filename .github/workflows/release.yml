@@ -65,7 +65,6 @@ jobs:
     # Poll the Checks API for the `supply-chain` check on the release SHA and
     # fail when it concludes anything other than `success`. Both workflows
     # start on the same push, so we wait up to 12 min for it to land.
-    # See docs/security/AUDIT.md.
     name: Supply-Chain Gate
     permissions:
       contents: read
@@ -74,7 +73,7 @@ jobs:
     needs: check-trigger
     if: needs.check-trigger.outputs.should_run == 'true'
     steps:
-      - uses: actions/github-script@v7
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const sleep = ms => new Promise(r => setTimeout(r, ms));

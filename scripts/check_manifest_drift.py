@@ -53,6 +53,10 @@ PY_SH_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 # install.sh / launcher/build.py — uv run --with <pkg> must be ==<version>:
 UV_RUN_WITH_PATTERN = re.compile(r"--with\s+([a-zA-Z][\w-]*)(?!\S*==)")
 
+# Strict semver — exactly `\d+.\d+.\d+` with optional pre-release/build, no
+# range operators or dist-tags (`@beta`, `@^1.2.3`, `@~1.2`, `@latest`).
+_EXACT_SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+(?:[-+][\w.+-]+)?$")
+
 NOQA_PATTERN = re.compile(r"#\s*noqa:\s*drift-check\b\s*(?:#\s*(.*))?")
 
 
@@ -80,18 +84,30 @@ def _parse_noqa(line: str) -> tuple[bool, bool]:
     return True, bool(justification)
 
 
-def _iter_lines(path: Path) -> list[_LineCtx]:
+def _iter_lines(path: Path) -> tuple[list[_LineCtx], Finding | None]:
+    """Read and parse `path`. Returns lines plus an error-Finding if any.
+
+    A non-UTF-8 file used to abort the entire run (`UnicodeDecodeError`); now
+    the read failure is reported as a deterministic Finding so the gate stays
+    robust even if a tracked file is mojibake or accidentally binary.
+    """
     out: list[_LineCtx] = []
     try:
         # Explicit UTF-8: pathlib.Path.read_text() uses the locale default, which
         # is not always UTF-8 on CI runners (depends on $LANG / $LC_ALL).
         text = path.read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError):
-        return out
+    except OSError as exc:
+        return out, Finding(file=path, line=0, message=f"could not read: {exc}")
+    except UnicodeDecodeError as exc:
+        return out, Finding(
+            file=path,
+            line=0,
+            message=f"not valid UTF-8: {exc.reason} at byte {exc.start}",
+        )
     for i, line in enumerate(text.splitlines(), start=1):
         has_noqa, justified = _parse_noqa(line)
         out.append(_LineCtx(text=line, line_no=i, has_noqa=has_noqa, noqa_justified=justified))
-    return out
+    return out, None
 
 
 def _add_finding(findings: list[Finding], path: Path, ctx: _LineCtx, msg: str) -> None:
@@ -101,22 +117,32 @@ def _add_finding(findings: list[Finding], path: Path, ctx: _LineCtx, msg: str) -
 
 
 def _is_npm_install_pkg_pinned(pkg_arg: str) -> bool:
-    """`pkg@1.2.3` is pinned; `pkg`, `@scope/pkg`, `pkg@latest` are not."""
+    """Pinned == package name + `@` + strict numeric semver.
+
+    `pkg@1.2.3`, `@scope/pkg@1.2.3-rc.1` are pinned. All of `pkg`, `@scope/pkg`,
+    `pkg@latest`, `pkg@beta`, `pkg@^1.2.3`, `pkg@~1.2` are unpinned — the policy
+    is exact version pinning, so dist-tags and range operators must drop out.
+    """
     if pkg_arg in {"-g", "--force", "--ignore-scripts", "--no-audit", "--no-fund"}:
         return True  # flag, not a package
     if pkg_arg.startswith("--"):
         return True
-    if pkg_arg.startswith("@"):
-        # @scope/pkg or @scope/pkg@version
-        rest = pkg_arg[1:]
-        return "@" in rest
-    return "@" in pkg_arg
+    # Split on the LAST `@` so `@scope/pkg@1.2.3` keeps the scope and only the
+    # version trails. Bare `@scope/pkg` (no trailing version) has the only `@`
+    # in position 0 → split returns "" before, full string after → unpinned.
+    if "@" not in pkg_arg.lstrip("@"):
+        return False
+    version_part = pkg_arg.rsplit("@", 1)[1]
+    return bool(_EXACT_SEMVER_RE.match(version_part))
 
 
 def _scan_python_or_shell(path: Path) -> list[Finding]:
     findings: list[Finding] = []
-    is_shell = path.suffix == ".sh" or path.name.endswith(".sh")
-    for ctx in _iter_lines(path):
+    is_shell = path.name.endswith(".sh")
+    lines, read_finding = _iter_lines(path)
+    if read_finding is not None:
+        findings.append(read_finding)
+    for ctx in lines:
         # Bare `# noqa: drift-check` (no justification) is itself a finding.
         # `continue` keeps the line from also matching downstream patterns —
         # one line, one bare-noqa finding (no double-reporting).

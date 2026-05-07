@@ -117,6 +117,36 @@ class TestDriftDetection:
         # Bare noqa is treated as a finding (justification required).
         assert findings
 
+    def test_npm_install_pkg_at_latest_unpinned(self, drift_module) -> None:
+        # `pkg@latest` MUST NOT pass as pinned even though it has an `@`.
+        assert drift_module._is_npm_install_pkg_pinned("pkg@latest") is False
+
+    def test_npm_install_pkg_at_beta_unpinned(self, drift_module) -> None:
+        assert drift_module._is_npm_install_pkg_pinned("pkg@beta") is False
+        assert drift_module._is_npm_install_pkg_pinned("pkg@next") is False
+
+    def test_npm_install_pkg_with_range_unpinned(self, drift_module) -> None:
+        for spec in ("pkg@^1.2.3", "pkg@~1.2.3", "pkg@>=1.0.0"):
+            assert drift_module._is_npm_install_pkg_pinned(spec) is False, spec
+
+    def test_npm_install_pkg_exact_pinned(self, drift_module) -> None:
+        assert drift_module._is_npm_install_pkg_pinned("pkg@1.2.3") is True
+        assert drift_module._is_npm_install_pkg_pinned("@scope/pkg@1.2.3") is True
+        assert drift_module._is_npm_install_pkg_pinned("pkg@1.2.3-rc.1") is True
+
+    def test_bare_scope_unpinned(self, drift_module) -> None:
+        assert drift_module._is_npm_install_pkg_pinned("@scope/pkg") is False
+
+    def test_invalid_utf8_emits_finding_not_crash(self, drift_module, tmp_path: Path) -> None:
+        # Regression: a non-UTF-8 file used to abort the entire run with
+        # UnicodeDecodeError; now it's a deterministic Finding so the gate
+        # stays robust.
+        bad = tmp_path / "broken.py"
+        bad.write_bytes(b"# valid header\nx = '\xd1\xff bad utf-8'\n")
+        findings = drift_module.scan_file(bad)
+        assert len(findings) == 1
+        assert "utf-8" in findings[0].message.lower()
+
     def test_bare_noqa_with_forbidden_pattern_yields_one_finding(
         self, drift_module, tmp_path: Path
     ) -> None:
@@ -164,6 +194,25 @@ class TestCleanRepository:
         repo_root = Path(__file__).resolve().parents[3]
         for rel in ("installer/steps/dependencies.py", "installer/steps/prerequisites.py"):
             findings = drift_module.scan_file(repo_root / rel)
+            assert not findings, f"{rel} drift: {[f.message for f in findings]}"
+
+    def test_bootstrap_surface_clean(self, drift_module) -> None:
+        """Per Task 7: install.sh + launcher/build.py have no unversioned --with."""
+        repo_root = Path(__file__).resolve().parents[3]
+        for rel in ("install.sh", "launcher/build.py"):
+            findings = drift_module.scan_file(repo_root / rel)
+            assert not findings, f"{rel} drift: {[f.message for f in findings]}"
+
+    def test_full_scan_surface_clean(self, drift_module) -> None:
+        """Iterate every entry in SCAN_FILES and assert zero findings.
+
+        Catches regressions in any file Task 6 declared to scan, not just the
+        installer steps and MCP JSONs we tested individually above.
+        """
+        repo_root = Path(__file__).resolve().parents[3]
+        for rel in drift_module.SCAN_FILES:
+            path = repo_root / rel
+            findings = drift_module.scan_file(path)
             assert not findings, f"{rel} drift: {[f.message for f in findings]}"
 
     def test_mcp_json_clean(self, drift_module) -> None:

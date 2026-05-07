@@ -130,7 +130,12 @@ def load(path: Path | None = None) -> Manifest:
     version = raw.get("version")
     if not isinstance(version, int):
         raise ManifestError("manifest is missing integer 'version' field")
-    raw_entries = raw.get("entries") or []
+    if "entries" in raw:
+        raw_entries = raw["entries"]
+        if raw_entries is None:
+            raw_entries = []
+    else:
+        raw_entries = []
     if not isinstance(raw_entries, list):
         raise ManifestError("'entries' must be a list")
     entries: list[UpstreamEntry] = []

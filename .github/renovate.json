@@ -33,7 +33,7 @@
       "groupSlug": "manifest-dev-deps"
     },
     {
-      "description": "Curl entries that do not resolve to a GitHub repo (claude.ai/install.sh, astral.sh/uv/install.sh, bun.sh/install) cannot be auto-updated by Renovate's github-tags datasource. Flag them so the maintainer re-pins manually per the soft-pin SLA in docs/security/AUDIT.md.",
+      "description": "Curl entries that do not resolve to a GitHub repo (claude.ai/install.sh, astral.sh/uv/install.sh, bun.sh/install) cannot be auto-updated by Renovate's github-tags datasource. Flag them so the maintainer re-pins manually.",
       "matchPackageNames": [
         "claude-code-installer",
         "uv-installer",
