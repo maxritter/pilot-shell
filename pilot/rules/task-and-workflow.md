@@ -52,7 +52,7 @@ When the user sends a new request mid-work: STOP, TaskCreate for the new request
 
 Hook blocks `subagent_type` of `Explore`/`Plan`, AND any description starting with "Research" or containing "Explore" (regardless of subagent_type — `general-purpose` with `"Explore codebase"` description is the same violation).
 
-Use direct tools instead — see `development-practices.md` and `mcp-servers.md` for CodeGraph + Probe workflow.
+Use direct tools instead — see `development-practices.md` and `mcp-servers.md` for CodeGraph + Semble workflow.
 
 **Whitelisted (pass through silently):** `web-search-agent`, `pilot:web-search-agent`, `pilot:changes-review`, `pilot:spec-review`.
 

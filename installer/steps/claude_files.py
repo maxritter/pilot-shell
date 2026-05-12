@@ -23,12 +23,15 @@ from installer.steps.settings_merge import (
     cleanup_managed_files,
     load_manifest,
     merge_app_config,
+    merge_pilot_hooks,
+    merge_pilot_mcp_servers,
     merge_settings,
     save_manifest,
 )
 
 SETTINGS_FILE = "settings.json"
 SETTINGS_BASELINE_FILE = ".pilot-settings-baseline.json"
+HOOKS_BASELINE_FILE = ".pilot-hooks-baseline.json"
 PILOT_MANIFEST_FILE = ".pilot-manifest.json"
 
 
@@ -72,6 +75,17 @@ def patch_claude_paths(content: str) -> str:
     return content.replace('"~/.pilot/bin/', '"' + abs_bin_path)
 
 
+def patch_plugin_root(content: str) -> str:
+    """Expand ${CLAUDE_PLUGIN_ROOT} to the absolute Pilot asset path.
+
+    After dropping the plugin mechanism (no --plugin-dir), the hooks merged into
+    ~/.claude/settings.json can no longer rely on Claude Code's plugin loader
+    setting CLAUDE_PLUGIN_ROOT. We install-time patch hooks.json so the merged
+    settings.json contains absolute paths.
+    """
+    return content.replace("${CLAUDE_PLUGIN_ROOT}", str(get_claude_config_dir() / "pilot"))
+
+
 def process_settings(settings_content: str) -> str:
     """Process settings JSON - parse and re-serialize with consistent formatting."""
     config: dict[str, Any] = json.loads(settings_content)
@@ -88,7 +102,11 @@ def _should_skip_file(file_path: str) -> bool:
 
     if file_path.endswith(SKIP_EXTENSIONS):
         return True
-    if Path(file_path).name == ".gitignore":
+    name = Path(file_path).name
+    if name == ".gitignore":
+        return True
+    # Plugin metadata + LSP config are dropped now that Pilot is no longer a Claude plugin.
+    if name == "plugin.json" or name == ".lsp.json":
         return True
 
     return False
@@ -98,6 +116,8 @@ def _categorize_file(file_path: str) -> str:
     """Determine which category a file belongs to."""
     if file_path == "pilot/settings.json" or file_path.endswith("/settings.json"):
         return "settings"
+    elif file_path.startswith("pilot/agents/"):
+        return "agents"
     elif "/skills/" in file_path:
         return "skills"
     elif "/rules/" in file_path:
@@ -200,6 +220,7 @@ class ClaudeFilesStep(BaseStep):
         categories: dict[str, list[FileInfo]] = {
             "skills": [],
             "rules": [],
+            "agents": [],
             "pilot_plugin": [],
             "settings": [],
         }
@@ -244,6 +265,7 @@ class ClaudeFilesStep(BaseStep):
         cleanup_managed_files(home_claude_dir / "commands", manifest_path, "commands/")
         cleanup_managed_files(home_claude_dir / "skills", manifest_path, "skills/")
         cleanup_managed_files(home_claude_dir / "rules", manifest_path, "rules/")
+        cleanup_managed_files(home_claude_dir / "agents", manifest_path, "agents/")
 
     def _cleanup_legacy_standards_skills(self, plugin_dir: Path) -> None:
         """Remove old standards-* skill directories from plugin skills folder.
@@ -300,6 +322,7 @@ class ClaudeFilesStep(BaseStep):
         category_names = {
             "skills": "skills",
             "rules": "standard rules",
+            "agents": "agents",
             "pilot_plugin": "Pilot plugin files",
             "settings": "settings",
         }
@@ -399,6 +422,9 @@ class ClaudeFilesStep(BaseStep):
         elif category == "rules":
             rel_path = Path(file_path).relative_to("pilot/rules")
             return home_claude_dir / "rules" / rel_path
+        elif category == "agents":
+            rel_path = Path(file_path).relative_to("pilot/agents")
+            return home_claude_dir / "agents" / rel_path
         elif category == "pilot_plugin":
             rel_path = Path(file_path).relative_to("pilot")
             return home_pilot_plugin_dir / rel_path
@@ -409,16 +435,21 @@ class ClaudeFilesStep(BaseStep):
 
     def _post_install_processing(self, ctx: InstallContext, ui: Any) -> None:
         """Run post-installation processing tasks."""
+        # MUST run FIRST: removes the plugin.json marker from ~/.claude/pilot/
+        # so Claude Code stops treating the directory as a plugin before any
+        # hooks/MCP/agent state is merged into native settings.
+        self._remove_legacy_plugin_marker()
+
         home_pilot_plugin_dir = get_claude_config_dir() / "pilot"
 
         self._make_scripts_executable(home_pilot_plugin_dir)
 
-        self._update_lsp_config(home_pilot_plugin_dir)
-
         if not ctx.local_mode:
             self._update_hooks_config(home_pilot_plugin_dir)
 
+        self._merge_hooks_into_settings()
         self._merge_app_config()
+        self._merge_mcp_servers_into_claude_json(ui)
         migrate_model_config(create_if_missing=True)
         self._cleanup_stale_managed_files(ctx)
         self._build_skill_md_files(ctx, ui)
@@ -436,6 +467,7 @@ class ClaudeFilesStep(BaseStep):
 
         skills_dir = home_claude_dir / "skills"
         rules_dir = home_claude_dir / "rules"
+        agents_dir = home_claude_dir / "agents"
         managed_files: set[str] = set()
 
         for filepath_str in installed:
@@ -445,6 +477,8 @@ class ClaudeFilesStep(BaseStep):
                     managed_files.add("skills/" + str(filepath.relative_to(skills_dir)))
                 elif filepath.is_relative_to(rules_dir):
                     managed_files.add("rules/" + str(filepath.relative_to(rules_dir)))
+                elif filepath.is_relative_to(agents_dir):
+                    managed_files.add("agents/" + str(filepath.relative_to(agents_dir)))
             except (ValueError, TypeError):
                 continue
 
@@ -777,18 +811,6 @@ class ClaudeFilesStep(BaseStep):
             except (OSError, IOError):
                 pass
 
-    def _update_lsp_config(self, plugin_dir: Path) -> None:
-        """Process LSP config with consistent formatting."""
-        lsp_config_path = plugin_dir / ".lsp.json"
-        if not lsp_config_path.exists():
-            return
-
-        try:
-            lsp_config = json.loads(lsp_config_path.read_text())
-            lsp_config_path.write_text(json.dumps(lsp_config, indent=2) + "\n")
-        except (json.JSONDecodeError, OSError, IOError):
-            pass
-
     def _update_hooks_config(self, plugin_dir: Path) -> None:
         """Process hooks config with path patching and consistent formatting."""
         hooks_json_path = plugin_dir / "hooks" / "hooks.json"
@@ -801,6 +823,164 @@ class ClaudeFilesStep(BaseStep):
             hooks_config = json.loads(hooks_content)
             hooks_json_path.write_text(json.dumps(hooks_config, indent=2) + "\n")
         except (json.JSONDecodeError, OSError, IOError):
+            pass
+
+    def _remove_legacy_plugin_marker(self) -> None:
+        """Delete ~/.claude/pilot/plugin.json so Claude Code stops loading the
+        directory as a plugin. Idempotent — silently no-op when absent.
+
+        Must be invoked FIRST in _post_install_processing — see plan Task 3
+        rationale (avoid double-loading window during upgrades).
+        """
+        marker = get_claude_config_dir() / "pilot" / "plugin.json"
+        try:
+            marker.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+    def _merge_hooks_into_settings(self) -> None:
+        """Merge Pilot's hooks bundle into ~/.claude/settings.json.
+
+        Reads the installed pilot/hooks/hooks.json, install-time patches
+        ${CLAUDE_PLUGIN_ROOT} to the absolute asset path, then merges the
+        `hooks` dict into ~/.claude/settings.json using `merge_pilot_hooks`
+        which preserves user-added hook entries by signature membership in
+        the dedicated `.pilot-hooks-baseline.json` (NOT the legacy
+        `.pilot-settings-baseline.json`, which stays hooks-free so that
+        `merge_settings` never sees a `hooks` key).
+        """
+        claude_dir = get_claude_config_dir()
+        hooks_json_path = claude_dir / "pilot" / "hooks" / "hooks.json"
+        if not hooks_json_path.exists():
+            return
+
+        try:
+            raw = hooks_json_path.read_text()
+            patched = patch_plugin_root(raw)
+            incoming_data = json.loads(patched)
+        except (json.JSONDecodeError, OSError, IOError):
+            return
+
+        incoming_hooks = incoming_data.get("hooks", {})
+        if not isinstance(incoming_hooks, dict):
+            return
+
+        settings_path = claude_dir / SETTINGS_FILE
+        try:
+            settings: dict[str, Any] = json.loads(settings_path.read_text()) if settings_path.exists() else {}
+        except (json.JSONDecodeError, OSError, IOError):
+            settings = {}
+
+        current_hooks = settings.get("hooks") or {}
+        if not isinstance(current_hooks, dict):
+            current_hooks = {}
+
+        baseline_path = claude_dir / HOOKS_BASELINE_FILE
+        baseline_hooks: dict[str, Any] | None = None
+        if baseline_path.exists():
+            try:
+                baseline_hooks = json.loads(baseline_path.read_text())
+            except (json.JSONDecodeError, OSError, IOError):
+                baseline_hooks = None
+
+        merged = merge_pilot_hooks(current_hooks, incoming_hooks, baseline_hooks)
+
+        if merged:
+            settings["hooks"] = merged
+        elif "hooks" in settings:
+            del settings["hooks"]
+
+        try:
+            settings_path.parent.mkdir(parents=True, exist_ok=True)
+            settings_path.write_text(json.dumps(settings, indent=2) + "\n")
+        except (OSError, IOError):
+            return
+
+        try:
+            baseline_path.write_text(json.dumps(incoming_hooks, indent=2) + "\n")
+        except (OSError, IOError):
+            pass
+
+    def _merge_mcp_servers_into_claude_json(self, ui: Any) -> None:
+        """Merge Pilot's MCP servers into ~/.claude.json `mcpServers` key.
+
+        Uses value-aware merge: user-added AND user-modified Pilot servers are
+        preserved (with warnings to UI). Pilot's baseline of installed servers
+        is stored in `.pilot-claude-baseline.json` `mcpServers` so uninstall
+        and subsequent re-installs can identify Pilot-owned entries.
+        """
+        claude_dir = get_claude_config_dir()
+        mcp_template = claude_dir / "pilot" / ".mcp.json"
+        if not mcp_template.exists():
+            return
+
+        try:
+            incoming_data = json.loads(mcp_template.read_text())
+        except (json.JSONDecodeError, OSError, IOError):
+            return
+
+        incoming_servers = incoming_data.get("mcpServers", {})
+        if not isinstance(incoming_servers, dict):
+            return
+
+        claude_json_path = Path.home() / ".claude.json"
+        try:
+            claude_json: dict[str, Any] = (
+                json.loads(claude_json_path.read_text()) if claude_json_path.exists() else {}
+            )
+        except (json.JSONDecodeError, OSError, IOError):
+            claude_json = {}
+
+        current_servers = claude_json.get("mcpServers") or {}
+        if not isinstance(current_servers, dict):
+            current_servers = {}
+
+        baseline_path = claude_dir / ".pilot-claude-baseline.json"
+        baseline_servers: dict[str, Any] | None = None
+        if baseline_path.exists():
+            try:
+                baseline_data = json.loads(baseline_path.read_text())
+                if isinstance(baseline_data, dict):
+                    bs = baseline_data.get("mcpServers")
+                    if isinstance(bs, dict):
+                        baseline_servers = bs
+            except (json.JSONDecodeError, OSError, IOError):
+                baseline_servers = None
+
+        merged, warnings = merge_pilot_mcp_servers(current_servers, incoming_servers, baseline_servers)
+        if ui is not None:
+            for w in warnings:
+                try:
+                    ui.warning(w)
+                except Exception:
+                    pass
+
+        if merged:
+            claude_json["mcpServers"] = merged
+        elif "mcpServers" in claude_json:
+            del claude_json["mcpServers"]
+
+        try:
+            claude_json_path.write_text(json.dumps(claude_json, indent=2) + "\n")
+        except (OSError, IOError):
+            return
+
+        # Extend the existing claude-baseline file with mcpServers (the file is
+        # also written by _merge_app_config for the claude.json template keys —
+        # we merge here in case it's already on disk to preserve those keys).
+        try:
+            baseline_existing: dict[str, Any] = {}
+            if baseline_path.exists():
+                try:
+                    parsed = json.loads(baseline_path.read_text())
+                    if isinstance(parsed, dict):
+                        baseline_existing = parsed
+                except (json.JSONDecodeError, OSError, IOError):
+                    baseline_existing = {}
+            baseline_existing["mcpServers"] = incoming_servers
+            baseline_path.parent.mkdir(parents=True, exist_ok=True)
+            baseline_path.write_text(json.dumps(baseline_existing, indent=2) + "\n")
+        except (OSError, IOError):
             pass
 
     def _merge_app_config(self) -> None:

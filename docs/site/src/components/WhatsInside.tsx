@@ -49,7 +49,7 @@ const insideItems: InsideItem[] = [
     title: "MCP & LSP Servers",
     description: "Pre-configured, zero setup",
     summary:
-      "Six MCP servers ship pre-configured: docs, web search, persistent memory, code graphs. Python, TypeScript, and Go language servers auto-install for real-time diagnostics on every edit.",
+      "Seven MCP servers ship pre-configured: docs, web search, persistent memory, code graphs, hybrid code search (Semble). Python, TypeScript, and Go language servers auto-install for real-time diagnostics on every edit.",
     href: "/docs/features/mcp-servers",
   },
   {

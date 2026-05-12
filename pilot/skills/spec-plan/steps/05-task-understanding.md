@@ -13,7 +13,7 @@
    | CLI/scripts | Output format, flags, exit codes                   |
    | Data/config | Schema, migration, validation, defaults            |
 
-4. **⛔ Code-first rule: before each question, ask "can I answer this from the codebase?"** If yes, do that instead. Use `codegraph_context`, `codegraph_search`, `codegraph_explore`, or Probe to resolve "how does X currently work / where does Y live / what's the current pattern for Z". Only ask the user about decisions the code can't make — purpose, priority trade-offs, scope boundaries, behavioral expectations not yet encoded. Asking the user about facts already in the codebase is the single biggest source of unnecessary friction in planning.
+4. **⛔ Code-first rule: before each question, ask "can I answer this from the codebase?"** If yes, do that instead. Use `codegraph_context`, `codegraph_search`, `codegraph_explore`, or Semble to resolve "how does X currently work / where does Y live / what's the current pattern for Z". Only ask the user about decisions the code can't make — purpose, priority trade-offs, scope boundaries, behavioral expectations not yet encoded. Asking the user about facts already in the codebase is the single biggest source of unnecessary friction in planning.
 
 5. **Ask Batch 1 questions** → notify, then use `AskUserQuestion` with each question as a separate entry with predefined options:
 

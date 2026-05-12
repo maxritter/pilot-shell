@@ -1,7 +1,7 @@
 ---
 sidebar_position: 4
 title: Open Source Tools
-description: Open-source tools installed alongside Pilot Shell — Probe, ripgrep, fd, gh, jq, and other developer essentials. Each retains its original license.
+description: Open-source tools installed alongside Pilot Shell — Semble, ripgrep, fd, gh, jq, and other developer essentials. Each retains its original license.
 ---
 
 # Open Source Tools
@@ -47,7 +47,7 @@ Pilot Shell installs the following open-source tools during setup. Each tool is 
 
 | Tool | Purpose | License |
 |------|---------|---------|
-| [Probe](https://github.com/probelabs/probe) | Semantic code search engine | ISC |
+| [Semble](https://github.com/MinishLab/semble) | Hybrid semantic+lexical code search (BM25 + Model2Vec embeddings); also runs as an MCP server | MIT |
 | [RTK](https://github.com/rtk-ai/rtk) | Token-optimized CLI proxy (60-90% savings) | MIT |
 | [CodeGraph](https://github.com/colbymchenry/codegraph) | Code knowledge graph and structural analysis | MIT |
 | [context-mode](https://github.com/mksglu/context-mode) | Sandbox execution + FTS5 knowledge base — keeps large outputs out of context | ELv2 |

@@ -2,7 +2,7 @@
 
 ### Codebase Exploration
 
-CodeGraph (structure) and Probe (intent) are primary; Grep/Glob are *verifiers* for completeness checks or known-string lookups. Never start a code-search task with Grep/Glob.
+CodeGraph (structure) and Semble (intent) are primary; Grep/Glob are *verifiers* for completeness checks or known-string lookups. Never start a code-search task with Grep/Glob.
 
 **⛔ NEVER pass `projectPath` to CodeGraph for the current project** — it causes "not initialized" errors. The MCP server defaults correctly.
 
@@ -14,10 +14,10 @@ CodeGraph (structure) and Probe (intent) are primary; Grep/Glob are *verifiers* 
 | Find a symbol by name | `codegraph_search` (NOT Grep) |
 | Modify a function | `codegraph_callers` + `codegraph_callees`, then `Grep` as completeness check |
 | Plan a change | `codegraph_impact` for blast radius |
-| Explore by intent | `probe search "query" ./ --max-results 5 --max-tokens 2000` |
+| Explore by intent | `semble search "query" ./` (or MCP `mcp__semble__search`) |
 | Deep dive across files | `codegraph_explore(query="SymA SymB file.ts")` — replaces dozens of Reads |
 
-Grep/Glob are valid only for: (1) verifying CodeGraph completeness on a specific symbol name, (2) exact text/regex in a known file. See `mcp-servers.md` for full CodeGraph reference and `cli-tools.md` for Probe.
+Grep/Glob are valid only for: (1) verifying CodeGraph completeness on a specific symbol name, (2) exact text/regex in a known file. See `mcp-servers.md` for full CodeGraph reference and `cli-tools.md` for Semble.
 
 ### Change Discipline
 
@@ -42,7 +42,7 @@ Grep/Glob are valid only for: (1) verifying CodeGraph completeness on a specific
 **No fixes without root cause investigation.** Phases run sequentially:
 
 1. **Root cause** — read errors completely, reproduce consistently, check `git diff`, instrument at boundaries.
-2. **Pattern analysis** — Probe CLI to find working examples; compare; identify ALL differences.
+2. **Pattern analysis** — Semble to find working examples; compare; identify ALL differences.
 3. **Hypothesis** — specific, falsifiable ("state resets because component remounts on route change"). Test with minimal change, one variable at a time.
 4. **Implementation** — failing test first (TDD), single fix, verify completely.
 

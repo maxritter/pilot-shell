@@ -277,11 +277,11 @@ class TestGenerateMarkdown:
     @pytest.fixture
     def benchmark(self, tmp_path: Path) -> BenchmarkSnapshot:
         bench = _make_workspace(tmp_path, ["with_skill", "without_skill"])
-        return generate_benchmark(bench, skill_name="probe", skill_path="/p")
+        return generate_benchmark(bench, skill_name="example-skill", skill_path="/p")
 
     def test_includes_summary_table(self, benchmark: BenchmarkSnapshot) -> None:
         md = generate_markdown(benchmark)
-        assert "# Skill Benchmark: probe" in md
+        assert "# Skill Benchmark: example-skill" in md
         assert "| Pass Rate |" in md
         assert "| Time |" in md
         assert "| Tokens |" in md

@@ -322,15 +322,20 @@ def _npm_install_cmd(
     return npm_global_cmd(cmd)
 
 
-def install_probe() -> bool:
-    """Install or update Probe code search tool, manifest-pinned via npm."""
+def install_semble() -> bool:
+    """Install or update Semble code search tool via `uv tool install`.
+
+    Semble is a Python package on PyPI, distributed via the uv tool ecosystem
+    (parallel to ruff/basedpyright/hypothesis). No manifest pin — uv resolves
+    the latest release at install time.
+    """
     if not _run_bash_with_retry(
-        _npm_install_cmd(manifest_get("probe")),
-        timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
+        "uv tool install --upgrade semble",
+        timeout=UV_TOOL_INSTALL_TIMEOUT,
     ):
         return False
 
-    _symlink_to_pilot_bin("probe")
+    _symlink_to_pilot_bin("semble")
     return True
 
 
@@ -668,6 +673,109 @@ def install_codex_plugin() -> bool:
         plugin_id="codex@openai-codex",
         marketplace="openai/codex-plugin-cc",
     )
+
+
+_LSP_MARKETPLACE = "Piebald-AI/claude-code-lsps"
+_LSP_PLUGIN_IDS = (
+    "vtsls@claude-code-lsps",
+    "basedpyright@claude-code-lsps",
+    "gopls@claude-code-lsps",
+)
+
+
+def _list_installed_plugin_ids() -> set[str]:
+    """Return the set of plugin IDs currently registered with the Claude CLI."""
+    if not command_exists("claude"):
+        return set()
+    try:
+        result = subprocess.run(
+            ["claude", "plugins", "list", "--json"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            return set()
+        data = json.loads(result.stdout)
+        return {p.get("id", "") for p in data if isinstance(p, dict) and p.get("id")}
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError, json.JSONDecodeError, OSError):
+        return set()
+
+
+def _write_pilot_lsp_manifest(plugin_ids: list[str]) -> None:
+    """Persist Pilot-installed LSP plugin IDs so uninstall stays surgical.
+
+    Tracks ONLY IDs we freshly installed — user-pre-installed plugins are
+    excluded. The uninstall script reads this file and removes only listed IDs.
+    """
+    manifest_path = Path.home() / ".pilot" / ".pilot-lsp-plugins.json"
+    try:
+        manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        manifest_path.write_text(json.dumps({"plugins": sorted(plugin_ids)}, indent=2) + "\n")
+    except (OSError, IOError):
+        pass
+
+
+def _load_pilot_lsp_manifest() -> set[str]:
+    """Load the set of plugin IDs Pilot has previously claimed ownership of."""
+    manifest_path = Path.home() / ".pilot" / ".pilot-lsp-plugins.json"
+    if not manifest_path.exists():
+        return set()
+    try:
+        data = json.loads(manifest_path.read_text())
+        plugins = data.get("plugins") if isinstance(data, dict) else None
+        if isinstance(plugins, list):
+            return {p for p in plugins if isinstance(p, str)}
+    except (json.JSONDecodeError, OSError):
+        pass
+    return set()
+
+
+def install_lsp_plugins() -> bool:
+    """Install Piebald LSP plugins (vtsls, basedpyright, gopls) via the
+    Claude CLI plugin system. Returns True iff ALL three succeed.
+
+    Best-effort: missing claude CLI yields False without raising. Tracks
+    Pilot-installed plugin IDs in ~/.pilot/.pilot-lsp-plugins.json so the
+    uninstall script removes ONLY plugins Pilot installed (not user-managed ones).
+
+    Ownership across reinstalls: a plugin's ownership is the UNION of
+    (a) previously-Pilot-owned IDs (read from the existing manifest) and
+    (b) plugins this run installed FRESH (absent from `claude plugins list`
+    before our install call). This way, the second-install cycle does NOT
+    erase ownership of IDs Pilot installed on the first run, even though those
+    IDs now show up as "already present" pre-install. (Codex finding.)
+
+    Sequential rather than parallel: all three share the same marketplace-add
+    step inside `_install_or_update_plugin`; parallel execution would race.
+    """
+    if not command_exists("claude"):
+        return False
+
+    previously_owned = _load_pilot_lsp_manifest()
+    pre_installed = _list_installed_plugin_ids()
+    pilot_owned: set[str] = set(previously_owned)
+    all_ok = True
+
+    for plugin_id in _LSP_PLUGIN_IDS:
+        was_present = plugin_id in pre_installed
+        was_pilot_owned = plugin_id in previously_owned
+        ok = _install_or_update_plugin(plugin_id, _LSP_MARKETPLACE)
+        if ok:
+            # Pilot owns this ID iff we installed it fresh OR we already owned
+            # it from a prior install. We do NOT claim ownership of a plugin
+            # the user installed manually before Pilot ever ran AND that Pilot
+            # has never owned before.
+            if not was_present or was_pilot_owned:
+                pilot_owned.add(plugin_id)
+        else:
+            all_ok = False
+
+    # Always (re)write the manifest so callers can detect Pilot's claim set
+    # — including the empty-set case where no plugins are Pilot-owned.
+    _write_pilot_lsp_manifest(sorted(pilot_owned))
+
+    return all_ok
 
 
 def install_chrome_devtools_plugin() -> bool:
@@ -1170,13 +1278,14 @@ class DependenciesStep(BaseStep):
                 _InstallTask("prettier (TypeScript formatter)", "prettier", install_prettier),
                 _InstallTask("golangci-lint (Go linter)", "golangci_lint", install_golangci_lint),
                 _InstallTask("PBT tools (hypothesis, fast-check)", "pbt_tools", install_pbt_tools),
-                _InstallTask("Probe (code search)", "probe", install_probe),
+                _InstallTask("Semble (code search)", "semble", install_semble),
                 _InstallTask("RTK (token optimizer)", "rtk", install_rtk),
                 _InstallTask("CodeGraph (code intelligence)", "codegraph", install_codegraph),
                 _InstallTask("better-sqlite3 (CodeGraph native backend)", "better_sqlite3", install_better_sqlite3),
                 _InstallTask("context-mode plugin", "context_mode_plugin", install_context_mode_plugin),
                 _InstallTask("Codex plugin", "codex_plugin", install_codex_plugin),
                 _InstallTask("Chrome DevTools MCP plugin", "chrome_devtools_plugin", install_chrome_devtools_plugin),
+                _InstallTask("LSP plugins (vtsls, basedpyright, gopls)", "lsp_plugins", install_lsp_plugins),
             ]
 
             installed.extend(_run_parallel_installs(parallel_tasks, ui))

@@ -20,13 +20,6 @@ entries:
 
   # ---- npm globals (Task 2) ----
 
-  - id: probe
-    name: "@probelabs/probe"
-    source_type: npm
-    source_url: "@probelabs/probe"
-    version: "0.6.0-rc316"
-    last_audited: "2026-05-07"
-
   - id: codegraph
     name: "@colbymchenry/codegraph"
     source_type: npm

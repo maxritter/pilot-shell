@@ -25,7 +25,7 @@ $ pilot
 | 1 | Read existing rules (including nested subdirectories), detect structure and path-scoping. Also detects `CLAUDE.md` and `AGENTS.md` |
 | 2 | Migrate unscoped assets to `{slug}`-prefixed names |
 | 3 | Quality audit against best practices (size, specificity, path-scoping enforcement) |
-| 4 | Explore codebase with Probe CLI, CodeGraph, and Grep to find patterns |
+| 4 | Explore codebase with Semble, CodeGraph, and Grep to find patterns |
 | 5 | Compare discovered vs documented patterns |
 | 6 | Sync project rule, nested directories, and generate rules README. Migrates `CLAUDE.md` / `AGENTS.md` content into modular rules |
 | 7 | Sync MCP server documentation |

@@ -18,6 +18,7 @@ Run `pilot` or `ccp` with no arguments to start Claude with Pilot enhancements. 
 | `pilot [claude-flags...]` | Start Claude with any Claude CLI flags passed through |
 | `pilot -p "prompt" [flags...]` | Headless mode — non-interactive for CI/CD, scripts |
 | `pilot run [flags...]` | Explicit alias for starting Claude |
+| `pilot agents` | Open Claude's agent view (`claude agents`) to manage multiple background sessions |
 | `ccp` | Alias for `pilot` |
 | `pilot update [--yes] [--json]` | Download and install the latest Pilot Shell release (replaces the startup banner) |
 | `pilot check-context --json` | Get current context usage percentage |

@@ -8,7 +8,7 @@
 codegraph_context(task="<task description from user>")
 ```
 
-This returns entry points, related symbols, and key code. Works best when the task maps to actual code symbols. If it returns irrelevant results (e.g., only tests or UI components), the task may be conceptual — supplement with Probe `probe search "how does X work"` for intent-based discovery.
+This returns entry points, related symbols, and key code. Works best when the task maps to actual code symbols. If it returns irrelevant results (e.g., only tests or UI components), the task may be conceptual — supplement with Semble `semble search "how does X work"` (or `mcp__semble__search`) for intent-based discovery.
 
 #### 6.2: Deep dive with CodeGraph explore
 
@@ -22,15 +22,16 @@ This returns **full source code sections** from all relevant files in ONE call �
 
 #### 6.3: Systematic exploration
 
-**Explore one area at a time (sequentially, not parallel).** Use CodeGraph and Probe as primary tools — Grep/Glob only for exact text patterns.
+**Explore one area at a time (sequentially, not parallel).** Use CodeGraph and Semble as primary tools — Grep/Glob only for exact text patterns.
 
 | Need                            | Tool                                                    |
 | ------------------------------- | ------------------------------------------------------- |
 | **Orient on the task**          | CodeGraph `codegraph_context(task=<description>)` — already done in 6.1 |
 | **Deep understanding of code**  | CodeGraph `codegraph_search` → `codegraph_explore(query="<symbol names>")` |
-| **Understand a feature by intent** | Probe `probe search "how does X work"`               |
+| **Understand a feature by intent** | Semble `semble search "how does X work"` or `mcp__semble__search` |
 | **Find symbols by name**        | CodeGraph `codegraph_search`                            |
-| **Extract code by symbol/line** | Probe `probe extract file.ts#symbol`                    |
+| **Discover similar code from a hit** | Semble `semble find-related file.ts 42` or `mcp__semble__find_related` |
+| **Extract enclosing block at `file:line`** | `Read` with `offset`/`limit`, or `codegraph_node` (by symbol name) |
 | **Project file structure**      | CodeGraph `codegraph_files`                             |
 | **Call tracing**                | CodeGraph `codegraph_callers`/`codegraph_callees`       |
 | **Library/framework docs**      | Context7                                                |

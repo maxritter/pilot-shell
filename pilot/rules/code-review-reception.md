@@ -25,7 +25,7 @@ If any item is unclear: **STOP** — do not implement anything yet. Ask for clar
 
 When a reviewer suggests adding or "properly implementing" a feature:
 
-1. Search codebase for actual usage (Probe CLI `probe search`, `Grep`, or LSP `findReferences`)
+1. Search codebase for actual usage (Semble `semble search`, `Grep`, or LSP `findReferences`)
 2. If unused → push back: "This isn't called anywhere. Remove it (YAGNI)?"
 3. If used → implement properly
 

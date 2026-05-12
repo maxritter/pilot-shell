@@ -122,11 +122,11 @@ class TestJsonHelpers:
     def test_pre_tool_use_context(self) -> None:
         from _lib.util import pre_tool_use_context
 
-        result = json.loads(pre_tool_use_context("Try Probe CLI first"))
+        result = json.loads(pre_tool_use_context("Try Semble first"))
         assert result == {
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
-                "additionalContext": "Try Probe CLI first",
+                "additionalContext": "Try Semble first",
             }
         }
 

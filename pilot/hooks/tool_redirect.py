@@ -9,7 +9,7 @@ unless the subagent_type is in SILENT_AGENT_TYPES.
 
 Also nudges (non-deny) on recursive code-search Bash commands (grep -r, rg, find,
 fd, ag), built-in Grep, and built-in Glob — pointing at codegraph_search /
-codegraph_files / probe search. Throttled per-(category, session) so the
+codegraph_files / semble search. Throttled per-(category, session) so the
 reminder stays salient.
 """
 
@@ -48,34 +48,34 @@ BLOCKS: dict[str, dict[str, str]] = {
 }
 
 RESEARCH_BLOCK = (
-    "Research agent blocked: use CodeGraph + Probe CLI directly",
+    "Research agent blocked: use CodeGraph + Semble directly",
     "Research sub-agents are blocked. Use direct tools instead:\n"
     '-> Orient: codegraph_context(task="...") — ALWAYS start here\n'
     '-> Deep dive: codegraph_search → codegraph_explore(query="SymbolA SymbolB") — full source in one call\n'
     "-> Trace: codegraph_callers/codegraph_callees/codegraph_impact\n"
-    '-> Intent search: probe search "query" ./ --max-results 5 --max-tokens 2000\n'
+    '-> Intent search: semble search "query" ./ (or MCP mcp__semble__search)\n'
     "-> Exact text: Grep/Glob (last resort)",
 )
 
 EXPLORE_BLOCK = (
-    "Explore-description agent blocked: use CodeGraph + Probe CLI directly",
+    "Explore-description agent blocked: use CodeGraph + Semble directly",
     "Agent with Explore description is blocked. Use CodeGraph for structural analysis and "
-    "Probe CLI for intent-based search instead.\n"
+    "Semble for intent-based search instead.\n"
     '-> Orient: codegraph_context(task="...") — ALWAYS start here\n'
     '-> Deep dive: codegraph_search → codegraph_explore(query="SymbolA SymbolB") — full source in one call\n'
     "-> Trace: codegraph_callers/codegraph_callees/codegraph_impact\n"
-    '-> Intent search: probe search "query" ./ --max-results 5 --max-tokens 2000',
+    '-> Intent search: semble search "query" ./ (or MCP mcp__semble__search)',
 )
 
 BLOCKED_AGENT_REASONS: dict[str, tuple[str, str]] = {
     "Explore": (
-        "Explore agent blocked: use CodeGraph + Probe CLI",
+        "Explore agent blocked: use CodeGraph + Semble",
         "The Explore agent is blocked. Use CodeGraph for structural analysis and "
-        "Probe CLI for intent-based search instead.\n"
+        "Semble for intent-based search instead.\n"
         '-> Orient: codegraph_context(task="...") — ALWAYS start here\n'
         '-> Deep dive: codegraph_search → codegraph_explore(query="SymbolA SymbolB") — full source in one call\n'
         "-> Trace: codegraph_callers/codegraph_callees/codegraph_impact\n"
-        '-> Intent search: probe search "query" ./ --max-results 5 --max-tokens 2000',
+        '-> Intent search: semble search "query" ./ (or MCP mcp__semble__search)',
     ),
     "Plan": (
         "Plan agent blocked: use /spec for structured planning",
@@ -210,14 +210,14 @@ def classify_search_command(cmd: str) -> str | None:
 
 _NUDGE_BASH_GREP = (
     "Recursive grep on the project. For symbol search by name, codegraph_search is faster "
-    "(returns structured matches by file). For find-by-intent, probe search 'query' ./ "
-    "--max-results 5 --max-tokens 2000 ranks results by relevance. If you need exact text "
+    "(returns structured matches by file). For find-by-intent, semble search 'query' ./ "
+    "ranks results by relevance (hybrid BM25+semantic). If you need exact text "
     "in known files, proceed."
 )
 _NUDGE_BASH_RG = (
     "Recursive ripgrep. For symbol search use codegraph_search; for project file structure "
-    "use codegraph_files; for intent-based code search use probe search 'query' ./ "
-    "--max-results 5 --max-tokens 2000. If you need exact text/regex on the filesystem, proceed."
+    "use codegraph_files; for intent-based code search use semble search 'query' ./ "
+    "(or mcp__semble__search). If you need exact text/regex on the filesystem, proceed."
 )
 _NUDGE_BASH_FIND = (
     "Project file enumeration. codegraph_files returns the indexed file tree faster and "
@@ -228,13 +228,13 @@ _NUDGE_BASH_FD = (
     "Proceed if you specifically need fd's filesystem behavior."
 )
 _NUDGE_BASH_AG = (
-    "Silver searcher. codegraph_search (by symbol) and probe search (by intent) are faster "
+    "Silver searcher. codegraph_search (by symbol) and semble search (by intent) are faster "
     "on indexed projects. Proceed if you need exact text in arbitrary filesystem paths."
 )
 _NUDGE_BUILTIN_GREP = (
     "Built-in Grep is valid for exact text/regex and as a completeness check after "
     "codegraph_callers. For symbol search by name, codegraph_search is faster. For "
-    "intent-based code search, probe search 'query' ./ --max-results 5 --max-tokens 2000 "
+    "intent-based code search, semble search 'query' ./ (or mcp__semble__search) "
     "ranks by relevance."
 )
 _NUDGE_BUILTIN_GLOB = (

@@ -26,7 +26,7 @@ Rules load automatically at session start — they're enforced standards, not su
 
 ### Tooling & Context (4 rules)
 
-- `cli-tools.md` — Pilot CLI, Probe code search, RTK token optimization
+- `cli-tools.md` — Pilot CLI, Semble hybrid code search, RTK token optimization
 - `browser-automation.md` — Browser automation for E2E UI testing (Chrome → Chrome DevTools MCP → playwright-cli → agent-browser)
 - `context-mode.md` — Routing rules for large-output analysis, sandbox execution, and compaction resilience
 - `mcp-servers.md` — MCP server reference and tool selection guidance

@@ -77,7 +77,7 @@ paths:
 
 | Issue                          | Action                                                                  |
 | ------------------------------ | ----------------------------------------------------------------------- |
-| Probe not installed            | Use Grep/Glob for codebase exploration (all Probe steps have fallbacks) |
+| Semble not installed           | Use Grep/Glob for codebase exploration (all Semble steps have fallbacks) |
 | `/create-skill` not available  | Create skills manually (write SKILL.md directly)                        |
 | No MCP servers                 | Skip MCP documentation                                                  |
 | No README.md                   | Ask user for description                                                |

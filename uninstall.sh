@@ -6,6 +6,11 @@ PILOT_DIR="$HOME/.pilot"
 CLAUDE_DIR="$HOME/.claude"
 PILOT_PLUGIN_DIR="$CLAUDE_DIR/pilot"
 MANIFEST_FILE="$CLAUDE_DIR/.pilot-manifest.json"
+HOOKS_BASELINE_FILE="$CLAUDE_DIR/.pilot-hooks-baseline.json"
+LSP_MANIFEST_FILE="$PILOT_DIR/.pilot-lsp-plugins.json"
+
+# Piebald LSP plugins installed by Pilot (Task 4)
+LSP_MARKETPLACE="claude-code-lsps"
 
 CLAUDE_ALIAS_MARKER="# Pilot Shell"
 OLD_CLAUDE_PILOT_MARKER="# Claude Pilot"
@@ -81,18 +86,28 @@ confirm_uninstall() {
 		echo "$entries" | grep -q '^commands/' && echo "    • Remove Pilot-managed commands from ~/.claude/commands/"
 		echo "$entries" | grep -q '^skills/' && echo "    • Remove Pilot-managed skills from ~/.claude/skills/"
 		echo "$entries" | grep -q '^rules/' && echo "    • Remove Pilot-managed rules from ~/.claude/rules/"
+		echo "$entries" | grep -q '^agents/' && echo "    • Remove Pilot-managed agents from ~/.claude/agents/"
 	fi
 
 	if [ -f "$CLAUDE_DIR/settings.json" ]; then
-		echo "    • Clean Pilot-added entries from ~/.claude/settings.json"
+		echo "    • Clean Pilot-added entries from ~/.claude/settings.json (including merged hooks)"
 	fi
 
 	if [ -f "$HOME/.claude.json" ] && [ -f "$CLAUDE_DIR/.pilot-claude-baseline.json" ]; then
-		echo "    • Clean Pilot-added keys from ~/.claude.json"
+		echo "    • Clean Pilot-added keys (and mcpServers) from ~/.claude.json"
+	fi
+
+	# LSP plugins Pilot installed itself (not user-pre-installed ones)
+	if [ -f "$LSP_MANIFEST_FILE" ]; then
+		local lsp_ids
+		lsp_ids=$(grep -oE '"[a-z][a-z0-9-]*@'"$LSP_MARKETPLACE"'"' "$LSP_MANIFEST_FILE" 2>/dev/null | sed 's/"//g' | tr '\n' ' ')
+		if [ -n "$lsp_ids" ]; then
+			echo "    • Uninstall Pilot-installed LSP plugins: ${lsp_ids}"
+		fi
 	fi
 
 	local baseline_files=""
-	for f in "$CLAUDE_DIR/.pilot-settings-baseline.json" "$CLAUDE_DIR/.pilot-claude-baseline.json" "$MANIFEST_FILE"; do
+	for f in "$CLAUDE_DIR/.pilot-settings-baseline.json" "$CLAUDE_DIR/.pilot-claude-baseline.json" "$HOOKS_BASELINE_FILE" "$MANIFEST_FILE"; do
 		if [ -f "$f" ]; then
 			baseline_files="$baseline_files $(basename "$f")"
 		fi
@@ -232,8 +247,14 @@ run_surgical_cleanup() {
 		return
 	fi
 
-	python3 -c "
-import json, sys, os
+	# Pass paths via env vars (NOT interpolated into Python source) to defend
+	# against home-dir paths with single-quotes or other shell metachars.
+	PILOT_TARGET="$target_file" PILOT_BASELINE_FILE="$baseline_file" PILOT_DISPLAY="$display_path" python3 -c '
+import json, os, sys
+
+target_file = os.environ["PILOT_TARGET"]
+baseline_file = os.environ["PILOT_BASELINE_FILE"]
+display_path = os.environ["PILOT_DISPLAY"]
 
 def remove_baseline_entries(current, baseline):
     if not isinstance(current, dict) or not isinstance(baseline, dict):
@@ -270,22 +291,22 @@ def remove_baseline_entries(current, baseline):
     return current, not current
 
 try:
-    with open('$target_file') as f:
+    with open(target_file) as f:
         current = json.load(f)
-    with open('$baseline_file') as f:
+    with open(baseline_file) as f:
         baseline = json.load(f)
     current, is_empty = remove_baseline_entries(current, baseline)
     if is_empty:
-        os.remove('$target_file')
-        print('    [OK] Removed $display_path (no user settings remained)')
+        os.remove(target_file)
+        print(f"    [OK] Removed {display_path} (no user settings remained)")
     else:
-        with open('$target_file', 'w') as f:
+        with open(target_file, "w") as f:
             json.dump(current, f, indent=2)
-            f.write('\n')
-        print('    [OK] Cleaned Pilot entries from $display_path (user settings preserved)')
+            f.write("\n")
+        print(f"    [OK] Cleaned Pilot entries from {display_path} (user settings preserved)")
 except Exception as e:
-    print(f'    [!!] Could not clean $display_path: {e}', file=sys.stderr)
-" 2>&1
+    print(f"    [!!] Could not clean {display_path}: {e}", file=sys.stderr)
+' 2>&1
 }
 
 remove_pilot_settings() {
@@ -302,6 +323,72 @@ remove_pilot_settings() {
 		echo "    [!!] Skipped ~/.claude/settings.json (no baseline found, manual cleanup needed)"
 	fi
 
+	# Strip Pilot's merged `hooks` entries using the dedicated hooks baseline
+	# (Task 1). Signature-aware reversal — uses (matcher, sorted-commands)
+	# identity, matching the install-time merge_pilot_hooks logic — NOT a
+	# generic value-equality diff. This correctly handles the case where the
+	# user added their own hook entries alongside Pilot's: Pilot's entries are
+	# removed by signature; user entries remain.
+	if [ -f "$settings_file" ] && [ -f "$HOOKS_BASELINE_FILE" ] && command -v python3 >/dev/null 2>&1; then
+		PILOT_SETTINGS="$settings_file" PILOT_HOOKS_BASELINE="$HOOKS_BASELINE_FILE" python3 -c '
+import json, os, sys
+
+settings_path = os.environ["PILOT_SETTINGS"]
+baseline_path = os.environ["PILOT_HOOKS_BASELINE"]
+
+def signature(entry):
+    matcher = entry.get("matcher") or ""
+    if not isinstance(matcher, str):
+        matcher = str(matcher)
+    cmds = []
+    for h in entry.get("hooks", []) or []:
+        if isinstance(h, dict):
+            cmd = h.get("command")
+            if isinstance(cmd, str):
+                cmds.append(cmd)
+    return (matcher, tuple(sorted(cmds)))
+
+try:
+    with open(settings_path) as f:
+        settings = json.load(f)
+    with open(baseline_path) as f:
+        baseline_hooks = json.load(f)
+except Exception as e:
+    print(f"    [!!] Could not read settings.json or hooks baseline: {e}", file=sys.stderr)
+    sys.exit(0)
+
+if not isinstance(settings, dict) or not isinstance(baseline_hooks, dict):
+    sys.exit(0)
+
+current_hooks = settings.get("hooks")
+if not isinstance(current_hooks, dict):
+    sys.exit(0)
+
+removed = 0
+for event_key, baseline_entries in baseline_hooks.items():
+    if event_key not in current_hooks or not isinstance(current_hooks[event_key], list):
+        continue
+    pilot_sigs = {signature(e) for e in (baseline_entries or [])}
+    user_only = [e for e in current_hooks[event_key] if signature(e) not in pilot_sigs]
+    pilot_removed = len(current_hooks[event_key]) - len(user_only)
+    removed += pilot_removed
+    if user_only:
+        current_hooks[event_key] = user_only
+    else:
+        del current_hooks[event_key]
+
+if not current_hooks:
+    del settings["hooks"]
+
+with open(settings_path, "w") as f:
+    json.dump(settings, f, indent=2)
+    f.write("\n")
+
+if removed > 0:
+    print(f"    [OK] Removed {removed} Pilot hook entry(ies) from ~/.claude/settings.json")
+'
+	fi
+
 	removed_items+=("~/.claude/settings.json")
 }
 
@@ -313,14 +400,111 @@ remove_claude_json_keys() {
 		return
 	fi
 
-	run_surgical_cleanup "$claude_json" "$baseline" "~/.claude.json"
+	# Value-aware MCP server cleanup (Codex finding #2): only remove a Pilot
+	# server entry when its value in ~/.claude.json EXACTLY matches the baseline
+	# (i.e., the user hasn't modified it). User-modified entries are left
+	# entirely intact — NOT partially gutted by the recursive surgical cleanup.
+	# After this step, mcpServers is stripped from the temp baseline so the
+	# subsequent run_surgical_cleanup doesn't recurse into it.
+	local baseline_for_cleanup="$baseline"
+	local tmp_baseline="$baseline.tmp_no_mcp"
+	if command -v python3 >/dev/null 2>&1; then
+		# Pass paths via env vars (NOT shell-interpolated into Python source) to
+		# defend against home-dir paths containing single-quotes or other shell
+		# metacharacters — Codex security finding.
+		PILOT_CLAUDE_JSON="$claude_json" PILOT_TMP_BASELINE="$tmp_baseline" PILOT_BASELINE="$baseline" python3 -c '
+import json, os, sys
+
+claude_json = os.environ["PILOT_CLAUDE_JSON"]
+tmp_baseline = os.environ["PILOT_TMP_BASELINE"]
+baseline = os.environ["PILOT_BASELINE"]
+
+try:
+    with open(claude_json) as f:
+        current = json.load(f)
+    with open(baseline) as f:
+        baseline_data = json.load(f)
+except Exception as e:
+    print(f"    [!!] Could not read claude.json or baseline for MCP cleanup: {e}", file=sys.stderr)
+    sys.exit(0)
+
+baseline_mcp = baseline_data.get("mcpServers") if isinstance(baseline_data, dict) else None
+current_mcp = current.get("mcpServers") if isinstance(current, dict) else None
+
+if isinstance(baseline_mcp, dict) and isinstance(current_mcp, dict):
+    removed = 0
+    preserved_modified = 0
+    for name, baseline_value in baseline_mcp.items():
+        if name in current_mcp:
+            if current_mcp[name] == baseline_value:
+                del current_mcp[name]
+                removed += 1
+            else:
+                preserved_modified += 1
+    if not current_mcp:
+        del current["mcpServers"]
+    if removed > 0:
+        print(f"    [OK] Removed {removed} Pilot MCP server(s) from ~/.claude.json")
+    if preserved_modified > 0:
+        print(f"    [OK] Preserved {preserved_modified} user-modified MCP server(s) in ~/.claude.json")
+
+if isinstance(baseline_data, dict) and "mcpServers" in baseline_data:
+    del baseline_data["mcpServers"]
+
+with open(claude_json, "w") as f:
+    json.dump(current, f, indent=2)
+    f.write("\n")
+with open(tmp_baseline, "w") as f:
+    json.dump(baseline_data, f, indent=2)
+    f.write("\n")
+'
+		if [ -f "$tmp_baseline" ]; then
+			baseline_for_cleanup="$tmp_baseline"
+		fi
+	fi
+
+	run_surgical_cleanup "$claude_json" "$baseline_for_cleanup" "~/.claude.json"
+	rm -f "$tmp_baseline"
 	removed_items+=("~/.claude.json")
+}
+
+uninstall_lsp_plugins() {
+	if [ ! -f "$LSP_MANIFEST_FILE" ]; then
+		return
+	fi
+
+	if ! command -v claude >/dev/null 2>&1; then
+		echo "    [!!] Skipped LSP plugin uninstall (claude CLI not found)"
+		return
+	fi
+
+	local plugin_ids
+	plugin_ids=$(grep -oE '"[a-z][a-z0-9-]*@'"$LSP_MARKETPLACE"'"' "$LSP_MANIFEST_FILE" 2>/dev/null | sed 's/"//g')
+	if [ -z "$plugin_ids" ]; then
+		rm -f "$LSP_MANIFEST_FILE"
+		return
+	fi
+
+	local removed_count=0
+	while IFS= read -r plugin_id; do
+		[ -z "$plugin_id" ] && continue
+		if claude plugins uninstall "$plugin_id" >/dev/null 2>&1; then
+			removed_count=$((removed_count + 1))
+		fi
+	done <<<"$plugin_ids"
+
+	if [ "$removed_count" -gt 0 ]; then
+		echo "    [OK] Uninstalled $removed_count Pilot-installed LSP plugin(s)"
+		removed_items+=("$removed_count LSP plugin(s)")
+	fi
+	rm -f "$LSP_MANIFEST_FILE"
 }
 
 remove_pilot_baselines() {
 	local files=(
 		"$CLAUDE_DIR/.pilot-settings-baseline.json"
 		"$CLAUDE_DIR/.pilot-claude-baseline.json"
+		"$HOOKS_BASELINE_FILE"
 		"$CLAUDE_DIR/.pilot-manifest.json"
 	)
 
@@ -367,7 +551,7 @@ print_summary() {
 	echo ""
 	echo "  To fully clean up third-party tools installed by Pilot:"
 	echo "    - Claude Code:    npm uninstall -g @anthropic-ai/claude-code"
-	echo "    - Probe:          npm uninstall -g @probelabs/probe"
+	echo "    - Semble:         uv tool uninstall semble"
 	echo "    - agent-browser:  npm uninstall -g agent-browser"
 	echo "    - vtsls:          npm uninstall -g @vtsls/language-server typescript"
 	echo "    - prettier:       npm uninstall -g prettier"
@@ -407,7 +591,7 @@ while [ $# -gt 0 ]; do
 	esac
 done
 
-if ! [ -d "$PILOT_DIR" ] && ! [ -d "$PILOT_PLUGIN_DIR" ] && ! [ -f "$MANIFEST_FILE" ]; then
+if ! [ -d "$PILOT_DIR" ] && ! [ -d "$PILOT_PLUGIN_DIR" ] && ! [ -f "$MANIFEST_FILE" ] && ! [ -f "$HOOKS_BASELINE_FILE" ] && ! [ -f "$LSP_MANIFEST_FILE" ]; then
 	echo ""
 	echo "======================================================================"
 	echo "  Pilot Shell Uninstaller"
@@ -437,6 +621,7 @@ remove_shell_aliases
 remove_manifest_files
 remove_pilot_settings
 remove_claude_json_keys
+uninstall_lsp_plugins
 remove_pilot_baselines
 remove_pilot_plugin
 remove_pilot_dir

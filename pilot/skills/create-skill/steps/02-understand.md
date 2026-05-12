@@ -16,11 +16,10 @@ If the user provided a topic or description, work with it. If not, evaluate the 
 3. **Explore the codebase for relevant patterns:**
    ```bash
    # Find existing patterns related to the topic
-   probe search "<topic keywords>" ./ --max-results 5 --max-tokens 2000
-   # Extract concrete examples
-   probe extract <relevant-file>:<line>
+   semble search "<topic keywords>" ./
+   # Read concrete examples (semble returns chunks; use Read for the full file)
    ```
-   Or use `Grep`/`Glob` if Probe is not available.
+   Or use `Grep`/`Glob` if Semble is not available.
 4. Review any existing documentation or onboarding notes that cover this topic
 5. Build understanding of the current state: what works, what's tricky, what's non-obvious
 

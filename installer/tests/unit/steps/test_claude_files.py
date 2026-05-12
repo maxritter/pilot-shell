@@ -545,9 +545,12 @@ class TestDirectoryClearing:
 
             global_pilot = home_dir / ".claude" / "pilot"
             assert (global_pilot / "package.json").exists()
-            assert (global_pilot / "plugin.json").exists()
+            # plugin.json and .lsp.json are SKIPPED by the installer post-migration:
+            # Pilot is no longer registered as a Claude Code plugin; LSP moved to
+            # the Piebald-AI/claude-code-lsps marketplace. See plan Task 3.
+            assert not (global_pilot / "plugin.json").exists()
             assert (global_pilot / ".mcp.json").exists()
-            assert (global_pilot / ".lsp.json").exists()
+            assert not (global_pilot / ".lsp.json").exists()
             assert (global_pilot / "scripts" / "mcp-server.cjs").exists()
             assert (global_pilot / "hooks" / "hook.py").exists()
 
@@ -1552,3 +1555,602 @@ class TestBuildSkillMdFiles:
 
         ui.warning.assert_not_called()
         ui.error.assert_not_called()
+
+
+class TestPatchPluginRoot:
+    """patch_plugin_root expands ${CLAUDE_PLUGIN_ROOT} to the absolute asset path."""
+
+    def test_substitutes_plugin_root_with_absolute_path(self):
+        from installer.steps.claude_files import get_claude_config_dir, patch_plugin_root
+
+        content = '{"command": "uv run python \\"${CLAUDE_PLUGIN_ROOT}/hooks/foo.py\\""}'
+        result = patch_plugin_root(content)
+
+        expected_root = str(get_claude_config_dir() / "pilot")
+        assert "${CLAUDE_PLUGIN_ROOT}" not in result
+        assert expected_root in result
+
+    def test_leaves_unrelated_text_unchanged(self):
+        from installer.steps.claude_files import patch_plugin_root
+
+        content = '{"command": "echo hello"}'
+        result = patch_plugin_root(content)
+        assert result == content
+
+    def test_handles_multiple_occurrences(self):
+        from installer.steps.claude_files import patch_plugin_root
+
+        content = '${CLAUDE_PLUGIN_ROOT}/a ${CLAUDE_PLUGIN_ROOT}/b'
+        result = patch_plugin_root(content)
+        assert "${CLAUDE_PLUGIN_ROOT}" not in result
+        assert result.count("/a") == 1
+        assert result.count("/b") == 1
+
+
+class TestMergePilotHooks:
+    """Tests for the Pilot-owned-entry-aware hooks merge.
+
+    See docs/plans/2026-05-12-drop-plugin-system-native-install.md Task 1.
+    """
+
+    @staticmethod
+    def _entry(matcher, command):
+        return {"matcher": matcher, "hooks": [{"type": "command", "command": command}]}
+
+    def test_first_install_no_baseline_no_current(self):
+        """No baseline, empty current → incoming installed as-is."""
+        from installer.steps.settings_merge import merge_pilot_hooks
+
+        incoming = {"PostToolUse": [self._entry("Write|Edit", "py /a/file_checker.py")]}
+
+        result = merge_pilot_hooks({}, incoming, None)
+
+        assert result == incoming
+
+    def test_first_install_user_added_event_preserved(self):
+        """User defined a hook under a key Pilot doesn't ship → preserved alongside Pilot's."""
+        from installer.steps.settings_merge import merge_pilot_hooks
+
+        current = {"UserPromptSubmit": [self._entry("", "echo user")]}
+        incoming = {"PostToolUse": [self._entry("Write", "py /a/file_checker.py")]}
+
+        result = merge_pilot_hooks(current, incoming, None)
+
+        assert result["UserPromptSubmit"] == [self._entry("", "echo user")]
+        assert result["PostToolUse"] == [self._entry("Write", "py /a/file_checker.py")]
+
+    def test_upgrade_baseline_matches_current_incoming_replaces(self):
+        """Baseline == current Pilot entries → upgrade to incoming."""
+        from installer.steps.settings_merge import merge_pilot_hooks
+
+        baseline = {"PostToolUse": [self._entry("Write", "py /old/file_checker.py")]}
+        current = {"PostToolUse": [self._entry("Write", "py /old/file_checker.py")]}
+        incoming = {"PostToolUse": [self._entry("Write", "py /new/file_checker.py")]}
+
+        result = merge_pilot_hooks(current, incoming, baseline)
+
+        assert result["PostToolUse"] == [self._entry("Write", "py /new/file_checker.py")]
+
+    def test_user_added_entry_under_pilot_event_preserved(self):
+        """User added an entry to a Pilot event key → kept alongside Pilot's new entry."""
+        from installer.steps.settings_merge import merge_pilot_hooks
+
+        baseline = {"Stop": [self._entry("", "py /old/stop.py")]}
+        current = {
+            "Stop": [
+                self._entry("", "py /old/stop.py"),
+                self._entry("", "echo my-user-stop"),
+            ]
+        }
+        incoming = {"Stop": [self._entry("", "py /new/stop.py")]}
+
+        result = merge_pilot_hooks(current, incoming, baseline)
+
+        # User's entry should remain; Pilot's entry should be the new one
+        commands = [h["command"] for entry in result["Stop"] for h in entry["hooks"]]
+        assert "echo my-user-stop" in commands
+        assert "py /new/stop.py" in commands
+        assert "py /old/stop.py" not in commands
+
+    def test_signature_collision_raises_value_error(self):
+        """Incoming with two entries sharing (matcher, sorted-commands) is a programmer error."""
+        import pytest
+
+        from installer.steps.settings_merge import merge_pilot_hooks
+
+        incoming = {
+            "PostToolUse": [
+                self._entry("Write", "py /a/file_checker.py"),
+                self._entry("Write", "py /a/file_checker.py"),  # exact duplicate
+            ]
+        }
+        with pytest.raises(ValueError):
+            merge_pilot_hooks({}, incoming, None)
+
+    def test_pilot_event_removed_when_user_unchanged(self):
+        """Pilot drops an event entirely; user hadn't touched it → dropped."""
+        from installer.steps.settings_merge import merge_pilot_hooks
+
+        baseline = {"PreCompact": [self._entry("", "py /old/pre_compact.py")]}
+        current = {"PreCompact": [self._entry("", "py /old/pre_compact.py")]}
+        incoming = {}
+
+        result = merge_pilot_hooks(current, incoming, baseline)
+
+        assert "PreCompact" not in result
+
+
+class TestAgentsCategoryAndSkips:
+    """Task 3: agents go to ~/.claude/agents/; plugin.json + .lsp.json skipped."""
+
+    def test_categorize_agents_routes_to_agents_category(self):
+        from installer.steps.claude_files import _categorize_file
+
+        assert _categorize_file("pilot/agents/spec-review.md") == "agents"
+        assert _categorize_file("pilot/agents/changes-review-codex.md") == "agents"
+
+    def test_skip_plugin_json(self):
+        from installer.steps.claude_files import _should_skip_file
+
+        assert _should_skip_file("pilot/plugin.json") is True
+
+    def test_skip_lsp_json(self):
+        from installer.steps.claude_files import _should_skip_file
+
+        assert _should_skip_file("pilot/.lsp.json") is True
+
+    def test_get_dest_path_agents_goes_to_claude_agents_dir(self, tmp_path):
+        from unittest.mock import MagicMock, patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        step = ClaudeFilesStep()
+        claude_dir = tmp_path / ".claude"
+        with patch(
+            "installer.steps.claude_files.get_claude_config_dir", return_value=claude_dir
+        ):
+            ctx = MagicMock()
+            dest = step._get_dest_path("agents", "pilot/agents/spec-review.md", ctx)
+        assert dest == claude_dir / "agents" / "spec-review.md"
+
+    def test_remove_legacy_plugin_marker_deletes_file(self, tmp_path):
+        from unittest.mock import patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        claude_dir = tmp_path / ".claude"
+        plugin_dir = claude_dir / "pilot"
+        plugin_dir.mkdir(parents=True)
+        marker = plugin_dir / "plugin.json"
+        marker.write_text('{"name": "pilot"}')
+
+        step = ClaudeFilesStep()
+        with patch(
+            "installer.steps.claude_files.get_claude_config_dir", return_value=claude_dir
+        ):
+            step._remove_legacy_plugin_marker()
+
+        assert not marker.exists()
+
+    def test_remove_legacy_plugin_marker_silent_if_missing(self, tmp_path):
+        from unittest.mock import patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        claude_dir = tmp_path / ".claude"
+        step = ClaudeFilesStep()
+        with patch(
+            "installer.steps.claude_files.get_claude_config_dir", return_value=claude_dir
+        ):
+            # Should not raise even if marker doesn't exist.
+            step._remove_legacy_plugin_marker()
+
+    def test_upgrade_idempotency_two_runs_no_double_fire(self, tmp_path):
+        """Run install twice in a row. plugin.json stays gone; hooks aren't doubled.
+
+        Plan Risk-table mitigation: 'Add an integration test that runs install
+        twice with a stale plugin.json from the first run and asserts it's gone
+        on the second.' This exercises the full _post_install_processing path
+        (minus heavy sub-steps) two times.
+        """
+        from unittest.mock import MagicMock, patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        claude_dir = tmp_path / ".claude"
+        plugin_dir = claude_dir / "pilot"
+        plugin_dir.mkdir(parents=True)
+        # Seed first-run state: stale plugin.json from a prior install
+        marker = plugin_dir / "plugin.json"
+        marker.write_text('{"name": "pilot"}')
+        # Minimal hooks.json so _merge_hooks_into_settings has input
+        hooks_dir = plugin_dir / "hooks"
+        hooks_dir.mkdir()
+        hooks_dir_content = {
+            "hooks": {
+                "Stop": [
+                    {"matcher": "", "hooks": [{"type": "command", "command": "py /a/stop.py"}]}
+                ]
+            }
+        }
+        (hooks_dir / "hooks.json").write_text(json.dumps(hooks_dir_content) + "\n")
+        # Pre-existing user settings.json
+        (claude_dir / "settings.json").write_text(json.dumps({"model": "sonnet"}) + "\n")
+
+        ctx = MagicMock()
+        ctx.local_mode = True
+        ui = MagicMock()
+        step = ClaudeFilesStep()
+
+        with (
+            patch("installer.steps.claude_files.get_claude_config_dir", return_value=claude_dir),
+            patch.object(step, "_make_scripts_executable"),
+            patch.object(step, "_merge_app_config"),
+            patch.object(step, "_merge_mcp_servers_into_claude_json"),
+            patch("installer.steps.claude_files.migrate_model_config"),
+            patch.object(step, "_cleanup_stale_managed_files"),
+            patch.object(step, "_build_skill_md_files"),
+            patch.object(step, "_save_pilot_manifest"),
+            patch.object(step, "_reapply_customization"),
+        ):
+            # First run — plugin marker gone, hooks merged once
+            step._post_install_processing(ctx, ui)
+            assert not marker.exists()
+            settings_after_first = json.loads((claude_dir / "settings.json").read_text())
+            first_stop = settings_after_first["hooks"]["Stop"]
+            assert len(first_stop) == 1
+
+            # Second run — re-seed marker (simulates downstream tooling
+            # recreating it; we still want it gone after a re-install) and
+            # confirm idempotency
+            marker.write_text('{"name": "pilot"}')
+            step._post_install_processing(ctx, ui)
+            assert not marker.exists()
+
+            # Hooks must NOT have doubled — second-run is a no-op for the same
+            # incoming entries (baseline matches → identity-aware merge replaces
+            # in place rather than appending).
+            settings_after_second = json.loads((claude_dir / "settings.json").read_text())
+            second_stop = settings_after_second["hooks"]["Stop"]
+            assert len(second_stop) == 1, f"Hooks doubled: {second_stop}"
+            assert second_stop == first_stop
+
+    def test_post_install_processing_removes_marker_first(self, tmp_path):
+        """Order-of-operations: plugin.json deletion must happen before any merge writes."""
+        from unittest.mock import MagicMock, patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        claude_dir = tmp_path / ".claude"
+        plugin_dir = claude_dir / "pilot"
+        plugin_dir.mkdir(parents=True)
+        marker = plugin_dir / "plugin.json"
+        marker.write_text('{"name": "pilot"}')
+
+        call_log: list[str] = []
+
+        def _log_remove():
+            call_log.append("remove_marker")
+            (plugin_dir / "plugin.json").unlink(missing_ok=True)
+
+        def _log_merge_hooks():
+            call_log.append("merge_hooks")
+
+        ctx = MagicMock()
+        ctx.local_mode = True  # short-circuit _update_hooks_config
+        ui = MagicMock()
+
+        step = ClaudeFilesStep()
+        with (
+            patch.object(step, "_remove_legacy_plugin_marker", side_effect=_log_remove),
+            patch.object(step, "_make_scripts_executable"),
+            patch.object(step, "_merge_hooks_into_settings", side_effect=_log_merge_hooks),
+            patch.object(step, "_merge_app_config"),
+            patch.object(step, "_merge_mcp_servers_into_claude_json"),
+            patch("installer.steps.claude_files.migrate_model_config"),
+            patch.object(step, "_cleanup_stale_managed_files"),
+            patch.object(step, "_build_skill_md_files"),
+            patch.object(step, "_save_pilot_manifest"),
+            patch.object(step, "_reapply_customization"),
+            patch(
+                "installer.steps.claude_files.get_claude_config_dir",
+                return_value=claude_dir,
+            ),
+        ):
+            step._post_install_processing(ctx, ui)
+
+        assert call_log.index("remove_marker") < call_log.index("merge_hooks")
+
+
+class TestMergePilotMcpServers:
+    """Value-aware MCP server merge — preserves user-added AND user-modified servers."""
+
+    def test_first_install_no_collision_installs_all(self):
+        from installer.steps.settings_merge import merge_pilot_mcp_servers
+
+        current = {}
+        incoming = {"context7": {"command": "npx", "args": ["-y", "context7"]}}
+        result, warnings = merge_pilot_mcp_servers(current, incoming, None)
+
+        assert result == incoming
+        assert warnings == []
+
+    def test_first_install_name_collision_preserves_user(self):
+        from installer.steps.settings_merge import merge_pilot_mcp_servers
+
+        current = {"context7": {"command": "user-custom"}}
+        incoming = {"context7": {"command": "npx"}}
+        result, warnings = merge_pilot_mcp_servers(current, incoming, None)
+
+        assert result["context7"]["command"] == "user-custom"
+        assert any("context7" in w for w in warnings)
+
+    def test_upgrade_user_untouched_pilot_server_updated(self):
+        from installer.steps.settings_merge import merge_pilot_mcp_servers
+
+        baseline = {"context7": {"command": "npx-old"}}
+        current = {"context7": {"command": "npx-old"}}
+        incoming = {"context7": {"command": "npx-new"}}
+        result, warnings = merge_pilot_mcp_servers(current, incoming, baseline)
+
+        assert result["context7"]["command"] == "npx-new"
+        assert warnings == []
+
+    def test_upgrade_user_modified_pilot_server_preserved_with_warning(self):
+        """Codex finding #2 — value-aware preservation."""
+        from installer.steps.settings_merge import merge_pilot_mcp_servers
+
+        baseline = {"context7": {"command": "npx", "args": ["-y"]}}
+        current = {"context7": {"command": "node", "args": ["-y"]}}  # user changed command
+        incoming = {"context7": {"command": "npx-new", "args": ["-y"]}}
+        result, warnings = merge_pilot_mcp_servers(current, incoming, baseline)
+
+        assert result["context7"]["command"] == "node"
+        assert any("context7" in w for w in warnings)
+
+    def test_upgrade_pilot_ships_server_user_already_added(self):
+        """Pilot newly ships a server with a name the user already created."""
+        from installer.steps.settings_merge import merge_pilot_mcp_servers
+
+        baseline = {"context7": {"command": "npx"}}  # only original Pilot server
+        current = {
+            "context7": {"command": "npx"},
+            "super-tool": {"command": "user-added"},  # not in baseline
+        }
+        incoming = {
+            "context7": {"command": "npx"},
+            "super-tool": {"command": "pilot-version"},  # Pilot now adds this
+        }
+        result, warnings = merge_pilot_mcp_servers(current, incoming, baseline)
+
+        assert result["super-tool"]["command"] == "user-added"
+        assert any("super-tool" in w for w in warnings)
+
+    def test_deprecated_pilot_server_removed_when_user_untouched(self):
+        from installer.steps.settings_merge import merge_pilot_mcp_servers
+
+        baseline = {"old-server": {"command": "npx-old"}, "context7": {"command": "npx"}}
+        current = {"old-server": {"command": "npx-old"}, "context7": {"command": "npx"}}
+        incoming = {"context7": {"command": "npx"}}  # old-server deprecated
+        result, _ = merge_pilot_mcp_servers(current, incoming, baseline)
+
+        assert "old-server" not in result
+        assert "context7" in result
+
+    def test_deprecated_pilot_server_preserved_when_user_customized(self):
+        from installer.steps.settings_merge import merge_pilot_mcp_servers
+
+        baseline = {"old-server": {"command": "npx-old"}}
+        current = {"old-server": {"command": "user-custom"}}  # user modified
+        incoming = {}  # Pilot deprecates
+        result, warnings = merge_pilot_mcp_servers(current, incoming, baseline)
+
+        assert result["old-server"]["command"] == "user-custom"
+        assert any("old-server" in w for w in warnings)
+
+    def test_user_added_non_pilot_server_always_preserved(self):
+        from installer.steps.settings_merge import merge_pilot_mcp_servers
+
+        baseline = {"context7": {"command": "npx"}}
+        current = {
+            "context7": {"command": "npx"},
+            "my-server": {"command": "user-thing"},
+        }
+        incoming = {"context7": {"command": "npx"}}
+        result, _ = merge_pilot_mcp_servers(current, incoming, baseline)
+
+        assert result["my-server"]["command"] == "user-thing"
+
+
+class TestMergeMcpServersIntoClaudeJson:
+    """Integration tests for ClaudeFilesStep._merge_mcp_servers_into_claude_json."""
+
+    def test_installs_pilot_servers_into_claude_json(self, tmp_path):
+        from unittest.mock import patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        claude_dir = tmp_path / ".claude"
+        plugin_dir = claude_dir / "pilot"
+        plugin_dir.mkdir(parents=True)
+        (plugin_dir / ".mcp.json").write_text(
+            json.dumps({"mcpServers": {"context7": {"command": "npx"}}}, indent=2)
+        )
+        home = tmp_path
+        # Pre-existing ~/.claude.json with non-MCP keys
+        (home / ".claude.json").write_text(json.dumps({"oauthAccount": "x"}, indent=2))
+
+        step = ClaudeFilesStep()
+        with (
+            patch("installer.steps.claude_files.get_claude_config_dir", return_value=claude_dir),
+            patch("installer.steps.claude_files.Path.home", return_value=home),
+        ):
+            step._merge_mcp_servers_into_claude_json(ui=None)
+
+        merged = json.loads((home / ".claude.json").read_text())
+        assert merged["mcpServers"]["context7"]["command"] == "npx"
+        assert merged["oauthAccount"] == "x"  # preserved
+        # baseline file extended with mcpServers
+        baseline = json.loads((claude_dir / ".pilot-claude-baseline.json").read_text())
+        assert baseline["mcpServers"]["context7"]["command"] == "npx"
+
+    def test_preserves_user_modified_pilot_server(self, tmp_path):
+        """Second install: user modified context7; merge preserves it and warns."""
+        from unittest.mock import MagicMock, patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        claude_dir = tmp_path / ".claude"
+        plugin_dir = claude_dir / "pilot"
+        plugin_dir.mkdir(parents=True)
+        (plugin_dir / ".mcp.json").write_text(
+            json.dumps({"mcpServers": {"context7": {"command": "npx-new"}}}, indent=2)
+        )
+        home = tmp_path
+        # ~/.claude.json: user modified context7
+        (home / ".claude.json").write_text(
+            json.dumps({"mcpServers": {"context7": {"command": "node-custom"}}}, indent=2)
+        )
+        # baseline (from prior install) records what Pilot installed
+        (claude_dir / ".pilot-claude-baseline.json").write_text(
+            json.dumps({"mcpServers": {"context7": {"command": "npx-old"}}}, indent=2)
+        )
+
+        step = ClaudeFilesStep()
+        ui = MagicMock()
+        with (
+            patch("installer.steps.claude_files.get_claude_config_dir", return_value=claude_dir),
+            patch("installer.steps.claude_files.Path.home", return_value=home),
+        ):
+            step._merge_mcp_servers_into_claude_json(ui=ui)
+
+        merged = json.loads((home / ".claude.json").read_text())
+        assert merged["mcpServers"]["context7"]["command"] == "node-custom"
+        # UI got a warning
+        ui.warning.assert_called()
+
+
+class TestMergeHooksIntoSettings:
+    """Integration tests for ClaudeFilesStep._merge_hooks_into_settings."""
+
+    def test_writes_hooks_into_settings_with_absolute_paths(self, tmp_path):
+        """After merge, ~/.claude/settings.json `hooks` contains absolute paths,
+        no ${CLAUDE_PLUGIN_ROOT} substrings, and a dedicated baseline file exists.
+        """
+        from unittest.mock import patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        claude_dir = tmp_path / ".claude"
+        plugin_dir = claude_dir / "pilot"
+        hooks_dir = plugin_dir / "hooks"
+        hooks_dir.mkdir(parents=True)
+        # Minimal hooks.json with one ${CLAUDE_PLUGIN_ROOT} reference
+        hooks_json = {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": "Write|Edit",
+                        "hooks": [
+                            {
+                                "type": "command",
+                                "command": 'uv run python "${CLAUDE_PLUGIN_ROOT}/hooks/file_checker.py"',
+                            }
+                        ],
+                    }
+                ]
+            }
+        }
+        (hooks_dir / "hooks.json").write_text(json.dumps(hooks_json, indent=2) + "\n")
+        # Pre-existing settings.json with no hooks key
+        claude_dir.mkdir(parents=True, exist_ok=True)
+        (claude_dir / "settings.json").write_text(json.dumps({"model": "sonnet"}, indent=2) + "\n")
+
+        step = ClaudeFilesStep()
+        with patch(
+            "installer.steps.claude_files.get_claude_config_dir",
+            return_value=claude_dir,
+        ):
+            step._merge_hooks_into_settings()
+
+        merged = json.loads((claude_dir / "settings.json").read_text())
+        assert "hooks" in merged
+        assert merged["model"] == "sonnet"
+        # Verify absolute path substitution happened
+        cmd = merged["hooks"]["PostToolUse"][0]["hooks"][0]["command"]
+        assert "${CLAUDE_PLUGIN_ROOT}" not in cmd
+        assert str(claude_dir / "pilot") in cmd
+
+        # Dedicated baseline file exists with the new hooks
+        baseline_path = claude_dir / ".pilot-hooks-baseline.json"
+        assert baseline_path.exists()
+        baseline = json.loads(baseline_path.read_text())
+        assert "PostToolUse" in baseline
+        # settings baseline (legacy) must NOT contain hooks
+        settings_baseline = claude_dir / ".pilot-settings-baseline.json"
+        if settings_baseline.exists():
+            assert "hooks" not in json.loads(settings_baseline.read_text())
+
+    def test_preserves_user_added_hook_on_re_install(self, tmp_path):
+        """User added a Stop hook → preserved alongside Pilot's incoming hooks."""
+        from unittest.mock import patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        claude_dir = tmp_path / ".claude"
+        plugin_dir = claude_dir / "pilot"
+        hooks_dir = plugin_dir / "hooks"
+        hooks_dir.mkdir(parents=True)
+
+        # Incoming hooks.json from the new install
+        hooks_json = {
+            "hooks": {
+                "Stop": [
+                    {"matcher": "", "hooks": [{"type": "command", "command": "py NEW_PILOT_STOP"}]}
+                ]
+            }
+        }
+        (hooks_dir / "hooks.json").write_text(json.dumps(hooks_json, indent=2) + "\n")
+
+        # Previous Pilot baseline (what was installed before)
+        claude_dir.mkdir(parents=True, exist_ok=True)
+        (claude_dir / ".pilot-hooks-baseline.json").write_text(
+            json.dumps(
+                {
+                    "Stop": [
+                        {"matcher": "", "hooks": [{"type": "command", "command": "py OLD_PILOT_STOP"}]}
+                    ]
+                },
+                indent=2,
+            )
+            + "\n"
+        )
+        # Current settings.json has Pilot's old Stop + a user-added Stop entry
+        (claude_dir / "settings.json").write_text(
+            json.dumps(
+                {
+                    "model": "sonnet",
+                    "hooks": {
+                        "Stop": [
+                            {"matcher": "", "hooks": [{"type": "command", "command": "py OLD_PILOT_STOP"}]},
+                            {"matcher": "", "hooks": [{"type": "command", "command": "echo MY_USER_STOP"}]},
+                        ]
+                    },
+                },
+                indent=2,
+            )
+            + "\n"
+        )
+
+        step = ClaudeFilesStep()
+        with patch(
+            "installer.steps.claude_files.get_claude_config_dir",
+            return_value=claude_dir,
+        ):
+            step._merge_hooks_into_settings()
+
+        merged = json.loads((claude_dir / "settings.json").read_text())
+        commands = [h["command"] for entry in merged["hooks"]["Stop"] for h in entry["hooks"]]
+        assert "echo MY_USER_STOP" in commands  # preserved
+        assert "py NEW_PILOT_STOP" in commands  # installed
+        assert "py OLD_PILOT_STOP" not in commands  # replaced

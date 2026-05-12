@@ -1,5 +1,5 @@
 {
-  "name": "pilot-shell-plugin",
+  "name": "pilot-shell",
   "version": "8.7.1",
   "private": true,
   "description": "Runtime dependencies for pilot-memory bundled hooks",

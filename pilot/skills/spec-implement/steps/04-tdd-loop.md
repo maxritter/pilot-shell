@@ -15,7 +15,7 @@ If you find yourself queuing 3+ RED tests before any GREEN, stop and complete th
 **For EVERY task (generic flow — features use this as-is; bugfixes use it via the Bugfix Lane overrides below):**
 
 1. **Read plan's implementation steps** — list files to create/modify/delete
-2. **Call chain analysis (MANDATORY):** For each function being modified, run `trace_call_path(function_name, direction="both", depth=2)`. Discover exact names first with `search_graph(name_pattern="...")` if needed. This traces the actual call graph — Probe text search is not a substitute.
+2. **Call chain analysis (MANDATORY):** For each function being modified, run `trace_call_path(function_name, direction="both", depth=2)`. Discover exact names first with `search_graph(name_pattern="...")` if needed. This traces the actual call graph — Semble text search is not a substitute.
 3. **Mark in_progress:** `TaskUpdate(taskId, status="in_progress")`
 4. **TDD Flow:**
    - **RED:** Write failing test → verify it fails (feature missing, not syntax error)

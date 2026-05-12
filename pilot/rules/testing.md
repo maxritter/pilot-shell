@@ -95,7 +95,7 @@ When a function gains a new dependency (subprocess, helper, I/O), update ALL exi
 - **Dependent tests** — each must work independently.
 - **Testing implementation, not behavior** — assert outputs/state, not which mocks were called. `assert result == expected`, not `mock.assert_called_with(...)`. Behavior unchanged → tests still pass after refactor.
 - **Incomplete mocks hiding structural assumptions** — mocks must mirror the complete real API, not just the fields you think you need. Partial mocks hide coupling and break against real data.
-- **Unmocked environment dependencies** — locally-installed tools (probe, node) pass locally, fail CI. Mock every subprocess, PATH lookup, FS check for external tools.
+- **Unmocked environment dependencies** — locally-installed tools (semble, node) pass locally, fail CI. Mock every subprocess, PATH lookup, FS check for external tools.
 - **Unnecessary mocks** — only for external deps.
 - **Test-only methods in production** — never add methods/properties/flags purely for test access. Refactor so behavior is observable through public interfaces.
 - **Mocking without understanding** — a mock that doesn't reflect real behavior is a lie. Tests pass against the lie, fail against reality.

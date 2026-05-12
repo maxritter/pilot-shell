@@ -19,7 +19,7 @@ Customize everything Pilot Shell auto-installs on your machine. Tweak the built-
 | **Rules** | `rules/*.md` | New rules are additive; same filename as a core rule → modifies the built-in rule |
 | **Hooks** | `hooks/*.sh` + `hooks/hooks.json` | Scripts copied as-is; `hooks.json` registers additional hooks alongside Pilot's core hooks |
 | **Agents** | `agents/*.md` | Add new agents alongside Pilot's built-ins (e.g. plug extra reviewers into the spec workflow) |
-| **Top-level config** | `settings.json`, `claude.json`, `.mcp.json`, `.lsp.json` in the repo root | Modify the auto-applied Claude settings, app config, MCP server list, and LSP server list — see [Overriding top-level config](#overriding-top-level-config) below |
+| **Top-level config** | `settings.json`, `claude.json`, `.mcp.json` in the repo root | Modify the auto-applied Claude settings, app config, and MCP server list — see [Overriding top-level config](#overriding-top-level-config) below |
 
 ## File structure
 
@@ -30,8 +30,7 @@ my-customization/
 ├── customization.json          # Required: metadata + optional skill overlays
 ├── settings.json               # Optional: deep-merges into ~/.claude/settings.json
 ├── claude.json                 # Optional: deep-merges into ~/.claude.json
-├── .mcp.json                   # Optional: replaces ~/.claude/pilot/.mcp.json
-├── .lsp.json                   # Optional: replaces ~/.claude/pilot/.lsp.json
+├── .mcp.json                   # Optional: deep-merges into ~/.claude.json `mcpServers`
 ├── skills/                     # → ~/.claude/skills/
 │   ├── spec-plan/steps/
 │   │   └── security-review.md  # New step injected into spec-plan
@@ -45,7 +44,7 @@ my-customization/
 ├── hooks/                      # → ~/.claude/pilot/hooks/
 │   ├── team-lint-check.sh
 │   └── hooks.json              # Registers team-lint-check.sh (see below)
-└── agents/                     # → ~/.claude/pilot/agents/
+└── agents/                     # → ~/.claude/agents/  (native Claude location)
     └── team-reviewer.md
 ```
 
@@ -168,20 +167,19 @@ Your step now appears in `~/.claude/skills/<skill>/SKILL.md` right after the anc
 
 ## Overriding top-level config
 
-Four Pilot config files can be overridden from your repo root. They use different strategies based on what each file contains:
+Three Pilot config files can be overridden from your repo root. All three use deep-merge — Pilot is no longer registered as a Claude Code plugin, so MCP servers live at the native user-scope location (`~/.claude.json` `mcpServers` key) instead of a plugin-local file. LSP servers are now installed via Anthropic's [`Piebald-AI/claude-code-lsps`](https://github.com/Piebald-AI/claude-code-lsps) marketplace and are no longer Pilot-managed; teams that need additional LSPs ship them as separate Claude Code plugins.
 
 | File in repo | Destination | Strategy | Notes |
 |--------------|-------------|----------|-------|
 | `settings.json` | `~/.claude/settings.json` | Deep-merge | Pack keys win; the launcher still re-injects the `model` field and env vars on every startup. |
 | `claude.json`   | `~/.claude.json`          | Deep-merge | Preserves oauth account, project history, and caches — pack only overrides the keys it sets. |
-| `.mcp.json`     | `~/.claude/pilot/.mcp.json` | Full copy | Pilot-owned; safe to replace. |
-| `.lsp.json`     | `~/.claude/pilot/.lsp.json` | Full copy | Pilot-owned; safe to replace. |
+| `.mcp.json`     | `~/.claude.json` `mcpServers` | Deep-merge | Pack's `mcpServers` entries are added to (or override by key) the user-scope MCP server list. Installer-merged Pilot servers (`context7`, `codegraph`, etc.) and any user-added entries are preserved. |
 
 **Deep-merge semantics:** nested objects merge recursively (pack values replace specific keys), arrays replace wholesale. If you want to add an entry to an array, your pack's file must include every item you want the final array to contain.
 
 **When Pilot updates itself** (installer re-runs on version change, or you re-run `install.sh`): Pilot's baseline is re-applied, then your pack overlay re-applies on top. Pack values survive as "user customizations" through the three-way merge.
 
-**On `pilot customize remove`:** `.mcp.json` and `.lsp.json` are deleted — re-run `install.sh` or the installer to restore Pilot defaults. `settings.json` and `claude.json` are left in place because they contain user state (oauth session, project history) — merged pack values stay until you edit them out manually. This is intentional safety — removing a pack should never wipe user data.
+**On `pilot customize remove`:** all three are merge targets and left in place because they contain user state (oauth session, project history, MCP server config) — merged pack values stay until you edit them out manually. This is intentional safety — removing a pack should never wipe user data.
 
 ## See Also
 

@@ -33,40 +33,45 @@ All other commands are auto-rewritten by the Claude Code hook (e.g., `git status
 
 ---
 
-### Probe — Code Search (CLI)
+### Semble — Code Search (CLI + MCP)
 
-**Intent-based code search.** For symbol/structure queries, prefer CodeGraph (`mcp-servers.md`); for grep-style exact text, prefer Grep. Probe sits between them — fast (<0.3s), AST-aware, ranks by relevance.
+**Intent-based code search.** For symbol/structure queries, prefer CodeGraph (`mcp-servers.md`); for grep-style exact text, prefer Grep. Semble sits between them — hybrid (BM25 + Model2Vec semantic embeddings), code-aware chunking, ~1.5ms queries, ranks by relevance.
 
-Installed via `npm install -g @probelabs/probe`. Verify with `probe --version`.
+Installed via `uv tool install semble` (also available as an MCP server — see `mcp-servers.md`). Verify with `semble --help`.
 
-#### `probe search` — Semantic Search
-
-**⛔ Always pass `--max-results 5 --max-tokens 2000`** to `probe search` to keep context lean. These flags don't apply to `extract` or `query`.
+#### `semble search` — Hybrid Code Search
 
 ```bash
-probe search "auth AND login" ./src --max-results 5 --max-tokens 2000
+semble search "authentication flow" ./
+semble search "save_pretrained" ./ --top-k 10            # symbol/identifier lookup
+semble search "save model to disk" ./ --top-k 5          # natural-language intent
+semble search "query" https://github.com/org/repo        # remote repo (cloned on demand)
 ```
 
-**Query syntax:** Boolean (`AND`/`OR`/`NOT`), wildcards (`auth*`), filters inside the query (`ext:rs`, `file:src/**/*.py`, `dir:tests`). Use `--language <lang>` for language filter, `--allow-tests` to include tests, `--session <id>` to dedupe across related searches.
+**How ranking works:** Adaptive weighting (symbol-like queries get more lexical weight; NL queries balance semantic + lexical), definition boosts (defining `class`/`def`/`func` outranks references), identifier stem matching, file coherence, noise penalties (test/legacy/example down-ranked). Auto-reindexes on file change.
 
-#### `probe extract` — AST-Aware Extraction
+`--top-k <n>` controls result count (default 5). For most cases the defaults are correct — semble's chunks are already trimmed to the matched code only.
+
+#### `semble find-related` — Similar Code by Location
 
 ```bash
-probe extract src/auth.ts:42                # block at line (finds enclosing fn/class)
-probe extract src/auth.ts:10-50             # line range
-probe extract src/auth.ts#authenticate      # by symbol
-probe extract a.ts:42 b.ts#User c.ts:10-50  # multiple at once
-git diff | probe extract --diff             # extract changed blocks
+semble find-related src/auth.ts 42 ./           # find code similar to src/auth.ts:42
+semble find-related src/auth.ts 42 ./ --top-k 5
 ```
 
-`--format json|markdown`, `--context <n>` for surrounding lines.
+Pass `file_path` + `line` from a prior `semble search` result. Useful for discovering parallel implementations, related call sites, or test fixtures for a piece of code.
 
-#### `probe query` — AST Pattern Matching
+#### `semble savings` — Token-Saving Report
 
 ```bash
-probe query "async function $NAME($$$)" --language typescript
-probe query "class $CLASS: def __init__($$$)" --language python
-probe query "useState($INITIAL)" ./src --language javascript
+semble savings           # summary by period (today / 7-day / all-time)
+semble savings --verbose # also breakdown by call type
 ```
 
-**Metavariables:** `$NAME` (single node), `$$$BODY` (multiple), `$_` (any single).
+Pilot also surfaces this in the statusline and the Console "Usage" tab (`localhost:41777`). The saving is `(file_chars − snippet_chars) / 4` per call: the baseline assumes the alternative was reading the matched files in full. Stats live at `~/.semble/savings.jsonl`.
+
+#### When NOT to use Semble
+
+- **Callers / callees / impact analysis** → use CodeGraph (`codegraph_callers` / `codegraph_callees` / `codegraph_impact`). Semble can find code that *mentions* a callee, but cannot enumerate callers.
+- **AST pattern matching (e.g., "all `async function $X` declarations")** → no equivalent. Use CodeGraph by symbol name, or Grep as a last resort.
+- **Extract enclosing block at `file:line`** → use `Read` with `offset`/`limit`, or `codegraph_node` when you have a symbol name.

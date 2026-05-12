@@ -25,7 +25,7 @@ Run from any directory — it installs globally to `~/.pilot/` and `~/.claude/`.
 | 1 | Prerequisites | Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq |
 | 2 | Claude files | Sets up `~/.claude/` plugin — rules, commands, hooks, MCP servers |
 | 3 | Config files | Creates `.nvmrc` and project config |
-| 4 | Dependencies | Installs Probe, RTK, CodeGraph, context-mode (better-sqlite3), Chrome DevTools MCP, playwright-cli, agent-browser, language servers |
+| 4 | Dependencies | Installs Semble, RTK, CodeGraph, context-mode (better-sqlite3), Chrome DevTools MCP, playwright-cli, agent-browser, language servers |
 | 5 | Shell integration | Auto-configures bash, fish, and zsh with the `pilot` alias. Add `# pilot-shell:managed-elsewhere` to a config file to opt out (for framework-managed shells) |
 | 6 | VS Code extensions | Installs recommended extensions for your language stack |
 | 7 | Finalize | Success message with next steps |

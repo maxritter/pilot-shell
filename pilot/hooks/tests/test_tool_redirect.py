@@ -90,7 +90,7 @@ class TestBlockedAgentTypes:
     def test_blocks_explore_agent(self):
         code, output = _run_with_input("Agent", {"subagent_type": "Explore", "prompt": "find files"})
         assert code == 2
-        assert "Probe CLI" in output
+        assert "Semble" in output
         assert "CodeGraph" in output
 
     def test_blocks_plan_agent(self):
@@ -147,7 +147,7 @@ class TestExploreDescriptionBlocked:
             {"subagent_type": "general-purpose", "description": "Explore console UI codebase", "prompt": "look around"},
         )
         assert code == 2
-        assert "Probe" in output
+        assert "Semble" in output
 
     def test_blocks_explore_mid_sentence(self):
         code, output = _run_with_input("Agent", {"description": "Deep explore of auth module", "prompt": "search"})
@@ -388,7 +388,7 @@ class TestSubprocessIntegration:
     def test_explore_agent_blocked(self):
         exit_code, stdout, _ = _run_subprocess("Agent", {"subagent_type": "Explore"})
         assert exit_code == 2
-        assert "Probe CLI" in stdout
+        assert "Semble" in stdout
         assert "CodeGraph" in stdout
 
     def test_plan_agent_blocked(self):
@@ -402,7 +402,7 @@ class TestSubprocessIntegration:
         )
         assert exit_code == 2
         assert _is_denied(stdout)
-        assert "Probe" in stdout
+        assert "Semble" in stdout
 
     def test_web_search_agent_allowed_with_research_description(self):
         exit_code, stdout, _ = _run_subprocess(
@@ -701,7 +701,7 @@ class TestDangerousGitBlock:
 
 
 # ---------------------------------------------------------------------------
-# Search-nudge classifier tests (added 2026-04-29 for codegraph-probe-enforcement)
+# Search-nudge classifier tests (originally added 2026-04-29 for codegraph search-tool enforcement)
 # ---------------------------------------------------------------------------
 
 
@@ -753,7 +753,7 @@ class TestSearchNudgeBashGrep:
         assert _has_nudge(output)
         text = _nudge_text(output)
         assert "codegraph_search" in text or "codegraph" in text
-        assert "probe search" in text or "probe" in text
+        assert "semble search" in text or "semble" in text
 
     def test_nudges_grep_capital_R(self):
         code, output = _run_with_input("Bash", {"command": "grep -R pattern ."})

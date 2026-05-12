@@ -38,7 +38,7 @@ class TestDependenciesStep:
             assert step.check(ctx) is False
 
     @patch("installer.steps.dependencies.install_rtk", return_value=True)
-    @patch("installer.steps.dependencies.install_probe", return_value=True)
+    @patch("installer.steps.dependencies.install_semble", return_value=True)
     @patch("installer.steps.dependencies.install_agent_browser", return_value=True)
     @patch("installer.steps.dependencies.install_pbt_tools", return_value=True)
     @patch("installer.steps.dependencies.install_golangci_lint", return_value=True)
@@ -69,7 +69,7 @@ class TestDependenciesStep:
         _mock_golangci_lint,
         _mock_pbt_tools,
         _mock_playwright,
-        _mock_probe,
+        _mock_semble,
         _mock_rtk,
     ):
         """DependenciesStep installs all dependencies including Python tools."""
@@ -227,51 +227,51 @@ class TestSetupPilotMemory:
         assert result is True
 
 
-class TestProbeInstall:
-    """Test Probe code search installation."""
+class TestSembleInstall:
+    """Test Semble code search installation."""
 
-    def test_install_probe_exists(self):
-        """install_probe function exists."""
-        from installer.steps.dependencies import install_probe
+    def test_install_semble_exists(self):
+        """install_semble function exists."""
+        from installer.steps.dependencies import install_semble
 
-        assert callable(install_probe)
+        assert callable(install_semble)
 
+    @patch("installer.steps.dependencies._symlink_to_pilot_bin")
     @patch("installer.steps.dependencies._run_bash_with_retry")
-    def test_install_probe_always_runs_npm_install(self, mock_bash):
-        """install_probe runs npm install pinned to manifest version with --ignore-scripts."""
-        from installer.manifest import get
-        from installer.steps.dependencies import install_probe
+    def test_install_semble_uses_uv_tool_install(self, mock_bash, _mock_symlink):
+        """install_semble shells out to `uv tool install --upgrade semble`."""
+        from installer.steps.dependencies import install_semble
 
         mock_bash.return_value = True
 
-        result = install_probe()
+        result = install_semble()
 
         assert result is True
         mock_bash.assert_called_once()
         call_args = mock_bash.call_args[0][0]
-        expected_version = get("probe").version
-        assert f"@probelabs/probe@{expected_version}" in call_args
-        assert "--ignore-scripts" in call_args
-        assert "@latest" not in call_args
+        assert "uv tool install" in call_args
+        assert "semble" in call_args
+        assert "--upgrade" in call_args
 
+    @patch("installer.steps.dependencies._symlink_to_pilot_bin")
     @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
-    def test_install_probe_uses_longer_timeout(self, mock_bash):
-        """Probe install gets a longer timeout because npm downloads can be slow."""
-        from installer.steps.dependencies import GLOBAL_NPM_INSTALL_TIMEOUT, install_probe
+    def test_install_semble_uses_uv_tool_timeout(self, mock_bash, _mock_symlink):
+        """Semble install uses UV_TOOL_INSTALL_TIMEOUT, matching ruff/hypothesis/basedpyright."""
+        from installer.steps.dependencies import UV_TOOL_INSTALL_TIMEOUT, install_semble
 
-        result = install_probe()
+        result = install_semble()
 
         assert result is True
-        assert mock_bash.call_args.kwargs["timeout"] == GLOBAL_NPM_INSTALL_TIMEOUT
+        assert mock_bash.call_args.kwargs["timeout"] == UV_TOOL_INSTALL_TIMEOUT
 
     @patch("installer.steps.dependencies._run_bash_with_retry")
-    def test_install_probe_returns_false_on_failure(self, mock_bash):
-        """install_probe returns False when npm install fails."""
-        from installer.steps.dependencies import install_probe
+    def test_install_semble_returns_false_on_failure(self, mock_bash):
+        """install_semble returns False when `uv tool install` fails."""
+        from installer.steps.dependencies import install_semble
 
         mock_bash.return_value = False
 
-        result = install_probe()
+        result = install_semble()
 
         assert result is False
 
@@ -1715,7 +1715,7 @@ class TestRunBashWithRetrySudoFallback:
         try:
             mock_run.side_effect = subprocess.CalledProcessError(1, "cmd", stderr=b"sudo: a password is required")
             with pytest.raises(_SudoReauthNeeded):
-                _run_bash_with_retry("sudo -n npm install -g probe")
+                _run_bash_with_retry("sudo -n npm install -g some-pkg")
         finally:
             deps._allow_sudo_fallback = False
 
@@ -1727,7 +1727,7 @@ class TestRunBashWithRetrySudoFallback:
 
         deps._allow_sudo_fallback = False
         mock_run.side_effect = subprocess.CalledProcessError(1, "cmd", stderr=b"sudo: a password is required")
-        result = _run_bash_with_retry("sudo -n npm install -g probe")
+        result = _run_bash_with_retry("sudo -n npm install -g some-pkg")
         assert result is False
         # All 3 retries should keep sudo -n
         for call in mock_run.call_args_list:
@@ -1742,7 +1742,7 @@ class TestRunBashWithRetrySudoFallback:
         deps._allow_sudo_fallback = True
         try:
             mock_run.side_effect = subprocess.CalledProcessError(1, "cmd", stderr=b"npm ERR! code ENOENT")
-            result = _run_bash_with_retry("sudo -n npm install -g probe")
+            result = _run_bash_with_retry("sudo -n npm install -g some-pkg")
             assert result is False
             # All retries should keep sudo -n (no fallback for non-sudo errors)
             for call in mock_run.call_args_list:
@@ -2217,3 +2217,157 @@ class TestParallelInstalls:
         result = _run_install_silent(task)
 
         assert result.success is True
+
+
+class TestInstallLspPlugins:
+    """Tests for install_lsp_plugins() — Piebald-AI/claude-code-lsps marketplace."""
+
+    def test_install_lsp_plugins_exists(self):
+        from installer.steps.dependencies import install_lsp_plugins
+
+        assert callable(install_lsp_plugins)
+
+    @patch("installer.steps.dependencies.command_exists", return_value=False)
+    def test_returns_false_when_claude_missing(self, _mock_cmd, tmp_path):
+        """When claude CLI is missing, returns False and writes no manifest."""
+        from installer.steps.dependencies import install_lsp_plugins
+
+        with patch("installer.steps.dependencies.Path.home", return_value=tmp_path):
+            result = install_lsp_plugins()
+
+        assert result is False
+        assert not (tmp_path / ".pilot" / ".pilot-lsp-plugins.json").exists()
+
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    @patch("installer.steps.dependencies.subprocess.run")
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
+    def test_fresh_install_writes_manifest_with_all_three(
+        self, _mock_cmd, mock_sub, _mock_bash, tmp_path
+    ):
+        """Fresh install: all three plugins absent before → all installed → all manifested."""
+        from installer.steps.dependencies import install_lsp_plugins
+
+        mock_sub.return_value = MagicMock(returncode=0, stdout="[]")
+
+        with patch("installer.steps.dependencies.Path.home", return_value=tmp_path):
+            result = install_lsp_plugins()
+
+        assert result is True
+        manifest = json.loads((tmp_path / ".pilot" / ".pilot-lsp-plugins.json").read_text())
+        assert set(manifest["plugins"]) == {
+            "vtsls@claude-code-lsps",
+            "basedpyright@claude-code-lsps",
+            "gopls@claude-code-lsps",
+        }
+
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    @patch("installer.steps.dependencies.subprocess.run")
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
+    def test_pre_installed_plugin_not_in_manifest(
+        self, _mock_cmd, mock_sub, _mock_bash, tmp_path
+    ):
+        """If basedpyright was already installed before Pilot, it's NOT added to manifest."""
+        from installer.steps.dependencies import install_lsp_plugins
+
+        # claude plugins list --json returns basedpyright as pre-installed
+        mock_sub.return_value = MagicMock(
+            returncode=0,
+            stdout=json.dumps([{"id": "basedpyright@claude-code-lsps"}]),
+        )
+
+        with patch("installer.steps.dependencies.Path.home", return_value=tmp_path):
+            result = install_lsp_plugins()
+
+        assert result is True
+        manifest = json.loads((tmp_path / ".pilot" / ".pilot-lsp-plugins.json").read_text())
+        # basedpyright was pre-installed; only the other two are tracked
+        assert "basedpyright@claude-code-lsps" not in manifest["plugins"]
+        assert set(manifest["plugins"]) == {
+            "vtsls@claude-code-lsps",
+            "gopls@claude-code-lsps",
+        }
+
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    @patch("installer.steps.dependencies.subprocess.run")
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
+    def test_reinstall_preserves_pilot_ownership(
+        self, _mock_cmd, mock_sub, _mock_bash, tmp_path
+    ):
+        """Codex regression: second install must NOT erase Pilot's ownership.
+
+        Pilot installs 3 LSP plugins on first run → manifest lists all 3.
+        On a reinstall those same IDs are reported by `claude plugins list`,
+        which would naively classify them as user-pre-installed and erase the
+        manifest. The fix is to read the prior manifest and union ownership.
+        """
+        from installer.steps.dependencies import install_lsp_plugins
+
+        # First run — claude plugins list reports no plugins; all three installed fresh.
+        mock_sub.return_value = MagicMock(returncode=0, stdout="[]")
+        with patch("installer.steps.dependencies.Path.home", return_value=tmp_path):
+            assert install_lsp_plugins() is True
+            manifest_after_first = json.loads(
+                (tmp_path / ".pilot" / ".pilot-lsp-plugins.json").read_text()
+            )
+        assert set(manifest_after_first["plugins"]) == {
+            "vtsls@claude-code-lsps",
+            "basedpyright@claude-code-lsps",
+            "gopls@claude-code-lsps",
+        }
+
+        # Second run — same three IDs now show as pre-installed.
+        mock_sub.return_value = MagicMock(
+            returncode=0,
+            stdout=json.dumps([
+                {"id": "vtsls@claude-code-lsps"},
+                {"id": "basedpyright@claude-code-lsps"},
+                {"id": "gopls@claude-code-lsps"},
+            ]),
+        )
+        with patch("installer.steps.dependencies.Path.home", return_value=tmp_path):
+            assert install_lsp_plugins() is True
+            manifest_after_second = json.loads(
+                (tmp_path / ".pilot" / ".pilot-lsp-plugins.json").read_text()
+            )
+        # Ownership preserved across reinstall — uninstall.sh can still find and remove these.
+        assert set(manifest_after_second["plugins"]) == {
+            "vtsls@claude-code-lsps",
+            "basedpyright@claude-code-lsps",
+            "gopls@claude-code-lsps",
+        }
+
+    @patch("installer.steps.dependencies.subprocess.run")
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
+    def test_one_failure_returns_false_but_others_still_attempted(
+        self, _mock_cmd, mock_sub, tmp_path
+    ):
+        """If install of vtsls fails, the function still attempts basedpyright + gopls."""
+        from installer.steps.dependencies import install_lsp_plugins
+
+        mock_sub.return_value = MagicMock(returncode=0, stdout="[]")
+
+        # _run_bash_with_retry: marketplace-add for vtsls fails; rest succeed.
+        # Each plugin requires 2 _run_bash_with_retry calls: marketplace add + install.
+        # Pattern: [add(vtsls)=F, add(basedpyright)=T, install(basedpyright)=T, add(gopls)=T, install(gopls)=T]
+        bash_results = [False, True, True, True, True]
+        with patch(
+            "installer.steps.dependencies._run_bash_with_retry", side_effect=bash_results
+        ) as mock_bash:
+            with patch("installer.steps.dependencies.Path.home", return_value=tmp_path):
+                result = install_lsp_plugins()
+
+        assert result is False  # at least one failed
+        # All three plugins attempted: vtsls makes 1 bash call (failed marketplace add),
+        # basedpyright + gopls make 2 each (add + install) = 5 total bash calls.
+        assert mock_bash.call_count == 5
+        bash_commands = [c[0][0] for c in mock_bash.call_args_list]
+        # vtsls only got the marketplace-add (which references the marketplace, not plugin name)
+        assert "marketplace add Piebald-AI/claude-code-lsps" in bash_commands[0]
+        # basedpyright + gopls install commands reference the plugin id
+        assert any("basedpyright@claude-code-lsps" in c for c in bash_commands)
+        assert any("gopls@claude-code-lsps" in c for c in bash_commands)
+        # Manifest reflects successes (basedpyright + gopls), not vtsls
+        manifest = json.loads((tmp_path / ".pilot" / ".pilot-lsp-plugins.json").read_text())
+        assert "vtsls@claude-code-lsps" not in manifest["plugins"]
+        assert "basedpyright@claude-code-lsps" in manifest["plugins"]
+        assert "gopls@claude-code-lsps" in manifest["plugins"]

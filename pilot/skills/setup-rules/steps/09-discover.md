@@ -3,11 +3,11 @@
 1. List undocumented areas (comparing Step 2 + Step 5)
 2. For each candidate area, find the actual patterns before drafting:
    ```bash
-   # With Probe (preferred)
-   probe search "how is [pattern] implemented across the codebase" ./ --max-results 5 --max-tokens 2000
-   probe extract src/example.ts#patternFunction
+   # With Semble (preferred)
+   semble search "how is [pattern] implemented across the codebase" ./
+   semble find-related src/example.ts 42 ./
 
-   # Without Probe (fallback)
+   # Without Semble (fallback)
    # Grep(pattern="[pattern]", head_limit=10)
    # Read representative files directly
    ```

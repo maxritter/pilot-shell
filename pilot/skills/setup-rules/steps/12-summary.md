@@ -9,6 +9,6 @@ Report:
 - Path-scoping: team rules validated, violations fixed
 - Cross-check: issues found and fixed (if any)
 - AGENTS.md: synced | shown diff only | skipped | not present
-- Probe: available / not available
+- Semble: available / not available
 
 Then offer: "Share via Share dashboard" (direct user to Console Share page at #/share) | "Discover more standards" | "Create skills with /create-skill" | "Done"

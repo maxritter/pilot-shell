@@ -30,6 +30,10 @@
     "web-fetch": {
       "command": "npx",
       "args": ["-y", "fetcher-mcp@0.3.9"]
+    },
+    "semble": {
+      "command": "uvx",
+      "args": ["--from", "semble[mcp]", "semble"]
     }
   }
 }

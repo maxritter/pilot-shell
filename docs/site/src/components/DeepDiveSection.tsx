@@ -125,7 +125,7 @@ const rulesCategories = [
     icon: Search,
     category: "Tools",
     rules: [
-      "Pilot CLI, Probe search, and RTK token optimization",
+      "Pilot CLI, Semble code search, and RTK token optimization",
       "Browser automation: Chrome, Chrome DevTools MCP, playwright-cli, agent-browser",
       "MCP server selection plus context-mode routing",
     ],
@@ -189,6 +189,11 @@ const mcpServers = [
     icon: Globe,
     name: "web-fetch",
     desc: "Web page fetching — read documentation, APIs, references",
+  },
+  {
+    icon: Search,
+    name: "semble",
+    desc: "Hybrid semantic+lexical code search (BM25 + Model2Vec embeddings, ~1.5ms queries)",
   },
 ];
 
@@ -430,7 +435,7 @@ const DeepDiveSection = () => {
                     MCP Servers
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Six preconfigured servers, lazy-loaded on demand
+                    Seven preconfigured servers, lazy-loaded on demand
                   </p>
                 </div>
               </div>

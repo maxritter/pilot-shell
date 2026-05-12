@@ -32,7 +32,7 @@ Manual steps are **Approve** (required) and **Code Review** (optional, via Conso
 
 Full exploration workflow for new functionality, refactoring, or any work where architecture decisions matter.
 
-- Codebase exploration with Probe semantic search and CodeGraph structural analysis
+- Codebase exploration with Semble hybrid search and CodeGraph structural analysis
 - Architecture design decisions via Q&A
 - Full plan with scope, risks, and Definition of Done
 - Unified verification agent (optional, configurable in Console Settings)

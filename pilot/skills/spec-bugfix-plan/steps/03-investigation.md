@@ -53,7 +53,7 @@ This reveals **which** layer breaks. Investigate that layer next — don't specu
 
 **Structural tracing — proportional to bug scope.** For bugs spanning 2+ files, modules, or components, run `codegraph_callers` + `codegraph_callees` on the root-cause function plus `codegraph_impact` for blast radius. For local bugs (typo, off-by-one, wrong constant in one function, missing null check at one call site), `codegraph_context` from above plus a targeted Read is enough — skip the full call-graph traversal.
 
-Tools: CodeGraph, Probe CLI (`probe search`/`probe extract`), Read/Grep/Glob for exact patterns.
+Tools: CodeGraph, Semble (`semble search`/`semble find-related` or `mcp__semble__search`/`mcp__semble__find_related`), Read/Grep/Glob for exact patterns.
 
 ### 3.4 Pattern analysis
 

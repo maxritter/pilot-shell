@@ -17,7 +17,7 @@ For each rule file and CLAUDE.md found in Step 2, evaluate:
 | **Path-scoping**         | Rules that mention specific file types/directories but lack `paths` frontmatter — these load every session unnecessarily                      | Info     |
 | **Nested path-scoping**  | Rules in team-level subdirectories (`.claude/rules/{product}/{team}/`) without `paths` frontmatter — MUST be scoped (see Step 1 → Recommended Directory Structure) | Error    |
 | **Structure**            | Dense paragraphs without headers/bullets, poor scanability, missing section organization                                                         | Warning  |
-| **Stale references**     | References to files, commands, paths, or tools that no longer exist in the codebase — verify with `ls` or Probe                               | Error    |
+| **Stale references**     | References to files, commands, paths, or tools that no longer exist in the codebase — verify with `ls` or Semble                              | Error    |
 | **Import opportunities** | Large files that could split content using `@path/to/import` syntax                                                                            | Info     |
 | **Emphasis gaps**        | Critical rules (security, data loss, breaking changes) without emphasis markers ("IMPORTANT", "YOU MUST")                                        | Info     |
 | **CLAUDE.md overlap**    | Content duplicated between CLAUDE.md and `.claude/rules/` files                                                                                | Warning  |
@@ -33,8 +33,8 @@ ls -la <referenced-path> 2>/dev/null
 # Commands
 which <referenced-command> 2>/dev/null
 
-# Code patterns (Probe if available, otherwise Grep)
-probe search "<referenced-pattern>" ./ --max-results 1 --max-tokens 500
+# Code patterns (Semble if available, otherwise Grep)
+semble search "<referenced-pattern>" ./ --top-k 1
 # Fallback: Grep(pattern="<referenced-pattern>", head_limit=5)
 ```
 

@@ -5,7 +5,7 @@ const stack = [
   { name: "TypeScript", detail: "Strict" },
   { name: "basedpyright", detail: "Type Checker" },
   { name: "ruff", detail: "Linter" },
-  { name: "Probe", detail: "Code Search" },
+  { name: "Semble", detail: "Code Search" },
   { name: "RTK", detail: "Token Optimizer" },
   { name: "CodeGraph", detail: "Code Graph" },
   { name: "MCP", detail: "Protocol" },

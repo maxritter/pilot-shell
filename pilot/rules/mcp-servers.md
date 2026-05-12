@@ -14,7 +14,7 @@ All servers use the `mcp__plugin_pilot_` prefix. Tools are callable immediately 
 
 ### CodeGraph — Code Knowledge Graph (PRIMARY)
 
-**Structural code search.** First action on any task. Replaces Grep/Glob for symbol/call/impact queries. Complements Probe (intent search — see `cli-tools.md`).
+**Structural code search.** First action on any task. Replaces Grep/Glob for symbol/call/impact queries. Complements Semble (intent search — see `cli-tools.md`).
 
 | Tool | Purpose |
 |------|---------|
@@ -33,6 +33,27 @@ codegraph_context(task="refactor authentication flow")
 codegraph_callers(symbol="processOrder")
 codegraph_impact(symbol="processOrder", depth=2)
 ```
+
+---
+
+### Semble — Hybrid Code Search
+
+**Intent-based code search.** Hybrid BM25 + Model2Vec embeddings, code-aware chunking, ~1.5ms queries, ~263ms cold-index per repo (cached after). Auto-reindex on file change for local paths. Two tools:
+
+| Tool | Purpose |
+|------|---------|
+| `mcp__semble__search(query, repo?, top_k?, mode?)` | Natural-language or symbol search. `mode` defaults to `hybrid` (best for most queries); also `semantic` / `bm25`. `repo` is a local path or `https://` git URL; omit when a default index was configured at startup. |
+| `mcp__semble__find_related(file_path, line, repo?, top_k?)` | Find code semantically similar to a specific location. Use `file_path` + `line` from a prior `search` result. |
+
+```
+mcp__semble__search(query="authentication flow", repo="/abs/path")
+mcp__semble__search(query="save_pretrained", top_k=10)          # symbol-style
+mcp__semble__find_related(file_path="src/auth.ts", line=42, repo="/abs/path")
+```
+
+**When NOT to use Semble:** structural questions (callers, callees, impact) — use CodeGraph instead. Semble can find code that *looks* like a caller but cannot enumerate them.
+
+Also available as a CLI (`semble search`, `semble find-related`, `semble savings`) — see `cli-tools.md`.
 
 ---
 
@@ -94,7 +115,7 @@ Useful options: `waitUntil` (`load`/`domcontentloaded`/`networkidle`), `returnHt
 | Task orientation (FIRST on every task) | `codegraph_context` |
 | Symbol search / call tracing / impact | CodeGraph (`search` / `callers` / `callees` / `impact`) |
 | Deep code understanding (multiple files) | `codegraph_explore` |
-| Codebase search by intent | Probe CLI (see `cli-tools.md`) |
+| Codebase search by intent | Semble (`mcp__semble__search` or `semble search`) |
 | Past work / decisions | mem-search 3-step |
 | Library/framework docs | context7 |
 | Web search | web-search |

@@ -19,10 +19,10 @@ from installer.manifest import (
 
 def _valid_npm_entry(**overrides: Any) -> dict[str, Any]:
     base: dict[str, Any] = {
-        "id": "probe",
-        "name": "@probelabs/probe",
+        "id": "test-pkg",
+        "name": "@testorg/test-pkg",
         "source_type": "npm",
-        "source_url": "@probelabs/probe",
+        "source_url": "@testorg/test-pkg",
         "version": "1.2.3",
         "last_audited": "2026-05-07",
     }
@@ -66,7 +66,7 @@ class TestUpstreamEntryValidation:
 
     def test_valid_npm_entry_constructs(self) -> None:
         entry = UpstreamEntry(**_valid_npm_entry())
-        assert entry.id == "probe"
+        assert entry.id == "test-pkg"
         assert entry.scripts_policy == "deny"
         assert entry.pin_kind == "hard"
         assert entry.auto_upgrade is True
@@ -139,8 +139,8 @@ class TestManifestValidate:
     """Cross-entry rules enforced by validate(manifest)."""
 
     def test_unique_ids(self) -> None:
-        a = UpstreamEntry(**_valid_npm_entry(id="probe"))
-        b = UpstreamEntry(**_valid_npm_entry(id="probe", source_url="@other/probe"))
+        a = UpstreamEntry(**_valid_npm_entry(id="dup-pkg"))
+        b = UpstreamEntry(**_valid_npm_entry(id="dup-pkg", source_url="@other/dup-pkg"))
         m = Manifest(version=1, entries=[a, b])
         with pytest.raises(ManifestError, match="duplicate"):
             validate(m)
@@ -205,15 +205,15 @@ class TestGet:
         yaml.write_text(
             "version: 1\n"
             "entries:\n"
-            "  - id: probe\n"
-            "    name: probe\n"
+            "  - id: test-pkg\n"
+            "    name: test-pkg\n"
             "    source_type: npm\n"
-            "    source_url: '@probelabs/probe'\n"
+            "    source_url: '@testorg/test-pkg'\n"
             "    version: 1.2.3\n"
             "    last_audited: 2026-05-07\n"
         )
         m = load(path=yaml)
-        e = get("probe", manifest=m)
+        e = get("test-pkg", manifest=m)
         assert e.version == "1.2.3"
 
     def test_get_missing_raises_keyerror(self, tmp_path: Path) -> None:
@@ -221,10 +221,10 @@ class TestGet:
         yaml.write_text(
             "version: 1\n"
             "entries:\n"
-            "  - id: probe\n"
-            "    name: probe\n"
+            "  - id: test-pkg\n"
+            "    name: test-pkg\n"
             "    source_type: npm\n"
-            "    source_url: '@probelabs/probe'\n"
+            "    source_url: '@testorg/test-pkg'\n"
             "    version: 1.2.3\n"
             "    last_audited: 2026-05-07\n"
         )
