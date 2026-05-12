@@ -168,7 +168,7 @@ Rules specify the preferred order — Semble first for intent-based codebase que
 
 Indexes any repo (local path or git URL) in ~250 ms and answers natural-language or symbol queries in ~1.5 ms — all on CPU. Combines [Model2Vec](https://github.com/MinishLab/model2vec) static code embeddings (`potion-code-16M`) with BM25 lexical scoring, fused via Reciprocal Rank Fusion. Code-aware chunking via [Chonkie](https://github.com/chonkie-inc/chonkie), with definition boosts, identifier stem matching, and noise penalties (test/legacy/example down-ranked). Auto-reindexes on file change for local paths. Integrated via [Semble](https://github.com/MinishLab/semble).
 
-```
+```text
 mcp__semble__search(query="authentication flow", repo="/abs/path")
 mcp__semble__search(query="save_pretrained", top_k=10)        // symbol-style
 mcp__semble__find_related(file_path="src/auth.ts", line=42, repo="/abs/path")

@@ -124,9 +124,10 @@ def merge_pilot_hooks(
       - In both → user_only (current sigs NOT in baseline) ++ incoming entries.
       - Event in baseline but neither in incoming nor (modified by) user → drop.
 
-    Asserts signature uniqueness within each event key of `incoming` to lock
+    Validates signature uniqueness within each event key of `incoming` to lock
     in the invariant that pilot/hooks/hooks.json never ships two entries with
-    the same matcher+command set.
+    the same matcher+command set. Uses `raise ValueError` (NOT `assert`) so the
+    check survives `python -O`.
 
     Raises:
         ValueError: when two incoming entries under the same event share a signature.

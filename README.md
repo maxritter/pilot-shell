@@ -118,7 +118,7 @@ For tighter isolation when working with untrusted code, combine the dev containe
 7-step installer with progress tracking, rollback on failure, and idempotent re-runs:
 
 1. **Prerequisites** — Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq
-2. **Claude files** — Sets up `~/.claude/` plugin — rules, commands, hooks, MCP servers
+2. **Claude files** — Installs into `~/.claude/` (native layout) — rules, commands, hooks, MCP servers, agents
 3. **Config files** — Creates `.nvmrc` and project config
 4. **Dependencies** — Installs Semble, RTK, CodeGraph, context-mode (better-sqlite3), [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp), [playwright-cli](https://github.com/microsoft/playwright-cli), [agent-browser](https://agent-browser.dev/), language servers
 5. **Shell integration** — Auto-configures bash, fish, and zsh with `pilot` alias

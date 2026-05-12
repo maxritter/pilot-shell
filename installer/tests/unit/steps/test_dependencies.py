@@ -98,6 +98,8 @@ class TestDependenciesStep:
             mock_uv.assert_called_once()
             mock_python_tools.assert_called_once()
             mock_plugin_deps.assert_called_once()
+            _mock_semble.assert_called_once()
+            _mock_rtk.assert_called_once()
 
 
 class TestInstallClaudeCode:

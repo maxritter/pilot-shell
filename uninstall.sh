@@ -7,6 +7,7 @@ CLAUDE_DIR="$HOME/.claude"
 PILOT_PLUGIN_DIR="$CLAUDE_DIR/pilot"
 MANIFEST_FILE="$CLAUDE_DIR/.pilot-manifest.json"
 HOOKS_BASELINE_FILE="$CLAUDE_DIR/.pilot-hooks-baseline.json"
+MCP_BASELINE_FILE="$CLAUDE_DIR/.pilot-mcp-baseline.json"
 LSP_MANIFEST_FILE="$PILOT_DIR/.pilot-lsp-plugins.json"
 
 # Piebald LSP plugins installed by Pilot (Task 4)
@@ -93,7 +94,7 @@ confirm_uninstall() {
 		echo "    • Clean Pilot-added entries from ~/.claude/settings.json (including merged hooks)"
 	fi
 
-	if [ -f "$HOME/.claude.json" ] && [ -f "$CLAUDE_DIR/.pilot-claude-baseline.json" ]; then
+	if [ -f "$HOME/.claude.json" ] && { [ -f "$CLAUDE_DIR/.pilot-claude-baseline.json" ] || [ -f "$MCP_BASELINE_FILE" ]; }; then
 		echo "    • Clean Pilot-added keys (and mcpServers) from ~/.claude.json"
 	fi
 
@@ -107,7 +108,7 @@ confirm_uninstall() {
 	fi
 
 	local baseline_files=""
-	for f in "$CLAUDE_DIR/.pilot-settings-baseline.json" "$CLAUDE_DIR/.pilot-claude-baseline.json" "$HOOKS_BASELINE_FILE" "$MANIFEST_FILE"; do
+	for f in "$CLAUDE_DIR/.pilot-settings-baseline.json" "$CLAUDE_DIR/.pilot-claude-baseline.json" "$HOOKS_BASELINE_FILE" "$MCP_BASELINE_FILE" "$MANIFEST_FILE"; do
 		if [ -f "$f" ]; then
 			baseline_files="$baseline_files $(basename "$f")"
 		fi
@@ -395,76 +396,69 @@ if removed > 0:
 remove_claude_json_keys() {
 	local claude_json="$HOME/.claude.json"
 	local baseline="$CLAUDE_DIR/.pilot-claude-baseline.json"
+	local mcp_baseline="$MCP_BASELINE_FILE"
 
-	if [ ! -f "$claude_json" ] || [ ! -f "$baseline" ]; then
+	if [ ! -f "$claude_json" ]; then
 		return
 	fi
 
-	# Value-aware MCP server cleanup (Codex finding #2): only remove a Pilot
-	# server entry when its value in ~/.claude.json EXACTLY matches the baseline
-	# (i.e., the user hasn't modified it). User-modified entries are left
-	# entirely intact — NOT partially gutted by the recursive surgical cleanup.
-	# After this step, mcpServers is stripped from the temp baseline so the
-	# subsequent run_surgical_cleanup doesn't recurse into it.
-	local baseline_for_cleanup="$baseline"
-	local tmp_baseline="$baseline.tmp_no_mcp"
-	if command -v python3 >/dev/null 2>&1; then
+	# Value-aware MCP server cleanup: only remove a Pilot server entry when its
+	# value in ~/.claude.json EXACTLY matches the dedicated MCP baseline (i.e.,
+	# the user hasn't modified it). User-modified entries are left entirely
+	# intact — NOT partially gutted by the recursive surgical cleanup.
+	if [ -f "$mcp_baseline" ] && command -v python3 >/dev/null 2>&1; then
 		# Pass paths via env vars (NOT shell-interpolated into Python source) to
 		# defend against home-dir paths containing single-quotes or other shell
-		# metacharacters — Codex security finding.
-		PILOT_CLAUDE_JSON="$claude_json" PILOT_TMP_BASELINE="$tmp_baseline" PILOT_BASELINE="$baseline" python3 -c '
+		# metacharacters.
+		PILOT_CLAUDE_JSON="$claude_json" PILOT_MCP_BASELINE="$mcp_baseline" python3 -c '
 import json, os, sys
 
 claude_json = os.environ["PILOT_CLAUDE_JSON"]
-tmp_baseline = os.environ["PILOT_TMP_BASELINE"]
-baseline = os.environ["PILOT_BASELINE"]
+mcp_baseline = os.environ["PILOT_MCP_BASELINE"]
 
 try:
     with open(claude_json) as f:
         current = json.load(f)
-    with open(baseline) as f:
-        baseline_data = json.load(f)
+    with open(mcp_baseline) as f:
+        baseline_mcp = json.load(f)
 except Exception as e:
-    print(f"    [!!] Could not read claude.json or baseline for MCP cleanup: {e}", file=sys.stderr)
+    print(f"    [!!] Could not read claude.json or MCP baseline: {e}", file=sys.stderr)
     sys.exit(0)
 
-baseline_mcp = baseline_data.get("mcpServers") if isinstance(baseline_data, dict) else None
-current_mcp = current.get("mcpServers") if isinstance(current, dict) else None
+if not isinstance(current, dict) or not isinstance(baseline_mcp, dict):
+    sys.exit(0)
 
-if isinstance(baseline_mcp, dict) and isinstance(current_mcp, dict):
-    removed = 0
-    preserved_modified = 0
-    for name, baseline_value in baseline_mcp.items():
-        if name in current_mcp:
-            if current_mcp[name] == baseline_value:
-                del current_mcp[name]
-                removed += 1
-            else:
-                preserved_modified += 1
-    if not current_mcp:
-        del current["mcpServers"]
-    if removed > 0:
-        print(f"    [OK] Removed {removed} Pilot MCP server(s) from ~/.claude.json")
-    if preserved_modified > 0:
-        print(f"    [OK] Preserved {preserved_modified} user-modified MCP server(s) in ~/.claude.json")
+current_mcp = current.get("mcpServers")
+if not isinstance(current_mcp, dict):
+    sys.exit(0)
 
-if isinstance(baseline_data, dict) and "mcpServers" in baseline_data:
-    del baseline_data["mcpServers"]
+removed = 0
+preserved_modified = 0
+for name, baseline_value in baseline_mcp.items():
+    if name in current_mcp:
+        if current_mcp[name] == baseline_value:
+            del current_mcp[name]
+            removed += 1
+        else:
+            preserved_modified += 1
+if not current_mcp:
+    del current["mcpServers"]
+if removed > 0:
+    print(f"    [OK] Removed {removed} Pilot MCP server(s) from ~/.claude.json")
+if preserved_modified > 0:
+    print(f"    [OK] Preserved {preserved_modified} user-modified MCP server(s) in ~/.claude.json")
 
 with open(claude_json, "w") as f:
     json.dump(current, f, indent=2)
     f.write("\n")
-with open(tmp_baseline, "w") as f:
-    json.dump(baseline_data, f, indent=2)
-    f.write("\n")
 '
-		if [ -f "$tmp_baseline" ]; then
-			baseline_for_cleanup="$tmp_baseline"
-		fi
 	fi
 
-	run_surgical_cleanup "$claude_json" "$baseline_for_cleanup" "~/.claude.json"
-	rm -f "$tmp_baseline"
+	# Standard surgical cleanup for ~/.claude.json non-MCP keys (claude.json
+	# template keys — owned by .pilot-claude-baseline.json).
+	if [ -f "$baseline" ]; then
+		run_surgical_cleanup "$claude_json" "$baseline" "~/.claude.json"
+	fi
 	removed_items+=("~/.claude.json")
 }
 
@@ -505,6 +499,7 @@ remove_pilot_baselines() {
 		"$CLAUDE_DIR/.pilot-settings-baseline.json"
 		"$CLAUDE_DIR/.pilot-claude-baseline.json"
 		"$HOOKS_BASELINE_FILE"
+		"$MCP_BASELINE_FILE"
 		"$CLAUDE_DIR/.pilot-manifest.json"
 	)
 
@@ -591,7 +586,7 @@ while [ $# -gt 0 ]; do
 	esac
 done
 
-if ! [ -d "$PILOT_DIR" ] && ! [ -d "$PILOT_PLUGIN_DIR" ] && ! [ -f "$MANIFEST_FILE" ] && ! [ -f "$HOOKS_BASELINE_FILE" ] && ! [ -f "$LSP_MANIFEST_FILE" ]; then
+if ! [ -d "$PILOT_DIR" ] && ! [ -d "$PILOT_PLUGIN_DIR" ] && ! [ -f "$MANIFEST_FILE" ] && ! [ -f "$HOOKS_BASELINE_FILE" ] && ! [ -f "$MCP_BASELINE_FILE" ] && ! [ -f "$LSP_MANIFEST_FILE" ]; then
 	echo ""
 	echo "======================================================================"
 	echo "  Pilot Shell Uninstaller"

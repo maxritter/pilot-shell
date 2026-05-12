@@ -1990,9 +1990,10 @@ class TestMergeMcpServersIntoClaudeJson:
         merged = json.loads((home / ".claude.json").read_text())
         assert merged["mcpServers"]["context7"]["command"] == "npx"
         assert merged["oauthAccount"] == "x"  # preserved
-        # baseline file extended with mcpServers
-        baseline = json.loads((claude_dir / ".pilot-claude-baseline.json").read_text())
-        assert baseline["mcpServers"]["context7"]["command"] == "npx"
+        # Dedicated MCP baseline (NOT .pilot-claude-baseline.json — that one is
+        # owned by _merge_app_config and would clobber us on subsequent installs).
+        baseline = json.loads((claude_dir / ".pilot-mcp-baseline.json").read_text())
+        assert baseline["context7"]["command"] == "npx"
 
     def test_preserves_user_modified_pilot_server(self, tmp_path):
         """Second install: user modified context7; merge preserves it and warns."""
@@ -2012,8 +2013,8 @@ class TestMergeMcpServersIntoClaudeJson:
             json.dumps({"mcpServers": {"context7": {"command": "node-custom"}}}, indent=2)
         )
         # baseline (from prior install) records what Pilot installed
-        (claude_dir / ".pilot-claude-baseline.json").write_text(
-            json.dumps({"mcpServers": {"context7": {"command": "npx-old"}}}, indent=2)
+        (claude_dir / ".pilot-mcp-baseline.json").write_text(
+            json.dumps({"context7": {"command": "npx-old"}}, indent=2)
         )
 
         step = ClaudeFilesStep()

@@ -32,6 +32,7 @@ from installer.steps.settings_merge import (
 SETTINGS_FILE = "settings.json"
 SETTINGS_BASELINE_FILE = ".pilot-settings-baseline.json"
 HOOKS_BASELINE_FILE = ".pilot-hooks-baseline.json"
+MCP_BASELINE_FILE = ".pilot-mcp-baseline.json"
 PILOT_MANIFEST_FILE = ".pilot-manifest.json"
 
 
@@ -883,7 +884,14 @@ class ClaudeFilesStep(BaseStep):
             except (json.JSONDecodeError, OSError, IOError):
                 baseline_hooks = None
 
-        merged = merge_pilot_hooks(current_hooks, incoming_hooks, baseline_hooks)
+        try:
+            merged = merge_pilot_hooks(current_hooks, incoming_hooks, baseline_hooks)
+        except ValueError:
+            # Defensive guard: duplicate hook signature in shipped hooks.json
+            # (e.g. corrupted download, hand-edit). Skip the merge so we don't
+            # crash the whole install. The reviewer audit in spec-verify
+            # catches the upstream cause; here we degrade gracefully.
+            return
 
         if merged:
             settings["hooks"] = merged
@@ -935,15 +943,18 @@ class ClaudeFilesStep(BaseStep):
         if not isinstance(current_servers, dict):
             current_servers = {}
 
-        baseline_path = claude_dir / ".pilot-claude-baseline.json"
+        # Use a DEDICATED baseline file (NOT .pilot-claude-baseline.json) —
+        # _merge_app_config overwrites the claude-baseline on every install,
+        # which would wipe our mcpServers and misclassify Pilot-owned servers
+        # as user additions on the next run. The dedicated file mirrors the
+        # .pilot-hooks-baseline.json pattern from Task 1.
+        baseline_path = claude_dir / MCP_BASELINE_FILE
         baseline_servers: dict[str, Any] | None = None
         if baseline_path.exists():
             try:
                 baseline_data = json.loads(baseline_path.read_text())
                 if isinstance(baseline_data, dict):
-                    bs = baseline_data.get("mcpServers")
-                    if isinstance(bs, dict):
-                        baseline_servers = bs
+                    baseline_servers = baseline_data
             except (json.JSONDecodeError, OSError, IOError):
                 baseline_servers = None
 
@@ -965,21 +976,9 @@ class ClaudeFilesStep(BaseStep):
         except (OSError, IOError):
             return
 
-        # Extend the existing claude-baseline file with mcpServers (the file is
-        # also written by _merge_app_config for the claude.json template keys —
-        # we merge here in case it's already on disk to preserve those keys).
         try:
-            baseline_existing: dict[str, Any] = {}
-            if baseline_path.exists():
-                try:
-                    parsed = json.loads(baseline_path.read_text())
-                    if isinstance(parsed, dict):
-                        baseline_existing = parsed
-                except (json.JSONDecodeError, OSError, IOError):
-                    baseline_existing = {}
-            baseline_existing["mcpServers"] = incoming_servers
             baseline_path.parent.mkdir(parents=True, exist_ok=True)
-            baseline_path.write_text(json.dumps(baseline_existing, indent=2) + "\n")
+            baseline_path.write_text(json.dumps(incoming_servers, indent=2) + "\n")
         except (OSError, IOError):
             pass
 
