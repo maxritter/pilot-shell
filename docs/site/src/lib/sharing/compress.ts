@@ -16,7 +16,12 @@ export async function compress(data: string): Promise<string> {
 }
 
 export async function decompress(b64: string): Promise<string> {
-  const byteArray = Uint8Array.fromBase64(b64, { alphabet: "base64url" });
+  // Uint8Array.fromBase64 is typed as Uint8Array<ArrayBufferLike> which TS 5.7+
+  // refuses to pass to writer.write(BufferSource) because ArrayBufferLike includes
+  // SharedArrayBuffer. Copy into a fresh ArrayBuffer-backed view to satisfy the type.
+  const decoded = Uint8Array.fromBase64(b64, { alphabet: "base64url" });
+  const byteArray = new Uint8Array(decoded.byteLength);
+  byteArray.set(decoded);
   const stream = new DecompressionStream("deflate-raw");
   const writer = stream.writable.getWriter();
   writer.write(byteArray);

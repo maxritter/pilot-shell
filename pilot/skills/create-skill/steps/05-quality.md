@@ -1,5 +1,3 @@
----
-
 ## Step 5: Quality Gates
 
 ### Structure Checklist

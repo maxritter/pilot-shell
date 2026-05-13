@@ -1,5 +1,3 @@
----
-
 ## Step 0: Permission Mode Pre-Flight Check
 
 **Before proceeding, check if the spec_mode_guard hook injected a permission mode note.** If you see a system-reminder containing "Current permission mode is", briefly warn the user:

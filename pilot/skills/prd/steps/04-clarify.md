@@ -1,0 +1,27 @@
+## Step 4: Ask Clarifying Questions
+
+**⛔ ALWAYS use the `AskUserQuestion` tool** — never list numbered questions in plain text. Each question gets its own entry with 2-4 predefined options users can select. This provides a structured form UI that is much easier to answer than freeform text.
+
+**One question at a time, building on previous answers.** Each `AskUserQuestion` call focuses on a single decision point, and the next question must follow from what the user just said — not from a fixed checklist. If the user's answer exposes a new assumption or constraint, pivot there instead of marching through pre-planned topics.
+
+**⛔ Skip obvious questions.** Do not ask anything already answered by the one-line idea, the codebase exploration in Step 1, or earlier answers in this conversation. The goal is to surface what the user hasn't thought about yet, not to collect a standard intake form.
+
+**⛔ Code-first rule.** Before each question, ask "can the codebase answer this?" If yes — read the code. Use `codegraph_context`, `codegraph_search`, `codegraph_explore`, or Semble to resolve "how does X currently work / where does Y live / what's the existing pattern for Z". Only ask the user about things code can't tell you: purpose, priorities, audience, constraints, scope boundaries, behavioural expectations not yet encoded. Asking the user about facts the code already encodes wastes their time and signals you didn't explore.
+
+Coverage areas (ask only where genuinely unclear):
+- **Purpose** — what's the core outcome the user wants?
+- **Users** — who benefits from this? What's their workflow today?
+- **Constraints** — timeline, technical limitations, existing architecture
+- **Success criteria** — how will we know this works?
+- **Scope boundaries** — what's explicitly NOT included?
+
+**Question format:** Every question must have 2-4 concrete options with trade-offs. Use `multiSelect: true` when choices aren't mutually exclusive. Include an "Other" option when the user might have a direction you haven't considered.
+
+**Per-question mode flexibility — slip into prose when needed.** Default is structured `AskUserQuestion`. But if the user's last answer opens a new unknown that doesn't have 2-4 obvious options yet — or if their answer is a question back to you ("what would you do here?") — drop into 1-2 prose turns to explore it (Ideate-style), then return to structured questions for the next decision point. The phase boundary between Ideate and Clarify is a default, not a wall. Don't force four options onto a question that genuinely needs open-ended exploration; equally, don't drift into endless prose when the next decision is a clean A/B/C choice.
+
+**Principles:**
+- Challenge assumptions — "You mentioned X. Have you considered Y?"
+- Surface trade-offs — "That's possible, but it comes at the cost of Z"
+- Be constructive but strategic — don't be a yes-man
+- If the idea has red flags or scope creep risks, raise them now
+- Typically 3-6 questions total, depending on complexity — stop asking once you have 90% of the spec

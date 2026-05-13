@@ -20,7 +20,7 @@ Run `pilot` or `ccp` with no arguments to start Claude with Pilot enhancements. 
 | `pilot run [flags...]` | Explicit alias for starting Claude |
 | `pilot agents` | Open Claude's agent view (`claude agents`) to manage multiple background sessions |
 | `ccp` | Alias for `pilot` |
-| `pilot update [--yes] [--json]` | Download and install the latest Pilot Shell release (replaces the startup banner) |
+| `pilot update [--yes] [--json] [--skip-claude]` | Update both Claude Code and Pilot Shell. `pilot upgrade` is an alias — both verbs run the same flow. |
 | `pilot check-context --json` | Get current context usage percentage |
 | `pilot register-plan <path> <status>` | Associate a plan file with the current session |
 | `pilot sessions [--json]` | Show count of active Pilot sessions |
@@ -30,7 +30,9 @@ Run `pilot` or `ccp` with no arguments to start Claude with Pilot enhancements. 
 | `pilot --version` | Show Pilot Shell version |
 
 :::info Update flow
-When a newer release exists, `pilot` prints a one-line banner on launch and continues straight into Claude — startup never blocks on the install. Run `pilot update` (add `--yes` to skip confirmation) when you're ready. The check is cached for 6 hours, so warm launches don't pay a network round-trip.
+On launch, `pilot` checks both registries — GitHub releases for Pilot Shell and the npm registry for Claude Code (`@anthropic-ai/claude-code`) — and prints a one-line banner when either has a newer version. Startup never blocks on installation.
+
+Run `pilot update` (or its `pilot upgrade` alias — both verbs are interchangeable) when you're ready. The flow runs `claude update` first with a spinner, then downloads and installs the latest Pilot Shell. Pass `--skip-claude` to update only Pilot Shell, or `--yes` to skip the confirmation prompt.
 :::
 
 ## Bot mode

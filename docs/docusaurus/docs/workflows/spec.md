@@ -34,7 +34,7 @@ Full exploration workflow for new functionality, refactoring, or any work where 
 
 - Codebase exploration with Semble hybrid search and CodeGraph structural analysis
 - Architecture design decisions via Q&A
-- Full plan with scope, risks, and Definition of Done
+- Concise plan: Goal, Approach, per-task Definition of Done — boundary, risks, and verification sections appear only when there's something concrete to say
 - Unified verification agent (optional, configurable in Console Settings)
 
 ### Bugfixes

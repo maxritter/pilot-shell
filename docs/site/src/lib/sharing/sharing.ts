@@ -1,14 +1,17 @@
 /**
  * High-level URL generation and parsing for spec sharing.
  *
- * Website URL format: https://pilot-shell.com/shared#<compressed-data>
- * Console URL formats (for paste-input parsing):
- *   - https://localhost:PORT/#/shared/<data>
- *   - https://localhost:PORT/#/feedback/<data>
+ * Two URL families coexist:
  *
- * All data lives in the hash fragment, which the HTTP spec guarantees
- * is never sent to the server. No encryption — data is compressed only
- * for shorter URLs (~25% shorter than the previous encrypted format).
+ *   1. Short URL (current): https://pilot-shell.com/s/<8-char-id>
+ *      Payload POSTed to /api/share and stored on Upstash Redis for ≤ 3 days;
+ *      anyone with the link can fetch and view. See `generateShortFeedbackUrl`.
+ *
+ *   2. Legacy fragment URL (back-compat only): https://pilot-shell.com/shared#<compressed-data>
+ *      Compressed payload embedded in the URL fragment; never transmitted to the server.
+ *      Still decoded by `Shared.tsx` so in-flight legacy links keep working.
+ *
+ * No encryption — both formats rely on the unguessable URL itself as the access token.
  */
 
 import { compress, decompress } from "./compress";
@@ -54,6 +57,48 @@ export function generateWebFeedbackUrl(
   baseUrl: string,
 ): Promise<WebShareUrlResult | null> {
   return buildCompressedUrl(payload, baseUrl);
+}
+
+export type ShortShareResult =
+  | { ok: true; url: string }
+  | { ok: false; reason: "too_large" | "rate_limited" | "network" };
+
+/**
+ * Compress + upload the feedback payload to /api/share and return the short URL.
+ * Used by the recipient on pilot-shell.com to send annotations back to the sharer.
+ */
+export async function generateShortFeedbackUrl(
+  payload: FeedbackPayload,
+  apiBaseUrl: string = "",
+): Promise<ShortShareResult> {
+  let compressed: string;
+  try {
+    compressed = await compress(JSON.stringify(payload));
+  } catch {
+    return { ok: false, reason: "network" };
+  }
+  let res: Response;
+  try {
+    res = await fetch(`${apiBaseUrl}/api/share`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: compressed }),
+    });
+  } catch {
+    return { ok: false, reason: "network" };
+  }
+  if (res.status === 413) return { ok: false, reason: "too_large" };
+  if (res.status === 429) return { ok: false, reason: "rate_limited" };
+  if (!res.ok) return { ok: false, reason: "network" };
+  try {
+    const { id } = (await res.json()) as { id: string };
+    if (!id || !/^[A-Za-z0-9]{8}$/.test(id)) {
+      return { ok: false, reason: "network" };
+    }
+    return { ok: true, url: `https://pilot-shell.com/s/${id}` };
+  } catch {
+    return { ok: false, reason: "network" };
+  }
 }
 
 /**

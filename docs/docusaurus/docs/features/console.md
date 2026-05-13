@@ -189,7 +189,7 @@ All settings are stored in `~/.pilot/config.json`:
     "changesReview": false
   },
   "specWorkflow": {
-    "worktreeSupport": true,
+    "branchIsolation": true,
     "askQuestionsDuringPlanning": true,
     "planApproval": true
   }

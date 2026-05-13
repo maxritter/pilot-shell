@@ -3,40 +3,32 @@
   "orchestrator": "orchestrator.md",
   "steps": [
     {
-      "id": "step-0-toggles",
-      "file": "steps/00-toggles.md"
+      "id": "step-0-setup-and-red-flags",
+      "file": "steps/00-setup-and-red-flags.md"
     },
     {
-      "id": "step-1-red-flags",
-      "file": "steps/01-red-flags.md"
+      "id": "step-1-create-header",
+      "file": "steps/01-create-header.md"
     },
     {
-      "id": "step-2-create-header",
-      "file": "steps/02-create-header.md"
+      "id": "step-2-investigation",
+      "file": "steps/02-investigation.md"
     },
     {
-      "id": "step-3-investigation",
-      "file": "steps/03-investigation.md"
+      "id": "step-3-plan-fix",
+      "file": "steps/03-plan-fix.md"
     },
     {
-      "id": "step-4-plan-fix",
-      "file": "steps/04-plan-fix.md"
+      "id": "step-4-write-plan",
+      "file": "steps/04-write-plan.md"
     },
     {
-      "id": "step-5-write-plan",
-      "file": "steps/05-write-plan.md"
+      "id": "step-5-annotation-check",
+      "file": "steps/05-annotation-check.md"
     },
     {
-      "id": "step-6-annotation-check",
-      "file": "steps/06-annotation-check.md"
-    },
-    {
-      "id": "step-7-approval",
-      "file": "steps/07-approval.md"
-    },
-    {
-      "id": "step-8-continuing",
-      "file": "steps/08-continuing.md"
+      "id": "step-6-approval",
+      "file": "steps/06-approval.md"
     }
   ]
 }

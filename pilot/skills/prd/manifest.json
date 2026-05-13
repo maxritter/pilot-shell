@@ -11,36 +11,36 @@
       "file": "steps/02-research.md"
     },
     {
-      "id": "step-2b-ideate",
-      "file": "steps/02b-ideate.md"
+      "id": "step-3-ideate",
+      "file": "steps/03-ideate.md"
     },
     {
-      "id": "step-3-clarify",
-      "file": "steps/03-clarify.md"
+      "id": "step-4-clarify",
+      "file": "steps/04-clarify.md"
     },
     {
-      "id": "step-4-propose",
-      "file": "steps/04-propose.md"
+      "id": "step-5-propose",
+      "file": "steps/05-propose.md"
     },
     {
-      "id": "step-5-converge",
-      "file": "steps/05-converge.md"
+      "id": "step-6-converge",
+      "file": "steps/06-converge.md"
     },
     {
-      "id": "step-6-write-prd",
-      "file": "steps/06-write-prd.md"
+      "id": "step-7-write-prd",
+      "file": "steps/07-write-prd.md"
     },
     {
-      "id": "step-7-handoff",
-      "file": "steps/07-handoff.md"
+      "id": "step-8-handoff",
+      "file": "steps/08-handoff.md"
     },
     {
-      "id": "step-8-anti-patterns",
-      "file": "steps/08-anti-patterns.md"
+      "id": "step-9-anti-patterns",
+      "file": "steps/09-anti-patterns.md"
     },
     {
-      "id": "step-9-key-principles",
-      "file": "steps/09-key-principles.md"
+      "id": "step-10-key-principles",
+      "file": "steps/10-key-principles.md"
     }
   ]
 }

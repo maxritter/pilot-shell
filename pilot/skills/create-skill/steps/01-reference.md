@@ -1,5 +1,3 @@
----
-
 ## Step 1: Reference
 
 ### Quality Criteria

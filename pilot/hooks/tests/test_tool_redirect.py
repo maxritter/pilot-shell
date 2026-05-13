@@ -647,6 +647,30 @@ class TestDangerousGitBlock:
         assert code == 2
         assert _is_denied(output)
 
+    # ---- Codex #8: --dry-run comment-bypass ----
+
+    def test_blocks_force_push_with_dryrun_in_comment(self):
+        """Codex #8: `git push --force # --dry-run` — --dry-run is in the comment,
+        the destructive command runs. Substring-based exemption must not be fooled."""
+        code, output = self._bash("git push --force origin main # --dry-run")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_reset_hard_with_dryrun_in_comment(self):
+        code, output = self._bash("git reset --hard HEAD~1 # see --dry-run docs")
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_allows_real_dryrun_push(self):
+        """Real `git push --dry-run` (no destructive flag) must still pass."""
+        code, _ = self._bash("git push --dry-run origin main")
+        assert code == 0
+
+    def test_allows_real_dryrun_force_push(self):
+        """Real `git push --force --dry-run` IS safe — git actually supports the combo."""
+        code, _ = self._bash("git push --force --dry-run origin main")
+        assert code == 0
+
     def test_blocks_git_clean_long_force(self):
         """`git clean --force -d` is destructive — long form was missed by short-only regex."""
         code, output = self._bash("git clean --force -d")
@@ -1030,3 +1054,101 @@ class TestSearchNudgeSafety:
         code, output = _run_with_input("Agent", {"subagent_type": "Explore", "prompt": "find files"})
         assert code == 2
         assert _is_denied(output)
+
+
+_CTX_EXEC = "mcp__plugin_context-mode_context-mode__ctx_execute"
+_CTX_BATCH = "mcp__plugin_context-mode_context-mode__ctx_batch_execute"
+
+
+class TestDangerousGitContextMode:
+    """Dangerous-git scan must cover context-mode shell tools, not just Bash.
+
+    Regression for the bypass observed when `git checkout -- file` was run via
+    ctx_execute(language="shell", ...). The hook's Bash-only check let it through
+    and destroyed ~250 lines of in-flight helpers.
+    """
+
+    def test_blocks_git_checkout_dashdash_via_ctx_execute_shell(self):
+        code, output = _run_with_input(
+            _CTX_EXEC, {"language": "shell", "code": "git checkout -- pilot/hooks/_lib/util.py"}
+        )
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_reset_hard_via_ctx_execute_shell(self):
+        code, output = _run_with_input(_CTX_EXEC, {"language": "shell", "code": "git reset --hard HEAD~1"})
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_push_force_via_ctx_execute_shell(self):
+        code, output = _run_with_input(
+            _CTX_EXEC, {"language": "shell", "code": "git push --force origin main"}
+        )
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_allows_safe_ctx_execute_shell(self):
+        code, output = _run_with_input(_CTX_EXEC, {"language": "shell", "code": "ls -la"})
+        assert code == 0
+        assert not _is_denied(output)
+
+    def test_allows_non_shell_ctx_execute(self):
+        # Non-shell language: scanning shell-regex against arbitrary Python source is
+        # over-broad. Documented gap; skip the scan when language != "shell".
+        code, output = _run_with_input(
+            _CTX_EXEC, {"language": "python", "code": "print('git reset --hard')"}
+        )
+        assert code == 0
+        assert not _is_denied(output)
+
+    def test_blocks_git_checkout_dashdash_in_ctx_batch_execute(self):
+        code, output = _run_with_input(
+            _CTX_BATCH,
+            {
+                "commands": [
+                    {"label": "list", "command": "ls"},
+                    {"label": "boom", "command": "git checkout -- file.py"},
+                ]
+            },
+        )
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_blocks_git_reset_hard_in_first_ctx_batch_command(self):
+        code, output = _run_with_input(
+            _CTX_BATCH, {"commands": [{"label": "destroy", "command": "git reset --hard"}]}
+        )
+        assert code == 2
+        assert _is_denied(output)
+
+    def test_allows_safe_ctx_batch_execute(self):
+        code, output = _run_with_input(
+            _CTX_BATCH,
+            {
+                "commands": [
+                    {"label": "a", "command": "ls"},
+                    {"label": "b", "command": "git status --short"},
+                ]
+            },
+        )
+        assert code == 0
+        assert not _is_denied(output)
+
+    def test_ctx_execute_missing_fields_does_not_crash(self):
+        """Malformed input must not raise — return 0 (no block)."""
+        code, output = _run_with_input(_CTX_EXEC, {})
+        assert code == 0
+        assert not _is_denied(output)
+
+    def test_ctx_batch_execute_missing_commands_does_not_crash(self):
+        code, output = _run_with_input(_CTX_BATCH, {})
+        assert code == 0
+        assert not _is_denied(output)
+
+    def test_ctx_batch_execute_with_malformed_entry_does_not_crash(self):
+        """A non-dict entry in commands list must be skipped, not crash."""
+        code, output = _run_with_input(
+            _CTX_BATCH, {"commands": [{"label": "a", "command": "ls"}, "not a dict", None]}
+        )
+        assert code == 0
+        assert not _is_denied(output)

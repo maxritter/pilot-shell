@@ -1,5 +1,3 @@
----
-
 ## Step 4: Create Skill
 
 **Create the skill directory and SKILL.md:**

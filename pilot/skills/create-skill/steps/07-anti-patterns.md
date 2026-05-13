@@ -1,5 +1,3 @@
----
-
 ## Step 7: Anti-Patterns & Troubleshooting
 
 | Anti-Pattern | Fix |

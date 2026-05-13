@@ -1,5 +1,3 @@
----
-
 ## Step 1: Understand the Idea
 
 1. **Restate the idea** in your own words — confirm you understand what the user is thinking

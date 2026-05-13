@@ -9,9 +9,10 @@
 | Session | `pilot check-context --json`, `pilot register-plan <path> <status>` |
 | Worktree | `pilot worktree detect\|create\|diff\|sync\|cleanup\|status --json <slug>` (slug = plan filename without date prefix and `.md`; `create` auto-stashes) |
 | License | `pilot activate <key>`, `pilot deactivate`, `pilot status`, `pilot verify`, `pilot trial --check\|--start` |
+| Updates | `pilot update [--yes] [--json] [--skip-claude]` (alias: `pilot upgrade`) — updates both Claude Code and Pilot Shell. User-initiated; don't invoke on the user's behalf without explicit ask. |
 | Other | `pilot greet`, `pilot statusline` |
 
-**Do NOT exist:** ~~`pilot pipe`~~, ~~`pilot init`~~, ~~`pilot update`~~.
+**Do NOT exist:** ~~`pilot pipe`~~, ~~`pilot init`~~.
 
 ---
 

@@ -29,6 +29,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/shared" element={<Shared />} />
+              <Route path="/s/:id" element={<Shared />} />
               {/* /docs is served by Docusaurus static files */}
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

@@ -1,0 +1,24 @@
+## Phase B — Verify the Running Program
+
+All code is finalized. No more code changes except critical bugs found during execution.
+
+**If runtime profile is Minimal:** Run build check (Step 4a), then skip to Final section.
+
+## Step 4: Build, Deploy, and Verify Code Identity
+
+#### 4a: Build
+
+Build/compile the project. Verify zero errors.
+
+#### 4b: Deploy (if applicable)
+
+If project builds artifacts deployed separately from source: copy to install location, restart services. Check `ps aux | grep <service>` before restarting shared services.
+
+#### 4c: Code Identity Verification
+
+**⛔ Prove the running instance uses your new code before testing it.**
+
+1. Identify a behavioral change unique to this implementation
+2. Craft a request only new code handles correctly (e.g., query with new parameter — new code returns filtered results, old code ignores parameter)
+3. If response matches OLD behavior → redeploy, restart, re-verify
+4. **Do NOT proceed** to execution testing until code identity is confirmed

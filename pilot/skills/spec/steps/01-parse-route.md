@@ -1,5 +1,3 @@
----
-
 ## Step 1: Parse & Route
 
 ```
@@ -20,32 +18,23 @@ ELSE:
 **⛔ MANDATORY FIRST STEP — read env vars before ANY user interaction:**
 
 ```bash
-echo "WORKTREE=$PILOT_WORKTREE_ENABLED QUESTIONS=$PILOT_PLAN_QUESTIONS_ENABLED APPROVAL=$PILOT_PLAN_APPROVAL_ENABLED"
+echo "BRANCH_ISO=$PILOT_BRANCH_ISOLATION_ENABLED QUESTIONS=$PILOT_PLAN_QUESTIONS_ENABLED APPROVAL=$PILOT_PLAN_APPROVAL_ENABLED"
 ```
 
-**⛔ When `WORKTREE` is `"false"`: NEVER mention worktree, NEVER ask about worktree, NEVER include the worktree option.** Still ask about branch choice (current branch vs new branch).
+**⛔ When `BRANCH_ISO` is `"false"`: NEVER ask about branch choice. The dispatcher invokes the planning skill immediately with `--worktree=no` (defaults to the current branch).**
 
-**Note:** The `QUESTIONS` toggle (`PILOT_PLAN_QUESTIONS_ENABLED`) does NOT affect the branch/worktree question. That toggle only controls Q&A questions during planning (Steps 5/7 in spec-plan). The dispatcher-level branch question is always asked.
+**Note:** The `QUESTIONS` toggle (`PILOT_PLAN_QUESTIONS_ENABLED`) does NOT affect the branch/type questions in this dispatcher. That toggle only controls Q&A questions during planning (Steps 5/7 in spec-plan). The dispatcher-level branch question is gated entirely by `PILOT_BRANCH_ISOLATION_ENABLED`.
 
 **Codex reviewers are controlled entirely by Console Settings.** The `PILOT_CODEX_SPEC_REVIEW_ENABLED` and `PILOT_CODEX_CHANGES_REVIEW_ENABLED` env vars are read directly by spec-plan and spec-verify — no per-session question needed.
 
-| WORKTREE | Type | Action |
-|----------|------|--------|
-| `false` | Clear | Ask branch choice only (2 options: current branch, new branch — NO worktree) |
-| `false` | Ambiguous | Ask type + branch choice (2 options — NO worktree) |
-| not `false` | Clear | Ask branch choice (all 3 options including worktree) |
-| not `false` | Ambiguous | Ask type + branch choice (all 3 options) |
+| BRANCH_ISO | Type | Action |
+|------------|------|--------|
+| `false` | Clear | NO question; invoke skill with `--worktree=no` |
+| `false` | Ambiguous | Ask ONLY the type question; invoke skill with `--worktree=no` |
+| `true`  | Clear | Ask 3-option branch question; pass selected flag |
+| `true`  | Ambiguous | Ask type + 3-option branch question (bundled); pass selected flag |
 
-**Branch/worktree question options (use these as predefined AskUserQuestion options — listed in recommended order):**
-
-When `WORKTREE` is `"false"` (2 options):
-
-| Option | Flag passed | Behavior |
-|--------|-------------|----------|
-| **Continue on current branch** (recommended) | `--worktree=no` | Works on current branch as-is |
-| New branch from default branch | `--new-branch` | Creates a clean branch from origin/main (or master), checks it out, then works there |
-
-When `WORKTREE` is not `"false"` (3 options):
+**Branch question options (only when `BRANCH_ISO` is `"true"` — use these as predefined AskUserQuestion options, listed in recommended order):**
 
 | Option | Flag passed | Behavior |
 |--------|-------------|----------|
@@ -53,7 +42,7 @@ When `WORKTREE` is not `"false"` (3 options):
 | New branch from default branch | `--new-branch` | Creates a clean branch from origin/main (or master), checks it out, then works there |
 | Use worktree (isolated branch, squash-merged after) | `--worktree=yes` | Creates isolated worktree |
 
-**⛔ When the user selects "New branch" or sends a custom response mentioning "new branch", "clean branch", or "branch from master/main": pass `--new-branch`, NOT `--worktree=yes`.** Custom responses requesting a new branch were previously misinterpreted as worktree requests.
+**⛔ When the user selects "New branch" or sends a custom response mentioning "new branch", "clean branch", or "branch from master/main": pass `--new-branch`, NOT `--worktree=yes`.** `AskUserQuestion` allows users to type a free-text "Other" response, and previously such responses requesting a new branch were misinterpreted as worktree requests. This rule applies only when `BRANCH_ISO=true` — when off, the question is not asked.
 
 ### 1.3 Invoke Skill and STOP
 

@@ -26,7 +26,7 @@ The structure of tests should be **contra-variant** with the structure of code (
 
 **Skip RED when:**
 - Docs, config, dep version bumps, formatting-only changes.
-- The plan task carries a `Trivial:` justification naming the existing covering test or verification command (≤ 5 net new lines of production code, no new branch/loop/try with a non-trivial body, no new public symbol, no new error path). The reviewer agent (`pilot/agents/changes-review.md`) and the verify step (`pilot/skills/spec-verify/steps/05-automated-checks.md` § 5.1) audit the claim against the actual diff — the planner's claim is NOT authoritative.
+- The plan task carries a `Trivial:` justification naming the existing covering test or verification command (≤ 5 net new lines of production code, no new branch/loop/try with a non-trivial body, no new public symbol, no new error path). The reviewer agent (`pilot/agents/changes-review.md`) and the verify step (`pilot/skills/spec-verify/steps/02-automated-checks.md` § 2.1) audit the claim against the actual diff — the planner's claim is NOT authoritative.
 - **Bugfixes never qualify for the `Trivial:` escape.** A bugfix without a reproducing test is a rubber-stamp fix; the reproducing test is the regression-prevention guarantee.
 
 **Recovery (code before test):** don't revert — write the test now, verify it catches regressions. Goal is coverage of behaviour that matters, not ritual.

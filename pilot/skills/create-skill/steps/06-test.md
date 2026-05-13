@@ -1,5 +1,3 @@
----
-
 ## Step 6: Test & Iterate
 
 **When to use:** Complex workflow and generative skills benefit from testing. Simple passive/instructional skills can skip this phase.

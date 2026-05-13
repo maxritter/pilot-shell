@@ -1,5 +1,3 @@
----
-
 ## Step 3: Check Existing
 
 ```bash

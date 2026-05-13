@@ -3,36 +3,32 @@
   "orchestrator": "orchestrator.md",
   "steps": [
     {
-      "id": "step-1-test-suite",
-      "file": "steps/01-test-suite.md"
+      "id": "step-1-verify-fix",
+      "file": "steps/01-verify-fix.md"
     },
     {
-      "id": "step-2-verify-fix",
-      "file": "steps/02-verify-fix.md"
+      "id": "step-2-quality-checks",
+      "file": "steps/02-quality-checks.md"
     },
     {
-      "id": "step-3-quality-checks",
-      "file": "steps/03-quality-checks.md"
+      "id": "step-3-verification-scenario",
+      "file": "steps/03-verification-scenario.md"
     },
     {
-      "id": "step-4-verification-scenario",
-      "file": "steps/04-verification-scenario.md"
+      "id": "step-4-final-worktree-sync",
+      "file": "steps/04-final-worktree-sync.md"
     },
     {
-      "id": "step-5-final-worktree-sync",
-      "file": "steps/05-final-worktree-sync.md"
+      "id": "step-5-check-feedback",
+      "file": "steps/05-check-feedback.md"
     },
     {
-      "id": "step-6-check-feedback",
-      "file": "steps/06-check-feedback.md"
+      "id": "step-6-code-review-gate",
+      "file": "steps/06-code-review-gate.md"
     },
     {
-      "id": "step-7-code-review-gate",
-      "file": "steps/07-code-review-gate.md"
-    },
-    {
-      "id": "step-8-update-status",
-      "file": "steps/08-update-status.md"
+      "id": "step-7-update-status",
+      "file": "steps/07-update-status.md"
     }
   ]
 }

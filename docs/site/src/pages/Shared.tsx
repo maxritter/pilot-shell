@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useParams } from "react-router-dom";
 import { Link2, Shield, ArrowRight, AlertCircle, RefreshCw, MessageSquarePlus } from "lucide-react";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
@@ -7,12 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { BlockRenderer, FeedbackSidebar } from "@/components/feedback";
+import { FeedbackSidebar } from "@/components/feedback";
+import { SectionedBlockRenderer } from "@/components/feedback/SectionedBlockRenderer";
 import { parseMarkdownToBlocks, useAnnotation, createAnnotation } from "@/lib/annotation";
 import {
   parseHashFragment,
   decompressHashPayload,
-  generateWebFeedbackUrl,
+  generateShortFeedbackUrl,
 } from "@/lib/sharing";
 import type { SharePayload } from "@/lib/sharing";
 
@@ -31,11 +33,20 @@ function checkBrowserSupport(): string | null {
   return null;
 }
 
-/** Extract compressed data from a pasted URL string (any supported format) */
-function extractFromPastedUrl(input: string): { data: string } | null {
+/** Match any `https?://<host>/s/<id>` URL — host-agnostic so preview deployments work too. */
+const PILOT_SHELL_SHORT_RE = /^https?:\/\/[^/]+\/s\/([A-Za-z0-9]{8})\/?$/;
+
+/** Extract data from a pasted URL string: short id wins over hash fragment. */
+function extractFromPastedUrl(
+  input: string,
+): { kind: "id"; id: string } | { kind: "data"; data: string } | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
-  return parseHashFragment(trimmed);
+  const shortMatch = trimmed.match(PILOT_SHELL_SHORT_RE);
+  if (shortMatch) return { kind: "id", id: shortMatch[1] };
+  const hashParsed = parseHashFragment(trimmed);
+  if (hashParsed?.data) return { kind: "data", data: hashParsed.data };
+  return null;
 }
 
 type PageState =
@@ -50,6 +61,7 @@ type PageState =
 const BROWSER_ERROR = checkBrowserSupport();
 
 export default function Shared() {
+  const { id: routeId } = useParams<{ id?: string }>();
   const [pageState, setPageState] = useState<PageState>(
     BROWSER_ERROR ? { status: "browser-unsupported", reason: BROWSER_ERROR } : { status: "landing" }
   );
@@ -83,24 +95,63 @@ export default function Shared() {
     }
   }, []);
 
-  // Auto-decode hash fragment on mount
+  const loadFromShareId = useCallback(async (id: string) => {
+    setPageState({ status: "loading" });
+    try {
+      const res = await fetch(`/api/share?id=${encodeURIComponent(id)}`);
+      if (res.status === 404) {
+        setPageState({ status: "error", message: "Share link not found or expired (links expire after 3 days)." });
+        return;
+      }
+      if (!res.ok) {
+        setPageState({ status: "error", message: "Failed to load shared document. Please try again later." });
+        return;
+      }
+      const body = (await res.json()) as { data?: string };
+      if (!body.data) {
+        setPageState({ status: "error", message: "Share data was empty." });
+        return;
+      }
+      await loadFromHashData(body.data);
+    } catch {
+      setPageState({ status: "error", message: "Failed to reach pilot-shell.com share service." });
+    }
+  }, [loadFromHashData]);
+
+  // Auto-decode hash fragment on mount (legacy back-compat URLs)
   useEffect(() => {
     if (BROWSER_ERROR) return;
+    if (routeId) return; // path-id route handled by the next effect
     const hash = window.location.hash;
     if (!hash || hash === "#") return;
     const parsed = parseHashFragment(hash);
     if (parsed?.data) {
       loadFromHashData(parsed.data);
     }
-  }, [loadFromHashData]);
+  }, [loadFromHashData, routeId]);
+
+  // Path-id route: /s/:id — fetch payload from /api/share
+  useEffect(() => {
+    if (BROWSER_ERROR) return;
+    if (!routeId) return;
+    if (!/^[A-Za-z0-9]{8}$/.test(routeId)) {
+      setPageState({ status: "error", message: "Invalid share link format." });
+      return;
+    }
+    loadFromShareId(routeId);
+  }, [routeId, loadFromShareId]);
 
   const handlePasteLoad = async () => {
     const extracted = extractFromPastedUrl(pasteInput);
     if (!extracted) {
-      toast({ title: "Could not parse URL", description: "Paste the full share URL including the part after #", variant: "destructive" });
+      toast({ title: "Could not parse URL", description: "Paste a pilot-shell.com/s/<id> or pilot-shell.com/shared#... URL", variant: "destructive" });
       return;
     }
-    await loadFromHashData(extracted.data);
+    if (extracted.kind === "id") {
+      await loadFromShareId(extracted.id);
+    } else {
+      await loadFromHashData(extracted.data);
+    }
   };
 
   const handleSendFeedback = useCallback(async () => {
@@ -114,17 +165,31 @@ export default function Shared() {
         planPath: payload.planPath,
         createdAt: Date.now(),
       };
-      const baseUrl = SHARE_BASE_URL;
-      const result = await generateWebFeedbackUrl(feedbackPayload, baseUrl);
-      if (result) {
+      const result = await generateShortFeedbackUrl(feedbackPayload);
+      if (result.ok) {
         await navigator.clipboard.writeText(result.url);
         toast({ title: "Feedback URL copied!", description: "Share it with the document owner to import your annotations." });
       } else {
-        toast({
-          title: "Feedback too large",
-          description: "Please reduce the number or length of annotations and try again.",
-          variant: "destructive",
-        });
+        const reason = "reason" in result ? result.reason : "network";
+        if (reason === "too_large") {
+          toast({
+            title: "Feedback too large",
+            description: "Please reduce the number or length of annotations and try again.",
+            variant: "destructive",
+          });
+        } else if (reason === "rate_limited") {
+          toast({
+            title: "Rate limit reached",
+            description: "Too many feedback links from this connection — wait a few minutes and try again.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Failed to reach pilot-shell.com share service",
+            description: "Please check your connection and try again.",
+            variant: "destructive",
+          });
+        }
       }
     } catch {
       toast({ title: "Failed to generate feedback URL", description: "Please try again.", variant: "destructive" });
@@ -153,7 +218,7 @@ export default function Shared() {
     <>
       <SEO
         title={`Shared ${contentLabel} — Pilot Shell`}
-        description={`View and annotate a shared ${contentLabel.toLowerCase()} from Pilot Shell. Everything happens in your browser — no data reaches our servers.`}
+        description={`View and annotate a shared ${contentLabel.toLowerCase()} from Pilot Shell. Short-lived storage — links expire after 3 days.`}
         canonicalUrl={SHARE_BASE_URL}
       />
       <NavBar />
@@ -191,7 +256,7 @@ export default function Shared() {
                       value={pasteInput}
                       onChange={(e) => setPasteInput(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter") handlePasteLoad(); }}
-                      placeholder="Paste pilot-shell.com/shared#... or localhost:41777/#/shared/..."
+                      placeholder="Paste pilot-shell.com/s/... or legacy pilot-shell.com/shared#..."
                       className="flex-1 text-sm rounded border border-input bg-background px-3 py-2 placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring"
                       autoFocus
                     />
@@ -206,9 +271,9 @@ export default function Shared() {
                 <div className="flex items-start gap-2.5 p-3 rounded-lg bg-muted/50 border border-border/50">
                   <Shield className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
                   <div className="space-y-1">
-                    <p className="text-xs font-medium">No data sent to servers</p>
+                    <p className="text-xs font-medium">Short-lived storage</p>
                     <p className="text-xs text-muted-foreground">
-                      The content is embedded in the URL fragment, which is never transmitted over the network. Everything is decompressed entirely in your browser.
+                      Compressed payload is stored on pilot-shell.com for up to 3 days. Anyone with the link can view; the link itself is the access token.
                     </p>
                   </div>
                 </div>
@@ -298,7 +363,7 @@ export default function Shared() {
                           {sharedAt && <span>{sharedAt}</span>}
                           <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
                             <Shield size={10} />
-                            No data sent to servers
+                            Stored ≤ 3 days
                           </span>
                         </div>
                       </div>
@@ -309,7 +374,7 @@ export default function Shared() {
                 {/* Spec content */}
                 <Card>
                   <CardContent className="p-5">
-                    <BlockRenderer
+                    <SectionedBlockRenderer
                       blocks={blocks}
                       annotations={displayAnnotations}
                       selectedAnnotationId={annotationState.selectedAnnotationId}

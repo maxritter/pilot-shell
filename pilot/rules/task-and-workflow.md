@@ -115,7 +115,7 @@ Existing plans (`.md`): read `Type:` header.
 
 ### ⛔ Only FOUR User Interaction Points
 
-1. **Worktree + Type confirmation** — new plans only (in dispatcher; type only when ambiguous; worktree skipped when `$PILOT_WORKTREE_ENABLED=false`).
+1. **Branch + Type confirmation** — new plans only (in dispatcher; type only when ambiguous; branch question skipped when `$PILOT_BRANCH_ISOLATION_ENABLED=false`).
 2. **Plan Approval** — in `spec-plan`/`spec-bugfix-plan`; skipped when `$PILOT_PLAN_APPROVAL_ENABLED=false`.
 3. **Worktree Sync Approval** — in verify, only when `Worktree: Yes`.
 4. **Code Review Gate** — final quality gate via `AskUserQuestion`.
@@ -128,7 +128,7 @@ Everything else is automatic. **NEVER ask "Should I fix these findings?"** — v
 
 | Toggle | Env Var | Default | When disabled |
 |--------|---------|---------|---------------|
-| Worktree | `$PILOT_WORKTREE_ENABLED` | `false` | Always passes `--worktree=no` |
+| Branch Isolation | `$PILOT_BRANCH_ISOLATION_ENABLED` | `false` | Skip the dispatcher branch question entirely; always pass `--worktree=no` |
 | Plan questions | `$PILOT_PLAN_QUESTIONS_ENABLED` | `true` | Skip all `AskUserQuestion` in plan phase |
 | Plan approval | `$PILOT_PLAN_APPROVAL_ENABLED` | `true` | Auto-approves; implementation starts immediately |
 

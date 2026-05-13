@@ -385,11 +385,12 @@ class TestMigrationV3:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        # v3 disables worktree, v4 re-enables reviewers but NOT worktree, v7 renames
+        # v3 disables worktree, v4 re-enables reviewers but NOT worktree, v7 renames, v11 renames to branchIsolation
         assert migrated["reviewerAgents"]["specReview"] is True
         assert migrated["reviewerAgents"]["changesReview"] is True
-        # v4 no longer forces worktree back to True — respects whatever v3 set
-        assert migrated["specWorkflow"]["worktreeSupport"] is False
+        # v4 no longer forces worktree back to True — respects whatever v3 set; v11 renamed worktreeSupport → branchIsolation
+        assert migrated["specWorkflow"]["branchIsolation"] is False
+        assert "worktreeSupport" not in migrated["specWorkflow"]
         assert migrated["specWorkflow"]["askQuestionsDuringPlanning"] is True
         assert migrated["specWorkflow"]["planApproval"] is True
 
@@ -429,7 +430,12 @@ class TestMigrationV3:
         assert raw["specWorkflow"]["planApproval"] is True
 
     def test_preserves_other_spec_workflow_toggles(self, tmp_path: Path) -> None:
-        """askQuestionsDuringPlanning and planApproval are preserved through v3+v4."""
+        """askQuestionsDuringPlanning and planApproval are preserved through v3+v4.
+
+        Note: worktreeSupport is intentionally omitted from this input so v11 is
+        a no-op for this test. The original intent is preserved — earlier-version
+        migrations must not clobber unrelated keys.
+        """
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
@@ -439,7 +445,6 @@ class TestMigrationV3:
                     "model": "opus",
                     "reviewerAgents": {"planReviewer": True, "specReviewer": True},
                     "specWorkflow": {
-                        "worktreeSupport": True,
                         "askQuestionsDuringPlanning": False,
                         "planApproval": False,
                     },
@@ -482,11 +487,12 @@ class TestMigrationV4:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        # v4 enables reviewers, then v7 renames keys
+        # v4 enables reviewers, then v7 renames keys, v11 renames worktreeSupport → branchIsolation
         assert migrated["reviewerAgents"]["specReview"] is True
         assert migrated["reviewerAgents"]["changesReview"] is True
-        # v4 no longer forces worktree — user's False is preserved
-        assert migrated["specWorkflow"]["worktreeSupport"] is False
+        # v4 no longer forces worktree — user's False is preserved; v11 renamed key
+        assert migrated["specWorkflow"]["branchIsolation"] is False
+        assert "worktreeSupport" not in migrated["specWorkflow"]
         assert migrated["specWorkflow"]["askQuestionsDuringPlanning"] is True
         assert migrated["specWorkflow"]["planApproval"] is True
 
@@ -514,10 +520,11 @@ class TestMigrationV4:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        # v7 renames keys
+        # v7 renames keys, v11 renames worktreeSupport → branchIsolation
         assert migrated["reviewerAgents"]["specReview"] is True
         assert migrated["reviewerAgents"]["changesReview"] is True
-        assert migrated["specWorkflow"]["worktreeSupport"] is True
+        assert migrated["specWorkflow"]["branchIsolation"] is True
+        assert "worktreeSupport" not in migrated["specWorkflow"]
 
     def test_partial_disabled(self, tmp_path: Path) -> None:
         """Only disabled toggles are enabled; already-true ones stay true."""
@@ -543,10 +550,11 @@ class TestMigrationV4:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        # v4 enables both, then v7 renames
+        # v4 enables both, then v7 renames, v11 renames worktreeSupport → branchIsolation
         assert migrated["reviewerAgents"]["specReview"] is True
         assert migrated["reviewerAgents"]["changesReview"] is True
-        assert migrated["specWorkflow"]["worktreeSupport"] is True
+        assert migrated["specWorkflow"]["branchIsolation"] is True
+        assert "worktreeSupport" not in migrated["specWorkflow"]
 
     def test_missing_reviewer_agents_creates_enabled_defaults(self, tmp_path: Path) -> None:
         """Missing reviewerAgents key gets created with enabled defaults."""
@@ -590,12 +598,19 @@ class TestMigrationV4:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        assert migrated["specWorkflow"]["worktreeSupport"] is False
+        # v11 renamed worktreeSupport → branchIsolation
+        assert migrated["specWorkflow"]["branchIsolation"] is False
+        assert "worktreeSupport" not in migrated["specWorkflow"]
         assert migrated["specWorkflow"]["askQuestionsDuringPlanning"] is True
         assert migrated["specWorkflow"]["planApproval"] is True
 
     def test_preserves_other_spec_workflow_toggles(self, tmp_path: Path) -> None:
-        """askQuestionsDuringPlanning and planApproval are preserved."""
+        """askQuestionsDuringPlanning and planApproval are preserved.
+
+        Note: worktreeSupport is intentionally omitted from this input so v11 is
+        a no-op for this test. The original intent is preserved — v4's migration
+        must not clobber unrelated keys.
+        """
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
@@ -605,7 +620,6 @@ class TestMigrationV4:
                     "model": "opus",
                     "reviewerAgents": {"planReviewer": False, "specReviewer": False},
                     "specWorkflow": {
-                        "worktreeSupport": False,
                         "askQuestionsDuringPlanning": False,
                         "planApproval": False,
                     },
@@ -1352,7 +1366,7 @@ class TestMigrationV10:
     def test_current_version_is_10(self) -> None:
         from installer.steps.config_migration import CURRENT_CONFIG_VERSION
 
-        assert CURRENT_CONFIG_VERSION == 10
+        assert CURRENT_CONFIG_VERSION == 11
 
     def test_strips_alias_1m_from_main_model(self) -> None:
         from installer.steps.config_migration import _migration_v10
@@ -1439,16 +1453,164 @@ class TestMigrationV10:
         assert migrated["model"] == "opus"
         assert migrated["skills"]["spec-plan"] == "sonnet"
         assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
-        assert CURRENT_CONFIG_VERSION == 10
+        assert CURRENT_CONFIG_VERSION == 11
 
     def test_v10_idempotent(self, tmp_path: Path) -> None:
-        """Re-running migrate on a v10 config is a no-op."""
-        from installer.steps.config_migration import migrate_model_config
+        """Re-running migrate on a fully-migrated config is a no-op.
+
+        After v11, a config at version 10 with no legacy `worktreeSupport` key
+        and no `branchIsolation` change still gets bumped to v11 — but only
+        because the version sentinel is stale, not because the data needs
+        rewriting. To keep the test's "data unchanged" intent, mark the input
+        as already at CURRENT_CONFIG_VERSION.
+        """
+        from installer.steps.config_migration import CURRENT_CONFIG_VERSION, migrate_model_config
 
         config_path = tmp_path / "config.json"
         config_path.write_text(
-            json.dumps({"_configVersion": 10, "model": "opus", "skills": {"spec-plan": "sonnet"}})
+            json.dumps(
+                {"_configVersion": CURRENT_CONFIG_VERSION, "model": "opus", "skills": {"spec-plan": "sonnet"}}
+            )
         )
 
         result = migrate_model_config(config_path)
         assert result is False
+
+
+class TestMigrationV11:
+    """Migration v10 → v11: Rename specWorkflow.worktreeSupport → branchIsolation."""
+
+    def test_current_version_is_11(self) -> None:
+        from installer.steps.config_migration import CURRENT_CONFIG_VERSION
+
+        assert CURRENT_CONFIG_VERSION == 11
+
+    def test_v11_migrates_worktree_support_true(self) -> None:
+        from installer.steps.config_migration import _migration_v11
+
+        raw: dict = {"specWorkflow": {"worktreeSupport": True, "askQuestionsDuringPlanning": True}}
+        modified = _migration_v11(raw)
+
+        assert modified is True
+        assert raw["specWorkflow"]["branchIsolation"] is True
+        assert "worktreeSupport" not in raw["specWorkflow"]
+
+    def test_v11_migrates_worktree_support_false(self) -> None:
+        from installer.steps.config_migration import _migration_v11
+
+        raw: dict = {"specWorkflow": {"worktreeSupport": False, "askQuestionsDuringPlanning": True}}
+        modified = _migration_v11(raw)
+
+        assert modified is True
+        assert raw["specWorkflow"]["branchIsolation"] is False
+        assert "worktreeSupport" not in raw["specWorkflow"]
+
+    def test_v11_no_op_when_no_spec_workflow(self) -> None:
+        from installer.steps.config_migration import _migration_v11
+
+        raw: dict = {"model": "opus"}
+        modified = _migration_v11(raw)
+
+        assert modified is False
+        assert "specWorkflow" not in raw
+
+    def test_v11_no_op_when_no_worktree_support_key(self) -> None:
+        from installer.steps.config_migration import _migration_v11
+
+        raw: dict = {"specWorkflow": {"askQuestionsDuringPlanning": True, "planApproval": True}}
+        modified = _migration_v11(raw)
+
+        assert modified is False
+        assert "branchIsolation" not in raw["specWorkflow"]
+
+    def test_v11_already_applied_skipped(self, tmp_path: Path) -> None:
+        """End-to-end: a config already at v11 with branchIsolation is unchanged."""
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(
+            json.dumps(
+                {
+                    "_configVersion": 11,
+                    "specWorkflow": {"branchIsolation": True},
+                }
+            )
+        )
+
+        result = migrate_model_config(config_path)
+        assert result is False
+
+    def test_v11_preserves_other_spec_workflow_keys(self) -> None:
+        from installer.steps.config_migration import _migration_v11
+
+        raw: dict = {
+            "specWorkflow": {
+                "worktreeSupport": True,
+                "askQuestionsDuringPlanning": False,
+                "planApproval": False,
+            }
+        }
+        modified = _migration_v11(raw)
+
+        assert modified is True
+        assert raw["specWorkflow"]["branchIsolation"] is True
+        assert raw["specWorkflow"]["askQuestionsDuringPlanning"] is False
+        assert raw["specWorkflow"]["planApproval"] is False
+
+    def test_v11_both_keys_present_branchIsolation_wins(self) -> None:
+        """If branchIsolation is already set, keep it — clean up legacy key only."""
+        from installer.steps.config_migration import _migration_v11
+
+        raw: dict = {
+            "specWorkflow": {
+                "worktreeSupport": True,
+                "branchIsolation": False,
+                "askQuestionsDuringPlanning": True,
+            }
+        }
+        modified = _migration_v11(raw)
+
+        assert modified is True
+        # branchIsolation preserved at user's explicit value
+        assert raw["specWorkflow"]["branchIsolation"] is False
+        # legacy key cleaned up
+        assert "worktreeSupport" not in raw["specWorkflow"]
+
+    def test_v11_non_bool_worktree_support_defaults_to_false(self) -> None:
+        """Non-bool legacy values fall back to False (safe default)."""
+        from installer.steps.config_migration import _migration_v11
+
+        raw: dict = {"specWorkflow": {"worktreeSupport": "yes"}}
+        modified = _migration_v11(raw)
+
+        assert modified is True
+        assert raw["specWorkflow"]["branchIsolation"] is False
+        assert "worktreeSupport" not in raw["specWorkflow"]
+
+    def test_full_migration_renames_worktree_support_and_bumps_version(self, tmp_path: Path) -> None:
+        """End-to-end: a v10 config with worktreeSupport reaches v11 with branchIsolation."""
+        from installer.steps.config_migration import CURRENT_CONFIG_VERSION, migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(
+            json.dumps(
+                {
+                    "_configVersion": 10,
+                    "specWorkflow": {
+                        "worktreeSupport": True,
+                        "askQuestionsDuringPlanning": True,
+                        "planApproval": True,
+                    },
+                }
+            )
+        )
+
+        result = migrate_model_config(config_path)
+
+        assert result is True
+        migrated = json.loads(config_path.read_text())
+        assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
+        assert migrated["specWorkflow"]["branchIsolation"] is True
+        assert "worktreeSupport" not in migrated["specWorkflow"]
+        assert migrated["specWorkflow"]["askQuestionsDuringPlanning"] is True
+        assert migrated["specWorkflow"]["planApproval"] is True

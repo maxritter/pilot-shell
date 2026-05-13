@@ -22,7 +22,13 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _lib.util import _sessions_base, get_session_plan_path, is_waiting_for_user_input, stop_block
+from _lib.util import (
+    _sessions_base,
+    build_objective_reinjection,
+    get_session_plan_path,
+    is_waiting_for_user_input,
+    stop_block,
+)
 
 COOLDOWN_SECONDS = 60
 MAX_BLOCKS = 30
@@ -161,7 +167,8 @@ def main() -> int:
         print(stop_block(reason))
         return 0
 
-    reason = (
+    objective_block = build_objective_reinjection(plan_path)
+    base_reason = (
         f"/spec workflow active — cannot stop without user interaction. "
         f"Active plan: {plan_path} (Status: {status}). "
         f"Stop again within 60s to force exit.\n\n"
@@ -171,6 +178,7 @@ def main() -> int:
         f"Your VERY NEXT action must be a tool call — read the plan file, "
         f"check TaskList, or make a code change. Do NOT produce a text-only response."
     )
+    reason = f"{objective_block}{base_reason}" if objective_block else base_reason
     print(stop_block(reason))
     return 0
 

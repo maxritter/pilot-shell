@@ -335,16 +335,83 @@ def _normalize_git_command(command: str) -> str:
     return GIT_GLOBAL_OPTS_RE.sub("git ", command)
 
 
+# Context-mode MCP tools whose payload can run a shell. Their input schemas differ
+# from Bash (.command), so the hook extracts commands from .code (ctx_execute when
+# language == "shell") and .commands[].command (ctx_batch_execute, always shell).
+# Other languages (python/js/ruby/...) are intentionally NOT scanned — shell regex
+# against arbitrary source produces false positives. Known gap; revisit if abuse appears.
+_CTX_EXECUTE_TOOL = "mcp__plugin_context-mode_context-mode__ctx_execute"
+_CTX_BATCH_EXECUTE_TOOL = "mcp__plugin_context-mode_context-mode__ctx_batch_execute"
+
+
+def _extract_shell_commands(tool_name: str, tool_input: dict) -> list[str]:
+    """Return the list of shell-command strings carried by this tool invocation.
+
+    Returns [] for tool/shape combinations the dangerous-git scanner should not touch
+    (e.g., ctx_execute with non-shell language, malformed inputs).
+    """
+    if not isinstance(tool_input, dict):
+        return []
+    if tool_name == "Bash":
+        command = tool_input.get("command", "")
+        return [command] if isinstance(command, str) and command else []
+    if tool_name == _CTX_EXECUTE_TOOL:
+        if tool_input.get("language") != "shell":
+            return []
+        code = tool_input.get("code", "")
+        return [code] if isinstance(code, str) and code else []
+    if tool_name == _CTX_BATCH_EXECUTE_TOOL:
+        commands = tool_input.get("commands", [])
+        if not isinstance(commands, list):
+            return []
+        out: list[str] = []
+        for entry in commands:
+            if not isinstance(entry, dict):
+                continue
+            cmd = entry.get("command", "")
+            if isinstance(cmd, str) and cmd:
+                out.append(cmd)
+        return out
+    return []
+
+
+def _strip_shell_comment(segment: str) -> str:
+    """Drop any `# ...` comment trailer from a shell segment, respecting quotes.
+
+    Codex #8: `git push --force # --dry-run` was masking the destructive command
+    because `"--dry-run" in segment` matched the comment text. Strip comments first
+    so the exemption only fires for real flags.
+    """
+    in_single = False
+    in_double = False
+    i = 0
+    while i < len(segment):
+        ch = segment[i]
+        if ch == "\\" and i + 1 < len(segment):
+            i += 2
+            continue
+        if ch == "'" and not in_double:
+            in_single = not in_single
+        elif ch == '"' and not in_single:
+            in_double = not in_double
+        elif ch == "#" and not in_single and not in_double:
+            # `#` starts a comment only at start-of-segment or after whitespace
+            if i == 0 or segment[i - 1].isspace():
+                return segment[:i].rstrip()
+        i += 1
+    return segment
+
+
 def _check_dangerous_git(command: str) -> tuple[str, str] | None:
     """Return (pattern_name, deny_reason) when the bash command matches a dangerous git form, else None.
 
     Splits the command on shell separators (`;`, `&&`, `||`, `|`, newline) and
-    checks each segment independently. The `--dry-run` exemption is per-segment so
-    a benign `git push --dry-run` in one segment cannot mask a `git reset --hard`
-    in the next.
+    checks each segment independently. The `--dry-run` exemption is per-segment AND
+    applies only to active command text (comments stripped first), so a destructive
+    command followed by `# --dry-run` comment cannot bypass the scanner.
     """
     for segment in SHELL_SEGMENT_SEP_RE.split(command):
-        segment = segment.strip()
+        segment = _strip_shell_comment(segment).strip()
         if not segment:
             continue
         if "--dry-run" in segment:
@@ -395,18 +462,24 @@ def run_tool_redirect() -> int:
             return 2
         return 0
 
-    if tool_name == "Bash":
-        command = hook_data.get("tool_input", {}).get("command", "")
-        match = _check_dangerous_git(command)
-        if match:
-            pattern_name, reason = match
-            sys.stderr.write(f"\033[0;31m[Pilot] Dangerous git blocked: {pattern_name}\033[0m\n")
-            print(pre_tool_use_deny(reason))
-            return 2
-        nudge = _bash_search_nudge(command)
-        if nudge:
-            print(pre_tool_use_context(nudge))
-            return 0
+    if tool_name in {"Bash", _CTX_EXECUTE_TOOL, _CTX_BATCH_EXECUTE_TOOL}:
+        tool_input = hook_data.get("tool_input", {})
+        commands = _extract_shell_commands(tool_name, tool_input)
+        for command in commands:
+            match = _check_dangerous_git(command)
+            if match:
+                pattern_name, reason = match
+                sys.stderr.write(f"\033[0;31m[Pilot] Dangerous git blocked: {pattern_name}\033[0m\n")
+                print(pre_tool_use_deny(reason))
+                return 2
+        # Search-nudge currently only applies to Bash (recursive grep/rg/find patterns).
+        # ctx_execute/ctx_batch_execute payloads are typically scripted and we don't want
+        # to nudge on every embedded grep — keep nudges Bash-only for now.
+        if tool_name == "Bash" and commands:
+            nudge = _bash_search_nudge(commands[0])
+            if nudge:
+                print(pre_tool_use_context(nudge))
+                return 0
 
     if tool_name in {"Grep", "Glob"}:
         nudge = _builtin_tool_nudge(tool_name)

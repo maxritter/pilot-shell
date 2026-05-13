@@ -1,5 +1,3 @@
----
-
 ## Step 8: Example
 
 **Scenario:** User asks to create a skill for finding dead code using LSP.

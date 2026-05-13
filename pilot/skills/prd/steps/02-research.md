@@ -1,5 +1,3 @@
----
-
 ## Step 2: Research (Optional)
 
 **After understanding the idea, ask the user which research tier they want.** Use `AskUserQuestion` with these options:
@@ -10,7 +8,7 @@
 
 ### Quick Tier
 
-Skip this phase entirely. Proceed to Step 3.
+Skip this phase entirely. Proceed to Step 4.
 
 ### Standard Tier
 
@@ -27,7 +25,7 @@ Skip this phase entirely. Proceed to Step 3.
    - Sources with links
    - Trade-offs and patterns discovered
    - Gaps or areas needing more exploration
-6. **Present summary to user** before proceeding to ideation (Step 2b) or clarification (Step 3)
+6. **Present summary to user** before proceeding to ideation (Step 3) or clarification (Step 4)
 
 ### Deep Tier
 

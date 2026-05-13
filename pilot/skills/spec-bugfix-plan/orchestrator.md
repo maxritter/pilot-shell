@@ -21,6 +21,16 @@ hooks:
 
 ---
 
+## Resuming an Unapproved Plan
+
+When the argument ends with `.md`: read the plan, check `Status:` and `Approved:`. Resume from wherever planning left off:
+
+- No investigation yet → Step 2 (Investigation)
+- Has investigation, no tasks → Step 3 (Plan the Fix)
+- Complete but unapproved → Step 6 (Approval)
+
+---
+
 ## Iron Laws
 
 ```
@@ -30,7 +40,7 @@ hooks:
 4. ONE UNIFORM STRUCTURE — every bugfix plan has the same three tasks.
 ```
 
-If Step 3 is incomplete, you cannot propose fixes. Symptom fixes are failure. Retroactive tests are failure. "I know the fix, I'll skip the test" is failure.
+If Step 2 is incomplete, you cannot propose fixes. Symptom fixes are failure. Retroactive tests are failure. "I know the fix, I'll skip the test" is failure.
 
 ---
 
@@ -41,6 +51,6 @@ If Step 3 is incomplete, you cannot propose fixes. Symptom fixes are failure. Re
 - **Lean ≠ skipping steps.** Small bugs get short tasks, not fewer tasks. The three-task structure (Reproducing Test → Fix → Quality Gate) is non-negotiable.
 - **Plan file is source of truth** — survives across auto-compaction cycles
 - **ALWAYS use `AskUserQuestion` tool** for clarifications — never list numbered questions in plain text
-- **⛔ If `PILOT_PLAN_QUESTIONS_ENABLED` is `"false"` (from Step 0),** skip all `AskUserQuestion` calls (Steps 3.1, 3.5 escalation, 4 approach selection). Make reasonable default assumptions (including selecting the recommended fix approach) and document them in the plan. Continue autonomously.
+- **⛔ If `PILOT_PLAN_QUESTIONS_ENABLED` is `"false"` (from Step 0),** skip all `AskUserQuestion` calls (Steps 2.1, 2.5 escalation, 3 approach selection). Make reasonable default assumptions (including selecting the recommended fix approach) and document them in the plan. Continue autonomously.
 
 > **NOTE: During `/spec`, use the structured workflow below — not CC's native plan mode.**

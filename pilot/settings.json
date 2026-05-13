@@ -77,7 +77,7 @@
       "[PILOT] Work is verified before marked complete — no more 'hope it works'",
       "[PILOT] /spec explores your codebase and asks clarifying questions before writing the plan",
       "[PILOT] Code is auto-formatted, linted, and type-checked on every edit",
-      "[PILOT] When a new release is available, pilot prints a one-line banner — run 'pilot update' to install when you're ready",
+      "[PILOT] When a new release is available, pilot prints a one-line banner — run 'pilot update' (or 'pilot upgrade') to update both Claude Code and Pilot Shell",
       "[PILOT] Shell integration: pilot and ccp commands work in bash, fish, and zsh automatically",
       "[PILOT] Zero API keys needed — web search and scraping work out of the box",
       "[PILOT] All Pilot CLI commands support --json for structured, machine-readable output",

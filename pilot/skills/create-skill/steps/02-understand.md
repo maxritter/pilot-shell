@@ -1,5 +1,3 @@
----
-
 ## Step 2: Understand the Topic
 
 **Start here — clarify what skill to build.**

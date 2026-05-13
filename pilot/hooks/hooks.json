@@ -69,7 +69,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash|WebSearch|WebFetch|Grep|Glob|Agent|EnterPlanMode|ExitPlanMode",
+        "matcher": "Bash|WebSearch|WebFetch|Grep|Glob|Agent|EnterPlanMode|ExitPlanMode|mcp__plugin_context-mode_context-mode__ctx_execute|mcp__plugin_context-mode_context-mode__ctx_batch_execute",
         "hooks": [
           {
             "type": "command",

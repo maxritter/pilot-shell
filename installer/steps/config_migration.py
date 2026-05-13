@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-CURRENT_CONFIG_VERSION = 10
+CURRENT_CONFIG_VERSION = 11
 
 _STALE_AGENT_KEYS = frozenset(
     {
@@ -93,6 +93,9 @@ def migrate_model_config(
 
     if version < 10:
         modified = _migration_v10(raw) or modified
+
+    if version < 11:
+        modified = _migration_v11(raw) or modified
 
     if raw.get("_configVersion") != CURRENT_CONFIG_VERSION:
         raw["_configVersion"] = CURRENT_CONFIG_VERSION
@@ -458,6 +461,28 @@ def _migration_v10(raw: dict[str, Any]) -> bool:
                 modified = True
 
     return modified
+
+
+def _migration_v11(raw: dict[str, Any]) -> bool:
+    """v10 → v11: Rename specWorkflow.worktreeSupport → branchIsolation.
+
+    The toggle's semantics expanded: it now gates BOTH new-branch creation
+    and worktree creation. Existing users keep their on/off preference;
+    the legacy key is removed so config.json reflects the new name.
+
+    Both-keys-present case: if branchIsolation is already set, the user's
+    most-recent explicit write wins — keep it, just clean up worktreeSupport.
+    """
+    spec_workflow = raw.get("specWorkflow")
+    if not isinstance(spec_workflow, dict):
+        return False
+    if "worktreeSupport" not in spec_workflow:
+        return False
+    old_value = spec_workflow.pop("worktreeSupport")
+    if "branchIsolation" in spec_workflow:
+        return True
+    spec_workflow["branchIsolation"] = bool(old_value) if isinstance(old_value, bool) else False
+    return True
 
 
 def _write_atomic(path: Path, data: dict[str, Any]) -> None:

@@ -21,7 +21,7 @@ hooks:
 
 ## ⛔ Critical Constraints
 
-- **NO sub-agents during planning** except Step 11 (spec-review, when enabled in settings)
+- **NO sub-agents during planning** except Step 10 (spec-review, when enabled in settings)
 - **Run spec-review when enabled** — it runs for every feature spec when `$PILOT_SPEC_REVIEW_ENABLED` is not `"false"`. Context level is NOT a valid reason to skip. To disable, use Console Settings → Reviewers → Spec Review toggle.
 - **NEVER write code during planning** — planning and implementation are separate phases
 - **NEVER assume — verify by reading files**

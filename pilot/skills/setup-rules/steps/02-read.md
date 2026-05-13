@@ -1,5 +1,3 @@
----
-
 ## Step 2: Read Existing Rules & Skills
 
 **MANDATORY FIRST STEP.**
