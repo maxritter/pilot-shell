@@ -61,7 +61,9 @@ export function generateWebFeedbackUrl(
 
 export type ShortShareResult =
   | { ok: true; url: string }
-  | { ok: false; reason: "too_large" | "rate_limited" | "network" };
+  | { ok: false; reason: "too_large" | "rate_limited" | "network" | "timeout" };
+
+const SHARE_POST_TIMEOUT_MS = 10_000;
 
 /**
  * Compress + upload the feedback payload to /api/share and return the short URL.
@@ -78,14 +80,21 @@ export async function generateShortFeedbackUrl(
     return { ok: false, reason: "network" };
   }
   let res: Response;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), SHARE_POST_TIMEOUT_MS);
   try {
     res = await fetch(`${apiBaseUrl}/api/share`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ data: compressed }),
+      signal: controller.signal,
     });
-  } catch {
+  } catch (err) {
+    if (controller.signal.aborted) return { ok: false, reason: "timeout" };
+    if (err instanceof DOMException && err.name === "AbortError") return { ok: false, reason: "timeout" };
     return { ok: false, reason: "network" };
+  } finally {
+    clearTimeout(timeoutId);
   }
   if (res.status === 413) return { ok: false, reason: "too_large" };
   if (res.status === 429) return { ok: false, reason: "rate_limited" };

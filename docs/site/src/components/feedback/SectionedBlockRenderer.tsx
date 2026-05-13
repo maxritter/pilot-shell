@@ -45,7 +45,8 @@ interface H2Group {
 interface TaskGroup {
   number: number;
   title: string;
-  headingBlock: Block;
+  /** null when this group holds prelude blocks that appeared before the first `### Task N:` heading. */
+  headingBlock: Block | null;
   blocks: Block[];
 }
 
@@ -63,7 +64,9 @@ function groupByH2(blocks: Block[]): H2Group[] {
   for (const block of blocks) {
     if (block.type === "heading" && block.level === 2) {
       if (current) groups.push(current);
-      current = { heading: block.content, headingBlock: block, blocks: [] };
+      // Include the heading block in the group so annotations anchored to the
+      // heading still render and can be located by selectedAnnotationId.
+      current = { heading: block.content, headingBlock: block, blocks: [block] };
     } else if (current) {
       current.blocks.push(block);
     } else {
@@ -77,23 +80,33 @@ function groupByH2(blocks: Block[]): H2Group[] {
 function groupByTaskH3(blocks: Block[]): TaskGroup[] {
   const groups: TaskGroup[] = [];
   let current: TaskGroup | null = null;
+  const prelude: Block[] = [];
   for (const block of blocks) {
     if (block.type === "heading" && block.level === 3) {
       const m = block.content.match(/^Task\s+(\d+):\s*(.+)$/);
       if (m) {
         if (current) groups.push(current);
+        // Flush any blocks that appeared before the first `### Task N:` match
+        // into a prelude group (number=0, no headingBlock) so they aren't lost.
+        else if (prelude.length > 0) {
+          groups.push({ number: 0, title: "", headingBlock: null, blocks: prelude.splice(0) });
+        }
         current = {
           number: parseInt(m[1], 10),
           title: m[2].trim(),
           headingBlock: block,
-          blocks: [],
+          blocks: [block],
         };
         continue;
       }
     }
     if (current) current.blocks.push(block);
+    else prelude.push(block);
   }
   if (current) groups.push(current);
+  else if (prelude.length > 0) {
+    groups.push({ number: 0, title: "", headingBlock: null, blocks: prelude });
+  }
   return groups;
 }
 
@@ -176,9 +189,12 @@ export function SectionedBlockRenderer({
 
   const [forceOpenBlockId, setForceOpenBlockId] = useState<string | null>(null);
   useEffect(() => {
-    if (!selectedAnnotationId) return;
+    if (!selectedAnnotationId) {
+      setForceOpenBlockId(null);
+      return;
+    }
     const ann = annotations.find((a) => a.id === selectedAnnotationId);
-    if (ann) setForceOpenBlockId(ann.blockId);
+    setForceOpenBlockId(ann?.blockId ?? null);
   }, [selectedAnnotationId, annotations]);
 
   const renderLeaf = (groupBlocks: Block[]) => (
@@ -226,9 +242,18 @@ export function SectionedBlockRenderer({
                     task.blocks,
                     forceOpenBlockId,
                   );
+                  // Prelude group (no heading) renders as a section without its own card.
+                  if (task.headingBlock === null) {
+                    return (
+                      <div key={`prelude-${task.blocks[0]?.id ?? "empty"}`}>
+                        {renderLeaf(task.blocks)}
+                      </div>
+                    );
+                  }
+                  const taskHeadingId = task.headingBlock.id;
                   return (
                     <CollapsibleCard
-                      key={task.headingBlock.id}
+                      key={taskHeadingId}
                       title={
                         <div className="flex items-baseline gap-2">
                           <span className="text-xs font-mono text-muted-foreground/70">
@@ -248,7 +273,7 @@ export function SectionedBlockRenderer({
                           );
                           return (
                             <CollapsibleCard
-                              key={`${task.headingBlock.id}-${field.label}`}
+                              key={`${taskHeadingId}-${field.label}`}
                               title={
                                 <span className="text-xs font-medium text-muted-foreground">
                                   {field.label}

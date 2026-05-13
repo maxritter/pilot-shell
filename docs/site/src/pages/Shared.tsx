@@ -33,8 +33,8 @@ function checkBrowserSupport(): string | null {
   return null;
 }
 
-/** Match any `https?://<host>/s/<id>` URL — host-agnostic so preview deployments work too. */
-const PILOT_SHELL_SHORT_RE = /^https?:\/\/[^/]+\/s\/([A-Za-z0-9]{8})\/?$/;
+/** Match `[https?://]<host>/s/<id>` — scheme optional + host-agnostic for preview deployments and scheme-less pastes. */
+const PILOT_SHELL_SHORT_RE = /^(?:https?:\/\/)?[^/\s]+\/s\/([A-Za-z0-9]{8})\/?$/;
 
 /** Extract data from a pasted URL string: short id wins over hash fragment. */
 function extractFromPastedUrl(
@@ -167,8 +167,17 @@ export default function Shared() {
       };
       const result = await generateShortFeedbackUrl(feedbackPayload);
       if (result.ok) {
-        await navigator.clipboard.writeText(result.url);
-        toast({ title: "Feedback URL copied!", description: "Share it with the document owner to import your annotations." });
+        // Clipboard write is best-effort — preserve the URL on failure so the user
+        // can still copy it manually instead of triggering another /api/share POST.
+        try {
+          await navigator.clipboard.writeText(result.url);
+          toast({ title: "Feedback URL copied!", description: "Share it with the document owner to import your annotations." });
+        } catch {
+          toast({
+            title: "Feedback URL generated — copy it manually",
+            description: result.url,
+          });
+        }
       } else {
         const reason = "reason" in result ? result.reason : "network";
         if (reason === "too_large") {
@@ -181,6 +190,12 @@ export default function Shared() {
           toast({
             title: "Rate limit reached",
             description: "Too many feedback links from this connection — wait a few minutes and try again.",
+            variant: "destructive",
+          });
+        } else if (reason === "timeout") {
+          toast({
+            title: "Request timed out",
+            description: "pilot-shell.com share service did not respond. Please retry.",
             variant: "destructive",
           });
         } else {
