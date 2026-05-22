@@ -61,8 +61,8 @@ const consoleSlides: ConsoleSlide[] = [
   {
     label: "Settings",
     name: "settings",
-    alt: "Settings view — spec workflow, console port, security toggles",
-    desc: "Spec workflow toggles (branch isolation, ask questions, plan approval, Model Switching), reviewer configuration, and credential scanner. Active model is set via `/model` — no model dropdowns here.",
+    alt: "Settings view — spec workflow and console port",
+    desc: "Spec workflow toggles (branch isolation, ask questions, plan approval, Model Switching) and reviewer configuration. Active model is set via `/model` — no model dropdowns here.",
   },
   {
     label: "Help",

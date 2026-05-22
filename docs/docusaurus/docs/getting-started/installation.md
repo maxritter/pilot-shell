@@ -79,7 +79,7 @@ Claude Code's session logs and Pilot's caches grow over time and can degrade per
 
 ```bash
 # 1. Inside Claude Code, log out
-> /logout
+/logout
 
 # 2. Back up your current config (just in case)
 mv ~/.claude.json ~/.claude.json.bak

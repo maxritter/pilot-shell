@@ -1593,10 +1593,10 @@ class TestRemoveLegacyContextMode:
 
         assert remove_legacy_context_mode() is True
         called_args = [c[0][0] for c in mock_sub.call_args_list]
-        assert ["claude", "plugin", "list", "--json"] in called_args
-        assert ["claude", "plugin", "uninstall", "context-mode@context-mode", "-y"] in called_args
-        assert ["claude", "plugin", "marketplace", "list", "--json"] in called_args
-        assert ["claude", "plugin", "marketplace", "remove", "context-mode"] in called_args
+        assert ["claude", "plugins", "list", "--json"] in called_args
+        assert ["claude", "plugins", "uninstall", "context-mode@context-mode", "-y"] in called_args
+        assert ["claude", "plugins", "marketplace", "list", "--json"] in called_args
+        assert ["claude", "plugins", "marketplace", "remove", "context-mode"] in called_args
 
     @patch("installer.steps.dependencies._legacy_context_mode_remove_orphan_hook")
     @patch("installer.steps.dependencies.subprocess.run")
@@ -1612,8 +1612,8 @@ class TestRemoveLegacyContextMode:
 
         assert remove_legacy_context_mode() is True
         called_args = [c[0][0] for c in mock_sub.call_args_list]
-        assert not any(args[:3] == ["claude", "plugin", "uninstall"] for args in called_args)
-        assert not any(args[:4] == ["claude", "plugin", "marketplace", "remove"] for args in called_args)
+        assert not any(args[:3] == ["claude", "plugins", "uninstall"] for args in called_args)
+        assert not any(args[:4] == ["claude", "plugins", "marketplace", "remove"] for args in called_args)
 
     @patch("installer.steps.dependencies._legacy_context_mode_remove_orphan_hook")
     @patch("installer.steps.dependencies.subprocess.run")

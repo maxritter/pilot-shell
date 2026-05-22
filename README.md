@@ -111,7 +111,7 @@ Over time, Claude Code's accumulated session logs and Pilot Shell's caches can s
 
 ```bash
 # 1. Inside Claude Code, log out
-> /logout
+/logout
 
 # 2. Back up your current config (just in case)
 mv ~/.claude.json ~/.claude.json.bak

@@ -791,7 +791,7 @@ def remove_legacy_context_mode() -> bool:
     output before invoking removal commands so re-runs stay silent. It also deletes
     the auto-deployed `~/.claude/hooks/context-mode-cache-heal.mjs` script and any
     SessionStart hook entry in `~/.claude/settings.json` that references it
-    (neither is removed by `claude plugin uninstall`).
+    (neither is removed by `claude plugins uninstall`).
 
     Records outcome `removed` only when something was actually deleted, so
     fresh / already-clean installs stay silent.
@@ -812,7 +812,7 @@ def _legacy_context_mode_uninstall_plugin() -> bool:
     """Uninstall the context-mode plugin if installed. Idempotent. Returns True if removed."""
     try:
         result = subprocess.run(
-            ["claude", "plugin", "list", "--json"],
+            ["claude", "plugins", "list", "--json"],
             capture_output=True,
             text=True,
             timeout=30,
@@ -829,7 +829,7 @@ def _legacy_context_mode_uninstall_plugin() -> bool:
         return False
     try:
         subprocess.run(
-            ["claude", "plugin", "uninstall", _LEGACY_CONTEXT_MODE_PLUGIN_ID, "-y"],
+            ["claude", "plugins", "uninstall", _LEGACY_CONTEXT_MODE_PLUGIN_ID, "-y"],
             capture_output=True,
             text=True,
             timeout=60,
@@ -843,7 +843,7 @@ def _legacy_context_mode_remove_marketplace() -> bool:
     """Remove the context-mode marketplace if configured. Idempotent. Returns True if removed."""
     try:
         result = subprocess.run(
-            ["claude", "plugin", "marketplace", "list", "--json"],
+            ["claude", "plugins", "marketplace", "list", "--json"],
             capture_output=True,
             text=True,
             timeout=30,
@@ -860,7 +860,7 @@ def _legacy_context_mode_remove_marketplace() -> bool:
         return False
     try:
         subprocess.run(
-            ["claude", "plugin", "marketplace", "remove", _LEGACY_CONTEXT_MODE_MARKETPLACE],
+            ["claude", "plugins", "marketplace", "remove", _LEGACY_CONTEXT_MODE_MARKETPLACE],
             capture_output=True,
             text=True,
             timeout=30,

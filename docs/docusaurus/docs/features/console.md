@@ -103,7 +103,7 @@ The Console sends real-time alerts via Server-Sent Events when Claude needs your
 
 ## Settings
 
-The Settings tab (`localhost:41777/#/settings`, or your custom port) is a single scrollable page with three stacked sections: **Spec Workflow**, **Console**, **Security**. Toggle preferences save to `~/.pilot/config.json`. The **Console → Worker Port** field saves to `~/.pilot/memory/settings.json` and lets you move the Console off `41777` if it conflicts with another service. Both changes take effect after restarting Pilot.
+The Settings tab (`localhost:41777/#/settings`, or your custom port) is a single scrollable page with two stacked sections: **Spec Workflow** and **Console**. Toggle preferences save to `~/.pilot/config.json`. The **Console → Worker Port** field saves to `~/.pilot/memory/settings.json` and lets you move the Console off `41777` if it conflicts with another service. Both changes take effect after restarting Pilot.
 
 :::info Model selection lives in Claude Code
 Pilot doesn't manage model preferences — pick your model with `/model sonnet[1m]`, `/model opus[1m]`, or an explicit Anthropic ID like `/model claude-opus-4-6`. See [Model Routing](./model-routing.md) for the recommended flow.
