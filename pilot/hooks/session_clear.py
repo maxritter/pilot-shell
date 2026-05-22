@@ -16,6 +16,7 @@ SESSIONS_DIR = Path.home() / ".pilot" / "sessions"
 STALE_FILES = [
     "active_plan.json",
     "spec-stop-guard",
+    "spec-handoff-pending",
     "continuation.md",
     "context-cache.json",
     "context-pct.json",

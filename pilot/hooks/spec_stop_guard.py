@@ -32,6 +32,11 @@ from _lib.util import (
 
 COOLDOWN_SECONDS = 60
 MAX_BLOCKS = 30
+# Sentinel files older than this are treated as stale (PID reuse, crashed
+# session, etc.) and unlinked without honoring the handoff signal. One hour
+# is generous enough for any realistic /clear + /model user interaction
+# between spec-plan ending its turn and the next stop event firing.
+HANDOFF_SENTINEL_MAX_AGE_SECONDS = 3600
 
 
 def get_stop_guard_path() -> Path:
@@ -40,6 +45,26 @@ def get_stop_guard_path() -> Path:
     guard_dir = _sessions_base() / session_id
     guard_dir.mkdir(parents=True, exist_ok=True)
     return guard_dir / "spec-stop-guard"
+
+
+def get_handoff_sentinel_path() -> Path:
+    """Get session-scoped path to the model-switch handoff sentinel.
+
+    `spec-plan` / `spec-bugfix-plan` create this file when ending their turn
+    after plan approval with the Model Switching toggle ON. The stop guard
+    treats its presence as permission to stop but does NOT delete it — the
+    sentinel must survive past the Stop event so `spec_handoff_resume` (the
+    UserPromptSubmit hook) can detect it on the user's next prompt and
+    auto-invoke `Skill('spec-implement', '<plan-path>')`. This is what lets
+    the user run `/model <name>` and then type any prompt (e.g. `continue`)
+    to resume — no `/clear`, no `/spec <plan-path>` re-invocation.
+
+    Stale sentinels (>1h) are still unlinked here so they don't accumulate.
+    """
+    session_id = os.environ.get("PILOT_SESSION_ID", "").strip() or "default"
+    guard_dir = _sessions_base() / session_id
+    guard_dir.mkdir(parents=True, exist_ok=True)
+    return guard_dir / "spec-handoff-pending"
 
 
 def find_active_plan() -> tuple[Path | None, str | None]:
@@ -118,6 +143,25 @@ def main() -> int:
 
     if input_data.get("stop_hook_active", False):
         return 0
+
+    # Model-switch handoff: spec-plan / spec-bugfix-plan writes the sentinel
+    # when the user approves a plan with `modelSwitch=true`. Its presence
+    # grants permission to stop, but we do NOT delete it here — the sentinel
+    # must survive past this Stop event so `spec_handoff_resume` (the
+    # UserPromptSubmit hook) can detect it on the user's next prompt and
+    # auto-invoke `Skill('spec-implement', ...)`. The check intentionally runs
+    # BEFORE find_active_plan() — the sentinel fires regardless of plan status.
+    handoff_sentinel = get_handoff_sentinel_path()
+    if handoff_sentinel.exists():
+        try:
+            age = time.time() - handoff_sentinel.stat().st_mtime
+        except OSError:
+            age = 0.0
+        if age > HANDOFF_SENTINEL_MAX_AGE_SECONDS:
+            # Stale (PID reuse / crashed prior session) — discard, do not honor.
+            handoff_sentinel.unlink(missing_ok=True)
+        else:
+            return 0
 
     plan_path, status = find_active_plan()
     if plan_path is None or status is None:

@@ -471,10 +471,7 @@ class TestObjectiveReinjection:
         """Plan with Goal only — no Truths and no Behavior Contract."""
         plan_file = plans_dir / "2026-01-01-no-verification.md"
         plan_file.write_text(
-            "# No Verification Plan\n\n"
-            "Status: PENDING\nApproved: No\n\n"
-            "## Summary\n\n"
-            "**Goal:** Just a goal sentence.\n"
+            "# No Verification Plan\n\nStatus: PENDING\nApproved: No\n\n## Summary\n\n**Goal:** Just a goal sentence.\n"
         )
         return plan_file
 
@@ -564,8 +561,7 @@ class TestObjectiveReinjection:
         long_goal = "X" * 600
         plan_file = plans_dir / "2026-01-01-long-goal.md"
         plan_file.write_text(
-            f"# Long Goal Plan\n\nStatus: PENDING\nApproved: No\n\n"
-            f"## Summary\n\n**Goal:** {long_goal}\n"
+            f"# Long Goal Plan\n\nStatus: PENDING\nApproved: No\n\n## Summary\n\n**Goal:** {long_goal}\n"
         )
         _register_plan_for_session(plan_file, "PENDING")
 
@@ -710,3 +706,110 @@ class TestSessionScopedPlanDetection:
         assert exit_code == 0
         assert _is_blocked(stdout)
         assert "cannot stop" in stdout.lower()
+
+
+class TestHandoffSentinel:
+    """The model-switch handoff sentinel grants permission to stop while it lives.
+
+    The stop guard no longer deletes the sentinel on consume — that moved to
+    `spec_handoff_resume` (UserPromptSubmit), so the sentinel survives past the
+    Stop event and the next user prompt can route directly into spec-implement
+    without `/clear` or `/spec <plan-path>` re-invocation.
+    """
+
+    def _make_active_plan(self, tmp_path: Path) -> Path:
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+        plan_file = plans_dir / "2026-05-21-handoff.md"
+        plan_file.write_text("# Handoff Plan\n\nStatus: PENDING\nApproved: Yes\n")
+        _register_plan_for_session(plan_file, "PENDING")
+        return plans_dir
+
+    def test_sentinel_allows_stop_and_persists(self, tmp_path: Path) -> None:
+        """Fresh sentinel grants stop permission and survives — the UserPromptSubmit
+        hook (`spec_handoff_resume`) is responsible for deletion on the next prompt.
+        """
+        plans_dir = self._make_active_plan(tmp_path)
+        sentinel = _test_session_dir() / "spec-handoff-pending"
+        sentinel.touch()
+
+        exit_code, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+
+        assert exit_code == 0
+        assert not _is_blocked(stdout)
+        assert sentinel.exists(), "Sentinel must survive the Stop so `spec_handoff_resume` can consume it"
+
+    def test_sentinel_persists_across_consecutive_stops(self, tmp_path: Path) -> None:
+        """Consecutive Stop events with no user prompt in between must all be
+        allowed while the sentinel is fresh — deletion is the prompt hook's job.
+        """
+        plans_dir = self._make_active_plan(tmp_path)
+        sentinel = _test_session_dir() / "spec-handoff-pending"
+        sentinel.touch()
+
+        # First stop: sentinel honored, allowed.
+        exit_code1, stdout1, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        assert exit_code1 == 0
+        assert not _is_blocked(stdout1)
+        assert sentinel.exists()
+
+        # Second stop: still allowed because the sentinel is still there.
+        exit_code2, stdout2, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        assert exit_code2 == 0
+        assert not _is_blocked(stdout2)
+        assert sentinel.exists()
+
+    def test_sentinel_survives_recursive_hook_fire(self, tmp_path: Path) -> None:
+        """Recursive hook fire (stop_hook_active=True) returns immediately and the
+        sentinel is left intact (it was never going to be touched in that branch).
+        """
+        plans_dir = self._make_active_plan(tmp_path)
+        sentinel = _test_session_dir() / "spec-handoff-pending"
+        sentinel.touch()
+
+        exit_code, stdout, _ = _run_subprocess({"stop_hook_active": True}, plans_dir)
+
+        assert exit_code == 0
+        assert not _is_blocked(stdout)
+        assert sentinel.exists(), "Sentinel must survive recursive hook fire"
+
+    def test_stale_sentinel_is_discarded(self, tmp_path: Path) -> None:
+        """A sentinel older than the staleness threshold (PID reuse, crashed
+        session, etc.) is discarded — NOT honored as a handoff signal. The
+        normal block path engages instead."""
+        import os as _os
+        import time as _time
+
+        plans_dir = self._make_active_plan(tmp_path)
+        sentinel = _test_session_dir() / "spec-handoff-pending"
+        sentinel.touch()
+        # Backdate the sentinel well past the staleness threshold (>1h).
+        stale_time = _time.time() - 7200  # 2 hours ago
+        _os.utime(sentinel, (stale_time, stale_time))
+
+        exit_code, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+
+        assert exit_code == 0
+        # The plan is PENDING and the sentinel is stale → normal block path engages.
+        assert _is_blocked(stdout)
+        # Stale sentinel must be cleaned up so it cannot bite again.
+        assert not sentinel.exists(), "Stale sentinel must be unlinked"
+
+    def test_fresh_sentinel_is_honored(self, tmp_path: Path) -> None:
+        """Sanity for the age check: a sentinel written seconds ago is still
+        honored (the typical modelSwitch handoff path)."""
+        import os as _os
+        import time as _time
+
+        plans_dir = self._make_active_plan(tmp_path)
+        sentinel = _test_session_dir() / "spec-handoff-pending"
+        sentinel.touch()
+        # Sentinel ~30s old — well within freshness window.
+        fresh_time = _time.time() - 30
+        _os.utime(sentinel, (fresh_time, fresh_time))
+
+        exit_code, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+
+        assert exit_code == 0
+        assert not _is_blocked(stdout)
+        assert sentinel.exists(), "Fresh sentinel must survive the Stop event for the prompt hook to consume"

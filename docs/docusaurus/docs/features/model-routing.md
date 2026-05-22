@@ -1,46 +1,55 @@
 ---
 sidebar_position: 5
 title: Model Routing
-description: Opus where reasoning matters, Sonnet where speed and cost matter — automatic per-skill model routing keeps quality high while controlling token spend.
+description: Plan with Opus, implement with Sonnet — without juggling config files.
 ---
 
 # Model Routing
 
-Opus where reasoning matters, Sonnet where speed and cost matter.
+There's one switch: Claude Code's `/model`. Whatever you set there is what every Pilot workflow uses. No per-skill table, no Pilot-side override.
 
-Pilot automatically routes each phase to the right model. Rather than always using the most powerful (and most expensive) model, it applies reasoning where reasoning has the highest impact — and uses fast, cost-effective execution where a clear spec makes quality predictable.
+The interesting question is *when* to switch. Opus reasons better; Sonnet is faster and cheaper. The cost-saving move is to plan on Opus, then drop to Sonnet for the mechanical work that follows.
 
-## Routing Table
+## The Default Flow With `/spec`
 
-| Phase | Model | Rationale |
-|-------|-------|-----------|
-| **Planning** | Opus | Exploring your codebase, designing architecture, and writing the spec requires deep reasoning. A good plan is the foundation — invest here. |
-| **Spec Review** | Sonnet | The spec-review sub-agent validates completeness and challenges assumptions on every feature spec. Optional Codex adversarial review provides an independent second opinion. *(enabled by default — disable in Console Settings → Reviewers)* |
-| **Implementation** | Sonnet | With a solid plan, writing code is straightforward. Sonnet is fast, cost-effective, and produces high-quality code when guided by a clear spec and strong hooks. |
-| **Changes Review** | Sonnet | The unified changes-review agent handles deep code review (compliance + quality + goal). The orchestrator runs mechanical checks and applies fixes efficiently. Optional Codex adversarial review for additional coverage. *(enabled by default — disable in Console Settings → Reviewers)* |
+The Model Switching toggle (on by default) builds the swap into the spec workflow:
 
-## The Insight
+1. `/model opus[1m]` — Pilot refuses to start `/spec` on Sonnet.
+2. `/spec <what you want>` — Pilot drafts the plan and asks for approval.
+3. Approve. Pilot prints a short handoff message and stops.
+4. Switch models — two paths below.
 
-- Implementation is the easy part when the plan is good and verification is thorough
-- Pilot invests reasoning power (Opus) where it has the highest impact: planning
-- Sonnet handles implementation and verification — guided by a solid plan and structured review agents
-- The result: better output at lower cost than running Opus everywhere
+You only see the pause once per spec run. Implementation and verification then run on whatever you picked.
 
-:::tip Fully configurable
-Configure via the Pilot Shell Console Settings tab (`localhost:41777/#/settings`, or your custom port). Choose between Sonnet 4.6 and Opus 4.7 for the main session, each command, and each sub-agent independently. Context window size (200K or 1M) is configurable via the Extended Context global toggle plus a per-row 1M checkbox on every main and skill row — mix freely (e.g. Opus 1M for planning, Sonnet 200K for implementation/verification). API subscribers (Team, Enterprise) get 1M at no additional cost with all models. Max plan users on Sonnet rows must keep 1M off (Sonnet 1M is not included in Max); Opus rows can opt into 1M without API billing.
-:::
+If your Claude plan already defaults to Opus, step 1 isn't strictly required — `/spec` will start on default Opus too. The explicit `/model opus[1m]` is for the 1M context window, which planning benefits from on larger codebases. Same for the Sonnet switch later: `sonnet` works, `sonnet[1m]` gives you the bigger context. You type whichever variant fits the session.
 
-## Pinning a Legacy or Specific Model Version
+## Path A — Switch in Place
 
-The model dropdown in Console Settings includes a **Custom…** option that lets you enter an explicit Anthropic model ID instead of a Claude Code alias. This is useful when:
+```text
+/model sonnet[1m]
+continue
+```
 
-- You want to pin a specific historical version (e.g. `claude-opus-4-6`, `claude-opus-4-5`, `claude-sonnet-4-5-20250929`) for reproducibility.
-- A newer release trips content filters on code that previous releases handled, and you need a reliable fallback while the issue is reported.
-- You are standardizing across a team and want every machine on the exact same model ID.
+Same session, planning context comes with you. Any prompt resumes (`continue`, `go`, anything).
 
-Accepted values:
+Claude Code will ask to confirm the model switch — the planning context gets re-sent to Sonnet on the next turn, which costs Sonnet input tokens once. Small for short plans, noticeable for long ones.
 
-- Any alias supported by Claude Code — currently `sonnet` and `opus`.
-- Any explicit Anthropic model ID matching `claude-<suffix>` (e.g. `claude-opus-4-6`, `claude-haiku-4-5`).
+Pick this when planning was short, or when you want Sonnet to be able to refer back to the discussion.
 
-The Extended Context (`1M`) global toggle and per-row checkboxes only apply to the `sonnet` and `opus` aliases — explicit model IDs are passed through to Claude Code exactly as entered. For a Custom row, encode the context window in the ID itself (e.g. `claude-opus-4-7[1m]`); the per-row 1M checkbox is disabled for Custom rows because the ID is authoritative.
+## Path B — Clean Start
+
+```text
+/clear
+/model sonnet[1m]
+/spec docs/plans/2026-05-21-your-plan.md
+```
+
+Fresh session, no context carry. Sonnet sees only the plan file. The dispatcher notices it's already approved and goes straight into implementation.
+
+Pick this when planning was long, when you want lower first-turn cost, or when you're picking the plan back up later.
+
+Both paths run the same `spec-implement` on Sonnet — they differ only in what's in context when it starts.
+
+## Skip the Pause
+
+Stay on one model end-to-end by turning off **Model Switching** in Console Settings → Automation. `/spec` then runs plan → implement → verify continuously. Also the right setting for headless / CI.
