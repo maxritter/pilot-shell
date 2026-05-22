@@ -206,12 +206,7 @@ class TestPrepareConfigDir:
         rules_src = tmp_path / "src" / "rules"
         rules_src.mkdir(parents=True)
         original = (
-            "---\n"
-            "name: standards-python\n"
-            'paths:\n  - "**/*.py"\n'
-            "description: Python rules\n"
-            "---\n"
-            "# Python content\n"
+            '---\nname: standards-python\npaths:\n  - "**/*.py"\ndescription: Python rules\n---\n# Python content\n'
         )
         _ = (rules_src / "standards-python.md").write_text(original)
         target: TargetConfig = {
@@ -250,14 +245,7 @@ class TestPrepareConfigDir:
         """SKILL.md frontmatter with conditional fields gets stripped on install."""
         skill_src = tmp_path / "src" / "my-skill"
         skill_src.mkdir(parents=True)
-        original = (
-            "---\n"
-            "name: my-skill\n"
-            "description: x\n"
-            "paths:\n  - src/**\n"
-            "---\n"
-            "# body\n"
-        )
+        original = "---\nname: my-skill\ndescription: x\npaths:\n  - src/**\n---\n# body\n"
         _ = (skill_src / "SKILL.md").write_text(original)
         target: TargetConfig = {"type": "skill", "path": str(skill_src), "name": "my-skill"}
         dest_root = tmp_path / "dest"
@@ -327,9 +315,7 @@ def _success_stream(duration_ms: int = 100, total_tokens: int = 5) -> str:
 
 
 class TestExecuteRun:
-    def _run(
-        self, tmp_path: Path, *, stdout: str, stderr: str = "", returncode: int = 0
-    ):
+    def _run(self, tmp_path: Path, *, stdout: str, stderr: str = "", returncode: int = 0):
         config_dir = tmp_path / "cfg"
         run_dir = tmp_path / "out"
         config_dir.mkdir()
@@ -540,9 +526,7 @@ class TestValidatePromptIsolation:
         assert validate_prompt_isolation("write the result to slugify.py") is None
 
     def test_sandbox_placeholder_passes(self) -> None:
-        assert (
-            validate_prompt_isolation("write the result to {sandbox}/slugify.py") is None
-        )
+        assert validate_prompt_isolation("write the result to {sandbox}/slugify.py") is None
 
     def test_hardcoded_tmp_warns(self) -> None:
         warning = validate_prompt_isolation("save to /tmp/testing-bench-1/out.py")
@@ -552,9 +536,4 @@ class TestValidatePromptIsolation:
     def test_tmp_plus_sandbox_ok(self) -> None:
         # If the prompt uses both /tmp/ and {sandbox}, trust the author — they
         # may be referencing a scratch path alongside the sandbox.
-        assert (
-            validate_prompt_isolation(
-                "save to {sandbox}/out.py (reference: /tmp/somewhere.log)"
-            )
-            is None
-        )
+        assert validate_prompt_isolation("save to {sandbox}/out.py (reference: /tmp/somewhere.log)") is None

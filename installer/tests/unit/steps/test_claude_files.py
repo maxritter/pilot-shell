@@ -370,6 +370,47 @@ class TestDirectoryClearing:
             assert not (old_global_cmds / "old-cmd.md").exists()
             assert manifest_path.exists()
 
+    def test_deprecated_pilot_skills_cleaned_from_home(self):
+        """Regression for Sweep-Manifest: skills Pilot historically shipped but
+        no longer ships (e.g., `notify`, `skill-build`) are removed from
+        ~/.claude/skills/ by the explicit deprecated-name cleanup. User
+        skills with non-deprecated names are preserved untouched."""
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        step = ClaudeFilesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            home_dir = Path(tmpdir) / "home"
+            home_claude = home_dir / ".claude"
+
+            skills_dir = home_claude / "skills"
+            skills_dir.mkdir(parents=True)
+            # Deprecated Pilot skills — must be removed.
+            (skills_dir / "notify").mkdir()
+            (skills_dir / "notify" / "SKILL.md").write_text("legacy notify")
+            (skills_dir / "skill-build").mkdir()
+            (skills_dir / "skill-build" / "SKILL.md").write_text("legacy skill-build")
+            # User skill — must survive.
+            (skills_dir / "my-custom-skill").mkdir()
+            (skills_dir / "my-custom-skill" / "SKILL.md").write_text("user custom")
+
+            step._cleanup_deprecated_pilot_skills_in_home(home_claude)  # type: ignore[attr-defined]
+
+            assert not (skills_dir / "notify").exists()
+            assert not (skills_dir / "skill-build").exists()
+            assert (skills_dir / "my-custom-skill" / "SKILL.md").read_text() == "user custom"
+
+    def test_deprecated_cleanup_idempotent_when_dirs_missing(self):
+        """No-op when ~/.claude/skills/ does not exist (fresh install path)."""
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        step = ClaudeFilesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            home_dir = Path(tmpdir) / "home"
+            home_claude = home_dir / ".claude"
+            home_claude.mkdir(parents=True)
+            # Should not raise; nothing to clean.
+            step._cleanup_deprecated_pilot_skills_in_home(home_claude)  # type: ignore[attr-defined]
+
     def test_skips_clearing_when_source_equals_destination(self):
         """Directories are NOT cleared when source == destination (same dir)."""
         from installer.context import InstallContext
@@ -1580,7 +1621,7 @@ class TestPatchPluginRoot:
     def test_handles_multiple_occurrences(self):
         from installer.steps.claude_files import patch_plugin_root
 
-        content = '${CLAUDE_PLUGIN_ROOT}/a ${CLAUDE_PLUGIN_ROOT}/b'
+        content = "${CLAUDE_PLUGIN_ROOT}/a ${CLAUDE_PLUGIN_ROOT}/b"
         result = patch_plugin_root(content)
         assert "${CLAUDE_PLUGIN_ROOT}" not in result
         assert result.count("/a") == 1
@@ -1706,9 +1747,7 @@ class TestAgentsCategoryAndSkips:
 
         step = ClaudeFilesStep()
         claude_dir = tmp_path / ".claude"
-        with patch(
-            "installer.steps.claude_files.get_claude_config_dir", return_value=claude_dir
-        ):
+        with patch("installer.steps.claude_files.get_claude_config_dir", return_value=claude_dir):
             ctx = MagicMock()
             dest = step._get_dest_path("agents", "pilot/agents/spec-review.md", ctx)
         assert dest == claude_dir / "agents" / "spec-review.md"
@@ -1725,9 +1764,7 @@ class TestAgentsCategoryAndSkips:
         marker.write_text('{"name": "pilot"}')
 
         step = ClaudeFilesStep()
-        with patch(
-            "installer.steps.claude_files.get_claude_config_dir", return_value=claude_dir
-        ):
+        with patch("installer.steps.claude_files.get_claude_config_dir", return_value=claude_dir):
             step._remove_legacy_plugin_marker()
 
         assert not marker.exists()
@@ -1739,9 +1776,7 @@ class TestAgentsCategoryAndSkips:
 
         claude_dir = tmp_path / ".claude"
         step = ClaudeFilesStep()
-        with patch(
-            "installer.steps.claude_files.get_claude_config_dir", return_value=claude_dir
-        ):
+        with patch("installer.steps.claude_files.get_claude_config_dir", return_value=claude_dir):
             # Should not raise even if marker doesn't exist.
             step._remove_legacy_plugin_marker()
 
@@ -1767,11 +1802,7 @@ class TestAgentsCategoryAndSkips:
         hooks_dir = plugin_dir / "hooks"
         hooks_dir.mkdir()
         hooks_dir_content = {
-            "hooks": {
-                "Stop": [
-                    {"matcher": "", "hooks": [{"type": "command", "command": "py /a/stop.py"}]}
-                ]
-            }
+            "hooks": {"Stop": [{"matcher": "", "hooks": [{"type": "command", "command": "py /a/stop.py"}]}]}
         }
         (hooks_dir / "hooks.json").write_text(json.dumps(hooks_dir_content) + "\n")
         # Pre-existing user settings.json
@@ -1973,9 +2004,7 @@ class TestMergeMcpServersIntoClaudeJson:
         claude_dir = tmp_path / ".claude"
         plugin_dir = claude_dir / "pilot"
         plugin_dir.mkdir(parents=True)
-        (plugin_dir / ".mcp.json").write_text(
-            json.dumps({"mcpServers": {"context7": {"command": "npx"}}}, indent=2)
-        )
+        (plugin_dir / ".mcp.json").write_text(json.dumps({"mcpServers": {"context7": {"command": "npx"}}}, indent=2))
         home = tmp_path
         # Pre-existing ~/.claude.json with non-MCP keys
         (home / ".claude.json").write_text(json.dumps({"oauthAccount": "x"}, indent=2))
@@ -2013,9 +2042,7 @@ class TestMergeMcpServersIntoClaudeJson:
             json.dumps({"mcpServers": {"context7": {"command": "node-custom"}}}, indent=2)
         )
         # baseline (from prior install) records what Pilot installed
-        (claude_dir / ".pilot-mcp-baseline.json").write_text(
-            json.dumps({"context7": {"command": "npx-old"}}, indent=2)
-        )
+        (claude_dir / ".pilot-mcp-baseline.json").write_text(json.dumps({"context7": {"command": "npx-old"}}, indent=2))
 
         step = ClaudeFilesStep()
         ui = MagicMock()
@@ -2105,11 +2132,7 @@ class TestMergeHooksIntoSettings:
 
         # Incoming hooks.json from the new install
         hooks_json = {
-            "hooks": {
-                "Stop": [
-                    {"matcher": "", "hooks": [{"type": "command", "command": "py NEW_PILOT_STOP"}]}
-                ]
-            }
+            "hooks": {"Stop": [{"matcher": "", "hooks": [{"type": "command", "command": "py NEW_PILOT_STOP"}]}]}
         }
         (hooks_dir / "hooks.json").write_text(json.dumps(hooks_json, indent=2) + "\n")
 
@@ -2117,11 +2140,7 @@ class TestMergeHooksIntoSettings:
         claude_dir.mkdir(parents=True, exist_ok=True)
         (claude_dir / ".pilot-hooks-baseline.json").write_text(
             json.dumps(
-                {
-                    "Stop": [
-                        {"matcher": "", "hooks": [{"type": "command", "command": "py OLD_PILOT_STOP"}]}
-                    ]
-                },
+                {"Stop": [{"matcher": "", "hooks": [{"type": "command", "command": "py OLD_PILOT_STOP"}]}]},
                 indent=2,
             )
             + "\n"

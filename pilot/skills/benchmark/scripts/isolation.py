@@ -213,8 +213,7 @@ def isolate_global_contamination(paths: list[Path]) -> Iterator[list[Path]]:
             _write_manifest(planned)
         except OSError as err:
             print(
-                f"  ⚠  could not write recovery manifest ({err}); aborting "
-                "isolation to stay fail-safe",
+                f"  ⚠  could not write recovery manifest ({err}); aborting isolation to stay fail-safe",
                 file=sys.stderr,
             )
             yield []

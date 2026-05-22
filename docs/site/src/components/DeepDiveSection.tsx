@@ -36,7 +36,6 @@ const hooksPipeline = [
     description: "When the user sends a message",
     hooks: [
       "spec_mode_guard.py blocks invalid /spec usage",
-      "credential_scanner.py scans the prompt for secrets before delivery",
       "Session registration starts in the background",
     ],
     color: "text-emerald-400",
@@ -50,7 +49,6 @@ const hooksPipeline = [
       "tool_redirect.py reroutes unsupported tools to approved alternatives",
       "Plan mode conflicts are blocked before they execute",
       "tool_token_saver.py rewrites Bash commands through RTK",
-      "credential_scanner.py denies .env reads and blocks secrets in Bash commands and git commits",
     ],
     color: "text-amber-400",
     bgColor: "bg-amber-400/10",
@@ -61,7 +59,6 @@ const hooksPipeline = [
     description: "After edits, reads, searches, and task tools",
     hooks: [
       "file_checker.py runs lint, type, and TDD checks on edits",
-      "credential_scanner.py scrubs Bash output that contains secrets",
       "context_monitor.py tracks usage before compaction",
       "Memory observations are captured asynchronously",
     ],
@@ -130,7 +127,7 @@ const rulesCategories = [
     rules: [
       "Pilot CLI, Semble code search, and RTK token optimization",
       "Browser automation: Chrome, Chrome DevTools MCP, playwright-cli, agent-browser",
-      "MCP server selection plus context-mode routing",
+      "MCP server selection and tool-routing rules",
     ],
   },
   {
@@ -295,8 +292,9 @@ const DeepDiveSection = () => {
                 </h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   These hooks keep your context lean.{" "}
-                  <span className="text-violet-400">context-mode</span> routes
-                  large outputs to a sandbox — up to 98% savings per command.{" "}
+                  <span className="text-violet-400">Semble</span> returns only
+                  the matched code chunks — ~98% fewer tokens than{" "}
+                  <code className="text-violet-400">grep + read</code>.{" "}
                   <span className="text-violet-400">RTK</span> compresses
                   remaining tool output by 60–90%. Rules load only for matching
                   file types. Skills use progressive disclosure. When compaction
@@ -310,7 +308,7 @@ const DeepDiveSection = () => {
           </div>
         </div>
 
-        {/* Smart Model Routing */}
+        {/* Model Switching */}
         <div
           ref={routingRef}
           className={`mb-16 ${routingInView ? "animate-fade-in-up" : "opacity-0"}`}
@@ -321,11 +319,11 @@ const DeepDiveSection = () => {
             </div>
             <div>
               <h3 className="text-2xl font-bold text-foreground">
-                Smart Model Routing
+                Model Switching
               </h3>
               <p className="text-sm text-muted-foreground">
-                The right model for each phase — reasoning power where it
-                matters most
+                Opus for planning, Sonnet for implementation — the cost-saving
+                swap made ergonomic.
               </p>
             </div>
           </div>
@@ -334,38 +332,44 @@ const DeepDiveSection = () => {
             <div className="rounded-lg p-5 border border-violet-400/30 bg-violet-400/5">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-sm font-mono font-semibold text-violet-400 bg-violet-400/10 px-3 py-1 rounded-lg">
-                  OPUS
+                  /model opus
                 </span>
-                <span className="text-sm text-muted-foreground">Planning</span>
+                <span className="text-sm text-muted-foreground">
+                  before /spec
+                </span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Exploring your codebase, designing architecture, and writing the
-                spec. Deep reasoning on the plan prevents expensive rework
-                downstream.
+                Planning is where deep reasoning pays off most. The
+                spec-mode-guard hook hard-blocks <code>/spec</code> on non-Opus
+                models so the foundation of every feature gets the best
+                reasoning hop.
               </p>
             </div>
             <div className="rounded-lg p-5 border border-primary/30 bg-primary/5">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-sm font-mono font-semibold text-primary bg-primary/10 px-3 py-1 rounded-lg">
-                  SONNET
+                  /model sonnet
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  Implementation & Verification
+                  before implementation
                 </span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                With a solid plan, code and verification are straightforward.
-                The unified review agent handles deep code analysis while the
-                orchestrator runs mechanical checks efficiently.
+                When the plan is approved, Pilot pauses so you can pick the
+                model for the rest of the workflow. Run <code>/model …</code>{" "}
+                and send any prompt — implementation and verification resume
+                on the new model and run continuously from there.
               </p>
             </div>
           </div>
 
           <div className="rounded-lg p-4 border border-border/30 bg-card/20">
             <p className="text-xs text-muted-foreground text-center">
-              Implementation is the easy part when the plan is good and
-              verification is thorough. All model assignments are configurable
-              per-component via the Pilot Shell Console settings.
+              `/model` is the single switch — no separate per-phase dropdowns to
+              manage. The opt-out <strong>Model Switching</strong> automation
+              toggle pauses between planning and implementation; turn it off in
+              Console Settings → Automation to run the whole workflow on a
+              single model.
             </p>
           </div>
         </div>

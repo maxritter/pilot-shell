@@ -471,9 +471,7 @@ class TestHasTestImportingModule:
         impl.write_text("def authenticate(): pass\n")
         tests = tmp_path / "hooks" / "tests"
         tests.mkdir(parents=True)
-        (tests / "test_auth_hook.py").write_text(
-            "from _checkers.auth import authenticate\n"
-        )
+        (tests / "test_auth_hook.py").write_text("from _checkers.auth import authenticate\n")
         assert has_test_importing_module(str(impl)) is True
 
     def test_detects_plain_import(self, tmp_path: Path):
@@ -526,9 +524,7 @@ class TestHasTestImportingModuleTs:
         impl.write_text("export function authenticate() {}\n")
         tests = tmp_path / "tests"
         tests.mkdir()
-        (tests / "login-flow.test.ts").write_text(
-            'import { authenticate } from "../src/auth";\n'
-        )
+        (tests / "login-flow.test.ts").write_text('import { authenticate } from "../src/auth";\n')
         assert has_test_importing_module_ts(str(impl)) is True
 
     def test_returns_false_when_no_test_imports(self, tmp_path: Path):
@@ -537,9 +533,7 @@ class TestHasTestImportingModuleTs:
         impl.write_text("export function authenticate() {}\n")
         tests = tmp_path / "tests"
         tests.mkdir()
-        (tests / "unrelated.test.ts").write_text(
-            'import { other } from "../src/other";\n'
-        )
+        (tests / "unrelated.test.ts").write_text('import { other } from "../src/other";\n')
         assert has_test_importing_module_ts(str(impl)) is False
 
     def test_skips_non_typescript_files(self, tmp_path: Path):
@@ -550,9 +544,7 @@ class TestHasTestImportingModuleTs:
 
 
 class TestSoftenedWarnText:
-    def test_python_warning_references_parsimony_not_create_test_file(
-        self, capsys, tmp_path: Path, monkeypatch
-    ):
+    def test_python_warning_references_parsimony_not_create_test_file(self, capsys, tmp_path: Path, monkeypatch):
         impl = tmp_path / "src" / "lonely.py"
         impl.parent.mkdir(parents=True)
         impl.write_text("def foo(): pass\n")

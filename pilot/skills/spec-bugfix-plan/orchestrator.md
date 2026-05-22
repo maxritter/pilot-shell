@@ -3,7 +3,6 @@ name: spec-bugfix-plan
 description: "Bugfix spec planning phase - investigate root cause, design fix, get approval"
 argument-hint: "<bug description> or <path/to/plan.md>"
 user-invocable: false
-model: opus
 hooks:
   Stop:
     - command: uv run --no-project python "${CLAUDE_PLUGIN_ROOT}/hooks/spec_plan_validator.py"

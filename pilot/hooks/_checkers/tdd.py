@@ -243,11 +243,7 @@ def has_test_importing_module(impl_path: str) -> bool:
                     src = test_file.read_text(encoding="utf-8", errors="ignore")
                 except OSError:
                     continue
-                if (
-                    py_from.search(src)
-                    or py_from_package_import.search(src)
-                    or py_import.search(src)
-                ):
+                if py_from.search(src) or py_from_package_import.search(src) or py_import.search(src):
                     return True
     return False
 
@@ -274,10 +270,7 @@ def has_test_importing_module_ts(impl_path: str) -> bool:
 
     kebab = _pascal_to_kebab(base_name)
     names = [base_name] if kebab == base_name else [base_name, kebab]
-    patterns = [
-        re.compile(rf"""(?:from|import)\s+['"][^'"]*\b{re.escape(n)}\b[^'"]*['"]""")
-        for n in names
-    ]
+    patterns = [re.compile(rf"""(?:from|import)\s+['"][^'"]*\b{re.escape(n)}\b[^'"]*['"]""") for n in names]
 
     for test_dir in test_dirs:
         for ext_glob in ("**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"):

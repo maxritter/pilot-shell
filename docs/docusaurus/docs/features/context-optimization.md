@@ -14,21 +14,12 @@ With 1M context windows (API subscribers on Team and Enterprise get this on all 
 
 | Strategy | Savings | How |
 |----------|---------|-----|
-| **context-mode sandbox** | Up to 98% | Routes large-output commands to a sandboxed executor — only your printed summary enters context. An FTS5 knowledge base indexes content for on-demand search. Blocks curl/wget/WebFetch entirely. |
 | **RTK proxy** | 60–90% | Rewrites dev tool output (`git status`, `npm test`, etc.) to remove noise before it enters the context window |
+| **Semble code search** | ~98% | Returns only the matched chunks instead of dumping whole files — Semble's own benchmark shows ~98% fewer tokens than `grep + read` at 94% recall |
 | **Conditional rule loading** | Variable | Coding standards load only for matching file types — Python rules don't load when editing TypeScript |
 | **Progressive skill disclosure** | ~90% | Skill frontmatter (~100 tokens) loads always; full SKILL.md loads only on activation; linked files load on demand |
 | **Scoped MCP tools** | Variable | MCP tool schemas are lazy-loaded via `ToolSearch` — only fetched when needed, not preloaded |
-
-### context-mode in detail
-
-The biggest single source of context savings. When a command would dump 50KB+ of output into your context window, context-mode intercepts it and runs it in a sandbox. The tool hierarchy:
-
-1. **`ctx_batch_execute`** — Run multiple commands + search in one call. Replaces 30+ individual tool calls.
-2. **`ctx_search`** — Query indexed content. Pass all questions as an array in one call.
-3. **`ctx_execute` / `ctx_execute_file`** — Run code in sandbox (JS, Python, shell). Only stdout enters context.
-
-PreToolUse hooks automatically guide Claude toward these tools when it attempts commands that would produce large output. Session continuity hooks (PostToolUse, PreCompact, SessionStart) track 13 event categories across compactions.
+| **Routing hooks** | Variable | PreToolUse hooks block `curl`/`wget`/built-in `WebFetch` and redirect to the dedicated web-fetch MCP, so large pages don't dump into context |
 
 ## Status line display
 

@@ -25,7 +25,7 @@ Run from any directory — it installs globally to `~/.pilot/` and `~/.claude/`.
 | 1 | Prerequisites | Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq |
 | 2 | Claude files | Sets up `~/.claude/` plugin — rules, commands, hooks, MCP servers |
 | 3 | Config files | Creates `.nvmrc` and project config |
-| 4 | Dependencies | Installs Semble, RTK, CodeGraph, context-mode (better-sqlite3), Chrome DevTools MCP, playwright-cli, agent-browser, language servers |
+| 4 | Dependencies | Installs Semble, RTK, CodeGraph, Chrome DevTools MCP, playwright-cli, agent-browser, language servers |
 | 5 | Shell integration | Auto-configures bash, fish, and zsh with the `pilot` alias. Add `# pilot-shell:managed-elsewhere` to a config file to opt out (for framework-managed shells) |
 | 6 | VS Code extensions | Installs recommended extensions for your language stack |
 | 7 | Finalize | Success message with next steps |
@@ -72,3 +72,26 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstal
 ```
 
 Removes binary, plugin files, managed commands/rules, settings, and shell aliases. Your project's custom `.claude/` files are preserved.
+
+## Reset & Refresh
+
+Claude Code's session logs and Pilot's caches grow over time and can degrade performance. A periodic reset every few weeks restores a clean baseline.
+
+```bash
+# 1. Inside Claude Code, log out
+> /logout
+
+# 2. Back up your current config (just in case)
+mv ~/.claude.json ~/.claude.json.bak
+mv ~/.claude       ~/.claude.bak
+mv ~/.pilot        ~/.pilot.bak
+
+# 3. Reinstall Pilot Shell from the official installer
+curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
+
+# 4. Start Pilot, sign in to Claude, and re-activate your license
+pilot
+pilot activate <your-license-key>
+```
+
+Once Pilot Shell is running smoothly again, you can delete the `.bak` copies. Forgot your license key? Recover it in the [Polar members area](https://polar.sh/max-ritter/portal).

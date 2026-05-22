@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 10
 title: Permission Modes
 description: How Pilot Shell configures Claude Code permission modes — from default autonomy to manual approval — controlling when Claude asks before reading or writing.
 ---

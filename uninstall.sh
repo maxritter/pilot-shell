@@ -10,8 +10,22 @@ HOOKS_BASELINE_FILE="$CLAUDE_DIR/.pilot-hooks-baseline.json"
 MCP_BASELINE_FILE="$CLAUDE_DIR/.pilot-mcp-baseline.json"
 LSP_MANIFEST_FILE="$PILOT_DIR/.pilot-lsp-plugins.json"
 
-# Piebald LSP plugins installed by Pilot (Task 4)
 LSP_MARKETPLACE="claude-code-lsps"
+
+EXTRA_PLUGIN_IDS=(
+	"codex@openai-codex"
+	"chrome-devtools-mcp@chrome-devtools-plugins"
+)
+
+LEGACY_PLUGIN_IDS=(
+	"context-mode@context-mode"
+)
+LEGACY_MARKETPLACE_NAMES=(
+	"context-mode"
+)
+LEGACY_HOOK_FILES=(
+	"context-mode-cache-heal.mjs"
+)
 
 CLAUDE_ALIAS_MARKER="# Pilot Shell"
 OLD_CLAUDE_PILOT_MARKER="# Claude Pilot"
@@ -98,12 +112,25 @@ confirm_uninstall() {
 		echo "    • Clean Pilot-added keys (and mcpServers) from ~/.claude.json"
 	fi
 
-	# LSP plugins Pilot installed itself (not user-pre-installed ones)
 	if [ -f "$LSP_MANIFEST_FILE" ]; then
 		local lsp_ids
 		lsp_ids=$(grep -oE '"[a-z][a-z0-9-]*@'"$LSP_MARKETPLACE"'"' "$LSP_MANIFEST_FILE" 2>/dev/null | sed 's/"//g' | tr '\n' ' ')
 		if [ -n "$lsp_ids" ]; then
 			echo "    • Uninstall Pilot-installed LSP plugins: ${lsp_ids}"
+		fi
+	fi
+
+	if command -v claude >/dev/null 2>&1; then
+		local extras_present=""
+		local plugin_list
+		plugin_list=$(claude plugins list 2>/dev/null)
+		for plugin_id in "${EXTRA_PLUGIN_IDS[@]}" "${LEGACY_PLUGIN_IDS[@]}"; do
+			if echo "$plugin_list" | grep -q "$plugin_id"; then
+				extras_present="${extras_present}${plugin_id} "
+			fi
+		done
+		if [ -n "$extras_present" ]; then
+			echo "    • Uninstall Pilot-installed plugins: ${extras_present}"
 		fi
 	fi
 
@@ -248,8 +275,6 @@ run_surgical_cleanup() {
 		return
 	fi
 
-	# Pass paths via env vars (NOT interpolated into Python source) to defend
-	# against home-dir paths with single-quotes or other shell metachars.
 	PILOT_TARGET="$target_file" PILOT_BASELINE_FILE="$baseline_file" PILOT_DISPLAY="$display_path" python3 -c '
 import json, os, sys
 
@@ -324,12 +349,6 @@ remove_pilot_settings() {
 		echo "    [!!] Skipped ~/.claude/settings.json (no baseline found, manual cleanup needed)"
 	fi
 
-	# Strip Pilot's merged `hooks` entries using the dedicated hooks baseline
-	# (Task 1). Signature-aware reversal — uses (matcher, sorted-commands)
-	# identity, matching the install-time merge_pilot_hooks logic — NOT a
-	# generic value-equality diff. This correctly handles the case where the
-	# user added their own hook entries alongside Pilot's: Pilot's entries are
-	# removed by signature; user entries remain.
 	if [ -f "$settings_file" ] && [ -f "$HOOKS_BASELINE_FILE" ] && command -v python3 >/dev/null 2>&1; then
 		PILOT_SETTINGS="$settings_file" PILOT_HOOKS_BASELINE="$HOOKS_BASELINE_FILE" python3 -c '
 import json, os, sys
@@ -402,14 +421,7 @@ remove_claude_json_keys() {
 		return
 	fi
 
-	# Value-aware MCP server cleanup: only remove a Pilot server entry when its
-	# value in ~/.claude.json EXACTLY matches the dedicated MCP baseline (i.e.,
-	# the user hasn't modified it). User-modified entries are left entirely
-	# intact — NOT partially gutted by the recursive surgical cleanup.
 	if [ -f "$mcp_baseline" ] && command -v python3 >/dev/null 2>&1; then
-		# Pass paths via env vars (NOT shell-interpolated into Python source) to
-		# defend against home-dir paths containing single-quotes or other shell
-		# metacharacters.
 		PILOT_CLAUDE_JSON="$claude_json" PILOT_MCP_BASELINE="$mcp_baseline" python3 -c '
 import json, os, sys
 
@@ -454,8 +466,6 @@ with open(claude_json, "w") as f:
 '
 	fi
 
-	# Standard surgical cleanup for ~/.claude.json non-MCP keys (claude.json
-	# template keys — owned by .pilot-claude-baseline.json).
 	if [ -f "$baseline" ]; then
 		run_surgical_cleanup "$claude_json" "$baseline" "~/.claude.json"
 	fi
@@ -492,6 +502,41 @@ uninstall_lsp_plugins() {
 		removed_items+=("$removed_count LSP plugin(s)")
 	fi
 	rm -f "$LSP_MANIFEST_FILE"
+}
+
+uninstall_extra_plugins() {
+	if ! command -v claude >/dev/null 2>&1; then
+		echo "    [!!] Skipped non-LSP plugin uninstall (claude CLI not found)"
+		return
+	fi
+
+	local removed_count=0
+	local plugin_list
+	plugin_list=$(claude plugins list 2>/dev/null)
+	for plugin_id in "${EXTRA_PLUGIN_IDS[@]}" "${LEGACY_PLUGIN_IDS[@]}"; do
+		if echo "$plugin_list" | grep -q "$plugin_id"; then
+			if claude plugins uninstall "$plugin_id" -y >/dev/null 2>&1; then
+				removed_count=$((removed_count + 1))
+			fi
+		fi
+	done
+
+	local marketplace_list
+	marketplace_list=$(claude plugins marketplace list 2>/dev/null)
+	for marketplace_name in "${LEGACY_MARKETPLACE_NAMES[@]}"; do
+		if echo "$marketplace_list" | grep -q "$marketplace_name"; then
+			claude plugins marketplace remove "$marketplace_name" >/dev/null 2>&1 || true
+		fi
+	done
+
+	for hook_file in "${LEGACY_HOOK_FILES[@]}"; do
+		rm -f "$CLAUDE_DIR/hooks/$hook_file"
+	done
+
+	if [ "$removed_count" -gt 0 ]; then
+		echo "    [OK] Uninstalled $removed_count Pilot-installed plugin(s) (codex/chrome-devtools, plus legacy if present)"
+		removed_items+=("$removed_count non-LSP plugin(s)")
+	fi
 }
 
 remove_pilot_baselines() {
@@ -617,6 +662,7 @@ remove_manifest_files
 remove_pilot_settings
 remove_claude_json_keys
 uninstall_lsp_plugins
+uninstall_extra_plugins
 remove_pilot_baselines
 remove_pilot_plugin
 remove_pilot_dir

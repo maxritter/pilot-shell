@@ -48,10 +48,9 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 - **`/prd`** — brainstorm ideas into clear requirements through with optional deep research
 - **Spec collaboration** — share specs with teammates, annotations flow back grouped by author
 - **Quality hooks** — enforce linting, formatting, type checking, and tests as quality gates
-- **Security scanner** — built-in credential scanner blocks dangerous patterns in prompt and files
 - **Context engineering** — preserves decisions and knowledge across sessions
 - **Code intelligence** — semantic search (Semble) + code knowledge graph (CodeGraph)
-- **Token optimization** — 60–90% cost reduction via RTK and context-mode
+- **Token optimization** — 60–90% cost reduction via RTK compression and Semble code search
 - **Extensions** — reusable rules, skills, and MCP servers with team sharing and customization
 - **Console** — local web dashboard with real-time notifications and session management
 - **Pilot Bot** — persistent automation agent with scheduled tasks and background jobs
@@ -106,6 +105,31 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstal
 </details>
 
 <details>
+<summary><b>Reset & Refresh</b></summary>
+
+Over time, Claude Code's accumulated session logs and Pilot Shell's caches can slow things down. A periodic reset gives you a clean baseline:
+
+```bash
+# 1. Inside Claude Code, log out
+> /logout
+
+# 2. Back up your current config (just in case)
+mv ~/.claude.json ~/.claude.json.bak
+mv ~/.claude       ~/.claude.bak
+mv ~/.pilot        ~/.pilot.bak
+
+# 3. Reinstall Pilot Shell from the official installer
+curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
+
+# 4. Start Pilot, sign in to Claude, and re-activate your license
+pilot
+pilot activate <your-license-key>
+```
+
+Once Pilot Shell is running smoothly again, you can delete the `.bak` copies. Forgot your license key? Recover it in the [members area](https://polar.sh/max-ritter/portal).
+</details>
+
+<details>
 <summary><b>Using a Dev Container</b></summary>
 
 Pilot Shell works inside Dev Containers. Copy the [`.devcontainer`](https://github.com/maxritter/pilot-shell/tree/main/.devcontainer) folder from this repository into your project, adapt it to your needs (base image, extensions, dependencies), and run the installer inside the container. The installer auto-detects the container environment and skips system-level dependencies like Homebrew.
@@ -122,7 +146,7 @@ For tighter isolation when working with untrusted code, combine the dev containe
 1. **Prerequisites** — Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq
 2. **Claude files** — Installs into `~/.claude/` (native layout) — rules, commands, hooks, MCP servers, agents
 3. **Config files** — Creates `.nvmrc` and project config
-4. **Dependencies** — Installs Semble, RTK, CodeGraph, context-mode (better-sqlite3), [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp), [playwright-cli](https://github.com/microsoft/playwright-cli), [agent-browser](https://agent-browser.dev/), language servers
+4. **Dependencies** — Installs Semble, RTK, CodeGraph, [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp), [playwright-cli](https://github.com/microsoft/playwright-cli), [agent-browser](https://agent-browser.dev/), language servers
 5. **Shell integration** — Auto-configures bash, fish, and zsh with `pilot` alias
 6. **VS Code extensions** — Installs recommended extensions for your stack
 7. **Finalize** — Success message with next steps
@@ -410,7 +434,7 @@ Each view with project-specific data has an inline **Project Filter** dropdown �
 | **Changes**       | Git diff viewer with staged/unstaged files, branch info, and worktree context. **Review mode** adds inline annotations on diff lines — the agent reads them directly before marking a spec as verified |
 | **Usage**         | Daily token costs, model routing breakdown, and usage trends                                                                                 |
 | **Help**          | Documentation, guides, and quick-start resources                                                                                             |
-| **Settings**      | Model selection per command/sub-agent, spec workflow toggles (worktree, questions, approval), reviewer toggles (spec review, changes review, optional Codex), extended context (1M) global toggle plus per-row overrides (e.g. Opus 1M for planning, Sonnet 200K for implementation) with pricing info |
+| **Settings**      | One scrollable page (Spec Workflow / Console). Spec workflow toggles (branch isolation, ask questions, plan approval, **Model Switching**), reviewer toggles (spec review, changes review, optional Codex). Active model is set via `/model` — no model dropdowns here. |
 
 </details>
 
@@ -563,38 +587,6 @@ Only ship the files and directories you need. A repo with just `rules/` is a val
 
 </details>
 
-### Security Scanner
-
-Built-in credential scanner catches secrets before they leak — into Claude's context or into git history. Shipped as a single hook registered on four events; runs entirely on your machine, fail-closed by default, **ON out of the box**.
-
-<details>
-<summary><b>What gets scanned</b></summary>
-
-| Event | What is scanned | What happens on a match |
-|-------|-----------------|-------------------------|
-| `UserPromptSubmit` | The submitted prompt text | Prompt is blocked before delivery to Claude |
-| `PreToolUse(Read)` | File basename + content (binary-safe). `.env*` files denied unconditionally | Read denied |
-| `PreToolUse(Bash)` | Command text, `$VAR` env values, `cat`/`head`/`tail` targets, `git commit` staged diff + staged blobs | Bash denied |
-| `PostToolUse(Bash)` | Combined `stdout + stderr` (first 1 MB) | Tool result dropped — leak stays out of the transcript |
-
-</details>
-
-<details>
-<summary><b>Patterns detected</b></summary>
-
-**24 patterns** ported from [gitleaks](https://github.com/gitleaks/gitleaks) and [TruffleHog](https://github.com/trufflesecurity/trufflehog): AWS, GCP, GitHub PAT, GitLab PAT, npm, Stripe, OpenAI, Anthropic, Slack, Discord, Telegram, Twilio, SendGrid, Mailgun, JWT, PEM/SSH private keys, generic high-entropy secrets, and more. Generic patterns use a Shannon-entropy filter so `API_KEY=test12345` doesn't trip the scanner.
-
-</details>
-
-<details>
-<summary><b>Bypass and toggle</b></summary>
-
-**Bypass per-prompt** with `[allow-secret]` or `[allow-all]` in the next prompt — one-shot, the tag is consumed by the first tool call. Tags inside an assistant message or a Bash command string are NOT honoured (prompt-injection defense).
-
-Toggle from Console → Settings → Security → **Credential Scanner**. The setting persists to `~/.pilot/config.json` (`securityScanner.credentialScanner`) and the launcher exports `PILOT_CREDENTIAL_SCANNER_ENABLED` so the four hook entry points respect it. See the [Security Scanner](https://pilot-shell.com/docs/features/security) page for the full pattern list and rationale.
-
-</details>
-
 ### Pilot Bot
 
 Run Claude Code as a persistent 24/7 automation agent with scheduled tasks, background jobs and heartbeat monitoring:
@@ -655,18 +647,17 @@ For full details on every component, see the **[Documentation](https://pilot-she
 | [**Pilot Console**](https://pilot-shell.com/docs/features/console) | Local web dashboard at `localhost:41777` — 10 views (Dashboard, Sessions, Memories, Requirements, Specifications, Extensions, Changes, Usage, Help, Settings). Port is configurable in Console Settings (`CLAUDE_PILOT_WORKER_PORT`). SQLite-backed, nothing leaves your machine |
 | [**Pilot Bot**](https://pilot-shell.com/docs/features/bot) | Persistent 24/7 automation agent with scheduled jobs, background tasks, heartbeat monitoring, and optional Telegram integration for bidirectional messaging |
 | [**Status Line**](https://pilot-shell.com/docs/features/statusline) | Real-time session dashboard below every response — model, context usage, git status, cost, spec progress, and savings metrics across 3 lines |
-| [**Smart Model Routing**](https://pilot-shell.com/docs/features/model-routing) | Opus for planning, Sonnet for implementation and verification. Configurable per-phase via Console Settings, with a Custom… option for pinning explicit Anthropic model IDs (e.g. `claude-opus-4-6`). 1M context available — included with API plans (Team, Enterprise); Max users can mix per-row (Opus 1M for planning, Sonnet 200K for implementation) without API billing |
-| [**Rules & Standards**](https://pilot-shell.com/docs/features/rules) | 11 built-in rules for workflow, testing, verification, debugging, code review, documentation sync, tooling, and context protection + 5 coding standards activated by file type (Python, TypeScript, Go, Frontend, Backend) |
-| [**Context Optimization**](https://pilot-shell.com/docs/features/context-optimization) | Lean context strategies — context-mode sandbox (large outputs never enter context), RTK output compression, conditional rule loading, progressive skill disclosure, lazy MCP tool loading. Compaction resilience for 200K windows |
+| [**Model Switching**](https://pilot-shell.com/docs/features/model-routing) | `/model` is the only switch. Recommended flow: Opus for planning (the `spec-mode-guard` hook hard-blocks `/spec` on non-Opus), then `/model sonnet[1m]` for implementation. Two resume paths: Option A — switch model and type any prompt (fast, carries planning context); Option B — `/clear` then `/spec <plan path>` (fresh session, lower cost). The opt-out **Model Switching** toggle handles the pause. |
+| [**Rules & Standards**](https://pilot-shell.com/docs/features/rules) | 10 built-in rules for workflow, testing, verification, debugging, code review, documentation sync, tooling, and MCP routing + 5 coding standards activated by file type (Python, TypeScript, Go, Frontend, Backend) |
+| [**Context Optimization**](https://pilot-shell.com/docs/features/context-optimization) | Lean context strategies — RTK output compression, Semble chunk-only code search, conditional rule loading, progressive skill disclosure, lazy MCP tool loading. Compaction resilience for 200K windows |
 | [**Remote Control**](https://pilot-shell.com/docs/features/remote-control) | Control Pilot sessions from your phone, tablet, or any browser — send prompts, monitor progress, and receive notifications remotely |
-| [**Hooks Pipeline**](https://pilot-shell.com/docs/features/hooks) | 18 hook registrations across 7 events — quality checks on every file edit (ruff, ESLint, go vet), TDD enforcement, token optimization via RTK (60–90% savings), credential scanning, session continuity, memory capture, and session lifecycle management |
-| [**Security Scanner**](https://pilot-shell.com/docs/features/security) | Built-in credential scanner — 24 secret patterns (AWS, GitHub, Stripe, OpenAI, Anthropic, JWT, ...) blocked across prompts, file reads, Bash commands, command output, and `git commit` staged diffs. `.env*` files are denied unconditionally. Bypass per-prompt with `[allow-secret]`. Toggle in Console → Settings → Security |
+| [**Hooks Pipeline**](https://pilot-shell.com/docs/features/hooks) | 15 hook registrations across 7 events — quality checks on every file edit (ruff, ESLint, go vet), TDD enforcement, token optimization via RTK (60–90% savings), session continuity, memory capture, and session lifecycle management |
 | [**Extensions**](https://pilot-shell.com/docs/features/extensions) | Unified view of skills, rules, commands, and agents across global, project, plugin, and remote scopes. Team sharing via git with push, pull, diff, and APM-compatible export |
 | [**Customization**](https://pilot-shell.com/docs/features/customization) | Customize what Pilot auto-installs — tweak built-in skills (spec, prd, etc.), modify rules, register additional hooks, add agents, and adjust auto-applied MCP / Claude settings. Source is a git repo (team-wide) or local directory (personal). Skill overlays (`insert_after` / `insert_before` / `replace` / `disable`) modify core workflows without full-file forks; fragments stay pinned to upstream by hash with drift detection. Team and Enterprise plans |
 | [**Pilot CLI**](https://pilot-shell.com/docs/features/cli) | Session management, headless mode (`-p`) for CI/CD and scripts, worktree isolation, licensing, context monitoring. Run `pilot` or `ccp` to start |
-| [**MCP Servers**](https://pilot-shell.com/docs/features/mcp-servers) | 7 preconfigured MCP servers for library docs, persistent memory, web search, GitHub code search, web page fetching, code knowledge graphs, and hybrid code search (Semble), plus the context-mode plugin for sandboxed execution |
+| [**MCP Servers**](https://pilot-shell.com/docs/features/mcp-servers) | 7 preconfigured MCP servers for library docs, persistent memory, web search, GitHub code search, web page fetching, code knowledge graphs, and hybrid code search (Semble), plus the Chrome DevTools MCP plugin for browser automation |
 | [**Language Servers**](https://pilot-shell.com/docs/features/language-servers) | Real-time diagnostics for Python (basedpyright), TypeScript (vtsls), Go (gopls). Auto-installed, auto-configured |
-| [**Open Source Tools**](https://pilot-shell.com/docs/features/open-source-tools) | 20+ open-source tools installed alongside Pilot — Semble (hybrid code search), CodeGraph (code intelligence), RTK (token optimization), context-mode, language servers, and system prerequisites |
+| [**Open Source Tools**](https://pilot-shell.com/docs/features/open-source-tools) | 20+ open-source tools installed alongside Pilot — Semble (hybrid code search), CodeGraph (code intelligence), RTK (token optimization), language servers, and system prerequisites |
 
 ---
 
@@ -758,7 +749,7 @@ Yes. Pilot Shell installs once globally and works across all your projects — y
 
 Pilot Shell sets Claude Code to `bypassPermissions` mode by default so the `/spec` workflow can run autonomously — planning, implementing, and verifying without pausing for permission prompts at every tool call. This is what enables the end-to-end spec-driven development experience.
 
-**In Quick Mode (regular chat), you have full control.** Press `Shift+Tab` at any time to cycle through [Claude Code's permission modes](https://pilot-shell.com/docs/getting-started/permission-modes):
+**In Quick Mode (regular chat), you have full control.** Press `Shift+Tab` at any time to cycle through [Claude Code's permission modes](https://pilot-shell.com/docs/features/permission-modes):
 
 | Mode             | Behavior                                              |
 | ---------------- | ----------------------------------------------------- |
@@ -796,6 +787,20 @@ On **Team**, every developer runs `pilot customize install <source>` once and st
 Yes. Copy the `.devcontainer` folder from this repository into your project, adapt it to your needs (base image, extensions, dependencies), and install Pilot Shell inside the container. Everything works the same — hooks, rules, MCP servers, persistent memory, and the Console dashboard all run inside the container. This is a great option for teams that want a consistent, reproducible development environment.
 
 For tighter isolation when working with untrusted code, layer Claude Code's [`/sandbox`](https://code.claude.com/docs/en/sandboxing) on top — the Dockerfile pre-installs `bubblewrap`, `socat`, `iptables`, and `ipset` so it works out of the box. See Anthropic's [development containers](https://code.claude.com/docs/en/devcontainer) and [sandboxing](https://code.claude.com/docs/en/sandboxing) docs for the hardening patterns.
+
+</details>
+
+<details>
+<summary><b>Pilot feels slower after a few weeks — what should I do?</b></summary>
+
+Claude Code's session logs and Pilot's caches grow over time and can degrade performance. A periodic reset every few weeks restores a clean baseline:
+
+1. Run `/logout` inside Claude Code.
+2. Back up `~/.claude.json`, `~/.claude/`, and `~/.pilot/` (`mv` them to `.bak` copies).
+3. Reinstall Pilot Shell with the official installer (`curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash`).
+4. Run `pilot`, sign in to Claude again, and `pilot activate <your-license-key>`.
+
+Forgot your license key? Recover it in the [members area](https://polar.sh/max-ritter/portal). Full step-by-step is in the [Reset & Refresh](#install) section above.
 
 </details>
 

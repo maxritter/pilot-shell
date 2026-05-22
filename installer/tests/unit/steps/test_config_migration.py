@@ -10,107 +10,56 @@ from unittest.mock import MagicMock, patch
 class TestMigrationV1:
     """Migration v0 → v1: Update model routing from v7.0 to v7.1."""
 
-    def test_spec_verify_opus_migrated_through_to_opus(self, tmp_path: Path) -> None:
-        """spec-verify: v1 migrates opus→sonnet, then v8 migrates sonnet→opus."""
-        from installer.steps.config_migration import migrate_model_config
+    def test_v1_unit_spec_verify_opus_to_sonnet(self) -> None:
+        """v1 migrates commands.spec-verify from opus to sonnet (in-memory raw dict)."""
+        from installer.steps.config_migration import _migration_v1
 
-        config_path = tmp_path / "config.json"
-        config_path.write_text(
-            json.dumps(
-                {
-                    "model": "opus",
-                    "commands": {"spec-verify": "opus", "spec-plan": "opus"},
-                }
-            )
-        )
+        raw: dict = {"commands": {"spec-verify": "opus", "spec-plan": "opus"}}
+        _migration_v1(raw)
+        assert raw["commands"]["spec-verify"] == "sonnet"
+        assert raw["commands"]["spec-plan"] == "opus"
 
-        result = migrate_model_config(config_path)
+    def test_v1_unit_spec_verify_sonnet_stays_sonnet(self) -> None:
+        """v1 leaves spec-verify=sonnet alone (v8 later handles the sonnet→opus default)."""
+        from installer.steps.config_migration import _migration_v1
 
-        assert result is True
-        migrated = json.loads(config_path.read_text())
-        # v8 renames commands→skills and defaults spec-verify to opus
-        assert migrated["skills"]["spec-verify"] == "opus"
-        assert migrated["skills"]["spec-plan"] == "opus"
-        assert "commands" not in migrated
+        raw: dict = {"commands": {"spec-verify": "sonnet"}}
+        _migration_v1(raw)
+        assert raw["commands"]["spec-verify"] == "sonnet"
 
-    def test_spec_verify_sonnet_migrated_to_opus(self, tmp_path: Path) -> None:
-        """spec-verify set to sonnet is migrated to opus by v8."""
-        from installer.steps.config_migration import migrate_model_config
+    def test_v1_unit_stale_agent_keys_removed(self) -> None:
+        """Old agent keys from v7.0 are removed and plan-reviewer/spec-reviewer added."""
+        from installer.steps.config_migration import _migration_v1
 
-        config_path = tmp_path / "config.json"
-        config_path.write_text(
-            json.dumps(
-                {
-                    "model": "opus",
-                    "commands": {"spec-verify": "sonnet"},
-                }
-            )
-        )
-
-        migrate_model_config(config_path)
-
-        migrated = json.loads(config_path.read_text())
-        # v8 defaults sonnet→opus for spec-verify
-        assert migrated["skills"]["spec-verify"] == "opus"
-
-    def test_stale_agent_keys_removed(self, tmp_path: Path) -> None:
-        """Old agent keys from v7.0 are removed."""
-        from installer.steps.config_migration import migrate_model_config
-
-        config_path = tmp_path / "config.json"
-        config_path.write_text(
-            json.dumps(
-                {
-                    "model": "opus",
-                    "agents": {
-                        "plan-challenger": "sonnet",
-                        "plan-verifier": "sonnet",
-                        "spec-reviewer-compliance": "sonnet",
-                        "spec-reviewer-quality": "opus",
-                        "spec-reviewer-goal": "sonnet",
-                        "plan-reviewer": "sonnet",
-                        "spec-reviewer": "sonnet",
-                    },
-                }
-            )
-        )
-
-        migrate_model_config(config_path)
-
-        migrated = json.loads(config_path.read_text())
-        agents = migrated["agents"]
+        raw: dict = {
+            "agents": {
+                "plan-challenger": "sonnet",
+                "plan-verifier": "sonnet",
+                "spec-reviewer-compliance": "sonnet",
+                "spec-reviewer-quality": "opus",
+                "spec-reviewer-goal": "sonnet",
+            },
+        }
+        _migration_v1(raw)
+        agents = raw["agents"]
         assert "plan-challenger" not in agents
         assert "plan-verifier" not in agents
         assert "spec-reviewer-compliance" not in agents
         assert "spec-reviewer-quality" not in agents
         assert "spec-reviewer-goal" not in agents
-        # v7 renames plan-reviewer → spec-review, spec-reviewer → changes-review
-        assert agents["spec-review"] == "sonnet"
-        assert agents["changes-review"] == "sonnet"
+        assert agents["plan-reviewer"] == "sonnet"
+        assert agents["spec-reviewer"] == "sonnet"
 
-    def test_new_agent_keys_added_if_missing(self, tmp_path: Path) -> None:
-        """New agent keys are added when they don't exist yet."""
-        from installer.steps.config_migration import migrate_model_config
+    def test_v1_unit_new_agent_keys_added_if_missing(self) -> None:
+        """New plan-reviewer/spec-reviewer agent keys are added when they don't exist."""
+        from installer.steps.config_migration import _migration_v1
 
-        config_path = tmp_path / "config.json"
-        config_path.write_text(
-            json.dumps(
-                {
-                    "model": "opus",
-                    "agents": {
-                        "plan-challenger": "sonnet",
-                        "plan-verifier": "sonnet",
-                    },
-                }
-            )
-        )
-
-        migrate_model_config(config_path)
-
-        migrated = json.loads(config_path.read_text())
-        # v1 adds plan-reviewer/spec-reviewer, then v7 renames them
-        assert migrated["agents"]["spec-review"] == "sonnet"
-        assert migrated["agents"]["changes-review"] == "sonnet"
+        raw: dict = {
+            "agents": {"plan-challenger": "sonnet", "plan-verifier": "sonnet"},
+        }
+        _migration_v1(raw)
+        assert raw["agents"]["plan-reviewer"] == "sonnet"
+        assert raw["agents"]["spec-reviewer"] == "sonnet"
 
     def test_config_version_set_after_migration(self, tmp_path: Path) -> None:
         """_configVersion is set to current after migration."""
@@ -131,72 +80,33 @@ class TestMigrationV1:
 class TestMigrationV2:
     """Migration v1 → v2: Switch sync and learn commands from sonnet to opus."""
 
-    def test_sync_and_learn_migrated_to_opus(self, tmp_path: Path) -> None:
+    def test_v2_unit_sync_and_learn_migrated_to_opus(self) -> None:
         """Both sync and learn skills are migrated from sonnet to opus."""
-        from installer.steps.config_migration import migrate_model_config
+        from installer.steps.config_migration import _migration_v2
 
-        config_path = tmp_path / "config.json"
-        config_path.write_text(
-            json.dumps(
-                {
-                    "model": "opus",
-                    "commands": {"sync": "sonnet", "learn": "sonnet"},
-                    "_configVersion": 1,
-                }
-            )
-        )
+        raw: dict = {"commands": {"sync": "sonnet", "learn": "sonnet"}}
+        _migration_v2(raw)
+        assert raw["commands"]["sync"] == "opus"
+        assert raw["commands"]["learn"] == "opus"
 
-        result = migrate_model_config(config_path)
-
-        assert result is True
-        migrated = json.loads(config_path.read_text())
-        # v8 renames commands→skills
-        assert migrated["skills"]["sync"] == "opus"
-        assert migrated["skills"]["learn"] == "opus"
-
-    def test_already_opus_not_changed(self, tmp_path: Path) -> None:
+    def test_v2_unit_already_opus_not_changed(self) -> None:
         """Skills already set to opus are left alone."""
-        from installer.steps.config_migration import migrate_model_config
+        from installer.steps.config_migration import _migration_v2
 
-        config_path = tmp_path / "config.json"
-        config_path.write_text(
-            json.dumps(
-                {
-                    "model": "opus",
-                    "commands": {"sync": "opus", "learn": "opus"},
-                    "_configVersion": 1,
-                }
-            )
-        )
+        raw: dict = {"commands": {"sync": "opus", "learn": "opus"}}
+        result = _migration_v2(raw)
+        assert result is False
+        assert raw["commands"]["sync"] == "opus"
+        assert raw["commands"]["learn"] == "opus"
 
-        result = migrate_model_config(config_path)
-
-        assert result is True
-        migrated = json.loads(config_path.read_text())
-        assert migrated["skills"]["sync"] == "opus"
-        assert migrated["skills"]["learn"] == "opus"
-
-    def test_partial_migration(self, tmp_path: Path) -> None:
+    def test_v2_unit_partial_migration(self) -> None:
         """Only sonnet values are migrated; opus values are untouched."""
-        from installer.steps.config_migration import migrate_model_config
+        from installer.steps.config_migration import _migration_v2
 
-        config_path = tmp_path / "config.json"
-        config_path.write_text(
-            json.dumps(
-                {
-                    "model": "opus",
-                    "commands": {"sync": "opus", "learn": "sonnet"},
-                    "_configVersion": 1,
-                }
-            )
-        )
-
-        result = migrate_model_config(config_path)
-
-        assert result is True
-        migrated = json.loads(config_path.read_text())
-        assert migrated["skills"]["sync"] == "opus"
-        assert migrated["skills"]["learn"] == "opus"
+        raw: dict = {"commands": {"sync": "opus", "learn": "sonnet"}}
+        _migration_v2(raw)
+        assert raw["commands"]["sync"] == "opus"
+        assert raw["commands"]["learn"] == "opus"
 
 
 class TestMigrationIdempotency:
@@ -234,9 +144,7 @@ class TestMigrationIdempotency:
 
         assert result is False
 
-    def test_creates_subscription_aware_config_on_fresh_install(
-        self, tmp_path: Path
-    ) -> None:
+    def test_creates_subscription_aware_config_on_fresh_install(self, tmp_path: Path) -> None:
         """create_if_missing=True (used by installer) triggers fresh-install defaults.
 
         Regression: previously the installer skipped migrations entirely when no
@@ -297,7 +205,8 @@ class TestMigrationPreservesExistingData:
     """Migrations preserve non-model keys in config.json."""
 
     def test_preserves_non_model_keys(self, tmp_path: Path) -> None:
-        """Keys like auto_update are untouched."""
+        """Non-model keys like auto_update survive the full migration chain through v12,
+        while v12-pruned keys (model, agents, commands/skills, extendedContext) are removed."""
         from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
@@ -316,9 +225,12 @@ class TestMigrationPreservesExistingData:
         migrate_model_config(config_path)
 
         migrated = json.loads(config_path.read_text())
-        assert migrated["extendedContext"] is True
         assert migrated["auto_update"] is True
-        assert migrated["model"] == "opus"
+        # v12 pruned the legacy model-routing keys
+        assert "model" not in migrated
+        assert "extendedContext" not in migrated
+        assert "skills" not in migrated
+        assert "agents" not in migrated
 
     def test_handles_missing_commands_key(self, tmp_path: Path) -> None:
         """Config without commands key doesn't crash."""
@@ -638,9 +550,9 @@ class TestMigrationV4:
 class TestMigrationV5:
     """Migration v4 → v5: Enable extended context (1M) by default."""
 
-    def test_enables_extended_context_when_false(self, tmp_path: Path) -> None:
-        """extendedContext: false gets set to true."""
-        from installer.steps.config_migration import migrate_model_config
+    def test_full_chain_from_v4_lands_at_current_version_with_v12_post_state(self, tmp_path: Path) -> None:
+        """End-to-end chain from v4 through v12: legacy model/extendedContext keys are pruned."""
+        from installer.steps.config_migration import CURRENT_CONFIG_VERSION, migrate_model_config
 
         config_path = tmp_path / "config.json"
         config_path.write_text(
@@ -657,48 +569,10 @@ class TestMigrationV5:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        assert migrated["extendedContext"] is True
-
-    def test_noop_when_already_true(self, tmp_path: Path) -> None:
-        """extendedContext: true stays true."""
-        from installer.steps.config_migration import migrate_model_config
-
-        config_path = tmp_path / "config.json"
-        config_path.write_text(
-            json.dumps(
-                {
-                    "model": "opus",
-                    "extendedContext": True,
-                    "_configVersion": 4,
-                }
-            )
-        )
-
-        result = migrate_model_config(config_path)
-
-        assert result is True
-        migrated = json.loads(config_path.read_text())
-        assert migrated["extendedContext"] is True
-
-    def test_sets_true_when_absent(self, tmp_path: Path) -> None:
-        """Missing extendedContext key gets set to true."""
-        from installer.steps.config_migration import migrate_model_config
-
-        config_path = tmp_path / "config.json"
-        config_path.write_text(
-            json.dumps(
-                {
-                    "model": "opus",
-                    "_configVersion": 4,
-                }
-            )
-        )
-
-        result = migrate_model_config(config_path)
-
-        assert result is True
-        migrated = json.loads(config_path.read_text())
-        assert migrated["extendedContext"] is True
+        assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
+        # v12 prunes the legacy model + extendedContext keys
+        assert "model" not in migrated
+        assert "extendedContext" not in migrated
 
     def test_v5_unit_returns_false_when_already_true(self) -> None:
         """Unit function returns False when no change needed."""
@@ -1035,118 +909,65 @@ class TestGetSubscriptionType:
 class TestMigrationV8:
     """Migration v7 → v8: Rename commands→skills and default all to opus."""
 
-    def test_commands_renamed_to_skills(self, tmp_path: Path) -> None:
-        """The 'commands' config key is renamed to 'skills'."""
-        from installer.steps.config_migration import migrate_model_config
+    def test_v8_unit_commands_renamed_to_skills(self) -> None:
+        """The 'commands' config key is renamed to 'skills' (direct call to _migration_v8)."""
+        from installer.steps.config_migration import _migration_v8
 
-        config_path = tmp_path / "config.json"
-        config_path.write_text(
-            json.dumps(
-                {
-                    "model": "opus",
-                    "commands": {"spec": "opus", "spec-plan": "opus"},
-                    "_configVersion": 7,
-                }
-            )
-        )
-
-        result = migrate_model_config(config_path)
+        raw: dict = {"model": "opus", "commands": {"spec": "opus", "spec-plan": "opus"}}
+        result = _migration_v8(raw)
 
         assert result is True
-        migrated = json.loads(config_path.read_text())
-        assert "skills" in migrated
-        assert "commands" not in migrated
-        assert migrated["skills"]["spec"] == "opus"
+        assert "skills" in raw
+        assert "commands" not in raw
+        assert raw["skills"]["spec"] == "opus"
 
-    def test_sonnet_defaults_migrated_to_opus(self, tmp_path: Path) -> None:
+    def test_v8_unit_sonnet_defaults_migrated_to_opus(self) -> None:
         """spec, spec-implement, and spec-verify are migrated from sonnet to opus."""
-        from installer.steps.config_migration import migrate_model_config
+        from installer.steps.config_migration import _migration_v8
 
-        config_path = tmp_path / "config.json"
-        config_path.write_text(
-            json.dumps(
-                {
-                    "model": "opus",
-                    "commands": {
-                        "spec": "sonnet",
-                        "spec-plan": "opus",
-                        "spec-implement": "sonnet",
-                        "spec-verify": "sonnet",
-                    },
-                    "_configVersion": 7,
-                }
-            )
-        )
+        raw: dict = {
+            "model": "opus",
+            "commands": {
+                "spec": "sonnet",
+                "spec-plan": "opus",
+                "spec-implement": "sonnet",
+                "spec-verify": "sonnet",
+            },
+        }
+        _migration_v8(raw)
 
-        migrate_model_config(config_path)
+        assert raw["skills"]["spec"] == "opus"
+        assert raw["skills"]["spec-plan"] == "opus"
+        assert raw["skills"]["spec-implement"] == "opus"
+        assert raw["skills"]["spec-verify"] == "opus"
 
-        migrated = json.loads(config_path.read_text())
-        assert migrated["skills"]["spec"] == "opus"
-        assert migrated["skills"]["spec-plan"] == "opus"
-        assert migrated["skills"]["spec-implement"] == "opus"
-        assert migrated["skills"]["spec-verify"] == "opus"
-
-    def test_user_opus_choices_preserved(self, tmp_path: Path) -> None:
+    def test_v8_unit_user_opus_choices_preserved(self) -> None:
         """Skills already set to opus are not changed."""
-        from installer.steps.config_migration import migrate_model_config
+        from installer.steps.config_migration import _migration_v8
 
-        config_path = tmp_path / "config.json"
-        config_path.write_text(
-            json.dumps(
-                {
-                    "model": "opus",
-                    "commands": {"spec": "opus", "spec-implement": "opus"},
-                    "_configVersion": 7,
-                }
-            )
-        )
+        raw: dict = {"model": "opus", "commands": {"spec": "opus", "spec-implement": "opus"}}
+        _migration_v8(raw)
 
-        migrate_model_config(config_path)
+        assert raw["skills"]["spec"] == "opus"
+        assert raw["skills"]["spec-implement"] == "opus"
 
-        migrated = json.loads(config_path.read_text())
-        assert migrated["skills"]["spec"] == "opus"
-        assert migrated["skills"]["spec-implement"] == "opus"
+    def test_v8_unit_extended_context_ensured(self) -> None:
+        """extendedContext is set to true by v8 (before v12 prunes it)."""
+        from installer.steps.config_migration import _migration_v8
 
-    def test_extended_context_ensured(self, tmp_path: Path) -> None:
-        """extendedContext is set to true."""
-        from installer.steps.config_migration import migrate_model_config
+        raw: dict = {"model": "opus", "extendedContext": False}
+        _migration_v8(raw)
 
-        config_path = tmp_path / "config.json"
-        config_path.write_text(
-            json.dumps(
-                {
-                    "model": "opus",
-                    "extendedContext": False,
-                    "_configVersion": 7,
-                }
-            )
-        )
+        assert raw["extendedContext"] is True
 
-        migrate_model_config(config_path)
-
-        migrated = json.loads(config_path.read_text())
-        assert migrated["extendedContext"] is True
-
-    def test_skills_key_not_overwritten_by_commands(self, tmp_path: Path) -> None:
+    def test_v8_unit_skills_key_not_overwritten_by_commands(self) -> None:
         """If both 'skills' and 'commands' exist, 'skills' is kept."""
-        from installer.steps.config_migration import migrate_model_config
+        from installer.steps.config_migration import _migration_v8
 
-        config_path = tmp_path / "config.json"
-        config_path.write_text(
-            json.dumps(
-                {
-                    "model": "opus",
-                    "skills": {"spec": "opus"},
-                    "commands": {"spec": "sonnet"},
-                    "_configVersion": 7,
-                }
-            )
-        )
+        raw: dict = {"model": "opus", "skills": {"spec": "opus"}, "commands": {"spec": "sonnet"}}
+        _migration_v8(raw)
 
-        migrate_model_config(config_path)
-
-        migrated = json.loads(config_path.read_text())
-        assert migrated["skills"]["spec"] == "opus"
+        assert raw["skills"]["spec"] == "opus"
 
 
 class TestMigrationV9:
@@ -1285,8 +1106,9 @@ class TestMigrationV9:
         # Other skills unchanged
         assert raw["skills"]["spec"] == "opus"
 
-    def test_full_migration_for_pro_user(self, tmp_path: Path) -> None:
-        """Full migrate_model_config from v8 sets sonnet for pro user."""
+    def test_full_migration_for_pro_user_runs_through_to_v12(self, tmp_path: Path) -> None:
+        """Full migrate_model_config from v8 runs v9 (sonnet for pro) then v12 (prune model keys).
+        The v9 effect is captured in the .bak.v11 backup; the on-disk config has the keys pruned."""
         from installer.steps.config_migration import CURRENT_CONFIG_VERSION, migrate_model_config
 
         config_path = tmp_path / "config.json"
@@ -1310,15 +1132,19 @@ class TestMigrationV9:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        assert migrated["skills"]["spec-implement"] == "sonnet"
-        assert migrated["skills"]["spec-verify"] == "sonnet"
-        # Other skills unchanged
-        assert migrated["skills"]["spec"] == "opus"
-        assert migrated["skills"]["spec-plan"] == "opus"
         assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
+        # v12 pruned the legacy model + skills keys
+        assert "model" not in migrated
+        assert "skills" not in migrated
+        # The pre-v12 backup captured the v8 input verbatim
+        bak_path = config_path.with_suffix(".json.bak.v11")
+        assert bak_path.exists()
+        backup = json.loads(bak_path.read_text())
+        assert backup["skills"]["spec-implement"] == "opus"  # v9 hasn't run on the backup
 
-    def test_full_migration_for_max_user_preserves_opus(self, tmp_path: Path) -> None:
-        """Full migrate_model_config from v8 preserves opus for max user."""
+    def test_full_migration_for_max_user_runs_through_to_v12(self, tmp_path: Path) -> None:
+        """Full migrate_model_config from v8 for max user runs the chain through v12.
+        v9 leaves opus intact, v12 then prunes the keys; backup captures the v9 post-state."""
         from installer.steps.config_migration import CURRENT_CONFIG_VERSION, migrate_model_config
 
         config_path = tmp_path / "config.json"
@@ -1340,11 +1166,16 @@ class TestMigrationV9:
         with patch("installer.steps.config_migration._get_subscription_type", return_value="max"):
             result = migrate_model_config(config_path)
 
-        assert result is True  # Version bump still counts as modified
+        assert result is True
         migrated = json.loads(config_path.read_text())
-        assert migrated["skills"]["spec-implement"] == "opus"
-        assert migrated["skills"]["spec-verify"] == "opus"
         assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
+        # v12 pruned the keys outright
+        assert "model" not in migrated
+        assert "skills" not in migrated
+        # Backup preserves the v8 input
+        bak_path = config_path.with_suffix(".json.bak.v11")
+        backup = json.loads(bak_path.read_text())
+        assert backup["skills"]["spec-implement"] == "opus"
 
     def test_no_spec_bugfix_verify_key_added(self) -> None:
         """Migration does not add spec-bugfix-verify key (alias handles it)."""
@@ -1363,10 +1194,10 @@ class TestMigrationV9:
 class TestMigrationV10:
     """Migration v9 → v10: Issue #139 — strip alias [1m] from disk; preserve explicit-id [1m]."""
 
-    def test_current_version_is_10(self) -> None:
+    def test_current_version_is_at_least_10(self) -> None:
         from installer.steps.config_migration import CURRENT_CONFIG_VERSION
 
-        assert CURRENT_CONFIG_VERSION == 11
+        assert CURRENT_CONFIG_VERSION >= 10
 
     def test_strips_alias_1m_from_main_model(self) -> None:
         from installer.steps.config_migration import _migration_v10
@@ -1431,8 +1262,9 @@ class TestMigrationV10:
 
         assert modified is False
 
-    def test_full_migration_strips_legacy_1m_and_bumps_version(self, tmp_path: Path) -> None:
-        """End-to-end: a v9 config with legacy alias [1m] reaches v10 with stripped values."""
+    def test_full_migration_strips_legacy_1m_runs_through_to_v12(self, tmp_path: Path) -> None:
+        """End-to-end: a v9 config with legacy alias [1m] runs through v10 (strip [1m])
+        and v12 (prune dead model keys) — final state has no model/skills keys."""
         from installer.steps.config_migration import CURRENT_CONFIG_VERSION, migrate_model_config
 
         config_path = tmp_path / "config.json"
@@ -1450,10 +1282,17 @@ class TestMigrationV10:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        assert migrated["model"] == "opus"
-        assert migrated["skills"]["spec-plan"] == "sonnet"
         assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
-        assert CURRENT_CONFIG_VERSION == 11
+        # v12 pruned the dead keys outright
+        assert "model" not in migrated
+        assert "skills" not in migrated
+        assert migrated["specWorkflow"]["modelSwitch"] is True
+        # v12 also wrote a backup with the pre-migration state
+        bak_path = config_path.with_suffix(".json.bak.v11")
+        assert bak_path.exists()
+        backup = json.loads(bak_path.read_text())
+        assert backup["model"] == "opus[1m]"
+        assert backup["skills"]["spec-plan"] == "sonnet[1m]"
 
     def test_v10_idempotent(self, tmp_path: Path) -> None:
         """Re-running migrate on a fully-migrated config is a no-op.
@@ -1468,9 +1307,7 @@ class TestMigrationV10:
 
         config_path = tmp_path / "config.json"
         config_path.write_text(
-            json.dumps(
-                {"_configVersion": CURRENT_CONFIG_VERSION, "model": "opus", "skills": {"spec-plan": "sonnet"}}
-            )
+            json.dumps({"_configVersion": CURRENT_CONFIG_VERSION, "model": "opus", "skills": {"spec-plan": "sonnet"}})
         )
 
         result = migrate_model_config(config_path)
@@ -1480,10 +1317,10 @@ class TestMigrationV10:
 class TestMigrationV11:
     """Migration v10 → v11: Rename specWorkflow.worktreeSupport → branchIsolation."""
 
-    def test_current_version_is_11(self) -> None:
+    def test_current_version_is_at_least_11(self) -> None:
         from installer.steps.config_migration import CURRENT_CONFIG_VERSION
 
-        assert CURRENT_CONFIG_VERSION == 11
+        assert CURRENT_CONFIG_VERSION >= 11
 
     def test_v11_migrates_worktree_support_true(self) -> None:
         from installer.steps.config_migration import _migration_v11
@@ -1523,22 +1360,14 @@ class TestMigrationV11:
         assert modified is False
         assert "branchIsolation" not in raw["specWorkflow"]
 
-    def test_v11_already_applied_skipped(self, tmp_path: Path) -> None:
-        """End-to-end: a config already at v11 with branchIsolation is unchanged."""
-        from installer.steps.config_migration import migrate_model_config
+    def test_v11_unchanged_when_already_v11_and_no_legacy_keys(self) -> None:
+        """A config at v11 with no legacy worktreeSupport gets no changes from _migration_v11."""
+        from installer.steps.config_migration import _migration_v11
 
-        config_path = tmp_path / "config.json"
-        config_path.write_text(
-            json.dumps(
-                {
-                    "_configVersion": 11,
-                    "specWorkflow": {"branchIsolation": True},
-                }
-            )
-        )
-
-        result = migrate_model_config(config_path)
+        raw: dict = {"specWorkflow": {"branchIsolation": True}}
+        result = _migration_v11(raw)
         assert result is False
+        assert raw["specWorkflow"]["branchIsolation"] is True
 
     def test_v11_preserves_other_spec_workflow_keys(self) -> None:
         from installer.steps.config_migration import _migration_v11
@@ -1589,7 +1418,7 @@ class TestMigrationV11:
 
     def test_full_migration_renames_worktree_support_and_bumps_version(self, tmp_path: Path) -> None:
         """End-to-end: a v10 config with worktreeSupport reaches v11 with branchIsolation."""
-        from installer.steps.config_migration import CURRENT_CONFIG_VERSION, migrate_model_config
+        from installer.steps.config_migration import migrate_model_config
 
         config_path = tmp_path / "config.json"
         config_path.write_text(
@@ -1609,8 +1438,130 @@ class TestMigrationV11:
 
         assert result is True
         migrated = json.loads(config_path.read_text())
-        assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
         assert migrated["specWorkflow"]["branchIsolation"] is True
         assert "worktreeSupport" not in migrated["specWorkflow"]
         assert migrated["specWorkflow"]["askQuestionsDuringPlanning"] is True
         assert migrated["specWorkflow"]["planApproval"] is True
+
+
+class TestMigrationV12:
+    """Migration v11 → v12: Strip dead model keys, seed specWorkflow.modelSwitch, write .bak.v11 once."""
+
+    def test_current_version_is_12(self) -> None:
+        from installer.steps.config_migration import CURRENT_CONFIG_VERSION
+
+        assert CURRENT_CONFIG_VERSION == 12
+
+    def test_v12_strips_dead_model_keys_and_seeds_model_switch(self, tmp_path: Path) -> None:
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(
+            json.dumps(
+                {
+                    "_configVersion": 11,
+                    "model": "opus",
+                    "skills": {"spec-plan": "opus", "spec-implement": "sonnet"},
+                    "agents": {"spec-review": "sonnet"},
+                    "extendedContext": True,
+                    "extendedContextOverrides": {"main": True},
+                    "specWorkflow": {
+                        "branchIsolation": True,
+                        "askQuestionsDuringPlanning": True,
+                        "planApproval": True,
+                    },
+                    "reviewerAgents": {"specReview": True, "changesReview": True},
+                }
+            )
+        )
+
+        result = migrate_model_config(config_path)
+
+        assert result is True
+        migrated = json.loads(config_path.read_text())
+        assert migrated["_configVersion"] == 12
+        for dead in ("model", "skills", "agents", "extendedContext", "extendedContextOverrides"):
+            assert dead not in migrated, f"{dead} should have been pruned"
+        assert migrated["specWorkflow"]["modelSwitch"] is True
+        assert migrated["specWorkflow"]["branchIsolation"] is True
+        assert migrated["reviewerAgents"]["specReview"] is True
+
+    def test_v12_writes_bak_v11_with_pre_migration_content(self, tmp_path: Path) -> None:
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        pre_migration_payload = {
+            "_configVersion": 11,
+            "model": "opus",
+            "skills": {"spec-plan": "opus"},
+        }
+        config_path.write_text(json.dumps(pre_migration_payload))
+
+        migrate_model_config(config_path)
+
+        bak_path = config_path.with_suffix(".json.bak.v11")
+        assert bak_path.exists()
+        backup = json.loads(bak_path.read_text())
+        assert backup == pre_migration_payload
+
+    def test_v12_bak_not_overwritten_on_second_run(self, tmp_path: Path) -> None:
+        """Idempotency: backup holds genuine v11 snapshot even after re-runs."""
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        original = {"_configVersion": 11, "model": "opus", "skills": {"spec-plan": "opus"}}
+        config_path.write_text(json.dumps(original))
+
+        migrate_model_config(config_path)
+        first_backup = (config_path.with_suffix(".json.bak.v11")).read_text()
+
+        # Re-run; config is already v12, but explicitly invoke again
+        migrate_model_config(config_path)
+        second_backup = (config_path.with_suffix(".json.bak.v11")).read_text()
+
+        assert first_backup == second_backup
+        assert json.loads(first_backup) == original
+
+    def test_v12_idempotent_when_already_v12(self, tmp_path: Path) -> None:
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(
+            json.dumps(
+                {
+                    "_configVersion": 12,
+                    "specWorkflow": {"modelSwitch": True, "branchIsolation": True},
+                }
+            )
+        )
+
+        result = migrate_model_config(config_path)
+        assert result is False
+
+    def test_v12_seeds_model_switch_when_specworkflow_missing(self, tmp_path: Path) -> None:
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(json.dumps({"_configVersion": 11}))
+
+        migrate_model_config(config_path)
+        migrated = json.loads(config_path.read_text())
+        assert migrated["specWorkflow"]["modelSwitch"] is True
+
+    def test_v12_preserves_user_model_switch_false(self, tmp_path: Path) -> None:
+        """If user already set modelSwitch=false explicitly, do not overwrite to true."""
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(
+            json.dumps(
+                {
+                    "_configVersion": 11,
+                    "specWorkflow": {"modelSwitch": False, "branchIsolation": True},
+                }
+            )
+        )
+
+        migrate_model_config(config_path)
+        migrated = json.loads(config_path.read_text())
+        assert migrated["specWorkflow"]["modelSwitch"] is False

@@ -114,7 +114,6 @@ pathlib.Path(os.environ["PROMPT_FILE"]).write_text(text)
 
 3. Launch the task in background. **⛔ For `task`, the companion's `--background` flag IS supported** (unlike `review`/`adversarial-review`). Use the companion's own background mode — the launch command returns the job ID immediately on stdout. Capture the job ID for collection in Step 3.
 
-   ⛔ **Launch via the `Bash` tool, NEVER `ctx_execute`.** The Codex runtime broker socket is not reachable from sandboxed subprocesses; `ctx_execute` launches print a synthetic task ID and never register.
    ```
    Bash(
      command="cd $PROJECT_ROOT && node $CODEX_COMPANION task --background --prompt-file \"$PROMPT_FILE\"",

@@ -1,39 +1,14 @@
 ---
 sidebar_position: 1
 title: MCP Servers
-description: Pre-configured MCP servers — context7 for library docs, mem-search for persistent memory, web-search, grep-mcp, web-fetch, CodeGraph, and Semble in every session.
+description: Pre-configured MCP servers — context7 for library docs, mem-search for persistent memory, web-search, grep-mcp, web-fetch, CodeGraph, and Semble in every session, plus chrome-devtools-mcp.
 ---
 
 # MCP Servers
 
 External context always available to every session.
 
-Seven MCP servers are pre-configured in `.mcp.json` and lazy-loaded via `ToolSearch` to keep context lean. Pilot also installs the `context-mode` and `chrome-devtools-mcp` Claude plugins alongside them. Add your own MCP entries in `.mcp.json`, then run `/setup-rules` to generate documentation.
-
-## context-mode plugin
-
-**Context window protection — sandbox execution and FTS5 knowledge base**
-
-Keeps large outputs out of your context window. Commands that produce more than ~20 lines of output are routed to a sandboxed executor — only your printed summary enters context. An FTS5 knowledge base indexes content for later search. This ships via the Claude plugin system, not as an entry inside `.mcp.json`. Integrated via [context-mode](https://github.com/mksglu/context-mode).
-
-```
-ctx_batch_execute(commands: [...], queries: ["find errors"])
-ctx_execute(language: "javascript", code: "const r = await fetch(...)")
-ctx_execute_file(path: "data.json", language: "javascript", code: "...")
-ctx_search(queries: ["auth flow", "login endpoint"])
-```
-
-**Key capabilities:**
-
-| Tool | Use case |
-|------|----------|
-| `ctx_batch_execute` | Run multiple commands + search in one call — replaces 30+ individual tool calls |
-| `ctx_execute` | Run code in sandbox (JS, Python, shell) — only stdout enters context |
-| `ctx_execute_file` | Process a file in sandbox — file content never enters context |
-| `ctx_search` | Query the FTS5 knowledge base with multiple queries in one call |
-| `ctx_index` | Store content in the knowledge base for later search |
-
-**Routing hooks** automatically intercept tools that produce large output (Bash, Read, Grep, WebFetch) and suggest context-mode alternatives. curl/wget and WebFetch are blocked entirely — use dedicated web-fetch and web-search MCP servers instead.
+Seven MCP servers are pre-configured in `.mcp.json` and lazy-loaded via `ToolSearch` to keep context lean. Pilot also installs the `chrome-devtools-mcp` Claude plugin alongside them. Add your own MCP entries in `.mcp.json`, then run `/setup-rules` to generate documentation.
 
 ## chrome-devtools-mcp plugin
 
@@ -160,6 +135,8 @@ codegraph_context(task="refactor authentication flow")
 
 :::info Tool selection
 Rules specify the preferred order — Semble first for intent-based codebase questions, CodeGraph for structural queries (call tracing, impact analysis), context7 for library API lookups, grep-mcp for production code examples, web-search for current information. The `tool_redirect.py` hook blocks the built-in WebSearch/WebFetch and the Explore agent, redirecting to these alternatives.
+
+curl/wget and WebFetch are blocked entirely — use the dedicated web-fetch and web-search MCP servers instead.
 :::
 
 ## Semble

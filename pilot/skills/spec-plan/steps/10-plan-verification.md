@@ -120,7 +120,6 @@ pathlib.Path(os.environ["PROMPT_FILE"]).write_text(text)
 
 3. Launch the task in background. **⛔ For `task`, the companion's `--background` flag IS supported (unlike `review`/`adversarial-review` where only Claude Code's `Bash(run_in_background=true)` detaches).** Use the companion's own background mode here — the launch command returns the job ID immediately on stdout. Capture the job ID for collection.
 
-   ⛔ **Launch via the `Bash` tool, NEVER `ctx_execute`.** The Codex runtime broker socket is not reachable from sandboxed subprocesses; `ctx_execute` launches print a synthetic task ID and never register.
    ```
    Bash(
      command="cd $PROJECT_ROOT && node $CODEX_COMPANION task --background --prompt-file \"$PROMPT_FILE\"",
@@ -196,7 +195,7 @@ Run this as `Bash(run_in_background=true, timeout=600000)`. Plan reviews typical
    node "$CODEX_COMPANION" result "$JOB_ID" --json > /tmp/codex-task-result-$$.json
    ```
 
-   Read `/tmp/codex-task-result-$$.json` via `ctx_execute_file` (or Read for small payloads). The relevant fields:
+   Read `/tmp/codex-task-result-$$.json` with the `Read` tool. The relevant fields:
    - `storedJob.status` — must be `"completed"`. If not, treat as a re-launch trigger; do not silently proceed.
    - `storedJob.result.rawOutput` — a string containing Codex's response. With our prompt, this is JSON matching the schema above.
    - `storedJob.rendered` — same content rendered for display; useful as a fallback if `rawOutput` is malformed.

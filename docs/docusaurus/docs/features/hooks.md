@@ -1,12 +1,12 @@
 ---
 sidebar_position: 2
 title: Hooks Pipeline
-description: 18 quality hooks across 7 Claude Code lifecycle events — auto-format, lint, type-check, credential scanning, and TDD enforcement that fire automatically at every stage of work.
+description: 15 quality hooks across 7 Claude Code lifecycle events — auto-format, lint, type-check, and TDD enforcement that fire automatically at every stage of work.
 ---
 
 # Hooks Pipeline
 
-18 hook registrations across 7 lifecycle events — quality and security enforcement on autopilot.
+15 hook registrations across 7 lifecycle events — quality enforcement on autopilot.
 
 Blocking hooks reject actions or force fixes. Non-blocking hooks warn without interrupting. Async hooks run in the background. Two additional command-scoped Stop hooks run during `/spec` phases.
 
@@ -28,7 +28,6 @@ Blocking hooks reject actions or force fixes. Non-blocking hooks warn without in
 | Hook | Type | Description |
 |------|------|-------------|
 | `spec_mode_guard.py` | Blocking | Blocks `/spec` in plan mode, warns when not in bypassPermissions mode |
-| `credential_scanner.py` | Blocking | Scans the prompt text for 24 secret patterns (AWS, GitHub, Stripe, OpenAI, Anthropic, JWT, etc.); blocks delivery to Claude on match. Bypass with `[allow-secret]` in the next prompt. See [Security Scanner](./security.md) |
 | Session initializer | Async | Registers the session with the Console worker daemon |
 
 ## PreToolUse
@@ -39,7 +38,6 @@ Blocking hooks reject actions or force fixes. Non-blocking hooks warn without in
 |------|------|-------------|
 | `tool_redirect.py` | Blocking | Redirects to MCP alternatives, blocks unsupported web fetch paths, and enforces `/spec`-compatible tool usage |
 | `tool_token_saver.py` | Blocking | Rewrites Bash commands via RTK for token savings (60-90% reduction) |
-| `credential_scanner.py` | Blocking | On `Read` — denies `.env*` files unconditionally and any file whose contents match a secret pattern. On `Bash` — scans the command text, `$VAR` env values, `cat`/`head`/`tail` targets, and the `git commit` staged diff. See [Security Scanner](./security.md) |
 
 ## PostToolUse
 
@@ -48,7 +46,6 @@ Blocking hooks reject actions or force fixes. Non-blocking hooks warn without in
 | Hook | Type | Description |
 |------|------|-------------|
 | `file_checker.py` | Blocking | Quality checks: Python (ruff), TypeScript (ESLint), Go (go vet + golangci-lint). Also warns when implementation files are edited without a failing test (TDD) |
-| `credential_scanner.py` | Blocking | Scans the combined `stdout + stderr` of every Bash command (first 1 MB) for secrets and drops the tool result on match — keeps leaked secrets out of the transcript. See [Security Scanner](./security.md) |
 | `context_monitor.py` | Non-blocking | Tracks context usage 0-100% with warnings as compaction approaches |
 | Memory observer | Async | Captures decisions, discoveries, and bugfixes to persistent memory |
 

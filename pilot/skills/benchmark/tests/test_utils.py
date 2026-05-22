@@ -27,13 +27,7 @@ from scripts.utils import (
 def _make_skill(dir_path: Path, *, filename: str = "SKILL.md", content: str | None = None) -> Path:
     dir_path.mkdir(parents=True, exist_ok=True)
     if content is None:
-        content = (
-            "---\n"
-            'name: my-skill\n'
-            'description: "A short description"\n'
-            "---\n"
-            "\n# Body\n"
-        )
+        content = '---\nname: my-skill\ndescription: "A short description"\n---\n\n# Body\n'
     file_path = dir_path / filename
     _ = file_path.write_text(content)
     return file_path
@@ -53,14 +47,7 @@ class TestParseSkillMd:
         assert name == "my-skill"
 
     def test_handles_block_scalar_description(self, tmp_path: Path) -> None:
-        body = (
-            "---\n"
-            "name: x\n"
-            "description: >\n"
-            "  This is a long description\n"
-            "  that spans two lines\n"
-            "---\n"
-        )
+        body = "---\nname: x\ndescription: >\n  This is a long description\n  that spans two lines\n---\n"
         _ = _make_skill(tmp_path, content=body)
         _name, desc, _ = parse_skill_md(tmp_path)
         assert "two lines" in desc
@@ -194,9 +181,7 @@ class TestExecuteResultDataclasses:
         assert bad.reason == "timeout"
 
     def test_isinstance_narrowing(self) -> None:
-        result: ExecuteSuccess | ExecuteFailure = ExecuteSuccess(
-            duration_ms=1, total_tokens=1, run_dir="/x"
-        )
+        result: ExecuteSuccess | ExecuteFailure = ExecuteSuccess(duration_ms=1, total_tokens=1, run_dir="/x")
         assert isinstance(result, ExecuteSuccess)
         assert not isinstance(result, ExecuteFailure)
 
@@ -269,14 +254,7 @@ class TestStripConditionalLoading:
         assert "description: Python rules" in out
 
     def test_strips_both_path_and_paths(self) -> None:
-        content = (
-            "---\n"
-            "name: x\n"
-            "path: legacy/path.md\n"
-            "paths:\n  - new\n"
-            "---\n"
-            "# body\n"
-        )
+        content = "---\nname: x\npath: legacy/path.md\npaths:\n  - new\n---\n# body\n"
         out, removed = strip_conditional_loading_frontmatter(content)
         assert sorted(removed) == ["path", "paths"]
         assert "path:" not in out
@@ -285,14 +263,7 @@ class TestStripConditionalLoading:
 
     def test_preserves_indented_content_in_other_fields(self) -> None:
         # An indented line that does NOT belong to paths shouldn't be eaten.
-        content = (
-            "---\n"
-            'description: |\n  multi\n  line\n'
-            'paths:\n  - "**/*.py"\n'
-            "name: x\n"
-            "---\n"
-            "# body\n"
-        )
+        content = '---\ndescription: |\n  multi\n  line\npaths:\n  - "**/*.py"\nname: x\n---\n# body\n'
         out, removed = strip_conditional_loading_frontmatter(content)
         assert removed == ["paths"]
         assert "multi" in out and "line" in out
@@ -308,13 +279,7 @@ class TestStripConditionalLoading:
     def test_only_strips_at_start_of_line(self) -> None:
         # A `paths:` mention inside a description value (indented) is part of
         # that field's continuation, not a separate key. We don't strip it.
-        content = (
-            "---\n"
-            "description: |\n"
-            "  the user types `paths:` to do X\n"
-            "name: x\n"
-            "---\n"
-        )
+        content = "---\ndescription: |\n  the user types `paths:` to do X\nname: x\n---\n"
         out, removed = strip_conditional_loading_frontmatter(content)
         assert removed == []
         assert "user types `paths:`" in out

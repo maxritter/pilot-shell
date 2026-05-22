@@ -89,7 +89,6 @@ Run **only** when the user explicitly picked "Run Codex adversarial review" in 6
 
 3. **Launch the task in background.** Use `task --background --prompt-file` (the companion's own background mode is supported for `task` — unlike `review`/`adversarial-review`).
 
-   ⛔ **Launch via the `Bash` tool, NEVER `ctx_execute`.** The Codex runtime broker socket is not reachable from sandboxed subprocesses; `ctx_execute` launches print a synthetic task ID and silently never register.
    ```
    Bash(
      command="cd $PROJECT_ROOT && node $CODEX_COMPANION task --background --prompt-file \"$PROMPT_FILE\"",
@@ -132,7 +131,7 @@ except Exception: print('parse_error')" 2>/dev/null)
    node "$CODEX_COMPANION" result "$JOB_ID" --json > /tmp/codex-fix-result-$$.json
    ```
 
-   Read `/tmp/codex-fix-result-$$.json` via `ctx_execute_file`. Verify `storedJob.status === "completed"`, then parse `storedJob.result.rawOutput` as JSON (`{verdict, summary, findings, next_steps}`). If JSON parse fails, fall back to `storedJob.rendered` and surface as a suggestion-level finding.
+   Read `/tmp/codex-fix-result-$$.json` with the `Read` tool. Verify `storedJob.status === "completed"`, then parse `storedJob.result.rawOutput` as JSON (`{verdict, summary, findings, next_steps}`). If JSON parse fails, fall back to `storedJob.rendered` and surface as a suggestion-level finding.
 
 5. **Act on findings — same severity → action map as `/spec-verify`:**
 

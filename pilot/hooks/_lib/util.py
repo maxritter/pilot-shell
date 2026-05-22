@@ -64,31 +64,14 @@ def _get_compaction_threshold_pct() -> float:
 
 
 # ---------------------------------------------------------------------------
-# Orchestrator-aware window resolution
+# Active-plan helpers
 #
-# Background: when /spec-implement (or any /spec orchestrator phase) runs on a
-# model with a smaller context window than the main session, the statusline
-# cache only reflects the main-session window. Without scaling, the context
-# monitor warns too late (or never) relative to the orchestrator's real
-# auto-compact point. These helpers detect the active orchestrator's window
-# from active_plan.json + ~/.pilot/config.json so the monitor can scale.
-#
-# Mirrors launcher/model_config.py:DEFAULT_MODEL_CONFIG / apply_extended_context
-# and launcher/settings_injector.py:_SKILL_ALIASES — keep in lockstep.
+# Per-skill model overrides have been removed (config schema v12) — the active
+# model is whatever Claude Code's `/model` set for the session. The context
+# monitor therefore relies on the live statusline `context_window_size` alone
+# and no longer needs orchestrator-aware window scaling. The helpers below
+# remain because spec_stop_guard and notify code still consume active_plan.json.
 # ---------------------------------------------------------------------------
-
-_DEFAULT_MAIN_MODEL = "opus"
-_DEFAULT_EXTENDED_CONTEXT = True
-
-_ALIAS_TO_EXPLICIT_ID: dict[str, str] = {
-    "opus": "claude-opus-4-7",
-    "sonnet": "claude-sonnet-4-6",
-}
-
-_BUGFIX_TO_FEATURE_ALIAS: dict[str, str] = {
-    "spec-bugfix-plan": "spec-plan",
-    "spec-bugfix-verify": "spec-verify",
-}
 
 _APPROVED_RE: re.Pattern[str] = re.compile(r"^Approved:\s*(\w+)\s*$", re.MULTILINE)
 _TYPE_RE: re.Pattern[str] = re.compile(r"^Type:\s*(\w+)\s*$", re.MULTILINE)
@@ -129,7 +112,7 @@ def _read_plan_approved_and_type(plan_path: str) -> tuple[bool, str]:
 def _infer_active_skill(status: str, approved: bool, plan_type: str) -> str | None:
     """Map (status, approved, type) → orchestrator skill name, or None.
 
-    Returns None for VERIFIED, unknown, or missing — no orchestrator scaling.
+    Returns None for VERIFIED, unknown, or missing.
     """
     s = status.upper() if isinstance(status, str) else ""
     if s == "PENDING":
@@ -151,75 +134,6 @@ def _read_pilot_config() -> dict | None:
     except (json.JSONDecodeError, OSError):
         return None
     return data if isinstance(data, dict) else None
-
-
-def _resolve_skill_model(config: dict, skill_name: str) -> str:
-    """Mirror of launcher/model_config.py:apply_extended_context for the hook process.
-
-    1. Lookup skills.<skill> (bugfix variants alias to feature), fall back to
-       global "model", fall back to default ("opus").
-    2. Per-skill extendedContextOverrides → global extendedContext → default True.
-    3. Alias + extended → append "[1m]"; alias + not extended → pin to explicit ID.
-    4. Explicit "claude-*" IDs pass through verbatim.
-    """
-    resolved_skill = _BUGFIX_TO_FEATURE_ALIAS.get(skill_name, skill_name)
-    skills_raw = config.get("skills")
-    skills: dict = skills_raw if isinstance(skills_raw, dict) else {}
-    main_model_raw = config.get("model")
-    main_model = main_model_raw if isinstance(main_model_raw, str) else _DEFAULT_MAIN_MODEL
-    base_raw = skills.get(resolved_skill)
-    base = base_raw if isinstance(base_raw, str) else main_model
-
-    overrides_raw = config.get("extendedContextOverrides")
-    overrides: dict = overrides_raw if isinstance(overrides_raw, dict) else {}
-    if isinstance(overrides.get(skill_name), bool):
-        extended = overrides[skill_name]
-    elif isinstance(overrides.get(resolved_skill), bool):
-        extended = overrides[resolved_skill]
-    elif isinstance(config.get("extendedContext"), bool):
-        extended = config["extendedContext"]
-    else:
-        extended = _DEFAULT_EXTENDED_CONTEXT
-
-    if base.startswith("claude-"):
-        return base
-    stripped = base.replace("[1m]", "")
-    if extended and stripped in _ALIAS_TO_EXPLICIT_ID:
-        return f"{stripped}[1m]"
-    return _ALIAS_TO_EXPLICIT_ID.get(stripped, stripped)
-
-
-def _window_for_resolved_model(model_str: str) -> int:
-    """Map resolved frontmatter string to context window size (1M or 200K)."""
-    return 1_000_000 if model_str.endswith("[1m]") else 200_000
-
-
-def _resolve_orchestrator_window() -> int | None:
-    """Return the active orchestrator's context window, or None when no scaling applies.
-
-    None on every failure path so callers fall back to the main-session window.
-    Returns an int only when (a) a /spec plan is registered, (b) the plan is
-    PENDING or COMPLETE (not VERIFIED), and (c) the user's config resolves the
-    inferred skill to a known model with a known window.
-    """
-    plan = _read_active_plan()
-    if plan is None:
-        return None
-    plan_path = plan.get("plan_path")
-    status = plan.get("status")
-    if not isinstance(plan_path, str) or not isinstance(status, str):
-        return None
-
-    approved, plan_type = _read_plan_approved_and_type(plan_path)
-    skill_name = _infer_active_skill(status, approved, plan_type)
-    if skill_name is None:
-        return None
-
-    config = _read_pilot_config()
-    if config is None:
-        return None
-
-    return _window_for_resolved_model(_resolve_skill_model(config, skill_name))
 
 
 def _sessions_base() -> Path:

@@ -2,7 +2,6 @@
 name: benchmark
 description: Benchmark and evaluate Claude Code rules, skills, and workflows with quantitative before/after comparisons. Use whenever the user wants to measure the impact of rules/skills/workflows, compare versions, or validate that a rule pack improves outputs.
 user-invocable: true
-model: opus
 ---
 
 # /benchmark — Benchmark & Evaluation Framework
@@ -26,6 +25,8 @@ Two target types — both run in isolated `/tmp/pilot-bench-*` directories, one 
 | `rules` | Rule file(s) copied into `.claude/rules/` | Empty `.claude/` | Measuring "does this rule/pack improve behavior?" |
 
 Workflow-style skills like `/spec` are benchmarked as `type=skill` — present vs absent.
+
+**Model selection:** Pilot-shipped skills (`spec-plan`, `fix`, `prd`, `create-skill`, `setup-rules`, …) don't carry a `model:` in their frontmatter — active model is controlled by Claude Code's `/model`. The runner defaults those benchmarks to `claude-sonnet-4-6`; pass `--model opus` explicitly to run them on Opus instead. Bot-* skills still carry hard-coded `model: sonnet`.
 
 ## Isolation guarantees
 

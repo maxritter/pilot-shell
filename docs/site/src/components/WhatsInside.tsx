@@ -38,10 +38,10 @@ const insideItems: InsideItem[] = [
   },
   {
     icon: Terminal,
-    title: "Hooks, Quality & Security",
+    title: "Hooks & Quality",
     description: "Deterministic checks on every edit",
     summary:
-      "18 hook registrations across 7 lifecycle events. Auto-lint, format, and type-check every file edit. A built-in credential scanner catches 24 secret patterns in prompts, file reads, Bash commands, output, and git commits. The TDD enforcer warns when implementation lands without a failing test in place first.",
+      "Auto-lint, format, and type-check on every file edit across Python, TypeScript, and Go. The TDD enforcer flags implementations that land without a failing test in place first — quality gates run before code reaches your branch.",
     href: "/docs/features/hooks",
   },
   {
@@ -65,7 +65,7 @@ const insideItems: InsideItem[] = [
     title: "Cost Optimization",
     description: "Right model, right task, visible spend",
     summary:
-      "Smart model routing \u2014 Opus for planning and verification, Sonnet for implementation. CLI proxy saves 60\u201390% on tool-output tokens. Console tracks daily cost and trends over time.",
+      "Model Switching drops to a cheaper tier for implementation and verification once the plan is approved. A CLI proxy compresses tool output by 60\u201390%. The Console tracks daily cost and surfaces trends over time.",
     href: "/docs/features/model-routing",
   },
   {

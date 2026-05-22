@@ -11,10 +11,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from _lib.util import (
-    _compaction_threshold_pct_for,
     _get_compaction_threshold_pct,
     _get_max_context_tokens,
-    _resolve_orchestrator_window,
     get_session_cache_path,
     post_tool_use_context,
 )
@@ -26,15 +24,11 @@ THRESHOLD_AUTOCOMPACT = 75
 def _to_effective(raw_pct: float) -> float:
     """Convert raw context % to effective % (where compaction threshold = 100%).
 
-    When a /spec orchestrator with a smaller window than the main session is
-    active, the raw pct from _resolve_context is already scaled to the
-    orchestrator's frame; use the orchestrator's compaction threshold so the
-    displayed effective % reflects the right "approaching compact" calibration.
+    Post-v12: per-skill orchestrator-window scaling is removed (per-skill model
+    selection no longer exists in config.json). The cached pct from
+    _resolve_context is in the main-session frame and the main-session
+    compaction threshold is the right calibration.
     """
-    main_window = _get_max_context_tokens()
-    orch_window = _resolve_orchestrator_window()
-    if orch_window is not None and 0 < orch_window < main_window:
-        return min(raw_pct / _compaction_threshold_pct_for(orch_window) * 100, 100)
     return min(raw_pct / _get_compaction_threshold_pct() * 100, 100)
 
 
@@ -139,12 +133,7 @@ def _is_throttled(session_id: str) -> bool:
 
             if time.time() - timestamp < 30:
                 tokens = cache.get("tokens", 0)
-                main_window = _get_max_context_tokens()
-                orch_window = _resolve_orchestrator_window()
-                if orch_window is not None and 0 < orch_window < main_window:
-                    active_window = orch_window
-                else:
-                    active_window = main_window
+                active_window = _get_max_context_tokens()
                 percentage = (tokens / active_window) * 100
                 if percentage < THRESHOLD_WARN:
                     return True
@@ -157,28 +146,16 @@ def _is_throttled(session_id: str) -> bool:
 def _resolve_context(session_id: str) -> tuple[float, int, bool] | None:
     """Resolve context percentage and tokens. Returns (pct, tokens, shown_80) or None.
 
-    Reads the statusline cache (always main-session frame) and scales the pct
-    to the active orchestrator's frame when one is detected with a smaller
-    window. Returned tokens stays absolute (main-frame multiplication) so
-    save_cache and other consumers continue to receive raw token counts.
-
-    Asymmetric scaling: only when the orchestrator window is strictly smaller
-    than the main window. Larger or equal — no scaling, current behaviour.
+    Post-v12: per-skill orchestrator-window scaling is removed. The statusline
+    cache pct is in the live session's frame; we use it directly.
     """
     statusline_pct = _read_statusline_context_pct()
     if statusline_pct is None:
         return None
 
     main_window = _get_max_context_tokens()
-    orch_window = _resolve_orchestrator_window()
-
-    if orch_window is not None and 0 < orch_window < main_window:
-        effective_pct = min(statusline_pct * main_window / orch_window, 100.0)
-    else:
-        effective_pct = statusline_pct
-
     shown_80_warn = get_session_flags(session_id)
-    return effective_pct, int(statusline_pct / 100 * main_window), shown_80_warn
+    return statusline_pct, int(statusline_pct / 100 * main_window), shown_80_warn
 
 
 def run_context_monitor() -> int:
@@ -197,14 +174,10 @@ def run_context_monitor() -> int:
 
     save_cache(total_tokens, session_id)
 
-    main_window = _get_max_context_tokens()
-    orch_window = _resolve_orchestrator_window()
-    suffix = " (orchestrator window)" if orch_window is not None and 0 < orch_window < main_window else ""
-
     if percentage >= THRESHOLD_AUTOCOMPACT:
         print(
             post_tool_use_context(
-                f"Context at {effective:.0f}%{suffix}. Auto-compact approaching — no context is lost. "
+                f"Context at {effective:.0f}%. Auto-compact approaching — no context is lost. "
                 f"Continue all workflow steps normally. Do NOT skip steps, sub-agents, or verification."
             )
         )
@@ -214,7 +187,7 @@ def run_context_monitor() -> int:
         save_cache(total_tokens, session_id, shown_80_warn=True)
         print(
             post_tool_use_context(
-                f"Context at {effective:.0f}%{suffix}. Auto-compact will handle context automatically. "
+                f"Context at {effective:.0f}%. Auto-compact will handle context automatically. "
                 f"Continue working normally."
             )
         )

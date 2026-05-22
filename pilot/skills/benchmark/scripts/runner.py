@@ -745,8 +745,10 @@ def main() -> None:
         "--model",
         default=None,
         help=(
-            "Executor model. Default: skill's frontmatter `model:` (alias → ID), "
-            f"falling back to {DEFAULT_FALLBACK_MODEL} for rules or skills without one."
+            "Executor model. Default: target skill's frontmatter `model:` if present, "
+            f"otherwise {DEFAULT_FALLBACK_MODEL} for rules and for Pilot-shipped skills "
+            "(spec-plan, fix, prd, …) which no longer carry frontmatter model. "
+            "Pass --model opus explicitly to benchmark them on Opus instead."
         ),
     )
     parser.add_argument(

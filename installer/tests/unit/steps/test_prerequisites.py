@@ -570,9 +570,7 @@ class TestManifestDrivenHomebrew:
         from installer.manifest import load
         from installer.steps.prerequisites import _brew_formulas
 
-        manifest_formulas = [
-            e.brew_formula for e in load().entries if e.source_type == "brew"
-        ]
+        manifest_formulas = [e.brew_formula for e in load().entries if e.source_type == "brew"]
         assert _brew_formulas() == manifest_formulas
 
     def test_no_upgrade_set_matches_manifest(self):
@@ -580,10 +578,7 @@ class TestManifestDrivenHomebrew:
         from installer.manifest import load
         from installer.steps.prerequisites import _brew_no_upgrade_formulas
 
-        expected = {
-            e.brew_formula for e in load().entries
-            if e.source_type == "brew" and not e.auto_upgrade
-        }
+        expected = {e.brew_formula for e in load().entries if e.source_type == "brew" and not e.auto_upgrade}
         assert _brew_no_upgrade_formulas() == expected
         # Plan locks these specific formulas to manifest-pinned versions:
         assert {"python@3.12", "node@22", "nvm", "git", "gh"} <= expected
@@ -639,9 +634,7 @@ class TestInstallHomebrew:
         """_install_homebrew uses the manifest-pinned curl helper with NONINTERACTIVE+stdin_devnull."""
         from installer.steps.prerequisites import _install_homebrew
 
-        with patch(
-            "installer.steps.dependencies._curl_pipe_from_manifest", return_value=True
-        ) as mock_helper:
+        with patch("installer.steps.dependencies._curl_pipe_from_manifest", return_value=True) as mock_helper:
             ok = _install_homebrew()
 
         assert ok is True
@@ -658,9 +651,7 @@ class TestInstallHomebrew:
         """_install_homebrew returns False when the manifest-pinned curl install fails."""
         from installer.steps.prerequisites import _install_homebrew
 
-        with patch(
-            "installer.steps.dependencies._curl_pipe_from_manifest", return_value=False
-        ):
+        with patch("installer.steps.dependencies._curl_pipe_from_manifest", return_value=False):
             assert _install_homebrew() is False
 
 

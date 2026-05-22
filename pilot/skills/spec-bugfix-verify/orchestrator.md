@@ -3,7 +3,6 @@ name: spec-bugfix-verify
 description: "Bugfix verification phase - tests, quality checks, fix confirmation"
 argument-hint: "<path/to/plan.md>"
 user-invocable: false
-model: sonnet
 hooks:
   Stop:
     - command: uv run --no-project python "${CLAUDE_PLUGIN_ROOT}/hooks/spec_verify_validator.py"

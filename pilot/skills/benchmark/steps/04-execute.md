@@ -70,7 +70,7 @@ Read the final BashOutput and:
 | Flag | Default | When to override |
 |------|---------|------------------|
 | `--runs N` | `1` | `2-3` only when measuring variance — N runs are now parallelized across workers, so wall time grows sub-linearly. |
-| `--model <id>` | skill frontmatter → `claude-sonnet-4-6` | Cross-model comparison. Accepts `opus`/`sonnet`/`haiku` aliases or explicit `claude-...` IDs. |
+| `--model <id>` | skill frontmatter → `claude-sonnet-4-6` | Cross-model comparison. Accepts `opus`/`sonnet`/`haiku` aliases or explicit `claude-...` IDs. **Pilot-shipped skills (`spec-plan`, `fix`, `prd`, …) don't carry frontmatter `model:` — those benchmarks default to Sonnet; pass `--model opus` to run them on Opus instead.** |
 | `--grader-model <id>` | same as `--model` | Run the grader at a different tier (rare — pairing them avoids "smart writer judged by dumb grader" artifacts). |
 | `--configs with,without` | both | Smoke test one side. |
 | `--workers N` | `4` | Drop to `2` when running opus to be kinder to rate limits. For small eval sets bump to `min(total_runs, 8)` so every run lands in the first wave (3 evals × 2 configs × 1 run = 6 → `--workers 6` cuts wall time roughly in half). The runner submits one pool task per (eval, config, run_idx) so workers stay saturated. |

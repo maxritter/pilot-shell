@@ -63,6 +63,7 @@ def strip_conditional_loading_frontmatter(content: str) -> tuple[str, list[str]]
     new_lines = [lines[0], *new_front, *lines[end_idx:]]
     return "\n".join(new_lines), removed
 
+
 VALID_TARGET_TYPES: set[str] = {"skill", "rules"}
 
 TargetType = Literal["skill", "rules"]

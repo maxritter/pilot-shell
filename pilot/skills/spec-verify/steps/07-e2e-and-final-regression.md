@@ -20,7 +20,7 @@ if curl -s --max-time 3 -o /dev/null -w '%{http_code}' "http://localhost:$PORT/"
 fi
 ```
 
-When the harness blocks `curl`, substitute `mcp__plugin_pilot_web-fetch__fetch_url` with a 3s timeout or run a `ctx_execute(language: "shell", code: "curl ...")` wrapper.
+When the harness blocks `curl`, substitute `mcp__plugin_pilot_web-fetch__fetch_url` with a 3s timeout.
 
 #### Tier 2 — Start the local dev server yourself
 

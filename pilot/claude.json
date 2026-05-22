@@ -1,6 +1,8 @@
 {
   "showExpandedTodos": true,
   "autoUpdates": true,
+  "autoConnectIde": true,
+  "autoInstallIdeExtension": true,
   "lspRecommendationDisabled": true,
   "autoCompactEnabled": true,
   "showSpinnerTree": true

@@ -143,17 +143,11 @@ class TestParseRun:
         assert len(result["expectations"]) == 1
         assert result["expectations"][0]["text"] == "did the thing"
 
-    def test_falls_back_to_timing_json_when_grading_missing_timing(
-        self, tmp_path: Path
-    ) -> None:
+    def test_falls_back_to_timing_json_when_grading_missing_timing(self, tmp_path: Path) -> None:
         run_dir = tmp_path / "run-1"
         run_dir.mkdir()
-        _ = (run_dir / "grading.json").write_text(
-            json.dumps({"summary": {"pass_rate": 1.0}, "expectations": []})
-        )
-        _ = (run_dir / "timing.json").write_text(
-            json.dumps({"total_duration_seconds": 7.5, "total_tokens": 500})
-        )
+        _ = (run_dir / "grading.json").write_text(json.dumps({"summary": {"pass_rate": 1.0}, "expectations": []}))
+        _ = (run_dir / "timing.json").write_text(json.dumps({"total_duration_seconds": 7.5, "total_tokens": 500}))
         result = _parse_run(run_dir, eval_id=1)
         assert result is not None
         assert result["time_seconds"] == 7.5
@@ -264,9 +258,7 @@ class TestAggregateResults:
 class TestGenerateBenchmark:
     def test_full_pipeline(self, tmp_path: Path) -> None:
         bench = _make_workspace(tmp_path, ["with_skill", "without_skill"])
-        snapshot: BenchmarkSnapshot = generate_benchmark(
-            bench, skill_name="my-skill", skill_path="/some/path"
-        )
+        snapshot: BenchmarkSnapshot = generate_benchmark(bench, skill_name="my-skill", skill_path="/some/path")
         assert snapshot["metadata"].get("skill_name") == "my-skill"
         assert snapshot["metadata"].get("skill_path") == "/some/path"
         assert sorted(snapshot["metadata"].get("evals_run", [])) == [1, 2]

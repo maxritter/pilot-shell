@@ -61,7 +61,7 @@ Run this as `Bash(run_in_background=true, timeout=600000)`. Code reviews typical
    node "$CODEX_COMPANION" result "$JOB_ID" --json > /tmp/codex-task-result-$$.json
    ```
 
-   Read `/tmp/codex-task-result-$$.json` via `ctx_execute_file` (or Read for small payloads). The relevant fields:
+   Read `/tmp/codex-task-result-$$.json` with the `Read` tool. The relevant fields:
    - `storedJob.status` — must be `"completed"`. If `"failed"`, treat as a re-launch trigger; do not silently proceed.
    - `storedJob.result.rawOutput` — a string containing Codex's response. With our prompt template, this is JSON matching the `{verdict, summary, findings, next_steps}` schema.
    - `storedJob.rendered` — same content rendered for display; useful as a fallback if `rawOutput` is malformed.

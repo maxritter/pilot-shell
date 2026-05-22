@@ -263,6 +263,7 @@ class ClaudeFilesStep(BaseStep):
         manifest_path = home_claude_dir / PILOT_MANIFEST_FILE
         if not manifest_path.exists():
             self._seed_manifest_from_existing(home_claude_dir, manifest_path)
+        self._cleanup_deprecated_pilot_skills_in_home(home_claude_dir)
         cleanup_managed_files(home_claude_dir / "commands", manifest_path, "commands/")
         cleanup_managed_files(home_claude_dir / "skills", manifest_path, "skills/")
         cleanup_managed_files(home_claude_dir / "rules", manifest_path, "rules/")
@@ -295,6 +296,14 @@ class ClaudeFilesStep(BaseStep):
         The old installer nuked these directories entirely, so all existing files
         are Pilot-managed. Seed the manifest with them so cleanup_managed_files
         can remove stale ones while future user-added files remain safe.
+
+        Limited to ``commands`` and ``rules`` — the legacy installer never let
+        users add files there, so every existing entry is Pilot's. ``skills/``
+        and ``agents/`` are SHARED with user-authored content; treating
+        pre-existing entries as Pilot-owned would clobber user skills on the
+        first cleanup pass. Deprecated Pilot skills/agents from older versions
+        are removed via ``_cleanup_deprecated_pilot_skills_in_home`` (explicit
+        name list) instead.
         """
         files: set[str] = set()
         for subdir in ("commands", "rules"):
@@ -307,6 +316,41 @@ class ClaudeFilesStep(BaseStep):
                 files.add(f"{subdir}/{item.name}")
         if files:
             save_manifest(manifest_path, files)
+
+    # Skill / agent directories Pilot historically shipped that are no longer
+    # part of the current release. On legacy upgrades these survive in
+    # ~/.claude/skills/ and ~/.claude/agents/ because the manifest can't
+    # distinguish them from user-authored files. Remove them by exact name
+    # only — never touch a name that's not on this list.
+    _DEPRECATED_PILOT_SKILL_NAMES: tuple[str, ...] = (
+        "notify",
+        "skill-build",
+    )
+    _DEPRECATED_PILOT_AGENT_FILENAMES: tuple[str, ...] = ()
+
+    def _cleanup_deprecated_pilot_skills_in_home(self, home_claude_dir: Path) -> None:
+        """Remove known-deprecated Pilot skill directories and agent files from
+        ``~/.claude/skills/`` and ``~/.claude/agents/``.
+
+        Exact-name match only. Never deletes a name not on the explicit
+        deprecation list — user files are safe.
+        """
+        skills_dir = home_claude_dir / "skills"
+        if skills_dir.exists():
+            for name in self._DEPRECATED_PILOT_SKILL_NAMES:
+                target = skills_dir / name
+                if target.exists() and target.is_dir():
+                    _clear_directory_safe(target)
+
+        agents_dir = home_claude_dir / "agents"
+        if agents_dir.exists():
+            for filename in self._DEPRECATED_PILOT_AGENT_FILENAMES:
+                target = agents_dir / filename
+                if target.exists() and target.is_file():
+                    try:
+                        target.unlink()
+                    except OSError:
+                        pass
 
     def _install_categories(
         self,
@@ -933,9 +977,7 @@ class ClaudeFilesStep(BaseStep):
 
         claude_json_path = Path.home() / ".claude.json"
         try:
-            claude_json: dict[str, Any] = (
-                json.loads(claude_json_path.read_text()) if claude_json_path.exists() else {}
-            )
+            claude_json: dict[str, Any] = json.loads(claude_json_path.read_text()) if claude_json_path.exists() else {}
         except (json.JSONDecodeError, OSError, IOError):
             claude_json = {}
 

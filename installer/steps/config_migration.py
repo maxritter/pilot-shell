@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-CURRENT_CONFIG_VERSION = 11
+CURRENT_CONFIG_VERSION = 12
 
 _STALE_AGENT_KEYS = frozenset(
     {
@@ -62,6 +62,19 @@ def migrate_model_config(
     if version >= CURRENT_CONFIG_VERSION:
         return False
 
+    # v12 safety: before applying any migration that prunes user-visible model
+    # keys, snapshot the pre-migration JSON to `<config>.bak.v11` exactly once
+    # (the file holds the genuine v11 state for the entire machine lifetime,
+    # never overwritten on subsequent runs).
+    if version < 12 and config_path.exists():
+        bak_path = config_path.with_suffix(".json.bak.v11")
+        if not bak_path.exists():
+            try:
+                _write_atomic(bak_path, raw)
+            except OSError:
+                # Backup is best-effort — never fail the migration on disk errors.
+                pass
+
     modified = False
 
     if version < 1:
@@ -96,6 +109,9 @@ def migrate_model_config(
 
     if version < 11:
         modified = _migration_v11(raw) or modified
+
+    if version < 12:
+        modified = _migration_v12(raw) or modified
 
     if raw.get("_configVersion") != CURRENT_CONFIG_VERSION:
         raw["_configVersion"] = CURRENT_CONFIG_VERSION
@@ -483,6 +499,45 @@ def _migration_v11(raw: dict[str, Any]) -> bool:
         return True
     spec_workflow["branchIsolation"] = bool(old_value) if isinstance(old_value, bool) else False
     return True
+
+
+def _migration_v12(raw: dict[str, Any]) -> bool:
+    """v11 → v12: Strip dead model keys; seed specWorkflow.modelSwitch=true.
+
+    After this migration, model selection is controlled entirely via Claude
+    Code's `/model` slash command — `~/.pilot/config.json` no longer stores
+    main / per-skill / per-agent model preferences, the 1M extended-context
+    toggle, or per-row overrides. The launcher's settings injector stops
+    rewriting `model:` lines in skill / agent frontmatter; the source files
+    are authoritative.
+
+    `specWorkflow.modelSwitch` is the new opt-out toggle: when true (default)
+    the spec-plan skill ends its turn with a handoff message after approval
+    so the user can `/clear` + `/model <…>` before implementation; when false
+    the spec workflow continues plan → implement → verify in one session on
+    whichever model is active.
+
+    The caller writes `~/.pilot/config.json.bak.v11` (single-file safety
+    copy, written exactly once per machine) before this migration runs, so
+    advanced users can recover their pre-v12 preferences if needed.
+    """
+    modified = False
+
+    for dead_key in ("model", "skills", "agents", "extendedContext", "extendedContextOverrides"):
+        if dead_key in raw:
+            del raw[dead_key]
+            modified = True
+
+    spec_workflow = raw.get("specWorkflow")
+    if not isinstance(spec_workflow, dict):
+        spec_workflow = {}
+        raw["specWorkflow"] = spec_workflow
+        modified = True
+    if "modelSwitch" not in spec_workflow:
+        spec_workflow["modelSwitch"] = True
+        modified = True
+
+    return modified
 
 
 def _write_atomic(path: Path, data: dict[str, Any]) -> None:

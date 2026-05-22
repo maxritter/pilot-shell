@@ -32,7 +32,7 @@ def test_install_sh_downloads_installer_files():
     assert "git/trees" in content, "Must use git trees API endpoint as fallback"
 
     assert "installer/" in content, "Must filter for installer directory"
-    assert ".py" in content, "Must filter for Python files"
+    assert "(py|" in content, "Must filter for Python files (extension group)"
 
 
 def test_install_sh_grep_pattern_includes_yaml_manifests():

@@ -241,12 +241,6 @@ _NUDGE_BUILTIN_GLOB = (
     "returns the indexed tree faster (with language and symbol metadata). Proceed if you "
     "need exact-pattern matching."
 )
-_NUDGE_CTX_TIMEOUT = (
-    "⚠️ No `timeout` parameter on this context-mode call. Without one, no server-side "
-    "timer fires — a hung script can run for 15+ minutes before the MCP RPC layer aborts. "
-    "Pass `timeout` (ms) sized to the work: 30000 simple grep · 120000 medium script · "
-    "300000 heavy batch · 600000 long build. Default when unsure: 60000."
-)
 
 _BASH_NUDGE_BY_CATEGORY: dict[str, str] = {
     "grep": _NUDGE_BASH_GREP,
@@ -328,25 +322,6 @@ def _builtin_tool_nudge(tool_name: str) -> str | None:
     return None
 
 
-def _ctx_timeout_nudge(tool_name: str, tool_input: dict) -> str | None:
-    """Return timeout-missing nudge for context-mode tools, throttled once per session.
-
-    Fires when `timeout` is absent, None, or a non-positive value. `timeout: 0` is
-    treated as missing because the MCP server treats it as 'no server-side timer'.
-    """
-    if tool_name not in _CTX_TIMEOUT_NUDGE_TOOLS:
-        return None
-    if not isinstance(tool_input, dict):
-        return None
-    timeout = tool_input.get("timeout")
-    if isinstance(timeout, (int, float)) and not isinstance(timeout, bool) and timeout > 0:
-        return None
-    if _nudge_already_sent("ctx_timeout"):
-        return None
-    _mark_nudge_sent("ctx_timeout")
-    return _NUDGE_CTX_TIMEOUT
-
-
 def _normalize_git_command(command: str) -> str:
     """Strip leading `git -C <path>` / `git -c <key=val>` global options so patterns can match the subcommand.
 
@@ -359,48 +334,12 @@ def _normalize_git_command(command: str) -> str:
     return GIT_GLOBAL_OPTS_RE.sub("git ", command)
 
 
-# Context-mode MCP tools whose payload can run a shell. Their input schemas differ
-# from Bash (.command), so the hook extracts commands from .code (ctx_execute when
-# language == "shell") and .commands[].command (ctx_batch_execute, always shell).
-# Other languages (python/js/ruby/...) are intentionally NOT scanned — shell regex
-# against arbitrary source produces false positives. Known gap; revisit if abuse appears.
-_CTX_EXECUTE_TOOL = "mcp__plugin_context-mode_context-mode__ctx_execute"
-_CTX_BATCH_EXECUTE_TOOL = "mcp__plugin_context-mode_context-mode__ctx_batch_execute"
-_CTX_EXECUTE_FILE_TOOL = "mcp__plugin_context-mode_context-mode__ctx_execute_file"
-_CTX_TIMEOUT_NUDGE_TOOLS: frozenset[str] = frozenset(
-    {_CTX_EXECUTE_TOOL, _CTX_BATCH_EXECUTE_TOOL, _CTX_EXECUTE_FILE_TOOL}
-)
-
-
 def _extract_shell_commands(tool_name: str, tool_input: dict) -> list[str]:
-    """Return the list of shell-command strings carried by this tool invocation.
-
-    Returns [] for tool/shape combinations the dangerous-git scanner should not touch
-    (e.g., ctx_execute with non-shell language, malformed inputs).
-    """
-    if not isinstance(tool_input, dict):
+    """Return the list of shell-command strings carried by this tool invocation."""
+    if tool_name != "Bash":
         return []
-    if tool_name == "Bash":
-        command = tool_input.get("command", "")
-        return [command] if isinstance(command, str) and command else []
-    if tool_name == _CTX_EXECUTE_TOOL:
-        if tool_input.get("language") != "shell":
-            return []
-        code = tool_input.get("code", "")
-        return [code] if isinstance(code, str) and code else []
-    if tool_name == _CTX_BATCH_EXECUTE_TOOL:
-        commands = tool_input.get("commands", [])
-        if not isinstance(commands, list):
-            return []
-        out: list[str] = []
-        for entry in commands:
-            if not isinstance(entry, dict):
-                continue
-            cmd = entry.get("command", "")
-            if isinstance(cmd, str) and cmd:
-                out.append(cmd)
-        return out
-    return []
+    command = tool_input.get("command", "")
+    return [command] if isinstance(command, str) and command else []
 
 
 def _strip_shell_comment(segment: str) -> str:
@@ -490,7 +429,7 @@ def run_tool_redirect() -> int:
             return 2
         return 0
 
-    if tool_name in {"Bash", _CTX_EXECUTE_TOOL, _CTX_BATCH_EXECUTE_TOOL}:
+    if tool_name == "Bash":
         tool_input = hook_data.get("tool_input", {})
         commands = _extract_shell_commands(tool_name, tool_input)
         for command in commands:
@@ -500,20 +439,11 @@ def run_tool_redirect() -> int:
                 sys.stderr.write(f"\033[0;31m[Pilot] Dangerous git blocked: {pattern_name}\033[0m\n")
                 print(pre_tool_use_deny(reason))
                 return 2
-        # Search-nudge currently only applies to Bash (recursive grep/rg/find patterns).
-        # ctx_execute/ctx_batch_execute payloads are typically scripted and we don't want
-        # to nudge on every embedded grep — keep nudges Bash-only for now.
-        if tool_name == "Bash" and commands:
+        if commands:
             nudge = _bash_search_nudge(commands[0])
             if nudge:
                 print(pre_tool_use_context(nudge))
                 return 0
-
-    if tool_name in _CTX_TIMEOUT_NUDGE_TOOLS:
-        nudge = _ctx_timeout_nudge(tool_name, hook_data.get("tool_input", {}))
-        if nudge:
-            print(pre_tool_use_context(nudge))
-            return 0
 
     if tool_name in {"Grep", "Glob"}:
         nudge = _builtin_tool_nudge(tool_name)

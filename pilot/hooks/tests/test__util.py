@@ -361,29 +361,14 @@ class TestIsWaitingForUserInput:
         assert is_waiting_for_user_input(str(transcript)) is False
 
 
-class TestOrchestratorWindowHelpers:
-    """Unit tests for the orchestrator-aware window resolution helpers.
+class TestActivePlanHelpers:
+    """Unit tests for active-plan helpers that remain after the v12 model rework.
 
-    Pure-function helpers (model resolution, window mapping, skill inference) are
-    tested without filesystem fixtures. _resolve_orchestrator_window — the
-    integration helper that reads active_plan.json + plan file + config.json —
-    is tested with tmp_path-scoped Path.home + PILOT_SESSION_ID fixtures.
+    The orchestrator-aware window resolution (and its supporting model
+    resolver) was deleted with config schema v12 — per-skill model selection
+    is no longer stored in ~/.pilot/config.json. The remaining `_infer_active_skill`
+    helper is still consumed by spec_stop_guard and notify, so it is tested here.
     """
-
-    def test_window_for_resolved_model_recognises_1m_suffix(self) -> None:
-        from _lib.util import _window_for_resolved_model
-
-        assert _window_for_resolved_model("opus[1m]") == 1_000_000
-        assert _window_for_resolved_model("sonnet[1m]") == 1_000_000
-        assert _window_for_resolved_model("claude-opus-4-7[1m]") == 1_000_000
-
-    def test_window_for_resolved_model_defaults_to_200k(self) -> None:
-        from _lib.util import _window_for_resolved_model
-
-        assert _window_for_resolved_model("opus") == 200_000
-        assert _window_for_resolved_model("sonnet") == 200_000
-        assert _window_for_resolved_model("claude-sonnet-4-6") == 200_000
-        assert _window_for_resolved_model("claude-haiku-4-5-20251001") == 200_000
 
     def test_infer_active_skill_maps_phases(self) -> None:
         from _lib.util import _infer_active_skill
@@ -397,125 +382,7 @@ class TestOrchestratorWindowHelpers:
         assert _infer_active_skill("VERIFIED", True, "Feature") is None
         assert _infer_active_skill("", False, "Feature") is None
 
-    def test_resolve_skill_model_alias_with_extended_context(self) -> None:
-        from _lib.util import _resolve_skill_model
-
-        config = {"model": "opus", "extendedContext": True, "skills": {"spec-implement": "sonnet"}}
-        assert _resolve_skill_model(config, "spec-implement") == "sonnet[1m]"
-
-    def test_resolve_skill_model_alias_without_extended_context(self) -> None:
-        from _lib.util import _resolve_skill_model
-
-        config = {
-            "model": "opus",
-            "extendedContext": True,
-            "skills": {"spec-implement": "sonnet"},
-            "extendedContextOverrides": {"spec-implement": False},
-        }
-        # Per-skill override pins alias to explicit ID
-        assert _resolve_skill_model(config, "spec-implement") == "claude-sonnet-4-6"
-
-    def test_resolve_skill_model_explicit_id_passes_through(self) -> None:
-        from _lib.util import _resolve_skill_model
-
-        config = {"model": "opus", "skills": {"spec-implement": "claude-opus-4-7"}}
-        assert _resolve_skill_model(config, "spec-implement") == "claude-opus-4-7"
-
-    def test_resolve_skill_model_bugfix_alias_resolves_to_feature_variant(self) -> None:
-        from _lib.util import _resolve_skill_model
-
-        config = {"model": "opus", "skills": {"spec-plan": "sonnet"}, "extendedContext": False}
-        # spec-bugfix-plan should look up spec-plan in skills
-        assert _resolve_skill_model(config, "spec-bugfix-plan") == "claude-sonnet-4-6"
-
-    def test_resolve_skill_model_falls_back_to_main_model(self) -> None:
-        from _lib.util import _resolve_skill_model
-
-        config = {"model": "sonnet", "extendedContext": True}
-        # No skills.<name> entry → falls back to global model
-        assert _resolve_skill_model(config, "spec-implement") == "sonnet[1m]"
-
-    def test_resolve_orchestrator_window_returns_none_without_session_id(self, tmp_path: Path) -> None:
-        from _lib.util import _resolve_orchestrator_window
-
-        with (
-            patch.dict("os.environ", {}, clear=True),
-            patch("pathlib.Path.home", return_value=tmp_path),
-        ):
-            assert _resolve_orchestrator_window() is None
-
-    def test_resolve_orchestrator_window_returns_none_without_active_plan(self, tmp_path: Path) -> None:
-        from _lib.util import _resolve_orchestrator_window
-
-        session_dir = tmp_path / ".pilot" / "sessions" / "no-plan"
-        session_dir.mkdir(parents=True)
-        with (
-            patch.dict("os.environ", {"PILOT_SESSION_ID": "no-plan"}),
-            patch("pathlib.Path.home", return_value=tmp_path),
-        ):
-            assert _resolve_orchestrator_window() is None
-
-    def test_resolve_orchestrator_window_returns_200k_for_sonnet_without_1m(self, tmp_path: Path) -> None:
-        from _lib.util import _resolve_orchestrator_window
-
-        session_id = "orch-200k"
-        session_dir = tmp_path / ".pilot" / "sessions" / session_id
-        session_dir.mkdir(parents=True)
-
-        plan_path = tmp_path / "plan.md"
-        plan_path.write_text("Status: PENDING\nApproved: Yes\nType: Feature\n")
-        (session_dir / "active_plan.json").write_text(json.dumps({"plan_path": str(plan_path), "status": "PENDING"}))
-        (tmp_path / ".pilot" / "config.json").write_text(
-            json.dumps(
-                {
-                    "model": "opus",
-                    "extendedContext": True,
-                    "skills": {"spec-implement": "sonnet"},
-                    "extendedContextOverrides": {"spec-implement": False},
-                }
-            )
-        )
-
-        with (
-            patch.dict("os.environ", {"PILOT_SESSION_ID": session_id}),
-            patch("pathlib.Path.home", return_value=tmp_path),
-        ):
-            assert _resolve_orchestrator_window() == 200_000
-
-    def test_resolve_orchestrator_window_returns_1m_for_opus_with_extended(self, tmp_path: Path) -> None:
-        from _lib.util import _resolve_orchestrator_window
-
-        session_id = "orch-1m"
-        session_dir = tmp_path / ".pilot" / "sessions" / session_id
-        session_dir.mkdir(parents=True)
-
-        plan_path = tmp_path / "plan.md"
-        plan_path.write_text("Status: PENDING\nApproved: Yes\nType: Feature\n")
-        (session_dir / "active_plan.json").write_text(json.dumps({"plan_path": str(plan_path), "status": "PENDING"}))
-        (tmp_path / ".pilot" / "config.json").write_text(
-            json.dumps({"model": "opus", "extendedContext": True, "skills": {"spec-implement": "opus"}})
-        )
-
-        with (
-            patch.dict("os.environ", {"PILOT_SESSION_ID": session_id}),
-            patch("pathlib.Path.home", return_value=tmp_path),
-        ):
-            assert _resolve_orchestrator_window() == 1_000_000
-
-    def test_resolve_orchestrator_window_returns_none_for_verified_status(self, tmp_path: Path) -> None:
-        from _lib.util import _resolve_orchestrator_window
-
-        session_id = "orch-verified"
-        session_dir = tmp_path / ".pilot" / "sessions" / session_id
-        session_dir.mkdir(parents=True)
-
-        plan_path = tmp_path / "plan.md"
-        plan_path.write_text("Status: VERIFIED\nApproved: Yes\nType: Feature\n")
-        (session_dir / "active_plan.json").write_text(json.dumps({"plan_path": str(plan_path), "status": "VERIFIED"}))
-        (tmp_path / ".pilot" / "config.json").write_text(json.dumps({"model": "opus"}))
-
-        with (
-            patch.dict("os.environ", {"PILOT_SESSION_ID": session_id}),
-            patch("pathlib.Path.home", return_value=tmp_path),
-        ):
-            assert _resolve_orchestrator_window() is None
+    # `_resolve_orchestrator_window` was deleted with the v12 model-rework —
+    # per-skill orchestrator-window scaling no longer exists, and
+    # `context_monitor.py` now relies on the live statusline `context_window_size`
+    # alone. Nothing to test here anymore.

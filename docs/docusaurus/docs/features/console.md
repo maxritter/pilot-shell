@@ -33,7 +33,7 @@ Each view that supports project filtering has an inline **Project Filter** dropd
 | **Changes** | Git diff viewer with staged/unstaged files, branch info, worktree context. Hosts Code Review and Spec Task Correlation (below). |
 | **Usage** | Daily token costs, model routing breakdown (Opus vs Sonnet), and usage trends. |
 | **Help** | Embedded pilot-shell.com documentation — full technical reference without leaving the Console. |
-| **Settings** | Model selection, spec workflow toggles, reviewer toggles, extended context toggle, security scanner toggle. See [Settings](#settings) below. |
+| **Settings** | Spec workflow toggles (branch isolation, ask questions, plan approval, Model Switching), reviewer toggles. See [Settings](#settings) below. |
 
 ## Plan Annotation
 
@@ -103,30 +103,15 @@ The Console sends real-time alerts via Server-Sent Events when Claude needs your
 
 ## Settings
 
-The Settings tab (`localhost:41777/#/settings`, or your custom port) controls Pilot Shell behavior. Model preferences, spec workflow toggles, and reviewer agents save to `~/.pilot/config.json`. The **Console → Worker Port** field saves to `~/.pilot/memory/settings.json` and lets you move the Console off `41777` if it conflicts with another service. Both changes take effect after restarting Pilot.
+The Settings tab (`localhost:41777/#/settings`, or your custom port) is a single scrollable page with three stacked sections: **Spec Workflow**, **Console**, **Security**. Toggle preferences save to `~/.pilot/config.json`. The **Console → Worker Port** field saves to `~/.pilot/memory/settings.json` and lets you move the Console off `41777` if it conflicts with another service. Both changes take effect after restarting Pilot.
 
-### Model preferences
+:::info Model selection lives in Claude Code
+Pilot doesn't manage model preferences — pick your model with `/model sonnet[1m]`, `/model opus[1m]`, or an explicit Anthropic ID like `/model claude-opus-4-6`. See [Model Routing](./model-routing.md) for the recommended flow.
+:::
 
-Choose between **Sonnet 4.6** ($3/$15 per MTok) and **Opus 4.7** ($5/$25 per MTok) independently per component.
+### Spec Workflow → Review Agents
 
-| Component | Default | Scope |
-|-----------|---------|-------|
-| **Main Session** | Opus | Quick mode and direct chat |
-| **Planning** | Opus | Codebase exploration, architecture design, plan writing |
-| **Implementation** | Sonnet | TDD loop — write test, write code, verify |
-| **Verification** | Sonnet | Test execution, code review orchestration |
-
-**Custom model IDs** — each dropdown also offers a **Custom…** option. Selecting it reveals a text input where you can pin an explicit Anthropic model ID such as `claude-opus-4-6`, `claude-opus-4-5`, or `claude-sonnet-4-5-20250929`. Useful for reproducibility, team standardization, or falling back to an older model when a newer release mis-triggers content filters on legitimate code. The value is passed through to Claude Code verbatim. Custom IDs may carry the `[1m]` suffix (e.g. `claude-opus-4-7[1m]`) — the per-row 1M checkbox is disabled for Custom rows because the ID itself encodes the context window.
-
-**Extended Context (1M):** the global toggle is the **default** for every row in the Model Preferences table that doesn't carry a per-row override. Each main-and-skill row also has a **per-row 1M checkbox**, so you can mix freely — e.g. *Opus 1M for planning, Sonnet 200K for implementation/verification* on Max plan without API billing. The toggle only applies to the `sonnet` and `opus` aliases; Custom rows are greyed out (their suffix encodes the context window).
-
-API subscribers (Team, Enterprise) get 1M at no additional cost with all models. Max plan users must use Opus for any row that wants 1M — Sonnet 1M is not included in the Max plan.
-
-**Per-row overrides on disk** — overrides are stored in the `extendedContextOverrides` map (see config example below). Keys are `main` or skill names (e.g. `spec-plan`, `spec-implement`). A missing key falls back to the global `extendedContext` flag. An empty map preserves pre-#139 behaviour exactly.
-
-### Review agents
-
-Two Claude sub-agents run in separate context windows during `/spec`. Each has its own model selector; disabling an agent skips it entirely.
+Two Claude sub-agents run in separate context windows during `/spec`. Toggle each on or off; the sub-agent model is hard-coded to Sonnet because sub-agents do not support 1M context.
 
 | Agent | Default | Role |
 |-------|---------|------|
@@ -140,29 +125,22 @@ Two Claude sub-agents run in separate context windows during `/spec`. Each has i
 | **Codex Spec Review** | Off | Adversarial plan review — second opinion before implementation. |
 | **Codex Changes Review** | Off | Adversarial code review — second opinion after implementation. |
 
-### Automation toggles
+### Spec Workflow → Automation
 
-Three toggles control user interaction points during `/spec`. Disable all three for fully autonomous end-to-end execution.
+Four toggles control user interaction points during `/spec`. Disable all four for fully autonomous end-to-end execution.
 
 | Toggle | Default | Enabled | Disabled |
 |--------|---------|---------|----------|
-| **Worktree Support** | On | Asks how to handle branching at `/spec` start | Skips the branch question — changes go on the current branch |
+| **Branch Isolation** | On | Asks how to isolate `/spec` changes (new branch or worktree) | Always works on the current branch |
 | **Ask Questions** | On | Asks clarifying questions during planning | Planning makes autonomous default choices |
 | **Plan Approval** | On | Requires your approval before implementation starts | Implementation begins automatically after planning |
+| **Model Switching** | On | Pauses after plan approval. Option A: run `/model sonnet[1m]`, type any prompt — resumes with planning context in the new model (Claude Code will confirm; carries extra cost). Option B: run `/clear` then `/spec <plan path>` — fresh session, lower cost. | Plan → implement → verify runs continuously on whichever model is active |
 
-With all three off, `/spec add user authentication` plans, implements, and verifies the feature end-to-end without checkpoints.
+With all four off, `/spec add user authentication` plans, implements, and verifies the feature end-to-end without checkpoints on whichever model is currently active.
 
 :::warning Token usage in autonomous mode
 No checkpoints means Claude executes the entire workflow without asking. Make sure your prompt is specific enough to avoid misinterpretation. You can always interrupt with Escape.
 :::
-
-### Security
-
-| Toggle | Default | Description |
-|--------|---------|-------------|
-| **Credential Scanner** | On | Scans prompts, file reads, Bash commands, command output, and `git commit` staged diffs for 24 secret patterns (AWS, GitHub, Stripe, OpenAI, Anthropic, JWT, etc.). Also denies any `.env*` file read unconditionally. Bypass per-prompt with `[allow-secret]`. |
-
-The toggle persists to `securityScanner.credentialScanner` in `~/.pilot/config.json` and the launcher exports `PILOT_CREDENTIAL_SCANNER_ENABLED` so the four hook entry points respect it. Restart Pilot after toggling. See the [Security Scanner](./security.md) page for the full pattern list, scan-event matrix, and allow-tag semantics.
 
 ### Config file
 
@@ -170,24 +148,6 @@ All settings are stored in `~/.pilot/config.json`:
 
 ```json
 {
-  "model": "opus",
-  "extendedContext": true,
-  "extendedContextOverrides": {
-    "spec-plan": true,
-    "spec-implement": false
-  },
-  "skills": {
-    "spec-plan": "opus",
-    "spec-implement": "sonnet",
-    "spec-verify": "sonnet",
-    "spec": "sonnet",
-    "setup-rules": "opus",
-    "create-skill": "opus"
-  },
-  "agents": {
-    "spec-review": "sonnet",
-    "changes-review": "sonnet"
-  },
   "reviewerAgents": {
     "specReview": true,
     "changesReview": true
@@ -199,14 +159,10 @@ All settings are stored in `~/.pilot/config.json`:
   "specWorkflow": {
     "branchIsolation": true,
     "askQuestionsDuringPlanning": true,
-    "planApproval": true
-  },
-  "securityScanner": {
-    "credentialScanner": true
+    "planApproval": true,
+    "modelSwitch": true
   }
 }
 ```
 
-`extendedContextOverrides` is keyed by the skill's filesystem name (e.g. `spec-plan`); the launcher also accepts the resolved alias (e.g. `spec-bugfix-plan` → `spec-plan`) on lookup miss for forward-compat. Omit the key to inherit the global `extendedContext` default. Agents intentionally cannot opt into 1M — sub-agents do not support extended context.
-
-You can edit this file directly — the Settings UI is a convenience wrapper. Changes require a Claude Code restart.
+You can edit `~/.pilot/config.json` directly — the Settings UI is a convenience wrapper. Changes require a Claude Code restart.

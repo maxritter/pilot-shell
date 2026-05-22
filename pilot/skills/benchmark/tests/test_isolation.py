@@ -42,9 +42,7 @@ class TestDetectContamination:
         target: TargetConfig = {"type": "rules"}
         assert detect_global_contamination(target) == []
 
-    def test_rules_file_with_matching_global(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_rules_file_with_matching_global(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         tmp_home = tmp_path / "home"
         self._with_home(monkeypatch, tmp_home)
         (tmp_home / ".claude" / "rules").mkdir(parents=True)
@@ -59,9 +57,7 @@ class TestDetectContamination:
         result = detect_global_contamination(target)
         assert result == [global_rule]
 
-    def test_rules_file_skips_if_target_is_global_itself(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_rules_file_skips_if_target_is_global_itself(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         tmp_home = tmp_path / "home"
         self._with_home(monkeypatch, tmp_home)
         (tmp_home / ".claude" / "rules").mkdir(parents=True)
@@ -73,9 +69,7 @@ class TestDetectContamination:
         target: TargetConfig = {"type": "rules", "path": str(global_rule)}
         assert detect_global_contamination(target) == []
 
-    def test_rules_directory_finds_per_file_matches(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_rules_directory_finds_per_file_matches(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         tmp_home = tmp_path / "home"
         self._with_home(monkeypatch, tmp_home)
         (tmp_home / ".claude" / "rules").mkdir(parents=True)
@@ -92,9 +86,7 @@ class TestDetectContamination:
         names = sorted(p.name for p in result)
         assert names == ["a.md", "b.md"]
 
-    def test_skill_with_matching_global(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_skill_with_matching_global(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         tmp_home = tmp_path / "home"
         self._with_home(monkeypatch, tmp_home)
         (tmp_home / ".claude" / "skills" / "my-skill").mkdir(parents=True)
@@ -110,9 +102,7 @@ class TestDetectContamination:
         result = detect_global_contamination(target)
         assert result == [tmp_home / ".claude" / "skills" / "my-skill"]
 
-    def test_no_match_returns_empty(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_no_match_returns_empty(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         tmp_home = tmp_path / "home"
         self._with_home(monkeypatch, tmp_home)
         project_rule = tmp_path / "rules" / "unique.md"
@@ -170,9 +160,7 @@ class TestIsolateContamination:
         assert a.read_text() == "A"
         assert b.read_text() == "B"
 
-    def test_collision_leaves_source_intact(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_collision_leaves_source_intact(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         victim = tmp_path / "c.md"
         _ = victim.write_text("c")
         # Pre-create the exact hidden filename to simulate a stale leftover.
@@ -220,9 +208,7 @@ class TestManifestRecovery:
         assert data["pid"] == os.getpid()
         assert len(data["pairs"]) == 1
 
-    def test_recover_restores_from_dead_pid_manifest(
-        self, tmp_path: Path
-    ) -> None:
+    def test_recover_restores_from_dead_pid_manifest(self, tmp_path: Path) -> None:
         # Simulate a crashed prior run: rename a file and write a manifest
         # with a *dead* PID so the recovery code will pick it up.
         src = tmp_path / "rule.md"
@@ -233,9 +219,7 @@ class TestManifestRecovery:
         dead_pid = 99999  # Won't be alive on any reasonable system during a test.
         isolation.RECOVERY_DIR.mkdir(parents=True, exist_ok=True)
         manifest = isolation.RECOVERY_DIR / f"hidden-{dead_pid}.json"
-        _ = manifest.write_text(
-            json.dumps({"pid": dead_pid, "pairs": [[str(src), str(hidden)]]})
-        )
+        _ = manifest.write_text(json.dumps({"pid": dead_pid, "pairs": [[str(src), str(hidden)]]}))
 
         with patch("scripts.isolation._process_alive", return_value=False):
             restored = recover_stale_manifests()
@@ -253,9 +237,7 @@ class TestManifestRecovery:
         hidden = tmp_path / "x.md.pilot-bench-hidden-OTHER"
         _ = hidden.write_text("still hidden")
         manifest = isolation.RECOVERY_DIR / "hidden-12345.json"
-        _ = manifest.write_text(
-            json.dumps({"pid": 12345, "pairs": [[str(src), str(hidden)]]})
-        )
+        _ = manifest.write_text(json.dumps({"pid": 12345, "pairs": [[str(src), str(hidden)]]}))
 
         with patch("scripts.isolation._process_alive", return_value=True):
             restored = recover_stale_manifests()
@@ -272,9 +254,7 @@ class TestManifestRecovery:
         restored = recover_stale_manifests()
         assert restored == 0
 
-    def test_recover_when_dir_missing_returns_zero(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_recover_when_dir_missing_returns_zero(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(isolation, "RECOVERY_DIR", tmp_path / "does-not-exist")
         assert recover_stale_manifests() == 0
 
@@ -318,9 +298,7 @@ class TestManifestRecovery:
         with isolate_global_contamination([victim]):
             pass
 
-        assert _manifest_path(os.getpid()).exists(), (
-            "manifest must persist so next-run recovery can retry"
-        )
+        assert _manifest_path(os.getpid()).exists(), "manifest must persist so next-run recovery can retry"
         # Manually clean up the hidden leftover so the test tmp_path disposal works.
         for hidden in tmp_path.glob("surv.md.pilot-bench-hidden-*"):
             hidden.unlink()

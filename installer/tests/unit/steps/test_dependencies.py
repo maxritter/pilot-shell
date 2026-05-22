@@ -46,7 +46,7 @@ class TestDependenciesStep:
     @patch("installer.steps.dependencies.install_typescript_lsp", return_value=True)
     @patch("installer.steps.dependencies._precache_npx_mcp_servers", return_value=True)
     @patch("installer.steps.dependencies.install_chrome_devtools_plugin", return_value=True)
-    @patch("installer.steps.dependencies.install_context_mode_plugin", return_value=True)
+    @patch("installer.steps.dependencies.remove_legacy_context_mode", return_value=True)
     @patch("installer.steps.dependencies._install_plugin_dependencies")
     @patch("installer.steps.dependencies._setup_pilot_memory")
     @patch("installer.steps.dependencies.install_python_tools")
@@ -61,7 +61,7 @@ class TestDependenciesStep:
         mock_python_tools,
         mock_setup_pilot_memory,
         mock_plugin_deps,
-        _mock_ctx_mode_plugin,
+        _mock_remove_legacy_ctx_mode,
         _mock_chrome_devtools_plugin,
         _mock_precache,
         _mock_ts_lsp,
@@ -1558,102 +1558,139 @@ class TestInstallPbtTools:
         assert result is False
 
 
-class TestInstallContextModePlugin:
-    """Tests for install_context_mode_plugin() — Claude CLI plugin system."""
+class TestRemoveLegacyContextMode:
+    """Tests for remove_legacy_context_mode() — cleanup of the deprecated plugin."""
 
-    def test_install_context_mode_plugin_exists(self):
-        """install_context_mode_plugin function exists and is callable."""
-        from installer.steps.dependencies import install_context_mode_plugin
+    def test_remove_legacy_context_mode_exists(self):
+        from installer.steps.dependencies import remove_legacy_context_mode
 
-        assert callable(install_context_mode_plugin)
+        assert callable(remove_legacy_context_mode)
 
     @patch("installer.steps.dependencies.command_exists", return_value=False)
-    def test_returns_false_when_claude_not_installed(self, _mock_cmd):
-        """Returns False immediately when claude CLI is not available."""
-        from installer.steps.dependencies import install_context_mode_plugin
+    def test_returns_true_when_claude_not_installed(self, _mock_cmd):
+        """No-op when claude CLI is unavailable — cleanup cannot run, but the step succeeds."""
+        from installer.steps.dependencies import remove_legacy_context_mode
 
-        result = install_context_mode_plugin()
-        assert result is False
+        assert remove_legacy_context_mode() is True
 
-    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    @patch("installer.steps.dependencies._legacy_context_mode_remove_orphan_hook")
     @patch("installer.steps.dependencies.subprocess.run")
     @patch("installer.steps.dependencies.command_exists", return_value=True)
-    def test_updates_when_already_installed(self, _mock_cmd, mock_sub, mock_bash):
-        """Runs 'claude plugins update' when plugin is already installed."""
-        from installer.steps.dependencies import install_context_mode_plugin
+    def test_uninstalls_plugin_and_removes_marketplace_when_present(
+        self, _mock_cmd, mock_sub, _mock_orphan
+    ):
+        """Plugin uninstall + marketplace remove are both invoked when both are present."""
+        from installer.steps.dependencies import remove_legacy_context_mode
 
-        mock_sub.return_value = MagicMock(
-            returncode=0,
-            stdout=json.dumps([{"id": "context-mode@context-mode", "version": "1.0.75"}]),
+        plugin_list = json.dumps([{"id": "context-mode@context-mode", "version": "1.0.146"}])
+        market_list = json.dumps([{"name": "context-mode", "source": "github"}])
+        mock_sub.side_effect = [
+            MagicMock(returncode=0, stdout=plugin_list, stderr=""),
+            MagicMock(returncode=0, stdout="", stderr=""),
+            MagicMock(returncode=0, stdout=market_list, stderr=""),
+            MagicMock(returncode=0, stdout="", stderr=""),
+        ]
+
+        assert remove_legacy_context_mode() is True
+        called_args = [c[0][0] for c in mock_sub.call_args_list]
+        assert ["claude", "plugin", "list", "--json"] in called_args
+        assert ["claude", "plugin", "uninstall", "context-mode@context-mode", "-y"] in called_args
+        assert ["claude", "plugin", "marketplace", "list", "--json"] in called_args
+        assert ["claude", "plugin", "marketplace", "remove", "context-mode"] in called_args
+
+    @patch("installer.steps.dependencies._legacy_context_mode_remove_orphan_hook")
+    @patch("installer.steps.dependencies.subprocess.run")
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
+    def test_skips_uninstall_when_plugin_not_installed(self, _mock_cmd, mock_sub, _mock_orphan):
+        """Pre-check via `plugin list --json` skips the uninstall command when nothing matches."""
+        from installer.steps.dependencies import remove_legacy_context_mode
+
+        mock_sub.side_effect = [
+            MagicMock(returncode=0, stdout="[]", stderr=""),
+            MagicMock(returncode=0, stdout="[]", stderr=""),
+        ]
+
+        assert remove_legacy_context_mode() is True
+        called_args = [c[0][0] for c in mock_sub.call_args_list]
+        assert not any(args[:3] == ["claude", "plugin", "uninstall"] for args in called_args)
+        assert not any(args[:4] == ["claude", "plugin", "marketplace", "remove"] for args in called_args)
+
+    @patch("installer.steps.dependencies._legacy_context_mode_remove_orphan_hook")
+    @patch("installer.steps.dependencies.subprocess.run")
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
+    def test_handles_plugin_list_timeout(self, _mock_cmd, mock_sub, _mock_orphan):
+        """A timeout on `plugin list` must not crash — return True and continue."""
+        from installer.steps.dependencies import remove_legacy_context_mode
+
+        mock_sub.side_effect = [
+            subprocess.TimeoutExpired("claude", 30),
+            MagicMock(returncode=0, stdout="[]", stderr=""),
+        ]
+
+        assert remove_legacy_context_mode() is True
+
+    @patch("installer.steps.dependencies._legacy_context_mode_remove_orphan_hook")
+    @patch("installer.steps.dependencies.subprocess.run")
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
+    def test_handles_malformed_plugin_list_json(self, _mock_cmd, mock_sub, _mock_orphan):
+        """Malformed JSON from `plugin list` must not crash."""
+        from installer.steps.dependencies import remove_legacy_context_mode
+
+        mock_sub.side_effect = [
+            MagicMock(returncode=0, stdout="not-json", stderr=""),
+            MagicMock(returncode=0, stdout="[]", stderr=""),
+        ]
+
+        assert remove_legacy_context_mode() is True
+
+    def test_removes_orphan_hook_file_and_settings_entry(self, tmp_path, monkeypatch):
+        """The orphan ~/.claude/hooks/context-mode-cache-heal.mjs and any matching
+        SessionStart hook entry in ~/.claude/settings.json are both removed."""
+        from installer.steps.dependencies import _legacy_context_mode_remove_orphan_hook
+
+        fake_home = tmp_path
+        monkeypatch.setattr(Path, "home", lambda: fake_home)
+        hooks_dir = fake_home / ".claude" / "hooks"
+        hooks_dir.mkdir(parents=True)
+        orphan = hooks_dir / "context-mode-cache-heal.mjs"
+        orphan.write_text("// orphan\n")
+
+        settings_path = fake_home / ".claude" / "settings.json"
+        settings_path.write_text(
+            json.dumps(
+                {
+                    "hooks": {
+                        "SessionStart": [
+                            {"hooks": [{"type": "command", "command": str(orphan)}]},
+                            {
+                                "matcher": "startup",
+                                "hooks": [
+                                    {"type": "command", "command": "echo keep"},
+                                    {"type": "command", "command": str(orphan)},
+                                ],
+                            },
+                        ]
+                    }
+                }
+            )
         )
 
-        result = install_context_mode_plugin()
+        _legacy_context_mode_remove_orphan_hook()
 
-        assert result is True
-        # marketplace refresh + plugin update = 2 calls
-        assert mock_bash.call_count == 2
-        calls = [c[0][0] for c in mock_bash.call_args_list]
-        assert any("marketplace update context-mode" in c for c in calls)
-        assert any("plugins update context-mode@context-mode" in c for c in calls)
+        assert not orphan.exists(), "Orphan hook script must be deleted."
+        data = json.loads(settings_path.read_text())
+        entries = data["hooks"]["SessionStart"]
+        # First entry only referenced the orphan and is dropped; second is kept with one hook.
+        assert len(entries) == 1
+        assert entries[0]["matcher"] == "startup"
+        assert entries[0]["hooks"] == [{"type": "command", "command": "echo keep"}]
 
-    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
-    @patch("installer.steps.dependencies.subprocess.run")
-    @patch("installer.steps.dependencies.command_exists", return_value=True)
-    def test_fresh_install_adds_marketplace_then_installs(self, _mock_cmd, mock_sub, mock_bash):
-        """Adds marketplace and installs plugin when not already installed."""
-        from installer.steps.dependencies import install_context_mode_plugin
+    def test_orphan_hook_cleanup_no_op_when_nothing_present(self, tmp_path, monkeypatch):
+        """No crash when the hook file and settings.json are absent."""
+        from installer.steps.dependencies import _legacy_context_mode_remove_orphan_hook
 
-        mock_sub.return_value = MagicMock(returncode=0, stdout="[]")
-
-        result = install_context_mode_plugin()
-
-        assert result is True
-        assert mock_bash.call_count == 2
-        assert "marketplace add" in mock_bash.call_args_list[0][0][0]
-        assert "plugins install" in mock_bash.call_args_list[1][0][0]
-
-    @patch("installer.steps.dependencies._run_bash_with_retry")
-    @patch("installer.steps.dependencies.subprocess.run")
-    @patch("installer.steps.dependencies.command_exists", return_value=True)
-    def test_fresh_install_fails_if_marketplace_add_fails(self, _mock_cmd, mock_sub, mock_bash):
-        """Returns False when marketplace add fails."""
-        from installer.steps.dependencies import install_context_mode_plugin
-
-        mock_sub.return_value = MagicMock(returncode=0, stdout="[]")
-        mock_bash.return_value = False
-
-        result = install_context_mode_plugin()
-
-        assert result is False
-        mock_bash.assert_called_once()
-        assert "marketplace add" in mock_bash.call_args[0][0]
-
-    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
-    @patch("installer.steps.dependencies.subprocess.run")
-    @patch("installer.steps.dependencies.command_exists", return_value=True)
-    def test_handles_plugins_list_failure_gracefully(self, _mock_cmd, mock_sub, mock_bash):
-        """Falls through to fresh install when 'plugins list' fails."""
-        from installer.steps.dependencies import install_context_mode_plugin
-
-        mock_sub.return_value = MagicMock(returncode=1, stdout="")
-
-        result = install_context_mode_plugin()
-
-        assert result is True
-        assert mock_bash.call_count == 2
-        assert "marketplace add" in mock_bash.call_args_list[0][0][0]
-
-    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
-    @patch("installer.steps.dependencies.subprocess.run", side_effect=subprocess.TimeoutExpired("claude", 30))
-    @patch("installer.steps.dependencies.command_exists", return_value=True)
-    def test_handles_plugins_list_timeout(self, _mock_cmd, _mock_sub, mock_bash):
-        """Falls through to fresh install when 'plugins list' times out."""
-        from installer.steps.dependencies import install_context_mode_plugin
-
-        result = install_context_mode_plugin()
-
-        assert result is True
-        assert "marketplace add" in mock_bash.call_args_list[0][0][0]
+        monkeypatch.setattr(Path, "home", lambda: tmp_path)
+        _legacy_context_mode_remove_orphan_hook()
 
 
 class TestInstallChromeDevToolsPlugin:
@@ -1677,7 +1714,7 @@ class TestInstallChromeDevToolsPlugin:
     @patch("installer.steps.dependencies.subprocess.run")
     @patch("installer.steps.dependencies.command_exists", return_value=True)
     def test_updates_when_already_installed(self, _mock_cmd, mock_sub, mock_bash):
-        """Runs 'claude plugins update' when plugin is already installed."""
+        """Runs 'claude plugins update' then enable when plugin is already installed."""
         from installer.steps.dependencies import install_chrome_devtools_plugin
 
         mock_sub.return_value = MagicMock(
@@ -1692,12 +1729,16 @@ class TestInstallChromeDevToolsPlugin:
         calls = [c[0][0] for c in mock_bash.call_args_list]
         assert any("marketplace update chrome-devtools-mcp" in c for c in calls)
         assert any("plugins update chrome-devtools-mcp@chrome-devtools-plugins" in c for c in calls)
+        sub_calls = [c[0][0] for c in mock_sub.call_args_list]
+        assert any(
+            ["claude", "plugins", "enable", "chrome-devtools-mcp@chrome-devtools-plugins"] == args for args in sub_calls
+        )
 
     @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
     @patch("installer.steps.dependencies.subprocess.run")
     @patch("installer.steps.dependencies.command_exists", return_value=True)
     def test_fresh_install_adds_marketplace_then_installs(self, _mock_cmd, mock_sub, mock_bash):
-        """Adds marketplace and installs plugin when not already installed."""
+        """Adds marketplace, installs plugin, then enables it when not already installed."""
         from installer.steps.dependencies import install_chrome_devtools_plugin
 
         mock_sub.return_value = MagicMock(returncode=0, stdout="[]")
@@ -1708,6 +1749,10 @@ class TestInstallChromeDevToolsPlugin:
         assert mock_bash.call_count == 2
         assert "marketplace add" in mock_bash.call_args_list[0][0][0]
         assert "plugins install" in mock_bash.call_args_list[1][0][0]
+        sub_calls = [c[0][0] for c in mock_sub.call_args_list]
+        assert any(
+            ["claude", "plugins", "enable", "chrome-devtools-mcp@chrome-devtools-plugins"] == args for args in sub_calls
+        )
 
     @patch("installer.steps.dependencies._run_bash_with_retry")
     @patch("installer.steps.dependencies.subprocess.run")
@@ -1724,6 +1769,50 @@ class TestInstallChromeDevToolsPlugin:
         assert result is False
         mock_bash.assert_called_once()
         assert "marketplace add" in mock_bash.call_args[0][0]
+
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    @patch("installer.steps.dependencies.subprocess.run")
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
+    def test_dict_shaped_plugins_list_does_not_crash(self, _mock_cmd, mock_sub, mock_bash):
+        """Regression for C18: a future Claude CLI returning a dict (e.g.
+        `{"plugins": [...]}`) instead of a bare list must NOT crash the
+        installer with an uncaught AttributeError. The plugin should fall
+        through to fresh-install (or no-op cleanly), not abort the run."""
+        from installer.steps.dependencies import install_chrome_devtools_plugin
+
+        # Dict shape — iterating yields keys (strings); 'plugins'.get('id')
+        # would raise AttributeError under the buggy parser.
+        mock_sub.return_value = MagicMock(
+            returncode=0,
+            stdout=json.dumps({"plugins": [
+                {"id": "chrome-devtools-mcp@chrome-devtools-plugins", "version": "1.0.0"}
+            ]}),
+        )
+
+        # Must not raise. Result may vary — what matters is no crash.
+        result = install_chrome_devtools_plugin()
+        # And the fresh-install path runs (marketplace add → install) since
+        # the dict shape isn't iterable as a list of plugin dicts.
+        assert result is True
+        calls = [c[0][0] for c in mock_bash.call_args_list]
+        assert any("marketplace add" in c for c in calls)
+        assert any("plugins install" in c for c in calls)
+
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    @patch("installer.steps.dependencies.subprocess.run")
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
+    def test_garbage_plugins_list_payload_does_not_crash(self, _mock_cmd, mock_sub, mock_bash):
+        """Sanity for the broadened except: a non-JSON-but-stringy payload, a
+        list of strings, or any other unexpected shape must be tolerated."""
+        from installer.steps.dependencies import install_chrome_devtools_plugin
+
+        # List of strings — `p.get(...)` would raise AttributeError.
+        mock_sub.return_value = MagicMock(
+            returncode=0,
+            stdout=json.dumps(["chrome-devtools-mcp@chrome-devtools-plugins"]),
+        )
+        result = install_chrome_devtools_plugin()
+        assert result is True
 
 
 class TestRunBashWithRetrySudoFallback:
@@ -1929,7 +2018,7 @@ class TestDependenciesCleanup:
     @patch("installer.steps.dependencies.needs_sudo", return_value=True)
     @patch("installer.steps.dependencies._precache_npx_mcp_servers", return_value=True)
     @patch("installer.steps.dependencies.install_chrome_devtools_plugin", return_value=True)
-    @patch("installer.steps.dependencies.install_context_mode_plugin", return_value=True)
+    @patch("installer.steps.dependencies.remove_legacy_context_mode", return_value=True)
     @patch("installer.steps.dependencies.initialize_codegraph", return_value=True)
     @patch("installer.steps.dependencies.codegraph_needs_work", return_value=False)
     @patch("installer.steps.dependencies.install_codegraph", return_value=True)
@@ -2361,15 +2450,16 @@ class TestInstallLspPlugins:
         mock_sub.return_value = MagicMock(returncode=0, stdout="[]")
 
         # _run_bash_with_retry: marketplace-add for vtsls fails; rest succeed.
-        # Each plugin requires 2 _run_bash_with_retry calls: marketplace add + install.
-        # Pattern: [add(vtsls)=F, add(basedpyright)=T, install(basedpyright)=T, add(gopls)=T, install(gopls)=T]
+        # Each successful plugin requires 2 bash calls (add + install). Enable
+        # goes through subprocess.run directly (see _ensure_plugin_enabled).
+        # Pattern: [add(vtsls)=F, add(bp)=T, install(bp)=T, add(gopls)=T, install(gopls)=T]
         bash_results = [False, True, True, True, True]
         with patch("installer.steps.dependencies._run_bash_with_retry", side_effect=bash_results) as mock_bash:
             with patch("installer.steps.dependencies.Path.home", return_value=tmp_path):
                 result = install_lsp_plugins()
 
         assert result is False  # at least one failed
-        # All three plugins attempted: vtsls makes 1 bash call (failed marketplace add),
+        # vtsls makes 1 bash call (failed marketplace add),
         # basedpyright + gopls make 2 each (add + install) = 5 total bash calls.
         assert mock_bash.call_count == 5
         bash_commands = [c[0][0] for c in mock_bash.call_args_list]

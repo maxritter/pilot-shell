@@ -52,6 +52,32 @@ def _get_last_error() -> str:
     return getattr(_thread_local, "last_retry_stderr", "")
 
 
+# Outcome states for install_X functions. The sidechannel lets each install
+# function tell the dispatcher whether it actually did work, without changing
+# the bool return type that tests mock.
+_OUTCOME_INSTALLED = "installed"  # was missing, now installed
+_OUTCOME_UPDATED = "updated"  # was present, install/upgrade ran
+_OUTCOME_UNCHANGED = "unchanged"  # was present, nothing done (no message)
+_OUTCOME_REMOVED = "removed"  # was present, removed (for cleanup steps)
+
+
+def _record_outcome(state: str) -> None:
+    """Record the outcome of the current install/cleanup call.
+
+    Install functions call this before `return True` to signal what actually
+    happened. The dispatcher reads via `_take_outcome()` after the call. If
+    nothing is recorded (or the function returns False), the dispatcher falls
+    back to the legacy "{name} installed" message.
+    """
+    _thread_local.install_outcome = state
+
+
+def _take_outcome() -> str:
+    state = getattr(_thread_local, "install_outcome", "")
+    _thread_local.install_outcome = ""
+    return state
+
+
 def _run_bash_with_retry(command: str, cwd: Path | None = None, timeout: int = 120, stream: bool = False) -> bool:
     """Run a bash command with retry logic for transient failures.
 
@@ -126,16 +152,21 @@ def install_claude_code() -> bool:
     but proceeds.
     """
     if command_exists("claude"):
+        _record_outcome(_OUTCOME_UNCHANGED)
         return True
-    return _curl_pipe_from_manifest(
+    if _curl_pipe_from_manifest(
         "claude-code-installer",
         CurlPipeRunOptions(timeout=300),
-    )
+    ):
+        _record_outcome(_OUTCOME_INSTALLED)
+        return True
+    return False
 
 
 def install_nodejs() -> bool:
     """Install Node.js via NVM if not present."""
     if command_exists("node"):
+        _record_outcome(_OUTCOME_UNCHANGED)
         return True
 
     nvm_dir = Path.home() / ".nvm"
@@ -156,27 +187,34 @@ def install_nodejs() -> bool:
             if node_bin not in os.environ.get("PATH", ""):
                 os.environ["PATH"] = f"{node_bin}:{os.environ.get('PATH', '')}"
 
+    _record_outcome(_OUTCOME_INSTALLED)
     return True
 
 
 def install_uv() -> bool:
     """Install uv package manager if not present (manifest-pinned curl)."""
     if command_exists("uv"):
+        _record_outcome(_OUTCOME_UNCHANGED)
         return True
-    return _curl_pipe_from_manifest(
+    if _curl_pipe_from_manifest(
         "uv-installer",
         CurlPipeRunOptions(interpreter="sh", timeout=180),
-    )
+    ):
+        _record_outcome(_OUTCOME_INSTALLED)
+        return True
+    return False
 
 
 def install_python_tools() -> bool:
     """Install Python development tools."""
     tools = ["ruff", "basedpyright"]
-
+    installed_any = False
     for tool in tools:
         if not command_exists(tool):
             if not _run_bash_with_retry(f"uv tool install {tool}"):
                 return False
+            installed_any = True
+    _record_outcome(_OUTCOME_INSTALLED if installed_any else _OUTCOME_UNCHANGED)
     return True
 
 
@@ -319,6 +357,7 @@ def install_semble() -> bool:
     (parallel to ruff/basedpyright/hypothesis). No manifest pin — uv resolves
     the latest release at install time.
     """
+    was_present = command_exists("semble")
     if not _run_bash_with_retry(
         "uv tool install --upgrade semble",
         timeout=UV_TOOL_INSTALL_TIMEOUT,
@@ -326,6 +365,7 @@ def install_semble() -> bool:
         return False
 
     _symlink_to_pilot_bin("semble")
+    _record_outcome(_OUTCOME_UPDATED if was_present else _OUTCOME_INSTALLED)
     return True
 
 
@@ -338,6 +378,7 @@ def install_rtk() -> bool:
     """
     if command_exists("rtk"):
         _symlink_to_pilot_bin("rtk")
+        _record_outcome(_OUTCOME_UNCHANGED)
         return True
     if not _curl_pipe_from_manifest(
         "rtk-installer",
@@ -345,6 +386,7 @@ def install_rtk() -> bool:
     ):
         return False
     _symlink_to_pilot_bin("rtk")
+    _record_outcome(_OUTCOME_INSTALLED)
     return True
 
 
@@ -405,6 +447,7 @@ def _has_git_commits(directory: Path) -> bool:
 
 def install_codegraph() -> bool:
     """Install or update CodeGraph for code knowledge graph and structural analysis."""
+    was_present = command_exists("codegraph")
     if not _run_bash_with_retry(
         _npm_install_cmd(manifest_get("codegraph"), force=True),
         timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
@@ -412,6 +455,7 @@ def install_codegraph() -> bool:
         return False
 
     _symlink_to_pilot_bin("codegraph")
+    _record_outcome(_OUTCOME_UPDATED if was_present else _OUTCOME_INSTALLED)
     return True
 
 
@@ -435,13 +479,18 @@ def install_better_sqlite3() -> bool:
     Manifest entry has scripts_policy: allow (native build via node-gyp);
     --ignore-scripts is intentionally omitted.
     """
-    return _run_bash_with_retry(
+    if not _run_bash_with_retry(
         _npm_install_cmd(
             manifest_get("better-sqlite3"),
             extra_flags=("--no-audit", "--no-fund"),
         ),
         timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
-    )
+    ):
+        return False
+    # No reliable presence probe for a globally-installed npm native module
+    # without an extra `npm ls -g` call; treat each run as an upgrade attempt.
+    _record_outcome(_OUTCOME_UPDATED)
+    return True
 
 
 def _is_codegraph_indexed(project_dir: Path) -> bool:
@@ -536,21 +585,29 @@ def codegraph_needs_work(project_dir: Path) -> bool:
 def install_typescript_lsp() -> bool:
     """Install TypeScript language server and compiler globally (manifest-pinned)."""
     if command_exists("vtsls"):
+        _record_outcome(_OUTCOME_UNCHANGED)
         return True
-    return _run_bash_with_retry(
+    if _run_bash_with_retry(
         _npm_install_cmd(manifest_get("vtsls"), manifest_get("typescript")),
         timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
-    )
+    ):
+        _record_outcome(_OUTCOME_INSTALLED)
+        return True
+    return False
 
 
 def install_prettier() -> bool:
     """Install prettier code formatter globally (manifest-pinned)."""
     if command_exists("prettier"):
+        _record_outcome(_OUTCOME_UNCHANGED)
         return True
-    return _run_bash_with_retry(
+    if _run_bash_with_retry(
         _npm_install_cmd(manifest_get("prettier")),
         timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
-    )
+    ):
+        _record_outcome(_OUTCOME_INSTALLED)
+        return True
+    return False
 
 
 def _install_go_via_apt() -> bool:
@@ -587,6 +644,7 @@ def _is_golangci_lint_installed() -> bool:
 def install_golangci_lint() -> bool:
     """Install golangci-lint for comprehensive Go code linting."""
     if _is_golangci_lint_installed():
+        _record_outcome(_OUTCOME_UNCHANGED)
         return True
     if not command_exists("go"):
         if not _install_go_via_apt():
@@ -604,14 +662,17 @@ def install_golangci_lint() -> bool:
     gopath = gopath_result.stdout.strip()
     if gopath_result.returncode != 0 or not gopath:
         return False
-    return _curl_pipe_from_manifest(
+    if _curl_pipe_from_manifest(
         "golangci-lint-installer",
         CurlPipeRunOptions(
             interpreter="sh",
             script_args=["-s", "--", "-b", f"{gopath}/bin"],
             timeout=120,
         ),
-    )
+    ):
+        _record_outcome(_OUTCOME_INSTALLED)
+        return True
+    return False
 
 
 def _refresh_marketplace(marketplace: str) -> bool:
@@ -627,13 +688,41 @@ def _refresh_marketplace(marketplace: str) -> bool:
     )
 
 
+def _ensure_plugin_enabled(plugin_id: str) -> bool:
+    """Force-enable a Claude plugin idempotently.
+
+    `claude plugins enable` exits non-zero with "already enabled" when the
+    plugin is on — we treat that as success, since the desired post-condition
+    (plugin enabled) holds either way.
+    """
+    try:
+        result = subprocess.run(
+            ["claude", "plugins", "enable", plugin_id],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+    except (subprocess.TimeoutExpired, OSError):
+        return False
+    if result.returncode == 0:
+        return True
+    stderr = result.stderr if isinstance(result.stderr, str) else ""
+    stdout = result.stdout if isinstance(result.stdout, str) else ""
+    return "already enabled" in (stderr + stdout).lower()
+
+
 def _install_or_update_plugin(
     plugin_id: str,
     marketplace: str,
 ) -> bool:
     """Install or update a Claude Code plugin via the marketplace.
 
-    Refreshes the marketplace first, then installs or updates the plugin.
+    Refreshes the marketplace first, then installs or updates the plugin,
+    and finally force-enables it. The Claude CLI tracks installed state
+    (~/.claude/plugins/installed_plugins.json) and enabled state
+    (~/.claude/settings.json → enabledPlugins) independently — `update`
+    never auto-enables, and a Claude Code reset can wipe enabledPlugins
+    while leaving installed_plugins intact, so we always force-enable.
     """
     if not command_exists("claude"):
         return False
@@ -648,16 +737,28 @@ def _install_or_update_plugin(
         )
         if result.returncode == 0 and result.stdout.strip():
             plugins = json.loads(result.stdout)
-            already_installed = any(p.get("id") == plugin_id for p in plugins)
-    except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError):
+            # Defensive: the historical shape is a bare list of {id,version}
+            # dicts, but a future Claude CLI may wrap the list (e.g.
+            # {"plugins": [...]}). Anything else falls through to
+            # fresh-install rather than crashing the installer.
+            if isinstance(plugins, list):
+                already_installed = any(
+                    isinstance(p, dict) and p.get("id") == plugin_id for p in plugins
+                )
+    except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError, AttributeError, TypeError):
         pass
 
     if already_installed:
         _refresh_marketplace(marketplace)
-        return _run_bash_with_retry(
+        if not _run_bash_with_retry(
             f"claude plugins update {plugin_id}",
             timeout=120,
-        )
+        ):
+            return False
+        if not _ensure_plugin_enabled(plugin_id):
+            return False
+        _record_outcome(_OUTCOME_UPDATED)
+        return True
 
     if not _run_bash_with_retry(
         f"claude plugins marketplace add {marketplace}",
@@ -665,18 +766,173 @@ def _install_or_update_plugin(
     ):
         return False
 
-    return _run_bash_with_retry(
+    if not _run_bash_with_retry(
         f"claude plugins install {plugin_id}",
         timeout=120,
-    )
+    ):
+        return False
+
+    if not _ensure_plugin_enabled(plugin_id):
+        return False
+    _record_outcome(_OUTCOME_INSTALLED)
+    return True
 
 
-def install_context_mode_plugin() -> bool:
-    """Install or update the context-mode plugin via the Claude CLI plugin system."""
-    return _install_or_update_plugin(
-        plugin_id="context-mode@context-mode",
-        marketplace="mksglu/context-mode",
-    )
+_LEGACY_CONTEXT_MODE_PLUGIN_ID = "context-mode@context-mode"
+_LEGACY_CONTEXT_MODE_MARKETPLACE = "context-mode"
+_LEGACY_CONTEXT_MODE_HOOK_FILENAME = "context-mode-cache-heal.mjs"
+
+
+def remove_legacy_context_mode() -> bool:
+    """Remove the legacy context-mode plugin, marketplace, and orphan SessionStart hook.
+
+    Pilot previously installed mksglu/context-mode as an MCP plugin. This cleanup
+    runs on every install/upgrade and is idempotent — it pre-checks via JSON list
+    output before invoking removal commands so re-runs stay silent. It also deletes
+    the auto-deployed `~/.claude/hooks/context-mode-cache-heal.mjs` script and any
+    SessionStart hook entry in `~/.claude/settings.json` that references it
+    (neither is removed by `claude plugin uninstall`).
+
+    Records outcome `removed` only when something was actually deleted, so
+    fresh / already-clean installs stay silent.
+    """
+    if not command_exists("claude"):
+        _record_outcome(_OUTCOME_UNCHANGED)
+        return True
+
+    removed_anything = False
+    removed_anything |= _legacy_context_mode_uninstall_plugin()
+    removed_anything |= _legacy_context_mode_remove_marketplace()
+    removed_anything |= _legacy_context_mode_remove_orphan_hook()
+    _record_outcome(_OUTCOME_REMOVED if removed_anything else _OUTCOME_UNCHANGED)
+    return True
+
+
+def _legacy_context_mode_uninstall_plugin() -> bool:
+    """Uninstall the context-mode plugin if installed. Idempotent. Returns True if removed."""
+    try:
+        result = subprocess.run(
+            ["claude", "plugin", "list", "--json"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            return False
+        plugins = json.loads(result.stdout)
+        has_plugin = any(
+            isinstance(p, dict) and p.get("id") == _LEGACY_CONTEXT_MODE_PLUGIN_ID for p in plugins
+        )
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError, json.JSONDecodeError, OSError):
+        return False
+    if not has_plugin:
+        return False
+    try:
+        subprocess.run(
+            ["claude", "plugin", "uninstall", _LEGACY_CONTEXT_MODE_PLUGIN_ID, "-y"],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        return True
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError, OSError):
+        return False
+
+
+def _legacy_context_mode_remove_marketplace() -> bool:
+    """Remove the context-mode marketplace if configured. Idempotent. Returns True if removed."""
+    try:
+        result = subprocess.run(
+            ["claude", "plugin", "marketplace", "list", "--json"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            return False
+        markets = json.loads(result.stdout)
+        has_market = any(
+            isinstance(m, dict) and m.get("name") == _LEGACY_CONTEXT_MODE_MARKETPLACE for m in markets
+        )
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError, json.JSONDecodeError, OSError):
+        return False
+    if not has_market:
+        return False
+    try:
+        subprocess.run(
+            ["claude", "plugin", "marketplace", "remove", _LEGACY_CONTEXT_MODE_MARKETPLACE],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        return True
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError, OSError):
+        return False
+
+
+def _legacy_context_mode_remove_orphan_hook() -> bool:
+    """Delete cache-heal hook + matching SessionStart entry in settings.json. Returns True if anything was removed."""
+    hooks_dir = Path.home() / ".claude" / "hooks"
+    orphan = hooks_dir / _LEGACY_CONTEXT_MODE_HOOK_FILENAME
+    removed_anything = False
+    if orphan.exists():
+        try:
+            orphan.unlink(missing_ok=True)
+            removed_anything = True
+        except OSError:
+            pass
+
+    settings_path = Path.home() / ".claude" / "settings.json"
+    if not settings_path.exists():
+        return removed_anything
+    try:
+        data = json.loads(settings_path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return removed_anything
+    if not isinstance(data, dict):
+        return removed_anything
+    hooks_section = data.get("hooks")
+    if not isinstance(hooks_section, dict):
+        return removed_anything
+    session_start = hooks_section.get("SessionStart")
+    if not isinstance(session_start, list):
+        return removed_anything
+
+    cleaned: list[Any] = []
+    changed = False
+    for entry in session_start:
+        if not isinstance(entry, dict):
+            cleaned.append(entry)
+            continue
+        sub_hooks = entry.get("hooks")
+        if not isinstance(sub_hooks, list):
+            cleaned.append(entry)
+            continue
+        filtered = [
+            h
+            for h in sub_hooks
+            if not (
+                isinstance(h, dict)
+                and _LEGACY_CONTEXT_MODE_HOOK_FILENAME in str(h.get("command", ""))
+            )
+        ]
+        if len(filtered) == len(sub_hooks):
+            cleaned.append(entry)
+            continue
+        changed = True
+        if filtered:
+            new_entry = dict(entry)
+            new_entry["hooks"] = filtered
+            cleaned.append(new_entry)
+
+    if not changed:
+        return removed_anything
+    hooks_section["SessionStart"] = cleaned
+    try:
+        settings_path.write_text(json.dumps(data, indent=2) + "\n")
+        return True
+    except OSError:
+        return removed_anything
 
 
 def install_codex_plugin() -> bool:
@@ -768,12 +1024,23 @@ def install_lsp_plugins() -> bool:
     pre_installed = _list_installed_plugin_ids()
     pilot_owned: set[str] = set(previously_owned)
     all_ok = True
+    any_fresh = False
+    any_update = False
 
     for plugin_id in _LSP_PLUGIN_IDS:
         was_present = plugin_id in pre_installed
         was_pilot_owned = plugin_id in previously_owned
+        # `_install_or_update_plugin` records its own outcome, but the LSP batch
+        # is a single dispatcher step — drain that sidechannel per-plugin so the
+        # batched outcome reflects the whole set.
+        _take_outcome()
         ok = _install_or_update_plugin(plugin_id, _LSP_MARKETPLACE)
+        per_plugin = _take_outcome()
         if ok:
+            if per_plugin == _OUTCOME_INSTALLED:
+                any_fresh = True
+            elif per_plugin == _OUTCOME_UPDATED:
+                any_update = True
             # Pilot owns this ID iff we installed it fresh OR we already owned
             # it from a prior install. We do NOT claim ownership of a plugin
             # the user installed manually before Pilot ever ran AND that Pilot
@@ -787,11 +1054,19 @@ def install_lsp_plugins() -> bool:
     # — including the empty-set case where no plugins are Pilot-owned.
     _write_pilot_lsp_manifest(sorted(pilot_owned))
 
+    if all_ok:
+        if any_fresh:
+            _record_outcome(_OUTCOME_INSTALLED)
+        elif any_update:
+            _record_outcome(_OUTCOME_UPDATED)
+        else:
+            _record_outcome(_OUTCOME_UNCHANGED)
     return all_ok
 
 
 def install_chrome_devtools_plugin() -> bool:
     """Install or update the Chrome DevTools MCP plugin via the Claude CLI plugin system."""
+    # Outcome is recorded inside _install_or_update_plugin; pass it through.
     return _install_or_update_plugin(
         plugin_id="chrome-devtools-mcp@chrome-devtools-plugins",
         marketplace="ChromeDevTools/chrome-devtools-mcp",
@@ -805,9 +1080,12 @@ def install_pbt_tools() -> bool:
     Both packages are best-effort: failure does not block installation.
     """
     ok = True
+    installed_any = False
 
     if not command_exists("hypothesis"):
-        if not _run_bash_with_retry("uv tool install hypothesis", timeout=UV_TOOL_INSTALL_TIMEOUT):
+        if _run_bash_with_retry("uv tool install hypothesis", timeout=UV_TOOL_INSTALL_TIMEOUT):
+            installed_any = True
+        else:
             ok = False
 
     if not command_exists("fast-check"):
@@ -819,13 +1097,17 @@ def install_pbt_tools() -> bool:
                 text=True,
                 timeout=15,
             )
-            if result.returncode != 0 or "fast-check" not in result.stdout:
-                if not _run_bash_with_retry(fast_check_cmd, timeout=GLOBAL_NPM_INSTALL_TIMEOUT):
-                    ok = False
+            need_install = result.returncode != 0 or "fast-check" not in result.stdout
         except Exception:
-            if not _run_bash_with_retry(fast_check_cmd, timeout=GLOBAL_NPM_INSTALL_TIMEOUT):
+            need_install = True
+        if need_install:
+            if _run_bash_with_retry(fast_check_cmd, timeout=GLOBAL_NPM_INSTALL_TIMEOUT):
+                installed_any = True
+            else:
                 ok = False
 
+    if ok:
+        _record_outcome(_OUTCOME_INSTALLED if installed_any else _OUTCOME_UNCHANGED)
     return ok
 
 
@@ -858,20 +1140,27 @@ def install_agent_browser() -> bool:
         return False
 
     if had_browser:
+        _record_outcome(_OUTCOME_UPDATED)
         return True
 
     if is_linux_arm64():
         if not command_exists("apt-get"):
             return False
-        return _run_bash_with_retry(
+        if not _run_bash_with_retry(
             "sudo -n apt-get update -qq && sudo -n apt-get install -y -qq chromium",
             timeout=180,
-        )
+        ):
+            return False
+        _record_outcome(_OUTCOME_INSTALLED)
+        return True
 
     import platform
 
     install_cmd = "agent-browser install --with-deps" if platform.system() == "Linux" else "agent-browser install"
-    return _run_bash_with_retry(install_cmd, timeout=300)
+    if not _run_bash_with_retry(install_cmd, timeout=300):
+        return False
+    _record_outcome(_OUTCOME_INSTALLED)
+    return True
 
 
 def _get_playwright_cache_dirs() -> list[Path]:
@@ -909,13 +1198,15 @@ def install_playwright_cli() -> bool:
     Always runs npm install to keep up to date. Skips browser download
     only if Chromium is already present in the Playwright cache.
     """
+    had_cli_ready = _is_playwright_cli_ready()
     if not _run_bash_with_retry(
         _npm_install_cmd(manifest_get("playwright-cli")),
         timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
     ):
         return False
 
-    if _is_playwright_cli_ready():
+    if had_cli_ready:
+        _record_outcome(_OUTCOME_UPDATED)
         return True
 
     try:
@@ -925,7 +1216,10 @@ def install_playwright_cli() -> bool:
             text=True,
             timeout=600,
         )
-        return result.returncode == 0
+        if result.returncode != 0:
+            return False
+        _record_outcome(_OUTCOME_INSTALLED)
+        return True
     except Exception:
         return False
 
@@ -947,6 +1241,7 @@ class _InstallResult:
     name: str
     key: str
     success: bool
+    outcome: str = ""
     error: str = ""
 
 
@@ -956,12 +1251,15 @@ def _run_install_silent(task: _InstallTask) -> _InstallResult:
     Thread-safe: uses thread-local error tracking.
     """
     _clear_last_error()
+    _take_outcome()  # clear any stale outcome from a previous run on this thread
     try:
         success = task.fn(*task.args) if task.args else task.fn()
+        outcome = _take_outcome() if success else ""
         return _InstallResult(
             name=task.name,
             key=task.key,
             success=success,
+            outcome=outcome,
             error=_get_last_error() if not success else "",
         )
     except _SudoReauthNeeded:
@@ -1015,7 +1313,7 @@ def _run_parallel_installs(
         result = results[task.key]
         if result.success:
             if ui:
-                ui.success(f"{result.name} installed")
+                _report_install_outcome(ui, result.name, result.outcome)
             installed.append(result.key)
         else:
             if ui:
@@ -1029,6 +1327,25 @@ def _run_parallel_installs(
     return installed
 
 
+def _report_install_outcome(ui: Any, name: str, outcome: str) -> None:
+    """Print the success message based on what the install function recorded.
+
+    - `unchanged` → silent (no message; the tool was already present and we did nothing)
+    - `removed`   → "{name} removed" (for cleanup steps like the legacy plugin)
+    - `updated`   → "{name} updated"
+    - `installed` (or empty/unknown) → "{name} installed" (legacy default)
+    """
+    if outcome == _OUTCOME_UNCHANGED:
+        return
+    if outcome == _OUTCOME_REMOVED:
+        ui.success(f"{name} removed")
+        return
+    if outcome == _OUTCOME_UPDATED:
+        ui.success(f"{name} updated")
+        return
+    ui.success(f"{name} installed")
+
+
 def _install_with_spinner(ui: Any, name: str, install_fn: Any, *args: Any) -> bool:
     """Run an installation function with a spinner.
 
@@ -1037,6 +1354,7 @@ def _install_with_spinner(ui: Any, name: str, install_fn: Any, *args: Any) -> bo
     install is retried once.
     """
     _clear_last_error()
+    _take_outcome()  # clear any stale outcome from a prior call on this thread
     if ui:
         try:
             with ui.spinner(f"Installing {name}..."):
@@ -1055,7 +1373,7 @@ def _install_with_spinner(ui: Any, name: str, install_fn: Any, *args: Any) -> bo
                 _thread_local.last_retry_stderr = "sudo credentials expired — re-run the installer"
                 result = False
         if result:
-            ui.success(f"{name} installed")
+            _report_install_outcome(ui, name, _take_outcome())
         else:
             error = _get_last_error()
             if error:
@@ -1102,16 +1420,23 @@ def _install_plugin_dependencies(_project_dir: Path, ui: Any = None) -> bool:
         return False
 
     if command_exists("bun"):
-        return _run_bash_with_retry("bun install", cwd=plugin_dir)
+        if not _run_bash_with_retry("bun install", cwd=plugin_dir):
+            return False
+        _record_outcome(_OUTCOME_UPDATED)
+        return True
 
     if command_exists("npm"):
-        return _run_bash_with_retry("npm install", cwd=plugin_dir)
+        if not _run_bash_with_retry("npm install", cwd=plugin_dir):
+            return False
+        _record_outcome(_OUTCOME_UPDATED)
+        return True
 
     return False
 
 
 def _setup_pilot_memory(ui: Any) -> bool:
     """Setup pilot-memory (no-op, kept for compatibility)."""
+    _record_outcome(_OUTCOME_UNCHANGED)
     return True
 
 
@@ -1165,6 +1490,7 @@ def _precache_npx_mcp_servers(_ui: Any) -> bool:
 
     mcp_config_path = get_claude_config_dir() / "pilot" / ".mcp.json"
     if not mcp_config_path.exists():
+        _record_outcome(_OUTCOME_UNCHANGED)
         return True
 
     try:
@@ -1183,6 +1509,7 @@ def _precache_npx_mcp_servers(_ui: Any) -> bool:
 
     uncached = [p for p in npx_packages if not _is_npx_package_cached(p)]
     if not uncached:
+        _record_outcome(_OUTCOME_UNCHANGED)
         return True
 
     procs: list[tuple[str, subprocess.Popen[Any]]] = []
@@ -1199,6 +1526,7 @@ def _precache_npx_mcp_servers(_ui: Any) -> bool:
             continue
 
     if not procs:
+        _record_outcome(_OUTCOME_UNCHANGED)
         return True
 
     max_wait = NPX_CACHE_WAIT_TIMEOUT
@@ -1209,6 +1537,7 @@ def _precache_npx_mcp_servers(_ui: Any) -> bool:
             _kill_proc(proc)
 
     _fix_npx_peer_dependencies()
+    _record_outcome(_OUTCOME_INSTALLED)
     return True
 
 
@@ -1282,6 +1611,12 @@ class DependenciesStep(BaseStep):
             if _install_with_spinner(ui, "uv", install_uv):
                 installed.append("uv")
 
+            # Legacy cleanup — must run after Claude Code is installed and before
+            # the parallel plugin installs so a single-threaded `claude` invocation
+            # handles the uninstall cleanly.
+            if _install_with_spinner(ui, "Removing legacy context-mode plugin", remove_legacy_context_mode):
+                installed.append("legacy_context_mode_removed")
+
             # --- Phase 2: Independent tools (parallel) ---
             parallel_tasks = [
                 _InstallTask("Python tools", "python_tools", install_python_tools),
@@ -1294,7 +1629,6 @@ class DependenciesStep(BaseStep):
                 _InstallTask("RTK (token optimizer)", "rtk", install_rtk),
                 _InstallTask("CodeGraph (code intelligence)", "codegraph", install_codegraph),
                 _InstallTask("better-sqlite3 (CodeGraph native backend)", "better_sqlite3", install_better_sqlite3),
-                _InstallTask("context-mode plugin", "context_mode_plugin", install_context_mode_plugin),
                 _InstallTask("Codex plugin", "codex_plugin", install_codex_plugin),
                 _InstallTask("Chrome DevTools MCP plugin", "chrome_devtools_plugin", install_chrome_devtools_plugin),
                 _InstallTask("LSP plugins (vtsls, basedpyright, gopls)", "lsp_plugins", install_lsp_plugins),

@@ -10,7 +10,6 @@ const sidebars: SidebarsConfig = {
       items: [
         "getting-started/prerequisites",
         "getting-started/installation",
-        "getting-started/permission-modes",
       ],
     },
     {
@@ -41,7 +40,7 @@ const sidebars: SidebarsConfig = {
         "features/context-optimization",
         "features/remote-control",
         "features/hooks",
-        "features/security",
+        "features/permission-modes",
         "features/extensions",
         "features/customization",
         "features/cli",

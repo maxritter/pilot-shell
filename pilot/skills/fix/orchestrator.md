@@ -3,7 +3,6 @@ name: fix
 description: "Bugfix workflow — investigate, RED test, fix, verify end-to-end, done. Standard command for bugs. Stops cleanly and asks the user to re-invoke with /spec when the bug exceeds this workflow's scope."
 argument-hint: "<bug description>"
 user-invocable: true
-model: opus
 ---
 
 # /fix — Bugfix Workflow

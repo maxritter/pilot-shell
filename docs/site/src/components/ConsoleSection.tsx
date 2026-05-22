@@ -55,14 +55,14 @@ const consoleSlides: ConsoleSlide[] = [
   {
     label: "Usage",
     name: "usage",
-    alt: "Usage view — daily costs, token charts, and model routing",
-    desc: "Daily token costs, model routing breakdown, and usage trends over time.",
+    alt: "Usage view — daily costs, cost-by-model breakdown, and usage trends",
+    desc: "Daily token costs, cost-by-model breakdown, and usage trends over time.",
   },
   {
     label: "Settings",
     name: "settings",
-    alt: "Settings view — model selection per command, spec workflow toggles",
-    desc: "Choose models per command and sub-agent. Spec workflow toggles, reviewer configuration, and pricing info.",
+    alt: "Settings view — spec workflow, console port, security toggles",
+    desc: "Spec workflow toggles (branch isolation, ask questions, plan approval, Model Switching), reviewer configuration, and credential scanner. Active model is set via `/model` — no model dropdowns here.",
   },
   {
     label: "Help",

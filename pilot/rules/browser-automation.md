@@ -1,3 +1,11 @@
+---
+paths:
+  - "**/*.{ts,tsx,js,jsx,mjs,cjs,html,css,scss,vue,svelte,astro}"
+  - "**/{tests,test,e2e,playwright,cypress,__tests__}/**"
+  - "**/playwright.config.*"
+  - "**/cypress.config.*"
+---
+
 ## Browser Automation for E2E Testing
 
 **MANDATORY for E2E testing of any app with a UI.** API tests verify backend; browser automation verifies what the user sees.

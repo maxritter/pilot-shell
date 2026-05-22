@@ -28,33 +28,25 @@ class TestDriftDetection:
 
     def test_at_latest_in_dependencies_fails(self, drift_module, tmp_path: Path) -> None:
         py = tmp_path / "dependencies.py"
-        py.write_text(
-            'def install_x():\n'
-            '    return _run_bash_with_retry("npm install -g something@latest")\n'
-        )
+        py.write_text('def install_x():\n    return _run_bash_with_retry("npm install -g something@latest")\n')
         findings = drift_module.scan_file(py)
         assert any("@latest" in f.message for f in findings)
 
     def test_master_install_sh_fails(self, drift_module, tmp_path: Path) -> None:
         py = tmp_path / "dependencies.py"
-        py.write_text(
-            'cmd = "curl -fsSL https://example.com/master/install.sh | bash"\n'
-        )
+        py.write_text('cmd = "curl -fsSL https://example.com/master/install.sh | bash"\n')
         findings = drift_module.scan_file(py)
         assert any("install.sh" in f.message for f in findings)
 
     def test_head_install_sh_fails(self, drift_module, tmp_path: Path) -> None:
         py = tmp_path / "prerequisites.py"
-        py.write_text('curl https://x/HEAD/install.sh | bash\n')
+        py.write_text("curl https://x/HEAD/install.sh | bash\n")
         findings = drift_module.scan_file(py)
         assert any("install.sh" in f.message for f in findings)
 
     def test_unversioned_uv_run_with_in_install_sh_fails(self, drift_module, tmp_path: Path) -> None:
         sh = tmp_path / "install.sh"
-        sh.write_text(
-            "#!/bin/bash\n"
-            'uv run --python 3.12 --no-project --with rich --with certifi python -c "..."\n'
-        )
+        sh.write_text('#!/bin/bash\nuv run --python 3.12 --no-project --with rich --with certifi python -c "..."\n')
         findings = drift_module.scan_file(sh)
         # Two unversioned --with calls.
         assert any("--with" in f.message for f in findings)
@@ -83,9 +75,7 @@ class TestDriftDetection:
     def test_npx_pinned_but_unmonitored_fails(self, drift_module, tmp_path: Path) -> None:
         """Pinned npx package missing from manifest is rejected by the cross-ref check."""
         mcp = tmp_path / ".mcp.json"
-        mcp.write_text(
-            '{"mcpServers": {"x": {"command": "npx", "args": ["-y", "totally-not-monitored@1.2.3"]}}}'
-        )
+        mcp.write_text('{"mcpServers": {"x": {"command": "npx", "args": ["-y", "totally-not-monitored@1.2.3"]}}}')
         findings = drift_module.cross_reference_mcp(mcp)
         assert any("not in manifest" in f.message.lower() or "unmonitored" in f.message.lower() for f in findings)
 
@@ -110,9 +100,7 @@ class TestDriftDetection:
 
     def test_noqa_without_justification_rejected(self, drift_module, tmp_path: Path) -> None:
         py = tmp_path / "dependencies.py"
-        py.write_text(
-            'cmd = "curl https://x/master/install.sh | bash"  # noqa: drift-check\n'
-        )
+        py.write_text('cmd = "curl https://x/master/install.sh | bash"  # noqa: drift-check\n')
         findings = drift_module.scan_file(py)
         # Bare noqa is treated as a finding (justification required).
         assert findings
@@ -147,9 +135,7 @@ class TestDriftDetection:
         assert len(findings) == 1
         assert "utf-8" in findings[0].message.lower()
 
-    def test_bare_noqa_with_forbidden_pattern_yields_one_finding(
-        self, drift_module, tmp_path: Path
-    ) -> None:
+    def test_bare_noqa_with_forbidden_pattern_yields_one_finding(self, drift_module, tmp_path: Path) -> None:
         """Bare-noqa lines must NOT also report the matched forbidden pattern.
 
         Regression guard for changes-review must_fix #2 (false-positive double-report
@@ -158,9 +144,7 @@ class TestDriftDetection:
         bare-noqa finding.
         """
         py = tmp_path / "dependencies.py"
-        py.write_text(
-            'cmd = "curl https://x/master/install.sh | bash"  # noqa: drift-check\n'
-        )
+        py.write_text('cmd = "curl https://x/master/install.sh | bash"  # noqa: drift-check\n')
         findings = drift_module.scan_file(py)
         assert len(findings) == 1
         assert "bare" in findings[0].message.lower()

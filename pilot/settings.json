@@ -95,6 +95,7 @@
     "excludeDefault": true
   },
   "prefersReducedMotion": true,
+  "preferredNotifChannel": "auto",
   "showTurnDuration": true,
   "alwaysThinkingEnabled": true,
   "showThinkingSummaries": true,
@@ -107,6 +108,7 @@
     "pr": ""
   },
   "effortLevel": "xhigh",
+  "viewMode": "verbose",
   "statusLine": {
     "type": "command",
     "command": "~/.pilot/bin/pilot statusline",

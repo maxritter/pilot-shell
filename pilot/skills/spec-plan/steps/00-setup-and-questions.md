@@ -5,10 +5,10 @@
 **⛔ Run FIRST, before any other step.** Read all toggle env vars in a single Bash call:
 
 ```bash
-echo "QUESTIONS=$PILOT_PLAN_QUESTIONS_ENABLED REVIEWER=$PILOT_SPEC_REVIEW_ENABLED CODEX_SPEC=$PILOT_CODEX_SPEC_REVIEW_ENABLED APPROVAL=$PILOT_PLAN_APPROVAL_ENABLED"
+echo "QUESTIONS=$PILOT_PLAN_QUESTIONS_ENABLED REVIEWER=$PILOT_SPEC_REVIEW_ENABLED CODEX_SPEC=$PILOT_CODEX_SPEC_REVIEW_ENABLED APPROVAL=$PILOT_PLAN_APPROVAL_ENABLED MODEL_SWITCH=$PILOT_MODEL_SWITCH_ENABLED"
 ```
 
-Reference these values throughout: Steps 4/6 (questions), 10 (reviewer + Codex — Codex controlled by Console Settings), and 12 (approval).
+Reference these values throughout: Steps 4/6 (questions), 10 (reviewer + Codex — Codex controlled by Console Settings), and 12 (approval + Model Switching handoff).
 
 ### 0.2 Asking User Questions
 
