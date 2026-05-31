@@ -707,6 +707,46 @@ class TestSessionScopedPlanDetection:
         assert _is_blocked(stdout)
         assert "cannot stop" in stdout.lower()
 
+    def test_ignores_plan_outside_current_project(self, tmp_path: Path) -> None:
+        """Cross-session bleed: a registered plan that lives OUTSIDE the current
+        project root must not block. Reproduces the failure where PILOT_SESSION_ID
+        is unset, active_plan.json collapses to the shared 'default' file, and a
+        /spec plan from another repo's session blocked stops in an unrelated repo.
+        """
+        project = tmp_path / "current-project"
+        plans_dir = project / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+
+        other_plans = tmp_path / "other-project" / "docs" / "plans"
+        other_plans.mkdir(parents=True)
+        foreign_plan = other_plans / "2026-02-06-foreign.md"
+        foreign_plan.write_text("# Foreign\n\nStatus: PENDING\nApproved: Yes\n")
+        _register_plan_for_session(foreign_plan, "PENDING")
+
+        with patch.dict(os.environ, {"CLAUDE_PROJECT_ROOT": str(project)}):
+            exit_code, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+
+        assert exit_code == 0
+        assert not _is_blocked(stdout)
+
+    def test_blocks_absolute_plan_inside_current_project(self, tmp_path: Path) -> None:
+        """The project-scope guard must not over-suppress: an absolute plan path
+        INSIDE the current project root still blocks."""
+        project = tmp_path / "current-project"
+        plans_dir = project / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+
+        plan_file = plans_dir / "2026-02-06-in-project.md"
+        plan_file.write_text("# In Project\n\nStatus: PENDING\nApproved: No\n")
+        _register_plan_for_session(plan_file, "PENDING")
+
+        with patch.dict(os.environ, {"CLAUDE_PROJECT_ROOT": str(project)}):
+            exit_code, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+
+        assert exit_code == 0
+        assert _is_blocked(stdout)
+        assert "cannot stop" in stdout.lower()
+
 
 class TestHandoffSentinel:
     """The model-switch handoff sentinel grants permission to stop while it lives.

@@ -25,6 +25,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from _lib.util import (
     _sessions_base,
     build_objective_reinjection,
+    find_git_root,
     get_session_plan_path,
     is_waiting_for_user_input,
     stop_block,
@@ -67,6 +68,41 @@ def get_handoff_sentinel_path() -> Path:
     return guard_dir / "spec-handoff-pending"
 
 
+def _current_project_root() -> Path | None:
+    """Best-effort current project root: CLAUDE_PROJECT_ROOT, else git root, else cwd."""
+    root = os.environ.get("CLAUDE_PROJECT_ROOT", "").strip()
+    if root:
+        return Path(root)
+    git_root = find_git_root()
+    if git_root is not None:
+        return git_root
+    try:
+        return Path.cwd()
+    except OSError:
+        return None
+
+
+def _plan_in_current_project(plan_file: Path) -> bool:
+    """True if plan_file lives inside the current project root.
+
+    Cross-session bleed guard: when PILOT_SESSION_ID is unset, the session-scoped
+    active_plan.json collapses to the shared "default" file, so a /spec plan
+    registered by ANOTHER repo's session can block stops in an unrelated repo.
+    Only enforce the stop-guard for a plan that actually lives in the project this
+    session is running in. Fails open (returns True -> legacy behavior) when the
+    project root cannot be determined, so legitimate guarding is never weakened.
+    """
+    root = _current_project_root()
+    if root is None:
+        return True
+    try:
+        root_real = os.path.realpath(root)
+        plan_real = os.path.realpath(plan_file)
+        return os.path.commonpath([root_real, plan_real]) == root_real
+    except (ValueError, OSError):
+        return True
+
+
 def find_active_plan() -> tuple[Path | None, str | None]:
     """Find the active plan for THIS session via session-scoped active_plan.json."""
     plan_json = get_session_plan_path()
@@ -87,6 +123,12 @@ def find_active_plan() -> tuple[Path | None, str | None]:
         project_root = os.environ.get("CLAUDE_PROJECT_ROOT", str(Path.cwd()))
         plan_file = Path(project_root) / plan_file
     if not plan_file.exists():
+        return None, None
+
+    # Cross-session bleed guard: ignore an active plan that isn't part of this
+    # project (e.g. a COMPLETE plan from another repo's /spec session leaking in
+    # through the shared "default" active_plan.json when PILOT_SESSION_ID unset).
+    if not _plan_in_current_project(plan_file):
         return None, None
 
     try:
