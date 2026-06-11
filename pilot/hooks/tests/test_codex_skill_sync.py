@@ -449,7 +449,7 @@ class TestSyncCodexEnvVars:
 
         assert count == 7
         content = codex_config.read_text()
-        assert "[shell_environment_policy.set]" in content
+        assert content.count("[shell_environment_policy.set]") == 1
         assert 'PILOT_PLAN_APPROVAL_ENABLED = "false"' in content
         assert 'PILOT_BRANCH_ISOLATION_ENABLED = "true"' in content
         # Automated model switching is Claude-Code-only -- Codex never gets the var.
@@ -480,8 +480,8 @@ class TestSyncCodexEnvVars:
         codex_config.parent.mkdir(parents=True)
         codex_config.write_text(
             'approval_policy = "never"\n'
-            "\n# --- pilot-shell managed env vars ---\n"
-            "[shell_environment_policy.set]\n"
+            "\n[shell_environment_policy.set]\n"
+            "# --- pilot-shell managed env vars ---\n"
             'PILOT_PLAN_APPROVAL_ENABLED = "false"\n'
             "# --- end pilot-shell managed env vars ---\n"
         )
@@ -490,8 +490,28 @@ class TestSyncCodexEnvVars:
             _sync_codex_env_vars()
 
         content = codex_config.read_text()
-        assert content.count("shell_environment_policy") == 1
+        assert content.count("[shell_environment_policy.set]") == 1
         assert 'PILOT_PLAN_APPROVAL_ENABLED = "true"' in content
+        tomllib.loads(content)
+
+    def test_does_not_duplicate_section_header_when_codex_config_already_has_one(
+        self, tmp_path: Path
+    ) -> None:
+        codex_config = tmp_path / ".codex" / "config.toml"
+        codex_config.parent.mkdir(parents=True)
+        codex_config.write_text(
+            'approval_policy = "never"\n'
+            "\n[shell_environment_policy.set]\n"
+            "SOME_EXISTING_VAR = \"1\"\n"
+        )
+
+        with patch("codex_skill_sync.Path.home", return_value=tmp_path):
+            _sync_codex_env_vars()
+
+        content = codex_config.read_text()
+        assert content.count("[shell_environment_policy.set]") == 1
+        assert "SOME_EXISTING_VAR" in content
+        tomllib.loads(content)
 
     def test_defaults_branch_isolation_to_true_when_config_missing(self, tmp_path: Path) -> None:
         """When config.json is absent, branchIsolation should default to true (matching Console)."""

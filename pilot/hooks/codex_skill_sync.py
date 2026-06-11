@@ -431,7 +431,7 @@ def _sync_codex_env_vars() -> int:
 
     env_lines = [f'{k} = "{v}"' for k, v in sorted(env_vars.items())]
     managed_block = (
-        f"\n{_ENV_MARKER_START}\n[shell_environment_policy.set]\n" + "\n".join(env_lines) + f"\n{_ENV_MARKER_END}\n"
+        f"\n{_ENV_MARKER_START}\n" + "\n".join(env_lines) + f"\n{_ENV_MARKER_END}\n"
     )
 
     try:
@@ -444,7 +444,10 @@ def _sync_codex_env_vars() -> int:
         end = existing.index(_ENV_MARKER_END) + len(_ENV_MARKER_END)
         new_content = existing[:start].rstrip("\n") + managed_block + existing[end:].lstrip("\n")
     else:
-        new_content = existing.rstrip("\n") + managed_block
+        block = managed_block
+        if "[shell_environment_policy.set]" not in existing:
+            block = "\n[shell_environment_policy.set]" + block
+        new_content = existing.rstrip("\n") + block
 
     if new_content != existing:
         tmp = codex_config.with_suffix(".toml.tmp")
