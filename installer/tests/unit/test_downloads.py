@@ -561,3 +561,47 @@ class TestTreeJsonFallback:
         assert len(files) == 1
         assert files[0].path == "pilot/test.py"
         assert files[0].sha == "xyz789"
+
+    def test_get_repo_files_falls_back_to_api_on_malformed_tree_json(self):
+        """get_repo_files falls back to API when tree.json has invalid structure (raises TypeError/AttributeError)."""
+        from unittest.mock import MagicMock, patch
+
+        from installer.downloads import DownloadConfig, get_repo_files
+
+        config = DownloadConfig(
+            repo_url="https://github.com/test/repo",
+            repo_branch="v6.0.0",
+        )
+
+        api_data = {
+            "tree": [
+                {"path": "pilot/test.py", "type": "blob", "sha": "xyz789"},
+            ]
+        }
+
+        # Return an int, causing "tree" in data to raise TypeError
+        malformed_data = 123
+
+
+        def side_effect(request, *_args, **_kwargs):
+            url = request.full_url if hasattr(request, "full_url") else str(request)
+            mock_response = MagicMock()
+            mock_response.status = 200
+            mock_response.headers.get.return_value = None
+            mock_response.__enter__.return_value = mock_response
+            mock_response.__exit__.return_value = None
+
+            if "tree.json" in url:
+                mock_response.read.return_value = json.dumps(malformed_data).encode()
+            else:
+                mock_response.read.return_value = json.dumps(api_data).encode()
+            return mock_response
+
+        with patch("urllib.request.urlopen", side_effect=side_effect) as mock_urlopen:
+            files = get_repo_files("pilot", config)
+
+        assert mock_urlopen.call_count == 2
+        assert len(files) == 1
+        assert files[0].path == "pilot/test.py"
+        assert files[0].sha == "xyz789"
+

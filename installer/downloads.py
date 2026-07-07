@@ -279,7 +279,7 @@ def get_repo_files(dir_path: str, config: DownloadConfig) -> list[FileInfo]:
                             if path.startswith(dir_path):
                                 remote_files.append(FileInfo(path=path, sha=sha))
                 return remote_files
-    except (urllib.error.HTTPError, urllib.error.URLError, json.JSONDecodeError, TimeoutError):
+    except (urllib.error.HTTPError, urllib.error.URLError, json.JSONDecodeError, TypeError, AttributeError, TimeoutError):
         pass
 
     try:
@@ -317,5 +317,6 @@ def get_repo_files(dir_path: str, config: DownloadConfig) -> list[FileInfo]:
         if e.code == 304 and cached_files:
             return _files_from_cache(cached_files, dir_path)
         return []
-    except (urllib.error.URLError, json.JSONDecodeError, TimeoutError):
+    except (urllib.error.URLError, json.JSONDecodeError, TypeError, AttributeError, TimeoutError):
         return []
+
