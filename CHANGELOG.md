@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [9.14.0] - 2026-07-25
+
+### Features
+
+- Adapt Pilot Shell to Opus 5 and consolidate skills, rules, and hooks
+
 ## [9.13.2] - 2026-07-22
 
 ### Bug Fixes
