@@ -6,12 +6,12 @@
 
 <!-- CC-ONLY -->
 ```bash
-echo "REVIEWER=$PILOT_CHANGES_REVIEW_ENABLED CODEX_CHG=$PILOT_CODEX_CHANGES_REVIEW_ENABLED SPEC_MODE=$PILOT_SPEC_CODE_REVIEW_MODE"
+echo "REVIEWER=$PILOT_CHANGES_REVIEW_ENABLED CODEX_CHG=$PILOT_CODEX_CHANGES_REVIEW_ENABLED"
 ```
 
-Codex reviewers are controlled entirely by Console Settings — the env vars are authoritative. `SPEC_MODE` is the configured changes-review mechanism for `/spec` (`agent` = single `changes-review` sub-agent; `medium`/`high`/`xhigh` = built-in `/code-review` skill at that effort; default `agent` when unset/invalid — allow-listed at the points of use in Steps 1 and 3).
+Codex reviewers are controlled entirely by Console Settings — the env vars are authoritative.
 
-Reference these values in Steps 1 (agent-mode + Codex companion launch) and 3 (review collection).
+Reference these values in Steps 1 (changes-review + Codex companion launch) and 3 (review collection).
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 ```bash
@@ -26,7 +26,7 @@ CODEX-END -->
 <!-- CC-ONLY -->
 ```
 Phase A — Finalize the code:
-  Launch changes-review sub-agent (agent mode) + Codex companion (if enabled) → Automated Checks (tests + lint + verify commands + Plan Compliance & Goal-Truth Audit) → Feature Parity (if migration) → Collect review results (agent findings OR inline /code-review at the configured effort) + Collect Codex Results → Fix
+  Launch changes-review sub-agent + Codex companion (if enabled) → Automated Checks (tests + lint + verify commands + Plan Compliance & Goal-Truth Audit) → Feature Parity (if migration) → Collect review findings + Collect Codex Results → Fix
 
 Phase B — Verify the running program (depth depends on runtime profile):
   Build → Program Execution → Per-Task DoD Audit → E2E

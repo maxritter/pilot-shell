@@ -1718,10 +1718,10 @@ class TestMigrationV14:
         assert "contextWindow" not in migrated
         assert "contextWindows" not in migrated
 
-    def test_v14_config_advances_to_current_seeding_code_review(self, tmp_path: Path) -> None:
+    def test_v14_config_advances_to_current_dropping_code_review(self, tmp_path: Path) -> None:
         """A config at v14 (legacy contextWindows present, codeReview absent) advances:
-        codeReview is seeded by v15, v16 collapses contextWindows to a single key, and
-        v17 drops that key entirely."""
+        v15 seeds codeReview, v16 collapses contextWindows to a single key, v17 drops
+        that key entirely, and v21 removes codeReview along with the whole setting."""
         from installer.steps.config_migration import CURRENT_CONFIG_VERSION, migrate_model_config
 
         config_path = tmp_path / "config.json"
@@ -1739,8 +1739,9 @@ class TestMigrationV14:
         assert result is True
         migrated = json.loads(config_path.read_text())
         assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
-        # v15 seeds effort xhigh, v18 relaxes it, v19 replaces effort with modes.
-        assert migrated["codeReview"] == {"spec": "agent", "fix": "agent"}
+        # v15 seeds effort xhigh, v18 relaxes it, v19 replaces effort with modes,
+        # v21 removes the section outright.
+        assert "codeReview" not in migrated
         # Both the legacy per-model object and the collapsed single key are gone.
         assert "contextWindows" not in migrated
         assert "contextWindow" not in migrated
@@ -1816,7 +1817,7 @@ class TestMigrationV16:
         assert modified is True
         assert raw["codeReview"] == {"effort": "xhigh"}
 
-    def test_full_migration_from_v14_seeds_code_review_and_bumps_version(self, tmp_path: Path) -> None:
+    def test_full_migration_from_v14_drops_code_review_and_bumps_version(self, tmp_path: Path) -> None:
         from installer.steps.config_migration import CURRENT_CONFIG_VERSION, migrate_model_config
 
         config_path = tmp_path / "config.json"
@@ -1827,8 +1828,9 @@ class TestMigrationV16:
         assert result is True
         migrated = json.loads(config_path.read_text())
         assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
-        # v15 seeds effort xhigh, v18 relaxes it, v19 replaces effort with modes.
-        assert migrated["codeReview"] == {"spec": "agent", "fix": "agent"}
+        # v15 seeds effort xhigh, v18 relaxes it, v19 replaces effort with modes,
+        # v21 removes the section outright.
+        assert "codeReview" not in migrated
 
     def test_v15_config_advances_to_current_dropping_context_window(self, tmp_path: Path) -> None:
         from installer.steps.config_migration import CURRENT_CONFIG_VERSION, migrate_model_config
@@ -1852,8 +1854,8 @@ class TestMigrationV16:
         assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
         assert "contextWindows" not in migrated
         assert "contextWindow" not in migrated
-        # v19 replaces the legacy effort with per-workflow agent defaults.
-        assert migrated["codeReview"] == {"spec": "agent", "fix": "agent"}
+        # v19 replaces the legacy effort with modes; v21 removes the section.
+        assert "codeReview" not in migrated
 
 
 class TestMigrationV17:
@@ -1896,8 +1898,8 @@ class TestMigrationV17:
         migrated = json.loads(config_path.read_text())
         assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
         assert "contextWindow" not in migrated
-        # v19 replaces the legacy effort with per-workflow agent defaults.
-        assert migrated["codeReview"] == {"spec": "agent", "fix": "agent"}
+        # v19 replaces the legacy effort with modes; v21 removes the section.
+        assert "codeReview" not in migrated
 
 
 class TestMigrationV18:
@@ -1962,8 +1964,8 @@ class TestMigrationV18:
         # The explicit pre-v18 opt-out survives to v20 and maps to "off"
         # (the historical v18 force-enable is retired -- ordering bug fix).
         assert migrated["specWorkflow"]["modelSwitchMode"] == "off"
-        # v18 flips xhigh -> high, then v19 replaces effort with the mode defaults.
-        assert migrated["codeReview"] == {"spec": "agent", "fix": "agent"}
+        # v18 flips xhigh -> high, v19 replaces effort with modes, v21 removes it.
+        assert "codeReview" not in migrated
 
 
 class TestMigrationV19:
@@ -2047,7 +2049,8 @@ class TestMigrationV19:
         assert result is True
         migrated = json.loads(config_path.read_text())
         assert migrated["_configVersion"] == CURRENT_CONFIG_VERSION
-        assert migrated["codeReview"] == {"spec": "agent", "fix": "agent"}
+        # v19 replaced effort with per-workflow modes; v21 then removed the section.
+        assert "codeReview" not in migrated
         assert migrated["specWorkflow"]["modelSwitchMode"] == "automated"  # v20 maps the forced switch to manual
 
     def test_idempotent_when_already_current(self, tmp_path: Path) -> None:
@@ -2084,7 +2087,7 @@ class TestMigrationV20:
         sw = result["specWorkflow"]
         assert sw["modelSwitchMode"] == "automated"
         assert "modelSwitch" not in sw
-        assert result["_configVersion"] == 20
+        assert result["_configVersion"] == 21
 
     def test_legacy_false_maps_to_off(self, tmp_path: Path) -> None:
         result = self._migrate(
@@ -2120,11 +2123,78 @@ class TestMigrationV20:
         assert migrate_model_config(config_path=config_path) is False
         assert config_path.read_text() == first
 
-    def test_v19_code_review_output_untouched(self, tmp_path: Path) -> None:
-        # The shipped v19 changes-review migration result must survive v20.
+    def test_v19_code_review_output_removed_by_v21(self, tmp_path: Path) -> None:
+        # v20 leaves codeReview alone, but the v21 that follows in the same pass
+        # removes it -- the full chain must land with the section gone.
         result = self._migrate(
             tmp_path,
             {"_configVersion": 19, "codeReview": {"spec": "high", "fix": "agent"}, "specWorkflow": {}},
         )
-        assert result["codeReview"] == {"spec": "high", "fix": "agent"}
+        assert "codeReview" not in result
         assert result["specWorkflow"]["modelSwitchMode"] == "automated"
+
+
+class TestMigrationV21:
+    """v20 -> v21: the codeReview section is removed entirely.
+
+    `/code-review` carries `disable-model-invocation`, so the skill-mode tiers
+    the section selected could never actually run -- the changes review is
+    always the `changes-review` sub-agent, gated by the Changes Review toggle.
+    """
+
+    def _migrate(self, tmp_path: Path, payload: dict) -> dict:
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(json.dumps(payload))
+        migrate_model_config(config_path=config_path)
+        return json.loads(config_path.read_text())
+
+    def test_removes_per_workflow_modes(self, tmp_path: Path) -> None:
+        result = self._migrate(
+            tmp_path,
+            {"_configVersion": 20, "codeReview": {"spec": "high", "fix": "xhigh"}},
+        )
+        assert "codeReview" not in result
+        assert result["_configVersion"] == 21
+
+    def test_removes_legacy_effort_shape(self, tmp_path: Path) -> None:
+        result = self._migrate(tmp_path, {"_configVersion": 20, "codeReview": {"effort": "xhigh"}})
+        assert "codeReview" not in result
+
+    def test_removes_non_dict_value(self, tmp_path: Path) -> None:
+        result = self._migrate(tmp_path, {"_configVersion": 20, "codeReview": "high"})
+        assert "codeReview" not in result
+
+    def test_absent_section_is_a_noop(self, tmp_path: Path) -> None:
+        from installer.steps.config_migration import _migration_v21
+
+        raw: dict = {"specWorkflow": {"planApproval": True}}
+        assert _migration_v21(raw) is False
+        assert raw == {"specWorkflow": {"planApproval": True}}
+
+    def test_preserves_sibling_sections(self, tmp_path: Path) -> None:
+        result = self._migrate(
+            tmp_path,
+            {
+                "_configVersion": 20,
+                "codeReview": {"spec": "high", "fix": "agent"},
+                "reviewerAgents": {"specReview": True, "changesReview": False},
+                "specWorkflow": {"modelSwitchMode": "manual", "planApproval": True},
+                "teamRemote": "git@example.com:team/extensions.git",
+            },
+        )
+        assert "codeReview" not in result
+        assert result["reviewerAgents"] == {"specReview": True, "changesReview": False}
+        assert result["specWorkflow"]["modelSwitchMode"] == "manual"
+        assert result["teamRemote"] == "git@example.com:team/extensions.git"
+
+    def test_second_run_is_noop(self, tmp_path: Path) -> None:
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(json.dumps({"_configVersion": 20, "codeReview": {"spec": "high"}}))
+        assert migrate_model_config(config_path=config_path) is True
+        first = config_path.read_text()
+        assert migrate_model_config(config_path=config_path) is False
+        assert config_path.read_text() == first

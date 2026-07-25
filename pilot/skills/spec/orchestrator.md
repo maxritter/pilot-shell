@@ -40,14 +40,14 @@ For a bugfix workflow without a plan file, users invoke `/fix` directly - that's
 <!-- CC-ONLY -->
 | Phase | Skill | Automated mode | Manual / Off mode |
 |-------|-------|----------------|-------------------|
-| Feature Planning | `spec-plan` | Opus 4.8 (plan mode) | active `/model` |
-| Bugfix Planning | `spec-bugfix-plan` | Opus 4.8 (plan mode) | active `/model` |
-| Implementation | `spec-implement` | Sonnet 5 | active `/model` |
-| Feature Verification | `spec-verify` | Sonnet 5 | active `/model` |
-| Bugfix Verification | `spec-bugfix-verify` | Sonnet 5 | active `/model` |
-| Bugfix (separate command, `/fix`) | `fix` | Sonnet 5 | inherits `/model` |
+| Feature Planning | `spec-plan` | Opus (plan mode) | active `/model` |
+| Bugfix Planning | `spec-bugfix-plan` | Opus (plan mode) | active `/model` |
+| Implementation | `spec-implement` | Sonnet | active `/model` |
+| Feature Verification | `spec-verify` | Sonnet | active `/model` |
+| Bugfix Verification | `spec-bugfix-verify` | Sonnet | active `/model` |
+| Bugfix (separate command, `/fix`) | `fix` | Sonnet | inherits `/model` |
 
-**Model Switching has three modes** (Console → Settings → Model Switching): **Automated** (default) — `/spec` runs on the `opusplan` model: Opus 4.8 plans, Sonnet 5 executes, switched natively by plan mode (the skills call `EnterPlanMode`/`ExitPlanMode` as the switch lever); requires `/model opusplan`, and the `spec_mode_guard` hook blocks a non-opusplan session and pre-flight-warns when the conversation is too large for the Opus plan leg. **Manual** — the user drives `/model` themselves; `/spec` pauses once after plan approval so they can switch. **Off** — no model management, no prompts, no gates. Pilot never remaps model aliases behind the scenes.
+**Model Switching has three modes** (Console → Settings → Model Switching): **Automated** (default) — `/spec` runs on the `opusplan` model: Opus plans, Sonnet executes, switched natively by plan mode (the skills call `EnterPlanMode`/`ExitPlanMode` as the switch lever); requires `/model opusplan`, and the `spec_mode_guard` hook blocks a non-opusplan session and pre-flight-warns when the conversation is too large for the Opus plan leg. **Manual** — the user drives `/model` themselves; `/spec` pauses once after plan approval so they can switch. **Off** — no model management, no prompts, no gates. Pilot never remaps model aliases behind the scenes.
 
 > **Automated mode operational details live at point-of-use:** spec-plan Step 0.1a (EnterPlanMode) and Step 12.3 (ExitPlanMode after approval — a model switch, NOT approval). Manual mode's post-approval switch pause also lives in Step 12.3.
 >

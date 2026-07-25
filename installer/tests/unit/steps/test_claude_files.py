@@ -74,9 +74,11 @@ class TestPatchClaudePaths:
 
         subagents_section = content.split("### Sub-agents", 1)[1].split("###", 1)[0]
         assert "spec-review" in subagents_section
-        # changes-review is no longer a CC sub-agent: code review runs as the
-        # built-in /code-review skill inline (see 2026-06-12 migration plan).
-        assert "code-review" in subagents_section
+        assert "changes-review" in subagents_section
+        # The section must also carry the guard that /code-review cannot be
+        # model-invoked. Without it, a workflow wires up a Skill() call that is
+        # rejected at runtime and reports a review that never ran.
+        assert "disable-model-invocation" in subagents_section
 
         assert "codex:codex-rescue" in content
         assert "codex-companion.mjs" in content

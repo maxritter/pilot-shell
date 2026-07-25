@@ -223,10 +223,14 @@ def _is_resume_existing_plan(prompt: str) -> bool:
     return tokens[0].lower().endswith(".md")
 
 
-# Opus's effective context window when 1M isn't served for the account (no 1M
-# entitlement, exhausted usage credits): 200K. The pre-flight warns at 90% of
-# it -- the statusline `pct` is rounded and render-lagged, so the 10% margin
-# prevents false negatives right at the boundary (documented plan decision).
+# The opusplan plan leg's effective context window: 200K. CC 2.1.172 nominally
+# lifted it to 1M for entitled accounts, but current versions regressed to the
+# hard >200K guard even WITH the entitlement (anthropics/claude-code#65512
+# comments show it on 2.1.216; #74325 tracks the silent fallback) -- and
+# accounts without the entitlement or with exhausted usage credits were always
+# capped. The pre-flight warns at 90% of it -- the statusline `pct` is rounded
+# and render-lagged, so the 10% margin prevents false negatives right at the
+# boundary (documented plan decision).
 OPUS_PLAN_CONTEXT_FLOOR = int(200_000 * 0.9)
 
 
@@ -237,13 +241,16 @@ def _opus_context_preflight() -> str | None:
     the conversation fits Opus's effective window; past it, Claude Code
     silently keeps serving the Sonnet leg (verified against CC 2.1.209/2.1.211
     -- print mode errors "Prompt is too long", interactive stays on Sonnet).
+    This currently hits 1M-entitled accounts too: the CC 2.1.172 entitled-1M
+    fix regressed upstream (anthropics/claude-code#65512, #74325), so the
+    warning must never imply the entitlement exempts anyone.
     Estimates current tokens from the statusline cache; falls open silently
     when the cache is missing or invalid.
     """
     session_dir = Path.home() / ".pilot" / "sessions" / resolve_session_id()
     marker = session_dir / "preflight-context-warned"
     if marker.exists():
-        return None  # once per session -- accounts WITH Opus 1M need no nagging
+        return None  # once per session -- don't re-nag every /spec submit
     cache_file = session_dir / "context-pct.json"
     try:
         data = json.loads(cache_file.read_text())
@@ -264,13 +271,16 @@ def _opus_context_preflight() -> str | None:
         pass
     return (
         f"[Pilot] PRE-FLIGHT CONTEXT CHECK: this conversation is at ~{est_tokens // 1000}K tokens, "
-        "which likely exceeds the Opus plan leg's effective 200K window (accounts without Opus 1M "
-        "entitlement, or with exhausted usage credits, cap at 200K). If so, Claude Code will "
-        "SILENTLY keep planning on Sonnet after EnterPlanMode. Tell the user in one short "
-        "paragraph BEFORE starting the /spec workflow: planning may stay on Sonnet at this "
-        "context size -- to plan on Opus, run /compact or /clear first, or switch Model "
-        "Switching to Manual (Console -> Settings) and pick the planning model yourself. "
-        "Then continue with the workflow on their call."
+        "which likely exceeds the Opus plan leg's effective 200K window. The cap currently "
+        "applies even with the Opus 1M entitlement -- current Claude Code versions fail to "
+        "switch the opusplan plan leg to Opus past 200K (known upstream regression, "
+        "anthropics/claude-code#65512); accounts without the entitlement or with exhausted "
+        "usage credits were always capped. If so, Claude Code will SILENTLY keep planning on "
+        "Sonnet after EnterPlanMode. Tell the user in one short paragraph BEFORE starting the "
+        "/spec workflow: planning may stay on Sonnet at this context size -- to plan on Opus, "
+        "run /compact or /clear first, or switch Model Switching to Manual (Console -> "
+        "Settings) and pick the planning model yourself. Then continue with the workflow on "
+        "their call."
     )
 
 

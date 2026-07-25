@@ -36,7 +36,7 @@ Read the relevant section of the rule/skill file (`target.path`). Diagnose WHY i
 | Symptom | Edit pattern | Example |
 |---|---|---|
 | Rule is buried late in the file | Move the cue earlier, ideally into a numbered list in the first 40 lines | Promote "use `@pytest.mark.unit`" from prose to a checklist item |
-| Rule uses soft language ("consider", "prefer") | Make it specific and rationale-backed — name the exact action and why it matters. Reserve `⛔`/`MUST` for genuine safety/correctness gates; on Opus 4.x, blanket emphasis overtriggers, so specificity beats volume | `Consider adding @pytest.mark.unit` → `Decorate every unit test with @pytest.mark.unit so the unit/integration split stays runnable` |
+| Rule uses soft language ("consider", "prefer") | Make it specific and rationale-backed — name the exact action and why it matters. Reserve `⛔`/`MUST` for genuine safety/correctness gates; on current Claude models blanket emphasis overtriggers, so specificity beats volume | `Consider adding @pytest.mark.unit` → `Decorate every unit test with @pytest.mark.unit so the unit/integration split stays runnable` |
 | Rule states the what but not the how | Add a code example showing the exact form | Add `@pytest.mark.unit\ndef test_...` block |
 | Rule has competing guidance | Deduplicate or order by priority | Collapse two overlapping mocking sections |
 | Rule teaches the wrong thing (Regression) | Pinpoint the misleading phrase and rewrite, or remove it | Rewrite "mock at the global module" → "mock at the import site" |

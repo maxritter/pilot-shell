@@ -229,6 +229,10 @@ class TestPlanningLegModelCheck:
         assert "usage limit" in context.lower()
         assert "/compact" in context
         assert "Manual" in context
+        # Cap applies even with the 1M entitlement on current CC versions
+        # (upstream regression) -- must not be scoped to non-entitled accounts.
+        assert "even with the Opus 1M entitlement" in context
+        assert "without 1M entitlement" not in context
         assert (session / "plan-model-warned").exists()
 
     def test_silent_when_planning_leg_on_opus(self, tmp_path):

@@ -2,78 +2,36 @@
 
 ### Pilot CLI
 
-`~/.pilot/bin/pilot`. Do NOT call commands not listed here.
+`~/.pilot/bin/pilot`. **Do NOT call commands not listed here** — `pilot pipe` and `pilot init` do not exist.
 
 | Group | Commands |
 |-------|----------|
-| Session | `pilot check-context --json`, `pilot register-plan <path> <status>` |
-| Review | `pilot review-scope [--slug <slug>] [--json]` — **the** resolver for a code review's `git diff` scope; never derive the range by hand. `--json` returns `mode` (`working-tree` \| `worktree`), `base_ref`, `diff_range`, and a `warning` when the scope degraded. The bare form prints just the range (`git diff $(pilot review-scope) -- <files>`) — handy interactively, but **scripts and skills must use `--json` and parse it**: a `pilot` older than this subcommand prints a banner and exits 0, so a `\|\| echo HEAD` fallback never fires and the banner text gets spliced into `git diff`. |
-| Worktree | `pilot worktree detect\|create\|diff\|sync\|cleanup --json <slug>` (slug = plan filename without date prefix and `.md`; `create` auto-stashes). `pilot worktree status --json` takes **no** slug — it reports the worktree registered for the *current session* (or `{"active": false}`). Use `detect` when you need a specific plan's branch or base branch. |
-| License | `pilot activate <key>`, `pilot deactivate`, `pilot status`, `pilot verify`, `pilot trial --check\|--start` |
-| Updates | `pilot update [--yes] [--json]` (alias: `pilot upgrade`) — updates Pilot Shell. User-initiated; don't invoke on the user's behalf without explicit ask. |
-| Other | `pilot greet`, `pilot statusline` |
+| Session | `check-context --json`, `register-plan <path> <status>` |
+| Review | `review-scope [--slug <slug>] [--json]` — **the** resolver for a code review's `git diff` scope; never derive the range by hand |
+| Worktree | `worktree detect\|create\|diff\|sync\|cleanup --json <slug>` (slug = plan filename without date prefix and `.md`; `create` auto-stashes). `worktree status --json` takes **no** slug — it reports the worktree for the *current session*. Use `detect` for a specific plan's branch or base branch. |
+| License | `activate <key>`, `deactivate`, `status`, `verify`, `trial --check\|--start` |
+| Updates | `update [--yes] [--json]` (alias `upgrade`) — user-initiated; don't run it unasked |
+| Other | `greet`, `statusline`, `notify` |
 
-**Do NOT exist:** ~~`pilot pipe`~~, ~~`pilot init`~~.
+**`review-scope`: scripts and skills must use `--json` and parse it.** A `pilot` older than this subcommand prints a banner and exits 0, so a `|| echo HEAD` fallback never fires and the banner text gets spliced into `git diff`. `--json` returns `mode` (`working-tree` | `worktree`), `base_ref`, `diff_range`, and a `warning` when the scope degraded.
 
----
+### RTK — token-optimized CLI proxy
 
-### RTK — Rust Token Killer
+The Pilot shell hook auto-rewrites commands (`git status` → `rtk git status`), so normally you do nothing. Direct use: `rtk gain` (savings analytics), `rtk gain --history`, `rtk discover`, `rtk proxy <cmd>` (bypass filtering when debugging).
 
-Token-optimized CLI proxy (60–90% savings on dev operations).
+⚠️ If `rtk gain` errors, a different `rtk` (Rust Type Kit) is on PATH.
 
-```bash
-rtk gain              # Token savings analytics
-rtk gain --history    # Command usage history
-rtk discover          # Find missed optimization opportunities
-rtk proxy <cmd>       # Bypass filtering (debugging)
-rtk --version         # Verify install
-```
+### Semble — code search CLI
 
-All other commands are auto-rewritten by the Pilot shell hook when that hook is active (e.g., `git status` → `rtk git status`, transparent).
-
-⚠️ **Name collision:** if `rtk gain` errors, you may have `reachingforthejack/rtk` (Rust Type Kit) on PATH instead.
-
----
-
-### Semble — Code Search (CLI + MCP) — CO-PRIMARY
-
-**Intent-based code search — co-primary with CodeGraph.** CodeGraph for structural queries (callers, callees, impact, symbol enumeration); Semble for intent queries (concept discovery, cross-cutting features, mutation sites, debugging, cross-language search). Grep for exact text in known files. Hybrid (BM25 + Model2Vec semantic embeddings), code-aware chunking, ~1.5ms queries, ranks by relevance.
-
-Installed via `uv tool install "semble[mcp]"` (the same install serves the MCP server — see `mcp-servers.md`). Verify with `semble --help`.
-
-#### `semble search` — Hybrid Code Search
+Same engine as the Semble MCP server; see `mcp-servers.md` for when to reach for it over CodeGraph.
 
 ```bash
-semble search "authentication flow" ./
-semble search "save_pretrained" ./ --top-k 10            # symbol/identifier lookup
-semble search "save model to disk" ./ --top-k 5          # natural-language intent
-semble search "query" https://github.com/org/repo        # remote repo (cloned on demand)
+semble search "authentication flow" ./          # intent
+semble search "save_pretrained" ./ --top-k 10   # symbol
+semble find-related src/auth.ts 42 ./           # similar code from a location
+semble savings                                  # token-saving report
 ```
 
-**How ranking works:** Adaptive weighting (symbol-like queries get more lexical weight; NL queries balance semantic + lexical), definition boosts (defining `class`/`def`/`func` outranks references), identifier stem matching, file coherence, noise penalties (test/legacy/example down-ranked). Auto-reindexes on file change.
+Ranking adapts to the query shape (symbol-like queries weight lexical, natural language balances semantic + lexical), boosts definitions over references, and down-ranks test/legacy/example files. Auto-reindexes on file change. Defaults are usually right — snippets are already trimmed to the matched code.
 
-`--top-k <n>` controls result count (default 5). For most cases the defaults are correct — semble's chunks are already trimmed to the matched code only.
-
-#### `semble find-related` — Similar Code by Location
-
-```bash
-semble find-related src/auth.ts 42 ./           # find code similar to src/auth.ts:42
-semble find-related src/auth.ts 42 ./ --top-k 5
-```
-
-Pass `file_path` + `line` from a prior `semble search` result. Useful for discovering parallel implementations, related call sites, or test fixtures for a piece of code.
-
-#### `semble savings` — Token-Saving Report
-
-```bash
-semble savings           # summary by period (today / 7-day / all-time)
-semble savings --verbose # also breakdown by call type
-```
-
-Pilot also surfaces this in the statusline and the Console "Usage" tab (`localhost:41777`). The saving is `(file_chars − snippet_chars) / 4` per call: the baseline assumes the alternative was reading the matched files in full. Stats live at `~/.semble/savings.jsonl`.
-
-#### When NOT to use Semble
-
-- **Callers / callees / impact analysis** → use CodeGraph (`codegraph_explore(query="<fn> callers and impact")` — one call returns the call path + blast radius; full contract in `mcp-servers.md`). Semble can find code that *mentions* a callee, but cannot enumerate callers.
-- **AST pattern matching (e.g., "all `async function $X` declarations")** → no equivalent. Use CodeGraph by symbol name, or Grep as a last resort.
-- **Extract enclosing block at `file:line`** → use `Read` with `offset`/`limit`, or `codegraph_explore(query="<symbol>")` when you have a symbol name.
+**Not for:** callers/callees/impact (CodeGraph enumerates those; Semble only finds code that *mentions* a callee), AST pattern matching, or extracting the enclosing block at `file:line` (use `Read` with `offset`/`limit`).

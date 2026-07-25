@@ -589,8 +589,12 @@ class TestCodexRulesInstallation:
         assert "persist returned agent/job ids to a session file" in content
         assert "| Start any new task | `codegraph_context(task=...)` — ALWAYS FIRST |" not in content
         assert "| Task orientation (FIRST on every task) | `codegraph_context` |" not in content
-        assert "Use `codegraph_explore` selectively for structural runtime-code questions" in content
-        assert "For docs, rules, markdown, config, UI copy, reviews of a known diff, or named paths" in content
+        # The CODEX-START variant of the CodeGraph guidance must survive unwrapping, and the
+        # CC-ONLY variant must be stripped. Assert the load-bearing phrases rather than whole
+        # sentences - the rules get reworded regularly, and a full-sentence match turns every
+        # copy-edit into a red test without catching anything a phrase match misses.
+        assert "Codex budget:" in content
+        assert "Skip the graph entirely for docs, rules, config, UI copy, named paths" in content
         preamble_end = "Skill invocation: use `$skill-name` (not `/skill-name`)."
         assert preamble_end in content
         rules_body = content.split(preamble_end, 1)[1]
@@ -834,6 +838,31 @@ class TestAdaptInvocationSyntax:
         assert "CC-specific content" not in result
         assert "Before." in result
         assert "After." in result
+
+    def test_shipped_rules_never_leak_claude_only_tool_names_to_codex(self) -> None:
+        """No adapted rule body may name a Claude-only tool.
+
+        `ToolSearch` does not exist in Codex (it is `tool_search`). Naming it in
+        SHARED rule text (outside a CC-ONLY block) survives adaptation and sends
+        every Codex install toward a nonexistent tool. Guards the real rule files,
+        not a fixture, so a future edit to any of them trips this.
+        """
+        from installer.steps.codex_files import _adapt_invocation_syntax
+
+        rules_dir = Path(__file__).parents[4] / "pilot" / "rules"
+        assert rules_dir.is_dir(), f"rules source not found at {rules_dir}"
+
+        offenders: list[str] = []
+        for rule in sorted(rules_dir.glob("*.md")):
+            adapted = _adapt_invocation_syntax(rule.read_text(encoding="utf-8"))
+            for claude_only in ("ToolSearch", "AskUserQuestion("):
+                if claude_only in adapted:
+                    offenders.append(f"{rule.name}: {claude_only}")
+
+        assert not offenders, (
+            "Claude-only tool names survived Codex adaptation - move them inside a "
+            f"<!-- CC-ONLY --> block or make them tool-neutral: {offenders}"
+        )
 
     def test_unwraps_codex_blocks(self) -> None:
         from installer.steps.codex_files import _adapt_invocation_syntax

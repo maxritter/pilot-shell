@@ -21,6 +21,10 @@
     {
       "id": "step-5-review-iterate",
       "file": "steps/05-review-iterate.md"
+    },
+    {
+      "id": "step-6-improvement-plan",
+      "file": "steps/06-improvement-plan.md"
     }
   ]
 }

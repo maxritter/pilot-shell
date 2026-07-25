@@ -18,7 +18,7 @@ Opus reasons better; Sonnet is faster and cheaper. The cost-saving move is to pl
 
 | Mode | What happens | Who switches |
 |------|--------------|--------------|
-| **Automated** (default) | `/spec` runs on the `opusplan` model: Opus 4.8 plans (plan mode), Sonnet 5 executes everything else | Claude Code, natively |
+| **Automated** (default) | `/spec` runs on the `opusplan` model: Opus 5 plans (plan mode), Sonnet 5 executes everything else | Claude Code, natively |
 | **Manual** | `/spec` pauses once after plan approval so you can switch to your implementation model | You, via `/model` |
 | **Off** | No model management, no prompts, no gates | Nobody -- the active `/model` choice runs everything |
 
@@ -28,7 +28,7 @@ Pilot does **not** remap model aliases behind the scenes in any mode -- your `/m
 
 You stay in control of the model at every phase:
 
-1. Type `/spec <task>` on whatever model you want planning to run on (the Step-0 message reminds you -- switch with `/model` before planning starts if needed). Fable 5, Opus 4.8, anything.
+1. Type `/spec <task>` on whatever model you want planning to run on (the Step-0 message reminds you -- switch with `/model` before planning starts if needed). Fable 5, Opus 5, anything.
 2. Plan, review, approve as usual.
 3. After you approve the plan, `/spec` finishes its turn with a switch prompt: *"switch to your implementation model now via `/model`, then send `continue`."* You get the input box back, run `/model sonnet` (or keep the current model), confirm Claude Code's dialog about carrying the conversation over to the new model, and type `continue` — implementation starts on your choice.
 
@@ -39,12 +39,12 @@ That's the whole contract -- one reminder, one pause. In fully-autonomous runs (
 `/spec` drives Claude Code's native `opusplan` model:
 
 - Pilot sets `model: opusplan` (and the matching `ANTHROPIC_MODEL` env pin) in `~/.claude/settings.json` when you select Automated.
-- The spec skills enter plan mode at planning start (Opus 4.8) and exit it after plan approval (Sonnet 5). Plan mode is purely the model lever here -- approval still happens at the AskUserQuestion gate.
+- The spec skills enter plan mode at planning start (Opus 5) and exit it after plan approval (Sonnet 5). Plan mode is purely the model lever here -- approval still happens at the AskUserQuestion gate.
 - The `spec_mode_guard` hook blocks `/spec` when the session is not on `opusplan` and tells you to run `/model opusplan`.
 
 **Know the boundary conditions.** Claude Code decides the plan-leg model, and it can silently keep serving Sonnet when Opus is not available for the request:
 
-- **Conversation too large.** The Opus plan leg has an effective 200K window on accounts without Opus 1M (no 1M entitlement, or exhausted Max usage credits). Once your conversation is bigger than that, plan mode cannot move it to Opus. Pilot pre-flight-checks this at `/spec` submit and warns you to `/compact` / `/clear` first (or use Manual mode); a mid-planning check warns again if planning is observably not on Opus.
+- **Conversation too large.** The Opus plan leg has an effective 200K window — and on current Claude Code versions the cap applies **even with the Opus 1M entitlement**: the v2.1.172 fix that gave entitled accounts a 1M plan leg has regressed upstream ([anthropics/claude-code#65512](https://github.com/anthropics/claude-code/issues/65512), [#74325](https://github.com/anthropics/claude-code/issues/74325)). Accounts without the entitlement, or with exhausted Max usage credits, were always capped at 200K. Once your conversation is bigger than that, plan mode silently stays on Sonnet. Pilot pre-flight-checks this at `/spec` submit and warns you to `/compact` / `/clear` first (or use Manual mode); a mid-planning check warns again if planning is observably not on Opus.
 - **Opus usage limits.** Under `opusplan`, Claude Code serves Sonnet while your Opus pool is exhausted and switches back when it frees up (`/usage` shows the state).
 
 ## Off

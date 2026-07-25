@@ -67,7 +67,7 @@ For local bugs (single file, single function): one or two targeted `Read`s is en
 
 For bugs that span 2 files in the same component (e.g. service.ts + service.test.ts): targeted `Read`s. Still no full call-graph traversal.
 
-**Bail-out check at end of 1.3:** if you can't pin file:line, or each touched file would need **different** logic (not the same pattern repeated) — stop and tell the user to use `/spec` (see orchestrator's bail-out triggers for the full list). Multi-file traces are fine when each site needs the *same* fix; that's one logical bug, multiple guard sites. Don't switch lanes silently.
+**Bail-out check at end of 1.3:** if you can't pin file:line, or the trace fails the logic-divergence test in the orchestrator's bail-out section, stop and hand off to `/spec`. Don't switch lanes silently.
 
 ### 1.4 Instrument when needed (UI / async / race / timing bugs)
 
@@ -113,11 +113,6 @@ Whichever it is, sharpen it now:
 
 If you cannot get a fast deterministic signal after one pass of sharpening, that's a bail-out trigger — tell the user to use `/spec`. Don't hypothesise into a flaky loop.
 
-### Red flags — STOP and re-investigate
+### User signal you're off track
 
-- "Quick fix for now, investigate later" → STOP, this IS the quick lane.
-- "I'll just try changing X" → STOP, trace it first.
-- "It's probably X" → STOP, prove it.
-- "I see the symptom, let me fix it" → seeing symptoms ≠ understanding root cause.
-
-If the user says "stop guessing", "is that not happening?", "ultrathink this" — STOP, return to 1.3.
+If the user says "stop guessing", "is that not happening?", or "ultrathink this", they are telling you a hypothesis got treated as a finding. Return to 1.3 and trace.

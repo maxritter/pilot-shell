@@ -111,12 +111,16 @@ Pilot doesn't manage model preferences. Set the model with Claude Code's `/model
 
 ### Spec Workflow -> Review Agents
 
-Two reviews run during `/spec` on Claude Code and Codex; **Changes Review** also runs at the end of `/fix`. Toggle each on or off. On Claude Code, **Spec Review** runs as a Claude sub-agent and **Changes Review** runs per the mechanism chosen for each workflow (see [Changes Review Mode](#spec-workflow---changes-review-mode) below); Codex runs both as managed custom agents installed under `~/.codex/agents/`.
+Two reviews run during `/spec` on Claude Code and Codex; **Changes Review** also runs at the end of `/fix`. Toggle each on or off. Both run as a single background review agent - a sub-agent on Claude Code, a managed custom agent under `~/.codex/agents/` on Codex - so the cost of each is one agent, not a fan-out.
 
 | Agent | Default | Role |
 |-------|---------|------|
 | **Spec Review** | On | Validates plans before implementation. Checks alignment with requirements, flags risky assumptions. |
-| **Changes Review** | On | Reviews code after `/spec` implementation and `/fix`. Hunts bugs, security issues, and cleanups; plan compliance and goal achievement stay covered on both agents (inline workflow audit on Claude Code, the native agent's own pass on Codex). |
+| **Changes Review** | On | Reviews the diff after `/spec` implementation and after `/fix` - one toggle covers both workflows. Hunts bugs, security issues, and cleanups; plan compliance and goal achievement stay covered on both agents (inline workflow audit on Claude Code, the native agent's own pass on Codex). |
+
+:::info Want a deeper review? Run `/code-review` yourself
+Claude Code's built-in `/code-review` skill is a much larger multi-agent sweep, and it is **user-invocable only** - the flag `disable-model-invocation` means no workflow can launch it on your behalf. Pilot used to offer it as a Changes Review "mode"; that option is gone, because the call was rejected at runtime and the workflow silently ended up with no review at all. Type `/code-review` in your session whenever a change warrants the deeper pass.
+:::
 
 **Codex Companion Reviewers (optional, Claude Code only)** - OpenAI Codex plugin reviewers that provide an independent second opinion while you are working inside Claude Code.
 
@@ -124,17 +128,6 @@ Two reviews run during `/spec` on Claude Code and Codex; **Changes Review** also
 |-------|---------|------|
 | **Codex Companion Spec Review** | Off | Plugin plan review - second opinion before implementation. |
 | **Codex Companion Changes Review** | Off | Plugin code review - second opinion after `/spec` and `/fix`. |
-
-### Spec Workflow -> Changes Review Mode
-
-Chooses the **Changes Review** mechanism separately for `/spec` verification and `/fix` - two dropdowns, four options each:
-
-| Option | What runs | Token cost |
-|--------|-----------|------------|
-| **Single Sub-Agent** (default) | One `changes-review` sub-agent reviews the diff and writes a findings file | Lowest |
-| **Code Review - Medium / High / XHigh** | The built-in `/code-review` skill at that effort - it spawns many finder/verifier sub-agents | Scales steeply with the tier |
-
-The billed cloud `ultra` mode stays excluded. Pick **Single Sub-Agent** to keep review costs minimal (also a good fit for lighter models); raise to **Code Review - XHigh** for high-risk or security-sensitive work. The choice flows to the workflows via `$PILOT_SPEC_CODE_REVIEW_MODE` / `$PILOT_FIX_CODE_REVIEW_MODE` and is allow-listed at the point of use (an unset or unrecognized value falls back to the single sub-agent). It applies only while the Changes Review toggle is on, and to Claude Code only - on Codex the changes review always runs as the native agent with its own reasoning effort. Upgrading from an older Pilot resets both dropdowns to **Single Sub-Agent** (the previous single effort setting is retired).
 
 ### Spec Workflow -> Automation
 
@@ -145,7 +138,7 @@ Three toggles control user interaction points, plus the Model Switching mode dur
 | **Branch Isolation** | On | Asks how to isolate `/spec` changes (new branch or worktree) | Always works on the current branch |
 | **Ask Questions** | On | Asks clarifying questions during planning | Planning makes autonomous default choices |
 | **Plan Approval** | On | Requires your approval before implementation starts | Implementation begins automatically after planning |
-| **Model Switching** *(Claude Code only; own Settings block with three mode cards)* | Automated | **Automated** (default): `/spec` runs on `opusplan` (Opus 4.8 plans, Sonnet 5 executes, switched natively; requires `/model opusplan`). **Manual**: you drive `/model` yourself -- `/spec` pauses once after plan approval. **Off**: no model management at all. See [Model Routing](model-routing). | n/a -- pick one of the three modes |
+| **Model Switching** *(Claude Code only; own Settings block with three mode cards)* | Automated | **Automated** (default): `/spec` runs on `opusplan` (Opus 5 plans, Sonnet 5 executes, switched natively; requires `/model opusplan`). **Manual**: you drive `/model` yourself -- `/spec` pauses once after plan approval. **Off**: no model management at all. See [Model Routing](model-routing). | n/a -- pick one of the three modes |
 
 With all three workflow toggles off, `/spec add user authentication` plans, implements, and verifies the feature end-to-end without checkpoints, entirely on your active model.
 
@@ -172,14 +165,10 @@ All settings are stored in `~/.pilot/config.json`:
     "askQuestionsDuringPlanning": true,
     "planApproval": true,
     "modelSwitchMode": "manual"
-  },
-  "codeReview": {
-    "spec": "agent",
-    "fix": "agent"
   }
 }
 ```
 
-`codeReview.spec` / `codeReview.fix` accept `agent`, `medium`, `high`, or `xhigh` (see [Changes Review Mode](#spec-workflow---changes-review-mode) above); unknown values fall back to `agent`.
+A `codeReview` section from an older Pilot is obsolete - it selected a Changes Review mechanism that no longer exists. It is removed automatically on upgrade, and ignored in the meantime.
 
 You can edit `~/.pilot/config.json` directly - the Settings UI is a convenience wrapper. Changes take effect after restarting your session.

@@ -83,7 +83,7 @@ If the command returns a non-empty email, include `Author: <email>` in the heade
 **Agent:** Write `Agent: Codex`.
 CODEX-END -->
 
-**Category selection:** the header needs a `Category:` value. If it was not already chosen earlier in the conversation, ask now — before writing the header — with `AskUserQuestion` (plain-text numbered options on Codex) from the fixed set: Feature, Infrastructure, UX, API, Performance, Security, Documentation, Integration.
+**Category selection:** the header needs one of Feature, Infrastructure, UX, API, Performance, Security, Documentation, Integration. **Infer it** from what the PRD describes — the conversation almost always makes it obvious, and it is a label, not a scope decision. Ask only when two categories genuinely fit and the choice would change how the work is planned; a wrong label costs nothing an `Edit` can't fix, while a question costs a round-trip from the interaction budget.
 
 After writing:
 

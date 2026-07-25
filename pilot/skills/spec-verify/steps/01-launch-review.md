@@ -4,7 +4,7 @@
 
 ### 1a: Clean Up Stale Review Findings (always run, before any launch)
 
-**Always run this first** — regardless of whether changes-review is enabled. Spec-review findings are stale artifacts from the planning phase that were already addressed during implementation; changes-review findings files are the previous run's output (agent mode writes a fresh one below — a stale file left behind would be read as if it reviewed THIS iteration's diff). The cleanup runs strictly BEFORE any launch in this step:
+**Always run this first**, whether or not changes-review is enabled. Spec-review findings are planning-phase artifacts already addressed during implementation; a leftover changes-review findings file is the *previous* run's output and would be read as if it reviewed this iteration's diff.
 
 ```bash
 SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
@@ -14,11 +14,11 @@ test -d "$SESS_DIR" && "$FIND_BIN" "$SESS_DIR" -maxdepth 1 -name 'findings-spec-
 test -d "$SESS_DIR" && "$FIND_BIN" "$SESS_DIR" -maxdepth 1 -name 'findings-changes-review-*.json' -delete
 ```
 
-Use the absolute `FIND_BIN` form above. In Pilot Shell sessions the shell hook may rewrite plain `find` to RTK, and RTK rejects the `-delete` predicate shape this cleanup needs.
+Use the absolute `FIND_BIN` form: the Pilot shell hook may rewrite a plain `find` to RTK, which rejects the `-delete` predicate shape this needs.
 
 ### 1b: Resolve the review diff scope and stage (before ANY reviewer launches)
 
-**Resolve `DIFF_SCOPE` once with the resolver — every reviewer launch below AND every Step 2 audit uses exactly this scope.** ⛔ Do NOT derive it by hand. `pilot review-scope` is the single source of truth; deriving the range from prose is what let issue #168 hide at nine separate sites at once.
+**Resolve `DIFF_SCOPE` once with the resolver — every reviewer launch below AND every Step 2 audit uses exactly this value.** ⛔ Never derive it by hand; deriving the range from prose is what let issue #168 hide at nine sites at once.
 
 ```bash
 SCOPE=$(~/.pilot/bin/pilot review-scope --slug <plan-slug> --json 2>/dev/null \
@@ -28,26 +28,26 @@ echo "${SCOPE:-UNAVAILABLE — use the manual fallback below}"
 # {"mode":"working-tree","base_ref":"HEAD","diff_range":"HEAD","diff_command":"git diff HEAD"}
 ```
 
-⛔ The `json.load` parse is a guard, not decoration. A `pilot` binary predating `review-scope` does not fail on it — it prints the "runs directly inside Claude Code" transition banner and exits **0**. Without the parse, `$SCOPE` would silently become that banner text. Empty `$SCOPE` means "unavailable"; use the manual fallback below.
+⛔ The `json.load` parse is a guard, not decoration. A `pilot` binary predating `review-scope` does not fail on it — it prints the "runs directly inside Claude Code" transition banner and exits **0**, so without the parse `$SCOPE` silently becomes that banner text. Empty `$SCOPE` means unavailable; use the manual fallback.
 
-**`DIFF_SCOPE` = `git diff <diff_range> -- <changed files>`**, and `mode` tells you whether to stage:
+**`DIFF_SCOPE` = `git diff <diff_range> -- <changed files>`**, and `mode` decides whether to stage:
 
 | `mode` | Meaning | Action |
 |---|---|---|
-| `working-tree` | The change is uncommitted — `spec-implement` did not commit (the `Worktree: No` default) | **Stage the change's own files first** (below), so new files are in the diff |
-| `worktree` | The change is per-task-committed on the worktree branch | **Do NOT stage.** A plain `git diff HEAD` here would review an EMPTY diff |
+| `working-tree` | Uncommitted — `spec-implement` did not commit (the `Worktree: No` default) | **Stage the change's own files first**, so new files appear in the diff |
+| `worktree` | Per-task-committed on the worktree branch | **Do NOT stage.** A plain `git diff HEAD` here reviews an EMPTY diff |
 
-If the JSON carries a `warning`, surface it — the scope degraded to the working-tree diff and may not cover commits already on the branch.
+If the JSON carries a `warning`, surface it — the scope degraded to the working-tree diff and may miss commits already on the branch.
 
-**If the command is unavailable** (older `pilot` binary — `review-scope` ships alongside this step), resolve it by hand instead:
+**If the command is unavailable** (older `pilot` binary), resolve by hand:
 
-- Change uncommitted → `git diff HEAD`.
-- Worktree mode → `git diff <base_ref>...HEAD`, taking `<base_ref>` from `~/.pilot/bin/pilot worktree detect --json <slug>`.
+- Uncommitted → `git diff HEAD`.
+- Worktree mode → `git diff <base_ref>...HEAD`, with `<base_ref>` from `~/.pilot/bin/pilot worktree detect --json <slug>`.
 - Three dots, always. Two dots diff against the base branch's live tip, rendering its post-fork commits into the review inverted.
 - The *detected* base branch, never a hardcoded `main` — a worktree forked from `dev` would otherwise drag in every `dev`-only commit.
 - `pilot worktree status` is the wrong command here: it takes no slug and is session-scoped, not plan-scoped.
 
-A review of the unstaged tree (non-worktree) misfires both ways: a reviewer reading `git status --untracked-files=all` reports a spurious `critical` ("deliverable depends on untracked files"), while one reading only `git diff HEAD` silently OMITS new files. Staging fixes both:
+Reviewing an unstaged tree misfires both ways: a reviewer reading `git status --untracked-files=all` reports a spurious `critical` ("deliverable depends on untracked files"), while one reading only `git diff HEAD` silently omits new files. Staging fixes both:
 
 ```bash
 # `mode: working-tree` ONLY — stage the plan's files (paths from each task's `Files:` block)
@@ -56,26 +56,20 @@ git add <path/from/plan/Files-block-1> <path/from/plan/Files-block-2> ...
 git status --short --untracked-files=all | grep '^??' || true   # anything still untracked must NOT be part of this change
 ```
 
-A bare `git add -N` (intent-to-add) is NOT enough — `git status` still treats the path as untracked and a later `git commit` can record empty content. Use a real `git add`. **Staging is not committing** — the commit still waits for the review, doc-sync, and (Phase B) the worktree sync; `git add` is pre-authorized, the push is not. All reviewers below and all Step 2 audits scope to `DIFF_SCOPE` as resolved above.
+A bare `git add -N` is not enough — `git status` still treats the path as untracked and a later commit can record empty content. **Staging is not committing**: the commit still waits for the review, doc-sync, and the Phase B worktree sync. `git add` is pre-authorized; the push is not.
 
-**Reviewable file preflight:** the `Files:` block must contain at least one non-ignored repository artifact for implementation plans. `docs/plans/...` is workflow state and may be gitignored in Pilot Shell itself, so it cannot be the sole review target. Do NOT use `git add -f` to force ignored plan files into review. If every planned file is ignored, outside the repo, or only the plan file itself, set `Status: PENDING`, add a fix task for a reviewable non-production artifact (for smoke/no-production specs), and return to implementation before launching any reviewer.
+**Reviewable file preflight:** the `Files:` block must contain at least one non-ignored repository artifact. `docs/plans/...` is workflow state and may be gitignored, so it cannot be the sole review target — and do NOT `git add -f` an ignored plan file to force it in. If every planned file is ignored, outside the repo, or only the plan itself, set `Status: PENDING`, add a fix task producing a reviewable non-production artifact, and return to implementation before launching any reviewer.
 
 ---
 
 <!-- CC-ONLY -->
-**Resolve the changes-review mode** (fail-closed to `agent` — never pass the raw env var through):
+#### Launch the changes-review sub-agent NOW, in the background
 
-```bash
-SPEC_MODE="${PILOT_SPEC_CODE_REVIEW_MODE:-agent}"
-case "$SPEC_MODE" in medium|high|xhigh) ;; *) SPEC_MODE=agent ;; esac
-echo "$SPEC_MODE"
-```
+**Only when `PILOT_CHANGES_REVIEW_ENABLED` is not `"false"`.** It works while you run the Step 2 automated checks, and Step 3 collects its findings file.
 
-#### Agent mode (`SPEC_MODE=agent`) — launch the changes-review sub-agent NOW, in the background
+⛔ **This sub-agent is the changes review — there is no deeper mode to select.** `Skill(skill='code-review', ...)` is rejected (`disable-model-invocation`), so reaching for it here yields no review at all. `/code-review` is the user's to type.
 
-**Only when `PILOT_CHANGES_REVIEW_ENABLED` is not `"false"`.** The single `changes-review` sub-agent is the low-token review mechanism; it works in the background while you run the Step 2 automated checks, and Step 3 collects its findings file.
-
-**Derive plan slug** from the plan filename (strip `YYYY-MM-DD-` prefix and `.md`). Output path: `$SESS_DIR/findings-changes-review-<plan-slug>.json` (the 1a cleanup already removed any stale file).
+**Derive the plan slug** from the filename (strip `YYYY-MM-DD-` and `.md`). Output path: `$SESS_DIR/findings-changes-review-<plan-slug>.json` (1a already removed any stale file).
 
 ```
 Agent(
@@ -96,101 +90,35 @@ Agent(
 )
 ```
 
-**⛔ NEVER use `TaskOutput`** to retrieve results — Step 3 polls the findings file.
+⛔ **Never `TaskOutput`** — Step 3 polls the findings file.
 
-#### Skill mode (`SPEC_MODE` = `medium`/`high`/`xhigh`) — no reviewer launch here
+#### Codex adversarial review (optional — launch NOW, in the background)
 
-The code review runs INLINE in Step 3 via the built-in `/code-review` skill at effort `$SPEC_MODE` — there is no subagent to launch early and no findings file to derive. The only launch in this step is the optional Codex companion below.
+**Only when `PILOT_CODEX_CHANGES_REVIEW_ENABLED` is `"true"`** (from Step 0). It works in the background through Step 2's checks and Step 3's collection.
 
-#### Codex Adversarial Review (Optional — launch NOW, in the background)
-
-**If `PILOT_CODEX_CHANGES_REVIEW_ENABLED` is `"true"` (from Step 0):**
-
-Launch Codex review NOW — it works in the background while you run the Step 2 automated checks and the Step 3 inline review.
-
-**Derive plan slug** from the plan filename: strip the date prefix (`YYYY-MM-DD-`) and `.md` extension. Example: `2026-03-02-sku-builder-modal-cleanup.md` → `sku-builder-modal-cleanup`.
-
-**Codex-once rule.** Codex runs at most once per `/spec` invocation. Before launching, check the sentinel file. If it exists, the review already ran in this session — skip the launch and the collection sub-step in Step 3. Verify-phase iterations (re-verify after fixing findings, code-review-gate annotation fixes) do NOT trigger another Codex run.
+**Codex-once:** at most one companion run per `/spec` invocation. Verify-phase iterations — re-verify after fixes, review-gate annotation fixes — never trigger a second run.
 
 ```bash
 SESS_ID="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
 CODEX_FLAG="$HOME/.pilot/sessions/$SESS_ID/codex-changes-review-ran-<plan-slug>.flag"
-if [ -f "$CODEX_FLAG" ]; then
-  echo "Codex already reviewed this plan in this session — skipping (codex-once)."
-  # Skip the launch below and the Codex collection sub-step in Step 3.
-fi
+[ -f "$CODEX_FLAG" ] && echo "Codex already reviewed this plan in this session — skipping (codex-once)."
 ```
 
-1. Detect companion path and ensure project root:
-```bash
-CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | sort -V | tail -1)
-PROJECT_ROOT="${CLAUDE_PROJECT_ROOT:-$(pwd)}"
-```
+Otherwise **read `$HOME/.claude/agents/codex-companion-protocol.md` and follow §1–§3 now** (locate → render → launch). Step 3 runs §4–§6. Supply:
 
-2. Build the review prompt file by rendering the **template at `$HOME/.claude/agents/changes-review-codex.md`**. The template is the single source of truth for code-review semantics — do NOT re-state the prompt inline in this skill. Substitute four placeholders:
-   - `{{PLAN_PATH}}` — absolute path to the plan file
-   - `{{PLAN_GOAL}}` — the 1–2 sentence Goal sentence from the plan's `## Summary`
-   - `{{BASE_REF}}` — the `base_ref` field from the Step 1b resolver output, verbatim. That is `HEAD` in working-tree mode (the change is uncommitted/staged, so the template's `git diff <BASE_REF>...HEAD` is empty and it falls back to `git diff HEAD` — the staged implementation), and the detected base branch in worktree mode. Never substitute a hardcoded branch name.
-   - `{{CHANGED_FILES}}` — newline-separated paths to the files the plan said it would touch (extracted from each task's `Files:` block)
+| Protocol input | Value for changes review |
+|---|---|
+| `PROMPT_TEMPLATE` | `$HOME/.claude/agents/changes-review-codex.md` |
+| `{{PLAN_PATH}}` | absolute path to the plan file |
+| `{{PLAN_GOAL}}` | the Goal sentence from the plan's `## Summary` |
+| `{{BASE_REF}}` | the `base_ref` from the Step 1b resolver, verbatim — `HEAD` in working-tree mode (the template then falls back to the staged `git diff HEAD`), the detected base branch in worktree mode. Never a hardcoded branch name. |
+| `{{CHANGED_FILES}}` | the paths from each task's `Files:` block |
+| `SLUG` | `<plan-slug>` |
+| `CODEX_FLAG` | the path above |
 
-```bash
-PROMPT_TEMPLATE="$HOME/.claude/agents/changes-review-codex.md"
-SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"; mkdir -p "$SESS_DIR"
-PROMPT_FILE="$SESS_DIR/codex-changes-review-<plan-slug>.md"
+Carry `JOB_ID` and `PROMPT_FILE` forward to Step 3. If the job never registers, skip Step 3's Codex collection and rely on the changes review alone; if Changes Review is also disabled, no automated review runs this iteration — record that gap explicitly in the verification report.
 
-PLAN_PATH="/absolute/path/to/docs/plans/YYYY-MM-DD-<slug>.md"
-PLAN_GOAL="<one or two sentences from the plan Summary>"
-BASE_REF=$(~/.pilot/bin/pilot review-scope --slug <plan-slug> --json 2>/dev/null | python3 -c 'import json,sys;print(json.load(sys.stdin)["base_ref"])' 2>/dev/null || echo HEAD)
-CHANGED_FILES=$(printf -- '- %s\n' \
-  path/to/changed/file-1 \
-  path/to/changed/file-2)
-
-PLAN_PATH="$PLAN_PATH" PLAN_GOAL="$PLAN_GOAL" BASE_REF="$BASE_REF" CHANGED_FILES="$CHANGED_FILES" \
-PROMPT_TEMPLATE="$PROMPT_TEMPLATE" PROMPT_FILE="$PROMPT_FILE" \
-node -e '
-const fs = require("fs");
-let text = fs.readFileSync(process.env.PROMPT_TEMPLATE, "utf8");
-for (const key of ["PLAN_PATH", "PLAN_GOAL", "BASE_REF", "CHANGED_FILES"])
-  text = text.split("{{" + key + "}}").join(process.env[key] ?? "");
-fs.writeFileSync(process.env.PROMPT_FILE, text);
-'
-```
-
-Render with `node` (guaranteed present wherever the companion runs — the companion itself is node; no `uv` dependency on this path). `split/join` instead of `replace` avoids JS `$`-pattern expansion if a substitution value contains `$&`.
-
-3. Launch the task in background. **For `task`, the companion's `--background` flag IS supported** (unlike `review`/`adversarial-review`). Use the companion's own background mode — the launch command returns the job ID immediately on stdout. Capture the job ID for collection in Step 3.
-
-   **Resolve the review effort first (fail-closed to `medium`).** A changes review is a bounded read-only audit — it does not need the user's interactive reasoning default (often `xhigh`, which runs ~2× slower for equivalent material findings on review-scale diffs; verified live). `medium` is the default; users override via `PILOT_CODEX_REVIEW_EFFORT`. ⛔ Do NOT pass `--model` — fast-model aliases (e.g. `spark`) are rejected on ChatGPT-plan auth (`400 invalid_request_error`); the user's default model always stays.
-
-   ```bash
-   CODEX_EFFORT="${PILOT_CODEX_REVIEW_EFFORT:-medium}"
-   case "$CODEX_EFFORT" in none|minimal|low|medium|high|xhigh) ;; *) CODEX_EFFORT=medium ;; esac
-   ```
-
-   ⛔ **Launch the companion via Bash from the MAIN conversation — NEVER through a subagent** (`codex:codex-rescue` included): a subagent-launched job's ID is unreachable afterwards (no findings file, no `TaskOutput`, no `SendMessage`).
-
-   ```
-   Bash(
-     command="cd $PROJECT_ROOT && node $CODEX_COMPANION task --background --effort \"$CODEX_EFFORT\" --prompt-file \"$PROMPT_FILE\"",
-     run_in_background=false,
-     timeout=60000
-   )
-   ```
-
-   If the launch itself errors on the effort value (a model that rejects the requested `reasoning.effort` fails within seconds with a `400`), re-launch once WITHOUT `--effort` — inheriting the user's Codex default — before falling back to the no-Codex path.
-
-   The stdout looks like: `Codex Task started in the background as task-<id>. Check /codex:status task-<id> for progress.` Extract the `task-…` token and store as `JOB_ID`.
-
-   **Verify registration before letting Step 3 poll** — fail-fast guard against synthetic-ID launches:
-
-   ```bash
-   node "$CODEX_COMPANION" status "$JOB_ID" --json 2>/dev/null | grep -q '"status":' \
-     || { echo "Codex launch did not register with broker — JOB_ID is synthetic. Skipping Codex this run."; JOB_ID=""; }
-   ```
-
-   If `$JOB_ID` is empty after this check, skip Step 3's Codex collection and rely on the Step 3 changes review alone (agent findings or inline `/code-review`, per the resolved mode). If Changes Review is disabled too, no automated review runs this iteration — record that gap explicitly in the verification report.
-
-**Do NOT wait** — proceed to Step 2 immediately. You'll be notified when the polling bash (Step 3) completes.
+**Do NOT wait** — proceed to Step 2 immediately.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 **If `PILOT_CHANGES_REVIEW_ENABLED` is `"false"` (from Step 0),** skip the rest of this step and proceed directly to Step 2 (Automated Checks).

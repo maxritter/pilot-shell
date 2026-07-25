@@ -759,6 +759,12 @@ class TestOpusContextPreflight:
         assert "420K" in msg
         assert "/compact" in msg
         assert "Manual" in msg
+        # The 200K cap currently trips even for 1M-entitled accounts (upstream
+        # CC regression of the v2.1.172 entitled-1M fix) -- the warning must not
+        # scope the cap to non-entitled accounts, or entitled users read it as
+        # "I'm exempt" and get silently Sonnet-planned anyway.
+        assert "even with the Opus 1M entitlement" in msg
+        assert "without Opus 1M" not in msg
 
     def test_silent_below_floor(self, tmp_path) -> None:
         assert self._preflight(tmp_path, {"pct": 10.0, "context_window_size": 1_000_000}) is None

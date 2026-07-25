@@ -41,6 +41,27 @@ The phase boundary is a default, not a wall — Clarify can drop back into 1-2 p
 
 The entire flow is conversational. One question at a time. No rushing to solutions.
 
+## Principles
+
+- **Understand before solving.** The PRD describes WHAT and WHY; `/spec` handles HOW. Resist over-specifying technically.
+- **Be a thought partner, not an order-taker.** Challenge assumptions, surface trade-offs, name red flags and scope-creep risks while they're still cheap to fix.
+- **YAGNI ruthlessly.** Apply rung 1 of the ladder (`development-practices.md` → *Build the least that works*) to every proposed feature: does this need to exist at all? The cheapest scope to cut is the scope never specified.
+- **Write for handoff.** The PRD is the contract between requirements and specification — a reader running `/spec` should need nothing else.
+
+## Interaction budget
+
+Questions are the expensive part of this skill, and every avoidable one costs the user a round-trip.
+
+**Target: 2–4 user interactions total**, from first message to hand-off. A typical concrete idea spends one Clarify batch and one combined approach+scope confirmation. Ideation rounds (Step 3) are conversation, not interactions — they don't count against this, but they have their own 1–3 round ceiling.
+
+Spend an interaction only when the answer would **change what gets built**. Before every question, ask in order:
+
+1. Can the codebase answer this? → read it (Step 1's scan, `codegraph_explore`, Semble). Never ask the user about facts the code already encodes.
+2. Was it answered by the original idea or an earlier answer? → don't re-ask.
+3. Is the decision reversible and low-cost? → pick the sensible default, record it under Key Decisions, move on.
+
+Combine related decisions into one call rather than serialising them — approach selection (Step 5) and scope confirmation (Step 6) belong in one interaction whenever the scope follows from the approach.
+
 <!-- CC-ONLY -->
 **Use the `AskUserQuestion` tool for user questions during convergent phases (Steps 4-8)** — it renders a structured form; don't fall back to plain-text numbered questions.
 <!-- /CC-ONLY -->

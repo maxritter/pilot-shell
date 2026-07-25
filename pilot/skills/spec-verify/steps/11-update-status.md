@@ -3,7 +3,7 @@
 ### ⛔ Precondition Gate — verify ALL THREE before writing `Status: VERIFIED`
 
 1. `AskUserQuestion` was called in **this same conversation turn flow** as part of Step 10 (not a previous, abandoned one).
-2. The user's most recent reply contains one of the **explicit approve keywords**: `Approve`, `approve`, `lgtm`, `looks good`, `continue`, `proceed`.
+2. The user's most recent reply contains one of the **explicit approve keywords**: `Approve`, `approve`, `lgtm`, `looks good`. (A bare `continue`/`proceed` is a resume nudge, NOT approval — same rule as Step 10.)
 3. That reply arrived **after** the AskUserQuestion call — not before, not as a stale message.
 
 If any of the three is false → return to Step 10 and re-ask. Common traps that DO NOT count as approval: "no annotations in file", "all tests pass", "user has been idle", "session was resumed", "user said 'thanks'/'ok'/anything else."
@@ -19,7 +19,8 @@ If any of the three is false → return to Step 10 and re-ask. Common traps that
    **Issues Found:** X
    ### Goal Achievement: N/M truths verified
    ### Must Fix (N) | Should Fix (N) | Suggestions (N) | Out-of-lineage mentions (N)
-   ### Not Verified: [list items from Step 6.2, or "None"]
+   ### Docs: [files updated in Step 6.2, or "no doc impact"]
+   ### Not Verified: [list items from Step 6.3, or "None"]
    ```
 
 5. **Instruct the user:** Include in your completion message:

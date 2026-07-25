@@ -68,7 +68,7 @@ Lint + types + build (when applicable), then the full anti-regression suite, onc
 
 ### Finalise
 
-If the **Changes Review** or **Codex Companion Changes Review** toggle is on, the corresponding review audits the fix first — the same review mechanisms `/spec` runs after implementation (Changes Review on Claude Code: per the `/fix` dropdown in Console → Settings → Spec Workflow → [Changes Review Mode](/docs/features/console#spec-workflow---changes-review-mode) — a single changes-review sub-agent by default, or the built-in `/code-review` skill at medium/high/xhigh; native agent on Codex). Findings are auto-fixed by severity before the commit and the approval gate, so review-driven changes land in the single bundled commit. Worktree mode: bundle test + fix into one `fix:` commit. Approval gate fires only if **Plan Approval** is enabled. The gate waits for you — Pilot disables Claude Code's 60-second idle auto-continue for unanswered questions (see the [approval gates note](/docs/workflows/spec) in `/spec`). The completion report includes a mandatory **E2E** line documenting what was actually run.
+If the **Changes Review** or **Codex Companion Changes Review** toggle is on, the corresponding review audits the fix first — the same reviewers `/spec` runs after implementation (a single `changes-review` sub-agent on Claude Code, the native agent on Codex). Findings are auto-fixed by severity before the commit and the approval gate, so review-driven changes land in the single bundled commit. Worktree mode: bundle test + fix into one `fix:` commit. Approval gate fires only if **Plan Approval** is enabled. The gate waits for you — Pilot disables Claude Code's 60-second idle auto-continue for unanswered questions (see the [approval gates note](/docs/workflows/spec) in `/spec`). The completion report includes a mandatory **E2E** line documenting what was actually run.
 
 ## When to bail out — use `/spec` instead
 
@@ -102,7 +102,7 @@ The full lane (`/spec`) adds: Behavior Contract, three-task structure, plan file
 | --- | --- | --- |
 | **Ask Questions** | On | Investigation skips clarifying questions and uses defaults. |
 | **Plan Approval** | On | The end-of-flow approval gate is skipped. |
-| **Changes Review** | On | The code review (built-in `/code-review` on Claude Code, native agent on Codex) does not audit the fix at finalise. |
+| **Changes Review** | On | The changes review (sub-agent on Claude Code, native agent on Codex) does not audit the fix at finalise. |
 | **Codex Companion Changes Review** | Off | No second-opinion Codex review of the fix (Claude Code only; needs the Codex plugin). |
 
 When **Ask Questions** and **Plan Approval** are both off, `/fix` runs end-to-end with no user interaction. Worktree isolation is not honoured — use `/spec` if you want a worktree.

@@ -1,53 +1,21 @@
 ## Code Review Reception
 
-When receiving code review feedback — from users, the built-in `/code-review` skill, review agents, or external tools like CodeRabbit — apply these guidelines.
+Applies to feedback from users, the `/code-review` skill, review agents, and external tools like CodeRabbit.
 
-### Response Sequence
+Read the whole thing before reacting. **If any item is unclear, stop and ask about every unclear item before implementing anything** — partial understanding produces the wrong fix. Then work one item at a time, testing each: blocking issues (breaks, security) first, then simple fixes, then complex ones.
 
-1. **Read** — Complete feedback without reacting
-2. **Understand** — Restate requirement in own words (or ask)
-3. **Verify** — Check against codebase reality
-4. **Evaluate** — Technically sound for THIS codebase?
-5. **Respond** — Technical acknowledgment or reasoned pushback
-6. **Implement** — One item at a time, test each
-
-If any item is unclear: **STOP** — do not implement anything yet. Ask for clarification on all unclear items first. Partial understanding = wrong implementation.
-
-### Source-Specific Handling
+### How much to trust the source
 
 | Source | Approach |
 |--------|----------|
-| **User feedback** | Trusted — implement after understanding. Still ask if scope unclear. Skip to action or technical acknowledgment. |
-| **External reviewers** | Verify first: (1) technically correct for THIS codebase? (2) breaks existing functionality? (3) reason for current implementation? (4) conflicts with user's prior decisions? If conflicts → stop and discuss with user first. |
-| **Workflow reviews** (spec-review, changes-review sub-agent or /code-review findings on Claude Code, changes-review on Codex, Codex companion) | `must_fix` and `should_fix` → fix immediately. `suggestion` → implement if quick. No discussion needed. Apply the invoking workflow's finding→action table when one exists (spec-verify Step 3 / fix Step 6.1.c) — out-of-lineage and scope-expanding findings follow those lane rules, not blanket auto-fix. |
+| **User** | Trusted — implement after understanding. Still ask if scope is unclear. |
+| **External reviewers** | Verify first: is it correct *for this codebase*, does it break something, is there a reason the code is the way it is, does it conflict with the user's earlier decisions? If it conflicts, stop and discuss before changing anything. |
+| **Workflow reviews** (`spec-review`, `changes-review`, `/code-review`, Codex companion) | `must_fix` and `should_fix` → fix immediately, no discussion. `suggestion` → implement if quick. Where the invoking workflow has its own finding→action table, that table wins — out-of-lineage and scope-expanding findings follow its lane rules, not blanket auto-fix. |
 
-### YAGNI Check
+### Verify before you agree
 
-When a reviewer suggests adding or "properly implementing" a feature:
+When a reviewer says to add or "properly implement" something, search for actual usage first. If nothing calls it, push back — that's YAGNI, not a gap. If something does, implement it properly.
 
-1. Search codebase for actual usage (Semble `semble search`, `Grep`, or `codegraph_explore(query="<symbol> callers")`)
-2. If unused → push back: "This isn't called anywhere. Remove it (YAGNI)?"
-3. If used → implement properly
+Push back with technical reasoning whenever the suggestion breaks existing behaviour, misses context the reviewer didn't have, is wrong for this stack, or contradicts an architectural decision the user already made. If you pushed back and were wrong, say so factually in one line and move on.
 
-### Implementation Order (Multi-Item Feedback)
-
-1. Clarify anything unclear **first**
-2. Blocking issues (breaks, security)
-3. Simple fixes (typos, imports, naming)
-4. Complex fixes (refactoring, logic changes)
-5. Test each fix individually, verify no regressions
-
-### Forbidden Responses
-
-| Never Say | Instead |
-|-----------|---------|
-| "You're absolutely right!" | State the technical requirement |
-| "Great point!" / "Excellent feedback!" | Just start working — actions > words |
-| "Let me implement that now" (before verification) | Verify against codebase first |
-| "Thanks for catching that!" | "Fixed. [Brief description of what changed]" |
-
-### When to Push Back
-
-Push back with technical reasoning when: suggestion breaks existing functionality, reviewer lacks full context, violates YAGNI, technically incorrect for this stack, or conflicts with user's architectural decisions.
-
-If you pushed back and were wrong: state the correction factually and move on. No apologies or over-explaining.
+**Respond with the technical substance, not affirmation.** State the requirement, or the fix and what changed. The forbidden-phrase list in `response-shape.md` applies here in full — "you're absolutely right", "great point", "thanks for catching that" are all noise where a description of the change belongs.

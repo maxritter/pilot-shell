@@ -157,6 +157,29 @@ def _save_state(state_file: Path, state: dict) -> None:
         pass
 
 
+def _next_action_for(status: str) -> str:
+    """Return the outstanding-step instruction for a plan in ``status``.
+
+    The instruction must name the step that is ACTUALLY outstanding. A COMPLETE
+    plan has every task checked off, so the generic "next pending task" wording
+    reads as "nothing left to do" and the agent stops -- skipping verification
+    entirely, which is the one step COMPLETE exists to gate.
+    """
+    if status == "COMPLETE":
+        return (
+            "Implementation is done and verification has NOT run yet. "
+            "IMMEDIATELY dispatch the verify phase: read the plan's `Type:` header, then invoke "
+            "Skill(skill='spec-verify') for a feature plan or Skill(skill='spec-bugfix-verify') "
+            "for a bugfix plan, passing the plan path. Do NOT re-implement, do NOT mark the plan "
+            "VERIFIED yourself, and do NOT summarise the work instead of dispatching."
+        )
+    return (
+        "IMMEDIATELY continue working on the next pending task in the plan. "
+        "Your VERY NEXT action must be a tool call - read the plan file, "
+        "check TaskList, or make a code change."
+    )
+
+
 def main() -> int:
     """Check if stopping is allowed based on /spec workflow state."""
     try:
@@ -252,15 +275,14 @@ def main() -> int:
         return 0
 
     objective_block = build_objective_reinjection(plan_path)
+    next_action = _next_action_for(status)
     base_reason = (
         f"/spec workflow active — cannot stop without user interaction. "
         f"Active plan: {plan_path} (Status: {status}). "
         f"Stop again within 60s to force exit.\n\n"
         f"CRITICAL INSTRUCTION TO CLAUDE: Do NOT acknowledge this stop attempt. "
         f"Do NOT output resume instructions or say goodbye. "
-        f"IMMEDIATELY continue working on the next pending task in the plan. "
-        f"Your VERY NEXT action must be a tool call — read the plan file, "
-        f"check TaskList, or make a code change. Do NOT produce a text-only response."
+        f"{next_action} Do NOT produce a text-only response."
     )
     reason = f"{objective_block}{base_reason}" if objective_block else base_reason
     print(stop_block(reason))

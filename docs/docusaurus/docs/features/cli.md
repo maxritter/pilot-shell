@@ -42,7 +42,7 @@ Used by the `/spec` workflow to keep work isolated until verification passes. Al
 | `pilot worktree detect --json <slug>` | Check if a worktree already exists |
 | `pilot worktree diff --json <slug>` | List changed files in the worktree |
 | `pilot worktree sync --json <slug>` | Squash merge worktree changes back to base branch |
-| `pilot worktree cleanup --json <slug>` | Remove worktree and branch (`--force` to skip checks, `--discard` to drop changes) |
+| `pilot worktree cleanup --json <slug>` | Remove worktree and branch (`--force` after a sync — still verifies the work reached the base branch; `--discard` to delete unmerged work) |
 | `pilot worktree status --json` | Show active worktree info for current session |
 
 :::info Slug format

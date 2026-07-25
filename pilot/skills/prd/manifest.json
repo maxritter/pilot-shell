@@ -33,10 +33,6 @@
     {
       "id": "step-8-handoff",
       "file": "steps/08-handoff.md"
-    },
-    {
-      "id": "step-9-anti-patterns",
-      "file": "steps/09-anti-patterns.md"
     }
   ]
 }

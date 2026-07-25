@@ -13,7 +13,7 @@ interface SEOProps {
 const SEO = ({
   title = "Pilot Shell — How real engineers run Claude Code and Codex",
   description = "How real engineers run Claude Code and Codex: spec-driven planning, enforced TDD, persistent memory, and quality hooks for Python, TypeScript, Go, and C#. Make your agents production-ready.",
-  keywords = "how real engineers run Claude Code and Codex, Claude Code, Codex CLI, OpenAI Codex, Claude Code engineering platform, Codex engineering platform, Claude Code framework, Codex framework, spec-driven development, Pilot Shell, Anthropic Claude, OpenAI GPT-5, AI pair programming, TDD enforcement, AI coding agent, Claude Sonnet 4.6, Claude Opus 4.8, GPT-5, GPT-5.5, MCP servers, Claude Code productivity, Codex productivity, AI development environment, Claude Code best practices, Codex best practices",
+  keywords = "how real engineers run Claude Code and Codex, Claude Code, Codex CLI, OpenAI Codex, Claude Code engineering platform, Codex engineering platform, Claude Code framework, Codex framework, spec-driven development, Pilot Shell, Anthropic Claude, OpenAI GPT-5, AI pair programming, TDD enforcement, AI coding agent, Claude Opus 5, Claude Sonnet 5, GPT-5, GPT-5.5, MCP servers, Claude Code productivity, Codex productivity, AI development environment, Claude Code best practices, Codex best practices",
   canonicalUrl = "https://pilot-shell.com/",
   ogImage = "https://pilot-shell.com/logo.png",
   type = "website",

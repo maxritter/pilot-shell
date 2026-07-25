@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-CURRENT_CONFIG_VERSION = 20
+CURRENT_CONFIG_VERSION = 21
 
 _STALE_AGENT_KEYS = frozenset(
     {
@@ -136,6 +136,9 @@ def migrate_model_config(
 
     if version < 20:
         modified = _migration_v20(raw) or modified
+
+    if version < 21:
+        modified = _migration_v21(raw) or modified
 
     if raw.get("_configVersion") != CURRENT_CONFIG_VERSION:
         raw["_configVersion"] = CURRENT_CONFIG_VERSION
@@ -716,8 +719,10 @@ def _migration_v19(raw: dict[str, Any]) -> bool:
     effort is DISCARDED and both workflows reset to ``agent`` (deliberate product
     decision: ``_migration_v15``/``_migration_v18`` seeded an effort into every
     config, so the stored value is rarely a deliberate choice, and the single
-    sub-agent is the new low-token default; re-opt into the multi-agent
-    ``/code-review`` via Console Settings -> Spec Workflow -> Changes Review Mode).
+    sub-agent is the new low-token default).
+
+    Superseded by ``_migration_v21``, which deletes the section outright -- the
+    ``/code-review`` tiers this migration preserved were never reachable.
 
     Rule: a dict whose keys are a subset of ``spec``/``fix`` with valid mode
     values (written by a newer Console build -- possibly a partial PUT during
@@ -768,6 +773,24 @@ def _migration_v20(raw: dict[str, Any]) -> bool:
             del workflow[retired]
             modified = True
     return modified
+
+
+def _migration_v21(raw: dict[str, Any]) -> bool:
+    """v20 -> v21: remove the ``codeReview`` section entirely.
+
+    The section chose the changes-review mechanism: ``agent`` (the
+    ``changes-review`` sub-agent) or an effort tier running the built-in
+    ``/code-review`` skill. The skill-mode tiers were never reachable --
+    ``/code-review`` carries ``disable-model-invocation``, so a model-issued
+    ``Skill(skill='code-review', ...)`` is rejected and the workflow silently
+    lost its changes review. Only the sub-agent path works, so the mechanism
+    is no longer a choice: the Changes Review toggle in ``reviewerAgents`` is
+    the single control for both ``/spec`` and ``/fix``.
+    """
+    if "codeReview" not in raw:
+        return False
+    del raw["codeReview"]
+    return True
 
 
 def _write_atomic(path: Path, data: dict[str, Any]) -> None:

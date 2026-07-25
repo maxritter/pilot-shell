@@ -52,7 +52,7 @@ Pilot preserves your `defaultMode` across updates.
 
 ## Auto Mode
 
-Auto Mode runs a classifier on each action before it executes, blocking anything outside the task scope. Available on **Max, Team, or Enterprise** plans (not Pro). Requires Claude Sonnet 4.6 or Opus 4.7+.
+Auto Mode runs a classifier on each action before it executes, blocking anything outside the task scope. Available on **Max, Team, or Enterprise** plans (not Pro). Requires Claude Sonnet 4.6+ or Opus 4.7+.
 
 Blocked by default: downloading and executing scripts, production deploys, mass deletion, IAM changes, force-push to main. Allowed: local file operations, installing from lock files, read-only HTTP.
 

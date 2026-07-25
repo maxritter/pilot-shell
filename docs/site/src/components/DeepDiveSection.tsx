@@ -356,7 +356,7 @@ const DeepDiveSection = () => {
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 <code>/spec</code> runs on Claude Code's native{" "}
-                <code>opusplan</code>: Opus 4.8 plans, Sonnet 5 executes —
+                <code>opusplan</code>: Opus 5 plans, Sonnet 5 executes —
                 switched automatically, with a pre-flight check that warns when
                 your conversation is too large for the Opus plan leg.
               </p>

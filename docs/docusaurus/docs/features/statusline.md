@@ -13,7 +13,7 @@ The status line is not available with Codex CLI. It uses a Claude Code-specific 
 Three-line session dashboard rendered below every Claude Code response.
 
 ```
-Opus 4.8 [1M] | █████░▓ 60% | 5h: 42% ⇡ 2h | 7d: 18% ⇣ 4d | +120 -38 | main ~5
+Opus 5 [1M] | █████░▓ 60% | 5h: 42% ⇡ 2h | 7d: 18% ⇣ 4d | +120 -38 | main ~5
 Spec: my-feature feature [implement] ████░░░░ 3/6
 Pilot 8.4.0 (Solo) · CC 2.1.80 (Max) · sessions 2 · memories 12
 ```
@@ -22,7 +22,7 @@ Pilot 8.4.0 (Solo) · CC 2.1.80 (Max) · sessions 2 · memories 12
 
 | Widget | What it shows |
 |--------|---------------|
-| **Model** | Active model (`Opus 4.8 [1M]`, `Sonnet 4.6`) |
+| **Model** | Active model (`Opus 5 [1M]`, `Sonnet 5`) |
 | **Context** | Usage bar + percentage. Green < 80%, Yellow 80–95%, Red 95%+ |
 | **5h / 7d usage** | Rate-limit percentage with pacing arrow and reset countdown. Shown on Pro/Max subscriptions. ⇡ = over pace (red), ⇣ = under pace (green) |
 | **Lines / Git** | `+added -removed` and branch with staged/unstaged file counts. Shown on every plan (the compact file-changes view). |

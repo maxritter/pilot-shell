@@ -2,54 +2,11 @@
 
 ### Codebase Exploration
 
-CodeGraph (structure) and Semble (intent) are primary; Grep/Glob are *verifiers* for completeness checks or known-string lookups.
-
-<!-- CC-ONLY -->
-Reach for CodeGraph or Semble first on a code-search task; drop to Grep/Glob to verify their results or to find exact text in a known file.
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-In Codex, spend graph calls only when the graph can answer the next question. For docs, rules, markdown, config, UI copy, reviews of a known diff, or named paths, start with direct file reads, `git diff`, or Semble. Call CodeGraph only after that if a runtime symbol relationship, call path, or blast radius is genuinely unknown.
-CODEX-END -->
-
-**⛔ NEVER pass `projectPath` to CodeGraph for the current project** — it causes "not initialized" errors. The MCP server defaults correctly.
-
-#### Tool Selection by Scenario
-
-<!-- CC-ONLY -->
-CodeGraph and Semble are **co-primary**. Pick by scenario, not by habit. CodeGraph is a single tool (`codegraph_explore`) — full contract in `mcp-servers.md`.
-
-| Scenario | Tool |
-|----------|------|
-| Any structural question — orient, find a symbol, callers/callees, blast radius, deep-dive across known symbols | `codegraph_explore(query=...)` — one call returns source + call path + impact |
-| Understand a concept / feature area | `semble search "how does X work" ./` |
-| Find where something is modified | `semble search "settings.json modify write" ./` |
-| Cross-cutting concerns | `semble search "notification push events" ./` |
-| Debug: "where does X happen" | `semble search "error handling recovery" ./` |
-| Find similar patterns | `semble find-related <file> <line> ./` (unique — no CodeGraph equivalent) |
-
-**Combined workflow:** `codegraph_explore` first (structure), then `semble search` (intent) — especially for cross-language connections and non-structural relationships.
-<!-- /CC-ONLY -->
+Server routing lives in `mcp-servers.md` — CodeGraph for structure, Semble for intent, Grep/Glob to verify them or find exact text in a known file.
 
 <!-- CODEX-START
-CodeGraph and Semble are **co-primary**. Pick by scenario, not by habit. CodeGraph is a single tool (`codegraph_explore`) — full contract in `mcp-servers.md`.
-
-| Scenario | Tool |
-|----------|------|
-| Any structural runtime-code question — orient, find a symbol, callers/callees, blast radius, deep-dive | `codegraph_explore(query=...)` — one call returns source + call path + impact |
-| Understand a concept / feature area | `semble search "how does X work" ./` |
-| Find where something is modified | `semble search "settings.json modify write" ./` |
-| Cross-cutting concerns | `semble search "notification push events" ./` |
-| Debug: "where does X happen" | `semble search "error handling recovery" ./` |
-| Find similar patterns | `semble find-related <file> <line> ./` |
-
-Use `codegraph_explore` selectively for structural runtime-code questions, especially when entry points are unknown. For docs, rules, markdown, config, UI copy, reviews of a known diff, or named paths, start with direct file reads or Semble; only call CodeGraph if that reveals an actual runtime symbol/call-graph question.
-
-#### Codex Search Budget
-
-During `$spec` and `$prd` planning, the Codex planning contracts override generic exploration rules. At most one CodeGraph orientation call plus one Semble search is enough for most plans where runtime code structure is unknown. If either result is irrelevant, pivot to direct file reads and draft the plan or PRD. Do not run callers/callees/impact analysis for docs, rules, markdown, config, UI-copy changes, reviews of a known diff, or local bugfixes; for runtime code, run it only for functions you are about to modify or have identified as the likely root cause.
+**Codex budget:** during `$spec` and `$prd` planning, one CodeGraph orientation call plus one Semble search covers most plans. If either result is irrelevant, pivot to direct file reads and draft. Skip the graph entirely for docs, rules, config, UI copy, named paths, and reviews of a known diff.
 CODEX-END -->
-
-Grep/Glob: (1) verifying CodeGraph/Semble completeness, (2) exact text/regex in a known file.
 
 ### Change Discipline
 
@@ -130,23 +87,11 @@ result = await wait_for(lambda: get_result() is not None, timeout=5.0)
 
 **Use:** flaky tests, async waits. **Don't use** when testing actual timing (debounce, throttle) — document WHY in that case. Poll every 10 ms, always include a timeout with a clear error, call the getter inside the loop (no stale cache).
 
-### Constraint Classification
-
-- **Hard** — non-negotiable (physics, external contracts, security, deadlines)
-- **Soft** — conventions or preferences — negotiable if trade-off is stated
-- **Ghost** — past constraints baked in that no longer apply
-
-Ghost constraints are the highest-value to find — they lock out options nobody realises are available. Ask "why can't we do X?" — if nobody can name a current requirement, it may be a ghost.
-
 ### Merge Conflict Resolution
 
-For an in-progress merge/rebase conflict:
+Resolve hunk by hunk, preserving both intents. When the code alone doesn't settle a hunk, read why each side changed (commit messages, PRs, issues); regenerate lockfiles and build output rather than hand-resolving them. When the two intents are genuinely incompatible and neither the merge's goal nor the user's request discriminates, stop and ask — never invent new behaviour inside a resolution. Run the project's checks afterwards.
 
-1. **Survey the state** — conflicting files, both sides' git history.
-2. **Find the primary sources** for each hunk whose correct resolution isn't evident from the code itself — commit messages, PRs, original issues — to understand why each side changed. Regenerate generated files (lockfiles, build output) instead of hand-resolving them.
-3. **Resolve hunk by hunk, preserving both intents.** When they're incompatible: if the merge's stated goal or the user's request discriminates, pick that side and note the trade-off; when neither the primary sources nor the goal settle it, stop and ask — never invent new behaviour inside a resolution. **Never `--abort` on your own initiative** (an explicit user instruction to abort is the exception): resolving is the default; abandoning the merge is the user's call.
-4. **Run the project's checks** (typecheck → tests → format) and fix anything the merge broke.
-5. **Completing the merge** (`git add`, `git commit`, `git rebase --continue`) follows the Git Operations rules below.
+**⛔ Never `--abort` on your own initiative.** Resolving is the default; abandoning the merge is the user's call. Completing it (`git add`, `git commit`, `git rebase --continue`) needs permission like any other git write.
 
 ### Git Operations
 

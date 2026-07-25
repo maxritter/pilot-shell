@@ -10,14 +10,9 @@ Unit tests with mocks prove nothing about real-world behavior. After tests pass:
 
 **When:** after tests pass, after refactoring, after changing imports/deps/config, before marking any task complete. **Skip only for:** docs-only, test-only, pure internal refactoring with no entry points, config-only.
 
-### ⛔ Frontend Changes Require Browser Verification
+### ⛔ Frontend changes need browser evidence
 
-Unit tests and typechecks are NOT sufficient for UI changes. After tests pass, verify with browser automation that the change works in the running app — in BOTH `/spec` and quick mode.
-
-1. **Resolve a live target FIRST** via the Live-Target Probe below — tests passing is not a substitute for opening a browser against a deployed instance.
-2. Then follow the browser procedure, tier priority, E2E hard rules, and the (advisory, run-when-available) `impeccable` design-quality pass in `browser-automation.md`: navigate to the affected page, interact with the changed UI, and report what you saw — "UI works" requires browser evidence, not "tests pass."
-
-**Don't skip.** "Small CSS change" or "tests cover it" is not an excuse. Common pitfalls: stale cached bundles, bundle not deployed, CSS layout invisible to tests, elements in DOM but not visible/interactive.
+Resolve a live target via the probe below, then follow `browser-automation.md`. "UI works" requires a browser, not a passing test — stale bundles, undeployed assets, and CSS breakage are all invisible to unit tests. "Small CSS change" is not an exemption.
 
 ### ⛔ Live-Target Probe — required before any "I can't run live E2E" claim
 
@@ -91,5 +86,5 @@ Before reporting completion, pass against each of the five (2026 Agentic Coding 
 
 Beyond "does it work," check "is it the least that works" — run the ladder (`development-practices.md` → *Build the least that works*) over the diff before claiming done:
 
-- **Over-built?** An abstraction with one implementation, a dependency the stdlib/platform already covers, boilerplate nobody asked for, a config for a value that never changes → flag and simplify. This is the same lens as the native `/code-review` and `/simplify` skills; lean on them rather than re-deriving findings by hand.
+- **Over-built?** An abstraction with one implementation, a dependency the stdlib/platform already covers, boilerplate nobody asked for, a config for a value that never changes → flag and simplify. Same lens the native `/code-review` and `/simplify` skills apply — but both are user-invoked, so run it yourself here rather than waiting on a skill you cannot launch.
 - **Shortcut debt harvested?** `grep -rnE '(#|//) ?SHORTCUT:' .` the change and list unresolved markers in the completion report so a deferral can't quietly become permanent (the ceiling+trigger contract lives in `development-practices.md` → *Mark deliberate shortcuts*).

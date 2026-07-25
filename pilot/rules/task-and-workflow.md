@@ -6,7 +6,7 @@
 
 **Model Switching has three modes** (Console → Settings → Model Switching; the skills and hooks read it fresh from `~/.pilot/config.json`):
 
-- **Automated (default):** `/spec` runs on the `opusplan` model — Opus 4.8 plans, Sonnet 5 executes, switched natively by plan mode (the spec skills call `EnterPlanMode`/`ExitPlanMode` internally as the switch lever). Requires `/model opusplan`; the `spec_mode_guard` hook blocks a non-opusplan session and pre-flight-warns when the conversation likely exceeds the Opus plan leg's effective window (~200K without 1M entitlement — Claude Code would silently keep planning on Sonnet; `/compact` first or use Manual).
+- **Automated (default):** `/spec` runs on the `opusplan` model — Opus 5 plans, Sonnet 5 executes, switched natively by plan mode (the spec skills call `EnterPlanMode`/`ExitPlanMode` internally as the switch lever). Requires `/model opusplan`; the `spec_mode_guard` hook blocks a non-opusplan session and pre-flight-warns when the conversation likely exceeds the Opus plan leg's effective window (~200K — currently even with the Opus 1M entitlement, a known Claude Code regression (anthropics/claude-code#65512) — Claude Code would silently keep planning on Sonnet; `/compact` first or use Manual).
 - **Manual:** the user drives `/model` themselves. `/spec` pauses ONCE after plan approval (a normal end-of-turn message — the stop guard's one-shot `manual-switch-pending` sentinel allows it — so the input box is free for `/model`) before they type `continue`. No plan-mode toggling, no model gates.
 - **Off:** no model management, no prompts, no gates — everything runs on the active `/model` choice (Fable 5 / Mythos 5 included).
 
@@ -86,17 +86,6 @@ CODEX-END -->
 
 ## Tool Usage
 
-<!-- CC-ONLY -->
-### Tool Parameter Names — Use EXACT names
-
-| Tool | Correct | Wrong |
-|------|---------|-------|
-| `Bash` | `command` | `cmd`, `bash_command`, `shell` |
-| `Write`/`Edit`/`Read` | `file_path` | `path`, `filepath`, `file` |
-| `Write` | `content` | `contents`, `text`, `body` |
-| `Edit` | `old_string`, `new_string` | `old`, `new`, `search`, `replace` |
-| `Grep` | `pattern` | `query`, `search`, `regex` |
-<!-- /CC-ONLY -->
 <!-- CODEX-START
 ### Tool Parameters — Use the Current Tool Schema
 
@@ -106,11 +95,19 @@ CODEX-END -->
 <!-- CC-ONLY -->
 ### Agent Tool — fan-out subagents allowed; Plan routes to /spec
 
-Read-only fan-out subagents are **allowed**: the built-in `Explore` agent, `general-purpose` agents, and any description containing "Explore" or "Research". Reach for them when a search means sweeping many files, directories, or naming conventions and you only need the conclusion — a parallel Explore/Haiku fan-out is often faster and cheaper than running CodeGraph/Semble inline. CodeGraph (structure) and Semble (intent) stay first-choice for targeted symbol/impact/concept queries (see `development-practices.md` and `mcp-servers.md`) — co-primary with fan-out, not a mandate.
+Read-only fan-out subagents are **allowed**: the built-in `Explore` agent, `general-purpose` agents, and any description containing "Explore" or "Research". Reach for them when a search means sweeping many files, directories, or naming conventions and you only need the conclusion.
 
-**Still blocked:** `subagent_type` of `Plan` — use `/spec` for structured planning (TDD + verification + review). Built-in `WebSearch`/`WebFetch` stay blocked too (see Web Search/Fetch below).
+#### Delegate rarely — subagents multiply cost and latency
 
-**Reviewer agents pass through silently:** `changes-review`, `spec-review`. (Launch `changes-review` only where the `/spec` and `/fix` steps say to — agent mode of the Changes Review Mode setting; in skill mode the changes review is the built-in `/code-review` skill, per the Sub-agents section below.)
+Every subagent re-establishes context, re-explores, and reports back, and then you re-read its report. Current models reach for them far more readily than the payoff justifies, so the bar is high.
+
+**Do delegate** for genuinely independent, sizeable tracks: unrelated modules, a wide multi-file investigation, a fan-out where each item is its own search.
+
+**Do NOT delegate** work you could finish in a handful of tool calls, and never for review, verification, or double-checking — that belongs in your own loop. Prefer one subagent over several; don't split one modest job into parallel pieces. Brief each one precisely the first time, then commit to the result: don't redo its work or re-derive its findings. Launch parallel agents in a single message so they actually run concurrently.
+
+**Still blocked:** `subagent_type` of `Plan` — use `/spec` for structured planning. Built-in `WebSearch`/`WebFetch` stay blocked too (see Web Search/Fetch below).
+
+**Reviewer agents pass through silently:** `changes-review`, `spec-review`. Launch `changes-review` only where the `/spec` and `/fix` steps say to.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 ### Agent Tools
@@ -132,7 +129,8 @@ CODEX-END -->
 
 - Launch with `run_in_background=true`
 - ⛔ NEVER use `TaskOutput` to retrieve results.
-- **Pilot reviewer agents** (`spec-review`, and `changes-review` in agent mode) write findings JSON files — poll with bash file-existence loop, then Read once. Other agent types do NOT write files; their only output is the final message of a foreground call. Never plan on `SendMessage` to follow up — it may not exist in the running Claude Code version. (The changes review in `/spec`/`/fix` on Claude Code is mode-dependent: `$PILOT_SPEC_CODE_REVIEW_MODE` / `$PILOT_FIX_CODE_REVIEW_MODE`, default `agent`. `agent` launches the single `changes-review` sub-agent; `medium`/`high`/`xhigh` runs the built-in `/code-review` skill inline via `Skill(skill='code-review', args='<mode>')` at that effort. Set per workflow in Console Settings → Spec Workflow → Changes Review Mode.)
+- **Pilot reviewer agents** (`spec-review`, `changes-review`) write findings JSON files — poll with a bash file-existence loop, then Read once. Other agent types do NOT write files; their only output is the final message of a foreground call. Never plan on `SendMessage` to follow up — it may not exist in the running Claude Code version. The changes review in `/spec` and `/fix` is this sub-agent, on both agents; whether it runs at all is Console Settings → Spec Workflow → Review Agents → Changes Review.
+- ⛔ **`/code-review` is not model-invocable.** It carries `disable-model-invocation`, so `Skill(skill='code-review', ...)` is rejected outright. Never wire it into a workflow as an automated review step, and never treat a rejected call as "reviewed" — a deeper multi-agent pass is the user's to start by typing `/code-review`.
 - Sub-agents do NOT inherit rules; they can read `~/.claude/rules/*.md` and `.claude/rules/*.md`.
 
 ### Codex Companion (Reviews & Tasks)
@@ -142,7 +140,7 @@ CODEX-END -->
   `CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | sort -V | tail -1)`
 - A background job is never lost while you hold its `task-…` ID: `node "$CODEX_COMPANION" status <job-id> --json` polls it, `node "$CODEX_COMPANION" result <job-id> --json` fetches the finished result. Do NOT abandon a launched job and redo the review yourself.
 - If the job ID is unrecoverable (it was launched inside a subagent), re-launch once directly via Bash and continue.
-- **Stage before any pre-commit diff review.** `/spec` and `/fix` review the WORKING TREE before committing, so every file the change ADDS is untracked. Before launching ANY pre-commit review (companion `task`/`review`/`adversarial-review`, the `changes-review` sub-agent, OR the inline `/code-review`), run a real `git add` of the change's own files (the plan's `Files:` paths, or the fix + its test — never unrelated dirty files). A bare `git add -N` is NOT enough: Codex's `git status --untracked-files=all` still flags the path as untracked, producing a spurious `critical` ("deliverable depends on untracked files"), while a `git diff HEAD` reviewer silently OMITS it. Review against `git diff HEAD`; never pass a committed ref-range (`--base HEAD`, `--scope branch`, `main...HEAD`, `HEAD~1`) — pre-commit those diffs are empty and the review scans nothing. Staging is not committing; the push still waits for approval.
+- **Stage before any pre-commit diff review.** `/spec` and `/fix` review the WORKING TREE before committing, so every file the change ADDS is untracked. Before launching ANY pre-commit review (companion `task`/`review`/`adversarial-review`, or the `changes-review` sub-agent), run a real `git add` of the change's own files (the plan's `Files:` paths, or the fix + its test — never unrelated dirty files). A bare `git add -N` is NOT enough: Codex's `git status --untracked-files=all` still flags the path as untracked, producing a spurious `critical` ("deliverable depends on untracked files"), while a `git diff HEAD` reviewer silently OMITS it. Review against `git diff HEAD`; never pass a committed ref-range (`--base HEAD`, `--scope branch`, `main...HEAD`, `HEAD~1`) — pre-commit those diffs are empty and the review scans nothing. Staging is not committing; the push still waits for approval.
 - **Broker `status` is not a liveness signal — watch the log mtime.** A companion job can go silent mid-`verifying` while `status` keeps reporting `running`/`verifying` with a climbing `elapsed`. A poll that waits only on `status` then burns its full timeout before noticing. Resolve `job.logFile` from `status --json` and poll its mtime alongside `job.status`: if status is still running but the log has not advanced for ≥90s (stall) or total elapsed exceeds ~8min (ceiling), the job is dead — `cancel` it, re-launch once under the same monitor, and if it stalls again proceed WITHOUT the Codex pass and record the gap (do NOT spin the full poll timeout, do NOT silently skip). The `/spec` and `/fix` skill steps carry the exact monitor — a single-process `node -e` watcher (5s poll, no per-poll `uv`/`python` spawns, no zsh/`stat` portability traps).
 - **Review effort: `medium` by default, model untouched.** Companion review `task` launches pass `--effort "${PILOT_CODEX_REVIEW_EFFORT:-medium}"` (fail-closed to `medium`): a review is a bounded read-only audit, and the user's interactive default (often `xhigh`) runs ~2× slower for equivalent material findings (verified live 2026-07-13: same prompt/diff — medium 109s vs xhigh 221–223s, same finding tier). ⛔ Never pass `--model` — fast-model aliases (e.g. `spark`) 400 on ChatGPT-plan auth. Any re-launch after a stall or failure drops the `--effort` override and inherits the user's Codex default.
 <!-- /CC-ONLY -->
@@ -165,99 +163,24 @@ Use `run_in_background=true` only for long-running processes (dev servers, watch
 ## /spec Workflow
 
 ```
-/spec → Dispatcher → Feature: spec-plan        → spec-implement → spec-verify
-                   → Bugfix:  spec-bugfix-plan → spec-implement → spec-bugfix-verify
-/fix  → fix skill (always quick lane). Stops and tells user to use /spec if scope exceeds quick lane.
+/spec → Feature: spec-plan        → spec-implement → spec-verify
+      → Bugfix:  spec-bugfix-plan → spec-implement → spec-bugfix-verify
+/fix  → quick lane; stops and asks for /spec when scope exceeds it
 ```
 
-### ⛔ Dispatcher Integrity
+The phase skills carry their own contracts — dispatch rules, toggles, plan registration, worktree handling, per-task tracking. Don't restate them here; read the skill. What follows applies whether or not a skill is loaded.
+
+**`Status:` is a closed set** — exactly one of `PENDING` → `COMPLETE` → `VERIFIED`, written as the bare keyword with no trailing prose. Never invent another value (`RESOLVED`, `DONE`, `CLOSED`); the Console treats anything outside the set as terminal. Resolution notes belong in the plan body.
+
+**Four user interaction points, and no more:** branch/type confirmation (new plans), plan approval, worktree sync approval (`Worktree: Yes` only), and the final code-review gate. Everything else is automatic — **never ask "should I fix these findings?"**, since verification fixes are part of the approved plan.
+
+⛔ **An auto-continued question is not an answer.** An `AskUserQuestion` result reading "No response after Ns — continued without an answer" means the user has not responded. Treat it as silence at any interaction point: don't act on the recommended option, don't infer approval, re-ask when they return.
+
+**Deviations:** auto-fix bugs, missing validation, and broken imports inline and document them. **Stop and ask** for architectural changes — a new table, a library swap, a breaking API.
 
 <!-- CC-ONLY -->
-`/spec` dispatcher is a thin router. **Only allowed tools:** `Bash` (env-var reads), `Read` (plan files), `AskUserQuestion`, `Skill()`. Any Grep/Glob/Task/Edit/Write is a workflow violation.
+**Stop guard:** when it blocks a stop during `/spec`, don't acknowledge it, output resume instructions, or say goodbye. Your very next action is a tool call. Same after any user interruption — re-read the plan and resume.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-`$spec` dispatcher is a thin router. **Only allowed actions:** read env vars, read existing plan files, ask plain-text numbered questions when needed, then continue immediately with the selected phase skill instructions. Do not run exploration, search, edits, or implementation work inside the dispatcher.
+**Stop guard:** when it blocks a stop during `$spec`, don't acknowledge it, output resume instructions, or say goodbye. Your very next action is a tool call — re-read the plan, refresh `update_plan`, or make the next change. Same after any user interruption.
 CODEX-END -->
-
-### Phase Dispatch
-
-New tasks (no `.md`): infer type from description. Ambiguous → ask user (bundled with worktree question).
-
-Existing plans (`.md`): read `Type:` header.
-
-| Status | Approved | Type | Skill |
-|--------|----------|------|-------|
-| PENDING | No | Feature | `spec-plan` |
-| PENDING | No | Bugfix | `spec-bugfix-plan` |
-| PENDING | Yes | * | `spec-implement` |
-| COMPLETE | * | Feature | `spec-verify` |
-| COMPLETE | * | Bugfix | `spec-bugfix-verify` |
-| VERIFIED | * | * | Done |
-
-`spec-implement` is identical for both types (the plan file is the interface). Verification differs: features get a changes review (per the configured mode on Claude Code — single `changes-review` sub-agent by default, or the built-in `/code-review` skill at medium/high/xhigh; native `changes-review` agent on Codex) + inline plan-compliance/goal audit + optional Codex companion + structured E2E (TS-NNN); bugfixes get Behavior Contract audit + revert-test proof.
-
-**Status values (closed set):** the `Status:` header is **exactly one** of `PENDING` (awaiting impl) → `COMPLETE` (ready to verify) → `VERIFIED` (done). These are the ONLY valid values — never invent, rename, or substitute another word (no `RESOLVED`/`DONE`/`CLOSED`/`WONTFIX`). Write the **bare keyword only**: no trailing prose or parentheticals on the `Status:` line — `Status: VERIFIED`, never `Status: RESOLVED (#1-#13 fixed; #14 won't-fix)`. Put resolution notes in the plan body, not the status line. The Console treats any value outside this set as terminal/done.
-
-### Feedback Loop
-
-`spec-verify` finds issues → status flips to PENDING → `spec-implement` fixes → COMPLETE → re-verify → … → VERIFIED.
-
-### ⛔ Only FOUR User Interaction Points
-
-1. **Branch + Type confirmation** — new plans only (in dispatcher; type only when ambiguous; branch question skipped when `$PILOT_BRANCH_ISOLATION_ENABLED=false`).
-2. **Plan Approval** — in `spec-plan`/`spec-bugfix-plan`; skipped when `$PILOT_PLAN_APPROVAL_ENABLED=false`.
-3. **Worktree Sync Approval** — in verify, only when `Worktree: Yes`.
-4. **Code Review Gate** — final quality gate via `AskUserQuestion`.
-
-Everything else is automatic. **NEVER ask "Should I fix these findings?"** — verification fixes are part of the approved plan.
-
-⛔ **An auto-continued question is NOT an answer.** An `AskUserQuestion` result reading "No response after Ns — continued without an answer" (or carrying `afkTimeoutMs`) means the user has NOT responded — at ANY interaction point. Treat it as silence: do not act on the recommended option, do not infer approval, and re-ask when the user returns.
-
-### Spec Workflow Toggles
-
-`~/.pilot/config.json → specWorkflow` sets these env vars (defaults shown when run outside Pilot):
-
-| Toggle | Env Var | Default | When disabled |
-|--------|---------|---------|---------------|
-| Branch Isolation | `$PILOT_BRANCH_ISOLATION_ENABLED` | `false` | Skip the dispatcher branch question entirely; always pass `--worktree=no` |
-| Plan questions | `$PILOT_PLAN_QUESTIONS_ENABLED` | `true` | Skip all `AskUserQuestion` in plan phase |
-| Plan approval | `$PILOT_PLAN_APPROVAL_ENABLED` | `true` | Auto-approves; implementation starts immediately |
-
-All three disabled = end-to-end autonomous (Code Review Gate still runs).
-
-### Plan Registration (MANDATORY for /spec)
-
-```bash
-~/.pilot/bin/pilot register-plan "<plan_path>" "<status>" 2>/dev/null || true
-```
-
-Call after creating the plan header, after reading an existing plan, and after status changes.
-
-### Deviation Handling (during /spec)
-
-| Type | Trigger | Action |
-|------|---------|--------|
-| Bug / missing critical / blocking | Errors, missing validation, broken imports | Auto-fix inline, document deviation |
-| Architectural | New table, library swap, breaking API | **STOP** — `AskUserQuestion` |
-
-Auto-fix: inline + tests if applicable, do NOT expand scope. Outside `/spec`, respect the user's mode.
-
-### Stop Guard
-
-<!-- CC-ONLY -->
-When the stop guard blocks a stop during `/spec`, do NOT acknowledge it, output resume instructions, or say goodbye. Your **very next action** must be a tool call (TaskList, Read plan, code change). No text-only responses after a stop block. Same applies after user interruptions ("Continue", new mid-task messages) — re-read the plan, resume.
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-When the stop guard blocks a stop during `$spec`, do NOT acknowledge it, output resume instructions, or say goodbye. Your **very next action** must be a tool call: re-read the plan, refresh `update_plan`, or make the next code/test change. No text-only responses after a stop block. Same applies after user interruptions ("Continue", new mid-task messages) — re-read the plan, resume.
-CODEX-END -->
-
-### Worktree
-
-`Worktree:` field in plan header (default `No`). The user chooses at `/spec` start only when `$PILOT_BRANCH_ISOLATION_ENABLED=true`; by default (isolation off) the dispatcher skips the question and always passes `--worktree=no`.
-
-- **Yes** → worktree at `.worktrees/spec-<slug>-<hash>/`. Implementation isolated; squash-merged after verification.
-- **No** → direct on current branch.
-
-### Task Completion Tracking
-
-Update plan after EACH task: `[ ]` → `[x]`, increment Done, decrement Left. Immediately.

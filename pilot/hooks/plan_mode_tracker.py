@@ -19,9 +19,10 @@ by /spec in AUTOMATED Model Switching mode; Manual/Off never toggle it.
 
 Planning-leg model check (Automated mode only): plan mode under opusplan
 must run on Opus - but Claude Code can silently serve the Sonnet leg instead
-(Opus usage-limit fallback, a conversation grown past Opus's effective ~200K
-window on accounts without 1M entitlement, or the session was never on the
-opusplan model). EnterPlanMode itself cannot observe this (the statusline has
+(Opus usage-limit fallback, a conversation grown past the plan leg's
+effective ~200K window - currently even with the Opus 1M entitlement, an
+upstream regression (anthropics/claude-code#65512) - or the session was
+never on the opusplan model). EnterPlanMode itself cannot observe this (the statusline has
 not re-rendered in the new mode yet), so the check runs at the first plan-doc
 write after EnterPlanMode: by then the statusline cache carries a post-lever
 render (cache mtime > sentinel mtime) and its model_id is authoritative. On a
@@ -80,9 +81,11 @@ _MODEL_MISMATCH_WARNING = (
     "[Pilot] PLANNING-LEG MODEL CHECK: Automated Model Switching is on and plan "
     "mode is active, but the observed session model is '{model_id}' - planning "
     "is NOT running on Opus. Likely causes: (1) the conversation has grown past "
-    "Opus's effective context window (~200K without 1M entitlement or with "
-    "exhausted usage credits), so Claude Code silently keeps serving the Sonnet "
-    "leg - /compact or /clear before planning fixes this; (2) Opus usage limit "
+    "the Opus plan leg's effective 200K window - a cap that currently applies "
+    "even with the Opus 1M entitlement (known Claude Code regression, "
+    "anthropics/claude-code#65512), and always applies without the entitlement "
+    "or with exhausted usage credits - so Claude Code silently keeps serving the "
+    "Sonnet leg; /compact or /clear before planning fixes this; (2) Opus usage limit "
     "fallback on your Claude plan (check /usage); (3) the session is not on the "
     "opusplan model - run /model opusplan. Manual mode (Console -> Settings -> "
     "Model Switching) avoids this class of surprise by letting the user pick "

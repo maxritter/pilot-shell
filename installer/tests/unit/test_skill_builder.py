@@ -127,3 +127,32 @@ class TestRealSkillFrontmatterIsValidYaml:
                 failures.append(f"{skill_dir.name}: {str(exc).splitlines()[0]}")
 
         assert not failures, "invalid YAML frontmatter in built skills:\n" + "\n".join(failures)
+
+    def test_every_step_file_on_disk_is_listed_in_its_manifest(self) -> None:
+        """A step file the manifest omits is authored, reviewed, and shipped - but never built.
+
+        `build_skill_md` assembles SKILL.md strictly from `manifest.json`, so an
+        unlisted `steps/*.md` silently contributes nothing. It fails loudly in
+        neither direction: the file is on disk and readable, the orchestrator can
+        even document the step by name, and the build still succeeds. `benchmark`
+        shipped exactly that way - its orchestrator listed a step 6 pointing at
+        `steps/06-improvement-plan.md` that no manifest entry ever loaded.
+
+        The reverse direction (manifest entry with no file) already raises
+        BuildError, so only orphans need guarding here.
+        """
+        failures: list[str] = []
+        for skill_dir in self._skill_dirs():
+            steps_dir = skill_dir / "steps"
+            if not steps_dir.is_dir():
+                continue
+            listed = {s["file"] for s in json.loads((skill_dir / "manifest.json").read_text())["steps"]}
+            on_disk = {p.relative_to(skill_dir).as_posix() for p in steps_dir.rglob("*.md")}
+            orphans = sorted(on_disk - listed)
+            if orphans:
+                failures.append(f"{skill_dir.name}: {', '.join(orphans)}")
+
+        assert not failures, (
+            "step files present on disk but absent from manifest.json - they build into "
+            "nothing and ship as dead weight. Add a manifest entry, or delete the file:\n" + "\n".join(failures)
+        )

@@ -14,3 +14,11 @@
 # minimatch ReDoS — transitive dev dependency of @typescript-eslint/typescript-estree.
 # Fix (10.2.1) requires major version bump that @typescript-eslint hasn't adopted yet.
 CVE-2026-26996
+
+# brace-expansion DoS - transitive build-time dependency of the docs sites,
+# pinned three levels down: @docusaurus/core -> serve-handler -> minimatch@3.x
+# -> brace-expansion@1.1.16. Fix (5.0.8) is a major bump that minimatch@3 cannot
+# take, so it is unreachable until Docusaurus moves off serve-handler. Not
+# shipped to users: Docusaurus emits static HTML and this only runs during the
+# local `npm run serve` preview.
+CVE-2026-14257

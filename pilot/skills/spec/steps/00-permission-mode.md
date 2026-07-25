@@ -14,13 +14,13 @@ MODE=$(python3 -c "import sys,os;sys.path.insert(0,os.path.expanduser('~/.pilot/
 echo "MODE=$MODE"
 ```
 
-- **If `MODE` is `manual` (default):**
+- **If `MODE` is `manual`:**
 
   > ℹ️ Manual model switching — planning runs on your current `/model` choice (see the status bar). Switch now with `/model` if you want a different planning model; after plan approval you'll be prompted once to switch to your implementation model. Prefer automation? Console → Settings → Model Switching → Automated (requires `opusplan`).
 
-- **If `MODE` is `automated`:**
+- **If `MODE` is `automated` (default):**
 
-  > ℹ️ Automated model switching — `/spec` runs on the **opusplan** model: **Opus 4.8** plans, **Sonnet 5** executes, switched automatically. This requires `/model opusplan` (Pilot sets it for you; if your status bar shows something else, run `/model opusplan` now). Prefer picking models yourself? Console → Settings → Model Switching → Manual.
+  > ℹ️ Automated model switching — `/spec` runs on the **opusplan** model: **Opus** plans, **Sonnet** executes, switched automatically. This requires `/model opusplan` (Pilot sets it for you; if your status bar shows something else, run `/model opusplan` now). Prefer picking models yourself? Console → Settings → Model Switching → Manual.
 
 - **If `MODE` is `off`:**
 

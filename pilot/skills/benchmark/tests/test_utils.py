@@ -140,7 +140,7 @@ class TestResolveExecutorModel:
     def test_resolves_alias_from_frontmatter(self, tmp_path: Path) -> None:
         _ = _make_skill(tmp_path, content="---\nname: x\nmodel: opus\n---\n")
         result = resolve_executor_model({"type": "skill", "path": str(tmp_path)})
-        assert result == "claude-opus-4-8"
+        assert result == "claude-opus-5"
 
     def test_resolves_sonnet_alias(self, tmp_path: Path) -> None:
         _ = _make_skill(tmp_path, content="---\nname: x\nmodel: sonnet\n---\n")

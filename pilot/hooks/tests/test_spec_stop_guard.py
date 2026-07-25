@@ -38,8 +38,24 @@ def _register_plan_for_session(plan_path: Path, status: str = "PENDING") -> None
 
 
 @pytest.fixture(autouse=True)
-def clear_session_state():
-    """Clear session state before and after each test."""
+def clear_session_state(tmp_path_factory, monkeypatch):
+    """Give each test its own HOME, then clear session state inside it.
+
+    The guard resolves all of its state through ``Path.home()/.pilot/sessions``
+    (`_lib.util._sessions_base`), evaluated at call time, so pointing ``HOME`` at
+    a per-test temp dir isolates both the in-process ``main()`` calls and the
+    ``_run_subprocess`` ones (which inherit this env).
+
+    Without it every test in this module shared ONE real directory,
+    ``~/.pilot/sessions/test-spec-stop-guard`` under the developer's actual home,
+    and the teardown below ``rmtree``'d it. Any second process touching that path
+    concurrently (a pre-commit run alongside a manual `pytest`, two suites on a
+    shared-home CI runner) wiped another test's in-flight block counter mid-run,
+    so the cooldown and runaway-cap tests failed intermittently with a counter
+    that had silently reset. It also meant the suite deleted a real path under
+    ``$HOME`` as a side effect.
+    """
+    monkeypatch.setenv("HOME", str(tmp_path_factory.mktemp("home")))
     session_dir = _test_session_dir()
     if session_dir.exists():
         shutil.rmtree(session_dir, ignore_errors=True)
@@ -254,6 +270,41 @@ class TestSubprocessIntegration:
         assert exit_code == 0
         assert _is_blocked(stdout)
         assert "cannot stop" in stdout.lower()
+
+    def test_complete_plan_block_instructs_verify_dispatch(self, tmp_path: Path) -> None:
+        """A COMPLETE plan's block must name the ONE remaining step: dispatch verify.
+
+        The generic "continue working on the next pending task" instruction is
+        actively wrong here: every task is already `[x]`, so an agent reading it
+        concludes there is nothing left and stops, skipping verification entirely.
+        """
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+
+        plan_file = plans_dir / "2026-01-27-test-feature.md"
+        plan_file.write_text("# Test Plan\n\nStatus: COMPLETE\nApproved: Yes\nType: Feature\n")
+        _register_plan_for_session(plan_file, "COMPLETE")
+
+        _, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        assert _is_blocked(stdout)
+        reason = json.loads(stdout.strip())["reason"]
+        assert "spec-verify" in reason
+        assert "next pending task" not in reason
+
+    def test_pending_plan_block_still_instructs_task_work(self, tmp_path: Path) -> None:
+        """The PENDING instruction must not regress while COMPLETE gets its own."""
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+
+        plan_file = plans_dir / "2026-01-27-test-feature.md"
+        plan_file.write_text("# Test Plan\n\nStatus: PENDING\nApproved: Yes\n")
+        _register_plan_for_session(plan_file, "PENDING")
+
+        _, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        assert _is_blocked(stdout)
+        reason = json.loads(stdout.strip())["reason"]
+        assert "next pending task" in reason
+        assert "spec-verify" not in reason
 
     def test_allows_stop_when_stop_hook_already_active(self, tmp_path: Path) -> None:
         plans_dir = tmp_path / "docs" / "plans"

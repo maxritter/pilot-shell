@@ -56,7 +56,7 @@
       "[PILOT] Quality hooks validate your code changes automatically before completion",
       "[PILOT] Spec-Driven: /spec -> Plan -> Approve -> Implement -> Verify (with feedback loop)",
       "[PILOT] Plans live in docs/plans/ as markdown - you can edit them before approval",
-      "[PILOT] Smart Model Routing: Opus for planning and verification, Sonnet for fast implementation",
+      "[PILOT] Model Switching: Automated runs /spec on opusplan - Opus 5 plans, Sonnet 5 implements and verifies",
       "[PILOT] Plan-verifier catches gaps, missing edge cases, and requirement mismatches before coding",
       "[PILOT] Verifier sub-agents perform independent code review against the plan before completion",
       "[PILOT] Spec stop guard blocks the session from ending until verification is complete",

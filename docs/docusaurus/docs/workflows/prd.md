@@ -88,7 +88,9 @@ This step is **skipped automatically** when your input is concrete (e.g., "Add G
 
 ### 3. Ask Clarifying Questions
 
-One question at a time with 2-4 options. Focuses on purpose, users, constraints, success criteria, and scope boundaries. Challenges assumptions and surfaces trade-offs. Typically 3-6 questions. (Interactive forms on Claude Code; numbered plain-text on Codex.)
+One question at a time with 2-4 options. Focuses on purpose, users, constraints, success criteria, and scope boundaries. Challenges assumptions and surfaces trade-offs. (Interactive forms on Claude Code; numbered plain-text on Codex.)
+
+The skill works to an **interaction budget of 2-4 prompts total** across the whole flow. Before asking anything it checks whether the codebase already answers it, whether you already answered it, and whether the decision is reversible enough to just pick a sensible default and record it under Key Decisions. Ideation rounds are conversation, not prompts, and don't count against the budget.
 
 ### 4. Propose Approaches
 
@@ -96,7 +98,7 @@ Proposes 2-3 implementation approaches with clear trade-offs. Leads with a recom
 
 ### 5. Converge on Scope
 
-States what's in scope, what's explicitly out, identifies core user flows step-by-step, and notes technical context for `/spec`.
+States what's in scope, what's explicitly out, identifies core user flows step-by-step, and notes technical context for `/spec`. When the scope follows directly from the approach you picked — the common case — this is folded into the same prompt as step 4 rather than costing a second round-trip.
 
 ### 6. Write PRD
 
@@ -115,7 +117,7 @@ After writing, the agent runs a 4-point self-review (placeholders, consistency, 
 
 ### 7. Hand Off to /spec
 
-After you confirm the PRD, asks whether to hand off to `/spec` (or `$spec` on Codex) immediately or save for later. If yes, the spec workflow is invoked automatically with a reference to the PRD.
+After you confirm the PRD, asks whether to hand off to `/spec` (or `$spec` on Codex) or save it for later. Either way the skill **prints the ready-to-run command** with a reference to the PRD — it never invokes `/spec` for you. Starting the spec workflow is always your call; copy the command when you're ready.
 
 ## PRD Output
 

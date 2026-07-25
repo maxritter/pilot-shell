@@ -18,3 +18,5 @@ To start implementation planning, run:
 ```
 
 **The command's argument must NOT end in `.md`** — the trailing text after the path prevents the `/spec` dispatcher from treating it as an existing plan file (dispatcher plan-file mode triggers only when the argument ends with `.md` AND the file exists).
+
+ARGUMENTS: $ARGUMENTS

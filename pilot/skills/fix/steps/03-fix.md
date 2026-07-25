@@ -4,7 +4,7 @@
 
 Edit only the file(s) at the root cause. One logical fix. No "while I'm here" cleanups, no bundled refactoring, no formatting passes. **Lineage rule:** every changed line traces directly to the bug.
 
-**Multi-site is allowed when each site gets the same conceptual fix** (e.g., adding the same iteration cap to two parallel guard layers because the missing-budget defect lives at both). The constraint is *one logical change, repeated where the same pattern lives* — not "while I'm here, also tweak X."
+Multi-site is fine when every site gets the same conceptual fix — see the logic-divergence test in the orchestrator's bail-out section.
 
 ### 3.2 Forbidden patterns — fix at source, not symptom
 
@@ -16,7 +16,7 @@ If the buggy data flows from upstream, fix upstream. Red flags in the diff:
 - Early return that hides wrong state from the caller.
 - Renamed/suppressed log lines that previously surfaced the bug.
 
-**Quick-lane fixes are single-pattern.** If each candidate fix site needs **different** logic (entry validation + a business rule + a storage migration, each non-trivial), you're in `/spec` territory — bail out. Adding the *same* guard at multiple parallel sites is fine; that's still one logical change. The trigger is *logic divergence*, not site count.
+If the candidate fix sites need divergent logic rather than one repeated pattern, bail out to `/spec` (orchestrator, bail-out section).
 
 ### 3.3 Run the reproducing test — it MUST pass
 
