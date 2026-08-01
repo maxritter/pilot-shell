@@ -1,6 +1,6 @@
 {
   "name": "pilot-shell",
-  "version": "9.14.0",
+  "version": "9.15.0",
   "private": true,
   "description": "Runtime dependencies for pilot-memory bundled hooks",
   "type": "module",

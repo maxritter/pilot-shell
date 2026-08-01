@@ -2,6 +2,16 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [9.15.0] - 2026-08-01
+
+### Bug Fixes
+
+- Pin Trivy to a release that still exists
+
+### Features
+
+- Share project memories with your team through the repo
+
 ## [9.14.0] - 2026-07-25
 
 ### Features
