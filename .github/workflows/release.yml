@@ -135,6 +135,10 @@ jobs:
         env:
           TRIVY_SKIP_VERSION_CHECK: "true"
         with:
+          # Pinned explicitly: this action release defaults to Trivy v0.65.0, whose
+          # GitHub release has since been removed, so the installer 404s and the job
+          # fails before scanning anything. Keep this at a version that exists.
+          version: 'v0.72.0'
           scan-type: 'fs'
           scan-ref: '.'
           scanners: 'vuln,secret'
