@@ -42,6 +42,7 @@ const sidebars: SidebarsConfig = {
         "features/console",
         "features/spec-collaboration",
         "features/extensions",
+        "features/team-memories",
         "features/customization",
         "features/statusline",
       ],

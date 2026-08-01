@@ -8,7 +8,7 @@ description: Local Pilot Console at localhost:41777 - monitor sessions, browse m
 
 Local web dashboard at `localhost:41777` - monitor and manage your sessions.
 
-The Console runs locally as a Bun/Express server with a React web UI. It starts when you launch Pilot and stops when all sessions close. All data - memories, sessions, usage - lives in a local SQLite database. Nothing leaves your machine.
+The Console runs locally as a Bun/Express server with a React web UI. It starts when you launch Pilot and stops when all sessions close. All data - memories, sessions, usage - lives in a local SQLite database, and Pilot never transmits it anywhere. Team plans can additionally share a project's memories with teammates by storing them in the project repository, where git carries them - see [Team Memories](./team-memories.md).
 
 ```bash
 $ open http://localhost:41777
@@ -26,7 +26,7 @@ Each view that supports project filtering has an inline **Project Filter** dropd
 |------|-------------|
 | **Dashboard** | Global command center - 8 clickable stat cards (Projects, Sessions, Active, Memories, Extensions, Requirements, Specifications, Changes), 4 recent-item cards with "Show all" links, active specs as pills in the top bar, notification bell in the top right. |
 | **Sessions** | Browse past sessions with search. Copy a session ID and run `/resume <session-id>` in Claude Code to jump back in (Claude Code only). |
-| **Memories** | Observations (decisions, discoveries, bugfixes) with type filters and search. Each memory links back to the session it came from. |
+| **Memories** | Observations (decisions, discoveries, bugfixes) with type filters and search. Each memory links back to the session it came from. Hosts the **Team Sharing** card - see [Team Memories](./team-memories.md). |
 | **Requirements** | PRD documents with view/annotate modes. Selected opens as a tab, others live in a Previous dropdown. |
 | **Specifications** | Spec plans with task progress, phase tracking (PENDING/COMPLETE/VERIFIED), and iteration history. Hosts Plan Annotation and Spec Sharing (below). |
 | **Extensions** | All extensions - local, plugin, remote - with team sharing via git (push, pull, diff), color-coded categories, and scope filtering. |

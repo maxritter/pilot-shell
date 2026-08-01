@@ -52,7 +52,7 @@ Pilot enhances Claude Code and Codex CLI with:
 - **Quality hooks** — auto-format, lint, type-check, and TDD enforcement on every file edit
 - **7 MCP servers** — library docs, persistent memory, web search, code search, page fetching, code intelligence
 - **3 language servers** *(Claude Code only)* — Python (basedpyright), TypeScript (vtsls), Go (gopls)
-- **Persistent memory** — decisions and context survive across sessions in a local SQLite database
+- **Persistent memory** — decisions and context survive across sessions in a local SQLite database, and can be shared with your team through the project repository
 - **Pilot Console** — local web dashboard at `localhost:41777` for monitoring, configuration, and skill sharing
 
 Explore the sidebar for [getting started](/docs/getting-started/prerequisites), [workflows](/docs/workflows/prd), and [features](/docs/features/console).

@@ -16,7 +16,7 @@ const faqItems = [
   {
     question: "Does Pilot Shell send my code or data to external services?",
     answer:
-      "Pilot Shell's local services do not upload your source code, project files, prompts, or personal information. Code search (Semble), code intelligence (CodeGraph), persistent memory (Console), session state, and quality hooks run locally, with no analytics, telemetry, or heartbeats. Active AI agents still send the prompts and tool context they need to their provider: Claude Code to Anthropic, Codex CLI and native Codex review agents to OpenAI. Optional Codex Companion Reviewers also send adversarial review prompts to OpenAI and are disabled by default.",
+      "Pilot Shell's local services do not upload your source code, project files, prompts, or personal information. Code search (Semble), code intelligence (CodeGraph), persistent memory (Console), session state, and quality hooks run locally, with no analytics, telemetry, or heartbeats. Team plans can opt a project into memory sharing, which writes memories into that project's own git repository so teammates receive them — Pilot only writes the files, you review the diff and commit them, and nothing is sent to us. Active AI agents still send the prompts and tool context they need to their provider: Claude Code to Anthropic, Codex CLI and native Codex review agents to OpenAI. Optional Codex Companion Reviewers also send adversarial review prompts to OpenAI and are disabled by default.",
   },
   {
     question: "Does Pilot Shell work with any programming language?",

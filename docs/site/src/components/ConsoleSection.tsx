@@ -26,7 +26,7 @@ const consoleSlides: ConsoleSlide[] = [
     label: "Memories",
     name: "memories",
     alt: "Memories view — captured decisions and patterns with semantic search",
-    desc: "Decisions, discoveries, and patterns captured automatically. Each memory links to its session — click to navigate. Semantic search across all memories.",
+    desc: "Decisions, discoveries, and patterns captured automatically. Each memory links to its session — click to navigate. Semantic search across all memories, plus Team sharing that stores a project's memories in its git repo so every contributor gets them.",
   },
   {
     label: "Extensions",

@@ -38,6 +38,8 @@ Shows plan name, type (feature/bugfix), phase (plan/implement/verify), task prog
 
 During the **plan** phase (before tasks exist) the detail slot reads `models: auto` / `manual` / `off`, reflecting the Model Switching mode selected in your Console settings.
 
+In `auto` mode it turns red and reads `models: auto ⚠ not-opus` (just `⚠` on a narrow line) when planning is running on something other than Opus. `opusplan` only upgrades the plan leg to Opus while the conversation fits Opus's effective 200K window — past it, Claude Code silently keeps serving Sonnet ([claude-code#65512](https://github.com/anthropics/claude-code/issues/65512), [#74325](https://github.com/anthropics/claude-code/issues/74325)). `/compact` or `/clear` before planning restores Opus; switching Model Switching to **Manual** lets you pick the planning model yourself.
+
 ## Line 3 — Version Info
 
 `Pilot <version> (<tier>) · CC <version> (<subscription>) · sessions N · memories N`

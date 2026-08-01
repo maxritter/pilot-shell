@@ -49,6 +49,7 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 - **Spec collaboration** — share specs with teammates, annotations flow back grouped by author
 - **Quality hooks** — enforce linting, formatting, type checking, and tests as quality gates
 - **Context engineering** — preserves decisions and knowledge across sessions
+- **Memory sharing** — share captured memories with your team through the project repo
 - **Code intelligence** — semantic search (Semble) + code knowledge graph (CodeGraph)
 - **Token optimization** — 60–90% cost reduction via RTK compression and Semble code search
 - **Pilot Bot** — persistent automation agent with scheduled tasks and background jobs
@@ -403,7 +404,7 @@ Browse past sessions with search for both Claude Code and Codex. For Claude Code
 
 ### Memories
 
-Browsable observations — decisions, discoveries, bugfixes — with type filters and search. Each memory shows its session — click to navigate directly to it.
+Browsable observations — decisions, discoveries, bugfixes — with type filters and search. Each memory shows its session — click to navigate directly to it. Team Sharing syncs them across your team through the project repo.
 
 ### Requirements
 

@@ -23,11 +23,18 @@ must run on Opus - but Claude Code can silently serve the Sonnet leg instead
 effective ~200K window - currently even with the Opus 1M entitlement, an
 upstream regression (anthropics/claude-code#65512) - or the session was
 never on the opusplan model). EnterPlanMode itself cannot observe this (the statusline has
-not re-rendered in the new mode yet), so the check runs at the first plan-doc
-write after EnterPlanMode: by then the statusline cache carries a post-lever
-render (cache mtime > sentinel mtime) and its model_id is authoritative. On a
-mismatch a once-per-planning-leg warning is injected so the workflow reports
-the real model instead of narrating an unverified "switched to Opus".
+not re-rendered in the new mode yet), so the check runs once the statusline
+cache carries a post-lever render (cache mtime > sentinel mtime), whose
+model_id is authoritative. On a mismatch a once-per-planning-leg warning is
+injected so the workflow reports the real model instead of narrating an
+unverified "switched to Opus".
+
+The check is exposed as `planning_leg_model_context` because the plan-doc
+write is far too rare an anchor on its own: the plan file is written right
+after EnterPlanMode (while the cache-mtime gate still suppresses the check)
+and then left alone while the model explores -- which is exactly when the
+conversation crosses 200K and the downgrade happens. `context_monitor` runs
+it on every tool call so the flip is caught in the turn it occurs.
 """
 
 from __future__ import annotations
@@ -83,7 +90,7 @@ _MODEL_MISMATCH_WARNING = (
     "is NOT running on Opus. Likely causes: (1) the conversation has grown past "
     "the Opus plan leg's effective 200K window - a cap that currently applies "
     "even with the Opus 1M entitlement (known Claude Code regression, "
-    "anthropics/claude-code#65512), and always applies without the entitlement "
+    "anthropics/claude-code#65512 and #74325), and always applies without the entitlement "
     "or with exhausted usage credits - so Claude Code silently keeps serving the "
     "Sonnet leg; /compact or /clear before planning fixes this; (2) Opus usage limit "
     "fallback on your Claude plan (check /usage); (3) the session is not on the "
@@ -102,7 +109,7 @@ def sentinel_path() -> Path:
     return session_dir / PLAN_MODE_SENTINEL
 
 
-def _planning_leg_model_context() -> str | None:
+def planning_leg_model_context() -> str | None:
     """Return the mismatch warning when planning is observably not on Opus.
 
     Fires at most once per planning leg, and only on evidence: the statusline
@@ -111,6 +118,11 @@ def _planning_leg_model_context() -> str | None:
     expected leg (Automated's pair is fixed); anything else -- Sonnet, Haiku,
     even a Fable render -- means the opusplan plan-mode switch did not take
     effect.
+
+    Called from two anchors: the plan-doc write below, and every tool call via
+    `context_monitor` (see that hook's `_planning_leg_model_warning`). The
+    downgrade lands mid-exploration, when the plan file has not been touched
+    for a while, so the plan-doc anchor alone misses it.
     """
     if read_model_switch_mode() != "automated":
         return None
@@ -194,7 +206,7 @@ def main() -> int:
         if is_plan_file(file_path):
             # The statusline has re-rendered since EnterPlanMode, so the observed
             # planning-leg model is now verifiable.
-            context = _planning_leg_model_context()
+            context = planning_leg_model_context()
             if context:
                 print(pre_tool_use_context(context))
             return 0

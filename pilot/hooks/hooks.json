@@ -161,7 +161,7 @@
         ]
       },
       {
-        "matcher": "Read|Write|Edit|MultiEdit|Bash|Task|Skill|Grep|Glob",
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",

@@ -7,6 +7,7 @@ import {
   Terminal,
   DollarSign,
   SlidersHorizontal,
+  Users,
   ArrowRight,
 } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
@@ -73,8 +74,16 @@ const insideItems: InsideItem[] = [
     title: "Extensions & Sharing",
     description: "Skills, rules, commands, agents",
     summary:
-      "Create custom skills and rules with built-in generators. Share across machines via git, across teams via project repos. Seven extension types at four scopes, managed in the Console UI.",
+      "Create custom skills and rules with built-in generators. Share them across machines and teams through a connected git repo. Seven extension types at four scopes, managed in the Console UI.",
     href: "/docs/features/extensions",
+  },
+  {
+    icon: Users,
+    title: "Team Memories",
+    description: "Share the why, not just the code",
+    summary:
+      "Store a project's captured decisions and discoveries in the repo itself, so git carries them to every contributor. Teammates' context loads at session start on Claude Code and Codex — no cloud, no clock, you review the diff and commit.",
+    href: "/docs/features/team-memories",
   },
   {
     icon: SlidersHorizontal,
@@ -99,6 +108,7 @@ const WhatsInside = () => {
     "animation-delay-500",
     "animation-delay-0",
     "animation-delay-100",
+    "animation-delay-200",
   ];
 
   return (
@@ -123,7 +133,7 @@ const WhatsInside = () => {
         {/* Feature Grid */}
         <div
           ref={gridRef}
-          className="grid md:grid-cols-2 lg:grid-cols-4 gap-5"
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-5"
         >
           {insideItems.map((item, index) => {
             const Icon = item.icon;

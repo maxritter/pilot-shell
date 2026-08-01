@@ -236,6 +236,7 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Claude Code
+.pilot/*
 scheduled_tasks.lock
 CLAUDE.md
 AGENTS.md

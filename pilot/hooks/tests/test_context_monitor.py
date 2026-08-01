@@ -590,6 +590,127 @@ class TestRunContextMonitorOrchestrator:
         assert "Auto-compact approaching" not in output
 
 
+class TestPlanningLegModelWarning:
+    """Per-turn detection of a silently downgraded /spec planning leg.
+
+    Claude Code resolves `opusplan` to Opus only while `permissionMode == "plan"`
+    AND the last assistant turn's usage is under 200K; past that it silently keeps
+    serving Sonnet (anthropics/claude-code#74325, #65512). That crossover happens
+    mid-planning, while the model is exploring - long after the plan file was last
+    written - so the plan-doc-write anchor in plan_mode_tracker never observes it.
+    Every tool call must re-check, which is why this hook (already registered on a
+    broad PostToolUse matcher) carries the check.
+    """
+
+    @staticmethod
+    def _downgraded_leg(tmp_path: Path, session_id: str, model_id: str, pct: float = 27.0) -> Path:
+        """Planning leg whose statusline render post-dates EnterPlanMode."""
+        session_dir = tmp_path / ".pilot" / "sessions" / session_id
+        session_dir.mkdir(parents=True)
+        sentinel = session_dir / "plan-mode-active"
+        sentinel.write_text("")
+        os.utime(sentinel, (1_000_000, 1_000_000))
+        cache = session_dir / "context-pct.json"
+        cache.write_text(
+            json.dumps({"pct": pct, "ts": time.time(), "context_window_size": 1_000_000, "model_id": model_id})
+        )
+        os.utime(cache, (1_000_100, 1_000_100))
+        return session_dir
+
+    def _run(self, tmp_path: Path, session_dir: Path, session_id: str, throttled: bool = True) -> str:
+        import io
+
+        with (
+            patch.dict(os.environ, {"PILOT_SESSION_ID": session_id}),
+            patch.object(Path, "home", return_value=tmp_path),
+            patch("context_monitor.get_session_cache_path", return_value=session_dir / "context-cache.json"),
+            patch("context_monitor._is_throttled", return_value=throttled),
+            patch("plan_mode_tracker.read_model_switch_mode", return_value="automated"),
+        ):
+            captured = io.StringIO()
+            old_stdout = sys.stdout
+            sys.stdout = captured
+            try:
+                assert run_context_monitor() == 0
+            finally:
+                sys.stdout = old_stdout
+            return captured.getvalue()
+
+    def test_warns_on_an_ordinary_tool_call_when_the_planning_leg_is_on_sonnet(self, tmp_path: Path) -> None:
+        """The downgrade must surface without waiting for the next plan-doc write."""
+        session_dir = self._downgraded_leg(tmp_path, "leg-sonnet", "claude-sonnet-5")
+
+        output = self._run(tmp_path, session_dir, "leg-sonnet")
+
+        context = json.loads(output)["hookSpecificOutput"]["additionalContext"]
+        assert "NOT running on Opus" in context
+        assert "claude-sonnet-5" in context
+        assert (session_dir / "plan-model-warned").exists()
+
+    def test_silent_when_the_planning_leg_is_on_opus(self, tmp_path: Path) -> None:
+        session_dir = self._downgraded_leg(tmp_path, "leg-opus", "claude-opus-5")
+
+        assert self._run(tmp_path, session_dir, "leg-opus") == ""
+
+    def test_silent_outside_a_planning_leg(self, tmp_path: Path) -> None:
+        """No plan-mode sentinel: nothing to verify, whatever the model is."""
+        session_dir = self._downgraded_leg(tmp_path, "leg-none", "claude-sonnet-5")
+        (session_dir / "plan-mode-active").unlink()
+
+        assert self._run(tmp_path, session_dir, "leg-none") == ""
+
+    def test_emits_one_json_object_when_autocompact_also_fires(self, tmp_path: Path) -> None:
+        """Two `print`s would produce two concatenated objects and break the hook."""
+        session_dir = self._downgraded_leg(tmp_path, "leg-both", "claude-sonnet-5", pct=93.0)
+
+        output = self._run(tmp_path, session_dir, "leg-both", throttled=False)
+
+        context = json.loads(output)["hookSpecificOutput"]["additionalContext"]
+        assert "NOT running on Opus" in context
+        assert "Auto-compact approaching" in context
+
+
+class TestPlanningLegHookRegistration:
+    """The per-turn guarantee is only as good as the matcher that fires the hook.
+
+    The planning-leg check lives in this hook because it is registered on a broad
+    PostToolUse matcher - so the matcher IS the guarantee. A named-tool list silently
+    excludes whatever it forgot, and the tools it forgot last time were the MCP ones
+    (`mcp__codegraph__*`, `mcp__semble__*`) that Pilot's own rules push the model
+    toward during exactly the exploration phase where the 200K downgrade happens.
+    """
+
+    @staticmethod
+    def _post_tool_use_matchers(registry: str) -> list[str]:
+        config = json.loads((Path(__file__).resolve().parent.parent / registry).read_text())
+        return [
+            group.get("matcher", "")
+            for group in config["hooks"]["PostToolUse"]
+            if any("context_monitor.py" in hook["command"] for hook in group["hooks"])
+        ]
+
+    def test_claude_registry_fires_the_detector_on_every_tool(self) -> None:
+        matchers = self._post_tool_use_matchers("hooks.json")
+
+        assert matchers == ["*"], (
+            f"context_monitor must match every PostToolUse tool, got {matchers!r}. "
+            "A named list cannot express the guarantee: MCP tools, Agent and "
+            "AskUserQuestion are all absent from one, and a planning leg can run "
+            "many turns on those alone."
+        )
+
+    def test_codex_registry_is_deliberately_left_narrow(self) -> None:
+        """Plan mode is Claude-Code-only, so the Codex registry needs no widening.
+
+        `planning_leg_model_context` keys off the `plan-mode-active` sentinel, which
+        only `EnterPlanMode` writes - a tool Codex does not have. Widening the Codex
+        matcher would buy nothing and cost a process spawn per tool call.
+        """
+        matchers = self._post_tool_use_matchers("codex_hooks.json")
+
+        assert matchers and "*" not in matchers
+
+
 class TestCodexTranscriptTokenCount:
     """Context resolution from Codex token-count transcript events."""
 

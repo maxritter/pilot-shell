@@ -17,6 +17,14 @@ from _lib.util import (
     resolve_session_id,
 )
 
+try:
+    from plan_mode_tracker import planning_leg_model_context
+except ImportError:  # version-skewed hooks dir: context monitoring still works
+
+    def planning_leg_model_context() -> str | None:
+        return None
+
+
 THRESHOLD_AUTOCOMPACT = 90
 _CODEX_TRANSCRIPT_TAIL_BYTES = 4_000_000
 
@@ -246,6 +254,36 @@ def _resolve_context(
     return None
 
 
+def _emit(notices: list[str]) -> int:
+    """Emit the collected notices as ONE additionalContext payload.
+
+    Two `print` calls would concatenate into invalid JSON and the whole hook
+    payload would be discarded, so every notice funnels through here.
+    """
+    if notices:
+        print(post_tool_use_context("\n\n".join(notices)))
+    return 0
+
+
+def _planning_leg_notice() -> str | None:
+    """Warn when the /spec planning leg is observably not running on Opus.
+
+    This hook is the per-turn anchor for that check: it is registered on the
+    PostToolUse `*` matcher, so it costs no extra process and it sees every
+    exploration tool call during which the conversation crosses 200K and Claude
+    Code silently drops the opusplan plan leg back to Sonnet. The `*` is
+    load-bearing, not incidental - a named tool list omits MCP tools, which is
+    what Pilot's own rules steer planning toward (see
+    tests/test_context_monitor.py::TestPlanningLegHookRegistration). Runs before
+    the throttle below - the downgrade is unrelated to how recently context was
+    sampled, and at planning-time context levels the throttle is almost always on.
+    """
+    try:
+        return planning_leg_model_context()
+    except OSError:
+        return None
+
+
 def run_context_monitor() -> int:
     """Run context monitoring. Always returns 0. Uses additionalContext JSON for all messages."""
     hook_data: dict = {}
@@ -256,15 +294,20 @@ def run_context_monitor() -> int:
 
     session_id = _get_pilot_session_id()
 
+    notices: list[str] = []
+    planning_leg = _planning_leg_notice()
+    if planning_leg:
+        notices.append(planning_leg)
+
     if _is_throttled(session_id):
-        return 0
+        return _emit(notices)
 
     transcript_path = hook_data.get("transcript_path")
     model = hook_data.get("model", "")
 
     resolved = _resolve_context(session_id, transcript_path=transcript_path, model=model)
     if resolved is None:
-        return 0
+        return _emit(notices)
 
     percentage, total_tokens, _shown_80_warn = resolved
     display_pct = min(max(percentage, 0), 100)
@@ -272,18 +315,15 @@ def run_context_monitor() -> int:
 
     if percentage < THRESHOLD_AUTOCOMPACT:
         save_cache(total_tokens, session_id, reset_warnings=True)
-        return 0
+        return _emit(notices)
 
-    if percentage >= THRESHOLD_AUTOCOMPACT:
-        save_cache(total_tokens, session_id, shown_autocompact_warn=True)
-        if not shown_autocompact_warn:
-            print(
-                post_tool_use_context(
-                    f"Context at {display_pct:.0f}%. Auto-compact approaching — no context is lost. "
-                    f"Continue all workflow steps normally. Do NOT skip steps, sub-agents, or verification."
-                )
-            )
-        return 0
+    save_cache(total_tokens, session_id, shown_autocompact_warn=True)
+    if not shown_autocompact_warn:
+        notices.append(
+            f"Context at {display_pct:.0f}%. Auto-compact approaching — no context is lost. "
+            f"Continue all workflow steps normally. Do NOT skip steps, sub-agents, or verification."
+        )
+    return _emit(notices)
 
 
 if __name__ == "__main__":

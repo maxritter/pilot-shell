@@ -130,6 +130,10 @@ APM-compatible [frontmatter](https://microsoft.github.io/apm/introduction/key-co
 
 Learn more about APM: [Getting Started](https://microsoft.github.io/apm/getting-started/first-package/), [Team Sharing](https://microsoft.github.io/apm/enterprise/teams/), [Key Concepts](https://microsoft.github.io/apm/introduction/key-concepts/).
 
+### Sharing Memories Too
+
+Team sharing here covers extensions. To share a project's captured **memories** - the decisions and discoveries behind the code - see [Team Memories](./team-memories.md), which stores them in the project repository instead of a dedicated remote.
+
 ### Subfolder Support
 
 Some teams organize their extensions repository with subfolder paths (e.g., `plugins/myteam/rules/`, `plugins/myteam/skills/`, `plugins/myteam/codex/rules/`). When you specify a subfolder during connection, all browse/push/pull operations automatically translate between the subfolder-prefixed remote paths and the correct local Claude Code or Codex paths.
