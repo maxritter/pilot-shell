@@ -9,6 +9,10 @@
 #
 #   • lint          ruff + vulture + deadcode + import-linter   (Python staged)
 #   • python-tests  pytest: installer / launcher / hooks / benchmark   (Python staged)
+#
+# Both test jobs run against a throwaway $HOME with CLAUDE_CONFIG_DIR and
+# CODEX_HOME unset, so a suite that reaches the developer's real config dirs
+# fails here rather than only on a bare CI runner.
 #   • console       tsc typecheck + knip dead-code               (console TS staged)
 #   • console-tests bun test                                     (console TS staged)
 #   • trivy         vuln + secret scan                           (always)
@@ -88,7 +92,16 @@ job_lint() {
   uv run lint-imports || return 1
 }
 job_pytest() { # job_pytest <suite-path>
-  uv run pytest "$1" -q
+  # Same home-isolation gate as job_console_tests: a suite that reads the real
+  # ~/.claude, ~/.codex or CLAUDE_CONFIG_DIR passes here and fails on a bare CI
+  # runner. uv keeps its cache outside $HOME's control here, so isolating the
+  # home does not slow the run.
+  local fake_home rc
+  fake_home="$(mktemp -d)" || return 1
+  env -u CLAUDE_CONFIG_DIR -u CODEX_HOME HOME="$fake_home" uv run pytest "$1" -q
+  rc=$?
+  rm -rf "$fake_home"
+  return $rc
 }
 job_console() {
   cd console || return 1
@@ -114,7 +127,19 @@ job_console_tests() {
       return 1
     fi
   fi
-  cd console && bun test
+  # Home-isolation gate: a CI runner has no ~/.claude, no ~/.codex and no
+  # CLAUDE_CONFIG_DIR, so a test that reaches the developer's real home passes
+  # here and fails there. bun resolves os.homedir() ONCE at process start, so a
+  # test reassigning process.env.HOME does not redirect it and silently falls
+  # through to the real config dir. Run the suite against a throwaway home so
+  # that dependency breaks at the commit instead of on main.
+  local fake_home rc
+  fake_home="$(mktemp -d)" || return 1
+  cd console || { rm -rf "$fake_home"; return 1; }
+  env -u CLAUDE_CONFIG_DIR -u CODEX_HOME HOME="$fake_home" bun test
+  rc=$?
+  rm -rf "$fake_home"
+  return $rc
 }
 job_trivy() {
   # skip-dirs mirrors release-dev.yml's Trivy job (vendored deps under
