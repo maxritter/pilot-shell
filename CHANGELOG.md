@@ -2,6 +2,16 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [9.16.0] - 2026-08-03
+
+### Bug Fixes
+
+- Make team-remote push work when the Claude config dir is absent
+
+### Features
+
+- Support custom CLAUDE_CONFIG_DIR and automate team memory sharing
+
 ## [9.15.0] - 2026-08-01
 
 ### Bug Fixes
