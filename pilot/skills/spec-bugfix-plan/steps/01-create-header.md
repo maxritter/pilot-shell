@@ -1,7 +1,7 @@
 ## Step 1: Create Plan File Header (FIRST)
 
 1. **Parse flags** from arguments: `--worktree=yes|no` or `--new-branch` (default: `No`). Strip the flag.
-2. **Branch / worktree setup — only when the flag is `--new-branch` or `--worktree=yes`.** Read `$HOME/.claude/agents/spec-branch-setup.md` and follow it, using branch prefix `fix/` and `<plan_slug>` derived from the bug description (the same slug as the plan filename). On the default `--worktree=no` there is nothing to do — work continues on the current branch.
+2. **Branch / worktree setup — only when the flag is `--new-branch` or `--worktree=yes`.** Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/spec-branch-setup.md` and follow it, using branch prefix `fix/` and `<plan_slug>` derived from the bug description (the same slug as the plan filename). On the default `--worktree=no` there is nothing to do — work continues on the current branch.
 3. **Generate filename:** `docs/plans/YYYY-MM-DD-<bug-slug>.md`
 4. **Fetch author email** (best-effort — omit the `Author:` line entirely if this returns empty or fails):
 

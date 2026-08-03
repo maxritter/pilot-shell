@@ -1,6 +1,6 @@
 ---
 name: bot-channel-task
-description: Standard flow for receiving channel tasks. Immediate acknowledgment, background execution, completion notification. Follow this skill when receiving channel messages.
+description: "How a Pilot Bot session handles a channel task, so the sender is never left waiting in silence. Follow this skill whenever a message arrives from a channel — Telegram or any other configured source — whatever it asks for: a question, a status check, a job to run, or work to carry out. Not for sending an outbound message on your own initiative, and not for questions about how channels are set up — this covers work arriving over one."
 model: sonnet
 effort: medium
 ---

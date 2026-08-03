@@ -5,9 +5,9 @@
 # Project skills
 ls .claude/skills/ 2>/dev/null
 rg -i "keyword" .claude/skills/ 2>/dev/null
-# Global skills (user + Pilot defaults all live at ~/.claude/skills/)
-ls ~/.claude/skills/ 2>/dev/null
-rg -i "keyword" ~/.claude/skills/ 2>/dev/null
+# Global skills (user + Pilot defaults live in the active Claude config dir)
+ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/" 2>/dev/null
+rg -i "keyword" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/" 2>/dev/null
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 # Project skills

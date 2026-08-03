@@ -41,6 +41,10 @@ pythonpath = ["installer", "launcher", "."]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
+markers = [
+    "unit: isolated test with every external dependency mocked",
+    "integration: test that exercises a real external dependency",
+]
 testpaths = [
     "launcher/tests",
     "installer/tests",
@@ -57,7 +61,7 @@ norecursedirs = ["target/**", ".venv/**", "**/.tox/**", "**/build/**", "misc/", 
 [tool.ruff]
 line-length = 120
 target-version = "py312"
-exclude = ["target/**", ".venv/**", "**/.tox/**", "**/build/**", "misc/"]
+exclude = ["target/**", ".venv/**", "**/.tox/**", "**/build/**", "misc/", "**/node_modules/**"]
 
 [tool.ruff.format]
 docstring-code-format = true

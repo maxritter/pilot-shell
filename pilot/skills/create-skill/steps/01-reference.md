@@ -148,7 +148,9 @@ Result: [expected outcome]
 
 ### The Description Field
 
-**Formula:** `[What it does] + [When to use it] + [Key capabilities]`
+**Formula:** `[What it does, at capability level] + [When to use it] + [Key capabilities]`
+
+**Capability, never process.** "What it does" means the outcome the skill delivers — "generates PRDs", "reviews a diff". It does NOT mean the ordered steps the body governs: "brainstorm, challenge assumptions, define scope" is the process, and naming it hands the agent a summary it will act on instead of reading the skill (see *The Description Trap* below). Test: if you can renumber your description's clauses into the skill's steps, cut them.
 
 **Good descriptions:**
 
@@ -239,11 +241,25 @@ Validate the data before proceeding.
 
 ### Steering the Agent
 
-A skill exists to make agent behavior predictable — same *process* every run, not same output. Five levers serve that (adapted from mattpocock/skills' writing-great-skills):
+A skill exists to make agent behavior predictable — same *process* every run, not same output. Five levers serve that (adapted from mattpocock/skills' writing-great-skills).
+
+**Match the form to the failure — pick this before picking a lever.** The form that bulletproofs one failure type measurably backfires on another, so classify the baseline failure first (Step 6.2 shows you what it actually is):
+
+| Baseline failure | Right form | Wrong form |
+|---|---|---|
+| Knows the rule, skips it under pressure | Prohibition + Excuse→Reality table + red flags (Step 7's rationalization-resistant design) | Soft guidance ("prefer…", "consider…") |
+| Complies, but the output has the wrong shape (bloated, buried verdict, restated spec) | Positive recipe: state what the output IS — its parts, in order | Prohibition list ("don't restate", "never narrate") |
+| Omits a required element from something it already produces | Structural: a REQUIRED field or slot in the template it fills in | Prose reminders near the template |
+| Behavior should depend on a condition | Conditional keyed to an observable predicate ("if the brief exists, reference it") | Unconditional rule plus exemption clauses |
+
+Prohibitions backfire on *shaping* problems because an agent under a competing incentive negotiates with "don't X"; a recipe leaves nothing to negotiate — the output matches the stated shape or it doesn't. Two rules apply whichever form you pick:
+
+- **No nuance clauses.** "Don't X unless it matters" reopens the negotiation. Express a real exception as its own conditional on an observable predicate.
+- **Exemption clauses don't scope.** "This limit doesn't apply to code blocks" still suppresses code blocks. If part of the output must be exempt, restructure so the rule can't reach it.
 
 **Leading words** — a compact concept already in the model's pretraining (*relentless*, *tight*, *tracer bullet*, *fog of war*) that the agent thinks with while running the skill. Repeated as a token, it anchors a whole region of behavior in the fewest tokens — in the body it anchors execution, in the description it anchors invocation. Prefer an existing pretrained word over a coined term: a made-up word recruits no priors, so you pay in definition tokens what a pretrained word gives free. Hunt for restatements a leading word retires: "fast, deterministic, low-overhead" → a *tight* loop.
 
-**Prompt the positive** — steering by prohibition backfires: naming what NOT to do drags the forbidden behavior into context and makes it *more* available ("don't think of an elephant"). State the target behavior instead ("write one-line comments", not "never write verbose comments"). Keep a prohibition only as a hard guardrail you can't phrase positively — and even then, pair it with what to do instead.
+**Prompt the positive** — the default lever for every failure type except the discipline row above, where the table sends you to a prohibition instead. Naming what NOT to do drags the forbidden behavior into context and makes it *more* available ("don't think of an elephant"). State the target behavior ("write one-line comments", not "never write verbose comments"), and when a prohibition is the right form, pair it with what to do instead.
 
 **Negative space** — every decision a skill leaves unstated is delegated to the agent's priors, not left neutral. Read the draft for its silences: for each thing the skill doesn't say, decide deliberately — fill it, or leave it open as a real branch. Omission is a choice; make it on purpose.
 

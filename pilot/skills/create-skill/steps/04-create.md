@@ -9,7 +9,7 @@ mkdir -p .claude/skills/{slug}-{name}
 # Write SKILL.md (see template in Step 1)
 
 # Global scope — skill applies across all projects
-mkdir -p ~/.claude/skills/{slug}-{name}
+mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/skills/{slug}-{name}
 # Write SKILL.md
 ```
 

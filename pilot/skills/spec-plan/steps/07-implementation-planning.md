@@ -51,6 +51,7 @@ One responsibility per file. Files that change together live together. In existi
 - **The last DoD bullet IS the verify command.** No separate `Verify:` block.
 - **`Trivial:` is a per-task annotation, not a section** — the changes review and `spec-verify` Step 2.1 audit it against the diff regardless of where it sits, as long as it's the literal token `Trivial:` somewhere in the task body.
 - **Key Decisions: aim for ≤5 bullets per task.** Prefer `file:line` refs over prose. Multi-paragraph explanations belong in a comment in the code, not in the plan — the plan should point the implementer at WHERE to look and WHAT pattern to follow, not re-explain the existing system.
+- **Never restate a `## Global Constraints` value in a task.** Every task already inherits that section; copying a version floor or required format into `Key Decisions` creates a second place to update it. Reference it instead.
 
 #### Test plan parsimony
 

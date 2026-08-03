@@ -124,6 +124,11 @@
             "type": "command",
             "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/session_end.py\"",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex auto-export",
+            "timeout": 3
           }
         ]
       }

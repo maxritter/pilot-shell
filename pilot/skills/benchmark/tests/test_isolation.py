@@ -57,6 +57,35 @@ class TestDetectContamination:
         result = detect_global_contamination(target)
         assert result == [global_rule]
 
+    def test_rules_detection_follows_claude_config_dir(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        """Isolation hides global rules during a run, so it must target the active profile.
+
+        With CLAUDE_CONFIG_DIR set, a copy in ~/.claude belongs to a different
+        profile and must not be moved aside; the copy in the custom dir must.
+        """
+        tmp_home = tmp_path / "home"
+        self._with_home(monkeypatch, tmp_home)
+        custom = tmp_home / ".claude_work"
+        (custom / "rules").mkdir(parents=True)
+        custom_rule = custom / "rules" / "testing.md"
+        _ = custom_rule.write_text("work profile copy")
+
+        (tmp_home / ".claude" / "rules").mkdir(parents=True)
+        personal_rule = tmp_home / ".claude" / "rules" / "testing.md"
+        _ = personal_rule.write_text("personal copy")
+
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(custom))
+
+        project_rule = tmp_path / "pilot" / "rules" / "testing.md"
+        project_rule.parent.mkdir(parents=True)
+        _ = project_rule.write_text("project copy")
+
+        target: TargetConfig = {"type": "rules", "path": str(project_rule)}
+        result = detect_global_contamination(target)
+
+        assert result == [custom_rule]
+        assert personal_rule not in result
+
     def test_rules_file_skips_if_target_is_global_itself(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         tmp_home = tmp_path / "home"
         self._with_home(monkeypatch, tmp_home)

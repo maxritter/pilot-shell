@@ -27,7 +27,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from _lib.util import pilot_owned_skill_names  # noqa: E402
+from _lib.util import claude_config_dir, pilot_owned_skill_names  # noqa: E402
 
 _SUPPORTED_SKILLS = frozenset(
     {
@@ -303,12 +303,12 @@ def _is_pilot_managed_codex_review_agent(agent_file: Path) -> bool:
 def _scoped_pilot_skill_names() -> frozenset[str]:
     """Pilot skill allowlist, narrowed to manifest-tracked skills when available.
 
-    When ``~/.claude/.pilot-manifest.json`` lists installed skills, only skills
+    When ``<config dir>/.pilot-manifest.json`` lists installed skills, only skills
     Pilot actually installed are eligible for removal — a user skill that happens
     to share a Pilot name (e.g. their own ``fix``) is preserved. When the manifest
     is absent/unreadable, fall back to the static allowlist (legacy behavior).
     """
-    owned = pilot_owned_skill_names(Path.home() / ".claude")
+    owned = pilot_owned_skill_names()
     if owned:
         return frozenset(_PILOT_SKILL_NAMES & owned)
     return _PILOT_SKILL_NAMES
@@ -337,7 +337,14 @@ def _remove_codex_review_agents() -> int:
 
 
 def _sync_codex_skills() -> tuple[int, int]:
-    cc_skills = Path.home() / ".claude" / "skills"
+    claude_dir = claude_config_dir()
+    if claude_dir is None:
+        return 0, 0
+
+    cc_skills = claude_dir / "skills"
+    # ~/.agents is NOT relocatable: Codex derives it from the home directory and
+    # exposes no override (verified against codex-cli 0.144.5). CODEX_HOME only
+    # governs ~/.codex.
     agents_dir = Path.home() / ".agents" / "skills"
     built = 0
     failed = 0
@@ -367,7 +374,11 @@ def _sync_codex_skills() -> tuple[int, int]:
 
 
 def _sync_codex_review_agents() -> tuple[int, int]:
-    source_dir = Path.home() / ".claude" / "agents"
+    claude_dir = claude_config_dir()
+    if claude_dir is None:
+        return 0, 0
+
+    source_dir = claude_dir / "agents"
     dest_dir = _get_codex_config_dir() / "agents"
     built = 0
     failed = 0

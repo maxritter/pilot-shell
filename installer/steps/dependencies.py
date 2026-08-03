@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
+from installer.claude_paths import get_claude_config_dir
 from installer.context import InstallContext
 from installer.manifest import UpstreamEntry
 from installer.manifest import get as manifest_get
@@ -998,7 +999,15 @@ def _legacy_context_mode_remove_marketplace() -> bool:
 
 def _legacy_context_mode_remove_orphan_hook() -> bool:
     """Delete cache-heal hook + matching SessionStart entry in settings.json. Returns True if anything was removed."""
-    hooks_dir = Path.home() / ".claude" / "hooks"
+    # Deletes a file and rewrites settings.json, and runs on every install - a
+    # hardcoded ~/.claude would mutate the personal profile of a user who
+    # installed elsewhere. An invalid value means touch nothing at all.
+    try:
+        claude_dir = get_claude_config_dir()
+    except ValueError:
+        return False
+
+    hooks_dir = claude_dir / "hooks"
     orphan = hooks_dir / _LEGACY_CONTEXT_MODE_HOOK_FILENAME
     removed_anything = False
     if orphan.exists():
@@ -1008,7 +1017,7 @@ def _legacy_context_mode_remove_orphan_hook() -> bool:
         except OSError:
             pass
 
-    settings_path = Path.home() / ".claude" / "settings.json"
+    settings_path = claude_dir / "settings.json"
     if not settings_path.exists():
         return removed_anything
     try:

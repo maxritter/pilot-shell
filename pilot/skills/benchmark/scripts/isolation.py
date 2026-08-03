@@ -1,9 +1,10 @@
 """Fail-safe isolation of globally-installed rules and skills.
 
-Without this module, benchmarks are silently contaminated: files in
-`~/.claude/rules/` and `~/.claude/skills/` load in every `claude -p` subprocess
-regardless of cwd, so if the user has the target rule/skill installed globally,
-the `without` config still has it and the benchmark measures nothing.
+Without this module, benchmarks are silently contaminated: files in the active
+Claude config dir's `rules/` and `skills/` (`$CLAUDE_CONFIG_DIR`, else
+`~/.claude`) load in every `claude -p` subprocess regardless of cwd, so if the
+user has the target rule/skill installed globally, the `without` config still
+has it and the benchmark measures nothing.
 For Codex skill benchmarks, `~/.agents/skills/` is isolated the same way.
 
 Layered protection — each layer catches what the previous can't:
@@ -162,7 +163,14 @@ def detect_global_contamination(target: TargetConfig, agent: str = "claude") -> 
     if not source_path.exists():
         return []
 
-    global_config_dir = Path.home() / (".agents" if agent == "codex" else ".claude")
+    # Honour CLAUDE_CONFIG_DIR: isolation MOVES these files aside for the run, so
+    # resolving the wrong profile would relocate another profile's real assets.
+    # ~/.agents has no equivalent override (Codex derives it from $HOME).
+    if agent == "codex":
+        global_config_dir = Path.home() / ".agents"
+    else:
+        env_dir = os.environ.get("CLAUDE_CONFIG_DIR")
+        global_config_dir = Path(env_dir) if env_dir and Path(env_dir).is_absolute() else Path.home() / ".claude"
     suspects: list[Path] = []
 
     def _same_path(a: Path, b: Path) -> bool:

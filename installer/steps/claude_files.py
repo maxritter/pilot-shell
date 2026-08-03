@@ -12,6 +12,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+from installer.claude_paths import get_claude_app_config_path, get_claude_config_dir
 from installer.context import InstallContext
 from installer.downloads import (
     MAX_RETRIES,
@@ -59,21 +60,6 @@ SKIP_PATTERNS = (
 )
 
 SKIP_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".webp")
-
-
-def get_claude_config_dir() -> Path:
-    """Resolve the Claude config directory from CLAUDE_CONFIG_DIR env var.
-
-    Returns Path(CLAUDE_CONFIG_DIR) if set, otherwise ~/.claude.
-    Raises ValueError if CLAUDE_CONFIG_DIR is set to a relative path.
-    """
-    env_dir = os.environ.get("CLAUDE_CONFIG_DIR")
-    if env_dir:
-        p = Path(env_dir)
-        if not p.is_absolute():
-            raise ValueError(f"CLAUDE_CONFIG_DIR must be an absolute path, got: {env_dir}")
-        return p
-    return Path.home() / ".claude"
 
 
 def patch_claude_paths(content: str) -> str:
@@ -201,7 +187,7 @@ class ClaudeFilesStep(BaseStep):
     Scope: ``rules`` → ``~/.claude/rules/``, ``agents`` → ``~/.claude/agents/``,
     ``settings`` → ``~/.claude/settings.json`` (three-way merged), plus the
     Claude-side post-install merges (hooks-into-settings, app config,
-    ``~/.claude.json`` MCP block, model config migration, customization
+    Claude app config MCP block, model config migration, customization
     reapply).
 
     Gated on ``is_claude_installed()`` — skipped cleanly when Claude Code CLI
@@ -354,7 +340,7 @@ class ClaudeFilesStep(BaseStep):
 
         Also performs the one-shot ~/.claude/pilot/ migration: the directory
         is no longer used (hooks moved to ~/.claude/hooks/, scripts/ui moved
-        to ~/.pilot/, MCP+app config merged into ~/.claude.json).
+        to ~/.pilot/, MCP+app config merged into the Claude app config).
         """
         home_claude_dir = get_claude_config_dir()
         pilot_home_dir = Path.home() / ".pilot"
@@ -1113,12 +1099,15 @@ class ClaudeFilesStep(BaseStep):
             pass
 
     def _merge_mcp_servers_into_claude_json(self, ui: Any) -> None:
-        """Merge Pilot's MCP servers into ~/.claude.json `mcpServers` key.
+        """Merge Pilot's MCP servers into the Claude app config's `mcpServers` key.
 
-        Uses value-aware merge: user-added AND user-modified Pilot servers are
-        preserved (with warnings to UI). Pilot's baseline of installed servers
-        is stored in `.pilot-claude-baseline.json` `mcpServers` so uninstall
-        and subsequent re-installs can identify Pilot-owned entries.
+        The app config is `~/.claude.json` by default, or
+        `$CLAUDE_CONFIG_DIR/.claude.json` when that variable is set - see
+        `get_claude_app_config_path`. Uses value-aware merge: user-added AND
+        user-modified Pilot servers are preserved (with warnings to UI). Pilot's
+        baseline of installed servers is stored in `.pilot-claude-baseline.json`
+        `mcpServers` so uninstall and subsequent re-installs can identify
+        Pilot-owned entries.
         """
         claude_dir = get_claude_config_dir()
         mcp_template = Path.home() / ".pilot" / ".mcp.json"
@@ -1134,7 +1123,7 @@ class ClaudeFilesStep(BaseStep):
         if not isinstance(incoming_servers, dict):
             return
 
-        claude_json_path = Path.home() / ".claude.json"
+        claude_json_path = get_claude_app_config_path()
         try:
             claude_json: dict[str, Any] = json.loads(claude_json_path.read_text()) if claude_json_path.exists() else {}
         except (json.JSONDecodeError, OSError, IOError):
@@ -1184,18 +1173,21 @@ class ClaudeFilesStep(BaseStep):
             pass
 
     def _merge_app_config(self) -> None:
-        """Merge app-level preferences from pilot/claude.json into ~/.claude.json.
+        """Merge app-level preferences from pilot/claude.json into the Claude app config.
+
+        Target is `~/.claude.json` by default, or `$CLAUDE_CONFIG_DIR/.claude.json`
+        when that variable is set - see `get_claude_app_config_path`.
 
         Uses three-way merge with baseline to preserve user customizations.
         Reads the installed claude.json template and merges its keys into the
-        user's ~/.claude.json. Preserves all existing app state (projects,
-        oauthAccount, caches, etc.) — only sets/updates keys defined in the template.
+        user's app config. Preserves all existing app state (projects,
+        oauthAccount, caches, etc.) - only sets/updates keys defined in the template.
         """
         template_path = Path.home() / ".pilot" / "claude.json"
         if not template_path.exists():
             return
 
-        claude_json_path = Path.home() / ".claude.json"
+        claude_json_path = get_claude_app_config_path()
         baseline_path = get_claude_config_dir() / ".pilot-claude-baseline.json"
 
         try:

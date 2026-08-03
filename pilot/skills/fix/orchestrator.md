@@ -1,6 +1,6 @@
 ---
 name: fix
-description: "Bugfix workflow — investigate, RED test, fix, verify end-to-end, done. Standard command for bugs. Stops cleanly and asks the user to re-invoke with /spec when the bug exceeds this workflow's scope."
+description: "The standard command for bugs — resolves one defect at its root cause with end-to-end proof it is gone. Use when something crashes, throws, returns wrong output, regressed, or behaves differently than it should, and when the user types /fix or reports a failing test. Stops cleanly and asks the user to re-invoke with /spec when the bug turns out to span multiple components or need an architectural change."
 argument-hint: "<bug description>"
 user-invocable: true
 ---

@@ -15,6 +15,7 @@ import tomllib
 from pathlib import Path
 from typing import Any, Callable
 
+from installer.claude_paths import get_claude_config_dir
 from installer.context import InstallContext
 from installer.platform_utils import is_codex_installed
 from installer.steps.base import BaseStep
@@ -29,6 +30,20 @@ _CODEX_REVIEW_AGENT_MODEL = "codex-auto-review"
 # only costs context up to the file's actual size) to guarantee every rule
 # primes startup rather than being dropped at the 32 KiB cutoff.
 _CODEX_PROJECT_DOC_MAX_BYTES = 1024 * 1024
+
+
+def _claude_rules_dir_or_none() -> Path | None:
+    """Rules dir in the active Claude profile, for the Codex rules fallback.
+
+    Returns None when CLAUDE_CONFIG_DIR is invalid, matching the caller's existing
+    `Path | None` handling for its other two candidates, so the fallback is simply
+    skipped rather than reading the personal profile. Read-only fallback; the
+    primary source is ~/.pilot/rules.
+    """
+    try:
+        return get_claude_config_dir() / "rules"
+    except ValueError:
+        return None
 
 
 def _get_codex_config_dir() -> Path:
@@ -324,8 +339,8 @@ class CodexFilesStep(BaseStep):
             if candidate.is_dir():
                 rules_dir = candidate
         if rules_dir is None:
-            rules_dir = Path.home() / ".claude" / "rules"
-        if not rules_dir.is_dir():
+            rules_dir = _claude_rules_dir_or_none()
+        if rules_dir is None or not rules_dir.is_dir():
             return 0
 
         rule_files = sorted(f for f in rules_dir.iterdir() if f.suffix == ".md" and f.is_file())
@@ -510,7 +525,13 @@ class CodexFilesStep(BaseStep):
         assume Claude Code semantics). Stale bot-* skills from older installs are
         cleaned up. Returns the number of adapted SKILL.md files successfully written.
         """
-        claude_skills_dir = Path.home() / ".claude" / "skills"
+        # Source is the ACTIVE Claude profile: with CLAUDE_CONFIG_DIR set, a
+        # hardcoded ~/.claude finds nothing and Codex silently gets zero skills.
+        # ~/.agents is NOT relocatable (Codex derives it from $HOME).
+        try:
+            claude_skills_dir = get_claude_config_dir() / "skills"
+        except ValueError:
+            return 0
         agents_skills_dir = Path.home() / ".agents" / "skills"
 
         if not claude_skills_dir.is_dir():
@@ -552,7 +573,10 @@ class CodexFilesStep(BaseStep):
                 if candidate.is_dir():
                     return candidate
 
-        candidate = Path.home() / ".claude" / "agents"
+        try:
+            candidate = get_claude_config_dir() / "agents"
+        except ValueError:
+            return None
         if candidate.is_dir():
             return candidate
 

@@ -27,7 +27,7 @@ The orchestrator provides: `plan_file`, `changed_files`, `output_path`, `base_re
 
 ### 1. Read Plan + Diff
 
-**Read the plan file** — note tasks, DoD criteria, risks/mitigations, Goal Verification section, and **extract the list of files each task creates/modifies** (the "plan files").
+**Read the plan file** — note tasks, DoD criteria, risks/mitigations, Goal Verification section, and **extract the list of files each task creates/modifies** (the "plan files"). If the plan has a `## Global Constraints` section, treat every line in it as binding on every task under review — those values apply to work that never mentions them.
 
 **Get the scoped diff** — scope to only plan files to avoid picking up unrelated dirty files:
 
@@ -50,6 +50,8 @@ From the diff and plan: (1) all features implemented? (2) risk mitigations prese
 - Mitigation missing entirely → **must_fix**
 - Mitigation present but untested → **should_fix**
 - DoD criterion not evidenced in diff → **should_fix**
+
+**When the diff cannot settle it, say so instead of staying silent.** A plan requirement that cannot be checked from the diff — because it lives in unchanged code or spans tasks — is reported as an explicit cannot-verify item naming the requirement and why the diff cannot settle it; it is not a defect claim and must not be padded into one. Emit it as `severity: suggestion`, `category: cannot_verify`. This exists so you do NOT spend tool calls chasing unchanged code — the orchestrator holds the cross-task context and resolves these itself.
 
 ### 3. Quality
 
@@ -101,7 +103,7 @@ Output ONLY valid JSON (no markdown wrapper):
   "issues": [
     {
       "severity": "must_fix | should_fix | suggestion",
-      "category": "spec_compliance | risk_mitigation | definition_of_done | security | bugs | test_quality | error_handling | design_smell | goal_achievement",
+      "category": "spec_compliance | risk_mitigation | definition_of_done | security | bugs | test_quality | error_handling | design_smell | goal_achievement | cannot_verify",
       "title": "Brief title",
       "description": "What's wrong, with file path and line if applicable",
       "suggested_fix": "Specific fix"

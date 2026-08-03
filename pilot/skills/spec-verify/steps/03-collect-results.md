@@ -23,6 +23,8 @@ Run as `Bash(run_in_background=true, timeout=330000)` — the loop can wait 5 mi
 
 **Apply agent findings — lineage first** (same rule as the table below; out-of-lineage findings are mention-only regardless of severity): `must_fix` → fix now; `should_fix` → fix now; `suggestion` → implement if quick, else mention in the report. The agent's `truths` array feeds the report's Goal Achievement line. Then continue at "Collect Codex results".
 
+⛔ **Resolve every cannot-verify item yourself — silence from the reviewer is not a pass.** A reviewer scoped to a diff cannot check a requirement living in unchanged code or spanning tasks, so it hands the question back: `category: cannot_verify` from the changes-review agent, a `cannot verify from diff:` info-severity finding from Codex, and any truth returned with `status: uncertain`. Each one is yours to settle before this step's report — you hold the plan and the cross-task context the reviewer lacks. Confirm the requirement is met (say so in the report) or find it genuinely missing, in which case it becomes a **must_fix** and runs the fix loop like any other. Neither fixing them blind nor listing them as mentions counts as resolving them.
+
 ⛔ **Do not substitute `Skill(skill='code-review', ...)` for a sub-agent that came back empty or failed.** The skill carries `disable-model-invocation`; the call is rejected and the iteration ends up with no review while the report claims one. If the sub-agent produced nothing after its one relaunch, record the gap in this step's report and the Step 6.3 Not-Verified table, and rely on the Step 2.2 audit for this iteration.
 
 #### Apply findings (severity → action)
@@ -32,6 +34,7 @@ Run as `Bash(run_in_background=true, timeout=330000)` — the loop can wait 5 mi
 | Finding class | Action |
 |---------------|--------|
 | Outside the spec's lineage (CHECK FIRST — overrides every row below) | **Mention-only — do NOT fix** (mirrors the pre-existing-issue rule) |
+| `category: cannot_verify`, a `cannot verify from diff:` Codex finding, or a truth with `status: uncertain` | **Resolve it yourself** — confirm the requirement is met, or find it missing and treat as **must_fix** |
 | `failure_scenario` names a concrete crash, wrong output, security, or data-integrity problem | **must_fix** — fix immediately |
 | Cleanup / efficiency / altitude finding (duplication, wasted work, maintainability), single-site | **should_fix** — fix immediately |
 | Cleanup that would expand scope (3+ files, architectural) | **suggestion** — implement if quick, else mention in the report |
@@ -40,7 +43,7 @@ Rank order is the tiebreaker within a class. For each fix: implement → run rel
 
 #### Collect Codex results (if launched in Step 1)
 
-**Never skip or defer it.** Follow `$HOME/.claude/agents/codex-companion-protocol.md` §4–§6 with the `JOB_ID` and `PROMPT_FILE` from Step 1: run the stall monitor, branch on `READY` / `FAIL` / `STALLED`, then fetch, parse, apply by severity (lineage first), mark the codex-once flag, and clean up.
+**Never skip or defer it.** Follow `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/codex-companion-protocol.md` §4–§6 with the `JOB_ID` and `PROMPT_FILE` from Step 1: run the stall monitor, branch on `READY` / `FAIL` / `STALLED`, then fetch, parse, apply by severity (lineage first), mark the codex-once flag, and clean up.
 
 If the companion produced no result after its one retry, proceed WITHOUT the Codex pass and record the gap explicitly — in this step's report and the Step 6.3 Not-Verified table, noting how long it ran and when its log last advanced. Continue with this iteration's changes-review results.
 
@@ -80,6 +83,8 @@ Parse the agent's final message as JSON. If parsing fails, treat the raw final m
 Validate `plan_file` matches the current plan. If it does not, discard the stale result and self-review the diff before proceeding.
 
 Lineage first — a finding outside the plan's `Files:` blocks and documented deviations is mention-only regardless of severity. Otherwise: `must_fix` → fix immediately; `should_fix` → fix immediately; `suggestion` → implement if quick.
+
+⛔ **Resolve every cannot-verify item yourself — silence from the reviewer is not a pass.** A reviewer scoped to a diff cannot check a requirement living in unchanged code or spanning tasks, so it hands the question back: `category: cannot_verify`, or a truth returned with `status: uncertain`. Settle each one before the report — you hold the plan and the cross-task context the reviewer lacks. Confirm the requirement is met (say so in the report) or find it genuinely missing, in which case it becomes a **must_fix** and runs the fix loop like any other.
 
 Final-status-only findings are not implementation fixes. If a finding only says the plan still reads `Status: COMPLETE` instead of `Status: VERIFIED`, record it as pending Step 11 finalization and do not loop back to implementation. Step 11 is responsible for writing `VERIFIED` after the user review gate and re-checking final-status truths.
 

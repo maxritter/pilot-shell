@@ -11,6 +11,8 @@ import os
 from pathlib import Path
 from typing import Any
 
+from installer.claude_paths import get_claude_config_dir
+
 CURRENT_CONFIG_VERSION = 21
 
 _STALE_AGENT_KEYS = frozenset(
@@ -315,7 +317,16 @@ def _get_subscription_type() -> str | None:
     except Exception:
         pass
 
-    creds_path = Path.home() / ".claude" / ".credentials.json"
+    # Credentials live INSIDE the config dir and relocate with it. Read-only
+    # fallback: an invalid value means "unknown subscription", never the
+    # personal profile's credentials. Return None, not "" - callers guard only
+    # on `is None` to mean "cannot detect, leave settings unchanged", so "" would
+    # slip past that guard AND the `== "max"` guard and let the migration fire as
+    # if the user were a confirmed non-Max subscriber.
+    try:
+        creds_path = get_claude_config_dir() / ".credentials.json"
+    except ValueError:
+        return None
     try:
         if creds_path.exists():
             content = json.loads(creds_path.read_text())

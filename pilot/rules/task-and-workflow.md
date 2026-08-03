@@ -107,6 +107,8 @@ Every subagent re-establishes context, re-explores, and reports back, and then y
 
 **Do NOT delegate** work you could finish in a handful of tool calls, and never for review, verification, or double-checking — that belongs in your own loop. Prefer one subagent over several; don't split one modest job into parallel pieces. Brief each one precisely the first time, then commit to the result: don't redo its work or re-derive its findings. Launch parallel agents in a single message so they actually run concurrently.
 
+**Pass `model` explicitly on every ad-hoc dispatch** — omit it and the subagent inherits the session model, often the most capable and most expensive one. Shipped reviewer agents already pin theirs in frontmatter; this is about `Explore` / `general-purpose`. Pick by turn count, not token price: the cheapest tier routinely takes 2-3× the turns on multi-step work and costs more overall, so a mid tier is the floor for anything past a single-file mechanical read.
+
 **Still blocked:** `subagent_type` of `Plan` — use `/spec` for structured planning. Built-in `WebSearch`/`WebFetch` stay blocked too (see Web Search/Fetch below).
 
 **Reviewer agents pass through silently:** `changes-review`, `spec-review`. Launch `changes-review` only where the `/spec` and `/fix` steps say to.
@@ -133,13 +135,14 @@ CODEX-END -->
 - ⛔ NEVER use `TaskOutput` to retrieve results.
 - **Pilot reviewer agents** (`spec-review`, `changes-review`) write findings JSON files — poll with a bash file-existence loop, then Read once. Other agent types do NOT write files; their only output is the final message of a foreground call. Never plan on `SendMessage` to follow up — it may not exist in the running Claude Code version. The changes review in `/spec` and `/fix` is this sub-agent, on both agents; whether it runs at all is Console Settings → Spec Workflow → Review Agents → Changes Review.
 - ⛔ **`/code-review` is not model-invocable.** It carries `disable-model-invocation`, so `Skill(skill='code-review', ...)` is rejected outright. Never wire it into a workflow as an automated review step, and never treat a rejected call as "reviewed" — a deeper multi-agent pass is the user's to start by typing `/code-review`.
+- ⛔ **Never pre-judge a reviewer's findings in its dispatch prompt.** If the prompt you are writing contains "do not flag", "don't treat X as a defect", "at most Minor", or "the plan chose" — stop. You are ruling on a finding before it exists, usually to spare yourself a review loop. Let the reviewer raise it and adjudicate afterwards, when you can see what it actually found.
 - Sub-agents do NOT inherit rules; they can read `~/.claude/rules/*.md` and `.claude/rules/*.md`.
 
 ### Codex Companion (Reviews & Tasks)
 
 - ⛔ NEVER delegate a Codex companion run to a subagent (`codex:codex-rescue` included) when you need its output — the subagent backgrounds the broker job, writes no findings file, and there is no recovery path (`TaskOutput` banned, `SendMessage` unavailable). The rescue agent exists for user-typed `/codex:rescue` handoffs only.
 - Run the companion directly via Bash in the main conversation, exactly as the /spec and /fix steps specify:
-  `CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | sort -V | tail -1)`
+  `CODEX_COMPANION=$(ls ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | sort -V | tail -1)`
 - A background job is never lost while you hold its `task-…` ID: `node "$CODEX_COMPANION" status <job-id> --json` polls it, `node "$CODEX_COMPANION" result <job-id> --json` fetches the finished result. Do NOT abandon a launched job and redo the review yourself.
 - If the job ID is unrecoverable (it was launched inside a subagent), re-launch once directly via Bash and continue.
 - **Stage before any pre-commit diff review.** `/spec` and `/fix` review the WORKING TREE before committing, so every file the change ADDS is untracked. Before launching ANY pre-commit review (companion `task`/`review`/`adversarial-review`, or the `changes-review` sub-agent), run a real `git add` of the change's own files (the plan's `Files:` paths, or the fix + its test — never unrelated dirty files). A bare `git add -N` is NOT enough: Codex's `git status --untracked-files=all` still flags the path as untracked, producing a spurious `critical` ("deliverable depends on untracked files"), while a `git diff HEAD` reviewer silently OMITS it. Review against `git diff HEAD`; never pass a committed ref-range (`--base HEAD`, `--scope branch`, `main...HEAD`, `HEAD~1`) — pre-commit those diffs are empty and the review scans nothing. Staging is not committing; the push still waits for approval.

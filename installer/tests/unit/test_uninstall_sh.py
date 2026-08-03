@@ -63,6 +63,82 @@ def test_uninstall_sh_codex_skills_removed():
     assert "spec-bugfix-plan" in content
 
 
+def test_uninstall_sh_claude_dir_respects_claude_config_dir():
+    """CLAUDE_DIR must honour CLAUDE_CONFIG_DIR, mirroring CODEX_DIR/CODEX_HOME."""
+    assert "CLAUDE_CONFIG_DIR" in _content()
+
+
+def _run_uninstall(home: Path, extra_env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
+    env = os.environ.copy()
+    env["HOME"] = str(home)
+    env.pop("CODEX_HOME", None)
+    env.pop("CLAUDE_CONFIG_DIR", None)
+    env.update(extra_env or {})
+    return subprocess.run(["bash", str(UNINSTALL_SH), "--yes"], env=env, text=True, capture_output=True, check=False)
+
+
+def _seed_pilot_profile(claude_dir: Path) -> None:
+    """Minimal Pilot-installed profile: a manifest plus one managed rule."""
+    (claude_dir / "rules").mkdir(parents=True, exist_ok=True)
+    (claude_dir / "rules" / "testing.md").write_text("managed\n")
+    (claude_dir / ".pilot-manifest.json").write_text('{"files": ["rules/testing.md"]}\n')
+
+
+class TestClaudeConfigDirIsolation:
+    """uninstall.sh derives rm targets, so its path resolution is safety-critical."""
+
+    def test_relative_config_dir_aborts_before_removing_anything(self, tmp_path: Path):
+        """A relative value must abort, never resolve rm targets against cwd."""
+        home = tmp_path / "home"
+        personal = home / ".claude"
+        _seed_pilot_profile(personal)
+
+        result = _run_uninstall(home, {"CLAUDE_CONFIG_DIR": "relative/path"})
+
+        assert result.returncode != 0, "expected a non-zero exit for a relative CLAUDE_CONFIG_DIR"
+        assert (personal / "rules" / "testing.md").exists(), "personal profile was touched"
+        assert (personal / ".pilot-manifest.json").exists()
+
+    def test_explicit_config_dir_without_pilot_install_aborts(self, tmp_path: Path):
+        """Pointing at a profile Pilot was never installed into must not half-clean."""
+        home = tmp_path / "home"
+        personal = home / ".claude"
+        _seed_pilot_profile(personal)
+        empty = home / ".claude_empty"
+        empty.mkdir(parents=True)
+
+        result = _run_uninstall(home, {"CLAUDE_CONFIG_DIR": str(empty)})
+
+        assert result.returncode != 0
+        assert "No Pilot install found" in result.stderr
+        assert (personal / "rules" / "testing.md").exists()
+
+    def test_missing_manifest_still_tolerated_when_unset(self, tmp_path: Path):
+        """Legacy pre-manifest installs must still uninstall from the default dir."""
+        home = tmp_path / "home"
+        (home / ".claude").mkdir(parents=True)
+        (home / ".pilot").mkdir(parents=True)
+
+        result = _run_uninstall(home)
+
+        assert result.returncode == 0, result.stderr
+        assert not (home / ".pilot").exists(), "~/.pilot should still be removed"
+
+    def test_custom_config_dir_leaves_personal_profile_untouched(self, tmp_path: Path):
+        home = tmp_path / "home"
+        personal = home / ".claude"
+        _seed_pilot_profile(personal)
+        work = home / ".claude_work"
+        _seed_pilot_profile(work)
+
+        result = _run_uninstall(home, {"CLAUDE_CONFIG_DIR": str(work)})
+
+        assert result.returncode == 0, result.stderr
+        assert not (work / "rules" / "testing.md").exists(), "custom profile was not cleaned"
+        assert (personal / "rules" / "testing.md").exists(), "personal profile was cleaned"
+        assert (personal / ".pilot-manifest.json").exists()
+
+
 def test_uninstall_removes_shell_wrappers_and_codex_env_block(tmp_path: Path):
     """Uninstall should remove Pilot shell wrappers and Codex managed env vars."""
     home = tmp_path / "home"

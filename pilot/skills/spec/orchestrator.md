@@ -1,6 +1,6 @@
 ---
 name: spec
-description: Spec-driven development - plan, implement, verify workflow with live Console annotations (annotate plans and code changes in real-time; agent reads annotations directly at review checkpoints)
+description: Spec-driven development for substantial work — produces an approved plan file, then implements and verifies against it. Use when the user types /spec, hands over a docs/plans/*.md plan file, or asks for a feature, migration, refactor, or architectural change large enough that planning first reduces risk. Not for a single bug — that is /fix.
 argument-hint: "<task description> or <path/to/plan.md>"
 user-invocable: true
 ---

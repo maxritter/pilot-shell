@@ -75,6 +75,7 @@ Blocking hooks reject actions or force fixes before they land. Non-blocking hook
 |------|-------------|
 | `spec_stop_guard.py` | Blocks stopping if an active spec hasn't completed verification |
 | Session summarizer | Saves session observations to memory (async) |
+| Team memory auto-export *(Codex only)* | Writes the project's new shared memories to `.pilot/memories/`. Codex has no SessionEnd event, so this stands in for it; it writes nothing when the turn produced no new shareable memory |
 
 `spec_plan_validator.py` runs as a command-scoped Stop hook during the `/spec` planning phases.
 
@@ -82,7 +83,7 @@ Blocking hooks reject actions or force fixes before they land. Non-blocking hook
 
 | Hook | Description |
 |------|-------------|
-| `session_end.py` | Stops the Console worker when no sessions remain; sends dashboard notification |
+| `session_end.py` | Stops the Console worker when no sessions remain; marks the session complete, which is what exports its team memories. Invoked with `--session-end` here — Codex registers the same script on `Stop` without that flag, so an end-of-turn run stops the worker but never completes the session |
 
 :::info Compaction resilience
 When compaction fires (Claude Code): **PreCompact** captures plan state → compaction runs → **SessionStart** restores it via `post_compact_restore.py`. Work continues without data loss.

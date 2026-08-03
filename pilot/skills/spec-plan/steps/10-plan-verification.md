@@ -17,6 +17,14 @@ Read the plan once, fresh-eyed. **Every match below is a plan failure** — fix 
 grep -nEi "TBD|TODO|FIXME|implement later|fill in details|appropriate error handling|similar to Task" "<plan_path>"
 ```
 
+**Then check cross-task identifier consistency.** Types, function names, property names, and env vars introduced in one task must be spelled identically everywhere later tasks use them — `clearLayers()` in Task 3 and `clearFullLayers()` in Task 7 is a bug the implementer inherits, not a synonym. Tasks are written in sequence and read out of order, so drift here stays invisible until implementation. Sorting the plan's identifiers puts near-misses on adjacent lines:
+
+```bash
+grep -oE '`[A-Za-z_][A-Za-z0-9_]*(\(\))?`' "<plan_path>" | sort | uniq -c
+```
+
+Scan for two spellings of one thing, then `grep -n` the pair to see which tasks disagree and fix the loser.
+
 ---
 
 <!-- CC-ONLY -->
@@ -67,11 +75,11 @@ CODEX_FLAG="$HOME/.pilot/sessions/$SESS_ID/codex-spec-review-ran-<plan-slug>.fla
 [ -f "$CODEX_FLAG" ] && echo "Codex already reviewed this plan in this session — skipping (codex-once)."
 ```
 
-Otherwise **read `$HOME/.claude/agents/codex-companion-protocol.md` and follow it end to end** (locate → render → launch → stall monitor → collect → mark). Supply:
+Otherwise **read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/codex-companion-protocol.md` and follow it end to end** (locate → render → launch → stall monitor → collect → mark). Supply:
 
 | Protocol input | Value for plan review |
 |---|---|
-| `PROMPT_TEMPLATE` | `$HOME/.claude/agents/spec-review-codex.md` |
+| `PROMPT_TEMPLATE` | `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/spec-review-codex.md` |
 | `{{PLAN_PATH}}` | absolute path to the plan file |
 | `{{PLAN_GOAL}}` | the Goal sentence from the plan's `## Summary` |
 | `{{CONTEXT_FILES}}` | newline-separated absolute paths the plan ports from or extends (the files named in `## Context for Implementer`) |

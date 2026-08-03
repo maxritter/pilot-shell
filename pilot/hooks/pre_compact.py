@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from _lib.console_settings import get_console_url
 from _lib.util import (
+    claude_config_dir,
     get_session_plan_path,
     plan_in_current_project,
     read_hook_stdin,
@@ -69,7 +70,9 @@ def _capture_task_list() -> dict | None:
         pid = os.environ.get("PILOT_SESSION_ID", "")
         if not pid:
             return None
-        claude_config = Path(os.environ.get("CLAUDE_CONFIG_DIR", str(Path.home() / ".claude")))
+        claude_config = claude_config_dir()
+        if claude_config is None:
+            return None
         tasks_dir = claude_config / "tasks" / f"pilot-{pid}"
         if not tasks_dir.exists():
             return None

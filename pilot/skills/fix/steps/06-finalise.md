@@ -74,11 +74,11 @@ CODEX_FLAG="$SESS_DIR/codex-changes-review-ran-fix.flag"
 [ -f "$CODEX_FLAG" ] && echo "Codex already reviewed this fix in this session — skipping (codex-once)."
 ```
 
-Otherwise **read `$HOME/.claude/agents/codex-companion-protocol.md` and follow it end to end** (locate → render → launch → stall monitor → collect → mark). It is the single source of truth for the companion run loop. Supply:
+Otherwise **read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/codex-companion-protocol.md` and follow it end to end** (locate → render → launch → stall monitor → collect → mark). It is the single source of truth for the companion run loop. Supply:
 
 | Protocol input | Value for `/fix` |
 |---|---|
-| `PROMPT_TEMPLATE` | `$HOME/.claude/agents/changes-review-codex.md` |
+| `PROMPT_TEMPLATE` | `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/changes-review-codex.md` |
 | `{{PLAN_PATH}}` | `$FIX_PLAN_FILE` from 6.1.0 |
 | `{{PLAN_GOAL}}` | `Bugfix for: <one-line bug>. Root cause at <file>:<line>. The reproducing test must reliably fail before the fix and pass after.` |
 | `{{BASE_REF}}` | `HEAD` — the fix is staged, not committed |

@@ -171,7 +171,7 @@ Plugin extensions are read-only — edit, rename, delete, and move are not avail
 
 ### Moving Between Scopes
 
-Clicking "→ Global" on a project extension physically moves the file from `.claude/` to `~/.claude/`. Clicking "→ Project" moves it back. This is a move, not a copy — the original is removed.
+Clicking "→ Global" on a project extension physically moves the file from `.claude/` to your Claude config directory (`$CLAUDE_CONFIG_DIR`, else `~/.claude/`). Clicking "→ Project" moves it back. This is a move, not a copy — the original is removed.
 
 ## Creating Extensions
 

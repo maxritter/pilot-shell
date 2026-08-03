@@ -17,6 +17,11 @@
           },
           {
             "type": "command",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/config_dir_guard.py\"",
+            "timeout": 10
+          },
+          {
+            "type": "command",
             "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/session_startup_maintenance.py\"",
             "async": true,
             "timeout": 15
@@ -202,7 +207,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/session_end.py\"",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/session_end.py\" --session-end",
             "timeout": 15
           }
         ]

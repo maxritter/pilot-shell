@@ -21,8 +21,12 @@ from __future__ import annotations
 import os
 import re
 import shutil
+import sys
 from collections.abc import Callable
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+from _lib.util import claude_config_dir  # noqa: E402
 
 # Session dirs are named `<PID>` (Pilot wrapper) or `<PID>-<RANDOM>` (shell-alias
 # sessions, where the suffix is bash `$RANDOM` -- all digits). The `-\d+` suffix
@@ -104,8 +108,9 @@ def main() -> None:
     if not os.environ.get("CLAUDE_CODE_ENTRYPOINT"):
         return
     try:
-        claude_dir = Path(os.environ.get("CLAUDE_CONFIG_DIR", str(Path.home() / ".claude")))
-        clean_task_list(claude_dir, os.getpid())
+        claude_dir = claude_config_dir()
+        if claude_dir is not None:
+            clean_task_list(claude_dir, os.getpid())
         clean_stale_session_dirs(Path.home() / ".pilot" / "sessions", os.getpid())
     except Exception:
         # SessionStart hook: never raise / never block the session.

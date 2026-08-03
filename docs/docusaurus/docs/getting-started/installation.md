@@ -14,7 +14,9 @@ Works with any existing project — no scaffolding required.
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
 ```
 
-Run from any directory — it installs globally to `~/.pilot/` and `~/.claude/` (and `~/.codex/` if Codex CLI is detected). After installation, just run `claude` or `codex` directly — Pilot Shell loads automatically.
+Run from any directory — it installs globally to `~/.pilot/` and your Claude config directory (and `~/.codex/` if Codex CLI is detected). After installation, just run `claude` or `codex` directly — Pilot Shell loads automatically.
+
+The Claude config directory is `~/.claude` unless you set `CLAUDE_CONFIG_DIR`. See [Using a non-default Claude config directory](#using-a-non-default-claude-config-directory).
 
 ## What the Installer Does
 
@@ -23,13 +25,40 @@ Run from any directory — it installs globally to `~/.pilot/` and `~/.claude/` 
 | Step | Title | Description |
 |------|-------|-------------|
 | 1 | Prerequisites | Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq. Verifies at least one supported agent (Claude Code or Codex CLI) is on the system; aborts with a clear error otherwise. |
-| 2 | Pilot files | Installs agent-neutral Pilot Shell-managed assets: hooks to `~/.pilot/hooks/`, Console scripts/UI to `~/.pilot/`, raw rule sources to `~/.pilot/rules/` (read by Codex's adapter), and the canonical skill source to `~/.claude/skills/` (used by both agents — Claude reads it natively, Codex adapts it). Always runs. |
-| 3 | Claude files | Installs Claude-specific assets to `~/.claude/`: rules, sub-agents, and `settings.json` (three-way merged); plus Claude post-install merges (hooks into settings, `~/.claude.json` MCP block, model config). **Skipped when Claude Code CLI is not detected.** |
+| 2 | Pilot files | Installs agent-neutral Pilot Shell-managed assets: hooks to `~/.pilot/hooks/`, Console scripts/UI to `~/.pilot/`, raw rule sources to `~/.pilot/rules/` (read by Codex's adapter), and the canonical skill source to `<claude-config-dir>/skills/` (used by both agents — Claude reads it natively, Codex adapts it). Always runs. |
+| 3 | Claude files | Installs Claude-specific assets to the Claude config directory: rules, sub-agents, and `settings.json` (three-way merged); plus Claude post-install merges (hooks into settings, app-config MCP block, model config). **Skipped when Claude Code CLI is not detected.** |
 | 4 | Codex files | Installs Codex-specific assets: adapted skills to `~/.agents/skills/`, review agents to `~/.codex/agents/`, `~/.codex/AGENTS.md`, `~/.codex/config.toml`, `~/.codex/hooks.json`. Per-category counts mirror the Claude section. **Skipped when Codex CLI is not detected.** |
 | 5 | Config files | Creates `.nvmrc` and project config |
 | 6 | Dependencies | Installs Semble, RTK, CodeGraph, Chrome DevTools MCP, playwright-cli, agent-browser, language servers, plus the `codex@openai-codex` Claude marketplace plugin. Claude-side plugins (Codex companion plugin, Chrome DevTools MCP plugin, LSP plugins) are skipped on Codex-only systems. |
 | 7 | Shell integration | Auto-configures bash, fish, and zsh with the `pilot` alias. Add `# pilot-shell:managed-elsewhere` to a config file to opt out (for framework-managed shells) |
 | 8 | Finalize | Success message with next steps |
+
+## Using a non-default Claude config directory
+
+Claude Code reads its configuration from `~/.claude` unless you set `CLAUDE_CONFIG_DIR`. Pilot Shell honours the same variable, so you can install it into a work profile while leaving a personal `~/.claude` completely untouched.
+
+Set the variable for the install **and** for every launch:
+
+```bash
+# Install into the work profile
+CLAUDE_CONFIG_DIR=~/.claude_work bash <(curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh)
+
+# Launch against it
+CLAUDE_CONFIG_DIR=~/.claude_work claude
+```
+
+Everything follows the variable: skills, rules, sub-agents, `settings.json`, the app config (`$CLAUDE_CONFIG_DIR/.claude.json`), hooks, the Console, and the uninstaller. Running plain `claude` afterwards uses your default profile, which has no Pilot assets in it — that is the point.
+
+The value must be an **absolute path**. A relative or empty value is rejected rather than silently falling back to `~/.claude`, so a typo can never write the profile you were protecting.
+
+Claude Code keys its stored credentials per config directory, so the two profiles log in independently.
+
+### Two limitations to know about
+
+- **`~/.pilot/` is shared across profiles.** The binary, hooks, license, memory database and session store live in one place regardless of which Claude profile you use. Memory and sessions are therefore pooled across profiles.
+- **`~/.agents/` cannot be relocated.** Codex derives its agents-skills directory from your home directory and provides no override. `CODEX_HOME` relocates `~/.codex` and is honoured, but `~/.agents/skills/` always sits under `$HOME`.
+
+If you install into one profile and later start a session in another, a session-start check warns you that the assets live elsewhere. It cannot warn when the profile has no Pilot install at all (no Pilot hook is registered there to run), which is why the installer prints the resolved paths before writing.
 
 ## Browser Automation
 
@@ -84,6 +113,8 @@ Accumulated session logs and Pilot's caches grow over time and can degrade perfo
 /logout
 
 # 2. Back up your current config (just in case)
+#    Using CLAUDE_CONFIG_DIR? Substitute it for ~/.claude below, and back up
+#    "$CLAUDE_CONFIG_DIR/.claude.json" instead of ~/.claude.json.
 mv ~/.claude.json ~/.claude.json.bak
 mv ~/.claude       ~/.claude.bak
 mv ~/.codex        ~/.codex.bak

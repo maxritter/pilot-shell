@@ -32,14 +32,13 @@ Reads:
 from __future__ import annotations
 
 import json
-import os
 import re
 import shlex
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _lib.util import read_model_switch_mode, resolve_session_id
+from _lib.util import claude_config_dir, read_model_switch_mode, resolve_session_id
 
 _CLAUDE_OPUS_PREFIX_RE = re.compile(r"^claude-opus(-|$)")
 _CLAUDE_SONNET_PREFIX_RE = re.compile(r"^claude-sonnet(-|$)")
@@ -133,7 +132,9 @@ def _managed_opusplan_pin_present() -> bool:
     session start, so a Fable-family ``model`` value alongside the managed pin
     still boots as opusplan -- the pin, not the field, is decisive there.
     """
-    claude_dir = Path(os.environ.get("CLAUDE_CONFIG_DIR", str(Path.home() / ".claude")))
+    claude_dir = claude_config_dir()
+    if claude_dir is None:
+        return False
     try:
         data = json.loads((claude_dir / "settings.json").read_text())
     except (OSError, json.JSONDecodeError, UnicodeDecodeError):
@@ -153,7 +154,9 @@ def _read_selected_model_from_settings() -> str | None:
     cache is per-session, so it is only consulted as a tie-breaker when the
     cache would block, never to override a cache that already passes the gate.
     """
-    claude_dir = Path(os.environ.get("CLAUDE_CONFIG_DIR", str(Path.home() / ".claude")))
+    claude_dir = claude_config_dir()
+    if claude_dir is None:
+        return None
     try:
         data = json.loads((claude_dir / "settings.json").read_text())
     except (OSError, json.JSONDecodeError):

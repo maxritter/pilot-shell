@@ -1,6 +1,6 @@
 ---
 name: spec-verify
-description: "Spec verification phase - tests, execution, rules audit, code review"
+description: "Verification phase of the /spec feature workflow — decides whether a finished plan earns VERIFIED, and sends it back to implementation when it does not. Entered for a feature plan marked Status: COMPLETE."
 argument-hint: "<path/to/plan.md>"
 user-invocable: false
 ---

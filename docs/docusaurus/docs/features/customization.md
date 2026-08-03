@@ -27,7 +27,7 @@ Customization currently targets Claude Code assets (`~/.claude/` — skills, rul
 
 ## File structure
 
-The structure is the same whether you publish it as a git repo or keep it as a local folder. Directory names map 1:1 to `~/.claude/`:
+The structure is the same whether you publish it as a git repo or keep it as a local folder. Directory names map 1:1 to your Claude config directory (`$CLAUDE_CONFIG_DIR`, else `~/.claude/`):
 
 ```
 my-customization/

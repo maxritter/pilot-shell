@@ -58,7 +58,7 @@ Before committing to a full eval set:
 2. Run baseline only:
 <!-- CC-ONLY -->
    ```bash
-   PYTHONPATH=~/.claude/skills/benchmark uv run python -m scripts.runner \
+   PYTHONPATH="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/benchmark" uv run python -m scripts.runner \
        --config benchmarks/<target>/evals.json --configs without --runs 1 \
        --skip-permissions
    ```

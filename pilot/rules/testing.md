@@ -44,12 +44,19 @@ Run the full suite, not just the files you touched. "Pre-existing failure" is no
 
 Industry research across four LLMs found **>62% of generated test assertions were incorrect** — passing tests asserting the wrong field. False confidence is worse than no test. Before committing an assertion, check that a one-character bug in the implementation would actually fail it, that it targets the field carrying the meaning, that any hand-derived expected value came from an independent source, and that it asserts the behaviour the spec names rather than internal mechanics.
 
+**Name the break first.** Before writing the test body, name the production change that would make this test fail. Can't name one → redesign around an observable behaviour. Only *intentional* decisions could fail it → it's a change detector; test the behaviour that depends on the decision instead.
+
+**Then run the mutation check** before you finish: mentally mutate the implementation — wrong constant or argument, wrong branch taken, missing state change or side effect, empty/default return, missing validation for zero, empty, nil, unauthorized, or malformed input — and confirm at least one test fails for each. A mutation nothing catches marks the behaviour as unprotected, or the test as tautological.
+
 If the spec is too ambiguous to write a precise assertion, **stop and ask** — don't pattern-match a plausible value.
 
 ### Anti-patterns
 
 - **Tautological tests** — the expectation recomputes the value the way the implementation does, so it passes by construction. Expected values come from a known-good literal, a worked example, or the spec. (A spec-named invariant asserted property-style is fine; deriving the expectation from the implementation's own logic is not.)
 - **Testing implementation, not behaviour** — asserting which mocks were called rather than the observable result. `assert result == expected`, not `mock.assert_called_with(...)`.
+- **String-presence tests on source files** — asserting that a script, skill, prompt, or config file *contains* a line proves only that the source is the source, and it fails on every harmless rewording. Run the artifact and assert its effects: outputs, side effects, exit codes. Documents that instruct agents are tested by the consuming agent's behaviour; prose written for humans earns no test. (Asserting on text your test just *produced* — the output of a build, render, or transform it ran — is the correct form, not this trap.)
+- **Change detectors** — `assert MAX_RETRIES == 5` can only fail when someone deliberately changes the constant, so it fires on redesign and sleeps through bugs. Assert the behaviour that depends on the decision: a failing call is retried 5 times and the 6th attempt never happens.
+- **Asserting on the mock itself** — a `*-mock` test id or "the double was installed" assertion passes when the mock is present and fails when it is absent; it says nothing about the component. Assert the real component's behaviour, or unmock it.
 - **Partial mocks** — a mock mirroring only the fields you think you need hides coupling and breaks against real data.
 - **One test class per method**, or mirroring code structure in tests. One test class per production class is the ceiling, not the floor.
 - **Redundant assertions on the same path** — three tests covering one observable behaviour through three internal routes is one test plus maintenance tax.

@@ -110,6 +110,8 @@ Over time, accumulated session logs and Pilot Shell's caches can slow things dow
 /logout
 
 # 2. Back up your current config (just in case)
+# Using CLAUDE_CONFIG_DIR? Substitute it for ~/.claude, and back up
+# "$CLAUDE_CONFIG_DIR/.claude.json" instead of ~/.claude.json.
 mv ~/.claude.json ~/.claude.json.bak
 mv ~/.claude       ~/.claude.bak
 mv ~/.codex        ~/.codex.bak
@@ -141,8 +143,8 @@ For tighter isolation when working with untrusted code, combine the dev containe
 8-step installer with progress tracking, rollback on failure, and idempotent re-runs. Steps 3 and 4 are agent-conditional — they skip cleanly when the matching agent CLI is not detected. The installer **does not install Claude Code or Codex CLI itself**; install at least one yourself per the prerequisites above.
 
 1. **Prerequisites** — Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq. Verifies at least one supported agent (Claude Code or Codex CLI) is on the system; aborts with a clear error otherwise.
-2. **Pilot files** — Agent-neutral Pilot Shell-managed assets. Hooks → `~/.pilot/hooks/`, Console scripts/UI → `~/.pilot/`, MCP server template → `~/.pilot/.mcp.json`, raw rule sources → `~/.pilot/rules/` (read by Codex's adapter), plus the canonical skill source at `~/.claude/skills/` (Claude reads natively; Codex adapts in step 4). Always runs.
-3. **Claude files** — Claude-specific assets under `~/.claude/`: rules, sub-agents, `settings.json` (three-way merged), plus the Claude post-install merges (hooks into settings, `~/.claude.json` MCP block, model config migration). **Skipped when Claude Code CLI is not detected.**
+2. **Pilot files** — Agent-neutral Pilot Shell-managed assets. Hooks → `~/.pilot/hooks/`, Console scripts/UI → `~/.pilot/`, MCP server template → `~/.pilot/.mcp.json`, raw rule sources → `~/.pilot/rules/` (read by Codex's adapter), plus the canonical skill source at `<claude-config-dir>/skills/` (Claude reads natively; Codex adapts in step 4). Always runs.
+3. **Claude files** — Claude-specific assets under the Claude config directory (`$CLAUDE_CONFIG_DIR`, else `~/.claude`): rules, sub-agents, `settings.json` (three-way merged), plus the Claude post-install merges (hooks into settings, app-config MCP block, model config migration). **Skipped when Claude Code CLI is not detected.**
 4. **Codex files** — Codex-specific assets: adapted skills → `~/.agents/skills/`, review agents → `~/.codex/agents/`, `~/.codex/AGENTS.md`, `~/.codex/config.toml`, `~/.codex/hooks.json`. Per-category counts mirror the Claude section. **Skipped when Codex CLI is not detected.**
 5. **Config files** — Creates `.nvmrc` and project config.
 6. **Dependencies** — Installs Semble, RTK, CodeGraph, [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp), [playwright-cli](https://github.com/microsoft/playwright-cli), [agent-browser](https://agent-browser.dev/), language servers, and the `codex@openai-codex` Claude marketplace plugin (skipped on Codex-only systems alongside Chrome DevTools MCP and LSP plugins).

@@ -14,7 +14,7 @@ Use the `Bash` tool with `run_in_background=true`. Capture the returned task ID;
 
 ```
 Bash(
-  command="PYTHONPATH=~/.claude/skills/benchmark uv run python -m scripts.runner \
+  command="PYTHONPATH=${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/benchmark uv run python -m scripts.runner \
     --config benchmarks/<target-name>/evals.json \
     --skip-permissions",
   description="Run benchmark in background",

@@ -17,6 +17,18 @@ margin column. Revenue is in column C, costs in D i think"
 
 Share them with the user: "Here are a few test cases I'd like to try. Do these look right, or do you want to add more?"
 
+### Step 6.1a: Micro-Test the Wording First
+
+Full A/B runs are the final gate, but they are slow per iteration. When you are writing behaviour-shaping wording — a rule, a rationalization row, a dispatch-prompt instruction — verify the wording itself first with cheap one-shot samples:
+
+1. **One fresh-context sample per call.** System prompt = the realistic context the guidance will live in (the whole skill or prompt, not the guidance in isolation); user message = a task that tempts the failure.
+2. **Always run a no-guidance control.** If the control does not exhibit the failure, there is nothing to fix — stop, and do not author the guidance.
+3. **5+ reps per variant.** Single samples lie.
+4. **Read every flagged match yourself.** Score programmatically if you like, but template echoes and quoted counter-examples masquerade as hits and inflate both failure and success counts.
+5. **Treat variance as a metric.** When guidance lands, reps converge on the same shape. Five different interpretations across five reps means the wording is not binding — tighten the form (Step 1's *Match the form to the failure*) before adding words.
+
+Micro-tests verify wording. They do not replace the with-skill vs baseline runs below for discipline skills.
+
 ### Step 6.2: Run Tests
 
 <!-- CC-ONLY -->

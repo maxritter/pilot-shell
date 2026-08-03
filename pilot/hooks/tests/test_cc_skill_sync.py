@@ -164,6 +164,28 @@ class TestMain:
         # Without a manifest we cannot prove ownership → touch nothing.
         assert (skills_dir / "spec" / "SKILL.md").exists()
 
+    def test_invalid_config_dir_deletes_nothing_in_personal_profile(
+        self, claude_tree: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """A mistyped CLAUDE_CONFIG_DIR must not delete skills from ~/.claude.
+
+        This hook removes SKILL.md files on an invalid license. Falling back to
+        the default directory on a bad env var would mutate exactly the profile
+        the user set the variable to protect.
+        """
+        skills_dir = claude_tree / ".claude" / "skills"
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", "relative/path")
+
+        with (
+            patch("cc_skill_sync.Path.home", return_value=claude_tree),
+            patch("cc_skill_sync._check_license", return_value=False),
+        ):
+            main()
+
+        assert (skills_dir / "spec" / "SKILL.md").exists()
+        assert (skills_dir / "myskill" / "SKILL.md").exists()
+        assert json.loads(capsys.readouterr().out)["continue"] is True
+
     def test_emits_continue_true(self, claude_tree: Path, capsys: pytest.CaptureFixture[str]) -> None:
         with (
             patch("cc_skill_sync.Path.home", return_value=claude_tree),

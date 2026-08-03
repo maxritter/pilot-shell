@@ -28,6 +28,79 @@ from _lib.util import (
 )
 
 
+class TestClaudeConfigDir:
+    """Tests for claude_config_dir().
+
+    Hooks may not import launcher/ or installer/, so this resolver is a third
+    copy of the same rule. Unlike those two it must NEVER raise - a hook that
+    throws breaks the user's session - so a set-but-invalid value returns None
+    and callers skip their config-dir work entirely.
+    """
+
+    def test_unset_returns_home_claude(self, monkeypatch, tmp_path: Path) -> None:
+        from _lib.util import claude_config_dir
+
+        monkeypatch.delenv("CLAUDE_CONFIG_DIR", raising=False)
+        monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+
+        assert claude_config_dir() == tmp_path / ".claude"
+
+    def test_absolute_value_is_used(self, monkeypatch, tmp_path: Path) -> None:
+        from _lib.util import claude_config_dir
+
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / ".claude_work"))
+
+        assert claude_config_dir() == tmp_path / ".claude_work"
+
+    def test_relative_returns_none_not_default(self, monkeypatch, tmp_path: Path) -> None:
+        """Must NOT fall back to ~/.claude - that is the profile being protected."""
+        from _lib.util import claude_config_dir
+
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", "relative/path")
+        monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+
+        assert claude_config_dir() is None
+
+    def test_empty_returns_none(self, monkeypatch, tmp_path: Path) -> None:
+        from _lib.util import claude_config_dir
+
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", "   ")
+        monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+
+        assert claude_config_dir() is None
+
+
+class TestPilotOwnedSkillNamesDefault:
+    """The default argument must follow CLAUDE_CONFIG_DIR, not hardcode ~/.claude."""
+
+    def test_default_uses_custom_config_dir(self, monkeypatch, tmp_path: Path) -> None:
+        from _lib.util import pilot_owned_skill_names
+
+        custom = tmp_path / ".claude_work"
+        custom.mkdir()
+        (custom / ".pilot-manifest.json").write_text(
+            json.dumps({"files": ["skills/spec/manifest.json"]}), encoding="utf-8"
+        )
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(custom))
+        monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+
+        assert pilot_owned_skill_names() == {"spec"}
+
+    def test_default_returns_empty_on_invalid_dir(self, monkeypatch, tmp_path: Path) -> None:
+        """Invalid value means "touch nothing", never "read the personal profile"."""
+        from _lib.util import pilot_owned_skill_names
+
+        claude = tmp_path / ".claude"
+        claude.mkdir()
+        (claude / ".pilot-manifest.json").write_text(
+            json.dumps({"files": ["skills/spec/manifest.json"]}), encoding="utf-8"
+        )
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", "relative/path")
+        monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+
+        assert pilot_owned_skill_names() == set()
+
+
 class TestGetMaxContextTokens:
     """Tests for _get_max_context_tokens()."""
 

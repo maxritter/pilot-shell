@@ -34,14 +34,17 @@ That one click writes `"shareMemories": true` into `.pilot/memory.json`, exports
 
 ## Staying In Sync
 
-Once enabled, sharing keeps itself current in both directions:
+Once enabled, sharing keeps itself current in both directions with no button to press. Both work on **Claude Code and Codex CLI**:
 
-- **Outgoing** - a session's memories are written when it ends. You still commit them.
-- **Incoming** - teammates' new records are imported at the start of every session, before your context is assembled, so yesterday's decision is available to your agent today. Works on **both Claude Code and Codex CLI**.
+- **Outgoing** - your memories are written when a session ends. Codex has no session-end event, so there they are written at the end of each turn instead. You still commit them.
+- **Incoming** - teammates' new records are imported at the start of every session, before your context is assembled, so yesterday's decision is available to your agent today.
+- **Catch-up** - session start also exports anything still pending, so a session that ended uncleanly - terminal killed, window closed, machine crashed - does not strand its memories.
 
-Neither runs on a timer: a clock-driven job would drop files into your working tree mid-rebase or mid-review and make the diff you are reviewing a moving target. **Share memories** and **Import** on the card run either direction on demand.
+Nothing runs on a timer. Writes are driven by content, not a clock: a session or turn that produced no new shareable memory writes no file, so the diff you are reviewing never moves under you.
 
 Imported memories behave like your own - badged with their author in the Memories view, semantically searchable, and fed into the session-start context digest.
+
+The card itself is just a switch: enable or disable sharing for the project, with an **(i)** button explaining what runs and when.
 
 ## What Gets Shared
 
@@ -65,8 +68,11 @@ Enabling sharing yourself counts as that decision. But when you **clone a repo w
 
 ## Frequently Asked
 
-**Do I have to re-export memories I already shared?**
-No. Export appends only records the files do not already contain, so running it twice produces no diff.
+**Do I have to export anything by hand?**
+No - there is no export button any more. Export runs on its own, and appends only records the files do not already contain, so running it twice produces no diff.
+
+**Can I push my memories out mid-session, without waiting for it to end?**
+Not from the Console - the card is deliberately just a switch. `POST /api/memory-sharing/export` with `{"project": "<name>"}` still does it on demand if you need that from a script.
 
 **What happens if a teammate's licence lapses?**
 The records are plain text in your repository and stay there. Without a Team licence the Console stops importing and exporting them.

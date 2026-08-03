@@ -104,11 +104,11 @@ CODEX_FLAG="$HOME/.pilot/sessions/$SESS_ID/codex-changes-review-ran-<plan-slug>.
 [ -f "$CODEX_FLAG" ] && echo "Codex already reviewed this plan in this session — skipping (codex-once)."
 ```
 
-Otherwise **read `$HOME/.claude/agents/codex-companion-protocol.md` and follow §1–§3 now** (locate → render → launch). Step 3 runs §4–§6. Supply:
+Otherwise **read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/codex-companion-protocol.md` and follow §1–§3 now** (locate → render → launch). Step 3 runs §4–§6. Supply:
 
 | Protocol input | Value for changes review |
 |---|---|
-| `PROMPT_TEMPLATE` | `$HOME/.claude/agents/changes-review-codex.md` |
+| `PROMPT_TEMPLATE` | `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/changes-review-codex.md` |
 | `{{PLAN_PATH}}` | absolute path to the plan file |
 | `{{PLAN_GOAL}}` | the Goal sentence from the plan's `## Summary` |
 | `{{BASE_REF}}` | the `base_ref` from the Step 1b resolver, verbatim — `HEAD` in working-tree mode (the template then falls back to the staged `git diff HEAD`), the detected base branch in worktree mode. Never a hardcoded branch name. |

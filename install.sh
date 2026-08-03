@@ -198,11 +198,21 @@ show_macos_gatekeeper_warning() {
 }
 
 confirm_local_install() {
+	# Name the paths this install will actually touch. With CLAUDE_CONFIG_DIR set,
+	# a hardcoded "~/.claude" here would tell the user we are about to modify
+	# their personal profile at the exact moment they decide whether to proceed.
+	_claude_dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+	_claude_app_config="${CLAUDE_CONFIG_DIR:-$HOME}/.claude.json"
+	_codex_dir="${CODEX_HOME:-$HOME/.codex}"
+
 	echo ""
 	echo "  Local installation will:"
 	echo "    • Add 'pilot' and 'ccp' command to your favorite shell config (~/.bashrc, ~/.zshrc, fish)"
-	echo "    • Configure Claude Code (~/.claude.json, ~/.claude/settings.json) and Codex CLI (~/.codex/config.toml) to Pilot best-practices"
+	echo "    • Configure Claude Code (${_claude_app_config}, ${_claude_dir}/settings.json) and Codex CLI (${_codex_dir}/config.toml) to Pilot best-practices"
 	echo "    • Install additional tool dependencies via Homebrew or NPM on your system"
+	if [ -n "${CLAUDE_CONFIG_DIR+x}" ]; then
+		echo "    • Use CLAUDE_CONFIG_DIR: your default $HOME/.claude will NOT be modified"
+	fi
 	echo ""
 	confirm=""
 	if [ -t 0 ]; then
@@ -427,7 +437,7 @@ run_installer() {
 	fi
 
 	uv run --python 3.12 --no-project --no-config \
-		--with rich==15.0.0 --with certifi==2026.6.17 --with PyYAML==6.0.3 \
+		--with rich==15.0.0 --with certifi==2026.7.22 --with PyYAML==6.0.3 \
 		python -m installer install $system_arg $version_arg $local_arg "$@"
 }
 

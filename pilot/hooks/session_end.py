@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
 """SessionEnd hook - completes session in Console and stops worker if last session.
 
-1. Marks the session as completed in the Console (so the sessions tab updates)
-2. Stops the worker only when the current session is the last active one
+1. Stops the worker only when the current session is the last active one
+2. Marks the session as completed in the Console (so the sessions tab updates),
+   which is also what triggers the team-memory export for that session
 
 Both side-effects are handed off to detached subprocesses so this hook never
 blocks on network or child-process I/O. Claude Code's harness may cancel the
 SessionEnd hook at any point; detaching guarantees the work still completes.
+
+The two halves are gated differently because the agents differ. Claude Code has
+a real SessionEnd event and passes ``--session-end``. Codex has none, so this
+script is registered on its ``Stop`` hook, which fires every assistant turn -
+completing the session there would abort the in-flight SDK agent. Worker-stop is
+safe per turn and stays unconditional; session completion needs the flag.
 """
 
 from __future__ import annotations
@@ -19,9 +26,19 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from _lib.console_settings import get_console_url
+from _lib.util import read_hook_stdin
 
 SESSIONS_DIR = Path.home() / ".pilot" / "sessions"
 SKIP_NAMES = {"default", "pipes"}
+
+# Marks an invocation as a genuine end-of-session rather than an end-of-turn.
+SESSION_END_FLAG = "--session-end"
+
+# Fallbacks for the agent's own session id when the hook payload has none.
+# PILOT_SESSION_ID is deliberately absent: it is the shell-wrapper / PID id, not
+# the ``contentSessionId`` the Console registered at session-init, so posting it
+# would always resolve to not_found while looking like it worked.
+_CONTENT_SESSION_ID_ENV_CHAIN = ("CLAUDE_CODE_SESSION_ID", "CODEX_THREAD_ID")
 
 # Inlined script run by the detached Console POST worker. Kept minimal so the
 # subprocess startup cost is the only overhead when Console is down.
@@ -41,7 +58,27 @@ except Exception:
 """
 
 
-def _complete_session() -> None:
+def _resolve_content_session_id(hook_data: dict) -> str:
+    """Resolve the agent's own session id, or "" when none is available.
+
+    The hook payload is authoritative: its ``session_id`` is the exact value the
+    Console stored as ``contentSessionId`` when the session was registered (see
+    the platform adapters in console/src/cli/adapters/). The env chain is only a
+    fallback for a harness that supplies no payload.
+    """
+    session_id = str(hook_data.get("session_id") or "").strip()
+    if session_id:
+        return session_id
+
+    for var in _CONTENT_SESSION_ID_ENV_CHAIN:
+        value = os.environ.get(var, "").strip()
+        if value:
+            return value
+
+    return ""
+
+
+def _complete_session(hook_data: dict) -> None:
     """Mark the current session as completed in the Console.
 
     Fully detached fire-and-forget. Spawns a short-lived Python subprocess
@@ -49,7 +86,7 @@ def _complete_session() -> None:
     can cancel the hook mid-flight and the notification still goes out in
     its own process group. Errors inside the worker are swallowed.
     """
-    session_id = os.environ.get("CLAUDE_SESSION_ID", "")
+    session_id = _resolve_content_session_id(hook_data)
     if not session_id:
         return
 
@@ -137,8 +174,12 @@ def main() -> int:
         except OSError:
             pass
 
-    # Mark session as completed in Console (fully detached, never blocks)
-    _complete_session()
+    # Only a genuine session end may complete the session. On Codex this script
+    # runs on every Stop, and completing there would delete the in-memory session
+    # and abort the SDK agent still draining the observation queue. Read stdin
+    # only on that path so an end-of-turn invocation never waits on the pipe.
+    if SESSION_END_FLAG in sys.argv[1:]:
+        _complete_session(read_hook_stdin())
 
     return 0
 

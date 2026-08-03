@@ -840,6 +840,59 @@ class TestMergeAppConfig:
             assert patched["autoCompactEnabled"] is True
             assert patched["theme"] == "dark"
 
+    def test_app_config_lands_in_custom_config_dir(self, tmp_path, monkeypatch):
+        """With CLAUDE_CONFIG_DIR set, app preferences must NOT touch ~/.claude.json."""
+        from unittest.mock import patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        home = tmp_path
+        custom_dir = tmp_path / ".claude_work"
+        custom_dir.mkdir()
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(custom_dir))
+
+        pilot_home = tmp_path / ".pilot"
+        pilot_home.mkdir(parents=True)
+        (pilot_home / "claude.json").write_text(json.dumps({"theme": "dark"}, indent=2))
+        personal = home / ".claude.json"
+        personal.write_text(json.dumps({"oauthAccount": "personal"}, indent=2))
+        before = personal.read_text()
+
+        step = ClaudeFilesStep()
+        with patch("installer.steps.claude_files.Path.home", return_value=home):
+            step._merge_app_config()
+
+        assert personal.read_text() == before, "personal ~/.claude.json was modified"
+        assert json.loads((custom_dir / ".claude.json").read_text())["theme"] == "dark"
+
+    def test_app_config_uses_dot_config_json_when_present_and_unset(self, tmp_path, monkeypatch):
+        """A default-dir user with ~/.claude/.config.json resolves there, matching Claude Code.
+
+        This is the one case where an existing default-directory user's resolution
+        legitimately changes, so assert it rather than letting it ride on the
+        general "no behaviour change when unset" claim.
+        """
+        from unittest.mock import patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        monkeypatch.delenv("CLAUDE_CONFIG_DIR", raising=False)
+        home = tmp_path
+        claude_dir = home / ".claude"
+        claude_dir.mkdir()
+        (claude_dir / ".config.json").write_text(json.dumps({"oauthAccount": "x"}, indent=2))
+
+        pilot_home = tmp_path / ".pilot"
+        pilot_home.mkdir(parents=True)
+        (pilot_home / "claude.json").write_text(json.dumps({"theme": "dark"}, indent=2))
+
+        step = ClaudeFilesStep()
+        with patch("installer.steps.claude_files.Path.home", return_value=home):
+            step._merge_app_config()
+
+        assert json.loads((claude_dir / ".config.json").read_text())["theme"] == "dark"
+        assert not (home / ".claude.json").exists()
+
     def test_no_crash_when_claude_json_template_missing(self):
         """Installer skips merge when pilot/claude.json was not installed."""
         from installer.context import InstallContext
@@ -2202,6 +2255,38 @@ class TestMergeMcpServersIntoClaudeJson:
         assert merged["mcpServers"]["context7"]["command"] == "node-custom"
         # UI got a warning
         ui.warning.assert_called()
+
+    def test_servers_land_in_custom_config_dir(self, tmp_path, monkeypatch):
+        """With CLAUDE_CONFIG_DIR set, MCP servers must NOT touch ~/.claude.json.
+
+        Drives the real resolver via the env var rather than patching it, so this
+        exercises the actual app-config rule. conftest's autouse fixture unsets
+        the variable first; setting it here overrides that for this test only.
+        """
+        from unittest.mock import patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        home = tmp_path
+        custom_dir = tmp_path / ".claude_work"
+        custom_dir.mkdir()
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(custom_dir))
+
+        pilot_home = tmp_path / ".pilot"
+        pilot_home.mkdir(parents=True)
+        (pilot_home / ".mcp.json").write_text(json.dumps({"mcpServers": {"context7": {"command": "npx"}}}, indent=2))
+        # Personal app config that must remain byte-identical.
+        personal = home / ".claude.json"
+        personal.write_text(json.dumps({"oauthAccount": "personal"}, indent=2))
+        before = personal.read_text()
+
+        step = ClaudeFilesStep()
+        with patch("installer.steps.claude_files.Path.home", return_value=home):
+            step._merge_mcp_servers_into_claude_json(ui=None)
+
+        assert personal.read_text() == before, "personal ~/.claude.json was modified"
+        merged = json.loads((custom_dir / ".claude.json").read_text())
+        assert merged["mcpServers"]["context7"]["command"] == "npx"
 
 
 class TestMergeHooksIntoSettings:

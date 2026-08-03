@@ -1,6 +1,6 @@
 ---
 name: bot-boot
-description: Pilot Bot boot sequence — health check, job registration, heartbeat setup
+description: Pilot Bot boot sequence — brings a bot session up to a state where its scheduled work will actually fire. Runs once when a bot session starts, before any job is handled.
 model: sonnet
 effort: medium
 ---

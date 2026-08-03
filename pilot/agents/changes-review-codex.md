@@ -17,7 +17,7 @@ You are Codex performing an adversarial review of an implementation change. Your
 
 Use your tools — do NOT rely on a pre-bundled diff. The plan is gitignored or otherwise not in the diff; the implementation IS in the working tree.
 
-1. Read the plan file first. Note the tasks, Definition-of-Done criteria, risk mitigations, and Goal Verification truths.
+1. Read the plan file first. Note the tasks, Definition-of-Done criteria, risk mitigations, and Goal Verification truths. If the plan has a `## Global Constraints` section, treat every line in it as binding on every task under review — those values apply to work that never mentions them.
 2. Get the diff with Bash. Take the bare paths from the "Files the plan said it would touch" list above (strip the leading `- ` bullet from each line, one path per line) and pass them to `git diff` as space-separated pathspecs:
    ```bash
    git diff {{BASE_REF}}...HEAD -- <path1> <path2> ...
@@ -60,6 +60,8 @@ If a Goal Verification truth includes the final plan header `Status: VERIFIED`, 
 ## Finding bar
 
 Report only material findings. Skip style feedback, naming feedback, low-value cleanup, and speculative concerns without evidence. A finding should answer: (1) what can go wrong, (2) why this code path is vulnerable, (3) the likely impact, (4) what concrete change reduces the risk. Cite real file paths and line numbers from the diff or your `Read` calls.
+
+**When the diff cannot settle it, say so instead of staying silent.** A plan requirement that cannot be checked from the diff — because it lives in unchanged code or spans tasks — is reported as an explicit cannot-verify item naming the requirement and why the diff cannot settle it; it is not a defect claim and must not be padded into one. Emit it at `severity: info` with the title prefixed `cannot verify from diff:` so the orchestrator can match on it, and let it never affect the verdict. This exists so you do NOT spend exploration on unchanged code — the orchestrator holds the cross-task context and resolves these itself.
 
 **Design-smell baseline (the one sanctioned exception to the skip-style rule).** Match the diff hunks you have already read against this fixed Fowler baseline — no extra exploration for smell hunting, and report baseline-only matches at `severity: info`: Mysterious Name (rename), Duplicated Code (extract the shared shape), Feature Envy (move the method onto the data it envies), Data Clumps (bundle into one type), Primitive Obsession (give the concept its own type), Repeated Switches (polymorphism or one shared map), Shotgun Surgery (gather what changes together), Divergent Change (split per reason), Speculative Generality (delete; inline until a real need shows), Message Chains (hide the walk behind one method), Middle Man (cut it, call the target direct), Refused Bequest (drop inheritance, use composition). Every smell is a judgement call, never a hard violation; when the same defect independently qualifies as a material finding (unauthorised scope, plan violation, real defect risk), report it as that finding at its earned severity — the baseline never downgrades. A documented repo standard you have already seen overrides the baseline; skip anything tooling already enforces. Smell findings answer a maintainability template instead of the four-part risk template: what is duplicated/misplaced/over-abstracted, the maintenance cost, and the refactor. Keep this baseline in sync with `changes-review.md`.
 

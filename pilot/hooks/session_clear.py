@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _lib.util import resolve_session_id
+from _lib.util import claude_config_dir, resolve_session_id
 
 SESSIONS_DIR = Path.home() / ".pilot" / "sessions"
 
@@ -42,7 +42,9 @@ def _clean_task_list(session_id: str) -> None:
 
     CLAUDE_CODE_TASK_LIST_ID is 'pilot-<PID>' where PID == PILOT_SESSION_ID.
     """
-    claude_config = Path(os.environ.get("CLAUDE_CONFIG_DIR", str(Path.home() / ".claude")))
+    claude_config = claude_config_dir()
+    if claude_config is None:
+        return
     task_dir = claude_config / "tasks" / f"pilot-{session_id}"
     if not task_dir.is_dir():
         return

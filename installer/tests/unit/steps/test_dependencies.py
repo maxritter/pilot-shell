@@ -2243,7 +2243,7 @@ class TestDependenciesCleanup:
                 ctx = InstallContext(
                     project_dir=Path(tmpdir),
                     non_interactive=False,
-                    ui=ui,
+                    ui=ui,  # pyright: ignore[reportArgumentType]  # structural test double
                 )
                 step.run(ctx)
 
@@ -2664,3 +2664,53 @@ class TestInstallLspPlugins:
         assert "vtsls@claude-code-lsps" not in manifest["plugins"]
         assert "basedpyright@claude-code-lsps" in manifest["plugins"]
         assert "gopls@claude-code-lsps" in manifest["plugins"]
+
+
+class TestLegacyContextModeHonoursConfigDir:
+    """The legacy cleanup deletes a hook file and rewrites settings.json.
+
+    It runs on every install, so a hardcoded ~/.claude would mutate the personal
+    profile even when the user installed into a different one.
+    """
+
+    def test_operates_on_custom_config_dir_only(self, tmp_path, monkeypatch):
+        from installer.steps.dependencies import _legacy_context_mode_remove_orphan_hook
+
+        monkeypatch.setattr(Path, "home", lambda: tmp_path)
+        work = tmp_path / ".claude_work"
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(work))
+
+        # Orphan in BOTH profiles; only the work one may be touched.
+        for base in (tmp_path / ".claude", work):
+            (base / "hooks").mkdir(parents=True)
+            (base / "hooks" / "context-mode-cache-heal.mjs").write_text("// orphan\n")
+            (base / "settings.json").write_text(
+                json.dumps(
+                    {
+                        "hooks": {
+                            "SessionStart": [{"hooks": [{"type": "command", "command": "context-mode-cache-heal.mjs"}]}]
+                        }
+                    }
+                )
+            )
+
+        _legacy_context_mode_remove_orphan_hook()
+
+        assert not (work / "hooks" / "context-mode-cache-heal.mjs").exists(), "work profile not cleaned"
+        assert (tmp_path / ".claude" / "hooks" / "context-mode-cache-heal.mjs").exists(), (
+            "personal profile was modified"
+        )
+
+    def test_invalid_config_dir_touches_nothing(self, tmp_path, monkeypatch):
+        from installer.steps.dependencies import _legacy_context_mode_remove_orphan_hook
+
+        monkeypatch.setattr(Path, "home", lambda: tmp_path)
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", "relative/path")
+        hooks_dir = tmp_path / ".claude" / "hooks"
+        hooks_dir.mkdir(parents=True)
+        orphan = hooks_dir / "context-mode-cache-heal.mjs"
+        orphan.write_text("// orphan\n")
+
+        _legacy_context_mode_remove_orphan_hook()
+
+        assert orphan.exists(), "personal profile was modified on an invalid config dir"

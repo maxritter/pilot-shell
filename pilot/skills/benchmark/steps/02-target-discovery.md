@@ -25,10 +25,10 @@ If the user can't remember exact names, list them:
 ```bash
 <!-- CC-ONLY -->
 # Skills in this project
-ls -1 pilot/skills/ ~/.claude/skills/
+ls -1 pilot/skills/ "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/"
 
 # Rules in this project
-ls -1 pilot/rules/ ~/.claude/rules/
+ls -1 pilot/rules/ "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/rules/"
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 # Skills in this project

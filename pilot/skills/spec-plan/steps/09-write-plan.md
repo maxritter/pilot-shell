@@ -15,12 +15,15 @@
 - **What does NOT get built** → `## Out of Scope`. Explicit boundary decisions a reasonable reader might assume.
 - **Observable user-facing outcomes after the plan lands** → `## Goal Verification > ### Truths`.
 - **Per-task acceptance criteria** → task `Definition of Done` (not duplicated as a Goal Verification truth).
-- **Domain context an implementer can't infer from code** → `## Context for Implementer` (optional). Per-file gotchas go in that task's `Key Decisions`, not here.
+- **Exact project-wide values every task must honour, copied verbatim** → `## Global Constraints` (optional).
+- **Prose domain context an implementer can't infer from code** → `## Context for Implementer` (optional). Per-file gotchas go in that task's `Key Decisions`, not here.
+
+`Global Constraints` and `Context for Implementer` split on form, not topic: a constraint is a *value* you could paste into code (a version floor, a required format, an exact string, a platform requirement) — one line each; context is a *paragraph* explaining something the code doesn't show. If you are writing a sentence, it is context; if you are writing a value, it is a constraint.
 
 If you find yourself writing the same fact in two places, delete one — the longer/more-specific version stays.
 
 **Required sections:** Summary · Approach · Progress Tracking · Implementation Tasks.
-**Conditional sections** (include only when applicable, omit entirely otherwise): Out of Scope · Context for Implementer · Runtime Environment · File Structure (Step 7.0, for 4+ task plans) · Feature Inventory · Assumptions · Autonomous Decisions (defaults recorded when questions/approval are disabled — Steps 0.2/3.3/4/6) · Risks and Mitigations · Goal Verification · E2E Test Scenarios · Open Questions · Deferred Ideas.
+**Conditional sections** (include only when applicable, omit entirely otherwise): Out of Scope · Global Constraints · Context for Implementer · Runtime Environment · File Structure (Step 7.0, for 4+ task plans) · Feature Inventory · Assumptions · Autonomous Decisions (defaults recorded when questions/approval are disabled — Steps 0.2/3.3/4/6) · Risks and Mitigations · Goal Verification · E2E Test Scenarios · Open Questions · Deferred Ideas.
 
 <!-- CODEX-START
 ### Codex Console Task-Card Contract
@@ -81,9 +84,13 @@ Type: Feature
 **Chosen:** [Short name referencing real symbols/files from the workspace scan.]
 **Why:** [1-2 sentences — what it gives us and what it costs.]
 
+## Global Constraints (only when the spec fixes exact project-wide values; otherwise omit the whole section)
+
+- [One line per value, copied verbatim from the spec or the codebase — version floors, required formats, naming and copy rules, platform requirements, exact strings. **Every task's requirements implicitly include this section**, and reviewers are handed it as their attention lens, so a value here binds work that never mentions it. Never restate one of these inside a task's `Key Decisions`; reference it.]
+
 ## Context for Implementer (only when there is a non-obvious cross-task constraint that two or more tasks need to respect, AND it does not fit in any single task's `Key Decisions`; otherwise omit)
 
-[One short paragraph — cross-task domain context an implementer can't infer from the code. If you find yourself listing per-file patterns or gotchas, move them to the relevant task's `Key Decisions` instead.]
+[One short paragraph — cross-task domain context an implementer can't infer from the code. If you find yourself listing per-file patterns or gotchas, move them to the relevant task's `Key Decisions` instead. Exact values belong in `## Global Constraints`, not here.]
 
 ## Runtime Environment (only if project has a running service AND `spec-verify` / `spec-implement` will need it)
 

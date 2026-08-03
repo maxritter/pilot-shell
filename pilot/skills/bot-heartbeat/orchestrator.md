@@ -1,6 +1,6 @@
 ---
 name: bot-heartbeat
-description: Pilot Bot heartbeat — spawns background subagent for periodic health check, notifies only when issues are detected
+description: Pilot Bot heartbeat — keeps the bot's health under watch between jobs and speaks up only when something is wrong. Runs on its own half-hourly schedule, not on user request.
 model: sonnet
 effort: medium
 ---
@@ -23,7 +23,7 @@ Prompt to pass to the subagent:
 You are a heartbeat agent for Pilot Bot.
 
 Steps:
-1. Run: bash $PILOT_BOT_DIR/../../.claude/skills/bot-heartbeat/scripts/check.sh
+1. Run: bash "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/bot-heartbeat/scripts/check.sh"
    If the script outputs "SKIP", exit immediately (dedup — heartbeat already ran recently).
 2. Evaluate whether any issues exist (dead processes, failed jobs, etc.)
 3. Check if Telegram MCP tools (reply, react) are available. Track telegram_available.

@@ -1,6 +1,6 @@
 ---
 name: create-skill
-description: Create a well-structured skill — provide a topic to explore the codebase and build a skill interactively, or capture a workflow from the current session
+description: Create, edit, and test a skill — a reusable workflow future agents can find and follow. Use when the user types /create-skill, asks to make, write, add, or extract a skill, wants a repeatable workflow or technique from this session captured for reuse, or asks to change an existing skill's steps, description, or trigger keywords.
 user-invocable: true
 ---
 

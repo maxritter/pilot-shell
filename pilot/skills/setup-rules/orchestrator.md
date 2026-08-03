@@ -1,6 +1,6 @@
 ---
 name: setup-rules
-description: Set up and audit project rules — reads codebase, generates modular rules, documents MCP servers
+description: Gives a repository its own project rules and keeps them true as the codebase moves. Use when the user types /setup-rules, asks to set up, audit, refresh, or fix project rules, CLAUDE.md, or AGENTS.md, says the rules are stale or contradict the code, or wants the project's MCP servers documented for agents.
 user-invocable: true
 ---
 # /setup-rules - Set Up Project Rules

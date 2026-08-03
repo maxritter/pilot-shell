@@ -661,8 +661,32 @@ def build_objective_reinjection(plan_path: Path) -> str:
 PILOT_CLAUDE_MANIFEST_FILE = ".pilot-manifest.json"
 
 
+def claude_config_dir() -> Path | None:
+    """Resolve the Claude config directory, honouring ``CLAUDE_CONFIG_DIR``.
+
+    Returns the resolved directory when the variable is unset (``~/.claude``) or
+    set to an absolute path. Returns ``None`` when it is set but empty/relative.
+
+    ``None`` rather than the default is deliberate: hooks that delete or rebuild
+    files must not act on ``~/.claude`` because of a mistyped value - that is the
+    profile the user was trying to keep untouched. Callers treat ``None`` as
+    "skip all config-dir work".
+
+    Never raises: a hook that throws breaks the user's session. This is the third
+    copy of this rule (see installer/claude_paths.py and launcher/config.py);
+    hooks may not import either package. Keep the three in lockstep.
+    """
+    env_dir = os.environ.get("CLAUDE_CONFIG_DIR")
+    if env_dir is None:
+        return Path.home() / ".claude"
+    if not env_dir.strip():
+        return None
+    path = Path(env_dir)
+    return path if path.is_absolute() else None
+
+
 def pilot_owned_skill_names(claude_dir: Path | None = None) -> set[str]:
-    """Return the names of skills Pilot installed, per ~/.claude/.pilot-manifest.json.
+    """Return the names of skills Pilot installed, per <config dir>/.pilot-manifest.json.
 
     A skill is Pilot-owned iff its source manifest ``skills/<name>/manifest.json``
     is tracked in the install manifest. User-created skills are never listed, so
@@ -670,9 +694,14 @@ def pilot_owned_skill_names(claude_dir: Path | None = None) -> set[str]:
 
     Returns an empty set when the manifest is missing or unreadable — callers
     MUST treat "unknown" as "touch nothing" so a corrupt/absent manifest never
-    causes user skills to be deleted.
+    causes user skills to be deleted. An invalid ``CLAUDE_CONFIG_DIR`` resolves
+    the same way, so a bad value can never surface the personal profile's skills.
     """
-    base = claude_dir if claude_dir is not None else Path.home() / ".claude"
+    if claude_dir is None:
+        claude_dir = claude_config_dir()
+        if claude_dir is None:
+            return set()
+    base = claude_dir
     try:
         data = json.loads((base / PILOT_CLAUDE_MANIFEST_FILE).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError, ValueError):

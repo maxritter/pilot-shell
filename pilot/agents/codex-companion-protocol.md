@@ -12,7 +12,7 @@
 
 | Value | Meaning |
 |---|---|
-| `PROMPT_TEMPLATE` | `$HOME/.claude/agents/spec-review-codex.md` (plans) or `changes-review-codex.md` (code) |
+| `PROMPT_TEMPLATE` | `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/spec-review-codex.md` (plans) or `changes-review-codex.md` (code) |
 | Placeholders | The template's `{{...}}` keys and their values — resolved by the caller, never guessed |
 | `SLUG` | Plan slug (filename minus `YYYY-MM-DD-` prefix and `.md`), or `fix` for `/fix` |
 | `CODEX_FLAG` | Session sentinel path enforcing codex-once |
@@ -30,7 +30,7 @@ These three exist because each has produced a real, reproduced failure:
 ## 1. Locate the companion
 
 ```bash
-CODEX_COMPANION=$(ls ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | sort -V | tail -1)
+CODEX_COMPANION=$(ls ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | sort -V | tail -1)
 PROJECT_ROOT="${CLAUDE_PROJECT_ROOT:-$(pwd)}"
 SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"; mkdir -p "$SESS_DIR"
 [ -z "$CODEX_COMPANION" ] && echo "MISSING"

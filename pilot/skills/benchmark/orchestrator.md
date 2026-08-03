@@ -65,7 +65,7 @@ Follow these steps sequentially:
 **Config path:** `benchmarks/<target-name>/evals.json`
 **Outputs:** `benchmarks/<target-name>/runs/<timestamp>/`
 <!-- CC-ONLY -->
-**Runner:** `PYTHONPATH=~/.claude/skills/benchmark uv run python -m scripts.runner --config <evals.json> --skip-permissions`
+**Runner:** `PYTHONPATH="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/benchmark" uv run python -m scripts.runner --config <evals.json> --skip-permissions`
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 **Runner:** `PYTHONPATH=~/.agents/skills/benchmark uv run python -m scripts.runner --config <evals.json> --skip-permissions --agent codex --grader-timeout 600`

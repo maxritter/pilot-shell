@@ -3,15 +3,18 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
 from pathlib import Path
 
 from installer import __version__
+from installer.claude_paths import get_claude_app_config_path, get_claude_config_dir
 from installer.console_settings import get_console_display, get_worker_port
 from installer.context import InstallContext
 from installer.steps.base import BaseStep
+from installer.ui import Console
 
 
 def _get_pilot_version() -> str:
@@ -73,7 +76,55 @@ class FinalizeStep(BaseStep):
     def run(self, ctx: InstallContext) -> None:
         """Run final cleanup tasks and display success."""
         self._kill_stale_worker()
+        self._record_claude_profile()
+        self._report_claude_profile(ctx.ui)
         self._display_success(ctx)
+
+    @staticmethod
+    def _record_claude_profile() -> None:
+        """Record the Claude config dir this install targeted, for the drift guard.
+
+        Read only by pilot/hooks/config_dir_guard.py to detect a later session
+        served by a different profile. NEVER consulted to resolve a path -
+        resolution stays ambient-env-only.
+        """
+        try:
+            claude_dir = get_claude_config_dir()
+        except ValueError:
+            # Invalid CLAUDE_CONFIG_DIR: the install itself will have failed
+            # earlier. Nothing meaningful to record.
+            return
+        try:
+            record = Path.home() / ".pilot" / "state" / "last-claude-config-dir"
+            record.parent.mkdir(parents=True, exist_ok=True)
+            record.write_text(str(claude_dir), encoding="utf-8")
+        except OSError:
+            pass
+
+    @staticmethod
+    def _report_claude_profile(ui: Console | None) -> None:
+        """State which Claude profile was written when it is not the default.
+
+        The session-start drift guard cannot fire in a directory that has no Pilot
+        install, so this report is the primary protection against installing into
+        a profile the user did not intend. Silent on the default profile - that is
+        the documented behaviour and needs no narration.
+        """
+        if not ui or ui.quiet or not os.environ.get("CLAUDE_CONFIG_DIR"):
+            return
+        try:
+            claude_dir = get_claude_config_dir()
+            app_config = get_claude_app_config_path()
+        except ValueError:
+            return
+
+        ui.print()
+        ui.print("  [bold]Claude config directory[/bold] (from CLAUDE_CONFIG_DIR):")
+        ui.print(f"    Config dir: {claude_dir}")
+        ui.print(f"    App config: {app_config}")
+        ui.print(f"    Your default {Path.home() / '.claude'} was not modified.")
+        ui.print("    Launch with the same variable set:")
+        ui.print(f"      CLAUDE_CONFIG_DIR={claude_dir} claude")
 
     @staticmethod
     def _kill_stale_worker() -> None:

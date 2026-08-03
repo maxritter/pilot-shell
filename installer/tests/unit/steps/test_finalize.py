@@ -229,3 +229,63 @@ class TestFinalSuccessPanel:
                 assert "/create-skill · $create-skill" in additional_labels
                 assert "/benchmark · $benchmark" in additional_labels
                 assert "/ask-codex" in additional_labels
+
+
+class TestClaudeProfileReport:
+    """Install-time visibility of WHICH Claude profile is being written.
+
+    This is the primary guard against the reported surprise ("it modified my
+    personal ~/.claude"): the session-start hook cannot fire in a directory that
+    has no Pilot install, so the installer must say where it is writing.
+    """
+
+    def test_reports_custom_dir_and_states_home_is_untouched(self, tmp_path, monkeypatch):
+        from installer.steps.finalize import FinalizeStep
+
+        custom = tmp_path / ".claude_work"
+        custom.mkdir()
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(custom))
+        monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+
+        ui = MagicMock()
+        ui.quiet = False
+        FinalizeStep._report_claude_profile(ui)
+
+        printed = " ".join(str(c) for c in ui.print.call_args_list)
+        assert str(custom) in printed
+        assert ".claude.json" in printed
+        assert "not modified" in printed or "untouched" in printed
+
+    def test_stays_quiet_on_default_profile(self, tmp_path, monkeypatch):
+        """No env var means the documented default - no need to narrate it."""
+        from installer.steps.finalize import FinalizeStep
+
+        monkeypatch.delenv("CLAUDE_CONFIG_DIR", raising=False)
+        monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+
+        ui = MagicMock()
+        ui.quiet = False
+        FinalizeStep._report_claude_profile(ui)
+
+        ui.print.assert_not_called()
+
+    def test_records_installed_dir_for_the_drift_guard(self, tmp_path, monkeypatch):
+        from installer.steps.finalize import FinalizeStep
+
+        custom = tmp_path / ".claude_work"
+        custom.mkdir()
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(custom))
+        monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+
+        FinalizeStep._record_claude_profile()
+
+        record = tmp_path / ".pilot" / "state" / "last-claude-config-dir"
+        assert record.read_text(encoding="utf-8").strip() == str(custom)
+
+    def test_record_never_raises_on_invalid_config_dir(self, tmp_path, monkeypatch):
+        from installer.steps.finalize import FinalizeStep
+
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", "relative/path")
+        monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+
+        FinalizeStep._record_claude_profile()

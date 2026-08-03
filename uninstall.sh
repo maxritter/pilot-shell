@@ -3,9 +3,56 @@
 set -e
 
 PILOT_DIR="$HOME/.pilot"
-CLAUDE_DIR="$HOME/.claude"
+
+# Every path below feeds an `rm`, so validate BEFORE deriving any of them.
+# A relative CLAUDE_CONFIG_DIR would resolve rm targets against the current
+# working directory; falling back to ~/.claude on a bad value would clean the
+# personal profile the user set the variable to protect. Fail closed instead.
+if [ -n "${CLAUDE_CONFIG_DIR+x}" ]; then
+	case "$CLAUDE_CONFIG_DIR" in
+	/*) ;;
+	*)
+		echo "  [!!] CLAUDE_CONFIG_DIR must be an absolute path, got: '${CLAUDE_CONFIG_DIR}'" >&2
+		echo "       Refusing to uninstall - no files were removed." >&2
+		exit 1
+		;;
+	esac
+	if [ ! -d "$CLAUDE_CONFIG_DIR" ]; then
+		echo "  [!!] CLAUDE_CONFIG_DIR does not exist: '${CLAUDE_CONFIG_DIR}'" >&2
+		echo "       Refusing to uninstall - no files were removed." >&2
+		exit 1
+	fi
+	# Canonicalize so the manifest check and the later rm agree on one path.
+	CLAUDE_DIR="$(cd "$CLAUDE_CONFIG_DIR" && pwd -P)"
+else
+	CLAUDE_DIR="$HOME/.claude"
+fi
+
+# Claude Code's app config: <config dir>/.config.json when present, else
+# (CLAUDE_CONFIG_DIR or $HOME)/.claude.json. Same rule as
+# installer/claude_paths.py:get_claude_app_config_path - keep the two in lockstep.
+if [ -f "$CLAUDE_DIR/.config.json" ]; then
+	CLAUDE_APP_CONFIG="$CLAUDE_DIR/.config.json"
+else
+	CLAUDE_APP_CONFIG="${CLAUDE_CONFIG_DIR:-$HOME}/.claude.json"
+fi
+
 PILOT_PLUGIN_DIR="$CLAUDE_DIR/pilot"
 MANIFEST_FILE="$CLAUDE_DIR/.pilot-manifest.json"
+
+# When the user explicitly names a profile, that profile must actually contain a
+# Pilot install. Otherwise they have pointed the uninstaller at the wrong
+# directory and would get a half-clean ("removed 0 files") with the real install
+# left behind. Only enforced when CLAUDE_CONFIG_DIR is set: an unset value must
+# stay tolerant, because legacy pre-manifest installs have no manifest and still
+# need ~/.pilot, the shell aliases and the Codex tree cleaned up.
+if [ -n "${CLAUDE_CONFIG_DIR+x}" ] && [ ! -f "$MANIFEST_FILE" ]; then
+	echo "  [!!] No Pilot install found in CLAUDE_CONFIG_DIR: ${CLAUDE_DIR}" >&2
+	echo "       (expected $(basename "$MANIFEST_FILE"))" >&2
+	echo "       Refusing to uninstall - no files were removed." >&2
+	echo "       Unset CLAUDE_CONFIG_DIR to uninstall from \$HOME/.claude instead." >&2
+	exit 1
+fi
 HOOKS_BASELINE_FILE="$CLAUDE_DIR/.pilot-hooks-baseline.json"
 MCP_BASELINE_FILE="$CLAUDE_DIR/.pilot-mcp-baseline.json"
 LSP_MANIFEST_FILE="$PILOT_DIR/.pilot-lsp-plugins.json"
@@ -128,6 +175,15 @@ confirm_uninstall() {
 	echo "======================================================================"
 	echo ""
 
+	# Always name the profile being cleaned - with CLAUDE_CONFIG_DIR set, the
+	# user needs to see WHICH Claude directory this touches before confirming.
+	echo "  Claude config directory: ${CLAUDE_DIR}"
+	echo "  Claude app config:       ${CLAUDE_APP_CONFIG}"
+	if [ -n "${CLAUDE_CONFIG_DIR+x}" ]; then
+		echo "  (from CLAUDE_CONFIG_DIR - \$HOME/.claude will not be modified)"
+	fi
+	echo ""
+
 	echo "  Uninstalling will:"
 	echo ""
 
@@ -136,25 +192,25 @@ confirm_uninstall() {
 	fi
 
 	if [ -d "$PILOT_PLUGIN_DIR" ]; then
-		echo "    • Remove legacy ~/.claude/pilot/ directory"
+		echo "    • Remove legacy ${CLAUDE_DIR}/pilot/ directory"
 	fi
 
 	local entries
 	entries=$(get_manifest_entries)
 	if [ -n "$entries" ]; then
-		echo "$entries" | grep -q '^commands/' && echo "    • Remove Pilot-managed commands from ~/.claude/commands/"
-		echo "$entries" | grep -q '^skills/' && echo "    • Remove Pilot-managed skills from ~/.claude/skills/"
-		echo "$entries" | grep -q '^rules/' && echo "    • Remove Pilot-managed rules from ~/.claude/rules/"
-		echo "$entries" | grep -q '^agents/' && echo "    • Remove Pilot-managed agents from ~/.claude/agents/"
-		echo "$entries" | grep -q '^hooks/' && echo "    • Remove Pilot-managed hooks from ~/.claude/hooks/"
+		echo "$entries" | grep -q '^commands/' && echo "    • Remove Pilot-managed commands from ${CLAUDE_DIR}/commands/"
+		echo "$entries" | grep -q '^skills/' && echo "    • Remove Pilot-managed skills from ${CLAUDE_DIR}/skills/"
+		echo "$entries" | grep -q '^rules/' && echo "    • Remove Pilot-managed rules from ${CLAUDE_DIR}/rules/"
+		echo "$entries" | grep -q '^agents/' && echo "    • Remove Pilot-managed agents from ${CLAUDE_DIR}/agents/"
+		echo "$entries" | grep -q '^hooks/' && echo "    • Remove Pilot-managed hooks from ${CLAUDE_DIR}/hooks/"
 	fi
 
 	if [ -f "$CLAUDE_DIR/settings.json" ]; then
-		echo "    • Clean Pilot-added entries from ~/.claude/settings.json (including merged hooks)"
+		echo "    • Clean Pilot-added entries from ${CLAUDE_DIR}/settings.json (including merged hooks)"
 	fi
 
-	if [ -f "$HOME/.claude.json" ] && { [ -f "$CLAUDE_DIR/.pilot-claude-baseline.json" ] || [ -f "$MCP_BASELINE_FILE" ]; }; then
-		echo "    • Clean Pilot-added keys (and mcpServers) from ~/.claude.json"
+	if [ -f "$CLAUDE_APP_CONFIG" ] && { [ -f "$CLAUDE_DIR/.pilot-claude-baseline.json" ] || [ -f "$MCP_BASELINE_FILE" ]; }; then
+		echo "    • Clean Pilot-added keys (and mcpServers) from ${CLAUDE_APP_CONFIG}"
 	fi
 
 	if [ -f "$LSP_MANIFEST_FILE" ]; then
@@ -408,7 +464,7 @@ remove_pilot_settings() {
 	fi
 
 	if [ -f "$baseline" ] && command -v python3 >/dev/null 2>&1; then
-		run_surgical_cleanup "$settings_file" "$baseline" "~/.claude/settings.json"
+		run_surgical_cleanup "$settings_file" "$baseline" "${CLAUDE_DIR}/settings.json"
 	else
 		echo "    [!!] Skipped ~/.claude/settings.json (no baseline found, manual cleanup needed)"
 	fi
@@ -473,11 +529,11 @@ if removed > 0:
 '
 	fi
 
-	removed_items+=("~/.claude/settings.json")
+	removed_items+=("${CLAUDE_DIR}/settings.json")
 }
 
 remove_claude_json_keys() {
-	local claude_json="$HOME/.claude.json"
+	local claude_json="$CLAUDE_APP_CONFIG"
 	local baseline="$CLAUDE_DIR/.pilot-claude-baseline.json"
 	local mcp_baseline="$MCP_BASELINE_FILE"
 
@@ -531,9 +587,9 @@ with open(claude_json, "w") as f:
 	fi
 
 	if [ -f "$baseline" ]; then
-		run_surgical_cleanup "$claude_json" "$baseline" "~/.claude.json"
+		run_surgical_cleanup "$claude_json" "$baseline" "${CLAUDE_APP_CONFIG}"
 	fi
-	removed_items+=("~/.claude.json")
+	removed_items+=("${CLAUDE_APP_CONFIG}")
 }
 
 uninstall_lsp_plugins() {
@@ -627,8 +683,8 @@ remove_pilot_plugin() {
 	# install (which would have removed it as part of the post-install migration).
 	if [ -d "$PILOT_PLUGIN_DIR" ]; then
 		rm -rf "$PILOT_PLUGIN_DIR"
-		echo "    [OK] Removed legacy ~/.claude/pilot/"
-		removed_items+=("~/.claude/pilot/ (legacy)")
+		echo "    [OK] Removed legacy ${CLAUDE_DIR}/pilot/"
+		removed_items+=("${CLAUDE_DIR}/pilot/ (legacy)")
 	fi
 }
 

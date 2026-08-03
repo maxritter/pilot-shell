@@ -2198,3 +2198,25 @@ class TestMigrationV21:
         first = config_path.read_text()
         assert migrate_model_config(config_path=config_path) is False
         assert config_path.read_text() == first
+
+
+class TestSubscriptionTypeInvalidConfigDir:
+    """An undetectable subscription must return None, the "leave settings alone" signal.
+
+    Every other failure path in _get_subscription_type returns None, and both
+    callers guard only on `is None`. Returning "" would fall through that guard
+    AND the `== "max"` guard, so the migration would proceed as if the user were
+    a confirmed non-Max subscriber.
+    """
+
+    def test_invalid_config_dir_returns_none(self, monkeypatch):
+        from installer.steps import config_migration
+
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", "relative/path")
+        # Force the `claude auth status` probe to fail so we reach the creds path.
+        # subprocess is imported inside the function, so patch it at the source.
+        import subprocess
+
+        monkeypatch.setattr(subprocess, "run", lambda *a, **k: (_ for _ in ()).throw(OSError("no claude binary")))
+
+        assert config_migration._get_subscription_type() is None

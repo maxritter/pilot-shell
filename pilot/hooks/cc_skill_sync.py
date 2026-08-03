@@ -33,7 +33,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from _lib.util import pilot_owned_skill_names  # noqa: E402
+from _lib.util import claude_config_dir, pilot_owned_skill_names  # noqa: E402
 
 
 def _check_license() -> bool:
@@ -124,7 +124,14 @@ def _rebuild_cc_skills(skills_dir: Path, names: set[str]) -> int:
 
 
 def main() -> None:
-    claude_dir = Path.home() / ".claude"
+    claude_dir = claude_config_dir()
+    if claude_dir is None:
+        # CLAUDE_CONFIG_DIR set but invalid. This hook deletes and rebuilds
+        # SKILL.md files, so falling back to ~/.claude would mutate the profile
+        # the user was trying to protect. Do nothing.
+        print(json.dumps({"continue": True}))
+        return
+
     skills_dir = claude_dir / "skills"
     if not skills_dir.is_dir():
         print(json.dumps({"continue": True}))

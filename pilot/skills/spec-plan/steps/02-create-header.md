@@ -2,7 +2,7 @@
 
 1. **Parse flags** from arguments: `--worktree=yes|no` or `--new-branch` (default: `No`). Strip the flag from task description.
 
-2. **Branch / worktree setup — only when the flag is `--new-branch` or `--worktree=yes`.** Read `$HOME/.claude/agents/spec-branch-setup.md` and follow it, using branch prefix `feat/` and `<plan_slug>` derived from the task description (the same slug as the plan filename). On the default `--worktree=no` there is nothing to do — work continues on the current branch.
+2. **Branch / worktree setup — only when the flag is `--new-branch` or `--worktree=yes`.** Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/spec-branch-setup.md` and follow it, using branch prefix `feat/` and `<plan_slug>` derived from the task description (the same slug as the plan filename). On the default `--worktree=no` there is nothing to do — work continues on the current branch.
 
 3. **Generate filename:** (for both worktree and new-branch paths) `docs/plans/YYYY-MM-DD-<feature-slug>.md` — slug from first 3-4 words (lowercase, hyphens). If worktree active, use worktree path as base directory.
 

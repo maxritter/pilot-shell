@@ -1,6 +1,6 @@
 ---
 name: spec-implement
-description: "Spec implementation phase - TDD loop for each task in the plan"
+description: "Implementation phase of the /spec workflow — turns an approved plan into working code, task by task. Entered for a plan marked Approved: Yes with tasks still unchecked, whether first pass or a re-entry after verification found gaps."
 argument-hint: "<path/to/plan.md>"
 user-invocable: false
 ---

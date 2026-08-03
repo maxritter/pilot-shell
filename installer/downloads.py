@@ -29,7 +29,9 @@ def _get_ssl_context() -> ssl.SSLContext:
         return _ssl_context
 
     try:
-        import certifi
+        # Optional at type-check time: certifi is injected at runtime via `uv run --with certifi`,
+        # so it is absent from the dev venv. The ImportError branch below is the real contract.
+        import certifi  # pyright: ignore[reportMissingImports]
 
         _ssl_context = ssl.create_default_context(cafile=certifi.where())
         return _ssl_context

@@ -153,7 +153,9 @@ def _scan_python_or_shell(path: Path) -> list[Finding]:
     if read_finding is not None:
         findings.append(read_finding)
     for ctx in lines:
-        # Bare `# noqa: drift-check` (no justification) is itself a finding.
+        # A bare drift-check suppression (no justification) is itself a finding.
+        # Spelled without the literal directive token so ruff does not parse this
+        # prose as a real noqa and warn about an invalid code list.
         # `continue` keeps the line from also matching downstream patterns —
         # one line, one bare-noqa finding (no double-reporting).
         if ctx.has_noqa and not ctx.noqa_justified:

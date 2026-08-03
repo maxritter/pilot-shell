@@ -1469,3 +1469,96 @@ class TestCodexConfigEnvHeal:
             step._heal_codex_config_env(ui)
 
         ui.warning.assert_called_once()
+
+
+class TestCodexSourcesHonourClaudeConfigDir:
+    """Codex adaptation reads skills/agents/rules FROM the Claude profile.
+
+    With a custom profile these hardcoded reads find nothing, so a Codex user
+    silently gets zero skills and no review agents.
+    """
+
+    def test_skills_source_follows_config_dir(self, tmp_path, monkeypatch):
+        from installer.steps.codex_files import CodexFilesStep
+
+        work = tmp_path / ".claude_work"
+        skill_dir = work / "skills" / "spec"
+        skill_dir.mkdir(parents=True)
+        (skill_dir / "manifest.json").write_text(
+            json.dumps({"version": 1, "orchestrator": "orchestrator.md", "steps": []})
+        )
+        (skill_dir / "orchestrator.md").write_text(
+            "---\nname: spec\ndescription: Spec workflow\n---\n\nRun /spec to plan."
+        )
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(work))
+        monkeypatch.setattr(Path, "home", lambda: tmp_path)
+
+        from installer.context import InstallContext
+
+        ctx = InstallContext(project_dir=tmp_path)
+        built = CodexFilesStep()._install_codex_skills(ctx)
+
+        assert built > 0, "no skills adapted from the custom profile"
+        assert (tmp_path / ".agents" / "skills" / "spec" / "SKILL.md").exists()
+
+    def test_review_agents_source_follows_config_dir(self, tmp_path, monkeypatch):
+        from installer.steps.codex_files import CodexFilesStep
+
+        work = tmp_path / ".claude_work"
+        (work / "agents").mkdir(parents=True)
+        (work / "agents" / "spec-review.md").write_text("# spec review\n")
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(work))
+        monkeypatch.setattr(Path, "home", lambda: tmp_path)
+
+        from installer.context import InstallContext
+
+        ctx = InstallContext(project_dir=tmp_path)
+        found = CodexFilesStep()._find_codex_review_agents_source(ctx)
+
+        assert found is not None, "review-agent source not found in the custom profile"
+        assert str(work) in str(found)
+
+
+class TestCodexSourcesFailClosedOnInvalidConfigDir:
+    """A set-but-relative CLAUDE_CONFIG_DIR must never fall back to ~/.claude.
+
+    Mirrors the invalid-value coverage dependencies.py already has; without it
+    a regression could reintroduce the personal-profile read silently.
+    """
+
+    def test_skills_install_reads_nothing(self, tmp_path, monkeypatch):
+        from installer.context import InstallContext
+        from installer.steps.codex_files import CodexFilesStep
+
+        personal = tmp_path / ".claude" / "skills" / "spec"
+        personal.mkdir(parents=True)
+        (personal / "manifest.json").write_text(
+            json.dumps({"version": 1, "orchestrator": "orchestrator.md", "steps": []})
+        )
+        (personal / "orchestrator.md").write_text("---\nname: spec\ndescription: d\n---\n\nx")
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", "relative/path")
+        monkeypatch.setattr(Path, "home", lambda: tmp_path)
+
+        built = CodexFilesStep()._install_codex_skills(InstallContext(project_dir=tmp_path))
+
+        assert built == 0
+        assert not (tmp_path / ".agents" / "skills" / "spec").exists()
+
+    def test_review_agents_source_is_none(self, tmp_path, monkeypatch):
+        from installer.context import InstallContext
+        from installer.steps.codex_files import CodexFilesStep
+
+        (tmp_path / ".claude" / "agents").mkdir(parents=True)
+        (tmp_path / ".claude" / "agents" / "spec-review.md").write_text("# x\n")
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", "relative/path")
+        monkeypatch.setattr(Path, "home", lambda: tmp_path)
+
+        assert CodexFilesStep()._find_codex_review_agents_source(InstallContext(project_dir=tmp_path)) is None
+
+    def test_rules_fallback_is_none(self, tmp_path, monkeypatch):
+        from installer.steps.codex_files import _claude_rules_dir_or_none
+
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", "relative/path")
+        monkeypatch.setattr(Path, "home", lambda: tmp_path)
+
+        assert _claude_rules_dir_or_none() is None

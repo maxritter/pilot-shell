@@ -55,7 +55,9 @@ Before proceeding, ask: "Do these tests verify what matters, or only what was ea
 | "Tests pass" | Fresh run: 0 failures | Previous run, "should pass" |
 | "Build succeeds" | Build exit 0 | "Linter passed" |
 | "Bug fixed" | Reproducing test passes | "Code changed" |
+| "Regression test works" | Red-green verified: revert the fix, watch the test FAIL, restore, watch it pass | "The test passes" (it may pass without the fix) |
 | "UI works" | Browser snapshot/read_page | "API returns 200" |
+| "Sub-agent completed the work" | The VCS diff shows the changes | The agent reported success |
 | "No perf regression" | Hot paths cached/memoized (per `development-practices.md` §Performance) | "Tests pass" |
 
 ### ⛔ Fix Verification Errors in /spec Without Asking
