@@ -2465,6 +2465,25 @@ class TestMergeHooksIntoSettings:
         assert new_command in merged_commands
 
 
+class TestShippedSettingsEffortLevel:
+    """The shipped settings template must express effort as an overridable
+    default, never as an `env` pin (issue #172)."""
+
+    SETTINGS_PATH = Path(__file__).parents[4] / "pilot" / "settings.json"
+
+    def test_template_ships_effort_only_as_overridable_default(self):
+        """`env.CLAUDE_CODE_EFFORT_LEVEL` sits above the `--effort` flag and above
+        project/user `effortLevel` in Claude Code's precedence chain, so shipping
+        it silently discards every effort choice a user makes. `effortLevel`
+        delivers the same default and stays overridable."""
+        data = json.loads(self.SETTINGS_PATH.read_text())
+
+        assert "CLAUDE_CODE_EFFORT_LEVEL" not in data.get("env", {}), (
+            "settings.json must not pin effort via env - it outranks --effort"
+        )
+        assert data.get("effortLevel"), "effortLevel must still carry the default effort"
+
+
 class TestHookCommandsPythonVersion:
     """Hook command strings in source JSON must include --python python3 so uv
     ignores a local .python-version pin (e.g. 2.7) in the user's repo."""

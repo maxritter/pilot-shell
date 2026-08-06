@@ -68,6 +68,10 @@ Research: [Quick | Standard | Deep | None]
 | [What was decided] | [The choice] | [Reasoning] |
 ```
 
+**Technical Context has a hard ceiling — this is the WHAT/HOW boundary made concrete.** The section may state what already exists and what constrains the work: the modules and files the feature touches, the pattern it should follow, a library or service already in the stack, a hard limit (a rate cap, the shape an API returns, a browser or runtime the project supports). That is the depth limit.
+
+It may NOT prescribe the implementation — no names for functions or classes yet to be written, no signatures, no algorithm, no error-handling structure, no retry/timeout/caching strategy, no file layout for new code, no test design. **Apply the test:** does this line say something that is *already true* about the codebase, or does it answer *how the thing should be built*? The second kind belongs in the `/spec` plan and gets cut here. `/spec` re-derives it from the code with full exploration behind it; a guess written into the PRD skips that exploration and anchors the plan to it.
+
 **Fetch author email** (best-effort):
 
 ```bash
@@ -90,7 +94,7 @@ After writing:
 1. **Self-review (4-point scan)** — read the file with fresh eyes and fix issues inline:
    - **Placeholders:** any `TBD`, `TODO`, bracketed `[...]` left from the template, or vague "etc." lists?
    - **Internal consistency:** do scope, user flows, and decisions agree with each other? Does anything contradict?
-   - **Scope:** focused enough for one `/spec` plan, or did decomposition slip? If it grew during writing, split or trim.
+   - **Scope:** focused enough for one `/spec` plan, or did decomposition slip? If it grew during writing, split or trim. Check `Explicitly Out of Scope` names real boundary decisions an implementer might otherwise assume — if it's empty or generic, go back to Step 6's checklist.
    - **Ambiguity:** could any requirement be read two different ways? Pick one and make it explicit.
 
    **Calibration — only flag what would actually cause problems during `/spec`.** A missing section, a contradiction, or a requirement so ambiguous it could be built two different ways → fix it. Minor wording improvements, stylistic preferences, sections that are less detailed than others, or "this paragraph could be tighter" → leave it alone. The goal is a PRD that produces a correct plan, not a perfect document.

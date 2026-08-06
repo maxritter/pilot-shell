@@ -79,7 +79,8 @@ Replace arbitrary `sleep`/`setTimeout` with polling for the actual condition:
 
 ```python
 # ❌ flaky
-await sleep(500); result = get_result()
+await sleep(500)
+result = get_result()
 
 # ✅ reliable
 result = await wait_for(lambda: get_result() is not None, timeout=5.0)

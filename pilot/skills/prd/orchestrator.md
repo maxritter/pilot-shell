@@ -43,7 +43,7 @@ The entire flow is conversational. One question at a time. No rushing to solutio
 
 ## Principles
 
-- **Understand before solving.** The PRD describes WHAT and WHY; `/spec` handles HOW. Resist over-specifying technically.
+- **Understand before solving.** The PRD describes WHAT and WHY; `/spec` handles HOW. The boundary has a named ceiling in Step 7 — the PRD points at the code that already exists and the constraints that bind it, and stops there.
 - **Be a thought partner, not an order-taker.** Challenge assumptions, surface trade-offs, name red flags and scope-creep risks while they're still cheap to fix.
 - **YAGNI ruthlessly.** Apply rung 1 of the ladder (`development-practices.md` → *Build the least that works*) to every proposed feature: does this need to exist at all? The cheapest scope to cut is the scope never specified.
 - **Write for handoff.** The PRD is the contract between requirements and specification — a reader running `/spec` should need nothing else.
@@ -61,6 +61,8 @@ Spend an interaction only when the answer would **change what gets built**. Befo
 3. Is the decision reversible and low-cost? → pick the sensible default, record it under Key Decisions, move on.
 
 Combine related decisions into one call rather than serialising them — approach selection (Step 5) and scope confirmation (Step 6) belong in one interaction whenever the scope follows from the approach.
+
+**Offer the defaults exit when the user is running out of patience.** Answers like "sure", "whatever you think", "you pick", or a conversation already past its interaction target are signs to stop asking. Offer one option — *"I'll take my recommended defaults for the rest and you review the written PRD"* — and if they take it, fill every remaining decision with the default you would have recommended, record each under Key Decisions with its reasoning, and go straight to Step 7. Step 7's read-the-file review is the backstop: a wrong default there costs one `Edit`, another question costs a round-trip.
 
 <!-- CC-ONLY -->
 **Use the `AskUserQuestion` tool for user questions during convergent phases (Steps 4-8)** — it renders a structured form; don't fall back to plain-text numbered questions.

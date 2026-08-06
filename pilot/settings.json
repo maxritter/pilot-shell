@@ -1,7 +1,6 @@
 {
   "env": {
     "CLAUDE_CODE_DISABLE_1M_CONTEXT": "false",
-    "CLAUDE_CODE_EFFORT_LEVEL": "xhigh",
     "CLAUDE_CODE_WORKFLOWS": "true",
     "CLAUDE_CODE_AUTO_CONNECT_IDE": "true",
     "CLAUDE_CODE_NO_FLICKER": "true",

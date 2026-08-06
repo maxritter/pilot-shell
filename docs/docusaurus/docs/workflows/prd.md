@@ -92,13 +92,17 @@ One question at a time with 2-4 options. Focuses on purpose, users, constraints,
 
 The skill works to an **interaction budget of 2-4 prompts total** across the whole flow. Before asking anything it checks whether the codebase already answers it, whether you already answered it, and whether the decision is reversible enough to just pick a sensible default and record it under Key Decisions. Ideation rounds are conversation, not prompts, and don't count against the budget.
 
+If you start answering with "sure" or "you pick", the skill offers a **defaults exit** — it takes its recommended default for every remaining decision, records each under Key Decisions with the reasoning, and jumps to the written PRD for you to review. Correcting a default there is one edit; answering another question is another round-trip.
+
 ### 4. Propose Approaches
 
 Proposes 2-3 implementation approaches with clear trade-offs. Leads with a recommendation and explains why. Gets your choice before proceeding.
 
 ### 5. Converge on Scope
 
-States what's in scope, what's explicitly out, identifies core user flows step-by-step, and notes technical context for `/spec`. When the scope follows directly from the approach you picked — the common case — this is folded into the same prompt as step 4 rather than costing a second round-trip.
+States what's in scope, identifies core user flows step-by-step, and notes technical context for `/spec`. When the scope follows directly from the approach you picked — the common case — this is folded into the same prompt as step 4 rather than costing a second round-trip.
+
+The out-of-scope list is **proposed to you, not collected from you**. The skill walks a checklist of adjacent capabilities — surface (mobile, extension, public API), access (SSO, roles, multi-tenancy), lifecycle (editing, history, undo, bulk actions), scale (search, pagination, import/export), money and comms (billing, quotas, notifications), AI features (model selection, per-user keys, streaming) — and proposes the two to six an implementer would plausibly build if the PRD stayed silent, each with a reason. You pull back anything you actually want. This is the section that stops scope creep during `/spec`, and it's the one nobody thinks to write unprompted.
 
 ### 6. Write PRD
 
@@ -109,7 +113,7 @@ Saves a PRD to `docs/prd/YYYY-MM-DD-<slug>.md` with structured metadata and thes
 | **Problem Statement** | What problem, for whom, why now — the north star |
 | **Core User Flows** | Step-by-step from the user's perspective |
 | **Scope** | In scope / explicitly out of scope with reasoning |
-| **Technical Context** | Lightweight notes for the implementer — constraints, integration points |
+| **Technical Context** | What already exists and what constrains the work — modules touched, patterns to follow, hard limits. Capped there on purpose: no invented function names, algorithms, or retry/caching strategy, since `/spec` re-derives those from the code and a guess here would anchor the plan to it |
 | **Key Decisions** | Trade-offs made during the conversation with reasoning |
 | **Research Findings** | Embedded research results (when research tier was Standard or Deep) |
 

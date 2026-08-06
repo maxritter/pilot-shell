@@ -137,11 +137,16 @@ bm = json.loads((run_dir / "benchmark.json").read_text())
 delta = float(bm["run_summary"]["delta"]["pass_rate"])
 
 # Map delta to label per the rubric.
-if delta >= 0.50:    label = "🟢 Strong signal"
-elif delta >= 0.20:  label = "🟢 Moderate signal"
-elif delta >= 0.05:  label = "🟡 Weak signal"
-elif delta >= -0.05: label = "⚪ Indistinguishable"
-else:                label = "🔴 Regression"
+if delta >= 0.50:
+    label = "🟢 Strong signal"
+elif delta >= 0.20:
+    label = "🟢 Moderate signal"
+elif delta >= 0.05:
+    label = "🟡 Weak signal"
+elif delta >= -0.05:
+    label = "⚪ Indistinguishable"
+else:
+    label = "🔴 Regression"
 
 # Per-assertion quadrant classification + structured output.
 quadrants = {"signal": 0, "baseline": 0, "unreachable": 0, "regression": 0}
@@ -152,14 +157,20 @@ for eval_dir in sorted(run_dir.glob("eval-*")):
         without_g = json.loads((eval_dir / "without_skill" / "run-1" / "grading.json").read_text())
         w = with_g["expectations"][i]["passed"]
         wo = without_g["expectations"][i]["passed"]
-        if w and not wo:    quadrants["signal"] += 1
-        elif w and wo:      quadrants["baseline"] += 1
-        elif not w and wo:  quadrants["regression"] += 1
-        else:               quadrants["unreachable"] += 1
+        if w and not wo:
+            quadrants["signal"] += 1
+        elif w and wo:
+            quadrants["baseline"] += 1
+        elif not w and wo:
+            quadrants["regression"] += 1
+        else:
+            quadrants["unreachable"] += 1
 
 print(f"VERDICT {label} — Δ pass-rate {delta:+.2f}")
-print(f"Quadrants: signal={quadrants['signal']} baseline={quadrants['baseline']} "
-      f"unreachable={quadrants['unreachable']} regression={quadrants['regression']}")
+print(
+    f"Quadrants: signal={quadrants['signal']} baseline={quadrants['baseline']} "
+    f"unreachable={quadrants['unreachable']} regression={quadrants['regression']}"
+)
 # ... then drill-down loop, divergent rows only ...
 ```
 

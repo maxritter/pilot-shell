@@ -11,9 +11,34 @@ interface SEOProps {
 }
 
 const SEO = ({
-  title = "Pilot Shell — How real engineers run Claude Code and Codex",
+  /*
+   * TITLE and KEYWORDS are set from measured US search volume (DataForSEO,
+   * 2026-08); the DESCRIPTION is deliberately not:
+   *
+   *   codex cli                  27100/mo   competition 30
+   *   claude code skills         12100/mo   competition  9
+   *   spec driven development     6600/mo   competition 42
+   *   claude code agents          5400/mo   competition 21
+   *   claude code plugins         5400/mo   competition  3
+   *   claude code hooks           3600/mo   competition  2
+   *   claude code subagents       2900/mo   competition  5
+   *   claude code mcp             2900/mo   competition  9
+   *   claude code framework         40/mo   <- what the old keywords led with
+   *
+   * "claude code" itself is 550000/mo but navigational to Anthropic, so it is
+   * carried for relevance and never chased as a target.
+   *
+   * DO NOT "optimize" the description. It is product positioning, not an SEO
+   * slot, and it is the sentence Slack, LinkedIn and X show when the site is
+   * shared. An earlier pass rewrote it into a feature list (skills, hooks,
+   * subagents, MCP) and that was rejected: it understates what Pilot Shell
+   * does. Keep it, and the og:/twitter: variants, in the product's own words.
+   *
+   * Title stays under 60 chars, or Google truncates it.
+   */
+  title = "Spec-driven development for Claude Code & Codex CLI",
   description = "How real engineers run Claude Code and Codex: spec-driven planning, enforced TDD, persistent memory, and quality hooks for Python, TypeScript, Go, and C#. Make your agents production-ready.",
-  keywords = "how real engineers run Claude Code and Codex, Claude Code, Codex CLI, OpenAI Codex, Claude Code engineering platform, Codex engineering platform, Claude Code framework, Codex framework, spec-driven development, Pilot Shell, Anthropic Claude, OpenAI GPT-5, AI pair programming, TDD enforcement, AI coding agent, Claude Opus 5, Claude Sonnet 5, GPT-5, GPT-5.5, MCP servers, Claude Code productivity, Codex productivity, AI development environment, Claude Code best practices, Codex best practices",
+  keywords = "claude code skills, codex cli, spec driven development, claude code agents, claude code plugins, claude code hooks, claude code subagents, claude code mcp, claude code setup, claude code best practices, Pilot Shell",
   canonicalUrl = "https://pilot-shell.com/",
   ogImage = "https://pilot-shell.com/logo.png",
   type = "website",

@@ -82,7 +82,7 @@ const Index = () => {
   return (
     <>
       <SEO
-        title="Pilot Shell — How real engineers run Claude Code and Codex"
+        title="Spec-driven development for Claude Code & Codex CLI"
         description="How real engineers run Claude Code and Codex: spec-driven planning, enforced TDD, persistent memory, and quality hooks for Python, TypeScript, Go, and C#. Make your agents production-ready."
         structuredData={[
           websiteStructuredData,
