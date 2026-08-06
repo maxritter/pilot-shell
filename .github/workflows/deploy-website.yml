@@ -58,10 +58,25 @@ jobs:
 
       # docs/docusaurus is not git-crypt encrypted, so no unlock is needed here.
       # External-URL flakiness is mitigated via retries + the repo-root .lycheeignore.
+      #
+      # Scope: external http(s) links only. Internal links are Docusaurus's job --
+      # it builds with `onBrokenLinks: "throw"`, so it validates its own routes with
+      # full knowledge of them. lychee cannot: it resolves `/docs/workflows/spec` to a
+      # path on disk and never finds it, because the file is `.../spec.md` and lychee
+      # does not append extensions. `--root-dir` lets it build those URLs instead of
+      # erroring, and `--scheme` then drops the resulting file:// links unchecked.
+      #
+      # 403/429 are accepted on top of lychee's default range. News and media hosts
+      # cited in the blog refuse datacenter clients outright (axios, venturebeat), so
+      # those codes mean "this host won't talk to CI", not "this link is broken".
+      # 404 stays a failure -- that is what catches genuinely dead links.
+      #
+      # `--` is required: `--scheme` and `--accept` take multiple values and would
+      # otherwise swallow the inputs that follow them.
       - name: Link check (lychee)
         uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # v2
         with:
-          args: "--no-progress --max-retries 3 --retry-wait-time 2 docs/docusaurus/docs docs/docusaurus/blog README.md"
+          args: "--no-progress --max-retries 3 --retry-wait-time 2 --root-dir ${{ github.workspace }} --scheme http --scheme https --accept 100..=103,200..=299,403,429 -- docs/docusaurus/docs docs/docusaurus/blog README.md"
           fail: true
 
   deploy:

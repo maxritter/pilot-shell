@@ -27,7 +27,7 @@ Memorize this single line and it covers about 90% of the policy:
 
 > Your Pro or Max subscription is for **your own individual use**. The moment your code routes someone else's request through your seat, stop using the subscription OAuth token and switch to an API key.
 
-Anthropic's official [usage policy](https://docs.claude.com/en/docs/claude-code/legal-and-compliance/usage-policy) phrases it the same way. OAuth authentication on Free, Pro, Max, Team, and Enterprise plans is intended exclusively for **ordinary individual use** of Claude Code and other native Anthropic apps. Developers building products or services that interact with Claude's capabilities (including via the Agent SDK) should use API key authentication through the Claude Console.
+Anthropic's official [usage policy](https://docs.claude.com/en/docs/claude-code/legal-and-compliance) phrases it the same way. OAuth authentication on Free, Pro, Max, Team, and Enterprise plans is intended exclusively for **ordinary individual use** of Claude Code and other native Anthropic apps. Developers building products or services that interact with Claude's capabilities (including via the Agent SDK) should use API key authentication through the Claude Console.
 
 The second another human becomes the intended user, you've crossed from individual use into product territory. That's the tripwire. Two phrases to lock in:
 
@@ -60,7 +60,7 @@ This is where things get murky. The honest move in this entire tier is the same:
 - **Internal team tools running on one developer's Pro or Max token.** Even with low volume, you're routing other people's requests through your seat. Switch to an API key, or upgrade to a Team plan.
 - **Third-party agent harnesses (OpenClaw-style and similar).** This is the most contested case. Anthropic has flipped on it twice in the last two months. As of late April 2026, OpenClaw documentation states that staff confirmed CLI-style usage is allowed again, while still recommending API keys for long-lived gateway hosts. If you're curious about how that ecosystem stacks up, see [OpenClaw vs Claude Code](/blog/openclaw-vs-claude-code).
 
-Anthropic's own messaging here has been a mess. Boris Cherny posted on April 3, 2026 that subscriptions would no longer cover third-party tool usage; six days later the line softened; an A/B test then surfaced that briefly blocked Claude Code on Pro accounts entirely. Read the [usage policy page](https://docs.claude.com/en/docs/claude-code/legal-and-compliance/usage-policy) yourself, then decide. When the policy is genuinely ambiguous, [contact Anthropic sales](https://docs.claude.com/en/docs/claude-code/legal-and-compliance/usage-policy#authentication-and-credential-use) directly. That link sits inside the policy itself.
+Anthropic's own messaging here has been a mess. Boris Cherny posted on April 3, 2026 that subscriptions would no longer cover third-party tool usage; six days later the line softened; an A/B test then surfaced that briefly blocked Claude Code on Pro accounts entirely. Read the [usage policy page](https://docs.claude.com/en/docs/claude-code/legal-and-compliance) yourself, then decide. When the policy is genuinely ambiguous, [contact Anthropic sales](https://docs.claude.com/en/docs/claude-code/legal-and-compliance) directly. That link sits inside the policy itself.
 
 ## Tier 3: Bannable Use (Red)
 

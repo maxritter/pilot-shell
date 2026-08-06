@@ -3,3 +3,12 @@
 ^https?://localhost
 ^https?://127\.0\.0\.1
 ^https?://0\.0\.0\.0
+
+# Hosts that cannot be verified from CI. The link targets are fine in a browser,
+# but these answer automated clients in ways lychee cannot accept, so leaving them
+# in fails the deploy for reasons unrelated to the content. Hosts that merely
+# return 403/429 do NOT belong here -- the workflow accepts those codes directly.
+# Serves 404 to every unauthenticated client, so 403/429 acceptance cannot help.
+^https?://(www\.)?x\.com
+# Slow archival host; exceeds lychee's request timeout.
+^https?://reverse\.put\.as
