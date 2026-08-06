@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [9.16.1] - 2026-08-06
+
+### Bug Fixes
+
+- Set site titles from measured search volume, clear Trivy HIGH findings
+
 ## [9.16.0] - 2026-08-03
 
 ### Bug Fixes
