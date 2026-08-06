@@ -647,10 +647,14 @@ class TestPlanningLegModelWarning:
         assert "claude-sonnet-5" in context
         assert (session_dir / "plan-model-warned").exists()
 
-    def test_silent_when_the_planning_leg_is_on_opus(self, tmp_path: Path) -> None:
+    def test_confirms_on_an_ordinary_tool_call_when_the_planning_leg_is_on_opus(self, tmp_path: Path) -> None:
+        """A working switch must surface too - Claude Code announces nothing itself."""
         session_dir = self._downgraded_leg(tmp_path, "leg-opus", "claude-opus-5")
 
-        assert self._run(tmp_path, session_dir, "leg-opus") == ""
+        context = json.loads(self._run(tmp_path, session_dir, "leg-opus"))["hookSpecificOutput"]["additionalContext"]
+        assert "claude-opus-5" in context
+        assert "NOT running on Opus" not in context
+        assert (session_dir / "plan-model-confirmed").exists()
 
     def test_silent_outside_a_planning_leg(self, tmp_path: Path) -> None:
         """No plan-mode sentinel: nothing to verify, whatever the model is."""

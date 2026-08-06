@@ -235,10 +235,65 @@ class TestPlanningLegModelCheck:
         assert "without 1M entitlement" not in context
         assert (session / "plan-model-warned").exists()
 
-    def test_silent_when_planning_leg_on_opus(self, tmp_path):
+    def test_confirms_when_planning_leg_on_opus(self, tmp_path):
+        """A successful switch must be reported, not silent.
+
+        Claude Code prints nothing of its own when opusplan upgrades the plan
+        leg, so silence here is indistinguishable from a failed switch - which
+        is exactly how a working switch gets reported as broken.
+        """
+        session = self._setup_leg(tmp_path, "claude-opus-5[1m]")
+        code, stdout = self._run(tmp_path)
+        assert code == 0
+        context = json.loads(stdout)["hookSpecificOutput"]["additionalContext"]
+        assert "claude-opus-5[1m]" in context
+        assert "NOT running on Opus" not in context
+        assert (session / "plan-model-confirmed").exists()
+
+    def test_confirms_only_once_per_planning_leg(self, tmp_path):
         self._setup_leg(tmp_path, "claude-opus-4-8")
-        _, stdout = self._run(tmp_path)
-        assert stdout.strip() == ""
+        _, first = self._run(tmp_path)
+        assert first.strip() != ""
+        _, second = self._run(tmp_path)
+        assert second.strip() == ""
+
+    def test_marker_is_claimed_atomically_not_check_then_write(self, tmp_path):
+        """Overlapping hook processes must not both emit the same notice.
+
+        Claude Code runs tools in parallel and fires PostToolUse per tool, so
+        several hook processes reach the marker claim at once. A real thread
+        race would be flaky in both directions, so the contract is asserted
+        directly: with the marker already on disk but `exists()` lying about
+        it - the exact state a check-then-write loses to - only an exclusive
+        create still suppresses the second emission.
+        """
+        import plan_mode_tracker as pmt
+
+        session = self._setup_leg(tmp_path, "claude-opus-4-8")
+        (session / "plan-model-confirmed").write_text("")  # already claimed by a peer process
+        with (
+            patch("plan_mode_tracker.read_model_switch_mode", return_value="automated"),
+            patch("plan_mode_tracker._sessions_base", return_value=tmp_path),
+            patch("plan_mode_tracker.resolve_session_id", return_value="test-session"),
+            patch.object(Path, "exists", return_value=False),
+        ):
+            assert pmt.planning_leg_model_context() is None
+
+    def test_mismatch_still_warns_after_a_confirmation(self, tmp_path):
+        """The mid-planning downgrade must survive an earlier Opus confirmation.
+
+        Planning starts on Opus, the conversation crosses 200K, and Claude Code
+        silently falls back to Sonnet. Sharing one marker between the confirm
+        and warn paths would swallow that warning.
+        """
+        session = self._setup_leg(tmp_path, "claude-opus-4-8")
+        _, first = self._run(tmp_path)
+        assert "claude-opus-4-8" in first
+        cache = session / "context-pct.json"
+        cache.write_text(json.dumps({"model_id": "claude-sonnet-5"}))
+        os.utime(cache, (1_000_200, 1_000_200))
+        _, second = self._run(tmp_path)
+        assert "NOT running on Opus" in second
 
     def test_silent_in_manual_and_off_modes(self, tmp_path):
         for mode in ("manual", "off"):
@@ -273,11 +328,13 @@ class TestPlanningLegModelCheck:
         _, second = self._run(tmp_path)
         assert second.strip() == ""
 
-    def test_enter_plan_mode_resets_warned_marker(self, tmp_path):
-        """A new planning leg gets a fresh chance to warn (uneven switching)."""
+    def test_enter_plan_mode_resets_report_markers(self, tmp_path):
+        """A new planning leg gets a fresh chance to report (uneven switching)."""
         session = tmp_path / "test-session"
         session.mkdir(parents=True)
         (session / "plan-model-warned").write_text("")
+        (session / "plan-model-confirmed").write_text("")
         stdin = {"tool_name": "EnterPlanMode", "tool_input": {}, "tool_response": {"result": "ok"}}
         _run_main(stdin, tmp_path)
         assert not (session / "plan-model-warned").exists()
+        assert not (session / "plan-model-confirmed").exists()

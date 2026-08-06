@@ -25,9 +25,12 @@ upstream regression (anthropics/claude-code#65512) - or the session was
 never on the opusplan model). EnterPlanMode itself cannot observe this (the statusline has
 not re-rendered in the new mode yet), so the check runs once the statusline
 cache carries a post-lever render (cache mtime > sentinel mtime), whose
-model_id is authoritative. On a mismatch a once-per-planning-leg warning is
-injected so the workflow reports the real model instead of narrating an
-unverified "switched to Opus".
+model_id is authoritative. Both outcomes are injected once per planning leg:
+a mismatch warning so the workflow reports the real model instead of narrating
+an unverified "switched to Opus", and an Opus confirmation so a switch that DID
+work is visible. Claude Code prints nothing either way -- there is no "switching
+to Opus" message in any 2.1.x build, and the skip conditions log at `warn` level
+-- so warning-only left a working switch indistinguishable from a broken one.
 
 The check is exposed as `planning_leg_model_context` because the plan-doc
 write is far too rare an anchor on its own: the plan file is written right
@@ -81,8 +84,12 @@ _PRE_APPROVAL_WARNING = (
 )
 
 # Written once per planning leg when the model check below fires; reset by the
-# next EnterPlanMode so a new leg (uneven switching) gets a fresh warning.
+# next EnterPlanMode so a new leg (uneven switching) gets a fresh report.
+# The confirm and warn paths keep SEPARATE markers on purpose: a leg that starts
+# on Opus and is silently downgraded past 200K mid-exploration must still get its
+# warning, which a shared marker would swallow.
 PLAN_MODEL_WARNED_MARKER = "plan-model-warned"
+PLAN_MODEL_CONFIRMED_MARKER = "plan-model-confirmed"
 
 _MODEL_MISMATCH_WARNING = (
     "[Pilot] PLANNING-LEG MODEL CHECK: Automated Model Switching is on and plan "
@@ -102,6 +109,15 @@ _MODEL_MISMATCH_WARNING = (
     "runs on Opus."
 )
 
+_MODEL_CONFIRMED_NOTICE = (
+    "[Pilot] PLANNING-LEG MODEL CHECK: plan mode is active and the observed "
+    "session model is '{model_id}' -- the opusplan switch to Opus took effect. "
+    "Claude Code prints nothing of its own when this works, so state it once, "
+    "in one short sentence, the first time you report planning progress to the "
+    "user (e.g. 'Planning is running on Opus.'). Then continue planning; do not "
+    "repeat it and do not re-call EnterPlanMode."
+)
+
 
 def sentinel_path() -> Path:
     session_dir = _sessions_base() / resolve_session_id()
@@ -110,28 +126,36 @@ def sentinel_path() -> Path:
 
 
 def planning_leg_model_context() -> str | None:
-    """Return the mismatch warning when planning is observably not on Opus.
+    """Report the observed planning-leg model: confirmation on Opus, warning otherwise.
 
-    Fires at most once per planning leg, and only on evidence: the statusline
-    cache must carry a render newer than the EnterPlanMode sentinel (an older
-    render still shows the pre-lever leg and proves nothing). Opus is the only
-    expected leg (Automated's pair is fixed); anything else -- Sonnet, Haiku,
-    even a Fable render -- means the opusplan plan-mode switch did not take
-    effect.
+    Fires at most once per planning leg PER OUTCOME, and only on evidence: the
+    statusline cache must carry a render newer than the EnterPlanMode sentinel
+    (an older render still shows the pre-lever leg and proves nothing). Opus is
+    the only expected leg (Automated's pair is fixed); anything else -- Sonnet,
+    Haiku, even a Fable render -- means the opusplan plan-mode switch did not
+    take effect.
+
+    Both outcomes are reported because Claude Code itself prints nothing either
+    way: the opusplan upgrade is silent on success (there is no "switching to
+    Opus" message in any 2.1.x build) and its skip conditions log at `warn`
+    level, invisible in the UI. Reporting only the failure left a working switch
+    indistinguishable from a broken one, which users read as the switch failing.
+
+    Separate markers per outcome keep the mid-planning downgrade catchable: a
+    leg confirmed on Opus that later crosses 200K still gets its warning. Each
+    marker is claimed with an exclusive create, not check-then-write, because
+    parallel tool calls put several hook processes on this line at once.
 
     Called from two anchors: the plan-doc write below, and every tool call via
-    `context_monitor` (see that hook's `_planning_leg_model_warning`). The
-    downgrade lands mid-exploration, when the plan file has not been touched
-    for a while, so the plan-doc anchor alone misses it.
+    `context_monitor` (see that hook's `_planning_leg_notice`). The downgrade
+    lands mid-exploration, when the plan file has not been touched for a while,
+    so the plan-doc anchor alone misses it.
     """
     if read_model_switch_mode() != "automated":
         return None
 
     sentinel = sentinel_path()
     session_dir = sentinel.parent
-    marker = session_dir / PLAN_MODEL_WARNED_MARKER
-    if marker.exists():
-        return None
 
     cache = session_dir / "context-pct.json"
     try:
@@ -146,11 +170,23 @@ def planning_leg_model_context() -> str | None:
     model_id = data.get("model_id") if isinstance(data, dict) else None
     if not isinstance(model_id, str) or not model_id:
         return None
-    if _is_opus(model_id):
-        return None
 
-    marker.write_text("")
-    return _MODEL_MISMATCH_WARNING.format(model_id=model_id)
+    if _is_opus(model_id):
+        marker = session_dir / PLAN_MODEL_CONFIRMED_MARKER
+        notice = _MODEL_CONFIRMED_NOTICE
+    else:
+        marker = session_dir / PLAN_MODEL_WARNED_MARKER
+        notice = _MODEL_MISMATCH_WARNING
+    # Claim the marker atomically (O_CREAT|O_EXCL). Claude Code runs tools in
+    # parallel and fires PostToolUse per tool, so overlapping hook processes
+    # reach this line at once; a check-then-write would let every one of them
+    # observe "no marker" and emit the same notice. Exactly one create wins.
+    # An unwritable session dir stays silent rather than re-emitting each turn.
+    try:
+        marker.touch(exist_ok=False)
+    except (FileExistsError, OSError):
+        return None
+    return notice.format(model_id=model_id)
 
 
 def is_plan_file(file_path: str) -> bool:
@@ -173,8 +209,9 @@ def main() -> int:
                 return 0
             sentinel = sentinel_path()
             sentinel.write_text("")
-            # New planning leg: allow the model check to warn again.
+            # New planning leg: allow the model check to report again.
             (sentinel.parent / PLAN_MODEL_WARNED_MARKER).unlink(missing_ok=True)
+            (sentinel.parent / PLAN_MODEL_CONFIRMED_MARKER).unlink(missing_ok=True)
         elif tool_name == "ExitPlanMode":
             # Unlink the sentinel even when the call errored: an ExitPlanMode
             # that fails with "not in plan mode" proves plan mode is closed

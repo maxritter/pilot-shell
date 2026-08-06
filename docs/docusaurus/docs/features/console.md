@@ -142,6 +142,17 @@ Three toggles control user interaction points, plus the Model Switching mode dur
 
 With all three workflow toggles off, `/spec add user authentication` plans, implements, and verifies the feature end-to-end without checkpoints, entirely on your active model.
 
+### Spec Workflow -> Worktrees
+
+Two fields control where `/spec` creates its isolated worktrees and how long it waits for git. Leave either blank to use the default. Both are global (they apply to every project) and can be overridden per shell with `PILOT_WORKTREE_DIR` / `PILOT_WORKTREE_TIMEOUT`.
+
+| Field | Default | What it does |
+|-------|---------|--------------|
+| **Location** | `.worktrees` | Directory worktrees are created in. A relative value resolves against the project root (`../worktrees` puts them beside the repo); an absolute value (`~/pilot-worktrees`) keeps them off the repo entirely, which stops IDE indexers and file watchers from walking a second full checkout. Only a location *inside* the repo is added to `.gitignore` - anywhere else is not the repo's to ignore. |
+| **Git Timeout** | `300` seconds | How long a single git call during a worktree operation may run before Pilot treats it as wedged. `git worktree add` materialises a full checkout, so large monorepos need more than a short budget. Raise it if worktree creation reports a timeout. |
+
+The Console keeps up with a relocated location: specs living in the configured directory still appear in the Specifications view.
+
 :::warning Token usage in autonomous mode
 No checkpoints means your agent executes the entire workflow without asking. Make sure your prompt is specific enough to avoid misinterpretation. You can always interrupt with Escape.
 :::
@@ -164,10 +175,14 @@ All settings are stored in `~/.pilot/config.json`:
     "branchIsolation": true,
     "askQuestionsDuringPlanning": true,
     "planApproval": true,
-    "modelSwitchMode": "manual"
+    "modelSwitchMode": "manual",
+    "worktreeDir": "../worktrees",
+    "worktreeTimeout": 900
   }
 }
 ```
+
+`worktreeDir` and `worktreeTimeout` are optional - omit them (the Settings UI removes the key when you clear the field) to get `.worktrees` and 300 seconds.
 
 A `codeReview` section from an older Pilot is obsolete - it selected a Changes Review mechanism that no longer exists. It is removed automatically on upgrade, and ignored in the meantime.
 

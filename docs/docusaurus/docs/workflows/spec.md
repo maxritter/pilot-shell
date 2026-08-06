@@ -110,7 +110,7 @@ When starting a `/spec` task, you're asked how you want to work:
 
 | Option | What happens |
 | ------ | ------------ |
-| **Use worktree** | Creates an isolated git worktree on a dedicated branch. `main` stays clean. Pilot auto-stashes uncommitted changes, restores them after. Squash-merged after verification — or discard with no cleanup. |
+| **Use worktree** | Creates an isolated git worktree on a dedicated branch, in `.worktrees/` by default ([configurable](/docs/features/console#spec-workflow---worktrees), along with the git timeout that large monorepos outrun). `main` stays clean. Pilot auto-stashes uncommitted changes, restores them after. Squash-merged after verification — or discard with no cleanup. |
 | **Current branch** | Works directly on whatever branch you're on. Simplest option when you're already on a clean feature branch. |
 | **New branch from default** | Fetches origin, creates `feat/<slug>` (or `fix/<slug>` for bugfixes) from `origin/main`, and checks it out. Best when your current branch isn't clean but you don't want full worktree isolation. |
 

@@ -1,9 +1,10 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Github, Linkedin, Mail, ScrollText } from "lucide-react";
+import { Github, Linkedin, Mail, ScrollText, CircleUserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
 import { navigateToSection } from "@/utils/navigateToSection";
 import { useInView } from "@/hooks/use-in-view";
+import { PORTAL_URL } from "@/lib/links";
 
 const Footer = () => {
   const [footerRef, footerInView] = useInView<HTMLElement>();
@@ -67,6 +68,17 @@ const Footer = () => {
                 >
                   Subscribe
                 </Link>
+              </li>
+              <li>
+                <a
+                  href={PORTAL_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1.5"
+                >
+                  <CircleUserRound className="h-3.5 w-3.5" />
+                  Manage Subscription
+                </a>
               </li>
               <li>
                 <button

@@ -266,7 +266,11 @@ def _emit(notices: list[str]) -> int:
 
 
 def _planning_leg_notice() -> str | None:
-    """Warn when the /spec planning leg is observably not running on Opus.
+    """Report which model the /spec planning leg is observably running on.
+
+    Confirms once when the opusplan switch took effect, warns once when it did
+    not - Claude Code is silent in both cases, so reporting only the failure
+    made a working switch look identical to a broken one.
 
     This hook is the per-turn anchor for that check: it is registered on the
     PostToolUse `*` matcher, so it costs no extra process and it sees every

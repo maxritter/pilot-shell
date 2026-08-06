@@ -19,6 +19,7 @@ Pilot Shell loads automatically when you run `claude` or `codex` — there is no
 | `pilot activate <key>` | Activate a license key on this machine |
 | `pilot deactivate` | Deactivate license on this machine |
 | `pilot status [--json]` | Show current license status and tier |
+| `pilot portal [--json] [--no-browser]` | Open the subscription portal (seats, invoices, payment method), signed in automatically using your local license key. Paid licenses only — trials have no subscription to manage |
 | `pilot verify [--json]` | Verify license validity (used by hooks) |
 | `pilot trial --check [--json]` | Check trial eligibility for this machine |
 | `pilot trial --start [--json]` | Start a trial (one-time per machine) |
@@ -38,7 +39,7 @@ Used by the `/spec` workflow to keep work isolated until verification passes. Al
 
 | Command | Description |
 |---------|-------------|
-| `pilot worktree create --json <slug>` | Create isolated git worktree |
+| `pilot worktree create --json <slug>` | Create isolated git worktree (in `.worktrees/` unless configured otherwise) |
 | `pilot worktree detect --json <slug>` | Check if a worktree already exists |
 | `pilot worktree diff --json <slug>` | List changed files in the worktree |
 | `pilot worktree sync --json <slug>` | Squash merge worktree changes back to base branch |
@@ -47,6 +48,17 @@ Used by the `/spec` workflow to keep work isolated until verification passes. Al
 
 :::info Slug format
 The `<slug>` is the plan filename without the date prefix and `.md` extension. Example: `docs/plans/2026-02-22-add-auth.md` → `add-auth`.
+:::
+
+:::tip Monorepos: move the worktrees, give git more time
+Worktrees land in `<project>/.worktrees/` and each git call gets 300 seconds. Both are configurable in Console → Settings → Spec Workflow → Worktrees, or per shell:
+
+```bash
+PILOT_WORKTREE_DIR=~/pilot-worktrees   # absolute, or relative to the project root
+PILOT_WORKTREE_TIMEOUT=900             # seconds per git call
+```
+
+A location outside the repo keeps a second full checkout away from IDE indexers and file watchers, and is not written to `.gitignore`. Raise the timeout if `pilot worktree create` reports one — the error names both knobs.
 :::
 
 ## Bot mode *(Claude Code only)*
@@ -74,7 +86,7 @@ Called by hooks and the Console — you rarely need to run these directly.
 | Command | Description |
 |---------|-------------|
 | `pilot check-context --json` | Get current context usage percentage |
-| `pilot register-plan <path> <status>` | Associate a plan file with the current session. Prints a warning when `<path>` is outside `docs/plans/` — the Console only displays plans in `<project>/docs/plans/` or `<project>/.worktrees/<slug>/docs/plans/` |
+| `pilot register-plan <path> <status>` | Associate a plan file with the current session. Prints a warning when `<path>` is outside `docs/plans/` — the Console only displays plans in `<project>/docs/plans/` or `<worktree base>/<slug>/docs/plans/` (the worktree base is `<project>/.worktrees/` unless configured otherwise) |
 | `pilot review-scope [--slug <slug>] [--json]` | Resolve the `git diff` scope a code review should read — the single source of truth for review diff scope. Prints a range you splice directly (`git diff $(pilot review-scope) -- <files>`); `--json` adds `mode` (`working-tree` or `worktree`), `base_ref`, and a `warning` when the scope degraded. In worktree mode it returns the fork-point range `<base_branch>...HEAD` against the branch's *detected* base — never a hardcoded `main`, and never a two-dot range against the base branch's live tip |
 | `pilot sessions [--json]` | Show count of active Pilot sessions |
 | `pilot statusline` | Status line formatter *(Claude Code only — called by Claude Code's statusLine hook)*. `pilot statusline -h` lists what each line renders and shows how to wrap it in your own status line |

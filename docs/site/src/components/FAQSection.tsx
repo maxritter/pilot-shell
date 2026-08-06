@@ -9,6 +9,11 @@ import { useInView } from "@/hooks/use-in-view";
 
 const faqItems = [
   {
+    question: "How do I add team seats or manage my subscription?",
+    answer:
+      "Everything is self-service in the customer portal at polar.sh/max-ritter/portal, linked as Manage Subscription in the site header, the footer, and on the pricing page. Sign in with the email you used at checkout and you can change your seat count, switch plans, update your payment method, download invoices, recover your license key, or cancel. Polar also includes a portal link in every order confirmation and renewal email. Seat changes are prorated automatically. Prefer to have it handled for you? Email mail@maxritter.net.",
+  },
+  {
     question: "Is Pilot Shell enterprise-compliant for data privacy?",
     answer:
       "Yes. Your source code, project files, and development context never leave your machine through Pilot Shell. The only external calls are license validation (daily, license key only) and one-time activation/trial start (machine fingerprint only). No OS info, no version strings, no analytics, no telemetry. Enterprises using Claude Code with their own API key or Anthropic Enterprise subscription can add Pilot Shell without changing their data compliance posture.",

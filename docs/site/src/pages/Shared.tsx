@@ -207,7 +207,10 @@ export default function Shared() {
         ...(decision ? { decision } : {}),
       };
       const result = await submitFeedback(routeId, feedbackPayload);
-      if (result.ok) {
+      // Compare against `true` explicitly: this project builds with strict: false,
+      // and without strictNullChecks TS won't narrow a boolean-literal discriminant
+      // by truthiness, so `if (result.ok)` leaves `result.reason` unreachable below.
+      if (result.ok === true) {
         setSubmittedCount(annotationState.annotations.length);
         setSubmittedDecision(decision);
         const success = successStateText(decision, annotationState.annotations.length);

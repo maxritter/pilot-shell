@@ -1,8 +1,9 @@
 import { useEffect } from "react";
-import { Check, Building2, Sparkles, Calendar, Mail, RefreshCw, Zap, Shield } from "lucide-react";
+import { Check, Building2, Sparkles, Calendar, Mail, RefreshCw, Zap, Shield, CircleUserRound } from "lucide-react";
 import { PolarEmbedCheckout } from "@polar-sh/checkout/embed";
 import { Button } from "@/components/ui/button";
 import { useInView } from "@/hooks/use-in-view";
+import { PORTAL_URL } from "@/lib/links";
 
 const SOLO_CHECKOUT_URL =
   import.meta.env.VITE_POLAR_CHECKOUT_SOLO ||
@@ -10,8 +11,6 @@ const SOLO_CHECKOUT_URL =
 const TEAM_CHECKOUT_URL =
   import.meta.env.VITE_POLAR_CHECKOUT_TEAM ||
   "https://buy.polar.sh/polar_cl_y5uSffkVLnESyfzfOSJ1M9YmMd8sIpcT7bza82oFv4C";
-const PORTAL_URL =
-  import.meta.env.VITE_POLAR_PORTAL_URL || "https://polar.sh/max-ritter/portal";
 const IS_PRODUCTION =
   import.meta.env.PROD &&
   !import.meta.env.VITE_POLAR_PORTAL_URL?.includes("sandbox");
@@ -239,12 +238,28 @@ const PricingSection = () => {
           All plans work across multiple personal machines — one subscription,
           all your devices.
         </p>
-        <p className="text-center text-sm text-muted-foreground mt-2">
-          Already a subscriber?{" "}
-          <a href={PORTAL_URL} className="text-primary hover:underline">
-            Manage your subscription
-          </a>
-        </p>
+
+        {/* Existing subscribers: seat changes, invoices, license key recovery */}
+        <div className="mt-10 max-w-4xl mx-auto rounded-lg border border-border/50 bg-card p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+          <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <CircleUserRound className="h-6 w-6 text-primary" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-base font-semibold text-foreground mb-1">
+              Already subscribed?
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Add or remove team seats, update your payment method, download
+              invoices, and recover your license key in the customer portal.
+              Sign in with the email you used at checkout.
+            </p>
+          </div>
+          <Button asChild variant="outline" className="w-full sm:w-auto flex-shrink-0">
+            <a href={PORTAL_URL} target="_blank" rel="noopener noreferrer">
+              Manage Subscription
+            </a>
+          </Button>
+        </div>
 
         {/* Rolling out for your team */}
         <div className="mt-16 text-center max-w-3xl mx-auto">

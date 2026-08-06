@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Github, Menu, X, ScrollText, Sun, Moon } from "lucide-react";
+import { Github, Menu, X, ScrollText, Sun, Moon, CircleUserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { navigateToSection } from "@/utils/navigateToSection";
 import { useTheme } from "@/hooks/useTheme";
+import { PORTAL_URL } from "@/lib/links";
 
 const navLinks = [
   { label: "Getting Started", href: "#installation" },
@@ -83,6 +84,16 @@ const NavBar = () => {
           >
             <Link to="/pricing">Subscribe</Link>
           </Button>
+          <a
+            href={PORTAL_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            title="Manage subscription"
+            aria-label="Manage subscription (opens in new tab)"
+          >
+            <CircleUserRound className="h-5 w-5" aria-hidden="true" />
+          </a>
           <a
             href="https://github.com/maxritter/pilot-shell/releases"
             target="_blank"
@@ -170,6 +181,14 @@ const NavBar = () => {
           >
             Subscribe
           </Link>
+          <a
+            href={PORTAL_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full text-left py-3 text-muted-foreground hover:text-foreground border-b border-border transition-colors"
+          >
+            Manage Subscription
+          </a>
           <Button
             onClick={() => handleSectionClick("#installation")}
             className="mt-4 w-full"
