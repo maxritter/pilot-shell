@@ -2,6 +2,12 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## [9.17.0] - 2026-08-06
+
+### Features
+
+- License-key authenticated subscription portal, configurable worktrees
+
 ## [9.16.1] - 2026-08-06
 
 ### Bug Fixes
