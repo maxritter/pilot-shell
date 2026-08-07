@@ -168,7 +168,7 @@ def _read_pilot_config() -> dict | None:
 _SESSION_ID_ENV_CHAIN = ("PILOT_SESSION_ID", "CLAUDE_CODE_SESSION_ID", "CODEX_THREAD_ID")
 
 
-def resolve_session_id() -> str:
+def resolve_session_id(fallback: str = "") -> str:
     """Resolve the session id from the agent-native env chain.
 
     Returns the first non-empty value among PILOT_SESSION_ID (set by the shell
@@ -177,12 +177,30 @@ def resolve_session_id() -> str:
     session and exported to every child process — keeps each session's state
     isolated even when launched outside the wrapper (IDE/desktop), instead of
     collapsing onto the shared "default" directory (issue #157 bleed).
+
+    ``fallback`` (a hook payload's ``session_id``) is consulted ONLY when the whole
+    env chain is empty, as a better last resort than the shared "default" bucket.
+    A hook subprocess spawned without the env vars would otherwise read another
+    session's state — and ``plan_in_current_project`` cannot catch that when the
+    stale plan happens to live in the same repo.
+
+    It must NOT take precedence over the env chain. PILOT_SESSION_ID is a shell
+    "$$-$RANDOM" id, deliberately different from the agent's own session id, and it
+    is what ``pilot register-plan`` wrote the session state under
+    (launcher/session.py:get_session_dir). Letting the payload override it would
+    point every reader at a directory the writer never used.
+
+    Most callers still invoke this with no argument and keep the plain env-chain
+    behavior; only spec_stop_guard passes a fallback so far, because its stale-plan
+    bleed is the one that has actually bitten. Passing a payload id is safe to adopt
+    per hook, but each one needs the writer of the state it reads checked first --
+    the fallback only helps where reader and writer resolve to the same id.
     """
     for var in _SESSION_ID_ENV_CHAIN:
         value = os.environ.get(var, "").strip()
         if value:
             return value
-    return "default"
+    return fallback.strip() or "default"
 
 
 def _sessions_base() -> Path:
@@ -197,9 +215,13 @@ def get_session_cache_path() -> Path:
     return cache_dir / "context-cache.json"
 
 
-def get_session_plan_path() -> Path:
-    """Get session-scoped active plan JSON path."""
-    return _sessions_base() / resolve_session_id() / "active_plan.json"
+def get_session_plan_path(session_id: str | None = None) -> Path:
+    """Get session-scoped active plan JSON path.
+
+    ``session_id`` lets a hook pass an id it already resolved (env chain first,
+    then its payload's ``session_id``) instead of re-deriving it from the env alone.
+    """
+    return _sessions_base() / (session_id or resolve_session_id()) / "active_plan.json"
 
 
 def find_git_root() -> Path | None:
@@ -596,22 +618,53 @@ def extract_behavior_contract(path: Path) -> list[str]:
 _BUILD_CRITERION_RE: re.Pattern[str] = re.compile(r"^- \[([ xX])\] Criterion \d+:\s*(.+)$")
 
 
-def extract_build_criteria(path: Path) -> list[str]:
-    """Return a `/build` rubric's criteria, unmet ones first, each tagged with its state.
+def _extract_h2_section(content: str, heading: str) -> str | None:
+    """Return the body under an exact `## <heading>` line, or None when absent.
 
-    For a build there is no Goal Verification section — the criteria ARE the
-    verification, and the unmet ones are the outstanding work. Ordering unmet
-    first keeps the stop guard's capped reinjection pointed at the gap rather
-    than at criteria that already passed.
+    Exact heading match, not substring: `## Criteria` must not also match
+    `## Criteria Notes`. The body runs to the next top-level `## ` heading.
+    """
+    lines = content.splitlines()
+    body: list[str] = []
+    in_section = False
+    for line in lines:
+        if line.startswith("## "):
+            if in_section:
+                break
+            in_section = line[3:].strip() == heading
+            continue
+        if in_section:
+            body.append(line)
+    return "\n".join(body) if in_section or body else None
+
+
+def extract_build_criteria(path: Path) -> list[str]:
+    """Return a `/build` Buildout's acceptance criteria, unmet first, tagged with state.
+
+    For a build there is no Goal Verification section — the acceptance criteria
+    ARE the verification. Ordering unmet first keeps the stop guard's capped
+    reinjection pointed at what still has to be earned.
+
+    Scoped to the criteria section rather than the whole file: `## Round Log`
+    records failing criteria verbatim, so a whole-file scan would reinject the
+    same criterion once per round it failed. `## Acceptance Criteria` is the
+    current heading; `## Criteria` is the pre-redesign one and stays supported
+    for Buildouts written before the rename.
     """
     try:
         content = path.read_text()
     except (OSError, UnicodeDecodeError):
         return []
 
+    section = _extract_h2_section(content, "Acceptance Criteria")
+    if section is None:
+        section = _extract_h2_section(content, "Criteria")
+    if section is None:
+        return []
+
     unmet: list[str] = []
     met: list[str] = []
-    for line in content.splitlines():
+    for line in section.splitlines():
         m = _BUILD_CRITERION_RE.match(line)
         if not m:
             continue

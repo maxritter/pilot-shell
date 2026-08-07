@@ -1,16 +1,16 @@
 ---
 name: build
-description: "Builds to a standard instead of to completion — the goal-and-loop workflow for when there is no spec. Use when the user types /build; asks for something to be made, written, designed, or implemented and cares that it is good, not just done; names something to match or beat (\"as good as Stripe's docs\", \"better than our dashboard\"); asks to keep iterating until the work clears a bar; or wants a migration, port, or rebuild where each piece has to come out better than what it replaces. Not for a defect in behaviour that already worked — that is /fix."
-argument-hint: "<what to build, and optionally what it has to beat>"
+description: "Builds toward a named goal without writing a spec first — the goal-and-loop workflow. Use when the user types /build; asks for something to be made, written, designed, or implemented where the approach is better discovered while building than planned up front; asks to keep going until the result is genuinely good; or wants a migration, port, or rebuild judged on what comes out rather than against an approved task list. Not for a defect in behaviour that already worked — that is /fix. Not when the approach has to be written down and agreed before any code exists — that is /spec."
+argument-hint: "<what to build, and optionally what it should measure up to>"
 user-invocable: true
 ---
 
 # /build — Goal-and-Loop Development
 
-The default path for **"make this, and make it good"** when there is no spec. It replaces build-once-and-hand-over with a loop that cannot exit until the work clears a bar set before any building started.
+The path for **"make this, and make it good"** when there is no spec and you do not want one. You name the end state; `/build` turns it into a short task list plus a handful of acceptance criteria, builds the tasks, then judges the result against those criteria. What the tasks actually are is allowed to change as the work teaches you something — that flexibility is the point.
 
 ```bash
-> /build "landing page for my running brand — has to feel as alive as Nike's"
+> /build "landing page for my running brand — should feel as alive as Nike's"
 > /build "port the admin screens to React, better than what we have, not just ported"
 > /build "2000-word explainer on vector databases for non-engineers"
 ```
@@ -20,76 +20,80 @@ The default path for **"make this, and make it good"** when there is no spec. It
 | The request | Command |
 |---|---|
 | Something that already worked is broken | `/fix` |
-| You want an approved plan file and a task list before any code | `/spec` |
+| The approach should be written down and approved before any code | `/spec` |
 | The idea is still vague about who it serves or what done means | `/prd` |
-| Make this, and make it good — the standard is the deliverable | **`/build`** |
+| A clear goal, and the approach can be found while building | **`/build`** |
 
-Size is **not** the discriminator. A 30-screen migration can be `/build`; a 40-line change with an exacting bar can be `/build`; a small feature with an unclear execution order can be `/spec`. Pick on **what the work is measured against**: a task list (`/spec`) or a standard (`/build`).
-
----
-
-## Three things carry this workflow
-
-1. **The bar** — a real, named, obtainable artifact the work is compared against.
-2. **The criteria** — 5–9 pass/fail statements, written before any building.
-3. **The blind judge** — fresh eyes ruling on each criterion without knowing which artifact is ours.
-
-Everything else is scaffolding for those three. When you are short on time, cut the scaffolding, never these.
+Size is **not** the discriminator. A 30-screen migration can be `/build`; a 40-line change can be `/build`; a small feature whose execution order matters can be `/spec`. Pick on **what the work is measured against**: an approved task list (`/spec`) or a defined end state (`/build`).
 
 ---
 
-## Iron Laws
+## The shape of a run
 
 ```
-1. CRITERIA BEFORE BUILDING — criteria written after a draft describe that draft.
-2. THE BAR MUST BE OBTAINABLE — open it, run it, screenshot it. A bar you cannot
-   fetch is a bar the judge hallucinates, and a hallucinated comparison passes
-   everything.
-3. PASS/FAIL, NEVER A SCORE — scores drift upward every round; pass/fail does not.
-4. DEFAULT TO FAIL — a criterion is failed until evidence passes it.
-5. EXIT ON THE CRITERIA, NEVER ON A ROUND COUNT — "three rounds is probably
-   enough" is how this degrades into an ordinary build.
-6. ONE GAP PER ROUND — a list lets the next round cherry-pick the cheap ones and
-   call it progress.
+Goal → Draft tasks + criteria → Approve → Round(build every task → judge) → Hand back
+```
+
+Three things carry it:
+
+1. **The goal** — one sentence naming the end state.
+2. **The tasks** — 3–7 of them, a title and an objective each, expected to change as you learn.
+3. **The judge** — a separate pass at the end of each round that rules the acceptance criteria from the finished artifact.
+
+A **round** is one full pass over the task list plus **one** judge pass. Criteria that fail become the next round's tasks. Most runs converge in two or three rounds.
+
+---
+
+## Rules that keep it converging
+
+```
+1. TASKS ARE THE UNIT OF WORK. Criteria are judged at the end of a round, not
+   worked one at a time. A criterion is never "the current gap".
+2. CRITERIA BEFORE BUILDING. Criteria written after a draft describe that draft.
+3. JUDGE ONLY WHEN EVERY TASK IS TICKED. Judging a half-built artifact spends a
+   round to learn what you already knew.
+4. PASS/FAIL, NEVER A SCORE. Scores drift upward every round; pass/fail does not.
+5. CALIBRATED, NOT BRUTAL. Pass a criterion whose evidence meets what it asks.
+   Raising the bar mid-judge is what makes this slower than /spec for no gain.
+6. THREE JUDGE PASSES, THEN ASK. One more round is a one-time extension; four is
+   the ceiling. Never a fifth.
+7. WAITING IS NOT A ROUND. Work blocked on something that will not finish inside
+   this session ends the run — it does not spend rounds.
 ```
 
 ---
 
 ## What Pilot adds
 
-`/build` is not a conversation that remembers a rubric. The rubric is a **file**, registered with the session, and the loop is enforced by Pilot's stop guard.
+`/build` is not a conversation that remembers a goal. The goal, tasks, and criteria are a **file**, registered with the session, and the loop is held open by Pilot's stop guard.
 
-- **Rubric file** at `docs/plans/YYYY-MM-DD-<slug>.md` with `Type: Build`. It survives compaction, shows up in the Console's **Specifications** tab with a `Build` badge, and can be shared with teammates for annotation like any other Pilot plan.
-- **The statusline is the loop counter** — `Build: <name> build [loop] ▓▓▓░░ 4/7 r2` — criteria passed, current round, current gap.
-- **The stop guard is the goal condition.** While the rubric is registered and not `VERIFIED`, the session cannot quietly end at "good enough". You do **not** need `/goal`; Pilot's Stop hook already holds the loop open, on both Claude Code and Codex. Escape hatch: the user stops twice within 60s.
+- **Buildout file** at `docs/plans/YYYY-MM-DD-<slug>.md` with `Type: Build`. It survives compaction, shows up in the Console's **Buildouts** section, and can be shared with teammates for annotation like any other Pilot plan.
+- **The statusline tracks tasks and rounds** — `Build: <name> build ▓▓▓░░ 3/5 r2`.
+- **The stop guard holds the loop open.** While the Buildout is registered and not `VERIFIED`, the session cannot quietly end at "good enough". You do **not** need `/goal`; Pilot's Stop hook already does this, on both Claude Code and Codex. The user's escape hatch is stopping twice within 60s.
 - **`Status:` is the same closed set** as every other Pilot plan — `PENDING` → `COMPLETE` → `VERIFIED`, bare keyword, no trailing prose.
 
-| Rubric state | Statusline phase | What it means |
+| Buildout state | Statusline phase | What it means |
 |---|---|---|
-| `PENDING` + `Approved: No` | `rubric` | Bar and criteria being written |
-| `PENDING` + `Approved: Yes` | `loop` | Build → judge rounds running |
-| `COMPLETE` | `judge` | Every criterion checked; final blind judge pass outstanding |
+| `PENDING` + `Approved: No` | `goal` | Goal, tasks, and criteria being drafted |
+| `PENDING` + `Approved: Yes` | `build` | Working the task list |
+| `COMPLETE` | `judge` | Every task ticked; judge pass outstanding |
 | `VERIFIED` | *(cleared)* | Handed back to the user |
+
+A hand-back does not always mean `VERIFIED`: a run that stops at the round-four ceiling with criteria unresolved, or one blocked on something outside the session, stays `PENDING` so it can be resumed from the file. A one-shot sentinel lets the session stop in those two cases.
 
 ---
 
-## Workflow
+## Three user interaction points, and no more
 
-```
-Scope & research → Set the bar → Write criteria → Approve → Loop (build → judge → one gap) → Hand back
-```
+1. **Goal and reference** — confirm the end state, and pick a reference only when the user did not name one and a real side-by-side comparison exists (Step 1).
+2. **Approval** — one gate on the drafted tasks and criteria (Step 3), skipped when `PILOT_PLAN_APPROVAL_ENABLED` is `false`.
+3. **Hand-back** — either every criterion passed, or the round budget was reached (Steps 5 and 6).
 
-**Three user interaction points, and no more:**
-
-1. **Bar selection** — only when the user did not name one (Step 2).
-2. **Criteria approval** — the one gate (Step 4), skipped when `PILOT_PLAN_APPROVAL_ENABLED` is `false`.
-3. **Hand-back** — the loop clears the bar you set; it does not decide the work is finished (Step 6).
-
-Everything else is automatic. **Never ask "should I keep going?"** — the criteria answer that. A failing criterion is not a decision point; it is the next round's job.
+Everything else is automatic. **Never ask "should I keep going?"** — the criteria and the round budget answer that. A failing criterion is not a decision point; it is the next round's tasks.
 
 ⛔ **An auto-continued question is not an answer.** An `AskUserQuestion` result reading "No response after Ns — continued without an answer" means the user has not responded. Re-ask when they return; never infer approval.
 
-**Stop guard:** when it blocks a stop mid-loop, don't acknowledge it, output resume instructions, or say goodbye. Your very next action is a tool call — re-read the rubric and judge or build. Same after any user interruption.
+**Stop guard:** when it blocks a stop mid-run, don't acknowledge it, output resume instructions, or say goodbye. Your very next action is a tool call — re-read the Buildout and build or judge. Same after any user interruption.
 
 ---
 
@@ -97,31 +101,32 @@ Everything else is automatic. **Never ask "should I keep going?"** — the crite
 
 | What you will be tempted to think | What is true |
 |---|---|
-| "The bar is basically best-in-class SaaS sites." | A category cannot be fetched, so the judge invents the comparison and passes everything. |
 | "I'll write the criteria once I see a first draft." | Criteria written after the build describe the build. |
 | "8/10 — good enough to move on." | Scores drift up every round. Pass/fail does not. |
-| "Three rounds is enough." | The exit is the criteria. A round count is a way to stop while still failing. |
+| "I'll judge this task now while it's fresh." | The judge runs once per round, on the whole artifact, after every task is ticked. Judging per task is how a 3-round run becomes a 14-round one. |
+| "This criterion is close — one more thing and it'd pass." | Then it fails, and that thing is a task. |
 | "I built it, so I can tell it's good." | You know how hard it was to make. The judge must not. |
-| "I'll spin up a subagent to judge this properly." | It starts blind, re-derives what this thread already holds, and bills you for the round trip. Rejudge from the artifact instead. |
-| "This is big, so it warrants fanning out." | Big is not the trigger. 5+ independent surfaces is. A long grind is still one thread. |
-| "This is big, so it should have been `/spec`." | Scale is not what `/spec` is for; an approved task list is. Big work escalates *inside* this skill (Step 4), it does not get handed off. |
-| "One criterion still fails but it's minor — I'll flag it." | Stopping on a failing criterion is the exact outcome this workflow exists to prevent. Close it, or renegotiate it with the user out loud. |
+| "The task list has changed a lot; I should have planned harder." | Tasks changing as you learn is the design. Log it and keep going. |
+| "I'll spin up a subagent to judge this properly." | It starts blind, re-derives what this thread already holds, and bills you for the round trip. Judge from the artifact instead. |
+| "This is big, so it should have been `/spec`." | Scale is not what `/spec` is for; an approved task list is. Big work escalates *inside* this skill (Step 3), it does not get handed off. |
+| "The data isn't in yet, so I'll do something else and call it a round." | Waiting is not a round. Hand back and say what is blocked. |
 
 ## Red flags — stop and go back
 
-- About to build and the rubric file has no numbered criteria → Step 3.
-- A criterion cannot be settled without asking you what you meant → rewrite it, Step 3.
-- A criterion would pass on a tie with the bar → rewrite it so ours has to win, Step 3.
+- About to build and the Buildout file has no tasks → Step 2.
+- About to judge and a task is still unticked → finish the task first, Step 4.
+- A criterion cannot be settled without asking the user what they meant → rewrite it, Step 2.
+- A criterion's evidence depends on something that will not finish inside this run → rewrite or drop it, Step 2.
 - You are reaching for a subagent inside the loop → Step 5, judge it yourself.
-- You are about to suggest `/spec` because the work is large → Step 4, escalate here instead.
-- The judge passed everything on round one → the bar is too soft, Step 2.
-- You are counting rounds → Step 5.
+- You are about to suggest `/spec` because the work is large → Step 3, escalate here instead.
+- You are patching a file with a `python3` heredoc instead of `Edit` → Step 4, tool discipline.
+- The judge passed everything on round one and the work is thin → the criteria are decidable by feel, Step 2.
 - A verdict contains "should", "probably", or "close enough" → rejudge from the artifact.
 
 ## When NOT to use
 
 - **A defect in behaviour that already worked** → `/fix`.
-- **The user wants an approved plan file and an ordered task list before any code** → `/spec`. Size alone is not the trigger.
+- **The approach has to be written down and agreed before any code** → `/spec`. Size alone is not the trigger.
 - **The idea is still vague about who it serves or what done means** → `/prd` first, then `/build` or `/spec`.
-- **A one-line change, a rename, a config tweak** → just do it; a rubric costs more than the edit.
-- **Work with no comparable reference and no measurable half** → there is nothing to loop against. Say so and build it straight.
+- **A one-line change, a rename, a config tweak** → just do it; a Buildout costs more than the edit.
+- **The result cannot be judged without data that will not arrive during this session** → say so and build it straight, or come back when the data lands.

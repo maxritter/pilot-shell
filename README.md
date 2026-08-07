@@ -45,7 +45,7 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 
 - **`/prd`** — brainstorm ideas into clear requirements with optional deep research
 - **`/spec`** — plans, implements, and verifies features end-to-end with TDD
-- **`/build`** — sets a named bar, then loops build → judge until every criterion clears it
+- **`/build`** — names a goal, then loops build → judge until every acceptance criterion passes
 - **`/fix`** — bugfix workflow with TDD; bails out when complexity exceeds the standard fix lane
 - **Spec collaboration** — share specs with teammates, annotations flow back grouped by author
 - **Quality hooks** — enforce linting, formatting, type checking, and tests as quality gates
@@ -181,7 +181,7 @@ Four commands cover the full development cycle — from vague idea to shipped wo
 |---|---|
 | A defect in behaviour that already worked | `/fix` |
 | An ordered list of tasks, approved before any code | `/spec` |
-| A standard — a named bar the result has to clear | `/build` |
+| A clear goal, with the approach found while building | `/build` |
 | Still vague who it serves or what done means | `/prd`, then one of the above |
 
 ### /prd — Brainstorm Ideas Into Product Requirements Documents
@@ -249,7 +249,7 @@ Discuss  →  Plan  →  Approve  →  Implement (TDD)  →  Verify  →  Done
 
 ### /build — Goal-and-Loop Development
 
-**[`/build`](https://pilot-shell.com/docs/workflows/build) builds to a standard instead of to completion.** Name something real for the work to beat; `/build` turns it into 5-9 pass/fail criteria *before* writing a line, then loops — build, judge, close one gap, judge again — until every criterion clears a blind comparison against the bar. It is the default path for "make this, and make it good" when there is no spec.
+**[`/build`](https://pilot-shell.com/docs/workflows/build) builds toward a goal without writing a spec first.** Name the end state; `/build` drafts a short task list and 3-6 acceptance criteria *before* writing a line, then works the whole list and judges it — with failing criteria becoming the next round's tasks. Tasks are expected to change as the work teaches you something; the criteria are the contract. It is the default path for "make this, and make it good" when a spec is neither required nor wanted.
 
 ```bash
 # Claude Code                                                # Codex CLI
@@ -258,25 +258,24 @@ claude                                                        codex
 ```
 
 ```text
-Bar  →  Criteria  →  Approve  →  Loop (Build → Judge → one gap)  →  Hand back
-                                          ↑                  ↓
-                                          └──── every round ─┘
+Goal  →  Tasks + Criteria  →  Approve  →  Round (build every task → judge)  →  Hand back
+                                                    ↑                   ↓
+                                                    └── gaps become the ─┘
+                                                        next round's tasks
 ```
-
-Size is not what separates `/build` from `/spec`. A 30-screen framework migration can be `/build`; a modest feature with an unclear execution order is `/spec`. `/build` never hands large work off — it escalates internally.
 
 <details>
 <summary><b>How <code>/build</code> works</b></summary>
 
-**Three things carry it:** a bar that is *named, obtainable, and comparable* (a category like "award-winning SaaS sites" cannot be fetched, so the judge invents the comparison and passes everything); 5-9 criteria written before any building; and a blind judge that re-obtains the bar every round and defaults to fail.
+**Three things carry it:** a goal named in one sentence; 3-7 tasks and 3-6 acceptance criteria drafted before any building; and a judge that rules those criteria from the finished artifact at the end of each round.
 
-- **Set the bar:** If you named a reference, `/build` uses it. If not, it offers 2-3 candidates and waits — it never proceeds on a bar it chose alone. For a rewrite, the "before" is captured before any edit. The re-obtain command is written into the rubric so later rounds cannot drift toward whatever you already made.
-- **Write criteria:** Each shaped as *what is compared → how the judge obtains it → what passing looks like*. Pass/fail, never a score (scores drift upward every round). Each must resolve to "ours wins", never "you cannot tell" — a criterion phrased as *indistinguishable from the bar* passes on a tie, and a tie is where the loop stops early. At least one is measurable whenever the goal has a measurable half.
-- **Approve:** One gate, honouring the same **Plan Approval** toggle as `/spec`. A failing criterion is never a decision point.
-- **Loop:** Build the single named gap → judge in a separate pass from the artifact alone, bar re-obtained and labels stripped → tick, untick, and log → name the next single biggest gap. The exit is the criteria, never a round count.
-- **Hand back:** A final blind pass, then a report of every criterion with the evidence that passed it, the rounds it took, and anything deliberately left out.
+- **Name the goal:** One sentence for the end state. A reference to sit beside — a competitor's page, a named author's post, the pre-migration screen — is used only when a real side-by-side comparison exists, and it is obtained once up front so later rounds cannot drift toward whatever you already made. Many goals have none, and the criteria carry the standard alone.
+- **Draft tasks and criteria:** Tasks are a title and an objective, nothing more — no file lists, no per-task DoD. That is the upfront planning `/spec` charges for, and `/build` skips it so the task list can absorb what the work teaches you. Criteria are one sentence each, pass/fail, decidable from the finished artifact, and settleable during this run.
+- **Approve:** One gate, honouring the same **Plan Approval** toggle as `/spec`. The criteria are the contract; the tasks are expected to change.
+- **Round:** Work every open task — adding, splitting, and dropping them as you learn, each change logged — then judge once, with every task ticked. Failing criteria become the next round's tasks. The judge is calibrated, not brutal: a criterion whose evidence meets what it asks passes.
+- **Hand back:** After three rounds it stops and asks — one more round, relax a criterion, or accept as-is. "One more round" is a one-time extension; four judge passes is the ceiling. Most runs converge in two or three.
 
-**The rubric is a real file.** `/build` writes `docs/plans/YYYY-MM-DD-<slug>.md` with `Type: Build` and registers it with the session, so the loop survives compaction, the statusline becomes the loop counter (`Build: running-brand build [loop] ███░░ 3/5 r:2`), the rubric shows up in the Console's **Specifications** tab badged `Build` and shareable with teammates — and **Pilot's stop guard is the goal condition**. The session cannot quietly end at "good enough" while criteria are unticked, on Claude Code and Codex alike. You never type `/goal`; stopping twice within 60s is the escape hatch.
+**The Buildout is a real file.** `/build` writes `docs/plans/YYYY-MM-DD-<slug>.md` with `Type: Build` and registers it with the session, so the run survives compaction, the statusline tracks tasks and rounds (`Build: running-brand build ███░░ 3/5 r2`), and the Buildout shows up in the Console's own **Buildouts** section, shareable with teammates — and **Pilot's stop guard holds the loop open**. The session cannot quietly end at "good enough", on Claude Code and Codex alike. You never type `/goal`; stopping twice within 60s is the escape hatch.
 
 **Sequential by default.** One thread, no subagents — a subagent starts blind, re-derives context the thread already holds, and bills you for the round trip. Parallel execution is proposed only at whole-project scale: 5+ distinct surfaces that each need their own build-judge loop, that do not block each other, where sequential would run for hours. On Claude Code that prompts for `/effort ultracode`; declining is a first-class answer.
 
@@ -446,7 +445,11 @@ Product requirement documents (PRDs) generated by `/prd`, with view and annotate
 
 ### Specifications
 
-All spec plans generated by `/spec` with task progress, phase tracking, and iteration history — plus `/build` rubrics, badged `Build`, showing criteria as the progress checklist and a round log in place of tasks. Annotate mode lets you mark up plans visually before approving, share with teammates via a single link.
+All spec plans generated by `/spec` with task progress, phase tracking, and iteration history. Annotate mode lets you mark up plans visually before approving, share with teammates via a single link.
+
+### Buildouts
+
+Goal-and-loop runs generated by `/build`, in their own section: the goal, the acceptance criteria the judge rules each round, the task list as it evolved, and the round log. Same annotate and share surfaces as Specifications.
 
 ### Extensions
 

@@ -25,7 +25,7 @@ All core and additional workflows run on both agents. Use `/` on Claude Code and
 - **Remote control** — connect from the Claude app / browser, plus channels (Telegram, Discord, iMessage)
 - **Language Server integration** — LSP-driven diagnostics, hover docs, and go-to-definition (Codex still gets the same linting via the file-checker hook)
 - **Model switching** — `/model` command to change models mid-session (Codex sets model via `codex --model` or `config.toml`)
-- **`/effort ultracode`** — the parallel-surfaces escalation in [`/build`](/docs/workflows/build); Codex runs those surfaces sequentially instead. The rest of `$build` — rubric file, stop-guard-held loop, statusline, Console — works identically.
+- **`/effort ultracode`** — the parallel-surfaces escalation in [`/build`](/docs/workflows/build); Codex runs those surfaces sequentially instead. The rest of `$build` — Buildout file, stop-guard-held loop, statusline, Console — works identically.
 - **Permission modes** — `Shift+Tab` cycle and Auto Mode classifier (Codex uses `approval_policy` in `config.toml`)
 - **Codex companion reviews** — OpenAI adversarial review launched from within Claude Code
 - **Team-sharing of extensions** — push/pull of `~/.claude/` extensions through a git remote

@@ -13,16 +13,18 @@
  * and the bugfix Tasks heading are NOT in this list — each surface renders
  * them as a special "always-last" section.
  *
- * "Criteria" (a /build rubric's pass/fail list) IS allowlisted, because the
- * shared pilot-shell.com view has no header card and would otherwise show a
- * build with its whole point missing. The Console, which renders the same
- * `- [ ] Criterion N:` lines as its header checklist, drops the duplicate
- * section — the mirror of how the shared view hides `- [x] Task N:` progress
- * items from a spec's task section.
+ * "Acceptance Criteria" (a Buildout's pass/fail list, judged at the end of each
+ * round) is allowlisted and rendered as an ordinary section on both surfaces.
+ * Unlike a spec's task list it is NOT duplicated by the Console's header card,
+ * which counts `- [ ] Task N:` progress lines — a Buildout's criteria are a
+ * separate list from its tasks. "Criteria" is the pre-redesign heading and
+ * stays allowlisted so `Build Rubric` files written before the rename keep
+ * rendering.
  */
 
 export const DISPLAYED_SECTIONS_ORDERED: readonly string[] = [
   "Summary",
+  "Acceptance Criteria",
   "Criteria",
   "Out of Scope",
   "Investigation",

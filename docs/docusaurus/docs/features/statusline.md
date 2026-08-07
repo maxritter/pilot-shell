@@ -57,15 +57,15 @@ Opus 5 [1M] | █████░▓ 60% | +120 -38 | ~/…/.worktrees/my-feature
 
 ## Line 2 — Mode
 
-**Quick Mode:** `Quick Mode · make: /build | plan: /spec | bugs: /fix | idea: /prd · Console: localhost:41777`
+**Quick Mode:** `Quick Mode · goal: /build | plan: /spec | bugs: /fix | idea: /prd · Console: localhost:41777`
 
 **Spec Mode:** `Spec: my-feature feature [implement] ████░░░░ 3/6 iter:2`
 
 Shows plan name, type (feature/bugfix), phase (plan/implement/verify), task progress bar, and iteration count.
 
-**Build Mode:** `Build: running-brand build [loop] ███░░░░░ 3/8 r:2`
+**Build Mode:** `Build: running-brand build ███░░░░░ 3/8 r:2`
 
-A [`/build`](/docs/workflows/build) rubric renders the same way with its own vocabulary: criteria instead of tasks, rounds (`r:`) instead of iterations, and the phases `rubric` (bar and criteria being written) -> `loop` (build-judge rounds running) -> `judge` (final blind pass). The type tag is magenta.
+A [`/build`](/docs/workflows/build) Buildout renders the same way, counting the same tasks, with rounds (`r:`) instead of iterations and the phases `goal` (goal, tasks, and criteria being drafted) -> `build` (working the task list) -> `judge` (acceptance criteria being ruled). The type tag is magenta. Its acceptance criteria are a separate list from its tasks and are not counted here.
 
 During the **plan** phase (before tasks exist) the detail slot reads `models: auto` / `manual` / `off`, reflecting the Model Switching mode selected in your Console settings.
 

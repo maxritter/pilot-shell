@@ -33,7 +33,7 @@ or, when the PRD's acceptance bar is a standard rather than a task list:
 PRD saved to docs/prd/YYYY-MM-DD-slug.md
 
 To start the build-judge loop, run:
-  /build "<one-line-summary> — has to beat <named bar> — PRD: docs/prd/YYYY-MM-DD-slug.md"
+  /build "<one-line-summary> — PRD: docs/prd/YYYY-MM-DD-slug.md"
 ```
 
 **The command's argument must NOT end in `.md`** — the trailing text after the path prevents the `/spec` dispatcher from treating it as an existing plan file (dispatcher plan-file mode triggers only when the argument ends with `.md` AND the file exists).

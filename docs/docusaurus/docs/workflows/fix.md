@@ -112,7 +112,7 @@ When **Ask Questions** and **Plan Approval** are both off, `/fix` runs end-to-en
 | Use `/fix` | Use `/spec` | Use `/build` |
 | --- | --- | --- |
 | Something is broken | Building new functionality | Something works but isn't good enough |
-| You want a fix without ceremony | Architecture or design decision matters | There is a named bar to beat |
+| You want a fix without ceremony | Architecture or design decision matters | The approach is best found while building |
 | You want it done now | Work warrants a written plan + approval | Quality is the acceptance criterion |
 
 `/fix` handles the full range — from typos to multi-step debugging. It bails out and points to `/spec` only when complexity is truly architectural (multiple components, defense-in-depth at multiple layers, repeated failed attempts).

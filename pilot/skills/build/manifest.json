@@ -3,24 +3,24 @@
   "orchestrator": "orchestrator.md",
   "steps": [
     {
-      "id": "step-1-scope-and-research",
-      "file": "steps/01-scope-and-research.md"
+      "id": "step-1-goal-and-scope",
+      "file": "steps/01-goal-and-scope.md"
     },
     {
-      "id": "step-2-set-the-bar",
-      "file": "steps/02-set-the-bar.md"
+      "id": "step-2-draft-the-run",
+      "file": "steps/02-draft-the-run.md"
     },
     {
-      "id": "step-3-write-criteria",
-      "file": "steps/03-write-criteria.md"
+      "id": "step-3-approve",
+      "file": "steps/03-approve.md"
     },
     {
-      "id": "step-4-approve-and-mode",
-      "file": "steps/04-approve-and-mode.md"
+      "id": "step-4-build",
+      "file": "steps/04-build.md"
     },
     {
-      "id": "step-5-run-the-loop",
-      "file": "steps/05-run-the-loop.md"
+      "id": "step-5-judge",
+      "file": "steps/05-judge.md"
     },
     {
       "id": "step-6-hand-back",

@@ -1,134 +1,15 @@
 #!/usr/bin/env bash
-# Pre-commit hook: security scan, test gates, auto-rebuild console artifacts
+# Shim — the real hook is .github/hooks/pre-commit.
 #
-# 0.  Trivy security scan — always (skip: SKIP_TRIVY=1 or trivy not installed)
-# 1a. Python unit tests  — when launcher/ or pilot/hooks/ changed
-# 1b. Installer tests    — when installer/ changed
-# 2.  Console unit tests — when console/ changed
-# 3.  Console typecheck + build + stage artifacts — when console/src/ changed
-
-set -eo pipefail
-
-# --- Skip in worktrees (spec workflow commits are squash-merged later) ---
-if [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = "true" ] && \
-   [ "$(git rev-parse --git-dir)" != ".git" ]; then
-  exit 0
-fi
-
-# --- 0. Trivy security scan ---
-if [ "${SKIP_TRIVY:-0}" != "1" ] && command -v trivy &>/dev/null; then
-  echo "[pre-commit] Running Trivy security scan..."
-  trivy fs . \
-    --scanners vuln,secret \
-    --severity CRITICAL,HIGH \
-    --exit-code 1 \
-    --ignore-unfixed \
-    --skip-dirs .venv,node_modules,console/node_modules,launcher,docs/site/api,console,docs/site/node_modules,docs/docusaurus/node_modules \
-    --ignorefile .trivyignore \
-    --quiet
-  echo "[pre-commit] Security scan passed."
-fi
-
-# --- 1. Python unit tests ---
-LAUNCHER_CHANGED=$(git diff --cached --name-only -- 'launcher/' 'pilot/hooks/' | head -1)
-INSTALLER_CHANGED=$(git diff --cached --name-only -- 'installer/' | head -1)
-BENCHMARK_CHANGED=$(git diff --cached --name-only -- 'pilot/skills/benchmark/' | head -1)
-
-if [ -n "$LAUNCHER_CHANGED" ]; then
-  echo "[pre-commit] Python source changed — running unit tests..."
-  uv run pytest launcher/tests/ pilot/hooks/tests/ -q --tb=short 2>&1 | tail -20
-  echo "[pre-commit] Python unit tests passed."
-fi
-
-if [ -n "$INSTALLER_CHANGED" ]; then
-  echo "[pre-commit] Installer changed — running installer unit tests..."
-  uv run pytest installer/tests/unit/ -q --tb=short 2>&1 | tail -20
-  echo "[pre-commit] Installer unit tests passed."
-fi
-
-if [ -n "$BENCHMARK_CHANGED" ]; then
-  echo "[pre-commit] Benchmark skill changed — running benchmark unit tests..."
-  uv run pytest pilot/skills/benchmark/tests/ -q --tb=short 2>&1 | tail -20
-  echo "[pre-commit] Benchmark unit tests passed."
-fi
-
-# --- 1d. Python lint gate (ruff + vulture + launcher⊥installer boundary) ---
-if [ -n "$LAUNCHER_CHANGED" ] || [ -n "$INSTALLER_CHANGED" ]; then
-  echo "[pre-commit] Python source changed — running lint gate (ruff + vulture + deadcode + import-linter)..."
-  uv run ruff check launcher installer pilot/hooks
-  uv run vulture
-  uv run deadcode launcher installer
-  uv run lint-imports
-  echo "[pre-commit] Lint gate passed."
-fi
-
-# --- 2. Console unit tests ---
-CONSOLE_CHANGED=$(git diff --cached --name-only -- 'console/src/' 'console/tests/' 'console/scripts/' 'console/package.json' 'console/tsconfig.json' 'console/vite.config.ts' | head -1)
-
-if [ -n "$CONSOLE_CHANGED" ]; then
-  # Verify node_modules exist
-  if [ ! -d "console/node_modules" ]; then
-    echo "[pre-commit] ERROR: console/node_modules missing. Run: cd console && bun install"
-    exit 1
-  fi
-
-  # --- 2a. Mock-hygiene gate: forbid process-global builtin module mocks ---
-  # bun runs every test file in ONE process; mock.module("fs", ...) leaks into
-  # all later files and only blows up under CI's (Linux) file order - the
-  # existsSync pollution class behind run 27408667519. Use spyOn(realModule,
-  # "fn") + mock.restore() in afterAll instead.
-  STAGED_CONSOLE_TESTS=$(git diff --cached --name-only --diff-filter=ACMR -- 'console/tests/*.ts' 'console/tests/**/*.ts')
-  if [ -n "$STAGED_CONSOLE_TESTS" ]; then
-    MOCK_VIOLATIONS=""
-    while IFS= read -r f; do
-      [ -n "$f" ] || continue
-      # Scan the worktree file, NOT `git show :$f` - console sources are
-      # git-crypt'd, so staged blobs are ciphertext and grep would never match.
-      hits=$(grep -nE 'mock\.module\(["'"'"'](node:)?(fs|child_process|os|path)["'"'"']' "$f" 2>/dev/null | grep -vE '^[0-9]+:[[:space:]]*(//|\*)' || true)
-      [ -n "$hits" ] && MOCK_VIOLATIONS="${MOCK_VIOLATIONS}${f}:
-${hits}
-"
-    done <<< "$STAGED_CONSOLE_TESTS"
-    if [ -n "$MOCK_VIOLATIONS" ]; then
-      echo "[pre-commit] ERROR: process-global builtin module mock(s) staged:"
-      printf '%s' "$MOCK_VIOLATIONS"
-      echo "[pre-commit] mock.module() of fs/child_process/os/path leaks across test files"
-      echo "[pre-commit] (bun runs all files in one process; failures appear only under CI's"
-      echo "[pre-commit] file order). Use: spyOn(realModule, \"fn\").mockImplementation(...) at"
-      echo "[pre-commit] module scope + afterAll(() => mock.restore()). See tests/worker/license-routes.test.ts."
-      exit 1
-    fi
-  fi
-
-  echo "[pre-commit] Console source changed — running unit tests..."
-  (cd console && bun test 2>&1) | tail -20
-  echo "[pre-commit] Console unit tests passed."
-
-  # --- 3. Console typecheck + knip + build + stage artifacts ---
-  echo "[pre-commit] Running typecheck..."
-  (cd console && bun run typecheck 2>&1) | tail -20
-  echo "[pre-commit] Console typecheck passed."
-
-  if [ "${SKIP_KNIP:-0}" != "1" ]; then
-    echo "[pre-commit] Running knip dead-code check..."
-    (cd console && bun run knip 2>&1) | tail -20
-    echo "[pre-commit] Console knip passed."
-  fi
-
-  echo "[pre-commit] Rebuilding console artifacts..."
-  (cd console && npm run build 2>&1) | tail -3
-  echo ""
-
-  # Build artifacts that must stay in sync with console source
-  ARTIFACTS=(
-    "pilot/scripts/mcp-server.cjs"
-    "pilot/scripts/worker-service.cjs"
-    "pilot/scripts/context-generator.cjs"
-    "pilot/scripts/worker-wrapper.cjs"
-    "pilot/ui/viewer-bundle.js"
-    "pilot/ui/viewer.css"
-  )
-
-  git add "${ARTIFACTS[@]}"
-  echo "[pre-commit] Console artifacts rebuilt and staged."
-fi
+# Two entry points exist and both must run the SAME checks:
+#   • core.hooksPath=.githooks   → git runs THIS file
+#   • .git/hooks/pre-commit      → a symlink to ../../.github/hooks/pre-commit
+#
+# They used to be two independently maintained copies, and they silently
+# drifted: `core.hooksPath` overrides `.git/hooks/` entirely, so the symlinked
+# (and documented) implementation stopped running while edits kept landing on
+# it. Keeping this file a shim means there is one implementation to maintain
+# and no way for the two paths to diverge again.
+#
+# Bypass flags and everything else are documented in the real hook.
+exec "$(git rev-parse --show-toplevel)/.github/hooks/pre-commit" "$@"

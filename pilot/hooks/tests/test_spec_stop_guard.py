@@ -318,8 +318,11 @@ class TestSubprocessIntegration:
 
         plan_file = plans_dir / "2026-08-07-running-brand.md"
         plan_file.write_text(
-            "# Running Brand Build Rubric\n\nStatus: PENDING\nApproved: Yes\nRounds: 1\nType: Build\n\n"
-            "## Criteria\n- [ ] Criterion 1: beats the bar unlabelled\n"
+            "# Running Brand Buildout\n\nStatus: PENDING\nApproved: Yes\nRounds: 1\nType: Build\n\n"
+            "## Acceptance Criteria\n- [ ] Criterion 1: hero A/B at 1440px, a viewer picks ours\n\n"
+            "## Progress Tracking\n"
+            "- [x] Task 1: hero and motion\n"
+            "- [ ] Task 2: responsive pass at 390px\n"
         )
         _register_plan_for_session(plan_file, "PENDING")
 
@@ -327,9 +330,32 @@ class TestSubprocessIntegration:
         assert _is_blocked(stdout)
         reason = json.loads(stdout.strip())["reason"]
         assert "/build loop active" in reason
-        assert "Active rubric" in reason
+        assert "Active buildout" in reason
         assert "next pending task" not in reason
         assert "spec-verify" not in reason
+
+    def test_build_block_points_at_the_next_task_not_a_single_gap(self, tmp_path: Path) -> None:
+        """Tasks are the unit of work; "close the single gap" describes the deleted model.
+
+        An agent told to close one gap per round works criteria one at a time,
+        which is what turned an 8-criterion run into 14 rounds.
+        """
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+
+        plan_file = plans_dir / "2026-08-07-running-brand.md"
+        plan_file.write_text(
+            "# Running Brand Buildout\n\nStatus: PENDING\nApproved: Yes\nRounds: 1\nType: Build\n\n"
+            "## Acceptance Criteria\n- [ ] Criterion 1: hero A/B at 1440px\n\n"
+            "## Progress Tracking\n- [ ] Task 2: responsive pass at 390px\n"
+        )
+        _register_plan_for_session(plan_file, "PENDING")
+
+        _, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        reason = json.loads(stdout.strip())["reason"]
+        assert "single gap" not in reason
+        assert "task" in reason.lower()
+        assert "judge" in reason.lower()
 
     def test_complete_build_rubric_block_demands_the_final_judge_pass(self, tmp_path: Path) -> None:
         """COMPLETE means criteria ticked; the outstanding step is the blind judge, not verify dispatch."""
@@ -965,7 +991,7 @@ class TestManualSwitchSentinel:
         monkeypatch.setattr(g, "_sessions_base", lambda: tmp_path / "sessions")
         plan = tmp_path / "plan.md"
         plan.write_text("# X\nStatus: PENDING\nApproved: " + ("Yes" if approved else "No") + "\nType: Feature\n")
-        monkeypatch.setattr(g, "find_active_plan", lambda: (plan, "PENDING"))
+        monkeypatch.setattr(g, "find_active_plan", lambda *_args: (plan, "PENDING"))
         monkeypatch.setattr(g, "is_waiting_for_user_input", lambda _p: False)
 
         sentinel = g.get_manual_switch_sentinel_path()
@@ -997,3 +1023,223 @@ class TestManualSwitchSentinel:
             tmp_path, monkeypatch, approved=True, age=g.SENTINEL_MAX_AGE_SECONDS + 60
         )
         assert not sentinel.exists()  # discarded, not honored
+
+
+class TestBuildHandbackSentinel:
+    """The build-handback-pending sentinel allows ONE stop for an approved Buildout.
+
+    /build reaches the user two ways that both need the session to actually pause:
+    the round-budget question at three judge passes, and the blocked-on-external
+    hand-back. On Codex, AskUserQuestion is rewritten to plain-text options, so the
+    agent must END ITS TURN to receive an answer -- and the approved-PENDING block
+    prevents exactly that, reinjecting it into the loop instead. The approval
+    sentinel cannot be reused: it is honored only while Approved: No.
+    """
+
+    def _run_with_sentinel(self, tmp_path, monkeypatch, *, approved: bool, plan_type: str = "Build", age: float = 0.0):
+        import spec_stop_guard as g
+
+        monkeypatch.setenv("PILOT_SESSION_ID", "build-handback-test")
+        monkeypatch.setattr(g, "_sessions_base", lambda: tmp_path / "sessions")
+        plan = tmp_path / "buildout.md"
+        plan.write_text(
+            "# X Buildout\nStatus: PENDING\nApproved: "
+            + ("Yes" if approved else "No")
+            + f"\nType: {plan_type}\n\n## Progress Tracking\n- [ ] Task 1: draft the hero\n"
+        )
+        monkeypatch.setattr(g, "find_active_plan", lambda *_args: (plan, "PENDING"))
+        monkeypatch.setattr(g, "is_waiting_for_user_input", lambda _p: False)
+
+        sentinel = g.get_build_handback_sentinel_path()
+        sentinel.write_text("")
+        if age:
+            stamp = time.time() - age
+            os.utime(sentinel, (stamp, stamp))
+
+        stdin = io.StringIO(json.dumps({"stop_hook_active": False, "transcript_path": ""}))
+        with patch("sys.stdin", stdin):
+            code = g.main()
+        return code, sentinel
+
+    def test_allows_one_stop_for_an_approved_buildout(self, tmp_path, monkeypatch):
+        code, sentinel = self._run_with_sentinel(tmp_path, monkeypatch, approved=True)
+        assert code == 0
+        assert not sentinel.exists()  # one-shot: consumed on honor
+
+    def test_second_stop_is_blocked_again(self, tmp_path, monkeypatch):
+        """One-shot means the very next ordinary stop re-engages the loop block."""
+        import spec_stop_guard as g
+
+        self._run_with_sentinel(tmp_path, monkeypatch, approved=True)
+
+        plan = tmp_path / "buildout.md"
+        monkeypatch.setattr(g, "find_active_plan", lambda *_args: (plan, "PENDING"))
+        monkeypatch.setattr(g, "is_waiting_for_user_input", lambda _p: False)
+        stdin = io.StringIO(json.dumps({"stop_hook_active": False, "transcript_path": ""}))
+        with patch("sys.stdin", stdin), patch("sys.stdout", new_callable=io.StringIO) as out:
+            g.main()
+        assert _is_blocked(out.getvalue())
+
+    def test_not_honored_for_an_unapproved_buildout(self, tmp_path, monkeypatch):
+        """Pre-approval pauses use the approval sentinel; this one must not bypass them."""
+        code, sentinel = self._run_with_sentinel(tmp_path, monkeypatch, approved=False)
+        assert code != 0 or sentinel.exists()
+
+    def test_not_honored_for_a_feature_plan(self, tmp_path, monkeypatch):
+        """/spec has no hand-back pause -- a stray sentinel must not free its implement loop."""
+        code, sentinel = self._run_with_sentinel(tmp_path, monkeypatch, approved=True, plan_type="Feature")
+        assert code != 0 or sentinel.exists()
+
+    def test_stale_sentinel_discarded(self, tmp_path, monkeypatch):
+        import spec_stop_guard as g
+
+        _code, sentinel = self._run_with_sentinel(
+            tmp_path, monkeypatch, approved=True, age=g.SENTINEL_MAX_AGE_SECONDS + 60
+        )
+        assert not sentinel.exists()  # discarded, not honored
+
+
+class TestPayloadSessionIdIsolation:
+    """Session isolation when the hook subprocess inherits no session env vars.
+
+    Reported failure: an ordinary task in this repo was repeatedly blocked by a
+    months-old COMPLETE plan left in ``~/.pilot/sessions/default/active_plan.json``.
+    The hook parsed the Stop payload but located session state purely through
+    ``resolve_session_id()``, which reads the env chain and collapses to the shared
+    ``default`` bucket when none of PILOT_SESSION_ID / CLAUDE_CODE_SESSION_ID /
+    CODEX_THREAD_ID is set. ``plan_in_current_project()`` could not reject the stale
+    plan because it lived in the SAME repo as the current task, so the guard injected
+    verification instructions for months-old unrelated work.
+    """
+
+    SESSION_ENV = ("PILOT_SESSION_ID", "CLAUDE_CODE_SESSION_ID", "CODEX_THREAD_ID")
+
+    def _run(self, input_data: dict, plans_dir: Path, env_overrides: dict) -> tuple[int, str, str]:
+        """Run the hook with the session env chain cleared, then selectively restored."""
+        env = {k: v for k, v in os.environ.items() if k not in self.SESSION_ENV}
+        env.update(env_overrides)
+        result = subprocess.run(
+            [sys.executable, str(HOOK_PATH)],
+            input=json.dumps(input_data),
+            capture_output=True,
+            text=True,
+            cwd=str(plans_dir.parent.parent),
+            env=env,
+        )
+        return result.returncode, result.stdout, result.stderr
+
+    def _register(self, session_id: str, plan_path: Path, status: str) -> None:
+        session_dir = Path.home() / ".pilot" / "sessions" / session_id
+        session_dir.mkdir(parents=True, exist_ok=True)
+        (session_dir / "active_plan.json").write_text(json.dumps({"plan_path": str(plan_path), "status": status}))
+
+    def _make_project(self, tmp_path: Path) -> tuple[Path, Path]:
+        project = tmp_path / "current-project"
+        plans_dir = project / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+        return project, plans_dir
+
+    def test_stale_default_plan_ignored_when_payload_names_another_session(self, tmp_path: Path) -> None:
+        """The reported bug: a stale same-repo plan under the shared 'default'
+        session must not block a stop for the session named in the payload."""
+        project, plans_dir = self._make_project(tmp_path)
+        stale = plans_dir / "2026-05-26-hello-world.md"
+        stale.write_text("# Hello World\n\nStatus: COMPLETE\nApproved: Yes\nType: Feature\n")
+        self._register("default", stale, "COMPLETE")
+
+        code, stdout, _ = self._run(
+            {"stop_hook_active": False, "session_id": "current-session"},
+            plans_dir,
+            {"CLAUDE_PROJECT_ROOT": str(project)},
+        )
+
+        assert code == 0
+        assert not _is_blocked(stdout), (
+            "a plan registered under the shared 'default' session must not block a stop "
+            "for the different session named in the hook payload"
+        )
+
+    def test_payload_session_id_used_when_env_absent(self, tmp_path: Path) -> None:
+        """Not over-suppression: with the env chain empty, the payload session id must
+        still locate THIS session's own active plan and block."""
+        project, plans_dir = self._make_project(tmp_path)
+        plan = plans_dir / "2026-08-07-current.md"
+        plan.write_text("# Current\n\nStatus: PENDING\nApproved: Yes\nType: Feature\n")
+        self._register("current-session", plan, "PENDING")
+
+        code, stdout, _ = self._run(
+            {"stop_hook_active": False, "session_id": "current-session"},
+            plans_dir,
+            {"CLAUDE_PROJECT_ROOT": str(project)},
+        )
+
+        assert code == 0
+        assert _is_blocked(stdout), (
+            "with the env chain empty the payload session id must still find this session's own active plan"
+        )
+
+    def test_env_session_id_wins_over_payload(self, tmp_path: Path) -> None:
+        """The payload is a FALLBACK, never an override.
+
+        PILOT_SESSION_ID is a shell ``$$-$RANDOM`` id (installer/steps/shell_config.py)
+        and is the id ``pilot register-plan`` wrote active_plan.json under
+        (launcher/session.py:get_session_dir). The payload carries the agent's own
+        UUID, a deliberately different value. Making the payload authoritative would
+        point the guard at a directory the writer never used, silently disabling the
+        /spec and /build stop guard on every wrapper-launched session.
+        """
+        project, plans_dir = self._make_project(tmp_path)
+        plan = plans_dir / "2026-08-07-wrapper-session.md"
+        plan.write_text("# Wrapper\n\nStatus: PENDING\nApproved: Yes\nType: Feature\n")
+        self._register("84532-19274", plan, "PENDING")
+
+        code, stdout, _ = self._run(
+            {"stop_hook_active": False, "session_id": "fedf281c-1710-4a51-91fd-b489b62b8e48"},
+            plans_dir,
+            {"CLAUDE_PROJECT_ROOT": str(project), "PILOT_SESSION_ID": "84532-19274"},
+        )
+
+        assert code == 0
+        assert _is_blocked(stdout), (
+            "the env-resolved session id is what the plan writer used; the payload must "
+            "not override it or the guard goes blind on wrapper-launched sessions"
+        )
+
+    def test_wrapper_registered_plan_is_missed_when_env_chain_lost(self, tmp_path: Path) -> None:
+        """KNOWN GAP, characterized deliberately -- this asserts current behaviour, not
+        desired behaviour.
+
+        When the WRITER had the wrapper env (plan registered under the "$$-$RANDOM"
+        PILOT_SESSION_ID) but the hook subprocess then loses the entire env chain, the
+        guard cannot find that plan under any id it can still see, so it fails open
+        during an active workflow.
+
+        The payload fallback does not close this: the payload carries the agent's UUID,
+        which is not the id the wrapper wrote under. Verified identical before and after
+        the payload-fallback fix by running both hook copies against this exact scenario
+        -- it is pre-existing, not introduced here, and the fix is neutral on it.
+
+        Closing it needs a durable native-id -> wrapper-id alias persisted at
+        registration time, which spans the Cython-compiled launcher package and is a
+        /spec-sized change rather than part of this bugfix.
+
+        When that alias lands, this test SHOULD start failing -- flip it to assert
+        _is_blocked and delete this docstring.
+        """
+        project, plans_dir = self._make_project(tmp_path)
+        plan = plans_dir / "2026-08-07-wrapper-registered.md"
+        plan.write_text("# Wrapper Registered\n\nStatus: PENDING\nApproved: Yes\nType: Feature\n")
+        self._register("84532-19274", plan, "PENDING")
+
+        code, stdout, _ = self._run(
+            {"stop_hook_active": False, "session_id": "0bb9316a-e467-44ff-a5e9-387caf7dc5f7"},
+            plans_dir,
+            {"CLAUDE_PROJECT_ROOT": str(project)},
+        )
+
+        assert code == 0
+        assert not _is_blocked(stdout), (
+            "characterization of the known identity-loss gap: with the wrapper id gone "
+            "from the env and only the agent UUID in the payload, no reachable id points "
+            "at the directory register-plan wrote under"
+        )

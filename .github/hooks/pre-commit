@@ -38,6 +38,51 @@ fi
 
 cd "$(git rev-parse --show-toplevel)"
 
+# --- 0a. Author identity gate ---
+#
+# A throwaway identity in .git/config silently re-authors every commit in the
+# repo (repo config wins over ~/.gitconfig), GitHub attributes commits by author
+# email, and the author is baked into the commit hash - so the only cure after
+# the fact is a history rewrite. Catch it here, before it can be committed.
+# Bypass: SKIP_IDENTITY_CHECK=1
+if [ "${SKIP_IDENTITY_CHECK:-0}" != "1" ]; then
+  _ident_email="$(git config user.email 2>/dev/null || true)"
+  _ident_name="$(git config user.name 2>/dev/null || true)"
+  _ident_bad=""
+
+  case "$_ident_email" in
+    "")                          _ident_bad="no user.email is configured" ;;
+    *@*.*)                       : ;;
+    *)                           _ident_bad="'$_ident_email' is not a valid address" ;;
+  esac
+
+  # Throwaway shapes: a one- or two-character local part paired with a one- or
+  # two-character domain label (t@t.com, a@a.io), and the usual example domains.
+  if [ -z "$_ident_bad" ]; then
+    case "$_ident_email" in
+      ?@?.*|?@??.*|??@?.*|??@??.*)          _ident_bad="'$_ident_email' looks like a throwaway address" ;;
+      *@example.*|*@test.*|*@localhost|*@localhost.*)
+                                            _ident_bad="'$_ident_email' is a placeholder domain" ;;
+      test@*|foo@*|bar@*|dummy@*)           _ident_bad="'$_ident_email' looks like a placeholder address" ;;
+    esac
+  fi
+
+  if [ -n "$_ident_bad" ]; then
+    _ident_local="$(git config --local user.email 2>/dev/null || true)"
+    echo "[pre-commit] BLOCKED: commit author identity is not usable — $_ident_bad" >&2
+    echo "  author would be: ${_ident_name:-<no name>} <${_ident_email:-<no email>}>" >&2
+    if [ -n "$_ident_local" ]; then
+      echo "  source: a repo-local override in .git/config (it beats ~/.gitconfig)" >&2
+      echo "  fix:    git config --unset user.email && git config --unset user.name" >&2
+    else
+      echo "  fix:    git config --global user.email 'you@example-real.com'" >&2
+    fi
+    echo "  then:   git config user.email   # confirm before committing" >&2
+    echo "  bypass: SKIP_IDENTITY_CHECK=1 git commit ..." >&2
+    exit 1
+  fi
+fi
+
 # --- What did we stage? ------------------------------------------------------
 # Scope each check to its package. Per-package test scoping is safe: lint-imports
 # enforces that launcher / installer / pilot-hooks never import each other, so a
@@ -232,6 +277,44 @@ if [ "$failed" -ne 0 ]; then
   echo "✖ Pre-commit failed. Fix the above, or bypass with SKIP_PRECOMMIT=1 / git commit --no-verify" >&2
   echo "  (granular: SKIP_TESTS=1, SKIP_TRIVY=1, SKIP_KNIP=1)." >&2
   exit 1
+fi
+
+# --- Rebuild + stage console artifacts ---------------------------------------
+#
+# pilot/ui/ and pilot/scripts/*.cjs are COMMITTED build outputs: they are what
+# the installer ships, and CI's console-build job only *checks* that the build
+# succeeds - it never regenerates them. Without this step a console source
+# change lands with stale artifacts and users install a Console missing it.
+# Serial and after the gate on purpose: it mutates the index, which is unsafe
+# from the parallel subshells above, and pointless if a check just failed.
+if [ "$console_changed" = "1" ] && [ "${SKIP_ARTIFACT_REBUILD:-0}" != "1" ]; then
+  echo ""
+  echo "Rebuilding console artifacts…"
+  if ( cd console && npm run build >/dev/null 2>&1 && npm run build:viewer >/dev/null 2>&1 ); then
+    artifacts=(
+      "pilot/scripts/mcp-server.cjs"
+      "pilot/scripts/worker-service.cjs"
+      "pilot/scripts/context-generator.cjs"
+      "pilot/scripts/worker-wrapper.cjs"
+      "pilot/ui/viewer-bundle.js"
+      "pilot/ui/viewer.css"
+    )
+    existing=()
+    for a in "${artifacts[@]}"; do [ -f "$a" ] && existing+=("$a"); done
+    # index.js / index3.js and friends are emitted chunk names that change with
+    # the bundle split, so stage whatever the build actually wrote.
+    while IFS= read -r changed; do
+      [ -n "$changed" ] && existing+=("$changed")
+    done <<< "$(git diff --name-only -- pilot/ui pilot/scripts)"
+    if [ "${#existing[@]}" -gt 0 ]; then
+      git add "${existing[@]}"
+      echo "  ✔ console artifacts rebuilt and staged"
+    fi
+  else
+    echo "  ✖ console artifact rebuild FAILED — commit blocked" >&2
+    echo "    run: cd console && npm run build && npm run build:viewer" >&2
+    exit 1
+  fi
 fi
 
 echo ""

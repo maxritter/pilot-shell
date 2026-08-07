@@ -29,7 +29,7 @@ The orchestrator provides: `plan_file`, `changed_files`, `output_path`, `base_re
 
 **Read the plan file** — note tasks, DoD criteria, risks/mitigations, Goal Verification section, and **extract the list of files each task creates/modifies** (the "plan files"). If the plan has a `## Global Constraints` section, treat every line in it as binding on every task under review — those values apply to work that never mentions them.
 
-**A `Type: Build` rubric is the plan file for a `/build` run.** It has no tasks: its `## Criteria` are the DoD, and it names no files, so scope the diff to the changed files the orchestrator passed instead. Review the code on its own merits — bugs, security, cleanups. Do **not** rule on whether a criterion passes; the build's own blind judge owns that, and a criterion is a standard, not a compliance checklist.
+**A `Type: Build` file is the Buildout for a `/build` run.** Its tasks live under `## Implementation Tasks` and carry an `**Objective:**` and nothing else — no `Files:`, no per-task DoD — because `/build` discovers those while building. So there is no plan-file list to scope the diff by: use the changed files the orchestrator passed instead. Its `## Acceptance Criteria` (or `## Criteria` on a pre-redesign rubric, which has no tasks at all) are judged separately by the run's own judge — do **not** rule on whether a criterion passes. Review the code on its own merits: bugs, security, cleanups.
 
 **Get the scoped diff** — scope to only plan files to avoid picking up unrelated dirty files:
 

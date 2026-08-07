@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from _lib.util import (
     build_objective_reinjection,
     extract_behavior_contract,
+    extract_build_criteria,
     extract_plan_e2e_scenarios,
     extract_plan_goal,
     extract_plan_in_scope,
@@ -408,3 +409,81 @@ class TestBuildObjectiveReinjection:
         result = build_objective_reinjection(plan)
         assert "Truth six" not in result
         assert "Truth five" in result
+
+
+class TestExtractBuildCriteria:
+    """A Buildout's acceptance criteria are what the stop guard reinjects.
+
+    They must be read from the criteria section specifically. A whole-file scan
+    would also pick up a `- [ ] Criterion N:` line quoted anywhere else in the
+    file -- the Round Log records failing criteria verbatim, so a stuck run
+    would reinject the same criterion two or three times.
+    """
+
+    BUILDOUT = """# Running Brand Buildout
+
+Status: PENDING
+Approved: Yes
+Type: Build
+
+## Summary
+
+**Goal:** a landing page as alive as Nike's
+
+## Acceptance Criteria
+
+- [x] Criterion 1: hero A/B at 1440px, a viewer picks ours
+- [ ] Criterion 2: LCP under 2.0s on a throttled 4G profile
+- [ ] Criterion 3: every interactive element reachable by keyboard
+
+## Progress Tracking
+
+- [ ] Task 1: responsive pass at 390px
+
+## Round Log
+
+- Round 4: ceiling reached. Recorded unresolved, per the user's accept:
+- [ ] Criterion 2: LCP under 2.0s on a throttled 4G profile
+"""
+
+    LEGACY_RUBRIC = """# Legacy Build Rubric
+
+Status: PENDING
+Approved: Yes
+Type: Build
+
+## Summary
+
+**Goal:** an old-format rubric
+
+## Criteria
+
+- [x] Criterion 1: beats the bar unlabelled
+- [ ] Criterion 2: LCP under 2.0s
+"""
+
+    def test_reads_acceptance_criteria_section_unmet_first(self, tmp_path):
+        plan = _write_plan(tmp_path, self.BUILDOUT, name="2026-08-07-running-brand.md")
+        result = extract_build_criteria(plan)
+        assert result == [
+            "[ ] LCP under 2.0s on a throttled 4G profile",
+            "[ ] every interactive element reachable by keyboard",
+            "[x] hero A/B at 1440px, a viewer picks ours",
+        ]
+
+    def test_does_not_duplicate_criteria_quoted_in_the_round_log(self, tmp_path):
+        plan = _write_plan(tmp_path, self.BUILDOUT, name="2026-08-07-running-brand.md")
+        result = extract_build_criteria(plan)
+        assert len(result) == 3
+
+    def test_falls_back_to_criteria_heading_for_old_rubrics(self, tmp_path):
+        plan = _write_plan(tmp_path, self.LEGACY_RUBRIC, name="2026-08-06-legacy.md")
+        result = extract_build_criteria(plan)
+        assert result == [
+            "[ ] LCP under 2.0s",
+            "[x] beats the bar unlabelled",
+        ]
+
+    def test_returns_empty_for_a_file_with_no_criteria_section(self, tmp_path):
+        plan = _write_plan(tmp_path, "# Plan\n\nStatus: PENDING\nType: Feature\n")
+        assert extract_build_criteria(plan) == []

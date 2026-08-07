@@ -9,6 +9,7 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
 from tool_redirect import run_tool_redirect
 
 HOOK_PATH = Path(__file__).resolve().parent.parent / "tool_redirect.py"
@@ -374,6 +375,45 @@ class TestDangerousGitBlock:
 
     # ---- Block (deny) cases — irreversible variants ----
 
+    # ---- Repo-local git identity writes ----
+    #
+    # Regression guard: a throwaway identity written into .git/config silently
+    # re-authors every later commit in the repo (repo config beats ~/.gitconfig),
+    # and the wrong author is part of the commit hash - only a history rewrite
+    # undoes it. Reads and explicit --global/--system writes stay allowed.
+
+    @pytest.mark.parametrize(
+        "command",
+        [
+            "git config user.email t@t.com",
+            "git config user.name t",
+            "git config --local user.email throwaway@x.io",
+            "git config --replace-all user.name bot",
+            'git config user.email "t@t.com"',
+        ],
+    )
+    def test_blocks_repo_local_identity_write(self, command: str):
+        code, output = self._bash(command)
+        assert code == 2
+        assert _is_denied(output)
+
+    @pytest.mark.parametrize(
+        "command",
+        [
+            "git config user.email",
+            "git config --get user.email",
+            "git config --show-origin --get-all user.email",
+            "git config --list",
+            "git config --global user.email me@real.example",
+            "git config --system user.name Someone",
+            "git config core.hooksPath .githooks",
+        ],
+    )
+    def test_allows_identity_reads_and_global_writes(self, command: str):
+        code, output = self._bash(command)
+        assert code == 0
+        assert not _is_denied(output)
+
     def test_blocks_git_push_force_long(self):
         code, output = self._bash("git push --force origin main")
         assert code == 2
@@ -688,9 +728,6 @@ def _nudge_text(output: str) -> str:
     except (json.JSONDecodeError, ValueError):
         return ""
     return data.get("hookSpecificOutput", {}).get("additionalContext", "")
-
-
-import pytest  # noqa: E402  — added at end-of-file to avoid touching original imports
 
 
 @pytest.fixture

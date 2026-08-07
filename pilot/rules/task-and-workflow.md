@@ -8,14 +8,14 @@ Pilot has **two** ways to run substantial work, and neither is the escalation pa
 |---|---|
 | A defect in behaviour that already worked | `/fix` |
 | An ordered list of tasks, approved before any code | `/spec` |
-| A standard — "make this, and make it good", a named bar to beat | `/build` |
+| A clear goal — "make this, and make it good", approach found while building | `/build` |
 | Nothing yet; it is still vague who it serves or what done means | `/prd`, then one of the above |
 
-**Size does not decide.** A 30-screen migration can be `/build`; a 40-line change with an exacting bar can be `/build`; a modest feature with an unclear execution order can be `/spec`. Ask what the work is *measured against*: a task list, or a standard.
+**Size does not decide.** A 30-screen migration can be `/build`; a 40-line change can be `/build`; a modest feature with an unclear execution order can be `/spec`. Ask what the work is *measured against*: an approved task list, or a defined end state.
 
 ⛔ **Never route to `/spec` by reflex because the work is large.** `/build` escalates internally (parallel surfaces) and has no size ceiling. Recommending `/spec` for scale alone is the single most common routing error.
 
-Both write a file under `docs/plans/` (`Type: Feature|Bugfix` vs `Type: Build`), register it with `pilot register-plan`, drive the statusline, appear in the Console, and are held open by the same stop guard. What differs is the unit of progress: **tasks** for `/spec`, **criteria** for `/build`.
+Both write a file under `docs/plans/` (`Type: Feature|Bugfix` vs `Type: Build`), register it with `pilot register-plan`, drive the statusline, appear in the Console, and are held open by the same stop guard. Both count **tasks** as the unit of progress; `/build` adds a small set of acceptance criteria that a judge rules at the end of each round, and counts rounds where `/spec` counts iterations.
 
 ## Plan Mode
 
@@ -49,15 +49,15 @@ Default is quick mode (direct execution).
 | Trivial (single file, no active tasks) | Execute directly |
 | Any request while tasks exist | TaskCreate FIRST |
 | Moderate (2–5 files) | TaskCreate, then execute |
-| Substantial — architectural, cross-cutting, or the standard *is* the deliverable | **Ask** which workflow: `/spec`, `/build`, or quick mode |
+| Substantial — architectural, cross-cutting, or the approach is best found while building | **Ask** which workflow: `/spec`, `/build`, or quick mode |
 
-When you do ask, offer both structured workflows and say what separates them in one line each — an approved task list (`/spec`) versus a bar the work has to clear (`/build`). Never present one as the serious option and the other as a lightweight alternative.
+When you do ask, offer both structured workflows and say what separates them in one line each — an approved task list (`/spec`) versus a goal the work goes after without one (`/build`). Never present one as the serious option and the other as a lightweight alternative.
 
 **⛔ Do NOT suggest a structured workflow up front for:** bugfixes (use `/fix` — which escalates to `/spec` itself when scope exceeds its quick lane, so relaying that escalation is fine), single-feature additions, refactors inside one module, CLI flag changes, config tweaks, dependency updates, test additions, or anything already scoped to a clear outcome with no standard attached. When in doubt, execute in quick mode.
 
 **Two signals that outrank the size heuristic**, because they point at a specific workflow rather than at "this is big":
 
-- The user names something to match or beat, says "make it good", or asks you to keep iterating until it clears a bar → suggest `/build`, whatever the size.
+- The user names an end state, says "make it good", or wants the approach discovered while building rather than agreed first → suggest `/build`, whatever the size.
 - The user wants the approach written down and approved before any code exists → suggest `/spec`, whatever the size.
 
 ## Task Management
@@ -87,15 +87,15 @@ Default is quick mode (direct execution).
 | Trivial (single file, no active tasks) | Execute directly |
 | Any request while tasks exist | Update the current `update_plan` plan first |
 | Moderate (2–5 files) | Create or refresh an `update_plan` plan, then execute |
-| Substantial — architectural, cross-cutting, or the standard *is* the deliverable | **Ask** which workflow: `$spec`, `$build`, or quick mode |
+| Substantial — architectural, cross-cutting, or the approach is best found while building | **Ask** which workflow: `$spec`, `$build`, or quick mode |
 
-When you do ask, offer both structured workflows and say what separates them in one line each — an approved task list (`$spec`) versus a bar the work has to clear (`$build`). Never present one as the serious option and the other as a lightweight alternative.
+When you do ask, offer both structured workflows and say what separates them in one line each — an approved task list (`$spec`) versus a goal the work goes after without one (`$build`). Never present one as the serious option and the other as a lightweight alternative.
 
 **⛔ Do NOT suggest a structured workflow up front for:** bugfixes (use `$fix` — which escalates to `$spec` itself when scope demands it), single-feature additions, refactors inside one module, CLI flag changes, config tweaks, dependency updates, test additions, or anything already scoped to a clear outcome with no standard attached. When in doubt, execute in quick mode.
 
 **Two signals that outrank the size heuristic**, because they point at a specific workflow rather than at "this is big":
 
-- The user names something to match or beat, says "make it good", or asks you to keep iterating until it clears a bar → suggest `$build`, whatever the size.
+- The user names an end state, says "make it good", or wants the approach discovered while building rather than agreed first → suggest `$build`, whatever the size.
 - The user wants the approach written down and approved before any code exists → suggest `$spec`, whatever the size.
 
 ## Task Management
@@ -201,25 +201,25 @@ Use `run_in_background=true` only for long-running processes (dev servers, watch
 ```
 /spec  → Feature: spec-plan        → spec-implement → spec-verify
        → Bugfix:  spec-bugfix-plan → spec-implement → spec-bugfix-verify
-/build → bar → criteria → approve → loop (build → judge → one gap) → hand back
+/build → goal → tasks + criteria → approve → round (build every task → judge) → hand back
 /fix   → quick lane; stops and asks for /spec when scope exceeds it
 ```
 
 The phase skills carry their own contracts — dispatch rules, toggles, plan registration, worktree handling, per-task tracking. Don't restate them here; read the skill. What follows applies whether or not a skill is loaded.
 
-**`Status:` is a closed set** — exactly one of `PENDING` → `COMPLETE` → `VERIFIED`, written as the bare keyword with no trailing prose. Never invent another value (`RESOLVED`, `DONE`, `CLOSED`); the Console treats anything outside the set as terminal. Resolution notes belong in the plan body. This applies to `/build` rubrics identically.
+**`Status:` is a closed set** — exactly one of `PENDING` → `COMPLETE` → `VERIFIED`, written as the bare keyword with no trailing prose. Never invent another value (`RESOLVED`, `DONE`, `CLOSED`); the Console treats anything outside the set as terminal. Resolution notes belong in the plan body. This applies to `/build` Buildouts identically.
 
 **`/spec` — four user interaction points, and no more:** branch/type confirmation (new plans), plan approval, worktree sync approval (`Worktree: Yes` only), and the final code-review gate. Everything else is automatic — **never ask "should I fix these findings?"**, since verification fixes are part of the approved plan.
 
-**`/build` — three, and no more:** bar selection (only when the user did not name one), criteria approval, and hand-back. A failing criterion is never an interaction point — it is the next round's job. **Never ask "should I keep going?"**; the criteria answer that.
+**`/build` — three, and no more:** goal/reference confirmation (a reference only when one genuinely exists and the user did not name it), approval of the drafted tasks and criteria, and hand-back. A failing criterion is never an interaction point — it becomes the next round's tasks. **Never ask "should I keep going?"**; the criteria and the three-round budget answer that.
 
 ⛔ **An auto-continued question is not an answer.** An `AskUserQuestion` result reading "No response after Ns — continued without an answer" means the user has not responded. Treat it as silence at any interaction point: don't act on the recommended option, don't infer approval, re-ask when they return.
 
 **Deviations:** auto-fix bugs, missing validation, and broken imports inline and document them. **Stop and ask** for architectural changes — a new table, a library swap, a breaking API.
 
 <!-- CC-ONLY -->
-**Stop guard:** when it blocks a stop during `/spec` or `/build`, don't acknowledge it, output resume instructions, or say goodbye. Your very next action is a tool call. Same after any user interruption — re-read the plan or rubric and resume. In `/build` this hook *is* the loop's goal condition; there is nothing extra for the user to type.
+**Stop guard:** when it blocks a stop during `/spec` or `/build`, don't acknowledge it, output resume instructions, or say goodbye. Your very next action is a tool call. Same after any user interruption — re-read the plan or Buildout and resume. In `/build` this hook *is* the loop's goal condition; there is nothing extra for the user to type.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-**Stop guard:** when it blocks a stop during `$spec` or `$build`, don't acknowledge it, output resume instructions, or say goodbye. Your very next action is a tool call — re-read the plan or rubric, refresh `update_plan`, or make the next change. Same after any user interruption. In `$build` this hook *is* the loop's goal condition.
+**Stop guard:** when it blocks a stop during `$spec` or `$build`, don't acknowledge it, output resume instructions, or say goodbye. Your very next action is a tool call — re-read the plan or Buildout, refresh `update_plan`, or make the next change. Same after any user interruption. In `$build` this hook *is* the loop's goal condition.
 CODEX-END -->

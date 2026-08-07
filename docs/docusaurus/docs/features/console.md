@@ -28,7 +28,8 @@ Each view that supports project filtering has an inline **Project Filter** dropd
 | **Sessions** | Browse past sessions with search. Copy a session ID and run `/resume <session-id>` in Claude Code to jump back in (Claude Code only). |
 | **Memories** | Observations (decisions, discoveries, bugfixes) with type filters and search. Each memory links back to the session it came from. Hosts the **Team Sharing** card - see [Team Memories](./team-memories.md). |
 | **Requirements** | PRD documents with view/annotate modes. Selected opens as a tab, others live in a Previous dropdown. |
-| **Specifications** | Spec plans with task progress, phase tracking (PENDING/COMPLETE/VERIFIED), and iteration history. [`/build`](../workflows/build.md) rubrics appear here too, badged `Build`, with criteria as the progress checklist and a round log instead of tasks. Hosts Plan Annotation and Spec Sharing (below). |
+| **Buildouts** | [`/build`](../workflows/build.md) goal-and-loop runs, in their own section: the goal, the acceptance criteria the judge rules each round, the task list as it evolved, and the round log. Phase tracking reads `goal` -> `build` -> `judge`, and the repeat counter counts rounds rather than iterations. Same annotation and sharing surfaces as Specifications. |
+| **Specifications** | Spec plans with task progress, phase tracking (PENDING/COMPLETE/VERIFIED), and iteration history. Hosts Plan Annotation and Spec Sharing (below). |
 | **Extensions** | All extensions - local, plugin, remote - with team sharing via git (push, pull, diff), color-coded categories, and scope filtering. |
 | **Changes** | Git diff viewer with staged/unstaged files, branch info, worktree context. Hosts Code Review and Spec Task Correlation (below). |
 | **Usage** | Daily token costs, model routing breakdown (Opus vs Sonnet), and usage trends. |

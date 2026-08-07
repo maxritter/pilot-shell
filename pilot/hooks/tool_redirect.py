@@ -72,6 +72,20 @@ DANGEROUS_GIT_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\bgit\s+restore\s+(?!--staged\b)\."), "git restore ."),
     (re.compile(r"\bgit\s+restore\b[^\n|;&]*--source(?:=|\s+)\S+[^\n|;&]*\s\.(?:\s|$)"), "git restore --source ."),
     (re.compile(r"\bgit\s+restore\b[^\n|;&]*--worktree\b[^\n|;&]*\s\.(?:\s|$)"), "git restore --worktree ."),
+    # Writing a repo-local identity silently re-authors every future commit in
+    # the repo, and git resolves repo config ahead of ~/.gitconfig. Agents reach
+    # for this to set a throwaway identity while reproducing git behaviour; when
+    # it lands on the real checkout instead of a temp one, the misattribution is
+    # baked into commit hashes and only a history rewrite undoes it. Reads
+    # (`git config user.email`, `--get`, `--list`) and explicit `--global` /
+    # `--system` writes are all still allowed.
+    (
+        re.compile(
+            r"\bgit\s+config\b(?![^\n|;&]*\s--(?:global|system|get|get-all|get-regexp|list))"
+            r"[^\n|;&]*\buser\.(?:email|name)\s+[^\s&|;<>]"
+        ),
+        "git config user.email/user.name (repo-local identity write)",
+    ),
 ]
 
 

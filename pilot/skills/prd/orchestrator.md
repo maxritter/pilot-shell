@@ -1,6 +1,6 @@
 ---
 name: prd
-description: "Turns a rough idea into a written, approved Product Requirements Document, with optional market and technical research. Use when the user types /prd, has a feature idea that is still vague about who it serves or what counts as done, wants a thought partner to pressure-test a concept before building, or asks for a PRD, product spec, or requirements doc. Not for work already scoped enough to plan — that is /spec, or /build when the deliverable is measured against a standard."
+description: "Turns a rough idea into a written, approved Product Requirements Document, with optional market and technical research. Use when the user types /prd, has a feature idea that is still vague about who it serves or what counts as done, wants a thought partner to pressure-test a concept before building, or asks for a PRD, product spec, or requirements doc. Not for work already scoped enough to plan — that is /spec, or /build when the approach is better discovered while building."
 argument-hint: "<idea or feature description>"
 user-invocable: true
 ---
@@ -21,7 +21,7 @@ Do NOT invoke `/spec`, `/spec-plan`, `/spec-implement`, `/build`, write any code
 - You want to **brainstorm back-and-forth** before locking anything down — pitch ideas, react, refine, then converge
 - You need to explore trade-offs, challenge assumptions, or define scope before committing to a plan
 
-**Use `/spec` or `/build` instead when:** requirements are well-defined. You know what to build and roughly how. Skip straight to planning (`/spec`) or to setting the bar (`/build`).
+**Use `/spec` or `/build` instead when:** requirements are well-defined. You know what to build and roughly how. Skip straight to planning (`/spec`) or to naming the goal (`/build`).
 
 `/prd` chains into either: it produces the requirements doc, then hands off to `/spec` when the next question is *how, in what order*, or to `/build` when the next question is *how good, measured against what*.
 

@@ -19,6 +19,7 @@ import os
 import re
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -41,14 +42,14 @@ MAX_BLOCKS = 30
 SENTINEL_MAX_AGE_SECONDS = 3600
 
 
-def get_stop_guard_path() -> Path:
+def get_stop_guard_path(session_id: str | None = None) -> Path:
     """Get session-scoped stop guard state path."""
-    guard_dir = _sessions_base() / resolve_session_id()
+    guard_dir = _sessions_base() / (session_id or resolve_session_id())
     guard_dir.mkdir(parents=True, exist_ok=True)
     return guard_dir / "spec-stop-guard"
 
 
-def get_approval_sentinel_path() -> Path:
+def get_approval_sentinel_path(session_id: str | None = None) -> Path:
     """Session-scoped path to the plan-approval-pending sentinel.
 
     Codex converts AskUserQuestion to a plain-text numbered prompt, so
@@ -63,12 +64,12 @@ def get_approval_sentinel_path() -> Path:
     SENTINEL_MAX_AGE_SECONDS — e.g. PID reuse / crashed session) are
     discarded, not honored.
     """
-    guard_dir = _sessions_base() / resolve_session_id()
+    guard_dir = _sessions_base() / (session_id or resolve_session_id())
     guard_dir.mkdir(parents=True, exist_ok=True)
     return guard_dir / "spec-approval-pending"
 
 
-def get_manual_switch_sentinel_path() -> Path:
+def get_manual_switch_sentinel_path(session_id: str | None = None) -> Path:
     """Session-scoped path to the manual-switch-pending sentinel.
 
     Manual Model Switching pauses ONCE after plan approval so the user can run
@@ -79,14 +80,66 @@ def get_manual_switch_sentinel_path() -> Path:
     on honor) and only for an APPROVED plan, so the pre-approval flow and the
     implement-phase block are both preserved. Stale sentinels are discarded.
     """
-    guard_dir = _sessions_base() / resolve_session_id()
+    guard_dir = _sessions_base() / (session_id or resolve_session_id())
     guard_dir.mkdir(parents=True, exist_ok=True)
     return guard_dir / "manual-switch-pending"
 
 
-def find_active_plan() -> tuple[Path | None, str | None]:
+def get_build_handback_sentinel_path(session_id: str | None = None) -> Path:
+    """Session-scoped path to the build-handback-pending sentinel.
+
+    ``/build`` reaches the user two ways that both require the session to pause
+    while the Buildout is still ``PENDING`` and approved: the round-budget
+    question at three judge passes, and the blocked-on-external hand-back. On
+    Codex ``AskUserQuestion`` is rewritten to plain-text options, so the agent
+    must end its turn to receive an answer -- which the approved-``PENDING``
+    block otherwise prevents, reinjecting it into the loop instead.
+
+    Honored ONE time (the sentinel is consumed on honor) and only for an
+    APPROVED ``Type: Build`` plan, so ``/spec``'s implement-phase block and the
+    pre-approval flow are both preserved. Stale sentinels are discarded.
+    """
+    guard_dir = _sessions_base() / (session_id or resolve_session_id())
+    guard_dir.mkdir(parents=True, exist_ok=True)
+    return guard_dir / "build-handback-pending"
+
+
+def _sentinel_grants_stop(
+    sentinel: Path,
+    plan_path: Path,
+    applies: Callable[[bool, str], bool],
+    *,
+    consume: bool,
+) -> bool:
+    """True when a fresh sentinel permits this stop attempt.
+
+    Shared by the three pause sentinels, which differ only in which plan state
+    they apply to and whether honoring them burns the sentinel. A sentinel older
+    than ``SENTINEL_MAX_AGE_SECONDS`` (PID reuse, crashed session) is discarded
+    rather than honored, so a stale file cannot silently disable the guard.
+
+    ``applies`` receives the plan's ``(approved, plan_type)``.
+    """
+    if not sentinel.exists():
+        return False
+    try:
+        age = time.time() - sentinel.stat().st_mtime
+    except OSError:
+        age = 0.0
+    if age > SENTINEL_MAX_AGE_SECONDS:
+        sentinel.unlink(missing_ok=True)
+        return False
+    approved, plan_type = _read_plan_approved_and_type(str(plan_path))
+    if not applies(approved, plan_type):
+        return False
+    if consume:
+        sentinel.unlink(missing_ok=True)
+    return True
+
+
+def find_active_plan(session_id: str | None = None) -> tuple[Path | None, str | None]:
     """Find the active plan for THIS session via session-scoped active_plan.json."""
-    plan_json = get_session_plan_path()
+    plan_json = get_session_plan_path(session_id)
     if not plan_json.exists():
         return None, None
 
@@ -172,17 +225,17 @@ def _next_action_for(status: str, plan_type: str = "Feature") -> str:
     if plan_type == "Build":
         if status == "COMPLETE":
             return (
-                "Every criterion is ticked but the FINAL blind judge pass has not run. "
-                "IMMEDIATELY re-obtain the bar using the rubric's re-obtain command, then rule "
-                "every criterion again from the finished artifact alone. Do NOT set "
-                "Status: VERIFIED without that pass, and do NOT summarise the work instead of "
-                "judging it."
+                "Every task is ticked but the judge pass has not run. IMMEDIATELY re-obtain the "
+                "reference if the Buildout names one, then rule every acceptance criterion from "
+                "the finished artifact alone, pass or fail, with one line of evidence each. Do "
+                "NOT set Status: VERIFIED without that pass, and do NOT summarise the work "
+                "instead of judging it."
             )
         return (
             "The build loop is active. Your VERY NEXT action must be a tool call - re-read the "
-            "rubric's Criteria and Round Log, close the single gap named there, then judge every "
-            "criterion against the re-obtained bar. Do NOT stop while any criterion is unticked, "
-            "do NOT tick one without evidence you can point at, and do NOT lower a criterion "
+            "Buildout, work the next unticked task under Progress Tracking, and once EVERY task "
+            "is ticked, judge the acceptance criteria. Do NOT judge while a task is unticked, do "
+            "NOT tick a criterion without evidence you can point at, and do NOT lower one "
             "silently."
         )
     if status == "COMPLETE":
@@ -205,7 +258,7 @@ def _block_reason(plan_path: Path, status: str) -> str:
     _, plan_type = _read_plan_approved_and_type(str(plan_path))
     is_build = plan_type == "Build"
     workflow = "/build loop" if is_build else "/spec workflow"
-    artifact = "Active rubric" if is_build else "Active plan"
+    artifact = "Active buildout" if is_build else "Active plan"
     base_reason = (
         f"{workflow} active — cannot stop without user interaction. "
         f"{artifact}: {plan_path} (Status: {status}). "
@@ -228,7 +281,14 @@ def main() -> int:
     if input_data.get("stop_hook_active", False):
         return 0
 
-    plan_path, status = find_active_plan()
+    # Env chain first (it is what `pilot register-plan` wrote this session's state
+    # under), then the payload's own session id. Without the payload fallback a hook
+    # subprocess spawned WITHOUT the env vars reads the shared "default" bucket and
+    # inherits a stale plan from an unrelated session — which plan_in_current_project
+    # cannot reject when that plan happens to live in the same repo.
+    session_id = resolve_session_id(str(input_data.get("session_id") or ""))
+
+    plan_path, status = find_active_plan(session_id)
     if plan_path is None or status is None:
         return 0
 
@@ -236,39 +296,41 @@ def main() -> int:
     # while the plan is still unapproved, a fresh approval-pending sentinel grants
     # permission to stop so the user can actually answer the approval question.
     # Honored ONLY for unapproved plans — once Approved: Yes flips, the
-    # implement-phase block re-engages. Stale sentinels are discarded, not honored.
-    approval_sentinel = get_approval_sentinel_path()
-    if approval_sentinel.exists():
-        try:
-            age = time.time() - approval_sentinel.stat().st_mtime
-        except OSError:
-            age = 0.0
-        if age > SENTINEL_MAX_AGE_SECONDS:
-            approval_sentinel.unlink(missing_ok=True)
-        else:
-            approved, _ = _read_plan_approved_and_type(str(plan_path))
-            if not approved:
-                return 0
+    # implement-phase block re-engages. NOT consumed: the pre-approval flow may
+    # legitimately pause more than once while the user deliberates.
+    if _sentinel_grants_stop(
+        get_approval_sentinel_path(session_id),
+        plan_path,
+        lambda approved, _type: not approved,
+        consume=False,
+    ):
+        return 0
 
     # Manual-mode post-approval pause: the skill ends its turn so the user can
     # run /model (impossible inside an AskUserQuestion prompt). Honored ONE time
-    # -- the sentinel is consumed on honor -- and only for an APPROVED plan, so
-    # the implement-phase block re-engages on the very next stop attempt.
-    manual_sentinel = get_manual_switch_sentinel_path()
-    if manual_sentinel.exists():
-        try:
-            age = time.time() - manual_sentinel.stat().st_mtime
-        except OSError:
-            age = 0.0
-        if age > SENTINEL_MAX_AGE_SECONDS:
-            manual_sentinel.unlink(missing_ok=True)
-        else:
-            approved, _ = _read_plan_approved_and_type(str(plan_path))
-            if approved:
-                manual_sentinel.unlink(missing_ok=True)
-                return 0
+    # for an APPROVED plan, so the implement-phase block re-engages on the very
+    # next stop attempt.
+    if _sentinel_grants_stop(
+        get_manual_switch_sentinel_path(session_id),
+        plan_path,
+        lambda approved, _type: approved,
+        consume=True,
+    ):
+        return 0
 
-    state_file = get_stop_guard_path()
+    # /build hand-back pause: the round-budget question at three judge passes and
+    # the blocked-on-external hand-back both need the session to actually stop
+    # while the Buildout is approved and still PENDING. Honored ONE time, and only
+    # for a Type: Build plan, so /spec's implement-phase block is untouched.
+    if _sentinel_grants_stop(
+        get_build_handback_sentinel_path(session_id),
+        plan_path,
+        lambda approved, plan_type: approved and plan_type == "Build",
+        consume=True,
+    ):
+        return 0
+
+    state_file = get_stop_guard_path(session_id)
     state = _load_state(state_file)
 
     plan_key = str(plan_path)

@@ -50,6 +50,30 @@ Edit `defaultMode` in `~/.claude/settings.json`:
 
 Pilot preserves your `defaultMode` across updates.
 
+## Cross-Session Messages
+
+Claude Code sessions on the same machine can message each other over a socket at `/tmp/cc-socks/<pid>.sock`. The `crossSessionInbound` setting decides what happens to an inbound message:
+
+| Value | Behavior |
+|-------|----------|
+| `accept` | Delivered straight into the session, no prompt |
+| `hold` | Claude Code's default — prompts for approval when the sender's permission mode class differs from yours |
+| `refuse` | **Pilot's default** — dropped silently, no prompt |
+
+Pilot ships `"crossSessionInbound": "refuse"` because it also ships `bypassPermissions`. Under `hold`, a message from any session in a different mode raises a modal approval prompt that takes over the terminal — which stalls an unattended `/spec` or `/build` run until you answer it.
+
+```json
+{
+  "crossSessionInbound": "hold"
+}
+```
+
+Set it to `hold` in `~/.claude/settings.json` if you deliberately orchestrate several sessions and want peer messages delivered after review. Your choice is preserved across updates.
+
+:::caution Avoid `accept` with bypassPermissions
+`accept` delivers peer instructions into a session that executes without prompting, so any other local session can steer your run. The mode-mismatch check exists to prevent exactly that.
+:::
+
 ## Auto Mode
 
 Auto Mode runs a classifier on each action before it executes, blocking anything outside the task scope. Available on **Max, Team, or Enterprise** plans (not Pro). Requires Claude Sonnet 4.6+ or Opus 4.7+.

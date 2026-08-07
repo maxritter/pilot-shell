@@ -1,6 +1,6 @@
 ---
 name: spec
-description: Spec-driven development for work that needs an approved task list first — produces a plan file, then implements and verifies against it. Use when the user types /spec, hands over a docs/plans/*.md plan file, or asks for a feature, migration, refactor, or architectural change where the approach should be written down and agreed before any code exists. Not for a single bug — that is /fix. Not when the deliverable is measured against a standard rather than a task list — that is /build.
+description: Spec-driven development for work that needs an approved task list first — produces a plan file, then implements and verifies against it. Use when the user types /spec, hands over a docs/plans/*.md plan file, or asks for a feature, migration, refactor, or architectural change where the approach should be written down and agreed before any code exists. Not for a single bug — that is /fix. Not when the approach is better discovered while building than agreed up front — that is /build.
 argument-hint: "<task description> or <path/to/plan.md>"
 user-invocable: true
 ---
@@ -37,7 +37,7 @@ CODEX-END -->
 
 For a bugfix workflow without a plan file, users invoke `/fix` directly - that's a separate command. `/spec` always runs the full spec workflow.
 
-**`/spec` and `/build` are peers.** `/spec` is the right command when the work is measured against an ordered, approved task list. When it is measured against a standard — a named bar to beat, "make this and make it good" — that is `/build`, at any size. Never hand work to `/spec` merely because it is large, and never hand `/spec` work off to `/build` merely because it is small.
+**`/spec` and `/build` are peers.** `/spec` is the right command when the work is measured against an ordered, approved task list. When it is measured against a defined end state — "make this and make it good", with the approach found while building — that is `/build`, at any size. Never hand work to `/spec` merely because it is large, and never hand `/spec` work off to `/build` merely because it is small.
 
 <!-- CC-ONLY -->
 | Phase | Skill | Automated mode | Manual / Off mode |

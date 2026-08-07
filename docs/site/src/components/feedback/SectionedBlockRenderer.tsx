@@ -114,7 +114,8 @@ const SECTION_ICONS: Record<string, LucideIcon> = {
   Tasks: ListTree,
   Investigation: HelpCircle,
   "Behavior Contract": Scale,
-  // Build rubric sections
+  // Buildout sections ("Criteria" is the pre-redesign heading)
+  "Acceptance Criteria": CheckSquare,
   Criteria: Trophy,
   "Round Log": History,
   // PRD sections
