@@ -8,7 +8,7 @@ description: Bugfix workflow — investigate root cause, write a RED reproducing
 
 Bugfix workflow with TDD. Investigates the bug, writes a failing test, fixes at the root cause, **verifies end-to-end against the running program**, finishes. No plan file, no approval mid-flow, no separate verify phase.
 
-Use `/fix` for bugs. Use [`/spec`](/docs/workflows/spec) for features and architectural changes — including bugfixes that warrant a full plan with approval and code review.
+Use `/fix` for bugs. Use [`/spec`](/docs/workflows/spec) for features and architectural changes — including bugfixes that warrant a full plan with approval and code review. Use [`/build`](/docs/workflows/build) when the behaviour already works and you want it *better* against a named standard: that is a quality gap, not a defect.
 
 ```bash
 # Claude Code
@@ -109,10 +109,10 @@ When **Ask Questions** and **Plan Approval** are both off, `/fix` runs end-to-en
 
 ## When to use `/spec` vs `/fix`
 
-| Use `/fix` | Use `/spec` |
-| --- | --- |
-| Something is broken | Building new functionality |
-| You want a fix without ceremony | Architecture or design decision matters |
-| You want it done now | Work warrants a written plan + approval |
+| Use `/fix` | Use `/spec` | Use `/build` |
+| --- | --- | --- |
+| Something is broken | Building new functionality | Something works but isn't good enough |
+| You want a fix without ceremony | Architecture or design decision matters | There is a named bar to beat |
+| You want it done now | Work warrants a written plan + approval | Quality is the acceptance criterion |
 
 `/fix` handles the full range — from typos to multi-step debugging. It bails out and points to `/spec` only when complexity is truly architectural (multiple components, defense-in-depth at multiple layers, repeated failed attempts).

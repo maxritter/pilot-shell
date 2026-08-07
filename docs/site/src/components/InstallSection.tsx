@@ -98,6 +98,10 @@ const InstallSection = () => {
                   </code>{" "}
                   features{" → "}
                   <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                    /build
+                  </code>{" "}
+                  standards{" → "}
+                  <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
                     /fix
                   </code>{" "}
                   bugfixes{" → "}

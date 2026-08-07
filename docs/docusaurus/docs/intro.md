@@ -14,6 +14,7 @@ No more re-explaining decisions, chasing skipped tests, or reviewing 15-file cha
 ## Why Pilot Shell
 
 - **Reliable output** — every feature goes through plan → implement → verify, with TDD at each step
+- **Two ways to run substantial work** — `/spec` when the work is measured against an approved task list, `/build` when it is measured against a standard you name
 - **Persistent context** — architectural decisions, patterns, and project knowledge survive across sessions
 - **Automatic quality** — linting, formatting, type checking, and test enforcement happen as hooks, not suggestions
 - **Full visibility** — a local dashboard shows what's running, what changed, and what it cost
@@ -38,11 +39,11 @@ codex    # Codex CLI — all core workflows
 # Brainstorm a vague idea into a PRD (with optional research)
 > /prd "Add real-time notifications for team updates"   # Codex: $prd
 
-# Plan and build a feature
+# Plan and build a feature against an approved task list
 > /spec "Add user authentication with OAuth"            # Codex: $spec
 
-# Ask Codex for a second opinion or a steerable side-task (Claude Code only)
-> /ask-codex "Review the auth flow for race conditions"
+# Build against a standard, looping until it clears the bar
+> /build "onboarding flow as smooth as Linear's"        # Codex: $build
 ```
 
 ## Architecture

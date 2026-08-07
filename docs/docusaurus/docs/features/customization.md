@@ -19,7 +19,7 @@ Customization currently targets Claude Code assets (`~/.claude/` — skills, rul
 
 | Target | What lives in the repo | How it composes |
 |--------|------------------------|-----------------|
-| **Skills** | `skills/<name>/...` + optional overlay ops in `customization.json` | Overlay ops (`insert_after`, `insert_before`, `replace`, `disable`) modify Pilot's built-in workflow skills (e.g. `/spec`, `/prd`); whole skill directories add new ones |
+| **Skills** | `skills/<name>/...` + optional overlay ops in `customization.json` | Overlay ops (`insert_after`, `insert_before`, `replace`, `disable`) modify Pilot's built-in workflow skills (e.g. `/spec`, `/build`, `/prd`); whole skill directories add new ones |
 | **Rules** | `rules/*.md` | New rules are additive; same filename as a core rule → modifies the built-in rule |
 | **Hooks** | `hooks/*.sh` + `hooks/hooks.json` | Scripts copied as-is; `hooks.json` registers additional hooks alongside Pilot's core hooks |
 | **Agents** | `agents/*.md` | Add new agents alongside Pilot's built-ins (e.g. plug extra reviewers into the spec workflow) |

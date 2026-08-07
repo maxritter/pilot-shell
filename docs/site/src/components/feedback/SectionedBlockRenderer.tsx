@@ -16,6 +16,7 @@ import {
   FileCode2,
   FileText,
   HelpCircle,
+  History,
   Lightbulb,
   ListTree,
   MonitorCheck,
@@ -27,6 +28,7 @@ import {
   Target,
   Terminal,
   Text as TextIcon,
+  Trophy,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
@@ -112,6 +114,9 @@ const SECTION_ICONS: Record<string, LucideIcon> = {
   Tasks: ListTree,
   Investigation: HelpCircle,
   "Behavior Contract": Scale,
+  // Build rubric sections
+  Criteria: Trophy,
+  "Round Log": History,
   // PRD sections
   "Problem Statement": Crosshair,
   "Core User Flows": Route,

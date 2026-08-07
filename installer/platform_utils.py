@@ -47,9 +47,8 @@ def is_codex_installed() -> bool:
     Per README prerequisites, users install Codex CLI via the native installer;
     the installer only detects its presence (never installs it).
 
-    Path list is replicated in pilot/skills/ask-codex/steps/01-detect.md
-    (runtime CODEX_BIN resolution) and overlaps launcher/updater.py:_find_codex_binary
-    (which currently omits ~/.local/bin/codex); update all copies together.
+    Path list overlaps launcher/updater.py:_find_codex_binary (which currently
+    omits ~/.local/bin/codex); update both copies together.
     """
     home = Path.home()
     return _agent_present(

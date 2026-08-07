@@ -244,16 +244,16 @@ class TestCodexSkillsInstallation:
         assert "$spec" in result
         assert "$fix" in result
 
-    def test_ask_codex_skill_is_never_shipped_to_codex(self, tmp_path: Path) -> None:
-        """ask-codex is deliberately CC-only (Codex driving Codex is redundant).
+    def test_non_allowlisted_skill_is_never_shipped_to_codex(self, tmp_path: Path) -> None:
+        """CC-only skills (the bot-* family) must not reach Codex.
 
         The mechanism is allowlist omission; this pins it so a future allowlist
-        edit or auto-discovery refactor cannot silently ship $ask-codex.
+        edit or auto-discovery refactor cannot silently ship a CC-only skill.
         """
         agents_skills_dir = tmp_path / ".agents" / "skills"
         pilot_skills_dir = tmp_path / ".claude" / "skills"
 
-        for name in ("fix", "ask-codex"):
+        for name in ("fix", "bot-jobs"):
             skill_dir = pilot_skills_dir / name
             skill_dir.mkdir(parents=True)
             (skill_dir / "manifest.json").write_text(
@@ -269,7 +269,7 @@ class TestCodexSkillsInstallation:
             step._install_codex_skills(ctx)
 
         assert (agents_skills_dir / "fix" / "SKILL.md").exists()  # allowlisted sibling proves the run
-        assert not (agents_skills_dir / "ask-codex").exists()
+        assert not (agents_skills_dir / "bot-jobs").exists()
 
     def test_installs_skills_to_agents_dir(self, tmp_path: Path) -> None:
         agents_skills_dir = tmp_path / ".agents" / "skills"
@@ -1001,6 +1001,7 @@ class TestAdaptInvocationSyntax:
             "spec-bugfix-verify",
             "prd",
             "fix",
+            "build",
             "benchmark",
             "setup-rules",
             "create-skill",
@@ -1040,7 +1041,9 @@ class TestAdaptInvocationSyntax:
         ):
             assert forbidden not in result
         assert (
-            re.search(r"(^|[^A-Za-z0-9_`])/(spec|fix|prd|setup-rules|create-skill|benchmark)([^A-Za-z0-9_/]|$)", result)
+            re.search(
+                r"(^|[^A-Za-z0-9_`])/(spec|fix|prd|build|setup-rules|create-skill|benchmark)([^A-Za-z0-9_/]|$)", result
+            )
             is None
         )
 

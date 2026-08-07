@@ -23,6 +23,10 @@ scripts/blog-dates.json
 # Distribution / packaging
 .Python
 build/
+# The /build skill lives at pilot/skills/build/ and is source, not build output.
+# Git cannot re-include files under an excluded directory, so the directory
+# itself has to be un-ignored before its contents are reconsidered.
+!pilot/skills/build/
 develop-eggs/
 dist/
 downloads/

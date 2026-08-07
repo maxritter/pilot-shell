@@ -306,6 +306,70 @@ class TestSubprocessIntegration:
         assert "next pending task" in reason
         assert "spec-verify" not in reason
 
+    def test_build_rubric_block_names_the_loop_not_the_spec_workflow(self, tmp_path: Path) -> None:
+        """A Type: Build rubric is the /build loop's goal condition, not a /spec plan.
+
+        Spec's wording ("next pending task", "dispatch spec-verify") describes
+        steps a build rubric does not have; an agent following it would go
+        looking for tasks that are not there instead of running the next round.
+        """
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+
+        plan_file = plans_dir / "2026-08-07-running-brand.md"
+        plan_file.write_text(
+            "# Running Brand Build Rubric\n\nStatus: PENDING\nApproved: Yes\nRounds: 1\nType: Build\n\n"
+            "## Criteria\n- [ ] Criterion 1: beats the bar unlabelled\n"
+        )
+        _register_plan_for_session(plan_file, "PENDING")
+
+        _, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        assert _is_blocked(stdout)
+        reason = json.loads(stdout.strip())["reason"]
+        assert "/build loop active" in reason
+        assert "Active rubric" in reason
+        assert "next pending task" not in reason
+        assert "spec-verify" not in reason
+
+    def test_complete_build_rubric_block_demands_the_final_judge_pass(self, tmp_path: Path) -> None:
+        """COMPLETE means criteria ticked; the outstanding step is the blind judge, not verify dispatch."""
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+
+        plan_file = plans_dir / "2026-08-07-running-brand.md"
+        plan_file.write_text(
+            "# Running Brand Build Rubric\n\nStatus: COMPLETE\nApproved: Yes\nType: Build\n\n"
+            "## Criteria\n- [x] Criterion 1: beats the bar unlabelled\n"
+        )
+        _register_plan_for_session(plan_file, "COMPLETE")
+
+        _, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        assert _is_blocked(stdout)
+        reason = json.loads(stdout.strip())["reason"]
+        assert "judge" in reason.lower()
+        assert "spec-verify" not in reason
+        assert "spec-bugfix-verify" not in reason
+
+    def test_build_rubric_block_reinjects_unmet_criteria_first(self, tmp_path: Path) -> None:
+        """The reinjected verification block is the rubric's criteria, gap first."""
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+
+        plan_file = plans_dir / "2026-08-07-running-brand.md"
+        plan_file.write_text(
+            "# Running Brand Build Rubric\n\nStatus: PENDING\nApproved: Yes\nType: Build\n\n"
+            "## Summary\n\n**Goal:** a landing page as alive as Nike's\n\n"
+            "## Criteria\n"
+            "- [x] Criterion 1: hero A/B at 1440px\n"
+            "- [ ] Criterion 2: LCP under 2.0s on throttled 4G\n"
+        )
+        _register_plan_for_session(plan_file, "PENDING")
+
+        _, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        reason = json.loads(stdout.strip())["reason"]
+        assert "a landing page as alive as Nike's" in reason
+        assert reason.index("[ ] LCP under 2.0s on throttled 4G") < reason.index("[x] hero A/B at 1440px")
+
     def test_allows_stop_when_stop_hook_already_active(self, tmp_path: Path) -> None:
         plans_dir = tmp_path / "docs" / "plans"
         plans_dir.mkdir(parents=True)

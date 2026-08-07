@@ -34,7 +34,7 @@ Coverage is a diagnostic, not a quota. Critical paths — business logic, securi
 
 ### ⛔ Frontend changes require browser verification
 
-Any change to what the user sees must be verified with browser automation, in both `/spec` and quick mode. Unit tests don't catch stale bundles, layout breakage, or wiring. Procedure and tool tiers: `browser-automation.md`.
+Any change to what the user sees must be verified with browser automation, in `/spec`, in `/build`, and in quick mode alike. Unit tests don't catch stale bundles, layout breakage, or wiring. Procedure and tool tiers: `browser-automation.md`.
 
 ### ⛔ Zero tolerance for failing tests
 

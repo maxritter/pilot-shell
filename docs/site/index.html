@@ -230,7 +230,7 @@
             "@type": "HowToStep",
             "position": 4,
             "name": "Plan and build a feature",
-            "text": "Use /spec to plan, implement, and verify a feature with TDD; or /prd to brainstorm a product spec first.",
+            "text": "Use /spec to plan, implement, and verify a feature with TDD, /build to loop against a named quality bar, or /prd to brainstorm a product spec first.",
             "url": "https://pilot-shell.com/docs/skills/spec"
           }
         ]
@@ -348,6 +348,9 @@
             <li>
               <strong>Spec-Driven Development</strong> — Plan, approve, implement, verify with the /spec workflow.
             </li>
+            <li>
+              <strong>Goal-and-Loop Development</strong> — Set a named bar with /build, then loop build and judge until every criterion clears it.
+            </li>
             <li><strong>TDD Enforcement</strong> — Tests first, then implementation.</li>
             <li><strong>Quality Hooks</strong> — Auto-format, lint, and type-check on every edit.</li>
             <li><strong>Persistent Memory</strong> — Context carries across sessions automatically.</li>
@@ -362,7 +365,7 @@
           <pre><code>curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash</code></pre>
           <p>
             Then run <code>claude</code> or <code>codex</code> in any project, generate rules with
-            <code>/setup-rules</code>, and ship features with <code>/spec</code>.
+            <code>/setup-rules</code>, and ship work with <code>/spec</code> or <code>/build</code>.
           </p>
         </section>
         <section>

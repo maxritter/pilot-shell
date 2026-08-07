@@ -1,12 +1,12 @@
 ---
 sidebar_position: 3
 title: /prd
-description: Brainstorm vague ideas into Product Requirements Documents through back-and-forth — then hand off to /spec for plan, implement, and verify with TDD enforced.
+description: Brainstorm vague ideas into Product Requirements Documents through back-and-forth — then hand off to /spec for plan, implement, and verify, or to /build when the acceptance bar is a standard.
 ---
 
 # /prd
 
-`/prd` is the **brainstorming surface** for ideas that aren't yet specs. Use it when you have a vague idea, a problem statement without a solution, or just want to think out loud and have the agent pressure-test directions before committing to a plan. The conversation produces a Product Requirements Document (PRD) you can hand directly to `/spec`.
+`/prd` is the **brainstorming surface** for ideas that aren't yet specs. Use it when you have a vague idea, a problem statement without a solution, or just want to think out loud and have the agent pressure-test directions before committing to a plan. The conversation produces a Product Requirements Document (PRD) you can hand directly to `/spec` or `/build`.
 
 ```bash
 # Claude Code
@@ -24,7 +24,7 @@ codex
 
 ## When to Use
 
-`/prd` and `/spec` chain together: `/prd` defines **what** and **why** when requirements are unclear, `/spec` plans and implements **how** once you know what you're building.
+`/prd` chains into either structured workflow: it defines **what** and **why** when requirements are unclear, then hands off to [`/spec`](/docs/workflows/spec) for **how, in what order** — or to [`/build`](/docs/workflows/build) for **how good, measured against what**.
 
 | Situation | Command |
 |-----------|---------|
@@ -35,6 +35,7 @@ codex
 | Need to explore trade-offs and alternatives | `/prd` |
 | Want research on competitors or prior art | `/prd` with Standard or Deep research |
 | Requirements are well-defined | `/spec` directly |
+| Requirements are clear and the acceptance bar is a standard to beat | `/build` directly |
 | Small task, no planning needed | Quick mode (just chat) |
 
 ## Two Modes Inside One Flow

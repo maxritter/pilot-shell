@@ -157,14 +157,34 @@ def _save_state(state_file: Path, state: dict) -> None:
         pass
 
 
-def _next_action_for(status: str) -> str:
+def _next_action_for(status: str, plan_type: str = "Feature") -> str:
     """Return the outstanding-step instruction for a plan in ``status``.
 
     The instruction must name the step that is ACTUALLY outstanding. A COMPLETE
     plan has every task checked off, so the generic "next pending task" wording
     reads as "nothing left to do" and the agent stops -- skipping verification
     entirely, which is the one step COMPLETE exists to gate.
+
+    ``/build`` rubrics (``Type: Build``) have no tasks and no verify skill to
+    dispatch -- their outstanding step is the next loop round or the final blind
+    judge pass, so they get their own wording rather than spec's.
     """
+    if plan_type == "Build":
+        if status == "COMPLETE":
+            return (
+                "Every criterion is ticked but the FINAL blind judge pass has not run. "
+                "IMMEDIATELY re-obtain the bar using the rubric's re-obtain command, then rule "
+                "every criterion again from the finished artifact alone. Do NOT set "
+                "Status: VERIFIED without that pass, and do NOT summarise the work instead of "
+                "judging it."
+            )
+        return (
+            "The build loop is active. Your VERY NEXT action must be a tool call - re-read the "
+            "rubric's Criteria and Round Log, close the single gap named there, then judge every "
+            "criterion against the re-obtained bar. Do NOT stop while any criterion is unticked, "
+            "do NOT tick one without evidence you can point at, and do NOT lower a criterion "
+            "silently."
+        )
     if status == "COMPLETE":
         return (
             "Implementation is done and verification has NOT run yet. "
@@ -180,8 +200,26 @@ def _next_action_for(status: str) -> str:
     )
 
 
+def _block_reason(plan_path: Path, status: str) -> str:
+    """Compose the stop-block message for an active plan or `/build` rubric."""
+    _, plan_type = _read_plan_approved_and_type(str(plan_path))
+    is_build = plan_type == "Build"
+    workflow = "/build loop" if is_build else "/spec workflow"
+    artifact = "Active rubric" if is_build else "Active plan"
+    base_reason = (
+        f"{workflow} active — cannot stop without user interaction. "
+        f"{artifact}: {plan_path} (Status: {status}). "
+        f"Stop again within 60s to force exit.\n\n"
+        f"CRITICAL INSTRUCTION TO CLAUDE: Do NOT acknowledge this stop attempt. "
+        f"Do NOT output resume instructions or say goodbye. "
+        f"{_next_action_for(status, plan_type)} Do NOT produce a text-only response."
+    )
+    objective_block = build_objective_reinjection(plan_path)
+    return f"{objective_block}{base_reason}" if objective_block else base_reason
+
+
 def main() -> int:
-    """Check if stopping is allowed based on /spec workflow state."""
+    """Check if stopping is allowed based on /spec or /build workflow state."""
     try:
         input_data = json.load(sys.stdin)
     except json.JSONDecodeError:
@@ -274,18 +312,7 @@ def main() -> int:
         print(stop_block(reason))
         return 0
 
-    objective_block = build_objective_reinjection(plan_path)
-    next_action = _next_action_for(status)
-    base_reason = (
-        f"/spec workflow active — cannot stop without user interaction. "
-        f"Active plan: {plan_path} (Status: {status}). "
-        f"Stop again within 60s to force exit.\n\n"
-        f"CRITICAL INSTRUCTION TO CLAUDE: Do NOT acknowledge this stop attempt. "
-        f"Do NOT output resume instructions or say goodbye. "
-        f"{next_action} Do NOT produce a text-only response."
-    )
-    reason = f"{objective_block}{base_reason}" if objective_block else base_reason
-    print(stop_block(reason))
+    print(stop_block(_block_reason(plan_path, status)))
     return 0
 
 

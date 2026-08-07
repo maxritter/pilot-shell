@@ -593,6 +593,36 @@ def extract_behavior_contract(path: Path) -> list[str]:
     return paragraphs
 
 
+_BUILD_CRITERION_RE: re.Pattern[str] = re.compile(r"^- \[([ xX])\] Criterion \d+:\s*(.+)$")
+
+
+def extract_build_criteria(path: Path) -> list[str]:
+    """Return a `/build` rubric's criteria, unmet ones first, each tagged with its state.
+
+    For a build there is no Goal Verification section — the criteria ARE the
+    verification, and the unmet ones are the outstanding work. Ordering unmet
+    first keeps the stop guard's capped reinjection pointed at the gap rather
+    than at criteria that already passed.
+    """
+    try:
+        content = path.read_text()
+    except (OSError, UnicodeDecodeError):
+        return []
+
+    unmet: list[str] = []
+    met: list[str] = []
+    for line in content.splitlines():
+        m = _BUILD_CRITERION_RE.match(line)
+        if not m:
+            continue
+        text = m.group(2).strip()
+        if m.group(1) == " ":
+            unmet.append(f"[ ] {text}")
+        else:
+            met.append(f"[x] {text}")
+    return unmet + met
+
+
 def extract_plan_e2e_scenarios(path: Path) -> list[str]:
     """Return TS-NNN scenario IDs from a plan's E2E Test Scenarios section."""
     try:
@@ -628,7 +658,8 @@ def build_objective_reinjection(plan_path: Path) -> str:
 
     Prefers `## Goal Verification > Truths` items for the <verification> block;
     falls back to `## Behavior Contract` clauses for bugfix plans (which use the
-    Behavior Contract as the bugfix equivalent of verification truths).
+    Behavior Contract as the bugfix equivalent of verification truths), then to
+    `## Criteria` for `/build` rubrics (where the criteria are the verification).
     """
     goal = extract_plan_goal(plan_path)
     if goal is None:
@@ -640,6 +671,8 @@ def build_objective_reinjection(plan_path: Path) -> str:
     items = extract_plan_truths(plan_path)
     if not items:
         items = extract_behavior_contract(plan_path)[:5]
+    if not items:
+        items = extract_build_criteria(plan_path)[:5]
 
     parts = ["<objective>", goal, "</objective>", ""]
     if items:

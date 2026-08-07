@@ -60,9 +60,13 @@ Before proceeding, ask: "Do these tests verify what matters, or only what was ea
 | "Sub-agent completed the work" | The VCS diff shows the changes | The agent reported success |
 | "No perf regression" | Hot paths cached/memoized (per `development-practices.md` §Performance) | "Tests pass" |
 
-### ⛔ Fix Verification Errors in /spec Without Asking
+### ⛔ Fix Verification Errors in /spec and /build Without Asking
 
-In `/spec`, fix all verification errors without asking — `must_fix` / `should_fix` immediately, `suggestions` if quick (severity → action policy: `code-review-reception.md`). The user-interaction points in `/spec` are the four listed in `task-and-workflow.md` (not just plan approval). Outside `/spec`, respect the user's mode — in plan mode, present issues and proposed fixes instead of applying them.
+In `/spec`, fix all verification errors without asking — `must_fix` / `should_fix` immediately, `suggestions` if quick (severity → action policy: `code-review-reception.md`). The user-interaction points in `/spec` are the four listed in `task-and-workflow.md` (not just plan approval).
+
+The same holds in `/build`: a failing criterion is the next round's job, never a question. Its three interaction points are also listed in `task-and-workflow.md`. Renegotiating a criterion you cannot close IS a question — lowering one quietly is the failure this workflow exists to prevent.
+
+Outside both, respect the user's mode — in plan mode, present issues and proposed fixes instead of applying them.
 
 ### Stop Signals — Verify NOW
 
@@ -70,7 +74,7 @@ About to use uncertain language ("should", "probably"), express satisfaction ("D
 
 ### When Execution Fails After Tests Pass
 
-This is a real bug. During `/spec`: fix → re-run tests → re-execute → add a test to catch this failure type. Outside `/spec`: report and propose.
+This is a real bug. During `/spec` or `/build`: fix → re-run tests → re-execute → add a test to catch this failure type. Outside them: report and propose.
 
 ### Five Failure Modes Self-Check
 

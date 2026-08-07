@@ -45,6 +45,7 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 
 - **`/prd`** — brainstorm ideas into clear requirements with optional deep research
 - **`/spec`** — plans, implements, and verifies features end-to-end with TDD
+- **`/build`** — sets a named bar, then loops build → judge until every criterion clears it
 - **`/fix`** — bugfix workflow with TDD; bails out when complexity exceeds the standard fix lane
 - **Spec collaboration** — share specs with teammates, annotations flow back grouped by author
 - **Quality hooks** — enforce linting, formatting, type checking, and tests as quality gates
@@ -172,7 +173,16 @@ Once your rules are in place, use `/create-skill` to capture any repeatable work
 
 <h2 id="features">Core Workflows</h2>
 
-Three commands cover the full development cycle — from vague idea to shipped feature. Quality hooks and TDD enforcement run automatically on every task.
+Four commands cover the full development cycle — from vague idea to shipped work. Quality hooks and TDD enforcement run automatically on every task.
+
+**`/spec` and `/build` are peers, and size does not decide between them.** Pick on what the work is measured against:
+
+| What the work is measured against | Command |
+|---|---|
+| A defect in behaviour that already worked | `/fix` |
+| An ordered list of tasks, approved before any code | `/spec` |
+| A standard — a named bar the result has to clear | `/build` |
+| Still vague who it serves or what done means | `/prd`, then one of the above |
 
 ### /prd — Brainstorm Ideas Into Product Requirements Documents
 
@@ -234,6 +244,41 @@ Discuss  →  Plan  →  Approve  →  Implement (TDD)  →  Verify  →  Done
 **Verify:** Full test suite + actual program execution → **changes review** (a single changes-review sub-agent in Claude Code, the native changes-review agent in Codex, plus an inline plan-compliance & goal-truth audit) → for UI features, executes each E2E scenario step-by-step via browser automation (pass/fail tracked, results written to plan) → auto-fixes findings → squash merges to main on success.
 
 **Model:** [Model Switching](https://pilot-shell.com/docs/features/model-routing) has three modes (Console → Settings → Model Switching). **Automated** (default): `/spec` runs on Claude Code's native `opusplan` — Opus 5 plans, Sonnet 5 executes, switched automatically (requires `/model opusplan`; a pre-flight check warns when your conversation is too large for the Opus plan leg). **Manual**: you pick models yourself with `/model` — `/spec` pauses once after plan approval so you can switch to your implementation model; plan on Fable 5, implement on Sonnet 5, whatever you like. **Off**: no model management at all. Pilot never remaps model aliases behind the scenes, so the `/model` picker always means what it says.
+
+</details>
+
+### /build — Goal-and-Loop Development
+
+**[`/build`](https://pilot-shell.com/docs/workflows/build) builds to a standard instead of to completion.** Name something real for the work to beat; `/build` turns it into 5-9 pass/fail criteria *before* writing a line, then loops — build, judge, close one gap, judge again — until every criterion clears a blind comparison against the bar. It is the default path for "make this, and make it good" when there is no spec.
+
+```bash
+# Claude Code                                                # Codex CLI
+claude                                                        codex
+> /build "landing page as alive as Nike's running campaign"   > $build "landing page as alive as Nike's"
+```
+
+```text
+Bar  →  Criteria  →  Approve  →  Loop (Build → Judge → one gap)  →  Hand back
+                                          ↑                  ↓
+                                          └──── every round ─┘
+```
+
+Size is not what separates `/build` from `/spec`. A 30-screen framework migration can be `/build`; a modest feature with an unclear execution order is `/spec`. `/build` never hands large work off — it escalates internally.
+
+<details>
+<summary><b>How <code>/build</code> works</b></summary>
+
+**Three things carry it:** a bar that is *named, obtainable, and comparable* (a category like "award-winning SaaS sites" cannot be fetched, so the judge invents the comparison and passes everything); 5-9 criteria written before any building; and a blind judge that re-obtains the bar every round and defaults to fail.
+
+- **Set the bar:** If you named a reference, `/build` uses it. If not, it offers 2-3 candidates and waits — it never proceeds on a bar it chose alone. For a rewrite, the "before" is captured before any edit. The re-obtain command is written into the rubric so later rounds cannot drift toward whatever you already made.
+- **Write criteria:** Each shaped as *what is compared → how the judge obtains it → what passing looks like*. Pass/fail, never a score (scores drift upward every round). Each must resolve to "ours wins", never "you cannot tell" — a criterion phrased as *indistinguishable from the bar* passes on a tie, and a tie is where the loop stops early. At least one is measurable whenever the goal has a measurable half.
+- **Approve:** One gate, honouring the same **Plan Approval** toggle as `/spec`. A failing criterion is never a decision point.
+- **Loop:** Build the single named gap → judge in a separate pass from the artifact alone, bar re-obtained and labels stripped → tick, untick, and log → name the next single biggest gap. The exit is the criteria, never a round count.
+- **Hand back:** A final blind pass, then a report of every criterion with the evidence that passed it, the rounds it took, and anything deliberately left out.
+
+**The rubric is a real file.** `/build` writes `docs/plans/YYYY-MM-DD-<slug>.md` with `Type: Build` and registers it with the session, so the loop survives compaction, the statusline becomes the loop counter (`Build: running-brand build [loop] ███░░ 3/5 r:2`), the rubric shows up in the Console's **Specifications** tab badged `Build` and shareable with teammates — and **Pilot's stop guard is the goal condition**. The session cannot quietly end at "good enough" while criteria are unticked, on Claude Code and Codex alike. You never type `/goal`; stopping twice within 60s is the escape hatch.
+
+**Sequential by default.** One thread, no subagents — a subagent starts blind, re-derives context the thread already holds, and bills you for the round trip. Parallel execution is proposed only at whole-project scale: 5+ distinct surfaces that each need their own build-judge loop, that do not block each other, where sequential would run for hours. On Claude Code that prompts for `/effort ultracode`; declining is a first-class answer.
 
 </details>
 
@@ -377,19 +422,6 @@ Six phases turn a rule or skill into a before/after comparison with an actionabl
 
 </details>
 
-### /ask-codex — Codex as an Orchestration Sub-Agent
-
-[`/ask-codex`](https://pilot-shell.com/docs/workflows/ask-codex) runs headless Codex from Claude Code — one-shot second opinions, bounded code tasks, and app-server sessions you can watch live and **steer mid-flight** (`steer:` corrections, `interrupt`, follow-up turns via a file control plane). Auto-detects Codex at runtime: without it you get a friendly install pointer, not an error, and installing Codex later needs no reinstall.
-
-```bash
-# Claude Code only
-claude
-> /ask-codex "Review the auth flow in this repo for race conditions"
-> /ask-codex "Refactor src/parser.ts to remove the legacy tokenizer path"
-```
-
-Complementary to the Codex companion plugin: `/spec`, `/fix`, and `codex:rescue` keep using the broker for workflow reviews; this skill covers ad-hoc orchestration: runtime auto-detection plus safety hardening of the bundled app-server clients.
-
 ## Pilot Shell Console
 
 Local web dashboard at `localhost:41777` with real-time notifications and 10 views.
@@ -414,7 +446,7 @@ Product requirement documents (PRDs) generated by `/prd`, with view and annotate
 
 ### Specifications
 
-All spec plans generated by `/spec` with task progress, phase tracking, and iteration history. Annotate mode lets you mark up plans visually before approving, share with teammates via a single link.
+All spec plans generated by `/spec` with task progress, phase tracking, and iteration history — plus `/build` rubrics, badged `Build`, showing criteria as the progress checklist and a round log in place of tasks. Annotate mode lets you mark up plans visually before approving, share with teammates via a single link.
 
 ### Extensions
 

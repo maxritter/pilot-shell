@@ -1,6 +1,6 @@
 ---
 name: fix
-description: "The standard command for bugs — resolves one defect at its root cause with end-to-end proof it is gone. Use when something crashes, throws, returns wrong output, regressed, or behaves differently than it should, and when the user types /fix or reports a failing test. Stops cleanly and asks the user to re-invoke with /spec when the bug turns out to span multiple components or need an architectural change."
+description: "The standard command for bugs — resolves one defect at its root cause with end-to-end proof it is gone. Use when something crashes, throws, returns wrong output, regressed, or behaves differently than it should, and when the user types /fix or reports a failing test. Stops cleanly and asks the user to re-invoke with /spec when the bug turns out to span multiple components or need an architectural change. Not for making existing working behaviour better — that is /build."
 argument-hint: "<bug description>"
 user-invocable: true
 ---
@@ -16,6 +16,8 @@ Bugfix with TDD: investigate the bug, write the failing test, fix at the root ca
 ```
 
 **Always quick.** If investigation shows the bug is multi-component, architectural, or otherwise bigger than a quick fix, STOP cleanly and tell the user to re-invoke with `/spec`. Never switch lanes silently — `/fix` means quick, `/spec` means the full workflow. Honour the user's command choice.
+
+**Not a bug?** If what the user actually wants is existing, working behaviour made *better* against some standard — faster, prettier, clearer, closer to a named reference — that is `/build`, not `/fix`. Say so and stop; do not run a root-cause investigation on a quality gap.
 
 ---
 

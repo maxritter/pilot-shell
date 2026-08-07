@@ -1,6 +1,6 @@
 ---
 name: prd
-description: "Turns a rough idea into a written, approved Product Requirements Document, with optional market and technical research. Use when the user types /prd, has a feature idea that is still vague about who it serves or what counts as done, wants a thought partner to pressure-test a concept before building, or asks for a PRD, product spec, or requirements doc. Not for work already scoped enough to plan — that is /spec."
+description: "Turns a rough idea into a written, approved Product Requirements Document, with optional market and technical research. Use when the user types /prd, has a feature idea that is still vague about who it serves or what counts as done, wants a thought partner to pressure-test a concept before building, or asks for a PRD, product spec, or requirements doc. Not for work already scoped enough to plan — that is /spec, or /build when the deliverable is measured against a standard."
 argument-hint: "<idea or feature description>"
 user-invocable: true
 ---
@@ -8,9 +8,9 @@ user-invocable: true
 # /prd - Generate Product Requirements Documents
 
 <HARD-GATE>
-Do NOT invoke `/spec`, `/spec-plan`, `/spec-implement`, write any code, scaffold any project, or take any implementation action until you have written a PRD and the user has approved it. This applies to EVERY idea regardless of perceived simplicity.
+Do NOT invoke `/spec`, `/spec-plan`, `/spec-implement`, `/build`, write any code, scaffold any project, or take any implementation action until you have written a PRD and the user has approved it. This applies to EVERY idea regardless of perceived simplicity.
 
-`/prd`'s output is a written PRD at the path determined in Step 7 (write-prd). The terminal state is offering hand-off to `/spec` and waiting for the user. The skill does not invoke implementation skills directly — Step 8 prints the `/spec` command for the user to run.
+`/prd`'s output is a written PRD at the path determined in Step 7 (write-prd). The terminal state is offering hand-off to `/spec` or `/build` and waiting for the user. The skill does not invoke implementation skills directly — Step 8 prints the command for the user to run.
 </HARD-GATE>
 
 **Strategic thought partner and brainstorming surface** — turns vague ideas into concrete Product Requirements Documents (PRDs) through one-on-one conversation, with optional research. Produces a PRD that can be handed off directly to `/spec` for implementation.
@@ -21,16 +21,16 @@ Do NOT invoke `/spec`, `/spec-plan`, `/spec-implement`, write any code, scaffold
 - You want to **brainstorm back-and-forth** before locking anything down — pitch ideas, react, refine, then converge
 - You need to explore trade-offs, challenge assumptions, or define scope before committing to a plan
 
-**Use `/spec` instead when:** Requirements are well-defined. You know what to build and roughly how. Skip straight to technical planning.
+**Use `/spec` or `/build` instead when:** requirements are well-defined. You know what to build and roughly how. Skip straight to planning (`/spec`) or to setting the bar (`/build`).
 
-`/prd` and `/spec` are designed to chain: `/prd` produces the requirements doc, then offers to hand off to `/spec` for implementation.
+`/prd` chains into either: it produces the requirements doc, then hands off to `/spec` when the next question is *how, in what order*, or to `/build` when the next question is *how good, measured against what*.
 
 ---
 
 ## Workflow
 
 ```
-Understand → Research (optional) → Ideate (if vague) → Clarify → Propose → Converge → Write PRD → Hand off to /spec
+Understand → Research (optional) → Ideate (if vague) → Clarify → Propose → Converge → Write PRD → Hand off to /spec or /build
 ```
 
 **Two modes inside one flow:**

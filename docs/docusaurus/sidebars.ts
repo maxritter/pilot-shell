@@ -20,6 +20,7 @@ const sidebars: SidebarsConfig = {
       items: [
         "workflows/prd",
         "workflows/spec",
+        "workflows/build",
         "workflows/fix",
       ],
     },
@@ -31,7 +32,6 @@ const sidebars: SidebarsConfig = {
         "workflows/setup-rules",
         "workflows/create-skill",
         "workflows/benchmark",
-        "workflows/ask-codex",
       ],
     },
     {

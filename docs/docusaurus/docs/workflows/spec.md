@@ -8,9 +8,13 @@ description: Plan, implement, and verify complex features with full automation �
 
 Plan, implement, and verify complex features with full automation using Spec-Driven Development.
 
-Best for new features, refactoring, and architectural changes — work where a plan and discussion add value before writing code. On Claude Code, `/spec` replaces the built-in plan mode (Shift+Tab). The structured workflow prevents scope creep and ensures every task is tested and verified before being marked complete.
+Best for new features, refactoring, and architectural changes — work where an **approved task list** adds value before writing code. On Claude Code, `/spec` replaces the built-in plan mode (Shift+Tab). The structured workflow prevents scope creep and ensures every task is tested and verified before being marked complete.
 
-For bugfixes, use [`/fix`](/docs/workflows/fix). For vague ideas, use [`/prd`](/docs/workflows/prd) first to produce a PRD, then hand off to `/spec`.
+For bugfixes, use [`/fix`](/docs/workflows/fix). For vague ideas, use [`/prd`](/docs/workflows/prd) first to produce a PRD, then hand off here.
+
+:::tip `/spec` and `/build` are peers
+[`/build`](/docs/workflows/build) is the other structured workflow, and **size does not decide between them**. Reach for `/spec` when the work is measured against an ordered list of tasks you want agreed first; reach for `/build` when it is measured against a standard — a named bar the result has to clear. A 30-screen migration can be `/build`; a modest feature with an unclear execution order is `/spec`.
+:::
 
 ```bash
 # Claude Code

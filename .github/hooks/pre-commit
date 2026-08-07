@@ -55,12 +55,10 @@ while IFS= read -r f; do
     installer/*.py)              py_changed=1; add_suite installer/tests/unit ;;
     pilot/hooks/*.py)            py_changed=1; add_suite pilot/hooks/tests ;;
     pilot/skills/benchmark/*.py) py_changed=1; add_suite pilot/skills/benchmark/tests ;;
-    pilot/skills/ask-codex/*.py) py_changed=1; add_suite pilot/skills/ask-codex/tests ;;
     pyproject.toml)
       py_changed=1
       add_suite installer/tests/unit; add_suite launcher/tests/unit
-      add_suite pilot/hooks/tests;    add_suite pilot/skills/benchmark/tests
-      add_suite pilot/skills/ask-codex/tests ;;
+      add_suite pilot/hooks/tests;    add_suite pilot/skills/benchmark/tests ;;
     console/*.ts|console/*.tsx|console/package.json|console/knip.json|console/tsconfig*.json)
       console_changed=1 ;;
   esac
@@ -166,7 +164,6 @@ if [ "$py_changed" = "1" ]; then
           installer/*)               lbl=installer ;;
           pilot/hooks/*)             lbl=hooks ;;
           pilot/skills/benchmark/*)  lbl=benchmark ;;
-          pilot/skills/ask-codex/*) lbl=ask-codex ;;
           *)                         lbl="$s" ;;
         esac
         launch "tests: $lbl (pytest)" job_pytest "$s"

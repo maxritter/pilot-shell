@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "orchestrator": "orchestrator.md",
+  "steps": [
+    {
+      "id": "step-1-scope-and-research",
+      "file": "steps/01-scope-and-research.md"
+    },
+    {
+      "id": "step-2-set-the-bar",
+      "file": "steps/02-set-the-bar.md"
+    },
+    {
+      "id": "step-3-write-criteria",
+      "file": "steps/03-write-criteria.md"
+    },
+    {
+      "id": "step-4-approve-and-mode",
+      "file": "steps/04-approve-and-mode.md"
+    },
+    {
+      "id": "step-5-run-the-loop",
+      "file": "steps/05-run-the-loop.md"
+    },
+    {
+      "id": "step-6-hand-back",
+      "file": "steps/06-hand-back.md"
+    }
+  ]
+}

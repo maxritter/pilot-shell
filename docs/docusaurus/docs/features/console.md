@@ -28,7 +28,7 @@ Each view that supports project filtering has an inline **Project Filter** dropd
 | **Sessions** | Browse past sessions with search. Copy a session ID and run `/resume <session-id>` in Claude Code to jump back in (Claude Code only). |
 | **Memories** | Observations (decisions, discoveries, bugfixes) with type filters and search. Each memory links back to the session it came from. Hosts the **Team Sharing** card - see [Team Memories](./team-memories.md). |
 | **Requirements** | PRD documents with view/annotate modes. Selected opens as a tab, others live in a Previous dropdown. |
-| **Specifications** | Spec plans with task progress, phase tracking (PENDING/COMPLETE/VERIFIED), and iteration history. Hosts Plan Annotation and Spec Sharing (below). |
+| **Specifications** | Spec plans with task progress, phase tracking (PENDING/COMPLETE/VERIFIED), and iteration history. [`/build`](../workflows/build.md) rubrics appear here too, badged `Build`, with criteria as the progress checklist and a round log instead of tasks. Hosts Plan Annotation and Spec Sharing (below). |
 | **Extensions** | All extensions - local, plugin, remote - with team sharing via git (push, pull, diff), color-coded categories, and scope filtering. |
 | **Changes** | Git diff viewer with staged/unstaged files, branch info, worktree context. Hosts Code Review and Spec Task Correlation (below). |
 | **Usage** | Daily token costs, model routing breakdown (Opus vs Sonnet), and usage trends. |
@@ -116,7 +116,7 @@ Two reviews run during `/spec` on Claude Code and Codex; **Changes Review** also
 | Agent | Default | Role |
 |-------|---------|------|
 | **Spec Review** | On | Validates plans before implementation. Checks alignment with requirements, flags risky assumptions. |
-| **Changes Review** | On | Reviews the diff after `/spec` implementation and after `/fix` - one toggle covers both workflows. Hunts bugs, security issues, and cleanups; plan compliance and goal achievement stay covered on both agents (inline workflow audit on Claude Code, the native agent's own pass on Codex). |
+| **Changes Review** | On | Reviews the diff after `/spec` implementation, after `/fix`, and at a code `/build`'s hand-back - one toggle covers all three. Hunts bugs, security issues, and cleanups; plan compliance and goal achievement stay covered on both agents (inline workflow audit on Claude Code, the native agent's own pass on Codex). |
 
 :::info Want a deeper review? Run `/code-review` yourself
 Claude Code's built-in `/code-review` skill is a much larger multi-agent sweep, and it is **user-invocable only** - the flag `disable-model-invocation` means no workflow can launch it on your behalf. Pilot used to offer it as a Changes Review "mode"; that option is gone, because the call was rejected at runtime and the workflow silently ended up with no review at all. Type `/code-review` in your session whenever a change warrants the deeper pass.

@@ -250,20 +250,20 @@ class TestSyncCodexSkills:
         # Only "fix" exists, the rest of _SUPPORTED_SKILLS are missing → skipped
         assert built == 1
 
-    def test_cc_only_ask_codex_skill_is_never_synced_to_codex(self, skill_tree: Path) -> None:
-        """ask-codex is deliberately CC-only (allowlist omission). This mirrors the
-        installer-side exclusion test so the session-start path cannot silently
-        leak it either (weakest-point finding from a Codex second-opinion review)."""
-        skill_dir = skill_tree / ".claude" / "skills" / "ask-codex"
+    def test_cc_only_skill_is_never_synced_to_codex(self, skill_tree: Path) -> None:
+        """CC-only skills (the bot-* family) are excluded by allowlist omission. This
+        mirrors the installer-side exclusion test so the session-start path cannot
+        silently leak one either (weakest-point finding from a Codex review)."""
+        skill_dir = skill_tree / ".claude" / "skills" / "bot-jobs"
         skill_dir.mkdir(parents=True)
         (skill_dir / "manifest.json").write_text(
             json.dumps({"version": 1, "orchestrator": "orchestrator.md", "steps": []})
         )
-        (skill_dir / "orchestrator.md").write_text("---\nname: ask-codex\ndescription: d\n---\n\n# ask-codex\n\nBody.")
+        (skill_dir / "orchestrator.md").write_text("---\nname: bot-jobs\ndescription: d\n---\n\n# bot-jobs\n\nBody.")
         with patch("codex_skill_sync.Path.home", return_value=skill_tree):
             built, failed = _sync_codex_skills()
         assert built == 1  # still only "fix"
-        assert not (skill_tree / ".agents" / "skills" / "ask-codex").exists()
+        assert not (skill_tree / ".agents" / "skills" / "bot-jobs").exists()
 
 
 class TestSyncCodexReviewAgents:
