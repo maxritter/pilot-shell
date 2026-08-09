@@ -33,7 +33,7 @@ Each view that supports project filtering has an inline **Project Filter** dropd
 | **Extensions** | All extensions - local, plugin, remote - with team sharing via git (push, pull, diff), color-coded categories, and scope filtering. |
 | **Changes** | Git diff viewer with staged/unstaged files, branch info, worktree context. Hosts Code Review and Spec Task Correlation (below). |
 | **Usage** | Daily token costs, model routing breakdown (Opus vs Sonnet), and usage trends. |
-| **Settings** | Spec workflow toggles (branch isolation, ask questions, plan approval), the Model Switching mode, reviewer toggles. See [Settings](#settings) below. |
+| **Settings** | Workflow toggles for `/spec` and `/build` (branch isolation, ask questions, plan approval, verification pass), the Model Switching mode, and the review agents. See [Settings](#settings) below. |
 | **Documentation** | Embedded pilot-shell.com documentation - full technical reference without leaving the Console. |
 
 ## Plan Annotation
@@ -104,35 +104,37 @@ The Console sends real-time alerts via Server-Sent Events when your agent needs 
 
 ## Settings
 
-The Settings tab (`localhost:41777/#/settings`, or your custom port) is a single scrollable page with two stacked sections: **Spec Workflow** and **Console**. Toggle preferences save to `~/.pilot/config.json`. The **Console -> Worker Port** field saves to `~/.pilot/memory/settings.json` and lets you move the Console off `41777` if it conflicts with another service. Both changes take effect after restarting your session.
+The Settings tab (`localhost:41777/#/settings`, or your custom port) is a single scrollable page with two stacked sections: **Workflows** and **Console**. Workflows holds three groups - Model Switching, Automation, and Reviews - and a collapsed Worktrees block. A scope chip on each control says which workflows it affects, so there is no per-workflow split. Toggle preferences save to `~/.pilot/config.json`. The **Console -> Worker Port** field saves to `~/.pilot/memory/settings.json` and lets you move the Console off `41777` if it conflicts with another service. Both changes take effect after restarting your session.
 
 :::info Model selection lives in the agent
 Pilot doesn't manage model preferences. Set the model with Claude Code's `/model` command or Codex's `codex --model <name>` / `~/.codex/config.toml`. See [Model Routing](./model-routing.md).
 :::
 
-### Spec Workflow -> Review Agents
+### Workflows -> Review Agents
 
-Two reviews run during `/spec` on Claude Code and Codex; **Changes Review** also runs at the end of `/fix`. Toggle each on or off. Both run as a single background review agent - a sub-agent on Claude Code, a managed custom agent under `~/.codex/agents/` on Codex - so the cost of each is one agent, not a fan-out.
+Three reviews are available across the workflows on Claude Code and Codex: **Spec Review** during `/spec`, **Build Review** during `/build`, and **Changes Review** at the end of `/spec`, `/fix` and a code `/build`. Toggle each on or off. Both run as a single background review agent - a sub-agent on Claude Code, a managed custom agent under `~/.codex/agents/` on Codex - so the cost of each is one agent, not a fan-out.
 
-| Agent | Default | Role |
-|-------|---------|------|
-| **Spec Review** | On | Validates plans before implementation. Checks alignment with requirements, flags risky assumptions. |
-| **Changes Review** | On | Reviews the diff after `/spec` implementation, after `/fix`, and at a code `/build`'s hand-back - one toggle covers all three. Hunts bugs, security issues, and cleanups; plan compliance and goal achievement stay covered on both agents (inline workflow audit on Claude Code, the native agent's own pass on Codex). |
+| Agent | Group | Default | Role |
+|-------|-------|---------|------|
+| **Spec Review** | Reviews | On | Validates plans before implementation. Checks alignment with requirements, flags risky assumptions. |
+| **Build Review** | Reviews | On | Audits a `/build`'s drafted tasks and acceptance criteria before the loop starts, catching criteria a judge could not decide from the finished artifact. |
+| **Changes Review** | Reviews | On | Reviews the diff after `/spec` implementation, after `/fix`, and at a code `/build`'s hand-back - one toggle covers all three. Hunts bugs, security issues, and cleanups; plan compliance and goal achievement stay covered on both agents (inline workflow audit on Claude Code, the native agent's own pass on Codex). |
 
 :::info Want a deeper review? Run `/code-review` yourself
 Claude Code's built-in `/code-review` skill is a much larger multi-agent sweep, and it is **user-invocable only** - the flag `disable-model-invocation` means no workflow can launch it on your behalf. Pilot used to offer it as a Changes Review "mode"; that option is gone, because the call was rejected at runtime and the workflow silently ended up with no review at all. Type `/code-review` in your session whenever a change warrants the deeper pass.
 :::
 
-**Codex Companion Reviewers (optional, Claude Code only)** - OpenAI Codex plugin reviewers that provide an independent second opinion while you are working inside Claude Code.
+**Codex second opinion (optional, Claude Code only).** Each reviewer card carries an **Also review with Codex** switch. It is independent of the native reviewer - you can run either, both, or neither - and needs the Claude Code Codex plugin, so it is disabled until that is installed. All three default to off.
 
-| Agent | Default | Role |
-|-------|---------|------|
-| **Codex Companion Spec Review** | Off | Plugin plan review - second opinion before implementation. |
-| **Codex Companion Changes Review** | Off | Plugin code review - second opinion after `/spec` and `/fix`. |
+### Workflows -> Automation (build)
 
-### Spec Workflow -> Automation
+| Toggle | Default | Enabled | Disabled |
+|--------|---------|---------|----------|
+| **Verification Pass** | On | Before hand-back, `/build` runs the full test suite, type checker, linter, build, a live-target E2E pass, the changes review, documentation sync, and a final regression - scaled to the artifact, so a prose build pays almost nothing | The run is judged on its acceptance criteria alone, and the hand-back report and approval gate both say verification was disabled |
 
-Three toggles control user interaction points, plus the Model Switching mode during `/spec`. Disable all three for fully autonomous end-to-end execution.
+### Workflows -> Automation
+
+Three toggles control user interaction points, plus the Model Switching mode during `/spec`. **Ask Questions** and **Plan Approval** apply to `/spec` and `/build` alike; **Branch Isolation** is `/spec`-only, since `/build` never creates a branch or worktree. Disable them for fully autonomous execution.
 
 | Toggle | Default | Enabled | Disabled |
 |--------|---------|---------|----------|
@@ -143,7 +145,7 @@ Three toggles control user interaction points, plus the Model Switching mode dur
 
 With all three workflow toggles off, `/spec add user authentication` plans, implements, and verifies the feature end-to-end without checkpoints, entirely on your active model.
 
-### Spec Workflow -> Worktrees
+### Workflows -> Worktrees
 
 Two fields control where `/spec` creates its isolated worktrees and how long it waits for git. Leave either blank to use the default. Both are global (they apply to every project) and can be overridden per shell with `PILOT_WORKTREE_DIR` / `PILOT_WORKTREE_TIMEOUT`.
 
@@ -166,11 +168,13 @@ All settings are stored in `~/.pilot/config.json`:
 {
   "reviewerAgents": {
     "specReview": true,
-    "changesReview": true
+    "changesReview": true,
+    "buildReview": true
   },
   "codexReviewers": {
     "specReview": false,
-    "changesReview": false
+    "changesReview": false,
+    "buildReview": false
   },
   "specWorkflow": {
     "branchIsolation": true,
@@ -179,6 +183,9 @@ All settings are stored in `~/.pilot/config.json`:
     "modelSwitchMode": "manual",
     "worktreeDir": "../worktrees",
     "worktreeTimeout": 900
+  },
+  "buildWorkflow": {
+    "verification": true
   }
 }
 ```

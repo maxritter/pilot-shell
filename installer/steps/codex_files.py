@@ -514,7 +514,11 @@ class CodexFilesStep(BaseStep):
     )
 
     _CODEX_STALE_SKILLS = frozenset({"bot-boot", "bot-channel-task", "bot-defaults", "bot-heartbeat", "bot-jobs"})
-    _CODEX_MANAGED_REVIEW_AGENTS = frozenset({"changes-review", "spec-review"})
+    # Keep in sync with pilot/hooks/codex_skill_sync.py:_SUPPORTED_REVIEW_AGENTS
+    # (.claude/rules/pilot-shell-codex-skill-sync.md). Names only -- the sibling
+    # `<name>-codex.md` files are companion prompt templates for `task
+    # --prompt-file`, not custom agents, so they are never built.
+    _CODEX_MANAGED_REVIEW_AGENTS = frozenset({"build-review", "changes-review", "spec-review"})
 
     def _install_codex_skills(self, ctx: InstallContext) -> int:
         """Install supported Pilot Shell skills to ~/.agents/skills/ for Codex.

@@ -31,7 +31,7 @@ Size is **not** the discriminator. A 30-screen migration can be `/build`; a 40-l
 ## The shape of a run
 
 ```
-Goal → Draft tasks + criteria → Approve → Round(build every task → judge) → Hand back
+Goal → Draft tasks + criteria → Approve → Round(build every task → judge) → Verify → Hand back
 ```
 
 Three things carry it:
@@ -41,6 +41,8 @@ Three things carry it:
 3. **The judge** — a separate pass at the end of each round that rules the acceptance criteria from the finished artifact.
 
 A **round** is one full pass over the task list plus **one** judge pass. Criteria that fail become the next round's tasks. Most runs converge in two or three rounds.
+
+Once the rounds are done, **Step 6 verifies** what the criteria do not cover and **Step 7 asks you to approve** before anything is marked verified.
 
 ---
 
@@ -53,12 +55,16 @@ A **round** is one full pass over the task list plus **one** judge pass. Criteri
 3. JUDGE ONLY WHEN EVERY TASK IS TICKED. Judging a half-built artifact spends a
    round to learn what you already knew.
 4. PASS/FAIL, NEVER A SCORE. Scores drift upward every round; pass/fail does not.
+   "Partial" and "mostly" are scores. Not fully met is fail.
 5. CALIBRATED, NOT BRUTAL. Pass a criterion whose evidence meets what it asks.
    Raising the bar mid-judge is what makes this slower than /spec for no gain.
 6. THREE JUDGE PASSES, THEN ASK. One more round is a one-time extension; four is
    the ceiling. Never a fifth.
 7. WAITING IS NOT A ROUND. Work blocked on something that will not finish inside
-   this session ends the run — it does not spend rounds.
+   this session ends the run — it does not spend rounds. Context pressure is not
+   such a blocker: the Buildout survives compaction, so re-read it and continue.
+8. HAND-BACK HAS THREE DOORS. Every criterion passed, the round budget reached
+   after a real judge pass, or a named external blocker. Nothing else is one.
 ```
 
 ---
@@ -67,7 +73,9 @@ A **round** is one full pass over the task list plus **one** judge pass. Criteri
 
 `/build` is not a conversation that remembers a goal. The goal, tasks, and criteria are a **file**, registered with the session, and the loop is held open by Pilot's stop guard.
 
-- **Buildout file** at `docs/plans/YYYY-MM-DD-<slug>.md` with `Type: Build`. It survives compaction, shows up in the Console's **Buildouts** section, and can be shared with teammates for annotation like any other Pilot plan.
+- **Buildout file** at `docs/plans/YYYY-MM-DD-<slug>.md` with `Type: Build`. It survives compaction, shows up in the Console's **Buildouts** section, and can be shared and annotated like any other Pilot plan — annotations are picked up before the approval gate.
+- **Two reviewers, outside the loop, switchable** in Console → Settings → Workflows: **Build Review** on the criteria before round one, **Changes Review** on the diff at the end. Each has an optional Codex companion.
+- **A verification pass** (Step 6) before hand-back — suite, types, lint, build, live-target E2E, the code review, doc sync, regression — scaled to the artifact, so a prose build pays almost nothing.
 - **The statusline tracks tasks and rounds** — `Build: <name> build ▓▓▓░░ 3/5 r2`.
 - **The stop guard holds the loop open.** While the Buildout is registered and not `VERIFIED`, the session cannot quietly end at "good enough". You do **not** need `/goal`; Pilot's Stop hook already does this, on both Claude Code and Codex. The user's escape hatch is stopping twice within 60s.
 - **`Status:` is the same closed set** as every other Pilot plan — `PENDING` → `COMPLETE` → `VERIFIED`, bare keyword, no trailing prose.
@@ -76,8 +84,8 @@ A **round** is one full pass over the task list plus **one** judge pass. Criteri
 |---|---|---|
 | `PENDING` + `Approved: No` | `goal` | Goal, tasks, and criteria being drafted |
 | `PENDING` + `Approved: Yes` | `build` | Working the task list |
-| `COMPLETE` | `judge` | Every task ticked; judge pass outstanding |
-| `VERIFIED` | *(cleared)* | Handed back to the user |
+| `COMPLETE` | `judge` | Every task ticked; judge pass, verification, and the approval gate outstanding |
+| `VERIFIED` | *(cleared)* | Approved by the user at hand-back |
 
 A hand-back does not always mean `VERIFIED`: a run that stops at the round-four ceiling with criteria unresolved, or one blocked on something outside the session, stays `PENDING` so it can be resumed from the file. A one-shot sentinel lets the session stop in those two cases.
 
@@ -87,7 +95,7 @@ A hand-back does not always mean `VERIFIED`: a run that stops at the round-four 
 
 1. **Goal and reference** — confirm the end state, and pick a reference only when the user did not name one and a real side-by-side comparison exists (Step 1).
 2. **Approval** — one gate on the drafted tasks and criteria (Step 3), skipped when `PILOT_PLAN_APPROVAL_ENABLED` is `false`.
-3. **Hand-back** — either every criterion passed, or the round budget was reached (Steps 5 and 6).
+3. **Hand-back** — the report plus an approval gate before anything is marked `VERIFIED` (Step 7). Still the third point, not a fourth: it is the same hand-back, now a gate rather than a notification.
 
 Everything else is automatic. **Never ask "should I keep going?"** — the criteria and the round budget answer that. A failing criterion is not a decision point; it is the next round's tasks.
 
@@ -107,13 +115,17 @@ Everything else is automatic. **Never ask "should I keep going?"** — the crite
 | "This criterion is close — one more thing and it'd pass." | Then it fails, and that thing is a task. |
 | "I built it, so I can tell it's good." | You know how hard it was to make. The judge must not. |
 | "The task list has changed a lot; I should have planned harder." | Tasks changing as you learn is the design. Log it and keep going. |
-| "I'll spin up a subagent to judge this properly." | It starts blind, re-derives what this thread already holds, and bills you for the round trip. Judge from the artifact instead. |
+| "I'll spin up a subagent to judge this properly." | It starts blind, re-derives what this thread already holds, and bills you for the round trip. Judge from the artifact instead. Reviewers are the exception, and they run outside the loop. |
+| "Four pass, three partial — I'll report that." | "Partial" is a score. Not fully met is fail, and the gap is next round's tasks. |
+| "Context is nearly gone; I'll hand back what I have." | The Buildout survives compaction. Re-read it and finish the round. |
+| "The criteria passed, so the code is fine." | The criteria rule the artifact. Step 6 rules the code behind it — they are different axes. |
 | "This is big, so it should have been `/spec`." | Scale is not what `/spec` is for; an approved task list is. Big work escalates *inside* this skill (Step 3), it does not get handed off. |
 | "The data isn't in yet, so I'll do something else and call it a round." | Waiting is not a round. Hand back and say what is blocked. |
 
 ## Red flags — stop and go back
 
 - About to build and the Buildout file has no tasks → Step 2.
+- About to skip Step 6 on a code build with verification enabled → run it.
 - About to judge and a task is still unticked → finish the task first, Step 4.
 - A criterion cannot be settled without asking the user what they meant → rewrite it, Step 2.
 - A criterion's evidence depends on something that will not finish inside this run → rewrite or drop it, Step 2.
@@ -121,7 +133,10 @@ Everything else is automatic. **Never ask "should I keep going?"** — the crite
 - You are about to suggest `/spec` because the work is large → Step 3, escalate here instead.
 - You are patching a file with a `python3` heredoc instead of `Edit` → Step 4, tool discipline.
 - The judge passed everything on round one and the work is thin → the criteria are decidable by feel, Step 2.
-- A verdict contains "should", "probably", or "close enough" → rejudge from the artifact.
+- A verdict contains "should", "probably", "close enough", "partial", or "mostly" → rejudge from the artifact.
+- About to hand back with an unticked task or an unjudged criterion → Step 4, not Step 7.
+- About to write `VERIFIED` without an approve keyword from the user → Step 7.4.
+- About to rule a UI criterion from source instead of a running artifact → Step 5.1a.
 
 ## When NOT to use
 

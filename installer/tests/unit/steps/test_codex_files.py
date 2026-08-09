@@ -326,11 +326,25 @@ class TestCodexSkillsInstallation:
         assert "orchestrator after the user review gate" in instructions
         assert "do not emit a finding during changes review" in instructions
 
+    def test_builds_build_review_agent_judging_criteria_not_spec_sections(self) -> None:
+        result = build_codex_review_agent_toml(Path("pilot/agents/build-review.md"))
+        data = tomllib.loads(result)
+
+        assert data["name"] == "build-review"
+        assert data["model"] == "codex-auto-review"
+        instructions = data["developer_instructions"]
+        assert "Output ONLY valid JSON" in instructions
+        assert '"issues"' in instructions
+        # A Buildout has none of these; reporting their absence would be noise.
+        assert "does NOT have" in instructions
+        assert "output_path" not in instructions
+
     def test_installs_review_agents_to_codex_agents_dir(self, tmp_path: Path) -> None:
         claude_agents_dir = tmp_path / ".claude" / "agents"
         claude_agents_dir.mkdir(parents=True)
         shutil.copyfile(Path("pilot/agents/spec-review.md"), claude_agents_dir / "spec-review.md")
         shutil.copyfile(Path("pilot/agents/changes-review.md"), claude_agents_dir / "changes-review.md")
+        shutil.copyfile(Path("pilot/agents/build-review.md"), claude_agents_dir / "build-review.md")
         codex_agents_dir = tmp_path / ".codex" / "agents"
         codex_agents_dir.mkdir(parents=True)
         (codex_agents_dir / "user-agent.toml").write_text('name = "user-agent"\n')
@@ -340,19 +354,52 @@ class TestCodexSkillsInstallation:
         ctx.ui = None
 
         with patch("installer.steps.codex_files.Path.home", return_value=tmp_path):
-            step._install_codex_agents(ctx)
+            installed = step._install_codex_agents(ctx)
 
         spec_agent = codex_agents_dir / "spec-review.toml"
         changes_agent = codex_agents_dir / "changes-review.toml"
+        build_agent = codex_agents_dir / "build-review.toml"
+        assert installed == 3
         assert spec_agent.exists()
         assert changes_agent.exists()
+        assert build_agent.exists()
         assert (codex_agents_dir / "user-agent.toml").exists()
         spec_data = tomllib.loads(spec_agent.read_text())
         changes_data = tomllib.loads(changes_agent.read_text())
+        build_data = tomllib.loads(build_agent.read_text())
         assert spec_data["name"] == "spec-review"
         assert spec_data["model"] == "codex-auto-review"
         assert changes_data["name"] == "changes-review"
         assert changes_data["model"] == "codex-auto-review"
+        assert build_data["name"] == "build-review"
+        assert build_data["model"] == "codex-auto-review"
+
+    def test_build_review_codex_prompt_template_is_not_installed_as_an_agent(
+        self, tmp_path: Path
+    ) -> None:
+        """`*-codex.md` files are companion prompt templates, not Codex custom agents.
+
+        `spec-review-codex.md` has always been skipped; `build-review-codex.md` must be
+        too, or Codex gains a bogus agent whose body is a `task --prompt-file` prompt.
+        """
+        claude_agents_dir = tmp_path / ".claude" / "agents"
+        claude_agents_dir.mkdir(parents=True)
+        shutil.copyfile(Path("pilot/agents/build-review.md"), claude_agents_dir / "build-review.md")
+        shutil.copyfile(
+            Path("pilot/agents/build-review-codex.md"), claude_agents_dir / "build-review-codex.md"
+        )
+        codex_agents_dir = tmp_path / ".codex" / "agents"
+        codex_agents_dir.mkdir(parents=True)
+
+        step = CodexFilesStep()
+        ctx = MagicMock()
+        ctx.ui = None
+
+        with patch("installer.steps.codex_files.Path.home", return_value=tmp_path):
+            step._install_codex_agents(ctx)
+
+        assert (codex_agents_dir / "build-review.toml").exists()
+        assert not (codex_agents_dir / "build-review-codex.toml").exists()
 
     def test_preserves_user_created_same_name_codex_agent(self, tmp_path: Path) -> None:
         claude_agents_dir = tmp_path / ".claude" / "agents"

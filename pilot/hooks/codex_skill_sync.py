@@ -46,7 +46,11 @@ _SUPPORTED_SKILLS = frozenset(
     }
 )
 
-_SUPPORTED_REVIEW_AGENTS = frozenset({"changes-review", "spec-review"})
+# Keep in sync with installer/steps/codex_files.py:_CODEX_MANAGED_REVIEW_AGENTS
+# (.claude/rules/pilot-shell-codex-skill-sync.md). Names only -- the sibling
+# `<name>-codex.md` files are companion prompt templates for `task
+# --prompt-file`, not custom agents, so they are never built.
+_SUPPORTED_REVIEW_AGENTS = frozenset({"build-review", "changes-review", "spec-review"})
 _CODEX_REVIEW_AGENT_MODEL = "codex-auto-review"
 
 _PILOT_SKILL_NAMES = frozenset(

@@ -1,45 +1,75 @@
-## Step 6: Hand Back
+## Step 7: Hand Back
 
-You arrive here three ways: every criterion passed (Step 5.3), the round budget or ceiling was reached (Step 5.3/5.4), or the work is blocked on something outside this session (Step 4.4). The report differs; the closing mechanics do not.
+### 7.1 Check you are allowed to be here
 
-### 6.1 Code quality pass — code artifacts only
+Name which of the three arrivals applies before anything else: **Complete** (every criterion ticked by a judge pass), **Budget** (a real judge pass ran and `Rounds:` hit the budget at 5.4 or the ceiling at 5.3), or **Blocked** (4.6's external blocker, named).
 
-<!-- CC-ONLY -->
-For a build whose artifact is **code**, this is where Pilot's code-quality pass belongs, when the Console's Spec Workflow → Review Agents → Changes Review toggle is on: `git add` the build's own files, then launch the `changes-review` sub-agent with `run_in_background=true` and poll for its findings file. It rules on correctness and quality — axes the acceptance criteria mostly do not cover — so treat its `must_fix` and `should_fix` findings as work to close before hand-back, not as criteria. Skip it entirely for prose, design, and research artifacts, and skip it on a blocked hand-back (4.4) where the code is half-built by design.
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-For a build whose artifact is **code**, this is where the native `changes-review` custom agent belongs when its toggle is enabled: stage the build's own files, run the review, and close its `must_fix` / `should_fix` findings before hand-back. Skip it entirely for prose, design, and research artifacts, and skip it on a blocked hand-back (4.4) where the code is half-built by design.
-CODEX-END -->
+⛔ **None of the three holds → you are not at hand-back.** An unticked task, an unjudged criterion, or a round that stopped early is Step 4. There is no fourth arrival and no partial one.
 
-If closing a finding changes the artifact materially, re-run the affected criteria from Step 5.1 before continuing — a fix is a change, and the criteria rule on what shipped.
+### 7.2 Close the Buildout
 
-### 6.2 Close the Buildout
+**Ceiling reached with criteria still failing (5.3):** leave `Status: PENDING`, registered, with the failing criteria unticked and their reasons in `## Round Log`. Do NOT set `VERIFIED` — nothing verified them. The `build-handback-pending` sentinel touched in 5.3 lets the session stop. Report (7.3) and finish; there is no gate to run.
 
-**Every criterion passed, or the user accepted an unresolved one:**
+**Blocked outside this session (4.6):** leave `Status: PENDING`, registered. The run is waiting, not finished, and the Buildout is how it resumes. The sentinel touched in 4.6 lets the session pause. Report and finish.
 
-1. Set `Status: VERIFIED`.
-2. Register it: `~/.pilot/bin/pilot register-plan "<buildout_path>" "VERIFIED" 2>/dev/null || true`
+**Complete, or the user accepted an unresolved criterion at 5.4:** report (7.3), then run the gate (7.4). `VERIFIED` is written only after the user approves.
 
-That clears the statusline and releases the stop guard.
+⛔ **Never tick a criterion you did not judge**, and never set `VERIFIED` to tidy the statusline. An unresolved criterion recorded honestly is a good outcome; a ticked one nothing verified is the failure this workflow exists to prevent.
 
-**Round-four ceiling reached with criteria still failing (5.3):** leave `Status: PENDING` and leave it registered, with the failing criteria unticked and their reasons in `## Round Log`. Do NOT set `VERIFIED` — nothing verified them. The `build-handback-pending` sentinel touched in 5.3 is what lets the session stop.
-
-**Blocked on something outside this session (4.4):** leave `Status: PENDING` and leave it registered. The run is not finished — it is waiting, and the Buildout is how it resumes. The `build-handback-pending` sentinel you touched in Step 4.4 is what lets the session pause here.
-
-⛔ **Never tick a criterion you did not judge**, and never set `VERIFIED` to make the statusline look tidy. An unresolved criterion recorded honestly in `## Round Log` is a good outcome; a ticked one that nothing verified is the failure this workflow exists to prevent.
-
-### 6.3 Report
+### 7.3 Report
 
 Lead with what now works, then the evidence:
 
 - **Every criterion, with the one line of evidence that settled it.** Not "all criteria pass" — the evidence *is* the report. Failing ones get the same treatment: what fails, and why it would not close.
 - **Rounds it took**, and what each one closed.
-- **How the task list changed** — what you added, split, or dropped once the work taught you something. This is often the most useful paragraph for the reader.
-- **Any criterion that was relaxed mid-run**, with the before and after.
-- **Anything deliberately left out**, and why.
+- **How the task list changed** — added, split, dropped. Often the most useful paragraph for the reader.
+- **Any criterion relaxed mid-run**, with the before and after.
+- **From Step 6:** the checks that ran, the live-target tier reached, the reviewer findings closed, docs touched or "no doc impact", and the `## Not Verified` list verbatim.
 - **Where the artifact is** and the command to see it.
 
-Then hand it to the user for final review. The loop clears the criteria you set; it does not decide the work is finished.
+### 7.4 The approval gate
+
+The loop clears the criteria you set; it does not decide the work is finished. Ask, and wait.
+
+**State what was not verified in the question itself.** If Step 6 was skipped or left `## Not Verified` rows, name them there — approving a run whose evidence was switched off has to be a decision the user makes knowingly.
+
+<!-- CC-ONLY -->
+```
+AskUserQuestion(
+  question="<one-line summary>. <what was not verified, or 'everything checked'>. Approve?",
+  options=["Approve — mark the Buildout verified", "Issues found — I'll describe them"]
+)
+```
+<!-- /CC-ONLY -->
+<!-- CODEX-START
+Present two plain-text numbered options — **1. Approve** / **2. Issues found** — then touch the sentinel so the stop guard lets you end the turn for the answer, and end it. `AskUserQuestion` is rewritten to plain text here, so without the sentinel an approved `COMPLETE` Buildout blocks the stop and the gate is unreachable:
+
+```bash
+BUILD_SESS="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+mkdir -p "$HOME/.pilot/sessions/$BUILD_SESS" && touch "$HOME/.pilot/sessions/$BUILD_SESS/build-handback-pending"
+```
+
+Treat the user's next message as the answer.
+CODEX-END -->
+
+**Only these count as approval:** `Approve`, `approve`, `lgtm`, `looks good`. A bare `continue` or `proceed` is a resume nudge and does not qualify.
+
+**Anything else is issues to fix** — a bug report, a screenshot, free text. Fix them, then ⛔ **go back through Step 6 before asking again.** The checks, review, doc pass, regression, and live target were all measured against the pre-fix build, so re-run what the profile calls for, re-judge any criterion the fix touched (5.1), refresh `## Verification Record`, and only then re-ask. Re-asking on stale evidence is how the gate becomes a rubber stamp.
+
+**Already approved at 5.4?** *Accept and hand back* at the round-budget question **is** this gate's approval — record it as such and do not ask twice, or round three silently becomes a fourth interaction point.
+
+Before writing `VERIFIED`, all three must be true:
+
+1. `## Verification Record` exists in the Buildout (written by Step 6.9), or Step 6 was skipped and `## Not Verified` says why.
+2. `## Not Verified` exists — "None" is a valid entry, an absent section is not.
+3. The qualifying approval reply is recorded verbatim in the Buildout, with which gate produced it (7.4 or 5.4).
+
+Any one missing → you are not finished. Then:
+
+1. Set `Status: VERIFIED`.
+2. `~/.pilot/bin/pilot register-plan "<buildout_path>" "VERIFIED" 2>/dev/null || true`
+
+That clears the statusline and releases the stop guard.
 
 ---
 

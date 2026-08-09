@@ -104,7 +104,7 @@ When all three are disabled, `/spec` runs end-to-end without any user interactio
 
 Both run outside the main session context on both agents: Claude Code uses a sub-agent, Codex a custom agent installed under `~/.codex/agents/`. Optional **Codex Companion Reviewers** (off by default) add a Claude Code plugin second opinion using OpenAI Codex — best reserved for high-risk or security-sensitive specs. The **Changes Review** and **Codex Companion Changes Review** toggles also govern [`/fix`](/docs/workflows/fix), which runs the same reviews at finalise.
 
-For a deeper multi-agent sweep on a particular change, run Claude Code's built-in `/code-review` yourself. It is user-invocable only, so no Pilot workflow can launch it for you — see the [Review Agents](/docs/features/console#spec-workflow---review-agents) note.
+For a deeper multi-agent sweep on a particular change, run Claude Code's built-in `/code-review` yourself. It is user-invocable only, so no Pilot workflow can launch it for you — see the [Review Agents](/docs/features/console#workflows---review-agents) note.
 
 **Codex runs at most once per `/spec` invocation.** Plan iterations (annotation feedback, verify re-runs, fixing prior findings) reuse the result of the first Codex review instead of re-launching — a sentinel file in the session directory enforces this. The bugfix planning phase no longer runs Codex at all; adversarial review is most valuable on real code, not on a plan.
 
@@ -114,7 +114,7 @@ When starting a `/spec` task, you're asked how you want to work:
 
 | Option | What happens |
 | ------ | ------------ |
-| **Use worktree** | Creates an isolated git worktree on a dedicated branch, in `.worktrees/` by default ([configurable](/docs/features/console#spec-workflow---worktrees), along with the git timeout that large monorepos outrun). `main` stays clean. Pilot auto-stashes uncommitted changes, restores them after. Squash-merged after verification — or discard with no cleanup. |
+| **Use worktree** | Creates an isolated git worktree on a dedicated branch, in `.worktrees/` by default ([configurable](/docs/features/console#workflows---worktrees), along with the git timeout that large monorepos outrun). `main` stays clean. Pilot auto-stashes uncommitted changes, restores them after. Squash-merged after verification — or discard with no cleanup. |
 | **Current branch** | Works directly on whatever branch you're on. Simplest option when you're already on a clean feature branch. |
 | **New branch from default** | Fetches origin, creates `feat/<slug>` (or `fix/<slug>` for bugfixes) from `origin/main`, and checks it out. Best when your current branch isn't clean but you don't want full worktree isolation. |
 

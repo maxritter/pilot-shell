@@ -258,10 +258,10 @@ claude                                                        codex
 ```
 
 ```text
-Goal  →  Tasks + Criteria  →  Approve  →  Round (build every task → judge)  →  Hand back
-                                                    ↑                   ↓
-                                                    └── gaps become the ─┘
-                                                        next round's tasks
+Goal → Tasks + Criteria → Approve → Round (build every task → judge) → Verify → Hand back
+                                          ↑                   ↓
+                                          └── gaps become the ─┘
+                                              next round's tasks
 ```
 
 <details>
@@ -270,14 +270,15 @@ Goal  →  Tasks + Criteria  →  Approve  →  Round (build every task → judg
 **Three things carry it:** a goal named in one sentence; 3-7 tasks and 3-6 acceptance criteria drafted before any building; and a judge that rules those criteria from the finished artifact at the end of each round.
 
 - **Name the goal:** One sentence for the end state. A reference to sit beside — a competitor's page, a named author's post, the pre-migration screen — is used only when a real side-by-side comparison exists, and it is obtained once up front so later rounds cannot drift toward whatever you already made. Many goals have none, and the criteria carry the standard alone.
-- **Draft tasks and criteria:** Tasks are a title and an objective, nothing more — no file lists, no per-task DoD. That is the upfront planning `/spec` charges for, and `/build` skips it so the task list can absorb what the work teaches you. Criteria are one sentence each, pass/fail, decidable from the finished artifact, and settleable during this run.
+- **Draft tasks and criteria:** Tasks are a title and an objective, nothing more — no file lists, no per-task DoD. That is the upfront planning `/spec` charges for, and `/build` skips it so the task list can absorb what the work teaches you. Criteria are one sentence each, pass/fail, decidable from the finished artifact, and settleable during this run. A **Build Review** agent audits them before the loop starts, because a criterion you can decide by feel reads as perfectly clear to the person who wrote it.
 - **Approve:** One gate, honouring the same **Plan Approval** toggle as `/spec`. The criteria are the contract; the tasks are expected to change.
-- **Round:** Work every open task — adding, splitting, and dropping them as you learn, each change logged — then judge once, with every task ticked. Failing criteria become the next round's tasks. The judge is calibrated, not brutal: a criterion whose evidence meets what it asks passes.
-- **Hand back:** After three rounds it stops and asks — one more round, relax a criterion, or accept as-is. "One more round" is a one-time extension; four judge passes is the ceiling. Most runs converge in two or three.
+- **Round:** Work every open task — adding, splitting, and dropping them as you learn, each change logged — then judge once, with every task ticked. Code tasks are written test-first. Criteria about runtime behaviour are ruled against a running artifact, resolved through the same live-target probe `/spec` uses. Failing criteria become the next round's tasks. The judge is calibrated, not brutal, and rules pass or fail — never partial.
+- **Verify:** Before hand-back, a pass over what the criteria do not cover — test suite, types, lint, build, browser E2E, an independent **Changes Review** of the diff, doc sync, and a final regression. Scaled to the artifact, so a prose build pays almost nothing.
+- **Hand back:** After three rounds it stops and asks — one more round, relax a criterion, or accept as-is. "One more round" is a one-time extension; four judge passes is the ceiling. The report carries every criterion with the evidence that settled it, plus what was *not* verified — and nothing is marked verified until you approve.
 
-**The Buildout is a real file.** `/build` writes `docs/plans/YYYY-MM-DD-<slug>.md` with `Type: Build` and registers it with the session, so the run survives compaction, the statusline tracks tasks and rounds (`Build: running-brand build ███░░ 3/5 r2`), and the Buildout shows up in the Console's own **Buildouts** section, shareable with teammates — and **Pilot's stop guard holds the loop open**. The session cannot quietly end at "good enough", on Claude Code and Codex alike. You never type `/goal`; stopping twice within 60s is the escape hatch.
+**The Buildout is a real file.** `/build` writes `docs/plans/YYYY-MM-DD-<slug>.md` with `Type: Build` and registers it with the session, so the run survives compaction, the statusline tracks tasks and rounds (`Build: running-brand build ███░░ 3/5 r2`), and the Buildout shows up in the Console's own **Buildouts** section, shareable with teammates and annotatable — and **Pilot's stop guard holds the loop open**. The session cannot quietly end at "good enough", on Claude Code and Codex alike. You never type `/goal`; stopping twice within 60s is the escape hatch.
 
-**Sequential by default.** One thread, no subagents — a subagent starts blind, re-derives context the thread already holds, and bills you for the round trip. Parallel execution is proposed only at whole-project scale: 5+ distinct surfaces that each need their own build-judge loop, that do not block each other, where sequential would run for hours. On Claude Code that prompts for `/effort ultracode`; declining is a first-class answer.
+**Sequential by default.** One thread; no subagents for building or judging — a subagent starts blind, re-derives context the thread already holds, and bills you for the round trip. The two reviewers are the exception, and both run outside the loop: Build Review before the first round, Changes Review after the last. Parallel execution is proposed only at whole-project scale: 5+ distinct surfaces that each need their own build-judge loop, that do not block each other, where sequential would run for hours. On Claude Code that prompts for `/effort ultracode`; declining is a first-class answer.
 
 </details>
 

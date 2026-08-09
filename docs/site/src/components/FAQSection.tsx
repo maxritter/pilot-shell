@@ -11,7 +11,7 @@ const faqItems = [
   {
     question: "How do I add team seats or manage my subscription?",
     answer:
-      "Everything is self-service in the customer portal at polar.sh/max-ritter/portal, linked as Manage Subscription in the site header, the footer, and on the pricing page. Sign in with the email you used at checkout and you can change your seat count, switch plans, update your payment method, download invoices, recover your license key, or cancel. Polar also includes a portal link in every order confirmation and renewal email. Seat changes are prorated automatically. Prefer to have it handled for you? Email mail@maxritter.net.",
+      "Everything is self-service in the customer portal at polar.sh/max-ritter/portal, linked as Manage Subscription in the site header, the footer, and on the pricing page. Sign in with the email you used at checkout and you can change your seat count, switch plans, update your payment method, download invoices, recover your license key, or cancel. Polar also includes a portal link in every order confirmation and renewal email. Seat changes are prorated automatically. Access is always by email sign-in, never by license key: Polar emails a code to the address on the subscription, so only the person who bought it can reach invoices, payment method, seat count, or cancellation. Teammates using a seat have their own license key, and it gives them no way into your billing. Prefer to have it handled for you? Email mail@maxritter.net.",
   },
   {
     question: "Is Pilot Shell enterprise-compliant for data privacy?",

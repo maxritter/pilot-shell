@@ -1,5 +1,13 @@
 ## Step 3: Approve the Run, Settle the Mode
 
+### 3.0 Pick up any Console annotations first
+
+The Buildouts view has the same annotate surface as Specifications and saves automatically, so the user may have marked up the criteria while you drafted. Read `docs/plans/.annotations/<buildout-basename>.json` before asking; a missing file or empty `planAnnotations` means nothing to do.
+
+Otherwise fold every entry in — each carries `originalText` (the passage) and `text` (what they want) — then `rm -f` the file (direct deletion, since curl is blocked in several hook environments) and note "Incorporated N annotations from the Console."
+
+**Re-run this whenever 3.1 sends you back for changes** — the user may annotate instead of typing.
+
 ### 3.1 The one gate
 
 <!-- CC-ONLY -->
@@ -23,15 +31,17 @@ When the toggle is `"false"`, skip the question entirely.
 
 On approval — or immediately when the gate is off — set `Approved: Yes` in the Buildout. Leave `Status: PENDING`. The statusline flips from `goal` to `build`, and the stop guard now holds the session open until the run reaches a hand-back.
 
-If they ask for changes, edit the Buildout and re-show it. Do not start building against tasks or criteria the user rejected.
+If they ask for changes, edit the Buildout, re-run 3.0 in case they annotated instead, and re-show it. Do not start building against tasks or criteria the user rejected.
 
 **Approval is about the criteria, mostly.** The tasks will change during the run and everyone knows it; the criteria are the contract. If the user only glances at one list, make sure it is that one.
 
 ### 3.2 Sequential is the default and it stays the default
 
-**One thread, no subagents.** Build the tasks, judge the criteria, close the gaps, judge again — all in this conversation. Do not ask the user which mode to use; there is nothing to ask about until 3.3's threshold is met, and asking every time taxes every small build.
+**One thread. No subagents for building or judging.** Work the tasks, judge the criteria, close the gaps, judge again — all in this conversation. Do not ask the user which mode to use; there is nothing to ask about until 3.3's threshold is met, and asking every time taxes every small build.
 
 A subagent starts **blind**. It re-reads the files, re-derives the context this thread already holds, reports a summary, and you read that summary back. For judging work you just built, that is routinely several times the tokens of judging it yourself — spent to buy separation you can mostly recreate by judging from the artifact. The loop's quality comes from the criteria, not from the org chart running it.
+
+**Reviewers are the named exception, as a category** — they neither build nor judge, they look at axes the loop cannot see, and each runs once outside it: `build-review` before the first round (2.4) on whether the criteria are decidable at all, `changes-review` after the last (6.5) on the code behind the artifact. Both are gated by their Console toggles; neither ever runs inside a round.
 
 <!-- CC-ONLY -->
 ### 3.3 Escalate to ultracode — only at whole-project scale, and only with permission

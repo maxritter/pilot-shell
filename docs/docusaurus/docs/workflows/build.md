@@ -48,10 +48,10 @@ A 30-screen framework migration can be `/build`. A 40-line change can be `/build
 ## Workflow
 
 ```text
-Goal  →  Draft tasks + criteria  →  Approve  →  Round (build every task → judge)  →  Hand back
+Goal  →  Draft tasks + criteria  →  Approve  →  Round (build every task → judge)  →  Verify  →  Hand back
 ```
 
-A **round** is one full pass over the task list plus **one** judge pass. Most runs converge in two or three.
+A **round** is one full pass over the task list plus **one** judge pass. Most runs converge in two or three. When the rounds are done, a verification pass checks what the criteria do not cover, and hand-back asks you to approve before anything is marked verified.
 
 ### Name the goal
 
@@ -71,7 +71,9 @@ A **reference** to sit beside is optional. Use one only when a real side-by-side
 | Good error handling. | Every failure mode the module documents has a test asserting the user-facing message, and the suite passes. |
 | ≥95% of rows carry a transcript, and the report discloses per-voice counts, and the table lists both architectures. | Three separate criteria. Split them. |
 
-Two rules do most of the work: **pass/fail, never a score** (scores drift upward every round), and **one sentence each** (if it needs "and" three times, it is three criteria). At least one criterion is measurable whenever the goal has a measurable half — load time, bundle size, benchmark score, word count, pass rate.
+Two rules do most of the work: **pass/fail, never a score** (scores drift upward every round — "partial" and "mostly" are scores, and a criterion not fully met is a fail), and **one sentence each** (if it needs "and" three times, it is three criteria). At least one criterion is measurable whenever the goal has a measurable half — load time, bundle size, benchmark score, word count, pass rate.
+
+A **Build Review** agent audits the tasks and criteria before the loop starts — a criterion you can decide by feel reads as perfectly clear to whoever wrote it. It runs on Claude Code and Codex, with an optional Codex companion for a second opinion, and is switchable in Console Settings.
 
 ### Approve
 
@@ -79,11 +81,12 @@ One gate. `/build` shows the tasks and criteria and waits, unless **Plan Approva
 
 ### Round
 
-**Build** every open task, in order. Add, split, or drop tasks as the work teaches you something — each change gets one line in the round log. Then, once every task is ticked, **judge**:
+**Build** every open task, in order. Add, split, or drop tasks as the work teaches you something — each change gets one line in the round log. Code tasks are written test-first, and a task is never ticked while its tests fail. Then, once every task is ticked, **judge**:
 
-1. Re-obtain the reference, if the Buildout names one.
-2. Rule each acceptance criterion pass or fail with one line of evidence, read off the finished artifact — not off your reasoning about it, and not off your memory of what was hard.
-3. Tick or untick each criterion, increment `Rounds:`, append one line to the round log.
+1. Resolve a running artifact, if any criterion rules on runtime behaviour — reuse a live server, start the dev server, or attempt a preview deploy, in that order. A criterion about what a user sees is never ruled from source.
+2. Re-obtain the reference, if the Buildout names one.
+3. Rule each acceptance criterion pass or fail with one line of evidence, read off the finished artifact — not off your reasoning about it, and not off your memory of what was hard.
+4. Tick or untick each criterion, increment `Rounds:`, append one line to the round log.
 
 The judge is **calibrated, not brutal**: a criterion whose evidence meets what it asks passes. Raising the bar mid-judge is what makes a goal-and-loop run slower than `/spec` for no gain in quality.
 
@@ -93,11 +96,23 @@ Failing criteria become the next round's tasks. A failing criterion is never a q
 If the only remaining work is blocked on something that will not finish inside the session — a multi-hour data collection, a third-party review, a credential someone else has to issue — `/build` stops and hands back with what is blocked and what unblocks it, rather than spending rounds on side work.
 :::
 
+### Verify
+
+Once the rounds are done, a verification pass covers the axes acceptance criteria mostly do not: the full test suite, type checker, linter and build; a running artifact proven to be the current one; browser E2E over the user-facing paths; an independent **Changes Review** of the diff (with an optional Codex companion); documentation sync; and a final regression run.
+
+It is scaled to what was actually built. A prose, design, or research artifact runs only the documentation question and the not-verified list, so the pass costs almost nothing — but anything that produced code gets the checks, the review, and the regression in full, whether or not it has a UI. Findings are fixed on the spot and never spend a round; only a criterion the fix materially changed gets re-judged.
+
+The evidence is written into the Buildout as a `## Verification Record`, and hand-back refuses to mark anything verified without it.
+
 ### Hand back
 
 After **three** judge passes with criteria still failing, `/build` stops and asks: one more round, relax the named criterion, or accept as-is. "One more round" is a **one-time** extension — four judge passes is the ceiling, after which the run hands back automatically with the unresolved criteria recorded.
 
-The report names every criterion with the evidence that settled it, the rounds it took, how the task list changed along the way, anything deliberately left out, and any criterion relaxed mid-run with its before and after.
+The report names every criterion with the evidence that settled it, the rounds it took, how the task list changed along the way, anything deliberately left out, any criterion relaxed mid-run with its before and after, and an explicit list of what was **not** verified. Then it asks you to approve — `Status: VERIFIED` is written only on an explicit approval, never by the loop itself.
+
+:::note There is no partial hand-back
+Hand-back is reachable exactly three ways: every criterion passed, the round budget reached after a real judge pass, or work blocked on something outside the session that is named. An unticked task, an unjudged criterion, or a round cut short is not one of them — and running low on context is not a blocker, because the Buildout survives compaction and the run resumes from it.
+:::
 
 ## The Buildout is a real file
 
@@ -160,11 +175,11 @@ A hand-back does not always mean `VERIFIED`: a run that stops at the round-four 
 
 ## Sequential by default
 
-One thread, no subagents. Build the tasks, judge the criteria, close the gaps, judge again — all in the same conversation.
+One thread. No subagents for building or judging — those stay in the same conversation.
 
 A subagent starts blind: it re-reads the files, re-derives context the thread already holds, reports a summary, and the summary gets read back. For judging work you just built, that is routinely several times the tokens of judging it yourself, spent to buy separation you can mostly recreate by judging from the artifact in a distinct pass. The loop's quality comes from the criteria, not from the org chart running it.
 
-One exception: a single research agent while scoping, when the sweep is genuinely wide. One, at the start only, never inside the loop.
+**Reviewers are the exception, and both run outside the loop:** Build Review before the first round, Changes Review after the last. Each looks at something the loop structurally cannot see — whether the criteria are decidable at all, and whether the code behind the artifact is sound. A single research agent while scoping is also allowed, once, at the start.
 
 ### Parallel surfaces
 
@@ -182,13 +197,16 @@ On Claude Code, clearing that bar prompts for `/effort ultracode` — session-sc
 
 `/build` honours the Console Settings `/spec` uses:
 
-| Toggle | Default | Effect when disabled |
-| --- | --- | --- |
-| **Ask Questions** | On | The reference is chosen for you — `/build` takes the most useful candidate it can reach and says which. |
-| **Plan Approval** | On | The approval gate is skipped; the loop starts immediately. |
-| **Changes Review** | On | For code builds, the changes review does not audit the artifact at hand-back. |
+| Toggle | Group | Default | Effect when disabled |
+| --- | --- | --- | --- |
+| **Ask Questions** | Automation | On | The reference is chosen for you — `/build` takes the most useful candidate it can reach and says which. |
+| **Plan Approval** | Automation | On | The approval gate on the drafted tasks and criteria is skipped; the loop starts immediately. |
+| **Build Review** | Reviews | On | The tasks and criteria go unreviewed into the loop. |
+| **Also review with Codex** (on Build Review) | Reviews | Off | No second-opinion Codex pass over the criteria. Needs the Claude Code Codex plugin. |
+| **Verification Pass** | Automation | On | No checks, E2E, or regression before hand-back — the run is judged on its criteria alone, and the hand-back says so. |
+| **Changes Review** | Reviews | On | For code builds, the diff is not reviewed at hand-back. |
 
-With both question toggles off, `/build` runs goal → tasks and criteria → rounds → hand back with no interaction at all.
+With Ask Questions and Plan Approval off, `/build` runs goal → tasks and criteria → rounds → verify with no interaction until the final approval gate.
 
 ## Common issues
 

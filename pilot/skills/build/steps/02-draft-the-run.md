@@ -108,6 +108,10 @@ CODEX-END -->
    ## Round Log
 
    _No rounds yet._
+
+   ## Changed Files
+
+   _None yet._
    ```
 
    **Omit the `**Reference:**` line entirely when there is none** (Step 1.3). An empty or hand-waved reference is worse than no reference.
@@ -116,14 +120,69 @@ CODEX-END -->
 
    **The two checkbox lists have different jobs.** `## Progress Tracking` carries `- [ ] Task N:` lines — that is what the statusline and Console count. `## Acceptance Criteria` carries `- [ ] Criterion N:` lines — those are the judge's, and they stay unticked until a judge pass ticks them. Every task in `## Progress Tracking` has a matching `### Task N:` body under `## Implementation Tasks`.
 
+   **`## Changed Files` starts empty.** Step 4 appends to it, Step 6 stages and diffs exactly it (see 4.3). It is absent from the Console's displayed-sections allowlist, so it stays off the rendered Buildout and any share link — leave it that way.
+
 5. **Register it:**
 
    ```bash
    ~/.pilot/bin/pilot register-plan "<buildout_path>" "PENDING" 2>/dev/null || true
    ```
 
-### 2.4 Show the user what you drafted
+### 2.4 Have the criteria reviewed before they become the contract
 
-Print the goal, the numbered tasks, and the numbered criteria in the conversation. It is the one thing worth twenty seconds of their attention before the loop starts.
+You wrote these criteria, so you are the last one who can tell they are undecidable. This is the one pre-loop round-trip worth paying for.
 
-**Done when:** the Buildout file exists, is registered, every criterion states its pass condition, every task has an objective, and the user has seen both lists.
+**Gate the two reviewers independently** — the Console exposes them separately, so neither may depend on the other. Skip 2.4 only when `PILOT_BUILD_REVIEW_ENABLED` is `"false"` **and** `PILOT_CODEX_BUILD_REVIEW_ENABLED` is not `"true"`.
+
+**Slug** = the Buildout filename minus the `YYYY-MM-DD-` prefix and `.md`.
+
+<!-- CC-ONLY -->
+> **Reviewer-launch protocol** (Step 6.5 reuses this; only its inputs differ)
+>
+> ```bash
+> SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+> mkdir -p "$SESS_DIR"; OUTPUT_PATH="$SESS_DIR/findings-<agent>-<slug>.json"; rm -f "$OUTPUT_PATH"
+> ```
+>
+> Launch with `Agent(subagent_type=..., run_in_background=true, ...)`, passing the Buildout path, the agent's inputs, and `**Output path:** $OUTPUT_PATH`. Tell it to `Write` findings JSON there and to include the Buildout path as the `plan_file` field.
+>
+> ⛔ **Never `TaskOutput`** — poll:
+> ```bash
+> for i in $(seq 1 90); do [ -f "$OUTPUT_PATH" ] && echo "READY" && break; sleep 2; done
+> ```
+> Read once. `plan_file` must match this Buildout — a mismatch is another run's findings, so delete and relaunch. Not READY → relaunch once, synchronously.
+
+**Native reviewer** — when `PILOT_BUILD_REVIEW_ENABLED` is not `"false"`: run the protocol with `subagent_type="build-review"`, inputs = the goal as the user stated it and the reference choice if one was made.
+
+**Codex companion** — when `PILOT_CODEX_BUILD_REVIEW_ENABLED` is `"true"`, whether or not the native reviewer ran. Skip if `$SESS_DIR/codex-build-review-ran-<slug>.flag` exists (codex-once). Otherwise follow `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/codex-companion-protocol.md` with `PROMPT_TEMPLATE` = `build-review-codex.md`, `{{PLAN_PATH}}` = the Buildout, `{{PLAN_GOAL}}` = the goal sentence, `{{CONTEXT_FILES}}` = whatever the goal names as a reference or pattern.
+
+⛔ **`task --prompt-file`, never `adversarial-review --base`.** A Buildout is gitignored, so a diff-scoped launch reviews an empty diff.
+
+Launch Codex first so it overlaps, then collect the native reviewer. If the companion returns nothing after its one retry, continue without it and say so in 2.5.
+<!-- /CC-ONLY -->
+<!-- CODEX-START
+Spawn the managed reviewer and wait:
+
+```python
+review = multi_agent_v1.spawn_agent(agent_type="build-review", message="""
+    Plan file: <buildout-path>
+    User request: <the goal as the user stated it>
+    Clarifications: <the reference choice, if one was made>
+
+    Audit the tasks and acceptance criteria before the build-judge loop starts.
+    Return ONLY valid JSON matching the build-review schema.
+    Include the Buildout path in the `plan_file` field.
+""")
+result = multi_agent_v1.wait_agent(targets=[review.agent_id], timeout_ms=600000)
+```
+
+Parse the final message as JSON; on a parse failure treat it as one `suggestion` and continue — do not relaunch. `plan_file` must match this Buildout; discard a mismatch and self-review instead.
+CODEX-END -->
+
+**Fix every `must_fix` and `should_fix` before 2.5**, using each finding's `suggested_fix` as the replacement wording; `suggestion` if quick. The user should see reviewed criteria, not the first draft.
+
+### 2.5 Show the user what you drafted
+
+Print the goal, the numbered tasks, and the numbered criteria in the conversation. It is the one thing worth twenty seconds of their attention before the loop starts. If a reviewer changed anything, say so in one line — which criteria moved, and why.
+
+**Done when:** the Buildout file exists, is registered, every criterion states its pass condition, every task has an objective, the reviewers' blocking findings are closed, and the user has seen both lists.

@@ -117,6 +117,6 @@
     "padding": 0
   },
   "companyAnnouncements": [
-    "build to a standard: /build | plan first: /spec | bugfixes: /fix | requirements: /prd | rules & skills: /setup-rules, /create-skill, /benchmark"
+    "goal: /build | plan: /spec | bugs: /fix | idea: /prd · Console: localhost:41777"
   ]
 }

@@ -61,8 +61,8 @@ const consoleSlides: ConsoleSlide[] = [
   {
     label: "Settings",
     name: "settings",
-    alt: "Settings view — spec workflow and console port",
-    desc: "Spec workflow toggles, review agents for Claude Code + Codex, Codex Companion Reviewers, and the Model Switching mode: Automated (default, opusplan), Manual, or Off.",
+    alt: "Settings view — spec and build workflows, and the console port",
+    desc: "Workflow toggles grouped by what they affect: shared automation, Model Switching (Automated, Manual, or Off), /spec, /build, and the review agents for Claude Code + Codex with their optional Codex companions.",
   },
   {
     label: "Documentation",

@@ -290,11 +290,25 @@ class TestSyncCodexReviewAgents:
         assert "orchestrator after the user review gate" in instructions
         assert "do not emit a finding during changes review" in instructions
 
+    def test_builds_build_review_agent_judging_criteria_not_spec_sections(self) -> None:
+        result = _build_codex_review_agent(Path("pilot/agents/build-review.md"))
+        assert result is not None
+        data = tomllib.loads(result)
+        assert data["name"] == "build-review"
+        assert data["model"] == "codex-auto-review"
+        instructions = data["developer_instructions"]
+        assert "Output ONLY valid JSON" in instructions
+        assert '"issues"' in instructions
+        # A Buildout has none of these; reporting their absence would be noise.
+        assert "does NOT have" in instructions
+        assert "output_path" not in instructions
+
     def test_syncs_review_agents_to_codex_agents_dir(self, tmp_path: Path) -> None:
         claude_agents_dir = tmp_path / ".claude" / "agents"
         claude_agents_dir.mkdir(parents=True)
         (claude_agents_dir / "spec-review.md").write_text(Path("pilot/agents/spec-review.md").read_text())
         (claude_agents_dir / "changes-review.md").write_text(Path("pilot/agents/changes-review.md").read_text())
+        (claude_agents_dir / "build-review.md").write_text(Path("pilot/agents/build-review.md").read_text())
         codex_agents_dir = tmp_path / ".codex" / "agents"
         codex_agents_dir.mkdir(parents=True)
         (codex_agents_dir / "user-agent.toml").write_text('name = "user-agent"\n')
@@ -302,15 +316,34 @@ class TestSyncCodexReviewAgents:
         with patch("codex_skill_sync.Path.home", return_value=tmp_path):
             built, failed = _sync_codex_review_agents()
 
-        assert built == 2
+        assert built == 3
         assert failed == 0
         spec_data = tomllib.loads((codex_agents_dir / "spec-review.toml").read_text())
         changes_data = tomllib.loads((codex_agents_dir / "changes-review.toml").read_text())
+        build_data = tomllib.loads((codex_agents_dir / "build-review.toml").read_text())
         assert spec_data["name"] == "spec-review"
         assert spec_data["model"] == "codex-auto-review"
         assert changes_data["name"] == "changes-review"
         assert changes_data["model"] == "codex-auto-review"
+        assert build_data["name"] == "build-review"
+        assert build_data["model"] == "codex-auto-review"
         assert (codex_agents_dir / "user-agent.toml").exists()
+
+    def test_removes_build_review_agent_when_license_invalid(self, tmp_path: Path) -> None:
+        """License gating must reach the new agent too, or it survives a revoked licence."""
+        codex_agents_dir = tmp_path / ".codex" / "agents"
+        codex_agents_dir.mkdir(parents=True)
+        claude_agents_dir = tmp_path / ".claude" / "agents"
+        claude_agents_dir.mkdir(parents=True)
+        (claude_agents_dir / "build-review.md").write_text(Path("pilot/agents/build-review.md").read_text())
+
+        with patch("codex_skill_sync.Path.home", return_value=tmp_path):
+            _sync_codex_review_agents()
+            assert (codex_agents_dir / "build-review.toml").exists()
+            removed = _remove_codex_review_agents()
+
+        assert removed >= 1
+        assert not (codex_agents_dir / "build-review.toml").exists()
 
     def test_syncs_review_agents_to_codex_home_agents_dir(self, tmp_path: Path) -> None:
         claude_agents_dir = tmp_path / ".claude" / "agents"

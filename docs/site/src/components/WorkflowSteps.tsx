@@ -14,6 +14,7 @@ import {
   Target,
   ListChecks,
   Scale,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
@@ -32,6 +33,7 @@ const buildSteps = [
   { icon: CheckCircle2, title: "Approve", desc: "You review both lists" },
   { icon: Code2, title: "Build", desc: "Works the whole task list" },
   { icon: Scale, title: "Judge", desc: "Rules criteria, pass or fail" },
+  { icon: ShieldCheck, title: "Verify", desc: "Tests, E2E, and a code review" },
 ];
 
 interface WorkflowStep {
@@ -226,7 +228,7 @@ const WorkflowSteps = () => {
               </div>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed group-hover:text-foreground/80 transition-colors duration-200">
-              Drafts a short task list and a few pass/fail criteria, then works every task and judges the result — with gaps becoming the next round's tasks. For building without a spec.
+              Drafts a short task list and a few pass/fail criteria, then works every task and judges the result — with gaps becoming the next round's tasks. Verified with tests, E2E, and an independent code review before it hands back. For building without a spec.
             </p>
             <div className="mt-3 flex items-center gap-1 text-xs text-primary/80 group-hover:text-primary transition-colors">
               <span>Learn more</span>

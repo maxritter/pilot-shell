@@ -19,7 +19,7 @@ Pilot Shell loads automatically when you run `claude` or `codex` — there is no
 | `pilot activate <key>` | Activate a license key on this machine |
 | `pilot deactivate` | Deactivate license on this machine |
 | `pilot status [--json]` | Show current license status and tier |
-| `pilot portal [--json] [--no-browser]` | Open the subscription portal (seats, invoices, payment method), signed in automatically using your local license key. Paid licenses only — trials have no subscription to manage |
+| `pilot portal [--json] [--no-browser]` | Open Polar's customer portal (seats, invoices, payment method, license key recovery). Sign in there with the email address you used at checkout — Pilot never signs you in from your license key, so a key on a teammate's machine cannot reach your billing. `--no-browser` prints the URL instead of opening it |
 | `pilot verify [--json]` | Verify license validity (used by hooks) |
 | `pilot trial --check [--json]` | Check trial eligibility for this machine |
 | `pilot trial --start [--json]` | Start a trial (one-time per machine) |

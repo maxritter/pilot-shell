@@ -23,8 +23,12 @@
       "file": "steps/05-judge.md"
     },
     {
-      "id": "step-6-hand-back",
-      "file": "steps/06-hand-back.md"
+      "id": "step-6-verify",
+      "file": "steps/06-verify.md"
+    },
+    {
+      "id": "step-7-hand-back",
+      "file": "steps/07-hand-back.md"
     }
   ]
 }
