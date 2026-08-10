@@ -36,6 +36,10 @@ class TestIsPlanFile:
     def test_nested_plans_dir(self):
         assert is_plan_file("/home/user/repo/docs/plans/foo.md") is True
 
+    def test_buildout_md_is_plan_file(self):
+        """`/build` Buildouts live in docs/builds/ and are plan docs too."""
+        assert is_plan_file("docs/builds/2026-08-10-running-brand.md") is True
+
     def test_implementation_ts_is_not_plan(self):
         assert is_plan_file("src/components/hero.tsx") is False
 

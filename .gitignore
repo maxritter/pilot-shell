@@ -280,6 +280,8 @@ playwright/
 # Build artifacts
 docs/plans
 docs/plans/.annotations/
+docs/builds
+docs/builds/.annotations/
 docs/license
 docs/video
 docs/slides

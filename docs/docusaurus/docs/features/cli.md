@@ -86,7 +86,7 @@ Called by hooks and the Console — you rarely need to run these directly.
 | Command | Description |
 |---------|-------------|
 | `pilot check-context --json` | Get current context usage percentage |
-| `pilot register-plan <path> <status>` | Associate a plan file with the current session. Prints a warning when `<path>` is outside `docs/plans/` — the Console only displays plans in `<project>/docs/plans/` or `<worktree base>/<slug>/docs/plans/` (the worktree base is `<project>/.worktrees/` unless configured otherwise) |
+| `pilot register-plan <path> <status>` | Associate a plan file or Buildout with the current session. Prints a warning when `<path>` is outside the scanned directories — the Console only displays files in `<project>/docs/plans/`, `<project>/docs/builds/`, or the same pair under `<worktree base>/<slug>/` (the worktree base is `<project>/.worktrees/` unless configured otherwise) |
 | `pilot review-scope [--slug <slug>] [--json]` | Resolve the `git diff` scope a code review should read — the single source of truth for review diff scope. Prints a range you splice directly (`git diff $(pilot review-scope) -- <files>`); `--json` adds `mode` (`working-tree` or `worktree`), `base_ref`, and a `warning` when the scope degraded. In worktree mode it returns the fork-point range `<base_branch>...HEAD` against the branch's *detected* base — never a hardcoded `main`, and never a two-dot range against the base branch's live tip |
 | `pilot sessions [--json]` | Show count of active Pilot sessions |
 | `pilot statusline` | Status line formatter *(Claude Code only — called by Claude Code's statusLine hook)*. `pilot statusline -h` lists what each line renders and shows how to wrap it in your own status line |

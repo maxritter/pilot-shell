@@ -712,7 +712,8 @@ def build_objective_reinjection(plan_path: Path) -> str:
     Prefers `## Goal Verification > Truths` items for the <verification> block;
     falls back to `## Behavior Contract` clauses for bugfix plans (which use the
     Behavior Contract as the bugfix equivalent of verification truths), then to
-    `## Criteria` for `/build` rubrics (where the criteria are the verification).
+    `## Criteria` for pre-redesign `/build` Buildouts (where the criteria are
+    the verification).
     """
     goal = extract_plan_goal(plan_path)
     if goal is None:

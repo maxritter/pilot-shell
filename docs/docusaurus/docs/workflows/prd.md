@@ -126,7 +126,7 @@ After you confirm the PRD, asks whether to hand off to `/spec` (or `$spec` on Co
 
 ## PRD Output
 
-PRDs are saved to `docs/prd/` — separate from implementation plans in `docs/plans/`. This keeps requirements documents (the "what" and "why") distinct from technical specs (the "how").
+PRDs are saved to `docs/prd/` — separate from `/spec` implementation plans in `docs/plans/` and `/build` Buildouts in `docs/builds/`. Each workflow owns its own directory, which keeps requirements documents (the "what" and "why") distinct from technical specs (the "how") and from goal-driven builds.
 
 Each PRD includes structured metadata: Created date, Author, Category, Status (Draft/Final), and Research tier used.
 

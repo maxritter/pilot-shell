@@ -3,6 +3,9 @@ name: build
 description: "Builds toward a named goal without writing a spec first — the goal-and-loop workflow. Use when the user types /build; asks for something to be made, written, designed, or implemented where the approach is better discovered while building than planned up front; asks to keep going until the result is genuinely good; or wants a migration, port, or rebuild judged on what comes out rather than against an approved task list. Not for a defect in behaviour that already worked — that is /fix. Not when the approach has to be written down and agreed before any code exists — that is /spec."
 argument-hint: "<what to build, and optionally what it should measure up to>"
 user-invocable: true
+hooks:
+  Stop:
+    - command: uv run --no-project --python python3 python "$HOME/.pilot/hooks/spec_plan_validator.py" docs/builds Buildout
 ---
 
 # /build — Goal-and-Loop Development
@@ -73,7 +76,7 @@ Once the rounds are done, **Step 6 verifies** what the criteria do not cover and
 
 `/build` is not a conversation that remembers a goal. The goal, tasks, and criteria are a **file**, registered with the session, and the loop is held open by Pilot's stop guard.
 
-- **Buildout file** at `docs/plans/YYYY-MM-DD-<slug>.md` with `Type: Build`. It survives compaction, shows up in the Console's **Buildouts** section, and can be shared and annotated like any other Pilot plan — annotations are picked up before the approval gate.
+- **Buildout file** at `docs/builds/YYYY-MM-DD-<slug>.md` with `Type: Build` — its own directory, next to `/spec`'s `docs/plans/` and `/prd`'s `docs/prd/`. It survives compaction, shows up in the Console's **Buildouts** section, and can be shared and annotated like any other Pilot plan — annotations are picked up before the approval gate.
 - **Two reviewers, outside the loop, switchable** in Console → Settings → Workflows: **Build Review** on the criteria before round one, **Changes Review** on the diff at the end. Each has an optional Codex companion.
 - **A verification pass** (Step 6) before hand-back — suite, types, lint, build, live-target E2E, the code review, doc sync, regression — scaled to the artifact, so a prose build pays almost nothing.
 - **The statusline tracks tasks and rounds** — `Build: <name> build ▓▓▓░░ 3/5 r2`.
@@ -121,6 +124,7 @@ Everything else is automatic. **Never ask "should I keep going?"** — the crite
 | "The criteria passed, so the code is fine." | The criteria rule the artifact. Step 6 rules the code behind it — they are different axes. |
 | "This is big, so it should have been `/spec`." | Scale is not what `/spec` is for; an approved task list is. Big work escalates *inside* this skill (Step 3), it does not get handed off. |
 | "The data isn't in yet, so I'll do something else and call it a round." | Waiting is not a round. Hand back and say what is blocked. |
+| "One more selector and this tap will land." | Three failures with the same driver means the driver is wrong. Check what the project says to use — `browser-automation.md`. |
 
 ## Red flags — stop and go back
 
@@ -137,6 +141,8 @@ Everything else is automatic. **Never ask "should I keep going?"** — the crite
 - About to hand back with an unticked task or an unjudged criterion → Step 4, not Step 7.
 - About to write `VERIFIED` without an approve keyword from the user → Step 7.4.
 - About to rule a UI criterion from source instead of a running artifact → Step 5.1a.
+- Three interactions in a row failed with the same UI driver → the driver is wrong, not the selector. `browser-automation.md`, hard rule 3.
+- About to call a live target unavailable because the artifact is installed rather than served → Step 5.1a, Tier 2b.
 
 ## When NOT to use
 

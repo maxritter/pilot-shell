@@ -19,7 +19,7 @@ For each rule file and CLAUDE.md found in Step 2, evaluate:
 | **Structure**            | Dense paragraphs without headers/bullets, poor scanability, missing section organization                                                         | Warning  |
 | **Stale references**     | References to files, commands, paths, or tools that no longer exist in the codebase — verify with `ls` or Semble                              | Error    |
 | **Import opportunities** | Large files that could split content using `@path/to/import` syntax                                                                            | Info     |
-| **Emphasis gaps**        | Critical rules (security, data loss, breaking changes) without emphasis markers ("IMPORTANT", "YOU MUST")                                        | Info     |
+| **Unexplained absolutes** | Critical rules (security, data loss, breaking changes) asserted as bare commands — `ALWAYS`, `NEVER`, `YOU MUST` — with no reason attached. Current models follow a rule they understand and negotiate with one they don't, so the fix is to add *why it matters*, not louder emphasis | Info     |
 | **CLAUDE.md overlap**    | Content duplicated between CLAUDE.md and `.claude/rules/` files                                                                                | Warning  |
 
 **How to check for specificity:** Look for adjectives without measurable criteria ("good", "clean", "proper", "nice"), instructions that restate language defaults, and rules without concrete examples or verifiable outcomes.

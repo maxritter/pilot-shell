@@ -218,9 +218,10 @@ def _next_action_for(status: str, plan_type: str = "Feature") -> str:
     reads as "nothing left to do" and the agent stops -- skipping verification
     entirely, which is the one step COMPLETE exists to gate.
 
-    ``/build`` rubrics (``Type: Build``) have no tasks and no verify skill to
-    dispatch -- their outstanding step is the next loop round or the final blind
-    judge pass, so they get their own wording rather than spec's.
+    ``/build`` Buildouts (``Type: Build``) count tasks exactly as a plan does,
+    but have no verify skill to dispatch: their outstanding step is the next
+    task, the next round, or the final blind judge pass, so they get their own
+    wording rather than spec's.
     """
     if plan_type == "Build":
         if status == "COMPLETE":
@@ -254,7 +255,7 @@ def _next_action_for(status: str, plan_type: str = "Feature") -> str:
 
 
 def _block_reason(plan_path: Path, status: str) -> str:
-    """Compose the stop-block message for an active plan or `/build` rubric."""
+    """Compose the stop-block message for an active plan or `/build` Buildout."""
     _, plan_type = _read_plan_approved_and_type(str(plan_path))
     is_build = plan_type == "Build"
     workflow = "/build loop" if is_build else "/spec workflow"

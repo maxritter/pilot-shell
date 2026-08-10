@@ -8,7 +8,7 @@ This is the most important step in the workflow. Skip is NOT an option — no ex
 
 | Bug surface | Tool | Evidence to capture |
 |-------------|------|---------------------|
-| **UI / web frontend** | 4-tier resolution from `browser-automation.md`: **Claude Code Chrome** → **Chrome DevTools MCP** → **playwright-cli** → **agent-browser**. Walk the user's repro steps. | Page state and element values that prove the correct behaviour |
+| **UI / web frontend** | Resolve the driver per `browser-automation.md`: the tool the project's own rules name, else its 4-tier ladder (**Claude Code Chrome** → **Chrome DevTools MCP** → **playwright-cli** → **agent-browser**). Walk the user's repro steps. | Page state and element values that prove the correct behaviour |
 | **CLI** | The exact command the user ran, with original args + env | Stdout/stderr lines + exit code |
 | **HTTP API** | `curl` / HTTP client with the user's body and headers | Status code + the response field that proves the fix |
 | **Library / SDK / function** | `python -c '…'`, `node -e '…'`, REPL, or scratch script with the user's args | Returned value |

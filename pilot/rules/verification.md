@@ -24,8 +24,11 @@ Before declaring live E2E impossible, you MUST run a 4-tier probe and record the
 |---|---|---|
 | 1 | Reuse an already-running local server (curl/health check the port named in the plan or repo defaults) | No process listening AND no health endpoint |
 | 2 | Start the dev server yourself in background, poll its health endpoint up to 60s | No documented start command in plan / `package.json` / `pyproject.toml` / `Makefile` |
+| 2b | **The artifact is installed, not served** — a mobile app, a desktop app, an extension, a packaged CLI. Build and install it the way the repo's own docs say (emulator, simulator, device, local install), then drive the installed copy | No documented build-and-install path |
 | 3 | Detect deploy backends (Vercel, Fly, Netlify, Cloudflare Wrangler, Render, AWS, Heroku, GitHub-Actions deploy workflow), run the backend's auth-check command, attempt a preview deploy with the eligible one | Every detected backend's auth-check returns "not logged in" — quote the exact command + output |
 | 4 | Unit-only fallback (`UNIT_VERIFIED` instead of `LIVE_PASS`) | Only after Tiers 1–3 above ALL failed with documented reasons |
+
+⛔ **A dev server is not automatically the artifact.** For a mobile or desktop app the dev server serves the *source* while the thing under test is the installed build — different bundle, sometimes different network stack, and the difference is exactly where shipped-only bugs live. Tier 2b exists so such a project does not fall through to Tier 4 and get its UI ruled from source. When 2 and 2b both apply, take 2b: verify what the user would actually open.
 
 **Acceptance criteria for the probe:**
 

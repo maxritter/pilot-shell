@@ -6,7 +6,7 @@ Check whether the plan has a `## Verification Scenario` section (only present fo
 
 **If Verification Scenario exists:**
 
-**Resolve browser tool (4-tier):** Check if `mcp__claude-in-chrome__*` tools are available → use Chrome. Otherwise check for `mcp__plugin_chrome-devtools-mcp_chrome-devtools__*` → use Chrome DevTools MCP. Otherwise use playwright-cli (preferred CLI) or agent-browser (lightweight). See `browser-automation.md`.
+**Resolve the driver:** first check whether the project's own rules (`.claude/rules/`, `CLAUDE.md`, `AGENTS.md`) name the tool that reaches its UI — a mobile WebView or native window has one the ladder below does not cover. Otherwise the 4-tier ladder: `mcp__claude-in-chrome__*` available → Chrome; else `mcp__plugin_chrome-devtools-mcp_chrome-devtools__*` → Chrome DevTools MCP; else playwright-cli (preferred CLI) or agent-browser (lightweight). See `browser-automation.md`.
 
 ```bash
 <!-- CC-ONLY -->

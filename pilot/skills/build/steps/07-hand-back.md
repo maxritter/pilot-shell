@@ -120,7 +120,7 @@ Add the reference and its re-obtain command only if the run has one. The criteri
 
 **The session will not stop.** Pilot's stop guard is holding it because the Buildout is registered and not `VERIFIED`. That is the loop working. If a criterion genuinely will not close, take it to the user at Step 5.4 rather than lowering it quietly. The user's escape hatch is stopping twice within 60 seconds.
 
-**The Buildout is not showing in the statusline or Console.** It must live under `docs/plans/` (or `<worktree base>/<slug>/docs/plans/`) and be registered — `pilot register-plan` prints a warning when the path is outside the scanned directories. Check `Type: Build` is present and that `## Progress Tracking` uses top-level `- [ ] Task N:` lines.
+**The Buildout is not showing in the statusline or Console.** It must live under the project root's `docs/builds/` (`docs/plans/` still works for Buildouts written before the split) and be registered — `pilot register-plan` prints a warning when the path is outside the scanned directories. Check `Type: Build` is present and that `## Progress Tracking` uses top-level `- [ ] Task N:` lines. A Buildout written inside a worktree checkout is filtered out by design; move it to the project root and re-register.
 
 **The judge keeps passing weak work.** The criteria are decidable by feel. Rewrite them to name the evidence that settles them (Step 2.2), then judge again from the round you are on.
 

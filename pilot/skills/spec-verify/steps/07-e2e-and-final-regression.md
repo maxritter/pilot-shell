@@ -78,7 +78,7 @@ Failing to record this gap in the verification report is a `must_fix` finding by
 
 ### 7a: Resolve Browser Tool
 
-**4-tier priority** (see `browser-automation.md`): Chrome → Chrome DevTools MCP → playwright-cli → agent-browser.
+**Driver resolution** (see `browser-automation.md`): the tool the project's own rules name, else the 4-tier ladder — Chrome → Chrome DevTools MCP → playwright-cli → agent-browser.
 
 <!-- CC-ONLY -->
 1. **Claude Code Chrome:** Check if `mcp__claude-in-chrome__*` tools are in your available/deferred tools list. If available, use Chrome for all E2E steps below. Load tools via `ToolSearch(query="select:mcp__claude-in-chrome__<tool>")`. No session isolation needed.

@@ -112,6 +112,9 @@ has_codex_pilot_content() {
 	if [ -f "$CODEX_DIR/AGENTS.md" ] && grep -q 'PILOT:START' "$CODEX_DIR/AGENTS.md" 2>/dev/null; then
 		return 0
 	fi
+	if [ -f "$CODEX_DIR/rules/.pilot-rules.json" ]; then
+		return 0
+	fi
 	for skill in "${CODEX_PILOT_SKILLS[@]}"; do
 		if [ -d "$AGENTS_SKILLS_DIR/$skill" ]; then
 			return 0
@@ -255,6 +258,9 @@ confirm_uninstall() {
 
 	if has_codex_pilot_content; then
 		echo "    • Clean Pilot-managed entries from ~/.codex/ (hooks.json, config.toml, AGENTS.md)"
+		if [ -f "$CODEX_DIR/rules/.pilot-rules.json" ]; then
+			echo "    • Remove Pilot-managed stack rules from ~/.codex/rules/"
+		fi
 		local codex_skills_count=0
 		for skill in "${CODEX_PILOT_SKILLS[@]}"; do
 			[ -d "$AGENTS_SKILLS_DIR/$skill" ] && codex_skills_count=$((codex_skills_count + 1))
@@ -845,6 +851,51 @@ else:
     with open(agents_path, "w") as f:
         f.write(result)
     print("    [OK] Removed Pilot managed block from ~/.codex/AGENTS.md (user content preserved)")
+' 2>&1
+	fi
+
+	# Remove Pilot-managed stack rules from ~/.codex/rules/.
+	# Scope comes from the .pilot-rules.json sidecar the installer writes, so a
+	# user file dropped in the same directory is never touched. The directory is
+	# removed only once nothing but the manifest remains.
+	local codex_rules_manifest="$CODEX_DIR/rules/.pilot-rules.json"
+	if [ -f "$codex_rules_manifest" ] && command -v python3 >/dev/null 2>&1; then
+		PILOT_CODEX_RULES="$codex_rules_manifest" python3 -c '
+import json, os, sys
+
+manifest_path = os.environ["PILOT_CODEX_RULES"]
+rules_dir = os.path.dirname(manifest_path)
+
+try:
+    with open(manifest_path) as f:
+        names = json.load(f)
+except Exception:
+    names = []
+
+removed = 0
+if isinstance(names, list):
+    for name in names:
+        target = os.path.join(rules_dir, str(name))
+        if os.path.dirname(target) != rules_dir:
+            continue
+        try:
+            os.remove(target)
+            removed += 1
+        except OSError:
+            pass
+
+try:
+    os.remove(manifest_path)
+except OSError:
+    pass
+
+try:
+    os.rmdir(rules_dir)
+except OSError:
+    pass
+
+if removed > 0:
+    print(f"    [OK] Removed {removed} Pilot stack rule(s) from ~/.codex/rules/")
 ' 2>&1
 	fi
 

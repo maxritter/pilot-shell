@@ -25,7 +25,7 @@ If you cannot get the work under seven tasks without each one becoming vague, th
 These are judged **once per round, at the end**, never worked one at a time. Each one:
 
 - **Rules pass or fail, never a score.** Scores drift upward every round: "7/10" becomes "8/10" with no change to the work.
-- **Is one sentence.** If it needs "and" three times, it is three criteria — split it.
+- **Is one sentence, carrying one claim.** If it needs "and" three times, it is three criteria — split it. **This rule outranks the 3–6 band**: splitting a compound criterion into two is right even when it takes the list to seven or eight, and dropping a real criterion to get back inside the band is lowering the bar with extra steps. The band describes a well-drafted set; the split rule is what makes each one judgeable.
 - **Is decidable from the finished artifact**, by someone who did not build it.
 - **Names the evidence that settles it**, so a lazy judge cannot pass it by default.
 - **Can actually be settled during this run.** A criterion whose evidence depends on a process that will not finish in this session is not a criterion; it is a blocker. Rewrite it or drop it.
@@ -45,7 +45,9 @@ Include **at least one measurable criterion** when the goal has a measurable hal
 
 **Do this before any building** — the statusline and the Console pick it up immediately, and the stop guard starts holding the run open.
 
-1. **Filename:** `docs/plans/YYYY-MM-DD-<slug>.md` — slug from the first 3–4 words of the goal (lowercase, hyphens). If this session is already running inside a worktree checkout, use the worktree path as the base directory. `/build` never creates a worktree itself.
+1. **Filename:** `docs/builds/YYYY-MM-DD-<slug>.md` under the **project root** — slug from the first 3–4 words of the goal (lowercase, hyphens). `mkdir -p docs/builds` first; the directory may not exist yet.
+
+   ⛔ **Never write it into a worktree checkout, even when this session is running inside one.** `/build` creates no worktree, syncs none, and squash-merges nothing, so a Buildout has no reason to live there — and the Console only accepts a worktree file whose slug matches that worktree's own spec (`spec-<slug>`), so a Buildout dropped in one is filtered out and never appears.
 
 2. **Author email** (best-effort, omit the line if it fails):
 
@@ -71,7 +73,7 @@ CODEX-END -->
    Status: PENDING
    Approved: No
    Rounds: 0
-   Worktree: [Yes|No]
+   Worktree: No
    Type: Build
 
    ## Summary
@@ -116,17 +118,19 @@ CODEX-END -->
 
    **Omit the `**Reference:**` line entirely when there is none** (Step 1.3). An empty or hand-waved reference is worse than no reference.
 
-   `Type: Build` is what makes the statusline render the loop and the Console file it under **Buildouts**. `Status:` is a closed set — `PENDING` | `COMPLETE` | `VERIFIED`, bare keyword, no trailing prose. `Rounds:` starts at 0 and is incremented by the judge, never by hand.
+   `Type: Build` is what makes the statusline render the loop and the Console file it under **Buildouts** — the header, never the directory, is what identifies a Buildout, so a file moved between `docs/plans/` and `docs/builds/` keeps working either way. `Status:` is a closed set — `PENDING` | `COMPLETE` | `VERIFIED`, bare keyword, no trailing prose. `Rounds:` starts at 0 and is incremented by the judge, never by hand. `Worktree: No` is fixed: `/build` never runs in one.
 
    **The two checkbox lists have different jobs.** `## Progress Tracking` carries `- [ ] Task N:` lines — that is what the statusline and Console count. `## Acceptance Criteria` carries `- [ ] Criterion N:` lines — those are the judge's, and they stay unticked until a judge pass ticks them. Every task in `## Progress Tracking` has a matching `### Task N:` body under `## Implementation Tasks`.
 
    **`## Changed Files` starts empty.** Step 4 appends to it, Step 6 stages and diffs exactly it (see 4.3). It is absent from the Console's displayed-sections allowlist, so it stays off the rendered Buildout and any share link — leave it that way.
 
-5. **Register it:**
+5. **Register it — with an ABSOLUTE path:**
 
    ```bash
-   ~/.pilot/bin/pilot register-plan "<buildout_path>" "PENDING" 2>/dev/null || true
+   ~/.pilot/bin/pilot register-plan "$PWD/docs/builds/<file>.md" "PENDING" 2>/dev/null || true
    ```
+
+   ⛔ **A relative path is resolved against the shell's current directory, which is not always the project root.** The Bash tool keeps its working directory between calls, so one earlier `cd` into a subdirectory silently makes `docs/builds/...` mean `<subdir>/docs/builds/...`. `register-plan` then prints `WARNING: plan registered, but the Pilot Console will NOT display it: ... is outside <subdir>/docs/builds` and the run proceeds with an invisible Buildout — no statusline, no Console, and a stop guard holding a file the user cannot see. Pass the absolute path, or `cd` to the project root in the same command. The same applies to every later `register-plan` in Steps 4, 5 and 7.
 
 ### 2.4 Have the criteria reviewed before they become the contract
 
@@ -156,7 +160,7 @@ You wrote these criteria, so you are the last one who can tell they are undecida
 
 **Codex companion** — when `PILOT_CODEX_BUILD_REVIEW_ENABLED` is `"true"`, whether or not the native reviewer ran. Skip if `$SESS_DIR/codex-build-review-ran-<slug>.flag` exists (codex-once). Otherwise follow `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/codex-companion-protocol.md` with `PROMPT_TEMPLATE` = `build-review-codex.md`, `{{PLAN_PATH}}` = the Buildout, `{{PLAN_GOAL}}` = the goal sentence, `{{CONTEXT_FILES}}` = whatever the goal names as a reference or pattern.
 
-⛔ **`task --prompt-file`, never `adversarial-review --base`.** A Buildout is gitignored, so a diff-scoped launch reviews an empty diff.
+⛔ **`task --prompt-file`, never `adversarial-review --base`.** A diff-scoped launch reviews the working tree, and at this point nothing has been built — so the reviewer would receive an empty diff (and nothing at all where `docs/builds/` is gitignored). `task` lets Codex read the Buildout directly.
 
 Launch Codex first so it overlaps, then collect the native reviewer. If the companion returns nothing after its one retry, continue without it and say so in 2.5.
 <!-- /CC-ONLY -->

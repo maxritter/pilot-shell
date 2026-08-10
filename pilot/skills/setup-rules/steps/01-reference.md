@@ -134,7 +134,7 @@ From the official Claude Code documentation — use these as the quality baselin
 - Use markdown headers and bullets — organized sections > dense paragraphs
 - Write instructions concrete enough to verify: "Use 2-space indentation" not "Format code properly"
 - Remove conflicting instructions — contradictions cause arbitrary behavior
-- Use emphasis ("IMPORTANT", "YOU MUST") for critical rules
+- Give critical rules their reason, not louder emphasis — "reject other formats" beats "ALWAYS". Current models respond to reasoning; an unexplained absolute is the one they argue with under pressure
 - Use `@path/to/import` syntax to reference external files instead of inlining
 
 **Scoping:**

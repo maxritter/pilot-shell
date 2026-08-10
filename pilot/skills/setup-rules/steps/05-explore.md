@@ -3,7 +3,7 @@
 ### Step 5.1: Setup
 
 1. Check `semble --help` — if available, use Semble for semantic exploration (Step 5.2). If not installed, skip Step 5.2 and use Grep/Glob/Read in Step 5.3.
-2. **Ensure `docs/plans/` exists** — `/spec` stores plans here: `mkdir -p ./docs/plans`
+2. **Ensure the workflow directories exist** — `/spec` stores plans in `docs/plans/`, `/build` stores Buildouts in `docs/builds/`: `mkdir -p ./docs/plans ./docs/builds`
 3. **Directory structure:** `tree -L 3 -I 'node_modules|.git|__pycache__|dist|build|.venv|.next|coverage|.cache|cdk.out'`
 4. **Technologies:** Check `package.json`, `pyproject.toml`, `tsconfig.json`, `go.mod`
 5. **Source documents:** Find and read canonical docs — `docs/`, `**/ARCHITECTURE.md`, `**/CONTRIBUTING.md`, `**/docs/*.md`. These are the source of truth for generated rules — keep them open when writing.

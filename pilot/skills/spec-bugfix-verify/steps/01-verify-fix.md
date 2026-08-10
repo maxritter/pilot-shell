@@ -97,7 +97,7 @@ Re-run the original repro from `## Summary — Trigger:` using the matching lane
 | **API** | `curl` / HTTP client with the user's input | Status code + the field/value that proves the fix |
 | **Library / SDK / function** | `python -c '...'`, `node -e '...'`, REPL, or scratch script | Invocation + returned value |
 | **Background job / cron / worker** | Trigger the job manually with the failing input | Run + log lines |
-| **UI** | **Skip here — handled by Step 3 (Verification Scenario)** with browser automation (Claude Code Chrome → Chrome DevTools MCP → playwright-cli → agent-browser per `browser-automation.md`) | — |
+| **UI** | **Skip here — handled by Step 3 (Verification Scenario)** with browser automation — the driver the project's rules name, else the 4-tier ladder, per `browser-automation.md` | — |
 
 **If the regression test passes but the original repro still fails:** test is at the wrong layer. Set `Status: PENDING`, note "test green but original repro still fails — layer mismatch", return to `spec-implement` to rewrite Task 1's test at the user's entry point.
 

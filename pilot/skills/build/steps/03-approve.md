@@ -2,7 +2,7 @@
 
 ### 3.0 Pick up any Console annotations first
 
-The Buildouts view has the same annotate surface as Specifications and saves automatically, so the user may have marked up the criteria while you drafted. Read `docs/plans/.annotations/<buildout-basename>.json` before asking; a missing file or empty `planAnnotations` means nothing to do.
+The Buildouts view has the same annotate surface as Specifications and saves automatically, so the user may have marked up the criteria while you drafted. Read `docs/builds/.annotations/<buildout-basename>.json` before asking; a missing file or empty `planAnnotations` means nothing to do.
 
 Otherwise fold every entry in — each carries `originalText` (the passage) and `text` (what they want) — then `rm -f` the file (direct deletion, since curl is blocked in several hook environments) and note "Incorporated N annotations from the Console."
 

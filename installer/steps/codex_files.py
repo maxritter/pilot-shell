@@ -31,6 +31,10 @@ _CODEX_REVIEW_AGENT_MODEL = "codex-auto-review"
 # primes startup rather than being dropped at the 32 KiB cutoff.
 _CODEX_PROJECT_DOC_MAX_BYTES = 1024 * 1024
 
+# Sidecar listing the stack rules Pilot wrote to ~/.codex/rules/, so a later
+# install can drop the ones it no longer ships without touching user files.
+_CODEX_RULES_MANIFEST = ".pilot-rules.json"
+
 
 def _claude_rules_dir_or_none() -> Path | None:
     """Rules dir in the active Claude profile, for the Codex rules fallback.
@@ -300,12 +304,13 @@ class CodexFilesStep(BaseStep):
 
         managed_names = _managed_server_names(mcp_data)
         preserved, dropped = _clean_mcp_config(existing, managed_names)
-        if dropped and ctx.ui:
+        overwritten = _dropped_with_changed_content(dropped, toml_block)
+        if overwritten and ctx.ui:
             ctx.ui.warning(
-                "Replacing [mcp_servers.*] tables found outside the pilot-managed block in "
-                f"~/.codex/config.toml: {', '.join(sorted(dropped))} (leftovers of an earlier "
-                "corrupted write, or a user copy of a Pilot-managed server -- re-add custom "
-                "servers under a different name)"
+                "Replacing [mcp_servers.*] tables in ~/.codex/config.toml that sit outside the "
+                f"pilot-managed block and differ from Pilot's own: {', '.join(sorted(overwritten))} "
+                "-- the previous definitions have been overwritten. To keep a custom server, "
+                "re-add it under a different name."
             )
 
         managed_block = f"\n{_MCP_MARKER_START}\n{toml_block}{_MCP_MARKER_END}\n"
@@ -347,17 +352,28 @@ class CodexFilesStep(BaseStep):
         if not rule_files:
             return 0
 
+        codex_dir = _get_codex_config_dir()
+        codex_dir.mkdir(parents=True, exist_ok=True)
+
         parts: list[str] = []
+        stack_rules: list[tuple[str, list[str], str]] = []
         for rule_file in rule_files:
             try:
                 content = rule_file.read_text(encoding="utf-8").strip()
-                adapted = _adapt_invocation_syntax(content)
-                parts.append(adapted)
             except OSError:
                 continue
+            globs, body = _split_rule_frontmatter(content)
+            adapted = _adapt_invocation_syntax(body)
+            if globs:
+                stack_rules.append((rule_file.name, globs, adapted))
+            else:
+                parts.append(adapted)
 
-        if not parts:
+        if not parts and not stack_rules:
             return 0
+
+        if stack_index := self._write_codex_stack_rules(codex_dir, stack_rules):
+            parts.append(stack_index)
 
         codex_preamble = (
             "## Codex Compatibility\n\n"
@@ -376,8 +392,6 @@ class CodexFilesStep(BaseStep):
         managed_content = codex_preamble + "\n\n" + "\n\n".join(parts)
         block = f"<!-- PILOT:START -->\n{managed_content}\n<!-- PILOT:END -->"
 
-        codex_dir = _get_codex_config_dir()
-        codex_dir.mkdir(parents=True, exist_ok=True)
         agents_md = codex_dir / "AGENTS.md"
 
         if agents_md.is_file():
@@ -400,6 +414,48 @@ class CodexFilesStep(BaseStep):
 
         _atomic_write(agents_md, final)
         return len(rule_files)
+
+    def _write_codex_stack_rules(self, codex_dir: Path, stack_rules: list[tuple[str, list[str], str]]) -> str:
+        """Write path-gated rules to ~/.codex/rules/ and return their AGENTS.md index.
+
+        Claude Code gates these on their ``paths:`` globs, so they cost nothing
+        until a matching file is touched. Codex has no equivalent, and inlining
+        them put every stack's standards (.NET, Blazor, Go, frontend, mobile...) in
+        front of every turn regardless of the project. The index below keeps them
+        discoverable at a fraction of the tokens; Codex reads the one that matches.
+
+        Files Pilot wrote on a previous run but no longer ships are removed, so a
+        renamed rule cannot leave a stale copy the index no longer points at. The
+        sidecar manifest is what makes that non-destructive: anything not listed in
+        it was not written by Pilot and is left alone.
+        """
+        rules_dir = codex_dir / "rules"
+        if not stack_rules:
+            return ""
+
+        rules_dir.mkdir(parents=True, exist_ok=True)
+        manifest_path = rules_dir / _CODEX_RULES_MANIFEST
+        shipped = {name for name, _, _ in stack_rules}
+        try:
+            previous = set(json.loads(manifest_path.read_text(encoding="utf-8")))
+        except (OSError, ValueError, TypeError):
+            previous = set()
+        for stale_name in previous - shipped:
+            (rules_dir / stale_name).unlink(missing_ok=True)
+
+        rows: list[str] = []
+        for name, globs, body in sorted(stack_rules):
+            _atomic_write(rules_dir / name, body.rstrip("\n") + "\n")
+            rows.append(f"| `{rules_dir / name}` | {', '.join(f'`{g}`' for g in globs)} |")
+        _atomic_write(manifest_path, json.dumps(sorted(shipped), indent=2) + "\n")
+
+        return (
+            "## Stack Rules (read on demand)\n\n"
+            "These rules apply to specific file types, not to every task. Before writing "
+            "or reviewing code that matches a pattern below, read that file and follow it. "
+            "Read only the ones that match what you are working on.\n\n"
+            "| Rule file | Applies to |\n|---|---|\n" + "\n".join(rows)
+        )
 
     def _install_codex_config(self, ctx: InstallContext) -> bool:
         """Set Codex full-access config in ~/.codex/config.toml.
@@ -743,14 +799,16 @@ def _split_marker_lines(existing: str) -> list[str]:
     return out
 
 
-def _clean_mcp_config(existing: str, managed_names: set[str]) -> tuple[str, set[str]]:
+def _clean_mcp_config(existing: str, managed_names: set[str]) -> tuple[str, dict[str, list[str]]]:
     """Strip prior pilot-shell managed MCP state from existing config.toml content.
 
-    Returns (cleaned_content, dropped_names): dropped_names are managed-name
-    tables removed OUTSIDE any marker region -- content the user could regard
-    as their own (leftovers of a lost marker, or a hand-written override), so
-    the caller surfaces a warning for them. Two removal mechanisms, both
-    required:
+    Returns (cleaned_content, dropped_tables): dropped_tables maps each
+    managed-name table removed OUTSIDE any marker region to the exact lines
+    removed for it. The caller compares that content against what Pilot is about
+    to write to decide whether the removal is worth warning about; keeping the
+    raw lines (rather than re-parsing the whole file) is what lets it judge each
+    table independently when the file holds a duplicate it cannot parse as a
+    whole. Two removal mechanisms, both required:
 
     - Marker regions: every well-formed START..END region is dropped whole.
       This is the only mechanism that removes tables whose names Pilot no
@@ -773,7 +831,7 @@ def _clean_mcp_config(existing: str, managed_names: set[str]) -> tuple[str, set[
     lines = _split_marker_lines(existing)
 
     cleaned: list[str] = []
-    dropped: set[str] = set()
+    dropped: dict[str, list[str]] = {}
     i = 0
     while i < len(lines):
         stripped = lines[i].strip()
@@ -792,15 +850,56 @@ def _clean_mcp_config(existing: str, managed_names: set[str]) -> tuple[str, set[
             continue
         name = _mcp_table_name(lines[i])
         if name is not None and name in managed_names:
-            dropped.add(name)
+            start = i
             i += 1
             while i < len(lines) and not _TOML_HEADER_LINE_RE.match(lines[i].strip()):
                 i += 1
+            dropped.setdefault(name, []).extend(lines[start:i])
             continue
         cleaned.append(lines[i])
         i += 1
 
     return "\n".join(cleaned), dropped
+
+
+def _dropped_with_changed_content(dropped: dict[str, list[str]], toml_block: str) -> set[str]:
+    """Narrow the removed tables to those whose content Pilot is actually changing.
+
+    The markers are TOML *comments*, and Codex CLI rewrites this same
+    config.toml through a serializer -- it owns [projects.*], [hooks.state.*]
+    and [marketplaces.*] in there -- which drops every comment. Pilot's own
+    [mcp_servers.*] tables then survive as data with no markers around them, and
+    to the next install they look exactly like a hand-written override: the
+    marker state alone cannot tell the two apart.
+
+    Comparing the removed table against the one Pilot is about to write can.
+    Identical content is Pilot's own block being re-homed, which is routine and
+    silent; content that differs is the user's, and overwriting it is worth
+    saying out loud.
+
+    Each table is parsed on its own rather than via the whole file, so a
+    duplicate definition elsewhere -- the very breakage this cleanup exists to
+    repair -- cannot collapse the judgement into "warn about everything". A
+    table that will not parse counts as changed: unable to tell means say
+    something.
+    """
+    try:
+        after = tomllib.loads(toml_block).get("mcp_servers", {})
+    except tomllib.TOMLDecodeError:
+        return set(dropped)
+    if not isinstance(after, dict):
+        return set(dropped)
+
+    changed: set[str] = set()
+    for name, table_lines in dropped.items():
+        try:
+            before = tomllib.loads("\n".join(table_lines)).get("mcp_servers", {})
+        except tomllib.TOMLDecodeError:
+            changed.add(name)
+            continue
+        if not isinstance(before, dict) or before.get(name) != after.get(name):
+            changed.add(name)
+    return changed
 
 
 def _mcp_json_to_toml(mcp_data: dict[str, Any]) -> str:
@@ -909,6 +1008,33 @@ def build_codex_review_agent_toml(agent_file: Path) -> str:
         f"model = {_toml_string(_CODEX_REVIEW_AGENT_MODEL)}\n"
         f"developer_instructions = {_toml_string(instructions)}\n"
     )
+
+
+def _split_rule_frontmatter(content: str) -> tuple[list[str], str]:
+    """Split a rule's ``paths:`` frontmatter from its body.
+
+    Returns ``(globs, body)``. A rule with no frontmatter yields ``([], content)``
+    and is a *core* rule: it applies to every session and gets inlined into
+    AGENTS.md. A rule that declares globs is a *stack* rule — Claude Code gates it
+    on those paths natively, and Codex, which has no such mechanism, would
+    otherwise carry every stack's standards in full on every turn.
+
+    The globs are the trigger the rule already documents for itself, so they also
+    serve as the AGENTS.md index entry telling Codex when to go read the file.
+    """
+    if not content.startswith("---\n"):
+        return [], content
+
+    end = content.find("\n---", 3)
+    if end == -1:
+        return [], content
+
+    globs = [
+        stripped.lstrip("-").strip().strip('"').strip("'")
+        for line in content[4:end].splitlines()
+        if (stripped := line.strip()).startswith("-")
+    ]
+    return [g for g in globs if g], content[end + 4 :].lstrip("\n")
 
 
 def _extract_agent_metadata(content: str) -> tuple[dict[str, str], str]:

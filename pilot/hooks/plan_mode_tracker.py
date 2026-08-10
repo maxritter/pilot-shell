@@ -190,9 +190,13 @@ def planning_leg_model_context() -> str | None:
 
 
 def is_plan_file(file_path: str) -> bool:
-    """Return True for plan doc files (docs/plans/*.md) - legitimate writes during planning."""
+    """Return True for plan doc files - legitimate writes during planning.
+
+    Covers both registered-run directories: docs/plans/*.md for `/spec` plans
+    and docs/builds/*.md for `/build` Buildouts.
+    """
     p = Path(file_path)
-    return p.suffix.lower() == ".md" and "plans" in p.parts
+    return p.suffix.lower() == ".md" and bool({"plans", "builds"} & set(p.parts))
 
 
 def main() -> int:

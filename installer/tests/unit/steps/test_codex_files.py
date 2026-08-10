@@ -374,9 +374,7 @@ class TestCodexSkillsInstallation:
         assert build_data["name"] == "build-review"
         assert build_data["model"] == "codex-auto-review"
 
-    def test_build_review_codex_prompt_template_is_not_installed_as_an_agent(
-        self, tmp_path: Path
-    ) -> None:
+    def test_build_review_codex_prompt_template_is_not_installed_as_an_agent(self, tmp_path: Path) -> None:
         """`*-codex.md` files are companion prompt templates, not Codex custom agents.
 
         `spec-review-codex.md` has always been skipped; `build-review-codex.md` must be
@@ -385,9 +383,7 @@ class TestCodexSkillsInstallation:
         claude_agents_dir = tmp_path / ".claude" / "agents"
         claude_agents_dir.mkdir(parents=True)
         shutil.copyfile(Path("pilot/agents/build-review.md"), claude_agents_dir / "build-review.md")
-        shutil.copyfile(
-            Path("pilot/agents/build-review-codex.md"), claude_agents_dir / "build-review-codex.md"
-        )
+        shutil.copyfile(Path("pilot/agents/build-review-codex.md"), claude_agents_dir / "build-review-codex.md")
         codex_agents_dir = tmp_path / ".codex" / "agents"
         codex_agents_dir.mkdir(parents=True)
 
@@ -533,6 +529,31 @@ class TestCodexSkillsInstallation:
             cc_result = build_skill_md(Path("pilot/skills") / skill)
             assert "read_model_switch_mode" in cc_result, skill
 
+    def test_build_codex_skill_drops_stop_hook_frontmatter(self) -> None:
+        """`/build` registers a Stop hook in frontmatter; Codex must not inherit it.
+
+        Codex resolves hooks from ~/.codex/hooks.json, not from a skill's
+        frontmatter, and its SKILL.md carries only name + description. A leaked
+        `hooks:` key would land in the body as prose the agent tries to follow.
+        """
+        from installer.skill_builder import build_skill_md
+        from installer.steps.codex_files import build_codex_skill_md
+
+        cc_result = build_skill_md(Path("pilot/skills/build"))
+        assert 'spec_plan_validator.py" docs/builds Buildout' in cc_result
+
+        codex_result = build_codex_skill_md(Path("pilot/skills/build"))
+        assert "spec_plan_validator.py" not in codex_result
+        assert "hooks:" not in codex_result
+
+    def test_build_codex_skill_writes_buildouts_to_docs_builds(self) -> None:
+        """The Buildout path must survive the Codex adaptation intact."""
+        from installer.steps.codex_files import build_codex_skill_md
+
+        codex_result = build_codex_skill_md(Path("pilot/skills/build"))
+        assert "docs/builds/YYYY-MM-DD-<slug>.md" in codex_result
+        assert "docs/plans/YYYY-MM-DD-<slug>.md" not in codex_result
+
 
 class TestCodexRulesInstallation:
     def test_creates_agents_md_with_markers(self, tmp_path: Path) -> None:
@@ -611,6 +632,80 @@ class TestCodexRulesInstallation:
         content = (codex_dir / "AGENTS.md").read_text()
         assert "$spec" in content
         assert "$fix" in content
+
+    def _install_rules(self, tmp_path: Path, files: dict[str, str]) -> Path:
+        """Run the rule install against ``files`` and return the Codex config dir."""
+        codex_dir = tmp_path / ".codex"
+        codex_dir.mkdir(parents=True, exist_ok=True)
+        rules_dir = tmp_path / ".claude" / "rules"
+        rules_dir.mkdir(parents=True, exist_ok=True)
+        for name, body in files.items():
+            (rules_dir / name).write_text(body)
+
+        step = CodexFilesStep()
+        ctx = MagicMock()
+        ctx.ui = None
+        ctx.local_mode = False
+        with (
+            patch("installer.steps.codex_files._get_codex_config_dir", return_value=codex_dir),
+            patch("installer.steps.codex_files.Path.home", return_value=tmp_path),
+        ):
+            step._install_codex_rules(ctx)
+        return codex_dir
+
+    def test_path_gated_rules_are_read_on_demand_not_inlined(self, tmp_path: Path) -> None:
+        """Codex has no path-gating, so a stack rule inlined into AGENTS.md would put
+        every stack's standards in front of every turn. They go to ~/.codex/rules/
+        with only an index row in AGENTS.md; core rules stay inlined."""
+        codex_dir = self._install_rules(
+            tmp_path,
+            {
+                "standards-python.md": '---\npaths:\n  - "**/*.py"\n---\n\n## Python\n\nAlways use uv.',
+                "testing.md": "## Testing\n\nCore rule body.",
+            },
+        )
+
+        agents = (codex_dir / "AGENTS.md").read_text()
+        assert "Core rule body." in agents
+        assert "Always use uv." not in agents
+        assert "**/*.py" in agents, "index must name the trigger so Codex knows when to read"
+        assert str(codex_dir / "rules" / "standards-python.md") in agents
+
+        written = (codex_dir / "rules" / "standards-python.md").read_text()
+        assert "Always use uv." in written
+        assert "paths:" not in written, "YAML frontmatter is Claude-only gating metadata"
+
+    def test_stale_stack_rule_removed_but_user_file_preserved(self, tmp_path: Path) -> None:
+        """A renamed rule must not leave an orphan the index no longer points at,
+        and the sidecar manifest is what keeps that cleanup off user files."""
+        codex_dir = self._install_rules(tmp_path, {"standards-golang.md": '---\npaths:\n  - "**/*.go"\n---\n\n## Go'})
+        (codex_dir / "rules" / "my-notes.md").write_text("mine")
+        (tmp_path / ".claude" / "rules" / "standards-golang.md").unlink()
+
+        codex_dir = self._install_rules(tmp_path, {"standards-rust.md": '---\npaths:\n  - "**/*.rs"\n---\n\n## Rust'})
+
+        assert not (codex_dir / "rules" / "standards-golang.md").exists()
+        assert (codex_dir / "rules" / "standards-rust.md").exists()
+        assert (codex_dir / "rules" / "my-notes.md").read_text() == "mine"
+
+    def test_stack_rule_bodies_are_codex_adapted(self, tmp_path: Path) -> None:
+        """The on-demand files bypass the AGENTS.md merge, so they need the same
+        CC-ONLY stripping the inlined rules get - otherwise Codex reads Claude-only
+        instructions as if they applied to it."""
+        codex_dir = self._install_rules(
+            tmp_path,
+            {
+                "browser.md": (
+                    '---\npaths:\n  - "**/*.tsx"\n---\n\n## Browser\n\n'
+                    "<!-- CC-ONLY -->\nUse the Claude Chrome MCP.\n<!-- /CC-ONLY -->\n"
+                    "Run /fix when it breaks."
+                )
+            },
+        )
+
+        written = (codex_dir / "rules" / "browser.md").read_text()
+        assert "Use the Claude Chrome MCP." not in written
+        assert "$fix" in written
 
     def test_real_rules_generate_codex_safe_agents_md(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"
@@ -754,6 +849,64 @@ class TestCodexMcpConfiguration:
         )
         assert "my-server" in config
         assert "pilot-server" in config
+
+    def test_silently_rehomes_pilot_tables_after_an_external_comment_strip(self, tmp_path: Path) -> None:
+        """Codex CLI owns [projects.*] / [hooks.state.*] / [marketplaces.*] in the
+        SAME config.toml and rewrites it through a TOML serializer, which drops
+        every comment -- including Pilot's marker pair, since markers ARE
+        comments. Pilot's own [mcp_servers.*] tables survive as data, so the next
+        install finds them "outside the block". Re-homing them is correct; warning
+        the user that their custom server is being replaced is not, because the
+        content is byte-identical to what Pilot is about to write."""
+        content, ctx = self._run_mcp_install(
+            tmp_path,
+            'approval_policy = "never"\n'
+            "\n"
+            "[mcp_servers.context7]\n"
+            'command = "npx"\n'
+            'args = ["-y", "@upstash/context7-mcp@3.2.1"]\n',
+            self._CONTEXT7,
+        )
+        assert content.count("[mcp_servers.context7]") == 1
+        assert content.count("# --- pilot-shell managed MCP servers ---") == 1
+        ctx.ui.warning.assert_not_called()
+
+    def test_still_warns_when_the_replaced_table_differs(self, tmp_path: Path) -> None:
+        """A table under a Pilot-managed name whose content is NOT what Pilot
+        writes is the user's -- replacing it loses their config, so say so."""
+        _, ctx = self._run_mcp_install(
+            tmp_path,
+            '[mcp_servers.context7]\ncommand = "/opt/homebrew/bin/my-own-context7"\nargs = ["--port", "9999"]\n',
+            self._CONTEXT7,
+        )
+        ctx.ui.warning.assert_called_once()
+        assert "context7" in ctx.ui.warning.call_args[0][0]
+
+    def test_names_only_the_edited_server_when_the_file_holds_a_duplicate(self, tmp_path: Path) -> None:
+        """A hand-added table alongside an intact managed block is a duplicate,
+        so the file as a whole will not parse. Judging each removed table on its
+        own keeps the warning to the one server actually being overwritten,
+        instead of listing every server Pilot ships."""
+        _, ctx = self._run_mcp_install(
+            tmp_path,
+            "[mcp_servers.context7]\n"
+            'command = "/opt/homebrew/bin/my-own-context7"\n'
+            "\n"
+            "# --- pilot-shell managed MCP servers ---\n"
+            "[mcp_servers.context7]\n"
+            'command = "npx"\n'
+            'args = ["-y", "@upstash/context7-mcp@3.2.1"]\n'
+            "\n"
+            "[mcp_servers.semble]\n"
+            'command = "semble"\n'
+            'args = ["mcp"]\n'
+            "# --- end pilot-shell managed MCP servers ---\n",
+            {**self._CONTEXT7, "semble": {"command": "semble", "args": ["mcp"]}},
+        )
+        ctx.ui.warning.assert_called_once()
+        message = ctx.ui.warning.call_args[0][0]
+        assert "context7" in message
+        assert "semble" not in message
 
     def test_heals_orphaned_mcp_block_missing_start_marker(self, tmp_path: Path) -> None:
         """A prior write that lost its start marker leaves [mcp_servers.context7]

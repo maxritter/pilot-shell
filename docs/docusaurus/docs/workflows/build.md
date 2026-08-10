@@ -116,7 +116,7 @@ Hand-back is reachable exactly three ways: every criterion passed, the round bud
 
 ## The Buildout is a real file
 
-`/build` writes `docs/plans/YYYY-MM-DD-<slug>.md` with `Type: Build` and registers it with the session — the same machinery `/spec` plans use. That buys four things:
+`/build` writes `docs/builds/YYYY-MM-DD-<slug>.md` with `Type: Build` and registers it with the session — its own directory, beside `/spec`'s `docs/plans/` and `/prd`'s `docs/prd/`, running on the same machinery. The `Type:` header is what identifies a Buildout, not the directory, so one written to `docs/plans/` before the split keeps working. That buys four things:
 
 - **It survives compaction.** After a context compaction the run resumes from the file, not from the conversation.
 - **The statusline tracks tasks and rounds.** `Build: running-brand build ███░░ 3/5 r2`.
@@ -216,7 +216,7 @@ With Ask Questions and Plan Approval off, `/build` runs goal → tasks and crite
 | The session will not stop | The stop guard is holding the loop, as designed | Let it run, or take a criterion to the round-budget question. Escape hatch: stop twice within 60s. |
 | It stopped at three rounds with criteria failing | The round budget, working | Answer the question: one more round, relax the criterion, or accept as-is. |
 | It handed back saying it was blocked | Remaining work needs something outside the session | Come back when the blocker clears; the Buildout stays `PENDING` and the run resumes from it. |
-| The Buildout is missing from the Console | It is outside the scanned directories | It must live under `docs/plans/` (or a worktree's `docs/plans/`) and be registered. |
+| The Buildout is missing from the Console | It is outside the scanned directories | It must live under the project root's `docs/builds/` and be registered. A Buildout written inside a worktree checkout is filtered out by design — move it to the project root and re-register. |
 
 ## When not to use `/build`
 

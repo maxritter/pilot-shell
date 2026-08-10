@@ -95,3 +95,59 @@ class TestSpecPlanValidator:
                 result = main()
 
         assert result == 0
+
+
+class TestBuildoutDirectory:
+    """`/build` registers this hook against docs/builds/, not docs/plans/."""
+
+    @patch("spec_plan_validator.is_waiting_for_user_input", return_value=False)
+    @patch("sys.stdin")
+    def test_blocks_when_buildout_missing_despite_a_plan_existing(self, mock_stdin, mock_waiting, tmp_path, capsys):
+        # A /spec plan created today must NOT satisfy /build's guard: the two
+        # workflows write to different directories and each must produce its own.
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+        (plans_dir / "2026-02-18-some-spec.md").touch()
+
+        with patch(
+            "spec_plan_validator.json.load",
+            return_value={
+                "transcript_path": "/t.jsonl",
+                "stop_hook_active": False,
+                "project_root": str(tmp_path),
+            },
+        ):
+            with patch("spec_plan_validator.os.environ", {"CLAUDE_PROJECT_ROOT": str(tmp_path)}):
+                result = main("docs/builds", "Buildout")
+
+        assert result == 0
+        data = json.loads(capsys.readouterr().out)
+        assert data["decision"] == "block"
+        assert "Buildout" in data["reason"]
+        assert "docs/builds" in data["reason"]
+
+    @patch("spec_plan_validator.is_waiting_for_user_input", return_value=False)
+    @patch("spec_plan_validator.datetime")
+    @patch("sys.stdin")
+    def test_allows_when_today_buildout_exists(self, mock_stdin, mock_dt, mock_waiting, tmp_path, capsys):
+        import datetime
+
+        mock_dt.date.today.return_value = datetime.date(2026, 2, 18)
+
+        builds_dir = tmp_path / "docs" / "builds"
+        builds_dir.mkdir(parents=True)
+        (builds_dir / "2026-02-18-running-brand.md").touch()
+
+        with patch(
+            "spec_plan_validator.json.load",
+            return_value={
+                "transcript_path": "/t.jsonl",
+                "stop_hook_active": False,
+                "project_root": str(tmp_path),
+            },
+        ):
+            with patch("spec_plan_validator.os.environ", {"CLAUDE_PROJECT_ROOT": str(tmp_path)}):
+                result = main("docs/builds", "Buildout")
+
+        assert result == 0
+        assert capsys.readouterr().out == ""

@@ -10,9 +10,25 @@ paths:
 
 **MANDATORY for E2E testing of any app with a UI.** API tests verify backend; browser automation verifies what the user sees.
 
+### ⛔ Ask the project first — the ladder below is the fallback
+
+**Before taking the 4-tier ladder, check whether the project already says which driver reaches ITS interface.** Grep `.claude/rules/`, `CLAUDE.md` and `AGENTS.md` for the tool it names, and use that.
+
+The ladder is written for a page in a desktop browser. These do not have one, and each has a different driver a project usually has already learned the hard way:
+
+| The UI actually is | The ladder reaches it |
+|---|---|
+| A mobile WebView (Capacitor, Cordova, React Native WebView) | No — needs the platform's own remote-debug bridge; see `mobile-development.md` |
+| A native mobile screen | No — see `mobile-development.md` |
+| A native desktop window (Electron main, Swift, GTK, WinUI) | No — needs the platform's UI-automation driver |
+| A terminal UI | No |
+| A canvas or game surface | Partly — pixels only, no a11y tree |
+
+A project that names a tool has measured something. Taking the generic ladder over it is how a verification pass turns into an afternoon of selectors that never land.
+
 ### Tool Selection: 4-Tier Priority
 
-Pick the tool that gives the most accurate verification for the situation, not the fastest.
+Applies when the project names nothing and the UI is a page in a browser. Pick the tool that gives the most accurate verification for the situation, not the fastest.
 
 | Priority | Tool | Best For | Key Advantage |
 |----------|------|----------|---------------|
@@ -52,8 +68,17 @@ If tier N errors (e.g., Chrome DevTools MCP "no Chrome binary"), the ONLY allowe
 **2. E2E = interaction, not load.**
 For every user-facing path the change touches, you MUST: snapshot → **click the primary action** (button, link, form submit) → re-snapshot → confirm new state. No click + re-snapshot pair = not E2E.
 
-**3. Self-check before saying "verified" / "works" / "done":**
-- [ ] Used a tier 1–4 tool (named one)?
+**3. Three failed interactions with the same driver → the driver is wrong, not the selector.**
+Distinct from rule 1, and the more expensive of the two. Rule 1 is a tool that will not START — loud, obvious, one step down the ladder. This is a tool that starts fine and half-works: it attaches, it screenshots, it answers every call, and every interaction fails with something that reads like a fixable typo (*element not found*, *matched the wrong node*, *the tap did nothing*). Nothing announces itself, and each retry is cheap, so the loop can run for an hour.
+
+So count them. After the third consecutive failure, stop and spend one call on the question you skipped: **does this project document a different driver?** Then take it. Do not try a fourth selector, a coordinate tap, or a longer timeout.
+
+Two symptoms that mean you are already in this loop:
+- You are converting selectors into coordinates because the selectors will not match.
+- A tool sent the app somewhere you did not ask for — the home screen, a native dialog, a different route — and you are working around it rather than reading why.
+
+**4. Self-check before saying "verified" / "works" / "done":**
+- [ ] Used the driver the project names, or a tier 1–4 tool when it names none (say which)?
 - [ ] Actually clicked the thing the change affects?
 - [ ] Re-snapshotted and saw the expected new state?
 
