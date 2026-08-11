@@ -3,7 +3,6 @@ title: "Claude Code Settings Reference (Complete Config Guide)"
 description: "Complete reference for Claude Code settings.json, environment variables, and the 5-scope hierarchy. Every setting key documented."
 slug: settings-reference
 date: 2026-02-03
-image: /img/blog/settings-reference.png
 authors:
   - max-ritter
 tags:

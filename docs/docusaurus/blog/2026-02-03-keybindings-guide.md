@@ -3,7 +3,6 @@ title: "Claude Code Keybindings: Complete Keyboard Shortcuts Guide"
 description: "Configure custom keyboard shortcuts in Claude Code. Reference for all 17 contexts, keystroke syntax, and keybindings.json examples."
 slug: keybindings-guide
 date: 2026-02-03
-image: /img/blog/keybindings-guide.png
 authors:
   - max-ritter
 tags:

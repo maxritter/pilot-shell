@@ -3,7 +3,6 @@ title: "Claude Code Sub-Agents: Parallel vs Sequential Patterns"
 description: "Configure Claude Code to auto-choose parallel, sequential, or background execution patterns for sub-agents based on task dependencies."
 slug: sub-agent-best-practices
 date: 2026-01-08
-image: /img/blog/sub-agent-best-practices.png
 authors:
   - max-ritter
 tags:

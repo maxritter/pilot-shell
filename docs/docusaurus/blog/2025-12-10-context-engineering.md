@@ -3,7 +3,6 @@ title: "Claude Code Context Engineering: 6 Pillars Framework"
 description: "Master context engineering in Claude Code. The six pillars framework transforms inconsistent AI into a reliable, predictable coding partner."
 slug: context-engineering
 date: 2025-12-10
-image: /img/blog/context-engineering.png
 authors:
   - max-ritter
 tags:

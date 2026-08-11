@@ -3,7 +3,6 @@ title: "Claude Code Hooks: Complete Guide to All 12 Lifecycle Events"
 description: "Master Claude Code hooks with exit codes, JSON output, and production patterns. Stop clicking approve and fully automate your workflow."
 slug: hooks-guide
 date: 2025-12-13
-image: /img/blog/hooks-guide.png
 authors:
   - max-ritter
 tags:

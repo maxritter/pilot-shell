@@ -3,7 +3,6 @@ title: "Claude Code Auto Memory: How Your AI Learns Your Project"
 description: "Claude Code auto memory lets Claude write its own project notes. Learn how it works, where files live, and when to use it vs CLAUDE.md."
 slug: auto-memory
 date: 2026-02-27
-image: /img/blog/auto-memory.png
 authors:
   - max-ritter
 tags:

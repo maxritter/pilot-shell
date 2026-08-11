@@ -3,7 +3,6 @@ title: "Claude Code Worktrees: Parallel Sessions Without Conflicts"
 description: "Use Claude Code git worktree support to run parallel AI sessions. Guide to the --worktree flag, subagent isolation, and Desktop mode."
 slug: worktree-guide
 date: 2026-02-21
-image: /img/blog/worktree-guide.png
 authors:
   - max-ritter
 tags:

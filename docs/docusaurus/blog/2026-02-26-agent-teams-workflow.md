@@ -3,7 +3,6 @@ title: "Claude Code Agent Teams Workflow: Plan to Production"
 description: "Complete Claude Code agent teams workflow: structured planning, contract chains, and wave execution to ship production code with parallel agents."
 slug: agent-teams-workflow
 date: 2026-02-26
-image: /img/blog/agent-teams-workflow.png
 authors:
   - max-ritter
 tags:

@@ -3,7 +3,6 @@ title: "Claude Mythos Preview: Anthropic's Frontier Model"
 description: "Claude Mythos Preview is Anthropic's most powerful model. Benchmarks, Project Glasswing access, pricing at $25/$125, why it's not public."
 slug: claude-mythos
 date: 2026-04-07
-image: /img/blog/claude-mythos.png
 authors:
   - max-ritter
 tags:

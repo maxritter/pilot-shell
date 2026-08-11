@@ -3,7 +3,6 @@ title: "Claude Code Review: AI PR Analysis That Finds Bugs"
 description: "Claude Code Review dispatches parallel agents to hunt bugs in every PR. Learn how it works, what it costs, and how to enable it for your team."
 slug: code-review
 date: 2026-03-09
-image: /img/blog/code-review.png
 authors:
   - max-ritter
 tags:

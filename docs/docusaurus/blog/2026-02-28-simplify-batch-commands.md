@@ -3,7 +3,6 @@ title: "Claude Code /simplify and /batch Commands Guide"
 description: "Claude Code /simplify runs 3-agent code review on your changes. /batch handles parallel codebase migrations. Mechanics, usage, and examples."
 slug: simplify-batch-commands
 date: 2026-02-28
-image: /img/blog/simplify-batch-commands.png
 authors:
   - max-ritter
 tags:

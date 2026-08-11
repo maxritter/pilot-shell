@@ -3,7 +3,6 @@ title: "Claude Code Stop Hook: Force Task Completion"
 description: "Use the Stop Hook to ensure Claude finishes tasks before responding. Run tests automatically, validate output, and prevent incomplete work."
 slug: stop-hook-task-enforcement
 date: 2026-01-24
-image: /img/blog/stop-hook-task-enforcement.png
 authors:
   - max-ritter
 tags:

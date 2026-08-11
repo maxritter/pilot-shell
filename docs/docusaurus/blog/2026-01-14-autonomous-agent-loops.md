@@ -3,7 +3,6 @@ title: "Claude Code Autonomous Loops: Ship Features While You Sleep"
 description: "Combine Ralph Wiggum loops with thread-based engineering for autonomous Claude Code development that ships production features while you sleep."
 slug: autonomous-agent-loops
 date: 2026-01-14
-image: /img/blog/autonomous-agent-loops.png
 authors:
   - max-ritter
 tags:

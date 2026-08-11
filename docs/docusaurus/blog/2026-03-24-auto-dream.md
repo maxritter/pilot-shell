@@ -3,7 +3,6 @@ title: "Claude Code Dreams: Anthropic's New Memory Feature"
 description: "Claude Code Auto Dream consolidates memory files, pruning stale notes and merging insights. Like REM sleep for your AI agent."
 slug: auto-dream
 date: 2026-03-24
-image: /img/blog/auto-dream.png
 authors:
   - max-ritter
 tags:

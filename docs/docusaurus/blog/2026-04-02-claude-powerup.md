@@ -3,7 +3,6 @@ title: "Claude Code Tutorial: /powerup Interactive Lessons Guide"
 description: "/powerup is Claude Code's built-in tutorial with animated demos. Learn every feature without leaving your terminal."
 slug: claude-powerup
 date: 2026-04-02
-image: /img/blog/claude-powerup.png
 authors:
   - max-ritter
 tags:

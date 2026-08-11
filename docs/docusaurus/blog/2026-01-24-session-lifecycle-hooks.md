@@ -3,7 +3,6 @@ title: "Claude Code Session Hooks: Auto-Load Context Every Time"
 description: "SessionStart, SessionEnd, Setup, and PreCompact hooks for Claude Code. Auto-load context at startup and clean up on session end automatically."
 slug: session-lifecycle-hooks
 date: 2026-01-24
-image: /img/blog/session-lifecycle-hooks.png
 authors:
   - max-ritter
 tags:

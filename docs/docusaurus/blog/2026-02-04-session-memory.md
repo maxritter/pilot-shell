@@ -3,7 +3,6 @@ title: "Claude Code Session Memory: Automatic Cross-Session Context"
 description: "Claude Code Session Memory auto-recalls past work and writes summaries in the background. Learn how it works and where files live."
 slug: session-memory
 date: 2026-02-04
-image: /img/blog/session-memory.png
 authors:
   - max-ritter
 tags:

@@ -3,7 +3,6 @@ title: "Claude Code Context Buffer: The 33K-45K Token Problem"
 description: "Claude Code reduced its autocompact buffer from 45K to 33K tokens. Learn what changed, what triggers autocompact, and workarounds."
 slug: context-buffer-management
 date: 2026-01-26
-image: /img/blog/context-buffer-management.png
 authors:
   - max-ritter
 tags:

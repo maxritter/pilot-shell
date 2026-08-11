@@ -3,7 +3,6 @@ title: "Claude Code Agent Teams Best Practices & Troubleshooting"
 description: "Battle-tested agent team practices. Troubleshooting guide, limitations, plan mode behavior, and fixes from v2.1.33 to v2.1.45."
 slug: agent-teams-best-practices
 date: 2026-02-18
-image: /img/blog/agent-teams-best-practices.png
 authors:
   - max-ritter
 tags:

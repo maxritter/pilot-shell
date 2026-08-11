@@ -3,7 +3,6 @@ title: "Claude Code Remote Control: Complete Setup Guide (2026)"
 description: "Use Claude Code Remote Control to control your local terminal from any device. Setup guide, security model, and how it compares to OpenClaw."
 slug: remote-control-guide
 date: 2026-02-26
-image: /img/blog/remote-control-guide.png
 authors:
   - max-ritter
 tags:

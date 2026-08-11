@@ -3,7 +3,6 @@ title: "Claude Code Ultraplan: Cloud Planning to Free Your Terminal"
 description: "Ultraplan offloads complex planning to the cloud with Opus 4.6. Three invocation methods, browser review UI, and leaked system prompts explained."
 slug: ultraplan
 date: 2026-04-06
-image: /img/blog/ultraplan.png
 authors:
   - max-ritter
 tags:

@@ -3,7 +3,6 @@ title: "Claude Code Interactive Mode: Complete Reference (2026)"
 description: "Complete Claude Code interactive mode reference. Keyboard shortcuts, vim mode, bash mode, background tasks, and slash commands."
 slug: interactive-mode
 date: 2026-03-11
-image: /img/blog/interactive-mode.png
 authors:
   - max-ritter
 tags:

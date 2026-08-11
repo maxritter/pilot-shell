@@ -3,7 +3,6 @@ title: "Claude Opus 4.7 Best Practices for Claude Code"
 description: "Opus 4.7 interprets instructions literally. Learn how detailed plans, xhigh effort, and explicit agents unlock better results in Claude Code."
 slug: opus-4-7-best-practices
 date: 2026-04-16
-image: /img/blog/opus-4-7-best-practices.png
 authors:
   - max-ritter
 tags:

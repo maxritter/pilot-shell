@@ -3,7 +3,6 @@ title: "Claude Code Scheduled Tasks: Complete Setup Guide (2026)"
 description: "Set up scheduled tasks in Claude Code Desktop and CLI. Automate code reviews, error monitoring, and daily briefings step by step."
 slug: scheduled-tasks
 date: 2026-03-06
-image: /img/blog/scheduled-tasks.png
 authors:
   - max-ritter
 tags:

@@ -3,7 +3,6 @@ title: "Claude Code Ralph Wiggum: Run Autonomously Overnight"
 description: "The complete guide to Ralph Wiggum loops. Learn stop hooks, completion promises, and verification-first workflows that ship features overnight."
 slug: ralph-wiggum-technique
 date: 2026-01-14
-image: /img/blog/ralph-wiggum-technique.png
 authors:
   - max-ritter
 tags:

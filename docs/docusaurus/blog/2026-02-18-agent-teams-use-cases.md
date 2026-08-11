@@ -3,7 +3,6 @@ title: "Claude Code Agent Teams Use Cases and Prompt Templates"
 description: "Agent team examples and prompts for code review, debugging, full-stack features, architecture decisions, and marketing. Copy, paste, run."
 slug: agent-teams-use-cases
 date: 2026-02-18
-image: /img/blog/agent-teams-use-cases.png
 authors:
   - max-ritter
 tags:

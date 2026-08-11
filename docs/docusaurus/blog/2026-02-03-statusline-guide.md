@@ -3,7 +3,6 @@ title: "Claude Code Status Line Setup Guide (Scripts + Examples)"
 description: "Set up a custom Claude Code status line showing model name, git branch, cost, and context usage. Includes ready-to-copy scripts."
 slug: statusline-guide
 date: 2026-02-03
-image: /img/blog/statusline-guide.png
 authors:
   - max-ritter
 tags:

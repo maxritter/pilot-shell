@@ -3,7 +3,6 @@ title: "Claude Buddy: Anthropic April Fools Terminal Tamagotchi"
 description: "Claude Buddy is Anthropic's April Fools 2026 terminal pet for Claude Code. 18 species, tamagotchi mechanics, and a hex-encoded easter egg."
 slug: claude-buddy
 date: 2026-04-01
-image: /img/blog/claude-buddy.png
 authors:
   - max-ritter
 tags:

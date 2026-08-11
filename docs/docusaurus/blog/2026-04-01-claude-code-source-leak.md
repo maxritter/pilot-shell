@@ -3,7 +3,6 @@ title: "Claude Code Source Leak: Everything Found (2026)"
 description: "Full breakdown of the Claude Code npm source map leak. 512K lines, 44 feature flags, Undercover Mode, KAIROS, and model codenames revealed."
 slug: claude-code-source-leak
 date: 2026-04-01
-image: /img/blog/claude-code-source-leak.png
 authors:
   - max-ritter
 tags:

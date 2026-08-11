@@ -3,7 +3,6 @@ title: "Claude Code Context Backups: Beat Auto-Compaction"
 description: "Proactively backup your Claude Code session before compaction hits. StatusLine monitoring and threshold triggers keep your work safe."
 slug: context-recovery-hook
 date: 2026-01-26
-image: /img/blog/context-recovery-hook.png
 authors:
   - max-ritter
 tags:

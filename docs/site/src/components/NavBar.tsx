@@ -8,7 +8,6 @@ import { PORTAL_URL } from "@/lib/links";
 
 const navLinks = [
   { label: "Getting Started", href: "#installation" },
-  { label: "Demo", href: "#demo" },
   { label: "Usage", href: "#workflow" },
   { label: "What's Inside", href: "#features" },
 ];

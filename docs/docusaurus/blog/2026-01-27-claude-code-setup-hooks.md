@@ -3,7 +3,6 @@ title: "Claude Code Setup Hooks: Automate Onboarding and Maintenance"
 description: "Setup hooks combine deterministic scripts with agentic oversight. Automate installation, maintenance, and CI/CD with Claude Code."
 slug: claude-code-setup-hooks
 date: 2026-01-27
-image: /img/blog/claude-code-setup-hooks.png
 authors:
   - max-ritter
 tags:

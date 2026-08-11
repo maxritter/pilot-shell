@@ -3,7 +3,6 @@ title: "CLAUDE.md Mastery: Your AI's Operating System"
 description: "CLAUDE.md is your AI's operating system, not documentation. Define orchestration, conversation management, and delegation patterns that work."
 slug: claude-md-mastery
 date: 2025-12-07
-image: /img/blog/claude-md-mastery.png
 authors:
   - max-ritter
 tags:

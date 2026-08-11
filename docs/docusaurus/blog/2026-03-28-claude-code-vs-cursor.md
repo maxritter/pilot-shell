@@ -3,7 +3,6 @@ title: "Claude Code vs Cursor 2026: Features, Pricing Compared"
 description: "Claude Code vs Cursor compared for 2026. Agent teams, 1M context, fast mode, pricing tiers, and real workflow differences for developers."
 slug: claude-code-vs-cursor
 date: 2026-03-28
-image: /img/blog/claude-code-vs-cursor.png
 authors:
   - max-ritter
 tags:

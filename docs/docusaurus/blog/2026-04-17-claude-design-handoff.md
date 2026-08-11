@@ -3,7 +3,6 @@ title: "Claude Design to Claude Code: AI Design Handoff"
 description: "Claude Design hands prototypes off directly to Claude Code. The only AI design tool with a closed design-to-production loop. Walkthrough inside."
 slug: claude-design-handoff
 date: 2026-04-17
-image: /img/blog/claude-design-handoff.png
 authors:
   - max-ritter
 tags:

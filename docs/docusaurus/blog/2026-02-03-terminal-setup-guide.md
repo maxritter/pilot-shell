@@ -3,7 +3,6 @@ title: "Claude Code Terminal Setup Guide: Vim, Themes, Notifications"
 description: "Configure your terminal for Claude Code. Set up Shift+Enter line breaks, vim mode, notifications, and tips for VS Code and iTerm2."
 slug: terminal-setup-guide
 date: 2026-02-03
-image: /img/blog/terminal-setup-guide.png
 authors:
   - max-ritter
 tags:

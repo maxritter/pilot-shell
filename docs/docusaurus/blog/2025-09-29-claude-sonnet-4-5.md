@@ -3,7 +3,6 @@ title: "Claude Sonnet 4.5: The Best Coding Model Gets Better"
 description: "Claude Sonnet 4.5 launched September 2025 with top intelligence across most tasks, 1M beta context, and best-in-class coding performance."
 slug: claude-sonnet-4-5
 date: 2025-09-29
-image: /img/blog/claude-sonnet-4-5.png
 authors:
   - max-ritter
 tags:

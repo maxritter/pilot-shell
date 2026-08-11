@@ -3,7 +3,6 @@ title: "Self-Validating Claude Code Agents: Automated Quality Checks"
 description: "Build Claude Code agents that validate their own output using PostToolUse hooks, Stop hooks, and read-only validator agents."
 slug: self-validating-agents
 date: 2026-02-03
-image: /img/blog/self-validating-agents.png
 authors:
   - max-ritter
 tags:

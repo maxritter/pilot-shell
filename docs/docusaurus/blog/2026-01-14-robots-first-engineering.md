@@ -3,7 +3,6 @@ title: "Claude Code Robots-First: Design Systems for AI"
 description: "The future of software engineering is robots-first. Learn to build fully autonomous AI development systems designed for AI agents, not humans."
 slug: robots-first-engineering
 date: 2026-01-14
-image: /img/blog/robots-first-engineering.png
 authors:
   - max-ritter
 tags:

@@ -3,7 +3,6 @@ title: "Claude Code Agent Teams Controls: Delegate Mode, Hooks"
 description: "Stop your agent team lead from grabbing implementation work. Configure delegate mode, plan approval, hooks, and CLAUDE.md for teams."
 slug: agent-teams-controls
 date: 2026-02-18
-image: /img/blog/agent-teams-controls.png
 authors:
   - max-ritter
 tags:

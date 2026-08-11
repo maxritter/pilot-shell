@@ -3,7 +3,6 @@ title: "Claude Code Channels: Telegram, Discord & iMessage (2026)"
 description: "Message Claude Code from Telegram, Discord, or iMessage. Setup guides for all three platforms with practical use cases."
 slug: claude-code-channels
 date: 2026-03-20
-image: /img/blog/claude-code-channels.png
 authors:
   - max-ritter
 tags:

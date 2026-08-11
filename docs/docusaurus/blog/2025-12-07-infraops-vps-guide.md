@@ -3,7 +3,6 @@ title: "Claude Code VPS Setup: Deploy and Run on Remote Servers"
 description: "Run Claude Code on a VPS with SSH, Docker, and headless mode. Setup guide with real commands, monitoring, and security hardening."
 slug: infraops-vps-guide
 date: 2025-12-07
-image: /img/blog/infraops-vps-guide.png
 authors:
   - max-ritter
 tags:

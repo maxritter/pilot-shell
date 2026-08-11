@@ -3,7 +3,6 @@ title: "Claude Code Team Orchestration: Builder-Validator Patterns"
 description: "Pair builder and validator agents using the Claude Code task system. Build-then-validate workflows with dependency chains."
 slug: team-orchestration
 date: 2026-02-03
-image: /img/blog/team-orchestration.png
 authors:
   - max-ritter
 tags:

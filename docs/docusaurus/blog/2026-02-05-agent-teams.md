@@ -3,7 +3,6 @@ title: "Claude Code Agent Teams: Setup & Usage Guide 2026"
 description: "Run multiple Claude sessions in parallel for multi-file refactors, test suites, and cross-domain work. Setup, patterns, and real examples."
 slug: agent-teams
 date: 2026-02-05
-image: /img/blog/agent-teams.png
 authors:
   - max-ritter
 tags:

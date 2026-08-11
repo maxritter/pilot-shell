@@ -3,7 +3,6 @@ title: "Claude Code Sandbox Guide: Setup, Config & Security (2026)"
 description: "Set up Claude Code sandboxing for filesystem and network isolation. Covers macOS Seatbelt, Linux bubblewrap, and security config."
 slug: sandboxing-guide
 date: 2026-02-03
-image: /img/blog/sandboxing-guide.png
 authors:
   - max-ritter
 tags:

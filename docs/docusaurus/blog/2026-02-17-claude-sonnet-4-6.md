@@ -3,7 +3,6 @@ title: "Claude Sonnet 4.6: Specs, Benchmarks & Pricing 2026"
 description: "Sonnet 4.6 delivers Opus-level intelligence at $3/$15 per million tokens. 70% preferred over Sonnet 4.5 in coding. Full specs and benchmarks."
 slug: claude-sonnet-4-6
 date: 2026-02-17
-image: /img/blog/claude-sonnet-4-6.png
 authors:
   - max-ritter
 tags:

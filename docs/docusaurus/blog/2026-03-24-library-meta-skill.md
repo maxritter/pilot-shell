@@ -3,7 +3,6 @@ title: "Claude Code Library: Sync .claude Configs Across Projects"
 description: "Build a central library to manage .claude folders across projects. One repo for skills, agents, commands, hooks, and configs."
 slug: library-meta-skill
 date: 2026-03-24
-image: /img/blog/library-meta-skill.png
 authors:
   - max-ritter
 tags:

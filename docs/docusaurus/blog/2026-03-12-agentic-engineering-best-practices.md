@@ -3,7 +3,6 @@ title: "Claude Code Best Practices: 5 Agentic Engineering Techniques"
 description: "Five Claude Code best practices that top engineers use daily. PRDs, modular rules, commands, context resets, and system evolution patterns."
 slug: agentic-engineering-best-practices
 date: 2026-03-12
-image: /img/blog/agentic-engineering-best-practices.png
 authors:
   - max-ritter
 tags:

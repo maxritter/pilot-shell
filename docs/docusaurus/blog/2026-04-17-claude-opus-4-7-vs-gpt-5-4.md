@@ -3,7 +3,6 @@ title: "Claude Opus 4.7 vs GPT-5.4: Coding, Tools, Vision"
 description: "Opus 4.7 beats GPT-5.4 on SWE-bench Pro by 6.6 points. Full comparison: coding, tools, vision, pricing, agentic reliability."
 slug: claude-opus-4-7-vs-gpt-5-4
 date: 2026-04-17
-image: /img/blog/claude-opus-4-7-vs-gpt-5-4.png
 authors:
   - max-ritter
 tags:

@@ -3,7 +3,6 @@ title: "Claude Code 1M Context Window: What It Means for You"
 description: "Claude Code's 1M context window is live at no extra cost. Load entire codebases, run agents for hours, and stop managing tokens."
 slug: 1m-context-ga
 date: 2026-03-13
-image: /img/blog/1m-context-ga.png
 authors:
   - max-ritter
 tags:

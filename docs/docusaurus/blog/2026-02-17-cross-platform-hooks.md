@@ -3,7 +3,6 @@ title: "Claude Code Hooks on Windows, Linux, and macOS (2026)"
 description: "Claude Code hooks for Windows, Linux, and macOS. One Node.js file, zero platform wrappers. Cross-platform patterns and working examples."
 slug: cross-platform-hooks
 date: 2026-02-17
-image: /img/blog/cross-platform-hooks.png
 authors:
   - max-ritter
 tags:

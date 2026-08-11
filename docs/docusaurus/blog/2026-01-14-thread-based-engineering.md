@@ -3,7 +3,6 @@ title: "Thread-Based Engineering: Scale Claude Code Sessions"
 description: "Master the 6 thread types: P-threads, L-threads, B-threads, and more. The complete framework for running parallel Claude Code sessions at scale."
 slug: thread-based-engineering
 date: 2026-01-14
-image: /img/blog/thread-based-engineering.png
 authors:
   - max-ritter
 tags:

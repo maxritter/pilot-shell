@@ -3,7 +3,6 @@ title: "Claude Code Routines: AI Automation Replacing No-Code Tools"
 description: "Set up Claude Code routines that run on schedule, API call, or webhook. Replace no-code automation workflows with natural language prompts."
 slug: routines-guide
 date: 2026-04-14
-image: /img/blog/routines-guide.png
 authors:
   - max-ritter
 tags:

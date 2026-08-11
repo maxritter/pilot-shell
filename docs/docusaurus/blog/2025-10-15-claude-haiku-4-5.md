@@ -3,7 +3,6 @@ title: "Claude Haiku 4.5: Fast, Cheap, and Surprisingly Capable"
 description: "Claude Haiku 4.5 launched October 2025 as the budget 4.5 model. Smart model switching made it the default for routine Claude Code tasks."
 slug: claude-haiku-4-5
 date: 2025-10-15
-image: /img/blog/claude-haiku-4-5.png
 authors:
   - max-ritter
 tags:

@@ -3,7 +3,6 @@ title: "Claude Code Subscription: Safe Use Without a Ban"
 description: "How to use your Claude Code subscription safely. The one rule, three tiers of use (safe, gray, bannable), and when to switch to an API key."
 slug: claude-code-subscription
 date: 2026-04-30
-image: /img/blog/claude-code-subscription.png
 authors:
   - max-ritter
 tags:

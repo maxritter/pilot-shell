@@ -3,7 +3,6 @@ title: "OpenClaw vs Claude Code: Which Should You Use? (2026)"
 description: "OpenClaw is a viral AI life assistant. Claude Code is a purpose-built coding agent. A developer's breakdown of when to use each tool."
 slug: openclaw-vs-claude-code
 date: 2026-02-16
-image: /img/blog/openclaw-vs-claude-code.png
 authors:
   - max-ritter
 tags:

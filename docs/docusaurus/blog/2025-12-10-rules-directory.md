@@ -3,7 +3,6 @@ title: "Claude Code Rules Directory: Modular Instructions That Scale"
 description: "Organize Claude Code instructions into modular files with path-specific targeting. Rules activate only where they matter, saving context tokens."
 slug: rules-directory
 date: 2025-12-10
-image: /img/blog/rules-directory.png
 authors:
   - max-ritter
 tags:
