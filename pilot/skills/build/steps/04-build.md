@@ -34,6 +34,8 @@ Name the production change that would make the test fail before writing the asse
 
 Append every path you create or modify to `## Changed Files`, in the same edit that ticks the task. A path enters only when this run wrote to it, and Step 6 stages nothing outside it — so a file the user already had dirty can never be swept into the review or a commit. The conversation is not an inventory; compaction erases it.
 
+⛔ **Record paths repo-relative, never as absolute worktree paths.** On a `Worktree: Yes` run the files live under the checkout, but Step 6 stages this ledger and Step 7 merges it back to the base branch, where an absolute `/…/.worktrees/spec-<slug>-<hash>/src/x.ts` resolves to nothing. `src/x.ts` is correct in both trees.
+
 ### 4.4 Tasks are allowed to change — that is the design
 
 `/build` skips upfront planning precisely so the task list can absorb what you learn. When the work teaches you something:
@@ -91,7 +93,7 @@ Once every `- [ ] Task N:` is ticked, mark the round's build half done **before*
 2. Register it:
 
    ```bash
-   ~/.pilot/bin/pilot register-plan "<buildout_path>" "COMPLETE" 2>/dev/null || true
+   ~/.pilot/bin/pilot register-plan "<buildout_path>" "COMPLETE" $LANE_FLAG 2>/dev/null || true
    ```
 
 `COMPLETE` means *every task is ticked and the judge pass is outstanding* — the same meaning it carries in `/spec`, where it marks implementation done and verification pending. The statusline flips to `judge` for the duration of the pass, and the stop guard switches to demanding the judge run. Setting it only after judging succeeded would make the `judge` phase invisible and would tell the stop guard the opposite of the truth.

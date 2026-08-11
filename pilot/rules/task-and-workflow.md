@@ -199,7 +199,11 @@ The phase skills carry their own contracts — dispatch rules, toggles, plan reg
 
 **`/spec` — four user interaction points, and no more:** branch/type confirmation (new plans), plan approval, worktree sync approval (`Worktree: Yes` only), and the final code-review gate. Everything else is automatic — **never ask "should I fix these findings?"**, since verification fixes are part of the approved plan.
 
-**`/build` — three, and no more:** goal/reference confirmation (a reference only when one genuinely exists and the user did not name it), approval of the drafted tasks and criteria, and hand-back. A failing criterion is never an interaction point — it becomes the next round's tasks. **Never ask "should I keep going?"**; the criteria and the three-round budget answer that.
+**`/build` — three, and no more:** goal/reference confirmation (a reference only when one genuinely exists and the user did not name it), approval of the drafted tasks and criteria, and hand-back. A failing criterion is never an interaction point — it becomes the next round's tasks. **Never ask "should I keep going?"**; the criteria and the three-round budget answer that. On `Worktree: Yes` a merge-back choice (squash / keep / discard) rides along with the hand-back rather than adding a fourth.
+
+**`/fix` — one, and only when approval is enabled:** the end-of-flow confirmation. On `Worktree: Yes` the merge-back choice rides along with it. The branch question, when Branch Isolation is on and no flag was given, is asked once before Step 1 and is part of invoking the command, not the flow.
+
+**Worktree isolation is available in all three**, via the shared `spec-branch-setup.md` runbook: `--worktree=yes` for an isolated checkout squash-merged back at the end, `--new-branch` for a fresh branch off the default. Each workflow owns its own merge-back.
 
 ⛔ **An auto-continued question is not an answer.** An `AskUserQuestion` result reading "No response after Ns — continued without an answer" means the user has not responded. Treat it as silence at any interaction point: don't act on the recommended option, don't infer approval, re-ask when they return.
 

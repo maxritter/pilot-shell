@@ -43,22 +43,18 @@ CODEX-END -->
 
    The user can pause at this prompt, annotate in the Console's Specifications tab (auto-saves), or edit the plan file directly, then pick option 2. No "ready" handshake required.
 
-<!-- CODEX-START
-   ⛔ Codex pause: the prompt above renders as a plain-text numbered list — it is NOT an interactive blocking control, so you must yield to the user yourself. Before evaluating any answer:
+   ⛔ **When you cannot emit `AskUserQuestion`** — on Codex, where it renders as a plain-text list rather than an interactive control, or as a Claude Code subagent running this bugfix as an orchestration lane, where the tool is absent entirely — the prompt above will not block for an answer, so you must yield yourself. Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Bugfix plan approval`, `OPTIONS` = the two above, `SENTINEL_PATH` = `spec-approval-pending`:
 
    ```bash
-   mkdir -p "$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}" && \
-     touch "$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}/spec-approval-pending"
+   SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+   mkdir -p "$SESS_DIR" && touch "$SESS_DIR/spec-approval-pending"
    ```
 
-   Then **end your turn**. The stop guard honors this sentinel while the plan is unapproved and will allow the stop, so the user can answer. Treat the user's NEXT message as their choice. Do NOT set `Approved: Yes` in this same turn, and do NOT proceed to implementation.
-
-   On resume (user has replied), delete the sentinel first, then act on their choice in step 3:
+   Then **end your turn**. The stop guard honours this sentinel while the plan is unapproved, so the user can answer. Treat their NEXT message as the choice. Do NOT set `Approved: Yes` in this same turn, and do NOT proceed to implementation. On resume, delete the sentinel first, then act on their choice in step 3:
 
    ```bash
-   rm -f "$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}/spec-approval-pending"
+   rm -f "$SESS_DIR/spec-approval-pending"
    ```
-CODEX-END -->
 
 3. **Yes:** Set `Approved: Yes`, then jump to **6.3 Model switch + implementation handoff**.
    **No, I have feedback:** Re-run Step 5 (process Console annotations), re-read the plan file (in case the user edited it), then return to 6.2 and ask again (Codex: re-touch the `spec-approval-pending` sentinel and end your turn again).

@@ -6,15 +6,21 @@
 
 **Always run this first**, whether or not changes-review is enabled. Spec-review findings are planning-phase artifacts already addressed during implementation; a leftover changes-review findings file is the *previous* run's output and would be read as if it reviewed this iteration's diff.
 
+⛔ **Scope the sweep to THIS plan's slug.** A bare `findings-*-review-*.json` wildcard deletes every concurrent orchestration lane's findings too — including one a reviewer is still writing — because `$SESS_DIR` resolves identically for a coordinating session and every subagent it dispatches (issue #173). On a lane run (`--lane <id>`), sweep `$SESS_DIR/lanes/<lane>` instead, where nothing else can collide.
+
 ```bash
 SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+RUN_DIR="$SESS_DIR"            # on a lane run: "$SESS_DIR/lanes/<lane>"
 FIND_BIN="/usr/bin/find"
 [ -x "$FIND_BIN" ] || FIND_BIN="$(command -v find)"
-test -d "$SESS_DIR" && "$FIND_BIN" "$SESS_DIR" -maxdepth 1 -name 'findings-spec-review-*.json' -delete
-test -d "$SESS_DIR" && "$FIND_BIN" "$SESS_DIR" -maxdepth 1 -name 'findings-changes-review-*.json' -delete
+test -d "$RUN_DIR" && "$FIND_BIN" "$RUN_DIR" -maxdepth 1 -name 'findings-spec-review-<plan-slug>*.json' -delete
+test -d "$RUN_DIR" && "$FIND_BIN" "$RUN_DIR" -maxdepth 1 -name 'findings-changes-review-<plan-slug>*.json' -delete
+LAUNCHED_AT=$(date +%s)   # freshness floor for Step 3's collection
 ```
 
 Use the absolute `FIND_BIN` form: the Pilot shell hook may rewrite a plain `find` to RTK, which rejects the `-delete` predicate shape this needs.
+
+**Carry `LAUNCHED_AT` to Step 3.** A findings file whose mtime predates the launch is a stale artifact, not this review's result — treat it as absent. Namespacing makes that unlikely; the timestamp closes the residual window.
 
 ### 1b: Resolve the review diff scope and stage (before ANY reviewer launches)
 
@@ -42,7 +48,9 @@ If the JSON carries a `warning`, surface it — the scope degraded to the workin
 **If the command is unavailable** (older `pilot` binary), resolve by hand:
 
 - Uncommitted → `git diff HEAD`.
-- Worktree mode → `git diff <base_ref>...HEAD`, with `<base_ref>` from `~/.pilot/bin/pilot worktree detect --json <slug>`.
+> **`$LANE_FLAG`** is `--lane <id>` when this run was dispatched as an orchestration lane, and **nothing at all** otherwise — the value the invocation parsed from its arguments. It keeps worktree and plan identity scoped to this lane; an unflagged call resolves a different identity and silently finds nothing (issue #174).
+
+- Worktree mode → `git diff <base_ref>...HEAD`, with `<base_ref>` from `~/.pilot/bin/pilot worktree detect --json <slug> $LANE_FLAG`.
 - Three dots, always. Two dots diff against the base branch's live tip, rendering its post-fork commits into the review inverted.
 - The *detected* base branch, never a hardcoded `main` — a worktree forked from `dev` would otherwise drag in every `dev`-only commit.
 - `pilot worktree status` is the wrong command here: it takes no slug and is session-scoped, not plan-scoped.

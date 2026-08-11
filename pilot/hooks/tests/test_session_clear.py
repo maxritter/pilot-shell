@@ -203,3 +203,56 @@ def test_tolerates_already_missing_files(tmp_path: Path):
 
     assert result == 0
     assert not (session_dir / "active_plan.json").exists()
+
+
+def test_clear_sweeps_lane_directories(tmp_path: Path):
+    """Orchestration lanes keep their state in sessions/<id>/lanes/<lane>/.
+
+    /clear must reach it: a lane's stale active_plan.json left behind would be read
+    back by the next run that happens to reuse the same lane id, resurrecting a plan
+    the user explicitly cleared.
+    """
+    session_dir = tmp_path / "sessions" / "42"
+    alpha = session_dir / "lanes" / "alpha"
+    beta = session_dir / "lanes" / "beta"
+    for lane in (alpha, beta):
+        lane.mkdir(parents=True)
+        (lane / "active_plan.json").write_text("{}")
+        (lane / "spec-approval-pending").write_text("")
+        (lane / "findings-changes-review-x.json").write_text("{}")
+    (session_dir / "active_plan.json").write_text("{}")
+
+    with (
+        patch.dict(os.environ, {"PILOT_SESSION_ID": "42"}, clear=True),
+        patch.object(session_clear, "SESSIONS_DIR", tmp_path / "sessions"),
+    ):
+        assert session_clear.main() == 0
+
+    assert not (session_dir / "active_plan.json").exists()
+    for lane in (alpha, beta):
+        assert not (lane / "active_plan.json").exists(), f"{lane.name} plan survived /clear"
+        assert not (lane / "spec-approval-pending").exists()
+        assert not (lane / "findings-changes-review-x.json").exists()
+    assert not (session_dir / "lanes").exists(), "emptied lane dirs should not be left behind"
+
+
+def test_clear_preserves_lane_worktree_records(tmp_path: Path):
+    """worktree.json tracks a physical git resource that outlives /clear.
+
+    The session-level rule already exempts it; the lane sweep must not be stricter
+    than the sweep it mirrors, or /clear would orphan a live git worktree.
+    """
+    session_dir = tmp_path / "sessions" / "42"
+    alpha = session_dir / "lanes" / "alpha"
+    alpha.mkdir(parents=True)
+    (alpha / "active_plan.json").write_text("{}")
+    (alpha / "worktree.json").write_text('{"branch": "spec/x-alpha"}')
+
+    with (
+        patch.dict(os.environ, {"PILOT_SESSION_ID": "42"}, clear=True),
+        patch.object(session_clear, "SESSIONS_DIR", tmp_path / "sessions"),
+    ):
+        assert session_clear.main() == 0
+
+    assert not (alpha / "active_plan.json").exists()
+    assert (alpha / "worktree.json").exists(), "a live git worktree record must survive /clear"

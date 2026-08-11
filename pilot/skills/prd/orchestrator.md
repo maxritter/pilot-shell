@@ -66,6 +66,7 @@ Combine related decisions into one call rather than serialising them — approac
 
 <!-- CC-ONLY -->
 **Use the `AskUserQuestion` tool for user questions during convergent phases (Steps 4-8)** — it renders a structured form; don't fall back to plain-text numbered questions.
+
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 **Use plain-text numbered options for user questions** — the Claude question tool isn't callable in Codex. Present 2-4 concrete options with trade-offs, and wait for the user's response.
@@ -80,3 +81,5 @@ For Codex, PRD quality means enough product clarity to hand off to `$spec`, not 
 - Ask at most two decision prompts before the PRD draft: one scope/requirements prompt and one approach/scope confirmation prompt. If the answer is reversible, document the assumption and draft.
 - Do not keep ideating after a viable direction exists. Capture alternatives as deferred ideas and move to the PRD.
 CODEX-END -->
+
+**Whenever you cannot render a structured question** — as a Claude Code subagent, where `AskUserQuestion` is absent, or wherever it degrades to plain text — read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it for every question in Steps 1–6 and 8, with `SENTINEL_PATH` = `none` (a PRD registers no plan, so no stop guard is holding the session open). These questions elicit rather than authorise, so the runbook's "never resolve the gate yourself" reads here as: **never invent the user's answer and write it into the PRD as though it were given.** A requirement nobody stated, recorded as if they had, is the PRD equivalent of a self-approved plan. The defaults exit above is the sanctioned way to proceed without answers — and it is the user's to take, not yours.

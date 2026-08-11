@@ -11,7 +11,10 @@ If any of the three is false → return to Step 10 and re-ask. Common traps that
 **When ALL passes AND user approves:**
 
 1. Set `Status: VERIFIED` in plan
-2. Register: `~/.pilot/bin/pilot register-plan "<plan_path>" "VERIFIED" 2>/dev/null || true`
+2. Register: `~/.pilot/bin/pilot register-plan "<plan_path>" "VERIFIED" $LANE_FLAG 2>/dev/null || true`
+
+> **`$LANE_FLAG`** is `--lane <id>` when this run was dispatched as an orchestration lane, and **nothing at all** otherwise — the value the planning phase parsed from its arguments. It keeps the registration in `sessions/<id>/lanes/<lane>/` rather than the coordinator's single slot, which is what stops a lane's plan blocking the coordinator's stop guard (issue #174). Skills build into separate SKILL.md files, so this is restated wherever the placeholder is used.
+
 3. Re-check any Goal Verification truth that was pending only on final status. At minimum, grep the plan header for `^Status: VERIFIED$`; if a truth also references task checkboxes or artifacts, re-check those exact paths/lines before reporting it verified.
 4. Report completion with summary:
    ```
@@ -66,7 +69,7 @@ CODEX-END -->
 
 1. Add fix tasks to plan
 2. Set `Status: PENDING`, increment `Iterations`
-3. Register: `~/.pilot/bin/pilot register-plan "<plan_path>" "PENDING" 2>/dev/null || true`
+3. Register: `~/.pilot/bin/pilot register-plan "<plan_path>" "PENDING" $LANE_FLAG 2>/dev/null || true`
 4. Write `## Verification Gaps` table to plan (overwrite if exists):
    ```markdown
    | Gap | Type | Severity | Affected Files | Fix Description |

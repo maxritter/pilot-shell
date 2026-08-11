@@ -1,6 +1,9 @@
 ## Step 2: Status-Based Dispatch (existing plans)
 
-Read plan, register association: `~/.pilot/bin/pilot register-plan "<plan_path>" "<status>" 2>/dev/null || true`
+**`$LANE_FLAG`** is `--lane <id>` when the invocation carried one (Step 1.2a) and **nothing at all** otherwise — a re-entry into an existing lane's plan must register back into that lane's directory, not the coordinator's slot.
+
+Read plan, register association: `~/.pilot/bin/pilot register-plan "<plan_path>" "<status>" $LANE_FLAG 2>/dev/null || true`
+
 
 | Status | Approved | Type | Skill |
 |--------|----------|------|-------|

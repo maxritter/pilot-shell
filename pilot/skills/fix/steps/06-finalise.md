@@ -50,8 +50,10 @@ A bare `git add -N` is not enough — `git status` still reports the path as unt
 For `/fix` the "plan" is this conversation, not a file. Both reviewers anchor on a plan artifact — the changes-review sub-agent and the Codex companion — so build one:
 
 ```bash
-SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"; mkdir -p "$SESS_DIR"
-FIX_PLAN_FILE="$SESS_DIR/fix-review-plan.md"
+SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+RUN_DIR="$SESS_DIR"            # on a lane run (--lane <id>): "$SESS_DIR/lanes/<lane>"
+mkdir -p "$RUN_DIR"
+FIX_PLAN_FILE="$RUN_DIR/fix-review-plan-<fix-slug>.md"
 cat > "$FIX_PLAN_FILE" <<'PLAN_EOF'
 # /fix Bugfix Summary
 Bug: <one-line bug>
@@ -61,7 +63,9 @@ Reproducing test: <test file>::<test name> (added in Step 2 RED)
 PLAN_EOF
 ```
 
-Session-isolated and deterministic (no `/tmp`, no `$$`): later Bash calls, the reviewer prompt, and cleanup all reconstruct this path from outside that shell.
+Run-isolated and deterministic (no `/tmp`, no `$$`): later Bash calls, the reviewer prompt, and cleanup all reconstruct this path from outside that shell.
+
+⛔ **`<fix-slug>` is not decoration.** `$SESS_DIR` resolves identically for a coordinating session and every subagent lane it dispatches, so a fixed `fix-review-plan.md` is one file every concurrent `/fix` shares — and the reviewer then anchors on a sibling's bug summary (issue #173). Reuse the `<fix-slug>` derived in Step 1.1; on a lane run the lane directory does the work instead.
 
 #### 6.1.a Codex companion review — launch FIRST when `PILOT_CODEX_CHANGES_REVIEW_ENABLED == "true"`
 
@@ -70,9 +74,11 @@ An independent second opinion, launched before the inline review so the two run 
 **Codex-once:** at most one companion run per `/fix` invocation. Check the sentinel first; if it exists, a prior approval-gate loop already ran it — skip the launch and the Codex half of 6.1.c.
 
 ```bash
-CODEX_FLAG="$SESS_DIR/codex-changes-review-ran-fix.flag"
+CODEX_FLAG="$RUN_DIR/codex-changes-review-ran-<fix-slug>.flag"
 [ -f "$CODEX_FLAG" ] && echo "Codex already reviewed this fix in this session — skipping (codex-once)."
 ```
+
+⛔ Slug-scoped, not fixed: a shared flag means a sibling lane's completed Codex run makes THIS lane skip its own review entirely, while its report still claims one ran.
 
 Otherwise **read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/codex-companion-protocol.md` and follow it end to end** (locate → render → launch → stall monitor → collect → mark). It is the single source of truth for the companion run loop. Supply:
 
@@ -83,7 +89,7 @@ Otherwise **read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/codex-companion-pro
 | `{{PLAN_GOAL}}` | `Bugfix for: <one-line bug>. Root cause at <file>:<line>. The reproducing test must reliably fail before the fix and pass after.` |
 | `{{BASE_REF}}` | `HEAD` — the fix is staged, not committed |
 | `{{CHANGED_FILES}}` | `git status --short --untracked-files=all` paths for this fix |
-| `SLUG` | `fix` |
+| `SLUG` | `<fix-slug>` — never the literal `fix`; the protocol expands it into `codex-review-$SLUG.md` and `codex-result-$SLUG.json`, which two concurrent runs would otherwise share |
 | `CODEX_FLAG` | the path above |
 
 Launch, then **continue to 6.1.b immediately** — the changes review runs while Codex churns. Collect in 6.1.c. If the companion is missing or its job never registers, continue with the 6.1.b results and note the gap in the 6.6 report.
@@ -93,9 +99,12 @@ Launch, then **continue to 6.1.b immediately** — the changes review runs while
 Launch the changes-review sub-agent in the background:
 
 ```bash
-FINDINGS_PATH="$SESS_DIR/findings-changes-review-fix.json"
-rm -f "$SESS_DIR"/findings-changes-review-fix*.json   # incl. -rN files from prior runs
+FINDINGS_PATH="$RUN_DIR/findings-changes-review-<fix-slug>.json"
+rm -f "$RUN_DIR"/findings-changes-review-<fix-slug>*.json   # incl. -rN files from prior runs
+LAUNCHED_AT=$(date +%s)   # freshness floor — see the collection step below
 ```
+
+⛔ **The glob must carry `<fix-slug>`.** A bare `findings-changes-review-*` sweep deletes every sibling lane's findings, including one a reviewer is still writing (issue #173).
 
 ```
 Agent(
@@ -116,10 +125,18 @@ Agent(
 Wait by polling the file — ⛔ never `TaskOutput`, which dumps the whole agent transcript into context:
 
 ```bash
-for i in $(seq 1 150); do [ -f "$FINDINGS_PATH" ] && echo READY && break; sleep 2; done
+# Freshness floor: a findings file older than the launch is NOT this review's
+# result. Namespacing makes a collision unlikely; this closes the residual window
+# where two runs derive the same slug from near-identical bug descriptions.
+# `date -r FILE` reads mtime on both BSD/macOS and GNU - do NOT swap in `stat`,
+# whose flag differs per platform (-f vs -c).
+for i in $(seq 1 150); do
+  [ -f "$FINDINGS_PATH" ] && [ "$(date -r "$FINDINGS_PATH" +%s)" -ge "$LAUNCHED_AT" ] && echo READY && break
+  sleep 2
+done
 ```
 
-Run that as `Bash(run_in_background=true, timeout=330000)` (the 5-min loop exceeds the foreground timeout; `sleep` is allowed in background and you are notified on exit), then Read the file once. Not READY afterwards usually means slow, not dead — relaunch ONCE with a fresh output path (`findings-changes-review-fix-r2.json`) and poll that. Never reuse an in-flight path: a late write from the superseded agent must not be collected as the fresh run.
+Run that as `Bash(run_in_background=true, timeout=330000)` (the 5-min loop exceeds the foreground timeout; `sleep` is allowed in background and you are notified on exit), then Read the file once. **Treat a file whose mtime predates `$LAUNCHED_AT` as absent, not as a result.** Not READY afterwards usually means slow, not dead — relaunch ONCE with a fresh output path (`findings-changes-review-<fix-slug>-r2.json`) and poll that. Never reuse an in-flight path: a late write from the superseded agent must not be collected as the fresh run.
 
 If the relaunch also produces nothing, continue with whatever the Codex companion returned and note the gap in the 6.6 report. ⛔ Do NOT fall back to `Skill(skill='code-review', ...)` — the call is rejected, so it produces no review at all.
 
@@ -146,8 +163,10 @@ When `PILOT_CHANGES_REVIEW_ENABLED` is not `"false"`, run the managed Codex `cha
 1. Build a one-page bugfix summary as the review anchor:
 
 ```bash
-SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"; mkdir -p "$SESS_DIR"
-FIX_PLAN_FILE="$SESS_DIR/fix-review-plan.md"
+SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+RUN_DIR="$SESS_DIR"            # on a lane run (--lane <id>): "$SESS_DIR/lanes/<lane>"
+mkdir -p "$RUN_DIR"
+FIX_PLAN_FILE="$RUN_DIR/fix-review-plan-<fix-slug>.md"
 cat > "$FIX_PLAN_FILE" <<'PLAN_EOF'
 # Bugfix Summary
 Bug: <one-line bug>
@@ -180,9 +199,9 @@ result = multi_agent_v1.wait_agent(targets=[review.agent_id], timeout_ms=600000)
 4. Lineage first — a finding outside the fix file, its test, and files the fix legitimately touched is mention-only regardless of severity. Otherwise: `must_fix` → fix now; `should_fix` → fix when single-site (else summarise and let the user decide); `suggestion` → mention. After any fix, re-run the targeted test + full suite. Then `rm -f "$FIX_PLAN_FILE"`.
 CODEX-END -->
 
-### 6.2 Worktree mode — single commit
+### 6.2 Worktree mode — single commit, then merge back
 
-Only when this session is already inside a `.worktrees/spec-*` checkout. Bundle test + fix + any review-driven fixes into one commit:
+Only when a worktree is active — confirm with `~/.pilot/bin/pilot worktree detect --json <fix-slug> $LANE_FLAG` (add `--lane <id>` on a lane run), never a path glob. Bundle test + fix + any review-driven fixes into one commit:
 
 ```bash
 git add <test_file> <fix_file>
@@ -191,6 +210,22 @@ git commit -m "fix: <one-line description>" -m "Root cause: <file>:<line> — <w
 
 The conventional `fix:` prefix triggers a patch release if this branch ships. Don't split into multiple commits in the quick lane. The body is the Step 1.5 statement with its `Confidence` tail dropped (the template already carries the `Root cause:` prefix — don't repeat it inside the placeholder); it gives the next debugger the confirmed cause straight from `git log`.
 
+**Then merge back — `/fix` owns this, it is not the caller's to bolt on.** One Bash call, chained, so a failed sync can never be followed by a cleanup that deletes the work:
+
+```bash
+~/.pilot/bin/pilot worktree sync --json <fix-slug> $LANE_FLAG && \
+  PROJECT_ROOT=$(~/.pilot/bin/pilot worktree cleanup --force --json <fix-slug> $LANE_FLAG | jq -r '.project_root') && \
+  cd "$PROJECT_ROOT"
+```
+
+⛔ Never split sync, cleanup, and `cd` across Bash calls — a compaction between them loses the thread mid-merge.
+
+**Exit codes.** `0` clean · `1` nothing landed · **`2` the squash landed but the base checkout's own uncommitted work could not be restored** and is sitting in `git stash list`. The `&&` chain stops on 2 by itself, deliberately leaving the worktree in place. Do NOT re-run cleanup to finish the job: surface the JSON's `stash_warning` and the `git stash pop` recovery first. `success: true` is still correct — the merge landed; only the unrelated local work is stranded.
+
+**Lane contention.** Sync serializes on a repo-wide lock. A failure naming lane contention means a sibling held it past the timeout and **nothing was changed** — retry once it finishes.
+
+**After a successful merge, re-run the full suite on the merged base branch** (Step 5.2's command). The base may have moved since the worktree forked, and a clean lane branch can still break on integration.
+
 ### 6.3 Approval gate (when enabled)
 
 ⛔ **The approval summary must contain what you actually ran and observed in Step 4.** If you cannot fill in `E2E:` with concrete evidence, Step 4 is not finished — go back rather than asking for approval.
@@ -198,6 +233,8 @@ The conventional `fix:` prefix triggers a patch release if this branch ships. Do
 Read `PILOT_PLAN_APPROVAL_ENABLED`. `"false"` → skip 6.3 entirely, mark done.
 
 Otherwise summarise and ask, offering: `"Approve — done"`, `"Request changes"`, and `"Explain the fix in more detail"` (present in the first ask only; drop it from any re-ask to avoid loops).
+
+⛔ **When you cannot emit `AskUserQuestion`** — on Codex, or as a Claude Code subagent running this fix as an orchestration lane — read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Bugfix approval`, `OPTIONS` = the three above, `SENTINEL_PATH` = `none` (`/fix` registers no plan, so no stop guard is holding the session open). Ask in prose and end your turn. Never record the fix as approved because the form was unavailable.
 
 ```
 AskUserQuestion(

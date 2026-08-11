@@ -216,7 +216,7 @@ With Ask Questions and Plan Approval off, `/build` runs goal → tasks and crite
 | The session will not stop | The stop guard is holding the loop, as designed | Let it run, or take a criterion to the round-budget question. Escape hatch: stop twice within 60s. |
 | It stopped at three rounds with criteria failing | The round budget, working | Answer the question: one more round, relax the criterion, or accept as-is. |
 | It handed back saying it was blocked | Remaining work needs something outside the session | Come back when the blocker clears; the Buildout stays `PENDING` and the run resumes from it. |
-| The Buildout is missing from the Console | It is outside the scanned directories | It must live under the project root's `docs/builds/` and be registered. A Buildout written inside a worktree checkout is filtered out by design — move it to the project root and re-register. |
+| The Buildout is missing from the Console | It is outside the scanned directories | It must live in `docs/builds/` and be registered. On an ordinary run that means the project root. On a `--worktree=yes` run it lives in the run's own worktree, which the Console accepts because the Buildout slug matches that worktree's — a Buildout dropped into an *unrelated* worktree is still filtered out by design, so move it and re-register. |
 
 ## When not to use `/build`
 

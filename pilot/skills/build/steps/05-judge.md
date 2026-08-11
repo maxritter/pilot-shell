@@ -6,6 +6,8 @@
 
 **Only when a criterion rules on runtime behaviour** — otherwise skip in one recorded line. Ruling such a criterion from source is the easiest way to pass work that does not run.
 
+⛔ **On a `Worktree: Yes` run, every tier resolves against the worktree, not the project root.** Resolve it once — `~/.pilot/bin/pilot worktree detect --json <slug> $LANE_FLAG` (add `--lane <id>` on a lane run) — and `cd` there before Tier 1. A dev server started in the base checkout, a build run from it, or a deploy uploaded from it all serve code this round did not write, and the judge then rules a criterion pass or fail against the wrong tree. That is the single most damaging way this loop can go wrong, because the verdict looks well-evidenced. The command you record below must resolve inside the worktree too, since later rounds replay it.
+
 First tier that yields a target wins:
 
 | Tier | What | Move on when |
@@ -76,7 +78,7 @@ You arrive here with `Status: COMPLETE` (set at the end of Step 4). Each branch 
 - Set `Status: PENDING` and register it — the next round has open tasks again, so `COMPLETE` would be a lie and the stop guard would demand a judge pass instead of the build:
 
   ```bash
-  ~/.pilot/bin/pilot register-plan "<buildout_path>" "PENDING" 2>/dev/null || true
+  ~/.pilot/bin/pilot register-plan "<buildout_path>" "PENDING" $LANE_FLAG 2>/dev/null || true
   ```
 
 - Go back to Step 4 and work them.
@@ -90,7 +92,7 @@ A failing criterion is never a question for the user. It is the next round's tas
 ```bash
 BUILD_SESS="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
 mkdir -p "$HOME/.pilot/sessions/$BUILD_SESS" && touch "$HOME/.pilot/sessions/$BUILD_SESS/build-handback-pending"
-~/.pilot/bin/pilot register-plan "<buildout_path>" "PENDING" 2>/dev/null || true
+~/.pilot/bin/pilot register-plan "<buildout_path>" "PENDING" $LANE_FLAG 2>/dev/null || true
 ```
 
 Then go to Step 6 (verify — the code is finished even though a criterion is not), then Step 7 to hand back. ⛔ Without that sentinel the stop guard blocks the stop and reinjects the loop, which defeats the ceiling entirely — the one failure this budget exists to prevent.
@@ -99,21 +101,16 @@ Then go to Step 6 (verify — the code is finished even though a criterion is no
 
 Three judge passes is where a converging run has converged and a stuck run has revealed why. Stop and ask.
 
-⛔ **Touch the hand-back sentinel first.** On Codex, `AskUserQuestion` is rewritten to plain-text numbered options, which means you have to end your turn to receive an answer — and for an approved `PENDING` Buildout the stop guard blocks exactly that, reinjecting you into the loop instead. Writing the sentinel is what makes this question reachable at all. On Claude Code it is a harmless no-op, so write it unconditionally rather than branching:
+⛔ **Touch the hand-back sentinel first.** Whenever you cannot render `AskUserQuestion` — on Codex, or as a Claude Code subagent running this Buildout as an orchestration lane — you have to end your turn to receive an answer, and for an approved `PENDING` Buildout the stop guard blocks exactly that, reinjecting you into the loop instead. Writing the sentinel is what makes this question reachable at all. Where you *can* render the form it is a harmless no-op, so write it unconditionally rather than branching:
 
 ```bash
 BUILD_SESS="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
 mkdir -p "$HOME/.pilot/sessions/$BUILD_SESS" && touch "$HOME/.pilot/sessions/$BUILD_SESS/build-handback-pending"
 ```
 
-Then name the failing criteria, what you tried, and why each will not close — plainly, no hedging. Offer three options:
+Then name the failing criteria, what you tried, and why each will not close — plainly, no hedging. Offer three options.
 
-<!-- CC-ONLY -->
-Ask with `AskUserQuestion`:
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-Ask with plain-text numbered options, then end your turn; the sentinel above lets the stop through. Treat the user's next message as their answer.
-CODEX-END -->
+Ask with `AskUserQuestion` when you can. **When you cannot**, read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Round budget`, `OPTIONS` = the three rows below, `SENTINEL_PATH` = `build-handback-pending` (already written above). ⛔ Never pick one of the three yourself because the form was unavailable — extending the budget is the user's call, and helping yourself to "one more round" is how a three-round ceiling becomes none.
 
 | Option | What you do |
 |---|---|

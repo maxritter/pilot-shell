@@ -14,7 +14,7 @@
 |---|---|
 | `PROMPT_TEMPLATE` | `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/spec-review-codex.md` (plans) or `changes-review-codex.md` (code) |
 | Placeholders | The template's `{{...}}` keys and their values — resolved by the caller, never guessed |
-| `SLUG` | Plan slug (filename minus `YYYY-MM-DD-` prefix and `.md`), or `fix` for `/fix` |
+| `SLUG` | The run's own identifier: a plan slug (filename minus `YYYY-MM-DD-` prefix and `.md`), or `/fix`'s `<fix-slug>` derived from the bug description. ⛔ Never a per-workflow constant — `SLUG` names `codex-review-$SLUG.md` and `codex-result-$SLUG.json` under a session dir that a coordinator and every subagent lane resolve identically, so a shared value cross-wires concurrent runs' prompts and results (issue #173). |
 | `CODEX_FLAG` | Session sentinel path enforcing codex-once |
 
 Everything below is identical across callers.

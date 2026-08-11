@@ -48,7 +48,10 @@ Three failure modes are common enough to name, because each one *feels* reasonab
 ## Critical Constraints
 
 - **No plan file.** All state lives in this conversation. After compaction, re-read the summary and resume.
-- **Worktree mode** means: this session is *already* running inside a `.worktrees/spec-*` checkout. `/fix` never creates a worktree. Where Steps 2/6 branch on "worktree mode", that branch applies only when this is already true; otherwise treat every step as working-tree mode.
+- **`/fix` owns its isolation.** It parses the same branch flags `/spec` does, creates the worktree, and owns the merge-back — see *Branch & Lane Setup* below. Where Steps 2/6 branch on "worktree mode", that branch applies whenever a worktree is active, whether `/fix` created it or the session was already inside one.
+> **`$LANE_FLAG`** is `--lane <id>` when this run was dispatched as an orchestration lane, and **nothing at all** otherwise — the value the invocation parsed from its arguments. It keeps worktree and plan identity scoped to this lane; an unflagged call resolves a different identity and silently finds nothing (issue #174).
+
+- **Detect a worktree with `pilot worktree detect --json <fix-slug> $LANE_FLAG`, never a path glob.** The old `.worktrees/spec-*` test keyed `/fix`'s isolation to a directory prefix another workflow produces; the resolver answers the same question without depending on the naming.
 - **No `Iterations:` counter.** If the fix doesn't work after one re-attempt, stop and hand off to `/spec` — don't loop.
 - **No approval mid-flow.** A single end-of-flow confirmation, and only when `PILOT_PLAN_APPROVAL_ENABLED` is enabled.
 - **Stopping is success, not failure.** Recognising "this is bigger than a quick fix" is the right call; grinding on a multi-component bug in the quick lane is the failure.
@@ -82,6 +85,40 @@ Stop and tell the user to re-invoke with `/spec` when ANY of these holds after S
 Bail out when each site needs **different** logic — entry validation *plus* a business rule *plus* a storage migration, each non-trivial. That is `/spec` territory. Steps 1.3, 3.1, and 3.2 all defer to this paragraph rather than restating it.
 
 **How to bail out:** summarise what you found (root-cause hypothesis, files involved, why it exceeds the lane) → tell the user "This bug needs the full workflow. Please re-invoke with `/spec '<bug description>'`" → do NOT invoke `spec-bugfix-plan` yourself; the user chose `/fix` → stop.
+
+---
+
+---
+
+## Branch & Lane Setup (before Step 1)
+
+**Parse the flags** off the argument string, then strip them from the bug description: `--worktree=yes|no`, `--new-branch`, `--lane <id>`. Default is `--worktree=no` — work continues on the current branch, exactly as before.
+
+**Derive `<fix-slug>`** from the bug description: kebab-case, ~40 chars. It names the worktree, the branch, and every session artifact this run writes (Steps 1.1 and 6.1), so derive it once and reconstruct it the same way every time.
+
+**Ask about branch isolation only when `PILOT_BRANCH_ISOLATION_ENABLED` is `"true"`** and the user supplied no flag — the same three options `/spec` offers, in the same order:
+
+| Option | Flag | Behaviour |
+|---|---|---|
+| **Continue on current branch** (recommended) | `--worktree=no` | Works on the current branch as-is |
+| New branch from default branch | `--new-branch` | Branches `fix/<fix-slug>` off `origin/<default>`, carrying your uncommitted work |
+| Use worktree (isolated, squash-merged after) | `--worktree=yes` | Isolated checkout, merged back at Step 6.2 |
+
+When the toggle is `"false"`, ask nothing and use `--worktree=no`.
+
+**For `--new-branch` or `--worktree=yes`,** read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/spec-branch-setup.md` and follow it with `<plan_slug>` = `<fix-slug>`, prefix `fix/`, and `<lane>` when one was supplied. Everything after this — the reproducing test included — is written inside the resulting checkout.
+
+⛔ **`--lane <id>` implies `--worktree=yes` and fails closed.** Reject `--lane` combined with `--worktree=no` or `--new-branch`, and abort rather than continuing if the worktree cannot be created. A lane that quietly lands in the coordinator's checkout races every sibling's edits.
+
+**`$LANE_FLAG`** stands for `--lane <id>` on a lane run and for **nothing at all** otherwise. **Every** `pilot worktree` call in this workflow carries it — `create`, `detect`, `diff`, `sync`, `cleanup` alike. The worktree directory and branch are keyed on `(slug, lane)`, so an unflagged `sync` resolves `spec/<slug>` rather than the `spec/<slug>-<lane>` the flagged `create` made, reports "not found", and the lane's finished work is stranded in an orphaned worktree that never reaches the base branch. Substitute it literally at each call site; shell state does not survive between Bash calls.
+
+Probe once before the first flagged call and **abort if the binary predates the flag**, rather than dropping to an unflagged call that shares the coordinator's checkout:
+
+```bash
+~/.pilot/bin/pilot worktree create --help 2>&1 | grep -q -- --lane && echo LANE_OK || echo LANE_UNSUPPORTED
+```
+
+`/fix` registers no plan, so `register-plan` never appears here — the lane flag matters only for the worktree calls.
 
 ---
 

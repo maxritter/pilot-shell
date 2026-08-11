@@ -41,13 +41,37 @@ Include **at least one measurable criterion** when the goal has a measurable hal
 
 ⛔ **Write these before building.** Criteria written after a first draft describe that draft — the standard quietly becomes whatever you happened to make.
 
+### 2.2a Settle the branch, before the Buildout exists
+
+**Parse the flags** off the argument string and strip them from the goal: `--worktree=yes|no`, `--new-branch`, `--lane <id>`. Default `--worktree=no` — the run works on the current branch, exactly as before.
+
+**Ask only when `PILOT_BRANCH_ISOLATION_ENABLED` is `"true"`** and no flag was supplied, offering the same three options `/spec` does: **Continue on current branch** (recommended) · **New branch from default branch** · **Use worktree (isolated, squash-merged after)**. When the toggle is `"false"`, ask nothing and use `--worktree=no`. This is not a fourth interaction point — it rides along with the Step 3 approval when both are needed.
+
+**For `--new-branch` or `--worktree=yes`,** read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/spec-branch-setup.md` and follow it with `<plan_slug>` = the Buildout slug, prefix `feat/`, and `<lane>` when one was supplied. Record the outcome in the header's `Worktree:` field below.
+
+⛔ **`--lane <id>` implies `--worktree=yes` and fails closed.** Reject `--lane` with `--worktree=no` or `--new-branch`, and abort rather than continuing if the worktree cannot be created — a lane sharing the coordinator's checkout races every sibling's edits, which is the whole reason it is a lane.
+
+**Everything downstream resolves against the run's checkout, not the project root** — the artifact the judge looks at (5.1a), the `## Changed Files` ledger (4.3), and Step 6's diff scope. Getting this wrong means judging one tree while building another.
+
+**`$LANE_FLAG`** stands for `--lane <id>` on a lane run and for **nothing at all** otherwise. Every `register-plan` call in Steps 2, 4, 5 and 7 carries it. Substitute it literally each time — shell state does not survive between Bash calls, so there is no variable to rely on.
+
+⛔ **Old-binary check, before the first lane-flagged call.** Run it once:
+
+```bash
+~/.pilot/bin/pilot register-plan --help 2>&1 | grep -q -- --lane && echo LANE_OK || echo LANE_UNSUPPORTED
+```
+
+`LANE_UNSUPPORTED` on a lane run → **abort and tell the user to update Pilot.** Do NOT fall back to an unflagged `register-plan`: that writes this lane's Buildout into the coordinator's `active_plan.json`, where a sibling overwrites it and the coordinator's stop guard blocks on a run it does not own — reinstating both defects while printing something that reads like a warning. On a non-lane run there is nothing to check; `$LANE_FLAG` is empty and every call is exactly as before.
+
 ### 2.3 Create the Buildout file
 
 **Do this before any building** — the statusline and the Console pick it up immediately, and the stop guard starts holding the run open.
 
-1. **Filename:** `docs/builds/YYYY-MM-DD-<slug>.md` under the **project root** — slug from the first 3–4 words of the goal (lowercase, hyphens). `mkdir -p docs/builds` first; the directory may not exist yet.
+1. **Filename:** `docs/builds/YYYY-MM-DD-<slug>.md` — slug from the first 3–4 words of the goal (lowercase, hyphens). `mkdir -p docs/builds` first; the directory may not exist yet.
 
-   ⛔ **Never write it into a worktree checkout, even when this session is running inside one.** `/build` creates no worktree, syncs none, and squash-merges nothing, so a Buildout has no reason to live there — and the Console only accepts a worktree file whose slug matches that worktree's own spec (`spec-<slug>`), so a Buildout dropped in one is filtered out and never appears.
+   **Base directory:** the **project root** on an ordinary run; **the worktree** when this run created one (2.2a). The Console accepts a worktree file whose slug matches that worktree's own (`spec-<slug>`), which the 2.2a setup guarantees — it derives both from the same slug. A Buildout dropped into an *unrelated* worktree is still filtered out and never appears, so never write it into a checkout this run does not own.
+
+   If `docs/builds/` is gitignored, copy the finished Buildout back to the project root before the Step 7 merge, the same way `spec-verify` Step 8.1 does for plans — otherwise the squash carries no record of the run.
 
 2. **Author email** (best-effort, omit the line if it fails):
 
@@ -73,7 +97,7 @@ CODEX-END -->
    Status: PENDING
    Approved: No
    Rounds: 0
-   Worktree: No
+   Worktree: [Yes|No]
    Type: Build
 
    ## Summary
@@ -118,7 +142,7 @@ CODEX-END -->
 
    **Omit the `**Reference:**` line entirely when there is none** (Step 1.3). An empty or hand-waved reference is worse than no reference.
 
-   `Type: Build` is what makes the statusline render the loop and the Console file it under **Buildouts** — the header, never the directory, is what identifies a Buildout, so a file moved between `docs/plans/` and `docs/builds/` keeps working either way. `Status:` is a closed set — `PENDING` | `COMPLETE` | `VERIFIED`, bare keyword, no trailing prose. `Rounds:` starts at 0 and is incremented by the judge, never by hand. `Worktree: No` is fixed: `/build` never runs in one.
+   `Type: Build` is what makes the statusline render the loop and the Console file it under **Buildouts** — the header, never the directory, is what identifies a Buildout, so a file moved between `docs/plans/` and `docs/builds/` keeps working either way. `Status:` is a closed set — `PENDING` | `COMPLETE` | `VERIFIED`, bare keyword, no trailing prose. `Rounds:` starts at 0 and is incremented by the judge, never by hand. `Worktree:` records what 2.2a settled — `Yes` when this run owns an isolated checkout, `No` otherwise.
 
    **The two checkbox lists have different jobs.** `## Progress Tracking` carries `- [ ] Task N:` lines — that is what the statusline and Console count. `## Acceptance Criteria` carries `- [ ] Criterion N:` lines — those are the judge's, and they stay unticked until a judge pass ticks them. Every task in `## Progress Tracking` has a matching `### Task N:` body under `## Implementation Tasks`.
 
@@ -127,7 +151,7 @@ CODEX-END -->
 5. **Register it — with an ABSOLUTE path:**
 
    ```bash
-   ~/.pilot/bin/pilot register-plan "$PWD/docs/builds/<file>.md" "PENDING" 2>/dev/null || true
+   ~/.pilot/bin/pilot register-plan "$PWD/docs/builds/<file>.md" "PENDING" $LANE_FLAG 2>/dev/null || true
    ```
 
    ⛔ **A relative path is resolved against the shell's current directory, which is not always the project root.** The Bash tool keeps its working directory between calls, so one earlier `cd` into a subdirectory silently makes `docs/builds/...` mean `<subdir>/docs/builds/...`. `register-plan` then prints `WARNING: plan registered, but the Pilot Console will NOT display it: ... is outside <subdir>/docs/builds` and the run proceeds with an invisible Buildout — no statusline, no Console, and a stop guard holding a file the user cannot see. Pass the absolute path, or `cd` to the project root in the same command. The same applies to every later `register-plan` in Steps 4, 5 and 7.

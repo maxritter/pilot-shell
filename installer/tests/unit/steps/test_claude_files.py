@@ -1968,6 +1968,29 @@ class TestAgentsCategoryAndSkips:
             dest = step._get_dest_path("agents", "pilot/agents/spec-review.md", ctx)
         assert dest == claude_dir / "agents" / "spec-review.md"
 
+    def test_gate_protocol_runbook_ships_to_the_agents_dir(self, tmp_path):
+        """Every approval gate reads this file at runtime via ~/.claude/agents/.
+
+        A shared runbook that does not get installed makes each referencing gate
+        point at nothing, which is worse than the inline copies it replaced.
+        """
+        from pathlib import Path
+        from unittest.mock import MagicMock, patch
+
+        from installer.steps.claude_files import ClaudeFilesStep, _categorize_file
+
+        repo_root = Path(__file__).resolve().parents[4]
+        source = repo_root / "pilot" / "agents" / "agent-gate-protocol.md"
+        assert source.is_file(), "the runbook the gates reference must exist in the repo"
+
+        assert _categorize_file("pilot/agents/agent-gate-protocol.md") == "agents"
+
+        step = ClaudeFilesStep()
+        claude_dir = tmp_path / ".claude"
+        with patch("installer.steps.claude_files.get_claude_config_dir", return_value=claude_dir):
+            dest = step._get_dest_path("agents", "pilot/agents/agent-gate-protocol.md", MagicMock())
+        assert dest == claude_dir / "agents" / "agent-gate-protocol.md"
+
     def test_categorize_hooks_routes_to_hooks_category(self):
         """pilot/hooks/*.py and the hooks.json config land in ~/.pilot/hooks/."""
         from installer.steps.claude_files import _categorize_file

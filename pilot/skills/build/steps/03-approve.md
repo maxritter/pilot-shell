@@ -10,22 +10,15 @@ Otherwise fold every entry in — each carries `originalText` (the passage) and 
 
 ### 3.1 The one gate
 
-<!-- CC-ONLY -->
-When `PILOT_PLAN_APPROVAL_ENABLED` is not `"false"`, ask once with `AskUserQuestion`:
+When `PILOT_PLAN_APPROVAL_ENABLED` is not `"false"`, ask once:
 
 > N tasks and M criteria drafted for GOAL. Approve to start the build-judge loop, or tell me what to change.
 
 Options: **Approve** / **Change the tasks** / **Change the criteria**.
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-When `PILOT_PLAN_APPROVAL_ENABLED` is not `"false"`, ask once with plain-text numbered options — **1. Approve**, **2. Change the tasks**, **3. Change the criteria** — then touch the approval-wait sentinel so the stop guard lets you end the turn for the answer:
 
-```bash
-touch "$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}/spec-approval-pending" 2>/dev/null || true
-```
+Render it with `AskUserQuestion` when you can. **When you cannot** — on Codex, or as a Claude Code subagent running this Buildout as an orchestration lane — read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Buildout approval`, `OPTIONS` = the three above, `SENTINEL_PATH` = `spec-approval-pending`. That sentinel is honoured only while `Approved: No`, which is exactly this moment. Delete it on resume, then act on their choice.
 
-That sentinel is honoured only while `Approved: No`, which is exactly this moment. Delete it on resume, then act on their choice.
-CODEX-END -->
+⛔ Whichever way you ask, the answer is the user's. Never set `Approved: Yes` because the form was unavailable.
 
 When the toggle is `"false"`, skip the question entirely.
 

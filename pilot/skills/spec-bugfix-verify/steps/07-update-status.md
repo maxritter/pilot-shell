@@ -10,8 +10,11 @@ If any of the three is false → return to Step 6 and re-ask. Common traps that 
 
 **All passes and user approves:** Set `Status: VERIFIED`, register:
 ```bash
-~/.pilot/bin/pilot register-plan "<plan_path>" "VERIFIED" 2>/dev/null || true
+~/.pilot/bin/pilot register-plan "<plan_path>" "VERIFIED" $LANE_FLAG 2>/dev/null || true
 ```
+
+> **`$LANE_FLAG`** is `--lane <id>` when this run was dispatched as an orchestration lane, and **nothing at all** otherwise — the value the planning phase parsed from its arguments. It keeps the registration in `sessions/<id>/lanes/<lane>/` rather than the coordinator's single slot, which is what stops a lane's plan blocking the coordinator's stop guard (issue #174). Skills build into separate SKILL.md files, so this is restated wherever the placeholder is used.
+
 Report:
 ```
 Bugfix verified — regression test passes, full suite green.

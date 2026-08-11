@@ -1,15 +1,21 @@
 ## Step 4: Worktree Sync (if worktree active)
 
-1. Detect: `~/.pilot/bin/pilot worktree detect --json <plan_slug>`
+> **`$LANE_FLAG`** is `--lane <id>` when this run was dispatched as an orchestration lane, and **nothing at all** otherwise — the value the invocation parsed from its arguments. It keeps worktree and plan identity scoped to this lane; an unflagged call resolves a different identity and silently finds nothing (issue #174).
+
+1. Detect: `~/.pilot/bin/pilot worktree detect --json <plan_slug> $LANE_FLAG`
 2. If no worktree: skip to Step 5 (the annotation check — it runs BEFORE the review gate regardless of worktree mode; never collapse Step 5 → Step 6).
 3. Save plan to project root (only if gitignored):
    `git -C <project_root> check-ignore -q docs/plans/<plan_filename>` — if exit 0: `cp <worktree_plan> <project_root>/docs/plans/`; if exit 1 (tracked): skip — squash merge brings the updated plan.
-4. Show diff: `~/.pilot/bin/pilot worktree diff --json <plan_slug>`
+4. Show diff: `~/.pilot/bin/pilot worktree diff --json <plan_slug> $LANE_FLAG`
 5. Notify + AskUserQuestion: "Yes, squash merge" | "No, keep" | "Discard"
 6. Handle:
    - **Squash:** `worktree sync && cleanup --force + cd` — ALL in ONE Bash call chained with `&&`. Cleanup MUST NOT run if sync fails.
    - **Keep:** Report path
-   - **Discard:** `cleanup --discard` + `cd` in SAME bash call (no sync needed — `--discard` explicitly allows deleting unmerged work)
+   - **Discard:** `~/.pilot/bin/pilot worktree cleanup --discard --json <plan_slug> $LANE_FLAG` + `cd` in SAME bash call (no sync needed — `--discard` explicitly allows deleting unmerged work). ⛔ `$LANE_FLAG` here too: an unflagged discard resolves a different worktree identity and silently no-ops.
 
    ⛔ NEVER split sync, cleanup, or cd into separate Bash calls — compaction between them can cause work loss.
+
+   **`worktree sync` exit codes.** `0` clean · `1` nothing landed · **`2` the squash landed but the base checkout's own uncommitted work could not be restored** and is sitting in `git stash list`. The `&&` chain stops on 2 by itself, deliberately leaving the worktree in place. Do NOT re-run cleanup to "finish the job": surface the `stash_warning` from the JSON and the `git stash pop` recovery to the user first. `success: true` in the JSON is still correct — the merge did land; only the unrelated local work is stranded.
+
+   **Lane contention.** Sync serializes on a repo-wide lock, so a concurrent lane's sync waits rather than interleaving. A failure naming lane contention means another lane held the lock past the timeout and **nothing was changed** — retry once it finishes.
 7. **Post-merge verification — MANDATORY after a successful squash merge** (parity with `spec-verify` §8.2): the base branch may have diverged, so re-run the full test suite and type check on the merged base-branch tree. Any failure means the merge broke something — fix on the base branch before reporting the bugfix verified.

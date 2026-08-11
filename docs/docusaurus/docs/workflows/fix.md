@@ -105,7 +105,9 @@ The full lane (`/spec`) adds: Behavior Contract, three-task structure, plan file
 | **Changes Review** | On | The changes review (sub-agent on Claude Code, native agent on Codex) does not audit the fix at finalise. |
 | **Codex Companion Changes Review** | Off | No second-opinion Codex review of the fix (Claude Code only; needs the Codex plugin). |
 
-When **Ask Questions** and **Plan Approval** are both off, `/fix` runs end-to-end with no user interaction. Worktree isolation is not honoured — use `/spec` if you want a worktree.
+When **Ask Questions** and **Plan Approval** are both off, `/fix` runs end-to-end with no user interaction.
+
+`/fix` takes the same branch options `/spec` does — `--worktree=yes` for an isolated checkout squash-merged back at the end, or `--new-branch` for a `fix/<slug>` branch off the default branch. With **Branch Isolation** on and no flag given, it asks; with the toggle off it works on the current branch. The merge-back is `/fix`'s own: it commits inside the worktree, syncs, and cleans up.
 
 ## When to use `/spec` vs `/fix`
 

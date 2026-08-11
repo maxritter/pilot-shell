@@ -53,14 +53,18 @@ CODEX-END -->
 **If `Worktree: Yes`:**
 
 1. Extract plan slug: `docs/plans/2026-02-09-add-auth.md` → `add-auth`
-2. Detect: `~/.pilot/bin/pilot worktree detect --json <plan_slug>`
+> **`$LANE_FLAG`** is `--lane <id>` when this run was dispatched as an orchestration lane, and **nothing at all** otherwise — the value the invocation parsed from its arguments. It keeps worktree and plan identity scoped to this lane; an unflagged call resolves a different identity and silently finds nothing (issue #174).
+
+2. Detect: `~/.pilot/bin/pilot worktree detect --json <plan_slug> $LANE_FLAG`
 3. **If found:** `cd` to the worktree `path`
 4. **If not found:** Create as fallback:
    ```bash
-   ~/.pilot/bin/pilot worktree create --json <plan_slug>
+   ~/.pilot/bin/pilot worktree create --json <plan_slug> $LANE_FLAG
    ```
    Copy plan file into worktree if needed. `cd` to worktree path.
-5. If creation fails (old git): continue without worktree.
+
+   ⛔ `$LANE_FLAG` here too, not just on the `detect` above. Worktree identity is keyed on `(slug, lane)`, so an unflagged create makes a worktree that the lane-flagged `sync`/`cleanup` in the verify phase can never find — the run's work ends up stranded in an orphaned checkout that never reaches the base branch.
+5. If creation fails (old git): continue without worktree — **unless this is a lane run**, which aborts instead (`spec-branch-setup.md`): a lane silently sharing the coordinator's checkout races every sibling's edits.
 6. Verify: `git branch --show-current` should show `spec/<plan_slug>`
 
 All subsequent work happens inside the worktree directory.

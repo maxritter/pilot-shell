@@ -44,19 +44,29 @@ echo "BRANCH_ISO=${PILOT_BRANCH_ISOLATION_ENABLED:-false} QUESTIONS=${PILOT_PLAN
 
 **⛔ When the user selects "New branch" or sends a custom response mentioning "new branch", "clean branch", or "branch from master/main": pass `--new-branch`, NOT `--worktree=yes`.** `AskUserQuestion` allows users to type a free-text "Other" response, and previously such responses requesting a new branch were misinterpreted as worktree requests. This rule applies only when `BRANCH_ISO=true` — when off, the question is not asked.
 
+### 1.2a Orchestration lanes (`--lane <id>`)
+
+A coordinating session dispatching `/spec` runs as subagents passes `--lane <id>` on each. Parse it, strip it from the task description, and forward it verbatim to the planning skill alongside the branch flag.
+
+A lane registers its plan under `sessions/<id>/lanes/<lane>/` instead of the session's single slot, because a Claude Code subagent resolves the *same* session id as its parent. Without the flag every lane's plan lands in the coordinator's `active_plan.json`: siblings overwrite each other, and the coordinator's stop guard blocks its every turn over a plan a live agent owns in another checkout (issue #174).
+
+⛔ **`--lane` implies `--worktree=yes` and fails closed.** When a lane id is supplied, ask no branch question, reject `--lane` combined with `--worktree=no` or `--new-branch`, and abort rather than continue if isolation cannot be established.
+
+⛔ **Never pass `--lane` the user did not supply.** An ordinary run stays byte-identical to today.
+
 ### 1.3 Route to Planning
 
 <!-- CC-ONLY -->
 Invoke the selected planning skill and stop in this dispatcher:
 
-- **Bugfix:** `Skill(skill='spec-bugfix-plan', args='<task_description> --worktree=yes|no|--new-branch')`
-- **Feature:** `Skill(skill='spec-plan', args='<task_description> --worktree=yes|no|--new-branch')`
+- **Bugfix:** `Skill(skill='spec-bugfix-plan', args='<task_description> --worktree=yes|no|--new-branch [--lane <id>]')`
+- **Feature:** `Skill(skill='spec-plan', args='<task_description> --worktree=yes|no|--new-branch [--lane <id>]')`
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 Codex has no callable phase-dispatch tool. Continue immediately with the selected planning phase instructions instead of stopping in the dispatcher:
 
-- **Bugfix:** continue immediately with the `$spec-bugfix-plan` skill instructions using arguments: `<task_description> --worktree=yes|no|--new-branch`
-- **Feature:** continue immediately with the `$spec-plan` skill instructions using arguments: `<task_description> --worktree=yes|no|--new-branch`
+- **Bugfix:** continue immediately with the `$spec-bugfix-plan` skill instructions using arguments: `<task_description> --worktree=yes|no|--new-branch [--lane <id>]`
+- **Feature:** continue immediately with the `$spec-plan` skill instructions using arguments: `<task_description> --worktree=yes|no|--new-branch [--lane <id>]`
 CODEX-END -->
 
 **Note:** Users who want a bugfix workflow without a plan file invoke `/fix` directly — that's a separate user-facing command. The `/spec` dispatcher does not route to `/fix`. When a user types `/spec`, they want the full spec workflow.

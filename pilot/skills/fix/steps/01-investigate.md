@@ -7,17 +7,22 @@
 - Restate **symptom**, **trigger**, **expected behaviour**.
 - **Runnable reproduction? Execute it NOW — before reading any code.** When the report names a failing test, a CI failure, or a crashing command, running it locally is the FIRST investigative action — before `git log` (1.2), before tracing (1.3), before forming any hypothesis. Capture everything:
 
+  **Derive `<fix-slug>` first** — kebab-case the bug description, ~40 chars, the same shape `/spec` uses for a plan filename. Every session artifact this run writes carries it, and you must be able to reconstruct it in a later Bash call from the bug description alone, so keep it deterministic. **Running as an orchestration lane** (`--lane <id>` — Step 6.2)? Use `$SESS_DIR/lanes/<lane>` as `RUN_DIR` instead; the lane id is already unique, so it does the namespacing on its own.
+
   ```bash
-  REPRO_LOG="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}/fix-repro.log"; mkdir -p "$(dirname "$REPRO_LOG")"
+  RUN_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"   # + /lanes/<lane> on a lane run
+  REPRO_LOG="$RUN_DIR/fix-repro-<fix-slug>.log"; mkdir -p "$(dirname "$REPRO_LOG")"
   set -o pipefail; <repro command> 2>&1 | tee "$REPRO_LOG"
   ```
 
   (`pipefail` keeps the test's failing exit status visible through the pipe — without it, `tee` reports exit 0 and a failing run looks like a pass.)
 
+  ⛔ **Never a fixed filename here.** `$SESS_DIR` resolves identically for a coordinating session and every subagent lane it dispatches, so `fix-repro.log` would be one file shared by every concurrent `/fix` (issue #173).
+
 - **Read the COMPLETE output, not just the failing assertion.** Warning lines, stderr, "exception caught/swallowed/ignored" notices, and log output *above* the failure frequently name the root cause directly — one warning line read here can replace the entire tracing phase. Skim the whole capture, then sweep it as a completeness check:
 
   ```bash
-  grep -niE "warn|error|exception|traceback|ignored|swallowed" "$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}/fix-repro.log"
+  grep -niE "warn|error|exception|traceback|ignored|swallowed" "$REPRO_LOG"   # reconstruct it as above if this is a new Bash call
   ```
 
 - **CI-only failure?** Still run the test locally first. A local pass against a CI fail is itself a finding (environment or mocking drift), and the local output is your baseline either way.

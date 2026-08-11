@@ -1243,3 +1243,49 @@ class TestPayloadSessionIdIsolation:
             "from the env and only the agent UUID in the payload, no reachable id points "
             "at the directory register-plan wrote under"
         )
+
+
+class TestLaneRegisteredPlansDoNotBlockTheCoordinator:
+    """Issue #174 defect 1, stated as behaviour.
+
+    A coordinating session dispatches /spec and /build lanes as subagents. Their
+    hook payloads are byte-identical to the parent's, so before lane scoping every
+    lane's `pilot register-plan` landed in the coordinator's own active_plan.json -
+    and this guard then blocked the COORDINATOR's every stop attempt, telling it to
+    "IMMEDIATELY continue working" on a plan a live agent owns in another checkout.
+
+    The fix is that the guard keeps reading only sessions/<id>/active_plan.json.
+    These tests pin BOTH directions, so the guard cannot be "fixed" by disabling it.
+    """
+
+    def _plan(self, tmp_path: Path) -> tuple[Path, Path]:
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+        plan_file = plans_dir / "2026-08-11-lane-plan.md"
+        plan_file.write_text("# Lane Plan\n\nStatus: PENDING\nApproved: Yes\n")
+        return plans_dir, plan_file
+
+    def test_a_lanes_pending_plan_does_not_block_the_coordinator(self, tmp_path: Path) -> None:
+        plans_dir, plan_file = self._plan(tmp_path)
+
+        lane_dir = _test_session_dir() / "lanes" / "alpha"
+        lane_dir.mkdir(parents=True, exist_ok=True)
+        (lane_dir / "active_plan.json").write_text(json.dumps({"plan_path": str(plan_file), "status": "PENDING"}))
+
+        exit_code, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+
+        assert exit_code == 0
+        assert not _is_blocked(stdout), (
+            "the coordinator was blocked over a plan a lane registered - it does not "
+            "own that plan and must not be told to continue working on it"
+        )
+
+    def test_the_same_plan_registered_without_a_lane_still_blocks(self, tmp_path: Path) -> None:
+        """The control. Without it, deleting the guard entirely would pass the test above."""
+        plans_dir, plan_file = self._plan(tmp_path)
+        _register_plan_for_session(plan_file, "PENDING")
+
+        exit_code, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+
+        assert exit_code == 0
+        assert _is_blocked(stdout)

@@ -61,6 +61,75 @@ def test_workflow_skills_do_not_hardcode_bare_tmp() -> None:
     )
 
 
+# A session-directory artifact whose filename carries no per-run component.
+#
+# `$SESS_DIR` resolves identically for a coordinating session and every subagent
+# lane it dispatches (their hook payloads are byte-identical), so a fixed filename
+# is shared by every concurrent run by construction. The observed damage: one lane
+# read a sibling's changes-review findings as its own - a CLEAN report belonging to
+# another diff, read as evidence this one is clean - and one lane's `rm -f` glob
+# deleted a sibling's findings mid-write (issue #173).
+#
+# A run component is `<slug>`, `<lane>`, `<plan-slug>`, `<agent>`, or a shell
+# expansion. Matching the ASSIGNMENT form keeps this robust to rewording: prose
+# mentioning a filename is not an offence, writing one is.
+_FIXED_SESSION_ARTIFACT = re.compile(
+    r"""(?x)
+    (?:
+        \$(?:SESS_DIR|\{SESS_DIR\})     # the $SESS_DIR shorthand
+      # ...or the long form. `[^/]*` rather than `[^}]*`: the session-id chain
+      # nests braces (${A:-${B:-${C:-default}}}) but never contains a slash.
+      | \$HOME/\.pilot/sessions/\$\{[^/]*\}
+      | \$HOME/\.pilot/sessions/\$[A-Za-z_]+
+    )/
+    (?P<name>[A-Za-z0-9._-]+)           # a literal filename, no expansion
+    (?=["'`\s)]|$)
+    """
+)
+
+# Placeholders that make a filename per-run rather than per-session.
+_RUN_COMPONENT = re.compile(r"<[^>]+>|\$\{?[A-Za-z_]")
+
+# Session-level signals that are deliberately ONE per session, not per run: the
+# stop guard resolves them from the session dir alone, and a lane that wrote its
+# own copy would be signalling into a file no guard reads.
+_SESSION_SCOPED_BY_DESIGN = frozenset(
+    {
+        "spec-approval-pending",
+        "manual-switch-pending",
+        "build-handback-pending",
+        "plan-mode-active",
+        "active_plan.json",
+        "worktree.json",
+    }
+)
+
+
+def _fixed_artifact_offenders() -> list[str]:
+    offenders: list[str] = []
+    for skill in (*_WORKFLOW_SKILLS, "build"):
+        for md in sorted((SKILLS_DIR / skill).rglob("*.md")):
+            for lineno, line in enumerate(md.read_text(encoding="utf-8").splitlines(), 1):
+                for match in _FIXED_SESSION_ARTIFACT.finditer(line):
+                    name = match.group("name")
+                    if name in _SESSION_SCOPED_BY_DESIGN or _RUN_COMPONENT.search(name):
+                        continue
+                    offenders.append(f"{md.relative_to(SKILLS_DIR)}:{lineno}: $SESS_DIR/{name}")
+    return offenders
+
+
+def test_session_artifacts_carry_a_per_run_component() -> None:
+    offenders = _fixed_artifact_offenders()
+    assert not offenders, (
+        "Review artifacts written under $SESS_DIR must carry a per-run component "
+        "(<slug>/<lane>/<plan-slug>). A fixed filename is shared by every concurrent "
+        "orchestration lane, because a subagent resolves the same session id as its "
+        "parent - so one lane reads a sibling's findings as its own, and one lane's "
+        "cleanup glob deletes a sibling's in-flight file (issue #173). Offenders:\n"
+        + "\n".join(offenders)
+    )
+
+
 def _incomplete_session_chain_offenders() -> list[str]:
     offenders: list[str] = []
     for md in sorted(SKILLS_DIR.rglob("*.md")):

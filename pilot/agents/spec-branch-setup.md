@@ -1,16 +1,17 @@
 # Spec Branch & Worktree Setup
 
 > Shared runbook for the `--new-branch` and `--worktree=yes` paths of `spec-plan`
-> (Step 2) and `spec-bugfix-plan` (Step 1). Both skills build into separate
-> SKILL.md files, so neither can see the other's steps — this file is the one
-> place the sequence lives.
+> (Step 2), `spec-bugfix-plan` (Step 1), `/fix` (orchestrator), and `/build`
+> (Step 2). Each skill builds into a separate SKILL.md, so none can see the
+> others' steps — this file is the one place the sequence lives.
 >
 > Read it only when the parsed flag is `--new-branch` or `--worktree=yes`.
 > The default (`--worktree=no`, and the whole flow when Branch Isolation is off)
 > needs nothing from here: work continues on the current branch.
 
-Callers supply `<plan_slug>` (the plan filename's slug) and the branch prefix:
-`feat/` for features, `fix/` for bugfixes.
+Callers supply `<plan_slug>` (the plan filename's slug, or `/fix`'s `<fix-slug>`)
+and the branch prefix: `feat/` for features and builds, `fix/` for bugfixes.
+A caller running as an orchestration lane also supplies its `<lane>` id.
 
 ## `--new-branch`
 
@@ -64,4 +65,11 @@ After a successful branch creation, continue with `Worktree: No` semantics — t
 # → {"path": "...", "branch": "spec/<slug>", "base_branch": "main"}
 ```
 
-All file writes — including the plan file — use the returned `path` as their base directory. If creation fails (git too old), continue without a worktree and record `Worktree: No` in the header.
+**On a lane run, pass `--lane <lane>` to both commands.** The worktree directory and branch are keyed on `(slug, lane)`, so two lanes whose descriptions normalise to the same slug get separate checkouts instead of silently sharing one. Creation refuses outright when the resolved branch already belongs to a different lane.
+
+All file writes — including the plan file — use the returned `path` as their base directory.
+
+**If creation fails:**
+
+- **Ordinary run** — continue without a worktree and record `Worktree: No` in the header. Losing isolation costs nothing the user did not already have.
+- ⛔ **Lane run (`--lane` was supplied) — ABORT.** Say which command failed and why, and stop. Continuing would drop the lane into the coordinator's shared checkout, where it races every sibling's edits and staging — exactly the collision the lane was created to avoid. A lane that silently loses its isolation is worse than a lane that never started, because nothing downstream can tell the difference.

@@ -37,6 +37,55 @@ STALE_PATTERNS = [
 ]
 
 
+def _sweep(directory: Path) -> None:
+    """Remove the stale spec artifacts from one session or lane directory.
+
+    ``worktree.json`` is deliberately absent from both lists: it tracks a physical
+    git worktree that outlives /clear, so removing it would orphan the checkout.
+    """
+    for name in STALE_FILES:
+        try:
+            (directory / name).unlink(missing_ok=True)
+        except OSError:
+            pass
+    for pattern in STALE_PATTERNS:
+        for f in directory.glob(pattern):
+            try:
+                f.unlink(missing_ok=True)
+            except OSError:
+                pass
+
+
+def _sweep_lanes(session_dir: Path) -> None:
+    """Sweep every orchestration lane under ``session_dir``, same rules as the session.
+
+    A lane's state lives in ``sessions/<id>/lanes/<lane>/`` (launcher/session.py
+    ``resolve_lane_dir``). Left behind, a cleared lane's active_plan.json is read
+    back by the next run reusing that lane id - resurrecting a plan the user
+    explicitly cleared. Emptied lane dirs are removed; one still holding a
+    worktree.json is kept, because that record must survive /clear.
+    """
+    lanes_dir = session_dir / "lanes"
+    if not lanes_dir.is_dir():
+        return
+    try:
+        lane_dirs = sorted(lanes_dir.iterdir())
+    except OSError:
+        return
+    for lane_dir in lane_dirs:
+        if not lane_dir.is_dir():
+            continue
+        _sweep(lane_dir)
+        try:
+            lane_dir.rmdir()  # only succeeds when nothing (e.g. worktree.json) remains
+        except OSError:
+            pass
+    try:
+        lanes_dir.rmdir()
+    except OSError:
+        pass
+
+
 def _clean_task_list(session_id: str) -> None:
     """Remove stale task files so the next /spec doesn't resume old tasks.
 
@@ -66,18 +115,8 @@ def main() -> int:
     # via resolve_session_id() elsewhere (_lib/util.py).
     session_dir = SESSIONS_DIR / resolve_session_id()
     if session_dir.is_dir():
-        for name in STALE_FILES:
-            try:
-                (session_dir / name).unlink(missing_ok=True)
-            except OSError:
-                pass
-
-        for pattern in STALE_PATTERNS:
-            for f in session_dir.glob(pattern):
-                try:
-                    f.unlink(missing_ok=True)
-                except OSError:
-                    pass
+        _sweep(session_dir)
+        _sweep_lanes(session_dir)
 
     # Task-list cleanup needs the literal wrapper PID: CLAUDE_CODE_TASK_LIST_ID is set
     # to "pilot-<PID>" only by the claude()/codex() shell functions, so a non-wrapper

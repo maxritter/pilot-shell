@@ -13,11 +13,19 @@
 
 ```bash
 # Poll the path of the launch you are collecting (Step 1's path, or the -rN relaunch path)
-OUTPUT_PATH="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}/findings-changes-review-<plan-slug>.json"
-for i in $(seq 1 150); do [ -f "$OUTPUT_PATH" ] && echo "READY" && break; sleep 2; done
+SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+RUN_DIR="$SESS_DIR"            # on a lane run: "$SESS_DIR/lanes/<lane>"
+OUTPUT_PATH="$RUN_DIR/findings-changes-review-<plan-slug>.json"
+# $LAUNCHED_AT is the epoch stamped in Step 1a. A file older than the launch is a
+# stale artifact, not this review's result - reading it would let a previous run's
+# (or a sibling lane's) clean report stand in as evidence for THIS diff.
+for i in $(seq 1 150); do
+  [ -f "$OUTPUT_PATH" ] && [ "$(date -r "$OUTPUT_PATH" +%s)" -ge "$LAUNCHED_AT" ] && echo "READY" && break
+  sleep 2
+done
 ```
 
-Run as `Bash(run_in_background=true, timeout=330000)` — the loop can wait 5 min, beyond the foreground timeout, and `sleep` is allowed in background; you are notified on exit. Then Read the file once. Not READY afterwards usually means slow, not dead: relaunch ONCE with a fresh `-rN` path and poll that.
+Run as `Bash(run_in_background=true, timeout=330000)` — the loop can wait 5 min, beyond the foreground timeout, and `sleep` is allowed in background; you are notified on exit. Then Read the file once. **A findings file whose mtime predates `$LAUNCHED_AT` is absent, not a result.** Not READY afterwards usually means slow, not dead: relaunch ONCE with a fresh `-rN` path and poll that.
 
 **Validate findings:** the JSON's `plan_file` must match the current plan path. A mismatch means findings from another plan — delete, relaunch, wait again.
 

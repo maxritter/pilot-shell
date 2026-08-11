@@ -35,7 +35,7 @@ Update Claude Code and Codex CLI through their own installers independently — 
 
 ## Worktree isolation
 
-Used by the `/spec` workflow to keep work isolated until verification passes. All commands work with both Claude Code and Codex sessions.
+Used by the `/spec`, `/fix`, and `/build` workflows to keep work isolated until verification passes. All commands work with both Claude Code and Codex sessions.
 
 | Command | Description |
 |---------|-------------|
@@ -46,9 +46,33 @@ Used by the `/spec` workflow to keep work isolated until verification passes. Al
 | `pilot worktree cleanup --json <slug>` | Remove worktree and branch (`--force` after a sync — still verifies the work reached the base branch; `--discard` to delete unmerged work) |
 | `pilot worktree status --json` | Show active worktree info for current session |
 
+Every command above also takes `--lane <id>` — see [Orchestration lanes](#orchestration-lanes) below.
+
 :::info Slug format
 The `<slug>` is the plan filename without the date prefix and `.md` extension. Example: `docs/plans/2026-02-22-add-auth.md` → `add-auth`.
 :::
+
+:::warning `worktree sync` exit codes
+`0` clean · `1` nothing landed · **`2` the squash merge landed, but the base checkout's own uncommitted work could not be restored** and is sitting in `git stash list`. The JSON still reports `"success": true` — the merge really did succeed; only the unrelated local work is stranded, and the exit code is what stops a chained `&& pilot worktree cleanup` from deleting the worktree before you have seen the warning. Recover with `git stash pop`.
+
+**Creation and sync both serialize** on a repo-wide lock, so concurrent lanes queue rather than interleaving their changes to the shared base checkout — `create` auto-stashes and restores that checkout, and `sync` merges into it. A failure naming lane contention means another lane held the lock past the timeout (`PILOT_SYNC_LOCK_TIMEOUT`, default 300s) and **nothing was changed**. If the lock itself cannot be opened, a lane run fails rather than proceeding unserialized; an ordinary single run continues as before.
+:::
+
+### Orchestration lanes
+
+A coordinating session can dispatch `/spec`, `/fix`, and `/build` runs as concurrent subagents. Each one passes `--lane <id>`, and that flag is what keeps them apart.
+
+| Command | With `--lane <id>` |
+|---------|--------------------|
+| `pilot register-plan <path> <status> --lane <id>` | Registers under `~/.pilot/sessions/<session>/lanes/<id>/` instead of the session's single slot |
+| `pilot worktree create --json <slug> --lane <id>` | Keys the worktree directory and branch on `(slug, lane)`, so two lanes deriving the same slug get separate checkouts |
+| `pilot worktree detect\|diff\|sync\|cleanup\|status --json --lane <id>` | Resolves that lane's worktree, never a sibling's |
+
+Why it is needed: a Claude Code subagent resolves the **same** session id as its parent, and shell state does not survive between its tool calls, so a lane cannot identify itself any other way. Without the flag, every lane's plan lands in the coordinator's `active_plan.json` — siblings overwrite each other, and the coordinator's stop guard blocks its every turn over a plan it does not own.
+
+**The contract is fail-closed.** `--lane` implies an isolated worktree; combining it with `--worktree=no` or `--new-branch` is rejected, and a lane whose worktree cannot be created aborts rather than dropping into the shared checkout. Lane ids match `[a-z0-9][a-z0-9-]{0,63}` and anything else is refused outright — the value becomes a directory name and a branch component.
+
+Omit `--lane` and every command behaves exactly as it always has.
 
 :::tip Monorepos: move the worktrees, give git more time
 Worktrees land in `<project>/.worktrees/` and each git call gets 300 seconds. Both are configurable in Console → Settings → Spec Workflow → Worktrees, or per shell:
@@ -86,7 +110,7 @@ Called by hooks and the Console — you rarely need to run these directly.
 | Command | Description |
 |---------|-------------|
 | `pilot check-context --json` | Get current context usage percentage |
-| `pilot register-plan <path> <status>` | Associate a plan file or Buildout with the current session. Prints a warning when `<path>` is outside the scanned directories — the Console only displays files in `<project>/docs/plans/`, `<project>/docs/builds/`, or the same pair under `<worktree base>/<slug>/` (the worktree base is `<project>/.worktrees/` unless configured otherwise) |
+| `pilot register-plan <path> <status> [--lane <id>]` | Associate a plan file or Buildout with the current session, or with an [orchestration lane](#orchestration-lanes). Prints a warning when `<path>` is outside the scanned directories — the Console only displays files in `<project>/docs/plans/`, `<project>/docs/builds/`, or the same pair under `<worktree base>/<slug>/` (the worktree base is `<project>/.worktrees/` unless configured otherwise) |
 | `pilot review-scope [--slug <slug>] [--json]` | Resolve the `git diff` scope a code review should read — the single source of truth for review diff scope. Prints a range you splice directly (`git diff $(pilot review-scope) -- <files>`); `--json` adds `mode` (`working-tree` or `worktree`), `base_ref`, and a `warning` when the scope degraded. In worktree mode it returns the fork-point range `<base_branch>...HEAD` against the branch's *detected* base — never a hardcoded `main`, and never a two-dot range against the base branch's live tip |
 | `pilot sessions [--json]` | Show count of active Pilot sessions |
 | `pilot statusline` | Status line formatter *(Claude Code only — called by Claude Code's statusLine hook)*. `pilot statusline -h` lists what each line renders and shows how to wrap it in your own status line |
