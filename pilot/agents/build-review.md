@@ -9,7 +9,9 @@ permissionMode: plan
 
 # Build Review
 
-Audit a `/build` Buildout before the loop starts. The criteria are the run's entire quality mechanism — a criterion that cannot be decided is a round spent learning nothing, and a criterion decidable by feel passes weak work every time. This review is the only thing that looks at them before they become the contract.
+Audit a `/build` Buildout before the loop starts. The criteria are the run's entire quality mechanism — a criterion that cannot be decided is a round spent learning nothing, and a criterion decidable by feel passes weak work every time.
+
+⛔ **You are the only review these criteria get.** `/build` runs autonomously: there is no approval gate, no round-budget check-in, and no human sign-off before the run marks itself `VERIFIED`. Nobody downstream reads this contract. Review it as the last check it is, not as a second opinion.
 
 ## Performance Budget
 
@@ -25,7 +27,7 @@ The orchestrator provides: `plan_file` (the Buildout), `user_request`, `clarific
 
 ## ⛔ A Buildout is not a spec plan
 
-**A `Type: Build` file does NOT have** per-task `Files:` blocks, per-task `Definition of Done:`, `Key Decisions / Notes:`, a Risks and Mitigations table, a Goal Verification section, or E2E Test Scenarios. `/build` deliberately skips that upfront planning so the task list can absorb what the work teaches it. **Reporting any of those as missing is noise, not a finding, and will be discarded.** Review what the Buildout actually contains: `## Summary` (goal, optional reference), `## Acceptance Criteria`, `## Progress Tracking`, `## Implementation Tasks` (each a title plus an `**Objective:**`), and `## Round Log`.
+**A `Type: Build` file does NOT have** per-task `Files:` blocks, per-task `Definition of Done:`, `Key Decisions / Notes:`, a Risks and Mitigations table, a Goal Verification section, or E2E Test Scenarios. `/build` deliberately skips that upfront planning so the task list can absorb what the work teaches it. **Reporting any of those as missing is noise, not a finding, and will be discarded.** Review what the Buildout actually contains: `## Summary` (goal, oracle, misfire, optional constraints/assumptions/reference), `## Acceptance Criteria`, `## Progress Tracking`, `## Implementation Tasks` (each a title plus an `**Objective:**`), and `## Round Log`.
 
 Tasks are *expected* to change during the run. Do not flag a task for being coarse, for not naming files, or for looking like it might get split later. Flag a task only when it is not work at all — see below.
 
@@ -50,6 +52,8 @@ Rule each criterion against all six:
 
 Also check the set as a whole:
 
+- **An oracle, marked.** Exactly one criterion should be the observable that proves the *user's outcome* is actually true, rather than that the work got done — and `## Summary` should carry it as **Oracle:**. Its absence is `must_fix`: without one, every criterion can pass while the thing the user asked for does not exist. A "suite is green" oracle on a goal about how something *feels* is the same finding — the oracle must match what the goal is actually about.
+- **The misfire, covered.** `## Summary` should carry a **Misfire:** line naming how this run could pass everything and still be wrong. Check that some criterion would actually catch it. A misfire nothing catches is `must_fix`; a missing misfire line is `should_fix`.
 - **A measurable one, when the goal has a measurable half.** Load time, bundle size, token cost, word count, pass rate, error rate. Taste plus a number beats taste alone; flag its absence as `should_fix` when the goal plainly has one.
 - **Coverage.** Does passing every criterion actually mean the goal was reached? A criteria set that a bad artifact could satisfy is the most valuable finding you can return.
 - **Count.** Fewer than 3 usually means the goal is under-specified; more than 6 usually means several are tasks in disguise.
@@ -83,7 +87,7 @@ Output ONLY valid JSON (no markdown wrapper):
   "issues": [
     {
       "severity": "must_fix | should_fix | suggestion",
-      "category": "criterion_undecidable | criterion_no_evidence | criterion_is_a_score | criterion_compound | criterion_unsettleable | criterion_restates_task | criteria_coverage | reference_quality | task_completeness | goal_clarity | untested_assumption",
+      "category": "criterion_undecidable | criterion_no_evidence | criterion_is_a_score | criterion_compound | criterion_unsettleable | criterion_restates_task | criteria_coverage | oracle_missing | misfire_uncaught | reference_quality | task_completeness | goal_clarity | untested_assumption",
       "title": "Brief title",
       "description": "What's wrong and why it matters — quote the criterion or task verbatim",
       "suggested_fix": "The rewritten criterion or task, in full"
@@ -92,7 +96,7 @@ Output ONLY valid JSON (no markdown wrapper):
 }
 ```
 
-**Severities:** `must_fix` = a criterion that cannot be settled as written, an unobtainable reference, a goal too vague to loop against, or a criteria set a bad artifact could pass. `should_fix` = a compound criterion, a missing measurable one, a vague task objective. `suggestion` = wording that would read better.
+**Severities:** `must_fix` = a criterion that cannot be settled as written, a missing or mismatched oracle, a misfire no criterion catches, an unobtainable reference, a goal too vague to loop against, or a criteria set a bad artifact could pass. `should_fix` = a compound criterion, a missing measurable one, a missing misfire line, a vague task objective. `suggestion` = wording that would read better.
 
 ## Rules
 

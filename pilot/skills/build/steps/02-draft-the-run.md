@@ -18,9 +18,20 @@ from the data rather than hand-written. It is the section a reader looks at firs
 - **Cover the whole artifact, roughly.** Three to seven tasks that together produce something judgeable. Not a decomposition of every file you will touch.
 - **They will change.** Adding, splitting, and dropping tasks mid-round is expected and logged (Step 4). Drafting them precisely now buys nothing.
 
+**Size each task as the largest slice you can finish and verify in one go.** Small is not the goal; *useful* is. A good task produces a working screen, a working endpoint, a real bug fixed, a section that reads end to end — something whose completion visibly moves a criterion. A bad task adds one more helper, wrapper, config file, or note: safe-looking, cheap to tick, and the criteria do not move.
+
+⛔ **Safe does not mean small.** Safe means bounded, verified, and reversible — all of which a large slice can be. Decomposing into tiny tasks feels like risk management and is usually the loop finding a way to look busy for a round.
+
 If you cannot get the work under seven tasks without each one becoming vague, the goal is probably two goals. Say so and build the first.
 
 ### 2.2 Write 3–6 acceptance criteria
+
+**Draft them from `## Summary`, not from scratch.** The oracle, the constraints, and the misfire are what Step 1.5 spent the user's attention establishing; a criterion that does not trace back to one of them is a criterion you invented after the fact.
+
+**Two of the set have fixed jobs:**
+
+- **One criterion is the oracle** — the observable that proves the user's outcome is actually true, not that the work was done. Mark it in the file. Every other criterion can pass while this one fails, and when that happens the run has built something well that nobody asked for. It is the criterion that must never be the one relaxed, waived, or ruled from a proxy.
+- **One criterion catches the misfire** — the failure named in `## Summary` where the run passes everything and is still wrong. Often the oracle already does this; when it does, say so and move on. When it does not, that criterion is the one this set is missing.
 
 These are judged **once per round, at the end**, never worked one at a time. Each one:
 
@@ -45,7 +56,7 @@ Include **at least one measurable criterion** when the goal has a measurable hal
 
 **Parse the flags** off the argument string and strip them from the goal: `--worktree=yes|no`, `--new-branch`, `--lane <id>`. Default `--worktree=no` — the run works on the current branch, exactly as before.
 
-**Ask only when `PILOT_BRANCH_ISOLATION_ENABLED` is `"true"`** and no flag was supplied, offering the same three options `/spec` does: **Continue on current branch** (recommended) · **New branch from default branch** · **Use worktree (isolated, squash-merged after)**. When the toggle is `"false"`, ask nothing and use `--worktree=no`. This is not a fourth interaction point — it rides along with the Step 3 approval when both are needed.
+**Where the work lands was settled in Step 1.5**, before any of this existed — it is one of the questions that round is for, offering the same three options `/spec` does: **Continue on current branch** (recommended) · **New branch from default branch** · **Use worktree (isolated, squash-merged after)**. Apply what it settled here. ⛔ Do not ask now: the Buildout is about to be registered and the stop guard is about to start holding the session, so a question at this point is one the run cannot cleanly pause for. No flag, and `PILOT_BRANCH_ISOLATION_ENABLED` not `"true"` → `--worktree=no`.
 
 **For `--new-branch` or `--worktree=yes`,** read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/spec-branch-setup.md` and follow it with `<plan_slug>` = the Buildout slug, prefix `feat/`, and `<lane>` when one was supplied. Record the outcome in the header's `Worktree:` field below.
 
@@ -104,6 +115,14 @@ CODEX-END -->
 
    **Goal:** [one sentence — the end state]
 
+   **Oracle:** [the one observable signal that proves this outcome is actually true — from 1.5, in the user's own words where they gave them]
+
+   **Misfire:** [in one sentence: how this run could pass every criterion and still be the wrong thing — and which criterion catches it]
+
+   **Constraints:** [what must not change, what is ruled out — or omit the line]
+
+   **Assumed:** [anything 1.5 decided for the user: questions switched off, an auto-continued form, a reference picked without asking — or omit the line]
+
    **Reference:** [named artifact] — re-obtain with `[exact command, URL, or path]`
 
    ## Acceptance Criteria
@@ -140,7 +159,7 @@ CODEX-END -->
    _None yet._
    ```
 
-   **Omit the `**Reference:**` line entirely when there is none** (Step 1.3). An empty or hand-waved reference is worse than no reference.
+   **Omit the `**Reference:**` line entirely when there is none** (Step 1.3). An empty or hand-waved reference is worse than no reference. `**Oracle:**` and `**Misfire:**` are never omitted — they are what 1.5's grilling produced, and the criteria below are drafted from them. `**Assumed:**` is omitted only when nothing was assumed.
 
    `Type: Build` is what makes the statusline render the loop and the Console file it under **Buildouts** — the header, never the directory, is what identifies a Buildout, so a file moved between `docs/plans/` and `docs/builds/` keeps working either way. `Status:` is a closed set — `PENDING` | `COMPLETE` | `VERIFIED`, bare keyword, no trailing prose. `Rounds:` starts at 0 and is incremented by the judge, never by hand. `Worktree:` records what 2.2a settled — `Yes` when this run owns an isolated checkout, `No` otherwise.
 
@@ -207,10 +226,12 @@ result = multi_agent_v1.wait_agent(targets=[review.agent_id], timeout_ms=600000)
 Parse the final message as JSON; on a parse failure treat it as one `suggestion` and continue — do not relaunch. `plan_file` must match this Buildout; discard a mismatch and self-review instead.
 CODEX-END -->
 
-**Fix every `must_fix` and `should_fix` before 2.5**, using each finding's `suggested_fix` as the replacement wording; `suggestion` if quick. The user should see reviewed criteria, not the first draft.
+**Fix every `must_fix` and `should_fix` before 2.5**, using each finding's `suggested_fix` as the replacement wording; `suggestion` if quick. This reviewer is what replaced the human approval gate: nobody else reads the criteria before they become the contract, so its blocking findings are not advisory.
 
-### 2.5 Show the user what you drafted
+### 2.5 Post the contract, then start
 
-Print the goal, the numbered tasks, and the numbered criteria in the conversation. It is the one thing worth twenty seconds of their attention before the loop starts. If a reviewer changed anything, say so in one line — which criteria moved, and why.
+Print the goal, the numbered tasks, and the numbered criteria in the conversation. If a reviewer changed anything, say so in one line — which criteria moved, and why. Name the Buildout path so the user can open, annotate, or share the file.
 
-**Done when:** the Buildout file exists, is registered, every criterion states its pass condition, every task has an objective, the reviewers' blocking findings are closed, and the user has seen both lists.
+⛔ **This is a notification, not a gate.** Do not end your turn, do not ask whether it looks right, do not offer to change anything. The next action after printing it is Step 3, in the same turn. A user who wants something different says so, and 3.0 picks up Console annotations at the top of every round.
+
+**Done when:** the Buildout file exists, is registered, every criterion states its pass condition, every task has an objective, the reviewers' blocking findings are closed, and both lists have been printed.

@@ -2,6 +2,10 @@
 
 Work every open task in `## Progress Tracking`, in order. When they are all ticked, go to Step 5 and judge. **Do not judge mid-pass** — judging a half-built artifact spends a round to learn what you already knew.
 
+### 4.0 Re-read the annotations at the top of every round
+
+One cheap read of `docs/builds/.annotations/<buildout-basename>.json` before the round's first task, folded in exactly as 3.0 describes, then `rm -f`. This is the user's only way into a loop that never stops to ask, so a round that skips it can spend itself ignoring a correction that was already waiting. Missing file or empty `planAnnotations` → nothing to do, one line of nothing, carry on.
+
 ### 4.1 Work a task
 
 For each `- [ ] Task N:`:
@@ -14,6 +18,14 @@ For each `- [ ] Task N:`:
 The project's rules apply in full inside the loop, and so does the least that works (`development-practices.md`). The criteria raise the standard for the output; they do not license a mess behind it.
 
 **A task is not done while it is red.** Never tick a task whose tests fail or whose files carry open diagnostics.
+
+⛔ **A failing command makes a task blocked, not done — and the failure stays visible as a failure.** Do not move it into prose ("mostly passing", "one unrelated flake"), do not tick the task and mention it in the round log, and do not narrow the command until it goes green. This is an observed failure mode in autonomous loops, not a hypothetical: the pressure to keep the round moving turns a red command into a sentence, and the sentence validates. Record the command and its status as a pair, and let a red one hold the task open.
+
+**Standing stop conditions.** These halt the task and go in `## Round Log` instead of being improvised around:
+
+- The behaviour the objective names is **ambiguous** and the artifact cannot settle it — do not pick a reading and build it silently; note the reading you took and why, so the judge and the report both carry it.
+- **Verification failed twice** on the same task with different fixes — that is a wrong diagnosis, not a third fix. Re-read the failure from the top.
+- The task needs a change **outside anything this run has touched or was asked to touch** — widening scope mid-task is how a build starts editing the codebase around it. Note it, and let the lineage rule decide.
 
 ### 4.2 Code tasks: test first
 
@@ -44,11 +56,13 @@ Append every path you create or modify to `## Changed Files`, in the same edit t
 - **Split a task** that turned out to be two.
 - **Drop a task** that turned out to be unnecessary, and say why.
 
+⛔ **Watch what the added tasks look like.** Two tiny ones in a row — a helper, a wrapper, a config file, a note — and the round has stopped moving criteria. Stop adding and ask which criterion the *next* task closes; if the answer is none, the task is busywork with a checkbox. A tiny task earns its place when it unblocks a large one, isolates a failure, or the risk is genuinely high; never as a third one in a row.
+
 Every change gets one line in `## Round Log`, and `## Progress Tracking` and `## Implementation Tasks` are updated in the same edit so they never disagree. A task list that ends the run looking nothing like the drafted one is a successful run, not a failed plan — as long as the criteria did not move.
 
 ⛔ **The criteria do not change here.** Only Step 5, and only out loud.
 
-⛔ **Dropping a task a criterion depends on is a criterion change.** Before dropping, ask whether any criterion's evidence needs that task. If so, removing it quietly lowers the bar — take it to Step 5.4 and let the user relax the criterion or keep the task.
+⛔ **Dropping a task a criterion depends on is a criterion change.** Before dropping, ask whether any criterion's evidence needs that task. If so, removing it quietly lowers the bar — so **keep the task**. There is no gate to take it to and no one to relax it for you: a criterion only moves under 5.4's rules, out loud and recorded, and "the task was inconvenient" is not one of them.
 
 ### 4.5 Tool discipline
 

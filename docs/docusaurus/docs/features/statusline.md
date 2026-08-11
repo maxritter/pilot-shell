@@ -15,7 +15,7 @@ Three-line session dashboard rendered below every Claude Code response.
 ```
 Opus 5 [1M] | █████░▓ 60% | 5h: 42% ⇡ 2h | 7d: 18% ⇣ 4d | +120 -38 | main ~5
 Spec: my-feature feature [implement] ████░░░░ 3/6
-Pilot 8.4.0 (Solo) · CC 2.1.80 (Max) · sessions 2 · memories 12
+Pilot 8.4.0 (Solo) · CC 2.1.80 (Max) · Console: localhost:41777
 ```
 
 ## Line 1 — Session Metrics
@@ -57,7 +57,7 @@ Opus 5 [1M] | █████░▓ 60% | +120 -38 | ~/…/.worktrees/my-feature
 
 ## Line 2 — Mode
 
-**Quick Mode:** `Quick Mode · goal: /build | plan: /spec | bugs: /fix | idea: /prd · Console: localhost:41777`
+**Quick Mode:** `Quick Mode · plan: /spec | goal: /build | bugs: /fix | idea: /prd`
 
 **Spec Mode:** `Spec: my-feature feature [implement] ████░░░░ 3/6 iter:2`
 
@@ -73,7 +73,9 @@ In `auto` mode it turns red and reads `models: auto ⚠ not-opus` (just `⚠` on
 
 ## Line 3 — Version Info
 
-`Pilot <version> (<tier>) · CC <version> (<subscription>) · sessions N · memories N`
+`Pilot <version> (<tier>) · CC <version> (<subscription>) · Console: <host:port>`
+
+This is the only line that always renders, so it carries the Console address — open it to reach plans, Buildouts, memory and settings.
 
 ## Configuration
 

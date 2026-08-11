@@ -28,12 +28,12 @@ Each view that supports project filtering has an inline **Project Filter** dropd
 | **Sessions** | Browse past sessions with search. Copy a session ID and run `/resume <session-id>` in Claude Code to jump back in (Claude Code only). |
 | **Memories** | Observations (decisions, discoveries, bugfixes) with type filters and search. Each memory links back to the session it came from. Hosts the **Team Sharing** card - see [Team Memories](./team-memories.md). |
 | **Requirements** | PRD documents with view/annotate modes. Selected opens as a tab, others live in a Previous dropdown. |
-| **Buildouts** | [`/build`](../workflows/build.md) goal-and-loop runs, in their own section: the goal, the acceptance criteria the judge rules each round, the task list as it evolved, and the round log. Phase tracking reads `goal` -> `build` -> `judge`, and the repeat counter counts rounds rather than iterations. Same annotation and sharing surfaces as Specifications. |
+| **Buildouts** | [`/build`](../workflows/build.md) goal-and-loop runs, in their own section: the goal and its oracle, the acceptance criteria the judge rules each round, the task list as it evolved, and the round log. Phase tracking reads `goal` -> `build` -> `judge`, and the repeat counter counts rounds rather than iterations. Same annotation and sharing surfaces as Specifications - and because a `/build` run never stops to ask, annotating a Buildout is how you steer one in flight: it folds them in at the top of every round. |
 | **Specifications** | Spec plans with task progress, phase tracking (PENDING/COMPLETE/VERIFIED), and iteration history. Hosts Plan Annotation and Spec Sharing (below). |
 | **Extensions** | All extensions - local, plugin, remote - with team sharing via git (push, pull, diff), color-coded categories, and scope filtering. |
 | **Changes** | Git diff viewer with staged/unstaged files, branch info, worktree context. Hosts Code Review and Spec Task Correlation (below). |
 | **Usage** | Daily token costs, model routing breakdown (Opus vs Sonnet), and usage trends. |
-| **Settings** | Workflow toggles for `/spec` and `/build` (branch isolation, ask questions, plan approval, verification pass), the Model Switching mode, and the review agents. See [Settings](#settings) below. |
+| **Settings** | Workflow toggles for `/spec`, `/fix` and `/build` (branch isolation, ask questions, plan approval, verification pass), the Model Switching mode, and the review agents. See [Settings](#settings) below. |
 | **Documentation** | Embedded pilot-shell.com documentation - full technical reference without leaving the Console. |
 
 ## Plan Annotation
@@ -130,11 +130,11 @@ Claude Code's built-in `/code-review` skill is a much larger multi-agent sweep, 
 
 | Toggle | Default | Enabled | Disabled |
 |--------|---------|---------|----------|
-| **Verification Pass** | On | Before hand-back, `/build` runs the full test suite, type checker, linter, build, a live-target E2E pass, the changes review, documentation sync, and a final regression - scaled to the artifact, so a prose build pays almost nothing | The run is judged on its acceptance criteria alone, and the hand-back report and approval gate both say verification was disabled |
+| **Verification Pass** | On | Before hand-back, `/build` runs the full test suite, type checker, linter, build, a live-target E2E pass, the changes review, documentation sync, and a final regression - scaled to the artifact, so a prose build pays almost nothing. It is what `VERIFIED` is measured against on a run nobody supervised | The run **cannot reach `VERIFIED`**. It is judged on its acceptance criteria alone, ends `COMPLETE`, and the hand-back report leads with the fact that nothing checked the code behind them |
 
 ### Workflows -> Automation
 
-Three toggles control user interaction points, plus the Model Switching mode during `/spec`. **Ask Questions** and **Plan Approval** apply to `/spec` and `/build` alike; **Branch Isolation** is `/spec`-only, since `/build` never creates a branch or worktree. Disable them for fully autonomous execution.
+Three toggles control user interaction points, plus the Model Switching mode during `/spec`. **Ask Questions** and **Branch Isolation** apply to `/spec`, `/fix` and `/build` alike; **Plan Approval** covers `/spec`'s plan gate and `/fix`'s end-of-flow confirmation, and is not read by `/build` — a Buildout has no approval gate to switch off, because [`/build` runs autonomously](../workflows/build.md#it-runs-on-its-own) once its goal is clear. Disable them for fully autonomous execution.
 
 | Toggle | Default | Enabled | Disabled |
 |--------|---------|---------|----------|

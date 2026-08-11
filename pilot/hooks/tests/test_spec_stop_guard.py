@@ -1028,12 +1028,13 @@ class TestManualSwitchSentinel:
 class TestBuildHandbackSentinel:
     """The build-handback-pending sentinel allows ONE stop for an approved Buildout.
 
-    /build reaches the user two ways that both need the session to actually pause:
-    the round-budget question at three judge passes, and the blocked-on-external
-    hand-back. On Codex, AskUserQuestion is rewritten to plain-text options, so the
-    agent must END ITS TURN to receive an answer -- and the approved-PENDING block
-    prevents exactly that, reinjecting it into the loop instead. The approval
-    sentinel cannot be reused: it is honored only while Approved: No.
+    /build runs autonomously and asks nothing after its pre-work scoping round, so
+    this sentinel is not for a question -- it is for the hand-backs that finish a
+    run WITHOUT reaching VERIFIED: the four-round ceiling, the blocked-on-external
+    pause, the unachievable-criteria exit, and a run whose verification pass is
+    switched off. The approved-and-not-VERIFIED block prevents exactly that stop,
+    reinjecting the agent into the loop instead. The approval sentinel cannot be
+    reused here: it is honored only while Approved: No.
     """
 
     def _run_with_sentinel(self, tmp_path, monkeypatch, *, approved: bool, plan_type: str = "Build", age: float = 0.0):

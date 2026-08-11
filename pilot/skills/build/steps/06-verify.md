@@ -2,12 +2,31 @@
 
 The judge ruled the criteria. This step checks the things criteria mostly do not: that the suite is green, that the artifact actually runs, that the code behind it is sound, and that the docs did not go stale. Then Step 7 hands back.
 
+⛔ **This step is what makes an unsupervised run safe to accept.** Nobody reviews the result before it is called done — no approval gate, no sign-off — so the evidence written here is the entire basis for `VERIFIED`. Every shortcut taken in this step is a claim the user has no way to check. Run it in full, and where you cannot, say so in `## Not Verified` rather than quietly narrowing what "verified" means.
+
 **Skip this step entirely when:**
 
-- `PILOT_BUILD_VERIFICATION_ENABLED` is `"false"` — but write a `Verification: disabled (buildWorkflow.verification=false)` row into `## Not Verified` first. Step 7 surfaces it at the approval gate, so a run never reaches `VERIFIED` on switched-off evidence without the user seeing that.
+- `PILOT_BUILD_VERIFICATION_ENABLED` is `"false"` — see 6.0, and note the run **cannot reach `VERIFIED`**.
 - You arrived from Step 4.6 (blocked on something outside the session) — the artifact is half-built by design.
 
-You still run it at the round-four ceiling: the code is finished even though a criterion is not.
+You still run it at the round-four ceiling and at 5.5's unachievable exit: the code is finished even though a criterion is not.
+
+### 6.0 Verification switched off means unverified, not verified anyway
+
+When `PILOT_BUILD_VERIFICATION_ENABLED` is `"false"`, the user has turned off the only evidence that would have justified `VERIFIED` on an unsupervised run. So the run ends **honestly unverified** rather than certified on nothing:
+
+1. Write `Verification: disabled (buildWorkflow.verification=false) — no checks, no review, no regression run` into `## Not Verified`.
+2. Leave `Status: COMPLETE` and re-register it. `COMPLETE` is exactly true: every task is ticked, the criteria were judged, and verification did not happen.
+3. Touch the hand-back sentinel so the session can stop, since nothing will write `VERIFIED`:
+
+   ```bash
+   BUILD_SESS="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+   mkdir -p "$HOME/.pilot/sessions/$BUILD_SESS" && touch "$HOME/.pilot/sessions/$BUILD_SESS/build-handback-pending"
+   ```
+
+4. Go to Step 7 and lead the report with it: the criteria passed, and **nothing checked the code behind them**.
+
+⛔ **Do not write `VERIFIED` on this path**, and do not run a lighter improvised subset in its place. The toggle says the user wants the run to stop at the criteria; the honest name for that outcome is not "verified".
 
 ### 6.1 Classify, then do only what applies
 
@@ -85,7 +104,7 @@ Ask once: did this change something a reader of the docs is told? A public API o
 
 ### 6.7 Write down what you did not verify
 
-Append a `## Not Verified` section to the Buildout — the profile you skipped work under, any reviewer that did not run, any check that could not be run and why. "None" is a valid answer when it is true. Step 7 quotes this section at the approval gate, so an empty one is a claim.
+Append a `## Not Verified` section to the Buildout — the profile you skipped work under, any reviewer that did not run, any check that could not be run and why. "None" is a valid answer when it is true. Step 7 quotes this section verbatim in the report and refuses to write `VERIFIED` without it, so an empty one is a claim — and with no human gate downstream, it is the only place a gap in the evidence gets declared.
 
 ### 6.8 Final regression
 
@@ -100,12 +119,37 @@ Append a `## Verification Record` section to the Buildout. Step 7 refuses to wri
 
 - Profile: Full
 - Live target: Tier 1, `curl http://localhost:41777/` — identity re-asserted before E2E
-- Checks: suite 2952 passed · types 0 errors · lint clean · build ok
+- Commands:
+  - `uv run pytest -q` — pass (2952 passed)
+  - `basedpyright launcher` — pass (0 errors)
+  - `ruff check .` — pass
+  - `npm run build` — pass
 - Reviewers: changes-review 0 must_fix / 0 should_fix · Codex 4 high, all closed
 - Docs: README.md, docs/workflows/build.md — or "no doc impact"
 - Regression: re-run green after fixes
 ```
 
-A Minimal-profile run writes the same section with `Checks: n/a (no code)` — the record always exists, it just says less.
+⛔ **Every command is recorded as the command plus `pass` or `fail`, never as prose.** A verification record listing only passing commands is the *only* shape a `VERIFIED` run may have — so a red command is not summarised, softened, or moved into a sentence; it holds the run open until it is fixed or disclosed in `## Not Verified` with the failure still visible as a failure. This is the specific way an unsupervised loop launders a failure into a pass, and the structured pair is what makes the honest path the easy one.
 
-**Done when:** the profile is recorded, everything its row calls for has run, findings are closed, and `## Not Verified` plus `## Verification Record` are both written — then Step 7.
+A Minimal-profile run writes the same section with `Commands: n/a (no code)` — the record always exists, it just says less.
+
+### 6.10 The bar `VERIFIED` is measured against
+
+Step 7.4 refuses `VERIFIED` unless every layer below either has real evidence in `## Verification Record` or has a row in `## Not Verified` saying what could not be run and why. There is no third state: a layer you did not think about is a layer you cannot certify.
+
+| Layer | Evidence that counts | Not applicable when |
+|---|---|---|
+| **Criteria** | Every `- [x]` ticked by a judge pass with evidence pointed at (5.1) | Never — a run with an unticked criterion is not Complete |
+| **Suite** | Full test run, exit 0, counts recorded — not the touched files, the suite | Minimal profile (no code) |
+| **Types · lint · build** | Each command run, exit 0 | Minimal profile, or the project has no such command (name which) |
+| **Runs at all** | The artifact started, primary path exercised with real input, logs read (6.4) | Minimal profile |
+| **User-facing paths** | Browser E2E per `browser-automation.md`: snapshot → click → re-snapshot, on a target proven current (6.3) | API or Minimal profile — no UI exists |
+| **Code review** | `changes-review` findings collected and closed, `cannot_verify` items settled by you (6.5) | Minimal profile, or the toggle is off — then it is a `## Not Verified` row |
+| **Docs** | Files updated, or "no doc impact" recorded (6.6) | Never — the question is always answered |
+| **Regression** | Suite, types, and build re-run green after the last fix landed (6.8) | Minimal profile |
+
+⛔ **"The criteria covered that" is not evidence for these layers.** Criteria rule the artifact; these rule the thing behind it. A run whose criteria all passed and whose suite is red is a failing run — fix it, do not reconcile it.
+
+⛔ **A `## Not Verified` row is a disclosure, not a waiver.** Writing one is correct when a check genuinely cannot run here; using one to skip a check that *could* have run is how an autonomous run launders a shortcut into a certificate.
+
+**Done when:** the profile is recorded, everything its row calls for has run, findings are closed, every layer above is either evidenced or disclosed, and `## Not Verified` plus `## Verification Record` are both written — then Step 7.

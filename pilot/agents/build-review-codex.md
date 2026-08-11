@@ -24,13 +24,17 @@ A `Type: Build` file has **no** per-task `Files:` blocks, **no** per-task Defini
 
 Assume the run will converge on something mediocre and the criteria will wave it through. Your job is to find the route by which that happens. Do not give credit for good intent or for a criterion that is *nearly* decidable.
 
+⛔ **Nothing downstream re-reads this contract.** `/build` runs autonomously — no approval gate, no round-budget check-in, no human sign-off before the run marks itself `VERIFIED`. Whatever you let through is what the run will be judged against, by itself.
+
 ## Attack surface to prioritize
 
 - **The lazy-judge route.** For each criterion, construct the weakest artifact that still passes it as literally written. If that artifact would embarrass the user, the criterion is the finding.
+- **A missing or mismatched oracle.** `## Summary` should name an **Oracle:** — the one observable proving the *user's outcome* is real, not that the work got done — and one criterion should be it. Absent, or matched to the wrong thing (a green suite for a goal about how something feels), every other criterion can pass while the user got nothing. This is the highest-value finding on the page.
+- **An uncaught misfire.** `## Summary` should name a **Misfire:** — how the run passes everything and is still wrong. Check that a criterion actually catches it, and if the misfire line is missing, name the misfire yourself and check the set against it.
 - **Undecidable evidence.** Criteria that need the builder's intent, the conversation history, or a memory of effort rather than the finished artifact.
 - **Scores in disguise.** Anything that invites a rating, a percentage, or "good enough" — these drift upward every round while pass/fail does not.
 - **Compound criteria.** Independent claims joined by "and" under one checkbox, where one failing half is hidden by the other passing.
-- **Unsettleable evidence.** A criterion whose proof depends on a process that will not finish inside the session — that is a blocker masquerading as a criterion, and it burns the whole round budget.
+- **Unsettleable evidence.** A criterion whose proof depends on a process that will not finish inside the session — that is a blocker masquerading as a criterion, and it burns the run's whole four-round budget.
 - **Tasks wearing criteria clothing.** "The responsive pass was done" asserts an activity; a criterion must assert a property of the artifact.
 - **Coverage gaps.** Ways the goal could be plainly unmet while every criterion passes.
 - **Reference rot.** A named reference that is not obtainable via the recorded command, or not genuinely comparable to the artifact — an invented comparison passes everything.
@@ -68,7 +72,7 @@ Return ONLY valid JSON. No prose around it. Schema:
 }
 ```
 
-Use `needs-attention` when a criterion is weak but the set still holds. Use `reject` when a plausibly bad artifact passes every criterion as written, or when a criterion cannot be settled during this run at all. Use `approve` only when you cannot construct a passing-but-weak artifact from the criteria as written.
+Use `needs-attention` when a criterion is weak but the set still holds. Use `reject` when a plausibly bad artifact passes every criterion as written, when there is no oracle, or when a criterion cannot be settled during this run at all. Use `approve` only when you cannot construct a passing-but-weak artifact from the criteria as written.
 
 ## Calibration
 

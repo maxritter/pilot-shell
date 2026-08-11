@@ -42,11 +42,14 @@ Record in the Buildout which driver you settled on, so a later round and Step 6 
 
    Where a reference exists, put both side by side with the labels stripped.
 3. **Rule each criterion pass or fail** with one line of evidence you can point at right now.
-4. **Judge from the artifact only.** Not from your build reasoning, not from your intentions, not from your memory of what was hard. The judge must not know how hard the builder tried.
+4. **Rule the oracle criterion last, and from the oracle signal itself.** It is the one that says the user's outcome is real rather than that the work got done, so a proxy for it is not evidence: the suite passing is not the walkthrough, the endpoint returning 200 is not the flow working, the word count is not the piece landing. If the other criteria pass and this one fails, the round produced good work aimed at the wrong thing — say exactly that in the round log, because it is the most useful sentence the run will write.
+5. **Judge from the artifact only.** Not from your build reasoning, not from your intentions, not from your memory of what was hard. The judge must not know how hard the builder tried.
 
 **Calibrated, not brutal.** Pass a criterion whose evidence meets what it asks. Raising the bar mid-judge — deciding that what the criterion said is not quite enough after all — is what turns `/build` into something slower than `/spec` for no gain in quality. If a criterion was written too loosely, that is a lesson for the next run, not a licence to fail work that met it.
 
 **There are two verdicts.** "Partial" and "mostly" are scores wearing pass/fail clothing, and they drift upward the same way. A criterion not fully met is **fail**: leave it `- [ ]` and let its gap become next round's tasks. A verdict containing "should", "probably", "close enough", "partial", or "mostly" is not a verdict — look again at the artifact and rule it.
+
+⛔ **Insufficient evidence is a fail, not a pass.** If you cannot point at the screenshot, the command output, the passage, or the measurement *right now*, the criterion has not been settled — whatever you believe about the work. "It must be fine by now", "nothing changed since it passed", and "the fix obviously covers it" are all the absence of evidence. Go get the evidence, or leave it `- [ ]` and let next round's tasks produce it. Since no user is standing between this verdict and `VERIFIED`, this rule is the only thing preventing a run from certifying itself on faith.
 
 ⛔ **Rule every criterion, every pass.** A criterion that passed in round 1 and regresses in round 2 goes back to `- [ ]`. The file must show the truth, not the high-water mark.
 
@@ -70,9 +73,9 @@ The file is the run's memory. After a compaction you resume from it, not from th
 
 You arrive here with `Status: COMPLETE` (set at the end of Step 4). Each branch below owns the transition out of it — a judge pass that does not move the status leaves the file claiming the judge never ran.
 
-**Every criterion passes** → go to Step 6 (verify), then Step 7 (hand back). Leave `COMPLETE` in place; Step 7 sets `VERIFIED` on the user's approval.
+**Every criterion passes** → go to Step 6 (verify), then Step 7 (hand back). Leave `COMPLETE` in place; Step 7 sets `VERIFIED` once Step 6's evidence is in the file.
 
-**Some criterion fails, and `Rounds:` is 1 or 2** → turn each failure into one or more tasks:
+**Some criterion fails, and `Rounds:` is 1, 2, or 3** → turn each failure into one or more tasks:
 
 - Append them to `## Progress Tracking` as `- [ ] Task N:` and to `## Implementation Tasks` with an objective.
 - Set `Status: PENDING` and register it — the next round has open tasks again, so `COMPLETE` would be a lie and the stop guard would demand a judge pass instead of the build:
@@ -83,11 +86,11 @@ You arrive here with `Status: COMPLETE` (set at the end of Step 4). Each branch 
 
 - Go back to Step 4 and work them.
 
-A failing criterion is never a question for the user. It is the next round's tasks.
+⛔ **A failing criterion is never a question for the user, at any round number.** It is the next round's tasks. Round three used to stop and ask; it does not any more — the fourth round is the automatic, one-time extension, and it runs without being authorised because the round ceiling below is what bounds the run.
 
-**Some criterion fails, and `Rounds:` is 3** → the budget is reached. Go to 5.4.
+⛔ **Round three is where the temptation peaks.** Two passes have failed the same criterion, a fourth feels like more of the same, and "check in with the user" arrives dressed as diligence. It is the run declining to finish. Change the approach instead of repeating it: if the same tasks failed twice, the third attempt at them is worth less than one attempt at a different mechanism.
 
-**Some criterion fails, and `Rounds:` is 4** → the ceiling. Do **not** ask again. Leave the failing criteria unticked and append a `## Round Log` line recording each one as unresolved with the reason it would not close. Then make the hand-back actually reachable — the run ends with the Buildout still unfinished, so it stays `PENDING`, and only the one-shot sentinel lets the session stop:
+**Some criterion fails, and `Rounds:` is 4** → the ceiling. Leave the failing criteria unticked and append a `## Round Log` line recording each one as unresolved with the reason it would not close, in the terms 5.4 requires. Then make the hand-back actually reachable — the run ends with the Buildout still unfinished, so it stays `PENDING`, and only the one-shot sentinel lets the session stop:
 
 ```bash
 BUILD_SESS="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
@@ -97,32 +100,43 @@ mkdir -p "$HOME/.pilot/sessions/$BUILD_SESS" && touch "$HOME/.pilot/sessions/$BU
 
 Then go to Step 6 (verify — the code is finished even though a criterion is not), then Step 7 to hand back. ⛔ Without that sentinel the stop guard blocks the stop and reinjects the loop, which defeats the ceiling entirely — the one failure this budget exists to prevent.
 
-### 5.4 The round budget — ask once, at three
+### 5.4 Criteria do not move, and you are the only one who could move them
 
-Three judge passes is where a converging run has converged and a stuck run has revealed why. Stop and ask.
+There is no approval gate on this run and no round-budget question. Nobody is going to catch a criterion that quietly became easier, which makes this the one rule the whole workflow rests on.
 
-⛔ **Touch the hand-back sentinel first.** Whenever you cannot render `AskUserQuestion` — on Codex, or as a Claude Code subagent running this Buildout as an orchestration lane — you have to end your turn to receive an answer, and for an approved `PENDING` Buildout the stop guard blocks exactly that, reinjecting you into the loop instead. Writing the sentinel is what makes this question reachable at all. Where you *can* render the form it is a harmless no-op, so write it unconditionally rather than branching:
+⛔ **You may never relax, reword, narrow, or drop an acceptance criterion because it is failing.** Not at round three, not at the ceiling, not "to reflect what we learned". A criterion that will not close is reported unresolved (5.3) or proven unachievable (5.5). Both are honest outcomes. A criterion edited to match the artifact is a run marking its own homework, and the file makes it look reviewed.
+
+**Two changes are legitimate, and both come from outside your judgement:**
+
+| Change | Where it comes from | What you record |
+|---|---|---|
+| The user rewrote or removed a criterion | A Console annotation picked up at 3.0 or 4.0, or a message in the conversation | The before and after in `## Round Log`, attributed to the user, then judge against the new wording |
+| A criterion turned out to be undecidable *as written* — no evidence could ever settle it either way | Discovered while judging, not while failing | The original wording, why no evidence settles it, and the sharper replacement that rules the **same** bar. If the replacement is easier to pass, it is not this — it is the banned edit above. |
+
+`Status:` stays `COMPLETE` for either; no tasks reopen and no round is spent. Re-judge against the new wording in the same pass.
+
+⛔ **The oracle criterion is exempt from even those two.** A user who rewrites it is redefining the outcome — that is a new run, not an edit; say so and let them start one. An oracle you find undecidable means Step 1.5 never established one, and no rewording at round three recovers that. Everything else in the workflow exists to make this one criterion true; a run that edits it is a run grading its own exam.
+
+### 5.5 The unachievable exit — the run's only early stop
+
+Some criteria cannot be met in this session no matter how many rounds you spend: it contradicts another criterion, it needs a capability or resource that is not available here, or every distinct approach has been tried and exhausted. Burning the remaining rounds against it produces nothing but tokens.
+
+⛔ **Your own conviction that something is impossible is evidence, not proof.** Believing it does not make it true, and this exit is exactly where a tired run wants to leave. Before taking it, all four must hold:
+
+1. **Two genuinely different mechanisms have been tried** — not the same approach twice with better selectors, wording, or parameters.
+2. **The blocker is named concretely** — the missing capability, the contradiction, the hard limit — in terms someone else could check.
+3. **It is not "not yet".** Slow progress, a hard problem, a long build, a fiddly test, or a filling context window are none of them unachievable.
+4. **No other criterion is still closable.** If work remains that would move something else, the run is not out of things to do.
+
+When all four hold, stop **that criterion**, not the run: leave it `- [ ]`, append a `## Round Log` line naming the blocker and the two approaches that failed, and keep working every criterion that is still live. Only when every remaining criterion is unachievable is the run itself over — then touch the hand-back sentinel, leave `Status: PENDING`, and go to Step 6 and Step 7 exactly as the ceiling does:
 
 ```bash
 BUILD_SESS="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
 mkdir -p "$HOME/.pilot/sessions/$BUILD_SESS" && touch "$HOME/.pilot/sessions/$BUILD_SESS/build-handback-pending"
+~/.pilot/bin/pilot register-plan "<buildout_path>" "PENDING" $LANE_FLAG 2>/dev/null || true
 ```
 
-Then name the failing criteria, what you tried, and why each will not close — plainly, no hedging. Offer three options.
-
-Ask with `AskUserQuestion` when you can. **When you cannot**, read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Round budget`, `OPTIONS` = the three rows below, `SENTINEL_PATH` = `build-handback-pending` (already written above). ⛔ Never pick one of the three yourself because the form was unavailable — extending the budget is the user's call, and helping yourself to "one more round" is how a three-round ceiling becomes none.
-
-| Option | What you do |
-|---|---|
-| **One more round** | Turn the failures into tasks, set `Status: PENDING` and register it, then go back to Step 4. This is a **one-time** extension. |
-| **Relax a criterion** | Rewrite it in `## Acceptance Criteria` with the user's wording, note the change and its reason in `## Round Log`, then judge against the new wording. `Status:` stays `COMPLETE` — no tasks reopened. |
-| **Accept and hand back** | Leave the failing criteria unticked, record the waiver and its reason in `## Round Log`, go to Step 6, then Step 7. **This answer IS the hand-back approval** — record it verbatim in the Buildout as the approving reply, and Step 7.4 does not ask again. |
-
-⛔ **This question is the hand-back interaction, arriving early — not an extra one.** `/build` has exactly three interaction points, so a round-three run must not be asked twice. *Accept and hand back* carries the approval forward to Step 7. *One more round* and *Relax a criterion* both keep the run going, so the run reaches Step 7 unasked and the gate there is its first and only approval.
-
-**"One more round" never repeats.** If the fourth judge pass still fails, 5.3's ceiling applies: hand back automatically, no second ask. A recurring question would rebuild the many-rounds-with-checkpoints shape this workflow exists to remove. Four judge passes is the ceiling; a user who wants more starts a new run.
-
-⛔ **Lowering a criterion without saying so is the one failure mode this workflow exists to prevent.** Relaxing one is fine — in the file, with the user's agreement, and recorded.
+The report says what could not be done and why, in the user's terms. That is a finished run with an honest result — not a failure, and not something to dress up as a pass.
 
 ### Status at a glance
 
@@ -131,11 +145,10 @@ Every path out of this step names its status, so the file never claims a state t
 | Situation | `Status:` | Sentinel | Next |
 |---|---|---|---|
 | Arrived from Step 4 | `COMPLETE` | — | judge |
-| All criteria pass | `COMPLETE` → Step 7 sets `VERIFIED` on approval | — | Step 6 |
-| Fails, rounds 1–2 | `PENDING` (registered) | — | Step 4 |
-| Fails, round 3 → one more round | `PENDING` (registered) | touched for the ask | Step 4 |
-| Fails, round 3 → relax | `COMPLETE` | touched for the ask | re-judge |
-| Fails, round 3 → accept | `COMPLETE` → Step 7 sets `VERIFIED` on approval | touched for the ask | Step 6 |
+| All criteria pass | `COMPLETE` → Step 7 sets `VERIFIED` on the evidence | — | Step 6 |
+| Fails, rounds 1–3 | `PENDING` (registered) | — | Step 4 |
 | Fails, round 4 (ceiling) | `PENDING` (registered) | **touched** | Step 6 |
+| Criterion rewritten by the user or found undecidable (5.4) | `COMPLETE` | — | re-judge |
+| Every remaining criterion unachievable (5.5) | `PENDING` (registered) | **touched** | Step 6 |
 
 **Done when:** the status above matches the branch taken, and the run is either heading to Step 6 or back to Step 4.

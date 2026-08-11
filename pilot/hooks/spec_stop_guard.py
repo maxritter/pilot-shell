@@ -88,12 +88,13 @@ def get_manual_switch_sentinel_path(session_id: str | None = None) -> Path:
 def get_build_handback_sentinel_path(session_id: str | None = None) -> Path:
     """Session-scoped path to the build-handback-pending sentinel.
 
-    ``/build`` reaches the user two ways that both require the session to pause
-    while the Buildout is still ``PENDING`` and approved: the round-budget
-    question at three judge passes, and the blocked-on-external hand-back. On
-    Codex ``AskUserQuestion`` is rewritten to plain-text options, so the agent
-    must end its turn to receive an answer -- which the approved-``PENDING``
-    block otherwise prevents, reinjecting it into the loop instead.
+    ``/build`` runs autonomously and asks nothing after its pre-work scoping
+    round, so this sentinel is not for a question -- it is for the hand-backs
+    that finish a run WITHOUT reaching ``VERIFIED``, where the guard would
+    otherwise hold the session open forever: the four-round ceiling with
+    criteria unresolved, the blocked-on-external pause, the unachievable-criteria
+    exit, and a run whose verification pass is switched off (which ends
+    ``COMPLETE`` by design).
 
     Honored ONE time (the sentinel is consumed on honor) and only for an
     APPROVED ``Type: Build`` plan, so ``/spec``'s implement-phase block and the
@@ -319,10 +320,11 @@ def main() -> int:
     ):
         return 0
 
-    # /build hand-back pause: the round-budget question at three judge passes and
-    # the blocked-on-external hand-back both need the session to actually stop
-    # while the Buildout is approved and still PENDING. Honored ONE time, and only
-    # for a Type: Build plan, so /spec's implement-phase block is untouched.
+    # /build hand-back pause: the ways a run finishes WITHOUT reaching VERIFIED
+    # (round ceiling, blocked on external, criteria unachievable, verification
+    # switched off) all need the session to actually stop while the Buildout is
+    # approved and not yet VERIFIED. Honored ONE time, and only for a Type: Build
+    # plan, so /spec's implement-phase block is untouched.
     if _sentinel_grants_stop(
         get_build_handback_sentinel_path(session_id),
         plan_path,

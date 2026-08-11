@@ -1,9 +1,14 @@
 # Agent Gate Protocol
 
 > Shared runbook for every Pilot workflow step that puts a decision to the user:
-> plan approval (`spec-plan` 12, `spec-bugfix-plan` 6), the `/build` gates
-> (`03-approve`, `05-judge` round budget, `07-hand-back`), `/fix` 6.3, and the
+> plan approval (`spec-plan` 12, `spec-bugfix-plan` 6), `/build`'s single
+> pre-work clarification round (`01-goal-and-scope` 1.5), `/fix` 6.3, and the
 > `/prd` question steps.
+>
+> ⛔ `/build` has no approval, round-budget, or hand-back gate — it runs
+> autonomously once the goal is clear. If you are following this file inside a
+> `/build` run at any point after Step 1.5, you have invented a gate: go back and
+> take one of the run's four hand-back doors instead.
 >
 > Skill steps reference this file instead of restating it. Read it when you reach
 > a gate and **cannot emit `AskUserQuestion`**.

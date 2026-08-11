@@ -1,32 +1,22 @@
-## Step 3: Approve the Run, Settle the Mode
+## Step 3: Lock the Contract, Settle the Mode
+
+No gate lives here. This step turns the draft into the run's contract and starts the loop, in the same turn Step 2 finished in.
 
 ### 3.0 Pick up any Console annotations first
 
-The Buildouts view has the same annotate surface as Specifications and saves automatically, so the user may have marked up the criteria while you drafted. Read `docs/builds/.annotations/<buildout-basename>.json` before asking; a missing file or empty `planAnnotations` means nothing to do.
+The Buildouts view has the same annotate surface as Specifications and saves automatically, so the user may have marked up the criteria while you drafted. Read `docs/builds/.annotations/<buildout-basename>.json`; a missing file or empty `planAnnotations` means nothing to do.
 
 Otherwise fold every entry in — each carries `originalText` (the passage) and `text` (what they want) — then `rm -f` the file (direct deletion, since curl is blocked in several hook environments) and note "Incorporated N annotations from the Console."
 
-**Re-run this whenever 3.1 sends you back for changes** — the user may annotate instead of typing.
+**Annotations are how a running build gets steered.** With no approval gate, this file is the user's channel into a loop that does not stop to ask — so Step 4 re-checks it at the top of every round, not just here. An annotation that changes a criterion is a criterion change: record it in `## Round Log` with the before and after, exactly as 5.4 requires of any other one.
 
-### 3.1 The one gate
+### 3.1 Lock it
 
-When `PILOT_PLAN_APPROVAL_ENABLED` is not `"false"`, ask once:
+Set `Approved: Yes` in the Buildout. Leave `Status: PENDING`. The statusline flips from `goal` to `build`, and the stop guard now holds the session open until the run reaches one of the four hand-back doors.
 
-> N tasks and M criteria drafted for GOAL. Approve to start the build-judge loop, or tell me what to change.
+⛔ **`Approved: Yes` on a Buildout means the contract is locked, not that anyone signed off.** `/build` has no approval gate and does not read `PILOT_PLAN_APPROVAL_ENABLED` — that toggle governs `/spec`'s plan gate, where a human really does decide. Writing this field is yours to do, unprompted, every run. Do not ask first, do not wait for a reply, and do not report it as an approval.
 
-Options: **Approve** / **Change the tasks** / **Change the criteria**.
-
-Render it with `AskUserQuestion` when you can. **When you cannot** — on Codex, or as a Claude Code subagent running this Buildout as an orchestration lane — read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Buildout approval`, `OPTIONS` = the three above, `SENTINEL_PATH` = `spec-approval-pending`. That sentinel is honoured only while `Approved: No`, which is exactly this moment. Delete it on resume, then act on their choice.
-
-⛔ Whichever way you ask, the answer is the user's. Never set `Approved: Yes` because the form was unavailable.
-
-When the toggle is `"false"`, skip the question entirely.
-
-On approval — or immediately when the gate is off — set `Approved: Yes` in the Buildout. Leave `Status: PENDING`. The statusline flips from `goal` to `build`, and the stop guard now holds the session open until the run reaches a hand-back.
-
-If they ask for changes, edit the Buildout, re-run 3.0 in case they annotated instead, and re-show it. Do not start building against tasks or criteria the user rejected.
-
-**Approval is about the criteria, mostly.** The tasks will change during the run and everyone knows it; the criteria are the contract. If the user only glances at one list, make sure it is that one.
+**What the criteria are is now settled, and failing them is not a reason to change them.** They move only the two ways 5.4 allows — the user rewrote one, or one turned out to be undecidable as written — both recorded in `## Round Log` with the before and after. Never quietly, and never because they turned out to be hard.
 
 ### 3.2 Sequential is the default and it stays the default
 
@@ -47,13 +37,15 @@ Propose ultracode only when **all three** hold:
 
 That is whole-project scale: migrating a codebase to a new framework, rebuilding an app's surface area from the ground up, an overhaul spanning many independent screens or services. A landing page with six sections is one artifact — sequential. A long grind is still sequential. If any of the three fails, run sequentially and say nothing about ultracode.
 
+⛔ **This is the one exception to "no interaction after Step 1.5", and only because it cannot be anything else:** `/effort ultracode` is session-scoped and the user has to type it — you cannot enable it, so proceeding without asking is not an option that exists. It is not a check-in, and it never becomes one for anything else.
+
 When all three hold, ask with `AskUserQuestion` and say plainly what you are asking for:
 
 > This is <N> independent surfaces, each needing its own build-judge loop. Running them in parallel needs `/effort ultracode` — xhigh effort plus dynamic workflow orchestration, session-only. It spends substantially more tokens than the sequential default. Want it, or should I run this sequentially?
 
 State the mechanics accurately: `/effort ultracode` is session-scoped, the user has to type it, and it needs dynamic workflows enabled in `/config`. Organizations can restrict xhigh, in which case the command refuses and sequential is the only path.
 
-**Take no for an answer.** Cost, org policy, or plain preference are all sufficient. Drop to sequential immediately, do not re-argue it, and do not raise it again this session. A declined escalation is not a degraded run — sequential is the design, not the fallback.
+**Take no for an answer, and take silence for one too.** Cost, org policy, plain preference, or an auto-continued question with no reply are all sufficient. Drop to sequential immediately, do not re-argue it, and do not raise it again this session. A declined escalation is not a degraded run — sequential is the design, not the fallback.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 ### 3.3 Parallel surfaces
@@ -63,4 +55,4 @@ CODEX-END -->
 
 **Do not deflect large work to `/spec`.** Scale is not what `/spec` is for; an approved plan file and an ordered task list are. Big work escalates here, or runs sequentially.
 
-**Done when:** `Approved: Yes` is in the Buildout and the mode is settled.
+**Done when:** `Approved: Yes` is in the Buildout, the mode is settled, and your next action is Step 4 — in this same turn.

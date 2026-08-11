@@ -11,8 +11,8 @@
       "file": "steps/02-draft-the-run.md"
     },
     {
-      "id": "step-3-approve",
-      "file": "steps/03-approve.md"
+      "id": "step-3-lock-the-contract",
+      "file": "steps/03-lock-the-contract.md"
     },
     {
       "id": "step-4-build",

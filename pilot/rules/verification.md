@@ -67,7 +67,7 @@ Before proceeding, ask: "Do these tests verify what matters, or only what was ea
 
 In `/spec`, fix all verification errors without asking — `must_fix` / `should_fix` immediately, `suggestions` if quick (severity → action policy: `code-review-reception.md`). The user-interaction points in `/spec` are the four listed in `task-and-workflow.md` (not just plan approval).
 
-The same holds in `/build`: a failing criterion is the next round's job, never a question. Its three interaction points are also listed in `task-and-workflow.md`. Renegotiating a criterion you cannot close IS a question — lowering one quietly is the failure this workflow exists to prevent.
+`/build` goes further: it is autonomous from the goal to the hand-back, so **nothing** in it is a question after the one pre-work clarification round (`task-and-workflow.md`). A failing criterion is the next round's job; at the four-round ceiling it is a line in the report. Renegotiating a criterion you cannot close is not available — lowering one, quietly or otherwise, is the failure this workflow exists to prevent. Because `/build` writes `VERIFIED` itself, the evidence bar replaces the human one: every criterion ticked against evidence you can point at, and every verification layer either evidenced or disclosed in `## Not Verified`.
 
 Outside both, respect the user's mode — in plan mode, present issues and proposed fixes instead of applying them.
 
