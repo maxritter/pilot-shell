@@ -21,6 +21,15 @@ The project's rules apply in full inside the loop, and so does the least that wo
 
 ⛔ **A failing command makes a task blocked, not done — and the failure stays visible as a failure.** Do not move it into prose ("mostly passing", "one unrelated flake"), do not tick the task and mention it in the round log, and do not narrow the command until it goes green. This is an observed failure mode in autonomous loops, not a hypothetical: the pressure to keep the round moving turns a red command into a sentence, and the sentence validates. Record the command and its status as a pair, and let a red one hold the task open.
 
+⛔ **Ticking is how a task finishes, not bookkeeping you do afterwards.** The tick, the `## Changed Files` append, and the round-log line are one edit, made when the work goes green. `## Progress Tracking` is the only place task state exists — the statusline counts those boxes, the stop guard reads them, and the round that resumes after a compaction has nothing else to go on. A task whose work is done and whose box is still empty is an unfinished task, however green it was; your memory of having finished it does not survive the turn.
+
+⛔ **Never name a task number in prose you have not just read out of the file.** "Starting Task 6" is a claim about `## Progress Tracking`, and the user is reading that same block through the statusline. Read it, then narrate — and when the two disagree, the file is right and the sentence is the bug. This is an observed failure mode: the narration runs ahead of the boxes, the statusline says `3/7` while the conversation says Task 6, and the user is left to catch it.
+
+**A task waiting on a long job inside this session** — a re-run, a data collection, a build that takes twenty minutes — is not blocked. 4.6 is for what finishes *outside* the session; this one lands while you are still here, so it stays open and unticked until it does, and the round does not end without it. You may work a later task while it runs, on two conditions:
+
+- **Say it in the same breath you say the number in** — "Task 4 is still running (~117/324); working Task 5 while it finishes." A silent jump to a later number is exactly what makes the statusline look wrong.
+- **Nothing renumbers.** Task 4 stays Task 4 and stays unticked. Working ahead never reorders `## Progress Tracking`, never quietly converts a running task into a dropped one (4.4), and never lets 4.7 fire early — `Status: COMPLETE` needs *every* box ticked, the running one included.
+
 **Standing stop conditions.** These halt the task and go in `## Round Log` instead of being improvised around:
 
 - The behaviour the objective names is **ambiguous** and the artifact cannot settle it — do not pick a reading and build it silently; note the reading you took and why, so the judge and the report both carry it.
