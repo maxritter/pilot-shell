@@ -106,9 +106,17 @@ _APPROVED_RE: re.Pattern[str] = re.compile(r"^Approved:\s*(\w+)\s*$", re.MULTILI
 _TYPE_RE: re.Pattern[str] = re.compile(r"^Type:\s*(\w+)\s*$", re.MULTILINE)
 
 
-def _read_active_plan() -> dict | None:
-    """Read ~/.pilot/sessions/<session-id>/active_plan.json or return None."""
-    plan_file = _sessions_base() / resolve_session_id() / "active_plan.json"
+def _read_active_plan(session_id: str | None = None) -> dict | None:
+    """Read ~/.pilot/sessions/<session-id>/active_plan.json or return None.
+
+    ``session_id`` is a caller-resolved id (env chain first, hook payload
+    fallback - see :func:`resolve_session_id`); ``None`` keeps the env-only
+    resolution. Passing the payload-resolved id is what keeps an env-less
+    session from reading a SIBLING session's plan out of the shared "default"
+    bucket - a bleed ``plan_in_current_project`` cannot catch when both
+    sessions run in the same repo.
+    """
+    plan_file = get_session_plan_path(session_id)
     if not plan_file.exists():
         return None
     try:
@@ -167,6 +175,17 @@ def _read_pilot_config() -> dict | None:
 # on sys.path (package boundary). Keep the two chains in sync.
 _SESSION_ID_ENV_CHAIN = ("PILOT_SESSION_ID", "CLAUDE_CODE_SESSION_ID", "CODEX_THREAD_ID")
 
+# A payload-supplied session id becomes a single path component under
+# ~/.pilot/sessions/ - and session_clear DELETES under that path - so anything
+# that is not a plain component (separators, dot segments, absolute paths) is
+# rejected rather than resolved. Mirrored in launcher/session.py - keep in sync.
+_SAFE_SESSION_COMPONENT_RE = re.compile(r"^[A-Za-z0-9._-]+$")
+
+
+def _is_safe_session_component(value: str) -> bool:
+    """True when ``value`` is usable as one directory name under sessions/."""
+    return value not in (".", "..") and bool(_SAFE_SESSION_COMPONENT_RE.fullmatch(value))
+
 
 def resolve_session_id(fallback: str = "") -> str:
     """Resolve the session id from the agent-native env chain.
@@ -200,7 +219,13 @@ def resolve_session_id(fallback: str = "") -> str:
         value = os.environ.get(var, "").strip()
         if value:
             return value
-    return fallback.strip() or "default"
+    fallback = fallback.strip()
+    # Reject a fallback that cannot be a single path component: the id is joined
+    # under ~/.pilot/sessions/ and session_clear deletes there, so a traversal
+    # value ("../other", "/etc") must degrade to legacy resolution instead.
+    if fallback and _is_safe_session_component(fallback):
+        return fallback
+    return "default"
 
 
 def _sessions_base() -> Path:
@@ -269,16 +294,18 @@ PLAN_MODE_SENTINEL = "plan-mode-active"
 PRE_PLAN_MODE_RECORD = "pre-plan-permission-mode"
 
 
-def plan_mode_sentinel_path() -> Path:
+def plan_mode_sentinel_path(session_id: str | None = None) -> Path:
     """Session-scoped plan-mode sentinel path (reader semantics - no mkdir).
 
     Written/removed by plan_mode_tracker on EnterPlanMode/ExitPlanMode; read by
     auto_approve_plan's deny guard and spec_plan_awaiting_approval below.
+    ``session_id`` is a caller-resolved id (see :func:`_read_active_plan`);
+    ``None`` keeps the env-only resolution.
     """
-    return _sessions_base() / resolve_session_id() / PLAN_MODE_SENTINEL
+    return _sessions_base() / (session_id or resolve_session_id()) / PLAN_MODE_SENTINEL
 
 
-def spec_plan_awaiting_approval() -> bool:
+def spec_plan_awaiting_approval(session_id: str | None = None) -> bool:
     """True while a /spec planning leg is active and its plan is unapproved.
 
     Deny-guard predicate shared by auto_approve_plan (denies a premature
@@ -286,12 +313,13 @@ def spec_plan_awaiting_approval() -> bool:
     warning in the same window, so the two hooks never issue contradictory
     instructions). Fails open (False) on ANY read or parse error - a guard
     malfunction must never block ExitPlanMode or mute a legitimate warning
-    permanently.
+    permanently. ``session_id`` is a caller-resolved id (see
+    :func:`_read_active_plan`); ``None`` keeps the env-only resolution.
     """
     try:
-        if not plan_mode_sentinel_path().exists():
+        if not plan_mode_sentinel_path(session_id).exists():
             return False
-        plan = _read_active_plan()
+        plan = _read_active_plan(session_id)
         if not plan:
             return False
         if str(plan.get("status", "")).upper() != "PENDING":

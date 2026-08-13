@@ -53,7 +53,7 @@ Three failure modes are common enough to name, because each one *feels* reasonab
 
 - **Detect a worktree with `pilot worktree detect --json <fix-slug> $LANE_FLAG`, never a path glob.** The old `.worktrees/spec-*` test keyed `/fix`'s isolation to a directory prefix another workflow produces; the resolver answers the same question without depending on the naming.
 - **No `Iterations:` counter.** If the fix doesn't work after one re-attempt, stop and hand off to `/spec` — don't loop.
-- **No approval mid-flow.** A single end-of-flow confirmation, and only when `PILOT_PLAN_APPROVAL_ENABLED` is enabled.
+- **No approval mid-flow.** A single end-of-flow confirmation, and only when `PILOT_PLAN_APPROVAL_ENABLED` is enabled. It sits at 6.2, **ahead of** the commit and merge at 6.3 — one gate, placed in front of the step that cannot be undone. Do not add a second gate for the merge; move nothing behind it.
 - **Stopping is success, not failure.** Recognising "this is bigger than a quick fix" is the right call; grinding on a multi-component bug in the quick lane is the failure.
 <!-- CC-ONLY -->
 - **Use `AskUserQuestion` for user questions** — it renders a structured form; don't fall back to plain-text numbered questions.
@@ -102,7 +102,7 @@ Bail out when each site needs **different** logic — entry validation *plus* a 
 |---|---|---|
 | **Continue on current branch** (recommended) | `--worktree=no` | Works on the current branch as-is |
 | New branch from default branch | `--new-branch` | Branches `fix/<fix-slug>` off `origin/<default>`, carrying your uncommitted work |
-| Use worktree (isolated, squash-merged after) | `--worktree=yes` | Isolated checkout, merged back at Step 6.2 |
+| Use worktree (isolated, squash-merged after) | `--worktree=yes` | Isolated checkout, merged back at Step 6.3, after the 6.2 approval gate |
 
 When the toggle is `"false"`, ask nothing and use `--worktree=no`.
 

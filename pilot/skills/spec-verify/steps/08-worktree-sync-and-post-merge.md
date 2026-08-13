@@ -23,6 +23,21 @@
    ```
    AskUserQuestion: "Yes, squash merge" (Recommended) | "No, keep worktree" | "Discard all changes"
 
+   ⛔ **When you cannot emit `AskUserQuestion`** — on Codex, where it renders as a plain-text list rather than an interactive control, or as a Claude Code subagent running this plan as an orchestration lane, where the tool is absent entirely — the prompt above will not block for an answer, so you must yield yourself. Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Worktree sync`, `OPTIONS` = the three above, `SENTINEL_PATH` = `verify-gate-pending`:
+
+   ```bash
+   SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+   mkdir -p "$SESS_DIR" && touch "$SESS_DIR/verify-gate-pending"
+   ```
+
+   Then **end your turn**. The stop guard honours this sentinel once for an approved plan at `Status: COMPLETE`, so the user can answer. Treat their NEXT message as the choice. ⛔ Do NOT run the sync in the same turn — this gate guards a squash merge onto the base branch, which is the one decision in the workflow that cannot be undone by asking again. On resume, delete the sentinel first, then act on their choice:
+
+   ```bash
+   rm -f "$SESS_DIR/verify-gate-pending"
+   ```
+
+   The sentinel is consumed when honoured, so **re-touch it** every time you come back here and ask again.
+
 7. **Handle choice:**
 
    **Squash merge:**

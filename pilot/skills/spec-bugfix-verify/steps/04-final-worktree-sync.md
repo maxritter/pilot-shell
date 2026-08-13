@@ -8,6 +8,15 @@
    `git -C <project_root> check-ignore -q docs/plans/<plan_filename>` — if exit 0: `cp <worktree_plan> <project_root>/docs/plans/`; if exit 1 (tracked): skip — squash merge brings the updated plan.
 4. Show diff: `~/.pilot/bin/pilot worktree diff --json <plan_slug> $LANE_FLAG`
 5. Notify + AskUserQuestion: "Yes, squash merge" | "No, keep" | "Discard"
+
+   ⛔ **When you cannot emit `AskUserQuestion`** — on Codex, or as a Claude Code subagent running this bugfix as an orchestration lane, where the tool is absent entirely — the prompt will not block for an answer, so you must yield yourself. Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Worktree sync`, `OPTIONS` = the three above, `SENTINEL_PATH` = `verify-gate-pending`:
+
+   ```bash
+   SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+   mkdir -p "$SESS_DIR" && touch "$SESS_DIR/verify-gate-pending"
+   ```
+
+   Then **end your turn** — the guard honours the sentinel once for an approved plan at `Status: COMPLETE`. ⛔ Do NOT run the sync in the same turn: it squash-merges onto the base branch and cannot be undone by asking again. Treat the user's NEXT message as the choice, `rm -f "$SESS_DIR/verify-gate-pending"` on resume, and re-touch it whenever you ask again.
 6. Handle:
    - **Squash:** `worktree sync && cleanup --force + cd` — ALL in ONE Bash call chained with `&&`. Cleanup MUST NOT run if sync fails.
    - **Keep:** Report path

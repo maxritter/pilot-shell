@@ -21,7 +21,7 @@ try:
     from plan_mode_tracker import planning_leg_model_context
 except ImportError:  # version-skewed hooks dir: context monitoring still works
 
-    def planning_leg_model_context() -> str | None:
+    def planning_leg_model_context(session_id: str | None = None) -> str | None:
         return None
 
 
@@ -265,7 +265,7 @@ def _emit(notices: list[str]) -> int:
     return 0
 
 
-def _planning_leg_notice() -> str | None:
+def _planning_leg_notice(session_id: str | None = None) -> str | None:
     """Report which model the /spec planning leg is observably running on.
 
     Confirms once when the opusplan switch took effect, warns once when it did
@@ -281,9 +281,12 @@ def _planning_leg_notice() -> str | None:
     tests/test_context_monitor.py::TestPlanningLegHookRegistration). Runs before
     the throttle below - the downgrade is unrelated to how recently context was
     sampled, and at planning-time context levels the throttle is almost always on.
+    ``session_id`` is the payload-resolved id, so an env-less session checks ITS
+    OWN plan-mode sentinel and not one a sibling same-repo session left in the
+    shared "default" bucket.
     """
     try:
-        return planning_leg_model_context()
+        return planning_leg_model_context(session_id)
     except OSError:
         return None
 
@@ -299,7 +302,7 @@ def run_context_monitor() -> int:
     session_id = _get_pilot_session_id()
 
     notices: list[str] = []
-    planning_leg = _planning_leg_notice()
+    planning_leg = _planning_leg_notice(resolve_session_id(str(hook_data.get("session_id") or "")))
     if planning_leg:
         notices.append(planning_leg)
 

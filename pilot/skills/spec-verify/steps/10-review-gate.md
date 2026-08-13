@@ -3,12 +3,30 @@
 **⛔ MANDATORY before marking VERIFIED.** All automated checks pass — but the user should review the actual code changes.
 
 <!-- CC-ONLY -->
-**⛔ MUST use `AskUserQuestion`** — the stop guard only allows stopping when it detects this tool in the transcript. Plain text output will cause the stop guard to block session exit while waiting for user feedback.
+**⛔ MUST use `AskUserQuestion` whenever you can emit it** — the stop guard reads this tool from the transcript to recognise an answer-wait turn, so plain text alone would leave it blocking session exit while the user is being asked.
 
-**⛔ Resume / compaction / idle:** if you wake into a session where the previous Step 10 is unresolved (no in-turn approve keyword received from the user), **re-ask via `AskUserQuestion`**. Do NOT infer approval from "checks all passed," empty annotations, or a long quiet gap. Silence is never approval.
+⛔ **When you cannot emit it** — as a Claude Code subagent running this plan as an orchestration lane, where the tool is absent from the toolset entirely — asking in plain text is then the *correct* move, not a violation, but it must be paired with a yield or the question is passed by momentum. Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Code review gate`, `OPTIONS` = the three below, `SENTINEL_PATH` = `verify-gate-pending`:
+
+```bash
+SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+mkdir -p "$SESS_DIR" && touch "$SESS_DIR/verify-gate-pending"
+```
+
+Then **end your turn**; the guard honours the sentinel once for an approved plan at `Status: COMPLETE`. Treat the user's NEXT message as their answer, delete the sentinel on resume (`rm -f "$SESS_DIR/verify-gate-pending"`), and **re-touch it** each time you return here and ask again — it is consumed when honoured. Step 11's precondition is satisfied by this prose ask exactly as it is by the form; what it tests is that the gate was asked and answered, never which tool asked it.
+
+**⛔ Resume / compaction / idle:** if you wake into a session where the previous Step 10 is unresolved (no in-turn approve keyword received from the user), **re-ask** — via `AskUserQuestion`, or via the prose ask + yield above when you cannot emit it. Do NOT infer approval from "checks all passed," empty annotations, or a long quiet gap. Silence is never approval.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 **⛔ Present options as numbered text and wait for user response.** Do NOT infer approval from "checks all passed" or silence. Explicit approval keywords required.
+
+Presenting the options is only half of it: the turn must also END so the answer can arrive. Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Code review gate`, `OPTIONS` = the three below, `SENTINEL_PATH` = `verify-gate-pending`:
+
+```bash
+SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+mkdir -p "$SESS_DIR" && touch "$SESS_DIR/verify-gate-pending"
+```
+
+The guard honours it once for an approved plan at `Status: COMPLETE`. Treat the user's NEXT message as their answer, `rm -f "$SESS_DIR/verify-gate-pending"` on resume, and re-touch it each time you ask again.
 CODEX-END -->
 
 1. Notify:

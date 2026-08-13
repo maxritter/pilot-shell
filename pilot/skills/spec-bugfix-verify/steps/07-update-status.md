@@ -2,7 +2,7 @@
 
 ### ⛔ Precondition Gate — verify ALL THREE before writing `Status: VERIFIED`
 
-1. `AskUserQuestion` was called in **this same conversation turn flow** as part of Step 6 (not a previous, abandoned one).
+1. The Step 6 gate **was actually put to the user** in **this same conversation turn flow** (not a previous, abandoned one) — by `AskUserQuestion`, or, for an agent that cannot emit it, by the prose ask + yield in `agent-gate-protocol.md`. What matters is that the question was asked and the turn ended so it could be answered; *which* mechanism asked it is not the test. (An agent with no `AskUserQuestion` can never satisfy a tool-presence check, which would make `VERIFIED` unreachable for an orchestration lane no matter how legitimately the gate was answered.)
 2. The user's most recent reply contains one of the **explicit approve keywords**: `Approve`, `approve`, `lgtm`, `looks good`. (A bare `continue`/`proceed` is a resume nudge, NOT approval.)
 3. That reply arrived **after** the AskUserQuestion call — not before, not as a stale message.
 

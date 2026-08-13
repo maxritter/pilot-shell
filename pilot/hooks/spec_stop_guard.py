@@ -5,11 +5,25 @@ Only allows stopping when:
 1. Asking user for plan approval (AskUserQuestion tool)
 2. Asking user for an important decision (AskUserQuestion tool)
 3. No active plan exists (not in /spec mode)
-4. User stops again within 60s cooldown (escape hatch)
-5. Runaway cap: after MAX_BLOCKS consecutive blocks for the same plan with no
-   user-question turn in between, emit one escalation block instructing the
-   agent to AskUserQuestion. The next block-attempt after escalation is
-   allowed through, breaking pathological infinite verify→implement loops.
+4. A fresh pause sentinel applies to the plan's current state - the approval wait,
+   the manual model switch, a /build hand-back, or a verify-phase gate. These are
+   the path for agents that cannot emit AskUserQuestion (Codex, and Claude Code
+   subagents dispatched as orchestration lanes), which would otherwise answer
+   their own gate rather than stop.
+5. User stops again within 60s cooldown (escape hatch) - withheld while
+   `stop_hook_active` marks the attempt as the agent's own continuation
+6. Runaway cap: after MAX_BLOCKS blocks for the same plan with no user-question
+   turn in between, OR MAX_CHAIN_BLOCKS blocks inside one continuation chain,
+   emit one escalation block instructing the agent to AskUserQuestion. The next
+   block-attempt after escalation is allowed through, breaking pathological
+   infinite verify->implement loops. The per-chain bound is the one that matters
+   on Claude Code, which silently ends the turn itself after
+   CLAUDE_CODE_CONSECUTIVE_BLOCK_CAP consecutive blocks; the session-wide bound
+   is the backstop for agents that report no continuation state.
+
+`stop_hook_active` is deliberately NOT a reason to allow a stop: it is true for
+every stop attempt after this guard blocks, so honoring it let the guard block
+only once per continuation chain and left /build loops free to end mid-round.
 """
 
 from __future__ import annotations
@@ -35,7 +49,28 @@ from _lib.util import (
 )
 
 COOLDOWN_SECONDS = 60
+# Session-wide backstop: blocks for the same plan since the last user-question
+# turn. This is the only bound an agent that reports no continuation state (Codex
+# sends no `stop_hook_active`) ever reaches, so it stays where it was.
 MAX_BLOCKS = 30
+# Claude Code overrides a Stop hook and ends the turn itself after this many
+# consecutive blocks in ONE continuation chain, silently - no message, no
+# question, the session simply stops. Documented under "Stop input" in the hooks
+# reference.
+CLAUDE_CODE_CONSECUTIVE_BLOCK_CAP = 8
+# Per-chain bound, which must stay clear of the cap above so the runaway
+# escalation (which ends the run by asking the user how to proceed) fires instead
+# of being pre-empted by that silent override. At 5: blocks 1-5 are normal, block
+# 6 escalates, attempt 7 releases - 6 consecutive blocks, two clear of the cap.
+#
+# It is deliberately NOT the same counter as MAX_BLOCKS. Measured over the local
+# Claude Code transcripts (~/.claude/projects/*/*.jsonl: count Stop-hook attachments
+# per session, `hook_blocking_error` = blocked, anything else ends the chain), real
+# sessions accumulate up to 7 blocks each but never more than 1 within a single
+# chain. So a session-wide counter at this depth would escalate on healthy runs and
+# release them - reintroducing the silent stop this guard exists to prevent, at a
+# new place. Re-run that count before changing either constant.
+MAX_CHAIN_BLOCKS = 5
 # Sentinel files older than this are treated as stale (PID reuse, crashed
 # session, etc.) and unlinked without being honored. One hour is generous
 # enough for any realistic approval-wait interaction.
@@ -103,6 +138,32 @@ def get_build_handback_sentinel_path(session_id: str | None = None) -> Path:
     guard_dir = _sessions_base() / (session_id or resolve_session_id())
     guard_dir.mkdir(parents=True, exist_ok=True)
     return guard_dir / "build-handback-pending"
+
+
+def get_verify_gate_sentinel_path(session_id: str | None = None) -> Path:
+    """Session-scoped path to the verify-gate-pending sentinel.
+
+    ``/spec``'s verify phase puts two decisions to the user: the worktree squash
+    merge (``spec-verify`` 8.1.6, ``spec-bugfix-verify`` 4.5) and the code-review
+    sign-off that precedes ``Status: VERIFIED`` (``spec-verify`` 10,
+    ``spec-bugfix-verify`` 6). Both run with the plan at ``Approved: Yes`` and
+    ``Status: COMPLETE`` -- a state none of the three sentinels above covers, since
+    the approval one needs ``Approved: No``, the hand-back one needs
+    ``Type: Build``, and the manual-switch one is the post-approval model-switch
+    pause. An agent that cannot emit ``AskUserQuestion`` therefore had no way to
+    pause at either gate and resolved the contradiction by answering it: merging
+    unreviewed, or writing ``VERIFIED`` nobody approved.
+
+    Honored ONE time (consumed on honor) for an APPROVED, non-``Build`` plan, and
+    only while ``Status: COMPLETE`` -- the caller applies that test, since it holds
+    the status and ``_sentinel_grants_stop`` sees only ``(approved, plan_type)``.
+    ``/build`` is excluded because it has no gate after its pre-work scoping round;
+    a sentinel it never writes must never release its loop. Stale sentinels are
+    discarded, so a crashed run cannot silently disable the guard.
+    """
+    guard_dir = _sessions_base() / (session_id or resolve_session_id())
+    guard_dir.mkdir(parents=True, exist_ok=True)
+    return guard_dir / "verify-gate-pending"
 
 
 def _sentinel_grants_stop(
@@ -280,8 +341,17 @@ def main() -> int:
     except json.JSONDecodeError:
         return 0
 
-    if input_data.get("stop_hook_active", False):
-        return 0
+    # `stop_hook_active` is true on every stop attempt inside a hook-driven
+    # continuation - the agent ending a turn AFTER this guard already blocked once.
+    # That is exactly the case the guard exists to hold, so it is never permission
+    # to stop. Returning 0 here capped the guard at ONE block per continuation
+    # chain, which is how a /build loop ended mid-round with criteria unmet: block,
+    # one more turn of work, then a silent exit that no one asked for.
+    #
+    # It still carries information - the attempt is the AGENT's, not the user's, and
+    # a false value marks the start of a new chain - so it is kept, and used both to
+    # withhold the user-only cooldown hatch and to scope MAX_CHAIN_BLOCKS below.
+    in_hook_continuation = bool(input_data.get("stop_hook_active", False))
 
     # Env chain first (it is what `pilot register-plan` wrote this session's state
     # under), then the payload's own session id. Without the payload fallback a hook
@@ -333,39 +403,74 @@ def main() -> int:
     ):
         return 0
 
+    # Verify-phase gate pause: the worktree merge and the code-review sign-off both
+    # put a decision to the user while the plan is approved and COMPLETE, and an
+    # agent with no AskUserQuestion has to yield to let it be answered. Honored ONE
+    # time and only at COMPLETE, so the implement-phase block (PENDING) is
+    # untouched; never for a Buildout, which has no gate to yield at. Each re-ask -
+    # the review gate's "Fix" and "Manual" paths both come back here - touches the
+    # sentinel again, so forgetting to re-touch blocks rather than stopping silently.
+    if status == "COMPLETE" and _sentinel_grants_stop(
+        get_verify_gate_sentinel_path(session_id),
+        plan_path,
+        lambda approved, plan_type: approved and plan_type != "Build",
+        consume=True,
+    ):
+        return 0
+
     state_file = get_stop_guard_path(session_id)
     state = _load_state(state_file)
 
     plan_key = str(plan_path)
     if state.get("plan") != plan_key:
-        state = {"ts": 0.0, "count": 0, "plan": plan_key}
+        state = {"ts": 0.0, "count": 0, "chain": 0, "plan": plan_key}
 
     transcript_path = input_data.get("transcript_path", "")
     if transcript_path and is_waiting_for_user_input(transcript_path):
         state["count"] = 0
+        state["chain"] = 0
         state["ts"] = 0.0
         _save_state(state_file, state)
         return 0
 
+    # Double-stop escape hatch, for the USER. Withheld inside a hook-driven
+    # continuation: there, a stop landing within COOLDOWN_SECONDS of the last block
+    # means the agent produced a near-instant turn - a summary, a sign-off, a
+    # "resume when you're ready" - which is the behaviour being guarded against, not
+    # a request to exit. A user's force-exit arrives on a fresh turn instead, where
+    # the flag is false and this still fires.
     now = time.time()
     last_ts = float(state.get("ts") or 0.0)
-    if last_ts and (now - last_ts) < COOLDOWN_SECONDS:
+    if not in_hook_continuation and last_ts and (now - last_ts) < COOLDOWN_SECONDS:
         state_file.unlink(missing_ok=True)
         return 0
 
     count = int(state.get("count") or 0)
+    # A stop attempt that is not a hook continuation starts a new chain, which is
+    # also when Claude Code's own consecutive-block budget resets. Keeping the two
+    # in step is what makes MAX_CHAIN_BLOCKS a bound on the harness's silent
+    # override rather than a second, tighter session-wide cap.
+    chain = int(state.get("chain") or 0) if in_hook_continuation else 0
 
-    if count > MAX_BLOCKS:
+    # Either bound releasing wipes BOTH counters, by design: the release is the end
+    # of the runaway, not a partial reprieve. So the two bounds are not tracked
+    # independently across a session - on Claude Code a pathological chain trips the
+    # tighter per-chain bound first and resets the session-wide count with it.
+    if count > MAX_BLOCKS or chain > MAX_CHAIN_BLOCKS:
         state_file.unlink(missing_ok=True)
         return 0
 
     state["count"] = count + 1
+    state["chain"] = chain + 1
     state["ts"] = now
     _save_state(state_file, state)
 
-    if count + 1 > MAX_BLOCKS:
+    if count + 1 > MAX_BLOCKS or chain + 1 > MAX_CHAIN_BLOCKS:
+        # Report the counter that actually tripped: the session-wide one runs ahead
+        # of the chain, so max() would overstate how many blocks were consecutive.
+        blocks = chain + 1 if chain + 1 > MAX_CHAIN_BLOCKS else count + 1
         reason = (
-            f"RUNAWAY GUARD TRIPPED — {MAX_BLOCKS} consecutive stop-block attempts on plan "
+            f"RUNAWAY GUARD TRIPPED — {blocks} consecutive stop-block attempts on plan "
             f"{plan_path} (Status: {status}) without a user-question turn in between. "
             f"This pattern indicates the agent is stuck in a verify→implement loop and "
             f"burning tokens unsupervised. STOP. Your VERY NEXT action MUST be "

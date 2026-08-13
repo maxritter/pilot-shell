@@ -98,6 +98,7 @@ _SESSION_SCOPED_BY_DESIGN = frozenset(
         "spec-approval-pending",
         "manual-switch-pending",
         "build-handback-pending",
+        "verify-gate-pending",
         "plan-mode-active",
         "active_plan.json",
         "worktree.json",
@@ -125,8 +126,7 @@ def test_session_artifacts_carry_a_per_run_component() -> None:
         "(<slug>/<lane>/<plan-slug>). A fixed filename is shared by every concurrent "
         "orchestration lane, because a subagent resolves the same session id as its "
         "parent - so one lane reads a sibling's findings as its own, and one lane's "
-        "cleanup glob deletes a sibling's in-flight file (issue #173). Offenders:\n"
-        + "\n".join(offenders)
+        "cleanup glob deletes a sibling's in-flight file (issue #173). Offenders:\n" + "\n".join(offenders)
     )
 
 

@@ -204,7 +204,9 @@ The phase skills carry their own contracts — dispatch rules, toggles, plan reg
 
 ⛔ **Autonomy is not a lower bar.** `/build` writes `VERIFIED` itself, so it is earned by evidence in the Buildout — every criterion ticked against evidence, every verification layer either evidenced or disclosed. Switching the verification pass off means the run ends `COMPLETE` and unverified, not verified anyway.
 
-**`/fix` — one, and only when approval is enabled:** the end-of-flow confirmation. On `Worktree: Yes` the merge-back choice rides along with it. The branch question, when Branch Isolation is on and no flag was given, is asked once before Step 1 and is part of invoking the command, not the flow.
+**`/fix` — one, and only when approval is enabled:** the confirmation at 6.2. On `Worktree: Yes` the merge-back choice rides along with it — the gate sits **before** the commit and squash-merge at 6.3, so approving it is what authorises the merge. The branch question, when Branch Isolation is on and no flag was given, is asked once before Step 1 and is part of invoking the command, not the flow.
+
+⛔ **A gate placed after the step it guards is not a gate.** `/fix` and `/spec` both put their one irreversible action — the squash merge onto the base branch — behind a question, and both must ask it *first*: once the merge has landed, the only answers left are "approve what already happened" and "revert". This is also why an agent that cannot emit `AskUserQuestion` must yield instead of proceeding (`agent-gate-protocol.md`); under orchestration the gate is the coordinator's only chance to see the diff before it lands.
 
 **Worktree isolation is available in all three**, via the shared `spec-branch-setup.md` runbook: `--worktree=yes` for an isolated checkout squash-merged back at the end, `--new-branch` for a fresh branch off the default. Each workflow owns its own merge-back.
 

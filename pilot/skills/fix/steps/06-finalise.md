@@ -4,7 +4,7 @@
 
 ⛔ **Step 4 (Verify End-to-End) must be complete, with concrete evidence, before any reviewer runs.** Reviewers audit the fix; they never substitute for running the program.
 
-The same Console Settings toggles that drive `/spec`'s post-implementation review govern `/fix`. Run whichever are enabled and **apply their findings before** the worktree commit (6.2) and the approval gate (6.3), so review-driven changes land in the single bundled commit.
+The same Console Settings toggles that drive `/spec`'s post-implementation review govern `/fix`. Run whichever are enabled and **apply their findings before** the approval gate (6.2) and the worktree commit (6.3), so the user approves the reviewed fix and review-driven changes land in the single bundled commit.
 
 <!-- CC-ONLY -->
 ```bash
@@ -42,7 +42,7 @@ git add <fix_file> <test_file>   # only the bugfix's own files — never unrelat
 git status --short --untracked-files=all | grep '^??' || true   # should list only files outside this fix
 ```
 
-A bare `git add -N` is not enough — `git status` still reports the path as untracked. **Staging is not committing**: the commit (6.2) still waits for the review and the approval gate. All reviewers scope to `git diff HEAD`, which now includes the staged additions; a committed ref-range would be empty pre-commit and scan nothing.
+A bare `git add -N` is not enough — `git status` still reports the path as untracked. **Staging is not committing**: the commit (6.3) still waits for the review and the approval gate. All reviewers scope to `git diff HEAD`, which now includes the staged additions; a committed ref-range would be empty pre-commit and scan nothing.
 
 <!-- CC-ONLY -->
 #### 6.1.0 Bugfix summary artifact
@@ -199,7 +199,38 @@ result = multi_agent_v1.wait_agent(targets=[review.agent_id], timeout_ms=600000)
 4. Lineage first — a finding outside the fix file, its test, and files the fix legitimately touched is mention-only regardless of severity. Otherwise: `must_fix` → fix now; `should_fix` → fix when single-site (else summarise and let the user decide); `suggestion` → mention. After any fix, re-run the targeted test + full suite. Then `rm -f "$FIX_PLAN_FILE"`.
 CODEX-END -->
 
-### 6.2 Worktree mode — single commit, then merge back
+### 6.2 Approval gate (when enabled)
+
+⛔ **The approval summary must contain what you actually ran and observed in Step 4.** If you cannot fill in `E2E:` with concrete evidence, Step 4 is not finished — go back rather than asking for approval.
+
+**This gate comes before the commit and the merge, and that ordering is the point.** It is the workflow's single interaction point, so it has to sit in front of the one step that cannot be taken back. Asking after the squash merge leaves only two answers — approve what already landed, or revert it — which is not a gate.
+
+Read `PILOT_PLAN_APPROVAL_ENABLED`. `"false"` → skip this gate entirely and continue at 6.3; the run is autonomous and merges without asking.
+
+Otherwise summarise and ask, offering: `"Approve — done"`, `"Request changes"`, and `"Explain the fix in more detail"` (present in the first ask only; drop it from any re-ask to avoid loops).
+
+⛔ **When you cannot emit `AskUserQuestion`** — on Codex, or as a Claude Code subagent running this fix as an orchestration lane — read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Bugfix approval`, `OPTIONS` = the three above, `SENTINEL_PATH` = `none` (`/fix` registers no plan, so no stop guard is holding the session open). Ask in prose and end your turn. Never record the fix as approved because the form was unavailable, and never run 6.3 in the same turn as the ask — under orchestration this gate is the coordinator's only chance to see the diff before it lands.
+
+```
+AskUserQuestion(
+  question="Bugfix complete.\n\nBug: <one line>\nRoot cause: <file>:<line> — <what>\nFix: <one-line description of the change>\nTests: reproducing test added (<test_name>), full suite green.\nReview: <none | changes-review: N findings, all resolved | Codex: approve | ...>\nE2E: <command/URL you ran and the concrete observation that proves the fix — e.g. 'curl /search -d {} → 200 with [results]', 'opened /tasks page, saved end_date=2026-05-15, list shows 2026-05-15', 'ran pilot register-plan ./foo.md PENDING → exit 0, plan visible in console'>\n\nReview the diff in the Console's Changes tab. Nothing has been committed or merged yet — approving does that next.",
+  options=[<see list above>]
+)
+```
+
+- **Approve** → continue to 6.3 (worktree mode: commit, then merge back; otherwise the fix is finished and stays uncommitted).
+- **Request changes** → the user describes the problem freely. Treat it as a new investigation: Step 1.3 (re-trace) → Step 2 onward. Nothing has landed yet, so there is nothing to revert. Reviews re-run on the new fix scoped to files changed since the previous review, not the whole diff again.
+<!-- CC-ONLY -->
+  Re-run mechanics: codex-once keeps the companion to one run per invocation. For the changes review — rebuild `$FIX_PLAN_FILE`, delete the findings file, relaunch with `Changed files:` = files changed since the previous review.
+<!-- /CC-ONLY -->
+<!-- CODEX-START
+  Re-run mechanics: spawn the managed `changes-review` custom agent again on the updated diff (rebuild the one-page summary first so its `Plan file:` anchor exists), listing only the files changed since the previous review.
+CODEX-END -->
+- **Explain the fix in more detail** → write the fuller walkthrough (causal chain trigger → root cause; why that boundary is the right place to fix; what the diff means line by line; alternatives considered and rejected). Change no code, then re-ask without the Explain option.
+
+### 6.3 Worktree mode — single commit, then merge back
+
+**Runs only after 6.2 approved**, or after 6.2 was skipped because `PILOT_PLAN_APPROVAL_ENABLED` is `"false"`. Everything below lands on the base branch, so it must never run in the same turn as an unanswered gate.
 
 Only when a worktree is active — confirm with `~/.pilot/bin/pilot worktree detect --json <fix-slug> $LANE_FLAG` (add `--lane <id>` on a lane run), never a path glob. Bundle test + fix + any review-driven fixes into one commit:
 
@@ -224,34 +255,7 @@ The conventional `fix:` prefix triggers a patch release if this branch ships. Do
 
 **Lane contention.** Sync serializes on a repo-wide lock. A failure naming lane contention means a sibling held it past the timeout and **nothing was changed** — retry once it finishes.
 
-**After a successful merge, re-run the full suite on the merged base branch** (Step 5.2's command). The base may have moved since the worktree forked, and a clean lane branch can still break on integration.
-
-### 6.3 Approval gate (when enabled)
-
-⛔ **The approval summary must contain what you actually ran and observed in Step 4.** If you cannot fill in `E2E:` with concrete evidence, Step 4 is not finished — go back rather than asking for approval.
-
-Read `PILOT_PLAN_APPROVAL_ENABLED`. `"false"` → skip 6.3 entirely, mark done.
-
-Otherwise summarise and ask, offering: `"Approve — done"`, `"Request changes"`, and `"Explain the fix in more detail"` (present in the first ask only; drop it from any re-ask to avoid loops).
-
-⛔ **When you cannot emit `AskUserQuestion`** — on Codex, or as a Claude Code subagent running this fix as an orchestration lane — read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Bugfix approval`, `OPTIONS` = the three above, `SENTINEL_PATH` = `none` (`/fix` registers no plan, so no stop guard is holding the session open). Ask in prose and end your turn. Never record the fix as approved because the form was unavailable.
-
-```
-AskUserQuestion(
-  question="Bugfix complete.\n\nBug: <one line>\nRoot cause: <file>:<line> — <what>\nFix: <one-line description of the change>\nTests: reproducing test added (<test_name>), full suite green.\nReview: <none | changes-review: N findings, all resolved | Codex: approve | ...>\nE2E: <command/URL you ran and the concrete observation that proves the fix — e.g. 'curl /search -d {} → 200 with [results]', 'opened /tasks page, saved end_date=2026-05-15, list shows 2026-05-15', 'ran pilot register-plan ./foo.md PENDING → exit 0, plan visible in console'>\n\nReview the diff in the Console's Changes tab. Approve when ready.",
-  options=[<see list above>]
-)
-```
-
-- **Approve** → done.
-- **Request changes** → the user describes the problem freely. Treat it as a new investigation: Step 1.3 (re-trace) → Step 2 onward. Reviews re-run on the new fix scoped to files changed since the previous review, not the whole diff again.
-<!-- CC-ONLY -->
-  Re-run mechanics: codex-once keeps the companion to one run per invocation. For the changes review — rebuild `$FIX_PLAN_FILE`, delete the findings file, relaunch with `Changed files:` = files changed since the previous review.
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-  Re-run mechanics: spawn the managed `changes-review` custom agent again on the updated diff (rebuild the one-page summary first so its `Plan file:` anchor exists), listing only the files changed since the previous review.
-CODEX-END -->
-- **Explain the fix in more detail** → write the fuller walkthrough (causal chain trigger → root cause; why that boundary is the right place to fix; what the diff means line by line; alternatives considered and rejected). Change no code, then re-ask without the Explain option.
+**After a successful merge, re-run the full suite on the merged base branch** (Step 5.2's command). The base may have moved since the worktree forked, and a clean lane branch can still break on integration. This runs after the gate, so a failure here is not something the user can veto — if it fails, fix it on the base branch, re-run, and report both the breakage and the fix in 6.6. Do NOT leave a red base branch and report success.
 
 ### 6.4 Console notification
 
@@ -269,7 +273,7 @@ Every box must hold before you write the report. Any gap → return to the step 
 - [ ] Full anti-regression suite green — fresh run (Step 5.2).
 - [ ] E2E executed against the actual program, concrete evidence captured (Step 4).
 - [ ] Enabled reviewers ran; every `must_fix` / `should_fix` resolved or escalated (6.1).
-- [ ] Instrumentation clean — confirmed at 6.1.pre before staging. In worktree mode, where 6.2 already committed, re-check the commit: `git show HEAD | grep -nE "SPEC-DEBUG|console\.log|console\.error|print\("` must return nothing; amend if it fires.
+- [ ] Instrumentation clean — confirmed at 6.1.pre before staging. In worktree mode, where 6.3 already committed, re-check the commit: `git show HEAD | grep -nE "SPEC-DEBUG|console\.log|console\.error|print\("` must return nothing; amend if it fires.
 - [ ] Diff is small and every changed line traces to the bug.
 - [ ] Docs updated if the fix changed documented behaviour, a flag, or a config default — or "no doc impact" stated deliberately.
 - [ ] Worktree mode: one bundled `fix:` commit. Otherwise: changes ready, no commit.

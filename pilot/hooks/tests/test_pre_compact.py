@@ -189,6 +189,46 @@ class TestPreCompactHook:
 class TestCaptureActivePlan:
     """Test _capture_active_plan project-scoping guard."""
 
+    @patch("pre_compact.urllib.request.urlopen")
+    @patch("pre_compact.read_hook_stdin")
+    @patch("pre_compact._sessions_base")
+    def test_same_repo_default_bucket_plan_not_captured_for_identified_session(
+        self, mock_sessions_base, mock_stdin, mock_urlopen, tmp_path
+    ):
+        """Same-repo sibling bleed: a plan another (env-less) session registered in
+        the shared 'default' bucket must not be captured into THIS session's
+        pre-compact state when the hook payload carries this session's own id.
+        The project-scoping guard cannot help here - the plan IS in this repo."""
+        import _lib.util as util
+        from pre_compact import run_pre_compact
+
+        project = tmp_path / "repo"
+        plan = project / "docs" / "plans" / "2026-08-13-sibling.md"
+        plan.parent.mkdir(parents=True)
+        plan.write_text("# Sibling\n\nStatus: PENDING\n")
+
+        sessions = tmp_path / "sessions"
+        (sessions / "default").mkdir(parents=True)
+        (sessions / "default" / "active_plan.json").write_text(
+            json.dumps({"status": "PENDING", "plan_path": str(plan)})
+        )
+        mock_sessions_base.return_value = sessions
+        mock_stdin.return_value = {"session_id": "session-b-uuid", "trigger": "auto", "custom_instructions": ""}
+        mock_urlopen.side_effect = Exception("Connection refused")
+
+        with (
+            patch.object(util, "_sessions_base", return_value=sessions),
+            patch.dict(os.environ, {"CLAUDE_PROJECT_ROOT": str(project)}, clear=True),
+        ):
+            result = run_pre_compact()
+
+        assert result == 0
+        state = json.loads((sessions / "session-b-uuid" / "pre-compact-state.json").read_text())
+        assert state["active_plan"] is None, (
+            "a same-repo plan from the shared 'default' bucket belongs to another "
+            "session and must not be captured into this session's pre-compact state"
+        )
+
     @patch("pre_compact.get_session_plan_path")
     def test_does_not_capture_foreign_project_plan(self, mock_plan_path, tmp_path):
         """Cross-session bleed (source): a foreign-project plan reached through the

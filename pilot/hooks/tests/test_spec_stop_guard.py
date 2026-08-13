@@ -18,7 +18,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from spec_stop_guard import main
+from spec_stop_guard import CLAUDE_CODE_CONSECUTIVE_BLOCK_CAP, MAX_CHAIN_BLOCKS, main
 
 HOOK_PATH = Path(__file__).resolve().parent.parent / "spec_stop_guard.py"
 TEST_SESSION_ID = "test-spec-stop-guard"
@@ -396,7 +396,13 @@ class TestSubprocessIntegration:
         assert "a landing page as alive as Nike's" in reason
         assert reason.index("[ ] LCP under 2.0s on throttled 4G") < reason.index("[x] hero A/B at 1440px")
 
-    def test_allows_stop_when_stop_hook_already_active(self, tmp_path: Path) -> None:
+    def test_blocks_stop_when_stop_hook_already_active(self, tmp_path: Path) -> None:
+        """A hook-driven continuation ending its turn is the case the guard exists for.
+
+        ``stop_hook_active`` is true on every stop attempt that follows a block, so
+        surrendering on it capped the guard at ONE block per continuation chain and
+        let /build loops end mid-round.
+        """
         plans_dir = tmp_path / "docs" / "plans"
         plans_dir.mkdir(parents=True)
 
@@ -406,7 +412,7 @@ class TestSubprocessIntegration:
 
         exit_code, stdout, _ = _run_subprocess({"stop_hook_active": True}, plans_dir)
         assert exit_code == 0
-        assert not _is_blocked(stdout)
+        assert _is_blocked(stdout)
 
     def test_allows_stop_when_asking_user_question(self, tmp_path: Path) -> None:
         plans_dir = tmp_path / "docs" / "plans"
@@ -517,6 +523,102 @@ class TestCooldownEscape:
 
         exit_code3, stdout3, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
         assert _is_blocked(stdout3)
+
+
+class TestHookDrivenContinuation:
+    """The guard must keep holding a loop open across consecutive agent stop attempts.
+
+    Claude Code sets ``stop_hook_active`` on every stop attempt inside a hook-driven
+    continuation, and overrides the hook after 8 consecutive blocks. Both of the
+    guard's escape hatches are for the USER; neither may fire for the agent.
+    """
+
+    def test_cooldown_does_not_release_a_hook_driven_continuation(self, tmp_path: Path) -> None:
+        """A fast turn after a block is the agent saying goodbye, not a user force-exit."""
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+        plan_file = plans_dir / "2026-01-27-build.md"
+        plan_file.write_text("# Buildout\n\nStatus: PENDING\nApproved: Yes\nType: Build\n")
+        _register_plan_for_session(plan_file, "PENDING")
+
+        _, stdout1, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        assert _is_blocked(stdout1)
+
+        # Immediately after (well inside COOLDOWN_SECONDS), still inside the chain.
+        _, stdout2, _ = _run_subprocess({"stop_hook_active": True}, plans_dir)
+        assert _is_blocked(stdout2), "the 60s hatch is the user's; an agent turn must not trip it"
+
+    def test_user_double_stop_still_escapes(self, tmp_path: Path) -> None:
+        """The documented hatch survives: two stops outside a continuation still exit."""
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+        plan_file = plans_dir / "2026-01-27-build.md"
+        plan_file.write_text("# Buildout\n\nStatus: PENDING\nApproved: Yes\nType: Build\n")
+        _register_plan_for_session(plan_file, "PENDING")
+
+        _, stdout1, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        assert _is_blocked(stdout1)
+        _, stdout2, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        assert not _is_blocked(stdout2)
+
+    def test_escalates_before_claude_code_overrides_the_hook(self, tmp_path: Path) -> None:
+        """Our graceful ending must land before the harness's silent one.
+
+        Claude Code ends the turn itself after 8 consecutive blocks, with no message
+        to the user. The runaway escalation - which tells the agent to ask the user
+        how to proceed - has to fire inside that budget or it never fires at all.
+        """
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+        plan_file = plans_dir / "2026-01-27-runaway.md"
+        plan_file.write_text("# Runaway\n\nStatus: PENDING\nApproved: Yes\nType: Build\n")
+        _register_plan_for_session(plan_file, "PENDING")
+
+        consecutive_blocks = 0
+        escalated_at = None
+        released_at = None
+        for attempt in range(1, 13):
+            _, stdout, _ = _run_subprocess({"stop_hook_active": True}, plans_dir)
+            if not _is_blocked(stdout):
+                released_at = attempt
+                break
+            consecutive_blocks += 1
+            if "AskUserQuestion" in stdout and escalated_at is None:
+                escalated_at = attempt
+
+        assert escalated_at is not None, "the guard never escalated to a user question"
+        # Strictly inside the budget, not level with it: at exactly the cap the
+        # harness may already have taken the turn, and the escalation is never seen.
+        assert escalated_at < CLAUDE_CODE_CONSECUTIVE_BLOCK_CAP, (
+            f"escalation at block {escalated_at} is not strictly inside Claude Code's "
+            f"{CLAUDE_CODE_CONSECUTIVE_BLOCK_CAP}-block override - the user may never see it"
+        )
+        assert released_at is not None, "the guard never released after escalating"
+        assert consecutive_blocks < CLAUDE_CODE_CONSECUTIVE_BLOCK_CAP
+
+    def test_blocks_do_not_accumulate_across_chains(self, tmp_path: Path) -> None:
+        """A fresh chain restarts the per-chain budget, as Claude Code's own does.
+
+        Real sessions accumulate several blocks over their lifetime while never
+        exceeding one per chain. Counting those toward the per-chain bound would
+        escalate - and then release - a perfectly healthy run, which is the silent
+        stop this guard exists to prevent, relocated rather than fixed.
+        """
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+        plan_file = plans_dir / "2026-01-27-long-run.md"
+        plan_file.write_text("# Buildout\n\nStatus: PENDING\nApproved: Yes\nType: Build\n")
+        _register_plan_for_session(plan_file, "PENDING")
+
+        # Well past MAX_CHAIN_BLOCKS (and past the harness cap these mirror), while
+        # staying under the session-wide MAX_BLOCKS backstop, which TestRunawayCap owns.
+        for turn in range(1, 3 * MAX_CHAIN_BLOCKS + 2):
+            _, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+            assert _is_blocked(stdout), f"turn {turn}: a new chain must still be held"
+            assert "AskUserQuestion" not in stdout, (
+                f"turn {turn}: escalated on a healthy run - the per-chain budget is counting blocks from earlier chains"
+            )
+            _bump_state_timestamp(plan_file)  # keep the user cooldown out of it
 
 
 class TestRunawayCap:
@@ -1098,6 +1200,88 @@ class TestBuildHandbackSentinel:
             tmp_path, monkeypatch, approved=True, age=g.SENTINEL_MAX_AGE_SECONDS + 60
         )
         assert not sentinel.exists()  # discarded, not honored
+
+
+class TestVerifyGateSentinel:
+    """The verify-gate-pending sentinel lets a verify-phase gate yield for an agent
+    that cannot emit AskUserQuestion.
+
+    /spec's merge gate (spec-verify 8.1.6, spec-bugfix-verify 4.5) and its code-review
+    gate (spec-verify 10, spec-bugfix-verify 6) both run with the plan at
+    ``Approved: Yes`` + ``Status: COMPLETE``, and none of the other three sentinels
+    covers that state: spec-approval-pending needs ``Approved: No``,
+    build-handback-pending needs ``Type: Build``, and manual-switch-pending is the
+    consumed-once model-switch pause. So an orchestration lane -- a Claude Code
+    subagent, which has no AskUserQuestion at all -- had no legal way to pause at
+    either gate, and resolved it by answering its own gate or halting silently
+    (issue #175). Adding the gate prose without this sentinel only relocates the
+    deadlock: the lane asks correctly, yields, and is blocked anyway.
+
+    Consumed on honor, like the two other post-approval sentinels. Both re-ask paths
+    of the review gate ("Fix" and "Manual") touch it again, so the failure mode of
+    forgetting to re-touch is a block, never a silent stop.
+
+    The sentinel path is built literally rather than through the accessor: what is
+    under test is the guard's BEHAVIOUR given the file, not the presence of a helper.
+    """
+
+    def _run(
+        self,
+        tmp_path,
+        monkeypatch,
+        *,
+        approved: bool = True,
+        status: str = "COMPLETE",
+        plan_type: str = "Feature",
+        write_sentinel: bool = True,
+    ):
+        import spec_stop_guard as g
+
+        monkeypatch.setenv("PILOT_SESSION_ID", "verify-gate-test")
+        monkeypatch.setattr(g, "_sessions_base", lambda: tmp_path / "sessions")
+        plan = tmp_path / "plan.md"
+        plan.write_text(f"# X\nStatus: {status}\nApproved: " + ("Yes" if approved else "No") + f"\nType: {plan_type}\n")
+        monkeypatch.setattr(g, "find_active_plan", lambda *_args: (plan, status))
+        monkeypatch.setattr(g, "is_waiting_for_user_input", lambda _p: False)
+
+        session_dir = tmp_path / "sessions" / "verify-gate-test"
+        session_dir.mkdir(parents=True, exist_ok=True)
+        sentinel = session_dir / "verify-gate-pending"
+        if write_sentinel:
+            sentinel.write_text("")
+
+        stdin = io.StringIO(json.dumps({"stop_hook_active": False, "transcript_path": ""}))
+        with patch("sys.stdin", stdin), patch("sys.stdout", new_callable=io.StringIO) as out:
+            code = g.main()
+        return code, sentinel, out.getvalue()
+
+    def test_allows_a_stop_at_a_verify_gate(self, tmp_path, monkeypatch):
+        """The bug: a lane pausing at the merge or review gate must be able to stop."""
+        code, sentinel, stdout = self._run(tmp_path, monkeypatch)
+
+        assert code == 0
+        assert not _is_blocked(stdout), "a verify-phase gate must be able to yield for the user's answer"
+        assert not sentinel.exists(), "one-shot: consumed on honor"
+
+    def test_does_not_release_the_implement_phase(self, tmp_path, monkeypatch):
+        """Status gate: a PENDING plan is mid-implementation, where stopping is the bug."""
+        _code, _sentinel, stdout = self._run(tmp_path, monkeypatch, status="PENDING")
+
+        assert _is_blocked(stdout), "the implement-phase block must survive a stray verify-gate sentinel"
+
+    def test_does_not_release_a_build_loop(self, tmp_path, monkeypatch):
+        """Type gate: /build has no gates after its scoping round, so it has none to yield at."""
+        _code, _sentinel, stdout = self._run(tmp_path, monkeypatch, plan_type="Build")
+
+        assert _is_blocked(stdout), "a Buildout must not be released by a gate sentinel it never writes"
+
+    def test_second_stop_is_blocked_again(self, tmp_path, monkeypatch):
+        """One-shot: the next stop re-engages the block unless the gate re-touches it."""
+        self._run(tmp_path, monkeypatch)
+
+        _code, _sentinel, stdout = self._run(tmp_path, monkeypatch, write_sentinel=False)
+
+        assert _is_blocked(stdout), "a consumed sentinel must not keep granting stops"
 
 
 class TestPayloadSessionIdIsolation:

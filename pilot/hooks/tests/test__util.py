@@ -326,6 +326,25 @@ class TestResolveSessionId:
         with patch.dict("os.environ", {}, clear=True):
             assert resolve_session_id() == "default"
 
+    def test_payload_fallback_used_when_env_chain_empty(self):
+        from _lib.util import resolve_session_id
+
+        with patch.dict("os.environ", {}, clear=True):
+            assert resolve_session_id("payload-uuid-1") == "payload-uuid-1"
+
+    def test_unsafe_payload_fallback_rejected(self):
+        """The payload session_id feeds directly into ~/.pilot/sessions/<id> path
+        construction, and session_clear DELETES under that path - a traversal
+        value must never become a path component (Codex review finding)."""
+        from _lib.util import resolve_session_id
+
+        with patch.dict("os.environ", {}, clear=True):
+            assert resolve_session_id("../other-session") == "default"
+            assert resolve_session_id("/etc") == "default"
+            assert resolve_session_id("a/b") == "default"
+            assert resolve_session_id("..") == "default"
+            assert resolve_session_id(".") == "default"
+
 
 class TestGetSessionCachePath:
     """Tests for get_session_cache_path()."""

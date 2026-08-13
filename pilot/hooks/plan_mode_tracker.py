@@ -62,7 +62,7 @@ except ImportError:  # version-skewed _lib predating these names: legacy behavio
     PLAN_MODE_SENTINEL = "plan-mode-active"
     PRE_PLAN_MODE_RECORD = "pre-plan-permission-mode"
 
-    def spec_plan_awaiting_approval() -> bool:
+    def spec_plan_awaiting_approval(session_id: str | None = None) -> bool:
         return False
 
 
@@ -119,13 +119,17 @@ _MODEL_CONFIRMED_NOTICE = (
 )
 
 
-def sentinel_path() -> Path:
-    session_dir = _sessions_base() / resolve_session_id()
+def sentinel_path(session_id: str | None = None) -> Path:
+    """``session_id`` is a caller-resolved id (env chain first, hook payload
+    fallback); ``None`` keeps the env-only resolution. The payload fallback is
+    what keeps an env-less session's sentinel out of the shared "default"
+    bucket, where a SIBLING same-repo session would read it back as its own."""
+    session_dir = _sessions_base() / (session_id or resolve_session_id())
     session_dir.mkdir(parents=True, exist_ok=True)
     return session_dir / PLAN_MODE_SENTINEL
 
 
-def planning_leg_model_context() -> str | None:
+def planning_leg_model_context(session_id: str | None = None) -> str | None:
     """Report the observed planning-leg model: confirmation on Opus, warning otherwise.
 
     Fires at most once per planning leg PER OUTCOME, and only on evidence: the
@@ -154,7 +158,7 @@ def planning_leg_model_context() -> str | None:
     if read_model_switch_mode() != "automated":
         return None
 
-    sentinel = sentinel_path()
+    sentinel = sentinel_path(session_id)
     session_dir = sentinel.parent
 
     cache = session_dir / "context-pct.json"
@@ -203,6 +207,10 @@ def main() -> int:
     data = read_hook_stdin()
     tool_name = data.get("tool_name", "")
     is_post = "tool_response" in data
+    # Env chain first (the id every writer in this session used), payload
+    # fallback so an env-less session never reads/writes the shared "default"
+    # bucket a sibling same-repo session's state lives in.
+    sid = resolve_session_id(str(data.get("session_id") or ""))
 
     if is_post:
         # PostToolUse: update sentinel state
@@ -211,7 +219,7 @@ def main() -> int:
             if isinstance(response, dict) and response.get("is_error"):
                 # A failed EnterPlanMode means plan mode never engaged.
                 return 0
-            sentinel = sentinel_path()
+            sentinel = sentinel_path(sid)
             sentinel.write_text("")
             # New planning leg: allow the model check to report again.
             (sentinel.parent / PLAN_MODEL_WARNED_MARKER).unlink(missing_ok=True)
@@ -222,14 +230,14 @@ def main() -> int:
             # (e.g. the user exited via Shift+Tab), and a stale sentinel would
             # otherwise re-trigger the leak checks and edit warnings all
             # session with no recovery path.
-            sentinel_path().unlink(missing_ok=True)
+            sentinel_path(sid).unlink(missing_ok=True)
     else:
         # PreToolUse(EnterPlanMode): the mode has not flipped to "plan" yet,
         # so permission_mode is the pre-plan mode. Record it as the bypass
         # evidence auto_approve_plan requires to arm the post-exit restore
         # (a shift-tab plan entry records nothing - it never calls the tool).
         if tool_name == "EnterPlanMode":
-            record = sentinel_path().parent / PRE_PLAN_MODE_RECORD
+            record = sentinel_path(sid).parent / PRE_PLAN_MODE_RECORD
             mode = data.get("permission_mode")
             if isinstance(mode, str) and mode:
                 record.write_text(mode)
@@ -239,7 +247,7 @@ def main() -> int:
                 record.unlink(missing_ok=True)
             return 0
         # PreToolUse: warn if editing a non-plan file while plan mode is active
-        if not sentinel_path().exists():
+        if not sentinel_path(sid).exists():
             return 0
         file_path = data.get("tool_input", {}).get("file_path", "")
         if not file_path:
@@ -247,13 +255,13 @@ def main() -> int:
         if is_plan_file(file_path):
             # The statusline has re-rendered since EnterPlanMode, so the observed
             # planning-leg model is now verifiable.
-            context = planning_leg_model_context()
+            context = planning_leg_model_context(sid)
             if context:
                 print(pre_tool_use_context(context))
             return 0
         # Predicate last: it stats/reads session + plan state (and may shell
         # out to git), so the pure-string checks above short-circuit first.
-        if spec_plan_awaiting_approval():
+        if spec_plan_awaiting_approval(sid):
             # Planning leg with an unapproved plan: auto_approve_plan DENIES
             # ExitPlanMode right now, so the legacy "call ExitPlanMode NOW"
             # instruction would send the model straight into that denial.

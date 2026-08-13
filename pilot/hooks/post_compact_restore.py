@@ -26,9 +26,15 @@ def _sessions_base() -> Path:
     return Path.home() / ".pilot" / "sessions"
 
 
-def _read_active_plan() -> dict | None:
-    """Read active plan state from session data."""
-    plan_path = get_session_plan_path()
+def _read_active_plan(session_id: str | None = None) -> dict | None:
+    """Read active plan state from session data.
+
+    ``session_id`` is the caller-resolved id (env chain first, hook payload
+    fallback), so an env-less session restores ITS OWN plan and never one a
+    sibling same-repo session registered into the shared "default" bucket -
+    the case the project-scoping guard below cannot catch.
+    """
+    plan_path = get_session_plan_path(session_id)
     if not plan_path.exists():
         return None
 
@@ -112,7 +118,10 @@ def run_post_compact_restore() -> int:
     hook_data = read_hook_stdin()
     session_id = hook_data.get("session_id") or resolve_session_id()
 
-    plan_data = _read_active_plan()
+    # Env-first with payload fallback (unlike the fallback-state key above,
+    # which stays payload-first to match pre_compact's writer): active_plan.json
+    # was written by `pilot register-plan` under the env-chain id.
+    plan_data = _read_active_plan(resolve_session_id(str(hook_data.get("session_id") or "")))
     if not _plan_belongs_to_project(plan_data):
         plan_data = None
 

@@ -83,18 +83,23 @@ def _read_stdin() -> dict:
         return {}
 
 
-def _marker_path() -> Path | None:
-    """Session-scoped restore-marker path; None on a version-skewed _lib."""
+def _marker_path(fallback_sid: str = "") -> Path | None:
+    """Session-scoped restore-marker path; None on a version-skewed _lib.
+
+    ``fallback_sid`` is the hook payload's session_id, consulted only when the
+    env chain is empty (see resolve_session_id) - it keeps an env-less session
+    from acting on the shared "default" bucket another session's state lives in.
+    """
     try:
         from _lib.util import _sessions_base, resolve_session_id
 
-        return _sessions_base() / resolve_session_id() / RESTORE_MARKER
+        return _sessions_base() / resolve_session_id(fallback_sid) / RESTORE_MARKER
     except Exception:
         return None
 
 
-def _arm_restore_marker() -> None:
-    marker = _marker_path()
+def _arm_restore_marker(fallback_sid: str = "") -> None:
+    marker = _marker_path(fallback_sid)
     if marker is None:
         return
     try:
@@ -104,7 +109,7 @@ def _arm_restore_marker() -> None:
         pass
 
 
-def _pre_plan_bypass_evidence() -> bool:
+def _pre_plan_bypass_evidence(fallback_sid: str = "") -> bool:
     """True when plan_mode_tracker recorded bypassPermissions as the pre-plan mode.
 
     Consumes the record - evidence is per planning leg. Missing _lib, missing
@@ -116,7 +121,7 @@ def _pre_plan_bypass_evidence() -> bool:
     try:
         from _lib.util import PRE_PLAN_MODE_RECORD, _sessions_base, resolve_session_id
 
-        record = _sessions_base() / resolve_session_id() / PRE_PLAN_MODE_RECORD
+        record = _sessions_base() / resolve_session_id(fallback_sid) / PRE_PLAN_MODE_RECORD
         mode = record.read_text().strip()
         record.unlink(missing_ok=True)
         return mode == "bypassPermissions"
@@ -124,17 +129,18 @@ def _pre_plan_bypass_evidence() -> bool:
         return False
 
 
-def _pending_denial_sentinel() -> str | None:
+def _pending_denial_sentinel(fallback_sid: str = "") -> str | None:
     """Sentinel path when the deny should fire, else None.
 
     Single guarded import site: fail-open on ANY error, including a
     version-skewed _lib missing these names.
     """
     try:
-        from _lib.util import plan_mode_sentinel_path, spec_plan_awaiting_approval
+        from _lib.util import plan_mode_sentinel_path, resolve_session_id, spec_plan_awaiting_approval
 
-        if spec_plan_awaiting_approval():
-            return str(plan_mode_sentinel_path())
+        sid = resolve_session_id(fallback_sid)
+        if spec_plan_awaiting_approval(sid):
+            return str(plan_mode_sentinel_path(sid))
     except Exception:
         pass
     return None
@@ -172,7 +178,8 @@ def _print_decision(decision: dict) -> None:
 
 
 def _exit_plan_mode_decision(data: dict) -> dict:
-    sentinel = _pending_denial_sentinel()
+    fallback_sid = str(data.get("session_id") or "")
+    sentinel = _pending_denial_sentinel(fallback_sid)
     if sentinel is not None:
         return {"behavior": "deny", "message": _deny_message(sentinel)}
     # Arm the post-exit replay: CC drops the setMode below on the exit request
@@ -180,8 +187,8 @@ def _exit_plan_mode_decision(data: dict) -> dict:
     # for a real plan exit (missing field = older CC without permission_mode)
     # AND with positive evidence the session ran bypassPermissions before the
     # planning leg - never escalate a session that was not in bypass.
-    if data.get("permission_mode", "plan") == "plan" and _pre_plan_bypass_evidence():
-        _arm_restore_marker()
+    if data.get("permission_mode", "plan") == "plan" and _pre_plan_bypass_evidence(fallback_sid):
+        _arm_restore_marker(fallback_sid)
     decision = {
         "behavior": "allow",
         "updatedPermissions": [dict(_RESTORE_SETMODE)],
@@ -217,7 +224,7 @@ def _restore_decision(data: dict) -> dict | None:
     armed AND the session sits in one of the modes the plan exit drops it
     into. The marker is consumed either way (single-shot).
     """
-    marker = _marker_path()
+    marker = _marker_path(str(data.get("session_id") or ""))
     if marker is None or not marker.exists():
         return None
     try:

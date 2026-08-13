@@ -178,6 +178,62 @@ def test_stale_files_cleaned_via_agent_native_id_when_pilot_session_id_unset(tmp
     assert not (session_dir / "findings-spec-review-some-plan.json").exists()
 
 
+def test_clear_with_payload_identity_does_not_wipe_shared_default_bucket(tmp_path: Path):
+    """Same-repo sibling bleed, destructive direction: /clear in a session whose
+    hook payload carries its own session_id (env chain empty) must sweep THAT
+    session's directory - not the shared 'default' bucket, where it would silently
+    unregister a plan a DIFFERENT env-less session is actively implementing."""
+    import io
+    import json
+    from unittest.mock import patch as _patch
+
+    default_dir = tmp_path / "sessions" / "default"
+    default_dir.mkdir(parents=True)
+    (default_dir / "active_plan.json").write_text("{}")
+    own_dir = tmp_path / "sessions" / "session-b-uuid"
+    own_dir.mkdir(parents=True)
+    (own_dir / "active_plan.json").write_text("{}")
+
+    with (
+        patch.dict(os.environ, {}, clear=True),
+        patch.object(session_clear, "SESSIONS_DIR", tmp_path / "sessions"),
+        _patch("sys.stdin", io.StringIO(json.dumps({"session_id": "session-b-uuid"}))),
+    ):
+        assert session_clear.main() == 0
+
+    assert (default_dir / "active_plan.json").exists(), (
+        "/clear from a payload-identified session must not unregister the plan of "
+        "the env-less session that owns the shared 'default' bucket"
+    )
+    assert not (own_dir / "active_plan.json").exists(), "/clear must still sweep the clearing session's own directory"
+
+
+def test_clear_rejects_traversal_payload_session_id(tmp_path: Path):
+    """A hook payload session_id is untrusted input feeding a DELETE path: a
+    traversal value like '../victim' must never resolve to a directory outside
+    SESSIONS_DIR (Codex review finding). It degrades to the legacy resolution
+    instead."""
+    import io
+    import json
+    from unittest.mock import patch as _patch
+
+    victim_dir = tmp_path / "victim"
+    victim_dir.mkdir(parents=True)
+    (victim_dir / "active_plan.json").write_text("{}")
+    (tmp_path / "sessions").mkdir()
+
+    with (
+        patch.dict(os.environ, {}, clear=True),
+        patch.object(session_clear, "SESSIONS_DIR", tmp_path / "sessions"),
+        _patch("sys.stdin", io.StringIO(json.dumps({"session_id": "../victim"}))),
+    ):
+        assert session_clear.main() == 0
+
+    assert (victim_dir / "active_plan.json").exists(), (
+        "a traversal payload session_id must not let /clear delete files outside SESSIONS_DIR"
+    )
+
+
 def test_noop_when_session_dir_missing(tmp_path: Path):
     """Should return 0 when session directory doesn't exist."""
     with (

@@ -29,7 +29,7 @@ def _sessions_base() -> Path:
     return Path.home() / ".pilot" / "sessions"
 
 
-def _capture_active_plan() -> dict | None:
+def _capture_active_plan(session_id: str | None = None) -> dict | None:
     """Capture active plan state from session data.
 
     Cross-session bleed guard: skips a plan that belongs to ANOTHER project,
@@ -38,8 +38,13 @@ def _capture_active_plan() -> dict | None:
     per-session pre-compact-state.json with a foreign repo's /spec plan, which
     post_compact_restore would then surface. Fails open for relative or
     unresolvable paths so the legacy capture is never weakened.
+
+    ``session_id`` is the caller-resolved id (env chain first, hook payload
+    fallback): the same-repo half of that bleed, which the project guard above
+    cannot catch, is closed by never reading the shared "default" bucket when
+    this session's own id is known.
     """
-    plan_path = get_session_plan_path()
+    plan_path = get_session_plan_path(session_id)
     if not plan_path.exists():
         return None
 
@@ -160,7 +165,11 @@ def run_pre_compact() -> int:
     state = {
         "trigger": trigger,
         "custom_instructions": custom_instructions,
-        "active_plan": _capture_active_plan(),
+        # active_plan.json is written by `pilot register-plan` under the ENV-chain
+        # id, so resolve env-first with the payload as last resort (unlike the
+        # pre-compact-state key above, which stays payload-first to match its
+        # post_compact_restore reader).
+        "active_plan": _capture_active_plan(resolve_session_id(str(hook_data.get("session_id") or ""))),
         "task_list": _capture_task_list(),
     }
 

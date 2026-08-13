@@ -174,6 +174,41 @@ class TestPreToolUseWarning:
         _, stdout = _run_main(stdin, tmp_path)
         assert stdout.strip() == ""
 
+    def test_sibling_sentinel_in_default_bucket_does_not_warn_identified_session(self, tmp_path):
+        """Same-repo sibling bleed: a plan-mode sentinel another (env-less) session
+        left in the shared 'default' bucket must not fire "PLAN MODE STILL ACTIVE"
+        warnings on every edit of a session whose hook payload carries its own
+        session_id and never entered plan mode."""
+        import io
+        from contextlib import redirect_stdout
+
+        import _lib.util as util
+
+        sessions = tmp_path / "sessions"
+        (sessions / "default").mkdir(parents=True)
+        (sessions / "default" / "plan-mode-active").write_text("")
+
+        stdin_data = {
+            "tool_name": "Edit",
+            "tool_input": {"file_path": "src/auth.ts"},
+            "session_id": "session-b-uuid",
+        }
+        with (
+            patch("plan_mode_tracker._sessions_base", return_value=sessions),
+            patch.object(util, "_sessions_base", return_value=sessions),
+            patch("plan_mode_tracker.read_hook_stdin", return_value=stdin_data),
+            patch.dict(os.environ, {}, clear=True),
+        ):
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                code = main()
+
+        assert code == 0
+        assert buf.getvalue().strip() == "", (
+            "a sibling session's plan-mode sentinel in the shared 'default' bucket "
+            "must not warn a session that carries its own session_id"
+        )
+
     def test_pre_approval_warning_while_plan_awaits_approval(self, tmp_path):
         """While the spec plan is unapproved, the warning must NOT instruct
         calling ExitPlanMode (auto_approve_plan denies it in that window) but

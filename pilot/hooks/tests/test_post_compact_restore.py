@@ -164,6 +164,45 @@ class TestPostCompactRestoreHook:
         assert "No active plan" in captured.out
 
     @patch("post_compact_restore.read_hook_stdin")
+    def test_same_repo_default_bucket_plan_not_restored_for_identified_session(self, mock_stdin, capsys, tmp_path):
+        """Same-repo sibling bleed (issue #157's uncovered half): session A registered
+        its plan without any session-id env var, so it sits in the shared 'default'
+        bucket. Session B compacts in the SAME repo, with its own session_id in the
+        hook payload and an empty env chain. plan_in_current_project passes here by
+        definition, so only session-scoped resolution keeps B from being re-anchored
+        onto A's plan."""
+        import _lib.util as util
+        from post_compact_restore import run_post_compact_restore
+
+        project = tmp_path / "repo"
+        plan = project / "docs" / "plans" / "2026-08-13-session-a-feature.md"
+        plan.parent.mkdir(parents=True)
+        plan.write_text("# A\n\nStatus: PENDING\nApproved: Yes\nType: Feature\n")
+
+        sessions = tmp_path / "sessions"
+        (sessions / "default").mkdir(parents=True)
+        (sessions / "default" / "active_plan.json").write_text(
+            json.dumps({"status": "PENDING", "plan_path": str(plan)})
+        )
+
+        mock_stdin.return_value = {"session_id": "session-b-uuid"}
+
+        with (
+            patch.object(util, "_sessions_base", return_value=sessions),
+            patch("post_compact_restore._sessions_base", return_value=sessions),
+            patch.dict(os.environ, {"CLAUDE_PROJECT_ROOT": str(project)}, clear=True),
+        ):
+            result = run_post_compact_restore()
+
+        assert result == 0
+        captured = capsys.readouterr()
+        assert str(plan) not in captured.out, (
+            "another session's plan (shared 'default' bucket, same repo) must not be "
+            "restored into a session whose payload carries its own session_id"
+        )
+        assert "No active plan" in captured.out
+
+    @patch("post_compact_restore.read_hook_stdin")
     @patch("post_compact_restore.get_session_plan_path")
     @patch("os.environ", {"PILOT_SESSION_ID": "test123"})
     def test_handles_no_active_plan(self, mock_plan_path, mock_stdin, capsys):

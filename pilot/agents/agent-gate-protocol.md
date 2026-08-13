@@ -1,9 +1,17 @@
 # Agent Gate Protocol
 
 > Shared runbook for every Pilot workflow step that puts a decision to the user:
-> plan approval (`spec-plan` 12, `spec-bugfix-plan` 6), `/build`'s single
-> pre-work clarification round (`01-goal-and-scope` 1.5), `/fix` 6.3, and the
+> plan approval (`spec-plan` 12, `spec-bugfix-plan` 6), the worktree merge-back
+> (`spec-verify` 8.1.6, `spec-bugfix-verify` 4.5), the code-review sign-off that
+> precedes `VERIFIED` (`spec-verify` 10, `spec-bugfix-verify` 6), `/build`'s single
+> pre-work clarification round (`01-goal-and-scope` 1.5), `/fix` 6.2, and the
 > `/prd` question steps.
+>
+> That list is the audit surface for "which gates are lane-safe" — a gate missing
+> from it is a gate nobody checked. Add new ones here as they are written, and keep
+> the merge and sign-off entries above in it: those two were left out once, and
+> because a merge looks identical whether or not it was reviewed, nothing surfaced
+> it until an orchestration lane had already merged unreviewed (issue #175).
 >
 > ⛔ `/build` has no approval, round-budget, or hand-back gate — it runs
 > autonomously once the goal is clear. If you are following this file inside a

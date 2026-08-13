@@ -68,7 +68,7 @@ Lint + types + build (when applicable), then the full anti-regression suite, onc
 
 ### Finalise
 
-If the **Changes Review** or **Codex Companion Changes Review** toggle is on, the corresponding review audits the fix first — the same reviewers `/spec` runs after implementation (a single `changes-review` sub-agent on Claude Code, the native agent on Codex). Findings are auto-fixed by severity before the commit and the approval gate, so review-driven changes land in the single bundled commit. Worktree mode: bundle test + fix into one `fix:` commit. Approval gate fires only if **Plan Approval** is enabled. The gate waits for you — Pilot disables Claude Code's 60-second idle auto-continue for unanswered questions (see the [approval gates note](/docs/workflows/spec) in `/spec`). The completion report includes a mandatory **E2E** line documenting what was actually run.
+If the **Changes Review** or **Codex Companion Changes Review** toggle is on, the corresponding review audits the fix first — the same reviewers `/spec` runs after implementation (a single `changes-review` sub-agent on Claude Code, the native agent on Codex). Findings are auto-fixed by severity before the approval gate, so what you approve is the reviewed fix. Approval gate fires only if **Plan Approval** is enabled, and it comes **before** the commit and the merge — nothing has landed when you are asked, so "request changes" costs nothing to act on. Worktree mode: once approved, test + fix are bundled into one `fix:` commit and squash-merged back. The gate waits for you — Pilot disables Claude Code's 60-second idle auto-continue for unanswered questions (see the [approval gates note](/docs/workflows/spec) in `/spec`). The completion report includes a mandatory **E2E** line documenting what was actually run.
 
 ## When to bail out — use `/spec` instead
 
@@ -107,7 +107,7 @@ The full lane (`/spec`) adds: Behavior Contract, three-task structure, plan file
 
 When **Ask Questions** and **Plan Approval** are both off, `/fix` runs end-to-end with no user interaction.
 
-`/fix` takes the same branch options `/spec` does — `--worktree=yes` for an isolated checkout squash-merged back at the end, or `--new-branch` for a `fix/<slug>` branch off the default branch. With **Branch Isolation** on and no flag given, it asks; with the toggle off it works on the current branch. The merge-back is `/fix`'s own: it commits inside the worktree, syncs, and cleans up.
+`/fix` takes the same branch options `/spec` does — `--worktree=yes` for an isolated checkout squash-merged back at the end, or `--new-branch` for a `fix/<slug>` branch off the default branch. With **Branch Isolation** on and no flag given, it asks; with the toggle off it works on the current branch. The merge-back is `/fix`'s own: after you approve, it commits inside the worktree, syncs, and cleans up.
 
 ## When to use `/spec` vs `/fix`
 

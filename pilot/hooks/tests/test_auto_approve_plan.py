@@ -61,12 +61,15 @@ def _run(
     hook_path: Path = HOOK_PATH,
     project_root_env: bool = True,
     payload: dict | None = None,
+    session_env: bool = True,
 ) -> tuple[int, dict | None]:
     """Run the hook hermetically (isolated HOME/session/project) and parse its output.
 
     payload is the PermissionRequest stdin JSON; the default simulates the
     classic ExitPlanMode request. Returns None for data when the hook printed
-    nothing (passthrough to the normal permission dialog).
+    nothing (passthrough to the normal permission dialog). session_env=False
+    strips the whole session-id env chain, simulating a launch where neither
+    the shell wrapper nor the agent exported a session id.
     """
     home = tmp_path / "home"
     project = tmp_path / "project"
@@ -74,7 +77,10 @@ def _run(
     project.mkdir(exist_ok=True)
     env = os.environ.copy()
     env["HOME"] = str(home)
-    env["PILOT_SESSION_ID"] = SESSION
+    if session_env:
+        env["PILOT_SESSION_ID"] = SESSION
+    else:
+        env.pop("PILOT_SESSION_ID", None)
     if project_root_env:
         env["CLAUDE_PROJECT_ROOT"] = str(project)
     else:
@@ -198,6 +204,51 @@ class TestAutoApprovePlan:
         _setup_spec_state(tmp_path, approved="No")
         _, data = _run(tmp_path, project_root_env=False)
         assert _decision(data)["behavior"] == "allow"
+
+    def test_sibling_default_bucket_state_does_not_deny_identified_session(self, tmp_path):
+        """Same-repo sibling bleed: deny state another (env-less) session left in the
+        shared 'default' bucket must not deny ExitPlanMode in a session whose hook
+        payload carries its own session_id. The project guard passes here (same
+        repo), so only session-scoped resolution prevents the cross-fire."""
+        default_dir = tmp_path / "home" / ".pilot" / "sessions" / "default"
+        default_dir.mkdir(parents=True)
+        plans_dir = tmp_path / "project" / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+        plan_path = plans_dir / "2026-08-13-sibling-feature.md"
+        plan_path.write_text("# Sibling\n\nStatus: PENDING\nApproved: No\nType: Feature\n")
+        (default_dir / "active_plan.json").write_text(json.dumps({"plan_path": str(plan_path), "status": "PENDING"}))
+        (default_dir / "plan-mode-active").write_text("")
+
+        code, data = _run(
+            tmp_path,
+            payload={"tool_name": "ExitPlanMode", "permission_mode": "plan", "session_id": "session-b-uuid"},
+            session_env=False,
+        )
+        assert code == 0
+        assert _decision(data)["behavior"] == "allow", (
+            "a sibling session's unapproved plan in the shared 'default' bucket must "
+            "not deny this session's ExitPlanMode"
+        )
+
+    def test_sibling_default_bucket_restore_marker_not_consumed_by_identified_session(self, tmp_path):
+        """Same-repo sibling bleed, restore branch: a bypass-restore marker another
+        (env-less) session armed in the shared 'default' bucket must neither
+        auto-allow this session's permission prompt nor be consumed by it -
+        otherwise one session silently escalates another's permissions AND steals
+        the owning session's pending restore."""
+        default_dir = tmp_path / "home" / ".pilot" / "sessions" / "default"
+        default_dir.mkdir(parents=True)
+        marker = default_dir / RESTORE_MARKER
+        marker.write_text("")
+
+        code, data = _run(
+            tmp_path,
+            payload={"tool_name": "Bash", "permission_mode": "acceptEdits", "session_id": "session-b-uuid"},
+            session_env=False,
+        )
+        assert code == 0
+        assert data is None, "a sibling session's restore marker must not auto-allow this session's prompt"
+        assert marker.exists(), "the owning session's pending restore marker must survive"
 
     def test_allows_when_lib_util_unavailable(self, tmp_path):
         """A version-skewed install (hook without _lib) degrades to plain allow.

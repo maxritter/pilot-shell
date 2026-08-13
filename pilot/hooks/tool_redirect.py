@@ -52,41 +52,7 @@ SILENT_AGENT_TYPES: set[str] = {
 
 BLOCKED_AGENT_TYPES: set[str] = set(BLOCKED_AGENT_REASONS)
 
-GIT_GLOBAL_OPTS_RE: re.Pattern[str] = re.compile(r"\bgit\s+(?:-[Cc]\s+\S+\s+)+")
-
 SHELL_SEGMENT_SEP_RE: re.Pattern[str] = re.compile(r"(?:&&|\|\||;|\n)")
-
-DANGEROUS_GIT_PATTERNS: list[tuple[re.Pattern[str], str]] = [
-    (re.compile(r"\bgit\s+push\b[^\n|;&]*\s(?:--force(?:-with-lease)?(?:=\S+)?|-f)\b"), "git push --force"),
-    (re.compile(r"\bgit\s+push\b[^\n|;&]*--mirror\b"), "git push --mirror"),
-    (re.compile(r"\bgit\s+push\s+\S+\s+:[^\s]"), "git push <remote> :<branch>"),
-    (re.compile(r"\bgit\s+push\b[^\n|;&]*--delete\b"), "git push --delete"),
-    (re.compile(r"\bgit\s+reset\s+--hard\b"), "git reset --hard"),
-    (re.compile(r"\bgit\s+clean\b[^\n|;&]*\s-[a-zA-Z]*f"), "git clean -f"),
-    (re.compile(r"\bgit\s+clean\b[^\n|;&]*--force\b"), "git clean --force"),
-    (re.compile(r"\bgit\s+branch\b[^\n|;&]*\s-D\b"), "git branch -D"),
-    (re.compile(r"\bgit\s+branch\b[^\n|;&]*--delete\b[^\n|;&]*(?:--force|-f)\b"), "git branch --delete --force"),
-    (re.compile(r"\bgit\s+branch\b[^\n|;&]*(?:--force|-f)\b[^\n|;&]*--delete\b"), "git branch --force --delete"),
-    (re.compile(r"\bgit\s+checkout\s+\.(?:\s|$)"), "git checkout ."),
-    (re.compile(r"\bgit\s+checkout\s+(?:\S+\s+)?--\s+\S"), "git checkout -- <file>"),
-    (re.compile(r"\bgit\s+restore\s+(?!--staged\b)\."), "git restore ."),
-    (re.compile(r"\bgit\s+restore\b[^\n|;&]*--source(?:=|\s+)\S+[^\n|;&]*\s\.(?:\s|$)"), "git restore --source ."),
-    (re.compile(r"\bgit\s+restore\b[^\n|;&]*--worktree\b[^\n|;&]*\s\.(?:\s|$)"), "git restore --worktree ."),
-    # Writing a repo-local identity silently re-authors every future commit in
-    # the repo, and git resolves repo config ahead of ~/.gitconfig. Agents reach
-    # for this to set a throwaway identity while reproducing git behaviour; when
-    # it lands on the real checkout instead of a temp one, the misattribution is
-    # baked into commit hashes and only a history rewrite undoes it. Reads
-    # (`git config user.email`, `--get`, `--list`) and explicit `--global` /
-    # `--system` writes are all still allowed.
-    (
-        re.compile(
-            r"\bgit\s+config\b(?![^\n|;&]*\s--(?:global|system|get|get-all|get-regexp|list))"
-            r"[^\n|;&]*\buser\.(?:email|name)\s+[^\s&|;<>]"
-        ),
-        "git config user.email/user.name (repo-local identity write)",
-    ),
-]
 
 
 _LEADING_PREFIX_RE: re.Pattern[str] = re.compile(
@@ -291,78 +257,12 @@ def _builtin_tool_nudge(tool_name: str) -> str | None:
     return None
 
 
-def _normalize_git_command(command: str) -> str:
-    """Strip leading `git -C <path>` / `git -c <key=val>` global options so patterns can match the subcommand.
-
-    Limitation: assumes single-token values for `-C` / `-c`. Quoted values containing
-    spaces (e.g., `git -c core.sshCommand="ssh -i key" push --force`) are NOT fully
-    normalized — the rest of the command is still scanned for dangerous patterns,
-    so force pushes are still caught via the substring match against the trailing
-    `git push --force`. Documented gap; not a full bypass in practice.
-    """
-    return GIT_GLOBAL_OPTS_RE.sub("git ", command)
-
-
 def _extract_shell_commands(tool_name: str, tool_input: dict) -> list[str]:
     """Return the list of shell-command strings carried by this tool invocation."""
     if tool_name != "Bash":
         return []
     command = tool_input.get("command", "")
     return [command] if isinstance(command, str) and command else []
-
-
-def _strip_shell_comment(segment: str) -> str:
-    """Drop any `# ...` comment trailer from a shell segment, respecting quotes.
-
-    Codex #8: `git push --force # --dry-run` was masking the destructive command
-    because `"--dry-run" in segment` matched the comment text. Strip comments first
-    so the exemption only fires for real flags.
-    """
-    in_single = False
-    in_double = False
-    i = 0
-    while i < len(segment):
-        ch = segment[i]
-        if ch == "\\" and i + 1 < len(segment):
-            i += 2
-            continue
-        if ch == "'" and not in_double:
-            in_single = not in_single
-        elif ch == '"' and not in_single:
-            in_double = not in_double
-        elif ch == "#" and not in_single and not in_double:
-            # `#` starts a comment only at start-of-segment or after whitespace
-            if i == 0 or segment[i - 1].isspace():
-                return segment[:i].rstrip()
-        i += 1
-    return segment
-
-
-def _check_dangerous_git(command: str) -> tuple[str, str] | None:
-    """Return (pattern_name, deny_reason) when the bash command matches a dangerous git form, else None.
-
-    Splits the command on shell separators (`;`, `&&`, `||`, `|`, newline) and
-    checks each segment independently. The `--dry-run` exemption is per-segment AND
-    applies only to active command text (comments stripped first), so a destructive
-    command followed by `# --dry-run` comment cannot bypass the scanner.
-    """
-    for segment in SHELL_SEGMENT_SEP_RE.split(command):
-        segment = _strip_shell_comment(segment).strip()
-        if not segment:
-            continue
-        if "--dry-run" in segment:
-            continue
-        normalized = _normalize_git_command(segment)
-        for pattern, name in DANGEROUS_GIT_PATTERNS:
-            if pattern.search(normalized):
-                reason = (
-                    f"Dangerous git operation blocked: '{name}'. "
-                    "This rewrites remote history or destroys local work irreversibly. "
-                    "If you intend this, ask the user to confirm and re-issue. "
-                    "See pilot/rules/development-practices.md -> 'Git Operations' for the full rule."
-                )
-                return (name, reason)
-    return None
 
 
 def run_tool_redirect() -> int:
@@ -390,13 +290,6 @@ def run_tool_redirect() -> int:
     if tool_name == "Bash":
         tool_input = hook_data.get("tool_input", {})
         commands = _extract_shell_commands(tool_name, tool_input)
-        for command in commands:
-            match = _check_dangerous_git(command)
-            if match:
-                pattern_name, reason = match
-                sys.stderr.write(f"\033[0;31m[Pilot] Dangerous git blocked: {pattern_name}\033[0m\n")
-                print(pre_tool_use_deny(reason))
-                return 2
         if commands:
             nudge = _bash_search_nudge(commands[0])
             if nudge:

@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _lib.util import claude_config_dir, resolve_session_id
+from _lib.util import claude_config_dir, read_hook_stdin, resolve_session_id
 
 SESSIONS_DIR = Path.home() / ".pilot" / "sessions"
 
@@ -112,8 +112,11 @@ def main() -> int:
     # Stale-file cleanup follows the same agent-native chain as the rest of the hook
     # layer (issue #157) -- it must run even when PILOT_SESSION_ID is unset (IDE/desktop
     # launch), since active_plan.json / plan-mode-active / findings are already written
-    # via resolve_session_id() elsewhere (_lib/util.py).
-    session_dir = SESSIONS_DIR / resolve_session_id()
+    # via resolve_session_id() elsewhere (_lib/util.py). The payload session_id is the
+    # last-resort fallback: without it, /clear from an env-less session sweeps the
+    # shared "default" bucket and silently unregisters a plan a DIFFERENT env-less
+    # session in the same repo is actively implementing.
+    session_dir = SESSIONS_DIR / resolve_session_id(str(read_hook_stdin().get("session_id") or ""))
     if session_dir.is_dir():
         _sweep(session_dir)
         _sweep_lanes(session_dir)
