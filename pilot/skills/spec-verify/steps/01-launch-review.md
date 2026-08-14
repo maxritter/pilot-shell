@@ -26,8 +26,10 @@ Use the absolute `FIND_BIN` form: the Pilot shell hook may rewrite a plain `find
 
 **Resolve `DIFF_SCOPE` once with the resolver — every reviewer launch below AND every Step 2 audit uses exactly this value.** ⛔ Never derive it by hand; deriving the range from prose is what let issue #168 hide at nine sites at once.
 
+> **`$LANE_FLAG`** is `--lane <id>` when this run was dispatched as an orchestration lane, and **nothing at all** otherwise — the value the invocation parsed from its arguments. It keeps worktree and plan identity scoped to this lane; an unflagged call resolves a different identity and silently finds nothing (issue #174).
+
 ```bash
-SCOPE=$(~/.pilot/bin/pilot review-scope --slug <plan-slug> --json 2>/dev/null \
+SCOPE=$(~/.pilot/bin/pilot review-scope --slug <plan-slug> $LANE_FLAG --json 2>/dev/null \
   | python3 -c 'import json,sys; print(json.dumps(json.load(sys.stdin)))' 2>/dev/null)
 echo "${SCOPE:-UNAVAILABLE — use the manual fallback below}"
 # {"mode":"worktree","base_ref":"dev","diff_range":"dev...HEAD","diff_command":"git diff dev...HEAD"}
@@ -36,6 +38,8 @@ echo "${SCOPE:-UNAVAILABLE — use the manual fallback below}"
 
 ⛔ The `json.load` parse is a guard, not decoration. A `pilot` binary predating `review-scope` does not fail on it — it prints the "runs directly inside Claude Code" transition banner and exits **0**, so without the parse `$SCOPE` silently becomes that banner text. Empty `$SCOPE` means unavailable; use the manual fallback.
 
+⛔ **`$LANE_FLAG` is load-bearing here, exactly as it is on every `pilot worktree` call.** A lane's branch is `spec/<slug>-<lane>` and its worktree registration lives under `lanes/<lane>/`, so an unflagged resolve finds neither and falls back to `git diff HEAD` — which on a lane that commits per task is EMPTY. Every reviewer then reads nothing and reports clean (issue #176).
+
 **`DIFF_SCOPE` = `git diff <diff_range> -- <changed files>`**, and `mode` decides whether to stage:
 
 | `mode` | Meaning | Action |
@@ -43,13 +47,11 @@ echo "${SCOPE:-UNAVAILABLE — use the manual fallback below}"
 | `working-tree` | Uncommitted — `spec-implement` did not commit (the `Worktree: No` default) | **Stage the change's own files first**, so new files appear in the diff |
 | `worktree` | Per-task-committed on the worktree branch | **Do NOT stage.** A plain `git diff HEAD` here reviews an EMPTY diff |
 
-If the JSON carries a `warning`, surface it — the scope degraded to the working-tree diff and may miss commits already on the branch.
+⛔ **If the JSON carries a `warning`, STOP and read it before launching anything.** The scope degraded to the working-tree diff, which misses every commit already on the branch — and when the work is fully committed there, that diff is empty and every reviewer below reviews nothing while reporting clean. The warning names what went wrong (usually a missing or wrong `--lane`); fix that and re-resolve rather than reviewing the degraded scope.
 
 **If the command is unavailable** (older `pilot` binary), resolve by hand:
 
 - Uncommitted → `git diff HEAD`.
-> **`$LANE_FLAG`** is `--lane <id>` when this run was dispatched as an orchestration lane, and **nothing at all** otherwise — the value the invocation parsed from its arguments. It keeps worktree and plan identity scoped to this lane; an unflagged call resolves a different identity and silently finds nothing (issue #174).
-
 - Worktree mode → `git diff <base_ref>...HEAD`, with `<base_ref>` from `~/.pilot/bin/pilot worktree detect --json <slug> $LANE_FLAG`.
 - Three dots, always. Two dots diff against the base branch's live tip, rendering its post-fork commits into the review inverted.
 - The *detected* base branch, never a hardcoded `main` — a worktree forked from `dev` would otherwise drag in every `dev`-only commit.

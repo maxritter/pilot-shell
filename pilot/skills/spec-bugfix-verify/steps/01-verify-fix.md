@@ -54,11 +54,17 @@ Outcomes:
 
 **Resolve the diff base once with the resolver** — ⛔ do NOT derive it by hand:
 
+> **`$LANE_FLAG`** is `--lane <id>` when this run was dispatched as an orchestration lane, and **nothing at all** otherwise — the value the invocation parsed from its arguments. It keeps worktree and plan identity scoped to this lane; an unflagged call resolves a different identity and silently finds nothing (issue #174).
+
 ```bash
-DIFF=$(~/.pilot/bin/pilot review-scope --slug <plan-slug> --json 2>/dev/null \
-  | python3 -c 'import json,sys; print(json.load(sys.stdin)["diff_range"])' 2>/dev/null) || DIFF=""
+SCOPE=$(~/.pilot/bin/pilot review-scope --slug <plan-slug> $LANE_FLAG --json 2>/dev/null \
+  | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["diff_range"]); print(d.get("warning",""))' 2>/dev/null)
+DIFF=$(printf '%s' "$SCOPE" | head -1)
+printf '%s' "$SCOPE" | tail -n +2 | grep . && echo "^ scope degraded - fix this before trusting the checks below"
 [ -n "$DIFF" ] || DIFF=HEAD   # older pilot binary: resolve by hand if the fix is worktree-committed
 ```
+
+⛔ **`$LANE_FLAG` is load-bearing, and a `warning` is a stop sign.** A lane's branch is `spec/<slug>-<lane>`, so an unflagged resolve finds nothing and degrades to `git diff HEAD` — empty when the fix is committed on the worktree branch, so rule 1 below would fire on a diff that was never read (issue #176). Resolve the warning and re-run; do not check against the degraded scope.
 
 ⛔ Pipe through `--json` + a parse — do NOT use `... 2>/dev/null || echo HEAD`. A `pilot` binary predating `review-scope` does not fail on it: it prints the "runs directly inside Claude Code" transition banner and exits **0**, so `||` never fires and `$DIFF` silently becomes the banner text. The `json.load` parse fails on that banner, so the fallback actually runs.
 

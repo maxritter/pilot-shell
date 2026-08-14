@@ -286,6 +286,7 @@ docs/license
 docs/video
 docs/slides
 docs/prd
+docs/posts
 .install-version
 bun.lock
 

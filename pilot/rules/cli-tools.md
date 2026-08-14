@@ -7,13 +7,15 @@
 | Group | Commands |
 |-------|----------|
 | Session | `check-context --json`, `register-plan <path> <status> [--lane <id>]` |
-| Review | `review-scope [--slug <slug>] [--json]` — **the** resolver for a code review's `git diff` scope; never derive the range by hand |
+| Review | `review-scope [--slug <slug>] [--lane <id>] [--json]` — **the** resolver for a code review's `git diff` scope; never derive the range by hand |
 | Worktree | `worktree detect\|create\|diff\|sync\|cleanup --json <slug> [--lane <id>]` (slug = plan filename without date prefix and `.md`; `create` auto-stashes). `worktree status --json [--lane <id>]` takes **no** slug — it reports the worktree for the *current session*. Use `detect` for a specific plan's branch or base branch. |
 | License | `activate <key>`, `deactivate`, `status`, `verify`, `trial --check\|--start` |
 | Updates | `update [--yes] [--json]` (alias `upgrade`) — user-initiated; don't run it unasked |
 | Other | `greet`, `statusline`, `notify` |
 
 **`review-scope`: scripts and skills must use `--json` and parse it.** A `pilot` older than this subcommand prints a banner and exits 0, so a `|| echo HEAD` fallback never fires and the banner text gets spliced into `git diff`. `--json` returns `mode` (`working-tree` | `worktree`), `base_ref`, `diff_range`, and a `warning` when the scope degraded.
+
+⛔ **A `warning` from `review-scope` is a stop sign, not a footnote.** It means the resolver found a live worktree it could not claim (almost always a missing or wrong `--lane`) and fell back to `git diff HEAD`. That diff is EMPTY when the work is committed on the worktree branch, so a review run against it scans nothing and reports clean — indistinguishable from a genuinely clean review. Fix what the warning names and re-resolve. `review-scope` takes `--lane` for exactly this reason: pass it wherever the `worktree` subcommands take it.
 
 **`worktree sync` has three exit codes.** `0` clean · `1` nothing landed · **`2` the squash landed but the base checkout's own uncommitted work could not be restored** and is in `git stash list`. The JSON still reports `"success": true` — the merge did succeed. Exit 2 exists so a chained `&& pilot worktree cleanup` stops before deleting the worktree; surface the `stash_warning` and the `git stash pop` recovery instead of re-running cleanup. `create` and `sync` both serialize on a repo-wide lock, so concurrent runs queue rather than interleaving their changes to the shared base checkout.
 
