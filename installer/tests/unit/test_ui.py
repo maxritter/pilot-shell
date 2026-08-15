@@ -2,6 +2,18 @@
 
 from __future__ import annotations
 
+import re
+
+# Rich honours FORCE_COLOR/CLICOLOR_FORCE, so captured output carries SGR escapes on
+# any developer machine that sets them (Claude Code, most modern terminals) and is bare
+# in CI. These assertions are about layout, not colour, so compare what the user reads.
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
+
+
+def _visible(text: str) -> str:
+    """Return `text` with ANSI escape sequences removed."""
+    return _ANSI_RE.sub("", text)
+
 
 class TestConsole:
     """Test Console wrapper class."""
@@ -63,7 +75,7 @@ class TestConsoleQuietMode:
         def capture(fn, message):
             with console._console.capture() as out:
                 fn(message)
-            return out.get()
+            return _visible(out.get())
 
         assert "Semble installed" in capture(console.success, "Semble installed")
         assert "Initializing CodeGraph" in capture(console.status, "Initializing CodeGraph...")
@@ -79,7 +91,7 @@ class TestConsoleQuietMode:
 
         with console._console.capture() as out:
             console.step("Dependencies")
-        step_output = out.get()
+        step_output = _visible(out.get())
         assert "[1/8] Dependencies" in step_output  # compact, not a Rule banner
         assert "─" not in step_output
 

@@ -14,6 +14,7 @@ from installer.manifest import UpstreamEntry
 from installer.manifest import cached_load as manifest_load
 from installer.platform_utils import (
     command_exists,
+    ensure_bun_on_path,
     is_apt_available,
     is_dnf_available,
     is_homebrew_available,
@@ -364,16 +365,41 @@ def _install_bun_standalone() -> bool:
             CurlPipeRunOptions(stdin_devnull=True, timeout=120),
         ):
             return False
-        bun_bin = str(Path.home() / ".bun" / "bin")
-        if bun_bin not in os.environ.get("PATH", ""):
-            os.environ["PATH"] = f"{bun_bin}:{os.environ.get('PATH', '')}"
-        return command_exists("bun")
+        return ensure_bun_on_path()
     except (subprocess.SubprocessError, OSError):
         return False
 
 
+def _ensure_bun_available(ui: Any) -> bool:
+    """Last-resort bun install, on every platform rather than Linux only.
+
+    Until this existed, `_install_bun_standalone` was reachable only through
+    `_install_linux_fallbacks`, which returns early off Linux -- so on macOS bun came
+    from Homebrew or not at all. When the `oven-sh/bun` tap or the formula failed, the
+    install completed "successfully" and the dependency step quietly used npm instead.
+    Running here (after Homebrew, on any platform) turns that into a real recovery.
+    """
+    if ensure_bun_on_path():
+        return True
+
+    if ui:
+        with ui.spinner("Installing bun via standalone installer..."):
+            success = _install_bun_standalone()
+        if success:
+            ui.success("bun installed")
+        else:
+            ui.warning("Could not install bun - falling back to npm for Pilot's Node dependencies")
+        return success
+
+    return _install_bun_standalone()
+
+
 def _install_linux_fallbacks(ui: Any) -> None:
-    """Install critical tools via native methods when Homebrew is unavailable on Linux."""
+    """Install critical tools via native methods when Homebrew is unavailable on Linux.
+
+    bun is deliberately absent here: `_ensure_bun_available` runs unconditionally right
+    after this and covers the same ground on every platform.
+    """
     if not is_linux():
         return
 
@@ -387,17 +413,6 @@ def _install_linux_fallbacks(ui: Any) -> None:
                 ui.warning("Could not install Node.js - please install manually")
         else:
             _install_nodejs_via_pkg()
-
-    if not command_exists("bun"):
-        if ui:
-            with ui.spinner("Installing bun via standalone installer..."):
-                success = _install_bun_standalone()
-            if success:
-                ui.success("bun installed")
-            else:
-                ui.warning("Could not install bun - please install manually")
-        else:
-            _install_bun_standalone()
 
 
 class PrerequisitesStep(BaseStep):
@@ -526,3 +541,5 @@ class PrerequisitesStep(BaseStep):
 
         if not is_homebrew_available():
             _install_linux_fallbacks(ui)
+
+        _ensure_bun_available(ui)

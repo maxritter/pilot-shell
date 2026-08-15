@@ -177,6 +177,50 @@ class TestMigrationIdempotency:
         assert result is True
         assert config_path.exists()
 
+    def test_fresh_install_starts_in_manual_model_switch_mode(self, tmp_path: Path) -> None:
+        """A first-time user drives /model themselves rather than getting opusplan.
+
+        Upgraders are deliberately excluded - v20 keeps mapping their legacy ON/OFF
+        toggle to "automated", so this is the one path that differs.
+        """
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "nonexistent.json"
+        with patch("installer.steps.config_migration._get_subscription_type", return_value=None):
+            migrate_model_config(config_path, create_if_missing=True)
+
+        written = json.loads(config_path.read_text())
+        assert written["specWorkflow"]["modelSwitchMode"] == "manual"
+
+    def test_fresh_install_keeps_remaining_spec_workflow_defaults(self, tmp_path: Path) -> None:
+        """The Manual seed must not displace the defaults v3/v4 write.
+
+        Those migrations populate `specWorkflow` only when the key is absent
+        entirely, so seeding the mode *before* the chain would silently drop
+        branchIsolation / askQuestionsDuringPlanning / planApproval.
+        """
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "nonexistent.json"
+        with patch("installer.steps.config_migration._get_subscription_type", return_value=None):
+            migrate_model_config(config_path, create_if_missing=True)
+
+        workflow = json.loads(config_path.read_text())["specWorkflow"]
+        assert workflow["askQuestionsDuringPlanning"] is True
+        assert workflow["planApproval"] is True
+        assert workflow["branchIsolation"] is False
+
+    def test_existing_config_without_mode_is_not_flipped_to_manual(self, tmp_path: Path) -> None:
+        """An upgrader whose config predates the key keeps "automated"."""
+        from installer.steps.config_migration import migrate_model_config
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(json.dumps({"_configVersion": 19, "specWorkflow": {"modelSwitch": True}}))
+        migrate_model_config(config_path)
+
+        written = json.loads(config_path.read_text())
+        assert written["specWorkflow"]["modelSwitchMode"] == "automated"
+
     def test_second_run_is_noop(self, tmp_path: Path) -> None:
         """Running migration twice doesn't change anything the second time."""
         from installer.steps.config_migration import migrate_model_config

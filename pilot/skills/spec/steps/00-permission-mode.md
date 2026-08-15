@@ -18,7 +18,7 @@ echo "MODE=$MODE"
 
   > ℹ️ Manual model switching — planning runs on your current `/model` choice (see the status bar). Switch now with `/model` if you want a different planning model; after plan approval you'll be prompted once to switch to your implementation model. Prefer automation? Console → Settings → Model Switching → Automated (requires `opusplan`).
 
-- **If `MODE` is `automated` (default):**
+- **If `MODE` is `automated`:**
 
   > ℹ️ Automated model switching — `/spec` runs on the **opusplan** model: **Opus** plans, **Sonnet** executes, switched automatically. This requires `/model opusplan` (Pilot sets it for you; if your status bar shows something else, run `/model opusplan` now). Prefer picking models yourself? Console → Settings → Model Switching → Manual.
 

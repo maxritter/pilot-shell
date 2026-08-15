@@ -726,6 +726,10 @@ class TestLinuxFallbackBugCondition:
 
         mock_nodejs_pkg.assert_called_once()
 
+    # `ensure_bun_on_path` is patched False in the bun cases below so they describe the
+    # installer rather than whether the machine running the suite already has bun.
+
+    @patch("installer.steps.prerequisites.ensure_bun_on_path", return_value=False)
     @patch("installer.steps.prerequisites._install_bun_standalone")
     @patch("installer.steps.prerequisites._install_nodejs_via_pkg")
     @patch("installer.steps.prerequisites._install_ripgrep_via_apt")
@@ -746,6 +750,7 @@ class TestLinuxFallbackBugCondition:
         _mock_ripgrep,
         _mock_nodejs_pkg,
         mock_bun_standalone,
+        _mock_bun_on_path,
     ):
         """On Linux without Homebrew, bun is installed via standalone installer."""
         from installer.context import InstallContext
@@ -757,6 +762,61 @@ class TestLinuxFallbackBugCondition:
         mock_cmd_exists.return_value = False
         mock_install_brew.return_value = False
         mock_apt.return_value = True
+        mock_bun_standalone.return_value = True
+
+        step = PrerequisitesStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            ctx = InstallContext(
+                project_dir=Path(tmpdir),
+                is_local_install=True,
+                ui=Console(non_interactive=True),
+            )
+            step.run(ctx)
+
+        mock_bun_standalone.assert_called_once()
+
+    @patch("installer.steps.prerequisites.ensure_bun_on_path", return_value=False)
+    @patch("installer.steps.prerequisites._install_bun_standalone")
+    @patch("installer.steps.prerequisites._install_nodejs_via_pkg")
+    @patch("installer.steps.prerequisites._install_ripgrep_via_apt")
+    @patch("installer.steps.prerequisites.is_apt_available")
+    @patch("installer.steps.prerequisites._install_homebrew")
+    @patch("installer.steps.prerequisites._ensure_git_installed")
+    @patch("installer.steps.prerequisites._install_homebrew_package")
+    @patch("installer.steps.prerequisites._add_bun_tap")
+    @patch("installer.steps.prerequisites.command_exists")
+    @patch("installer.steps.prerequisites.is_linux")
+    @patch("installer.steps.prerequisites.is_homebrew_available")
+    def test_bun_standalone_recovers_when_homebrew_did_not_provide_bun(
+        self,
+        mock_brew_avail,
+        mock_linux,
+        mock_cmd_exists,
+        _mock_tap,
+        _mock_brew_pkg,
+        _mock_git,
+        _mock_install_brew,
+        mock_apt,
+        _mock_ripgrep,
+        _mock_nodejs_pkg,
+        mock_bun_standalone,
+        _mock_bun_on_path,
+    ):
+        """macOS with Homebrew, but brew never produced a working bun.
+
+        Regression: `_install_bun_standalone` used to be reachable only through
+        `_install_linux_fallbacks`, which returns early off Linux -- so a failed
+        `oven-sh/bun` tap or formula left macOS with no bun at all, and the dependency
+        step silently installed Pilot's Node deps with npm instead.
+        """
+        from installer.context import InstallContext
+        from installer.steps.prerequisites import PrerequisitesStep
+        from installer.ui import Console
+
+        mock_brew_avail.return_value = True
+        mock_linux.return_value = False
+        mock_cmd_exists.return_value = False
+        mock_apt.return_value = False
         mock_bun_standalone.return_value = True
 
         step = PrerequisitesStep()

@@ -1,7 +1,7 @@
 ---
 sidebar_position: 5
 title: Model Routing
-description: Automated opusplan routing by default, or drive /model yourself.
+description: Drive /model yourself by default, or hand opusplan routing to Claude Code.
 ---
 
 # Model Routing
@@ -18,15 +18,15 @@ Opus reasons better; Sonnet is faster and cheaper. The cost-saving move is to pl
 
 | Mode | What happens | Who switches |
 |------|--------------|--------------|
-| **Automated** (default) | `/spec` runs on the `opusplan` model: Opus 5 plans (plan mode), Sonnet 5 executes everything else | Claude Code, natively |
-| **Manual** | `/spec` pauses once after plan approval so you can switch to your implementation model | You, via `/model` |
+| **Automated** | `/spec` runs on the `opusplan` model: Opus 5 plans (plan mode), Sonnet 5 executes everything else | Claude Code, natively |
+| **Manual** (default) | `/spec` pauses once after plan approval so you can switch to your implementation model | You, via `/model` |
 | **Off** | No model management, no prompts, no gates | Nobody -- the active `/model` choice runs everything |
 
 Pilot does **not** remap model aliases behind the scenes in any mode -- your `/model` picker always means what it says.
 
-## Manual
+## Manual (default)
 
-You stay in control of the model at every phase:
+New installs start here. You stay in control of the model at every phase:
 
 1. Type `/spec <task>` on whatever model you want planning to run on (the Step-0 message reminds you -- switch with `/model` before planning starts if needed). Fable 5, Opus 5, anything.
 2. Plan, review, approve as usual.
@@ -34,7 +34,7 @@ You stay in control of the model at every phase:
 
 That's the whole contract -- one reminder, one pause. In fully-autonomous runs (Plan Approval disabled), the pause is skipped and a one-line notice is printed instead.
 
-## Automated (default)
+## Automated
 
 `/spec` drives Claude Code's native `opusplan` model:
 
@@ -60,7 +60,7 @@ The old boolean toggle (and the 9.12 configurable Plan/Execution model pair with
 | Model Switching ON (old default) | Automated |
 | Model Switching OFF | Off |
 
-Automated matches what ON-users were already getting; select Manual or Off in the Console if you'd rather. Any leftover alias remaps an older Pilot wrote into `~/.claude/settings.json` are cleaned up on the next Pilot start (values you set yourself are left alone).
+Automated matches what ON-users were already getting, so upgrading never changes your mode; select Manual or Off in the Console if you'd rather. A fresh install is seeded Manual instead -- upgraders keep their existing behaviour, new users pick their own model from the start. Any leftover alias remaps an older Pilot wrote into `~/.claude/settings.json` are cleaned up on the next Pilot start (values you set yourself are left alone).
 
 ## The env var
 

@@ -138,7 +138,6 @@ ignore_names = [
     # Documented-but-unused config allowlist (informational; validator ignores unknown keys).
     "FOREIGN_TOP_LEVEL_KEYS",
     # Attribute assignments on stdlib objects deadcode can't attribute to a definition.
-    "row_factory",      # sqlite3.Connection.row_factory
     "check_hostname",   # ssl.SSLContext.check_hostname
     "verify_mode",      # ssl.SSLContext.verify_mode
     # @dataclass wire-format fields: populated from Claude Code / upstream JSON+YAML and

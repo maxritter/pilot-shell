@@ -21,6 +21,26 @@ def _agent_present(command: str, *fallback_paths: Path) -> bool:
     return any(p.is_file() and os.access(p, os.X_OK) for p in fallback_paths)
 
 
+def ensure_bun_on_path() -> bool:
+    """True if `bun` is runnable, putting the standalone install dir on PATH if needed.
+
+    bun's standalone installer appends its PATH export to the user's shell rc files
+    (`~/.zshrc` and friends), which a non-interactive installer process never sources.
+    A machine that already has `~/.bun/bin/bun` therefore reports "no bun" and the
+    dependency step silently installs with npm instead - leaving `~/.pilot/` carrying
+    both a `bun.lock` and a `package-lock.json`. Checking the well-known location
+    directly is what closes that gap; the PATH edit makes the later `bun install`
+    (run through a shell) find it too.
+    """
+    if command_exists("bun"):
+        return True
+    bun_bin = Path.home() / ".bun" / "bin"
+    if (bun_bin / "bun").is_file() and os.access(bun_bin / "bun", os.X_OK):
+        os.environ["PATH"] = f"{bun_bin}{os.pathsep}{os.environ.get('PATH', '')}"
+        return True
+    return False
+
+
 def is_claude_installed() -> bool:
     """Check whether Claude Code CLI is available.
 

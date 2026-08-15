@@ -141,7 +141,7 @@ Three toggles control user interaction points, plus the Model Switching mode dur
 | **Branch Isolation** | On | Asks how to isolate `/spec` changes (new branch or worktree) | Always works on the current branch |
 | **Ask Questions** | On | Asks clarifying questions during planning | Planning makes autonomous default choices |
 | **Plan Approval** | On | Requires your approval before implementation starts | Implementation begins automatically after planning |
-| **Model Switching** *(Claude Code only; own Settings block with three mode cards)* | Automated | **Automated** (default): `/spec` runs on `opusplan` (Opus 5 plans, Sonnet 5 executes, switched natively; requires `/model opusplan`). **Manual**: you drive `/model` yourself -- `/spec` pauses once after plan approval. **Off**: no model management at all. See [Model Routing](model-routing). | n/a -- pick one of the three modes |
+| **Model Switching** *(Claude Code only; own Settings block with three mode cards)* | Manual | **Manual** (default for new installs): you drive `/model` yourself -- `/spec` pauses once after plan approval. **Automated**: `/spec` runs on `opusplan` (Opus 5 plans, Sonnet 5 executes, switched natively; requires `/model opusplan`). **Off**: no model management at all. Upgrading from an older Pilot keeps the mode your old ON/OFF toggle mapped to. See [Model Routing](model-routing). | n/a -- pick one of the three modes |
 
 With all three workflow toggles off, `/spec add user authentication` plans, implements, and verifies the feature end-to-end without checkpoints, entirely on your active model.
 

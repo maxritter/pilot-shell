@@ -23,6 +23,86 @@ class TestCommandExists:
         assert command_exists("definitely_not_a_real_command_12345") is False
 
 
+class TestEnsureBunOnPath:
+    """Test ensure_bun_on_path: bun discovery when PATH alone does not show it."""
+
+    def test_returns_true_without_touching_path_when_bun_is_already_on_path(self):
+        """An already-visible bun needs no PATH surgery."""
+        import os
+
+        from installer.platform_utils import ensure_bun_on_path
+
+        before = os.environ.get("PATH", "")
+        with patch("installer.platform_utils.command_exists", return_value=True):
+            assert ensure_bun_on_path() is True
+        assert os.environ.get("PATH", "") == before
+
+    def test_finds_standalone_bun_that_is_not_on_path(self, tmp_path: Path):
+        """The case that made a machine WITH bun install its deps with npm.
+
+        bun's standalone installer only appends its PATH export to the user's shell rc
+        files, which a non-interactive installer process never sources.
+        """
+        import os
+
+        from installer.platform_utils import ensure_bun_on_path
+
+        bun_bin = tmp_path / ".bun" / "bin"
+        bun_bin.mkdir(parents=True)
+        bun = bun_bin / "bun"
+        bun.write_text("#!/bin/sh\n")
+        bun.chmod(0o755)
+
+        original = os.environ.get("PATH", "")
+        try:
+            with (
+                patch("installer.platform_utils.command_exists", return_value=False),
+                patch.object(Path, "home", return_value=tmp_path),
+            ):
+                assert ensure_bun_on_path() is True
+            assert str(bun_bin) in os.environ["PATH"]
+        finally:
+            os.environ["PATH"] = original
+
+    def test_returns_false_when_bun_is_genuinely_absent(self, tmp_path: Path):
+        """No bun on PATH and none at ~/.bun/bin means npm really is the only option."""
+        import os
+
+        from installer.platform_utils import ensure_bun_on_path
+
+        original = os.environ.get("PATH", "")
+        try:
+            with (
+                patch("installer.platform_utils.command_exists", return_value=False),
+                patch.object(Path, "home", return_value=tmp_path),
+            ):
+                assert ensure_bun_on_path() is False
+            assert os.environ.get("PATH", "") == original
+        finally:
+            os.environ["PATH"] = original
+
+    def test_ignores_a_non_executable_bun(self, tmp_path: Path):
+        """A half-written bun file must not be reported as usable."""
+        import os
+
+        from installer.platform_utils import ensure_bun_on_path
+
+        bun_bin = tmp_path / ".bun" / "bin"
+        bun_bin.mkdir(parents=True)
+        (bun_bin / "bun").write_text("")
+        (bun_bin / "bun").chmod(0o644)
+
+        original = os.environ.get("PATH", "")
+        try:
+            with (
+                patch("installer.platform_utils.command_exists", return_value=False),
+                patch.object(Path, "home", return_value=tmp_path),
+            ):
+                assert ensure_bun_on_path() is False
+        finally:
+            os.environ["PATH"] = original
+
+
 class TestShellConfig:
     """Test shell configuration utilities."""
 

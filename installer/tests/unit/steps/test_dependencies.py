@@ -1083,9 +1083,14 @@ class TestInstallPluginDependencies:
                 result = _install_plugin_dependencies(Path(tmpdir), ui=None)
             assert result is False
 
+    # `ensure_bun_on_path` is patched in every case below: it consults the real PATH and
+    # ~/.bun/bin, so leaving it live makes these assertions depend on whether the machine
+    # running the suite happens to have bun installed.
+
     @patch("installer.steps.dependencies._run_bash_with_retry")
+    @patch("installer.steps.dependencies.ensure_bun_on_path", return_value=True)
     @patch("installer.steps.dependencies.command_exists")
-    def test_install_plugin_dependencies_runs_bun_install(self, mock_cmd_exists, mock_run):
+    def test_install_plugin_dependencies_runs_bun_install(self, mock_cmd_exists, _mock_bun, mock_run):
         """Runs `bun install` in ~/.pilot/ when bun is available."""
         from installer.steps.dependencies import _install_plugin_dependencies
 
@@ -1104,8 +1109,9 @@ class TestInstallPluginDependencies:
             mock_run.assert_called_with("bun install", cwd=pilot_home)
 
     @patch("installer.steps.dependencies._run_bash_with_retry")
+    @patch("installer.steps.dependencies.ensure_bun_on_path", return_value=False)
     @patch("installer.steps.dependencies.command_exists")
-    def test_install_plugin_dependencies_falls_back_to_npm(self, mock_cmd_exists, mock_run):
+    def test_install_plugin_dependencies_falls_back_to_npm(self, mock_cmd_exists, _mock_bun, mock_run):
         """Falls back to `npm install` when bun is unavailable."""
         from installer.steps.dependencies import _install_plugin_dependencies
 
@@ -1124,8 +1130,38 @@ class TestInstallPluginDependencies:
         npm_calls = [c for c in mock_run.call_args_list if "npm" in str(c)]
         assert len(npm_calls) > 0, "npm install should be called when bun is unavailable"
 
+    @patch("installer.steps.dependencies._run_bash_with_retry")
+    @patch("installer.steps.dependencies.ensure_bun_on_path", return_value=True)
     @patch("installer.steps.dependencies.command_exists")
-    def test_install_plugin_dependencies_returns_false_when_no_package_manager(self, mock_cmd_exists):
+    def test_install_plugin_dependencies_falls_back_to_npm_when_bun_install_fails(
+        self, mock_cmd_exists, _mock_bun, mock_run
+    ):
+        """A bun that exists but errors out must still leave the deps installed.
+
+        Regression: a failing `bun install` returned False immediately with npm sitting
+        unused, so ~/.pilot/ ended up with no node_modules at all.
+        """
+        from installer.steps.dependencies import _install_plugin_dependencies
+
+        mock_cmd_exists.side_effect = lambda cmd: cmd == "npm"
+        mock_run.side_effect = lambda cmd, **_kwargs: cmd != "bun install"
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            pilot_home = Path(tmpdir) / ".pilot"
+            pilot_home.mkdir(parents=True)
+            (pilot_home / "package.json").write_text('{"name": "test"}')
+
+            with patch.object(Path, "home", return_value=Path(tmpdir)):
+                result = _install_plugin_dependencies(Path(tmpdir), ui=None)
+
+        assert result is True
+        attempted = [c.args[0] for c in mock_run.call_args_list]
+        assert "bun install" in attempted, "bun should still be tried first"
+        assert "npm install" in attempted, "npm must pick up after bun install fails"
+
+    @patch("installer.steps.dependencies.ensure_bun_on_path", return_value=False)
+    @patch("installer.steps.dependencies.command_exists")
+    def test_install_plugin_dependencies_returns_false_when_no_package_manager(self, mock_cmd_exists, _mock_bun):
         """Returns False when neither bun nor npm is available."""
         from installer.steps.dependencies import _install_plugin_dependencies
 

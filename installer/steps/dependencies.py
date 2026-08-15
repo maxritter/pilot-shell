@@ -20,6 +20,7 @@ from installer.manifest import UpstreamEntry
 from installer.manifest import get as manifest_get
 from installer.platform_utils import (
     command_exists,
+    ensure_bun_on_path,
     ensure_sudo_credentials,
     is_claude_installed,
     is_codex_installed,
@@ -1536,11 +1537,15 @@ def _install_plugin_dependencies(_project_dir: Path, ui: Any = None) -> bool:
             ui.warning("No package.json in ~/.pilot/ - skipping")
         return False
 
-    if command_exists("bun"):
-        if not _run_bash_with_retry("bun install", cwd=pilot_home):
-            return False
-        _record_outcome(_OUTCOME_UPDATED)
-        return True
+    # npm is a fallback for a FAILING `bun install`, not only for a missing bun.
+    # Previously a bun that existed but errored out returned False here with npm
+    # sitting unused, so the whole Node dependency set was simply absent.
+    if ensure_bun_on_path():
+        if _run_bash_with_retry("bun install", cwd=pilot_home):
+            _record_outcome(_OUTCOME_UPDATED)
+            return True
+        if ui:
+            ui.warning("bun install failed - retrying with npm")
 
     if command_exists("npm"):
         if not _run_bash_with_retry("npm install", cwd=pilot_home):

@@ -15,6 +15,12 @@ from installer.claude_paths import get_claude_config_dir
 
 CURRENT_CONFIG_VERSION = 21
 
+# Model Switching mode written into a brand-new ~/.pilot/config.json. Deliberately
+# NOT the same as the launcher's read-time DEFAULT_MODEL_SWITCH_MODE ("automated"),
+# which governs configs that predate the key: upgraders keep what their old ON/OFF
+# toggle gave them, while a first-time user starts out driving /model themselves.
+NEW_INSTALL_MODEL_SWITCH_MODE = "manual"
+
 _STALE_AGENT_KEYS = frozenset(
     {
         "plan-challenger",
@@ -47,7 +53,8 @@ def migrate_model_config(
         config_path = Path.home() / ".pilot" / "config.json"
 
     raw: dict[str, Any]
-    if not config_path.exists():
+    is_new_install = not config_path.exists()
+    if is_new_install:
         if not create_if_missing:
             return False
         raw = {}
@@ -141,6 +148,22 @@ def migrate_model_config(
 
     if version < 21:
         modified = _migration_v21(raw) or modified
+
+    # New installs start in Manual, not the migration chain's "automated".
+    # Applied after the chain rather than seeded before it: the early migrations
+    # only populate `specWorkflow` when the key is absent entirely, so a
+    # pre-seeded dict would silently suppress v3/v4's branchIsolation +
+    # askQuestionsDuringPlanning + planApproval defaults. Existing configs are
+    # untouched - v20's legacy mapping still lands upgraders on the mode their
+    # old ON/OFF toggle was already giving them.
+    if is_new_install:
+        workflow = raw.get("specWorkflow")
+        if not isinstance(workflow, dict):
+            workflow = {}
+            raw["specWorkflow"] = workflow
+        if workflow.get("modelSwitchMode") != NEW_INSTALL_MODEL_SWITCH_MODE:
+            workflow["modelSwitchMode"] = NEW_INSTALL_MODEL_SWITCH_MODE
+            modified = True
 
     if raw.get("_configVersion") != CURRENT_CONFIG_VERSION:
         raw["_configVersion"] = CURRENT_CONFIG_VERSION
