@@ -162,7 +162,11 @@ job_console_tests() {
     violations="$(printf '%s\n' "$staged_tests" | while IFS= read -r f; do
       [ -n "$f" ] || continue
       # Scan the worktree file, NOT `git show :$f` - console sources are
-      # git-crypt'd, so staged blobs are ciphertext and grep would never match.
+      # encrypted by git-crypt, so staged blobs are ciphertext and grep would
+      # never match. Keep apostrophes out of comments inside this $( ): bash 3.2
+      # (macOS /bin/bash) does not skip comments while scanning for the closing
+      # paren, so a lone apostrophe opens a quoted string and swallows the rest
+      # of the file - the hook then dies with a syntax error 50 lines later.
       grep -nE 'mock\.module\(["'"'"'](node:)?(fs|child_process|os|path)["'"'"']' "$f" 2>/dev/null | grep -vE '^[0-9]+:[[:space:]]*(//|\*)' | sed "s|^|$f:|"
     done)"
     if [ -n "$violations" ]; then
