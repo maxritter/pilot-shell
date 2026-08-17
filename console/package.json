@@ -11,14 +11,15 @@
   "scripts": {
     "dev": "npm run build",
     "dev:viewer": "vite",
-    "build": "node scripts/build-hooks.js",
+    "build": "node scripts/build-hooks.js && bun run verify:worker-bundle",
     "build:viewer": "vite build",
     "typecheck": "tsc --noEmit",
     "knip": "knip-bun",
     "test": "bun test",
     "test:sqlite": "bun test tests/sqlite/",
     "test:context": "bun test tests/context/",
-    "test:worker": "bun test tests/worker/"
+    "test:worker": "bun test tests/worker/",
+    "verify:worker-bundle": "bun test tests/worker/worker-service.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.12",
