@@ -25,6 +25,7 @@ from _lib.util import read_hook_stdin, resolve_session_id
 SESSIONS_DIR = Path.home() / ".pilot" / "sessions"
 SKIP_NAMES = {"default", "pipes"}
 _SESSION_STALENESS_THRESHOLD = 120.0
+_AGENT_SESSION_ID_RE = re.compile(r"[0-9A-Fa-f]{8}(?:-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}")
 
 # Marks an invocation as a genuine end-of-session rather than an end-of-turn.
 SESSION_END_FLAG = "--session-end"
@@ -130,6 +131,11 @@ def _extract_session_pid(name: str) -> int | None:
     return None
 
 
+def _is_agent_session_id(name: str) -> bool:
+    """Return whether a directory name is a Claude/Codex UUID."""
+    return _AGENT_SESSION_ID_RE.fullmatch(name) is not None
+
+
 def _is_session_fresh(session_dir: Path) -> bool:
     """Return whether an agent-native session has a recent heartbeat."""
     cache_file = session_dir / "context-pct.json"
@@ -194,6 +200,8 @@ def _has_other_active_sessions(fallback_session_id: str = "") -> bool:
                 continue
             pid = _extract_session_pid(entry.name)
             if pid is None:
+                if not _is_agent_session_id(entry.name):
+                    continue
                 if not live_ids_scanned:
                     live_ids = _live_agent_session_ids()
                     live_ids_scanned = True
