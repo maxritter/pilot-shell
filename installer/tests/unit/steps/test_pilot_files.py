@@ -82,6 +82,7 @@ class TestPilotFilesStepScope:
             )
             stack.enter_context(patch("installer.steps.claude_files.ClaudeFilesStep._make_scripts_executable"))
             stack.enter_context(patch("installer.steps.claude_files.ClaudeFilesStep._build_skill_md_files"))
+            stack.enter_context(patch("installer.steps.pilot_files.download_files_parallel"))
             stack.enter_context(patch("installer.steps.claude_files.ClaudeFilesStep._save_pilot_manifest"))
             cleanup_stale = stack.enter_context(
                 patch("installer.steps.claude_files.ClaudeFilesStep._cleanup_stale_managed_files")
@@ -126,6 +127,23 @@ class TestPilotFilesStepScope:
 
         assert ctx.config.get(PILOT_FILES_CACHE_CATEGORIES_KEY) is cats
         assert ctx.config.get(PILOT_FILES_CACHE_CONFIG_KEY) is not None
+
+    def test_stages_codex_sources_under_agent_neutral_pilot_home(self, tmp_path: Path) -> None:
+        from installer.steps.pilot_files import PilotFilesStep
+
+        step = PilotFilesStep()
+        categories = self._categories()
+
+        with (
+            patch("installer.steps.pilot_files.Path.home", return_value=tmp_path),
+            patch("installer.steps.pilot_files.download_files_parallel") as download,
+        ):
+            step._stage_raw_codex_sources(categories, MagicMock())
+
+        destinations = [path for call in download.call_args_list for path in call.args[1]]
+        assert tmp_path / ".pilot" / "rules" / "testing.md" in destinations
+        assert tmp_path / ".pilot" / "skills" / "spec" / "manifest.json" in destinations
+        assert tmp_path / ".pilot" / "agents" / "changes-review.md" in destinations
 
 
 class TestClaudeFilesStepGated:

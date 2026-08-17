@@ -326,10 +326,7 @@ def run_context_monitor() -> int:
 
     save_cache(total_tokens, session_id, shown_autocompact_warn=True)
     if not shown_autocompact_warn:
-        notices.append(
-            f"Context at {display_pct:.0f}%. Auto-compact approaching — no context is lost. "
-            f"Continue all workflow steps normally. Do NOT skip steps, sub-agents, or verification."
-        )
+        notices.append(f"Context at {display_pct:.0f}%. Auto-compact approaching; work can continue normally.")
     return _emit(notices)
 
 

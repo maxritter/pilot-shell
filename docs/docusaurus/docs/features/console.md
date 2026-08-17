@@ -6,7 +6,7 @@ description: Local Pilot Console at localhost:41777 - monitor sessions, browse m
 
 # Pilot Console
 
-Local web dashboard at `localhost:41777` - monitor and manage your sessions.
+Local 11-view dashboard at `localhost:41777` - monitor and manage Claude Code and Codex sessions.
 
 The Console runs locally as a Bun/Express server with a React web UI. It starts when you launch Pilot and stops when all sessions close. All data - memories, sessions, usage - lives in a local SQLite database, and Pilot never transmits it anywhere. Team plans can additionally share a project's memories with teammates by storing them in the project repository, where git carries them - see [Team Memories](./team-memories.md).
 
@@ -112,7 +112,7 @@ Pilot doesn't manage model preferences. Set the model with Claude Code's `/model
 
 ### Workflows -> Review Agents
 
-Three reviews are available across the workflows on Claude Code and Codex: **Spec Review** during `/spec`, **Build Review** during `/build`, and **Changes Review** at the end of `/spec`, `/fix` and a code `/build`. Toggle each on or off. Both run as a single background review agent - a sub-agent on Claude Code, a managed custom agent under `~/.codex/agents/` on Codex - so the cost of each is one agent, not a fan-out.
+Three reviews are available across the workflows on Claude Code and Codex: **Spec Review** during `/spec`, **Build Review** during `/build`, and **Changes Review** at the end of `/spec`, `/fix` and a code `/build`. Toggle each on or off. Each runs as one background review agent - a sub-agent on Claude Code, a managed custom agent under `~/.codex/agents/` on Codex - so the cost of each is one agent, not a fan-out.
 
 | Agent | Group | Default | Role |
 |-------|-------|---------|------|

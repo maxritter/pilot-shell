@@ -80,11 +80,7 @@ AGENT_ID_FILE="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_I
 
 If `CHANGES_REVIEW_AGENT_ID` is missing and the file exists, read the file and use its trimmed contents. If both are missing or empty, re-launch `changes-review` once using the Step 1 prompt, persist the new id to the file, then continue. Do not silently skip review while `PILOT_CHANGES_REVIEW_ENABLED` is enabled.
 
-Wait for the final result:
-
-```python
-result = multi_agent_v1.wait_agent(targets=[CHANGES_REVIEW_AGENT_ID], timeout_ms=600000)
-```
+Wait for the final result with the wait mechanism exposed in the current Codex tool schema, using `CHANGES_REVIEW_AGENT_ID` and the tool's current parameters. Do not invent a namespace or reuse a stale call signature.
 
 Parse the agent's final message as JSON. If parsing fails, treat the raw final message as one `suggestion` finding and continue; do not re-launch on parse failure.
 

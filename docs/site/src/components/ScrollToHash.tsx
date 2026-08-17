@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { scrollAndFocusSection } from '@/utils/navigateToSection';
 
 /**
  * Handles scrolling to hash fragments after cross-page navigation.
@@ -23,7 +24,7 @@ const ScrollToHash = () => {
       const element = document.querySelector(`#${CSS.escape(id)}`);
       if (element) {
         requestAnimationFrame(() => {
-          element.scrollIntoView({ behavior: 'smooth' });
+          scrollAndFocusSection(id);
         });
         return true;
       }
@@ -32,7 +33,7 @@ const ScrollToHash = () => {
 
     if (scrollToElement()) return;
 
-    const timeouts: NodeJS.Timeout[] = [];
+    const timeouts: Array<ReturnType<typeof setTimeout>> = [];
     const delays = [50, 100, 200, 300, 350];
 
     delays.forEach((delay) => {

@@ -158,6 +158,25 @@ class TestMakeSubprocessEnv:
             assert "CLAUDECODE" not in env
             assert env.get("HOME") == "/h"
 
+    def test_strips_parent_pilot_session_from_codex_benchmark(self) -> None:
+        with patch.dict(
+            "os.environ",
+            {
+                "PILOT_SESSION_ID": "parent-session",
+                "PILOT_PLAN_APPROVAL_ENABLED": "true",
+                "CODEX_SANDBOX_TYPE": "seatbelt",
+                "CODEX_THREAD_ID": "parent-thread",
+                "HOME": "/h",
+            },
+        ):
+            env = _make_subprocess_env("codex")
+
+        assert "PILOT_SESSION_ID" not in env
+        assert "PILOT_PLAN_APPROVAL_ENABLED" not in env
+        assert "CODEX_SANDBOX_TYPE" not in env
+        assert "CODEX_THREAD_ID" not in env
+        assert env.get("HOME") == "/h"
+
 
 # ----------------------------------------------------------------------------
 # prepare_config_dir
@@ -600,6 +619,30 @@ class TestExecuteRunCodex:
         assert cmd_arg[0] == "codex"
         assert "exec" in cmd_arg
         assert "--skip-git-repo-check" in cmd_arg
+        assert "--ephemeral" in cmd_arg
+        assert "--ignore-user-config" in cmd_arg
+        assert "--ignore-rules" in cmd_arg
+        assert isinstance(result, ExecuteSuccess)
+
+    def test_codex_agent_accepts_an_unwrapped_binary_path(self, tmp_path: Path) -> None:
+        config_dir = tmp_path / "cfg"
+        run_dir = tmp_path / "out"
+        config_dir.mkdir()
+        completed = MagicMock(stdout="output text", stderr="", returncode=0)
+        with (
+            patch.dict("os.environ", {"PILOT_BENCH_CODEX_BIN": "/app/Codex/codex"}),
+            patch("scripts.runner.subprocess.run", return_value=completed) as mock_run,
+        ):
+            result = execute_run(
+                prompt="test prompt",
+                config_dir=config_dir,
+                run_dir=run_dir,
+                model="gpt-5.6-sol",
+                timeout=10,
+                agent="codex",
+            )
+
+        assert mock_run.call_args.args[0][0] == "/app/Codex/codex"
         assert isinstance(result, ExecuteSuccess)
 
     def test_codex_agent_omits_model_flag_for_codex_default(self, tmp_path: Path) -> None:
@@ -637,6 +680,31 @@ class TestExecuteRunCodex:
         timing = json.loads((run_dir / "timing.json").read_text())
         assert timing["agent"] == "codex"
         assert "note" in timing
+
+    def test_codex_transcript_includes_tool_trace_and_final_output(self, tmp_path: Path) -> None:
+        config_dir = tmp_path / "cfg"
+        run_dir = tmp_path / "out"
+        config_dir.mkdir()
+        completed = MagicMock(
+            stdout="final answer",
+            stderr="tool apply_patch\ntool exec_command",
+            returncode=0,
+        )
+        with patch("scripts.runner.subprocess.run", return_value=completed):
+            result = execute_run(
+                prompt="test",
+                config_dir=config_dir,
+                run_dir=run_dir,
+                model="gpt-5.5",
+                timeout=10,
+                agent="codex",
+            )
+
+        transcript = (run_dir / "outputs" / "transcript.txt").read_text()
+        assert "tool apply_patch" in transcript
+        assert "final answer" in transcript
+        assert (run_dir / "outputs" / "output.txt").read_text() == "final answer"
+        assert isinstance(result, ExecuteSuccess)
 
     def test_codex_nonzero_exit_returns_failure(self, tmp_path: Path) -> None:
         config_dir = tmp_path / "cfg"
@@ -707,6 +775,33 @@ class TestRunGraderCodex:
         assert cmd_arg[0] == "codex"
         assert "exec" in cmd_arg
         assert "--skip-git-repo-check" in cmd_arg
+        assert isinstance(result, GraderSuccess)
+
+    def test_codex_grader_uses_the_unwrapped_isolated_binary(self, tmp_path: Path) -> None:
+        run_dir = tmp_path / "run"
+        run_dir.mkdir()
+        _ = (run_dir / "grading.json").write_text(
+            json.dumps({"summary": {"pass_rate": 1.0, "passed": 1, "failed": 0, "total": 1}})
+        )
+        with (
+            patch.dict("os.environ", {"PILOT_BENCH_CODEX_BIN": "/app/Codex/codex"}),
+            patch("scripts.runner.subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = MagicMock(stdout="", stderr="", returncode=0)
+            result = _run_grader(
+                run_dir=run_dir,
+                assertions=["a"],
+                target_type="rules",
+                model="gpt-5.6-sol",
+                timeout=1,
+                agent="codex",
+            )
+
+        cmd_arg = mock_run.call_args.args[0]
+        assert cmd_arg[0] == "/app/Codex/codex"
+        assert "--ephemeral" in cmd_arg
+        assert "--ignore-user-config" in cmd_arg
+        assert "--ignore-rules" in cmd_arg
         assert isinstance(result, GraderSuccess)
 
     def test_codex_grader_omits_model_flag_for_codex_default(self, tmp_path: Path) -> None:

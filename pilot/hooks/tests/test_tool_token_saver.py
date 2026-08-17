@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import io
+import json
 import subprocess
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from tool_token_saver import _rewrite_command
+from tool_token_saver import _rewrite_command, run_tool_token_saver
 
 
 class TestRewriteCommand:
@@ -62,3 +64,21 @@ class TestRewriteCommand:
     def test_returns_none_on_os_error(self, mock_run):
         mock_run.side_effect = OSError("not found")
         assert _rewrite_command("git status") is None
+
+
+def test_rewrite_preserves_codex_native_permission_decision(capsys):
+    payload = {"tool_input": {"command": "git status", "timeout": 10}}
+
+    with (
+        patch("tool_token_saver.sys.stdin", io.StringIO(json.dumps(payload))),
+        patch("tool_token_saver.shutil.which", return_value="/usr/local/bin/rtk"),
+        patch("tool_token_saver._get_rtk_version", return_value=(0, 23, 0)),
+        patch("tool_token_saver._rewrite_command", return_value="rtk git status"),
+    ):
+        assert run_tool_token_saver() == 0
+
+    output = json.loads(capsys.readouterr().out)
+    hook_output = output["hookSpecificOutput"]
+    assert hook_output["updatedInput"] == {"command": "rtk git status", "timeout": 10}
+    assert "permissionDecision" not in hook_output
+    assert "permissionDecisionReason" not in hook_output

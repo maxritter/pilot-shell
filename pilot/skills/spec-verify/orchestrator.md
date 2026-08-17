@@ -22,7 +22,7 @@ user-invocable: false
    ⛔ **Never `Skill(skill='code-review', ...)`.** That skill carries `disable-model-invocation` — the call is rejected, and a workflow that treats it as its review silently verifies nothing. A deeper multi-agent review is the user's to start by typing `/code-review`.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-1. **Run native Codex changes review when enabled** — Step 1 launches the managed `changes-review` custom agent via `multi_agent_v1.spawn_agent` when `PILOT_CHANGES_REVIEW_ENABLED` is not `"false"` (read in Step 0). Step 3 waits for and applies its findings.
+1. **Run native Codex changes review when enabled** — Step 1 launches the managed `changes-review` custom agent with the spawn-agent tool exposed in the current Codex tool schema when `PILOT_CHANGES_REVIEW_ENABLED` is not `"false"` (read in Step 0). Step 3 waits for and applies its findings.
 2. **Only changes-review — NEVER spec-review** — Do NOT launch `spec-review` during verification. Planning findings are stale artifacts from the planning phase and must be ignored.
 CODEX-END -->
 3. **NO stopping** — Everything automatic. Never ask "Should I fix these?"

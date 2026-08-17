@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useInView } from "@/hooks/use-in-view";
 
-const hooksPipeline = [
+const claudeHooksPipeline = [
   {
     trigger: "SessionStart",
     description: "On startup, clear, or after compaction",
@@ -35,7 +35,7 @@ const hooksPipeline = [
     trigger: "UserPromptSubmit",
     description: "When the user sends a message",
     hooks: [
-      "spec_mode_guard.py blocks invalid /spec usage",
+      "spec_mode_guard.py enforces /spec only while that workflow is active",
       "Session registration starts in the background",
     ],
     color: "text-emerald-400",
@@ -46,9 +46,9 @@ const hooksPipeline = [
     trigger: "PreToolUse",
     description: "Before Bash, search, web, or agent tools",
     hooks: [
-      "tool_redirect.py reroutes unsupported tools to approved alternatives",
-      "Plan mode conflicts are blocked before they execute",
-      "tool_token_saver.py rewrites Bash commands through RTK",
+      "tool_redirect.py maps unavailable tool names to supported equivalents",
+      "An active workflow can reject conflicting plan-mode operations",
+      "tool_token_saver.py routes supported shell output through RTK",
     ],
     color: "text-amber-400",
     bgColor: "bg-amber-400/10",
@@ -106,7 +106,7 @@ const rulesCategories = [
     icon: Shield,
     category: "Core Workflow",
     rules: [
-      "Workflow enforcement & /spec orchestration",
+      "Pilot workflow orchestration and completion guards",
       "TDD & test strategy",
       "Execution verification & completion",
     ],
@@ -219,9 +219,8 @@ const DeepDiveSection = () => {
             Under the Hood
           </h2>
           <p className="text-muted-foreground text-lg sm:text-xl max-w-3xl mx-auto">
-            Pilot isn't a thin wrapper — it's a deeply engineered system with
-            rules, hooks, standards, language servers, and MCP servers working
-            together on every edit.
+            Pilot adapts its rules, hooks, search, and verification to the
+            capabilities each agent exposes.
           </p>
         </div>
 
@@ -236,17 +235,17 @@ const DeepDiveSection = () => {
             </div>
             <div>
               <h3 className="text-2xl font-bold text-foreground">
-                Hooks Pipeline
+                Claude Code hook pipeline
               </h3>
               <p className="text-sm text-muted-foreground">
-                Quality enforcement across lifecycle events — fires
-                automatically on both Claude Code and Codex
+                Lifecycle quality enforcement through Claude Code&apos;s public
+                hook surface.
               </p>
             </div>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {hooksPipeline.map((stage) => (
+            {claudeHooksPipeline.map((stage) => (
               <div
                 key={stage.trigger}
                 className={`rounded-lg p-5 border ${stage.borderColor} bg-card`}
@@ -282,7 +281,7 @@ const DeepDiveSection = () => {
           </div>
 
           {/* Context Optimization — keeping context lean */}
-          <div className="mt-6 rounded-lg p-5 border border-violet-400/20 bg-gradient-to-r from-violet-500/5 via-sky-500/5 to-violet-500/5">
+          <div className="mt-6 rounded-lg border border-violet-400/20 bg-card p-5">
             <div className="flex items-start gap-4">
               <div className="w-9 h-9 bg-violet-400/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                 <RefreshCw className="h-4 w-4 text-violet-400" />
@@ -292,17 +291,11 @@ const DeepDiveSection = () => {
                   Context Optimization
                 </h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  These hooks keep your context lean.{" "}
-                  <span className="text-violet-400">Semble</span> returns only
-                  the matched code chunks — ~98% fewer tokens than{" "}
-                  <code className="text-violet-400">grep + read</code>.{" "}
-                  <span className="text-violet-400">RTK</span> compresses
-                  remaining tool output by 60–90%. Rules load only for matching
-                  file types. Skills use progressive disclosure. When compaction
-                  fires,{" "}
-                  <span className="text-sky-400">PreCompact</span> captures
-                  state and <span className="text-sky-400">SessionStart</span>{" "}
-                  restores it — no progress lost.
+                  <span className="text-violet-400">Semble</span> returns focused
+                  code matches, while <span className="text-violet-400">RTK</span>{" "}
+                  compresses supported CLI output. Claude Code hooks can capture
+                  and restore active workflow state around compaction. Rules
+                  still load by file type, and skills use progressive disclosure.
                 </p>
               </div>
             </div>
@@ -389,8 +382,8 @@ const DeepDiveSection = () => {
                 Built-in Rules & Standards
               </h3>
               <p className="text-sm text-muted-foreground">
-                Loaded every session — production-tested best practices and
-                coding standards always in context
+                Project practices and file-specific standards, applied through
+                the mechanisms each agent supports
               </p>
             </div>
           </div>

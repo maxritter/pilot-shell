@@ -22,7 +22,7 @@ html {
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 9%;
 
-    --primary: 209 72% 50%;
+    --primary: 209 72% 45%;
     --primary-foreground: 0 0% 98%;
 
     --secondary: 0 0% 93%;
@@ -31,7 +31,7 @@ html {
     --muted: 0 0% 93%;
     --muted-foreground: 0 0% 40%;
 
-    --accent: 209 72% 50%;
+    --accent: 209 72% 45%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84.2% 50%;
@@ -39,7 +39,7 @@ html {
 
     --border: 0 0% 88%;
     --input: 0 0% 88%;
-    --ring: 209 72% 50%;
+    --ring: 209 72% 45%;
 
     --radius: 0.375rem;
 
@@ -63,7 +63,7 @@ html {
     --popover-foreground: 0 0% 98%;
 
     --primary: 209 72% 63%;
-    --primary-foreground: 0 0% 98%;
+    --primary-foreground: 217 40% 6%;
 
     --secondary: 217 20% 14%;
     --secondary-foreground: 0 0% 98%;
@@ -72,7 +72,7 @@ html {
     --muted-foreground: 217 10% 65%;
 
     --accent: 209 72% 63%;
-    --accent-foreground: 0 0% 98%;
+    --accent-foreground: 217 40% 6%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -94,6 +94,23 @@ html {
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    color: hsl(var(--primary-foreground));
+    background: hsl(var(--primary));
+  }
+
+  :where(
+      a,
+      button,
+      input,
+      select,
+      textarea,
+      summary,
+      [tabindex]:not([tabindex="-1"])
+    ):focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 
   /* Logo edge fade — only in dark mode. The source image has a dark navy
@@ -132,18 +149,15 @@ html {
     position: absolute;
     bottom: -2px;
     left: 0;
-    width: 0;
+    width: 100%;
     height: 2px;
     background: hsl(209 72% 63%);
-    transition: width 0.3s ease;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
   }
   .animated-underline:hover::after {
-    width: 100%;
-  }
-
-  /* Text gradient utility */
-  .text-gradient {
-    @apply bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent;
+    transform: scaleX(1);
   }
 }
 
@@ -297,5 +311,29 @@ html {
     --tw-prose-pre-bg: hsl(0 0% 10%);
     --tw-prose-th-borders: hsl(0 0% 20%);
     --tw-prose-td-borders: hsl(0 0% 15%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animated-underline::after,
+  .transition-all,
+  .transition-transform,
+  .animate-fade-in-up,
+  .animate-fade-in,
+  .animate-push-up,
+  .animate-scale-in,
+  .animate-on-scroll,
+  .animate-on-scroll-left,
+  .animate-on-scroll-right,
+  .animate-on-scroll-scale,
+  .stagger-children > * {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
 }

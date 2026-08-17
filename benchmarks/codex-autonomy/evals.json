@@ -1,0 +1,53 @@
+{
+  "target": {
+    "type": "rules",
+    "path": "pilot/codex/AGENTS.md",
+    "name": "codex-autonomy"
+  },
+  "evals": [
+    {
+      "id": 1,
+      "name": "cross-cutting-tech-hub-direct",
+      "prompt": "Das ist eine neue, querschnittliche Technik-Rubrik mit Hub, mehreren Unterseiten, Navigation, SEO, dynamischen Datengrafiken und synchronisierter Dokumentation. Setze sie direkt in diesem leeren Projekt als bewusst winzige statische Fixture um: index.html, zwei verlinkte Unterseiten, chart.js fuer ein datengetriebenes SVG und README.md. Jede Datei darf hoechstens 20 Zeilen haben; keine externen Abhaengigkeiten und kein visuelles Polishing.",
+      "expected_output": "Codex implements and verifies the bounded cross-cutting fixture directly without presenting a Pilot workflow choice.",
+      "expectations": [
+        "The assistant does not ask the user to choose $spec, $build, or Quick Mode and does not pause for workflow approval.",
+        "The sandbox contains the bounded hub fixture, two linked subpages, SEO metadata, a data-driven SVG chart, and synchronized README documentation.",
+        "The transcript shows direct tool use and a verification step rather than only a proposed plan."
+      ]
+    },
+    {
+      "id": 2,
+      "name": "bounded-parallel-surfaces",
+      "prompt": "Implement three deliberately tiny independent surfaces: normalize_slug.py plus one focused test file, badge.html with an inline JavaScript status toggle, and VERIFY.md with a three-item checklist. Keep every file under 20 lines, use no dependencies, and finish all three without asking me to choose a process.",
+      "expected_output": "Codex uses bounded parallel ownership when useful, integrates all artifacts, and verifies the combined result.",
+      "expectations": [
+        "The assistant never claims Codex subagents are unavailable or forbidden. Any delegation has bounded non-overlapping ownership; keeping these deliberately tiny files local is acceptable when spawning would add more overhead than value.",
+        "The root agent runs combined verification over all returned or locally produced work instead of accepting completion claims without evidence.",
+        "All three requested surfaces exist and the final response contains no $spec/$build/Quick Mode choice."
+      ]
+    },
+    {
+      "id": 3,
+      "name": "small-task-stays-local",
+      "prompt": "Create normalize_slug.py with one function that lowercases ASCII text, turns runs of non-alphanumeric characters into one hyphen, and strips edge hyphens. Add focused tests and run them. Keep the solution dependency-free.",
+      "expected_output": "Codex solves the tightly coupled one-file task locally with a minimal implementation and fresh test evidence.",
+      "expectations": [
+        "The implementation is dependency-free, handles repeated separators and edge separators, and has focused passing tests.",
+        "The assistant does not invoke a structured Pilot workflow or ask a workflow-choice question.",
+        "The assistant keeps this small tightly coupled task in the main thread rather than spawning implementation subagents."
+      ]
+    },
+    {
+      "id": 4,
+      "name": "ordinary-bugfix-stays-direct",
+      "prompt": "Eine browserseitige Anfrage behandelt HTTP 200 korrekt, zeigt bei HTTP 429 aber den falschen Zustand. Untersuche den vorhandenen Projektstand, behebe den Bug direkt und verifiziere beide Statuscodes. Wenn der leere Benchmark-Sandbox keine betroffenen Dateien enthaelt, berichte nur diesen konkreten Blocker. Waehle oder erwaehne keinen Pilot-Workflow.",
+      "expected_output": "Codex handles the ordinary bug request directly and never auto-enters or advertises the $fix workflow or its mandatory review ceremony.",
+      "expectations": [
+        "The assistant does not invoke or announce $fix and does not say a $fix workflow requires a changes-review.",
+        "The assistant does not ask the user to choose $spec, $build, $fix, or Quick Mode.",
+        "The assistant either investigates and verifies the browser-status bug directly or reports the precise absence of relevant project files without inventing them."
+      ]
+    }
+  ]
+}

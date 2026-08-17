@@ -15,6 +15,16 @@ MANAGED_ELSEWHERE_MARKER = "# pilot-shell:managed-elsewhere"
 PILOT_BIN = "$HOME/.pilot/bin/pilot"
 PILOT_BIN_DIR = "$HOME/.pilot/bin"
 BUN_BIN_PATH = "$HOME/.bun/bin"
+CODEX_OPEN_FILES_TARGET = 1024
+
+_CODEX_LIMIT_SH = (
+    "_soft=$(ulimit -Sn); _hard=$(ulimit -Hn); "
+    f"_desired={CODEX_OPEN_FILES_TARGET}; "
+    'if [ "$_hard" != unlimited ] && [ "$_hard" -lt "$_desired" ] 2>/dev/null; '
+    "then _desired=$_hard; fi; "
+    'if [ "$_soft" != unlimited ] && [ "$_soft" -lt "$_desired" ] 2>/dev/null; '
+    'then ulimit -Sn "$_desired" 2>/dev/null || true; fi'
+)
 
 
 def is_managed_elsewhere(config_file: Path) -> bool:
@@ -34,14 +44,15 @@ def get_alias_lines(shell_type: str) -> str:
             "set -lx PILOT_SESSION_ID $_sid; "
             'set -lx CLAUDE_CODE_TASK_LIST_ID "pilot-$_sid"; '
             "command claude $argv; end\n"
-            "function codex; set -lx PILOT_SESSION_ID $fish_pid-(random); "
-            "command codex $argv; end"
+            "function codex; set -l _sid $fish_pid-(random); "
+            f"env PILOT_SESSION_ID=$_sid sh -c '{_CODEX_LIMIT_SH}; exec codex \"$@\"' sh $argv; end"
         )
     else:
         path_line = f'export PATH="{PILOT_BIN_DIR}:{BUN_BIN_PATH}:$PATH"'
         session_funcs = (
             'claude() { local _sid="$$-$RANDOM"; PILOT_SESSION_ID=$_sid CLAUDE_CODE_TASK_LIST_ID="pilot-$_sid" command claude "$@"; }\n'
-            'codex() { PILOT_SESSION_ID="$$-$RANDOM" command codex "$@"; }'
+            f"codex() ( local _soft _hard _desired; {_CODEX_LIMIT_SH}; "
+            'PILOT_SESSION_ID="$$-$RANDOM" command codex "$@"; )'
         )
     return f'{CLAUDE_ALIAS_MARKER}\n{path_line}\nalias pilot="{PILOT_BIN}"\nalias ccp="{PILOT_BIN}"\n{session_funcs}'
 
@@ -141,7 +152,7 @@ def remove_old_alias(config_file: Path) -> bool:
             or stripped.startswith("function codex")
             or stripped.startswith("function pilot")
         ):
-            inside_function = True
+            inside_function = not stripped.endswith("; end")
             continue
 
         if inside_function and stripped == "end":

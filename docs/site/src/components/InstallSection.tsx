@@ -4,26 +4,38 @@ import { Button } from "@/components/ui/button";
 import { useInView } from "@/hooks/use-in-view";
 
 const InstallSection = () => {
-  const [copied, setCopied] = useState(false);
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
   const [headerRef, headerInView] = useInView<HTMLDivElement>();
   const [codeRef, codeInView] = useInView<HTMLDivElement>();
   const installCommand =
     "curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash";
 
   const copyToClipboard = async () => {
-    await navigator.clipboard.writeText(installCommand);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(installCommand);
+      setCopyState("copied");
+      setTimeout(() => setCopyState("idle"), 2000);
+    } catch {
+      setCopyState("error");
+    }
   };
 
   return (
-    <section id="installation" className="py-12 lg:py-16 px-4 sm:px-6">
+    <section
+      id="installation"
+      aria-labelledby="installation-heading"
+      className="scroll-mt-24 py-12 lg:py-16 px-4 sm:px-6 focus:outline-none"
+      tabIndex={-1}
+    >
       <div className="max-w-4xl mx-auto">
         <div
           ref={headerRef}
           className={`text-center mb-8 animate-on-scroll ${headerInView ? "in-view" : ""}`}
         >
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
+          <h2
+            id="installation-heading"
+            className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4"
+          >
             Getting Started
           </h2>
           <p className="text-muted-foreground text-base sm:text-lg max-w-3xl mx-auto">
@@ -48,28 +60,47 @@ const InstallSection = () => {
 
           <div className="bg-background/60 rounded-lg p-3 font-mono text-sm border border-border/50">
             <div className="flex items-center justify-between gap-3">
-              <code className="text-muted-foreground text-xs sm:text-sm whitespace-nowrap overflow-x-auto">
+              <code
+                className="text-muted-foreground text-xs sm:text-sm whitespace-nowrap overflow-x-auto"
+                tabIndex={0}
+              >
                 <span className="text-primary">$</span> {installCommand}
               </code>
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={copyToClipboard}
-                className="flex-shrink-0 h-8 px-3"
+                className="flex-shrink-0 min-h-11 min-w-11 px-3"
+                aria-label={
+                  copyState === "copied"
+                    ? "Install command copied"
+                    : copyState === "error"
+                      ? "Retry copying install command"
+                      : "Copy install command"
+                }
               >
-                {copied ? (
+                {copyState === "copied" ? (
                   <>
-                    <Check className="h-3.5 w-3.5 text-green-500 mr-1.5" />
+                    <Check className="h-3.5 w-3.5 text-primary mr-1.5" />
                     <span className="text-xs">Copied</span>
                   </>
                 ) : (
                   <>
                     <Copy className="h-3.5 w-3.5 mr-1.5" />
-                    <span className="text-xs">Copy</span>
+                    <span className="text-xs">
+                      {copyState === "error" ? "Copy failed" : "Copy"}
+                    </span>
                   </>
                 )}
               </Button>
             </div>
+            <span className="sr-only" role="status" aria-live="polite">
+              {copyState === "copied"
+                ? "Install command copied to clipboard."
+                : copyState === "error"
+                  ? "Could not copy the command. Select and copy it manually."
+                  : ""}
+            </span>
           </div>
 
           {/* After install note */}
@@ -77,38 +108,21 @@ const InstallSection = () => {
             <div className="flex items-start gap-3">
               <Rocket className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
               <div className="text-sm">
-                <p className="text-muted-foreground text-xs">
-                  <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-                    claude
-                  </code>{" "}
-                  or{" "}
-                  <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-                    codex
-                  </code>{" → "}
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  Open Claude Code. Start with{" "}
                   <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
                     /setup-rules
                   </code>{" "}
-                  rules{" → "}
-                  <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-                    /prd
-                  </code>{" "}
-                  brainstorm{" → "}
+                  to fit Pilot to the project, then use{" "}
                   <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
                     /spec
-                  </code>{" "}
-                  features{" → "}
+                  </code>
+                  ,{" "}
                   <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
                     /build
-                  </code>{" "}
-                  standards{" → "}
-                  <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-                    /fix
-                  </code>{" "}
-                  bugfixes{" → "}
-                  <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-                    /create-skill
-                  </code>{" "}
-                  skills
+                  </code>
+                  , or <code>/fix</code> for the work at hand. Pilot Shell also
+                  supports Codex CLI and Codex in the ChatGPT app.
                 </p>
               </div>
             </div>
@@ -125,6 +139,7 @@ const InstallSection = () => {
             width={960}
             height={540}
             poster="/demo-poster.webp"
+            controls
             autoPlay
             muted
             loop

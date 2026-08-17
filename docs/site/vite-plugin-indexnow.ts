@@ -8,9 +8,13 @@
  * The key file lives at /public/<KEY>.txt so that it deploys to /<KEY>.txt
  * (Option 1 from the spec). Search engines verify ownership by fetching it.
  *
- * Skipped when:
- *   - INDEXNOW_DISABLE=1 (manual override, e.g. local builds)
- *   - mode !== production
+ * Submitted only when:
+ *   - INDEXNOW_SUBMIT=1 (explicit override), or
+ *   - a production Vercel/Netlify deploy is running
+ *
+ * Always skipped when INDEXNOW_DISABLE=1, which remains the authoritative
+ * emergency/manual override.
+ * Also skipped when mode !== production.
  *   - dist/sitemap-pages.xml does not exist (sitemap plugin disabled)
  */
 
@@ -22,6 +26,13 @@ const SITE_HOST = "pilot-shell.com";
 const SITE_URL = `https://${SITE_HOST}`;
 const INDEXNOW_KEY = "0bd196f90bbc9ec8113bd78de2507fb2";
 const INDEXNOW_ENDPOINT = "https://api.indexnow.org/IndexNow";
+
+function shouldSubmitIndexNow(): boolean {
+  if (process.env.INDEXNOW_DISABLE === "1") return false;
+  if (process.env.INDEXNOW_SUBMIT === "1") return true;
+  if (process.env.VERCEL_ENV === "production") return true;
+  return process.env.NETLIFY === "true" && process.env.CONTEXT === "production";
+}
 
 interface IndexNowOptions {
   /** Override key for testing. */
@@ -47,8 +58,12 @@ export default function indexNowPlugin(options: IndexNowOptions = {}): Plugin {
     },
 
     async closeBundle() {
-      if (process.env.INDEXNOW_DISABLE === "1") {
-        console.log("\x1b[33m⚠\x1b[0m IndexNow submission skipped (INDEXNOW_DISABLE=1)");
+      if (!shouldSubmitIndexNow()) {
+        const reason =
+          process.env.INDEXNOW_DISABLE === "1"
+            ? "INDEXNOW_DISABLE=1"
+            : "local build; set INDEXNOW_SUBMIT=1 to opt in";
+        console.log(`\x1b[33m⚠\x1b[0m IndexNow submission skipped (${reason})`);
         return;
       }
       if (!isProd) {

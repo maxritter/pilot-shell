@@ -69,7 +69,7 @@ Claude Code auto-continues an unanswered question after 60 seconds of keyboard i
 
 - Isolated git worktree, new branch from default, or current branch (your choice)
 - Strict TDD for each task: RED → GREEN → REFACTOR
-- Quality hooks auto-lint, format, and type-check every edit
+- Runs the relevant lint, format, and type checks. Claude Code also runs its edit-time quality hooks.
 - Full test suite runs at the **Quality Gate** task (end), not after every task — running it per-fix-task is the single biggest token sink in bundled bugfix plans, so the targeted test module is used between fixes and the authoritative full-suite run happens once
 
 ### Verify Phase

@@ -18,6 +18,7 @@ Set `Approved: Yes` in the Buildout. Leave `Status: PENDING`. The statusline fli
 
 **What the criteria are is now settled, and failing them is not a reason to change them.** They move only the two ways 5.4 allows — the user rewrote one, or one turned out to be undecidable as written — both recorded in `## Round Log` with the before and after. Never quietly, and never because they turned out to be hard.
 
+<!-- CC-ONLY -->
 ### 3.2 Sequential is the default and it stays the default
 
 **One thread. No subagents for building or judging.** Work the tasks, judge the criteria, close the gaps, judge again — all in this conversation. Do not ask the user which mode to use; there is nothing to ask about until 3.3's threshold is met, and asking every time taxes every small build.
@@ -25,6 +26,16 @@ Set `Approved: Yes` in the Buildout. Leave `Status: PENDING`. The statusline fli
 A subagent starts **blind**. It re-reads the files, re-derives the context this thread already holds, reports a summary, and you read that summary back. For judging work you just built, that is routinely several times the tokens of judging it yourself — spent to buy separation you can mostly recreate by judging from the artifact. The loop's quality comes from the criteria, not from the org chart running it.
 
 **Reviewers are the named exception, as a category** — they neither build nor judge, they look at axes the loop cannot see, and each runs once outside it: `build-review` before the first round (2.4) on whether the criteria are decidable at all, `changes-review` after the last (6.5) on the code behind the artifact. Both are gated by their Console toggles; neither ever runs inside a round.
+<!-- /CC-ONLY -->
+<!-- CODEX-START
+### 3.2 Choose the smallest useful execution graph
+
+Keep tightly coupled work in the main thread. Proactively delegate bounded, independent tasks or surfaces when the current Codex tool schema exposes agent tools and parallel work materially shortens the round or brings distinct expertise.
+
+Give every agent non-overlapping file or surface ownership, the task objective, relevant constraints, and the evidence it must return. Tell it other agents share the checkout and it must not revert their work. Keep the Buildout ledger, integration decisions, criterion changes, and judge pass in the main thread. Verify an agent's completion from the shared files, diff, and fresh commands rather than from its success message alone.
+
+Sequential execution remains appropriate when tasks share files, state, or one unresolved design decision. This is an engineering choice made from dependencies, not a user-facing mode question.
+CODEX-END -->
 
 <!-- CC-ONLY -->
 ### 3.3 Escalate to ultracode — only at whole-project scale, and only with permission
@@ -50,7 +61,9 @@ State the mechanics accurately: `/effort ultracode` is session-scoped, the user 
 <!-- CODEX-START
 ### 3.3 Parallel surfaces
 
-Codex has no ultracode equivalent. When the work splits into 5+ independent surfaces that each need their own build-judge loop, say so, then run them sequentially surface by surface — closing one surface's criteria before opening the next, so a partial run still leaves finished work behind rather than N half-built pieces.
+When the work splits into independent surfaces, dispatch bounded worker agents with distinct ownership using the tools exposed in the current Codex schema. Run independent surfaces concurrently; preserve dependency order within each surface. Keep one integrated judge pass in the main thread after all workers have landed and their evidence has been checked.
+
+Do not ask the user to enable a separate orchestration mode. If agent tools are absent, fall back to dependency-ordered work in the main thread without changing the goal or stopping to renegotiate the workflow.
 CODEX-END -->
 
 **Do not deflect large work to `/spec`.** Scale is not what `/spec` is for; an approved plan file and an ordered task list are. Big work escalates here, or runs sequentially.

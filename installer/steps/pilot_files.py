@@ -6,12 +6,10 @@ This step always runs and installs:
   (referenced from both Claude and Codex agent configs)
 - ``pilot_home`` → ``~/.pilot/`` — Console scripts, UI assets, ``.mcp.json``,
   shared app config, package metadata
-- ``skills`` → ``~/.claude/skills/`` — the canonical Pilot-managed skill
-  source. Claude Code reads it natively; ``CodexFilesStep`` adapts it into
-  ``~/.agents/skills/``. Skills install here regardless of whether Claude
-  Code itself is installed, because Codex's adapter needs the decomposed
-  skill structure (``manifest.json`` + fragments) to build its own loadable
-  ``SKILL.md`` files.
+- ``skills`` → ``~/.claude/skills/`` for Claude plus a raw, agent-neutral
+  source under ``~/.pilot/skills/`` for Codex materialization.
+- ``rules`` and ``agents`` are likewise staged under ``~/.pilot/`` so a
+  Codex-only installation never depends on a Claude profile.
 
 Categories that target ``~/.claude/`` *exclusively* (``rules``, ``agents``,
 ``settings``) are owned by :class:`installer.steps.claude_files.ClaudeFilesStep`
@@ -26,7 +24,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from installer.context import InstallContext
-from installer.downloads import download_files_parallel, get_repo_files
+from installer.downloads import DownloadConfig, FileInfo, download_files_parallel, get_repo_files
 from installer.platform_utils import is_claude_installed
 from installer.steps.base import BaseStep
 from installer.steps.claude_files import ClaudeFilesStep
@@ -100,7 +98,7 @@ class PilotFilesStep(BaseStep):
         existing_installed = list(ctx.config.get("installed_files", []))
         ctx.config["installed_files"] = existing_installed + installed_files
 
-        self._stage_raw_rules_for_codex(categories.get("rules", []), config)
+        self._stage_raw_codex_sources(categories, config)
         self._installer._make_scripts_executable(Path.home() / ".pilot" / "scripts")
         self._installer._build_skill_md_files(ctx, ui)
 
@@ -116,21 +114,23 @@ class PilotFilesStep(BaseStep):
 
         self._installer._report_results(ui, file_count, failed_files)
 
-    def _stage_raw_rules_for_codex(self, rule_files: list, config) -> None:
-        """Download RAW (un-adapted) rule sources to ``~/.pilot/rules/``.
+    def _stage_raw_codex_sources(
+        self,
+        categories: dict[str, list[FileInfo]],
+        config: DownloadConfig,
+    ) -> None:
+        """Stage raw Codex inputs below ``~/.pilot``.
 
-        ``CodexFilesStep._install_codex_rules`` falls back through three source
-        candidates: ``local_repo_dir/pilot/rules`` → ``~/.pilot/rules`` →
-        ``~/.claude/rules``. Without this stage, non-local installs land on the
-        third candidate, which has either been Claude-adapted by
-        ``ClaudeFilesStep`` (so Codex sees CC-ONLY unwrapped + CODEX-START
-        deleted — the wrong content for Codex) or is empty/wiped on Codex-only
-        systems. Staging raw rules at ``~/.pilot/rules`` makes the second
-        fallback authoritative for the Codex adapter.
+        Claude still receives its native skill/rule/agent layout. Codex reads
+        these neutral copies first, which keeps app-only and CLI-only installs
+        independent of ``CLAUDE_CONFIG_DIR``.
         """
-        if not rule_files:
-            return
-        pilot_rules_dir = Path.home() / ".pilot" / "rules"
-        pilot_rules_dir.mkdir(parents=True, exist_ok=True)
-        dest_paths = [pilot_rules_dir / Path(fi.path).name for fi in rule_files]
-        download_files_parallel(rule_files, dest_paths, config)
+        pilot_home = Path.home() / ".pilot"
+        for category, prefix in (("rules", "pilot/rules/"), ("skills", "pilot/skills/"), ("agents", "pilot/agents/")):
+            files = categories.get(category, [])
+            if not files:
+                continue
+            destinations = [pilot_home / category / fi.path.removeprefix(prefix) for fi in files]
+            for destination in destinations:
+                destination.parent.mkdir(parents=True, exist_ok=True)
+            download_files_parallel(files, destinations, config)

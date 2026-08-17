@@ -39,9 +39,9 @@ Edit the created `SKILL.md` with the skill content using the template from Step 
 - **Substitute with built-in equivalents:** `semble search` → `Grep`/`Glob`, `agent-browser` → Claude Code Chrome (`mcp__claude-in-chrome__*`) or `Bash` with `npx agent-browser`, web fetch → `WebFetch`
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-- **Only use built-in Codex tools** in skill instructions: `Read`, `Write`/`apply_patch`, `Edit`, `Bash`, `Grep`, `Glob`. Subagent and web tools are not available in Codex — use `Bash` with `curl` for web fetching and `codex exec` for isolated sub-tasks.
+- **Use capabilities from the current Codex tool schema, not a hardcoded namespace.** Core file/shell tools (`Read`, `apply_patch`, `Bash`, `Grep`, `Glob`) are portable. Agent and web tools may also be exposed; name their required capability and tell the skill to use the current schema's parameters.
 - **Never reference Pilot-specific tools:** `semble search/find-related` (CLI or MCP), `agent-browser`, `pilot` CLI, Pilot MCP servers (`mem-search`, `context7`, `grep-mcp`, `web-fetch`, `web-search`)
-- **Substitute with built-in equivalents:** `semble search` → `Grep`/`Glob`, web fetch → `Bash` with `curl`
+- **Provide a fallback for optional capabilities:** `semble search` → `Grep`/`Glob`; unavailable agent tools → direct execution or `codex exec`; unavailable web tools → `curl` when network access permits.
 CODEX-END -->
 - If a skill genuinely requires a non-standard tool, document it as a prerequisite in the skill body (not silently assume it exists)
 

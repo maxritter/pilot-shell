@@ -23,10 +23,10 @@ interface InsideItem {
 const insideItems: InsideItem[] = [
   {
     icon: Workflow,
-    title: "Spec-Driven Development",
-    description: "Replaces plan mode",
+    title: "Workflow-Driven Development",
+    description: "Plan, build, fix, and verify",
     summary:
-      "/spec plans features end-to-end with TDD — explore, plan, approve, implement, verify. /fix runs the bugfix workflow with the same TDD discipline. Both honour your approval and review toggles.",
+      "Use /prd for product discovery, /spec for an approved task list, /build for a judged goal loop, and /fix for defects. Development workflows carry TDD and verification through to evidence.",
     href: "/docs/workflows/spec",
   },
   {
@@ -40,9 +40,9 @@ const insideItems: InsideItem[] = [
   {
     icon: Terminal,
     title: "Hooks & Quality",
-    description: "Deterministic checks on every edit",
+    description: "Quality checks around the workflow",
     summary:
-      "Auto-lint, format, and type-check on every file edit across Python, TypeScript, and Go, plus single-file formatting for C#. The TDD enforcer flags implementations that land without a failing test in place first — quality gates run before code reaches your branch.",
+      "Claude Code's lifecycle hooks run edit-time quality checks and preserve active workflow state. Pilot workflows require fresh tests and real execution evidence before completion.",
     href: "/docs/features/hooks",
   },
   {
@@ -66,7 +66,7 @@ const insideItems: InsideItem[] = [
     title: "Cost Optimization",
     description: "Right model, right task, visible spend",
     summary:
-      "Model Switching pauses /spec after plan approval so you drop to a cheaper tier for implementation \u2014 or automates the swap via opusplan. A CLI proxy compresses tool output by 60\u201390%. The Console tracks daily cost and surfaces trends over time.",
+      "Claude Code can switch models after /spec plan approval. A CLI proxy compresses tool output by 60\u201390%, while the Console tracks daily cost and trends.",
     href: "/docs/features/model-routing",
   },
   {
@@ -90,7 +90,7 @@ const insideItems: InsideItem[] = [
     title: "Customization",
     description: "Modify what Pilot auto-installs",
     summary:
-      "Tweak the built-in /spec workflow, adjust rules, add hooks and agents, register additional MCP servers, override Claude Code settings. Ship as a team git repo or a local dir. Upstream drift detected automatically.",
+      "Tune workflows, rules, hooks, agents, and MCP servers. Share changes through a team git repo or local directory.",
     href: "/docs/features/customization",
   },
 ];
@@ -125,8 +125,8 @@ const WhatsInside = () => {
             What's Inside
           </h2>
           <p className="text-muted-foreground text-lg sm:text-xl max-w-3xl mx-auto">
-            One install to bring best-practices and standards to Claude Code and Codex.
-            <br></br>A shared baseline so every developer can focus on building, not configuring.
+            One install for Claude Code, Codex CLI, and Codex in the ChatGPT
+            app. Workflows, context, quality, memory, and search in one system.
           </p>
         </div>
 
@@ -142,7 +142,7 @@ const WhatsInside = () => {
                 key={item.title}
                 href={item.href}
                 className={`group relative rounded-lg p-5 border border-border/50 bg-card
-                  hover:border-primary/50 hover:bg-card hover:border-primary/50
+                  hover:border-primary/50 hover:bg-card
                   transition-all duration-300 block
                   ${gridInView ? `animate-fade-in-up ${animationDelays[index]}` : "opacity-0"}`}
                 aria-label={`Learn more about ${item.title}`}
@@ -171,7 +171,7 @@ const WhatsInside = () => {
                 </p>
 
                 {/* Learn more link */}
-                <div className="mt-3 flex items-center gap-1 text-[11px] text-primary/80 group-hover:text-primary transition-colors">
+                <div className="mt-3 flex items-center gap-1 text-xs text-primary group-hover:underline transition-colors">
                   <span>Learn more</span>
                   <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
                 </div>

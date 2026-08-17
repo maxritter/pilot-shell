@@ -1,10 +1,4 @@
-"""Tests for session_end hook — worker stop and session completion behavior.
-
-The hook is fully non-blocking: both side-effects (worker-stop and Console POST)
-are handed to detached subprocesses so the harness cannot race cancellation with
-synchronous I/O. Tests assert the detachment contract (``start_new_session=True``)
-rather than the underlying network / process behaviour.
-"""
+"""Tests for the detached SessionEnd finalizer."""
 
 from __future__ import annotations
 
@@ -26,7 +20,7 @@ def _find_call(mock: MagicMock, needle: str) -> tuple[tuple, dict] | None:
 
 
 def test_skips_stop_when_other_sessions_active(tmp_path: Path):
-    """Should skip worker stop when other Pilot sessions are running."""
+    """Should complete without stopping a worker another session still uses."""
     base = tmp_path / "sessions"
     (base / "1001").mkdir(parents=True)
     (base / "2002").mkdir(parents=True)
@@ -35,36 +29,75 @@ def test_skips_stop_when_other_sessions_active(tmp_path: Path):
         patch.dict(os.environ, {"PILOT_SESSION_ID": "1001"}),
         patch.object(session_end, "SESSIONS_DIR", base),
         patch("session_end.os.kill", return_value=None),
+        patch.object(session_end.sys, "argv", ["session_end.py", "--session-end"]),
+        patch("session_end.read_hook_stdin", return_value={"session_id": "sid-1"}),
         patch("session_end.subprocess.Popen") as mock_popen,
     ):
         result = session_end.main()
 
     assert result == 0
-    # No --session-end flag -> no Console POST either; Popen should never fire.
+    mock_popen.assert_called_once()
+    assert _find_call(mock_popen, "/api/sessions/complete") is not None
     assert _find_call(mock_popen, "worker-service.cjs") is None
 
 
+def test_skips_stop_when_another_codex_desktop_session_is_live(tmp_path: Path):
+    """A native Codex thread keeps the shared worker alive without a wrapper PID."""
+    base = tmp_path / "sessions"
+    current_thread = "aaaaaaaa-1111-2222-3333-444444444444"
+    other_thread = "12345678-e29b-41d4-a716-446655440000"
+    (base / current_thread).mkdir(parents=True)
+    (base / other_thread).mkdir(parents=True)
+
+    process_list = MagicMock(
+        returncode=0,
+        stdout=(
+            f"codex app-server CODEX_THREAD_ID={current_thread}\ncodex app-server CODEX_THREAD_ID={other_thread}\n"
+        ),
+    )
+    with (
+        patch.dict(os.environ, {"CODEX_THREAD_ID": current_thread}, clear=True),
+        patch.object(session_end, "SESSIONS_DIR", base),
+        patch("session_end.subprocess.run", return_value=process_list),
+        patch.object(session_end.sys, "argv", ["session_end.py", "--session-end"]),
+        patch("session_end.read_hook_stdin", return_value={"session_id": current_thread}),
+        patch("session_end.subprocess.Popen") as mock_popen,
+    ):
+        result = session_end.main()
+
+    assert result == 0
+    mock_popen.assert_called_once()
+    assert _find_call(mock_popen, "/api/sessions/complete") is not None
+    assert _find_call(mock_popen, "worker-service.cjs") is None
+
+
+def test_live_session_scan_leaves_margin_for_session_end_deadline() -> None:
+    process_list = MagicMock(returncode=0, stdout="")
+    with patch("session_end.subprocess.run", return_value=process_list) as run:
+        session_end._live_agent_session_ids()
+
+    assert run.call_args.kwargs["timeout"] < 3
+
+
 def test_stops_worker_when_no_other_sessions(tmp_path: Path):
-    """Should spawn a detached worker-stop when this is the only active session."""
+    """The detached completion finalizer stops the worker after export."""
     base = tmp_path / "sessions"
     (base / "1001").mkdir(parents=True)
 
     with (
         patch.dict(os.environ, {"PILOT_SESSION_ID": "1001"}),
         patch.object(session_end, "SESSIONS_DIR", base),
+        patch.object(session_end.sys, "argv", ["session_end.py", "--session-end"]),
+        patch("session_end.read_hook_stdin", return_value={"session_id": "sid-1"}),
         patch("session_end.subprocess.Popen") as mock_popen,
     ):
         result = session_end.main()
 
     assert result == 0
-    call = _find_call(mock_popen, "worker-service.cjs")
-    assert call is not None, "worker-stop Popen never invoked"
-    args, kwargs = call
-    assert args[0][0] == "bun"
-    # The worker script now lives under ~/.pilot/scripts/, no longer
-    # ~/.claude/pilot/scripts/ — verify the new location explicitly.
-    assert args[0][1].endswith("/.pilot/scripts/worker-service.cjs")
-    assert args[0][-1] == "stop"
+    mock_popen.assert_called_once()
+    args, kwargs = mock_popen.call_args
+    assert args[0][0] == session_end.sys.executable
+    assert args[0][-1].endswith("/.pilot/scripts/worker-service.cjs")
     assert kwargs["start_new_session"] is True
     assert kwargs["close_fds"] is True
 
@@ -77,6 +110,8 @@ def test_stops_worker_when_zero_sessions(tmp_path: Path):
     with (
         patch.dict(os.environ, {"PILOT_SESSION_ID": "1001"}),
         patch.object(session_end, "SESSIONS_DIR", base),
+        patch.object(session_end.sys, "argv", ["session_end.py", "--session-end"]),
+        patch("session_end.read_hook_stdin", return_value={"session_id": "sid-1"}),
         patch("session_end.subprocess.Popen") as mock_popen,
     ):
         result = session_end.main()
@@ -93,12 +128,16 @@ def test_safe_default_on_directory_error():
     with (
         patch.dict(os.environ, {"PILOT_SESSION_ID": "1001"}),
         patch.object(session_end, "SESSIONS_DIR", mock_dir),
+        patch.object(session_end.sys, "argv", ["session_end.py", "--session-end"]),
+        patch("session_end.read_hook_stdin", return_value={"session_id": "sid-1"}),
         patch("session_end.subprocess.Popen") as mock_popen,
     ):
         result = session_end.main()
 
     assert result == 0
-    assert _find_call(mock_popen, "worker-service.cjs") is None
+    call = _find_call(mock_popen, "/api/sessions/complete")
+    assert call is not None
+    assert not any("worker-service.cjs" in str(token) for token in call[0][0])
 
 
 def test_skips_dead_pid_sessions(tmp_path: Path):
@@ -115,6 +154,8 @@ def test_skips_dead_pid_sessions(tmp_path: Path):
         patch.dict(os.environ, {"PILOT_SESSION_ID": "1001"}),
         patch.object(session_end, "SESSIONS_DIR", base),
         patch("session_end.os.kill", side_effect=kill_side_effect),
+        patch.object(session_end.sys, "argv", ["session_end.py", "--session-end"]),
+        patch("session_end.read_hook_stdin", return_value={"session_id": "sid-1"}),
         patch("session_end.subprocess.Popen") as mock_popen,
     ):
         result = session_end.main()
@@ -131,6 +172,8 @@ def test_worker_stop_swallows_exec_errors(tmp_path: Path):
     with (
         patch.dict(os.environ, {"PILOT_SESSION_ID": "1001"}),
         patch.object(session_end, "SESSIONS_DIR", base),
+        patch.object(session_end.sys, "argv", ["session_end.py", "--session-end"]),
+        patch("session_end.read_hook_stdin", return_value={"session_id": "sid-1"}),
         patch("session_end.subprocess.Popen", side_effect=OSError("bun not found")),
     ):
         # Should not raise
@@ -144,7 +187,9 @@ def _posted_session_id(mock_popen: MagicMock) -> str:
     """Return the session id argv the detached Console-POST worker was given."""
     mock_popen.assert_called_once()
     args, _kwargs = mock_popen.call_args
-    return args[0][-1]
+    argv = args[0]
+    url_index = next(i for i, token in enumerate(argv) if "/api/sessions/complete" in str(token))
+    return argv[url_index + 1]
 
 
 def test_complete_session_uses_stdin_session_id():
@@ -160,8 +205,9 @@ def test_complete_session_uses_stdin_session_id():
     argv = args[0]
     assert argv[1] == "-c"
     assert argv[2] == session_end._COMPLETE_SESSION_WORKER
-    assert argv[-2] == f"{session_end.get_console_url()}/api/sessions/complete"
-    assert argv[-1] == "abc-123-def"
+    assert argv[-3] == f"{session_end.get_console_url()}/api/sessions/complete"
+    assert argv[-2] == "abc-123-def"
+    assert argv[-1] == ""
     assert kwargs["start_new_session"] is True
     assert kwargs["close_fds"] is True
 
@@ -236,7 +282,7 @@ def test_complete_session_ignores_exec_errors():
 
 
 def test_main_skips_completion_without_session_end_flag(tmp_path: Path):
-    """Codex runs this hook on every Stop; completing there aborts its SDK agent."""
+    """A stray non-SessionEnd invocation has no lifecycle side effects."""
     base = tmp_path / "sessions"
     base.mkdir(parents=True)
 
@@ -251,8 +297,7 @@ def test_main_skips_completion_without_session_end_flag(tmp_path: Path):
 
     assert result == 0
     assert _find_call(mock_popen, "/api/sessions/complete") is None
-    # The worker-stop half is unconditional and must still fire.
-    assert _find_call(mock_popen, "worker-service.cjs") is not None
+    assert _find_call(mock_popen, "worker-service.cjs") is None
 
 
 def test_main_completes_session_with_session_end_flag(tmp_path: Path):
@@ -272,36 +317,24 @@ def test_main_completes_session_with_session_end_flag(tmp_path: Path):
     assert result == 0
     call = _find_call(mock_popen, "/api/sessions/complete")
     assert call is not None, "Console POST never spawned"
-    assert call[0][0][-1] == "sid-1"
+    assert _posted_session_id(mock_popen) == "sid-1"
 
 
-def test_main_invokes_worker_stop_before_complete_session(tmp_path: Path):
-    """Worker-stop must be spawned before _complete_session (leak > cosmetic).
-
-    The critical resource release (port 41777, DB file descriptors) must happen
-    first so that even a pathological failure of the Console POST spawn can't
-    leave leaked workers.
-    """
+def test_main_uses_one_finalizer_for_completion_then_worker_stop(tmp_path: Path):
     base = tmp_path / "sessions"
     base.mkdir(parents=True)
-
-    call_order: list[str] = []
-
-    def popen_side_effect(argv, *_args, **_kwargs):
-        if any("worker-service.cjs" in str(token) for token in argv):
-            call_order.append("worker_stop")
-        else:
-            call_order.append("console_post")
-        return MagicMock()
 
     with (
         patch.dict(os.environ, {"PILOT_SESSION_ID": "1001"}),
         patch.object(session_end, "SESSIONS_DIR", base),
         patch.object(session_end.sys, "argv", ["session_end.py", "--session-end"]),
         patch("session_end.read_hook_stdin", return_value={"session_id": "session-xyz"}),
-        patch("session_end.subprocess.Popen", side_effect=popen_side_effect),
+        patch("session_end.subprocess.Popen") as mock_popen,
     ):
         result = session_end.main()
 
     assert result == 0
-    assert call_order == ["worker_stop", "console_post"]
+    mock_popen.assert_called_once()
+    argv = mock_popen.call_args.args[0]
+    assert any("/api/sessions/complete" in str(token) for token in argv)
+    assert any("worker-service.cjs" in str(token) for token in argv)

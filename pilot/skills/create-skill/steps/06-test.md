@@ -58,21 +58,23 @@ Save outputs to: [workspace]/iteration-N/test-ID/with-skill/
 Launch all runs in parallel (with-skill AND baseline for each test case) to save time.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-For each test prompt, run `codex exec` in isolated sandbox directories — one with the skill installed, one without. Save outputs to a workspace directory.
+For each test prompt, create two isolated workspace directories — one with the skill installed and one without. Save every output in its assigned directory.
 
 ```
 Workspace structure:
 <skill-name>-workspace/
 └── iteration-1/
     ├── test-1-descriptive-name/
-    │   ├── with-skill/      # Output from codex exec with skill installed
+    │   ├── with-skill/      # Output with the skill installed
     │   └── without-skill/   # Baseline output (no skill)
     └── test-2-descriptive-name/
         ├── with-skill/
         └── without-skill/
 ```
 
-**With-skill run** — create a temp directory with the skill installed under `.agents/skills/<name>/SKILL.md`, then:
+**When agent tools are exposed in the current Codex tool schema:** launch one bounded agent per workspace, give each exclusive ownership of that directory, and run independent with-skill/baseline pairs in parallel. The with-skill prompt names the skill path; the baseline prompt explicitly says not to use it. Keep returned ids and wait with the mechanism shown by the current schema.
+
+**Without agent tools:** use `codex exec` directly. For the with-skill run, create a temp directory with the skill installed under `.agents/skills/<name>/SKILL.md`, then:
 ```bash
 cd <workspace>/iteration-N/test-ID/with-skill/
 codex exec "Complete this task: [test prompt]. Save outputs to the current directory."
@@ -80,7 +82,7 @@ codex exec "Complete this task: [test prompt]. Save outputs to the current direc
 
 **Baseline run** — same prompt, but in a directory without the skill installed.
 
-Run all test cases sequentially (Codex does not support parallel subagents).
+Keep workspace ownership disjoint. Never run two agents or commands against the same output directory.
 CODEX-END -->
 
 ### Step 6.3: Evaluate Results

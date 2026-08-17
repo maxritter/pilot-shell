@@ -17,9 +17,10 @@ const HeroSection = () => {
             How real engineers run Claude Code and Codex
           </h1>
           <p className="text-muted-foreground text-sm xs:text-base sm:text-lg md:text-xl mt-3 xs:mt-4 max-w-2xl mx-auto leading-relaxed">
-            From requirement to production-grade code — planned, tested, verified.
+            From requirement to production-grade code: planned, tested,
+            verified.
           </p>
-          <p className="text-muted-foreground/80 text-xs xs:text-sm sm:text-base mt-2 max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-xs xs:text-sm sm:text-base mt-2 max-w-2xl mx-auto">
             Spec-driven plans. Enforced quality gates. Persistent knowledge.
           </p>
         </div>
@@ -28,7 +29,7 @@ const HeroSection = () => {
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center gap-2 sm:gap-3 animate-fade-in-up animation-delay-500 max-w-md sm:max-w-none mx-auto">
           <Button
             asChild
-            className="h-10 px-5 text-sm sm:text-base sm:h-11 sm:px-6 w-full sm:w-auto"
+            className="h-11 px-5 text-sm sm:text-base sm:px-6 w-full sm:w-auto"
           >
             <a
               href="https://github.com/maxritter/pilot-shell"
@@ -42,7 +43,7 @@ const HeroSection = () => {
           <Button
             variant="outline"
             asChild
-            className="h-10 px-5 text-sm sm:text-base sm:h-11 sm:px-6 w-full sm:w-auto"
+            className="h-11 px-5 text-sm sm:text-base sm:px-6 w-full sm:w-auto"
           >
             <a href="/blog">
               <Newspaper className="mr-2 h-4 w-4" />
@@ -52,7 +53,7 @@ const HeroSection = () => {
           <Button
             variant="outline"
             asChild
-            className="h-10 px-5 text-sm sm:text-base sm:h-11 sm:px-6 w-full sm:w-auto"
+            className="h-11 px-5 text-sm sm:text-base sm:px-6 w-full sm:w-auto"
           >
             <a href="/docs">
               <BookOpen className="mr-2 h-4 w-4" />

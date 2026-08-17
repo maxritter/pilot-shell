@@ -193,9 +193,9 @@ Hand-back is reachable exactly four ways: every criterion passed, the four-round
 `/build` writes `docs/builds/YYYY-MM-DD-<slug>.md` with `Type: Build` and registers it with the session — its own directory, beside `/spec`'s `docs/plans/` and `/prd`'s `docs/prd/`, running on the same machinery. The `Type:` header is what identifies a Buildout, not the directory, so one written to `docs/plans/` before the split keeps working. That buys four things:
 
 - **It survives compaction.** After a context compaction the run resumes from the file, not from the conversation.
-- **The statusline tracks tasks and rounds.** `Build: running-brand build ███░░ 3/5 r2`.
+- **Claude Code's status line tracks tasks and rounds.** `Build: running-brand build ███░░ 3/5 r2`. Codex shows the same Buildout state in the Console.
 - **The Console shows it.** Buildouts get their own **Buildouts** section, and can be shared with teammates for annotation like any other Pilot plan.
-- **The stop guard holds the loop open.** While the Buildout is registered and not `VERIFIED`, the session cannot quietly end at "good enough" — on both Claude Code and Codex. You never type [`/goal`](https://code.claude.com/docs/en/goal): Pilot's Stop hook is the same mechanism, with the acceptance criteria as its condition and the judge pass as its evaluator. The escape hatch is stopping twice within 60 seconds.
+- **The stop guard holds the loop open.** While the Buildout is registered and not `VERIFIED`, the session cannot quietly end at "good enough" — on both Claude Code and Codex. On Claude Code, you never type [`/goal`](https://code.claude.com/docs/en/goal): Pilot's Stop hook is the same mechanism, with the acceptance criteria as its condition and the judge pass as its evaluator. The workflow escape hatch is stopping twice within 60 seconds.
 
 ```markdown
 # Running Brand Landing Buildout
@@ -234,7 +234,7 @@ Type: Build
 - Round 2: closed flat hero typography (added task 3 once the phone layout broke). Judge: 1/2 pass.
 ```
 
-The two checkbox lists have different jobs. `## Progress Tracking` carries the tasks, and that is what the statusline and Console count. `## Acceptance Criteria` is the judge's list, and stays unticked until a judge pass ticks it.
+The two checkbox lists have different jobs. `## Progress Tracking` carries the tasks, and that is what Claude Code's status line and the shared Console count. `## Acceptance Criteria` is the judge's list, and stays unticked until a judge pass ticks it.
 
 ### Statusline phases
 
@@ -249,7 +249,9 @@ The two checkbox lists have different jobs. `## Progress Tracking` carries the t
 
 A hand-back does not always mean `VERIFIED`: a run that stops at the four-round ceiling with criteria unresolved, one blocked on something outside the session, and one that proved its remaining criteria unachievable all stay `PENDING` so they can be resumed from the file. A run with the verification pass switched off ends `COMPLETE`. A one-shot sentinel lets the session stop in each case.
 
-## Sequential by default
+## Execution and delegation
+
+### Claude Code: sequential by default
 
 One thread. No subagents for building or judging — those stay in the same conversation.
 
@@ -259,7 +261,7 @@ A subagent starts blind: it re-reads the files, re-derives context the thread al
 
 ### Parallel surfaces
 
-`/build` proposes parallel execution only when **all three** hold:
+On Claude Code, `/build` proposes parallel execution only when **all three** hold:
 
 1. The work splits into **5+ distinct surfaces that each need their own build-judge loop** — not five tasks against one artifact.
 2. Those surfaces can progress without waiting on each other.
@@ -267,7 +269,7 @@ A subagent starts blind: it re-reads the files, re-derives context the thread al
 
 That is whole-project scale: a framework migration, an app rebuilt surface by surface. A landing page with six sections is one artifact. A long grind is still one thread.
 
-On Claude Code, clearing that bar prompts for `/effort ultracode` — session-scoped, typed by you, requiring dynamic workflows in `/config`, and substantially more expensive than the sequential default. Declining is a first-class answer: sequential is the design, not the fallback. Codex has no ultracode equivalent and runs the surfaces one at a time, closing each surface's criteria before opening the next.
+Clearing that bar prompts for `/effort ultracode` — session-scoped, typed by you, requiring dynamic workflows in `/config`, and substantially more expensive than the sequential default. Declining is a first-class answer: sequential is the design, not the fallback. This escalation is available only on Claude Code.
 
 ## Configurable toggles
 
@@ -306,4 +308,4 @@ On Claude Code, clearing that bar prompts for `/effort ultracode` — session-sc
 
 ## Portability
 
-The method survives outside Pilot. `/build` can export a portable brief instead of running: the goal condition moves into the prompt's first line, the tasks and criteria travel verbatim, and the judging protocol is stated inline. You lose the enforcement — the Buildout file, the statusline, the stop guard — not the method.
+The method survives outside Pilot. `/build` can export a portable brief instead of running: the goal condition moves into the prompt's first line, the tasks and criteria travel verbatim, and the judging protocol is stated inline. You lose the enforcement — the Buildout file, the stop guard, and Claude Code's status-line integration — not the method.

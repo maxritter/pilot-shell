@@ -14,23 +14,23 @@ Works with any existing project — no scaffolding required.
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
 ```
 
-Run from any directory — it installs globally to `~/.pilot/` and your Claude config directory (and `~/.codex/` if Codex CLI is detected). After installation, just run `claude` or `codex` directly — Pilot Shell loads automatically.
+Run from any directory — it installs globally to `~/.pilot/` and your Claude config directory (and `~/.codex/` when Codex CLI or the ChatGPT-bundled Codex runtime is detected). After installation, run `claude` or `codex` directly. On macOS, you can instead restart ChatGPT desktop and open the project there. Pilot Shell loads automatically in either Codex client.
 
 The Claude config directory is `~/.claude` unless you set `CLAUDE_CONFIG_DIR`. See [Using a non-default Claude config directory](#using-a-non-default-claude-config-directory).
 
 ## What the Installer Does
 
-8 steps with progress tracking and rollback on failure. Steps 3 and 4 are agent-conditional — they skip cleanly when the matching agent CLI is not detected on your system. The installer **does not install Claude Code or Codex CLI itself**; you install at least one of them yourself per [Prerequisites](./prerequisites).
+8 steps with progress tracking and rollback on failure. Steps 3 and 4 are agent-conditional — they skip cleanly when the matching agent is not detected on your system. The installer **does not install Claude Code, Codex CLI, or ChatGPT itself**; you install at least one of them yourself per [Prerequisites](./prerequisites).
 
 | Step | Title | Description |
 |------|-------|-------------|
-| 1 | Prerequisites | Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq. Verifies at least one supported agent (Claude Code or Codex CLI) is on the system; aborts with a clear error otherwise. |
-| 2 | Pilot files | Installs agent-neutral Pilot Shell-managed assets: hooks to `~/.pilot/hooks/`, Console scripts/UI to `~/.pilot/`, raw rule sources to `~/.pilot/rules/` (read by Codex's adapter), and the canonical skill source to `<claude-config-dir>/skills/` (used by both agents — Claude reads it natively, Codex adapts it). Always runs. |
+| 1 | Prerequisites | Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq. Verifies at least one supported agent (Claude Code, Codex CLI, or the Codex runtime bundled with ChatGPT on macOS) is present; aborts with a clear error otherwise. |
+| 2 | Pilot files | Installs agent-neutral assets: hooks and Console files under `~/.pilot/`, plus canonical raw sources under `~/.pilot/rules/`, `~/.pilot/skills/`, and `~/.pilot/agents/`. Each agent's adapter consumes those sources in its native format. Always runs. |
 | 3 | Claude files | Installs Claude-specific assets to the Claude config directory: rules, sub-agents, and `settings.json` (three-way merged); plus Claude post-install merges (hooks into settings, app-config MCP block, model config). **Skipped when Claude Code CLI is not detected.** |
-| 4 | Codex files | Installs Codex-specific assets: adapted skills to `~/.agents/skills/`, review agents to `~/.codex/agents/`, `~/.codex/AGENTS.md`, `~/.codex/config.toml`, `~/.codex/hooks.json`. Per-category counts mirror the Claude section. **Skipped when Codex CLI is not detected.** |
+| 4 | Codex files | Installs adapted skills to `~/.agents/skills/`, review agents to `~/.codex/agents/`, guidance to `~/.codex/AGENTS.md`, and merged `~/.codex/config.toml` / `~/.codex/hooks.json`. **Skipped when neither Codex CLI nor the ChatGPT-bundled runtime is detected.** |
 | 5 | Config files | Creates `.nvmrc` and project config |
 | 6 | Dependencies | Installs Semble, RTK, CodeGraph, Chrome DevTools MCP, playwright-cli, agent-browser, language servers, plus the `codex@openai-codex` Claude marketplace plugin. Claude-side plugins (Codex companion plugin, Chrome DevTools MCP plugin, LSP plugins) are skipped on Codex-only systems. |
-| 7 | Shell integration | Auto-configures bash, fish, and zsh with the `pilot` alias. Add `# pilot-shell:managed-elsewhere` to a config file to opt out (for framework-managed shells) |
+| 7 | Shell integration | Auto-configures bash, fish, and zsh with the `pilot` alias and a Codex wrapper that raises a low per-process open-file soft limit without lowering an existing higher value. Add `# pilot-shell:managed-elsewhere` to a config file to opt out. |
 | 8 | Finalize | Success message with next steps |
 
 ## Using a non-default Claude config directory
@@ -59,6 +59,14 @@ Claude Code keys its stored credentials per config directory, so the two profile
 - **`~/.agents/` cannot be relocated.** Codex derives its agents-skills directory from your home directory and provides no override. `CODEX_HOME` relocates `~/.codex` and is honoured, but `~/.agents/skills/` always sits under `$HOME`.
 
 If you install into one profile and later start a session in another, a session-start check warns you that the assets live elsewhere. It cannot warn when the profile has no Pilot install at all (no Pilot hook is registered there to run), which is why the installer prints the resolved paths before writing.
+
+## macOS open-file limit for Codex
+
+A low macOS default can surface as `Too many open files` while Codex loads its configuration.
+
+When Codex is detected, Pilot's bash, zsh, and fish wrappers raise a low soft limit toward 1024 for each CLI process. The wrapper never lowers a higher limit, never exceeds the hard cap, and does not change the parent shell.
+
+Modern macOS does not give Pilot a reliable way to change the limit inherited by ChatGPT when it is launched normally from the Dock, so the installer does not request administrator access for this. If ChatGPT itself reports the error, restart or update the app; that desktop process must set its own limit.
 
 ## Browser Automation
 

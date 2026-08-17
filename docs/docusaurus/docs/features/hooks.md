@@ -1,47 +1,49 @@
 ---
 sidebar_position: 2
 title: Hooks Pipeline
-description: Quality hooks across lifecycle events — auto-format, lint, type-check, and TDD enforcement that fire automatically at every stage of work.
+description: Quality and lifecycle hooks for Claude Code and Codex, including context recovery, memory, workflow guards, and SessionEnd handling.
 ---
 
 # Hooks Pipeline
 
-Lifecycle hooks enforce quality automatically on every file edit, prompt, and session event. Hooks run on both **Claude Code** and **Codex CLI** — registered in `~/.claude/settings.json` for Claude Code and `~/.codex/hooks.json` for Codex.
+Lifecycle hooks enforce quality automatically throughout **Claude Code** workflows and connect Pilot's context and memory lifecycle to **Codex**. They are registered in `~/.claude/settings.json` for Claude Code and `~/.codex/hooks.json` for Codex CLI and ChatGPT desktop's Codex runtime. The tables below show which hooks apply to each agent.
 
-Blocking hooks reject actions or force fixes before they land. Non-blocking hooks warn without interrupting. Async hooks run in the background.
+Blocking hooks reject actions or force fixes before they land. Non-blocking hooks warn without interrupting. Hook output is user-visible in both clients.
 
 ## SessionStart
 
 *On startup, after `/clear`, or after compaction*
 
-| Hook | Description |
-|------|-------------|
-| `license_check.py` | Verifies Pilot Shell license — blocks session if invalid |
-| `session_announcements.py` | Delivers one-time announcements; re-injects until acknowledged *(Claude Code only)* |
-| `session_startup_maintenance.py` | Cleans stale Claude task files and dead-PID session dirs (async) *(Claude Code only)* |
-| `codegraph_init.py` | Initializes CodeGraph for the current project (async) |
-| `post_compact_restore.py` | Re-injects active plan and task state after compaction *(Claude Code only)* |
-| `session_clear.py` | Resets Pilot session state on `/clear` *(Claude Code only)* |
-| Worker context bootstrap | Restores session context through the Console worker *(Claude Code only)* |
+| Hook | Applies to | Description |
+|------|------------|-------------|
+| `license_check.py` | Claude Code | Verifies the Pilot Shell license and blocks startup when invalid. |
+| `session_announcements.py` | Claude Code | Delivers one-time announcements and re-injects them until acknowledged. |
+| `config_dir_guard.py` | Claude Code | Warns when the active Claude configuration directory differs from the installed profile. |
+| `session_startup_maintenance.py` | Claude Code | Cleans stale Claude task files and dead PID-backed session directories. |
+| `codegraph_init.py` | Claude Code | Initializes CodeGraph for the current project. |
+| Skill sync | Both | Refreshes managed skills for the active agent. |
+| Worker context bootstrap | Both | Restores the memory digest and active session context through the Console worker. |
+| `post_compact_restore.py` | Both | Re-injects active plan and task state after compaction. |
+| `session_clear.py` | Both | Resets Pilot session state after `/clear`. |
 
 ## UserPromptSubmit
 
 *When you send a message*
 
-| Hook | Description |
-|------|-------------|
-| `spec_mode_guard.py` | Warns outside bypassPermissions; blocks manual plan mode; in Automated Model Switching it requires `opusplan` (shows as Sonnet before planning) and pre-flight-warns when the conversation likely exceeds the Opus plan leg's window; Manual/Off have no model gate |
-| Session initializer | Registers session with the Console worker (async) |
+| Hook | Applies to | Description |
+|------|------------|-------------|
+| `spec_mode_guard.py` | Claude Code | Warns outside bypassPermissions, blocks manual plan mode, and applies the configured `/spec` model-switching checks; Manual/Off modes have no model gate. |
+| Session initializer | Both | Registers the session with the Console worker. |
 
 ## PreToolUse
 
 *Before Bash, search, or web tools run*
 
-| Hook | Description |
-|------|-------------|
-| `tool_redirect.py` | Redirects to MCP alternatives; blocks unsupported web paths *(Claude Code only)* |
-| `tool_token_saver.py` | Rewrites Bash commands via RTK for 60–90% token savings |
-| `plan_mode_tracker.py` | Tracks the `/spec` plan-mode levers via a session sentinel; verifies the observed planning-leg model against the expected Opus leg and reports it once per leg — confirming when the `opusplan` switch took effect, warning when it did not (e.g. Opus usage-limit fallback). Claude Code announces nothing either way, so both outcomes are surfaced *(Claude Code only)* |
+| Hook | Applies to | Description |
+|------|------------|-------------|
+| `tool_redirect.py` | Claude Code | Redirects supported Bash, search, web, and agent calls to the configured alternatives; blocks unsupported web paths. |
+| `tool_token_saver.py` | Both | Rewrites eligible Bash commands through RTK for 60–90% smaller output. |
+| `plan_mode_tracker.py` | Claude Code | Tracks `/spec` plan-mode state, verifies the observed planning-leg model, and reports the result once per leg. |
 
 ## PermissionRequest *(Claude Code only)*
 
@@ -55,36 +57,36 @@ Blocking hooks reject actions or force fixes before they land. Non-blocking hook
 
 *After file edits, reads, and searches*
 
-| Hook | Description |
-|------|-------------|
-| `file_checker.py` | Linting (ruff/ESLint/go vet) plus a C# `dotnet format` whitespace check, and TDD enforcement — warns when editing without a failing test |
-| `context_monitor.py` | Tracks context usage 0–100%, warns as compaction approaches |
-| Memory observer | Saves decisions, discoveries, and bugfixes to persistent memory (async) |
+| Hook | Applies to | Description |
+|------|------------|-------------|
+| `plan_mode_tracker.py` | Claude Code | Tracks entry to and exit from Claude Code plan mode for `/spec`. |
+| `file_checker.py` | Claude Code | Runs the existing edit-time lint/format checks and TDD reminder. |
+| `context_monitor.py` | Claude Code | Tracks context use and warns as compaction approaches. |
+| Memory observer | Both | Saves decisions, discoveries, and bugfixes. |
 
-## PreCompact *(Claude Code only)*
+## PreCompact
 
-| Hook | Description |
-|------|-------------|
-| `pre_compact.py` | Snapshots active plan and task list before compaction |
+| Hook | Applies to | Description |
+|------|------------|-------------|
+| `pre_compact.py` | Both | Snapshots active work before compaction so the next SessionStart can restore it. |
 
 ## Stop
 
 *When the agent finishes*
 
-| Hook | Description |
-|------|-------------|
-| `spec_stop_guard.py` | Blocks stopping if an active spec hasn't completed verification |
-| Session summarizer | Saves session observations to memory (async) |
-| Team memory auto-export *(Codex only)* | Writes the project's new shared memories to `.pilot/memories/`. Codex has no SessionEnd event, so this stands in for it; it writes nothing when the turn produced no new shareable memory |
+| Hook | Applies to | Description |
+|------|------------|-------------|
+| `spec_stop_guard.py` | Both | Holds a registered `/spec` or `/build` open until its completion rules are met. |
+| Session summarizer | Both | Saves the turn's durable observations. |
 
 `spec_plan_validator.py` runs as a command-scoped Stop hook during the `/spec` planning phases.
 
-## SessionEnd *(Claude Code only)*
+## SessionEnd
 
-| Hook | Description |
-|------|-------------|
-| `session_end.py` | Stops the Console worker when no sessions remain; marks the session complete, which is what exports its team memories. Invoked with `--session-end` here — Codex registers the same script on `Stop` without that flag, so an end-of-turn run stops the worker but never completes the session |
+| Hook | Applies to | Description |
+|------|------------|-------------|
+| `session_end.py --session-end` | Both | Completes the real session, waits for the team-memory export attempt, then stops the Console worker only when no other session remains. Codex now uses its native SessionEnd event rather than treating every Stop as a session boundary. |
 
 :::info Compaction resilience
-When compaction fires (Claude Code): **PreCompact** captures plan state → compaction runs → **SessionStart** restores it via `post_compact_restore.py`. Work continues without data loss.
+When compaction fires: **PreCompact** captures active state → compaction runs → **SessionStart** restores it via `post_compact_restore.py`. Work continues from the saved state on both agents.
 :::

@@ -28,9 +28,9 @@ Skip web research. Proceed to Step 3 (Ideate) if the idea is still vague and wou
 4. **Optionally fetch full pages** for promising results: `ToolSearch(query="+web-fetch fetch")` then `fetch_url(url="...")`
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-2. **Use available web tools directly:** prefer the web-search MCP tool (`mcp__web-search__search`) when available.
-3. **Execute searches sequentially**, gathering key findings from each.
-4. **Optionally fetch full pages** for promising results with the web-fetch MCP tool (`mcp__web-fetch__fetch_url`) when available.
+2. **Use the web tools exposed in the current Codex schema.** Follow their actual names and parameter schemas; do not assume a specific MCP namespace.
+3. **Batch independent searches when the tool supports it**, gathering key findings from each.
+4. **Fetch full pages selectively** for promising results with the available fetch/open capability.
 CODEX-END -->
 5. **Compile research summary:**
    - Key findings (3-5 bullet points)
@@ -57,17 +57,17 @@ Deep research is owned by the dedicated **`deep-research` skill** — a harness 
 **Cap:** none needed — the `deep-research` skill manages its own breadth and token budget.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-The `deep-research` skill is Claude-Code-only and unavailable in Codex, so Deep research in Codex uses the multi-angle in-session approach:
+Deep research in Codex uses bounded parallel angles when agent tools are exposed, with a direct in-session fallback:
 
 1. **Generate a research outline** with 2-3 research angles based on the topic. Examples:
    - "Competitor landscape" — what exists, market positioning, pricing
    - "Technical approaches" — architectures, frameworks, implementation patterns
    - "User experience" — UX patterns, onboarding flows, common pain points
-2. **Run searches sequentially** (one per angle, 2-3 search queries each). Use the web-search MCP tool (`mcp__web-search__search`) if available. For each angle:
+2. **Assign independent angles.** When the current Codex schema exposes agent tools, dispatch one bounded research agent per angle in parallel. Give each an exclusive question, the same source-quality rules, and a required cited findings format. Otherwise research the angles directly. For each angle:
    - Execute 2-3 targeted searches
-   - Optionally fetch full pages for promising results via `mcp__web-fetch__fetch_url`
+   - Optionally fetch full pages for promising results via the available fetch/open capability
    - Compile findings per angle
-3. **Synthesize findings** across all angles into a comprehensive research summary.
+3. **Collect and synthesize.** Keep returned agent ids and wait using the current tool schema. Verify citations before synthesizing findings across all angles into one research summary.
 
 **Codex cap:** at most 2 research angles with 2-3 searches each unless the user explicitly asks for exhaustive research.
 CODEX-END -->

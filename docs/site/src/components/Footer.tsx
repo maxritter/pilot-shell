@@ -1,5 +1,11 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Github, Linkedin, Mail, ScrollText, CircleUserRound } from "lucide-react";
+import {
+  CircleUserRound,
+  Github,
+  Linkedin,
+  Mail,
+  ScrollText,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
 import { navigateToSection } from "@/utils/navigateToSection";
@@ -28,7 +34,7 @@ const Footer = () => {
 
           <nav className="flex flex-col gap-3" aria-label="Footer navigation">
             <h3 className="text-sm font-medium">Quick Links</h3>
-            <ul className="space-y-2">
+            <ul>
               <li>
                 <button
                   onClick={() =>
@@ -38,7 +44,7 @@ const Footer = () => {
                       navigate,
                     )
                   }
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="inline-flex min-h-11 items-center text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
                   Getting Started
                 </button>
@@ -48,7 +54,7 @@ const Footer = () => {
                   onClick={() =>
                     navigateToSection("features", location.pathname, navigate)
                   }
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="inline-flex min-h-11 items-center text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
                   Features
                 </button>
@@ -56,7 +62,7 @@ const Footer = () => {
               <li>
                 <a
                   href="/docs"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="inline-flex min-h-11 items-center text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
                   Docs
                 </a>
@@ -64,7 +70,7 @@ const Footer = () => {
               <li>
                 <Link
                   to="/pricing"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="inline-flex min-h-11 items-center text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
                   Subscribe
                 </Link>
@@ -74,7 +80,7 @@ const Footer = () => {
                   href={PORTAL_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1.5"
+                  className="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
                   <CircleUserRound className="h-3.5 w-3.5" />
                   Manage Subscription
@@ -85,7 +91,7 @@ const Footer = () => {
                   onClick={() =>
                     navigateToSection("faq", location.pathname, navigate)
                   }
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="inline-flex min-h-11 items-center text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
                   FAQ
                 </button>
@@ -95,7 +101,7 @@ const Footer = () => {
                   href="https://github.com/maxritter/pilot-shell/releases"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1.5"
+                  className="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
                   <ScrollText className="h-3.5 w-3.5" />
                   Changelog
@@ -113,7 +119,7 @@ const Footer = () => {
               <Button
                 size="icon"
                 variant="outline"
-                className="border-primary/50 hover:bg-primary/10 transition-all duration-300 hover:scale-110 hover:border-primary"
+                className="h-11 w-11 border-primary/50 transition-colors hover:border-primary hover:bg-primary/10"
                 asChild
               >
                 <a
@@ -128,7 +134,7 @@ const Footer = () => {
               <Button
                 size="icon"
                 variant="outline"
-                className="border-primary/50 hover:bg-primary/10 transition-all duration-300 hover:scale-110 hover:border-primary"
+                className="h-11 w-11 border-primary/50 transition-colors hover:border-primary hover:bg-primary/10"
                 asChild
               >
                 <a
@@ -143,7 +149,7 @@ const Footer = () => {
               <Button
                 size="icon"
                 variant="outline"
-                className="border-primary/50 hover:bg-primary/10 transition-all duration-300 hover:scale-110 hover:border-primary"
+                className="h-11 w-11 border-primary/50 transition-colors hover:border-primary hover:bg-primary/10"
                 asChild
               >
                 <a href="mailto:mail@maxritter.net" aria-label="Email">
@@ -161,7 +167,7 @@ const Footer = () => {
               href="https://pilot-shell.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline"
+              className="text-primary underline decoration-primary/50 underline-offset-4 hover:decoration-primary"
             >
               Pilot Shell
             </a>
@@ -170,7 +176,7 @@ const Footer = () => {
               href="https://maxritter.net/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline"
+              className="text-primary underline decoration-primary/50 underline-offset-4 hover:decoration-primary"
             >
               Max Ritter
             </a>
@@ -180,7 +186,7 @@ const Footer = () => {
               href="https://github.com/maxritter/pilot-shell/blob/main/LICENSE"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline"
+              className="text-primary underline decoration-primary/50 underline-offset-4 hover:decoration-primary"
             >
               License
             </a>

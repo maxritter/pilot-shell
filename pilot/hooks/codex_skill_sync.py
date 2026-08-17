@@ -1,6 +1,7 @@
 """SessionStart hook: rebuild Codex SKILL.md files from CC skill sources.
 
-Runs on every session start for both Claude Code (async) and Codex (sync).
+Runs on every session start for both Claude Code (native async) and Codex
+(through Pilot's detached compatibility dispatcher).
 If the license is invalid or deactivated, deletes built SKILL.md files so
 unlicensed users cannot invoke the skills.
 
@@ -45,6 +46,36 @@ _SUPPORTED_SKILLS = frozenset(
         "create-skill",
     }
 )
+
+_SKILL_DESCRIPTIONS = {
+    "spec": ("Use only when the user explicitly invokes /spec. Plan, approve, implement, and verify a scoped feature."),
+    "build": (
+        "Use only when the user explicitly invokes /build. Pursue a named goal through autonomous build and "
+        "verification loops."
+    ),
+    "fix": (
+        "Use only when the user explicitly invokes /fix. Diagnose one defect, repair its root cause, and prove "
+        "it end to end."
+    ),
+    "prd": (
+        "Use only when the user explicitly invokes /prd. Turn a rough product idea into an approved requirements "
+        "document."
+    ),
+    "benchmark": "Benchmark rules, skills, or workflows with quantitative before/after evaluations.",
+    "create-skill": (
+        "Create, update, or test a reusable agent skill when the user asks for a skill or repeatable workflow."
+    ),
+    "setup-rules": "Set up, audit, or refresh repository agent rules such as AGENTS.md or CLAUDE.md.",
+    "spec-plan": "Internal /spec feature-planning phase; use only after an explicitly invoked /spec routes here.",
+    "spec-bugfix-plan": "Internal /spec bugfix-planning phase; use only after an explicitly invoked /spec routes here.",
+    "spec-implement": "Internal /spec implementation phase for an approved plan; use only after /spec routes here.",
+    "spec-verify": "Internal /spec feature-verification phase for a completed plan; use only after /spec routes here.",
+    "spec-bugfix-verify": (
+        "Internal /spec bugfix-verification phase for a completed plan; use only after /spec routes here."
+    ),
+}
+
+_EXPLICIT_ONLY_SKILLS = frozenset({"spec", "build", "fix", "prd"})
 
 # Keep in sync with installer/steps/codex_files.py:_CODEX_MANAGED_REVIEW_AGENTS
 # (.claude/rules/pilot-shell-codex-skill-sync.md). Names only -- the sibling
@@ -105,7 +136,7 @@ _ASK_USER_QUESTION_BLOCK_RE = re.compile(
 )
 
 
-def _check_license() -> bool:
+def _check_license() -> bool | None:
     pilot_bin = Path.home() / ".pilot" / "bin" / "pilot"
     if not pilot_bin.is_file():
         return True
@@ -119,7 +150,7 @@ def _check_license() -> bool:
         data = json.loads(result.stdout)
         return data.get("valid", False)
     except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError, ValueError):
-        return False
+        return None
 
 
 def _canonicalize(text: str) -> str:
@@ -213,6 +244,7 @@ def _build_codex_skill(skill_dir: Path) -> str | None:
     if content is None:
         return None
     name, desc = _extract_metadata(content)
+    desc = _SKILL_DESCRIPTIONS.get(name, desc)
     desc = _adapt(desc)
     adapted = _adapt(content)
     if adapted.startswith("---\n"):
@@ -220,6 +252,27 @@ def _build_codex_skill(skill_dir: Path) -> str | None:
         if end != -1:
             adapted = adapted[end + 4 :].lstrip("\n")
     return f"---\nname: {name}\ndescription: {desc}\n---\n\n{adapted}"
+
+
+def _build_openai_yaml(skill_dir: Path) -> str | None:
+    content = _build_skill(skill_dir)
+    if content is None:
+        return None
+    name, description = _extract_metadata(content)
+    description = _SKILL_DESCRIPTIONS.get(name, description)
+    description = _adapt(description)
+    compact_description = " ".join(description.split())
+    if len(compact_description) > 160:
+        compact_description = compact_description[:157].rsplit(" ", 1)[0] + "..."
+    display_name = name.replace("-", " ").title()
+    implicit = name not in _EXPLICIT_ONLY_SKILLS
+    return (
+        "interface:\n"
+        f"  display_name: {json.dumps(display_name)}\n"
+        f"  short_description: {json.dumps(compact_description)}\n"
+        "policy:\n"
+        f"  allow_implicit_invocation: {'true' if implicit else 'false'}\n"
+    )
 
 
 def _build_codex_review_agent(agent_file: Path) -> str | None:
@@ -324,9 +377,20 @@ def _remove_codex_skills() -> int:
     agents_dir = Path.home() / ".agents" / "skills"
     removed = 0
     for skill_name in _scoped_pilot_skill_names():
-        skill_md = agents_dir / skill_name / "SKILL.md"
+        skill_dir = agents_dir / skill_name
+        skill_md = skill_dir / "SKILL.md"
+        metadata = skill_dir / "agents" / "openai.yaml"
+        managed = skill_md.is_file() or metadata.is_file()
         if skill_md.is_file():
             skill_md.unlink()
+        if metadata.is_file():
+            metadata.unlink()
+        try:
+            (skill_dir / "agents").rmdir()
+            skill_dir.rmdir()
+        except OSError:
+            pass
+        if managed:
             removed += 1
     return removed
 
@@ -343,11 +407,9 @@ def _remove_codex_review_agents() -> int:
 
 
 def _sync_codex_skills() -> tuple[int, int]:
+    neutral_skills = Path.home() / ".pilot" / "skills"
     claude_dir = claude_config_dir()
-    if claude_dir is None:
-        return 0, 0
-
-    cc_skills = claude_dir / "skills"
+    source_skills = neutral_skills if neutral_skills.is_dir() else (claude_dir / "skills" if claude_dir else None)
     # ~/.agents is NOT relocatable: Codex derives it from the home directory and
     # exposes no override (verified against codex-cli 0.144.5). CODEX_HOME only
     # governs ~/.codex.
@@ -355,16 +417,17 @@ def _sync_codex_skills() -> tuple[int, int]:
     built = 0
     failed = 0
 
-    if not cc_skills.is_dir():
+    if source_skills is None or not source_skills.is_dir():
         return 0, 0
 
     for skill_name in _SUPPORTED_SKILLS:
-        skill_dir = cc_skills / skill_name
+        skill_dir = source_skills / skill_name
         if not skill_dir.is_dir() or not (skill_dir / "manifest.json").is_file():
             continue
         try:
             codex_content = _build_codex_skill(skill_dir)
-            if codex_content is None:
+            metadata = _build_openai_yaml(skill_dir)
+            if codex_content is None or metadata is None:
                 failed += 1
                 continue
             dest = agents_dir / skill_name
@@ -372,6 +435,11 @@ def _sync_codex_skills() -> tuple[int, int]:
             tmp = dest / "SKILL.md.tmp"
             tmp.write_text(codex_content, encoding="utf-8")
             os.replace(str(tmp), str(dest / "SKILL.md"))
+            metadata_dir = dest / "agents"
+            metadata_dir.mkdir(parents=True, exist_ok=True)
+            metadata_tmp = metadata_dir / "openai.yaml.tmp"
+            metadata_tmp.write_text(metadata, encoding="utf-8")
+            os.replace(str(metadata_tmp), str(metadata_dir / "openai.yaml"))
             built += 1
         except Exception:
             failed += 1
@@ -380,16 +448,14 @@ def _sync_codex_skills() -> tuple[int, int]:
 
 
 def _sync_codex_review_agents() -> tuple[int, int]:
+    neutral_agents = Path.home() / ".pilot" / "agents"
     claude_dir = claude_config_dir()
-    if claude_dir is None:
-        return 0, 0
-
-    source_dir = claude_dir / "agents"
+    source_dir = neutral_agents if neutral_agents.is_dir() else (claude_dir / "agents" if claude_dir else None)
     dest_dir = _get_codex_config_dir() / "agents"
     built = 0
     failed = 0
 
-    if not source_dir.is_dir():
+    if source_dir is None or not source_dir.is_dir():
         return 0, 0
 
     for agent_name in _SUPPORTED_REVIEW_AGENTS:
@@ -546,28 +612,18 @@ def main() -> None:
         return
 
     codex_bin = codex_config_dir / "bin" / "codex"
+    app_codex_bin = Path("/Applications/ChatGPT.app/Contents/Resources/codex")
     codex_on_path = any((Path(p) / "codex").is_file() for p in os.environ.get("PATH", "").split(os.pathsep) if p)
-    if not codex_bin.is_file() and not codex_on_path:
-        print(json.dumps({"continue": True}))
+    if not codex_bin.is_file() and not app_codex_bin.is_file() and not codex_on_path:
         return
 
     valid = _check_license()
 
-    if valid:
-        built, failed = _sync_codex_skills()
-        built_agents, failed_agents = _sync_codex_review_agents()
-        env_synced = _sync_codex_env_vars()
-        msg = f"Codex skills synced: {built} built"
-        if failed:
-            msg += f", {failed} failed"
-        if built_agents or failed_agents:
-            msg += f", review agents: {built_agents} built"
-        if failed_agents:
-            msg += f", {failed_agents} failed"
-        if env_synced:
-            msg += f", {env_synced} env vars"
-        print(json.dumps({"continue": True, "systemMessage": msg}))
-    else:
+    if valid is True:
+        _sync_codex_skills()
+        _sync_codex_review_agents()
+        _sync_codex_env_vars()
+    elif valid is False:
         removed = _remove_codex_skills() + _remove_codex_review_agents()
         msg = f"License invalid — removed {removed} Codex managed asset(s)" if removed else ""
         print(json.dumps({"continue": True, "systemMessage": msg} if msg else {"continue": True}))

@@ -112,28 +112,19 @@ Proceed to Step 11 once all must_fix and should_fix from both reviewers are reso
 
 **When enabled:** launch the managed Codex custom agent and wait for its final JSON response before requesting approval.
 
-1. Spawn the review agent:
+1. Use the spawn-agent tool exposed in the current Codex tool schema with `agent_type="spec-review"` and this message:
 
-```python
-review = multi_agent_v1.spawn_agent(
-    agent_type="spec-review",
-    message="""
-    Plan file: <plan-path>
-    User request: <original task description>
-    Clarifications: <any Q&A>
+```
+Plan file: <plan-path>
+User request: <original task description>
+Clarifications: <any Q&A>
 
-    Review for alignment with requirements and adversarial risks.
-    Return ONLY valid JSON matching the spec-review schema.
-    Include the plan file path in the `plan_file` field.
-    """,
-)
+Review for alignment with requirements and adversarial risks.
+Return ONLY valid JSON matching the spec-review schema.
+Include the plan file path in the `plan_file` field.
 ```
 
-2. Wait for the result:
-
-```python
-result = multi_agent_v1.wait_agent(targets=[review.agent_id], timeout_ms=600000)
-```
+2. Keep the returned agent id and use the wait mechanism exposed in the current Codex tool schema. Follow the parameters shown by the current tools; do not copy a namespace or call signature from another Codex version.
 
 3. Parse the agent's final message as JSON. If parsing fails, treat the raw final message as one `suggestion` finding and continue; do not launch a second reviewer.
 

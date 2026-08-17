@@ -8,10 +8,10 @@ description: Production-tested rules and standards loaded into every Claude Code
 
 Production-tested best practices loaded into every session.
 
-Rules load automatically at session start — enforced standards, not suggestions. Pilot ships 10 built-in rules plus 7 coding standards activated by file type.
+Rules load automatically at session start — enforced standards, not suggestions. Pilot ships 11 built-in rule files plus 7 coding standards activated by file type, delivered in the format each agent handles best.
 
 - **Claude Code:** rules in `~/.claude/rules/` (global) and `.claude/rules/` (project). Project rules take precedence.
-- **Codex:** rules delivered via `~/.codex/AGENTS.md`, adapted from the same source. Custom rules work the same way.
+- **Codex:** global guidance in `~/.codex/AGENTS.md`, adapted skills in `~/.agents/skills/`, and file-type standards loaded when relevant.
 
 Run `/setup-rules` (or `$setup-rules` on Codex) to generate project-specific rules from your codebase.
 
@@ -30,11 +30,12 @@ Run `/setup-rules` (or `$setup-rules` on Codex) to generate project-specific rul
 - `documentation-sync.md` — Update affected docs (README, API docs, CLAUDE.md, AGENTS.md) in the same change as the code
 - `response-shape.md` — Answer first, numbered steps, state restated each turn, no preamble or closers — without compressing away verification evidence ([see below](#response-shape-answer-first))
 
-### Tooling & Context (3 rules)
+### Tooling & Context (4 rules)
 
 - `cli-tools.md` — Pilot CLI, Semble hybrid code search, RTK token optimization
 - `browser-automation.md` — Browser automation for E2E UI testing (Chrome → Chrome DevTools MCP → playwright-cli → agent-browser), plus an optional advisory [impeccable](https://impeccable.style) design anti-pattern check (`impeccable detect`, deterministic, no API key) on changed UI
 - `mcp-servers.md` — MCP server reference and tool selection guidance
+- `mobile-development.md` — Installed-app verification for Capacitor, React Native, Expo, Flutter, Android, and iOS projects
 
 ## Coding Standards — Activated by File Type
 

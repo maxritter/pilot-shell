@@ -107,8 +107,6 @@ def run_tool_token_saver() -> int:
             {
                 "hookSpecificOutput": {
                     "hookEventName": "PreToolUse",
-                    "permissionDecision": "allow",
-                    "permissionDecisionReason": "RTK auto-rewrite",
                     "updatedInput": updated_input,
                 }
             }

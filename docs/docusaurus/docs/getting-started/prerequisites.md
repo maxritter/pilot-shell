@@ -1,7 +1,7 @@
 ---
 sidebar_position: 1
 title: Prerequisites
-description: What you need before installing Pilot Shell — at least one AI agent (Claude Code or Codex CLI), a subscription or API key, and a POSIX shell environment.
+description: What you need before installing Pilot Shell — Claude Code or Codex through the CLI or ChatGPT desktop app, plus a supported shell environment.
 ---
 
 # Prerequisites
@@ -10,7 +10,7 @@ What you need before installing Pilot Shell.
 
 ## At Least One AI Agent
 
-Pilot Shell supports **Claude Code** (Anthropic, primary — full feature coverage) and **Codex CLI** (OpenAI — all workflows, fewer platform features). Install at least one. The Pilot installer auto-detects and configures both.
+Pilot Shell supports **Claude Code** (Anthropic, primary — full feature coverage) and **Codex** through Codex CLI or the ChatGPT desktop app (OpenAI — all workflows, fewer platform features). Install at least one; the Pilot installer auto-detects and configures the agents present. Platform differences are listed in the [agent comparison](/docs/getting-started/codex-cli).
 
 ### Claude Code
 
@@ -23,9 +23,9 @@ Install [Claude Code](https://code.claude.com/docs/en/quickstart) using the **na
 | **Team Premium** | Teams | 6.25x usage per member + SSO, admin tools, billing management |
 | **Enterprise** | Companies | For organizations with compliance, procurement, or security requirements |
 
-### Codex CLI
+### Codex
 
-Install [Codex CLI](https://developers.openai.com/codex/cli) using the **native installer**. If you have the `npm` or `brew` version, uninstall it first. Authenticate with your ChatGPT account or an API key on first run. Requires a ChatGPT subscription:
+Install [Codex CLI](https://developers.openai.com/codex/cli) using the **native installer**, or install the ChatGPT desktop app. On macOS, Pilot detects both the CLI and the Codex runtime bundled with ChatGPT. Authenticate with your ChatGPT account or an API key on first run. Requires a ChatGPT subscription:
 
 | Plan | Audience | Notes |
 |------|----------|-------|

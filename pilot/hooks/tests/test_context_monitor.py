@@ -36,6 +36,8 @@ class TestContextMonitorAutocompact:
         assert "hookSpecificOutput" in data
         assert data["hookSpecificOutput"]["hookEventName"] == "PostToolUse"
         assert "Auto-compact approaching" in data["hookSpecificOutput"]["additionalContext"]
+        assert "Do NOT" not in data["hookSpecificOutput"]["additionalContext"]
+        assert "sub-agents" not in data["hookSpecificOutput"]["additionalContext"]
         assert captured.err == ""
 
     @patch("context_monitor.save_cache")
@@ -391,7 +393,7 @@ class TestAutoCompactWarningIntegration:
 
             output = captured.getvalue()
             assert "Auto-compact approaching" in output
-            assert "no context is lost" in output
+            assert "work can continue normally" in output
             assert exit_code == 0
 
     def test_autocompact_warning_is_not_repeated(self, tmp_path: Path) -> None:
@@ -703,16 +705,11 @@ class TestPlanningLegHookRegistration:
             "many turns on those alone."
         )
 
-    def test_codex_registry_is_deliberately_left_narrow(self) -> None:
-        """Plan mode is Claude-Code-only, so the Codex registry needs no widening.
-
-        `planning_leg_model_context` keys off the `plan-mode-active` sentinel, which
-        only `EnterPlanMode` writes - a tool Codex does not have. Widening the Codex
-        matcher would buy nothing and cost a process spawn per tool call.
-        """
+    def test_codex_registry_does_not_spawn_context_monitor_per_tool(self) -> None:
+        """Native Codex compaction makes the per-tool monitor redundant noise."""
         matchers = self._post_tool_use_matchers("codex_hooks.json")
 
-        assert matchers and "*" not in matchers
+        assert matchers == []
 
 
 class TestCodexTranscriptTokenCount:

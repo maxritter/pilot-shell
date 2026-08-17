@@ -64,6 +64,20 @@ class TestEnsureBunOnPath:
         finally:
             os.environ["PATH"] = original
 
+
+class TestCodexDetection:
+    def test_includes_chatgpt_desktop_app_binary(self):
+        from installer.platform_utils import is_codex_installed
+
+        with patch("installer.platform_utils._agent_present", return_value=True) as present:
+            assert is_codex_installed() is True
+
+        fallback_paths = present.call_args.args[1:]
+        assert Path.home() / "Applications" / "ChatGPT.app" / "Contents" / "Resources" / "codex" in fallback_paths
+        assert Path("/Applications/ChatGPT.app/Contents/Resources/codex") in fallback_paths
+
+
+class TestEnsureBunFallbacks:
     def test_returns_false_when_bun_is_genuinely_absent(self, tmp_path: Path):
         """No bun on PATH and none at ~/.bun/bin means npm really is the only option."""
         import os

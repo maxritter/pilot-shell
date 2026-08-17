@@ -7,12 +7,12 @@ description: Real-time diagnostics, go-to-definition, and find-references via au
 # Language Servers
 
 :::warning Claude Code only
-Language Server integration requires Claude Code's LSP support. Codex CLI does not have an equivalent LSP integration. On Codex, the `file_checker.py` hook still provides linting and type-checking via the underlying CLI tools (ruff, basedpyright, ESLint, go vet) — plus a single-file `dotnet format` whitespace check for C# — but without real-time editor-style diagnostics, hover docs, or go-to-definition.
+Language Server integration requires Claude Code's LSP support. Codex does not have an equivalent Pilot LSP integration and does not run `file_checker.py`; it uses native diagnostics plus the repository's lint, type-check, build, and test commands during implementation and verification.
 :::
 
 Real-time diagnostics and go-to-definition for Claude Code, auto-installed and configured.
 
-Language servers give Claude Code real-time diagnostics, type information, and go-to-definition on every file edit. All three are auto-installed and configured via stdio transport — no manual setup. They work alongside the `file_checker.py` hook: hooks catch formatting and linting errors, LSP provides type-level intelligence.
+Language servers give Claude Code real-time diagnostics, type information, and go-to-definition on every file edit. All three are auto-installed and configured via stdio transport — no manual setup. They work alongside Claude Code's `file_checker.py` hook: the hook catches formatting and linting errors, while LSP provides type-level intelligence.
 
 ## Python — basedpyright
 
@@ -54,7 +54,7 @@ Unlike the servers above, the C# language server is **not auto-installed** — i
 1. Install the plugin from the [C# LSP plugin page](https://claude.com/plugins/csharp-lsp).
 2. Install the server as a global .NET tool: `dotnet tool install --global csharp-ls`. Requires a compatible .NET SDK (see the [csharp-ls release notes](https://www.nuget.org/packages/csharp-ls) for the version your release needs).
 
-> With the LSP active you get the real-time compile diagnostics that the `file_checker.py` hook does not provide for C# — the hook runs a single-file `dotnet format` check only. Compile errors otherwise surface when you run `dotnet test`.
+> With the LSP active you get the real-time compile diagnostics that Claude Code's `file_checker.py` hook does not provide for C# — the hook runs a single-file `dotnet format` check only. Compile errors otherwise surface when you run `dotnet test`.
 
 :::tip Add custom language servers
 Add custom language servers via `.lsp.json` in your project root. Each language key maps to its server configuration:

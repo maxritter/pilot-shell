@@ -25,7 +25,7 @@ echo "BRANCH_ISO=${PILOT_BRANCH_ISOLATION_ENABLED:-false} QUESTIONS=${PILOT_PLAN
 
 **Note:** The `QUESTIONS` toggle (`PILOT_PLAN_QUESTIONS_ENABLED`) does NOT affect the branch/type questions in this dispatcher. That toggle only controls Q&A questions during planning (Steps 4/6 in spec-plan). The dispatcher-level branch question is gated entirely by `PILOT_BRANCH_ISOLATION_ENABLED`.
 
-**Codex reviewers are controlled entirely by Console Settings.** The `PILOT_CODEX_SPEC_REVIEW_ENABLED` and `PILOT_CODEX_CHANGES_REVIEW_ENABLED` env vars are read directly by spec-plan and spec-verify — no per-session question needed.
+**Reviewers are controlled entirely by Console Settings.** The planning and verification phases read their native reviewer toggles directly — no per-session question is needed.
 
 | BRANCH_ISO | Type | Action |
 |------------|------|--------|

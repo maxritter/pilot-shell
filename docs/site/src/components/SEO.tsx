@@ -37,7 +37,7 @@ const SEO = ({
    * Title stays under 60 chars, or Google truncates it.
    */
   title = "Spec-driven development for Claude Code & Codex CLI",
-  description = "How real engineers run Claude Code and Codex: spec-driven planning, enforced TDD, persistent memory, and quality hooks for Python, TypeScript, Go, and C#. Make your agents production-ready.",
+  description = "Spec-driven planning, enforced TDD, persistent memory, and quality automation for Claude Code, with Codex compatibility for supported integrations across Python, TypeScript, Go, and C#.",
   keywords = "claude code skills, codex cli, spec driven development, claude code agents, claude code plugins, claude code hooks, claude code subagents, claude code mcp, claude code setup, claude code best practices, Pilot Shell",
   canonicalUrl = "https://pilot-shell.com/",
   ogImage = "https://pilot-shell.com/logo.png",

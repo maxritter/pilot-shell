@@ -67,15 +67,17 @@ def is_codex_installed() -> bool:
     Per README prerequisites, users install Codex CLI via the native installer;
     the installer only detects its presence (never installs it).
 
-    Path list overlaps launcher/updater.py:_find_codex_binary (which currently
-    omits ~/.local/bin/codex); update both copies together.
+    Path list overlaps launcher/updater.py:_find_codex_binary; update both
+    copies together.
     """
     home = Path.home()
     return _agent_present(
         "codex",
         home / ".codex" / "bin" / "codex",
         home / ".local" / "bin" / "codex",
+        home / "Applications" / "ChatGPT.app" / "Contents" / "Resources" / "codex",
         Path("/usr/local/bin/codex"),
+        Path("/Applications/ChatGPT.app/Contents/Resources/codex"),
     )
 
 

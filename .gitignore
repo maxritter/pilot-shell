@@ -12,6 +12,9 @@ pilot/skills/*/hashes.json
 # Local reference clones (not part of this repo)
 claude-pace/
 
+# Local product context (not part of the public repository)
+/PRODUCT.md
+
 # Local-only blog migration helper. Kept off the source tree on purpose —
 # the skill at pilot/skills/sync-blog/ runs it from /Users locally.
 scripts/sync-blog.py
@@ -43,6 +46,7 @@ wheels/
 node_modules/
 .pnpm-store/**
 .mypy_cache/**
+*.tsbuildinfo
 share/python-wheels/
 *.egg-info/
 .installed.cfg
@@ -244,7 +248,10 @@ __marimo__/
 scheduled_tasks.lock
 CLAUDE.md
 AGENTS.md
+!pilot/codex/AGENTS.md
 benchmarks/**
+!benchmarks/codex-autonomy/
+!benchmarks/codex-autonomy/evals.json
 skill-creator
 spec-annotate
 changes-header

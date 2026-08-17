@@ -30,6 +30,8 @@ cd your-project
 claude   # Claude Code — full feature set
 codex    # Codex CLI — all core workflows
 
+# Or restart ChatGPT desktop after installation and open this project there
+
 # Generate project rules
 > /setup-rules       # Codex: $setup-rules
 
@@ -50,10 +52,11 @@ codex    # Codex CLI — all core workflows
 
 Pilot enhances Claude Code and Codex CLI with:
 
-- **Quality hooks** — auto-format, lint, type-check, and TDD enforcement on every file edit
+- **Quality hooks** — Claude Code auto-formats, lints, type-checks, and enforces TDD on edits; both agents enforce the checks required by an active workflow
 - **7 MCP servers** — library docs, persistent memory, web search, code search, page fetching, code intelligence
 - **3 language servers** *(Claude Code only)* — Python (basedpyright), TypeScript (vtsls), Go (gopls)
 - **Persistent memory** — decisions and context survive across sessions in a local SQLite database, and can be shared with your team through the project repository
 - **Pilot Console** — local web dashboard at `localhost:41777` for monitoring, configuration, and skill sharing
+- **Codex compatibility** — adapted skills, `AGENTS.md` guidance, hooks, and support in Codex CLI and the ChatGPT desktop app
 
 Explore the sidebar for [getting started](/docs/getting-started/prerequisites), [workflows](/docs/workflows/prd), and [features](/docs/features/console).

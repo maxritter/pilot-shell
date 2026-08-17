@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+import os
+import shutil
+import subprocess
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
+
+import pytest
 
 from installer.steps.shell_config import (
     CLAUDE_ALIAS_MARKER,
@@ -191,6 +196,87 @@ class TestAliasLines:
         )
         assert "$fish_pid-(random)" in result, "Fish wrapper must use $fish_pid for PID expansion in concatenation"
 
+    def test_bash_codex_wrapper_raises_low_open_file_limit(self):
+        result = get_alias_lines("bash")
+
+        assert "ulimit -Sn" in result
+        assert "ulimit -Hn" in result
+        assert "1024" in result
+        assert 'command codex "$@"' in result
+
+    def test_fish_codex_wrapper_raises_low_open_file_limit(self):
+        result = get_alias_lines("fish")
+
+        assert "ulimit -Sn" in result
+        assert "ulimit -Hn" in result
+        assert "1024" in result
+        assert 'exec codex "$@"' in result
+
+    @pytest.mark.parametrize("shell_name", ["bash", "zsh"])
+    def test_posix_codex_wrapper_raises_low_limit_and_preserves_high_limit(
+        self, shell_name: str, tmp_path: Path
+    ) -> None:
+        shell = shutil.which(shell_name)
+        if shell is None:
+            pytest.skip(f"{shell_name} is not installed")
+
+        bin_dir = tmp_path / "bin"
+        bin_dir.mkdir()
+        fake_codex = bin_dir / "codex"
+        fake_codex.write_text("#!/bin/sh\nulimit -Sn\n")
+        fake_codex.chmod(0o755)
+        wrapper = tmp_path / "pilot-wrapper.sh"
+        wrapper.write_text(get_alias_lines(shell_name) + "\n")
+        env = dict(os.environ)
+        env["HOME"] = str(tmp_path)
+        env["PATH"] = f"{bin_dir}{os.pathsep}{env.get('PATH', '')}"
+
+        def invoke(initial_limit: int, hard_limit: int | None = None) -> int:
+            setup = f"ulimit -Sn {initial_limit};"
+            if hard_limit is not None:
+                setup += f" ulimit -Hn {hard_limit};"
+            result = subprocess.run(
+                [shell, "-c", f'{setup} source "{wrapper}"; codex'],
+                capture_output=True,
+                text=True,
+                env=env,
+                timeout=5,
+                check=True,
+            )
+            return int(result.stdout.strip())
+
+        assert invoke(256) == 1024
+        assert invoke(256, 768) == 768
+        assert invoke(2048) == 2048
+
+    @pytest.mark.parametrize("shell_name", ["bash", "zsh"])
+    def test_posix_codex_wrapper_leaves_parent_shell_limit_unchanged(self, shell_name: str, tmp_path: Path) -> None:
+        shell = shutil.which(shell_name)
+        if shell is None:
+            pytest.skip(f"{shell_name} is not installed")
+
+        bin_dir = tmp_path / "bin"
+        bin_dir.mkdir()
+        fake_codex = bin_dir / "codex"
+        fake_codex.write_text("#!/bin/sh\nulimit -Sn\n")
+        fake_codex.chmod(0o755)
+        wrapper = tmp_path / "pilot-wrapper.sh"
+        wrapper.write_text(get_alias_lines(shell_name) + "\n")
+        env = dict(os.environ)
+        env["HOME"] = str(tmp_path)
+        env["PATH"] = f"{bin_dir}{os.pathsep}{env.get('PATH', '')}"
+
+        result = subprocess.run(
+            [shell, "-c", f'ulimit -Sn 256; source "{wrapper}"; codex; ulimit -Sn'],
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=5,
+            check=True,
+        )
+
+        assert result.stdout.splitlines() == ["1024", "256"]
+
 
 class TestAliasDetection:
     """Test alias detection in config files."""
@@ -354,3 +440,14 @@ class TestAliasRemoval:
             assert "end" not in content or "# after" in content
             assert "# before" in content
             assert "# after" in content
+
+    def test_remove_old_alias_preserves_user_content_after_one_line_fish_functions(self, tmp_path: Path) -> None:
+        config = tmp_path / "config.fish"
+        config.write_text(get_alias_lines("fish") + "\nset -gx USER_SETTING preserved\n")
+
+        assert remove_old_alias(config) is True
+
+        result = config.read_text()
+        assert "function claude" not in result
+        assert "function codex" not in result
+        assert "set -gx USER_SETTING preserved" in result

@@ -147,6 +147,50 @@ class TestDetectContamination:
         result = detect_global_contamination(target, agent="codex")
         assert result == [tmp_home / ".agents" / "skills" / "my-skill"]
 
+    def test_codex_rules_hide_global_agents_md(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        tmp_home = tmp_path / "home"
+        self._with_home(monkeypatch, tmp_home)
+        global_rules = tmp_home / ".codex" / "AGENTS.md"
+        global_rules.parent.mkdir(parents=True)
+        global_rules.write_text("globally installed guidance")
+        project_rule = tmp_path / "pilot" / "codex" / "AGENTS.md"
+        project_rule.parent.mkdir(parents=True)
+        project_rule.write_text("benchmark target")
+
+        target: TargetConfig = {"type": "rules", "path": str(project_rule)}
+
+        assert detect_global_contamination(target, agent="codex") == [global_rules]
+
+    def test_codex_rules_also_hide_global_agent_skills(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        tmp_home = tmp_path / "home"
+        self._with_home(monkeypatch, tmp_home)
+        global_rules = tmp_home / ".codex" / "AGENTS.md"
+        global_rules.parent.mkdir(parents=True)
+        global_rules.write_text("globally installed guidance")
+        global_skills = tmp_home / ".agents" / "skills"
+        (global_skills / "build").mkdir(parents=True)
+        (global_skills / "build" / "SKILL.md").write_text("globally installed skill")
+        project_rule = tmp_path / "pilot" / "codex" / "AGENTS.md"
+        project_rule.parent.mkdir(parents=True)
+        project_rule.write_text("benchmark target")
+
+        target: TargetConfig = {"type": "rules", "path": str(project_rule)}
+
+        assert detect_global_contamination(target, agent="codex") == [global_rules, global_skills]
+
+    def test_codex_rules_do_not_hide_target_when_benchmarking_global_agents_md(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        tmp_home = tmp_path / "home"
+        self._with_home(monkeypatch, tmp_home)
+        global_rules = tmp_home / ".codex" / "AGENTS.md"
+        global_rules.parent.mkdir(parents=True)
+        global_rules.write_text("benchmark target")
+
+        target: TargetConfig = {"type": "rules", "path": str(global_rules)}
+
+        assert detect_global_contamination(target, agent="codex") == []
+
     def test_no_match_returns_empty(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         tmp_home = tmp_path / "home"
         self._with_home(monkeypatch, tmp_home)
@@ -204,6 +248,21 @@ class TestIsolateContamination:
 
         assert a.read_text() == "A"
         assert b.read_text() == "B"
+
+    def test_source_recreated_during_run_is_preserved_without_blocking_restore(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        victim = tmp_path / "AGENTS.md"
+        _ = victim.write_text("original guidance")
+
+        with isolate_global_contamination([victim]):
+            _ = victim.write_text("concurrently regenerated guidance")
+
+        backups = list(tmp_path.glob("AGENTS.md.pilot-bench-recreated-*"))
+        assert victim.read_text() == "original guidance"
+        assert len(backups) == 1
+        assert backups[0].read_text() == "concurrently regenerated guidance"
+        assert "recreated during isolation" in capsys.readouterr().err
 
     def test_collision_leaves_source_intact(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         victim = tmp_path / "c.md"

@@ -27,7 +27,7 @@ const agents = [
     color: "text-emerald-400",
     bgColor: "bg-emerald-400/10",
     borderColor: "border-emerald-400/30",
-    desc: "Independent review agent for Claude Code and Codex. Reviews code against the plan and catches gaps that tests alone miss.",
+    desc: "Independent review agent. Reviews code against the plan and catches gaps that tests alone miss.",
   },
   {
     name: "MEMORY",

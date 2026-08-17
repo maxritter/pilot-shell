@@ -29,7 +29,7 @@ const specSteps = [
 
 const buildSteps = [
   { icon: Target, title: "Goal", desc: "Grills a weak end state" },
-  { icon: ListChecks, title: "Draft", desc: "A few tasks, a few criteria" },
+  { icon: ListChecks, title: "Draft", desc: "Tasks and pass/fail criteria" },
   { icon: Code2, title: "Build", desc: "Works the whole task list" },
   { icon: Scale, title: "Judge", desc: "Rules criteria, pass or fail" },
   { icon: ShieldCheck, title: "Verify", desc: "Tests, E2E, and a code review" },
@@ -75,7 +75,12 @@ const WorkflowDiagram = ({
             </span>
           </div>
           {i < steps.length - 1 && (
-            <span className="text-primary text-2xl font-light">&rarr;</span>
+            <span
+              className="text-primary text-2xl font-light"
+              aria-hidden="true"
+            >
+              &rarr;
+            </span>
           )}
         </div>
       ))}
@@ -100,7 +105,12 @@ const WorkflowDiagram = ({
             </span>
           </div>
           {i < steps.length - 1 && (
-            <span className="text-primary/40 text-lg flex-shrink-0">↓</span>
+            <span
+              className="text-primary/40 text-lg flex-shrink-0"
+              aria-hidden="true"
+            >
+              &darr;
+            </span>
           )}
           {i === steps.length - 1 && (
             <span className="text-muted-foreground text-xs flex items-center gap-1 flex-shrink-0">
@@ -130,14 +140,49 @@ const WorkflowSteps = () => {
           className={`text-center mb-12 ${headerInView ? "animate-fade-in-up" : "opacity-0"}`}
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Usage
+            Pilot workflows for every stage
           </h2>
           <p className="text-muted-foreground text-lg sm:text-xl max-w-3xl mx-auto">
-            Four commands for every stage of development
+            Shape requirements, approve a plan, build toward a goal, or trace a
+            defect, with verification built into the handoff.
           </p>
         </div>
 
-        {/* Four Modes */}
+        <div className="mb-10 border-y border-border/60 py-6 sm:py-8 grid gap-6 md:grid-cols-[minmax(0,1.2fr)_minmax(16rem,0.8fr)] md:items-center">
+          <div className="flex items-start gap-4">
+            <div className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Zap className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-foreground">
+                Claude Code workflow suite
+              </h3>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                Use <code className="text-foreground">/prd</code>,{" "}
+                <code className="text-foreground">/spec</code>,{" "}
+                <code className="text-foreground">/build</code>, or{" "}
+                <code className="text-foreground">/fix</code> to put the right
+                product, planning, build, or debugging loop around the work.
+              </p>
+            </div>
+          </div>
+          <p className="text-sm leading-relaxed text-muted-foreground md:border-l md:border-border md:pl-6">
+            <strong className="text-foreground">Supported agents.</strong>{" "}
+            Pilot Shell supports Claude Code and Codex. Available integrations
+            follow each agent&apos;s supported interfaces.
+          </p>
+        </div>
+
+        <div className="mb-6 text-center">
+          <h3 className="text-xl font-semibold text-foreground">
+            Four core workflows
+          </h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Choose the workflow that matches what the work is measured against.
+          </p>
+        </div>
+
+        {/* Four explicit modes */}
         <div
           ref={modesRef}
           className={`grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 ${modesInView ? "animate-fade-in-up" : "opacity-0"}`}
@@ -153,9 +198,9 @@ const WorkflowSteps = () => {
                 <Lightbulb className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-foreground">
                   Requirements
-                  <code className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
+                  <code className="mt-1 block w-fit text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
                     /prd
                   </code>
                 </h3>
@@ -165,7 +210,9 @@ const WorkflowSteps = () => {
               </div>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed group-hover:text-foreground/80 transition-colors duration-200">
-              Back-and-forth brainstorming for vague ideas. The agent pitches directions, pressure-tests them, and converges on a PRD that hands off cleanly to /spec or /build.
+              Invoke it when the product itself is still unclear. The agent
+              pressure-tests directions and writes a PRD you can deliberately
+              hand to /spec or /build.
             </p>
             <div className="mt-3 flex items-center gap-1 text-xs text-primary/80 group-hover:text-primary transition-colors">
               <span>Learn more</span>
@@ -176,7 +223,7 @@ const WorkflowSteps = () => {
           {/* Spec-Driven Mode */}
           <a
             href="/docs/workflows/spec"
-            className="group relative rounded-lg p-6 border border-primary/50 bg-card hover:border-primary transition-all duration-300 block"
+            className="group relative rounded-lg p-6 border border-border/50 bg-card hover:border-primary/50 transition-all duration-300 block"
             aria-label="Learn more about /spec"
           >
             <div className="flex items-center gap-3 mb-4">
@@ -184,9 +231,9 @@ const WorkflowSteps = () => {
                 <FileText className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-foreground">
                   Specifications
-                  <code className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
+                  <code className="mt-1 block w-fit text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
                     /spec
                   </code>
                 </h3>
@@ -196,7 +243,9 @@ const WorkflowSteps = () => {
               </div>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed group-hover:text-foreground/80 transition-colors duration-200">
-              Creates a plan, gets your approval, implements each task with TDD, verifies completion. Best for features and anything multi-file that needs careful planning.
+              Use it when an ordered task list should be written and approved
+              before code. It implements with TDD and verifies against that
+              approved plan.
             </p>
             <div className="mt-3 flex items-center gap-1 text-xs text-primary/80 group-hover:text-primary transition-colors">
               <span>Learn more</span>
@@ -207,7 +256,7 @@ const WorkflowSteps = () => {
           {/* Build Loop */}
           <a
             href="/docs/workflows/build"
-            className="group relative rounded-lg p-6 border border-primary/50 bg-card hover:border-primary transition-all duration-300 block"
+            className="group relative rounded-lg p-6 border border-border/50 bg-card hover:border-primary/50 transition-all duration-300 block"
             aria-label="Learn more about /build"
           >
             <div className="flex items-center gap-3 mb-4">
@@ -215,9 +264,9 @@ const WorkflowSteps = () => {
                 <Trophy className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-foreground">
                   Build
-                  <code className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
+                  <code className="mt-1 block w-fit text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
                     /build
                   </code>
                 </h3>
@@ -227,7 +276,9 @@ const WorkflowSteps = () => {
               </div>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed group-hover:text-foreground/80 transition-colors duration-200">
-              Grills a weak goal until its pass/fail criteria can be written, then runs on its own — working every task and judging the result, with gaps becoming the next round's tasks. All the questions are up front; after that no approval gate and no check-ins. Verified with tests, E2E, and an independent code review before it hands back.
+              Use it when the end state matters more than a pre-approved task
+              list. It sharpens the goal, then builds and judges autonomously
+              against explicit pass/fail criteria.
             </p>
             <div className="mt-3 flex items-center gap-1 text-xs text-primary/80 group-hover:text-primary transition-colors">
               <span>Learn more</span>
@@ -246,9 +297,9 @@ const WorkflowSteps = () => {
                 <Bug className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-foreground">
                   Bugfix
-                  <code className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
+                  <code className="mt-1 block w-fit text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
                     /fix
                   </code>
                 </h3>
@@ -258,7 +309,8 @@ const WorkflowSteps = () => {
               </div>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed group-hover:text-foreground/80 transition-colors duration-200">
-              TDD bugfix workflow — traces the root cause, writes a failing test, fixes at the source, verifies end-to-end. Bails out to /spec when complexity warrants a plan.
+              Invoke the focused TDD bugfix process: reproduce, trace the root
+              cause, fix at the source, and verify the behavior end-to-end.
             </p>
             <div className="mt-3 flex items-center gap-1 text-xs text-primary/80 group-hover:text-primary transition-colors">
               <span>Learn more</span>
@@ -280,7 +332,7 @@ const WorkflowSteps = () => {
           <WorkflowDiagram
             command="/build"
             steps={buildSteps}
-            loopLabel="Until every criterion passes"
+            loopLabel="Failing criteria become the next round"
           />
         </div>
 
@@ -290,67 +342,66 @@ const WorkflowSteps = () => {
           className={`rounded-lg p-6 border border-border/50 bg-card ${commandsInView ? "animate-fade-in-up" : "opacity-0"}`}
         >
           <h3 className="text-lg font-semibold text-foreground mb-5 text-center">
-            All Commands
+            All Pilot skills
           </h3>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 gap-x-8">
             <a
               href="/docs/workflows/prd"
-              className="rounded-xl p-4 border border-border/40 bg-background/30 hover:border-primary/40 hover:bg-background/50 transition-all duration-200 group"
+              className="group flex min-h-20 flex-col gap-2 border-t border-border/50 py-4 sm:flex-row sm:gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex min-w-44 items-center gap-2">
                 <Lightbulb className="h-4 w-4 text-primary" />
                 <code className="text-sm font-medium text-primary">/prd</code>
               </div>
               <p className="text-xs text-muted-foreground group-hover:text-foreground/80">
                 Brainstorm vague ideas into PRDs — back-and-forth conversation,
-                optional deep research, then hand off to /spec.
+                optional deep research, then hand off to /spec or /build.
               </p>
             </a>
             <a
               href="/docs/workflows/spec"
-              className="rounded-xl p-4 border border-border/40 bg-background/30 hover:border-primary/40 hover:bg-background/50 transition-all duration-200 group"
+              className="group flex min-h-20 flex-col gap-2 border-t border-border/50 py-4 sm:flex-row sm:gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex min-w-44 items-center gap-2">
                 <FileText className="h-4 w-4 text-primary" />
                 <code className="text-sm font-medium text-primary">/spec</code>
               </div>
               <p className="text-xs text-muted-foreground group-hover:text-foreground/80">
-                Spec-Driven Development — plan, approve, implement, verify.
-                For features, refactoring, and architectural changes.
+                Write and approve the task list before implementation, then
+                verify the finished work against it.
               </p>
             </a>
             <a
               href="/docs/workflows/build"
-              className="rounded-xl p-4 border border-border/40 bg-background/30 hover:border-primary/40 hover:bg-background/50 transition-all duration-200 group"
+              className="group flex min-h-20 flex-col gap-2 border-t border-border/50 py-4 sm:flex-row sm:gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex min-w-44 items-center gap-2">
                 <Trophy className="h-4 w-4 text-primary" />
                 <code className="text-sm font-medium text-primary">/build</code>
               </div>
               <p className="text-xs text-muted-foreground group-hover:text-foreground/80">
                 Goal-and-loop development — name an end state, draft tasks and
-                criteria, then loop build and judge autonomously until every
-                one passes.
+                criteria, then build and judge against them autonomously.
               </p>
             </a>
             <a
               href="/docs/workflows/fix"
-              className="rounded-xl p-4 border border-border/40 bg-background/30 hover:border-primary/40 hover:bg-background/50 transition-all duration-200 group"
+              className="group flex min-h-20 flex-col gap-2 border-t border-border/50 py-4 sm:flex-row sm:gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex min-w-44 items-center gap-2">
                 <Bug className="h-4 w-4 text-primary" />
                 <code className="text-sm font-medium text-primary">/fix</code>
               </div>
               <p className="text-xs text-muted-foreground group-hover:text-foreground/80">
                 Bugfix workflow — investigate, write a failing test, fix at the
-                root cause, audit end-to-end. Bails out for complex bugs.
+                root cause, and verify the behavior end-to-end.
               </p>
             </a>
             <a
               href="/docs/workflows/setup-rules"
-              className="rounded-xl p-4 border border-border/40 bg-background/30 hover:border-primary/40 hover:bg-background/50 transition-all duration-200 group"
+              className="group flex min-h-20 flex-col gap-2 border-t border-border/50 py-4 sm:flex-row sm:gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex min-w-44 items-center gap-2">
                 <RefreshCw className="h-4 w-4 text-primary" />
                 <code className="text-sm font-medium text-primary">/setup-rules</code>
               </div>
@@ -361,15 +412,28 @@ const WorkflowSteps = () => {
             </a>
             <a
               href="/docs/workflows/create-skill"
-              className="rounded-xl p-4 border border-border/40 bg-background/30 hover:border-primary/40 hover:bg-background/50 transition-all duration-200 group"
+              className="group flex min-h-20 flex-col gap-2 border-t border-border/50 py-4 sm:flex-row sm:gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex min-w-44 items-center gap-2">
                 <Brain className="h-4 w-4 text-primary" />
                 <code className="text-sm font-medium text-primary">/create-skill</code>
               </div>
               <p className="text-xs text-muted-foreground group-hover:text-foreground/80">
                 Build reusable skills from any topic — explores the codebase
                 and creates well-structured skills interactively.
+              </p>
+            </a>
+            <a
+              href="/docs/workflows/benchmark"
+              className="group flex min-h-20 flex-col gap-2 border-t border-border/50 py-4 sm:flex-row sm:gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <div className="flex min-w-44 items-center gap-2">
+                <Gauge className="h-4 w-4 text-primary" />
+                <code className="text-sm font-medium text-primary">/benchmark</code>
+              </div>
+              <p className="text-xs text-muted-foreground group-hover:text-foreground/80">
+                Measure whether a rule, skill, or workflow changes agent
+                behavior with before-and-after assertions.
               </p>
             </a>
           </div>

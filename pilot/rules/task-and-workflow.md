@@ -1,5 +1,6 @@
 # Task & Workflow
 
+<!-- CC-ONLY -->
 ## The two structured workflows are peers
 
 Pilot has **two** ways to run substantial work, and neither is the escalation path for the other:
@@ -18,6 +19,12 @@ Pilot has **two** ways to run substantial work, and neither is the escalation pa
 Each writes a file to its own directory — `/spec` plans to `docs/plans/` (`Type: Feature|Bugfix`), `/build` Buildouts to `docs/builds/` (`Type: Build`) — just as requirements documents get a directory of their own. The `Type:` header, not the directory, is what identifies a file, so a Buildout still in `docs/plans/` from before the split keeps working. Both register with `pilot register-plan`, drive the statusline, appear in the Console, and are held open by the same stop guard. Both count **tasks** as the unit of progress; `/build` adds a small set of acceptance criteria that a judge rules at the end of each round, and counts rounds where `/spec` counts iterations.
 
 **⛔ NEVER auto-invoke `/spec`, `/build`, `Skill('spec')`, or `Skill('build')`.** The user MUST explicitly type it. Suggest, don't invoke.
+<!-- /CC-ONLY -->
+<!-- CODEX-START
+## Pilot workflow skills are opt-in
+
+`$spec`, `$build`, `$fix`, and `$prd` run only when the user explicitly invokes them. A normal request stays in direct execution even when it is large or cross-cutting. Mention these skills only when the user asks about workflows or process.
+CODEX-END -->
 
 <!-- CC-ONLY -->
 ## Plan Mode
@@ -68,41 +75,31 @@ When the user sends a new request mid-work: STOP, TaskCreate for the new request
 - **Deferring a request:** TaskCreate immediately — never just say "noted."
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-Default is quick mode (direct execution).
+Default is direct execution. A clear user request is authorization to execute it in quick mode, including investigation, implementation, verification, and affected documentation.
 
-| Complexity | Action |
-|------------|--------|
-| Trivial (single file, no active tasks) | Execute directly |
-| Any request while tasks exist | Update the current `update_plan` plan first |
-| Moderate (2–5 files) | Create or refresh an `update_plan` plan, then execute |
-| Substantial — architectural, cross-cutting, or the approach is best found while building | **Ask** which workflow: `$spec`, `$build`, or quick mode |
+Size, file count, architectural breadth, and cross-cutting scope change how the work is organized; they do not trigger a workflow question. Descriptions and mentions like "make it good", "build the whole thing", or "do not stop early" likewise strengthen the requested outcome rather than selecting `$build`.
 
-When you do ask, offer both structured workflows and say what separates them in one line each — an approved task list (`$spec`) versus a goal the work goes after without one (`$build`). Never present one as the serious option and the other as a lightweight alternative.
-
-**⛔ Do NOT suggest a structured workflow up front for:** bugfixes (use `$fix` — which escalates to `$spec` itself when scope demands it), single-feature additions, refactors inside one module, CLI flag changes, config tweaks, dependency updates, test additions, or anything already scoped to a clear outcome with no standard attached. When in doubt, execute in quick mode.
-
-**Two signals that outrank the size heuristic**, because they point at a specific workflow rather than at "this is big":
-
-- The user names an end state, says "make it good", or wants the approach discovered while building rather than agreed first → suggest `$build`, whatever the size.
-- The user wants the approach written down and approved before any code exists → suggest `$spec`, whatever the size.
+`$spec`, `$build`, `$fix`, and `$prd` are explicit opt-ins. Enter one only when the user invokes that skill by name. If the user asks which process would fit, explain the choices without starting one. Otherwise do not mention Pilot workflows and do not trigger a workflow question.
 
 ## Task Management
 
-**Use `update_plan` in quick mode for non-trivial work.** Plans are working memory — without them, requests get lost during compaction. Skip only for a truly trivial one-shot.
+Use the native `/goal` state as the persistent outcome when one is active. Keep working until that goal is achieved or genuinely blocked.
 
-### Quick Mode: Plan-First
+Use `update_plan` as optional working memory when several dependent steps would otherwise be easy to lose. A plan is an internal coordination aid, not a user gate, and direct work may begin without one when the request is already clear.
 
-For every non-trivial user request, create or update a concise `update_plan` plan before substantive code/research work: in_progress → work → completed.
+### Quick Mode
+
+Organize complex work into bounded steps, execute them, and keep the current state accurate. Do not pause to ask the user to choose a process merely because the work spans several surfaces.
 
 ### On-Demand Interrupts
 
-When the user sends a new request mid-work: update the plan as your first tool call, then assess priority. If it is not tracked in the plan, it can be forgotten.
+When the user sends a new request mid-work, decide whether it replaces the active request or adds to it. If it adds work and an `update_plan` plan is in use, record it before returning to the current step.
 
 ### Other Rules
 
-- **Session start / continuation:** inspect current state, then create or refresh the `update_plan` plan for the active request.
-- **Cross-session isolation:** use the current conversation's plan as the source of truth; memory may contain other sessions and must not be treated as this session's task list.
-- **Deferring a request:** add it to the plan immediately — never just say "noted."
+- **Session start / continuation:** inspect current state and resume the active request or native goal.
+- **Cross-session isolation:** the current conversation or native goal is authoritative; memory may describe unrelated sessions.
+- **Deferring a request:** record the concrete deferred work in the active plan when one exists.
 CODEX-END -->
 
 ## Tool Usage
@@ -135,7 +132,13 @@ Every subagent re-establishes context, re-explores, and reports back, and then y
 <!-- CODEX-START
 ### Agent Tools
 
-Do not assume Claude Code's agent tool or subagent names exist in Codex. Use only agent tools that are actually listed in the current Codex tool schema; otherwise work directly with CodeGraph, Semble, shell commands, and file reads.
+Do not assume Claude Code's sub-agent tools exist in Codex. The current Codex tool schema is authoritative for names and parameters.
+
+Proactively delegate bounded, independent work when agent tools are listed and parallel execution materially improves speed or quality: separate product surfaces, independent codebase questions, isolated implementation ownership, or a test run that can proceed beside other work. Use the main thread for integrated decisions and work whose files or state overlap.
+
+Give each agent explicit ownership, success evidence, and the warning that other agents share the codebase. Launch independent agents together, keep their returned ids, wait with the mechanism exposed by the current schema, and inspect the resulting files or diff before accepting completion. Do not redo a completed agent's exploration; integrate its evidence and continue.
+
+If no agent tools are listed, work directly with CodeGraph, Semble, shell commands, and file reads. Tool absence changes execution mechanics, not the scope of the user's request.
 CODEX-END -->
 
 ### Web Search/Fetch
@@ -171,19 +174,27 @@ CODEX-END -->
 <!-- CODEX-START
 ### Sub-agents
 
-Do not assume Claude Code's sub-agent tools exist in Codex. Use only agent tools that are actually listed in the current Codex tool schema; otherwise work directly with CodeGraph, Semble, shell commands, and file reads.
+Use the agent tools actually exposed in the current Codex schema. Prefer one agent per concrete, non-overlapping responsibility; several independent responsibilities may run in parallel. Agents may further delegate when the same bounded-ownership rule holds.
 
 When a task changes Codex skills, hooks, rules, or custom agents, verify the generated artifacts directly; the current running session may not expose newly generated agent types until the next install or SessionStart sync.
 
 For long-running Codex subagent or companion tasks, persist returned agent/job ids to a session file before running tests or builds. Do not rely only on conversation memory across compaction.
 CODEX-END -->
 
+<!-- CC-ONLY -->
 ### Background Bash
 
 Use `run_in_background=true` only for long-running processes (dev servers, watchers). Synchronous for tests, lint, git, installs.
+<!-- /CC-ONLY -->
+<!-- CODEX-START
+### Long-running commands
+
+Use the execution tool's current session or background-process capability for dev servers and watchers. Run tests, lint, git reads, and installs synchronously unless their observed duration makes a resumable session necessary.
+CODEX-END -->
 
 ---
 
+<!-- CC-ONLY -->
 ## Workflows
 
 ```
@@ -214,9 +225,10 @@ The phase skills carry their own contracts — dispatch rules, toggles, plan reg
 
 **Deviations:** auto-fix bugs, missing validation, and broken imports inline and document them. **Stop and ask** for architectural changes — a new table, a library swap, a breaking API.
 
-<!-- CC-ONLY -->
 **Stop guard:** when it blocks a stop during `/spec` or `/build`, don't acknowledge it, output resume instructions, or say goodbye. Your very next action is a tool call. Same after any user interruption — re-read the plan or Buildout and resume. In `/build` this hook *is* the loop's goal condition; there is nothing extra for the user to type.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-**Stop guard:** when it blocks a stop during `$spec` or `$build`, don't acknowledge it, output resume instructions, or say goodbye. Your very next action is a tool call — re-read the plan or Buildout, refresh `update_plan`, or make the next change. Same after any user interruption. In `$build` this hook *is* the loop's goal condition.
+## Explicit workflow runs
+
+When the user explicitly invokes a Pilot workflow, its loaded skill is authoritative for its lifecycle, gates, and completion conditions. Until then, none of those workflow mechanics apply to ordinary direct execution.
 CODEX-END -->

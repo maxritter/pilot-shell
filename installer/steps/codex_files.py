@@ -1,7 +1,7 @@
 """Installer step for Codex CLI-specific file installation.
 
 Installs hooks, skills, MCP config, and rules for Codex users.
-Only runs when the Codex CLI binary is detected on the system.
+Only runs when a Codex CLI or ChatGPT-bundled Codex binary is detected.
 """
 
 from __future__ import annotations
@@ -22,14 +22,35 @@ from installer.steps.base import BaseStep
 
 _CODEX_REVIEW_AGENT_MODEL = "codex-auto-review"
 
-# Codex silently truncates AGENTS.md beyond project_doc_max_bytes (default
-# 32 KiB; openai/codex config.schema.json / DEFAULT_PROJECT_DOC_MAX_BYTES).
-# Pilot merges its full rule set into ~/.codex/AGENTS.md (~88 KB and growing),
-# so without this the majority of the rules never reach Codex startup
-# instructions. Raise the ceiling to 1 MiB (a cap, not a preallocation, so it
-# only costs context up to the file's actual size) to guarantee every rule
-# primes startup rather than being dropped at the 32 KiB cutoff.
-_CODEX_PROJECT_DOC_MAX_BYTES = 1024 * 1024
+_CODEX_SKILL_DESCRIPTIONS = {
+    "spec": ("Use only when the user explicitly invokes /spec. Plan, approve, implement, and verify a scoped feature."),
+    "build": (
+        "Use only when the user explicitly invokes /build. Pursue a named goal through autonomous build and "
+        "verification loops."
+    ),
+    "fix": (
+        "Use only when the user explicitly invokes /fix. Diagnose one defect, repair its root cause, and prove "
+        "it end to end."
+    ),
+    "prd": (
+        "Use only when the user explicitly invokes /prd. Turn a rough product idea into an approved requirements "
+        "document."
+    ),
+    "benchmark": "Benchmark rules, skills, or workflows with quantitative before/after evaluations.",
+    "create-skill": (
+        "Create, update, or test a reusable agent skill when the user asks for a skill or repeatable workflow."
+    ),
+    "setup-rules": "Set up, audit, or refresh repository agent rules such as AGENTS.md or CLAUDE.md.",
+    "spec-plan": "Internal /spec feature-planning phase; use only after an explicitly invoked /spec routes here.",
+    "spec-bugfix-plan": "Internal /spec bugfix-planning phase; use only after an explicitly invoked /spec routes here.",
+    "spec-implement": "Internal /spec implementation phase for an approved plan; use only after /spec routes here.",
+    "spec-verify": "Internal /spec feature-verification phase for a completed plan; use only after /spec routes here.",
+    "spec-bugfix-verify": (
+        "Internal /spec bugfix-verification phase for a completed plan; use only after /spec routes here."
+    ),
+}
+
+_CODEX_EXPLICIT_ONLY_SKILL_NAMES = frozenset({"spec", "build", "fix", "prd"})
 
 # Sidecar listing the stack rules Pilot wrote to ~/.codex/rules/, so a later
 # install can drop the ones it no longer ships without touching user files.
@@ -85,7 +106,7 @@ def _label_mcp_servers(n: int) -> str | None:
 
 
 def _label_codex_rules(n: int) -> str | None:
-    return f"Merged {n} rule files AGENTS.md" if n else None
+    return f"Installed Codex guidance ({n} source files)" if n else None
 
 
 class _CodexReport:
@@ -216,6 +237,8 @@ class CodexFilesStep(BaseStep):
             incoming = json.loads(template_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             return 0
+        if not isinstance(incoming, dict):
+            return 0
 
         return self._merge_codex_hooks(codex_dir, incoming)
 
@@ -242,6 +265,10 @@ class CodexFilesStep(BaseStep):
         """
         hooks_file = codex_dir / "hooks.json"
         incoming_hooks = incoming.get("hooks", {})
+        if not isinstance(incoming_hooks, dict) or any(
+            not isinstance(entries, list) for entries in incoming_hooks.values()
+        ):
+            return 0
 
         if not hooks_file.exists():
             hooks_file.parent.mkdir(parents=True, exist_ok=True)
@@ -251,14 +278,23 @@ class CodexFilesStep(BaseStep):
         try:
             existing = json.loads(hooks_file.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
-            _atomic_write(hooks_file, json.dumps(incoming, indent=2) + "\n")
-            return len(incoming_hooks)
+            # A malformed user file is not ours to replace. Leave it byte-for-byte
+            # intact so the user can repair or recover it without losing custom hooks.
+            return 0
 
+        if not isinstance(existing, dict):
+            return 0
         existing_hooks = existing.get("hooks", {})
+        if not isinstance(existing_hooks, dict) or any(
+            not isinstance(entries, list) for entries in existing_hooks.values()
+        ):
+            return 0
 
         merged: dict[str, list[Any]] = {}
 
-        all_events = set(existing_hooks.keys()) | set(incoming_hooks.keys())
+        # Dict insertion order makes the generated file stable across installs:
+        # preserve the user's existing event order, then append new Pilot events.
+        all_events = dict.fromkeys((*existing_hooks, *incoming_hooks))
         for event in all_events:
             existing_entries = existing_hooks.get(event, [])
             incoming_entries = incoming_hooks.get(event, [])
@@ -332,7 +368,13 @@ class CodexFilesStep(BaseStep):
         return len(managed_names)
 
     def _install_codex_rules(self, ctx: InstallContext) -> int:
-        """Merge Pilot Shell rules into ~/.codex/AGENTS.md between markers."""
+        """Install concise Codex guidance and path-specific rules.
+
+        Current installs use ``pilot/codex/AGENTS.md`` as the global managed
+        block. The longer shared rule set remains a fallback for older install
+        payloads that do not yet contain the dedicated Codex source.
+        """
+        guidance_path = self._find_codex_guidance_source(ctx)
         rules_dir: Path | None = None
         if ctx.local_mode and ctx.local_repo_dir:
             candidate = ctx.local_repo_dir / "pilot" / "rules"
@@ -345,17 +387,26 @@ class CodexFilesStep(BaseStep):
                 rules_dir = candidate
         if rules_dir is None:
             rules_dir = _claude_rules_dir_or_none()
-        if rules_dir is None or not rules_dir.is_dir():
+        if guidance_path is None and (rules_dir is None or not rules_dir.is_dir()):
             return 0
 
-        rule_files = sorted(f for f in rules_dir.iterdir() if f.suffix == ".md" and f.is_file())
-        if not rule_files:
+        rule_files = (
+            sorted(f for f in rules_dir.iterdir() if f.suffix == ".md" and f.is_file())
+            if rules_dir is not None and rules_dir.is_dir()
+            else []
+        )
+        if guidance_path is None and not rule_files:
             return 0
 
         codex_dir = _get_codex_config_dir()
         codex_dir.mkdir(parents=True, exist_ok=True)
 
         parts: list[str] = []
+        if guidance_path is not None:
+            try:
+                parts.append(guidance_path.read_text(encoding="utf-8").strip())
+            except OSError:
+                return 0
         stack_rules: list[tuple[str, list[str], str]] = []
         for rule_file in rule_files:
             try:
@@ -366,7 +417,7 @@ class CodexFilesStep(BaseStep):
             adapted = _adapt_invocation_syntax(body)
             if globs:
                 stack_rules.append((rule_file.name, globs, adapted))
-            else:
+            elif guidance_path is None:
                 parts.append(adapted)
 
         if not parts and not stack_rules:
@@ -375,21 +426,15 @@ class CodexFilesStep(BaseStep):
         if stack_index := self._write_codex_stack_rules(codex_dir, stack_rules):
             parts.append(stack_index)
 
-        codex_preamble = (
-            "## Codex Compatibility\n\n"
-            "This agent is Codex CLI. The following Claude Code tools are NOT available:\n\n"
-            "- **`AskUserQuestion`** — not supported. When instructions say to use `AskUserQuestion`, "
-            "instead present numbered options as plain text and ask the user to reply with a number or "
-            "free text. Format: `1. Option A — description\\n2. Option B — description\\n"
-            "Reply with a number or type your preference:`\n"
-            "- **`suppressOutput`** — parsed but not implemented in hook responses. Never rely on it.\n"
-            "- **`systemMessage`** — surfaced as a UI warning or event-stream message; do not use it for hidden context.\n\n"
-            "Tool name mapping: `Edit`/`Write` → `apply_patch` (Codex uses `apply_patch` for file edits, "
-            "but `Edit`/`Write` work as aliases).\n\n"
-            "Skill invocation: use `$skill-name` (not `/skill-name`).\n"
-        )
-
-        managed_content = codex_preamble + "\n\n" + "\n\n".join(parts)
+        if guidance_path is None:
+            codex_preamble = (
+                "## Codex Compatibility\n\n"
+                "Use the current Codex tool schema. "
+                "Skill invocation: use `$skill-name` (not `/skill-name`).\n"
+            )
+            managed_content = codex_preamble + "\n\n" + "\n\n".join(parts)
+        else:
+            managed_content = "\n\n".join(parts)
         block = f"<!-- PILOT:START -->\n{managed_content}\n<!-- PILOT:END -->"
 
         agents_md = codex_dir / "AGENTS.md"
@@ -413,7 +458,16 @@ class CodexFilesStep(BaseStep):
             final = block + "\n"
 
         _atomic_write(agents_md, final)
-        return len(rule_files)
+        return (1 + len(stack_rules)) if guidance_path is not None else len(rule_files)
+
+    def _find_codex_guidance_source(self, ctx: InstallContext) -> Path | None:
+        if getattr(ctx, "local_mode", False) is True and ctx.local_repo_dir is not None:
+            candidate = ctx.local_repo_dir / "pilot" / "codex" / "AGENTS.md"
+            if candidate.is_file():
+                return candidate
+
+        candidate = Path.home() / ".pilot" / "codex" / "AGENTS.md"
+        return candidate if candidate.is_file() else None
 
     def _write_codex_stack_rules(self, codex_dir: Path, stack_rules: list[tuple[str, list[str], str]]) -> str:
         """Write path-gated rules to ~/.codex/rules/ and return their AGENTS.md index.
@@ -458,10 +512,10 @@ class CodexFilesStep(BaseStep):
         )
 
     def _install_codex_config(self, ctx: InstallContext) -> bool:
-        """Set Codex full-access config in ~/.codex/config.toml.
+        """Enable Pilot's Codex integration without changing native policy.
 
-        Top-level keys are inserted before the first [section] header so they
-        don't accidentally land inside an unrelated TOML table.
+        Permissions, model, reasoning effort, personality, editor, warnings,
+        network access, and document limits remain the user's Codex choices.
         """
         _ = ctx
         codex_dir = _get_codex_config_dir()
@@ -475,29 +529,9 @@ class CodexFilesStep(BaseStep):
             except OSError:
                 pass
 
-        required_top_level = {
-            "approval_policy": '"never"',
-            "sandbox_mode": '"danger-full-access"',
-            "model_reasoning_effort": '"xhigh"',
-            "model_reasoning_summary": '"concise"',
-            "personality": '"pragmatic"',
-            "check_for_update_on_startup": "true",
-            "file_opener": '"vscode"',
-            # Suppress the "Under-development features enabled" warning that Codex
-            # prints because we opt into unstable features (e.g. mentions_v2) below.
-            "suppress_unstable_features_warning": "true",
-            # Load the full merged AGENTS.md instead of Codex's 32 KiB default.
-            "project_doc_max_bytes": str(_CODEX_PROJECT_DOC_MAX_BYTES),
-        }
         changed = False
         section_match = re.search(r"(?m)^\[", existing)
         top_level_scope = existing[: section_match.start()] if section_match else existing
-        for key, value in required_top_level.items():
-            if not re.search(rf"(?m)^{re.escape(key)}\s*=", top_level_scope):
-                existing = _insert_top_level_key(existing, key, value)
-                sm = re.search(r"(?m)^\[", existing)
-                top_level_scope = existing[: sm.start()] if sm else existing
-                changed = True
 
         deprecated_keys = ["bypass_hook_trust"]
         for key in deprecated_keys:
@@ -506,26 +540,9 @@ class CodexFilesStep(BaseStep):
                 existing = re.sub(pattern, "", existing)
                 changed = True
 
-        required_features = {
-            "apps": "false",
-            "hooks": "true",
-            "memories": "true",
-            "mentions_v2": "true",
-            "plugins": "true",
-            "terminal_resize_reflow": "true",
-            "tool_call_mcp_elicitation": "true",
-            "tool_search": "true",
-            "tool_suggest": "true",
-            "undo": "true",
-        }
+        required_features = {"hooks": "true"}
         existing, features_changed = _ensure_section_keys(existing, "features", required_features)
         changed = changed or features_changed
-
-        if "[sandbox_workspace_write]" not in existing:
-            if existing and not existing.endswith("\n\n"):
-                existing = existing.rstrip("\n") + "\n\n"
-            existing += "[sandbox_workspace_write]\nnetwork_access = true\n"
-            changed = True
 
         required_tui = {
             "status_line": '["project-name", "model-with-reasoning", "branch-changes", "context-used", "task-progress", "run-state", "five-hour-limit", "weekly-limit"]',
@@ -533,19 +550,6 @@ class CodexFilesStep(BaseStep):
         }
         existing, tui_changed = _ensure_section_keys(existing, "tui", required_tui)
         changed = changed or tui_changed
-
-        if "[notice]" not in existing:
-            if existing and not existing.endswith("\n\n"):
-                existing = existing.rstrip("\n") + "\n\n"
-            existing += "[notice]\nhide_full_access_warning = true\n"
-            changed = True
-        elif "hide_full_access_warning" not in existing:
-            idx = existing.index("[notice]")
-            newline_idx = existing.find("\n", idx)
-            end = newline_idx + 1 if newline_idx != -1 else len(existing)
-            insert_prefix = "" if end == 0 or existing[end - 1 : end] == "\n" else "\n"
-            existing = existing[:end] + insert_prefix + "hide_full_access_warning = true\n" + existing[end:]
-            changed = True
 
         if changed:
             _validate_toml_structure(existing)
@@ -570,6 +574,7 @@ class CodexFilesStep(BaseStep):
     )
 
     _CODEX_STALE_SKILLS = frozenset({"bot-boot", "bot-channel-task", "bot-defaults", "bot-heartbeat", "bot-jobs"})
+    _CODEX_EXPLICIT_ONLY_SKILLS = _CODEX_EXPLICIT_ONLY_SKILL_NAMES
     # Keep in sync with pilot/hooks/codex_skill_sync.py:_SUPPORTED_REVIEW_AGENTS
     # (.claude/rules/pilot-shell-codex-skill-sync.md). Names only -- the sibling
     # `<name>-codex.md` files are companion prompt templates for `task
@@ -588,9 +593,8 @@ class CodexFilesStep(BaseStep):
         # Source is the ACTIVE Claude profile: with CLAUDE_CONFIG_DIR set, a
         # hardcoded ~/.claude finds nothing and Codex silently gets zero skills.
         # ~/.agents is NOT relocatable (Codex derives it from $HOME).
-        try:
-            claude_skills_dir = get_claude_config_dir() / "skills"
-        except ValueError:
+        claude_skills_dir = self._find_codex_skills_source(ctx)
+        if claude_skills_dir is None:
             return 0
         agents_skills_dir = Path.home() / ".agents" / "skills"
 
@@ -621,8 +625,27 @@ class CodexFilesStep(BaseStep):
             dest_dir = agents_skills_dir / skill_dir.name
             dest_dir.mkdir(parents=True, exist_ok=True)
             _atomic_write(dest_dir / "SKILL.md", codex_content)
+            metadata_dir = dest_dir / "agents"
+            metadata_dir.mkdir(parents=True, exist_ok=True)
+            _atomic_write(metadata_dir / "openai.yaml", build_codex_skill_openai_yaml(skill_dir))
             written += 1
         return written
+
+    def _find_codex_skills_source(self, ctx: InstallContext) -> Path | None:
+        if getattr(ctx, "local_mode", False) is True and ctx.local_repo_dir is not None:
+            candidate = ctx.local_repo_dir / "pilot" / "skills"
+            if candidate.is_dir():
+                return candidate
+
+        neutral = Path.home() / ".pilot" / "skills"
+        if neutral.is_dir():
+            return neutral
+
+        try:
+            fallback = get_claude_config_dir() / "skills"
+        except ValueError:
+            return None
+        return fallback if fallback.is_dir() else None
 
     def _find_codex_review_agents_source(self, ctx: InstallContext) -> Path | None:
         """Locate the source markdown agents used to build Codex custom agents."""
@@ -632,6 +655,10 @@ class CodexFilesStep(BaseStep):
                 candidate = local_repo_dir / "pilot" / "agents"
                 if candidate.is_dir():
                     return candidate
+
+        neutral = Path.home() / ".pilot" / "agents"
+        if neutral.is_dir():
+            return neutral
 
         try:
             candidate = get_claude_config_dir() / "agents"
@@ -981,6 +1008,7 @@ def build_codex_skill_md(skill_dir: Path) -> str:
     content = build_skill_md(skill_dir)
 
     name, description = _extract_skill_metadata(content)
+    description = _CODEX_SKILL_DESCRIPTIONS.get(name, description)
     description = _adapt_invocation_syntax(description)
 
     adapted = _adapt_invocation_syntax(content)
@@ -992,6 +1020,28 @@ def build_codex_skill_md(skill_dir: Path) -> str:
 
     frontmatter = f"---\nname: {name}\ndescription: {description}\n---\n\n"
     return frontmatter + adapted
+
+
+def build_codex_skill_openai_yaml(skill_dir: Path) -> str:
+    """Build Codex UI metadata and invocation policy for a Pilot skill."""
+    from installer.skill_builder import build_skill_md
+
+    name, description = _extract_skill_metadata(build_skill_md(skill_dir))
+    description = _CODEX_SKILL_DESCRIPTIONS.get(name, description)
+    description = _adapt_invocation_syntax(description)
+    compact_description = " ".join(description.split())
+    if len(compact_description) > 160:
+        compact_description = compact_description[:157].rsplit(" ", 1)[0] + "..."
+
+    display_name = name.replace("-", " ").title()
+    implicit = name not in CodexFilesStep._CODEX_EXPLICIT_ONLY_SKILLS
+    return (
+        "interface:\n"
+        f"  display_name: {json.dumps(display_name)}\n"
+        f"  short_description: {json.dumps(compact_description)}\n"
+        "policy:\n"
+        f"  allow_implicit_invocation: {'true' if implicit else 'false'}\n"
+    )
 
 
 def build_codex_review_agent_toml(agent_file: Path) -> str:
@@ -1194,11 +1244,18 @@ def _adapt_invocation_syntax(content: str) -> str:
     return adapted
 
 
-def _is_pilot_managed_entry(entry: dict[str, Any]) -> bool:
+def _is_pilot_managed_entry(entry: Any) -> bool:
     """Check if a hook entry is Pilot Shell-managed (references ~/.pilot/ paths)."""
-    for hook in entry.get("hooks", []):
+    if not isinstance(entry, dict):
+        return False
+    hooks = entry.get("hooks", [])
+    if not isinstance(hooks, list):
+        return False
+    for hook in hooks:
+        if not isinstance(hook, dict):
+            continue
         cmd = hook.get("command", "")
-        if "/.pilot/" in cmd:
+        if isinstance(cmd, str) and "/.pilot/" in cmd:
             return True
     return False
 

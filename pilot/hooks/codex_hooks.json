@@ -6,17 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/license_check.py\"",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codegraph_init.py\"",
-            "timeout": 120
-          },
-          {
-            "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codex_skill_sync.py\"",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codex_background.py\" --python \"$HOME/.pilot/hooks/codex_skill_sync.py\"",
             "timeout": 30
           }
         ]
@@ -57,8 +47,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex session-init",
-            "timeout": 5
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codex_background.py\" -- bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex session-init",
+            "timeout": 15
           }
         ]
       }
@@ -77,32 +67,12 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "apply_patch|Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/file_checker.py\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "apply_patch|Edit|Write|Bash|Read",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/context_monitor.py\"",
-            "timeout": 3
-          }
-        ]
-      },
-      {
         "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex observation",
-            "timeout": 3
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codex_background.py\" -- bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex observation",
+            "timeout": 15
           }
         ]
       }
@@ -117,17 +87,18 @@
           },
           {
             "type": "command",
-            "command": "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex summarize",
-            "timeout": 10
-          },
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codex_background.py\" -- bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex summarize",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/session_end.py\"",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex auto-export",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/session_end.py\" --session-end",
             "timeout": 3
           }
         ]

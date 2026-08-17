@@ -1,21 +1,22 @@
 ---
 sidebar_label: Claude Code vs Codex
-description: What works with both agents and what requires Claude Code.
+description: Pilot Shell support for Codex CLI and the ChatGPT desktop app, including shared workflows and platform differences from Claude Code.
 ---
 
 # Claude Code vs Codex
 
-Pilot Shell supports both agents. **Claude Code is the preferred agent** — it has full feature coverage. Codex works for all daily development workflows.
+Pilot Shell supports both agents. **Claude Code is the preferred agent** and has full feature coverage; Codex works for all daily development workflows with fewer platform features. Pilot works with Codex CLI and with the Codex runtime bundled in the ChatGPT desktop app on macOS.
 
 ## Works on Both
 
 All core and additional workflows run on both agents. Use `/` on Claude Code and `$` on Codex:
 
 - `/spec`, `/build`, `/fix`, `/prd`, `/benchmark`, `/setup-rules`, `/create-skill`
-- Console — all 10 views, persistent memory, sessions, and memories shared between agents
-- Quality hooks and TDD enforcement
+- Console — all 11 views, persistent memory, sessions, and memories shared between agents
+- Lifecycle hooks, compaction recovery, SessionEnd finalization, and workflow stop guards
+- Workflow quality gates on both agents; Claude Code additionally keeps its edit-time lint, format, type, and TDD hooks
 - MCP servers (CodeGraph, Semble, mem-search, web-search, and more)
-- Rules, standards, and context optimization
+- Rules, standards, context optimization, and team memories
 - Spec-review and changes-review agents
 
 ## Claude Code Only
@@ -23,9 +24,9 @@ All core and additional workflows run on both agents. Use `/` on Claude Code and
 - **Status line** — real-time session metrics below every response
 - **Pilot Bot** — scheduled tasks and background automation
 - **Remote control** — connect from the Claude app / browser, plus channels (Telegram, Discord, iMessage)
-- **Language Server integration** — LSP-driven diagnostics, hover docs, and go-to-definition (Codex still gets the same linting via the file-checker hook)
+- **Language Server integration** — LSP-driven diagnostics, hover docs, and go-to-definition (Codex uses repository lint/type commands during verification rather than an edit-time file-checker hook)
 - **Model switching** — `/model` command to change models mid-session (Codex sets model via `codex --model` or `config.toml`)
-- **`/effort ultracode`** — the parallel-surfaces escalation in [`/build`](/docs/workflows/build); Codex runs those surfaces sequentially instead. The rest of `$build` — Buildout file, stop-guard-held loop, statusline, Console — works identically.
+- **`/effort ultracode`** — Claude Code's additional whole-project orchestration mode
 - **Permission modes** — `Shift+Tab` cycle and Auto Mode classifier (Codex uses `approval_policy` in `config.toml`)
 - **Codex companion reviews** — OpenAI adversarial review launched from within Claude Code
 - **Team-sharing of extensions** — push/pull of `~/.claude/` extensions through a git remote

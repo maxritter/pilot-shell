@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+import yaml
 
 from installer.steps.codex_files import (
     CodexFilesStep,
@@ -17,6 +18,8 @@ from installer.steps.codex_files import (
     _ensure_section_keys,
     _validate_toml_structure,
     build_codex_review_agent_toml,
+    build_codex_skill_md,
+    build_codex_skill_openai_yaml,
 )
 
 
@@ -37,6 +40,25 @@ class TestCodexFilesStepSkipsWhenNoCodex:
             return_value=False,
         ):
             step.run(ctx)
+
+    def test_run_does_not_request_sudo_for_desktop_open_file_limits(self) -> None:
+        step = CodexFilesStep()
+        ctx = MagicMock()
+        ctx.ui = MagicMock()
+        with (
+            patch("installer.steps.codex_files.is_codex_installed", return_value=True),
+            patch.object(step, "_install_codex_hooks", return_value=0),
+            patch.object(step, "_install_codex_skills", return_value=0),
+            patch.object(step, "_install_codex_agents", return_value=0),
+            patch.object(step, "_install_codex_config", return_value=False),
+            patch.object(step, "_install_codex_mcp", return_value=0),
+            patch.object(step, "_install_codex_rules", return_value=0),
+            patch.object(step, "_heal_codex_config_env"),
+        ):
+            step.run(ctx)
+
+        messages = [str(call.args[0]) for call in ctx.ui.method_calls if call.args]
+        assert not any("sudo" in message.lower() or "open-file limit" in message.lower() for message in messages)
 
     def test_run_warns_and_returns_when_codex_home_is_relative(self) -> None:
         step = CodexFilesStep()
@@ -161,6 +183,54 @@ class TestCodexHooksInstallation:
         assert "Stop" in hooks
         assert "PreCompact" in hooks
 
+    def test_real_template_is_compatible_with_stable_codex_hooks(self, tmp_path: Path) -> None:
+        codex_dir = tmp_path / ".codex"
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent.parent
+        ctx = MagicMock(ui=None, local_mode=True, local_repo_dir=repo_root)
+
+        with patch("installer.steps.codex_files._get_codex_config_dir", return_value=codex_dir):
+            CodexFilesStep()._install_codex_hooks(ctx)
+
+        hooks = json.loads((codex_dir / "hooks.json").read_text())["hooks"]
+        handlers = [handler for entries in hooks.values() for entry in entries for handler in entry.get("hooks", [])]
+        assert all("async" not in handler for handler in handlers)
+        session_end = [handler for entry in hooks["SessionEnd"] for handler in entry["hooks"]]
+        assert session_end[0]["timeout"] == 3
+
+    def test_upgrade_replaces_old_async_pilot_hooks_but_preserves_user_hooks(self, tmp_path: Path) -> None:
+        codex_dir = tmp_path / ".codex"
+        codex_dir.mkdir(parents=True)
+        old = {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "hooks": [
+                            {
+                                "type": "command",
+                                "command": 'bun "$HOME/.pilot/scripts/worker-service.cjs" hook codex observation',
+                                "async": True,
+                            }
+                        ]
+                    },
+                    {"hooks": [{"type": "command", "command": "my-custom-hook.sh", "async": True}]},
+                ]
+            }
+        }
+        (codex_dir / "hooks.json").write_text(json.dumps(old))
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent.parent
+        ctx = MagicMock(ui=None, local_mode=True, local_repo_dir=repo_root)
+
+        with patch("installer.steps.codex_files._get_codex_config_dir", return_value=codex_dir):
+            CodexFilesStep()._install_codex_hooks(ctx)
+
+        hooks = json.loads((codex_dir / "hooks.json").read_text())["hooks"]
+        post_tool_handlers = [handler for entry in hooks["PostToolUse"] for handler in entry["hooks"]]
+        pilot = next(handler for handler in post_tool_handlers if "/.pilot/" in handler["command"])
+        user = next(handler for handler in post_tool_handlers if handler["command"] == "my-custom-hook.sh")
+        assert "async" not in pilot
+        assert "codex_background.py" in pilot["command"]
+        assert user["async"] is True
+
     def test_merge_preserves_user_posttooluse_hooks(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"
         codex_dir.mkdir(parents=True)
@@ -192,6 +262,40 @@ class TestCodexHooksInstallation:
         assert any("my-custom-hook.sh" in cmd for cmd in all_commands)
         assert any("observation" in cmd for cmd in all_commands)
 
+    def test_merge_preserves_invalid_existing_hooks_file(self, tmp_path: Path) -> None:
+        codex_dir = tmp_path / ".codex"
+        codex_dir.mkdir(parents=True)
+        hooks_file = codex_dir / "hooks.json"
+        invalid = '{"hooks": {"SessionStart": [}'
+        hooks_file.write_text(invalid)
+
+        incoming = {"hooks": {"SessionStart": [{"hooks": [{"command": "echo pilot"}]}]}}
+
+        assert CodexFilesStep()._merge_codex_hooks(codex_dir, incoming) == 0
+        assert hooks_file.read_text() == invalid
+
+    def test_merge_keeps_existing_event_order_then_appends_new_events(self, tmp_path: Path) -> None:
+        codex_dir = tmp_path / ".codex"
+        codex_dir.mkdir(parents=True)
+        existing = {
+            "hooks": {
+                "PreToolUse": [{"hooks": [{"command": "echo user-pre"}]}],
+                "Stop": [{"hooks": [{"command": "echo user-stop"}]}],
+            }
+        }
+        (codex_dir / "hooks.json").write_text(json.dumps(existing))
+        incoming = {
+            "hooks": {
+                "SessionStart": [{"hooks": [{"command": "$HOME/.pilot/hooks/start.py"}]}],
+                "Stop": [{"hooks": [{"command": "$HOME/.pilot/hooks/stop.py"}]}],
+            }
+        }
+
+        CodexFilesStep()._merge_codex_hooks(codex_dir, incoming)
+
+        merged = json.loads((codex_dir / "hooks.json").read_text())
+        assert list(merged["hooks"]) == ["PreToolUse", "Stop", "SessionStart"]
+
 
 class TestCodexSkillsInstallation:
     def test_builds_codex_skill_with_frontmatter(self, tmp_path: Path) -> None:
@@ -218,7 +322,7 @@ class TestCodexSkillsInstallation:
         result = build_codex_skill_md(skill_dir)
         assert result.startswith("---\n")
         assert "name: fix" in result
-        assert "description: Bugfix workflow" in result
+        assert "Use only when the user explicitly invokes $fix" in result
         assert "# /fix" in result or "# $fix" in result
         assert "Implement the fix." in result
 
@@ -300,6 +404,99 @@ class TestCodexSkillsInstallation:
         content = skill_md.read_text()
         assert content.startswith("---\n")
         assert "name: fix" in content
+
+        metadata = yaml.safe_load((agents_skills_dir / "fix" / "agents" / "openai.yaml").read_text())
+        assert metadata["interface"]["display_name"] == "Fix"
+        assert metadata["policy"]["allow_implicit_invocation"] is False
+
+    def test_workflow_skills_are_explicit_but_utility_skills_remain_discoverable(self, tmp_path: Path) -> None:
+        pilot_skills_dir = tmp_path / ".claude" / "skills"
+        for name in ("build", "benchmark"):
+            skill_dir = pilot_skills_dir / name
+            skill_dir.mkdir(parents=True)
+            (skill_dir / "manifest.json").write_text(
+                json.dumps({"version": 1, "orchestrator": "orchestrator.md", "steps": []})
+            )
+            (skill_dir / "orchestrator.md").write_text(
+                f"---\nname: {name}\ndescription: {name.title()} workflow\n---\n\n# {name}\n"
+            )
+
+        step = CodexFilesStep()
+        ctx = MagicMock()
+        ctx.ui = None
+        with patch("installer.steps.codex_files.Path.home", return_value=tmp_path):
+            step._install_codex_skills(ctx)
+
+        skills = tmp_path / ".agents" / "skills"
+        build_meta = yaml.safe_load((skills / "build" / "agents" / "openai.yaml").read_text())
+        benchmark_meta = yaml.safe_load((skills / "benchmark" / "agents" / "openai.yaml").read_text())
+        assert build_meta["policy"]["allow_implicit_invocation"] is False
+        assert benchmark_meta["policy"]["allow_implicit_invocation"] is True
+
+    def test_internal_spec_phases_remain_dispatchable_after_explicit_spec_entry(self) -> None:
+        metadata = yaml.safe_load(build_codex_skill_openai_yaml(Path("pilot/skills/spec-plan")))
+
+        assert metadata["policy"]["allow_implicit_invocation"] is True
+
+    def test_visible_pilot_skill_descriptions_fit_a_lean_catalog_budget(self) -> None:
+        visible_names = (
+            "benchmark",
+            "create-skill",
+            "setup-rules",
+            "spec-plan",
+            "spec-bugfix-plan",
+            "spec-implement",
+            "spec-verify",
+            "spec-bugfix-verify",
+        )
+        descriptions: list[str] = []
+        for name in visible_names:
+            content = build_codex_skill_md(Path("pilot/skills") / name)
+            description = yaml.safe_load(content.split("---", 2)[1])["description"]
+            metadata = yaml.safe_load(build_codex_skill_openai_yaml(Path("pilot/skills") / name))
+            assert metadata["interface"]["short_description"] == description
+            assert metadata["policy"]["allow_implicit_invocation"] is True
+            assert len(description) <= 120
+            descriptions.append(description)
+
+        assert sum(map(len, descriptions)) <= 800
+
+    @pytest.mark.parametrize("skill_name", ["build", "spec", "fix", "prd"])
+    def test_explicit_workflow_descriptions_are_also_concise(self, skill_name: str) -> None:
+        content = build_codex_skill_md(Path("pilot/skills") / skill_name)
+        description = yaml.safe_load(content.split("---", 2)[1])["description"]
+
+        assert len(description) <= 120
+        assert f"explicitly invokes ${skill_name}" in description
+
+    @pytest.mark.parametrize(
+        "skill_name",
+        ["spec-plan", "spec-bugfix-plan", "spec-implement", "spec-verify", "spec-bugfix-verify"],
+    )
+    def test_internal_phase_descriptions_cannot_route_ordinary_requests(self, skill_name: str) -> None:
+        content = build_codex_skill_md(Path("pilot/skills") / skill_name)
+        description = yaml.safe_load(content.split("---", 2)[1])["description"]
+
+        assert description.startswith("Internal $spec")
+        assert "only after" in description
+
+    def test_openai_yaml_is_valid_for_codex_skill_discovery(self, tmp_path: Path) -> None:
+        skill_dir = tmp_path / "skills" / "spec"
+        skill_dir.mkdir(parents=True)
+        (skill_dir / "manifest.json").write_text(
+            json.dumps({"version": 1, "orchestrator": "orchestrator.md", "steps": []})
+        )
+        (skill_dir / "orchestrator.md").write_text(
+            "---\nname: spec\ndescription: Plan and implement an approved task list.\n---\n\n# Spec\n"
+        )
+
+        metadata = yaml.safe_load(build_codex_skill_openai_yaml(skill_dir))
+
+        assert metadata["interface"]["display_name"] == "Spec"
+        description = metadata["interface"]["short_description"]
+        assert "explicitly invokes $spec" in description
+        assert "/spec" not in description
+        assert metadata["policy"] == {"allow_implicit_invocation": False}
 
     def test_builds_codex_review_agent_toml_without_output_path_contract(self) -> None:
         result = build_codex_review_agent_toml(Path("pilot/agents/spec-review.md"))
@@ -556,6 +753,56 @@ class TestCodexSkillsInstallation:
 
 
 class TestCodexRulesInstallation:
+    def test_prefers_lean_codex_guidance_over_merged_global_rules(self, tmp_path: Path) -> None:
+        codex_dir = tmp_path / ".codex"
+        source = tmp_path / "source"
+        guidance = source / "pilot" / "codex" / "AGENTS.md"
+        guidance.parent.mkdir(parents=True)
+        guidance.write_text("# Pilot for Codex\n\nExecute clear requests directly.\n")
+        rules = source / "pilot" / "rules"
+        rules.mkdir(parents=True)
+        (rules / "legacy-core.md").write_text("FORCE A WORKFLOW CHOICE")
+
+        step = CodexFilesStep()
+        ctx = MagicMock()
+        ctx.ui = None
+        ctx.local_mode = True
+        ctx.local_repo_dir = source
+
+        with patch("installer.steps.codex_files._get_codex_config_dir", return_value=codex_dir):
+            source_count = step._install_codex_rules(ctx)
+
+        installed = (codex_dir / "AGENTS.md").read_text()
+        assert "Execute clear requests directly." in installed
+        assert "FORCE A WORKFLOW CHOICE" not in installed
+        assert source_count == 1
+
+    def test_distributed_install_uses_staged_lean_codex_guidance(self, tmp_path: Path) -> None:
+        codex_dir = tmp_path / ".codex"
+        guidance = tmp_path / ".pilot" / "codex" / "AGENTS.md"
+        guidance.parent.mkdir(parents=True)
+        guidance.write_text("# Pilot for Codex\n\nDirect work is the default.\n")
+        rules = tmp_path / ".pilot" / "rules"
+        rules.mkdir(parents=True)
+        (rules / "legacy-core.md").write_text("FORCE A WORKFLOW CHOICE")
+
+        step = CodexFilesStep()
+        ctx = MagicMock()
+        ctx.ui = None
+        ctx.local_mode = False
+        ctx.local_repo_dir = None
+
+        with (
+            patch("installer.steps.codex_files._get_codex_config_dir", return_value=codex_dir),
+            patch("installer.steps.codex_files.Path.home", return_value=tmp_path),
+        ):
+            source_count = step._install_codex_rules(ctx)
+
+        installed = (codex_dir / "AGENTS.md").read_text()
+        assert "Direct work is the default." in installed
+        assert "FORCE A WORKFLOW CHOICE" not in installed
+        assert source_count == 1
+
     def test_creates_agents_md_with_markers(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"
         codex_dir.mkdir(parents=True)
@@ -1075,6 +1322,32 @@ class TestAdaptInvocationSyntax:
         assert "Before." in result
         assert "After." in result
 
+    def test_real_task_workflow_codex_executes_clear_requests_directly(self) -> None:
+        """Cross-cutting scope must not turn into a workflow-choice gate."""
+        from installer.steps.codex_files import _adapt_invocation_syntax
+
+        source = Path("pilot/rules/task-and-workflow.md").read_text(encoding="utf-8")
+        result = _adapt_invocation_syntax(source)
+
+        assert "A clear user request is authorization to execute" in result
+        assert "Size, file count, architectural breadth, and cross-cutting scope" in result
+        assert "do not trigger a workflow question" in result
+        assert 'mentions like "make it good"' in result
+        assert "Ask which workflow" not in result
+        assert "offer both structured workflows" not in result
+        assert "suggest `$build`" not in result
+
+    def test_real_task_workflow_codex_allows_proactive_bounded_agents(self) -> None:
+        from installer.steps.codex_files import _adapt_invocation_syntax
+
+        source = Path("pilot/rules/task-and-workflow.md").read_text(encoding="utf-8")
+        result = _adapt_invocation_syntax(source)
+
+        assert "Proactively delegate bounded, independent work" in result
+        assert "Give each agent explicit ownership" in result
+        assert "Do not redo a completed agent's exploration" in result
+        assert "Do not assume Claude Code's sub-agent tools exist" in result
+
     def test_cc_only_stripped_and_codex_revealed(self) -> None:
         from installer.steps.codex_files import _adapt_invocation_syntax
 
@@ -1151,8 +1424,9 @@ class TestAdaptInvocationSyntax:
         result = build_codex_skill_md(Path("pilot/skills/spec-plan"))
         assert "review agents are not available in Codex CLI" not in result
         assert "Skip automated plan review agents" not in result
-        assert "multi_agent_v1.spawn_agent" in result
-        assert "multi_agent_v1.wait_agent" in result
+        assert "multi_agent_v1" not in result
+        assert "spawn-agent tool exposed in the current Codex tool schema" in result
+        assert "wait mechanism exposed in the current Codex tool schema" in result
         assert 'agent_type="spec-review"' in result
         assert "PILOT_SPEC_REVIEW_ENABLED" in result
         assert "PILOT_CODEX_SPEC_REVIEW_ENABLED" not in result
@@ -1164,8 +1438,9 @@ class TestAdaptInvocationSyntax:
         assert "No reviewer agents in Codex" not in result
         assert "Skip automated code review agents" not in result
         assert "reviewer agents were launched (not available in Codex CLI)" not in result
-        assert "multi_agent_v1.spawn_agent" in result
-        assert "multi_agent_v1.wait_agent" in result
+        assert "multi_agent_v1" not in result
+        assert "spawn-agent tool exposed in the current Codex tool schema" in result
+        assert "wait mechanism exposed in the current Codex tool schema" in result
         assert 'agent_type="changes-review"' in result
         assert "changes-review-agent-id-" in result
         assert "Do not silently skip review" in result
@@ -1175,6 +1450,41 @@ class TestAdaptInvocationSyntax:
         assert "Final-status-only findings are not implementation fixes" in result
         assert "PILOT_CHANGES_REVIEW_ENABLED" in result
         assert "PILOT_CODEX_CHANGES_REVIEW_ENABLED" not in result
+
+    @pytest.mark.parametrize("skill_name", ["build", "spec-plan", "spec-verify", "fix"])
+    def test_codex_review_skills_never_emit_stale_agent_namespace(self, skill_name: str) -> None:
+        from installer.steps.codex_files import build_codex_skill_md
+
+        result = build_codex_skill_md(Path("pilot/skills") / skill_name)
+        assert "multi_agent_v1" not in result
+
+    @pytest.mark.parametrize("skill_name", ["build", "spec", "fix", "prd"])
+    def test_codex_structured_workflows_are_explicit_invocation_only(self, skill_name: str) -> None:
+        from installer.steps.codex_files import build_codex_skill_md, build_codex_skill_openai_yaml
+
+        result = build_codex_skill_md(Path("pilot/skills") / skill_name)
+        assert f"Use only when the user explicitly invokes ${skill_name}" in result
+        metadata = yaml.safe_load(build_codex_skill_openai_yaml(Path("pilot/skills") / skill_name))
+        assert f"${skill_name}" in metadata["interface"]["short_description"]
+        assert metadata["policy"]["allow_implicit_invocation"] is False
+
+    @pytest.mark.parametrize("skill_name", ["build", "spec-implement", "spec-bugfix-verify"])
+    def test_codex_workflow_skills_allow_bounded_delegation(self, skill_name: str) -> None:
+        from installer.steps.codex_files import build_codex_skill_md
+
+        result = build_codex_skill_md(Path("pilot/skills") / skill_name)
+        assert "bounded" in result.lower()
+        assert "independent" in result.lower()
+        assert "NO sub-agents" not in result
+        assert "No delegated agents inside the loop" not in result
+
+    def test_codex_create_skill_uses_available_agent_and_web_tools(self) -> None:
+        from installer.steps.codex_files import build_codex_skill_md
+
+        result = build_codex_skill_md(Path("pilot/skills/create-skill"))
+        assert "Subagent and web tools are not available in Codex" not in result
+        assert "Codex does not support parallel subagents" not in result
+        assert "current Codex tool schema" in result
 
     def test_real_spec_verify_codex_strips_inline_code_review_blocks(self) -> None:
         """The CC-only inline /code-review flow (Skill invocation + Plan
@@ -1426,14 +1736,14 @@ class TestDeprecatedKeyRemoval:
         result = config.read_text()
         assert "bypass_hook_trust" not in result
         assert "hooks = true" in result
-        assert "undo = true" in result
-        assert "mentions_v2 = true" in result
-        assert "tool_search = true" in result
-        assert "apps = false" in result
+        assert "undo" not in result
+        assert "mentions_v2" not in result
+        assert "tool_search" not in result
+        assert "apps" not in result
 
 
-class TestUnstableFeaturesWarningSuppression:
-    def test_suppresses_unstable_features_warning_on_fresh_config(self, tmp_path: Path) -> None:
+class TestNativeWarningsPreserved:
+    def test_does_not_suppress_codex_warnings_on_fresh_config(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"
         codex_dir.mkdir(parents=True)
         config = codex_dir / "config.toml"
@@ -1449,13 +1759,10 @@ class TestUnstableFeaturesWarningSuppression:
             step._install_codex_config(ctx)
 
         result = config.read_text()
-        assert "suppress_unstable_features_warning = true" in result
-        # Must be a top-level key, inserted before the first [section] header.
-        first_section = result.index("[")
-        assert "suppress_unstable_features_warning" in result[:first_section]
+        assert "suppress_unstable_features_warning" not in result
         _validate_toml_structure(result)
 
-    def test_does_not_duplicate_existing_suppression(self, tmp_path: Path) -> None:
+    def test_preserves_user_selected_suppression(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"
         codex_dir.mkdir(parents=True)
         config = codex_dir / "config.toml"
@@ -1559,16 +1866,12 @@ class TestMcpMarkerReplacement:
         _validate_toml_structure(result)
 
 
-class TestProjectDocMaxBytes:
-    """Codex silently truncates AGENTS.md beyond project_doc_max_bytes (default
-    32 KiB). Pilot's merged rules are ~88 KB, so the installer must raise the
-    ceiling or most rules never prime Codex startup instructions."""
-
-    def test_raises_project_doc_max_bytes_above_codex_default(self, tmp_path: Path) -> None:
+class TestCodexNativeDefaults:
+    def test_fresh_install_does_not_override_codex_policy_or_preferences(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"
         codex_dir.mkdir(parents=True)
         config = codex_dir / "config.toml"
-        config.write_text('approval_policy = "never"\n')
+        config.write_text("")
 
         step = CodexFilesStep()
         ctx = MagicMock()
@@ -1580,23 +1883,34 @@ class TestProjectDocMaxBytes:
             step._install_codex_config(ctx)
 
         result = config.read_text()
-        # Must be a top-level key, inserted before the first [section] header.
-        first_section = result.index("[")
-        assert "project_doc_max_bytes" in result[:first_section]
         parsed = tomllib.loads(result)
-        value = parsed["project_doc_max_bytes"]
-        assert isinstance(value, int)
-        # Must exceed Codex's 32 KiB default that causes the truncation, with
-        # real headroom above the current ~88 KB merged AGENTS.md.
-        assert value > 32768
-        assert value >= 131072
+        for key in (
+            "approval_policy",
+            "sandbox_mode",
+            "model_reasoning_effort",
+            "model_reasoning_summary",
+            "personality",
+            "file_opener",
+            "project_doc_max_bytes",
+            "suppress_unstable_features_warning",
+        ):
+            assert key not in parsed
+        assert parsed["features"] == {"hooks": True}
+        assert "sandbox_workspace_write" not in parsed
+        assert "notice" not in parsed
         _validate_toml_structure(result)
 
-    def test_preserves_user_project_doc_max_bytes(self, tmp_path: Path) -> None:
+    def test_preserves_existing_user_policy_and_preferences(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"
         codex_dir.mkdir(parents=True)
         config = codex_dir / "config.toml"
-        config.write_text('approval_policy = "never"\nproject_doc_max_bytes = 65536\n')
+        config.write_text(
+            'approval_policy = "on-request"\n'
+            'sandbox_mode = "workspace-write"\n'
+            'model_reasoning_effort = "medium"\n'
+            'personality = "friendly"\n'
+            "project_doc_max_bytes = 65536\n"
+        )
 
         step = CodexFilesStep()
         ctx = MagicMock()
@@ -1608,8 +1922,12 @@ class TestProjectDocMaxBytes:
             step._install_codex_config(ctx)
 
         result = config.read_text()
-        assert result.count("project_doc_max_bytes") == 1
-        assert tomllib.loads(result)["project_doc_max_bytes"] == 65536
+        parsed = tomllib.loads(result)
+        assert parsed["approval_policy"] == "on-request"
+        assert parsed["sandbox_mode"] == "workspace-write"
+        assert parsed["model_reasoning_effort"] == "medium"
+        assert parsed["personality"] == "friendly"
+        assert parsed["project_doc_max_bytes"] == 65536
 
 
 class TestCodexConfigEnvHeal:

@@ -176,23 +176,19 @@ Reproducing test: <test file>::<test name>
 PLAN_EOF
 ```
 
-2. Spawn the review agent and wait for its final JSON response:
+2. Use the spawn-agent tool exposed in the current Codex tool schema with `agent_type="changes-review"` and this message:
 
-```python
-review = multi_agent_v1.spawn_agent(
-    agent_type="changes-review",
-    message="""
-    Plan file: <FIX_PLAN_FILE path>
-    User request: Bugfix — <one-line bug>
-    Changed files: [git status --short list]
-
-    Review the bugfix diff: quality and goal achievement. The "plan" is a one-page bugfix
-    summary, not a multi-task spec — judge compliance against the bug, not absent feature tasks.
-    Return ONLY valid JSON matching the changes-review schema. Include the plan file path in `plan_file`.
-    """,
-)
-result = multi_agent_v1.wait_agent(targets=[review.agent_id], timeout_ms=600000)
 ```
+Plan file: <FIX_PLAN_FILE path>
+User request: Bugfix — <one-line bug>
+Changed files: [git status --short list]
+
+Review the bugfix diff: quality and goal achievement. The "plan" is a one-page bugfix
+summary, not a multi-task spec — judge compliance against the bug, not absent feature tasks.
+Return ONLY valid JSON matching the changes-review schema. Include the plan file path in `plan_file`.
+```
+
+Keep the returned agent id, then use the wait mechanism exposed in the current Codex tool schema. Follow the actual parameters shown by the tools; do not invent a namespace or reuse a call signature from another Codex version.
 
 3. Parse the final message as JSON. If parsing fails, treat the raw message as one `suggestion` finding and continue. Validate `plan_file` matches `$FIX_PLAN_FILE`; on mismatch discard the stale result and self-review instead.
 

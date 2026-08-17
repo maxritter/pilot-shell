@@ -32,6 +32,9 @@ CODEX-END -->
 <!-- CC-ONLY -->
 **One `Explore` subagent is allowed here, and only here** — when the sweep is genuinely wide (many directories, unknown naming, several unfamiliar references). One, in Step 1 only, never inside the loop. Pass `model` explicitly; do not inherit the session model.
 <!-- /CC-ONLY -->
+<!-- CODEX-START
+When the sweep has two or more independent questions or surfaces, use the agent tools exposed in the current Codex schema to investigate them in parallel. Keep each assignment bounded, read-only, and explicit about the evidence it must return. Give agents distinct ownership, then use their results without repeating the same exploration in the main thread.
+CODEX-END -->
 
 ### 1.3 A reference is optional
 

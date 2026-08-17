@@ -36,11 +36,11 @@ That one click writes `"shareMemories": true` into `.pilot/memory.json`, exports
 
 Once enabled, sharing keeps itself current in both directions with no button to press. Both work on **Claude Code and Codex CLI**:
 
-- **Outgoing** - your memories are written when a session ends. Codex has no session-end event, so there they are written at the end of each turn instead. You still commit them.
+- **Outgoing** - your memories are written when the real session ends on Claude Code or Codex. Session completion waits for the export attempt before the Console worker shuts down. You still review and commit the files yourself.
 - **Incoming** - teammates' new records are imported at the start of every session, before your context is assembled, so yesterday's decision is available to your agent today.
 - **Catch-up** - session start also exports anything still pending, so a session that ended uncleanly - terminal killed, window closed, machine crashed - does not strand its memories.
 
-Nothing runs on a timer. Writes are driven by content, not a clock: a session or turn that produced no new shareable memory writes no file, so the diff you are reviewing never moves under you.
+Nothing runs on a timer. Writes are driven by content, not a clock: a session that produced no new shareable memory writes no file, so the diff you are reviewing never moves under you.
 
 Imported memories behave like your own - badged with their author in the Memories view, semantically searchable, and fed into the session-start context digest.
 

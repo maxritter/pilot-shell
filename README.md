@@ -63,22 +63,22 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 
 ### Prerequisites
 
-**At least one AI agent:** Pilot Shell supports **Claude Code** (primary — full feature coverage) and **Codex CLI** (all workflows, fewer platform features). Install at least one before running the Pilot installer:
+**At least one AI agent:** Pilot Shell supports **Claude Code** (primary — full feature coverage) and **Codex** through Codex CLI or the ChatGPT desktop app (all workflows, fewer platform features). Install at least one before running the Pilot installer:
 
 - **Claude Code:** Install via the [native installer](https://code.claude.com/docs/en/quickstart). If you have the `npm` or `brew` version, uninstall it first. Requires a Claude subscription — [Max 5x or 20x](https://claude.com/pricing) for solo, [Team Premium](https://claude.com/pricing) for teams, [Enterprise](https://claude.com/pricing) for organizations.
-- **Codex CLI:** Install via the [native installer](https://developers.openai.com/codex/cli). If you have the `npm` or `brew` version, uninstall it first. Requires an OpenAI subscription — [Plus or Pro](https://developers.openai.com/codex/pricing) for solo, [Business or Enterprise](https://developers.openai.com/codex/pricing) for teams.
+- **Codex:** Install [Codex CLI](https://developers.openai.com/codex/cli) or the ChatGPT desktop app. Pilot detects the CLI and the Codex binary bundled with ChatGPT on macOS. Requires an OpenAI subscription — [Plus or Pro](https://developers.openai.com/codex/pricing) for solo, [Business or Enterprise](https://developers.openai.com/codex/pricing) for teams.
 
 **Terminal (Recommended):** [cmux](https://cmux.com) works great with Pilot Shell — its vertical tab layout lets you run multiple sessions side by side. Any modern terminal works: [Ghostty](https://ghostty.org/), [iTerm2](https://iterm2.com/), or the built-in macOS/Linux terminal.
 
 ### Installation
 
-**Works with any existing project.** Pilot Shell integrates with **Claude Code** and **Codex CLI**, using their built-in concepts (rules, hooks, skills, subagents, MCP) to improve your experience:
+**Works with any existing project.** Pilot Shell integrates with **Claude Code** and **Codex CLI or ChatGPT desktop**, using their built-in concepts (rules, hooks, skills, subagents, MCP) to improve your experience:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
 ```
 
-Installs globally on macOS, Linux, and Windows (WSL2). After installation, just run `claude` or `codex` directly — Pilot Shell is loaded automatically. Run `pilot update` to check for updates.
+Installs globally on macOS, Linux, and Windows (WSL2). After installation, run `claude` or `codex` directly. On macOS, you can instead restart ChatGPT desktop and open the project there. Pilot Shell loads automatically in either Codex client. Run `pilot update` to check for updates.
 
 <details>
 <summary><b>Downgrade</b></summary>
@@ -141,18 +141,20 @@ For tighter isolation when working with untrusted code, combine the dev containe
 <details>
 <summary><b>What the installer does</b></summary>
 
-8-step installer with progress tracking, rollback on failure, and idempotent re-runs. Steps 3 and 4 are agent-conditional — they skip cleanly when the matching agent CLI is not detected. The installer **does not install Claude Code or Codex CLI itself**; install at least one yourself per the prerequisites above.
+8-step installer with progress tracking, rollback on failure, and idempotent re-runs. Steps 3 and 4 are agent-conditional — they skip cleanly when the matching agent is not detected. The installer **does not install Claude Code, Codex CLI, or ChatGPT itself**; install at least one yourself per the prerequisites above.
 
-1. **Prerequisites** — Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq. Verifies at least one supported agent (Claude Code or Codex CLI) is on the system; aborts with a clear error otherwise.
-2. **Pilot files** — Agent-neutral Pilot Shell-managed assets. Hooks → `~/.pilot/hooks/`, Console scripts/UI → `~/.pilot/`, MCP server template → `~/.pilot/.mcp.json`, raw rule sources → `~/.pilot/rules/` (read by Codex's adapter), plus the canonical skill source at `<claude-config-dir>/skills/` (Claude reads natively; Codex adapts in step 4). Always runs.
+1. **Prerequisites** — Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq. Verifies at least one supported agent (Claude Code, Codex CLI, or the Codex binary bundled with ChatGPT on macOS) is on the system; aborts with a clear error otherwise.
+2. **Pilot files** — Agent-neutral Pilot Shell-managed assets. Hooks → `~/.pilot/hooks/`, Console scripts/UI → `~/.pilot/`, MCP server template → `~/.pilot/.mcp.json`, canonical raw sources → `~/.pilot/rules/`, `~/.pilot/skills/`, and `~/.pilot/agents/`. Each agent's adapter consumes these sources in its own format. Always runs.
 3. **Claude files** — Claude-specific assets under the Claude config directory (`$CLAUDE_CONFIG_DIR`, else `~/.claude`): rules, sub-agents, `settings.json` (three-way merged), plus the Claude post-install merges (hooks into settings, app-config MCP block, model config migration). **Skipped when Claude Code CLI is not detected.**
-4. **Codex files** — Codex-specific assets: adapted skills → `~/.agents/skills/`, review agents → `~/.codex/agents/`, `~/.codex/AGENTS.md`, `~/.codex/config.toml`, `~/.codex/hooks.json`. Per-category counts mirror the Claude section. **Skipped when Codex CLI is not detected.**
+4. **Codex files** — Codex-specific assets: adapted skills → `~/.agents/skills/`, review agents → `~/.codex/agents/`, guidance → `~/.codex/AGENTS.md`, plus merged `~/.codex/config.toml` and `~/.codex/hooks.json`. **Skipped when neither Codex CLI nor the ChatGPT-bundled Codex binary is detected.**
 5. **Config files** — Creates `.nvmrc` and project config.
 6. **Dependencies** — Installs Semble, RTK, CodeGraph, [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp), [playwright-cli](https://github.com/microsoft/playwright-cli), [agent-browser](https://agent-browser.dev/), language servers, and the `codex@openai-codex` Claude marketplace plugin (skipped on Codex-only systems alongside Chrome DevTools MCP and LSP plugins).
-7. **Shell integration** — Auto-configures bash, fish, and zsh with the `pilot` admin alias.
+7. **Shell integration** — Auto-configures bash, fish, and zsh with the `pilot` admin alias and a Codex wrapper that raises a low per-process open-file soft limit without lowering a higher one.
 8. **Finalize** — Success message with next steps.
 
 </details>
+
+> **macOS and Codex open-file limits:** The Codex CLI wrapper raises a low soft limit toward 1024 for that Codex process, never exceeding the hard limit or changing the parent shell. Modern macOS does not give Pilot a reliable way to change the limit inherited by ChatGPT when it is launched normally from the Dock, so the installer does not request administrator access for this. If ChatGPT itself reports `Too many open files`, restart or update the app; that desktop process must set its own limit.
 
 ### First Steps
 
@@ -173,7 +175,7 @@ Once your rules are in place, use `/create-skill` to capture any repeatable work
 
 <h2 id="features">Core Workflows</h2>
 
-Four commands cover the full development cycle — from vague idea to shipped work. Quality hooks and TDD enforcement run automatically on every task.
+Four commands cover the full development cycle — from vague idea to shipped work. Quality gates and TDD enforcement run automatically throughout every workflow; Claude Code additionally runs edit-time quality hooks.
 
 **`/spec` and `/build` are peers, and size does not decide between them.** Pick on what the work is measured against:
 
@@ -239,7 +241,7 @@ Discuss  →  Plan  →  Approve  →  Implement (TDD)  →  Verify  →  Done
 
 **Plan:** Explores codebase with semantic search → asks clarifying questions → writes detailed spec with scope, tasks, and definition of done → for UI features, writes **E2E test scenarios** (step-by-step, browser-executable) that become the verification contract → **spec-review sub-agent** validates completeness in Claude Code or Codex → waits for your approval. Optional **Codex Companion Reviewers** provide a Claude Code plugin second opinion when enabled.
 
-**Implement:** Creates an isolated git worktree → implements each task with strict TDD (RED → GREEN → REFACTOR) → quality hooks auto-lint, format, and type-check every edit → full test suite after each task.
+**Implement:** Creates an isolated git worktree → implements each task with strict TDD (RED → GREEN → REFACTOR) → on Claude Code, quality hooks auto-lint, format, and type-check every edit → full test suite after each task.
 
 **Verify:** Full test suite + actual program execution → **changes review** (a single changes-review sub-agent in Claude Code, the native changes-review agent in Codex, plus an inline plan-compliance & goal-truth audit) → for UI features, executes each E2E scenario step-by-step via browser automation (pass/fail tracked, results written to plan) → auto-fixes findings → squash merges to main on success.
 
@@ -278,9 +280,9 @@ Goal → Tasks + Criteria → Round (build every task → judge) → Verify → 
 - **Verify:** Before hand-back, a pass over what the criteria do not cover — test suite, types, lint, build, browser E2E, an independent **Changes Review** of the diff, doc sync, and a final regression. Nine layers, each either evidenced in the Buildout or explicitly listed as not run. Scaled to the artifact, so a prose build pays almost nothing. Switch the pass off and the run ends `COMPLETE`, never `VERIFIED` — nothing checked the code, so nothing certifies it.
 - **Hand back:** A report, not a gate. Every criterion with the evidence that settled it, how the task list changed, what `/build` assumed on your behalf, and what was *not* verified. `Status: VERIFIED` is written by the run itself, and only once all nine layers are evidenced or disclosed. Criteria are never relaxed to reach it: what will not close is reported unresolved, and a criterion proven unachievable — two different approaches tried, blocker named — stops that criterion, not the standard.
 
-**The Buildout is a real file.** `/build` writes `docs/builds/YYYY-MM-DD-<slug>.md` with `Type: Build` — its own directory, beside `/spec`'s `docs/plans/` and `/prd`'s `docs/prd/` — and registers it with the session, so the run survives compaction, the statusline tracks tasks and rounds (`Build: running-brand build ███░░ 3/5 r2`), and the Buildout shows up in the Console's own **Buildouts** section, shareable with teammates and annotatable — and **Pilot's stop guard holds the loop open**. The session cannot quietly end at "good enough", on Claude Code and Codex alike. You never type `/goal`; stopping twice within 60s is the escape hatch. Annotating the Buildout in the Console is how you steer a run in flight — `/build` folds annotations in at the top of every round, which is the one way a criterion legitimately changes.
+**The Buildout is a real file.** `/build` writes `docs/builds/YYYY-MM-DD-<slug>.md` with `Type: Build` — its own directory, beside `/spec`'s `docs/plans/` and `/prd`'s `docs/prd/` — and registers it with the session, so the run survives compaction, Claude Code's status line tracks tasks and rounds (`Build: running-brand build ███░░ 3/5 r2`), and the Buildout shows up in the Console's own **Buildouts** section, shareable with teammates and annotatable — and **Pilot's stop guard holds the loop open**. The session cannot quietly end at "good enough", on Claude Code and Codex alike. On Claude Code, you never type `/goal`; stopping twice within 60s is the escape hatch. Annotating the Buildout in the Console is how you steer a run in flight — `/build` folds annotations in at the top of every round, which is the one way a criterion legitimately changes.
 
-**Sequential by default.** One thread; no subagents for building or judging — a subagent starts blind, re-derives context the thread already holds, and bills you for the round trip. The two reviewers are the exception, and both run outside the loop: Build Review before the first round, Changes Review after the last. Parallel execution is proposed only at whole-project scale: 5+ distinct surfaces that each need their own build-judge loop, that do not block each other, where sequential would run for hours. On Claude Code that prompts for `/effort ultracode`; declining is a first-class answer.
+**Claude Code is sequential by default.** One thread; no subagents for building or judging — a subagent starts blind, re-derives context the thread already holds, and bills you for the round trip. The two reviewers are the exception, and both run outside the loop: Build Review before the first round, Changes Review after the last. Parallel execution is proposed only at whole-project scale: 5+ distinct surfaces that each need their own build-judge loop, that do not block each other, where sequential would run for hours. On Claude Code that prompts for `/effort ultracode`; declining is a first-class answer.
 
 </details>
 
@@ -426,7 +428,7 @@ Six phases turn a rule or skill into a before/after comparison with an actionabl
 
 ## Pilot Shell Console
 
-Local web dashboard at `localhost:41777` with real-time notifications and 10 views.
+Local web dashboard at `localhost:41777` with real-time notifications and 11 views.
 
 <img src="docs/img/console/dashboard.webp" alt="Console — Dashboard" width="700">
 

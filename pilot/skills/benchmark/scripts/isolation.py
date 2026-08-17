@@ -33,6 +33,7 @@ from pathlib import Path
 from scripts.utils import TargetConfig
 
 HIDDEN_SUFFIX = ".pilot-bench-hidden"
+RECREATED_SUFFIX = ".pilot-bench-recreated"
 RECOVERY_DIR = Path.home() / ".pilot" / "bench-recovery"
 HIDDEN_RESTORE_QUEUE: list[tuple[Path, Path]] = []
 
@@ -83,6 +84,41 @@ def _process_alive(pid: int) -> bool:
     return True
 
 
+def _recreated_backup_path(src: Path) -> Path:
+    """Return a collision-free path for content recreated during isolation."""
+    base = src.with_name(f"{src.name}{RECREATED_SUFFIX}-{os.getpid()}")
+    candidate = base
+    counter = 2
+    while candidate.exists():
+        candidate = base.with_name(f"{base.name}-{counter}")
+        counter += 1
+    return candidate
+
+
+def _restore_hidden_path(src: Path, hidden: Path) -> Path | None:
+    """Restore one hidden path, preserving a concurrently recreated source."""
+    if not hidden.exists():
+        return None
+    if not src.exists():
+        hidden.rename(src)
+        return None
+
+    backup = _recreated_backup_path(src)
+    src.rename(backup)
+    try:
+        hidden.rename(src)
+    except OSError:
+        with contextlib.suppress(OSError):
+            backup.rename(src)
+        raise
+    print(
+        f"  ⚠  {src} was recreated during isolation; restored the original and preserved "
+        f"the concurrent copy at {backup}",
+        file=sys.stderr,
+    )
+    return backup
+
+
 def recover_stale_manifests() -> int:
     """Restore paths from any manifest belonging to a dead PID. Returns count."""
     if not RECOVERY_DIR.exists():
@@ -100,35 +136,39 @@ def recover_stale_manifests() -> int:
         if not isinstance(pairs, list):
             manifest.unlink(missing_ok=True)
             continue
+        failures = False
         for pair in pairs:
             if not (isinstance(pair, list) and len(pair) == 2):
                 continue
             src = Path(str(pair[0]))
             hidden = Path(str(pair[1]))
-            if hidden.exists() and not src.exists():
+            if hidden.exists():
                 try:
-                    hidden.rename(src)
+                    _restore_hidden_path(src, hidden)
                     restored += 1
                     print(f"  🛠  recovered hidden file from prior crash: {src}", file=sys.stderr)
                 except OSError as err:
+                    failures = True
                     print(f"  ⚠  failed to recover {src} from {hidden}: {err}", file=sys.stderr)
-        manifest.unlink(missing_ok=True)
+        if not failures:
+            manifest.unlink(missing_ok=True)
     return restored
 
 
 def _restore_hidden_paths() -> None:
     """Belt-and-braces restore for anything left in HIDDEN_RESTORE_QUEUE."""
+    failures: list[tuple[Path, Path]] = []
     while HIDDEN_RESTORE_QUEUE:
         src, hidden = HIDDEN_RESTORE_QUEUE.pop()
         try:
-            if hidden.exists() and not src.exists():
-                hidden.rename(src)
-        except OSError:
-            pass
-    try:
-        _clear_manifest()
-    except OSError:
-        pass
+            _restore_hidden_path(src, hidden)
+        except OSError as err:
+            failures.append((src, hidden))
+            print(f"  ⚠  failed to restore {src} from {hidden}: {err}", file=sys.stderr)
+    HIDDEN_RESTORE_QUEUE.extend(failures)
+    if not failures:
+        with contextlib.suppress(OSError):
+            _clear_manifest()
 
 
 def install_signal_handlers() -> None:
@@ -163,6 +203,26 @@ def detect_global_contamination(target: TargetConfig, agent: str = "claude") -> 
     if not source_path.exists():
         return []
 
+    def _same_path(a: Path, b: Path) -> bool:
+        try:
+            return a.resolve() == b.resolve()
+        except OSError:
+            return False
+
+    # Codex composes project AGENTS.md with ~/.codex/AGENTS.md. Leaving the
+    # global file or globally discovered agent skills installed contaminates
+    # both halves of a rules A/B benchmark, so hide both with the same
+    # crash-safe mechanism used for a targeted skill benchmark.
+    if agent == "codex" and target_type == "rules":
+        global_rules = Path.home() / ".codex" / "AGENTS.md"
+        global_skills = Path.home() / ".agents" / "skills"
+        suspects: list[Path] = []
+        if global_rules.is_file() and not _same_path(global_rules, source_path):
+            suspects.append(global_rules)
+        if global_skills.is_dir() and not _same_path(global_skills, source_path):
+            suspects.append(global_skills)
+        return suspects
+
     # Honour CLAUDE_CONFIG_DIR: isolation MOVES these files aside for the run, so
     # resolving the wrong profile would relocate another profile's real assets.
     # ~/.agents has no equivalent override (Codex derives it from $HOME).
@@ -173,15 +233,7 @@ def detect_global_contamination(target: TargetConfig, agent: str = "claude") -> 
         global_config_dir = Path(env_dir) if env_dir and Path(env_dir).is_absolute() else Path.home() / ".claude"
     suspects: list[Path] = []
 
-    def _same_path(a: Path, b: Path) -> bool:
-        try:
-            return a.resolve() == b.resolve()
-        except OSError:
-            return False
-
     if target_type == "rules":
-        if agent == "codex":
-            return []
         rules_dir = global_config_dir / "rules"
         if not rules_dir.exists():
             return []
@@ -243,13 +295,13 @@ def isolate_global_contamination(paths: list[Path]) -> Iterator[list[Path]]:
     finally:
         failures: list[tuple[Path, Path, str]] = []
         for src, hidden in moved:
-            if hidden.exists() and not src.exists():
-                try:
-                    hidden.rename(src)
-                except OSError as err:
-                    failures.append((src, hidden, str(err)))
-            with contextlib.suppress(ValueError):
-                HIDDEN_RESTORE_QUEUE.remove((src, hidden))
+            try:
+                _restore_hidden_path(src, hidden)
+            except OSError as err:
+                failures.append((src, hidden, str(err)))
+            else:
+                with contextlib.suppress(ValueError):
+                    HIDDEN_RESTORE_QUEUE.remove((src, hidden))
         if failures:
             # Leave the manifest for next-run recovery; surface loudly.
             for src, hidden, reason in failures:

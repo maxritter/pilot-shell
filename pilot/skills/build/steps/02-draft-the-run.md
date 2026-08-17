@@ -208,20 +208,19 @@ You wrote these criteria, so you are the last one who can tell they are undecida
 Launch Codex first so it overlaps, then collect the native reviewer. If the companion returns nothing after its one retry, continue without it and say so in 2.5.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-Spawn the managed reviewer and wait:
+Use the spawn-agent tool exposed in the current Codex tool schema with `agent_type="build-review"`. Supply this message:
 
-```python
-review = multi_agent_v1.spawn_agent(agent_type="build-review", message="""
-    Plan file: <buildout-path>
-    User request: <the goal as the user stated it>
-    Clarifications: <the reference choice, if one was made>
-
-    Audit the tasks and acceptance criteria before the build-judge loop starts.
-    Return ONLY valid JSON matching the build-review schema.
-    Include the Buildout path in the `plan_file` field.
-""")
-result = multi_agent_v1.wait_agent(targets=[review.agent_id], timeout_ms=600000)
 ```
+Plan file: <buildout-path>
+User request: <the goal as the user stated it>
+Clarifications: <the reference choice, if one was made>
+
+Audit the tasks and acceptance criteria before the build-judge loop starts.
+Return ONLY valid JSON matching the build-review schema.
+Include the Buildout path in the `plan_file` field.
+```
+
+Keep the returned agent id, then use the wait mechanism exposed in the current Codex tool schema. Follow the tool's actual parameter schema rather than inventing a namespace or copying parameters from another Codex version.
 
 Parse the final message as JSON; on a parse failure treat it as one `suggestion` and continue — do not relaunch. `plan_file` must match this Buildout; discard a mismatch and self-review instead.
 CODEX-END -->

@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+import yaml
 
 # Add hooks dir to path so we can import the module
 _hooks_dir = Path(__file__).resolve().parent.parent
@@ -17,9 +18,11 @@ if str(_hooks_dir) not in sys.path:
     sys.path.insert(0, str(_hooks_dir))
 
 from codex_skill_sync import (  # noqa: E402
+    _SKILL_DESCRIPTIONS,
     _adapt,
     _build_codex_review_agent,
     _build_codex_skill,
+    _build_openai_yaml,
     _build_skill,
     _check_license,
     _remove_codex_review_agents,
@@ -29,6 +32,12 @@ from codex_skill_sync import (  # noqa: E402
     _sync_codex_skills,
     main,
 )
+
+
+def test_description_overrides_match_the_installer_generator() -> None:
+    from installer.steps.codex_files import _CODEX_SKILL_DESCRIPTIONS
+
+    assert _SKILL_DESCRIPTIONS == _CODEX_SKILL_DESCRIPTIONS
 
 
 @pytest.fixture()
@@ -140,8 +149,9 @@ class TestBuildCodexSkill:
         assert result is not None
         assert "review agents are not available in Codex CLI" not in result
         assert "Skip automated plan review agents" not in result
-        assert "multi_agent_v1.spawn_agent" in result
-        assert "multi_agent_v1.wait_agent" in result
+        assert "multi_agent_v1" not in result
+        assert "spawn-agent tool exposed in the current Codex tool schema" in result
+        assert "wait mechanism exposed in the current Codex tool schema" in result
         assert 'agent_type="spec-review"' in result
         assert "PILOT_SPEC_REVIEW_ENABLED" in result
         assert "PILOT_CODEX_SPEC_REVIEW_ENABLED" not in result
@@ -152,8 +162,9 @@ class TestBuildCodexSkill:
         assert "No reviewer agents in Codex" not in result
         assert "Skip automated code review agents" not in result
         assert "reviewer agents were launched (not available in Codex CLI)" not in result
-        assert "multi_agent_v1.spawn_agent" in result
-        assert "multi_agent_v1.wait_agent" in result
+        assert "multi_agent_v1" not in result
+        assert "spawn-agent tool exposed in the current Codex tool schema" in result
+        assert "wait mechanism exposed in the current Codex tool schema" in result
         assert 'agent_type="changes-review"' in result
         assert "changes-review-agent-id-" in result
         assert "Do not silently skip review" in result
@@ -264,6 +275,51 @@ class TestSyncCodexSkills:
             built, failed = _sync_codex_skills()
         assert built == 1  # still only "fix"
         assert not (skill_tree / ".agents" / "skills" / "bot-jobs").exists()
+
+    def test_sync_writes_explicit_invocation_policy_for_workflows(self, skill_tree: Path) -> None:
+        with patch("codex_skill_sync.Path.home", return_value=skill_tree):
+            built, failed = _sync_codex_skills()
+
+        assert (built, failed) == (1, 0)
+        metadata_path = skill_tree / ".agents" / "skills" / "fix" / "agents" / "openai.yaml"
+        metadata = yaml.safe_load(metadata_path.read_text())
+        assert metadata["interface"]["display_name"] == "Fix"
+        assert "explicitly invokes $fix" in metadata["interface"]["short_description"]
+        assert "/fix" not in metadata["interface"]["short_description"]
+        assert metadata["policy"]["allow_implicit_invocation"] is False
+
+    def test_internal_spec_phases_remain_dispatchable_after_explicit_spec_entry(self) -> None:
+        rendered = _build_openai_yaml(Path("pilot/skills/spec-plan"))
+        assert rendered is not None
+        metadata = yaml.safe_load(rendered)
+
+        assert metadata["policy"]["allow_implicit_invocation"] is True
+
+    def test_synced_visible_skill_descriptions_fit_a_lean_catalog_budget(self) -> None:
+        visible_names = (
+            "benchmark",
+            "create-skill",
+            "setup-rules",
+            "spec-plan",
+            "spec-bugfix-plan",
+            "spec-implement",
+            "spec-verify",
+            "spec-bugfix-verify",
+        )
+        descriptions: list[str] = []
+        for name in visible_names:
+            content = _build_codex_skill(Path("pilot/skills") / name)
+            metadata_text = _build_openai_yaml(Path("pilot/skills") / name)
+            assert content is not None
+            assert metadata_text is not None
+            description = yaml.safe_load(content.split("---", 2)[1])["description"]
+            metadata = yaml.safe_load(metadata_text)
+            assert metadata["interface"]["short_description"] == description
+            assert metadata["policy"]["allow_implicit_invocation"] is True
+            assert len(description) <= 120
+            descriptions.append(description)
+
+        assert sum(map(len, descriptions)) <= 800
 
 
 class TestSyncCodexReviewAgents:
@@ -470,6 +526,54 @@ class TestCheckLicense:
             with patch("codex_skill_sync.subprocess.run") as mock_run:
                 mock_run.return_value.stdout = '{"valid": false}'
                 assert _check_license() is False
+
+    def test_returns_unknown_on_transient_verification_failure(self, tmp_path: Path) -> None:
+        pilot_bin = tmp_path / ".pilot" / "bin" / "pilot"
+        pilot_bin.parent.mkdir(parents=True)
+        pilot_bin.write_text("#!/bin/sh")
+        pilot_bin.chmod(0o755)
+        with (
+            patch("codex_skill_sync.Path.home", return_value=tmp_path),
+            patch("codex_skill_sync.subprocess.run", side_effect=OSError("temporarily unavailable")),
+        ):
+            assert _check_license() is None
+
+    def test_main_is_silent_after_successful_background_sync(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        codex_bin = tmp_path / ".codex" / "bin" / "codex"
+        codex_bin.parent.mkdir(parents=True)
+        codex_bin.write_text("#!/bin/sh\n")
+
+        with (
+            patch("codex_skill_sync.Path.home", return_value=tmp_path),
+            patch("codex_skill_sync._check_license", return_value=True),
+            patch("codex_skill_sync._sync_codex_skills", return_value=(2, 0)),
+            patch("codex_skill_sync._sync_codex_review_agents", return_value=(1, 0)),
+            patch("codex_skill_sync._sync_codex_env_vars", return_value=7),
+        ):
+            main()
+
+        assert capsys.readouterr().out == ""
+
+    def test_main_preserves_assets_when_license_status_is_unknown(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        codex_bin = tmp_path / ".codex" / "bin" / "codex"
+        codex_bin.parent.mkdir(parents=True)
+        codex_bin.write_text("#!/bin/sh\n")
+        skill = tmp_path / ".agents" / "skills" / "fix" / "SKILL.md"
+        skill.parent.mkdir(parents=True)
+        skill.write_text("managed skill")
+
+        with (
+            patch("codex_skill_sync.Path.home", return_value=tmp_path),
+            patch("codex_skill_sync._check_license", return_value=None),
+        ):
+            main()
+
+        assert skill.read_text() == "managed skill"
+        assert capsys.readouterr().out == ""
 
     def test_main_invalid_license_removes_skills_and_review_agents(
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]

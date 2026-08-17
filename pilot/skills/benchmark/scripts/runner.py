@@ -89,6 +89,19 @@ SANDBOX_PLACEHOLDER = "{sandbox}"
 CODEX_DEFAULT_MODEL = "codex-default"
 
 
+def _codex_exec_command() -> list[str]:
+    """Return an unwrapped Codex command isolated from personal configuration."""
+    codex_bin = os.environ.get("PILOT_BENCH_CODEX_BIN", "codex")
+    return [
+        codex_bin,
+        "exec",
+        "--skip-git-repo-check",
+        "--ephemeral",
+        "--ignore-user-config",
+        "--ignore-rules",
+    ]
+
+
 def _resolve_run_models(
     *,
     agent: str,
@@ -409,9 +422,13 @@ def prepare_config_dir(
 
 
 def _make_subprocess_env(agent: str = "claude") -> dict[str, str]:
-    """Strip nesting guards so nested agent calls don't hit guard checks."""
-    skip = {"CLAUDECODE"} if agent == "claude" else {"CODEX_SANDBOX_TYPE"}
-    return {k: v for k, v in os.environ.items() if k not in skip}
+    """Strip nesting and parent-session state from isolated agent runs."""
+    skip = {"CLAUDECODE"} if agent == "claude" else {"CODEX_SANDBOX_TYPE", "CODEX_THREAD_ID"}
+    return {
+        key: value
+        for key, value in os.environ.items()
+        if key not in skip and not (agent == "codex" and key.startswith("PILOT_"))
+    }
 
 
 def _write_failed_marker(run_dir: Path, reason: str, details: str = "") -> None:
@@ -442,12 +459,20 @@ def execute_run(  # noqa: PLR0913
     """Run an agent once in config_dir. Saves transcript + timing.json or failed.json."""
     if agent == "codex":
         return _execute_run_codex(
-            prompt=prompt, config_dir=config_dir, run_dir=run_dir,
-            model=model, timeout=timeout, skip_permissions=skip_permissions,
+            prompt=prompt,
+            config_dir=config_dir,
+            run_dir=run_dir,
+            model=model,
+            timeout=timeout,
+            skip_permissions=skip_permissions,
         )
     return _execute_run_claude(
-        prompt=prompt, config_dir=config_dir, run_dir=run_dir,
-        model=model, timeout=timeout, skip_permissions=skip_permissions,
+        prompt=prompt,
+        config_dir=config_dir,
+        run_dir=run_dir,
+        model=model,
+        timeout=timeout,
+        skip_permissions=skip_permissions,
     )
 
 
@@ -555,7 +580,7 @@ def _execute_run_codex(
 
     import time
 
-    cmd = ["codex", "exec", "--skip-git-repo-check"]
+    cmd = _codex_exec_command()
     if model and model != CODEX_DEFAULT_MODEL:
         cmd.extend(["--model", model])
     if skip_permissions:
@@ -584,15 +609,18 @@ def _execute_run_codex(
 
     if completed.returncode != 0:
         _write_failed_marker(
-            run_dir, reason="codex-exec-failed",
+            run_dir,
+            reason="codex-exec-failed",
             details=f"exit={completed.returncode}; stderr: {(completed.stderr or '')[:300]}",
         )
         return ExecuteFailure(success=False, reason="codex-exec-failed")
 
     stdout = completed.stdout or ""
-    _ = (outputs / "transcript.txt").write_text(stdout)
-    if completed.stderr:
-        _ = (outputs / "stderr.log").write_text(completed.stderr)
+    stderr = completed.stderr or ""
+    transcript = f"# Codex execution log\n\n{stderr}\n\n# Final output\n\n{stdout}"
+    _ = (outputs / "transcript.txt").write_text(transcript)
+    if stderr:
+        _ = (outputs / "stderr.log").write_text(stderr)
     _ = (outputs / "output.txt").write_text(stdout)
 
     timing: dict[str, object] = {
@@ -648,7 +676,7 @@ def _run_grader(  # noqa: PLR0913
     )
 
     if agent == "codex":
-        grader_cmd = ["codex", "exec", "--skip-git-repo-check"]
+        grader_cmd = _codex_exec_command()
         if model and model != CODEX_DEFAULT_MODEL:
             grader_cmd.extend(["--model", model])
         if skip_permissions:

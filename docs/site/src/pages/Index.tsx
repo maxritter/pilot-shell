@@ -24,7 +24,7 @@ const Index = () => {
     name: "Pilot Shell",
     url: "https://pilot-shell.com/",
     description:
-      "How real engineers run Claude Code and Codex: spec-driven planning, enforced TDD, persistent memory, and quality hooks. Make your agents production-ready.",
+      "Spec-driven planning, enforced TDD, persistent memory, and quality automation for Claude Code, with Codex compatibility for supported integrations.",
     inLanguage: "en-US",
     publisher: {
       "@type": "Organization",
@@ -59,7 +59,7 @@ const Index = () => {
     "@type": "SoftwareApplication",
     name: "Pilot Shell",
     description:
-      "How real engineers run Claude Code and Codex: spec-driven planning, enforced TDD, persistent memory, and quality hooks. Make your agents production-ready.",
+      "Spec-driven planning, enforced TDD, persistent memory, and quality automation for Claude Code, with Codex compatibility for supported integrations.",
     applicationCategory: "DeveloperApplication",
     applicationSubCategory: "AI Development Tools",
     operatingSystem: "Linux, macOS, Windows",
@@ -83,7 +83,7 @@ const Index = () => {
     <>
       <SEO
         title="Spec-driven development for Claude Code & Codex CLI"
-        description="How real engineers run Claude Code and Codex: spec-driven planning, enforced TDD, persistent memory, and quality hooks for Python, TypeScript, Go, and C#. Make your agents production-ready."
+        description="Spec-driven planning, enforced TDD, persistent memory, and quality automation for Claude Code, with Codex compatibility for supported integrations across Python, TypeScript, Go, and C#."
         structuredData={[
           websiteStructuredData,
           breadcrumbStructuredData,
@@ -101,9 +101,11 @@ const Index = () => {
           <ConsoleSection />
           <TestimonialsSection />
           <FAQSection />
-          <Footer />
         </Suspense>
       </main>
+      <Suspense fallback={null}>
+        <Footer />
+      </Suspense>
     </>
   );
 };

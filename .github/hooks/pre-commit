@@ -107,7 +107,7 @@ while IFS= read -r f; do
     console/*.ts|console/*.tsx|console/package.json|console/knip.json|console/tsconfig*.json)
       console_changed=1 ;;
   esac
-done <<< "$staged"
+done < <(printf '%s\n' "$staged")
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -309,7 +309,7 @@ if [ "$console_changed" = "1" ] && [ "${SKIP_ARTIFACT_REBUILD:-0}" != "1" ]; the
     # the bundle split, so stage whatever the build actually wrote.
     while IFS= read -r changed; do
       [ -n "$changed" ] && existing+=("$changed")
-    done <<< "$(git diff --name-only -- pilot/ui pilot/scripts)"
+    done < <(git diff --name-only -- pilot/ui pilot/scripts)
     if [ "${#existing[@]}" -gt 0 ]; then
       git add "${existing[@]}"
       echo "  ✔ console artifacts rebuilt and staged"

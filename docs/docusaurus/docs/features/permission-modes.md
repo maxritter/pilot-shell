@@ -7,7 +7,7 @@ description: How Pilot Shell configures Claude Code permission modes — control
 # Permission Modes
 
 :::warning Claude Code only
-Permission modes are a Claude Code concept. For Codex CLI, the equivalent is `approval_policy` in `~/.codex/config.toml` — Pilot sets it to `"never"` by default.
+Permission modes are a Claude Code concept. Codex configures tool approval through `approval_policy` in `~/.codex/config.toml`.
 :::
 
 Permission modes control whether Claude asks before acting.

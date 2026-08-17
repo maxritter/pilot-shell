@@ -86,7 +86,7 @@ Loop pressure pushes toward batching everything into one giant call. It produces
 ⛔ **No subagents inside the loop.** The one research agent allowed in this workflow was Step 1's, and it is spent.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-⛔ **No delegated agents inside the loop.** The one research pass allowed in this workflow was Step 1's, and it is spent.
+Use bounded worker agents inside the loop for independent tasks with non-overlapping ownership. Launch independent work together, retain each returned id, and wait with the current tool schema's mechanism. The main thread owns integration, Buildout state, shared checks, and the judge pass. Inspect the resulting files and run fresh verification before ticking an agent-owned task.
 CODEX-END -->
 
 ### 4.6 When the work is blocked on something outside this session

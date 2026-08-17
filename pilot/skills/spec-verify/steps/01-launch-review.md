@@ -151,25 +151,23 @@ AGENT_ID_FILE="$SESS_DIR/changes-review-agent-id-<plan-slug>.txt"
 mkdir -p "$SESS_DIR"
 ```
 
-```python
-review = multi_agent_v1.spawn_agent(
-    agent_type="changes-review",
-    message="""
-    Plan file: <plan-path>
-    User request: <original task description that invoked $spec>
-    Changed files: [file list]
-    Base ref: <the `base_ref` field from the Step 1b resolver output, verbatim — never a guessed branch name.>
-    Diff range: <the `diff_range` field from the Step 1b resolver output, verbatim.>
-    Runtime environment: [how to start, port, deploy path]
-    Test framework constraints: [what it can/cannot test]
+Use the spawn-agent tool exposed in the current Codex tool schema with `agent_type="changes-review"` and this message:
 
-    Review implementation: compliance, quality, and goal achievement.
-    Return ONLY valid JSON matching the changes-review schema.
-    Include the plan file path in the `plan_file` field.
-    """,
-)
-CHANGES_REVIEW_AGENT_ID = review.agent_id
 ```
+Plan file: <plan-path>
+User request: <original task description that invoked $spec>
+Changed files: [file list]
+Base ref: <the `base_ref` field from the Step 1b resolver output, verbatim — never a guessed branch name.>
+Diff range: <the `diff_range` field from the Step 1b resolver output, verbatim.>
+Runtime environment: [how to start, port, deploy path]
+Test framework constraints: [what it can/cannot test]
+
+Review implementation: compliance, quality, and goal achievement.
+Return ONLY valid JSON matching the changes-review schema.
+Include the plan file path in the `plan_file` field.
+```
+
+Capture the returned id as `CHANGES_REVIEW_AGENT_ID`. Follow the current tool's actual parameters rather than copying a namespace or signature from another Codex version.
 
 After spawning, write `CHANGES_REVIEW_AGENT_ID` to `$AGENT_ID_FILE`.
 
