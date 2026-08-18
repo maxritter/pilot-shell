@@ -106,7 +106,10 @@ has_codex_pilot_content() {
 	if [ -f "$CODEX_DIR/hooks.json" ] && grep -q '/.pilot/' "$CODEX_DIR/hooks.json" 2>/dev/null; then
 		return 0
 	fi
-	if [ -f "$CODEX_DIR/config.toml" ] && grep -q -e 'pilot-shell managed MCP servers' -e 'pilot-shell managed env vars' "$CODEX_DIR/config.toml" 2>/dev/null; then
+	if [ -f "$CODEX_DIR/config.toml" ] && grep -q -e 'pilot-shell managed MCP servers' -e 'pilot-shell managed env vars' -e '.pilot-model-catalog.json' "$CODEX_DIR/config.toml" 2>/dev/null; then
+		return 0
+	fi
+	if [ -f "$CODEX_DIR/.pilot-model-catalog.json" ]; then
 		return 0
 	fi
 	if [ -f "$CODEX_DIR/AGENTS.md" ] && grep -q 'PILOT:START' "$CODEX_DIR/AGENTS.md" 2>/dev/null; then
@@ -809,6 +812,38 @@ with open(config_path, "w") as f:
     f.write(content)
 
 print("    [OK] Removed Pilot managed config block(s) from ~/.codex/config.toml")
+' 2>&1
+	fi
+
+	# Remove the generated expanded-context catalog and only the exact config
+	# pointer written by installer/steps/codex_files.py. User catalog settings
+	# with any other path remain untouched.
+	local model_catalog_file="$CODEX_DIR/.pilot-model-catalog.json"
+	if { [ -f "$model_catalog_file" ] || grep -q '.pilot-model-catalog.json' "$config_file" 2>/dev/null; } && command -v python3 >/dev/null 2>&1; then
+		PILOT_CODEX_CONFIG="$config_file" PILOT_CODEX_MODEL_CATALOG="$model_catalog_file" python3 -c '
+import json, os
+
+config_path = os.environ["PILOT_CODEX_CONFIG"]
+catalog_path = os.environ["PILOT_CODEX_MODEL_CATALOG"]
+expected = "model_catalog_json = " + json.dumps(catalog_path)
+
+try:
+    with open(config_path) as f:
+        lines = f.readlines()
+except OSError:
+    lines = []
+
+filtered = [line for line in lines if line.strip() != expected]
+if filtered != lines:
+    with open(config_path, "w") as f:
+        f.writelines(filtered)
+
+try:
+    os.remove(catalog_path)
+except OSError:
+    pass
+
+print("    [OK] Removed Pilot managed Codex model catalog")
 ' 2>&1
 	fi
 

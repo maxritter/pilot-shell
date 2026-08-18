@@ -21,10 +21,16 @@ from installer.platform_utils import is_codex_installed
 from installer.steps.base import BaseStep
 
 _CODEX_REVIEW_AGENT_MODEL = "codex-auto-review"
+_CODEX_MODEL_CATALOG_FILENAME = ".pilot-model-catalog.json"
+_CODEX_SOL_MAX_CONTEXT_WINDOW = 872000
 _CODEX_MODEL_DEFAULTS = {
     "model": '"gpt-5.6-sol"',
     "model_reasoning_effort": '"xhigh"',
     "plan_mode_reasoning_effort": '"xhigh"',
+    # Request Sol's 1M mode. Codex applies the catalog ceiling below and its
+    # own effective-window/compaction reserves before reporting usable tokens.
+    "model_context_window": "1000000",
+    "model_auto_compact_token_limit": "900000",
 }
 
 _CODEX_SKILL_DESCRIPTIONS = {
@@ -85,6 +91,118 @@ def _get_codex_config_dir() -> Path:
             raise ValueError(f"CODEX_HOME must be an absolute path, got: {env_dir}")
         return p
     return Path.home() / ".codex"
+
+
+def _load_model_catalog(path: Path) -> dict[str, Any] | None:
+    try:
+        catalog = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(catalog, dict) or not isinstance(catalog.get("models"), list):
+        return None
+    return catalog
+
+
+def _codex_binary_candidates() -> list[Path]:
+    """Return installed Codex binaries in preference order.
+
+    Keep these fallback locations aligned with
+    :func:`installer.platform_utils.is_codex_installed`.
+    """
+    home = Path.home()
+    candidates = [
+        Path(path)
+        for path in (
+            shutil.which("codex"),
+            home / ".codex" / "bin" / "codex",
+            home / ".local" / "bin" / "codex",
+            home / "Applications" / "ChatGPT.app" / "Contents" / "Resources" / "codex",
+            Path("/usr/local/bin/codex"),
+            Path("/Applications/ChatGPT.app/Contents/Resources/codex"),
+        )
+        if path is not None
+    ]
+    return list(dict.fromkeys(path for path in candidates if path.is_file() and os.access(path, os.X_OK)))
+
+
+def _load_bundled_codex_model_catalog() -> dict[str, Any] | None:
+    """Read the installed Codex catalog without requiring auth or network."""
+    for codex_binary in _codex_binary_candidates():
+        try:
+            result = subprocess.run(
+                [str(codex_binary), "debug", "models", "--bundled"],
+                capture_output=True,
+                text=True,
+                timeout=15,
+            )
+        except (OSError, subprocess.SubprocessError):
+            continue
+        if result.returncode != 0:
+            continue
+        try:
+            catalog = json.loads(result.stdout)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(catalog, dict) and isinstance(catalog.get("models"), list):
+            return catalog
+    return None
+
+
+def _expanded_codex_model_catalog(catalog: dict[str, Any]) -> dict[str, Any] | None:
+    models = catalog.get("models")
+    if not isinstance(models, list):
+        return None
+
+    copied_models = [dict(model) if isinstance(model, dict) else model for model in models]
+    sol = next(
+        (model for model in copied_models if isinstance(model, dict) and model.get("slug") == "gpt-5.6-sol"),
+        None,
+    )
+    if sol is None:
+        return None
+
+    advertised_max = sol.get("max_context_window")
+    if not isinstance(advertised_max, int) or advertised_max < _CODEX_SOL_MAX_CONTEXT_WINDOW:
+        sol["max_context_window"] = _CODEX_SOL_MAX_CONTEXT_WINDOW
+    return {"models": copied_models}
+
+
+def _install_codex_model_catalog(codex_dir: Path) -> tuple[Path | None, bool]:
+    """Install a full catalog whose Sol ceiling permits Codex's 1M mode.
+
+    Codex 0.147 clamps ``model_context_window`` to the selected catalog's
+    ``max_context_window``. Its bundled stable catalog still advertises 272k,
+    while the expanded catalog uses 872k and exposes 828.4k after Codex's 95%
+    effective-window reserve. Preserve every other model entry so the model
+    picker keeps working.
+    """
+    catalog_path = codex_dir / _CODEX_MODEL_CATALOG_FILENAME
+    sources = [
+        _load_model_catalog(codex_dir / "models_cache.json"),
+        _load_model_catalog(catalog_path),
+    ]
+    expanded = None
+    for source in sources:
+        if source is None:
+            continue
+        expanded = _expanded_codex_model_catalog(source)
+        if expanded is not None:
+            break
+    if expanded is None:
+        bundled = _load_bundled_codex_model_catalog()
+        if bundled is not None:
+            expanded = _expanded_codex_model_catalog(bundled)
+    if expanded is None:
+        return None, False
+
+    content = json.dumps(expanded, indent=2, ensure_ascii=False) + "\n"
+    try:
+        if catalog_path.read_text(encoding="utf-8") == content:
+            return catalog_path, False
+    except OSError:
+        pass
+    _atomic_write(catalog_path, content)
+    return catalog_path, True
 
 
 # Per-sub-install label formatters used by CodexFilesStep.run(). Each
@@ -520,13 +638,14 @@ class CodexFilesStep(BaseStep):
         """Enable Pilot's Codex integration and enforce its model defaults.
 
         Permissions, personality, editor, warnings, network access, and document
-        limits remain the user's Codex choices. Model and reasoning defaults are
-        Pilot-owned so normal and Plan mode consistently use the preferred model.
+        limits remain the user's Codex choices. Model, reasoning, and context-window
+        defaults are Pilot-owned so normal and Plan mode consistently use the
+        preferred model at its full window.
         """
-        _ = ctx
         codex_dir = _get_codex_config_dir()
         codex_dir.mkdir(parents=True, exist_ok=True)
         config_path = codex_dir / "config.toml"
+        catalog_path, catalog_changed = _install_codex_model_catalog(codex_dir)
 
         existing = ""
         if config_path.is_file():
@@ -535,7 +654,7 @@ class CodexFilesStep(BaseStep):
             except OSError:
                 pass
 
-        changed = False
+        changed = catalog_changed
         section_match = re.search(r"(?m)^\[", existing)
         top_level_scope = existing[: section_match.start()] if section_match else existing
 
@@ -546,7 +665,15 @@ class CodexFilesStep(BaseStep):
                 existing = re.sub(pattern, "", existing)
                 changed = True
 
-        existing, model_defaults_changed = _set_top_level_keys(existing, _CODEX_MODEL_DEFAULTS)
+        model_defaults = dict(_CODEX_MODEL_DEFAULTS)
+        if catalog_path is not None:
+            model_defaults["model_catalog_json"] = _toml_string(str(catalog_path))
+        elif ctx.ui:
+            ctx.ui.warning(
+                "Could not prepare the expanded GPT-5.6 Sol model catalog; "
+                "Codex may keep its smaller bundled context window."
+            )
+        existing, model_defaults_changed = _set_top_level_keys(existing, model_defaults)
         changed = changed or model_defaults_changed
 
         required_features = {"hooks": "true"}

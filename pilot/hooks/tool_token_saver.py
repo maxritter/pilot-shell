@@ -107,6 +107,7 @@ def run_tool_token_saver() -> int:
             {
                 "hookSpecificOutput": {
                     "hookEventName": "PreToolUse",
+                    "permissionDecision": "allow",
                     "updatedInput": updated_input,
                 }
             }

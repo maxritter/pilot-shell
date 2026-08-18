@@ -66,7 +66,7 @@ class TestRewriteCommand:
         assert _rewrite_command("git status") is None
 
 
-def test_rewrite_preserves_codex_native_permission_decision(capsys):
+def test_rewrite_allows_codex_updated_input(capsys):
     payload = {"tool_input": {"command": "git status", "timeout": 10}}
 
     with (
@@ -80,5 +80,5 @@ def test_rewrite_preserves_codex_native_permission_decision(capsys):
     output = json.loads(capsys.readouterr().out)
     hook_output = output["hookSpecificOutput"]
     assert hook_output["updatedInput"] == {"command": "rtk git status", "timeout": 10}
-    assert "permissionDecision" not in hook_output
+    assert hook_output["permissionDecision"] == "allow"
     assert "permissionDecisionReason" not in hook_output

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import shutil
+import subprocess
 import tomllib
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -16,11 +17,21 @@ from installer.steps.codex_files import (
     CodexFilesStep,
     _TomlStructureError,
     _ensure_section_keys,
+    _load_bundled_codex_model_catalog,
     _validate_toml_structure,
     build_codex_review_agent_toml,
     build_codex_skill_md,
     build_codex_skill_openai_yaml,
 )
+
+
+@pytest.fixture(autouse=True)
+def _disable_live_codex_catalog_probe(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Unit tests never execute the user's real Codex binary."""
+    monkeypatch.setattr(
+        "installer.steps.codex_files._load_bundled_codex_model_catalog",
+        lambda: None,
+    )
 
 
 class TestCodexFilesStepCheck:
@@ -1867,11 +1878,32 @@ class TestMcpMarkerReplacement:
 
 
 class TestCodexModelDefaults:
+    @staticmethod
+    def _write_models_cache(codex_dir: Path) -> dict[str, object]:
+        cache: dict[str, object] = {
+            "client_version": "0.147.0",
+            "models": [
+                {
+                    "slug": "gpt-5.6-sol",
+                    "context_window": 272000,
+                    "max_context_window": 272000,
+                },
+                {
+                    "slug": "gpt-5.6-terra",
+                    "context_window": 272000,
+                    "max_context_window": 272000,
+                },
+            ],
+        }
+        (codex_dir / "models_cache.json").write_text(json.dumps(cache))
+        return cache
+
     def test_fresh_install_enforces_codex_model_defaults_without_overriding_policy(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"
         codex_dir.mkdir(parents=True)
         config = codex_dir / "config.toml"
         config.write_text("")
+        source_cache = self._write_models_cache(codex_dir)
 
         step = CodexFilesStep()
         ctx = MagicMock()
@@ -1887,6 +1919,14 @@ class TestCodexModelDefaults:
         assert parsed["model"] == "gpt-5.6-sol"
         assert parsed["model_reasoning_effort"] == "xhigh"
         assert parsed["plan_mode_reasoning_effort"] == "xhigh"
+        assert parsed["model_context_window"] == 1000000
+        assert parsed["model_auto_compact_token_limit"] == 900000
+        assert parsed["model_catalog_json"] == str(codex_dir / ".pilot-model-catalog.json")
+        catalog = json.loads((codex_dir / ".pilot-model-catalog.json").read_text())
+        models = {model["slug"]: model for model in catalog["models"]}
+        assert models["gpt-5.6-sol"]["max_context_window"] == 872000
+        assert models["gpt-5.6-terra"]["max_context_window"] == 272000
+        assert json.loads((codex_dir / "models_cache.json").read_text()) == source_cache
         for key in (
             "approval_policy",
             "sandbox_mode",
@@ -1912,6 +1952,8 @@ class TestCodexModelDefaults:
             '  model = "gpt-5.5"\n'
             'model_reasoning_effort = "medium"\n'
             'plan_mode_reasoning_effort = "low"\n'
+            "model_context_window = 272000\n"
+            "model_auto_compact_token_limit = 200000\n"
             'personality = "friendly"\n'
             "project_doc_max_bytes = 65536\n\n"
             "[profiles.careful]\n"
@@ -1935,6 +1977,8 @@ class TestCodexModelDefaults:
         assert parsed["model"] == "gpt-5.6-sol"
         assert parsed["model_reasoning_effort"] == "xhigh"
         assert parsed["plan_mode_reasoning_effort"] == "xhigh"
+        assert parsed["model_context_window"] == 1000000
+        assert parsed["model_auto_compact_token_limit"] == 900000
         assert parsed["personality"] == "friendly"
         assert parsed["project_doc_max_bytes"] == 65536
         assert parsed["profiles"]["careful"] == {
@@ -1942,11 +1986,62 @@ class TestCodexModelDefaults:
             "model_reasoning_effort": "low",
         }
 
+    def test_uses_installed_codex_catalog_when_cache_is_missing(self, tmp_path: Path) -> None:
+        codex_dir = tmp_path / ".codex"
+        codex_dir.mkdir(parents=True)
+        config = codex_dir / "config.toml"
+        config.write_text("")
+        bundled = {
+            "models": [
+                {
+                    "slug": "gpt-5.6-sol",
+                    "context_window": 272000,
+                    "max_context_window": 272000,
+                }
+            ]
+        }
+
+        step = CodexFilesStep()
+        ctx = MagicMock(ui=None)
+        with (
+            patch("installer.steps.codex_files._get_codex_config_dir", return_value=codex_dir),
+            patch("installer.steps.codex_files.Path.home", return_value=tmp_path),
+            patch(
+                "installer.steps.codex_files._load_bundled_codex_model_catalog",
+                return_value=bundled,
+            ) as load_bundled,
+        ):
+            step._install_codex_config(ctx)
+
+        load_bundled.assert_called_once_with()
+        parsed = tomllib.loads(config.read_text())
+        assert parsed["model_catalog_json"] == str(codex_dir / ".pilot-model-catalog.json")
+        catalog = json.loads((codex_dir / ".pilot-model-catalog.json").read_text())
+        assert catalog["models"][0]["max_context_window"] == 872000
+
+    def test_preserves_user_catalog_when_expanded_catalog_is_unavailable(self, tmp_path: Path) -> None:
+        codex_dir = tmp_path / ".codex"
+        codex_dir.mkdir(parents=True)
+        config = codex_dir / "config.toml"
+        config.write_text('model_catalog_json = "/custom/models.json"\n')
+
+        step = CodexFilesStep()
+        ctx = MagicMock(ui=None)
+        with (
+            patch("installer.steps.codex_files._get_codex_config_dir", return_value=codex_dir),
+            patch("installer.steps.codex_files.Path.home", return_value=tmp_path),
+        ):
+            step._install_codex_config(ctx)
+
+        assert tomllib.loads(config.read_text())["model_catalog_json"] == "/custom/models.json"
+        assert not (codex_dir / ".pilot-model-catalog.json").exists()
+
     def test_model_defaults_are_idempotent(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"
         codex_dir.mkdir(parents=True)
         config = codex_dir / "config.toml"
         config.write_text("")
+        self._write_models_cache(codex_dir)
 
         step = CodexFilesStep()
         ctx = MagicMock()
@@ -1957,9 +2052,38 @@ class TestCodexModelDefaults:
         ):
             assert step._install_codex_config(ctx) is True
             first = config.read_text()
+            first_catalog = (codex_dir / ".pilot-model-catalog.json").read_text()
             assert step._install_codex_config(ctx) is False
 
         assert config.read_text() == first
+        assert (codex_dir / ".pilot-model-catalog.json").read_text() == first_catalog
+
+
+class TestCodexModelCatalogProbe:
+    def test_reads_catalog_from_detected_codex_binary(self) -> None:
+        bundled = {"models": [{"slug": "gpt-5.6-sol"}]}
+        completed = subprocess.CompletedProcess(
+            args=["/opt/codex", "debug", "models", "--bundled"],
+            returncode=0,
+            stdout=json.dumps(bundled),
+            stderr="",
+        )
+
+        with (
+            patch(
+                "installer.steps.codex_files._codex_binary_candidates",
+                return_value=[Path("/opt/codex")],
+            ),
+            patch("installer.steps.codex_files.subprocess.run", return_value=completed) as run,
+        ):
+            assert _load_bundled_codex_model_catalog() == bundled
+
+        run.assert_called_once_with(
+            ["/opt/codex", "debug", "models", "--bundled"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
 
 
 class TestCodexConfigEnvHeal:

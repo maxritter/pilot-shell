@@ -194,3 +194,26 @@ def test_uninstall_removes_shell_wrappers_and_codex_env_block(tmp_path: Path):
     assert "PILOT_PLAN_APPROVAL_ENABLED" not in codex_config
     assert 'approval_policy = "never"' in codex_config
     assert 'model = "gpt-5"' in codex_config
+
+
+def test_uninstall_removes_pilot_model_catalog_and_preserves_codex_config(tmp_path: Path):
+    home = tmp_path / "home"
+    codex_dir = home / ".codex"
+    codex_dir.mkdir(parents=True)
+    catalog = codex_dir / ".pilot-model-catalog.json"
+    catalog.write_text('{"models": []}\n')
+    config = codex_dir / "config.toml"
+    config.write_text(
+        'approval_policy = "never"\n'
+        f'model_catalog_json = "{catalog}"\n'
+        'model = "gpt-5.6-sol"\n'
+    )
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert not catalog.exists()
+    codex_config = config.read_text()
+    assert "model_catalog_json" not in codex_config
+    assert 'approval_policy = "never"' in codex_config
+    assert 'model = "gpt-5.6-sol"' in codex_config
