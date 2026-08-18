@@ -42,7 +42,7 @@ Used by the `/spec`, `/fix`, and `/build` workflows to keep work isolated until 
 | `pilot worktree create --json <slug>` | Create isolated git worktree (in `.worktrees/` unless configured otherwise) |
 | `pilot worktree detect --json <slug>` | Check if a worktree already exists |
 | `pilot worktree diff --json <slug>` | List changed files in the worktree |
-| `pilot worktree sync --json <slug>` | Squash merge worktree changes back to base branch. The landing commit carries the **branch's own** message: a single conventional commit lands verbatim (body and all — for `/fix` that body is the root-cause analysis), a single non-conventional one keeps its content under an inferred release prefix, and several are joined under a subject typed from what the branch actually did. A bugfix branch therefore lands as `fix:` rather than being recorded as a feature |
+| `pilot worktree sync --json <slug>` | Squash merge worktree changes back to base branch. The landing commit carries the **branch's own** message: a single conventional commit lands verbatim (body and all — for `/fix` that body is the root-cause analysis), a single non-conventional one keeps its content under an inferred release prefix, and several are joined under the subject of the newest commit carrying the branch's release type, with every message kept in the body. A bugfix branch therefore lands as `fix:` rather than being recorded as a feature |
 | `pilot worktree cleanup --json <slug>` | Remove worktree and branch (`--force` after a sync — still verifies the work reached the base branch; `--discard` to delete unmerged work) |
 | `pilot worktree status --json` | Show active worktree info for current session |
 

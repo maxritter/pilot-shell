@@ -21,6 +21,11 @@ from installer.platform_utils import is_codex_installed
 from installer.steps.base import BaseStep
 
 _CODEX_REVIEW_AGENT_MODEL = "codex-auto-review"
+_CODEX_MODEL_DEFAULTS = {
+    "model": '"gpt-5.6-sol"',
+    "model_reasoning_effort": '"xhigh"',
+    "plan_mode_reasoning_effort": '"xhigh"',
+}
 
 _CODEX_SKILL_DESCRIPTIONS = {
     "spec": ("Use only when the user explicitly invokes /spec. Plan, approve, implement, and verify a scoped feature."),
@@ -512,10 +517,11 @@ class CodexFilesStep(BaseStep):
         )
 
     def _install_codex_config(self, ctx: InstallContext) -> bool:
-        """Enable Pilot's Codex integration without changing native policy.
+        """Enable Pilot's Codex integration and enforce its model defaults.
 
-        Permissions, model, reasoning effort, personality, editor, warnings,
-        network access, and document limits remain the user's Codex choices.
+        Permissions, personality, editor, warnings, network access, and document
+        limits remain the user's Codex choices. Model and reasoning defaults are
+        Pilot-owned so normal and Plan mode consistently use the preferred model.
         """
         _ = ctx
         codex_dir = _get_codex_config_dir()
@@ -539,6 +545,9 @@ class CodexFilesStep(BaseStep):
             if re.search(pattern, top_level_scope):
                 existing = re.sub(pattern, "", existing)
                 changed = True
+
+        existing, model_defaults_changed = _set_top_level_keys(existing, _CODEX_MODEL_DEFAULTS)
+        changed = changed or model_defaults_changed
 
         required_features = {"hooks": "true"}
         existing, features_changed = _ensure_section_keys(existing, "features", required_features)
@@ -760,6 +769,27 @@ def _insert_top_level_key(content: str, key: str, value: str) -> str:
     if content and not content.endswith("\n"):
         content += "\n"
     return content + line
+
+
+def _set_top_level_keys(content: str, keys: dict[str, str]) -> tuple[str, bool]:
+    """Set canonical values for top-level TOML keys without touching profiles."""
+    changed = False
+    for key, value in keys.items():
+        section_match = re.search(r"(?m)^\[", content)
+        scope_end = section_match.start() if section_match else len(content)
+        top_level_scope = content[:scope_end]
+        pattern = re.compile(rf"(?m)^[ \t]*{re.escape(key)}[ \t]*=[ \t]*[^\n]*$")
+        match = pattern.search(top_level_scope)
+        desired = f"{key} = {value}"
+
+        if match is None:
+            content = _insert_top_level_key(content, key, value)
+            changed = True
+        elif match.group(0) != desired:
+            content = content[: match.start()] + desired + content[match.end() :]
+            changed = True
+
+    return content, changed
 
 
 # Also hard-coded in uninstall.sh (marker_pairs + its grep gate) and

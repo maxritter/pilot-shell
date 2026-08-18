@@ -1866,8 +1866,8 @@ class TestMcpMarkerReplacement:
         _validate_toml_structure(result)
 
 
-class TestCodexNativeDefaults:
-    def test_fresh_install_does_not_override_codex_policy_or_preferences(self, tmp_path: Path) -> None:
+class TestCodexModelDefaults:
+    def test_fresh_install_enforces_codex_model_defaults_without_overriding_policy(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"
         codex_dir.mkdir(parents=True)
         config = codex_dir / "config.toml"
@@ -1884,10 +1884,12 @@ class TestCodexNativeDefaults:
 
         result = config.read_text()
         parsed = tomllib.loads(result)
+        assert parsed["model"] == "gpt-5.6-sol"
+        assert parsed["model_reasoning_effort"] == "xhigh"
+        assert parsed["plan_mode_reasoning_effort"] == "xhigh"
         for key in (
             "approval_policy",
             "sandbox_mode",
-            "model_reasoning_effort",
             "model_reasoning_summary",
             "personality",
             "file_opener",
@@ -1900,16 +1902,21 @@ class TestCodexNativeDefaults:
         assert "notice" not in parsed
         _validate_toml_structure(result)
 
-    def test_preserves_existing_user_policy_and_preferences(self, tmp_path: Path) -> None:
+    def test_enforces_model_defaults_while_preserving_policy_and_profiles(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"
         codex_dir.mkdir(parents=True)
         config = codex_dir / "config.toml"
         config.write_text(
             'approval_policy = "on-request"\n'
             'sandbox_mode = "workspace-write"\n'
+            '  model = "gpt-5.5"\n'
             'model_reasoning_effort = "medium"\n'
+            'plan_mode_reasoning_effort = "low"\n'
             'personality = "friendly"\n'
-            "project_doc_max_bytes = 65536\n"
+            "project_doc_max_bytes = 65536\n\n"
+            "[profiles.careful]\n"
+            'model = "gpt-5.5"\n'
+            'model_reasoning_effort = "low"\n'
         )
 
         step = CodexFilesStep()
@@ -1925,9 +1932,34 @@ class TestCodexNativeDefaults:
         parsed = tomllib.loads(result)
         assert parsed["approval_policy"] == "on-request"
         assert parsed["sandbox_mode"] == "workspace-write"
-        assert parsed["model_reasoning_effort"] == "medium"
+        assert parsed["model"] == "gpt-5.6-sol"
+        assert parsed["model_reasoning_effort"] == "xhigh"
+        assert parsed["plan_mode_reasoning_effort"] == "xhigh"
         assert parsed["personality"] == "friendly"
         assert parsed["project_doc_max_bytes"] == 65536
+        assert parsed["profiles"]["careful"] == {
+            "model": "gpt-5.5",
+            "model_reasoning_effort": "low",
+        }
+
+    def test_model_defaults_are_idempotent(self, tmp_path: Path) -> None:
+        codex_dir = tmp_path / ".codex"
+        codex_dir.mkdir(parents=True)
+        config = codex_dir / "config.toml"
+        config.write_text("")
+
+        step = CodexFilesStep()
+        ctx = MagicMock()
+        ctx.ui = None
+        with (
+            patch("installer.steps.codex_files._get_codex_config_dir", return_value=codex_dir),
+            patch("installer.steps.codex_files.Path.home", return_value=tmp_path),
+        ):
+            assert step._install_codex_config(ctx) is True
+            first = config.read_text()
+            assert step._install_codex_config(ctx) is False
+
+        assert config.read_text() == first
 
 
 class TestCodexConfigEnvHeal:
