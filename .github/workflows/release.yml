@@ -23,6 +23,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
     steps:
@@ -80,6 +81,7 @@ jobs:
       contents: read
       checks: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: check-trigger
     if: needs.check-trigger.outputs.should_run == 'true'
     steps:
@@ -116,6 +118,7 @@ jobs:
       # Best-effort SARIF upload to the code-scanning / Security tab.
       security-events: write
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [check-trigger, supply-chain-gate]
     if: needs.check-trigger.outputs.should_run == 'true'
     steps:
@@ -123,7 +126,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:
@@ -180,6 +183,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [check-trigger, supply-chain-gate]
     if: needs.check-trigger.outputs.should_run == 'true'
     steps:
@@ -187,7 +191,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:
@@ -225,6 +229,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [check-trigger, supply-chain-gate]
     if: needs.check-trigger.outputs.should_run == 'true'
     steps:
@@ -232,7 +237,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:
@@ -257,6 +262,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [check-trigger, supply-chain-gate]
     if: needs.check-trigger.outputs.should_run == 'true'
     steps:
@@ -264,7 +270,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:
@@ -306,13 +312,14 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [check-trigger, supply-chain-gate]
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:
@@ -347,6 +354,7 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [check-trigger, supply-chain-gate]
     if: needs.check-trigger.outputs.should_run == 'true'
     outputs:
@@ -362,7 +370,7 @@ jobs:
           persist-credentials: false
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:
@@ -436,6 +444,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: prepare-release
     if: needs.prepare-release.outputs.should_release == 'true'
     steps:
@@ -443,7 +452,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:
@@ -463,7 +472,7 @@ jobs:
             -e BUILD_VERSION=${{ needs.prepare-release.outputs.version }} \
             python:3.12-slim-bullseye \
             bash -c "
-              apt-get update && apt-get install -y binutils build-essential && \
+              apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y binutils build-essential && \
               pip install . && \
               python -m launcher.build --release --version \$BUILD_VERSION && \
               ls -la launcher/dist/
@@ -483,6 +492,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
     needs: prepare-release
     if: needs.prepare-release.outputs.should_release == 'true'
     steps:
@@ -490,7 +500,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:
@@ -510,7 +520,7 @@ jobs:
             -e BUILD_VERSION=${{ needs.prepare-release.outputs.version }} \
             python:3.12-slim-bullseye \
             bash -c "
-              apt-get update && apt-get install -y binutils build-essential && \
+              apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y binutils build-essential && \
               pip install . && \
               python -m launcher.build --release --version \$BUILD_VERSION && \
               ls -la launcher/dist/
@@ -528,6 +538,7 @@ jobs:
     permissions:
       contents: read
     runs-on: macos-15-intel
+    timeout-minutes: 30
     needs: prepare-release
     if: needs.prepare-release.outputs.should_release == 'true'
     steps:
@@ -577,6 +588,7 @@ jobs:
     permissions:
       contents: read
     runs-on: macos-14
+    timeout-minutes: 30
     needs: prepare-release
     if: needs.prepare-release.outputs.should_release == 'true'
     steps:
@@ -627,6 +639,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs:
       - prepare-release
       - python-tests
@@ -691,6 +704,7 @@ jobs:
       id-token: write
       attestations: write
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs:
       - prepare-release
       - approve-release
@@ -711,7 +725,7 @@ jobs:
           git reset --hard origin/main
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:
@@ -886,6 +900,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs:
       - prepare-release
       - approve-release
@@ -895,7 +910,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:

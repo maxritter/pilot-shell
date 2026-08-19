@@ -21,6 +21,7 @@ jobs:
       contents: read
       checks: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
@@ -55,13 +56,14 @@ jobs:
       # Best-effort SARIF upload to the code-scanning / Security tab.
       security-events: write
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: supply-chain-gate
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:
@@ -119,6 +121,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: supply-chain-gate
     steps:
       - name: Checkout code
@@ -127,7 +130,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:
@@ -165,6 +168,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: supply-chain-gate
     steps:
       - name: Checkout code
@@ -173,7 +177,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:
@@ -198,6 +202,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: supply-chain-gate
     steps:
       - name: Checkout code
@@ -206,7 +211,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:
@@ -248,6 +253,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: supply-chain-gate
     steps:
       - name: Checkout code
@@ -256,7 +262,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:
@@ -290,6 +296,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -297,7 +304,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:
@@ -318,7 +325,7 @@ jobs:
             -w /workspace \
             python:3.12-slim-bullseye \
             bash -c "
-              apt-get update && apt-get install -y binutils build-essential && \
+              apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y binutils build-essential && \
               pip install . && \
               python -m launcher.build --release --version ${{ steps.version.outputs.VERSION }} && \
               ls -la launcher/dist/
@@ -338,6 +345,7 @@ jobs:
     permissions:
       contents: read
     runs-on: macos-14
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -389,6 +397,7 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs:
       - security-scan
       - python-tests
@@ -505,6 +514,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -512,7 +522,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Install git-crypt
-        run: sudo apt-get update && sudo apt-get install -y git-crypt
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
 
       - name: Unlock repository
         env:
