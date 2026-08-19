@@ -2,7 +2,7 @@
   "mcpServers": {
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@4.0.0"]
+      "args": ["-y", "@upstash/context7-mcp@4.0.2"]
     },
     "codegraph": {
       "type": "stdio",
@@ -33,7 +33,8 @@
     },
     "semble": {
       "type": "stdio",
-      "command": "semble"
+      "command": "uvx",
+      "args": ["--from", "semble[mcp]==0.5.5", "semble"]
     }
   }
 }

@@ -333,21 +333,25 @@ def _npm_install_cmd(
 
 
 def install_semble() -> bool:
-    """Install or update Semble code search tool via `uv tool install`.
+    """Install Semble code search tool at the manifest-pinned version.
 
-    Semble is a Python package on PyPI, distributed via the uv tool ecosystem
-    (parallel to ruff/basedpyright/hypothesis). No manifest pin — uv resolves
-    the latest release at install time.
+    Semble is a Python package on PyPI, installed via `uv tool install` so the
+    `semble` CLI is on PATH for the AGENTS.md/CLAUDE.md workflow.
 
-    The `[mcp]` extra is included so the MCP entry in pilot/.mcp.json can
-    launch the installed binary directly. A `uvx --from semble[mcp]` launch
-    would re-resolve over the network on every session start, which fails
-    behind authenticated package indexes (e.g. expired corporate registry
-    credentials) and adds startup latency.
+    The version is pinned from the manifest rather than floated with
+    `--upgrade`, and the `[mcp]` extra is included, so the installed CLI and
+    the `uvx --from "semble[mcp]==<version>" semble` MCP entry in
+    pilot/.mcp.json resolve to the *same* release. Upstream pins the same way
+    for the same reason (docs/installation.md): a floating install leaves the
+    agent calling a different semble than the instructions were written for.
+    `--reinstall` makes the pin authoritative — plain `uv tool install` is a
+    no-op when any version is already present, which would strand an older
+    install after a manifest bump.
     """
     was_present = command_exists("semble")
+    entry = manifest_get("semble")
     if not _run_bash_with_retry(
-        'uv tool install --no-config --upgrade "semble[mcp]"',
+        f'uv tool install --no-config --reinstall "semble[mcp]=={entry.version}"',
         timeout=UV_TOOL_INSTALL_TIMEOUT,
     ):
         return False
@@ -366,9 +370,15 @@ def install_rtk() -> bool:
     ``rtk init`` for both Claude Code and Codex (if installed).
     """
     was_present = command_exists("rtk")
+    # RTK_VERSION is the only lever install.sh offers: without it the script
+    # resolves GitHub's /releases/latest, so the manifest version would be a
+    # record of what happened to be current rather than the pin it claims to be.
+    # The script wants the git tag form (v0.45.0); the manifest stores the bare
+    # release (0.45.0), same as rtk-brew.
+    rtk_version = manifest_get("rtk-installer").version
     if not _curl_pipe_from_manifest(
         "rtk-installer",
-        CurlPipeRunOptions(interpreter="sh", timeout=120),
+        CurlPipeRunOptions(interpreter="sh", timeout=120, env={"RTK_VERSION": f"v{rtk_version}"}),
     ):
         if was_present:
             _symlink_to_pilot_bin("rtk")

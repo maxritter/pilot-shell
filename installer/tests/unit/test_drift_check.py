@@ -79,6 +79,32 @@ class TestDriftDetection:
         findings = drift_module.cross_reference_mcp(mcp)
         assert any("not in manifest" in f.message.lower() or "unmonitored" in f.message.lower() for f in findings)
 
+    def test_unpinned_uvx_from_in_mcp_json_fails(self, drift_module, tmp_path: Path) -> None:
+        """`uvx --from <pkg>` with no `==<version>` floats to whatever PyPI serves."""
+        mcp = tmp_path / ".mcp.json"
+        mcp.write_text('{"mcpServers": {"x": {"command": "uvx", "args": ["--from", "semble[mcp]", "semble"]}}}')
+        findings = drift_module.scan_file(mcp)
+        assert any("unpinned" in f.message.lower() for f in findings)
+
+    def test_pinned_uvx_from_in_mcp_json_passes_when_in_manifest(self, drift_module, tmp_path: Path) -> None:
+        mcp = tmp_path / ".mcp.json"
+        mcp.write_text('{"mcpServers": {"x": {"command": "uvx", "args": ["--from", "semble[mcp]==0.5.5", "semble"]}}}')
+        assert not drift_module.scan_file(mcp)
+        assert not drift_module.cross_reference_mcp(mcp)
+
+    def test_uvx_pinned_but_unmonitored_fails(self, drift_module, tmp_path: Path) -> None:
+        mcp = tmp_path / ".mcp.json"
+        mcp.write_text('{"mcpServers": {"x": {"command": "uvx", "args": ["--from", "not-monitored==1.2.3", "x"]}}}')
+        findings = drift_module.cross_reference_mcp(mcp)
+        assert any("not in manifest" in f.message.lower() or "unmonitored" in f.message.lower() for f in findings)
+
+    def test_uvx_version_disagreeing_with_manifest_fails(self, drift_module, tmp_path: Path) -> None:
+        """The whole point of the pin: config and manifest must name the SAME release."""
+        mcp = tmp_path / ".mcp.json"
+        mcp.write_text('{"mcpServers": {"x": {"command": "uvx", "args": ["--from", "semble[mcp]==0.4.0", "semble"]}}}')
+        findings = drift_module.cross_reference_mcp(mcp)
+        assert any("0.5.5" in f.message for f in findings), [f.message for f in findings]
+
     def test_npx_with_http_url_does_not_trigger(self, drift_module, tmp_path: Path) -> None:
         """HTTP URLs in args (e.g. typefully MCP endpoint) shouldn't trigger drift."""
         mcp = tmp_path / ".mcp.json"

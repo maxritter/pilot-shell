@@ -256,8 +256,12 @@ class TestSembleInstall:
     @patch("installer.steps.dependencies._symlink_to_pilot_bin")
     @patch("installer.steps.dependencies._run_bash_with_retry")
     def test_install_semble_uses_uv_tool_install(self, mock_bash, _mock_symlink, _mock_locator):
-        """install_semble installs the [mcp] extra so the MCP entry in
-        pilot/.mcp.json can launch the installed binary offline."""
+        """install_semble installs the [mcp] extra at the manifest-pinned version,
+        so the CLI and the `uvx --from "semble[mcp]==<v>"` MCP entry in
+        pilot/.mcp.json resolve to the same release. `--reinstall`, not
+        `--upgrade`: plain install is a no-op when any version is present, and
+        --upgrade would float straight past the pin."""
+        from installer.manifest import get as manifest_get
         from installer.steps.dependencies import install_semble
 
         mock_bash.return_value = True
@@ -268,8 +272,9 @@ class TestSembleInstall:
         mock_bash.assert_called_once()
         call_args = mock_bash.call_args[0][0]
         assert "uv tool install" in call_args
-        assert "semble[mcp]" in call_args
-        assert "--upgrade" in call_args
+        assert f"semble[mcp]=={manifest_get('semble').version}" in call_args
+        assert "--upgrade" not in call_args
+        assert "--reinstall" in call_args
 
     @patch("installer.steps.dependencies._uv_tool_bin_semble")
     @patch("installer.steps.dependencies._symlink_to_pilot_bin")
@@ -577,6 +582,24 @@ class TestCurlPipeHashVerify:
 
 class TestInstallRtk:
     """Tests for install_rtk() — RTK CLI installation (brew primary, curl fallback)."""
+
+    @patch("installer.steps.dependencies._init_rtk")
+    @patch("installer.steps.dependencies._heal_broken_rtk")
+    @patch("installer.steps.dependencies._symlink_to_pilot_bin")
+    @patch("installer.steps.dependencies.command_exists", return_value=False)
+    def test_install_rtk_pins_version_from_manifest(self, _cmd, _symlink, _heal, _init):
+        """The docstring promises the manifest-pinned version; the rtk install.sh
+        only honours that through RTK_VERSION, else it fetches whatever release
+        GitHub currently serves as latest."""
+        from installer.manifest import get as manifest_get
+        from installer.steps.dependencies import install_rtk
+
+        with patch("installer.steps.dependencies._curl_pipe_from_manifest", return_value=True) as mock_helper:
+            assert install_rtk() is True
+
+        opts = mock_helper.call_args[0][1]
+        assert opts.env is not None, "no env passed: rtk install floats to latest"
+        assert opts.env.get("RTK_VERSION") == f"v{manifest_get('rtk-installer').version}"
 
     def test_install_rtk_exists(self):
         """install_rtk function exists and is callable."""

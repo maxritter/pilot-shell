@@ -478,14 +478,39 @@ class CodexFilesStep(BaseStep):
 
         managed_names = _managed_server_names(mcp_data)
         preserved, dropped = _clean_mcp_config(existing, managed_names)
-        overwritten = _dropped_with_changed_content(dropped, toml_block)
-        if overwritten and ctx.ui:
-            ctx.ui.warning(
-                "Replacing [mcp_servers.*] tables in ~/.codex/config.toml that sit outside the "
-                f"pilot-managed block and differ from Pilot's own: {', '.join(sorted(overwritten))} "
-                "-- the previous definitions have been overwritten. To keep a custom server, "
-                "re-add it under a different name."
-            )
+
+        baseline_path = codex_dir / MCP_BASELINE_FILE
+        baseline: dict[str, Any] | None = None
+        if baseline_path.is_file():
+            try:
+                loaded = json.loads(baseline_path.read_text(encoding="utf-8"))
+                baseline = loaded if isinstance(loaded, dict) else None
+            except (OSError, json.JSONDecodeError):
+                baseline = None
+
+        user_owned, overwritten = _partition_dropped(dropped, toml_block, baseline)
+        if ctx.ui:
+            for name in sorted(user_owned):
+                ctx.ui.warning(
+                    f"MCP server '{name}' was modified by the user; "
+                    "Pilot's update was NOT applied. Existing value preserved."
+                )
+            if overwritten:
+                ctx.ui.warning(
+                    "Replacing [mcp_servers.*] tables in ~/.codex/config.toml that sit outside the "
+                    f"pilot-managed block and differ from Pilot's own: {', '.join(sorted(overwritten))} "
+                    "-- the previous definitions have been overwritten. To keep a custom server, "
+                    "re-add it under a different name."
+                )
+
+        if user_owned:
+            # Re-home the user's tables ahead of the managed block instead of
+            # dropping them: _clean_mcp_config removed them to keep Codex from
+            # loading a duplicate [mcp_servers.<name>], not because they are ours.
+            kept = [line for name in sorted(user_owned) for line in dropped[name]]
+            preserved = preserved.rstrip("\n") + "\n" + "\n".join(kept) if preserved.strip() else "\n".join(kept)
+            servers = {k: v for k, v in (mcp_data.get("mcpServers") or {}).items() if k not in user_owned}
+            toml_block = _mcp_json_to_toml({"mcpServers": servers})
 
         managed_block = f"\n{_MCP_MARKER_START}\n{toml_block}{_MCP_MARKER_END}\n"
         final = preserved.rstrip("\n") + "\n" + managed_block if preserved.strip() else managed_block.lstrip("\n")
@@ -503,6 +528,13 @@ class CodexFilesStep(BaseStep):
                 ) from e_existing
             raise _TomlStructureError(f"generated config.toml would be invalid: {e}") from e
         _atomic_write(config_path, final)
+        # Record what Pilot SHIPPED, not what landed in the file: a preserved
+        # user table must still read as "differs from Pilot's" on the next run,
+        # or the run after this one would quietly overwrite it.
+        try:
+            baseline_path.write_text(json.dumps(mcp_data.get("mcpServers") or {}, indent=2) + "\n", encoding="utf-8")
+        except OSError:
+            pass
         return len(managed_names)
 
     def _install_codex_rules(self, ctx: InstallContext) -> int:
@@ -937,6 +969,14 @@ def _set_top_level_keys(content: str, keys: dict[str, str]) -> tuple[str, bool]:
 
 # Also hard-coded in uninstall.sh (marker_pairs + its grep gate) and
 # test_uninstall_sh.py -- keep the literals in sync when editing.
+# What Pilot last wrote into config.toml, as {server_name: config}. Codex CLI
+# rewrites config.toml through a comment-stripping serializer, so the markers
+# below cannot survive to tell Pilot's own tables from a user's hand edit. The
+# baseline can: it is the same three-way-merge input ~/.claude/.pilot-mcp-baseline.json
+# gives the Claude path, and it is why both agents now preserve user edits
+# instead of only one of them doing so.
+MCP_BASELINE_FILE = ".pilot-mcp-baseline.json"
+
 _MCP_MARKER_START = "# --- pilot-shell managed MCP servers ---"
 _MCP_MARKER_END = "# --- end pilot-shell managed MCP servers ---"
 
@@ -1062,8 +1102,12 @@ def _clean_mcp_config(existing: str, managed_names: set[str]) -> tuple[str, dict
     return "\n".join(cleaned), dropped
 
 
-def _dropped_with_changed_content(dropped: dict[str, list[str]], toml_block: str) -> set[str]:
-    """Narrow the removed tables to those whose content Pilot is actually changing.
+def _partition_dropped(
+    dropped: dict[str, list[str]],
+    toml_block: str,
+    baseline: dict[str, Any] | None,
+) -> tuple[set[str], set[str]]:
+    """Split removed tables into (user_owned, overwritten).
 
     The markers are TOML *comments*, and Codex CLI rewrites this same
     config.toml through a serializer -- it owns [projects.*], [hooks.state.*]
@@ -1072,34 +1116,60 @@ def _dropped_with_changed_content(dropped: dict[str, list[str]], toml_block: str
     to the next install they look exactly like a hand-written override: the
     marker state alone cannot tell the two apart.
 
-    Comparing the removed table against the one Pilot is about to write can.
-    Identical content is Pilot's own block being re-homed, which is routine and
-    silent; content that differs is the user's, and overwriting it is worth
-    saying out loud.
+    A baseline of what Pilot last wrote can. With one, a table still equal to
+    that baseline is Pilot's own and is replaced silently even when the new
+    value differs -- an ordinary version bump; a table that differs is the
+    user's edit, and is kept and reported, matching what the Claude path does
+    with the same input. Those are `user_owned`.
+
+    Without a baseline there is no evidence of authorship, so the older
+    behaviour stands unchanged: every managed table is rewritten, and the ones
+    whose content actually changes come back as `overwritten` for the warning.
+    Preserving on a guess is not an option here -- removing stale managed tables
+    is what repairs a config Codex would otherwise refuse to load (a duplicate
+    [mcp_servers.<name>], a sub-table grafting stale keys onto a fresh server),
+    and this path is the only thing performing that repair.
 
     Each table is parsed on its own rather than via the whole file, so a
     duplicate definition elsewhere -- the very breakage this cleanup exists to
-    repair -- cannot collapse the judgement into "warn about everything". A
+    repair -- cannot collapse the judgement into one verdict for everything. A
     table that will not parse counts as changed: unable to tell means say
     something.
     """
     try:
         after = tomllib.loads(toml_block).get("mcp_servers", {})
     except tomllib.TOMLDecodeError:
-        return set(dropped)
+        return (set(), set()) if baseline else (set(), set(dropped))
     if not isinstance(after, dict):
-        return set(dropped)
+        return (set(), set()) if baseline else (set(), set(dropped))
 
-    changed: set[str] = set()
+    base_tables: dict[str, Any] = {}
+    if baseline:
+        try:
+            parsed = tomllib.loads(_mcp_json_to_toml({"mcpServers": baseline})).get("mcp_servers", {})
+        except tomllib.TOMLDecodeError:
+            parsed = {}
+        if isinstance(parsed, dict):
+            base_tables = parsed
+
+    user_owned: set[str] = set()
+    overwritten: set[str] = set()
     for name, table_lines in dropped.items():
         try:
             before = tomllib.loads("\n".join(table_lines)).get("mcp_servers", {})
         except tomllib.TOMLDecodeError:
-            changed.add(name)
+            (user_owned if baseline else overwritten).add(name)
             continue
-        if not isinstance(before, dict) or before.get(name) != after.get(name):
-            changed.add(name)
-    return changed
+        current = before.get(name) if isinstance(before, dict) else None
+        if not isinstance(before, dict):
+            (user_owned if baseline else overwritten).add(name)
+            continue
+        if baseline:
+            if current != base_tables.get(name):
+                user_owned.add(name)
+        elif current != after.get(name):
+            overwritten.add(name)
+    return user_owned, overwritten
 
 
 def _mcp_json_to_toml(mcp_data: dict[str, Any]) -> str:

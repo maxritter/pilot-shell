@@ -15,7 +15,10 @@ Forbidden patterns (per source-type):
 - `*.mcp.json`:  unversioned `npx <pkg>` args, plus cross-reference: every
                  pinned `npx <pkg>@<version>` MUST resolve to a manifest
                  entry by id (derived from the package name without the
-                 `@scope/` prefix).
+                 `@scope/` prefix). The same holds for `uvx --from
+                 <pkg>[extras]==<version>` launches, which additionally MUST
+                 name the same version as the manifest entry - the config and
+                 the installed tool are pinned precisely so they agree.
 
 Per-line override: `# noqa: drift-check  # <justification>` is honored if
 non-empty justification follows on the same line.
@@ -33,6 +36,7 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 REPO_ROOT_DEFAULT = Path(__file__).resolve().parents[1]
 
@@ -68,6 +72,23 @@ UV_BOOTSTRAP_URL_RE = re.compile(r'^\s*local UV_INSTALL_URL="([^"]+)"')
 UV_BOOTSTRAP_SHA_RE = re.compile(r'^\s*local UV_INSTALL_SHA256="([0-9a-f]{64})"')
 
 NOQA_PATTERN = re.compile(r"#\s*noqa:\s*drift-check\b\s*(?:#\s*(.*))?")
+
+# `uvx --from "<pkg>[extra,extra]==<version>" <entrypoint>` - the launch form
+# upstream projects document for PyPI-distributed MCP servers (e.g. semble).
+# Extras are part of the requirement, not the package name, so they are
+# stripped before the manifest lookup.
+UVX_FROM_SPEC_RE = re.compile(r"^(?P<pkg>[A-Za-z0-9._-]+)(?:\[[A-Za-z0-9,._-]+\])?(?:==(?P<version>[\w.+-]+))?$")
+
+
+def _uvx_from_spec(cfg: dict[str, Any]) -> str | None:
+    """Return the `--from` requirement of a uvx-launched server, if any."""
+    if cfg.get("command") != "uvx":
+        return None
+    args = cfg.get("args") or []
+    for i, a in enumerate(args):
+        if a == "--from" and i + 1 < len(args) and isinstance(args[i + 1], str):
+            return args[i + 1]
+    return None
 
 
 @dataclass
@@ -202,6 +223,18 @@ def _scan_mcp_json(path: Path) -> list[Finding]:
         return [Finding(file=path, line=0, message=f"could not parse JSON: {exc}")]
     servers = doc.get("mcpServers") or {}
     for name, cfg in servers.items():
+        spec = _uvx_from_spec(cfg)
+        if spec is not None:
+            m = UVX_FROM_SPEC_RE.match(spec)
+            if m is None or not m.group("version"):
+                findings.append(
+                    Finding(
+                        file=path,
+                        line=0,
+                        message=f"{name}: unpinned uvx package {spec!r} (use `<pkg>[extras]==<version>`)",
+                    )
+                )
+            continue
         if cfg.get("command") != "npx":
             continue
         args = cfg.get("args") or []
@@ -237,8 +270,35 @@ def cross_reference_mcp(path: Path) -> list[Finding]:
         return findings
     manifest = load()
     monitored_urls = {e.source_url for e in manifest.entries if e.source_type == "npm"}
+    by_id = {e.id: e for e in manifest.entries}
     servers = doc.get("mcpServers") or {}
     for name, cfg in servers.items():
+        spec = _uvx_from_spec(cfg)
+        if spec is not None:
+            m = UVX_FROM_SPEC_RE.match(spec)
+            if m is None:
+                continue
+            pkg, version = m.group("pkg"), m.group("version")
+            entry = by_id.get(pkg)
+            if entry is None:
+                findings.append(
+                    Finding(
+                        file=path,
+                        line=0,
+                        message=f"{name}: pinned package {pkg!r} is not in manifest (unmonitored)",
+                    )
+                )
+            elif version and version != entry.version:
+                findings.append(
+                    Finding(
+                        file=path,
+                        line=0,
+                        message=(
+                            f"{name}: uvx pin {pkg}=={version} disagrees with manifest entry {pkg!r} at {entry.version}"
+                        ),
+                    )
+                )
+            continue
         if cfg.get("command") != "npx":
             continue
         for a in cfg.get("args") or []:

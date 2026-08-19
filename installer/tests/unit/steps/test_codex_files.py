@@ -14,6 +14,7 @@ import pytest
 import yaml
 
 from installer.steps.codex_files import (
+    MCP_BASELINE_FILE,
     CodexFilesStep,
     _TomlStructureError,
     _ensure_section_keys,
@@ -1210,6 +1211,69 @@ class TestCodexMcpConfiguration:
 
     _CONTEXT7 = {"context7": {"command": "npx", "args": ["-y", "@upstash/context7-mcp@3.2.1"]}}
 
+    @staticmethod
+    def _run_mcp_install_with_baseline(
+        tmp_path: Path, existing_toml: str, mcp_servers: dict, baseline: dict | None
+    ) -> tuple[str, MagicMock]:
+        """Same as _run_mcp_install but seeds the baseline of what Pilot last wrote."""
+        codex_dir = tmp_path / ".codex"
+        codex_dir.mkdir(parents=True, exist_ok=True)
+        (codex_dir / "config.toml").write_text(existing_toml)
+        if baseline is not None:
+            (codex_dir / MCP_BASELINE_FILE).write_text(json.dumps(baseline))
+
+        mcp_json = tmp_path / ".pilot" / ".mcp.json"
+        mcp_json.parent.mkdir(parents=True, exist_ok=True)
+        mcp_json.write_text(json.dumps({"mcpServers": mcp_servers}))
+
+        step = CodexFilesStep()
+        ctx = MagicMock()
+        with (
+            patch("installer.steps.codex_files._get_codex_config_dir", return_value=codex_dir),
+            patch("installer.steps.codex_files.Path.home", return_value=tmp_path),
+        ):
+            step._install_codex_mcp(ctx)
+        return (codex_dir / "config.toml").read_text(), ctx
+
+    def test_user_modified_server_is_preserved_not_overwritten(self, tmp_path: Path) -> None:
+        """The reported bug: Codex clobbered a user's edited semble entry that the
+        Claude path preserved. Baseline says Pilot wrote the bare command; the user
+        has since switched it to a pinned uvx launch."""
+        existing = (
+            "[mcp_servers.semble]\n"
+            'command = "uvx"\n'
+            'args = ["--from", "semble[mcp]==0.5.5", "semble"]\n'
+        )
+        config, ctx = self._run_mcp_install_with_baseline(
+            tmp_path,
+            existing,
+            {"semble": {"command": "semble"}},
+            baseline={"semble": {"command": "semble"}},
+        )
+        assert 'args = ["--from", "semble[mcp]==0.5.5", "semble"]' in config, config
+        assert config.count("[mcp_servers.semble]") == 1, config
+        assert any("modified by the user" in str(c) for c in ctx.ui.warning.call_args_list)
+
+    def test_unmodified_server_is_updated_silently(self, tmp_path: Path) -> None:
+        """A table still identical to the baseline is Pilot's own — take the update."""
+        existing = "[mcp_servers.semble]\ncommand = \"semble\"\n"
+        config, ctx = self._run_mcp_install_with_baseline(
+            tmp_path,
+            existing,
+            {"semble": {"command": "uvx", "args": ["--from", "semble[mcp]==0.5.5", "semble"]}},
+            baseline={"semble": {"command": "semble"}},
+        )
+        assert 'args = ["--from", "semble[mcp]==0.5.5", "semble"]' in config, config
+        assert not any("modified by the user" in str(c) for c in ctx.ui.warning.call_args_list)
+
+    def test_baseline_written_after_install(self, tmp_path: Path) -> None:
+        """Without a persisted baseline the next run is blind again."""
+        self._run_mcp_install_with_baseline(
+            tmp_path, "", {"semble": {"command": "semble"}}, baseline=None
+        )
+        written = json.loads((tmp_path / ".codex" / MCP_BASELINE_FILE).read_text())
+        assert written == {"semble": {"command": "semble"}}
+
     def test_installs_mcp_to_codex_config_toml(self, tmp_path: Path) -> None:
         config, _ = self._run_mcp_install(tmp_path, None, {"test-server": {"command": "echo", "args": ["hello"]}})
         assert "[mcp_servers.test-server]" in config
@@ -2271,7 +2335,7 @@ class TestCodexSourcesHonourClaudeConfigDir:
     """
 
     def test_skills_source_follows_config_dir(self, tmp_path, monkeypatch):
-        from installer.steps.codex_files import CodexFilesStep
+        from installer.steps.codex_files import MCP_BASELINE_FILE, CodexFilesStep
 
         work = tmp_path / ".claude_work"
         skill_dir = work / "skills" / "spec"
