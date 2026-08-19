@@ -29,7 +29,7 @@ SLUG=$(basename "$(git remote get-url origin 2>/dev/null | sed 's/\.git$//')" 2>
 | **Global** | Skill applies across projects and is intentionally local to this Codex installation | `~/.agents/skills/{slug}-{name}/SKILL.md` | Outside repository sync; promote through Pilot's skill library to distribute to both agents |
 CODEX-END -->
 
-For project scope, `.agents/skills/` is canonical even when `/create-skill` runs in Claude Code. Pilot's shared hook converges prepared repositories on SessionStart, watches edits from both agents, and generates `.claude/skills/` automatically. If an operation targets tracked generated content, the hook redirects or blocks it and names the canonical `.agents/skills/` path. Filesystem authority remains one-way even though either agent can initiate the change. Keep repository instructions in root `AGENTS.md`, not inside a skill.
+For project scope, `.agents/skills/` is canonical even when `/create-skill` runs in Claude Code. Pilot's shared hook converges prepared repositories on SessionStart, watches supported edits from both agents, and runs again at Stop when Code Mode emitted no edit event. If an operation targets tracked generated content, the hook redirects or blocks it and names the canonical `.agents/skills/` path. Filesystem authority remains one-way even though either agent can initiate the change. Keep repository instructions in root `AGENTS.md`, not inside a skill.
 
 **Naming rules:** Lowercase with hyphens only. The slug provides context; the name should be 1-3 words max that are descriptive (not generic). Examples: `pilot-shell-lsp-cleaner`, `my-api-auth-flow`, `acme-deploy`. Never use generic names like "helper", "utils", "tools", "handler", "workflow".
 

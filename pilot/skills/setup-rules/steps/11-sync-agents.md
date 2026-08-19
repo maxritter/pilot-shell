@@ -6,7 +6,7 @@ The final repository contract is:
 - `CLAUDE.md` contains exactly `@AGENTS.md` plus a trailing newline.
 - `.agents/skills/` is the user-editable canonical tree for tracked project skills.
 - Tracked `.claude/skills/` content is generated and must never be edited directly.
-- Pilot's shared hook synchronizes on SessionStart and after edits made through either Claude Code or Codex.
+- Pilot's shared hook synchronizes on SessionStart, supported edits made through either agent, and Stop as a Code Mode backstop.
 - `scripts/sync-agent-assets.mjs` is the standalone recovery writer and CI drift checker.
 
 Untracked or ignored local agent-only extensions are outside this repository contract. Preserve them; they neither become canonical project assets nor make CI fail.
@@ -45,11 +45,14 @@ If the bundled script cannot be resolved, stop this step before changing `CLAUDE
 Pilot installs one shared agent-asset hook through both its Claude Code and Codex adapters. Do not add repository-specific hooks. Confirm the installed adapters provide these behaviors:
 
 1. **SessionStart:** detect prepared repositories and converge `CLAUDE.md` plus tracked skill mirrors before work begins.
-2. **Canonical edit:** after either agent edits `AGENTS.md` or `.agents/skills/`, run the repository synchronizer automatically.
+2. **Canonical edit:** after either agent emits a supported edit to `AGENTS.md` or `.agents/skills/`, run the repository synchronizer automatically.
 3. **Generated edit:** when either agent targets tracked `.claude/skills/` content, redirect the edit when supported or block it, and return the exact canonical `.agents/skills/` path to edit instead.
 4. **One-way authority:** copy `.agents/skills/` to `.claude/skills/` only. Never infer canonical content from the generated tree.
+5. **Stop:** run a read-only check and repair drift only when needed. This covers Code Mode when nested edits emitted no PreToolUse/PostToolUse event.
 
 This makes the active agent irrelevant to authoring: Claude Code and Codex both edit the same canonical filesystem paths. If either adapter lacks the shared hook, report that Pilot installation needs repair; do not compensate with a second project hook.
+
+The hook must execute only Pilot's installed bundled checker. Treat the repository copy as an enrollment marker, update target, and CI/manual recovery command; never execute that repository-controlled copy from a trusted global hook.
 
 ### Step 11.4: Add the Check to Existing CI
 
@@ -78,7 +81,7 @@ The check must exit zero. Then capture evidence for the summary:
 3. All tracked project skill names have canonical entries and generated mirrors; local untracked/ignored agent-only extensions are listed as out of scope.
 4. Every tracked file under each canonical `.agents/skills/<name>/` is byte-identical to its `.claude/skills/<name>/` mirror.
 5. `scripts/sync-agent-assets.mjs --check` exits zero without modifying the worktree.
-6. Pilot's shared hook covers SessionStart, canonical edits, and generated-edit redirection/blocking for both agents.
+6. Pilot's shared hook covers SessionStart, canonical edits, generated-edit redirection/blocking and Stop for both agents.
 7. An existing CI job invokes `--check`, or the repository has no CI and the local-only status is recorded.
 
 Do not hand-edit the generated mirror. Its only supported authority is the canonical source, whether convergence came from the automatic hook or a recovery `--write`.

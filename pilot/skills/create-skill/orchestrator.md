@@ -6,7 +6,7 @@ user-invocable: true
 
 # /create-skill — Skill Creator
 
-**Create a reusable skill.** Provide a topic or workflow description, and this command explores the codebase, gathers relevant patterns, and builds a well-structured skill interactively with you. Project skills are authored once in `.agents/skills/`; Pilot's shared hook automatically generates `.claude/skills/` after edits from either agent. If no topic is given, it evaluates the current session for extractable knowledge.
+**Create a reusable skill.** Provide a topic or workflow description, and this command explores the codebase, gathers relevant patterns, and builds a well-structured skill interactively with you. Project skills are authored once in `.agents/skills/`; Pilot's shared hook generates `.claude/skills/` after supported edits from either agent and at Stop as a Code Mode backstop. If no topic is given, it evaluates the current session for extractable knowledge.
 
 ## Editing existing skills
 

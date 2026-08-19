@@ -19,7 +19,7 @@ Pilot uses one ownership model in every prepared repository:
 | `.claude/rules/*.md` | Detailed, path-scoped guidance; indexed from `AGENTS.md` for Codex |
 | `.agents/skills/` | Canonical, user-editable tracked project skills |
 | `.claude/skills/` | Generated mirror for tracked project skills; local untracked/ignored extensions remain agent-only |
-| Pilot shared hook | Automatically synchronizes on SessionStart and after edits from either agent |
+| Pilot shared hook | Synchronizes on SessionStart, supported edits, and Stop as a Code Mode backstop |
 | `scripts/sync-agent-assets.mjs` | Standalone recovery writer and CI drift checker committed with the project |
 
 ```bash
@@ -57,9 +57,11 @@ claude                codex
 
 Detailed `.claude/rules/` files keep their `paths` frontmatter, so they load only for relevant Claude Code work. `AGENTS.md` carries a compact index telling Codex which matching rule to read; it does not duplicate the detailed content.
 
-Tracked project skills always start in `.agents/skills/`. Pilot's shared hook copies their complete trees to `.claude/skills/`, including `scripts/`, `references/`, and `assets/`. It runs on SessionStart and after edits made through either Claude Code or Codex, so users normally only edit the canonical source.
+Tracked project skills always start in `.agents/skills/`. Pilot's shared hook copies their complete trees to `.claude/skills/`, including `scripts/`, `references/`, and `assets/`. It runs on SessionStart and supported edits made through either Claude Code or Codex. A Stop hook covers Code Mode when no edit event fired, so users normally only edit the canonical source.
 
 When either agent targets a tracked generated `.claude/skills/` file, Pilot redirects the operation when supported or blocks it and returns the exact canonical `.agents/skills/` path. Both agents can initiate edits, but filesystem authority always flows one way: `.agents/skills/` to `.claude/skills/`.
+
+The shared hook executes only Pilot's installed, trusted checker. The repository copy is an enrollment marker plus the command used by CI and manual recovery; hooks update it when Pilot upgrades but never execute repository-controlled code.
 
 The standalone commands remain available as recovery and verification:
 

@@ -52,7 +52,7 @@
           {
             "type": "command",
             "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
-            "timeout": 20
+            "timeout": 45
           }
         ]
       },
@@ -172,7 +172,7 @@
           {
             "type": "command",
             "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
-            "timeout": 15
+            "timeout": 20
           }
         ]
       },
@@ -222,6 +222,11 @@
           {
             "type": "command",
             "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/spec_stop_guard.py\""
+          },
+          {
+            "type": "command",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
+            "timeout": 45
           },
           {
             "type": "command",

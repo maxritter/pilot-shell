@@ -18,7 +18,7 @@ mkdir -p .agents/skills/{slug}-{name}
 # Write .agents/skills/{slug}-{name}/SKILL.md and any supporting files
 ```
 
-Pilot's shared hook converges on SessionStart and regenerates the complete mirror for canonical skills under `.claude/skills/` after edits from either Claude Code or Codex, while preserving untracked/ignored agent-only extensions. Users normally do not run `--write`.
+Pilot's shared hook converges on SessionStart and regenerates the complete mirror for canonical skills under `.claude/skills/` after supported edits from either Claude Code or Codex. Its Stop backstop covers Code Mode when no edit event fired. Untracked/ignored agent-only extensions are preserved. Users normally do not run `--write`.
 
 If a task or tool presents a tracked `.claude/skills/<name>/...` path, do not edit that generated file. Follow the hook's redirect when supported; otherwise use the canonical `.agents/skills/<name>/...` path reported by the blocking message. Never copy changes from `.claude/skills/` back into `.agents/skills/`.
 

@@ -6,7 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codex_background.py\" --python \"$HOME/.pilot/hooks/codex_skill_sync.py\"",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codex_skill_sync.py\"",
+            "async": true,
             "timeout": 30
           }
         ]
@@ -17,7 +18,7 @@
           {
             "type": "command",
             "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
-            "timeout": 20
+            "timeout": 45
           }
         ]
       },
@@ -57,7 +58,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codex_background.py\" -- bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex session-init",
+            "command": "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex session-init",
+            "async": true,
             "timeout": 15
           }
         ]
@@ -91,7 +93,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codex_background.py\" -- bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex observation",
+            "command": "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex observation",
+            "async": true,
             "timeout": 15
           }
         ]
@@ -102,7 +105,7 @@
           {
             "type": "command",
             "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
-            "timeout": 15
+            "timeout": 20
           }
         ]
       }
@@ -117,7 +120,13 @@
           },
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codex_background.py\" -- bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex summarize",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
+            "timeout": 45
+          },
+          {
+            "type": "command",
+            "command": "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex summarize",
+            "async": true,
             "timeout": 15
           }
         ]

@@ -8,7 +8,7 @@ description: Build and verify one canonical project skill for Claude Code and Co
 
 Build a reusable skill from any topic.
 
-Provide a topic or workflow description, and `/create-skill` explores the codebase, gathers relevant patterns, and builds a well-structured skill interactively with you. In a Pilot-prepared repository, it writes project skills once under `.agents/skills/`; Pilot's shared hook regenerates `.claude/skills/` automatically after edits from Claude Code or Codex. If no topic is given, it evaluates the current session for extractable knowledge.
+Provide a topic or workflow description, and `/create-skill` explores the codebase, gathers relevant patterns, and builds a well-structured skill interactively with you. In a Pilot-prepared repository, it writes project skills once under `.agents/skills/`; Pilot's shared hook regenerates `.claude/skills/` after supported edits from Claude Code or Codex and again at Stop as a Code Mode backstop. If no topic is given, it evaluates the current session for extractable knowledge.
 
 ```bash
 # Claude Code
@@ -53,7 +53,7 @@ For a project skill, edit only the canonical source:
 └── assets/
 ```
 
-Pilot's shared hook mirrors the skill on SessionStart and after edits made through either agent. Normally you only run the read-only verification:
+Pilot's shared hook mirrors the skill on SessionStart, after supported edits made through either agent, and at Stop when Code Mode emitted no edit event. Normally you only run the read-only verification:
 
 ```bash
 node scripts/sync-agent-assets.mjs --check

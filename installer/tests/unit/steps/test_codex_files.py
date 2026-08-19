@@ -194,7 +194,7 @@ class TestCodexHooksInstallation:
         assert "Stop" in hooks
         assert "PreCompact" in hooks
 
-    def test_real_template_is_compatible_with_stable_codex_hooks(self, tmp_path: Path) -> None:
+    def test_real_template_uses_async_only_for_observers(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"
         repo_root = Path(__file__).resolve().parent.parent.parent.parent.parent
         ctx = MagicMock(ui=None, local_mode=True, local_repo_dir=repo_root)
@@ -204,11 +204,28 @@ class TestCodexHooksInstallation:
 
         hooks = json.loads((codex_dir / "hooks.json").read_text())["hooks"]
         handlers = [handler for entries in hooks.values() for entry in entries for handler in entry.get("hooks", [])]
-        assert all("async" not in handler for handler in handlers)
+        async_handlers = [handler for handler in handlers if handler.get("async") is True]
+        assert len(async_handlers) == 4
+        assert {handler["command"].split()[-1] for handler in async_handlers} >= {
+            "session-init",
+            "observation",
+            "summarize",
+        }
+        assert any("codex_skill_sync.py" in handler["command"] for handler in async_handlers)
+        control_handlers = [
+            handler
+            for handler in handlers
+            if any(
+                command in handler["command"]
+                for command in ("repo_agent_sync.py", "spec_stop_guard.py", "hook codex context", "session_end.py")
+            )
+        ]
+        assert control_handlers
+        assert all("async" not in handler for handler in control_handlers)
         session_end = [handler for entry in hooks["SessionEnd"] for handler in entry["hooks"]]
         assert session_end[0]["timeout"] == 3
 
-    def test_upgrade_replaces_old_async_pilot_hooks_but_preserves_user_hooks(self, tmp_path: Path) -> None:
+    def test_upgrade_replaces_background_wrapper_and_preserves_user_async_hook(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"
         codex_dir.mkdir(parents=True)
         old = {
@@ -218,8 +235,7 @@ class TestCodexHooksInstallation:
                         "hooks": [
                             {
                                 "type": "command",
-                                "command": 'bun "$HOME/.pilot/scripts/worker-service.cjs" hook codex observation',
-                                "async": True,
+                                "command": 'uv run --no-project --python python3 python "$HOME/.pilot/hooks/codex_background.py" -- bun "$HOME/.pilot/scripts/worker-service.cjs" hook codex observation',
                             }
                         ]
                     },
@@ -238,8 +254,8 @@ class TestCodexHooksInstallation:
         post_tool_handlers = [handler for entry in hooks["PostToolUse"] for handler in entry["hooks"]]
         pilot = next(handler for handler in post_tool_handlers if "/.pilot/" in handler["command"])
         user = next(handler for handler in post_tool_handlers if handler["command"] == "my-custom-hook.sh")
-        assert "async" not in pilot
-        assert "codex_background.py" in pilot["command"]
+        assert pilot["async"] is True
+        assert "codex_background.py" not in pilot["command"]
         assert user["async"] is True
 
     def test_merge_preserves_user_posttooluse_hooks(self, tmp_path: Path) -> None:
@@ -766,8 +782,8 @@ class TestCodexSkillsInstallation:
 
         assert "Codex reads it directly; Claude Code imports it through `CLAUDE.md`" in result
         assert "Its absence is a setup gap for both Claude Code and Codex" in result
-        assert "Pilot's shared hook synchronizes on SessionStart and after edits" in result
-        assert "Users should not need `--write` during normal Claude Code or Codex work" in result
+        assert "Pilot's shared hook synchronizes on SessionStart, supported edits made through either agent" in result
+        assert "The shared hook normally performs every write" in result
         assert "Never create AGENTS.md if it doesn't exist" not in result
 
     def test_create_skill_codex_skill_uses_agents_skill_paths(self) -> None:
@@ -777,10 +793,10 @@ class TestCodexSkillsInstallation:
 
         assert ".agents/skills/{slug}-{name}/SKILL.md" in result
         assert "~/.agents/skills/{slug}-{name}/SKILL.md" in result
-        assert "Pilot's shared hook automatically generates `.claude/skills/` after edits from either agent" in result
+        assert "Pilot's shared hook generates `.claude/skills/` after supported edits from either agent" in result
         assert "For project scope, `.agents/skills/` is canonical" in result
         assert "Users normally do not run `--write`" in result
-        assert "use `node scripts/sync-agent-assets.mjs --write` once for recovery" in result
+        assert "Keep manual `--write` as recovery" in result
 
     def test_benchmark_codex_skill_describes_codex_materialization(self) -> None:
         from installer.steps.codex_files import build_codex_skill_md

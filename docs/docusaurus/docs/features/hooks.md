@@ -10,6 +10,8 @@ Lifecycle hooks enforce quality automatically throughout **Claude Code** workflo
 
 Blocking hooks reject actions or force fixes before they land. Non-blocking hooks warn without interrupting. Hook output is user-visible in both clients.
 
+Codex runs the skill refresh, session registration, memory observer, and turn summarizer as native asynchronous command hooks. Repository synchronization, workflow guards, context injection, compaction, and SessionEnd remain synchronous because their result must be observed before the lifecycle event completes. Pilot does not register an MCP hook merely as a transport substitute; an MCP handler belongs here only when an installed server owns a concrete lifecycle operation and returns the hook contract directly.
+
 ## SessionStart
 
 *On startup, after `/clear`, or after compaction*

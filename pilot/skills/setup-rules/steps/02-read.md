@@ -11,4 +11,4 @@
 7. **Detect unscoped legacy files** — look for `project.md`, `mcp-servers.md`, or any rule without the `{slug}-` prefix. Flag for migration in Step 3.
 8. **Detect nested rule directories** — check for subdirectories within `.claude/rules/` (product/team structure per Step 1 → Recommended Directory Structure). Map each subdirectory, its depth level (product vs team), and contents. Also check for sub-projects with their own `.claude/rules/`, `CLAUDE.md`, or `AGENTS.md`.
 9. **Validate path-scoping** — flag every detailed rule without `paths` frontmatter. The fix is either a real path scope or moving genuinely shared content into `AGENTS.md`.
-10. Build inventory: shared core, import shim, scoped rules, skill source/mirror parity, automatic hook coverage, checker/CI backstops, gaps, outdated items, legacy files, nested directories, and path-scoping violations.
+10. Build inventory: shared core, import shim, scoped rules, skill source/mirror parity, SessionStart/edit/Stop hook coverage, checker/CI backstops, gaps, outdated items, legacy files, nested directories, and path-scoping violations.
