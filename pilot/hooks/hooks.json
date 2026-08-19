@@ -147,7 +147,7 @@
         ]
       },
       {
-        "matcher": "Bash|WebSearch|WebFetch|Grep|Glob|Agent",
+        "matcher": "Bash|WebSearch|WebFetch|Grep|Glob",
         "hooks": [
           {
             "type": "command",

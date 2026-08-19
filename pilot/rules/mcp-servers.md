@@ -32,11 +32,9 @@ Tools resolve as `mcp__<server>__<tool>` (e.g. `mcp__semble__search`, `mcp__code
 | Full page content, JS-rendered pages | **web-fetch** |
 | Real-world code in public repos | **grep-mcp** |
 
-CodeGraph and Semble are co-primary: reach for one of them before Grep/Glob on any code-search task, and drop to Grep to verify their results or find exact text in a known file.
+CodeGraph and Semble are co-primary for code questions — usually the fastest first stop when you don't already know where the answer lives. Grep/Glob remain right for exact text or patterns in known files, and for verifying an index result.
 
-<!-- CODEX-START
-**Codex proportionality:** skip CodeGraph for named paths, docs, rules, config, UI copy, and reviews of a known diff — read the file or `git diff` directly. If the first graph result is irrelevant, pivot to Semble or direct reads rather than re-querying.
-CODEX-END -->
+**Proportionality:** skip CodeGraph for named paths, docs, rules, config, UI copy, and reviews of a known diff — read the file or `git diff` directly. If the first graph result is irrelevant, pivot to Semble or direct reads rather than re-querying.
 
 ### The two contracts worth stating
 

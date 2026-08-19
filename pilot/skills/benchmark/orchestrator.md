@@ -33,7 +33,7 @@ CODEX-END -->
 Workflow-style skills like `/spec` are benchmarked as `type=skill` — present vs absent.
 
 <!-- CC-ONLY -->
-**Model selection:** Pilot-shipped skills (`spec-plan`, `fix`, `prd`, `create-skill`, `setup-rules`, …) don't carry a `model:` in their frontmatter — active model is controlled by Claude Code's `/model`. The runner defaults those benchmarks to `claude-sonnet-5`; pass `--model opus` explicitly to run them on Opus instead. Bot-* skills still carry hard-coded `model: sonnet`.
+**Model selection:** Pilot-shipped skills (`spec-plan`, `fix`, `prd`, `create-skill`, `setup-rules`, …) don't carry a `model:` in their frontmatter — active model is controlled by Claude Code's `/model`. The runner defaults those benchmarks to `claude-sonnet-5`; pass `--model opus` (or `--model fable`) explicitly to run them on Opus or Fable instead. Bot-* skills still carry hard-coded `model: sonnet`.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 **Model selection:** When `--agent codex` is used and no `--model` is passed, the runner omits `--model` and lets Codex use its active default model. Pass an explicit Codex model with `--model` only when comparing models.

@@ -1,6 +1,6 @@
 ---
 name: spec-bugfix-plan
-description: "Planning phase of the /spec bugfix workflow — owns the bugfix plan file until the user approves it. Entered for a new bug task, or for an existing bugfix plan still marked Status: PENDING and Approved: No."
+description: "Planning phase of the /spec bugfix workflow — owns the bugfix plan file until the user approves it. Entered from the /spec dispatcher for a new bug task, or for an existing bugfix plan still marked Status: PENDING and Approved: No."
 argument-hint: "<bug description> or <path/to/plan.md>"
 user-invocable: false
 hooks:

@@ -43,7 +43,7 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 
 | Hook | Applies to | Description |
 |------|------------|-------------|
-| `tool_redirect.py` | Claude Code | Redirects supported Bash, search, web, and agent calls to the configured alternatives; blocks unsupported web paths. |
+| `tool_redirect.py` | Claude Code | Nudges recursive Bash and built-in search calls toward the indexed code-search tools; blocks unsupported web paths. |
 | `tool_token_saver.py` | Both | Rewrites eligible Bash commands through RTK for 60–90% smaller output. |
 | `plan_mode_tracker.py` | Claude Code | Tracks `/spec` plan-mode state, verifies the observed planning-leg model, and reports the result once per leg. |
 

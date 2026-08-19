@@ -147,6 +147,11 @@ class TestResolveExecutorModel:
         result = resolve_executor_model({"type": "skill", "path": str(tmp_path)})
         assert result == "claude-sonnet-5"
 
+    def test_resolves_fable_alias(self, tmp_path: Path) -> None:
+        _ = _make_skill(tmp_path, content="---\nname: x\nmodel: fable\n---\n")
+        result = resolve_executor_model({"type": "skill", "path": str(tmp_path)})
+        assert result == "claude-fable-5"
+
     def test_passes_through_explicit_model_id(self, tmp_path: Path) -> None:
         _ = _make_skill(tmp_path, content="---\nname: x\nmodel: claude-opus-4-9\n---\n")
         result = resolve_executor_model({"type": "skill", "path": str(tmp_path)})

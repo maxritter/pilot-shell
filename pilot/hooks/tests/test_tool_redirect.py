@@ -1,4 +1,4 @@
-"""Tests for tool_redirect hook - blocks WebSearch/WebFetch/Plan agent; allows Explore/Research fan-out."""
+"""Tests for tool_redirect hook - blocks WebSearch/WebFetch; all Agent calls pass through."""
 
 from __future__ import annotations
 
@@ -71,17 +71,13 @@ class TestBlockedTools:
         assert code == 2
 
 
-class TestBlockedAgentTypes:
-    """Agent types that should be hard-blocked (exit code 2)."""
-
-    def test_blocks_plan_agent(self):
-        code, output = _run_with_input("Agent", {"subagent_type": "Plan", "prompt": "plan impl"})
-        assert code == 2
-        assert "/spec" in output
-
-
 class TestAgentPassthrough:
-    """Non-blocked Agent calls pass through silently — no output."""
+    """All Agent calls pass through silently - no output."""
+
+    def test_allows_plan_agent(self):
+        code, output = _run_with_input("Agent", {"subagent_type": "Plan", "prompt": "plan impl"})
+        assert code == 0
+        assert output == ""
 
     def test_allows_explore_agent(self):
         code, output = _run_with_input("Agent", {"subagent_type": "Explore", "prompt": "find files"})
@@ -333,10 +329,10 @@ class TestSubprocessIntegration:
         assert exit_code == 0
         assert not _is_denied(stdout)
 
-    def test_plan_agent_blocked(self):
+    def test_plan_agent_allowed(self):
         exit_code, stdout, _ = _run_subprocess("Agent", {"subagent_type": "Plan"})
-        assert exit_code == 2
-        assert "/spec" in stdout
+        assert exit_code == 0
+        assert stdout == ""
 
     def test_explore_description_allowed(self):
         exit_code, stdout, _ = _run_subprocess(

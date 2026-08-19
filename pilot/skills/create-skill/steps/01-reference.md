@@ -139,6 +139,8 @@ Result: [expected outcome]
 | `tags` | No | Categories for hub search and filtering (e.g., `[debugging, python]`) |
 | `license` | No | License identifier (e.g., `MIT`, `Apache-2.0`) |
 | `allowed-tools` | No | Restrict which tools the skill can access (e.g., `Grep Glob`) |
+| `user-invocable` | No | `true` exposes the skill as a typed `/<name>` command |
+| `disable-model-invocation` | No | `true` stops the agent from invoking the skill itself — it runs only when the user types it. Use for command-style skills with side effects or gates the user should consciously start (deploys, releases, destructive migrations). Skip it for utility skills the agent should reach for on its own. |
 | `compatibility` | No | Environment requirements (1-500 chars) |
 | `metadata` | No | Custom key-value pairs: `author`, `version`, `mcp-server`, `category`, etc. |
 
@@ -181,6 +183,8 @@ description: Implements the Project entity model with hierarchical relationships
 **⚠️ The Description Trap:** If description summarizes the workflow, the agent follows the short description as a shortcut instead of reading SKILL.md. Always describe trigger conditions, not process.
 
 **Make descriptions "pushy"** — agents tend to undertrigger skills (not use them when they'd help). Combat this by being explicit about when to activate. Instead of "How to build a dashboard for internal data", write "How to build a dashboard for internal data. Use this skill whenever the user mentions dashboards, data visualization, internal metrics, or wants to display any kind of data, even if they don't explicitly ask for a 'dashboard.'"
+
+**…but only for skills the agent should reach for on its own.** A command-style skill the user must consciously start (a deploy, a release, a gated workflow) gets the opposite treatment: a description that leads with "Runs only when the user explicitly types /name", and `disable-model-invocation: true` when nothing else legitimately invokes it. A pushy description on a workflow command produces an agent that hijacks ordinary requests into ceremony.
 
 **One trigger per branch** — pushy means covering every *distinct* way the skill gets used, not restating one way in synonyms. "Build features using TDD … use when the user asks for test-first development" is one branch written twice; collapse it and spend the words on a genuinely different trigger instead.
 

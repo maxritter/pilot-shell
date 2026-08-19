@@ -1,9 +1,13 @@
 # Task & Workflow
 
 <!-- CC-ONLY -->
-## The two structured workflows are peers
+## Pilot workflows are opt-in
 
-Pilot has **two** ways to run substantial work, and neither is the escalation path for the other:
+`/spec`, `/build`, `/fix`, and `/prd` run only when the user explicitly types them. A normal request stays in direct execution even when it is large or cross-cutting — Claude Code's native machinery (plan mode, subagents, tasks, goals) is a fully legitimate way to run substantial work. Never present a Pilot workflow as the required or superior path; mention one only when the user asks about workflows or process.
+
+**⛔ NEVER auto-invoke `/spec`, `/build`, `/fix`, or `/prd` via `Skill()`.** The user MUST type the command themselves. The one exception is an orchestration lane: a coordinating session the user told to dispatch these workflows as subagents (`cli-tools.md` → `--lane`) is carrying out an explicit instruction, not auto-invoking.
+
+When the user does ask which workflow fits, the discriminator is what the work is *measured against*, never its size:
 
 | What the work is measured against | Command |
 |---|---|
@@ -12,13 +16,9 @@ Pilot has **two** ways to run substantial work, and neither is the escalation pa
 | A clear goal — "make this, and make it good", approach found while building | `/build` |
 | Nothing yet; it is still vague who it serves or what done means | `/prd`, then one of the above |
 
-**Size does not decide.** A 30-screen migration can be `/build`; a 40-line change can be `/build`; a modest feature with an unclear execution order can be `/spec`. Ask what the work is *measured against*: an approved task list, or a defined end state.
-
-⛔ **Never route to `/spec` by reflex because the work is large.** `/build` escalates internally (parallel surfaces) and has no size ceiling. Recommending `/spec` for scale alone is the single most common routing error.
+**Size does not decide.** A 30-screen migration can be `/build`; a 40-line change can be `/build`; a modest feature with an unclear execution order can be `/spec`. Never route to `/spec` because the work is large — `/build` escalates internally and has no size ceiling. Present the choices without starting one, and never present one workflow as the serious option and another as a lightweight alternative.
 
 Each writes a file to its own directory — `/spec` plans to `docs/plans/` (`Type: Feature|Bugfix`), `/build` Buildouts to `docs/builds/` (`Type: Build`) — just as requirements documents get a directory of their own. The `Type:` header, not the directory, is what identifies a file, so a Buildout still in `docs/plans/` from before the split keeps working. Both register with `pilot register-plan`, drive the statusline, appear in the Console, and are held open by the same stop guard. Both count **tasks** as the unit of progress; `/build` adds a small set of acceptance criteria that a judge rules at the end of each round, and counts rounds where `/spec` counts iterations.
-
-**⛔ NEVER auto-invoke `/spec`, `/build`, `Skill('spec')`, or `Skill('build')`.** The user MUST explicitly type it. Suggest, don't invoke.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 ## Pilot workflow skills are opt-in
@@ -29,7 +29,7 @@ CODEX-END -->
 <!-- CC-ONLY -->
 ## Plan Mode
 
-`/spec` is the structured alternative to CC's built-in plan mode — it adds TDD, verification, and code review. Users should NOT manually enter plan mode (Shift+Tab) before `/spec`: the `spec_mode_guard` hook blocks that, because `/spec` manages plan mode itself when needed. `/build` never enters plan mode at all.
+Built-in plan mode is the user's to use whenever they like — nothing in Pilot discourages it for ordinary work, and the built-in `Plan` agent is likewise available. The one interaction to know: `/spec` manages plan mode itself when it needs it, so a `/spec` typed while already in plan mode is blocked by the `spec_mode_guard` hook — cycle out with Shift+Tab and re-run. `/build` never enters plan mode at all.
 
 **Model Switching** (Automated / Manual / Off, set in Console → Settings) is `/spec`'s own business, and its whole lifecycle lives at point-of-use in the spec skills — which mode is active, the `opusplan` gates, `EnterPlanMode`/`ExitPlanMode` as the model lever, and what to do when the harness emits a plan-mode reminder. Read the step, don't reason about it from here. Two things carry outside the skill: **never try to work out which model is serving you** — the hooks read the statusline and tell you — and Pilot never remaps model aliases behind the scenes.
 <!-- /CC-ONLY -->
@@ -37,42 +37,23 @@ CODEX-END -->
 ## Task Complexity Triage
 
 <!-- CC-ONLY -->
-Default is quick mode (direct execution).
+Default is direct execution. A clear user request is authorization to execute it in quick mode — investigation, implementation, verification, and affected documentation included.
 
-| Complexity | Action |
-|------------|--------|
-| Trivial (single file, no active tasks) | Execute directly |
-| Any request while tasks exist | TaskCreate FIRST |
-| Moderate (2–5 files) | TaskCreate, then execute |
-| Substantial — architectural, cross-cutting, or the approach is best found while building | **Ask** which workflow: `/spec`, `/build`, or quick mode |
-
-When you do ask, offer both structured workflows and say what separates them in one line each — an approved task list (`/spec`) versus a goal the work goes after without one (`/build`). Never present one as the serious option and the other as a lightweight alternative.
-
-**⛔ Do NOT suggest a structured workflow up front for:** bugfixes (use `/fix` — which escalates to `/spec` itself when scope exceeds its quick lane, so relaying that escalation is fine), single-feature additions, refactors inside one module, CLI flag changes, config tweaks, dependency updates, test additions, or anything already scoped to a clear outcome with no standard attached. When in doubt, execute in quick mode.
-
-**Two signals that outrank the size heuristic**, because they point at a specific workflow rather than at "this is big":
-
-- The user names an end state, says "make it good", or wants the approach discovered while building rather than agreed first → suggest `/build`, whatever the size.
-- The user wants the approach written down and approved before any code exists → suggest `/spec`, whatever the size.
+Size, file count, architectural breadth, and cross-cutting scope change how the work is organized; they do not trigger a workflow question. Phrases like "make it good", "build the whole thing", or "don't stop early" strengthen the requested outcome rather than selecting `/build`. Do not pause to ask the user to choose a process merely because the work spans several surfaces — if the user wants a Pilot workflow, they will type it.
 
 ## Task Management
 
-**Use task management in quick mode.** Tasks are working memory — without them, requests get lost during compaction. Skip only for a truly trivial one-shot with empty `TaskList`.
-
-### Quick Mode: Task-First
-
-Every user request gets a task BEFORE any code/research/substantive response: TaskCreate → in_progress → work → completed.
+Tasks (`TaskCreate`/`TaskList`) are working memory, not ceremony. Use them when losing state would hurt: multi-step work that may span compaction, several requests in flight, or a request deferred for later. A simple request answered in one pass needs no task. When a native goal (`/goal`) is active, keep working toward it until it is genuinely achieved or blocked.
 
 ### On-Demand Interrupts
 
-When the user sends a new request mid-work: STOP, TaskCreate for the new request as your FIRST tool call, then assess priority. If it's not in the task list, it will be forgotten.
+When the user sends a new request mid-work, decide whether it replaces the active work or adds to it. If it adds work, record it with TaskCreate before returning to the current step — untracked interrupts are how requests get lost.
 
 ### Other Rules
 
-- **Session start:** `TaskList` first, delete stale tasks, create new ones for current request.
+- **Session start / continuation:** check `TaskList`, delete stale tasks, resume the first uncompleted task rather than recreating it.
 - **Cross-session isolation:** Tasks are scoped per session via `CLAUDE_CODE_TASK_LIST_ID`. Memory is shared across sessions; references in memory that aren't in your `TaskList` belong elsewhere. **`TaskList` is the sole source of truth.**
-- **Continuations** (same `CLAUDE_CODE_TASK_LIST_ID`): `TaskList` first, don't recreate, resume first uncompleted.
-- **Deferring a request:** TaskCreate immediately — never just say "noted."
+- **Deferring a request:** TaskCreate at the moment you defer — never just say "noted."
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 Default is direct execution. A clear user request is authorization to execute it in quick mode, including investigation, implementation, verification, and affected documentation.
@@ -111,23 +92,13 @@ Codex tools may not share Claude Code's parameter names. Use the schema shown fo
 CODEX-END -->
 
 <!-- CC-ONLY -->
-### Agent Tool — fan-out subagents allowed; Plan routes to /spec
+### Agent Tool
 
-Read-only fan-out subagents are **allowed**: the built-in `Explore` agent, `general-purpose` agents, and any description containing "Explore" or "Research". Reach for them when a search means sweeping many files, directories, or naming conventions and you only need the conclusion.
+Subagents are a tool, not a required topology. Delegate bounded, independent tracks when parallel execution materially improves speed or context quality: unrelated modules, a wide multi-file investigation, a fan-out where each item is its own search. Keep small, tightly coupled work local — don't split one modest job into parallel pieces, and don't delegate what a handful of your own tool calls would finish. Brief each agent precisely the first time, launch independent agents in a single message so they actually run concurrently, then commit to the result: don't redo a completed agent's work. Verification of your own changes stays in your loop — accept a subagent's completion claim only against the diff or other evidence, never on its report alone.
 
-#### Delegate rarely — subagents multiply cost and latency
+**Pass `model` explicitly on ad-hoc dispatches** (`Explore` / `general-purpose`) — omit it and the subagent inherits the session model, often the most capable and most expensive one. Shipped reviewer agents already pin theirs in frontmatter. Pick by turn count, not token price: the cheapest tier routinely takes 2-3× the turns on multi-step work and costs more overall, so a mid tier is the floor for anything past a single-file mechanical read.
 
-Every subagent re-establishes context, re-explores, and reports back, and then you re-read its report. Current models reach for them far more readily than the payoff justifies, so the bar is high.
-
-**Do delegate** for genuinely independent, sizeable tracks: unrelated modules, a wide multi-file investigation, a fan-out where each item is its own search.
-
-**Do NOT delegate** work you could finish in a handful of tool calls, and never for review, verification, or double-checking — that belongs in your own loop. Prefer one subagent over several; don't split one modest job into parallel pieces. Brief each one precisely the first time, then commit to the result: don't redo its work or re-derive its findings. Launch parallel agents in a single message so they actually run concurrently.
-
-**Pass `model` explicitly on every ad-hoc dispatch** — omit it and the subagent inherits the session model, often the most capable and most expensive one. Shipped reviewer agents already pin theirs in frontmatter; this is about `Explore` / `general-purpose`. Pick by turn count, not token price: the cheapest tier routinely takes 2-3× the turns on multi-step work and costs more overall, so a mid tier is the floor for anything past a single-file mechanical read.
-
-**Still blocked:** `subagent_type` of `Plan` — use `/spec` for structured planning. Built-in `WebSearch`/`WebFetch` stay blocked too (see Web Search/Fetch below).
-
-**Reviewer agents pass through silently:** `changes-review`, `spec-review`. Launch `changes-review` only where the `/spec` and `/fix` steps say to.
+Built-in `WebSearch`/`WebFetch` are blocked (see Web Search/Fetch below). **Reviewer agents pass through silently:** `changes-review`, `spec-review` — launch `changes-review` only where the `/spec` and `/fix` steps say to.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 ### Agent Tools
@@ -205,7 +176,7 @@ CODEX-END -->
 /fix   → quick lane; stops and asks for /spec when scope exceeds it
 ```
 
-The phase skills carry their own contracts — dispatch rules, toggles, plan registration, worktree handling, per-task tracking. Don't restate them here; read the skill. What follows applies whether or not a skill is loaded.
+The phase skills carry their own contracts — dispatch rules, toggles, plan registration, worktree handling, per-task tracking. Don't restate them here; read the skill. What follows governs *runs of these workflows*: it applies even when the skill file isn't currently in context (a run resumed after compaction still honors it), and none of it constrains ordinary direct execution.
 
 **`Status:` is a closed set** — exactly one of `PENDING` → `COMPLETE` → `VERIFIED`, written as the bare keyword with no trailing prose. Never invent another value (`RESOLVED`, `DONE`, `CLOSED`); the Console treats anything outside the set as terminal. Resolution notes belong in the plan body. This applies to `/build` Buildouts identically.
 

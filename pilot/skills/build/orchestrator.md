@@ -1,6 +1,6 @@
 ---
 name: build
-description: "Builds toward a named goal without writing a spec first — the goal-and-loop workflow. Use when the user types /build; asks for something to be made, written, designed, or implemented where the approach is better discovered while building than planned up front; asks to keep going until the result is genuinely good; or wants a migration, port, or rebuild judged on what comes out rather than against an approved task list. Not for a defect in behaviour that already worked — that is /fix. Not when the approach has to be written down and agreed before any code exists — that is /spec."
+description: "Builds toward a named goal without writing a spec first — the goal-and-loop workflow with judged acceptance criteria. Runs only when the user explicitly types /build. Not for a defect in behaviour that already worked — that is /fix. Not when the approach has to be written down and agreed before any code exists — that is /spec."
 argument-hint: "<what to build, and optionally what it should measure up to>"
 user-invocable: true
 hooks:

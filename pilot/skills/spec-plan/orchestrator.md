@@ -1,6 +1,6 @@
 ---
 name: spec-plan
-description: "Planning phase of the /spec feature workflow — owns the plan file until the user approves it. Entered for a new feature task, or for an existing plan still marked Status: PENDING and Approved: No."
+description: "Planning phase of the /spec feature workflow — owns the plan file until the user approves it. Entered from the /spec dispatcher for a new feature task, or for an existing plan still marked Status: PENDING and Approved: No."
 argument-hint: "<task description> or <path/to/plan.md>"
 user-invocable: false
 hooks:

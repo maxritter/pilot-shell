@@ -1,6 +1,6 @@
 ---
 name: spec
-description: Spec-driven development for work that needs an approved task list first — produces a plan file, then implements and verifies against it. Use when the user types /spec, hands over a docs/plans/*.md plan file, or asks for a feature, migration, refactor, or architectural change where the approach should be written down and agreed before any code exists. Not for a single bug — that is /fix. Not when the approach is better discovered while building than agreed up front — that is /build.
+description: Spec-driven development — produces an approved plan file, then implements and verifies against it with TDD and code review. Runs only when the user explicitly types /spec (with a task description, or a docs/plans/*.md path to resume). Not for a single bug — that is /fix. Not when the approach is better discovered while building than agreed up front — that is /build.
 argument-hint: "<task description> or <path/to/plan.md>"
 user-invocable: true
 ---

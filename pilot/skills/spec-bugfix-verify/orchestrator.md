@@ -1,6 +1,6 @@
 ---
 name: spec-bugfix-verify
-description: "Verification phase of the /spec bugfix workflow — decides whether a finished bugfix earns VERIFIED, and sends it back to implementation when it does not. Entered for a plan with Type: Bugfix marked Status: COMPLETE."
+description: "Verification phase of the /spec bugfix workflow — decides whether a finished bugfix earns VERIFIED, and sends it back to implementation when it does not. Entered from the /spec dispatcher for a plan with Type: Bugfix marked Status: COMPLETE."
 argument-hint: "<path/to/plan.md>"
 user-invocable: false
 ---

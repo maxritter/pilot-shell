@@ -252,6 +252,8 @@ AGENTS.md
 benchmarks/**
 !benchmarks/codex-autonomy/
 !benchmarks/codex-autonomy/evals.json
+!benchmarks/claude-autonomy/
+!benchmarks/claude-autonomy/evals.json
 skill-creator
 spec-annotate
 changes-header

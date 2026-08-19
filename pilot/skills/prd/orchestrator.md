@@ -1,6 +1,6 @@
 ---
 name: prd
-description: "Turns a rough idea into a written, approved Product Requirements Document, with optional market and technical research. Use when the user types /prd, has a feature idea that is still vague about who it serves or what counts as done, wants a thought partner to pressure-test a concept before building, or asks for a PRD, product spec, or requirements doc. Not for work already scoped enough to plan — that is /spec, or /build when the approach is better discovered while building."
+description: "Turns a rough idea into a written, approved Product Requirements Document, with optional market and technical research. Runs only when the user explicitly types /prd. Not for work already scoped enough to plan — that is /spec, or /build when the approach is better discovered while building."
 argument-hint: "<idea or feature description>"
 user-invocable: true
 ---

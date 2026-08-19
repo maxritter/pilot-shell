@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-"""Hook to block built-in WebSearch/WebFetch and the Plan Agent.
+"""Hook to block built-in WebSearch/WebFetch (the MCP replacements return full content).
 
-Agent calls for /spec workflow reviewers (spec-review, changes-review) pass
-through silently. The Plan agent is hard-blocked (structured planning goes
-through /spec). Read-only fan-out subagents are ALLOWED: the built-in Explore
-agent, general-purpose agents, and any "Explore ..."/"Research ..." description
-pass through untouched - an Explore/Haiku fan-out is often the cheaper, faster
-path than running CodeGraph/Semble inline.
+All Agent calls pass through untouched: built-in agents (Explore, Plan,
+general-purpose), Pilot reviewer agents, and ad-hoc fan-outs alike. Native
+subagents are a legitimate way to work; whether to use /spec instead of the
+Plan agent is the user's call, not a hook's.
 
 Also nudges (non-deny) on recursive code-search Bash commands (grep -r, rg, find,
 fd, ag), built-in Grep, and built-in Glob - pointing at codegraph_explore /
@@ -35,22 +33,6 @@ BLOCKS: dict[str, dict[str, str]] = {
         "example": 'ToolSearch(query="+web-fetch fetch") then mcp__plugin_pilot_web-fetch__fetch_url(url="...")',
     },
 }
-
-BLOCKED_AGENT_REASONS: dict[str, tuple[str, str]] = {
-    "Plan": (
-        "Plan agent blocked: use /spec for structured planning",
-        "The Plan agent is blocked. Use /spec for structured planning with TDD, "
-        "verification, and code review instead.\n"
-        "-> Type /spec <task description> to start a structured planning workflow",
-    ),
-}
-
-SILENT_AGENT_TYPES: set[str] = {
-    "spec-review",
-    "changes-review",
-}
-
-BLOCKED_AGENT_TYPES: set[str] = set(BLOCKED_AGENT_REASONS)
 
 SHELL_SEGMENT_SEP_RE: re.Pattern[str] = re.compile(r"(?:&&|\|\||;|\n)")
 
@@ -266,26 +248,13 @@ def _extract_shell_commands(tool_name: str, tool_input: dict) -> list[str]:
 
 
 def run_tool_redirect() -> int:
-    """Block WebSearch/WebFetch and the Plan agent; allow Explore/Research fan-out subagents."""
+    """Block WebSearch/WebFetch; nudge on recursive search; everything else passes through."""
     try:
         hook_data = json.load(sys.stdin)
     except (json.JSONDecodeError, OSError):
         return 0
 
     tool_name = hook_data.get("tool_name", "")
-
-    if tool_name == "Agent":
-        tool_input = hook_data.get("tool_input", {})
-        subagent_type = tool_input.get("subagent_type", "")
-
-        if subagent_type in SILENT_AGENT_TYPES:
-            return 0
-        if subagent_type in BLOCKED_AGENT_TYPES:
-            stderr_msg, deny_reason = BLOCKED_AGENT_REASONS[subagent_type]
-            sys.stderr.write(f"\033[0;31m[Pilot] {stderr_msg}\033[0m\n")
-            print(pre_tool_use_deny(deny_reason))
-            return 2
-        return 0
 
     if tool_name == "Bash":
         tool_input = hook_data.get("tool_input", {})
