@@ -2,12 +2,9 @@
 
 **Scenario:** User asks to create a skill for finding dead code using LSP.
 
-<!-- CC-ONLY -->
-**Result:** `.claude/skills/my-project-lsp-cleaner/SKILL.md`
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-**Result:** `.agents/skills/my-project-lsp-cleaner/SKILL.md`
-CODEX-END -->
+**Canonical result:** `.agents/skills/my-project-lsp-cleaner/SKILL.md`
+
+**Generated Claude Code mirror:** `.claude/skills/my-project-lsp-cleaner/SKILL.md`
 
 ```yaml
 name: my-project-lsp-cleaner

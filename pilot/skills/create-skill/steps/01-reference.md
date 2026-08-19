@@ -17,22 +17,19 @@ SLUG=$(basename "$(git remote get-url origin 2>/dev/null | sed 's/\.git$//')" 2>
 # Result: "pilot-shell", "my-api", "acme-backend"
 ```
 
-**Skill scope:** Choose project or global based on reusability.
+**Skill scope:** Choose project or global based on reusability. The repository synchronization contract applies to project skills; Pilot's installer/library owns bundled global distribution.
 
-<!-- CC-ONLY -->
 | Scope | When | Create in | After creating |
 |-------|------|-----------|----------------|
-| **Project** | Skill is specific to this repo | `.claude/skills/{slug}-{name}/SKILL.md` | Nothing needed |
-| **Global** | Skill applies across projects | `~/.claude/skills/{slug}-{name}/SKILL.md` | Nothing needed |
+| **Project** | Skill is specific to this repo or should work for both agents in it | `.agents/skills/{slug}-{name}/SKILL.md` | Pilot's shared hook mirrors automatically; use `--check` as the final backstop |
+<!-- CC-ONLY -->
+| **Global** | Skill applies across projects and is intentionally local to this Claude Code installation | `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/{slug}-{name}/SKILL.md` | Outside repository sync; promote through Pilot's skill library to distribute to both agents |
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-| Scope | When | Create in | After creating |
-|-------|------|-----------|----------------|
-| **Project** | Skill is specific to this repo | `.agents/skills/{slug}-{name}/SKILL.md` | Nothing needed |
-| **Global** | Skill applies across projects | `~/.agents/skills/{slug}-{name}/SKILL.md` | Nothing needed |
-
-Codex project instructions belong in repo-root `AGENTS.md`; skill instructions belong in `.agents/skills/<name>/SKILL.md` or `~/.agents/skills/<name>/SKILL.md`. Do not put Codex skills in `AGENTS.md`.
+| **Global** | Skill applies across projects and is intentionally local to this Codex installation | `~/.agents/skills/{slug}-{name}/SKILL.md` | Outside repository sync; promote through Pilot's skill library to distribute to both agents |
 CODEX-END -->
+
+For project scope, `.agents/skills/` is canonical even when `/create-skill` runs in Claude Code. Pilot's shared hook converges prepared repositories on SessionStart, watches edits from both agents, and generates `.claude/skills/` automatically. If an operation targets tracked generated content, the hook redirects or blocks it and names the canonical `.agents/skills/` path. Filesystem authority remains one-way even though either agent can initiate the change. Keep repository instructions in root `AGENTS.md`, not inside a skill.
 
 **Naming rules:** Lowercase with hyphens only. The slug provides context; the name should be 1-3 words max that are descriptive (not generic). Examples: `pilot-shell-lsp-cleaner`, `my-api-auth-flow`, `acme-deploy`. Never use generic names like "helper", "utils", "tools", "handler", "workflow".
 
@@ -86,6 +83,7 @@ your-skill-name/
 - File MUST be exactly `SKILL.md` (not SKILL.MD, skill.md, or Skill.md)
 - No `README.md` inside the skill folder — all docs go in SKILL.md or `references/`
 - Keep SKILL.md under 5,000 words — move detailed docs to `references/` and link
+- For a project skill, edit every asset (`SKILL.md`, `scripts/`, `references/`, and `assets/`) under `.agents/skills/<name>/`; the complete directory is mirrored
 
 ```markdown
 ---
@@ -137,7 +135,7 @@ Result: [expected outcome]
 |-------|----------|---------|
 | `name` | Yes | Kebab-case only, no spaces or capitals, must match folder name |
 | `description` | Yes | Under 1024 chars, no XML tags (`<` or `>`). Include WHAT + WHEN + trigger phrases |
-| `targets` | No | Restrict sync to specific CLIs (e.g., `[claude]`). Omit to sync everywhere |
+| `targets` | No | Describe supported CLIs (for example `[claude, codex]`). Repository mirroring still copies the whole canonical skill tree. |
 | `tags` | No | Categories for hub search and filtering (e.g., `[debugging, python]`) |
 | `license` | No | License identifier (e.g., `MIT`, `Apache-2.0`) |
 | `allowed-tools` | No | Restrict which tools the skill can access (e.g., `Grep Glob`) |

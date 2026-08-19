@@ -6,9 +6,14 @@ Report:
 - README: created | updated | not needed (flat structure)
 - Quality audit: errors fixed, warnings addressed, suggestions applied, skipped
 - Rules: created, updated, unchanged (by directory level)
-- Path-scoping: team rules validated, violations fixed
-- Cross-check: issues found and fixed (if any)
-- AGENTS.md: created | synced | shown diff only | skipped | not present
+- Path-scoping: every detailed rule validated, violations fixed
+- User content preservation: source sections and skill files migrated, unchanged, or explicitly skipped
+- Shared core: `AGENTS.md` created | updated | unchanged | skipped; `CLAUDE.md` exact import yes | no
+- Skills: tracked canonical/mirror count and parity pass | fail | skipped; local untracked/ignored extensions preserved out of scope
+- Automatic hook: Claude Code and Codex SessionStart/edit coverage confirmed | missing; generated-edit redirect/block path confirmed | missing
+- Checker: installed path and exact `--check` result
+- CI: existing workflow/job updated | already present | no CI | skipped; confirm no new job was created
+- Cross-check: source coverage, rule-index parity, and issues fixed (if any)
 - Semble: available / not available
 
 Then offer: "Share via Share dashboard" (direct user to Console Share page at #/share) | "Discover more standards" | "Create skills with /create-skill" | "Done"

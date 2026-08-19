@@ -9,6 +9,7 @@
 - [ ] `description` includes WHAT and WHEN (under 1024 chars, no XML tags)
 - [ ] No `README.md` inside the skill folder
 - [ ] SKILL.md under 5,000 words
+- [ ] The editable project source exists only under `.agents/skills/<name>/`; `.claude/skills/<name>/` was generated, not hand-edited
 
 ### Content Checklist
 
@@ -23,6 +24,17 @@
 - [ ] Steps (when the skill has them) end on a checkable completion criterion (agent can tell done from not-done)
 - [ ] Description carries one trigger per distinct branch — no synonym restatements
 - [ ] Sentence-level no-op scan done (each sentence changes behavior vs. the default, or it's deleted)
+- [ ] Project skill wording works under both Claude Code and Codex capabilities, or `targets` is intentionally narrowed
+
+### Synchronization Gate — PROJECT SKILLS
+
+After the final canonical edit, the automatic hook should already have synchronized the mirror. Run the read-only backstop:
+
+```bash
+node scripts/sync-agent-assets.mjs --check
+```
+
+If drift remains, repair the canonical source or hook installation, use `node scripts/sync-agent-assets.mjs --write` once for recovery, and rerun `--check`. Record the canonical path, generated path, and zero exit status. Verify the check itself leaves the worktree unchanged. A project skill is not complete while the checker reports drift.
 
 ### Triggering Test
 

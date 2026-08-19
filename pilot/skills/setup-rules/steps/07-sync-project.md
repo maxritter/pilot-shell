@@ -1,102 +1,91 @@
-## Step 7: Sync Project Rule
+## Step 7: Sync Shared Core and Scoped Project Rules
 
-**Update `.claude/rules/{slug}-project.md` with current project state.**
+Build one shared repository core for Claude Code and Codex, with detailed rules loaded only for matching work.
 
-<!-- CODEX-START
-**Codex note:** Updating `.claude/rules/{slug}-project.md` alone does not update Codex instructions. Treat this rule as the modular source, then Step 11 must create or sync root `AGENTS.md`.
-CODEX-END -->
+### Step 7.1: Classify Existing Guidance
 
-Also look for a legacy unscoped `project.md` — if found, migrate its content into `{slug}-project.md` and delete the old file.
+Classify every instruction from existing `AGENTS.md`, `CLAUDE.md`, and `.claude/rules/` into exactly one destination:
 
-### Step 7.1: Handle Existing CLAUDE.md / AGENTS.md — CONDITIONAL
+| Kind | Destination |
+|------|-------------|
+| Stable repository-wide command, convention, safety boundary, or architecture rule | `AGENTS.md` |
+| Detailed guidance tied to observable file paths | `.claude/rules/{slug}-{topic}.md` with `paths` frontmatter |
+| On-demand repeatable workflow | `.agents/skills/{slug}-{name}/SKILL.md`, handled through `/create-skill` |
+| Personal, untracked preference | `CLAUDE.local.md` or the agent's user configuration |
 
-**Only if Step 2 found a CLAUDE.md or AGENTS.md file.** Both are treated the same way as migration sources — AGENTS.md is the cross-framework convention used by Codex/Cursor/etc. and is common in repos migrating to Pilot.
+`AGENTS.md` must include a compact **matching-rule index**. For each scoped rule, list its repo-relative path, its `paths` globs, and a one-line instruction to read it before matching work. Claude Code receives the rule automatically; the index gives Codex the same on-demand route without inlining the detail.
 
-If a source file (CLAUDE.md or AGENTS.md) AND `{slug}-project.md` both exist: merge unique content from the source into the project rule. If fully redundant, suggest removing the source file (CLAUDE.md only — **never delete AGENTS.md**, it stays as the cross-framework anchor and is re-synced in Step 11).
+Preserve existing headings and wording when they remain accurate. Never drop a line from an existing root file merely because the final `CLAUDE.md` becomes a one-line import.
 
-If a source file exists but NO `{slug}-project.md`: AskUserQuestion (substitute the actual filename):
+### Step 7.2: Resolve Migration Choices — CONDITIONAL
 
-- **"Migrate to modular rules (Recommended)"** — Split into `{slug}-project.md` + topic-specific files. Read the source, identify logical sections, create rule files, confirm split before writing. Then ask: for CLAUDE.md, "Remove CLAUDE.md?" | "Rename to .bak" | "Keep both". For AGENTS.md, **always keep it** — Step 11 will offer to sync the rules back into it.
-- **"Keep [source] as-is"** — Skip project rule creation.
-- **"Create alongside"** — Keep both. Project rule gets tech stack/structure, source keeps custom instructions.
+If existing files require content to move, use the existing user decision gate before writing:
 
-If both CLAUDE.md and AGENTS.md exist, process CLAUDE.md first, then AGENTS.md — deduplicate any content that already landed in rules from the first pass.
+AskUserQuestion: "Pilot can make `AGENTS.md` the shared core, keep detailed rules path-scoped, and reduce `CLAUDE.md` to `@AGENTS.md`. How should I handle the existing content?"
 
-### Step 7.2: Create or Update {slug}-project.md
+- **"Migrate and preserve all (Recommended)"** — show the source-to-destination mapping, retain every unique user-authored instruction, then proceed
+- **"Show full diff first"** — render proposed `AGENTS.md`, scoped rules, and `CLAUDE.md`; wait for confirmation
+- **"Review each conflict"** — ask only where instructions conflict or their scope is ambiguous
+- **"Skip shared sync"** — leave root files untouched; continue the audit but report that cross-agent parity is not installed
 
-If exists: compare tech stack, verify structure/commands, update timestamp, preserve custom sections. Re-read source docs while writing — every significant section in the source must have corresponding coverage in the generated rules.
+When instructions conflict, present both exact passages and ask which behavior is authoritative. Do not silently merge incompatible rules.
 
-If doesn't exist, create:
+If no root guidance exists, create the shared core without asking; setting up project rules is the requested operation. If only one source exists and classification is unambiguous, preserve it in the appropriate destination.
+
+### Step 7.3: Create or Update AGENTS.md
+
+Keep `AGENTS.md` under about 400 lines. Use this shape, omitting empty sections:
 
 ```markdown
-# Project: [Name]
+# [Project] repository instructions
 
-**Last Updated:** [Date]
+## Project
+[Stable overview, stack boundaries, and directory ownership]
 
-## Overview
-[Brief description from README or ask user]
+## Commands
+[Install, build, test, lint, and required focused verification]
 
-## Technology Stack
-- **Language / Framework / Build Tool / Testing / Package Manager**
+## Repository rules
+[Repo-wide conventions, safety boundaries, and non-obvious behavior]
 
-## Directory Structure
-[Simplified tree — key directories only]
-
-## Key Files
-- **Configuration / Entry Points / Tests**
-
-## Development Commands
-| Task | Command |
-|------|---------|
-| Install / Dev / Build / Test / Lint | `[command]` |
-
-## Architecture Notes
-[Brief patterns description]
+## Matching detailed rules
+- `.claude/rules/{slug}-{topic}.md` — `{path/glob/**}` — read before [matching work]
 ```
 
-**Monorepo / Multi-product:** Create a root `{slug}-project.md` with the overall structure. Then for each product/team area, create nested directories per Step 1 → Recommended Directory Structure:
+Do not add generated timestamps that create noise on every run. Preserve accurate user-authored sections in place rather than moving them into an `Additional Notes` dumping ground.
 
-1. **Product-level:** `.claude/rules/{product}/{slug}-{product}-project.md` — tech stack, patterns, commands specific to that product. Add `paths` frontmatter pointing to the product's source directories.
-2. **Team-level:** `.claude/rules/{product}/{team}/{slug}-{team}-{topic}.md` — team-specific conventions. **MUST** have `paths` frontmatter.
-3. **Common/shared:** `.claude/rules/common/{slug}-common-{topic}.md` — patterns for shared libraries.
+### Step 7.4: Create or Update Scoped Rules
 
-Cross-reference between root and nested rules using `@path/to/rule.md` imports where helpful.
+Create a detailed rule only when its guidance has a narrower file scope than the whole repository. Every detailed rule requires `paths` frontmatter:
 
-### Step 7.3: Generate Rules README — CONDITIONAL
+```yaml
+---
+paths:
+  - "src/product-a/**"
+  - "tests/product-a/**"
+---
+```
 
-**Only if nested directories exist** (detected in Step 2 step 5) **or are being created in this sync.**
+For a monorepo, keep the existing product/team directory model:
 
-Create or update `.claude/rules/README.md`:
+1. Product-level: `.claude/rules/{product}/{slug}-{product}-{topic}.md`
+2. Team-level: `.claude/rules/{product}/{team}/{slug}-{team}-{topic}.md`
+3. Shared library: `.claude/rules/common/{slug}-common-{topic}.md`
+
+All three require real `paths` globs. Shared guidance without a meaningful path predicate belongs in `AGENTS.md`.
+
+### Step 7.5: Generate Rules README — CONDITIONAL
+
+If `.claude/rules/` contains files, create or update `.claude/rules/README.md` as a navigation aid:
 
 ```markdown
 # Rules Directory Structure
 
-> Auto-generated by `/setup-rules` on [Date]. Describes how rules are organized.
+> Maintained by `/setup-rules`. `AGENTS.md` is the shared core; these files hold path-scoped detail.
 
-## How Rules Work
-
-Rules in `.claude/rules/` load into Claude's context each session.
-Use `paths` frontmatter to scope rules to specific files — unscoped rules load every time.
-
-## Organization
-
-| Directory | Scope | Contents |
-|-----------|-------|----------|
-| `./` | Repo-wide | [List root-level rule files with one-line descriptions] |
-| `./{product}/` | Product-wide | [List product rules with descriptions] |
-| `./{product}/{team}/` | Team-specific | [List team rules with descriptions and their `paths` globs] |
-
-## Adding Rules
-
-1. Identify the narrowest scope: team > product > repo
-2. Place file in the corresponding directory
-3. Add `paths` frontmatter (**mandatory** for team-level, recommended for product-level)
-4. Prefix filename with `{slug}-`
-5. Run `/setup-rules` to validate and update this README
+| Rule | Paths | Purpose |
+|------|-------|---------|
+| `{slug}-{topic}.md` | `src/example/**` | [One-line purpose] |
 ```
 
-**README rules:**
-- Auto-generate the table from actual files on disk — don't hardcode
-- Include each rule's description (from frontmatter `description` field or first heading)
-- For team-level rules, show the `paths` globs so developers know what's scoped where
-- Keep the README under 80 lines — it's a navigation aid, not documentation
+Generate the table from files on disk, list every scoped rule and its exact globs, and keep the README under 80 lines. Verify that the same inventory appears in the matching-rule index in `AGENTS.md`.

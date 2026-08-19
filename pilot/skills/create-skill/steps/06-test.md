@@ -31,6 +31,8 @@ Micro-tests verify wording. They do not replace the with-skill vs baseline runs 
 
 ### Step 6.2: Run Tests
 
+For a synchronized project skill, run `node scripts/sync-agent-assets.mjs --check` first. Claude Code test runs use the generated `.claude/skills/<name>/` copy; Codex test runs use the canonical `.agents/skills/<name>/` copy. Both must come from the same successful sync.
+
 <!-- CC-ONLY -->
 For each test prompt, spawn a subagent that has access to the skill and ask it to complete the task. Save outputs to a workspace directory.
 

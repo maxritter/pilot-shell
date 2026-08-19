@@ -1,15 +1,15 @@
 ---
 name: setup-rules
-description: Gives a repository its own project rules and keeps them true as the codebase moves. Use when the user types /setup-rules, asks to set up, audit, refresh, or fix project rules, CLAUDE.md, or AGENTS.md, says the rules are stale or contradict the code, or wants the project's MCP servers documented for agents.
+description: Gives a repository shared Claude Code and Codex guidance and keeps it true as the codebase moves. Use when the user types /setup-rules, asks to set up, audit, refresh, or fix project rules, CLAUDE.md, AGENTS.md, or repository skills, says agent assets drifted or contradict the code, or wants the project's MCP servers documented for agents.
 user-invocable: true
 ---
 # /setup-rules - Set Up Project Rules
 
-**Set up and audit project rules.** Reads your codebase, generates modular rules, and documents MCP servers.
+**Set up and audit project guidance.** Reads your codebase, keeps the shared agent core and scoped rules concise, documents MCP servers, and installs automatic Claude Code/Codex asset synchronization with a deterministic checker.
 
-**Flow:** Read existing → Migrate → Quality audit → Explore → Compare → Sync rules → Sync MCP → Discover rules → Cross-check → Sync AGENTS.md → Summary
+**Flow:** Read existing → Migrate → Quality audit → Explore → Compare → Sync scoped rules → Sync MCP → Discover rules → Cross-check → Sync shared agent assets → Prove parity → Summary
 
-**Skill creation:** Use `/create-skill` to create workflow skills — `/setup-rules` focuses exclusively on rules and MCP documentation.
+**Skill creation:** Use `/create-skill` to author workflow skills. `/setup-rules` establishes their canonical/mirror layout and drift check but does not invent skill content.
 
 <!-- CC-ONLY -->
 **Use the `AskUserQuestion` tool for user questions** — it renders a structured form; don't fall back to plain-text numbered questions.

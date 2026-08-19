@@ -1,12 +1,12 @@
 ## Step 4: Quality Audit
 
-**Audit all existing rules and CLAUDE.md files against Claude Code best practices (Step 1 → Best Practices Reference).** Present findings as improvement suggestions — do NOT modify files without user confirmation.
+**Audit `AGENTS.md`, `CLAUDE.md`, scoped rules, project skills, and the sync checker against the shared Claude Code/Codex contract in Step 1.** Present findings as improvement suggestions — do NOT modify files without user confirmation.
 
-**Skip this phase if:** No existing rules or CLAUDE.md files found in Step 2 (nothing to audit).
+**Skip this phase if:** None of those assets exists (nothing to audit).
 
 ### Step 4.1: Run Checks
 
-For each rule file and CLAUDE.md found in Step 2, evaluate:
+For each shared instruction file, scoped rule, tracked skill tree, and checker/CI integration found in Step 2, evaluate:
 
 | Check                          | What to look for                                                                                                                                 | Severity |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
@@ -14,13 +14,16 @@ For each rule file and CLAUDE.md found in Step 2, evaluate:
 | **Specificity**          | Vague instructions: "format properly", "write clean code", "keep organized" — suggest concrete alternatives                                     | Warning  |
 | **Redundancy**           | Standard conventions Claude already knows (e.g., "use const for immutable variables" in a JS project)                                            | Info     |
 | **Conflicts**            | Contradicting instructions across different files (e.g., one rule says "use tabs", another says "use spaces")                                    | Error    |
-| **Path-scoping**         | Rules that mention specific file types/directories but lack `paths` frontmatter — these load every session unnecessarily                      | Info     |
+| **Path-scoping**         | Detailed `.claude/rules/` files without `paths` frontmatter — scope them or move truly shared guidance into `AGENTS.md`                  | Warning  |
 | **Nested path-scoping**  | Rules in team-level subdirectories (`.claude/rules/{product}/{team}/`) without `paths` frontmatter — MUST be scoped (see Step 1 → Recommended Directory Structure) | Error    |
 | **Structure**            | Dense paragraphs without headers/bullets, poor scanability, missing section organization                                                         | Warning  |
 | **Stale references**     | References to files, commands, paths, or tools that no longer exist in the codebase — verify with `ls` or Semble                              | Error    |
 | **Import opportunities** | Large files that could split content using `@path/to/import` syntax                                                                            | Info     |
 | **Unexplained absolutes** | Critical rules (security, data loss, breaking changes) asserted as bare commands — `ALWAYS`, `NEVER`, `YOU MUST` — with no reason attached. Current models follow a rule they understand and negotiate with one they don't, so the fix is to add *why it matters*, not louder emphasis | Info     |
-| **CLAUDE.md overlap**    | Content duplicated between CLAUDE.md and `.claude/rules/` files                                                                                | Warning  |
+| **Shared-core drift**    | `CLAUDE.md` is not exactly `@AGENTS.md`, or shared instructions are duplicated/conflicting across the two root files                            | Error    |
+| **Skill drift**          | A tracked project skill exists only in `.claude/skills/`, or matching tracked `.agents/skills/` and `.claude/skills/` trees differ              | Error    |
+| **Generated-mirror edits** | Tracked changes exist only in `.claude/skills/`; preserve them by migrating to `.agents/skills/` before regeneration                           | Error    |
+| **Checker/CI gap**       | `scripts/sync-agent-assets.mjs` is absent, cannot pass `--check`, or no existing CI job invokes `--check`                                       | Warning  |
 
 **How to check for specificity:** Look for adjectives without measurable criteria ("good", "clean", "proper", "nice"), instructions that restate language defaults, and rules without concrete examples or verifiable outcomes.
 
@@ -48,16 +51,18 @@ Group findings by severity and present to user:
 ### Errors (should fix)
 - ❌ **Conflict:** `.claude/rules/style.md` says "use tabs" but `CLAUDE.md` says "use 2-space indent"
 - ❌ **Stale:** `.claude/rules/project.md` references `src/legacy/` which no longer exists
+- ❌ **Shared-core drift:** `CLAUDE.md` duplicates 42 lines from `AGENTS.md` instead of importing it
+- ❌ **Skill drift:** `.claude/skills/release/SKILL.md` differs from canonical `.agents/skills/release/SKILL.md`
 
 ### Warnings (recommended)
-- ⚠️ **Size:** `CLAUDE.md` is 340 lines — split into modular rules or use @imports (target: <200 lines)
+- ⚠️ **Size:** `CLAUDE.md` is 340 lines — preserve its shared content in `AGENTS.md`, scope file-specific detail, then replace it with the one-line import
 - ⚠️ **Vague:** `.claude/rules/style.md` line 12: "Format code properly" → suggest: "Run `prettier --write` before committing"
-- ⚠️ **Overlap:** Authentication instructions appear in both `CLAUDE.md` and `.claude/rules/auth.md`
+- ⚠️ **Overlap:** Authentication instructions appear in both `AGENTS.md` and `.claude/rules/auth.md`
 
 ### Suggestions (nice to have)
 - 💡 **Path-scope:** `.claude/rules/testing.md` only mentions `*.test.ts` files — add `paths: ["**/*.test.ts"]` frontmatter
-- 💡 **Emphasis:** `.claude/rules/security.md` line 5: "Never commit secrets" — add "IMPORTANT:" prefix
-- 💡 **Import:** `CLAUDE.md` inlines API docs — replace with `@docs/api-reference.md`
+- 💡 **Routing:** `.claude/rules/testing.md` is scoped correctly but missing from the `AGENTS.md` matching-rule index
+- 💡 **Import:** `CLAUDE.md` inlines API docs — move shared constraints to `AGENTS.md`, scoped detail to a rule, and leave only `@AGENTS.md`
 ```
 
 ### Step 4.3: User Decision
@@ -73,10 +78,10 @@ AskUserQuestion (multiSelect): "Select improvements to apply:"
 For each selected improvement:
 
 1. Read the target file
-2. Apply the specific fix (rewrite vague instruction, add `paths` frontmatter, split large file, remove stale reference, add emphasis, resolve conflict)
+2. Apply the specific fix (rewrite vague instruction, add `paths` frontmatter, split large file, remove stale reference, resolve conflict, or migrate a tracked generated-only skill edit into its canonical source)
 3. Show the diff to user before writing
 4. Write the updated file
 
-**For file splits:** When splitting a file over 200 lines, create new modular files in `.claude/rules/` with the `{slug}-` prefix and add `@path` imports in the original if appropriate.
+**For file splits:** Keep the shared core in `AGENTS.md`. Move file-specific detail into `{slug}-`-prefixed `.claude/rules/` files with `paths` frontmatter, then add those files to the matching-rule index in `AGENTS.md`.
 
 **For conflict resolution:** Present both conflicting instructions, ask user which is correct, update both files to be consistent.

@@ -1,12 +1,12 @@
 ---
 name: create-skill
-description: Create, edit, and test a skill — a reusable workflow future agents can find and follow. Use when the user types /create-skill, asks to make, write, add, or extract a skill, wants a repeatable workflow or technique from this session captured for reuse, or asks to change an existing skill's steps, description, or trigger keywords.
+description: Create, edit, synchronize, and test a reusable skill future agents can find and follow. Use when the user types /create-skill, asks to make, write, add, or extract a skill, wants a repeatable workflow or technique from this session captured for reuse, asks to change an existing skill's steps, description, or trigger keywords, or needs one project skill to work in both Claude Code and Codex.
 user-invocable: true
 ---
 
 # /create-skill — Skill Creator
 
-**Create a reusable skill.** Provide a topic or workflow description, and this command explores the codebase, gathers relevant patterns, and builds a well-structured skill interactively with you. If no topic is given, it evaluates the current session for extractable knowledge.
+**Create a reusable skill.** Provide a topic or workflow description, and this command explores the codebase, gathers relevant patterns, and builds a well-structured skill interactively with you. Project skills are authored once in `.agents/skills/`; Pilot's shared hook automatically generates `.claude/skills/` after edits from either agent. If no topic is given, it evaluates the current session for extractable knowledge.
 
 ## Editing existing skills
 

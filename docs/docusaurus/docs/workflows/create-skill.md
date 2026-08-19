@@ -1,14 +1,14 @@
 ---
 sidebar_position: 2
 title: /create-skill
-description: Build reusable skills for Claude Code and Codex from any topic — /create-skill explores the codebase and drafts the SKILL.md interactively.
+description: Build and verify one canonical project skill for Claude Code and Codex, or create an agent-local global skill.
 ---
 
 # /create-skill
 
 Build a reusable skill from any topic.
 
-Provide a topic or workflow description, and `/create-skill` explores the codebase, gathers relevant patterns, and builds a well-structured skill interactively with you. If no topic is given, it evaluates the current session for extractable knowledge.
+Provide a topic or workflow description, and `/create-skill` explores the codebase, gathers relevant patterns, and builds a well-structured skill interactively with you. In a Pilot-prepared repository, it writes project skills once under `.agents/skills/`; Pilot's shared hook regenerates `.claude/skills/` automatically after edits from Claude Code or Codex. If no topic is given, it evaluates the current session for extractable knowledge.
 
 ```bash
 # Claude Code
@@ -26,16 +26,42 @@ codex
 
 ## What /create-skill Does
 
-6 phases:
+8 phases:
 
 | Phase | Action |
 |-------|--------|
-| 0 | Load reference — use case categories, complexity spectrum, file structure, template, frontmatter fields, description formula, security restrictions |
-| 1 | Understand the topic — explore codebase for relevant patterns, or evaluate session for extractable knowledge |
-| 2 | Check existing skills — avoid duplicates, identify update opportunities |
-| 3 | Create skill — write to the active agent's skills directory (`.claude/skills/` or `~/.claude/skills/` for Claude Code; `.agents/skills/` or `~/.agents/skills/` for Codex), apply portability and determinism checklists |
-| 4 | Quality gates — structure checklist, content checklist, triggering test, iteration signals |
-| 5 | Test & iterate — run test prompts with sub-agents, evaluate results, optimize description triggering |
+| 1 | Load reference — use case categories, complexity spectrum, file structure, template, frontmatter fields, description formula, security restrictions |
+| 2 | Understand the topic — explore codebase for relevant patterns, or evaluate session for extractable knowledge |
+| 3 | Check existing skills — avoid duplicates, identify update and migration opportunities |
+| 4 | Create or edit the canonical project skill under `.agents/skills/`; global skills remain agent-local |
+| 5 | Run structure, content, cross-agent portability, triggering, and synchronization quality gates |
+| 6 | Test and iterate with realistic prompts, then optimize description triggering |
+| 7 | Check anti-patterns and troubleshooting guidance |
+| 8 | Compare the result with a complete example |
+
+## Project skill synchronization
+
+Run `/setup-rules` once before creating repository skills. It installs `scripts/sync-agent-assets.mjs` and establishes the root `AGENTS.md` / `CLAUDE.md` contract.
+
+For a project skill, edit only the canonical source:
+
+```text
+.agents/skills/my-project-skill/
+├── SKILL.md
+├── scripts/
+├── references/
+└── assets/
+```
+
+Pilot's shared hook mirrors the skill on SessionStart and after edits made through either agent. Normally you only run the read-only verification:
+
+```bash
+node scripts/sync-agent-assets.mjs --check
+```
+
+If the check finds drift after a hook outage, `node scripts/sync-agent-assets.mjs --write` is the recovery command. It is not a normal authoring step.
+
+The generated tracked files in `.claude/skills/my-project-skill/` are byte-identical. If Claude Code or Codex targets one directly, Pilot redirects the edit when supported or blocks it and reports the canonical `.agents/skills/` path. Agent identity works both ways; filesystem authority stays one-way. Untracked or ignored local agent-only extensions remain outside this repository contract.
 
 ## Use Case Categories
 
@@ -76,4 +102,6 @@ your-skill-name/
 
 :::info
 Skills are plain markdown files using the same `SKILL.md` format on both agents. They're loaded on-demand when relevant and shareable across your team via the **Extensions page**. Claude Code uses `.claude/skills/` and `~/.claude/skills/`; Codex uses `.agents/skills/` and `~/.agents/skills/`.
+
+For project scope, those directories are not two authoring locations: `.agents/skills/` is canonical and `.claude/skills/` is generated automatically by Pilot's shared hook. Global user skills remain agent-local unless promoted through Pilot's skill library.
 :::

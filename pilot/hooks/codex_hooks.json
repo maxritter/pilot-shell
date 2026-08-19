@@ -16,6 +16,16 @@
         "hooks": [
           {
             "type": "command",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
+            "timeout": 20
+          }
+        ]
+      },
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
             "command": "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex context",
             "timeout": 15
           }
@@ -55,6 +65,16 @@
     ],
     "PreToolUse": [
       {
+        "matcher": "apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
         "matcher": "Bash",
         "hooks": [
           {
@@ -72,6 +92,16 @@
           {
             "type": "command",
             "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codex_background.py\" -- bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex observation",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
             "timeout": 15
           }
         ]

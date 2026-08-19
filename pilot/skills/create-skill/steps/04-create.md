@@ -1,58 +1,66 @@
-## Step 4: Create Skill
+## Step 4: Create or Edit the Canonical Skill
 
-**Create the skill directory and SKILL.md:**
+### Project Scope
+
+The repository must already have the checker installed by `/setup-rules`. Verify that before authoring:
+
+```bash
+test -f scripts/sync-agent-assets.mjs
+node scripts/sync-agent-assets.mjs --check
+```
+
+If the script is absent, run `/setup-rules` to migrate existing content and install it. Do not invent another copy command or edit `.claude/skills/` directly; setup must resolve possible legacy conflicts before generation.
+
+Create or edit only the canonical directory:
+
+```bash
+mkdir -p .agents/skills/{slug}-{name}
+# Write .agents/skills/{slug}-{name}/SKILL.md and any supporting files
+```
+
+Pilot's shared hook converges on SessionStart and regenerates the complete mirror for canonical skills under `.claude/skills/` after edits from either Claude Code or Codex, while preserving untracked/ignored agent-only extensions. Users normally do not run `--write`.
+
+If a task or tool presents a tracked `.claude/skills/<name>/...` path, do not edit that generated file. Follow the hook's redirect when supported; otherwise use the canonical `.agents/skills/<name>/...` path reported by the blocking message. Never copy changes from `.claude/skills/` back into `.agents/skills/`.
+
+### Global Scope
+
+Global skills are outside the repository sync contract:
 
 <!-- CC-ONLY -->
 ```bash
-# Project scope — skill lives in this repo's .claude/skills/
-mkdir -p .claude/skills/{slug}-{name}
-# Write SKILL.md (see template in Step 1)
-
-# Global scope — skill applies across all projects
 mkdir -p "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/skills/{slug}-{name}
 # Write SKILL.md
 ```
-
-Skills in `.claude/skills/` (project) or `~/.claude/skills/` (global) are automatically available to Claude — no sync step needed.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 ```bash
-# Project scope — skill lives in this repo's .agents/skills/
-mkdir -p .agents/skills/{slug}-{name}
-# Write SKILL.md
-
-# Global scope — skill applies across all projects
 mkdir -p ~/.agents/skills/{slug}-{name}
 # Write SKILL.md
 ```
-
-Skills in `.agents/skills/` (project) or `~/.agents/skills/` (global) are available to Codex — no sync step needed.
 CODEX-END -->
 
-Edit the created `SKILL.md` with the skill content using the template from Step 1.
+If a global skill should ship to both agents or other users, promote it through Pilot's skill library rather than maintaining two user-level copies by hand.
 
-**Portability checklist** — skills are shared with users who may NOT have Pilot Shell:
+Edit the created `SKILL.md` with the template from Step 1.
 
-<!-- CC-ONLY -->
-- **Only use built-in Claude Code tools** in skill instructions: `Read`, `Write`, `Edit`, `Bash`, `Grep`, `Glob`, `Agent`, `WebFetch`, `WebSearch`, `Notebook`, `LSP`, `TodoRead`/`TodoWrite`
-- **Never reference Pilot-specific tools:** `semble search/find-related` (CLI or MCP), `agent-browser`, `pilot` CLI, Pilot MCP servers (`mem-search`, `context7`, `grep-mcp`, `web-fetch`, `web-search`)
-- **Substitute with built-in equivalents:** `semble search` → `Grep`/`Glob`, `agent-browser` → Claude Code Chrome (`mcp__claude-in-chrome__*`) or `Bash` with `npx agent-browser`, web fetch → `WebFetch`
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-- **Use capabilities from the current Codex tool schema, not a hardcoded namespace.** Core file/shell tools (`Read`, `apply_patch`, `Bash`, `Grep`, `Glob`) are portable. Agent and web tools may also be exposed; name their required capability and tell the skill to use the current schema's parameters.
-- **Never reference Pilot-specific tools:** `semble search/find-related` (CLI or MCP), `agent-browser`, `pilot` CLI, Pilot MCP servers (`mem-search`, `context7`, `grep-mcp`, `web-fetch`, `web-search`)
-- **Provide a fallback for optional capabilities:** `semble search` → `Grep`/`Glob`; unavailable agent tools → direct execution or `codex exec`; unavailable web tools → `curl` when network access permits.
-CODEX-END -->
-- If a skill genuinely requires a non-standard tool, document it as a prerequisite in the skill body (not silently assume it exists)
+**Cross-agent portability checklist:**
 
-**Determinism checklist** — maximize reliability:
+- Describe capabilities (read files, search text, execute commands, launch a bounded agent) rather than assuming one tool namespace or parameter schema.
+- Prefer common shell commands and repository-relative paths when exact execution is needed.
+- Provide a capability-based fallback for optional agent, browser, and web tools.
+- Avoid Claude-only or Codex-only instructions in a project skill. If behavior must differ, key it to an observable capability in the current session.
+- Never reference Pilot-only services such as Semble or Pilot MCP servers unless the skill declares them as prerequisites and has a portable fallback.
+- Keep `targets: [claude, codex]` when both agents are supported; narrow it only when the workflow truly cannot run on one target.
+- Rely on Pilot's shared hook for normal mirroring. Keep manual `--write` as recovery, not a required authoring step.
+
+**Determinism checklist:**
 
 - Prefer exact commands over descriptions (`run prettier --write .` not "format the code")
-- Prefer scripts over multi-step instructions (reference `scripts/deploy.sh` not 5 prose steps)
+- Prefer scripts over multi-step instructions (reference `scripts/deploy.sh` not five prose steps)
 - Use explicit values over judgment (`block files > 100KB` not "block large files")
-- For high-risk operations (DB migrations, deploys): exact commands, validation steps, rollback plan
-- For low-risk operations (code review, docs): general guidelines, let AI use judgment
+- For high-risk operations: include exact commands, validation steps, and rollback plan
+- For low-risk work: use general guidelines and let the agent apply judgment
 
-**One skill = one purpose.** If the skill handles review AND testing AND deployment, split it.
+**One skill = one purpose.** Split review, testing, and deployment when they are independent workflows.
 
-**Security:** Skills must not contain malware, exploit code, or content that could compromise system security. A skill's contents should not surprise the user in their intent. Don't create skills designed to facilitate unauthorized access or data exfiltration.
+**Security:** Skills must not contain malware, exploit code, credentials, or surprising data access. Use environment variables for secrets.

@@ -67,6 +67,21 @@ _CODEX_EXPLICIT_ONLY_SKILL_NAMES = frozenset({"spec", "build", "fix", "prd"})
 # install can drop the ones it no longer ships without touching user files.
 _CODEX_RULES_MANIFEST = ".pilot-rules.json"
 
+# Per-skill sidecar listing the runtime resources copied from Pilot's
+# decomposed skill. This lets upgrades remove only files Pilot previously
+# installed while leaving user files (and unrelated skills) alone.
+_CODEX_SKILL_RESOURCES_MANIFEST = ".pilot-resources.json"
+_CODEX_SKILL_AUTHORING_ENTRIES = frozenset(
+    {
+        "manifest.json",
+        "orchestrator.md",
+        "steps",
+        "tests",
+        "SKILL.md",
+        _CODEX_SKILL_RESOURCES_MANIFEST,
+    }
+)
+
 
 def _claude_rules_dir_or_none() -> Path | None:
     """Rules dir in the active Claude profile, for the Codex rules fallback.
@@ -761,6 +776,7 @@ class CodexFilesStep(BaseStep):
             dest_dir = agents_skills_dir / skill_dir.name
             dest_dir.mkdir(parents=True, exist_ok=True)
             _atomic_write(dest_dir / "SKILL.md", codex_content)
+            _sync_codex_skill_resources(skill_dir, dest_dir)
             metadata_dir = dest_dir / "agents"
             metadata_dir.mkdir(parents=True, exist_ok=True)
             _atomic_write(metadata_dir / "openai.yaml", build_codex_skill_openai_yaml(skill_dir))
@@ -1199,6 +1215,141 @@ def build_codex_skill_openai_yaml(skill_dir: Path) -> str:
         "policy:\n"
         f"  allow_implicit_invocation: {'true' if implicit else 'false'}\n"
     )
+
+
+def _is_codex_skill_runtime_resource(relative: Path) -> bool:
+    """Return whether a decomposed-skill path belongs in Codex's runtime copy."""
+    if not relative.parts or relative.parts[0] in _CODEX_SKILL_AUTHORING_ENTRIES:
+        return False
+    # Codex's UI metadata is generated from the adapted SKILL.md. Never let a
+    # source-side file replace it, but do copy other agent resources such as a
+    # benchmark grader prompt.
+    return relative.parts != ("agents", "openai.yaml")
+
+
+def _codex_skill_runtime_inventory(skill_dir: Path) -> tuple[set[str], set[str]]:
+    """Return the runtime files and directories shipped by a decomposed skill."""
+    files: set[str] = set()
+    directories: set[str] = set()
+    for entry in sorted(skill_dir.iterdir()):
+        relative = entry.relative_to(skill_dir)
+        if not _is_codex_skill_runtime_resource(relative):
+            continue
+        candidates = [entry]
+        if entry.is_dir() and not entry.is_symlink():
+            candidates.extend(sorted(entry.rglob("*")))
+        for candidate in candidates:
+            candidate_relative = candidate.relative_to(skill_dir)
+            if not _is_codex_skill_runtime_resource(candidate_relative):
+                continue
+            path = candidate_relative.as_posix()
+            if candidate.is_dir() and not candidate.is_symlink():
+                directories.add(path)
+            else:
+                files.add(path)
+    return files, directories
+
+
+def _load_codex_skill_resource_manifest(manifest_path: Path) -> tuple[set[str], set[str]]:
+    try:
+        data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return set(), set()
+    if not isinstance(data, dict):
+        return set(), set()
+
+    def valid_paths(key: str) -> set[str]:
+        values = data.get(key)
+        if not isinstance(values, list):
+            return set()
+        valid: set[str] = set()
+        for value in values:
+            if not isinstance(value, str):
+                continue
+            relative = Path(value)
+            if relative.is_absolute() or ".." in relative.parts:
+                continue
+            if _is_codex_skill_runtime_resource(relative):
+                valid.add(relative.as_posix())
+        return valid
+
+    return valid_paths("files"), valid_paths("directories")
+
+
+def _remove_stale_codex_skill_resources(
+    dest_dir: Path,
+    previous_files: set[str],
+    previous_directories: set[str],
+    current_files: set[str],
+    current_directories: set[str],
+) -> None:
+    """Remove only resource paths recorded by an earlier Pilot installation."""
+    for relative in sorted(previous_files - current_files, key=lambda path: (-path.count("/"), path)):
+        target = dest_dir / relative
+        try:
+            if target.is_symlink() or target.is_file():
+                target.unlink()
+            elif target.is_dir():
+                target.rmdir()
+        except OSError:
+            # A user-created child can keep a formerly managed directory alive.
+            # Preserving that content is more important than forcing the cleanup.
+            pass
+
+    for relative in sorted(previous_directories - current_directories, key=lambda path: (-path.count("/"), path)):
+        target = dest_dir / relative
+        try:
+            if target.is_dir() and not target.is_symlink():
+                target.rmdir()
+        except OSError:
+            pass
+
+
+def _sync_codex_skill_resources(skill_dir: Path, dest_dir: Path) -> None:
+    """Mirror Pilot skill runtime resources into the adapted Codex skill.
+
+    Decomposed-skill authoring inputs are compiled into SKILL.md and therefore
+    stay out of the destination. Runtime-relative resources are copied with
+    metadata intact, while a sidecar manifest makes removal of obsolete files
+    deterministic and non-destructive.
+    """
+    manifest_path = dest_dir / _CODEX_SKILL_RESOURCES_MANIFEST
+    previous_files, previous_directories = _load_codex_skill_resource_manifest(manifest_path)
+    current_files, current_directories = _codex_skill_runtime_inventory(skill_dir)
+    _remove_stale_codex_skill_resources(
+        dest_dir,
+        previous_files,
+        previous_directories,
+        current_files,
+        current_directories,
+    )
+
+    for entry in sorted(skill_dir.iterdir()):
+        relative = entry.relative_to(skill_dir)
+        if not _is_codex_skill_runtime_resource(relative):
+            continue
+        target = dest_dir / entry.name
+        if entry.is_dir() and not entry.is_symlink():
+            ignored = (lambda _directory, names: {"openai.yaml"} & set(names)) if entry.name == "agents" else None
+            shutil.copytree(
+                entry,
+                target,
+                symlinks=True,
+                copy_function=shutil.copy2,
+                ignore=ignored,
+                dirs_exist_ok=True,
+            )
+        else:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if target.is_symlink() or target.is_file():
+                target.unlink()
+            shutil.copy2(entry, target, follow_symlinks=False)
+
+    manifest = {
+        "files": sorted(current_files),
+        "directories": sorted(current_directories),
+    }
+    _atomic_write(manifest_path, json.dumps(manifest, indent=2) + "\n")
 
 
 def build_codex_review_agent_toml(agent_file: Path) -> str:

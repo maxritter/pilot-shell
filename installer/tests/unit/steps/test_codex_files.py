@@ -420,6 +420,106 @@ class TestCodexSkillsInstallation:
         assert metadata["interface"]["display_name"] == "Fix"
         assert metadata["policy"]["allow_implicit_invocation"] is False
 
+    def test_installs_benchmark_and_setup_rules_runtime_resources_with_modes(self, tmp_path: Path) -> None:
+        pilot_skills_dir = tmp_path / ".claude" / "skills"
+        for name in ("benchmark", "setup-rules"):
+            skill_dir = pilot_skills_dir / name
+            skill_dir.mkdir(parents=True)
+            (skill_dir / "manifest.json").write_text(
+                json.dumps({"version": 1, "orchestrator": "orchestrator.md", "steps": []})
+            )
+            (skill_dir / "orchestrator.md").write_text(
+                f"---\nname: {name}\ndescription: {name.title()} utility\n---\n\n# {name}\n"
+            )
+            (skill_dir / "steps").mkdir()
+            (skill_dir / "steps" / "01-authoring.md").write_text("compiled into SKILL.md")
+            (skill_dir / "tests").mkdir()
+            (skill_dir / "tests" / "test_authoring.py").write_text("raise AssertionError")
+
+        benchmark = pilot_skills_dir / "benchmark"
+        (benchmark / "scripts").mkdir()
+        benchmark_runner = benchmark / "scripts" / "runner.py"
+        benchmark_runner.write_text("print('benchmark')\n")
+        benchmark_runner.chmod(0o751)
+        (benchmark / "agents").mkdir()
+        (benchmark / "agents" / "grader.md").write_text("# Runtime grader\n")
+        (benchmark / "agents" / "openai.yaml").write_text("source: must-not-win\n")
+
+        setup_rules = pilot_skills_dir / "setup-rules"
+        (setup_rules / "scripts").mkdir()
+        setup_sync = setup_rules / "scripts" / "sync-agent-assets.mjs"
+        setup_sync.write_text("print('sync')\n")
+        setup_sync.chmod(0o754)
+        (setup_rules / "references").mkdir()
+        (setup_rules / "references" / "shared-rules.md").write_text("# Shared rules\n")
+
+        ctx = MagicMock(ui=None)
+        with patch("installer.steps.codex_files.Path.home", return_value=tmp_path):
+            assert CodexFilesStep()._install_codex_skills(ctx) == 2
+
+        installed = tmp_path / ".agents" / "skills"
+        installed_runner = installed / "benchmark" / "scripts" / "runner.py"
+        installed_sync = installed / "setup-rules" / "scripts" / "sync-agent-assets.mjs"
+        assert installed_runner.read_text() == "print('benchmark')\n"
+        assert installed_sync.read_text() == "print('sync')\n"
+        assert installed_runner.stat().st_mode & 0o777 == 0o751
+        assert installed_sync.stat().st_mode & 0o777 == 0o754
+        assert (installed / "benchmark" / "agents" / "grader.md").exists()
+        assert (installed / "setup-rules" / "references" / "shared-rules.md").exists()
+
+        for name in ("benchmark", "setup-rules"):
+            skill = installed / name
+            assert (skill / "SKILL.md").exists()
+            assert not (skill / "manifest.json").exists()
+            assert not (skill / "orchestrator.md").exists()
+            assert not (skill / "steps").exists()
+            assert not (skill / "tests").exists()
+            metadata = yaml.safe_load((skill / "agents" / "openai.yaml").read_text())
+            assert metadata["interface"]["display_name"] == name.replace("-", " ").title()
+
+    def test_removes_only_obsolete_managed_skill_resources(self, tmp_path: Path) -> None:
+        skill_dir = tmp_path / ".claude" / "skills" / "benchmark"
+        skill_dir.mkdir(parents=True)
+        (skill_dir / "manifest.json").write_text(
+            json.dumps({"version": 1, "orchestrator": "orchestrator.md", "steps": []})
+        )
+        (skill_dir / "orchestrator.md").write_text(
+            "---\nname: benchmark\ndescription: Benchmark utility\n---\n\n# Benchmark\n"
+        )
+        scripts = skill_dir / "scripts"
+        scripts.mkdir()
+        (scripts / "current.py").write_text("CURRENT = True\n")
+        (scripts / "obsolete.py").write_text("OBSOLETE = True\n")
+        assets = skill_dir / "assets"
+        assets.mkdir()
+        (assets / "obsolete.txt").write_text("old\n")
+
+        ctx = MagicMock(ui=None)
+        step = CodexFilesStep()
+        with patch("installer.steps.codex_files.Path.home", return_value=tmp_path):
+            step._install_codex_skills(ctx)
+
+        installed_skills = tmp_path / ".agents" / "skills"
+        installed = installed_skills / "benchmark"
+        (installed / "user-note.md").write_text("keep me\n")
+        (installed / "scripts" / "user-helper.py").write_text("# keep me\n")
+        custom_skill = installed_skills / "my-custom-skill"
+        custom_skill.mkdir(parents=True)
+        (custom_skill / "SKILL.md").write_text("# User skill\n")
+
+        (scripts / "obsolete.py").unlink()
+        shutil.rmtree(assets)
+        with patch("installer.steps.codex_files.Path.home", return_value=tmp_path):
+            step._install_codex_skills(ctx)
+
+        assert (installed / "scripts" / "current.py").exists()
+        assert not (installed / "scripts" / "obsolete.py").exists()
+        assert not (installed / "assets").exists()
+        assert (installed / "user-note.md").read_text() == "keep me\n"
+        assert (installed / "scripts" / "user-helper.py").exists()
+        assert (custom_skill / "SKILL.md").read_text() == "# User skill\n"
+        assert (installed / "agents" / "openai.yaml").exists()
+
     def test_workflow_skills_are_explicit_but_utility_skills_remain_discoverable(self, tmp_path: Path) -> None:
         pilot_skills_dir = tmp_path / ".claude" / "skills"
         for name in ("build", "benchmark"):
@@ -664,8 +764,10 @@ class TestCodexSkillsInstallation:
 
         result = build_codex_skill_md(Path("pilot/skills/setup-rules"))
 
-        assert "Codex reads project instructions from repo-root `AGENTS.md`" in result
-        assert "If `AGENTS.md` does not exist, create it" in result
+        assert "Codex reads it directly; Claude Code imports it through `CLAUDE.md`" in result
+        assert "Its absence is a setup gap for both Claude Code and Codex" in result
+        assert "Pilot's shared hook synchronizes on SessionStart and after edits" in result
+        assert "Users should not need `--write` during normal Claude Code or Codex work" in result
         assert "Never create AGENTS.md if it doesn't exist" not in result
 
     def test_create_skill_codex_skill_uses_agents_skill_paths(self) -> None:
@@ -675,13 +777,10 @@ class TestCodexSkillsInstallation:
 
         assert ".agents/skills/{slug}-{name}/SKILL.md" in result
         assert "~/.agents/skills/{slug}-{name}/SKILL.md" in result
-        assert (
-            "Skills in `.agents/skills/` (project) or `~/.agents/skills/` (global) are available to Codex"
-        ) in result
-        assert (
-            "Skills in `.claude/skills/` (project) or `~/.claude/skills/` "
-            "(global) are automatically available to Claude"
-        ) not in result
+        assert "Pilot's shared hook automatically generates `.claude/skills/` after edits from either agent" in result
+        assert "For project scope, `.agents/skills/` is canonical" in result
+        assert "Users normally do not run `--write`" in result
+        assert "use `node scripts/sync-agent-assets.mjs --write` once for recovery" in result
 
     def test_benchmark_codex_skill_describes_codex_materialization(self) -> None:
         from installer.steps.codex_files import build_codex_skill_md

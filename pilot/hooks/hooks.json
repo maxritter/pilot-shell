@@ -47,6 +47,16 @@
         ]
       },
       {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
+            "timeout": 20
+          }
+        ]
+      },
+      {
         "matcher": "startup|clear|compact",
         "hooks": [
           {
@@ -117,6 +127,16 @@
     ],
     "PreToolUse": [
       {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
         "matcher": "EnterPlanMode|Edit|Write|MultiEdit",
         "hooks": [
           {
@@ -146,6 +166,16 @@
       }
     ],
     "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
+            "timeout": 15
+          }
+        ]
+      },
       {
         "matcher": "EnterPlanMode|ExitPlanMode",
         "hooks": [

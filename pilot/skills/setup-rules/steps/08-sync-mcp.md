@@ -26,43 +26,40 @@ CODEX-END -->
    ```
 5. If issues: AskUserQuestion "Document working servers only" | "Document all with status notes" | "Skip MCP sync"
 
+Connection status is audit evidence for this run, not stable repository guidance. Report it in the final summary; do not persist a transient health result in `AGENTS.md` or a scoped rule.
+
 ### Step 8.3: Document
 
-Compare against existing `{slug}-mcp-servers.md`. If changes detected, ask user: "Update all" | "Review each" | "Skip"
+Compare against the MCP section in `AGENTS.md` and any scoped `{slug}-mcp-servers.md`. If changes are detected, ask user: "Update all" | "Review each" | "Skip"
 
-Also look for a legacy unscoped `mcp-servers.md` — if found, migrate content into `{slug}-mcp-servers.md` and delete the old file.
+Also look for a legacy unscoped `mcp-servers.md`. Move repo-wide decision guidance into `AGENTS.md`; keep only path-specific detail in a `{slug}-mcp-servers.md` rule with `paths` frontmatter.
 
 ### Step 8.4: Write
 
-**MCP tools are self-describing** — Claude Code already gets tool names, descriptions, and schemas when it connects to a server. Do NOT enumerate individual tools or create per-tool tables. That information is redundant and wastes context tokens every session.
+**MCP tools are self-describing** — agents already get tool names, descriptions, and schemas when connected. Do NOT enumerate individual tools or create per-tool tables. That information is redundant and wastes context tokens.
 
 **Focus on behavioral guidance** — what the rules should capture is context that tool descriptions alone cannot provide: when to consult the server, how it fits into the project's workflow, and decision-making guidance.
 
-Create/update `.claude/rules/{slug}-mcp-servers.md`:
+Put the concise, repo-wide decision boundary in `AGENTS.md`:
 
 ```markdown
 ## [server-name]
 
 **Purpose:** [What this server provides — one line]
-**Status:** ✅ All working | ⚠️ Partial (note which tools have issues) | ❌ Broken
-
 **Consult this MCP when:**
 - [Situation where this server should be used instead of alternatives]
 - [Decision point where the server provides relevant context]
 - [Workflow step where consulting this server prevents mistakes]
 
-<!-- CC-ONLY -->
-**Usage:** `ToolSearch(query="+server-name keyword")` then call the discovered tools directly.
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-**Usage:** MCP tools are available directly via `mcp__<server-name>__<tool-name>` naming convention.
-CODEX-END -->
+**Usage:** Discover the server's tools from the active session, then use the exposed names and schemas. Do not hardcode one agent's tool namespace into shared guidance.
 ```
+
+Only create `.claude/rules/{slug}-mcp-servers.md` when the server guidance applies to specific repository paths. Add `paths` frontmatter, keep the same behavioral format, and list it in the `AGENTS.md` matching-rule index.
 
 **Do NOT include:**
 - Per-tool tables (`| Tool | Description |`) — tools describe themselves
 - Tool parameter documentation — schemas are provided by the server
-- Usage examples for individual tools — Claude reads the tool schema
+- Usage examples for individual tools — agents read the tool schema
 
 **DO include:**
 - When to consult vs. when NOT to (decision boundaries)
