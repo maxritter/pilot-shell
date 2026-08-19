@@ -126,7 +126,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
 
       - name: Unlock repository
         env:
@@ -191,7 +191,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
 
       - name: Unlock repository
         env:
@@ -237,7 +237,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
 
       - name: Unlock repository
         env:
@@ -270,7 +270,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
 
       - name: Unlock repository
         env:
@@ -319,7 +319,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
 
       - name: Unlock repository
         env:
@@ -370,7 +370,7 @@ jobs:
           persist-credentials: false
 
       - name: Install git-crypt
-        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
 
       - name: Unlock repository
         env:
@@ -452,7 +452,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
 
       - name: Unlock repository
         env:
@@ -472,7 +472,7 @@ jobs:
             -e BUILD_VERSION=${{ needs.prepare-release.outputs.version }} \
             python:3.12-slim-bullseye \
             bash -c "
-              apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y binutils build-essential && \
+              apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::ForceIPv4=true update && apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::ForceIPv4=true install -y binutils build-essential && \
               pip install . && \
               python -m launcher.build --release --version \$BUILD_VERSION && \
               ls -la launcher/dist/
@@ -500,7 +500,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
 
       - name: Unlock repository
         env:
@@ -520,7 +520,7 @@ jobs:
             -e BUILD_VERSION=${{ needs.prepare-release.outputs.version }} \
             python:3.12-slim-bullseye \
             bash -c "
-              apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y binutils build-essential && \
+              apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::ForceIPv4=true update && apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::ForceIPv4=true install -y binutils build-essential && \
               pip install . && \
               python -m launcher.build --release --version \$BUILD_VERSION && \
               ls -la launcher/dist/
@@ -725,7 +725,7 @@ jobs:
           git reset --hard origin/main
 
       - name: Install git-crypt
-        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
 
       - name: Unlock repository
         env:
@@ -910,7 +910,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
 
       - name: Unlock repository
         env:

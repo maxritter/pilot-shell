@@ -92,7 +92,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install git-crypt
-        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
 
       - name: Unlock repository
         env:

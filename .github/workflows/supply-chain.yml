@@ -24,7 +24,7 @@ jobs:
       # need it, so granting at the workflow level was over-scoped.
       issues: write
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -33,7 +33,7 @@ jobs:
         # `launcher/**` and `console/**` are git-crypt encrypted — without
         # decryption, the drift checker reads encrypted bytes and crashes on
         # invalid UTF-8 (or now, emits a Finding for every encrypted file).
-        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
 
       - name: Unlock repository
         env:
