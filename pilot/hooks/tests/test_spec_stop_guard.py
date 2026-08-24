@@ -1081,50 +1081,56 @@ class TestApprovalSentinel:
         assert not sentinel.exists(), "stale approval sentinel must be unlinked"
 
 
-class TestManualSwitchSentinel:
-    """The manual-switch-pending sentinel allows ONE stop after plan approval so
-    the user can run /model (they cannot type /model inside an AskUserQuestion
-    prompt). One-shot: the guard deletes it when honoring it."""
+class TestApprovedPendingPlanHasNoLegalPause:
+    """The implement phase has no legal pause — issue: /spec stopped dead after approval.
 
-    def _run_with_sentinel(self, tmp_path, monkeypatch, *, approved: bool, age: float = 0.0):
+    Manual Model Switching used to end the planning turn after approval so the user
+    could run ``/model``, permitted by a ``manual-switch-pending`` sentinel whose
+    predicate was a bare ``approved``. That made it the ONLY sentinel that granted a
+    stop while a /spec plan was ``Approved: Yes`` + ``Status: PENDING`` — i.e. during
+    implementation — so an approved plan could hand back to the user with zero tasks
+    done. Every other sentinel is qualified away from that state:
+    spec-approval-pending needs ``Approved: No``, build-handback-pending needs
+    ``Type: Build``, verify-gate-pending needs ``Status: COMPLETE``.
+
+    The pause is gone: approval now hands off straight to spec-implement in every
+    Model Switching mode. This pins the invariant so no sentinel can reopen the hole,
+    including the retired filename, which a customized or stale skill copy may still
+    touch.
+    """
+
+    def _run(self, tmp_path, monkeypatch, *, sentinel_name: str | None):
         import spec_stop_guard as g
 
-        monkeypatch.setenv("PILOT_SESSION_ID", "manual-switch-test")
+        monkeypatch.setenv("PILOT_SESSION_ID", "no-implement-pause-test")
         monkeypatch.setattr(g, "_sessions_base", lambda: tmp_path / "sessions")
         plan = tmp_path / "plan.md"
-        plan.write_text("# X\nStatus: PENDING\nApproved: " + ("Yes" if approved else "No") + "\nType: Feature\n")
+        plan.write_text("# X\nStatus: PENDING\nApproved: Yes\nType: Feature\n")
         monkeypatch.setattr(g, "find_active_plan", lambda *_args: (plan, "PENDING"))
         monkeypatch.setattr(g, "is_waiting_for_user_input", lambda _p: False)
 
-        sentinel = g.get_manual_switch_sentinel_path()
-        sentinel.write_text("")
-        if age:
-            stamp = time.time() - age
-            os.utime(sentinel, (stamp, stamp))
+        if sentinel_name:
+            guard_dir = tmp_path / "sessions" / "no-implement-pause-test"
+            guard_dir.mkdir(parents=True, exist_ok=True)
+            (guard_dir / sentinel_name).write_text("")
 
         stdin = io.StringIO(json.dumps({"stop_hook_active": False, "transcript_path": ""}))
-        with patch("sys.stdin", stdin):
+        with patch("sys.stdin", stdin), patch("sys.stdout", new_callable=io.StringIO) as out:
             code = g.main()
-        return code, sentinel
+        return code, out.getvalue()
 
-    def test_allows_one_stop_when_plan_approved(self, tmp_path, monkeypatch):
-        code, sentinel = self._run_with_sentinel(tmp_path, monkeypatch, approved=True)
-        assert code == 0
-        assert not sentinel.exists()  # one-shot: consumed on honor
-
-    def test_not_honored_when_plan_unapproved(self, tmp_path, monkeypatch):
-        # Pre-approval pauses use the approval sentinel; this one must not
-        # bypass the pre-approval flow.
-        code, sentinel = self._run_with_sentinel(tmp_path, monkeypatch, approved=False)
-        assert code != 0 or sentinel.exists()
-
-    def test_stale_sentinel_discarded(self, tmp_path, monkeypatch):
-        import spec_stop_guard as g
-
-        code, sentinel = self._run_with_sentinel(
-            tmp_path, monkeypatch, approved=True, age=g.SENTINEL_MAX_AGE_SECONDS + 60
+    def test_retired_manual_switch_sentinel_no_longer_grants_a_stop(self, tmp_path, monkeypatch):
+        """The regression itself: this file used to buy one free stop mid-implementation."""
+        _code, stdout = self._run(tmp_path, monkeypatch, sentinel_name="manual-switch-pending")
+        assert _is_blocked(stdout), (
+            "an approved PENDING plan stopped instead of implementing - the "
+            "manual-switch pause is exactly the defect this pins"
         )
-        assert not sentinel.exists()  # discarded, not honored
+
+    def test_approved_pending_plan_blocks_with_no_sentinel(self, tmp_path, monkeypatch):
+        """The control. Without it, deleting the guard entirely would pass the test above."""
+        _code, stdout = self._run(tmp_path, monkeypatch, sentinel_name=None)
+        assert _is_blocked(stdout)
 
 
 class TestBuildHandbackSentinel:
@@ -1209,15 +1215,14 @@ class TestVerifyGateSentinel:
     /spec's merge gate (spec-verify 8.1.6, spec-bugfix-verify 4.5) and its code-review
     gate (spec-verify 10, spec-bugfix-verify 6) both run with the plan at
     ``Approved: Yes`` + ``Status: COMPLETE``, and none of the other three sentinels
-    covers that state: spec-approval-pending needs ``Approved: No``,
-    build-handback-pending needs ``Type: Build``, and manual-switch-pending is the
-    consumed-once model-switch pause. So an orchestration lane -- a Claude Code
+    covers that state: spec-approval-pending needs ``Approved: No`` and
+    build-handback-pending needs ``Type: Build``. So an orchestration lane -- a Claude Code
     subagent, which has no AskUserQuestion at all -- had no legal way to pause at
     either gate, and resolved it by answering its own gate or halting silently
     (issue #175). Adding the gate prose without this sentinel only relocates the
     deadlock: the lane asks correctly, yields, and is blocked anyway.
 
-    Consumed on honor, like the two other post-approval sentinels. Both re-ask paths
+    Consumed on honor, like the other post-approval sentinel. Both re-ask paths
     of the review gate ("Fix" and "Manual") touch it again, so the failure mode of
     forgetting to re-touch is a block, never a silent stop.
 
@@ -1474,3 +1479,55 @@ class TestLaneRegisteredPlansDoNotBlockTheCoordinator:
 
         assert exit_code == 0
         assert _is_blocked(stdout)
+
+
+class TestOneSessionsPlanDoesNotBlockAnother:
+    """The community report, stated as behaviour.
+
+    "I have a plan registered in session 1 and I am preparing something else in
+    session 2, same repo directory, no worktrees -- the hooks trigger on both."
+
+    Every plan reader is session-scoped through `resolve_session_id` (the issue
+    #157 env chain), so session B reads its OWN `active_plan.json` and finds
+    nothing. These tests pin BOTH directions so the guard cannot be "fixed" by
+    disabling it. State lives under the per-test HOME the autouse fixture sets.
+    """
+
+    def _plan(self, tmp_path: Path) -> Path:
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True, exist_ok=True)
+        plan_file = plans_dir / "2026-08-24-session-a-plan.md"
+        plan_file.write_text("# A\n\nStatus: PENDING\nApproved: Yes\nType: Feature\n")
+        return plan_file
+
+    def _register(self, session_id: str, plan_file: Path) -> None:
+        session_dir = Path.home() / ".pilot" / "sessions" / session_id
+        session_dir.mkdir(parents=True, exist_ok=True)
+        (session_dir / "active_plan.json").write_text(json.dumps({"plan_path": str(plan_file), "status": "PENDING"}))
+
+    def _run_as(self, session_id: str) -> str:
+        import spec_stop_guard as g
+
+        with (
+            patch.dict(os.environ, {"PILOT_SESSION_ID": session_id}),
+            patch.object(g, "is_waiting_for_user_input", lambda _p: False),
+            patch.object(g, "plan_in_current_project", lambda _p: True),
+            patch("sys.stdin", io.StringIO(json.dumps({"stop_hook_active": False, "transcript_path": ""}))),
+            patch("sys.stdout", new_callable=io.StringIO) as out,
+        ):
+            g.main()
+        return out.getvalue()
+
+    def test_session_b_is_not_blocked_by_session_as_plan(self, tmp_path):
+        self._register("session-a", self._plan(tmp_path))
+
+        assert not _is_blocked(self._run_as("session-b")), (
+            "session B was told to keep working on a plan session A owns - the "
+            "multi-session cross-talk from the community report"
+        )
+
+    def test_the_same_plan_registered_under_bs_own_id_does_block(self, tmp_path):
+        """The control. Without it, deleting the guard would pass the test above."""
+        self._register("session-b", self._plan(tmp_path))
+
+        assert _is_blocked(self._run_as("session-b"))

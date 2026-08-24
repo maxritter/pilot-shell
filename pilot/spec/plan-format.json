@@ -1,0 +1,97 @@
+{
+  "_comment": [
+    "Canonical description of the Pilot plan file format. Edit THIS file, never a generated copy.",
+    "",
+    "Consumers that read it:",
+    "  - launcher/spec_format.py       -> `pilot spec init` / `pilot spec validate`",
+    "  - scripts/gen_plan_format.py    -> generates console/src/shared/displayed-sections.ts",
+    "                                     and docs/site/src/lib/sharing/displayed-sections.ts",
+    "",
+    "Known DUPLICATE readers, deliberately NOT wired to this file. They predate it and",
+    "re-derive the same facts with their own regexes; rewiring them is a refactor with no",
+    "user-visible effect and a real regression surface on the statusline:",
+    "  - launcher/statusline/formatter.py  (progress counts, header fields, phase derivation)",
+    "  - pilot/hooks/spec_stop_guard.py    (^Status: parsing)",
+    "  - console/src/ui/viewer/views/Spec/parsePlanContent.ts (headings, task bodies, labels)",
+    "If you change a rule here, check whether those three still agree."
+  ],
+
+  "line_ending": "LF",
+  "_line_ending_comment": "The Console parser splits on \\n and anchors its task regexes with $. A CRLF plan captures \\r into every task title and loses its task cards, so CRLF is a validator ERROR, not a tolerated input.",
+
+  "header_fields": {
+    "Created": { "required": true },
+    "Author": { "required": false },
+    "Agent": { "required": false },
+    "Status": { "required": true, "allowed": ["PENDING", "COMPLETE", "VERIFIED"] },
+    "Approved": { "required": true, "allowed": ["Yes", "No"] },
+    "Worktree": { "required": true, "allowed": ["Yes", "No"] },
+    "Type": { "required": true, "allowed": ["Feature", "Bugfix", "Build"] },
+    "Iterations": { "required": true, "types": ["Feature", "Bugfix"], "numeric": true },
+    "Rounds": { "required": true, "types": ["Build"], "numeric": true }
+  },
+
+  "sections_ordered": [
+    "Summary",
+    "Acceptance Criteria",
+    "Criteria",
+    "Out of Scope",
+    "Investigation",
+    "Behavior Contract",
+    "Approach",
+    "Fix Approach",
+    "Scope",
+    "Autonomous Decisions",
+    "Global Constraints",
+    "Context for Implementer",
+    "Runtime Environment",
+    "Feature Inventory",
+    "Assumptions",
+    "Risks and Mitigations",
+    "Goal Verification",
+    "E2E Test Scenarios",
+    "E2E Results",
+    "Verification Scenario",
+    "Verification Scenarios",
+    "File Structure",
+    "Open Questions",
+    "Deferred Ideas",
+    "Round Log",
+    "Changed Files"
+  ],
+  "_sections_ordered_comment": "Render order for recognised sections on both surfaces. A heading NOT listed here is no longer dropped -- it renders after these, in document order. 'Global Constraints', 'File Structure' and 'Changed Files' were previously absent and therefore silently hidden.",
+
+  "sections_hidden": ["Progress Tracking", "Progress"],
+  "_sections_hidden_comment": "Never rendered as a section. Progress Tracking is already shown by each surface's header card as a task count; 'Progress' is the legacy heading for the same checklist and is hidden for the same reason.",
+
+  "tasks_headings": ["Implementation Tasks", "Tasks"],
+  "_tasks_headings_comment": "Rendered by a dedicated task-card component, not as an ordinary section. 'Implementation Tasks' is feature/build, 'Tasks' is bugfix.",
+
+  "_pattern_cr_comment": "Titles use [^\\r\\n]+ rather than .+ on purpose: `.` matches \\r, so a CRLF plan would parse as valid with \\r captured into every title -- silently accepting what the Console renders wrong. Rejecting the line here is defense-in-depth behind the validator's whole-file CRLF check.",
+  "task_heading_pattern": "^### Task (?P<number>\\d+): (?P<title>[^\\r\\n]+)$",
+
+  "progress_line_patterns": {
+    "task": "^- \\[(?P<checked>[ x])\\] Task (?P<number>\\d+): (?P<title>[^\\r\\n]+)$",
+    "criterion": "^- \\[(?P<checked>[ x])\\] Criterion (?P<number>\\d+): (?P<title>[^\\r\\n]+)$"
+  },
+  "_progress_line_comment": "A Buildout's `## Acceptance Criteria` uses Criterion N; its `## Progress Tracking` still uses Task N.",
+
+  "task_field_labels": {
+    "Feature": [
+      "**Objective:**",
+      "**Files:**",
+      "**Key Decisions / Notes:**",
+      "**Definition of Done:**"
+    ],
+    "Bugfix": [
+      "**Objective:**",
+      "**Files:**",
+      "**Key Decisions / Notes:**",
+      "**Definition of Done:**"
+    ],
+    "Build": ["**Objective:**"]
+  },
+  "_task_field_labels_comment": "Verbatim bold labels a task body must contain for the Console to render its fields as separate collapsible blocks. Plain 'Files:' or 'DoD:' does not render.",
+
+  "placeholder_tokens": ["TBD", "TODO", "FIXME"]
+}

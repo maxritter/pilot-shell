@@ -562,3 +562,91 @@ class TestActivePlanHelpers:
     # per-skill orchestrator-window scaling no longer exists, and
     # `context_monitor.py` now relies on the live statusline `context_window_size`
     # alone. Nothing to test here anymore.
+
+
+class TestPlanRegisteredByOtherSession:
+    """Ownership lookup for the planning guard's fallback.
+
+    Fails CLOSED on ambiguity: an unparseable sibling registration returns True,
+    because treating it as "nobody owns this" would let the fallback accept a file
+    a sibling probably owned -- the exact cross-session cross-talk being fixed.
+    """
+
+    def _sessions(self, tmp_path, monkeypatch):
+        import _lib.util as util
+
+        base = tmp_path / "sessions"
+        base.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setattr(util, "_sessions_base", lambda: base)
+        return base
+
+    def _register(self, base, session_id, plan, *, raw=None):
+        session_dir = base / session_id
+        session_dir.mkdir(parents=True, exist_ok=True)
+        target = session_dir / "active_plan.json"
+        target.write_text(raw if raw is not None else json.dumps({"plan_path": str(plan), "status": "PENDING"}))
+
+    def test_true_for_a_plan_another_session_owns(self, tmp_path, monkeypatch):
+        from _lib.util import plan_registered_by_other_session
+
+        base = self._sessions(tmp_path, monkeypatch)
+        plan = tmp_path / "plan.md"
+        plan.write_text("x")
+        self._register(base, "session-a", plan)
+
+        assert plan_registered_by_other_session(plan, "session-b") is True
+
+    def test_false_for_the_callers_own_registration(self, tmp_path, monkeypatch):
+        from _lib.util import plan_registered_by_other_session
+
+        base = self._sessions(tmp_path, monkeypatch)
+        plan = tmp_path / "plan.md"
+        plan.write_text("x")
+        self._register(base, "session-b", plan)
+
+        assert plan_registered_by_other_session(plan, "session-b") is False
+
+    def test_false_when_no_session_registered_it(self, tmp_path, monkeypatch):
+        from _lib.util import plan_registered_by_other_session
+
+        base = self._sessions(tmp_path, monkeypatch)
+        other = tmp_path / "other.md"
+        other.write_text("x")
+        self._register(base, "session-a", other)
+
+        plan = tmp_path / "plan.md"
+        plan.write_text("x")
+        assert plan_registered_by_other_session(plan, "session-b") is False
+
+    def test_finds_a_lane_registration(self, tmp_path, monkeypatch):
+        from _lib.util import plan_registered_by_other_session
+
+        base = self._sessions(tmp_path, monkeypatch)
+        plan = tmp_path / "plan.md"
+        plan.write_text("x")
+        lane_dir = base / "session-a" / "lanes" / "alpha"
+        lane_dir.mkdir(parents=True)
+        (lane_dir / "active_plan.json").write_text(json.dumps({"plan_path": str(plan), "status": "PENDING"}))
+
+        assert plan_registered_by_other_session(plan, "session-b") is True
+
+    def test_truncated_sibling_state_fails_closed(self, tmp_path, monkeypatch):
+        """A torn write must block, not be skipped."""
+        from _lib.util import plan_registered_by_other_session
+
+        base = self._sessions(tmp_path, monkeypatch)
+        plan = tmp_path / "plan.md"
+        plan.write_text("x")
+        self._register(base, "session-a", plan, raw='{"plan_path": "/half')
+
+        assert plan_registered_by_other_session(plan, "session-b") is True
+
+    def test_does_not_raise_on_unreadable_sibling_state(self, tmp_path, monkeypatch):
+        from _lib.util import plan_registered_by_other_session
+
+        base = self._sessions(tmp_path, monkeypatch)
+        plan = tmp_path / "plan.md"
+        plan.write_text("x")
+        self._register(base, "session-a", plan, raw="not json at all")
+
+        assert plan_registered_by_other_session(plan, "session-b") is True

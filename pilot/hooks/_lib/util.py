@@ -126,6 +126,55 @@ def _read_active_plan(session_id: str | None = None) -> dict | None:
     return data if isinstance(data, dict) else None
 
 
+def plan_registered_by_other_session(plan_file: Path, session_id: str) -> bool:
+    """True when a session OTHER than ``session_id`` has ``plan_file`` registered.
+
+    Used by the planning stop guard's fallback: a plan file that a sibling session
+    owns must not satisfy THIS session's "did you create your plan?" check.
+
+    Fails CLOSED. A sibling ``active_plan.json`` that cannot be parsed -- a torn
+    write, a crashed session -- returns True rather than being skipped. Skipping it
+    would make the candidate look unowned, the fallback would accept it, and the
+    guard would pass exactly when a sibling probably owned the file. Blocking is
+    the cheap direction: it tells the session to keep working on its own plan.
+
+    Deliberately id-comparing only, with no liveness probe. Liveness lives in
+    ``launcher/session.py`` which hooks cannot import across the package boundary,
+    and a stale sibling registration costing one extra "create your plan" nudge is
+    the harmless failure.
+    """
+    try:
+        target = os.path.realpath(plan_file)
+    except (OSError, ValueError):
+        return False
+
+    sessions = _sessions_base()
+    if not sessions.is_dir():
+        return False
+
+    try:
+        candidates = list(sessions.glob("*/active_plan.json")) + list(sessions.glob("*/lanes/*/active_plan.json"))
+    except OSError:
+        return False
+
+    for candidate in candidates:
+        # sessions/<id>/active_plan.json -> <id>; sessions/<id>/lanes/<lane>/... -> <id>
+        try:
+            owner = candidate.relative_to(sessions).parts[0]
+        except ValueError:
+            continue
+        if owner == session_id:
+            continue
+        try:
+            data = json.loads(candidate.read_text())
+            registered = str(data.get("plan_path", ""))
+        except (json.JSONDecodeError, OSError, AttributeError, TypeError):
+            return True  # fail closed: ambiguous ownership blocks
+        if registered and os.path.realpath(registered) == target:
+            return True
+    return False
+
+
 def _read_plan_approved_and_type(plan_path: str) -> tuple[bool, str]:
     """Extract Approved (bool) and Type (str) from a plan file body.
 

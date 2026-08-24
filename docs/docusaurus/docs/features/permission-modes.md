@@ -56,11 +56,18 @@ Claude Code sessions on the same machine can message each other over a socket at
 
 | Value | Behavior |
 |-------|----------|
-| `accept` | Delivered straight into the session, no prompt |
+| `accept` | **Pilot's default** — delivered straight into the session, no prompt |
 | `hold` | Claude Code's default — prompts for approval when the sender's permission mode class differs from yours |
-| `refuse` | **Pilot's default** — dropped silently, no prompt |
+| `refuse` | Dropped silently, no prompt |
 
-Pilot ships `"crossSessionInbound": "refuse"` because it also ships `bypassPermissions`. Under `hold`, a message from any session in a different mode raises a modal approval prompt that takes over the terminal — which stalls an unattended `/spec` or `/build` run until you answer it.
+Pilot ships `"crossSessionInbound": "accept"` because it is the only value under which
+two sessions can actually align without you in the loop. Both alternatives break that:
+`refuse` drops the message, and `hold` raises a modal approval prompt that takes over the
+terminal — which stalls an unattended `/spec` or `/build` run until you answer it.
+
+The case this exists for is real. Two sessions working the same repository will edit the
+same files, and the one that finds out second wastes its work. A session that can say
+"I moved the comparison row, rebase your assumptions" is worth the exposure below.
 
 ```json
 {
@@ -68,10 +75,18 @@ Pilot ships `"crossSessionInbound": "refuse"` because it also ships `bypassPermi
 }
 ```
 
-Set it to `hold` in `~/.claude/settings.json` if you deliberately orchestrate several sessions and want peer messages delivered after review. Your choice is preserved across updates.
+Set it to `hold` in `~/.claude/settings.json` if you want peer messages reviewed before
+Claude sees them, or `refuse` to opt out entirely. Your choice is preserved across updates.
 
-:::caution Avoid `accept` with bypassPermissions
-`accept` delivers peer instructions into a session that executes without prompting, so any other local session can steer your run. The mode-mismatch check exists to prevent exactly that.
+:::caution What `accept` costs you
+`accept` delivers peer instructions into a session that executes without prompting, so any
+other local session can steer your run. It is not only Claude Code that can reach the
+inbox: the socket accepts anything running as your operating-system user, so treat a peer
+message as input from your own machine rather than as a trusted instruction.
+
+Pilot takes that trade deliberately, because every session on your machine is already
+yours and already runs under `bypassPermissions`. On a shared or multi-tenant machine,
+set `hold` instead — that is what the mode-mismatch check was built for.
 :::
 
 ## Auto Mode

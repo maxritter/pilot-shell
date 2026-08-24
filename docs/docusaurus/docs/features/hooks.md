@@ -81,7 +81,7 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 | `spec_stop_guard.py` | Both | Holds a registered `/spec` or `/build` open until its completion rules are met. |
 | Session summarizer | Both | Saves the turn's durable observations. |
 
-`spec_plan_validator.py` runs as a command-scoped Stop hook during the `/spec` planning phases.
+`spec_plan_validator.py` runs as a command-scoped Stop hook during the `/spec` planning phases, holding the turn open until the run's plan file exists. It is satisfied by **this session's own** registered plan, so a plan another session is working on in the same directory does not release your planning run. Without a registration it falls back to scanning for a plan dated today, skipping any file another session has registered — see [Registering a plan](plan-format#registering-a-plan).
 
 ## SessionEnd
 

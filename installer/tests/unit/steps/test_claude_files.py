@@ -1007,6 +1007,18 @@ class TestMergeSettings:
 
         assert result["alwaysThinkingEnabled"] is False
 
+    def test_preserves_existing_value_when_pilot_starts_managing_setting(self):
+        """A pre-existing user preference wins when Pilot first adds the same key."""
+        from installer.steps.settings_merge import merge_settings
+
+        baseline = {"alwaysThinkingEnabled": True}
+        current = {"alwaysThinkingEnabled": True, "viewMode": "default"}
+        incoming = {"alwaysThinkingEnabled": True, "viewMode": "verbose"}
+
+        result = merge_settings(baseline, current, incoming)
+
+        assert result["viewMode"] == "default"
+
     def test_preserves_user_added_env_vars(self):
         """User-added env vars not in Pilot's set are preserved."""
         from installer.steps.settings_merge import merge_settings

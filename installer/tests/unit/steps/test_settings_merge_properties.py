@@ -46,6 +46,17 @@ def test_first_install_incoming_wins_and_preserves_user_only_keys(current, incom
             assert result[k] == v  # clause 2: keys only in current survive — a dict(incoming) stub fails here
 
 
+@given(current=_scalar_dicts, incoming=_scalar_dicts)
+@settings(max_examples=200)
+def test_newly_managed_setting_preserves_existing_value(current, incoming):
+    """With a baseline, an existing value for a newly managed key is user-owned."""
+    result = merge_settings({}, current, incoming)
+    for key in current.keys() & incoming.keys():
+        assert result[key] == current[key]
+    for key in incoming.keys() - current.keys():
+        assert result[key] == incoming[key]
+
+
 @given(_shared_key_three_way())
 @settings(max_examples=200)
 def test_user_changed_scalar_wins_else_incoming(three_way):

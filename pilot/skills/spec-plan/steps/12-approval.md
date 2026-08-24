@@ -88,24 +88,9 @@ SPEC_SESS="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-defa
 [ -f "$HOME/.pilot/sessions/$SPEC_SESS/plan-mode-active" ] && echo "PLAN_MODE_STILL_OPEN=true" || echo "PLAN_MODE_STILL_OPEN=false"
 ```
 
-**If `MODE` is `"manual"`:**
+**If `MODE` is `"manual"`:** print one line — "ℹ️ Manual model switching: implementation continues on your current `/model` choice. Interrupt and run `/model` if you want a different implementation model." — and invoke `Skill(skill='spec-implement', args='<plan-path>')` immediately. Do NOT call `EnterPlanMode`/`ExitPlanMode` in Manual mode.
 
-- **When `PILOT_PLAN_APPROVAL_ENABLED` is not `"false"` (a human is in the loop), pause ONCE for the implementation-model switch** — this is the single manual switch point of the workflow. ⛔ Do NOT use `AskUserQuestion` for this pause: slash commands cannot be typed while a question prompt is open, so the user could never run `/model`. Instead, END YOUR TURN so the user gets the input box back:
-
-  1. Touch the stop-guard sentinel so the session may pause here (the guard honors it once, only for an approved plan, then consumes it):
-
-     ```bash
-     SPEC_SESS="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
-     mkdir -p "$HOME/.pilot/sessions/$SPEC_SESS" && touch "$HOME/.pilot/sessions/$SPEC_SESS/manual-switch-pending"
-     ```
-
-  2. Print a normal finish message and END YOUR TURN (no question, no more tool calls):
-
-     > ✅ Plan approved. Manual model switching: switch to your **implementation model** now via `/model` (e.g. `/model sonnet`, `/model opus[1m]`) — or keep the current one. If Claude Code shows a confirmation dialog about carrying the conversation over to the new model, confirm it. Then send any message (e.g. `continue`) to start implementation.
-
-  3. **On the user's next message** (whatever it says — `continue`, a model note, anything): treat it as the go signal and invoke `Skill(skill='spec-implement', args='<plan-path>')`. Do NOT re-ask, do NOT call `EnterPlanMode`/`ExitPlanMode` in Manual mode.
-
-- **When `PILOT_PLAN_APPROVAL_ENABLED` is `"false"` (fully autonomous run):** skip the pause entirely; print one line — "ℹ️ Manual model switching: implementation continues on the current /model choice." — and invoke `Skill(skill='spec-implement', args='<plan-path>')` immediately.
+⛔ **Never end your turn between approval and `spec-implement`, in any mode.** Manual mode used to pause here so the user could type `/model` (impossible inside an `AskUserQuestion` prompt, so it ended the turn instead). That pause made approval a dead end: the user approved a plan and got a finish message with zero tasks done, in the one mode that is the default for new installs. Approval is the go signal — the interaction points are the four in `task-and-workflow.md`, and this was a fifth. A user who wants a different implementation model interrupts and runs `/model`, which costs one keystroke and only when they actually want it; the pause cost a full round-trip every single run. The stop guard no longer honors any sentinel for an approved `PENDING` plan, so ending the turn here now blocks and pushes you to continue anyway — do not touch a sentinel to get around that.
 
 **If `MODE` is `"off"`:** invoke `Skill(skill='spec-implement', args='<plan-path>')` directly — no model management, implementation continues on the active model.
 <!-- /CC-ONLY -->

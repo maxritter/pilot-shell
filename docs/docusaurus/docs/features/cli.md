@@ -33,6 +33,30 @@ Pilot Shell loads automatically when you run `claude` or `codex` — there is no
 
 Update Claude Code and Codex CLI through their own installers independently — `pilot update` only updates Pilot Shell itself.
 
+## Spec authoring
+
+Scaffold and check plan files from any tool — a skill of your own, a script, or by hand. The format these enforce is documented in [Plan File Format](plan-format).
+
+| Command | Description |
+|---------|-------------|
+| `pilot spec init --type feature\|bugfix\|build --title <t>` | Write a conforming plan skeleton and print its path. `feature`/`bugfix` land in `docs/plans/`, `build` in `docs/builds/`. Optional: `--slug <s>`, `--dir <d>`, `--force`, `--json` |
+| `pilot spec validate <plan> [--strict] [--json]` | Check a plan against the format contract |
+
+`validate` reports three tiers, and only the first one fails the command:
+
+- **errors** — the plan will render wrong (bad header value, task-numbering gap, a missing task-card label, `Progress Tracking` disagreeing with the task headings, CRLF line endings)
+- **warnings** — the plan is unfinished but renderable (`TODO` left in, a Definition of Done with no checkboxes, no tasks yet). `--strict` promotes these to errors
+- **info** — worth knowing, never a failure (a section heading Pilot doesn't recognise; it still renders)
+
+Exit codes: **0** no errors · **1** at least one error · **2** the file could not be read, or is not a plan file.
+
+```bash
+pilot spec init --type feature --title "Add user auth"
+pilot spec validate docs/plans/2026-08-24-add-user-auth.md --json
+```
+
+`init` deliberately does not register the plan — run [`pilot register-plan`](plan-format#registering-a-plan) when you want Pilot's hooks to treat it as this session's active work.
+
 ## Worktree isolation
 
 Used by the `/spec`, `/fix`, and `/build` workflows to keep work isolated until verification passes. All commands work with both Claude Code and Codex sessions.

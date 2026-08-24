@@ -19,7 +19,7 @@ Opus reasons better; Sonnet is faster and cheaper. The cost-saving move is to pl
 | Mode | What happens | Who switches |
 |------|--------------|--------------|
 | **Automated** | `/spec` runs on the `opusplan` model: Opus 5 plans (plan mode), Sonnet 5 executes everything else | Claude Code, natively |
-| **Manual** (default) | `/spec` pauses once after plan approval so you can switch to your implementation model | You, via `/model` |
+| **Manual** (default) | `/spec` runs start to finish on your active model and never pauses to switch; interrupt and run `/model` if you want to change mid-run | You, via `/model` |
 | **Off** | No model management, no prompts, no gates | Nobody -- the active `/model` choice runs everything |
 
 Pilot does **not** remap model aliases behind the scenes in any mode -- your `/model` picker always means what it says.

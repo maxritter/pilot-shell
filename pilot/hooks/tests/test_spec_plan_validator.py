@@ -151,3 +151,96 @@ class TestBuildoutDirectory:
 
         assert result == 0
         assert capsys.readouterr().out == ""
+
+
+class TestSessionScoping:
+    """The guard must be satisfied by THIS session's plan, not a sibling's.
+
+    The original report (community thread, Aug 11) was that Pilot hooks fired in
+    every session running in one repo directory. Every plan READER is now
+    session-scoped through `resolve_session_id`, but this guard still globbed
+    `docs/plans/{today}-*.md` repo-wide, so a plan created by another session
+    silently satisfied it and a planning run could end with no file of its own.
+    """
+
+    def _payload(self, tmp_path: Path) -> dict:
+        return {"stop_hook_active": False, "transcript_path": "", "project_root": str(tmp_path)}
+
+    def _run(self, tmp_path: Path, payload: dict, capsys) -> bool:
+        """Run the hook; return True when it blocked the stop."""
+        with (
+            patch("spec_plan_validator.is_waiting_for_user_input", return_value=False),
+            patch("sys.stdin"),
+            patch("spec_plan_validator.json.load", return_value=payload),
+        ):
+            main()
+        return "decision" in capsys.readouterr().out
+
+    def _plan_file(self, tmp_path: Path, name: str) -> Path:
+        plans = tmp_path / "docs" / "plans"
+        plans.mkdir(parents=True, exist_ok=True)
+        path = plans / name
+        path.write_text("# P\nStatus: PENDING\nApproved: No\nType: Feature\n")
+        return path
+
+    def _register(self, home: Path, session_id: str, plan: Path) -> None:
+        session_dir = home / ".pilot" / "sessions" / session_id
+        session_dir.mkdir(parents=True, exist_ok=True)
+        (session_dir / "active_plan.json").write_text(json.dumps({"plan_path": str(plan), "status": "PENDING"}))
+
+    def test_sibling_sessions_plan_does_not_satisfy_this_session(self, tmp_path, capsys, monkeypatch):
+        import datetime
+
+        today = datetime.date.today().strftime("%Y-%m-%d")
+        home = tmp_path / "home"
+        plan = self._plan_file(tmp_path, f"{today}-session-a-plan.md")
+        self._register(home, "session-a", plan)
+
+        monkeypatch.setenv("PILOT_SESSION_ID", "session-b")
+        monkeypatch.setattr(Path, "home", classmethod(lambda _cls: home))
+
+        assert self._run(tmp_path, self._payload(tmp_path), capsys), (
+            "session B was let go because session A had created a plan today"
+        )
+
+    def test_own_registration_satisfies_the_guard(self, tmp_path, capsys, monkeypatch):
+        """Registered under a name today's glob would never match."""
+        home = tmp_path / "home"
+        plan = self._plan_file(tmp_path, "1999-01-01-old-name.md")
+        self._register(home, "session-b", plan)
+
+        monkeypatch.setenv("PILOT_SESSION_ID", "session-b")
+        monkeypatch.setattr(Path, "home", classmethod(lambda _cls: home))
+
+        assert not self._run(tmp_path, self._payload(tmp_path), capsys)
+
+    def test_blocks_with_no_registration_and_no_file(self, tmp_path, capsys, monkeypatch):
+        home = tmp_path / "home"
+        (tmp_path / "docs" / "plans").mkdir(parents=True)
+        monkeypatch.setenv("PILOT_SESSION_ID", "session-b")
+        monkeypatch.setattr(Path, "home", classmethod(lambda _cls: home))
+
+        assert self._run(tmp_path, self._payload(tmp_path), capsys)
+
+    def test_documented_residual_two_unregistered_sessions_collide(self, tmp_path, capsys, monkeypatch):
+        """KNOWN LIMITATION, asserted deliberately so it cannot change silently.
+
+        With NEITHER session registered there is no signal that attributes a plan
+        file to a session, so the today-glob fallback accepts a sibling's file.
+        Closing this would mean inferring ownership from mtime versus session
+        start, which is guesswork that misfires on a plan edited across a session
+        boundary. `pilot spec` documents `pilot register-plan` as the step that
+        earns session-scoped guarding.
+        """
+        import datetime
+
+        today = datetime.date.today().strftime("%Y-%m-%d")
+        home = tmp_path / "home"
+        self._plan_file(tmp_path, f"{today}-someone-elses.md")
+
+        monkeypatch.setenv("PILOT_SESSION_ID", "session-b")
+        monkeypatch.setattr(Path, "home", classmethod(lambda _cls: home))
+
+        assert not self._run(tmp_path, self._payload(tmp_path), capsys), (
+            "documented residual changed -- update the docs and the plan before changing this"
+        )

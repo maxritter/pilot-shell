@@ -17,13 +17,23 @@ export function orderSections<T extends { heading: string }>(
   sections: T[],
   order: readonly string[],
   tasksHeadings: readonly string[],
+  hiddenHeadings: readonly string[] = [],
 ): T[] {
-  const preamble = sections.filter((s) => s.heading === "");
-  const tasks = sections.filter((s) => tasksHeadings.includes(s.heading));
-  const middle = sections
+  const visible = sections.filter((s) => !hiddenHeadings.includes(s.heading));
+  const preamble = visible.filter((s) => s.heading === "");
+  const tasks = visible.filter((s) => tasksHeadings.includes(s.heading));
+  // An unrecognised heading is kept, not dropped: it sorts to the end of the
+  // middle group (indexOf returns -1, mapped to MAX_SAFE_INTEGER) and holds its
+  // document order relative to other unrecognised ones, because
+  // Array.prototype.sort is stable (ES2019+). A plan written by a skill outside
+  // Pilot can therefore invent its own sections and still display them.
+  const orderKey = (heading: string): number => {
+    const index = order.indexOf(heading);
+    return index === -1 ? Number.MAX_SAFE_INTEGER : index;
+  };
+  const middle = visible
     .filter((s) => s.heading !== "" && !tasksHeadings.includes(s.heading))
-    .filter((s) => order.includes(s.heading))
-    .sort((a, b) => order.indexOf(a.heading) - order.indexOf(b.heading));
+    .sort((a, b) => orderKey(a.heading) - orderKey(b.heading));
   return [...preamble, ...middle, ...tasks];
 }
 

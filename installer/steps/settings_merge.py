@@ -22,6 +22,7 @@ def merge_settings(
 
     Rules:
     - If no baseline exists (first install), incoming wins for all keys.
+    - If Pilot starts managing a key that already exists, keep the existing user value.
     - For dict fields (env, permissions, attribution, statusLine): merge keys individually.
       If user changed a key from baseline value, keep user's value. Otherwise update to incoming.
     - For scalar fields: if user changed from baseline, keep user's value. Otherwise update.
@@ -43,13 +44,15 @@ def merge_settings(
             result[key] = incoming[key]
         elif isinstance(incoming[key], dict) and isinstance(current[key], dict):
             result[key] = _merge_dict_field(
-                baseline.get(key, {}) if baseline is not None and in_baseline else None,
+                baseline.get(key, {}) if baseline is not None else None,
                 current[key],
                 incoming[key],
             )
         else:
-            if baseline is None or not in_baseline:
+            if baseline is None:
                 result[key] = incoming[key]
+            elif not in_baseline:
+                result[key] = current[key]
             elif current[key] == baseline[key]:
                 result[key] = incoming[key]
             else:
@@ -67,6 +70,7 @@ def _merge_dict_field(
 
     - New incoming keys are added.
     - User-only keys (not in incoming) are preserved.
+    - Existing keys Pilot did not previously manage keep their current value.
     - If user changed a value from baseline, keep user's value.
     - Otherwise update to incoming value.
     """
@@ -78,8 +82,10 @@ def _merge_dict_field(
             result[key] = current[key]
         elif key not in current:
             result[key] = incoming[key]
-        elif baseline is None or key not in baseline:
+        elif baseline is None:
             result[key] = incoming[key]
+        elif key not in baseline:
+            result[key] = current[key]
         elif current[key] == baseline[key]:
             result[key] = incoming[key]
         else:

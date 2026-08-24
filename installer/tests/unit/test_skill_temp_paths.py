@@ -96,7 +96,6 @@ _RUN_COMPONENT = re.compile(r"<[^>]+>|\$\{?[A-Za-z_]")
 _SESSION_SCOPED_BY_DESIGN = frozenset(
     {
         "spec-approval-pending",
-        "manual-switch-pending",
         "build-handback-pending",
         "verify-gate-pending",
         "plan-mode-active",

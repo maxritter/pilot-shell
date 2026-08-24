@@ -22,7 +22,7 @@
     "defaultMode": "bypassPermissions"
   },
   "skipDangerousModePermissionPrompt": true,
-  "crossSessionInbound": "refuse",
+  "crossSessionInbound": "accept",
   "terminalProgressBarEnabled": true,
   "enableAllProjectMcpServers": true,
   "spinnerTipsOverride": {
@@ -111,6 +111,7 @@
   },
   "effortLevel": "xhigh",
   "viewMode": "verbose",
+  "outputStyle": "concise",
   "statusLine": {
     "type": "command",
     "command": "~/.pilot/bin/pilot statusline",

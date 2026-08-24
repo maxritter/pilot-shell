@@ -6,10 +6,11 @@ Only allows stopping when:
 2. Asking user for an important decision (AskUserQuestion tool)
 3. No active plan exists (not in /spec mode)
 4. A fresh pause sentinel applies to the plan's current state - the approval wait,
-   the manual model switch, a /build hand-back, or a verify-phase gate. These are
-   the path for agents that cannot emit AskUserQuestion (Codex, and Claude Code
-   subagents dispatched as orchestration lanes), which would otherwise answer
-   their own gate rather than stop.
+   a /build hand-back, or a verify-phase gate. These are the path for agents that
+   cannot emit AskUserQuestion (Codex, and Claude Code subagents dispatched as
+   orchestration lanes), which would otherwise answer their own gate rather than
+   stop. NONE of them applies to an approved PENDING plan: the implement phase has
+   no legal pause (see the note where the retired manual-switch sentinel was).
 5. User stops again within 60s cooldown (escape hatch) - withheld while
    `stop_hook_active` marks the attempt as the agent's own continuation
 6. Runaway cap: after MAX_BLOCKS blocks for the same plan with no user-question
@@ -104,20 +105,17 @@ def get_approval_sentinel_path(session_id: str | None = None) -> Path:
     return guard_dir / "spec-approval-pending"
 
 
-def get_manual_switch_sentinel_path(session_id: str | None = None) -> Path:
-    """Session-scoped path to the manual-switch-pending sentinel.
-
-    Manual Model Switching pauses ONCE after plan approval so the user can run
-    ``/model`` for the implementation leg. That pause cannot be an
-    AskUserQuestion -- slash commands cannot be typed while a question prompt is
-    open -- so the skill prints a normal finish message, touches this sentinel,
-    and ends its turn. The stop guard honors the sentinel ONE time (deleting it
-    on honor) and only for an APPROVED plan, so the pre-approval flow and the
-    implement-phase block are both preserved. Stale sentinels are discarded.
-    """
-    guard_dir = _sessions_base() / (session_id or resolve_session_id())
-    guard_dir.mkdir(parents=True, exist_ok=True)
-    return guard_dir / "manual-switch-pending"
+# NO manual-switch sentinel, deliberately. Manual Model Switching used to end the
+# planning turn after approval so the user could run /model, and this guard honored
+# a `manual-switch-pending` file to permit that stop. Its predicate was a bare
+# "is the plan approved", which made it the ONLY sentinel that granted a stop at
+# Approved: Yes + Status: PENDING -- the implement phase -- so /spec could hand back
+# to the user with an approved plan and zero tasks done. Every other sentinel is
+# qualified away from that state (spec-approval-pending: Approved: No;
+# build-handback-pending: Type: Build; verify-gate-pending: Status: COMPLETE).
+# Approval now hands off straight to spec-implement in every mode, so the implement
+# phase has no legal pause and no sentinel may reopen one. Pinned by
+# TestApprovedPendingPlanHasNoLegalPause.
 
 
 def get_build_handback_sentinel_path(session_id: str | None = None) -> Path:
@@ -147,10 +145,9 @@ def get_verify_gate_sentinel_path(session_id: str | None = None) -> Path:
     merge (``spec-verify`` 8.1.6, ``spec-bugfix-verify`` 4.5) and the code-review
     sign-off that precedes ``Status: VERIFIED`` (``spec-verify`` 10,
     ``spec-bugfix-verify`` 6). Both run with the plan at ``Approved: Yes`` and
-    ``Status: COMPLETE`` -- a state none of the three sentinels above covers, since
-    the approval one needs ``Approved: No``, the hand-back one needs
-    ``Type: Build``, and the manual-switch one is the post-approval model-switch
-    pause. An agent that cannot emit ``AskUserQuestion`` therefore had no way to
+    ``Status: COMPLETE`` -- a state neither of the two sentinels above covers, since
+    the approval one needs ``Approved: No`` and the hand-back one needs
+    ``Type: Build``. An agent that cannot emit ``AskUserQuestion`` therefore had no way to
     pause at either gate and resolved the contradiction by answering it: merging
     unreviewed, or writing ``VERIFIED`` nobody approved.
 
@@ -375,18 +372,6 @@ def main() -> int:
         plan_path,
         lambda approved, _type: not approved,
         consume=False,
-    ):
-        return 0
-
-    # Manual-mode post-approval pause: the skill ends its turn so the user can
-    # run /model (impossible inside an AskUserQuestion prompt). Honored ONE time
-    # for an APPROVED plan, so the implement-phase block re-engages on the very
-    # next stop attempt.
-    if _sentinel_grants_stop(
-        get_manual_switch_sentinel_path(session_id),
-        plan_path,
-        lambda approved, _type: approved,
-        consume=True,
     ):
         return 0
 

@@ -13,6 +13,7 @@ import { extractObjectiveBlocks, orderSections } from "./sectioned-block-helpers
 import {
   DISPLAYED_SECTIONS_ORDERED,
   IMPLEMENTATION_TASKS_HEADING,
+  SECTIONS_HIDDEN,
   TASKS_HEADING_BUGFIX,
 } from "@/lib/sharing/displayed-sections";
 import type { Block } from "@/lib/annotation/types";
@@ -118,15 +119,27 @@ describe("orderSections", () => {
     ]);
   });
 
-  test("drops Progress Tracking and File Structure sections silently", () => {
+  test("hides SECTIONS_HIDDEN; File Structure now renders", () => {
+    // Progress Tracking is hidden by name (the header card already shows the
+    // task count). File Structure used to vanish for not being on the allowlist
+    // -- it is a real spec section (spec-plan Step 7.0) and now renders.
     const input = [
       { heading: "Summary" },
       { heading: "Progress Tracking" },
       { heading: "File Structure" },
       { heading: "Approach" },
     ];
-    const out = orderSections(input, DISPLAYED_SECTIONS_ORDERED, TASKS_HEADINGS);
-    expect(out.map((s) => s.heading)).toEqual(["Summary", "Approach"]);
+    const out = orderSections(
+      input,
+      DISPLAYED_SECTIONS_ORDERED,
+      TASKS_HEADINGS,
+      SECTIONS_HIDDEN,
+    );
+    expect(out.map((s) => s.heading)).toEqual([
+      "Summary",
+      "Approach",
+      "File Structure",
+    ]);
   });
 
   test("positions Implementation Tasks last regardless of source position", () => {
@@ -171,13 +184,59 @@ describe("orderSections", () => {
     expect(out.map((s) => s.heading)).toEqual(["", "Summary", "Approach"]);
   });
 
-  test("drops unknown headings silently", () => {
+  test("renders an unknown heading after the recognised ones", () => {
+    // Previously "drops unknown headings silently". A plan authored by a skill
+    // outside Pilot lost its own sections with no error anywhere, which is what
+    // the community report described. Unknown headings are now kept and sorted
+    // to the end of the middle group.
     const input = [
       { heading: "Summary" },
       { heading: "Acme Internal Notes" },
       { heading: "Approach" },
     ];
     const out = orderSections(input, DISPLAYED_SECTIONS_ORDERED, TASKS_HEADINGS);
-    expect(out.map((s) => s.heading)).toEqual(["Summary", "Approach"]);
+    expect(out.map((s) => s.heading)).toEqual([
+      "Summary",
+      "Approach",
+      "Acme Internal Notes",
+    ]);
+  });
+});
+
+describe("orderSections — unrecognised sections", () => {
+  const ORDER = ["Summary", "Approach", "Round Log"] as const;
+  const TASKS = ["Implementation Tasks", "Tasks"] as const;
+
+  const input = [
+    { heading: "" },
+    { heading: "Deployment Notes" },
+    { heading: "Approach" },
+    { heading: "Rollback Plan" },
+    { heading: "Summary" },
+    { heading: "Implementation Tasks" },
+  ];
+
+  test("keeps unrecognised sections instead of dropping them", () => {
+    const headings = orderSections(input, ORDER, TASKS).map((s) => s.heading);
+    expect(headings).toContain("Deployment Notes");
+    expect(headings).toContain("Rollback Plan");
+  });
+
+  test("places them after the recognised middle and before the tasks group", () => {
+    const headings = orderSections(input, ORDER, TASKS).map((s) => s.heading);
+    expect(headings).toEqual([
+      "",
+      "Summary",
+      "Approach",
+      "Deployment Notes",
+      "Rollback Plan",
+      "Implementation Tasks",
+    ]);
+  });
+
+  test("preamble stays first and tasks stay last", () => {
+    const headings = orderSections(input, ORDER, TASKS).map((s) => s.heading);
+    expect(headings[0]).toBe("");
+    expect(headings[headings.length - 1]).toBe("Implementation Tasks");
   });
 });
