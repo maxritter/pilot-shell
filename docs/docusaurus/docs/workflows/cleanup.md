@@ -1,6 +1,6 @@
 ---
 sidebar_position: 2
-title: Cleanup
+title: /cleanup
 description: Audit dead and unused code candidates with project-native analyzers, independent reference checks, and no automatic deletion.
 ---
 
