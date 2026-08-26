@@ -44,7 +44,7 @@ Pilot Shell installs the following open-source tools during setup. Each tool is 
 
 ## Search & Utilities
 
-*Code search, usage analytics, and skill management*
+*Code search and developer utilities*
 
 | Tool | Purpose | License |
 |------|---------|---------|
@@ -60,7 +60,6 @@ Pilot Shell installs the following open-source tools during setup. Each tool is 
 |------|---------|---------|
 | [Transformers.js](https://github.com/xenova/transformers.js) | Local ML model inference for embeddings | Apache-2.0 |
 | [sharp](https://github.com/lovell/sharp) | High-performance image processing | Apache-2.0 |
-| [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) | SQLite bindings for the Pilot session DB | MIT |
 | [Turndown](https://github.com/mixmark-io/turndown) | HTML-to-markdown conversion for web fetching | MIT |
 
 ## Testing Tools

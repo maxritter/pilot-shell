@@ -1,13 +1,13 @@
 ---
 sidebar_position: 2
 title: Language Servers
-description: Real-time diagnostics, go-to-definition, and find-references via auto-installed LSP servers for Python, TypeScript, Go, Rust, and other major languages.
+description: Real-time diagnostics, go-to-definition, and find-references via Claude Code LSP integrations for Python, TypeScript, Go, and opt-in C#.
 ---
 
 # Language Servers
 
 :::warning Claude Code only
-Language Server integration requires Claude Code's LSP support. Codex does not have an equivalent Pilot LSP integration and does not run `file_checker.py`; it uses native diagnostics plus the repository's lint, type-check, build, and test commands during implementation and verification.
+Language Server integration requires Claude Code's LSP support. Codex does not have an equivalent Pilot LSP integration and does not run `file_checker.py`. On Codex, use CodeGraph for structural questions and Semble for intent-based discovery, then rely on the repository's lint, type-check, build, and test commands for diagnostics and verification.
 :::
 
 Real-time diagnostics and go-to-definition for Claude Code, auto-installed and configured.
@@ -55,6 +55,19 @@ Unlike the servers above, the C# language server is **not auto-installed** — i
 2. Install the server as a global .NET tool: `dotnet tool install --global csharp-ls`. Requires a compatible .NET SDK (see the [csharp-ls release notes](https://www.nuget.org/packages/csharp-ls) for the version your release needs).
 
 > With the LSP active you get the real-time compile diagnostics that Claude Code's `file_checker.py` hook does not provide for C# — the hook runs a single-file `dotnet format` check only. Compile errors otherwise surface when you run `dotnet test`.
+
+## Refactors and dead-code cleanup
+
+LSP references and CodeGraph results are useful evidence, but neither proves that a symbol is safe to rename or delete. Public entry points, framework registration, reflection, configuration, generated code, and tests outside the language server's configured scope may not appear in a reference list. A symbol referenced only from tests may still define required behavior; test-only references are not evidence that it is dead.
+
+Use a verification-first cleanup pass:
+
+1. Generate candidates with the repository's configured compiler, linter, or dead-code analyzer.
+2. Ask `codegraph_explore(query="symbolName callers and impact")` for structural context.
+3. Run an exact repository search for the symbol, including tests, configuration, scripts, and generated entry-point metadata.
+4. Make the smallest deletion and run focused tests, then the broader type-check, build, and test suite required by the repository.
+
+Treat automated dead-code output as a report of candidates, not an instruction to delete code.
 
 :::tip Add custom language servers
 Add custom language servers via `.lsp.json` in your project root. Each language key maps to its server configuration:

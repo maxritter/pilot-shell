@@ -63,33 +63,25 @@ Before proceeding, ask: "Do these tests verify what matters, or only what was ea
 | "Sub-agent completed the work" | The VCS diff shows the changes | The agent reported success |
 | "No perf regression" | Hot paths cached/memoized (per `development-practices.md` §Performance) | "Tests pass" |
 
-### ⛔ Fix Verification Errors in /spec and /build Without Asking
-
-In `/spec`, fix all verification errors without asking — `must_fix` / `should_fix` immediately, `suggestions` if quick (severity → action policy: `code-review-reception.md`). The user-interaction points in `/spec` are the four listed in `task-and-workflow.md` (not just plan approval).
-
-`/build` goes further: it is autonomous from the goal to the hand-back, so **nothing** in it is a question after the one pre-work clarification round (`task-and-workflow.md`). A failing criterion is the next round's job; at the four-round ceiling it is a line in the report. Renegotiating a criterion you cannot close is not available — lowering one, quietly or otherwise, is the failure this workflow exists to prevent. Because `/build` writes `VERIFIED` itself, the evidence bar replaces the human one: every criterion ticked against evidence you can point at, and every verification layer either evidenced or disclosed in `## Not Verified`.
-
-Outside both, respect the user's mode — in plan mode, present issues and proposed fixes instead of applying them.
-
 ### Stop Signals — Verify NOW
 
 About to use uncertain language ("should", "probably"), express satisfaction ("Done!"), commit/push, or mark complete? Run verification first.
 
 ### When Execution Fails After Tests Pass
 
-This is a real bug. During `/spec` or `/build`: fix → re-run tests → re-execute → add a test to catch this failure type. Outside them: report and propose.
+This is a real bug: trace the cause, fix it when it belongs to the requested change, re-run tests, re-execute, and add coverage for the missed failure mode. If it is unrelated, follow `testing.md` → *Failing tests outside the request*.
 
-### Five Failure Modes Self-Check
+### Failure-mode self-check
 
-Before reporting completion, pass against each of the five (2026 Agentic Coding Trends Report):
+Before reporting completion, check:
 
 - **Hallucinated actions** — invented paths, env vars, IDs, function names, library APIs, URLs (e.g., `STRIPE_SECRET_KEY` when actual is `STRIPE_SK`). Cross-ref *Never invent values* in `development-practices.md`.
 - **Scope creep** — diff touches files/behaviors outside the request? Bundled refactors, "while I'm here" cleanups? Apply the lineage test (`development-practices.md`).
 - **Cascading errors** — a failure suppressed/caught/wrapped in a way that hides root cause. Silent fallbacks (try/except returning `[]`, papering over missing data) metastasize bugs.
-- **Context loss** — diff contradicts earlier decisions in the session, plan, CLAUDE.md, or CONTEXT.md? ~65% of agent failures trace to context drift, not token exhaustion.
+- **Context loss** — diff contradicts earlier decisions in the session, plan, CLAUDE.md, or CONTEXT.md?
 - **Tool misuse** — wrong tool for the job (Bash for file reads, MCP when CLI was simpler), or right tool with wrong params (Grep without escaping, Edit without reading first). Re-check `cli-tools.md` and `mcp-servers.md`.
 
-**Any mode flagged → fix and re-run, don't claim done.** Stop Signals and Evidence Before Claims are the during-work guards; Five Modes is the pre-completion checklist.
+**Any mode flagged → fix and re-run, don't claim done.**
 
 ### Over-Engineering & Shortcut Debt
 

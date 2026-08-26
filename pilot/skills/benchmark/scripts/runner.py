@@ -20,6 +20,7 @@ import argparse
 import atexit
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -252,6 +253,69 @@ def _validate_target_path(source_path: Path) -> None:
 _SKILL_FRONTMATTER_FILES: tuple[str, ...] = ("SKILL.md", "orchestrator.md")
 
 
+def _resolve_skill_resource(skill_dir: Path, value: object, label: str) -> Path:
+    """Resolve one manifest resource without allowing a path or symlink escape."""
+    if not isinstance(value, str) or not value or "\\" in value or "\x00" in value or ":" in value:
+        raise ValueError(f"{label} must be a normalized relative path")
+    relative = Path(value)
+    if relative.is_absolute() or any(part in {"", ".", ".."} for part in relative.parts):
+        raise ValueError(f"{label} must be a normalized relative path")
+    root = skill_dir.resolve()
+    candidate = (skill_dir / relative).resolve()
+    if not candidate.is_relative_to(root) or not candidate.is_file():
+        raise ValueError(f"{label} is missing or resolves outside the skill: {value}")
+    return candidate
+
+
+def _materialize_decomposed_skill(skill_dir: Path, *, agent: str, skill_name: str) -> None:
+    """Build SKILL.md inside a copied manifest-based skill benchmark fixture."""
+    target = skill_dir / "SKILL.md"
+    if target.is_file():
+        return
+    manifest_path = skill_dir / "manifest.json"
+    orchestrator_path = skill_dir / "orchestrator.md"
+    if not manifest_path.is_file() or not orchestrator_path.is_file():
+        return
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError(f"cannot read decomposed skill manifest: {exc}") from exc
+    steps = manifest.get("steps")
+    if not isinstance(steps, list):
+        raise ValueError("decomposed skill manifest.steps must be an array")
+    orchestrator = _resolve_skill_resource(skill_dir, manifest.get("orchestrator"), "manifest.orchestrator")
+    parts = [orchestrator.read_text(encoding="utf-8")]
+    delivery = manifest.get("delivery", "bundled")
+    for index, step in enumerate(steps, start=1):
+        if not isinstance(step, dict) or not isinstance(step.get("id"), str):
+            raise ValueError(f"manifest step {index} must have string id and file")
+        resource = _resolve_skill_resource(skill_dir, step.get("file"), f"manifest step {index}")
+        if delivery == "bundled":
+            parts.append(resource.read_text(encoding="utf-8"))
+    if delivery == "progressive":
+        phase_lines = [
+            "## Required phase resources",
+            "",
+            "Follow these phases in order. Read each referenced file completely at the named point.",
+            "",
+        ]
+        for index, step in enumerate(steps, start=1):
+            phase_lines.append(
+                f"{index}. **{step['id']}** — Read `{step['file']}` completely, then execute this phase before continuing."
+            )
+        parts.append("\n".join(phase_lines))
+    elif delivery != "bundled":
+        raise ValueError(f"unsupported skill delivery: {delivery!r}")
+    content = "\n\n".join(part.strip() for part in parts if part.strip()).rstrip() + "\n"
+    if agent == "codex":
+        content = re.sub(
+            rf"(?<![a-zA-Z0-9_/])/{re.escape(skill_name)}(?![a-zA-Z0-9_/])",
+            f"${skill_name}",
+            content,
+        )
+    target.write_text(content, encoding="utf-8")
+
+
 def _copy_md_stripping_conditional(src: Path, dest: Path) -> None:
     """Copy a markdown file, removing path/paths frontmatter so the rule loads
     unconditionally during the benchmark. Falls back to a plain copy when the
@@ -353,6 +417,7 @@ def _prepare_codex_config_dir(target: TargetConfig, config_kind: str, tmp_root: 
         skill_name = target.get("name") or source_path.name
         skills_dir = dest / ".agents" / "skills" / skill_name
         shutil.copytree(source_path, skills_dir)
+        _materialize_decomposed_skill(skills_dir, agent="codex", skill_name=skill_name)
         _strip_skill_frontmatter_in_place(skills_dir)
     elif target_type == "rules":
         sources = [source_path] if source_path.is_file() else sorted(source_path.rglob("*.md"))
@@ -406,6 +471,7 @@ def prepare_config_dir(
         skill_name = target.get("name") or source_path.name
         skills_dir = claude_dir / "skills" / skill_name
         shutil.copytree(source_path, skills_dir)
+        _materialize_decomposed_skill(skills_dir, agent="claude", skill_name=skill_name)
         _strip_skill_frontmatter_in_place(skills_dir)
     elif target_type == "rules":
         rules_dir = claude_dir / "rules"

@@ -50,15 +50,15 @@ const insideItems: InsideItem[] = [
     title: "MCP Servers",
     description: "Pre-configured, zero setup",
     summary:
-      "Seven MCP servers ship pre-configured for both Claude Code and Codex: library docs, web search, persistent memory, code graphs, hybrid code search (Semble), GitHub code search, and web fetching.",
+      "Seven MCP servers ship pre-configured for both Claude Code and Codex. Semble finds code by intent, while CodeGraph traces runtime structure through one focused exploration interface.",
     href: "/docs/features/mcp-servers",
   },
   {
     icon: Search,
-    title: "Semantic Search",
-    description: "Find code by intent, not keywords",
+    title: "Code Search & Structure",
+    description: "Find intent, then trace impact",
     summary:
-      "Search the codebase by intent, not keywords. AST-aware extraction pulls exactly what\u2019s needed. Call-graph tracing maps blast radius before you change anything. Sub-300ms results.",
+      "Use Semble to discover implementations by intent, CodeGraph's codegraph_explore to trace symbols and blast radius, then read the named source directly. Exact search backstops dynamic references.",
     href: "/docs/features/open-source-tools",
   },
   {

@@ -19,7 +19,7 @@ Run `/setup-rules` (or `$setup-rules` on Codex) to generate project-specific rul
 
 ### Core Workflow (3 rules)
 
-- `task-and-workflow.md` — Task management, /spec orchestration, deviation handling
+- `task-and-workflow.md` — Direct-execution default, explicit workflow opt-in, session state, agent-controlled delegation without permission prompts, and tool portability
 - `testing.md` — TDD workflow with `Trivial:` escape, parsimony-first test design (reuse existing tests; max 1 unit + 1 functional test class when new coverage is needed), critical-path coverage review
 - `verification.md` — Execution verification, completion requirements
 
@@ -36,6 +36,16 @@ Run `/setup-rules` (or `$setup-rules` on Codex) to generate project-specific rul
 - `browser-automation.md` — Browser automation for E2E UI testing (Chrome → Chrome DevTools MCP → playwright-cli → agent-browser), plus an optional advisory [impeccable](https://impeccable.style) design anti-pattern check (`impeccable detect`, deterministic, no API key) on changed UI
 - `mcp-servers.md` — MCP server reference and tool selection guidance
 - `mobile-development.md` — Installed-app verification for Capacitor, React Native, Expo, Flutter, Android, and iOS projects
+
+## Deterministic asset validation
+
+Pilot's source checkout includes a no-model validation gate for the shipped rules and Codex skill catalog:
+
+```bash
+uv run python scripts/validate_agent_assets.py
+```
+
+The gate compiles the real Codex skill descriptions, checks public implicit-skill positives and owner-labelled negatives, proves explicit workflows cannot hijack natural-language requests, and tests internal phase routing only through parent handoffs. It also ratchets description similarity and keeps the always-loaded rule pack at no more than 500 lines and 7,500 words. Use `--json` for machine-readable findings and metrics; the check makes no API calls and spends no model tokens.
 
 ## Coding Standards — Activated by File Type
 

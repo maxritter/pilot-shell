@@ -47,6 +47,8 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 - **`/spec`** — plans, implements, and verifies features end-to-end with TDD
 - **`/build`** — names a goal, then runs autonomously: judge loops until criterion passes
 - **`/fix`** — bugfix workflow with TDD; bails out when complexity exceeds the standard fix lane
+- **`/investigate`** — traces how existing code works and answers with checkable evidence, without changing it
+- **`/cleanup`** — audits dead and unused code candidates with independent evidence, without deleting anything
 - **Spec collaboration** — share specs with teammates, annotations flow back grouped by author
 - **Quality hooks** — enforce linting, formatting, type checking, and tests as quality gates
 - **Context engineering** — preserves decisions and knowledge across sessions
@@ -68,7 +70,7 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 - **Claude Code:** Install via the [native installer](https://code.claude.com/docs/en/quickstart). If you have the `npm` or `brew` version, uninstall it first. Requires a Claude subscription — [Max 5x or 20x](https://claude.com/pricing) for solo, [Team Premium](https://claude.com/pricing) for teams, [Enterprise](https://claude.com/pricing) for organizations.
 - **Codex:** Install [Codex CLI](https://developers.openai.com/codex/cli) or the ChatGPT desktop app. Pilot detects the CLI and the Codex binary bundled with ChatGPT on macOS. Requires an OpenAI subscription — [Plus or Pro](https://developers.openai.com/codex/pricing) for solo, [Business or Enterprise](https://developers.openai.com/codex/pricing) for teams.
 
-**Terminal (Recommended):** [cmux](https://cmux.com) works great with Pilot Shell — its vertical tab layout lets you run multiple sessions side by side. Any modern terminal works: [Ghostty](https://ghostty.org/), [iTerm2](https://iterm2.com/), or the built-in macOS/Linux terminal.
+**Terminal (Recommended on macOS):** [Zentty](https://zentty.org/) works especially well with Pilot Shell — its worklanes keep parallel agents and dev servers in separate contexts and show you when a pane needs attention. Any modern terminal works: [Ghostty](https://ghostty.org/), [iTerm2](https://iterm2.com/), or the built-in macOS/Linux terminal.
 
 ### Installation
 
@@ -168,7 +170,7 @@ claude                codex
 
 `/setup-rules` reads your codebase, discovers your conventions, and generates project-specific rules and MCP server docs — this is how Pilot learns your project. Run it once to start, then again after major architectural changes.
 
-Once your rules are in place, use `/create-skill` to capture any repeatable workflow as a reusable skill, and `/benchmark` to measure whether your rules and skills are actually improving outputs. See [Additional Workflows](#additional-workflows) for full details on all three.
+Once your rules are in place, use `/investigate` for evidence-backed answers about unfamiliar code, `/cleanup` for a corroborated dead-code inventory, `/create-skill` to capture repeatable workflows, and `/benchmark` to measure whether your rules and skills are improving outputs. See [Additional Workflows](#additional-workflows) for full details.
 
 ---
 
@@ -307,7 +309,7 @@ If investigation reveals the bug is multi-component or architectural, `/fix` sto
 
 For local bugs. Single file, obvious-once-traced root cause. No plan file, no approval mid-flow, no separate verify phase. TDD still enforced — bugfixes without a failing test don't ship.
 
-- **Investigate:** Reproduce the bug → trace to root cause at `file:line` with `codegraph_context` (structure) + `semble search` (intent, cross-language) + targeted reads → state confidence (High/Medium required to proceed). For UI / async / race bugs, add temporary `SPEC-DEBUG:`-marked logs at component boundaries before tracing.
+- **Investigate:** Reproduce the bug → trace to root cause at `file:line` with `codegraph_explore` (structure) + `semble search` (intent, cross-language) + targeted reads → state confidence (High/Medium required to proceed). For UI / async / race bugs, add temporary `SPEC-DEBUG:`-marked logs at component boundaries before tracing.
 - **RED:** Write the failing test via an existing public entry point → run, must fail with the documented symptom.
 - **Fix:** Minimal change at the root cause. Symptom patches are forbidden. Reproducing test must pass, then the targeted test module. Diff sanity check (root-cause file in diff, no unplanned files, < 20 lines, symptom-patching grep) catches issues with the fix itself.
 - **Verify End-to-End:** The primary correctness signal. Run the actual program with the original input (browser automation for UI — Claude Code uses its Chrome extension; Codex uses Chrome DevTools MCP; both fall back to playwright-cli / agent-browser. CLI / API / REPL / job trigger for non-UI) and capture concrete evidence. A passing unit test alone is never accepted as proof.
@@ -322,7 +324,35 @@ For local bugs. Single file, obvious-once-traced root cause. No plan file, no ap
 
 ## Additional Workflows
 
-Run after installing Pilot Shell to configure your environment, then on demand as your project evolves.
+Use these on demand to understand a codebase, configure the environment, capture reusable knowledge, and measure improvements.
+
+### /investigate — Understand Existing Code
+
+[`/investigate`](https://pilot-shell.com/docs/workflows/investigate) answers one question about how the current codebase works. It traces the active path end-to-end, cites the files and lines behind each load-bearing claim, and challenges the conclusion with one independent cross-check. The workflow is deliberately read-only: the answer stays in the conversation, with no patch, plan, task list, or report file.
+
+```bash
+# Claude Code                                                     # Codex CLI
+claude                                                             codex
+> /investigate "How does a CLI flag become persisted config?"     > $investigate "How does a CLI flag become persisted config?"
+```
+
+Use it for questions such as “Does the code work like this?”, “Where does this value come from?”, or “Does the installed artifact preserve the source behavior?” It reads the current worktree, follows callers, configuration, branches, boundaries, and observable output, then reports a direct answer, concise trace, confidence level, and any material gap. If the evidence reveals a bug, `/investigate` explains it and stops; use `/fix` or `/spec` separately when you want the code changed.
+
+### /cleanup — Audit Dead Code Safely
+
+[`/cleanup`](https://pilot-shell.com/docs/workflows/cleanup) produces a report-only inventory of dead and unused code candidates. It starts with the repository's configured analyzers, then corroborates each candidate with exact references, CodeGraph structure, Semble discovery, exports, framework registration, callbacks, configuration, tests, and generated consumers.
+
+```bash
+# Claude Code                                      # Codex CLI
+claude                                              codex
+> /cleanup "pilot/hooks"                          > $cleanup "pilot/hooks"
+```
+
+```text
+Scope  →  Generate candidates  →  Corroborate independently  →  Report
+```
+
+The workflow never installs tools, edits files, or deletes code. Test-only consumers are reported separately; exported APIs, callbacks, routes, decorators, registries, reflection, and unresolved dynamic paths lower confidence instead of being guessed away. A candidate is only “likely removable” after two independent signals agree and no material reachability gap remains. Use a separate implementation request when you want reviewed candidates removed and verified.
 
 ### /setup-rules — Generate Modular Rules
 

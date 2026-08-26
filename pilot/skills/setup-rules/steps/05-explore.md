@@ -39,7 +39,7 @@ semble search "CI/CD pipeline configuration" ./
 semble find-related src/routes/users.ts 42 ./
 ```
 
-For extracting an enclosing function/class at a known line, use `Read` with `offset`/`limit`, or `codegraph_node` when you have a symbol name.
+For extracting an enclosing function or class at a known line, read that source range directly. Use CodeGraph only when the remaining question is structural.
 
 ### Step 5.3: Fill Gaps
 
@@ -50,10 +50,12 @@ For extracting an enclosing function/class at a known line, use `Read` with `off
 3. **Read** 5-10 representative files in key directories
 4. For each gap from Step 2: run a targeted search (Semble if available, otherwise Grep) to find current patterns
 <!-- CC-ONLY -->
-5. **Use CodeGraph** (`codegraph_context` to orient, `codegraph_search` → `codegraph_explore` for deep understanding, `codegraph_callers`/`codegraph_files` for structure) — CodeGraph is the primary exploration tool, not a fallback
+5. **Use CodeGraph for runtime structure** — `codegraph_explore(query="<symbol or structural question>")` is the single CodeGraph API for orientation, source context, callers/callees, and blast radius. Use it when entry points are unclear or a shared function's impact matters. For named files, docs, rules, markdown, configuration, and UI copy, read the source directly. Use Semble when the implementation is unknown and the question is about intent.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-5. **Use CodeGraph selectively** only for runtime-code structure gaps that remain after the Semble/direct-read pass. For docs, rules, markdown, config inventory, and named paths, keep using targeted reads or Semble; do not add graph calls just to satisfy a checklist.
+5. **Use CodeGraph for runtime structure** — `codegraph_explore(query="<symbol or structural question>")` is the single CodeGraph API for orientation, source context, callers/callees, and blast radius. Use it when entry points are unclear or a shared function's impact matters. For named files, docs, rules, markdown, configuration, and UI copy, read the source directly. Use Semble when the implementation is unknown and the question is about intent. Do not add graph calls just to satisfy a checklist.
 CODEX-END -->
+
+CodeGraph and Semble outputs identify where to look; the current source is authoritative. Generated/vendor noise and dynamic or reflective references can make indexes incomplete. Verify cleanup or deletion candidates with exact search and the repository's compiler, analyzers, build, and tests.
 
 **Monorepo:** Repeat Steps 5.1-5.3 for each sub-project identified in Step 2. Each sub-project gets its own exploration context.

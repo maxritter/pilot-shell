@@ -13,10 +13,10 @@ CODEX-END -->
 - **Think before coding.** When a request is ambiguous, state assumptions, present alternatives, ask — before writing code.
 - **Lineage test.** Every changed line must trace to the user's request. If it doesn't, revert.
 - **Orphan cleanup.** Remove imports/vars/functions YOUR changes made unused. Don't touch pre-existing dead code — mention, don't delete.
+- **Dead-code evidence.** Analyzer, graph, and LSP results generate candidates, not reachability proof: exact references, exports, callbacks, registries, routes, decorators, reflection, configuration, tests, and generated consumers can keep a zero-caller symbol live. `/cleanup` is report-only: it installs nothing, changes nothing, and does not treat test-only code as automatically dead. Deletion is a separately authorized change; afterward re-run focused consumer tests, compiler/linter, and the broader required suite.
 - **Self-check.** "Would a senior engineer call this overcomplicated?" If 200 lines could be 50, rewrite. Complexity is earned by actual requirements.
 
 <!-- The "build the least" ladder + deliberate-shortcut convention below are adapted from ponytail (MIT, © Dietrich Gebert): https://github.com/DietrichGebert/ponytail -->
-
 #### Build the least that works — the ladder
 
 Before writing code, stop at the **first rung that holds**. It's a reflex, not a research project — two rungs both work, take the higher one and move on.
@@ -34,7 +34,7 @@ No unrequested abstractions (no interface with one implementation, no factory fo
 
 - **Mark deliberate shortcuts.** When you intentionally ship a simplification with a known ceiling (global lock, O(n²) scan, naive heuristic), leave a `SHORTCUT:` comment naming the ceiling **and** the upgrade trigger: `# SHORTCUT: global lock, per-account locks if throughput matters`. A shortcut with no named trigger rots into "never" — name the trigger or don't take the shortcut. `grep -rnE '(#|//) ?SHORTCUT:' .` harvests the ledger; `/spec`, `/build`, and `/fix` verification surface unresolved markers (see `verification.md`).
 
-**⛔ Never invent values.** File paths, env var names/values, API keys, IDs (UUIDs, FK ids, third-party object ids), URLs, ports, hostnames, version numbers, third-party service names, function/class names not verified to exist, library API signatures — must be authoritatively confirmed (read the code, run the command, or ask). Pattern-matching a plausible value is the top cause of agent-introduced incidents per the 2026 Agentic Coding Trends Report. If unsure, **STOP and ask** — one round-trip beats a hallucination. See *Evidence Before Claims* in `verification.md`.
+**⛔ Never invent values.** Authoritatively confirm paths, environment variables, keys, IDs, URLs, ports, versions, third-party services, symbols, and library APIs by reading the code, running the command, or asking. See *Evidence Before Claims* in `verification.md`.
 
 ### Project Policies
 
@@ -62,16 +62,7 @@ No unrequested abstractions (no interface with one implementation, no factory fo
 
 #### Defense-in-Depth (after fixing)
 
-Make the bug structurally impossible, not just patched. Trace backward from symptom to original trigger (`codegraph_explore(query="<fn> callers")`, or `new Error().stack` instrumentation). Fix at the source. Then add validation at every layer the data passes:
-
-| Layer | Purpose |
-|-------|---------|
-| Entry point | Reject invalid input at API boundary |
-| Business logic | Ensure data makes sense for this operation |
-| Environment guards | Prevent dangerous ops in specific contexts (e.g., refuse destructive ops outside temp dirs in tests) |
-| Debug instrumentation | Capture context for forensics (cwd, stack, args before risky ops) |
-
-Single validation = "fixed." All four layers = "impossible."
+Trace backward from symptom to original trigger (`codegraph_explore(query="<fn> callers")`, or stack instrumentation) and fix at the source. Add proportionate guards at each relevant layer: reject bad entry-point input, enforce business invariants, block dangerous environment-specific operations, and capture forensic context around risky operations.
 
 #### Condition-Based Waiting (Flakiness)
 
@@ -96,7 +87,7 @@ Resolve hunk by hunk, preserving both intents. When the code alone doesn't settl
 
 ### Git Operations
 
-**Read git state freely. NEVER execute write commands without EXPLICIT user permission.** This is about git commands, not file edits — file editing is always allowed.
+**Read git state freely. Preserve unrelated dirty-worktree changes, and never execute git write commands without explicit user permission.** File-edit authority does not imply authority to overwrite, revert, stage, commit, or move user changes.
 
 - **⛔ Write commands need permission:** `git add`, `commit`, `push`, `pull`, `merge`, `rebase`, `reset`, `stash`, `checkout`. "Fix this bug" ≠ "commit it."
 - **⛔ NEVER `git checkout --` on unstaged changes.** Irreversible — work is permanently lost. Tell the user the consequences and let THEM run it. "Remove this" / "revert this" do NOT mean "discard all unstaged work." Use Edit for targeted changes.

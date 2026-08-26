@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 from pathlib import Path
@@ -38,9 +39,9 @@ def test_uninstall_sh_agents_skills_dir_defined():
     assert ".agents/skills" in _content()
 
 
-def test_uninstall_sh_codex_hooks_cleanup_uses_pilot_path_marker():
-    """Pilot hooks are identified by /.pilot/ in command strings — mirrors _is_pilot_managed_entry."""
-    assert "/.pilot/" in _content()
+def test_uninstall_sh_codex_hooks_cleanup_uses_install_baseline():
+    """Codex hook cleanup uses exact installed signatures, not a broad path match."""
+    assert ".pilot-hooks-baseline.json" in _content()
 
 
 def test_uninstall_sh_codex_config_toml_mcp_block_removed():
@@ -61,6 +62,27 @@ def test_uninstall_sh_codex_skills_removed():
     assert "spec-plan" in content
     assert "spec-implement" in content
     assert "spec-bugfix-plan" in content
+    assert '"build"' in content
+    assert '"investigate"' in content
+    assert '"cleanup"' in content
+
+
+def test_uninstall_sh_documents_complete_code_search_tool_cleanup() -> None:
+    """Third-party cleanup names current tools and the legacy native dependency."""
+    content = _content()
+    assert "npm uninstall -g @colbymchenry/codegraph" in content
+    assert "semble clear all" in content
+    assert "uv tool uninstall semble" in content
+    assert "uv cache clean semble" in content
+    assert "npm uninstall -g better-sqlite3" in content
+
+
+def test_uninstall_sh_preserves_project_codegraph_indexes() -> None:
+    """Global cleanup guidance must not suggest recursively deleting project indexes."""
+    content = _content()
+    assert "Project indexes (.codegraph/) were intentionally left intact." in content
+    assert "codegraph uninit" in content
+    assert "rm -rf .codegraph" not in content
 
 
 def test_uninstall_sh_claude_dir_respects_claude_config_dir():
@@ -203,11 +225,7 @@ def test_uninstall_removes_pilot_model_catalog_and_preserves_codex_config(tmp_pa
     catalog = codex_dir / ".pilot-model-catalog.json"
     catalog.write_text('{"models": []}\n')
     config = codex_dir / "config.toml"
-    config.write_text(
-        'approval_policy = "never"\n'
-        f'model_catalog_json = "{catalog}"\n'
-        'model = "gpt-5.6-sol"\n'
-    )
+    config.write_text(f'approval_policy = "never"\nmodel_catalog_json = "{catalog}"\nmodel = "gpt-5.6-sol"\n')
 
     result = _run_uninstall(home)
 
@@ -217,3 +235,153 @@ def test_uninstall_removes_pilot_model_catalog_and_preserves_codex_config(tmp_pa
     assert "model_catalog_json" not in codex_config
     assert 'approval_policy = "never"' in codex_config
     assert 'model = "gpt-5.6-sol"' in codex_config
+
+
+def test_uninstall_removes_baselined_codex_hook_and_preserves_user_pilot_hook(tmp_path: Path):
+    home = tmp_path / "home"
+    codex_dir = home / ".codex"
+    codex_dir.mkdir(parents=True)
+    managed = {"hooks": [{"type": "command", "command": 'python "$HOME/.pilot/hooks/stop.py"'}]}
+    user = {
+        "matcher": "Bash",
+        "hooks": [{"type": "command", "command": 'python "$HOME/.pilot/custom/my-hook.py"'}],
+    }
+    (codex_dir / "hooks.json").write_text(json.dumps({"hooks": {"Stop": [managed], "PreToolUse": [user]}}))
+    (codex_dir / ".pilot-hooks-baseline.json").write_text(json.dumps({"Stop": [managed]}))
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    hooks = json.loads((codex_dir / "hooks.json").read_text())["hooks"]
+    assert "Stop" not in hooks
+    assert hooks["PreToolUse"] == [user]
+    assert not (codex_dir / ".pilot-hooks-baseline.json").exists()
+
+
+def test_uninstall_removes_generated_investigate_artifacts_and_preserves_user_files(tmp_path: Path):
+    home = tmp_path / "home"
+    skill_dir = home / ".agents" / "skills" / "investigate"
+    references = skill_dir / "references"
+    metadata_dir = skill_dir / "agents"
+    references.mkdir(parents=True)
+    metadata_dir.mkdir()
+    (skill_dir / "SKILL.md").write_text("generated skill\n")
+    (metadata_dir / "openai.yaml").write_text("policy: {}\n")
+    (references / "managed.md").write_text("managed\n")
+    (references / "user-notes.md").write_text("keep\n")
+    (skill_dir / "user-file.txt").write_text("keep\n")
+    (skill_dir / ".pilot-resources.json").write_text(
+        json.dumps({"files": ["references/managed.md"], "directories": ["references"]})
+    )
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert not (skill_dir / "SKILL.md").exists()
+    assert not (metadata_dir / "openai.yaml").exists()
+    assert not (skill_dir / ".pilot-resources.json").exists()
+    assert not (references / "managed.md").exists()
+    assert (references / "user-notes.md").read_text() == "keep\n"
+    assert (skill_dir / "user-file.txt").read_text() == "keep\n"
+
+
+def test_uninstall_detects_and_removes_generated_cleanup_skill(tmp_path: Path):
+    """A cleanup-only Codex install is still Pilot content and fully reversible."""
+    home = tmp_path / "home"
+    skill_dir = home / ".agents" / "skills" / "cleanup"
+    steps_dir = skill_dir / "steps"
+    metadata_dir = skill_dir / "agents"
+    steps_dir.mkdir(parents=True)
+    metadata_dir.mkdir()
+    (skill_dir / "SKILL.md").write_text("generated cleanup skill\n")
+    (metadata_dir / "openai.yaml").write_text("policy: {}\n")
+    (steps_dir / "01-scope.md").write_text("managed\n")
+    (skill_dir / ".pilot-resources.json").write_text(
+        json.dumps({"files": ["steps/01-scope.md"], "directories": ["steps"]})
+    )
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert not skill_dir.exists()
+
+
+def test_uninstall_removes_cleanup_resources_and_preserves_user_files(tmp_path: Path):
+    home = tmp_path / "home"
+    skill_dir = home / ".agents" / "skills" / "cleanup"
+    steps_dir = skill_dir / "steps"
+    scripts_dir = skill_dir / "scripts"
+    metadata_dir = skill_dir / "agents"
+    steps_dir.mkdir(parents=True)
+    scripts_dir.mkdir()
+    metadata_dir.mkdir()
+    (skill_dir / "SKILL.md").write_text("generated cleanup skill\n")
+    (metadata_dir / "openai.yaml").write_text("policy: {}\n")
+    (steps_dir / "01-scope.md").write_text("managed\n")
+    (scripts_dir / "codegraph-candidates.mjs").write_text("managed\n")
+    (scripts_dir / "user-helper.mjs").write_text("keep\n")
+    (skill_dir / "user-notes.md").write_text("keep\n")
+    (skill_dir / ".pilot-resources.json").write_text(
+        json.dumps(
+            {
+                "files": ["steps/01-scope.md", "scripts/codegraph-candidates.mjs"],
+                "directories": ["steps", "scripts"],
+            }
+        )
+    )
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert not (skill_dir / "SKILL.md").exists()
+    assert not (metadata_dir / "openai.yaml").exists()
+    assert not (steps_dir / "01-scope.md").exists()
+    assert not (scripts_dir / "codegraph-candidates.mjs").exists()
+    assert (scripts_dir / "user-helper.mjs").read_text() == "keep\n"
+    assert (skill_dir / "user-notes.md").read_text() == "keep\n"
+
+
+def test_uninstall_malformed_skill_resource_manifest_preserves_unknown_files(tmp_path: Path):
+    home = tmp_path / "home"
+    skill_dir = home / ".agents" / "skills" / "investigate"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text("generated skill\n")
+    (skill_dir / ".pilot-resources.json").write_text("{broken")
+    (skill_dir / "unknown-resource.txt").write_text("keep\n")
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert not (skill_dir / "SKILL.md").exists()
+    assert not (skill_dir / ".pilot-resources.json").exists()
+    assert (skill_dir / "unknown-resource.txt").read_text() == "keep\n"
+
+
+def test_uninstall_preserves_unowned_same_name_investigate_skill(tmp_path: Path):
+    home = tmp_path / "home"
+    skill_dir = home / ".agents" / "skills" / "investigate"
+    metadata_dir = skill_dir / "agents"
+    metadata_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text("user-owned investigate\n")
+    (metadata_dir / "openai.yaml").write_text("user-owned metadata\n")
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert (skill_dir / "SKILL.md").read_text() == "user-owned investigate\n"
+    assert (metadata_dir / "openai.yaml").read_text() == "user-owned metadata\n"
+
+
+def test_uninstall_preserves_unowned_same_name_cleanup_skill(tmp_path: Path):
+    home = tmp_path / "home"
+    skill_dir = home / ".agents" / "skills" / "cleanup"
+    metadata_dir = skill_dir / "agents"
+    metadata_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text("user-owned cleanup\n")
+    (metadata_dir / "openai.yaml").write_text("user-owned metadata\n")
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert (skill_dir / "SKILL.md").read_text() == "user-owned cleanup\n"
+    assert (metadata_dir / "openai.yaml").read_text() == "user-owned metadata\n"

@@ -1,0 +1,214 @@
+{
+  "version": 1,
+  "rules": {
+    "max_unscoped_lines": 500,
+    "max_unscoped_words": 7500,
+    "max_unscoped_file_lines": 200
+  },
+  "skills": [
+    {
+      "id": "benchmark",
+      "source": "pilot/skills/benchmark",
+      "visibility": "public",
+      "invocation": "implicit",
+      "positives": [
+        {"prompt": "Benchmark this rule pack and quantify whether it improves the outputs."},
+        {"prompt": "Run a before and after evaluation of our agent workflow."},
+        {"prompt": "Measure whether this skill actually helps across several test prompts."}
+      ],
+      "negatives": [
+        {"prompt": "Audit and refresh AGENTS.md so the repository guidance matches the code.", "owner": "setup-rules"},
+        {"prompt": "Create a reusable skill for our release checklist.", "owner": "create-skill"}
+      ]
+    },
+    {
+      "id": "create-skill",
+      "source": "pilot/skills/create-skill",
+      "visibility": "public",
+      "invocation": "implicit",
+      "positives": [
+        {"prompt": "Create a reusable agent skill for reviewing accessibility changes."},
+        {"prompt": "Turn this repeatable deployment workflow into a skill other agents can use."},
+        {"prompt": "Update the existing release skill with a new verification step."}
+      ],
+      "negatives": [
+        {"prompt": "Compare this rule with and without the change and measure the result.", "owner": "benchmark"},
+        {"prompt": "Fix the contradictory instructions in our CLAUDE.md and AGENTS.md.", "owner": "setup-rules"}
+      ]
+    },
+    {
+      "id": "setup-rules",
+      "source": "pilot/skills/setup-rules",
+      "visibility": "public",
+      "invocation": "implicit",
+      "positives": [
+        {"prompt": "Set up AGENTS.md and CLAUDE.md for this repository."},
+        {"prompt": "Audit our repository rules for stale and contradictory guidance."},
+        {"prompt": "Refresh the project agent rules and verify Claude and Codex stay in sync."}
+      ],
+      "negatives": [
+        {"prompt": "Write a reusable skill that captures this incident-response workflow.", "owner": "create-skill"},
+        {"prompt": "Benchmark this agent prompt with quantitative before and after evaluations.", "owner": "benchmark"}
+      ]
+    },
+    {
+      "id": "spec",
+      "source": "pilot/skills/spec",
+      "visibility": "public",
+      "invocation": "explicit",
+      "positives": [
+        {"prompt": "$spec add organization-level audit logs"},
+        {"prompt": "/spec docs/plans/2026-08-26-audit-logs.md"}
+      ],
+      "negatives": [
+        {"prompt": "Plan and implement organization-level audit logs.", "owner": "direct"},
+        {"prompt": "This feature spans the API and frontend, please build it.", "owner": "direct"}
+      ]
+    },
+    {
+      "id": "build",
+      "source": "pilot/skills/build",
+      "visibility": "public",
+      "invocation": "explicit",
+      "positives": [
+        {"prompt": "$build make the onboarding flow excellent"},
+        {"prompt": "/build create a fast and accessible settings experience"}
+      ],
+      "negatives": [
+        {"prompt": "Make the onboarding flow excellent and keep going until it works.", "owner": "direct"},
+        {"prompt": "Build the whole settings experience across every surface.", "owner": "direct"}
+      ]
+    },
+    {
+      "id": "fix",
+      "source": "pilot/skills/fix",
+      "visibility": "public",
+      "invocation": "explicit",
+      "positives": [
+        {"prompt": "$fix login redirects to the wrong tenant"},
+        {"prompt": "/fix pagination skips the last record"}
+      ],
+      "negatives": [
+        {"prompt": "Fix the login redirect bug and add a regression test.", "owner": "direct"},
+        {"prompt": "The last pagination record is missing; diagnose and repair it.", "owner": "direct"}
+      ]
+    },
+    {
+      "id": "prd",
+      "source": "pilot/skills/prd",
+      "visibility": "public",
+      "invocation": "explicit",
+      "positives": [
+        {"prompt": "$prd a privacy-first team calendar"},
+        {"prompt": "/prd explore a marketplace for reusable agent skills"}
+      ],
+      "negatives": [
+        {"prompt": "Help me turn this rough product idea into clear requirements.", "owner": "direct"},
+        {"prompt": "Research the audience and success criteria for a team calendar.", "owner": "direct"}
+      ]
+    },
+    {
+      "id": "investigate",
+      "source": "pilot/skills/investigate",
+      "visibility": "public",
+      "invocation": "explicit",
+      "positives": [
+        {"prompt": "$investigate how does the session restore path work?"},
+        {"prompt": "/investigate why does this code choose the fallback provider?"}
+      ],
+      "negatives": [
+        {"prompt": "Explain how the current session restore path works.", "owner": "direct"},
+        {"prompt": "Find why the fallback provider is selected in this codebase.", "owner": "direct"}
+      ]
+    },
+    {
+      "id": "cleanup",
+      "source": "pilot/skills/cleanup",
+      "visibility": "public",
+      "invocation": "explicit",
+      "positives": [
+        {"prompt": "$cleanup audit this repository for dead-code candidates"},
+        {"prompt": "/cleanup inspect unused production and test helpers without changing files"}
+      ],
+      "negatives": [
+        {"prompt": "Find dead code in this repository and give me a report.", "owner": "direct"},
+        {"prompt": "Remove all unused helpers and verify the cleanup.", "owner": "direct"}
+      ]
+    },
+    {
+      "id": "spec-plan",
+      "source": "pilot/skills/spec-plan",
+      "visibility": "internal",
+      "invocation": "explicit",
+      "parent": "spec",
+      "positives": [
+        {"prompt": "Continue with $spec-plan for this new feature.", "context": {"parent": "spec"}},
+        {"prompt": "Route the approved feature-planning handoff to $spec-plan.", "context": {"parent": "spec"}}
+      ],
+      "negatives": [
+        {"prompt": "$spec-plan add audit logs", "owner": "spec"},
+        {"prompt": "Plan a feature with a formal spec.", "owner": "direct"}
+      ]
+    },
+    {
+      "id": "spec-bugfix-plan",
+      "source": "pilot/skills/spec-bugfix-plan",
+      "visibility": "internal",
+      "invocation": "explicit",
+      "parent": "spec",
+      "positives": [
+        {"prompt": "Continue with $spec-bugfix-plan for the reproduced defect.", "context": {"parent": "spec"}},
+        {"prompt": "Route the bugfix planning handoff to $spec-bugfix-plan.", "context": {"parent": "spec"}}
+      ],
+      "negatives": [
+        {"prompt": "$spec-bugfix-plan repair the redirect", "owner": "spec"},
+        {"prompt": "Investigate and plan a bug fix.", "owner": "direct"}
+      ]
+    },
+    {
+      "id": "spec-implement",
+      "source": "pilot/skills/spec-implement",
+      "visibility": "internal",
+      "invocation": "explicit",
+      "parent": "spec",
+      "positives": [
+        {"prompt": "Continue the approved plan with $spec-implement.", "context": {"parent": "spec"}},
+        {"prompt": "Route this implementation-phase handoff to $spec-implement.", "context": {"parent": "spec"}}
+      ],
+      "negatives": [
+        {"prompt": "$spec-implement this plan", "owner": "spec"},
+        {"prompt": "Implement the approved plan now.", "owner": "direct"}
+      ]
+    },
+    {
+      "id": "spec-verify",
+      "source": "pilot/skills/spec-verify",
+      "visibility": "internal",
+      "invocation": "explicit",
+      "parent": "spec",
+      "positives": [
+        {"prompt": "Verify the completed feature through $spec-verify.", "context": {"parent": "spec"}},
+        {"prompt": "Route this feature verification handoff to $spec-verify.", "context": {"parent": "spec"}}
+      ],
+      "negatives": [
+        {"prompt": "$spec-verify the current branch", "owner": "spec"},
+        {"prompt": "Verify this feature thoroughly.", "owner": "direct"}
+      ]
+    },
+    {
+      "id": "spec-bugfix-verify",
+      "source": "pilot/skills/spec-bugfix-verify",
+      "visibility": "internal",
+      "invocation": "explicit",
+      "parent": "spec",
+      "positives": [
+        {"prompt": "Verify the completed defect repair through $spec-bugfix-verify.", "context": {"parent": "spec"}},
+        {"prompt": "Route this bugfix verification handoff to $spec-bugfix-verify.", "context": {"parent": "spec"}}
+      ],
+      "negatives": [
+        {"prompt": "$spec-bugfix-verify the redirect fix", "owner": "spec"},
+        {"prompt": "Prove this bug is fixed end to end.", "owner": "direct"}
+      ]
+    }
+  ]
+}

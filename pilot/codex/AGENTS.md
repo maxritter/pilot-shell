@@ -15,7 +15,7 @@
 
 ## Subagents
 
-- Proactively delegate bounded, independent tracks when parallel work materially improves speed, context quality, or verification.
+- Decide autonomously whether to spawn, resume, nest, or skip subagents. Never stop work to ask the user for permission to delegate; an exposed agent tool is sufficient authority.
 - Use explorers for read-heavy orientation and workers for separately owned implementation surfaces. Give writing agents exclusive file or module ownership and tell them other agents may be editing the workspace.
 - The root agent integrates the result, resolves conflicts, and performs final verification. Do not duplicate a completed subagent investigation or assign overlapping writes.
 - Keep small, tightly coupled work local. Delegation is a tool, not a required topology.

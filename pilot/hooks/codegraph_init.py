@@ -1,7 +1,8 @@
 """SessionStart hook: ensure CodeGraph is initialized and synced for the current project.
 
-Mirrors the logic from launcher/codegraph.py ensure_codegraph(), adapted as a
-hook script. Runs on both Claude Code (async) and Codex CLI (sync) SessionStart.
+Mirrors the installer initialization logic as a Claude Code async hook. Codex
+does not initialize repositories automatically; indexing remains an explicit
+user decision there.
 
 Non-fatal: failures are silent — the session proceeds without CodeGraph.
 """
@@ -9,7 +10,6 @@ Non-fatal: failures are silent — the session proceeds without CodeGraph.
 from __future__ import annotations
 
 import hashlib
-import json
 import os
 import shutil
 import signal
@@ -23,7 +23,6 @@ from pathlib import Path
 SYNC_TIMEOUT_SECONDS = 60
 INDEX_TIMEOUT_SECONDS = 90
 INIT_TIMEOUT_SECONDS = 60
-REPAIR_TIMEOUT_SECONDS = 60
 LOCK_STALE_SECONDS = 15 * 60
 # Finish (and reap) before the 120s SessionStart hook timeout the harness enforces.
 # If the harness kills the wrapper first, an in-flight process group is orphaned —
@@ -53,20 +52,6 @@ def _has_git_commits(directory: Path) -> bool:
         return result.returncode == 0
     except (subprocess.SubprocessError, OSError):
         return False
-
-
-def _enable_embeddings(project_dir: Path) -> None:
-    config_path = project_dir / ".codegraph" / "config.json"
-    if not config_path.exists():
-        return
-    try:
-        config = json.loads(config_path.read_text())
-        if config.get("enableEmbeddings") is True:
-            return
-        config["enableEmbeddings"] = True
-        config_path.write_text(json.dumps(config, indent=2) + "\n")
-    except (json.JSONDecodeError, OSError):
-        pass
 
 
 def _is_indexed(project_dir: Path) -> bool:
@@ -117,6 +102,7 @@ def _run_group(cmd: list[str], cwd: Path, timeout: int) -> subprocess.CompletedP
         proc = subprocess.Popen(
             cmd,
             cwd=cwd,
+            env={**os.environ, "CODEGRAPH_TELEMETRY": "0"},
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             start_new_session=os.name == "posix",
@@ -211,61 +197,6 @@ def _recover_corrupt_db(project_dir: Path) -> bool:
     return True
 
 
-def _is_using_wasm_sqlite() -> bool:
-    try:
-        result = subprocess.run(
-            ["codegraph", "status"],
-            capture_output=True,
-            timeout=10,
-        )
-        output = (result.stdout or b"").decode("utf-8", errors="replace")
-        output += (result.stderr or b"").decode("utf-8", errors="replace")
-        return "WASM SQLite backend" in output
-    except (subprocess.SubprocessError, OSError):
-        return False
-
-
-def _find_codegraph_package_dir() -> Path | None:
-    codegraph_bin = shutil.which("codegraph")
-    if not codegraph_bin:
-        return None
-    try:
-        real_path = Path(codegraph_bin).resolve()
-        current = real_path.parent
-        for _ in range(5):
-            pkg_json = current / "package.json"
-            if pkg_json.exists():
-                try:
-                    pkg = json.loads(pkg_json.read_text())
-                    if pkg.get("name") == "@colbymchenry/codegraph":
-                        return current
-                except (json.JSONDecodeError, OSError):
-                    pass
-            parent = current.parent
-            if parent == current:
-                break
-            current = parent
-    except (OSError, ValueError):
-        pass
-    return None
-
-
-def _repair_native_sqlite(timeout: int = REPAIR_TIMEOUT_SECONDS) -> bool:
-    # npm spawns node-gyp/make worker trees — run through _run_group so a timeout
-    # reaps the whole group instead of orphaning those workers.
-    pkg_dir = _find_codegraph_package_dir()
-    if pkg_dir and (pkg_dir / "node_modules" / "better-sqlite3").exists():
-        result = _run_group(["npm", "rebuild", "better-sqlite3"], pkg_dir, timeout)
-        if result is not None and result.returncode == 0:
-            return True
-    result = _run_group(
-        ["npm", "install", "-g", "better-sqlite3", "--no-audit", "--no-fund"],
-        Path.cwd(),
-        timeout,
-    )
-    return result is not None and result.returncode == 0
-
-
 def _get_project_dir() -> Path:
     for var in ("CODEX_WORKSPACE", "CLAUDE_PROJECT_ROOT"):
         val = os.environ.get(var, "").strip()
@@ -292,9 +223,6 @@ def main() -> None:
         if not _has_git_commits(project_dir):
             return
 
-        if _is_using_wasm_sqlite():
-            _repair_native_sqlite(_op_timeout(deadline, REPAIR_TIMEOUT_SECONDS))
-
         codegraph_dir = project_dir / ".codegraph"
 
         if not codegraph_dir.exists():
@@ -302,8 +230,6 @@ def main() -> None:
                 return
             if not codegraph_dir.exists():
                 return
-
-        _enable_embeddings(project_dir)
 
         if not _is_indexed(project_dir):
             _run(["codegraph", "index"], project_dir, _op_timeout(deadline, INDEX_TIMEOUT_SECONDS))

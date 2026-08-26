@@ -15,5 +15,5 @@ user-invocable: true
 **Use the `AskUserQuestion` tool for user questions** — it renders a structured form; don't fall back to plain-text numbered questions.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-**Use plain-text numbered options for user questions** — the `AskUserQuestion` tool isn't callable in Codex. Present options with trade-offs and wait for the user's response.
+**Use the runtime's structured user-input tool when one is exposed.** Otherwise present numbered options with trade-offs in prose, end the turn, and wait for the user's response.
 CODEX-END -->

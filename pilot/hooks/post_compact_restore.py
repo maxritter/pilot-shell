@@ -17,6 +17,7 @@ from _lib.util import (
     get_session_plan_path,
     plan_in_current_project,
     read_hook_stdin,
+    resolve_payload_session_id,
     resolve_session_id,
 )
 
@@ -116,12 +117,12 @@ def run_post_compact_restore() -> int:
     Returns exit code: 0 with a SessionStart JSON payload on stdout.
     """
     hook_data = read_hook_stdin()
-    session_id = hook_data.get("session_id") or resolve_session_id()
+    session_id = resolve_payload_session_id(hook_data.get("session_id"))
 
     # Env-first with payload fallback (unlike the fallback-state key above,
     # which stays payload-first to match pre_compact's writer): active_plan.json
     # was written by `pilot register-plan` under the env-chain id.
-    plan_data = _read_active_plan(resolve_session_id(str(hook_data.get("session_id") or "")))
+    plan_data = _read_active_plan(resolve_session_id(hook_data.get("session_id")))
     if not _plan_belongs_to_project(plan_data):
         plan_data = None
 

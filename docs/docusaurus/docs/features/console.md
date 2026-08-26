@@ -112,7 +112,7 @@ Pilot doesn't manage model preferences. Set the model with Claude Code's `/model
 
 ### Workflows -> Review Agents
 
-Three reviews are available across the workflows on Claude Code and Codex: **Spec Review** during `/spec`, **Build Review** during `/build`, and **Changes Review** at the end of `/spec`, `/fix` and a code `/build`. Toggle each on or off. Each runs as one background review agent - a sub-agent on Claude Code, a managed custom agent under `~/.codex/agents/` on Codex - so the cost of each is one agent, not a fan-out.
+Three named review passes are available across the workflows on Claude Code and Codex: **Spec Review** during `/spec`, **Build Review** during `/build`, and **Changes Review** at the end of `/spec`, `/fix` and a code `/build`. Toggle each on or off. Each configured pass launches one named reviewer - a sub-agent on Claude Code, a managed custom agent under `~/.codex/agents/` on Codex. That describes the cost of the configured pass only; it does not limit the active workflow from spawning, resuming, or nesting additional agents autonomously.
 
 | Agent | Group | Default | Role |
 |-------|-------|---------|------|

@@ -105,68 +105,62 @@ fetch_urls(urls=["https://a.com", "https://b.com"])
 
 **Code knowledge graph and structural analysis**
 
-Builds a semantic knowledge graph of your codebase — functions, classes, call chains, and dependencies. Complements Semble: Semble finds code by intent ("how does auth work?"), CodeGraph finds by structure ("who calls this function?", "what's affected by changing this?").
+Builds a local knowledge graph of runtime code — functions, classes, call chains, and dependencies. CodeGraph exposes one MCP tool: `codegraph_explore`. Give it a task, symbol, file, or structural question and it returns the relevant source sections together with graph context.
 
 ```
-codegraph_search(query="Handler", kind="function")
-codegraph_callers(symbol="processOrder")
-codegraph_callees(symbol="processOrder")
-codegraph_impact(symbol="processOrder", depth=2)
-codegraph_context(task="refactor authentication flow")
+codegraph_explore(query="processOrder callers and callees")
+codegraph_explore(query="authentication flow entry points and blast radius")
 ```
 
 **Key capabilities:**
 
 | Tool | Use case |
 |------|----------|
-| `codegraph_search` | Find symbols by name — functions, classes, types |
-| `codegraph_callers` | Who calls X? Complete caller list with file locations |
-| `codegraph_callees` | What does X call? All downstream dependencies |
-| `codegraph_impact` | Blast radius — transitive callers and callees affected by a change |
-| `codegraph_context` | Task-driven context retrieval — entry points, related symbols, and code |
-| `codegraph_node` | Get details and source code for a specific symbol |
+| `codegraph_explore` | Orient on runtime code, inspect known symbols, trace callers/callees, and estimate blast radius in one call |
 
-**When to use CodeGraph vs Semble:**
+**When to use CodeGraph, Semble, or a direct read:**
 
-CodeGraph and Semble are **co-primary** — each excels at different query types.
+These are complementary routes to the source, not interchangeable search engines.
 
 | Question | Best tool |
 |----------|-----------|
-| "Who calls this function?" | **CodeGraph** — `codegraph_callers` with exact caller list |
-| "What's the blast radius of my changes?" | **CodeGraph** — `codegraph_impact` shows transitive affected symbols |
-| "Find functions matching a name" | **CodeGraph** — `codegraph_search` with kind filter |
-| "Get context for a task" | **CodeGraph** — `codegraph_context` returns entry points and related code |
-| "Get details and source for one symbol" | **CodeGraph** — `codegraph_node` (Semble does not extract by symbol name) |
-| "How does authentication work?" | **Semble** — natural-language hybrid search (BM25 + Model2Vec) |
-| "Where does settings.json get modified?" | **Semble** — finds mutation sites across languages, not just type definitions |
-| "How does the notification system work?" | **Semble** — surfaces the full feature stack (UI hooks, routes, business logic) |
-| "Find code similar to a specific location" | **Semble** — `find_related` discovers parallel implementations |
+| "Who calls this known function?" | **CodeGraph** — `codegraph_explore(query="functionName callers")` |
+| "What's the blast radius of changing this symbol?" | **CodeGraph** — ask `codegraph_explore` for callers, callees, and impact |
+| "How does authentication work?" | **Semble** — natural-language intent search |
+| "Where is this setting modified?" | **Semble** — search for the behavior or mutation by intent |
+| "Find code similar to this location" | **Semble** — `find_related` discovers parallel implementations |
+| "What does this named file, rule, or config say?" | **Direct read** — the file is already known and is authoritative |
+| "Find every occurrence of this exact string or symbol" | **Exact repository search** — use `rg` as a completeness check |
 
 :::info Tool selection
-`codegraph_context` first for structural orientation, then Semble for intent-based discovery. context7 for library API lookups, grep-mcp for production code examples, web-search for current information.
+If the target is already named, read it directly. If the implementation is unknown, use Semble to find it by intent. Use CodeGraph when the uncertainty is structural: entry points, callers, callees, or blast radius. Then read the concrete source before editing it.
+
+Graph and search indexes are navigation aids. Generated or vendored code can add noise, and dynamic or reflective references may be invisible. For cleanup or deletion, corroborate results with exact repository search and the project's compiler, static analyzers, build, and tests.
 
 On Claude Code, the `tool_redirect.py` hook blocks the built-in WebSearch/WebFetch and redirects to these MCP alternatives automatically.
 :::
+
+Pilot runs CodeGraph locally and disables its optional telemetry. Code, paths, symbols, and queries are not uploaded by the Pilot integration.
 
 ## Semble
 
 **Hybrid code search — semantic embeddings + BM25 lexical**
 
-Indexes any repo (local path or git URL) in ~250 ms and answers natural-language or symbol queries in ~1.5 ms — all on CPU. Combines [Model2Vec](https://github.com/MinishLab/model2vec) static code embeddings (`potion-code-16M`) with BM25 lexical scoring, fused via Reciprocal Rank Fusion. Code-aware chunking via [Chonkie](https://github.com/chonkie-inc/chonkie), with definition boosts, identifier stem matching, and noise penalties (test/legacy/example down-ranked). Auto-reindexes on file change for local paths. Integrated via [Semble](https://github.com/MinishLab/semble).
+Builds a local CPU index that combines [Model2Vec](https://github.com/MinishLab/model2vec) static code embeddings (`potion-code-16M`) with BM25 lexical scoring, fused via Reciprocal Rank Fusion. Code-aware chunking via [Chonkie](https://github.com/chonkie-inc/chonkie) adds definition boosts, identifier stem matching, and noise penalties. Local indexes update when files change. Integrated via [Semble](https://github.com/MinishLab/semble).
 
 ```text
-mcp__semble__search(query="authentication flow", repo="/abs/path")
-mcp__semble__search(query="save_pretrained", top_k=10)        // symbol-style
-mcp__semble__find_related(file_path="src/auth.ts", line=42, repo="/abs/path")
+mcp__semble__search(query="authentication flow")
+mcp__semble__search(query="deployment guide", content="docs")
+mcp__semble__find_related(file_path="src/auth.ts", line=42)
 ```
 
 **Key capabilities:**
 
 | Tool | Use case |
 |------|----------|
-| `search` | Natural-language or symbol search with hybrid (default), `semantic`, or `bm25` modes |
-| `find_related` | Find code semantically similar to a specific `file:line` — discovers parallel implementations and call sites |
+| `search` | Natural-language or code search; select `code`, `docs`, `config`, or `all` content when needed |
+| `find_related` | Find code similar to a specific `file:line` — useful for parallel implementations and patterns |
 
-**Token efficiency.** Semble returns only the matched chunks — Semble's own benchmark shows ~98% fewer tokens than `grep + read` at 94% recall. Per-call savings are recorded to `~/.semble/savings.jsonl`. RTK output-compression savings are shown in the Console "Usage" tab (as a share of would-be I/O tokens, per day/week/month).
+**Token efficiency.** Semble returns bounded matched chunks instead of dumping whole file sets. Per-call savings are recorded to `~/.semble/savings.jsonl`. RTK output-compression savings are shown in the Console "Usage" tab (as a share of would-be I/O tokens, per day/week/month).
 
 **Also available as a CLI** (`semble search`, `semble find-related`, `semble savings`) — see the rules doc for the full reference.

@@ -22,6 +22,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -41,6 +42,8 @@ _SUPPORTED_SKILLS = frozenset(
         "fix",
         "build",
         "prd",
+        "investigate",
+        "cleanup",
         "benchmark",
         "setup-rules",
         "create-skill",
@@ -61,6 +64,14 @@ _SKILL_DESCRIPTIONS = {
         "Use only when the user explicitly invokes /prd. Turn a rough product idea into an approved requirements "
         "document."
     ),
+    "investigate": (
+        "Use only when the user explicitly invokes /investigate. Produce an evidence-backed, read-only answer "
+        "about how the current codebase works."
+    ),
+    "cleanup": (
+        "Use only when the user explicitly invokes /cleanup. Produce a read-only, evidence-backed dead-code "
+        "candidate report without installing tools, editing files, or deleting code."
+    ),
     "benchmark": "Benchmark rules, skills, or workflows with quantitative before/after evaluations.",
     "create-skill": (
         "Create, update, or test a reusable agent skill when the user asks for a skill or repeatable workflow."
@@ -75,7 +86,7 @@ _SKILL_DESCRIPTIONS = {
     ),
 }
 
-_EXPLICIT_ONLY_SKILLS = frozenset({"spec", "build", "fix", "prd"})
+_EXPLICIT_ONLY_SKILLS = frozenset({"spec", "build", "fix", "prd", "investigate", "cleanup"})
 
 # Keep in sync with installer/steps/codex_files.py:_CODEX_MANAGED_REVIEW_AGENTS
 # (.claude/rules/pilot-shell-codex-skill-sync.md). Names only -- the sibling
@@ -83,6 +94,10 @@ _EXPLICIT_ONLY_SKILLS = frozenset({"spec", "build", "fix", "prd"})
 # --prompt-file`, not custom agents, so they are never built.
 _SUPPORTED_REVIEW_AGENTS = frozenset({"build-review", "changes-review", "spec-review"})
 _CODEX_REVIEW_AGENT_MODEL = "codex-auto-review"
+_SKILL_RESOURCES_MANIFEST = ".pilot-resources.json"
+_SKILL_AUTHORING_ENTRIES = frozenset(
+    {"manifest.json", "orchestrator.md", "tests", "SKILL.md", _SKILL_RESOURCES_MANIFEST}
+)
 
 _PILOT_SKILL_NAMES = frozenset(
     {
@@ -95,6 +110,8 @@ _PILOT_SKILL_NAMES = frozenset(
         "setup-rules",
         "create-skill",
         "prd",
+        "investigate",
+        "cleanup",
         "benchmark",
         "fix",
         "build",
@@ -161,6 +178,37 @@ def _canonicalize(text: str) -> str:
     return text.strip()
 
 
+def _build_progressive_index(steps: list[dict[str, object]]) -> str:
+    lines = [
+        "## Required phase resources",
+        "",
+        "Follow these phases in order. Each referenced file is part of this skill's contract; "
+        "read it at the named point rather than loading every phase up front.",
+        "",
+    ]
+    for index, step in enumerate(steps, start=1):
+        lines.append(
+            f"{index}. **{step['id']}** — Read `{step['file']}` completely, then execute this phase before "
+            "continuing to the next one."
+        )
+    return "\n".join(lines)
+
+
+def _safe_skill_path(skill_dir: Path, value: object) -> Path | None:
+    """Resolve one manifest path without allowing traversal or symlink escape."""
+    if not isinstance(value, str) or not value or "\\" in value or "\x00" in value or ":" in value:
+        return None
+    relative = Path(value)
+    if relative.is_absolute() or any(part in {"", ".", ".."} for part in relative.parts):
+        return None
+    try:
+        root = skill_dir.resolve()
+        candidate = (skill_dir / relative).resolve()
+    except (OSError, RuntimeError):
+        return None
+    return candidate if candidate.is_relative_to(root) else None
+
+
 def _build_skill(skill_dir: Path) -> str | None:
     manifest_path = skill_dir / "manifest.json"
     if not manifest_path.is_file():
@@ -170,18 +218,130 @@ def _build_skill(skill_dir: Path) -> str | None:
     except (OSError, json.JSONDecodeError):
         return None
 
-    orch_path = skill_dir / manifest.get("orchestrator", "orchestrator.md")
-    if not orch_path.is_file():
+    orch_path = _safe_skill_path(skill_dir, manifest.get("orchestrator", "orchestrator.md"))
+    if orch_path is None or not orch_path.is_file():
         return None
 
     parts = [orch_path.read_text(encoding="utf-8")]
-    for step in manifest.get("steps", []):
-        step_path = skill_dir / step["file"]
-        if not step_path.is_file():
+    steps = manifest.get("steps", [])
+    if not isinstance(steps, list):
+        return None
+    for step in steps:
+        if not isinstance(step, dict) or not isinstance(step.get("file"), str):
             return None
-        parts.append(step_path.read_text(encoding="utf-8"))
+        step_path = _safe_skill_path(skill_dir, step["file"])
+        if step_path is None or not step_path.is_file():
+            return None
+        if manifest.get("delivery", "bundled") == "bundled":
+            parts.append(step_path.read_text(encoding="utf-8"))
+
+    if manifest.get("delivery") == "progressive":
+        parts.append(_build_progressive_index(steps))
 
     return _canonicalize("\n\n".join(parts))
+
+
+def _is_runtime_resource(relative: Path, *, progressive: bool) -> bool:
+    if not relative.parts or relative.parts[0] in _SKILL_AUTHORING_ENTRIES:
+        return False
+    if relative.parts[0] == "steps" and not progressive:
+        return False
+    return relative.parts != ("agents", "openai.yaml")
+
+
+def _runtime_inventory(skill_dir: Path) -> tuple[set[str], set[str]]:
+    try:
+        manifest = json.loads((skill_dir / "manifest.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        manifest = {}
+    progressive = isinstance(manifest, dict) and manifest.get("delivery") == "progressive"
+    files: set[str] = set()
+    directories: set[str] = set()
+    for entry in sorted(skill_dir.iterdir()):
+        candidates = [entry]
+        if entry.is_dir() and not entry.is_symlink():
+            candidates.extend(sorted(entry.rglob("*")))
+        for candidate in candidates:
+            relative = candidate.relative_to(skill_dir)
+            if not _is_runtime_resource(relative, progressive=progressive):
+                continue
+            value = relative.as_posix()
+            if candidate.is_dir() and not candidate.is_symlink():
+                directories.add(value)
+            else:
+                files.add(value)
+    return files, directories
+
+
+def _load_resource_manifest(path: Path) -> tuple[set[str], set[str]]:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return set(), set()
+    if not isinstance(data, dict):
+        return set(), set()
+
+    def values(key: str) -> set[str]:
+        raw = data.get(key)
+        if not isinstance(raw, list):
+            return set()
+        result: set[str] = set()
+        for value in raw:
+            if not isinstance(value, str):
+                continue
+            relative = Path(value)
+            if relative.is_absolute() or ".." in relative.parts:
+                continue
+            if _is_runtime_resource(relative, progressive=True):
+                result.add(relative.as_posix())
+        return result
+
+    return values("files"), values("directories")
+
+
+def _atomic_write(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + ".tmp")
+    temporary.write_text(content, encoding="utf-8")
+    os.replace(str(temporary), str(path))
+
+
+def _sync_skill_resources(skill_dir: Path, dest: Path) -> None:
+    manifest_path = dest / _SKILL_RESOURCES_MANIFEST
+    previous_files, previous_directories = _load_resource_manifest(manifest_path)
+    current_files, current_directories = _runtime_inventory(skill_dir)
+
+    for relative in sorted(previous_files - current_files, key=lambda value: (-value.count("/"), value)):
+        target = dest / relative
+        try:
+            if target.is_file() or target.is_symlink():
+                target.unlink()
+        except OSError:
+            pass
+    for relative in sorted(previous_directories - current_directories, key=lambda value: (-value.count("/"), value)):
+        try:
+            (dest / relative).rmdir()
+        except OSError:
+            pass
+
+    for relative in sorted(current_directories, key=lambda value: (value.count("/"), value)):
+        (dest / relative).mkdir(parents=True, exist_ok=True)
+    for relative in sorted(current_files):
+        source = skill_dir / relative
+        target = dest / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.is_file() or target.is_symlink():
+            target.unlink()
+        relative_path = Path(relative)
+        if relative_path.parts[0] == "steps" and relative_path.suffix.lower() == ".md":
+            _atomic_write(target, _adapt(source.read_text(encoding="utf-8")).rstrip("\n") + "\n")
+        else:
+            shutil.copy2(source, target, follow_symlinks=False)
+
+    _atomic_write(
+        manifest_path,
+        json.dumps({"files": sorted(current_files), "directories": sorted(current_directories)}, indent=2) + "\n",
+    )
 
 
 def _extract_metadata(content: str) -> tuple[str, str]:
@@ -221,20 +381,20 @@ def _adapt(content: str) -> str:
     adapted = _SKILL_INVOCATION_RE.sub(lambda m: "$" + m.group(1), adapted)
     adapted = adapted.replace(
         "AskUserQuestion(multiSelect: true)",
-        "plain-text numbered options with multi-select",
+        "a structured multi-select question when the runtime exposes one, otherwise numbered options",
     )
     for old, new in (
-        ("`AskUserQuestion` tool", "`plain-text numbered options` format"),
-        ("AskUserQuestion tool", "plain-text numbered options format"),
-        ("`AskUserQuestion` calls", "`plain-text numbered options` prompts"),
-        ("AskUserQuestion calls", "plain-text numbered options prompts"),
-        ("`AskUserQuestion` call", "`plain-text numbered options` prompt"),
-        ("AskUserQuestion call", "plain-text numbered options prompt"),
+        ("`AskUserQuestion` tool", "Claude structured-question tool"),
+        ("AskUserQuestion tool", "Claude structured-question tool"),
+        ("`AskUserQuestion` calls", "structured-question prompts"),
+        ("AskUserQuestion calls", "structured-question prompts"),
+        ("`AskUserQuestion` call", "structured-question prompt"),
+        ("AskUserQuestion call", "structured-question prompt"),
     ):
         adapted = adapted.replace(old, new)
     adapted = adapted.replace(
         "AskUserQuestion",
-        "plain-text numbered options",
+        "structured question",
     )
     return adapted
 
@@ -244,7 +404,8 @@ def _build_codex_skill(skill_dir: Path) -> str | None:
     if content is None:
         return None
     name, desc = _extract_metadata(content)
-    desc = _SKILL_DESCRIPTIONS.get(name, desc)
+    manifest = _load_skill_metadata(skill_dir)
+    desc = _manifest_codex_description(manifest) or _SKILL_DESCRIPTIONS.get(name, desc)
     desc = _adapt(desc)
     adapted = _adapt(content)
     if adapted.startswith("---\n"):
@@ -259,13 +420,16 @@ def _build_openai_yaml(skill_dir: Path) -> str | None:
     if content is None:
         return None
     name, description = _extract_metadata(content)
-    description = _SKILL_DESCRIPTIONS.get(name, description)
+    manifest = _load_skill_metadata(skill_dir)
+    description = _manifest_codex_description(manifest, short=True) or _SKILL_DESCRIPTIONS.get(name, description)
     description = _adapt(description)
     compact_description = " ".join(description.split())
     if len(compact_description) > 160:
         compact_description = compact_description[:157].rsplit(" ", 1)[0] + "..."
     display_name = name.replace("-", " ").title()
-    implicit = name not in _EXPLICIT_ONLY_SKILLS
+    implicit = (
+        manifest.get("invocation") == "implicit" if manifest.get("version") == 2 else name not in _EXPLICIT_ONLY_SKILLS
+    )
     return (
         "interface:\n"
         f"  display_name: {json.dumps(display_name)}\n"
@@ -273,6 +437,81 @@ def _build_openai_yaml(skill_dir: Path) -> str | None:
         "policy:\n"
         f"  allow_implicit_invocation: {'true' if implicit else 'false'}\n"
     )
+
+
+def _load_skill_metadata(skill_dir: Path) -> dict[str, object]:
+    try:
+        data = json.loads((skill_dir / "manifest.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _manifest_codex_description(manifest: dict[str, object], *, short: bool = False) -> str:
+    platform = manifest.get("platform")
+    if not isinstance(platform, dict):
+        return ""
+    codex = platform.get("codex")
+    if not isinstance(codex, dict):
+        return ""
+    keys = ("short_description", "description") if short else ("description", "short_description")
+    for key in keys:
+        value = codex.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return ""
+
+
+def _skill_targets(skill_dir: Path) -> frozenset[str]:
+    manifest = _load_skill_metadata(skill_dir)
+    if manifest.get("version") != 2:
+        return frozenset({"claude", "codex"})
+    targets = manifest.get("targets")
+    return frozenset(value for value in targets if isinstance(value, str)) if isinstance(targets, list) else frozenset()
+
+
+def _remove_skill_runtime(dest: Path) -> None:
+    manifest_path = dest / _SKILL_RESOURCES_MANIFEST
+    if not manifest_path.is_file():
+        return
+    previous_files, previous_directories = _load_resource_manifest(manifest_path)
+    for relative in sorted(previous_files, key=lambda value: (-value.count("/"), value)):
+        target = dest / relative
+        try:
+            if target.is_file() or target.is_symlink():
+                target.unlink()
+        except OSError:
+            pass
+    for relative in sorted(previous_directories, key=lambda value: (-value.count("/"), value)):
+        try:
+            (dest / relative).rmdir()
+        except OSError:
+            pass
+    manifest_path.unlink(missing_ok=True)
+    (dest / "SKILL.md").unlink(missing_ok=True)
+    metadata = dest / "agents" / "openai.yaml"
+    metadata.unlink(missing_ok=True)
+    try:
+        metadata.parent.rmdir()
+    except OSError:
+        pass
+    try:
+        dest.rmdir()
+    except OSError:
+        pass
+
+
+def _remove_orphaned_skill_runtimes(root: Path, source_names: set[str]) -> None:
+    if not root.is_dir():
+        return
+    try:
+        candidates = list(root.iterdir())
+    except OSError:
+        return
+    for candidate in candidates:
+        if candidate.name in source_names or not (candidate / _SKILL_RESOURCES_MANIFEST).is_file():
+            continue
+        _remove_skill_runtime(candidate)
 
 
 def _build_codex_review_agent(agent_file: Path) -> str | None:
@@ -325,8 +564,7 @@ def _adapt_review_agent_instructions(body: str) -> str:
         adapted,
         flags=re.DOTALL,
     )
-    adapted = adapted.replace("### 4. Write Output", "### 4. Return Output")
-    adapted = adapted.replace("### 5. Write Output", "### 5. Return Output")
+    adapted = re.sub(r"### (\d+)\. Write Output", r"### \1. Return Output", adapted)
     adapted = adapted.replace(
         "**Write JSON to `output_path` as your FINAL action.**", "**Return JSON as your final response.**"
     )
@@ -338,6 +576,7 @@ def _adapt_review_agent_instructions(body: str) -> str:
     adapted = adapted.replace("`output_path`, ", "")
     adapted = adapted.replace("`output_path`", "the parent prompt")
     adapted = adapted.replace("write what you have", "return what you have")
+    adapted = adapted.replace("then write output", "then return output")
     adapted = adapted.replace("No file = orchestrator stalls.", "No final JSON = parent workflow cannot continue.")
     adapted = re.sub(r"\n{3,}", "\n\n", adapted).strip()
     return (
@@ -378,18 +617,10 @@ def _remove_codex_skills() -> int:
     removed = 0
     for skill_name in _scoped_pilot_skill_names():
         skill_dir = agents_dir / skill_name
-        skill_md = skill_dir / "SKILL.md"
-        metadata = skill_dir / "agents" / "openai.yaml"
-        managed = skill_md.is_file() or metadata.is_file()
-        if skill_md.is_file():
-            skill_md.unlink()
-        if metadata.is_file():
-            metadata.unlink()
-        try:
-            (skill_dir / "agents").rmdir()
-            skill_dir.rmdir()
-        except OSError:
-            pass
+        if not (skill_dir / _SKILL_RESOURCES_MANIFEST).is_file():
+            continue
+        managed = (skill_dir / "SKILL.md").is_file() or (skill_dir / "agents" / "openai.yaml").is_file()
+        _remove_skill_runtime(skill_dir)
         if managed:
             removed += 1
     return removed
@@ -418,11 +649,20 @@ def _sync_codex_skills() -> tuple[int, int]:
     failed = 0
 
     if source_skills is None or not source_skills.is_dir():
+        _remove_orphaned_skill_runtimes(agents_dir, set())
         return 0, 0
 
+    source_names = {
+        name
+        for name in _SUPPORTED_SKILLS
+        if (source_skills / name).is_dir() and (source_skills / name / "manifest.json").is_file()
+    }
     for skill_name in _SUPPORTED_SKILLS:
         skill_dir = source_skills / skill_name
         if not skill_dir.is_dir() or not (skill_dir / "manifest.json").is_file():
+            continue
+        if "codex" not in _skill_targets(skill_dir):
+            _remove_skill_runtime(agents_dir / skill_name)
             continue
         try:
             codex_content = _build_codex_skill(skill_dir)
@@ -431,7 +671,13 @@ def _sync_codex_skills() -> tuple[int, int]:
                 failed += 1
                 continue
             dest = agents_dir / skill_name
+            if _skill_runtime_has_unowned_core(dest):
+                failed += 1
+                continue
             dest.mkdir(parents=True, exist_ok=True)
+            ownership_manifest = dest / _SKILL_RESOURCES_MANIFEST
+            if not ownership_manifest.exists():
+                _atomic_write(ownership_manifest, '{"files": [], "directories": []}\n')
             tmp = dest / "SKILL.md.tmp"
             tmp.write_text(codex_content, encoding="utf-8")
             os.replace(str(tmp), str(dest / "SKILL.md"))
@@ -440,11 +686,20 @@ def _sync_codex_skills() -> tuple[int, int]:
             metadata_tmp = metadata_dir / "openai.yaml.tmp"
             metadata_tmp.write_text(metadata, encoding="utf-8")
             os.replace(str(metadata_tmp), str(metadata_dir / "openai.yaml"))
+            _sync_skill_resources(skill_dir, dest)
             built += 1
         except Exception:
             failed += 1
 
+    _remove_orphaned_skill_runtimes(agents_dir, source_names)
     return built, failed
+
+
+def _skill_runtime_has_unowned_core(dest: Path) -> bool:
+    """Return whether a same-name user skill occupies Pilot's runtime paths."""
+    if (dest / _SKILL_RESOURCES_MANIFEST).is_file():
+        return False
+    return (dest / "SKILL.md").is_file() or (dest / "agents" / "openai.yaml").is_file()
 
 
 def _sync_codex_review_agents() -> tuple[int, int]:
@@ -456,11 +711,18 @@ def _sync_codex_review_agents() -> tuple[int, int]:
     failed = 0
 
     if source_dir is None or not source_dir.is_dir():
+        for agent_name in _SUPPORTED_REVIEW_AGENTS:
+            target = dest_dir / f"{agent_name}.toml"
+            if target.is_file() and _is_pilot_managed_codex_review_agent(target):
+                target.unlink(missing_ok=True)
         return 0, 0
 
     for agent_name in _SUPPORTED_REVIEW_AGENTS:
         source = source_dir / f"{agent_name}.md"
+        target = dest_dir / f"{agent_name}.toml"
         if not source.is_file():
+            if target.is_file() and _is_pilot_managed_codex_review_agent(target):
+                target.unlink(missing_ok=True)
             continue
         try:
             codex_content = _build_codex_review_agent(source)
@@ -470,7 +732,7 @@ def _sync_codex_review_agents() -> tuple[int, int]:
             dest_dir.mkdir(parents=True, exist_ok=True)
             tmp = dest_dir / f"{agent_name}.toml.tmp"
             tmp.write_text(codex_content, encoding="utf-8")
-            os.replace(str(tmp), str(dest_dir / f"{agent_name}.toml"))
+            os.replace(str(tmp), str(target))
             built += 1
         except Exception:
             failed += 1

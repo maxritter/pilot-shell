@@ -99,6 +99,35 @@ class TestBuildSkill:
     def test_returns_none_for_missing_manifest(self, tmp_path: Path) -> None:
         assert _build_skill(tmp_path / "nope") is None
 
+    @pytest.mark.parametrize("unsafe", ["../secret.md", "/tmp/secret.md", "steps\\secret.md"])
+    def test_rejects_unsafe_manifest_paths(self, tmp_path: Path, unsafe: str) -> None:
+        skill_dir = tmp_path / "skill"
+        skill_dir.mkdir()
+        (skill_dir / "manifest.json").write_text(json.dumps({"version": 1, "orchestrator": unsafe, "steps": []}))
+
+        assert _build_skill(skill_dir) is None
+
+    def test_progressive_manifest_builds_step_index_without_inlining_body(self, claude_tree: Path) -> None:
+        skill_dir = claude_tree / ".claude" / "skills" / "spec"
+        manifest = json.loads((skill_dir / "manifest.json").read_text())
+        manifest.update(
+            {
+                "version": 2,
+                "delivery": "progressive",
+                "targets": ["claude", "codex"],
+                "visibility": "public",
+                "invocation": "explicit",
+            }
+        )
+        (skill_dir / "manifest.json").write_text(json.dumps(manifest))
+
+        result = _build_skill(skill_dir)
+
+        assert result is not None
+        assert "Required phase resources" in result
+        assert "steps/01.md" in result
+        assert "First step." not in result
+
 
 class TestRemoveCCSkills:
     def test_removes_skill_md_but_keeps_source(self, claude_tree: Path) -> None:
@@ -130,6 +159,24 @@ class TestRebuildCCSkills:
         rebuilt = _rebuild_cc_skills(skills_dir, {"spec"})
         assert rebuilt == 0
         assert (skills_dir / "spec" / "SKILL.md").read_text() == "BUILT spec"
+
+    def test_codex_only_target_removes_stale_claude_artifact(self, claude_tree: Path) -> None:
+        skills_dir = claude_tree / ".claude" / "skills"
+        skill_dir = skills_dir / "spec"
+        manifest = json.loads((skill_dir / "manifest.json").read_text())
+        manifest.update(
+            {
+                "version": 2,
+                "delivery": "bundled",
+                "targets": ["codex"],
+                "visibility": "public",
+                "invocation": "explicit",
+            }
+        )
+        (skill_dir / "manifest.json").write_text(json.dumps(manifest))
+
+        assert _rebuild_cc_skills(skills_dir, {"spec"}) == 0
+        assert not (skill_dir / "SKILL.md").exists()
 
 
 class TestMain:

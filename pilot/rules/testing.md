@@ -36,9 +36,9 @@ Coverage is a diagnostic, not a quota. Critical paths — business logic, securi
 
 Any change to what the user sees must be verified with browser automation, in `/spec`, in `/build`, and in quick mode alike. Unit tests don't catch stale bundles, layout breakage, or wiring. Procedure and tool tiers: `browser-automation.md`.
 
-### ⛔ Zero tolerance for failing tests
+### Failing tests outside the request
 
-Run the full suite, not just the files you touched. "Pre-existing failure" is not an excuse — if you see it, you fix it, in a clearly-labelled separate commit when practical, or report it explicitly if the fix warrants its own change. This is the one sanctioned exception to the lineage rule.
+Run the repository's required suite after focused checks. When a failure appears outside the requested change, reproduce and attribute it before calling it pre-existing. Report the evidence and request authority before changing unrelated code. Fix it only when the requested change caused it, the fix is required to validate the requested result, or the user separately authorizes that work.
 
 ### Assertions are where tests go wrong
 

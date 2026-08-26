@@ -29,6 +29,8 @@ const sidebars: SidebarsConfig = {
       label: "Additional Workflows",
       collapsed: false,
       items: [
+        "workflows/investigate",
+        "workflows/cleanup",
         "workflows/setup-rules",
         "workflows/create-skill",
         "workflows/benchmark",

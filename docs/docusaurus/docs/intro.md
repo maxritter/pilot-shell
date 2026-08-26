@@ -38,6 +38,12 @@ codex    # Codex CLI — all core workflows
 # Create a reusable skill
 > /create-skill      # Codex: $create-skill
 
+# Understand how existing code works without changing it
+> /investigate "How does a CLI flag become persisted config?"   # Codex: $investigate
+
+# Audit dead and unused code candidates without deleting anything
+> /cleanup "src/auth"   # Codex: $cleanup
+
 # Brainstorm a vague idea into a PRD (with optional research)
 > /prd "Add real-time notifications for team updates"   # Codex: $prd
 

@@ -223,6 +223,39 @@ class TestPrepareConfigDir:
         assert installed.exists()
         assert not (result / ".claude").exists()
 
+    @pytest.mark.parametrize("agent,invocation", [("claude", "/cleanup"), ("codex", "$cleanup")])
+    def test_with_config_materializes_progressive_skill(self, tmp_path: Path, agent: str, invocation: str) -> None:
+        skill_src = tmp_path / "src" / "cleanup"
+        (skill_src / "steps").mkdir(parents=True)
+        (skill_src / "orchestrator.md").write_text(
+            "---\nname: cleanup\ndescription: report only\n---\n# Cleanup\n\nRuns only through /cleanup.\n",
+            encoding="utf-8",
+        )
+        (skill_src / "steps" / "01-scope.md").write_text("## Scope\n", encoding="utf-8")
+        (skill_src / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "version": 2,
+                    "orchestrator": "orchestrator.md",
+                    "delivery": "progressive",
+                    "steps": [{"id": "step-1-scope", "file": "steps/01-scope.md"}],
+                }
+            ),
+            encoding="utf-8",
+        )
+        target: TargetConfig = {"type": "skill", "path": str(skill_src), "name": "cleanup"}
+        dest_root = tmp_path / "dest"
+        dest_root.mkdir()
+
+        result = prepare_config_dir(target, "with", dest_root, agent=agent)
+        base = result / (".agents" if agent == "codex" else ".claude") / "skills" / "cleanup"
+        content = (base / "SKILL.md").read_text(encoding="utf-8")
+
+        assert invocation in content
+        assert "## Required phase resources" in content
+        assert "steps/01-scope.md" in content
+        assert (base / "steps" / "01-scope.md").is_file()
+
     def test_codex_with_rules_target_writes_root_agents_md(self, tmp_path: Path) -> None:
         rules_src = tmp_path / "src" / "rules"
         rules_src.mkdir(parents=True)

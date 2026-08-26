@@ -236,7 +236,7 @@ def _is_safe_session_component(value: str) -> bool:
     return value not in (".", "..") and bool(_SAFE_SESSION_COMPONENT_RE.fullmatch(value))
 
 
-def resolve_session_id(fallback: str = "") -> str:
+def resolve_session_id(fallback: object = "") -> str:
     """Resolve the session id from the agent-native env chain.
 
     Returns the first non-empty value among PILOT_SESSION_ID (set by the shell
@@ -268,6 +268,8 @@ def resolve_session_id(fallback: str = "") -> str:
         value = os.environ.get(var, "").strip()
         if value:
             return value
+    if not isinstance(fallback, str):
+        return "default"
     fallback = fallback.strip()
     # Reject a fallback that cannot be a single path component: the id is joined
     # under ~/.pilot/sessions/ and session_clear deletes there, so a traversal
@@ -275,6 +277,21 @@ def resolve_session_id(fallback: str = "") -> str:
     if fallback and _is_safe_session_component(fallback):
         return fallback
     return "default"
+
+
+def resolve_payload_session_id(value: object) -> str:
+    """Resolve a payload-first session id without trusting it as a path component.
+
+    Compaction state is keyed by the hook payload so its pre- and post-compaction
+    events meet even when the wrapper environment changes between them. Payloads
+    are untrusted, though: only a string accepted by the same single-component
+    policy as :func:`resolve_session_id` may override the environment chain.
+    """
+    if isinstance(value, str):
+        candidate = value.strip()
+        if candidate and _is_safe_session_component(candidate):
+            return candidate
+    return resolve_session_id()
 
 
 def _sessions_base() -> Path:

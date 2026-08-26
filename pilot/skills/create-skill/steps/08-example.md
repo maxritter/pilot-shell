@@ -1,17 +1,18 @@
 ## Step 8: Example
 
-**Scenario:** User asks to create a skill for finding dead code using LSP.
+**Scenario:** User asks to create a report-only skill for finding dead-code candidates safely.
 
-**Canonical result:** `.agents/skills/my-project-lsp-cleaner/SKILL.md`
+**Canonical result:** `.agents/skills/my-project-dead-code-audit/SKILL.md`
 
-**Generated Claude Code mirror:** `.claude/skills/my-project-lsp-cleaner/SKILL.md`
+**Generated Claude Code mirror:** `.claude/skills/my-project-dead-code-audit/SKILL.md`
 
 ```yaml
-name: my-project-lsp-cleaner
+name: my-project-dead-code-audit
 description: |
-  Find dead/unused code using LSP findReferences. Use when: (1) user asks
-  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
-  function with only 1 reference (definition) or only test refs is dead code.
+  Report dead-code candidates using the project's configured static analyzers,
+  CodeGraph impact tracing, and exact repository search. Use when auditing
+  unused code or planning cleanup. Never delete automatically: public entry
+  points, dynamic references, and test-only references require verification.
 targets: [claude, codex]
 tags: [refactoring, code-quality]
 license: MIT

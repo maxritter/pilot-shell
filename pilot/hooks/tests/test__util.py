@@ -345,6 +345,22 @@ class TestResolveSessionId:
             assert resolve_session_id("..") == "default"
             assert resolve_session_id(".") == "default"
 
+    def test_non_string_payload_fallback_rejected(self):
+        from _lib.util import resolve_session_id
+
+        with patch.dict("os.environ", {}, clear=True):
+            assert resolve_session_id(123) == "default"
+            assert resolve_session_id(["session"]) == "default"
+
+    def test_payload_first_resolver_sanitizes_before_overriding_environment(self):
+        from _lib.util import resolve_payload_session_id
+
+        with patch.dict("os.environ", {"PILOT_SESSION_ID": "env-session"}, clear=True):
+            assert resolve_payload_session_id("payload-session") == "payload-session"
+            assert resolve_payload_session_id("../victim") == "env-session"
+            assert resolve_payload_session_id("/tmp/victim") == "env-session"
+            assert resolve_payload_session_id(123) == "env-session"
+
 
 class TestGetSessionCachePath:
     """Tests for get_session_cache_path()."""

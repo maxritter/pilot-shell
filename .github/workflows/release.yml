@@ -55,7 +55,7 @@ jobs:
           echo "$COMMIT_MSGS"
 
           # Check for fix: or feat: prefix (first line or squash merge body)
-          if echo "$COMMIT_MSGS" | grep -qE "(^|\* )(fix|feat):"; then
+          if echo "$COMMIT_MSGS" | grep -qE "(^|\* )(fix|feat)(\([^)]*\))?!?:"; then
             echo "Release commit detected (fix: or feat:) in $RANGE"
             echo "should_run=true" >> "$GITHUB_OUTPUT"
             exit 0
@@ -207,6 +207,12 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install . pytest pytest-cov pytest-asyncio hypothesis
+
+      - name: Validate generated agent assets
+        run: |
+          python3 -m launcher.cli skills validate pilot/skills --platform all
+          python3 scripts/validate_agent_assets.py
+          python3 scripts/gen_hook_manifests.py --check
 
       - name: Run unit tests with coverage
         run: |
@@ -433,7 +439,7 @@ jobs:
         uses: orhun/git-cliff-action@e16f179f0be49ecdfe63753837f20b9531642772 # v4
         with:
           config: cliff.toml
-          args: v6.0.0.. --unreleased --tag v${{ steps.check.outputs.version }}
+          args: v${{ steps.current.outputs.version }}.. --unreleased --tag v${{ steps.check.outputs.version }}
         env:
           OUTPUT: CHANGES.md
           GITHUB_REPO: ${{ github.repository }}
@@ -658,7 +664,8 @@ jobs:
         env:
           CHANGELOG_CONTENT: ${{ needs.prepare-release.outputs.changelog }}
         run: |
-          cat >> $GITHUB_STEP_SUMMARY << SUMMARY
+          {
+          cat << SUMMARY
           ## 🚀 Release Approval Required
 
           ### Version Bump
@@ -681,13 +688,14 @@ jobs:
           SUMMARY
 
           # Write changelog safely via environment variable
-          printf '%s\n' "$CHANGELOG_CONTENT" >> $GITHUB_STEP_SUMMARY
+          printf '%s\n' "$CHANGELOG_CONTENT"
 
-          cat >> $GITHUB_STEP_SUMMARY << 'SUMMARY'
+          cat << 'SUMMARY'
 
           ---
           **Approve this deployment to publish the release.**
           SUMMARY
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Release approved
         run: |
@@ -757,6 +765,15 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.3.11"
+
+      - name: Install Console dependencies for versioned bundle rebuild
+        working-directory: console
+        run: bun install --frozen-lockfile
+
       - name: Prepend new release to CHANGELOG.md with git-cliff
         if: ${{ github.event.inputs.changelog == '' }}
         uses: orhun/git-cliff-action@e16f179f0be49ecdfe63753837f20b9531642772 # v4
@@ -797,9 +814,17 @@ jobs:
           # Update version in README.md
           sed -i "s/export VERSION=[0-9.]*/export VERSION=${VERSION}/g" README.md
 
+          # Keep package and generated runtime versions equivalent to the automatic path.
+          sed -i 's/"version": "[0-9.]*"/"version": "'"${VERSION}"'"/' console/package.json pilot/package.json
+
           echo "Version files updated:"
           grep __version__ installer/__init__.py launcher/__init__.py
           grep "VERSION=" README.md | head -1
+
+      - name: Rebuild versioned runtime bundles for manual trigger
+        if: github.event_name == 'workflow_dispatch'
+        working-directory: console
+        run: bun run build
 
       - name: Commit and push version updates for manual trigger
         if: github.event_name == 'workflow_dispatch'
@@ -810,7 +835,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Stage all updated files
-          git add installer/__init__.py launcher/__init__.py README.md CHANGELOG.md
+          git add installer/__init__.py launcher/__init__.py README.md CHANGELOG.md \
+            console/package.json pilot/package.json pilot/scripts/*.cjs pilot/ui
 
           # Check if there are changes to commit
           if git diff --staged --quiet; then
@@ -863,18 +889,18 @@ jobs:
           # Wait for release to exist with retry logic
           MAX_RETRIES=12
           RETRY_DELAY=5
-          for i in $(seq 1 $MAX_RETRIES); do
+          for ((i = 1; i <= MAX_RETRIES; i++)); do
             if gh release view "v${VERSION}" >/dev/null 2>&1; then
               echo "Release v${VERSION} found"
               break
             fi
-            if [ $i -eq $MAX_RETRIES ]; then
+            if [ "$i" -eq "$MAX_RETRIES" ]; then
               echo "Release v${VERSION} not found after ${MAX_RETRIES} retries"
               echo "Creating release manually..."
               gh release create "v${VERSION}" --title "v${VERSION}" --notes "Release v${VERSION}"
             fi
             echo "Waiting for release... (attempt $i/$MAX_RETRIES)"
-            sleep $RETRY_DELAY
+            sleep "$RETRY_DELAY"
           done
 
           # Upload all .so files and tree.json
@@ -931,6 +957,5 @@ jobs:
           VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
           VERCEL_PROJECT_ID: prj_TXccrJI83HyNvQUZxqStUFgus9NB
         run: |
-          DEPLOY_URL=$(vercel deploy --token=$VERCEL_TOKEN --prod)
+          DEPLOY_URL=$(vercel deploy --token="$VERCEL_TOKEN" --prod)
           echo "Deployed to: $DEPLOY_URL"
-

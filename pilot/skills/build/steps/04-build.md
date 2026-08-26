@@ -82,12 +82,7 @@ Loop pressure pushes toward batching everything into one giant call. It produces
 - **Clean up what you start.** A background process you launched is yours to kill before the round ends.
 - **One line of narration per task.** The round log is the record; the conversation is not the report. Save the writing for Step 6.
 
-<!-- CC-ONLY -->
-⛔ **No subagents inside the loop.** The one research agent allowed in this workflow was Step 1's, and it is spent.
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-Use bounded worker agents inside the loop for independent tasks with non-overlapping ownership. Launch independent work together, retain each returned id, and wait with the current tool schema's mechanism. The main thread owns integration, Buildout state, shared checks, and the judge pass. Inspect the resulting files and run fresh verification before ticking an agent-owned task.
-CODEX-END -->
+Use subagents inside or outside the loop whenever you judge them useful. Do not ask the user to approve delegation. Keep concurrent writes non-overlapping, retain returned ids, inspect the resulting files, and run fresh verification before ticking an agent-owned task.
 
 ### 4.6 When the work is blocked on something outside this session
 

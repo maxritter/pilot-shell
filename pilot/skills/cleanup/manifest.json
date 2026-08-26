@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "orchestrator": "orchestrator.md",
+  "delivery": "progressive",
+  "targets": ["claude", "codex"],
+  "visibility": "public",
+  "invocation": "explicit",
+  "evals": "tests/evals.json",
+  "platform": {
+    "codex": {
+      "description": "Use only when the user explicitly invokes /cleanup. Produce a read-only, evidence-backed dead-code candidate report without installing tools, editing files, or deleting code.",
+      "short_description": "Report dead-code candidates without changing code"
+    }
+  },
+  "steps": [
+    {
+      "id": "step-1-scope",
+      "file": "steps/01-scope.md"
+    },
+    {
+      "id": "step-2-candidates",
+      "file": "steps/02-candidates.md"
+    },
+    {
+      "id": "step-3-corroborate",
+      "file": "steps/03-corroborate.md"
+    },
+    {
+      "id": "step-4-report",
+      "file": "steps/04-report.md"
+    }
+  ]
+}

@@ -339,11 +339,10 @@ def install_semble() -> bool:
     `semble` CLI is on PATH for the AGENTS.md/CLAUDE.md workflow.
 
     The version is pinned from the manifest rather than floated with
-    `--upgrade`, and the `[mcp]` extra is included, so the installed CLI and
-    the `uvx --from "semble[mcp]==<version>" semble` MCP entry in
-    pilot/.mcp.json resolve to the *same* release. Upstream pins the same way
-    for the same reason (docs/installation.md): a floating install leaves the
-    agent calling a different semble than the instructions were written for.
+    `--upgrade`, and the `[mcp]` extra is included so the Pilot-installed
+    binary can serve both CLI and MCP requests. pilot/.mcp.json launches that
+    exact binary through ~/.pilot/bin instead of asking uvx to resolve and
+    install a second environment at agent startup.
     `--reinstall` makes the pin authoritative — plain `uv tool install` is a
     no-op when any version is already present, which would strand an older
     install after a manifest bump.
@@ -356,7 +355,13 @@ def install_semble() -> bool:
     ):
         return False
 
-    _symlink_to_pilot_bin("semble", source=_uv_tool_bin_semble())
+    source = _uv_tool_bin_semble()
+    if source is None:
+        _thread_local.last_retry_stderr = "Semble installed, but uv's executable could not be located"
+        return False
+    if not _symlink_to_pilot_bin("semble", source=source):
+        _thread_local.last_retry_stderr = "Semble installed, but ~/.pilot/bin/semble could not be created"
+        return False
     _record_outcome(_OUTCOME_UPDATED if was_present else _OUTCOME_INSTALLED)
     return True
 
@@ -512,7 +517,7 @@ def _uv_tool_bin_semble() -> Path | None:
     """
     try:
         result = subprocess.run(
-            ["uv", "tool", "dir", "--bin"],
+            ["uv", "tool", "dir", "--bin", "--no-config"],
             capture_output=True,
             text=True,
             timeout=15,
@@ -521,10 +526,10 @@ def _uv_tool_bin_semble() -> Path | None:
     except (OSError, subprocess.SubprocessError):
         return None
     candidate = Path(result.stdout.strip()) / "semble"
-    return candidate if candidate.is_file() else None
+    return candidate if candidate.is_file() and os.access(candidate, os.X_OK) else None
 
 
-def _symlink_to_pilot_bin(binary_name: str, source: Path | str | None = None) -> None:
+def _symlink_to_pilot_bin(binary_name: str, source: Path | str | None = None) -> bool:
     """Create a symlink in ~/.pilot/bin/ pointing to the installed binary.
 
     This ensures the binary is in PATH even when its install directory
@@ -540,7 +545,7 @@ def _symlink_to_pilot_bin(binary_name: str, source: Path | str | None = None) ->
     if source is None:
         source = shutil.which(binary_name)
     if not source:
-        return
+        return False
 
     source_path = Path(source).resolve()
     try:
@@ -548,7 +553,8 @@ def _symlink_to_pilot_bin(binary_name: str, source: Path | str | None = None) ->
             link_path.unlink()
         link_path.symlink_to(source_path)
     except OSError:
-        pass
+        return False
+    return link_path.is_file() and os.access(link_path, os.X_OK)
 
 
 def _is_in_git_repo(directory: Path) -> bool:
@@ -566,9 +572,8 @@ def _is_in_git_repo(directory: Path) -> bool:
 def _has_git_commits(directory: Path) -> bool:
     """Whether the git repo containing `directory` has at least one commit.
 
-    A fresh `git init` directory has `.git/` but no commits — CodeGraph
-    cannot meaningfully index it and surfaces a confusing WASM SQLite
-    failure ("unable to open database file") if attempted.
+    A fresh `git init` directory has `.git/` but no commits, so CodeGraph
+    cannot build a meaningful symbol graph yet.
     """
     try:
         result = subprocess.run(
@@ -583,7 +588,7 @@ def _has_git_commits(directory: Path) -> bool:
 
 
 def install_codegraph() -> bool:
-    """Install or update CodeGraph for code knowledge graph and structural analysis."""
+    """Install CodeGraph's self-contained bundle and persist telemetry opt-out."""
     was_present = command_exists("codegraph")
     if not _run_bash_with_retry(
         _npm_install_cmd(manifest_get("codegraph"), force=True),
@@ -592,41 +597,9 @@ def install_codegraph() -> bool:
         return False
 
     _symlink_to_pilot_bin("codegraph")
-    _record_outcome(_OUTCOME_UPDATED if was_present else _OUTCOME_INSTALLED)
-    return True
-
-
-def install_better_sqlite3() -> bool:
-    """Install native better-sqlite3 globally so CodeGraph can find it.
-
-    CodeGraph declares `better-sqlite3` as an `optionalDependencies`. npm
-    silently skips optional deps in several real-world scenarios (`--force`
-    global installs on some npm versions, `.npmrc` with `optional=false`,
-    prebuild-install network failures, platform/arch mismatches). When the
-    native module is missing, CodeGraph falls back to a WASM SQLite backend
-    that has known issues producing `SQLITE_CANTOPEN: unable to open database
-    file` on certain filesystems — users see this as "codegraph can't index
-    anything".
-
-    Installing better-sqlite3 at the GLOBAL npm root works because Node's
-    module resolver walks up from CodeGraph's package directory — eventually
-    hitting the global node_modules dir and finding better-sqlite3 as a
-    sibling of @colbymchenry/codegraph. No nested install, no tree walking.
-
-    Manifest entry has scripts_policy: allow (native build via node-gyp);
-    --ignore-scripts is intentionally omitted.
-    """
-    if not _run_bash_with_retry(
-        _npm_install_cmd(
-            manifest_get("better-sqlite3"),
-            extra_flags=("--no-audit", "--no-fund"),
-        ),
-        timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
-    ):
+    if not _run_bash_with_retry("CODEGRAPH_TELEMETRY=0 codegraph telemetry off", timeout=60):
         return False
-    # No reliable presence probe for a globally-installed npm native module
-    # without an extra `npm ls -g` call; treat each run as an upgrade attempt.
-    _record_outcome(_OUTCOME_UPDATED)
+    _record_outcome(_OUTCOME_UPDATED if was_present else _OUTCOME_INSTALLED)
     return True
 
 
@@ -635,8 +608,8 @@ def _is_codegraph_indexed(project_dir: Path) -> bool:
 
     Uses the database file size as a reliable indicator: a freshly-init'd
     but unindexed db is ~150KB, while an indexed project is typically >1MB.
-    This avoids shelling out to `codegraph status` which can fail due to
-    WASM backend issues or db locking from a running MCP server.
+    This avoids shelling out to `codegraph status`, which can contend with a
+    running MCP server for the project database.
     """
     db_path = project_dir / ".codegraph" / "codegraph.db"
     if not db_path.exists():
@@ -647,29 +620,8 @@ def _is_codegraph_indexed(project_dir: Path) -> bool:
         return False
 
 
-def _enable_codegraph_embeddings(project_dir: Path) -> None:
-    """Enable embeddings in .codegraph/config.json."""
-    config_path = project_dir / ".codegraph" / "config.json"
-    for _ in range(10):
-        if config_path.exists():
-            break
-        time.sleep(0.5)
-
-    if not config_path.exists():
-        return
-
-    try:
-        config = json.loads(config_path.read_text())
-        if config.get("enableEmbeddings") is True:
-            return
-        config["enableEmbeddings"] = True
-        config_path.write_text(json.dumps(config, indent=2) + "\n")
-    except (json.JSONDecodeError, OSError):
-        pass
-
-
 def initialize_codegraph(project_dir: Path) -> bool:
-    """Initialize CodeGraph in a project: init, enable embeddings, index, sync.
+    """Initialize CodeGraph in a project, then index and sync it.
 
     Streams output so users see indexing progress.
     Skips indexing if already up to date.
@@ -687,16 +639,19 @@ def initialize_codegraph(project_dir: Path) -> bool:
     codegraph_dir = project_dir / ".codegraph"
 
     if not codegraph_dir.exists():
-        if not _run_bash_with_retry("codegraph init", cwd=project_dir, timeout=60):
+        if not _run_bash_with_retry("CODEGRAPH_TELEMETRY=0 codegraph init", cwd=project_dir, timeout=60):
             return False
-
-    _enable_codegraph_embeddings(project_dir)
 
     if not _is_codegraph_indexed(project_dir):
-        if not _run_bash_with_retry("codegraph index", cwd=project_dir, timeout=600, stream=True):
+        if not _run_bash_with_retry(
+            "CODEGRAPH_TELEMETRY=0 codegraph index",
+            cwd=project_dir,
+            timeout=600,
+            stream=True,
+        ):
             return False
 
-    _run_bash_with_retry("codegraph sync", cwd=project_dir, timeout=300)
+    _run_bash_with_retry("CODEGRAPH_TELEMETRY=0 codegraph sync", cwd=project_dir, timeout=300)
     return True
 
 
@@ -1760,7 +1715,6 @@ class DependenciesStep(BaseStep):
                 _InstallTask("Semble (code search)", "semble", install_semble),
                 _InstallTask("RTK (token optimizer)", "rtk", install_rtk),
                 _InstallTask("CodeGraph (code intelligence)", "codegraph", install_codegraph),
-                _InstallTask("better-sqlite3 (CodeGraph native backend)", "better_sqlite3", install_better_sqlite3),
                 _InstallTask("Codex plugin", "codex_plugin", install_codex_plugin),
                 _InstallTask("Chrome DevTools MCP plugin", "chrome_devtools_plugin", install_chrome_devtools_plugin),
                 _InstallTask("LSP plugins (vtsls, basedpyright, gopls)", "lsp_plugins", install_lsp_plugins),

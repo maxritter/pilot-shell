@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "routing": {
+    "min_positive_top_three_rate": 1.0,
+    "min_positive_rank_one_rate": 0.8
+  },
+  "descriptions": {
+    "error_jaccard": 0.8,
+    "max_pairwise_jaccard": 0.75
+  }
+}

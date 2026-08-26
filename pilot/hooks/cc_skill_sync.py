@@ -61,6 +61,37 @@ def _canonicalize(text: str) -> str:
     return text.strip()
 
 
+def _build_progressive_index(steps: list[dict[str, object]]) -> str:
+    lines = [
+        "## Required phase resources",
+        "",
+        "Follow these phases in order. Each referenced file is part of this skill's contract; "
+        "read it at the named point rather than loading every phase up front.",
+        "",
+    ]
+    for index, step in enumerate(steps, start=1):
+        lines.append(
+            f"{index}. **{step['id']}** — Read `{step['file']}` completely, then execute this phase before "
+            "continuing to the next one."
+        )
+    return "\n".join(lines)
+
+
+def _safe_skill_path(skill_dir: Path, value: object) -> Path | None:
+    """Resolve one manifest path without allowing traversal or symlink escape."""
+    if not isinstance(value, str) or not value or "\\" in value or "\x00" in value or ":" in value:
+        return None
+    relative = Path(value)
+    if relative.is_absolute() or any(part in {"", ".", ".."} for part in relative.parts):
+        return None
+    try:
+        root = skill_dir.resolve()
+        candidate = (skill_dir / relative).resolve()
+    except (OSError, RuntimeError):
+        return None
+    return candidate if candidate.is_relative_to(root) else None
+
+
 def _build_skill(skill_dir: Path) -> str | None:
     """Concatenate orchestrator + ordered steps into the CC SKILL.md body.
 
@@ -76,16 +107,25 @@ def _build_skill(skill_dir: Path) -> str | None:
     except (OSError, json.JSONDecodeError):
         return None
 
-    orch_path = skill_dir / manifest.get("orchestrator", "orchestrator.md")
-    if not orch_path.is_file():
+    orch_path = _safe_skill_path(skill_dir, manifest.get("orchestrator", "orchestrator.md"))
+    if orch_path is None or not orch_path.is_file():
         return None
 
     parts = [orch_path.read_text(encoding="utf-8")]
-    for step in manifest.get("steps", []):
-        step_path = skill_dir / step["file"]
-        if not step_path.is_file():
+    steps = manifest.get("steps", [])
+    if not isinstance(steps, list):
+        return None
+    for step in steps:
+        if not isinstance(step, dict) or not isinstance(step.get("file"), str):
             return None
-        parts.append(step_path.read_text(encoding="utf-8"))
+        step_path = _safe_skill_path(skill_dir, step["file"])
+        if step_path is None or not step_path.is_file():
+            return None
+        if manifest.get("delivery", "bundled") == "bundled":
+            parts.append(step_path.read_text(encoding="utf-8"))
+
+    if manifest.get("delivery") == "progressive":
+        parts.append(_build_progressive_index(steps))
 
     return _canonicalize("\n\n".join(parts))
 
@@ -111,6 +151,13 @@ def _rebuild_cc_skills(skills_dir: Path, names: set[str]) -> int:
     for name in names:
         skill_dir = skills_dir / name
         skill_md = skill_dir / "SKILL.md"
+        try:
+            manifest = json.loads((skill_dir / "manifest.json").read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            manifest = {}
+        if isinstance(manifest, dict) and manifest.get("version") == 2 and "claude" not in manifest.get("targets", []):
+            skill_md.unlink(missing_ok=True)
+            continue
         if skill_md.exists():
             continue
         content = _build_skill(skill_dir)

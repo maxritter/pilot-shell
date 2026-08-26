@@ -113,5 +113,5 @@ jobs:
           VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
           VERCEL_PROJECT_ID: prj_TXccrJI83HyNvQUZxqStUFgus9NB
         run: |
-          DEPLOY_URL=$(vercel deploy --token=$VERCEL_TOKEN --prod)
+          DEPLOY_URL=$(vercel deploy --token="$VERCEL_TOKEN" --prod)
           echo "Deployed to: $DEPLOY_URL"

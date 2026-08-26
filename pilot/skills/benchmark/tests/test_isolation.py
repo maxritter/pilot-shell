@@ -12,6 +12,7 @@ from scripts.isolation import (
     HIDDEN_RESTORE_QUEUE,
     HIDDEN_SUFFIX,
     _clear_manifest,
+    _hidden_path,
     _manifest_path,
     _process_alive,
     _write_manifest,
@@ -147,6 +148,24 @@ class TestDetectContamination:
         result = detect_global_contamination(target, agent="codex")
         assert result == [tmp_home / ".agents" / "skills" / "my-skill"]
 
+    def test_codex_skill_also_hides_sync_sources_that_can_recreate_it(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        tmp_home = tmp_path / "home"
+        self._with_home(monkeypatch, tmp_home)
+        installed = tmp_home / ".agents" / "skills" / "my-skill"
+        neutral = tmp_home / ".pilot" / "skills" / "my-skill"
+        claude = tmp_home / ".claude" / "skills" / "my-skill"
+        for path in (installed, neutral, claude):
+            path.mkdir(parents=True)
+            (path / "SKILL.md").write_text("skill")
+        project_skill = tmp_path / "project" / "my-skill"
+        project_skill.mkdir(parents=True)
+        (project_skill / "SKILL.md").write_text("target")
+        target: TargetConfig = {"type": "skill", "path": str(project_skill), "name": "my-skill"}
+
+        assert detect_global_contamination(target, agent="codex") == [installed, neutral, claude]
+
     def test_codex_rules_hide_global_agents_md(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         tmp_home = tmp_path / "home"
         self._with_home(monkeypatch, tmp_home)
@@ -217,6 +236,7 @@ class TestIsolateContamination:
             assert len(hidden) == 1
             assert hidden[0].exists()
             assert HIDDEN_SUFFIX in hidden[0].name
+            assert hidden[0].parent != victim.parent, "hidden skills must leave the discovery directory"
 
         assert victim.exists(), "file must be restored on normal exit"
         assert victim.read_text() == "rule content"
@@ -268,7 +288,8 @@ class TestIsolateContamination:
         victim = tmp_path / "c.md"
         _ = victim.write_text("c")
         # Pre-create the exact hidden filename to simulate a stale leftover.
-        stale = victim.with_name(f"{victim.name}{HIDDEN_SUFFIX}-{os.getpid()}")
+        stale = _hidden_path(victim)
+        stale.parent.mkdir(parents=True, exist_ok=True)
         _ = stale.write_text("stale")
 
         with isolate_global_contamination([victim]) as hidden:
@@ -384,6 +405,7 @@ class TestManifestRecovery:
         next run can try again — the whole point of the fail-safe."""
         victim = tmp_path / "surv.md"
         _ = victim.write_text("s")
+        hidden_path = _hidden_path(victim)
 
         original_rename = Path.rename
         calls: list[int] = []
@@ -404,8 +426,7 @@ class TestManifestRecovery:
 
         assert _manifest_path(os.getpid()).exists(), "manifest must persist so next-run recovery can retry"
         # Manually clean up the hidden leftover so the test tmp_path disposal works.
-        for hidden in tmp_path.glob("surv.md.pilot-bench-hidden-*"):
-            hidden.unlink()
+        hidden_path.unlink(missing_ok=True)
 
 
 # ----------------------------------------------------------------------------

@@ -7,7 +7,10 @@
     "codegraph": {
       "type": "stdio",
       "command": "codegraph",
-      "args": ["serve", "--mcp"]
+      "args": ["serve", "--mcp"],
+      "env": {
+        "CODEGRAPH_TELEMETRY": "0"
+      }
     },
     "mem-search": {
       "type": "stdio",
@@ -33,8 +36,8 @@
     },
     "semble": {
       "type": "stdio",
-      "command": "uvx",
-      "args": ["--from", "semble[mcp]==0.5.5", "semble"]
+      "command": "sh",
+      "args": ["-c", "exec \"$HOME/.pilot/bin/semble\""]
     }
   }
 }

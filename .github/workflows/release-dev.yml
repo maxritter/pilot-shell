@@ -147,6 +147,12 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install . pytest pytest-cov pytest-asyncio hypothesis
 
+      - name: Validate generated agent assets
+        run: |
+          python3 -m launcher.cli skills validate pilot/skills --platform all
+          python3 scripts/validate_agent_assets.py
+          python3 scripts/gen_hook_manifests.py --check
+
       - name: Run unit tests with coverage
         run: |
           python3 -m pytest installer/tests/unit/ launcher/tests/unit/ pilot/hooks/tests/ pilot/skills/benchmark/tests/ -v \
@@ -543,5 +549,5 @@ jobs:
           VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
           VERCEL_PROJECT_ID: prj_TXccrJI83HyNvQUZxqStUFgus9NB
         run: |
-          DEPLOY_URL=$(vercel deploy --token=$VERCEL_TOKEN)
+          DEPLOY_URL=$(vercel deploy --token="$VERCEL_TOKEN")
           echo "Preview deployed to: $DEPLOY_URL"

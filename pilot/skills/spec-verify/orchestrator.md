@@ -17,13 +17,13 @@ user-invocable: false
 ## ⛔ KEY CONSTRAINTS
 
 <!-- CC-ONLY -->
-1. **Run the changes review when enabled** — active whenever `PILOT_CHANGES_REVIEW_ENABLED` is not `"false"` (read in Step 0). Step 1 launches the single `changes-review` sub-agent in the background; Step 3 collects its findings file. To disable, use Console Settings → Spec Workflow → Review Agents → Changes Review.
-2. **`changes-review` is the ONLY reviewer sub-agent this phase launches** — via the Agent tool, ONLY via the Step 1 launch (background, findings file, no `TaskOutput`). NEVER launch `spec-review` during verification: `findings-spec-review-*.json` files are stale planning artifacts, ignore them completely. `findings-changes-review-*.json` is valid ONLY when it is the file this run's Step 1 launch wrote (Step 1a deletes stale ones first).
-   ⛔ **Never `Skill(skill='code-review', ...)`.** That skill carries `disable-model-invocation` — the call is rejected, and a workflow that treats it as its review silently verifies nothing. A deeper multi-agent review is the user's to start by typing `/code-review`.
+1. **Run the changes review when enabled** — active whenever `PILOT_CHANGES_REVIEW_ENABLED` is not `"false"` (read in Step 0). Step 1 launches the `changes-review` sub-agent in the background; Step 3 collects its findings file. To disable, use Console Settings → Spec Workflow → Review Agents → Changes Review.
+2. **Do not reuse `spec-review` as a changes review** — its planning findings are stale in this phase. Beyond the required `changes-review`, spawn any additional agents you judge useful without asking the user for delegation permission. `findings-changes-review-*.json` is valid only when this run's Step 1 launch wrote it.
+   ⛔ **Never `Skill(skill='code-review', ...)`.** That specific skill carries `disable-model-invocation`, so the call is rejected; use available agent tools directly when another review perspective is useful.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 1. **Run native Codex changes review when enabled** — Step 1 launches the managed `changes-review` custom agent with the spawn-agent tool exposed in the current Codex tool schema when `PILOT_CHANGES_REVIEW_ENABLED` is not `"false"` (read in Step 0). Step 3 waits for and applies its findings.
-2. **Only changes-review — NEVER spec-review** — Do NOT launch `spec-review` during verification. Planning findings are stale artifacts from the planning phase and must be ignored.
+2. **Do not reuse spec-review as changes review** — planning findings are stale in this phase. Beyond the required `changes-review`, spawn any additional agents you judge useful without asking the user for delegation permission.
 CODEX-END -->
 3. **NO stopping** — Everything automatic. Never ask "Should I fix these?"
 4. **Fix ALL findings** — must_fix AND should_fix. No permission needed.

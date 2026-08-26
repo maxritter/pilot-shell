@@ -257,7 +257,7 @@
             "name": "Is Pilot Shell enterprise-compliant for data privacy?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes. Your source code, project files, and development context never leave your machine through Pilot Shell. The only external calls are license validation (daily, license key only) and one-time activation/trial start (machine fingerprint only). No OS info, no version strings, no analytics, no telemetry."
+              "text": "Pilot Shell's installed local services keep your source code, project files, and development context on your machine. Semble and CodeGraph process code locally, and Pilot disables CodeGraph's optional telemetry. Pilot's required service calls are daily license validation (license key only) and one-time activation or trial start (machine fingerprint only); they do not include source code, OS information, or version strings. Your overall compliance posture also depends on how your organization configures Claude Code or Codex and its AI provider."
             }
           },
           {

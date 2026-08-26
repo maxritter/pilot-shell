@@ -60,30 +60,18 @@ class TestPatchClaudePaths:
         assert "CC-ONLY" not in result
         assert "CODEX-START" not in result
 
-    def test_real_task_and_workflow_rule_has_codex_companion_guard(self):
-        """The installed CC rules must scope the sub-agent findings-file contract
-        to Pilot reviewer agents and document the direct-Bash Codex companion
-        contract. Without this, Codex reviews get delegated to a backgrounded
-        subagent whose broker job is unreachable afterwards (no findings file,
-        TaskOutput banned, SendMessage absent) - the model then abandons the
-        job and re-runs the review itself."""
+    def test_real_task_and_workflow_rule_keeps_core_execution_contract(self):
+        """Rule slimming must retain direct work, opt-in workflows, and autonomous delegation."""
         from installer.steps.claude_files import adapt_claude_rule_content
 
         source = Path("pilot/rules/task-and-workflow.md").read_text()
         content = adapt_claude_rule_content(source)
 
-        subagents_section = content.split("### Sub-agents", 1)[1].split("###", 1)[0]
-        assert "spec-review" in subagents_section
-        assert "changes-review" in subagents_section
-        # The section must also carry the guard that /code-review cannot be
-        # model-invoked. Without it, a workflow wires up a Skill() call that is
-        # rejected at runtime and reports a review that never ran.
-        assert "disable-model-invocation" in subagents_section
-
-        assert "codex:codex-rescue" in content
-        assert "codex-companion.mjs" in content
-        assert "status <job-id> --json" in content
-        assert "result <job-id> --json" in content
+        assert "A clear user request is authorization to execute" in content
+        assert "`/spec`, `/build`, `/fix`, and `/prd` run only when the user explicitly types them" in content
+        assert "The active agent owns the execution topology" in content
+        assert "Never stop a running task to ask the user for permission" in content
+        assert "explicit ownership" in content
 
     def test_patch_claude_paths_leaves_non_bin_tilde_paths_unchanged(self):
         """patch_claude_paths only expands ~/.pilot/bin/. Other tilde paths
@@ -1539,7 +1527,10 @@ class TestBuildSkillMdFiles:
         """Build a minimal InstallContext for _build_skill_md_files tests."""
         from installer.context import InstallContext
 
-        return InstallContext(project_dir=tmp_path)
+        ctx = InstallContext(project_dir=tmp_path)
+        skills_dir = tmp_path / ".claude" / "skills"
+        ctx.config["installed_files"] = [str(path) for path in skills_dir.glob("*/manifest.json")]
+        return ctx
 
     def test_builds_skill_md_for_each_skill(self, tmp_path):
         """Each decomposed skill gets a SKILL.md materialized in-process."""
@@ -1554,6 +1545,7 @@ class TestBuildSkillMdFiles:
 
         step = ClaudeFilesStep()
         ui = MagicMock()
+        ctx = self._make_ctx(tmp_path)
 
         with (
             patch("installer.steps.claude_files.Path.home", return_value=tmp_path),
@@ -1562,7 +1554,7 @@ class TestBuildSkillMdFiles:
                 return_value=tmp_path / ".claude",
             ),
         ):
-            step._build_skill_md_files(self._make_ctx(tmp_path), ui)
+            step._build_skill_md_files(ctx, ui)
 
         for skill_dir in (skill_a, skill_b):
             built = skill_dir / "SKILL.md"
@@ -1570,6 +1562,72 @@ class TestBuildSkillMdFiles:
             text = built.read_text()
             assert "# Skill" in text
             assert "## Step 1" in text
+            assert str(built) in ctx.config.get("installed_files", [])
+            assert str(skill_dir / "hashes.json") in ctx.config.get("installed_files", [])
+
+    def test_codex_only_target_removes_stale_claude_skill_md(self, tmp_path):
+        from unittest.mock import MagicMock, patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        skills_dir = tmp_path / ".claude" / "skills"
+        skills_dir.mkdir(parents=True)
+        skill_dir = self._make_skill(skills_dir, "codex-only")
+        manifest = json.loads((skill_dir / "manifest.json").read_text())
+        manifest.update(
+            {
+                "version": 2,
+                "delivery": "bundled",
+                "targets": ["codex"],
+                "visibility": "public",
+                "invocation": "implicit",
+            }
+        )
+        (skill_dir / "manifest.json").write_text(json.dumps(manifest))
+        (skill_dir / "SKILL.md").write_text("stale")
+        (skill_dir / "hashes.json").write_text("{}")
+
+        with (
+            patch("installer.steps.claude_files.Path.home", return_value=tmp_path),
+            patch("installer.steps.claude_files.get_claude_config_dir", return_value=tmp_path / ".claude"),
+        ):
+            ClaudeFilesStep()._build_skill_md_files(self._make_ctx(tmp_path), MagicMock())
+
+        assert not (skill_dir / "SKILL.md").exists()
+        assert not (skill_dir / "hashes.json").exists()
+
+    def test_preserves_unowned_decomposed_claude_skill(self, tmp_path):
+        from unittest.mock import MagicMock, patch
+
+        from installer.context import InstallContext
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        skills_dir = tmp_path / ".claude" / "skills"
+        skills_dir.mkdir(parents=True)
+        skill_dir = self._make_skill(skills_dir, "user-skill")
+        manifest = json.loads((skill_dir / "manifest.json").read_text())
+        manifest.update(
+            {
+                "version": 2,
+                "delivery": "progressive",
+                "targets": ["codex"],
+                "visibility": "public",
+                "invocation": "explicit",
+            }
+        )
+        (skill_dir / "manifest.json").write_text(json.dumps(manifest))
+        (skill_dir / "SKILL.md").write_text("user-owned skill\n")
+        (skill_dir / "hashes.json").write_text('{"user": true}\n')
+        ctx = InstallContext(project_dir=tmp_path)
+
+        with (
+            patch("installer.steps.claude_files.Path.home", return_value=tmp_path),
+            patch("installer.steps.claude_files.get_claude_config_dir", return_value=tmp_path / ".claude"),
+        ):
+            ClaudeFilesStep()._build_skill_md_files(ctx, MagicMock())
+
+        assert (skill_dir / "SKILL.md").read_text() == "user-owned skill\n"
+        assert (skill_dir / "hashes.json").read_text() == '{"user": true}\n'
 
     def test_skips_skills_without_manifest(self, tmp_path):
         """Skills without manifest.json (legacy monolithic) are skipped."""

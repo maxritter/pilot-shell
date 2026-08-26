@@ -43,7 +43,6 @@ class TestDependenciesStep:
     @patch("installer.steps.dependencies.install_playwright_cli", return_value=True)
     @patch("installer.steps.dependencies.install_lsp_plugins", return_value=True)
     @patch("installer.steps.dependencies.install_codex_plugin", return_value=True)
-    @patch("installer.steps.dependencies.install_better_sqlite3", return_value=True)
     @patch("installer.steps.dependencies.install_codegraph", return_value=True)
     @patch("installer.steps.dependencies.install_rtk", return_value=True)
     @patch("installer.steps.dependencies.install_semble", return_value=True)
@@ -78,7 +77,6 @@ class TestDependenciesStep:
         _mock_semble,
         _mock_rtk,
         _mock_codegraph,
-        _mock_better_sqlite3,
         _mock_codex_plugin,
         _mock_lsp_plugins,
         _mock_playwright,
@@ -112,7 +110,6 @@ class TestDependenciesStep:
             _mock_semble.assert_called_once()
             _mock_rtk.assert_called_once()
             _mock_codegraph.assert_called_once()
-            _mock_better_sqlite3.assert_called_once()
             _mock_codex_plugin.assert_called_once()
             _mock_lsp_plugins.assert_called_once()
             _mock_playwright.assert_called_once()
@@ -252,15 +249,16 @@ class TestSembleInstall:
 
         assert callable(install_semble)
 
-    @patch("installer.steps.dependencies._uv_tool_bin_semble", return_value=None)
-    @patch("installer.steps.dependencies._symlink_to_pilot_bin")
+    @patch("installer.steps.dependencies._uv_tool_bin_semble", return_value=Path("/home/u/.local/bin/semble"))
+    @patch("installer.steps.dependencies._symlink_to_pilot_bin", return_value=True)
     @patch("installer.steps.dependencies._run_bash_with_retry")
     def test_install_semble_uses_uv_tool_install(self, mock_bash, _mock_symlink, _mock_locator):
-        """install_semble installs the [mcp] extra at the manifest-pinned version,
-        so the CLI and the `uvx --from "semble[mcp]==<v>"` MCP entry in
-        pilot/.mcp.json resolve to the same release. `--reinstall`, not
-        `--upgrade`: plain install is a no-op when any version is present, and
-        --upgrade would float straight past the pin."""
+        """install_semble installs the MCP-capable CLI at the manifest pin.
+
+        The MCP entry launches this installed binary directly, so `--reinstall`
+        keeps both CLI and MCP behavior on the audited release. Plain install is
+        a no-op when another version exists; `--upgrade` would float past the pin.
+        """
         from installer.manifest import get as manifest_get
         from installer.steps.dependencies import install_semble
 
@@ -277,7 +275,7 @@ class TestSembleInstall:
         assert "--reinstall" in call_args
 
     @patch("installer.steps.dependencies._uv_tool_bin_semble")
-    @patch("installer.steps.dependencies._symlink_to_pilot_bin")
+    @patch("installer.steps.dependencies._symlink_to_pilot_bin", return_value=True)
     @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
     def test_install_semble_symlinks_uv_tool_binary(self, _mock_bash, mock_symlink, mock_locator):
         """The symlink targets uv's tool bin dir, not a PATH lookup: which()
@@ -294,6 +292,25 @@ class TestSembleInstall:
         assert result is True
         mock_symlink.assert_called_once_with("semble", source=Path("/home/u/.local/bin/semble"))
 
+    @patch("installer.steps.dependencies._uv_tool_bin_semble", return_value=None)
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    def test_install_semble_fails_when_uv_binary_is_missing(self, _mock_bash, _mock_locator):
+        """MCP cannot start without the exact Pilot launcher target."""
+        from installer.steps.dependencies import _get_last_error, install_semble
+
+        assert install_semble() is False
+        assert "could not be located" in _get_last_error()
+
+    @patch("installer.steps.dependencies._uv_tool_bin_semble", return_value=Path("/home/u/.local/bin/semble"))
+    @patch("installer.steps.dependencies._symlink_to_pilot_bin", return_value=False)
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    def test_install_semble_fails_when_launcher_link_fails(self, _mock_bash, _mock_symlink, _mock_locator):
+        """A failed ~/.pilot/bin link must fail installation instead of reporting success."""
+        from installer.steps.dependencies import _get_last_error, install_semble
+
+        assert install_semble() is False
+        assert "could not be created" in _get_last_error()
+
     @patch("installer.steps.dependencies.subprocess.run")
     def test_uv_tool_bin_semble_locates_binary(self, mock_run, tmp_path):
         """_uv_tool_bin_semble resolves <uv tool dir --bin>/semble when present."""
@@ -302,9 +319,11 @@ class TestSembleInstall:
         from installer.steps.dependencies import _uv_tool_bin_semble
 
         (tmp_path / "semble").write_text("#!/bin/sh\n")
+        (tmp_path / "semble").chmod(0o755)
         mock_run.return_value = MagicMock(stdout=f"{tmp_path}\n")
 
         assert _uv_tool_bin_semble() == tmp_path / "semble"
+        assert mock_run.call_args.args[0] == ["uv", "tool", "dir", "--bin", "--no-config"]
 
     @patch("installer.steps.dependencies.subprocess.run", side_effect=OSError("uv missing"))
     def test_uv_tool_bin_semble_none_on_failure(self, _mock_run):
@@ -314,8 +333,8 @@ class TestSembleInstall:
 
         assert _uv_tool_bin_semble() is None
 
-    @patch("installer.steps.dependencies._uv_tool_bin_semble", return_value=None)
-    @patch("installer.steps.dependencies._symlink_to_pilot_bin")
+    @patch("installer.steps.dependencies._uv_tool_bin_semble", return_value=Path("/home/u/.local/bin/semble"))
+    @patch("installer.steps.dependencies._symlink_to_pilot_bin", return_value=True)
     @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
     def test_install_semble_uses_uv_tool_timeout(self, mock_bash, _mock_symlink, _mock_locator):
         """Semble install uses UV_TOOL_INSTALL_TIMEOUT, matching ruff/hypothesis/basedpyright."""
@@ -750,32 +769,34 @@ class TestInstallCodegraph:
 
     @patch("installer.steps.dependencies._symlink_to_pilot_bin")
     def test_install_codegraph_always_runs_npm_install(self, mock_symlink):
-        """install_codegraph pins version + --force + --ignore-scripts."""
+        """install_codegraph pins the bundle and disables optional telemetry."""
         from installer.manifest import get
         from installer.steps.dependencies import install_codegraph
 
-        with patch("installer.steps.dependencies._run_bash_with_retry", return_value=True) as mock_bash:
+        with patch("installer.steps.dependencies._run_bash_with_retry", side_effect=[True, True]) as mock_bash:
             result = install_codegraph()
 
         assert result is True
-        mock_bash.assert_called_once()
-        call_args = str(mock_bash.call_args)
+        assert mock_bash.call_count == 2
+        install_call, telemetry_call = mock_bash.call_args_list
+        call_args = str(install_call)
         expected_version = get("codegraph").version
         assert f"@colbymchenry/codegraph@{expected_version}" in call_args
         assert "--force" in call_args
         assert "--ignore-scripts" in call_args
+        assert telemetry_call.args[0] == "CODEGRAPH_TELEMETRY=0 codegraph telemetry off"
         mock_symlink.assert_called_once_with("codegraph")
 
     @patch("installer.steps.dependencies._symlink_to_pilot_bin")
     def test_install_codegraph_uses_longer_timeout(self, mock_symlink):
-        """CodeGraph install gets a longer timeout because it can build native modules."""
+        """CodeGraph's self-contained platform bundle gets the global npm timeout."""
         from installer.steps.dependencies import GLOBAL_NPM_INSTALL_TIMEOUT, install_codegraph
 
-        with patch("installer.steps.dependencies._run_bash_with_retry", return_value=True) as mock_bash:
+        with patch("installer.steps.dependencies._run_bash_with_retry", side_effect=[True, True]) as mock_bash:
             result = install_codegraph()
 
         assert result is True
-        assert mock_bash.call_args.kwargs["timeout"] == GLOBAL_NPM_INSTALL_TIMEOUT
+        assert mock_bash.call_args_list[0].kwargs["timeout"] == GLOBAL_NPM_INSTALL_TIMEOUT
         mock_symlink.assert_called_once_with("codegraph")
 
     @patch("installer.steps.dependencies._symlink_to_pilot_bin")
@@ -788,35 +809,20 @@ class TestInstallCodegraph:
 
         assert result is False
 
-    def test_install_better_sqlite3_runs_global_npm_install(self):
-        """install_better_sqlite3 pins version; allows scripts (native build)."""
-        from installer.manifest import get
-        from installer.steps.dependencies import install_better_sqlite3
+    @patch("installer.steps.dependencies._symlink_to_pilot_bin")
+    def test_install_codegraph_returns_false_when_telemetry_opt_out_fails(self, mock_symlink):
+        """A Pilot-managed CodeGraph install must not silently retain telemetry."""
+        from installer.steps.dependencies import install_codegraph
 
-        with patch("installer.steps.dependencies._run_bash_with_retry", return_value=True) as mock_bash:
-            result = install_better_sqlite3()
-
-        assert result is True
-        mock_bash.assert_called_once()
-        call_args = str(mock_bash.call_args)
-        expected_version = get("better-sqlite3").version
-        assert f"better-sqlite3@{expected_version}" in call_args
-        assert "-g" in call_args
-        # Native build needs scripts; --ignore-scripts MUST NOT be set.
-        assert "--ignore-scripts" not in call_args
-
-    def test_install_better_sqlite3_returns_false_on_failure(self):
-        """install_better_sqlite3 returns False when npm install fails."""
-        from installer.steps.dependencies import install_better_sqlite3
-
-        with patch("installer.steps.dependencies._run_bash_with_retry", return_value=False):
-            result = install_better_sqlite3()
+        with patch("installer.steps.dependencies._run_bash_with_retry", side_effect=[True, False]):
+            result = install_codegraph()
 
         assert result is False
+        mock_symlink.assert_called_once_with("codegraph")
 
 
 class TestInitializeCodegraph:
-    """Tests for initialize_codegraph() — init, enable embeddings, index, sync."""
+    """Tests for initialize_codegraph() — init, index, and sync."""
 
     @patch("installer.steps.dependencies._has_git_commits", return_value=True)
     @patch("installer.steps.dependencies.command_exists", return_value=True)
@@ -828,7 +834,6 @@ class TestInitializeCodegraph:
         (tmp_path / ".git").mkdir()
         codegraph_dir = tmp_path / ".codegraph"
         codegraph_dir.mkdir()
-        (codegraph_dir / "config.json").write_text(json.dumps({"enableEmbeddings": True}))
 
         with patch("installer.steps.dependencies._run_bash_with_retry", return_value=True) as mock_bash:
             result = initialize_codegraph(tmp_path)
@@ -852,7 +857,7 @@ class TestInitializeCodegraph:
     @patch("installer.steps.dependencies.command_exists", return_value=True)
     @patch("installer.steps.dependencies._is_codegraph_indexed", return_value=False)
     def test_full_init_sequence(self, _mock_indexed, _mock_cmd, _mock_commits, tmp_path: Path):
-        """Runs init, enables embeddings, index, sync in sequence."""
+        """Runs init, index, and sync in sequence."""
         from installer.steps.dependencies import initialize_codegraph
 
         (tmp_path / ".git").mkdir()
@@ -861,8 +866,6 @@ class TestInitializeCodegraph:
         def fake_bash(command: str, cwd: Path | None = None, timeout: int = 120, stream: bool = False) -> bool:
             if "codegraph init" in command:
                 codegraph_dir.mkdir(parents=True, exist_ok=True)
-                config = {"version": 1, "enableEmbeddings": False}
-                (codegraph_dir / "config.json").write_text(json.dumps(config))
             return True
 
         with patch("installer.steps.dependencies._run_bash_with_retry", side_effect=fake_bash) as mock_bash:
@@ -873,10 +876,8 @@ class TestInitializeCodegraph:
         assert any("codegraph init" in c for c in calls)
         assert any("codegraph index" in c for c in calls)
         assert any("codegraph sync" in c for c in calls)
-
-        # Verify embeddings were enabled in config
-        config = json.loads((codegraph_dir / "config.json").read_text())
-        assert config["enableEmbeddings"] is True
+        codegraph_commands = [c.args[0] for c in mock_bash.call_args_list]
+        assert all(command.startswith("CODEGRAPH_TELEMETRY=0 codegraph ") for command in codegraph_commands)
 
     @patch("installer.steps.dependencies._has_git_commits", return_value=True)
     @patch("installer.steps.dependencies.command_exists", return_value=True)
@@ -888,7 +889,6 @@ class TestInitializeCodegraph:
         (tmp_path / ".git").mkdir()
         codegraph_dir = tmp_path / ".codegraph"
         codegraph_dir.mkdir()
-        (codegraph_dir / "config.json").write_text(json.dumps({"enableEmbeddings": True}))
 
         with patch("installer.steps.dependencies._run_bash_with_retry", return_value=True) as mock_bash:
             initialize_codegraph(tmp_path)
@@ -939,7 +939,6 @@ class TestInitializeCodegraph:
         subdir = tmp_path / "packages" / "my-app"
         subdir.mkdir(parents=True)
         (subdir / ".codegraph").mkdir()
-        (subdir / ".codegraph" / "config.json").write_text(json.dumps({"enableEmbeddings": True}))
 
         with patch("installer.steps.dependencies._run_bash_with_retry", return_value=True):
             result = initialize_codegraph(subdir)
@@ -975,8 +974,6 @@ class TestInitializeCodegraph:
         def fake_bash(command: str, cwd: Path | None = None, timeout: int = 120, stream: bool = False) -> bool:
             if "codegraph init" in command:
                 codegraph_dir.mkdir(parents=True, exist_ok=True)
-                # Create config so _enable_codegraph_embeddings doesn't sleep
-                (codegraph_dir / "config.json").write_text(json.dumps({"enableEmbeddings": False}))
                 return True
             if "codegraph index" in command:
                 return False
@@ -986,34 +983,6 @@ class TestInitializeCodegraph:
             result = initialize_codegraph(tmp_path)
 
         assert result is False
-
-    def test_enable_embeddings_writes_config(self, tmp_path: Path):
-        """_enable_codegraph_embeddings sets enableEmbeddings to true."""
-        from installer.steps.dependencies import _enable_codegraph_embeddings
-
-        codegraph_dir = tmp_path / ".codegraph"
-        codegraph_dir.mkdir()
-        config_path = codegraph_dir / "config.json"
-        config_path.write_text(json.dumps({"version": 1, "enableEmbeddings": False}))
-
-        _enable_codegraph_embeddings(tmp_path)
-
-        config = json.loads(config_path.read_text())
-        assert config["enableEmbeddings"] is True
-
-    def test_enable_embeddings_idempotent(self, tmp_path: Path):
-        """_enable_codegraph_embeddings is a no-op when already enabled."""
-        from installer.steps.dependencies import _enable_codegraph_embeddings
-
-        codegraph_dir = tmp_path / ".codegraph"
-        codegraph_dir.mkdir()
-        config_path = codegraph_dir / "config.json"
-        original = json.dumps({"version": 1, "enableEmbeddings": True}, indent=2) + "\n"
-        config_path.write_text(original)
-
-        _enable_codegraph_embeddings(tmp_path)
-
-        assert config_path.read_text() == original
 
 
 class TestSymlinkToPilotBin:

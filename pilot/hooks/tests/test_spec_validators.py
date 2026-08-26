@@ -21,7 +21,11 @@ class TestSpecPlanValidator:
             today = datetime.date.today().strftime("%Y-%m-%d")
             plan_path = Path(tmpdir) / "docs" / "plans" / f"{today}-test-feature.md"
             plan_path.parent.mkdir(parents=True, exist_ok=True)
-            plan_path.write_text("# Test Plan\n\nStatus: PENDING\n")
+            plan_path.write_text(
+                "# Test Plan\n\n"
+                f"Created: {today}\nStatus: PENDING\nApproved: No\nIterations: 0\n"
+                "Worktree: No\nType: Feature\n"
+            )
 
             result = subprocess.run(
                 [sys.executable, "pilot/hooks/spec_plan_validator.py"],
@@ -32,6 +36,7 @@ class TestSpecPlanValidator:
             )
 
             assert result.returncode == 0, f"Should allow stop when plan exists. stderr: {result.stderr}"
+            assert result.stdout == ""
 
     def test_blocks_stop_when_no_plan(self):
         """Should output block decision when no plan file exists."""

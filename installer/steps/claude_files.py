@@ -661,6 +661,7 @@ class ClaudeFilesStep(BaseStep):
         the happy path.
         """
         from installer.skill_builder import BuildError, write_skill_md
+        from installer.skill_hashes import write_hash_manifest
 
         skills_dir = get_claude_config_dir() / "skills"
         if not skills_dir.is_dir():
@@ -672,12 +673,33 @@ class ClaudeFilesStep(BaseStep):
 
         config = self._create_download_config(ctx)
         installed_files: list[str] = list(ctx.config.get("installed_files", []))
+        owned_manifests = {
+            Path(value).resolve()
+            for value in installed_files
+            if Path(value).name == "manifest.json"
+        }
 
         failures: list[str] = []
         for skill_dir in decomposed:
+            if (skill_dir / "manifest.json").resolve() not in owned_manifests:
+                continue
+            try:
+                manifest_data = json.loads((skill_dir / "manifest.json").read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                manifest_data = {}
+            if (
+                isinstance(manifest_data, dict)
+                and manifest_data.get("version") == 2
+                and "claude" not in manifest_data.get("targets", [])
+            ):
+                (skill_dir / "SKILL.md").unlink(missing_ok=True)
+                (skill_dir / "hashes.json").unlink(missing_ok=True)
+                continue
             first_err: BuildError | OSError | None = None
             try:
                 write_skill_md(skill_dir)
+                write_hash_manifest(skill_dir)
+                self._record_generated_skill_outputs(skill_dir, installed_files)
                 continue
             except (BuildError, OSError) as err:
                 first_err = err
@@ -687,6 +709,8 @@ class ClaudeFilesStep(BaseStep):
                 installed_files.extend(recovered)
                 try:
                     write_skill_md(skill_dir)
+                    write_hash_manifest(skill_dir)
+                    self._record_generated_skill_outputs(skill_dir, installed_files)
                     continue
                 except (BuildError, OSError) as retry_err:
                     failures.append(f"{skill_dir.name}: {retry_err}")
@@ -708,6 +732,17 @@ class ClaudeFilesStep(BaseStep):
                 + " skill(s); aborting install before manifests are finalized. "
                 "Affected: " + ", ".join(f.split(":", 1)[0] for f in failures)
             )
+
+    @staticmethod
+    def _record_generated_skill_outputs(skill_dir: Path, installed_files: list[str]) -> None:
+        """Track generated Claude skill artifacts so reinstall and uninstall own them."""
+        known = set(installed_files)
+        for name in ("SKILL.md", "hashes.json"):
+            output = skill_dir / name
+            value = str(output)
+            if output.is_file() and value not in known:
+                installed_files.append(value)
+                known.add(value)
 
     def _recover_missing_fragments(
         self,

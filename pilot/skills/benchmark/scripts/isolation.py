@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import atexit
 import contextlib
+import hashlib
 import json
 import os
 import signal
@@ -68,6 +69,24 @@ def _write_manifest(pairs: list[tuple[Path, Path]]) -> None:
 
 def _clear_manifest() -> None:
     _manifest_path(os.getpid()).unlink(missing_ok=True)
+    hidden_dir = RECOVERY_DIR / "hidden-assets" / str(os.getpid())
+    with contextlib.suppress(OSError):
+        hidden_dir.rmdir()
+    with contextlib.suppress(OSError):
+        hidden_dir.parent.rmdir()
+
+
+def _hidden_path(src: Path) -> Path:
+    """Move hidden assets outside agent discovery directories."""
+    digest = hashlib.sha256(str(src).encode()).hexdigest()[:12]
+    return RECOVERY_DIR / "hidden-assets" / str(os.getpid()) / f"{src.name}{HIDDEN_SUFFIX}-{digest}"
+
+
+def _cleanup_hidden_parent(hidden: Path) -> None:
+    with contextlib.suppress(OSError):
+        hidden.parent.rmdir()
+    with contextlib.suppress(OSError):
+        hidden.parent.parent.rmdir()
 
 
 def _process_alive(pid: int) -> bool:
@@ -101,6 +120,7 @@ def _restore_hidden_path(src: Path, hidden: Path) -> Path | None:
         return None
     if not src.exists():
         hidden.rename(src)
+        _cleanup_hidden_parent(hidden)
         return None
 
     backup = _recreated_backup_path(src)
@@ -111,6 +131,7 @@ def _restore_hidden_path(src: Path, hidden: Path) -> Path | None:
         with contextlib.suppress(OSError):
             backup.rename(src)
         raise
+    _cleanup_hidden_parent(hidden)
     print(
         f"  ⚠  {src} was recreated during isolation; restored the original and preserved "
         f"the concurrent copy at {backup}",
@@ -216,12 +237,12 @@ def detect_global_contamination(target: TargetConfig, agent: str = "claude") -> 
     if agent == "codex" and target_type == "rules":
         global_rules = Path.home() / ".codex" / "AGENTS.md"
         global_skills = Path.home() / ".agents" / "skills"
-        suspects: list[Path] = []
+        rule_suspects: list[Path] = []
         if global_rules.is_file() and not _same_path(global_rules, source_path):
-            suspects.append(global_rules)
+            rule_suspects.append(global_rules)
         if global_skills.is_dir() and not _same_path(global_skills, source_path):
-            suspects.append(global_skills)
-        return suspects
+            rule_suspects.append(global_skills)
+        return rule_suspects
 
     # Honour CLAUDE_CONFIG_DIR: isolation MOVES these files aside for the run, so
     # resolving the wrong profile would relocate another profile's real assets.
@@ -232,6 +253,19 @@ def detect_global_contamination(target: TargetConfig, agent: str = "claude") -> 
         env_dir = os.environ.get("CLAUDE_CONFIG_DIR")
         global_config_dir = Path(env_dir) if env_dir and Path(env_dir).is_absolute() else Path.home() / ".claude"
     suspects: list[Path] = []
+
+    if agent == "codex" and target_type == "skill":
+        skill_name = target.get("name") or source_path.name
+        claude_env = os.environ.get("CLAUDE_CONFIG_DIR")
+        claude_dir = Path(claude_env) if claude_env and Path(claude_env).is_absolute() else Path.home() / ".claude"
+        for candidate in (
+            Path.home() / ".agents" / "skills" / skill_name,
+            Path.home() / ".pilot" / "skills" / skill_name,
+            claude_dir / "skills" / skill_name,
+        ):
+            if candidate.exists() and not _same_path(candidate, source_path) and candidate not in suspects:
+                suspects.append(candidate)
+        return suspects
 
     if target_type == "rules":
         rules_dir = global_config_dir / "rules"
@@ -261,7 +295,7 @@ def isolate_global_contamination(paths: list[Path]) -> Iterator[list[Path]]:
     moved: list[tuple[Path, Path]] = []
     planned: list[tuple[Path, Path]] = []
     for src in paths:
-        hidden = src.with_name(f"{src.name}{HIDDEN_SUFFIX}-{os.getpid()}")
+        hidden = _hidden_path(src)
         if hidden.exists():
             print(
                 f"  ⚠  {hidden.name} already exists (stale from a prior crash?); "
@@ -285,6 +319,7 @@ def isolate_global_contamination(paths: list[Path]) -> Iterator[list[Path]]:
     try:
         for src, hidden in planned:
             try:
+                hidden.parent.mkdir(parents=True, exist_ok=True)
                 src.rename(hidden)
             except OSError as err:
                 print(f"  ⚠  could not hide {src}: {err}", file=sys.stderr)

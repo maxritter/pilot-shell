@@ -59,7 +59,7 @@ Three failure modes are common enough to name, because each one *feels* reasonab
 - **Use `AskUserQuestion` for user questions** — it renders a structured form; don't fall back to plain-text numbered questions.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-- **Use plain-text numbered options for user questions** — the `AskUserQuestion` tool isn't callable in Codex
+- **Use the runtime's structured user-input tool when available**; otherwise present numbered options in prose, end the turn, and wait for the answer
 - **Browser tools for E2E verification:** Use playwright-cli or agent-browser (Claude Code Chrome and Chrome DevTools MCP are not available in Codex)
 - **The Codex plugin companion review is not available** — its broker is Claude-Code-only. The native `changes-review` custom agent still runs in Step 6.1 when the Changes Review toggle is enabled.
 CODEX-END -->

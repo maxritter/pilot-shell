@@ -1,6 +1,11 @@
 {
-  "version": 1,
+  "version": 2,
   "orchestrator": "orchestrator.md",
+  "delivery": "bundled",
+  "targets": ["claude", "codex"],
+  "visibility": "internal",
+  "invocation": "explicit",
+  "parent": "spec",
   "steps": [
     {
       "id": "step-1-verify-fix",

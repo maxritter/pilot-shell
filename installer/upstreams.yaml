@@ -25,21 +25,10 @@ entries:
     source_type: npm
     source_url: "@colbymchenry/codegraph"
     version: "1.5.0"
-    # Highest-risk entry in this manifest per PRD: single-author npm package
-    # with no public source repository declared. Manual audit only.
-    last_audited: "2026-08-19"
-
-  - id: better-sqlite3
-    name: better-sqlite3
-    source_type: npm
-    source_url: better-sqlite3
-    version: "13.0.3"
-    # Native build via node-gyp at install time. CodeGraph relies on the
-    # compiled native module (the WASM fallback corrupts SQLite databases on
-    # certain filesystems). Postinstall scripts MUST be enabled.
-    scripts_policy: allow
-    scripts_justification: "native-build via node-gyp; required for CodeGraph SQLite backend"
-    last_audited: "2026-08-19"
+    # MIT; public source at https://github.com/colbymchenry/codegraph. Since
+    # 0.8 the platform package bundles Node and SQLite, so there is no native
+    # compilation step and no external better-sqlite3 runtime dependency.
+    last_audited: "2026-08-26"
 
   - id: vtsls
     name: "@vtsls/language-server"
@@ -360,12 +349,9 @@ entries:
     source_type: pypi
     source_url: https://github.com/MinishLab/semble
     version: "0.5.5"
-    # MIT. Installed with the [mcp] extra so `uvx --from "semble[mcp]==<version>"
-    # semble` launches the MCP server. The pin is deliberate and must match the
-    # `uvx --from` literal in pilot/.mcp.json - upstream pins the same way
-    # (docs/installation.md: "agents keep calling the version the instructions
-    # were written for rather than whatever is newest on PyPI"). Drift checker
-    # cross-references the two.
+    # MIT. Installed with the [mcp] extra at an exact pin; pilot/.mcp.json
+    # launches the Pilot-installed ~/.pilot/bin/semble symlink directly, so MCP
+    # startup cannot resolve a different release or inherit ambient uv indexes.
     last_audited: "2026-08-19"
 
   # ---- PyPI bootstrap (Task 7) ----

@@ -144,12 +144,8 @@ The single exception is **Step 3.3's ultracode escalation**, and only because it
 | "This criterion is close — one more thing and it'd pass." | Then it fails, and that thing is a task. |
 | "I built it, so I can tell it's good." | You know how hard it was to make. The judge must not. |
 | "The task list has changed a lot; I should have planned harder." | Tasks changing as you learn is the design. Log it and keep going. |
-<!-- CC-ONLY -->
-| "I'll spin up a subagent to judge this properly." | It starts blind, re-derives what this thread already holds, and bills you for the round trip. Judge from the artifact instead. Reviewers are the exception, and they run outside the loop. |
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-| "I'll delegate this whole round without ownership boundaries." | Delegate bounded independent tasks, not the integrated decision. The main thread keeps the Buildout, shared checks, and judge pass coherent. |
-CODEX-END -->
+| "I should ask before spawning agents." | No. The active agent chooses the topology autonomously; use the harness's agent tools whenever useful and continue the run. |
+| "I'll delegate overlapping writes without ownership boundaries." | Split ownership or sequence the work yourself. This is an execution decision, not a user permission gate. |
 | "Four pass, three partial — I'll report that." | "Partial" is a score. Not fully met is fail, and the gap is next round's tasks. |
 | "Context is nearly gone; I'll hand back what I have." | The Buildout survives compaction. Re-read it and finish the round. |
 | "I'll just check the criteria with the user before I start." | Step 1.5 is where you ask, and it is generous — grill there until you can name every criterion's settling evidence. After it, asking is the run refusing to run. |
@@ -172,12 +168,8 @@ CODEX-END -->
 - About to judge and a task is still unticked → finish the task first, Step 4.
 - A criterion cannot be settled without asking the user what they meant → rewrite it, Step 2.
 - A criterion's evidence depends on something that will not finish inside this run → rewrite or drop it, Step 2.
-<!-- CC-ONLY -->
-- You are reaching for a subagent inside the loop → Step 5, judge it yourself.
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-- Two agents would edit the same files or depend on the same unsettled decision → keep that work together in the main thread or sequence it explicitly.
-CODEX-END -->
+- You are about to ask the user for permission to spawn a subagent → choose the useful topology yourself and continue.
+- Two agents would edit the same files or depend on the same unsettled decision → split ownership or sequence them yourself.
 - You are about to suggest `/spec` because the work is large → Step 3, escalate here instead.
 - You are patching a file with a `python3` heredoc instead of `Edit` → Step 4, tool discipline.
 - The judge passed everything on round one and the work is thin → the criteria are decidable by feel, Step 2.

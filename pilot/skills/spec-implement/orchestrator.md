@@ -17,12 +17,7 @@ user-invocable: false
 
 ## ⛔ Critical Constraints
 
-<!-- CC-ONLY -->
-- **NO sub-agents** — all tasks execute sequentially in main context
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-- **Use bounded worker agents for independent tasks** when the current Codex schema exposes agent tools. Assign non-overlapping files or surfaces, preserve task dependencies, and tell every worker other agents share the checkout. The main thread updates the plan, integrates shared behavior, and verifies each result from the diff and fresh commands.
-CODEX-END -->
+- **Choose delegation autonomously** — Claude Code or Codex decides whether tasks run directly, in parallel agents, or through nested delegation. Never ask the user for permission merely to spawn agents. Preserve task dependencies, prevent overlapping writes, and verify results from the diff and fresh commands.
 - **TDD is MANDATORY** — no production code without failing test first
 - **NEVER SKIP TASKS** — every task must be fully implemented, no "MVP scope" exceptions
 - **Quality over speed** — never rush due to context pressure. Context warnings are informational. Finish current task with full quality — auto-compaction handles the rest.

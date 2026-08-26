@@ -62,9 +62,7 @@ The closing message is different: it's the first thing a user who stepped away w
 
 ### Pre-send check
 
-Delete before sending: the first sentence if it announces what you are about to do; the last sentence if it recaps or asks "anything else?"; any "by the way" sidebar; any hedging adverb carrying no information ("perhaps," "possibly," "it seems").
-
-Then verify: **reading only the first line and the last line, does the reader know (a) what just happened and (b) what to do next?** If yes, send.
+Delete announcements, recaps, "anything else?" closers, sidebars, and empty hedging. Reading only the first and last lines should reveal what happened and any required next action.
 
 ### Local override
 

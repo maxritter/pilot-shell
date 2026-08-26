@@ -19,6 +19,7 @@ if str(_hooks_dir) not in sys.path:
 
 from codex_skill_sync import (  # noqa: E402
     _SKILL_DESCRIPTIONS,
+    _SUPPORTED_SKILLS,
     _adapt,
     _build_codex_review_agent,
     _build_codex_skill,
@@ -38,6 +39,17 @@ def test_description_overrides_match_the_installer_generator() -> None:
     from installer.steps.codex_files import _CODEX_SKILL_DESCRIPTIONS
 
     assert _SKILL_DESCRIPTIONS == _CODEX_SKILL_DESCRIPTIONS
+
+
+def _codex_runtime_text(skill_name: str) -> str:
+    skill_dir = Path("pilot/skills") / skill_name
+    main = _build_codex_skill(skill_dir)
+    assert main is not None
+    parts = [main]
+    manifest = json.loads((skill_dir / "manifest.json").read_text())
+    if manifest.get("delivery") == "progressive":
+        parts.extend(_adapt((skill_dir / step["file"]).read_text()) for step in manifest["steps"])
+    return "\n\n".join(parts)
 
 
 @pytest.fixture()
@@ -74,6 +86,35 @@ class TestBuildSkill:
     def test_returns_none_for_missing_manifest(self, tmp_path: Path) -> None:
         assert _build_skill(tmp_path / "nonexistent") is None
 
+    @pytest.mark.parametrize("unsafe", ["../secret.md", "/tmp/secret.md", "steps\\secret.md"])
+    def test_rejects_unsafe_manifest_paths(self, tmp_path: Path, unsafe: str) -> None:
+        skill_dir = tmp_path / "skill"
+        skill_dir.mkdir()
+        (skill_dir / "manifest.json").write_text(json.dumps({"version": 1, "orchestrator": unsafe, "steps": []}))
+
+        assert _build_skill(skill_dir) is None
+
+    def test_progressive_manifest_builds_step_index_without_inlining_body(self, skill_tree: Path) -> None:
+        skill_dir = skill_tree / ".claude" / "skills" / "fix"
+        manifest = json.loads((skill_dir / "manifest.json").read_text())
+        manifest.update(
+            {
+                "version": 2,
+                "delivery": "progressive",
+                "targets": ["claude", "codex"],
+                "visibility": "public",
+                "invocation": "explicit",
+            }
+        )
+        (skill_dir / "manifest.json").write_text(json.dumps(manifest))
+
+        result = _build_skill(skill_dir)
+
+        assert result is not None
+        assert "Required phase resources" in result
+        assert "steps/01-impl.md" in result
+        assert "Run /spec if needed." not in result
+
 
 class TestAdapt:
     def test_strips_cc_only_blocks(self) -> None:
@@ -104,7 +145,16 @@ class TestAdapt:
     def test_replaces_ask_user_question(self) -> None:
         content = "Use AskUserQuestion to ask."
         result = _adapt(content)
+        assert "structured question" in result
+
+    def test_does_not_claim_plain_text_is_unavailable(self) -> None:
+        content = "Use plain-text numbered options because the `AskUserQuestion` tool isn't callable in Codex."
+
+        result = _adapt(content)
+
         assert "plain-text numbered options" in result
+        assert "Claude structured-question tool" in result
+        assert "`plain-text numbered options` format isn't callable" not in result
 
     def test_transforms_ask_user_question_blocks(self) -> None:
         content = """AskUserQuestion(
@@ -120,6 +170,17 @@ class TestAdapt:
 
 
 class TestBuildCodexSkill:
+    @pytest.mark.parametrize("skill_name", sorted(_SUPPORTED_SKILLS))
+    def test_hook_compiler_matches_installer_compiler_for_every_shipped_skill(self, skill_name: str) -> None:
+        from installer.steps.codex_files import build_codex_skill_md, build_codex_skill_openai_yaml
+
+        skill_dir = Path("pilot/skills") / skill_name
+        if not skill_dir.is_dir():
+            pytest.skip(f"source skill not present: {skill_name}")
+
+        assert _build_codex_skill(skill_dir) == build_codex_skill_md(skill_dir)
+        assert _build_openai_yaml(skill_dir) == build_codex_skill_openai_yaml(skill_dir)
+
     def test_produces_frontmatter_and_adapted_content(self, skill_tree: Path) -> None:
         result = _build_codex_skill(skill_tree / ".claude" / "skills" / "fix")
         assert result is not None
@@ -145,8 +206,7 @@ class TestBuildCodexSkill:
         assert "Skill('" not in result
 
     def test_real_spec_plan_codex_uses_native_review_agent(self) -> None:
-        result = _build_codex_skill(Path("pilot/skills/spec-plan"))
-        assert result is not None
+        result = _codex_runtime_text("spec-plan")
         assert "review agents are not available in Codex CLI" not in result
         assert "Skip automated plan review agents" not in result
         assert "multi_agent_v1" not in result
@@ -157,8 +217,7 @@ class TestBuildCodexSkill:
         assert "PILOT_CODEX_SPEC_REVIEW_ENABLED" not in result
 
     def test_real_spec_verify_codex_uses_native_review_agent(self) -> None:
-        result = _build_codex_skill(Path("pilot/skills/spec-verify"))
-        assert result is not None
+        result = _codex_runtime_text("spec-verify")
         assert "No reviewer agents in Codex" not in result
         assert "Skip automated code review agents" not in result
         assert "reviewer agents were launched (not available in Codex CLI)" not in result
@@ -176,15 +235,13 @@ class TestBuildCodexSkill:
         assert "PILOT_CODEX_CHANGES_REVIEW_ENABLED" not in result
 
     def test_real_fix_codex_skill_uses_selective_codegraph_guidance(self) -> None:
-        result = _build_codex_skill(Path("pilot/skills/fix"))
-        assert result is not None
+        result = _codex_runtime_text("fix")
         assert 'Start with `codegraph_context(task="<bug description>")`' not in result
         assert "Use `codegraph_explore` only when the bug is structural" in result
         assert "For docs, rules, markdown, config, UI copy, or a named local file/function" in result
 
     def test_real_fix_codex_skill_env_blocker_uses_terminal_hint(self) -> None:
-        result = _build_codex_skill(Path("pilot/skills/fix"))
-        assert result is not None
+        result = _codex_runtime_text("fix")
         assert "Read the COMPLETE output" in result
         assert "Environment blocker protocol" in result
         assert "separate terminal" in result
@@ -255,6 +312,78 @@ class TestSyncCodexSkills:
         content = (agents_dir / "fix" / "SKILL.md").read_text()
         assert "name: fix" in content
 
+    def test_progressive_sync_copies_adapted_steps_and_runtime_resources(self, skill_tree: Path) -> None:
+        source = skill_tree / ".claude" / "skills" / "fix"
+        manifest = json.loads((source / "manifest.json").read_text())
+        manifest.update(
+            {
+                "version": 2,
+                "delivery": "progressive",
+                "targets": ["claude", "codex"],
+                "visibility": "public",
+                "invocation": "explicit",
+            }
+        )
+        (source / "manifest.json").write_text(json.dumps(manifest))
+        (source / "steps" / "01-impl.md").write_text(
+            "<!-- CC-ONLY -->\nClaude only.\n<!-- /CC-ONLY -->\n"
+            "<!-- CODEX-START\nCodex only.\nCODEX-END -->\nRun /spec."
+        )
+        scripts = source / "scripts"
+        scripts.mkdir()
+        (scripts / "helper.py").write_text("print('ok')\n")
+
+        with patch("codex_skill_sync.Path.home", return_value=skill_tree):
+            assert _sync_codex_skills() == (1, 0)
+
+        installed = skill_tree / ".agents" / "skills" / "fix"
+        step = (installed / "steps" / "01-impl.md").read_text()
+        assert "Codex only." in step
+        assert "Claude only." not in step
+        assert "$spec" in step
+        assert (installed / "scripts" / "helper.py").read_text() == "print('ok')\n"
+
+    def test_claude_only_target_removes_managed_codex_artifacts(self, skill_tree: Path) -> None:
+        source = skill_tree / ".claude" / "skills" / "fix"
+        manifest = json.loads((source / "manifest.json").read_text())
+        manifest.update(
+            {
+                "version": 2,
+                "delivery": "bundled",
+                "targets": ["claude"],
+                "visibility": "public",
+                "invocation": "explicit",
+            }
+        )
+        (source / "manifest.json").write_text(json.dumps(manifest))
+        installed = skill_tree / ".agents" / "skills" / "fix"
+        (installed / "agents").mkdir(parents=True)
+        (installed / "SKILL.md").write_text("managed")
+        (installed / "agents" / "openai.yaml").write_text("managed")
+        (installed / ".pilot-resources.json").write_text('{"files": [], "directories": []}\n')
+        (installed / "user-note.md").write_text("keep")
+
+        with patch("codex_skill_sync.Path.home", return_value=skill_tree):
+            assert _sync_codex_skills() == (0, 0)
+
+        assert not (installed / "SKILL.md").exists()
+        assert not (installed / "agents" / "openai.yaml").exists()
+        assert (installed / "user-note.md").read_text() == "keep"
+
+    def test_missing_source_tree_removes_sidecar_managed_codex_artifacts(self, tmp_path: Path) -> None:
+        installed = tmp_path / ".agents" / "skills" / "fix"
+        installed.mkdir(parents=True)
+        (installed / "SKILL.md").write_text("managed")
+        (installed / ".pilot-resources.json").write_text('{"files": [], "directories": []}\n')
+        (installed / "user-note.md").write_text("keep")
+
+        with patch("codex_skill_sync.Path.home", return_value=tmp_path):
+            assert _sync_codex_skills() == (0, 0)
+
+        assert not (installed / "SKILL.md").exists()
+        assert not (installed / ".pilot-resources.json").exists()
+        assert (installed / "user-note.md").read_text() == "keep"
+
     def test_skips_missing_skills(self, skill_tree: Path) -> None:
         with patch("codex_skill_sync.Path.home", return_value=skill_tree):
             built, failed = _sync_codex_skills()
@@ -288,23 +417,18 @@ class TestSyncCodexSkills:
         assert "/fix" not in metadata["interface"]["short_description"]
         assert metadata["policy"]["allow_implicit_invocation"] is False
 
-    def test_internal_spec_phases_remain_dispatchable_after_explicit_spec_entry(self) -> None:
+    def test_v2_internal_spec_phase_uses_manifest_invocation_policy(self) -> None:
         rendered = _build_openai_yaml(Path("pilot/skills/spec-plan"))
         assert rendered is not None
         metadata = yaml.safe_load(rendered)
 
-        assert metadata["policy"]["allow_implicit_invocation"] is True
+        assert metadata["policy"]["allow_implicit_invocation"] is False
 
     def test_synced_visible_skill_descriptions_fit_a_lean_catalog_budget(self) -> None:
         visible_names = (
             "benchmark",
             "create-skill",
             "setup-rules",
-            "spec-plan",
-            "spec-bugfix-plan",
-            "spec-implement",
-            "spec-verify",
-            "spec-bugfix-verify",
         )
         descriptions: list[str] = []
         for name in visible_names:
@@ -319,7 +443,7 @@ class TestSyncCodexSkills:
             assert len(description) <= 120
             descriptions.append(description)
 
-        assert sum(map(len, descriptions)) <= 800
+        assert sum(map(len, descriptions)) <= 360
 
 
 class TestSyncCodexReviewAgents:
@@ -335,6 +459,8 @@ class TestSyncCodexReviewAgents:
         assert "output_path" not in instructions
         assert "MANDATORY: Write output" not in instructions
         assert "Your LAST action MUST be `Write`" not in instructions
+        assert "Write Output" not in instructions
+        assert "write output" not in instructions.lower()
 
     def test_builds_changes_review_agent_with_final_status_guidance(self) -> None:
         result = _build_codex_review_agent(Path("pilot/agents/changes-review.md"))
@@ -385,6 +511,35 @@ class TestSyncCodexReviewAgents:
         assert build_data["model"] == "codex-auto-review"
         assert (codex_agents_dir / "user-agent.toml").exists()
 
+    def test_removes_stale_managed_review_agent_when_source_disappears(self, tmp_path: Path) -> None:
+        (tmp_path / ".pilot" / "agents").mkdir(parents=True)
+        dest = tmp_path / ".codex" / "agents"
+        dest.mkdir(parents=True)
+        stale = dest / "build-review.toml"
+        stale.write_text('# pilot-shell managed Codex review agent\nname = "build-review"\n')
+        user = dest / "spec-review.toml"
+        user.write_text('name = "spec-review"\n')
+
+        with patch("codex_skill_sync.Path.home", return_value=tmp_path):
+            assert _sync_codex_review_agents() == (0, 0)
+
+        assert not stale.exists()
+        assert user.read_text() == 'name = "spec-review"\n'
+
+    def test_missing_review_source_tree_removes_only_managed_agents(self, tmp_path: Path) -> None:
+        dest = tmp_path / ".codex" / "agents"
+        dest.mkdir(parents=True)
+        managed = dest / "build-review.toml"
+        managed.write_text('# pilot-shell managed Codex review agent\nname = "build-review"\n')
+        user = dest / "spec-review.toml"
+        user.write_text('name = "spec-review"\n')
+
+        with patch("codex_skill_sync.Path.home", return_value=tmp_path):
+            assert _sync_codex_review_agents() == (0, 0)
+
+        assert not managed.exists()
+        assert user.read_text() == 'name = "spec-review"\n'
+
     def test_removes_build_review_agent_when_license_invalid(self, tmp_path: Path) -> None:
         """License gating must reach the new agent too, or it survives a revoked licence."""
         codex_agents_dir = tmp_path / ".codex" / "agents"
@@ -424,6 +579,7 @@ class TestRemoveCodexSkills:
         agents_dir = skill_tree / ".agents" / "skills" / "fix"
         agents_dir.mkdir(parents=True)
         (agents_dir / "SKILL.md").write_text("old content")
+        (agents_dir / ".pilot-resources.json").write_text('{"files": [], "directories": []}\n')
 
         with patch("codex_skill_sync.Path.home", return_value=skill_tree):
             removed = _remove_codex_skills()
@@ -441,6 +597,7 @@ class TestRemoveCodexSkills:
         agents = tmp_path / ".agents" / "skills"
         (agents / "spec").mkdir(parents=True)
         (agents / "spec" / "SKILL.md").write_text("pilot spec")
+        (agents / "spec" / ".pilot-resources.json").write_text('{"files": [], "directories": []}\n')
         (agents / "fix").mkdir(parents=True)
         (agents / "fix" / "SKILL.md").write_text("user fix")
         claude_dir = tmp_path / ".claude"
@@ -584,6 +741,7 @@ class TestCheckLicense:
         skill_dir = tmp_path / ".agents" / "skills" / "fix"
         skill_dir.mkdir(parents=True)
         (skill_dir / "SKILL.md").write_text("old skill")
+        (skill_dir / ".pilot-resources.json").write_text('{"files": [], "directories": []}\n')
         codex_agents_dir = tmp_path / ".codex" / "agents"
         codex_agents_dir.mkdir(parents=True)
         (codex_agents_dir / "spec-review.toml").write_text(

@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
 import session_clear
 
 
@@ -74,6 +75,46 @@ def test_removes_all_stale_state(tmp_path: Path):
         assert not (session_dir / name).exists(), f"{name} should have been deleted"
     findings = list(session_dir.glob("findings-*.json"))
     assert findings == [], f"Expected no findings files, found: {[f.name for f in findings]}"
+
+
+def test_clear_removes_every_current_pause_sentinel(tmp_path: Path):
+    """The cleanup registry must cover approval, build hand-back, and verify gates."""
+    from _lib.session_artifacts import PAUSE_SENTINELS
+
+    session_dir = tmp_path / "sessions" / "1001"
+    session_dir.mkdir(parents=True)
+    for name in PAUSE_SENTINELS:
+        (session_dir / name).write_text("")
+
+    with (
+        patch.dict(os.environ, {"PILOT_SESSION_ID": "1001"}, clear=True),
+        patch.object(session_clear, "SESSIONS_DIR", tmp_path / "sessions"),
+    ):
+        assert session_clear.main() == 0
+
+    assert all(not (session_dir / name).exists() for name in PAUSE_SENTINELS)
+
+
+def test_clear_removes_plan_mode_and_preflight_markers(tmp_path: Path):
+    markers = (
+        "bypass-restore-pending",
+        "pre-plan-permission-mode",
+        "plan-model-warned",
+        "plan-model-confirmed",
+        "preflight-context-warned",
+    )
+    session_dir = tmp_path / "sessions" / "1001"
+    session_dir.mkdir(parents=True)
+    for name in markers:
+        (session_dir / name).write_text("stale")
+
+    with (
+        patch.dict(os.environ, {"PILOT_SESSION_ID": "1001"}, clear=True),
+        patch.object(session_clear, "SESSIONS_DIR", tmp_path / "sessions"),
+    ):
+        assert session_clear.main() == 0
+
+    assert all(not (session_dir / name).exists() for name in markers)
 
 
 def test_preserves_worktree_json(tmp_path: Path):
@@ -232,6 +273,34 @@ def test_clear_rejects_traversal_payload_session_id(tmp_path: Path):
     assert (victim_dir / "active_plan.json").exists(), (
         "a traversal payload session_id must not let /clear delete files outside SESSIONS_DIR"
     )
+
+
+@pytest.mark.parametrize("payload_kind", ["absolute", "non-string"])
+def test_clear_rejects_absolute_or_non_string_payload_session_id(tmp_path: Path, payload_kind: str):
+    """Absolute and typed JSON values must not become deletion targets."""
+    import io
+    import json
+    from unittest.mock import patch as _patch
+
+    sessions = tmp_path / "sessions"
+    default_dir = sessions / "default"
+    default_dir.mkdir(parents=True)
+    (default_dir / "active_plan.json").write_text("{}")
+
+    victim_dir = tmp_path / "absolute-victim" if payload_kind == "absolute" else sessions / "123"
+    victim_dir.mkdir(parents=True)
+    (victim_dir / "active_plan.json").write_text("{}")
+    payload_id = str(victim_dir) if payload_kind == "absolute" else 123
+
+    with (
+        patch.dict(os.environ, {}, clear=True),
+        patch.object(session_clear, "SESSIONS_DIR", sessions),
+        _patch("sys.stdin", io.StringIO(json.dumps({"session_id": payload_id}))),
+    ):
+        assert session_clear.main() == 0
+
+    assert (victim_dir / "active_plan.json").exists()
+    assert not (default_dir / "active_plan.json").exists()
 
 
 def test_noop_when_session_dir_missing(tmp_path: Path):

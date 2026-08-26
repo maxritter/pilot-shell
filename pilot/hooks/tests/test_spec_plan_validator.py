@@ -10,6 +10,26 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from spec_plan_validator import main
 
+VALID_FEATURE_HEADER = """# Test Plan
+
+Created: 2026-02-18
+Status: PENDING
+Approved: No
+Iterations: 0
+Worktree: No
+Type: Feature
+"""
+
+VALID_BUILD_HEADER = """# Test Buildout
+
+Created: 2026-02-18
+Status: PENDING
+Approved: No
+Rounds: 0
+Worktree: No
+Type: Build
+"""
+
 
 class TestSpecPlanValidator:
     @patch("spec_plan_validator.is_waiting_for_user_input", return_value=False)
@@ -65,7 +85,7 @@ class TestSpecPlanValidator:
 
         plans_dir = tmp_path / "docs" / "plans"
         plans_dir.mkdir(parents=True)
-        (plans_dir / "2026-02-18-test-plan.md").touch()
+        (plans_dir / "2026-02-18-test-plan.md").write_text(VALID_FEATURE_HEADER)
 
         with patch(
             "spec_plan_validator.json.load",
@@ -81,6 +101,43 @@ class TestSpecPlanValidator:
         assert result == 0
         captured = capsys.readouterr()
         assert captured.out == ""
+
+    @patch("spec_plan_validator.is_waiting_for_user_input", return_value=False)
+    @patch("sys.stdin")
+    def test_blocks_when_registered_plan_is_malformed(self, mock_stdin, mock_waiting, tmp_path, capsys):
+        plan = tmp_path / "docs" / "plans" / "malformed.md"
+        plan.parent.mkdir(parents=True)
+        plan.write_text("# This is Markdown, but not a Pilot plan.\n")
+
+        with (
+            patch("spec_plan_validator.json.load", return_value={"project_root": str(tmp_path)}),
+            patch("spec_plan_validator._own_registered_plan", return_value=plan),
+        ):
+            assert main() == 0
+
+        data = json.loads(capsys.readouterr().out)
+        assert data["decision"] == "block"
+        assert "not renderable" in data["reason"]
+        assert "plan header" in data["reason"]
+
+    def test_hook_local_fallback_rejects_unrenderable_plan(self, tmp_path):
+        from spec_plan_validator import _validation_errors
+
+        plan = tmp_path / "malformed.md"
+        plan.write_text("# Not a plan\n")
+        with patch("spec_plan_validator._canonical_validation_errors", return_value=None):
+            errors = _validation_errors(plan)
+
+        assert errors
+        assert "plan header" in errors[0]
+
+    def test_valid_unfinished_plan_has_no_blocking_errors(self, tmp_path):
+        """No tasks is a canonical warning and must not hold the planning turn open."""
+        from spec_plan_validator import _validation_errors
+
+        plan = tmp_path / "unfinished.md"
+        plan.write_text(VALID_FEATURE_HEADER)
+        assert _validation_errors(plan) == []
 
     @patch("sys.stdin")
     def test_allows_when_waiting_for_user(self, mock_stdin):
@@ -136,7 +193,7 @@ class TestBuildoutDirectory:
 
         builds_dir = tmp_path / "docs" / "builds"
         builds_dir.mkdir(parents=True)
-        (builds_dir / "2026-02-18-running-brand.md").touch()
+        (builds_dir / "2026-02-18-running-brand.md").write_text(VALID_BUILD_HEADER)
 
         with patch(
             "spec_plan_validator.json.load",
@@ -180,7 +237,7 @@ class TestSessionScoping:
         plans = tmp_path / "docs" / "plans"
         plans.mkdir(parents=True, exist_ok=True)
         path = plans / name
-        path.write_text("# P\nStatus: PENDING\nApproved: No\nType: Feature\n")
+        path.write_text(VALID_FEATURE_HEADER)
         return path
 
     def _register(self, home: Path, session_id: str, plan: Path) -> None:

@@ -44,7 +44,7 @@ CODEX-END -->
 **Use the `AskUserQuestion` tool for user questions** (when questions are enabled) — it renders a structured form that's much easier to answer than a plain-text numbered list, with each question its own entry of predefined options. Don't fall back to numbered questions in prose.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-**Use plain-text numbered options for user questions** (when questions are enabled) — the Claude question tool isn't callable in Codex. Present each question with 2-4 concrete options and wait for the user's response.
+**Use the runtime's structured user-input tool when one is exposed** (and questions are enabled). Otherwise present each question with 2-4 concrete options in prose, end the turn, and wait for the user's response.
 
 **Codex speed override:** `PILOT_PLAN_QUESTIONS_ENABLED=true` allows questions; it does not require two question rounds. Ask only when the missing answer can materially change scope, architecture, or user-visible behavior. Keep Codex planning to one bundled prompt with at most 3 short questions, unless the user has explicitly asked for deeper planning.
 CODEX-END -->

@@ -9,6 +9,8 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
@@ -133,6 +135,40 @@ class TestPreCompactHook:
                 f"got: {list(sessions_dir.rglob('*.json'))}"
             )
             assert result == 0
+
+    @pytest.mark.parametrize("payload_kind", ["traversal", "absolute", "non-string"])
+    @patch("pre_compact.urllib.request.urlopen")
+    @patch("pre_compact.read_hook_stdin")
+    @patch("pre_compact.get_session_plan_path")
+    @patch("pre_compact._sessions_base")
+    def test_fallback_rejects_unsafe_or_non_string_payload_session_ids(
+        self,
+        mock_sessions_base,
+        mock_plan_path,
+        mock_stdin,
+        mock_urlopen,
+        tmp_path,
+        payload_kind,
+    ):
+        """Payload-first compaction keys must still be safe single components."""
+        from pre_compact import run_pre_compact
+
+        payload_id = {
+            "traversal": "../victim",
+            "absolute": str(tmp_path / "victim"),
+            "non-string": 123,
+        }[payload_kind]
+        sessions = tmp_path / "sessions"
+        mock_sessions_base.return_value = sessions
+        mock_plan_path.return_value = tmp_path / "missing-active-plan.json"
+        mock_stdin.return_value = {"session_id": payload_id, "trigger": "auto"}
+        mock_urlopen.side_effect = OSError("offline")
+
+        with patch.dict(os.environ, {}, clear=True):
+            assert run_pre_compact() == 0
+
+        assert (sessions / "default" / "pre-compact-state.json").is_file()
+        assert not (tmp_path / "victim" / "pre-compact-state.json").exists()
 
     @patch("pre_compact.urllib.request.urlopen")
     @patch("pre_compact.read_hook_stdin")

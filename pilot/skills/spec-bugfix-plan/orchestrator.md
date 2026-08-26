@@ -59,7 +59,7 @@ If Step 2 is incomplete, you cannot propose fixes. Symptom fixes are failure. Re
 - **Use the `AskUserQuestion` tool for clarifications** — it renders a structured form; don't fall back to plain-text numbered questions
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-- **Use plain-text numbered options for clarifications** — the Claude question tool isn't callable in Codex
+- **Use the runtime's structured user-input tool when available**; otherwise present numbered clarification options in prose and wait for the answer
 CODEX-END -->
 - **If `PILOT_PLAN_QUESTIONS_ENABLED` is `"false"` (from Step 0),** skip all `AskUserQuestion` calls (Steps 2.1, 2.5 escalation, 3 approach selection). Make reasonable default assumptions (including selecting the recommended fix approach) and document them in the plan. Continue autonomously.
 

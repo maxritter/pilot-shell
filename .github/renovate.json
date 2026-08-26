@@ -19,7 +19,6 @@
     {
       "description": "High-risk packages get individual PRs with extra labels (no grouping).",
       "matchPackageNames": [
-        "@colbymchenry/codegraph",
         "agent-browser",
         "rtk-installer",
         "golangci-lint-installer",

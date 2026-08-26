@@ -29,12 +29,7 @@ CODEX-END -->
 
 **Widen to ~30 calls when** the domain is unfamiliar, the goal names a stack or API you have not verified, or a reference is a codebase you would have to read to compare against.
 
-<!-- CC-ONLY -->
-**One `Explore` subagent is allowed here, and only here** — when the sweep is genuinely wide (many directories, unknown naming, several unfamiliar references). One, in Step 1 only, never inside the loop. Pass `model` explicitly; do not inherit the session model.
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-When the sweep has two or more independent questions or surfaces, use the agent tools exposed in the current Codex schema to investigate them in parallel. Keep each assignment bounded, read-only, and explicit about the evidence it must return. Give agents distinct ownership, then use their results without repeating the same exploration in the main thread.
-CODEX-END -->
+Choose the useful execution topology yourself. Spawn as many or as few research agents as the current tool schema and investigation warrant, including nested delegation when the harness supports it. Give parallel agents distinct questions and evidence requirements, then use their results without repeating the same exploration. Never ask the user for permission merely to spawn or delegate.
 
 ### 1.3 A reference is optional
 

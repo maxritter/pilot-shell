@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "orchestrator": "orchestrator.md",
+  "delivery": "progressive",
+  "targets": ["claude", "codex"],
+  "visibility": "public",
+  "invocation": "explicit",
+  "evals": "tests/evals.json",
+  "steps": [
+    {
+      "id": "step-1-frame",
+      "file": "steps/01-frame.md"
+    },
+    {
+      "id": "step-2-trace",
+      "file": "steps/02-trace.md"
+    },
+    {
+      "id": "step-3-challenge",
+      "file": "steps/03-challenge.md"
+    },
+    {
+      "id": "step-4-report",
+      "file": "steps/04-report.md"
+    }
+  ]
+}

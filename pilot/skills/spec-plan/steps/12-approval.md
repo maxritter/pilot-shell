@@ -45,7 +45,7 @@ CODEX-END -->
 
    Note: `Worktree:` field was already set at creation time (Step 2). Do NOT ask again here.
 
-   ⛔ **When you cannot emit `AskUserQuestion`** — on Codex, where it renders as a plain-text list rather than an interactive control, or as a Claude Code subagent running this plan as an orchestration lane, where the tool is absent entirely — the prompt above will not block for an answer, so you must yield yourself. Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Plan approval`, `OPTIONS` = the two above, `SENTINEL_PATH` = `spec-approval-pending`:
+   ⛔ **When the runtime exposes no structured question tool** — common in non-interactive Codex runs and Claude Code subagent orchestration lanes — a prose prompt will not block for an answer, so you must yield yourself. Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Plan approval`, `OPTIONS` = the two above, `SENTINEL_PATH` = `spec-approval-pending`:
 
    ```bash
    SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
@@ -90,7 +90,7 @@ SPEC_SESS="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-defa
 
 **If `MODE` is `"manual"`:** print one line — "ℹ️ Manual model switching: implementation continues on your current `/model` choice. Interrupt and run `/model` if you want a different implementation model." — and invoke `Skill(skill='spec-implement', args='<plan-path>')` immediately. Do NOT call `EnterPlanMode`/`ExitPlanMode` in Manual mode.
 
-⛔ **Never end your turn between approval and `spec-implement`, in any mode.** Manual mode used to pause here so the user could type `/model` (impossible inside an `AskUserQuestion` prompt, so it ended the turn instead). That pause made approval a dead end: the user approved a plan and got a finish message with zero tasks done, in the one mode that is the default for new installs. Approval is the go signal — the interaction points are the four in `task-and-workflow.md`, and this was a fifth. A user who wants a different implementation model interrupts and runs `/model`, which costs one keystroke and only when they actually want it; the pause cost a full round-trip every single run. The stop guard no longer honors any sentinel for an approved `PENDING` plan, so ending the turn here now blocks and pushes you to continue anyway — do not touch a sentinel to get around that.
+⛔ **Never end your turn between approval and `spec-implement`, in any mode.** Manual mode used to pause here so the user could type `/model` (impossible inside an `AskUserQuestion` prompt, so it ended the turn instead). That pause made approval a dead end: the user approved a plan and got a finish message with zero tasks done. Approval is the go signal; no configured mode adds another pause here. A user who wants a different implementation model interrupts and runs `/model`. The stop guard no longer honors any sentinel for an approved `PENDING` plan, so ending the turn here now blocks and pushes you to continue anyway — do not touch a sentinel to get around that.
 
 **If `MODE` is `"off"`:** invoke `Skill(skill='spec-implement', args='<plan-path>')` directly — no model management, implementation continues on the active model.
 <!-- /CC-ONLY -->

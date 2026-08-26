@@ -254,6 +254,9 @@ benchmarks/**
 !benchmarks/codex-autonomy/evals.json
 !benchmarks/claude-autonomy/
 !benchmarks/claude-autonomy/evals.json
+!benchmarks/skill-routing/
+!benchmarks/skill-routing/catalog.json
+!benchmarks/skill-routing/ratchet.json
 skill-creator
 spec-annotate
 changes-header

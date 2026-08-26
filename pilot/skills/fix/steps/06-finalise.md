@@ -205,7 +205,7 @@ Read `PILOT_PLAN_APPROVAL_ENABLED`. `"false"` → skip this gate entirely and co
 
 Otherwise summarise and ask, offering: `"Approve — done"`, `"Request changes"`, and `"Explain the fix in more detail"` (present in the first ask only; drop it from any re-ask to avoid loops).
 
-⛔ **When you cannot emit `AskUserQuestion`** — on Codex, or as a Claude Code subagent running this fix as an orchestration lane — read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Bugfix approval`, `OPTIONS` = the three above, `SENTINEL_PATH` = `none` (`/fix` registers no plan, so no stop guard is holding the session open). Ask in prose and end your turn. Never record the fix as approved because the form was unavailable, and never run 6.3 in the same turn as the ask — under orchestration this gate is the coordinator's only chance to see the diff before it lands.
+⛔ **When the runtime exposes no structured question tool** — common in non-interactive Codex runs and Claude Code subagent orchestration lanes — read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Bugfix approval`, `OPTIONS` = the three above, `SENTINEL_PATH` = `none` (`/fix` registers no plan, so no stop guard is holding the session open). Ask in prose and end your turn. Never record the fix as approved because the form was unavailable, and never run 6.3 in the same turn as the ask — under orchestration this gate is the coordinator's only chance to see the diff before it lands.
 
 ```
 AskUserQuestion(

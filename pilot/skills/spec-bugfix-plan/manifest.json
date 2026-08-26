@@ -1,6 +1,11 @@
 {
-  "version": 1,
+  "version": 2,
   "orchestrator": "orchestrator.md",
+  "delivery": "progressive",
+  "targets": ["claude", "codex"],
+  "visibility": "internal",
+  "invocation": "explicit",
+  "parent": "spec",
   "steps": [
     {
       "id": "step-0-setup-and-red-flags",

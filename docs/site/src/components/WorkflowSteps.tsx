@@ -14,6 +14,7 @@ import {
   Target,
   ListChecks,
   Scale,
+  Search,
   ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
@@ -143,8 +144,9 @@ const WorkflowSteps = () => {
             Pilot workflows for every stage
           </h2>
           <p className="text-muted-foreground text-lg sm:text-xl max-w-3xl mx-auto">
-            Shape requirements, approve a plan, build toward a goal, or trace a
-            defect, with verification built into the handoff.
+            Understand unfamiliar code, shape requirements, approve a plan,
+            build toward a goal, or trace a defect with evidence at every
+            handoff.
           </p>
         </div>
 
@@ -155,10 +157,13 @@ const WorkflowSteps = () => {
             </div>
             <div>
               <h3 className="text-xl font-semibold text-foreground">
-                Claude Code workflow suite
+                Cross-agent workflow suite
               </h3>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                Use <code className="text-foreground">/prd</code>,{" "}
+                Use <code className="text-foreground">/investigate</code> to
+                understand existing code, <code className="text-foreground">/cleanup</code>{" "}
+                to audit unused-code candidates, then{" "}
+                <code className="text-foreground">/prd</code>,{" "}
                 <code className="text-foreground">/spec</code>,{" "}
                 <code className="text-foreground">/build</code>, or{" "}
                 <code className="text-foreground">/fix</code> to put the right
@@ -398,6 +403,22 @@ const WorkflowSteps = () => {
               </p>
             </a>
             <a
+              href="/docs/workflows/investigate"
+              className="group flex min-h-20 flex-col gap-2 border-t border-border/50 py-4 sm:flex-row sm:gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <div className="flex min-w-44 items-center gap-2">
+                <Search className="h-4 w-4 text-primary" />
+                <code className="text-sm font-medium text-primary">
+                  /investigate
+                </code>
+              </div>
+              <p className="text-xs text-muted-foreground group-hover:text-foreground/80">
+                Trace how existing code works, challenge the conclusion once,
+                and answer with file-and-line evidence without changing the
+                project.
+              </p>
+            </a>
+            <a
               href="/docs/workflows/setup-rules"
               className="group flex min-h-20 flex-col gap-2 border-t border-border/50 py-4 sm:flex-row sm:gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
@@ -408,6 +429,19 @@ const WorkflowSteps = () => {
               <p className="text-xs text-muted-foreground group-hover:text-foreground/80">
                 Generates project rules from your codebase — explores patterns,
                 documents conventions and MCP servers.
+              </p>
+            </a>
+            <a
+              href="/docs/workflows/cleanup"
+              className="group flex min-h-20 flex-col gap-2 border-t border-border/50 py-4 sm:flex-row sm:gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <div className="flex min-w-44 items-center gap-2">
+                <ListChecks className="h-4 w-4 text-primary" />
+                <code className="text-sm font-medium text-primary">/cleanup</code>
+              </div>
+              <p className="text-xs text-muted-foreground group-hover:text-foreground/80">
+                Corroborate analyzer findings, exact references, dynamic entry
+                points, and tests into a report-only cleanup inventory.
               </p>
             </a>
             <a

@@ -69,7 +69,7 @@ Combine related decisions into one call rather than serialising them — approac
 
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-**Use plain-text numbered options for user questions** — the Claude question tool isn't callable in Codex. Present 2-4 concrete options with trade-offs, and wait for the user's response.
+**Use the runtime's structured user-input tool when one is exposed.** Otherwise present 2-4 numbered options with trade-offs in prose, end the turn, and wait for the user's response.
 
 ### Codex PRD Pacing Contract
 

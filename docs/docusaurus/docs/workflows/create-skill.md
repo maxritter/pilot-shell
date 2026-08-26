@@ -75,6 +75,8 @@ The generated tracked files in `.claude/skills/my-project-skill/` are byte-ident
 
 Skills are designed with the simplest possible structure that does the job. Simpler = more reliable and cheaper to execute.
 
+Keep the main `SKILL.md` below 500 lines and 5,000 words. Put detailed procedures, templates, and reference material in one-level-deep supporting files and link them from the exact point where they are needed. This keeps activation cheap while preserving the full workflow on demand.
+
 | Level | Style | Best For |
 |-------|-------|----------|
 | **Passive** | Context only | Background knowledge, coding standards |

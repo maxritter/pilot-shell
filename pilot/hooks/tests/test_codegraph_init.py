@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import contextlib
 import hashlib
-import json
 import os
 import signal
 import subprocess
@@ -15,20 +14,15 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 from codegraph_init import (
     INDEX_TIMEOUT_SECONDS,
-    REPAIR_TIMEOUT_SECONDS,
     SYNC_TIMEOUT_SECONDS,
-    _enable_embeddings,
-    _find_codegraph_package_dir,
     _get_project_dir,
     _has_git_commits,
     _is_corrupt_db_error,
     _is_in_git_repo,
     _is_indexed,
-    _is_using_wasm_sqlite,
     _kill_group,
     _op_timeout,
     _recover_corrupt_db,
-    _repair_native_sqlite,
     _run,
     _run_group,
     main,
@@ -69,34 +63,6 @@ class TestGitDetection:
         assert _has_git_commits(tmp_path) is False
 
 
-class TestEnableEmbeddings:
-    def test_creates_config_when_exists(self, tmp_path: Path) -> None:
-        cg = tmp_path / ".codegraph"
-        cg.mkdir()
-        config = cg / "config.json"
-        config.write_text(json.dumps({"someKey": True}))
-
-        _enable_embeddings(tmp_path)
-
-        data = json.loads(config.read_text())
-        assert data["enableEmbeddings"] is True
-        assert data["someKey"] is True
-
-    def test_noop_when_already_enabled(self, tmp_path: Path) -> None:
-        cg = tmp_path / ".codegraph"
-        cg.mkdir()
-        config = cg / "config.json"
-        config.write_text(json.dumps({"enableEmbeddings": True}))
-        mtime_before = config.stat().st_mtime_ns
-
-        _enable_embeddings(tmp_path)
-
-        assert config.stat().st_mtime_ns == mtime_before
-
-    def test_noop_when_no_config(self, tmp_path: Path) -> None:
-        _enable_embeddings(tmp_path)
-
-
 class TestIsIndexed:
     def test_true_when_db_large(self, tmp_path: Path) -> None:
         cg = tmp_path / ".codegraph"
@@ -135,66 +101,6 @@ class TestCorruptDb:
 
     def test_recover_noop_when_missing(self, tmp_path: Path) -> None:
         assert _recover_corrupt_db(tmp_path) is False
-
-
-class TestWasmSqliteRepair:
-    @patch("codegraph_init.subprocess.run")
-    def test_detects_wasm_backend(self, mock_run: MagicMock) -> None:
-        mock_run.return_value = MagicMock(
-            returncode=0,
-            stdout=b"[CodeGraph] Using WASM SQLite backend (native better-sqlite3 unavailable)\n",
-            stderr=b"",
-        )
-        assert _is_using_wasm_sqlite() is True
-
-    @patch("codegraph_init.subprocess.run")
-    def test_native_backend_not_wasm(self, mock_run: MagicMock) -> None:
-        mock_run.return_value = MagicMock(returncode=0, stdout=b"CodeGraph Status\n", stderr=b"")
-        assert _is_using_wasm_sqlite() is False
-
-    @patch("codegraph_init.subprocess.run", side_effect=OSError)
-    def test_wasm_check_error(self, _mock_run: MagicMock) -> None:
-        assert _is_using_wasm_sqlite() is False
-
-    @patch("codegraph_init.shutil.which", return_value="/usr/bin/codegraph")
-    def test_find_package_dir(self, _mock_which: MagicMock, tmp_path: Path) -> None:
-        pkg_dir = tmp_path / "node_modules" / "@colbymchenry" / "codegraph"
-        pkg_dir.mkdir(parents=True)
-        bin_dir = pkg_dir / "dist" / "bin"
-        bin_dir.mkdir(parents=True)
-        (bin_dir / "codegraph.js").write_text("")
-        (pkg_dir / "package.json").write_text(json.dumps({"name": "@colbymchenry/codegraph"}))
-
-        with patch("codegraph_init.Path.resolve", return_value=bin_dir / "codegraph.js"):
-            result = _find_codegraph_package_dir()
-        assert result == pkg_dir
-
-    @patch("codegraph_init.shutil.which", return_value=None)
-    def test_find_package_dir_no_binary(self, _mock_which: MagicMock) -> None:
-        assert _find_codegraph_package_dir() is None
-
-    @patch("codegraph_init._run_group")
-    @patch("codegraph_init._find_codegraph_package_dir")
-    def test_repair_rebuilds_bundled(self, mock_find: MagicMock, mock_group: MagicMock, tmp_path: Path) -> None:
-        pkg_dir = tmp_path / "codegraph-pkg"
-        pkg_dir.mkdir()
-        (pkg_dir / "node_modules" / "better-sqlite3").mkdir(parents=True)
-        mock_find.return_value = pkg_dir
-        mock_group.return_value = subprocess.CompletedProcess(["npm"], 0, b"", b"")
-
-        assert _repair_native_sqlite() is True
-        mock_group.assert_called_once_with(["npm", "rebuild", "better-sqlite3"], pkg_dir, REPAIR_TIMEOUT_SECONDS)
-
-    @patch("codegraph_init._run_group")
-    @patch("codegraph_init._find_codegraph_package_dir", return_value=None)
-    def test_repair_falls_back_to_global(self, _mock_find: MagicMock, mock_group: MagicMock) -> None:
-        mock_group.return_value = subprocess.CompletedProcess(["npm"], 0, b"", b"")
-        assert _repair_native_sqlite() is True
-        mock_group.assert_called_once_with(
-            ["npm", "install", "-g", "better-sqlite3", "--no-audit", "--no-fund"],
-            Path.cwd(),
-            REPAIR_TIMEOUT_SECONDS,
-        )
 
 
 class TestRun:
@@ -273,6 +179,18 @@ class TestProcessGroupReaping:
         assert result.stdout == b"out"
         assert result.stderr == b"err"
 
+    @patch("codegraph_init.subprocess.Popen")
+    def test_run_group_disables_codegraph_telemetry(self, mock_popen: MagicMock, tmp_path: Path) -> None:
+        proc = MagicMock()
+        proc.communicate.return_value = (b"", b"")
+        proc.returncode = 0
+        mock_popen.return_value = proc
+
+        _run_group(["codegraph", "sync"], tmp_path, 10)
+
+        env = mock_popen.call_args.kwargs["env"]
+        assert env["CODEGRAPH_TELEMETRY"] == "0"
+
     @_posix_only
     def test_run_group_returns_none_on_spawn_failure(self, tmp_path: Path) -> None:
         assert _run_group(["this-binary-does-not-exist-xyz123"], tmp_path, 10) is None
@@ -332,7 +250,6 @@ class TestMain:
 
     @patch("codegraph_init._op_timeout", side_effect=lambda _deadline, cap: cap)
     @patch("codegraph_init._run_group")
-    @patch("codegraph_init._is_using_wasm_sqlite", return_value=False)
     @patch("codegraph_init._has_git_commits", return_value=True)
     @patch("codegraph_init.shutil.which", return_value="/usr/bin/codegraph")
     @patch("codegraph_init._get_project_dir")
@@ -341,7 +258,6 @@ class TestMain:
         mock_dir: MagicMock,
         _mock_which: MagicMock,
         _mock_commits: MagicMock,
-        _mock_wasm: MagicMock,
         mock_group: MagicMock,
         _mock_op_timeout: MagicMock,
         tmp_path: Path,
@@ -352,7 +268,6 @@ class TestMain:
         def group_side_effect(cmd, cwd, timeout):
             if cmd == ["codegraph", "init"]:
                 (tmp_path / ".codegraph").mkdir(exist_ok=True)
-                (tmp_path / ".codegraph" / "config.json").write_text("{}")
             return subprocess.CompletedProcess(cmd, 0, b"", b"")
 
         mock_group.side_effect = group_side_effect
@@ -363,7 +278,6 @@ class TestMain:
 
     @patch("codegraph_init._op_timeout", side_effect=lambda _deadline, cap: cap)
     @patch("codegraph_init._run_group")
-    @patch("codegraph_init._is_using_wasm_sqlite", return_value=False)
     @patch("codegraph_init._has_git_commits", return_value=True)
     @patch("codegraph_init.shutil.which", return_value="/usr/bin/codegraph")
     @patch("codegraph_init._get_project_dir")
@@ -372,7 +286,6 @@ class TestMain:
         mock_dir: MagicMock,
         _mock_which: MagicMock,
         _mock_commits: MagicMock,
-        _mock_wasm: MagicMock,
         mock_group: MagicMock,
         _mock_op_timeout: MagicMock,
         tmp_path: Path,
@@ -380,7 +293,6 @@ class TestMain:
         (tmp_path / ".git").mkdir()
         cg = tmp_path / ".codegraph"
         cg.mkdir()
-        (cg / "config.json").write_text(json.dumps({"enableEmbeddings": True}))
         (cg / "codegraph.db").write_bytes(b"\x00" * 2_000_000)
         mock_dir.return_value = tmp_path
         mock_group.return_value = subprocess.CompletedProcess(["codegraph", "sync", "-q"], 0, b"", b"")
@@ -426,7 +338,6 @@ class TestMain:
     @patch("codegraph_init._recover_corrupt_db", return_value=True)
     @patch("codegraph_init._run", return_value=True)
     @patch("codegraph_init._run_group")
-    @patch("codegraph_init._is_using_wasm_sqlite", return_value=False)
     @patch("codegraph_init._has_git_commits", return_value=True)
     @patch("codegraph_init.shutil.which", return_value="/usr/bin/codegraph")
     @patch("codegraph_init._get_project_dir")
@@ -435,7 +346,6 @@ class TestMain:
         mock_dir: MagicMock,
         _mock_which: MagicMock,
         _mock_commits: MagicMock,
-        _mock_wasm: MagicMock,
         mock_group: MagicMock,
         mock_run: MagicMock,
         mock_recover: MagicMock,
@@ -445,7 +355,6 @@ class TestMain:
         (tmp_path / ".git").mkdir()
         cg = tmp_path / ".codegraph"
         cg.mkdir()
-        (cg / "config.json").write_text(json.dumps({"enableEmbeddings": True}))
         (cg / "codegraph.db").write_bytes(b"\x00" * 2_000_000)
         mock_dir.return_value = tmp_path
         mock_group.return_value = subprocess.CompletedProcess(

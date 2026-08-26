@@ -1,6 +1,10 @@
 {
-  "version": 1,
+  "version": 2,
   "orchestrator": "orchestrator.md",
+  "delivery": "progressive",
+  "targets": ["claude", "codex"],
+  "visibility": "public",
+  "invocation": "implicit",
   "steps": [
     {
       "id": "step-1-reference",

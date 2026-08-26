@@ -1,0 +1,53 @@
+{
+  "target": {
+    "type": "skill",
+    "path": "pilot/skills/cleanup",
+    "name": "cleanup"
+  },
+  "evals": [
+    {
+      "id": 1,
+      "name": "private-unused-two-signals",
+      "prompt": "$cleanup classify this self-contained read-only evidence packet; do not run commands or change files. Scope: src/. Initial and final `git status --short --untracked-files=all`: clean. Project config defines `npm run dead-code` as `knip --production`; captured command `npm run dead-code -- --include files,exports` exited 1 and reported `src/private.ts:4 privateHelper unused export`. Captured `rg -n --hidden --glob '!node_modules' 'privateHelper' .` exited 0 with only `src/private.ts:4`. The declaration is module-private, is not exported from package metadata, and config/route/plugin/CLI/generated-entry searches returned no matches. Report exact supplied commands/results and apply the cleanup evidence threshold.",
+      "expected_output": "A report-only audit labels privateHelper Likely removable because a configured analyzer and independent exhaustive search agree and the supplied boundary audit is resolved.",
+      "expectations": [
+        "The supplied configured project-native analyzer result is the candidate generator, and the response does not install, initialize, sync, edit, or delete anything.",
+        "The status is exactly Likely removable, and the response never upgrades it to confirmed dead code, safe to remove, or safe to delete.",
+        "The report lists exact commands and results and compares the initial and final worktree snapshots."
+      ]
+    },
+    {
+      "id": 2,
+      "name": "public-api-boundary-blocks-removal",
+      "prompt": "$cleanup classify this self-contained read-only evidence packet; do not run commands or change files. Initial and final worktree: clean. Configured command `npm run dead-code` exited 1 and nominated `src/public.ts:8 createClient`. Captured exact search `rg -n 'createClient' .` found only its declaration. Source and `package.json` show createClient is exported from the package root; no downstream consumer inventory is available. Record the supplied commands/results and classify the boundary.",
+      "expected_output": "The exported function remains a boundary-review item rather than being declared removable from absent internal references.",
+      "expectations": [
+        "The status is exactly Needs boundary review because external-consumer ownership is Unresolved, rather than a generic dead/inconclusive label.",
+        "CodeGraph, LSP, Semble, or exact-search absence is not presented as proof that no external consumer exists.",
+        "The report has Commands and results, Worktree, and Not verified sections; it records the external-consumer gap and performs no patch, deletion, installation, or index mutation."
+      ]
+    },
+    {
+      "id": 3,
+      "name": "dynamic-registration-false-positive",
+      "prompt": "$cleanup classify this self-contained read-only evidence packet; do not run commands or change files. Initial and final worktree: clean. Configured `uv run vulture src` exited 3 and nominated `src/jobs.py:20 nightly_cleanup`. Exact search `rg -n 'nightly_cleanup' .` found the declaration and `config/jobs.yaml:7: handler: nightly_cleanup`; source shows the YAML loader dispatches handler strings through the module registry. CodeGraph reported zero callers. Report supplied commands/results and classify this analyzer candidate.",
+      "expected_output": "The dynamic registration is traced and the candidate is reported as Referenced / false positive or Unresolved, never Likely removable.",
+      "expectations": [
+        "The audit searches configuration, registration, manifests, templates, or equivalent dynamic boundaries instead of checking direct callers only.",
+        "The candidate has the exact status Referenced / false positive or Unresolved, and is not labelled Likely removable while string-based or framework dispatch remains live.",
+        "The report has separate Commands and results and Worktree sections and distinguishes analyzer evidence, exact search, and CodeGraph corroboration."
+      ]
+    },
+    {
+      "id": 4,
+      "name": "test-only-is-separate",
+      "prompt": "$cleanup classify this self-contained read-only evidence packet; do not run commands or change files. Initial and final worktree: clean. Configured `knip --production` nominated production `src/token.ts:3 parseToken`; exact search found its declaration plus three calls only in `tests/token.test.ts`. Configured `eslint tests --rule no-unused-vars:error` separately nominated `tests/fixtures/token.ts:5 unusedFixtureHelper`; exact search found only that fixture declaration. Report supplied commands/results and keep production versus test-only conclusions separate.",
+      "expected_output": "The production symbol is Test-supported production code, while the fixture helper appears only in the separate Test-only candidate section.",
+      "expectations": [
+        "The production declaration has the exact status Test-supported production code and is not reported as dead, Likely removable, or a cleanup candidate.",
+        "The declaration inside tests or fixtures has the exact separate status Test-only candidate and does not inflate production counts.",
+        "The report has separate Commands and results and Worktree sections, records the supplied snapshots, and does not recommend or perform deletions."
+      ]
+    }
+  ]
+}

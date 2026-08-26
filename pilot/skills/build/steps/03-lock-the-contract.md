@@ -18,54 +18,16 @@ Set `Approved: Yes` in the Buildout. Leave `Status: PENDING`. The statusline fli
 
 **What the criteria are is now settled, and failing them is not a reason to change them.** They move only the two ways 5.4 allows — the user rewrote one, or one turned out to be undecidable as written — both recorded in `## Round Log` with the before and after. Never quietly, and never because they turned out to be hard.
 
-<!-- CC-ONLY -->
-### 3.2 Sequential is the default and it stays the default
+### 3.2 Choose the execution graph autonomously
 
-**One thread. No subagents for building or judging.** Work the tasks, judge the criteria, close the gaps, judge again — all in this conversation. Do not ask the user which mode to use; there is nothing to ask about until 3.3's threshold is met, and asking every time taxes every small build.
+The active Claude Code or Codex agent decides whether the run is sequential, delegated, parallel, or nested. Use the agent tools the current harness exposes whenever they improve speed, context isolation, or expertise. **Never stop the run to ask the user for permission to spawn subagents or to select an orchestration mode.** If agent tools are absent, continue directly.
 
-A subagent starts **blind**. It re-reads the files, re-derives the context this thread already holds, reports a summary, and you read that summary back. For judging work you just built, that is routinely several times the tokens of judging it yourself — spent to buy separation you can mostly recreate by judging from the artifact. The loop's quality comes from the criteria, not from the org chart running it.
+Give concurrent writers non-overlapping ownership and the evidence they must return. Preserve task dependencies and verify agent-owned work from the shared files, diff, and fresh commands. The Buildout remains the common ledger regardless of which agent performs a task or judge pass.
 
-**Reviewers are the named exception, as a category** — they neither build nor judge, they look at axes the loop cannot see, and each runs once outside it: `build-review` before the first round (2.4) on whether the criteria are decidable at all, `changes-review` after the last (6.5) on the code behind the artifact. Both are gated by their Console toggles; neither ever runs inside a round.
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-### 3.2 Choose the smallest useful execution graph
+### 3.3 Scale the graph without a user gate
 
-Keep tightly coupled work in the main thread. Proactively delegate bounded, independent tasks or surfaces when the current Codex tool schema exposes agent tools and parallel work materially shortens the round or brings distinct expertise.
-
-Give every agent non-overlapping file or surface ownership, the task objective, relevant constraints, and the evidence it must return. Tell it other agents share the checkout and it must not revert their work. Keep the Buildout ledger, integration decisions, criterion changes, and judge pass in the main thread. Verify an agent's completion from the shared files, diff, and fresh commands rather than from its success message alone.
-
-Sequential execution remains appropriate when tasks share files, state, or one unresolved design decision. This is an engineering choice made from dependencies, not a user-facing mode question.
-CODEX-END -->
-
-<!-- CC-ONLY -->
-### 3.3 Escalate to ultracode — only at whole-project scale, and only with permission
-
-Propose ultracode only when **all three** hold:
-
-1. The work splits into **5+ distinct surfaces that each need their own build-judge loop** — not 5 tasks against one artifact.
-2. Those surfaces can progress **without waiting on each other**.
-3. Running them one after another would take hours, not minutes.
-
-That is whole-project scale: migrating a codebase to a new framework, rebuilding an app's surface area from the ground up, an overhaul spanning many independent screens or services. A landing page with six sections is one artifact — sequential. A long grind is still sequential. If any of the three fails, run sequentially and say nothing about ultracode.
-
-⛔ **This is the one exception to "no interaction after Step 1.5", and only because it cannot be anything else:** `/effort ultracode` is session-scoped and the user has to type it — you cannot enable it, so proceeding without asking is not an option that exists. It is not a check-in, and it never becomes one for anything else.
-
-When all three hold, ask with `AskUserQuestion` and say plainly what you are asking for:
-
-> This is <N> independent surfaces, each needing its own build-judge loop. Running them in parallel needs `/effort ultracode` — xhigh effort plus dynamic workflow orchestration, session-only. It spends substantially more tokens than the sequential default. Want it, or should I run this sequentially?
-
-State the mechanics accurately: `/effort ultracode` is session-scoped, the user has to type it, and it needs dynamic workflows enabled in `/config`. Organizations can restrict xhigh, in which case the command refuses and sequential is the only path.
-
-**Take no for an answer, and take silence for one too.** Cost, org policy, plain preference, or an auto-continued question with no reply are all sufficient. Drop to sequential immediately, do not re-argue it, and do not raise it again this session. A declined escalation is not a degraded run — sequential is the design, not the fallback.
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-### 3.3 Parallel surfaces
-
-When the work splits into independent surfaces, dispatch bounded worker agents with distinct ownership using the tools exposed in the current Codex schema. Run independent surfaces concurrently; preserve dependency order within each surface. Keep one integrated judge pass in the main thread after all workers have landed and their evidence has been checked.
-
-Do not ask the user to enable a separate orchestration mode. If agent tools are absent, fall back to dependency-ordered work in the main thread without changing the goal or stopping to renegotiate the workflow.
-CODEX-END -->
+For independent surfaces, launch agents concurrently and allow them to delegate further when the harness supports it. For tightly coupled work, a single thread may still be more efficient. This is the active agent's engineering decision, not a permission or approval question.
 
 **Do not deflect large work to `/spec`.** Scale is not what `/spec` is for; an approved plan file and an ordered task list are. Big work escalates here, or runs sequentially.
 
-**Done when:** `Approved: Yes` is in the Buildout, the mode is settled, and your next action is Step 4 — in this same turn.
+**Done when:** `Approved: Yes` is in the Buildout, the agent has chosen its execution graph, and the next action is Step 4 — in this same turn.

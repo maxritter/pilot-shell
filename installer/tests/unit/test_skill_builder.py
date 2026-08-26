@@ -92,6 +92,26 @@ class TestBuildSkillMd:
         assert "# Orchestrator" in output.read_text()
         assert not (skill_dir / "SKILL.md.tmp").exists()
 
+    def test_progressive_manifest_builds_compact_step_index(self, tmp_path: Path) -> None:
+        skill_dir = self._make_skill(tmp_path)
+        manifest_path = skill_dir / "manifest.json"
+        manifest = json.loads(manifest_path.read_text())
+        manifest.update(
+            {
+                "version": 2,
+                "delivery": "progressive",
+                "targets": ["claude", "codex"],
+                "visibility": "public",
+                "invocation": "implicit",
+            }
+        )
+        manifest_path.write_text(json.dumps(manifest))
+
+        built = build_skill_md(skill_dir)
+
+        assert "## Step 1" not in built
+        assert "Read `steps/01.md` completely" in built
+
 
 class TestRealSkillFrontmatterIsValidYaml:
     """Every built SKILL.md must carry frontmatter that parses under a strict YAML loader.

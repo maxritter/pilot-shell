@@ -57,6 +57,20 @@ pilot spec validate docs/plans/2026-08-24-add-user-auth.md --json
 
 `init` deliberately does not register the plan — run [`pilot register-plan`](plan-format#registering-a-plan) when you want Pilot's hooks to treat it as this session's active work.
 
+## Skill source validation
+
+Pilot's bundled decomposed skills use `manifest.json`, an orchestrator, and ordered phase files. Version 2 manifests declare their target agents, invocation policy, visibility, and whether phases are bundled into `SKILL.md` or loaded progressively.
+
+| Command | Description |
+|---------|-------------|
+| `pilot skill-build <skill-dir> [--dry-run] [--json]` | Build that source tree's `SKILL.md`; existing version 1 manifests keep their bundled behavior |
+| `pilot skills validate [path] [--platform claude\|codex\|all] [--json]` | Validate manifests, safe paths, references, orphan phases, generated size budgets, and platform metadata without writing |
+| `pilot skills validate [path] --check-installed` | Also check that the active installed skill tree contains every referenced runtime resource and no foreign tool syntax |
+
+`path` defaults to `pilot/skills/` in a Pilot source checkout. Exit codes are **0** valid · **1** validation findings · **2** unreadable source or installation.
+
+Progressive skills keep the generated `SKILL.md` below 500 lines and 5,000 words. Their ordered phase files are installed beside it and adapted separately for Claude Code and Codex.
+
 ## Worktree isolation
 
 Used by the `/spec`, `/fix`, and `/build` workflows to keep work isolated until verification passes. All commands work with both Claude Code and Codex sessions.

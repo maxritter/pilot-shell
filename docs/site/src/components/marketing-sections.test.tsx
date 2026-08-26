@@ -28,6 +28,13 @@ describe("agent-aware marketing sections", () => {
     expect(workflow).toContain("/spec");
     expect(workflow).toContain("/build");
     expect(workflow).toContain("/fix");
+    expect(workflow).toContain("/investigate");
+    expect(workflow).toContain('href="/docs/workflows/investigate"');
+    expect(workflow).toContain("/cleanup");
+    expect(workflow).toContain('href="/docs/workflows/cleanup"');
+    expect(workflow).toContain("report-only cleanup inventory");
+    expect(workflow).toContain("file-and-line evidence");
+    expect(workflow).toContain("without changing the project");
     expect(workflow).not.toContain("Codex defaults");
     expect(workflow).not.toContain("/goal");
     expect(workflow).not.toContain("$spec");

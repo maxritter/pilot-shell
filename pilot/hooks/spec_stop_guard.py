@@ -29,6 +29,7 @@ only once per continuation chain and left /build loops free to end mid-round.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -38,6 +39,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
+from _lib.session_artifacts import PAUSE_SENTINELS
 from _lib.util import (
     _read_plan_approved_and_type,
     _sessions_base,
@@ -77,6 +79,8 @@ MAX_CHAIN_BLOCKS = 5
 # enough for any realistic approval-wait interaction.
 SENTINEL_MAX_AGE_SECONDS = 3600
 
+APPROVAL_SENTINEL, BUILD_HANDBACK_SENTINEL, VERIFY_GATE_SENTINEL = PAUSE_SENTINELS
+
 
 def get_stop_guard_path(session_id: str | None = None) -> Path:
     """Get session-scoped stop guard state path."""
@@ -102,7 +106,7 @@ def get_approval_sentinel_path(session_id: str | None = None) -> Path:
     """
     guard_dir = _sessions_base() / (session_id or resolve_session_id())
     guard_dir.mkdir(parents=True, exist_ok=True)
-    return guard_dir / "spec-approval-pending"
+    return guard_dir / APPROVAL_SENTINEL
 
 
 # NO manual-switch sentinel, deliberately. Manual Model Switching used to end the
@@ -135,7 +139,7 @@ def get_build_handback_sentinel_path(session_id: str | None = None) -> Path:
     """
     guard_dir = _sessions_base() / (session_id or resolve_session_id())
     guard_dir.mkdir(parents=True, exist_ok=True)
-    return guard_dir / "build-handback-pending"
+    return guard_dir / BUILD_HANDBACK_SENTINEL
 
 
 def get_verify_gate_sentinel_path(session_id: str | None = None) -> Path:
@@ -160,7 +164,7 @@ def get_verify_gate_sentinel_path(session_id: str | None = None) -> Path:
     """
     guard_dir = _sessions_base() / (session_id or resolve_session_id())
     guard_dir.mkdir(parents=True, exist_ok=True)
-    return guard_dir / "verify-gate-pending"
+    return guard_dir / VERIFY_GATE_SENTINEL
 
 
 def _sentinel_grants_stop(
@@ -169,6 +173,7 @@ def _sentinel_grants_stop(
     applies: Callable[[bool, str], bool],
     *,
     consume: bool,
+    expected_status: str,
 ) -> bool:
     """True when a fresh sentinel permits this stop attempt.
 
@@ -176,6 +181,11 @@ def _sentinel_grants_stop(
     they apply to and whether honoring them burns the sentinel. A sentinel older
     than ``SENTINEL_MAX_AGE_SECONDS`` (PID reuse, crashed session) is discarded
     rather than honored, so a stale file cannot silently disable the guard.
+
+    Empty files remain compatible with existing skill installations. On the first
+    reusable grant, the hook upgrades that empty file to a JSON binding for this
+    exact plan path and status. A sentinel left by an older plan can then never
+    release a newer plan that happens to reuse the same session directory.
 
     ``applies`` receives the plan's ``(approved, plan_type)``.
     """
@@ -188,11 +198,54 @@ def _sentinel_grants_stop(
     if age > SENTINEL_MAX_AGE_SECONDS:
         sentinel.unlink(missing_ok=True)
         return False
+
+    try:
+        raw = sentinel.read_text().strip()
+    except OSError:
+        return False
+    if raw:
+        try:
+            binding = json.loads(raw)
+        except json.JSONDecodeError:
+            sentinel.unlink(missing_ok=True)
+            return False
+        plan_key = os.path.realpath(plan_path)
+        if not isinstance(binding, dict) or binding.get("plan_path") != plan_key:
+            sentinel.unlink(missing_ok=True)
+            return False
+        if binding.get("expected_status") != expected_status:
+            sentinel.unlink(missing_ok=True)
+            return False
+        try:
+            expected_fingerprint = hashlib.sha256(plan_path.read_bytes()).hexdigest()
+        except OSError:
+            sentinel.unlink(missing_ok=True)
+            return False
+        if binding.get("plan_content_fingerprint") != expected_fingerprint:
+            sentinel.unlink(missing_ok=True)
+            return False
+
     approved, plan_type = _read_plan_approved_and_type(str(plan_path))
     if not applies(approved, plan_type):
         return False
     if consume:
         sentinel.unlink(missing_ok=True)
+    elif not raw:
+        plan_key = os.path.realpath(plan_path)
+        try:
+            content_fingerprint = hashlib.sha256(plan_path.read_bytes()).hexdigest()
+        except OSError:
+            return False
+        binding = {
+            "plan_path": plan_key,
+            "plan_content_fingerprint": content_fingerprint,
+            "expected_status": expected_status,
+            "created_at": time.time(),
+        }
+        try:
+            sentinel.write_text(json.dumps(binding))
+        except OSError:
+            return False
     return True
 
 
@@ -301,15 +354,15 @@ def _next_action_for(status: str, plan_type: str = "Feature") -> str:
     if status == "COMPLETE":
         return (
             "Implementation is done and verification has NOT run yet. "
-            "IMMEDIATELY dispatch the verify phase: read the plan's `Type:` header, then invoke "
-            "Skill(skill='spec-verify') for a feature plan or Skill(skill='spec-bugfix-verify') "
+            "IMMEDIATELY continue with the verify phase: read the plan's `Type:` header, then "
+            "use the `spec-verify` skill for a feature plan or the `spec-bugfix-verify` skill "
             "for a bugfix plan, passing the plan path. Do NOT re-implement, do NOT mark the plan "
             "VERIFIED yourself, and do NOT summarise the work instead of dispatching."
         )
     return (
         "IMMEDIATELY continue working on the next pending task in the plan. "
         "Your VERY NEXT action must be a tool call - read the plan file, "
-        "check TaskList, or make a code change."
+        "check the task tracker, or make a code change."
     )
 
 
@@ -323,7 +376,7 @@ def _block_reason(plan_path: Path, status: str) -> str:
         f"{workflow} active — cannot stop without user interaction. "
         f"{artifact}: {plan_path} (Status: {status}). "
         f"Stop again within 60s to force exit.\n\n"
-        f"CRITICAL INSTRUCTION TO CLAUDE: Do NOT acknowledge this stop attempt. "
+        f"CRITICAL INSTRUCTION TO THE AGENT: Do NOT acknowledge this stop attempt. "
         f"Do NOT output resume instructions or say goodbye. "
         f"{_next_action_for(status, plan_type)} Do NOT produce a text-only response."
     )
@@ -372,6 +425,7 @@ def main() -> int:
         plan_path,
         lambda approved, _type: not approved,
         consume=False,
+        expected_status=status,
     ):
         return 0
 
@@ -385,6 +439,7 @@ def main() -> int:
         plan_path,
         lambda approved, plan_type: approved and plan_type == "Build",
         consume=True,
+        expected_status=status,
     ):
         return 0
 
@@ -400,6 +455,7 @@ def main() -> int:
         plan_path,
         lambda approved, plan_type: approved and plan_type != "Build",
         consume=True,
+        expected_status=status,
     ):
         return 0
 
@@ -458,9 +514,10 @@ def main() -> int:
             f"RUNAWAY GUARD TRIPPED — {blocks} consecutive stop-block attempts on plan "
             f"{plan_path} (Status: {status}) without a user-question turn in between. "
             f"This pattern indicates the agent is stuck in a verify→implement loop and "
-            f"burning tokens unsupervised. STOP. Your VERY NEXT action MUST be "
-            f"AskUserQuestion summarising what you were doing, what's blocking, and asking "
-            f"the user how to proceed (Continue / Pivot / Abandon). Do NOT continue working. "
+            f"burning tokens unsupervised. STOP. Your VERY NEXT action MUST be to ask the user, "
+            f"using the structured question mechanism available on this platform, what you were "
+            f"doing, what's blocking, and how to proceed (Continue / Pivot / Abandon). Do NOT "
+            f"continue working. "
             f"Do NOT make further tool calls before asking. The next stop attempt after this "
             f"one will be allowed through to end the runaway."
         )

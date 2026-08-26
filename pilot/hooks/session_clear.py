@@ -13,28 +13,14 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
+from _lib.session_artifacts import STALE_SESSION_FILES, STALE_SESSION_PATTERNS
 from _lib.util import claude_config_dir, read_hook_stdin, resolve_session_id
 
 SESSIONS_DIR = Path.home() / ".pilot" / "sessions"
 
-STALE_FILES = [
-    "active_plan.json",
-    "plan-mode-active",  # keep in sync with PLAN_MODE_SENTINEL in _lib/util.py (no _lib import here by design)
-    "spec-stop-guard",
-    "spec-approval-pending",
-    "continuation.md",
-    "context-cache.json",
-    "context-pct.json",
-    "pre-compact-state.json",
-]
-
-# Glob patterns for files with variable names (e.g. findings include plan slug)
-STALE_PATTERNS = [
-    "findings-spec-review*.json",
-    "findings-changes-review*.json",
-    "findings-codex-spec-review*.json",
-    "findings-codex-changes-review*.json",
-]
+# Backward-compatible aliases used by tests and external hook customizations.
+STALE_FILES = list(STALE_SESSION_FILES)
+STALE_PATTERNS = list(STALE_SESSION_PATTERNS)
 
 
 def _sweep(directory: Path) -> None:
@@ -116,7 +102,7 @@ def main() -> int:
     # last-resort fallback: without it, /clear from an env-less session sweeps the
     # shared "default" bucket and silently unregisters a plan a DIFFERENT env-less
     # session in the same repo is actively implementing.
-    session_dir = SESSIONS_DIR / resolve_session_id(str(read_hook_stdin().get("session_id") or ""))
+    session_dir = SESSIONS_DIR / resolve_session_id(read_hook_stdin().get("session_id"))
     if session_dir.is_dir():
         _sweep(session_dir)
         _sweep_lanes(session_dir)

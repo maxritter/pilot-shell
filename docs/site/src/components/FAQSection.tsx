@@ -16,12 +16,12 @@ const faqItems = [
   {
     question: "Is Pilot Shell enterprise-compliant for data privacy?",
     answer:
-      "Yes. Your source code, project files, and development context never leave your machine through Pilot Shell. The only external calls are license validation (daily, license key only) and one-time activation/trial start (machine fingerprint only). No OS info, no version strings, no analytics, no telemetry. Enterprises using Claude Code with their own API key or Anthropic Enterprise subscription can add Pilot Shell without changing their data compliance posture.",
+      "Pilot Shell's installed local services keep your source code, project files, and development context on your machine. Semble and CodeGraph process code locally, and Pilot disables CodeGraph's optional telemetry. Pilot's required service calls are daily license validation (license key only) and one-time activation or trial start (machine fingerprint only); they do not include source code, OS information, or version strings. Your overall compliance posture also depends on how your organization configures Claude Code or Codex and its AI provider.",
   },
   {
     question: "Does Pilot Shell send my code or data to external services?",
     answer:
-      "Pilot Shell's local services do not upload your source code, project files, prompts, or personal information. Code search (Semble), code intelligence (CodeGraph), persistent memory (Console), session state, and quality hooks run locally, with no analytics, telemetry, or heartbeats. Team plans can opt a project into memory sharing, which writes memories into that project's own git repository so teammates receive them — Pilot only writes the files, you review the diff and commit them, and nothing is sent to us. Active AI agents still send the prompts and tool context they need to their provider: Claude Code to Anthropic and Codex to OpenAI. Optional review integrations are disabled by default and send review prompts to their configured provider only when enabled.",
+      "Pilot Shell's local services do not upload your source code, project files, prompts, or personal information. Code search (Semble), code intelligence (CodeGraph), persistent memory (Console), session state, and quality hooks run locally; Pilot disables CodeGraph's optional telemetry. Team plans can opt a project into memory sharing, which writes memories into that project's own git repository so teammates receive them — Pilot only writes the files, you review the diff and commit them, and nothing is sent to us. Active AI agents still send the prompts and tool context they need to their provider: Claude Code to Anthropic and Codex to OpenAI. Optional review integrations are disabled by default and send review prompts to their configured provider only when enabled.",
   },
   {
     question: "Does Pilot Shell work with any programming language?",

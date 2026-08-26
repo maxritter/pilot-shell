@@ -49,7 +49,7 @@ Neither is the escalation path for the other, and **size does not decide** which
 
 A 30-screen framework migration can be `/build`. A 40-line change can be `/build`. A modest feature whose execution order needs agreeing first is `/spec`. Ask what the work is *measured against*: an approved task list, or a defined end state.
 
-`/build` never hands large work off to `/spec` — it escalates internally instead (see [Parallel surfaces](#parallel-surfaces)).
+`/build` never hands large work off to `/spec` — it scales its execution graph internally instead (see [Execution and delegation](#execution-and-delegation)).
 
 ## Three things carry it
 
@@ -251,25 +251,9 @@ A hand-back does not always mean `VERIFIED`: a run that stops at the four-round 
 
 ## Execution and delegation
 
-### Claude Code: sequential by default
+Claude Code and Codex choose the useful execution graph themselves: direct, parallel, delegated, or nested where the current harness supports it. Pilot never pauses an autonomous build to ask permission to spawn subagents or to select an orchestration mode.
 
-One thread. No subagents for building or judging — those stay in the same conversation.
-
-A subagent starts blind: it re-reads the files, re-derives context the thread already holds, reports a summary, and the summary gets read back. For judging work you just built, that is routinely several times the tokens of judging it yourself, spent to buy separation you can mostly recreate by judging from the artifact in a distinct pass. The loop's quality comes from the criteria, not from the org chart running it.
-
-**Reviewers are the exception, and both run outside the loop:** Build Review before the first round, Changes Review after the last. Each looks at something the loop structurally cannot see — whether the criteria are decidable at all, and whether the code behind the artifact is sound. A single research agent while scoping is also allowed, once, at the start.
-
-### Parallel surfaces
-
-On Claude Code, `/build` proposes parallel execution only when **all three** hold:
-
-1. The work splits into **5+ distinct surfaces that each need their own build-judge loop** — not five tasks against one artifact.
-2. Those surfaces can progress without waiting on each other.
-3. Running them one after another would take hours, not minutes.
-
-That is whole-project scale: a framework migration, an app rebuilt surface by surface. A landing page with six sections is one artifact. A long grind is still one thread.
-
-Clearing that bar prompts for `/effort ultracode` — session-scoped, typed by you, requiring dynamic workflows in `/config`, and substantially more expensive than the sequential default. Declining is a first-class answer: sequential is the design, not the fallback. This escalation is available only on Claude Code.
+The agent still coordinates non-overlapping writes, task dependencies, and evidence returned by workers. Build Review and Changes Review remain configurable named review passes, but they do not limit additional delegation the active agent judges useful.
 
 ## Configurable toggles
 

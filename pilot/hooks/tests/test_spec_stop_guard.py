@@ -160,6 +160,27 @@ class TestUnitMain:
         finally:
             state_path.unlink(missing_ok=True)
 
+    def test_continuation_text_is_platform_neutral(self, tmp_path, monkeypatch):
+        import spec_stop_guard as guard
+
+        plan = tmp_path / "plan.md"
+        plan.write_text("# Plan\nStatus: COMPLETE\nApproved: Yes\nType: Feature\n")
+        monkeypatch.setattr(guard, "find_active_plan", lambda *_args: (plan, "COMPLETE"))
+        monkeypatch.setattr(guard, "is_waiting_for_user_input", lambda _path: False)
+        monkeypatch.setattr(guard, "get_stop_guard_path", lambda *_args: tmp_path / "guard-state")
+
+        with (
+            patch("sys.stdin", io.StringIO(json.dumps({"stop_hook_active": False}))),
+            patch("sys.stdout", new_callable=io.StringIO) as output,
+        ):
+            assert guard.main() == 0
+
+        reason = json.loads(output.getvalue())["reason"]
+        assert "CLAUDE" not in reason
+        assert "Skill(" not in reason
+        assert "AskUserQuestion" not in reason
+        assert "`spec-verify` skill" in reason
+
 
 class TestGetStopGuardPath:
     """Test get_stop_guard_path() session scoping."""
@@ -583,7 +604,7 @@ class TestHookDrivenContinuation:
                 released_at = attempt
                 break
             consecutive_blocks += 1
-            if "AskUserQuestion" in stdout and escalated_at is None:
+            if "structured question mechanism" in stdout and escalated_at is None:
                 escalated_at = attempt
 
         assert escalated_at is not None, "the guard never escalated to a user question"
@@ -615,7 +636,7 @@ class TestHookDrivenContinuation:
         for turn in range(1, 3 * MAX_CHAIN_BLOCKS + 2):
             _, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
             assert _is_blocked(stdout), f"turn {turn}: a new chain must still be held"
-            assert "AskUserQuestion" not in stdout, (
+            assert "structured question mechanism" not in stdout, (
                 f"turn {turn}: escalated on a healthy run - the per-chain budget is counting blocks from earlier chains"
             )
             _bump_state_timestamp(plan_file)  # keep the user cooldown out of it
@@ -645,8 +666,8 @@ class TestRunawayCap:
         assert exit_code == 0
         assert _is_blocked(stdout), "MAX_BLOCKS-th call should still block, but with escalation message"
         assert "RUNAWAY" in stdout or "runaway" in stdout
-        assert "AskUserQuestion" in stdout
-        assert "AskUserQuestion" not in last_stdout, "escalation message must only appear at the cap"
+        assert "structured question mechanism" in stdout
+        assert "structured question mechanism" not in last_stdout, "escalation message must only appear at the cap"
 
     def test_allows_stop_after_escalation(self, tmp_path: Path) -> None:
         from spec_stop_guard import MAX_BLOCKS
@@ -1051,6 +1072,39 @@ class TestApprovalSentinel:
         assert exit_code == 0
         assert not _is_blocked(stdout), "approval-wait stop must be allowed, not blocked-and-pushed-to-continue"
         assert sentinel.exists(), "sentinel survives until the plan is approved or it is explicitly cleared"
+        binding = json.loads(sentinel.read_text())
+        assert binding["plan_path"].endswith("2026-06-01-approval.md")
+        assert binding["expected_status"] == "PENDING"
+
+    def test_bound_approval_sentinel_does_not_release_a_different_plan(self, tmp_path: Path) -> None:
+        plans_dir = self._make_plan(tmp_path, "No")
+        sentinel = _test_session_dir() / "spec-approval-pending"
+        sentinel.touch()
+
+        _run_subprocess({"stop_hook_active": False}, plans_dir)
+        assert sentinel.exists() and sentinel.read_text(), "legacy empty sentinel should be upgraded to a binding"
+
+        other = plans_dir / "2026-06-01-other.md"
+        other.write_text("# Other\nStatus: PENDING\nApproved: No\nType: Feature\n")
+        _register_plan_for_session(other, "PENDING")
+        _code, stdout, _stderr = _run_subprocess({"stop_hook_active": False}, plans_dir)
+
+        assert _is_blocked(stdout), "a sentinel bound to the previous plan must not release this plan"
+        assert not sentinel.exists(), "a mismatched binding should be discarded"
+
+    def test_bound_approval_sentinel_rejects_replaced_plan_at_same_path(self, tmp_path: Path) -> None:
+        plans_dir = self._make_plan(tmp_path, "No")
+        sentinel = _test_session_dir() / "spec-approval-pending"
+        sentinel.touch()
+        _run_subprocess({"stop_hook_active": False}, plans_dir)
+        assert sentinel.exists() and sentinel.read_text()
+
+        plan = plans_dir / "2026-06-01-approval.md"
+        plan.write_text(plan.read_text().replace("# Approval Plan", "# Replacement Plan"))
+        _code, stdout, _stderr = _run_subprocess({"stop_hook_active": False}, plans_dir)
+
+        assert _is_blocked(stdout), "changed plan content must invalidate an earlier pause grant"
+        assert not sentinel.exists()
 
     def test_sentinel_ignored_when_approved(self, tmp_path: Path) -> None:
         """Implement-phase protection: once Approved: Yes, the sentinel is ignored and the stop blocks."""

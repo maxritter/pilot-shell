@@ -1,0 +1,412 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "claude-sessionstart-1",
+      "platform": "claude",
+      "event": "SessionStart",
+      "matcher": "startup",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/license_check.py\"",
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/session_announcements.py\"",
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/config_dir_guard.py\"",
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/session_startup_maintenance.py\"",
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codegraph_init.py\"",
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codex_skill_sync.py\"",
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/cc_skill_sync.py\""
+      ],
+      "async": [false, false, false, true, true, true, true],
+      "timeout": [10, 10, 10, 15, 120, 30, 30],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-sessionstart-2",
+      "platform": "claude",
+      "event": "SessionStart",
+      "matcher": "startup|resume|clear|compact",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\""
+      ],
+      "async": [false],
+      "timeout": [45],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-sessionstart-3",
+      "platform": "claude",
+      "event": "SessionStart",
+      "matcher": "startup|clear|compact",
+      "handlers": [
+        "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code context",
+        "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code user-message"
+      ],
+      "async": [false, true],
+      "timeout": [15, 15],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-sessionstart-4",
+      "platform": "claude",
+      "event": "SessionStart",
+      "matcher": "clear",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/session_clear.py\""
+      ],
+      "async": [false],
+      "timeout": [5],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-sessionstart-5",
+      "platform": "claude",
+      "event": "SessionStart",
+      "matcher": "compact",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/post_compact_restore.py\""
+      ],
+      "async": [false],
+      "timeout": [5],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-userpromptsubmit-1",
+      "platform": "claude",
+      "event": "UserPromptSubmit",
+      "matcher": null,
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/spec_mode_guard.py\""
+      ],
+      "async": [false],
+      "timeout": [null],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-userpromptsubmit-2",
+      "platform": "claude",
+      "event": "UserPromptSubmit",
+      "matcher": null,
+      "handlers": [
+        "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code session-init"
+      ],
+      "async": [true],
+      "timeout": [15],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-permissionrequest-1",
+      "platform": "claude",
+      "event": "PermissionRequest",
+      "matcher": "*",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/auto_approve_plan.py\""
+      ],
+      "async": [false],
+      "timeout": [10],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-pretooluse-1",
+      "platform": "claude",
+      "event": "PreToolUse",
+      "matcher": "Write|Edit|MultiEdit",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\""
+      ],
+      "async": [false],
+      "timeout": [5],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-pretooluse-2",
+      "platform": "claude",
+      "event": "PreToolUse",
+      "matcher": "EnterPlanMode|Edit|Write|MultiEdit",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/plan_mode_tracker.py\""
+      ],
+      "async": [false],
+      "timeout": [10],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-pretooluse-3",
+      "platform": "claude",
+      "event": "PreToolUse",
+      "matcher": "Bash|WebSearch|WebFetch|Grep|Glob",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/tool_redirect.py\""
+      ],
+      "async": [false],
+      "timeout": [null],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-pretooluse-4",
+      "platform": "claude",
+      "event": "PreToolUse",
+      "matcher": "Bash",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/tool_token_saver.py\""
+      ],
+      "async": [false],
+      "timeout": [null],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-posttooluse-1",
+      "platform": "claude",
+      "event": "PostToolUse",
+      "matcher": "Write|Edit|MultiEdit",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\""
+      ],
+      "async": [false],
+      "timeout": [20],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-posttooluse-2",
+      "platform": "claude",
+      "event": "PostToolUse",
+      "matcher": "EnterPlanMode|ExitPlanMode",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/plan_mode_tracker.py\""
+      ],
+      "async": [false],
+      "timeout": [10],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-posttooluse-3",
+      "platform": "claude",
+      "event": "PostToolUse",
+      "matcher": "Write|Edit|MultiEdit",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/file_checker.py\""
+      ],
+      "async": [false],
+      "timeout": [null],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-posttooluse-4",
+      "platform": "claude",
+      "event": "PostToolUse",
+      "matcher": "*",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/context_monitor.py\""
+      ],
+      "async": [false],
+      "timeout": [null],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-posttooluse-5",
+      "platform": "claude",
+      "event": "PostToolUse",
+      "matcher": "*",
+      "handlers": [
+        "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code observation"
+      ],
+      "async": [true],
+      "timeout": [15],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-stop-1",
+      "platform": "claude",
+      "event": "Stop",
+      "matcher": null,
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/spec_stop_guard.py\"",
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
+        "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code summarize"
+      ],
+      "async": [false, false, true],
+      "timeout": [null, 45, 15],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-sessionend-1",
+      "platform": "claude",
+      "event": "SessionEnd",
+      "matcher": null,
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/session_end.py\" --session-end"
+      ],
+      "async": [false],
+      "timeout": [15],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-precompact-1",
+      "platform": "claude",
+      "event": "PreCompact",
+      "matcher": null,
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/pre_compact.py\""
+      ],
+      "async": [false],
+      "timeout": [15],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "codex-sessionstart-1",
+      "platform": "codex",
+      "event": "SessionStart",
+      "matcher": "startup",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codex_skill_sync.py\""
+      ],
+      "async": [true],
+      "timeout": [30],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "codex-sessionstart-2",
+      "platform": "codex",
+      "event": "SessionStart",
+      "matcher": "startup|resume|clear|compact",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\""
+      ],
+      "async": [false],
+      "timeout": [45],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "codex-sessionstart-3",
+      "platform": "codex",
+      "event": "SessionStart",
+      "matcher": "startup|resume|clear|compact",
+      "handlers": [
+        "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex context"
+      ],
+      "async": [false],
+      "timeout": [15],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "codex-sessionstart-4",
+      "platform": "codex",
+      "event": "SessionStart",
+      "matcher": "clear",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/session_clear.py\""
+      ],
+      "async": [false],
+      "timeout": [5],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "codex-sessionstart-5",
+      "platform": "codex",
+      "event": "SessionStart",
+      "matcher": "compact",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/post_compact_restore.py\""
+      ],
+      "async": [false],
+      "timeout": [5],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "codex-userpromptsubmit-1",
+      "platform": "codex",
+      "event": "UserPromptSubmit",
+      "matcher": null,
+      "handlers": [
+        "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex session-init"
+      ],
+      "async": [true],
+      "timeout": [15],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "codex-pretooluse-1",
+      "platform": "codex",
+      "event": "PreToolUse",
+      "matcher": "apply_patch",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\""
+      ],
+      "async": [false],
+      "timeout": [5],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "codex-pretooluse-2",
+      "platform": "codex",
+      "event": "PreToolUse",
+      "matcher": "Bash",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/tool_token_saver.py\""
+      ],
+      "async": [false],
+      "timeout": [5],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "codex-posttooluse-1",
+      "platform": "codex",
+      "event": "PostToolUse",
+      "matcher": "*",
+      "handlers": [
+        "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex observation"
+      ],
+      "async": [true],
+      "timeout": [15],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "codex-posttooluse-2",
+      "platform": "codex",
+      "event": "PostToolUse",
+      "matcher": "apply_patch",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\""
+      ],
+      "async": [false],
+      "timeout": [20],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "codex-stop-1",
+      "platform": "codex",
+      "event": "Stop",
+      "matcher": null,
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/spec_stop_guard.py\"",
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
+        "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex summarize"
+      ],
+      "async": [false, false, true],
+      "timeout": [5, 45, 15],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "codex-sessionend-1",
+      "platform": "codex",
+      "event": "SessionEnd",
+      "matcher": null,
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/session_end.py\" --session-end"
+      ],
+      "async": [false],
+      "timeout": [3],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "codex-precompact-1",
+      "platform": "codex",
+      "event": "PreCompact",
+      "matcher": null,
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/pre_compact.py\""
+      ],
+      "async": [false],
+      "timeout": [15],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    }
+  ]
+}

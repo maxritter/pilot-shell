@@ -196,6 +196,8 @@ class FinalizeStep(BaseStep):
         ]
 
         additional_workflows: list[tuple[str, str]] = [
+            ("/investigate · $investigate", "Trace current code behavior with evidence, confidence, and no edits"),
+            ("/cleanup · $cleanup", "Audit dead-code candidates with independent evidence and no deletions"),
             ("/setup-rules · $setup-rules", "Create modular and concise rules for your project codebase"),
             ("/create-skill · $create-skill", "Create well-structured reusable skills for your workflows"),
             ("/benchmark · $benchmark", "Quantitative before/after evals for rules, skills, and workflows"),

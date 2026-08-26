@@ -9,6 +9,8 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
@@ -306,6 +308,41 @@ class TestPostCompactRestoreHook:
             # the plan path only appears if _read_fallback_state resolved the SAME
             # directory pre_compact.py's writer used.
             assert "2026-02-16-test.md" in captured.out
+
+    @pytest.mark.parametrize("payload_kind", ["traversal", "absolute", "non-string"])
+    @patch("post_compact_restore.read_hook_stdin")
+    @patch("post_compact_restore.get_session_plan_path")
+    @patch("post_compact_restore._sessions_base")
+    def test_restore_rejects_unsafe_or_non_string_payload_session_ids(
+        self,
+        mock_sessions_base,
+        mock_plan_path,
+        mock_stdin,
+        capsys,
+        tmp_path,
+        payload_kind,
+    ):
+        """Post-compaction lookup must sanitize the payload exactly like its writer."""
+        from post_compact_restore import run_post_compact_restore
+
+        payload_id = {
+            "traversal": "../victim",
+            "absolute": str(tmp_path / "victim"),
+            "non-string": 123,
+        }[payload_kind]
+        sessions = tmp_path / "sessions"
+        fallback = sessions / "default" / "pre-compact-state.json"
+        fallback.parent.mkdir(parents=True)
+        fallback.write_text(json.dumps({"active_plan": {"plan_path": "docs/plans/safe.md", "status": "PENDING"}}))
+        mock_sessions_base.return_value = sessions
+        mock_plan_path.return_value = tmp_path / "missing-active-plan.json"
+        mock_stdin.return_value = {"session_id": payload_id}
+
+        with patch.dict(os.environ, {}, clear=True):
+            assert run_post_compact_restore() == 0
+
+        assert "docs/plans/safe.md" in capsys.readouterr().out
+        assert not fallback.exists(), "the sanitized default-bucket state should be consumed"
 
     @patch("post_compact_restore.read_hook_stdin")
     @patch("post_compact_restore.get_session_plan_path")

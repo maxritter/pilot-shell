@@ -11,7 +11,7 @@ Pilot Shell supports both agents. **Claude Code is the preferred agent** and has
 
 All core and additional workflows run on both agents. Use `/` on Claude Code and `$` on Codex:
 
-- `/spec`, `/build`, `/fix`, `/prd`, `/benchmark`, `/setup-rules`, `/create-skill`
+- `/spec`, `/build`, `/fix`, `/prd`, `/investigate`, `/cleanup`, `/benchmark`, `/setup-rules`, `/create-skill`
 - Console — all 11 views, persistent memory, sessions, and memories shared between agents
 - Lifecycle hooks, compaction recovery, SessionEnd finalization, and workflow stop guards
 - Workflow quality gates on both agents; Claude Code additionally keeps its edit-time lint, format, type, and TDD hooks
@@ -31,3 +31,5 @@ All core and additional workflows run on both agents. Use `/` on Claude Code and
 - **Codex companion reviews** — OpenAI adversarial review launched from within Claude Code
 - **Team-sharing of extensions** — push/pull of `~/.claude/` extensions through a git remote
 - **Commands** — slash-command extensions in `.claude/commands/` (Codex has no command primitive)
+
+Claude's native LSP can strengthen exact reference checks during `/cleanup`; Codex combines repository analyzers with CodeGraph, Semble, and exact search. Neither path treats a missing LSP or graph edge as proof that code is unreachable.

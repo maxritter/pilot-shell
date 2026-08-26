@@ -15,6 +15,8 @@ import tomllib
 from pathlib import Path
 from typing import Any, Callable
 
+import yaml
+
 from installer.claude_paths import get_claude_config_dir
 from installer.context import InstallContext
 from installer.platform_utils import is_codex_installed
@@ -47,6 +49,14 @@ _CODEX_SKILL_DESCRIPTIONS = {
         "Use only when the user explicitly invokes /prd. Turn a rough product idea into an approved requirements "
         "document."
     ),
+    "investigate": (
+        "Use only when the user explicitly invokes /investigate. Produce an evidence-backed, read-only answer "
+        "about how the current codebase works."
+    ),
+    "cleanup": (
+        "Use only when the user explicitly invokes /cleanup. Produce a read-only, evidence-backed dead-code "
+        "candidate report without installing tools, editing files, or deleting code."
+    ),
     "benchmark": "Benchmark rules, skills, or workflows with quantitative before/after evaluations.",
     "create-skill": (
         "Create, update, or test a reusable agent skill when the user asks for a skill or repeatable workflow."
@@ -61,7 +71,7 @@ _CODEX_SKILL_DESCRIPTIONS = {
     ),
 }
 
-_CODEX_EXPLICIT_ONLY_SKILL_NAMES = frozenset({"spec", "build", "fix", "prd"})
+_CODEX_EXPLICIT_ONLY_SKILL_NAMES = frozenset({"spec", "build", "fix", "prd", "investigate", "cleanup"})
 
 # Sidecar listing the stack rules Pilot wrote to ~/.codex/rules/, so a later
 # install can drop the ones it no longer ships without touching user files.
@@ -71,11 +81,11 @@ _CODEX_RULES_MANIFEST = ".pilot-rules.json"
 # decomposed skill. This lets upgrades remove only files Pilot previously
 # installed while leaving user files (and unrelated skills) alone.
 _CODEX_SKILL_RESOURCES_MANIFEST = ".pilot-resources.json"
+_CODEX_HOOKS_BASELINE_FILE = ".pilot-hooks-baseline.json"
 _CODEX_SKILL_AUTHORING_ENTRIES = frozenset(
     {
         "manifest.json",
         "orchestrator.md",
-        "steps",
         "tests",
         "SKILL.md",
         _CODEX_SKILL_RESOURCES_MANIFEST,
@@ -397,11 +407,14 @@ class CodexFilesStep(BaseStep):
     def _merge_codex_hooks(self, codex_dir: Path, incoming: dict[str, Any]) -> int:
         """Write or merge hooks into ~/.codex/hooks.json.
 
-        Pilot Shell-managed hook entries are identified by commands containing
-        '/.pilot/' in their command string. User-added entries are preserved.
+        Pilot-owned entries are identified by exact signatures from the
+        previous install baseline. A narrow legacy migration recognizes only
+        the old managed hook/script locations; arbitrary user hooks elsewhere
+        under ~/.pilot are preserved.
         Returns the number of Pilot-managed hook events present in the result.
         """
         hooks_file = codex_dir / "hooks.json"
+        baseline_file = codex_dir / _CODEX_HOOKS_BASELINE_FILE
         incoming_hooks = incoming.get("hooks", {})
         if not isinstance(incoming_hooks, dict) or any(
             not isinstance(entries, list) for entries in incoming_hooks.values()
@@ -411,6 +424,7 @@ class CodexFilesStep(BaseStep):
         if not hooks_file.exists():
             hooks_file.parent.mkdir(parents=True, exist_ok=True)
             _atomic_write(hooks_file, json.dumps(incoming, indent=2) + "\n")
+            _atomic_write(baseline_file, json.dumps(incoming_hooks, indent=2) + "\n")
             return len(incoming_hooks)
 
         try:
@@ -428,6 +442,17 @@ class CodexFilesStep(BaseStep):
         ):
             return 0
 
+        baseline_hooks: dict[str, Any] | None = None
+        if baseline_file.is_file():
+            try:
+                loaded_baseline = json.loads(baseline_file.read_text(encoding="utf-8"))
+                if isinstance(loaded_baseline, dict):
+                    baseline_hooks = loaded_baseline
+            except (OSError, json.JSONDecodeError):
+                baseline_hooks = None
+        if baseline_hooks is None:
+            baseline_hooks = _legacy_codex_hook_signature_baseline(existing_hooks)
+
         merged: dict[str, list[Any]] = {}
 
         # Dict insertion order makes the generated file stable across installs:
@@ -437,13 +462,27 @@ class CodexFilesStep(BaseStep):
             existing_entries = existing_hooks.get(event, [])
             incoming_entries = incoming_hooks.get(event, [])
 
-            user_entries = [e for e in existing_entries if not _is_pilot_managed_entry(e)]
-
-            merged[event] = incoming_entries + user_entries
+            baseline_signatures = {
+                _hook_entry_signature(entry) for entry in baseline_hooks.get(event, []) if isinstance(entry, dict)
+            }
+            user_entries = [
+                entry
+                for entry in existing_entries
+                if not isinstance(entry, dict) or _hook_entry_signature(entry) not in baseline_signatures
+            ]
+            incoming_signatures = {
+                _hook_entry_signature(entry) for entry in incoming_entries if isinstance(entry, dict)
+            }
+            merged[event] = incoming_entries + [
+                entry
+                for entry in user_entries
+                if not isinstance(entry, dict) or _hook_entry_signature(entry) not in incoming_signatures
+            ]
 
         result = dict(existing)
         result["hooks"] = merged
         _atomic_write(hooks_file, json.dumps(result, indent=2) + "\n")
+        _atomic_write(baseline_file, json.dumps(incoming_hooks, indent=2) + "\n")
         return len(incoming_hooks)
 
     def _install_codex_mcp(self, ctx: InstallContext) -> int:
@@ -750,6 +789,8 @@ class CodexFilesStep(BaseStep):
             "fix",
             "build",
             "prd",
+            "investigate",
+            "cleanup",
             "benchmark",
             "setup-rules",
             "create-skill",
@@ -776,10 +817,11 @@ class CodexFilesStep(BaseStep):
         # Source is the ACTIVE Claude profile: with CLAUDE_CONFIG_DIR set, a
         # hardcoded ~/.claude finds nothing and Codex silently gets zero skills.
         # ~/.agents is NOT relocatable (Codex derives it from $HOME).
+        agents_skills_dir = Path.home() / ".agents" / "skills"
         claude_skills_dir = self._find_codex_skills_source(ctx)
         if claude_skills_dir is None:
+            _remove_orphaned_codex_skill_runtimes(agents_skills_dir, set())
             return 0
-        agents_skills_dir = Path.home() / ".agents" / "skills"
 
         if not claude_skills_dir.is_dir():
             return 0
@@ -790,14 +832,18 @@ class CodexFilesStep(BaseStep):
                 if stale.is_dir():
                     shutil.rmtree(stale, ignore_errors=True)
 
-        decomposed = [
+        candidates = [
             p
             for p in sorted(claude_skills_dir.iterdir())
             if p.is_dir() and (p / "manifest.json").is_file() and p.name in self._CODEX_SUPPORTED_SKILLS
         ]
 
         written = 0
-        for skill_dir in decomposed:
+        source_names = {skill_dir.name for skill_dir in candidates}
+        for skill_dir in candidates:
+            if "codex" not in _skill_targets(skill_dir):
+                _remove_codex_skill_runtime(agents_skills_dir / skill_dir.name)
+                continue
             try:
                 codex_content = build_codex_skill_md(skill_dir)
             except Exception as e:
@@ -806,13 +852,24 @@ class CodexFilesStep(BaseStep):
                 continue
 
             dest_dir = agents_skills_dir / skill_dir.name
+            if _codex_skill_runtime_has_unowned_core(dest_dir):
+                if ctx.ui:
+                    ctx.ui.warning(
+                        f"Skipped Codex skill '{skill_dir.name}': {dest_dir} already contains an unowned "
+                        "SKILL.md or agents/openai.yaml. Move or rename that user skill to install Pilot's copy."
+                    )
+                continue
             dest_dir.mkdir(parents=True, exist_ok=True)
+            ownership_manifest = dest_dir / _CODEX_SKILL_RESOURCES_MANIFEST
+            if not ownership_manifest.exists():
+                _atomic_write(ownership_manifest, '{"files": [], "directories": []}\n')
             _atomic_write(dest_dir / "SKILL.md", codex_content)
             _sync_codex_skill_resources(skill_dir, dest_dir)
             metadata_dir = dest_dir / "agents"
             metadata_dir.mkdir(parents=True, exist_ok=True)
             _atomic_write(metadata_dir / "openai.yaml", build_codex_skill_openai_yaml(skill_dir))
             written += 1
+        _remove_orphaned_codex_skill_runtimes(agents_skills_dir, source_names)
         return written
 
     def _find_codex_skills_source(self, ctx: InstallContext) -> Path | None:
@@ -858,17 +915,24 @@ class CodexFilesStep(BaseStep):
 
         Returns the number of agent files written.
         """
+        codex_agents_dir = _get_codex_config_dir() / "agents"
         source_dir = self._find_codex_review_agents_source(ctx)
         if source_dir is None:
+            for agent_name in self._CODEX_MANAGED_REVIEW_AGENTS:
+                target = codex_agents_dir / f"{agent_name}.toml"
+                if target.is_file() and _is_pilot_managed_codex_review_agent(target):
+                    target.unlink(missing_ok=True)
             return 0
 
-        codex_agents_dir = _get_codex_config_dir() / "agents"
         codex_agents_dir.mkdir(parents=True, exist_ok=True)
 
         written = 0
         for agent_name in sorted(self._CODEX_MANAGED_REVIEW_AGENTS):
             source = source_dir / f"{agent_name}.md"
+            target = codex_agents_dir / f"{agent_name}.toml"
             if not source.is_file():
+                if target.is_file() and _is_pilot_managed_codex_review_agent(target):
+                    target.unlink(missing_ok=True)
                 continue
             try:
                 codex_content = build_codex_review_agent_toml(source)
@@ -876,7 +940,6 @@ class CodexFilesStep(BaseStep):
                 if ctx.ui:
                     ctx.ui.warning(f"Failed to build Codex agent for {agent_name}: {e}")
                 continue
-            target = codex_agents_dir / f"{agent_name}.toml"
             if target.exists() and not _is_pilot_managed_codex_review_agent(target):
                 if ctx.ui:
                     ctx.ui.warning(f"Preserving user-created Codex agent: {target}")
@@ -976,6 +1039,18 @@ def _set_top_level_keys(content: str, keys: dict[str, str]) -> tuple[str, bool]:
 # gives the Claude path, and it is why both agents now preserve user edits
 # instead of only one of them doing so.
 MCP_BASELINE_FILE = ".pilot-mcp-baseline.json"
+
+# Exact previously shipped Pilot definitions that may pre-date the MCP
+# baseline file. Treat these as Pilot-owned during one-way migrations while
+# continuing to preserve any other same-name user customization.
+_LEGACY_PILOT_MCP_SERVERS: dict[str, tuple[dict[str, Any], ...]] = {
+    "semble": (
+        {
+            "command": "uvx",
+            "args": ["--no-config", "--from", "semble[mcp]==0.5.5", "semble"],
+        },
+    ),
+}
 
 _MCP_MARKER_START = "# --- pilot-shell managed MCP servers ---"
 _MCP_MARKER_END = "# --- end pilot-shell managed MCP servers ---"
@@ -1152,6 +1227,20 @@ def _partition_dropped(
         if isinstance(parsed, dict):
             base_tables = parsed
 
+    legacy_tables: dict[str, tuple[Any, ...]] = {}
+    for name, definitions in _LEGACY_PILOT_MCP_SERVERS.items():
+        normalized: list[Any] = []
+        for definition in definitions:
+            try:
+                parsed = tomllib.loads(_mcp_json_to_toml({"mcpServers": {name: definition}})).get(
+                    "mcp_servers", {}
+                )
+            except tomllib.TOMLDecodeError:
+                continue
+            if isinstance(parsed, dict):
+                normalized.append(parsed.get(name))
+        legacy_tables[name] = tuple(normalized)
+
     user_owned: set[str] = set()
     overwritten: set[str] = set()
     for name, table_lines in dropped.items():
@@ -1165,7 +1254,7 @@ def _partition_dropped(
             (user_owned if baseline else overwritten).add(name)
             continue
         if baseline:
-            if current != base_tables.get(name):
+            if current != base_tables.get(name) and current not in legacy_tables.get(name, ()):
                 user_owned.add(name)
         elif current != after.get(name):
             overwritten.add(name)
@@ -1221,6 +1310,8 @@ _PILOT_SKILL_NAMES = frozenset(
         "setup-rules",
         "create-skill",
         "prd",
+        "investigate",
+        "cleanup",
         "benchmark",
         "fix",
         "build",
@@ -1251,7 +1342,8 @@ def build_codex_skill_md(skill_dir: Path) -> str:
     content = build_skill_md(skill_dir)
 
     name, description = _extract_skill_metadata(content)
-    description = _CODEX_SKILL_DESCRIPTIONS.get(name, description)
+    manifest = _load_skill_manifest(skill_dir)
+    description = _codex_manifest_description(manifest) or _CODEX_SKILL_DESCRIPTIONS.get(name, description)
     description = _adapt_invocation_syntax(description)
 
     adapted = _adapt_invocation_syntax(content)
@@ -1270,14 +1362,19 @@ def build_codex_skill_openai_yaml(skill_dir: Path) -> str:
     from installer.skill_builder import build_skill_md
 
     name, description = _extract_skill_metadata(build_skill_md(skill_dir))
-    description = _CODEX_SKILL_DESCRIPTIONS.get(name, description)
+    manifest = _load_skill_manifest(skill_dir)
+    description = _codex_manifest_description(manifest, short=True) or _CODEX_SKILL_DESCRIPTIONS.get(name, description)
     description = _adapt_invocation_syntax(description)
     compact_description = " ".join(description.split())
     if len(compact_description) > 160:
         compact_description = compact_description[:157].rsplit(" ", 1)[0] + "..."
 
     display_name = name.replace("-", " ").title()
-    implicit = name not in CodexFilesStep._CODEX_EXPLICIT_ONLY_SKILLS
+    implicit = (
+        manifest.get("invocation") == "implicit"
+        if manifest.get("version") == 2
+        else name not in CodexFilesStep._CODEX_EXPLICIT_ONLY_SKILLS
+    )
     return (
         "interface:\n"
         f"  display_name: {json.dumps(display_name)}\n"
@@ -1287,9 +1384,42 @@ def build_codex_skill_openai_yaml(skill_dir: Path) -> str:
     )
 
 
-def _is_codex_skill_runtime_resource(relative: Path) -> bool:
+def _load_skill_manifest(skill_dir: Path) -> dict[str, Any]:
+    try:
+        data = json.loads((skill_dir / "manifest.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _skill_targets(skill_dir: Path) -> frozenset[str]:
+    manifest = _load_skill_manifest(skill_dir)
+    if manifest.get("version") != 2:
+        return frozenset({"claude", "codex"})
+    targets = manifest.get("targets")
+    return frozenset(value for value in targets if isinstance(value, str)) if isinstance(targets, list) else frozenset()
+
+
+def _codex_manifest_description(manifest: dict[str, Any], *, short: bool = False) -> str:
+    platform = manifest.get("platform")
+    if not isinstance(platform, dict):
+        return ""
+    codex = platform.get("codex")
+    if not isinstance(codex, dict):
+        return ""
+    keys = ("short_description", "description") if short else ("description", "short_description")
+    for key in keys:
+        value = codex.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return ""
+
+
+def _is_codex_skill_runtime_resource(relative: Path, *, progressive: bool = False) -> bool:
     """Return whether a decomposed-skill path belongs in Codex's runtime copy."""
     if not relative.parts or relative.parts[0] in _CODEX_SKILL_AUTHORING_ENTRIES:
+        return False
+    if relative.parts[0] == "steps" and not progressive:
         return False
     # Codex's UI metadata is generated from the adapted SKILL.md. Never let a
     # source-side file replace it, but do copy other agent resources such as a
@@ -1299,18 +1429,23 @@ def _is_codex_skill_runtime_resource(relative: Path) -> bool:
 
 def _codex_skill_runtime_inventory(skill_dir: Path) -> tuple[set[str], set[str]]:
     """Return the runtime files and directories shipped by a decomposed skill."""
+    try:
+        manifest = json.loads((skill_dir / "manifest.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        manifest = {}
+    progressive = isinstance(manifest, dict) and manifest.get("delivery") == "progressive"
     files: set[str] = set()
     directories: set[str] = set()
     for entry in sorted(skill_dir.iterdir()):
         relative = entry.relative_to(skill_dir)
-        if not _is_codex_skill_runtime_resource(relative):
+        if not _is_codex_skill_runtime_resource(relative, progressive=progressive):
             continue
         candidates = [entry]
         if entry.is_dir() and not entry.is_symlink():
             candidates.extend(sorted(entry.rglob("*")))
         for candidate in candidates:
             candidate_relative = candidate.relative_to(skill_dir)
-            if not _is_codex_skill_runtime_resource(candidate_relative):
+            if not _is_codex_skill_runtime_resource(candidate_relative, progressive=progressive):
                 continue
             path = candidate_relative.as_posix()
             if candidate.is_dir() and not candidate.is_symlink():
@@ -1339,7 +1474,10 @@ def _load_codex_skill_resource_manifest(manifest_path: Path) -> tuple[set[str], 
             relative = Path(value)
             if relative.is_absolute() or ".." in relative.parts:
                 continue
-            if _is_codex_skill_runtime_resource(relative):
+            # A previous progressive install may list step resources even when
+            # the current source switched back to bundled delivery. Accept them
+            # here so stale cleanup can remove those formerly-managed files.
+            if _is_codex_skill_runtime_resource(relative, progressive=True):
                 valid.add(relative.as_posix())
         return valid
 
@@ -1394,32 +1532,68 @@ def _sync_codex_skill_resources(skill_dir: Path, dest_dir: Path) -> None:
         current_directories,
     )
 
-    for entry in sorted(skill_dir.iterdir()):
-        relative = entry.relative_to(skill_dir)
-        if not _is_codex_skill_runtime_resource(relative):
-            continue
-        target = dest_dir / entry.name
-        if entry.is_dir() and not entry.is_symlink():
-            ignored = (lambda _directory, names: {"openai.yaml"} & set(names)) if entry.name == "agents" else None
-            shutil.copytree(
-                entry,
-                target,
-                symlinks=True,
-                copy_function=shutil.copy2,
-                ignore=ignored,
-                dirs_exist_ok=True,
-            )
+    for relative in sorted(current_directories, key=lambda value: (value.count("/"), value)):
+        (dest_dir / relative).mkdir(parents=True, exist_ok=True)
+
+    for relative in sorted(current_files):
+        source = skill_dir / relative
+        target = dest_dir / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.is_symlink() or target.is_file():
+            target.unlink()
+        relative_path = Path(relative)
+        if relative_path.parts[0] == "steps" and relative_path.suffix.lower() == ".md":
+            adapted = _adapt_invocation_syntax(source.read_text(encoding="utf-8"))
+            _atomic_write(target, adapted.rstrip("\n") + "\n")
         else:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            if target.is_symlink() or target.is_file():
-                target.unlink()
-            shutil.copy2(entry, target, follow_symlinks=False)
+            shutil.copy2(source, target, follow_symlinks=False)
 
     manifest = {
         "files": sorted(current_files),
         "directories": sorted(current_directories),
     }
     _atomic_write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+
+
+def _remove_codex_skill_runtime(dest_dir: Path) -> None:
+    """Remove only generated artifacts when a skill no longer targets Codex."""
+    manifest_path = dest_dir / _CODEX_SKILL_RESOURCES_MANIFEST
+    if not manifest_path.is_file():
+        return
+    previous_files, previous_directories = _load_codex_skill_resource_manifest(manifest_path)
+    _remove_stale_codex_skill_resources(dest_dir, previous_files, previous_directories, set(), set())
+    manifest_path.unlink(missing_ok=True)
+    (dest_dir / "SKILL.md").unlink(missing_ok=True)
+    metadata = dest_dir / "agents" / "openai.yaml"
+    metadata.unlink(missing_ok=True)
+    try:
+        metadata.parent.rmdir()
+    except OSError:
+        pass
+    try:
+        dest_dir.rmdir()
+    except OSError:
+        pass
+
+
+def _codex_skill_runtime_has_unowned_core(dest_dir: Path) -> bool:
+    """Return whether a same-name user skill occupies Pilot's runtime paths."""
+    if (dest_dir / _CODEX_SKILL_RESOURCES_MANIFEST).is_file():
+        return False
+    return (dest_dir / "SKILL.md").is_file() or (dest_dir / "agents" / "openai.yaml").is_file()
+
+
+def _remove_orphaned_codex_skill_runtimes(root: Path, source_names: set[str]) -> None:
+    if not root.is_dir():
+        return
+    try:
+        candidates = list(root.iterdir())
+    except OSError:
+        return
+    for candidate in candidates:
+        if candidate.name in source_names or not (candidate / _CODEX_SKILL_RESOURCES_MANIFEST).is_file():
+            continue
+        _remove_codex_skill_runtime(candidate)
 
 
 def build_codex_review_agent_toml(agent_file: Path) -> str:
@@ -1455,14 +1629,21 @@ def _split_rule_frontmatter(content: str) -> tuple[list[str], str]:
 
     end = content.find("\n---", 3)
     if end == -1:
-        return [], content
+        raise ValueError("invalid rule frontmatter: missing closing --- delimiter")
 
-    globs = [
-        stripped.lstrip("-").strip().strip('"').strip("'")
-        for line in content[4:end].splitlines()
-        if (stripped := line.strip()).startswith("-")
-    ]
-    return [g for g in globs if g], content[end + 4 :].lstrip("\n")
+    try:
+        metadata = yaml.safe_load(content[4:end]) or {}
+    except yaml.YAMLError as exc:
+        raise ValueError(f"invalid rule frontmatter: {exc}") from exc
+    if not isinstance(metadata, dict):
+        raise ValueError("invalid rule frontmatter: expected a YAML mapping")
+
+    raw_paths = metadata.get("paths", [])
+    if isinstance(raw_paths, str):
+        raw_paths = [raw_paths]
+    if not isinstance(raw_paths, list) or any(not isinstance(item, str) or not item.strip() for item in raw_paths):
+        raise ValueError("invalid rule frontmatter: paths must be a string or non-empty string list")
+    return [item.strip() for item in raw_paths], content[end + 4 :].lstrip("\n")
 
 
 def _extract_agent_metadata(content: str) -> tuple[dict[str, str], str]:
@@ -1498,8 +1679,7 @@ def _adapt_review_agent_instructions_for_codex(body: str) -> str:
         adapted,
         flags=re.DOTALL,
     )
-    adapted = adapted.replace("### 4. Write Output", "### 4. Return Output")
-    adapted = adapted.replace("### 5. Write Output", "### 5. Return Output")
+    adapted = re.sub(r"### (\d+)\. Write Output", r"### \1. Return Output", adapted)
     adapted = adapted.replace(
         "**Write JSON to `output_path` as your FINAL action.**", "**Return JSON as your final response.**"
     )
@@ -1511,6 +1691,7 @@ def _adapt_review_agent_instructions_for_codex(body: str) -> str:
     adapted = adapted.replace("`output_path`, ", "")
     adapted = adapted.replace("`output_path`", "the parent prompt")
     adapted = adapted.replace("write what you have", "return what you have")
+    adapted = adapted.replace("then write output", "then return output")
     adapted = adapted.replace("No file = orchestrator stalls.", "No final JSON = parent workflow cannot continue.")
     adapted = re.sub(r"\n{3,}", "\n\n", adapted).strip()
     return (
@@ -1604,38 +1785,59 @@ def _adapt_invocation_syntax(content: str) -> str:
     adapted = _SKILL_INVOCATION_RE.sub(lambda m: "$" + m.group(1), adapted)
     adapted = adapted.replace(
         "AskUserQuestion(multiSelect: true)",
-        "plain-text numbered options with multi-select",
+        "a structured multi-select question when the runtime exposes one, otherwise numbered options",
     )
     for old, new in (
-        ("`AskUserQuestion` tool", "`plain-text numbered options` format"),
-        ("AskUserQuestion tool", "plain-text numbered options format"),
-        ("`AskUserQuestion` calls", "`plain-text numbered options` prompts"),
-        ("AskUserQuestion calls", "plain-text numbered options prompts"),
-        ("`AskUserQuestion` call", "`plain-text numbered options` prompt"),
-        ("AskUserQuestion call", "plain-text numbered options prompt"),
+        ("`AskUserQuestion` tool", "Claude structured-question tool"),
+        ("AskUserQuestion tool", "Claude structured-question tool"),
+        ("`AskUserQuestion` calls", "structured-question prompts"),
+        ("AskUserQuestion calls", "structured-question prompts"),
+        ("`AskUserQuestion` call", "structured-question prompt"),
+        ("AskUserQuestion call", "structured-question prompt"),
     ):
         adapted = adapted.replace(old, new)
     adapted = adapted.replace(
         "AskUserQuestion",
-        "plain-text numbered options",
+        "structured question",
     )
     return adapted
 
 
-def _is_pilot_managed_entry(entry: Any) -> bool:
-    """Check if a hook entry is Pilot Shell-managed (references ~/.pilot/ paths)."""
-    if not isinstance(entry, dict):
-        return False
-    hooks = entry.get("hooks", [])
-    if not isinstance(hooks, list):
-        return False
-    for hook in hooks:
-        if not isinstance(hook, dict):
+def _hook_entry_signature(entry: dict[str, Any]) -> tuple[str, tuple[str, ...]]:
+    matcher = entry.get("matcher") or ""
+    if not isinstance(matcher, str):
+        matcher = str(matcher)
+    commands = sorted(
+        hook["command"]
+        for hook in entry.get("hooks", []) or []
+        if isinstance(hook, dict) and isinstance(hook.get("command"), str)
+    )
+    return matcher, tuple(commands)
+
+
+def _legacy_codex_hook_signature_baseline(current_hooks: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
+    """Identify only known pre-baseline Pilot hook locations."""
+    baseline: dict[str, list[dict[str, Any]]] = {}
+    for event, entries in current_hooks.items():
+        if not isinstance(entries, list):
             continue
-        cmd = hook.get("command", "")
-        if isinstance(cmd, str) and "/.pilot/" in cmd:
-            return True
-    return False
+        managed: list[dict[str, Any]] = []
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            commands = [hook.get("command", "") for hook in entry.get("hooks", []) or [] if isinstance(hook, dict)]
+            if any(
+                isinstance(command, str)
+                and (
+                    "/.pilot/hooks/" in command
+                    or ("/.pilot/scripts/worker-service.cjs" in command and " hook codex " in command)
+                )
+                for command in commands
+            ):
+                managed.append(entry)
+        if managed:
+            baseline[event] = managed
+    return baseline
 
 
 class _TomlStructureError(Exception):

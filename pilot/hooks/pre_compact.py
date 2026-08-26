@@ -20,6 +20,7 @@ from _lib.util import (
     get_session_plan_path,
     plan_in_current_project,
     read_hook_stdin,
+    resolve_payload_session_id,
     resolve_session_id,
 )
 
@@ -158,7 +159,7 @@ def run_pre_compact() -> int:
     Returns exit code: 0. stderr messages visible in verbose mode only.
     """
     hook_data = read_hook_stdin()
-    session_id = hook_data.get("session_id") or resolve_session_id()
+    session_id = resolve_payload_session_id(hook_data.get("session_id"))
     trigger = hook_data.get("trigger", "auto")
     custom_instructions = hook_data.get("custom_instructions", "")
 
@@ -169,7 +170,7 @@ def run_pre_compact() -> int:
         # id, so resolve env-first with the payload as last resort (unlike the
         # pre-compact-state key above, which stays payload-first to match its
         # post_compact_restore reader).
-        "active_plan": _capture_active_plan(resolve_session_id(str(hook_data.get("session_id") or ""))),
+        "active_plan": _capture_active_plan(resolve_session_id(hook_data.get("session_id"))),
         "task_list": _capture_task_list(),
     }
 
