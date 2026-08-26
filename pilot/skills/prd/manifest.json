@@ -1,7 +1,7 @@
 {
   "version": 2,
   "orchestrator": "orchestrator.md",
-  "delivery": "progressive",
+  "delivery": "bundled",
   "targets": ["claude", "codex"],
   "visibility": "public",
   "invocation": "explicit",

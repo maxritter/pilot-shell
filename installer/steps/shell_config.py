@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import os
+import stat
+import tempfile
 from pathlib import Path
 
 from installer.context import InstallContext
@@ -11,6 +14,7 @@ from installer.steps.base import BaseStep
 OLD_CCP_MARKER = "# Claude CodePro alias"
 OLD_CLAUDE_PILOT_MARKER = "# Claude Pilot"
 CLAUDE_ALIAS_MARKER = "# Pilot Shell"
+CLAUDE_ALIAS_END_MARKER = "# End Pilot Shell"
 MANAGED_ELSEWHERE_MARKER = "# pilot-shell:managed-elsewhere"
 PILOT_BIN = "$HOME/.pilot/bin/pilot"
 PILOT_BIN_DIR = "$HOME/.pilot/bin"
@@ -25,6 +29,24 @@ _CODEX_LIMIT_SH = (
     'if [ "$_soft" != unlimited ] && [ "$_soft" -lt "$_desired" ] 2>/dev/null; '
     'then ulimit -Sn "$_desired" 2>/dev/null || true; fi'
 )
+
+
+def _atomic_write_text(path: Path, content: str) -> None:
+    """Replace a config target atomically while preserving symlinks and mode."""
+    target = path.resolve() if path.is_symlink() else path
+    mode = target.stat().st_mode
+    fd, temp_name = tempfile.mkstemp(prefix=".pilot-shell-", dir=target.parent)
+    temp_path = Path(temp_name)
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(content)
+            f.flush()
+            os.fsync(f.fileno())
+        temp_path.chmod(stat.S_IMODE(mode))
+        os.replace(temp_path, target)
+    except Exception:
+        temp_path.unlink(missing_ok=True)
+        raise
 
 
 def is_managed_elsewhere(config_file: Path) -> bool:
@@ -54,7 +76,10 @@ def get_alias_lines(shell_type: str) -> str:
             f"codex() ( local _soft _hard _desired; {_CODEX_LIMIT_SH}; "
             'PILOT_SESSION_ID="$$-$RANDOM" command codex "$@"; )'
         )
-    return f'{CLAUDE_ALIAS_MARKER}\n{path_line}\nalias pilot="{PILOT_BIN}"\nalias ccp="{PILOT_BIN}"\n{session_funcs}'
+    return (
+        f'{CLAUDE_ALIAS_MARKER}\n{path_line}\nalias pilot="{PILOT_BIN}"\n'
+        f'alias ccp="{PILOT_BIN}"\n{session_funcs}\n{CLAUDE_ALIAS_END_MARKER}'
+    )
 
 
 def alias_exists_in_file(config_file: Path) -> bool:
@@ -64,6 +89,7 @@ def alias_exists_in_file(config_file: Path) -> bool:
     content = config_file.read_text(errors="replace")
     return (
         CLAUDE_ALIAS_MARKER in content
+        or CLAUDE_ALIAS_END_MARKER in content
         or OLD_CLAUDE_PILOT_MARKER in content
         or OLD_CCP_MARKER in content
         or "alias ccp" in content
@@ -82,6 +108,7 @@ def remove_old_alias(config_file: Path) -> bool:
         OLD_CCP_MARKER in content
         or OLD_CLAUDE_PILOT_MARKER in content
         or CLAUDE_ALIAS_MARKER in content
+        or CLAUDE_ALIAS_END_MARKER in content
         or "alias ccp" in content
         or "alias claude" in content
         or "alias pilot" in content
@@ -107,7 +134,12 @@ def remove_old_alias(config_file: Path) -> bool:
     for line in lines:
         stripped = line.strip()
 
-        if OLD_CCP_MARKER in line or OLD_CLAUDE_PILOT_MARKER in line or CLAUDE_ALIAS_MARKER in line:
+        if (
+            OLD_CCP_MARKER in line
+            or OLD_CLAUDE_PILOT_MARKER in line
+            or CLAUDE_ALIAS_MARKER in line
+            or CLAUDE_ALIAS_END_MARKER in line
+        ):
             continue
 
         if (
@@ -171,7 +203,7 @@ def remove_old_alias(config_file: Path) -> bool:
         final_lines.append(line)
         prev_blank = is_blank
 
-    config_file.write_text("\n".join(final_lines))
+    _atomic_write_text(config_file, "\n".join(final_lines))
     return True
 
 
@@ -205,15 +237,22 @@ class ShellConfigStep(BaseStep):
                 continue
 
             alias_existed = alias_exists_in_file(config_file)
-            if alias_existed:
-                remove_old_alias(config_file)
-
             shell_type = "fish" if "fish" in config_file.name else "bash"
             alias_lines = get_alias_lines(shell_type)
 
             try:
-                with open(config_file, "a") as f:
-                    f.write(f"\n{alias_lines}\n")
+                base_content = config_file.read_text(errors="replace")
+                if alias_existed:
+                    fd, temp_name = tempfile.mkstemp(prefix=".pilot-shell-clean-", dir=config_file.parent)
+                    os.close(fd)
+                    temp_path = Path(temp_name)
+                    try:
+                        temp_path.write_text(base_content)
+                        remove_old_alias(temp_path)
+                        base_content = temp_path.read_text(errors="replace")
+                    finally:
+                        temp_path.unlink(missing_ok=True)
+                _atomic_write_text(config_file, f"{base_content.rstrip()}\n\n{alias_lines}\n")
                 modified_files.append(str(config_file))
                 if ui:
                     if alias_existed:

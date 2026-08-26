@@ -49,3 +49,15 @@ def test_release_trigger_accepts_scoped_features_and_changelog_starts_at_current
     workflow = (REPO_ROOT / ".github" / "workflows" / "release.yml").read_text()
     assert "(fix|feat)(\\([^)]*\\))?!?:" in workflow
     assert "args: v${{ steps.current.outputs.version }}.. --unreleased" in workflow
+
+
+def test_every_release_binary_runs_through_the_shipped_wrapper_before_upload() -> None:
+    """Building a Cython module is insufficient; execute its isolated wrapper."""
+    workflow = (REPO_ROOT / ".github" / "workflows" / "release.yml").read_text()
+
+    assert workflow.count("scripts/smoke_pilot_artifact.py") == 4
+    assert workflow.count("Verify installer on macOS system Bash") == 2
+
+    prerelease_workflow = (REPO_ROOT / ".github" / "workflows" / "release-dev.yml").read_text()
+    assert prerelease_workflow.count("scripts/smoke_pilot_artifact.py") == 2
+    assert prerelease_workflow.count("Verify installer on macOS system Bash") == 1

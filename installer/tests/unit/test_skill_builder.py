@@ -19,6 +19,7 @@ from installer.skill_builder import (
     BuildError,
     build_skill_md,
     canonicalize,
+    validate_skill_tree,
     write_skill_md,
 )
 
@@ -176,3 +177,34 @@ class TestRealSkillFrontmatterIsValidYaml:
             "step files present on disk but absent from manifest.json - they build into "
             "nothing and ship as dead weight. Add a manifest entry, or delete the file:\n" + "\n".join(failures)
         )
+
+    def test_shipped_workflows_bundle_steps_without_runtime_file_reads(self) -> None:
+        """Pilot workflows must not pollute agent transcripts with step-file reads."""
+        failures: list[str] = []
+        for skill_dir in self._skill_dirs():
+            manifest = json.loads((skill_dir / "manifest.json").read_text())
+            if not manifest["steps"]:
+                continue
+
+            built = build_skill_md(skill_dir)
+            if manifest.get("delivery", "bundled") != "bundled":
+                failures.append(f"{skill_dir.name}: delivery must be bundled")
+                continue
+            if "## Required phase resources" in built or "Read `steps/" in built:
+                failures.append(f"{skill_dir.name}: generated SKILL.md requests runtime step reads")
+                continue
+            for step in manifest["steps"]:
+                step_text = canonicalize((skill_dir / step["file"]).read_text())
+                if step_text not in built:
+                    failures.append(f"{skill_dir.name}: {step['file']} is not embedded in SKILL.md")
+
+        assert not failures, (
+            "shipped workflow steps must be embedded in SKILL.md so Claude Code and Codex "
+            "load one skill artifact without visible cat/read calls:\n" + "\n".join(failures)
+        )
+
+    def test_shipped_bundled_workflows_fit_compiled_size_budgets(self) -> None:
+        report = validate_skill_tree(self.SKILLS_ROOT, platform="claude")
+        oversized = [finding.message for finding in report.errors if finding.rule == "compiled-size"]
+
+        assert not oversized, "bundled Pilot workflow exceeds compiled size budget:\n" + "\n".join(oversized)

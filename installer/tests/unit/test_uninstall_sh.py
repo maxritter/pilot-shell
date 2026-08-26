@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 UNINSTALL_SH = Path(__file__).parent.parent.parent.parent / "uninstall.sh"
@@ -75,6 +76,21 @@ def test_uninstall_sh_documents_complete_code_search_tool_cleanup() -> None:
     assert "uv tool uninstall semble" in content
     assert "uv cache clean semble" in content
     assert "npm uninstall -g better-sqlite3" in content
+    assert "semble uninstall" in content
+    assert "rtk init -g --uninstall" in content
+    assert "rtk init -g --codex --uninstall" in content
+    assert "npm uninstall -g impeccable" in content
+    assert "npm uninstall -g @playwright/cli" in content
+    assert "npm uninstall -g fast-check" in content
+    assert "uv tool uninstall hypothesis" in content
+
+
+def test_pilot_directory_is_removed_only_after_external_config_cleanup() -> None:
+    """A best-effort cleanup failure must leave the CLI available for a retry."""
+    content = _content()
+    main = content[content.rindex("\nremove_shell_aliases\n") :]
+
+    assert main.index("remove_codex_files") < main.index("remove_pilot_dir") < main.index("print_summary")
 
 
 def test_uninstall_sh_preserves_project_codegraph_indexes() -> None:
@@ -90,13 +106,23 @@ def test_uninstall_sh_claude_dir_respects_claude_config_dir():
     assert "CLAUDE_CONFIG_DIR" in _content()
 
 
-def _run_uninstall(home: Path, extra_env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
+def _run_uninstall(
+    home: Path,
+    extra_env: dict[str, str] | None = None,
+    script_args: list[str] | None = None,
+) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     env["HOME"] = str(home)
     env.pop("CODEX_HOME", None)
     env.pop("CLAUDE_CONFIG_DIR", None)
     env.update(extra_env or {})
-    return subprocess.run(["bash", str(UNINSTALL_SH), "--yes"], env=env, text=True, capture_output=True, check=False)
+    return subprocess.run(
+        ["bash", str(UNINSTALL_SH), *(script_args or ["--yes"])],
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
 
 
 def _seed_pilot_profile(claude_dir: Path) -> None:
@@ -104,6 +130,525 @@ def _seed_pilot_profile(claude_dir: Path) -> None:
     (claude_dir / "rules").mkdir(parents=True, exist_ok=True)
     (claude_dir / "rules" / "testing.md").write_text("managed\n")
     (claude_dir / ".pilot-manifest.json").write_text('{"files": ["rules/testing.md"]}\n')
+
+
+def test_relative_home_aborts_before_removing_anything(tmp_path: Path) -> None:
+    """Every destructive target is HOME-derived, so HOME must be absolute."""
+    sentinel = tmp_path / "relative" / ".pilot" / "keep.txt"
+    sentinel.parent.mkdir(parents=True)
+    sentinel.write_text("keep\n")
+    env = os.environ.copy()
+    env["HOME"] = "relative"
+
+    result = subprocess.run(
+        ["bash", str(UNINSTALL_SH), "--yes"],
+        cwd=tmp_path,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert "HOME must be an absolute" in result.stderr
+    assert sentinel.read_text() == "keep\n"
+
+
+def test_home_resolving_to_filesystem_root_is_rejected() -> None:
+    env = os.environ.copy()
+    env["HOME"] = "/."
+
+    result = subprocess.run(
+        ["bash", str(UNINSTALL_SH), "--yes"],
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert "resolves to the filesystem root" in result.stderr
+
+
+def test_relative_codex_home_aborts_before_removing_anything(tmp_path: Path) -> None:
+    """A relative CODEX_HOME must never turn rm targets into cwd-relative paths."""
+    home = tmp_path / "home"
+    pilot = home / ".pilot" / "keep.txt"
+    pilot.parent.mkdir(parents=True)
+    pilot.write_text("keep\n")
+
+    result = _run_uninstall(home, {"CODEX_HOME": "relative-codex"})
+
+    assert result.returncode != 0
+    assert "CODEX_HOME must be an absolute" in result.stderr
+    assert pilot.read_text() == "keep\n"
+
+
+def test_active_install_lock_refuses_uninstall_without_mutation(tmp_path: Path) -> None:
+    """Uninstall cannot race an installer that owns the Pilot transaction lock."""
+    home = tmp_path / "home"
+    pilot = home / ".pilot"
+    lock = pilot / ".bin-install.lock"
+    lock.mkdir(parents=True)
+    (lock / "pid").write_text(f"{os.getpid()}\n")
+    (pilot / "keep.txt").write_text("keep\n")
+
+    result = _run_uninstall(home)
+
+    assert result.returncode != 0
+    assert "install or update is currently running" in result.stderr
+    assert (pilot / "keep.txt").read_text() == "keep\n"
+
+
+def test_ownerless_install_lock_refuses_uninstall_without_mutation(tmp_path: Path) -> None:
+    """An ownerless lock may be in mkdir-to-pid initialisation and fails closed."""
+    home = tmp_path / "home"
+    pilot = home / ".pilot"
+    (pilot / ".bin-install.lock").mkdir(parents=True)
+    (pilot / "keep.txt").write_text("keep\n")
+
+    result = _run_uninstall(home)
+
+    assert result.returncode != 0
+    assert "has no owner" in result.stderr
+    assert (pilot / "keep.txt").read_text() == "keep\n"
+
+
+def test_stale_install_lock_fails_closed_then_allows_explicit_recovery(tmp_path: Path) -> None:
+    """Dead-owner lock takeover is manual, race-free, and cleans transaction debris on retry."""
+    home = tmp_path / "home"
+    lock = home / ".pilot" / ".bin-install.lock"
+    lock.mkdir(parents=True)
+    (lock / "pid").write_text("999999999\n")
+    (home / ".pilot" / ".bin-stage.crashed").mkdir()
+    (home / ".pilot" / ".bin-backup.crashed").mkdir()
+    (home / ".pilot" / ".bin-committed-backup.crashed").mkdir()
+
+    blocked = _run_uninstall(home)
+
+    assert blocked.returncode != 0
+    assert "left a stale lock" in blocked.stderr
+    assert (home / ".pilot").exists()
+
+    (lock / "pid").unlink()
+    lock.rmdir()
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert not (home / ".pilot").exists()
+
+
+def test_manifest_path_traversal_is_skipped(tmp_path: Path) -> None:
+    """A corrupt manifest cannot delete a file outside the Claude profile."""
+    home = tmp_path / "home"
+    claude_dir = home / ".claude"
+    (claude_dir / "rules").mkdir(parents=True)
+    managed = claude_dir / "rules" / "testing.md"
+    managed.write_text("managed\n")
+    outside = home / "outside.txt"
+    outside.write_text("keep\n")
+    (claude_dir / ".pilot-manifest.json").write_text(
+        '{"files": ["rules/testing.md", "rules/../../outside.txt"]}\n'
+    )
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert not managed.exists()
+    assert outside.read_text() == "keep\n"
+    assert "unsafe manifest entry" in result.stdout
+
+
+def test_manifest_parent_symlink_escape_is_skipped(tmp_path: Path) -> None:
+    """A managed-looking path cannot traverse a user-controlled parent symlink."""
+    home = tmp_path / "home"
+    claude_dir = home / ".claude"
+    outside = home / "outside"
+    outside.mkdir(parents=True)
+    outside_file = outside / "managed.md"
+    outside_file.write_text("keep\n")
+    skills = claude_dir / "skills"
+    skills.mkdir(parents=True)
+    (skills / "escape").symlink_to(outside, target_is_directory=True)
+    (claude_dir / ".pilot-manifest.json").write_text('{"files": ["skills/escape/managed.md"]}\n')
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert outside_file.read_text() == "keep\n"
+    assert "unsafe manifest entry" in result.stdout
+
+
+def test_symlinked_pilot_root_is_rejected_without_touching_target(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    home.mkdir()
+    outside = tmp_path / "outside-pilot"
+    (outside / "bin").mkdir(parents=True)
+    sentinel = outside / "bin" / "pilot"
+    sentinel.write_text("keep\n")
+    (home / ".pilot").symlink_to(outside, target_is_directory=True)
+
+    result = _run_uninstall(home)
+
+    assert result.returncode != 0
+    assert "~/.pilot is a symlink" in result.stderr
+    assert sentinel.read_text() == "keep\n"
+
+
+def test_malformed_claude_manifest_preserves_files_and_reports_partial(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    claude_dir = home / ".claude"
+    managed = claude_dir / "rules" / "testing.md"
+    managed.parent.mkdir(parents=True)
+    managed.write_text("preserve until ownership is readable\n")
+    manifest = claude_dir / ".pilot-manifest.json"
+    manifest.write_text("{broken")
+    (home / ".pilot" / "bin").mkdir(parents=True)
+
+    result = _run_uninstall(home)
+
+    assert result.returncode != 0
+    assert managed.read_text() == "preserve until ownership is readable\n"
+    assert manifest.read_text() == "{broken"
+    assert "partially uninstalled" in result.stdout
+
+
+def test_claude_plugin_cli_failure_does_not_abort_local_cleanup(tmp_path: Path) -> None:
+    """Best-effort external plugin cleanup cannot strand the local uninstall."""
+    home = tmp_path / "home"
+    pilot = home / ".pilot"
+    pilot.mkdir(parents=True)
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    claude = fake_bin / "claude"
+    claude.write_text("#!/bin/bash\nexit 1\n")
+    claude.chmod(0o755)
+
+    result = _run_uninstall(home, {"PATH": f"{fake_bin}:{os.environ['PATH']}"})
+
+    assert result.returncode == 0, result.stderr
+    assert not pilot.exists()
+
+
+def test_shell_cleanup_removes_only_pilot_block_and_preserves_user_commands(tmp_path: Path) -> None:
+    """User aliases and multiline functions with overlapping names are never inferred as Pilot-owned."""
+    home = tmp_path / "home"
+    home.mkdir()
+    zshrc = home / ".zshrc"
+    zshrc.write_text(
+        """# user commands
+alias pilot='my-own-pilot'
+claude() {
+  echo user-claude
+}
+
+# Pilot Shell
+export PATH="$HOME/.pilot/bin:$HOME/.bun/bin:$PATH"
+alias pilot="$HOME/.pilot/bin/pilot"
+alias ccp="$HOME/.pilot/bin/pilot"
+claude() { local _sid="$$-$RANDOM"; PILOT_SESSION_ID=$_sid command claude "$@"; }
+codex() ( PILOT_SESSION_ID="$$-$RANDOM" command codex "$@"; )
+
+# after
+"""
+    )
+    (home / ".pilot").mkdir()
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    content = zshrc.read_text()
+    assert "my-own-pilot" in content
+    assert "echo user-claude" in content
+    assert "PILOT_SESSION_ID" not in content
+    assert "$HOME/.pilot/bin" not in content
+    assert "# after" in content
+    subprocess.run(["/bin/bash", "-n", str(zshrc)], check=True)
+
+
+def test_alias_only_partial_install_is_detected_and_cleaned(tmp_path: Path) -> None:
+    """A legacy shell-only install is not misreported as 'nothing to remove'."""
+    home = tmp_path / "home"
+    home.mkdir()
+    zshrc = home / ".zshrc"
+    zshrc.write_text(
+        '# Pilot Shell\nexport PATH="$HOME/.pilot/bin:$PATH"\nalias pilot="$HOME/.pilot/bin/pilot"\n'
+    )
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert "$HOME/.pilot/bin" not in zshrc.read_text()
+    assert "Cleaned .zshrc" in result.stdout
+
+
+def test_user_session_environment_lines_are_preserved(tmp_path: Path) -> None:
+    """Pilot owns wrapper functions, not every user-authored PILOT_SESSION_ID export."""
+    home = tmp_path / "home"
+    home.mkdir()
+    zshrc = home / ".zshrc"
+    zshrc.write_text("export PILOT_SESSION_ID='my-manual-session'\n")
+    (home / ".pilot" / "bin").mkdir(parents=True)
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert zshrc.read_text() == "export PILOT_SESSION_ID='my-manual-session'\n"
+
+
+def test_user_modified_path_line_is_preserved(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    home.mkdir()
+    zshrc = home / ".zshrc"
+    line = 'export PATH="$HOME/bin:$HOME/.pilot/bin:$PATH"\n'
+    zshrc.write_text(line)
+    (home / ".pilot" / "bin").mkdir(parents=True)
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert zshrc.read_text() == line
+
+
+def test_symlinked_shell_config_target_is_updated_without_replacing_symlink(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    home.mkdir()
+    dotfiles = tmp_path / "dotfiles"
+    dotfiles.mkdir()
+    target = dotfiles / "zshrc"
+    target.write_text('# Pilot Shell\nexport PATH="$HOME/.pilot/bin:$PATH"\n# keep\n')
+    (home / ".zshrc").symlink_to(target)
+    (home / ".pilot" / "bin").mkdir(parents=True)
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert (home / ".zshrc").is_symlink()
+    assert target.read_text() == "# keep\n"
+
+
+def test_modified_statusline_object_is_preserved_as_a_complete_value(tmp_path: Path) -> None:
+    """Changing one nested field preserves required sibling fields from the baseline."""
+    home = tmp_path / "home"
+    claude_dir = home / ".claude"
+    claude_dir.mkdir(parents=True)
+    baseline = {
+        "statusLine": {"type": "command", "command": "/old/pilot statusline", "padding": 0},
+        "env": {"PILOT_MODE": "quick"},
+    }
+    current = {
+        "statusLine": {"type": "command", "command": "/user/custom-statusline", "padding": 0},
+        "env": {"PILOT_MODE": "quick"},
+    }
+    (claude_dir / ".pilot-settings-baseline.json").write_text(json.dumps(baseline))
+    (claude_dir / "settings.json").write_text(json.dumps(current))
+    (home / ".pilot").mkdir()
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    settings = json.loads((claude_dir / "settings.json").read_text())
+    assert settings["statusLine"] == current["statusLine"]
+    assert "env" not in settings
+
+
+def test_user_env_key_survives_while_pilot_env_keys_are_removed(tmp_path: Path) -> None:
+    """Independent settings maps are cleaned recursively without losing user entries."""
+    home = tmp_path / "home"
+    claude_dir = home / ".claude"
+    claude_dir.mkdir(parents=True)
+    baseline = {"env": {"PILOT_MODE": "quick", "CLAUDE_PILOT_MODEL": "haiku"}}
+    current = {"env": {**baseline["env"], "USER_API_HOST": "https://example.test"}}
+    (claude_dir / ".pilot-settings-baseline.json").write_text(json.dumps(baseline))
+    (claude_dir / "settings.json").write_text(json.dumps(current))
+    (home / ".pilot").mkdir()
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    settings = json.loads((claude_dir / "settings.json").read_text())
+    assert settings == {"env": {"USER_API_HOST": "https://example.test"}}
+
+
+def test_uninstall_preserves_plugins_without_pilot_ownership_manifest(tmp_path: Path) -> None:
+    """Installed plugin presence alone is not proof that Pilot owns it."""
+    home = tmp_path / "home"
+    (home / ".pilot").mkdir(parents=True)
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    log = tmp_path / "claude.log"
+    claude = fake_bin / "claude"
+    claude.write_text(
+        """#!/bin/bash
+printf '%s\n' "$*" >> "$CLAUDE_TEST_LOG"
+if [ "$1 $2" = "plugins list" ]; then
+  printf '%s\n' 'codex@openai-codex' 'chrome-devtools-mcp@chrome-devtools-plugins'
+fi
+"""
+    )
+    claude.chmod(0o755)
+
+    result = _run_uninstall(
+        home,
+        {"PATH": f"{fake_bin}:{os.environ['PATH']}", "CLAUDE_TEST_LOG": str(log)},
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert not log.exists() or "plugins uninstall" not in log.read_text()
+
+
+def test_uninstall_removes_only_marker_owned_codex_review_agents(tmp_path: Path) -> None:
+    """Generated review agents are current managed artifacts; same-name user files survive."""
+    home = tmp_path / "home"
+    agents = home / ".codex" / "agents"
+    agents.mkdir(parents=True)
+    managed = agents / "spec-review.toml"
+    managed.write_text("# pilot-shell managed Codex review agent\nname = 'spec-review'\n")
+    user = agents / "changes-review.toml"
+    user.write_text("name = 'changes-review'\ndescription = 'mine'\n")
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert not managed.exists()
+    assert user.read_text() == "name = 'changes-review'\ndescription = 'mine'\n"
+
+
+def test_symlinked_codex_agents_directory_is_preserved_and_reported(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    codex_dir = home / ".codex"
+    codex_dir.mkdir(parents=True)
+    outside = tmp_path / "outside-agents"
+    outside.mkdir()
+    managed = outside / "spec-review.toml"
+    managed.write_text("# pilot-shell managed Codex review agent\n")
+    (codex_dir / "agents").symlink_to(outside, target_is_directory=True)
+    (home / ".pilot" / "bin").mkdir(parents=True)
+
+    result = _run_uninstall(home)
+
+    assert result.returncode != 0
+    assert managed.exists()
+    assert "partially uninstalled" in result.stdout
+
+
+def test_malformed_lsp_ownership_manifest_never_uninstalls_plugins(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    pilot = home / ".pilot"
+    pilot.mkdir(parents=True)
+    (pilot / ".pilot-lsp-plugins.json").write_text('{"note": "vtsls@claude-code-lsps"}')
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    log = tmp_path / "claude.log"
+    claude = fake_bin / "claude"
+    claude.write_text("#!/bin/bash\nprintf '%s\\n' \"$*\" >> \"$CLAUDE_TEST_LOG\"\n")
+    claude.chmod(0o755)
+
+    result = _run_uninstall(
+        home,
+        {"PATH": f"{fake_bin}:{os.environ['PATH']}", "CLAUDE_TEST_LOG": str(log)},
+    )
+
+    assert result.returncode != 0
+    assert not log.exists() or "plugins uninstall" not in log.read_text()
+    assert (pilot / ".pilot-lsp-plugins.json").exists()
+
+
+def test_failed_config_cleanup_keeps_baseline_and_pilot_home_for_retry(tmp_path: Path) -> None:
+    """A partial uninstall is non-zero and retains recovery metadata plus the CLI."""
+    home = tmp_path / "home"
+    claude_dir = home / ".claude"
+    claude_dir.mkdir(parents=True)
+    baseline = claude_dir / ".pilot-settings-baseline.json"
+    baseline.write_text(json.dumps({"statusLine": {"type": "command"}}))
+    (claude_dir / "settings.json").write_text(json.dumps({"statusLine": {"type": "command"}}))
+    pilot = home / ".pilot"
+    (pilot / "bin").mkdir(parents=True)
+    (pilot / "bin" / "pilot").write_text("working runtime\n")
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    python3 = fake_bin / "python3"
+    python3.write_text("#!/bin/bash\nexit 1\n")
+    python3.chmod(0o755)
+    uv = fake_bin / "uv"
+    uv.write_text("#!/bin/bash\nexit 1\n")
+    uv.chmod(0o755)
+
+    result = _run_uninstall(home, {"PATH": f"{fake_bin}:{os.environ['PATH']}"})
+
+    assert result.returncode != 0
+    assert "partially uninstalled" in result.stdout
+    assert baseline.exists()
+    assert pilot.exists()
+
+
+def test_uv_python_fallback_completes_uninstall_without_working_system_python(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    claude_dir = home / ".claude"
+    claude_dir.mkdir(parents=True)
+    baseline = {"env": {"PILOT_MODE": "quick"}}
+    (claude_dir / ".pilot-settings-baseline.json").write_text(json.dumps(baseline))
+    (claude_dir / "settings.json").write_text(json.dumps(baseline))
+    (home / ".pilot" / "bin").mkdir(parents=True)
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    python3 = fake_bin / "python3"
+    python3.write_text("#!/bin/bash\nexit 1\n")
+    python3.chmod(0o755)
+    uv = fake_bin / "uv"
+    uv.write_text(
+        f'''#!/bin/bash
+while [ "$#" -gt 0 ] && [ "$1" != python ]; do shift; done
+[ "$#" -gt 0 ] && shift
+exec "{sys.executable}" "$@"
+'''
+    )
+    uv.chmod(0o755)
+
+    result = _run_uninstall(home, {"PATH": f"{fake_bin}:{os.environ['PATH']}"})
+
+    assert result.returncode == 0, result.stderr
+    assert not (claude_dir / "settings.json").exists()
+
+
+def test_default_uninstall_removes_runtime_but_preserves_user_data(tmp_path: Path) -> None:
+    """Memory, sessions, settings, and unknown user files survive without --purge-data."""
+    home = tmp_path / "home"
+    pilot = home / ".pilot"
+    (pilot / "bin").mkdir(parents=True)
+    (pilot / "bin" / "pilot").write_text("runtime\n")
+    (pilot / "hooks").mkdir()
+    (pilot / "hooks" / "managed.py").write_text("runtime\n")
+    (pilot / "memory").mkdir()
+    (pilot / "memory" / "pilot-memory.db").write_text("memories\n")
+    (pilot / "sessions").mkdir()
+    (pilot / "sessions" / "session.json").write_text("session\n")
+    (pilot / "config.json").write_text('{"customization": {"source": "team"}}\n')
+    (pilot / "my-notes.txt").write_text("keep\n")
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert not (pilot / "bin").exists()
+    assert not (pilot / "hooks").exists()
+    assert (pilot / "memory" / "pilot-memory.db").read_text() == "memories\n"
+    assert (pilot / "sessions" / "session.json").read_text() == "session\n"
+    assert (pilot / "config.json").exists()
+    assert (pilot / "my-notes.txt").read_text() == "keep\n"
+    assert "User data preserved" in result.stdout
+
+
+def test_purge_data_removes_entire_pilot_home(tmp_path: Path) -> None:
+    """Full data deletion is explicit and removes the remaining Pilot home."""
+    home = tmp_path / "home"
+    data = home / ".pilot" / "memory" / "pilot-memory.db"
+    data.parent.mkdir(parents=True)
+    data.write_text("memories\n")
+
+    result = _run_uninstall(home, script_args=["--yes", "--purge-data"])
+
+    assert result.returncode == 0, result.stderr
+    assert not (home / ".pilot").exists()
 
 
 class TestClaudeConfigDirIsolation:
@@ -258,6 +803,92 @@ def test_uninstall_removes_baselined_codex_hook_and_preserves_user_pilot_hook(tm
     assert not (codex_dir / ".pilot-hooks-baseline.json").exists()
 
 
+def test_missing_codex_hook_baseline_preserves_user_hook_and_reports_partial(tmp_path: Path) -> None:
+    """A ~/.pilot hook path alone is not ownership evidence."""
+    home = tmp_path / "home"
+    codex_dir = home / ".codex"
+    codex_dir.mkdir(parents=True)
+    user = {
+        "matcher": "Bash",
+        "hooks": [{"type": "command", "command": 'python "$HOME/.pilot/hooks/my-own.py"'}],
+    }
+    hooks_file = codex_dir / "hooks.json"
+    hooks_file.write_text(json.dumps({"hooks": {"PreToolUse": [user]}}))
+    (home / ".pilot" / "bin").mkdir(parents=True)
+
+    result = _run_uninstall(home)
+
+    assert result.returncode != 0
+    assert "partially uninstalled" in result.stdout
+    assert json.loads(hooks_file.read_text())["hooks"]["PreToolUse"] == [user]
+
+
+def test_malformed_codex_hook_file_keeps_baseline_and_runtime(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    codex_dir = home / ".codex"
+    codex_dir.mkdir(parents=True)
+    hooks_file = codex_dir / "hooks.json"
+    hooks_file.write_text("{broken")
+    baseline = codex_dir / ".pilot-hooks-baseline.json"
+    baseline.write_text("{}")
+    pilot = home / ".pilot" / "bin"
+    pilot.mkdir(parents=True)
+
+    result = _run_uninstall(home)
+
+    assert result.returncode != 0
+    assert hooks_file.read_text() == "{broken"
+    assert baseline.exists()
+    assert pilot.exists()
+
+
+def test_reversed_codex_config_markers_are_preserved_and_report_partial(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    codex_dir = home / ".codex"
+    codex_dir.mkdir(parents=True)
+    config = codex_dir / "config.toml"
+    original = "# --- end pilot-shell managed env vars ---\nuser = true\n# --- pilot-shell managed env vars ---\n"
+    config.write_text(original)
+    (home / ".pilot" / "bin").mkdir(parents=True)
+
+    result = _run_uninstall(home)
+
+    assert result.returncode != 0
+    assert config.read_text() == original
+
+
+def test_duplicate_codex_agents_markers_are_preserved_and_report_partial(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    codex_dir = home / ".codex"
+    codex_dir.mkdir(parents=True)
+    agents = codex_dir / "AGENTS.md"
+    original = "<!-- PILOT:START -->\none\n<!-- PILOT:START -->\ntwo\n<!-- PILOT:END -->\n"
+    agents.write_text(original)
+    (home / ".pilot" / "bin").mkdir(parents=True)
+
+    result = _run_uninstall(home)
+
+    assert result.returncode != 0
+    assert agents.read_text() == original
+
+
+def test_malformed_codex_rules_manifest_is_preserved_and_reported(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    rules_dir = home / ".codex" / "rules"
+    rules_dir.mkdir(parents=True)
+    manifest = rules_dir / ".pilot-rules.json"
+    manifest.write_text("{broken")
+    managed = rules_dir / "managed.rules"
+    managed.write_text("keep until retry\n")
+    (home / ".pilot" / "bin").mkdir(parents=True)
+
+    result = _run_uninstall(home)
+
+    assert result.returncode != 0
+    assert manifest.read_text() == "{broken"
+    assert managed.read_text() == "keep until retry\n"
+
+
 def test_uninstall_removes_generated_investigate_artifacts_and_preserves_user_files(tmp_path: Path):
     home = tmp_path / "home"
     skill_dir = home / ".agents" / "skills" / "investigate"
@@ -351,9 +982,10 @@ def test_uninstall_malformed_skill_resource_manifest_preserves_unknown_files(tmp
 
     result = _run_uninstall(home)
 
-    assert result.returncode == 0, result.stderr
-    assert not (skill_dir / "SKILL.md").exists()
-    assert not (skill_dir / ".pilot-resources.json").exists()
+    assert result.returncode != 0
+    assert "partially uninstalled" in result.stdout
+    assert (skill_dir / "SKILL.md").exists()
+    assert (skill_dir / ".pilot-resources.json").exists()
     assert (skill_dir / "unknown-resource.txt").read_text() == "keep\n"
 
 

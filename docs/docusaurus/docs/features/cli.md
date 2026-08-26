@@ -59,7 +59,7 @@ pilot spec validate docs/plans/2026-08-24-add-user-auth.md --json
 
 ## Skill source validation
 
-Pilot's bundled decomposed skills use `manifest.json`, an orchestrator, and ordered phase files. Version 2 manifests declare their target agents, invocation policy, visibility, and whether phases are bundled into `SKILL.md` or loaded progressively.
+Pilot's decomposed skill sources use `manifest.json`, an orchestrator, and ordered phase files. Version 2 manifests declare their target agents, invocation policy, visibility, and delivery mode. Every shipped Pilot workflow bundles its ordered phases into one generated `SKILL.md`, so Claude Code and Codex load the workflow with the skill instead of emitting a visible runtime read for each phase.
 
 | Command | Description |
 |---------|-------------|
@@ -69,7 +69,7 @@ Pilot's bundled decomposed skills use `manifest.json`, an orchestrator, and orde
 
 `path` defaults to `pilot/skills/` in a Pilot source checkout. Exit codes are **0** valid · **1** validation findings · **2** unreadable source or installation.
 
-Progressive skills keep the generated `SKILL.md` below 500 lines and 5,000 words. Their ordered phase files are installed beside it and adapted separately for Claude Code and Codex.
+`progressive` remains a supported manifest mode for custom skills with genuinely optional runtime resources; it is not used for Pilot's sequential workflows. Compiled artifacts retain a runaway-size guard of 1,500 lines and 20,000 words.
 
 ## Worktree isolation
 

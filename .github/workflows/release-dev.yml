@@ -324,6 +324,11 @@ jobs:
           VERSION="dev-$(echo $COMMIT_SHA | cut -c1-7)-$(date +%Y%m%d)"
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Set up uv for isolated artifact smoke
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.12.5"
+
       - name: Build binary
         run: |
           docker run --rm \
@@ -336,6 +341,13 @@ jobs:
               python -m launcher.build --release --version ${{ steps.version.outputs.VERSION }} && \
               ls -la launcher/dist/
             "
+
+      - name: Smoke-test shipped wrapper
+        run: |
+          python3 scripts/smoke_pilot_artifact.py \
+            --wrapper launcher/dist/pilot \
+            --module launcher/dist/pilot-linux-arm64.so \
+            --expected-version "${{ steps.version.outputs.VERSION }}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -385,11 +397,31 @@ jobs:
           VERSION="dev-$(echo $COMMIT_SHA | cut -c1-7)-$(date +%Y%m%d)"
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Set up uv for isolated artifact smoke
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.12.5"
+
       - name: Build binary
         run: |
           pip install .
           python -m launcher.build --release --version ${{ steps.version.outputs.VERSION }}
           ls -la launcher/dist/
+
+      - name: Verify installer on macOS system Bash
+        run: |
+          /bin/bash --version | head -1
+          /bin/bash -n install.sh
+          env PATH="/bin:/usr/bin:/usr/sbin:/sbin:$PATH" PYTHONDONTWRITEBYTECODE=1 \
+            uv run --no-project --no-config --with pytest==8.4.2 \
+            pytest -p no:cacheprovider -q installer/tests/unit/test_install_sh.py
+
+      - name: Smoke-test shipped wrapper
+        run: |
+          python3 scripts/smoke_pilot_artifact.py \
+            --wrapper launcher/dist/pilot \
+            --module launcher/dist/pilot-darwin-arm64.so \
+            --expected-version "${{ steps.version.outputs.VERSION }}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

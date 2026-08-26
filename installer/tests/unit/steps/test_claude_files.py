@@ -1565,6 +1565,40 @@ class TestBuildSkillMdFiles:
             assert str(built) in ctx.config.get("installed_files", [])
             assert str(skill_dir / "hashes.json") in ctx.config.get("installed_files", [])
 
+    def test_10_7_upgrade_replaces_progressive_claude_artifact_with_bundled_skill(self, tmp_path):
+        from unittest.mock import MagicMock, patch
+
+        from installer.steps.claude_files import ClaudeFilesStep
+
+        skills_dir = tmp_path / ".claude" / "skills"
+        skills_dir.mkdir(parents=True)
+        skill_dir = self._make_skill(skills_dir, "spec-plan")
+        manifest = json.loads((skill_dir / "manifest.json").read_text())
+        manifest.update(
+            {
+                "version": 2,
+                "delivery": "bundled",
+                "targets": ["claude", "codex"],
+                "visibility": "internal",
+                "invocation": "explicit",
+            }
+        )
+        (skill_dir / "manifest.json").write_text(json.dumps(manifest))
+        (skill_dir / "SKILL.md").write_text(
+            "## Required phase resources\n\nRead `steps/01.md` completely, then execute it.\n"
+        )
+
+        with (
+            patch("installer.steps.claude_files.Path.home", return_value=tmp_path),
+            patch("installer.steps.claude_files.get_claude_config_dir", return_value=tmp_path / ".claude"),
+        ):
+            ClaudeFilesStep()._build_skill_md_files(self._make_ctx(tmp_path), MagicMock())
+
+        artifact = (skill_dir / "SKILL.md").read_text()
+        assert "## Required phase resources" not in artifact
+        assert "Read `steps/" not in artifact
+        assert "## Step 1\n\nContent." in artifact
+
     def test_codex_only_target_removes_stale_claude_skill_md(self, tmp_path):
         from unittest.mock import MagicMock, patch
 

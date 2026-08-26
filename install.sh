@@ -2,6 +2,72 @@
 
 set -e
 
+case "${HOME:-}" in
+/*) ;;
+*)
+	echo "  [!!] HOME must be an absolute path, got: '${HOME:-}'" >&2
+	exit 1
+	;;
+esac
+if [ ! -d "$HOME" ]; then
+	echo "  [!!] HOME must name an existing user directory, got: '$HOME'" >&2
+	exit 1
+fi
+HOME_CANONICAL=$(cd -- "$HOME" && pwd -P) || {
+	echo "  [!!] Could not resolve HOME safely: '$HOME'" >&2
+	exit 1
+}
+if [ "$HOME_CANONICAL" = "/" ]; then
+	echo "  [!!] HOME resolves to the filesystem root; refusing to install." >&2
+	exit 1
+fi
+HOME="$HOME_CANONICAL"
+export HOME
+if [ -L "$HOME/.pilot" ]; then
+	echo "  [!!] ~/.pilot is a symlink; refusing installation through an untrusted root." >&2
+	exit 1
+fi
+for override_name in CLAUDE_CONFIG_DIR CODEX_HOME; do
+	eval "override_value=\${$override_name-}"
+	if [ -z "$override_value" ]; then
+		continue
+	fi
+	case "$override_value" in
+	/*) ;;
+	*)
+		echo "  [!!] $override_name must be an absolute path, got: '$override_value'" >&2
+		exit 1
+		;;
+	esac
+	override_normalized="${override_value%/}"
+	case "${override_normalized}/" in
+	*"/../"* | *"/./"*)
+		echo "  [!!] $override_name contains unsafe path segments: '$override_value'" >&2
+		exit 1
+		;;
+	esac
+	case "$override_normalized" in
+	*"//"*)
+		echo "  [!!] $override_name contains duplicate path separators: '$override_value'" >&2
+		exit 1
+		;;
+	esac
+	if [ "$override_value" = "/" ]; then
+		echo "  [!!] $override_name must not be the filesystem root" >&2
+		exit 1
+	fi
+	if [ -d "$override_value" ]; then
+		override_canonical=$(cd -- "$override_value" && pwd -P) || {
+			echo "  [!!] Could not resolve $override_name safely: '$override_value'" >&2
+			exit 1
+		}
+		if [ "$override_canonical" = "/" ]; then
+			echo "  [!!] $override_name resolves to the filesystem root" >&2
+			exit 1
+		fi
+	fi
+done
+
 # Ambient uv config (e.g. ~/.config/uv/uv.toml with authenticated corporate
 # indexes) must not break nested uv invocations: the downloaded wrapper's
 # verification and the installer's `uv tool install` calls all inherit this.
@@ -17,6 +83,13 @@ RESTART_PILOT=false
 AUTO_UPDATE=false
 SKIP_VERSION_CHECK=false
 USE_LOCAL_INSTALLER=false
+PILOT_BIN_LIVE_DIR=""
+PILOT_BIN_STAGE_DIR=""
+PILOT_BIN_BACKUP_DIR=""
+PILOT_BIN_LOCK_DIR=""
+PILOT_BIN_ACTIVATED=false
+PILOT_BIN_COMMITTED=false
+PILOT_BIN_COMMIT_MARKER=""
 
 while [ $# -gt 0 ]; do
 	case "$1" in
@@ -53,6 +126,29 @@ while [ $# -gt 0 ]; do
 		;;
 	esac
 done
+
+is_native_windows() {
+	case "$(uname -s)" in
+	MINGW* | MSYS* | CYGWIN*) return 0 ;;
+	*) return 1 ;;
+	esac
+}
+
+if is_native_windows; then
+	echo ""
+	echo "======================================================================"
+	echo "  Pilot Shell — Windows Detected"
+	echo "======================================================================"
+	echo ""
+	echo "  Pilot Shell requires a Unix environment (macOS, Linux, or WSL2)."
+	echo ""
+	echo "  Install WSL2 first (PowerShell as admin):"
+	echo "    wsl --install -d Ubuntu"
+	echo ""
+	echo "  Then open Ubuntu and re-run this installer."
+	echo ""
+	exit 1
+fi
 
 get_latest_release() {
 	local redirect_url="https://github.com/${REPO}/releases/latest"
@@ -148,43 +244,67 @@ install_uv() {
 	# scripts/check_manifest_drift.py gates this in CI.
 	local UV_INSTALL_URL="https://astral.sh/uv/install.sh"
 	local tmp_uv
-	tmp_uv="$(mktemp -t pilot-uv-install.XXXXXX.sh)" || tmp_uv=/tmp/pilot-uv-install.sh
-	trap "rm -f \"$tmp_uv\"" EXIT
+	tmp_uv="$(mktemp -t pilot-uv-install.XXXXXX.sh)" || {
+		echo "  [!!] Failed to create a temporary uv installer file"
+		return 1
+	}
 	chmod 600 "$tmp_uv" 2>/dev/null || true
 
 	echo "  [..] Installing uv..."
 	if command -v curl >/dev/null 2>&1; then
 		curl -fsSL "$UV_INSTALL_URL" -o "$tmp_uv" || {
 			echo "  [!!] curl failed"
-			exit 1
+			rm -f "$tmp_uv"
+			return 1
 		}
 	elif command -v wget >/dev/null 2>&1; then
 		wget -qO "$tmp_uv" "$UV_INSTALL_URL" || {
 			echo "  [!!] wget failed"
-			exit 1
+			rm -f "$tmp_uv"
+			return 1
 		}
 	else
 		echo "  [!!] Need curl or wget"
-		exit 1
+		rm -f "$tmp_uv"
+		return 1
 	fi
-	sh "$tmp_uv"
-	trap - EXIT
+	if ! sh "$tmp_uv"; then
+		echo "  [!!] uv installer failed"
+		rm -f "$tmp_uv"
+		return 1
+	fi
 	rm -f "$tmp_uv"
 
 	export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 
 	if ! check_uv; then
 		echo "  [!!] Failed to install uv"
-		exit 1
+		return 1
 	fi
 	echo "  [OK] uv installed"
+}
+
+is_macos_gatekeeper_block() {
+	local output="$1"
+	local wrapper_path="$2"
+	local so_path="$3"
+
+	case "$output" in
+	*"cannot be opened because the developer cannot be verified"* | *"is damaged and can't be opened"* | *"Killed: 9"* | *"killed: 9"*)
+		return 0
+		;;
+	esac
+
+	xattr -p com.apple.quarantine "$wrapper_path" >/dev/null 2>&1 ||
+		xattr -p com.apple.quarantine "$so_path" >/dev/null 2>&1
 }
 
 show_macos_gatekeeper_warning() {
 	echo ""
 	echo "  ⚠️  macOS Gatekeeper is blocking the pilot binary"
 	echo ""
-	echo "  The installer requires pilot to verify your license."
+	echo "  macOS still rejected the staged binary after the installer removed"
+	echo "  its quarantine attributes. Your Mac may enforce an organisation profile."
 	echo "  Please follow these steps to unblock it:"
 	echo ""
 	echo "    1. Open System Settings → Privacy & Security"
@@ -192,9 +312,162 @@ show_macos_gatekeeper_warning() {
 	echo "    3. Click 'Allow Anyway'"
 	echo "    4. Re-run this installer"
 	echo ""
-	echo "  Or run this command to remove the quarantine flag:"
-	echo "    xattr -cr $HOME/.pilot/bin"
-	echo ""
+}
+
+recover_abandoned_pilot_binary_install() {
+	local pilot_home="$1"
+	local bin_dir="$2"
+	local backup_count=0
+	local backup_dir=""
+	local candidate
+
+	for candidate in "$pilot_home"/.bin-backup.*; do
+		if [ -d "$candidate" ]; then
+			if [ -f "${candidate}.committed" ]; then
+				if rm -rf "$candidate"; then
+					rm -f "${candidate}.committed"
+				fi
+				continue
+			fi
+			backup_count=$((backup_count + 1))
+			backup_dir="$candidate"
+		fi
+	done
+	if [ "$backup_count" -gt 1 ]; then
+		echo "  [!!] Multiple interrupted Pilot backups need manual recovery in $pilot_home"
+		return 1
+	fi
+	if [ "$backup_count" -eq 1 ]; then
+		PILOT_BIN_BACKUP_DIR="$backup_dir"
+		PILOT_BIN_ACTIVATED=true
+		if [ -e "$bin_dir" ] && ! rm -rf "$bin_dir"; then
+			echo "  [!!] Failed to remove the interrupted Pilot binary"
+			return 1
+		fi
+		PILOT_BIN_ACTIVATED=false
+		if ! mv "$backup_dir" "$bin_dir"; then
+			echo "  [!!] Failed to restore interrupted Pilot backup: $backup_dir"
+			return 1
+		fi
+		PILOT_BIN_BACKUP_DIR=""
+		echo "  [OK] Restored Pilot binary from an interrupted update"
+	fi
+
+	for candidate in "$pilot_home"/.bin-stage.*; do
+		if [ -d "$candidate" ]; then
+			rm -rf "$candidate"
+		fi
+	done
+	for candidate in "$pilot_home"/.bin-committed-backup.*; do
+		if [ -d "$candidate" ]; then
+			rm -rf "$candidate" || true
+		fi
+	done
+}
+
+acquire_pilot_install_lock() {
+	local pilot_home="$HOME/.pilot"
+	local bin_dir="$pilot_home/bin"
+	local lock_dir="$pilot_home/.bin-install.lock"
+	local lock_pid=""
+
+	mkdir -p "$pilot_home"
+	if ! mkdir "$lock_dir" 2>/dev/null; then
+		if [ -f "$lock_dir/pid" ]; then
+			lock_pid=$(sed -n '1p' "$lock_dir/pid") || true
+		fi
+		if [ -n "$lock_pid" ] && kill -0 "$lock_pid" 2>/dev/null; then
+			echo "  [!!] Another Pilot install or update is already running"
+			return 1
+		fi
+		echo "  [!!] A previous Pilot install left a stale lock: $lock_dir"
+		echo "  [!!] If no installer is running, remove that directory and re-run this installer"
+		return 1
+	fi
+	if ! printf "%s\n" "$$" >"$lock_dir/pid"; then
+		echo "  [!!] Failed to initialise the Pilot install lock"
+		rm -rf "$lock_dir"
+		return 1
+	fi
+
+	PILOT_BIN_LIVE_DIR="$bin_dir"
+	PILOT_BIN_STAGE_DIR=""
+	PILOT_BIN_BACKUP_DIR=""
+	PILOT_BIN_LOCK_DIR="$lock_dir"
+	PILOT_BIN_ACTIVATED=false
+	PILOT_BIN_COMMITTED=false
+	PILOT_BIN_COMMIT_MARKER=""
+	trap rollback_pilot_binary_install EXIT
+	trap 'rollback_pilot_binary_install; exit 1' HUP INT TERM
+	if ! recover_abandoned_pilot_binary_install "$pilot_home" "$bin_dir"; then
+		rollback_pilot_binary_install
+		return 1
+	fi
+}
+
+rollback_pilot_binary_install() {
+	trap - EXIT HUP INT TERM
+
+	if [ "$PILOT_BIN_COMMITTED" = true ]; then
+		if [ -n "$PILOT_BIN_BACKUP_DIR" ]; then
+			rm -rf "$PILOT_BIN_BACKUP_DIR" || true
+		fi
+	else
+		if [ "$PILOT_BIN_ACTIVATED" = true ] && [ -n "$PILOT_BIN_LIVE_DIR" ]; then
+			rm -rf "$PILOT_BIN_LIVE_DIR"
+		fi
+		if [ -n "$PILOT_BIN_BACKUP_DIR" ] && [ -d "$PILOT_BIN_BACKUP_DIR" ]; then
+			mv "$PILOT_BIN_BACKUP_DIR" "$PILOT_BIN_LIVE_DIR" || true
+		fi
+	fi
+	if [ -n "$PILOT_BIN_STAGE_DIR" ] && [ -d "$PILOT_BIN_STAGE_DIR" ]; then
+		rm -rf "$PILOT_BIN_STAGE_DIR"
+	fi
+	if [ -n "$PILOT_BIN_LOCK_DIR" ]; then
+		rm -rf "$PILOT_BIN_LOCK_DIR"
+	fi
+	if [ -n "$PILOT_BIN_COMMIT_MARKER" ]; then
+		rm -f "$PILOT_BIN_COMMIT_MARKER"
+	fi
+
+	PILOT_BIN_LIVE_DIR=""
+	PILOT_BIN_STAGE_DIR=""
+	PILOT_BIN_BACKUP_DIR=""
+	PILOT_BIN_LOCK_DIR=""
+	PILOT_BIN_ACTIVATED=false
+	PILOT_BIN_COMMITTED=false
+	PILOT_BIN_COMMIT_MARKER=""
+}
+
+commit_pilot_binary_install() {
+	if [ -n "$PILOT_BIN_BACKUP_DIR" ]; then
+		if ! touch "$PILOT_BIN_COMMIT_MARKER"; then
+			echo "  [!!] Failed to mark the Pilot binary transaction as committed"
+			return 1
+		fi
+	fi
+
+	PILOT_BIN_COMMITTED=true
+	trap - EXIT HUP INT TERM
+	local backup_removed=true
+	if [ -n "$PILOT_BIN_BACKUP_DIR" ] && ! rm -rf "$PILOT_BIN_BACKUP_DIR"; then
+		echo "  [!!] Warning: could not remove old binary backup: $PILOT_BIN_BACKUP_DIR"
+		backup_removed=false
+	fi
+	if [ "$backup_removed" = true ] && [ -n "$PILOT_BIN_COMMIT_MARKER" ]; then
+		rm -f "$PILOT_BIN_COMMIT_MARKER"
+	fi
+	if [ -n "$PILOT_BIN_LOCK_DIR" ]; then
+		rm -rf "$PILOT_BIN_LOCK_DIR" || true
+	fi
+
+	PILOT_BIN_LIVE_DIR=""
+	PILOT_BIN_STAGE_DIR=""
+	PILOT_BIN_BACKUP_DIR=""
+	PILOT_BIN_LOCK_DIR=""
+	PILOT_BIN_ACTIVATED=false
+	PILOT_BIN_COMMITTED=false
+	PILOT_BIN_COMMIT_MARKER=""
 }
 
 confirm_local_install() {
@@ -325,10 +598,12 @@ get_local_so_name() {
 }
 
 download_pilot_binary() {
-	local bin_dir="$HOME/.pilot/bin"
+	local pilot_home="$HOME/.pilot"
+	local bin_dir="${pilot_home}/bin"
 	local platform_suffix
 	local so_name
 	local base_url
+	local stage_dir=""
 
 	platform_suffix=$(get_platform_suffix) || {
 		echo "  [!!] Unsupported platform for Pilot binary"
@@ -342,69 +617,105 @@ download_pilot_binary() {
 	*) base_url="https://github.com/${REPO}/releases/download/v${VERSION}" ;;
 	esac
 
-	if [ -d "$bin_dir" ]; then
-		rm -rf "$bin_dir"
+	stage_dir=$(mktemp -d "${pilot_home}/.bin-stage.XXXXXX") || {
+		echo "  [!!] Failed to create staging directory"
+		rollback_pilot_binary_install
+		return 1
+	}
+	PILOT_BIN_STAGE_DIR="$stage_dir"
+	if ! chmod 755 "$stage_dir"; then
+		echo "  [!!] Failed to prepare the staging directory"
+		rollback_pilot_binary_install
+		return 1
 	fi
-	mkdir -p "$bin_dir"
+
+	# Preserve Pilot-managed sidecars and tool symlinks while replacing only the
+	# launcher. The live bin directory is untouched until the staged CLI starts.
+	if [ -d "$bin_dir" ] && ! cp -R "$bin_dir/." "$stage_dir/"; then
+		echo "  [!!] Failed to stage the existing Pilot installation"
+		rollback_pilot_binary_install
+		return 1
+	fi
+	rm -f "$stage_dir/pilot" "$stage_dir"/pilot.cpython-*.so
 
 	echo "  [..] Downloading Pilot binary (${platform_suffix})..."
 
 	local so_url="${base_url}/pilot-${platform_suffix}.so"
-	local so_path="${bin_dir}/${so_name}"
+	local so_path="${stage_dir}/${so_name}"
 
 	if command -v curl >/dev/null 2>&1; then
 		if ! curl -fsSL "$so_url" -o "$so_path" 2>/dev/null; then
 			echo "  [!!] Failed to download pilot module"
+			rollback_pilot_binary_install
 			return 1
 		fi
 	elif command -v wget >/dev/null 2>&1; then
 		if ! wget -q "$so_url" -O "$so_path" 2>/dev/null; then
 			echo "  [!!] Failed to download pilot module"
+			rollback_pilot_binary_install
 			return 1
 		fi
+	else
+		echo "  [!!] Neither curl nor wget is available to download the pilot module"
+		rollback_pilot_binary_install
+		return 1
 	fi
 
 	chmod +x "$so_path"
 
 	local wrapper_url="${base_url}/pilot"
-	local wrapper_path="${bin_dir}/pilot"
+	local wrapper_path="${stage_dir}/pilot"
 
 	if command -v curl >/dev/null 2>&1; then
 		if ! curl -fsSL "$wrapper_url" -o "$wrapper_path" 2>/dev/null; then
 			echo "  [!!] Failed to download pilot wrapper"
-			rm -f "$so_path"
+			rollback_pilot_binary_install
 			return 1
 		fi
 	elif command -v wget >/dev/null 2>&1; then
 		if ! wget -q "$wrapper_url" -O "$wrapper_path" 2>/dev/null; then
 			echo "  [!!] Failed to download pilot wrapper"
-			rm -f "$so_path"
+			rollback_pilot_binary_install
 			return 1
 		fi
+	else
+		echo "  [!!] Neither curl nor wget is available to download the pilot wrapper"
+		rollback_pilot_binary_install
+		return 1
 	fi
 
 	chmod +x "$wrapper_path"
 
 	echo "  [..] Verifying pilot binary..."
-	local pilot_version
-	pilot_version=$("$wrapper_path" --version 2>/dev/null) || true
+	local pilot_output=""
+	local pilot_version=""
+	if pilot_output=$("$wrapper_path" --version 2>&1); then
+		pilot_version="$pilot_output"
+	fi
 
 	if [ -z "$pilot_version" ] && [ "$(uname -s)" = "Darwin" ]; then
 		echo "  [..] Removing macOS quarantine attributes..."
-		xattr -cr "$bin_dir" 2>/dev/null || true
+		xattr -c "$wrapper_path" 2>/dev/null || true
+		xattr -c "$so_path" 2>/dev/null || true
 		spctl --add "$wrapper_path" 2>/dev/null || true
 		spctl --add "$so_path" 2>/dev/null || true
-		pilot_version=$("$wrapper_path" --version 2>/dev/null) || true
+		if pilot_output=$("$wrapper_path" --version 2>&1); then
+			pilot_version="$pilot_output"
+		fi
 	fi
 
 	if [ -z "$pilot_version" ]; then
-		if [ "$(uname -s)" = "Darwin" ]; then
+		if [ "$(uname -s)" = "Darwin" ] && is_macos_gatekeeper_block "$pilot_output" "$wrapper_path" "$so_path"; then
 			show_macos_gatekeeper_warning
-			exit 1
 		else
-			echo "  [!!] Pilot binary failed to execute"
-			return 1
+			echo "  [!!] Pilot binary failed to execute:"
+			printf "%s\n" "$pilot_output"
 		fi
+		if [ -d "$bin_dir" ]; then
+			echo "  [OK] Existing Pilot installation left unchanged"
+		fi
+		rollback_pilot_binary_install
+		return 1
 	fi
 
 	local installed_version
@@ -412,8 +723,49 @@ download_pilot_binary() {
 
 	if [ -z "$installed_version" ]; then
 		echo "  [!!] Could not determine pilot version"
+		if [ -d "$bin_dir" ]; then
+			echo "  [OK] Existing Pilot installation left unchanged"
+		fi
+		rollback_pilot_binary_install
 		return 1
 	fi
+	if [ "$installed_version" != "$VERSION" ]; then
+		echo "  [!!] Downloaded Pilot v${installed_version}, expected v${VERSION}"
+		if [ -d "$bin_dir" ]; then
+			echo "  [OK] Existing Pilot installation left unchanged"
+		fi
+		rollback_pilot_binary_install
+		return 1
+	fi
+
+	local backup_dir=""
+	if [ -d "$bin_dir" ]; then
+		backup_dir=$(mktemp -d "${pilot_home}/.bin-backup.XXXXXX") || {
+			echo "  [!!] Failed to prepare binary rollback"
+			rollback_pilot_binary_install
+			return 1
+		}
+		if ! rmdir "$backup_dir"; then
+			echo "  [!!] Failed to prepare binary rollback"
+			rollback_pilot_binary_install
+			return 1
+		fi
+		PILOT_BIN_BACKUP_DIR="$backup_dir"
+		PILOT_BIN_COMMIT_MARKER="${backup_dir}.committed"
+		if ! mv "$bin_dir" "$backup_dir"; then
+			echo "  [!!] Failed to preserve the current Pilot installation"
+			rollback_pilot_binary_install
+			return 1
+		fi
+	fi
+
+	PILOT_BIN_ACTIVATED=true
+	if ! mv "$stage_dir" "$bin_dir"; then
+		echo "  [!!] Failed to activate the verified Pilot binary"
+		rollback_pilot_binary_install
+		return 1
+	fi
+	PILOT_BIN_STAGE_DIR=""
 
 	echo "  [OK] Pilot binary ready (v${installed_version})"
 }
@@ -436,33 +788,11 @@ run_installer() {
 		system_arg="--local-system"
 	fi
 
+	# shellcheck disable=SC2086 # These optional strings intentionally expand to multiple CLI arguments.
 	uv run --python 3.12 --no-project --no-config \
 		--with rich==15.0.0 --with certifi==2026.7.22 --with PyYAML==6.0.3 \
 		python -m installer install $system_arg $version_arg $local_arg "$@"
 }
-
-is_native_windows() {
-	case "$(uname -s)" in
-	MINGW* | MSYS* | CYGWIN*) return 0 ;;
-	*) return 1 ;;
-	esac
-}
-
-if is_native_windows; then
-	echo ""
-	echo "======================================================================"
-	echo "  Pilot Shell — Windows Detected"
-	echo "======================================================================"
-	echo ""
-	echo "  Pilot Shell requires a Unix environment (macOS, Linux, or WSL2)."
-	echo ""
-	echo "  Install WSL2 first (PowerShell as admin):"
-	echo "    wsl --install -d Ubuntu"
-	echo ""
-	echo "  Then open Ubuntu and re-run this installer."
-	echo ""
-	exit 1
-fi
 
 echo ""
 echo "======================================================================"
@@ -483,6 +813,8 @@ elif [ "$USE_LOCAL_INSTALLER" = true ]; then
 else
 	confirm_local_install
 fi
+
+acquire_pilot_install_lock
 
 echo ""
 echo "Downloading Pilot Shell (v${VERSION})..."
@@ -532,7 +864,14 @@ else
 fi
 download_pilot_binary
 
-run_installer $INSTALLER_ARGS
+# shellcheck disable=SC2086 # Preserve the legacy pass-through of multiple installer arguments.
+if run_installer $INSTALLER_ARGS; then
+	commit_pilot_binary_install
+else
+	echo "  [!!] Installer failed; restoring the previous Pilot binary"
+	rollback_pilot_binary_install
+	exit 1
+fi
 
 if [ "$RESTART_PILOT" = true ]; then
 	PILOT_BIN="$HOME/.pilot/bin/pilot"

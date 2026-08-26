@@ -96,11 +96,13 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 <details>
 <summary><b>Uninstalling</b></summary>
 
-Removes the Pilot binary, plugin files, managed commands/rules, settings and shell aliases:
+Removes the Pilot runtime, plugin files, managed commands/rules, settings and shell aliases. Memory, sessions, logs, configuration, and unknown files under `~/.pilot/` are preserved by default:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash
 ```
+
+To delete that user data too, download the script and run `bash uninstall.sh --purge-data`.
 </details>
 
 <details>

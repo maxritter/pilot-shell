@@ -32,8 +32,11 @@ MANIFEST_V2_FIELDS = frozenset(
     }
 )
 SUPPORTED_TARGETS = frozenset({"claude", "codex"})
-COMPILED_LINE_LIMIT = 500
-COMPILED_WORD_LIMIT = 5_000
+# Pilot's sequential workflows are deliberately bundled into one runtime artifact
+# so agents do not emit a visible file read for every phase. Keep a generous
+# runaway-size guard without forcing those workflows back to progressive reads.
+COMPILED_LINE_LIMIT = 1_500
+COMPILED_WORD_LIMIT = 20_000
 _SAFE_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,127}$")
 
 

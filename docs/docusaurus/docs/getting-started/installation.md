@@ -110,7 +110,9 @@ See [releases](https://github.com/maxritter/pilot-shell/releases) for all availa
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash
 ```
 
-Removes binary, plugin files, managed commands/rules, settings, and shell aliases. Your project's custom `.claude/` and `.codex/` files are preserved.
+Removes the Pilot runtime, plugin files, managed commands/rules, settings, and shell aliases. Your project's custom `.claude/` and `.codex/` files are preserved, as are memory, sessions, logs, configuration, and unknown files under `~/.pilot/`.
+
+To remove that user data too, save the script locally and run `bash uninstall.sh --purge-data`.
 
 ## Reset & Refresh
 

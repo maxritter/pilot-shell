@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import yaml
 
-from installer.skill_builder import build_skill_md, load_manifest
+from installer.skill_builder import build_skill_md, canonicalize, load_manifest
 from installer.steps.codex_files import (
     _CODEX_SKILL_DESCRIPTIONS,
     CodexFilesStep,
@@ -41,12 +41,26 @@ def _frontmatter(content: str) -> dict[str, object]:
     return metadata
 
 
-def test_manifest_and_claude_artifact_are_explicit_progressive_and_report_only() -> None:
+def _seed_10_7_progressive_codex_install(root: Path) -> Path:
+    installed = root / ".agents" / "skills" / "cleanup"
+    step_files = [step["file"] for step in load_manifest(SKILL_DIR / "manifest.json")["steps"]]
+    for relative in step_files:
+        path = installed / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"10.7 progressive resource: {relative}\n")
+    (installed / "SKILL.md").write_text("## Required phase resources\n\nRead `steps/01-scope.md` completely.\n")
+    (installed / ".pilot-resources.json").write_text(
+        json.dumps({"files": step_files, "directories": ["steps"]}, indent=2) + "\n"
+    )
+    return installed
+
+
+def test_manifest_and_claude_artifact_are_explicit_bundled_and_report_only() -> None:
     manifest = load_manifest(SKILL_DIR / "manifest.json")
     content = build_skill_md(SKILL_DIR)
     metadata = _frontmatter(content)
 
-    assert manifest["delivery"] == "progressive"
+    assert manifest["delivery"] == "bundled"
     assert manifest["invocation"] == "explicit"
     assert manifest["evals"] == "tests/evals.json"
     assert manifest["platform"]["codex"]["description"].startswith("Use only when")
@@ -59,7 +73,7 @@ def test_manifest_and_claude_artifact_are_explicit_progressive_and_report_only()
     assert "test-supported production code" in content
     assert "scripts/codegraph-candidates.mjs" in content
     for step in manifest["steps"]:
-        assert step["file"] in content
+        assert canonicalize((SKILL_DIR / step["file"]).read_text()) in content
 
 
 def test_cleanup_evals_are_self_contained_and_cover_four_safety_cases() -> None:
@@ -125,7 +139,7 @@ def test_codex_registries_and_routing_catalog_include_cleanup() -> None:
     assert all(case["owner"] == "direct" for case in cleanup["negatives"])
 
 
-def test_local_installer_packages_steps_and_read_only_script(tmp_path: Path) -> None:
+def test_local_installer_embeds_steps_and_packages_read_only_script(tmp_path: Path) -> None:
     ctx = MagicMock(local_mode=True, local_repo_dir=REPO_ROOT, ui=None)
 
     with patch("installer.steps.codex_files.Path.home", return_value=tmp_path):
@@ -136,8 +150,7 @@ def test_local_installer_packages_steps_and_read_only_script(tmp_path: Path) -> 
     assert (installed / "SKILL.md").read_text() == build_codex_skill_md(SKILL_DIR)
     assert (installed / "agents" / "openai.yaml").read_text() == build_codex_skill_openai_yaml(SKILL_DIR)
     assert (installed / ".pilot-resources.json").is_file()
-    assert (installed / "steps" / "01-scope.md").is_file()
-    assert (installed / "steps" / "04-report.md").is_file()
+    assert not (installed / "steps").exists()
     installed_script = installed / "scripts" / "codegraph-candidates.mjs"
     assert installed_script.read_bytes() == SCRIPT.read_bytes()
     assert os.access(installed_script, os.X_OK)
@@ -146,7 +159,7 @@ def test_local_installer_packages_steps_and_read_only_script(tmp_path: Path) -> 
     assert not (installed / "tests").exists()
 
 
-def test_session_sync_packages_cleanup_steps_and_script(tmp_path: Path) -> None:
+def test_session_sync_embeds_cleanup_steps_and_packages_script(tmp_path: Path) -> None:
     source = tmp_path / ".pilot" / "skills" / "cleanup"
     shutil.copytree(SKILL_DIR, source)
 
@@ -155,13 +168,39 @@ def test_session_sync_packages_cleanup_steps_and_script(tmp_path: Path) -> None:
 
     installed = tmp_path / ".agents" / "skills" / "cleanup"
     assert (built, failed) == (1, 0)
-    assert (installed / "steps" / "03-corroborate.md").is_file()
+    assert not (installed / "steps").exists()
     installed_script = installed / "scripts" / "codegraph-candidates.mjs"
     assert installed_script.read_bytes() == SCRIPT.read_bytes()
     assert os.access(installed_script, os.X_OK)
     resources = json.loads((installed / ".pilot-resources.json").read_text())
     assert "scripts/codegraph-candidates.mjs" in resources["files"]
-    assert "steps/04-report.md" in resources["files"]
+    assert all(not path.startswith("steps/") for path in resources["files"])
+
+
+@pytest.mark.parametrize("runtime", ["installer", "session-sync"])
+def test_10_7_upgrade_replaces_progressive_artifact_and_removes_step_resources(
+    tmp_path: Path,
+    runtime: str,
+) -> None:
+    installed = _seed_10_7_progressive_codex_install(tmp_path)
+
+    if runtime == "installer":
+        ctx = MagicMock(local_mode=True, local_repo_dir=REPO_ROOT, ui=None)
+        with patch("installer.steps.codex_files.Path.home", return_value=tmp_path):
+            CodexFilesStep()._install_codex_skills(ctx)
+    else:
+        source = tmp_path / ".pilot" / "skills" / "cleanup"
+        shutil.copytree(SKILL_DIR, source)
+        with patch("codex_skill_sync.Path.home", return_value=tmp_path):
+            assert codex_skill_sync._sync_codex_skills() == (1, 0)
+
+    artifact = (installed / "SKILL.md").read_text()
+    resources = json.loads((installed / ".pilot-resources.json").read_text())
+    assert "## Required phase resources" not in artifact
+    assert "Read `steps/" not in artifact
+    assert not (installed / "steps").exists()
+    assert all(not path.startswith("steps/") for path in resources["files"])
+    assert all(not path.startswith("steps") for path in resources["directories"])
 
 
 @pytest.mark.parametrize("runtime", ["installer", "session-sync"])
