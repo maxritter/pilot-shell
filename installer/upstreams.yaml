@@ -378,8 +378,10 @@ entries:
     name: cryptography
     source_type: pypi
     source_url: https://github.com/pyca/cryptography
-    version: "50.0.0"
-    last_audited: "2026-08-19"
+    version: "48.0.1"
+    # 49.x/50.x no longer publish Intel macOS wheels. The isolated launcher
+    # wrapper must stay on the newest release with x86_64 + arm64 wheels.
+    last_audited: "2026-08-26"
 
   - id: pyyaml
     name: PyYAML
