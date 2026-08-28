@@ -194,7 +194,10 @@ class TestTreeCaching:
             cache_path = Path(tmpdir) / "cache.json"
             cache_path.parent.mkdir(parents=True, exist_ok=True)
             cache_path.write_text(
-                '{"main": {"etag": "\\"cached-etag\\"", "files": [{"path": "pilot/test.py", "sha": "abc123"}]}}'
+                '{"main": {"etag": "\\"cached-etag\\"", "files": ['
+                '{"path": "pilot/test.py", "sha": "abc123"}, '
+                '{"path": "pilot-shell-key-benefits.txt", "sha": "wrong-prefix"}'
+                "]}}"
             )
 
             def side_effect(request, *_args, **_kwargs):
@@ -499,6 +502,7 @@ class TestTreeJsonFallback:
         tree_json_data = {
             "tree": [
                 {"path": "pilot/test.py", "type": "blob", "sha": "abc123"},
+                {"path": "pilot-shell-key-benefits.txt", "type": "blob", "sha": "wrong-prefix"},
                 {"path": "installer/test.py", "type": "blob", "sha": "def456"},
             ]
         }
@@ -537,6 +541,7 @@ class TestTreeJsonFallback:
         api_data = {
             "tree": [
                 {"path": "pilot/test.py", "type": "blob", "sha": "xyz789"},
+                {"path": "pilot-shell-key-benefits.txt", "type": "blob", "sha": "wrong-prefix"},
             ]
         }
 

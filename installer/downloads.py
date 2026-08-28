@@ -237,9 +237,19 @@ def download_files_parallel(
     return [r if r is not None else False for r in results]
 
 
+def _path_is_in_directory(path: object, dir_path: str) -> bool:
+    """Return whether a repository path is strictly below ``dir_path``."""
+    prefix = dir_path.rstrip("/")
+    return isinstance(path, str) and bool(prefix) and path.startswith(f"{prefix}/")
+
+
 def _files_from_cache(cached_files: list[dict], dir_path: str) -> list[FileInfo]:
     """Convert cached file dicts to FileInfo objects, filtering by dir_path."""
-    return [FileInfo(path=f["path"], sha=f.get("sha")) for f in cached_files if f.get("path", "").startswith(dir_path)]
+    return [
+        FileInfo(path=f["path"], sha=f.get("sha"))
+        for f in cached_files
+        if _path_is_in_directory(f.get("path"), dir_path)
+    ]
 
 
 def get_repo_files(dir_path: str, config: DownloadConfig) -> list[FileInfo]:
@@ -278,7 +288,7 @@ def get_repo_files(dir_path: str, config: DownloadConfig) -> list[FileInfo]:
                         if item.get("type") == "blob":
                             path = item.get("path", "")
                             sha = item.get("sha")
-                            if path.startswith(dir_path):
+                            if _path_is_in_directory(path, dir_path):
                                 remote_files.append(FileInfo(path=path, sha=sha))
                 return remote_files
     except (
@@ -314,7 +324,7 @@ def get_repo_files(dir_path: str, config: DownloadConfig) -> list[FileInfo]:
                         path = item.get("path", "")
                         sha = item.get("sha")
                         all_files.append({"path": path, "sha": sha})
-                        if path.startswith(dir_path):
+                        if _path_is_in_directory(path, dir_path):
                             remote_files.append(FileInfo(path=path, sha=sha))
 
             if new_etag and all_files:
