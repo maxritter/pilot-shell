@@ -25,7 +25,7 @@ CODEX-END -->
 
 ## ⛔ Critical Constraints
 
-- **Choose planning delegation autonomously.** Use any available subagents, including nested agents, when they improve exploration or plan quality. Never ask the user for permission to spawn them. Prevent conflicting writes to the plan file and keep one coherent final plan; run the managed `spec-review` agent in Step 10 when enabled.
+- **Choose planning delegation autonomously and sparingly.** Direct exploration is the baseline. Add the minimum number of read-only agents only for genuinely independent questions whose breadth would materially flood the main context; never fan out duplicate perspectives, and nest only when a flat assignment cannot represent the work. Never ask the user for permission to spawn qualifying agents. Prevent conflicting writes to the plan file and keep one coherent final plan; run the managed `spec-review` agent in Step 10 when enabled.
 - **Run spec-review when enabled** — it runs for every feature spec when `$PILOT_SPEC_REVIEW_ENABLED` is not `"false"`. Context level is NOT a valid reason to skip. To disable, use Console Settings → Reviewers → Spec Review toggle.
 - **NEVER write code during planning** — planning and implementation are separate phases
 - **NEVER assume — verify by reading files**

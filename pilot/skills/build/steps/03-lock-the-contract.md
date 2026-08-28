@@ -20,13 +20,13 @@ Set `Approved: Yes` in the Buildout. Leave `Status: PENDING`. The statusline fli
 
 ### 3.2 Choose the execution graph autonomously
 
-The active Claude Code or Codex agent decides whether the run is sequential, delegated, parallel, or nested. Use the agent tools the current harness exposes whenever they improve speed, context isolation, or expertise. **Never stop the run to ask the user for permission to spawn subagents or to select an orchestration mode.** If agent tools are absent, continue directly.
+The active Claude Code or Codex agent decides whether the run is sequential, delegated, parallel, or nested. Default to the current agent and add the minimum number of workers only for genuinely independent tasks where parallelism or context isolation materially helps. Do not fan out agents for tightly coupled work, duplicate perspectives, or checks the active agent can run directly. **Never stop the run to ask the user for permission to spawn subagents or to select an orchestration mode.** If agent tools are absent, continue directly.
 
 Give concurrent writers non-overlapping ownership and the evidence they must return. Preserve task dependencies and verify agent-owned work from the shared files, diff, and fresh commands. The Buildout remains the common ledger regardless of which agent performs a task or judge pass.
 
 ### 3.3 Scale the graph without a user gate
 
-For independent surfaces, launch agents concurrently and allow them to delegate further when the harness supports it. For tightly coupled work, a single thread may still be more efficient. This is the active agent's engineering decision, not a permission or approval question.
+For independent surfaces, launch only the minimum workers concurrently. Keep their assignments flat; allow a worker to delegate further only when the task genuinely requires a hierarchy that the coordinator could not express as separate bounded assignments. For tightly coupled work, stay in one thread. This is the active agent's engineering decision, not a permission or approval question.
 
 **Do not deflect large work to `/spec`.** Scale is not what `/spec` is for; an approved plan file and an ordered task list are. Big work escalates here, or runs sequentially.
 

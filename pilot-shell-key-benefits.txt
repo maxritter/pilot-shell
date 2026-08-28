@@ -1,0 +1,17 @@
+Pilot Shell is a sophisticated harness-engineering system for Claude Code and Codex. It combines persistent context, workflow orchestration, quality enforcement, advanced tooling, and human oversight into one operating layer for software development.
+
+- Its memory system is substantially more advanced than the built-in memory. It preserves structured decisions, discoveries, and fixes across sessions, keeps them searchable and traceable to their source, and makes project knowledge shareable across the team.
+
+- It supplies the agent with the right project context through modular rules, reusable skills, specialized agents, and MCP integrations. These are coordinated parts of the harness, not the product by themselves.
+
+- It runs development as a stateful process with durable requirements, plans, tasks, acceptance criteria, and verification evidence. Exploration, TDD implementation, independent review, runtime verification, and correction loops remain connected even across long sessions and context compaction.
+
+- Quality hooks enforce formatting, linting, type checks, tests, and project-specific standards while work is happening. Stop guards prevent the agent from declaring completion before its implementation and verification obligations are satisfied.
+
+- Its integrated toolchain combines semantic search, code-graph analysis, token-efficient command execution, browser automation, language servers, and MCP tools. The workflows use each tool at the appropriate stage for discovery, impact analysis, implementation, and real-world verification.
+
+- The Console acts as the control plane: teams can review and annotate plans and diffs, monitor progress, inspect verification evidence, recover sessions, search memories, manage shared extensions, and understand usage. Human feedback flows back into the active agent workflow instead of remaining disconnected in another tool.
+
+- The same harness works across Claude Code and Codex through platform-specific adapters, giving the team consistent engineering standards while allowing the underlying models to improve or change.
+
+Opus Plan Mode improves planning and model routing. Pilot Shell governs the complete path from context and intent to implementation, verification, review, and retained knowledge. It turns model capability into repeatable engineering quality across an organization.

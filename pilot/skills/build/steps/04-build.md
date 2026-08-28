@@ -82,7 +82,7 @@ Loop pressure pushes toward batching everything into one giant call. It produces
 - **Clean up what you start.** A background process you launched is yours to kill before the round ends.
 - **One line of narration per task.** The round log is the record; the conversation is not the report. Save the writing for Step 6.
 
-Use subagents inside or outside the loop whenever you judge them useful. Do not ask the user to approve delegation. Keep concurrent writes non-overlapping, retain returned ids, inspect the resulting files, and run fresh verification before ticking an agent-owned task.
+Keep work in the active agent unless a concrete task is independent and benefits materially from parallel execution or isolated context. Use the minimum number of subagents, never fan out duplicate perspectives, and do not ask the user to approve qualifying delegation. Keep concurrent writes non-overlapping, retain returned ids, inspect the resulting files, and run fresh verification before ticking an agent-owned task.
 
 ### 4.6 When the work is blocked on something outside this session
 
@@ -97,7 +97,7 @@ Stop and hand back:
 3. Touch the hand-back sentinel so the stop guard lets the session pause:
 
    ```bash
-   BUILD_SESS="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+   BUILD_SESS="${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
    mkdir -p "$HOME/.pilot/sessions/$BUILD_SESS" && touch "$HOME/.pilot/sessions/$BUILD_SESS/build-handback-pending"
    ```
 

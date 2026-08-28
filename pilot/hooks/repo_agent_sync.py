@@ -86,9 +86,9 @@ def _bundled_checker() -> Path | None:
 def _session_identity(payload: dict) -> str:
     values = (
         payload.get("session_id"),
-        os.environ.get("PILOT_SESSION_ID"),
         os.environ.get("CLAUDE_CODE_SESSION_ID"),
         os.environ.get("CODEX_THREAD_ID"),
+        os.environ.get("PILOT_SESSION_ID"),
         payload.get("transcript_path"),
     )
     for value in values:

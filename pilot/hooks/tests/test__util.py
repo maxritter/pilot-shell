@@ -298,7 +298,7 @@ class TestSessionsBase:
 class TestResolveSessionId:
     """Tests for resolve_session_id() — agent-native fallback chain (the #157 root)."""
 
-    def test_prefers_pilot_session_id(self):
+    def test_prefers_agent_native_id_over_wrapper(self):
         from _lib.util import resolve_session_id
 
         with patch.dict(
@@ -306,7 +306,7 @@ class TestResolveSessionId:
             {"PILOT_SESSION_ID": "wrap-1", "CLAUDE_CODE_SESSION_ID": "claude-2", "CODEX_THREAD_ID": "codex-3"},
             clear=True,
         ):
-            assert resolve_session_id() == "wrap-1"
+            assert resolve_session_id() == "claude-2"
 
     def test_falls_back_to_claude_code_session_id(self):
         from _lib.util import resolve_session_id

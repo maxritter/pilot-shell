@@ -108,7 +108,7 @@ def _read_statusline_context_pct() -> float | None:
     """Read authoritative context percentage from statusline cache.
 
     Returns None if cache is missing, corrupt, or stale (>60s).
-    Cache is already scoped per Pilot session via PILOT_SESSION_ID.
+    Cache is scoped by the native-first session resolver shared by Pilot hooks.
     """
     cache_file = Path.home() / ".pilot" / "sessions" / resolve_session_id() / "context-pct.json"
     if not cache_file.exists():

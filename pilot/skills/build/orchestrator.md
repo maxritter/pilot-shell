@@ -144,7 +144,7 @@ The single exception is **Step 3.3's ultracode escalation**, and only because it
 | "This criterion is close — one more thing and it'd pass." | Then it fails, and that thing is a task. |
 | "I built it, so I can tell it's good." | You know how hard it was to make. The judge must not. |
 | "The task list has changed a lot; I should have planned harder." | Tasks changing as you learn is the design. Log it and keep going. |
-| "I should ask before spawning agents." | No. The active agent chooses the topology autonomously; use the harness's agent tools whenever useful and continue the run. |
+| "I should ask before spawning agents." | No. Default to the current agent; when a concrete independent task qualifies, use the minimum useful worker count and continue the run. |
 | "I'll delegate overlapping writes without ownership boundaries." | Split ownership or sequence the work yourself. This is an execution decision, not a user permission gate. |
 | "Four pass, three partial — I'll report that." | "Partial" is a score. Not fully met is fail, and the gap is next round's tasks. |
 | "Context is nearly gone; I'll hand back what I have." | The Buildout survives compaction. Re-read it and finish the round. |
@@ -168,7 +168,7 @@ The single exception is **Step 3.3's ultracode escalation**, and only because it
 - About to judge and a task is still unticked → finish the task first, Step 4.
 - A criterion cannot be settled without asking the user what they meant → rewrite it, Step 2.
 - A criterion's evidence depends on something that will not finish inside this run → rewrite or drop it, Step 2.
-- You are about to ask the user for permission to spawn a subagent → choose the useful topology yourself and continue.
+- You are about to ask the user for permission to spawn a qualifying subagent → apply the bounded delegation rules, choose the minimum useful topology yourself, and continue.
 - Two agents would edit the same files or depend on the same unsettled decision → split ownership or sequence them yourself.
 - You are about to suggest `/spec` because the work is large → Step 3, escalate here instead.
 - You are patching a file with a `python3` heredoc instead of `Edit` → Step 4, tool discipline.

@@ -88,12 +88,12 @@ Failing to record this gap in the verification report is a `must_fix` finding by
 
 3. **playwright-cli (CLI fallback):** If neither Chrome tool is available, use playwright-cli for thorough E2E.
 ```bash
-playwright-cli -s=$PILOT_SESSION_ID open <url>
+playwright-cli -s="${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}" open <url>
 ```
 
 4. **agent-browser (lightweight fallback):** If none of the above are available:
 ```bash
-AB_SESSION="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+AB_SESSION="${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 agent-browser --session "$AB_SESSION" open <url>
 ```
 
@@ -179,7 +179,7 @@ Full profile only. When `impeccable` is on PATH, run the deterministic design an
 
 ```bash
 # Chrome / Chrome DevTools MCP: no explicit close needed
-# playwright-cli: playwright-cli -s=$PILOT_SESSION_ID close
+# playwright-cli: playwright-cli -s="${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}" close
 # agent-browser: agent-browser --session "$AB_SESSION" close
 ```
 

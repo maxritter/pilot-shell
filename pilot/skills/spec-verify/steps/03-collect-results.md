@@ -13,7 +13,7 @@
 
 ```bash
 # Poll the path of the launch you are collecting (Step 1's path, or the -rN relaunch path)
-SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+SESS_DIR="$HOME/.pilot/sessions/${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 RUN_DIR="$SESS_DIR"            # on a lane run: "$SESS_DIR/lanes/<lane>"
 OUTPUT_PATH="$RUN_DIR/findings-changes-review-<plan-slug>.json"
 # $LAUNCHED_AT is the epoch stamped in Step 1a. A file older than the launch is a
@@ -75,7 +75,7 @@ If the companion produced no result after its one retry, proceed WITHOUT the Cod
 **When enabled — mandatory. Never skip.** Read the `changes-review` agent id captured in Step 1 from working notes or the session file:
 
 ```bash
-AGENT_ID_FILE="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}/changes-review-agent-id-<plan-slug>.txt"
+AGENT_ID_FILE="$HOME/.pilot/sessions/${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}/changes-review-agent-id-<plan-slug>.txt"
 ```
 
 If `CHANGES_REVIEW_AGENT_ID` is missing and the file exists, read the file and use its trimmed contents. If both are missing or empty, re-launch `changes-review` once using the Step 1 prompt, persist the new id to the file, then continue. Do not silently skip review while `PILOT_CHANGES_REVIEW_ENABLED` is enabled.

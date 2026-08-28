@@ -6,10 +6,9 @@ scratchpad instead of ``/tmp``") into every session, so a skill that hardcodes
 bare ``/tmp`` forces the agent to reconcile two live, authoritative instructions
 on every run - wasted reasoning tokens, and a real failure tail when the agent
 relocates the file at write time but reconstructs the literal ``/tmp`` path at a
-later read/cleanup site. Bare ``/tmp`` is also machine-global: the
-``${PILOT_SESSION_ID:-default}`` fallback collapses to a shared filename, so two
-concurrent sessions (e.g. parallel worktrees) silently clobber each other's
-in-flight artifacts.
+later read/cleanup site. Bare ``/tmp`` is also machine-global: an incomplete or
+wrapper-first session fallback can collapse concurrent conversations onto one
+filename, so parallel runs silently clobber each other's in-flight artifacts.
 
 The fix routes every temp artifact into ``$HOME/.pilot/sessions/<id>/`` — the
 codebase's own session-isolated location, already used by these skills for
@@ -23,7 +22,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-SKILLS_DIR = Path(__file__).resolve().parents[3] / "pilot" / "skills"
+PILOT_DIR = Path(__file__).resolve().parents[3] / "pilot"
+SKILLS_DIR = PILOT_DIR / "skills"
 
 # The workflow skills that drive the /fix and /spec temp-artifact flows.
 _WORKFLOW_SKILLS = ("fix", "spec-plan", "spec-verify")
@@ -31,13 +31,17 @@ _WORKFLOW_SKILLS = ("fix", "spec-plan", "spec-verify")
 # A bare, machine-global /tmp path used as a temp-artifact location.
 _BARE_TMP = re.compile(r"/tmp/")
 
-# An incomplete session-id chain: it collapses to the shared "default" dir when
-# PILOT_SESSION_ID (IDE/desktop launches) or CLAUDE_CODE_SESSION_ID (Codex) is
-# unset, bleeding per-session state (e.g. the codex-once flag) across unrelated
-# sessions. The canonical chain must fall through to CODEX_THREAD_ID before
-# default, matching launcher/session.py:_SESSION_ID_ENV_CHAIN and
-# pilot/hooks/_lib/util.py:resolve_session_id (issue #167 completion).
-_INCOMPLETE_SESSION_CHAIN = re.compile(r"\$\{(?:PILOT_SESSION_ID|CLAUDE_CODE_SESSION_ID):-default\}")
+# An incomplete chain collapses to "default". A wrapper-first chain is also
+# unsafe: multiple conversations can inherit one PILOT_SESSION_ID while keeping
+# distinct native Claude/Codex ids. Both forms bleed state across sessions.
+_INCOMPLETE_SESSION_CHAIN = re.compile(
+    r"(?<!\$\{CODEX_THREAD_ID:-)\$\{(?:PILOT_SESSION_ID|CLAUDE_CODE_SESSION_ID):-default\}"
+)
+_WRAPPER_FIRST_SESSION_CHAIN = re.compile(
+    re.escape("${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}")
+)
+_DIRECT_WRAPPER_SESSION = re.compile(r"(?:--session|-s(?:=|\s+))\"?\$PILOT_SESSION_ID")
+_CANONICAL_SESSION_CHAIN = "${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 
 
 def _bare_tmp_offenders() -> list[str]:
@@ -54,7 +58,7 @@ def test_workflow_skills_do_not_hardcode_bare_tmp() -> None:
     offenders = _bare_tmp_offenders()
     assert not offenders, (
         "Workflow skills must write temp artifacts under "
-        "$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}/ "
+        f"$HOME/.pilot/sessions/{_CANONICAL_SESSION_CHAIN}/ "
         "(session-isolated, agent-neutral), never bare /tmp - which contradicts "
         "Claude Code's session-scratchpad mandate and collides across concurrent "
         "sessions (issue #167). Offenders:\n" + "\n".join(offenders)
@@ -131,10 +135,14 @@ def test_session_artifacts_carry_a_per_run_component() -> None:
 
 def _incomplete_session_chain_offenders() -> list[str]:
     offenders: list[str] = []
-    for md in sorted(SKILLS_DIR.rglob("*.md")):
+    for md in sorted(PILOT_DIR.rglob("*.md")):
         for lineno, line in enumerate(md.read_text(encoding="utf-8").splitlines(), 1):
-            if _INCOMPLETE_SESSION_CHAIN.search(line):
-                offenders.append(f"{md.relative_to(SKILLS_DIR)}:{lineno}: {line.strip()}")
+            if (
+                _INCOMPLETE_SESSION_CHAIN.search(line)
+                or _WRAPPER_FIRST_SESSION_CHAIN.search(line)
+                or _DIRECT_WRAPPER_SESSION.search(line)
+            ):
+                offenders.append(f"{md.relative_to(PILOT_DIR)}:{lineno}: {line.strip()}")
     return offenders
 
 
@@ -142,10 +150,9 @@ def test_skill_bash_resolves_full_session_chain() -> None:
     offenders = _incomplete_session_chain_offenders()
     assert not offenders, (
         "Skill bash must resolve the session id via the full agent-native chain "
-        "${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}} "
+        f"{_CANONICAL_SESSION_CHAIN} "
         "(matching launcher/session.py and pilot/hooks/_lib/util.py), never a "
-        "shorter chain that collapses to the shared 'default' dir when "
-        "PILOT_SESSION_ID (IDE/desktop) or CLAUDE_CODE_SESSION_ID (Codex) is unset "
-        "- that bleeds per-session state (e.g. the codex-once flag) across "
+        "shorter or wrapper-first chain that collapses or aliases conversations "
+        "and bleeds per-session state (e.g. the codex-once flag) across "
         "unrelated sessions (issue #167). Offenders:\n" + "\n".join(offenders)
     )

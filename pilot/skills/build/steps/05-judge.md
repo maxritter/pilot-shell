@@ -93,7 +93,7 @@ You arrive here with `Status: COMPLETE` (set at the end of Step 4). Each branch 
 **Some criterion fails, and `Rounds:` is 4** → the ceiling. Leave the failing criteria unticked and append a `## Round Log` line recording each one as unresolved with the reason it would not close, in the terms 5.4 requires. Then make the hand-back actually reachable — the run ends with the Buildout still unfinished, so it stays `PENDING`, and only the one-shot sentinel lets the session stop:
 
 ```bash
-BUILD_SESS="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+BUILD_SESS="${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 mkdir -p "$HOME/.pilot/sessions/$BUILD_SESS" && touch "$HOME/.pilot/sessions/$BUILD_SESS/build-handback-pending"
 ~/.pilot/bin/pilot register-plan "<buildout_path>" "PENDING" $LANE_FLAG 2>/dev/null || true
 ```
@@ -131,7 +131,7 @@ Some criteria cannot be met in this session no matter how many rounds you spend:
 When all four hold, stop **that criterion**, not the run: leave it `- [ ]`, append a `## Round Log` line naming the blocker and the two approaches that failed, and keep working every criterion that is still live. Only when every remaining criterion is unachievable is the run itself over — then touch the hand-back sentinel, leave `Status: PENDING`, and go to Step 6 and Step 7 exactly as the ceiling does:
 
 ```bash
-BUILD_SESS="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+BUILD_SESS="${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 mkdir -p "$HOME/.pilot/sessions/$BUILD_SESS" && touch "$HOME/.pilot/sessions/$BUILD_SESS/build-handback-pending"
 ~/.pilot/bin/pilot register-plan "<buildout_path>" "PENDING" $LANE_FLAG 2>/dev/null || true
 ```

@@ -273,7 +273,7 @@ def find_active_plan(session_id: str | None = None) -> tuple[Path | None, str | 
 
     # Cross-session bleed guard: ignore an active plan that isn't part of this
     # project (e.g. a COMPLETE plan from another repo's /spec session leaking in
-    # through the shared "default" active_plan.json when PILOT_SESSION_ID unset).
+    # through the shared "default" active_plan.json when no session id resolved).
     if not plan_in_current_project(plan_file):
         return None, None
 

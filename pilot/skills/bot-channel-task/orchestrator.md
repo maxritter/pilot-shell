@@ -24,8 +24,8 @@ Standard processing flow for tasks received via messaging channels (e.g., Telegr
 +------------------------------------------+
 | Task classification                       |
 |                                          |
-|  Short (1-2 tools) --> Sync execution    |
-|  Long / multi-step --> Background agent  |
+|  Bounded work (including multi-step) --> Sync execution |
+|  Long-running / unattended --> One background agent     |
 +------------------------------------------+
         |
         +-- [Sync]  Execute -> completion notification
@@ -50,12 +50,13 @@ After receiving a channel message, **reply to the channel first**.
 
 ## Step 2: Task execution
 
-**Short tasks (1-2 tools)**
-- Synchronous execution is fine
+**Bounded tasks, including bounded multi-step work**
+- Execute synchronously in the current bot session. Do not classify by raw tool count: a simple task that needs several reads, edits, or checks still stays here.
 - Report results to channel after completion
 
-**Long tasks (research, implementation, multiple operations)**
-- Launch subagent via `Agent` tool with `run_in_background=true`
+**Genuinely long-running or unattended tasks**
+- Use one background agent only when the work will take substantial time, wait on an external system, or otherwise prevent the bot from receiving new messages.
+- Launch that one subagent via `Agent` with `run_in_background=true`; do not fan out multiple perspectives unless the sender explicitly asks for parallel research.
 - Main session returns to message listening immediately
 
 ### Handoff info for background subagent

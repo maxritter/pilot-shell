@@ -39,7 +39,7 @@ LOCK=$PILOT_BOT_DIR/.<job-id>-lock; NOW=$(date +%s); if [ -f "$LOCK" ] && [ $((N
 ## Channel Reporting (when Telegram or other channels are available)
 
 - Acknowledge every channel message before starting work (via `/bot-channel-task`)
-- Run long tasks as background agents
+- Keep bounded work in the current bot session; use one background agent only for genuinely long-running or unattended work that would otherwise prevent the bot from receiving messages for substantial time
 - Report progress and completion via channel reply tool
 - Keep messages brief and actionable — no spam, no chatty "alive" messages
 

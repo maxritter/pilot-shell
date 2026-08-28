@@ -17,12 +17,12 @@ Environment variables available:
 
 ## Execution
 
-**Phase 1** — Single message with parallel tool calls (foreground + background agents):
+**Phase 1** — In the main session, perform these lightweight checks directly (parallel tool calls are fine; model subagents are not):
 
 | # | Type | Action |
 |---|------|--------|
 | 1 | **Foreground** | Read `$PILOT_BOT_DIR/JOBS.yaml` to understand current job configuration. |
-| 2 | **Background Agent** | **MCP health check** — silent check, no greeting (see below) |
+| 2 | **Foreground** | **MCP health check** — inspect tool availability silently, no greeting (see below) |
 
 **Phase 2** — After Phase 1 completes, register crons in the **main session** (Cron tools are not available to subagents):
 
@@ -33,7 +33,7 @@ Environment variables available:
 
 ### #2 MCP health check
 
-`description='MCP health check'`, `run_in_background=true`. Prompt:
+Run this check in the current session:
 
 ```
 Check MCP health silently. Do NOT send any message to any channel.

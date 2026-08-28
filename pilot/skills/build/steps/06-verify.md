@@ -20,7 +20,7 @@ When `PILOT_BUILD_VERIFICATION_ENABLED` is `"false"`, the user has turned off th
 3. Touch the hand-back sentinel so the session can stop, since nothing will write `VERIFIED`:
 
    ```bash
-   BUILD_SESS="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+   BUILD_SESS="${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
    mkdir -p "$HOME/.pilot/sessions/$BUILD_SESS" && touch "$HOME/.pilot/sessions/$BUILD_SESS/build-handback-pending"
    ```
 

@@ -222,7 +222,10 @@ def _read_pilot_config() -> dict | None:
 # Ordered session-id sources — see launcher/session.py:_SESSION_ID_ENV_CHAIN for
 # the rationale. Duplicated here because hook scripts ship without the launcher
 # on sys.path (package boundary). Keep the two chains in sync.
-_SESSION_ID_ENV_CHAIN = ("PILOT_SESSION_ID", "CLAUDE_CODE_SESSION_ID", "CODEX_THREAD_ID")
+# A native session deliberately never falls back to an old wrapper directory:
+# legacy active_plan.json files have no native owner metadata, so claiming one
+# would recreate the same cross-session leak this ordering prevents.
+_SESSION_ID_ENV_CHAIN = ("CLAUDE_CODE_SESSION_ID", "CODEX_THREAD_ID", "PILOT_SESSION_ID")
 
 # A payload-supplied session id becomes a single path component under
 # ~/.pilot/sessions/ - and session_clear DELETES under that path - so anything
@@ -239,12 +242,10 @@ def _is_safe_session_component(value: str) -> bool:
 def resolve_session_id(fallback: object = "") -> str:
     """Resolve the session id from the agent-native env chain.
 
-    Returns the first non-empty value among PILOT_SESSION_ID (set by the shell
-    wrapper / pilot binary), CLAUDE_CODE_SESSION_ID, CODEX_THREAD_ID; else
-    "default". Falling back to the agent-native ids — which are unique per
-    session and exported to every child process — keeps each session's state
-    isolated even when launched outside the wrapper (IDE/desktop), instead of
-    collapsing onto the shared "default" directory (issue #157 bleed).
+    Returns the first non-empty agent-native id, then the legacy wrapper id,
+    else "default". Agent-native ids are unique per conversation and exported
+    to child processes; a wrapper id can be inherited by multiple conversations
+    launched under one parent and therefore cannot safely take precedence.
 
     ``fallback`` (a hook payload's ``session_id``) is consulted ONLY when the whole
     env chain is empty, as a better last resort than the shared "default" bucket.
@@ -252,11 +253,9 @@ def resolve_session_id(fallback: object = "") -> str:
     session's state — and ``plan_in_current_project`` cannot catch that when the
     stale plan happens to live in the same repo.
 
-    It must NOT take precedence over the env chain. PILOT_SESSION_ID is a shell
-    "$$-$RANDOM" id, deliberately different from the agent's own session id, and it
-    is what ``pilot register-plan`` wrote the session state under
-    (launcher/session.py:get_session_dir). Letting the payload override it would
-    point every reader at a directory the writer never used.
+    The writer and readers share this ordering, so ``pilot register-plan`` and
+    hooks resolve the same native directory whenever one is available. The
+    wrapper id remains a compatibility fallback for older agent runtimes.
 
     Most callers still invoke this with no argument and keep the plain env-chain
     behavior; only spec_stop_guard passes a fallback so far, because its stale-plan
@@ -412,13 +411,12 @@ def spec_plan_awaiting_approval(session_id: str | None = None) -> bool:
 def plan_in_current_project(plan_file: Path) -> bool:
     """True if plan_file lives inside the current project root.
 
-    Cross-session bleed guard: when PILOT_SESSION_ID is unset (e.g. the installed
-    `claude()` shell function isn't active because the terminal wasn't reloaded),
-    the session-scoped active_plan.json collapses to the shared "default" file, so
-    a /spec plan registered by ANOTHER repo's session can leak into an unrelated
-    repo. Spec-workflow hooks only act on a plan that actually lives in the project
-    this session is running in. Fails open (returns True -> legacy behavior) when
-    the project root cannot be determined, so legitimate guarding is never weakened.
+    Cross-session bleed guard: when no native, wrapper, or payload session id can
+    be resolved, active_plan.json collapses to the shared "default" file and a
+    plan from ANOTHER repo can leak into this session. Spec-workflow hooks only
+    act on a plan that actually lives in the current project. Fails open (returns
+    True -> legacy behavior) when the project root cannot be determined, so
+    legitimate guarding is never weakened.
     """
     root = current_project_root()
     if root is None:

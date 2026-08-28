@@ -34,9 +34,9 @@ def _capture_active_plan(session_id: str | None = None) -> dict | None:
     """Capture active plan state from session data.
 
     Cross-session bleed guard: skips a plan that belongs to ANOTHER project,
-    which leaks through the shared "default" active_plan.json when
-    PILOT_SESSION_ID is unset. Without this, compaction poisons this session's
-    per-session pre-compact-state.json with a foreign repo's /spec plan, which
+    which can leak through the shared "default" active_plan.json when no native,
+    wrapper, or payload session id resolves. Without this, compaction poisons
+    this session's pre-compact-state.json with a foreign repo's /spec plan, which
     post_compact_restore would then surface. Fails open for relative or
     unresolvable paths so the legacy capture is never weakened.
 

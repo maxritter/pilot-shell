@@ -12,7 +12,7 @@
    ⛔ **When you cannot emit `AskUserQuestion`** — on Codex, or as a Claude Code subagent running this bugfix as an orchestration lane, where the tool is absent entirely — the prompt will not block for an answer, so you must yield yourself. Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Worktree sync`, `OPTIONS` = the three above, `SENTINEL_PATH` = `verify-gate-pending`:
 
    ```bash
-   SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+   SESS_DIR="$HOME/.pilot/sessions/${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
    mkdir -p "$SESS_DIR" && touch "$SESS_DIR/verify-gate-pending"
    ```
 

@@ -12,13 +12,13 @@ user-invocable: false
 **Input:** Bugfix plan with `Status: COMPLETE`
 **Output:** Plan → VERIFIED (success) or loop back to implementation (failure)
 
-Choose the verification topology autonomously. Claude Code or Codex may spawn, resume, or nest agents for any verification work it judges useful, without asking the user for delegation permission. The final verdict still cites the reproducing test, full suite, and end-to-end evidence regardless of which agent collected it.
+Choose the verification topology autonomously and sparingly. Keep verification in the current agent by default; add the minimum number of agents only for genuinely independent checks whose output would materially flood the main context, and avoid nesting unless a flat assignment cannot represent the work. Do not ask the user for delegation permission. The final verdict still cites the reproducing test, full suite, and end-to-end evidence regardless of which agent collected it.
 
 ---
 
 ## Critical Constraints
 
-- **No delegation permission gate** — use available agents whenever useful and continue automatically; coordinate ownership and consolidate their evidence into one verdict.
+- **No delegation permission gate** — apply the bounded delegation criteria yourself and continue automatically; coordinate ownership and consolidate any delegated evidence into one verdict.
 - **NO stopping** — everything automatic. Never ask "Should I fix these?"
 - **Fix ALL issues automatically** — no permission needed
 - **Plan file is source of truth** — re-read after auto-compaction

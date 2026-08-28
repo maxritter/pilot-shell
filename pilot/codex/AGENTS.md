@@ -15,10 +15,14 @@
 
 ## Subagents
 
-- Decide autonomously whether to spawn, resume, nest, or skip subagents. Never stop work to ask the user for permission to delegate; an exposed agent tool is sufficient authority.
+- Direct execution is the baseline: the default is zero subagents. Keep simple or bounded asks, single-component changes, tightly coupled work, and anything finishable in a handful of tool calls in the current agent.
+- Delegate only a concrete bounded task that can run independently alongside useful local work. Start with the minimum useful count; more than one agent requires genuinely independent workstreams, and nested delegation requires a hierarchy that a flat assignment cannot represent.
+- Decide autonomously whether qualifying work should be delegated. Never stop work to ask the user for permission to delegate; an exposed agent tool is sufficient authority.
 - Use explorers for read-heavy orientation and workers for separately owned implementation surfaces. Give writing agents exclusive file or module ownership and tell them other agents may be editing the workspace.
 - The root agent integrates the result, resolves conflicts, and performs final verification. Do not duplicate a completed subagent investigation or assign overlapping writes.
 - Keep small, tightly coupled work local. Delegation is a tool, not a required topology.
+
+If the user asks to stop, cancel, or kill agents or background work, treat that as an immediate interruption. Inspect actual current-session work first and use the exposed stop or interrupt controls for everything this session launched. Never claim that nothing is running from a peer-session list alone; distinguish subagents from independent peer/background sessions, and give the exact native stop command when the current runtime cannot stop one directly.
 
 ## Tools and workspace
 

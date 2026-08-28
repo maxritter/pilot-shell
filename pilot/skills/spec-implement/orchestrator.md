@@ -17,7 +17,7 @@ user-invocable: false
 
 ## ⛔ Critical Constraints
 
-- **Choose delegation autonomously** — Claude Code or Codex decides whether tasks run directly, in parallel agents, or through nested delegation. Never ask the user for permission merely to spawn agents. Preserve task dependencies, prevent overlapping writes, and verify results from the diff and fresh commands.
+- **Choose delegation autonomously and sparingly** — direct execution is the baseline. Claude Code or Codex adds the minimum number of agents only for genuinely independent plan tasks where parallelism or context isolation materially helps; never fan out duplicate perspectives or checks the active agent can run directly. Never ask the user for permission merely to spawn qualifying agents. Preserve task dependencies, prevent overlapping writes, and verify results from the diff and fresh commands.
 - **TDD is MANDATORY** — no production code without failing test first
 - **NEVER SKIP TASKS** — every task must be fully implemented, no "MVP scope" exceptions
 - **Quality over speed** — never rush due to context pressure. Context warnings are informational. Finish current task with full quality — auto-compaction handles the rest.

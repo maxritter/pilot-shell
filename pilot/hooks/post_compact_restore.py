@@ -49,7 +49,7 @@ def _plan_belongs_to_project(plan_data: dict | None) -> bool:
     """True when the active plan is absent OR lives in the current project.
 
     Cross-session bleed guard: suppresses a foreign-project plan that leaked
-    through the shared "default" active_plan.json when PILOT_SESSION_ID is unset,
+    through the shared "default" active_plan.json when no session id resolved,
     so compaction doesn't re-anchor the agent onto another repo's /spec plan.
     Fails open for relative or unresolvable paths so the legacy informational
     display is never weakened.

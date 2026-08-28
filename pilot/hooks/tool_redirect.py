@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Hook to block built-in WebSearch/WebFetch (the MCP replacements return full content).
 
-All Agent calls pass through untouched: built-in agents (Explore, Plan,
-general-purpose), Pilot reviewer agents, and ad-hoc fan-outs alike. Native
-subagents are a legitimate way to work; whether to use /spec instead of the
-Plan agent is the user's call, not a hook's.
+Authenticated Claude artifact URLs pass through to WebFetch because only the
+built-in tool has access to the user's claude.ai session.
+
+The hook does not gate Agent calls. Delegation limits live in Pilot's shared
+instructions because this PreToolUse hook has no reliable semantic signal for
+whether a task is simple, independent, or an explicitly required workflow
+review. It therefore neither encourages fan-out nor blocks qualifying agents.
 
 Also nudges (non-deny) on recursive code-search Bash commands (grep -r, rg, find,
 fd, ag), built-in Grep, and built-in Glob - pointing at codegraph_explore /
@@ -17,6 +20,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit
 
 sys.path.insert(0, str(Path(__file__).parent))
 from _lib.util import pre_tool_use_context, pre_tool_use_deny, resolve_session_id
@@ -247,8 +251,26 @@ def _extract_shell_commands(tool_name: str, tool_input: dict) -> list[str]:
     return [command] if isinstance(command, str) and command else []
 
 
+def _is_authenticated_claude_artifact_url(tool_input: object) -> bool:
+    """Return whether WebFetch needs the user's Claude session for this URL."""
+    if not isinstance(tool_input, dict):
+        return False
+    url = tool_input.get("url")
+    if not isinstance(url, str):
+        return False
+    try:
+        parsed = urlsplit(url)
+        if parsed.scheme != "https" or parsed.port not in {None, 443}:
+            return False
+    except ValueError:
+        return False
+    if parsed.hostname == "preview.claude.ai":
+        return True
+    return parsed.hostname == "claude.ai" and parsed.path.startswith("/code/artifact/")
+
+
 def run_tool_redirect() -> int:
-    """Block WebSearch/WebFetch; nudge on recursive search; everything else passes through."""
+    """Block search/fetch except Claude artifacts; nudge recursive search."""
     try:
         hook_data = json.load(sys.stdin)
     except (json.JSONDecodeError, OSError):
@@ -270,6 +292,9 @@ def run_tool_redirect() -> int:
         if nudge:
             print(pre_tool_use_context(nudge))
             return 0
+
+    if tool_name == "WebFetch" and _is_authenticated_claude_artifact_url(hook_data.get("tool_input")):
+        return 0
 
     if tool_name in BLOCKS:
         info = BLOCKS[tool_name]

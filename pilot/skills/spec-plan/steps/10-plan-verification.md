@@ -39,7 +39,7 @@ Scan for two spellings of one thing, then `grep -n` the pair to see which tasks 
 Delete stale findings from a previous run of this plan, then launch:
 
 ```bash
-SESS_ID="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+SESS_ID="${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 OUTPUT_PATH="$HOME/.pilot/sessions/$SESS_ID/findings-spec-review-<plan-slug>.json"
 rm -f "$OUTPUT_PATH"
 ```
@@ -70,7 +70,7 @@ Agent(
 **Codex-once:** at most one companion run per `/spec` invocation. Plan iterations — annotation feedback, plan edits, fixing prior findings — never trigger a second run.
 
 ```bash
-SESS_ID="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+SESS_ID="${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 CODEX_FLAG="$HOME/.pilot/sessions/$SESS_ID/codex-spec-review-ran-<plan-slug>.flag"
 [ -f "$CODEX_FLAG" ] && echo "Codex already reviewed this plan in this session — skipping (codex-once)."
 ```

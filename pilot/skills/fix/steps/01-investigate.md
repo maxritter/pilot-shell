@@ -10,7 +10,7 @@
   **Derive `<fix-slug>` first** — kebab-case the bug description, ~40 chars, the same shape `/spec` uses for a plan filename. Every session artifact this run writes carries it, and you must be able to reconstruct it in a later Bash call from the bug description alone, so keep it deterministic. **Running as an orchestration lane** (`--lane <id>` — Step 6.2)? Use `$SESS_DIR/lanes/<lane>` as `RUN_DIR` instead; the lane id is already unique, so it does the namespacing on its own.
 
   ```bash
-  RUN_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"   # + /lanes/<lane> on a lane run
+  RUN_DIR="$HOME/.pilot/sessions/${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"   # + /lanes/<lane> on a lane run
   REPRO_LOG="$RUN_DIR/fix-repro-<fix-slug>.log"; mkdir -p "$(dirname "$REPRO_LOG")"
   set -o pipefail; <repro command> 2>&1 | tee "$REPRO_LOG"
   ```

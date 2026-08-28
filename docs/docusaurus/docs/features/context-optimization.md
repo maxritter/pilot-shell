@@ -19,7 +19,7 @@ These strategies apply to both **Claude Code** and **Codex CLI**. Compaction (au
 | **Conditional rule loading** | Variable | Coding standards load only for matching file types — Python rules don't load when editing TypeScript |
 | **Progressive skill disclosure** | ~90% | Skill frontmatter (~100 tokens) loads always; full SKILL.md loads only on activation; linked files load on demand |
 | **Scoped MCP tools** | Variable | MCP tool schemas are lazy-loaded via `ToolSearch` — only fetched when needed, not preloaded |
-| **Routing hooks** | Variable | PreToolUse hooks block `curl`/`wget`/built-in `WebFetch` and redirect to the dedicated web-fetch MCP, so large pages don't dump into context |
+| **Routing hooks** | Variable | PreToolUse hooks block `curl`/`wget`/ordinary built-in `WebFetch` requests and redirect to the dedicated web-fetch MCP, while authenticated Claude artifact URLs pass through to the session-aware built-in tool |
 
 ## Status line display *(Claude Code only)*
 

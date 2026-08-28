@@ -251,9 +251,11 @@ A hand-back does not always mean `VERIFIED`: a run that stops at the four-round 
 
 ## Execution and delegation
 
-Claude Code and Codex choose the useful execution graph themselves: direct, parallel, delegated, or nested where the current harness supports it. Pilot never pauses an autonomous build to ask permission to spawn subagents or to select an orchestration mode.
+Claude Code and Codex choose the useful execution graph themselves, but Pilot now makes direct execution the baseline. The agent adds the minimum number of workers only for genuinely independent tasks where parallelism or isolated context materially helps; simple asks and tightly coupled work stay in the main session. Pilot never pauses an autonomous build to ask permission to spawn a qualifying subagent or to select an orchestration mode.
 
 The agent still coordinates non-overlapping writes, task dependencies, and evidence returned by workers. Build Review and Changes Review remain configurable named review passes, but they do not limit additional delegation the active agent judges useful.
+
+To stop work that is already running in Claude Code, use `/tasks` for current-session background tasks and subagents. Use `claude agents` to inspect separate background sessions and `claude stop <id>` to stop one. Pilot's installed rules tell the active agent to treat a stop request as an immediate interruption and check the actual task surface before claiming nothing is running.
 
 ## Configurable toggles
 

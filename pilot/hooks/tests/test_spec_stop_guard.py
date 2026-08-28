@@ -56,6 +56,9 @@ def clear_session_state(tmp_path_factory, monkeypatch):
     ``$HOME`` as a side effect.
     """
     monkeypatch.setenv("HOME", str(tmp_path_factory.mktemp("home")))
+    monkeypatch.setenv("PILOT_SESSION_ID", TEST_SESSION_ID)
+    monkeypatch.delenv("CLAUDE_CODE_SESSION_ID", raising=False)
+    monkeypatch.delenv("CODEX_THREAD_ID", raising=False)
     session_dir = _test_session_dir()
     if session_dir.exists():
         shutil.rmtree(session_dir, ignore_errors=True)
@@ -1578,6 +1581,61 @@ class TestOneSessionsPlanDoesNotBlockAnother:
         assert not _is_blocked(self._run_as("session-b")), (
             "session B was told to keep working on a plan session A owns - the "
             "multi-session cross-talk from the community report"
+        )
+
+    def test_shared_wrapper_id_does_not_override_native_session_ids(self, tmp_path):
+        """Two conversations may inherit one wrapper id, but their native ids differ."""
+        from launcher.session import register_plan
+
+        plan = self._plan(tmp_path)
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "PILOT_SESSION_ID": "shared-wrapper",
+                    "CLAUDE_CODE_SESSION_ID": "session-a-native",
+                    "CODEX_THREAD_ID": "",
+                    "CLAUDE_PROJECT_ROOT": str(tmp_path),
+                },
+            ),
+            patch("launcher.session._notify_plan_transition"),
+        ):
+            register_plan(str(plan), "PENDING")
+
+        code, stdout, _ = TestPayloadSessionIdIsolation()._run(
+            {"stop_hook_active": False, "session_id": "session-b-native"},
+            plan.parent,
+            {
+                "CLAUDE_PROJECT_ROOT": str(tmp_path),
+                "PILOT_SESSION_ID": "shared-wrapper",
+                "CLAUDE_CODE_SESSION_ID": "session-b-native",
+            },
+        )
+
+        assert code == 0
+        assert not _is_blocked(stdout), (
+            "session B inherited session A's wrapper id and was told to continue session A's registered plan"
+        )
+
+    def test_native_session_does_not_claim_ambiguous_legacy_wrapper_plan(self, tmp_path):
+        """A pre-upgrade wrapper-only registration has no safely recoverable owner."""
+        plan = self._plan(tmp_path)
+        self._register("shared-wrapper", plan)
+
+        code, stdout, _ = TestPayloadSessionIdIsolation()._run(
+            {"stop_hook_active": False, "session_id": "session-b-native"},
+            plan.parent,
+            {
+                "CLAUDE_PROJECT_ROOT": str(tmp_path),
+                "PILOT_SESSION_ID": "shared-wrapper",
+                "CLAUDE_CODE_SESSION_ID": "session-b-native",
+            },
+        )
+
+        assert code == 0
+        assert not _is_blocked(stdout), (
+            "an ownerless legacy wrapper plan must not be assigned to an arbitrary "
+            "native session; the next register-plan call creates native-owned state"
         )
 
     def test_the_same_plan_registered_under_bs_own_id_does_block(self, tmp_path):

@@ -47,8 +47,6 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 - **`/spec`** — plans, implements, and verifies features end-to-end with TDD
 - **`/build`** — names a goal, then runs autonomously: judge loops until criterion passes
 - **`/fix`** — bugfix workflow with TDD; bails out when complexity exceeds the standard fix lane
-- **`/investigate`** — traces how existing code works and answers with checkable evidence, without changing it
-- **`/cleanup`** — audits dead and unused code candidates with independent evidence, without deleting anything
 - **Spec collaboration** — share specs with teammates, annotations flow back grouped by author
 - **Quality hooks** — enforce linting, formatting, type checking, and tests as quality gates
 - **Context engineering** — preserves decisions and knowledge across sessions
@@ -172,7 +170,7 @@ claude                codex
 
 `/setup-rules` reads your codebase, discovers your conventions, and generates project-specific rules and MCP server docs — this is how Pilot learns your project. Run it once to start, then again after major architectural changes.
 
-Once your rules are in place, use `/investigate` for evidence-backed answers about unfamiliar code, `/cleanup` for a corroborated dead-code inventory, `/create-skill` to capture repeatable workflows, and `/benchmark` to measure whether your rules and skills are improving outputs. See [Additional Workflows](#additional-workflows) for full details.
+Once your rules are in place, use `/create-skill` to capture repeatable workflows and `/benchmark` to measure whether your rules and skills are improving outputs. See [Additional Workflows](#additional-workflows) for the full on-demand toolkit.
 
 ---
 

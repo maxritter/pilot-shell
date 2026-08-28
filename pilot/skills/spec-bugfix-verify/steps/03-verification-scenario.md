@@ -16,9 +16,9 @@ Check whether the plan has a `## Verification Scenario` section (only present fo
 # Chrome DevTools MCP: use the available Chrome DevTools MCP tools if present; if deferred, load them with the available tool-discovery helper.
 CODEX-END -->
 # playwright-cli:
-playwright-cli -s=$PILOT_SESSION_ID open <url>
+playwright-cli -s="${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}" open <url>
 # agent-browser fallback:
-AB_SESSION="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+AB_SESSION="${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 agent-browser --session "$AB_SESSION" open <url>
 ```
 
@@ -40,6 +40,6 @@ CODEX-END -->
 
 ```bash
 # Chrome DevTools MCP: no explicit close needed
-# playwright-cli: playwright-cli -s=$PILOT_SESSION_ID close
+# playwright-cli: playwright-cli -s="${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}" close
 # agent-browser: agent-browser --session "$AB_SESSION" close
 ```

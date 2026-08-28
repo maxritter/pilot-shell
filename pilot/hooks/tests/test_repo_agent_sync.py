@@ -90,6 +90,14 @@ def _commit_all(repo: Path, message: str = "agent baseline") -> None:
     )
 
 
+def test_session_identity_prefers_native_id_over_inherited_wrapper(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("PILOT_SESSION_ID", "shared-wrapper")
+    monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "claude-native")
+    monkeypatch.setenv("CODEX_THREAD_ID", "codex-native")
+
+    assert repo_agent_sync._session_identity({}) == "claude-native"
+
+
 class TestSessionStart:
     def test_repository_without_checker_is_quiet_noop(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         repo = tmp_path / "repo"

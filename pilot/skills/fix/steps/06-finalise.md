@@ -50,7 +50,7 @@ A bare `git add -N` is not enough — `git status` still reports the path as unt
 For `/fix` the "plan" is this conversation, not a file. Both reviewers anchor on a plan artifact — the changes-review sub-agent and the Codex companion — so build one:
 
 ```bash
-SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+SESS_DIR="$HOME/.pilot/sessions/${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 RUN_DIR="$SESS_DIR"            # on a lane run (--lane <id>): "$SESS_DIR/lanes/<lane>"
 mkdir -p "$RUN_DIR"
 FIX_PLAN_FILE="$RUN_DIR/fix-review-plan-<fix-slug>.md"
@@ -163,7 +163,7 @@ When `PILOT_CHANGES_REVIEW_ENABLED` is not `"false"`, run the managed Codex `cha
 1. Build a one-page bugfix summary as the review anchor:
 
 ```bash
-SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+SESS_DIR="$HOME/.pilot/sessions/${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 RUN_DIR="$SESS_DIR"            # on a lane run (--lane <id>): "$SESS_DIR/lanes/<lane>"
 mkdir -p "$RUN_DIR"
 FIX_PLAN_FILE="$RUN_DIR/fix-review-plan-<fix-slug>.md"

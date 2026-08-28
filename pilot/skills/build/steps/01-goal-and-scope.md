@@ -21,7 +21,7 @@ If the request is genuinely vague about *who it serves* or *what done means* —
 <!-- CC-ONLY -->
 For the local sweep, prefer `codegraph_explore(query="<area>")` for structure and `mcp__semble__search` for intent over raw Grep/Glob — one call returns the verbatim source plus the call path. Drop to Grep only to verify a result or find exact text in a known file.
 
-For a reference on the web, the web MCP tools are the fetchers: discover them with `ToolSearch(query="+web-fetch fetch")` and `ToolSearch(query="+web-search search")`. Built-in `WebFetch`/`WebSearch` are hook-blocked. For a live page whose *appearance* is the reference, screenshot it with the Chrome tools rather than reading its DOM — you cannot judge typography from HTML.
+For a reference on the web, the web MCP tools are the fetchers: discover them with `ToolSearch(query="+web-fetch fetch")` and `ToolSearch(query="+web-search search")`. Built-in `WebSearch` and ordinary `WebFetch` requests are hook-blocked; authenticated `claude.ai/code/artifact/*` and `preview.claude.ai` URLs pass through because they require the user's Claude session. For a live page whose *appearance* is the reference, screenshot it with the Chrome tools rather than reading its DOM — you cannot judge typography from HTML.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 For the local sweep, use `codegraph_explore` when the area is structural or the entry point is unclear; for named files, docs, config, or UI copy, read them directly or use Semble. For a reference on the web, use the current Codex tool schema's web access, or the Pilot web MCP tools if they are listed (`tool_search(query="+web-fetch fetch")`). For a live page whose appearance is the reference, use playwright-cli or agent-browser to capture it — you cannot judge typography from HTML.
@@ -29,7 +29,7 @@ CODEX-END -->
 
 **Widen to ~30 calls when** the domain is unfamiliar, the goal names a stack or API you have not verified, or a reference is a codebase you would have to read to compare against.
 
-Choose the useful execution topology yourself. Spawn as many or as few research agents as the current tool schema and investigation warrant, including nested delegation when the harness supports it. Give parallel agents distinct questions and evidence requirements, then use their results without repeating the same exploration. Never ask the user for permission merely to spawn or delegate.
+Choose the useful execution topology yourself, with direct execution as the baseline. Spawn the minimum number of research agents only for genuinely independent, bounded questions whose results can arrive while useful local work continues; do not fan out agents for a simple ask or multiple takes on the same question. Give parallel agents distinct questions and evidence requirements, then use their results without repeating the same exploration. Never ask the user for permission merely to spawn or delegate.
 
 ### 1.3 A reference is optional
 

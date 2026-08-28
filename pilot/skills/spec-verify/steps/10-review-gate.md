@@ -8,7 +8,7 @@
 ⛔ **When you cannot emit it** — as a Claude Code subagent running this plan as an orchestration lane, where the tool is absent from the toolset entirely — asking in plain text is then the *correct* move, not a violation, but it must be paired with a yield or the question is passed by momentum. Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Code review gate`, `OPTIONS` = the three below, `SENTINEL_PATH` = `verify-gate-pending`:
 
 ```bash
-SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+SESS_DIR="$HOME/.pilot/sessions/${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 mkdir -p "$SESS_DIR" && touch "$SESS_DIR/verify-gate-pending"
 ```
 
@@ -22,7 +22,7 @@ Then **end your turn**; the guard honours the sentinel once for an approved plan
 Presenting the options is only half of it: the turn must also END so the answer can arrive. Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Code review gate`, `OPTIONS` = the three below, `SENTINEL_PATH` = `verify-gate-pending`:
 
 ```bash
-SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+SESS_DIR="$HOME/.pilot/sessions/${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 mkdir -p "$SESS_DIR" && touch "$SESS_DIR/verify-gate-pending"
 ```
 

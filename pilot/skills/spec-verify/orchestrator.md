@@ -18,12 +18,12 @@ user-invocable: false
 
 <!-- CC-ONLY -->
 1. **Run the changes review when enabled** — active whenever `PILOT_CHANGES_REVIEW_ENABLED` is not `"false"` (read in Step 0). Step 1 launches the `changes-review` sub-agent in the background; Step 3 collects its findings file. To disable, use Console Settings → Spec Workflow → Review Agents → Changes Review.
-2. **Do not reuse `spec-review` as a changes review** — its planning findings are stale in this phase. Beyond the required `changes-review`, spawn any additional agents you judge useful without asking the user for delegation permission. `findings-changes-review-*.json` is valid only when this run's Step 1 launch wrote it.
-   ⛔ **Never `Skill(skill='code-review', ...)`.** That specific skill carries `disable-model-invocation`, so the call is rejected; use available agent tools directly when another review perspective is useful.
+2. **Do not reuse `spec-review` as a changes review** — its planning findings are stale in this phase. Beyond the required `changes-review`, keep verification in the current agent unless a concrete independent check would materially protect context; then use the minimum useful count without asking for delegation permission. `findings-changes-review-*.json` is valid only when this run's Step 1 launch wrote it.
+   ⛔ **Never `Skill(skill='code-review', ...)`.** That specific skill carries `disable-model-invocation`, so the call is rejected. If a concrete independent review is explicitly required beyond the managed reviewer and meets the bounded delegation criteria above, use the minimum available agent tools directly.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 1. **Run native Codex changes review when enabled** — Step 1 launches the managed `changes-review` custom agent with the spawn-agent tool exposed in the current Codex tool schema when `PILOT_CHANGES_REVIEW_ENABLED` is not `"false"` (read in Step 0). Step 3 waits for and applies its findings.
-2. **Do not reuse spec-review as changes review** — planning findings are stale in this phase. Beyond the required `changes-review`, spawn any additional agents you judge useful without asking the user for delegation permission.
+2. **Do not reuse spec-review as changes review** — planning findings are stale in this phase. Beyond the required `changes-review`, keep verification in the current agent unless a concrete independent check would materially protect context; then use the minimum useful count without asking for delegation permission.
 CODEX-END -->
 3. **NO stopping** — Everything automatic. Never ask "Should I fix these?"
 4. **Fix ALL findings** — must_fix AND should_fix. No permission needed.

@@ -28,13 +28,32 @@ describe("agent-aware marketing sections", () => {
     expect(workflow).toContain("/spec");
     expect(workflow).toContain("/build");
     expect(workflow).toContain("/fix");
-    expect(workflow).toContain("/investigate");
-    expect(workflow).toContain('href="/docs/workflows/investigate"');
-    expect(workflow).toContain("/cleanup");
-    expect(workflow).toContain('href="/docs/workflows/cleanup"');
-    expect(workflow).toContain("report-only cleanup inventory");
-    expect(workflow).toContain("file-and-line evidence");
-    expect(workflow).toContain("without changing the project");
+    expect(workflow).toContain("Four core workflows");
+    expect(workflow).toContain("Additional workflows and skills");
+
+    const primarySuite = workflow.slice(
+      workflow.indexOf("Cross-agent workflow suite"),
+      workflow.indexOf("Four core workflows"),
+    );
+    expect(primarySuite).toContain("/prd");
+    expect(primarySuite).toContain("/spec");
+    expect(primarySuite).toContain("/build");
+    expect(primarySuite).toContain("/fix");
+    expect(primarySuite).not.toContain("/investigate");
+    expect(primarySuite).not.toContain("/cleanup");
+
+    const additionalSuite = workflow.slice(
+      workflow.indexOf("Additional workflows and skills"),
+    );
+    expect(additionalSuite).toContain('href="/docs/workflows/investigate"');
+    expect(additionalSuite).toContain('href="/docs/workflows/cleanup"');
+    expect(additionalSuite).toContain("report-only cleanup inventory");
+    expect(additionalSuite).toContain("file-and-line evidence");
+    expect(additionalSuite).toContain("without changing the project");
+    expect(additionalSuite).not.toContain('href="/docs/workflows/prd"');
+    expect(additionalSuite).not.toContain('href="/docs/workflows/spec"');
+    expect(additionalSuite).not.toContain('href="/docs/workflows/build"');
+    expect(additionalSuite).not.toContain('href="/docs/workflows/fix"');
     expect(workflow).not.toContain("Codex defaults");
     expect(workflow).not.toContain("/goal");
     expect(workflow).not.toContain("$spec");

@@ -114,10 +114,10 @@ Without session isolation, parallel agents share one browser instance and clobbe
 
 ```bash
 # agent-browser
-agent-browser --session "${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}" <command>
+agent-browser --session "${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}" <command>
 
 # playwright-cli
-playwright-cli -s="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}" <command>
+playwright-cli -s="${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}" <command>
 ```
 
 Chrome MCP and Chrome DevTools MCP target tabs/pages directly — no session ID needed.

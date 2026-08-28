@@ -48,7 +48,7 @@ CODEX-END -->
    ⛔ **When the runtime exposes no structured question tool** — common in non-interactive Codex runs and Claude Code subagent orchestration lanes — a prose prompt will not block for an answer, so you must yield yourself. Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents/agent-gate-protocol.md` and follow it, supplying `GATE_NAME` = `Plan approval`, `OPTIONS` = the two above, `SENTINEL_PATH` = `spec-approval-pending`:
 
    ```bash
-   SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+   SESS_DIR="$HOME/.pilot/sessions/${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
    mkdir -p "$SESS_DIR" && touch "$SESS_DIR/spec-approval-pending"
    ```
 
@@ -84,7 +84,7 @@ Then:
 **If `MODE` is `"manual"` or `"off"` — plan-mode leak check FIRST:** if the Console mode was flipped away from Automated mid-run, plan mode may still be open from the Step 0.1a `EnterPlanMode`. Check the sentinel; when it exists, load and call `ExitPlanMode` BEFORE anything else — `ToolSearch(query="select:ExitPlanMode")` first (deferred tool), then `ExitPlanMode(...)`; if it errors with "not in plan mode", plan mode is already closed — proceed (the hook heals the stale sentinel). The leak check overrides Manual's "no ExitPlanMode" rule — that rule assumes plan mode was never entered:
 
 ```bash
-SPEC_SESS="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+SPEC_SESS="${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 [ -f "$HOME/.pilot/sessions/$SPEC_SESS/plan-mode-active" ] && echo "PLAN_MODE_STILL_OPEN=true" || echo "PLAN_MODE_STILL_OPEN=false"
 ```
 

@@ -187,7 +187,7 @@ You wrote these criteria, so you are the last one who can tell they are undecida
 > **Reviewer-launch protocol** (Step 6.5 reuses this; only its inputs differ)
 >
 > ```bash
-> SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+> SESS_DIR="$HOME/.pilot/sessions/${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 > mkdir -p "$SESS_DIR"; OUTPUT_PATH="$SESS_DIR/findings-<agent>-<slug>.json"; rm -f "$OUTPUT_PATH"
 > ```
 >

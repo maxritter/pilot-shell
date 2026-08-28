@@ -27,14 +27,14 @@ Size, file count, architectural breadth, and cross-cutting scope change organiza
 - Treat the current conversation, native goal, and session-scoped task state as authoritative. Shared memory can describe unrelated sessions.
 
 ## Delegation
-
-The active agent owns the execution topology. It may spawn, resume, nest, or skip subagents whenever the tools exposed by Claude Code or Codex make that useful. **Never stop a running task to ask the user for permission to delegate or spawn an agent**; availability of the agent tool is sufficient authority. If no agent tool is exposed, continue directly without turning that into a user question.
-- Give each agent explicit ownership, keep writes non-overlapping, and tell them other agents share the checkout.
-- Launch independent work together when the current tool schema supports it.
-- Do not redo a completed agent's exploration. Integrate its evidence.
-- Verify returned work from the diff and fresh commands; an agent's completion report is not proof.
-- Use only the agent names, parameters, waiting mechanism, and background controls exposed by the current session; persist returned agent/job ids to a session file before unrelated long-running checks.
-
+The active agent owns the execution topology, but direct execution is the baseline: **the default is zero subagents**. Keep bounded asks, tightly coupled work, and anything finishable in a handful of tool calls in the current agent.
+Delegate only concrete independent work that can run alongside useful local work or materially protect the main context. Start with the minimum useful count; multiple agents require distinct workstreams, and nesting requires a hierarchy that flat assignments cannot represent. Never fan out duplicate perspectives or checks the current agent can run.
+Never stop a running task to ask the user for permission to delegate or spawn an agent. Give each agent explicit ownership with non-overlapping writes and persist returned agent/job ids to a session file. Do not redo a completed agent's exploration; integrate it and verify results from files and fresh commands.
+If the user asks to stop, cancel, or kill agents or background work, **treat that as an immediate interruption**. Inspect actual current-session work and use exposed stop or interrupt controls for everything this session launched. Never claim that nothing is running from a peer-session list alone; distinguish subagents from independent sessions.
+<!-- CC-ONLY -->
+Claude Code: `/tasks` manages current-session work; `claude agents` and `claude stop <id>` manage separate sessions. Do not infer state from `ListAgents` alone.
+<!-- /CC-ONLY -->
+If the runtime cannot stop an independent session, give the exact native command and wait rather than resuming unrelated work.
 When changing generated skills, hooks, rules, agents, or configuration, verify the generated artifacts directly after installation. The current session may not expose newly generated assets until the next install or session sync.
 
 ## Tool use
@@ -45,7 +45,7 @@ When changing generated skills, hooks, rules, agents, or configuration, verify t
 - Use the web tools exposed by the current session. Pilot's server-selection guidance lives in `mcp-servers.md`.
 
 <!-- CC-ONLY -->
-Built-in `WebFetch` and `WebSearch` are hook-blocked. Use the available discovery mechanism to load replacements; do not substitute an unavailable tool with invented syntax.
+Built-in `WebSearch` and ordinary `WebFetch` requests are hook-blocked. Authenticated `claude.ai/code/artifact/*` and `preview.claude.ai` URLs pass through to `WebFetch` because they require the user's Claude session. Use the available discovery mechanism to load replacements; do not substitute an unavailable tool with invented syntax.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 `update_plan` is optional working memory, not an approval gate.

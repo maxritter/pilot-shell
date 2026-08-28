@@ -9,7 +9,7 @@
 ⛔ **Scope the sweep to THIS plan's slug.** A bare `findings-*-review-*.json` wildcard deletes every concurrent orchestration lane's findings too — including one a reviewer is still writing — because `$SESS_DIR` resolves identically for a coordinating session and every subagent it dispatches (issue #173). On a lane run (`--lane <id>`), sweep `$SESS_DIR/lanes/<lane>` instead, where nothing else can collide.
 
 ```bash
-SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+SESS_DIR="$HOME/.pilot/sessions/${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 RUN_DIR="$SESS_DIR"            # on a lane run: "$SESS_DIR/lanes/<lane>"
 FIND_BIN="/usr/bin/find"
 [ -x "$FIND_BIN" ] || FIND_BIN="$(command -v find)"
@@ -109,7 +109,7 @@ Agent(
 **Codex-once:** at most one companion run per `/spec` invocation. Verify-phase iterations — re-verify after fixes, review-gate annotation fixes — never trigger a second run.
 
 ```bash
-SESS_ID="${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+SESS_ID="${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 CODEX_FLAG="$HOME/.pilot/sessions/$SESS_ID/codex-changes-review-ran-<plan-slug>.flag"
 [ -f "$CODEX_FLAG" ] && echo "Codex already reviewed this plan in this session — skipping (codex-once)."
 ```
@@ -146,7 +146,7 @@ Collect: changed files list, runtime environment info, test framework constraint
 Persist the returned agent id so Step 3 can survive long checks or compaction. Use a deterministic session file:
 
 ```bash
-SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+SESS_DIR="$HOME/.pilot/sessions/${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 AGENT_ID_FILE="$SESS_DIR/changes-review-agent-id-<plan-slug>.txt"
 mkdir -p "$SESS_DIR"
 ```

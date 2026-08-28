@@ -35,15 +35,6 @@ codex    # Codex CLI — all core workflows
 # Generate project rules
 > /setup-rules       # Codex: $setup-rules
 
-# Create a reusable skill
-> /create-skill      # Codex: $create-skill
-
-# Understand how existing code works without changing it
-> /investigate "How does a CLI flag become persisted config?"   # Codex: $investigate
-
-# Audit dead and unused code candidates without deleting anything
-> /cleanup "src/auth"   # Codex: $cleanup
-
 # Brainstorm a vague idea into a PRD (with optional research)
 > /prd "Add real-time notifications for team updates"   # Codex: $prd
 
@@ -52,6 +43,14 @@ codex    # Codex CLI — all core workflows
 
 # Build toward a goal without a spec, judged in rounds
 > /build "onboarding flow as smooth as Linear's"        # Codex: $build
+
+# Fix a focused bug with TDD
+> /fix "OAuth callback drops the redirect path"          # Codex: $fix
+
+# Additional workflows, used on demand
+> /investigate "How does a CLI flag become persisted config?"   # Codex: $investigate
+> /cleanup "src/auth"                                   # Codex: $cleanup
+> /create-skill                                          # Codex: $create-skill
 ```
 
 ## Architecture

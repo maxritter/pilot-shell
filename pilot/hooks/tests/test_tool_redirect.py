@@ -66,9 +66,31 @@ class TestBlockedTools:
         code, _ = _run_with_input("WebSearch", {"query": "python tutorial"})
         assert code == 2
 
-    def test_blocks_web_fetch(self):
-        code, _ = _run_with_input("WebFetch", {"url": "https://example.com"})
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://example.com",
+            "https://claude.ai/chats",
+            "http://claude.ai/code/artifact/123e4567-e89b-12d3-a456-426614174000",
+            "https://claude.ai.evil.example/code/artifact/123e4567-e89b-12d3-a456-426614174000",
+            "https://preview.claude.ai.evil.example/123e4567-e89b-12d3-a456-426614174000",
+        ],
+    )
+    def test_blocks_web_fetch(self, url: str):
+        code, _ = _run_with_input("WebFetch", {"url": url})
         assert code == 2
+
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://claude.ai/code/artifact/123e4567-e89b-12d3-a456-426614174000",
+            "https://preview.claude.ai/123e4567-e89b-12d3-a456-426614174000",
+        ],
+    )
+    def test_allows_web_fetch_for_authenticated_claude_artifacts(self, url: str):
+        code, output = _run_with_input("WebFetch", {"url": url})
+        assert code == 0
+        assert output == ""
 
 
 class TestAgentPassthrough:

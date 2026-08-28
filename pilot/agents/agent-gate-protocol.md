@@ -58,7 +58,7 @@ changes. Then say plainly that you are waiting for their choice.
 Touch `SENTINEL_PATH` if the caller supplied one, then **end your turn**.
 
 ```bash
-SESS_DIR="$HOME/.pilot/sessions/${PILOT_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-default}}}"
+SESS_DIR="$HOME/.pilot/sessions/${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-${PILOT_SESSION_ID:-default}}}"
 mkdir -p "$SESS_DIR" && touch "$SESS_DIR/<sentinel-name>"
 ```
 

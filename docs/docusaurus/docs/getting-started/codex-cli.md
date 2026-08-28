@@ -11,7 +11,8 @@ Pilot Shell supports both agents. **Claude Code is the preferred agent** and has
 
 All core and additional workflows run on both agents. Use `/` on Claude Code and `$` on Codex:
 
-- `/spec`, `/build`, `/fix`, `/prd`, `/investigate`, `/cleanup`, `/benchmark`, `/setup-rules`, `/create-skill`
+- **Core workflows:** `/prd`, `/spec`, `/build`, `/fix`
+- **Additional workflows:** `/investigate`, `/cleanup`, `/benchmark`, `/setup-rules`, `/create-skill`
 - Console — all 11 views, persistent memory, sessions, and memories shared between agents
 - Lifecycle hooks, compaction recovery, SessionEnd finalization, and workflow stop guards
 - Workflow quality gates on both agents; Claude Code additionally keeps its edit-time lint, format, type, and TDD hooks
