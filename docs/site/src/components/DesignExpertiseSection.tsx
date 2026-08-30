@@ -3,7 +3,6 @@ import {
   Boxes,
   Cable,
   Layers3,
-  Palette,
   ScanSearch,
   type LucideIcon,
 } from "lucide-react";
@@ -20,52 +19,40 @@ interface ExpertiseLayer {
 const expertiseLayers: ExpertiseLayer[] = [
   {
     icon: Layers3,
-    title: "Path-gated rule",
+    title: "Automatic routing",
     description:
-      "Stable visual principles enter context only for UI components, markup, and styles.",
-  },
-  {
-    icon: ScanSearch,
-    title: "Compact skill router",
-    description:
-      "The request selects creation, system extraction, or review before detailed guidance loads.",
+      "Describe the work normally. The matching design workflow loads in the background.",
   },
   {
     icon: Boxes,
-    title: "Focused reference",
+    title: "Product context",
     description:
-      "Only the procedure needed for this task enters the working context. The other design material stays out.",
+      "Existing components, tokens, content, themes, and interaction states remain authoritative.",
+  },
+  {
+    icon: ScanSearch,
+    title: "Runtime proof",
+    description:
+      "Rendered interactions, Impeccable hook evidence, and focused rechecks replace visual guesswork.",
   },
 ];
 
-const expertSkills = [
+const designPackages = [
   {
-    command: "/ui-design",
-    title: "Create and redesign",
+    name: "Open Claude Design",
+    title: "Design access and product judgment",
     description:
-      "Product-grounded direction, wireframes, real variations, and repository-native prototypes.",
-    icon: Palette,
-  },
-  {
-    command: "/design-system",
-    title: "Extract the system",
-    description:
-      "Traceable tokens, themes, components, variants, and states—without invented values.",
-    icon: Boxes,
-  },
-  {
-    command: "/ui-design-review",
-    title: "Review and polish",
-    description:
-      "Accessibility, hierarchy, brand fidelity, interaction states, responsive themes, and runtime proof.",
-    icon: ScanSearch,
-  },
-  {
-    command: "/claude-design",
-    title: "Use the real workspace",
-    description:
-      "On-demand project access and guarded sync—even from current Codex, without always-loaded MCP schemas.",
+      "Conflict-aware Claude Design sync, codebase-grounded creation, design-system extraction, and structured review.",
     icon: Cable,
+    href: "https://github.com/maxritter/open-claude-design",
+  },
+  {
+    name: "Impeccable",
+    title: "Refinement and deterministic checks",
+    description:
+      "Named refinements, supporting agents, edit and stop hooks, and context-aware detector findings.",
+    icon: ScanSearch,
+    href: "https://github.com/pbakaus/impeccable",
   },
 ];
 
@@ -92,12 +79,12 @@ const DesignExpertiseSection = () => {
             id="design-expertise-heading"
             className="max-w-2xl text-3xl font-bold text-foreground sm:text-4xl md:text-5xl"
           >
-            Design expertise, without context blur
+            Design joins the work automatically
           </h2>
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Claude Code and Codex get product-design judgment modeled after
-            Claude Design, engineered for real repositories and loaded only
-            when the work needs it.
+            Pilot brings Open Claude Design and Impeccable together for Claude
+            Code and Codex. Design starts from the real product, stays visually
+            inspectable, and finishes with runtime proof.
           </p>
 
           <div className="mt-8 border-y border-border/70">
@@ -127,37 +114,41 @@ const DesignExpertiseSection = () => {
         <div className="overflow-hidden rounded-lg border border-border/70 bg-card">
           <div className="border-b border-border/70 px-5 py-4 sm:px-6">
             <h3 className="text-base font-semibold text-foreground">
-              Four expert lanes
+              Two packages, built to work together
             </h3>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Use <code>/</code> in Claude Code and <code>$</code> on Codex.
+              Loaded only when the request is visual.
             </p>
           </div>
 
           <div className="divide-y divide-border/60">
-            {expertSkills.map((skill) => {
-              const Icon = skill.icon;
+            {designPackages.map((designPackage) => {
+              const Icon = designPackage.icon;
               return (
                 <a
-                  key={skill.command}
-                  href="/docs/workflows/ui-design"
+                  key={designPackage.name}
+                  href={designPackage.href}
+                  target="_blank"
+                  rel="noreferrer"
                   className="group grid gap-3 px-5 py-5 transition-colors hover:bg-primary/[0.04] sm:grid-cols-[2.5rem_minmax(0,1fr)_auto] sm:items-center sm:px-6"
-                  aria-label={"Learn more about " + skill.command}
+                  aria-label={
+                    "Open " + designPackage.name + " in a new tab"
+                  }
                 >
                   <span className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">
                     <Icon className="h-5 w-5" aria-hidden="true" />
                   </span>
                   <span>
                     <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                      <code className="text-sm font-semibold text-primary">
-                        {skill.command}
-                      </code>
+                      <span className="text-sm font-semibold text-primary">
+                        {designPackage.name}
+                      </span>
                       <span className="text-sm font-medium text-foreground">
-                        {skill.title}
+                        {designPackage.title}
                       </span>
                     </span>
                     <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
-                      {skill.description}
+                      {designPackage.description}
                     </span>
                   </span>
                   <ArrowRight
@@ -173,7 +164,7 @@ const DesignExpertiseSection = () => {
             href="/docs/workflows/ui-design"
             className="flex items-center justify-between border-t border-border/70 px-5 py-4 text-sm font-medium text-primary transition-colors hover:bg-primary/[0.04] sm:px-6"
           >
-            How the context architecture works
+            How the automatic design stack works
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </a>
         </div>

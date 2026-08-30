@@ -60,17 +60,38 @@ entries:
     last_audited: "2026-08-19"
 
   - id: impeccable
-    name: "impeccable (design anti-pattern detector)"
+    name: "Impeccable CLI and design detector"
     source_type: npm
     source_url: impeccable
     version: "3.6.0"
-    # Apache-2.0. Deterministic frontend design anti-pattern detector; the
-    # `impeccable detect` CLI runs the design-quality gate (no LLM, no API key).
+    # Apache-2.0. The CLI installs the separately pinned skill bundle and runs
+    # the deterministic design detector (no LLM or API key for detection).
     # Optional puppeteer dep (URL scanning) is skipped by the default
     # --ignore-scripts policy, so the install stays light (no Chromium download).
     # node-compat: engines >=22.18.0 (3.6.0); install verified on Node 22.20.0 at the
     # 2026-08-19 audit. Re-verify on Node 22 before bumping version.
     last_audited: "2026-08-19"
+
+  - id: impeccable-skill-bundle
+    name: "Impeccable complete cross-agent skill bundle"
+    source_type: curl
+    source_url: https://github.com/pbakaus/impeccable/releases/download/skill-v4.1.2/universal.zip
+    version: "4.1.2"
+    sha256: "5ee960e62e308d423e5290c29277958115827813aad70cb91045f0481c22742c"
+    # The npm CLI and skill bundle are versioned independently. Pilot passes
+    # this verified archive through IMPECCABLE_BUNDLE_PATH so the full install
+    # cannot silently download a floating latest skill release.
+    last_audited: "2026-08-30"
+
+  - id: open-claude-design
+    name: "Open Claude Design cross-agent CLI and implicit design pack"
+    source_type: curl
+    source_url: https://github.com/maxritter/open-claude-design/releases/download/v1.0.1/open_claude_design-1.0.1-py3-none-any.whl
+    version: "1.0.1"
+    sha256: "a0e3b506146e5af8360c704b8c470f25c79f53b8c72dce7f0ce13ed9ff74d2bc"
+    # Local-mode installs verify the sibling repository's wheel against this
+    # same hash. The public URL and digest remain explicit Pilot release gates.
+    last_audited: "2026-08-30"
 
   - id: agent-browser
     name: agent-browser

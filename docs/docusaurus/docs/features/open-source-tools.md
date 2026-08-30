@@ -37,7 +37,7 @@ Pilot Shell installs the following open-source tools during setup. Each tool is 
 | [Ruff](https://github.com/astral-sh/ruff) | Python linter and formatter | MIT |
 | [basedpyright](https://github.com/DetachHead/basedpyright) | Python type checker | MIT |
 | [Prettier](https://github.com/prettier/prettier) | Code formatter (JS/TS/CSS/HTML) | MIT |
-| [impeccable](https://github.com/pbakaus/impeccable) | Frontend design anti-pattern detector (`impeccable detect` — deterministic, no API key) | Apache-2.0 |
+| [Impeccable](https://github.com/pbakaus/impeccable) | Frontend design skill, supporting agents, provider hooks, and deterministic detector | Apache-2.0 |
 | [TypeScript](https://github.com/microsoft/TypeScript) | TypeScript compiler | Apache-2.0 |
 | [golangci-lint](https://github.com/golangci/golangci-lint) | Go linter aggregator | GPL-3.0 |
 | [vtsls](https://github.com/yioneko/vtsls) | TypeScript language server | MIT |

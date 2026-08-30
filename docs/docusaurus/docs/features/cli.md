@@ -73,22 +73,27 @@ Pilot's decomposed skill sources use `manifest.json`, an orchestrator, and order
 
 ## Claude Design bridge
 
-Current Codex cannot complete Claude Design's native OAuth discovery. On macOS, Pilot can instead reuse the scoped credential created by Claude Code's `/design-login` command. The credential is read inside the Pilot process from Keychain and is never printed or copied into another token store.
+Open Claude Design owns a standalone browser OAuth flow, so neither Claude Code nor an Anthropic API key is required. The scoped credential lives in a dedicated macOS Keychain item or current-user-only Linux/WSL2 file; an existing Claude Code Design login remains a compatibility fallback.
 
 | Command | Description |
 |---------|-------------|
-| `pilot design status [--json]` | Verify the Keychain credential, MCP connection, server identity, and protocol version |
+| `pilot design login [--manual]` | Connect an eligible Claude.ai account directly through Open Claude Design |
+| `pilot design logout --yes` | Remove only Open Claude Design's standalone credential |
+| `pilot design status [--json]` | Forward to Open Claude Design and verify the platform credential, MCP connection, server identity, and protocol version |
+| `pilot design authoring-context <project> --design-system <id> --skill <name> [--refresh] [--json]` | Fetch or reuse the current project prompt and one live authoring skill through one MCP session; writes complete texts to the git-ignored local cache instead of terminal output |
 | `pilot design tools [--json]` | List compact live tool summaries without full input schemas |
 | `pilot design describe <tool> [--json]` | Fetch one live tool's complete schema and annotations |
 | `pilot design call <tool> --args '<json>' [--json]` | Call a read-only tool. Use `--args -` to read a JSON object from stdin |
 | `pilot design files <project> [--path <dir>] [--depth <n>] [--json\|--tsv]` | Return normalized file metadata, or ledger-ready `path/etag/size` TSV, without file bodies or nested MCP envelopes |
-| `pilot design call <tool> ... --allow-write` | Permit a tool not marked `readOnlyHint: true`; the `$claude-design` skill uses this only after explicit remote-write authorization |
-| `pilot design call render_preview ... --allow-guarded` | Permit the one known non-mutating tool whose server annotation is conservative; this flag cannot authorize write tools |
+| `pilot design call <tool> ... --allow-write` | Permit a tool not marked `readOnlyHint: true`; the implicit Claude Design workflow uses this only after explicit remote-write authorization |
+| `pilot design preview <project> <remote-path> [--open] [--json]` | Render a remote file and return only its durable Claude Design URL; short-lived capability URLs remain internal |
 | `pilot design pull <project> <remote-path> --output <local-path> [--json]` | Read one complete text file directly to disk without printing its body; confines the destination to the current worktree and refuses overwrite unless `--force` is explicit |
 | `pilot design push <project> --file <remote=local> --if-match <remote=etag> --allow-write [--json]` | Read worktree-local bytes inside Pilot, mint an exact-path plan internally, compare fresh base etags, and write without putting files or tokens in model context; repeat file/etag flags for a batch, or pass `--plan-token -` to reuse a plan from stdin |
+| `pilot design planned-call <copy_files\|create_support_js> <project> --args '<json>' --allow-write` | Mint and consume the operation's signed plan inside one process without exposing the capability token |
+| `pilot design delete <project> --path <remote> --if-match <remote=etag> --confirm-delete <remote> --allow-write` | Delete only user-authorized exact paths after a conditional backup; verifies absence before success |
 | `pilot design pull\|push ... --allow-external-local-path <local-path>` | Permit that exact local operand outside the worktree only when the user authorized it; repeat per external operand, while symlink components remain forbidden |
 
-The local boundary falls back to the current directory outside Git. Reused plan tokens are stdin-only: literal `--plan-token TOKEN` values are rejected without being echoed into errors. These CLI controls are additional to Claude Design's own plan tokens, exact-path declarations, etags, and sharing controls. See [UI Design Expertise](/docs/workflows/ui-design#claude-design-on-current-codex) for the agent workflow and security boundary.
+The local boundary falls back to the current directory outside Git. Reused push plan tokens are stdin-only: literal `--plan-token TOKEN` values are rejected without being echoed into errors. Raw capability-bearing tools such as `finalize_plan`, `render_preview`, and `delete_files` are unavailable through the generic call path; their guarded helpers keep authorization, backups, and verification together. These compatibility commands forward to the installed Open Claude Design CLI; Pilot does not keep a second bridge implementation. See [UI Design and Claude Design](/docs/workflows/ui-design).
 
 ## Worktree isolation
 

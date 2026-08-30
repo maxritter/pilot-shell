@@ -61,7 +61,7 @@ Debug builds enable the socket by themselves. Release builds do not, and should 
 
 ### Design checks on a device
 
-`impeccable detect` and the contract in `browser-automation.md` → *Design-Quality Detector* apply unchanged. Two things are specific here:
+Impeccable's hook-first, fallback-only detector contract in `browser-automation.md` applies unchanged. Two things are specific here:
 
 - **A mobile app's built `index.html` is an SPA shell** — scanning it undercounts badly. The bridge you set up for driving is also how you get real markup: pull `document.documentElement.outerHTML` through the WebView's CDP session, write it to a file, and point `impeccable detect` at that file.
 - **Bound the target to the UI files the change touched.** Never the repo root: a mobile repo carries a whole native tree, and directory mode walks all of it.
@@ -75,7 +75,7 @@ Debug builds enable the socket by themselves. Release builds do not, and should 
 
 ### What the desktop frontend rules miss on a phone
 
-`standards-frontend.md` supplies the implementation requirements and `design-quality.md` owns visual judgment for user-visible changes. Meet WCAG 2.2 AA's 24×24 CSS-pixel target rule or its spacing exception, then follow the platform's larger touch guidance (commonly 44×44 on iOS and 48×48 on Android). These are the mobile-specific additions:
+`standards-frontend.md` supplies the implementation requirements and Open Claude Design's `open-claude-design-quality` skill owns visual judgment for user-visible changes. Meet WCAG 2.2 AA's 24×24 CSS-pixel target rule or its spacing exception, then follow the platform's larger touch guidance (commonly 44×44 on iOS and 48×48 on Android). These are the mobile-specific additions:
 
 - **Safe areas.** Use `env(safe-area-inset-*)` for anything at a screen edge, and set `viewport-fit=cover` in the viewport meta — without it those insets are zero and the padding silently does nothing. Recent Android enforces edge-to-edge by target SDK, so the insets are not optional on either platform.
 - **`100vh` is wrong on a phone.** It ignores the browser chrome and the on-screen keyboard. Use `100dvh`, and expect the viewport to resize when the keyboard opens.

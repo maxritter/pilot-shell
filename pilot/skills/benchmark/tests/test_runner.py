@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import subprocess
 from pathlib import Path
+from typing import ClassVar
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -29,6 +30,7 @@ from scripts.runner import (
 )
 from scripts.utils import (
     DEFAULT_FALLBACK_MODEL,
+    EvalSpec,
     ExecuteFailure,
     ExecuteSuccess,
     GraderFailure,
@@ -41,7 +43,7 @@ FIXTURES = Path(__file__).parent / "fixtures"
 
 
 class TestSelectEvals:
-    EVALS = [
+    EVALS: ClassVar[list[EvalSpec]] = [
         {"id": 1, "name": "first", "prompt": "one"},
         {"id": 2, "name": "second", "prompt": "two"},
         {"id": 3, "name": "third", "prompt": "three"},
@@ -53,7 +55,7 @@ class TestSelectEvals:
     def test_selects_by_id_or_name_in_config_order(self) -> None:
         selected = _select_evals(self.EVALS, ("3", "first"))
 
-        assert [item["id"] for item in selected] == [1, 3]
+        assert [item.get("id") for item in selected] == [1, 3]
 
     def test_rejects_unknown_selector_with_available_values(self) -> None:
         with pytest.raises(ValueError, match=r"unknown eval selector.*missing.*1:first"):

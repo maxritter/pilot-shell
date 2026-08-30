@@ -96,9 +96,9 @@ Use this additional pass only when the request changes user-visible layout, styl
 
 ### Design-Quality Detector (best-effort, advisory)
 
-After the browser E2E passes, run the `impeccable detect` design anti-pattern detector on the changed UI for a deterministic, no-API-key signal (overused fonts, gray-on-color text, side-tab borders, purple gradients, layout-thrash transitions, and similar AI-generated-design tells). **Best-effort means run-when-available, not discretionary:** when `impeccable` is on PATH and you have a bounded UI target, run it — skip (with a one-line note) only when the binary is absent or no concrete target exists. The **findings** are advisory and non-blocking — suggestions, never a verification failure or a reason to withhold "done".
+Impeccable owns deterministic design-pattern detection. When its installed edit/stop hook already reported on the changed files in this session, reuse those findings rather than running the detector a second time. Run the bounded fallback below only when no current hook evidence exists or when rechecking a specific fixed finding. The **findings** are advisory and non-blocking — suggestions, never a verification failure or a reason to withhold "done".
 
-**Invocation contract (follow exactly — `impeccable detect` is a linter):**
+**Fallback/recheck contract (`impeccable detect` is a linter):**
 
 ```bash
 which impeccable >/dev/null 2>&1 || echo "impeccable not installed — skip design check"

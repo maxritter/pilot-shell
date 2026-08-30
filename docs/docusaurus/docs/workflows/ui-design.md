@@ -1,95 +1,90 @@
 ---
 sidebar_position: 6
-title: UI Design Expertise
-description: Conditional Claude Design-style product UI expertise for Claude Code and Codex, split across one path-gated rule and three progressively disclosed skills.
+title: UI Design and Claude Design
+description: Automatic product-design expertise, Claude Design synchronization, and deterministic Impeccable checks for Claude Code and Codex.
 ---
 
-# UI Design Expertise
+# UI Design and Claude Design
 
-Pilot makes Claude Code and Codex strong product-design collaborators without putting a design system prompt in every session.
+Pilot installs two complementary external design packages:
 
-The integration separates stable visual judgment from task procedures:
+| Package | Owns |
+|---|---|
+| [Open Claude Design](https://github.com/maxritter/open-claude-design) | Claude Design access and synchronization, product context, visual direction, design-system extraction, and structured UI review |
+| [Impeccable](https://github.com/pbakaus/impeccable) | Named refinement workflows, supporting agents, edit/stop hooks, and deterministic design checks |
 
-| Layer | Loads when | Owns |
-|---|---|---|
-| `design-quality.md` rule | Matching UI component, markup, or style files become relevant | Product context, content discipline, hierarchy, system consistency, states, responsive/themes, contextual anti-template guidance |
-| `ui-design` skill | A request creates or redesigns a product UI | Direction, wireframes, substantive variations, repository-native prototypes |
-| `design-system` skill | A request extracts or normalizes visual structure | Tokens, themes, component inventories, variants, states, provenance |
-| `ui-design-review` skill | A request audits or polishes a product UI | Accessibility, brand fidelity, hierarchy/rhythm, interaction states, runtime proof, final verdict |
-| `claude-design` skill | The user names Claude Design, supplies a project URL, or asks Codex to interact with the service | On-demand project access, safe synchronization, tool discovery, and local implementation handoff |
-
-Each skill has a compact router. Detailed reference material loads only for the selected lane, so an accessibility question does not also load prototype and token-extraction instructions.
-
-## Use it
-
-The skills activate automatically when their descriptions match, or explicitly:
+There are no design commands to memorize. Describe the work normally; the relevant skill and rule load automatically.
 
 ```text
-# Claude Code
-/ui-design redesign the account settings flow
-/design-system extract the current tokens and component contracts
-/ui-design-review audit the finished UI before release
-/claude-design read this Claude Design project without changing it
+Pull the approved Claude Design changes into this app and verify the result.
 
-# Codex
-$ui-design redesign the account settings flow
-$design-system extract the current tokens and component contracts
-$ui-design-review audit the finished UI before release
-$claude-design read this Claude Design project without changing it
+Redesign this settings flow without losing the existing visual system.
+
+Audit the finished interface before release.
 ```
-
-Near-misses remain direct work: a logic-only fix in TSX does not become a redesign, “system design” for software architecture does not invoke the visual design-system skill, and generic code review does not invoke UI design review.
 
 ## Context behavior
 
-### Claude Code
+Open Claude Design installs five focused, implicit skills for stable design quality, Claude Design access, UI creation, design-system extraction, and review. Their descriptions are visible to the agent; full instructions and references load only when the request matches.
 
-- The full design rule loads only for its YAML `paths`.
-- Skill descriptions participate in discovery; the body loads only on activation.
-- The compact body routes to the minimum required files under `references/`.
+For remote authoring, it loads the affected project context, Anthropic's latest live Claude Design prompt, and exactly one relevant live authoring skill. That context is reused through the task instead of copying a mutable upstream prompt into every session or fetching both authoring skills for coverage.
 
-### Codex
+Both agents receive the same portable design skills. Stable visual constraints load for user-visible work; logic-only changes do not become redesign tasks.
 
-- Pilot writes the design rule to `~/.codex/rules/design-quality.md`; global `AGENTS.md` carries only the small path/index row telling Codex when to read it.
-- The adapted skills install under `~/.agents/skills/` with generated `agents/openai.yaml` metadata.
-- The same router/reference split provides progressive disclosure.
+When Impeccable's hook already reported on the changed files, the UI review reuses those findings. The detector runs manually only as a fallback or targeted recheck, so the two packages do not duplicate work.
 
-The deterministic asset validator checks positive and competing negative prompts so the new implicit skills do not collide with Pilot's existing workflow catalog.
+## Claude Design transport
 
-## Claude Design on current Codex
+Open Claude Design generalizes Pilot's proven compatibility bridge across macOS, Linux, and WSL2. It is a CLI that speaks MCP to Anthropic internally—not a separate MCP server added to each coding agent.
 
-Claude Design's remote MCP endpoint currently advertises an authorization-server issuer that native Codex rejects before browser login. Pilot does not patch Codex or keep a second token store. On macOS it reuses the scoped `designOauth` credential that Claude Code writes to Keychain after `/design-login`, then speaks MCP directly from the `pilot` process.
-
-The `$claude-design` skill routes Codex through a progressive CLI:
+The CLI discovers Claude Design's complete live tool catalog progressively:
 
 ```bash
-pilot design status --json
-pilot design tools --json
-pilot design describe <tool-name> --json
-pilot design call <tool-name> --args '<json-object>' --json
-pilot design files <project-id> --path '<dir>' --depth -1 --json
-pilot design pull <project-id> <remote-path> --output .pilot/design-scratch/<remote-path> --json
+open-claude-design status --json
+open-claude-design tools --json
+open-claude-design describe <tool-name> --json
+open-claude-design authoring-context <project-id> --design-system <design-system-id> --skill hifi-design --json
+open-claude-design call <tool-name> --args '<json-object>' --json
+open-claude-design preview <project-id> <remote-path> --json
 ```
 
-`tools` returns compact summaries; `describe` loads one live schema. The full remote catalog therefore never becomes standing Codex context. Claude Code continues to prefer its native `claude_design` tools and uses the same skill for safety and synchronization procedure.
+Disk-backed helpers keep large files and concurrency data out of agent context:
 
-For mirror or handoff workflows, `pilot design pull` writes a complete remote text file to a worktree-local scratch path without echoing its body. `pilot design push` reads worktree-local file bytes inside Pilot, requires a current etag per path, creates an exact-path plan internally, and refuses a changed base etag. Both helpers reject symlink components and paths outside the enclosing worktree (or current directory outside Git). `--allow-external-local-path <local-path>` is a separate, path-valued gate for one exact external operand the user explicitly authorized; repeat it per operand and never use it as a routine workaround. Files and signed tokens stay out of model context, and reused plan tokens enter only through `--plan-token -` on stdin. The inline helper is capped at 256 KiB; larger content uses Claude Design's server-side copy or native host transfer path.
+```bash
+open-claude-design files <project-id> --depth -1 --tsv
+open-claude-design pull <project-id> <remote-path> --output <local-path> --json
+open-claude-design push <project-id> \
+  --file '<remote-path>=<local-path>' \
+  --if-match '<remote-path>=<etag>' \
+  --allow-write --json
+open-claude-design delete <project-id> \
+  --path '<remote-path>' \
+  --if-match '<remote-path>=<etag>' \
+  --confirm-delete '<remote-path>' \
+  --allow-write --json
+```
 
-The bridge never prints or stores the credential. Calls to tools not marked `readOnlyHint: true` fail unless an explicit gate is present. Mutations require `--allow-write`; the non-mutating `render_preview` uses a narrower `--allow-guarded` exception because its server annotation is conservative. A request to inspect, implement locally, download, or review is not remote-write authority. Authorized writes also use Claude Design's own `finalize_plan`, exact paths, etags, read-back, and durable preview URL.
+Capability-bearing operations are not raw passthrough calls: `push`, `delete`, `preview`, and `planned-call` keep signed plan tokens and short-lived preview URLs out of argv and output.
 
-If `pilot design status` reports a missing or expired credential, open Claude Code, run `/design-login`, and retry. Never copy a token into chat, configuration, or an environment variable.
+Synchronization compares current remote etags and local hashes with the last verified project mapping. Remote-only and local-only changes follow separate reviewed paths; when both sides changed, the agent stops for semantic reconciliation instead of choosing a winner. Remote deletes additionally require exact user authorization, a matching path confirmation, current etag, and an automatic local recovery backup. The baseline advances only after local verification plus remote preview and readback.
+
+When creating a new Claude Design element from code, the workflow reads the real component variants, tokens, assets, copy, neighboring composition, and interaction states before authoring. One cached `authoring-context` operation retrieves the live project prompt plus the selected authoring skill without dumping either through the terminal. The live prompt owns Claude Design's current host format; the repository remains authoritative for actual product behavior.
+
+`pilot design` remains a compatibility alias that forwards to this installed CLI. Pilot no longer owns a second implementation.
+
+## Authentication
+
+Run `open-claude-design login` or `pilot design login` once. The browser flow is independent of Claude Code and Anthropic API keys:
+
+- macOS: dedicated encrypted Keychain item.
+- Linux and WSL2: current-user-owned `0600` file at `~/.config/open-claude-design/credentials.json`.
+
+Claude Design currently requires a Pro, Max, Team, or Enterprise account. Enterprise administrators must enable the capability. Existing Claude Code Design credentials remain a read-only compatibility fallback.
 
 ## Design principles
 
-- Existing product context controls visual decisions unless the user requests a change.
+- The existing product and design system control visual decisions unless the user requests a change.
 - Real components, tokens, content, assets, and interaction states replace approximate mockups and invented filler.
-- Visual heuristics are contextual. An established font, gradient, card, or callout pattern is not rejected because it resembles a common AI output.
-- Accessibility uses WCAG 2.2 facts with conformance levels kept distinct from platform recommendations.
-- Review requests are report-only; editing begins only when the user asks to fix, polish, redesign, or implement.
-- Runtime proof requires driving the interface and observing the resulting state. Source inspection and tests remain supporting evidence.
-
-## Scope
-
-This release targets product UI in web/app repositories: creation, visual exploration, interactive prototypes, visual-system extraction, review, and on-demand access to real Claude Design projects. It intentionally does not import the upstream HTML-deck workflow or its host-specific live-tweak protocol.
-
-The design material is adapted from [Trystan Sarrade's claude-design-system-prompt](https://github.com/Trystan-SA/claude-design-system-prompt) at reviewed commit `3c3ddb07d7aa3fef051d83608596470c95cfd8fe`. Every installed skill carries the upstream MIT notice.
+- Accessibility facts remain distinct from platform recommendations and subjective taste.
+- Review requests remain report-only unless the user authorizes fixes.
+- Runtime proof requires interacting with the rendered interface.

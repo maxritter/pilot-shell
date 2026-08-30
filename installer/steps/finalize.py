@@ -183,6 +183,10 @@ class FinalizeStep(BaseStep):
         getting_started.extend(
             [
                 ("Start a session", "Run 'claude' or 'codex' directly — Pilot Shell loads automatically"),
+                (
+                    "Design visually",
+                    "Ask your agent normally — Open Claude Design connects your codebase to Claude Design's visual workspace",
+                ),
                 ("Check for updates", "Run 'pilot update' to update Pilot Shell"),
                 ("Pilot Shell Console", f"Open the local web UI at http://{get_console_display()}"),
             ]
@@ -223,6 +227,10 @@ class FinalizeStep(BaseStep):
                 ui.print("  [muted]Subscribe anytime: [/muted][cyan]https://pilot-shell.com/pricing[/cyan]")
                 ui.print()
             ui.print("  [bold yellow]⭐ Star this repo:[/bold yellow] https://github.com/maxritter/pilot-shell")
+            ui.print()
+            ui.print("  [bold cyan]✦ Open Claude Design is included[/bold cyan]")
+            ui.print("  [muted]Create, inspect, tweak, and sync in Claude Design from your coding agent.[/muted]")
+            ui.print("  [cyan]https://github.com/maxritter/open-claude-design[/cyan]")
             ui.print()
             ui.print(f"  [muted]Installed version: {_get_pilot_version()}[/muted]")
             ui.print()

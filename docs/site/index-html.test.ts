@@ -39,7 +39,7 @@ describe("static marketing shell", () => {
     );
     expect(features).toContain("LSP Integrations: Claude Code only");
     expect(features).toContain(
-      "Conditional UI Design Expertise — path-gated principles, progressively disclosed skills, and on-demand Claude Design access",
+      "Automatic UI Design Expertise — product-grounded skills and on-demand Claude Design access",
     );
     expect(features).not.toContain("$spec");
     expect(features).not.toContain("workflow-time checks in Codex");

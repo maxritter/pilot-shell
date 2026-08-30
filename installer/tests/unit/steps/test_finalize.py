@@ -177,10 +177,16 @@ class TestFinalSuccessPanel:
                 ui=console,
             )
 
-            with patch.object(console, "next_steps") as mock_next_steps:
+            with (
+                patch.object(console, "next_steps") as mock_next_steps,
+                patch.object(console, "print") as mock_print,
+            ):
                 step.run(ctx)
 
                 mock_next_steps.assert_called()
+                printed = " ".join(str(call.args[0]) for call in mock_print.call_args_list if call.args)
+                assert "Open Claude Design is included" in printed
+                assert "github.com/maxritter/open-claude-design" in printed
 
     def test_next_steps_has_three_sections(self):
         """Next steps panel has Getting Started, Core Workflows, and Additional Workflows sections."""
@@ -210,7 +216,7 @@ class TestFinalSuccessPanel:
                     "Additional Workflows (Claude Code + Codex)",
                 ]
                 expected_lengths = {
-                    "Getting Started": 3,
+                    "Getting Started": 4,
                     "Core Workflows (Claude Code + Codex)": 4,
                     "Additional Workflows (Claude Code + Codex)": 5,
                 }
@@ -223,6 +229,7 @@ class TestFinalSuccessPanel:
                 assert any("/cleanup" in command and "$cleanup" in command for command, _ in additional)
                 getting_started = dict(sections)["Getting Started"]
                 assert ("Check for updates", "Run 'pilot update' to update Pilot Shell") in getting_started
+                assert any(label == "Design visually" and "Open Claude Design" in detail for label, detail in getting_started)
                 core_labels = [label for label, _ in dict(sections)["Core Workflows (Claude Code + Codex)"]]
                 assert "/prd · $prd" in core_labels
                 assert "/build · $build" in core_labels

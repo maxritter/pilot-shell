@@ -179,7 +179,7 @@ Create extensions manually or via workflows:
 
 - **Rules:** `/setup-rules` (Claude Code) or `$setup-rules` (Codex) — explores your codebase and generates project-specific rules
 - **Skills:** `/create-skill` or `$create-skill` — builds a reusable skill interactively from any topic
-- **Built-in design expertise:** `/ui-design`, `/design-system`, `/ui-design-review`, and `/claude-design` (or `$` on Codex) — progressively disclosed product UI creation, system extraction, review, and real Claude Design project access
+- **Automatic design expertise:** Open Claude Design supplies progressively disclosed UI creation, system extraction, review, and real Claude Design project access; Impeccable supplies refinements, supporting agents, hooks, and deterministic checks
 - **Commands:** Claude Code only — create `.claude/commands/<name>.md` manually
 - **Agents:** Create `.claude/agents/<name>.md` (Claude Code) or `~/.codex/agents/<name>.toml` (Codex) manually
 

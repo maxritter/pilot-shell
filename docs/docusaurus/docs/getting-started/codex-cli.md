@@ -12,7 +12,7 @@ Pilot Shell supports both agents. **Claude Code is the preferred agent** and has
 All core and additional workflows run on both agents. Use `/` on Claude Code and `$` on Codex:
 
 - **Core workflows:** `/prd`, `/spec`, `/build`, `/fix`
-- **Additional workflows:** `/investigate`, `/cleanup`, `/ui-design`, `/design-system`, `/ui-design-review`, `/claude-design`, `/benchmark`, `/setup-rules`, `/create-skill`
+- **Additional workflows:** `/investigate`, `/cleanup`, `/benchmark`, `/setup-rules`, `/create-skill`; Open Claude Design and Impeccable load automatically for matching visual work
 - Console — all 11 views, persistent memory, sessions, and memories shared between agents
 - Lifecycle hooks, compaction recovery, SessionEnd finalization, and workflow stop guards
 - Workflow quality gates on both agents; Claude Code additionally keeps its edit-time lint, format, type, and TDD hooks
@@ -20,7 +20,7 @@ All core and additional workflows run on both agents. Use `/` on Claude Code and
 - Rules, standards, context optimization, and team memories
 - Spec-review and changes-review agents
 
-The UI design skills use the same source for both agents. Claude Code loads their slash form; Pilot compiles the Codex dollar-invocation form and copies the same on-demand references into `~/.agents/skills/`. For the real Claude Design service, Claude Code prefers its native connector while current Codex uses the credential-safe `pilot design` CLI bridge described in [UI Design Expertise](../workflows/ui-design.md#claude-design-on-current-codex).
+Pilot installs the same five Open Claude Design skills for both agents. For the real Claude Design service, `open-claude-design` supplies the cross-platform CLI bridge; `pilot design` remains a forwarding alias. See [UI Design and Claude Design](../workflows/ui-design.md).
 
 ## Claude Code Only
 

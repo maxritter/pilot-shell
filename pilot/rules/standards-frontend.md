@@ -68,4 +68,4 @@ paths:
 - [ ] Accessible: keyboard, labels, alt text, and applicable WCAG contrast ratios verified on every surface and theme
 - [ ] Responsive: follows project breakpoints, remains fluid, and meets pointer-target requirements
 - [ ] Performance: expensive work cached, re-renders isolated, deps tree-shaken, polling-safe
-- [ ] Design: user-visible changes also satisfy `design-quality.md`
+- [ ] Design: user-visible changes also satisfy Open Claude Design's `open-claude-design-quality` skill

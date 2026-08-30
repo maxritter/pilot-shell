@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import threading
 import time
+import urllib.error
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -37,6 +41,7 @@ RETRY_DELAY = 2
 GLOBAL_NPM_INSTALL_TIMEOUT = 300
 UV_TOOL_INSTALL_TIMEOUT = 180
 NPX_CACHE_WAIT_TIMEOUT = 180
+DESIGN_PACKAGE_INSTALL_TIMEOUT = 300
 
 
 class _SudoReauthNeeded(Exception):
@@ -129,6 +134,27 @@ def _run_bash_with_retry(command: str, cwd: Path | None = None, timeout: int = 1
             _thread_local.last_retry_stderr = f"Command timed out after {timeout}s"
             break
     return False
+
+
+def _download_verified_manifest_file(entry_id: str, destination: Path) -> bool:
+    """Download one immutable manifest file and enforce its SHA-256."""
+    entry = manifest_get(entry_id)
+    if not entry.sha256:
+        _thread_local.last_retry_stderr = f"{entry_id} has no SHA-256"
+        return False
+    try:
+        request = urllib.request.Request(entry.source_url, headers={"User-Agent": "Pilot-Shell-Installer"})
+        with urllib.request.urlopen(request, timeout=60) as response, destination.open("wb") as output:
+            shutil.copyfileobj(response, output)
+    except (OSError, urllib.error.URLError) as error:
+        _thread_local.last_retry_stderr = str(error)
+        return False
+    actual = hashlib.sha256(destination.read_bytes()).hexdigest()
+    if actual != entry.sha256:
+        destination.unlink(missing_ok=True)
+        _thread_local.last_retry_stderr = f"SHA-256 mismatch for {entry_id}"
+        return False
+    return True
 
 
 def _get_nvm_source_cmd() -> str:
@@ -698,21 +724,208 @@ def install_prettier() -> bool:
     return True
 
 
-def install_impeccable() -> bool:
-    """Install or upgrade the impeccable design anti-pattern detector (manifest-pinned).
+def _open_claude_design_source(ctx: InstallContext, destination: Path) -> bool:
+    """Resolve the verified Open Claude Design wheel from local development or the release manifest."""
+    entry = manifest_get("open-claude-design")
+    override = os.environ.get("OPEN_CLAUDE_DESIGN_PACKAGE")
+    candidates: list[Path] = []
+    if override:
+        candidates.append(Path(override).expanduser())
+    if ctx.local_mode and ctx.local_repo_dir is not None:
+        candidates.append(
+            ctx.local_repo_dir.parent
+            / "open-claude-design"
+            / "dist"
+            / f"open_claude_design-{entry.version}-py3-none-any.whl"
+        )
+    for candidate in candidates:
+        if not candidate.is_file():
+            continue
+        if not entry.sha256 or hashlib.sha256(candidate.read_bytes()).hexdigest() != entry.sha256:
+            _thread_local.last_retry_stderr = f"SHA-256 mismatch for local Open Claude Design wheel: {candidate}"
+            return False
+        shutil.copy2(candidate, destination)
+        return True
+    return _download_verified_manifest_file("open-claude-design", destination)
 
-    Best-effort: a failed install returns False (omitted from the install summary)
-    but never aborts the dependencies step. The pinned `impeccable detect` CLI
-    powers the optional, non-blocking design-quality gate in frontend verification.
-    The default --ignore-scripts policy skips the optional puppeteer/Chromium
-    postinstall, so this stays a light single npm install (no browser download).
-    """
+
+def install_open_claude_design(ctx: InstallContext) -> bool:
+    """Install Open Claude Design and materialize its implicit agent assets."""
+    entry = manifest_get("open-claude-design")
+    uv = shutil.which("uv")
+    if uv is None:
+        _thread_local.last_retry_stderr = "uv is required to install Open Claude Design"
+        return False
+    agents: list[str] = []
+    if is_claude_installed():
+        agents.append("claude-code")
+    if is_codex_installed():
+        agents.append("codex")
+    if not agents:
+        _thread_local.last_retry_stderr = "No supported Open Claude Design agent detected"
+        return False
+
+    was_present = command_exists("open-claude-design")
+    uv_environment = os.environ.copy()
+    for variable in (
+        "UV_CONFIG_FILE",
+        "UV_EXTRA_INDEX_URL",
+        "UV_FIND_LINKS",
+        "UV_INDEX",
+        "UV_INDEX_URL",
+        "UV_KEYRING_PROVIDER",
+    ):
+        uv_environment.pop(variable, None)
+    uv_environment["UV_NO_CONFIG"] = "1"
+    uv_environment["UV_DEFAULT_INDEX"] = "https://pypi.org/simple"
+    with tempfile.TemporaryDirectory(prefix="pilot-open-claude-design-") as temporary:
+        wheel = Path(temporary) / f"open_claude_design-{entry.version}-py3-none-any.whl"
+        if not _open_claude_design_source(ctx, wheel):
+            return False
+        try:
+            installed = subprocess.run(
+                [
+                    uv,
+                    "tool",
+                    "install",
+                    "--no-config",
+                    "--default-index",
+                    "https://pypi.org/simple",
+                    "--no-sources",
+                    "--force",
+                    str(wheel),
+                ],
+                env=uv_environment,
+                capture_output=True,
+                text=True,
+                shell=False,
+                timeout=DESIGN_PACKAGE_INSTALL_TIMEOUT,
+                check=False,
+            )
+        except (OSError, subprocess.SubprocessError) as error:
+            _thread_local.last_retry_stderr = str(error)
+            return False
+        if installed.returncode != 0:
+            _thread_local.last_retry_stderr = installed.stderr.strip() or installed.stdout.strip()
+            return False
+
+    executable = shutil.which("open-claude-design")
+    if executable is None:
+        fallback = Path.home() / ".local" / "bin" / "open-claude-design"
+        executable = str(fallback) if fallback.is_file() else None
+    if executable is None:
+        _thread_local.last_retry_stderr = "Open Claude Design installed but its executable is not on PATH"
+        return False
+
+    try:
+        materialized = subprocess.run(
+            [
+                executable,
+                "install",
+                f"--agents={','.join(agents)}",
+                "--scope=global",
+                "--yes",
+                "--json",
+            ],
+            cwd=ctx.project_dir,
+            capture_output=True,
+            text=True,
+            shell=False,
+            timeout=DESIGN_PACKAGE_INSTALL_TIMEOUT,
+            check=False,
+        )
+        verified = subprocess.run(
+            [
+                executable,
+                "doctor",
+                f"--agents={','.join(agents)}",
+                "--scope=global",
+                "--offline",
+                "--json",
+            ],
+            cwd=ctx.project_dir,
+            capture_output=True,
+            text=True,
+            shell=False,
+            timeout=60,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as error:
+        _thread_local.last_retry_stderr = str(error)
+        return False
+    if materialized.returncode != 0 or verified.returncode != 0:
+        _thread_local.last_retry_stderr = (
+            materialized.stderr.strip()
+            or materialized.stdout.strip()
+            or verified.stderr.strip()
+            or verified.stdout.strip()
+        )
+        return False
+    try:
+        status = json.loads(verified.stdout)
+        skills_status = status["agent_skills"]
+        if not skills_status["ready"] or not all(skills_status["skills"].values()):
+            raise ValueError("installed artifact is incomplete")
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
+        _thread_local.last_retry_stderr = f"Open Claude Design doctor returned invalid status: {error}"
+        return False
+
+    _record_outcome(_OUTCOME_UPDATED if was_present else _OUTCOME_INSTALLED)
+    return True
+
+
+def install_impeccable(project_dir: Path) -> bool:
+    """Install the pinned Impeccable CLI, skills, agents, and provider hooks."""
     was_present = command_exists("impeccable")
     if not _run_bash_with_retry(
         _npm_install_cmd(manifest_get("impeccable")),
         timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
     ):
         return False
+
+    providers: list[str] = []
+    if is_claude_installed():
+        providers.append("claude")
+    if is_codex_installed():
+        providers.append("codex")
+    if not providers:
+        _thread_local.last_retry_stderr = "No supported Impeccable provider detected"
+        return False
+
+    executable = shutil.which("impeccable")
+    if executable is None:
+        _thread_local.last_retry_stderr = "Impeccable CLI was installed but is not on PATH"
+        return False
+
+    with tempfile.TemporaryDirectory(prefix="pilot-impeccable-") as temporary:
+        bundle = Path(temporary) / "universal.zip"
+        if not _download_verified_manifest_file("impeccable-skill-bundle", bundle):
+            return False
+        environment = os.environ.copy()
+        environment["IMPECCABLE_BUNDLE_PATH"] = str(bundle)
+        try:
+            result = subprocess.run(
+                [
+                    executable,
+                    "install",
+                    "--yes",
+                    f"--providers={','.join(providers)}",
+                    "--scope=global",
+                ],
+                cwd=project_dir,
+                env=environment,
+                capture_output=True,
+                text=True,
+                shell=False,
+                timeout=DESIGN_PACKAGE_INSTALL_TIMEOUT,
+                check=False,
+            )
+        except (OSError, subprocess.SubprocessError) as error:
+            _thread_local.last_retry_stderr = str(error)
+            return False
+        if result.returncode != 0:
+            _thread_local.last_retry_stderr = result.stderr.strip() or result.stdout.strip()
+            return False
     _record_outcome(_OUTCOME_UPDATED if was_present else _OUTCOME_INSTALLED)
     return True
 
@@ -1709,7 +1922,6 @@ class DependenciesStep(BaseStep):
                 _InstallTask("Plugin dependencies", "plugin_deps", _install_plugin_dependencies, (ctx.project_dir, ui)),
                 _InstallTask("vtsls (TypeScript LSP server)", "typescript_lsp", install_typescript_lsp),
                 _InstallTask("prettier (TypeScript formatter)", "prettier", install_prettier),
-                _InstallTask("impeccable (design detector)", "impeccable", install_impeccable),
                 _InstallTask("golangci-lint (Go linter)", "golangci_lint", install_golangci_lint),
                 _InstallTask("PBT tools (hypothesis, fast-check)", "pbt_tools", install_pbt_tools),
                 _InstallTask("Semble (code search)", "semble", install_semble),
@@ -1721,6 +1933,20 @@ class DependenciesStep(BaseStep):
             ]
 
             installed.extend(_run_parallel_installs(parallel_tasks, ui))
+
+            # These two packages share agent skill/config directories. Install
+            # them sequentially after Pilot has removed its legacy bundled
+            # design assets so ownership and hook merges cannot race.
+            if _install_with_spinner(ui, "Open Claude Design", install_open_claude_design, ctx):
+                installed.append("open_claude_design")
+
+            if _install_with_spinner(
+                ui,
+                "Impeccable (skills, agents, hooks, detector)",
+                install_impeccable,
+                ctx.project_dir,
+            ):
+                installed.append("impeccable")
 
             if _setup_pilot_memory(ui):
                 installed.append("pilot_memory")

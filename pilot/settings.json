@@ -53,6 +53,7 @@
       "[PILOT] MCP servers extend capabilities: web search, memory, docs, IDE integration",
       "[PILOT] Add custom MCP servers to .mcp.json, then run /setup-rules to generate documentation",
       "[PILOT] Browser automation prefers Claude Code Chrome; falls back to agent-browser in dev containers or headless environments",
+      "[PILOT] Open Claude Design connects Claude Design's visual workspace to your real codebase - ask your agent normally to create, inspect, tweak, or sync",
       "[PILOT] Quality hooks validate your code changes automatically before completion",
       "[PILOT] Spec-Driven: /spec -> Plan -> Approve -> Implement -> Verify (with feedback loop)",
       "[PILOT] Plans live in docs/plans/ and Buildouts in docs/builds/ as markdown - you can edit them before approval",

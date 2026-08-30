@@ -170,7 +170,7 @@ After all scenarios are executed, append to the plan file:
 
 Full profile only, and only when the diff changes user-visible layout, styling, content hierarchy, theming, or interaction affordances. A logic-only change in a UI file skips this step with one line and does not authorize a redesign.
 
-Invoke `Skill(skill='ui-design-review', args='<plan-path> Review the changed UI against its existing product system. The parent /spec workflow authorizes fixes for in-scope blockers and quality issues. Use the runtime evidence and open browser from Step 7, apply only request-traceable fixes, re-run affected interactions after edits, and return the verdict plus unresolved findings and advisory Design Notes.')`.
+Invoke `Skill(skill='open-claude-ui-review', args='<plan-path> Review the changed UI against its existing product system. The parent /spec workflow authorizes fixes for in-scope blockers and quality issues. Use the runtime evidence and open browser from Step 7, apply only request-traceable fixes, re-run affected interactions after edits, and return the verdict plus unresolved findings and advisory Design Notes.')`.
 
 The UI design review skill owns accessibility, hierarchy/rhythm, brand fidelity, interaction-state coverage, viewport/theme checks, and the bounded advisory detector contract. Do not duplicate those procedures here.
 

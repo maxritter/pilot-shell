@@ -1,34 +1,86 @@
-"""Tests for the impeccable design-detector install function in the dependencies step."""
+"""Tests for Pilot's complete Impeccable installation."""
 
 from __future__ import annotations
 
-from unittest.mock import patch
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 
 class TestInstallImpeccable:
-    """Test install_impeccable function (best-effort, manifest-pinned npm global)."""
+    """Impeccable CLI and skill bundle are separately pinned."""
 
-    @patch("installer.steps.dependencies.npm_global_cmd", side_effect=lambda x: x)
-    @patch("installer.steps.dependencies._run_bash_with_retry")
-    @patch("installer.steps.dependencies.command_exists")
-    def test_returns_true_on_successful_install(self, mock_cmd, mock_run, _mock_npm):
-        """Returns True and issues a manifest-pinned npm install for impeccable."""
+    @patch("installer.steps.dependencies.subprocess.run")
+    @patch("installer.steps.dependencies._download_verified_manifest_file", return_value=True)
+    @patch("installer.steps.dependencies.shutil.which", return_value="/usr/local/bin/impeccable")
+    @patch("installer.steps.dependencies.is_codex_installed", return_value=True)
+    @patch("installer.steps.dependencies.is_claude_installed", return_value=True)
+    @patch("installer.steps.dependencies.npm_global_cmd", side_effect=lambda value: value)
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    @patch("installer.steps.dependencies.command_exists", return_value=False)
+    def test_installs_cli_and_verified_complete_bundle(
+        self,
+        _command_exists: MagicMock,
+        npm_install: MagicMock,
+        _npm_global: MagicMock,
+        _claude: MagicMock,
+        _codex: MagicMock,
+        _which: MagicMock,
+        download: MagicMock,
+        run: MagicMock,
+        tmp_path: Path,
+    ) -> None:
         from installer.steps.dependencies import install_impeccable
 
-        mock_cmd.return_value = False  # not present -> fresh install
-        mock_run.return_value = True
-        assert install_impeccable() is True
-        # the install command targets the impeccable package, pinned (contains '@')
-        issued = " ".join(str(c.args) for c in mock_run.call_args_list)
-        assert "impeccable@" in issued
+        run.return_value.returncode = 0
 
-    @patch("installer.steps.dependencies.npm_global_cmd", side_effect=lambda x: x)
-    @patch("installer.steps.dependencies._run_bash_with_retry")
-    @patch("installer.steps.dependencies.command_exists")
-    def test_returns_false_when_install_fails(self, mock_cmd, mock_run, _mock_npm):
-        """Returns False (best-effort, non-aborting) when the npm install fails."""
+        assert install_impeccable(tmp_path) is True
+
+        assert "impeccable@" in str(npm_install.call_args)
+        assert download.call_args.args[0] == "impeccable-skill-bundle"
+        command = run.call_args.args[0]
+        assert command == [
+            "/usr/local/bin/impeccable",
+            "install",
+            "--yes",
+            "--providers=claude,codex",
+            "--scope=global",
+        ]
+        assert run.call_args.kwargs["cwd"] == tmp_path
+        assert run.call_args.kwargs["shell"] is False
+        assert "IMPECCABLE_BUNDLE_PATH" in run.call_args.kwargs["env"]
+
+    @patch("installer.steps.dependencies.npm_global_cmd", side_effect=lambda value: value)
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=False)
+    @patch("installer.steps.dependencies.command_exists", return_value=False)
+    def test_returns_false_when_cli_install_fails(
+        self,
+        _command_exists: MagicMock,
+        _run: MagicMock,
+        _npm_global: MagicMock,
+        tmp_path: Path,
+    ) -> None:
         from installer.steps.dependencies import install_impeccable
 
-        mock_cmd.return_value = False
-        mock_run.return_value = False
-        assert install_impeccable() is False
+        assert install_impeccable(tmp_path) is False
+
+    @patch("installer.steps.dependencies._download_verified_manifest_file", return_value=False)
+    @patch("installer.steps.dependencies.shutil.which", return_value="/usr/local/bin/impeccable")
+    @patch("installer.steps.dependencies.is_codex_installed", return_value=True)
+    @patch("installer.steps.dependencies.is_claude_installed", return_value=False)
+    @patch("installer.steps.dependencies.npm_global_cmd", side_effect=lambda value: value)
+    @patch("installer.steps.dependencies._run_bash_with_retry", return_value=True)
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
+    def test_fails_closed_when_skill_bundle_cannot_be_verified(
+        self,
+        _command_exists: MagicMock,
+        _run: MagicMock,
+        _npm_global: MagicMock,
+        _claude: MagicMock,
+        _codex: MagicMock,
+        _which: MagicMock,
+        _download: MagicMock,
+        tmp_path: Path,
+    ) -> None:
+        from installer.steps.dependencies import install_impeccable
+
+        assert install_impeccable(tmp_path) is False

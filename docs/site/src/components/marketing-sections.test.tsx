@@ -96,22 +96,22 @@ describe("agent-aware marketing sections", () => {
     expect(features).toContain("Claude Code can switch models");
   });
 
-  it("explains design expertise as progressively disclosed context", () => {
+  it("explains the automatic external design stack", () => {
     const design = renderToStaticMarkup(<DesignExpertiseSection />);
 
-    expect(design).toContain("Design expertise, without context blur");
-    expect(design).toContain("Path-gated rule");
-    expect(design).toContain("Compact skill router");
-    expect(design).toContain("Focused reference");
-    expect(design).toContain("/ui-design");
-    expect(design).toContain("/design-system");
-    expect(design).toContain("/ui-design-review");
-    expect(design).toContain("/claude-design");
-    expect(design).toContain("Four expert lanes");
-    expect(design).toContain("current Codex");
-    expect(design).toContain("on Codex");
+    expect(design).toContain("Design joins the work automatically");
+    expect(design).toContain("Automatic routing");
+    expect(design).toContain("Product context");
+    expect(design).toContain("Runtime proof");
+    expect(design).toContain("Open Claude Design");
+    expect(design).toContain("Impeccable");
+    expect(design).toContain("Two packages, built to work together");
+    expect(design).toContain("Loaded only when the request is visual");
+    expect(design).toContain(
+      'href="https://github.com/maxritter/open-claude-design"',
+    );
+    expect(design).toContain('href="https://github.com/pbakaus/impeccable"');
     expect(design).toContain('href="/docs/workflows/ui-design"');
-    expect(design).not.toContain("always-loaded design prompt");
   });
 
   it("describes the public Claude Code hook pipeline without Codex internals", () => {

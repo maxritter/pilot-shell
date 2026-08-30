@@ -8,7 +8,7 @@ description: Production-tested rules and standards loaded into every Claude Code
 
 Production-tested best practices loaded into every session.
 
-Rules load automatically at session start or when their scoped files become relevant. Pilot ships 9 always-on rules and 10 path-gated stack/design rules, delivered in the format each agent handles best.
+Rules load automatically at session start or when their scoped files become relevant. Pilot ships 9 always-on rules and 9 path-gated stack rules, delivered in the format each agent handles best.
 
 - **Claude Code:** rules in `~/.claude/rules/` (global) and `.claude/rules/` (project). Project rules take precedence.
 - **Codex:** global guidance in `~/.codex/AGENTS.md`, adapted skills in `~/.agents/skills/`, and file-type standards loaded when relevant.
@@ -33,17 +33,17 @@ Run `/setup-rules` (or `$setup-rules` on Codex) to generate project-specific rul
 ### Tooling & Context (4 rules)
 
 - `cli-tools.md` — Pilot CLI, Semble hybrid code search, RTK token optimization
-- `browser-automation.md` — Browser automation for E2E UI testing (Chrome → Chrome DevTools MCP → playwright-cli → agent-browser), plus an optional advisory [impeccable](https://impeccable.style) design anti-pattern check (`impeccable detect`, deterministic, no API key) on changed UI
+- `browser-automation.md` — Browser automation for E2E UI testing (Chrome → Chrome DevTools MCP → playwright-cli → agent-browser), plus reuse of the installed [Impeccable](https://impeccable.style) hook evidence and a bounded detector fallback when no current hook result exists
 - `mcp-servers.md` — MCP server reference and tool selection guidance
 - `mobile-development.md` — Installed-app verification for Capacitor, React Native, Expo, Flutter, Android, and iOS projects
 
-### UI Design Expertise (conditional)
+### UI Design Expertise (automatic skills)
 
-- `design-quality.md` — Product-grounded visual hierarchy, content discipline, system thinking, interaction states, responsive/theme quality, and contextual anti-template guidance. Its YAML `paths` frontmatter targets UI markup/components/styles only; generic TypeScript, JavaScript, Swift, and Kotlin work does not load it.
+- Open Claude Design's `open-claude-design-quality` skill supplies product-grounded visual hierarchy, content discipline, system thinking, interaction states, responsive/theme quality, and contextual anti-template guidance for user-visible changes. Logic-only changes remain visually neutral.
 - `standards-frontend.md` remains the implementation owner for components, CSS, semantic accessibility, responsive engineering, and performance.
-- `browser-automation.md` remains the runtime owner for interaction evidence and the bounded advisory `impeccable detect` contract.
+- `browser-automation.md` remains the runtime owner for interaction evidence; Impeccable owns hook/detector evidence and Open Claude Design owns the overall UI review workflow.
 
-Detailed procedures live in four on-demand skills: `/ui-design`, `/design-system`, `/ui-design-review`, and `/claude-design` (use `$` instead of `/` on Codex). The skill description is the only always-listed metadata; its compact router loads on a matching request, and specialized references load only for creation, extraction, review, or real Claude Design project access. See [UI Design Expertise](/docs/workflows/ui-design).
+Detailed procedures live in five implicit Open Claude Design skills for stable design quality, creation, extraction, review, and real Claude Design project access. Users ask normally; the matching description loads only the required router and specialized references. See [UI Design and Claude Design](/docs/workflows/ui-design).
 
 ## Deterministic asset validation
 
