@@ -1,7 +1,7 @@
 ---
 sidebar_position: 4
 title: Pilot CLI
-description: Command reference for the pilot admin binary — license activation, updates, worktrees, bot mode, and customization.
+description: Command reference for the pilot binary — administration, worktrees, skill validation, and on-demand Claude Design access.
 ---
 
 # Pilot CLI
@@ -9,7 +9,7 @@ description: Command reference for the pilot admin binary — license activation
 Admin command reference for the `pilot` binary at `~/.pilot/bin/pilot`.
 
 :::note Pilot does not launch your agent
-Pilot Shell loads automatically when you run `claude` or `codex` — there is no wrapper command. The `pilot` CLI is for admin tasks only: license management, updates, worktrees, bot mode, customization, and diagnostics. Most commands support `--json` for structured output.
+Pilot Shell loads automatically when you run `claude` or `codex` — there is no wrapper command. The `pilot` CLI provides administration, worktrees, diagnostics, skill tooling, and narrowly scoped service bridges. Most commands support `--json` for structured output.
 :::
 
 ## License & auth
@@ -70,6 +70,25 @@ Pilot's decomposed skill sources use `manifest.json`, an orchestrator, and order
 `path` defaults to `pilot/skills/` in a Pilot source checkout. Exit codes are **0** valid · **1** validation findings · **2** unreadable source or installation.
 
 `progressive` remains a supported manifest mode for custom skills with genuinely optional runtime resources; it is not used for Pilot's sequential workflows. Compiled artifacts retain a runaway-size guard of 1,500 lines and 20,000 words.
+
+## Claude Design bridge
+
+Current Codex cannot complete Claude Design's native OAuth discovery. On macOS, Pilot can instead reuse the scoped credential created by Claude Code's `/design-login` command. The credential is read inside the Pilot process from Keychain and is never printed or copied into another token store.
+
+| Command | Description |
+|---------|-------------|
+| `pilot design status [--json]` | Verify the Keychain credential, MCP connection, server identity, and protocol version |
+| `pilot design tools [--json]` | List compact live tool summaries without full input schemas |
+| `pilot design describe <tool> [--json]` | Fetch one live tool's complete schema and annotations |
+| `pilot design call <tool> --args '<json>' [--json]` | Call a read-only tool. Use `--args -` to read a JSON object from stdin |
+| `pilot design files <project> [--path <dir>] [--depth <n>] [--json\|--tsv]` | Return normalized file metadata, or ledger-ready `path/etag/size` TSV, without file bodies or nested MCP envelopes |
+| `pilot design call <tool> ... --allow-write` | Permit a tool not marked `readOnlyHint: true`; the `$claude-design` skill uses this only after explicit remote-write authorization |
+| `pilot design call render_preview ... --allow-guarded` | Permit the one known non-mutating tool whose server annotation is conservative; this flag cannot authorize write tools |
+| `pilot design pull <project> <remote-path> --output <local-path> [--json]` | Read one complete text file directly to disk without printing its body; confines the destination to the current worktree and refuses overwrite unless `--force` is explicit |
+| `pilot design push <project> --file <remote=local> --if-match <remote=etag> --allow-write [--json]` | Read worktree-local bytes inside Pilot, mint an exact-path plan internally, compare fresh base etags, and write without putting files or tokens in model context; repeat file/etag flags for a batch, or pass `--plan-token -` to reuse a plan from stdin |
+| `pilot design pull\|push ... --allow-external-local-path <local-path>` | Permit that exact local operand outside the worktree only when the user authorized it; repeat per external operand, while symlink components remain forbidden |
+
+The local boundary falls back to the current directory outside Git. Reused plan tokens are stdin-only: literal `--plan-token TOKEN` values are rejected without being echoed into errors. These CLI controls are additional to Claude Design's own plan tokens, exact-path declarations, etags, and sharing controls. See [UI Design Expertise](/docs/workflows/ui-design#claude-design-on-current-codex) for the agent workflow and security boundary.
 
 ## Worktree isolation
 

@@ -166,14 +166,18 @@ After all scenarios are executed, append to the plan file:
 | TS-003   | Medium   | KNOWN_ISSUE | 2       | Tooltip misaligned on narrow viewport |
 ```
 
-### 7d-design: Design-Quality Detector (best-effort, advisory)
+### 7d-design: UI Design Review
 
-Full profile only. When `impeccable` is on PATH, run the deterministic design anti-pattern detector on the UI the change touched (run-when-available, not discretionary) — the findings are an advisory signal, never a Phase-B failure and never a reason to withhold VERIFIED. Run this while the browser is still open (before 7e) so an SPA's rendered DOM is available. Follow the full contract in `browser-automation.md` → "Design-Quality Detector"; the essentials:
+Full profile only, and only when the diff changes user-visible layout, styling, content hierarchy, theming, or interaction affordances. A logic-only change in a UI file skips this step with one line and does not authorize a redesign.
 
-1. **Skip cleanly** when `which impeccable` fails (`impeccable not installed — design check skipped`) or runtime profile is not Full. A skip is a one-line note, not a failure.
-2. **Pick a bounded target:** the explicit changed UI files, or one narrow built-output dir. For a client-rendered SPA, save the open browser's rendered HTML to a temp file and scan that (the static shell undercounts). Never scan cwd/repo-root.
-3. **Run and classify by JSON, not exit code:** `impeccable detect --json <target> || true`. Exit `0`/`2` both mean it ran — parse stdout JSON. A missing binary, a non-0/non-2 exit, or unparseable output is a skip-with-note.
-4. **Record findings as advisory notes** in a `Design Notes:` line under the E2E Results table (e.g. `Design Notes: 3 advisory (2 overused-font, 1 side-tab) — non-blocking`). Do NOT add must_fix/should_fix from these, do NOT flip the plan away from VERIFIED, do NOT re-enter spec-implement for them.
+Invoke `Skill(skill='ui-design-review', args='<plan-path> Review the changed UI against its existing product system. The parent /spec workflow authorizes fixes for in-scope blockers and quality issues. Use the runtime evidence and open browser from Step 7, apply only request-traceable fixes, re-run affected interactions after edits, and return the verdict plus unresolved findings and advisory Design Notes.')`.
+
+The UI design review skill owns accessibility, hierarchy/rhythm, brand fidelity, interaction-state coverage, viewport/theme checks, and the bounded advisory detector contract. Do not duplicate those procedures here.
+
+- If the skill edits code, re-run the affected E2E scenarios before closing the browser; Step 7f then runs the final regression.
+- An unresolved **Blocker** is a Critical KNOWN_ISSUE and follows the existing iteration-cap route before VERIFIED.
+- Record unresolved **Quality issue** findings with their evidence and scope decision.
+- Record **Advisory** findings or detector skips in a single `Design Notes:` line; advisory findings alone never flip the plan away from VERIFIED.
 
 ### 7e: Close Browser
 

@@ -117,6 +117,7 @@ Read the final output and:
 | `--model <id>` | Claude: skill frontmatter → `claude-sonnet-5`; Codex: active Codex default | Cross-model comparison. Claude accepts `opus`/`sonnet`/`fable`/`haiku` aliases or explicit `claude-...` IDs. Codex passes the value directly to `codex exec --model`; omit it to use the active Codex model. |
 | `--grader-model <id>` | same as `--model` | Run the grader at a different tier (rare — pairing them avoids "smart writer judged by dumb grader" artifacts). |
 | `--configs with,without` | both | Smoke test one side. |
+| `--evals <id-or-name,...>` | all | Re-run only the evals affected by a wording or assertion change; selectors preserve config-file order and fail on unknown values. |
 | `--workers N` | `4` | Drop to `2` when running opus to be kinder to rate limits. For small eval sets bump to `min(total_runs, 8)` so every run lands in the first wave (3 evals × 2 configs × 1 run = 6 → `--workers 6` cuts wall time roughly in half). The runner submits one pool task per (eval, config, run_idx) so workers stay saturated. |
 <!-- CC-ONLY -->
 | `--no-isolate-global` | off | Disable auto-hiding of globally-installed counterparts during the run. Claude hides matching `~/.claude/rules/<basename>.md` and `~/.claude/skills/<name>/`. Use only when you want to measure the target **in addition to** global guidance. |

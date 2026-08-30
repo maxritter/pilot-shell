@@ -73,6 +73,7 @@ CODEX-END -->
 
 **Defaults worth knowing:**
 - `--runs 1` (keeps token cost low; bump only for variance analysis)
+- `--evals <id-or-name,...>` runs only selected evals while iterating; the final release gate still runs the full config
 - `--workers 4` (bump to `min(total_runs, 8)` for small eval sets so all runs land in one wave)
 - `--model` is read from the target skill's frontmatter for Claude (alias → ID); rules and model-less Claude skills fall back to `claude-sonnet-5`; Codex defaults to the active Codex model unless `--model` is passed
 - `--grader-model` defaults to the same model as `--model` so executor and grader stay matched

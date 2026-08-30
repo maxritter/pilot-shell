@@ -30,6 +30,8 @@ claude                                      codex
 | `skill` | Skill installed in the active agent's directory | Empty agent directory |
 | `rule` | Rule loaded by the active agent | No rule loaded |
 
+While iterating on one failure, pass `--evals <id-or-name,...>` to the underlying runner to execute only the selected cases. Selectors preserve the config-file order and reject unknown IDs/names. Run the complete eval set again before treating the result as release evidence.
+
 ## Writing good assertions
 
 The only thing that matters: **baseline must plausibly fail**.

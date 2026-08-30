@@ -1,0 +1,42 @@
+{
+  "target": {
+    "type": "skill",
+    "path": "pilot/skills/ui-design",
+    "name": "ui-design"
+  },
+  "evals": [
+    {
+      "id": 1,
+      "name": "preserve-existing-system",
+      "prompt": "$ui-design redesign only the account-deletion region within the existing account settings screen in this self-contained brief; all surrounding settings already exist and are out of scope. Existing evidence: shared Button and FormField components; tokens define a cool neutral palette, 8px spacing, 6px radii, and quiet 180ms motion; screenshots show compact density. Keep the existing system, make deletion clearer, and describe the implementation without changing files.",
+      "expected_output": "A source-grounded redesign that preserves the supplied system, improves destructive-action hierarchy, and does not invent a replacement brand.",
+      "expectations": [
+        "The response explicitly preserves the supplied palette, spacing, radii, density, components, and motion instead of proposing a generic new aesthetic.",
+        "The deletion action becomes clear through hierarchy, semantics, confirmation, pre-commit cancellation, and retryable request failure rather than decorative color alone.",
+        "The response stays inside the deletion region, keeps surrounding settings/actions unnamed and unchanged, and uses placeholders or explicit verification gates instead of asserting consequences absent from the brief."
+      ]
+    },
+    {
+      "id": 2,
+      "name": "greenfield-direction-without-question-quota",
+      "prompt": "$ui-design propose a greenfield direction for a mobile-first tool that helps field engineers record equipment inspections offline. Audience and core flow are known; no brand exists. Give two distinct directions and recommend one. Do not create files.",
+      "expected_output": "Two concrete, audience-linked directions with a recommendation and no padded discovery questionnaire.",
+      "expectations": [
+        "Each direction specifies materially different type, palette tone, density, component treatment, and motion tied to field use.",
+        "The response recommends one direction with a product reason rather than presenting equivalent cosmetic options.",
+        "The response makes reasonable decisions from the supplied audience and flow without asking a fixed quota of questions."
+      ]
+    },
+    {
+      "id": 3,
+      "name": "prototype-sensitive-state",
+      "prompt": "$ui-design outline an interactive sign-in recovery prototype with email entry, verification code, loading, invalid-code recovery, and success. The prototype may persist the current screen across reloads. Do not create files.",
+      "expected_output": "A complete interaction map and executable verification plan that cover recovery while refusing to persist identity or authentication inputs.",
+      "expectations": [
+        "The flow includes entry, validation, loading, invalid-code recovery, navigation, and success with visible feedback.",
+        "Only non-sensitive navigation state is considered for persistence; email, verification code, and authentication data are not retained.",
+        "The delivered outline includes a verification plan requiring actual interaction, a representative failure, keyboard behavior, and re-snapshotting after state changes when the prototype is implemented."
+      ]
+    }
+  ]
+}

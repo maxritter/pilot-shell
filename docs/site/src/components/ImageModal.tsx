@@ -9,7 +9,6 @@ interface ImageModalProps {
   width?: number;
   height?: number;
   loading?: "eager" | "lazy";
-  fetchPriority?: "high" | "low" | "auto";
 }
 
 const ImageModal = ({
@@ -20,7 +19,6 @@ const ImageModal = ({
   width,
   height,
   loading = "lazy",
-  fetchPriority,
 }: ImageModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -38,7 +36,6 @@ const ImageModal = ({
           className={className}
           loading={loading}
           decoding="async"
-          fetchPriority={fetchPriority}
           width={width}
           height={height}
         />

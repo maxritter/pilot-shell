@@ -165,6 +165,8 @@ def _route(prompt: str, context: dict[str, Any], records: list[SkillRecord]) -> 
             continue
         description_tokens = _tokens(record.description) | _tokens(record.name)
         overlap = prompt_tokens & description_tokens
+        if not invoked and requested_parent != record.name and not overlap:
+            continue
         score = sum(math.log((len(records) + 1) / (document_frequency.get(token, 0) + 1)) + 1 for token in overlap)
         if invoked:
             score += 100

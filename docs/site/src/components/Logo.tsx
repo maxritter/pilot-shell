@@ -20,7 +20,6 @@ const Logo = ({ variant = "hero" }: LogoProps) => {
         className={`${sizeClass} h-auto animate-glow logo-fade-mask`}
         loading={isEager ? "eager" : "lazy"}
         decoding={isEager ? "sync" : "async"}
-        fetchPriority={isEager ? "high" : "low"}
         width={1228}
         height={691}
       />

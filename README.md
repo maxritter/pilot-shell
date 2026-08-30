@@ -354,6 +354,34 @@ Scope  →  Generate candidates  →  Corroborate independently  →  Report
 
 The workflow never installs tools, edits files, or deletes code. Test-only consumers are reported separately; exported APIs, callbacks, routes, decorators, registries, reflection, and unresolved dynamic paths lower confidence instead of being guessed away. A candidate is only “likely removable” after two independent signals agree and no material reachability gap remains. Use a separate implementation request when you want reviewed candidates removed and verified.
 
+### UI Design Expertise — Only When the Work Is Visual
+
+[UI Design Expertise](https://pilot-shell.com/docs/workflows/ui-design) gives Claude Code and Codex product-design judgment without injecting a monolithic design prompt into unrelated work. A path-gated rule carries stable visual principles; four progressively disclosed skills load only the creation, design-system, review, or Claude Design procedure the task needs.
+
+```bash
+# Claude Code                                                # Codex CLI
+claude                                                        codex
+> /ui-design "redesign account settings"                    > $ui-design "redesign account settings"
+> /design-system "extract tokens and components"            > $design-system "extract tokens and components"
+> /ui-design-review "audit this UI before release"          > $ui-design-review "audit this UI before release"
+> /claude-design "read this Claude Design project"          > $claude-design "read this Claude Design project"
+```
+
+`/claude-design` is deliberately narrower than the other design skills: it activates only for the real Claude Design service or a Claude Design project URL. Claude Code uses its native connector. Current Codex uses Pilot's on-demand bridge, authenticated by Claude Code's `/design-login` credential on macOS:
+
+```bash
+pilot design status --json
+pilot design tools --json
+pilot design describe read_file --json
+pilot design call read_file --args '{"project_id":"…","path":"Account.html"}' --json
+pilot design files <project-id> --depth -1 --tsv
+pilot design pull <project-id> Account.html --output .pilot/design-scratch/Account.html --json
+```
+
+Tool schemas are discovered only when requested. Read-only access is the default; any tool not marked read-only is refused unless `--allow-write` is supplied, and the skill permits that flag only when the user explicitly authorized changing the remote design project. Disk-backed `pull`/`push` helpers keep design-file bytes out of model context while preserving etags and exact-path plans.
+
+Local pull destinations and push sources stay inside the enclosing Git worktree by default (or the current directory outside Git), and symlink components are rejected. Use `--allow-external-local-path <local-path>` only when the user explicitly authorizes that exact external operand; repeat it for each authorized path in a batch. Reused plan tokens are accepted only through stdin with `--plan-token -`; literal argv values are rejected without being echoed.
+
 ### /setup-rules — Generate Modular Rules
 
 [`/setup-rules`](https://pilot-shell.com/docs/workflows/setup-rules) explores your codebase, discovers conventions, generates modular rules and documents MCP servers. Run once initially, then anytime your project changes significantly.

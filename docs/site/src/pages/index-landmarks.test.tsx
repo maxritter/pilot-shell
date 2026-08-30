@@ -19,6 +19,9 @@ vi.mock("@/components/WorkflowSteps", () => ({
 vi.mock("@/components/WhatsInside", () => ({
   default: () => <section>Features</section>,
 }));
+vi.mock("@/components/DesignExpertiseSection", () => ({
+  default: () => <section>Design expertise</section>,
+}));
 vi.mock("@/components/SpecCollabSection", () => ({
   default: () => <section>Collaboration</section>,
 }));

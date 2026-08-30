@@ -8,7 +8,7 @@ description: Production-tested rules and standards loaded into every Claude Code
 
 Production-tested best practices loaded into every session.
 
-Rules load automatically at session start — enforced standards, not suggestions. Pilot ships 11 built-in rule files plus 7 coding standards activated by file type, delivered in the format each agent handles best.
+Rules load automatically at session start or when their scoped files become relevant. Pilot ships 9 always-on rules and 10 path-gated stack/design rules, delivered in the format each agent handles best.
 
 - **Claude Code:** rules in `~/.claude/rules/` (global) and `.claude/rules/` (project). Project rules take precedence.
 - **Codex:** global guidance in `~/.codex/AGENTS.md`, adapted skills in `~/.agents/skills/`, and file-type standards loaded when relevant.
@@ -37,6 +37,14 @@ Run `/setup-rules` (or `$setup-rules` on Codex) to generate project-specific rul
 - `mcp-servers.md` — MCP server reference and tool selection guidance
 - `mobile-development.md` — Installed-app verification for Capacitor, React Native, Expo, Flutter, Android, and iOS projects
 
+### UI Design Expertise (conditional)
+
+- `design-quality.md` — Product-grounded visual hierarchy, content discipline, system thinking, interaction states, responsive/theme quality, and contextual anti-template guidance. Its YAML `paths` frontmatter targets UI markup/components/styles only; generic TypeScript, JavaScript, Swift, and Kotlin work does not load it.
+- `standards-frontend.md` remains the implementation owner for components, CSS, semantic accessibility, responsive engineering, and performance.
+- `browser-automation.md` remains the runtime owner for interaction evidence and the bounded advisory `impeccable detect` contract.
+
+Detailed procedures live in four on-demand skills: `/ui-design`, `/design-system`, `/ui-design-review`, and `/claude-design` (use `$` instead of `/` on Codex). The skill description is the only always-listed metadata; its compact router loads on a matching request, and specialized references load only for creation, extraction, review, or real Claude Design project access. See [UI Design Expertise](/docs/workflows/ui-design).
+
 ## Deterministic asset validation
 
 Pilot's source checkout includes a no-model validation gate for the shipped rules and Codex skill catalog:
@@ -56,6 +64,7 @@ The gate compiles the real Codex skill descriptions, checks public implicit-skil
 | Go | `*.go` | Modules, testing, formatting, error handling |
 | .NET | `*.cs, *.csproj, *.sln` | dotnet CLI, format gate, nullable, analyzers, test traits |
 | Frontend | `*.tsx, *.jsx, *.html, *.vue, *.css` | Components, CSS, accessibility, responsive design |
+| UI design | `*.tsx, *.jsx, *.html, *.vue, *.svelte, *.astro, *.razor, *.css, *.scss` | Product context, hierarchy, visual system, interaction states, responsive/theme design |
 | Blazor | `*.razor, *.razor.css, *.razor.cs` | Components, CSS isolation, render modes, lifecycle |
 | Backend | `**/models/**, **/routes/**, **/api/**` | API design, data models, query optimization, migrations |
 

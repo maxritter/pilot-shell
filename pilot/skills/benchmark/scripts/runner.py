@@ -70,6 +70,7 @@ class RunConfig:
     skip_permissions: bool = False
     agent: str = "claude"
     grader_agent: str = "claude"
+    eval_selectors: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -896,6 +897,33 @@ def _warn_prompt_contamination(evals: list[EvalSpec]) -> None:
             print(f"  ⚠  eval-{eval_id} ({eval_name}): {warning}", file=sys.stderr)
 
 
+def _select_evals(evals: list[EvalSpec], selectors: tuple[str, ...]) -> list[EvalSpec]:
+    """Select eval IDs or names while preserving their config-file order."""
+    requested = {selector.strip() for selector in selectors if selector.strip()}
+    if not requested:
+        return evals
+
+    matched: set[str] = set()
+    selected: list[EvalSpec] = []
+    for eval_obj in evals:
+        eval_id = str(eval_obj.get("id", 0))
+        eval_name = eval_obj.get("name", f"eval-{eval_id}")
+        keys = {eval_id, eval_name}
+        overlap = requested & keys
+        if overlap:
+            selected.append(eval_obj)
+            matched.update(overlap)
+
+    unknown = sorted(requested - matched)
+    if unknown:
+        available = ", ".join(
+            f"{eval_obj.get('id', 0)}:{eval_obj.get('name', f'eval-{eval_obj.get("id", 0)}')}"
+            for eval_obj in evals
+        )
+        raise ValueError(f"unknown eval selector(s): {', '.join(unknown)}; available: {available}")
+    return selected
+
+
 def _announce_conditional_loading(target: TargetConfig) -> None:
     """Surface which target files will have path/paths frontmatter stripped.
 
@@ -937,6 +965,11 @@ def run_benchmark(
     evals: list[EvalSpec] = list(raw_evals) if isinstance(raw_evals, list) else []
     if not evals:
         print("No evals in config.", file=sys.stderr)
+        return 1
+    try:
+        evals = _select_evals(evals, run_cfg.eval_selectors)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
         return 1
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -1042,6 +1075,11 @@ def main() -> None:
         default="with,without",
         help="Comma-separated list of configs: with,without (default: with,without)",
     )
+    parser.add_argument(
+        "--evals",
+        default="",
+        help="Comma-separated eval IDs or names to run (default: every eval in the config)",
+    )
     parser.add_argument("--timeout", type=int, default=600, help="Per-run timeout seconds (default: 600)")
     parser.add_argument("--grader-timeout", type=int, default=300, help="Grader timeout seconds (default: 300)")
     parser.add_argument("--workers", type=int, default=4, help="Parallel workers (default: 4)")
@@ -1101,6 +1139,7 @@ def main() -> None:
     configs = [c.strip() for c in args.configs.split(",") if c.strip()]
     if not configs:
         parser.error("--configs must list at least one of: with, without")
+    eval_selectors = tuple(selector.strip() for selector in args.evals.split(",") if selector.strip())
 
     target = load_target_config(args.config)
     output_dir = args.output
@@ -1128,6 +1167,7 @@ def main() -> None:
         skip_permissions=args.skip_permissions,
         agent=agent,
         grader_agent=grader_agent,
+        eval_selectors=eval_selectors,
     )
     code = run_benchmark(
         config_path=args.config,

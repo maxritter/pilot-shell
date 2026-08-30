@@ -38,6 +38,9 @@ describe("static marketing shell", () => {
       "Quality Checks: workflow-integrated linting, type checking, TDD, and execution verification",
     );
     expect(features).toContain("LSP Integrations: Claude Code only");
+    expect(features).toContain(
+      "Conditional UI Design Expertise — path-gated principles, progressively disclosed skills, and on-demand Claude Design access",
+    );
     expect(features).not.toContain("$spec");
     expect(features).not.toContain("workflow-time checks in Codex");
   });
@@ -78,6 +81,9 @@ describe("static marketing shell", () => {
       "Quality Checks - Workflow-integrated linting, type checking, TDD, and execution verification.",
     );
     expect(staticText).toContain("LSP Integrations - Claude Code only.");
+    expect(staticText).toContain(
+      "Conditional UI Design Expertise - Path-gated principles, progressively disclosed skills, and on-demand Claude Design access for current Codex.",
+    );
     expect(staticText).toContain(
       "Codex compatibility is included through supported integrations.",
     );

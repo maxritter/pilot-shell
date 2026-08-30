@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import ConsoleSection from "./ConsoleSection";
 import DeepDiveSection from "./DeepDiveSection";
+import DesignExpertiseSection from "./DesignExpertiseSection";
 import HeroSection from "./HeroSection";
 import InstallSection from "./InstallSection";
 import WhatsInside from "./WhatsInside";
@@ -93,6 +94,24 @@ describe("agent-aware marketing sections", () => {
     expect(features).not.toContain("routine lifecycle hooks stay quiet");
     expect(features).not.toContain("native safety");
     expect(features).toContain("Claude Code can switch models");
+  });
+
+  it("explains design expertise as progressively disclosed context", () => {
+    const design = renderToStaticMarkup(<DesignExpertiseSection />);
+
+    expect(design).toContain("Design expertise, without context blur");
+    expect(design).toContain("Path-gated rule");
+    expect(design).toContain("Compact skill router");
+    expect(design).toContain("Focused reference");
+    expect(design).toContain("/ui-design");
+    expect(design).toContain("/design-system");
+    expect(design).toContain("/ui-design-review");
+    expect(design).toContain("/claude-design");
+    expect(design).toContain("Four expert lanes");
+    expect(design).toContain("current Codex");
+    expect(design).toContain("on Codex");
+    expect(design).toContain('href="/docs/workflows/ui-design"');
+    expect(design).not.toContain("always-loaded design prompt");
   });
 
   it("describes the public Claude Code hook pipeline without Codex internals", () => {

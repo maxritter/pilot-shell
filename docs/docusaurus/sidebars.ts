@@ -31,6 +31,7 @@ const sidebars: SidebarsConfig = {
       items: [
         "workflows/investigate",
         "workflows/cleanup",
+        "workflows/ui-design",
         "workflows/setup-rules",
         "workflows/create-skill",
         "workflows/benchmark",

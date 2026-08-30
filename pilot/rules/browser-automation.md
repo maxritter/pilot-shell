@@ -84,6 +84,16 @@ Two symptoms that mean you are already in this loop:
 
 Any "no" → not verified. Say so explicitly; do not claim done.
 
+### Visual Change Verification
+
+Use this additional pass only when the request changes user-visible layout, styling, content hierarchy, theming, or interaction affordances. A logic-only edit in a UI file does not authorize a redesign.
+
+1. Read the existing tokens/components and capture the affected state before changing it.
+2. Exercise the primary interaction, then inspect the resulting state at representative narrow and wide viewports.
+3. Check every supported theme and the relevant loading, empty, error, focus, disabled, and selected states. Do not invent states the product cannot enter.
+4. Re-snapshot after interaction and compare against the product's established visual language, not a generic aesthetic.
+5. Run the advisory detector below only after the actual interaction and visual checks pass.
+
 ### Design-Quality Detector (best-effort, advisory)
 
 After the browser E2E passes, run the `impeccable detect` design anti-pattern detector on the changed UI for a deterministic, no-API-key signal (overused fonts, gray-on-color text, side-tab borders, purple gradients, layout-thrash transitions, and similar AI-generated-design tells). **Best-effort means run-when-available, not discretionary:** when `impeccable` is on PATH and you have a bounded UI target, run it — skip (with a one-line note) only when the binary is absent or no concrete target exists. The **findings** are advisory and non-blocking — suggestions, never a verification failure or a reason to withhold "done".

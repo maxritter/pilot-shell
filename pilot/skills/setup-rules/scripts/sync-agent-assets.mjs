@@ -11,7 +11,9 @@
  *   .claude/skills/.pilot-sync-manifest.json  last converged ownership baseline
  *
  * Matching target skill directories and tracked mirror-only assets are
- * managed. Untracked or ignored Claude-only skills are deliberately left alone.
+ * managed. Git-ignored skills are deliberately left alone on both sides: an
+ * ignored Claude-only mirror, and an ignored canonical skill under
+ * .agents/skills, are local agent extensions rather than project assets.
  */
 
 import {
@@ -373,6 +375,9 @@ async function discoverSkills(repo) {
     if (entry.name.startsWith('.') || !entry.isDirectory()) continue
 
     const label = `.agents/skills/${entry.name}`
+    const skillFileLabel = `${label}/SKILL.md`
+    if (isGitIgnored(repo, skillFileLabel)) continue
+
     validateSkillName(entry.name, label)
     const skillRoot = path.join(sourceRoot, entry.name)
     const skillFile = path.join(skillRoot, 'SKILL.md')
@@ -404,6 +409,15 @@ function runGit(repo, args) {
     throw result.error
   }
   return result
+}
+
+function isGitIgnored(repo, candidate) {
+  const result = runGit(repo, ['check-ignore', '--quiet', '--', candidate])
+  if (result.status === 0) return true
+  if (result.status === 1) return false
+  const message = result.stderr.toString('utf8').trim()
+  if (/not a git repository/i.test(message)) return false
+  throw new Error(`git check-ignore failed: ${message}`)
 }
 
 function localProvenancePath(repo) {

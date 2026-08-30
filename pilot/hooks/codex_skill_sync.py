@@ -47,6 +47,10 @@ _SUPPORTED_SKILLS = frozenset(
         "benchmark",
         "setup-rules",
         "create-skill",
+        "claude-design",
+        "ui-design",
+        "design-system",
+        "ui-design-review",
     }
 )
 
@@ -72,11 +76,34 @@ _SKILL_DESCRIPTIONS = {
         "Use only when the user explicitly invokes /cleanup. Produce a read-only, evidence-backed dead-code "
         "candidate report without installing tools, editing files, or deleting code."
     ),
-    "benchmark": "Benchmark rules, skills, or workflows with quantitative before/after evaluations.",
+    "benchmark": "Benchmark and measure a rule, skill, or workflow with quantitative before/after evaluations.",
     "create-skill": (
         "Create, update, or test a reusable agent skill when the user asks for a skill or repeatable workflow."
     ),
     "setup-rules": "Set up, audit, or refresh repository agent rules such as AGENTS.md or CLAUDE.md.",
+    "claude-design": (
+        "Access the Anthropic product named Claude Design when the request contains that exact name or a "
+        "claude.ai/design URL. Use for its projects, files, conversations, comments, previews, and collaboration "
+        "state; otherwise stay inactive."
+    ),
+    "ui-design": (
+        "Create or redesign product UI in an existing codebase, including a wireframe, substantive visual variations, "
+        "and an interactive prototype. Use for requests about UI layout, visual direction, screens, flows, components, "
+        "a landing page, dashboard, or making an interface feel polished. Do not use for backend work, system "
+        "architecture, decks, or logic-only UI fixes."
+    ),
+    "design-system": (
+        "Extract, document, or normalize a product UI design system from code, screenshots, or brand sources. Use for "
+        "visual tokens, theme variables, typography, spacing, colors, radii, shadows, component inventories, variants, "
+        "states, or building a reusable UI library. Do not use for software architecture, database schemas, or generic "
+        "system design."
+    ),
+    "ui-design-review": (
+        "Review or polish a product UI for accessibility, brand fidelity, hierarchy, rhythm, responsive behavior, "
+        "themes, interaction states, and generic AI-template patterns. Use for visual audits, accessibility checks, UX "
+        "polish, UI critique, or pre-ship design review. Do not use for generic code review, backend review, or API "
+        "design."
+    ),
     "spec-plan": "Internal /spec feature-planning phase; use only after an explicitly invoked /spec routes here.",
     "spec-bugfix-plan": "Internal /spec bugfix-planning phase; use only after an explicitly invoked /spec routes here.",
     "spec-implement": "Internal /spec implementation phase for an approved plan; use only after /spec routes here.",
@@ -115,6 +142,10 @@ _PILOT_SKILL_NAMES = frozenset(
         "benchmark",
         "fix",
         "build",
+        "claude-design",
+        "ui-design",
+        "design-system",
+        "ui-design-review",
         "bot-boot",
         "bot-channel-task",
         "bot-defaults",

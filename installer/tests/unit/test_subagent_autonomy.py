@@ -73,9 +73,18 @@ def test_shared_rules_keep_bounded_work_in_the_current_agent() -> None:
     codex = (ROOT / "pilot" / "codex" / "AGENTS.md").read_text().lower()
 
     for content in (rule, codex):
-        assert "default is zero subagents" in content
+        assert "direct execution is the baseline" in content
         assert "a handful of tool calls" in content
         assert "start with the minimum useful count" in content
+
+
+def test_shared_rules_authorize_qualifying_delegation_without_a_user_request() -> None:
+    rule = (ROOT / "pilot" / "rules" / "task-and-workflow.md").read_text().lower()
+    codex = (ROOT / "pilot" / "codex" / "AGENTS.md").read_text().lower()
+
+    for content in (rule, codex):
+        assert "is the authorization" in content
+        assert "main-context headroom" in content
 
 
 def test_shared_rules_make_agent_stop_requests_immediate() -> None:

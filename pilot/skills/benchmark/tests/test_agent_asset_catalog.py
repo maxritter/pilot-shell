@@ -44,6 +44,26 @@ def test_explicit_and_internal_skills_do_not_hijack_direct_requests() -> None:
     assert handoff_ranked[0] == "spec-implement"
 
 
+def test_zero_signal_implicit_skills_do_not_route() -> None:
+    catalog = validator._read_json(validator.DEFAULT_CATALOG)
+    records = validator._load_records(validator.REPO_ROOT, catalog)
+
+    ranked = [
+        name
+        for name, _ in validator._route(
+            "Rotate the TLS certificate for the production load balancer.",
+            {},
+            records,
+        )
+    ]
+
+    assert "ui-design" not in ranked
+    assert "design-system" not in ranked
+    assert "ui-design-review" not in ranked
+    assert "benchmark" not in ranked
+    assert "create-skill" not in ranked
+
+
 def test_rule_budget_counts_only_unscoped_rules(tmp_path: Path) -> None:
     rules = tmp_path / "pilot" / "rules"
     rules.mkdir(parents=True)

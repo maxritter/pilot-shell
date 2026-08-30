@@ -17,6 +17,7 @@ from scripts.runner import (
     _resolve_run_models,
     _run_grader,
     _safe_prefixes,
+    _select_evals,
     _validate_target_path,
     _write_failed_marker,
     execute_run,
@@ -37,6 +38,26 @@ from scripts.utils import (
 )
 
 FIXTURES = Path(__file__).parent / "fixtures"
+
+
+class TestSelectEvals:
+    EVALS = [
+        {"id": 1, "name": "first", "prompt": "one"},
+        {"id": 2, "name": "second", "prompt": "two"},
+        {"id": 3, "name": "third", "prompt": "three"},
+    ]
+
+    def test_empty_selector_keeps_all_evals(self) -> None:
+        assert _select_evals(self.EVALS, ()) == self.EVALS
+
+    def test_selects_by_id_or_name_in_config_order(self) -> None:
+        selected = _select_evals(self.EVALS, ("3", "first"))
+
+        assert [item["id"] for item in selected] == [1, 3]
+
+    def test_rejects_unknown_selector_with_available_values(self) -> None:
+        with pytest.raises(ValueError, match=r"unknown eval selector.*missing.*1:first"):
+            _select_evals(self.EVALS, ("missing",))
 
 
 # ----------------------------------------------------------------------------

@@ -130,6 +130,74 @@ test('check preserves untracked and ignored Claude-only skills in a Git reposito
   }
 })
 
+test('check preserves ignored harness-specific skills installed for both agents', () => {
+  const repo = makeRepo()
+  try {
+    git(repo, 'init', '-q')
+    writeFileSync(
+      path.join(repo, '.gitignore'),
+      '.agents/skills/external-skill/\n.claude/skills/external-skill/\n',
+    )
+    const codexSkill = path.join(repo, '.agents', 'skills', 'external-skill', 'SKILL.md')
+    const claudeSkill = path.join(repo, '.claude', 'skills', 'external-skill', 'SKILL.md')
+    mkdirSync(path.dirname(codexSkill), { recursive: true })
+    mkdirSync(path.dirname(claudeSkill), { recursive: true })
+    writeFileSync(
+      codexSkill,
+      '---\nname: external-skill\ndescription: Codex-specific local extension.\n---\n',
+    )
+    writeFileSync(
+      claudeSkill,
+      '---\nname: external-skill\ndescription: Claude-specific local extension.\n---\n',
+    )
+
+    let result = run(repo, '--check')
+    assert.equal(result.status, 0, result.stderr)
+    result = run(repo, '--write')
+    assert.equal(result.status, 0, result.stderr)
+    assert.match(readFileSync(codexSkill, 'utf8'), /Codex-specific/)
+    assert.match(readFileSync(claudeSkill, 'utf8'), /Claude-specific/)
+    const manifest = JSON.parse(
+      readFileSync(path.join(repo, '.claude', 'skills', '.pilot-sync-manifest.json'), 'utf8'),
+    )
+    assert.equal(Object.keys(manifest.files).some(file => file.startsWith('external-skill/')), false)
+  } finally {
+    cleanup(repo)
+  }
+})
+
+test('ignoring a previously managed canonical skill retires its mirror and keeps the source', () => {
+  const repo = makeRepo({ mirror: false })
+  try {
+    git(repo, 'init', '-q')
+    let result = run(repo, '--write')
+    assert.equal(result.status, 0, result.stderr)
+    const mirror = path.join(repo, '.claude', 'skills', 'demo-skill', 'SKILL.md')
+    assert.equal(lstatSync(mirror).isFile(), true)
+
+    writeFileSync(path.join(repo, '.gitignore'), '.agents/skills/demo-skill/\n')
+
+    result = run(repo, '--check')
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /stale managed file record: demo-skill\/SKILL\.md/)
+
+    result = run(repo, '--write')
+    assert.equal(result.status, 0, result.stderr)
+    assert.match(result.stdout, /and 0 skills/)
+    assert.throws(() => lstatSync(mirror), { code: 'ENOENT' })
+    assert.match(
+      readFileSync(path.join(repo, '.agents', 'skills', 'demo-skill', 'SKILL.md'), 'utf8'),
+      /name: demo-skill/,
+    )
+    const manifest = JSON.parse(
+      readFileSync(path.join(repo, '.claude', 'skills', '.pilot-sync-manifest.json'), 'utf8'),
+    )
+    assert.deepEqual(Object.keys(manifest.files), [])
+  } finally {
+    cleanup(repo)
+  }
+})
+
 test('tracked Claude-only skill is preserved by default and removed only with explicit migration', () => {
   const repo = makeRepo()
   try {

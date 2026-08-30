@@ -75,7 +75,7 @@ Debug builds enable the socket by themselves. Release builds do not, and should 
 
 ### What the desktop frontend rules miss on a phone
 
-`standards-frontend.md` applies in full — including its touch-target floor (44x44 iOS, 48x48 Android) and its contrast requirements. These are the additions:
+`standards-frontend.md` supplies the implementation requirements and `design-quality.md` owns visual judgment for user-visible changes. Meet WCAG 2.2 AA's 24×24 CSS-pixel target rule or its spacing exception, then follow the platform's larger touch guidance (commonly 44×44 on iOS and 48×48 on Android). These are the mobile-specific additions:
 
 - **Safe areas.** Use `env(safe-area-inset-*)` for anything at a screen edge, and set `viewport-fit=cover` in the viewport meta — without it those insets are zero and the padding silently does nothing. Recent Android enforces edge-to-edge by target SDK, so the insets are not optional on either platform.
 - **`100vh` is wrong on a phone.** It ignores the browser chrome and the on-screen keyboard. Use `100dvh`, and expect the viewport to resize when the keyboard opens.
