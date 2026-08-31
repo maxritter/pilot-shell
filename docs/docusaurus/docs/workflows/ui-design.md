@@ -72,12 +72,16 @@ When creating a new Claude Design element from code, the workflow reads the real
 
 `pilot design` remains a compatibility alias that forwards to this installed CLI. Pilot no longer owns a second implementation.
 
+Pilot follows the latest stable Open Claude Design GitHub release automatically. The installer downloads that release's `SHA256SUMS`, verifies the selected universal wheel, and preflights Pilot's required sync command before replacing an installed version. New Open Claude Design releases therefore need no Pilot manifest update.
+
 ## Authentication
 
-Run `open-claude-design login` or `pilot design login` once. The browser flow is independent of Claude Code and Anthropic API keys:
+Pilot installation and background updates never open an authentication browser. On the first real Claude Design request, the installed skill checks the connection. If needed on a desktop host, it explains the one-time step and opens `open-claude-design login` automatically; `pilot design login` remains the explicit equivalent. This flow is independent of Claude Code and Anthropic API keys:
 
 - macOS: dedicated encrypted Keychain item.
 - Linux and WSL2: current-user-owned `0600` file at `~/.config/open-claude-design/credentials.json`.
+
+For CI, SSH, or a headless dev container, run `pilot design login --manual` in an interactive terminal. Open the printed URL on the host machine, then paste the returned code into that terminal—not into Claude Code, Codex, or agent chat. Persist the Open Claude Design configuration directory if the credential should survive container rebuilds.
 
 Claude Design currently requires a Pro, Max, Team, or Enterprise account. Enterprise administrators must enable the capability. Existing Claude Code Design credentials remain a read-only compatibility fallback.
 

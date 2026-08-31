@@ -22,7 +22,7 @@ All Pilot workflows run on both agents. Use `/` on Claude Code and `$` on Codex:
 - Rules, standards, context optimization, and team memories
 - Spec-review and changes-review agents
 
-Pilot installs the same five Open Claude Design skills for both agents. For the real Claude Design service, `open-claude-design` supplies the cross-platform CLI bridge; `pilot design` remains a forwarding alias. See [UI Design and Claude Design](../workflows/ui-design.md).
+Pilot installs the same five Open Claude Design skills for both agents. For the real Claude Design service, `open-claude-design` supplies the cross-platform CLI bridge; `pilot design` remains a forwarding alias. Claude Code is not required for authentication: the first desktop use connects in a browser, while headless containers use `pilot design login --manual` in an interactive terminal. See [UI Design and Claude Design](../workflows/ui-design.md).
 
 ## Claude Code Only
 

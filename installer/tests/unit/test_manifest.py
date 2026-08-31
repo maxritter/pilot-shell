@@ -347,6 +347,17 @@ class TestShippedManifest:
             f"uv-installer version {uv.version!r} must use the 'live-*' label for the vendor-managed endpoint."
         )
 
+    def test_open_claude_design_tracks_latest_checksum_verified_release(self) -> None:
+        """Pilot follows Max's latest stable Open Claude Design release without manual pin bumps."""
+        design = get("open-claude-design", manifest=load())
+
+        assert design.source_url == (
+            "https://github.com/maxritter/open-claude-design/releases/latest/download/SHA256SUMS"
+        )
+        assert design.version == "live-github-release"
+        assert design.soft_pin is True
+        assert design.pin_kind == "monitor"
+
 
 class TestBrewEntries:
     """Brew entries can omit sha256 but require brew_formula + brew_tap."""

@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -12,6 +13,7 @@ import tempfile
 import threading
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
@@ -42,7 +44,11 @@ GLOBAL_NPM_INSTALL_TIMEOUT = 300
 UV_TOOL_INSTALL_TIMEOUT = 180
 NPX_CACHE_WAIT_TIMEOUT = 180
 DESIGN_PACKAGE_INSTALL_TIMEOUT = 300
+OPEN_CLAUDE_DESIGN_CHECKSUM_MAX_BYTES = 64 * 1024
+OPEN_CLAUDE_DESIGN_WHEEL_MAX_BYTES = 20 * 1024 * 1024
 PILOT_OWNED_TOOLS_MANIFEST = ".pilot-owned-tools.json"
+
+_OPEN_CLAUDE_DESIGN_WHEEL_RE = re.compile(r"^open_claude_design-(?P<version>[0-9][A-Za-z0-9_.!+]*)-py3-none-any[.]whl$")
 
 _INSTALL_KEY_TO_TOOL_COMMANDS: dict[str, dict[str, str]] = {
     "python_tools": {"ruff": "ruff", "basedpyright": "basedpyright"},
@@ -796,34 +802,129 @@ def install_prettier() -> bool:
     return True
 
 
-def _open_claude_design_source(ctx: InstallContext, destination: Path) -> bool:
-    """Resolve the verified Open Claude Design wheel from local development or the release manifest."""
+def _open_claude_design_wheel_version(path: Path) -> str | None:
+    match = _OPEN_CLAUDE_DESIGN_WHEEL_RE.fullmatch(path.name)
+    return match.group("version") if match is not None else None
+
+
+def _download_open_claude_design_bytes(url: str, *, maximum_bytes: int) -> bytes | None:
+    """Download one bounded Open Claude Design release asset from GitHub over HTTPS."""
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme != "https" or parsed.hostname != "github.com":
+        _thread_local.last_retry_stderr = f"Open Claude Design release URL is not trusted: {url}"
+        return None
+    request = urllib.request.Request(url, headers={"User-Agent": "pilot-shell-installer"})
+    try:
+        from installer.downloads import _get_ssl_context
+
+        with urllib.request.urlopen(request, timeout=30.0, context=_get_ssl_context()) as response:
+            if getattr(response, "status", 200) != 200:
+                _thread_local.last_retry_stderr = f"Open Claude Design download returned HTTP {response.status}: {url}"
+                return None
+            final_url = urllib.parse.urlparse(response.geturl())
+            hostname = final_url.hostname or ""
+            if final_url.scheme != "https" or not (
+                hostname == "github.com" or hostname.endswith(".githubusercontent.com")
+            ):
+                _thread_local.last_retry_stderr = (
+                    f"Open Claude Design download redirected to an untrusted host: {final_url.geturl()}"
+                )
+                return None
+            content_length = response.headers.get("Content-Length")
+            if content_length is not None and int(content_length) > maximum_bytes:
+                _thread_local.last_retry_stderr = f"Open Claude Design release asset is too large: {url}"
+                return None
+            body = response.read(maximum_bytes + 1)
+    except (OSError, TimeoutError, ValueError, urllib.error.URLError) as error:
+        _thread_local.last_retry_stderr = f"Could not download Open Claude Design release asset: {error}"
+        return None
+    if len(body) > maximum_bytes:
+        _thread_local.last_retry_stderr = f"Open Claude Design release asset exceeded its size limit: {url}"
+        return None
+    return body
+
+
+def _download_latest_open_claude_design_wheel(destination_dir: Path) -> Path | None:
+    """Resolve the latest stable release wheel and verify it against that release's checksum manifest."""
     entry = manifest_get("open-claude-design")
+    checksum_url = entry.source_url
+    checksum_data = _download_open_claude_design_bytes(
+        checksum_url,
+        maximum_bytes=OPEN_CLAUDE_DESIGN_CHECKSUM_MAX_BYTES,
+    )
+    if checksum_data is None:
+        return None
+    try:
+        checksum_text = checksum_data.decode("utf-8")
+    except UnicodeDecodeError:
+        _thread_local.last_retry_stderr = "Open Claude Design SHA256SUMS is not valid UTF-8"
+        return None
+    matches: list[tuple[str, str]] = []
+    for line in checksum_text.splitlines():
+        fields = line.split()
+        if len(fields) != 2:
+            continue
+        digest, filename = fields[0].lower(), fields[1].lstrip("*")
+        if _OPEN_CLAUDE_DESIGN_WHEEL_RE.fullmatch(filename) is None:
+            continue
+        if re.fullmatch(r"[0-9a-f]{64}", digest) is None:
+            _thread_local.last_retry_stderr = "Open Claude Design SHA256SUMS contains an invalid wheel digest"
+            return None
+        matches.append((digest, filename))
+    if len(matches) != 1:
+        _thread_local.last_retry_stderr = (
+            f"Open Claude Design SHA256SUMS must name exactly one universal wheel; found {len(matches)}"
+        )
+        return None
+    expected_digest, filename = matches[0]
+    wheel_url = f"{checksum_url.rsplit('/', 1)[0]}/{filename}"
+    wheel_data = _download_open_claude_design_bytes(
+        wheel_url,
+        maximum_bytes=OPEN_CLAUDE_DESIGN_WHEEL_MAX_BYTES,
+    )
+    if wheel_data is None:
+        return None
+    actual_digest = hashlib.sha256(wheel_data).hexdigest()
+    if actual_digest != expected_digest:
+        _thread_local.last_retry_stderr = (
+            f"Open Claude Design wheel checksum mismatch: expected {expected_digest}, got {actual_digest}"
+        )
+        return None
+    destination = destination_dir / filename
+    destination.write_bytes(wheel_data)
+    destination.chmod(0o600)
+    return destination
+
+
+def _open_claude_design_source(ctx: InstallContext, destination_dir: Path) -> Path | None:
+    """Resolve an explicit local development wheel or the checksum-verified latest stable release."""
     override = os.environ.get("OPEN_CLAUDE_DESIGN_PACKAGE")
     candidates: list[Path] = []
     if override:
         candidates.append(Path(override).expanduser())
     if ctx.local_mode and ctx.local_repo_dir is not None:
-        candidates.append(
-            ctx.local_repo_dir.parent
-            / "open-claude-design"
-            / "dist"
-            / f"open_claude_design-{entry.version}-py3-none-any.whl"
-        )
+        local_dist = ctx.local_repo_dir.parent / "open-claude-design" / "dist"
+        local_wheels = sorted(local_dist.glob("open_claude_design-*-py3-none-any.whl"))
+        if len(local_wheels) > 1:
+            _thread_local.last_retry_stderr = (
+                f"Multiple local Open Claude Design wheels found in {local_dist}; rebuild the release directory"
+            )
+            return None
+        candidates.extend(local_wheels)
     for candidate in candidates:
         if not candidate.is_file():
             continue
-        if not entry.sha256 or hashlib.sha256(candidate.read_bytes()).hexdigest() != entry.sha256:
-            _thread_local.last_retry_stderr = f"SHA-256 mismatch for local Open Claude Design wheel: {candidate}"
-            return False
+        if _open_claude_design_wheel_version(candidate) is None:
+            _thread_local.last_retry_stderr = f"Invalid local Open Claude Design wheel filename: {candidate.name}"
+            return None
+        destination = destination_dir / candidate.name
         shutil.copy2(candidate, destination)
-        return True
-    return _download_verified_manifest_file("open-claude-design", destination)
+        return destination
+    return _download_latest_open_claude_design_wheel(destination_dir)
 
 
 def install_open_claude_design(ctx: InstallContext) -> bool:
     """Install Open Claude Design and materialize its implicit agent assets."""
-    entry = manifest_get("open-claude-design")
     uv = shutil.which("uv")
     if uv is None:
         _thread_local.last_retry_stderr = "uv is required to install Open Claude Design"
@@ -851,10 +952,40 @@ def install_open_claude_design(ctx: InstallContext) -> bool:
     uv_environment["UV_NO_CONFIG"] = "1"
     uv_environment["UV_DEFAULT_INDEX"] = "https://pypi.org/simple"
     with tempfile.TemporaryDirectory(prefix="pilot-open-claude-design-") as temporary:
-        wheel = Path(temporary) / f"open_claude_design-{entry.version}-py3-none-any.whl"
-        if not _open_claude_design_source(ctx, wheel):
+        wheel = _open_claude_design_source(ctx, Path(temporary))
+        if wheel is None:
+            return False
+        expected_version = _open_claude_design_wheel_version(wheel)
+        if expected_version is None:
+            _thread_local.last_retry_stderr = f"Open Claude Design wheel has an invalid filename: {wheel.name}"
             return False
         try:
+            preflight = subprocess.run(
+                [
+                    uv,
+                    "tool",
+                    "run",
+                    "--no-config",
+                    "--from",
+                    str(wheel),
+                    "open-claude-design",
+                    "sync",
+                    "--help",
+                ],
+                env=uv_environment,
+                capture_output=True,
+                text=True,
+                shell=False,
+                timeout=60,
+                check=False,
+            )
+            if preflight.returncode != 0:
+                _thread_local.last_retry_stderr = (
+                    preflight.stderr.strip()
+                    or preflight.stdout.strip()
+                    or "Latest Open Claude Design release is incompatible with Pilot's sync workflow"
+                )
+                return False
             installed = subprocess.run(
                 [
                     uv,
@@ -906,6 +1037,15 @@ def install_open_claude_design(ctx: InstallContext) -> bool:
             timeout=DESIGN_PACKAGE_INSTALL_TIMEOUT,
             check=False,
         )
+        compatible = subprocess.run(
+            [executable, "sync", "--help"],
+            cwd=ctx.project_dir,
+            capture_output=True,
+            text=True,
+            shell=False,
+            timeout=60,
+            check=False,
+        )
         verified = subprocess.run(
             [
                 executable,
@@ -925,16 +1065,22 @@ def install_open_claude_design(ctx: InstallContext) -> bool:
     except (OSError, subprocess.SubprocessError) as error:
         _thread_local.last_retry_stderr = str(error)
         return False
-    if materialized.returncode != 0 or verified.returncode != 0:
+    if materialized.returncode != 0 or compatible.returncode != 0 or verified.returncode != 0:
         _thread_local.last_retry_stderr = (
             materialized.stderr.strip()
             or materialized.stdout.strip()
+            or compatible.stderr.strip()
+            or compatible.stdout.strip()
             or verified.stderr.strip()
             or verified.stdout.strip()
         )
         return False
     try:
         status = json.loads(verified.stdout)
+        if status["package_version"] != expected_version:
+            raise ValueError(
+                f"installed version {status['package_version']!r} does not match resolved wheel {expected_version!r}"
+            )
         skills_status = status["agent_skills"]
         if not skills_status["ready"] or not all(skills_status["skills"].values()):
             raise ValueError("installed artifact is incomplete")

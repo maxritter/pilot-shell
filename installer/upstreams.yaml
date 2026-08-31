@@ -84,14 +84,18 @@ entries:
     last_audited: "2026-08-30"
 
   - id: open-claude-design
-    name: "Open Claude Design cross-agent CLI and implicit design pack"
+    name: "Open Claude Design latest stable release channel"
     source_type: curl
-    source_url: https://github.com/maxritter/open-claude-design/releases/download/v1.0.1/open_claude_design-1.0.1-py3-none-any.whl
-    version: "1.0.1"
-    sha256: "a0e3b506146e5af8360c704b8c470f25c79f53b8c72dce7f0ce13ed9ff74d2bc"
-    # Local-mode installs verify the sibling repository's wheel against this
-    # same hash. The public URL and digest remain explicit Pilot release gates.
-    last_audited: "2026-08-30"
+    source_url: https://github.com/maxritter/open-claude-design/releases/latest/download/SHA256SUMS
+    version: "live-github-release"
+    sha256: "b951a3f0219dfad61a9cc26709419e7963e7fb371fa35c9b73b0ae63ee57a7e3"
+    soft_pin: true
+    soft_pin_reason: "Max owns both projects; Pilot resolves the latest stable release and verifies its wheel against that release's SHA256SUMS"
+    pin_kind: monitor
+    # sha256 is an audit snapshot of the current checksum manifest. The custom
+    # resolver verifies each latest wheel against the downloaded release-local
+    # SHA256SUMS, so future Open Claude Design releases require no Pilot edit.
+    last_audited: "2026-08-31"
 
   - id: agent-browser
     name: agent-browser

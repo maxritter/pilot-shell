@@ -84,13 +84,17 @@ Pilot's decomposed skill sources use `manifest.json`, an orchestrator, and order
 
 ## Claude Design bridge
 
-Open Claude Design owns a standalone browser OAuth flow, so neither Claude Code nor an Anthropic API key is required. The scoped credential lives in a dedicated macOS Keychain item or current-user-only Linux/WSL2 file; an existing Claude Code Design login remains a compatibility fallback.
+Open Claude Design owns a standalone browser OAuth flow, so neither Claude Code nor an Anthropic API key is required. The scoped credential lives in a dedicated macOS Keychain item or current-user-only Linux/WSL2 file; an existing Claude Code Design login remains a compatibility fallback. Pilot installs the latest stable Open Claude Design release after verifying its release-local checksum and sync compatibility.
 
 | Command | Description |
 |---------|-------------|
 | `pilot design login [--manual]` | Connect an eligible Claude.ai account directly through Open Claude Design |
 | `pilot design logout --yes` | Remove only Open Claude Design's standalone credential |
 | `pilot design status [--json]` | Forward to Open Claude Design and verify the platform credential, MCP connection, server identity, and protocol version |
+| `pilot design sync review <project> --direction <to-design\|to-code> --pair <remote=local> [--json]` | Create the exact revision-bound diff and review id used for approval; repeat `--pair` for the complete sync set |
+| `pilot design sync apply <review-id> --allow-write [--json]` | Revalidate the approved local hashes and remote etags before any write or implementation handoff |
+| `pilot design sync finish <review-id> [--json]` | Advance the verified ledger only after preview, readback, implementation, and local checks succeed |
+| `pilot design sync status [<review-id>] [--json]` | Inspect local review state without remote access; stale reviews require reapproval and unknown reviews require reconciliation |
 | `pilot design authoring-context <project> --design-system <id> --skill <name> [--refresh] [--json]` | Fetch or reuse the current project prompt and one live authoring skill through one MCP session; writes complete texts to the git-ignored local cache instead of terminal output |
 | `pilot design tools [--json]` | List compact live tool summaries without full input schemas |
 | `pilot design describe <tool> [--json]` | Fetch one live tool's complete schema and annotations |
