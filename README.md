@@ -4,8 +4,8 @@
 
 ### How real engineers run Claude Code and Codex
 
-From requirement to production-grade code — planned, tested, verified.</br>
-**Professional context and harness engineering. Spec-driven delivery. TDD and enforced quality.**
+Professional context and harness engineering around the coding agents you already use.</br>
+**Persistent knowledge. Enforced quality. Runtime proof.**
 
 [![Stars](https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&color=F59E0B)](https://github.com/maxritter/pilot-shell)
 [![Star History](https://img.shields.io/badge/Star_History-chart-8B5CF6)](https://star-history.com/#maxritter/pilot-shell&Date)
@@ -42,16 +42,17 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 
 ## Why Pilot Shell
 
-**Claude Code and Codex CLI write code fast** — but production-grade software still needs durable requirements, disciplined implementation, quality control, and proof that the finished system works.
+**Claude Code and Codex CLI write code fast** — but production-grade software still needs durable context, disciplined implementation, quality control, and proof that the finished system works.
 
 **Pilot Shell is a professional context and harness engineering system—not a collection of rules and skills.** It coordinates the complete engineering process around the model:
 
-- **Stateful delivery** — requirements, specs, buildouts, tasks, acceptance criteria, progress, reviews, and verification evidence stay connected across long sessions and compaction
-- **Spec-driven development and TDD** — exploration and planning constrain implementation; behavior changes move through RED → GREEN → REFACTOR
 - **Quality on every layer** — hooks, stop guards, independent reviews, full test/build gates, and browser or device verification prevent “looks done” handoffs
-- **Context engineering** — relevant source, architecture, project standards, prior decisions, specialized agents, and MCP tools arrive at the stage where they matter
+- **Persistent context** — relevant source, architecture, project standards, prior decisions, and session state survive long work and compaction
 - **Professional toolchain** — Semble, CodeGraph, RTK, language servers, browser automation, and MCP integrations support discovery, impact analysis, implementation, and runtime proof
+- **Runtime verification** — tests, builds, real CLI/API execution, browser automation, and device checks turn completion claims into evidence
 - **Human control plane** — the Console connects plan and diff review, annotations, progress, evidence, session recovery, shared project knowledge, and usage
+- **Workflow neutrality** — direct requests, native Plan/Goal tools, and Pilot workflows are peer ways to work inside the same harness
+- **Structured delivery when wanted** — `/spec`, `/build`, `/fix`, and `/prd` add durable artifacts and explicit lifecycle contracts without becoming routing rules for ordinary requests
 - **One system for Claude Code and Codex** — platform-specific adapters preserve one engineering standard while the underlying models continue to improve
 
 Rules, skills, and persistent memory are coordinated parts of this harness. They supply context; they are not the product by themselves. For a longer practitioner’s explanation, read [How to build production-ready software assisted with AI tools](https://vogel-johnson.com/blog/2026-07-21-ai-assisted-production-ready-code).
@@ -93,13 +94,23 @@ curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.
 <details>
 <summary><b>Uninstalling</b></summary>
 
-Removes the Pilot runtime, plugin files, managed commands/rules, settings and shell aliases. Memory, sessions, logs, configuration, and unknown files under `~/.pilot/` are preserved by default:
+Removes Pilot's runtime, Console, statusline, hooks, managed skills/rules/agents, MCP entries, settings injections, and shell aliases. Claude Code, Codex, project files, shared external tools, and user data are preserved:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash
 ```
 
-To delete that user data too, download the script and run `bash uninstall.sh --purge-data`.
+The interactive uninstaller asks separately whether to remove proven Pilot-owned external tools and whether to purge Pilot data, then shows the final removal preview. The prompts use the controlling terminal, so they also work with the piped command above.
+
+Optional cleanup stays explicit:
+
+```bash
+# Also remove external tools that Pilot recorded as originally Pilot-installed
+curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash -s -- --remove-tools
+
+# Also delete Pilot memories, sessions, logs, configuration, and unknown files
+curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash -s -- --purge-data
+```
 </details>
 
 <details>
@@ -157,31 +168,40 @@ For tighter isolation when working with untrusted code, combine the dev containe
 
 ### First Steps
 
-Run these commands once in each new project after installing Pilot Shell:
+Start either agent in any project. Work directly, use the agent's native Plan/Goal tools, or invoke a Pilot workflow — these are peer choices, and the same harness stays active around each one.
 
 ```bash
 # Claude Code         # Codex CLI
 claude                codex
-> /setup-rules        > $setup-rules
 ```
 
-`/setup-rules` reads your codebase, discovers your conventions, and generates project-specific rules and MCP server docs — this is how Pilot learns your project. Run it once to start, then again after major architectural changes.
+When you want repository-specific shared guidance, run `/setup-rules` in Claude Code or `$setup-rules` in Codex. It reads the codebase, discovers conventions, and prepares synchronized rules and MCP guidance; it is useful setup, not a prerequisite for using Pilot.
 
-Once your rules are in place, use `/create-skill` to capture repeatable workflows and `/benchmark` to measure whether your rules and skills are improving outputs. See [Additional Workflows](#additional-workflows) for the full on-demand toolkit.
+Use `/create-skill` to capture a repeatable procedure and `/benchmark` to measure whether guidance improves output. See [Other Pilot Workflows](#other-pilot-workflows) for the full on-demand toolkit.
 
 ---
 
 
-<h2 id="features">Core Workflows</h2>
+<h2 id="features">Ways of Working</h2>
 
-Native quick work remains the default. Use a durable workflow when the task needs an explicit product, planning, or verification contract.
+Pilot supports three peer paths. Choose the contract that fits the work; none is the escalation path or preferred default for another.
+
+| Path | What it adds |
+|---|---|
+| Direct request | The shortest route from a clear request to implementation and verification |
+| Native agent Plan/Goal tools | The planning, task, approval, and persistence model built into Claude Code or Codex |
+| Pilot workflows | Durable requirements, plans, criteria, TDD loops, reviews, and verification evidence |
+
+## Pilot Workflows
+
+Pilot's four structured workflows remain available when their explicit artifact or lifecycle contract is useful.
 
 | Workflow | Use it when | Contract |
 |---|---|---|
-| [`/prd`](https://pilot-shell.com/docs/workflows/prd) · `$prd` | The problem, audience, or scope is still unclear | Explore directions and produce a reviewable product requirement document |
 | [`/spec`](https://pilot-shell.com/docs/workflows/spec) · `$spec` | You want ordered tasks approved before implementation | Plan against the real codebase, implement with TDD, review independently, and verify end to end |
 | [`/build`](https://pilot-shell.com/docs/workflows/build) · `$build` | The outcome is clear but the task list should evolve while building | Define acceptance criteria, build in rounds, and let an independent judge turn gaps into the next round |
 | [`/fix`](https://pilot-shell.com/docs/workflows/fix) · `$fix` | Existing behavior is broken | Reproduce the defect, write the RED test, repair the root cause, run the quality gate, and audit the result |
+| [`/prd`](https://pilot-shell.com/docs/workflows/prd) · `$prd` | The problem, audience, or scope is still unclear | Explore directions and produce a reviewable product requirement document |
 
 `/spec` and `/build` are peers: choose `/spec` for an approved plan and `/build` for a goal measured by acceptance criteria. Size alone does not decide.
 
@@ -193,9 +213,9 @@ Requirement or goal → plan / criteria → TDD implementation → quality gates
 
 Requirements, plans, buildouts, tasks, criteria, and verification evidence live in durable files under `docs/`. Stop guards keep the workflow open until the obligations pass or are reported unresolved.
 
-[Explore all workflow details →](https://pilot-shell.com/docs/category/workflows)
+[Explore all workflow details →](https://pilot-shell.com/docs/category/pilot-workflows)
 
-## Additional Workflows
+## Other Pilot Workflows
 
 Use these on demand; the full procedures live in the documentation.
 
@@ -219,7 +239,7 @@ The local Console at `localhost:41777` makes the harness visible and steerable.
 
 <img src="docs/img/console/dashboard.webp" alt="Console — Dashboard" width="700">
 
-- Review and annotate requirements, specifications, buildouts, and diffs; feedback flows back into the active workflow.
+- Review and annotate requirements, specifications, buildouts, and diffs; feedback flows back into the work that owns them.
 - Recover Claude Code and Codex sessions and search source-linked project knowledge.
 - Inspect progress, verification evidence, notifications, changes, usage, and costs.
 - Manage workflow settings and shared rules, skills, commands, and agents.

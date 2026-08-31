@@ -28,8 +28,7 @@
   "spinnerTipsOverride": {
     "tips": [
       "[PILOT] Run /setup-rules after installation to generate project rules",
-      "[PILOT] Use /spec for features and /fix for bugs - structured planning, TDD, and code review for both",
-      "[PILOT] Quick Mode: Just chat for small changes and exploration (all quality hooks still apply)",
+      "[PILOT] Work directly, use native Plan/Goal tools, or invoke a Pilot workflow - the same engineering harness stays active",
       "[PILOT] Press Ctrl+R to search command history | Ctrl+C to cancel current operation",
       "[PILOT] Press Escape twice to cancel a running operation",
       "[PILOT] Check /help for all available commands and shortcuts",
@@ -74,7 +73,7 @@
       "[PILOT] /setup-rules discovers undocumented patterns in your codebase and generates rules automatically",
       "[PILOT] Share Dashboard -> Manage and sync skills across machines and teams in the Console at localhost:41777/#/share",
       "[PILOT] /create-skill builds a reusable skill from any topic - explores codebase and creates it interactively",
-      "[PILOT] Both /spec and Quick Mode benefit from auto-compaction and persistent memory",
+      "[PILOT] Direct work, native workflows, and Pilot workflows all benefit from auto-compaction and persistent memory",
       "[PILOT] Multi-Session: Run multiple pilot sessions in the same project - each is fully isolated",
       "[PILOT] Verification loops back automatically if tests fail or issues are found",
       "[PILOT] Work is verified before marked complete - no more 'hope it works'",

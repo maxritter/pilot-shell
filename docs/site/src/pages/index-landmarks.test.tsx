@@ -10,23 +10,26 @@ vi.mock("@/components/NavBar", () => ({
 vi.mock("@/components/HeroSection", () => ({
   default: () => <section>Hero</section>,
 }));
-vi.mock("@/components/InstallSection", () => ({
-  default: () => <section>Install</section>,
+vi.mock("@/components/AnatomySection", () => ({
+  default: () => <section>Anatomy</section>,
 }));
 vi.mock("@/components/WorkflowSteps", () => ({
   default: () => <section>Workflow</section>,
 }));
-vi.mock("@/components/WhatsInside", () => ({
-  default: () => <section>Features</section>,
-}));
-vi.mock("@/components/DesignExpertiseSection", () => ({
-  default: () => <section>Design expertise</section>,
-}));
 vi.mock("@/components/SpecCollabSection", () => ({
   default: () => <section>Collaboration</section>,
 }));
+vi.mock("@/components/TeamSection", () => ({
+  default: () => <section>Team</section>,
+}));
+vi.mock("@/components/InstallSection", () => ({
+  default: () => <section>Install</section>,
+}));
 vi.mock("@/components/ConsoleSection", () => ({
   default: () => <section>Console</section>,
+}));
+vi.mock("@/components/AgentsSection", () => ({
+  default: () => <section>Agents</section>,
 }));
 vi.mock("@/components/TestimonialsSection", () => ({
   default: () => <section>Testimonials</section>,

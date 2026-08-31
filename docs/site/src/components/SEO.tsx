@@ -12,8 +12,9 @@ interface SEOProps {
 
 const SEO = ({
   /*
-   * TITLE and KEYWORDS are set from measured US search volume (DataForSEO,
-   * 2026-08); the DESCRIPTION is deliberately not:
+   * KEYWORDS retain measured US search terms (DataForSEO, 2026-08). The TITLE
+   * and DESCRIPTION carry the product's harness-first positioning instead of
+   * making one optional Pilot workflow look like the whole product:
    *
    *   codex cli                  27100/mo   competition 30
    *   claude code skills         12100/mo   competition  9
@@ -28,16 +29,16 @@ const SEO = ({
    * "claude code" itself is 550000/mo but navigational to Anthropic, so it is
    * carried for relevance and never chased as a target.
    *
-   * DO NOT "optimize" the description. It is product positioning, not an SEO
+   * Do not "optimize" the description into a keyword list. It is product positioning, not an SEO
    * slot, and it is the sentence Slack, LinkedIn and X show when the site is
    * shared. An earlier pass rewrote it into a feature list (skills, hooks,
    * subagents, MCP) and that was rejected: it understates what Pilot Shell
    * does. Keep it, and the og:/twitter: variants, in the product's own words.
    *
-   * Title stays under 60 chars, or Google truncates it.
+   * The title stays around 60 characters so search results remain readable.
    */
-  title = "Spec-driven development for Claude Code & Codex CLI",
-  description = "Spec-driven planning, enforced TDD, persistent memory, and quality automation for Claude Code, with Codex compatibility for supported integrations across Python, TypeScript, Go, and C#.",
+  title = "Pilot Shell — Engineering harness for Claude Code & Codex",
+  description = "Professional context, enforced quality, persistent knowledge, code intelligence, and runtime proof for Claude Code and Codex — with Pilot workflows when you want their contract.",
   keywords = "claude code skills, codex cli, spec driven development, claude code agents, claude code plugins, claude code hooks, claude code subagents, claude code mcp, claude code setup, claude code best practices, Pilot Shell",
   canonicalUrl = "https://pilot-shell.com/",
   ogImage = "https://pilot-shell.com/logo.png",

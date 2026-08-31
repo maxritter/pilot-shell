@@ -42,9 +42,12 @@ const PricingSection = () => {
           ref={headerRef}
           className={`text-center mb-12 ${headerInView ? "animate-fade-in-up" : "opacity-0"}`}
         >
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
+          <h1
+            id="pricing-heading"
+            className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-4"
+          >
             Always up-to-date. Always optimized.
-          </h2>
+          </h1>
           <p className="text-muted-foreground text-lg sm:text-xl max-w-2xl mx-auto">
             Your shortcut to state-of-the-art AI-assisted development.
           </p>
@@ -56,7 +59,7 @@ const PricingSection = () => {
             <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mx-auto">
               <RefreshCw className="h-5 w-5 text-primary" />
             </div>
-            <h3 className="text-sm font-semibold text-foreground">Continuously updated</h3>
+            <h2 className="text-sm font-semibold text-foreground">Continuously updated</h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
               New tools, optimizations, and best practices from daily production usage — shipped as updates, not blog posts.
             </p>
@@ -65,7 +68,7 @@ const PricingSection = () => {
             <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mx-auto">
               <Zap className="h-5 w-5 text-primary" />
             </div>
-            <h3 className="text-sm font-semibold text-foreground">Ready to use</h3>
+            <h2 className="text-sm font-semibold text-foreground">Ready to use</h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Install once, get a complete AI coding setup instantly. No hours of configuration, research, or trial and error.
             </p>
@@ -74,7 +77,7 @@ const PricingSection = () => {
             <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mx-auto">
               <Shield className="h-5 w-5 text-primary" />
             </div>
-            <h3 className="text-sm font-semibold text-foreground">Battle-tested</h3>
+            <h2 className="text-sm font-semibold text-foreground">Battle-tested</h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Every rule, hook, and workflow is proven in production before it ships. You get what works, not what sounds good.
             </p>
@@ -98,7 +101,7 @@ const PricingSection = () => {
                 <Check className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-foreground">Solo</h3>
+                <h2 className="text-xl font-bold text-foreground">Solo</h2>
                 <p className="text-xs text-muted-foreground">1 developer</p>
               </div>
             </div>
@@ -118,7 +121,7 @@ const PricingSection = () => {
               <li className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground text-sm group-hover:text-foreground/80 transition-colors">
-                  Spec-driven mode, memory system, browser dashboard
+                  Pilot workflows, persistent memory, browser dashboard
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -172,7 +175,7 @@ const PricingSection = () => {
                 <Building2 className="h-6 w-6 text-indigo-500" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-foreground">Team</h3>
+                <h2 className="text-xl font-bold text-foreground">Team</h2>
                 <p className="text-xs text-muted-foreground">Multiple developers</p>
               </div>
             </div>
@@ -245,9 +248,9 @@ const PricingSection = () => {
             <CircleUserRound className="h-6 w-6 text-primary" />
           </div>
           <div className="flex-1">
-            <h3 className="text-base font-semibold text-foreground mb-1">
+            <h2 className="text-base font-semibold text-foreground mb-1">
               Already subscribed?
-            </h3>
+            </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Add or remove team seats, update your payment method, download
               invoices, and recover your license key in the customer portal.
@@ -263,9 +266,9 @@ const PricingSection = () => {
 
         {/* Rolling out for your team */}
         <div className="mt-16 text-center max-w-3xl mx-auto">
-          <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mb-3">
             Rolling Out for Your Team?
-          </h3>
+          </h2>
           <p className="text-muted-foreground text-base sm:text-lg mb-6">
             Let's find the right setup for your team and get everyone onboarded.
           </p>

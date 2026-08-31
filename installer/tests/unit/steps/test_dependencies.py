@@ -14,6 +14,15 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def _isolate_owned_tool_manifest(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Mock installer runs must never write ownership metadata into the real home."""
+    monkeypatch.setattr(
+        "installer.steps.dependencies._owned_tools_manifest_path",
+        lambda: tmp_path / ".pilot" / ".pilot-owned-tools.json",
+    )
+
+
 class TestDependenciesStep:
     """Test DependenciesStep class."""
 
@@ -130,6 +139,32 @@ class TestAgentInstallRemoved:
         import installer.steps.dependencies as deps
 
         assert not hasattr(deps, "install_claude_code")
+
+
+class TestOwnedToolManifest:
+    """Only tools absent before Pilot ran become uninstall-owned."""
+
+    def test_records_fresh_tools_and_preserves_prior_ownership(self, tmp_path: Path) -> None:
+        from installer.steps.dependencies import _load_owned_tools, _write_owned_tools
+
+        with patch("installer.steps.dependencies.Path.home", return_value=tmp_path):
+            _write_owned_tools(
+                {"rtk"},
+                ["semble", "codegraph", "prettier"],
+                {"semble": False, "codegraph": True, "prettier": False},
+            )
+
+            assert _load_owned_tools() == {"rtk", "semble", "prettier"}
+
+    def test_ignores_unknown_manifest_entries(self, tmp_path: Path) -> None:
+        from installer.steps.dependencies import PILOT_OWNED_TOOLS_MANIFEST, _load_owned_tools
+
+        manifest = tmp_path / ".pilot" / PILOT_OWNED_TOOLS_MANIFEST
+        manifest.parent.mkdir(parents=True)
+        manifest.write_text('{"tools":["semble","user-tool","../../escape"]}\n')
+
+        with patch("installer.steps.dependencies.Path.home", return_value=tmp_path):
+            assert _load_owned_tools() == {"semble"}
 
 
 class TestDependencyInstallFunctions:

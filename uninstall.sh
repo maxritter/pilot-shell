@@ -102,6 +102,8 @@ fi
 HOOKS_BASELINE_FILE="$CLAUDE_DIR/.pilot-hooks-baseline.json"
 MCP_BASELINE_FILE="$CLAUDE_DIR/.pilot-mcp-baseline.json"
 LSP_MANIFEST_FILE="$PILOT_DIR/.pilot-lsp-plugins.json"
+OWNED_TOOLS_MANIFEST_FILE="$PILOT_DIR/.pilot-owned-tools.json"
+WORKER_PID_FILE="$PILOT_DIR/memory/worker.pid"
 
 if [ -n "${CODEX_HOME+x}" ]; then
 	case "$CODEX_HOME" in
@@ -222,6 +224,72 @@ cleanup_failed=false
 mark_cleanup_failure() {
 	cleanup_failed=true
 	echo "    [!!] $1"
+}
+
+stop_pilot_worker() {
+	if [ ! -f "$WORKER_PID_FILE" ]; then
+		return
+	fi
+	if ! pilot_python_available; then
+		mark_cleanup_failure "Could not inspect the Pilot worker PID (python3 unavailable)"
+		return
+	fi
+
+	local worker_pid
+	if ! worker_pid=$(PILOT_WORKER_PID_FILE="$WORKER_PID_FILE" pilot_python -c '
+import json, os, sys
+try:
+    with open(os.environ["PILOT_WORKER_PID_FILE"]) as handle:
+        value = json.load(handle).get("pid")
+except Exception:
+    sys.exit(1)
+if not isinstance(value, int) or isinstance(value, bool) or value <= 1:
+    sys.exit(1)
+print(value)
+'); then
+		mark_cleanup_failure "Could not safely read the Pilot worker PID file"
+		return
+	fi
+
+	if ! kill -0 "$worker_pid" 2>/dev/null; then
+		rm -f "$WORKER_PID_FILE"
+		return
+	fi
+
+	local worker_command
+	worker_command=$(ps -p "$worker_pid" -o command= 2>/dev/null || true)
+	case "$worker_command" in
+	*"$PILOT_DIR/scripts/worker-service.cjs"* | *"$PILOT_DIR/scripts/worker-wrapper.cjs"*) ;;
+	*)
+		mark_cleanup_failure "Worker PID $worker_pid does not belong to Pilot; refusing to signal it"
+		return
+		;;
+	esac
+
+	kill -TERM "$worker_pid" 2>/dev/null || true
+	local attempt=0
+	local worker_state=""
+	while kill -0 "$worker_pid" 2>/dev/null && [ "$attempt" -lt 50 ]; do
+		worker_state=$(ps -p "$worker_pid" -o stat= 2>/dev/null || true)
+		case "$worker_state" in
+		*Z*) break ;;
+		esac
+		sleep 0.1
+		attempt=$((attempt + 1))
+	done
+	worker_state=$(ps -p "$worker_pid" -o stat= 2>/dev/null || true)
+	if kill -0 "$worker_pid" 2>/dev/null && [[ "$worker_state" != *Z* ]]; then
+		kill -KILL "$worker_pid" 2>/dev/null || true
+		sleep 0.1
+	fi
+	worker_state=$(ps -p "$worker_pid" -o stat= 2>/dev/null || true)
+	if kill -0 "$worker_pid" 2>/dev/null && [[ "$worker_state" != *Z* ]]; then
+		mark_cleanup_failure "Pilot worker PID $worker_pid did not stop"
+		return
+	fi
+	rm -f "$WORKER_PID_FILE"
+	echo "    [OK] Stopped Pilot Console worker"
+	removed_items+=("Pilot Console worker")
 }
 
 release_uninstall_lock() {
@@ -346,6 +414,75 @@ get_affected_shell_configs() {
 	done
 }
 
+prompt_yes_no() {
+	local prompt="$1"
+	local answer=""
+	if [ -t 0 ]; then
+		printf "%s" "$prompt"
+		read -r answer
+	elif [ -r /dev/tty ]; then
+		printf "%s" "$prompt" >/dev/tty
+		read -r answer </dev/tty
+	else
+		return 2
+	fi
+	case "$answer" in
+	[Yy] | [Yy][Ee][Ss]) return 0 ;;
+	*) return 1 ;;
+	esac
+}
+
+has_owned_external_tools() {
+	if [ -f "$LSP_MANIFEST_FILE" ]; then
+		return 0
+	fi
+	if [ ! -f "$OWNED_TOOLS_MANIFEST_FILE" ] || ! pilot_python_available; then
+		return 1
+	fi
+	PILOT_TOOL_OWNERSHIP="$OWNED_TOOLS_MANIFEST_FILE" pilot_python -c '
+import json, os, sys
+try:
+    with open(os.environ["PILOT_TOOL_OWNERSHIP"]) as handle:
+        values = json.load(handle).get("tools")
+except Exception:
+    sys.exit(1)
+sys.exit(0 if isinstance(values, list) and len(values) > 0 else 1)
+' >/dev/null 2>&1
+}
+
+configure_optional_cleanup() {
+	if [ "$SKIP_CONFIRM" = true ]; then
+		return
+	fi
+
+	if [ "$REMOVE_TOOLS_EXPLICIT" = false ] && has_owned_external_tools; then
+		if prompt_yes_no "  Also remove external tools that Pilot recorded as originally Pilot-installed? [y/N]: "; then
+			REMOVE_TOOLS=true
+		else
+			local result=$?
+			if [ "$result" -eq 2 ]; then
+				echo "  No interactive terminal available." >&2
+				echo "  Use --yes for the safe defaults, or add --remove-tools explicitly." >&2
+				exit 1
+			fi
+		fi
+	fi
+
+	if [ "$PURGE_DATA_EXPLICIT" = false ]; then
+		if prompt_yes_no "  Also delete Pilot memories, sessions, logs, configuration, and unknown files? [y/N]: "; then
+			PURGE_DATA=true
+		else
+			local result=$?
+			if [ "$result" -eq 2 ]; then
+				echo "  No interactive terminal available." >&2
+				echo "  Use --yes to preserve data, or add --purge-data explicitly." >&2
+				exit 1
+			fi
+		fi
+	fi
+	echo ""
+}
+
 confirm_uninstall() {
 	local version
 	version=$(get_pilot_version)
@@ -364,6 +501,7 @@ confirm_uninstall() {
 		echo "  (from CLAUDE_CONFIG_DIR - \$HOME/.claude will not be modified)"
 	fi
 	echo ""
+	configure_optional_cleanup
 
 	echo "  Uninstalling will:"
 	echo ""
@@ -375,6 +513,11 @@ confirm_uninstall() {
 			echo "    • Remove Pilot runtime files from ~/.pilot/"
 			echo "    • Preserve memory, sessions, logs, configuration, and unknown user-owned files"
 		fi
+	fi
+	if [ "$REMOVE_TOOLS" = true ]; then
+		echo "    • Remove external tools that Pilot can prove it originally installed"
+	else
+		echo "    • Preserve shared external tools"
 	fi
 
 	if [ -d "$PILOT_PLUGIN_DIR" ]; then
@@ -399,7 +542,7 @@ confirm_uninstall() {
 		echo "    • Clean Pilot-added keys (and mcpServers) from ${CLAUDE_APP_CONFIG}"
 	fi
 
-	if [ -f "$LSP_MANIFEST_FILE" ]; then
+	if [ "$REMOVE_TOOLS" = true ] && [ -f "$LSP_MANIFEST_FILE" ]; then
 		local lsp_ids
 		lsp_ids=$(grep -oE '"[a-z][a-z0-9-]*@'"$LSP_MARKETPLACE"'"' "$LSP_MANIFEST_FILE" 2>/dev/null | sed 's/"//g' | tr '\n' ' ')
 		if [ -n "$lsp_ids" ]; then
@@ -441,25 +584,16 @@ confirm_uninstall() {
 
 	echo ""
 
-	confirm=""
-	if [ -t 0 ]; then
-		printf "  Continue? [y/N]: "
-		read -r confirm
-	elif [ -e /dev/tty ]; then
-		printf "  Continue? [y/N]: "
-		read -r confirm </dev/tty
-	else
+	if prompt_yes_no "  Continue? [y/N]: "; then
+		return
+	fi
+	local result=$?
+	if [ "$result" -eq 2 ]; then
 		echo "  No interactive terminal available. Use --yes to skip confirmation."
 		exit 1
 	fi
-
-	case "$confirm" in
-	[Yy] | [Yy][Ee][Ss]) ;;
-	*)
-		echo "  Cancelled."
-		exit 0
-		;;
-	esac
+	echo "  Cancelled."
+	exit 0
 }
 
 remove_shell_aliases() {
@@ -1012,6 +1146,207 @@ uninstall_extra_plugins() {
 	if [ "$removed_count" -gt 0 ]; then
 		echo "    [OK] Removed $removed_count legacy Pilot plugin hook file(s)"
 		removed_items+=("$removed_count legacy plugin hook file(s)")
+	fi
+}
+
+remove_impeccable_integrations() {
+	if pilot_python_available; then
+		for hooks_file in "$CLAUDE_DIR/settings.json" "$CODEX_DIR/hooks.json"; do
+			[ -f "$hooks_file" ] || continue
+			if ! PILOT_IMPECCABLE_HOOKS="$hooks_file" pilot_python -c '
+import json, os, stat, sys, tempfile
+
+path = os.path.realpath(os.environ["PILOT_IMPECCABLE_HOOKS"])
+try:
+    with open(path) as handle:
+        data = json.load(handle)
+except Exception:
+    sys.exit(1)
+hooks = data.get("hooks") if isinstance(data, dict) else None
+if not isinstance(hooks, dict):
+    sys.exit(0)
+changed = False
+for event in list(hooks):
+    groups = hooks[event]
+    if not isinstance(groups, list):
+        continue
+    kept_groups = []
+    for group in groups:
+        if not isinstance(group, dict) or not isinstance(group.get("hooks"), list):
+            kept_groups.append(group)
+            continue
+        kept_handlers = []
+        for handler in group["hooks"]:
+            command = handler.get("command", "") if isinstance(handler, dict) else ""
+            command_windows = handler.get("commandWindows", "") if isinstance(handler, dict) else ""
+            if "skills/impeccable/scripts/hook.mjs" in command or "skills/impeccable/scripts/hook.mjs" in command_windows:
+                changed = True
+            else:
+                kept_handlers.append(handler)
+        if kept_handlers:
+            group["hooks"] = kept_handlers
+            kept_groups.append(group)
+    if kept_groups:
+        hooks[event] = kept_groups
+    else:
+        del hooks[event]
+if not changed:
+    sys.exit(0)
+fd, temporary = tempfile.mkstemp(prefix=".pilot-uninstall-", dir=os.path.dirname(path))
+try:
+    with os.fdopen(fd, "w") as handle:
+        json.dump(data, handle, indent=2)
+        handle.write("\n")
+    os.chmod(temporary, stat.S_IMODE(os.stat(path).st_mode))
+    os.replace(temporary, path)
+except Exception:
+    try:
+        os.remove(temporary)
+    except OSError:
+        pass
+    raise
+'; then
+				mark_cleanup_failure "Could not remove Impeccable hooks from $hooks_file"
+				return 1
+			fi
+		done
+	else
+		mark_cleanup_failure "Could not remove Impeccable hooks (python3 unavailable)"
+		return 1
+	fi
+
+	local skill_dir
+	for skill_dir in "$CLAUDE_DIR/skills/impeccable" "$AGENTS_SKILLS_DIR/impeccable"; do
+		if [ -L "$skill_dir" ]; then
+			rm -f "$skill_dir"
+		elif [ -d "$skill_dir" ]; then
+			rm -rf "$skill_dir"
+		fi
+	done
+}
+
+uninstall_uv_tool_if_owned() {
+	local package="$1"
+	local command="$2"
+	if ! command -v uv >/dev/null 2>&1; then
+		if ! command -v "$command" >/dev/null 2>&1; then
+			return 0
+		fi
+		mark_cleanup_failure "Could not uninstall Pilot-owned $package (uv unavailable)"
+		return 1
+	fi
+	if ! uv tool uninstall --no-config "$package" >/dev/null 2>&1; then
+		if ! command -v "$command" >/dev/null 2>&1; then
+			return 0
+		fi
+		mark_cleanup_failure "Could not uninstall Pilot-owned $package"
+		return 1
+	fi
+}
+
+uninstall_npm_tool_if_owned() {
+	local package="$1"
+	if ! command -v npm >/dev/null 2>&1; then
+		mark_cleanup_failure "Could not uninstall Pilot-owned $package (npm unavailable)"
+		return 1
+	fi
+	if ! npm uninstall -g "$package" >/dev/null 2>&1; then
+		mark_cleanup_failure "Could not uninstall Pilot-owned $package"
+		return 1
+	fi
+}
+
+uninstall_owned_tools() {
+	if [ ! -f "$OWNED_TOOLS_MANIFEST_FILE" ]; then
+		return
+	fi
+	if ! pilot_python_available; then
+		mark_cleanup_failure "Could not read Pilot tool ownership manifest (python3 unavailable)"
+		return
+	fi
+
+	local tools
+	if ! tools=$(PILOT_OWNED_TOOLS_MANIFEST="$OWNED_TOOLS_MANIFEST_FILE" pilot_python -c '
+import json, os, sys
+allowed = {
+    "agent-browser", "basedpyright", "codegraph", "fast-check", "golangci-lint",
+    "hypothesis", "impeccable", "open-claude-design", "playwright-cli", "prettier",
+    "rtk", "ruff", "semble", "typescript", "vtsls",
+}
+try:
+    with open(os.environ["PILOT_OWNED_TOOLS_MANIFEST"]) as handle:
+        data = json.load(handle)
+except Exception:
+    sys.exit(1)
+values = data.get("tools") if isinstance(data, dict) else None
+if not isinstance(values, list) or not all(isinstance(value, str) for value in values):
+    sys.exit(1)
+if len(values) != len(set(values)) or any(value not in allowed for value in values):
+    sys.exit(1)
+print("\n".join(values))
+'); then
+		mark_cleanup_failure "Could not safely read Pilot tool ownership manifest"
+		return
+	fi
+
+	local removed_count=0
+	local tool
+	while IFS= read -r tool; do
+		[ -n "$tool" ] || continue
+		case "$tool" in
+		agent-browser) uninstall_npm_tool_if_owned "agent-browser" || continue ;;
+		basedpyright) uninstall_uv_tool_if_owned "basedpyright" "basedpyright" || continue ;;
+		codegraph) uninstall_npm_tool_if_owned "@colbymchenry/codegraph" || continue ;;
+		fast-check) uninstall_npm_tool_if_owned "fast-check" || continue ;;
+		golangci-lint)
+			if command -v go >/dev/null 2>&1; then
+				local go_path
+				go_path=$(go env GOPATH 2>/dev/null || true)
+				[ -n "$go_path" ] && rm -f "$go_path/bin/golangci-lint"
+			fi
+			;;
+		hypothesis) uninstall_uv_tool_if_owned "hypothesis" "hypothesis" || continue ;;
+		impeccable)
+			remove_impeccable_integrations || continue
+			uninstall_npm_tool_if_owned "impeccable" || continue
+			;;
+		open-claude-design)
+			if command -v open-claude-design >/dev/null 2>&1; then
+				if ! open-claude-design uninstall --scope global --yes --json >/dev/null 2>&1; then
+					mark_cleanup_failure "Could not remove Pilot-owned Open Claude Design integrations"
+					continue
+				fi
+			fi
+			uninstall_uv_tool_if_owned "open-claude-design" "open-claude-design" || continue
+			;;
+		playwright-cli) uninstall_npm_tool_if_owned "@playwright/cli" || continue ;;
+		prettier) uninstall_npm_tool_if_owned "prettier" || continue ;;
+		rtk)
+			if command -v rtk >/dev/null 2>&1; then
+				rtk init -g --uninstall >/dev/null 2>&1 || true
+				rtk init -g --codex --uninstall >/dev/null 2>&1 || true
+			fi
+			rm -f "$HOME/.local/bin/rtk"
+			;;
+		ruff) uninstall_uv_tool_if_owned "ruff" "ruff" || continue ;;
+		semble)
+			if command -v semble >/dev/null 2>&1; then
+				semble uninstall >/dev/null 2>&1 || true
+			fi
+			uninstall_uv_tool_if_owned "semble" "semble" || continue
+			;;
+		typescript) uninstall_npm_tool_if_owned "typescript" || continue ;;
+		vtsls) uninstall_npm_tool_if_owned "@vtsls/language-server" || continue ;;
+		esac
+		removed_count=$((removed_count + 1))
+	done <<<"$tools"
+
+	if [ "$cleanup_failed" = false ]; then
+		rm -f "$OWNED_TOOLS_MANIFEST_FILE"
+	fi
+	if [ "$removed_count" -gt 0 ]; then
+		echo "    [OK] Uninstalled $removed_count tool(s) that Pilot originally installed"
+		removed_items+=("$removed_count Pilot-owned tool(s)")
 	fi
 }
 
@@ -1586,6 +1921,11 @@ print_summary() {
 	fi
 
 	echo ""
+	echo "  Claude Code, Codex, project files, and user-owned agent configuration were preserved."
+	if [ "$PURGE_DATA" = false ]; then
+		echo "  Pilot memories, sessions, logs, configuration, and unknown files were preserved."
+	fi
+	echo ""
 	if [ -f "$CODEX_DIR/config.toml" ]; then
 		echo "  Note: ~/.codex/config.toml may still contain settings that Pilot added"
 		echo "  (approval_policy, sandbox_mode, model config, [features], [tui], etc.)."
@@ -1594,28 +1934,14 @@ print_summary() {
 		echo ""
 	fi
 
-	echo "  To fully clean up third-party tools installed by Pilot:"
-	echo "    - Claude Code:    npm uninstall -g @anthropic-ai/claude-code"
-	echo "    - Codex plugin:   claude plugins uninstall codex@openai-codex -y"
-	echo "    - Chrome plugin:  claude plugins uninstall chrome-devtools-mcp@chrome-devtools-plugins -y"
-	echo "    - CodeGraph:      npm uninstall -g @colbymchenry/codegraph"
-	echo "    - Semble setup:   semble uninstall"
-	echo "    - Semble indexes: semble clear all  # optional; deletes cached indexes"
-	echo "    - Semble:         uv tool uninstall semble"
-	echo "    - Semble uv cache: uv cache clean semble  # optional package-download cache"
-	echo "    - RTK Claude:     rtk init -g --uninstall"
-	echo "    - RTK Codex:      rtk init -g --codex --uninstall"
-	echo "    - better-sqlite3: npm uninstall -g better-sqlite3  # legacy Pilot installs only"
-	echo "    - agent-browser:  npm uninstall -g agent-browser"
-	echo "    - playwright-cli: npm uninstall -g @playwright/cli"
-	echo "    - impeccable:     npm uninstall -g impeccable"
-	echo "    - fast-check:     npm uninstall -g fast-check"
-	echo "    - vtsls:          npm uninstall -g @vtsls/language-server typescript"
-	echo "    - prettier:       npm uninstall -g prettier"
-	echo "    - golangci-lint:  rm -f \$(go env GOPATH)/bin/golangci-lint"
-	echo "    - Python tools:   uv tool uninstall ruff basedpyright"
-	echo "    - Hypothesis:     uv tool uninstall hypothesis"
-	echo ""
+	if [ "$REMOVE_TOOLS" = false ]; then
+		echo "  Shared external tools were preserved."
+		if has_owned_external_tools; then
+			echo "  To remove only tools recorded as originally Pilot-installed, rerun with --remove-tools:"
+			echo "    curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash -s -- --yes --remove-tools"
+		fi
+		echo ""
+	fi
 	echo "  Project indexes (.codegraph/) were intentionally left intact."
 	echo "  Remove an index only from inside that project with 'codegraph uninit'."
 	echo ""
@@ -1629,6 +1955,9 @@ print_summary() {
 
 SKIP_CONFIRM=false
 PURGE_DATA=false
+REMOVE_TOOLS=false
+PURGE_DATA_EXPLICIT=false
+REMOVE_TOOLS_EXPLICIT=false
 while [ $# -gt 0 ]; do
 	case "$1" in
 	--yes | -y)
@@ -1637,15 +1966,22 @@ while [ $# -gt 0 ]; do
 		;;
 	--purge-data)
 		PURGE_DATA=true
+		PURGE_DATA_EXPLICIT=true
+		shift
+		;;
+	--remove-tools)
+		REMOVE_TOOLS=true
+		REMOVE_TOOLS_EXPLICIT=true
 		shift
 		;;
 	--help | -h)
-		echo "Usage: uninstall.sh [--yes|-y] [--purge-data]"
+		echo "Usage: uninstall.sh [--yes|-y] [--remove-tools] [--purge-data]"
 		echo ""
 		echo "Uninstall Pilot Shell and remove all installed files."
 		echo ""
 		echo "Options:"
 		echo "  --yes, -y    Skip confirmation prompt"
+		echo "  --remove-tools Remove only external tools recorded as originally installed by Pilot"
 		echo "  --purge-data Also delete memory, sessions, logs, configuration, and unknown files in ~/.pilot"
 		echo "  --help, -h   Show this help message"
 		exit 0
@@ -1686,13 +2022,17 @@ echo ""
 echo "  Uninstalling Pilot Shell..."
 echo ""
 
+stop_pilot_worker
 remove_shell_aliases
 remove_manifest_files
 remove_pilot_settings
 remove_claude_json_keys
-uninstall_lsp_plugins
 uninstall_extra_plugins
 remove_codex_files
+if [ "$REMOVE_TOOLS" = true ]; then
+	uninstall_lsp_plugins
+	uninstall_owned_tools
+fi
 
 if [ "$cleanup_failed" = false ]; then
 	remove_pilot_baselines

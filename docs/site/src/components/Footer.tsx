@@ -52,11 +52,11 @@ const Footer = () => {
               <li>
                 <button
                   onClick={() =>
-                    navigateToSection("features", location.pathname, navigate)
+                    navigateToSection("anatomy", location.pathname, navigate)
                   }
                   className="inline-flex min-h-11 items-center text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
-                  Features
+                  The Harness
                 </button>
               </li>
               <li>

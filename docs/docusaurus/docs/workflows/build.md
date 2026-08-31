@@ -10,7 +10,7 @@ description: Autonomous goal-and-loop development — name an end state and walk
 
 The tasks are deliberately thin, and they are expected to change as the work teaches you something. That is the trade `/build` makes: less planning up front, more adapting as you go, with the judge holding the quality line at the end of each round.
 
-It is the default path for *"make this, and make it good"* when a spec is neither required nor wanted.
+It is one available path for *"make this, and make it good"* when you want a persisted goal, explicit acceptance criteria, and an independent judge loop.
 
 ## It runs on its own
 
@@ -18,7 +18,7 @@ It is the default path for *"make this, and make it good"* when a spec is neithe
 
 The front of the run is where the attention goes instead. A vague goal gets **grilled** until its acceptance criteria can actually be written; a sharp one passes through in silence. Paying there is what buys the quiet afterwards.
 
-That is deliberately the shape of Claude Code's native [`/goal`](https://code.claude.com/docs/en/goal): a condition, a loop that keeps going until it holds, and a separate evaluator deciding when it does. `/build` is that idea with Pilot's quality machinery wrapped around it — the acceptance criteria are the condition, the judge pass is the evaluator, Pilot's stop guard is the hook that will not let the session end early, and a nine-layer verification pass stands between "the criteria passed" and "this is done".
+That shares the broad shape of Claude Code's native [`/goal`](https://code.claude.com/docs/en/goal): a condition, a loop that keeps going until it holds, and an evaluator deciding when it does. The contracts differ without forming a hierarchy: `/goal` uses Claude Code's native state and controls, while `/build` persists a Buildout, explicit acceptance criteria, a judge pass, stop guards, and Pilot's verification record.
 
 :::tip Autonomy raises the bar, it does not lower it
 Nobody inspects the work before it is called finished, so `VERIFIED` is earned by what the Buildout can show, never by a reply. Every criterion has to be ticked against evidence the judge could point at, and every verification layer has to be either evidenced or explicitly listed as not run. A criterion that will not close is reported unresolved — it is never quietly relaxed to reach a tidier ending.
@@ -99,7 +99,7 @@ A round of grilling reflects the goal back before it asks — *"I read this as X
 
 What it will *not* ask about is how to build it — which library, which pattern, which file layout, whether the criteria look right, whether to keep going. That is the judgement the goal delegated.
 
-This is the step where Pilot earns what `/goal` leaves to you. A native `/goal` condition is only as good as the sentence you typed; `/build` writes that condition itself, so it does the work of understanding first — and the answers land in the Buildout's `## Summary`, where the judge rules against them all run and the hand-back quotes them back.
+This is one concrete difference from native `/goal`: `/build` turns the goal conversation into a persisted condition itself. The answers land in the Buildout's `## Summary`, where the judge rules against them throughout the run and the hand-back quotes them back. Choose native `/goal` when its own state and controls are the contract you want; choose `/build` when the persisted Buildout and Pilot judge loop are useful.
 
 :::note If you are not there
 Turn **Ask Questions** off and `/build` asks nothing, states the assumption it took, and starts. If a question times out, it takes the recommended option, says which, and builds — then names the assumption again in the hand-back report. An autonomous run that stalls waiting on an absent user is the failure this shape exists to remove.

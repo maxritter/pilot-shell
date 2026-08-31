@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
+import AnatomySection from "./AnatomySection";
 import FAQSection from "./FAQSection";
-import WhatsInside from "./WhatsInside";
 
 interface ChildrenProps {
   children: ReactNode;
@@ -17,14 +17,13 @@ vi.mock("@/components/ui/accordion", () => ({
 }));
 
 describe("code search and privacy copy", () => {
-  it("describes the current local search stack without latency promises", () => {
-    const features = renderToStaticMarkup(<WhatsInside />);
+  it("grounds context engineering in the local search stack", () => {
+    const anatomy = renderToStaticMarkup(<AnatomySection />);
 
-    expect(features).toContain("Semble finds code by intent");
-    expect(features).toContain("CodeGraph traces runtime structure");
-    expect(features).toContain("codegraph_explore");
-    expect(features).toContain("read the named source directly");
-    expect(features).not.toContain("Sub-300ms");
+    expect(anatomy).toContain("Semble");
+    expect(anatomy).toContain("CodeGraph");
+    expect(anatomy).toContain("reads the named source instead");
+    expect(anatomy).not.toContain("Sub-300ms");
   });
 
   it("states the telemetry default and the AI-provider boundary", () => {

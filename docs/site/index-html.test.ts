@@ -27,16 +27,16 @@ const staticText = staticNoscript
   .trim();
 
 describe("static marketing shell", () => {
-  it("keeps workflows prominent without publishing a Codex operating model", () => {
+  it("leads with the engineering harness and keeps Pilot workflows available", () => {
     const software = schema("SoftwareApplication");
     const features = (software.featureList as string[]).join("\n");
 
+    expect(features).toContain("Engineering Harness: direct requests, native Plan and Goal tools");
     expect(features).toContain(
-      "Spec-Driven Development: plan, approve, implement, verify",
+      "Quality Enforcement: linting, type checking, tests, builds, and completion guards",
     );
-    expect(features).toContain(
-      "Quality Checks: workflow-integrated linting, type checking, TDD, and execution verification",
-    );
+    expect(features).toContain("Runtime Verification: real CLI, API, browser, and device evidence");
+    expect(features).toContain("Pilot Workflows: durable requirements, plans, criteria");
     expect(features).toContain("LSP Integrations: Claude Code only");
     expect(features).toContain(
       "Automatic UI Design Expertise — product-grounded skills and on-demand Claude Design access",
@@ -66,29 +66,27 @@ describe("static marketing shell", () => {
     );
   });
 
-  it("keeps Claude workflows prominent and Codex compatibility neutral", () => {
+  it("presents equal workflow choices and optional project setup", () => {
     const howTo = schema("HowTo");
     const steps = (howTo.step as Array<{ text: string }>).map(
       (step) => step.text,
     );
 
-    expect(steps[2]).toContain("Claude Code: run /setup-rules");
-    expect(steps[3]).toContain("Claude Code: use /spec");
-    expect(steps.join(" ")).not.toContain("$spec");
-    expect(steps.join(" ")).not.toContain("/goal");
+    expect(steps[2]).toContain("direct request");
+    expect(steps[2]).toContain("native Plan or Goal tools");
+    expect(steps[2]).toContain("Pilot workflow");
+    expect(steps[3]).toContain("/setup-rules");
+    expect(steps[3]).toContain("$setup-rules");
 
     expect(staticText).toContain(
-      "Quality Checks - Workflow-integrated linting, type checking, TDD, and execution verification.",
+      "Quality Checks - Linting, type checking, tests, builds, and execution verification.",
     );
     expect(staticText).toContain("LSP Integrations - Claude Code only.");
     expect(staticText).toContain(
       "Conditional UI Design Expertise - Path-gated principles, progressively disclosed skills, and on-demand Claude Design access for current Codex.",
     );
-    expect(staticText).toContain(
-      "Codex compatibility is included through supported integrations.",
-    );
-    expect(staticText).not.toContain("$spec");
-    expect(staticText).not.toContain("/goal");
+    expect(staticText).toContain("Work directly, use native Plan/Goal tools, or choose a Pilot workflow.");
+    expect(staticText).toContain("$setup-rules");
     expect(staticText).not.toContain("quiet workflow-time checks");
   });
 });

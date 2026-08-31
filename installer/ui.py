@@ -138,7 +138,11 @@ class Console:
         tagline.append("  ✈ ", style="cyan")
         tagline.append("How real engineers run Claude Code and Codex", style="bold")
         self._console.print(tagline)
-        self._console.print("    From requirement to production-grade code. Planned, tested, verified.", style="muted")
+        self._console.print(
+            "    Professional context and harness engineering around the coding agents you already use.",
+            style="muted",
+        )
+        self._console.print("    Persistent knowledge. Enforced quality. Runtime proof.", style="muted")
         self._console.print()
 
         tier = license_info.get("tier") if license_info else None

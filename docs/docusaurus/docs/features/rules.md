@@ -17,9 +17,9 @@ Run `/setup-rules` (or `$setup-rules` on Codex) to generate project-specific rul
 
 ## Built-in Rule Categories
 
-### Core Workflow (3 rules)
+### Core Harness (3 rules)
 
-- `task-and-workflow.md` — Direct-execution default, explicit workflow opt-in, session state, agent-controlled delegation without permission prompts, and tool portability
+- `task-and-workflow.md` — Direct execution when no workflow is invoked, equal treatment of native and Pilot workflows, session state, agent-controlled delegation without permission prompts, and tool portability
 - `testing.md` — TDD workflow with `Trivial:` escape, parsimony-first test design (reuse existing tests; max 1 unit + 1 functional test class when new coverage is needed), critical-path coverage review
 - `verification.md` — Execution verification, completion requirements
 

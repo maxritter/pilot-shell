@@ -21,7 +21,7 @@ def test_codex_hooks_do_not_gate_sessions_or_initialize_repositories() -> None:
     assert not any("codegraph_init.py" in command for command in commands)
 
 
-def test_codex_bookkeeping_uses_native_async_commands() -> None:
+def test_codex_bookkeeping_uses_native_async_commands_after_synchronous_license_sync() -> None:
     hooks = json.loads(MANIFEST.read_text())["hooks"]
 
     startup_sync = next(hook for hook in _commands(hooks["SessionStart"]) if "codex_skill_sync.py" in hook["command"])
@@ -29,7 +29,9 @@ def test_codex_bookkeeping_uses_native_async_commands() -> None:
     observation = next(hook for hook in _commands(hooks["PostToolUse"]) if "observation" in hook["command"])
     summary = next(hook for hook in _commands(hooks["Stop"]) if "summarize" in hook["command"])
 
-    for hook in (startup_sync, session_init, observation, summary):
+    assert "async" not in startup_sync
+
+    for hook in (session_init, observation, summary):
         assert hook["async"] is True
         assert "codex_background.py" not in hook["command"]
 
@@ -47,7 +49,8 @@ def test_stop_hooks_cover_workflow_and_repository_invariants() -> None:
     stop_hooks = _commands(hooks["Stop"])
     stop_commands = [hook["command"] for hook in stop_hooks]
 
-    assert stop_commands[0] == 'uv run --no-project --python python3 python "$HOME/.pilot/hooks/spec_stop_guard.py"'
+    assert "run_if_licensed.py" in stop_commands[0]
+    assert "spec_stop_guard.py" in stop_commands[0]
     assert len(stop_commands) == 3
     repo_sync = next(hook for hook in stop_hooks if "repo_agent_sync.py" in hook["command"])
     assert "async" not in repo_sync
@@ -63,9 +66,9 @@ def test_completion_runs_once_within_codex_session_end_timeout() -> None:
     session_end_hooks = _commands(hooks["SessionEnd"])
     session_end_commands = [hook["command"] for hook in session_end_hooks]
 
-    assert session_end_commands == [
-        'uv run --no-project --python python3 python "$HOME/.pilot/hooks/session_end.py" --session-end'
-    ]
+    assert len(session_end_commands) == 1
+    assert "run_if_licensed.py" in session_end_commands[0]
+    assert 'session_end.py" --session-end' in session_end_commands[0]
     assert session_end_hooks[0]["timeout"] == 3
 
 

@@ -20,11 +20,11 @@ The default port `41777` is configurable. Open the **Settings** tab and edit the
 
 ## Views
 
-Each view that supports project filtering has an inline **Project Filter** dropdown next to the title. The **Dashboard** shows stats across all projects with clickable tiles that navigate to the relevant view.
+Each view that supports project filtering has an inline **Project Filter** dropdown next to the title. The **Dashboard** shows stats across all projects with clickable tiles that navigate to the relevant view. Its recent cards give equal space to session/memory activity and Pilot's durable workflow artifacts.
 
 | View | Description |
 |------|-------------|
-| **Dashboard** | Global command center - 8 clickable stat cards (Projects, Sessions, Active, Memories, Extensions, Requirements, Specifications, Changes), 4 recent-item cards with "Show all" links, active specs as pills in the top bar, notification bell in the top right. |
+| **Dashboard** | Global command center - 8 stat cards (Projects, Sessions, Memories, Cost Today, Requirements, Specifications, Buildouts, In Progress) and 4 recent-item cards (Sessions, Memories, Specifications, Buildouts), plus active-work pills and notifications in the top bar. |
 | **Sessions** | Browse past sessions with search. Copy a session ID and run `/resume <session-id>` in Claude Code to jump back in (Claude Code only). |
 | **Memories** | Observations (decisions, discoveries, bugfixes) with type filters and search. Each memory links back to the session it came from. Hosts the **Team Sharing** card - see [Team Memories](./team-memories.md). |
 | **Requirements** | PRD documents with view/annotate modes. Selected opens as a tab, others live in a Previous dropdown. |

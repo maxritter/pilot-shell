@@ -42,6 +42,27 @@ GLOBAL_NPM_INSTALL_TIMEOUT = 300
 UV_TOOL_INSTALL_TIMEOUT = 180
 NPX_CACHE_WAIT_TIMEOUT = 180
 DESIGN_PACKAGE_INSTALL_TIMEOUT = 300
+PILOT_OWNED_TOOLS_MANIFEST = ".pilot-owned-tools.json"
+
+_INSTALL_KEY_TO_TOOL_COMMANDS: dict[str, dict[str, str]] = {
+    "python_tools": {"ruff": "ruff", "basedpyright": "basedpyright"},
+    "typescript_lsp": {"vtsls": "vtsls", "typescript": "tsc"},
+    "prettier": {"prettier": "prettier"},
+    "golangci_lint": {"golangci-lint": "golangci-lint"},
+    "pbt_tools": {"hypothesis": "hypothesis", "fast-check": "fast-check"},
+    "semble": {"semble": "semble"},
+    "rtk": {"rtk": "rtk"},
+    "codegraph": {"codegraph": "codegraph"},
+    "open_claude_design": {"open-claude-design": "open-claude-design"},
+    "impeccable": {"impeccable": "impeccable"},
+    "agent_browser": {"agent-browser": "agent-browser"},
+    "playwright_cli": {"playwright-cli": "playwright-cli"},
+}
+
+
+def _owned_tools_manifest_path() -> Path:
+    """Return the per-user ownership record written by a real installer run."""
+    return Path.home() / ".pilot" / PILOT_OWNED_TOOLS_MANIFEST
 
 
 class _SudoReauthNeeded(Exception):
@@ -85,6 +106,57 @@ def _take_outcome() -> str:
     state = getattr(_thread_local, "install_outcome", "")
     _thread_local.install_outcome = ""
     return state
+
+
+def _load_owned_tools() -> set[str]:
+    """Load tool IDs that Pilot proved it originally installed."""
+    path = _owned_tools_manifest_path()
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return set()
+    tools = payload.get("tools") if isinstance(payload, dict) else None
+    if not isinstance(tools, list) or not all(isinstance(item, str) for item in tools):
+        return set()
+    allowed = {tool for values in _INSTALL_KEY_TO_TOOL_COMMANDS.values() for tool in values}
+    return set(tools) & allowed
+
+
+def _snapshot_tool_presence() -> dict[str, bool]:
+    """Capture ownership evidence before Pilot installs or upgrades tools."""
+    presence: dict[str, bool] = {}
+    for values in _INSTALL_KEY_TO_TOOL_COMMANDS.values():
+        for tool, command in values.items():
+            if tool == "fast-check":
+                try:
+                    result = subprocess.run(
+                        ["npm", "list", "-g", "--depth=0", "--json", "fast-check"],
+                        capture_output=True,
+                        timeout=15,
+                    )
+                    presence[tool] = result.returncode == 0
+                except (OSError, subprocess.TimeoutExpired):
+                    # Unknown ownership must fail safe: treat it as pre-existing.
+                    presence[tool] = True
+            else:
+                presence[tool] = command_exists(command)
+    return presence
+
+
+def _write_owned_tools(existing: set[str], successful_keys: list[str], present_before: dict[str, bool]) -> None:
+    """Persist the union of prior ownership and tools freshly installed now."""
+    owned = set(existing)
+    for key in successful_keys:
+        for tool in _INSTALL_KEY_TO_TOOL_COMMANDS.get(key, {}):
+            if not present_before.get(tool, True):
+                owned.add(tool)
+
+    path = _owned_tools_manifest_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(json.dumps({"schema": 1, "tools": sorted(owned)}, indent=2) + "\n", encoding="utf-8")
+    os.chmod(temporary, 0o600)
+    os.replace(temporary, path)
 
 
 def _run_bash_with_retry(command: str, cwd: Path | None = None, timeout: int = 120, stream: bool = False) -> bool:
@@ -1892,6 +1964,8 @@ class DependenciesStep(BaseStep):
         global _allow_sudo_fallback
         ui = ctx.ui
         installed: list[str] = []
+        previously_owned = _load_owned_tools()
+        present_before = _snapshot_tool_presence()
         try:
             requires_elevation = needs_sudo() or (is_linux_arm64() and command_exists("apt-get"))
             if requires_elevation and not ctx.non_interactive:
@@ -1974,5 +2048,6 @@ class DependenciesStep(BaseStep):
 
             ctx.config["installed_dependencies"] = installed
         finally:
+            _write_owned_tools(previously_owned, installed, present_before)
             stop_sudo_keepalive()
             _allow_sudo_fallback = False

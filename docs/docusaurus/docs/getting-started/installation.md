@@ -33,6 +33,18 @@ The Claude config directory is `~/.claude` unless you set `CLAUDE_CONFIG_DIR`. S
 | 7 | Shell integration | Auto-configures bash, fish, and zsh with the `pilot` alias and a Codex wrapper that raises a low per-process open-file soft limit without lowering an existing higher value. Add `# pilot-shell:managed-elsewhere` to a config file to opt out. |
 | 8 | Finalize | Success message with next steps |
 
+## What to Do Next
+
+The completion panel stays deliberately short:
+
+1. Start `claude` or `codex`; direct requests, native Plan/Goal tools, and Pilot workflows use the same harness.
+2. Run `/setup-rules` or `$setup-rules` when you want repository-specific shared guidance.
+3. Open the local Console to review sessions, memories, workflow artifacts, changes, and settings.
+4. Browse the documentation for native integrations, Pilot workflows, skills, and tools.
+5. Run `pilot update` when you want to check for a newer Pilot release.
+
+Direct requests, native Plan/Goal tools, and Pilot workflows are peer ways to work inside the same harness.
+
 ## Using a non-default Claude config directory
 
 Claude Code reads its configuration from `~/.claude` unless you set `CLAUDE_CONFIG_DIR`. Pilot Shell honours the same variable, so you can install it into a work profile while leaving a personal `~/.claude` completely untouched.
@@ -110,9 +122,25 @@ See [releases](https://github.com/maxritter/pilot-shell/releases) for all availa
 curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash
 ```
 
-Removes the Pilot runtime, plugin files, managed commands/rules, settings, and shell aliases. Your project's custom `.claude/` and `.codex/` files are preserved, as are memory, sessions, logs, configuration, and unknown files under `~/.pilot/`.
+The default removes Pilot's runtime, Console, statusline, hooks, managed skills/rules/agents, MCP entries, settings injections, and shell aliases. It stops a running Pilot worker first. Claude Code, Codex, project files, custom agent configuration, shared external tools, project indexes, and all user data remain available.
 
-To remove that user data too, save the script locally and run `bash uninstall.sh --purge-data`.
+Before the final preview, the interactive uninstaller asks two independent questions: whether to remove proven Pilot-owned external tools, and whether to purge Pilot data. It reads those answers from the controlling terminal rather than the script's standard input, so the prompts continue to work when the script itself arrives through `curl ... | bash`. Answering no keeps the safe defaults.
+
+External tools are deliberately separate: provenance does not prove that a user no longer relies on a tool. Pilot records tools that were absent before installation, and removes only those when you explicitly request it:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash -s -- --remove-tools
+```
+
+Pilot data is a third, independent choice:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash -s -- --purge-data
+```
+
+Pass both options together only when you want both cleanups. The confirmation preview names the exact categories before anything is removed.
+
+For unattended execution, `--yes` accepts the safe defaults and skips every prompt. Combine it with `--remove-tools` and/or `--purge-data` only when automation explicitly intends those additional removals.
 
 ## Reset & Refresh
 

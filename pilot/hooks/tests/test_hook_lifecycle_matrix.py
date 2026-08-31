@@ -47,6 +47,24 @@ def test_generated_manifests_preserve_the_shipped_bytes() -> None:
         assert generator.render_manifest(matrix, platform) == path.read_text()
 
 
+def test_all_feature_hooks_are_routed_through_the_license_gate() -> None:
+    """Only the notice and skill-removal hooks run while Pilot is inactive."""
+    direct_handlers = {
+        'uv run --no-project --python python3 python "$HOME/.pilot/hooks/license_check.py"',
+        'uv run --no-project --python python3 python "$HOME/.pilot/hooks/license_prompt_guard.py"',
+        'uv run --no-project --python python3 python "$HOME/.pilot/hooks/licensed_assets_sync.py"',
+        'uv run --no-project --python python3 python "$HOME/.pilot/hooks/codex_skill_sync.py"',
+        'uv run --no-project --python python3 python "$HOME/.pilot/hooks/cc_skill_sync.py"',
+    }
+
+    for entry in generator.load_matrix()["entries"]:
+        for handler in entry["handlers"]:
+            assert handler in direct_handlers or "run_if_licensed.py" in handler, (
+                entry["id"],
+                handler,
+            )
+
+
 def test_check_reports_zero_drift() -> None:
     result = subprocess.run(
         [sys.executable, str(GENERATOR_PATH), "--check"],

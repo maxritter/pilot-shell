@@ -314,3 +314,4 @@ bun.lock
 .worktrees/
 .env*.local
 .omx/
+.open-claude-design/

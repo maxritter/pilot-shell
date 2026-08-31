@@ -31,10 +31,10 @@ const TestimonialsSection = () => {
           ref={ref}
           className={`text-center mb-12 ${inView ? "animate-fade-in-up" : "opacity-0"}`}
         >
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             What Users Say
           </h2>
-          <p className="text-muted-foreground text-lg sm:text-xl max-w-3xl mx-auto">
+          <p className="text-muted-foreground text-base sm:text-lg mt-3 max-w-3xl mx-auto">
             Real feedback from developers using Pilot in production
           </p>
         </div>

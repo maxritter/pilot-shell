@@ -9,7 +9,7 @@ const Pricing = () => (
   <>
     <SEO
       title="Pricing — Pilot Shell for Claude Code & Codex CLI"
-      description="Pilot Shell pricing for solo developers and teams, with spec-driven planning, enforced TDD, and supported integrations for Claude Code and Codex CLI."
+      description="Pilot Shell pricing for solo developers and teams, with persistent context, enforced quality, runtime proof, and supported integrations for Claude Code and Codex CLI."
       canonicalUrl="https://pilot-shell.com/pricing"
     />
     <NavBar />

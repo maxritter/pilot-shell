@@ -3,7 +3,7 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup",
+        "matcher": "startup|resume|clear|compact",
         "hooks": [
           {
             "type": "command",
@@ -12,37 +12,45 @@
           },
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/session_announcements.py\"",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/config_dir_guard.py\"",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/session_startup_maintenance.py\"",
-            "async": true,
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/licensed_assets_sync.py\"",
             "timeout": 15
           },
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codegraph_init.py\"",
-            "async": true,
-            "timeout": 120
-          },
-          {
-            "type": "command",
             "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/codex_skill_sync.py\"",
-            "async": true,
             "timeout": 30
           },
           {
             "type": "command",
             "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/cc_skill_sync.py\"",
-            "async": true,
             "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/session_announcements.py\"",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/config_dir_guard.py\"",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/session_startup_maintenance.py\"",
+            "async": true,
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/codegraph_init.py\"",
+            "async": true,
+            "timeout": 120
           }
         ]
       },
@@ -51,7 +59,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
             "timeout": 45
           }
         ]
@@ -61,12 +69,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code context",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" --exec bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code context",
             "timeout": 15
           },
           {
             "type": "command",
-            "command": "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code user-message",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" --exec bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code user-message",
             "async": true,
             "timeout": 15
           }
@@ -77,7 +85,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/session_clear.py\"",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/session_clear.py\"",
             "timeout": 5
           }
         ]
@@ -87,7 +95,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/post_compact_restore.py\"",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/post_compact_restore.py\"",
             "timeout": 5
           }
         ]
@@ -98,7 +106,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/spec_mode_guard.py\""
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/license_prompt_guard.py\"",
+            "timeout": 10
           }
         ]
       },
@@ -106,9 +115,29 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code session-init",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/spec_mode_guard.py\""
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" --exec bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code session-init",
             "async": true,
             "timeout": 15
+          }
+        ]
+      }
+    ],
+    "UserPromptExpansion": [
+      {
+        "matcher": "benchmark|build|cleanup|create-skill|fix|investigate|prd|setup-rules|spec|spec-bugfix-plan|spec-bugfix-verify|spec-implement|spec-plan|spec-verify",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/license_prompt_guard.py\"",
+            "timeout": 10
           }
         ]
       }
@@ -119,7 +148,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/auto_approve_plan.py\"",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/auto_approve_plan.py\"",
             "timeout": 10
           }
         ]
@@ -131,7 +160,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
             "timeout": 5
           }
         ]
@@ -141,7 +170,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/plan_mode_tracker.py\"",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/plan_mode_tracker.py\"",
             "timeout": 10
           }
         ]
@@ -151,7 +180,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/tool_redirect.py\""
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/tool_redirect.py\""
           }
         ]
       },
@@ -160,7 +189,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/tool_token_saver.py\""
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/tool_token_saver.py\""
           }
         ]
       }
@@ -171,7 +200,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
             "timeout": 20
           }
         ]
@@ -181,7 +210,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/plan_mode_tracker.py\"",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/plan_mode_tracker.py\"",
             "timeout": 10
           }
         ]
@@ -191,7 +220,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/file_checker.py\""
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/file_checker.py\""
           }
         ]
       },
@@ -200,7 +229,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/context_monitor.py\""
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/context_monitor.py\""
           }
         ]
       },
@@ -209,7 +238,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code observation",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" --exec bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code observation",
             "async": true,
             "timeout": 15
           }
@@ -221,16 +250,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/spec_stop_guard.py\""
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/spec_stop_guard.py\""
           },
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
             "timeout": 45
           },
           {
             "type": "command",
-            "command": "bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code summarize",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" --exec bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code summarize",
             "async": true,
             "timeout": 15
           }
@@ -242,7 +271,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/session_end.py\" --session-end",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/session_end.py\" --session-end",
             "timeout": 15
           }
         ]
@@ -253,7 +282,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/pre_compact.py\"",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/pre_compact.py\"",
             "timeout": 15
           }
         ]

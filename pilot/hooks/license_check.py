@@ -1,7 +1,7 @@
-"""SessionStart hook: verify Pilot Shell license before the session proceeds.
+"""SessionStart hook: verify Pilot access without blocking the host agent.
 
 Reads cached license state via `pilot verify --json`. If the license is
-invalid or expired, outputs {"continue": false} to halt the session.
+inactive, explains the recovery choices while allowing Claude Code to proceed.
 Uses the existing 24h TTL cache in auth.py so this adds no network latency
 on the happy path.
 """
@@ -40,19 +40,55 @@ def main() -> None:
         _allow()
         return
 
-    tier = data.get("tier", "")
-    if tier == "trial" and data.get("trial_expired", False):
-        _block("Pilot Shell trial expired. Run: pilot activate <license-key>")
-    else:
-        _block("Pilot Shell license invalid. Run: pilot activate <license-key>")
+    state = data.get("state")
+    if state is None and data.get("tier") == "trial" and data.get("trial_expired", False):
+        state = "trial_expired"
+    _notify(str(state or "invalid"))
 
 
 def _allow() -> None:
     print(json.dumps({"continue": True}))
 
 
-def _block(reason: str) -> None:
-    print(json.dumps({"continue": False, "stopReason": reason}))
+def _notify(state: str) -> None:
+    if state == "deactivated":
+        heading = "Pilot Shell access was deactivated, so Pilot features are now paused."
+    elif state == "trial_expired":
+        heading = "Your Pilot Shell trial has ended, so Pilot features are now paused."
+    elif state == "validation_required":
+        heading = "Pilot Shell could not verify this license, so Pilot features are paused."
+    else:
+        heading = "Pilot Shell needs an active license, so Pilot features are paused."
+
+    message = "\n".join(
+        [
+            heading,
+            "Pilot workflows, context, quality hooks, Console, and statusline metrics are unavailable.",
+            "Claude Code and Codex remain usable, but without Pilot's engineering harness.",
+            "Activate a new key: pilot activate <LICENSE_KEY>",
+            "Get a license: https://pilot-shell.com/pricing",
+            (
+                "Not continuing with Pilot? Uninstall it safely: "
+                "curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash"
+            ),
+        ]
+    )
+    print(
+        json.dumps(
+            {
+                "continue": True,
+                "systemMessage": message,
+                "hookSpecificOutput": {
+                    "hookEventName": "SessionStart",
+                    "additionalContext": (
+                        "Pilot Shell is inactive. Do not apply Pilot-managed rules or invoke Pilot-managed "
+                        "skills, review agents, hooks, tools, workflows, or Console features in this session. "
+                        "Native Claude Code and Codex features remain available."
+                    ),
+                },
+            }
+        )
+    )
 
 
 if __name__ == "__main__":

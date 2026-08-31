@@ -49,7 +49,7 @@ That's the whole contract -- one reminder, one pause. In fully-autonomous runs (
 
 ## Off
 
-Pilot stays out of model management entirely. `/spec`, `/fix`, and quick mode all run on the active `/model` choice with no reminders and no gates. Switching away from Automated heals a Pilot-written `opusplan` back to `opus[1m]`; any model you picked yourself -- including `opusplan` -- is left alone.
+Pilot stays out of model management entirely. Direct requests, native Claude Code workflows, and Pilot workflows all run on the active `/model` choice with no reminders or gates. Switching away from Automated heals a Pilot-written `opusplan` back to `opus[1m]`; any model you picked yourself -- including `opusplan` -- is left alone.
 
 ## Migration from earlier versions
 

@@ -1,17 +1,16 @@
 import { lazy, Suspense } from "react";
 import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/HeroSection";
-import InstallSection from "@/components/InstallSection";
 import SEO from "@/components/SEO";
 
 // Below-the-fold sections — split into separate chunks loaded after first paint.
+const AnatomySection = lazy(() => import("@/components/AnatomySection"));
 const WorkflowSteps = lazy(() => import("@/components/WorkflowSteps"));
-const WhatsInside = lazy(() => import("@/components/WhatsInside"));
-const DesignExpertiseSection = lazy(
-  () => import("@/components/DesignExpertiseSection"),
-);
 const SpecCollabSection = lazy(() => import("@/components/SpecCollabSection"));
+const TeamSection = lazy(() => import("@/components/TeamSection"));
+const InstallSection = lazy(() => import("@/components/InstallSection"));
 const ConsoleSection = lazy(() => import("@/components/ConsoleSection"));
+const AgentsSection = lazy(() => import("@/components/AgentsSection"));
 const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection"));
 const FAQSection = lazy(() => import("@/components/FAQSection"));
 const Footer = lazy(() => import("@/components/Footer"));
@@ -96,13 +95,14 @@ const Index = () => {
       <NavBar />
       <main className="min-h-screen bg-background">
         <HeroSection />
-        <InstallSection />
         <Suspense fallback={<SectionFallback />}>
-          <WhatsInside />
-          <DesignExpertiseSection />
+          <AnatomySection />
           <WorkflowSteps />
           <SpecCollabSection />
+          <TeamSection />
+          <InstallSection />
           <ConsoleSection />
+          <AgentsSection />
           <TestimonialsSection />
           <FAQSection />
         </Suspense>

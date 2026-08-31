@@ -182,38 +182,27 @@ class FinalizeStep(BaseStep):
 
         getting_started.extend(
             [
-                ("Start a session", "Run 'claude' or 'codex' directly — Pilot Shell loads automatically"),
                 (
-                    "Design visually",
-                    "Ask your agent normally — Open Claude Design connects your codebase to Claude Design's visual workspace",
+                    "Start a session",
+                    "Run 'claude' or 'codex' — direct requests, native Plan/Goal tools, and Pilot workflows use the same harness",
+                ),
+                (
+                    "Add project context",
+                    "Run '/setup-rules' in Claude Code or '$setup-rules' in Codex when you want repository-specific guidance",
+                ),
+                (
+                    "Open the Console",
+                    f"Review sessions, memories, workflows, changes, and settings at http://{get_console_display()}",
+                ),
+                (
+                    "Explore capabilities",
+                    "Browse https://pilot-shell.com/docs for native integrations, Pilot workflows, skills, and tools",
                 ),
                 ("Check for updates", "Run 'pilot update' to update Pilot Shell"),
-                ("Pilot Shell Console", f"Open the local web UI at http://{get_console_display()}"),
             ]
         )
 
-        core_workflows: list[tuple[str, str]] = [
-            ("/prd · $prd", "Brainstorm ideas into PRDs with optional research before /spec"),
-            ("/build · $build", "Set a bar, then loop until every criterion passes a judge"),
-            ("/spec · $spec", "Plan, implement & verify features end-to-end with TDD"),
-            ("/fix · $fix", "Investigate, RED test, fix, audit — bugfix workflow"),
-        ]
-
-        additional_workflows: list[tuple[str, str]] = [
-            ("/investigate · $investigate", "Trace current code behavior with evidence, confidence, and no edits"),
-            ("/cleanup · $cleanup", "Audit dead-code candidates with independent evidence and no deletions"),
-            ("/setup-rules · $setup-rules", "Create modular and concise rules for your project codebase"),
-            ("/create-skill · $create-skill", "Create well-structured reusable skills for your workflows"),
-            ("/benchmark · $benchmark", "Quantitative before/after evals for rules, skills, and workflows"),
-        ]
-
-        ui.next_steps(
-            [
-                ("Getting Started", getting_started),
-                ("Core Workflows (Claude Code + Codex)", core_workflows),
-                ("Additional Workflows (Claude Code + Codex)", additional_workflows),
-            ]
-        )
+        ui.next_steps([("Getting Started", getting_started)])
 
         if not ui.quiet:
             ui.rule()
@@ -227,10 +216,6 @@ class FinalizeStep(BaseStep):
                 ui.print("  [muted]Subscribe anytime: [/muted][cyan]https://pilot-shell.com/pricing[/cyan]")
                 ui.print()
             ui.print("  [bold yellow]⭐ Star this repo:[/bold yellow] https://github.com/maxritter/pilot-shell")
-            ui.print()
-            ui.print("  [bold cyan]✦ Open Claude Design is included[/bold cyan]")
-            ui.print("  [muted]Create, inspect, tweak, and sync in Claude Design from your coding agent.[/muted]")
-            ui.print("  [cyan]https://github.com/maxritter/open-claude-design[/cyan]")
             ui.print()
             ui.print(f"  [muted]Installed version: {_get_pilot_version()}[/muted]")
             ui.print()

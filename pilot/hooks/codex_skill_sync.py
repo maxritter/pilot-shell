@@ -887,8 +887,15 @@ def main() -> None:
         _sync_codex_env_vars()
     elif valid is False:
         removed = _remove_codex_skills() + _remove_codex_review_agents()
-        msg = f"License invalid — removed {removed} Codex managed asset(s)" if removed else ""
-        print(json.dumps({"continue": True, "systemMessage": msg} if msg else {"continue": True}))
+        detail = f" removed {removed} Codex managed asset(s)." if removed else ""
+        msg = (
+            "Pilot Shell access is inactive, so Pilot features are paused. "
+            "Pilot workflows, context, quality hooks, Console, statusline metrics, and managed agents are unavailable. "
+            "Codex remains usable, but without Pilot's engineering harness. Activate a new key with "
+            "`pilot activate <LICENSE_KEY>`, get a license at https://pilot-shell.com/pricing, "
+            "or uninstall Pilot safely with the documented uninstall command." + detail
+        )
+        print(json.dumps({"continue": True, "systemMessage": msg}))
 
 
 if __name__ == "__main__":

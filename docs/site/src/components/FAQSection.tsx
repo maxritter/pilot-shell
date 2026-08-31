@@ -1,4 +1,3 @@
-import { HelpCircle } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -16,7 +15,7 @@ const faqItems = [
   {
     question: "Is Pilot Shell enterprise-compliant for data privacy?",
     answer:
-      "Pilot Shell's installed local services keep your source code, project files, and development context on your machine. Semble and CodeGraph process code locally, and Pilot disables CodeGraph's optional telemetry. Pilot's required service calls are daily license validation (license key only) and one-time activation or trial start (machine fingerprint only); they do not include source code, OS information, or version strings. Your overall compliance posture also depends on how your organization configures Claude Code or Codex and its AI provider.",
+      "Pilot Shell's installed local services keep your source code, project files, and development context on your machine. Semble and CodeGraph process code locally, and Pilot disables CodeGraph's optional telemetry. Pilot's required service calls are license validation (license key only) and one-time activation or trial start (machine fingerprint only); they do not include source code, OS information, or version strings. Your overall compliance posture also depends on how your organization configures Claude Code or Codex and its AI provider.",
   },
   {
     question: "Does Pilot Shell send my code or data to external services?",
@@ -26,7 +25,7 @@ const faqItems = [
   {
     question: "Does Pilot Shell work with any programming language?",
     answer:
-      "Pilot Shell's quality hooks (auto-formatting, linting, type checking) currently support Python, TypeScript/JavaScript, and Go out of the box, plus a single-file dotnet format whitespace check for C#. TDD enforcement, spec-driven development, persistent memory, context optimization, and all rules and standards work with any language. You can add custom hooks for additional languages.",
+      "Pilot Shell's quality hooks (auto-formatting, linting, type checking) currently support Python, TypeScript/JavaScript, and Go out of the box, plus a single-file dotnet format whitespace check for C#. Pilot workflows, persistent memory, context optimization, and all rules and standards work with any language. You can add custom hooks for additional languages.",
   },
   {
     question: "Can I use Pilot Shell on multiple different projects?",
@@ -51,17 +50,12 @@ const FAQSection = () => {
 
         <div
           ref={headerRef}
-          className={`text-center mb-12 ${headerInView ? "animate-fade-in-up" : "opacity-0"}`}
+          className={`text-center mb-8 ${headerInView ? "animate-fade-in-up" : "opacity-0"}`}
         >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-              <HelpCircle className="h-5 w-5 text-primary" />
-            </div>
-          </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             FAQ
           </h2>
-          <p className="text-muted-foreground text-lg sm:text-xl max-w-3xl mx-auto">
+          <p className="text-muted-foreground text-base sm:text-lg mt-3 max-w-3xl mx-auto">
             Common questions about Pilot Shell, data privacy, and compatibility.
           </p>
         </div>

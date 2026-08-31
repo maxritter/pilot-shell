@@ -1,7 +1,7 @@
 ---
 sidebar_position: 7
 title: Status Line
-description: Real-time session dashboard rendered below every Claude Code response — token usage, cost, model, branch, plan status, and savings at a glance.
+description: Real-time session dashboard rendered below every Claude Code response — token usage, cost, model, branch, and active Pilot workflow progress at a glance.
 ---
 
 # Status Line
@@ -10,7 +10,16 @@ description: Real-time session dashboard rendered below every Claude Code respon
 The status line is not available with Codex CLI. It uses a Claude Code-specific stdin API that Codex does not support.
 :::
 
-Three-line session dashboard rendered below every Claude Code response.
+Compact session dashboard rendered below every Claude Code response. Idle sessions use two lines; an active Pilot Spec or Buildout adds its progress line between them.
+
+**Idle session:**
+
+```
+Opus 5 [1M] | █████░▓ 60% | 5h: 42% ⇡ 2h | 7d: 18% ⇣ 4d | +120 -38 | main ~5
+Pilot 8.4.0 (Solo) · CC 2.1.80 (Max) · Console: localhost:41777
+```
+
+**Active Pilot workflow:**
 
 ```
 Opus 5 [1M] | █████░▓ 60% | 5h: 42% ⇡ 2h | 7d: 18% ⇣ 4d | +120 -38 | main ~5
@@ -55,15 +64,13 @@ The path is shortened from the left, keeping the trailing components (`~/…/ang
 Opus 5 [1M] | █████░▓ 60% | +120 -38 | ~/…/.worktrees/my-feature | spec/my-feature wt
 ```
 
-## Line 2 — Mode
+## Active workflow line — when present
 
-**Quick Mode:** `Quick Mode · plan: /spec | goal: /build | bugs: /fix | idea: /prd`
-
-**Spec Mode:** `Spec: my-feature feature [implement] ████░░░░ 3/6 iter:2`
+**Specification:** `Spec: my-feature feature [implement] ████░░░░ 3/6 iter:2`
 
 Shows plan name, type (feature/bugfix), phase (plan/implement/verify), task progress bar, and iteration count.
 
-**Build Mode:** `Build: running-brand build ███░░░░░ 3/8 r:2`
+**Buildout:** `Build: running-brand build ███░░░░░ 3/8 r:2`
 
 A [`/build`](/docs/workflows/build) Buildout renders the same way, counting the same tasks, with rounds (`r:`) instead of iterations and the phases `goal` (goal, tasks, and criteria being drafted) -> `build` (working the task list) -> `judge` (acceptance criteria being ruled). The type tag is magenta. Its acceptance criteria are a separate list from its tasks and are not counted here.
 
@@ -71,11 +78,11 @@ During the **plan** phase (before tasks exist) the detail slot reads `models: au
 
 In `auto` mode it turns red and reads `models: auto ⚠ not-opus` (just `⚠` on a narrow line) when planning is running on something other than Opus. `opusplan` only upgrades the plan leg to Opus while the conversation fits Opus's effective 200K window — past it, Claude Code silently keeps serving Sonnet ([claude-code#65512](https://github.com/anthropics/claude-code/issues/65512), [#74325](https://github.com/anthropics/claude-code/issues/74325)). `/compact` or `/clear` before planning restores Opus; switching Model Switching to **Manual** lets you pick the planning model yourself.
 
-## Line 3 — Version Info
+## Final line — Version Info
 
 `Pilot <version> (<tier>) · CC <version> (<subscription>) · Console: <host:port>`
 
-This is the only line that always renders, so it carries the Console address — open it to reach plans, Buildouts, memory and settings.
+This line carries the Console address — open it to reach sessions, memories, plans, Buildouts, changes, and settings.
 
 ## Configuration
 
@@ -94,7 +101,7 @@ input=$(cat)
 # Your own line(s) first — anything you like.
 printf '%s\n' "$(whoami)@$(hostname -s):$(basename "$PWD")"
 
-# Then Pilot's three lines, fed the JSON you captured.
+# Then Pilot's two or three lines, fed the JSON you captured.
 printf '%s' "$input" | ~/.pilot/bin/pilot statusline
 ```
 

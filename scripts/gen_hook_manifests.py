@@ -32,6 +32,7 @@ EVENTS = frozenset(
     {
         "SessionStart",
         "UserPromptSubmit",
+        "UserPromptExpansion",
         "PermissionRequest",
         "PreToolUse",
         "PostToolUse",
@@ -42,7 +43,7 @@ EVENTS = frozenset(
 )
 ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]+$")
 LOCAL_TARGET_PATTERN = re.compile(r'\$HOME/\.pilot/(?P<area>hooks|scripts)/(?P<target>[^" ]+)')
-DOCS_MATRIX_MARKER = "`pilot/hooks/hook-lifecycle.json`"
+PUBLIC_DOCUMENTED_EVENTS = EVENTS - {"UserPromptExpansion"}
 
 
 def load_matrix(path: Path = MATRIX_PATH) -> dict[str, Any]:
@@ -169,9 +170,7 @@ def documentation_errors(matrix: dict[str, Any], path: Path = DOCS_PATH) -> list
     except OSError as exc:
         return [f"cannot read {path}: {exc}"]
     errors = []
-    if DOCS_MATRIX_MARKER not in content:
-        errors.append(f"{path} must identify {DOCS_MATRIX_MARKER} as the canonical manifest matrix")
-    for event in sorted({entry["event"] for entry in matrix["entries"]}):
+    for event in sorted({entry["event"] for entry in matrix["entries"]} & PUBLIC_DOCUMENTED_EVENTS):
         if f"## {event}" not in content:
             errors.append(f"{path} is missing lifecycle section `## {event}`")
     return errors

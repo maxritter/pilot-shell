@@ -4,7 +4,8 @@
 
 - Execute a clear request directly. Size, cross-cutting scope, the number of files, and phrases such as "make it good" never require a workflow-choice question.
 - Do not mention `$spec`, `$build`, `$fix`, or `$prd` unless the user explicitly invokes one or asks about process options. They are optional Pilot workflows, not routing rules.
-- Native quick work is the default. When a native Goal is active, keep working toward it until the outcome is genuinely complete.
+- Native Plan/Goal tools and Pilot workflows are peers. Honor whichever path the user chose without presenting another as an upgrade, fallback, or preferred process.
+- When no workflow is invoked, execute the clear request directly. When a native Goal is active, keep working until the outcome is genuinely complete.
 - Ask only when a missing decision would materially change the result and cannot be discovered safely from the workspace.
 
 ## Planning and autonomy

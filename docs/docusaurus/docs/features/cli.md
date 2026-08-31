@@ -20,9 +20,20 @@ Pilot Shell loads automatically when you run `claude` or `codex` — there is no
 | `pilot deactivate` | Deactivate license on this machine |
 | `pilot status [--json]` | Show current license status and tier |
 | `pilot portal [--json] [--no-browser]` | Open Polar's customer portal (seats, invoices, payment method, license key recovery). Sign in there with the email address you used at checkout — Pilot never signs you in from your license key, so a key on a teammate's machine cannot reach your billing. `--no-browser` prints the URL instead of opening it |
-| `pilot verify [--json]` | Verify license validity (used by hooks) |
 | `pilot trial --check [--json]` | Check trial eligibility for this machine |
 | `pilot trial --start [--json]` | Start a trial (one-time per machine) |
+
+### When access is deactivated
+
+When access is inactive, Pilot makes the change visible and pauses its licensed surfaces:
+
+- Pilot workflows, managed skills and rules, review agents, context, memory injection, and quality automation are unavailable.
+- Pilot tool integrations, statusline metrics, and Console features stop working.
+- The statusline becomes a calm recovery notice, and the Console opens only its license recovery screen.
+- Claude Code and Codex themselves continue to work normally, including their native commands, planning, goals, models, and user-owned configuration.
+
+License activation, status, account access, updates, and the uninstall instructions remain available. Activate a valid replacement key to restore Pilot. If you do not want another license, use the [safe uninstaller](../getting-started/installation#uninstall); it removes Pilot without removing either coding agent or user data.
+
 
 ## Updates
 

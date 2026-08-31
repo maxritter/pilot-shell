@@ -17,7 +17,7 @@ If the user asks about process options, explain the choices without starting one
 | A named outcome whose approach can emerge during work | `build` |
 | An idea whose audience or success criteria are still unclear | `prd` |
 
-Size never selects a workflow. When a Pilot workflow is explicitly active, its loaded skill is authoritative for lifecycle, gates, artifacts, and completion. Those mechanics do not constrain direct work.
+When a Pilot workflow is explicitly active, its loaded skill is authoritative for lifecycle, gates, artifacts, and completion. Native agent tools and Pilot workflows are peers; honor the user's choice.
 Size, file count, architectural breadth, and cross-cutting scope change organization; they do not trigger a workflow question. Descriptions and mentions like "make it good" strengthen the requested outcome rather than selecting a workflow.
 
 ## Working state

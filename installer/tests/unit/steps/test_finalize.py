@@ -160,8 +160,8 @@ class TestKillStaleWorker:
 class TestFinalSuccessPanel:
     """Test final success panel display."""
 
-    def test_run_displays_success_message(self):
-        """run() displays success panel."""
+    def test_run_displays_success_without_a_design_promotion(self):
+        """Completion keeps product promotions out of the action list footer."""
         from installer.context import InstallContext
         from installer.steps.finalize import FinalizeStep
         from installer.ui import Console
@@ -185,11 +185,11 @@ class TestFinalSuccessPanel:
 
                 mock_next_steps.assert_called()
                 printed = " ".join(str(call.args[0]) for call in mock_print.call_args_list if call.args)
-                assert "Open Claude Design is included" in printed
-                assert "github.com/maxritter/open-claude-design" in printed
+                assert "Open Claude Design is included" not in printed
+                assert "github.com/maxritter/open-claude-design" not in printed
 
-    def test_next_steps_has_three_sections(self):
-        """Next steps panel has Getting Started, Core Workflows, and Additional Workflows sections."""
+    def test_next_steps_has_five_neutral_actions(self):
+        """Next steps teach the harness without prescribing a workflow."""
         from installer.context import InstallContext
         from installer.steps.finalize import FinalizeStep
         from installer.ui import Console
@@ -210,36 +210,26 @@ class TestFinalSuccessPanel:
 
                 sections = mock_next_steps.call_args[0][0]
                 section_titles = [title for title, _ in sections]
-                assert section_titles == [
-                    "Getting Started",
-                    "Core Workflows (Claude Code + Codex)",
-                    "Additional Workflows (Claude Code + Codex)",
-                ]
-                expected_lengths = {
-                    "Getting Started": 4,
-                    "Core Workflows (Claude Code + Codex)": 4,
-                    "Additional Workflows (Claude Code + Codex)": 5,
-                }
-                for title, items in sections:
-                    assert len(items) == expected_lengths[title], (
-                        f"{title}: expected {expected_lengths[title]}, got {len(items)}"
-                    )
-                additional = dict(sections)["Additional Workflows (Claude Code + Codex)"]
-                assert any("/investigate" in command and "$investigate" in command for command, _ in additional)
-                assert any("/cleanup" in command and "$cleanup" in command for command, _ in additional)
+                assert section_titles == ["Getting Started"]
                 getting_started = dict(sections)["Getting Started"]
+                assert len(getting_started) == 5
+                labels = [label for label, _ in getting_started]
+                assert labels == [
+                    "Start a session",
+                    "Add project context",
+                    "Open the Console",
+                    "Explore capabilities",
+                    "Check for updates",
+                ]
                 assert ("Check for updates", "Run 'pilot update' to update Pilot Shell") in getting_started
-                assert any(label == "Design visually" and "Open Claude Design" in detail for label, detail in getting_started)
-                core_labels = [label for label, _ in dict(sections)["Core Workflows (Claude Code + Codex)"]]
-                assert "/prd · $prd" in core_labels
-                assert "/build · $build" in core_labels
-                assert "/spec · $spec" in core_labels
-                assert "/fix · $fix" in core_labels
-                additional_labels = [label for label, _ in dict(sections)["Additional Workflows (Claude Code + Codex)"]]
-                assert "/cleanup · $cleanup" in additional_labels
-                assert "/setup-rules · $setup-rules" in additional_labels
-                assert "/create-skill · $create-skill" in additional_labels
-                assert "/benchmark · $benchmark" in additional_labels
+                rendered = " ".join(f"{label} {detail}" for label, detail in getting_started)
+                assert "direct requests" in rendered
+                assert "native Plan/Goal tools" in rendered
+                assert "Pilot workflows use the same harness" in rendered
+                assert "/setup-rules" in rendered and "$setup-rules" in rendered
+                assert "pilot-shell.com/docs" in rendered
+                assert "Design visually" not in rendered
+                assert "/spec · $spec" not in rendered
 
 
 class TestClaudeProfileReport:

@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import json
 import os
+import pty
+import select
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 UNINSTALL_SH = Path(__file__).parent.parent.parent.parent / "uninstall.sh"
@@ -68,21 +71,21 @@ def test_uninstall_sh_codex_skills_removed():
     assert '"cleanup"' in content
 
 
-def test_uninstall_sh_documents_complete_code_search_tool_cleanup() -> None:
-    """Third-party cleanup names current tools and the legacy native dependency."""
+def test_uninstall_sh_keeps_external_tool_cleanup_explicit_and_separate() -> None:
+    """Shared tools are optional cleanup; native Claude and Codex are never targets."""
     content = _content()
-    assert "npm uninstall -g @colbymchenry/codegraph" in content
-    assert "semble clear all" in content
-    assert "uv tool uninstall semble" in content
-    assert "uv cache clean semble" in content
-    assert "npm uninstall -g better-sqlite3" in content
+    assert "--remove-tools" in content
+    assert 'uninstall_npm_tool_if_owned "@colbymchenry/codegraph"' in content
+    assert 'uninstall_uv_tool_if_owned "semble"' in content
     assert "semble uninstall" in content
     assert "rtk init -g --uninstall" in content
     assert "rtk init -g --codex --uninstall" in content
-    assert "npm uninstall -g impeccable" in content
-    assert "npm uninstall -g @playwright/cli" in content
-    assert "npm uninstall -g fast-check" in content
-    assert "uv tool uninstall hypothesis" in content
+    assert 'uninstall_npm_tool_if_owned "impeccable"' in content
+    assert 'uninstall_npm_tool_if_owned "@playwright/cli"' in content
+    assert 'uninstall_npm_tool_if_owned "fast-check"' in content
+    assert 'uninstall_uv_tool_if_owned "hypothesis"' in content
+    assert "npm uninstall -g @anthropic-ai/claude-code" not in content
+    assert "claude plugins uninstall codex@openai-codex" not in content
 
 
 def test_pilot_directory_is_removed_only_after_external_config_cleanup() -> None:
@@ -91,6 +94,115 @@ def test_pilot_directory_is_removed_only_after_external_config_cleanup() -> None
     main = content[content.rindex("\nremove_shell_aliases\n") :]
 
     assert main.index("remove_codex_files") < main.index("remove_pilot_dir") < main.index("print_summary")
+
+
+def test_default_uninstall_preserves_external_tools_even_when_pilot_owned(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    manifest = home / ".pilot" / ".pilot-owned-tools.json"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text('{"schema":1,"tools":["impeccable"]}\n')
+    skill = home / ".agents" / "skills" / "impeccable" / "SKILL.md"
+    skill.parent.mkdir(parents=True)
+    skill.write_text("keep external tool\n")
+
+    result = _run_uninstall(home)
+
+    assert result.returncode == 0, result.stderr
+    assert skill.read_text() == "keep external tool\n"
+    assert manifest.exists()
+    assert "Shared external tools were preserved" in result.stdout
+
+
+def test_remove_tools_uninstalls_only_manifest_owned_tool_and_preserves_agents(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    manifest = home / ".pilot" / ".pilot-owned-tools.json"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text('{"schema":1,"tools":["impeccable"]}\n')
+    for root in (home / ".agents" / "skills", home / ".claude" / "skills"):
+        skill = root / "impeccable"
+        skill.mkdir(parents=True)
+        (skill / "SKILL.md").write_text("managed external tool\n")
+
+    claude_binary = home / ".claude" / "bin" / "claude"
+    codex_binary = home / ".codex" / "bin" / "codex"
+    claude_binary.parent.mkdir(parents=True, exist_ok=True)
+    codex_binary.parent.mkdir(parents=True, exist_ok=True)
+    claude_binary.write_text("native claude\n")
+    codex_binary.write_text("native codex\n")
+
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    npm_log = tmp_path / "npm.log"
+    npm = fake_bin / "npm"
+    npm.write_text('#!/bin/bash\necho "$@" > "$NPM_LOG"\n')
+    npm.chmod(0o755)
+
+    result = _run_uninstall(
+        home,
+        {"PATH": f"{fake_bin}:{os.environ['PATH']}", "NPM_LOG": str(npm_log)},
+        ["--yes", "--remove-tools"],
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert not (home / ".agents" / "skills" / "impeccable").exists()
+    assert not (home / ".claude" / "skills" / "impeccable").exists()
+    assert "uninstall -g impeccable" in npm_log.read_text()
+    assert claude_binary.read_text() == "native claude\n"
+    assert codex_binary.read_text() == "native codex\n"
+
+
+def test_piped_script_reads_optional_choices_from_controlling_tty(tmp_path: Path) -> None:
+    """`curl ... | bash` keeps script stdin separate from interactive answers."""
+    home = tmp_path / "home"
+    memory = home / ".pilot" / "memory" / "keep.json"
+    memory.parent.mkdir(parents=True)
+    memory.write_text('{"keep":true}\n')
+    (home / ".pilot" / ".pilot-owned-tools.json").write_text('{"schema":1,"tools":["impeccable"]}\n')
+
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    npm = fake_bin / "npm"
+    npm.write_text("#!/bin/bash\nexit 0\n")
+    npm.chmod(0o755)
+
+    result = _run_piped_uninstall_with_tty(
+        home,
+        [
+            ("Also remove external tools", "y"),
+            ("Also delete Pilot memories", "n"),
+            ("Continue?", "y"),
+        ],
+        {"PATH": f"{fake_bin}:{os.environ['PATH']}"},
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert "Also remove external tools" in result.stdout
+    assert "Also delete Pilot memories" in result.stdout
+    assert memory.read_text() == '{"keep":true}\n'
+    assert not (home / ".pilot" / ".pilot-owned-tools.json").exists()
+
+
+def test_uninstall_stops_live_pilot_worker_without_signalling_unrelated_processes(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    worker_script = home / ".pilot" / "scripts" / "worker-service.cjs"
+    worker_script.parent.mkdir(parents=True)
+    worker_script.write_text("#!/bin/bash\nsleep 60\n")
+    worker_script.chmod(0o755)
+    worker = subprocess.Popen(["bash", str(worker_script)])
+    try:
+        pid_file = home / ".pilot" / "memory" / "worker.pid"
+        pid_file.parent.mkdir(parents=True)
+        pid_file.write_text(json.dumps({"pid": worker.pid, "port": 41777}))
+
+        result = _run_uninstall(home)
+
+        assert result.returncode == 0, result.stderr
+        worker.wait(timeout=5)
+        assert "Stopped Pilot Console worker" in result.stdout
+    finally:
+        if worker.poll() is None:
+            worker.terminate()
+            worker.wait(timeout=5)
 
 
 def test_uninstall_sh_preserves_project_codegraph_indexes() -> None:
@@ -122,6 +234,71 @@ def _run_uninstall(
         text=True,
         capture_output=True,
         check=False,
+    )
+
+
+def _run_piped_uninstall_with_tty(
+    home: Path,
+    responses: list[tuple[str, str]],
+    extra_env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
+    """Run `bash -s` with script stdin piped while answers arrive through /dev/tty."""
+    env = os.environ.copy()
+    env["HOME"] = str(home)
+    env.pop("CODEX_HOME", None)
+    env.pop("CLAUDE_CONFIG_DIR", None)
+    env.update(extra_env or {})
+
+    script_read, script_write = os.pipe()
+    pid, master = pty.fork()
+    if pid == 0:
+        os.close(script_write)
+        os.dup2(script_read, 0)
+        os.close(script_read)
+        os.execve("/bin/bash", ["bash", "-s"], env)
+
+    os.close(script_read)
+    payload = UNINSTALL_SH.read_bytes()
+    while payload:
+        written = os.write(script_write, payload)
+        payload = payload[written:]
+    os.close(script_write)
+
+    output = bytearray()
+    pending = list(responses)
+    deadline = time.monotonic() + 30
+    wait_status: int | None = None
+    try:
+        while time.monotonic() < deadline:
+            readable, _, _ = select.select([master], [], [], 0.1)
+            if readable:
+                try:
+                    chunk = os.read(master, 8192)
+                except OSError:
+                    chunk = b""
+                output.extend(chunk)
+                if pending and pending[0][0].encode() in output:
+                    _, answer = pending.pop(0)
+                    os.write(master, f"{answer}\n".encode())
+
+            waited_pid, status = os.waitpid(pid, os.WNOHANG)
+            if waited_pid == pid:
+                wait_status = status
+                break
+        else:
+            os.kill(pid, 9)
+            _, wait_status = os.waitpid(pid, 0)
+            raise AssertionError(f"Piped uninstaller timed out:\n{output.decode(errors='replace')}")
+    finally:
+        os.close(master)
+
+    assert wait_status is not None
+    assert pending == [], f"Prompts not observed: {pending}\n{output.decode(errors='replace')}"
+    return subprocess.CompletedProcess(
+        args=["bash", "-s"],
+        returncode=os.waitstatus_to_exitcode(wait_status),
+        stdout=output.decode(errors="replace"),
+        stderr="",
     )
 
 
@@ -247,9 +424,7 @@ def test_manifest_path_traversal_is_skipped(tmp_path: Path) -> None:
     managed.write_text("managed\n")
     outside = home / "outside.txt"
     outside.write_text("keep\n")
-    (claude_dir / ".pilot-manifest.json").write_text(
-        '{"files": ["rules/testing.md", "rules/../../outside.txt"]}\n'
-    )
+    (claude_dir / ".pilot-manifest.json").write_text('{"files": ["rules/testing.md", "rules/../../outside.txt"]}\n')
 
     result = _run_uninstall(home)
 
@@ -371,9 +546,7 @@ def test_alias_only_partial_install_is_detected_and_cleaned(tmp_path: Path) -> N
     home = tmp_path / "home"
     home.mkdir()
     zshrc = home / ".zshrc"
-    zshrc.write_text(
-        '# Pilot Shell\nexport PATH="$HOME/.pilot/bin:$PATH"\nalias pilot="$HOME/.pilot/bin/pilot"\n'
-    )
+    zshrc.write_text('# Pilot Shell\nexport PATH="$HOME/.pilot/bin:$PATH"\nalias pilot="$HOME/.pilot/bin/pilot"\n')
 
     result = _run_uninstall(home)
 
@@ -491,6 +664,7 @@ fi
     result = _run_uninstall(
         home,
         {"PATH": f"{fake_bin}:{os.environ['PATH']}", "CLAUDE_TEST_LOG": str(log)},
+        ["--yes", "--remove-tools"],
     )
 
     assert result.returncode == 0, result.stderr
@@ -541,7 +715,32 @@ def test_malformed_lsp_ownership_manifest_never_uninstalls_plugins(tmp_path: Pat
     fake_bin.mkdir()
     log = tmp_path / "claude.log"
     claude = fake_bin / "claude"
-    claude.write_text("#!/bin/bash\nprintf '%s\\n' \"$*\" >> \"$CLAUDE_TEST_LOG\"\n")
+    claude.write_text('#!/bin/bash\nprintf \'%s\\n\' "$*" >> "$CLAUDE_TEST_LOG"\n')
+    claude.chmod(0o755)
+
+    result = _run_uninstall(
+        home,
+        {"PATH": f"{fake_bin}:{os.environ['PATH']}", "CLAUDE_TEST_LOG": str(log)},
+        ["--yes", "--remove-tools"],
+    )
+
+    assert result.returncode != 0
+    assert not log.exists() or "plugins uninstall" not in log.read_text()
+    assert (pilot / ".pilot-lsp-plugins.json").exists()
+
+
+def test_default_uninstall_preserves_pilot_owned_lsp_plugins(tmp_path: Path) -> None:
+    """Agent plugins are shared tools and require the explicit tool-removal choice."""
+    home = tmp_path / "home"
+    pilot = home / ".pilot"
+    pilot.mkdir(parents=True)
+    manifest = pilot / ".pilot-lsp-plugins.json"
+    manifest.write_text('{"plugins":["vtsls@claude-code-lsps"]}\n')
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    log = tmp_path / "claude.log"
+    claude = fake_bin / "claude"
+    claude.write_text('#!/bin/bash\nprintf \'%s\\n\' "$*" >> "$CLAUDE_TEST_LOG"\n')
     claude.chmod(0o755)
 
     result = _run_uninstall(
@@ -549,9 +748,9 @@ def test_malformed_lsp_ownership_manifest_never_uninstalls_plugins(tmp_path: Pat
         {"PATH": f"{fake_bin}:{os.environ['PATH']}", "CLAUDE_TEST_LOG": str(log)},
     )
 
-    assert result.returncode != 0
-    assert not log.exists() or "plugins uninstall" not in log.read_text()
-    assert (pilot / ".pilot-lsp-plugins.json").exists()
+    assert result.returncode == 0, result.stderr
+    assert not log.exists()
+    assert manifest.exists()
 
 
 def test_failed_config_cleanup_keeps_baseline_and_pilot_home_for_retry(tmp_path: Path) -> None:

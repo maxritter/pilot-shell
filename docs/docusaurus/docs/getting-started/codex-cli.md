@@ -5,14 +5,16 @@ description: Pilot Shell support for Codex CLI and the ChatGPT desktop app, incl
 
 # Claude Code vs Codex
 
-Pilot Shell supports both agents. **Claude Code is the preferred agent** and has full feature coverage; Codex works for all daily development workflows with fewer platform features. Pilot works with Codex CLI and with the Codex runtime bundled in the ChatGPT desktop app on macOS.
+Pilot Shell supports both agents. Claude Code has broader platform integration; Codex works for daily development with fewer platform-specific features. Pilot works with Codex CLI and with the Codex runtime bundled in the ChatGPT desktop app on macOS.
+
+Direct requests, each agent's native Plan/Goal tools, and Pilot workflows are peer ways to work. Choose the contract you want; Pilot keeps its available context, quality, memory, and tools around all of them.
 
 ## Works on Both
 
-All core and additional workflows run on both agents. Use `/` on Claude Code and `$` on Codex:
+All Pilot workflows run on both agents. Use `/` on Claude Code and `$` on Codex:
 
-- **Core workflows:** `/prd`, `/spec`, `/build`, `/fix`
-- **Additional workflows:** `/investigate`, `/cleanup`, `/benchmark`, `/setup-rules`, `/create-skill`; Open Claude Design and Impeccable load automatically for matching visual work
+- **Structured workflows:** `/prd`, `/spec`, `/build`, `/fix`
+- **Focused workflows:** `/investigate`, `/cleanup`, `/benchmark`, `/setup-rules`, `/create-skill`; Open Claude Design and Impeccable load automatically for matching visual work
 - Console — all 11 views, persistent memory, sessions, and memories shared between agents
 - Lifecycle hooks, compaction recovery, SessionEnd finalization, and workflow stop guards
 - Workflow quality gates on both agents; Claude Code additionally keeps its edit-time lint, format, type, and TDD hooks

@@ -36,7 +36,7 @@ codex
 | Want research on competitors or prior art | `/prd` with Standard or Deep research |
 | Requirements are well-defined | `/spec` directly |
 | Requirements are clear and the acceptance bar is a standard to beat | `/build` directly |
-| Small task, no planning needed | Quick mode (just chat) |
+| No PRD contract wanted | Ask directly or use the agent's native planning/goal tools |
 
 ## Two Modes Inside One Flow
 

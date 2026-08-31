@@ -8,7 +8,7 @@ description: Plan, implement, and verify complex features with full automation â
 
 Plan, implement, and verify complex features with full automation using Spec-Driven Development.
 
-Best for new features, refactoring, and architectural changes â€” work where an **approved task list** adds value before writing code. On Claude Code, `/spec` replaces the built-in plan mode (Shift+Tab). The structured workflow prevents scope creep and ensures every task is tested and verified before being marked complete.
+Best for new features, refactoring, and architectural changes where an **approved, durable task list** adds value before writing code. Claude Code's native Plan mode and `/spec` are peer tools with different contracts: `/spec` persists its plan, implements with TDD, and verifies every task before completion.
 
 For bugfixes, use [`/fix`](/docs/workflows/fix). For vague ideas, use [`/prd`](/docs/workflows/prd) first to produce a PRD, then hand off here.
 

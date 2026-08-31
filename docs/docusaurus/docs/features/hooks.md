@@ -10,7 +10,7 @@ Lifecycle hooks enforce quality automatically throughout **Claude Code** workflo
 
 Blocking hooks reject actions or force fixes before they land. Non-blocking hooks warn without interrupting. Hook output is user-visible in both clients.
 
-The canonical lifecycle wiring is `pilot/hooks/hook-lifecycle.json`. It records each platform, event, matcher, handler, async mode, timeout, and contract-test owner; `uv run python scripts/gen_hook_manifests.py --check` verifies that the shipped Claude Code and Codex manifests still match it and that every lifecycle event below remains documented.
+Pilot installs and updates its lifecycle integrations as one managed set. The tables below describe the user-relevant behavior of that pipeline.
 
 Codex runs the skill refresh, session registration, memory observer, and turn summarizer as native asynchronous command hooks. Repository synchronization, workflow guards, context injection, compaction, and SessionEnd remain synchronous because their result must be observed before the lifecycle event completes. Pilot does not register an MCP hook merely as a transport substitute; an MCP handler belongs here only when an installed server owns a concrete lifecycle operation and returns the hook contract directly.
 
@@ -20,7 +20,6 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 
 | Hook | Applies to | Description |
 |------|------------|-------------|
-| `license_check.py` | Claude Code | Verifies the Pilot Shell license and blocks startup when invalid. |
 | `session_announcements.py` | Claude Code | Delivers one-time announcements and re-injects them until acknowledged. |
 | `config_dir_guard.py` | Claude Code | Warns when the active Claude configuration directory differs from the installed profile. |
 | `session_startup_maintenance.py` | Claude Code | Cleans stale Claude task files and dead PID-backed session directories. |

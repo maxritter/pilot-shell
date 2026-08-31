@@ -11,7 +11,7 @@
       "prompt": "Das ist eine neue, querschnittliche Technik-Rubrik mit Hub, mehreren Unterseiten, Navigation, SEO, dynamischen Datengrafiken und synchronisierter Dokumentation. Setze sie direkt in diesem leeren Projekt als bewusst winzige statische Fixture um: index.html, zwei verlinkte Unterseiten, chart.js fuer ein datengetriebenes SVG und README.md. Jede Datei darf hoechstens 20 Zeilen haben; keine externen Abhaengigkeiten und kein visuelles Polishing.",
       "expected_output": "Codex implements and verifies the bounded cross-cutting fixture directly without presenting a Pilot workflow choice.",
       "expectations": [
-        "The assistant does not ask the user to choose $spec, $build, or Quick Mode and does not pause for workflow approval.",
+        "The assistant does not ask the user to choose a Pilot workflow and does not pause for workflow approval.",
         "The sandbox contains the bounded hub fixture, two linked subpages, SEO metadata, a data-driven SVG chart, and synchronized README documentation.",
         "The transcript shows direct tool use and a verification step rather than only a proposed plan."
       ]
@@ -24,7 +24,7 @@
       "expectations": [
         "The assistant never claims Codex subagents are unavailable or forbidden. Any delegation has bounded non-overlapping ownership; keeping these deliberately tiny files local is acceptable when spawning would add more overhead than value.",
         "The root agent runs combined verification over all returned or locally produced work instead of accepting completion claims without evidence.",
-        "All three requested surfaces exist and the final response contains no $spec/$build/Quick Mode choice."
+        "All three requested surfaces exist and the final response contains no unsolicited Pilot workflow choice."
       ]
     },
     {
@@ -45,7 +45,7 @@
       "expected_output": "Codex handles the ordinary bug request directly and never auto-enters or advertises the $fix workflow or its mandatory review ceremony.",
       "expectations": [
         "The assistant does not invoke or announce $fix and does not say a $fix workflow requires a changes-review.",
-        "The assistant does not ask the user to choose $spec, $build, $fix, or Quick Mode.",
+        "The assistant does not ask the user to choose $spec, $build, or $fix, and does not invent a separate direct-work mode.",
         "The assistant either investigates and verifies the browser-status bug directly or reports the precise absence of relevant project files without inventing them."
       ]
     }

@@ -1,6 +1,7 @@
 import { useRef, useState, type KeyboardEvent } from "react";
 import { useInView } from "@/hooks/use-in-view";
 import ImageModal from "@/components/ImageModal";
+import SectionHeader from "@/components/SectionHeader";
 
 interface ConsoleSlide {
   label: string;
@@ -123,18 +124,22 @@ const ConsoleSection = () => {
           ref={ref}
           className={`${inView ? "animate-fade-in-up" : "opacity-0"}`}
         >
-          <div className="text-center mb-8">
-            <h2
-              id="console-heading"
-              className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4"
-            >
-              Pilot Shell Console
-            </h2>
-            <p className="text-muted-foreground text-lg sm:text-xl max-w-3xl mx-auto">
-              Track Pilot workflows, sessions, requirements, changes,
-              memories, and verification in one local companion.
-            </p>
-          </div>
+          <SectionHeader
+            kicker="The human control plane"
+            title="Pilot Shell Console"
+            titleId="console-heading"
+            lead={
+              <>
+                The local Console at{" "}
+                <span className="font-mono text-sm sm:text-[15px]">
+                  localhost:41777
+                </span>{" "}
+                makes the harness visible and steerable — glanced at between
+                agent turns, beside the terminal.
+              </>
+            }
+            className="mb-8"
+          />
 
           <div className="max-w-4xl mx-auto">
             <div

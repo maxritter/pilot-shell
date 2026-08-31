@@ -30,10 +30,10 @@ Use `bypassPermissions` in local dev, containers, or VMs — not on production i
 | **Auto** | Everything — classifier reviews each action | Long autonomous tasks |
 | **Bypass Permissions** | Everything, no checks | `/spec` workflow, containers |
 
-Press `Shift+Tab` in Quick Mode to cycle through modes.
+Press `Shift+Tab` in a Claude Code session to cycle through modes.
 
-:::tip Use /spec instead of plan mode
-Claude Code's built-in plan mode has no persistent format. `/spec` saves plans as markdown in `docs/plans/`, drives TDD, and runs full verification. Use `/spec`.
+:::tip Choose the planning contract you want
+Claude Code's native Plan mode keeps planning inside the agent's own interaction model. `/spec` saves a plan as markdown in `docs/plans/`, then adds TDD, review, and verification gates. They are peer tools; choose the contract that fits the work.
 :::
 
 ## Set a Persistent Default

@@ -228,13 +228,14 @@ class TestCodexHooksInstallation:
         hooks = json.loads((codex_dir / "hooks.json").read_text())["hooks"]
         handlers = [handler for entries in hooks.values() for entry in entries for handler in entry.get("hooks", [])]
         async_handlers = [handler for handler in handlers if handler.get("async") is True]
-        assert len(async_handlers) == 4
+        assert len(async_handlers) == 3
         assert {handler["command"].split()[-1] for handler in async_handlers} >= {
             "session-init",
             "observation",
             "summarize",
         }
-        assert any("codex_skill_sync.py" in handler["command"] for handler in async_handlers)
+        startup_sync = next(handler for handler in handlers if "codex_skill_sync.py" in handler["command"])
+        assert "async" not in startup_sync
         control_handlers = [
             handler
             for handler in handlers
@@ -1485,8 +1486,7 @@ class TestCodexMcpConfiguration:
         """The former Pilot default must not become a permanent user override
         when the baseline was created only after Codex had stripped markers."""
         existing = (
-            '[mcp_servers.semble]\ncommand = "uvx"\n'
-            'args = ["--no-config", "--from", "semble[mcp]==0.5.5", "semble"]\n'
+            '[mcp_servers.semble]\ncommand = "uvx"\nargs = ["--no-config", "--from", "semble[mcp]==0.5.5", "semble"]\n'
         )
         config, ctx = self._run_mcp_install_with_baseline(
             tmp_path,
