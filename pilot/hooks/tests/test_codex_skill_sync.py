@@ -413,7 +413,8 @@ class TestSyncCodexSkills:
         metadata_path = skill_tree / ".agents" / "skills" / "fix" / "agents" / "openai.yaml"
         metadata = yaml.safe_load(metadata_path.read_text())
         assert metadata["interface"]["display_name"] == "Fix"
-        assert "explicitly invokes $fix" in metadata["interface"]["short_description"]
+        assert "Diagnose and repair a defect at its root cause" in metadata["interface"]["short_description"]
+        assert not metadata["interface"]["short_description"].casefold().startswith("use only")
         assert "/fix" not in metadata["interface"]["short_description"]
         assert metadata["policy"]["allow_implicit_invocation"] is False
 

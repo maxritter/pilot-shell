@@ -2,7 +2,7 @@
 
 Run all mechanical checks in sequence. Fix any failures before proceeding.
 
-**Broad-check failure classification.** Prefer the project-configured check commands, but do not turn a smoke/no-production spec into an unrelated cleanup. If a broad check fails only in files outside the plan's `Files:` blocks and documented deviations, first prove it is unrelated: inspect the changed-file list, cite the failing paths, and run any narrower changed-file check the tool supports. A failure is still blocking when it touches a changed file, generated artifact, import/type surface reachable from the change, security/data-integrity path, or when you cannot prove it is unrelated. A proven pre-existing unrelated failure is recorded in the Step 6.3 Not-Verified table and final report; do not edit unrelated files just to make this spec pass.
+**Broad-check failure classification.** Prefer the project-configured check commands, but do not turn a smoke/no-production spec into an unrelated cleanup. If a broad check fails only in files outside the plan's `Files:` blocks and its `## Deviations` section, first prove it is unrelated: inspect the changed-file list, cite the failing paths, and run any narrower changed-file check the tool supports. A failure is still blocking when it touches a changed file, generated artifact, import/type surface reachable from the change, security/data-integrity path, or when you cannot prove it is unrelated. A proven pre-existing unrelated failure is recorded in the Step 6.3 Not-Verified table and final report; do not edit unrelated files just to make this spec pass.
 
 1. **Full test suite** — `uv run pytest -q` / `bun test` / `npm test`. Fix failures immediately.
 2. **Type checker** — `basedpyright` / `tsc --noEmit`. Zero errors required.

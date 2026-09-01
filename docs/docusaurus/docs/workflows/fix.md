@@ -8,7 +8,7 @@ description: Bugfix workflow — investigate root cause, write a RED reproducing
 
 Bugfix workflow with TDD. Investigates the bug, writes a failing test, fixes at the root cause, **verifies end-to-end against the running program**, finishes. No plan file, no approval mid-flow, no separate verify phase.
 
-Use `/fix` for bugs. Use [`/spec`](/docs/workflows/spec) for features and architectural changes — including bugfixes that warrant a full plan with approval and code review. Use [`/build`](/docs/workflows/build) when the behaviour already works and you want it *better* against a named standard: that is a quality gap, not a defect.
+Use `/fix` when you want a reported defect repaired. It keeps ownership even when investigation reveals a multi-component cause, structural change, substantial UI work, or a larger-than-expected diff. Scope changes how `/fix` organizes the work; it never causes a workflow handoff.
 
 ```bash
 # Claude Code
@@ -24,7 +24,7 @@ codex
 > $fix "wrong default for max_retries"
 ```
 
-`/fix` is **always quick**. If investigation reveals the bug is multi-component, architectural, or otherwise larger than a quick fix, `/fix` stops cleanly and tells you to re-invoke with `/spec`. It does not silently switch lanes.
+`/fix` starts with the smallest useful reproduction and scales as far as the defect requires. It can deepen the trace, decompose work across components, introduce a necessary test seam, make a coherent architectural repair, and broaden end-to-end verification without asking you to restart under another workflow.
 
 ## Workflow
 
@@ -36,7 +36,7 @@ Investigate  →  RED  →  Fix  →  Verify End-to-End  →  Quality Gate  → 
 
 When the report names a failing test, a CI failure, or a crashing command, `/fix` runs it locally **first** — before reading any code — and reads the complete output, not just the assertion: warning logs, stderr, and swallowed-exception notices often name the root cause directly. If the environment blocks the run (expired cloud auth, dependencies behind a private registry), `/fix` names the blocker and the exact unblock command and asks you to unblock it instead of speculating around the missing run.
 
-Then trace the bug to `file:lineN — function() does X but should do Y` with **High** or **Medium** confidence. For UI / async / race / timing bugs that don't surface from a static read, add temporary `SPEC-DEBUG:`-marked logs at component boundaries before tracing. Low confidence bails out.
+Then trace the bug to `file:lineN — function() does X but should do Y` with **High** or **Medium** confidence. For UI / async / race / timing bugs that don't surface from a static read, add temporary `SPEC-DEBUG:`-marked logs at component boundaries before tracing. Low confidence means deeper investigation before production code—not a workflow redirect.
 
 ### RED — Write the Reproducing Test
 
@@ -46,7 +46,7 @@ Encode `Currently → Expected` via an existing public entry point. Run it; it m
 
 Minimal change at the root cause. Symptom patches (`try/except` hiding the bug, swallowed returns, silently normalised inputs) are forbidden. Re-run the reproducing test → must pass. Run the targeted test module(s).
 
-A diff sanity check follows: root-cause file IS in the diff, no unplanned files, < 20 lines typically. A grep over the diff catches symptom-patching and leftover `print` / `console.log` / `SPEC-DEBUG:` markers — every match must be justified or reverted.
+A diff sanity check follows: the root-cause file is in the diff, every file and hunk follows the causal chain, and no unrelated cleanup is bundled. A grep over the diff catches symptom-patching and leftover `print` / `console.log` / `SPEC-DEBUG:` markers — every match must be justified or reverted. There is no file-count or line-count ceiling on a necessary repair.
 
 ### Verify End-to-End
 
@@ -64,24 +64,23 @@ The completion report must include concrete evidence — bare assertions ("looks
 
 ### Quality Gate
 
-Lint + types + build (when applicable), then the full anti-regression suite, once. If a far-from-the-fix test breaks, the bug has unintended cross-coupling — bail out to `/spec`.
+Lint + types + build (when applicable), then the full anti-regression suite, once. A far-from-the-fix failure is evidence of coupling: `/fix` traces whether the repair caused it, corrects the integration when it did, or records it as unrelated pre-existing evidence when it did not.
 
 ### Finalise
 
 If the **Changes Review** or **Codex Companion Changes Review** toggle is on, the corresponding review audits the fix first — the same reviewers `/spec` runs after implementation (a single `changes-review` sub-agent on Claude Code, the native agent on Codex). Findings are auto-fixed by severity before the approval gate, so what you approve is the reviewed fix. Approval gate fires only if **Plan Approval** is enabled, and it comes **before** the commit and the merge — nothing has landed when you are asked, so "request changes" costs nothing to act on. Worktree mode: once approved, test + fix are bundled into one `fix:` commit and squash-merged back. The gate waits for you — Pilot disables Claude Code's 60-second idle auto-continue for unanswered questions (see the [approval gates note](/docs/workflows/spec) in `/spec`). The completion report includes a mandatory **E2E** line documenting what was actually run.
 
-## When to bail out — use `/spec` instead
+## How `/fix` scales
 
-`/fix` stops and tells you to re-invoke with `/spec` when:
+The workflow keeps going when the defect grows beyond its initial shape:
 
-- Bug spans 3+ files or 2+ components.
-- Root cause is architectural, not a single line.
-- Fix needs defense-in-depth at multiple layers.
-- Confidence stays Low — root cause can't be pinned to file:line.
-- Two failed fix attempts.
-- Fix has non-trivial UI implications that warrant a recorded Verification Scenario.
+- **Several files or components:** decompose the causal chain into bounded work items and verify their integration.
+- **Architectural root cause:** make the smallest coherent structural change that removes it, then cover the old failure boundary and the new contract.
+- **Defense in depth:** repair every required boundary while keeping each change traceable to the same defect.
+- **Low confidence or failed attempt:** revert unsupported edits, strengthen the reproduction and observability, then challenge the root-cause statement.
+- **Non-trivial UI behavior:** capture the interaction states and verify the complete flow in the real browser or installed app.
 
-The full lane (`/spec`) adds: Behavior Contract, three-task structure, plan file with approval gate, Console annotation cycle, `cp`+`trap` revert-test proof in verify, iteration cap at 3.
+`/fix` pauses only for a genuine external blocker: missing user-only information, credentials or authorization, an unavailable system, or a material product choice that cannot be inferred safely. It names the exact unblock action and resumes the same workflow afterward.
 
 ## Common issues
 
@@ -90,9 +89,9 @@ The full lane (`/spec`) adds: Behavior Contract, three-task structure, plan file
 | Can't reproduce | Description too vague or environment-dependent | Ask for exact steps, env, stack trace. Don't write a speculative fix. |
 | Repro blocked by environment | Expired cloud auth, private package registry, missing credentials | `/fix` names the blocker and the unblock command (e.g. `gcloud auth application-default login`) and waits for you — it never substitutes speculation for a run. |
 | Test passes without the fix | Test doesn't encode the bug | Tighten the assertion or pick a more specific input. |
-| Fix breaks far-away tests | Cross-coupling beyond the quick lane | Bail out. Re-invoke with `/spec`. |
+| Fix breaks far-away tests | The repair exposed coupling or the failure is pre-existing | Trace causality, correct in-scope integration, or report unrelated baseline evidence. |
 | Reproducing test green but user still hits the bug | Test sits below the user's layer | Move the assertion up and re-run RED → Fix → Verify End-to-End. |
-| Two failed fix attempts | Architectural problem, not a fix problem | Bail out. The pattern needs reconsidering, not another patch. |
+| An attempted fix fails | The current root-cause hypothesis is incomplete | Revert the unsupported edit, rerun the reproduction, and continue from the new evidence. |
 
 ## Configurable Toggles
 
@@ -109,12 +108,6 @@ When **Ask Questions** and **Plan Approval** are both off, `/fix` runs end-to-en
 
 `/fix` takes the same branch options `/spec` does — `--worktree=yes` for an isolated checkout squash-merged back at the end, or `--new-branch` for a `fix/<slug>` branch off the default branch. With **Branch Isolation** on and no flag given, it asks; with the toggle off it works on the current branch. The merge-back is `/fix`'s own: after you approve, it commits inside the worktree, syncs, and cleans up.
 
-## When to use `/spec` vs `/fix`
+## Workflow ownership
 
-| Use `/fix` | Use `/spec` | Use `/build` |
-| --- | --- | --- |
-| Something is broken | Building new functionality | Something works but isn't good enough |
-| You want a fix without ceremony | Architecture or design decision matters | The approach is best found while building |
-| You want it done now | Work warrants a written plan + approval | Quality is the acceptance criterion |
-
-`/fix` handles the full range — from typos to multi-step debugging. It bails out and points to `/spec` only when complexity is truly architectural (multiple components, defense-in-depth at multiple layers, repeated failed attempts).
+`/fix` handles the full range from typos to multi-component and architectural defect repairs. `/spec` remains a separate, user-selected workflow for work measured against an ordered plan approved before implementation; `/build` remains a separate, user-selected workflow for a named outcome whose approach can emerge while building. `/fix` never selects either one on the user's behalf.

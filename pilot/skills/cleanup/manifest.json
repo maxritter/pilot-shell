@@ -8,7 +8,7 @@
   "evals": "tests/evals.json",
   "platform": {
     "codex": {
-      "description": "Use only when the user explicitly invokes /cleanup. Produce a read-only, evidence-backed dead-code candidate report without installing tools, editing files, or deleting code.",
+      "description": "Report dead-code candidates with read-only evidence and no code changes through the explicit /cleanup workflow.",
       "short_description": "Report dead-code candidates without changing code"
     }
   },

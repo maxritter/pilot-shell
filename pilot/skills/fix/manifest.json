@@ -5,6 +5,7 @@
   "targets": ["claude", "codex"],
   "visibility": "public",
   "invocation": "explicit",
+  "evals": "tests/evals.json",
   "steps": [
     {
       "id": "step-1-investigate",

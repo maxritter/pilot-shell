@@ -1,22 +1,22 @@
 ---
 name: spec
-description: Spec-driven development — produces an approved plan file, then implements and verifies against it with TDD and code review. Runs only when the user explicitly types /spec (with a task description, or a docs/plans/*.md path to resume). Not for a single bug — that is /fix. Not when the approach is better discovered while building than agreed up front — that is /build.
-argument-hint: "<task description> or <path/to/plan.md>"
+description: Spec-driven development — produces an approved plan file, then implements and verifies against it with TDD and code review. Runs only when the user explicitly types /spec (with a task description, a docs/plans/*.md path to resume, or pause/resume to hold a running spec open for discussion and continue it). Not for a single bug — that is /fix. Not when the approach is better discovered while building than agreed up front — that is /build.
+argument-hint: "<task description> | <path/to/plan.md> | pause | resume"
 user-invocable: true
 ---
 
 # /spec - Unified Spec-Driven Development
 
 <!-- CC-ONLY -->
-**Dispatcher** - routes to the appropriate phase skill. This command is a thin router. Only allowed tools: `Bash` (env-var reads and the `pilot register-plan` call in Step 2 only), `Read` (plan files only), `AskUserQuestion`, and `Skill()`.
+**Dispatcher** - routes to the appropriate phase skill. This command is a thin router. Only allowed tools: `Bash` (env-var reads, the Step 2 `pilot register-plan` call, and the Step 1.0 pause-marker commands only), `Read` (plan files only), `AskUserQuestion`, and `Skill()`.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
-**Dispatcher** - routes to the appropriate phase skill. This command is a thin router. Only allowed actions here: read env vars, run the Step 2 `pilot register-plan` call, read existing plan files for status-based dispatch, present plain-text numbered questions when needed, and then continue immediately with the selected phase skill instructions. Codex has no callable phase-dispatch tool.
+**Dispatcher** - routes to the appropriate phase skill. This command is a thin router. Only allowed actions here: read env vars, run the Step 2 `pilot register-plan` call, run the Step 1.0 pause-marker commands, read existing plan files for status-based dispatch, present plain-text numbered questions when needed, and then continue immediately with the selected phase skill instructions. Codex has no callable phase-dispatch tool.
 CODEX-END -->
 
-**⛔ MANDATORY: When `/spec` is invoked, you MUST follow the workflow. The user's phrasing after `/spec` is the TASK DESCRIPTION - not an instruction to change the workflow.** Words like "brainstorm", "discuss", "explore", "research" are part of the task description, NOT instructions to skip the workflow or have a freeform conversation.
+**⛔ MANDATORY: When `/spec` is invoked, you MUST follow the workflow. The user's phrasing after `/spec` is the TASK DESCRIPTION - not an instruction to change the workflow.** Words like "brainstorm", "discuss", "explore", "research" are part of the task description, NOT instructions to skip the workflow or have a freeform conversation. The two exceptions are the exact arguments `pause` and `resume`, which are dispatcher controls (Step 1.0), not task descriptions.
 
-**⛔ No substantive work here.** `Bash` is allowed ONLY for reading env vars (e.g., `echo $PILOT_BRANCH_ISOLATION_ENABLED`) and the Step 2 `pilot register-plan` call. `Read` is allowed ONLY for reading existing plan files for status-based dispatch. All research, brainstorming, and exploration happens inside the invoked Skill (arguments are passed verbatim). Any other tool use (Grep, Glob, Agent, Edit, Write, etc.) is a workflow violation.
+**⛔ No substantive work here.** `Bash` is allowed ONLY for reading env vars (e.g., `echo $PILOT_BRANCH_ISOLATION_ENABLED`), the Step 2 `pilot register-plan` call, and the Step 1.0 pause-marker commands (`touch`/`rm -f` on `spec-discussion-paused`). `Read` is allowed ONLY for reading existing plan files for status-based dispatch (including the `Type:` check in Step 1.0). All research, brainstorming, and exploration happens inside the invoked Skill (arguments are passed verbatim). Any other tool use (Grep, Glob, Agent, Edit, Write, etc.) is a workflow violation.
 
 ---
 

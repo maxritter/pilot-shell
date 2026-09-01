@@ -1,12 +1,12 @@
 ## Step 2: Write the Reproducing Test (RED)
 
-**No production code yet.** A bugfix without a failing test is a rubber-stamp fix. The quick lane keeps this step minimal — but it does not skip it.
+**No production code yet.** A bugfix without a failing test is a rubber-stamp fix. Keep this step focused, but do not skip it because the defect is complex.
 
 ### 2.1 Pick the entry point
 
 Use an **existing public entry point** the bug is reachable through (function, endpoint, CLI command). Don't write a test that calls a helper you're about to create — those tests can't fail before the fix.
 
-If no clean entry point exists: that's a design smell. Document it briefly and use the closest stable one. Don't refactor "to make it testable" in the quick lane — bail out (tell the user to re-invoke with `/spec`) if the smell is large.
+If no clean entry point exists, document the testability gap and use the closest stable public boundary. When a small test seam is necessary to reproduce the real defect, introduce it as part of the repair and keep it no broader than the failing behavior requires.
 
 **Modify, don't duplicate.** If a test class already covers this entry point (e.g. you can `grep` for the function name in `tests/` and find one), add the new failing test as a method INSIDE that class. Do NOT create a new test class just because the bug is "different". Prefer one class per production class/public entry point, not one class per symptom.
 
@@ -31,4 +31,4 @@ Naming: `test_<function>_<bug>_<expected>` (Python) or `it("should <expected> wh
 
 ### 2.4 No commit yet
 
-Worktree mode: do not commit the test alone. The quick lane bundles test + fix into one commit at finalise. (Full lane uses separate commits because the cp+trap RED proof in verify needs them — quick lane skips that proof, so commit-bundling is fine.)
+Worktree mode: do not commit the test alone. `/fix` bundles the reproducing test, repair, and review-driven changes into one commit at finalise.

@@ -207,6 +207,13 @@ def _validate_descriptions(records: list[SkillRecord], ratchet: dict[str, Any]) 
     for index, left in enumerate(records):
         if len(left.description.split()) > 60:
             findings.append(Finding("description.length", f"{left.name} description exceeds 60 words"))
+        if left.description.casefold().startswith("use only"):
+            findings.append(
+                Finding(
+                    "description.leading-routing",
+                    f"{left.name} description starts with routing policy instead of its capability",
+                )
+            )
         if left.visibility == "public" and left.invocation == "explicit" and "explicit" not in left.description.lower():
             findings.append(
                 Finding("description.explicit", f"{left.name} description does not state explicit invocation")

@@ -99,7 +99,7 @@ regardless of where they appear in the file, so the Console and the public
 `Summary` · `Acceptance Criteria` · `Criteria` · `Out of Scope` · `Investigation` ·
 `Behavior Contract` · `Approach` · `Fix Approach` · `Scope` ·
 `Autonomous Decisions` · `Global Constraints` · `Context for Implementer` ·
-`Runtime Environment` · `Feature Inventory` · `Assumptions` ·
+`Runtime Environment` · `Feature Inventory` · `Assumptions` · `Deviations` ·
 `Risks and Mitigations` · `Goal Verification` · `E2E Test Scenarios` ·
 `E2E Results` · `Verification Scenario` · `Verification Scenarios` ·
 `File Structure` · `Open Questions` · `Deferred Ideas` · `Round Log` ·
@@ -116,6 +116,18 @@ Two exceptions:
   header card, so rendering it again would duplicate it.
 - **Rendered specially:** `Implementation Tasks` (feature and build) and `Tasks`
   (bugfix) are turned into clickable task cards rather than an ordinary section.
+
+### `## Deviations` — what implementation learned
+
+The implement phase appends this section when reality diverges from the approved
+plan (the `/spec` discovery protocol): one entry per deviation, in the shape
+`- Task N (tactical|user-agreed): <discovery> → <what changed>`. Tactical entries
+record detail-level adaptations the agent made on its own; `user-agreed` entries
+record amendments settled with you during a discussion pause. A deviation that
+changes which files are touched must name the exact repository paths and update
+the affected task's `Files:` block in the same edit. Verification scopes its
+review lineage to the plan's `Files:` blocks **plus files recorded here**, so an
+agreed amendment is reviewed as in-scope rather than flagged as drift.
 
 ## Tasks
 

@@ -4,7 +4,7 @@
 
 Edit only the file(s) at the root cause. One logical fix. No "while I'm here" cleanups, no bundled refactoring, no formatting passes. **Lineage rule:** every changed line traces directly to the bug.
 
-Multi-site is fine when every site gets the same conceptual fix — see the logic-divergence test in the orchestrator's bail-out section.
+Multi-site is fine when the causal chain requires it. Keep each change tied to the same reported defect, even when different boundaries need different logic.
 
 ### 3.2 Forbidden patterns — fix at source, not symptom
 
@@ -16,7 +16,7 @@ If the buggy data flows from upstream, fix upstream. Red flags in the diff:
 - Early return that hides wrong state from the caller.
 - Renamed/suppressed log lines that previously surfaced the bug.
 
-If the candidate fix sites need divergent logic rather than one repeated pattern, bail out to `/spec` (orchestrator, bail-out section).
+When required boundaries need divergent logic, state the causal role of each site, implement the smallest coherent repair across them, and add coverage for both the local contracts and their integration. Exclude unrelated defects and opportunistic cleanup.
 
 ### 3.3 Run the reproducing test — it MUST pass
 
@@ -37,7 +37,7 @@ uv run pytest <path/to/test_module.py> -q
 bun test <path/to/test-file.test.ts>
 ```
 
-Zero failures. The full anti-regression suite runs once at Step 5 — running it after every fix iteration is the quick-lane anti-pattern.
+Zero failures. The full anti-regression suite runs once at Step 5; during investigation, rerun only the scopes that can confirm or falsify the current hypothesis.
 
 ### 3.5 Diff sanity
 
@@ -48,11 +48,9 @@ git diff | grep -E "^\+.*(SPEC-DEBUG|\b(try:|except|catch \(|return None|return 
 
 - **Root-cause file IS in the diff.** If not, the fix is at a symptom — return to 3.1.
 - **No unplanned files appear.** If they do, revert them now.
-- **Diff is small** — usually < 20 lines for single-site fixes, < ~150 net new production lines for multi-site pattern fixes. If it ballooned past that ceiling, the bug exceeds the quick lane — bail out.
+- **Diff is no larger than the repair requires.** Audit every file and hunk against the causal chain. Remove unrelated cleanup, but do not treat file count or line count as a workflow ceiling.
 - **Every grep match must be justified or reverted.** Look for symptom-patching, swallowed returns, or leftover `print` / `console.log` / `SPEC-DEBUG:` markers.
 
-### 3.6 If your first fix doesn't work — one re-attempt, then bail out
+### 3.6 If an attempted fix doesn't work
 
-If Step 3.3 fails: revert, re-investigate, try once more.
-
-If the second attempt also fails: **stop and tell the user to re-invoke with `/spec`**. Two failed quick-lane attempts means the bug is deeper than the lane is built for.
+If Step 3.3 fails, revert the unsupported production edit, re-run the original reproduction, and return to Step 1.3 with the new evidence. Challenge the root-cause statement before trying another repair. Continue until the reproducing test and original user-level symptom both pass, or a genuine external blocker requires user action.

@@ -198,6 +198,18 @@ def _is_spec_invocation(prompt: str) -> bool:
     return after == "" or after[:1].isspace()
 
 
+def _pause_control(prompt: str) -> str | None:
+    """Return "pause"/"resume" when the prompt is exactly that dispatcher control.
+
+    `/spec pause` and `/spec resume` drive the discussion-pause marker (dispatcher
+    Step 1.0); they start no planning leg, so neither belongs behind the Opus
+    gate. Only the exact single-token form counts: `/spec pause the video
+    playback feature` is a task description and stays subject to every gate.
+    """
+    body = prompt[len("/spec") :].strip().lower()
+    return body if body in ("pause", "resume") else None
+
+
 def _is_resume_existing_plan(prompt: str) -> bool:
     """Return True when /spec is resuming an existing plan, not starting a new one.
 
@@ -300,6 +312,15 @@ def run_spec_mode_guard() -> int:
     if not _is_spec_invocation(prompt):
         return 0
 
+    # `/spec pause` only touches the session's discussion-pause marker --
+    # workflow-neutral, so it bypasses every gate, including the plan-mode block
+    # (blocking it would strand a paused run behind the nags the pause stops).
+    # `/spec resume` re-enters the workflow: it keeps the plan-mode block below
+    # and skips only the model gate, like a `/spec <plan.md>` resume.
+    control = _pause_control(prompt)
+    if control == "pause":
+        return 0
+
     if permission_mode == "plan":
         print(
             json.dumps(
@@ -319,7 +340,7 @@ def run_spec_mode_guard() -> int:
     # plan (`/spec <path/to/plan.md>`) dispatches to spec-implement / spec-verify,
     # which run on whichever model is active (Sonnet under automated switching).
     # Skipping the gate for resume keeps it reachable on Sonnet.
-    if _is_resume_existing_plan(prompt):
+    if control == "resume" or _is_resume_existing_plan(prompt):
         return 0
 
     # Model gate -- Automated mode only (mode read FRESH from config.json; env

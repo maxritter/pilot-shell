@@ -31,6 +31,7 @@ export const DISPLAYED_SECTIONS_ORDERED: readonly string[] = [
   "Runtime Environment",
   "Feature Inventory",
   "Assumptions",
+  "Deviations",
   "Risks and Mitigations",
   "Goal Verification",
   "E2E Test Scenarios",

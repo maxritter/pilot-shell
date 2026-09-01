@@ -25,7 +25,7 @@ bun test
 Zero failures. If anything broke that's not in the immediate neighbourhood of your fix:
 
 - **Localised to the same module:** fix it inline, re-run.
-- **Far from your fix:** the fix has unintended cross-coupling. **Stop and tell the user to re-invoke with `/spec`** — the bug is bigger than you thought.
+- **Far from your fix:** treat it as evidence of unintended coupling. Trace whether the failure is caused by the repair; if it is, correct the integration inside this workflow and re-run. If it is unrelated and pre-existing, preserve the evidence and report it without altering unrelated code.
 
 ### 5.3 Auto-fix re-run
 

@@ -1,6 +1,6 @@
 ---
 name: fix
-description: "Structured bugfix workflow — resolves one defect at its root cause with end-to-end proof it is gone. Runs only when the user explicitly types /fix. Stops cleanly and asks the user to re-invoke with /spec when the bug turns out to span multiple components or need an architectural change. Not for making existing working behaviour better — that is /build."
+description: "Structured bugfix workflow — diagnoses and repairs a reported defect at its root cause, scales across every required component, and proves the result end to end. Runs when the user explicitly types /fix."
 argument-hint: "<bug description>"
 user-invocable: true
 ---
@@ -15,9 +15,9 @@ Bugfix with TDD: investigate the bug, write the failing test, fix at the root ca
 > /fix "wrong default for max_retries"
 ```
 
-**Always quick.** If investigation shows the bug is multi-component, architectural, or otherwise bigger than a quick fix, STOP cleanly and tell the user to re-invoke with `/spec`. Never switch lanes silently — `/fix` means quick, `/spec` means the full workflow. Honour the user's command choice.
+**Own the defect end to end.** Scope, file count, UI impact, and architectural breadth change how the work is organized; they never change which workflow owns it. `/fix` continues through investigation, implementation, review, and proof until the reported defect is resolved or a genuine external blocker requires the user.
 
-**Not a bug?** If what the user actually wants is existing, working behaviour made *better* against some standard — faster, prettier, clearer, closer to a named reference — that is `/build`, not `/fix`. Say so and stop; do not run a root-cause investigation on a quality gap.
+**Unexpected classification.** If investigation shows the reported defect is actually a quality gap or missing behavior, state that finding and continue toward the concrete requested end state when it is safely inferable. Ask only when the different classification creates a material product decision; never stop merely to redirect the user to another workflow.
 
 ---
 
@@ -32,7 +32,7 @@ Bugfix with TDD: investigate the bug, write the failing test, fix at the root ca
 4. FIX AT THE SOURCE — not where the error appears.
 5. END-TO-END VERIFICATION IS MANDATORY — Step 4 runs the actual program and
    captures concrete evidence. Unit tests alone are never accepted as proof.
-6. STOP WHEN OVER YOUR HEAD — multi-component / architectural bugs need /spec.
+6. STAY WITH THE DEFECT — complexity changes execution strategy, never workflow ownership.
 ```
 
 Three failure modes are common enough to name, because each one *feels* reasonable in the moment:
@@ -41,7 +41,7 @@ Three failure modes are common enough to name, because each one *feels* reasonab
 |--------------|--------------|
 | "I can find it by reading the code — no need to run the test" | The failing run's output (warnings, stderr, swallowed-exception notices) often names the root cause outright. Running it first is faster than tracing. |
 | "The repro can't run here, I'll reason it out instead" | An environment blocker is a user-involvement point, not a licence to speculate. Ask for the unblock, then run (Step 1.1). |
-| "One more fix attempt" (after two failures) | Two failed quick-lane attempts means the lane is wrong, not that the third try is the charm. Bail to `/spec`. |
+| "This is larger than expected, so another workflow should own it" | The user already chose `/fix`. Expand the trace, decompose the work, and keep going without a workflow handoff. |
 
 ---
 
@@ -52,9 +52,9 @@ Three failure modes are common enough to name, because each one *feels* reasonab
 > **`$LANE_FLAG`** is `--lane <id>` when this run was dispatched as an orchestration lane, and **nothing at all** otherwise — the value the invocation parsed from its arguments. It keeps worktree and plan identity scoped to this lane; an unflagged call resolves a different identity and silently finds nothing (issue #174).
 
 - **Detect a worktree with `pilot worktree detect --json <fix-slug> $LANE_FLAG`, never a path glob.** The old `.worktrees/spec-*` test keyed `/fix`'s isolation to a directory prefix another workflow produces; the resolver answers the same question without depending on the naming.
-- **No `Iterations:` counter.** If the fix doesn't work after one re-attempt, stop and hand off to `/spec` — don't loop.
+- **No artificial attempt or size ceiling.** A failed approach is evidence: revert the speculative edit, update the causal model, strengthen the reproducing signal, and continue. Do not accumulate patches that are not supported by the latest evidence.
 - **No approval mid-flow.** A single end-of-flow confirmation, and only when `PILOT_PLAN_APPROVAL_ENABLED` is enabled. It sits at 6.2, **ahead of** the commit and merge at 6.3 — one gate, placed in front of the step that cannot be undone. Do not add a second gate for the merge; move nothing behind it.
-- **Stopping is success, not failure.** Recognising "this is bigger than a quick fix" is the right call; grinding on a multi-component bug in the quick lane is the failure.
+- **Complex fixes stay in `/fix`.** Use a concise native plan, bounded subagents, additional regression seams, or broader verification when they materially help, while keeping every change traceable to the reported defect.
 <!-- CC-ONLY -->
 - **Use `AskUserQuestion` for user questions** — it renders a structured form; don't fall back to plain-text numbered questions.
 <!-- /CC-ONLY -->
@@ -66,25 +66,18 @@ CODEX-END -->
 
 ---
 
-## Bail-Out Triggers — Stop and Hand Off to `/spec`
+## Persistence and Genuine Blockers
 
-Stop and tell the user to re-invoke with `/spec` when ANY of these holds after Step 1:
+`/fix` never redirects because the defect is multi-component, architectural, UI-heavy, difficult to reproduce, larger than expected, or still unresolved after an attempted repair. Those conditions call for deeper investigation or broader execution inside this workflow:
 
-- **Confidence is Low** — you can't pin the root cause to `file:line`.
-- Two quick-lane fix attempts have already failed.
-- The fix has **non-trivial UI implications** warranting a recorded Verification Scenario (multi-step flow, regression-prone interaction, visual states worth capturing).
-- The fix introduces **new abstractions** — a new module, public API, data structure, workflow phase, or a file outside the existing surface area.
-- The fix requires **architectural redesign** — the existing pattern itself must change (swapping the storage layer, restructuring a state machine, replacing a contract). Adding a missing guard or field along an existing pattern is *not* a redesign.
-- Net new production code is likely to exceed **~150 lines** (rough ceiling — if you can't size it yet, sketch the diff first).
-- The change spans **independent components with unrelated logic** — e.g. a frontend bug bundled with an unrelated backend bug.
+- **Low confidence:** keep tracing, instrumenting, minimizing, and cross-checking until the root cause is supported. Do not write speculative production code.
+- **Several components or divergent logic:** decompose the causal chain into bounded work items, fix each required boundary, and verify their integration.
+- **Architecture or new abstractions:** make the smallest coherent structural change that removes the root cause, with tests at the old failure boundary and the new contract.
+- **Non-trivial UI implications:** record the interaction states and verify the complete user flow in the real browser or installed app.
+- **Repeated failed attempts:** revert unsupported edits, re-run the original reproduction, challenge the hypothesis, and continue from the new evidence.
+- **Large diff:** audit lineage by file and hunk; remove unrelated cleanup, but do not impose a line-count ceiling on a necessary repair.
 
-### The one distinction that decides most bail-outs
-
-**Logic divergence, not file count.** Applying the *same* conceptual fix at N existing sites is one logical bug with multiple guard sites — the correct quick-lane move, however many files it touches. Example: adding the same iteration cap to both a verify orchestrator and a stop-guard hook, because they are two layers of one missing-budget defect.
-
-Bail out when each site needs **different** logic — entry validation *plus* a business rule *plus* a storage migration, each non-trivial. That is `/spec` territory. Steps 1.3, 3.1, and 3.2 all defer to this paragraph rather than restating it.
-
-**How to bail out:** summarise what you found (root-cause hypothesis, files involved, why it exceeds the lane) → tell the user "This bug needs the full workflow. Please re-invoke with `/spec '<bug description>'`" → do NOT invoke `spec-bugfix-plan` yourself; the user chose `/fix` → stop.
+Pause only for a genuine blocker that cannot be resolved inside the workspace: missing user-only information, credentials or authorization, an unavailable external system, or a product decision whose alternatives materially change the result. State the exact blocker and required user action, then resume `/fix` when it is cleared. Never recommend another Pilot workflow as the unblock path.
 
 ---
 

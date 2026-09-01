@@ -424,6 +424,47 @@ class TestResumeExistingPlanBypass:
         assert code == 2
 
 
+class TestDiscussionPauseControlBypass:
+    """`/spec pause` and `/spec resume` are dispatcher controls, not workflow starts.
+
+    `pause` only touches the session's discussion-pause marker, so it is
+    workflow-neutral: no model gate, and legal even in plan mode (blocking it
+    would strand a paused run behind the very nags the pause exists to stop).
+    `resume` re-enters the workflow, so it keeps the plan-mode block but skips
+    the Opus gate exactly like `/spec <path/to/plan.md>` -- implementation runs
+    on whatever model is active.
+    """
+
+    def test_pause_skips_the_model_gate(self) -> None:
+        """Plain Opus would block a new plan -- the pause control must pass anyway."""
+        code, output = _run_with_model_cache("/spec pause", "bypassPermissions", "opus", mode="automated")
+        assert code == 0
+        assert output == ""
+
+    def test_pause_allowed_even_in_plan_mode(self) -> None:
+        code, _output = _run_with_model_cache("/spec pause", "plan", "sonnet", mode="automated")
+        assert code == 0
+
+    def test_resume_skips_the_model_gate(self) -> None:
+        code, output = _run_with_model_cache("/spec resume", "bypassPermissions", "opus", mode="automated")
+        assert code == 0
+        assert output == ""
+
+    def test_plan_mode_still_blocks_resume(self) -> None:
+        code, output = _run_with_model_cache("/spec resume", "plan", "sonnet")
+        assert code == 2
+        assert "Plan mode" in json.loads(output)["reason"]
+
+    def test_pause_as_first_word_of_a_task_is_not_the_control(self) -> None:
+        """Only the exact single-token form is a control -- '/spec pause the video
+        playback feature' is a new-plan task description and stays gated."""
+        code, output = _run_with_model_cache(
+            "/spec pause the video playback feature", "bypassPermissions", "opus", mode="automated"
+        )
+        assert code == 2
+        assert "opusplan" in json.loads(output)["reason"]
+
+
 class TestSpecFamilyPrefixMatch:
     """Regression for C1: prompt.startswith('/spec') must NOT overmatch sibling
     slash commands (`/spec-implement`, `/spec-verify`, `/spec-plan`,

@@ -10,10 +10,18 @@ Only allows stopping when:
    cannot emit AskUserQuestion (Codex, and Claude Code subagents dispatched as
    orchestration lanes), which would otherwise answer their own gate rather than
    stop. NONE of them applies to an approved PENDING plan: the implement phase has
-   no legal pause (see the note where the retired manual-switch sentinel was).
-5. User stops again within 60s cooldown (escape hatch) - withheld while
+   no agent-unilateral pause (see the note where the retired manual-switch
+   sentinel was).
+5. A fresh discussion-pause marker (`spec-discussion-paused`) is bound to the
+   active plan AND the stop attempt is user-initiated (`stop_hook_active` false).
+   This is the USER's pause - engaged when they interrupt to question a decision
+   or discuss a discovery - sticky across discussion turns on Claude Code,
+   consumed per honor when the payload has no `stop_hook_active` at all (Codex),
+   cleared on resume. Never honored for a `Type: Build` plan, and inside a
+   hook-driven continuation chain it grants nothing.
+6. User stops again within 60s cooldown (escape hatch) - withheld while
    `stop_hook_active` marks the attempt as the agent's own continuation
-6. Runaway cap: after MAX_BLOCKS blocks for the same plan with no user-question
+7. Runaway cap: after MAX_BLOCKS blocks for the same plan with no user-question
    turn in between, OR MAX_CHAIN_BLOCKS blocks inside one continuation chain,
    emit one escalation block instructing the agent to AskUserQuestion. The next
    block-attempt after escalation is allowed through, breaking pathological
@@ -39,7 +47,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _lib.session_artifacts import PAUSE_SENTINELS
+from _lib.session_artifacts import DISCUSSION_PAUSE, PAUSE_SENTINELS
 from _lib.util import (
     _read_plan_approved_and_type,
     _sessions_base,
@@ -109,17 +117,25 @@ def get_approval_sentinel_path(session_id: str | None = None) -> Path:
     return guard_dir / APPROVAL_SENTINEL
 
 
-# NO manual-switch sentinel, deliberately. Manual Model Switching used to end the
-# planning turn after approval so the user could run /model, and this guard honored
-# a `manual-switch-pending` file to permit that stop. Its predicate was a bare
-# "is the plan approved", which made it the ONLY sentinel that granted a stop at
-# Approved: Yes + Status: PENDING -- the implement phase -- so /spec could hand back
-# to the user with an approved plan and zero tasks done. Every other sentinel is
+# NO manual-switch sentinel, deliberately, and no agent-unilateral implement-phase
+# pause. Manual Model Switching used to end the planning turn after approval so the
+# user could run /model, and this guard honored a `manual-switch-pending` file to
+# permit that stop. Its predicate was a bare "is the plan approved", which made it
+# the ONLY sentinel that granted a stop at Approved: Yes + Status: PENDING -- the
+# implement phase -- so /spec could hand back to the user with an approved plan and
+# zero tasks done. That sentinel stays retired, and every one-shot gate sentinel is
 # qualified away from that state (spec-approval-pending: Approved: No;
 # build-handback-pending: Type: Build; verify-gate-pending: Status: COMPLETE).
-# Approval now hands off straight to spec-implement in every mode, so the implement
-# phase has no legal pause and no sentinel may reopen one. Pinned by
-# TestApprovedPendingPlanHasNoLegalPause.
+#
+# The one grant that DOES apply there is the discussion pause below, and it is
+# qualified the other way: honored only when `stop_hook_active` is false, i.e. on
+# a turn a real user message started, never for a Type: Build plan, and consumed
+# per honor when the payload reports no continuation state at all (Codex). The
+# failure the retirement fixed was the AGENT pausing on its own; a USER
+# interrupting mid-implementation to question a decision is the opposite case,
+# and holding the session hostage there produced runaway "IMMEDIATELY continue"
+# blocks on every discussion turn. Pinned by
+# TestApprovedPendingPlanHasNoUnilateralPause and TestDiscussionPauseMarker.
 
 
 def get_build_handback_sentinel_path(session_id: str | None = None) -> Path:
@@ -165,6 +181,80 @@ def get_verify_gate_sentinel_path(session_id: str | None = None) -> Path:
     guard_dir = _sessions_base() / (session_id or resolve_session_id())
     guard_dir.mkdir(parents=True, exist_ok=True)
     return guard_dir / VERIFY_GATE_SENTINEL
+
+
+def get_discussion_pause_path(session_id: str | None = None) -> Path:
+    """Session-scoped path to the sticky discussion-pause marker.
+
+    Written by the /spec skills when the user interrupts a run to question a
+    decision or discuss a discovery (and by the dispatcher for an explicit
+    `/spec pause`); removed on resume. Unlike the one-shot gate sentinels it is
+    honored repeatedly -- a discussion spans turns -- but only on user-initiated
+    stop attempts, never inside a hook-driven continuation chain.
+    """
+    guard_dir = _sessions_base() / (session_id or resolve_session_id())
+    guard_dir.mkdir(parents=True, exist_ok=True)
+    return guard_dir / DISCUSSION_PAUSE
+
+
+def _discussion_pause_grants_stop(marker: Path, plan_path: Path, *, consume: bool) -> bool:
+    """True when a fresh discussion-pause marker permits this stop attempt.
+
+    Binds to the plan PATH only: no content fingerprint, because amending the
+    plan mid-discussion is the point of the pause, and no expected status,
+    because discussion is legal at PENDING and COMPLETE alike. Freshness still
+    applies -- the skill re-touches the marker on every discussion turn, so one
+    older than SENTINEL_MAX_AGE_SECONDS belongs to an abandoned session and is
+    discarded rather than honored.
+
+    Never applies to a ``Type: Build`` plan: /build runs autonomously after its
+    scoping round and finishes only through its own hand-back doors, so a stray
+    marker must not release its loop (mirrors the verify-gate exclusion).
+
+    The caller supplies the user-initiated-turn check (`stop_hook_active`
+    false) and sets ``consume`` when the payload carried NO continuation state
+    at all (Codex): there every attempt would count as user-initiated, so the
+    marker is burned on honor -- one stop per touch, re-touched each discussion
+    turn per the skill prose -- instead of standing as a permanent free pass.
+    """
+    if not marker.exists():
+        return False
+    try:
+        age = time.time() - marker.stat().st_mtime
+    except OSError:
+        age = 0.0
+    if age > SENTINEL_MAX_AGE_SECONDS:
+        marker.unlink(missing_ok=True)
+        return False
+
+    _approved, plan_type = _read_plan_approved_and_type(str(plan_path))
+    if plan_type == "Build":
+        return False
+
+    try:
+        raw = marker.read_text().strip()
+    except OSError:
+        return False
+    plan_key = os.path.realpath(plan_path)
+    if raw:
+        try:
+            binding = json.loads(raw)
+        except json.JSONDecodeError:
+            marker.unlink(missing_ok=True)
+            return False
+        if not isinstance(binding, dict) or binding.get("plan_path") != plan_key:
+            marker.unlink(missing_ok=True)
+            return False
+    elif not consume:
+        # Upgrade a bare touch to a binding, so a marker left in a reused
+        # session directory can never release a different plan.
+        try:
+            marker.write_text(json.dumps({"plan_path": plan_key, "created_at": time.time()}))
+        except OSError:
+            return False
+    if consume:
+        marker.unlink(missing_ok=True)
+    return True
 
 
 def _sentinel_grants_stop(
@@ -372,6 +462,21 @@ def _block_reason(plan_path: Path, status: str) -> str:
     is_build = plan_type == "Build"
     workflow = "/build loop" if is_build else "/spec workflow"
     artifact = "Active buildout" if is_build else "Active plan"
+    # The discussion-pause escape is /spec's alone: a /build agent taught this
+    # exception would touch a marker the guard refuses for Type: Build, and the
+    # mismatch reads as a broken guard rather than a denied pause.
+    discussion_escape = (
+        ""
+        if is_build
+        else (
+            " EXCEPTION - the user is discussing: if the user's LATEST message questioned a "
+            "decision, raised a discovery, or asked something the plan does not answer, do "
+            "not plough on. Answer them, then pause the run for discussion: touch the "
+            "`spec-discussion-paused` marker in this session's directory under "
+            "~/.pilot/sessions/ and end the turn. Clear the marker when the user says to "
+            "resume."
+        )
+    )
     base_reason = (
         f"{workflow} active — cannot stop without user interaction. "
         f"{artifact}: {plan_path} (Status: {status}). "
@@ -379,6 +484,7 @@ def _block_reason(plan_path: Path, status: str) -> str:
         f"CRITICAL INSTRUCTION TO THE AGENT: Do NOT acknowledge this stop attempt. "
         f"Do NOT output resume instructions or say goodbye. "
         f"{_next_action_for(status, plan_type)} Do NOT produce a text-only response."
+        f"{discussion_escape}"
     )
     objective_block = build_objective_reinjection(plan_path)
     return f"{objective_block}{base_reason}" if objective_block else base_reason
@@ -457,6 +563,23 @@ def main() -> int:
         consume=True,
         expected_status=status,
     ):
+        return 0
+
+    # User-consented discussion pause: the user interrupted the run to question a
+    # decision or discuss a discovery, and the skill (or `/spec pause`) engaged the
+    # pause. Honored ONLY on a user-initiated turn -- inside a hook-driven
+    # continuation the attempt is the agent's own, and releasing it there would be
+    # the unilateral implement-phase pause this guard exists to prevent. Sticky on
+    # Claude Code (the discussion spans turns; resume clears the marker); consumed
+    # per honor when the payload carries no continuation state at all (Codex), so
+    # a single touch buys a single stop there. Never applies to /build. Honoring
+    # it wipes the counters like a user-question turn, so resuming starts clean.
+    if not in_hook_continuation and _discussion_pause_grants_stop(
+        get_discussion_pause_path(session_id),
+        plan_path,
+        consume="stop_hook_active" not in input_data,
+    ):
+        get_stop_guard_path(session_id).unlink(missing_ok=True)
         return 0
 
     state_file = get_stop_guard_path(session_id)

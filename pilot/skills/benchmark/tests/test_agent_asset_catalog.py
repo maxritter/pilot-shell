@@ -44,6 +44,26 @@ def test_explicit_and_internal_skills_do_not_hijack_direct_requests() -> None:
     assert handoff_ranked[0] == "spec-implement"
 
 
+def test_description_validator_rejects_leading_routing_policy() -> None:
+    record = validator.SkillRecord(
+        name="fix",
+        source=Path("pilot/skills/fix"),
+        visibility="public",
+        invocation="explicit",
+        parent=None,
+        description="Use only when explicitly invoked. Diagnose a defect.",
+        positives=(),
+        negatives=(),
+    )
+
+    findings, _ = validator._validate_descriptions(
+        [record],
+        {"descriptions": {"error_jaccard": 0.8, "max_pairwise_jaccard": 0.75}},
+    )
+
+    assert "description.leading-routing" in {finding.code for finding in findings}
+
+
 def test_zero_signal_implicit_skills_do_not_route() -> None:
     catalog = validator._read_json(validator.DEFAULT_CATALOG)
     records = validator._load_records(validator.REPO_ROOT, catalog)

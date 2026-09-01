@@ -3,8 +3,11 @@
 > Shared runbook for every Pilot workflow step that puts a decision to the user:
 > plan approval (`spec-plan` 12, `spec-bugfix-plan` 6), the worktree merge-back
 > (`spec-verify` 8.1.6, `spec-bugfix-verify` 4.5), the code-review sign-off that
-> precedes `VERIFIED` (`spec-verify` 10, `spec-bugfix-verify` 6), `/build`'s single
-> pre-work clarification round (`01-goal-and-scope` 1.5), `/fix` 6.2, and the
+> precedes `VERIFIED` (`spec-verify` 10, `spec-bugfix-verify` 6), the
+> material-discovery question in the implement phase (`spec-implement` 2, discovery
+> protocol — sentinel `spec-discussion-paused`, the user-initiated discussion pause;
+> not an agent-invented gate, and never honored for a `Type: Build` plan), `/build`'s
+> single pre-work clarification round (`01-goal-and-scope` 1.5), `/fix` 6.2, and the
 > `/prd` question steps.
 >
 > That list is the audit surface for "which gates are lane-safe" — a gate missing

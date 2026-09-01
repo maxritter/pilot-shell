@@ -71,6 +71,8 @@ Claude Code auto-continues an unanswered question after 60 seconds of keyboard i
 - Strict TDD for each task: RED → GREEN → REFACTOR
 - Runs the relevant lint, format, and type checks. Claude Code also runs its edit-time quality hooks.
 - Full test suite runs at the **Quality Gate** task (end), not after every task — running it per-fix-task is the single biggest token sink in bundled bugfix plans, so the targeted test module is used between fixes and the authoritative full-suite run happens once
+- **Interruptions pause, not fight** — question a decision or raise a discovery mid-run and the agent answers, pauses the plan (`⏸ Paused`, the statusline shows `[paused]`), and discusses freely; the stop guard stops injecting "continue" nags until you say **resume**. `/spec pause` and `/spec resume` control the pause explicitly. The pause is `/spec`-only — `/build` keeps its autonomous loop and finishes through its own hand-back doors. (The old escape — stopping twice within 60 seconds — still force-exits either workflow.)
+- **Plans aren't frozen** — implementation legitimately learns things planning could not. Tactical differences (a detail diverges, the approach holds) are adapted and recorded under the plan's `## Deviations` section; material discoveries (an invalidated task or assumption, a scope or approach change) pause the run, get discussed with you, and the agreed amendments are applied to the plan — the discussion is the approval. Verification treats files recorded under `## Deviations` as in-scope for review.
 
 ### Verify Phase
 

@@ -36,26 +36,20 @@ _CODEX_MODEL_DEFAULTS = {
 }
 
 _CODEX_SKILL_DESCRIPTIONS = {
-    "spec": ("Use only when the user explicitly invokes /spec. Plan, approve, implement, and verify a scoped feature."),
-    "build": (
-        "Use only when the user explicitly invokes /build. Pursue a named goal through autonomous build and "
-        "verification loops."
-    ),
+    "spec": "Plan, approve, implement, and verify a scoped feature through the explicit /spec workflow.",
+    "build": ("Pursue a named goal through autonomous build and verification loops with the explicit /build workflow."),
     "fix": (
-        "Use only when the user explicitly invokes /fix. Diagnose one defect, repair its root cause, and prove "
-        "it end to end."
+        "Diagnose and repair a defect at its root cause, with a regression test and end-to-end proof. "
+        "Explicit /fix workflow."
     ),
-    "prd": (
-        "Use only when the user explicitly invokes /prd. Turn a rough product idea into an approved requirements "
-        "document."
-    ),
+    "prd": ("Turn a rough product idea into an approved requirements document through the explicit /prd workflow."),
     "investigate": (
-        "Use only when the user explicitly invokes /investigate. Produce an evidence-backed, read-only answer "
-        "about how the current codebase works."
+        "Produce an evidence-backed, read-only explanation of the current codebase through the explicit "
+        "/investigate workflow."
     ),
     "cleanup": (
-        "Use only when the user explicitly invokes /cleanup. Produce a read-only, evidence-backed dead-code "
-        "candidate report without installing tools, editing files, or deleting code."
+        "Report dead-code candidates with read-only evidence and no code changes through the explicit "
+        "/cleanup workflow."
     ),
     "benchmark": "Benchmark and measure a rule, skill, or workflow with quantitative before/after evaluations.",
     "create-skill": (
@@ -1232,9 +1226,7 @@ def _partition_dropped(
         normalized: list[Any] = []
         for definition in definitions:
             try:
-                parsed = tomllib.loads(_mcp_json_to_toml({"mcpServers": {name: definition}})).get(
-                    "mcp_servers", {}
-                )
+                parsed = tomllib.loads(_mcp_json_to_toml({"mcpServers": {name: definition}})).get("mcp_servers", {})
             except tomllib.TOMLDecodeError:
                 continue
             if isinstance(parsed, dict):

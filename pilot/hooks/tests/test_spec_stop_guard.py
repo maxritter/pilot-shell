@@ -1138,22 +1138,24 @@ class TestApprovalSentinel:
         assert not sentinel.exists(), "stale approval sentinel must be unlinked"
 
 
-class TestApprovedPendingPlanHasNoLegalPause:
-    """The implement phase has no legal pause — issue: /spec stopped dead after approval.
+class TestApprovedPendingPlanHasNoUnilateralPause:
+    """The implement phase has no AGENT-UNILATERAL pause.
 
     Manual Model Switching used to end the planning turn after approval so the user
     could run ``/model``, permitted by a ``manual-switch-pending`` sentinel whose
     predicate was a bare ``approved``. That made it the ONLY sentinel that granted a
-    stop while a /spec plan was ``Approved: Yes`` + ``Status: PENDING`` — i.e. during
-    implementation — so an approved plan could hand back to the user with zero tasks
-    done. Every other sentinel is qualified away from that state:
+    stop while a /spec plan was ``Approved: Yes`` + ``Status: PENDING`` -- i.e. during
+    implementation -- so an approved plan could hand back to the user with zero tasks
+    done. Every one-shot gate sentinel is qualified away from that state:
     spec-approval-pending needs ``Approved: No``, build-handback-pending needs
     ``Type: Build``, verify-gate-pending needs ``Status: COMPLETE``.
 
-    The pause is gone: approval now hands off straight to spec-implement in every
-    Model Switching mode. This pins the invariant so no sentinel can reopen the hole,
-    including the retired filename, which a customized or stale skill copy may still
-    touch.
+    The retired filename stays retired (a customized or stale skill copy may still
+    touch it). The one grant that DOES apply to an approved PENDING plan is the
+    user-consented discussion pause, and it is qualified the other way: honored only
+    on a user-initiated turn, never inside a hook-driven continuation chain -- see
+    TestDiscussionPauseMarker. This class pins what remains forbidden: pausing the
+    implement phase without the user in the loop.
     """
 
     def _run(self, tmp_path, monkeypatch, *, sentinel_name: str | None):
@@ -1344,6 +1346,219 @@ class TestVerifyGateSentinel:
         _code, _sentinel, stdout = self._run(tmp_path, monkeypatch, write_sentinel=False)
 
         assert _is_blocked(stdout), "a consumed sentinel must not keep granting stops"
+
+
+class TestDiscussionPauseMarker:
+    """The sticky discussion-pause marker lets the USER hold a run open for discussion.
+
+    A mid-implementation interruption -- the user questioning a decision, or a
+    discovery that needs discussing -- used to be indistinguishable from a premature
+    exit, so every discussion turn ended in an "IMMEDIATELY continue working" block.
+    The marker (`spec-discussion-paused`) pauses the guard for the active plan:
+
+    - honored ONLY on a user-initiated turn (``stop_hook_active`` false); inside a
+      hook-driven continuation chain it grants nothing, so an agent cannot touch it
+      mid-chain to escape work (the unilateral pause the retired manual-switch
+      sentinel opened)
+    - sticky, not consumed: discussion spans turns; the skill re-touches it each
+      discussion turn and clears it on resume
+    - bound to the plan PATH only -- no content fingerprint (amending the plan
+      mid-discussion is the point) and no status pin (discussion is legal at
+      PENDING and COMPLETE)
+    - honoring it clears the block counters, like a user-question turn
+    """
+
+    SESSION = "discussion-pause-test"
+
+    def _run(
+        self,
+        tmp_path,
+        monkeypatch,
+        *,
+        status: str = "PENDING",
+        stop_hook_active: bool = False,
+        write_marker: bool = True,
+        age: float = 0.0,
+    ):
+        import spec_stop_guard as g
+
+        monkeypatch.setenv("PILOT_SESSION_ID", self.SESSION)
+        monkeypatch.setattr(g, "_sessions_base", lambda: tmp_path / "sessions")
+        plan = tmp_path / "plan.md"
+        if not plan.exists():
+            plan.write_text(f"# X\nStatus: {status}\nApproved: Yes\nType: Feature\n")
+        monkeypatch.setattr(g, "find_active_plan", lambda *_args: (plan, status))
+        monkeypatch.setattr(g, "is_waiting_for_user_input", lambda _p: False)
+
+        session_dir = tmp_path / "sessions" / self.SESSION
+        session_dir.mkdir(parents=True, exist_ok=True)
+        marker = session_dir / "spec-discussion-paused"
+        if write_marker:
+            marker.write_text("")
+            if age:
+                stamp = time.time() - age
+                os.utime(marker, (stamp, stamp))
+
+        stdin = io.StringIO(json.dumps({"stop_hook_active": stop_hook_active, "transcript_path": ""}))
+        with patch("sys.stdin", stdin), patch("sys.stdout", new_callable=io.StringIO) as out:
+            code = g.main()
+        return code, marker, out.getvalue(), plan
+
+    def _age_guard_state(self, tmp_path) -> None:
+        """Push the guard state's ts outside COOLDOWN_SECONDS, so a consecutive-run
+        test can only be released by the marker, never by the double-stop hatch."""
+        state_file = tmp_path / "sessions" / self.SESSION / "spec-stop-guard"
+        if state_file.exists():
+            data = json.loads(state_file.read_text())
+            data["ts"] = time.time() - 120
+            state_file.write_text(json.dumps(data))
+
+    def test_allows_user_initiated_stop_during_implementation(self, tmp_path, monkeypatch):
+        """The fix itself: a paused Approved+PENDING plan lets a user-turn stop through."""
+        code, marker, stdout, _plan = self._run(tmp_path, monkeypatch)
+
+        assert code == 0
+        assert not _is_blocked(stdout), "a user-initiated stop while paused must be allowed"
+        assert marker.exists(), "sticky: the marker survives being honored"
+        binding = json.loads(marker.read_text())
+        assert binding["plan_path"].endswith("plan.md")
+
+    def test_never_releases_a_hook_continuation_chain(self, tmp_path, monkeypatch):
+        """Anti-shirk: mid-chain the attempt is the agent's own, and the marker grants nothing."""
+        _code, marker, stdout, _plan = self._run(tmp_path, monkeypatch, stop_hook_active=True)
+
+        assert _is_blocked(stdout), "the marker must not release a hook-driven continuation"
+        assert marker.exists(), "a valid pause is not discarded just because a chain hit it"
+
+    def test_sticky_across_consecutive_user_stops(self, tmp_path, monkeypatch):
+        """Discussion spans turns: the second user-turn stop is allowed too."""
+        self._run(tmp_path, monkeypatch)
+        self._age_guard_state(tmp_path)
+        _code, _marker, stdout, _plan = self._run(tmp_path, monkeypatch, write_marker=False)
+
+        assert not _is_blocked(stdout), "the pause must hold across discussion turns, not one-shot"
+
+    def test_honored_at_complete_status(self, tmp_path, monkeypatch):
+        """Discussion is legal in the verify phase as well."""
+        _code, _marker, stdout, _plan = self._run(tmp_path, monkeypatch, status="COMPLETE")
+
+        assert not _is_blocked(stdout)
+
+    def test_plan_edits_while_paused_do_not_invalidate_the_pause(self, tmp_path, monkeypatch):
+        """Amending the plan mid-discussion is the point -- no content fingerprint check."""
+        _code, _marker, _stdout, plan = self._run(tmp_path, monkeypatch)
+        plan.write_text(plan.read_text() + "\n## Deviations\n- Task 2: amended after discussion\n")
+        self._age_guard_state(tmp_path)
+
+        _code, _marker, stdout, _plan = self._run(tmp_path, monkeypatch, write_marker=False)
+
+        assert not _is_blocked(stdout), "an amended plan must stay paused"
+
+    def test_stale_marker_discarded(self, tmp_path, monkeypatch):
+        """An abandoned session's marker (crash, PID reuse) must not silently disable the guard."""
+        import spec_stop_guard as g
+
+        _code, marker, stdout, _plan = self._run(tmp_path, monkeypatch, age=g.SENTINEL_MAX_AGE_SECONDS + 60)
+
+        assert _is_blocked(stdout), "a stale marker must not grant a stop"
+        assert not marker.exists(), "a stale marker must be unlinked"
+
+    def test_marker_bound_to_a_different_plan_discarded(self, tmp_path, monkeypatch):
+        """A marker left by another plan in the same session dir must not release this one."""
+        session_dir = tmp_path / "sessions" / self.SESSION
+        session_dir.mkdir(parents=True, exist_ok=True)
+        marker = session_dir / "spec-discussion-paused"
+        marker.write_text(json.dumps({"plan_path": "/somewhere/else/plan.md", "created_at": time.time()}))
+
+        _code, marker, stdout, _plan = self._run(tmp_path, monkeypatch, write_marker=False)
+
+        assert _is_blocked(stdout), "a marker bound to a different plan must not grant a stop"
+        assert not marker.exists(), "a mismatched binding must be discarded"
+
+    def test_removed_marker_rearms_the_guard(self, tmp_path, monkeypatch):
+        """Resume: once the marker is cleared, the next stop blocks again."""
+        _code, marker, _stdout, _plan = self._run(tmp_path, monkeypatch)
+        marker.unlink()
+
+        _code, _marker, stdout, _plan = self._run(tmp_path, monkeypatch, write_marker=False)
+
+        assert _is_blocked(stdout), "clearing the marker must re-engage the guard"
+
+    def test_honoring_the_pause_clears_the_block_counters(self, tmp_path, monkeypatch):
+        """A resume after discussion starts a clean chain, like after a user-question turn."""
+        session_dir = tmp_path / "sessions" / self.SESSION
+        session_dir.mkdir(parents=True, exist_ok=True)
+        state_file = session_dir / "spec-stop-guard"
+        state_file.write_text(
+            json.dumps({"ts": time.time() - 120, "count": 7, "chain": 2, "plan": str(tmp_path / "plan.md")})
+        )
+
+        _code, _marker, stdout, _plan = self._run(tmp_path, monkeypatch)
+
+        assert not _is_blocked(stdout)
+        assert not state_file.exists() or json.loads(state_file.read_text()).get("count", 0) == 0
+
+    def test_block_reason_names_the_discussion_pause_escape(self, tmp_path, monkeypatch):
+        """The nag itself must teach the escape, so the moment of pain documents the fix."""
+        _code, _marker, stdout, _plan = self._run(tmp_path, monkeypatch, write_marker=False)
+
+        assert _is_blocked(stdout)
+        reason = json.loads(stdout)["reason"]
+        assert "spec-discussion-paused" in reason
+
+    def test_never_releases_a_build_loop(self, tmp_path, monkeypatch):
+        """/build runs autonomously after scoping; a stray discussion marker must not free it."""
+        plan = tmp_path / "plan.md"
+        plan.write_text("# X Buildout\nStatus: PENDING\nApproved: Yes\nType: Build\n")
+
+        _code, marker, stdout, _plan = self._run(tmp_path, monkeypatch)
+
+        assert _is_blocked(stdout), "a Buildout must not be released by the discussion pause"
+        assert marker.exists(), "an inapplicable marker is left alone, not consumed"
+
+    def test_build_block_reason_omits_the_discussion_pause_escape(self, tmp_path, monkeypatch):
+        """The EXCEPTION sentence must not teach a /build agent an escape it does not have."""
+        plan = tmp_path / "plan.md"
+        plan.write_text("# X Buildout\nStatus: PENDING\nApproved: Yes\nType: Build\n")
+
+        _code, _marker, stdout, _plan = self._run(tmp_path, monkeypatch, write_marker=False)
+
+        assert _is_blocked(stdout)
+        assert "spec-discussion-paused" not in json.loads(stdout)["reason"]
+
+    def test_absent_stop_hook_active_is_honored_but_consumed(self, tmp_path, monkeypatch):
+        """Codex sends no stop_hook_active, so every attempt counts as user-initiated there.
+
+        To keep the marker from becoming a standing free pass on that platform, a
+        payload WITHOUT the field consumes the marker on honor: each stop needs a
+        fresh touch (which the skill prose mandates per discussion turn anyway).
+        """
+        import spec_stop_guard as g
+
+        monkeypatch.setenv("PILOT_SESSION_ID", self.SESSION)
+        monkeypatch.setattr(g, "_sessions_base", lambda: tmp_path / "sessions")
+        plan = tmp_path / "plan.md"
+        plan.write_text("# X\nStatus: PENDING\nApproved: Yes\nType: Feature\n")
+        monkeypatch.setattr(g, "find_active_plan", lambda *_args: (plan, "PENDING"))
+        monkeypatch.setattr(g, "is_waiting_for_user_input", lambda _p: False)
+        session_dir = tmp_path / "sessions" / self.SESSION
+        session_dir.mkdir(parents=True, exist_ok=True)
+        marker = session_dir / "spec-discussion-paused"
+        marker.write_text("")
+
+        def stop_without_field():
+            stdin = io.StringIO(json.dumps({"transcript_path": ""}))
+            with patch("sys.stdin", stdin), patch("sys.stdout", new_callable=io.StringIO) as out:
+                g.main()
+            return out.getvalue()
+
+        first = stop_without_field()
+        assert not _is_blocked(first), "a fresh marker must honor the field-less (Codex) stop"
+        assert not marker.exists(), "field-less honor must consume the marker"
+
+        self._age_guard_state(tmp_path)
+        second = stop_without_field()
+        assert _is_blocked(second), "without a re-touch the next field-less stop must block again"
 
 
 class TestPayloadSessionIdIsolation:

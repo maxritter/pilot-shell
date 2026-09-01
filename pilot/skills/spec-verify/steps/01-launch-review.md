@@ -61,7 +61,7 @@ Reviewing an unstaged tree misfires both ways: a reviewer reading `git status --
 
 ```bash
 # `mode: working-tree` ONLY — stage the plan's files (paths from each task's `Files:` block)
-# plus documented deviations — NOT unrelated dirty or untracked files.
+# plus files named under the plan's `## Deviations` section — NOT unrelated dirty or untracked files.
 git add <path/from/plan/Files-block-1> <path/from/plan/Files-block-2> ...
 git status --short --untracked-files=all | grep '^??' || true   # anything still untracked must NOT be part of this change
 ```
@@ -87,7 +87,7 @@ Agent(
   run_in_background=true,
   prompt="""
   **Plan file:** <plan-path>
-  **Changed files:** <paths from the plan's Files: blocks + documented deviations>
+  **Changed files:** <paths from the plan's Files: blocks + files named under the plan's ## Deviations section>
   **Runtime environment:** <plan's Runtime Environment section, if present>
   **Output path:** <absolute findings path above>
   **Base ref:** <the `base_ref` field from the Step 1b resolver output, verbatim. Substitute the real value; never leave the placeholder, and never let the reviewer fall back to a guessed branch name.>

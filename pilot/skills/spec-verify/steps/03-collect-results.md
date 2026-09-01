@@ -37,7 +37,7 @@ Run as `Bash(run_in_background=true, timeout=330000)` — the loop can wait 5 mi
 
 #### Apply findings (severity → action)
 
-**Fix automatically — no user permission needed.** **Lineage is evaluated FIRST:** a finding outside the spec's lineage — the plan's `Files:` blocks plus files legitimately touched as documented deviations — is mention-only regardless of severity. Out-of-lineage crashes get reported, never auto-fixed. Only in-lineage findings run through the rows below.
+**Fix automatically — no user permission needed.** **Lineage is evaluated FIRST:** a finding outside the spec's lineage — the plan's `Files:` blocks plus files recorded under its `## Deviations` section — is mention-only regardless of severity. Out-of-lineage crashes get reported, never auto-fixed. Only in-lineage findings run through the rows below.
 
 | Finding class | Action |
 |---------------|--------|
@@ -86,7 +86,7 @@ Parse the agent's final message as JSON. If parsing fails, treat the raw final m
 
 Validate `plan_file` matches the current plan. If it does not, discard the stale result and self-review the diff before proceeding.
 
-Lineage first — a finding outside the plan's `Files:` blocks and documented deviations is mention-only regardless of severity. Otherwise: `must_fix` → fix immediately; `should_fix` → fix immediately; `suggestion` → implement if quick.
+Lineage first — a finding outside the plan's `Files:` blocks and its `## Deviations` section is mention-only regardless of severity. Otherwise: `must_fix` → fix immediately; `should_fix` → fix immediately; `suggestion` → implement if quick.
 
 ⛔ **Resolve every cannot-verify item yourself — silence from the reviewer is not a pass.** A reviewer scoped to a diff cannot check a requirement living in unchanged code or spanning tasks, so it hands the question back: `category: cannot_verify`, or a truth returned with `status: uncertain`. Settle each one before the report — you hold the plan and the cross-task context the reviewer lacks. Confirm the requirement is met (say so in the report) or find it genuinely missing, in which case it becomes a **must_fix** and runs the fix loop like any other.
 

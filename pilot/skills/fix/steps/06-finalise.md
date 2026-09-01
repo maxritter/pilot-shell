@@ -151,7 +151,7 @@ Both reviewers receive the bug summary, so root-cause-vs-symptom judgment is the
 | Outside the bug's lineage (CHECK FIRST — overrides every row below) | Mention in one line; do not auto-apply |
 | `failure_scenario` names a concrete crash, wrong output, security, or data-integrity problem | **must_fix** — fix now, then re-run Step 3.4's targeted tests + Step 5.2's full suite |
 | Cleanup / efficiency finding, single-site, in-lineage | **should_fix** — fix |
-| Would expand scope (3+ files, architectural) | Summarise; let the user decide between fixing here and a `/spec` follow-up |
+| Requires additional in-scope files or structural work | Fix now when it follows the reported defect's causal chain; mention only unrelated suggestions |
 
 Changes-review findings carry explicit severities — map them through the same lineage-first rule (`must_fix` → row 2, `should_fix` → row 3, `suggestion` → mention). Codex findings map by the table in the protocol file's §5.
 
@@ -235,7 +235,7 @@ git add <test_file> <fix_file>
 git commit -m "fix: <one-line description>" -m "Root cause: <file>:<line> — <what was wrong and why>"
 ```
 
-The conventional `fix:` prefix triggers a patch release if this branch ships. Don't split into multiple commits in the quick lane. The body is the Step 1.5 statement with its `Confidence` tail dropped (the template already carries the `Root cause:` prefix — don't repeat it inside the placeholder); it gives the next debugger the confirmed cause straight from `git log`.
+The conventional `fix:` prefix triggers a patch release if this branch ships. Keep the workflow's test, repair, and review-driven changes in this one commit. The body is the Step 1.5 statement with its `Confidence` tail dropped (the template already carries the `Root cause:` prefix — don't repeat it inside the placeholder); it gives the next debugger the confirmed cause straight from `git log`.
 
 **Then merge back — `/fix` owns this, it is not the caller's to bolt on.** One Bash call, chained, so a failed sync can never be followed by a cleanup that deletes the work:
 
@@ -294,7 +294,7 @@ The `E2E:` line is **mandatory** — it is the record that the actual program wa
 You know more now than when you started, so ask once: **what would have prevented this bug?** If the answer is architectural — no clean test seam, hidden coupling, validation absent at the boundary the bad data crossed, a repeated near-miss in this area — name it in one line:
 
 ```
-Follow-up (architectural): <one-line description> — candidate for /spec.
+Follow-up (architectural): <one-line prevention opportunity, kept separate from the completed defect repair>.
 ```
 
 Skip when the honest answer is "nothing structural — a typo / off-by-one / wrong default". Don't manufacture follow-ups.

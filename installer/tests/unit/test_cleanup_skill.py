@@ -63,7 +63,8 @@ def test_manifest_and_claude_artifact_are_explicit_bundled_and_report_only() -> 
     assert manifest["delivery"] == "bundled"
     assert manifest["invocation"] == "explicit"
     assert manifest["evals"] == "tests/evals.json"
-    assert manifest["platform"]["codex"]["description"].startswith("Use only when")
+    assert not manifest["platform"]["codex"]["description"].casefold().startswith("use only")
+    assert "explicit /cleanup workflow" in manifest["platform"]["codex"]["description"]
     assert metadata["name"] == "cleanup"
     assert metadata["user-invocable"] is True
     assert metadata["disable-model-invocation"] is True

@@ -373,7 +373,8 @@ class TestCodexSkillsInstallation:
         result = build_codex_skill_md(skill_dir)
         assert result.startswith("---\n")
         assert "name: fix" in result
-        assert "Use only when the user explicitly invokes $fix" in result
+        assert "Diagnose and repair a defect at its root cause" in result
+        assert "Explicit $fix workflow" in result
         assert "# /fix" in result or "# $fix" in result
         assert "Implement the fix." in result
 
@@ -739,13 +740,14 @@ class TestCodexSkillsInstallation:
 
         assert sum(map(len, descriptions)) <= 360
 
-    @pytest.mark.parametrize("skill_name", ["build", "spec", "fix", "prd"])
+    @pytest.mark.parametrize("skill_name", ["build", "spec", "fix", "prd", "investigate", "cleanup"])
     def test_explicit_workflow_descriptions_are_also_concise(self, skill_name: str) -> None:
         content = build_codex_skill_md(Path("pilot/skills") / skill_name)
         description = yaml.safe_load(content.split("---", 2)[1])["description"]
 
         assert len(description) <= 120
-        assert f"explicitly invokes ${skill_name}" in description
+        assert "explicit" in description.casefold()
+        assert not description.casefold().startswith("use only")
 
     @pytest.mark.parametrize(
         "skill_name",
@@ -774,7 +776,9 @@ class TestCodexSkillsInstallation:
 
         assert metadata["interface"]["display_name"] == "Spec"
         description = metadata["interface"]["short_description"]
-        assert "explicitly invokes $spec" in description
+        assert "Plan, approve, implement, and verify" in description
+        assert "explicit $spec workflow" in description
+        assert not description.casefold().startswith("use only")
         assert "/spec" not in description
         assert metadata["policy"] == {"allow_implicit_invocation": False}
 
@@ -1880,15 +1884,36 @@ class TestAdaptInvocationSyntax:
         result = build_codex_skill_md(Path("pilot/skills") / skill_name)
         assert "multi_agent_v1" not in result
 
-    @pytest.mark.parametrize("skill_name", ["build", "spec", "fix", "prd"])
+    @pytest.mark.parametrize("skill_name", ["build", "spec", "fix", "prd", "investigate", "cleanup"])
     def test_codex_structured_workflows_are_explicit_invocation_only(self, skill_name: str) -> None:
-        from installer.steps.codex_files import build_codex_skill_md, build_codex_skill_openai_yaml
+        from installer.steps.codex_files import build_codex_skill_openai_yaml
 
-        result = build_codex_skill_md(Path("pilot/skills") / skill_name)
-        assert f"Use only when the user explicitly invokes ${skill_name}" in result
         metadata = yaml.safe_load(build_codex_skill_openai_yaml(Path("pilot/skills") / skill_name))
-        assert f"${skill_name}" in metadata["interface"]["short_description"]
+        assert not metadata["interface"]["short_description"].casefold().startswith("use only")
         assert metadata["policy"]["allow_implicit_invocation"] is False
+
+    def test_codex_fix_keeps_ownership_of_complex_defects(self) -> None:
+        result = _codex_runtime_text("fix")
+
+        for forbidden in (
+            "re-invoke with $spec",
+            "hand off to $spec",
+            "bail out to $spec",
+            "bail to $spec",
+            "candidate for $spec",
+        ):
+            assert forbidden not in result
+        assert "`$fix` never redirects because the defect is multi-component" in result
+        assert "STAY WITH THE DEFECT" in result
+
+        manifest = json.loads((Path("pilot/skills/fix") / "manifest.json").read_text())
+        evals = json.loads((Path("pilot/skills/fix") / manifest["evals"]).read_text())
+        assert [case["name"] for case in evals["evals"]] == [
+            "architectural-preview-contract-stays-in-fix",
+            "failed-attempt-challenges-hypothesis",
+            "low-confidence-ui-defect-deepens-investigation",
+        ]
+        assert all(len(case["expectations"]) == 3 for case in evals["evals"])
 
     @pytest.mark.parametrize("skill_name", ["build", "spec-implement", "spec-bugfix-verify"])
     def test_codex_workflow_skills_leave_delegation_to_the_agent(self, skill_name: str) -> None:

@@ -1,6 +1,6 @@
 ## Step 1: Investigate Root Cause
 
-**Goal:** trace the bug to `file:lineN — function() does X but should do Y` with High or Medium confidence. If you can't, bail out (see orchestrator).
+**Goal:** trace the bug to `file:lineN — function() does X but should do Y` with High or Medium confidence. If confidence is still Low, deepen the investigation before changing production code.
 
 ### 1.1 Reproduce & understand
 
@@ -28,7 +28,7 @@
 - **CI-only failure?** Still run the test locally first. A local pass against a CI fail is itself a finding (environment or mocking drift), and the local output is your baseline either way.
 - **Multi-factor repro? Minimise first** (Systematic Debugging step 1) — the minimal repro becomes the Step 2 test.
 - If the description is too vague to reproduce: one focused `AskUserQuestion` (only when `PILOT_PLAN_QUESTIONS_ENABLED` is not `"false"`).
-- If you can't trigger it after 2 attempts because you don't understand the bug (unknown input, steps, or data): bail out. Tell the user the bug isn't reproducible from the description alone, ask them to either provide more detail or re-invoke with `/spec` for the full investigation workflow. The quick lane is for reproducible bugs. A reproduction blocked by the *environment* is NOT this case — `/spec` would hit the same wall; use the blocker protocol below instead.
+- If you still cannot trigger it after two well-chosen attempts because inputs, steps, or data are missing, ask one focused question for the missing reproduction detail. Continue safe diagnostics with the evidence already available while waiting when useful; do not turn missing detail into a workflow redirect. A reproduction blocked by the *environment* follows the blocker protocol below.
 
 **Environment blocker protocol — involve the user, NEVER speculate around it.** When the reproduction cannot run because the environment blocks it — expired cloud auth (`gcloud` / `aws` / `az`), dependencies behind a private registry, a credential or service only the user has:
 
@@ -72,7 +72,7 @@ For local bugs (single file, single function): one or two targeted `Read`s is en
 
 For bugs that span 2 files in the same component (e.g. service.ts + service.test.ts): targeted `Read`s. Still no full call-graph traversal.
 
-**Bail-out check at end of 1.3:** if you can't pin file:line, or the trace fails the logic-divergence test in the orchestrator's bail-out section, stop and hand off to `/spec`. Don't switch lanes silently.
+**Persistence check at end of 1.3:** if you cannot yet pin the root cause to `file:line`, expand the trace, add instrumentation, minimize the reproduction further, or inspect the next boundary in the causal chain. Do not move to production changes until the evidence supports a root cause.
 
 ### 1.4 Instrument when needed (UI / async / race / timing bugs)
 
@@ -104,7 +104,7 @@ Out loud, in one sentence to the user, before writing any test:
 
 > "Root cause: `<file>:<line>` — `<function>()` does <X>, should do <Y>. This causes the symptom because <reason>. Confidence: <High|Medium>."
 
-If confidence is Low: bail out. Don't guess in the quick lane.
+If confidence is Low: keep investigating. Do not guess, patch the symptom, or redirect the workflow.
 
 ### 1.6 Lock in a fast signal before Step 2
 
@@ -116,7 +116,7 @@ Whichever it is, sharpen it now:
 - **Flaky?** Pin time, seed RNG, isolate filesystem, freeze network. For non-deterministic bugs, raise the reproduction rate (loop the trigger 50–100×, parallelise) until it's debuggable — a 1% flake is not.
 - **Wrong symptom?** The signal must fail with the **user's** reported symptom, not a different failure that happens to be nearby. Wrong bug = wrong fix.
 
-If you cannot get a fast deterministic signal after one pass of sharpening, that's a bail-out trigger — tell the user to use `/spec`. Don't hypothesise into a flaky loop.
+If the signal cannot be made fast and deterministic after one pass, use the narrowest reliable integration or end-to-end reproduction as the working signal. Increase observability and repetition where needed; do not hypothesise into a flaky loop or redirect the workflow.
 
 ### User signal you're off track
 

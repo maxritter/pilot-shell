@@ -1,0 +1,42 @@
+{
+  "target": {
+    "type": "skill",
+    "path": "pilot/skills/fix",
+    "name": "fix"
+  },
+  "evals": [
+    {
+      "id": 1,
+      "name": "architectural-preview-contract-stays-in-fix",
+      "prompt": "$fix respond to this self-contained workflow checkpoint; do not run commands or change files. The reported defect is an end-to-end preview failure. Investigation has confirmed one causal chain spanning installer output, agent routing, upload validation, and browser preview verification. Each boundary needs a different but related repair, including a small new validation abstraction. State what the workflow does next.",
+      "expected_output": "The response keeps ownership in fix, decomposes the confirmed causal chain into bounded repair and verification work, and does not ask the user to restart under spec or another workflow.",
+      "expectations": [
+        "The response explicitly continues inside fix despite multiple components, divergent boundary logic, UI verification, and a new abstraction.",
+        "The next action is concrete: preserve the reproducing signal, repair each required boundary, and verify the integrated preview flow end to end.",
+        "The response does not stop, bail out, hand off, redirect, or ask the user to invoke spec or build."
+      ]
+    },
+    {
+      "id": 2,
+      "name": "failed-attempt-challenges-hypothesis",
+      "prompt": "$fix respond to this self-contained workflow checkpoint; do not run commands or change files. The original reproducing test still fails after two attempted production patches. Both patches have been reverted, and the latest failure output contradicts the original root-cause hypothesis. State what the workflow does next.",
+      "expected_output": "The response returns to investigation, uses the contradictory output to revise the causal model and reproducing signal, and continues the same fix workflow without an attempt ceiling.",
+      "expectations": [
+        "The response treats failed attempts as evidence, challenges the root-cause statement, and avoids stacking another speculative patch.",
+        "It calls for rerunning or strengthening the original reproduction and tracing the next causal boundary before production changes.",
+        "It does not redirect to spec, impose a two-attempt stop, or call complexity itself a blocker."
+      ]
+    },
+    {
+      "id": 3,
+      "name": "low-confidence-ui-defect-deepens-investigation",
+      "prompt": "$fix respond to this self-contained workflow checkpoint; do not run commands or change files. A regression-prone UI flow fails only in the installed app. Static reads leave root-cause confidence Low, but the app and browser/device verification environment are available. State what the workflow does next.",
+      "expected_output": "The response keeps investigating in fix by instrumenting the installed flow, capturing states at boundaries, and turning the observed failure into a reliable regression signal before repair.",
+      "expectations": [
+        "Low confidence triggers deeper runtime investigation and observability rather than speculative production code.",
+        "The response uses the available installed app and browser or device flow as the real reproduction and plans complete end-to-end verification.",
+        "The response does not redirect because the UI implications are non-trivial and does not ask for a different workflow."
+      ]
+    }
+  ]
+}

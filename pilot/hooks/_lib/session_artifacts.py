@@ -8,6 +8,13 @@ PAUSE_SENTINELS = (
     "verify-gate-pending",
 )
 
+# User-consented discussion pause. NOT one of the one-shot gate sentinels
+# above: the stop guard honors it only on user-initiated turns and never for a
+# Type: Build plan -- repeatedly on Claude Code (sticky across discussion
+# turns), consumed per honor on Codex (no stop_hook_active in its payload).
+# The skill clears it on resume.
+DISCUSSION_PAUSE = "spec-discussion-paused"
+
 STALE_SESSION_FILES = (
     "active_plan.json",
     "plan-mode-active",
@@ -18,6 +25,7 @@ STALE_SESSION_FILES = (
     "preflight-context-warned",
     "spec-stop-guard",
     *PAUSE_SENTINELS,
+    DISCUSSION_PAUSE,
     "continuation.md",
     "context-cache.json",
     "context-pct.json",
