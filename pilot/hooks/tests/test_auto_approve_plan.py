@@ -32,7 +32,7 @@ def _record_pre_plan_mode(tmp_path: Path, mode: str) -> Path:
     return record
 
 
-def _setup_spec_state(
+def _setup_spec_state(  # noqa: PLR0913 - a fixture builder; each flag isolates one guard condition
     tmp_path: Path,
     *,
     approved: str = "No",
@@ -40,16 +40,25 @@ def _setup_spec_state(
     sentinel: bool = True,
     plan_file: bool = True,
     plan_in_project: bool = True,
+    plan_type: str = "Feature",
+    leg_owner: str | None = "pilot-planning",
 ) -> Path:
-    """Create the session + plan state the hook inspects. Returns the plan path."""
+    """Create the session + plan state the hook inspects. Returns the plan path.
+
+    ``leg_owner`` is the record plan_mode_tracker writes at
+    PreToolUse(EnterPlanMode); `None` omits it, which is what a shift-tab plan
+    entry leaves behind. Only "pilot-planning" makes this a /spec leg.
+    """
     session_dir = tmp_path / "home" / ".pilot" / "sessions" / SESSION
     session_dir.mkdir(parents=True, exist_ok=True)
+    if leg_owner is not None:
+        (session_dir / "plan-leg-owner").write_text(leg_owner)
     plan_parent = tmp_path / "project" if plan_in_project else tmp_path / "elsewhere"
     plans_dir = plan_parent / "docs" / "plans"
     plans_dir.mkdir(parents=True, exist_ok=True)
     plan_path = plans_dir / "2026-07-02-test-feature.md"
     if plan_file:
-        plan_path.write_text(f"# Test Feature\n\nStatus: {status}\nApproved: {approved}\nType: Feature\n")
+        plan_path.write_text(f"# Test Feature\n\nStatus: {status}\nApproved: {approved}\nType: {plan_type}\n")
     (session_dir / "active_plan.json").write_text(json.dumps({"plan_path": str(plan_path), "status": status}))
     if sentinel:
         (session_dir / "plan-mode-active").write_text("")
@@ -108,16 +117,107 @@ def _decision(data: dict | None) -> dict:
 
 
 class TestAutoApprovePlan:
-    def test_allows_without_spec_state(self, tmp_path):
-        """No registered plan / no plan-mode sentinel -> plain allow (legacy behavior)."""
+    def test_native_plan_mode_exit_is_left_to_claude_code(self, tmp_path):
+        """No registered Pilot run -> NO output, so the native plan dialog runs.
+
+        Regression guard for the field report that this hook "auto-approves
+        normal plan mode": an unconditional allow (with `updatedInput` echoed,
+        which tells Claude Code the required interaction was already collected)
+        accepted every plan the user entered plan mode to review, without ever
+        showing it to them. Outside a `/spec` leg the hook must stay silent -
+        ExitPlanMode IS the approval there, and only the user can give it.
+        """
         code, data = _run(tmp_path)
         assert code == 0
-        assert data is not None
-        assert data["hookSpecificOutput"]["hookEventName"] == "PermissionRequest"
+        assert data is None, f"native ExitPlanMode must not be decided by the hook: {data!r}"
+
+    def test_native_plan_mode_never_touches_the_permission_mode(self, tmp_path):
+        """The native exit dialog's mode choice is the USER's - never override it.
+
+        "Yes, and manually approve edits" selects a permission mode deliberately;
+        it is not Claude Code dropping one the way a /spec exit does. Arming the
+        bypass restore here would auto-allow their very next permission request
+        and force bypassPermissions over the choice they just made - a worse
+        outcome than the plan approval this hook exists to stop.
+        """
+        record = _record_pre_plan_mode(tmp_path, "bypassPermissions")
+        code, data = _run(tmp_path)
+        assert code == 0
+        assert data is None
+        assert not _marker(tmp_path).exists(), "a native plan exit must not arm the bypass restore"
+        assert record.exists(), "the evidence record belongs to the next planning leg"
+
+    def test_native_plan_mode_during_a_live_buildout_is_still_native(self, tmp_path):
+        """Regression guard: a running /build must not make native plans auto-approve.
+
+        `/build` sets `Approved: Yes` the moment its contract locks, with no user
+        sign-off, and never enters plan mode itself. Gating on "a PENDING run is
+        registered" therefore read a Buildout's approval as this plan's approval
+        and suppressed the dialog - the original bug, inside every /build run.
+        """
+        _setup_spec_state(tmp_path, approved="Yes", plan_type="Build", leg_owner="native")
+        code, data = _run(tmp_path)
+        assert code == 0
+        assert data is None
+
+    def test_native_plan_mode_during_implementation_is_still_native(self, tmp_path):
+        """Same hole via /spec: an approved plan mid-implementation is PENDING+Yes.
+
+        Indistinguishable from a Step 12.3 exit by run state alone, which is why
+        ownership is recorded at EnterPlanMode instead of inferred at exit.
+        """
+        _setup_spec_state(tmp_path, approved="Yes", leg_owner="native")
+        code, data = _run(tmp_path)
+        assert code == 0
+        assert data is None
+
+    def test_shift_tab_plan_entry_is_native(self, tmp_path):
+        """No tool call, so no owner record - the safe default must be native."""
+        _setup_spec_state(tmp_path, approved="Yes", leg_owner=None)
+        code, data = _run(tmp_path)
+        assert code == 0
+        assert data is None
+
+    def test_native_plan_mode_is_never_denied_by_an_unapproved_spec_plan(self, tmp_path):
+        """A stale unapproved /spec plan must not deny an unrelated native exit.
+
+        The deny message talks about the /spec approval gate; firing it at a plan
+        mode the user opened for something else is a dead end for them.
+        """
+        _setup_spec_state(tmp_path, approved="No", leg_owner="native")
+        code, data = _run(tmp_path)
+        assert code == 0
+        assert data is None
+
+    def test_spec_leg_exit_suppresses_the_redundant_dialog(self, tmp_path):
+        """Approved /spec plan -> allow + echoed updatedInput (dialog skipped).
+
+        `updatedInput` is what signals the required interaction was collected.
+        It is safe ONLY here: the user already approved at the AskUserQuestion
+        gate, and this ExitPlanMode is just the opusplan model switch.
+        """
+        _setup_spec_state(tmp_path, approved="Yes")
+        payload = {
+            "tool_name": "ExitPlanMode",
+            "permission_mode": "plan",
+            "tool_input": {"plan": "# Plan\n", "planFilePath": "/tmp/p.md"},
+        }
+        code, data = _run(tmp_path, payload=payload)
+        assert code == 0
         decision = _decision(data)
         assert decision["behavior"] == "allow"
-        perms = decision["updatedPermissions"]
-        assert any(p.get("type") == "setMode" and p.get("mode") == "bypassPermissions" for p in perms)
+        assert decision["updatedInput"] == payload["tool_input"]
+
+    def test_native_exit_never_echoes_updated_input(self, tmp_path):
+        """The dialog-suppressing field must never be emitted outside a Pilot leg."""
+        payload = {
+            "tool_name": "ExitPlanMode",
+            "permission_mode": "plan",
+            "tool_input": {"plan": "# Plan\n", "planFilePath": "/tmp/p.md"},
+        }
+        code, data = _run(tmp_path, payload=payload)
+        assert code == 0
+        assert data is None
 
     def test_allow_message_does_not_claim_plan_approval(self, tmp_path):
         """The allow message must NOT signal that the plan is approved.
@@ -128,6 +228,7 @@ class TestAutoApprovePlan:
         (spec-plan/steps/12-approval.md). The message must perform the permission
         action while explicitly disclaiming plan approval.
         """
+        _setup_spec_state(tmp_path, approved="Yes")
         _, data = _run(tmp_path)
         message = _decision(data)["message"].lower()
         assert "approved" not in message, f"misleading approval wording: {message!r}"
@@ -156,6 +257,7 @@ class TestAutoApprovePlan:
 
     def test_allows_after_plan_approved(self, tmp_path):
         _setup_spec_state(tmp_path, approved="Yes")
+        _record_pre_plan_mode(tmp_path, "bypassPermissions")
         _, data = _run(tmp_path)
         decision = _decision(data)
         assert decision["behavior"] == "allow"
@@ -169,13 +271,13 @@ class TestAutoApprovePlan:
         """
         _setup_spec_state(tmp_path, approved="No", sentinel=False)
         _, data = _run(tmp_path)
-        assert _decision(data)["behavior"] == "allow"
+        assert data is None
 
     def test_allows_when_plan_file_missing(self, tmp_path):
-        """Registered plan path that no longer exists -> fail open (allow)."""
+        """Registered plan path that no longer exists -> fail open (no deny)."""
         _setup_spec_state(tmp_path, approved="No", plan_file=False)
         _, data = _run(tmp_path)
-        assert _decision(data)["behavior"] == "allow"
+        assert data is None
 
     def test_allows_when_plan_file_undecodable(self, tmp_path):
         """Unreadable/undecodable plan file -> fail open (allow), never a deny trap.
@@ -186,13 +288,13 @@ class TestAutoApprovePlan:
         plan_path = _setup_spec_state(tmp_path, approved="No")
         plan_path.write_bytes(b"Status: PENDING\nApproved: No\n\xe9\xff")
         _, data = _run(tmp_path)
-        assert _decision(data)["behavior"] == "allow"
+        assert _decision(data)["behavior"] == "allow"  # a live leg, just an unreadable file
 
     def test_allows_when_plan_outside_project(self, tmp_path):
         """Cross-session bleed guard: a plan from another repo never denies here."""
         _setup_spec_state(tmp_path, approved="No", plan_in_project=False)
         _, data = _run(tmp_path)
-        assert _decision(data)["behavior"] == "allow"
+        assert data is None
 
     def test_allows_when_project_root_undetermined(self, tmp_path):
         """No CLAUDE_PROJECT_ROOT and a non-git cwd -> fail open (allow).
@@ -203,7 +305,7 @@ class TestAutoApprovePlan:
         """
         _setup_spec_state(tmp_path, approved="No")
         _, data = _run(tmp_path, project_root_env=False)
-        assert _decision(data)["behavior"] == "allow"
+        assert data is None
 
     def test_sibling_default_bucket_state_does_not_deny_identified_session(self, tmp_path):
         """Same-repo sibling bleed: deny state another (env-less) session left in the
@@ -225,7 +327,7 @@ class TestAutoApprovePlan:
             session_env=False,
         )
         assert code == 0
-        assert _decision(data)["behavior"] == "allow", (
+        assert data is None, (
             "a sibling session's unapproved plan in the shared 'default' bucket must "
             "not deny this session's ExitPlanMode"
         )
@@ -250,11 +352,13 @@ class TestAutoApprovePlan:
         assert data is None, "a sibling session's restore marker must not auto-allow this session's prompt"
         assert marker.exists(), "the owning session's pending restore marker must survive"
 
-    def test_allows_when_lib_util_unavailable(self, tmp_path):
-        """A version-skewed install (hook without _lib) degrades to plain allow.
+    def test_degrades_to_the_native_dialog_when_lib_util_unavailable(self, tmp_path):
+        """A version-skewed install (hook without _lib) degrades to the dialog.
 
-        The hook must always print a decision and exit 0; an ImportError crash
-        would drop Claude Code back to the interactive permission dialog.
+        The hook must exit 0 without crashing. It can no longer tell a /spec leg
+        from native plan mode, so it must decide nothing: Claude Code's own
+        prompt is the only safe fallback in both directions - it neither traps a
+        /spec run behind a deny nor approves a native plan unseen.
         """
         orphan_hook = tmp_path / "orphan" / "auto_approve_plan.py"
         orphan_hook.parent.mkdir(parents=True)
@@ -262,7 +366,7 @@ class TestAutoApprovePlan:
         _setup_spec_state(tmp_path, approved="No")  # deny state, but guard can't load
         code, data = _run(tmp_path, hook_path=orphan_hook)
         assert code == 0
-        assert _decision(data)["behavior"] == "allow"
+        assert data is None
         # Restore branch under the same skew: never crash, never auto-allow -
         # a non-ExitPlanMode request degrades to the normal permission dialog.
         code, data = _run(
@@ -283,6 +387,7 @@ class TestAutoApprovePlan:
         pre-plan bypass evidence (recorded by plan_mode_tracker at
         PreToolUse(EnterPlanMode)); the record is consumed per planning leg.
         """
+        _setup_spec_state(tmp_path, approved="Yes")
         record = _record_pre_plan_mode(tmp_path, "bypassPermissions")
         code, data = _run(tmp_path, payload={"tool_name": "ExitPlanMode", "permission_mode": "plan"})
         assert code == 0
@@ -298,17 +403,24 @@ class TestAutoApprovePlan:
         in manual/acceptEdits, or a shift-tab plan entry that records nothing)
         would get its next permission prompt silently auto-allowed.
         """
+        _setup_spec_state(tmp_path, approved="Yes")
         payload = {"tool_name": "ExitPlanMode", "permission_mode": "plan"}
         # (a) no evidence record at all
         code, data = _run(tmp_path, payload=payload)
         assert code == 0
-        assert _decision(data)["behavior"] == "allow"
+        decision = _decision(data)
+        assert decision["behavior"] == "allow"
+        assert "updatedPermissions" not in decision
+        assert "restoring bypassPermissions" not in decision["message"]
         assert not _marker(tmp_path).exists()
         # (b) evidence of a NON-bypass pre-plan mode
         _record_pre_plan_mode(tmp_path, "default")
         code, data = _run(tmp_path, payload=payload)
         assert code == 0
-        assert _decision(data)["behavior"] == "allow"
+        decision = _decision(data)
+        assert decision["behavior"] == "allow"
+        assert "updatedPermissions" not in decision
+        assert "restoring bypassPermissions" not in decision["message"]
         assert not _marker(tmp_path).exists()
 
     def test_enter_plan_mode_request_leaves_marker_untouched(self, tmp_path):

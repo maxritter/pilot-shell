@@ -1,143 +1,183 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Sun, Moon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { BookOpen, Github, Menu, Moon, Newspaper, Sun, X } from "lucide-react";
 import { navigateToSection } from "@/utils/navigateToSection";
+import { useScrollSpy } from "@/hooks/use-reveal";
 import { useTheme } from "@/hooks/useTheme";
 
 const sectionLinks = [
-  { label: "The Harness", href: "#anatomy" },
-  { label: "Workflows", href: "#workflows" },
-  { label: "Teams", href: "#shift-left" },
-  { label: "Console", href: "#console" },
-  { label: "FAQ", href: "#faq" },
+  { id: "anatomy", label: "The Harness" },
+  { id: "workflows", label: "Workflows" },
+  { id: "shift-left", label: "Teams" },
+  { id: "console", label: "Console" },
+  { id: "faq", label: "FAQ" },
 ];
 
 const externalLinks = [
-  { label: "Docs", href: "/docs" },
-  { label: "Blog", href: "/blog" },
+  { label: "Docs", href: "/docs", icon: BookOpen },
+  { label: "Blog", href: "/blog", icon: Newspaper },
 ];
 
 const NavBar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolledPastHeader, setScrolledPastHeader] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { resolvedTheme, setThemePreference } = useTheme();
+
+  // The section row only means something on the homepage, where the sections live.
+  const showSectionNav = location.pathname === "/";
+  const activeSection = useScrollSpy(showSectionNav);
+
+  const themeLabel =
+    resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode";
 
   const toggleTheme = () => {
     setThemePreference(resolvedTheme === "dark" ? "light" : "dark");
   };
 
-  const handleSectionClick = (href: string) => {
-    navigateToSection(href, location.pathname, navigate);
+  const handleSectionClick = (id: string) => {
+    navigateToSection(id, location.pathname, navigate);
     setMobileMenuOpen(false);
   };
 
-  return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50">
-      <div className="flex justify-between items-center px-4 sm:px-6 lg:px-10 py-3">
-        {/* Logo */}
-        <Link
-          to="/"
-          aria-label="Pilot Shell home"
-          className="flex items-center gap-2.5"
-        >
-          <img
-            src="/box.webp"
-            alt=""
-            className="h-[26px] w-[26px] rounded-[6px]"
-            width={26}
-            height={26}
-            decoding="async"
-          />
-          <span className="text-[14.5px] font-semibold tracking-[-0.01em] text-foreground">
-            Pilot Shell
-          </span>
-        </Link>
+  // The compact brand + CTA slide into the sticky row once the main bar is gone.
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setScrolledPastHeader(!entry.isIntersecting),
+      { threshold: 0 },
+    );
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
 
-        {/* Desktop: links + actions as one right-aligned group, per the design */}
-        <div className="flex items-center gap-1.5">
-          <div className="hidden lg:flex items-center gap-1.5">
-            {sectionLinks.map((link) => (
-              <button
-                key={link.href}
-                onClick={() => handleSectionClick(link.href)}
-                className="animated-underline text-muted-foreground hover:text-foreground text-[13px] font-medium transition-colors px-2.5 py-2"
-              >
-                {link.label}
-              </button>
-            ))}
-            {externalLinks.map((link) => (
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [mobileMenuOpen]);
+
+  return (
+    <>
+      <header className="ps-bar-a" ref={headerRef}>
+        <div className="ps-ctr ps-row-a">
+          <Link to="/" className="ps-brand" aria-label="Pilot Shell home">
+            <img className="ps-mark" src="/box.webp" alt="" width={28} height={28} decoding="async" />
+            <span className="ps-brand-t">Pilot Shell</span>
+          </Link>
+
+          <nav className="ps-util" aria-label="Site">
+            <div className="ps-util-links">
+              {externalLinks.map((link) => (
+                <a key={link.href} className="ps-nl" href={link.href}>
+                  {link.label}
+                </a>
+              ))}
+            </div>
+            <div className="ps-ico-grp">
               <a
-                key={link.href}
-                href={link.href}
-                className="animated-underline text-muted-foreground hover:text-foreground text-[13px] font-medium transition-colors px-2.5 py-2"
+                className="ps-ibtn ps-gh"
+                href="https://github.com/maxritter/pilot-shell"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub repository"
               >
+                <Github className="h-[18px] w-[18px]" aria-hidden="true" />
+              </a>
+              <button type="button" className="ps-ibtn" onClick={toggleTheme} aria-label={themeLabel} title={themeLabel}>
+                {resolvedTheme === "dark" ? (
+                  <Sun className="h-[18px] w-[18px]" aria-hidden="true" />
+                ) : (
+                  <Moon className="h-[18px] w-[18px]" aria-hidden="true" />
+                )}
+              </button>
+              <button
+                type="button"
+                className="ps-ibtn ps-ham"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={mobileMenuOpen}
+                aria-controls="mobile-menu"
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-[18px] w-[18px]" aria-hidden="true" />
+                ) : (
+                  <Menu className="h-[18px] w-[18px]" aria-hidden="true" />
+                )}
+              </button>
+            </div>
+            <Link className="ps-btn ps-btn-sm ps-btn-sec" to="/pricing">
+              Subscribe
+            </Link>
+          </nav>
+        </div>
+
+        {mobileMenuOpen && (
+          <div className="ps-mpanel" id="mobile-menu">
+            {showSectionNav &&
+              sectionLinks.map((link) => (
+                <button key={link.id} type="button" onClick={() => handleSectionClick(link.id)}>
+                  {link.label}
+                </button>
+              ))}
+            {externalLinks.map((link) => (
+              <a key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)}>
+                <link.icon className="h-4 w-4" aria-hidden="true" />
                 {link.label}
               </a>
             ))}
-          </div>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="text-muted-foreground hover:text-foreground transition-colors p-2"
-            title={resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            aria-label={resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {resolvedTheme === "dark" ? (
-              <Sun className="h-[18px] w-[18px]" aria-hidden="true" />
-            ) : (
-              <Moon className="h-[18px] w-[18px]" aria-hidden="true" />
-            )}
-          </button>
-          <Button asChild size="sm" className="hidden sm:inline-flex ml-2.5">
-            <Link to="/pricing">Subscribe</Link>
-          </Button>
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden text-foreground p-2"
-            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={mobileMenuOpen}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-5 w-5" aria-hidden="true" />
-            ) : (
-              <Menu className="h-5 w-5" aria-hidden="true" />
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden bg-card border-t border-border px-4 sm:px-6 py-4 animate-fade-in">
-          {sectionLinks.map((link) => (
-            <button
-              key={link.href}
-              onClick={() => handleSectionClick(link.href)}
-              className="block w-full text-left py-3 text-muted-foreground hover:text-foreground border-b border-border transition-colors"
-            >
-              {link.label}
-            </button>
-          ))}
-          {externalLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="block w-full text-left py-3 text-muted-foreground hover:text-foreground border-b border-border transition-colors"
-            >
-              {link.label}
+            <a href="https://github.com/maxritter/pilot-shell" target="_blank" rel="noopener noreferrer">
+              <Github className="h-4 w-4" aria-hidden="true" />
+              GitHub
             </a>
-          ))}
-          <Button asChild className="mt-4 w-full">
-            <Link to="/pricing" onClick={() => setMobileMenuOpen(false)}>
+            <Link className="ps-btn ps-btn-sm ps-btn-sec" to="/pricing" onClick={() => setMobileMenuOpen(false)}>
               Subscribe
             </Link>
-          </Button>
+          </div>
+        )}
+      </header>
+
+      {showSectionNav && (
+        <div className={`ps-bar-b${scrolledPastHeader ? " ps-stuck" : ""}`}>
+          <div className="ps-ctr ps-row-b">
+            <Link to="/" className="ps-brand ps-brand-c" aria-label="Pilot Shell home" tabIndex={scrolledPastHeader ? 0 : -1}>
+              <img className="ps-mark" src="/box.webp" alt="" width={28} height={28} decoding="async" />
+              <span className="ps-brand-t">Pilot Shell</span>
+            </Link>
+            <nav className="ps-secnav" aria-label="Page sections">
+              {sectionLinks.map((link) => (
+                <a
+                  key={link.id}
+                  className="ps-sl"
+                  href={`#${link.id}`}
+                  aria-current={activeSection === link.id ? "location" : undefined}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    handleSectionClick(link.id);
+                  }}
+                >
+                  <span className="ps-dot" aria-hidden="true" />
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+            <Link
+              className="ps-btn ps-btn-sm ps-btn-sec ps-cta-c"
+              to="/pricing"
+              tabIndex={scrolledPastHeader ? 0 : -1}
+            >
+              Subscribe
+            </Link>
+          </div>
         </div>
       )}
-    </nav>
+    </>
   );
 };
 

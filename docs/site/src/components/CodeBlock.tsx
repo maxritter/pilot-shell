@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 interface CodeBlockProps {
   command: string;
   /** Accessible name for what is being copied, e.g. "install command". */
   label?: string;
+  /** Wrap the command over several lines instead of scrolling it horizontally. */
+  wrap?: boolean;
 }
 
-/** One-line shell command with a copy button, per the design system's CodeBlock. */
-const CodeBlock = ({ command, label = "command" }: CodeBlockProps) => {
+/** One-line shell command in a square hairline shell with a copy button. */
+const CodeBlock = ({ command, label = "command", wrap = false }: CodeBlockProps) => {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
 
   const copyToClipboard = async () => {
@@ -23,19 +24,18 @@ const CodeBlock = ({ command, label = "command" }: CodeBlockProps) => {
   };
 
   return (
-    <div className="bg-background/60 rounded-lg p-3 font-mono text-sm border border-border/50">
-      <div className="flex items-center justify-between gap-3">
+    <>
+      <div className="ps-cmd" role="group" aria-label={label}>
         <code
-          className="text-muted-foreground text-xs sm:text-sm whitespace-nowrap overflow-x-auto"
+          className={`ps-cmd-code overflow-x-auto${wrap ? " ps-wrap" : ""}`}
           tabIndex={0}
         >
-          <span className="text-primary">$</span> {command}
+          <span className="ps-brand-txt">$</span> {command}
         </code>
-        <Button
-          variant="secondary"
-          size="sm"
+        <button
+          type="button"
           onClick={copyToClipboard}
-          className="flex-shrink-0 min-h-11 min-w-11 px-3"
+          className={`ps-btn ps-btn-sm ps-btn-sec ps-cmd-copy${copyState === "copied" ? " ps-copied" : ""}`}
           aria-label={
             copyState === "copied"
               ? `${label} copied`
@@ -45,19 +45,12 @@ const CodeBlock = ({ command, label = "command" }: CodeBlockProps) => {
           }
         >
           {copyState === "copied" ? (
-            <>
-              <Check className="h-3.5 w-3.5 text-primary mr-1.5" />
-              <span className="text-xs">Copied</span>
-            </>
+            <Check className="h-4 w-4" aria-hidden="true" />
           ) : (
-            <>
-              <Copy className="h-3.5 w-3.5 mr-1.5" />
-              <span className="text-xs">
-                {copyState === "error" ? "Copy failed" : "Copy"}
-              </span>
-            </>
+            <Copy className="h-4 w-4" aria-hidden="true" />
           )}
-        </Button>
+          <span>{copyState === "copied" ? "Copied" : copyState === "error" ? "Copy failed" : "Copy"}</span>
+        </button>
       </div>
       <span className="sr-only" role="status" aria-live="polite">
         {copyState === "copied"
@@ -66,7 +59,7 @@ const CodeBlock = ({ command, label = "command" }: CodeBlockProps) => {
             ? `Could not copy the ${label}. Select and copy it manually.`
             : ""}
       </span>
-    </div>
+    </>
   );
 };
 

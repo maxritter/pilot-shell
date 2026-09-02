@@ -1,5 +1,8 @@
 import { NavigateFunction } from 'react-router-dom';
 
+const SECTION_RETRY_DELAY_MS = 50;
+const SECTION_RETRY_LIMIT = 100;
+
 function preferredScrollBehavior(): ScrollBehavior {
   if (
     typeof window !== 'undefined' &&
@@ -24,6 +27,15 @@ export const scrollAndFocusSection = (sectionId: string): boolean => {
   return true;
 };
 
+/** Wait briefly for a lazily loaded homepage section, then scroll once it mounts. */
+const scrollAndFocusWhenAvailable = (sectionId: string, attempt = 0): void => {
+  if (scrollAndFocusSection(sectionId) || attempt >= SECTION_RETRY_LIMIT) return;
+  window.setTimeout(
+    () => scrollAndFocusWhenAvailable(sectionId, attempt + 1),
+    SECTION_RETRY_DELAY_MS,
+  );
+};
+
 /**
  * Shared navigation helper for cross-page section navigation.
  * - On homepage: scrolls to the section
@@ -37,7 +49,7 @@ export const navigateToSection = (
   const id = sectionId.startsWith('#') ? sectionId.slice(1) : sectionId;
 
   if (currentPath === '/') {
-    scrollAndFocusSection(id);
+    scrollAndFocusWhenAvailable(id);
   } else {
     navigate(`/#${id}`);
   }

@@ -20,6 +20,21 @@ Worktree: No
 Type: Feature
 """
 
+CAPTURED_NATIVE_PLAN = """# Rate-limit the webhook receiver
+
+Created: 2026-02-18
+Agent: Claude Code
+Status: SAVED
+Approved: Yes
+Worktree: No
+Type: Plan
+Iterations: 0
+
+## Summary
+
+Filed by native_plan_capture, not by a workflow.
+"""
+
 VALID_BUILD_HEADER = """# Test Buildout
 
 Created: 2026-02-18
@@ -101,6 +116,44 @@ class TestSpecPlanValidator:
         assert result == 0
         captured = capsys.readouterr()
         assert captured.out == ""
+
+    @patch("spec_plan_validator.is_waiting_for_user_input", return_value=False)
+    @patch("spec_plan_validator.datetime")
+    @patch("sys.stdin")
+    def test_captured_native_plan_never_stands_in_for_the_run_artifact(
+        self, mock_stdin, mock_dt, mock_waiting, tmp_path, capsys
+    ):
+        """A plan filed by native_plan_capture is not this run's artifact.
+
+        The today-glob fallback would otherwise read a captured plan two ways,
+        both wrong: as proof the planning session produced a file (it did not),
+        and - since the captured header is deliberately outside the workflow
+        plan schema - as an unrenderable plan the model is told to go fix.
+        """
+        import datetime
+
+        mock_dt.date.today.return_value = datetime.date(2026, 2, 18)
+
+        plans_dir = tmp_path / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+        (plans_dir / "2026-02-18-rate-limit.md").write_text(CAPTURED_NATIVE_PLAN)
+
+        with patch(
+            "spec_plan_validator.json.load",
+            return_value={
+                "transcript_path": "/t.jsonl",
+                "stop_hook_active": False,
+                "project_root": str(tmp_path),
+            },
+        ):
+            with patch("spec_plan_validator.os.environ", {"CLAUDE_PROJECT_ROOT": str(tmp_path)}):
+                result = main()
+
+        assert result == 0
+        data = json.loads(capsys.readouterr().out)
+        assert data["decision"] == "block"
+        assert "not created yet" in data["reason"]
+        assert "rate-limit" not in data["reason"]
 
     @patch("spec_plan_validator.is_waiting_for_user_input", return_value=False)
     @patch("sys.stdin")

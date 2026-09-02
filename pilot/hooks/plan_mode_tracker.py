@@ -57,13 +57,21 @@ from _lib.util import (
 from spec_mode_guard import _is_opus
 
 try:
-    from _lib.util import PLAN_MODE_SENTINEL, PRE_PLAN_MODE_RECORD, spec_plan_awaiting_approval
+    from _lib.util import (
+        PLAN_MODE_SENTINEL,
+        PRE_PLAN_MODE_RECORD,
+        record_plan_leg_owner,
+        spec_plan_awaiting_approval,
+    )
 except ImportError:  # version-skewed _lib predating these names: legacy behavior
     PLAN_MODE_SENTINEL = "plan-mode-active"
     PRE_PLAN_MODE_RECORD = "pre-plan-permission-mode"
 
     def spec_plan_awaiting_approval(session_id: str | None = None) -> bool:
         return False
+
+    def record_plan_leg_owner(session_id: str | None = None) -> None:
+        return None
 
 
 _WARNING = (
@@ -237,6 +245,11 @@ def main() -> int:
         # evidence auto_approve_plan requires to arm the post-exit restore
         # (a shift-tab plan entry records nothing - it never calls the tool).
         if tool_name == "EnterPlanMode":
+            # Classify who this plan-mode leg belongs to BEFORE it opens. The
+            # run state at exit cannot tell a /spec planning leg from native
+            # plan mode opened on top of an already-approved run, so the answer
+            # is captured here and read back by auto_approve_plan.
+            record_plan_leg_owner(sid)
             record = sentinel_path(sid).parent / PRE_PLAN_MODE_RECORD
             mode = data.get("permission_mode")
             if isinstance(mode, str) and mode:

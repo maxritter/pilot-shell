@@ -13,7 +13,7 @@ const Pricing = () => (
       canonicalUrl="https://pilot-shell.com/pricing"
     />
     <NavBar />
-    <main className="min-h-screen bg-background pt-20">
+    <main className="min-h-screen bg-background">
       <Suspense fallback={<div aria-hidden="true" style={{ minHeight: "60vh" }} />}>
         <PricingSection />
         <Footer />

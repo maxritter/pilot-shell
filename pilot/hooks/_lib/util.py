@@ -370,36 +370,251 @@ def plan_mode_sentinel_path(session_id: str | None = None) -> Path:
     return _sessions_base() / (session_id or resolve_session_id()) / PLAN_MODE_SENTINEL
 
 
-def spec_plan_awaiting_approval(session_id: str | None = None) -> bool:
-    """True while a /spec planning leg is active and its plan is unapproved.
+# Who owns the current plan-mode leg, recorded by plan_mode_tracker at
+# PreToolUse(EnterPlanMode) - i.e. at the only moment the answer is knowable.
+# See :func:`classify_plan_leg_owner` for why the answer cannot be derived
+# later from the run state alone.
+PLAN_LEG_OWNER_RECORD = "plan-leg-owner"
 
-    Deny-guard predicate shared by auto_approve_plan (denies a premature
-    ExitPlanMode) and plan_mode_tracker (suppresses its "call ExitPlanMode"
-    warning in the same window, so the two hooks never issue contradictory
-    instructions). Fails open (False) on ANY read or parse error - a guard
-    malfunction must never block ExitPlanMode or mute a legitimate warning
-    permanently. ``session_id`` is a caller-resolved id (see
-    :func:`_read_active_plan`); ``None`` keeps the env-only resolution.
+# A Pilot planning leg: /spec entered plan mode as its Opus model lever, either
+# with nothing registered yet (a fresh run, Step 0.1a precedes Step 2's
+# register-plan) or resuming a plan still in its planning phase.
+LEG_OWNER_PILOT_PLANNING = "pilot-planning"
+# Someone else's plan mode: the user or the model entered it for ordinary work
+# while a non-planning run (an approved /spec plan mid-implementation, a locked
+# Buildout) was in flight, or no tool call recorded anything at all.
+LEG_OWNER_NATIVE = "native"
+
+
+def _plan_leg_owner_path(session_id: str | None = None) -> Path:
+    return _sessions_base() / (session_id or resolve_session_id()) / PLAN_LEG_OWNER_RECORD
+
+
+def classify_plan_leg_owner(session_id: str | None = None) -> str:
+    """Decide who owns a plan-mode leg, from the state at the moment of entry.
+
+    ⛔ This MUST be evaluated at PreToolUse(EnterPlanMode) and stored. It cannot
+    be recomputed at exit, because the two cases are indistinguishable by then:
+    a `/spec` plan at its Step 12.3 exit is PENDING + `Approved: Yes`, and so is
+    an approved plan the model happened to open native plan mode on top of
+    during implementation. Asking "is a run registered?" at exit answers "yes"
+    for both and hands native plan mode to the `/spec` code path - which is the
+    regression this record exists to prevent.
+
+    At ENTRY the two separate cleanly:
+
+    * nothing registered -> a fresh `/spec` planning leg (spec-plan Step 0.1a
+      calls EnterPlanMode before Step 2 registers the plan), or genuinely
+      nothing at all. Either way no other run can be harmed.
+    * a registered run still in its PLANNING phase (PENDING + unapproved,
+      Feature/Bugfix) -> `/spec` resuming that plan, which registers at the
+      dispatcher's Step 2 and only then enters plan mode.
+    * a registered run PAST planning - an approved `/spec` plan being
+      implemented, or a `/build` Buildout, which sets `Approved: Yes` the
+      moment its contract locks and never enters plan mode at all - means this
+      plan mode belongs to somebody else.
+
+    Fails to ``native``: an unreadable plan, an undeterminable project root, any
+    exception. Native is the direction that only ever hands control back to
+    Claude Code's own dialog.
+    """
+    try:
+        plan_path = registered_pending_plan(session_id)
+        if plan_path is None:
+            return LEG_OWNER_PILOT_PLANNING
+        approved, plan_type = _read_plan_approved_and_type(str(plan_path))
+        if plan_type == "Build":
+            # /build never enters plan mode, so a sentinel appearing while a
+            # Buildout is registered is always somebody else's.
+            return LEG_OWNER_NATIVE
+        return LEG_OWNER_NATIVE if approved else LEG_OWNER_PILOT_PLANNING
+    except Exception:
+        return LEG_OWNER_NATIVE
+
+
+def record_plan_leg_owner(session_id: str | None = None) -> None:
+    """Persist :func:`classify_plan_leg_owner` for the leg being entered."""
+    record = _plan_leg_owner_path(session_id)
+    try:
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text(classify_plan_leg_owner(session_id))
+    except OSError:
+        pass
+
+
+def read_plan_leg_owner(session_id: str | None = None) -> str:
+    """The recorded owner of the open plan-mode leg; ``native`` when unknown.
+
+    A missing record is the normal shape of a shift-tab plan entry: the user
+    flipped the mode without any tool call, so no hook ran to classify it. That
+    is native plan mode by definition, and it is also the safe default for a
+    torn or unreadable record.
+    """
+    try:
+        value = _plan_leg_owner_path(session_id).read_text().strip()
+    except (OSError, UnicodeDecodeError):
+        return LEG_OWNER_NATIVE
+    return value if value == LEG_OWNER_PILOT_PLANNING else LEG_OWNER_NATIVE
+
+
+def registered_pending_plan(session_id: str | None = None) -> Path | None:
+    """Path of this session's registered, in-flight run file, or None.
+
+    "In flight" = ``pilot register-plan`` wrote an ``active_plan.json`` whose
+    status is PENDING and whose file still exists inside the current project.
+    Deliberately does NOT look at the plan-mode sentinel, so a caller can ask
+    "is a Pilot run in progress?" independently of whether plan mode happens to
+    be open (the two PostToolUse hooks on ExitPlanMode race over that sentinel).
+
+    Lane-blind on purpose: it reads only this session's own ``active_plan.json``
+    slot, matching every other plan reader. Callers that need "is ANY run,
+    including an orchestration lane's, in flight" want
+    :func:`pilot_run_in_flight` instead - widening THIS function would widen the
+    permission gate built on it.
+
+    Fails open (None = no run) on ANY read or parse error. Every consumer of
+    this function treats None as "not a Pilot-managed run", which for a
+    permission gate is the direction that hands control back to Claude Code.
+    """
+    try:
+        plan = _read_active_plan(session_id)
+        if not plan:
+            return None
+        if str(plan.get("status", "")).upper() != "PENDING":
+            return None
+        plan_path = Path(str(plan.get("plan_path", "")))
+        if not plan_path.is_file():
+            return None
+        if current_project_root() is None:
+            # plan_in_current_project fails open (True) when the root cannot be
+            # determined - correct for its legacy consumers, but here that
+            # direction is wrong twice over: a stale plan from another repo
+            # could deny ExitPlanMode in a non-git cwd, and it could suppress a
+            # native-plan capture that belongs to this directory. Bail out.
+            return None
+        if not plan_in_current_project(plan_path):
+            return None
+        return plan_path
+    except Exception:
+        return None
+
+
+def pilot_run_in_flight(session_id: str | None = None) -> bool:
+    """True when ANY registered run may be in flight for this session.
+
+    The union of the session's own ``active_plan.json`` and every orchestration
+    lane's (``sessions/<id>/lanes/<lane>/active_plan.json``), because a lane's
+    `/spec` owns a plan file the session slot never mentions.
+
+    ⛔ Fails CLOSED - an unreadable or unparseable registration returns True.
+    This is the inverse of :func:`registered_pending_plan`, and deliberately so:
+    the only consumer is a WRITER deciding whether to skip (native_plan_capture),
+    where "I could not tell" must mean "do not write a competing file". Failing
+    open there produces a duplicate plan in the Console next to the real run.
+
+    The lane awareness here does not violate the lane-blind rule for plan
+    readers: it can only ever cause MORE skipping, never grant a permission or
+    resolve a lane's plan as this session's own.
+    """
+    if _pending_registration(get_session_plan_path(session_id)):
+        return True
+    try:
+        lanes = get_session_plan_path(session_id).parent / "lanes"
+        candidates = sorted(lanes.glob("*/active_plan.json")) if lanes.is_dir() else []
+    except OSError:
+        return True
+    return any(_pending_registration(candidate) for candidate in candidates)
+
+
+def _pending_registration(registration: Path) -> bool:
+    """True when ``registration`` names a PENDING run, or cannot be read.
+
+    Fail-closed helper for :func:`pilot_run_in_flight`; see its contract. A
+    registration file that does not exist is simply absent, not ambiguous, so
+    that alone returns False.
+    """
+    try:
+        if not registration.exists():
+            return False
+    except OSError:
+        return True
+    try:
+        data = json.loads(registration.read_text())
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError):
+        return True  # present but unreadable: ambiguous, so assume a live run
+    if not isinstance(data, dict):
+        return True
+    if str(data.get("status", "")).upper() != "PENDING":
+        return False
+    # A PENDING run in ANOTHER repository is not this directory's business. That
+    # happens when no session id can be resolved and several sessions collapse
+    # into the shared "default" bucket; without this check one repo's run would
+    # mute captures in every other. plan_in_current_project fails open (True)
+    # when the root cannot be determined, which keeps this predicate fail-closed.
+    try:
+        return plan_in_current_project(Path(str(data.get("plan_path", ""))))
+    except (OSError, ValueError):
+        return True
+
+
+def spec_plan_leg_active(session_id: str | None = None) -> bool:
+    """True while THIS session's open plan-mode leg belongs to `/spec`.
+
+    The discriminator between the two things ExitPlanMode can mean:
+
+    * `/spec` in Automated mode calls EnterPlanMode/ExitPlanMode purely as the
+      opusplan model lever, with the real approval at a separate
+      AskUserQuestion gate -> True here, and auto_approve_plan owns the
+      decision (deny before approval, allow + suppress the redundant dialog
+      after).
+    * Claude Code's own plan mode, entered by the user or by the model for
+      ordinary work -> False here, and ExitPlanMode is left completely alone
+      so the native plan-approval dialog reaches the user.
+
+    Three conditions, and all three are load-bearing:
+
+    1. the plan-mode sentinel exists (this session really is in a plan-mode leg);
+    2. the leg was classified as `/spec`'s AT ENTRY (see
+       :func:`classify_plan_leg_owner` - the state at exit cannot tell the two
+       apart, and reading it there is what let a native plan mode opened during
+       a live Buildout or implementation run be auto-approved);
+    3. a Feature/Bugfix run is registered PENDING in this project right now, so
+       an abandoned record from an earlier leg cannot stand in for one.
+
+    Fails open (False) on any error - "not a `/spec` leg" only ever hands
+    control back to Claude Code's own dialog.
     """
     try:
         if not plan_mode_sentinel_path(session_id).exists():
             return False
-        plan = _read_active_plan(session_id)
-        if not plan:
+        if read_plan_leg_owner(session_id) != LEG_OWNER_PILOT_PLANNING:
             return False
-        if str(plan.get("status", "")).upper() != "PENDING":
+        plan_path = registered_pending_plan(session_id)
+        if plan_path is None:
             return False
-        plan_path = Path(str(plan.get("plan_path", "")))
-        if not plan_path.is_file():
+        return _read_plan_approved_and_type(str(plan_path))[1] != "Build"
+    except Exception:
+        return False
+
+
+def spec_plan_awaiting_approval(session_id: str | None = None) -> bool:
+    """True while a `/spec` planning leg is active and its plan is unapproved.
+
+    Deny-guard predicate shared by auto_approve_plan (denies a premature
+    ExitPlanMode) and plan_mode_tracker (suppresses its "call ExitPlanMode"
+    warning in the same window, so the two hooks never issue contradictory
+    instructions). Built on :func:`spec_plan_leg_active`, so a native plan mode
+    opened while an unapproved `/spec` plan happens to sit registered is no
+    longer denied with a `/spec` message it has nothing to do with.
+
+    Fails open (False) on ANY read or parse error - a guard malfunction must
+    never block ExitPlanMode or mute a legitimate warning permanently.
+    """
+    try:
+        if not spec_plan_leg_active(session_id):
             return False
-        if current_project_root() is None:
-            # plan_in_current_project fails open (True) when the root cannot
-            # be determined - correct for its legacy consumers, but for THIS
-            # deny consumer that direction is fail-closed: a stale plan from
-            # another repo could deny ExitPlanMode in a non-git cwd. Bail out
-            # to allow instead.
-            return False
-        if not plan_in_current_project(plan_path):
+        plan_path = registered_pending_plan(session_id)
+        if plan_path is None:
             return False
         approved_match = _APPROVED_RE.search(plan_path.read_text())
         return not (approved_match and approved_match.group(1).lower() == "yes")

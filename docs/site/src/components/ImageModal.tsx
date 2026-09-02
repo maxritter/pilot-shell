@@ -4,6 +4,10 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 interface ImageModalProps {
   src: string;
   inlineSrc?: string;
+  /** Responsive candidates for the inline image, e.g. "a.webp 1400w, b.webp 2742w". */
+  inlineSrcSet?: string;
+  /** Layout width of the inline image, so the browser can pick from `inlineSrcSet`. */
+  sizes?: string;
   alt: string;
   className?: string;
   width?: number;
@@ -14,6 +18,8 @@ interface ImageModalProps {
 const ImageModal = ({
   src,
   inlineSrc,
+  inlineSrcSet,
+  sizes,
   alt,
   className = "",
   width,
@@ -32,6 +38,8 @@ const ImageModal = ({
       >
         <img
           src={inlineSrc ?? src}
+          srcSet={inlineSrcSet}
+          sizes={sizes}
           alt={alt}
           className={className}
           loading={loading}

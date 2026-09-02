@@ -48,4 +48,31 @@ describe("navigateToSection", () => {
 
     expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: "auto" });
   });
+
+  it("retries until a lazily loaded homepage section mounts", () => {
+    const target = {
+      focus: vi.fn(),
+      hasAttribute: vi.fn(() => true),
+      scrollIntoView: vi.fn(),
+      setAttribute: vi.fn(),
+    };
+    const querySelector = vi.fn().mockReturnValueOnce(null).mockReturnValue(target);
+    const setTimeout = vi.fn((callback: () => void) => {
+      callback();
+      return 1;
+    });
+    vi.stubGlobal("CSS", { escape: (value: string) => value });
+    vi.stubGlobal("document", { querySelector });
+    vi.stubGlobal("window", {
+      matchMedia: vi.fn(() => ({ matches: false })),
+      setTimeout,
+    });
+
+    navigateToSection("console", "/", vi.fn());
+
+    expect(querySelector).toHaveBeenCalledTimes(2);
+    expect(setTimeout).toHaveBeenCalledTimes(1);
+    expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth" });
+    expect(target.focus).toHaveBeenCalledWith({ preventScroll: true });
+  });
 });

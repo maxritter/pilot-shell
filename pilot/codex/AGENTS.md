@@ -11,6 +11,25 @@
 ## Planning and autonomy
 
 - Use a concise plan when it helps coordinate non-trivial work or preserve state. Do not turn planning into an approval gate unless the user asked for one.
+- When the user approves a plan you produced in native plan mode, file it before you start: your FIRST write after leaving plan mode is `docs/plans/YYYY-MM-DD-<slug>.md`, slug from the plan title. Plan mode itself is read-only, so this cannot happen any earlier. **If that path already exists, do not overwrite it** — append `-2`, `-3`, and so on until the name is free; the existing file may be another session's capture or one the user hand-edited. Then mention the path once and implement. Use exactly this header, `Status: SAVED` included - it is what keeps a captured plan readable in the Pilot Console while staying out of the active-run surfaces that only a tracked workflow may occupy:
+
+```markdown
+# <Plan title>
+
+Created: <YYYY-MM-DD>
+Agent: Codex
+Status: SAVED
+Approved: Yes
+Worktree: No
+Type: Plan
+Iterations: 0
+
+## Summary
+
+<the approved plan, its own title line removed>
+```
+
+- Never write `Status: PENDING` on such a file and never update its status afterwards: no workflow tracks it, so any in-flight status would stay in-flight forever. If the approach changes while you implement, edit the plan body so the record matches what you did. This applies only to plans from native plan mode - `$spec`, `$fix`, and `$build` own their own plan files and you must not add a second one.
 - Make reasonable, reversible assumptions and state the important ones. Continue through implementation and verification without routine check-ins.
 - Keep every changed line traceable to the request. Prefer the smallest complete solution; do not add speculative abstractions or dependencies.
 

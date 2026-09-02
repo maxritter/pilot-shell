@@ -1,7 +1,6 @@
 import { useRef, useState, type KeyboardEvent } from "react";
-import { useInView } from "@/hooks/use-in-view";
+import { Check } from "lucide-react";
 import ImageModal from "@/components/ImageModal";
-import SectionHeader from "@/components/SectionHeader";
 
 interface ConsoleSlide {
   label: string;
@@ -73,28 +72,39 @@ const consoleSlides: ConsoleSlide[] = [
   },
 ];
 
-const SLIDE_W = 1920;
-const SLIDE_H = 1396;
+const SLIDE_W = 2742;
+const SLIDE_H = 1994;
+
+/* The shot spans the full 1280px container, so a 1400px source is soft on a
+ * HiDPI screen. Offer both variants and let the browser pick by density. */
+const SLIDE_SIZES =
+  "(max-width: 768px) calc(100vw - 80px), (max-width: 1328px) calc(100vw - 96px), 1184px";
 
 const ConsoleSection = () => {
-  const [ref, inView] = useInView<HTMLDivElement>();
   const [index, setIndex] = useState(0);
+  const [tick, setTick] = useState(0);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const slide = consoleSlides[index];
+
+  const select = (next: number) => {
+    if (next === index) return;
+    setIndex(next);
+    setTick((value) => value + 1);
+  };
 
   const handleTabKeyDown = (
     event: KeyboardEvent<HTMLButtonElement>,
     currentIndex: number,
   ) => {
     let nextIndex: number;
-
     switch (event.key) {
       case "ArrowRight":
+      case "ArrowDown":
         nextIndex = (currentIndex + 1) % consoleSlides.length;
         break;
       case "ArrowLeft":
-        nextIndex =
-          (currentIndex - 1 + consoleSlides.length) % consoleSlides.length;
+      case "ArrowUp":
+        nextIndex = (currentIndex - 1 + consoleSlides.length) % consoleSlides.length;
         break;
       case "Home":
         nextIndex = 0;
@@ -105,124 +115,84 @@ const ConsoleSection = () => {
       default:
         return;
     }
-
     event.preventDefault();
-    setIndex(nextIndex);
+    select(nextIndex);
     tabRefs.current[nextIndex]?.focus();
   };
 
   return (
-    <section
-      id="console"
-      aria-labelledby="console-heading"
-      className="py-16 lg:py-24 px-4 sm:px-6 relative"
-    >
-      <div className="max-w-6xl mx-auto">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+    <section className="ps-sec" id="console" aria-labelledby="console-heading">
+      <div className="ps-ctr">
+        <div className="ps-sec-hd ps-rv">
+          <p className="ps-eyebrow">The human control plane</p>
+          <h2 className="ps-h2" id="console-heading">
+            Pilot Shell Console
+          </h2>
+          <p className="ps-lead">
+            The local Console at <span className="ps-mono">localhost:41777</span>{" "}
+            makes the harness visible and steerable — glanced at between agent
+            turns, beside the terminal.
+          </p>
+        </div>
 
-        <div
-          ref={ref}
-          className={`${inView ? "animate-fade-in-up" : "opacity-0"}`}
-        >
-          <SectionHeader
-            kicker="The human control plane"
-            title="Pilot Shell Console"
-            titleId="console-heading"
-            lead={
-              <>
-                The local Console at{" "}
-                <span className="font-mono text-sm sm:text-[15px]">
-                  localhost:41777
-                </span>{" "}
-                makes the harness visible and steerable — glanced at between
-                agent turns, beside the terminal.
-              </>
-            }
-            className="mb-8"
-          />
+        <div className="ps-con ps-rv ps-rv-z">
+          <div
+            className={`ps-shot ${tick % 2 ? "ps-fb" : "ps-fa"}`}
+            id="console-panel"
+            role="tabpanel"
+            aria-labelledby={`console-tab-${slide.name}`}
+            tabIndex={0}
+          >
+            <ImageModal
+              src={`/console/${slide.name}.webp`}
+              inlineSrc={`/console/${slide.name}_sm.webp`}
+              inlineSrcSet={`/console/${slide.name}_sm.webp 1400w, /console/${slide.name}.webp ${SLIDE_W}w`}
+              sizes={SLIDE_SIZES}
+              alt={slide.alt}
+              className="ps-shot-img"
+              width={SLIDE_W}
+              height={SLIDE_H}
+            />
+            <p className="ps-cap">
+              <span className="ps-strong">{slide.label}</span>
+              {" — "}
+              {slide.desc}
+            </p>
+          </div>
 
-          <div className="max-w-4xl mx-auto">
-            <div
-              id={`console-panel-${slide.name}`}
-              role="tabpanel"
-              aria-labelledby={`console-tab-${slide.name}`}
-              tabIndex={0}
-              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              <div
-                className="rounded-xl overflow-hidden border border-border/50"
-                style={{ aspectRatio: `${SLIDE_W} / ${SLIDE_H}` }}
+          <div className="ps-thumbs" role="tablist" aria-label="Console screenshots">
+            {consoleSlides.map((s, i) => (
+              <button
+                key={s.name}
+                ref={(node) => {
+                  tabRefs.current[i] = node;
+                }}
+                id={`console-tab-${s.name}`}
+                type="button"
+                role="tab"
+                className="ps-thumb"
+                aria-label={`Show ${s.label} screenshot`}
+                aria-selected={i === index}
+                aria-controls="console-panel"
+                tabIndex={i === index ? 0 : -1}
+                onClick={() => select(i)}
+                onKeyDown={(event) => handleTabKeyDown(event, i)}
               >
-                <ImageModal
-                  src={`/console/${slide.name}.webp`}
-                  inlineSrc={`/console/${slide.name}_sm.webp`}
-                  alt={slide.alt}
-                  className="w-full h-auto rounded-xl"
-                  width={SLIDE_W}
-                  height={SLIDE_H}
+                <img
+                  className="ps-thumb-img"
+                  src={`/console/thumbs/${s.name}.webp`}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  width={120}
+                  height={87}
                 />
-              </div>
-
-              <div className="mt-3 text-center">
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">
-                    {slide.label}
-                  </span>
-                  {" — "}
-                  {slide.desc}
-                </p>
-              </div>
-            </div>
-
-            <div
-              role="tablist"
-              aria-label="Console screenshots"
-              className="mt-4 flex gap-2 overflow-x-auto pb-2"
-            >
-              {consoleSlides.map((s, i) => (
-                <button
-                  key={s.name}
-                  ref={(node) => {
-                    tabRefs.current[i] = node;
-                  }}
-                  id={`console-tab-${s.name}`}
-                  type="button"
-                  role="tab"
-                  onClick={() => setIndex(i)}
-                  onKeyDown={(event) => handleTabKeyDown(event, i)}
-                  aria-label={`Show ${s.label} screenshot`}
-                  aria-selected={i === index}
-                  aria-controls={`console-panel-${s.name}`}
-                  tabIndex={i === index ? 0 : -1}
-                  className={`group/thumb relative min-h-11 min-w-[5.75rem] shrink-0 overflow-hidden rounded-lg border-2 transition-[border-color,opacity] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-w-0 sm:flex-1
-                    ${
-                      i === index
-                        ? "border-primary"
-                        : "border-transparent opacity-60 hover:opacity-100 hover:border-border"
-                    }`}
-                >
-                  <img
-                    src={`/console/thumbs/${s.name}.webp`}
-                    alt=""
-                    className="w-full h-auto rounded-md"
-                    loading="lazy"
-                    decoding="async"
-                    width={120}
-                    height={87}
-                  />
-                  <div
-                    className={`absolute inset-x-0 bottom-0 py-1 text-xs font-medium text-center
-                    ${
-                      i === index
-                        ? "bg-primary/90 text-primary-foreground"
-                        : "bg-background/80 text-muted-foreground group-hover/thumb:text-foreground"
-                    }`}
-                  >
-                    {s.label}
-                  </div>
-                </button>
-              ))}
-            </div>
+                <span className="ps-thumb-t">
+                  {s.label}
+                  <Check className="h-3.5 w-3.5 ps-chk" aria-hidden="true" />
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </div>

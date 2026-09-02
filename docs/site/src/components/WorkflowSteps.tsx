@@ -11,9 +11,6 @@ import {
   Trophy,
   type LucideIcon,
 } from "lucide-react";
-import { useInView } from "@/hooks/use-in-view";
-import SectionHeader from "@/components/SectionHeader";
-import IconTile from "@/components/IconTile";
 
 interface Workflow {
   icon: LucideIcon;
@@ -94,118 +91,76 @@ const onDemandCommands = [
   },
 ];
 
-const FeatureCard = ({ icon, title, kicker, summary, href }: Workflow) => (
-  <a
-    href={href}
-    className="group relative block rounded-lg border border-border/50 bg-card p-5 transition-all duration-300 hover:border-primary/50"
-  >
-    <div className="pointer-events-none absolute inset-0 rounded-lg bg-gradient-to-br from-primary/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-    <div className="flex items-center gap-3 mb-3">
-      <IconTile
-        icon={icon}
-        className="transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary/20"
-      />
-      <div>
-        <h3 className="text-base font-semibold text-foreground">{title}</h3>
-        <p className="font-mono text-[11px] text-muted-foreground">{kicker}</p>
+const WorkflowSteps = () => (
+  <section className="ps-sec" id="workflows" aria-labelledby="workflows-heading">
+    <div className="ps-ctr">
+      <div className="ps-sec-hd ps-left ps-rv">
+        <p className="ps-eyebrow">Coordinated parts</p>
+        <h2 className="ps-h2" id="workflows-heading">
+          Workflows put the harness around the work.
+        </h2>
+        <p className="ps-lead">
+          Direct requests, native Plan/Goal tools, and Pilot workflows are peers.
+          Use a Pilot workflow when its durable product, planning, or
+          verification contract fits the work.
+        </p>
+      </div>
+
+      <div className="ps-wcards ps-stg">
+        {workflows.map((workflow) => (
+          <a key={workflow.href} className="ps-wcard" href={workflow.href}>
+            <span className="ps-tile">
+              <workflow.icon className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <span>
+              <span className="ps-h3">{workflow.title}</span>
+              <span className="ps-kick">{workflow.kicker}</span>
+            </span>
+            <span className="ps-sup">{workflow.summary}</span>
+            <span className="ps-more">
+              Learn more
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </span>
+          </a>
+        ))}
+      </div>
+
+      <ol className="ps-flow ps-stg" aria-label="Workflow stages">
+        {flowSteps.map((step) => (
+          <li key={step.label} className="ps-fstep">
+            <span className="ps-tile">
+              <step.icon className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <span className="ps-fstep-t">{step.label}</span>
+            <ArrowRight className="ps-arr" aria-hidden="true" />
+          </li>
+        ))}
+      </ol>
+
+      <div className="ps-ledger-wrap">
+        <div className="ps-rv">
+          <h3 className="ps-h3" style={{ fontSize: 24 }}>
+            Rules, skills, and memory
+          </h3>
+          <p className="ps-body" style={{ marginTop: 16 }}>
+            They are coordinated parts of the harness — they supply context; they
+            are not the product by themselves. Pilot generates, tests, and
+            measures them with dedicated workflows.
+          </p>
+        </div>
+        <div className="ps-ledger ps-stg">
+          {onDemandCommands.map((entry) => (
+            <div key={entry.command} className="ps-lrow">
+              <a className="ps-lnk" href={entry.href}>
+                {entry.command}
+              </a>
+              <span className="ps-sup">{entry.desc}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-    <p className="text-xs leading-relaxed text-muted-foreground transition-colors duration-200 group-hover:text-foreground/80">
-      {summary}
-    </p>
-    <div className="mt-3 flex items-center gap-1 text-xs text-primary group-hover:underline">
-      <span>Learn more</span>
-      <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-0.5" />
-    </div>
-  </a>
+  </section>
 );
-
-const WorkflowSteps = () => {
-  const [ref, inView] = useInView<HTMLDivElement>();
-  const [onDemandRef, onDemandInView] = useInView<HTMLDivElement>();
-
-  return (
-    <section
-      id="workflows"
-      aria-labelledby="workflows-heading"
-      className="scroll-mt-24 py-16 lg:py-24 px-4 sm:px-6 relative"
-    >
-      <div className="max-w-6xl mx-auto">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-
-        <div ref={ref} className={inView ? "animate-fade-in-up" : "opacity-0"}>
-          <SectionHeader
-            kicker="Coordinated parts"
-            title="Workflows put the harness around the work."
-            titleId="workflows-heading"
-            lead="Direct requests, native Plan/Goal tools, and Pilot workflows are peers. Use a Pilot workflow when its durable product, planning, or verification contract fits the work."
-            className="mb-10"
-          />
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {workflows.map((workflow) => (
-              <FeatureCard key={workflow.href} {...workflow} />
-            ))}
-          </div>
-
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            {flowSteps.map((step, i) => (
-              <div key={step.label} className="flex items-center gap-3">
-                {i > 0 && (
-                  <ArrowRight
-                    className="hidden sm:block h-3.5 w-3.5 text-muted-foreground/50"
-                    aria-hidden="true"
-                  />
-                )}
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-border/50 bg-card px-3 py-1.5 text-sm text-muted-foreground">
-                  <step.icon className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
-                  {step.label}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div
-          ref={onDemandRef}
-          className={`mt-14 grid lg:grid-cols-[0.85fr_1.15fr] gap-8 lg:gap-14 items-center ${
-            onDemandInView ? "animate-fade-in-up" : "opacity-0"
-          }`}
-        >
-          <div>
-            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-              Rules, skills, and memory
-            </h3>
-            <p className="text-sm leading-relaxed text-muted-foreground mt-3">
-              They are coordinated parts of the harness — they supply context;
-              they are not the product by themselves. Pilot generates, tests,
-              and measures them with dedicated workflows.
-            </p>
-          </div>
-          <div className="rounded-lg border border-border/50 bg-card px-5 sm:px-6 py-1.5">
-            {onDemandCommands.map((entry, i) => (
-              <div
-                key={entry.command}
-                className={`grid sm:grid-cols-[132px_1fr] gap-1 sm:gap-4 items-baseline py-3.5 ${
-                  i < onDemandCommands.length - 1 ? "border-b border-border/40" : ""
-                }`}
-              >
-                <a
-                  href={entry.href}
-                  className="font-mono text-[12.5px] font-medium text-primary hover:underline"
-                >
-                  {entry.command}
-                </a>
-                <span className="text-[13px] leading-relaxed text-muted-foreground">
-                  {entry.desc}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
 
 export default WorkflowSteps;

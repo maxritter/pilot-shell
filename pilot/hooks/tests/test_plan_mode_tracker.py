@@ -16,6 +16,7 @@ def _run_main(stdin_data: dict, session_dir: Path, awaiting_approval: bool = Fal
     """Run main() with patched session dir and stdin, return (exit_code, stdout)."""
     with (
         patch("plan_mode_tracker._sessions_base", return_value=session_dir),
+        patch("_lib.util._sessions_base", return_value=session_dir),
         patch("plan_mode_tracker.resolve_session_id", return_value="test-session"),
         patch("plan_mode_tracker.read_hook_stdin", return_value=stdin_data),
         patch("plan_mode_tracker.spec_plan_awaiting_approval", return_value=awaiting_approval),
@@ -84,6 +85,51 @@ class TestSentinelTracking:
         assert out == ""
         record = tmp_path / "test-session" / "pre-plan-permission-mode"
         assert record.read_text() == "bypassPermissions"
+
+    def test_pre_enter_plan_mode_records_who_owns_the_leg(self, tmp_path):
+        """The leg's owner is decided at ENTRY, because exit cannot tell.
+
+        At Step 12.3 a /spec plan is PENDING + `Approved: Yes` - identical to an
+        approved plan the model opened native plan mode on top of during
+        implementation, and to a locked Buildout. Reading the run state at exit
+        answered "a run exists" for all three and handed native plan mode to the
+        /spec code path. Entry separates them cleanly.
+        """
+        session_dir = tmp_path / "sessions" / "test-session"
+        session_dir.mkdir(parents=True)
+        plans_dir = tmp_path / "project" / "docs" / "plans"
+        plans_dir.mkdir(parents=True)
+        stdin = {"tool_name": "EnterPlanMode", "tool_input": {}, "permission_mode": "bypassPermissions"}
+        record = session_dir / "plan-leg-owner"
+
+        def register(status: str, approved: str, plan_type: str) -> None:
+            plan = plans_dir / f"2026-09-02-{plan_type.lower()}.md"
+            plan.write_text(f"# P\n\nStatus: {status}\nApproved: {approved}\nType: {plan_type}\n")
+            (session_dir / "active_plan.json").write_text(json.dumps({"plan_path": str(plan), "status": status}))
+
+        with patch.dict(os.environ, {"CLAUDE_PROJECT_ROOT": str(tmp_path / "project")}):
+            # Nothing registered yet: spec-plan Step 0.1a runs before Step 2's
+            # register-plan, so this is a fresh /spec planning leg.
+            _run_main(stdin, tmp_path / "sessions")
+            assert record.read_text() == "pilot-planning"
+
+            # A plan still in its planning phase: /spec resuming it, which
+            # registers at the dispatcher before entering plan mode.
+            register("PENDING", "No", "Feature")
+            _run_main(stdin, tmp_path / "sessions")
+            assert record.read_text() == "pilot-planning"
+
+            # Approved and being implemented: this plan mode is somebody else's.
+            register("PENDING", "Yes", "Feature")
+            _run_main(stdin, tmp_path / "sessions")
+            assert record.read_text() == "native"
+
+            # A Buildout locks `Approved: Yes` with no user sign-off and never
+            # enters plan mode at all - the case that let a native plan be
+            # auto-approved inside a running /build.
+            register("PENDING", "Yes", "Build")
+            _run_main(stdin, tmp_path / "sessions")
+            assert record.read_text() == "native"
 
     def test_pre_enter_plan_mode_without_mode_clears_stale_record(self, tmp_path):
         """No permission_mode field (older Claude Code) -> clear any stale

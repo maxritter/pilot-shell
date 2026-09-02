@@ -1,11 +1,20 @@
 #!/usr/bin/env python3
 """PermissionRequest hook for ExitPlanMode: approval-state-aware allow/deny.
 
-In the /spec workflow ExitPlanMode is purely a model-switch lever (Opus -> Sonnet),
-NOT the plan-approval mechanism. The real approval is a separate AskUserQuestion gate
-(spec-plan/steps/12-approval.md, spec-bugfix-plan/steps/06-approval.md).
+⛔ SCOPE: this hook acts ONLY on a `/spec` planning leg. In that workflow
+ExitPlanMode is purely a model-switch lever (Opus -> Sonnet), NOT the
+plan-approval mechanism - the real approval is a separate AskUserQuestion gate
+(spec-plan/steps/12-approval.md, spec-bugfix-plan/steps/06-approval.md), so the
+redundant native plan dialog is suppressed there. Claude Code's OWN plan mode -
+the user pressing shift-tab, or the model entering plan mode for ordinary work -
+is a completely different thing: there ExitPlanMode *is* the approval, and the
+dialog is the only place the user gets to read the plan and accept or reject it.
+Suppressing it silently approved every native plan, which is why every allow
+path below is gated on `spec_plan_leg_active`. Without a live Pilot run the hook
+emits NOTHING for ExitPlanMode and Claude Code prompts exactly as it normally
+would.
 
-Two jobs:
+Three jobs:
 1. DENY a premature ExitPlanMode. Newer Claude Code builds inject a plan-mode
    system-reminder claiming the plan must be presented for approval via
    ExitPlanMode and no other way; models sometimes follow it and call
@@ -13,12 +22,17 @@ Two jobs:
    active (plan-mode-active sentinel from EnterPlanMode) and the registered
    plan is PENDING and unapproved, ExitPlanMode is denied with a message that
    re-anchors the model to the approval gate.
-2. ALLOW otherwise: skip the dialog + request bypassPermissions restore. The
-   decision message must NEVER say "approved": earlier wording ("Plan
-   auto-approved") was parroted by agents as "Plan approved", causing them to
-   skip the approval gate and start implementing.
-3. RESTORE bypassPermissions after the plan exit. Two upstream issues break
-   the naive restore on current CC builds:
+2. ALLOW an approved /spec plan exit: skip the (already-answered) dialog +
+   request bypassPermissions restore. The decision message must NEVER say
+   "approved": earlier wording ("Plan auto-approved") was parroted by agents as
+   "Plan approved", causing them to skip the approval gate and start
+   implementing.
+3. RESTORE bypassPermissions after a /spec plan exit - and ONLY a /spec one.
+   In native plan mode the exit dialog's "auto-accept edits" / "manually
+   approve edits" choice IS the user selecting a permission mode, so replaying
+   a restore over it would override a deliberate decision and auto-allow their
+   next prompt; the marker is therefore never armed outside a /spec leg. Within
+   /spec the same transition is an involuntary drop, from two upstream issues:
      #49525 - updatedPermissions setMode:bypassPermissions is silently dropped
               when sent on the ExitPlanMode request itself (CC 2.1.110+): the
               plan-exit mode transition applies after the hook's update and
@@ -45,16 +59,27 @@ Two jobs:
    both are consumed single-shot and overwritten by the next planning leg, so
    a session that ends between arm and replay leaves only harmless garbage.
 
-Guard scope (honest limits): the deny only arms AFTER `pilot register-plan`
-has written active_plan.json (spec-plan Step 2) and while the EnterPlanMode
-sentinel exists; the window before registration, and installs where the pilot
-binary is unavailable, remain guarded by skill prose only. Everything fails
-open: read errors, a missing/unreadable plan file, an unparseable
-active_plan.json, or a version-skewed _lib all fall back to plain allow (for
-ExitPlanMode) or to silence = the normal permission dialog (for every other
-tool), so no permission request is ever broken or auto-allowed by accident.
-The deny message carries a user-authorized escape hatch (remove the sentinel)
-for abandoned or non-/spec plan-mode legs.
+Ownership is decided at ENTRY, not at exit. `spec_plan_leg_active` reads the
+record `plan_mode_tracker` writes at PreToolUse(EnterPlanMode), because at exit
+a /spec plan (PENDING + Approved: Yes at Step 12.3) is indistinguishable from an
+approved plan the model opened native plan mode on top of mid-implementation, or
+from a /build Buildout, which sets Approved: Yes when its contract locks and
+never enters plan mode at all. Gating on "a run is registered" alone therefore
+handed native plan mode straight back to the /spec code path inside any live
+run - the same silent-approval bug, in a narrower window.
+
+Guard scope (honest limits): both the deny AND the allow additionally require
+`pilot register-plan` to have written active_plan.json (spec-plan Step 2) while
+the EnterPlanMode sentinel exists; the window before registration, and installs
+where the pilot binary is unavailable, remain guarded by skill prose only. An
+ExitPlanMode in that window falls through to the native dialog rather than being
+suppressed - a visible extra confirmation inside `/spec` is the cost of never
+silently approving a plan outside it. Everything fails toward the native dialog:
+read errors, a missing/unreadable plan file, an unparseable active_plan.json, a
+missing owner record (a shift-tab plan entry writes none), or a version-skewed
+_lib all end in silence, so no permission request is ever broken or auto-allowed
+by accident. The deny message carries a user-authorized escape hatch (remove the
+sentinel) for abandoned or non-/spec plan-mode legs.
 """
 
 import json
@@ -146,6 +171,23 @@ def _pending_denial_sentinel(fallback_sid: str = "") -> str | None:
     return None
 
 
+def _is_spec_plan_leg(fallback_sid: str = "") -> bool:
+    """True when this ExitPlanMode belongs to a registered Pilot planning leg.
+
+    The gate on every allow path. Fail-closed for THIS consumer (False on any
+    error, including a version-skewed _lib predating the predicate): "not a
+    Pilot leg" hands the decision back to Claude Code's own plan dialog, which
+    is always safe. The opposite default is what silently approved native
+    plans.
+    """
+    try:
+        from _lib.util import resolve_session_id, spec_plan_leg_active
+
+        return spec_plan_leg_active(resolve_session_id(fallback_sid))
+    except Exception:
+        return False
+
+
 def _deny_message(sentinel: str) -> str:
     return (
         "ExitPlanMode DENIED - the registered spec plan has NOT been approved yet. "
@@ -177,23 +219,55 @@ def _print_decision(decision: dict) -> None:
     )
 
 
-def _exit_plan_mode_decision(data: dict) -> dict:
+def _exit_plan_mode_decision(data: dict) -> dict | None:
+    """Decision for an ExitPlanMode permission request, or None for "stay out".
+
+    None means the hook prints nothing and Claude Code shows its normal plan
+    dialog - the correct outcome for native plan mode, where that dialog IS the
+    approval.
+    """
     fallback_sid = str(data.get("session_id") or "")
     sentinel = _pending_denial_sentinel(fallback_sid)
     if sentinel is not None:
         return {"behavior": "deny", "message": _deny_message(sentinel)}
+    if not _is_spec_plan_leg(fallback_sid):
+        # Claude Code's own plan mode. Two things must NOT happen here.
+        #
+        # The plan itself: ExitPlanMode IS the approval, so the dialog must
+        # reach the user. Allowing it - let alone echoing updatedInput, which
+        # tells CC the required interaction was already collected - approves
+        # the plan on their behalf.
+        #
+        # The permission mode: the exit dialog's "auto-accept edits" vs
+        # "manually approve edits" is the user CHOOSING a mode, not Claude Code
+        # dropping one. Arming the bypass restore here would auto-allow their
+        # next permission request and force bypassPermissions over the choice
+        # they just made - a worse outcome than the plan approval this hook was
+        # fixing. So the marker stays unarmed and the evidence record is left
+        # for the next planning leg, which overwrites it at EnterPlanMode.
+        return None
     # Arm the post-exit replay: CC drops the setMode below on the exit request
     # itself (#49525) and lands the session in acceptEdits (#39973). Only arm
     # for a real plan exit (missing field = older CC without permission_mode)
     # AND with positive evidence the session ran bypassPermissions before the
-    # planning leg - never escalate a session that was not in bypass.
-    if data.get("permission_mode", "plan") == "plan" and _pre_plan_bypass_evidence(fallback_sid):
+    # planning leg - never escalate a session that was not in bypass. /spec legs
+    # only: there the mode change is an involuntary drop, not a user choice.
+    restore_bypass = data.get("permission_mode", "plan") == "plan" and _pre_plan_bypass_evidence(fallback_sid)
+    if restore_bypass:
         _arm_restore_marker(fallback_sid)
     decision = {
         "behavior": "allow",
-        "updatedPermissions": [dict(_RESTORE_SETMODE)],
-        "message": "ExitPlanMode allowed (model switch); restoring bypassPermissions - permission action only, NOT plan approval",
+        "message": "ExitPlanMode allowed (model switch) - permission action only, NOT plan approval",
     }
+    if restore_bypass:
+        # Positive evidence only. Asking for bypass without it would escalate a
+        # session the user deliberately kept in manual/acceptEdits if Claude
+        # Code starts honoring setMode on ExitPlanMode in a future release.
+        decision["updatedPermissions"] = [dict(_RESTORE_SETMODE)]
+        decision["message"] = (
+            "ExitPlanMode allowed (model switch); restoring bypassPermissions - "
+            "permission action only, NOT plan approval"
+        )
     # ExitPlanMode is a "requires user interaction" tool: per the CC hooks
     # reference, behavior:"allow" ALONE does NOT skip its plan-approval prompt.
     # Echoing the injected tool_input (plan + planFilePath) back as updatedInput
@@ -244,7 +318,9 @@ def main() -> int:
     data = _read_stdin()
     tool_name = data.get("tool_name", "")
     if tool_name == "ExitPlanMode":
-        _print_decision(_exit_plan_mode_decision(data))
+        exit_decision = _exit_plan_mode_decision(data)
+        if exit_decision is not None:
+            _print_decision(exit_decision)
         return 0
     if tool_name == "EnterPlanMode":
         return 0  # never interfere with entering plan mode

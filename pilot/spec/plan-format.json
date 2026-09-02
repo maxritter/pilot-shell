@@ -13,7 +13,14 @@
     "  - launcher/statusline/formatter.py  (progress counts, header fields, phase derivation)",
     "  - pilot/hooks/spec_stop_guard.py    (^Status: parsing)",
     "  - console/src/ui/viewer/views/Spec/parsePlanContent.ts (headings, task bodies, labels)",
-    "If you change a rule here, check whether those three still agree."
+    "If you change a rule here, check whether those three still agree.",
+    "",
+    "OUT OF SCOPE, deliberately: pilot/hooks/native_plan_capture.py files a plan approved in the",
+    "agent's own plan mode into docs/plans/ with `Status: SAVED` and `Type: Plan` - values this",
+    "schema does NOT allow, because that document is not a workflow run and `pilot spec validate`",
+    "should keep rejecting it as a spec. The Console parses both values (planFileReader.ts,",
+    "specType.ts) so a captured plan renders and stays out of the active-run surfaces. Widening the",
+    "allowed lists below to accept them would weaken validation for real /spec plans."
   ],
 
   "line_ending": "LF",

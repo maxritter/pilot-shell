@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import NavBar from "@/components/NavBar";
+import { useRevealObserver } from "@/hooks/use-reveal";
 import HeroSection from "@/components/HeroSection";
 import SEO from "@/components/SEO";
 
@@ -20,6 +21,8 @@ const Footer = lazy(() => import("@/components/Footer"));
 const SectionFallback = () => <div aria-hidden="true" style={{ minHeight: "40vh" }} />;
 
 const Index = () => {
+  useRevealObserver();
+
   const websiteStructuredData = {
     "@context": "https://schema.org",
     "@type": "WebSite",

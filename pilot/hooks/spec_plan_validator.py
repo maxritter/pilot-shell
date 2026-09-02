@@ -217,6 +217,27 @@ def _local_renderability_errors(plan_file: Path) -> list[str]:
     return errors
 
 
+# A plan filed by native_plan_capture: `Type: Plan` with the terminal SAVED
+# status, written by the agent's own plan mode rather than by a workflow.
+_CAPTURED_TYPE_RE = re.compile(r"^Type:\s*Plan\s*$", re.MULTILINE)
+
+
+def _is_captured_native_plan(plan_file: Path) -> bool:
+    """True for a docs/plans/ file that native_plan_capture wrote.
+
+    The today-glob fallback below assumes every dated file in the directory is a
+    candidate for THIS run's artifact. A captured native plan breaks that
+    assumption in both directions: it would satisfy the guard for a planning
+    session that produced nothing, and - because its header is deliberately
+    outside the workflow plan schema - it would otherwise be reported as an
+    unrenderable plan the model is told to go fix. It is neither; skip it.
+    """
+    try:
+        return _CAPTURED_TYPE_RE.search(plan_file.read_text()) is not None
+    except (OSError, UnicodeDecodeError):
+        return False
+
+
 def _validation_errors(plan_file: Path) -> list[str]:
     """Validate with the canonical CLI, falling back to hook-local parity checks."""
     canonical = _canonical_validation_errors(plan_file)
@@ -298,7 +319,7 @@ def main(doc_dir: str = DEFAULT_DOC_DIR, artifact: str = DEFAULT_ARTIFACT) -> in
     unowned = [
         candidate
         for candidate in plans_dir.glob(f"{today}-*.md")
-        if not plan_registered_by_other_session(candidate, session_id)
+        if not plan_registered_by_other_session(candidate, session_id) and not _is_captured_native_plan(candidate)
     ]
     if not unowned:
         print(stop_block(f"{artifact} file not created yet. Expected a file matching: {doc_dir}/{today}-*.md"))

@@ -213,6 +213,18 @@
       "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
     },
     {
+      "id": "claude-posttooluse-native-plan-capture",
+      "platform": "claude",
+      "event": "PostToolUse",
+      "matcher": "ExitPlanMode",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/native_plan_capture.py\""
+      ],
+      "async": [false],
+      "timeout": [10],
+      "contract_test": "pilot/hooks/tests/test_native_plan_capture.py::TestNativePlanCapture"
+    },
+    {
       "id": "claude-posttooluse-3",
       "platform": "claude",
       "event": "PostToolUse",

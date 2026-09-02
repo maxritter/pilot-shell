@@ -13,13 +13,17 @@ vi.mock("@/components/ImageModal", () => ({
   default: ({ alt }: { alt: string }) => <span>{alt}</span>,
 }));
 
+/** Copy assertions read the rendered text, not the markup that carries it —
+ * the hero headline reveals word by word, so each word is its own element. */
+const textOf = (markup: string) => markup.replace(/<[^>]+>/g, "");
+
 describe("agent-aware marketing sections", () => {
   it("leads the hero with the design's harness claim and the install command", () => {
     const hero = renderToStaticMarkup(<HeroSection />);
 
     expect(hero).toContain("How real engineers run Claude Code and Codex");
-    expect(hero).toContain("From requirement to production-grade code");
-    expect(hero).toContain("planned, tested, verified.");
+    expect(textOf(hero)).toContain("From requirement to production-grade code");
+    expect(textOf(hero)).toContain("planned, tested, verified.");
     expect(hero).toContain("context and harness engineering");
     expect(hero).toContain("install.sh | bash");
     expect(hero).toContain("macOS · Linux · Windows (WSL2)");
@@ -134,6 +138,9 @@ describe("agent-aware marketing sections", () => {
     expect(consoleSection).toContain('role="tab"');
     expect(consoleSection).toContain('aria-selected="true"');
     expect(consoleSection).toContain('role="tabpanel"');
-    expect(consoleSection).toContain("overflow-x-auto");
+    // Every view stays reachable from the wrapping thumbnail grid.
+    for (const label of ["Dashboard", "Sessions", "Changes", "Documentation"]) {
+      expect(consoleSection).toContain(`aria-label="Show ${label} screenshot"`);
+    }
   });
 });

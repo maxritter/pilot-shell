@@ -273,7 +273,7 @@ export default function Shared() {
       />
       <NavBar />
 
-      <main className="min-h-screen bg-background pt-20 pb-12">
+      <main className="min-h-screen bg-background pt-12 pb-12">
         {/* Browser unsupported */}
         {pageState.status === "browser-unsupported" && (
           <div className="max-w-lg mx-auto px-4 py-16 text-center space-y-4">

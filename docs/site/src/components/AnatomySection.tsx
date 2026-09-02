@@ -1,10 +1,19 @@
 import { useRef, useState, type KeyboardEvent } from "react";
-import { useInView } from "@/hooks/use-in-view";
-import SectionHeader from "@/components/SectionHeader";
+import {
+  Brain,
+  Check,
+  Eye,
+  FileText,
+  Layers,
+  Monitor,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
 
 interface Layer {
-  num: string;
+  icon: LucideIcon;
   name: string;
+  short: string;
   desc: string;
   mechs: string[];
   refuses: string;
@@ -13,8 +22,9 @@ interface Layer {
 
 const layers: Layer[] = [
   {
-    num: "01",
+    icon: Layers,
     name: "Context Engineering",
+    short: "Only what is relevant loads, at the stage where it matters.",
     desc: "Relevant source, architecture, project standards, prior decisions, specialized agents, and MCP tools arrive at the stage where they matter — modular, only what's relevant loads.",
     mechs: ["Semble", "CodeGraph", "rules by file type", "RTK", "7 MCP servers"],
     refuses:
@@ -22,8 +32,9 @@ const layers: Layer[] = [
     gives: "A lean context window — with 60–90% of tool-output tokens compressed away.",
   },
   {
-    num: "02",
+    icon: FileText,
     name: "Spec-Driven Delivery",
+    short: "Exploration and planning come before code, against a plan you approved.",
     desc: "Exploration and planning come before code. Behavior changes move through RED → GREEN → REFACTOR, against a plan you reviewed and approved.",
     mechs: ["/prd", "/spec", "/build", "/fix", "TDD"],
     refuses:
@@ -32,8 +43,9 @@ const layers: Layer[] = [
       "Requirements, plans, and tasks as durable files under docs/ — reviewable, diffable, shareable.",
   },
   {
-    num: "03",
+    icon: ShieldCheck,
     name: "Enforced Quality Gates",
+    short: "Lint, type checks, and tests run as hooks on every edit.",
     desc: "Lint, type checks, and tests run as hooks on every edit. Stop guards refuse a completion claim without fresh evidence.",
     mechs: ["lifecycle hooks", "file checker", "stop guards"],
     refuses:
@@ -41,8 +53,9 @@ const layers: Layer[] = [
     gives: "Every edit checked at write time — not in a review three days later.",
   },
   {
-    num: "04",
+    icon: Eye,
     name: "Independent Verification",
+    short: "Reviews, full gates, and browser proof stand between code and handoff.",
     desc: "Independent reviews, full test and build gates, and browser or device verification stand between implementation and handoff.",
     mechs: ["review agents", "E2E", "agent-browser", "Chrome DevTools MCP"],
     refuses:
@@ -50,8 +63,9 @@ const layers: Layer[] = [
     gives: "Runtime proof the finished system works, recorded as evidence.",
   },
   {
-    num: "05",
+    icon: Brain,
     name: "Stateful Delivery & Memory",
+    short: "Plans, progress, and evidence survive compaction and travel with the repo.",
     desc: "Requirements, specs, tasks, progress, and verification evidence survive compaction and session boundaries — and travel through the repo to your team.",
     mechs: ["durable docs/", "compaction snapshots", "team memories"],
     refuses:
@@ -60,8 +74,9 @@ const layers: Layer[] = [
       "The same standard across sessions, projects, and teammates — no cloud, you review the diff and commit.",
   },
   {
-    num: "06",
+    icon: Monitor,
     name: "Human Control Plane",
+    short: "The Console makes plan, diff, evidence, and usage legible in seconds.",
     desc: "The Console connects plan and diff review, annotations, progress, evidence, session recovery, and usage — glanced at between agent turns.",
     mechs: ["Console", "localhost:41777", "annotations"],
     refuses:
@@ -71,10 +86,16 @@ const layers: Layer[] = [
 ];
 
 const AnatomySection = () => {
-  const [ref, inView] = useInView<HTMLDivElement>();
   const [index, setIndex] = useState(0);
+  const [tick, setTick] = useState(0);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const active = layers[index];
+
+  const select = (next: number) => {
+    if (next === index) return;
+    setIndex(next);
+    setTick((value) => value + 1);
+  };
 
   const handleTabKeyDown = (
     event: KeyboardEvent<HTMLButtonElement>,
@@ -83,9 +104,11 @@ const AnatomySection = () => {
     let nextIndex: number;
     switch (event.key) {
       case "ArrowRight":
+      case "ArrowDown":
         nextIndex = (currentIndex + 1) % layers.length;
         break;
       case "ArrowLeft":
+      case "ArrowUp":
         nextIndex = (currentIndex - 1 + layers.length) % layers.length;
         break;
       case "Home":
@@ -98,114 +121,94 @@ const AnatomySection = () => {
         return;
     }
     event.preventDefault();
-    setIndex(nextIndex);
+    select(nextIndex);
     tabRefs.current[nextIndex]?.focus();
   };
 
   return (
-    <section
-      id="anatomy"
-      aria-labelledby="anatomy-heading"
-      className="scroll-mt-24 py-16 lg:py-24 px-4 sm:px-6 relative"
-    >
-      <div className="max-w-6xl mx-auto">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-
-        <div ref={ref} className={inView ? "animate-fade-in-up" : "opacity-0"}>
-          <SectionHeader
-            kicker="Anatomy of the harness"
-            title="Six layers of quality. Pick one apart."
-            titleId="anatomy-heading"
-            lead="Each layer enforces something the previous can't. Rules and skills supply context inside these layers — the layers, together, are the product."
-            className="mb-8"
-          />
-
-          <div
-            role="tablist"
-            aria-label="Harness layers"
-            className="flex flex-wrap justify-start sm:justify-center gap-2 mb-5"
-          >
-            {layers.map((layer, i) => (
-              <button
-                key={layer.num}
-                ref={(node) => {
-                  tabRefs.current[i] = node;
-                }}
-                id={`anatomy-tab-${layer.num}`}
-                type="button"
-                role="tab"
-                onClick={() => setIndex(i)}
-                onKeyDown={(event) => handleTabKeyDown(event, i)}
-                aria-selected={i === index}
-                aria-controls="anatomy-panel"
-                tabIndex={i === index ? 0 : -1}
-                className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-[12.5px] font-medium transition-all duration-200 cursor-pointer
-                  ${
-                    i === index
-                      ? "border-primary/50 bg-primary/10 text-primary"
-                      : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
-                  }`}
-              >
-                <span className="font-mono text-[10px] font-semibold opacity-75">
-                  {layer.num}
-                </span>
-                <span>{layer.name}</span>
-              </button>
-            ))}
-          </div>
-
-          <div className="relative overflow-hidden rounded-lg border border-primary/30 bg-card">
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
-            <div
-              id="anatomy-panel"
-              role="tabpanel"
-              aria-labelledby={`anatomy-tab-${active.num}`}
-              className="grid md:grid-cols-2 gap-6 md:gap-9 p-5 sm:p-8 md:min-h-[230px]"
-            >
-              <div>
-                <div className="font-mono text-xs font-semibold text-primary">
-                  LAYER {active.num}
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mt-2">
-                  {active.name}
-                </h3>
-                <p className="text-sm leading-relaxed text-muted-foreground mt-3">
-                  {active.desc}
-                </p>
-                <div className="flex flex-wrap gap-1.5 mt-4">
-                  {active.mechs.map((mech) => (
-                    <span
-                      key={mech}
-                      className="font-mono text-[11px] font-medium text-primary bg-primary/10 px-2 py-[3px] rounded"
-                    >
-                      {mech}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div className="border-t md:border-t-0 md:border-l border-border/60 pt-5 md:pt-0 md:pl-9">
-                <div className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                  What it refuses
-                </div>
-                <p className="text-sm leading-relaxed text-foreground mt-2.5">
-                  {active.refuses}
-                </p>
-                <div className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mt-5">
-                  What you get
-                </div>
-                <p className="text-sm leading-relaxed text-muted-foreground mt-2.5">
-                  {active.gives}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <p className="text-center text-[13px] leading-relaxed text-muted-foreground max-w-2xl mx-auto mt-5">
-            One system for Claude Code and Codex — platform adapters preserve
-            one engineering standard while the underlying models keep
-            improving.
+    <section className="ps-sec" id="anatomy" aria-labelledby="anatomy-heading">
+      <div className="ps-ctr">
+        <div className="ps-sec-hd ps-left ps-rv">
+          <p className="ps-eyebrow">Anatomy of the harness</p>
+          <h2 className="ps-h2" id="anatomy-heading">
+            Six layers of quality. Pick one apart.
+          </h2>
+          <p className="ps-lead">
+            Each layer enforces something the previous can't. Rules and skills
+            supply context inside these layers — the layers, together, are the
+            product.
           </p>
         </div>
+
+        <div className="ps-tabs ps-stg" role="tablist" aria-label="Harness layers">
+          {layers.map((layer, i) => (
+            <button
+              key={layer.name}
+              ref={(node) => {
+                tabRefs.current[i] = node;
+              }}
+              id={`anatomy-tab-${i}`}
+              type="button"
+              role="tab"
+              className="ps-tab"
+              aria-selected={i === index}
+              aria-controls="anatomy-panel"
+              tabIndex={i === index ? 0 : -1}
+              onClick={() => select(i)}
+              onKeyDown={(event) => handleTabKeyDown(event, i)}
+            >
+              <span className="ps-tab-top">
+                <span className="ps-tile">
+                  <layer.icon className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span className="ps-h3">{layer.name}</span>
+                <Check className="h-[18px] w-[18px] ps-chk" aria-hidden="true" />
+              </span>
+              <span className="ps-tab-desc">{layer.short}</span>
+            </button>
+          ))}
+        </div>
+
+        <div
+          className={`ps-pnl ${tick % 2 ? "ps-fb" : "ps-fa"}`}
+          id="anatomy-panel"
+          role="tabpanel"
+          aria-labelledby={`anatomy-tab-${index}`}
+        >
+          <div>
+            <p className="ps-lbl">Layer</p>
+            <h3 className="ps-h3" style={{ marginTop: 8 }}>
+              {active.name}
+            </h3>
+            <p className="ps-body" style={{ marginTop: 16 }}>
+              {active.desc}
+            </p>
+            <div className="ps-chips">
+              {active.mechs.map((mech) => (
+                <span key={mech} className="ps-chip">
+                  {mech}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="ps-lbl">What it refuses</p>
+            <p className="ps-body ps-strong" style={{ marginTop: 12 }}>
+              {active.refuses}
+            </p>
+            <p className="ps-lbl" style={{ marginTop: 24 }}>
+              What you get
+            </p>
+            <p className="ps-body" style={{ marginTop: 12 }}>
+              {active.gives}
+            </p>
+          </div>
+        </div>
+
+        <p className="ps-sup ps-closing">
+          One system for Claude Code and Codex — platform adapters preserve one
+          engineering standard while the underlying models keep improving.
+        </p>
       </div>
     </section>
   );

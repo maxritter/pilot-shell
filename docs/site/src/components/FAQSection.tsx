@@ -1,10 +1,5 @@
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { useInView } from "@/hooks/use-in-view";
+import { useState } from "react";
+import { ChevronDown, CircleHelp } from "lucide-react";
 
 const faqItems = [
   {
@@ -30,56 +25,56 @@ const faqItems = [
   {
     question: "Can I use Pilot Shell on multiple different projects?",
     answer:
-      "Yes. Pilot Shell installs once globally and works across all your projects \u2014 you don\u2019t need to reinstall per project. All tools, rules, commands, hooks, and managed review agents live in ~/.pilot/, ~/.claude/, and ~/.codex/ as needed. Just cd into any project and run claude or codex. Each project can optionally have its own .claude/ rules, custom skills, and MCP servers for project-specific behavior. Run /setup-rules in each project to generate project-specific documentation and standards.",
+      "Yes. Pilot Shell installs once globally and works across all your projects — you don’t need to reinstall per project. All tools, rules, commands, hooks, and managed review agents live in ~/.pilot/, ~/.claude/, and ~/.codex/ as needed. Just cd into any project and run claude or codex. Each project can optionally have its own .claude/ rules, custom skills, and MCP servers for project-specific behavior. Run /setup-rules in each project to generate project-specific documentation and standards.",
   },
   {
     question: "Can I use Pilot Shell inside a Dev Container?",
     answer:
-      "Yes. Copy the .devcontainer folder from the Pilot Shell repository into your project, adapt it to your needs (base image, extensions, dependencies), and install Pilot Shell inside the container. Everything works the same \u2014 hooks, rules, MCP servers, persistent memory, and the Console dashboard all run inside the container. This is a great option for teams that want a consistent, reproducible development environment.",
+      "Yes. Copy the .devcontainer folder from the Pilot Shell repository into your project, adapt it to your needs (base image, extensions, dependencies), and install Pilot Shell inside the container. Everything works the same — hooks, rules, MCP servers, persistent memory, and the Console dashboard all run inside the container. This is a great option for teams that want a consistent, reproducible development environment.",
   },
 ];
 
 const FAQSection = () => {
-  const [headerRef, headerInView] = useInView<HTMLDivElement>();
-  const [contentRef, contentInView] = useInView<HTMLDivElement>();
+  const [openIndex, setOpenIndex] = useState(-1);
 
   return (
-    <section id="faq" className="py-16 lg:py-24 px-4 sm:px-6 relative">
-      <div className="max-w-3xl mx-auto">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-
-        <div
-          ref={headerRef}
-          className={`text-center mb-8 ${headerInView ? "animate-fade-in-up" : "opacity-0"}`}
-        >
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+    <section className="ps-sec" id="faq" aria-labelledby="faq-heading">
+      <div className="ps-ctr">
+        <div className="ps-sec-hd ps-left ps-rv">
+          <h2 className="ps-h2" id="faq-heading">
             FAQ
           </h2>
-          <p className="text-muted-foreground text-base sm:text-lg mt-3 max-w-3xl mx-auto">
+          <p className="ps-lead">
             Common questions about Pilot Shell, data privacy, and compatibility.
           </p>
         </div>
 
-        <div
-          ref={contentRef}
-          className={`rounded-lg border border-border/50 bg-card overflow-hidden ${contentInView ? "animate-fade-in-up" : "opacity-0"}`}
-        >
-          <Accordion type="single" collapsible className="px-6">
-            {faqItems.map((item, index) => (
-              <AccordionItem
-                key={index}
-                value={`item-${index}`}
-                className="border-border/50"
-              >
-                <AccordionTrigger className="text-left text-foreground hover:text-primary hover:no-underline text-sm sm:text-base py-5">
-                  {item.question}
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground text-sm leading-relaxed">
-                  {item.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+        <div className="ps-faqbox ps-stg">
+          {faqItems.map((item, index) => {
+            const isOpen = openIndex === index;
+            return (
+              <div key={item.question} className={`ps-fitem${isOpen ? " ps-open" : ""}`}>
+                <h3 className="ps-h4" style={{ fontSize: "inherit" }}>
+                  <button
+                    type="button"
+                    className="ps-fq"
+                    aria-expanded={isOpen}
+                    aria-controls={`faq-body-${index}`}
+                    onClick={() => setOpenIndex(isOpen ? -1 : index)}
+                  >
+                    <CircleHelp className="h-[18px] w-[18px] ps-qi" aria-hidden="true" />
+                    <span className="ps-fq-t">{item.question}</span>
+                    <ChevronDown className="h-[18px] w-[18px] ps-chev" aria-hidden="true" />
+                  </button>
+                </h3>
+                <div className="ps-fa-body" id={`faq-body-${index}`}>
+                  <div className="ps-fa-in">
+                    <p className="ps-fa-txt">{item.answer}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

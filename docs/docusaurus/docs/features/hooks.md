@@ -46,7 +46,7 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 |------|------------|-------------|
 | `tool_redirect.py` | Claude Code | Nudges recursive Bash and built-in search calls toward the indexed code-search tools; blocks unsupported web paths. |
 | `tool_token_saver.py` | Both | Rewrites eligible Bash commands through RTK for 60–90% smaller output. |
-| `plan_mode_tracker.py` | Claude Code | Tracks `/spec` plan-mode state, verifies the observed planning-leg model, and reports the result once per leg. |
+| `plan_mode_tracker.py` | Claude Code | Tracks `/spec` plan-mode state, records who owns the plan-mode leg being entered (the only moment `/spec` and native plan mode are distinguishable), verifies the observed planning-leg model, and reports the result once per leg. |
 
 ## PermissionRequest *(Claude Code only)*
 
@@ -54,7 +54,7 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 
 | Hook | Description |
 |------|-------------|
-| `auto_approve_plan.py` | Allows `ExitPlanMode` as the `/spec` model-switch lever (denies it while a registered spec plan awaits approval), and restores `bypassPermissions` after a plan-mode exit: current Claude Code builds drop the session to `acceptEdits` or manual mode on exit, so when the session was observed in bypass before the planning leg, the hook re-applies bypass on the first permission request that follows — no prompt is shown |
+| `auto_approve_plan.py` | Acts only on a `/spec` planning leg: allows `ExitPlanMode` there as the model-switch lever (and denies it while the registered spec plan still awaits approval). Claude Code's own plan mode is left alone — the plan-approval dialog is the user's, so the hook prints no decision and the plan is never approved on their behalf. It also restores `bypassPermissions` after a `/spec` plan exit — and only there: current Claude Code builds drop the session to `acceptEdits` or manual mode, so when the session was observed in bypass before the planning leg, the hook re-applies bypass on the first permission request that follows. In native plan mode the same choice is the user's own (`auto-accept edits` vs `manually approve edits`), so it is left untouched |
 
 ## PostToolUse
 
@@ -63,6 +63,7 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 | Hook | Applies to | Description |
 |------|------------|-------------|
 | `plan_mode_tracker.py` | Claude Code | Tracks entry to and exit from Claude Code plan mode for `/spec`. |
+| `native_plan_capture.py` | Claude Code | Files a plan approved in Claude Code's own plan mode into `docs/plans/` as `Status: SAVED`, `Type: Plan`, so it renders in the Console instead of vanishing into a scratch file. Skipped whenever a `/spec` or `/build` run already owns the plan. |
 | `file_checker.py` | Claude Code | Runs the existing edit-time lint/format checks and TDD reminder. |
 | `context_monitor.py` | Claude Code | Tracks context use and warns as compaction approaches. |
 | Memory observer | Both | Saves decisions, discoveries, and bugfixes. |
