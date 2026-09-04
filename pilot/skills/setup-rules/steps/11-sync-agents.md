@@ -6,6 +6,7 @@ The final repository contract is:
 - `CLAUDE.md` contains exactly `@AGENTS.md` plus a trailing newline.
 - `.agents/skills/` is the durable source for tracked skills and the Codex project-skill tree.
 - `.claude/skills/` is the Claude Code project-skill tree; supported edits synchronize safely in either direction.
+- Existing exact in-repository aliases (`AGENTS.md` to `CLAUDE.md`, or one skill root to the other) remain supported because both agents already read the same physical source. Never replace those aliases merely to enforce the preferred new-repository layout.
 - Pilot's shared hook synchronizes on SessionStart, supported edits made through either agent, and Stop as a Code Mode backstop.
 - `scripts/sync-agent-assets.mjs` is the standalone recovery writer and CI drift checker.
 
@@ -47,6 +48,7 @@ Pilot installs one shared agent-asset hook through both its Claude Code and Code
 3. **Conflict safety:** copy the side that diverged from the trusted baseline; when both diverged, preserve both and report the exact conflict.
 4. **Ignored assets:** synchronize gitignored skills locally and expose ignored rule paths to Codex as a bounded on-demand index.
 5. **Stop:** run a read-only check and repair drift only when needed. This covers Code Mode when nested edits emitted no PreToolUse/PostToolUse event.
+6. **Shared aliases:** accept only an exact link to the corresponding in-repository instruction file or skill root; reject links anywhere else without modifying their targets.
 
 This makes the active agent irrelevant to authoring: Claude Code and Codex both edit the same canonical filesystem paths. If either adapter lacks the shared hook, report that Pilot installation needs repair; do not compensate with a second project hook.
 
@@ -75,8 +77,8 @@ If `--check` reports drift, fix the canonical source or hook installation, run `
 The check must exit zero. Then capture evidence for the summary:
 
 1. `AGENTS.md` exists and retains every approved user-authored shared section.
-2. `CLAUDE.md` is byte-for-byte `@AGENTS.md\n`.
-3. All valid one-sided skills have counterparts; tracked, untracked, and gitignored skill trees are synchronized or have an explicit preserved conflict.
+2. `CLAUDE.md` is byte-for-byte `@AGENTS.md\n`, or one root instruction file is an exact in-repository alias to the other.
+3. All valid one-sided skills have counterparts; tracked, untracked, and gitignored skill trees are synchronized, share one physical root through an exact in-repository alias, or have an explicit preserved conflict.
 4. Every synchronized file under `.agents/skills/<name>/` is byte-identical to `.claude/skills/<name>/`.
 5. `scripts/sync-agent-assets.mjs --check` exits zero without modifying the worktree.
 6. Pilot's shared hook covers SessionStart, edits on either skill tree and `.claude/rules/`, root-instruction edits, and Stop for both agents.

@@ -22,6 +22,8 @@ Pilot uses one ownership model in every prepared repository:
 | Pilot shared hook | Synchronizes on SessionStart, supported edits, and Stop as a Code Mode backstop |
 | `scripts/sync-agent-assets.mjs` | Standalone recovery writer and CI drift checker committed with the project |
 
+Existing repositories may keep an exact in-repository compatibility alias between `AGENTS.md` and `CLAUDE.md`, or between the two skill roots. Pilot recognizes that both agents already read the same physical source and leaves the alias intact. Links to any other target remain blocked.
+
 ```bash
 # Claude Code         # Codex CLI
 claude                codex
@@ -64,6 +66,8 @@ Tracked skills retain `.agents/skills/` as their durable source, but a Claude-si
 Gitignored `.claude/rules/` remain one physical source. Pilot adds a bounded path index at SessionStart so Codex can load the relevant rule on demand without copying its contents into every prompt.
 
 The shared hook executes only Pilot's installed, trusted checker and automatically detects repositories containing agent assets. The repository copy is the command used by CI and manual recovery; hooks update it when present but never execute repository-controlled code.
+
+When an established repository uses exact shared aliases, edits to the physical instruction file remain allowed from either agent and Stop verifies the layout without trying to create a second copy.
 
 The standalone commands remain available as recovery and verification:
 

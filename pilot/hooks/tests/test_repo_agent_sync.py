@@ -605,6 +605,41 @@ class TestStop:
 
 @pytest.mark.skipif(shutil.which("node") is None or shutil.which("git") is None, reason="requires node and git")
 class TestBundledCheckerIntegration:
+    def test_stop_accepts_safe_shared_instruction_and_skill_aliases(self, tmp_path: Path) -> None:
+        """Exercise the real bundled checker through Overlord's alias layout."""
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        subprocess.run(["git", "init", "--quiet", str(repo)], check=True)
+        checker = _enroll(repo)
+        bundled = repo_agent_sync._bundled_checker()
+        assert bundled is not None
+        checker.write_bytes(bundled.read_bytes())
+        (repo / "CLAUDE.md").write_text("# Shared instructions\n")
+        (repo / "AGENTS.md").symlink_to("CLAUDE.md")
+        skill = repo / ".claude" / "skills" / "example"
+        skill.mkdir(parents=True)
+        (skill / "SKILL.md").write_text(
+            "---\nname: example\ndescription: Shared project skill.\n---\n\n# Example\n"
+        )
+        (repo / ".agents").mkdir()
+        (repo / ".agents" / "skills").symlink_to("../.claude/skills", target_is_directory=True)
+
+        result = handle(_stop_payload(repo))
+
+        assert result == {"continue": True}
+        assert (repo / "AGENTS.md").is_symlink()
+        assert (repo / ".agents" / "skills").is_symlink()
+        assert (repo / ".agents" / "skills" / "example" / "SKILL.md").read_bytes() == (
+            skill / "SKILL.md"
+        ).read_bytes()
+
+        pre_result = handle(_pre_payload(repo, "Edit", {"file_path": "CLAUDE.md"}))
+        post_result = handle(_post_payload(repo, "Edit", {"file_path": "CLAUDE.md"}))
+
+        assert pre_result == {"continue": True}
+        assert post_result["continue"] is True
+        assert "generated" not in post_result.get("systemMessage", "")
+
     def test_plain_preexisting_local_only_skill_is_imported_for_codex(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
         repo.mkdir()

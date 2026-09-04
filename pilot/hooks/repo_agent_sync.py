@@ -6,7 +6,8 @@ and CI checker installed through ``/setup-rules`` or ``$setup-rules``; the
 global hook always executes the trusted checker bundled with Pilot. The checker
 owns this synchronization contract:
 
-* ``AGENTS.md`` is the shared rule source and ``CLAUDE.md`` imports it.
+* ``AGENTS.md`` is the shared rule source and ``CLAUDE.md`` imports it, or one
+  may be an exact in-repository symlink to the other for legacy shared layouts.
 * Tracked skills use ``.agents/skills`` as canonical and ``.claude/skills`` as
   their managed mirror.
 * Gitignored local skills synchronize in both directions using a trusted local
@@ -194,6 +195,20 @@ def _is_within(path: Path, parent: Path) -> bool:
     return path == parent or parent in path.parents
 
 
+def _uses_shared_instructions(repo: Path) -> bool:
+    """Whether exactly one root instruction file aliases its repo counterpart."""
+    agents = repo / "AGENTS.md"
+    claude = repo / "CLAUDE.md"
+    try:
+        linked = [candidate for candidate in (agents, claude) if candidate.is_symlink()]
+        if len(linked) != 1:
+            return False
+        target = claude if linked[0] == agents else agents
+        return not target.is_symlink() and target.is_file() and linked[0].resolve(strict=True) == target.resolve(strict=True)
+    except (OSError, RuntimeError):
+        return False
+
+
 def _generated_edit_message(_paths: list[Path]) -> str:
     return "CLAUDE.md is generated from AGENTS.md. Apply the shared rule change to AGENTS.md instead."
 
@@ -355,7 +370,7 @@ def _session_start(repo: Path, payload: dict) -> dict:
 
 def _pre_tool_use(repo: Path, payload: dict, raw_paths: list[str]) -> dict:
     relative_paths = _repo_relative_paths(repo, payload, raw_paths)
-    if Path("CLAUDE.md") in relative_paths:
+    if Path("CLAUDE.md") in relative_paths and not _uses_shared_instructions(repo):
         return _pre_tool_payload(
             "CLAUDE.md is generated and must remain exactly @AGENTS.md. Apply the rule change to AGENTS.md instead.",
             "deny",
@@ -368,7 +383,8 @@ def _pre_tool_use(repo: Path, payload: dict, raw_paths: list[str]) -> dict:
 
 def _post_tool_use(repo: Path, payload: dict, raw_paths: list[str]) -> dict:
     relative_paths = _repo_relative_paths(repo, payload, raw_paths)
-    generated = [path for path in relative_paths if path == Path("CLAUDE.md")]
+    shared_instructions = _uses_shared_instructions(repo)
+    generated = [path for path in relative_paths if path == Path("CLAUDE.md") and not shared_instructions]
     if generated:
         return _payload(
             f"Pilot preserved this generated-side edit. {_generated_edit_message(generated)}",
@@ -380,6 +396,7 @@ def _post_tool_use(repo: Path, payload: dict, raw_paths: list[str]) -> dict:
         path
         for path in relative_paths
         if path == Path("AGENTS.md")
+        or (path == Path("CLAUDE.md") and shared_instructions)
         or _is_within(path, _CANONICAL_SKILLS)
         or _is_within(path, _MIRRORED_SKILLS)
         or _is_within(path, Path(".claude") / "rules")

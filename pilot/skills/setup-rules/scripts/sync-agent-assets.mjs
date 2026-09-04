@@ -10,6 +10,10 @@
  *   .claude/skills/<name>/    Claude Code repository skills
  *   .claude/skills/.pilot-sync-manifest.json  last converged ownership baseline
  *
+ * Existing repositories may instead use an exact in-repository symlink between
+ * the two instruction files or between the two skill roots. Those layouts
+ * already share one physical source and are verified without mirror writes.
+ *
  * Tracked skills retain .agents/skills as their durable source, while edits on
  * either side synchronize through the ownership baseline. Untracked and
  * gitignored skills synchronize in both directions through a trusted baseline
@@ -109,8 +113,47 @@ async function inspect(candidate) {
   }
 }
 
+async function usesExactSharedPathPair(roots, kind) {
+  const infos = await Promise.all(roots.map(root => inspect(root)))
+  const linkedIndexes = infos.flatMap((info, index) => (info?.isSymbolicLink() ? [index] : []))
+  if (linkedIndexes.length !== 1) return false
+
+  const linkedIndex = linkedIndexes[0]
+  const targetIndex = linkedIndex === 0 ? 1 : 0
+  const targetInfo = infos[targetIndex]
+  const targetMatches = kind === 'directory' ? targetInfo?.isDirectory() : targetInfo?.isFile()
+  if (!targetMatches || targetInfo.isSymbolicLink()) return false
+
+  try {
+    const [linkedRealpath, targetRealpath] = await Promise.all([
+      realpath(roots[linkedIndex]),
+      realpath(roots[targetIndex]),
+    ])
+    return linkedRealpath === targetRealpath
+  } catch {
+    return false
+  }
+}
+
+async function usesSharedSkillRoot(repo) {
+  return usesExactSharedPathPair(
+    [path.join(repo, '.agents', 'skills'), path.join(repo, '.claude', 'skills')],
+    'directory',
+  )
+}
+
+async function usesSharedInstructions(repo) {
+  return usesExactSharedPathPair([path.join(repo, 'AGENTS.md'), path.join(repo, 'CLAUDE.md')], 'file')
+}
+
 async function assertSafeRepoLayout(repo, { includeInstallerDestination = false } = {}) {
+  const [sharedSkillRoot, sharedInstructions] = await Promise.all([
+    usesSharedSkillRoot(repo),
+    usesSharedInstructions(repo),
+  ])
   const components = [
+    ['AGENTS.md'],
+    ['CLAUDE.md'],
     ['.agents'],
     ['.agents', 'skills'],
     ['.claude'],
@@ -126,9 +169,26 @@ async function assertSafeRepoLayout(repo, { includeInstallerDestination = false 
     const candidate = path.join(repo, ...segments)
     const info = await inspect(candidate)
     if (info?.isSymbolicLink()) {
+      const repositoryPath = segments.join('/')
+      if (sharedSkillRoot && (repositoryPath === '.agents/skills' || repositoryPath === '.claude/skills')) {
+        continue
+      }
+      if (sharedInstructions && (repositoryPath === 'AGENTS.md' || repositoryPath === 'CLAUDE.md')) {
+        continue
+      }
       throw new Error(`refusing symlinked repository path: ${segments.join('/')}`)
     }
   }
+  return { sharedSkillRoot, sharedInstructions }
+}
+
+async function sharedRootSkills(repo) {
+  const root = path.join(repo, '.claude', 'skills')
+  const entries = await readdir(root, { withFileTypes: true })
+  return entries
+    .filter(entry => !entry.name.startsWith('.') && entry.isDirectory())
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .map(entry => ({ name: entry.name, sourceRoot: root }))
 }
 
 async function discoverRuleFiles(repo) {
@@ -933,41 +993,47 @@ async function compareSkill(repo, name, sourceRoot, targetRoot, trackedAssets) {
 }
 
 async function audit(repo) {
-  await assertSafeRepoLayout(repo)
+  const { sharedSkillRoot, sharedInstructions } = await assertSafeRepoLayout(repo)
   const agents = path.join(repo, 'AGENTS.md')
   const agentsInfo = await inspect(agents)
-  if (agentsInfo !== null && (!agentsInfo.isFile() || agentsInfo.isSymbolicLink())) {
+  if (agentsInfo !== null && !sharedInstructions && (!agentsInfo.isFile() || agentsInfo.isSymbolicLink())) {
     throw new Error('AGENTS.md must be a regular file')
   }
   const agentsContents = agentsInfo === null ? '' : await readFile(agents, 'utf8')
 
-  const skills = await discoverSkills(repo)
-  const trackedAssets = trackedSkillAssets(repo)
+  const skills = sharedSkillRoot ? await sharedRootSkills(repo) : await discoverSkills(repo)
+  const trackedAssets = sharedSkillRoot ? new Set() : trackedSkillAssets(repo)
   const targetRoot = path.join(repo, '.claude', 'skills')
-  const manifest = await loadOwnershipManifest(repo)
+  const manifest = sharedSkillRoot
+    ? { exists: false, files: new Map(), canonical: true }
+    : await loadOwnershipManifest(repo)
   const issues = [
-    ...(await auditIgnoredSkills(repo)),
+    ...(sharedSkillRoot ? [] : await auditIgnoredSkills(repo)),
     ...(await auditRuleRouting(repo, agentsContents)),
-    ...(await auditOwnershipManifest(repo, skills, targetRoot, manifest)),
+    ...(sharedSkillRoot ? [] : await auditOwnershipManifest(repo, skills, targetRoot, manifest)),
   ]
   const claude = path.join(repo, 'CLAUDE.md')
   const claudeInfo = await inspect(claude)
-  if (agentsInfo === null && claudeInfo !== null) {
-    issues.push('AGENTS.md: missing; migrate the existing CLAUDE.md instructions')
-  } else if (agentsInfo !== null && claudeInfo === null) {
-    issues.push('CLAUDE.md: missing; expected exactly @AGENTS.md')
-  } else if (agentsInfo !== null && (await readFile(claude, 'utf8')) !== CLAUDE_IMPORT) {
-    issues.push('CLAUDE.md: content differs; expected exactly @AGENTS.md')
+  if (!sharedInstructions) {
+    if (agentsInfo === null && claudeInfo !== null) {
+      issues.push('AGENTS.md: missing; migrate the existing CLAUDE.md instructions')
+    } else if (agentsInfo !== null && claudeInfo === null) {
+      issues.push('CLAUDE.md: missing; expected exactly @AGENTS.md')
+    } else if (agentsInfo !== null && (await readFile(claude, 'utf8')) !== CLAUDE_IMPORT) {
+      issues.push('CLAUDE.md: content differs; expected exactly @AGENTS.md')
+    }
   }
 
-  for (const skill of skills) {
-    issues.push(...(await compareSkill(repo, skill.name, skill.sourceRoot, targetRoot, trackedAssets)))
-  }
-  const canonicalNames = new Set(skills.map(skill => skill.name))
-  for (const asset of await trackedMirrorOnlyAssets(repo, canonicalNames, trackedAssets)) {
-    issues.push(
-      `${asset.relative}: tracked mirror-only asset has no canonical source; migrate to ${canonicalPathForMirror(asset.relative)}`,
-    )
+  if (!sharedSkillRoot) {
+    for (const skill of skills) {
+      issues.push(...(await compareSkill(repo, skill.name, skill.sourceRoot, targetRoot, trackedAssets)))
+    }
+    const canonicalNames = new Set(skills.map(skill => skill.name))
+    for (const asset of await trackedMirrorOnlyAssets(repo, canonicalNames, trackedAssets)) {
+      issues.push(
+        `${asset.relative}: tracked mirror-only asset has no canonical source; migrate to ${canonicalPathForMirror(asset.relative)}`,
+      )
+    }
   }
   return { issues, skills }
 }
@@ -1389,19 +1455,18 @@ async function removeTrackedMirrorOnlyAssets(repo, canonicalNames, targetRoot, t
 }
 
 async function write(repo, { forceMigration = false } = {}) {
-  await assertSafeRepoLayout(repo)
+  const { sharedSkillRoot, sharedInstructions } = await assertSafeRepoLayout(repo)
   // Validate both managed and local skill inputs before the first write so an
   // invalid skill cannot leave a partially migrated root contract behind.
-  await discoverSkills(repo)
-  await validatePairedMirrorSkills(repo)
-  await planIgnoredSkillSync(repo)
-  await synchronizeRootInstructions(repo)
-  await mkdir(path.join(repo, '.agents', 'skills'), { recursive: true })
-  await mkdir(path.join(repo, '.claude', 'skills'), { recursive: true })
-  await synchronizeIgnoredSkills(repo)
+  if (!sharedSkillRoot) {
+    await discoverSkills(repo)
+    await validatePairedMirrorSkills(repo)
+    await planIgnoredSkillSync(repo)
+  }
+  if (!sharedInstructions) await synchronizeRootInstructions(repo)
   const agents = path.join(repo, 'AGENTS.md')
   const agentsInfo = await inspect(agents)
-  if (agentsInfo !== null && (!agentsInfo.isFile() || agentsInfo.isSymbolicLink())) {
+  if (agentsInfo !== null && !sharedInstructions && (!agentsInfo.isFile() || agentsInfo.isSymbolicLink())) {
     throw new Error('AGENTS.md must be a regular file')
   }
   const agentsContents = agentsInfo === null ? '' : await readFile(agents, 'utf8')
@@ -1409,6 +1474,18 @@ async function write(repo, { forceMigration = false } = {}) {
   if (routingIssues.length > 0) {
     throw new Error(`rule routing parity failed:\n${routingIssues.map(issue => `- ${issue}`).join('\n')}`)
   }
+
+  if (sharedSkillRoot) {
+    const result = await audit(repo)
+    if (result.issues.length > 0) {
+      throw new Error(`synchronization did not converge:\n${result.issues.map(issue => `- ${issue}`).join('\n')}`)
+    }
+    return result.skills.length
+  }
+
+  await mkdir(path.join(repo, '.agents', 'skills'), { recursive: true })
+  await mkdir(path.join(repo, '.claude', 'skills'), { recursive: true })
+  await synchronizeIgnoredSkills(repo)
 
   const skills = await discoverSkills(repo)
   const trackedAssets = trackedSkillAssets(repo)

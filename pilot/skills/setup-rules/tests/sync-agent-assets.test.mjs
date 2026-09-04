@@ -75,6 +75,75 @@ test('executable baselines survive checkout-specific permission masks', () => {
   }
 })
 
+test('safe in-repository shared skill roots are accepted in either direction', () => {
+  for (const [linkedRoot, target] of [
+    ['.agents/skills', '../.claude/skills'],
+    ['.claude/skills', '../.agents/skills'],
+  ]) {
+    const repo = makeRepo()
+    try {
+      const candidate = path.join(repo, ...linkedRoot.split('/'))
+      rmSync(candidate, { recursive: true })
+      symlinkSync(target, candidate, 'dir')
+
+      for (const mode of ['--check', '--write', '--install']) {
+        const result = run(repo, mode)
+        assert.equal(result.status, 0, `${linkedRoot} ${mode}: ${result.stderr}`)
+      }
+      assert.notEqual(statOrNull(path.join(repo, 'scripts', 'sync-agent-assets.mjs')), null)
+    } finally {
+      cleanup(repo)
+    }
+  }
+})
+
+test('safe in-repository shared instruction files are accepted in either direction', () => {
+  for (const [linkedFile, target] of [
+    ['AGENTS.md', 'CLAUDE.md'],
+    ['CLAUDE.md', 'AGENTS.md'],
+  ]) {
+    const repo = makeRepo()
+    try {
+      const candidate = path.join(repo, linkedFile)
+      rmSync(candidate)
+      if (linkedFile === 'AGENTS.md') writeFileSync(path.join(repo, 'CLAUDE.md'), '# Shared instructions\n')
+      symlinkSync(target, candidate)
+
+      for (const mode of ['--check', '--write', '--install']) {
+        const result = run(repo, mode)
+        assert.equal(result.status, 0, `${linkedFile} ${mode}: ${result.stderr}`)
+      }
+      assert.equal(lstatSync(candidate).isSymbolicLink(), true)
+    } finally {
+      cleanup(repo)
+    }
+  }
+})
+
+test('instruction symlinks outside the exact repository counterpart are rejected', () => {
+  for (const linkedFile of ['AGENTS.md', 'CLAUDE.md']) {
+    const repo = makeRepo()
+    const external = mkdtempSync(path.join(tmpdir(), 'pilot-agent-assets-external-'))
+    const sentinel = path.join(external, 'instructions.md')
+    try {
+      writeFileSync(sentinel, '# Outside instructions\n')
+      const candidate = path.join(repo, linkedFile)
+      rmSync(candidate)
+      symlinkSync(sentinel, candidate)
+
+      for (const mode of ['--check', '--write', '--install']) {
+        const result = run(repo, mode)
+        assert.equal(result.status, 1, `${linkedFile} ${mode}: ${result.stderr}`)
+        assert.match(result.stderr, new RegExp(`refusing symlinked repository path: ${linkedFile}`))
+        assert.equal(readFileSync(sentinel, 'utf8'), '# Outside instructions\n')
+      }
+    } finally {
+      cleanup(repo)
+      cleanup(external)
+    }
+  }
+})
+
 function run(repo, ...args) {
   return spawnSync(process.execPath, [SCRIPT, ...args, '--repo', repo], {
     cwd: repo,
