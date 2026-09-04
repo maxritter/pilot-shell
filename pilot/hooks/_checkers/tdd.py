@@ -11,7 +11,7 @@ import re
 import sys
 from pathlib import Path
 
-from _lib.util import post_tool_use_block
+from _lib.util import post_tool_use_context
 
 EXCLUDED_EXTENSIONS = [
     ".md",
@@ -626,9 +626,9 @@ def is_trivial_edit(tool_name: str, tool_input: dict) -> bool:
 
 
 def warn(message: str, suggestion: str) -> int:
-    """Output JSON block decision to stdout and return 0."""
+    """Send a suppressed TDD reminder to the agent and return 0."""
     reason = f"TDD Reminder: {message}\n    {suggestion}"
-    print(post_tool_use_block(reason))
+    print(post_tool_use_context(reason))
     return 0
 
 

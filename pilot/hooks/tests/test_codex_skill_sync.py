@@ -714,6 +714,16 @@ class TestCheckLicense:
 
         assert capsys.readouterr().out == ""
 
+    def test_main_config_error_is_agent_context_not_user_warning(self, capsys: pytest.CaptureFixture[str]) -> None:
+        with patch("codex_skill_sync._get_codex_config_dir", side_effect=ValueError("CODEX_HOME is relative")):
+            main()
+
+        output = json.loads(capsys.readouterr().out)
+        assert "systemMessage" not in output
+        context = output["hookSpecificOutput"]["additionalContext"]
+        assert "CODEX_HOME is relative" in context
+        assert "internal maintenance context" in context
+
     def test_main_preserves_assets_when_license_status_is_unknown(
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
     ) -> None:

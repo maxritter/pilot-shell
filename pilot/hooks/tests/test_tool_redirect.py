@@ -1,4 +1,4 @@
-"""Tests for tool_redirect hook - blocks WebSearch/WebFetch; all Agent calls pass through."""
+"""Tests for private, non-blocking tool-routing nudges."""
 
 from __future__ import annotations
 
@@ -59,12 +59,22 @@ def _has_warning_context(stdout: str) -> bool:
         return False
 
 
-class TestBlockedTools:
-    """Tests for tools that should be hard-blocked (exit code 2)."""
+def _is_suppressed(stdout: str) -> bool:
+    try:
+        return json.loads(stdout.strip()).get("suppressOutput") is True
+    except (json.JSONDecodeError, ValueError):
+        return False
 
-    def test_blocks_web_search(self):
-        code, _ = _run_with_input("WebSearch", {"query": "python tutorial"})
-        assert code == 2
+
+class TestWebToolNudges:
+    """Web tools remain available while the engine receives a private alternative."""
+
+    def test_nudges_web_search(self):
+        code, output = _run_with_input("WebSearch", {"query": "python tutorial"})
+        assert code == 0
+        assert _has_warning_context(output)
+        assert _is_suppressed(output)
+        assert not _is_denied(output)
 
     @pytest.mark.parametrize(
         "url",
@@ -76,9 +86,12 @@ class TestBlockedTools:
             "https://preview.claude.ai.evil.example/123e4567-e89b-12d3-a456-426614174000",
         ],
     )
-    def test_blocks_web_fetch(self, url: str):
-        code, _ = _run_with_input("WebFetch", {"url": url})
-        assert code == 2
+    def test_nudges_web_fetch(self, url: str):
+        code, output = _run_with_input("WebFetch", {"url": url})
+        assert code == 0
+        assert _has_warning_context(output)
+        assert _is_suppressed(output)
+        assert not _is_denied(output)
 
     @pytest.mark.parametrize(
         "url",
@@ -311,17 +324,21 @@ class TestEdgeCases:
 class TestSubprocessIntegration:
     """Subprocess-level tests — verify the hook works as a standalone process."""
 
-    def test_websearch_blocked(self):
-        exit_code, stdout, _ = _run_subprocess("WebSearch")
-        assert exit_code == 2
-        assert _is_denied(stdout)
-        assert "WebSearch is blocked" in stdout
+    def test_websearch_is_privately_nudged(self):
+        exit_code, stdout, stderr = _run_subprocess("WebSearch")
+        assert exit_code == 0
+        assert not _is_denied(stdout)
+        assert _has_warning_context(stdout)
+        assert _is_suppressed(stdout)
+        assert stderr == ""
 
-    def test_webfetch_blocked(self):
-        exit_code, stdout, _ = _run_subprocess("WebFetch")
-        assert exit_code == 2
-        assert _is_denied(stdout)
-        assert "WebFetch is blocked" in stdout
+    def test_webfetch_is_privately_nudged(self):
+        exit_code, stdout, stderr = _run_subprocess("WebFetch")
+        assert exit_code == 0
+        assert not _is_denied(stdout)
+        assert _has_warning_context(stdout)
+        assert _is_suppressed(stdout)
+        assert stderr == ""
 
     def test_other_tools_allowed(self):
         for tool in ["Read", "Write", "Bash", "Glob", "Edit"]:
@@ -692,7 +709,7 @@ class TestSearchNudgeThrottle:
 
 @pytest.mark.usefixtures("fresh_throttle")
 class TestSearchNudgeSafety:
-    """Hook never denies, never crashes on bad input, preserves existing deny logic."""
+    """Hook never denies or crashes on bad input."""
 
     def test_search_nudge_never_denies_on_bash_grep(self):
         code, output = _run_with_input("Bash", {"command": "grep -r foo ."})
@@ -722,10 +739,11 @@ class TestSearchNudgeSafety:
         assert code == 0
         assert not _is_denied(output)
 
-    def test_existing_websearch_still_denies(self):
+    def test_websearch_never_denies(self):
         code, output = _run_with_input("WebSearch", {"query": "x"})
-        assert code == 2
-        assert _is_denied(output)
+        assert code == 0
+        assert not _is_denied(output)
+        assert _is_suppressed(output)
 
     def test_explore_agent_now_allowed(self):
         code, output = _run_with_input("Agent", {"subagent_type": "Explore", "prompt": "find files"})

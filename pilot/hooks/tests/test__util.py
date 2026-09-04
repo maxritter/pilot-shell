@@ -170,38 +170,30 @@ class TestGetCompactionThresholdPct:
 class TestJsonHelpers:
     """Tests for JSON response helper functions."""
 
-    def test_post_tool_use_block(self) -> None:
-        from _lib.util import post_tool_use_block
-
-        result = json.loads(post_tool_use_block("Fix lint errors"))
-        assert result == {"decision": "block", "reason": "Fix lint errors"}
-
     def test_post_tool_use_context(self) -> None:
         from _lib.util import post_tool_use_context
 
         result = json.loads(post_tool_use_context("Context at 80%"))
         assert result == {
+            "continue": True,
+            "suppressOutput": True,
             "hookSpecificOutput": {
                 "hookEventName": "PostToolUse",
                 "additionalContext": "Context at 80%",
-            }
+            },
         }
-
-    def test_pre_tool_use_deny(self) -> None:
-        from _lib.util import pre_tool_use_deny
-
-        result = json.loads(pre_tool_use_deny("Use MCP instead"))
-        assert result == {"permissionDecision": "deny", "reason": "Use MCP instead"}
 
     def test_pre_tool_use_context(self) -> None:
         from _lib.util import pre_tool_use_context
 
         result = json.loads(pre_tool_use_context("Try Semble first"))
         assert result == {
+            "continue": True,
+            "suppressOutput": True,
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
                 "additionalContext": "Try Semble first",
-            }
+            },
         }
 
     def test_stop_block(self) -> None:
@@ -211,11 +203,11 @@ class TestJsonHelpers:
         assert result == {"decision": "block", "reason": "Spec workflow in progress"}
 
     def test_helpers_handle_special_chars(self) -> None:
-        from _lib.util import post_tool_use_block
+        from _lib.util import post_tool_use_context
 
         msg = 'File "test.py" has\nnewlines & "quotes"'
-        result = json.loads(post_tool_use_block(msg))
-        assert result["reason"] == msg
+        result = json.loads(post_tool_use_context(msg))
+        assert result["hookSpecificOutput"]["additionalContext"] == msg
 
 
 class TestCheckFileLength:

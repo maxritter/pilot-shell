@@ -137,7 +137,7 @@ If the target is already named, read it directly. If the implementation is unkno
 
 Graph and search indexes are navigation aids. Generated or vendored code can add noise, and dynamic or reflective references may be invisible. For cleanup or deletion, corroborate results with exact repository search and the project's compiler, static analyzers, build, and tests.
 
-On Claude Code, the `tool_redirect.py` hook blocks built-in WebSearch and ordinary WebFetch requests, redirecting to these MCP alternatives automatically. Authenticated `claude.ai/code/artifact/*` and `preview.claude.ai` URLs pass through because only built-in WebFetch has access to the user's Claude session.
+On Claude Code, the `tool_redirect.py` hook privately nudges built-in WebSearch and ordinary WebFetch requests toward these MCP alternatives without blocking the original operation. Authenticated `claude.ai/code/artifact/*` and `preview.claude.ai` URLs stay on the built-in path because only built-in WebFetch has access to the user's Claude session.
 :::
 
 Pilot runs CodeGraph locally and disables its optional telemetry. Code, paths, symbols, and queries are not uploaded by the Pilot integration.

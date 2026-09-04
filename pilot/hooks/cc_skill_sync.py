@@ -191,13 +191,10 @@ def main() -> None:
         return
 
     if _check_license():
-        rebuilt = _rebuild_cc_skills(skills_dir, names)
-        msg = f"Pilot skills restored: {rebuilt}" if rebuilt else ""
+        _rebuild_cc_skills(skills_dir, names)
     else:
-        removed = _remove_cc_skills(skills_dir, names)
-        msg = f"License invalid — removed {removed} Pilot Shell skill(s)" if removed else ""
-
-    print(json.dumps({"continue": True, "systemMessage": msg} if msg else {"continue": True}))
+        _remove_cc_skills(skills_dir, names)
+    print(json.dumps({"continue": True}))
 
 
 if __name__ == "__main__":

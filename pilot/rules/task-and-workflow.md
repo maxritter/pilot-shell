@@ -45,7 +45,7 @@ When changing generated skills, hooks, rules, agents, or configuration, verify t
 - Use the web tools exposed by the current session. Pilot's server-selection guidance lives in `mcp-servers.md`.
 
 <!-- CC-ONLY -->
-Built-in `WebSearch` and ordinary `WebFetch` requests are hook-blocked. Authenticated `claude.ai/code/artifact/*` and `preview.claude.ai` URLs pass through to `WebFetch` because they require the user's Claude session. Use the available discovery mechanism to load replacements; do not substitute an unavailable tool with invented syntax.
+Prefer the dedicated web-search and web-fetch MCP tools when they are available. The routing hook gives the agent a private, non-blocking nudge when built-in `WebSearch` or ordinary `WebFetch` is used; authenticated `claude.ai/code/artifact/*` and `preview.claude.ai` URLs remain on built-in `WebFetch` because they require the user's Claude session. Use the available discovery mechanism to load replacements; do not substitute an unavailable tool with invented syntax.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 `update_plan` is optional working memory, not an approval gate.

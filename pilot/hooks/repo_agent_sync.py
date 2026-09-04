@@ -296,32 +296,31 @@ def _repo_lock(repo: Path) -> Iterator[bool]:
                 pass
 
 
-def _payload(message: str = "", event: str = "", *, block: bool = False) -> dict:
-    if not message:
-        return {"continue": True}
-
-    result: dict = {"systemMessage": message}
-    if block:
-        result.update({"decision": "block", "reason": message})
-    else:
-        result["continue"] = True
-    if event in {"SessionStart", "PostToolUse"}:
-        result["hookSpecificOutput"] = {
-            "hookEventName": event,
-            "additionalContext": message,
-        }
-    return result
+def _is_codex_hook(payload: dict | None = None) -> bool:
+    platform = str((payload or {}).get("platform") or os.environ.get("CLAUDE_PROJECT_PLATFORM") or "").lower()
+    return platform == "codex" or (
+        not os.environ.get("CLAUDE_CODE_SESSION_ID") and bool(os.environ.get("CODEX_THREAD_ID"))
+    )
 
 
-def _context_payload(message: str = "", event: str = "") -> dict:
+def _payload(payload: dict | None = None, event: str = "") -> dict:
+    if _is_codex_hook(payload) and event in {"PreToolUse", "PostToolUse"}:
+        return {}
+    return {"continue": True}
+
+
+def _context_payload(message: str = "", event: str = "", payload: dict | None = None) -> dict:
     """Inject agent-only context without printing a user-facing hook message."""
-    result: dict = {"continue": True}
-    if message and event in {"SessionStart", "PostToolUse"}:
-        result["suppressOutput"] = True
-        result["hookSpecificOutput"] = {
+    if not message or event not in {"SessionStart", "PostToolUse"}:
+        return {"continue": True}
+    result: dict = {
+        "hookSpecificOutput": {
             "hookEventName": event,
             "additionalContext": message,
         }
+    }
+    if not _is_codex_hook(payload):
+        result.update({"continue": True, "suppressOutput": True})
     return result
 
 
@@ -363,6 +362,7 @@ def _session_start(repo: Path, payload: dict) -> dict:
             "Pilot found repository agent sync enrollment, but its trusted bundled checker is unavailable. "
             "Reinstall or update Pilot Shell; the repository-local checker was not executed.",
             "SessionStart",
+            payload,
         )
     has_local_checker = _is_regular_file(local_checker)
     needs_install = has_local_checker and not _same_contents(bundled, local_checker)
@@ -371,16 +371,17 @@ def _session_start(repo: Path, payload: dict) -> dict:
             return _context_payload(
                 "Pilot agent sync skipped because another synchronization did not finish in time.",
                 "SessionStart",
+                payload,
             )
         check = _run_checker(bundled, "check", repo)
         if check.ok and not needs_install:
-            return _context_payload(rules, "SessionStart")
+            return _context_payload(rules, "SessionStart", payload)
         mode = "install" if needs_install else "write"
         result = _run_checker(bundled, mode, repo)
     if not result.ok:
         detail = f"Pilot preserved repository agent assets because synchronization could not converge: {result.detail}"
-        return _context_payload(f"{detail} {rules}".strip(), "SessionStart")
-    return _context_payload(rules, "SessionStart")
+        return _context_payload(f"{detail} {rules}".strip(), "SessionStart", payload)
+    return _context_payload(rules, "SessionStart", payload)
 
 
 def _pre_tool_use(repo: Path, payload: dict, raw_paths: list[str]) -> dict:
@@ -393,7 +394,7 @@ def _pre_tool_use(repo: Path, payload: dict, raw_paths: list[str]) -> dict:
 
     # Skills are synchronized in both directions after the edit. Only the root
     # CLAUDE.md import remains generated because Codex officially reads AGENTS.md.
-    return _payload()
+    return _payload(payload, "PreToolUse")
 
 
 def _post_tool_use(repo: Path, payload: dict, raw_paths: list[str]) -> dict:
@@ -401,10 +402,10 @@ def _post_tool_use(repo: Path, payload: dict, raw_paths: list[str]) -> dict:
     shared_instructions = _uses_shared_instructions(repo)
     generated = [path for path in relative_paths if path == Path("CLAUDE.md") and not shared_instructions]
     if generated:
-        return _payload(
+        return _context_payload(
             f"Pilot preserved this generated-side edit. {_generated_edit_message(generated)}",
             "PostToolUse",
-            block=True,
+            payload,
         )
 
     syncable = [
@@ -417,63 +418,51 @@ def _post_tool_use(repo: Path, payload: dict, raw_paths: list[str]) -> dict:
         or _is_within(path, Path(".claude") / "rules")
     ]
     if not syncable:
-        return _payload()
+        return _payload(payload, "PostToolUse")
 
     bundled = _bundled_checker()
     if bundled is None:
-        return _payload(
+        return _context_payload(
             "Pilot could not synchronize this canonical agent edit because its trusted bundled checker is "
-            "unavailable. Reinstall or update Pilot Shell; the repository-local checker was not executed.",
+            "unavailable. The edit was preserved; reinstall or update Pilot Shell. The repository-local "
+            "checker was not executed.",
             "PostToolUse",
-            block=True,
+            payload,
         )
     with _repo_lock(repo) as acquired:
         if not acquired:
-            return _payload(
-                "Pilot could not synchronize this canonical agent edit because another sync is still running. "
-                "Wait for it to finish, then retry the canonical edit.",
+            return _context_payload(
+                "Pilot deferred repository agent synchronization because another sync is still running. "
+                "The edit was preserved and Pilot will retry automatically after a later relevant edit or at completion.",
                 "PostToolUse",
-                block=True,
+                payload,
             )
         result = _run_checker(bundled, "write", repo)
     if not result.ok:
-        return _payload(
-            f"Pilot could not synchronize this canonical agent edit: {result.detail}. "
-            "Fix the reported issue, then retry the edit or restart the session.",
+        return _context_payload(
+            f"Pilot deferred repository agent synchronization after this edit: {result.detail}. "
+            "The edit was preserved; complete the related agent assets and Pilot will retry automatically "
+            "after a later relevant edit or at completion.",
             "PostToolUse",
-            block=True,
+            payload,
         )
-    return _payload()
+    return _payload(payload, "PostToolUse")
 
 
 def _stop(repo: Path, payload: dict) -> dict:
     """Converge a syncable repo when a client emitted no edit lifecycle hook."""
     bundled = _bundled_checker()
     if bundled is None:
-        return _payload(
-            "Pilot cannot verify repository agent assets because its trusted bundled checker is unavailable. "
-            "Reinstall or update Pilot Shell; the repository-local checker was not executed.",
-            "Stop",
-        )
+        return _payload()
     with _repo_lock(repo) as acquired:
         if not acquired:
-            return _payload(
-                "Pilot could not verify repository agent assets because another sync is still running. "
-                "Wait for it to finish, then finish again.",
-                "Stop",
-                block=True,
-            )
+            return _payload()
         check = _run_checker(bundled, "check", repo)
         if check.ok:
             return _payload()
         result = _run_checker(bundled, "write", repo)
     if not result.ok:
-        return _payload(
-            f"Pilot could not synchronize repository agent assets before completion: {result.detail}. "
-            "Both sides were preserved. Resolve the reported conflict before the next agent edit; "
-            "completion was not blocked.",
-            "Stop",
-        )
+        return _payload()
     return _payload()
 
 
@@ -484,19 +473,19 @@ def handle(payload: object) -> dict:
     event = payload.get("hook_event_name")
     if event == "SessionStart":
         repo = _find_enrolled_repo(payload, [])
-        return _session_start(repo, payload) if repo is not None else _payload()
+        return _session_start(repo, payload) if repo is not None else _payload(payload, event)
     if event == "Stop":
         repo = _find_enrolled_repo(payload, [])
-        return _stop(repo, payload) if repo is not None else _payload()
+        return _stop(repo, payload) if repo is not None else _payload(payload, event)
     if event not in {"PreToolUse", "PostToolUse"}:
         return _payload()
 
     raw_paths = _extract_changed_paths(payload)
     if not raw_paths:
-        return _payload()
+        return _payload(payload, event)
     repo = _find_enrolled_repo(payload, raw_paths)
     if repo is None:
-        return _payload()
+        return _payload(payload, event)
     if event == "PreToolUse":
         return _pre_tool_use(repo, payload, raw_paths)
     return _post_tool_use(repo, payload, raw_paths)

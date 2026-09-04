@@ -8,7 +8,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from unittest.mock import Mock, call
+from unittest.mock import MagicMock, Mock, call
 
 import pytest
 
@@ -294,7 +294,7 @@ class TestPostToolUse:
             ("CLAUDE.md", "CLAUDE.md is generated from AGENTS.md"),
         ],
     )
-    def test_generated_edits_are_preserved_with_canonical_mapping(
+    def test_generated_edits_return_suppressed_context_without_blocking(
         self,
         tmp_path: Path,
         monkeypatch: pytest.MonkeyPatch,
@@ -311,9 +311,13 @@ class TestPostToolUse:
         result = handle(_post_payload(repo, "Edit", {"file_path": path}))
 
         run.assert_not_called()
-        assert result["decision"] == "block"
-        assert expected in result["reason"]
-        assert "preserved" in result["systemMessage"]
+        assert result["continue"] is True
+        assert "decision" not in result
+        assert "systemMessage" not in result
+        assert result["suppressOutput"] is True
+        context = result["hookSpecificOutput"]["additionalContext"]
+        assert expected in context
+        assert "preserved" in context
 
     def test_generated_edit_wins_over_same_patch_canonical_edit(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -339,7 +343,10 @@ class TestPostToolUse:
         bundled = repo_agent_sync._bundled_checker()
         assert bundled is not None
         run.assert_called_once_with(bundled, "write", repo)
-        assert result["decision"] == "block"
+        assert result["continue"] is True
+        assert "decision" not in result
+        assert result["suppressOutput"] is True
+        assert "both sides changed" in result["hookSpecificOutput"]["additionalContext"]
 
     @pytest.mark.parametrize("path", ["app/main.ts", "docs/AGENTS.md"])
     def test_unrelated_edit_is_quiet_and_does_not_run_node(
@@ -353,7 +360,35 @@ class TestPostToolUse:
         assert handle(_post_payload(repo, "Edit", {"file_path": path})) == {"continue": True}
         run.assert_not_called()
 
-    def test_checker_failure_blocks_canonical_edit_with_recovery_command(
+    @pytest.mark.parametrize(
+        "detail",
+        [
+            "Error: .agents/skills/gws: SKILL.md is required",
+            "Error: rule routing parity failed: AGENTS.md is missing exact rule reference",
+        ],
+    )
+    def test_checker_failure_defers_sync_without_blocking_canonical_edit(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, detail: str
+    ) -> None:
+        repo = tmp_path / "repo"
+        _enroll(repo)
+        monkeypatch.setattr(
+            repo_agent_sync,
+            "_run_checker",
+            Mock(return_value=CheckerResult(False, detail)),
+        )
+
+        result = handle(_post_payload(repo, "Edit", {"file_path": "AGENTS.md"}))
+
+        assert result["continue"] is True
+        assert "decision" not in result
+        assert "systemMessage" not in result
+        assert result["suppressOutput"] is True
+        context = result["hookSpecificOutput"]["additionalContext"]
+        assert detail in context
+        assert "retry automatically" in context
+
+    def test_codex_checker_failure_uses_supported_context_shape(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         repo = tmp_path / "repo"
@@ -361,14 +396,26 @@ class TestPostToolUse:
         monkeypatch.setattr(
             repo_agent_sync,
             "_run_checker",
-            Mock(return_value=CheckerResult(False, "skill frontmatter is invalid")),
+            Mock(return_value=CheckerResult(False, "temporary incomplete asset")),
         )
+        payload = _post_payload(repo, "apply_patch", {"command": "*** Update File: AGENTS.md"})
+        payload["platform"] = "codex"
 
-        result = handle(_post_payload(repo, "Edit", {"file_path": "AGENTS.md"}))
+        result = handle(payload)
 
-        assert result["decision"] == "block"
-        assert "skill frontmatter is invalid" in result["reason"]
-        assert "retry the edit or restart the session" in result["reason"]
+        assert "continue" not in result
+        assert "suppressOutput" not in result
+        assert "systemMessage" not in result
+        assert "decision" not in result
+        assert "temporary incomplete asset" in result["hookSpecificOutput"]["additionalContext"]
+
+    def test_codex_unrelated_pretool_noop_omits_unsupported_common_fields(self, tmp_path: Path) -> None:
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        payload = _pre_payload(repo, "apply_patch", {"command": "*** Update File: app.py"})
+        payload["platform"] = "codex"
+
+        assert handle(payload) == {}
 
     def test_repo_without_checker_never_runs_or_warns(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         repo = tmp_path / "repo"
@@ -379,7 +426,7 @@ class TestPostToolUse:
         assert handle(_post_payload(repo, "Edit", {"file_path": "AGENTS.md"})) == {"continue": True}
         run.assert_not_called()
 
-    def test_missing_bundle_blocks_without_executing_local_checker(
+    def test_missing_bundle_defers_without_executing_local_checker(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         repo = tmp_path / "repo"
@@ -391,8 +438,28 @@ class TestPostToolUse:
         result = handle(_post_payload(repo, "Edit", {"file_path": "AGENTS.md"}))
 
         run.assert_not_called()
-        assert result["decision"] == "block"
-        assert "repository-local checker was not executed" in result["reason"]
+        assert result["continue"] is True
+        assert "decision" not in result
+        assert "systemMessage" not in result
+        assert result["suppressOutput"] is True
+        assert "repository-local checker was not executed" in result["hookSpecificOutput"]["additionalContext"]
+
+    def test_lock_contention_defers_without_blocking_canonical_edit(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        repo = tmp_path / "repo"
+        _enroll(repo)
+        lock = MagicMock()
+        lock.return_value.__enter__.return_value = False
+        monkeypatch.setattr(repo_agent_sync, "_repo_lock", lock)
+
+        result = handle(_post_payload(repo, "Edit", {"file_path": "AGENTS.md"}))
+
+        assert result["continue"] is True
+        assert "decision" not in result
+        assert "systemMessage" not in result
+        assert result["suppressOutput"] is True
+        assert "retry automatically" in result["hookSpecificOutput"]["additionalContext"]
 
 
 class TestInputSafety:
@@ -572,7 +639,7 @@ class TestStop:
         assert handle(_stop_payload(repo)) == {"continue": True}
         run.assert_not_called()
 
-    def test_checker_failure_warns_without_blocking_completion(
+    def test_checker_failure_is_silent_without_blocking_completion(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         repo = tmp_path / "repo"
@@ -585,12 +652,9 @@ class TestStop:
 
         result = handle(_stop_payload(repo))
 
-        assert result["continue"] is True
-        assert "decision" not in result
-        assert "mirror is invalid" in result["systemMessage"]
-        assert "Both sides were preserved" in result["systemMessage"]
+        assert result == {"continue": True}
 
-    def test_missing_bundle_warns_without_executing_local_checker(
+    def test_missing_bundle_is_silent_without_executing_local_checker(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         repo = tmp_path / "repo"
@@ -602,9 +666,20 @@ class TestStop:
         result = handle(_stop_payload(repo))
 
         run.assert_not_called()
-        assert result["continue"] is True
-        assert "decision" not in result
-        assert "repository-local checker was not executed" in result["systemMessage"]
+        assert result == {"continue": True}
+
+    def test_lock_contention_is_silent_without_blocking_completion(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        repo = tmp_path / "repo"
+        _enroll(repo)
+        lock = MagicMock()
+        lock.return_value.__enter__.return_value = False
+        monkeypatch.setattr(repo_agent_sync, "_repo_lock", lock)
+
+        result = handle(_stop_payload(repo))
+
+        assert result == {"continue": True}
 
 
 @pytest.mark.skipif(shutil.which("node") is None or shutil.which("git") is None, reason="requires node and git")
@@ -707,9 +782,32 @@ class TestBundledCheckerIntegration:
 
         result = handle(_post_payload(repo, "Edit", {"file_path": str(mirror)}))
 
-        assert result["decision"] == "block"
+        assert result["continue"] is True
+        assert "decision" not in result
+        assert "systemMessage" not in result
+        assert result["suppressOutput"] is True
         assert mirror.read_text() == "direct generated edit\n"
         assert mirror.read_bytes() != (canonical / "SKILL.md").read_bytes()
+
+    def test_post_tool_incomplete_skill_defers_real_checker_without_blocking(self, tmp_path: Path) -> None:
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        subprocess.run(["git", "init", "--quiet", str(repo)], check=True)
+        _enroll(repo)
+        (repo / "AGENTS.md").write_text("# Shared instructions\n")
+        incomplete = repo / ".agents" / "skills" / "gws"
+        incomplete.mkdir(parents=True)
+        (incomplete / "notes.md").write_text("Still creating this skill.\n")
+
+        result = handle(_post_payload(repo, "Write", {"file_path": str(incomplete / "notes.md")}))
+
+        assert result["continue"] is True
+        assert "decision" not in result
+        assert "systemMessage" not in result
+        assert result["suppressOutput"] is True
+        context = result["hookSpecificOutput"]["additionalContext"]
+        assert ".agents/skills/gws: SKILL.md is required" in context
+        assert (incomplete / "notes.md").read_text() == "Still creating this skill.\n"
 
     def test_stop_repairs_drift_when_no_edit_hook_fired(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
@@ -858,9 +956,7 @@ class TestBundledCheckerIntegration:
 
         result = handle(_stop_payload(repo))
 
-        assert result["continue"] is True
-        assert "decision" not in result
-        assert "Both sides were preserved" in result["systemMessage"]
+        assert result == {"continue": True}
         assert mirror.read_text() == mirror_text
 
     def test_session_start_synchronizes_dirty_mirror_back_to_canonical(self, tmp_path: Path) -> None:
@@ -904,9 +1000,7 @@ class TestBundledCheckerIntegration:
 
         result = handle(_stop_payload(repo))
 
-        assert result["continue"] is True
-        assert "decision" not in result
-        assert "Both sides were preserved" in result["systemMessage"]
+        assert result == {"continue": True}
         assert (canonical / "SKILL.md").read_text() == canonical_text
         assert mirror.read_text() == mirror_text
 

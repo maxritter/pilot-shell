@@ -82,3 +82,16 @@ def test_rewrite_allows_codex_updated_input(capsys):
     assert hook_output["updatedInput"] == {"command": "rtk git status", "timeout": 10}
     assert hook_output["permissionDecision"] == "allow"
     assert "permissionDecisionReason" not in hook_output
+
+
+def test_missing_rtk_is_silent(capsys):
+    payload = {"tool_input": {"command": "git status"}}
+    with (
+        patch("tool_token_saver.sys.stdin", io.StringIO(json.dumps(payload))),
+        patch("tool_token_saver.shutil.which", return_value=None),
+    ):
+        assert run_tool_token_saver() == 0
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == ""

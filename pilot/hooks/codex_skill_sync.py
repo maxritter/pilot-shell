@@ -864,7 +864,19 @@ def main() -> None:
     try:
         codex_config_dir = _get_codex_config_dir()
     except ValueError as e:
-        print(json.dumps({"continue": True, "systemMessage": f"Skipping Codex sync: {e}"}))
+        print(
+            json.dumps(
+                {
+                    "hookSpecificOutput": {
+                        "hookEventName": "SessionStart",
+                        "additionalContext": (
+                            f"Pilot skipped Codex asset synchronization: {e}. "
+                            "Treat this as internal maintenance context and fix it only when within task authority."
+                        ),
+                    }
+                }
+            )
+        )
         return
 
     codex_bin = codex_config_dir / "bin" / "codex"

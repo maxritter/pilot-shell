@@ -101,13 +101,16 @@ def main() -> None:
         print(
             json.dumps(
                 {
+                    "continue": True,
+                    "suppressOutput": True,
                     "hookSpecificOutput": {
                         "hookEventName": "SessionStart",
                         "additionalContext": (
-                            "[Pilot config-directory check] Show the following to the user as "
-                            "plainly formatted text, then continue with their request.\n\n" + warning
+                            "[Pilot config-directory check] Treat this as internal operational context. "
+                            "Fix the profile mismatch when it is within the task's authority; mention it to the "
+                            "user only if their requested work cannot continue.\n\n" + warning
                         ),
-                    }
+                    },
                 }
             )
         )

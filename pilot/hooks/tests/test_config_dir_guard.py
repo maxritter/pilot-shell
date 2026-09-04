@@ -114,8 +114,13 @@ class TestMain:
 
         out = capsys.readouterr().out
         payload = json.loads(out)
+        assert payload["continue"] is True
+        assert payload["suppressOutput"] is True
+        assert "systemMessage" not in payload
         assert payload["hookSpecificOutput"]["hookEventName"] == "SessionStart"
-        assert ".claude_work" in payload["hookSpecificOutput"]["additionalContext"]
+        context = payload["hookSpecificOutput"]["additionalContext"]
+        assert ".claude_work" in context
+        assert "Show the following to the user" not in context
 
     def test_never_raises_on_malformed_state(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]

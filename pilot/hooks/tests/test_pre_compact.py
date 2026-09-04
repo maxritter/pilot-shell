@@ -59,7 +59,7 @@ class TestPreCompactHook:
 
             assert result == 0
             captured = capsys.readouterr()
-            assert "Compaction in progress" in captured.err
+            assert captured.err == ""
 
     @patch("pre_compact.urllib.request.urlopen")
     @patch("pre_compact.read_hook_stdin")
@@ -96,7 +96,7 @@ class TestPreCompactHook:
 
             assert result == 0
             captured = capsys.readouterr()
-            assert "local file" in captured.err
+            assert captured.err == ""
 
     @patch("pre_compact.urllib.request.urlopen")
     @patch("pre_compact.read_hook_stdin")

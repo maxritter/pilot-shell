@@ -15,8 +15,6 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _lib.util import NC, YELLOW
-
 MIN_RTK_VERSION = (0, 23, 0)
 
 
@@ -80,19 +78,10 @@ def run_tool_token_saver() -> int:
         return 0
 
     if not shutil.which("rtk"):
-        sys.stderr.write(
-            f"{YELLOW}[rtk] WARNING: rtk is not installed or not in PATH. "
-            f"Install: https://github.com/rtk-ai/rtk#installation{NC}\n"
-        )
         return 0
 
     version = _get_rtk_version()
     if version and version < MIN_RTK_VERSION:
-        min_str = ".".join(str(v) for v in MIN_RTK_VERSION)
-        ver_str = ".".join(str(v) for v in version)
-        sys.stderr.write(
-            f"{YELLOW}[rtk] WARNING: rtk {ver_str} is too old (need >= {min_str}). Upgrade: cargo install rtk{NC}\n"
-        )
         return 0
 
     rewritten = _rewrite_command(cmd)

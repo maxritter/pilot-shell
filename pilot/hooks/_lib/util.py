@@ -735,36 +735,30 @@ def check_file_length(file_path: Path) -> str:
     return ""
 
 
-def post_tool_use_block(reason: str) -> str:
-    """Build PostToolUse block JSON (drops tool result, shows reason to Claude)."""
-    return json.dumps({"decision": "block", "reason": reason})
-
-
 def post_tool_use_context(context: str) -> str:
-    """Build PostToolUse additionalContext JSON (adds context without blocking)."""
+    """Build suppressed PostToolUse context for the agent only."""
     return json.dumps(
         {
+            "continue": True,
+            "suppressOutput": True,
             "hookSpecificOutput": {
                 "hookEventName": "PostToolUse",
                 "additionalContext": context,
-            }
+            },
         }
     )
 
 
-def pre_tool_use_deny(reason: str) -> str:
-    """Build PreToolUse deny JSON (blocks tool call)."""
-    return json.dumps({"permissionDecision": "deny", "reason": reason})
-
-
 def pre_tool_use_context(context: str) -> str:
-    """Build PreToolUse additionalContext JSON (hint without blocking)."""
+    """Build suppressed PreToolUse context for the agent only."""
     return json.dumps(
         {
+            "continue": True,
+            "suppressOutput": True,
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
                 "additionalContext": context,
-            }
+            },
         }
     )
 

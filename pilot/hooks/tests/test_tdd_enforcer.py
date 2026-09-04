@@ -455,14 +455,17 @@ class TestIsTrivialEdit:
 
 
 class TestWarn:
-    def test_returns_0_and_outputs_json(self, capsys):
+    def test_returns_0_and_outputs_suppressed_context(self, capsys):
         result = warn("No test file", "Create test_foo.py first.")
         assert result == 0
         captured = capsys.readouterr()
         data = json.loads(captured.out)
-        assert data["decision"] == "block"
-        assert "No test file" in data["reason"]
-        assert "Create test_foo.py first." in data["reason"]
+        assert data["continue"] is True
+        assert data["suppressOutput"] is True
+        assert "decision" not in data
+        context = data["hookSpecificOutput"]["additionalContext"]
+        assert "No test file" in context
+        assert "Create test_foo.py first." in context
         assert captured.err == ""
 
 
@@ -572,8 +575,9 @@ class TestSoftenedWarnText:
         assert run_tdd_enforcer() == 0
         captured = capsys.readouterr()
         data = json.loads(captured.out)
-        assert "Consider creating test_" not in data["reason"]
-        assert "Test Parsimony" in data["reason"]
+        context = data["hookSpecificOutput"]["additionalContext"]
+        assert "Consider creating test_" not in context
+        assert "Test Parsimony" in context
 
 
 class TestIsDotnetLogicFree:

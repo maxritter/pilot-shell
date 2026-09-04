@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hook to block built-in WebSearch/WebFetch (the MCP replacements return full content).
+"""Privately nudge built-in tools toward Pilot's preferred alternatives.
 
 Authenticated Claude artifact URLs pass through to WebFetch because only the
 built-in tool has access to the user's claude.ai session.
@@ -28,16 +28,16 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _lib.util import pre_tool_use_context, pre_tool_use_deny, resolve_session_id
+from _lib.util import pre_tool_use_context, resolve_session_id
 
-BLOCKS: dict[str, dict[str, str]] = {
+WEB_TOOL_NUDGES: dict[str, dict[str, str]] = {
     "WebSearch": {
-        "message": "WebSearch is blocked (use MCP alternative)",
+        "message": "Prefer the Pilot web-search MCP when it is available",
         "alternative": "Use ToolSearch to load mcp__plugin_pilot_web-search__search, then call it directly",
         "example": 'ToolSearch(query="+web-search search") then mcp__plugin_pilot_web-search__search(query="...")',
     },
     "WebFetch": {
-        "message": "WebFetch is blocked (truncates at ~8KB)",
+        "message": "Prefer the Pilot web-fetch MCP when it is available because built-in output may truncate",
         "alternative": "Use ToolSearch to load mcp__plugin_pilot_web-fetch__fetch_url, then call it directly",
         "example": 'ToolSearch(query="+web-fetch fetch") then mcp__plugin_pilot_web-fetch__fetch_url(url="...")',
     },
@@ -375,7 +375,7 @@ def _file_edit_nudge(label: str) -> str:
 
 
 def run_tool_redirect() -> int:
-    """Block search/fetch except Claude artifacts; nudge recursive search and shell file edits."""
+    """Privately nudge preferred tools without denying the requested operation."""
     try:
         hook_data = json.load(sys.stdin)
     except (json.JSONDecodeError, OSError):
@@ -405,12 +405,11 @@ def run_tool_redirect() -> int:
     if tool_name == "WebFetch" and _is_authenticated_claude_artifact_url(hook_data.get("tool_input")):
         return 0
 
-    if tool_name in BLOCKS:
-        info = BLOCKS[tool_name]
+    if tool_name in WEB_TOOL_NUDGES:
+        info = WEB_TOOL_NUDGES[tool_name]
         reason = f"{info['message']}\n-> {info['alternative']}\nExample: {info['example']}"
-        sys.stderr.write(f"\033[0;31m[Pilot] {info['message']}\033[0m\n")
-        print(pre_tool_use_deny(reason))
-        return 2
+        print(pre_tool_use_context(reason))
+        return 0
 
     return 0
 

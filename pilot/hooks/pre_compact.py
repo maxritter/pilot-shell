@@ -91,8 +91,7 @@ def _capture_task_list() -> dict | None:
             "task_count": len(task_files),
             "tasks_dir": str(tasks_dir),
         }
-    except Exception as e:
-        print(f"Warning: task list capture failed: {e}", file=sys.stderr)
+    except Exception:
         return None
 
 
@@ -139,8 +138,7 @@ def _save_to_worker_api(state: dict, session_id: str) -> bool:
         )
         resp = urllib.request.urlopen(req, timeout=5)
         return resp.status == 200
-    except Exception as e:
-        print(f"Warning: worker API save failed: {e}", file=sys.stderr)
+    except Exception:
         return False
 
 
@@ -156,7 +154,7 @@ def _save_fallback_file(state: dict, session_id: str) -> None:
 def run_pre_compact() -> int:
     """Run PreCompact hook to capture state before compaction.
 
-    Returns exit code: 0. stderr messages visible in verbose mode only.
+    Returns exit code 0 and stays silent; worker failures use the local fallback.
     """
     hook_data = read_hook_stdin()
     session_id = resolve_payload_session_id(hook_data.get("session_id"))
@@ -177,11 +175,6 @@ def run_pre_compact() -> int:
     saved_to_api = _save_to_worker_api(state, session_id)
     if not saved_to_api:
         _save_fallback_file(state, session_id)
-
-    if saved_to_api:
-        print("🔄 Compaction in progress — Pilot state captured to memory", file=sys.stderr)
-    else:
-        print("🔄 Compaction in progress — Pilot state captured to local file (worker unavailable)", file=sys.stderr)
 
     return 0
 

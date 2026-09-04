@@ -8,7 +8,9 @@ description: Quality and lifecycle hooks for Claude Code and Codex, including co
 
 Lifecycle hooks enforce quality automatically throughout **Claude Code** workflows and connect Pilot's context and memory lifecycle to **Codex**. They are registered in `~/.claude/settings.json` for Claude Code and `~/.codex/hooks.json` for Codex CLI and ChatGPT desktop's Codex runtime. The tables below show which hooks apply to each agent.
 
-Blocking hooks reject actions or force fixes before they land. Non-blocking hooks warn without interrupting. Successful background maintenance stays silent; when an agent needs rule paths or other operational context, Pilot uses the clients' agent-only context channel instead of a user-facing hook message.
+Hook guidance is private by default: quality, routing, context, and maintenance findings go to the agent as operational context without a user-facing warning. A hook blocks only for an explicit unavailable Pilot workflow, an active workflow's approval or completion contract, an incompatible `/spec` entry state, or a pre-mutation attempt to edit generated `CLAUDE.md`. License recovery and those pre-mutation denials are the only technical conditions surfaced directly to the user.
+
+Claude Code receives that private guidance with output suppression. Codex tool events receive `additionalContext` without `systemMessage`; Pilot deliberately omits `suppressOutput` there because current Codex releases reject it on PreToolUse and PostToolUse.
 
 Pilot installs and updates its lifecycle integrations as one managed set. The tables below describe the user-relevant behavior of that pipeline.
 
@@ -21,7 +23,7 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 | Hook | Applies to | Description |
 |------|------------|-------------|
 | `session_announcements.py` | Claude Code | Delivers one-time announcements and re-injects them until acknowledged. |
-| `config_dir_guard.py` | Claude Code | Warns when the active Claude configuration directory differs from the installed profile. |
+| `config_dir_guard.py` | Claude Code | Privately tells the agent when the active Claude configuration directory differs from the installed profile; it is surfaced only if the mismatch actually prevents the requested work. |
 | `session_startup_maintenance.py` | Claude Code | Cleans stale Claude task files and dead PID-backed session directories. |
 | `codegraph_init.py` | Claude Code | Initializes CodeGraph for the current project. |
 | Skill sync | Both | Refreshes managed skills for the active agent. |
@@ -45,7 +47,7 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 
 | Hook | Applies to | Description |
 |------|------------|-------------|
-| `tool_redirect.py` | Claude Code | Nudges recursive Bash and built-in search calls toward the indexed code-search tools; blocks unsupported web paths; reminds the agent, without blocking, when a shell command edits a project file (`sed -i`, heredocs or redirects into a file, `tee`, inline scripts that write files) that changes belong in `Edit`/`Write`, where they show as a diff. Writes to `/tmp` and the scratchpad get no reminder. |
+| `tool_redirect.py` | Claude Code | Privately nudges recursive Bash, built-in search, and web calls toward the preferred indexed/MCP tools without denying the original operation. It also reminds the agent when a shell command edits a project file (`sed -i`, heredocs or redirects into a file, `tee`, inline scripts that write files) that changes belong in `Edit`/`Write`, where they show as a diff. Writes to `/tmp` and the scratchpad get no reminder. |
 | `tool_token_saver.py` | Both | Rewrites eligible Bash commands through RTK for 60–90% smaller output. |
 | `plan_mode_tracker.py` | Claude Code | Tracks `/spec` plan-mode state, records who owns the plan-mode leg being entered (the only moment `/spec` and native plan mode are distinguishable), verifies the observed planning-leg model, and reports the result once per leg. |
 
@@ -66,9 +68,9 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 | `plan_mode_tracker.py` | Claude Code | Tracks entry to and exit from Claude Code plan mode for `/spec`. |
 | `native_plan_capture.py` | Claude Code | Files a plan approved in Claude Code's own plan mode into `docs/plans/` as `Status: SAVED`, `Type: Plan`, so it renders in the Console instead of vanishing into a scratch file. Skipped whenever a `/spec` or `/build` run already owns the plan. |
 | `file_checker.py` | Claude Code | Runs the existing edit-time lint/format checks and TDD reminder. |
-| `context_monitor.py` | Claude Code | Tracks context use and warns as compaction approaches. |
+| `context_monitor.py` | Claude Code | Tracks context use and privately nudges the agent as compaction approaches. |
 | Memory observer | Both | Saves decisions, discoveries, and bugfixes. |
-| Repository asset sync | Both | Silently reconciles supported edits across the Claude Code and Codex project-asset trees. |
+| Repository asset sync | Both | Silently reconciles supported edits across the Claude Code and Codex project-asset trees. Temporarily incomplete multi-file updates are deferred and retried instead of blocking an edit that already landed. |
 
 ## PreCompact
 
@@ -83,7 +85,7 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 | Hook | Applies to | Description |
 |------|------------|-------------|
 | `spec_stop_guard.py` | Both | Holds a registered `/spec` or `/build` open until its completion rules are met. Honors the user-initiated discussion pause (`/spec pause`, or the agent pausing when you question a decision mid-run) so discussion turns aren't blocked. |
-| Repository asset sync | Both | Verifies parity silently, repairs safe drift automatically, and reports unresolved conflicts once without holding the agent in a completion loop. |
+| Repository asset sync | Both | Verifies parity silently and repairs safe drift automatically. Incomplete edits are already returned to the agent as private context; an unresolved maintenance error never blocks completion or creates a user-facing warning. |
 | Session summarizer | Both | Saves the turn's durable observations. |
 
 `spec_plan_validator.py` runs as a command-scoped Stop hook during the `/spec` planning phases, holding the turn open until the run's plan file exists. It is satisfied by **this session's own** registered plan, so a plan another session is working on in the same directory does not release your planning run. Without a registration it falls back to scanning for a plan dated today, skipping any file another session has registered — see [Registering a plan](plan-format#registering-a-plan).

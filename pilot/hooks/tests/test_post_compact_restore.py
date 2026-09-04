@@ -75,14 +75,34 @@ class TestPostCompactRestoreHook:
             captured = capsys.readouterr()
             payload = json.loads(captured.out)
             assert payload == {
+                "continue": True,
+                "suppressOutput": True,
                 "hookSpecificOutput": {
                     "hookEventName": "SessionStart",
                     "additionalContext": (
                         "[Pilot Context Restored After Compaction]\n"
                         "Active Plan: docs/plans/2026-02-16-test.md (Status: PENDING)"
                     ),
-                }
+                },
             }
+
+    @patch("post_compact_restore.read_hook_stdin", return_value={"platform": "codex", "session_id": "codex-test"})
+    @patch("post_compact_restore.get_session_plan_path")
+    def test_codex_uses_context_only_without_stderr_or_unsupported_suppression(
+        self, mock_plan_path, _mock_stdin, capsys, tmp_path
+    ):
+        from post_compact_restore import run_post_compact_restore
+
+        mock_plan_path.return_value = tmp_path / "missing-active-plan.json"
+
+        assert run_post_compact_restore() == 0
+
+        captured = capsys.readouterr()
+        payload = json.loads(captured.out)
+        assert captured.err == ""
+        assert "continue" not in payload
+        assert "suppressOutput" not in payload
+        assert "No active plan" in payload["hookSpecificOutput"]["additionalContext"]
 
     @patch("post_compact_restore.read_hook_stdin")
     @patch("post_compact_restore.get_session_plan_path")

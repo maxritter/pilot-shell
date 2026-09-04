@@ -240,5 +240,4 @@ class TestMain:
         ):
             main()
         out = json.loads(capsys.readouterr().out)
-        assert out["continue"] is True
-        assert "Pilot Shell skill" in out["systemMessage"]
+        assert out == {"continue": True}
