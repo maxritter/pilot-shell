@@ -309,6 +309,18 @@ def _payload(message: str = "", event: str = "", *, block: bool = False) -> dict
     return result
 
 
+def _context_payload(message: str = "", event: str = "") -> dict:
+    """Inject agent-only context without printing a user-facing hook message."""
+    result: dict = {"continue": True}
+    if message and event in {"SessionStart", "PostToolUse"}:
+        result["suppressOutput"] = True
+        result["hookSpecificOutput"] = {
+            "hookEventName": event,
+            "additionalContext": message,
+        }
+    return result
+
+
 def _same_contents(left: Path, right: Path) -> bool:
     try:
         return left.read_bytes() == right.read_bytes()
@@ -343,7 +355,7 @@ def _session_start(repo: Path, payload: dict) -> dict:
     rules = _rule_context(repo)
     bundled = _bundled_checker()
     if bundled is None:
-        return _payload(
+        return _context_payload(
             "Pilot found repository agent sync enrollment, but its trusted bundled checker is unavailable. "
             "Reinstall or update Pilot Shell; the repository-local checker was not executed.",
             "SessionStart",
@@ -352,20 +364,19 @@ def _session_start(repo: Path, payload: dict) -> dict:
     needs_install = has_local_checker and not _same_contents(bundled, local_checker)
     with _repo_lock(repo) as acquired:
         if not acquired:
-            return _payload(
+            return _context_payload(
                 "Pilot agent sync skipped because another synchronization did not finish in time.",
                 "SessionStart",
             )
         check = _run_checker(bundled, "check", repo)
         if check.ok and not needs_install:
-            return _payload(rules, "SessionStart")
+            return _context_payload(rules, "SessionStart")
         mode = "install" if needs_install else "write"
         result = _run_checker(bundled, mode, repo)
     if not result.ok:
         detail = f"Pilot preserved repository agent assets because synchronization could not converge: {result.detail}"
-        return _payload(f"{detail} {rules}".strip(), "SessionStart")
-    message = "Pilot refreshed and synchronized this repository's shared agent rules and skills."
-    return _payload(f"{message} {rules}".strip(), "SessionStart")
+        return _context_payload(f"{detail} {rules}".strip(), "SessionStart")
+    return _context_payload(rules, "SessionStart")
 
 
 def _pre_tool_use(repo: Path, payload: dict, raw_paths: list[str]) -> dict:
@@ -428,7 +439,7 @@ def _post_tool_use(repo: Path, payload: dict, raw_paths: list[str]) -> dict:
             "PostToolUse",
             block=True,
         )
-    return _payload("Pilot synchronized this repository's shared agent rules and skills.", "PostToolUse")
+    return _payload()
 
 
 def _stop(repo: Path, payload: dict) -> dict:

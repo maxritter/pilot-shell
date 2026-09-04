@@ -49,6 +49,7 @@ Pilot installs one shared agent-asset hook through both its Claude Code and Code
 4. **Ignored assets:** synchronize gitignored skills locally and expose ignored rule paths to Codex as a bounded on-demand index.
 5. **Stop:** run a read-only check and repair drift only when needed. This covers Code Mode when nested edits emitted no PreToolUse/PostToolUse event.
 6. **Shared aliases:** accept only an exact link to the corresponding in-repository instruction file or skill root; reject links anywhere else without modifying their targets.
+7. **Silent success:** successful SessionStart and edit-time synchronization must not emit a user-facing status message. Keep the bounded rule index in agent-only context with status/debug output suppressed; surface output only for actionable failures or Stop blocks.
 
 This makes the active agent irrelevant to authoring: Claude Code and Codex both edit the same canonical filesystem paths. If either adapter lacks the shared hook, report that Pilot installation needs repair; do not compensate with a second project hook.
 

@@ -63,9 +63,9 @@ Pilot synchronizes complete project-skill trees between `.agents/skills/` and `.
 
 Tracked skills retain `.agents/skills/` as their durable source, but a Claude-side edit synchronizes back when the Codex copy still matches the last trusted baseline. Untracked and gitignored skills use the same conflict-safe two-way rule with a baseline under `.git/pilot`. One-sided skills are copied automatically; when both sides changed independently, Pilot preserves both and reports the conflict.
 
-Gitignored `.claude/rules/` remain one physical source. Pilot adds a bounded path index at SessionStart so Codex can load the relevant rule on demand without copying its contents into every prompt.
+Gitignored `.claude/rules/` remain one physical source. Pilot adds a bounded path index to the agent-only SessionStart context so Codex can load the relevant rule on demand without copying its contents into every prompt or printing hook status in the user-facing session.
 
-The shared hook executes only Pilot's installed, trusted checker and automatically detects repositories containing agent assets. The repository copy is the command used by CI and manual recovery; hooks update it when present but never execute repository-controlled code.
+The shared hook executes only Pilot's installed, trusted checker and automatically detects repositories containing agent assets. The repository copy is the command used by CI and manual recovery; hooks update it when present but never execute repository-controlled code. Successful synchronization is silent in both clients; only actionable conflicts or unsafe layouts surface to the user.
 
 When an established repository uses exact shared aliases, edits to the physical instruction file remain allowed from either agent and Stop verifies the layout without trying to create a second copy.
 

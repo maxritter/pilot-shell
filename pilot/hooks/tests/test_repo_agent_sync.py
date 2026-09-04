@@ -117,8 +117,7 @@ class TestSessionStart:
         result = handle(_session_payload(repo))
 
         assert run.call_args_list == [call(bundled, "check", repo), call(bundled, "write", repo)]
-        assert result["continue"] is True
-        assert "synchronized" in result["systemMessage"]
+        assert result == {"continue": True}
 
     def test_session_start_surfaces_gitignored_local_rule_paths(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -136,6 +135,8 @@ class TestSessionStart:
         result = handle(_session_payload(repo))
 
         assert result["continue"] is True
+        assert "systemMessage" not in result
+        assert result["suppressOutput"] is True
         assert ".claude/rules/local-only.md" in result["hookSpecificOutput"]["additionalContext"]
 
     def test_bundled_checker_refreshes_enrolled_repo(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -154,9 +155,7 @@ class TestSessionStart:
             call(bundled, "check", repo),
             call(bundled, "install", repo),
         ]
-        assert result["continue"] is True
-        assert "refreshed and synchronized" in result["systemMessage"]
-        assert result["hookSpecificOutput"]["hookEventName"] == "SessionStart"
+        assert result == {"continue": True}
         assert local.is_file()
 
     def test_missing_bundle_warns_without_executing_local_checker(
@@ -172,8 +171,11 @@ class TestSessionStart:
 
         run.assert_not_called()
         assert result["continue"] is True
-        assert "trusted bundled checker is unavailable" in result["systemMessage"]
-        assert "repository-local checker was not executed" in result["systemMessage"]
+        assert "systemMessage" not in result
+        assert result["suppressOutput"] is True
+        context = result["hookSpecificOutput"]["additionalContext"]
+        assert "trusted bundled checker is unavailable" in context
+        assert "repository-local checker was not executed" in context
 
     def test_current_synchronized_repo_is_silent(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         repo = tmp_path / "repo"
@@ -206,7 +208,9 @@ class TestSessionStart:
         result = handle(_session_payload(repo))
 
         assert result["continue"] is True
-        assert "nontrivial CLAUDE.md" in result["systemMessage"]
+        assert "systemMessage" not in result
+        assert result["suppressOutput"] is True
+        assert "nontrivial CLAUDE.md" in result["hookSpecificOutput"]["additionalContext"]
         assert "decision" not in result
 
 
@@ -225,9 +229,7 @@ class TestPostToolUse:
         result = handle(_post_payload(repo, tool_name, {"file_path": str(repo / "AGENTS.md")}))
 
         run.assert_called_once_with(bundled, "write", repo)
-        assert result["continue"] is True
-        assert "synchronized" in result["systemMessage"]
-        assert result["hookSpecificOutput"]["hookEventName"] == "PostToolUse"
+        assert result == {"continue": True}
 
     def test_claude_canonical_skill_edit_syncs_immediately(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -657,8 +659,7 @@ class TestBundledCheckerIntegration:
 
         bundled = repo_agent_sync._bundled_checker()
         assert bundled is not None
-        assert result["continue"] is True
-        assert "refreshed and synchronized" in result["systemMessage"]
+        assert result == {"continue": True}
         assert local_checker.read_bytes() == bundled.read_bytes()
         assert (repo / "CLAUDE.md").read_text() == "@AGENTS.md\n"
         assert (repo / ".claude" / "skills" / "example" / "SKILL.md").read_bytes() == (
@@ -686,7 +687,9 @@ class TestBundledCheckerIntegration:
         result = handle(_session_payload(repo))
 
         assert result["continue"] is True
-        assert "refusing to overwrite nontrivial CLAUDE.md" in result["systemMessage"]
+        assert "systemMessage" not in result
+        assert result["suppressOutput"] is True
+        assert "refusing to overwrite nontrivial CLAUDE.md" in result["hookSpecificOutput"]["additionalContext"]
         assert claude.read_text() == original
 
     def test_post_tool_fallback_preserves_generated_skill_edit(self, tmp_path: Path) -> None:
@@ -879,8 +882,7 @@ class TestBundledCheckerIntegration:
 
         result = handle(_session_payload(repo))
 
-        assert result["continue"] is True
-        assert "synchronized" in result["systemMessage"]
+        assert result == {"continue": True}
         assert (repo / ".agents" / "skills" / "example" / "SKILL.md").read_text() == mirror_text
 
     def test_both_side_divergence_blocks_and_preserves_both_files(self, tmp_path: Path) -> None:
