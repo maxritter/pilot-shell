@@ -18,9 +18,9 @@ mkdir -p .agents/skills/{slug}-{name}
 # Write .agents/skills/{slug}-{name}/SKILL.md and any supporting files
 ```
 
-Pilot's shared hook converges on SessionStart and regenerates the complete mirror for canonical skills under `.claude/skills/` after supported edits from either Claude Code or Codex. Its Stop backstop covers Code Mode when no edit event fired. Untracked/ignored agent-only extensions are preserved. Users normally do not run `--write`.
+Pilot's shared hook converges on SessionStart and synchronizes complete skill trees under `.agents/skills/` and `.claude/skills/` after supported edits from either Claude Code or Codex. Its Stop backstop covers Code Mode when no edit event fired. Untracked and gitignored skills participate through a trusted local baseline; independent two-sided edits are preserved as conflicts. Users normally do not run `--write`.
 
-If a task or tool presents a tracked `.claude/skills/<name>/...` path, do not edit that generated file. Follow the hook's redirect when supported; otherwise use the canonical `.agents/skills/<name>/...` path reported by the blocking message. Never copy changes from `.claude/skills/` back into `.agents/skills/`.
+If a task or tool presents `.claude/skills/<name>/...`, it may be edited directly. Pilot synchronizes the change back when the `.agents/skills/` copy still matches the trusted baseline. If both copies changed independently, stop and reconcile the preserved versions explicitly.
 
 ### Global Scope
 
@@ -51,7 +51,7 @@ Edit the created `SKILL.md` with the template from Step 1.
 - Avoid Claude-only or Codex-only instructions in a project skill. If behavior must differ, key it to an observable capability in the current session.
 - Never reference Pilot-only services such as Semble or Pilot MCP servers unless the skill declares them as prerequisites and has a portable fallback.
 - Keep `targets: [claude, codex]` when both agents are supported; narrow it only when the workflow truly cannot run on one target.
-- Rely on Pilot's shared hook for normal mirroring. Keep manual `--write` as recovery, not a required authoring step.
+- Rely on Pilot's shared hook for normal synchronization. Keep manual `--write` as recovery, not a required authoring step.
 
 **Determinism checklist:**
 

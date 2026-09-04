@@ -18,4 +18,4 @@ When a reviewer says to add or "properly implement" something, search for actual
 
 Push back with technical reasoning whenever the suggestion breaks existing behaviour, misses context the reviewer didn't have, is wrong for this stack, or contradicts an architectural decision the user already made. If you pushed back and were wrong, say so factually in one line and move on.
 
-**Respond with the technical substance, not affirmation.** State the requirement, or the fix and what changed. The forbidden-phrase list in `response-shape.md` applies here in full — "you're absolutely right", "great point", "thanks for catching that" are all noise where a description of the change belongs.
+**Respond with the technical substance, not affirmation.** State the requirement, or the fix and what changed. "You're absolutely right", "great point", "thanks for catching that" are all noise where a description of the change belongs.

@@ -82,6 +82,7 @@ def test_uninstall_sh_keeps_external_tool_cleanup_explicit_and_separate() -> Non
     assert "rtk init -g --codex --uninstall" in content
     assert 'uninstall_npm_tool_if_owned "impeccable"' in content
     assert 'uninstall_npm_tool_if_owned "@playwright/cli"' in content
+    assert 'uninstall_npm_tool_if_owned "@ast-grep/cli"' in content
     assert 'uninstall_npm_tool_if_owned "fast-check"' in content
     assert 'uninstall_uv_tool_if_owned "hypothesis"' in content
     assert "npm uninstall -g @anthropic-ai/claude-code" not in content

@@ -107,7 +107,7 @@ The Console sends real-time alerts via Server-Sent Events when your agent needs 
 The Settings tab (`localhost:41777/#/settings`, or your custom port) is a single scrollable page with two stacked sections: **Workflows** and **Console**. Workflows holds three groups - Model Switching, Automation, and Reviews - and a collapsed Worktrees block. A scope chip on each control says which workflows it affects, so there is no per-workflow split. Toggle preferences save to `~/.pilot/config.json`. The **Console -> Worker Port** field saves to `~/.pilot/memory/settings.json` and lets you move the Console off `41777` if it conflicts with another service. Both changes take effect after restarting your session.
 
 :::info Model selection lives in the agent
-Pilot doesn't manage model preferences. Set the model with Claude Code's `/model` command or Codex's `codex --model <name>` / `~/.codex/config.toml`. See [Model Routing](./model-routing.md).
+The Console doesn't manage model preferences. Pilot's installer seeds a safe Codex default, but you select models with Claude Code's `/model` command or Codex's `codex --model <name>` / `~/.codex/config.toml`. New session models appear automatically in Usage; known launches such as GPT-6 Astra receive a friendly label and pricing metadata. See [Model Routing](./model-routing.md).
 :::
 
 ### Workflows -> Review Agents

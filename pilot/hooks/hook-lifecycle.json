@@ -325,18 +325,6 @@
       "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
     },
     {
-      "id": "codex-sessionstart-3",
-      "platform": "codex",
-      "event": "SessionStart",
-      "matcher": "startup|resume|clear|compact",
-      "handlers": [
-        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" --exec bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex context"
-      ],
-      "async": [false],
-      "timeout": [15],
-      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
-    },
-    {
       "id": "codex-sessionstart-4",
       "platform": "codex",
       "event": "SessionStart",

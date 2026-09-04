@@ -358,6 +358,20 @@ class TestShippedManifest:
         assert design.soft_pin is True
         assert design.pin_kind == "monitor"
 
+    def test_ast_grep_brew_and_npm_fallback_share_the_audited_version(self) -> None:
+        manifest = load()
+        brew = get("ast-grep-brew", manifest=manifest)
+        npm = get("ast-grep-npm", manifest=manifest)
+
+        assert brew.source_type == "brew"
+        assert brew.brew_formula == "ast-grep"
+        assert brew.brew_tap == "homebrew/core"
+        assert npm.source_type == "npm"
+        assert npm.source_url == "@ast-grep/cli"
+        assert npm.scripts_policy == "allow"
+        assert npm.scripts_justification
+        assert brew.version == npm.version
+
 
 class TestBrewEntries:
     """Brew entries can omit sha256 but require brew_formula + brew_tap."""

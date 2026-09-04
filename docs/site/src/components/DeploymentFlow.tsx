@@ -31,7 +31,7 @@ const steps = [
     icon: Rocket,
     label: "Launch",
     detail:
-      "Run claude or codex. Pilot Shell loads automatically with license check and context injection.",
+      "Run claude or codex. Pilot loads rules, tools, and agent-specific hooks automatically.",
     color: "text-primary",
     bgColor: "bg-primary/10",
     borderColor: "border-primary/30",
@@ -40,16 +40,16 @@ const steps = [
     icon: Activity,
     label: "Hooks Fire",
     detail:
-      "SessionStart hooks load persistent memory, initialize tracking, and prepare context.",
+      "Lifecycle hooks initialize tracking and keep durable memory current.",
     color: "text-violet-400",
     bgColor: "bg-violet-400/10",
     borderColor: "border-violet-400/30",
   },
   {
     icon: Brain,
-    label: "Memory Loads",
+    label: "Memory Ready",
     detail:
-      "Past sessions, decisions, and debugging context injected automatically via Pilot Shell Console.",
+      "Claude Code loads memory automatically. Codex retrieves relevant history on demand through local mem-search.",
     color: "text-rose-400",
     bgColor: "bg-rose-400/10",
     borderColor: "border-rose-400/30",

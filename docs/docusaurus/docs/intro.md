@@ -15,7 +15,7 @@ Work directly, use the native Plan/Goal tools your agent provides, or invoke a P
 
 - **Automatic quality** — linting, formatting, type checking, and test enforcement happen as hooks, not suggestions
 - **Persistent context** — architectural decisions, patterns, project knowledge, and working state survive across sessions
-- **Professional tools** — Semble, CodeGraph, RTK, browser automation, language servers, and MCP integrations support the complete engineering loop
+- **Professional tools** — Semble, CodeGraph, ast-grep, RTK, browser automation, language servers, and MCP integrations support the complete engineering loop
 - **Runtime proof** — tests, builds, real execution, and browser or device verification replace “looks done” handoffs
 - **Full visibility** — a local dashboard shows what's running, what changed, and what it cost
 - **Structured workflows when useful** — `/spec`, `/build`, `/fix`, and `/prd` add durable artifacts and explicit lifecycle contracts

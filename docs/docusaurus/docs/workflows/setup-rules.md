@@ -17,8 +17,8 @@ Pilot uses one ownership model in every prepared repository:
 | `AGENTS.md` | Shared, user-editable repository core for both agents |
 | `CLAUDE.md` | One-line `@AGENTS.md` import for Claude Code |
 | `.claude/rules/*.md` | Detailed, path-scoped guidance; indexed from `AGENTS.md` for Codex |
-| `.agents/skills/` | Canonical, user-editable tracked project skills |
-| `.claude/skills/` | Generated mirror for tracked project skills; local untracked/ignored extensions remain agent-only |
+| `.agents/skills/` | Codex project skills and durable source for tracked skills |
+| `.claude/skills/` | Claude Code project skills; changes synchronize safely in either direction |
 | Pilot shared hook | Synchronizes on SessionStart, supported edits, and Stop as a Code Mode backstop |
 | `scripts/sync-agent-assets.mjs` | Standalone recovery writer and CI drift checker committed with the project |
 
@@ -57,11 +57,13 @@ claude                codex
 
 Detailed `.claude/rules/` files keep their `paths` frontmatter, so they load only for relevant Claude Code work. `AGENTS.md` carries a compact index telling Codex which matching rule to read; it does not duplicate the detailed content.
 
-Tracked project skills always start in `.agents/skills/`. Pilot's shared hook copies their complete trees to `.claude/skills/`, including `scripts/`, `references/`, and `assets/`. It runs on SessionStart and supported edits made through either Claude Code or Codex. A Stop hook covers Code Mode when no edit event fired, so users normally only edit the canonical source.
+Pilot synchronizes complete project-skill trees between `.agents/skills/` and `.claude/skills/`, including `scripts/`, `references/`, and `assets/`. It runs on SessionStart and supported edits made through either Claude Code or Codex. A Stop hook covers Code Mode when no edit event fired.
 
-When either agent targets a tracked generated `.claude/skills/` file, Pilot redirects the operation when supported or blocks it and returns the exact canonical `.agents/skills/` path. Both agents can initiate edits, but filesystem authority always flows one way: `.agents/skills/` to `.claude/skills/`.
+Tracked skills retain `.agents/skills/` as their durable source, but a Claude-side edit synchronizes back when the Codex copy still matches the last trusted baseline. Untracked and gitignored skills use the same conflict-safe two-way rule with a baseline under `.git/pilot`. One-sided skills are copied automatically; when both sides changed independently, Pilot preserves both and reports the conflict.
 
-The shared hook executes only Pilot's installed, trusted checker. The repository copy is an enrollment marker plus the command used by CI and manual recovery; hooks update it when Pilot upgrades but never execute repository-controlled code.
+Gitignored `.claude/rules/` remain one physical source. Pilot adds a bounded path index at SessionStart so Codex can load the relevant rule on demand without copying its contents into every prompt.
+
+The shared hook executes only Pilot's installed, trusted checker and automatically detects repositories containing agent assets. The repository copy is the command used by CI and manual recovery; hooks update it when present but never execute repository-controlled code.
 
 The standalone commands remain available as recovery and verification:
 
@@ -72,9 +74,7 @@ node scripts/sync-agent-assets.mjs --check
 
 Normal work does not require `--write`. Use it only to recover if the hook was unavailable; `--check` remains the local and CI backstop.
 
-`/setup-rules` installs the script from Pilot's bundled copy. Existing user-authored root instructions and tracked mirror-only skill changes are migrated before generated files are replaced; ambiguous conflicts still go through the workflow's review gate. Untracked or ignored local agent-only skills remain untouched and outside CI parity.
-
-Repositories without project skills yet keep `.agents/skills/.gitkeep`, because the checker still needs the canonical directory to exist in fresh clones.
+`/setup-rules` installs the script from Pilot's bundled copy. Existing user-authored root instructions and one-sided skills are migrated without dropping content; ambiguous two-sided conflicts still go through the workflow's review gate. Gitignored skill parity is recorded locally and therefore stays outside shared CI state.
 
 For CI, add `node scripts/sync-agent-assets.mjs --check` to an existing required validation, lint, or documentation job. The check is fast and does not need a separate workflow or job.
 
@@ -88,5 +88,5 @@ For CI, add `node scripts/sync-agent-assets.mjs --check` to an existing required
 - After onboarding to a project you didn't write
 
 :::tip Creating skills
-Use `/create-skill` to author project skills in the canonical tree; Pilot's shared hook regenerates their Claude Code mirror automatically. `/setup-rules` owns the repository-wide synchronization contract, rules, and MCP documentation.
+Use `/create-skill` to author project skills; Pilot's shared hook keeps the Claude Code and Codex trees synchronized automatically. `/setup-rules` owns the repository-wide synchronization contract, rules, and MCP documentation.
 :::

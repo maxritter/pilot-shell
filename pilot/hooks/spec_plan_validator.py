@@ -204,16 +204,19 @@ def _local_renderability_errors(plan_file: Path) -> list[str]:
             errors.append(f"Task {number} is missing renderer labels: {', '.join(missing)}.")
 
     progress_pattern = re.compile(str(fmt.get("progress_line_patterns", {}).get("task", r"(?!)")))
+    progress_heading = str(fmt.get("progress_sections", {}).get(plan_type, "Progress Tracking"))
     listed: set[int] = set()
     for heading, start, end in spans:
-        if heading not in set(fmt.get("sections_hidden", [])):
+        if heading != progress_heading:
             continue
         for index in range(start, end):
+            if task_pattern.match(lines[index]):
+                break
             if match := progress_pattern.match(lines[index]):
                 listed.add(int(match.group("number")))
     headed = {number for number, _line, _end in tasks}
     if (listed or headed) and listed != headed:
-        errors.append("`## Progress Tracking` disagrees with the task headings.")
+        errors.append(f"`## {progress_heading}` disagrees with the task headings.")
     return errors
 
 

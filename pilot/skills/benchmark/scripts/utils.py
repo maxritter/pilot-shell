@@ -371,7 +371,7 @@ def load_target_config(evals_path: Path) -> TargetConfig:
 _MODEL_ALIASES: dict[str, str] = {
     "opus": "claude-opus-5",
     "sonnet": "claude-sonnet-5",
-    "fable": "claude-fable-5",
+    "fable": "claude-fable-5-1",
     "haiku": "claude-haiku-4-5-20251001",
 }
 

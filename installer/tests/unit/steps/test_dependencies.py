@@ -47,6 +47,8 @@ class TestDependenciesStep:
             )
             assert step.check(ctx) is False
 
+    @patch("installer.steps.dependencies.install_open_claude_design", return_value=True)
+    @patch("installer.steps.dependencies.install_impeccable", return_value=True)
     @patch("installer.steps.dependencies.initialize_codegraph", return_value=True)
     @patch("installer.steps.dependencies.codegraph_needs_work", return_value=False)
     @patch("installer.steps.dependencies.install_playwright_cli", return_value=True)
@@ -54,6 +56,7 @@ class TestDependenciesStep:
     @patch("installer.steps.dependencies.install_codex_plugin", return_value=True)
     @patch("installer.steps.dependencies.install_codegraph", return_value=True)
     @patch("installer.steps.dependencies.install_rtk", return_value=True)
+    @patch("installer.steps.dependencies.install_ast_grep", return_value=True)
     @patch("installer.steps.dependencies.install_semble", return_value=True)
     @patch("installer.steps.dependencies.install_agent_browser", return_value=True)
     @patch("installer.steps.dependencies.install_pbt_tools", return_value=True)
@@ -84,6 +87,7 @@ class TestDependenciesStep:
         _mock_pbt_tools,
         _mock_agent_browser,
         _mock_semble,
+        _mock_ast_grep,
         _mock_rtk,
         _mock_codegraph,
         _mock_codex_plugin,
@@ -91,6 +95,8 @@ class TestDependenciesStep:
         _mock_playwright,
         _mock_codegraph_needs_work,
         _mock_init_codegraph,
+        _mock_impeccable,
+        _mock_open_claude_design,
     ):
         """DependenciesStep installs all dependencies including Python tools."""
         from installer.context import InstallContext
@@ -117,6 +123,7 @@ class TestDependenciesStep:
             mock_python_tools.assert_called_once()
             mock_plugin_deps.assert_called_once()
             _mock_semble.assert_called_once()
+            _mock_ast_grep.assert_called_once()
             _mock_rtk.assert_called_once()
             _mock_codegraph.assert_called_once()
             _mock_codex_plugin.assert_called_once()
@@ -124,6 +131,8 @@ class TestDependenciesStep:
             _mock_playwright.assert_called_once()
             _mock_pbt_tools.assert_called_once()
             _mock_agent_browser.assert_called_once()
+            _mock_impeccable.assert_called_once()
+            _mock_open_claude_design.assert_called_once()
 
 
 class TestAgentInstallRemoved:
@@ -854,6 +863,46 @@ class TestInstallCodegraph:
 
         assert result is False
         mock_symlink.assert_called_once_with("codegraph")
+
+
+class TestInstallAstGrep:
+    """Tests for Homebrew-first ast-grep with an npm fallback."""
+
+    @patch("installer.steps.dependencies._symlink_to_pilot_bin")
+    @patch("installer.steps.dependencies._load_owned_tools", return_value=set())
+    @patch("installer.steps.dependencies.command_exists", return_value=True)
+    def test_preserves_existing_homebrew_or_user_install(self, _mock_exists, _mock_owned, mock_symlink):
+        from installer.steps.dependencies import install_ast_grep
+
+        with patch("installer.steps.dependencies._run_bash_with_retry") as mock_bash:
+            assert install_ast_grep() is True
+
+        mock_bash.assert_not_called()
+        mock_symlink.assert_called_once_with("ast-grep")
+
+    @patch("installer.steps.dependencies._symlink_to_pilot_bin")
+    @patch("installer.steps.dependencies._load_owned_tools", return_value=set())
+    @patch("installer.steps.dependencies.command_exists", return_value=False)
+    def test_installs_manifest_pinned_npm_fallback(self, _mock_exists, _mock_owned, mock_symlink):
+        from installer.manifest import get
+        from installer.steps.dependencies import GLOBAL_NPM_INSTALL_TIMEOUT, install_ast_grep
+
+        with patch("installer.steps.dependencies._run_bash_with_retry", return_value=True) as mock_bash:
+            assert install_ast_grep() is True
+
+        command = mock_bash.call_args.args[0]
+        assert f"@ast-grep/cli@{get('ast-grep-npm').version}" in command
+        assert "--ignore-scripts" not in command
+        assert mock_bash.call_args.kwargs["timeout"] == GLOBAL_NPM_INSTALL_TIMEOUT
+        mock_symlink.assert_called_once_with("ast-grep")
+
+    @patch("installer.steps.dependencies._load_owned_tools", return_value=set())
+    @patch("installer.steps.dependencies.command_exists", return_value=False)
+    def test_returns_false_when_npm_fallback_fails(self, _mock_exists, _mock_owned):
+        from installer.steps.dependencies import install_ast_grep
+
+        with patch("installer.steps.dependencies._run_bash_with_retry", return_value=False):
+            assert install_ast_grep() is False
 
 
 class TestInitializeCodegraph:
@@ -2205,6 +2254,7 @@ class TestDependenciesCleanup:
     @patch("installer.steps.dependencies.codegraph_needs_work", return_value=False)
     @patch("installer.steps.dependencies.install_codegraph", return_value=True)
     @patch("installer.steps.dependencies.install_rtk", return_value=True)
+    @patch("installer.steps.dependencies.install_ast_grep", return_value=True)
     @patch("installer.steps.dependencies.install_agent_browser", return_value=True)
     @patch("installer.steps.dependencies.install_pbt_tools", return_value=True)
     @patch("installer.steps.dependencies.install_golangci_lint", return_value=True)
@@ -2227,6 +2277,7 @@ class TestDependenciesCleanup:
         _mock_golangci,
         _mock_pbt,
         _mock_agent_browser,
+        _mock_ast_grep,
         _mock_rtk,
         _mock_codegraph,
         _mock_needs_work,

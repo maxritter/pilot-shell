@@ -1058,6 +1058,35 @@ class TestMergeSettings:
         assert result["myCustomKey"] == "hello"
         assert result["model"] == "opus"
 
+    def test_pilot_removed_env_var_dropped_when_user_unchanged(self):
+        """An env var Pilot stops shipping is removed when the user never changed it.
+
+        Same rule as top-level keys: Pilot-written, untouched, gone from the new
+        template -> drop. Otherwise retired Claude Code env vars linger forever
+        in every install (a settings template can only ever grow)."""
+        from installer.steps.settings_merge import merge_settings
+
+        baseline = {"env": {"KEEP": "1", "RETIRED_FLAG": "true"}}
+        current = {"env": {"KEEP": "1", "RETIRED_FLAG": "true"}}
+        incoming = {"env": {"KEEP": "1"}}
+
+        result = merge_settings(baseline, current, incoming)
+
+        assert "RETIRED_FLAG" not in result["env"]
+        assert result["env"]["KEEP"] == "1"
+
+    def test_pilot_removed_env_var_preserved_when_user_changed(self):
+        """A retired env var the user re-pointed to their own value is theirs now."""
+        from installer.steps.settings_merge import merge_settings
+
+        baseline = {"env": {"KEEP": "1", "RETIRED_FLAG": "true"}}
+        current = {"env": {"KEEP": "1", "RETIRED_FLAG": "0"}}
+        incoming = {"env": {"KEEP": "1"}}
+
+        result = merge_settings(baseline, current, incoming)
+
+        assert result["env"]["RETIRED_FLAG"] == "0"
+
 
 class TestMergeAppConfigWithBaseline:
     """Tests for merge_app_config with baseline parameter."""
@@ -2592,23 +2621,36 @@ class TestMergeHooksIntoSettings:
         assert new_command in merged_commands
 
 
-class TestShippedSettingsEffortLevel:
-    """The shipped settings template must express effort as an overridable
-    default, never as an `env` pin (issue #172)."""
+class TestShippedSettingsTemplate:
+    """Contract for the shipped settings template: effort ships as an overridable
+    default, the transcript view is the user's own choice."""
 
     SETTINGS_PATH = Path(__file__).parents[4] / "pilot" / "settings.json"
 
     def test_template_ships_effort_only_as_overridable_default(self):
-        """`env.CLAUDE_CODE_EFFORT_LEVEL` sits above the `--effort` flag and above
-        project/user `effortLevel` in Claude Code's precedence chain, so shipping
-        it silently discards every effort choice a user makes. `effortLevel`
-        delivers the same default and stays overridable."""
+        """`env.CLAUDE_CODE_EFFORT_LEVEL` sits above the `--effort` flag and every
+        settings file in Claude Code's precedence chain, so shipping it silently
+        discards every effort choice a user makes (issue #172). `effortLevel`
+        delivers the same xhigh default and stays overridable, including per model
+        via `/effort`, which Claude Code persists under `modelSettings`."""
         data = json.loads(self.SETTINGS_PATH.read_text())
 
         assert "CLAUDE_CODE_EFFORT_LEVEL" not in data.get("env", {}), (
             "settings.json must not pin effort via env - it outranks --effort"
         )
-        assert data.get("effortLevel"), "effortLevel must still carry the default effort"
+        assert data.get("effortLevel") == "xhigh"
+
+    def test_template_ships_the_concise_output_style(self):
+        data = json.loads(self.SETTINGS_PATH.read_text())
+
+        assert data.get("outputStyle") == "concise"
+
+    def test_template_does_not_force_the_transcript_view(self):
+        """`viewMode: verbose` expands every tool call inline for every user; that
+        is an opt-in (`/config` or `Ctrl+O`), not something Pilot enforces."""
+        data = json.loads(self.SETTINGS_PATH.read_text())
+
+        assert "viewMode" not in data
 
 
 class TestHookCommandsPythonVersion:

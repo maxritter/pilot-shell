@@ -70,6 +70,9 @@ def _merge_dict_field(
 
     - New incoming keys are added.
     - User-only keys (not in incoming) are preserved.
+    - A key Pilot previously shipped (in baseline) that the user never changed
+      is dropped when Pilot stops shipping it -- the same rule as top-level
+      keys, so retired Claude Code env vars do not linger in every install.
     - Existing keys Pilot did not previously manage keep their current value.
     - If user changed a value from baseline, keep user's value.
     - Otherwise update to incoming value.
@@ -79,6 +82,8 @@ def _merge_dict_field(
 
     for key in all_keys:
         if key not in incoming:
+            if baseline is not None and key in baseline and current[key] == baseline[key]:
+                continue
             result[key] = current[key]
         elif key not in current:
             result[key] = incoming[key]

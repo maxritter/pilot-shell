@@ -34,7 +34,7 @@ After the final canonical edit, the automatic hook should already have synchroni
 node scripts/sync-agent-assets.mjs --check
 ```
 
-If drift remains, repair the canonical source or hook installation, use `node scripts/sync-agent-assets.mjs --write` once for recovery, and rerun `--check`. Record the canonical path, generated path, and zero exit status. Verify the check itself leaves the worktree unchanged. A project skill is not complete while the checker reports drift.
+If drift remains, repair the intended skill copy or hook installation, use `node scripts/sync-agent-assets.mjs --write` once for recovery, and rerun `--check`. Record both skill paths and the zero exit status. Verify the check itself leaves the worktree unchanged. A project skill is not complete while the checker reports drift.
 
 ### Triggering Test
 

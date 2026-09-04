@@ -29,7 +29,7 @@ The Claude config directory is `~/.claude` unless you set `CLAUDE_CONFIG_DIR`. S
 | 3 | Claude files | Installs Claude-specific assets to the Claude config directory: rules, sub-agents, and `settings.json` (three-way merged); plus Claude post-install merges (hooks into settings, app-config MCP block, model config). **Skipped when Claude Code CLI is not detected.** |
 | 4 | Codex files | Installs adapted skills to `~/.agents/skills/`, review agents to `~/.codex/agents/`, guidance to `~/.codex/AGENTS.md`, and merged `~/.codex/config.toml` / `~/.codex/hooks.json`. **Skipped when neither Codex CLI nor the ChatGPT-bundled runtime is detected.** |
 | 5 | Config files | Creates `.nvmrc` and project config |
-| 6 | Dependencies | Installs Semble, RTK, CodeGraph, Chrome DevTools MCP, playwright-cli, agent-browser, language servers, plus the `codex@openai-codex` Claude marketplace plugin. Claude-side plugins (Codex companion plugin, Chrome DevTools MCP plugin, LSP plugins) are skipped on Codex-only systems. |
+| 6 | Dependencies | Installs Semble, RTK, CodeGraph, ast-grep, Chrome DevTools MCP, playwright-cli, agent-browser, language servers, plus the `codex@openai-codex` Claude marketplace plugin. ast-grep uses Homebrew when available and a pinned npm fallback otherwise. Claude-side plugins (Codex companion plugin, Chrome DevTools MCP plugin, LSP plugins) are skipped on Codex-only systems. |
 | 7 | Shell integration | Auto-configures bash, fish, and zsh with the `pilot` alias and a Codex wrapper that raises a low per-process open-file soft limit without lowering an existing higher value. Add `# pilot-shell:managed-elsewhere` to a config file to opt out. |
 | 8 | Finalize | Success message with next steps |
 

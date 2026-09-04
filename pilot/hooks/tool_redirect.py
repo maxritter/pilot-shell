@@ -12,6 +12,11 @@ review. It therefore neither encourages fan-out nor blocks qualifying agents.
 Also nudges (non-deny) on recursive code-search Bash commands (grep -r, rg, find,
 fd, ag), built-in Grep, and built-in Glob - pointing at codegraph_explore /
 semble search. Throttled per-(category, session) so the reminder stays salient.
+
+Reminds (non-deny, not throttled) on Bash commands that edit files (sed -i,
+heredoc or redirect into a project file, tee, inline python/node scripts that
+write files) that the user wants changes made with the Edit/Write tools, where
+they show up as a diff in the terminal. The command itself is never blocked.
 """
 
 from __future__ import annotations
@@ -269,8 +274,108 @@ def _is_authenticated_claude_artifact_url(tool_input: object) -> bool:
     return parsed.hostname == "claude.ai" and parsed.path.startswith("/code/artifact/")
 
 
+# --- Shell file-edit reminder ------------------------------------------------
+# Claude Code's bypass-permissions mode tells the model to prefer heredocs, sed
+# and inline scripts over the Edit/Write tools. Those edits render no diff in
+# the terminal, so the user cannot see what changed. Point back at the dedicated
+# tools on every such command; the rule text alone did not survive the harness
+# hint. Deliberately a reminder, not a deny: a heuristic match must never stop a
+# user's legitimate shell work.
+
+_TEMP_TARGET_PREFIXES: tuple[str, ...] = ("/tmp/", "/private/tmp/", "/var/folders/", "/dev/", "$TMPDIR", "${TMPDIR")
+
+_QUOTED_SPAN_RE: re.Pattern[str] = re.compile(r"'[^']*'|\"(?:\\.|[^\"\\])*\"")
+_HEREDOC_OPEN_RE: re.Pattern[str] = re.compile(r"<<-?\s*(['\"]?)(\w+)\1[^\n]*\n")
+_REDIRECT_RE: re.Pattern[str] = re.compile(r"(?<![<>&\d])\d?>{1,2}\s*(?P<target>[^\s&|;)]+)")
+_TEE_RE: re.Pattern[str] = re.compile(r"(?:^|\|)\s*tee\s+(?:-[a-zA-Z]+\s+)*(?P<target>[^\s&|;)]+)")
+_INLINE_INTERPRETER_RE: re.Pattern[str] = re.compile(
+    r"(?:^|\s)(?:uv\s+run\s+(?:\S+\s+)*?)?(?:python[0-9.]*|node|bun|deno|perl|ruby)\s+(?:-[ce](?:\s|$)|--eval\b|-\s*<<)"
+)
+_WRITE_IDIOM_RE: re.Pattern[str] = re.compile(
+    r"write_text\(|write_bytes\(|open\([^)]*['\"][wax]\+?b?['\"]|open\([^)]*['\"]>|writeFileSync|writeFile\(|appendFile"
+    r"|Bun\.write\(|Deno\.write|File\.(?:write|open)\(|shutil\.(?:copy|move)|os\.replace\(|os\.rename\("
+)
+_SED_IN_PLACE_OPTION_RE: re.Pattern[str] = re.compile(r"^-(?:[a-zA-Z]*i[a-zA-Z]*)(?:\.\S*)?$|^--in-place")
+_PERL_IN_PLACE_RE: re.Pattern[str] = re.compile(r"^perl\s+(?:-\S+\s+)*-[a-zA-Z]*i")
+_AWK_IN_PLACE_RE: re.Pattern[str] = re.compile(r"^g?awk\s+(?:\S+\s+)*-i\s+inplace\b")
+
+
+def _is_temp_target(target: str) -> bool:
+    return target.strip("'\"").startswith(_TEMP_TARGET_PREFIXES)
+
+
+def _strip_heredoc_bodies(cmd: str) -> str:
+    """Remove heredoc bodies so `>` inside embedded scripts is not read as a redirect."""
+    out: list[str] = []
+    pos = 0
+    while True:
+        match = _HEREDOC_OPEN_RE.search(cmd, pos)
+        if not match:
+            out.append(cmd[pos:])
+            return "".join(out)
+        out.append(cmd[pos : match.end()])
+        terminator = re.compile(r"^\s*" + re.escape(match.group(2)) + r"\s*$", re.MULTILINE)
+        end = terminator.search(cmd, match.end())
+        pos = end.end() if end else len(cmd)
+
+
+def _sed_edits_in_place(segment: str) -> bool:
+    tokens = segment.split()
+    if not tokens or tokens[0] != "sed":
+        return False
+    for token in tokens[1:]:
+        if not token.startswith("-"):
+            return False
+        if _SED_IN_PLACE_OPTION_RE.match(token):
+            return True
+    return False
+
+
+def classify_shell_file_edit(cmd: str) -> str | None:
+    """Return a short label when the shell command writes or rewrites a file, else None.
+
+    Writes to /tmp, the scratchpad, /dev and $TMPDIR are allowed: keeping command
+    output is fine; editing project files through the shell is not.
+    """
+    for raw_segment in SHELL_SEGMENT_SEP_RE.split(cmd):
+        segment = _LEADING_PREFIX_RE.sub("", raw_segment.strip())
+        if _sed_edits_in_place(segment):
+            return "in-place edit with sed -i"
+        if _PERL_IN_PLACE_RE.match(segment):
+            return "in-place edit with perl -i"
+        if _AWK_IN_PLACE_RE.match(segment):
+            return "in-place edit with awk -i inplace"
+
+    if _INLINE_INTERPRETER_RE.search(cmd) and _WRITE_IDIOM_RE.search(cmd):
+        return "inline script that writes files"
+
+    scannable = _QUOTED_SPAN_RE.sub("QUOTED", _strip_heredoc_bodies(cmd))
+    for match in _REDIRECT_RE.finditer(scannable):
+        target = match.group("target")
+        if target.startswith("&") or _is_temp_target(target):
+            continue
+        return "output redirected into a file"
+    for match in _TEE_RE.finditer(scannable):
+        if not _is_temp_target(match.group("target")):
+            return "tee into a file"
+    return None
+
+
+def _file_edit_nudge(label: str) -> str:
+    """Reminder text for a shell command that edits a file. Never blocks, never throttled.
+
+    A false match must cost nothing, so this is additionalContext, not a deny:
+    the command still runs and the model is told how the user wants edits made.
+    """
+    return (
+        f"This shell command edits a file ({label}). The user does not see a diff for shell edits; "
+        "make changes with the Edit tool, or Write for a new file, and keep the shell for running "
+        "commands. Output you need to keep can go to /tmp or the scratchpad directory."
+    )
+
+
 def run_tool_redirect() -> int:
-    """Block search/fetch except Claude artifacts; nudge recursive search."""
+    """Block search/fetch except Claude artifacts; nudge recursive search and shell file edits."""
     try:
         hook_data = json.load(sys.stdin)
     except (json.JSONDecodeError, OSError):
@@ -282,6 +387,10 @@ def run_tool_redirect() -> int:
         tool_input = hook_data.get("tool_input", {})
         commands = _extract_shell_commands(tool_name, tool_input)
         if commands:
+            edit_label = classify_shell_file_edit(commands[0])
+            if edit_label:
+                print(pre_tool_use_context(_file_edit_nudge(edit_label)))
+                return 0
             nudge = _bash_search_nudge(commands[0])
             if nudge:
                 print(pre_tool_use_context(nudge))

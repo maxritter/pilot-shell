@@ -362,7 +362,7 @@ const DeepDiveSection = () => {
               <strong>Automated</strong> (default), <strong>Manual</strong>, and{" "}
               <strong>Off</strong> — no model management at all. Pilot never
               remaps the model aliases, so <code>/model</code> always means
-              what it says — including <strong>Claude Fable 5</strong>, whose
+              what it says — including <strong>Claude Fable 5.1</strong>, whose
               saved selection Pilot preserves.
             </p>
           </div>

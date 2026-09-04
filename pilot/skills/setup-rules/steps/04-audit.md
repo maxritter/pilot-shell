@@ -78,7 +78,7 @@ AskUserQuestion (multiSelect): "Select improvements to apply:"
 For each selected improvement:
 
 1. Read the target file
-2. Apply the specific fix (rewrite vague instruction, add `paths` frontmatter, split large file, remove stale reference, resolve conflict, or migrate a tracked generated-only skill edit into its canonical source)
+2. Apply the specific fix (rewrite vague instruction, add `paths` frontmatter, split large files, remove stale references, or reconcile independently changed skill copies)
 3. Show the diff to user before writing
 4. Write the updated file
 

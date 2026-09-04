@@ -10,6 +10,24 @@ description: Drive /model yourself by default, or hand opusplan routing to Claud
 Model Switching is a Claude Code feature. It is not available in Codex CLI -- on Codex, set the model via `codex --model <name>` or in `~/.codex/config.toml`, and `/spec` runs on whatever model is active.
 :::
 
+## Codex model launches
+
+The Console does not maintain a Codex model picker. It reads the model recorded
+by Codex sessions, so a newly available model works without a Console settings
+migration. Pilot adds a friendly usage label and offline pricing fallback for
+known models; unknown models stay visible as unpriced instead of silently
+reporting zero cost.
+
+Pilot recognizes `gpt-6-astra` as **GPT-6 Astra**, including its short- and
+long-context Standard pricing. The installer continues to seed GPT-5.6 Sol as
+the Codex default for now: it must not switch every user to a staged model their
+account or API project may not yet access. Once OpenAI grants access, select
+Astra in Codex with `codex --model gpt-6-astra` or your own `config.toml` choice.
+Pilot preserves provider catalog entries rather than maintaining a separate
+closed model allowlist. Its generated catalog only raises the published context
+ceiling for GPT-6 Astra and the GPT-5.6 Sol/Terra/Luna family; older models keep
+their own advertised limits.
+
 Opus reasons better; Sonnet is faster and cheaper. The cost-saving move is to plan on a stronger model, then drop to a cheaper one for the mechanical implementation and verification that follow. **Model Switching** controls how `/spec` handles that switch.
 
 ## The Three Modes

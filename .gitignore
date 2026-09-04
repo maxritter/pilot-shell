@@ -296,6 +296,28 @@ docs/plans/.annotations/
 docs/builds
 docs/builds/.annotations/
 docs/license
+
+# Cross-agent repository contract. Pilot Shell dogfoods the setup-rules
+# canonical/mirror layout while keeping unrelated local agent extensions private.
+!AGENTS.md
+!CLAUDE.md
+!.agents/
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/upstream-audit/
+!.agents/skills/upstream-audit/**
+!.claude/rules/
+.claude/rules/*
+!.claude/rules/pilot-shell-codex-skill-sync.md
+!.claude/rules/pilot-shell-installer-patterns.md
+!.claude/rules/pilot-shell-package-boundaries.md
+!.claude/rules/pilot-shell-shared-display-sections.md
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/.pilot-sync-manifest.json
+!.claude/skills/upstream-audit/
+!.claude/skills/upstream-audit/**
 docs/video
 docs/slides
 docs/prd

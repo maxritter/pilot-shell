@@ -57,7 +57,7 @@ const GitTerminalMock = () => (
         <span className="ps-t-fg">git commit -m "memories + approved spec"</span>
       </div>
       <div className="ps-tl ps-t-faint" style={{ paddingLeft: 28 }}>
-        <span>teammates load this context at their next session start</span>
+        <span>teammates can recall this context in their next session</span>
       </div>
     </div>
   </div>
@@ -75,9 +75,9 @@ const TeamSection = () => (
         </div>
         <p className="ps-lead">
           Pilot stores a project's captured decisions and discoveries in the repo
-          itself, so git carries them to every contributor. Teammates' context
-          loads at session start on Claude Code and Codex — no cloud, no clock,
-          you review the diff and commit.
+          itself, so git carries them to every contributor. Claude Code loads
+          memory automatically; Codex retrieves relevant history through local
+          search when needed. No cloud, no clock — you review the diff and commit.
         </p>
       </div>
 

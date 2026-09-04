@@ -10,7 +10,7 @@
 6. **README currency** — if `.claude/rules/README.md` exists, verify it lists all current rule files and directories. Update if stale.
 7. **Path-scoping enforcement** — re-verify every detailed rule has non-empty `paths` frontmatter
 8. **Rule routing parity** — verify every scoped rule appears in `AGENTS.md` with its exact globs and purpose so Codex can load the same detail on demand
-9. **Skill migration safety** — account for every tracked file under `.claude/skills/`; identical/generated files may be replaced, but unique tracked content must first land in `.agents/skills/`. Record untracked/ignored local-only extensions as preserved and out of scope.
+9. **Skill migration safety** — account for valid skills in both trees, including untracked and gitignored skills. One-sided skills may be copied; independently changed copies must remain preserved until explicitly reconciled.
 10. **Automatic sync and backstops** — verify the proposed root shim is exactly `@AGENTS.md`, the bundled installer is available, Pilot's shared hook covers SessionStart, supported edits from both agents and Stop for Code Mode, and an existing CI job has been selected for `--check` when CI exists. Do not add a second repository hook.
 
 Auto-fix issues that do not change a user decision. Return conflicts to Step 7 or Step 11's decision gate. Keep this inventory for the evidence summary.

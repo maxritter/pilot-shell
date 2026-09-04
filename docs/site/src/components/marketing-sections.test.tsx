@@ -111,9 +111,11 @@ describe("agent-aware marketing sections", () => {
 
     expect(team).toContain("Share the why, not just the code.");
     expect(team).toContain("Team memories");
+    expect(team).toContain("Codex retrieves relevant history through local");
+    expect(team).not.toContain("loads at session start on Claude Code and Codex");
     expect(team).toContain("Extension sharing");
     expect(team).toContain("One standard for everyone");
-    expect(team).toContain("no cloud, no clock, you review the diff and commit");
+    expect(team).toContain("No cloud, no clock — you review the diff and commit");
   });
 
   it("describes both agents with their real coverage and subscriptions", () => {

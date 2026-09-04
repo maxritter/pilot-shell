@@ -152,12 +152,18 @@ class TestPrerequisitesHelpers:
         assert "uv" in HOMEBREW_PACKAGES
         assert "go" in HOMEBREW_PACKAGES
         assert "ripgrep" in HOMEBREW_PACKAGES
+        assert "ast-grep" in HOMEBREW_PACKAGES
 
     def test_get_command_for_package_maps_ripgrep_to_rg(self):
         """_get_command_for_package returns 'rg' for ripgrep package."""
         from installer.steps.prerequisites import _get_command_for_package
 
         assert _get_command_for_package("ripgrep") == "rg"
+
+    def test_get_command_for_package_keeps_ast_grep_binary_name(self):
+        from installer.steps.prerequisites import _get_command_for_package
+
+        assert _get_command_for_package("ast-grep") == "ast-grep"
 
     @patch("installer.steps.prerequisites.is_linux")
     @patch("installer.steps.prerequisites.is_apt_available")

@@ -16,11 +16,17 @@ All Pilot workflows run on both agents. Use `/` on Claude Code and `$` on Codex:
 - **Structured workflows:** `/prd`, `/spec`, `/build`, `/fix`
 - **Focused workflows:** `/investigate`, `/cleanup`, `/benchmark`, `/setup-rules`, `/create-skill`; Open Claude Design and Impeccable load automatically for matching visual work
 - Console — all 11 views, persistent memory, sessions, and memories shared between agents
-- Lifecycle hooks, compaction recovery, SessionEnd finalization, and workflow stop guards
+- Lifecycle hooks, active-work recovery, SessionEnd finalization, and workflow stop guards
 - Workflow quality gates on both agents; Claude Code additionally keeps its edit-time lint, format, type, and TDD hooks
 - MCP servers (CodeGraph, Semble, mem-search, web-search, and more)
 - Rules, standards, context optimization, and team memories
 - Spec-review and changes-review agents
+
+## Codex context and Pilot memory
+
+The installer enables Codex's experimental native context manager by default while preserving an explicit opt-out in `config.toml`. Eligible ChatGPT-backed sessions then keep notes across context windows and can search earlier thread history instead of repeatedly reducing it to one compaction summary.
+
+Pilot keeps recording durable decisions, discoveries, and bugfixes for cross-session use. Codex relies on native thread history when eligible and searches the local `mem-search` MCP when prior project context is relevant; Pilot does not inject a recency-based memory digest automatically. Claude Code keeps Pilot's existing automatic memory lifecycle.
 
 Pilot installs the same five Open Claude Design skills for both agents. For the real Claude Design service, `open-claude-design` supplies the cross-platform CLI bridge; `pilot design` remains a forwarding alias. Claude Code is not required for authentication: the first desktop use connects in a browser, while headless containers use `pilot design login --manual` in an interactive terminal. See [UI Design and Claude Design](../workflows/ui-design.md).
 

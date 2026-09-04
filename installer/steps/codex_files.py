@@ -24,15 +24,25 @@ from installer.steps.base import BaseStep
 
 _CODEX_REVIEW_AGENT_MODEL = "codex-auto-review"
 _CODEX_MODEL_CATALOG_FILENAME = ".pilot-model-catalog.json"
-_CODEX_SOL_MAX_CONTEXT_WINDOW = 872000
+_CODEX_FULL_CONTEXT_WINDOW = 1_050_000
+_CODEX_FULL_CONTEXT_MODELS = frozenset(
+    {
+        "gpt-5.6-sol",
+        "gpt-5.6-terra",
+        "gpt-5.6-luna",
+        "gpt-6-astra",
+    }
+)
 _CODEX_MODEL_DEFAULTS = {
     "model": '"gpt-5.6-sol"',
     "model_reasoning_effort": '"xhigh"',
     "plan_mode_reasoning_effort": '"xhigh"',
-    # Request Sol's 1M mode. Codex applies the catalog ceiling below and its
-    # own effective-window/compaction reserves before reporting usable tokens.
-    "model_context_window": "1000000",
-    "model_auto_compact_token_limit": "900000",
+    # Request Astra's full published window/input allowance. Codex clamps the
+    # context override to each selected model's catalog ceiling and caps this
+    # compaction threshold at 90% of that resolved window, so Sol and older
+    # models safely retain their smaller limits.
+    "model_context_window": "1050000",
+    "model_auto_compact_token_limit": "922000",
 }
 
 _CODEX_SKILL_DESCRIPTIONS = {
@@ -173,27 +183,26 @@ def _expanded_codex_model_catalog(catalog: dict[str, Any]) -> dict[str, Any] | N
         return None
 
     copied_models = [dict(model) if isinstance(model, dict) else model for model in models]
-    sol = next(
-        (model for model in copied_models if isinstance(model, dict) and model.get("slug") == "gpt-5.6-sol"),
-        None,
-    )
-    if sol is None:
+    expandable = [
+        model for model in copied_models if isinstance(model, dict) and model.get("slug") in _CODEX_FULL_CONTEXT_MODELS
+    ]
+    if not expandable:
         return None
-
-    advertised_max = sol.get("max_context_window")
-    if not isinstance(advertised_max, int) or advertised_max < _CODEX_SOL_MAX_CONTEXT_WINDOW:
-        sol["max_context_window"] = _CODEX_SOL_MAX_CONTEXT_WINDOW
+    for model in expandable:
+        advertised_max = model.get("max_context_window")
+        if not isinstance(advertised_max, int) or advertised_max < _CODEX_FULL_CONTEXT_WINDOW:
+            model["max_context_window"] = _CODEX_FULL_CONTEXT_WINDOW
     return {"models": copied_models}
 
 
 def _install_codex_model_catalog(codex_dir: Path) -> tuple[Path | None, bool]:
-    """Install a full catalog whose Sol ceiling permits Codex's 1M mode.
+    """Install a full catalog with published ceilings for current Codex models.
 
-    Codex 0.147 clamps ``model_context_window`` to the selected catalog's
-    ``max_context_window``. Its bundled stable catalog still advertises 272k,
-    while the expanded catalog uses 872k and exposes 828.4k after Codex's 95%
-    effective-window reserve. Preserve every other model entry so the model
-    picker keeps working.
+    Codex clamps ``model_context_window`` to the selected catalog's
+    ``max_context_window``. Older bundled catalogs advertise smaller ceilings
+    for models whose published window is now 1.05M, so raise only the known
+    Astra/5.6 family while preserving every other entry and limit. The separate
+    922k auto-compaction default protects those models' published maximum input.
     """
     catalog_path = codex_dir / _CODEX_MODEL_CATALOG_FILENAME
     sources = [
@@ -750,11 +759,14 @@ class CodexFilesStep(BaseStep):
             model_defaults["model_catalog_json"] = _toml_string(str(catalog_path))
         elif ctx.ui:
             ctx.ui.warning(
-                "Could not prepare the expanded GPT-5.6 Sol model catalog; "
+                "Could not prepare the expanded GPT-5.6/Astra model catalog; "
                 "Codex may keep its smaller bundled context window."
             )
         existing, model_defaults_changed = _set_top_level_keys(existing, model_defaults)
         changed = changed or model_defaults_changed
+
+        existing, context_management_changed = _ensure_context_management_feature(existing)
+        changed = changed or context_management_changed
 
         required_features = {"hooks": "true"}
         existing, features_changed = _ensure_section_keys(existing, "features", required_features)
@@ -982,6 +994,70 @@ def _ensure_section_keys(
             changed = True
 
     return content, changed
+
+
+def _ensure_context_management_feature(content: str) -> tuple[str, bool]:
+    """Enable native Codex context management unless the user configured it."""
+    section_match = re.search(r"(?m)^\[", content)
+    top_level_scope = content[: section_match.start()] if section_match else content
+    dotted_pattern = re.compile(
+        r"(?m)^[ \t]*features\.context_management\.experimental_mode[ \t]*=[ \t]*"
+        r"(?P<value>[^\r\n]+)(?:\r?\n)?"
+    )
+    dotted_match = dotted_pattern.search(top_level_scope)
+    if dotted_match is not None:
+        value = dotted_match.group("value").strip()
+        content = content[: dotted_match.start()] + content[dotted_match.end() :]
+        content, _ = _ensure_section_keys(
+            content,
+            "features",
+            {"context_management.experimental_mode": value},
+        )
+        return content, True
+
+    try:
+        parsed = tomllib.loads(content)
+    except tomllib.TOMLDecodeError:
+        parsed = {}
+    features = parsed.get("features")
+    context_management = features.get("context_management") if isinstance(features, dict) else None
+    if isinstance(context_management, dict) and "experimental_mode" in context_management:
+        return content, False
+
+    if "[features.context_management]" in content:
+        return _ensure_section_keys(
+            content,
+            "features.context_management",
+            {"experimental_mode": "true"},
+        )
+
+    if isinstance(context_management, dict):
+        features_header = "[features]"
+        features_start = content.index(features_header) + len(features_header)
+        next_section = re.search(r"(?m)^\[", content[features_start:])
+        features_end = features_start + next_section.start() if next_section else len(content)
+        features_text = content[features_start:features_end]
+        inline_pattern = re.compile(
+            r"(?m)^(?P<indent>[ \t]*)context_management[ \t]*=[ \t]*"
+            r"\{(?P<body>[^{}\r\n]*)\}[ \t]*$"
+        )
+        inline_match = inline_pattern.search(features_text)
+        if inline_match is None:
+            return content, False
+        body = inline_match.group("body").strip()
+        entries = "experimental_mode = true"
+        if body:
+            entries += f", {body}"
+        replacement = f"{inline_match.group('indent')}context_management = {{ {entries} }}"
+        start = features_start + inline_match.start()
+        end = features_start + inline_match.end()
+        return content[:start] + replacement + content[end:], True
+
+    return _ensure_section_keys(
+        content,
+        "features",
+        {"context_management.experimental_mode": "true"},
+    )
 
 
 def _insert_top_level_key(content: str, key: str, value: str) -> str:

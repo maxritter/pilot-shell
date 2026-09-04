@@ -731,3 +731,93 @@ class TestSearchNudgeSafety:
         code, output = _run_with_input("Agent", {"subagent_type": "Explore", "prompt": "find files"})
         assert code == 0
         assert not _is_denied(output)
+
+
+def _has_edit_tool_nudge(stdout: str) -> bool:
+    """Check for the shell-file-edit reminder (additionalContext, never a deny)."""
+    try:
+        data = json.loads(stdout.strip())
+    except (json.JSONDecodeError, ValueError):
+        return False
+    context = data.get("hookSpecificOutput", {}).get("additionalContext", "")
+    return "Edit tool" in context and "Write" in context
+
+
+class TestShellFileEditNudge:
+    """Shell commands that edit files get a non-blocking reminder to use Edit/Write.
+
+    Claude Code's bypass-permissions mode tells the model to prefer heredocs,
+    sed and inline scripts over the dedicated edit tools; those edits render no
+    diff in the terminal. The reminder steers the next edit back to Edit/Write
+    without ever blocking a command - a false match must cost nothing.
+    """
+
+    SCRATCH = "/private/tmp/claude-501/-Users-max-repos-x/abc/scratchpad"
+
+    @pytest.mark.parametrize(
+        "command",
+        [
+            "sed -i 's/foo/bar/' src/app.py",
+            "sed -i.bak -e 's/foo/bar/' launcher/cli.py",
+            "perl -pi -e 's/foo/bar/' Makefile",
+            "cat > src/new_module.py <<'EOF'\nprint('hi')\nEOF",
+            "cat <<EOF > notes.md\nhello\nEOF",
+            'echo "export X=1" >> .envrc',
+            "printf '{}' > config.json",
+            'python3 - <<\'EOF\'\nfrom pathlib import Path\nPath("a.py").write_text("x")\nEOF',
+            "python3 -c \"open('a.py','w').write('x')\"",
+            "uv run python - <<'EOF'\nimport json\njson.dump({}, open('cfg.json', 'w'))\nEOF",
+            "node -e \"require('fs').writeFileSync('a.js','x')\"",
+            "bun -e \"await Bun.write('a.ts', 'x')\"",
+            "npm test 2>&1 | tee test-output.log",
+            "cd console && bun run build && echo done > BUILD_OK",
+        ],
+    )
+    def test_reminds_on_shell_file_edits_without_blocking(self, command: str):
+        code, output = _run_with_input("Bash", {"command": command})
+        assert code == 0, command
+        assert not _is_denied(output), command
+        assert _has_edit_tool_nudge(output), command
+
+    def test_reminder_is_not_throttled(self, tmp_path):
+        """Unlike the search nudges, every shell edit gets the reminder."""
+        with patch("tool_redirect._throttle_sentinel_path", return_value=tmp_path / "nudge.json"):
+            for _ in range(2):
+                code, output = _run_with_input("Bash", {"command": "sed -i 's/a/b/' src/app.py"})
+                assert code == 0
+                assert _has_edit_tool_nudge(output)
+
+    @pytest.mark.parametrize(
+        "command",
+        [
+            "cat src/app.py",
+            "sed -n '1,40p' src/app.py",
+            "grep -n foo src/app.py",
+            "echo hi",
+            "echo hi > /dev/null",
+            "echo warn >&2",
+            "uv run pytest -q 2>&1 | tail -3",
+            "bun test > /tmp/out.txt",
+            "bun test 2>&1 | tee /tmp/out.txt",
+            'python3 -c "print(1)"',
+            "python3 - <<'EOF'\nprint(open(\"a.py\").read())\nEOF",
+            "git commit -m \"$(cat <<'EOF'\nfix: message\nEOF\n)\"",
+            "git diff --stat",
+            "ls -la && pwd",
+        ],
+    )
+    def test_stays_silent_for_read_only_and_temp_shell(self, command: str):
+        code, output = _run_with_input("Bash", {"command": command})
+        assert code == 0, command
+        assert not _has_edit_tool_nudge(output), command
+
+    def test_stays_silent_for_writes_into_the_scratchpad(self):
+        code, output = _run_with_input("Bash", {"command": f"cat > {self.SCRATCH}/verify.ts <<'EOF'\nx\nEOF"})
+        assert code == 0
+        assert not _has_edit_tool_nudge(output)
+
+    def test_edit_reminder_takes_precedence_over_search_nudge(self, tmp_path):
+        with patch("tool_redirect._throttle_sentinel_path", return_value=tmp_path / "nudge.json"):
+            code, output = _run_with_input("Bash", {"command": "grep -rn foo . > matches.txt"})
+        assert code == 0
+        assert _has_edit_tool_nudge(output)

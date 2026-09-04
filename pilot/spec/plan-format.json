@@ -72,6 +72,13 @@
   "sections_hidden": ["Progress Tracking", "Progress"],
   "_sections_hidden_comment": "Never rendered as a section. Progress Tracking is already shown by each surface's header card as a task count; 'Progress' is the legacy heading for the same checklist and is hidden for the same reason.",
 
+  "progress_sections": {
+    "Feature": "Progress Tracking",
+    "Bugfix": "Tasks",
+    "Build": "Progress Tracking"
+  },
+  "_progress_sections_comment": "The heading whose top-level Task N checklist drives progress for each plan type. Bugfix plans intentionally keep the checklist and task bodies together under Tasks; they do not duplicate it in Progress Tracking.",
+
   "tasks_headings": ["Implementation Tasks", "Tasks"],
   "_tasks_headings_comment": "Rendered by a dedicated task-card component, not as an ordinary section. 'Implementation Tasks' is feature/build, 'Tasks' is bugfix.",
 

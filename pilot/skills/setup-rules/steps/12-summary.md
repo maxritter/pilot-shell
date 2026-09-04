@@ -9,8 +9,8 @@ Report:
 - Path-scoping: every detailed rule validated, violations fixed
 - User content preservation: source sections and skill files migrated, unchanged, or explicitly skipped
 - Shared core: `AGENTS.md` created | updated | unchanged | skipped; `CLAUDE.md` exact import yes | no
-- Skills: tracked canonical/mirror count and parity pass | fail | skipped; local untracked/ignored extensions preserved out of scope
-- Automatic hook: Claude Code and Codex SessionStart/edit/Stop coverage confirmed | missing; generated-edit redirect/block path confirmed | missing
+- Skills: synchronized tracked/local/ignored count and parity pass | fail | skipped; independent conflicts preserved
+- Automatic hook: Claude Code and Codex SessionStart/either-side edit/rule-index/Stop coverage confirmed | missing
 - Checker: installed path and exact `--check` result
 - CI: existing workflow/job updated | already present | no CI | skipped; confirm no new job was created
 - Cross-check: source coverage, rule-index parity, and issues fixed (if any)

@@ -32,16 +32,6 @@
         ]
       },
       {
-        "matcher": "startup|resume|clear|compact",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" --exec bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex context",
-            "timeout": 15
-          }
-        ]
-      },
-      {
         "matcher": "clear",
         "hooks": [
           {

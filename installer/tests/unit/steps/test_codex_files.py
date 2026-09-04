@@ -176,7 +176,7 @@ class TestCodexHooksInstallation:
         assert "hooks" in data
         assert "SessionStart" in data["hooks"]
 
-    def test_real_template_injects_memory_context_on_codex_startup(self, tmp_path: Path) -> None:
+    def test_real_template_leaves_codex_memory_retrieval_on_demand(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"
         repo_root = Path(__file__).resolve().parent.parent.parent.parent.parent
 
@@ -193,7 +193,37 @@ class TestCodexHooksInstallation:
         context_commands = [
             hook["command"] for entry in data["hooks"]["SessionStart"] for hook in entry.get("hooks", [])
         ]
-        assert any('worker-service.cjs" hook codex context' in command for command in context_commands)
+        assert not any('worker-service.cjs" hook codex context' in command for command in context_commands)
+
+    def test_upgrade_removes_previous_codex_memory_context_hook(self, tmp_path: Path) -> None:
+        codex_dir = tmp_path / ".codex"
+        codex_dir.mkdir(parents=True)
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent.parent
+        old_context = {
+            "matcher": "startup|resume|clear|compact",
+            "hooks": [
+                {
+                    "type": "command",
+                    "command": 'uv run python "$HOME/.pilot/scripts/worker-service.cjs" hook codex context',
+                    "timeout": 15,
+                }
+            ],
+        }
+        user_hook = {
+            "matcher": "startup",
+            "hooks": [{"type": "command", "command": "echo user-startup"}],
+        }
+        (codex_dir / "hooks.json").write_text(json.dumps({"hooks": {"SessionStart": [old_context, user_hook]}}))
+        (codex_dir / ".pilot-hooks-baseline.json").write_text(json.dumps({"SessionStart": [old_context]}))
+
+        ctx = MagicMock(ui=None, local_mode=True, local_repo_dir=repo_root)
+        with patch("installer.steps.codex_files._get_codex_config_dir", return_value=codex_dir):
+            CodexFilesStep()._install_codex_hooks(ctx)
+
+        session_start = json.loads((codex_dir / "hooks.json").read_text())["hooks"]["SessionStart"]
+        commands = [hook["command"] for entry in session_start for hook in entry.get("hooks", [])]
+        assert not any("hook codex context" in command for command in commands)
+        assert "echo user-startup" in commands
 
     def test_real_template_has_all_hook_events(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"
@@ -241,7 +271,7 @@ class TestCodexHooksInstallation:
             for handler in handlers
             if any(
                 command in handler["command"]
-                for command in ("repo_agent_sync.py", "spec_stop_guard.py", "hook codex context", "session_end.py")
+                for command in ("repo_agent_sync.py", "spec_stop_guard.py", "session_end.py")
             )
         ]
         assert control_handlers
@@ -986,8 +1016,8 @@ class TestCodexSkillsInstallation:
 
         assert ".agents/skills/{slug}-{name}/SKILL.md" in result
         assert "~/.agents/skills/{slug}-{name}/SKILL.md" in result
-        assert "Pilot's shared hook generates `.claude/skills/` after supported edits from either agent" in result
-        assert "For project scope, `.agents/skills/` is canonical" in result
+        assert "Pilot's shared hook synchronizes `.agents/skills/` and `.claude/skills/`" in result
+        assert "For project scope, prefer `.agents/skills/` as the durable source" in result
         assert "Users normally do not run `--write`" in result
         assert "Keep manual `--write` as recovery" in result
 
@@ -2361,6 +2391,21 @@ class TestCodexModelDefaults:
                     "context_window": 272000,
                     "max_context_window": 272000,
                 },
+                {
+                    "slug": "gpt-5.6-luna",
+                    "context_window": 272000,
+                    "max_context_window": 272000,
+                },
+                {
+                    "slug": "gpt-6-astra",
+                    "context_window": 1050000,
+                    "max_context_window": 1050000,
+                },
+                {
+                    "slug": "gpt-5.5",
+                    "context_window": 272000,
+                    "max_context_window": 272000,
+                },
             ],
         }
         (codex_dir / "models_cache.json").write_text(json.dumps(cache))
@@ -2387,13 +2432,16 @@ class TestCodexModelDefaults:
         assert parsed["model"] == "gpt-5.6-sol"
         assert parsed["model_reasoning_effort"] == "xhigh"
         assert parsed["plan_mode_reasoning_effort"] == "xhigh"
-        assert parsed["model_context_window"] == 1000000
-        assert parsed["model_auto_compact_token_limit"] == 900000
+        assert parsed["model_context_window"] == 1050000
+        assert parsed["model_auto_compact_token_limit"] == 922000
         assert parsed["model_catalog_json"] == str(codex_dir / ".pilot-model-catalog.json")
         catalog = json.loads((codex_dir / ".pilot-model-catalog.json").read_text())
         models = {model["slug"]: model for model in catalog["models"]}
-        assert models["gpt-5.6-sol"]["max_context_window"] == 872000
-        assert models["gpt-5.6-terra"]["max_context_window"] == 272000
+        assert models["gpt-5.6-sol"]["max_context_window"] == 1050000
+        assert models["gpt-5.6-terra"]["max_context_window"] == 1050000
+        assert models["gpt-5.6-luna"]["max_context_window"] == 1050000
+        assert models["gpt-6-astra"]["max_context_window"] == 1050000
+        assert models["gpt-5.5"]["max_context_window"] == 272000
         assert json.loads((codex_dir / "models_cache.json").read_text()) == source_cache
         for key in (
             "approval_policy",
@@ -2405,7 +2453,10 @@ class TestCodexModelDefaults:
             "suppress_unstable_features_warning",
         ):
             assert key not in parsed
-        assert parsed["features"] == {"hooks": True}
+        assert parsed["features"] == {
+            "hooks": True,
+            "context_management": {"experimental_mode": True},
+        }
         assert "sandbox_workspace_write" not in parsed
         assert "notice" not in parsed
         _validate_toml_structure(result)
@@ -2445,13 +2496,64 @@ class TestCodexModelDefaults:
         assert parsed["model"] == "gpt-5.6-sol"
         assert parsed["model_reasoning_effort"] == "xhigh"
         assert parsed["plan_mode_reasoning_effort"] == "xhigh"
-        assert parsed["model_context_window"] == 1000000
-        assert parsed["model_auto_compact_token_limit"] == 900000
+        assert parsed["model_context_window"] == 1050000
+        assert parsed["model_auto_compact_token_limit"] == 922000
         assert parsed["personality"] == "friendly"
         assert parsed["project_doc_max_bytes"] == 65536
         assert parsed["profiles"]["careful"] == {
             "model": "gpt-5.5",
             "model_reasoning_effort": "low",
+        }
+
+    @pytest.mark.parametrize(
+        "feature_config",
+        [
+            "features.context_management.experimental_mode = false\n",
+            "[features]\ncontext_management.experimental_mode = false\n",
+            "[features.context_management]\nexperimental_mode = false\n",
+            "[features]\ncontext_management = { experimental_mode = false }\n",
+        ],
+    )
+    def test_preserves_explicit_context_management_opt_out(
+        self,
+        tmp_path: Path,
+        feature_config: str,
+    ) -> None:
+        codex_dir = tmp_path / ".codex"
+        codex_dir.mkdir(parents=True)
+        config = codex_dir / "config.toml"
+        config.write_text(feature_config)
+
+        step = CodexFilesStep()
+        ctx = MagicMock(ui=None)
+        with (
+            patch("installer.steps.codex_files._get_codex_config_dir", return_value=codex_dir),
+            patch("installer.steps.codex_files.Path.home", return_value=tmp_path),
+        ):
+            step._install_codex_config(ctx)
+
+        parsed = tomllib.loads(config.read_text())
+        assert parsed["features"]["hooks"] is True
+        assert parsed["features"]["context_management"]["experimental_mode"] is False
+
+    def test_enables_context_management_in_existing_inline_table(self, tmp_path: Path) -> None:
+        codex_dir = tmp_path / ".codex"
+        codex_dir.mkdir(parents=True)
+        config = codex_dir / "config.toml"
+        config.write_text("[features]\ncontext_management = { future_option = true }\n")
+
+        step = CodexFilesStep()
+        ctx = MagicMock(ui=None)
+        with (
+            patch("installer.steps.codex_files._get_codex_config_dir", return_value=codex_dir),
+            patch("installer.steps.codex_files.Path.home", return_value=tmp_path),
+        ):
+            step._install_codex_config(ctx)
+
+        parsed = tomllib.loads(config.read_text())
+        assert parsed["features"]["context_management"] == {
+            "experimental_mode": True,
+            "future_option": True,
         }
 
     def test_uses_installed_codex_catalog_when_cache_is_missing(self, tmp_path: Path) -> None:
@@ -2485,7 +2587,7 @@ class TestCodexModelDefaults:
         parsed = tomllib.loads(config.read_text())
         assert parsed["model_catalog_json"] == str(codex_dir / ".pilot-model-catalog.json")
         catalog = json.loads((codex_dir / ".pilot-model-catalog.json").read_text())
-        assert catalog["models"][0]["max_context_window"] == 872000
+        assert catalog["models"][0]["max_context_window"] == 1050000
 
     def test_preserves_user_catalog_when_expanded_catalog_is_unavailable(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"

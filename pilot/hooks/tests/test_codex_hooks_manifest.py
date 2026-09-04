@@ -44,6 +44,13 @@ def test_codex_post_tool_hooks_do_not_inject_workflow_reminders() -> None:
     assert not any("context_monitor.py" in command for command in commands)
 
 
+def test_codex_session_start_leaves_pilot_memory_retrieval_on_demand() -> None:
+    hooks = json.loads(MANIFEST.read_text())["hooks"]
+    commands = [hook["command"] for hook in _commands(hooks["SessionStart"])]
+
+    assert not any("hook codex context" in command for command in commands)
+
+
 def test_stop_hooks_cover_workflow_and_repository_invariants() -> None:
     hooks = json.loads(MANIFEST.read_text())["hooks"]
     stop_hooks = _commands(hooks["Stop"])
@@ -77,7 +84,6 @@ def test_control_and_context_hooks_remain_synchronous() -> None:
     synchronous_commands = (
         "repo_agent_sync.py",
         "spec_stop_guard.py",
-        "hook codex context",
         "session_clear.py",
         "post_compact_restore.py",
         "tool_token_saver.py",

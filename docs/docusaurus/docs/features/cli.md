@@ -55,7 +55,7 @@ Scaffold and check plan files from any tool — a skill of your own, a script, o
 
 `validate` reports three tiers, and only the first one fails the command:
 
-- **errors** — the plan will render wrong (bad header value, task-numbering gap, a missing task-card label, `Progress Tracking` disagreeing with the task headings, CRLF line endings)
+- **errors** — the plan will render wrong (bad header value, task-numbering gap, a missing task-card label, the plan type's progress checklist disagreeing with its task headings, CRLF line endings)
 - **warnings** — the plan is unfinished but renderable (`TODO` left in, a Definition of Done with no checkboxes, no tasks yet). `--strict` promotes these to errors
 - **info** — worth knowing, never a failure (a section heading Pilot doesn't recognise; it still renders)
 
@@ -188,7 +188,7 @@ Called by hooks and the Console — you rarely need to run these directly.
 |---------|-------------|
 | `pilot check-context --json` | Get current context usage percentage |
 | `pilot register-plan <path> <status> [--lane <id>]` | Associate a plan file or Buildout with the current session, or with an [orchestration lane](#orchestration-lanes). Prints a warning when `<path>` is outside the scanned directories — the Console only displays files in `<project>/docs/plans/`, `<project>/docs/builds/`, or the same pair under `<worktree base>/<slug>/` (the worktree base is `<project>/.worktrees/` unless configured otherwise) |
-| `pilot review-scope [--slug <slug>] [--lane <id>] [--json]` | Resolve the `git diff` scope a code review should read — the single source of truth for review diff scope. Prints a range you splice directly (`git diff $(pilot review-scope) -- <files>`); `--json` adds `mode` (`working-tree` or `worktree`), `base_ref`, and a `warning` when the scope degraded. In worktree mode it returns the fork-point range `<base_branch>...HEAD` against the branch's *detected* base — never a hardcoded `main`, and never a two-dot range against the base branch's live tip. Pass `--lane` for an [orchestration lane](#orchestration-lanes): its branch is `spec/<slug>-<lane>`, so an unflagged resolve finds nothing and degrades — and a degraded scope now says so in `warning` rather than silently reporting a working-tree range |
+| `pilot review-scope [--slug <slug>] [--lane <id>] [--json]` | Resolve the `git diff` scope a code review should read — the single source of truth for review diff scope. Prints a range you splice directly (`git diff $(pilot review-scope) -- <files>`); `--json` adds `mode` (`working-tree` or `worktree`), `base_ref`, and a `warning` when the scope degraded or the resolved range is empty. Empty ranges remain empty rather than widening into unrelated code. In worktree mode it returns the fork-point range `<base_branch>...HEAD` against the branch's *detected* base — never a hardcoded `main`, and never a two-dot range against the base branch's live tip. Pass `--lane` for an [orchestration lane](#orchestration-lanes): its branch is `spec/<slug>-<lane>`, so an unflagged resolve finds nothing and degrades loudly. |
 | `pilot sessions [--json]` | Show count of active Pilot sessions |
 | `pilot statusline` | Status line formatter *(Claude Code only — called by Claude Code's statusLine hook)*. `pilot statusline -h` lists what each line renders and shows how to wrap it in your own status line |
 | `pilot notify <type> <title> <message> [--plan-path PATH] [--json]` | Send a notification to the Console dashboard (type: `info`, `plan_approval`, `attention_needed`, `verification_complete`) |

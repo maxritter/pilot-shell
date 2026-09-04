@@ -90,14 +90,6 @@ def _commit_all(repo: Path, message: str = "agent baseline") -> None:
     )
 
 
-def test_session_identity_prefers_native_id_over_inherited_wrapper(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("PILOT_SESSION_ID", "shared-wrapper")
-    monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "claude-native")
-    monkeypatch.setenv("CODEX_THREAD_ID", "codex-native")
-
-    assert repo_agent_sync._session_identity({}) == "claude-native"
-
-
 class TestSessionStart:
     def test_repository_without_checker_is_quiet_noop(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         repo = tmp_path / "repo"
@@ -107,6 +99,44 @@ class TestSessionStart:
 
         assert handle(_session_payload(repo)) == {"continue": True}
         run.assert_not_called()
+
+    def test_repository_with_local_agent_assets_auto_syncs_without_checker_marker(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        repo = tmp_path / "repo"
+        (repo / ".git").mkdir(parents=True)
+        local_skill = repo / ".claude" / "skills" / "local-skill"
+        local_skill.mkdir(parents=True)
+        (local_skill / "SKILL.md").write_text("---\nname: local-skill\ndescription: Local project skill.\n---\n")
+        bundled = tmp_path / "bundled.mjs"
+        bundled.write_text("// trusted checker\n")
+        run = Mock(side_effect=[CheckerResult(False, "missing Codex counterpart"), CheckerResult(True)])
+        monkeypatch.setattr(repo_agent_sync, "_bundled_checker", lambda: bundled)
+        monkeypatch.setattr(repo_agent_sync, "_run_checker", run)
+
+        result = handle(_session_payload(repo))
+
+        assert run.call_args_list == [call(bundled, "check", repo), call(bundled, "write", repo)]
+        assert result["continue"] is True
+        assert "synchronized" in result["systemMessage"]
+
+    def test_session_start_surfaces_gitignored_local_rule_paths(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        repo = tmp_path / "repo"
+        (repo / ".git").mkdir(parents=True)
+        rule = repo / ".claude" / "rules" / "local-only.md"
+        rule.parent.mkdir(parents=True)
+        rule.write_text("# Local rule\n")
+        bundled = tmp_path / "bundled.mjs"
+        bundled.write_text("// trusted checker\n")
+        monkeypatch.setattr(repo_agent_sync, "_bundled_checker", lambda: bundled)
+        monkeypatch.setattr(repo_agent_sync, "_run_checker", Mock(return_value=CheckerResult(True)))
+
+        result = handle(_session_payload(repo))
+
+        assert result["continue"] is True
+        assert ".claude/rules/local-only.md" in result["hookSpecificOutput"]["additionalContext"]
 
     def test_bundled_checker_refreshes_enrolled_repo(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         repo = tmp_path / "repo"
@@ -214,6 +244,24 @@ class TestPostToolUse:
         run.assert_called_once_with(bundled, "write", repo)
         assert result["continue"] is True
 
+    def test_claude_rule_edit_refreshes_cross_agent_rule_context(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        repo = tmp_path / "repo"
+        _enroll(repo)
+        rule = repo / ".claude" / "rules" / "project.md"
+        rule.parent.mkdir(parents=True)
+        rule.write_text("# Project rule\n")
+        bundled = repo_agent_sync._bundled_checker()
+        assert bundled is not None
+        run = Mock(return_value=CheckerResult(True))
+        monkeypatch.setattr(repo_agent_sync, "_run_checker", run)
+
+        result = handle(_post_payload(repo, "Edit", {"file_path": str(rule)}))
+
+        run.assert_called_once_with(bundled, "write", repo)
+        assert result["continue"] is True
+
     def test_codex_apply_patch_extracts_every_canonical_path(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
@@ -241,11 +289,7 @@ class TestPostToolUse:
     @pytest.mark.parametrize(
         ("path", "expected"),
         [
-            ("CLAUDE.md", "CLAUDE.md -> AGENTS.md"),
-            (
-                ".claude/skills/project-skill/SKILL.md",
-                ".claude/skills/project-skill/SKILL.md -> .agents/skills/project-skill/SKILL.md",
-            ),
+            ("CLAUDE.md", "CLAUDE.md is generated from AGENTS.md"),
         ],
     )
     def test_generated_edits_are_preserved_with_canonical_mapping(
@@ -275,7 +319,7 @@ class TestPostToolUse:
         repo = tmp_path / "repo"
         _enroll(repo)
         _make_skill(repo, "demo")
-        run = Mock()
+        run = Mock(return_value=CheckerResult(False, "both sides changed"))
         monkeypatch.setattr(repo_agent_sync, "_run_checker", run)
         patch = """*** Begin Patch
 *** Update File: .agents/skills/demo/SKILL.md
@@ -290,10 +334,12 @@ class TestPostToolUse:
 
         result = handle(_post_payload(repo, "apply_patch", {"command": patch}))
 
-        run.assert_not_called()
+        bundled = repo_agent_sync._bundled_checker()
+        assert bundled is not None
+        run.assert_called_once_with(bundled, "write", repo)
         assert result["decision"] == "block"
 
-    @pytest.mark.parametrize("path", ["app/main.ts", ".claude/rules/project.md", "docs/AGENTS.md"])
+    @pytest.mark.parametrize("path", ["app/main.ts", "docs/AGENTS.md"])
     def test_unrelated_edit_is_quiet_and_does_not_run_node(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, path: str
     ) -> None:
@@ -377,7 +423,7 @@ class TestInputSafety:
 
 class TestPreToolUse:
     @pytest.mark.parametrize("tool_name", ["Write", "Edit", "MultiEdit"])
-    def test_claude_mirror_edit_redirects_to_canonical_path(self, tmp_path: Path, tool_name: str) -> None:
+    def test_claude_mirror_edit_is_allowed_for_two_way_sync(self, tmp_path: Path, tool_name: str) -> None:
         repo = tmp_path / "repo"
         _enroll(repo)
         _make_skill(repo, "demo")
@@ -385,14 +431,9 @@ class TestPreToolUse:
 
         result = handle(_pre_payload(repo, tool_name, {"file_path": str(original), "content": "new"}))
 
-        output = result["hookSpecificOutput"]
-        assert output["hookEventName"] == "PreToolUse"
-        assert output["permissionDecision"] == "allow"
-        assert output["updatedInput"]["file_path"] == str(repo / ".agents" / "skills" / "demo" / "SKILL.md")
-        assert output["updatedInput"]["content"] == "new"
-        assert "redirected" in output["additionalContext"]
+        assert result == {"continue": True}
 
-    def test_codex_apply_patch_redirects_only_mirror_markers(self, tmp_path: Path) -> None:
+    def test_codex_apply_patch_keeps_mirror_markers_for_two_way_sync(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
         _enroll(repo)
         _make_skill(repo, "demo")
@@ -410,13 +451,7 @@ class TestPreToolUse:
 
         result = handle(_pre_payload(repo, "apply_patch", {"command": patch, "timeout": 10}))
 
-        output = result["hookSpecificOutput"]
-        rewritten = output["updatedInput"]["command"]
-        assert output["permissionDecision"] == "allow"
-        assert "*** Update File: .agents/skills/demo/SKILL.md" in rewritten
-        assert "*** Move to: .agents/skills/demo/references/note.md" in rewritten
-        assert "*** Update File: app/main.ts" in rewritten
-        assert output["updatedInput"]["timeout"] == 10
+        assert result == {"continue": True}
 
     @pytest.mark.parametrize("tool_name", ["Write", "Edit", "MultiEdit", "apply_patch"])
     def test_claude_md_edit_is_denied_before_mutation(self, tmp_path: Path, tool_name: str) -> None:
@@ -455,7 +490,7 @@ class TestPreToolUse:
 
         assert result == {"continue": True}
 
-    def test_brand_new_claude_skill_redirects_to_canonical_path(self, tmp_path: Path) -> None:
+    def test_brand_new_claude_skill_path_is_left_for_post_tool_two_way_sync(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
         _enroll(repo)
 
@@ -467,28 +502,47 @@ class TestPreToolUse:
             )
         )
 
-        output = result["hookSpecificOutput"]
-        assert output["permissionDecision"] == "allow"
-        assert output["updatedInput"]["file_path"] == ".agents/skills/new-skill/SKILL.md"
+        assert result == {"continue": True}
 
-    def test_existing_local_only_skill_is_quiet_before_and_after_edit(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_existing_local_only_skill_syncs_after_edit(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         repo = tmp_path / "repo"
         _enroll(repo)
         skill_file = repo / ".claude" / "skills" / "local-only" / "SKILL.md"
         skill_file.parent.mkdir(parents=True)
-        skill_file.write_text("before\n")
-        run = Mock()
+        skill_file.write_text("---\nname: local-only\ndescription: Local project skill.\n---\n\n# Before\n")
+        run = Mock(return_value=CheckerResult(True))
         monkeypatch.setattr(repo_agent_sync, "_run_checker", run)
         tool_input = {"file_path": str(skill_file), "content": "after\n"}
 
         assert handle(_pre_payload(repo, "Write", tool_input)) == {"continue": True}
-        skill_file.write_text("after\n")
-        assert handle(_post_payload(repo, "Write", tool_input)) == {"continue": True}
+        skill_file.write_text("---\nname: local-only\ndescription: Local project skill.\n---\n\n# After\n")
+        result = handle(_post_payload(repo, "Write", tool_input))
 
-        assert skill_file.read_text() == "after\n"
-        run.assert_not_called()
+        assert result["continue"] is True
+        bundled = repo_agent_sync._bundled_checker()
+        assert bundled is not None
+        run.assert_called_once_with(bundled, "write", repo)
+
+    def test_gitignored_mirror_skill_edit_is_two_way_and_runs_sync_after_edit(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        repo = tmp_path / "repo"
+        _enroll(repo)
+        (repo / ".gitignore").write_text(".agents/skills/local-skill/\n.claude/skills/local-skill/\n")
+        canonical = _make_skill(repo, "local-skill")
+        mirror = repo / ".claude" / "skills" / "local-skill"
+        shutil.copytree(canonical, mirror)
+        run = Mock(return_value=CheckerResult(True))
+        monkeypatch.setattr(repo_agent_sync, "_run_checker", run)
+        tool_input = {"file_path": str(mirror / "SKILL.md"), "content": "updated\n"}
+
+        assert handle(_pre_payload(repo, "Write", tool_input)) == {"continue": True}
+        result = handle(_post_payload(repo, "Write", tool_input))
+
+        bundled = repo_agent_sync._bundled_checker()
+        assert bundled is not None
+        run.assert_called_once_with(bundled, "write", repo)
+        assert result["continue"] is True
 
 
 class TestStop:
@@ -497,7 +551,6 @@ class TestStop:
     ) -> None:
         repo = tmp_path / "repo"
         _enroll(repo)
-        assert repo_agent_sync._record_session_baseline(repo, _session_payload(repo))[0] == set()
         bundled = repo_agent_sync._bundled_checker()
         assert bundled is not None
         run = Mock(return_value=CheckerResult(True))
@@ -522,7 +575,6 @@ class TestStop:
     ) -> None:
         repo = tmp_path / "repo"
         _enroll(repo)
-        assert repo_agent_sync._record_session_baseline(repo, _session_payload(repo))[0] == set()
         monkeypatch.setattr(
             repo_agent_sync,
             "_run_checker",
@@ -533,14 +585,13 @@ class TestStop:
 
         assert result["decision"] == "block"
         assert "mirror is invalid" in result["systemMessage"]
-        assert "Run setup-rules" in result["reason"]
+        assert "Both sides were preserved" in result["reason"]
 
     def test_missing_bundle_blocks_without_executing_local_checker(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         repo = tmp_path / "repo"
         _enroll(repo)
-        assert repo_agent_sync._record_session_baseline(repo, _session_payload(repo))[0] == set()
         run = Mock()
         monkeypatch.setattr(repo_agent_sync, "_bundled_checker", lambda: None)
         monkeypatch.setattr(repo_agent_sync, "_run_checker", run)
@@ -554,7 +605,7 @@ class TestStop:
 
 @pytest.mark.skipif(shutil.which("node") is None or shutil.which("git") is None, reason="requires node and git")
 class TestBundledCheckerIntegration:
-    def test_plain_preexisting_local_only_skill_stays_quiet_and_preserved(self, tmp_path: Path) -> None:
+    def test_plain_preexisting_local_only_skill_is_imported_for_codex(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
         repo.mkdir()
         subprocess.run(["git", "init", "--quiet", str(repo)], check=True)
@@ -563,7 +614,9 @@ class TestBundledCheckerIntegration:
         canonical = _make_skill(repo)
         local_skill = repo / ".claude" / "skills" / "local-only"
         local_skill.mkdir(parents=True)
-        (local_skill / "SKILL.md").write_text("local agent state\n")
+        (local_skill / "SKILL.md").write_text(
+            "---\nname: local-only\ndescription: Local agent skill.\n---\n\n# Local\n"
+        )
 
         result = handle(_session_payload(repo))
 
@@ -576,11 +629,13 @@ class TestBundledCheckerIntegration:
         assert (repo / ".claude" / "skills" / "example" / "SKILL.md").read_bytes() == (
             canonical / "SKILL.md"
         ).read_bytes()
-        assert (local_skill / "SKILL.md").read_text() == "local agent state\n"
-        assert not repo_agent_sync._baseline_path(repo, _session_payload(repo)).is_relative_to(repo)
-
+        assert (repo / ".agents" / "skills" / "local-only" / "SKILL.md").read_bytes() == (
+            local_skill / "SKILL.md"
+        ).read_bytes()
         assert handle(_stop_payload(repo)) == {"continue": True}
-        assert (local_skill / "SKILL.md").read_text() == "local agent state\n"
+        assert (repo / ".agents" / "skills" / "local-only" / "SKILL.md").read_bytes() == (
+            local_skill / "SKILL.md"
+        ).read_bytes()
 
     def test_session_start_never_overwrites_nontrivial_claude(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
@@ -643,7 +698,7 @@ class TestBundledCheckerIntegration:
         assert result == {"continue": True}
         assert mirror.read_bytes() == (canonical / "SKILL.md").read_bytes()
 
-    def test_canonical_skill_deletion_preserves_tracked_mirror_for_explicit_migration(self, tmp_path: Path) -> None:
+    def test_canonical_skill_deletion_propagates_when_the_mirror_matches_the_baseline(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
         repo.mkdir()
         subprocess.run(["git", "init", "--quiet", str(repo)], check=True)
@@ -660,9 +715,9 @@ class TestBundledCheckerIntegration:
 
         result = handle(_stop_payload(repo))
 
-        assert result["decision"] == "block"
-        assert ".claude/skills/example/SKILL.md -> .agents/skills/example/SKILL.md" in result["reason"]
-        assert mirror.exists()
+        assert result == {"continue": True}
+        assert not canonical.exists()
+        assert not mirror.exists()
 
     def test_no_drift_stop_is_check_only_without_mtime_churn(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
@@ -684,7 +739,7 @@ class TestBundledCheckerIntegration:
         assert result == {"continue": True}
         assert mirror.stat().st_mtime_ns == before
 
-    def test_mirror_only_stop_preserves_and_blocks_with_exact_mapping(self, tmp_path: Path) -> None:
+    def test_mirror_only_stop_synchronizes_back_to_canonical(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
         repo.mkdir()
         subprocess.run(["git", "init", "--quiet", str(repo)], check=True)
@@ -697,15 +752,15 @@ class TestBundledCheckerIntegration:
         assert handle(_session_payload(repo))["continue"] is True
         _commit_all(repo)
         mirror = repo / ".claude" / "skills" / "example" / "SKILL.md"
-        mirror.write_text("mirror-side work\n")
+        mirror_text = "---\nname: example\ndescription: Mirror-side work.\n---\n\n# Mirror\n"
+        mirror.write_text(mirror_text)
 
         result = handle(_stop_payload(repo))
 
-        assert result["decision"] == "block"
-        assert ".claude/skills/example/SKILL.md -> .agents/skills/example/SKILL.md" in result["reason"]
-        assert mirror.read_text() == "mirror-side work\n"
+        assert result == {"continue": True}
+        assert (repo / ".agents" / "skills" / "example" / "SKILL.md").read_text() == mirror_text
 
-    def test_new_untracked_code_mode_mirror_skill_is_preserved_and_blocked(self, tmp_path: Path) -> None:
+    def test_new_untracked_code_mode_mirror_skill_is_imported(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
         repo.mkdir()
         subprocess.run(["git", "init", "--quiet", str(repo)], check=True)
@@ -719,15 +774,14 @@ class TestBundledCheckerIntegration:
         _commit_all(repo)
         new_skill = repo / ".claude" / "skills" / "code-mode-skill" / "SKILL.md"
         new_skill.parent.mkdir(parents=True)
-        new_skill.write_text("code mode work\n")
+        new_skill.write_text("---\nname: code-mode-skill\ndescription: Code mode work.\n---\n\n# Code mode\n")
 
         result = handle(_stop_payload(repo))
 
-        assert result["decision"] == "block"
-        assert ".claude/skills/code-mode-skill/SKILL.md -> .agents/skills/code-mode-skill/SKILL.md" in result["reason"]
-        assert new_skill.read_text() == "code mode work\n"
+        assert result == {"continue": True}
+        assert (repo / ".agents" / "skills" / "code-mode-skill" / "SKILL.md").read_bytes() == new_skill.read_bytes()
 
-    def test_clean_tracked_mirror_only_skill_is_preserved_and_mapped(self, tmp_path: Path) -> None:
+    def test_clean_tracked_mirror_only_skill_is_imported(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
         repo.mkdir()
         subprocess.run(["git", "init", "--quiet", str(repo)], check=True)
@@ -740,14 +794,13 @@ class TestBundledCheckerIntegration:
         assert handle(_session_payload(repo))["continue"] is True
         legacy = repo / ".claude" / "skills" / "legacy-claude" / "SKILL.md"
         legacy.parent.mkdir(parents=True)
-        legacy.write_text("tracked Claude-only work\n")
+        legacy.write_text("---\nname: legacy-claude\ndescription: Tracked Claude-only work.\n---\n\n# Legacy\n")
         _commit_all(repo)
 
         result = handle(_stop_payload(repo))
 
-        assert result["decision"] == "block"
-        assert ".claude/skills/legacy-claude/SKILL.md -> .agents/skills/legacy-claude/SKILL.md" in result["reason"]
-        assert legacy.read_text() == "tracked Claude-only work\n"
+        assert result == {"continue": True}
+        assert (repo / ".agents" / "skills" / "legacy-claude" / "SKILL.md").read_bytes() == legacy.read_bytes()
 
     def test_hostile_repo_manifest_cannot_authorize_mirror_overwrite(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
@@ -764,15 +817,16 @@ class TestBundledCheckerIntegration:
         manifest = repo / ".claude" / "skills" / ".pilot-sync-manifest.json"
         mirror = repo / ".claude" / "skills" / "example" / "SKILL.md"
         manifest.write_text('{"version":1,"files":{}}\n')
-        mirror.write_text("mirror work hidden by hostile manifest\n")
+        mirror_text = "---\nname: example\ndescription: Mirror work hidden by hostile manifest.\n---\n\n# Mirror\n"
+        mirror.write_text(mirror_text)
 
         result = handle(_stop_payload(repo))
 
         assert result["decision"] == "block"
-        assert ".claude/skills/example/SKILL.md -> .agents/skills/example/SKILL.md" in result["reason"]
-        assert mirror.read_text() == "mirror work hidden by hostile manifest\n"
+        assert "Both sides were preserved" in result["reason"]
+        assert mirror.read_text() == mirror_text
 
-    def test_session_start_does_not_overwrite_dirty_mirror(self, tmp_path: Path) -> None:
+    def test_session_start_synchronizes_dirty_mirror_back_to_canonical(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
         repo.mkdir()
         subprocess.run(["git", "init", "--quiet", str(repo)], check=True)
@@ -785,14 +839,14 @@ class TestBundledCheckerIntegration:
         assert handle(_session_payload(repo))["continue"] is True
         _commit_all(repo)
         mirror = repo / ".claude" / "skills" / "example" / "SKILL.md"
-        mirror.write_text("preexisting mirror work\n")
+        mirror_text = "---\nname: example\ndescription: Preexisting mirror work.\n---\n\n# Mirror\n"
+        mirror.write_text(mirror_text)
 
         result = handle(_session_payload(repo))
 
         assert result["continue"] is True
-        assert "did not synchronize" in result["systemMessage"]
-        assert ".claude/skills/example/SKILL.md -> .agents/skills/example/SKILL.md" in result["systemMessage"]
-        assert mirror.read_text() == "preexisting mirror work\n"
+        assert "synchronized" in result["systemMessage"]
+        assert (repo / ".agents" / "skills" / "example" / "SKILL.md").read_text() == mirror_text
 
     def test_both_side_divergence_blocks_and_preserves_both_files(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
@@ -815,7 +869,7 @@ class TestBundledCheckerIntegration:
         result = handle(_stop_payload(repo))
 
         assert result["decision"] == "block"
-        assert "direction is ambiguous" in result["reason"]
+        assert "Both sides were preserved" in result["reason"]
         assert (canonical / "SKILL.md").read_text() == canonical_text
         assert mirror.read_text() == mirror_text
 

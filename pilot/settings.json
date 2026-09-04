@@ -1,30 +1,12 @@
 {
   "env": {
     "CLAUDE_CODE_DISABLE_1M_CONTEXT": "false",
-    "CLAUDE_CODE_WORKFLOWS": "true",
-    "CLAUDE_CODE_AUTO_CONNECT_IDE": "true",
-    "CLAUDE_CODE_NO_FLICKER": "true",
-    "CLAUDE_CODE_ENABLE_TASKS": "true",
-    "CLAUDE_CODE_HIDE_ACCOUNT_INFO": "true",
-    "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "true",
-    "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "true",
-    "CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS": "true",
-    "ENABLE_TOOL_SEARCH": "true",
-    "ENABLE_LSP_TOOL": "true",
-    "DISABLE_COMPACT": "false",
-    "DISABLE_AUTO_COMPACT": "false",
-    "DISABLE_MICROCOMPACT": "false",
-    "DISABLE_AUTOUPDATER": "false",
-    "DISABLE_INSTALLATION_CHECKS": "false",
-    "FORCE_AUTOUPDATE_PLUGINS": "true"
+    "ENABLE_TOOL_SEARCH": "true"
   },
   "permissions": {
     "defaultMode": "bypassPermissions"
   },
   "skipDangerousModePermissionPrompt": true,
-  "crossSessionInbound": "accept",
-  "terminalProgressBarEnabled": true,
-  "enableAllProjectMcpServers": true,
   "spinnerTipsOverride": {
     "tips": [
       "[PILOT] Run /setup-rules after installation to generate project rules",
@@ -96,21 +78,16 @@
     ],
     "excludeDefault": true
   },
+  "enableAllProjectMcpServers": true,
   "prefersReducedMotion": true,
-  "preferredNotifChannel": "auto",
-  "showTurnDuration": true,
-  "alwaysThinkingEnabled": true,
   "showThinkingSummaries": true,
-  "showThinkingHint": true,
-  "autoDreamEnabled": false,
-  "skillListingBudgetFraction": 0.05,
-  "skillListingMaxDescChars": 2048,
+  "includeGitInstructions": false,
   "attribution": {
     "commit": "",
     "pr": ""
   },
+  "crossSessionInbound": "accept",
   "effortLevel": "xhigh",
-  "viewMode": "verbose",
   "outputStyle": "concise",
   "statusLine": {
     "type": "command",

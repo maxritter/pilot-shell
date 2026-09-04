@@ -12,7 +12,7 @@ Blocking hooks reject actions or force fixes before they land. Non-blocking hook
 
 Pilot installs and updates its lifecycle integrations as one managed set. The tables below describe the user-relevant behavior of that pipeline.
 
-Codex runs the skill refresh, session registration, memory observer, and turn summarizer as native asynchronous command hooks. Repository synchronization, workflow guards, context injection, compaction, and SessionEnd remain synchronous because their result must be observed before the lifecycle event completes. Pilot does not register an MCP hook merely as a transport substitute; an MCP handler belongs here only when an installed server owns a concrete lifecycle operation and returns the hook contract directly.
+Codex runs the skill refresh, session registration, memory observer, and turn summarizer as native asynchronous command hooks. Repository synchronization, workflow guards, active-work recovery, and SessionEnd remain synchronous because their result must be observed before the lifecycle event completes. Pilot does not register an MCP hook merely as a transport substitute; an MCP handler belongs here only when an installed server owns a concrete lifecycle operation and returns the hook contract directly.
 
 ## SessionStart
 
@@ -25,7 +25,7 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 | `session_startup_maintenance.py` | Claude Code | Cleans stale Claude task files and dead PID-backed session directories. |
 | `codegraph_init.py` | Claude Code | Initializes CodeGraph for the current project. |
 | Skill sync | Both | Refreshes managed skills for the active agent. |
-| Worker context bootstrap | Both | Restores the memory digest and active session context through the Console worker. |
+| Worker context bootstrap | Claude Code | Restores the memory digest and active session context through the Console worker. Codex retrieves relevant cross-session memory on demand through `mem-search`. |
 | `post_compact_restore.py` | Both | Re-injects active plan and task state after compaction. |
 | `session_clear.py` | Both | Resets Pilot session state after `/clear`. |
 
@@ -44,7 +44,7 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 
 | Hook | Applies to | Description |
 |------|------------|-------------|
-| `tool_redirect.py` | Claude Code | Nudges recursive Bash and built-in search calls toward the indexed code-search tools; blocks unsupported web paths. |
+| `tool_redirect.py` | Claude Code | Nudges recursive Bash and built-in search calls toward the indexed code-search tools; blocks unsupported web paths; reminds the agent, without blocking, when a shell command edits a project file (`sed -i`, heredocs or redirects into a file, `tee`, inline scripts that write files) that changes belong in `Edit`/`Write`, where they show as a diff. Writes to `/tmp` and the scratchpad get no reminder. |
 | `tool_token_saver.py` | Both | Rewrites eligible Bash commands through RTK for 60–90% smaller output. |
 | `plan_mode_tracker.py` | Claude Code | Tracks `/spec` plan-mode state, records who owns the plan-mode leg being entered (the only moment `/spec` and native plan mode are distinguishable), verifies the observed planning-leg model, and reports the result once per leg. |
 
@@ -92,5 +92,5 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 | `session_end.py --session-end` | Both | Completes the real session, waits for the team-memory export attempt, then stops the Console worker only when no other session remains. Codex now uses its native SessionEnd event rather than treating every Stop as a session boundary. |
 
 :::info Compaction resilience
-When compaction fires: **PreCompact** captures active state → compaction runs → **SessionStart** restores it via `post_compact_restore.py`. Work continues from the saved state on both agents.
+When a client emits the compaction lifecycle: **PreCompact** captures active state → compaction runs → **SessionStart** restores it via `post_compact_restore.py`. Codex's experimental context manager separately preserves notes and searchable thread history; Pilot does not automatically inject its memory digest into Codex.
 :::

@@ -94,7 +94,7 @@ def _is_sonnet(model: str) -> bool:
 def _is_fable(model: str) -> bool:
     """Return True iff ``model`` is a Fable-family alias or explicit ID.
 
-    Mirror of :func:`_is_opus`. Fable-class models (Fable 5, Mythos 5) have no
+    Mirror of :func:`_is_opus`. Fable-class models (Fable 5.x, Mythos 5.x) have no
     plan/execute alias split, so under Automated they are blocked (opusplan is
     required); under Manual/Off there is no gate at all. Accepts the bare ``fable``,
     ``mythos``, and ``best`` aliases (``best`` resolves to Fable where

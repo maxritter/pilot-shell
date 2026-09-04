@@ -107,7 +107,7 @@ test('check accepts an exact mirror and ignores unrelated Claude skills', () => 
   }
 })
 
-test('check preserves untracked and ignored Claude-only skills in a Git repository', () => {
+test('write synchronizes untracked and ignored Claude-only skills in a Git repository', () => {
   const repo = makeRepo()
   try {
     git(repo, 'init', '-q')
@@ -116,21 +116,114 @@ test('check preserves untracked and ignored Claude-only skills in a Git reposito
     const ignored = path.join(repo, '.claude', 'skills', 'ignored-skill', 'SKILL.md')
     mkdirSync(path.dirname(untracked), { recursive: true })
     mkdirSync(path.dirname(ignored), { recursive: true })
-    writeFileSync(untracked, 'untracked\n')
-    writeFileSync(ignored, 'ignored\n')
+    writeFileSync(
+      untracked,
+      '---\nname: local-skill\ndescription: Untracked local skill.\n---\n',
+    )
+    writeFileSync(
+      ignored,
+      '---\nname: ignored-skill\ndescription: Ignored local skill.\n---\n',
+    )
 
     let result = run(repo, '--check')
-    assert.equal(result.status, 0, result.stderr)
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /missing Codex counterpart/)
     result = run(repo, '--write')
     assert.equal(result.status, 0, result.stderr)
-    assert.equal(readFileSync(untracked, 'utf8'), 'untracked\n')
-    assert.equal(readFileSync(ignored, 'utf8'), 'ignored\n')
+    assert.equal(
+      readFileSync(path.join(repo, '.agents', 'skills', 'ignored-skill', 'SKILL.md'), 'utf8'),
+      readFileSync(ignored, 'utf8'),
+    )
+    // The non-ignored untracked skill remains outside automatic local sync.
+    assert.equal(readFileSync(untracked, 'utf8').includes('Untracked local skill'), true)
   } finally {
     cleanup(repo)
   }
 })
 
-test('check preserves ignored harness-specific skills installed for both agents', () => {
+test('write imports a gitignored Claude-only skill into the Codex skill tree', () => {
+  const repo = makeRepo()
+  try {
+    git(repo, 'init', '-q')
+    writeFileSync(
+      path.join(repo, '.gitignore'),
+      '.agents/skills/local-skill/\n.claude/skills/local-skill/\n',
+    )
+    const claudeSkill = path.join(repo, '.claude', 'skills', 'local-skill', 'SKILL.md')
+    mkdirSync(path.dirname(claudeSkill), { recursive: true })
+    writeFileSync(
+      claudeSkill,
+      '---\nname: local-skill\ndescription: Local ignored skill.\n---\n\n# Local\n',
+    )
+
+    let result = run(repo, '--check')
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /missing Codex counterpart/)
+
+    result = run(repo, '--write')
+    assert.equal(result.status, 0, result.stderr)
+    const codexSkill = path.join(repo, '.agents', 'skills', 'local-skill', 'SKILL.md')
+    assert.equal(readFileSync(codexSkill, 'utf8'), readFileSync(claudeSkill, 'utf8'))
+  } finally {
+    cleanup(repo)
+  }
+})
+
+test('gitignored skills synchronize changes in both directions and preserve conflicts', () => {
+  const repo = makeRepo()
+  try {
+    git(repo, 'init', '-q')
+    writeFileSync(
+      path.join(repo, '.gitignore'),
+      '.agents/skills/local-skill/\n.claude/skills/local-skill/\n',
+    )
+    const codexSkill = path.join(repo, '.agents', 'skills', 'local-skill', 'SKILL.md')
+    const claudeSkill = path.join(repo, '.claude', 'skills', 'local-skill', 'SKILL.md')
+    mkdirSync(path.dirname(codexSkill), { recursive: true })
+    mkdirSync(path.dirname(claudeSkill), { recursive: true })
+    const baseline = '---\nname: local-skill\ndescription: Shared local skill.\n---\n\n# Baseline\n'
+    writeFileSync(codexSkill, baseline)
+    writeFileSync(claudeSkill, baseline)
+    assert.equal(run(repo, '--write').status, 0)
+
+    const claudeEdit = baseline.replace('# Baseline', '# Claude edit')
+    writeFileSync(claudeSkill, claudeEdit)
+    let result = run(repo, '--write')
+    assert.equal(result.status, 0, result.stderr)
+    assert.equal(readFileSync(codexSkill, 'utf8'), claudeEdit)
+
+    const codexEdit = claudeEdit.replace('# Claude edit', '# Codex edit')
+    writeFileSync(codexSkill, codexEdit)
+    result = run(repo, '--write')
+    assert.equal(result.status, 0, result.stderr)
+    assert.equal(readFileSync(claudeSkill, 'utf8'), codexEdit)
+
+    writeFileSync(codexSkill, codexEdit.replace('# Codex edit', '# Divergent Codex'))
+    writeFileSync(claudeSkill, codexEdit.replace('# Codex edit', '# Divergent Claude'))
+    result = run(repo, '--write')
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /both sides changed/)
+    assert.match(readFileSync(codexSkill, 'utf8'), /Divergent Codex/)
+    assert.match(readFileSync(claudeSkill, 'utf8'), /Divergent Claude/)
+  } finally {
+    cleanup(repo)
+  }
+})
+
+test('write migrates a lone CLAUDE.md into the shared AGENTS.md contract', () => {
+  const repo = makeRepo({ claude: '# Existing shared guidance\n' })
+  try {
+    rmSync(path.join(repo, 'AGENTS.md'))
+    const result = run(repo, '--write')
+    assert.equal(result.status, 0, result.stderr)
+    assert.equal(readFileSync(path.join(repo, 'AGENTS.md'), 'utf8'), '# Existing shared guidance\n')
+    assert.equal(readFileSync(path.join(repo, 'CLAUDE.md'), 'utf8'), '@AGENTS.md\n')
+  } finally {
+    cleanup(repo)
+  }
+})
+
+test('check preserves divergent ignored harness-specific skills and reports the conflict', () => {
   const repo = makeRepo()
   try {
     git(repo, 'init', '-q')
@@ -152,9 +245,11 @@ test('check preserves ignored harness-specific skills installed for both agents'
     )
 
     let result = run(repo, '--check')
-    assert.equal(result.status, 0, result.stderr)
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /both sides differ without a trusted baseline/)
     result = run(repo, '--write')
-    assert.equal(result.status, 0, result.stderr)
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /both sides differ without a trusted baseline/)
     assert.match(readFileSync(codexSkill, 'utf8'), /Codex-specific/)
     assert.match(readFileSync(claudeSkill, 'utf8'), /Claude-specific/)
     const manifest = JSON.parse(
@@ -166,7 +261,7 @@ test('check preserves ignored harness-specific skills installed for both agents'
   }
 })
 
-test('ignoring a previously managed canonical skill retires its mirror and keeps the source', () => {
+test('ignoring a previously managed canonical skill moves it to local two-way synchronization', () => {
   const repo = makeRepo({ mirror: false })
   try {
     git(repo, 'init', '-q')
@@ -178,13 +273,12 @@ test('ignoring a previously managed canonical skill retires its mirror and keeps
     writeFileSync(path.join(repo, '.gitignore'), '.agents/skills/demo-skill/\n')
 
     result = run(repo, '--check')
-    assert.equal(result.status, 1)
-    assert.match(result.stderr, /stale managed file record: demo-skill\/SKILL\.md/)
+    assert.equal(result.status, 0, result.stderr)
 
     result = run(repo, '--write')
     assert.equal(result.status, 0, result.stderr)
     assert.match(result.stdout, /and 0 skills/)
-    assert.throws(() => lstatSync(mirror), { code: 'ENOENT' })
+    assert.equal(lstatSync(mirror).isFile(), true)
     assert.match(
       readFileSync(path.join(repo, '.agents', 'skills', 'demo-skill', 'SKILL.md'), 'utf8'),
       /name: demo-skill/,
@@ -198,13 +292,16 @@ test('ignoring a previously managed canonical skill retires its mirror and keeps
   }
 })
 
-test('tracked Claude-only skill is preserved by default and removed only with explicit migration', () => {
+test('tracked Claude-only skill is imported into the canonical tree', () => {
   const repo = makeRepo()
   try {
     git(repo, 'init', '-q')
     const tracked = path.join(repo, '.claude', 'skills', 'legacy-skill', 'SKILL.md')
     mkdirSync(path.dirname(tracked), { recursive: true })
-    writeFileSync(tracked, 'tracked mirror-only skill\n')
+    writeFileSync(
+      tracked,
+      '---\nname: legacy-skill\ndescription: Tracked mirror-only skill.\n---\n',
+    )
     git(repo, 'add', '.')
     git(
       repo,
@@ -220,23 +317,20 @@ test('tracked Claude-only skill is preserved by default and removed only with ex
 
     let result = run(repo, '--check')
     assert.equal(result.status, 1)
-    assert.match(result.stderr, /legacy-skill\/SKILL\.md: tracked mirror-only asset/)
+    assert.match(result.stderr, /missing Codex counterpart/)
 
     result = run(repo, '--write')
-    assert.equal(result.status, 1)
-    assert.match(result.stderr, /tracked Claude-only skill requires explicit migration/)
-    assert.equal(readFileSync(tracked, 'utf8'), 'tracked mirror-only skill\n')
-    assert.equal(git(repo, 'status', '--porcelain').stdout, '')
-
-    result = run(repo, '--write', '--force-migration')
     assert.equal(result.status, 0, result.stderr)
-    assert.equal(statOrNull(tracked), null)
+    assert.equal(
+      readFileSync(path.join(repo, '.agents', 'skills', 'legacy-skill', 'SKILL.md'), 'utf8'),
+      readFileSync(tracked, 'utf8'),
+    )
   } finally {
     cleanup(repo)
   }
 })
 
-test('new tracked Claude-only file inside a canonical skill is preserved and mapped for migration', () => {
+test('new tracked Claude-only file inside a canonical skill synchronizes to Codex', () => {
   const repo = makeRepo()
   try {
     git(repo, 'init', '-q')
@@ -267,69 +361,75 @@ test('new tracked Claude-only file inside a canonical skill is preserved and map
     )
     assert.equal(git(repo, 'status', '--porcelain').stdout, '')
 
-    for (const mode of ['--check', '--write', '--install']) {
-      const result = run(repo, mode)
-      assert.equal(result.status, 1, `${mode}: ${result.stderr}`)
-      assert.match(result.stderr, /\.claude\/skills\/demo-skill\/references\/new\.md/)
-      assert.match(result.stderr, /\.agents\/skills\/demo-skill\/references\/new\.md/)
-      assert.equal(readFileSync(extra, 'utf8'), 'tracked Claude-only knowledge\n')
-    }
-
-    const forced = run(repo, '--write', '--force-migration')
-    assert.equal(forced.status, 0, forced.stderr)
-    assert.equal(statOrNull(extra), null)
+    let result = run(repo, '--check')
+    assert.equal(result.status, 1)
+    result = run(repo, '--write')
+    assert.equal(result.status, 0, result.stderr)
+    assert.equal(
+      readFileSync(path.join(repo, '.agents', 'skills', 'demo-skill', 'references', 'new.md'), 'utf8'),
+      'tracked Claude-only knowledge\n',
+    )
   } finally {
     cleanup(repo)
   }
 })
 
-test('same-name untracked extras are ignored by check and preserved by write', () => {
+test('same-name untracked extras synchronize without overwriting common files', () => {
   const repo = makeRepo()
   try {
     const local = path.join(repo, '.claude', 'skills', 'demo-skill', 'local-notes.txt')
     writeFileSync(local, 'keep local bytes\n')
 
     let result = run(repo, '--check')
-    assert.equal(result.status, 0, result.stderr)
+    assert.equal(result.status, 1)
     result = run(repo, '--write')
     assert.equal(result.status, 0, result.stderr)
     assert.equal(readFileSync(local, 'utf8'), 'keep local bytes\n')
+    assert.equal(
+      readFileSync(path.join(repo, '.agents', 'skills', 'demo-skill', 'local-notes.txt'), 'utf8'),
+      'keep local bytes\n',
+    )
   } finally {
     cleanup(repo)
   }
 })
 
-test('same-path untracked drift fails check and write preserves the local bytes', () => {
+test('same-path untracked drift without a baseline preserves both versions', () => {
   const repo = makeRepo()
   try {
     const localSkill = path.join(repo, '.claude', 'skills', 'demo-skill', 'SKILL.md')
-    writeFileSync(localSkill, 'local conflicting skill\n')
+    writeFileSync(
+      localSkill,
+      '---\nname: demo-skill\ndescription: Local conflicting skill.\n---\n',
+    )
 
     let result = run(repo, '--check')
     assert.equal(result.status, 1)
-    assert.match(result.stderr, /SKILL\.md: bytes differ/)
+    assert.match(result.stderr, /both sides differ without a trusted baseline/)
     result = run(repo, '--write')
     assert.equal(result.status, 1)
-    assert.match(result.stderr, /local Claude skill migration required/)
-    assert.match(result.stderr, /migrate or remove the local asset before syncing/)
-    assert.equal(readFileSync(localSkill, 'utf8'), 'local conflicting skill\n')
+    assert.match(result.stderr, /both sides differ without a trusted baseline/)
+    assert.match(readFileSync(localSkill, 'utf8'), /Local conflicting skill/)
   } finally {
     cleanup(repo)
   }
 })
 
-test('same-path ignored drift is preserved and requires migration', () => {
+test('same-path ignored drift is preserved as a two-way conflict', () => {
   const repo = makeRepo()
   try {
     git(repo, 'init', '-q')
     writeFileSync(path.join(repo, '.gitignore'), '.claude/skills/demo-skill/\n')
     const localSkill = path.join(repo, '.claude', 'skills', 'demo-skill', 'SKILL.md')
-    writeFileSync(localSkill, 'ignored conflicting skill\n')
+    writeFileSync(
+      localSkill,
+      '---\nname: demo-skill\ndescription: Ignored conflicting skill.\n---\n',
+    )
 
     const result = run(repo, '--write')
     assert.equal(result.status, 1)
-    assert.match(result.stderr, /local Claude skill migration required/)
-    assert.equal(readFileSync(localSkill, 'utf8'), 'ignored conflicting skill\n')
+    assert.match(result.stderr, /both sides differ without a trusted baseline/)
+    assert.match(readFileSync(localSkill, 'utf8'), /Ignored conflicting skill/)
   } finally {
     cleanup(repo)
   }
@@ -346,7 +446,7 @@ test('same-name untracked skill symlink is preserved with its external sentinel'
 
     const result = run(repo, '--write')
     assert.equal(result.status, 1)
-    assert.match(result.stderr, /local Claude skill migration required/)
+    assert.match(result.stderr, /symbolic links must point from the Claude mirror/)
     assert.equal(readFileSync(sentinel, 'utf8'), 'outside local skill bytes\n')
     assert.equal(lstatSync(path.join(repo, '.claude', 'skills', 'demo-skill')).isSymbolicLink(), true)
   } finally {
@@ -406,7 +506,8 @@ test('hostile repository manifest cannot authorize overwriting an untracked loca
     git(repo, 'init', '-q')
     const mirror = path.join(repo, '.claude', 'skills', 'demo-skill', 'SKILL.md')
     const manifest = path.join(repo, '.claude', 'skills', '.pilot-sync-manifest.json')
-    writeFileSync(mirror, 'hostile-branch target hash sentinel\n')
+    const hostile = '---\nname: demo-skill\ndescription: Hostile target hash sentinel.\n---\n'
+    writeFileSync(mirror, hostile)
     const data = JSON.parse(readFileSync(manifest, 'utf8'))
     data.files['demo-skill/SKILL.md'] = {
       sha256: createHash('sha256').update(readFileSync(mirror)).digest('hex'),
@@ -416,8 +517,8 @@ test('hostile repository manifest cannot authorize overwriting an untracked loca
 
     const result = run(repo, '--write')
     assert.equal(result.status, 1)
-    assert.match(result.stderr, /untracked or ignored Claude skill conflicts/)
-    assert.equal(readFileSync(mirror, 'utf8'), 'hostile-branch target hash sentinel\n')
+    assert.match(result.stderr, /both sides differ without a trusted baseline/)
+    assert.equal(readFileSync(mirror, 'utf8'), hostile)
   } finally {
     cleanup(repo)
   }
@@ -477,12 +578,13 @@ test('both canonical and mirror divergence refuses and preserves the mirror', ()
       canonical,
       '---\nname: demo-skill\ndescription: Canonical branch.\n---\n\n# Canonical\n',
     )
-    writeFileSync(mirror, 'independent mirror branch\n')
+    const mirrorBranch = '---\nname: demo-skill\ndescription: Independent mirror branch.\n---\n'
+    writeFileSync(mirror, mirrorBranch)
 
     result = run(repo, '--write')
     assert.equal(result.status, 1)
-    assert.match(result.stderr, /do not have a safe ownership direction/)
-    assert.equal(readFileSync(mirror, 'utf8'), 'independent mirror branch\n')
+    assert.match(result.stderr, /both sides changed/)
+    assert.equal(readFileSync(mirror, 'utf8'), mirrorBranch)
   } finally {
     cleanup(repo)
   }
@@ -563,7 +665,7 @@ test('edited stale generated file is preserved when canonical deletes it', () =>
 
     result = run(repo, '--write')
     assert.equal(result.status, 1)
-    assert.match(result.stderr, /do not have a safe ownership direction/)
+    assert.match(result.stderr, /both sides changed/)
     assert.equal(readFileSync(mirror, 'utf8'), '#!/bin/sh\necho locally edited\n')
   } finally {
     cleanup(repo)
@@ -583,6 +685,23 @@ test('check accepts exact root and nested rule routes while README remains optio
 
     const result = run(repo, '--check')
     assert.equal(result.status, 0, result.stderr)
+  } finally {
+    cleanup(repo)
+  }
+})
+
+test('gitignored local rules do not require tracked AGENTS.md routes', () => {
+  const repo = makeRepo()
+  try {
+    git(repo, 'init', '-q')
+    writeFileSync(path.join(repo, '.gitignore'), '.claude/rules/local-only.md\n')
+    writeRule(repo, '.claude/rules/local-only.md', '# Local rule\n')
+
+    let result = run(repo, '--check')
+    assert.equal(result.status, 0, result.stderr)
+    result = run(repo, '--write')
+    assert.equal(result.status, 0, result.stderr)
+    assert.equal(readFileSync(path.join(repo, '.claude/rules/local-only.md'), 'utf8'), '# Local rule\n')
   } finally {
     cleanup(repo)
   }
@@ -655,10 +774,13 @@ test('stale AGENTS.md rule reference fails when no corresponding file exists', (
 test('check reports byte drift with an exact recovery command', () => {
   const repo = makeRepo()
   try {
-    writeFileSync(path.join(repo, '.claude', 'skills', 'demo-skill', 'SKILL.md'), 'drift\n')
+    writeFileSync(
+      path.join(repo, '.claude', 'skills', 'demo-skill', 'SKILL.md'),
+      '---\nname: demo-skill\ndescription: Drifted mirror.\n---\n',
+    )
     const result = run(repo, '--check')
     assert.equal(result.status, 1)
-    assert.match(result.stderr, /SKILL\.md: bytes differ/)
+    assert.match(result.stderr, /both sides differ without a trusted baseline/)
     const recovery = result.stderr.match(/^Recovery: (.+)$/m)?.[1]
     assert.ok(recovery, result.stderr)
     assert.match(recovery, /--write --repo/)

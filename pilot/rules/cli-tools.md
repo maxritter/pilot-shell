@@ -41,3 +41,22 @@ semble savings                                  # token-saving report
 Ranking adapts to the query shape (symbol-like queries weight lexical, natural language balances semantic + lexical), boosts definitions over references, and down-ranks test/legacy/example files. Auto-reindexes on file change. Defaults are usually right — snippets are already trimmed to the matched code.
 
 **Not for:** callers/callees/impact (CodeGraph enumerates those; Semble only finds code that *mentions* a callee), AST pattern matching, or extracting the enclosing block at `file:line` (use `Read` with `offset`/`limit`).
+
+### ast-grep — structural search and codemods
+
+Use `ast-grep` when the question depends on syntax rather than literal text.
+Keep Semble for intent, CodeGraph for relationships, and `rg` for exhaustive
+literal search. Use the canonical command, not the deprecated `sg` alias.
+
+```bash
+ast-grep run --pattern '$ARR.filter($F).map($M)' --lang ts \
+  --json=compact console/src \
+  | jq '[.[] | {path: .file, line: (.range.start.line + 1)}]'
+```
+
+Quote metavariables with single quotes. ast-grep JSON lines are zero-based, so
+add one for ordinary source line numbers. Project directly to requested fields;
+raw JSON includes the matched source. For rewrites, preview the narrowest
+pattern first, apply with `--rewrite ... --update-all`, then inspect the diff and
+run focused compiler/tests. Independent benchmark tasks completed 46% faster
+with this routing while preserving exact results.

@@ -58,6 +58,9 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}
         run: python scripts/check_manifest_drift.py
 
+      - name: Cross-agent rule and skill parity
+        run: node scripts/sync-agent-assets.mjs --check
+
       - name: Open issue on nightly failure
         if: failure() && github.event_name == 'schedule'
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7

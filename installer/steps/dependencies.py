@@ -57,6 +57,7 @@ _INSTALL_KEY_TO_TOOL_COMMANDS: dict[str, dict[str, str]] = {
     "golangci_lint": {"golangci-lint": "golangci-lint"},
     "pbt_tools": {"hypothesis": "hypothesis", "fast-check": "fast-check"},
     "semble": {"semble": "semble"},
+    "ast_grep": {"ast-grep": "ast-grep"},
     "rtk": {"rtk": "rtk"},
     "codegraph": {"codegraph": "codegraph"},
     "open_claude_design": {"open-claude-design": "open-claude-design"},
@@ -470,6 +471,31 @@ def install_semble() -> bool:
     return True
 
 
+def install_ast_grep() -> bool:
+    """Keep an existing Brew/user install or install the pinned npm fallback.
+
+    Homebrew runs first in PrerequisitesStep and is the preferred source. On a
+    host without Brew, a Pilot-owned npm fallback is installed and can be
+    upgraded on later Pilot runs. Pre-existing user installs are never replaced.
+    """
+    was_present = command_exists("ast-grep")
+    pilot_owned = "ast-grep" in _load_owned_tools()
+    if was_present and not pilot_owned:
+        _symlink_to_pilot_bin("ast-grep")
+        _record_outcome(_OUTCOME_UNCHANGED)
+        return True
+
+    if not _run_bash_with_retry(
+        _npm_install_cmd(manifest_get("ast-grep-npm")),
+        timeout=GLOBAL_NPM_INSTALL_TIMEOUT,
+    ):
+        return False
+
+    _symlink_to_pilot_bin("ast-grep")
+    _record_outcome(_OUTCOME_UPDATED if was_present else _OUTCOME_INSTALLED)
+    return True
+
+
 def install_rtk() -> bool:
     """Install or update RTK (Rust Token Killer) CLI.
 
@@ -482,8 +508,8 @@ def install_rtk() -> bool:
     # RTK_VERSION is the only lever install.sh offers: without it the script
     # resolves GitHub's /releases/latest, so the manifest version would be a
     # record of what happened to be current rather than the pin it claims to be.
-    # The script wants the git tag form (v0.45.0); the manifest stores the bare
-    # release (0.45.0), same as rtk-brew.
+    # The script wants the git tag form (for example v0.47.0); the manifest
+    # stores the bare release, same as rtk-brew.
     rtk_version = manifest_get("rtk-installer").version
     if not _curl_pipe_from_manifest(
         "rtk-installer",
@@ -2145,6 +2171,7 @@ class DependenciesStep(BaseStep):
                 _InstallTask("golangci-lint (Go linter)", "golangci_lint", install_golangci_lint),
                 _InstallTask("PBT tools (hypothesis, fast-check)", "pbt_tools", install_pbt_tools),
                 _InstallTask("Semble (code search)", "semble", install_semble),
+                _InstallTask("ast-grep (structural search)", "ast_grep", install_ast_grep),
                 _InstallTask("RTK (token optimizer)", "rtk", install_rtk),
                 _InstallTask("CodeGraph (code intelligence)", "codegraph", install_codegraph),
                 _InstallTask("Codex plugin", "codex_plugin", install_codex_plugin),

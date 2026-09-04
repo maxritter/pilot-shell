@@ -4,39 +4,37 @@ The final repository contract is:
 
 - `AGENTS.md` is the user-editable shared core.
 - `CLAUDE.md` contains exactly `@AGENTS.md` plus a trailing newline.
-- `.agents/skills/` is the user-editable canonical tree for tracked project skills.
-- Tracked `.claude/skills/` content is generated and must never be edited directly.
+- `.agents/skills/` is the durable source for tracked skills and the Codex project-skill tree.
+- `.claude/skills/` is the Claude Code project-skill tree; supported edits synchronize safely in either direction.
 - Pilot's shared hook synchronizes on SessionStart, supported edits made through either agent, and Stop as a Code Mode backstop.
 - `scripts/sync-agent-assets.mjs` is the standalone recovery writer and CI drift checker.
 
-Untracked or ignored local agent-only extensions are outside this repository contract. Preserve them; they neither become canonical project assets nor make CI fail.
+Untracked and gitignored project skills participate in two-way local synchronization. Their baseline lives under `.git/pilot`, so private skill contents never enter shared CI metadata. Invalid one-sided directories remain untouched because they are not valid portable skills.
 
 ### Step 11.1: Confirm Destructive Reconciliation — CONDITIONAL
 
-Reuse the migration decision from Step 7. Ask again only if Step 10 found a new conflict, a tracked mirror-only skill, or generated files that would overwrite unique tracked content.
+Reuse the migration decision from Step 7. Ask again only if Step 10 found independent edits on both sides or another conflict that cannot be resolved from the trusted baseline.
 
-AskUserQuestion: "The generated Claude Code assets differ from their canonical sources. Which content should become canonical before I regenerate the mirror?"
+AskUserQuestion: "Both project-skill copies changed independently. Which content should become the shared version?"
 
 - **"Preserve all unique content (Recommended)"** — copy unique instructions/skill files into `AGENTS.md`, scoped rules, or `.agents/skills/` as appropriate, then regenerate
-- **"Use `.agents/skills/` and `AGENTS.md`"** — replace generated counterparts from the documented canonical sources
+- **"Use `.agents/skills/` and `AGENTS.md`"** — use the Codex-side skill copy and shared root instructions
 - **"Review each conflict"** — show each conflicting file and choose its canonical content
 - **"Skip synchronization"** — leave assets untouched and report the failed parity gate
 
-Never run generation across an unresolved tracked mirror-only edit.
+Never overwrite either side while a two-sided conflict is unresolved.
 
 ### Step 11.2: Install the Repository Checker
 
 Resolve the bundled script relative to this skill's loaded `SKILL.md` (its source path is `scripts/sync-agent-assets.mjs`). Run it from the target repository:
 
 ```bash
-mkdir -p .agents/skills
-# If the repository has no canonical skills yet, keep .agents/skills/.gitkeep tracked.
 node <setup-rules-skill-dir>/scripts/sync-agent-assets.mjs --install --repo .
 ```
 
 `--install` writes the standalone `scripts/sync-agent-assets.mjs` into the repository and performs the initial convergence of the root import and project skill mirror. Commit the installed script so recovery and CI use the same implementation without requiring Pilot Shell.
 
-The checker requires `.agents/skills/` even when it is empty. In that case, add `.agents/skills/.gitkeep` so a fresh clone preserves the canonical directory.
+The checker creates missing skill roots when a valid one-sided skill needs a counterpart.
 
 If the bundled script cannot be resolved, stop this step before changing `CLAUDE.md` or `.claude/skills/` and report the installation gap.
 
@@ -44,15 +42,15 @@ If the bundled script cannot be resolved, stop this step before changing `CLAUDE
 
 Pilot installs one shared agent-asset hook through both its Claude Code and Codex adapters. Do not add repository-specific hooks. Confirm the installed adapters provide these behaviors:
 
-1. **SessionStart:** detect prepared repositories and converge `CLAUDE.md` plus tracked skill mirrors before work begins.
-2. **Canonical edit:** after either agent emits a supported edit to `AGENTS.md` or `.agents/skills/`, run the repository synchronizer automatically.
-3. **Generated edit:** when either agent targets tracked `.claude/skills/` content, redirect the edit when supported or block it, and return the exact canonical `.agents/skills/` path to edit instead.
-4. **One-way authority:** copy `.agents/skills/` to `.claude/skills/` only. Never infer canonical content from the generated tree.
+1. **SessionStart:** detect repositories with agent assets, converge `CLAUDE.md`, and synchronize both skill trees before work begins.
+2. **Either-side edit:** after either agent edits `AGENTS.md`, `.agents/skills/`, `.claude/skills/`, or `.claude/rules/`, run the trusted synchronizer.
+3. **Conflict safety:** copy the side that diverged from the trusted baseline; when both diverged, preserve both and report the exact conflict.
+4. **Ignored assets:** synchronize gitignored skills locally and expose ignored rule paths to Codex as a bounded on-demand index.
 5. **Stop:** run a read-only check and repair drift only when needed. This covers Code Mode when nested edits emitted no PreToolUse/PostToolUse event.
 
 This makes the active agent irrelevant to authoring: Claude Code and Codex both edit the same canonical filesystem paths. If either adapter lacks the shared hook, report that Pilot installation needs repair; do not compensate with a second project hook.
 
-The hook must execute only Pilot's installed bundled checker. Treat the repository copy as an enrollment marker, update target, and CI/manual recovery command; never execute that repository-controlled copy from a trusted global hook.
+The hook must execute only Pilot's installed bundled checker. Treat the repository copy as a CI/manual recovery command; never execute that repository-controlled copy from a trusted global hook.
 
 ### Step 11.4: Add the Check to Existing CI
 
@@ -78,10 +76,10 @@ The check must exit zero. Then capture evidence for the summary:
 
 1. `AGENTS.md` exists and retains every approved user-authored shared section.
 2. `CLAUDE.md` is byte-for-byte `@AGENTS.md\n`.
-3. All tracked project skill names have canonical entries and generated mirrors; local untracked/ignored agent-only extensions are listed as out of scope.
-4. Every tracked file under each canonical `.agents/skills/<name>/` is byte-identical to its `.claude/skills/<name>/` mirror.
+3. All valid one-sided skills have counterparts; tracked, untracked, and gitignored skill trees are synchronized or have an explicit preserved conflict.
+4. Every synchronized file under `.agents/skills/<name>/` is byte-identical to `.claude/skills/<name>/`.
 5. `scripts/sync-agent-assets.mjs --check` exits zero without modifying the worktree.
-6. Pilot's shared hook covers SessionStart, canonical edits, generated-edit redirection/blocking and Stop for both agents.
+6. Pilot's shared hook covers SessionStart, edits on either skill tree and `.claude/rules/`, root-instruction edits, and Stop for both agents.
 7. An existing CI job invokes `--check`, or the repository has no CI and the local-only status is recorded.
 
-Do not hand-edit the generated mirror. Its only supported authority is the canonical source, whether convergence came from the automatic hook or a recovery `--write`.
+If a conflict is reported, reconcile the two preserved copies explicitly, then run `--write` and `--check` again.

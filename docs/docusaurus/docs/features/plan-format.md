@@ -135,9 +135,14 @@ Task headings are `### Task N: Title`, numbered **1..n, contiguous, in order**.
 Gaps, duplicates and a list starting at 2 are all errors — several surfaces index
 by position, so a gap silently misaligns them.
 
-Every number under `## Implementation Tasks` must also appear in
-`## Progress Tracking` as `- [ ] Task N: Title` (or `- [x] …` when done), and vice
-versa. That checklist is what drives the progress counter.
+For `Type: Feature` and `Type: Build`, every task heading under
+`## Implementation Tasks` must also appear in `## Progress Tracking` as
+`- [ ] Task N: Title` (or `- [x] …` when done), and vice versa.
+
+For `Type: Bugfix`, `## Tasks` owns both shapes: its checklist comes first, then
+the matching `### Task N:` bodies. Bugfix plans intentionally have no duplicate
+`## Progress Tracking` section. In both shapes, the checklist drives the progress
+counter.
 
 ### Task-card fields
 

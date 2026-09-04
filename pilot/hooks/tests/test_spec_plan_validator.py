@@ -45,6 +45,36 @@ Worktree: No
 Type: Build
 """
 
+VALID_BUGFIX_PLAN = """# Bugfix Plan
+
+Created: 2026-09-03
+Status: PENDING
+Approved: No
+Iterations: 0
+Worktree: No
+Type: Bugfix
+
+## Tasks
+
+- [ ] Task 1: Reproduce
+
+### Task 1: Reproduce
+
+**Objective:** Reproduce the defect.
+
+**Files:**
+
+- Test: `tests/test_bug.py`
+
+**Key Decisions / Notes:**
+
+- Exercise the public entry point.
+
+**Definition of Done:**
+
+- [ ] Verify: `pytest -q`
+"""
+
 
 class TestSpecPlanValidator:
     @patch("spec_plan_validator.is_waiting_for_user_input", return_value=False)
@@ -191,6 +221,15 @@ class TestSpecPlanValidator:
         plan = tmp_path / "unfinished.md"
         plan.write_text(VALID_FEATURE_HEADER)
         assert _validation_errors(plan) == []
+
+    def test_local_fallback_accepts_bugfix_tasks_progress_shape(self, tmp_path):
+        """Issue #184 must stay fixed even when the installed CLI is unavailable."""
+        from spec_plan_validator import _validation_errors
+
+        plan = tmp_path / "bugfix.md"
+        plan.write_text(VALID_BUGFIX_PLAN)
+        with patch("spec_plan_validator._canonical_validation_errors", return_value=None):
+            assert _validation_errors(plan) == []
 
     @patch("sys.stdin")
     def test_allows_when_waiting_for_user(self, mock_stdin):

@@ -1269,7 +1269,7 @@ uninstall_owned_tools() {
 	if ! tools=$(PILOT_OWNED_TOOLS_MANIFEST="$OWNED_TOOLS_MANIFEST_FILE" pilot_python -c '
 import json, os, sys
 allowed = {
-    "agent-browser", "basedpyright", "codegraph", "fast-check", "golangci-lint",
+    "agent-browser", "ast-grep", "basedpyright", "codegraph", "fast-check", "golangci-lint",
     "hypothesis", "impeccable", "open-claude-design", "playwright-cli", "prettier",
     "rtk", "ruff", "semble", "typescript", "vtsls",
 }
@@ -1295,6 +1295,7 @@ print("\n".join(values))
 		[ -n "$tool" ] || continue
 		case "$tool" in
 		agent-browser) uninstall_npm_tool_if_owned "agent-browser" || continue ;;
+		ast-grep) uninstall_npm_tool_if_owned "@ast-grep/cli" || continue ;;
 		basedpyright) uninstall_uv_tool_if_owned "basedpyright" "basedpyright" || continue ;;
 		codegraph) uninstall_npm_tool_if_owned "@colbymchenry/codegraph" || continue ;;
 		fast-check) uninstall_npm_tool_if_owned "fast-check" || continue ;;

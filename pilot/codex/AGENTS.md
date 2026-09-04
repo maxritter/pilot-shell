@@ -48,7 +48,9 @@ If the user asks to stop, cancel, or kill agents or background work, treat that 
 
 - Use the tools and parameter schemas exposed in the current Codex session. Prefer `apply_patch` for edits and `rg` for exact local search.
 - Use Semble for intent search and CodeGraph for callers or blast radius when they are available and the question warrants them. Neither is a mandatory first step.
+- Use ast-grep for syntax-aware structural search or controlled codemods. Keep queries narrow, project JSON to the requested fields, convert zero-based JSON lines to one-based source lines, and preview rewrites before applying and testing them.
 - Use connected tools or primary sources for live external facts. Do not invent paths, commands, identifiers, configuration keys, or library APIs.
+- Use Pilot's memory MCP before non-trivial repository work when the request touches existing modules, behavior, conventions, or prior decisions. Search with the current task, use `timeline` for surrounding context, and fetch only selected IDs with `get_observations`. Skip memory lookup for self-contained work.
 - Preserve user changes in a dirty worktree. Do not run git write operations, destructive commands, or outward-facing actions without the authority required by the request.
 
 ## Quality and verification

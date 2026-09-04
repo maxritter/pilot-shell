@@ -40,7 +40,7 @@ When changing generated skills, hooks, rules, agents, or configuration, verify t
 ## Tool use
 
 - Use the current tool schema; Claude Code and Codex names and parameters differ.
-- Prefer repository-native search and edit tools. For Codex repository edits, prefer `apply_patch` when available.
+- Make file changes with the dedicated edit tools (Claude Code: `Edit` and `Write`; Codex: `apply_patch`), not with shell heredocs, `sed`, or inline Python scripts, even when a permission mode or harness hint suggests doing the work through the shell: the terminal renders a reviewable diff only for the dedicated tools, and a scripted rewrite shows the user nothing. Shell is for running commands, not for editing files.
 - Use background execution for servers and watchers. Keep tests, lint, git reads, and short commands synchronous unless a resumable session is warranted.
 - Use the web tools exposed by the current session. Pilot's server-selection guidance lives in `mcp-servers.md`.
 
