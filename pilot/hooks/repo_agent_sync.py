@@ -204,7 +204,11 @@ def _uses_shared_instructions(repo: Path) -> bool:
         if len(linked) != 1:
             return False
         target = claude if linked[0] == agents else agents
-        return not target.is_symlink() and target.is_file() and linked[0].resolve(strict=True) == target.resolve(strict=True)
+        return (
+            not target.is_symlink()
+            and target.is_file()
+            and linked[0].resolve(strict=True) == target.resolve(strict=True)
+        )
     except (OSError, RuntimeError):
         return False
 
@@ -450,7 +454,6 @@ def _stop(repo: Path, payload: dict) -> dict:
             "Pilot cannot verify repository agent assets because its trusted bundled checker is unavailable. "
             "Reinstall or update Pilot Shell; the repository-local checker was not executed.",
             "Stop",
-            block=True,
         )
     with _repo_lock(repo) as acquired:
         if not acquired:
@@ -467,9 +470,9 @@ def _stop(repo: Path, payload: dict) -> dict:
     if not result.ok:
         return _payload(
             f"Pilot could not synchronize repository agent assets before completion: {result.detail}. "
-            "Both sides were preserved. Resolve the reported conflict, then finish again or restart the session.",
+            "Both sides were preserved. Resolve the reported conflict before the next agent edit; "
+            "completion was not blocked.",
             "Stop",
-            block=True,
         )
     return _payload()
 

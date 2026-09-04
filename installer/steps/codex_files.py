@@ -24,6 +24,7 @@ from installer.steps.base import BaseStep
 
 _CODEX_REVIEW_AGENT_MODEL = "codex-auto-review"
 _CODEX_MODEL_CATALOG_FILENAME = ".pilot-model-catalog.json"
+_CODEX_CONTEXT_MANAGEMENT_MIN_VERSION = (0, 153, 0)
 _CODEX_FULL_CONTEXT_WINDOW = 1_050_000
 _CODEX_FULL_CONTEXT_MODELS = frozenset(
     {
@@ -765,7 +766,10 @@ class CodexFilesStep(BaseStep):
         existing, model_defaults_changed = _set_top_level_keys(existing, model_defaults)
         changed = changed or model_defaults_changed
 
-        existing, context_management_changed = _ensure_context_management_feature(existing)
+        if _codex_supports_context_management():
+            existing, context_management_changed = _ensure_context_management_feature(existing)
+        else:
+            existing, context_management_changed = _remove_context_management_feature(existing)
         changed = changed or context_management_changed
 
         required_features = {"hooks": "true"}
@@ -994,6 +998,65 @@ def _ensure_section_keys(
             changed = True
 
     return content, changed
+
+
+def _codex_supports_context_management() -> bool:
+    """Whether the installed Codex accepts structured feature configuration."""
+    try:
+        result = subprocess.run(
+            ["codex", "--version"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    if result.returncode != 0:
+        return False
+    match = re.search(r"\b(\d+)\.(\d+)\.(\d+)\b", f"{result.stdout}\n{result.stderr}")
+    if match is None:
+        return False
+    version = tuple(int(part) for part in match.groups())
+    return version >= _CODEX_CONTEXT_MANAGEMENT_MIN_VERSION
+
+
+def _remove_context_management_feature(content: str) -> tuple[str, bool]:
+    """Remove structured context config that prevents legacy Codex startup."""
+    original = content
+    section_match = re.search(r"(?m)^\[", content)
+    top_level_end = section_match.start() if section_match else len(content)
+    top_level = content[:top_level_end]
+    remainder = content[top_level_end:]
+    top_level = re.sub(
+        r"(?m)^[ \t]*features\.context_management\.experimental_mode[ \t]*=[^\r\n]*(?:\r?\n|$)",
+        "",
+        top_level,
+    )
+    content = top_level + remainder
+
+    features_match = re.search(r"(?m)^\[features\][ \t]*(?:\r?\n|$)", content)
+    if features_match is not None:
+        next_section = re.search(r"(?m)^\[", content[features_match.end() :])
+        features_end = features_match.end() + next_section.start() if next_section else len(content)
+        features_body = content[features_match.end() : features_end]
+        features_body = re.sub(
+            r"(?m)^[ \t]*context_management\.experimental_mode[ \t]*=[^\r\n]*(?:\r?\n|$)",
+            "",
+            features_body,
+        )
+        features_body = re.sub(
+            r"(?m)^[ \t]*context_management[ \t]*=[ \t]*\{[^\r\n]*\}[ \t]*(?:\r?\n|$)",
+            "",
+            features_body,
+        )
+        content = content[: features_match.end()] + features_body + content[features_end:]
+
+    content = re.sub(
+        r"(?ms)^\[features\.context_management\][^\r\n]*(?:\r?\n|$).*?(?=^\[|\Z)",
+        "",
+        content,
+    )
+    return content, content != original
 
 
 def _ensure_context_management_feature(content: str) -> tuple[str, bool]:

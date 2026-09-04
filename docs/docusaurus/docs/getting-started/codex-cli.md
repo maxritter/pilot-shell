@@ -24,7 +24,7 @@ All Pilot workflows run on both agents. Use `/` on Claude Code and `$` on Codex:
 
 ## Codex context and Pilot memory
 
-The installer enables Codex's experimental native context manager by default while preserving an explicit opt-out in `config.toml`. Eligible ChatGPT-backed sessions then keep notes across context windows and can search earlier thread history instead of repeatedly reducing it to one compaction summary.
+The installer enables Codex's experimental native context manager by default on Codex 0.153.0 and newer while preserving an explicit opt-out in `config.toml`. On older releases it keeps `[features]` boolean-only and removes Pilot's incompatible structured setting during upgrades. Eligible ChatGPT-backed sessions then keep notes across context windows and can search earlier thread history instead of repeatedly reducing it to one compaction summary.
 
 Pilot keeps recording durable decisions, discoveries, and bugfixes for cross-session use. Codex relies on native thread history when eligible and searches the local `mem-search` MCP when prior project context is relevant; Pilot does not inject a recency-based memory digest automatically. Claude Code keeps Pilot's existing automatic memory lifecycle.
 

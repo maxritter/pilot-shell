@@ -8,11 +8,11 @@ description: Keep the context window lean and recover cleanly when it fills up â
 
 Two things matter for a long-running session: keeping the context window lean so tokens go to your code, and handling the moments when it fills up anyway.
 
-These strategies apply to both **Claude Code** and **Codex CLI**. Claude Code uses automatic compaction. For Codex, Pilot enables the native experimental context manager unless `experimental_mode` is already set explicitly in `config.toml`.
+These strategies apply to both **Claude Code** and **Codex CLI**. Claude Code uses automatic compaction. For Codex 0.153.0 and newer, Pilot enables the native experimental context manager unless `experimental_mode` is already set explicitly in `config.toml`. Older Codex releases keep the compatible boolean-only feature layout.
 
 ## Native Codex context management
 
-Pilot adds this default during installation:
+Pilot adds this default during installation when Codex 0.153.0 or newer is detected:
 
 ```toml
 [features]
@@ -20,6 +20,8 @@ context_management.experimental_mode = true
 ```
 
 For eligible ChatGPT-backed Codex sessions, this keeps notes across context windows, makes earlier thread history searchable, and exposes Codex's `new_context` tool. Codex ignores the feature for unsupported plans, custom providers, provider credentials, non-Codex endpoints, and temporary structured threads.
+
+Codex 0.152.x and older accept only boolean values inside `[features]`. Pilot therefore omits the structured setting for those versions and removes the incompatible Pilot-added form during an upgrade so Codex can start normally.
 
 Pilot also requests `model_context_window = 1050000` and
 `model_auto_compact_token_limit = 922000`, matching Astra's published total

@@ -18,6 +18,7 @@ from installer.steps.codex_files import (
     CodexFilesStep,
     _TomlStructureError,
     _adapt_invocation_syntax,
+    _codex_supports_context_management,
     _ensure_section_keys,
     _load_bundled_codex_model_catalog,
     _validate_toml_structure,
@@ -55,6 +56,10 @@ def _disable_live_codex_catalog_probe(monkeypatch: pytest.MonkeyPatch) -> None:
         "installer.steps.codex_files._load_bundled_codex_model_catalog",
         lambda: None,
     )
+    monkeypatch.setattr(
+        "installer.steps.codex_files._codex_supports_context_management",
+        lambda: True,
+    )
 
 
 class TestCodexFilesStepCheck:
@@ -62,6 +67,25 @@ class TestCodexFilesStepCheck:
         step = CodexFilesStep()
         ctx = MagicMock()
         assert step.check(ctx) is False
+
+
+class TestCodexContextManagementCompatibility:
+    @pytest.mark.parametrize(
+        ("version", "supported"),
+        [
+            ("codex-cli 0.152.1", False),
+            ("codex-cli 0.153.0", True),
+            ("codex-cli 1.0.0", True),
+        ],
+    )
+    def test_detects_structured_feature_support(self, version: str, supported: bool) -> None:
+        result = subprocess.CompletedProcess(["codex", "--version"], 0, stdout=version, stderr="")
+        with patch("installer.steps.codex_files.subprocess.run", return_value=result):
+            assert _codex_supports_context_management() is supported
+
+    def test_fails_closed_when_version_cannot_be_detected(self) -> None:
+        with patch("installer.steps.codex_files.subprocess.run", side_effect=OSError("missing")):
+            assert _codex_supports_context_management() is False
 
 
 class TestCodexFilesStepSkipsWhenNoCodex:
@@ -2555,6 +2579,27 @@ class TestCodexModelDefaults:
             "experimental_mode": True,
             "future_option": True,
         }
+
+    def test_removes_pilot_context_management_for_legacy_codex(self, tmp_path: Path) -> None:
+        codex_dir = tmp_path / ".codex"
+        codex_dir.mkdir(parents=True)
+        config = codex_dir / "config.toml"
+        config.write_text("[features]\ncontext_management.experimental_mode = true\nhooks = true\n")
+
+        step = CodexFilesStep()
+        ctx = MagicMock(ui=None)
+        with (
+            patch("installer.steps.codex_files._get_codex_config_dir", return_value=codex_dir),
+            patch("installer.steps.codex_files.Path.home", return_value=tmp_path),
+            patch(
+                "installer.steps.codex_files._codex_supports_context_management",
+                return_value=False,
+            ),
+        ):
+            step._install_codex_config(ctx)
+
+        parsed = tomllib.loads(config.read_text())
+        assert parsed["features"] == {"hooks": True}
 
     def test_uses_installed_codex_catalog_when_cache_is_missing(self, tmp_path: Path) -> None:
         codex_dir = tmp_path / ".codex"

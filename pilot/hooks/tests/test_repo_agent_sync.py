@@ -572,7 +572,7 @@ class TestStop:
         assert handle(_stop_payload(repo)) == {"continue": True}
         run.assert_not_called()
 
-    def test_checker_failure_blocks_stop_with_actionable_recovery(
+    def test_checker_failure_warns_without_blocking_completion(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         repo = tmp_path / "repo"
@@ -585,11 +585,12 @@ class TestStop:
 
         result = handle(_stop_payload(repo))
 
-        assert result["decision"] == "block"
+        assert result["continue"] is True
+        assert "decision" not in result
         assert "mirror is invalid" in result["systemMessage"]
-        assert "Both sides were preserved" in result["reason"]
+        assert "Both sides were preserved" in result["systemMessage"]
 
-    def test_missing_bundle_blocks_without_executing_local_checker(
+    def test_missing_bundle_warns_without_executing_local_checker(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         repo = tmp_path / "repo"
@@ -601,8 +602,9 @@ class TestStop:
         result = handle(_stop_payload(repo))
 
         run.assert_not_called()
-        assert result["decision"] == "block"
-        assert "repository-local checker was not executed" in result["reason"]
+        assert result["continue"] is True
+        assert "decision" not in result
+        assert "repository-local checker was not executed" in result["systemMessage"]
 
 
 @pytest.mark.skipif(shutil.which("node") is None or shutil.which("git") is None, reason="requires node and git")
@@ -620,9 +622,7 @@ class TestBundledCheckerIntegration:
         (repo / "AGENTS.md").symlink_to("CLAUDE.md")
         skill = repo / ".claude" / "skills" / "example"
         skill.mkdir(parents=True)
-        (skill / "SKILL.md").write_text(
-            "---\nname: example\ndescription: Shared project skill.\n---\n\n# Example\n"
-        )
+        (skill / "SKILL.md").write_text("---\nname: example\ndescription: Shared project skill.\n---\n\n# Example\n")
         (repo / ".agents").mkdir()
         (repo / ".agents" / "skills").symlink_to("../.claude/skills", target_is_directory=True)
 
@@ -631,9 +631,7 @@ class TestBundledCheckerIntegration:
         assert result == {"continue": True}
         assert (repo / "AGENTS.md").is_symlink()
         assert (repo / ".agents" / "skills").is_symlink()
-        assert (repo / ".agents" / "skills" / "example" / "SKILL.md").read_bytes() == (
-            skill / "SKILL.md"
-        ).read_bytes()
+        assert (repo / ".agents" / "skills" / "example" / "SKILL.md").read_bytes() == (skill / "SKILL.md").read_bytes()
 
         pre_result = handle(_pre_payload(repo, "Edit", {"file_path": "CLAUDE.md"}))
         post_result = handle(_post_payload(repo, "Edit", {"file_path": "CLAUDE.md"}))
@@ -860,8 +858,9 @@ class TestBundledCheckerIntegration:
 
         result = handle(_stop_payload(repo))
 
-        assert result["decision"] == "block"
-        assert "Both sides were preserved" in result["reason"]
+        assert result["continue"] is True
+        assert "decision" not in result
+        assert "Both sides were preserved" in result["systemMessage"]
         assert mirror.read_text() == mirror_text
 
     def test_session_start_synchronizes_dirty_mirror_back_to_canonical(self, tmp_path: Path) -> None:
@@ -905,8 +904,9 @@ class TestBundledCheckerIntegration:
 
         result = handle(_stop_payload(repo))
 
-        assert result["decision"] == "block"
-        assert "Both sides were preserved" in result["reason"]
+        assert result["continue"] is True
+        assert "decision" not in result
+        assert "Both sides were preserved" in result["systemMessage"]
         assert (canonical / "SKILL.md").read_text() == canonical_text
         assert mirror.read_text() == mirror_text
 
