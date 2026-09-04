@@ -49,7 +49,7 @@ function makeRepo({ claude = '@AGENTS.md\n', mirror = true } = {}) {
             relativeAsset,
             {
               sha256: createHash('sha256').update(readFileSync(asset)).digest('hex'),
-              executableMode: statSync(asset).mode & 0o111,
+              executableMode: statSync(asset).mode & 0o111 ? 0o111 : 0,
             },
           ]
         }),
@@ -61,6 +61,19 @@ function makeRepo({ claude = '@AGENTS.md\n', mirror = true } = {}) {
   }
   return repo
 }
+
+test('executable baselines survive checkout-specific permission masks', () => {
+  const repo = makeRepo()
+  try {
+    chmodSync(path.join(repo, '.agents', 'skills', 'demo-skill', 'scripts', 'run.sh'), 0o700)
+    chmodSync(path.join(repo, '.claude', 'skills', 'demo-skill', 'scripts', 'run.sh'), 0o700)
+
+    const result = run(repo, '--check')
+    assert.equal(result.status, 0, result.stderr)
+  } finally {
+    cleanup(repo)
+  }
+})
 
 function run(repo, ...args) {
   return spawnSync(process.execPath, [SCRIPT, ...args, '--repo', repo], {
@@ -511,7 +524,7 @@ test('hostile repository manifest cannot authorize overwriting an untracked loca
     const data = JSON.parse(readFileSync(manifest, 'utf8'))
     data.files['demo-skill/SKILL.md'] = {
       sha256: createHash('sha256').update(readFileSync(mirror)).digest('hex'),
-      executableMode: statSync(mirror).mode & 0o111,
+      executableMode: statSync(mirror).mode & 0o111 ? 0o111 : 0,
     }
     writeFileSync(manifest, `${JSON.stringify(data, null, 2)}\n`)
 

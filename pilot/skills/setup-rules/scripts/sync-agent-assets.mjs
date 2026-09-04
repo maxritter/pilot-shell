@@ -210,7 +210,10 @@ async function assetRecord(asset) {
   const bytes = await readFile(asset.absolute)
   return {
     sha256: createHash('sha256').update(bytes).digest('hex'),
-    executableMode: asset.info.mode & 0o111,
+    // Git preserves only whether a file is executable, while checkout umasks
+    // decide which of the three execute bits appear on disk. Store that
+    // portable capability instead of a machine-specific permission mask.
+    executableMode: asset.info.mode & 0o111 ? 0o111 : 0,
   }
 }
 
@@ -259,8 +262,7 @@ function parseOwnershipManifest(raw, label) {
       !Array.isArray(record) &&
       /^[a-f0-9]{64}$/.test(record.sha256) &&
       Number.isInteger(record.executableMode) &&
-      record.executableMode >= 0 &&
-      (record.executableMode & ~0o111) === 0
+      (record.executableMode === 0 || record.executableMode === 0o111)
     if (!validPath || !validRecord) {
       throw new Error(`${label} has an invalid managed entry: ${assetPath}`)
     }

@@ -3,7 +3,7 @@
   "files": {
     "upstream-audit/SKILL.md": {
       "sha256": "59602e12e5058fe3a24109ecafbb638344fda86fadb090f9a4e7f485c61948e5",
-      "executableMode": 64
+      "executableMode": 73
     }
   }
 }
