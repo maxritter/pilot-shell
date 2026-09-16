@@ -18,7 +18,9 @@
  * either side synchronize through the ownership baseline. Untracked and
  * gitignored skills synchronize in both directions through a trusted baseline
  * stored under .git/pilot; first-time one-sided skills are copied, independent
- * two-sided edits fail without overwriting either version.
+ * two-sided edits fail without overwriting either version. Provider-generated
+ * skills whose installers intentionally emit different Claude and Codex trees
+ * remain under that provider's ownership and are excluded from mirror sync.
  */
 
 import {
@@ -50,6 +52,7 @@ const LOCAL_PROVENANCE_GIT_PATH = 'pilot/sync-agent-assets.json'
 const LOCAL_SKILL_PROVENANCE_GIT_PATH = 'pilot/sync-local-skills.json'
 const SKILL_NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const MAX_SKILL_NAME_LENGTH = 64
+const PROVIDER_GENERATED_SKILLS = new Set(['impeccable'])
 
 class UsageError extends Error {}
 
@@ -703,6 +706,7 @@ async function discoverIgnoredSkillPairs(repo) {
   const pairs = []
   for (const name of [...names].sort()) {
     validateSkillName(name, `local skill ${name}`)
+    if (PROVIDER_GENERATED_SKILLS.has(name)) continue
     const canonical = canonicalEntries.get(name) ?? path.join(canonicalRoot, name)
     const mirror = mirrorEntries.get(name) ?? path.join(mirrorRoot, name)
     const [canonicalInfo, mirrorInfo] = await Promise.all([inspect(canonical), inspect(mirror)])

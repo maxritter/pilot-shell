@@ -51,7 +51,7 @@ For a bugfix workflow without a plan file, users invoke `/fix` directly - that's
 
 **Model Switching has three modes** (Console → Settings → Model Switching): **Manual** is the default and preserves the user's active `/model` choice through the workflow. **Automated** uses Claude Code's `opusplan` planning/execution legs and its real native plan-mode restrictions. The planning skill prepares its registered draft before entering, writes only the permitted native plan while read-only, and uses native approval to transfer the accepted plan back into Pilot. **Off** adds no model-management behavior. Pilot never remaps the user's model aliases behind the scenes.
 
-Automated mode's exact handoff is documented in `$HOME/.pilot/agents/spec-native-plan.md`. It requires the runtime's native plan tools; otherwise continue on the current model and report the limitation once. No mode adds a model-switch pause after an approved plan is ready for implementation.
+Automated mode's exact handoff is documented in `$HOME/.pilot/agents/spec-native-plan.md`. It requires the runtime's native plan tools; otherwise continue on the current model and report the limitation once. Manual mode pauses once after explicit plan approval in the main session so the user can run `/model`, then exact `resume` starts implementation. Disabling Plan Approval keeps the run autonomous; orchestration lanes continue on their already-running model.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 In Codex, Pilot's Claude model-switching tools do not apply. Keep the active Codex model and respect the current native mode through plan → implement → verify.

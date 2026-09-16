@@ -6,12 +6,11 @@ Only allows stopping when:
 2. Asking user for an important decision (AskUserQuestion tool)
 3. No active plan exists (not in /spec mode)
 4. A fresh pause sentinel applies to the plan's current state - the approval wait,
-   a /build hand-back, or a verify-phase gate. These are the path for agents that
-   cannot emit AskUserQuestion (Codex, and Claude Code subagents dispatched as
-   orchestration lanes), which would otherwise answer their own gate rather than
-   stop. NONE of them applies to an approved PENDING plan: the implement phase has
-   no agent-unilateral pause (see the note where the retired manual-switch
-   sentinel was).
+   the configured main-session Manual model-switch handoff, a /build hand-back, or
+   a verify-phase gate. The Manual gate is the only sentinel allowed for an
+   approved PENDING plan, and only when the launcher already bound it to that exact
+   plan before implementation. The other sentinels are qualified away from the
+   implement phase.
 5. A plan-bound durable interaction state is paused. UserPromptSubmit owns the
    human/synthetic distinction, and the pause remains authoritative even when
    `stop_hook_active` still describes an enclosing continuation chain. Buildouts
@@ -44,7 +43,12 @@ from collections.abc import Callable
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _lib.session_artifacts import PAUSE_SENTINELS
+from _lib.session_artifacts import (
+    APPROVAL_SENTINEL,
+    BUILD_HANDBACK_SENTINEL,
+    MANUAL_SWITCH_SENTINEL,
+    VERIFY_GATE_SENTINEL,
+)
 from _lib.util import (
     _read_plan_approved_and_type,
     _sessions_base,
@@ -84,9 +88,7 @@ MAX_CHAIN_BLOCKS = 5
 # session, etc.) and unlinked without being honored. One hour is generous
 # enough for any realistic approval-wait interaction.
 SENTINEL_MAX_AGE_SECONDS = 3600
-
-APPROVAL_SENTINEL, BUILD_HANDBACK_SENTINEL, VERIFY_GATE_SENTINEL = PAUSE_SENTINELS
-
+MANUAL_SWITCH_MAX_AGE_SECONDS = 24 * 3600
 
 def get_stop_guard_path(session_id: str | None = None) -> Path:
     """Get session-scoped stop guard state path."""
@@ -115,19 +117,17 @@ def get_approval_sentinel_path(session_id: str | None = None) -> Path:
     return guard_dir / APPROVAL_SENTINEL
 
 
-# NO manual-switch sentinel, deliberately, and no agent-unilateral implement-phase
-# pause. Manual Model Switching used to end the planning turn after approval so the
-# user could run /model, and this guard honored a `manual-switch-pending` file to
-# permit that stop. Its predicate was a bare "is the plan approved", which made it
-# the ONLY sentinel that granted a stop at Approved: Yes + Status: PENDING -- the
-# implement phase -- so /spec could hand back to the user with an approved plan and
-# zero tasks done. That sentinel stays retired, and every one-shot gate sentinel is
-# qualified away from that state (spec-approval-pending: Approved: No;
-# build-handback-pending: Type: Build; verify-gate-pending: Status: COMPLETE).
-#
-# The one grant that DOES apply there is the plan-bound interaction state read
-# near the start of ``main``. UserPromptSubmit writes it only for a real user
-# interruption; an agent-discovered decision must use ``pilot plan-state``.
+def get_manual_switch_sentinel_path(session_id: str | None = None) -> Path:
+    """Session-scoped Manual model-switch handoff marker.
+
+    Unlike the retired pre-v11 form, this marker is reusable only while the exact
+    registered plan is approved, non-Build, and ``Status: PENDING``. The first
+    Stop attempt binds the empty marker to that plan's path, status, and content
+    fingerprint. UserPromptSubmit consumes it only for exact resume commands.
+    """
+    guard_dir = _sessions_base() / (session_id or resolve_session_id())
+    guard_dir.mkdir(parents=True, exist_ok=True)
+    return guard_dir / MANUAL_SWITCH_SENTINEL
 
 
 def get_build_handback_sentinel_path(session_id: str | None = None) -> Path:
@@ -175,17 +175,19 @@ def get_verify_gate_sentinel_path(session_id: str | None = None) -> Path:
     return guard_dir / VERIFY_GATE_SENTINEL
 
 
-def _sentinel_grants_stop(
+def _sentinel_grants_stop(  # noqa: PLR0913
     sentinel: Path,
     plan_path: Path,
     applies: Callable[[bool, str], bool],
     *,
     consume: bool,
     expected_status: str,
+    max_age_seconds: int = SENTINEL_MAX_AGE_SECONDS,
+    refresh_on_content_change: bool = False,
 ) -> bool:
     """True when a fresh sentinel permits this stop attempt.
 
-    Shared by the three pause sentinels, which differ only in which plan state
+    Shared by the pause sentinels, which differ only in which plan state
     they apply to and whether honoring them burns the sentinel. A sentinel older
     than ``SENTINEL_MAX_AGE_SECONDS`` (PID reuse, crashed session) is discarded
     rather than honored, so a stale file cannot silently disable the guard.
@@ -203,14 +205,19 @@ def _sentinel_grants_stop(
         age = time.time() - sentinel.stat().st_mtime
     except OSError:
         age = 0.0
-    if age > SENTINEL_MAX_AGE_SECONDS:
+    if age > max_age_seconds:
         sentinel.unlink(missing_ok=True)
+        return False
+
+    approved, plan_type = _read_plan_approved_and_type(str(plan_path))
+    if not applies(approved, plan_type):
         return False
 
     try:
         raw = sentinel.read_text().strip()
     except OSError:
         return False
+    needs_binding = not raw
     if raw:
         try:
             binding = json.loads(raw)
@@ -230,15 +237,13 @@ def _sentinel_grants_stop(
             sentinel.unlink(missing_ok=True)
             return False
         if binding.get("plan_content_fingerprint") != expected_fingerprint:
-            sentinel.unlink(missing_ok=True)
-            return False
-
-    approved, plan_type = _read_plan_approved_and_type(str(plan_path))
-    if not applies(approved, plan_type):
-        return False
+            if not refresh_on_content_change:
+                sentinel.unlink(missing_ok=True)
+                return False
+            needs_binding = True
     if consume:
         sentinel.unlink(missing_ok=True)
-    elif not raw:
+    elif needs_binding:
         plan_key = os.path.realpath(plan_path)
         try:
             content_fingerprint = hashlib.sha256(plan_path.read_bytes()).hexdigest()
@@ -524,6 +529,22 @@ def main() -> int:
         consume=False,
         expected_status=status,
     ):
+        return 0
+
+    # Manual model-switch handoff: after an explicitly approved plan, Manual
+    # mode yields once so the user can run /model and then exact `resume`.
+    # Restrict it to the implementation boundary (approved PENDING, non-Build)
+    # and retain the bound marker until UserPromptSubmit consumes that resume.
+    if status == "PENDING" and _sentinel_grants_stop(
+        get_manual_switch_sentinel_path(session_id),
+        plan_path,
+        lambda approved, plan_type: approved and plan_type != "Build",
+        consume=False,
+        expected_status=status,
+        max_age_seconds=MANUAL_SWITCH_MAX_AGE_SECONDS,
+        refresh_on_content_change=True,
+    ):
+        get_stop_guard_path(session_id).unlink(missing_ok=True)
         return 0
 
     # /build hand-back pause: the ways a run finishes WITHOUT reaching VERIFIED

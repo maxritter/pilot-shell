@@ -252,6 +252,13 @@ class TestBuildCodexSkill:
         assert "separate terminal" in result
         assert "! <command>" not in result
 
+    @pytest.mark.parametrize("skill_name", ["spec-plan", "spec-bugfix-plan"])
+    def test_model_switch_handoff_is_stripped_by_session_start_builder(self, skill_name: str) -> None:
+        result = _codex_runtime_text(skill_name)
+        assert "plan-state model-switch" not in result
+        assert "Manual model switching: run `/model` now" not in result
+        assert "continue immediately with the `$spec-implement`" in result
+
     @pytest.mark.parametrize(
         "skill_name",
         [

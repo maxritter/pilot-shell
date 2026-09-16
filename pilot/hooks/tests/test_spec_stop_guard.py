@@ -1151,56 +1151,96 @@ class TestApprovalSentinel:
         assert not sentinel.exists(), "stale approval sentinel must be unlinked"
 
 
-class TestApprovedPendingPlanHasNoUnilateralPause:
-    """The implement phase has no AGENT-UNILATERAL pause.
+class TestManualSwitchSentinel:
+    """Manual switching is a narrow, plan-bound pre-implementation gate."""
 
-    Manual Model Switching used to end the planning turn after approval so the user
-    could run ``/model``, permitted by a ``manual-switch-pending`` sentinel whose
-    predicate was a bare ``approved``. That made it the ONLY sentinel that granted a
-    stop while a /spec plan was ``Approved: Yes`` + ``Status: PENDING`` -- i.e. during
-    implementation -- so an approved plan could hand back to the user with zero tasks
-    done. Every one-shot gate sentinel is qualified away from that state:
-    spec-approval-pending needs ``Approved: No``, build-handback-pending needs
-    ``Type: Build``, verify-gate-pending needs ``Status: COMPLETE``.
-
-    The retired filename stays retired (a customized or stale skill copy may still
-    touch it). The one grant that DOES apply to an approved PENDING plan is the
-    durable interaction state written by UserPromptSubmit. This class pins what
-    remains forbidden: pausing the implement phase without the user in the loop.
-    """
-
-    def _run(self, tmp_path, monkeypatch, *, sentinel_name: str | None):
+    def _run(
+        self,
+        tmp_path,
+        monkeypatch,
+        *,
+        approved: bool = True,
+        status: str = "PENDING",
+        plan_type: str = "Feature",
+        write_sentinel: bool = True,
+    ):
         import spec_stop_guard as g
 
         monkeypatch.setenv("PILOT_SESSION_ID", "no-implement-pause-test")
         monkeypatch.setattr(g, "_sessions_base", lambda: tmp_path / "sessions")
         plan = tmp_path / "plan.md"
-        plan.write_text("# X\nStatus: PENDING\nApproved: Yes\nType: Feature\n")
-        monkeypatch.setattr(g, "find_active_plan", lambda *_args: (plan, "PENDING"))
+        if not plan.exists():
+            plan.write_text(
+                f"# X\nStatus: {status}\nApproved: {'Yes' if approved else 'No'}\nType: {plan_type}\n"
+            )
+        monkeypatch.setattr(g, "find_active_plan", lambda *_args: (plan, status))
         monkeypatch.setattr(g, "is_waiting_for_user_input", lambda _p: False)
 
-        if sentinel_name:
-            guard_dir = tmp_path / "sessions" / "no-implement-pause-test"
-            guard_dir.mkdir(parents=True, exist_ok=True)
-            (guard_dir / sentinel_name).write_text("")
+        guard_dir = tmp_path / "sessions" / "no-implement-pause-test"
+        guard_dir.mkdir(parents=True, exist_ok=True)
+        sentinel = guard_dir / "manual-switch-pending"
+        if write_sentinel:
+            sentinel.write_text("")
 
         stdin = io.StringIO(json.dumps({"stop_hook_active": False, "transcript_path": ""}))
         with patch("sys.stdin", stdin), patch("sys.stdout", new_callable=io.StringIO) as out:
             code = g.main()
-        return code, out.getvalue()
+        return code, plan, sentinel, out.getvalue()
 
-    def test_retired_manual_switch_sentinel_no_longer_grants_a_stop(self, tmp_path, monkeypatch):
-        """The regression itself: this file used to buy one free stop mid-implementation."""
-        _code, stdout = self._run(tmp_path, monkeypatch, sentinel_name="manual-switch-pending")
-        assert _is_blocked(stdout), (
-            "an approved PENDING plan stopped instead of implementing - the "
-            "manual-switch pause is exactly the defect this pins"
-        )
+    def test_approved_pending_plan_can_pause_for_manual_switch(self, tmp_path, monkeypatch):
+        _code, plan, sentinel, stdout = self._run(tmp_path, monkeypatch)
 
-    def test_approved_pending_plan_blocks_with_no_sentinel(self, tmp_path, monkeypatch):
-        """The control. Without it, deleting the guard entirely would pass the test above."""
-        _code, stdout = self._run(tmp_path, monkeypatch, sentinel_name=None)
+        assert not _is_blocked(stdout)
+        binding = json.loads(sentinel.read_text())
+        assert binding["plan_path"] == os.path.realpath(plan)
+        assert binding["expected_status"] == "PENDING"
+
+    def test_approved_pending_plan_still_blocks_without_gate(self, tmp_path, monkeypatch):
+        _code, _plan, _sentinel, stdout = self._run(tmp_path, monkeypatch, write_sentinel=False)
         assert _is_blocked(stdout)
+
+    @pytest.mark.parametrize(
+        ("approved", "status", "plan_type"),
+        [(False, "PENDING", "Feature"), (True, "COMPLETE", "Feature"), (True, "PENDING", "Build")],
+    )
+    def test_gate_rejects_wrong_plan_state(self, tmp_path, monkeypatch, approved, status, plan_type):
+        _code, _plan, _sentinel, stdout = self._run(
+            tmp_path,
+            monkeypatch,
+            approved=approved,
+            status=status,
+            plan_type=plan_type,
+        )
+        assert _is_blocked(stdout)
+
+    def test_plan_change_refreshes_bound_gate(self, tmp_path, monkeypatch):
+        _code, plan, sentinel, stdout = self._run(tmp_path, monkeypatch)
+        assert not _is_blocked(stdout)
+        original = json.loads(sentinel.read_text())["plan_content_fingerprint"]
+
+        plan.write_text(plan.read_text() + "\nchanged\n")
+        _code, _plan, _sentinel, stdout = self._run(tmp_path, monkeypatch, write_sentinel=False)
+
+        assert not _is_blocked(stdout)
+        assert sentinel.exists()
+        assert json.loads(sentinel.read_text())["plan_content_fingerprint"] != original
+
+    def test_manual_switch_gate_survives_two_hours_but_not_a_day(self, tmp_path, monkeypatch):
+        import time as _time
+
+        _code, _plan, sentinel, stdout = self._run(tmp_path, monkeypatch)
+        assert not _is_blocked(stdout)
+
+        two_hours_ago = _time.time() - 7200
+        os.utime(sentinel, (two_hours_ago, two_hours_ago))
+        _code, _plan, _sentinel, stdout = self._run(tmp_path, monkeypatch, write_sentinel=False)
+        assert not _is_blocked(stdout)
+
+        yesterday = _time.time() - (25 * 3600)
+        os.utime(sentinel, (yesterday, yesterday))
+        _code, _plan, _sentinel, stdout = self._run(tmp_path, monkeypatch, write_sentinel=False)
+        assert _is_blocked(stdout)
+        assert not sentinel.exists()
 
 
 class TestBuildHandbackSentinel:

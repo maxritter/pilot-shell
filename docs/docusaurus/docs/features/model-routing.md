@@ -33,7 +33,7 @@ Codex manages its own model catalog; Pilot only requests
 | Mode | What happens | Who switches |
 |------|--------------|--------------|
 | **Automated** | `/spec` uses `opusplan`: the Opus planning leg and Sonnet execution leg, subject to Claude Code's runtime availability | Claude Code, natively |
-| **Manual** (default) | `/spec` runs start to finish on your active model and never pauses to switch; interrupt and run `/model` if you want to change mid-run | You, via `/model` |
+| **Manual** (default) | With Plan Approval enabled, `/spec` pauses once after approval so you can choose the implementation model; autonomous runs keep the active model | You, via `/model` |
 | **Off** | No model-switch management; the active model runs every phase | Nobody -- the active `/model` choice is retained |
 
 Pilot does **not** remap model aliases behind the scenes in any mode -- your `/model` picker always means what it says.
@@ -44,9 +44,10 @@ New installs start here. You stay in control of the model at every phase:
 
 1. Select an available model with `/model`, then type `/spec <task>`. Fable 5.1, Opus 5, and other available models can run the whole workflow.
 2. Plan, review, approve as usual.
-3. After approval, implementation continues immediately on the active model. There is no extra switch prompt or pause. To change models during the run, interrupt and use `/model`.
+3. After explicit approval in the main session, Pilot pauses before implementation. Run `/model`, confirm Claude Code's conversation-transfer prompt if it appears, then send exact `resume`, `/spec resume`, or `$spec resume`.
+4. Pilot consumes that one-shot gate and begins implementation on the selected model. Other messages leave the gate armed.
 
-Disabling Plan Approval removes that configured approval gate; it does not change the model or create another handoff gate.
+Disabling Plan Approval keeps `/spec` autonomous: Manual preserves the active model and does not create a handoff pause. Orchestration lanes also continue on their already-running model because a coordinator `/model` command cannot change a running child.
 
 ## Automated
 

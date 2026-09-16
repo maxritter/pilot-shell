@@ -10,7 +10,7 @@ echo "MODE=$MODE"
 
 Manual and Off preserve the current `/model` choice through the workflow. Automated uses Claude Code's `opusplan` mode when available: the planning skill prepares its registered draft before entering native plan mode, follows the runtime's read-only limits, and uses native approval for the handoff. See `$HOME/.pilot/agents/spec-native-plan.md` at that point.
 
-Respect the current permission mode. Relay a concrete model-selection or capability mismatch once when it affects this run; do not add a routine permission warning, recommend bypass mode, or pause for a model switch. Continue with Step 1.
+Respect the current permission mode. Relay a concrete model-selection or capability mismatch once when it affects this run; do not add a routine permission warning, recommend bypass mode, or pause at planning start. Manual mode's one model-switch pause belongs only at the approved main-session implementation handoff. Continue with Step 1.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 Pilot's Claude permission/model-switching tools do not apply here. Preserve the active Codex model and native mode, use its current tool schemas, and continue with Step 1.

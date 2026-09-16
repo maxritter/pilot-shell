@@ -31,10 +31,10 @@ codex
 ## Workflow
 
 ```
-Discuss → Plan → Approve → Implement → Verify → Done
+Discuss → Plan → Approve → Switch model (Manual) → Implement → Verify → Done
 ```
 
-Manual steps are **Approve** (required) and **Code Review** (optional, via Console). Everything else runs automatically. The Verify → Implement feedback loop repeats until all checks pass, then prompts for squash merge.
+Manual steps are **Approve**, the one-time `/model` handoff when Model Switching is Manual and Plan Approval is enabled, and **Code Review** (optional, via Console). After approval, switch models and send exact `resume`; with Plan Approval disabled, implementation starts immediately. The Verify → Implement feedback loop repeats until all checks pass, then prompts for squash merge.
 
 ## Spec Types
 

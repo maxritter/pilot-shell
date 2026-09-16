@@ -27,6 +27,22 @@
       "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
     },
     {
+      "id": "claude-sessionstart-display-repair",
+      "platform": "claude",
+      "event": "SessionStart",
+      "matcher": "startup|resume",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/claude_display_patch_sync.py\""
+      ],
+      "async": [
+        false
+      ],
+      "timeout": [
+        45
+      ],
+      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
       "id": "claude-sessionstart-1",
       "platform": "claude",
       "event": "SessionStart",

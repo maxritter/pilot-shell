@@ -17,7 +17,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _lib.session_artifacts import DISCUSSION_PAUSE  # noqa: E402
+from _lib.session_artifacts import DISCUSSION_PAUSE, MANUAL_SWITCH_SENTINEL  # noqa: E402
 from _lib.util import (  # noqa: E402
     _read_plan_approved_and_type,
     _sessions_base,
@@ -30,6 +30,7 @@ _RESUME_COMMANDS = frozenset({"resume", "/spec resume", "$spec resume"})
 _SPEC_COMMAND_PREFIXES = ("/spec", "$spec")
 _LEGACY_PAUSE_FILE = DISCUSSION_PAUSE
 _LEGACY_PAUSE_MAX_AGE_SECONDS = 3600
+_MANUAL_SWITCH_MAX_AGE_SECONDS = 24 * 3600
 
 
 def _atomic_write_json(path: Path, data: dict) -> bool:
@@ -152,6 +153,40 @@ def _consume_expected_verify_gate(
     return valid
 
 
+def _manual_switch_gate_pending(
+    session_id: str,
+    plan: Path,
+    status: str,
+    approved: bool,
+    plan_type: str,
+) -> Path | None:
+    """Return a valid, bound Manual model-switch marker without consuming it."""
+    marker = _sessions_base() / session_id / MANUAL_SWITCH_SENTINEL
+    if not marker.exists():
+        return None
+    valid = status == "PENDING" and approved and plan_type != "Build"
+    try:
+        if time.time() - marker.stat().st_mtime > _MANUAL_SWITCH_MAX_AGE_SECONDS:
+            valid = False
+        raw = marker.read_text().strip()
+        if raw:
+            binding = json.loads(raw)
+            expected_fingerprint = hashlib.sha256(plan.read_bytes()).hexdigest()
+            valid = valid and isinstance(binding, dict)
+            valid = valid and os.path.realpath(str(binding.get("plan_path", ""))) == os.path.realpath(plan)
+            valid = valid and binding.get("expected_status") == status
+            if valid and binding.get("plan_content_fingerprint") != expected_fingerprint:
+                binding["plan_content_fingerprint"] = expected_fingerprint
+                binding["created_at"] = time.time()
+                valid = _atomic_write_json(marker, binding)
+    except (OSError, json.JSONDecodeError, TypeError):
+        valid = False
+    if not valid:
+        marker.unlink(missing_ok=True)
+        return None
+    return marker
+
+
 def _paused_context(interaction: dict) -> dict:
     if interaction.get("kind") == "manual":
         return _context(
@@ -185,6 +220,25 @@ def handle(payload: object) -> dict:
     if _consume_expected_continuation(session_id, prompt):
         return {}
     status = str(registration.get("status", "")).upper()
+    manual_switch_marker = _manual_switch_gate_pending(session_id, plan, status, approved, plan_type)
+    if manual_switch_marker is not None:
+        if normalized in _RESUME_COMMANDS:
+            interaction = registration.get("interaction")
+            if isinstance(interaction, dict) and interaction.get("state") == "paused":
+                registration.pop("interaction", None)
+                if not _atomic_write_json(registration_path, registration):
+                    return {}
+            manual_switch_marker.unlink(missing_ok=True)
+            return _context(
+                f"The user completed the Manual model-switch handoff for {plan}. The one-shot gate is consumed; "
+                "invoke `spec-implement` for this approved PENDING plan now. Do not repeat plan approval or re-arm "
+                "the model-switch gate."
+            )
+        return _context(
+            "The Manual model switch is still pending. Answer without starting implementation and keep the gate "
+            "armed. The user may run `/model`; only exact `resume`, `/spec resume`, or `$spec resume` completes "
+            "this handoff."
+        )
     if _consume_expected_verify_gate(session_id, plan, status, plan_type):
         return _context(
             "This user message answers a pending /spec verification gate; it is expected input, not a new "

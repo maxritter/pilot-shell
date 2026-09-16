@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+APPROVAL_SENTINEL = "spec-approval-pending"
+MANUAL_SWITCH_SENTINEL = "manual-switch-pending"
+BUILD_HANDBACK_SENTINEL = "build-handback-pending"
+VERIFY_GATE_SENTINEL = "verify-gate-pending"
+
 PAUSE_SENTINELS = (
-    "spec-approval-pending",
-    "build-handback-pending",
-    "verify-gate-pending",
+    APPROVAL_SENTINEL,
+    MANUAL_SWITCH_SENTINEL,
+    BUILD_HANDBACK_SENTINEL,
+    VERIFY_GATE_SENTINEL,
 )
 
 # Retired discussion-pause marker retained only so SessionStart migration and

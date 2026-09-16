@@ -28,6 +28,16 @@
         ]
       },
       {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/claude_display_patch_sync.py\"",
+            "timeout": 45
+          }
+        ]
+      },
+      {
         "matcher": "startup",
         "hooks": [
           {

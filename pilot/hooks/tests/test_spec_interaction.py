@@ -10,6 +10,8 @@ import time
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 HOOKS_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HOOKS_DIR))
 
@@ -265,3 +267,59 @@ def test_expected_verify_gate_answer_is_not_auto_paused(tmp_path: Path) -> None:
     assert not marker.exists()
     context = result["hookSpecificOutput"]["additionalContext"]
     assert "pending /spec verification gate" in context
+
+
+def _write_manual_switch_marker(plan: Path, registration: Path) -> Path:
+    marker = registration.parent / "manual-switch-pending"
+    marker.write_text(
+        json.dumps(
+            {
+                "plan_path": os.path.realpath(plan),
+                "plan_content_fingerprint": hashlib.sha256(plan.read_bytes()).hexdigest(),
+                "expected_status": "PENDING",
+            }
+        )
+    )
+    return marker
+
+
+def test_manual_switch_gate_waits_for_exact_resume(tmp_path: Path) -> None:
+    plan, registration = _register(tmp_path)
+    marker = _write_manual_switch_marker(plan, registration)
+
+    result = _handle(tmp_path, "I have a question first")
+
+    assert marker.exists()
+    assert _interaction(registration) is None
+    context = result["hookSpecificOutput"]["additionalContext"]
+    assert "manual model switch" in context.lower()
+    assert "exact `resume`" in context
+
+
+@pytest.mark.parametrize("command", ["resume", "/spec resume", "$spec resume"])
+def test_exact_resume_consumes_manual_switch_gate(tmp_path: Path, command: str) -> None:
+    plan, registration = _register(tmp_path)
+    marker = _write_manual_switch_marker(plan, registration)
+
+    result = _handle(tmp_path, command)
+
+    assert not marker.exists()
+    assert _interaction(registration) is None
+    context = result["hookSpecificOutput"]["additionalContext"]
+    assert "manual model-switch handoff" in context.lower()
+    assert "spec-implement" in context
+
+
+def test_manual_switch_resume_refreshes_plan_binding_and_clears_old_interaction(tmp_path: Path) -> None:
+    plan, registration = _register(tmp_path)
+    marker = _write_manual_switch_marker(plan, registration)
+    data = json.loads(registration.read_text())
+    data["interaction"] = {"state": "paused", "kind": "discussion"}
+    registration.write_text(json.dumps(data))
+    plan.write_text(plan.read_text() + "\npost-approval annotation\n")
+
+    result = _handle(tmp_path, "resume")
+
+    assert not marker.exists()
+    assert _interaction(registration) is None
+    assert "spec-implement" in result["hookSpecificOutput"]["additionalContext"]

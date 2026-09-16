@@ -2,6 +2,14 @@
 
 All notable changes to Pilot Shell will be documented in this file.
 
+## Unreleased
+
+### Bug fixes
+
+- Restore Claude Code's Manual model-switch handoff: approved `/spec` plans now stop before implementation, wait for `/model`, and continue only after exact `resume`. Plan Approval disabled and orchestration-lane runs remain autonomous, while Codex keeps its continuous active-model flow.
+- Repair inline Claude Code tool and thinking details after native auto-updates replace Pilot's patched binary. Session startup now reapplies a locally cached, checksum-verified patch kit for the next session, with `pilot repair-display` as an explicit fallback.
+- Preserve Impeccable's intentional Claude Code and Codex variants during repository asset synchronization instead of treating their provider-native commands and interaction contracts as a merge conflict.
+
 ## [11.0.1] - 2026-09-08
 
 ### Bug fixes

@@ -329,6 +329,42 @@ test('gitignored skills synchronize changes in both directions and preserve conf
   }
 })
 
+test('provider-generated skills preserve their distinct Claude and Codex variants', () => {
+  const repo = makeRepo()
+  try {
+    git(repo, 'init', '-q')
+    writeFileSync(
+      path.join(repo, '.gitignore'),
+      '.agents/skills/impeccable/\n.claude/skills/impeccable/\n',
+    )
+    const codexSkill = path.join(repo, '.agents', 'skills', 'impeccable', 'SKILL.md')
+    const claudeSkill = path.join(repo, '.claude', 'skills', 'impeccable', 'SKILL.md')
+    mkdirSync(path.dirname(codexSkill), { recursive: true })
+    mkdirSync(path.dirname(claudeSkill), { recursive: true })
+    writeFileSync(
+      codexSkill,
+      '---\nname: impeccable\ndescription: Provider-generated Codex variant.\n---\n\n$impeccable\n',
+    )
+    writeFileSync(
+      claudeSkill,
+      '---\nname: impeccable\ndescription: Provider-generated Claude variant.\n---\n\n/impeccable\n',
+    )
+    const codexAgent = path.join(repo, '.agents', 'skills', 'impeccable', 'agents', 'openai.yaml')
+    mkdirSync(path.dirname(codexAgent), { recursive: true })
+    writeFileSync(codexAgent, 'interface: codex\n')
+
+    let result = run(repo, '--check')
+    assert.equal(result.status, 0, result.stderr)
+    result = run(repo, '--write')
+    assert.equal(result.status, 0, result.stderr)
+    assert.match(readFileSync(codexSkill, 'utf8'), /\$impeccable/)
+    assert.match(readFileSync(claudeSkill, 'utf8'), /\/impeccable/)
+    assert.equal(readFileSync(codexAgent, 'utf8'), 'interface: codex\n')
+  } finally {
+    cleanup(repo)
+  }
+})
+
 test('write migrates a lone CLAUDE.md into the shared AGENTS.md contract', () => {
   const repo = makeRepo({ claude: '# Existing shared guidance\n' })
   try {

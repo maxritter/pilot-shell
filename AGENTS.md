@@ -42,6 +42,10 @@ the `pilot` CLI while preserving user-owned configuration.
   recover drift after fixing the canonical source.
 - Ignored skills outside the explicitly tracked canonical/mirror set remain
   private local extensions and are never copied or deleted automatically.
+- Provider-generated skills that intentionally install different Claude and
+  Codex variants (currently Impeccable) remain provider-owned and are excluded
+  from canonical/mirror synchronization; never overwrite one variant with the
+  other to force byte parity.
 
 ## Matching detailed rules
 

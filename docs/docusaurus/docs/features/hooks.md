@@ -22,6 +22,7 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 
 | Hook | Applies to | Description |
 |------|------------|-------------|
+| `claude_display_patch_sync.py` | Claude Code | Detects when a native Claude update replaced Pilot's inline-detail patch, reapplies the verified offline patch kit for the next process, and asks for one restart only when a repair occurred. |
 | `session_announcements.py` | Claude Code | Delivers one-time announcements and re-injects them until acknowledged. |
 | `config_dir_guard.py` | Claude Code | Privately tells the agent when the active Claude configuration directory differs from the installed profile; it is surfaced only if the mismatch actually prevents the requested work. |
 | `spec_interaction.py` | Both | Migrates the retired discussion-pause marker into plan-bound durable state once. |
@@ -40,7 +41,7 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 
 | Hook | Applies to | Description |
 |------|------------|-------------|
-| `spec_mode_guard.py` | Claude Code | Warns outside bypassPermissions, blocks manual plan mode, and applies the configured `/spec` model-switching checks; Manual/Off modes have no model gate. |
+| `spec_mode_guard.py` | Claude Code | Blocks `/spec` while native Plan mode is already active and enforces Automated mode's `opusplan` requirement; Manual/Off modes preserve the active model. |
 | `spec_interaction.py` | Both | Records real user interruptions and exact pause/resume/manual-task controls in the active plan before the agent responds. A response to an armed verification gate is recognized as expected input rather than auto-paused again. |
 | Session initializer | Both | Registers the session with the Console worker. |
 

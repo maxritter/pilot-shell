@@ -1150,9 +1150,14 @@ class TestCodexSkillsInstallation:
             assert "read_model_switch_mode" not in codex_result, skill
             assert "EnterPlanMode" not in codex_result, skill
             assert "ExitPlanMode" not in codex_result, skill
+            assert "plan-state model-switch" not in codex_result, skill
+            assert "Manual model switching: run `/model` now" not in codex_result, skill
 
             cc_result = _claude_runtime_text(skill)
             assert "read_model_switch_mode" in cc_result, skill
+            assert "plan-state model-switch" in cc_result, skill
+            assert "Manual model switching: run `/model` now" in cc_result, skill
+            assert "Manual with Plan Approval disabled" in cc_result, skill
 
     def test_build_codex_skill_drops_stop_hook_frontmatter(self) -> None:
         """`/build` registers a Stop hook in frontmatter; Codex must not inherit it.

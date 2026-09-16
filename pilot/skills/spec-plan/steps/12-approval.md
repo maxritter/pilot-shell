@@ -58,7 +58,14 @@ rm -f "$SESS_DIR/spec-approval-pending"
 ### 12.3 Implementation handoff
 
 <!-- CC-ONLY -->
-Once the approved registered plan is ready and the runtime permits implementation, invoke `Skill(skill='spec-implement', args='<plan-path> $LANE_FLAG')`. Manual and Off preserve the active `/model`; a completed native Automated handoff uses the runtime's execution leg. No mode adds another model-switch prompt or an agent-invented pause after approval. The user can interrupt to change models.
+Once the approved registered plan is ready and the runtime permits implementation:
+
+- **Manual + Plan Approval enabled, main session only:** run `~/.pilot/bin/pilot plan-state model-switch`. It validates the registered approved `PENDING` plan and fails closed for lanes or the wrong plan state. After success, tell the user: "Manual model switching: run `/model` now, confirm any conversation-transfer prompt, then send exact `resume`." End the turn before invoking `spec-implement`.
+
+  Exact `resume`, `/spec resume`, or `$spec resume` consumes this one-shot gate through UserPromptSubmit and directs the approved `PENDING` plan into `spec-implement`. Any other message leaves the gate armed. Do not re-arm it after the resume context says it was consumed.
+- **Manual with Plan Approval disabled:** preserve the autonomous contract; print one concise note that implementation continues on the active `/model`, then invoke `Skill(skill='spec-implement', args='<plan-path> $LANE_FLAG')` immediately.
+- **Manual in an orchestration lane:** continue on the lane's active model; a coordinator `/model` command cannot change an already-running child. Invoke `spec-implement` immediately.
+- **Automated or Off:** invoke `spec-implement` immediately. Automated uses the completed native execution leg; Off preserves the active model.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 Continue immediately with the `$spec-implement` skill instructions using arguments `<plan-path> $LANE_FLAG` on the active Codex model. Use the current native mode and tool schema; Pilot's Claude model-switching tools do not apply here.

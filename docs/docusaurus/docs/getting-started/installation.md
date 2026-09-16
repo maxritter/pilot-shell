@@ -97,8 +97,12 @@ branding and spinner tips; model and effort choices remain yours.
 
 After successful patching, Pilot turns verbose mode off once for the active
 Claude profile. Later changes through `/config` are preserved; future Pilot
-updates do not repeat the reset. Flicker-free rendering remains enabled by
-default through `CLAUDE_CODE_NO_FLICKER`.
+updates do not repeat the reset. If Claude Code later replaces its native binary,
+Pilot detects that on the next Claude startup and reapplies the verified local
+patch kit without downloading code. Restart that session once to load the repaired
+binary; `Ctrl+O` remains available in the current process. Run
+`pilot repair-display` for a visible manual retry. Flicker-free rendering remains
+enabled by default through `CLAUDE_CODE_NO_FLICKER`.
 
 The installer patches a copy, verifies its version, and retains the original in
 `~/.pilot/claude-display-patch/` before replacing the executable. On macOS, the
