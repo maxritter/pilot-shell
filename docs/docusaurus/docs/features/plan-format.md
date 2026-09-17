@@ -165,6 +165,34 @@ per-field layout does not.
 `## Acceptance Criteria` with `- [ ] Criterion N: …` lines, which are a separate
 list from its tasks.
 
+### `Files:` is the review scope
+
+Each entry names what the task does to one path:
+
+```markdown
+**Files:**
+
+- Create: `src/thing.py`
+- Modify: `src/existing.py`
+- Delete: `docs/todo/obsolete.md`
+- Rename: `old/path.py` → `new/path.py`
+- Test: `tests/test_thing.py`
+```
+
+These blocks are not a summary — verification stages them, and both the changes
+review and `spec-verify` scope their diff to them. A path the task touches but
+the block omits is reviewed as out-of-scope drift or not reviewed at all, so
+**every repository path a task body names belongs in a `Files:` block**,
+including the file a `Verify:` command runs. The one exception is a file the task
+only reads: cite it as a `file:line` reference (`src/other.py:42`) and leave it
+out.
+
+`pilot spec validate` reports the mechanical part of this as the
+`files-incomplete` **warning** — a backticked path in a task's Objective,
+Definition of Done, or `User Action` that no task's `Files:` block lists. It is a
+warning, not an error, because the path shape is a heuristic and the plan still
+renders; `--strict` promotes it like any other warning.
+
 ### User-owned tasks
 
 Feature and Bugfix plans may place a non-automatable step in the normal task order:

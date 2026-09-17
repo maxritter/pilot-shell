@@ -108,6 +108,15 @@
   },
   "_task_field_labels_comment": "Verbatim bold labels a task body must contain for the Console to render its fields as separate collapsible blocks. Plain 'Files:' or 'DoD:' does not render.",
 
+  "task_files_verbs": ["Create", "Modify", "Delete", "Rename", "Test"],
+  "_task_files_verbs_comment": "Verbs a `**Files:**` bullet may use. The renderers show the block verbatim, so these bind the plan author and the implementer, not a parser. `Delete` and `Rename` exist because a task that removes or moves a file must still put that path in the block -- it is the review scope.",
+
+  "task_files_completeness": {
+    "body_labels": ["**Objective:**", "**Definition of Done:**", "**User Action:**"],
+    "exempt_when_line_referenced": true
+  },
+  "_task_files_completeness_comment": "Every repository path a task body names must also appear in that task's `**Files:**` block, because `changes-review` and `spec-verify` scope the diff to those blocks: an omitted path is reviewed as out-of-scope drift or not at all (issue #190). That authoring rule binds the whole body and lives in spec-plan Step 7. What `launcher/spec_authoring.py:_check_files_completeness` enforces is the narrower slice a regex can prove, as a WARNING: a path named in one of `body_labels` that NO task's block lists -- union-scoped, because reviewers receive the plan's blocks together, so a path another task lists is already in the diff and only a path nothing lists can land unreviewed. `**Key Decisions / Notes:**` is deliberately absent from `body_labels`: Step 7 asks that field for pattern references, so a bare path there is usually somewhere to LOOK, and flagging it would train authors to ignore the check. A path written as a `file:line` ref is a read-only pointer everywhere and is always exempt.",
+
   "task_optional_fields": {
     "Owner": { "allowed": ["Agent", "User"], "default": "Agent" },
     "User Action": { "required_owner": "User" }

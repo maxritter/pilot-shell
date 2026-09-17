@@ -33,6 +33,7 @@ Use your tools — do NOT rely on a pre-bundled diff. The plan is gitignored or 
    git status --short --untracked-files=all
    ```
 3. Selectively Read full files for: (a) newly created files not visible in the diff, (b) test files where context is needed to assess test quality, (c) hot-path callers/callees of changed functions.
+4. A path listed under `Delete:` or `Rename:` is reviewed like any other: the diff shows the removal, and the question is whether it is complete (no dangling references, no orphaned imports or docs), not whether the file is missing. A changed file that a task body names — in its Objective, its DoD, or the file a `Verify:` command runs — while the plan's file list omits it is in scope: review it, and report the omission as a plan defect at `suggestion` severity rather than treating the change as unreviewable drift.
 
 ## Operating stance
 

@@ -33,6 +33,8 @@ One responsibility per file. Files that change together live together. In existi
 
 - Create: `exact/path/to/file.py`
 - Modify: `exact/path/to/existing.py`
+- Delete: `exact/path/to/obsolete.py`
+- Rename: `old/path.py` → `new/path.py`
 - Test: `tests/exact/path/to/test.py`
 
 **Key Decisions / Notes:**
@@ -52,6 +54,8 @@ One responsibility per file. Files that change together live together. In existi
 - **DoD must be verifiable.** ✅ "GET /api/users?role=admin returns only admin users" ❌ "Feature works correctly".
 - **Manual work is first-class but never mixed.** A user-owned task carries both `**Owner:** User` and `**User Action:**`; split any surrounding agent preparation or verification into adjacent agent-owned tasks. Omit both labels for normal agent tasks. Buildouts cannot contain user-owned tasks.
 - **`Files:` must list reviewable implementation artifacts.** Do not use the plan file under `docs/plans/...` as the only file for a task; in Pilot Shell that directory is gitignored workflow state and `spec-verify` reviewers scope to reviewable repository diffs. For smoke tests or "no production behavior change" specs, create or modify a harmless non-production, non-ignored repository artifact (for example a root-level smoke evidence file) when the workflow needs a diff target.
+- ⛔ **`Files:` must be COMPLETE — it is the review scope, not a summary.** `changes-review` and `spec-verify` scope the diff to these paths, so a path the task touches but omits here is either flagged as out-of-scope drift or lands unreviewed. **Every repository path named anywhere in the task body — Objective, Key Decisions / Notes, Definition of Done, including the file a `Verify:` command runs — must also appear in `Files:`** under the verb that says what the task does to it. Derive the list from the task body you just wrote, not from the file you happened to be reading: "update the doc comment on `IStore.cs`" is a `Modify:`, "the `--help` text in `cli.ts`" is a `Modify:`, "remove `docs/todo/wipe-guard.md`" is a `Delete:`.
+  **The one exception is a read-only pointer, and it must be written as a `file:line` ref** — `follow the pattern in src/foo/bar.ts:42`. A bare path is read as a target; a `file:line` ref is read as "go look here" and stays out of `Files:`. `pilot spec validate` (Step 10.0) checks the part of this a regex can prove: a path named in an Objective, a DoD bullet, or a `User Action` that no task's `Files:` block lists. It does not read `Key Decisions / Notes`, so nothing catches an omission you make there but you.
 - **Tests-pass and no-diagnostics are implicit** — every task must end with those. Do NOT add them as DoD bullets; only list task-specific behaviors.
 - **The last DoD bullet IS the verify command.** No separate `Verify:` block.
 - **`Trivial:` is a per-task annotation, not a section** — the changes review and `spec-verify` Step 2.1 audit it against the diff regardless of where it sits, as long as it's the literal token `Trivial:` somewhere in the task body.

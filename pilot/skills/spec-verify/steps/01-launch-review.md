@@ -60,6 +60,8 @@ A bare `git add -N` is not enough — `git status` still treats the path as untr
 
 **Mixed ownership:** if a listed file already contains unrelated user or concurrent edits, a whole-file `git add` is not a valid scope boundary. Preserve the index and distinguish this run's hunks using scoped staging or an isolated review artifact. Do not include unrelated work merely because it shares a path.
 
+A `Delete:` path is staged the same way — `git add <deleted/path>` records the removal, so the deletion reaches the reviewer as a diff hunk instead of vanishing from it.
+
 **Reviewable file preflight:** the `Files:` block must contain at least one non-ignored repository artifact. `docs/plans/...` is workflow state and may be gitignored, so it cannot be the sole review target — and do NOT `git add -f` an ignored plan file to force it in. If every planned file is ignored, outside the repo, or only the plan itself, set `Status: PENDING`, add a fix task producing a reviewable non-production artifact, and return to implementation before launching any reviewer.
 
 ---

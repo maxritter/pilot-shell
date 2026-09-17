@@ -31,6 +31,14 @@ grep -oE '`[A-Za-z_][A-Za-z0-9_]*(\(\))?`' "<plan_path>" | sort | uniq -c
 
 Scan for two spellings of one thing, then `grep -n` the pair to see which tasks disagree and fix the loser.
 
+**Then run the format gate.** It is cheap, deterministic, and catches what a fresh-eyed read skims past:
+
+```bash
+pilot spec validate "<plan_path>"
+```
+
+Fix every `error` before any reviewer or the user sees the plan. Treat each `warning` the same way unless it is provably wrong for this plan — in particular `files-incomplete`, which names a repository path a task's Objective, DoD, or `User Action` mentions while no task's `**Files:**` block lists it. That block is the review scope (Step 7), so a missing path silently drops real work out of `changes-review` and `spec-verify`. Add the path under the verb that fits (`Create:` / `Modify:` / `Delete:` / `Rename:` / `Test:`), or — when the task only points at the file and never touches it — rewrite the mention as a `file:line` ref, which the check treats as a read-only pointer. Do not "fix" it by deleting the mention from the task body.
+
 ---
 
 <!-- CC-ONLY -->

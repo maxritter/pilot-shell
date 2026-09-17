@@ -41,7 +41,9 @@ If the orchestrator gave you a `diff_range`, prefer it directly: `git diff <diff
 
 ⛔ **Use the supplied `base_ref`, and three dots.** Do NOT substitute a hardcoded branch name: a worktree forked from `dev` (or any non-`main` base) reviewed against `main` pulls in every commit that base has beyond `main`, so you would review a corrupted superset of the change. And `...` diffs from the point the branch forked, so commits the base branch took *after* the fork stay out; two dots would diff against the base branch's live tip and render those commits inverted — a line the base branch added would appear as a line this branch deleted. If the orchestrator gave you no `base_ref` and the working-tree diff is empty, say so in your findings rather than guessing a branch name.
 
-**Cross-reference** the diff files against `changed_files` from the orchestrator. Files in `changed_files` but not in the plan may be legitimate (transitive updates) — review only if they look spec-related.
+**Cross-reference** the diff files against `changed_files` from the orchestrator. Files in `changed_files` but not in the plan may be legitimate (transitive updates) — review only if they look spec-related. **A changed file that a task's own body names — in its Objective, its DoD, or the file a `Verify:` command runs — while its `Files:` block omits it is spec-related by definition:** review it, and report the omission as a `suggestion` against the plan rather than as drift by the implementer. That gap is a plan defect, not a licence to leave the change unreviewed.
+
+A `Files:` block can also carry `Delete:` and `Rename:` entries. Pass those paths to `git diff` like any other — a deletion shows as a removed file, and the review question is whether the removal is complete (no dangling references, no orphaned imports or docs), not whether the file is missing.
 
 **Selectively Read** only: (a) newly created files not fully visible in the diff, (b) test files where you need full context to assess quality.
 
