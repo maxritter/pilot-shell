@@ -22,7 +22,6 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 
 | Hook | Applies to | Description |
 |------|------------|-------------|
-| `claude_display_patch_sync.py` | Claude Code | Detects when a native Claude update replaced Pilot's inline-detail patch, reapplies the verified offline patch kit for the next process, and asks for one restart only when a repair occurred. |
 | `session_announcements.py` | Claude Code | Delivers one-time announcements and re-injects them until acknowledged. |
 | `config_dir_guard.py` | Claude Code | Privately tells the agent when the active Claude configuration directory differs from the installed profile; it is surfaced only if the mismatch actually prevents the requested work. |
 | `spec_interaction.py` | Both | Migrates the retired discussion-pause marker into plan-bound durable state once. |

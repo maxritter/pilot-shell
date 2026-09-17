@@ -21,103 +21,65 @@ def _isolate_owned_tool_manifest(monkeypatch: pytest.MonkeyPatch, tmp_path: Path
         "installer.steps.dependencies._owned_tools_manifest_path",
         lambda: tmp_path / ".pilot" / ".pilot-owned-tools.json",
     )
-    from installer.claude_display_patch import PatchResult
+    from installer.claude_display_cleanup import CleanupResult
 
     monkeypatch.setattr(
-        "installer.steps.dependencies.apply_display_patch",
-        MagicMock(return_value=PatchResult("skipped", "No native Claude in this test")),
+        "installer.steps.dependencies.remove_display_patch",
+        MagicMock(return_value=CleanupResult("unchanged", "No Claude display patch to remove")),
         raising=False,
     )
 
 
-class TestClaudeDisplayPatchIntegration:
-    @pytest.mark.parametrize("patch_status", ["patched", "unchanged"])
-    def test_success_resets_verbose_only_once(self, monkeypatch, tmp_path, patch_status):
-        from installer.claude_display_patch import PatchResult
+class TestClaudeDisplayPatchRemoval:
+    """Issue #191: the display patch is retired; every install must undo it."""
+
+    def test_removal_reports_and_clears_the_retired_marker(self, monkeypatch, tmp_path):
+        from installer.claude_display_cleanup import CleanupResult
         from installer.steps import dependencies as deps
 
-        monkeypatch.setattr(deps, "get_claude_config_dir", lambda: tmp_path)
-        monkeypatch.setattr(deps, "apply_display_patch", lambda: PatchResult(patch_status, "Details enabled"))
-        settings = tmp_path / "settings.json"
-        settings.write_text(json.dumps({"viewMode": "verbose", "model": "user-model", "verbose": False}))
-        assert deps._setup_claude_display_patch() is True
-        assert json.loads(settings.read_text()) == {"model": "user-model", "verbose": False}
         marker = tmp_path / ".pilot-display-patch-migration.json"
-        assert json.loads(marker.read_text()) == {"version": 1}
-        settings.write_text(json.dumps({"verbose": True, "model": "new-user-model"}))
-        assert deps._setup_claude_display_patch() is True
-        assert json.loads(settings.read_text()) == {"verbose": True, "model": "new-user-model"}
-
-    def test_profile_migrations_are_independent_and_keep_focus(self, monkeypatch, tmp_path):
-        from installer.steps import dependencies as deps
-
-        for name, initial, expected in [("first", {}, None), ("second", {"viewMode": "focus"}, "focus")]:
-            profile = tmp_path / name
-            profile.mkdir()
-            monkeypatch.setattr(deps, "get_claude_config_dir", lambda selected=profile: selected)
-            settings = profile / "settings.json"
-            settings.write_text(json.dumps(initial))
-            deps._migrate_claude_display_mode()
-            assert json.loads(settings.read_text()).get("viewMode") == expected
-            assert json.loads(settings.read_text())["verbose"] is False
-            assert (profile / ".pilot-display-patch-migration.json").exists()
-
-    def test_migration_failure_preserves_settings_and_remains_nonfatal(self, monkeypatch, tmp_path):
-        from installer.claude_display_patch import PatchResult
-        from installer.steps import dependencies as deps
-
+        marker.write_text('{"version": 1}\n')
         monkeypatch.setattr(deps, "get_claude_config_dir", lambda: tmp_path)
-        monkeypatch.setattr(deps, "apply_display_patch", lambda: PatchResult("patched", "Details enabled"))
-        settings = tmp_path / "settings.json"
-        settings.write_text("{unreadable")
+        seen: list[Path] = []
+
+        def remove(*, marker_path):
+            seen.append(marker_path)
+            marker_path.unlink()
+            return CleanupResult("removed", "Removed Pilot's Claude display patch")
+
+        monkeypatch.setattr(deps, "remove_display_patch", remove)
         ui = MagicMock()
-        assert deps._setup_claude_display_patch(ui) is True
-        assert settings.read_text() == "{unreadable"
-        assert not (tmp_path / ".pilot-display-patch-migration.json").exists()
-        ui.warning.assert_called_once()
-
-    def test_failed_settings_write_releases_migration_claim(self, monkeypatch, tmp_path):
-        from installer.steps import dependencies as deps
-
-        monkeypatch.setattr(deps, "get_claude_config_dir", lambda: tmp_path)
-        settings = tmp_path / "settings.json"
-        settings.write_text('{"viewMode":"verbose","model":"my-model"}')
-        before = settings.read_bytes()
-        monkeypatch.setattr(deps.os, "replace", lambda *args: (_ for _ in ()).throw(OSError("read-only filesystem")))
-        with pytest.raises(OSError, match="read-only"):
-            deps._migrate_claude_display_mode()
-        assert settings.read_bytes() == before
-        assert not (tmp_path / ".pilot-display-patch-migration.json").exists()
-
-    def test_patch_failure_warns_without_failing_install(self, monkeypatch):
-        from installer.claude_display_patch import PatchResult
-        from installer.steps import dependencies as deps
-
-        monkeypatch.setattr(deps, "apply_display_patch", lambda: PatchResult("failed", "Required patch did not match"))
-        ui = MagicMock()
-        assert deps._setup_claude_display_patch(ui) is False
-        ui.warning.assert_called_once()
-        assert "Required patch did not match" in ui.warning.call_args.args[0]
-
-    @pytest.mark.parametrize("status", ["failed", "skipped"])
-    def test_unsuccessful_patch_never_migrates_mode(self, monkeypatch, tmp_path, status):
-        from installer.claude_display_patch import PatchResult
-        from installer.steps import dependencies as deps
-
-        monkeypatch.setattr(deps, "get_claude_config_dir", lambda: tmp_path)
-        monkeypatch.setattr(deps, "apply_display_patch", lambda: PatchResult(status, "No patch"))
-        assert deps._setup_claude_display_patch() is False
-        assert not (tmp_path / ".pilot-display-patch-migration.json").exists()
-
-    def test_missing_native_is_a_quiet_skip(self):
-        from installer.steps import dependencies as deps
-
-        ui = MagicMock()
-        assert deps._setup_claude_display_patch(ui) is False
+        assert deps._remove_claude_display_patch(ui) is True
+        assert seen == [marker]
+        assert not marker.exists()
+        ui.success.assert_called_once()
         ui.warning.assert_not_called()
-        ui.success.assert_not_called()
 
-    def test_patch_runs_after_plugins_and_bun_setup(self, monkeypatch, tmp_path):
+    def test_machines_without_the_patch_stay_silent(self, monkeypatch, tmp_path):
+        from installer.steps import dependencies as deps
+
+        monkeypatch.setattr(deps, "get_claude_config_dir", lambda: tmp_path)
+        ui = MagicMock()
+        assert deps._remove_claude_display_patch(ui) is False
+        ui.success.assert_not_called()
+        ui.warning.assert_not_called()
+
+    def test_failed_restore_warns_without_failing_install(self, monkeypatch, tmp_path):
+        from installer.claude_display_cleanup import CleanupResult
+        from installer.steps import dependencies as deps
+
+        monkeypatch.setattr(deps, "get_claude_config_dir", lambda: tmp_path)
+        monkeypatch.setattr(
+            deps,
+            "remove_display_patch",
+            lambda **_: CleanupResult("failed", "backup SHA-256 mismatch"),
+        )
+        ui = MagicMock()
+        assert deps._remove_claude_display_patch(ui) is False
+        ui.warning.assert_called_once()
+        assert "backup SHA-256 mismatch" in ui.warning.call_args.args[0]
+
+    def test_removal_runs_after_plugins_and_bun_setup(self, monkeypatch, tmp_path):
         from installer.context import InstallContext
         from installer.steps import dependencies as deps
 
@@ -130,13 +92,13 @@ class TestClaudeDisplayPatchIntegration:
         monkeypatch.setattr(deps, "_install_with_spinner", lambda *args: True)
         monkeypatch.setattr(deps, "_run_parallel_installs", lambda *args: events.append("plugins") or [])
         monkeypatch.setattr(deps, "_setup_pilot_memory", lambda *args: events.append("bun") or True)
-        monkeypatch.setattr(deps, "_setup_claude_display_patch", lambda *args: events.append("patch") or True)
+        monkeypatch.setattr(deps, "_remove_claude_display_patch", lambda *args: events.append("unpatch") or True)
         monkeypatch.setattr(deps, "codegraph_needs_work", lambda *args: False)
         monkeypatch.setattr(deps, "initialize_codegraph", lambda *args: True)
         ctx = InstallContext(project_dir=tmp_path, non_interactive=True)
         deps.DependenciesStep().run(ctx)
-        assert events == ["plugins", "bun", "patch"]
-        assert "claude_display_patch" in ctx.config["installed_dependencies"]
+        assert events == ["plugins", "bun", "unpatch"]
+        assert "claude_display_patch_removed" in ctx.config["installed_dependencies"]
 
 
 class TestDependenciesStep:

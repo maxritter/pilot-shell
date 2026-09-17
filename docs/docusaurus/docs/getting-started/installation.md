@@ -87,38 +87,24 @@ Pilot installs three browser tools automatically: **Chrome DevTools MCP**, **pla
 - **Claude Code:** also install the [Claude Code Chrome extension](https://code.claude.com/docs/en/chrome) for the richest browser context. Tier order: Chrome extension → Chrome DevTools MCP → playwright-cli → agent-browser.
 - **Codex CLI:** the Chrome extension is not available. Tier order: Chrome DevTools MCP → playwright-cli → agent-browser.
 
-## Claude Code display patch
+## Claude Code display patch (removed)
 
-For supported native Claude Code installs, Pilot applies
-[patch-claude-code](https://github.com/a-connoisseur/patch-claude-code) from a
-checksum-verified source revision. It shows detailed tool calls, subagent prompts,
-and live thinking summaries without verbose mode. Pilot preserves the original
-branding and spinner tips; model and effort choices remain yours.
+Pilot 11.0.3 and earlier patched the native Claude Code binary so tool calls,
+subagent prompts, and thinking summaries rendered regardless of Claude's own
+`verbose` setting. That patch is gone — it had no opt-out, and it left those
+settings inert.
 
-After successful patching, Pilot turns verbose mode off once for the active
-Claude profile. Later changes through `/config` are preserved; future Pilot
-updates do not repeat the reset. If Claude Code later replaces its native binary,
-Pilot detects that on the next Claude startup and reapplies the verified local
-patch kit without downloading code. Restart that session once to load the repaired
-binary; `Ctrl+O` remains available in the current process. Run
-`pilot repair-display` for a visible manual retry. Flicker-free rendering remains
-enabled by default through `CLAUDE_CODE_NO_FLICKER`.
+Installing or updating Pilot restores the original Claude binary and deletes
+`~/.pilot/claude-display-patch/`. Nothing is reapplied at session start. How much
+Claude Code shows is now entirely its own: `verbose` and `showThinkingSummaries`
+in `~/.claude/settings.json` (or `/config`), plus `Ctrl+O` for the transcript.
+Flicker-free rendering is unaffected and stays enabled through
+`CLAUDE_CODE_NO_FLICKER`.
 
-The installer patches a copy, verifies its version, and retains the original in
-`~/.pilot/claude-display-patch/` before replacing the executable. On macOS, the
-patched copy is ad-hoc signed. The binary is shared across Claude config profiles.
-Unsupported binaries or patch failures leave Claude unchanged. Claude's own
-updates can remove the patch; the next Pilot installation or update reapplies it
-when compatible. Claude updates are never disabled or pinned by this integration.
-If an upstream change breaks the required patch patterns, only the extra display
-features are unavailable until the patcher is updated; Claude remains usable.
-
-Pilot's uninstaller restores originals only while the installed binaries still
-match Pilot's patches. You can also restore them directly:
-
-```bash
-uv run --python 3.12 ~/.pilot/claude-display-patch/restore.py --restore
-```
+If the restore cannot be verified — because the binary changed underneath Pilot —
+the original is kept in `~/.pilot/claude-display-patch/originals/` and the next
+update retries. Reinstalling Claude Code (`claude install latest --force`) also
+gives you a clean binary.
 
 ## Codex Companion Plugin (Included)
 

@@ -1352,6 +1352,10 @@ print("\n".join(values))
 }
 
 restore_claude_display_patch() {
+	# Legacy: Pilot 11.0.3 and earlier patched the native Claude binary. An
+	# install or update since then already restored the original and removed
+	# this directory, so this only fires when uninstalling straight from an
+	# older version.
 	local state_dir="$PILOT_DIR/claude-display-patch"
 	if [ ! -f "$state_dir/state.json" ]; then
 		return
