@@ -5,6 +5,10 @@ The Stop hook's ``stop_hook_active`` flag describes a continuation chain, not
 whether the latest prompt came from a human.  UserPromptSubmit is the reliable
 boundary for that distinction.  This hook therefore owns discussion-pause
 transitions and keeps the Stop guard focused on completion enforcement.
+
+The one exception is a harness-delivered turn: Claude Code submits a finished
+background task as a ``<task-notification>`` prompt through the same event, with
+no other field marking it non-human.  Those are ignored outright.
 """
 
 from __future__ import annotations
@@ -28,6 +32,7 @@ from _lib.util import (  # noqa: E402
 _PAUSE_COMMANDS = frozenset({"/spec pause", "$spec pause"})
 _RESUME_COMMANDS = frozenset({"resume", "/spec resume", "$spec resume"})
 _SPEC_COMMAND_PREFIXES = ("/spec", "$spec")
+_HARNESS_PROMPT_PREFIXES = ("<task-notification>",)
 _LEGACY_PAUSE_FILE = DISCUSSION_PAUSE
 _LEGACY_PAUSE_MAX_AGE_SECONDS = 3600
 _MANUAL_SWITCH_MAX_AGE_SECONDS = 24 * 3600
@@ -86,6 +91,10 @@ def _consume_expected_continuation(session_id: str, prompt: str) -> bool:
 
 def _is_spec_command(prompt: str) -> bool:
     return any(prompt == prefix or prompt.startswith(f"{prefix} ") for prefix in _SPEC_COMMAND_PREFIXES)
+
+
+def _is_harness_prompt(prompt: str) -> bool:
+    return prompt.startswith(_HARNESS_PROMPT_PREFIXES)
 
 
 def _migrate_legacy_pause(
@@ -217,6 +226,10 @@ def handle(payload: object) -> dict:
     prompt = prompt_raw.strip()
     normalized = prompt.lower()
 
+    # Before every one-shot consumer below: a notification must neither pause the
+    # plan nor spend a marker that belongs to the human's next message.
+    if _is_harness_prompt(prompt):
+        return {}
     if _consume_expected_continuation(session_id, prompt):
         return {}
     status = str(registration.get("status", "")).upper()

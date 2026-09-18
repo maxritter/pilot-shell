@@ -168,6 +168,81 @@ def test_stop_generated_prompt_is_not_mistaken_for_a_user_interrupt(tmp_path: Pa
     assert "expected_prompt_sha256" not in json.loads(state_file.read_text())
 
 
+# Captured from Claude Code 2.1.276: a finished background task arrives through
+# UserPromptSubmit with nothing but this prompt shape marking it non-human.
+_TASK_NOTIFICATION = (
+    "<task-notification>\n<task-id>banzmrf7w</task-id>\n<tool-use-id>toolu_01Pwk5D1eZeGXJCaEASpkZyM</tool-use-id>\n"
+    "<output-file>/tmp/tasks/banzmrf7w.output</output-file>\n<status>completed</status>\n"
+    '<summary>Background command "Run the suite" completed (exit code 0)</summary>\n</task-notification>'
+)
+
+
+def test_background_task_notification_does_not_pause_a_running_spec(tmp_path: Path) -> None:
+    _plan, registration = _register(tmp_path)
+
+    result = _handle(tmp_path, _TASK_NOTIFICATION)
+
+    assert result == {}
+    assert _interaction(registration) is None
+
+
+@pytest.mark.parametrize("kind", ["discussion", "manual"])
+def test_background_task_notification_leaves_an_existing_pause_alone(tmp_path: Path, kind: str) -> None:
+    _plan, registration = _register(tmp_path)
+    data = json.loads(registration.read_text())
+    data["interaction"] = {"state": "paused", "kind": kind}
+    registration.write_text(json.dumps(data))
+
+    result = _handle(tmp_path, _TASK_NOTIFICATION)
+
+    assert result == {}
+    assert _interaction(registration) == {"state": "paused", "kind": kind}
+
+
+def test_background_task_notification_does_not_burn_the_expected_continuation(tmp_path: Path) -> None:
+    _plan, registration = _register(tmp_path)
+    synthetic = "Continue working on the next pending task."
+    state_file = registration.parent / "spec-stop-guard"
+    state_file.write_text(json.dumps({"expected_prompt_sha256": hashlib.sha256(synthetic.encode()).hexdigest()}))
+
+    _handle(tmp_path, _TASK_NOTIFICATION)
+
+    assert "expected_prompt_sha256" in json.loads(state_file.read_text())
+    assert _handle(tmp_path, synthetic) == {}
+    assert _interaction(registration) is None
+
+
+def test_background_task_notification_does_not_consume_the_verify_gate(tmp_path: Path) -> None:
+    plan, registration = _register(tmp_path)
+    plan.write_text("# Plan\nStatus: COMPLETE\nApproved: Yes\nType: Feature\n")
+    data = json.loads(registration.read_text())
+    data["status"] = "COMPLETE"
+    registration.write_text(json.dumps(data))
+    marker = registration.parent / "verify-gate-pending"
+    marker.write_text(
+        json.dumps(
+            {
+                "plan_path": os.path.realpath(plan),
+                "plan_content_fingerprint": hashlib.sha256(plan.read_bytes()).hexdigest(),
+                "expected_status": "COMPLETE",
+            }
+        )
+    )
+
+    assert _handle(tmp_path, _TASK_NOTIFICATION) == {}
+
+    assert marker.exists()
+    assert "pending /spec verification gate" in _handle(tmp_path, "approve")["hookSpecificOutput"]["additionalContext"]
+
+
+def test_a_human_message_quoting_a_notification_still_pauses(tmp_path: Path) -> None:
+    _plan, registration = _register(tmp_path)
+
+    _handle(tmp_path, f"why did this show up?\n{_TASK_NOTIFICATION}")
+
+    assert _interaction(registration) == {"state": "paused", "kind": "discussion"}
+
+
 def test_unapproved_plan_and_buildout_are_not_auto_paused(tmp_path: Path) -> None:
     _plan, registration = _register(tmp_path, approved="No")
     assert _handle(tmp_path, "answer to planning question") == {}
