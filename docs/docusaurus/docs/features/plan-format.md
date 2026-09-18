@@ -189,7 +189,9 @@ out.
 
 `pilot spec validate` reports the mechanical part of this as the
 `files-incomplete` **warning** — a backticked path in a task's Objective,
-Definition of Done, or `User Action` that no task's `Files:` block lists. It is a
+Definition of Done, or `User Action` that no task's `Files:` block lists. A
+directory passed to a test runner (`dotnet test tests/Widgets.Tests`) counts as
+listed once a file beneath it is. It is a
 warning, not an error, because the path shape is a heuristic and the plan still
 renders; `--strict` promotes it like any other warning.
 
