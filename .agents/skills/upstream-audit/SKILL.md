@@ -1,13 +1,13 @@
 ---
 name: upstream-audit
-description: |
-  Audit and update Pilot Shell upstream dependencies in installer/upstreams.yaml.
-  Checks npm, PyPI, brew, and curl-pipe entries for newer stable versions,
-  known security advisories, and sha256 drift. Verifies each update installs
-  successfully before committing. Use when: "check upstreams", "update dependencies",
-  "audit upstreams.yaml", "are our dependencies up to date", "supply chain check".
+description: >-
+  Audit and update Pilot Shell upstream dependencies in
+  installer/upstreams.yaml. Checks npm, PyPI, brew, and curl-pipe entries for
+  newer stable versions, known security advisories, and sha256 drift. Verifies
+  each update installs successfully before committing. Use when: "check
+  upstreams", "update dependencies", "audit upstreams.yaml", "are our
+  dependencies up to date", "supply chain check".
 ---
-
 # Upstream Audit
 
 Checks every entry in `installer/upstreams.yaml` for newer stable versions, security
@@ -57,7 +57,7 @@ brew info --json=v2 <brew_formula> 2>/dev/null | python3 -c "import sys,json; d=
 Commit-pinned entries (have `commit` field — extract repo URL from `source_url`):
 ```bash
 # Extract repo URL from source_url (everything before /raw/ or before the commit hash path)
-# Example: https://raw.githubusercontent.com/rtk-ai/rtk/COMMIT/install.sh → https://github.com/rtk-ai/rtk.git
+# Example: https://raw.githubusercontent.com/nvm-sh/nvm/COMMIT/install.sh → https://github.com/nvm-sh/nvm.git
 git ls-remote <repo_url> HEAD | cut -c1-40
 ```
 If HEAD differs from the current `commit`, download the new script, hash it, and update `source_url` (embed new commit), `version` (`commit-<short>`), `commit`, `sha256`.

@@ -408,7 +408,7 @@ def test_activation_failure_or_signal_restores_previous_binary(tmp_path: Path, f
     live_bin = tmp_path / "home" / ".pilot" / "bin"
     live_bin.mkdir(parents=True)
     (live_bin / "pilot").write_text("working v10.6 wrapper")
-    (live_bin / "rtk").write_text("managed sidecar")
+    (live_bin / "ruff").write_text("managed sidecar")
 
     result = _run_download_pilot_binary(
         tmp_path,
@@ -418,7 +418,7 @@ def test_activation_failure_or_signal_restores_previous_binary(tmp_path: Path, f
 
     assert result.returncode != 0
     assert (live_bin / "pilot").read_text() == "working v10.6 wrapper"
-    assert (live_bin / "rtk").read_text() == "managed sidecar"
+    assert (live_bin / "ruff").read_text() == "managed sidecar"
     assert not list((tmp_path / "home" / ".pilot").glob(".bin-*"))
 
 
@@ -717,7 +717,7 @@ def test_download_failure_preserves_existing_install(tmp_path: Path, failure: st
     live_bin = tmp_path / "home" / ".pilot" / "bin"
     live_bin.mkdir(parents=True)
     (live_bin / "pilot").write_text("working v10.6 wrapper")
-    (live_bin / "rtk").write_text("managed sidecar")
+    (live_bin / "ruff").write_text("managed sidecar")
 
     result = _run_download_pilot_binary(
         tmp_path,
@@ -727,7 +727,7 @@ def test_download_failure_preserves_existing_install(tmp_path: Path, failure: st
 
     assert result.returncode != 0
     assert (live_bin / "pilot").read_text() == "working v10.6 wrapper"
-    assert (live_bin / "rtk").read_text() == "managed sidecar"
+    assert (live_bin / "ruff").read_text() == "managed sidecar"
     assert not list((tmp_path / "home" / ".pilot").glob(".bin-*"))
 
 

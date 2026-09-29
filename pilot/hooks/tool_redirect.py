@@ -180,16 +180,10 @@ def is_shell_file_inspection(command: str) -> bool:
             continue
         if tokens[0] == "command":
             tokens = tokens[1:]
-        rtk_read = False
-        if tokens and Path(tokens[0]).name == "rtk":
-            tokens = tokens[1:]
-            if tokens and tokens[0] == "proxy":
-                tokens = tokens[1:]
-            rtk_read = bool(tokens and tokens[0] == "read")
         if not tokens:
             continue
         name, args = Path(tokens[0]).name, tokens[1:]
-        if name not in {"cat", "head", "tail", "sed", "grep", "rg"} and not rtk_read:
+        if name not in {"cat", "head", "tail", "sed", "grep", "rg"}:
             continue
         # A heredoc supplies data rather than reading a local file. Followers
         # and binary/field transformations still belong in the shell.

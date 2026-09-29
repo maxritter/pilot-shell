@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 import subprocess
 import tempfile
 import time
@@ -21,6 +20,7 @@ def _isolate_owned_tool_manifest(monkeypatch: pytest.MonkeyPatch, tmp_path: Path
         "installer.steps.dependencies._owned_tools_manifest_path",
         lambda: tmp_path / ".pilot" / ".pilot-owned-tools.json",
     )
+    monkeypatch.setattr("installer.steps.dependencies.remove_rtk", MagicMock(return_value=[]))
     from installer.claude_display_cleanup import CleanupResult
 
     monkeypatch.setattr(
@@ -102,6 +102,35 @@ class TestClaudeDisplayPatchRemoval:
 
 
 class TestDependenciesStep:
+    def test_rtk_cleanup_warning_is_reported_and_ownership_survives_retry(self, monkeypatch, tmp_path):
+        from installer.steps import dependencies as deps
+        manifest = tmp_path / "ownership.json"
+        manifest.write_text(json.dumps({"tools": ["rtk", "semble"]}))
+        monkeypatch.setattr(deps, "_owned_tools_manifest_path", lambda: manifest)
+        cleanup = MagicMock(return_value=["configuration is symlinked"])
+        monkeypatch.setattr(deps, "remove_rtk", cleanup)
+        monkeypatch.setattr(deps, "_snapshot_tool_presence", lambda: {})
+        monkeypatch.setattr(deps, "needs_sudo", lambda: False)
+        monkeypatch.setattr(deps, "is_linux_arm64", lambda: False)
+        monkeypatch.setattr(deps, "_install_with_spinner", MagicMock(side_effect=RuntimeError("end fixture")))
+        ctx = MagicMock()
+        with pytest.raises(RuntimeError, match="end fixture"):
+            deps.DependenciesStep().run(ctx)
+        cleanup.assert_called_once()
+        ctx.ui.warning.assert_called_once_with("Could not finish retired RTK cleanup: configuration is symlinked")
+        assert json.loads(manifest.read_text())["tools"] == ["rtk", "semble"]
+
+    def test_hidden_claude_cli_never_retries_marketplace_commands(self, monkeypatch):
+        from installer.steps import dependencies as deps
+        monkeypatch.setenv("CLAUDECODE", "1")
+        monkeypatch.setattr(deps, "command_exists", lambda command: False)
+        execute = MagicMock()
+        monkeypatch.setattr(deps, "_run_bash_with_retry", execute)
+        assert not deps._refresh_marketplace("anthropics/claude-plugins-official")
+        assert not deps.install_lsp_plugins()
+        assert not deps.install_chrome_devtools_plugin()
+        execute.assert_not_called()
+
     """Test DependenciesStep class."""
 
     def test_dependencies_step_has_correct_name(self):
@@ -133,7 +162,6 @@ class TestDependenciesStep:
     @patch("installer.steps.dependencies.install_lsp_plugins", return_value=True)
     @patch("installer.steps.dependencies.install_codex_plugin", return_value=True)
     @patch("installer.steps.dependencies.install_codegraph", return_value=True)
-    @patch("installer.steps.dependencies.install_rtk", return_value=True)
     @patch("installer.steps.dependencies.install_ast_grep", return_value=True)
     @patch("installer.steps.dependencies.install_semble", return_value=True)
     @patch("installer.steps.dependencies.install_agent_browser", return_value=True)
@@ -166,7 +194,6 @@ class TestDependenciesStep:
         _mock_agent_browser,
         _mock_semble,
         _mock_ast_grep,
-        _mock_rtk,
         _mock_codegraph,
         _mock_codex_plugin,
         _mock_lsp_plugins,
@@ -212,7 +239,6 @@ class TestDependenciesStep:
             mock_plugin_deps.assert_called_once()
             _mock_semble.assert_called_once()
             _mock_ast_grep.assert_called_once()
-            _mock_rtk.assert_called_once()
             _mock_codegraph.assert_called_once()
             _mock_codex_plugin.assert_called_once()
             _mock_lsp_plugins.assert_called_once()
@@ -248,12 +274,12 @@ class TestOwnedToolManifest:
 
         with patch("installer.steps.dependencies.Path.home", return_value=tmp_path):
             _write_owned_tools(
-                {"rtk"},
+                {"ruff"},
                 ["semble", "codegraph", "prettier"],
                 {"semble": False, "codegraph": True, "prettier": False},
             )
 
-            assert _load_owned_tools() == {"rtk", "semble", "prettier"}
+            assert _load_owned_tools() == {"ruff", "semble", "prettier"}
 
     def test_ignores_unknown_manifest_entries(self, tmp_path: Path) -> None:
         from installer.steps.dependencies import PILOT_OWNED_TOOLS_MANIFEST, _load_owned_tools
@@ -731,165 +757,6 @@ class TestCurlPipeHashVerify:
         with patch("installer.steps.dependencies._run_bash_with_retry", side_effect=_fake_run_bash):
             ok = _curl_pipe_with_hash_verify("https://example.com/x.sh", "0" * 64)
         assert ok is False
-
-
-class TestInstallRtk:
-    """Tests for install_rtk() — RTK CLI installation (brew primary, curl fallback)."""
-
-    @patch("installer.steps.dependencies._init_rtk")
-    @patch("installer.steps.dependencies._heal_broken_rtk")
-    @patch("installer.steps.dependencies._symlink_to_pilot_bin")
-    @patch("installer.steps.dependencies.command_exists", return_value=False)
-    def test_install_rtk_pins_version_from_manifest(self, _cmd, _symlink, _heal, _init):
-        """The docstring promises the manifest-pinned version; the rtk install.sh
-        only honours that through RTK_VERSION, else it fetches whatever release
-        GitHub currently serves as latest."""
-        from installer.manifest import get as manifest_get
-        from installer.steps.dependencies import install_rtk
-
-        with patch("installer.steps.dependencies._curl_pipe_from_manifest", return_value=True) as mock_helper:
-            assert install_rtk() is True
-
-        opts = mock_helper.call_args[0][1]
-        assert opts.env is not None, "no env passed: rtk install floats to latest"
-        assert opts.env.get("RTK_VERSION") == f"v{manifest_get('rtk-installer').version}"
-
-    def test_install_rtk_exists(self):
-        """install_rtk function exists and is callable."""
-        from installer.steps.dependencies import install_rtk
-
-        assert callable(install_rtk)
-
-    @patch("installer.steps.dependencies._symlink_to_pilot_bin")
-    @patch("installer.steps.dependencies._curl_pipe_from_manifest", return_value=True)
-    @patch("installer.steps.dependencies.command_exists", return_value=True)
-    def test_install_rtk_upgrades_when_already_installed(self, _mock_cmd, mock_curl, _mock_symlink):
-        """install_rtk always runs curl installer to upgrade even when rtk exists."""
-        from installer.steps.dependencies import install_rtk
-
-        result = install_rtk()
-        assert result is True
-        mock_curl.assert_called_once()
-
-    @patch("installer.steps.dependencies._symlink_to_pilot_bin")
-    @patch("installer.steps.dependencies.command_exists", return_value=False)
-    def test_install_rtk_runs_curl_fallback(self, _mock_cmd, _mock_symlink):
-        """install_rtk routes through manifest-pinned curl helper for rtk-installer."""
-        from installer.steps.dependencies import install_rtk
-
-        with patch("installer.steps.dependencies._curl_pipe_from_manifest", return_value=True) as mock_helper:
-            result = install_rtk()
-
-        assert result is True
-        mock_helper.assert_called_once()
-        assert mock_helper.call_args[0][0] == "rtk-installer"
-        opts = mock_helper.call_args[0][1]
-        assert opts.interpreter == "sh"
-        assert opts.timeout == 120
-
-    @patch("installer.steps.dependencies.command_exists", return_value=False)
-    def test_install_rtk_returns_false_when_curl_fails(self, _mock_cmd):
-        """install_rtk returns False when manifest-pinned curl install fails."""
-        from installer.steps.dependencies import install_rtk
-
-        with patch("installer.steps.dependencies._curl_pipe_from_manifest", return_value=False):
-            result = install_rtk()
-
-        assert result is False
-
-    def test_install_rtk_relinks_broken_shadowing_binary(self, tmp_path: Path):
-        """Regression #155: a glibc-incompatible rtk dropped by the curl installer
-        at ~/.local/bin/rtk must not shadow a working build (e.g. Homebrew) on
-        PATH — install_rtk relinks both it and ~/.pilot/bin/rtk to the working one.
-        """
-        from installer.steps import dependencies
-
-        local_bin = tmp_path / ".local" / "bin"
-        brew_bin = tmp_path / "brew" / "bin"
-        local_bin.mkdir(parents=True)
-        brew_bin.mkdir(parents=True)
-        (tmp_path / ".pilot" / "bin").mkdir(parents=True)
-
-        working = brew_bin / "rtk"
-        working.write_text("#!/bin/sh\necho 'rtk 0.42.0'\n")
-        working.chmod(0o755)
-
-        # Simulates the GLIBC_2.39 loader failure: present but exits non-zero.
-        broken = local_bin / "rtk"
-        broken.write_text('#!/bin/sh\necho "GLIBC_2.39 not found" >&2\nexit 1\n')
-        broken.chmod(0o755)
-
-        with (
-            patch.dict(os.environ, {"PATH": f"{local_bin}{os.pathsep}{brew_bin}"}),
-            patch("installer.steps.dependencies.Path.home", return_value=tmp_path),
-            patch("installer.steps.dependencies._curl_pipe_from_manifest", return_value=True),
-            patch("installer.steps.dependencies._init_rtk"),
-            patch("installer.steps.dependencies.command_exists", return_value=False),
-        ):
-            result = dependencies.install_rtk()
-
-        assert result is True
-        # The shadowing binary now resolves to the working build instead of itself.
-        assert broken.is_symlink()
-        assert broken.resolve() == working.resolve()
-        # pilot's own symlink also points at the working build.
-        assert (tmp_path / ".pilot" / "bin" / "rtk").resolve() == working.resolve()
-
-
-class TestInitRtk:
-    """_init_rtk runs agent-specific init only for the agents the user has installed.
-
-    Agent detection delegates to ``installer.platform_utils.is_claude_installed`` /
-    ``is_codex_installed`` (PATH + native-installer fallback paths) — same helpers
-    used by ``cmd_install`` and ``ClaudeFilesStep``, so the gating is consistent
-    across the install flow.
-    """
-
-    def _runs(self, mock_run):
-        return [tuple(call.args[0]) for call in mock_run.call_args_list]
-
-    @patch("installer.steps.dependencies.subprocess.run")
-    @patch("installer.steps.dependencies.shutil.which", return_value="/fake/rtk")
-    @patch("installer.steps.dependencies.is_codex_installed", return_value=True)
-    @patch("installer.steps.dependencies.is_claude_installed", return_value=False)
-    def test_init_rtk_skips_claude_init_when_claude_absent(self, _claude, _codex, _which, mock_run):
-        """Codex-only systems must NOT receive rtk init for Claude."""
-        from installer.steps.dependencies import _init_rtk
-
-        _init_rtk()
-        runs = self._runs(mock_run)
-        assert all("--auto-patch" not in args for args in runs), (
-            f"Claude rtk init must be skipped when claude is absent; got: {runs}"
-        )
-        assert any("--codex" in args for args in runs)
-
-    @patch("installer.steps.dependencies.subprocess.run")
-    @patch("installer.steps.dependencies.shutil.which", return_value="/fake/rtk")
-    @patch("installer.steps.dependencies.is_codex_installed", return_value=False)
-    @patch("installer.steps.dependencies.is_claude_installed", return_value=True)
-    def test_init_rtk_skips_codex_init_when_codex_absent(self, _claude, _codex, _which, mock_run):
-        """Claude-only systems must NOT receive rtk init for Codex (existing behavior)."""
-        from installer.steps.dependencies import _init_rtk
-
-        _init_rtk()
-        runs = self._runs(mock_run)
-        assert any("--auto-patch" in args for args in runs)
-        assert all("--codex" not in args for args in runs), (
-            f"Codex rtk init must be skipped when codex is absent; got: {runs}"
-        )
-
-    @patch("installer.steps.dependencies.subprocess.run")
-    @patch("installer.steps.dependencies.shutil.which", return_value="/fake/rtk")
-    @patch("installer.steps.dependencies.is_codex_installed", return_value=True)
-    @patch("installer.steps.dependencies.is_claude_installed", return_value=True)
-    def test_init_rtk_runs_both_when_both_agents_present(self, _claude, _codex, _which, mock_run):
-        """Both-agents systems get both rtk inits."""
-        from installer.steps.dependencies import _init_rtk
-
-        _init_rtk()
-        runs = self._runs(mock_run)
-        assert any("--auto-patch" in args for args in runs)
-        assert any("--codex" in args for args in runs)
 
 
 class TestInstallCodegraph:
@@ -1895,7 +1762,7 @@ class TestInstallPbtTools:
         install_pbt_tools()
 
         calls = [str(c) for c in mock_run.call_args_list]
-        assert any("hypothesis" in c for c in calls)
+        assert any("hypothesis[cli]" in c for c in calls)
         fast_check_cmds = [c for c in calls if "fast-check" in c]
         assert fast_check_cmds, "fast-check install command missing"
         assert all(f"fast-check@{get('fast-check').version}" in c for c in fast_check_cmds)
@@ -2407,7 +2274,6 @@ class TestDependenciesCleanup:
     @patch("installer.steps.dependencies.initialize_codegraph", return_value=True)
     @patch("installer.steps.dependencies.codegraph_needs_work", return_value=False)
     @patch("installer.steps.dependencies.install_codegraph", return_value=True)
-    @patch("installer.steps.dependencies.install_rtk", return_value=True)
     @patch("installer.steps.dependencies.install_ast_grep", return_value=True)
     @patch("installer.steps.dependencies.install_agent_browser", return_value=True)
     @patch("installer.steps.dependencies.install_pbt_tools", return_value=True)
@@ -2432,7 +2298,6 @@ class TestDependenciesCleanup:
         _mock_pbt,
         _mock_agent_browser,
         _mock_ast_grep,
-        _mock_rtk,
         _mock_codegraph,
         _mock_needs_work,
         _mock_initialize_codegraph,

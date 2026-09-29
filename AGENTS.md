@@ -8,20 +8,20 @@ the `pilot` CLI while preserving user-owned configuration.
 
 ## Commands
 
-- Launcher: `rtk uv run pytest launcher/tests/unit/ -q`
-- Installer: `rtk uv run pytest installer/tests/unit/ -q`
-- Hooks: `rtk uv run pytest pilot/hooks/tests/ -q`
-- Benchmark skill: `rtk uv run pytest pilot/skills/benchmark/tests/ -q`
-- Console: `cd console && rtk bun test`
-- Full Python: `rtk uv run pytest installer/tests/unit/ launcher/tests/unit/ pilot/hooks/tests/ pilot/skills/benchmark/tests/ -q`
-- Build binary: `rtk uv run python -m launcher.build`
-- Agent-asset parity: `rtk node scripts/sync-agent-assets.mjs --check`
+- Launcher: `uv run pytest launcher/tests/unit/ -q`
+- Installer: `uv run pytest installer/tests/unit/ -q`
+- Hooks: `uv run pytest pilot/hooks/tests/ -q`
+- Benchmark skill: `uv run pytest pilot/skills/benchmark/tests/ -q`
+- Console: `cd console && bun test`
+- Full Python: `uv run pytest installer/tests/unit/ launcher/tests/unit/ pilot/hooks/tests/ pilot/skills/benchmark/tests/ -q`
+- Build binary: `uv run python -m launcher.build`
+- Agent-asset parity: `node scripts/sync-agent-assets.mjs --check`
 
 ## Repository rules
 
 - Preserve unrelated work in the dirty worktree. Do not reset, restore, or
   overwrite concurrent changes.
-- Use `rtk` for shell commands, `apply_patch` for source edits, Semble for intent
+- Use shell commands directly, `apply_patch` for source edits, Semble for intent
   search, CodeGraph for callers or non-local runtime blast radius, and ast-grep
   for syntax-aware structural search or controlled codemods.
 - Keep `launcher/` and `installer/` independent. They ship as separate packages

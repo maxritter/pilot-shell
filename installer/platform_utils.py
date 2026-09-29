@@ -50,7 +50,13 @@ def is_claude_installed() -> bool:
     Fallback paths cover Anthropic's native installer (~/.claude/local/bin/claude),
     system bin (/usr/local/bin/claude), and the macOS app bundle
     (/Applications/Claude.app).
+
+    Claude Code sets CLAUDECODE=1 in its subprocesses and IDE terminals. That
+    documented runtime evidence also covers sandboxes that hide its binary.
+    See https://code.claude.com/docs/en/env-vars#variables.
     """
+    if os.environ.get("CLAUDECODE") == "1":
+        return True
     home = Path.home()
     return _agent_present(
         "claude",
@@ -236,7 +242,7 @@ def get_login_shell_config_files() -> list[Path]:
     by one: Debian's ``.bashrc`` returns at the top on
     ``case $- in *i*) ;; *) return;; esac``, and zsh sources ``.zshrc`` only when
     the shell is interactive. With the PATH export living solely in an rc file,
-    ``~/.pilot/bin`` (and therefore ``rtk``) is absent from every agent tool call
+    ``~/.pilot/bin`` (and its managed tools) is absent from every agent tool call
     in any session that did not inherit an interactive PATH -- a devcontainer or
     IDE-launched agent being the common case.
 

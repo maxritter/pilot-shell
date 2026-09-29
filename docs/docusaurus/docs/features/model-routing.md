@@ -44,7 +44,7 @@ New installs start here. You stay in control of the model at every phase:
 
 1. Select an available model with `/model`, then type `/spec <task>`. Fable 5.1, Opus 5, and other available models can run the whole workflow.
 2. Plan, review, approve as usual.
-3. After explicit approval in the main session, Pilot pauses before implementation. Run `/model`, confirm Claude Code's conversation-transfer prompt if it appears, then send exact `resume`, `/spec resume`, or `$spec resume`.
+3. After explicit approval in the main session, Pilot pauses before implementation. Run `/model`, confirm Claude Code's conversation-transfer prompt if it appears, then ask to continue, `/spec resume`, or `$spec resume`.
 4. Pilot consumes that one-shot gate and begins implementation on the selected model. Other messages leave the gate armed.
 
 Disabling Plan Approval keeps `/spec` autonomous: Manual preserves the active model and does not create a handoff pause. Orchestration lanes also continue on their already-running model because a coordinator `/model` command cannot change a running child.

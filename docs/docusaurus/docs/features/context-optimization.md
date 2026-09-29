@@ -29,7 +29,6 @@ Codex manages model discovery, so new models do not require a Pilot release. Upg
 
 | Strategy | Savings | How |
 |----------|---------|-----|
-| **RTK proxy** | Varies by command | Rewrites dev tool output (`git status`, `npm test`, etc.) to remove noise before it enters the context window |
 | **Semble code search** | Varies by query | Returns relevant matched chunks for intent searches rather than requiring whole-file reads |
 | **Conditional rule loading** | Variable | Coding standards load only for matching file types — Python rules don't load when editing TypeScript |
 | **Skill activation** | Variable | Descriptions expose available skills; the full SKILL.md loads when needed. Pilot's sequential workflows bundle their required phase instructions |

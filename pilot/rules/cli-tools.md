@@ -7,11 +7,13 @@ For ordinary local file inspection, use **Read** (`offset`/`limit` for a range),
 
 Batch independent work as separate native tool calls in the same response. Do not combine file reads into a long Bash command with `echo` headings or separators. Keep Bash for tests, builds, git, API probes, live log streams, and actual computation or shell processing. Use Edit/Write for ordinary source changes; established generators and codemods remain appropriate.
 
-RTK optimizes commands that need a shell. It is not a reason to replace native file tools with a shell wrapper. Follow an explicit user-requested command or a real capability limitation when it requires a different approach.
+Follow an explicit user-requested command or a real capability limitation when it requires a different approach.
 
 ### Background output and waiting
 
 For a command that needs resumable background execution, start it with `Bash` and `run_in_background: true`. Retain its returned task ID and output path; collect or wait through the native task tools exposed by this runtime. Reuse an existing job's handle instead of relaunching its command, and continue independent work while it runs.
+
+Keep waiting for authorized jobs without asking the user whether to continue. Report meaningful progress while retaining the job handle. Ask only when a concrete failure, missing input, or changed authorization requires the user's decision.
 
 Inspect available output directly with `Read` and a bounded range. An output snapshot does not prove the job finished. For a condition wait, use `Monitor` with an until-loop when that tool is exposed, or the runtime's supported wait mechanism. Do not prefix output reads with a long Bash `sleep`, or chain shorter sleeps to evade a native block.
 <!-- /CC-ONLY -->
@@ -36,12 +38,6 @@ Inspect available output directly with `Read` and a bounded range. An output sna
 **`worktree sync` has three exit codes.** `0` clean · `1` nothing landed · **`2` the squash landed but the base checkout's own uncommitted work could not be restored** and is in `git stash list`. The JSON still reports `"success": true` — the merge did succeed. Exit 2 exists so a chained `&& pilot worktree cleanup` stops before deleting the worktree; surface the `stash_warning` and the `git stash pop` recovery instead of re-running cleanup. `create` and `sync` both serialize on a repo-wide lock, so concurrent runs queue rather than interleaving their changes to the shared base checkout.
 
 **`--lane <id>` is for orchestration lanes only.** A coordinating session dispatching `/spec`, `/fix`, or `/build` runs as concurrent subagents passes it on every `register-plan` and `worktree` call, because a subagent can resolve the same session id as its parent. It scopes session state to `~/.pilot/sessions/<session>/lanes/<id>/` and keys the worktree on `(slug, lane)`. Use the lane assigned to this workflow; do not invent or reuse another run's lane. Never fall back to an unflagged call when `--lane` is unsupported — that would put the lane's plan in the coordinator's slot.
-
-### RTK — token-optimized CLI proxy
-
-The Pilot shell hook auto-rewrites commands (`git status` → `rtk git status`), so normally you do nothing. Direct use: `rtk gain` (savings analytics), `rtk gain --history`, `rtk discover`, `rtk proxy <cmd>` (bypass filtering when debugging).
-
-⚠️ If `rtk gain` errors, a different `rtk` (Rust Type Kit) is on PATH.
 
 ### Semble — code search CLI
 

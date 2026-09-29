@@ -6,7 +6,6 @@ const stack = [
   { name: "basedpyright", detail: "Type Checker" },
   { name: "ruff", detail: "Linter" },
   { name: "Semble", detail: "Code Search" },
-  { name: "RTK", detail: "Token Optimizer" },
   { name: "CodeGraph", detail: "Code Graph" },
   { name: "MCP", detail: "Protocol" },
   { name: "Context7", detail: "Library Docs" },

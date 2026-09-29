@@ -88,7 +88,7 @@ class TestDriftDetection:
 
     def test_pinned_uvx_from_in_mcp_json_passes_when_in_manifest(self, drift_module, tmp_path: Path) -> None:
         mcp = tmp_path / ".mcp.json"
-        mcp.write_text('{"mcpServers": {"x": {"command": "uvx", "args": ["--from", "semble[mcp]==0.5.6", "semble"]}}}')
+        mcp.write_text('{"mcpServers": {"x": {"command": "uvx", "args": ["--from", "semble[mcp]==0.6.1", "semble"]}}}')
         assert not drift_module.scan_file(mcp)
         assert not drift_module.cross_reference_mcp(mcp)
 
@@ -103,7 +103,7 @@ class TestDriftDetection:
         mcp = tmp_path / ".mcp.json"
         mcp.write_text('{"mcpServers": {"x": {"command": "uvx", "args": ["--from", "semble[mcp]==0.4.0", "semble"]}}}')
         findings = drift_module.cross_reference_mcp(mcp)
-        assert any("0.5.6" in f.message for f in findings), [f.message for f in findings]
+        assert any("0.6.1" in f.message for f in findings), [f.message for f in findings]
 
     def test_npx_with_http_url_does_not_trigger(self, drift_module, tmp_path: Path) -> None:
         """HTTP URLs in args (e.g. typefully MCP endpoint) shouldn't trigger drift."""

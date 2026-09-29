@@ -14,17 +14,19 @@ Only allows stopping when:
 5. A plan-bound durable interaction state is paused. UserPromptSubmit owns the
    human/synthetic distinction, and the pause remains authoritative even when
    `stop_hook_active` still describes an enclosing continuation chain. Buildouts
-   never honor interaction pauses.
-6. User stops again within 60s cooldown (escape hatch) - withheld while
-   `stop_hook_active` marks the attempt as the agent's own continuation
-7. Runaway cap: after MAX_BLOCKS blocks for the same plan with no user-question
-   turn in between, OR MAX_CHAIN_BLOCKS blocks inside one continuation chain,
+   honor explicit user pauses while keeping automatic discussion pauses disabled.
+6. Native user interrupts remain controlled by the runtime; explicit plan pauses
+   are handled by UserPromptSubmit. A fresh agent turn is never a user-stop signal.
+7. Opt-in runaway checkpoints: after MAX_BLOCKS blocks for the same plan with no
+   new task completions or user-question turn, OR MAX_CHAIN_BLOCKS such blocks
+   inside one continuation chain,
    emit one escalation block instructing the agent to AskUserQuestion. The next
-   block-attempt after escalation is allowed through, breaking pathological
-   infinite verify->implement loops. The per-chain bound is the one that matters
+   block-attempt after escalation is allowed through, ending that no-progress
+   chain. New completed tasks reset these counters; verification skills separately
+   compare unresolved evidence to detect stalled verification cycles. The per-chain bound matters
    on Claude Code, which silently ends the turn itself after
-   CLAUDE_CODE_CONSECUTIVE_BLOCK_CAP consecutive blocks; the session-wide bound
-   is the backstop for agents that report no continuation state.
+   CLAUDE_CODE_CONSECUTIVE_BLOCK_CAP consecutive blocks. Pilot's settings remove
+   that hidden native cap by default; explicit user caps are preserved.
 
 `stop_hook_active` is deliberately NOT a reason to allow a stop: it is true for
 every stop attempt after this guard blocks, so honoring it let the guard block
@@ -37,6 +39,9 @@ import hashlib
 import json
 import os
 import re
+import shlex
+import shutil
+import subprocess
 import sys
 import time
 from collections.abc import Callable
@@ -56,15 +61,13 @@ from _lib.util import (
     get_session_plan_path,
     is_waiting_for_user_input,
     plan_in_current_project,
+    read_workflow_toggle,
     resolve_hook_session_id,
     resolve_session_id,
     stop_block,
 )
 
-COOLDOWN_SECONDS = 60
-# Session-wide backstop: blocks for the same plan since the last user-question
-# turn. This is the only bound an agent that reports no continuation state (Codex
-# sends no `stop_hook_active`) ever reaches, so it stays where it was.
+# Opt-in session-wide backstop: stops without new task completions or a question.
 MAX_BLOCKS = 30
 # Claude Code overrides a Stop hook and ends the turn itself after this many
 # consecutive blocks in ONE continuation chain, silently - no message, no
@@ -76,19 +79,16 @@ CLAUDE_CODE_CONSECUTIVE_BLOCK_CAP = 8
 # of being pre-empted by that silent override. At 5: blocks 1-5 are normal, block
 # 6 escalates, attempt 7 releases - 6 consecutive blocks, two clear of the cap.
 #
-# It is deliberately NOT the same counter as MAX_BLOCKS. Measured over the local
-# Claude Code transcripts (~/.claude/projects/*/*.jsonl: count Stop-hook attachments
-# per session, `hook_blocking_error` = blocked, anything else ends the chain), real
-# sessions accumulate up to 7 blocks each but never more than 1 within a single
-# chain. So a session-wide counter at this depth would escalate on healthy runs and
-# release them - reintroducing the silent stop this guard exists to prevent, at a
-# new place. Re-run that count before changing either constant.
+# New task completions reset Pilot's counters. They cannot reset the native
+# runtime's separate continuation budget, so skills must complete pending work
+# without turning per-task progress updates into final responses.
 MAX_CHAIN_BLOCKS = 5
 # Sentinel files older than this are treated as stale (PID reuse, crashed
 # session, etc.) and unlinked without being honored. One hour is generous
 # enough for any realistic approval-wait interaction.
 SENTINEL_MAX_AGE_SECONDS = 3600
 MANUAL_SWITCH_MAX_AGE_SECONDS = 24 * 3600
+
 
 def get_stop_guard_path(session_id: str | None = None) -> Path:
     """Get session-scoped stop guard state path."""
@@ -123,7 +123,7 @@ def get_manual_switch_sentinel_path(session_id: str | None = None) -> Path:
     Unlike the retired pre-v11 form, this marker is reusable only while the exact
     registered plan is approved, non-Build, and ``Status: PENDING``. The first
     Stop attempt binds the empty marker to that plan's path, status, and content
-    fingerprint. UserPromptSubmit consumes it only for exact resume commands.
+    fingerprint. UserPromptSubmit consumes it for clear continuation requests.
     """
     guard_dir = _sessions_base() / (session_id or resolve_session_id())
     guard_dir.mkdir(parents=True, exist_ok=True)
@@ -383,7 +383,7 @@ def _registered_interaction_paused(session_id: str, plan_path: Path) -> bool:
     if not isinstance(interaction, dict) or interaction.get("state") != "paused":
         return False
     _approved, plan_type = _read_plan_approved_and_type(str(plan_path))
-    return plan_type != "Build"
+    return plan_type != "Build" or (interaction.get("kind") == "discussion" and interaction.get("origin") == "user")
 
 
 def _save_expected_continuation(state_file: Path, state: dict, reason: str) -> None:
@@ -451,12 +451,13 @@ def _block_reason(plan_path: Path, status: str) -> str:
         ""
         if is_build
         else (
-            " EXCEPTION - the user is discussing: if the user's LATEST message questioned a "
-            "decision, raised a discovery, or asked something the plan does not answer, do "
-            "not plough on. Answer them and honor the plan-bound interaction pause created "
-            "by UserPromptSubmit. For an agent-discovered material decision, record it with "
+            " Answer user messages and incorporate their steering, then continue authorized work. "
+            "Honor any explicit or configured plan-bound interaction pause. "
+            "For an agent-discovered material decision, record it with "
             "`pilot plan-state pause --kind decision --message <question>` before asking. "
-            "Only exact `resume`, `/spec resume`, or `$spec resume` restarts implementation."
+            "A clear request to resume or continue restarts a discussion/decision pause. "
+            "While a build or test job runs, retain its handle, wait through the runtime's tools, "
+            "and continue independent work. Waiting and routine progress are not reasons to ask for permission."
         )
     )
     next_action = _next_action_for(status, plan_type)
@@ -468,14 +469,157 @@ def _block_reason(plan_path: Path, status: str) -> str:
             "When asking the user, use the workflow's approval-wait mechanism so the turn can end."
         )
     base_reason = (
-        f"{workflow} active — cannot stop without user interaction. "
+        f"{workflow} active — authorized work remains. "
         f"{artifact}: {plan_path} (Status: {status}). "
-        f"Stop again within 60s to force exit.\n\n"
+        "Continue from the current plan state.\n\n"
         f"{next_action} Do not present unfinished work as complete."
         f"{discussion_escape}"
     )
     objective_block = build_objective_reinjection(plan_path)
     return f"{objective_block}{base_reason}" if objective_block else base_reason
+
+
+def _continuation_output(reason: str) -> str:
+    """Use Claude's quiet continuation contract; keep Codex's block contract."""
+    if os.environ.get("CLAUDE_PROJECT_PLATFORM") == "claude" and _quiet_stop_supported():
+        return json.dumps({"hookSpecificOutput": {"hookEventName": "Stop", "additionalContext": reason}})
+    return stop_block(reason)
+
+
+def _quiet_stop_supported() -> bool:
+    """Use the quiet contract only on a verified version; unknown/older is safe."""
+    binary = shutil.which("claude")
+    if not binary:
+        return False
+    try:
+        result = subprocess.run([binary, "--version"], capture_output=True, text=True, timeout=1)
+        match = re.search(r"\b(\d+)\.(\d+)\.(\d+)\b", result.stdout)
+        return result.returncode == 0 and match is not None and tuple(map(int, match.groups())) >= (2, 1, 278)
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def _record_task_progress(state: dict, plan_path: Path) -> None:
+    """Reset checkpoint counters only for newly completed tasks, never cosmetic edits."""
+    try:
+        content = plan_path.read_text()
+    except OSError:
+        return
+    section = re.search(r"(?m)^## Progress Tracking\s*$([\s\S]*?)(?=^## |\Z)", content)
+    completed = set(re.findall(r"(?mi)^\s*-\s*\[[xX]\]\s*Task\s+(\d+)\b", section.group(1))) if section else set()
+    stored = state.get("completed_tasks")
+    previous = {task for task in stored if isinstance(task, str)} if isinstance(stored, list) else set()
+    if completed - previous:
+        state["count"] = 0
+        state["chain"] = 0
+    state["completed_tasks"] = sorted(previous | completed)
+
+
+_WAITING_MESSAGE = re.compile(
+    r"\b(?:waiting|wait for|still running|still building|in progress|warte|warten|esperando|attendre)\b", re.I
+)
+
+
+def _finite_background_command(command: str) -> bool:
+    """Allow known bounded runners, never infer lifetime from arbitrary words."""
+    try:
+        lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|<>")
+        lexer.whitespace_split = True
+        args = list(lexer)
+    except ValueError:
+        return False
+    if not args or any(arg in {";", "&&", "||", "|", "&"} for arg in args):
+        return False
+    while args and ("=" in args[0] or args[0] in {"env", "command", "nohup"}):
+        args.pop(0)
+    if not args:
+        return False
+    program = Path(args[0]).name
+    tail = args[1:]
+    if program == "gh":
+        return tail[:2] in (["run", "watch"], ["pr", "checks"])
+    if program in {"pytest", "pytest-3", "make", "ninja", "cmake", "mvn", "gradle"}:
+        return not any(flag in tail for flag in ("--watch", "-w", "--continuous"))
+    if program in {"python", "python3", "python3.12"}:
+        return tail[:2] in (["-m", "pytest"], ["-m", "unittest"], ["-m", "compileall"])
+    if program == "uv":
+        return tail[:1] == ["run"] and _finite_background_command(shlex.join(tail[1:]))
+    if program in {"npm", "pnpm", "yarn", "bun"}:
+        script = tail[1:] if tail[:1] == ["run"] else tail
+        return (
+            bool(script)
+            and script[0] in {"test", "build", "typecheck", "lint", "check"}
+            and not any(flag in script for flag in ("--watch", "-w"))
+        )
+    if program in {"vitest", "jest"}:
+        return "--run" in tail or "--watch=false" in tail or "--ci" in tail or tail[:1] == ["run"]
+    if program == "cargo":
+        return bool(tail) and tail[0] in {"test", "build", "check", "clippy"}
+    if program in {"go", "dotnet"}:
+        return bool(tail) and tail[0] in {"test", "build"}
+    if program in {"tsc", "eslint", "ruff", "mypy", "basedpyright"}:
+        return not any(flag in tail for flag in ("--watch", "-w"))
+    return False
+
+
+def _native_background_wait(payload: dict) -> bool:
+    """Allow a passive turn only with authoritative live work and a waiting report.
+
+    The runtime wakes the session on task completion. Unrelated background
+    servers and ordinary task summaries never grant this exception.
+    """
+    message = payload.get("last_assistant_message")
+    if not isinstance(message, str) or message.rstrip().endswith("?") or not _WAITING_MESSAGE.search(message):
+        return False
+    tasks = payload.get("background_tasks")
+    if not isinstance(tasks, list):
+        return False
+    for task in tasks:
+        if not isinstance(task, dict) or not isinstance(task.get("id"), str) or not task["id"]:
+            continue
+        status, kind = task.get("status"), task.get("type")
+        if not isinstance(status, str) or status not in {"running", "pending", "queued", "in_progress"}:
+            continue
+        if not isinstance(kind, str) or kind not in {
+            "shell",
+            "subagent",
+            "monitor",
+            "workflow",
+            "MCP task",
+            "cloud session",
+        }:
+            continue
+        command = task.get("command", "")
+        if kind == "shell" and (not isinstance(command, str) or not _finite_background_command(command)):
+            continue
+        return True
+    return False
+
+
+def _answered_decision_reason(session_id: str, transcript_path: str) -> str | None:
+    from _lib.user_questions import decision_has_answer
+
+    try:
+        data = json.loads((_sessions_base() / session_id / "active_plan.json").read_text())
+        held = data.get("interaction", {})
+    except (OSError, ValueError, AttributeError):
+        return None
+    if not isinstance(held, dict) or held.get("kind") != "decision" or held.get("origin") == "user":
+        return None
+    if not isinstance(held.get("message"), str) or not (
+        held.get("answer_received") is True or decision_has_answer(transcript_path, held["message"])
+    ):
+        return None
+    return (
+        "The pending decision received a user answer inside the question tool. Interpret that actual answer; "
+        "if it resolves the decision and authorizes proceeding, apply the agreed amendments, run "
+        "`pilot plan-state resume`, and continue in this turn without requesting another resume. "
+        "Preserve any pending Manual model-switch handoff; route through the dispatcher before implementation. "
+        "If the answer requests a stop or pause, record an explicit discussion hold, preserving the decision. "
+        "If permission is withheld or input is insufficient, preserve the hold; do not ask again for the same "
+        "denied authorization. Record a genuinely new clarification before asking. Never infer authorization "
+        "from this reminder."
+    )
 
 
 def main() -> int:
@@ -513,6 +657,10 @@ def main() -> int:
     # that no user interrupted it. UserPromptSubmit owns the human/synthetic
     # distinction and writes this plan-bound state before the model replies.
     if _registered_interaction_paused(session_id, plan_path):
+        reason = _answered_decision_reason(session_id, transcript_path)
+        if reason:
+            print(_continuation_output(reason))
+            return 0
         get_stop_guard_path(session_id).unlink(missing_ok=True)
         return 0
 
@@ -532,7 +680,7 @@ def main() -> int:
         return 0
 
     # Manual model-switch handoff: after an explicitly approved plan, Manual
-    # mode yields once so the user can run /model and then exact `resume`.
+    # mode yields once so the user can run /model and then request continuation.
     # Restrict it to the implementation boundary (approved PENDING, non-Build)
     # and retain the bound marker until UserPromptSubmit consumes that resume.
     if status == "PENDING" and _sentinel_grants_stop(
@@ -604,6 +752,8 @@ def main() -> int:
     plan_key = str(plan_path)
     if state.get("plan") != plan_key:
         state = {"ts": 0.0, "count": 0, "chain": 0, "plan": plan_key}
+    _record_task_progress(state, plan_path)
+    checkpoints_enabled = read_workflow_toggle("runawayGuard")
 
     if transcript_path and is_waiting_for_user_input(transcript_path):
         state["count"] = 0
@@ -612,47 +762,43 @@ def main() -> int:
         _save_state(state_file, state)
         return 0
 
-    # Double-stop escape hatch, for the USER. Withheld inside a hook-driven
-    # continuation: there, a stop landing within COOLDOWN_SECONDS of the last block
-    # means the agent produced a near-instant turn - a summary, a sign-off, a
-    # "resume when you're ready" - which is the behaviour being guarded against, not
-    # a request to exit. A user's force-exit arrives on a fresh turn instead, where
-    # the flag is false and this still fires.
-    now = time.time()
-    last_ts = float(state.get("ts") or 0.0)
-    if not in_hook_continuation and last_ts and (now - last_ts) < COOLDOWN_SECONDS:
+    if _native_background_wait(input_data):
+        # This is a native wakeup wait, not a durable human pause. Do not burn
+        # continuation budget, ask permission, or keep old checkpoint counters.
         state_file.unlink(missing_ok=True)
         return 0
 
+    # Stop is an assistant lifecycle event. A fresh turn can be a background
+    # completion or Codex continuation; elapsed time cannot establish user intent.
+    now = time.time()
+
     count = int(state.get("count") or 0)
     # A stop attempt that is not a hook continuation starts a new chain, which is
-    # also when Claude Code's own consecutive-block budget resets. Keeping the two
-    # in step is what makes MAX_CHAIN_BLOCKS a bound on the harness's silent
-    # override rather than a second, tighter session-wide cap.
+    # also when Claude Code's own consecutive-block budget resets. Pilot's counter
+    # additionally resets on task progress; the native budget is independent.
     chain = int(state.get("chain") or 0) if in_hook_continuation else 0
 
     # Either bound releasing wipes BOTH counters, by design: the release is the end
     # of the runaway, not a partial reprieve. So the two bounds are not tracked
     # independently across a session - on Claude Code a pathological chain trips the
     # tighter per-chain bound first and resets the session-wide count with it.
-    if count > MAX_BLOCKS or chain > MAX_CHAIN_BLOCKS:
+    if checkpoints_enabled and (count > MAX_BLOCKS or chain > MAX_CHAIN_BLOCKS):
         state_file.unlink(missing_ok=True)
         return 0
 
-    state["count"] = count + 1
-    state["chain"] = chain + 1
+    state["count"] = count + 1 if checkpoints_enabled else 0
+    state["chain"] = chain + 1 if checkpoints_enabled else 0
     state["ts"] = now
     _save_state(state_file, state)
 
-    if count + 1 > MAX_BLOCKS or chain + 1 > MAX_CHAIN_BLOCKS:
+    if checkpoints_enabled and (count + 1 > MAX_BLOCKS or chain + 1 > MAX_CHAIN_BLOCKS):
         # Report the counter that actually tripped: the session-wide one runs ahead
         # of the chain, so max() would overstate how many blocks were consecutive.
         blocks = chain + 1 if chain + 1 > MAX_CHAIN_BLOCKS else count + 1
         reason = (
             f"RUNAWAY GUARD TRIPPED — {blocks} consecutive stop-block attempts on plan "
-            f"{plan_path} (Status: {status}) without a user-question turn in between. "
-            f"This pattern indicates the agent is stuck in a verify→implement loop and "
-            f"burning tokens unsupervised. STOP. Your VERY NEXT action MUST be to ask the user, "
+            f"{plan_path} (Status: {status}) without new task completions or a user-question turn. "
+            f"Runaway checkpoints are enabled in Console Settings. STOP. Your VERY NEXT action MUST be to ask the user, "
             f"using the structured question mechanism available on this platform, what you were "
             f"doing, what's blocking, and how to proceed (Continue / Pivot / Abandon). Do NOT "
             f"continue working. "
@@ -660,12 +806,12 @@ def main() -> int:
             f"one will be allowed through to end the runaway."
         )
         _save_expected_continuation(state_file, state, reason)
-        print(stop_block(reason))
+        print(_continuation_output(reason))
         return 0
 
     reason = _block_reason(plan_path, status)
     _save_expected_continuation(state_file, state, reason)
-    print(stop_block(reason))
+    print(_continuation_output(reason))
     return 0
 
 

@@ -49,7 +49,6 @@ Pilot Shell installs the following open-source tools during setup. Each tool is 
 | Tool | Purpose | License |
 |------|---------|---------|
 | [Semble](https://github.com/MinishLab/semble) | Hybrid semantic+lexical code search (BM25 + Model2Vec embeddings); also runs as an MCP server | MIT |
-| [RTK](https://github.com/rtk-ai/rtk) | Token-optimized CLI proxy (60-90% savings) | MIT |
 | [CodeGraph](https://github.com/colbymchenry/codegraph) | Code knowledge graph and structural analysis | MIT |
 
 ## Plugin Runtime Dependencies

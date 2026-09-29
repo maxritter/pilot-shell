@@ -54,19 +54,6 @@ def test_referenced_local_command_targets_exist() -> None:
     assert missing == []
 
 
-def test_command_rewrite_hooks_explicitly_identify_the_runtime() -> None:
-    entries = generator.load_matrix()["entries"]
-    for platform in ("claude", "codex"):
-        handlers = [
-            handler
-            for entry in entries
-            if entry["platform"] == platform
-            for handler in entry["handlers"]
-            if "tool_token_saver.py" in handler
-        ]
-        assert len(handlers) == 1
-        assert handlers[0].startswith(f"CLAUDE_PROJECT_PLATFORM={platform} ")
-
 
 def test_generated_manifests_preserve_the_shipped_bytes() -> None:
     matrix = generator.load_matrix()

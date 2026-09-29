@@ -62,6 +62,15 @@ def _disable_live_codex_version_probe(monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
 
+def test_shipped_spec_implementation_preserves_autonomous_waiting_and_resume_intent() -> None:
+    skill_dir = Path(__file__).resolve().parents[4] / "pilot/skills/spec-implement"
+    built = build_codex_skill_md(skill_dir)
+    assert "Wait autonomously for running jobs" in built
+    assert "resume request attached to a status update" in built
+    assert "Pause on messages" in built
+    assert "Only exact `resume`" not in built
+
+
 class TestCodexFilesStepCheck:
     def test_check_returns_false_always(self) -> None:
         step = CodexFilesStep()

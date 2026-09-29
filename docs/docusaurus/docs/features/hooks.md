@@ -41,7 +41,8 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 | Hook | Applies to | Description |
 |------|------------|-------------|
 | `spec_mode_guard.py` | Claude Code | Blocks `/spec` while native Plan mode is already active and enforces Automated mode's `opusplan` requirement; Manual/Off modes preserve the active model. |
-| `spec_interaction.py` | Both | Records real user interruptions and exact pause/resume/manual-task controls in the active plan before the agent responds. A response to an armed verification gate is recognized as expected input rather than auto-paused again. |
+| `spec_interaction.py` | Both | Honors explicit pauses and continuation intent. New messages keep work active unless Pause on messages is enabled; replies to agent questions and armed verification gates remain expected input. |
+| `spec_question_guard.py` | Both | Removes routine keep-waiting questions from an approved autonomous run. Genuine failure, budget, scope, and approval decisions remain available. Mixed batches retain only the necessary questions. |
 | Session initializer | Both | Registers the session with the Console worker. |
 
 ## PreToolUse
@@ -51,10 +52,7 @@ Codex runs the skill refresh, session registration, memory observer, and turn su
 | Hook | Applies to | Description |
 |------|------------|-------------|
 | `tool_redirect.py` | Claude Code | Privately nudges recursive Bash, built-in search, and web calls toward the preferred indexed/MCP tools without denying the original operation. It also reminds the agent when a shell command edits a project file (`sed -i`, heredocs or redirects into a file, `tee`, inline scripts that write files) that changes belong in `Edit`/`Write`, where they show as a diff. Writes to `/tmp` and the scratchpad get no reminder. |
-| `tool_token_saver.py` | Both | Rewrites eligible Bash commands through RTK using the response format required by the calling agent. |
 | `plan_mode_tracker.py` | Claude Code | Tracks `/spec` plan-mode state, records who owns the plan-mode leg being entered (the only moment `/spec` and native plan mode are distinguishable), verifies the observed planning-leg model, and reports the result once per leg. |
-
-The RTK hook registrations explicitly identify Claude or Codex. Codex rewrites include `permissionDecision: "allow"` alongside `updatedInput`; Claude rewrites omit that decision so normal permission checks remain in place. Older Codex registrations can be recognized from native hook metadata. If the runtime cannot be identified, the hook leaves the command unchanged.
 
 ## PermissionRequest *(Claude Code only)*
 

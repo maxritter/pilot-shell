@@ -275,22 +275,6 @@
       "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
     },
     {
-      "id": "claude-pretooluse-4",
-      "platform": "claude",
-      "event": "PreToolUse",
-      "matcher": "Bash",
-      "handlers": [
-        "CLAUDE_PROJECT_PLATFORM=claude uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/tool_token_saver.py\""
-      ],
-      "async": [
-        false
-      ],
-      "timeout": [
-        null
-      ],
-      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
-    },
-    {
       "id": "claude-posttooluse-1",
       "platform": "claude",
       "event": "PostToolUse",
@@ -394,8 +378,12 @@
       "handlers": [
         "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/plan_mode_tracker.py\""
       ],
-      "async": [false],
-      "timeout": [10],
+      "async": [
+        false
+      ],
+      "timeout": [
+        10
+      ],
       "contract_test": "pilot/hooks/tests/test_native_plan_capture.py::TestNativeSpecCapture::test_failed_entry_does_not_poison_later_ordinary_capture"
     },
     {
@@ -404,7 +392,7 @@
       "event": "Stop",
       "matcher": null,
       "handlers": [
-        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/spec_stop_guard.py\"",
+        "CLAUDE_PROJECT_PLATFORM=claude uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/spec_stop_guard.py\"",
         "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
         "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" --exec bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code summarize"
       ],
@@ -590,22 +578,6 @@
       "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
     },
     {
-      "id": "codex-pretooluse-2",
-      "platform": "codex",
-      "event": "PreToolUse",
-      "matcher": "Bash",
-      "handlers": [
-        "CLAUDE_PROJECT_PLATFORM=codex uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/tool_token_saver.py\""
-      ],
-      "async": [
-        false
-      ],
-      "timeout": [
-        5
-      ],
-      "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
-    },
-    {
       "id": "codex-posttooluse-1",
       "platform": "codex",
       "event": "PostToolUse",
@@ -690,6 +662,58 @@
         15
       ],
       "contract_test": "pilot/hooks/tests/test_hook_lifecycle_matrix.py::test_referenced_local_command_targets_exist"
+    },
+    {
+      "id": "claude-pretooluse-wait-question-guard",
+      "platform": "claude",
+      "event": "PreToolUse",
+      "matcher": "AskUserQuestion",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/spec_question_guard.py\""
+      ],
+      "async": [
+        false
+      ],
+      "timeout": [
+        5
+      ],
+      "contract_test": "pilot/hooks/tests/test_spec_question_guard.py::test_reported_keep_waiting_question_is_blocked_before_it_reaches_the_user"
+    },
+    {
+      "id": "codex-pretooluse-wait-question-guard",
+      "platform": "codex",
+      "event": "PreToolUse",
+      "matcher": "(?:.*\\.)?request_user_input(?:_async)?",
+      "handlers": [
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/spec_question_guard.py\""
+      ],
+      "async": [
+        false
+      ],
+      "timeout": [
+        5
+      ],
+      "contract_test": "pilot/hooks/tests/test_spec_question_guard.py::test_reported_keep_waiting_question_is_blocked_before_it_reaches_the_user"
+    },
+    {
+      "id": "claude-posttooluse-question-answer",
+      "platform": "claude",
+      "event": "PostToolUse",
+      "matcher": "AskUserQuestion",
+      "handlers": ["uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/spec_question_guard.py\" --answer"],
+      "async": [false],
+      "timeout": [5],
+      "contract_test": "pilot/hooks/tests/test_spec_question_guard.py::test_answer_receipt_is_bound_to_the_pending_decision"
+    },
+    {
+      "id": "codex-posttooluse-question-answer",
+      "platform": "codex",
+      "event": "PostToolUse",
+      "matcher": "(?:.*\\.)?request_user_input(?:_async)?",
+      "handlers": ["uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/spec_question_guard.py\" --answer"],
+      "async": [false],
+      "timeout": [5],
+      "contract_test": "pilot/hooks/tests/test_spec_question_guard.py::test_answer_receipt_is_bound_to_the_pending_decision"
     }
   ]
 }

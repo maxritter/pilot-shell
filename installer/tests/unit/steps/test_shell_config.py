@@ -458,7 +458,7 @@ class TestLoginShellPathReachability:
 
     That is the exact invocation Claude Code uses to build the shell snapshot
     backing its Bash tool. When the PATH export lives only in an interactive rc
-    file, the login non-interactive shell never runs it and `rtk` is off PATH
+    file, the login non-interactive shell never runs it and managed tools are off PATH
     for every agent command -- the devcontainer failure this guards against.
     """
 

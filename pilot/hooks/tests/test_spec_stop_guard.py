@@ -72,6 +72,9 @@ def clear_session_state(tmp_path_factory, monkeypatch):
     monkeypatch.setenv("PILOT_SESSION_ID", TEST_SESSION_ID)
     monkeypatch.delenv("CLAUDE_CODE_SESSION_ID", raising=False)
     monkeypatch.delenv("CODEX_THREAD_ID", raising=False)
+    config = Path.home() / ".pilot/config.json"
+    config.parent.mkdir(parents=True, exist_ok=True)
+    config.write_text(json.dumps({"specWorkflow": {"runawayGuard": True}}))
     session_dir = _test_session_dir()
     if session_dir.exists():
         shutil.rmtree(session_dir, ignore_errors=True)
@@ -293,7 +296,7 @@ class TestSubprocessIntegration:
         exit_code, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
         assert exit_code == 0
         assert _is_blocked(stdout)
-        assert "cannot stop" in stdout.lower()
+        assert "authorized work remains" in stdout.lower()
 
     def test_blocks_stop_when_plan_is_complete(self, tmp_path: Path) -> None:
         plans_dir = tmp_path / "docs" / "plans"
@@ -306,7 +309,7 @@ class TestSubprocessIntegration:
         exit_code, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
         assert exit_code == 0
         assert _is_blocked(stdout)
-        assert "cannot stop" in stdout.lower()
+        assert "authorized work remains" in stdout.lower()
 
     def test_complete_plan_block_instructs_verify_dispatch(self, tmp_path: Path) -> None:
         """A COMPLETE plan's block must name the ONE remaining step: dispatch verify.
@@ -496,7 +499,7 @@ class TestSubprocessIntegration:
         )
         assert exit_code == 0
         assert _is_blocked(stdout)
-        assert "cannot stop" in stdout.lower()
+        assert "authorized work remains" in stdout.lower()
 
     def test_handles_invalid_json_input(self) -> None:
         result = subprocess.run(
@@ -524,10 +527,90 @@ class TestSubprocessIntegration:
         assert str(registered_plan) in stdout
 
 
-class TestCooldownEscape:
-    """Tests for the double-stop cooldown escape hatch."""
+class TestFreshAgentTurns:
+    """Fresh turns are assistant lifecycle events, not evidence of user interruption."""
 
-    def test_allows_escape_on_second_stop(self, tmp_path: Path) -> None:
+    def test_fresh_agent_turn_within_sixty_seconds_is_not_a_user_stop(self, tmp_path: Path) -> None:
+        plans_dir = tmp_path / "docs/plans"
+        plans_dir.mkdir(parents=True)
+        plan = plans_dir / "plan.md"
+        plan.write_text("# Plan\nStatus: PENDING\nApproved: Yes\nType: Feature\n")
+        _register_plan_for_session(plan)
+        _, first, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        _, second, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
+        assert _is_blocked(first)
+        assert _is_blocked(second)
+
+    @pytest.mark.parametrize("command", ["pytest tests -q", "gh run watch 12345 --exit-status"])
+    def test_waiting_for_a_live_native_background_job_needs_no_question_or_block(
+        self, tmp_path: Path, command: str
+    ) -> None:
+        plans_dir = tmp_path / "docs/plans"
+        plans_dir.mkdir(parents=True)
+        plan = plans_dir / "plan.md"
+        plan.write_text("# Plan\nStatus: PENDING\nApproved: Yes\nType: Feature\n")
+        _register_plan_for_session(plan)
+        _test_session_dir().joinpath("spec-stop-guard").write_text(
+            json.dumps(
+                {
+                    "plan": str(plan),
+                    "count": 30,
+                    "chain": 5,
+                }
+            )
+        )
+        payload = {
+            "stop_hook_active": True,
+            "last_assistant_message": "Tests are still running. Waiting for their result.",
+            "background_tasks": [{"id": "job-1", "type": "shell", "status": "running", "command": command}],
+        }
+        _, waiting, _ = _run_subprocess(payload, plans_dir)
+        assert not _is_blocked(waiting)
+        assert "RUNAWAY" not in waiting
+        _, after_completion, _ = _run_subprocess({"stop_hook_active": False, "background_tasks": []}, plans_dir)
+        assert _is_blocked(after_completion)
+
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            {
+                "last_assistant_message": "Task 1 is complete.",
+                "background_tasks": [{"id": "job", "type": "shell", "status": "running", "command": "pytest"}],
+            },
+            {
+                "last_assistant_message": "Waiting for the server.",
+                "background_tasks": [{"id": "job", "type": "shell", "status": "running", "command": "bun run dev"}],
+            },
+            {
+                "last_assistant_message": "Waiting for changes.",
+                "background_tasks": [{"id": "job", "type": "shell", "status": "running", "command": "watch pytest"}],
+            },
+            {
+                "last_assistant_message": "Waiting for changes.",
+                "background_tasks": [{"id": "job", "type": "shell", "status": "running", "command": "npm run watch"}],
+            },
+            {
+                "last_assistant_message": "Still waiting. Keep waiting?",
+                "background_tasks": [{"id": "job", "type": "shell", "status": "running", "command": "pytest"}],
+            },
+            {
+                "last_assistant_message": "Waiting for tests.",
+                "background_tasks": [{"id": "job", "type": "shell", "status": "completed", "command": "pytest"}],
+            },
+        ],
+    )
+    def test_unrelated_server_completed_job_or_question_is_not_a_passive_wait(
+        self, tmp_path: Path, payload: dict
+    ) -> None:
+        plans_dir = tmp_path / "docs/plans"
+        plans_dir.mkdir(parents=True)
+        plan = plans_dir / "plan.md"
+        plan.write_text("# Plan\nStatus: PENDING\nApproved: Yes\nType: Feature\n")
+        _register_plan_for_session(plan)
+        _, output, _ = _run_subprocess({"stop_hook_active": True, **payload}, plans_dir)
+        assert _is_blocked(output)
+
+    def test_second_stop_does_not_silently_escape(self, tmp_path: Path) -> None:
         plans_dir = tmp_path / "docs" / "plans"
         plans_dir.mkdir(parents=True)
 
@@ -538,13 +621,13 @@ class TestCooldownEscape:
         exit_code1, stdout1, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
         assert exit_code1 == 0
         assert _is_blocked(stdout1)
-        assert "60s to force exit" in stdout1
+        assert "authorized work remains" in stdout1
 
         exit_code2, stdout2, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
         assert exit_code2 == 0
-        assert not _is_blocked(stdout2)
+        assert _is_blocked(stdout2)
 
-    def test_cooldown_resets_after_escape(self, tmp_path: Path) -> None:
+    def test_successive_fresh_turns_enforce_the_same_pending_plan(self, tmp_path: Path) -> None:
         plans_dir = tmp_path / "docs" / "plans"
         plans_dir.mkdir(parents=True)
 
@@ -556,7 +639,7 @@ class TestCooldownEscape:
         assert _is_blocked(stdout1)
 
         exit_code2, stdout2, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
-        assert not _is_blocked(stdout2)
+        assert _is_blocked(stdout2)
 
         exit_code3, stdout3, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
         assert _is_blocked(stdout3)
@@ -585,8 +668,8 @@ class TestHookDrivenContinuation:
         _, stdout2, _ = _run_subprocess({"stop_hook_active": True}, plans_dir)
         assert _is_blocked(stdout2), "the 60s hatch is the user's; an agent turn must not trip it"
 
-    def test_user_double_stop_still_escapes(self, tmp_path: Path) -> None:
-        """The documented hatch survives: two stops outside a continuation still exit."""
+    def test_fresh_build_turn_is_not_mistaken_for_a_user_exit(self, tmp_path: Path) -> None:
+        """A background completion starts a fresh turn while the build still has work."""
         plans_dir = tmp_path / "docs" / "plans"
         plans_dir.mkdir(parents=True)
         plan_file = plans_dir / "2026-01-27-build.md"
@@ -596,7 +679,7 @@ class TestHookDrivenContinuation:
         _, stdout1, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
         assert _is_blocked(stdout1)
         _, stdout2, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
-        assert not _is_blocked(stdout2)
+        assert _is_blocked(stdout2)
 
     def test_escalates_before_claude_code_overrides_the_hook(self, tmp_path: Path) -> None:
         """Our graceful ending must land before the harness's silent one.
@@ -660,6 +743,31 @@ class TestHookDrivenContinuation:
 
 class TestRunawayCap:
     """Tests for the MAX_BLOCKS runaway cap — prevents unbounded stop-block loops."""
+
+    def test_disabled_checkpoints_keep_enforcing_completion_without_asking(self, tmp_path: Path) -> None:
+        from spec_stop_guard import MAX_BLOCKS
+
+        (Path.home() / ".pilot/config.json").write_text(json.dumps({"specWorkflow": {"runawayGuard": False}}))
+        plan = tmp_path / "plan.md"
+        plan.write_text("# Plan\nStatus: PENDING\nApproved: Yes\n")
+        _register_plan_for_session(plan)
+        state = _test_session_dir() / "spec-stop-guard"
+        state.write_text(json.dumps({"plan": str(plan), "count": MAX_BLOCKS + 2, "chain": MAX_CHAIN_BLOCKS + 2}))
+        _code, output, _ = _run_subprocess({"stop_hook_active": True}, tmp_path / "docs/plans")
+        assert _is_blocked(output)
+        assert "RUNAWAY" not in output
+        assert "structured question mechanism" not in output
+
+    def test_task_progress_does_not_trigger_runaway_checkpoint(self, tmp_path: Path) -> None:
+        plan = tmp_path / "plan.md"
+        plan.write_text("# Plan\nStatus: PENDING\nApproved: Yes\n## Progress Tracking\n- [ ] Task 1: Build\n")
+        _register_plan_for_session(plan)
+        for _ in range(MAX_CHAIN_BLOCKS):
+            _run_subprocess({"stop_hook_active": True}, tmp_path / "docs/plans")
+        plan.write_text(plan.read_text().replace("[ ]", "[x]"))
+        _code, output, _ = _run_subprocess({"stop_hook_active": True}, tmp_path / "docs/plans")
+        assert _is_blocked(output)
+        assert "RUNAWAY" not in output
 
     def test_emits_escalation_at_max_blocks(self, tmp_path: Path) -> None:
         from spec_stop_guard import MAX_BLOCKS
@@ -974,7 +1082,7 @@ class TestSessionScopedPlanDetection:
         exit_code, stdout, _ = _run_subprocess({"stop_hook_active": False}, plans_dir)
         assert exit_code == 0
         assert _is_blocked(stdout)
-        assert "cannot stop" in stdout.lower()
+        assert "authorized work remains" in stdout.lower()
 
     def test_allows_stop_when_registered_plan_is_verified(self, tmp_path: Path) -> None:
         plans_dir = tmp_path / "docs" / "plans"
@@ -1014,7 +1122,7 @@ class TestSessionScopedPlanDetection:
 
         assert exit_code == 0
         assert _is_blocked(stdout)
-        assert "cannot stop" in stdout.lower()
+        assert "authorized work remains" in stdout.lower()
 
     def test_ignores_plan_outside_current_project(self, tmp_path: Path) -> None:
         """Cross-session bleed: a registered plan that lives OUTSIDE the current
@@ -1054,7 +1162,7 @@ class TestSessionScopedPlanDetection:
 
         assert exit_code == 0
         assert _is_blocked(stdout)
-        assert "cannot stop" in stdout.lower()
+        assert "authorized work remains" in stdout.lower()
 
 
 class TestApprovalSentinel:
@@ -1170,9 +1278,7 @@ class TestManualSwitchSentinel:
         monkeypatch.setattr(g, "_sessions_base", lambda: tmp_path / "sessions")
         plan = tmp_path / "plan.md"
         if not plan.exists():
-            plan.write_text(
-                f"# X\nStatus: {status}\nApproved: {'Yes' if approved else 'No'}\nType: {plan_type}\n"
-            )
+            plan.write_text(f"# X\nStatus: {status}\nApproved: {'Yes' if approved else 'No'}\nType: {plan_type}\n")
         monkeypatch.setattr(g, "find_active_plan", lambda *_args: (plan, status))
         monkeypatch.setattr(g, "is_waiting_for_user_input", lambda _p: False)
 

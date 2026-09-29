@@ -2704,6 +2704,15 @@ class TestShippedSettingsTemplate:
         merged = merge_settings({"env": {}}, current, incoming)
         assert merged["env"]["CLAUDE_CODE_ENABLE_TODO_TOOLS"] == "false"
 
+    def test_long_plans_remove_native_stop_cap_but_preserve_user_choice(self):
+        from installer.steps.settings_merge import merge_settings
+
+        incoming = json.loads(self.SETTINGS_PATH.read_text())
+        assert incoming["env"]["CLAUDE_CODE_STOP_HOOK_BLOCK_CAP"] == "0"
+        current = {"env": {"CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "12"}}
+        merged = merge_settings({"env": {}}, current, incoming)
+        assert merged["env"]["CLAUDE_CODE_STOP_HOOK_BLOCK_CAP"] == "12"
+
     @pytest.mark.parametrize("effort", ["low", "medium", "high", "xhigh", "max"])
     @pytest.mark.parametrize("has_baseline", [False, True])
     def test_effort_migration_preserves_user_choices(self, effort: str, has_baseline: bool):

@@ -37,6 +37,7 @@ from installer.platform_utils import (
     start_sudo_keepalive,
     stop_sudo_keepalive,
 )
+from installer.rtk_cleanup import remove_rtk
 from installer.steps.base import BaseStep
 
 MAX_RETRIES = 3
@@ -59,7 +60,6 @@ _INSTALL_KEY_TO_TOOL_COMMANDS: dict[str, dict[str, str]] = {
     "pbt_tools": {"hypothesis": "hypothesis", "fast-check": "fast-check"},
     "semble": {"semble": "semble"},
     "ast_grep": {"ast-grep": "ast-grep"},
-    "rtk": {"rtk": "rtk"},
     "codegraph": {"codegraph": "codegraph"},
     "open_claude_design": {"open-claude-design": "open-claude-design"},
     "impeccable": {"impeccable": "impeccable"},
@@ -127,6 +127,7 @@ def _load_owned_tools() -> set[str]:
     if not isinstance(tools, list) or not all(isinstance(item, str) for item in tools):
         return set()
     allowed = {tool for values in _INSTALL_KEY_TO_TOOL_COMMANDS.values() for tool in values}
+    allowed.add("rtk")  # Keep retired ownership if cleanup failed, so a later update can retry.
     return set(tools) & allowed
 
 
@@ -515,148 +516,6 @@ def install_ast_grep() -> bool:
     return True
 
 
-def install_rtk() -> bool:
-    """Install or update RTK (Rust Token Killer) CLI.
-
-    Always runs the installer to ensure the manifest-pinned version is current.
-    Symlinks to ~/.pilot/bin/ so RTK is on PATH during hook execution.
-    After install, heals an unusable binary (see ``_heal_broken_rtk``) and runs
-    ``rtk init`` for both Claude Code and Codex (if installed).
-    """
-    was_present = command_exists("rtk")
-    # RTK_VERSION is the only lever install.sh offers: without it the script
-    # resolves GitHub's /releases/latest, so the manifest version would be a
-    # record of what happened to be current rather than the pin it claims to be.
-    # The script wants the git tag form (for example v0.48.0); the manifest
-    # stores the bare release, same as rtk-brew.
-    rtk_version = manifest_get("rtk-installer").version
-    if not _curl_pipe_from_manifest(
-        "rtk-installer",
-        CurlPipeRunOptions(interpreter="sh", timeout=120, env={"RTK_VERSION": f"v{rtk_version}"}),
-    ):
-        if was_present:
-            _symlink_to_pilot_bin("rtk")
-            _heal_broken_rtk()
-            _record_outcome(_OUTCOME_UNCHANGED)
-            return True
-        return False
-    _symlink_to_pilot_bin("rtk")
-    _heal_broken_rtk()
-    _init_rtk()
-    _record_outcome(_OUTCOME_UPDATED if was_present else _OUTCOME_INSTALLED)
-    return True
-
-
-def _rtk_executes(rtk_path: str | Path) -> bool:
-    """Whether the rtk binary at `rtk_path` actually loads and runs.
-
-    A ``--version`` call exiting non-zero (e.g. the arm64 release binary failing
-    with a ``GLIBC_2.39 not found`` loader error on an older-glibc base) means
-    the binary is present but unusable — it must not be left shadowing a working
-    rtk on PATH.
-    """
-    try:
-        result = subprocess.run(
-            [str(rtk_path), "--version"],
-            capture_output=True,
-            timeout=10,
-            stdin=subprocess.DEVNULL,
-        )
-    except (OSError, subprocess.TimeoutExpired):
-        return False
-    return result.returncode == 0
-
-
-def _heal_broken_rtk() -> None:
-    """Recover when the curl-pipe installer drops an unusable rtk that shadows a
-    working build on PATH.
-
-    Issue #155: on arm64 the rtk-ai ``install.sh`` installs a glibc-2.39 binary
-    at ~/.local/bin/rtk; on a glibc-2.36 base (Debian 12) it cannot load, and
-    because ~/.local/bin precedes ~/.pilot/bin and the Homebrew prefix on PATH it
-    shadows the working brew rtk. If the rtk that wins on PATH does not execute,
-    relink it — and ~/.pilot/bin/rtk — to the first rtk on PATH that does run.
-    No-op when the resolved rtk already works.
-    """
-    resolved = shutil.which("rtk")
-    if not resolved or _rtk_executes(resolved):
-        return
-
-    working: str | None = None
-    seen: set[Path] = set()
-    for entry in os.environ.get("PATH", "").split(os.pathsep):
-        if not entry:
-            continue
-        candidate = Path(entry) / "rtk"
-        try:
-            if not candidate.exists():
-                continue
-            real = candidate.resolve()
-        except OSError:
-            continue
-        if real in seen:
-            continue
-        seen.add(real)
-        if _rtk_executes(candidate):
-            working = str(candidate)
-            break
-    if not working:
-        return
-
-    target = Path(working).resolve()
-    for link in (Path(resolved), Path.home() / ".pilot" / "bin" / "rtk"):
-        try:
-            if link.resolve() == target:
-                continue
-            link.parent.mkdir(parents=True, exist_ok=True)
-            if link.is_symlink() or link.exists():
-                link.unlink()
-            link.symlink_to(target)
-        except OSError:
-            pass
-
-
-def _init_rtk() -> None:
-    """Initialize RTK for all detected agents (Claude Code, Codex).
-
-    Each agent's init runs only when the agent CLI is detected — uses the
-    canonical platform_utils helpers so the detection set matches cmd_install
-    and the per-step agent gates (PATH + native installer fallback paths).
-    """
-    rtk = shutil.which("rtk")
-    if not rtk:
-        return
-    try:
-        subprocess.run(
-            [rtk, "telemetry", "disable"],
-            capture_output=True,
-            timeout=10,
-            stdin=subprocess.DEVNULL,
-        )
-    except (OSError, subprocess.TimeoutExpired):
-        pass
-    if is_claude_installed():
-        try:
-            subprocess.run(
-                [rtk, "init", "-g", "--auto-patch", "--skip-env"],
-                capture_output=True,
-                timeout=30,
-                stdin=subprocess.DEVNULL,
-            )
-        except (OSError, subprocess.TimeoutExpired):
-            pass
-    if is_codex_installed():
-        try:
-            subprocess.run(
-                [rtk, "init", "-g", "--codex"],
-                capture_output=True,
-                timeout=30,
-                stdin=subprocess.DEVNULL,
-            )
-        except (OSError, subprocess.TimeoutExpired):
-            pass
-
-
 def _uv_tool_bin_semble() -> Path | None:
     """Locate the semble executable via `uv tool dir --bin` (PATH-independent).
 
@@ -734,6 +593,7 @@ def _has_git_commits(directory: Path) -> bool:
         return result.returncode == 0
     except (subprocess.SubprocessError, OSError):
         return False
+
 
 
 def install_codegraph() -> bool:
@@ -1284,6 +1144,8 @@ def _refresh_marketplace(marketplace: str) -> bool:
     marketplace is in owner/repo format (e.g. "anthropics/claude-plugins-official").
     The update command needs only the short name (e.g. "claude-plugins-official").
     """
+    if not command_exists("claude"):
+        return False
     short_name = marketplace.split("/", 1)[-1] if "/" in marketplace else marketplace
     return _run_bash_with_retry(
         f"claude plugins marketplace update {short_name}",
@@ -1683,7 +1545,7 @@ def install_pbt_tools() -> bool:
     """
     ok = True
 
-    if not _run_bash_with_retry("uv tool install --no-config --upgrade hypothesis", timeout=UV_TOOL_INSTALL_TIMEOUT):
+    if not _run_bash_with_retry("uv tool install --no-config --upgrade 'hypothesis[cli]'", timeout=UV_TOOL_INSTALL_TIMEOUT):
         ok = False
 
     if not _run_bash_with_retry(
@@ -2204,6 +2066,9 @@ class DependenciesStep(BaseStep):
         global _allow_sudo_fallback
         ui = ctx.ui
         installed: list[str] = []
+        for error in remove_rtk():
+            if ui:
+                ui.warning(f"Could not finish retired RTK cleanup: {error}")
         previously_owned = _load_owned_tools()
         present_before = _snapshot_tool_presence()
         try:
@@ -2240,12 +2105,18 @@ class DependenciesStep(BaseStep):
                 _InstallTask("PBT tools (hypothesis, fast-check)", "pbt_tools", install_pbt_tools),
                 _InstallTask("Semble (code search)", "semble", install_semble),
                 _InstallTask("ast-grep (structural search)", "ast_grep", install_ast_grep),
-                _InstallTask("RTK (token optimizer)", "rtk", install_rtk),
                 _InstallTask("CodeGraph (code intelligence)", "codegraph", install_codegraph),
                 _InstallTask("Codex plugin", "codex_plugin", install_codex_plugin),
                 _InstallTask("Chrome DevTools MCP plugin", "chrome_devtools_plugin", install_chrome_devtools_plugin),
                 _InstallTask("LSP plugins (vtsls, basedpyright, gopls)", "lsp_plugins", install_lsp_plugins),
             ]
+
+            if not command_exists("claude"):
+                parallel_tasks = [task for task in parallel_tasks if task.key not in {
+                    "codex_plugin", "chrome_devtools_plugin", "lsp_plugins",
+                }]
+                if ui and os.environ.get("CLAUDECODE") == "1":
+                    ui.status("Claude is running but its CLI is hidden; optional plugin updates are deferred.")
 
             installed.extend(_run_parallel_installs(parallel_tasks, ui))
 

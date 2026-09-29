@@ -31,7 +31,7 @@ Run `/setup-rules` (or `$setup-rules` on Codex) to generate project-specific rul
 
 ### Tooling & Context (4 rules)
 
-- `cli-tools.md` — Pilot CLI, Semble hybrid code search, RTK token optimization
+- `cli-tools.md` — Pilot CLI and Semble hybrid code search
 - `browser-automation.md` — Path-gated UI verification using the project's driver or the active runtime's available browser tools, plus reuse of [Impeccable](https://impeccable.style) hook evidence and a bounded advisory detector fallback
 - `mcp-servers.md` — MCP server reference and tool selection guidance
 - `mobile-development.md` — Path-gated installed-app verification, project-specific device drivers, and preservation of app data for Capacitor, React Native, Expo, Flutter, Android, and iOS projects

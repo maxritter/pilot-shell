@@ -89,7 +89,6 @@ def test_control_and_context_hooks_remain_synchronous() -> None:
         "spec_stop_guard.py",
         "session_clear.py",
         "post_compact_restore.py",
-        "tool_token_saver.py",
         "session_end.py",
         "pre_compact.py",
     )

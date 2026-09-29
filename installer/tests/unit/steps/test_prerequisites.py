@@ -934,11 +934,11 @@ class TestBrewUpgrade:
 
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=0)
-            result = _upgrade_homebrew_package("rtk")
+            result = _upgrade_homebrew_package("ast-grep")
 
         assert result is True
         mock_run.assert_called_once_with(
-            ["brew", "upgrade", "rtk"],
+            ["brew", "upgrade", "ast-grep"],
             capture_output=True,
             check=False,
             timeout=120,
@@ -950,7 +950,7 @@ class TestBrewUpgrade:
 
         with patch("subprocess.run") as mock_run, patch("installer.steps.prerequisites.time.sleep"):
             mock_run.return_value = MagicMock(returncode=1)
-            result = _upgrade_homebrew_package("rtk")
+            result = _upgrade_homebrew_package("ast-grep")
 
         assert result is False
 
@@ -968,10 +968,10 @@ class TestBrewUpgrade:
         from installer.steps.prerequisites import _get_outdated_homebrew_packages
 
         with patch("subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=0, stdout=b"rtk\nbun\n")
-            result = _get_outdated_homebrew_packages(["rtk", "gh", "bun"])
+            mock_run.return_value = MagicMock(returncode=0, stdout=b"ast-grep\nbun\n")
+            result = _get_outdated_homebrew_packages(["ast-grep", "gh", "bun"])
 
-        assert result == {"rtk", "bun"}
+        assert result == {"ast-grep", "bun"}
 
     def test_get_outdated_homebrew_packages_matches_tap_qualified_output(self):
         from installer.steps.prerequisites import _get_outdated_homebrew_packages
@@ -986,7 +986,7 @@ class TestBrewUpgrade:
 
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=0, stdout=b"")
-            result = _get_outdated_homebrew_packages(["rtk"])
+            result = _get_outdated_homebrew_packages(["ast-grep"])
 
         assert result == set()
 
@@ -996,7 +996,7 @@ class TestBrewUpgrade:
 
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=1, stdout=b"")
-            result = _get_outdated_homebrew_packages(["rtk"])
+            result = _get_outdated_homebrew_packages(["ast-grep"])
 
         assert result == set()
 
@@ -1029,7 +1029,7 @@ class TestBrewUpgrade:
         mock_nvm.return_value = True
         mock_tap.return_value = True
         mock_install.return_value = True
-        mock_outdated.return_value = {"rtk"}
+        mock_outdated.return_value = {"ast-grep"}
         mock_upgrade.return_value = True
 
         step = PrerequisitesStep()
@@ -1043,7 +1043,7 @@ class TestBrewUpgrade:
 
         mock_install.assert_not_called()
         upgraded = {call.args[0] for call in mock_upgrade.call_args_list}
-        assert upgraded == {"rtk"}
+        assert upgraded == {"ast-grep"}
 
     @patch("installer.steps.prerequisites._get_outdated_homebrew_packages")
     @patch("installer.steps.prerequisites._is_nvm_installed")
@@ -1059,7 +1059,7 @@ class TestBrewUpgrade:
         mock_brew.return_value = True
         mock_cmd_exists.return_value = True
         mock_nvm.return_value = True
-        mock_outdated.return_value = {"rtk"}
+        mock_outdated.return_value = {"ast-grep"}
 
         step = PrerequisitesStep()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -1074,4 +1074,4 @@ class TestBrewUpgrade:
 
         assert "python@3.12" in HOMEBREW_NO_UPGRADE_PACKAGES
         assert "node@24" in HOMEBREW_NO_UPGRADE_PACKAGES
-        assert "rtk" not in HOMEBREW_NO_UPGRADE_PACKAGES
+        assert "ast-grep" not in HOMEBREW_NO_UPGRADE_PACKAGES

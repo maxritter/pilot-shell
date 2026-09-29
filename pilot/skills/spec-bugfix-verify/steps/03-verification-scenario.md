@@ -29,14 +29,8 @@ agent-browser --session "$AB_SESSION" open <url>
    - **agent-browser:** `open`/`goto`, `snapshot -i`, `click`/`fill` (refs: `@e1`)
 2. Verify the expected result for each step (read page after each interaction)
 3. **PASS:** Scenario confirms fix works — close browser (CLI tools only), proceed to Step 4
-4. **FAIL (attempt 1):** Analyze root cause, implement fix, re-run tests, re-execute scenario
-5. **FAIL (attempt 2):** Implement second fix, re-run tests, re-execute scenario
-<!-- CC-ONLY -->
-6. **FAIL after 2 attempts:** The bug is not fully fixed — route the loop-back through Step 7's iteration-cap check (read `Iterations:`; if `>= 3`, surface Continue/Pivot/Abandon to the user before incrementing), which sets `Status: PENDING`, increments `Iterations`, and re-invokes `Skill(skill='spec-implement', args='<plan-path> $LANE_FLAG')`. Do not proceed to VERIFIED, and do not bypass the cap.
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-6. **FAIL after 2 attempts:** The bug is not fully fixed — route the loop-back through Step 7's iteration-cap check (read `Iterations:`; if `>= 3`, present Continue/Pivot/Abandon to the user before incrementing), which sets `Status: PENDING`, increments `Iterations`, and continues with the `$spec-implement` skill instructions using arguments: `<plan-path> $LANE_FLAG`. Do not proceed to VERIFIED, and do not bypass the cap.
-CODEX-END -->
+4. **FAIL:** Analyze root cause, implement an evidence-backed fix, re-run tests, and re-execute the scenario.
+5. **Needs implementation changes:** Follow Step 7's failed-verification flow and retain the lane on loop-back. It diagnoses and continues automatically by default; only an enabled stalled-work checkpoint or a real required decision waits for input. Fix-attempt counts are evidence for reporting, never a permission threshold. Keep the plan unverified until the scenario passes.
 
 ```bash
 # Chrome DevTools MCP: no explicit close needed

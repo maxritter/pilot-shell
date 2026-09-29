@@ -12,6 +12,7 @@ ESSENTIAL_BLOCKERS = {
     "spec_mode_guard.py": "rejects incompatible entry into an explicitly invoked Pilot workflow",
     "spec_plan_validator.py": "keeps an explicit planning workflow open until its artifact exists",
     "spec_stop_guard.py": "keeps an active explicit workflow open until its completion contract is met",
+    "spec_question_guard.py": "suppresses only routine waiting questions while preserving required user decisions",
 }
 ESSENTIAL_USER_WARNINGS = {
     "codex_skill_sync.py": "Codex needs a visible recovery path when license removal disables its Pilot assets",

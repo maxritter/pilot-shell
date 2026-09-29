@@ -846,8 +846,6 @@ class TestNativeFileReadPreference:
             "tail -40 src/main.ts",
             "grep -n 'const UA' app/vite.config.ts",
             "rg -n 'messages' app/src/lib/db-api.ts",
-            "rtk read app/src/lib/db-api.ts",
-            "rtk proxy sed -n '1,20p' app/vite.config.ts",
         ],
     )
     def test_each_file_inspection_gets_a_private_native_tool_reminder(self, command: str) -> None:

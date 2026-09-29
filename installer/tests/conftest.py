@@ -13,3 +13,4 @@ def _clear_claude_config_dir(monkeypatch: pytest.MonkeyPatch) -> None:
     bypassing Path.home() mocks in existing tests.
     """
     monkeypatch.delenv("CLAUDE_CONFIG_DIR", raising=False)
+    monkeypatch.delenv("CLAUDECODE", raising=False)

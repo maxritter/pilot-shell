@@ -34,7 +34,7 @@ codex
 Discuss → Plan → Approve → Switch model (Manual) → Implement → Verify → Done
 ```
 
-Manual steps are **Approve**, the one-time `/model` handoff when Model Switching is Manual and Plan Approval is enabled, and **Code Review** (optional, via Console). After approval, switch models and send exact `resume`; with Plan Approval disabled, implementation starts immediately. The Verify → Implement feedback loop repeats until all checks pass, then prompts for squash merge.
+Manual steps are **Approve**, the one-time `/model` handoff when Model Switching is Manual and Plan Approval is enabled, and **Code Review** (optional, via Console). After approval, switch models and ask to continue; with Plan Approval disabled, implementation starts immediately. The Verify → Implement feedback loop repeats until all checks pass, then prompts for squash merge.
 
 ## Spec Types
 
@@ -49,7 +49,7 @@ Full exploration workflow for new functionality, refactoring, or any work where 
 
 ### Bugfixes
 
-For a bugfix workflow without a plan file, use [`/fix`](/docs/workflows/fix). When the user types `/spec` with a bug description, the full bugfix workflow runs — root-cause investigation, three-task structure (RED test → fix → quality gate), Behavior Contract audit, revert-test proof in verify, iteration cap at 3.
+For a bugfix workflow without a plan file, use [`/fix`](/docs/workflows/fix). When the user types `/spec` with a bug description, the full bugfix workflow runs — root-cause investigation, three-task structure (RED test → fix → quality gate), Behavior Contract audit, and revert-test proof in verify. Verification continues while fixes make progress; stalled-work checkpoints are opt-in in Console Settings.
 
 ## Three Phases
 
@@ -71,7 +71,7 @@ Claude Code leaves an unanswered question open until you answer it (the `askUser
 - Strict TDD for each task: RED → GREEN → REFACTOR
 - Runs the relevant lint, format, and type checks. Claude Code also runs its edit-time quality hooks.
 - Full test suite runs at the **Quality Gate** task (end), not after every task — running it per-fix-task is the single biggest token sink in bundled bugfix plans, so the targeted test module is used between fixes and the authoritative full-suite run happens once
-- **Interruptions pause, not fight** — question a decision or raise a discovery mid-run and the agent answers, pauses the plan (`⏸ Paused`, the statusline shows `[paused]`), and discusses freely; the stop guard injects nothing while paused, even if the interruption landed inside a prior Stop continuation. The pause persists until exact **resume**, `/spec resume`, or `$spec resume`; wording such as "continue" cannot resume it accidentally. `/spec pause` controls it explicitly. The pause is `/spec`-only — `/build` keeps its autonomous loop and finishes through its own hand-back doors.
+- **Messages keep work moving** — new messages and replies to agent questions keep the approved run active by default. Enable **Pause on messages** in Console Settings to pause for discussion on new messages. Explicit `/spec pause` always holds the plan; a clear request to resume or continue clears a discussion pause, including a resume request attached to an update. User-owned tasks still require confirmation before verification.
 - **Plans aren't frozen** — implementation legitimately learns things planning could not. Tactical differences (a detail diverges, the approach holds) are adapted and recorded under the plan's `## Deviations` section; material discoveries (an invalidated task or assumption, a scope or approach change) pause the run, get discussed with you, and the agreed amendments are applied to the plan — the discussion is the approval. Verification treats files recorded under `## Deviations` as in-scope for review.
 - **Manual tasks are part of the plan** — when a step cannot be automated, the approved plan marks it `Owner: User` and gives the exact `User Action`. The agent prompts once and waits without a Stop loop. Reply with exact **done** when the action is complete; the agent verifies anything it can observe before checking off the task.
 

@@ -328,6 +328,7 @@ docs/prd
 docs/posts
 .install-version
 bun.lock
+!console/bun.lock
 
 # Cursor (created by sx install for Cursor client)
 .cursor/

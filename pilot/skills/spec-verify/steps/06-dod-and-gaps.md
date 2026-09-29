@@ -4,7 +4,7 @@
 
 For EACH task, match its Definition of Done criteria to authoritative evidence: command output, generated artifact, API response, or observed UI. Reuse current-tree evidence already collected in this run; execute a new check when a criterion remains unproven.
 
-If any criterion unmet: fix inline if possible, or add a task and route the loop-back through Step 11's iteration-cap check (which sets `Status: PENDING`, increments `Iterations`, and re-invokes spec-implement — or surfaces to the user at the cap). Never loop back without passing that check.
+If any criterion unmet: fix inline if possible, or add a task and follow Step 11's failed-verification flow. It diagnoses and continues automatically by default, retains the lane on loop-back, and waits for input only at an enabled stalled-work checkpoint or a real required decision.
 
 ### 6.2 Documentation Sync
 

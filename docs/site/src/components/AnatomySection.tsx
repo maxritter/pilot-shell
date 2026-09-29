@@ -26,10 +26,10 @@ const layers: Layer[] = [
     name: "Context Engineering",
     short: "Only what is relevant loads, at the stage where it matters.",
     desc: "Relevant source, architecture, project standards, prior decisions, specialized agents, and MCP tools arrive at the stage where they matter — modular, only what's relevant loads.",
-    mechs: ["Semble", "CodeGraph", "rules by file type", "RTK", "7 MCP servers"],
+    mechs: ["Semble", "CodeGraph", "rules by file type", "7 MCP servers"],
     refuses:
       "Reconstructing your codebase from memory. The agent reads the named source instead.",
-    gives: "A lean context window — with 60–90% of tool-output tokens compressed away.",
+    gives: "Focused context — relevant project knowledge retrieved on demand and concise quality diagnostics.",
   },
   {
     icon: FileText,

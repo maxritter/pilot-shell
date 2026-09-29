@@ -13,5 +13,5 @@ if _hooks_dir not in sys.path:
 @pytest.fixture(autouse=True)
 def isolate_session_identity(monkeypatch: pytest.MonkeyPatch) -> None:
     """Keep hook tests independent of the agent running pytest."""
-    for name in ("PILOT_SESSION_ID", "CLAUDE_CODE_SESSION_ID", "CODEX_THREAD_ID"):
+    for name in ("PILOT_SESSION_ID", "CLAUDE_CODE_SESSION_ID", "CODEX_THREAD_ID", "CLAUDE_PROJECT_PLATFORM"):
         monkeypatch.delenv(name, raising=False)

@@ -6,6 +6,7 @@
     "CLAUDE_CODE_NO_FLICKER": "true",
     "CLAUDE_CODE_ENABLE_TODO_TOOLS": "true",
     "CLAUDE_CODE_ENABLE_TASKS": "true",
+    "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "0",
     "CLAUDE_CODE_TODO_REMINDER_MODE": "baseline",
     "ENABLE_TOOL_SEARCH": "true",
     "IMPECCABLE_CACHE_ROOT": "~/.pilot/cache/impeccable"
@@ -78,7 +79,6 @@
       "[PILOT] Platforms: macOS, Linux, and Windows (WSL2) are all supported",
       "[PILOT] Works on macOS, Linux, and Windows (WSL2) - one installer, all platforms",
       "[PILOT] CodeGraph: Code knowledge graph for symbol search, call tracing, and impact analysis",
-      "[PILOT] RTK: Token-optimized CLI proxy - saves 60-90% tokens on dev operations, transparent via hooks",
       "[PILOT] Spec Workflow Toggles: Configure worktree, questions, approval, and reviewers in Console Settings",
       "[PILOT] Please star the repository: github.com/maxritter/pilot-shell",
       "[PILOT] Fun fact: Pilot is built with Pilot - a self-improving development loop"

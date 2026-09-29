@@ -972,7 +972,7 @@ def _installed_codex_version() -> tuple[int, int, int] | None:
             continue
         match = re.search(r"\b(\d+)\.(\d+)\.(\d+)\b", f"{result.stdout}\n{result.stderr}")
         if match is not None:
-            return tuple(int(part) for part in match.groups())
+            return int(match.group(1)), int(match.group(2)), int(match.group(3))
     return None
 
 

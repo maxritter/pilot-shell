@@ -520,6 +520,78 @@ class TestGetEditedFileFromStdin:
 class TestIsWaitingForUserInput:
     """Tests for is_waiting_for_user_input()."""
 
+    def test_answered_or_denied_question_does_not_release_stop(self, tmp_path):
+        from _lib.user_questions import latest_structured_question
+
+        path = tmp_path / "transcript.jsonl"
+        for error in (False, True):
+            messages = [
+                {
+                    "type": "assistant",
+                    "message": {
+                        "content": [
+                            {"type": "tool_use", "id": "q1", "name": "AskUserQuestion", "input": {"questions": []}}
+                        ]
+                    },
+                },
+                {
+                    "type": "user",
+                    "message": {
+                        "content": [
+                            {
+                                "type": "tool_result",
+                                "tool_use_id": "q1",
+                                "is_error": error,
+                                "content": "Answered or denied",
+                            }
+                        ]
+                    },
+                },
+            ]
+            path.write_text("\n".join(json.dumps(item) for item in messages))
+            assert is_waiting_for_user_input(str(path)) is False
+            assert latest_structured_question(str(path)) is not None
+
+    def test_completed_native_codex_question_does_not_release_stop(self, tmp_path):
+        path = tmp_path / "rollout.jsonl"
+        path.write_text(
+            "\n".join(
+                json.dumps(item)
+                for item in [
+                    {
+                        "type": "response_item",
+                        "payload": {
+                            "type": "function_call",
+                            "call_id": "q1",
+                            "name": "request_user_input",
+                            "arguments": "{}",
+                        },
+                    },
+                    {
+                        "type": "response_item",
+                        "payload": {"type": "function_call_output", "call_id": "q1", "output": "answered"},
+                    },
+                ]
+            )
+        )
+        assert is_waiting_for_user_input(str(path)) is False
+
+    def test_native_codex_question_then_later_tool_is_not_a_stale_question(self, tmp_path):
+        transcript = tmp_path / "rollout.jsonl"
+        question = {
+            "type": "response_item",
+            "payload": {
+                "type": "function_call",
+                "name": "functions.request_user_input",
+                "arguments": "{}",
+            },
+        }
+        transcript.write_text(json.dumps(question) + "\n")
+        assert is_waiting_for_user_input(str(transcript)) is True
+        later_tool = {"type": "response_item", "payload": {"type": "function_call", "name": "exec_command"}}
+        transcript.write_text(json.dumps(question) + "\n" + json.dumps(later_tool) + "\n")
+        assert is_waiting_for_user_input(str(transcript)) is False
+
     def test_returns_true_when_last_tool_is_ask_user_question(self, tmp_path):
         transcript = tmp_path / "transcript.jsonl"
         msg = {

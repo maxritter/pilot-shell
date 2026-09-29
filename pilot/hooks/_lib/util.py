@@ -29,6 +29,13 @@ _AUTOCOMPACT_BUFFER_TOKENS = 33_000
 _VALID_MODEL_SWITCH_MODES = ("automated", "manual", "off")
 
 
+def read_workflow_toggle(key: str) -> bool:
+    """Read an opt-in workflow setting fresh so Console changes apply immediately."""
+    config = _read_pilot_config()
+    workflow = config.get("specWorkflow") if isinstance(config, dict) else None
+    return isinstance(workflow, dict) and workflow.get(key) is True
+
+
 def read_model_switch_mode() -> str:
     """Resolve the Model Switching mode FRESH from ~/.pilot/config.json.
 
@@ -706,41 +713,10 @@ def get_edited_file_from_stdin() -> Path | None:
 
 
 def is_waiting_for_user_input(transcript_path: str) -> bool:
-    """Check if Claude's last action was asking the user a question."""
-    try:
-        transcript = Path(transcript_path)
-        if not transcript.exists():
-            return False
+    """Check whether the last Claude or Codex action asked a structured question."""
+    from _lib.user_questions import latest_structured_question
 
-        last_assistant_msg = None
-        with transcript.open() as f:
-            for line in f:
-                try:
-                    msg = json.loads(line)
-                    if msg.get("type") == "assistant":
-                        last_assistant_msg = msg
-                except json.JSONDecodeError:
-                    continue
-
-        if not last_assistant_msg:
-            return False
-
-        message = last_assistant_msg.get("message", {})
-        if not isinstance(message, dict):
-            return False
-
-        content = message.get("content", [])
-        if not isinstance(content, list):
-            return False
-
-        for block in content:
-            if isinstance(block, dict) and block.get("type") == "tool_use":
-                if block.get("name") == "AskUserQuestion":
-                    return True
-
-        return False
-    except OSError:
-        return False
+    return latest_structured_question(transcript_path, unanswered_only=True) is not None
 
 
 def check_file_length(file_path: Path) -> str:

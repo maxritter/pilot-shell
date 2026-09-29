@@ -55,7 +55,7 @@ If the companion produced no result after its one retry, proceed WITHOUT the Cod
 
 **Skip** when the fixes were localized (terminology, error handling, test updates, minor bugs) — run tests + lint to confirm, then proceed to Phase B.
 
-**Re-verify** when fixes added functionality, changed APIs, or introduced significant new code paths: re-run the Step 2.2 Plan Compliance & Goal-Truth Audit on the post-fix diff (fixes can break mitigations or truths), then request another completed review response from the same changes-review agent when supported, or launch a new reviewer after the original is terminal, with `Changed files:` = the fixed files, so the review is SCOPED to what the fixes touched rather than the whole spec diff. Max 2 iterations before adding remaining issues to the plan.
+**Re-verify** when fixes added functionality, changed APIs, or introduced significant new code paths: re-run the Step 2.2 Plan Compliance & Goal-Truth Audit on the post-fix diff (fixes can break mitigations or truths), then request another completed review response from the same changes-review agent when supported, or launch a new reviewer after the original is terminal, with `Changed files:` = the fixed files, so the review is SCOPED to what the fixes touched rather than the whole spec diff. When a finding needs an implementation task, add it to the plan and follow Step 11's failed-verification flow; review counts impose no permission threshold.
 <!-- /CC-ONLY -->
 <!-- CODEX-START
 **If `PILOT_CHANGES_REVIEW_ENABLED` is `"false"` (from Step 0 — Step 1 was skipped),** skip this step entirely and proceed to Step 4 (Phase B).

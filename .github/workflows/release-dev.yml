@@ -197,7 +197,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: console
-        run: bun install
+        run: bun install --frozen-lockfile
 
       - name: Run console tests
         working-directory: console
@@ -227,7 +227,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
-          node-version: "24.20.0"
+          node-version: "24.21.0"
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
@@ -236,7 +236,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: console
-        run: bun install
+        run: bun install --frozen-lockfile
 
       - name: Typecheck
         working-directory: console
@@ -569,7 +569,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
-          node-version: "24.20.0"
+          node-version: "24.21.0"
 
       - name: Install Vercel CLI
         run: npm install -g vercel

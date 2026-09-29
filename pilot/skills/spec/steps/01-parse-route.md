@@ -13,11 +13,11 @@ ELSE:
 
 ### 1.0 Discussion pause control (`/spec pause`, `/spec resume`)
 
-The UserPromptSubmit hook records a plan-bound interaction pause before the agent answers a real interruption. The stop guard honors that state for the whole discussion — even when the runtime still reports a Stop continuation — without "IMMEDIATELY continue" blocks on every reply.
+By default, answer new messages and continue authorized work. The UserPromptSubmit hook records an explicit pause, or a discussion pause when Console's **Pause on messages** toggle is enabled. Replies to agent questions remain expected input. The stop guard honors a pause for the whole discussion, even inside a Stop continuation.
 
 For lane runs, read `agent-gate-protocol.md`: the lane records its own pending state while the session-only stop reader remains the coordinator's responsibility. Relay the decision to the coordinator and yield through the native agent lifecycle; never change the coordinator's state.
 
-- **`pause`:** Run `~/.pilot/bin/pilot plan-state pause --kind discussion $LANE_FLAG`. A missing active plan or Buildout returns an error; report it and stop. Otherwise confirm "⏸ Paused — the plan holds while we discuss. Say `resume` (or use `/spec resume`) to continue." and end the turn. Any other discussion wording, including "continue", leaves the plan paused.
+- **`pause`:** Run `~/.pilot/bin/pilot plan-state pause --kind discussion $LANE_FLAG`. A missing active plan returns an error; report it and stop. Existing manual tasks and decision questions keep their state and required confirmation; the command cannot replace them with a discussion pause. Buildouts support explicit user discussion pauses. Confirm "⏸ Paused — the plan holds while we discuss. Ask me to continue when ready." and end the turn. Honor clear natural-language pause and continuation requests through the same state commands; a resume request may accompany a status update.
 - **`resume`:** Run `~/.pilot/bin/pilot plan-state resume $LANE_FLAG`, then read the registered plan and dispatch by status (Section 2). ⛔ Do NOT edit the plan here — the dispatcher's tool boundary stands; the dispatched phase applies any agreed amendments before continuing. No active plan → report that and stop.
 
 ### 1.1 Detect Type (new plans only)

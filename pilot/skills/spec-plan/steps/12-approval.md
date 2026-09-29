@@ -60,9 +60,9 @@ rm -f "$SESS_DIR/spec-approval-pending"
 <!-- CC-ONLY -->
 Once the approved registered plan is ready and the runtime permits implementation:
 
-- **Manual + Plan Approval enabled, main session only:** run `~/.pilot/bin/pilot plan-state model-switch`. It validates the registered approved `PENDING` plan and fails closed for lanes or the wrong plan state. After success, tell the user: "Manual model switching: run `/model` now, confirm any conversation-transfer prompt, then send exact `resume`." End the turn before invoking `spec-implement`.
+- **Manual + Plan Approval enabled, main session only:** run `~/.pilot/bin/pilot plan-state model-switch`. It validates the registered approved `PENDING` plan and fails closed for lanes or the wrong plan state. After success, tell the user: "Manual model switching: run `/model` now, confirm any conversation-transfer prompt, then ask to continue." End the turn before invoking `spec-implement`.
 
-  Exact `resume`, `/spec resume`, or `$spec resume` consumes this one-shot gate through UserPromptSubmit and directs the approved `PENDING` plan into `spec-implement`. Any other message leaves the gate armed. Do not re-arm it after the resume context says it was consumed.
+  A clear continuation request, including one attached to an update, consumes this one-shot gate through UserPromptSubmit and directs the approved `PENDING` plan into `spec-implement`. Messages without continuation intent leave it armed. Do not re-arm it after the resume context says it was consumed.
 - **Manual with Plan Approval disabled:** preserve the autonomous contract; print one concise note that implementation continues on the active `/model`, then invoke `Skill(skill='spec-implement', args='<plan-path> $LANE_FLAG')` immediately.
 - **Manual in an orchestration lane:** continue on the lane's active model; a coordinator `/model` command cannot change an already-running child. Invoke `spec-implement` immediately.
 - **Automated or Off:** invoke `spec-implement` immediately. Automated uses the completed native execution leg; Off preserves the active model.

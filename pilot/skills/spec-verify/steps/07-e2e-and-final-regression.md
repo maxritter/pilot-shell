@@ -77,16 +77,9 @@ TaskCreate(subject="TS-NNN: [name]", description="[priority] | [preconditions]")
    - Verify the expected result by reading the page output
 3. **PASS:** All steps match expected results → note `TS-NNN: PASS`
 4. **FAIL:** Step result doesn't match expected:
-   - Analyze root cause, implement minimal fix, re-run relevant tests (stay in Phase B — no code changes that need re-review)
-   - Re-execute the scenario (counts as fix attempt 1)
-   - If still failing: implement second fix, re-execute (fix attempt 2)
-   - After 2 failed fix attempts: note `TS-NNN: KNOWN_ISSUE — [description]`
-<!-- CC-ONLY -->
-5. **Critical KNOWN_ISSUE** → run the iteration-cap check from Step 11 (read `Iterations:` from the plan header; if `>= 3` ask the user Continue / Pivot / Abandon before incrementing). On Continue: set `Status: PENDING`, increment `Iterations`, register status change, invoke `Skill(skill='spec-implement', args='<plan-path> $LANE_FLAG')` — do not proceed to VERIFIED. On Pivot/Abandon: do not invoke spec-implement; surface to user per Step 11.
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-5. **Critical KNOWN_ISSUE** → run the iteration-cap check from Step 11 (read `Iterations:` from the plan header; if `>= 3` present the user with Continue / Pivot / Abandon options before incrementing). On Continue: set `Status: PENDING`, increment `Iterations`, register status change, then continue immediately with the `$spec-implement` skill instructions using arguments: `<plan-path> $LANE_FLAG` — do not proceed to VERIFIED. On Pivot/Abandon: do not invoke spec-implement; surface to user per Step 11.
-CODEX-END -->
+   - Analyze root cause, implement an evidence-backed fix, re-run relevant tests and the scenario. Route changes requiring renewed review through Step 11's failed-verification flow.
+   - Record unresolved evidence as `TS-NNN: KNOWN_ISSUE — [description]`; count fix attempts for reporting, never as a permission threshold.
+5. **Critical KNOWN_ISSUE** → follow Step 11's failed-verification flow and retain the lane on loop-back. It diagnoses and continues automatically by default; only an enabled stalled-work checkpoint or a real required decision waits for input. Keep the plan unverified until the critical issue is resolved.
 6. **High/Medium KNOWN_ISSUE** → document and continue (non-blocking)
 
 ### 7d: Write E2E Results to Plan
@@ -112,7 +105,7 @@ Invoke `Skill(skill='open-claude-ui-review', args='<plan-path> Review the change
 The UI design review skill owns accessibility, hierarchy/rhythm, brand fidelity, interaction-state coverage, viewport/theme checks, and the bounded advisory detector contract. Do not duplicate those procedures here.
 
 - If the skill edits code, re-run the affected E2E scenarios before closing the browser; Step 7f then runs the final regression.
-- An unresolved **Blocker** is a Critical KNOWN_ISSUE and follows the existing iteration-cap route before VERIFIED.
+- An unresolved **Blocker** is a Critical KNOWN_ISSUE and follows Step 11's failed-verification flow before VERIFIED.
 - Record unresolved **Quality issue** findings with their evidence and scope decision.
 - Record **Advisory** findings or detector skips in a single `Design Notes:` line; advisory findings alone never flip the plan away from VERIFIED.
 

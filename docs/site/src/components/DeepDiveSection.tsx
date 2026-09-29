@@ -48,7 +48,6 @@ const claudeHooksPipeline = [
     hooks: [
       "tool_redirect.py maps unavailable tool names to supported equivalents",
       "An active workflow can reject conflicting plan-mode operations",
-      "tool_token_saver.py routes supported shell output through RTK",
     ],
     color: "text-amber-400",
     bgColor: "bg-amber-400/10",
@@ -126,7 +125,7 @@ const rulesCategories = [
     icon: Search,
     category: "Tools",
     rules: [
-      "Pilot CLI, Semble code search, and RTK token optimization",
+      "Pilot CLI and Semble code search",
       "Browser automation: Chrome, Chrome DevTools MCP, playwright-cli, agent-browser",
       "MCP server selection and tool-routing rules",
     ],
@@ -292,8 +291,7 @@ const DeepDiveSection = () => {
                 </h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   <span className="text-violet-400">Semble</span> returns focused
-                  code matches, while <span className="text-violet-400">RTK</span>{" "}
-                  compresses supported CLI output. Claude Code hooks can capture
+                  code matches. Claude Code hooks can capture
                   and restore active workflow state around compaction. Rules
                   still load by file type, and skills use progressive disclosure.
                 </p>

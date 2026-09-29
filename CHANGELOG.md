@@ -6,7 +6,12 @@ All notable changes to Pilot Shell will be documented in this file.
 
 ### Bug fixes
 
-- Restore Claude Code's Manual model-switch handoff: approved `/spec` plans now stop before implementation, wait for `/model`, and continue only after exact `resume`. Plan Approval disabled and orchestration-lane runs remain autonomous, while Codex keeps its continuous active-model flow.
+- Keep approved work autonomous through long-running jobs and ordinary user messages. Suppress routine keep-waiting questions, resume immediately after decision answers, and accept clear continuation intent without a standalone command. Preserve explicit user pauses and unresolved decisions. Console Settings now offers opt-in Pause on messages and Runaway checkpoints; checkpoints count stops without new task completions.
+- Keep Claude Code's Stop continuations quiet on supported versions, with a legacy blocking fallback. Set Claude's global Stop continuation cap to unlimited by default while preserving explicit user limits; this applies to third-party Stop hooks too. Native background jobs wake the session on completion without a human checkpoint. Verification retries continue by default instead of stopping after three iterations.
+- Treat finite CI monitors such as `gh run watch` as ordinary background waits, so they do not trigger a runaway checkpoint while the job is live.
+- Retire RTK installation, command rewriting, agent instructions, and Console savings tracking. Updates remove the old integration without requiring its executable and remove binaries only when Pilot's ownership record permits it.
+- Detect a running Claude Code installation from its documented runtime marker when an agent sandbox hides the executable, preventing false "No supported AI agent" update failures.
+- Restore Claude Code's Manual model-switch handoff: approved `/spec` plans now stop before implementation, wait for `/model`, and continue after a clear continuation request. Plan Approval disabled and orchestration-lane runs remain autonomous, while Codex keeps its continuous active-model flow.
 - Repair inline Claude Code tool and thinking details after native auto-updates replace Pilot's patched binary. Session startup now reapplies a locally cached, checksum-verified patch kit for the next session, with `pilot repair-display` as an explicit fallback.
 - Preserve Impeccable's intentional Claude Code and Codex variants during repository asset synchronization instead of treating their provider-native commands and interaction contracts as a merge conflict.
 

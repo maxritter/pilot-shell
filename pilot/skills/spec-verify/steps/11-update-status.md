@@ -35,39 +35,18 @@ Preserve valid approval across turns and compaction. Do not require that the app
 
 **When verification FAILS (missing features, serious bugs — before reaching Step 10):**
 
-⛔ **Iteration cap — check BEFORE re-invoking spec-implement.** Read `Iterations:` from the plan header. If `Iterations >= 3` BEFORE incrementing, stop the verify→implement loop and surface to the user. An infinite verify→implement loop on a feature plan is the single largest token-burn pattern in the workflow — three failed verifications means the plan is wrong, not that one more implement pass will fix it.
+### Failed verification: diagnose and continue
 
-<!-- CC-ONLY -->
-```
-AskUserQuestion(
-  question="Three verify iterations have failed for this plan. This pattern usually means the plan's design is incomplete or a verify check is mis-specified — not that one more implement pass will fix it. What now?",
-  options=[
-    "Continue — try one more iteration (rarely the right answer)",
-    "Pivot — let me re-investigate the plan with you",
-    "Abandon — leave PENDING, I'll come back to it"
-  ]
-)
-```
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-Use the current runtime's permitted structured input tool for this decision, or a concise prose question when unavailable. Wait for the required answer:
+At each failed verification evaluation, read `~/.pilot/config.json` fresh with the current runtime's native file-reading tool. Only JSON boolean `true` at `specWorkflow.runawayGuard` enables stalled verification checkpoints. Missing, unreadable, or malformed config, a missing key, or a non-boolean value means **off**. `Iterations:` records loop history; it never imposes an attempt cap.
 
-1. Continue — try one more iteration (rarely the right answer)
-2. Pivot — let me re-investigate the plan with you
-3. Abandon — leave PENDING, I'll come back to it
-CODEX-END -->
+- **Default (off):** Diagnose the failure, choose the next evidence-backed fix within the authorized scope, and continue automatically. New evidence narrowing failing scenarios, a newly confirmed root cause, or a fix advancing a goal criterion are meaningful progress. Record the current unresolved evidence and progress in the plan for comparison with the next evaluation; repeated output, cosmetic edits, and restated plans are not progress. Repeated failures require better investigation, not a routine permission question.
+- **Enabled:** Ask a stalled-work checkpoint only when repeated failed verification has the same unresolved evidence and no meaningful progress. Continue while diagnosis or fixes make progress, regardless of the iteration count.
+- **Running jobs:** Retain their handles and wait autonomously while builds, tests, deployments, or agents are still running. Elapsed time or a polling timeout alone never triggers a checkpoint or a "keep waiting?" question.
+- **Required decisions:** Either setting still requires actual missing input for a true blocker or material scope choice, and preserves the review approval gate. Complete independent authorized work first. Ask once about the concrete blocker or choice and keep that decision pending across turns and compaction; do not repeat it while awaiting the answer.
 
-Handle:
-<!-- CC-ONLY -->
-- **Continue:** **set `Status: PENDING`**, increment `Iterations`, write `## Verification Gaps`, register status, invoke `Skill(skill='spec-implement', args='<plan-path> $LANE_FLAG')` as below. (Do NOT hand a `Status: COMPLETE` plan to spec-implement.)
-<!-- /CC-ONLY -->
-<!-- CODEX-START
-- **Continue:** **set `Status: PENDING`**, increment `Iterations`, write `## Verification Gaps`, register status, then continue immediately with the `$spec-implement` skill instructions using arguments: `<plan-path> $LANE_FLAG`. (Do NOT hand a `Status: COMPLETE` plan to spec-implement.)
-CODEX-END -->
-- **Pivot:** set `Status: PENDING`, do NOT invoke spec-implement. Tell the user you're standing by for new investigation direction.
-- **Abandon:** leave `Status: PENDING`, do not invoke spec-implement. Stop.
+For a required decision or an enabled stalled-work checkpoint, first set/register `Status: PENDING` and run `~/.pilot/bin/pilot plan-state pause --kind decision --message "<concrete question>" $LANE_FLAG`. Use the runtime's permitted question transport and `$HOME/.pilot/agents/agent-gate-protocol.md`; lanes relay unresolved decisions to their coordinator. Preserve the pending question until answered. A clear answer authorizing continuation resolves the decision: run `pilot plan-state resume $LANE_FLAG` and continue immediately, without another confirmation or a standalone resume request. A user-requested direction change or stop follows that actual choice.
 
-**When `Iterations < 3`:**
+**Automatic loop-back (or authorized continuation after a resolved decision):**
 
 1. Add fix tasks to plan
 2. Set `Status: PENDING`, increment `Iterations`

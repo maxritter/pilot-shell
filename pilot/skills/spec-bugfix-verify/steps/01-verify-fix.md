@@ -55,7 +55,7 @@ That yields `HEAD` when the fix is UNCOMMITTED in the working tree (the default)
 git diff --name-only $DIFF
 ```
 
-1. **Root-cause file MUST be in the diff.** If not, fix is at symptom — set `Status: PENDING`, return to `spec-implement` (via the Step 7 iteration-cap check).
+1. **Root-cause file MUST be in the diff.** If not, fix is at symptom — follow Step 7's failed-verification flow to correct the implementation automatically by default.
 2. **Symptom-patching smells:** new broad `try/except` around the failing call, `if value is None: return default` at the caller when the bug is upstream, swallowed exceptions, silently normalised bad inputs, early returns hiding wrong state, renamed/suppressed log lines. Record + justify in Investigation, or revert.
 3. **Scope check:** diff matches plan scope (Task 1 tests + Task 2 root-cause file ± documented defense-in-depth). Unplanned changes belong elsewhere — revert or extend the plan.
 
@@ -86,6 +86,6 @@ Re-run the original repro from `## Summary — Trigger:` using the matching lane
 | **Background job / cron / worker** | Trigger the job manually with the failing input | Run + log lines |
 | **UI** | **Skip here — handled by Step 3 (Verification Scenario)** with browser automation — the driver the project's rules name, else the 4-tier ladder, per `browser-automation.md` | — |
 
-**If the regression test passes but the original repro still fails:** test is at the wrong layer. Set `Status: PENDING`, note "test green but original repro still fails — layer mismatch", return to `spec-implement` to rewrite Task 1's test at the user's entry point.
+**If the regression test passes but the original repro still fails:** test is at the wrong layer. Note "test green but original repro still fails — layer mismatch" and follow Step 7's failed-verification flow to rewrite Task 1's test at the user's entry point.
 
-**If the running program is unavailable** (build broken, infra missing, integration env down): set `Status: PENDING`, note the blocker, escalate to the user. Do not advance to VERIFIED on tests alone.
+**If the running program is unavailable** (build broken, infra missing, integration env down): diagnose and resolve what the authorized scope permits, continue independent checks, and follow Step 7's failed-verification flow if a true blocker needs user input. A build or service still starting requires autonomous waiting on its live handle. Keep the plan unverified until the actual program has been checked.

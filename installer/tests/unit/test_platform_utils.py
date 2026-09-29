@@ -65,6 +65,27 @@ class TestEnsureBunOnPath:
             os.environ["PATH"] = original
 
 
+class TestClaudeDetection:
+    def test_running_claude_is_detected_when_sandbox_hides_executable(self):
+        from installer.platform_utils import is_claude_installed
+
+        with (
+            patch.dict("os.environ", {"CLAUDECODE": "1"}, clear=True),
+            patch("installer.platform_utils._agent_present", return_value=False),
+        ):
+            assert is_claude_installed() is True
+
+    def test_other_marker_values_do_not_claim_an_install(self):
+        from installer.platform_utils import is_claude_installed
+
+        for marker in ("", "0", "true"):
+            with (
+                patch.dict("os.environ", {"CLAUDECODE": marker}, clear=True),
+                patch("installer.platform_utils._agent_present", return_value=False),
+            ):
+                assert is_claude_installed() is False
+
+
 class TestCodexDetection:
     def test_includes_chatgpt_desktop_app_binary(self):
         from installer.platform_utils import is_codex_installed
@@ -229,7 +250,7 @@ class TestLoginShellConfigFiles:
     login *non-interactive* shell. That shell never reaches ``.bashrc`` (Debian
     guards it with ``case $- in *i*) ;; *) return``) nor ``.zshrc`` (zsh sources
     it only when interactive), so an rc-only PATH export leaves ``~/.pilot/bin``
-    -- and with it ``rtk`` -- missing from every agent tool call.
+    -- and with it Pilot's managed tools -- missing from every agent tool call.
     """
 
     @staticmethod

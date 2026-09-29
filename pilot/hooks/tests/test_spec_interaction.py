@@ -31,10 +31,11 @@ def _register(tmp_path: Path, *, approved: str = "Yes", plan_type: str = "Featur
     return plan, registration
 
 
-def _handle(tmp_path: Path, prompt: str) -> dict:
+def _handle(tmp_path: Path, prompt: str, *, auto_pause: bool = True) -> dict:
     with (
         patch("spec_interaction._sessions_base", return_value=tmp_path / "sessions"),
         patch("spec_interaction.plan_in_current_project", return_value=True),
+        patch("spec_interaction.read_workflow_toggle", return_value=auto_pause),
     ):
         return spec_interaction.handle(
             {
@@ -49,12 +50,151 @@ def _handle_payload(tmp_path: Path, payload: dict) -> dict:
     with (
         patch("spec_interaction._sessions_base", return_value=tmp_path / "sessions"),
         patch("spec_interaction.plan_in_current_project", return_value=True),
+        patch("spec_interaction.read_workflow_toggle", return_value=True),
     ):
         return spec_interaction.handle(payload)
 
 
 def _interaction(registration: Path) -> dict | None:
-    return json.loads(registration.read_text()).get("interaction")
+    interaction = json.loads(registration.read_text()).get("interaction")
+    if isinstance(interaction, dict):
+        interaction.pop("origin", None)  # Existing assertions compare the effective state, not provenance.
+    return interaction
+
+
+def test_ordinary_message_keeps_default_run_active(tmp_path: Path) -> None:
+    _plan, registration = _register(tmp_path)
+    _handle(tmp_path, "How far have you got?", auto_pause=False)
+    assert _interaction(registration) is None
+
+
+def test_answer_to_waiting_question_does_not_pause_even_when_auto_pause_enabled(tmp_path: Path) -> None:
+    _plan, registration = _register(tmp_path)
+    transcript = tmp_path / "transcript.jsonl"
+    transcript.write_text(
+        json.dumps(
+            {
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "name": "AskUserQuestion",
+                            "input": {"questions": [{"question": "Keep waiting?"}]},
+                        },
+                    ]
+                },
+            }
+        )
+        + "\n"
+    )
+    _handle_payload(tmp_path, {"session_id": SESSION, "prompt": "1", "transcript_path": str(transcript)})
+    assert _interaction(registration) is None
+
+
+def test_native_codex_question_reply_does_not_pause(tmp_path: Path) -> None:
+    _plan, registration = _register(tmp_path)
+    transcript = tmp_path / "rollout.jsonl"
+    transcript.write_text(
+        json.dumps(
+            {
+                "type": "response_item",
+                "payload": {
+                    "type": "function_call",
+                    "name": "request_user_input",
+                    "arguments": "{}",
+                    "call_id": "question-1",
+                },
+            }
+        )
+        + "\n"
+    )
+    _handle_payload(tmp_path, {"session_id": SESSION, "prompt": "1", "transcript_path": str(transcript)})
+    assert _interaction(registration) is None
+
+
+def test_waiting_reply_recovers_a_legacy_accidental_discussion_pause(tmp_path: Path) -> None:
+    _plan, registration = _register(tmp_path)
+    data = json.loads(registration.read_text())
+    data["interaction"] = {"state": "paused", "kind": "discussion"}
+    registration.write_text(json.dumps(data))
+    transcript = tmp_path / "transcript.jsonl"
+    transcript.write_text(
+        json.dumps(
+            {
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "name": "AskUserQuestion",
+                            "input": {
+                                "questions": [
+                                    {
+                                        "question": "Still building. Keep waiting?",
+                                        "options": [
+                                            {"label": "Yes, keep waiting", "description": "Report when both finish"},
+                                            {"label": "Stop checking for now", "description": "Pick it up later"},
+                                        ],
+                                    }
+                                ]
+                            },
+                        }
+                    ]
+                },
+            }
+        )
+        + "\n"
+    )
+    _handle_payload(tmp_path, {"session_id": SESSION, "prompt": "1", "transcript_path": str(transcript)})
+    assert _interaction(registration) is None
+
+
+def test_decision_answer_can_resolve_the_decision_without_an_extra_resume_turn(tmp_path: Path) -> None:
+    _plan, registration = _register(tmp_path)
+    data = json.loads(registration.read_text())
+    data["interaction"] = {"state": "paused", "kind": "decision", "message": "Use the new schema?"}
+    registration.write_text(json.dumps(data))
+    transcript = tmp_path / "transcript.jsonl"
+    transcript.write_text(
+        json.dumps(
+            {
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "name": "AskUserQuestion",
+                            "input": {"questions": [{"question": "Use the new schema?"}]},
+                        }
+                    ]
+                },
+            }
+        )
+        + "\n"
+    )
+    result = _handle_payload(
+        tmp_path, {"session_id": SESSION, "prompt": "Yes, use it", "transcript_path": str(transcript)}
+    )
+    context = result["hookSpecificOutput"]["additionalContext"]
+    assert "without restarting implementation" not in context
+    assert "plan-state resume" in context
+    assert "decision" in context
+
+
+@pytest.mark.parametrize("prompt", ["keep waiting", "Yes, continue", "please resume", "I created /PLV/JOBS. resume"])
+def test_continue_intent_resumes_without_a_magic_standalone_word(tmp_path: Path, prompt: str) -> None:
+    _plan, registration = _register(tmp_path)
+    _handle(tmp_path, "/spec pause")
+    _handle(tmp_path, prompt)
+    assert _interaction(registration) is None
+
+
+@pytest.mark.parametrize("prompt", ["/spec pause", "pause", "please pause", "stop working"])
+def test_explicit_pause_still_applies_with_auto_pause_disabled(tmp_path: Path, prompt: str) -> None:
+    _plan, registration = _register(tmp_path)
+    _handle(tmp_path, prompt, auto_pause=False)
+    assert _interaction(registration) == {"state": "paused", "kind": "discussion"}
 
 
 def test_real_user_prompt_pauses_an_approved_spec(tmp_path: Path) -> None:
@@ -195,7 +335,7 @@ def test_background_task_notification_leaves_an_existing_pause_alone(tmp_path: P
 
     result = _handle(tmp_path, _TASK_NOTIFICATION)
 
-    assert result == {}
+    assert "remains paused" in result["hookSpecificOutput"]["additionalContext"]
     assert _interaction(registration) == {"state": "paused", "kind": kind}
 
 
@@ -253,14 +393,17 @@ def test_unapproved_plan_and_buildout_are_not_auto_paused(tmp_path: Path) -> Non
     assert _interaction(registration) is None
 
 
-def test_explicit_pause_is_idempotent_and_spec_only(tmp_path: Path) -> None:
+def test_explicit_pause_is_idempotent_and_applies_to_build_too(tmp_path: Path) -> None:
     _plan, registration = _register(tmp_path, approved="No")
     _handle(tmp_path, "/spec pause")
     _handle(tmp_path, "/spec pause")
     assert _interaction(registration) == {"state": "paused", "kind": "discussion"}
 
     _plan, registration = _register(tmp_path / "build", plan_type="Build")
-    assert _handle(tmp_path / "build", "/spec pause") == {}
+    _handle(tmp_path / "build", "pause")
+    assert _interaction(registration) == {"state": "paused", "kind": "discussion"}
+    assert json.loads(registration.read_text())["interaction"]["origin"] == "user"
+    _handle(tmp_path / "build", "continue")
     assert _interaction(registration) is None
 
 
@@ -288,7 +431,7 @@ def test_legacy_pause_can_be_resumed_during_migration(tmp_path: Path) -> None:
 
     assert _interaction(registration) is None
     assert not marker.exists()
-    assert "Resume the active /spec plan" in result["hookSpecificOutput"]["additionalContext"]
+    assert "Resume the active Pilot plan" in result["hookSpecificOutput"]["additionalContext"]
 
 
 def test_stale_or_mismatched_legacy_pause_is_discarded(tmp_path: Path) -> None:
@@ -358,7 +501,7 @@ def _write_manual_switch_marker(plan: Path, registration: Path) -> Path:
     return marker
 
 
-def test_manual_switch_gate_waits_for_exact_resume(tmp_path: Path) -> None:
+def test_manual_switch_gate_waits_for_clear_continuation_intent(tmp_path: Path) -> None:
     plan, registration = _register(tmp_path)
     marker = _write_manual_switch_marker(plan, registration)
 
@@ -368,10 +511,12 @@ def test_manual_switch_gate_waits_for_exact_resume(tmp_path: Path) -> None:
     assert _interaction(registration) is None
     context = result["hookSpecificOutput"]["additionalContext"]
     assert "manual model switch" in context.lower()
-    assert "exact `resume`" in context
+    assert "clear request to resume or continue" in context
 
 
-@pytest.mark.parametrize("command", ["resume", "/spec resume", "$spec resume"])
+@pytest.mark.parametrize(
+    "command", ["resume", "/spec resume", "$spec resume", "I switched /model. resume", "please continue"]
+)
 def test_exact_resume_consumes_manual_switch_gate(tmp_path: Path, command: str) -> None:
     plan, registration = _register(tmp_path)
     marker = _write_manual_switch_marker(plan, registration)
@@ -398,3 +543,68 @@ def test_manual_switch_resume_refreshes_plan_binding_and_clears_old_interaction(
     assert not marker.exists()
     assert _interaction(registration) is None
     assert "spec-implement" in result["hookSpecificOutput"]["additionalContext"]
+
+
+def test_stale_model_switch_marker_never_clears_a_manual_task(tmp_path: Path) -> None:
+    plan, registration = _register(tmp_path)
+    marker = _write_manual_switch_marker(plan, registration)
+    data = json.loads(registration.read_text())
+    data["interaction"] = {"state": "paused", "kind": "manual", "task_number": 4, "message": "Complete login."}
+    registration.write_text(json.dumps(data))
+    _handle(tmp_path, "resume")
+    assert _interaction(registration)["kind"] == "manual"
+    assert not marker.exists()
+
+
+def test_verify_reply_uses_the_current_plan_header_even_if_registration_is_stale(tmp_path: Path) -> None:
+    plan, registration = _register(tmp_path)
+    plan.write_text("# Plan\nStatus: COMPLETE\nApproved: Yes\nType: Feature\n")
+    marker = registration.parent / "verify-gate-pending"
+    marker.write_text(
+        json.dumps(
+            {
+                "plan_path": str(plan),
+                "expected_status": "COMPLETE",
+                "plan_content_fingerprint": hashlib.sha256(plan.read_bytes()).hexdigest(),
+            }
+        )
+    )
+    result = _handle(tmp_path, "Approved, looks good")
+    assert not marker.exists()
+    assert _interaction(registration) is None
+    assert "answers a pending" in result["hookSpecificOutput"]["additionalContext"]
+
+
+def test_explicit_pause_upgrades_automatic_provenance(tmp_path: Path) -> None:
+    _plan, registration = _register(tmp_path)
+    _handle(tmp_path, "Explain the implementation")
+    _handle(tmp_path, "pause")
+    assert json.loads(registration.read_text())["interaction"]["origin"] == "user"
+
+
+def test_explicit_pause_preserves_a_pending_verify_gate(tmp_path: Path) -> None:
+    plan, registration = _register(tmp_path)
+    plan.write_text("# Plan\nStatus: COMPLETE\nApproved: Yes\nType: Feature\n")
+    marker = registration.parent / "verify-gate-pending"
+    marker.write_text(
+        json.dumps(
+            {
+                "plan_path": str(plan),
+                "expected_status": "COMPLETE",
+                "plan_content_fingerprint": hashlib.sha256(plan.read_bytes()).hexdigest(),
+            }
+        )
+    )
+    _handle(tmp_path, "/spec pause")
+    assert marker.exists()
+    assert json.loads(registration.read_text())["interaction"]["origin"] == "user"
+
+
+def test_keep_waiting_does_not_resolve_a_database_decision(tmp_path: Path) -> None:
+    _plan, registration = _register(tmp_path)
+    data = json.loads(registration.read_text())
+    data["interaction"] = {"state": "paused", "kind": "decision", "message": "PostgreSQL or MySQL?"}
+    registration.write_text(json.dumps(data))
+    result = _handle(tmp_path, "keep waiting")
+    assert _interaction(registration)["kind"] == "decision"
+    assert "If it resolves" in result["hookSpecificOutput"]["additionalContext"]

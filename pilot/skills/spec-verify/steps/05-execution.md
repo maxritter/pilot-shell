@@ -10,4 +10,4 @@
 - Test with real/sample data
 - **Performance check (UI changes):** Open the page, monitor for lag or high CPU. Watch for: components rendering expensive operations without `useMemo`/`useCallback`, eager loading of all data on mount (lazy-load instead), missing virtualization for large lists, network request storms (N+1 fetches). If page feels sluggish → profile and fix before proceeding.
 
-**Bugs:** Minor → fix, re-run, continue. Major → add task to plan, then route the loop-back through Step 11's iteration-cap check (it sets `Status: PENDING`, increments `Iterations`, and re-invokes spec-implement — or surfaces to the user at the cap). Never loop back to implementation without passing that cap check.
+**Bugs:** Minor → fix, re-run, continue. Major → add task to plan and follow Step 11's failed-verification flow, which diagnoses and continues automatically by default and retains the lane on loop-back. Only an enabled stalled-work checkpoint or a real required decision waits for user input.
