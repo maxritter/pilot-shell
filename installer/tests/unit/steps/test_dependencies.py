@@ -154,6 +154,7 @@ class TestDependenciesStep:
             )
             assert step.check(ctx) is False
 
+    @pytest.mark.parametrize("claude_visible", [True, False])
     @patch("installer.steps.dependencies.install_open_claude_design", return_value=True)
     @patch("installer.steps.dependencies.install_impeccable", return_value=True)
     @patch("installer.steps.dependencies.initialize_codegraph", return_value=True)
@@ -202,6 +203,7 @@ class TestDependenciesStep:
         _mock_init_codegraph,
         _mock_impeccable,
         _mock_open_claude_design,
+        claude_visible,
     ):
         """DependenciesStep installs all dependencies including Python tools."""
         from installer.context import InstallContext
@@ -227,9 +229,10 @@ class TestDependenciesStep:
                 ui=Console(non_interactive=True),
             )
 
-            with patch(
-                "installer.steps.dependencies._install_with_spinner",
-                side_effect=run_and_capture_label,
+            with (
+                patch("installer.steps.dependencies._install_with_spinner", side_effect=run_and_capture_label),
+                patch("installer.steps.dependencies.command_exists", side_effect=lambda command: command == "claude" and claude_visible),
+                patch("installer.steps.dependencies._snapshot_tool_presence", return_value={}),
             ):
                 step.run(ctx)
 
@@ -240,8 +243,11 @@ class TestDependenciesStep:
             _mock_semble.assert_called_once()
             _mock_ast_grep.assert_called_once()
             _mock_codegraph.assert_called_once()
-            _mock_codex_plugin.assert_called_once()
-            _mock_lsp_plugins.assert_called_once()
+            for plugin in (_mock_codex_plugin, _mock_lsp_plugins, _mock_chrome_devtools_plugin):
+                if claude_visible:
+                    plugin.assert_called_once()
+                else:
+                    plugin.assert_not_called()
             _mock_playwright.assert_called_once()
             _mock_pbt_tools.assert_called_once()
             _mock_agent_browser.assert_called_once()
