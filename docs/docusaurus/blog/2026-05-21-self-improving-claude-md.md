@@ -158,12 +158,12 @@ For teams running on large codebases, this pattern pairs naturally with the [lar
 ## A Harness That Maintains Itself
 
 Most rule files in software die the same way: written once, treated as permanent, ignored until they actively mislead someone. CLAUDE.md is unusually exposed to this failure because every session quietly reinforces stale rules. A stop hook that audits the rules against the code closes that loop without adding maintenance work.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** ships a configured hook pipeline for Claude Code — formatter and linter on `PostToolUse`, type-check before stop, context capture on session events. Installed once, applied across every project.
+**QualityLayer** needs no hook pipeline. It installs as a skill and a command-line tool, runs only when you call it with `/ql`, and adds no hooks or MCP servers to your agent.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

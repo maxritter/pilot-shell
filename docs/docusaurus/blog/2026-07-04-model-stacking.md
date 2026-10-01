@@ -94,12 +94,12 @@ The pattern underneath all of this is old and boring, which is exactly why it wo
 A year ago, running your AI's work past a second, rival AI sounded like paranoia. Now it reads as the obvious move, the same way a second reviewer on a PR stopped being optional somewhere in the last decade. The models will keep getting better, and they will keep sharing their blind spots with themselves. Cross-model verification is on its way to being table stakes. The teams that adopt it early will ship at the same speed as everyone else and quietly break production a lot less.
 
 Multi-Agent Orchestrators
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** is a single install on top of Claude Code that adds `/spec`, `/fix`, `/prd`, project-aware rules, persistent memory across sessions, and a configured hook pipeline. Open source, MIT-licensed.
+**QualityLayer** is a single install on top of Claude Code, Codex or any agent with skills. Describe a change with `/ql`, review the plan in the Cockpit, and an independent agent checks the result.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

@@ -230,12 +230,12 @@ The upgrade decision is close to trivial: same price, materially better results,
 - [Claude Sonnet 5](/blog/claude-sonnet-5) for the cheaper daily driver you escalate to Opus 5 from
 - Every Claude Model for the complete timeline from Claude 3 to Opus 5
 - Model selection guide for switching models tactically mid-session
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** handles model routing in one config file: Opus for `/spec` planning, Sonnet for everyday iteration, Haiku for trivial calls. You set the policy; Pilot Shell picks per request.
+**QualityLayer** lets you choose a model for each job. Your best model plans and coordinates, a smaller one builds the slices, and an AI from the other vendor reviews the design and the finished change. You set it per job in Settings.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

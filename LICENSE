@@ -1,4 +1,4 @@
-PILOT SHELL SOFTWARE LICENSE AGREEMENT
+QUALITYLAYER SOFTWARE LICENSE AGREEMENT
 
 Copyright (C) 2026 Max Ritter (@maxritter). All rights reserved.
 
@@ -13,9 +13,9 @@ OF THIS LICENSE AGREEMENT. IF YOU DO NOT AGREE, DO NOT USE THE SOFTWARE.
 1. DEFINITIONS
 
 "Licensor" means Max Ritter (@maxritter), the sole copyright holder and
-developer of Pilot Shell.
+developer of QualityLayer (formerly Pilot Shell).
 
-"Software" means Pilot Shell in its entirety, including but not limited to all
+"Software" means QualityLayer in its entirety, including but not limited to all
 source code, object code, compiled binaries, scripts, configuration files,
 rules, skills, commands, hooks, plugins, documentation, assets, user interface
 components, and any updates, patches, or modifications provided by the Licensor.
@@ -25,13 +25,13 @@ by the Licensor for inspection and modification by authorized Licensees.
 
 "Compiled Components" means any portions of the Software distributed in object
 code, bytecode, or otherwise non-human-readable form, including but not limited
-to the Cython-compiled launcher binary.
+to the compiled qualitylayer binary.
 
 "Licensee" or "You" means the individual or legal entity exercising rights under
 this Agreement.
 
 "Subscription" means an active, paid license purchased from the Licensor through
-the official channels at https://pilot-shell.com, or a valid trial
+the official channels at https://qualitylayer.dev, or a valid trial
 period that has not expired.
 
 "Output" means any code, artifacts, configurations, files, extensions, or other

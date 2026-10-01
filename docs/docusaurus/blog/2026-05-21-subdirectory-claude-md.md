@@ -148,12 +148,12 @@ The pattern composes especially well with [path-scoped skills](/blog/path-scoped
 Rules live as close to the code they govern as possible. A frontend convention belongs next to the frontend. An API gotcha belongs next to the API. The root file holds only what every session genuinely needs.
 
 You are not writing less. You are writing the same content in better-aimed places, so Claude loads the right slice at the right moment and ignores the rest. The bigger the codebase, the bigger the win. By the time your repo is hundreds of folders deep, this is the difference between a tool that helps and a tool that drowns in its own instructions. Combined with [strong context engineering practices](/blog/context-engineering), it is how Claude Code stays useful past the side-project scale.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

@@ -106,12 +106,12 @@ The BrowseComp200 and Parameter Golf results are one engineer's experiments, rep
 None of this argues against multi-agent work. The 96% at 46% result is real and it is large. The claim is narrower: the same configuration that halves your bill on a research sweep can add most of a markup back on a task that was small enough to run straight through, and you can tell which situation you are in beforehand by asking how much reading each worker will actually do.
 
 For the broader cost picture, including which arrangement to reach for and how cache routing changes the arithmetic, see Claude Code token optimization. For sub-agent model assignment specifically, see [sub-agent best practices](/blog/sub-agent-best-practices). If Fable is the model you are budgeting, [the Fable 5 weekly allowance](/blog/fable-5-usage-credits) is the constraint that usually binds first.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

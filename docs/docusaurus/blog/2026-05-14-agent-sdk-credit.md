@@ -128,12 +128,12 @@ The interesting move here isn't the $200 number on its own. It's that Anthropic 
 Nothing breaks on June 14. The email Anthropic sent this week is the warning shot. The actual claim flow opens at the start of the next billing cycle past June 15, and the credit auto-refreshes from then on. There's no downside to claiming it the moment it appears in your account, especially if you're on Max 20x and the full $200 is sitting there waiting.
 
 The work between now and then is making sure you know which of your workflows are about to start drawing from a credit pool instead of a subscription pool, and what you want to happen when that pool hits zero.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

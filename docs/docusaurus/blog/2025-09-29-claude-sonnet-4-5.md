@@ -66,12 +66,12 @@ Sonnet 4.5 has been superseded by [Sonnet 4.6](/blog/claude-sonnet-4-6), which d
 - [Haiku 4.5](/blog/claude-haiku-4-5) for the budget-friendly option in the same family
 - Model selection guide for strategic model switching
 - Usage optimization for managing costs across models
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** handles model routing in one config file: Opus for `/spec` planning, Sonnet for everyday iteration, Haiku for trivial calls. You set the policy; Pilot Shell picks per request.
+**QualityLayer** lets you choose a model for each job. Your best model plans and coordinates, a smaller one builds the slices, and an AI from the other vendor reviews the design and the finished change. You set it per job in Settings.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

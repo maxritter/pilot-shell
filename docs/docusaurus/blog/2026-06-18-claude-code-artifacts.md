@@ -159,12 +159,12 @@ Not yet. Claude Code Artifacts are in beta on Team and Enterprise plans only, so
 ---
 
 *New to working in the terminal? Start with the terminal-first development model to understand how Claude Code's execution surface works, then see [Ultraplan](/blog/ultraplan) and [Claude Design](/blog/claude-design-handoff) for the other half of Anthropic's cloud-hosted, shareable output story. Primary sources: [Anthropic's Artifacts announcement](https://claude.com/blog/artifacts-in-claude-code) and the [official Claude Code Artifacts docs](https://code.claude.com/docs/en/artifacts).*
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

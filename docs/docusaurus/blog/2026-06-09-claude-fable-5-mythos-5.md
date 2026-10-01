@@ -141,12 +141,12 @@ The honest recommendation has changed since this table was written. [Opus 5](/bl
 **How much does Fable 5 cost?** $10 per million input tokens and $50 per million output tokens, double Opus 4.8 and less than half of Mythos Preview's $25/$125. Prompt caching saves up to 90% on cached input, and US-only inference is available at a 1.1x multiplier.
 
 **What is the Fable 5 context window?** Fable 5 includes the full 1M-token context window at standard pricing, the same flat per-token rate whether a request is 9K tokens or 900K. There is no long-context surcharge.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** handles model routing in one config file: Opus for `/spec` planning, Sonnet for everyday iteration, Haiku for trivial calls. You set the policy; Pilot Shell picks per request.
+**QualityLayer** lets you choose a model for each job. Your best model plans and coordinates, a smaller one builds the slices, and an AI from the other vendor reviews the design and the finished change. You set it per job in Settings.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

@@ -363,12 +363,12 @@ These interactive features get powerful when combined. Here are patterns that wo
 - See the context management guide for strategies on keeping your session efficient
 
 Claude Code's interactive mode is what separates "I use Claude for code" from "Claude Code is my development environment." The features covered here, from `/btw` side questions to vim editing to background tasks, aren't nice-to-haves. They're the interface layer that makes long Claude Code sessions productive instead of tedious. Learn the shortcuts that match your workflow, ignore the ones that don't, and revisit this reference when you hit a friction point that feels like it should have a shortcut. It probably does.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

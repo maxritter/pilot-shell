@@ -156,12 +156,12 @@ Skills are one of the seven pieces of [Anthropic's harness model](/blog/the-ai-l
 The principle behind path-scoped skills in Claude Code is the same one behind every well-tuned harness: load only what is relevant, only when it is relevant. A flat listing was workable at three skills. At twenty, scoping is not optional.
 
 Two takeaways. First, the rules-vs-workflows split is load-bearing: conventions go in CLAUDE.md, procedures go in skills, and `paths:` binds the procedure to the location it serves. Second, the `paths:` parameter is plural, takes a single glob or a list, and filters before description matching.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

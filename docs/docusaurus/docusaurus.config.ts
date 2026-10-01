@@ -3,11 +3,11 @@ import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
-  title: "Pilot Shell",
-  tagline: "How real engineers run Claude Code and Codex — persistent knowledge, enforced quality, runtime proof",
+  title: "QualityLayer",
+  tagline: "Workflows and references for the software factory around your coding agents",
   favicon: "img/favicon.png",
 
-  url: "https://pilot-shell.com",
+  url: "https://qualitylayer.dev",
   baseUrl: "/",
   // Match Vercel's `trailingSlash: false` so canonicals point to the actually-served URL.
   // Without this, Docusaurus emits canonical=/docs/X/ but Vercel 308-redirects to /docs/X.
@@ -32,6 +32,7 @@ const config: Config = {
   },
 
   themes: ["@easyops-cn/docusaurus-search-local"],
+  plugins: ["./plugins/changelog.cjs"],
 
   scripts: [
     {
@@ -53,19 +54,19 @@ const config: Config = {
         blog: {
           routeBasePath: "blog",
           path: "./blog",
-          blogTitle: "Pilot Shell Blog",
+          blogTitle: "QualityLayer Blog",
           blogDescription:
-            "Insights on Claude Code, Codex CLI, AI engineering, and the Pilot Shell platform — guides, tools, and model comparisons.",
+            "Engineering notes and guides. Earlier posts retain their original Pilot Shell context.",
           blogSidebarTitle: "Recent posts",
           blogSidebarCount: "ALL",
           postsPerPage: 12,
           showReadingTime: true,
           feedOptions: {
             type: ["rss", "atom"],
-            title: "Pilot Shell Blog",
+            title: "QualityLayer Blog",
             description:
-              "Latest posts from the Pilot Shell blog — Claude Code and Codex CLI engineering, AI tools, and model deep-dives.",
-            copyright: `Copyright © ${new Date().getFullYear()} Pilot Shell.`,
+              "QualityLayer engineering notes and earlier Pilot Shell articles.",
+            copyright: `Copyright © ${new Date().getFullYear()} QualityLayer.`,
           },
         },
         theme: {
@@ -81,28 +82,29 @@ const config: Config = {
   ],
 
   themeConfig: {
-    image: "https://pilot-shell.com/logo.png",
+    image: "https://qualitylayer.dev/og.png",
     metadata: [
       {
         name: "keywords",
         content:
-          "how real engineers run Claude Code and Codex, Claude Code, Codex CLI, OpenAI Codex, Claude Code engineering platform, Codex engineering platform, Claude Code framework, Codex framework, spec-driven development, Pilot Shell, TDD enforcement, AI coding agent, GPT-5, GPT-5.5, MCP servers, Claude Code best practices, Codex best practices",
+          "QualityLayer, coding agents, SDLC, shift left, planning, test-first development, Cockpit, agent handoff, independent review",
       },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@maxritter" },
       { property: "og:type", content: "website" },
-      { property: "og:site_name", content: "Pilot Shell" },
+      { property: "og:site_name", content: "QualityLayer" },
     ],
     colorMode: {
-      defaultMode: "dark",
+      defaultMode: "light",
       disableSwitch: false,
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: "Pilot Shell",
+      title: "QualityLayer",
       logo: {
-        alt: "Pilot Shell Logo",
-        src: "img/favicon.png",
+        alt: "QualityLayer",
+        src: "img/qualitylayer-mark.svg",
+        srcDark: "img/qualitylayer-mark-dark.svg",
         href: "/docs/",
       },
       items: [
@@ -118,7 +120,12 @@ const config: Config = {
           position: "left",
         },
         {
-          href: "https://pilot-shell.com",
+          to: "/docs/changelog",
+          label: "Changelog",
+          position: "left",
+        },
+        {
+          href: "https://qualitylayer.dev",
           label: "Home",
           position: "right",
         },
@@ -135,9 +142,10 @@ const config: Config = {
         {
           title: "Docs",
           items: [
-            { label: "Getting Started", to: "/docs/getting-started/prerequisites" },
-            { label: "Spec Workflow", to: "/docs/workflows/spec" },
-            { label: "Hooks Pipeline", to: "/docs/features/hooks" },
+            { label: "Install", to: "/docs/install" },
+            { label: "How a task works", to: "/docs/workflow/overview" },
+            { label: "Command reference", to: "/docs/reference/commands" },
+            { label: "Changelog", to: "/docs/changelog" },
             { label: "Blog", to: "/blog" },
           ],
         },
@@ -152,14 +160,14 @@ const config: Config = {
         },
         {
           title: "More",
-          items: [{ label: "Home", href: "https://pilot-shell.com" }],
+          items: [{ label: "Home", href: "https://qualitylayer.dev" }],
         },
       ],
-      copyright: `Copyright ${new Date().getFullYear()} Pilot Shell. Built with Docusaurus.`,
+      copyright: `Copyright ${new Date().getFullYear()} QualityLayer.`,
     },
     prism: {
       theme: prismThemes.github,
-      darkTheme: prismThemes.dracula,
+      darkTheme: prismThemes.vsDark,
       additionalLanguages: ["bash", "json", "python", "toml"],
     },
   } satisfies Preset.ThemeConfig,

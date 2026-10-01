@@ -1,0 +1,79 @@
+/* The shared-plan page: a plan to read, and a place to comment. Scoped .sh- classes only. */
+.sh-page main{min-height:70vh}
+.sh-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:32px;max-width:1180px;margin:0 auto;padding:32px 24px 64px}
+@container page (max-width: 900px){.sh-layout{grid-template-columns:minmax(0,1fr)}}
+.sh-plan h1{margin:0 0 6px;font-size:28px;letter-spacing:-.02em}
+.sh-note{margin:0 0 12px;color:var(--ql-muted, #8a93a1);font-size:13.5px;line-height:1.5}
+.sh-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 16px}
+.sh-tabs button,.sh-actions button,.sh-quote button{font:inherit;font-size:13px;padding:6px 12px;border-radius:8px;border:1px solid var(--ql-border, #2e333b);background:transparent;color:inherit;cursor:pointer}
+.sh-tabs button[aria-current="page"]{border-color:var(--ql-accent);color:var(--ql-accent)}
+.sh-doc{line-height:1.65;overflow-wrap:anywhere}
+.sh-doc h1,.sh-doc h2,.sh-doc h3,.sh-doc h4{letter-spacing:-.01em;font-weight:600;line-height:1.25}
+.sh-doc h1{font-size:26px;margin:0 0 16px}
+.sh-doc h2{font-size:20px;margin:28px 0 8px}
+.sh-doc h3{font-size:16px;margin:22px 0 6px}
+.sh-doc h4{font-size:14px;margin:18px 0 4px}
+.sh-doc p{margin:0 0 12px}
+.sh-doc ul,.sh-doc ol{margin:0 0 12px;padding-left:22px}
+.sh-doc ul{list-style:disc}
+.sh-doc ol{list-style:decimal}
+.sh-doc li{margin:2px 0}
+.sh-doc code{font-size:.9em;padding:1px 5px;border-radius:5px;background:var(--ql-surface, #1b1e24)}
+.sh-doc pre code{padding:0;background:none}
+.sh-doc blockquote{margin:0 0 12px;padding:0 0 0 14px;font-style:italic;color:var(--ql-muted, #8a93a1)}
+.sh-doc pre{overflow:auto;padding:12px 14px;border-radius:8px;background:var(--ql-surface, #1b1e24);font-size:13px}
+.sh-doc table{border-collapse:collapse;width:100%;font-size:14px}
+.sh-doc th,.sh-doc td{padding:8px 10px;border:1px solid var(--ql-border, #2e333b);text-align:left}
+.sh-side{display:grid;gap:8px;align-content:start;position:sticky;top:16px;align-self:start}
+.sh-side h2{margin:0;font-size:16px}
+.sh-side label{font-size:12.5px;color:var(--ql-muted, #8a93a1)}
+.sh-side input,.sh-side textarea{font:inherit;font-size:14px;padding:8px 10px;border-radius:8px;border:1px solid var(--ql-border, #2e333b);background:var(--ql-surface, #1b1e24);color:inherit;width:100%;box-sizing:border-box}
+.sh-quote{margin:0;padding:8px 10px;border-radius:8px;background:var(--ql-surface, #1b1e24);font-size:13px;color:var(--ql-muted, #8a93a1);display:grid;gap:6px}
+.sh-quote button{justify-self:start}
+.sh-actions{display:flex;flex-wrap:wrap;gap:6px}
+.sh-actions .primary{background:var(--ql-accent);border-color:var(--ql-accent);color:var(--ql-on-accent, #0b0d10)}
+.sh-actions button:disabled{opacity:.5;cursor:not-allowed}
+.sh-problem{margin:0;color:var(--ql-danger, #ff6b57);font-size:13px}
+.sh-sent p{margin:4px 0;font-size:13.5px}
+.sh-sent h3{margin:8px 0 0;font-size:13px;color:var(--ql-muted, #8a93a1)}
+.sh-status{max-width:560px;margin:0 auto;padding:96px 24px;text-align:center}
+.sh-status h1{font-size:24px}
+.sh-diagram{margin:16px 0;padding:16px;border:1px solid var(--ql-border, #2e333b);border-radius:8px;overflow-x:auto}
+.sh-diagram svg{display:block;max-width:100%;height:auto;margin:0 auto}
+/* The finished change (SharedChange.tsx). */
+.sh-switch{display:flex;gap:6px;max-width:1180px;margin:0 auto;padding:24px 24px 0}
+.sh-switch button{font:inherit;font-size:14px;padding:7px 14px;border-radius:8px;border:1px solid var(--ql-border, #2e333b);background:transparent;color:inherit;cursor:pointer}
+.sh-switch button[aria-current="page"]{border-color:var(--ql-accent);color:var(--ql-accent)}
+.sh-change h2{font-size:18px;margin:8px 0 12px}
+.sh-change h3{font-size:15px;margin:18px 0 8px}
+.sh-verified{margin:0 0 12px;font-size:14px;color:var(--ql-text, inherit)}
+.sh-pr{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 14px;margin:0 0 12px;border:1px solid var(--ql-border, #2e333b);border-radius:10px;font-size:14px}
+.sh-pr-num{font-family:var(--ql-font-code, monospace);color:var(--ql-accent)}
+.sh-pr-title{font-weight:600}
+.sh-pr-meta{color:var(--ql-muted, #8a93a1)}
+.sh-pr a{margin-left:auto;color:var(--ql-accent)}
+.sh-points{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.sh-points>li{padding:12px 14px;border:1px solid var(--ql-border, #2e333b);border-radius:10px}
+.sh-points p{margin:6px 0 0;font-size:14px;line-height:1.55}
+.sh-point-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.sh-n{font-family:var(--ql-font-code, monospace);color:var(--ql-muted, #8a93a1)}
+.sh-proof{color:var(--ql-muted, #8a93a1)}
+.sh-tag{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;border:1px solid var(--ql-border, #2e333b);color:var(--ql-muted, #8a93a1)}
+.sh-tag.ok{border-color:color-mix(in oklab, var(--ql-success, #3ecf8e) 45%, transparent);color:var(--ql-success, #3ecf8e)}
+.sh-on{margin-left:auto;font:inherit;font-size:12.5px;padding:3px 10px;border-radius:7px;border:1px solid var(--ql-border, #2e333b);background:transparent;color:inherit;cursor:pointer}
+.sh-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.sh-tile{padding:12px 14px;border:1px solid var(--ql-border, #2e333b);border-radius:10px}
+.sh-tile h3{margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.sh-tile ul{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:13.5px}
+.sh-tile li{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px}
+.sh-line-label{font-family:var(--ql-font-code, monospace);color:var(--ql-muted, #8a93a1)}
+.sh-pic{margin:12px 0;border:1px solid var(--ql-border, #2e333b);border-radius:10px;overflow:hidden}
+.sh-pic img{display:block;width:100%;height:auto}
+.sh-pic figcaption{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;color:var(--ql-muted, #8a93a1)}
+.sh-pic-missing{padding:24px;font-family:var(--ql-font-code, monospace);font-size:13px;color:var(--ql-muted, #8a93a1)}
+.sh-second{margin:16px 0 0;font-size:14px}
+.sh-second summary{cursor:pointer}
+.sh-steps{margin:0;padding-left:22px;display:grid;gap:8px;line-height:1.55}
+.sh-steps code{display:block;width:fit-content;margin-top:4px;font-size:13px;padding:2px 8px;border-radius:6px;background:var(--ql-surface, #1b1e24)}
+.sh-thread{display:grid;gap:4px;padding:8px 0;border-top:1px solid var(--ql-border, #2e333b)}
+.sh-reply{padding-left:12px;color:var(--ql-muted, #8a93a1)}

@@ -140,12 +140,12 @@ For model selection, the calculus is straightforward. Use Sonnet 4.6 as your dai
 - [Sonnet 4.5](/blog/claude-sonnet-4-5) for the previous Sonnet release
 - Model selection guide for strategic model switching
 - Usage optimization for managing costs across models
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** handles model routing in one config file: Opus for `/spec` planning, Sonnet for everyday iteration, Haiku for trivial calls. You set the policy; Pilot Shell picks per request.
+**QualityLayer** lets you choose a model for each job. Your best model plans and coordinates, a smaller one builds the slices, and an AI from the other vendor reviews the design and the finished change. You set it per job in Settings.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

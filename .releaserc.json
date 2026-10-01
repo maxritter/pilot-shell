@@ -1,5 +1,9 @@
 {
-  "branches": ["main"],
+  "branches": [
+    "main",
+    { "name": "11.x", "range": "11.x" },
+    { "name": "dev", "prerelease": "beta", "channel": "beta" }
+  ],
   "plugins": [
     [
       "@semantic-release/commit-analyzer",
@@ -24,13 +28,13 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "sed -i 's/^__version__ = \".*\"/__version__ = \"${nextRelease.version}\"/' installer/__init__.py launcher/__init__.py && sed -i 's/export VERSION=[0-9.]*/export VERSION=${nextRelease.version}/g' README.md && sed -i 's/\"version\": \"[0-9.]*\"/\"version\": \"${nextRelease.version}\"/' console/package.json pilot/package.json && bun run --cwd console build"
+        "prepareCmd": "sed -i 's/\"version\": \"[^\"]*\"/\"version\": \"${nextRelease.version}\"/' qualitylayer/package.json"
       }
     ],
     [
       "@semantic-release/git",
       {
-        "assets": ["installer/__init__.py", "launcher/__init__.py", "README.md", "CHANGELOG.md", "console/package.json", "pilot/package.json", "pilot/scripts/*.cjs", "pilot/ui/**"],
+        "assets": ["qualitylayer/package.json", "CHANGELOG.md"],
         "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
     ],

@@ -14,7 +14,7 @@ import { type Plugin } from "vite";
 import fs from "fs";
 import path from "path";
 
-const SITE_URL = "https://pilot-shell.com";
+const SITE_URL = "https://qualitylayer.dev";
 
 interface PageEntry {
   loc: string;
@@ -24,8 +24,7 @@ interface PageEntry {
 
 // Only canonical URLs are listed. Hash-anchor URLs (#installation, #features,
 // ...) share the canonical with "/" and were flagged as "non-canonical pages
-// in sitemap" by SEO crawlers. /shared is a paste-only tool page; it lives in
-// robots.txt but not the sitemap so it doesn't surface as an orphan.
+// in sitemap" by SEO crawlers.
 const PAGES: PageEntry[] = [
   { loc: "/", changefreq: "weekly", priority: "1.0" },
   { loc: "/pricing", changefreq: "monthly", priority: "0.5" },

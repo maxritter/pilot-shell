@@ -1,10 +1,7 @@
-launcher/** filter=git-crypt diff=git-crypt
-launcher/**/__init__.py !filter !diff
-console/** filter=git-crypt diff=git-crypt
-console/.gitignore !filter !diff
-console/package.json !filter !diff
-console/bun.lock !filter !diff
-console/tsconfig.json !filter !diff
-console/src/utils/logger.ts !filter !diff
 docs/site/api/** filter=git-crypt diff=git-crypt
+qualitylayer/** filter=git-crypt diff=git-crypt
+qualitylayer/package.json !filter !diff
+qualitylayer/bun.lock !filter !diff
+qualitylayer/tsconfig.json !filter !diff
+qualitylayer/biome.json !filter !diff
 .gitattributes !filter !diff

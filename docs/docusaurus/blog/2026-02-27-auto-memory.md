@@ -193,12 +193,12 @@ The overlap between these systems is intentional. Auto memory catches things you
 - Read about [context engineering](/blog/context-engineering) for production AI memory systems
 
 Auto memory closes the gap between what you tell Claude and what Claude figures out on its own. CLAUDE.md handles the "do it this way" instructions. Auto memory handles the "I noticed this about your project" knowledge. Together, they mean fewer repeated explanations and more time building.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

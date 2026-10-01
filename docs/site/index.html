@@ -4,387 +4,129 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Primary Meta Tags -->
     <!--
-      This is a client-rendered SPA, so THIS block is what every consumer that
-      does not execute JavaScript sees: Slack, LinkedIn and X unfurls, and any
-      crawler that indexes the raw response. react-helmet-async in SEO.tsx only
-      rewrites the head after hydration.
-
-      So it has to stay in sync with the defaults in src/components/SEO.tsx by
-      hand. Change one, change the other - there is no build step that copies
-      them across, and a stale title here is invisible in the browser.
+      This is a client-rendered SPA, so THIS block is what every consumer that does not
+      execute JavaScript sees: Slack, LinkedIn and X unfurls, and crawlers that index the raw
+      response. react-helmet-async in src/components/SEO.tsx only rewrites the head after
+      hydration, so keep the two in sync by hand.
     -->
-    <title>Pilot Shell — Engineering harness for Claude Code &amp; Codex</title>
-    <meta name="title" content="Pilot Shell — Engineering harness for Claude Code &amp; Codex" />
+    <title>QualityLayer — The software factory for your coding agents</title>
+    <meta name="title" content="QualityLayer — The software factory for your coding agents" />
     <meta
       name="description"
-      content="Professional context, enforced quality, persistent knowledge, code intelligence, and runtime proof for Claude Code and Codex — with Pilot workflows when you want their contract."
+      content="You approve the plan before any code is written. Your agent builds it in small, tested steps, and an independent check compares it with what you asked."
     />
     <meta
       name="keywords"
-      content="claude code skills, codex cli, spec driven development, claude code agents, claude code plugins, claude code hooks, claude code subagents, claude code mcp, claude code setup, claude code best practices, Pilot Shell"
+      content="claude code, codex cli, ai coding agent, spec driven development, agent planning, code verification, plan review, team code review, QualityLayer"
     />
     <meta name="author" content="Max Ritter" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1" />
-    <meta name="bingbot" content="index, follow" />
-    <meta name="language" content="English" />
-    <meta name="revisit-after" content="3 days" />
 
-    <!-- Canonical URL -->
-    <link rel="canonical" href="https://pilot-shell.com/" />
+    <link rel="canonical" href="https://qualitylayer.dev/" />
 
     <!-- IndexNow verification (Bing, Yandex, Naver, Seznam, Yep) -->
-    <meta name="indexnow" content="0bd196f90bbc9ec8113bd78de2507fb2" />
+    <meta name="indexnow" content="4cfdecbb7e7995c71fc905bcdf607b8e" />
 
-    <!-- Sitemap discovery hints -->
     <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
-    <link rel="alternate" type="application/rss+xml" title="Pilot Shell Blog" href="/blog/rss.xml" />
-
-    <!-- Resource hints -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://github.com" />
 
-    <!-- Ahrefs Web Analytics -->
-    <script src="https://analytics.ahrefs.com/analytics.js" data-key="z+ZckeCmmFW1kMjAfQEXLA" async></script>
+    <!-- Brand fonts, self-hosted. The latin subsets are the only ones the page uses. -->
+    <link rel="preload" href="/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
 
-    <!-- LCP preload — the hero logo is the largest contentful element -->
-    <link
-      rel="preload"
-      as="image"
-      href="/logo_sm.webp"
-      imagesrcset="/logo_sm.webp 980w, /logo.webp 1228w"
-      imagesizes="(min-width: 1024px) 600px, (min-width: 768px) 500px, (min-width: 640px) 400px, (min-width: 475px) 280px, 240px"
-      type="image/webp"
-      fetchpriority="high"
-    />
-
-    <!-- Fonts: async, non-render-blocking. Preload the CSS, then swap to stylesheet
-         on load. The <noscript> fallback keeps fonts working without JS. -->
-    <link
-      rel="preload"
-      as="style"
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;700&display=swap"
-      onload="
-        this.onload = null;
-        this.rel = 'stylesheet';
-      "
-    />
-    <noscript>
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;700&display=swap"
-      />
-    </noscript>
-
-    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" type="image/webp" href="/favicon.webp" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png" />
-
-    <!-- Web App Manifest -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#6366f1" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
 
-    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://pilot-shell.com/" />
-    <meta property="og:title" content="Pilot Shell — How real engineers run Claude Code and Codex" />
+    <meta property="og:url" content="https://qualitylayer.dev/" />
+    <meta property="og:title" content="QualityLayer — The software factory for your coding agents" />
     <meta
       property="og:description"
-      content="Professional context, enforced quality, persistent knowledge, code intelligence, and runtime proof for Claude Code and Codex — with Pilot workflows when you want their contract."
+      content="You approve the plan before any code is written. Your agent builds it in small, tested steps, and an independent check compares it with what you asked."
     />
-    <meta property="og:image" content="https://pilot-shell.com/logo.png" />
+    <meta property="og:image" content="https://qualitylayer.dev/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Pilot Shell — How real engineers run Claude Code and Codex" />
-    <meta property="og:site_name" content="Pilot Shell" />
+    <meta property="og:image:alt" content="QualityLayer: the software factory for your coding agents" />
+    <meta property="og:site_name" content="QualityLayer" />
     <meta property="og:locale" content="en_US" />
 
-    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://pilot-shell.com/" />
-    <meta name="twitter:title" content="Pilot Shell — How real engineers run Claude Code and Codex" />
+    <meta name="twitter:url" content="https://qualitylayer.dev/" />
+    <meta name="twitter:title" content="QualityLayer — The software factory for your coding agents" />
     <meta
       name="twitter:description"
-      content="Professional context, enforced quality, persistent knowledge, code intelligence, and runtime proof for Claude Code and Codex — with Pilot workflows when you want their contract."
+      content="You approve the plan before any code is written. Your agent builds it in small, tested steps, and an independent check compares it with what you asked."
     />
-    <meta name="twitter:image" content="https://pilot-shell.com/logo.png" />
-    <meta name="twitter:image:alt" content="Pilot Shell logo" />
+    <meta name="twitter:image" content="https://qualitylayer.dev/og.png" />
 
-    <!-- Schema.org JSON-LD: WebSite -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        "name": "Pilot Shell",
-        "alternateName": "Claude Pilot",
-        "url": "https://pilot-shell.com/",
-        "description": "Professional context and harness engineering for Claude Code and Codex: persistent knowledge, enforced quality, code intelligence, and runtime proof.",
+        "name": "QualityLayer",
+        "url": "https://qualitylayer.dev/",
         "inLanguage": "en-US",
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": "https://pilot-shell.com/docs/?q={search_term_string}",
-          "query-input": "required name=search_term_string"
-        },
-        "hasPart": {
-          "@type": "Blog",
-          "name": "Pilot Shell Blog",
-          "url": "https://pilot-shell.com/blog/",
-          "description": "Guides and insights on Claude Code, Codex CLI, AI-powered development workflows, TDD enforcement, and quality automation"
+        "publisher": {
+          "@type": "Organization",
+          "name": "QualityLayer",
+          "url": "https://qualitylayer.dev/",
+          "logo": { "@type": "ImageObject", "url": "https://qualitylayer.dev/logo.png" },
+          "sameAs": ["https://github.com/maxritter/pilot-shell", "https://www.linkedin.com/in/rittermax/"]
         }
       }
     </script>
-
-    <!-- Schema.org JSON-LD: SoftwareApplication -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
-        "name": "Pilot Shell",
-        "alternateName": "Claude Pilot",
-        "description": "Professional context and harness engineering for Claude Code and Codex: persistent knowledge, enforced quality, code intelligence, and runtime proof.",
+        "name": "QualityLayer",
+        "description": "The software factory for any coding agent: you approve the plan before code is written, the agent builds it in small, tested steps, and an independent check compares it with what you asked.",
         "applicationCategory": "DeveloperApplication",
-        "applicationSubCategory": "AI Development Tools",
-        "operatingSystem": "Windows, macOS, Linux",
-        "softwareRequirements": "Claude Code CLI or Codex CLI",
-        "releaseNotes": "https://github.com/maxritter/pilot-shell/releases",
-        "screenshot": "https://pilot-shell.com/logo.png",
-        "downloadUrl": "https://github.com/maxritter/pilot-shell",
-        "url": "https://pilot-shell.com/",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD",
-          "availability": "https://schema.org/InStock"
-        },
-        "author": {
-          "@type": "Person",
-          "name": "Max Ritter",
-          "url": "https://maxritter.net/"
-        },
-        "provider": {
-          "@type": "Organization",
-          "name": "Pilot Shell",
-          "url": "https://pilot-shell.com/",
-          "logo": "https://pilot-shell.com/favicon.png",
-          "sameAs": ["https://github.com/maxritter/pilot-shell", "https://www.linkedin.com/in/rittermax/"]
-        },
-        "featureList": [
-          "Engineering Harness: direct requests, native Plan and Goal tools, and Pilot workflows under one quality standard",
-          "Persistent Memory — context carries across sessions",
-          "Quality Enforcement: linting, type checking, tests, builds, and completion guards",
-          "Runtime Verification: real CLI, API, browser, and device evidence",
-          "Code Intelligence: Semble semantic search, CodeGraph, ast-grep, language servers, and MCP",
-          "Pilot Workflows: durable requirements, plans, criteria, TDD loops, reviews, and verification evidence",
-          "MCP Servers: preconfigured for Claude Code and Codex",
-          "LSP Integrations: Claude Code only",
-          "Automatic UI Design Expertise — product-grounded skills and on-demand Claude Design access",
-          "Worktree Isolation — safe parallel work via git worktrees",
-          "Python, TypeScript, Go, and C# support"
-        ],
-        "keywords": "Claude Code, Codex CLI, OpenAI Codex, AI coding, TDD, quality automation, spec-driven development, MCP, LSP"
-      }
-    </script>
-
-    <!-- Schema.org JSON-LD: HowTo (installation) -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "HowTo",
-        "name": "How to install Pilot Shell for Claude Code and Codex",
-        "description": "Install Pilot Shell once and use its context, quality, memory, code intelligence, and verification harness across every project in Claude Code or Codex.",
-        "totalTime": "PT2M",
-        "supply": [
-          {
-            "@type": "HowToSupply",
-            "name": "Active Claude Code subscription (Max 5x, Max 20x, Team Premium) or OpenAI Codex subscription (Plus, Pro, Business, Enterprise)"
-          }
-        ],
-        "tool": [
-          { "@type": "HowToTool", "name": "Claude Code CLI or Codex CLI" },
-          { "@type": "HowToTool", "name": "Bash, Zsh, or compatible shell" }
-        ],
-        "step": [
-          {
-            "@type": "HowToStep",
-            "position": 1,
-            "name": "Run the installer",
-            "text": "Run the one-line installer in your terminal: curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash",
-            "url": "https://pilot-shell.com/#installation"
-          },
-          {
-            "@type": "HowToStep",
-            "position": 2,
-            "name": "Launch your agent",
-            "text": "Run claude or codex in any project directory — Pilot Shell is loaded automatically into the session.",
-            "url": "https://pilot-shell.com/#installation"
-          },
-          {
-            "@type": "HowToStep",
-            "position": 3,
-            "name": "Choose how to work",
-            "text": "Use a direct request, your agent's native Plan or Goal tools, or a Pilot workflow. They are peer paths through the same engineering harness.",
-            "url": "https://pilot-shell.com/#workflows"
-          },
-          {
-            "@type": "HowToStep",
-            "position": 4,
-            "name": "Add project context when wanted",
-            "text": "Run /setup-rules in Claude Code or $setup-rules in Codex when you want repository-specific shared guidance.",
-            "url": "https://pilot-shell.com/docs/workflows/setup-rules"
-          }
-        ]
-      }
-    </script>
-
-    <!-- Schema.org JSON-LD: FAQPage -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "Do I need a separate AI agent subscription to use Pilot Shell?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. Pilot Shell enhances Claude Code and Codex CLI — it doesn't replace them. You need at least one active subscription: Claude (Max 5x or 20x for solo developers, or Team Premium for teams) or OpenAI Codex (Plus or Pro for solo developers, Business or Enterprise for teams). Pilot Shell adds quality automation on top of whichever agent you use."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Is Pilot Shell enterprise-compliant for data privacy?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Pilot Shell's installed local services keep your source code, project files, and development context on your machine. Semble and CodeGraph process code locally, and Pilot disables CodeGraph's optional telemetry. Pilot's required service calls are daily license validation (license key only) and one-time activation or trial start (machine fingerprint only); they do not include source code, OS information, or version strings. Your overall compliance posture also depends on how your organization configures Claude Code or Codex and its AI provider."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Does Pilot Shell work with other AI coding tools?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Pilot Shell supports Claude Code and Codex CLI through agent-specific integrations. Claude Code provides slash-command workflows, edit-time quality hooks, and LSP integrations. Codex compatibility uses the interfaces Pilot supports for that agent. The installer detects supported agents and configures the relevant assets."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Does Pilot Shell work with existing projects?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes — that's the primary use case. Pilot Shell doesn't scaffold or restructure your code. Install it, work directly or choose a native or Pilot workflow, and run /setup-rules only when you want repository-specific shared guidance."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Which programming languages does Pilot Shell support?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Pilot Shell's quality hooks (auto-formatting, linting, type checking) currently support Python, TypeScript/JavaScript, and Go out of the box, plus a single-file dotnet format whitespace check for C#. Pilot workflows, persistent memory, and all rules and standards work with any language Claude Code or Codex CLI supports."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Can I use one Pilot Shell license on multiple machines?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. A Solo license covers you across all your personal devices — workstation, laptop, VPS, cloud instances. One subscription, one key, multiple machines. Team licenses are for multiple people, not multiple machines."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Can I use Pilot Shell on multiple projects?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. Pilot Shell installs once globally and works across all your projects. All tools, rules, commands, and hooks live in ~/.pilot/ and ~/.claude/. Each project can optionally have its own .claude/ rules, custom skills, and MCP servers."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Can I add my own rules, commands, skills, and agents?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. Create your own in your project's .claude/ folder — rules, commands, skills, and agents are plain markdown files. Project-level assets load alongside Pilot Shell's defaults and take precedence when they overlap. Team plans also support sharing extensions via a connected git repository."
-            }
-          }
-        ]
+        "operatingSystem": "macOS, Linux, Windows (WSL2)",
+        "url": "https://qualitylayer.dev/",
+        "author": { "@type": "Person", "name": "Max Ritter", "url": "https://maxritter.net/" }
       }
     </script>
   </head>
 
   <body>
-    <!-- ⚠️ CSP-hashed inline script. If you edit the block below, recompute its
-         SHA-256 hash and update `script-src 'sha256-...'` in docs/site/vercel.json.
-         Current hash: sha256-3TPUzXhwjpQK+1gL7po7Cix3TpNA/3HGtxVbIF1N2N0=
-         Drift = silent FOUC (browser blocks the script). Verified by scripts/verify-csp-hash.mjs. -->
-    <script>
-      // Prevent flash of wrong theme on load
-      (function () {
-        var stored = null;
-        try {
-          stored = localStorage.getItem("pilot-site-theme");
-        } catch (e) {}
-        var isDark =
-          stored === "dark" || (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-        if (isDark) document.documentElement.classList.add("dark");
-      })();
-    </script>
     <div id="root"></div>
 
-    <!-- Static SEO content for crawlers without full JS rendering (Bing, DuckDuckGo,
-         social media bots, IndexNow consumers). Replaced by the React app on hydration. -->
+    <!-- Static content for crawlers that do not run JavaScript. Replaced by the app on load. -->
     <noscript>
       <header>
-        <h1>Pilot Shell — How real engineers run Claude Code and Codex</h1>
+        <h1>The software factory for your coding agents</h1>
         <p>
-          Professional context and harness engineering around the coding agents you already use. Direct requests,
-          native Plan and Goal tools, and Pilot workflows are equal paths through persistent knowledge, enforced
-          quality, and runtime proof.
+          You approve the plan before any code is written. Your agent builds it in small, tested steps, and an independent check compares it with what you asked.
         </p>
       </header>
       <main>
         <section>
-          <h2>What Pilot Shell adds to Claude Code and Codex</h2>
+          <h2>How a request becomes a reviewed change</h2>
           <ul>
-            <li>
-              <strong>Engineering Harness</strong> - Persistent context, quality enforcement, professional tools, and runtime proof around the way you already work.
-            </li>
-            <li>
-              <strong>Goal-and-Loop Development</strong> - Build and judge against a named quality bar with /build.
-            </li>
-            <li><strong>TDD Enforcement</strong> — Tests first, then implementation.</li>
-            <li>
-              <strong>Quality Checks</strong> - Linting, type checking, tests, builds, and execution verification.
-            </li>
-            <li><strong>Persistent Memory</strong> — Context carries across sessions automatically.</li>
-            <li><strong>Semantic Code Search</strong> — Find code by meaning, not just keywords.</li>
-            <li><strong>MCP Servers</strong> - Preconfigured for Claude Code and Codex.</li>
-            <li><strong>LSP Integrations</strong> - Claude Code only.</li>
-            <li>
-              <strong>Conditional UI Design Expertise</strong> - Path-gated principles, progressively disclosed
-              skills, and on-demand Claude Design access for current Codex.
-            </li>
-            <li><strong>Worktree Isolation</strong> — Safe parallel work via git worktrees.</li>
+            <li>Your agent writes the plan as short documents you approve one by one in the Cockpit: frame, research, design, outline. Designs come with diagrams and clickable mockups.</li>
+            <li>Smaller, cheaper models build it in vertical slices. Each slice starts with a failing test and runs end to end before the next one.</li>
+            <li>One pass makes the whole change simpler, then an AI that did not write the code checks it against your request, with evidence.</li>
+            <li>You review the finished change with its evidence and pull request, and approve it. Bugs and small changes take shorter routes.</li>
+            <li>With a Team plan, your team reviews the plan and the finished change in their own Cockpit; people outside the team comment through a link.</li>
           </ul>
         </section>
         <section>
           <h2>Install</h2>
-          <p>Run the installer in your terminal:</p>
-          <pre><code>curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash</code></pre>
-          <p>
-            Work directly, use native Plan/Goal tools, or choose a Pilot workflow. Run <code>/setup-rules</code> or
-            <code>$setup-rules</code> when you want repository-specific shared guidance.
-          </p>
+          <pre><code>curl -fsSL https://qualitylayer.dev/install.sh | bash</code></pre>
+          <p>Then type /ql and the problem in Claude Code, or $ql in Codex, in the terminal, desktop app or IDE. Any agent that supports skills works.</p>
         </section>
         <section>
           <h2>Learn more</h2>
           <ul>
-            <li><a href="/docs">Documentation</a></li>
-            <li><a href="/blog/">Blog</a></li>
-            <li><a href="https://github.com/maxritter/pilot-shell">GitHub repository</a></li>
+            <li><a href="https://qualitylayer.dev/pricing">Pricing</a></li>
+            <li><a href="https://qualitylayer.dev/docs/">Docs</a></li>
+            <li><a href="https://github.com/maxritter/pilot-shell">GitHub</a></li>
           </ul>
         </section>
       </main>

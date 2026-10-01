@@ -1,0 +1,180 @@
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+
+/**
+ * One deployment answers both hosts: pilot-shell.com pages move to qualitylayer.dev,
+ * while pilot-shell.com's API and share links keep answering. This evaluates vercel.json's redirect and rewrite rules the way
+ * Vercel does, in order, first match wins: `:name` is one segment, `:name*` the rest,
+ * a parenthesised group is a raw regular expression, `$1` and `:name` fill a destination.
+ * API routes are files, so they are served before any rewrite. It is an approximation
+ * of Vercel's matcher, enough for the rules this file holds; the deployed check
+ * (scripts/check-deploy.sh) is the real one.
+ */
+
+type Rule = {
+  source: string;
+  destination: string;
+  permanent?: boolean;
+  has?: { type: string; value: string }[];
+};
+const config = JSON.parse(readFileSync(new URL("./vercel.json", import.meta.url), "utf8")) as {
+  redirects: Rule[];
+  rewrites: Rule[];
+  headers: { source: string; headers: { key: string; value: string }[] }[];
+};
+
+function compile(source: string): { regex: RegExp; names: string[] } {
+  const names: string[] = [];
+  let out = "";
+  for (let i = 0; i < source.length; ) {
+    const char = source[i] as string;
+    if (char === "(") {
+      // A raw group, copied to its matching close parenthesis.
+      let depth = 0;
+      let j = i;
+      for (; j < source.length; j++) {
+        if (source[j] === "\\") j++;
+        else if (source[j] === "(") depth++;
+        else if (source[j] === ")" && --depth === 0) break;
+      }
+      names.push(String(names.length + 1));
+      out += source.slice(i, j + 1);
+      i = j + 1;
+    } else if (char === ":") {
+      const name = /^:([A-Za-z_]+)(\*?)/.exec(source.slice(i));
+      if (name === null) throw new Error(`bad source ${source}`);
+      names.push(name[1] as string);
+      out += name[2] === "*" ? "(.*)" : "([^/]+)";
+      i += name[0].length;
+    } else {
+      out += char.replace(/[.+?^${}|[\]\\]/g, "\\$&");
+      i++;
+    }
+  }
+  return { regex: new RegExp(`^${out}$`), names };
+}
+
+function fill(destination: string, names: string[], groups: string[]): string {
+  let out = destination;
+  names.forEach((name, index) => {
+    out = out.replaceAll(`:${name}*`, groups[index] ?? "").replaceAll(`:${name}`, groups[index] ?? "");
+  });
+  return out.replace(/\$(\d)/g, (_, digit: string) => groups[Number(digit) - 1] ?? "");
+}
+
+const hostMatches = (rule: Rule, host: string) =>
+  (rule.has ?? []).every(
+    (condition) => condition.type !== "host" || new RegExp(`^(?:${condition.value})$`).test(host),
+  );
+
+type Answer =
+  | { kind: "redirect"; status: number; location: string }
+  | { kind: "function" }
+  | { kind: "rewrite"; to: string }
+  | { kind: "none" };
+
+function answer(host: string, path: string): Answer {
+  for (const rule of config.redirects) {
+    const { regex, names } = compile(rule.source);
+    const hit = regex.exec(path);
+    if (hit === null || !hostMatches(rule, host)) continue;
+    return {
+      kind: "redirect",
+      status: rule.permanent === true ? 308 : 307,
+      location: fill(rule.destination, names, hit.slice(1)),
+    };
+  }
+  if (path.startsWith("/api/")) return { kind: "function" };
+  for (const rule of config.rewrites) {
+    const { regex, names } = compile(rule.source);
+    const hit = regex.exec(path);
+    if (hit !== null && hostMatches(rule, host)) {
+      return { kind: "rewrite", to: fill(rule.destination, names, hit.slice(1)) };
+    }
+  }
+  return { kind: "none" };
+}
+
+const OLD = "pilot-shell.com";
+const NEW = "qualitylayer.dev";
+const V2_LINK = "/s/Xk3Jd92xA7pQ4mZr1bTnWe";
+
+describe("pilot-shell.com pages move to qualitylayer.dev", () => {
+  it("sends the pricing page there for good, keeping the path", () => {
+    expect(answer(OLD, "/pricing")).toEqual({
+      kind: "redirect",
+      status: 308,
+      location: "https://qualitylayer.dev/pricing",
+    });
+  });
+
+  it("sends the home page, the docs and the blog there, and the www host too", () => {
+    expect(answer(OLD, "/")).toEqual({ kind: "redirect", status: 308, location: "https://qualitylayer.dev/" });
+    expect(answer(OLD, "/docs/features/hooks")).toMatchObject({
+      status: 308,
+      location: "https://qualitylayer.dev/docs/features/hooks",
+    });
+    expect(answer(OLD, "/blog/some-post")).toMatchObject({ location: "https://qualitylayer.dev/blog/some-post" });
+    expect(answer(`www.${OLD}`, "/pricing")).toMatchObject({ location: "https://qualitylayer.dev/pricing" });
+  });
+
+  it("serves the beta's install script from the dev branch, on either host", () => {
+    for (const host of [OLD, NEW]) {
+      expect(answer(host, "/install.sh"), host).toEqual({
+        kind: "redirect",
+        status: 307,
+        location: "https://raw.githubusercontent.com/maxritter/pilot-shell/dev/install.sh",
+      });
+    }
+  });
+});
+
+describe("doc pages that moved or were removed", () => {
+  it("send the Pilot Shell 11 pages to the docs home", () => {
+    for (const path of ["/docs/features/hooks", "/docs/workflows/spec"]) {
+      expect(answer(NEW, path), path).toEqual({ kind: "redirect", status: 308, location: "/docs" });
+    }
+  });
+
+  it("send each merged page to the section that took it over", () => {
+    expect(answer(NEW, "/docs/phases/verify")).toEqual({ kind: "redirect", status: 308, location: "/docs/workflow/check/verify" });
+    expect(answer(NEW, "/docs/guides/cockpit")).toEqual({ kind: "redirect", status: 308, location: "/docs/cockpit" });
+    expect(answer(NEW, "/docs/reference/peers")).toMatchObject({ location: "/docs/reference/commands#session-messaging" });
+  });
+});
+
+describe("what pilot-shell.com still answers itself", () => {
+  it("serves its API routes itself", () => {
+    for (const path of ["/api/share", "/api/share/Xk3Jd92xA7pQ4mZr1bTnWe", "/api/share/feedback/batch", "/api/team/pass", "/api/trial"]) {
+      expect(answer(OLD, path), path).toEqual({ kind: "function" });
+    }
+  });
+
+  it("serves the files the share page loads, or a link opened there would be an empty page", () => {
+    // The page's script, stylesheet and fonts are 'self' under the share page's policy,
+    // so they must come from pilot-shell.com itself, not from a redirect to another origin.
+    for (const path of ["/assets/website-DZk-iDwE.js", "/assets/website-rIc8s26h.css", "/fonts/geist-latin.woff2", "/brand/favicon.svg", "/favicon.ico"]) {
+      expect(answer(OLD, path).kind, path).not.toBe("redirect");
+    }
+  });
+
+  it("shows the share page for a link, without redirecting", () => {
+    expect(answer(OLD, V2_LINK)).toEqual({ kind: "rewrite", to: "/" });
+  });
+});
+
+describe("qualitylayer.dev is not redirected", () => {
+  it("serves pages, the API and share links itself", () => {
+    expect(answer(NEW, "/pricing")).toEqual({ kind: "rewrite", to: "/" });
+    expect(answer(NEW, "/docs/cockpit")).toEqual({ kind: "rewrite", to: "/docs/cockpit" });
+    expect(answer(NEW, "/api/team/pass")).toEqual({ kind: "function" });
+    expect(answer(NEW, V2_LINK)).toEqual({ kind: "rewrite", to: "/" });
+  });
+});
+
+describe("the share page's own headers", () => {
+  it("keep the strict content security policy on /s/*", () => {
+    const rule = config.headers.find((h) => h.source === "/s/(.*)");
+    expect(rule?.headers.find((h) => h.key === "Content-Security-Policy")?.value).toContain("default-src 'self'");
+  });
+});

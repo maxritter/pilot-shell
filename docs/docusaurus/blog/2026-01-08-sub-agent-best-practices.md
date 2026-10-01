@@ -177,12 +177,12 @@ The routing rules above will immediately improve how your central AI delegates w
 Start with the routing rules. Add them to your [CLAUDE.md](/blog/claude-md-mastery) today and watch your central AI make smarter delegation decisions. For deeper patterns, explore task distribution and agent fundamentals.
 
 Async Workflows
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** installs a structured workflow for agent work on top of Claude Code: `/spec` plans the change, runs implementation under TDD, and verifies with an automated reviewer pass. The orchestration loop most agent setups end up writing by hand.
+**QualityLayer** adds a structured workflow on top of your coding agent: you approve the plan, helper agents build and test it slice by slice, and a fresh agent verifies the result against your request. The orchestration loop most agent setups end up writing by hand.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

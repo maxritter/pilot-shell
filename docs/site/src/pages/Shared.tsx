@@ -1,462 +1,307 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import DOMPurify from "dompurify";
+import { marked } from "marked";
+import { useEffect, useRef, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { useParams } from "react-router-dom";
-import { Shield, ArrowRight, AlertCircle, RefreshCw } from "lucide-react";
-import NavBar from "@/components/NavBar";
-import Footer from "@/components/Footer";
+import Page from "@/components/Page";
 import SEO from "@/components/SEO";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { FeedbackSidebar } from "@/components/feedback";
-import { SectionedBlockRenderer } from "@/components/feedback/SectionedBlockRenderer";
-import { parseMarkdownToBlocks, useAnnotation, createAnnotation } from "@/lib/annotation";
 import {
-  parseHashFragment,
-  decompressHashPayload,
-  submitFeedback,
-} from "@/lib/sharing";
-import type { Decision, SharePayload } from "@/lib/sharing";
-import { successStateText } from "@/components/feedback/feedback-sidebar-helpers";
+  type ChangeCommentInput,
+  type CommentInput,
+  type LoadedShare,
+  loadShare,
+  orderedDocs,
+  type SubmitResult,
+  submitChangeComment,
+  submitComment,
+} from "@/lib/sharing/sharing";
+import { mermaidRenderer, renderDiagrams } from "@/lib/sharing/diagrams";
+import { ChangeView } from "./SharedChange";
+import "@/styles/shared.css";
 
-const SHARE_BASE_URL = "https://pilot-shell.com/shared";
+const NAME_KEY = "qualitylayer-guest-name";
 
-/** Check that the browser supports the APIs we need */
-function checkBrowserSupport(): string | null {
-  if (typeof CompressionStream === "undefined") {
-    return "Your browser does not support the required compression API. Please upgrade to Chrome 80+, Firefox 113+, or Safari 16.4+.";
-  }
+const escapeHtml = (text: string) =>
+  text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/** A plan's markdown as safe HTML. Without a DOM to sanitise with, the text is shown as text. */
+function renderMarkdown(markdown: string): string {
+  if (typeof window === "undefined") return `<pre>${escapeHtml(markdown)}</pre>`;
+  return DOMPurify.sanitize(marked.parse(markdown, { async: false }) as string, {
+    FORBID_TAGS: ["style", "iframe", "form", "object", "embed"],
+    FORBID_ATTR: ["style", "onerror", "onclick"],
+  });
+}
+
+function storedName(): string {
   try {
-    new Uint8Array(1).toBase64({ alphabet: "base64url" });
+    return typeof window === "undefined" ? "" : (window.localStorage.getItem(NAME_KEY) ?? "");
   } catch {
-    return "Your browser does not support the required base64 encoding API. Please upgrade to Chrome 128+, Safari 17.4+, or Firefox 133+.";
+    return "";
   }
-  return null;
 }
 
-/** Match `[https?://]<host>/s/<id>` — scheme optional + host-agnostic for preview deployments and scheme-less pastes. */
-const PILOT_SHELL_SHORT_RE = /^(?:https?:\/\/)?[^/\s]+\/s\/([A-Za-z0-9]{8})\/?$/;
+const REASONS: Record<Exclude<SubmitResult, { ok: true }>["reason"], string> = {
+  gone: "This plan is no longer shared, so it cannot take comments.",
+  rate_limited: "Too many comments from this connection. Wait a few minutes and try again.",
+  too_large: "That comment is too long. Shorten it and try again.",
+  network: "The comment could not be sent. Check your connection and try again.",
+};
 
-/** Extract data from a pasted URL string: short id wins over hash fragment. */
-function extractFromPastedUrl(
-  input: string,
-): { kind: "id"; id: string } | { kind: "data"; data: string } | null {
-  const trimmed = input.trim();
-  if (!trimmed) return null;
-  const shortMatch = trimmed.match(PILOT_SHELL_SHORT_RE);
-  if (shortMatch) return { kind: "id", id: shortMatch[1] };
-  const hashParsed = parseHashFragment(trimmed);
-  if (hashParsed?.data) return { kind: "data", data: hashParsed.data };
-  return null;
-}
+type Sent = { quote: string; remark: string; verdict?: string };
 
-type PageState =
-  | { status: "browser-unsupported"; reason: string }
-  | { status: "landing" }
-  | { status: "loading" }
-  | { status: "error"; message: string }
-  | { status: "ready"; payload: SharePayload };
+type ReadyShare = Extract<LoadedShare, { status: "ready" }>;
 
-interface SpecMetadata {
-  agent?: string;
-  specType?: string;
-  status?: string;
-  author?: string;
-}
-
-function parseSpecMetadata(content: string): SpecMetadata {
-  const meta: SpecMetadata = {};
-  const agentMatch = content.match(/^Agent:\s*(.+)/m);
-  if (agentMatch) meta.agent = agentMatch[1].trim();
-  const typeMatch = content.match(/^Type:\s*(\w+)/m);
-  if (typeMatch) meta.specType = typeMatch[1].trim();
-  const statusMatch = content.match(/^Status:\s*(\w+)/m);
-  if (statusMatch) meta.status = statusMatch[1].trim();
-  const authorMatch = content.match(/^Author:\s*(.+)/m);
-  if (authorMatch) meta.author = authorMatch[1].trim();
-  return meta;
-}
-
-/** Computed once at module load — stable constant, never changes after page load */
-const BROWSER_ERROR = checkBrowserSupport();
-
-export default function Shared() {
-  const { id: routeId } = useParams<{ id?: string }>();
-  const [pageState, setPageState] = useState<PageState>(
-    BROWSER_ERROR ? { status: "browser-unsupported", reason: BROWSER_ERROR } : { status: "landing" }
-  );
-  const [pasteInput, setPasteInput] = useState("");
-  const [authorName, setAuthorName] = useState("Anonymous");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submittedCount, setSubmittedCount] = useState<number | undefined>(undefined);
-  const [decision, setDecision] = useState<Decision | null>(null);
-  const [submittedDecision, setSubmittedDecision] = useState<Decision | null>(null);
-  const { toast } = useToast();
-
-  const {
-    state: annotationState,
-    addAnnotation,
-    removeAnnotation,
-    updateAnnotation,
-  } = useAnnotation();
-
-  const loadFromHashData = useCallback(async (data: string) => {
-    setPageState({ status: "loading" });
+/** A shared task: the finished change when it got that far, and the plan behind it. */
+function Ready({
+  share,
+  onComment,
+  onChangeComment,
+}: {
+  share: ReadyShare;
+  onComment: (input: CommentInput) => Promise<SubmitResult>;
+  onChangeComment: (input: ChangeCommentInput) => Promise<SubmitResult>;
+}) {
+  const [author, setAuthor] = useState(storedName);
+  const hasPlan = orderedDocs(share.docs).length > 0;
+  const [view, setView] = useState<"change" | "plan">(share.review !== undefined ? "change" : "plan");
+  const remember = (name: string) => {
+    setAuthor(name);
     try {
-      const result = await decompressHashPayload(data);
-      if (!result) {
-        setPageState({ status: "error", message: "Failed to decompress — the URL may be corrupted or truncated." });
-        return;
-      }
-      if (result.type === "feedback") {
-        // Legacy feedback URLs no longer have a corresponding flow; surface a graceful error.
-        setPageState({
-          status: "error",
-          message: "This is a legacy feedback URL. Feedback URLs are no longer generated — open the spec link your teammate shared with you and submit directly.",
-        });
-        return;
-      }
-      setPageState({ status: "ready", payload: result.payload });
+      window.localStorage.setItem(NAME_KEY, name.trim());
     } catch {
-      setPageState({ status: "error", message: "Failed to load shared document. The URL may be invalid." });
-    }
-  }, []);
-
-  const loadFromShareId = useCallback(async (id: string) => {
-    setPageState({ status: "loading" });
-    try {
-      const res = await fetch(`/api/share?id=${encodeURIComponent(id)}`);
-      if (res.status === 404) {
-        setPageState({ status: "error", message: "Share link not found or expired (links expire after 7 days)." });
-        return;
-      }
-      if (!res.ok) {
-        setPageState({ status: "error", message: "Failed to load shared document. Please try again later." });
-        return;
-      }
-      const body = (await res.json()) as { data?: string };
-      if (!body.data) {
-        setPageState({ status: "error", message: "Share data was empty." });
-        return;
-      }
-      await loadFromHashData(body.data);
-    } catch {
-      setPageState({ status: "error", message: "Failed to reach pilot-shell.com share service." });
-    }
-  }, [loadFromHashData]);
-
-  // Auto-decode hash fragment on mount (legacy back-compat URLs)
-  useEffect(() => {
-    if (BROWSER_ERROR) return;
-    if (routeId) return; // path-id route handled by the next effect
-    const hash = window.location.hash;
-    if (!hash || hash === "#") return;
-    const parsed = parseHashFragment(hash);
-    if (parsed?.data) {
-      loadFromHashData(parsed.data);
-    }
-  }, [loadFromHashData, routeId]);
-
-  // Path-id route: /s/:id — fetch payload from /api/share
-  useEffect(() => {
-    if (BROWSER_ERROR) return;
-    if (!routeId) return;
-    if (!/^[A-Za-z0-9]{8}$/.test(routeId)) {
-      setPageState({ status: "error", message: "Invalid share link format." });
-      return;
-    }
-    loadFromShareId(routeId);
-  }, [routeId, loadFromShareId]);
-
-  const handlePasteLoad = async () => {
-    const extracted = extractFromPastedUrl(pasteInput);
-    if (!extracted) {
-      toast({ title: "Could not parse URL", description: "Paste a pilot-shell.com/s/<id> or pilot-shell.com/shared#... URL", variant: "destructive" });
-      return;
-    }
-    if (extracted.kind === "id") {
-      await loadFromShareId(extracted.id);
-    } else {
-      await loadFromHashData(extracted.data);
+      // the name is a convenience only
     }
   };
-
-  const handleSubmitFeedback = useCallback(async () => {
-    const payload = pageState.status === "ready" ? pageState.payload : null;
-    if (!payload) return;
-    // Allow approval/rejection-only submits (no inline annotations needed)
-    // as long as a decision is selected.
-    if (annotationState.annotations.length === 0 && !decision) return;
-    // The share id must come from the URL — only path-id routes get a feedback channel.
-    // Legacy fragment URLs (no Redis-side share id) can't submit; toast and bail.
-    if (!routeId || !/^[A-Za-z0-9]{8}$/.test(routeId)) {
-      toast({
-        title: "Cannot submit feedback",
-        description: "This is a legacy fragment URL with no server-side channel. Ask the owner to re-share with the new short link.",
-        variant: "destructive",
-      });
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      const feedbackPayload = {
-        annotations: annotationState.annotations,
-        author: authorName.trim() || "Anonymous",
-        planPath: payload.planPath,
-        createdAt: Date.now(),
-        ...(decision ? { decision } : {}),
-      };
-      const result = await submitFeedback(routeId, feedbackPayload);
-      // Compare against `true` explicitly: this project builds with strict: false,
-      // and without strictNullChecks TS won't narrow a boolean-literal discriminant
-      // by truthiness, so `if (result.ok)` leaves `result.reason` unreachable below.
-      if (result.ok === true) {
-        setSubmittedCount(annotationState.annotations.length);
-        setSubmittedDecision(decision);
-        const success = successStateText(decision, annotationState.annotations.length);
-        toast({ title: success.title, description: success.detail });
-      } else if (result.reason === "not_found") {
-        toast({
-          title: "Share link expired",
-          description: "This share is no longer accepting feedback (the 7-day window has closed).",
-          variant: "destructive",
-        });
-      } else if (result.reason === "too_large") {
-        toast({
-          title: "Feedback too large",
-          description: "Please reduce the number or length of annotations and try again.",
-          variant: "destructive",
-        });
-      } else if (result.reason === "rate_limited") {
-        toast({
-          title: "Rate limit reached",
-          description: "Too many submissions from this connection — wait a few minutes and try again.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Failed to reach pilot-shell.com",
-          description: "Please check your connection and try again.",
-          variant: "destructive",
-        });
-      }
-    } catch {
-      toast({ title: "Failed to submit feedback", description: "Please try again.", variant: "destructive" });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [pageState, annotationState.annotations, authorName, routeId, toast, decision]);
-
-  const payload = pageState.status === "ready" ? pageState.payload : null;
-  const blocks = payload ? parseMarkdownToBlocks(payload.specContent) : [];
-
-  // Merge sharer's original annotations with recipient's new annotations for inline display.
-  // Only recipient's annotations go into the feedback URL (handled separately in handleSendFeedback).
-  const displayAnnotations = useMemo(
-    () => [...(payload?.annotations ?? []), ...annotationState.annotations],
-    [payload?.annotations, annotationState.annotations],
-  );
-
-  const sharedAt = payload
-    ? new Date(payload.createdAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
-    : "";
-
-  const contentLabel = payload?.contentType === "requirement" ? "Requirement" : "Specification";
-  const specMeta = useMemo(() => payload ? parseSpecMetadata(payload.specContent) : {}, [payload]);
-
+  if (share.review === undefined) return <Plan share={share} author={author} setAuthor={setAuthor} onComment={onComment} />;
   return (
     <>
-      <SEO
-        title={`Shared ${contentLabel} — Pilot Shell`}
-        description={`View and annotate a shared ${contentLabel.toLowerCase()} from Pilot Shell. Short-lived storage — links expire after 7 days.`}
-        canonicalUrl={SHARE_BASE_URL}
-      />
-      <NavBar />
-
-      <main className="min-h-screen bg-background pt-12 pb-12">
-        {/* Browser unsupported */}
-        {pageState.status === "browser-unsupported" && (
-          <div className="max-w-lg mx-auto px-4 py-16 text-center space-y-4">
-            <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
-            <h2 className="text-xl font-semibold">Browser not supported</h2>
-            <p className="text-sm text-muted-foreground">{pageState.reason}</p>
-          </div>
-        )}
-
-        {/* Landing state */}
-        {pageState.status === "landing" && (
-          <div className="max-w-2xl mx-auto px-4 py-12 space-y-6">
-            <div className="text-center space-y-3">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 mb-2">
-                <Shield className="h-7 w-7 text-primary" />
-              </div>
-              <h1 className="text-2xl font-semibold">View Shared Document</h1>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                Paste a share URL from Pilot Shell to view and annotate the document, then send your feedback back.
-              </p>
-            </div>
-
-            <Card>
-              <CardContent className="p-5 space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Share URL</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={pasteInput}
-                      onChange={(e) => setPasteInput(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") handlePasteLoad(); }}
-                      placeholder="Paste pilot-shell.com/s/... or legacy pilot-shell.com/shared#..."
-                      className="flex-1 text-sm rounded border border-input bg-background px-3 py-2 placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring"
-                      autoFocus
-                    />
-                    <Button onClick={handlePasteLoad} disabled={!pasteInput.trim()} className="gap-1.5">
-                      <ArrowRight size={15} />
-                      Load
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Privacy note */}
-                <div className="flex items-start gap-2.5 p-3 rounded-lg bg-muted/50 border border-border/50">
-                  <Shield className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium">Short-lived storage</p>
-                    <p className="text-xs text-muted-foreground">
-                      Compressed payload is stored on pilot-shell.com for up to 7 days. Anyone with the link can view — no Pilot Shell install required; the link itself is the access token.
-                    </p>
-                  </div>
-                </div>
-
-                {/* How it works */}
-                <ul className="space-y-1.5">
-                  {[
-                    "Paste the share URL and click Load",
-                    "Read the document and add annotations by clicking the + button on any block",
-                    "Click Submit Feedback — your notes flow back to the spec owner automatically",
-                  ].map((step, i) => (
-                    <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                      <span className="flex-shrink-0 w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold flex items-center justify-center mt-0.5">
-                        {i + 1}
-                      </span>
-                      {step}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Loading */}
-        {pageState.status === "loading" && (
-          <div className="flex items-center justify-center min-h-[50vh]">
-            <div className="text-center space-y-3">
-              <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-sm text-muted-foreground">Loading shared document…</p>
-            </div>
-          </div>
-        )}
-
-        {/* Error */}
-        {pageState.status === "error" && (
-          <div className="max-w-lg mx-auto px-4 py-16 text-center space-y-4">
-            <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
-            <h2 className="text-xl font-semibold">Failed to load</h2>
-            <p className="text-sm text-muted-foreground">{pageState.message}</p>
-            <div className="flex gap-2 justify-center">
-              <Button variant="outline" onClick={() => setPageState({ status: "landing" })} className="gap-1.5">
-                <RefreshCw size={14} />
-                Paste URL instead
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Spec viewer */}
-        {pageState.status === "ready" && payload && (
-          <div className="flex w-full" style={{ minHeight: "calc(100vh - 5rem)" }}>
-            {/* Main content */}
-            <div className="flex-1 min-w-0 overflow-y-auto">
-              <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
-                {/* Header card */}
-                <Card>
-                  <CardHeader className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-primary/10 rounded-lg p-2 flex-shrink-0">
-                        <Shield className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-semibold">Shared {contentLabel}</span>
-                          <Badge variant="secondary" className="text-[10px] h-4 px-1.5">Annotatable</Badge>
-                          {specMeta.specType && (
-                            <Badge variant="outline" className="text-[10px] h-4 px-1.5">{specMeta.specType}</Badge>
-                          )}
-                          {specMeta.agent && (
-                            <Badge variant="outline" className="text-[10px] h-4 px-1.5">{specMeta.agent}</Badge>
-                          )}
-                          {specMeta.status && (
-                            <Badge variant="outline" className="text-[10px] h-4 px-1.5">{specMeta.status}</Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
-                          {(specMeta.author || payload.author) && (
-                            <span>by {specMeta.author || payload.author}</span>
-                          )}
-                          {sharedAt && <span>{sharedAt}</span>}
-                          <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                            <Shield size={10} />
-                            Stored ≤ 7 days
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                </Card>
-
-                {/* Spec content */}
-                <Card>
-                  <CardContent className="p-5">
-                    <SectionedBlockRenderer
-                      blocks={blocks}
-                      annotations={displayAnnotations}
-                      selectedAnnotationId={annotationState.selectedAnnotationId}
-                      onSelectAnnotation={() => {}}
-                      onQuickAnnotate={(blockId, originalText, text) => {
-                        addAnnotation(createAnnotation(blockId, originalText, text));
-                      }}
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-
-            {/* Feedback sidebar */}
-            <div
-              style={{ width: 280, flexShrink: 0, position: "sticky", top: "5rem", height: "calc(100vh - 5rem)", overflow: "hidden" }}
-            >
-              <FeedbackSidebar
-                sharerAnnotations={payload.annotations}
-                recipientAnnotations={annotationState.annotations}
-                authorName={authorName}
-                onAuthorNameChange={setAuthorName}
-                onRemoveAnnotation={removeAnnotation}
-                onUpdateAnnotation={(id, text) => updateAnnotation(id, { text })}
-                onSubmitFeedback={handleSubmitFeedback}
-                isSubmitting={isSubmitting}
-                submittedCount={submittedCount}
-                decision={decision}
-                onDecisionChange={setDecision}
-                submittedDecision={submittedDecision}
-              />
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* Only show footer in non-viewer states */}
-      {pageState.status !== "ready" && <Footer />}
+      {hasPlan ? (
+        <nav className="sh-switch" aria-label="What to read">
+          <button type="button" aria-current={view === "change" ? "page" : undefined} onClick={() => setView("change")}>
+            The change
+          </button>
+          <button type="button" aria-current={view === "plan" ? "page" : undefined} onClick={() => setView("plan")}>
+            The plan
+          </button>
+        </nav>
+      ) : null}
+      {view === "change" ? (
+        <ChangeView
+          title={share.title}
+          review={share.review}
+          author={author}
+          setAuthor={remember}
+          onComment={onChangeComment}
+        />
+      ) : (
+        <Plan share={share} author={author} setAuthor={setAuthor} onComment={onComment} />
+      )}
     </>
   );
 }
+
+function Plan({
+  share,
+  author,
+  setAuthor,
+  onComment,
+}: {
+  share: ReadyShare;
+  author: string;
+  setAuthor: (name: string) => void;
+  onComment: (input: CommentInput) => Promise<SubmitResult>;
+}) {
+  const names = orderedDocs(share.docs);
+  const [doc, setDoc] = useState(names[0] ?? "");
+  const docRef = useRef<HTMLDivElement>(null);
+  // The site is dark; diagrams are drawn after the document is on the page.
+  useEffect(() => {
+    if (docRef.current !== null) void renderDiagrams(docRef.current, mermaidRenderer(true));
+  }, [doc, share]);
+  const [quote, setQuote] = useState("");
+  const [remark, setRemark] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState("");
+  const [sent, setSent] = useState<Sent[]>([]);
+
+  const send = async (verdict?: CommentInput["verdict"]) => {
+    if (remark.trim() === "" && verdict === undefined) return;
+    setBusy(true);
+    setProblem("");
+    const result = await onComment({ author, doc, quote, remark, verdict });
+    setBusy(false);
+    if (result.ok === false) {
+      setProblem(REASONS[result.reason]);
+      return;
+    }
+    try {
+      window.localStorage.setItem(NAME_KEY, author.trim());
+    } catch {
+      // the name is a convenience only
+    }
+    setSent([...sent, { quote, remark: remark.trim(), verdict }]);
+    setQuote("");
+    setRemark("");
+  };
+
+  const expires = share.expires === undefined ? null : new Date(share.expires);
+
+  return (
+    <div className="sh-layout">
+      <article className="sh-plan">
+        <header>
+          <h1>{share.title}</h1>
+          <p className="sh-note">
+            Shared with you as a link: anyone who has it can read this plan and comment on it.
+            {expires !== null
+              ? ` The link runs out on ${expires.toLocaleDateString(undefined, { day: "numeric", month: "short" })}.`
+              : ""}
+          </p>
+          {names.length > 1 ? (
+            <nav className="sh-tabs" aria-label="Documents">
+              {names.map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  aria-current={name === doc ? "page" : undefined}
+                  onClick={() => setDoc(name)}
+                >
+                  {name.replace(/\.md$/, "")}
+                </button>
+              ))}
+            </nav>
+          ) : null}
+        </header>
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: selecting text is how a passage is quoted */}
+        <div
+          className="sh-doc"
+          data-testid="shared-doc"
+          ref={docRef}
+          onMouseUp={() => {
+            const picked = window.getSelection()?.toString().trim() ?? "";
+            if (picked !== "") setQuote(picked.slice(0, 1000));
+          }}
+          // The markdown is sanitised above (or escaped when there is no DOM).
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: sanitised by renderMarkdown
+          dangerouslySetInnerHTML={{ __html: renderMarkdown(share.docs[doc] ?? "") }}
+        />
+      </article>
+
+      <aside className="sh-side" aria-label="Comments">
+        <h2>Comment</h2>
+        <label htmlFor="sh-author">Your name</label>
+        <input id="sh-author" value={author} onChange={(e) => setAuthor(e.target.value)} placeholder="Guest" maxLength={80} />
+        {quote !== "" ? (
+          <blockquote className="sh-quote">
+            {quote}
+            <button type="button" onClick={() => setQuote("")}>
+              Drop quote
+            </button>
+          </blockquote>
+        ) : (
+          <p className="sh-note">Select a passage to comment on it, or leave a general remark.</p>
+        )}
+        <label htmlFor="sh-remark">Comment</label>
+        <textarea id="sh-remark" value={remark} onChange={(e) => setRemark(e.target.value)} rows={4} />
+        {problem !== "" ? (
+          <p className="sh-problem" role="alert">
+            {problem}
+          </p>
+        ) : null}
+        <div className="sh-actions">
+          <button type="button" disabled={busy || remark.trim() === ""} onClick={() => void send()}>
+            Add comment
+          </button>
+          <button type="button" disabled={busy} onClick={() => void send("request_changes")}>
+            Request changes
+          </button>
+          <button type="button" className="primary" disabled={busy} onClick={() => void send("approve")}>
+            Approve
+          </button>
+        </div>
+        {sent.length > 0 ? (
+          <section className="sh-sent" aria-label="Sent">
+            <h3>Sent to the owner</h3>
+            {sent.map((s, i) => (
+              // Sent comments only ever append, so their position is their identity.
+              // biome-ignore lint/suspicious/noArrayIndexKey: append-only list
+              <p key={i}>
+                {s.verdict === "approve" ? "Approved. " : s.verdict === "request_changes" ? "Asked for changes. " : ""}
+                {s.remark}
+              </p>
+            ))}
+          </section>
+        ) : null}
+      </aside>
+    </div>
+  );
+}
+
+/** What the page shows for each state of the link; a plain function of its state. */
+export function SharedView({
+  state,
+  onComment,
+  onChangeComment = async () => ({ ok: false, reason: "network" }),
+}: {
+  state: LoadedShare | { status: "loading" };
+  onComment: (input: CommentInput) => Promise<SubmitResult>;
+  onChangeComment?: (input: ChangeCommentInput) => Promise<SubmitResult>;
+}) {
+  if (state.status === "loading") return <p className="sh-status">Loading the plan…</p>;
+  if (state.status === "gone") {
+    return (
+      <div className="sh-status">
+        <h1>This plan is no longer shared</h1>
+        <p>The owner stopped sharing it, or the link ran out. Ask them for a new link.</p>
+      </div>
+    );
+  }
+  if (state.status === "error") {
+    return (
+      <div className="sh-status">
+        <h1>The plan could not be opened</h1>
+        <p>{state.message}</p>
+      </div>
+    );
+  }
+  return <Ready share={state} onComment={onComment} onChangeComment={onChangeComment} />;
+}
+
+/** One link's page; keyed by the id, so another link starts from "loading" again. */
+const SharedLink = ({ id }: { id: string }) => {
+  const [state, setState] = useState<LoadedShare | { status: "loading" }>({ status: "loading" });
+
+  useEffect(() => {
+    let live = true;
+    void loadShare(id).then((loaded) => {
+      if (live) setState(loaded);
+    });
+    return () => {
+      live = false;
+    };
+  }, [id]);
+
+  return (
+    <SharedView
+      state={state}
+      onComment={(input) => submitComment(id, input)}
+      onChangeComment={(input) => submitChangeComment(id, input)}
+    />
+  );
+};
+
+const Shared = () => {
+  const { id = "" } = useParams<{ id?: string }>();
+  return (
+    <Page className="sh-page">
+      <SEO title="A shared plan — QualityLayer" description="A plan shared with you from QualityLayer. Read it and comment on it." />
+      <Helmet>
+        <meta name="robots" content="noindex" />
+      </Helmet>
+      <SharedLink key={id} id={id} />
+    </Page>
+  );
+};
+
+export default Shared;

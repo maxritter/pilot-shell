@@ -152,12 +152,12 @@ The strongest setup uses both. Session Memory provides continuity between work s
 - Understand [context engineering](/blog/context-engineering) for production AI systems
 
 Session Memory is one of those features that works best when you don't think about it. It runs in the background, saves what matters, and loads it when relevant. The next time you start a session and Claude already knows what you did yesterday, that's Session Memory doing its job.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

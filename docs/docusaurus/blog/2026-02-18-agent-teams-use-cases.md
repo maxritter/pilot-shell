@@ -274,12 +274,12 @@ For best practices, troubleshooting, and known limitations, see [Agent Teams Bes
 These prompts work out of the box for any Claude Code user with Agent Teams enabled. As your team workflows become more complex, you may want structured orchestration that handles agent routing, permission management, and coordination protocols automatically.
 
 The developers building agent team muscle memory today are investing in a skill that will compound as multi-agent AI tooling matures. Start with the code review prompt this week. The overhead is low, and the prompts in this guide give you a tested starting point for every common workflow.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** installs a structured workflow for agent work on top of Claude Code: `/spec` plans the change, runs implementation under TDD, and verifies with an automated reviewer pass. The orchestration loop most agent setups end up writing by hand.
+**QualityLayer** adds a structured workflow on top of your coding agent: you approve the plan, helper agents build and test it slice by slice, and a fresh agent verifies the result against your request. The orchestration loop most agent setups end up writing by hand.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

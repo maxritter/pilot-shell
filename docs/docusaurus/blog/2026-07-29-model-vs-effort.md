@@ -166,12 +166,12 @@ The frame is Anthropic's and it is the useful part: knowing more versus trying h
 - Configure the effort field alongside the other 15 supported fields in custom agent definitions
 - Understand where delegation stops paying in [multi-agent orchestration cost](/blog/multi-agent-orchestration-cost)
 - Apply the same subtraction thinking to your context layer with [the new rules of context engineering](/blog/claude-5-context-engineering)
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

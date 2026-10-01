@@ -1,4 +1,4 @@
-# git-cliff configuration for Pilot Shell
+# git-cliff configuration for QualityLayer
 # https://git-cliff.org/docs/configuration
 
 [changelog]
@@ -6,7 +6,7 @@
 header = """
 # Changelog
 
-All notable changes to Pilot Shell will be documented in this file.
+Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 """
 # Body template - Keep a Changelog format

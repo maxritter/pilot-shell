@@ -153,12 +153,12 @@ For complex validations, you can also enforce rules through [hooks](/blog/hooks-
 Don't restructure your entire workflow. Pick your next feature that touches two or more files. Create one builder task and one validator task with `addBlockedBy`. Watch the validator catch something the builder missed.
 
 Once you've seen the pattern work, scale it: parallel builders with chained validators, meta-prompts for automatic plan generation, and integration validators that verify components work together. Design your agent architecture around clear role separation, and let the task system handle coordination. You handle the decisions.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** installs a structured workflow for agent work on top of Claude Code: `/spec` plans the change, runs implementation under TDD, and verifies with an automated reviewer pass. The orchestration loop most agent setups end up writing by hand.
+**QualityLayer** adds a structured workflow on top of your coding agent: you approve the plan, helper agents build and test it slice by slice, and a fresh agent verifies the result against your request. The orchestration loop most agent setups end up writing by hand.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

@@ -158,12 +158,12 @@ No. Claude Code Review will not approve PRs. It surfaces bugs and ranks them by 
 ### How accurate is Claude Code Review?
 
 In Anthropic's internal testing across months of production use, engineers marked fewer than 1% of Claude Code Review findings as incorrect. On large PRs over 1,000 lines, 84% receive findings averaging 7.5 issues per review.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

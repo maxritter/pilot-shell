@@ -473,12 +473,12 @@ Your status line is set up. Here are natural next steps:
 - **Manage context proactively**: Use your context percentage display alongside [context buffer management strategies](/blog/context-buffer-management)
 - **Set up the terminal environment**: Learn terminal control techniques for a complete Claude Code workspace
 - **Configure project settings**: Make sure your configuration basics are solid so every session starts with the right context
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** is a single install on top of Claude Code that adds `/spec`, `/fix`, `/prd`, project-aware rules, persistent memory across sessions, and a configured hook pipeline. Open source, MIT-licensed.
+**QualityLayer** is a single install on top of Claude Code, Codex or any agent with skills. Describe a change with `/ql`, review the plan in the Cockpit, and an independent agent checks the result.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

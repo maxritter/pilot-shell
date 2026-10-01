@@ -133,12 +133,12 @@ Install both (commands at the top). Spend 30 minutes with each on a real project
 - Want multi-agent workflows? Learn about [Agent Teams](/blog/agent-teams) and task distribution
 - Optimizing speed? Check [fast mode](/blog/fast-mode) and planning modes
 - Exploring extensions? See MCP basics and VS Code integration
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** is Claude Code with the productivity layer pre-built: `/spec`, `/fix`, `/prd` commands, persistent memory, code-graph search, hook pipeline, status line, and worktree isolation — all configured, all upgradable in place.
+**QualityLayer** is the workflow layer for your coding agent: plans you approve before any code, small tested slices, and a check by an agent that did not write the code, all reviewed in one Cockpit.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

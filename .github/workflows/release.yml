@@ -1,23 +1,32 @@
 ---
 name: Release
 
+# QualityLayer 12. The gates are Pilot Shell's: supply-chain, Trivy, tests,
+# a manual `production` approval and build provenance. What is built is one
+# binary per platform plus its checksum, and install.sh with its checksum
+# (Pilot Shell 11's updater verifies install.sh.sha256 at the tag).
+#
+# `dev` publishes 12.x prereleases (beta); `main` publishes releases once v12 is
+# merged. Pilot Shell 11 keeps its own pipeline on the 11.x branch.
+#
+# One revision S ships: it is tested, built, deployed and released. Binaries come
+# last. The publishing job deploys the site at S, uploads the release's workflow
+# texts to the store behind that site and proves both answer, and only then creates
+# the GitHub release, so no binary is ever published that cannot fetch its texts.
+
 "on":
   push:
     branches:
       - main
+      - dev
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to build binaries for (e.g., 3.3.0)"
+        description: "Version to build and publish (e.g. 12.0.0-beta.1)"
         required: true
-        type: string
-      changelog:
-        description: "Custom changelog content (optional - overrides generated changelog)"
-        required: false
         type: string
 
 jobs:
-  # Check if this commit should trigger a release
   check-trigger:
     name: Check Release Trigger
     permissions:
@@ -32,50 +41,35 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check commit message
+      - name: Check commit messages
         id: check
         run: |
+          case "$GITHUB_REF_NAME" in
+            main | dev) ;;
+            *) echo "::error::Only main and dev release, not $GITHUB_REF_NAME"; exit 1 ;;
+          esac
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "Manual trigger - proceeding"
             echo "should_run=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          # Scan every commit since the last release tag, not just the tip.
-          # A plain `git merge origin/main` before pushing makes an
-          # auto-generated merge commit ("Merge origin/main into ...") the new
-          # tip -- checking only `git log -1` would then miss a fix:/feat:
-          # commit earlier in the same push and silently skip the release.
+          # Every commit since the last release tag, not only the tip: a merge
+          # commit on top must not hide a fix:/feat: underneath it.
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           RANGE="${LAST_TAG:+$LAST_TAG..}HEAD"
-          echo "Checking commits in range: $RANGE"
-
           COMMIT_MSGS=$(git log "$RANGE" --pretty=%B)
-          echo "Commit messages since last release:"
-          echo "$COMMIT_MSGS"
-
-          # Check for fix: or feat: prefix (first line or squash merge body)
           if echo "$COMMIT_MSGS" | grep -qE "(^|\* )(fix|feat)(\([^)]*\))?!?:"; then
-            echo "Release commit detected (fix: or feat:) in $RANGE"
+            echo "Release commit found in $RANGE"
             echo "should_run=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-
-          # Check for merge from dev branch
-          if echo "$COMMIT_MSGS" | grep -qE "^Merge (branch 'dev'|pull request .* from .*/dev)"; then
-            echo "Merge from dev detected in $RANGE"
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "No release trigger commit found in $RANGE - skipping"
+          echo "No release trigger commit in $RANGE - skipping"
           echo "should_run=false" >> "$GITHUB_OUTPUT"
 
   supply-chain-gate:
-    # Cross-workflow `needs:` doesn't link supply-chain.yml to this workflow.
-    # Poll the Checks API for the `supply-chain` check on the release SHA and
-    # fail when it concludes anything other than `success`. Both workflows
-    # start on the same push, so we wait up to 12 min for it to land.
+    # Cross-workflow `needs:` does not link supply-chain.yml to this workflow;
+    # poll the Checks API for its result on the release SHA instead.
     name: Supply-Chain Gate
     permissions:
       contents: read
@@ -115,7 +109,6 @@ jobs:
     name: Security Scan (Trivy)
     permissions:
       contents: read
-      # Best-effort SARIF upload to the code-scanning / Security tab.
       security-events: write
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -138,27 +131,21 @@ jobs:
         env:
           TRIVY_SKIP_VERSION_CHECK: "true"
         with:
-          # Pinned explicitly: this action release defaults to Trivy v0.65.0, whose
-          # GitHub release has since been removed, so the installer 404s and the job
-          # fails before scanning anything. Keep this at a version that exists.
+          # Pinned: this action release defaults to a Trivy version whose release was removed.
           version: 'v0.72.0'
           scan-type: 'fs'
           scan-ref: '.'
           scanners: 'vuln,secret'
           severity: 'CRITICAL,HIGH'
-          # With format: sarif, trivy-action unsets the severity filter (scans
-          # ALL severities for the report) unless this is true — which makes
-          # exit-code fire on MEDIUM/LOW too. Keep the gate scoped to CRITICAL,HIGH.
+          # With format: sarif the severity filter is dropped unless this is true.
           limit-severities-for-sarif: true
           exit-code: '1'
           ignore-unfixed: true
-          skip-dirs: '.venv,node_modules,console/node_modules,launcher,docs/site/api,console,docs/site/node_modules,docs/docusaurus/node_modules'
+          skip-dirs: 'node_modules,qualitylayer/node_modules,docs/site/api,docs/site/node_modules,docs/docusaurus/node_modules'
           trivyignores: '.trivyignore'
           format: 'sarif'
           output: trivy-results.sarif
 
-      # if: always() — Trivy keeps exit-code 1, so without it the SARIF would
-      # vanish exactly when a vulnerability is found (Codex medium #4).
       - name: Upload Trivy SARIF artifact
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -174,12 +161,8 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
 
-      - name: Security scan summary note
-        if: always()
-        run: echo "### Security Scan — Trivy SARIF uploaded as the 'trivy-sarif' artifact (and the Security tab when code-scanning is enabled)." >> "$GITHUB_STEP_SUMMARY"
-
-  python-tests:
-    name: Python Unit Tests
+  test:
+    name: QualityLayer Tests
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -187,63 +170,14 @@ jobs:
     needs: [check-trigger, supply-chain-gate]
     if: needs.check-trigger.outputs.should_run == 'true'
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
         run: bash .github/workflows/scripts/install-git-crypt.sh
 
-      - name: Unlock repository
-        env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: bash .github/workflows/scripts/setup-git-crypt.sh
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
-        with:
-          python-version: "3.12"
-
-      - name: Install Python dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install . pytest pytest-cov pytest-asyncio hypothesis
-
-      - name: Validate generated agent assets
-        run: |
-          python3 -m launcher.cli skills validate pilot/skills --platform all
-          python3 scripts/validate_agent_assets.py
-          python3 scripts/gen_hook_manifests.py --check
-
-      - name: Run unit tests with coverage
-        run: |
-          python3 -m pytest installer/tests/unit/ launcher/tests/unit/ pilot/hooks/tests/ pilot/skills/benchmark/tests/ -v \
-            --cov=installer --cov=launcher --cov=pilot.hooks \
-            --cov-report=term --cov-report=xml --junitxml=junit.xml
-
-      - name: Upload test + coverage artifacts
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: python-test-results
-          path: |
-            junit.xml
-            coverage.xml
-          retention-days: 7
-
-  console-tests:
-    name: Console Unit Tests
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs: [check-trigger, supply-chain-gate]
-    if: needs.check-trigger.outputs.should_run == 'true'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Install git-crypt
-        run: bash .github/workflows/scripts/install-git-crypt.sh
+      - name: Check qualitylayer/ is encrypted in the public tree
+        run: bash scripts/check_qualitylayer_encrypted.sh
 
       - name: Unlock repository
         env:
@@ -256,109 +190,20 @@ jobs:
           bun-version: "1.4.2"
 
       - name: Install dependencies
-        working-directory: console
+        working-directory: qualitylayer
         run: bun install --frozen-lockfile
 
-      - name: Run console tests
-        working-directory: console
-        run: bun test
-
-  console-build:
-    name: Console Build & Typecheck
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs: [check-trigger, supply-chain-gate]
-    if: needs.check-trigger.outputs.should_run == 'true'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Install git-crypt
-        run: bash .github/workflows/scripts/install-git-crypt.sh
-
-      - name: Unlock repository
-        env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: bash .github/workflows/scripts/setup-git-crypt.sh
-
-      - name: Setup Node.js
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
-        with:
-          node-version: "24.21.0"
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
-        with:
-          bun-version: "1.4.2"
-
-      - name: Install dependencies
-        working-directory: console
-        run: bun install --frozen-lockfile
-
-      - name: Typecheck
-        working-directory: console
-        run: bun run typecheck
-
-      - name: Knip (dead code, unused deps & exports)
-        working-directory: console
-        run: bun run knip
-
-      - name: Build hooks
-        working-directory: console
-        run: bun run build
-
-      - name: Build viewer
-        working-directory: console
-        run: bun run build:viewer
-
-  lint:
-    name: Lint (ruff + vulture + deadcode + import boundary)
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs: [check-trigger, supply-chain-gate]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Install git-crypt
-        run: bash .github/workflows/scripts/install-git-crypt.sh
-
-      - name: Unlock repository
-        env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: bash .github/workflows/scripts/setup-git-crypt.sh
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
-        with:
-          python-version: "3.12"
-
-      - name: Install lint dependencies
+      - name: Typecheck, lint, test
+        working-directory: qualitylayer
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install . ruff vulture deadcode import-linter
+          bun run typecheck
+          bun run lint
+          bun run test
 
-      - name: Ruff
-        run: ruff check launcher installer pilot/hooks
-
-      - name: Vulture (dead code)
-        run: vulture
-
-      - name: Deadcode (unused symbols — launcher + installer)
-        run: deadcode launcher installer
-
-      - name: Import boundary (launcher must not import installer, and vice-versa)
-        run: lint-imports
-
-  # Determine the version to release (semantic-release dry-run or manual input)
   prepare-release:
     name: Prepare Release
     permissions:
-      contents: write
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [check-trigger, supply-chain-gate]
@@ -366,8 +211,7 @@ jobs:
     outputs:
       should_release: ${{ steps.check.outputs.should_release }}
       version: ${{ steps.check.outputs.version }}
-      current_version: ${{ steps.check.outputs.current_version }}
-      changelog: ${{ steps.git-cliff.outputs.content }}
+      current_version: ${{ steps.current.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -375,87 +219,70 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Install git-crypt
-        run: bash .github/workflows/scripts/install-git-crypt.sh
-
-      - name: Unlock repository
-        env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: bash .github/workflows/scripts/setup-git-crypt.sh
-
       - name: Setup Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
-          node-version: "24.21.0"
+          node-version: "24.20.0"
 
       - name: Get current version
         id: current
         run: |
           CURRENT=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "0.0.0")
-          echo "Current version: $CURRENT"
           echo "version=$CURRENT" >> "$GITHUB_OUTPUT"
 
       - name: Check for release
         id: check
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          echo "current_version=${{ steps.current.outputs.version }}" >> "$GITHUB_OUTPUT"
-
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "Manual trigger with version ${{ inputs.version }}"
             echo "should_release=true" >> "$GITHUB_OUTPUT"
-            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+            echo "version=${INPUT_VERSION#v}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          npm install -g semantic-release @semantic-release/git @semantic-release/exec
+          SR_OUT=/tmp/sr-output.txt
+          if npx semantic-release --dry-run 2>&1 | tee $SR_OUT | grep -q "next release version"; then
+            VERSION=$(grep "next release version" $SR_OUT \
+              | grep -oP '\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?' | head -1)
+            echo "Will release version: $VERSION"
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           else
-            # Install semantic-release and plugins
-            npm install -g semantic-release \
-              @semantic-release/git \
-              @semantic-release/exec
-
-            # Run dry-run to check if release is needed
-            SR_OUT=/tmp/sr-output.txt
-            if npx semantic-release --dry-run 2>&1 | tee $SR_OUT \
-                | grep -q "Published release"; then
-              VERSION=$(grep "next release version" $SR_OUT \
-                | grep -oP '\d+\.\d+\.\d+' | head -1)
-              if [ -z "$VERSION" ]; then
-                VERSION=$(grep -oP 'Published release \K\d+\.\d+\.\d+' \
-                  $SR_OUT | head -1)
-              fi
-
-              echo "Will release version: $VERSION"
-              echo "should_release=true" >> "$GITHUB_OUTPUT"
-              echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-            else
-              echo "No release needed"
-              echo "should_release=false" >> "$GITHUB_OUTPUT"
-              echo "version=" >> "$GITHUB_OUTPUT"
-            fi
+            echo "No release needed"
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            echo "version=" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Generate changelog with git-cliff
-        if: steps.check.outputs.should_release == 'true'
-        id: git-cliff
-        uses: orhun/git-cliff-action@e16f179f0be49ecdfe63753837f20b9531642772 # v4
-        with:
-          config: cliff.toml
-          args: v${{ steps.current.outputs.version }}.. --unreleased --tag v${{ steps.check.outputs.version }}
+      # Releases from main wait for the go-live: they need a store of their own, and
+      # must never fall back to the beta's.
+      - name: Check the go-live is configured
+        if: steps.check.outputs.should_release == 'true' && github.ref_name == 'main'
         env:
-          OUTPUT: CHANGES.md
-          GITHUB_REPO: ${{ github.repository }}
+          PROD_KV_REST_API_URL: ${{ secrets.PROD_KV_REST_API_URL }}
+          PROD_KV_REST_API_TOKEN: ${{ secrets.PROD_KV_REST_API_TOKEN }}
+        run: |
+          if [ -z "$PROD_KV_REST_API_URL" ] || [ -z "$PROD_KV_REST_API_TOKEN" ]; then
+            echo "::error::go-live not configured: set the PROD_KV_REST_API_URL and PROD_KV_REST_API_TOKEN secrets before releasing from main"
+            exit 1
+          fi
 
-  # Build jobs run in parallel after prepare-release
-  build-pilot-x86:
-    name: Build Pilot Linux x86_64
+  build:
+    name: Build QualityLayer (4 targets)
     permissions:
       contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: prepare-release
     if: needs.prepare-release.outputs.should_release == 'true'
+    outputs:
+      bundle_digest: ${{ steps.bundle.outputs.digest }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.sha }}
 
       - name: Install git-crypt
         run: bash .github/workflows/scripts/install-git-crypt.sh
@@ -465,306 +292,99 @@ jobs:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
         run: bash .github/workflows/scripts/setup-git-crypt.sh
 
-      - name: Verify version
-        run: |
-          echo "Building version: ${{ needs.prepare-release.outputs.version }}"
-          cat launcher/__init__.py | grep __version__
-
-      - name: Set up uv for isolated artifact smoke
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
-          version: "0.12.5"
+          bun-version: "1.4.2"
 
-      - name: Build binary
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/workspace \
-            -w /workspace \
-            -e BUILD_VERSION=${{ needs.prepare-release.outputs.version }} \
-            python:3.12-bullseye \
-            bash -c "
-              pip install . && \
-              python -m launcher.build --release --version \$BUILD_VERSION && \
-              ls -la launcher/dist/
-            "
+      - name: Install dependencies
+        working-directory: qualitylayer
+        run: bun install --frozen-lockfile
 
-      - name: Smoke-test shipped wrapper
-        run: |
-          python3 scripts/smoke_pilot_artifact.py \
-            --wrapper launcher/dist/pilot \
-            --module launcher/dist/pilot-linux-x86_64.so \
-            --expected-version "${{ needs.prepare-release.outputs.version }}"
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: pilot-linux-x86_64
-          path: |
-            launcher/dist/pilot-linux-x86_64.so
-            launcher/dist/pilot
-          retention-days: 1
-
-  build-pilot-arm64:
-    name: Build Pilot Linux arm64
-    permissions:
-      contents: read
-    runs-on: ubuntu-24.04-arm
-    timeout-minutes: 30
-    needs: prepare-release
-    if: needs.prepare-release.outputs.should_release == 'true'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Install git-crypt
-        run: bash .github/workflows/scripts/install-git-crypt.sh
-
-      - name: Unlock repository
+      # Release builds trust only the trial service's key (no development key).
+      - name: Build release binaries
+        working-directory: qualitylayer
         env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: bash .github/workflows/scripts/setup-git-crypt.sh
+          QUALITYLAYER_VERSION: ${{ needs.prepare-release.outputs.version }}
+        run: bun run build --all
 
-      - name: Verify version
+      # Release binaries carry no phase texts; qualitylayer.dev serves them. Only the
+      # digest of the served texts leaves this job: the publishing job rebuilds the
+      # texts from the same commit and must arrive at it, and the texts themselves never
+      # become an artifact.
+      - name: Digest of the workflow texts
+        id: bundle
+        working-directory: qualitylayer
         run: |
-          echo "Building version: ${{ needs.prepare-release.outputs.version }}"
-          cat launcher/__init__.py | grep __version__
+          out="$(bun scripts/build.ts --workflow-bundle --out "${RUNNER_TEMP:?}/workflow-bundle.json")"
+          digest="${out%% *}"
+          [[ "$digest" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::no digest in: $out"; exit 1; }
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          rm -f "${RUNNER_TEMP:?}/workflow-bundle.json"
 
-      - name: Set up uv for isolated artifact smoke
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
-        with:
-          version: "0.12.5"
-
-      - name: Build binary
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/workspace \
-            -w /workspace \
-            -e BUILD_VERSION=${{ needs.prepare-release.outputs.version }} \
-            python:3.12-bullseye \
-            bash -c "
-              pip install . && \
-              python -m launcher.build --release --version \$BUILD_VERSION && \
-              ls -la launcher/dist/
-            "
-
-      - name: Smoke-test shipped wrapper
-        run: |
-          python3 scripts/smoke_pilot_artifact.py \
-            --wrapper launcher/dist/pilot \
-            --module launcher/dist/pilot-linux-arm64.so \
-            --expected-version "${{ needs.prepare-release.outputs.version }}"
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: pilot-linux-arm64
-          path: launcher/dist/pilot-linux-arm64.so
-          retention-days: 1
-
-  build-pilot-darwin-x86:
-    name: Build Pilot Darwin x86_64
-    permissions:
-      contents: read
-    runs-on: macos-15-intel
-    timeout-minutes: 30
-    needs: prepare-release
-    if: needs.prepare-release.outputs.should_release == 'true'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Install git-crypt
-        run: brew install git-crypt
-
-      - name: Unlock repository
+      - name: Smoke-test the Linux x64 binary
         env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: bash .github/workflows/scripts/setup-git-crypt.sh
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
-        with:
-          python-version: "3.12"
-
-      - name: Cache pip dependencies
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
-        with:
-          path: ~/Library/Caches/pip
-          key: ${{ runner.os }}-pip-pyinstaller
-          restore-keys: ${{ runner.os }}-pip-
-
-      - name: Verify version
+          EXPECTED: ${{ needs.prepare-release.outputs.version }}
         run: |
-          echo "Building version: ${{ needs.prepare-release.outputs.version }}"
-          cat launcher/__init__.py | grep __version__
+          ACTUAL=$(qualitylayer/dist/release/qualitylayer-linux-x64 --version)
+          echo "built: $ACTUAL"
+          [ "$ACTUAL" = "$EXPECTED" ]
 
-      - name: Set up uv for isolated artifact smoke
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
-        with:
-          version: "0.12.5"
-
-      - name: Build binary
+      - name: Collect release assets
         run: |
-          pip install .
-          python -m launcher.build --release --version ${{ needs.prepare-release.outputs.version }}
-          ls -la launcher/dist/
+          mkdir -p release
+          cp qualitylayer/dist/release/qualitylayer-* release/
+          cp install.sh release/install.sh
+          (cd release && sha256sum install.sh > install.sh.sha256)
+          (cd release && sha256sum -c ./*.sha256)
 
-      - name: Verify installer on macOS system Bash
+      # Only binaries, checksums and install.sh may ever be attached: no
+      # source, no source maps, nothing from the encrypted tree.
+      - name: Guard the asset list
         run: |
-          /bin/bash --version | head -1
-          /bin/bash -n install.sh
-          env PATH="/bin:/usr/bin:/usr/sbin:/sbin:$PATH" PYTHONDONTWRITEBYTECODE=1 \
-            uv run --no-project --no-config --with pytest==8.4.2 \
-            pytest -p no:cacheprovider -q installer/tests/unit/test_install_sh.py
-
-      - name: Smoke-test shipped wrapper
-        run: |
-          python3 scripts/smoke_pilot_artifact.py \
-            --wrapper launcher/dist/pilot \
-            --module launcher/dist/pilot-darwin-x86_64.so \
-            --expected-version "${{ needs.prepare-release.outputs.version }}"
+          cd release
+          ls -la
+          ALLOWED='^(qualitylayer-(darwin|linux)-(arm64|x64)(\.sha256)?|install\.sh(\.sha256)?)$'
+          BAD=$(find . -type f -printf '%f\n' | grep -vE "$ALLOWED" || true)
+          if [ -n "$BAD" ]; then
+            echo "Refusing to publish unexpected assets:"
+            echo "$BAD"
+            exit 1
+          fi
+          [ "$(find . -type f | wc -l)" -eq 10 ]
 
       - name: Upload artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: pilot-darwin-x86_64
-          path: launcher/dist/pilot-darwin-x86_64.so
+          name: qualitylayer-release
+          path: release/
           retention-days: 1
 
-  build-pilot-darwin-arm64:
-    name: Build Pilot Darwin arm64
-    permissions:
-      contents: read
-    runs-on: macos-14
-    timeout-minutes: 30
-    needs: prepare-release
-    if: needs.prepare-release.outputs.should_release == 'true'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Install git-crypt
-        run: brew install git-crypt
-
-      - name: Unlock repository
-        env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: bash .github/workflows/scripts/setup-git-crypt.sh
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
-        with:
-          python-version: "3.12"
-
-      - name: Cache pip dependencies
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
-        with:
-          path: ~/Library/Caches/pip
-          key: ${{ runner.os }}-pip-pyinstaller
-          restore-keys: ${{ runner.os }}-pip-
-
-      - name: Verify version
-        run: |
-          echo "Building version: ${{ needs.prepare-release.outputs.version }}"
-          cat launcher/__init__.py | grep __version__
-
-      - name: Set up uv for isolated artifact smoke
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
-        with:
-          version: "0.12.5"
-
-      - name: Build binary
-        run: |
-          pip install .
-          python -m launcher.build --release --version ${{ needs.prepare-release.outputs.version }}
-          ls -la launcher/dist/
-
-      - name: Verify installer on macOS system Bash
-        run: |
-          /bin/bash --version | head -1
-          /bin/bash -n install.sh
-          env PATH="/bin:/usr/bin:/usr/sbin:/sbin:$PATH" PYTHONDONTWRITEBYTECODE=1 \
-            uv run --no-project --no-config --with pytest==8.4.2 \
-            pytest -p no:cacheprovider -q installer/tests/unit/test_install_sh.py
-
-      - name: Smoke-test shipped wrapper
-        run: |
-          python3 scripts/smoke_pilot_artifact.py \
-            --wrapper launcher/dist/pilot \
-            --module launcher/dist/pilot-darwin-arm64.so \
-            --expected-version "${{ needs.prepare-release.outputs.version }}"
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: pilot-darwin-arm64
-          path: launcher/dist/pilot-darwin-arm64.so
-          retention-days: 1
-
-  # Manual approval gate - displays version and changelog, waits for approval
   approve-release:
     name: Approve Release
     permissions:
       contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs:
-      - prepare-release
-      - python-tests
-      - console-tests
-      - console-build
-      - lint
-      - build-pilot-x86
-      - build-pilot-arm64
-      - build-pilot-darwin-x86
-      - build-pilot-darwin-arm64
-      - security-scan
+    needs: [prepare-release, test, build, security-scan]
     if: needs.prepare-release.outputs.should_release == 'true'
     environment: production
     steps:
       - name: Display release details for approval
-        env:
-          CHANGELOG_CONTENT: ${{ needs.prepare-release.outputs.changelog }}
         run: |
           {
-          cat << SUMMARY
-          ## 🚀 Release Approval Required
-
-          ### Version Bump
-          | Current | → | New |
-          |---------|---|-----|
-          | v${{ needs.prepare-release.outputs.current_version }} | → | **v${{ needs.prepare-release.outputs.version }}** |
-
-          ### Build Status
-          - ✅ Security scan (Trivy) passed
-          - ✅ Python unit tests passed
-          - ✅ Console unit tests passed
-          - ✅ Console build & typecheck passed
-          - ✅ Linux x86_64 build ready
-          - ✅ Linux arm64 build ready
-          - ✅ Darwin x86_64 build ready
-          - ✅ Darwin arm64 build ready
-
-          ### Changelog for v${{ needs.prepare-release.outputs.version }}
-
-          SUMMARY
-
-          # Write changelog safely via environment variable
-          printf '%s\n' "$CHANGELOG_CONTENT"
-
-          cat << 'SUMMARY'
-
-          ---
-          **Approve this deployment to publish the release.**
-          SUMMARY
+          echo "## Release Approval Required"
+          echo ""
+          echo "| Current | → | New |"
+          echo "|---------|---|-----|"
+          echo "| v${{ needs.prepare-release.outputs.current_version }} | → | **v${{ needs.prepare-release.outputs.version }}** |"
+          echo ""
+          echo "- Security scan (Trivy) passed"
+          echo "- QualityLayer typecheck, lint and tests passed"
+          echo "- Four binaries built, checksummed and asset-guarded"
+          echo "- After approval: site deployed, workflow texts uploaded and probed, then the release is created"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Release approved
-        run: |
-          echo "✅ Release v${{ needs.prepare-release.outputs.version }} approved!"
-          echo "Proceeding to publish..."
-
-  # Create release and upload all artifacts only after approval
   publish-release:
     name: Publish Release
     permissions:
@@ -775,24 +395,50 @@ jobs:
       attestations: write
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs:
-      - prepare-release
-      - approve-release
+    needs: [prepare-release, build, approve-release]
     if: needs.prepare-release.outputs.should_release == 'true'
+    env:
+      VERSION: ${{ needs.prepare-release.outputs.version }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
+      VERCEL_PROJECT_ID: prj_TXccrJI83HyNvQUZxqStUFgus9NB
     steps:
+      # The tested revision, never the branch tip: what is released is what was built.
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Sync with remote before release
-        if: github.event_name != 'workflow_dispatch'
+      - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git reset --hard origin/main
+          # Vercel names a preview deployment after the branch it finds in git.
+          git checkout -B "${{ github.ref_name }}"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
+        with:
+          node-version: "24.20.0"
+
+      # A commit may have landed since the version was decided. The version this job
+      # would publish must be the one that was built and approved.
+      - name: Check the version again
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm install -g semantic-release @semantic-release/git @semantic-release/exec
+          SR_OUT="${RUNNER_TEMP:?}/sr-output.txt"
+          npx semantic-release --dry-run 2>&1 | tee "$SR_OUT" || true
+          NEXT=$(grep "next release version" "$SR_OUT" \
+            | grep -oP '\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?' | head -1 || true)
+          if [ "$NEXT" != "$VERSION" ]; then
+            echo "::error::semantic-release would publish '${NEXT}', the build was approved as '${VERSION}'"
+            exit 1
+          fi
 
       - name: Install git-crypt
         run: bash .github/workflows/scripts/install-git-crypt.sh
@@ -802,42 +448,112 @@ jobs:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
         run: bash .github/workflows/scripts/setup-git-crypt.sh
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          path: artifacts
-
-      - name: List artifacts
-        run: |
-          echo "Downloaded artifacts:"
-          find artifacts -type f -ls
-
-      - name: Attest build provenance
-        uses: actions/attest-build-provenance@43d14bc2b83dec42d39ecae14e916627a18bb661 # v3
-        with:
-          subject-path: |
-            artifacts/pilot-linux-x86_64/pilot-linux-x86_64.so
-            artifacts/pilot-linux-arm64/pilot-linux-arm64.so
-            artifacts/pilot-darwin-x86_64/pilot-darwin-x86_64.so
-            artifacts/pilot-darwin-arm64/pilot-darwin-arm64.so
-            artifacts/pilot-linux-x86_64/pilot
-
-      - name: Setup Node.js
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
-        with:
-          node-version: "24.21.0"
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
           bun-version: "1.4.2"
 
-      - name: Install Console dependencies for versioned bundle rebuild
-        working-directory: console
+      - name: Install dependencies
+        working-directory: qualitylayer
         run: bun install --frozen-lockfile
 
-      - name: Prepend new release to CHANGELOG.md with git-cliff
-        if: ${{ github.event.inputs.changelog == '' }}
+      # Rebuilt from source at this commit; it must be the texts the build job hashed.
+      - name: Rebuild the workflow texts
+        working-directory: qualitylayer
+        env:
+          EXPECTED_DIGEST: ${{ needs.build.outputs.bundle_digest }}
+        run: |
+          out="$(bun scripts/build.ts --workflow-bundle --out "${RUNNER_TEMP:?}/workflow-bundle.json")"
+          digest="${out%% *}"
+          if [ "$digest" != "$EXPECTED_DIGEST" ]; then
+            echo "::error::the workflow texts differ from the build's: $digest, expected $EXPECTED_DIGEST"
+            exit 1
+          fi
+          echo "DIGEST=$digest" >> "$GITHUB_ENV"
+          echo "BUNDLE=${RUNNER_TEMP:?}/workflow-bundle.json" >> "$GITHUB_ENV"
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      # main serves production; dev is a Preview of the same project, named by its branch.
+      - name: Deploy the site at this commit
+        id: deploy
+        run: |
+          if [ "$GITHUB_REF_NAME" = main ]; then
+            DEPLOY_URL=$(vercel deploy --token="$VERCEL_TOKEN" --prod)
+          else
+            DEPLOY_URL=$(vercel deploy --token="$VERCEL_TOKEN")
+          fi
+          echo "Deployed to: $DEPLOY_URL"
+          echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+
+      # The domain moves only to a deployment of the branch's tip: a newer commit that
+      # landed meanwhile keeps it.
+      - name: Point qualitylayer.dev at the beta
+        if: github.ref_name == 'dev'
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          git fetch --quiet origin dev
+          if [ "$(git rev-parse origin/dev)" != "$GITHUB_SHA" ]; then
+            echo "::warning::dev moved past $GITHUB_SHA; qualitylayer.dev stays on the newer deployment"
+            exit 0
+          fi
+          for domain in qualitylayer.dev www.qualitylayer.dev; do
+            vercel alias set "$DEPLOY_URL" "$domain" --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID"
+          done
+
+      - name: Variables and routes of the deployment
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          if [ "$GITHUB_REF_NAME" = main ]; then
+            bash docs/site/scripts/check-deploy.sh --env production
+          else
+            bash docs/site/scripts/check-deploy.sh --env preview --branch "$GITHUB_REF_NAME"
+          fi
+          bash docs/site/scripts/check-deploy.sh "$DEPLOY_URL"
+
+      - name: Upload the workflow texts and read them back
+        env:
+          BETA_KV_REST_API_URL: ${{ secrets.BETA_KV_REST_API_URL }}
+          BETA_KV_REST_API_TOKEN: ${{ secrets.BETA_KV_REST_API_TOKEN }}
+          PROD_KV_REST_API_URL: ${{ secrets.PROD_KV_REST_API_URL }}
+          PROD_KV_REST_API_TOKEN: ${{ secrets.PROD_KV_REST_API_TOKEN }}
+        run: |
+          # The store of the environment being released to, never the other one.
+          if [ "$GITHUB_REF_NAME" = main ]; then
+            KV_REST_API_URL="$PROD_KV_REST_API_URL"
+            KV_REST_API_TOKEN="$PROD_KV_REST_API_TOKEN"
+          else
+            KV_REST_API_URL="$BETA_KV_REST_API_URL"
+            KV_REST_API_TOKEN="$BETA_KV_REST_API_TOKEN"
+          fi
+          export KV_REST_API_URL KV_REST_API_TOKEN
+          bash scripts/upload-workflow.sh upload "$VERSION" "$BUNDLE" "$DIGEST"
+
+      - name: A fresh trial gets the texts from the deployment
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
+        run: bash scripts/upload-workflow.sh probe "$VERSION" "$DEPLOY_URL"
+
+      - name: Download release assets
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: qualitylayer-release
+          path: release
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@43d14bc2b83dec42d39ecae14e916627a18bb661 # v3
+        with:
+          subject-path: |
+            release/qualitylayer-darwin-arm64
+            release/qualitylayer-darwin-x64
+            release/qualitylayer-linux-arm64
+            release/qualitylayer-linux-x64
+            release/install.sh
+
+      - name: Prepend the release to CHANGELOG.md
         uses: orhun/git-cliff-action@e16f179f0be49ecdfe63753837f20b9531642772 # v4
         with:
           config: cliff.toml
@@ -845,17 +561,9 @@ jobs:
         env:
           GITHUB_REPO: ${{ github.repository }}
 
-      - name: Use custom changelog if provided
-        if: ${{ github.event.inputs.changelog != '' }}
-        env:
-          CHANGELOG: ${{ github.event.inputs.changelog }}
-        run: |
-          echo "$CHANGELOG" > CHANGELOG.md
-          echo "Using custom changelog content"
-
       - name: Create release with semantic-release
+        id: semantic-release
         if: github.event_name != 'workflow_dispatch'
-        id: semantic
         uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
         with:
           extra_plugins: |
@@ -864,49 +572,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update version files for manual trigger
-        if: github.event_name == 'workflow_dispatch'
+      # The assets below belong to the tag that was built and approved, or to none.
+      - name: The release is the one that was built
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          CREATED: ${{ steps.semantic-release.outputs.new_release_version }}
         run: |
-          VERSION="${{ needs.prepare-release.outputs.version }}"
-          echo "Updating version files to ${VERSION}..."
-
-          # Update version in Python files (same as semantic-release prepareCmd)
-          sed -i 's/^__version__ = ".*"/__version__ = "'"${VERSION}"'"/' installer/__init__.py launcher/__init__.py
-
-          # Update version in README.md
-          sed -i "s/export VERSION=[0-9.]*/export VERSION=${VERSION}/g" README.md
-
-          # Keep package and generated runtime versions equivalent to the automatic path.
-          sed -i 's/"version": "[0-9.]*"/"version": "'"${VERSION}"'"/' console/package.json pilot/package.json
-
-          echo "Version files updated:"
-          grep __version__ installer/__init__.py launcher/__init__.py
-          grep "VERSION=" README.md | head -1
-
-      - name: Rebuild versioned runtime bundles for manual trigger
-        if: github.event_name == 'workflow_dispatch'
-        working-directory: console
-        run: bun run build
-
-      - name: Commit and push version updates for manual trigger
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          VERSION="${{ needs.prepare-release.outputs.version }}"
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Stage all updated files
-          git add installer/__init__.py launcher/__init__.py README.md CHANGELOG.md \
-            console/package.json pilot/package.json pilot/scripts/*.cjs pilot/ui
-
-          # Check if there are changes to commit
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "chore(release): ${VERSION} [skip ci]"
-            git push origin main
-            echo "Version updates committed and pushed"
+          if [ "$CREATED" != "$VERSION" ]; then
+            echo "::error::semantic-release created '${CREATED}', expected '${VERSION}'"
+            exit 1
           fi
 
       - name: Create release for manual trigger
@@ -914,110 +588,31 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION="${{ needs.prepare-release.outputs.version }}"
+          PRE=""
+          case "$VERSION" in *-*) PRE="--prerelease" ;; esac
           if ! gh release view "v${VERSION}" >/dev/null 2>&1; then
-            echo "Creating release v${VERSION}..."
-            gh release create "v${VERSION}" --title "v${VERSION}" --generate-notes
+            gh release create "v${VERSION}" --title "v${VERSION}" --generate-notes \
+              --target "${{ github.sha }}" $PRE
           fi
 
-      - name: Generate tree.json manifest
-        run: |
-          echo "Generating tree.json from repository files..."
-          git ls-tree -r HEAD | python3 -c "
-          import sys, json
-          items = []
-          for line in sys.stdin:
-              parts = line.strip().split('\t', 1)
-              if len(parts) == 2:
-                  meta, path = parts
-                  fields = meta.split()
-                  if len(fields) == 3:
-                      items.append({'path': path, 'type': 'blob', 'sha': fields[2]})
-          json.dump({'tree': items}, sys.stdout, separators=(', ', ': '))
-          " > tree.json
-
-          echo "Validating tree.json..."
-          python3 -c "import json; data=json.load(open('tree.json')); assert 'tree' in data and len(data['tree']) > 0, 'Invalid tree.json'"
-
-          echo "tree.json generated successfully with $(python3 -c "import json; print(len(json.load(open('tree.json'))['tree']))") files"
-
-      - name: Upload artifacts to release
+      - name: Upload assets to the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION="${{ needs.prepare-release.outputs.version }}"
-          echo "Uploading artifacts for v${VERSION}"
-
-          # Wait for release to exist with retry logic
-          MAX_RETRIES=12
-          RETRY_DELAY=5
-          for ((i = 1; i <= MAX_RETRIES; i++)); do
-            if gh release view "v${VERSION}" >/dev/null 2>&1; then
-              echo "Release v${VERSION} found"
-              break
-            fi
-            if [ "$i" -eq "$MAX_RETRIES" ]; then
-              echo "Release v${VERSION} not found after ${MAX_RETRIES} retries"
-              echo "Creating release manually..."
-              gh release create "v${VERSION}" --title "v${VERSION}" --notes "Release v${VERSION}"
-            fi
-            echo "Waiting for release... (attempt $i/$MAX_RETRIES)"
-            sleep "$RETRY_DELAY"
+          for ((i = 1; i <= 12; i++)); do
+            gh release view "v${VERSION}" >/dev/null 2>&1 && break
+            [ "$i" -eq 12 ] && { echo "Release v${VERSION} was not created"; exit 1; }
+            sleep 5
           done
+          gh release upload "v${VERSION}" release/* --clobber
+          # The published list must match the guarded one exactly.
+          gh release view "v${VERSION}" --json assets --jq '.assets[].name' | sort > published.txt
+          find release -type f -printf '%f\n' | sort > expected.txt
+          diff -u expected.txt published.txt
 
-          # Upload all .so files and tree.json
-          gh release upload "v${VERSION}" \
-            artifacts/pilot-linux-x86_64/pilot-linux-x86_64.so \
-            artifacts/pilot-linux-arm64/pilot-linux-arm64.so \
-            artifacts/pilot-darwin-x86_64/pilot-darwin-x86_64.so \
-            artifacts/pilot-darwin-arm64/pilot-darwin-arm64.so \
-            artifacts/pilot-linux-x86_64/pilot \
-            tree.json \
-            --clobber
-
-          echo "All artifacts uploaded successfully"
-
-      - name: Output release info
-        run: |
-          echo "Released version: ${{ needs.prepare-release.outputs.version }}"
-          echo "All platform binaries are now available"
-
-  # Deploy website to production in parallel with publish-release (both after approval)
-  deploy-website:
-    name: Deploy Website (Production)
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs:
-      - prepare-release
-      - approve-release
-    if: needs.prepare-release.outputs.should_release == 'true'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Install git-crypt
-        run: bash .github/workflows/scripts/install-git-crypt.sh
-
-      - name: Unlock repository
-        env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: bash .github/workflows/scripts/setup-git-crypt.sh
-
-      - name: Setup Node.js
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
-        with:
-          node-version: "24.21.0"
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel
-
-      - name: Deploy to Vercel (Production)
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
-          VERCEL_PROJECT_ID: prj_TXccrJI83HyNvQUZxqStUFgus9NB
-        run: |
-          DEPLOY_URL=$(vercel deploy --token="$VERCEL_TOKEN" --prod)
-          echo "Deployed to: $DEPLOY_URL"
+  # A clean Linux install of the beta just published, from qualitylayer.dev.
+  beta-install:
+    name: Beta install
+    needs: [publish-release]
+    if: github.ref_name == 'dev'
+    uses: ./.github/workflows/beta-install.yml

@@ -1,11 +1,11 @@
 {
-  "name": "Pilot Shell",
-  "short_name": "Pilot",
-  "description": "How real engineers run Claude Code and Codex",
+  "name": "QualityLayer",
+  "short_name": "QualityLayer",
+  "description": "The software factory for your coding agents.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#6366f1",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "icons": [
     {
       "src": "/favicon.png",
@@ -13,7 +13,7 @@
       "type": "image/png"
     },
     {
-      "src": "/favicon.png",
+      "src": "/logo.png",
       "sizes": "512x512",
       "type": "image/png"
     }

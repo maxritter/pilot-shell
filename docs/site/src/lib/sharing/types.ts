@@ -1,6 +1,6 @@
 /**
- * Types for the secure spec sharing system.
- * Ported from console/src/shared/sharing/types.ts — kept in sync.
+ * The annotation and feedback contracts of shared plans. Task documents and link
+ * loading are defined in sharing.ts. Keep these wire shapes stable.
  */
 
 export interface Annotation {
@@ -23,24 +23,8 @@ export interface Annotation {
   importedAt?: number;
 }
 
-/** Payload for sharing a spec with another user (A→B direction) */
-export interface SharePayload {
-  /** Full markdown content of the spec */
-  specContent: string;
-  /** Existing annotations from the spec owner */
-  annotations: Annotation[];
-  /** Display name of the sharer */
-  author?: string;
-  /** Original plan file path */
-  planPath?: string;
-  /** Whether this is a specification or requirement */
-  contentType?: "specification" | "requirement";
-  /** Timestamp when the share was created */
-  createdAt: number;
-}
-
 /**
- * GitHub-PR-style top-level review verdict. Submitted from pilot-shell.com
+ * GitHub-PR-style top-level review verdict. Submitted from the shared-plan page
  * alongside (or independently of) inline annotations on the same feedback batch.
  */
 export interface Decision {
@@ -64,8 +48,7 @@ export interface FeedbackPayload {
 }
 
 // ─── Multi-user feedback polling (2026-05-15) ─────────────────────────────────
-// These types are shared verbatim between the Console worker and the pilotshell.com
-// Edge API. The same block must appear in console/src/shared/sharing/types.ts.
+// QualityLayer's Cockpit polls this feedback queue API; preserve its request and response shapes.
 
 /** One submission on the server-side feedback queue for a single share id. */
 export interface FeedbackQueueEntry {
@@ -77,12 +60,12 @@ export interface FeedbackQueueEntry {
   payload: FeedbackPayload;
 }
 
-/** Console → pilotshell.com batch-read request body. */
+/** Client → feedback API batch-read request body. */
 export interface FeedbackBatchRequest {
   items: Array<{ id: string; cursor: number }>;
 }
 
-/** pilotshell.com → Console batch-read response. Keyed by share id. */
+/** Feedback API → client batch-read response. Keyed by share id. */
 export type FeedbackBatchResponse = Record<
   string,
   {

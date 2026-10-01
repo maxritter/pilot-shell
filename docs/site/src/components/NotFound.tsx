@@ -1,35 +1,21 @@
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import Page from "@/components/Page";
 import SEO from "@/components/SEO";
+import { SITE_URL } from "@/lib/product";
 
-const NotFoundComponent = () => {
-  const navigate = useNavigate();
-
-  return (
-    <>
-      <SEO
-        title="404 - Page Not Found | Pilot Shell Academy"
-        description="The page you're looking for doesn't exist. Return to Pilot Shell Academy homepage."
-        canonicalUrl="https://pilot-shell.com/404"
-      />
-      <main className="min-h-screen flex items-center justify-center px-6 bg-background">
-        <div className="text-center">
-          <h1 className="text-9xl font-bold text-primary mb-4">404</h1>
-          <h2 className="text-3xl font-semibold mb-4">Page Not Found</h2>
-          <p className="text-xl text-muted-foreground mb-8">
-            The page you're looking for doesn't exist.
-          </p>
-          <Button
-            size="lg"
-            onClick={() => navigate('/')}
-            className="bg-primary transition-all duration-300"
-          >
-            Return to Homepage
-          </Button>
+const NotFoundComponent = () => (
+  <>
+    <SEO title="Page not found — QualityLayer" description="The page you are looking for does not exist." canonicalUrl={`${SITE_URL}/404`} />
+    <Page>
+      <section className="w7-sec w7-nf" aria-labelledby="nf-h">
+        <div className="w7-wrap">
+          <h1 id="nf-h" className="w7-h2">Page not found</h1>
+          <p className="w7-lead">That page does not exist, or it has moved.</p>
+          <div className="w7-btns w7-figure"><Link className="w7-btn-p" to="/">Back to the home page</Link><a className="w7-btn-s" href="/docs/">Open the docs</a></div>
         </div>
-      </main>
-    </>
-  );
-};
+      </section>
+    </Page>
+  </>
+);
 
 export default NotFoundComponent;

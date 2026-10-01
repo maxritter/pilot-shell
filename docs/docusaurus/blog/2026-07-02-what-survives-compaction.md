@@ -77,12 +77,12 @@ Put it together and a simple placement policy falls out:
 Compaction is not lossy by accident; it is lossy by design, and Anthropic told you exactly where the seams are. Loaded-from-disk survives, in-conversation gets summarized. Once that rule is in your head, "Claude forgot my instruction" stops being a mystery and becomes a placement bug you can fix in one move: put the instruction where it reloads. For the buffer mechanics behind when compaction actually fires, see the [context buffer guide](/blog/context-buffer-management); for the full strategy of working within the window, start at the context management hub.
 
 Context Management
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

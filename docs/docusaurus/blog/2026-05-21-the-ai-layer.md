@@ -215,12 +215,12 @@ The model will keep getting better. Anthropic ships, your competitors ship, the 
 That is the strategic case for taking the AI layer seriously. It is also why teams that win at Claude Code at scale look different from teams that just use it. The winning teams treat the harness as a product. They own it, review it on a cadence, distribute it through plugins, and have one person accountable for it. The other teams treat it as a config file that someone wrote once and nobody updates.
 
 The shape of where this is going is already visible. The Agent Manager role is real now. Plugin marketplaces are real now. Path-scoped skills are real now. The AI layer is starting to look less like a junk drawer of dotfiles and more like a platform engineering surface inside every serious codebase. Treating it that way is the move.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

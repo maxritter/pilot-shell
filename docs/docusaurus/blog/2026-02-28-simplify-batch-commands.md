@@ -257,12 +257,12 @@ Linters catch syntax and style issues. `/simplify` catches architectural problem
 - Need to install or update Claude Code? The installation guide covers setup on all platforms, including the one-line install commands
 
 `/simplify` and `/batch` signal where Claude Code is headed: bundled multi-agent workflows that handle common engineering patterns out of the box. You still review every diff and approve every plan. But the orchestration -- spinning up parallel agents, managing worktrees, aggregating results -- is no longer something you build yourself. Expect more bundled commands like these as the platform matures.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

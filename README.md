@@ -1,274 +1,280 @@
 <div align="center">
 
-<img src="docs/img/logo.png" alt="Pilot Shell" width="400">
+<img src="docs/site/public/logo.png" alt="QualityLayer" width="120">
 
-### How real engineers run Claude Code and Codex
+# QualityLayer
 
-Professional context and harness engineering around the coding agents you already use.</br>
-**Persistent knowledge. Enforced quality. Runtime proof.**
+### The software factory for your coding agents
+
+You approve the plan before any code is written. Your agent builds it in small, tested slices.<br>
+**Then an AI that did not write the code checks the result against what you asked for.**
 
 [![Stars](https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&color=F59E0B)](https://github.com/maxritter/pilot-shell)
 [![Star History](https://img.shields.io/badge/Star_History-chart-8B5CF6)](https://star-history.com/#maxritter/pilot-shell&Date)
 [![Downloads](https://img.shields.io/github/downloads/maxritter/pilot-shell/total?color=3B82F6)](https://github.com/maxritter/pilot-shell/releases)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-10B981.svg)](https://github.com/maxritter/pilot-shell/pulls)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-2076C5.svg)](https://github.com/maxritter/pilot-shell/pulls)
 
 <p>
   <a href="#install">Install</a> •
-  <a href="#features">Features</a> •
-  <a href="https://pilot-shell.com/docs">Docs</a> •
-  <a href="https://pilot-shell.com/blog">Blog</a> •
-  <a href="https://pilot-shell.com">Website</a> •
+  <a href="#why">Why</a> •
+  <a href="#features">How it works</a> •
+  <a href="#videos">Videos</a> •
+  <a href="https://qualitylayer.dev/docs/">Docs</a> •
+  <a href="https://qualitylayer.dev">Website</a> •
   <a href="https://github.com/maxritter/pilot-shell/releases">Changelog</a>
 </p>
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
+curl -fsSL https://qualitylayer.dev/install.sh | bash
 ```
 
-**macOS · Linux · Windows (WSL2)** — installs in under 2 minutes.
-
-<br>
-
-<img src="docs/img/demo.gif" alt="Pilot Shell Demo" width="700">
+**Claude Code, Codex or any agent with skills · terminal, desktop app or IDE · macOS, Linux, Windows (WSL2)**
 
 </div>
 
 ---
 
-> [!TIP]
-> **Pilot's open design companion:** [Open Claude Design](https://github.com/maxritter/open-claude-design) connects Claude Design to the coding agent you already use, with codebase-grounded creation and conflict-aware synchronization. Pilot installs it together with [Impeccable](https://github.com/pbakaus/impeccable), so product context, visual iteration, deterministic checks, and engineering verification work as one design layer.
+<h2 id="videos">Videos</h2>
+
+A short overview, and a walkthrough of the Cockpit.
+
+<p>
+  <a href="https://www.youtube.com/watch?v=FQuSwPxdNzk"><img src="docs/docusaurus/static/img/videos/overview.jpg" alt="Watch the QualityLayer overview video (3:20)" width="49%"></a>&nbsp;<a href="https://www.youtube.com/watch?v=VL3WPkWolPc"><img src="docs/docusaurus/static/img/videos/walkthrough.jpg" alt="Watch the QualityLayer walkthrough video (9:57)" width="49%"></a>
+</p>
 
 ---
 
-## Why Pilot Shell
+<h2 id="why">Why QualityLayer</h2>
 
-**Claude Code and Codex CLI write code fast** — but production-grade software still needs durable context, disciplined implementation, quality control, and proof that the finished system works.
+**Coding agents write code fast, but even the best models don't keep a codebase healthy on their own.** Every change passes its tests and still leaves something behind: a copy, a workaround, code nobody reads. Over months, the codebase drifts into something nobody can safely change. Good software still needs people deciding what gets built, before the code exists.
 
-**Pilot Shell is a professional context and harness engineering system—not a collection of rules and skills.** It coordinates the complete engineering process around the model:
+**QualityLayer works alongside the agent you already use**, in the terminal, desktop app or IDE. It opens the Cockpit in your browser when there is something to see, comment on or decide:
 
-- **Quality on every layer** — hooks, stop guards, independent reviews, full test/build gates, and browser or device verification prevent “looks done” handoffs
-- **Persistent context** — relevant source, architecture, project standards, prior decisions, and session state survive long work and compaction, with useful findings remembered automatically across Claude Code and Codex
-- **Professional toolchain** — Semble, CodeGraph, ast-grep, language servers, browser automation, and MCP integrations support discovery, structural search, impact analysis, implementation, and runtime proof
-- **Runtime verification** — tests, builds, real CLI/API execution, browser automation, and device checks turn completion claims into evidence
-- **Human control plane** — the Console connects plan and diff review, annotations, progress, evidence, session recovery, shared project knowledge, and usage
-- **Workflow neutrality** — direct requests, native Plan/Goal tools, and Pilot workflows are peer ways to work inside the same harness
-- **Structured delivery when wanted** — `/spec`, `/build`, `/fix`, and `/prd` add durable artifacts and explicit lifecycle contracts without becoming routing rules for ordinary requests
-- **One system for Claude Code and Codex** — platform-specific adapters preserve one engineering standard while the underlying models continue to improve
+- **See the plan before any code:** each design comes with diagrams of the system and its data, and mockups of new screens you can click through.
+- **Point at what's wrong:** comment on any sentence, diagram or mockup, and your agent gets all your comments together.
+- **Bring in your team early:** teammates read the plan in their own Cockpit, comment and approve it while changing it is still cheap.
+- **Build in small steps:** helper agents build the change in small pieces, each starting with a failing test. A last pass removes duplicate and unused code.
+- **Get results checked for you:** an AI that did not write the code runs the program and checks each point you asked for, with evidence you can open.
+- **Review everything in one place:** why the change was made, the proof, how to try it and the code changes, before you open the pull request.
+- **Choose who builds it:** the build works from the approved plan alone, so any agent or model can take it on.
 
-Rules, skills, and persistent memory are coordinated parts of this harness. They supply context; they are not the product by themselves. For a longer practitioner’s explanation, read [How to build production-ready software assisted with AI tools](https://vogel-johnson.com/blog/2026-07-21-ai-assisted-production-ready-code).
+### From Pilot Shell to QualityLayer
 
----
-
-<h2 id="install">Getting Started</h2>
-
-### Prerequisites
-
-**At least one AI agent:** Pilot Shell supports **Claude Code** (primary — full feature coverage) and **Codex** through Codex CLI or the ChatGPT desktop app (all workflows, fewer platform features). Install at least one before running the Pilot installer:
-
-- **Claude Code:** Install via the [native installer](https://code.claude.com/docs/en/quickstart). If you have the `npm` or `brew` version, uninstall it first. Requires a Claude subscription — [Max 5x or 20x](https://claude.com/pricing) for solo, [Team Premium](https://claude.com/pricing) for teams, [Enterprise](https://claude.com/pricing) for organizations.
-- **Codex:** Install [Codex CLI](https://developers.openai.com/codex/cli) or the ChatGPT desktop app. Pilot detects the CLI and the Codex binary bundled with ChatGPT on macOS. Requires an OpenAI subscription — [Plus or Pro](https://developers.openai.com/codex/pricing) for solo, [Business or Enterprise](https://developers.openai.com/codex/pricing) for teams.
-
-**Terminal (Recommended on macOS):** [Zentty](https://zentty.org/) works especially well with Pilot Shell — its worklanes keep parallel agents and dev servers in separate contexts and show you when a pane needs attention. Any modern terminal works: [Ghostty](https://ghostty.org/), [iTerm2](https://iterm2.com/), or the built-in macOS/Linux terminal.
-
-### Installation
-
-**Works with any existing project.** Pilot Shell integrates with **Claude Code** and **Codex CLI or ChatGPT desktop**, using their built-in concepts (rules, hooks, skills, subagents, MCP) to improve your experience:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
-```
-
-Installs globally on macOS, Linux, and Windows (WSL2). After installation, run `claude` or `codex` directly. On macOS, you can instead restart ChatGPT desktop and open the project there. Pilot Shell loads automatically in either Codex client. Run `pilot update` to check for updates.
-
-<details>
-<summary><b>Downgrade</b></summary>
-
-If you encounter an issue or unfixed bug in the latest version, you can always go back to a previous version (see [releases](https://github.com/maxritter/pilot-shell/releases)):
-
-```bash
-export VERSION=11.0.6
-curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
-```
-</details>
-
-<details>
-<summary><b>Uninstalling</b></summary>
-
-Removes Pilot's runtime, Console, statusline, hooks, managed skills/rules/agents, MCP entries, settings injections, and shell aliases. Claude Code, Codex, project files, shared external tools, and user data are preserved:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash
-```
-
-The interactive uninstaller asks separately whether to remove proven Pilot-owned external tools and whether to purge Pilot data, then shows the final removal preview. The prompts use the controlling terminal, so they also work with the piped command above.
-
-Optional cleanup stays explicit:
-
-```bash
-# Also remove external tools that Pilot recorded as originally Pilot-installed
-curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash -s -- --remove-tools
-
-# Also delete Pilot memories, sessions, logs, configuration, and unknown files
-curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash -s -- --purge-data
-```
-</details>
-
-<details>
-<summary><b>Reset & Refresh</b></summary>
-
-Over time, accumulated session logs and Pilot Shell's caches can slow things down. A periodic reset gives you a clean baseline:
-
-```bash
-# 1. If using Claude Code, log out first
-/logout
-
-# 2. Back up your current config (just in case)
-# Using CLAUDE_CONFIG_DIR? Substitute it for ~/.claude, and back up
-# "$CLAUDE_CONFIG_DIR/.claude.json" instead of ~/.claude.json.
-mv ~/.claude.json ~/.claude.json.bak
-mv ~/.claude       ~/.claude.bak
-mv ~/.codex        ~/.codex.bak
-mv ~/.pilot        ~/.pilot.bak
-
-# 3. Reinstall Pilot Shell from the official installer
-curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
-
-# 4. Re-activate your license, then start your agent
-pilot activate <your-license-key>
-claude   # or: codex
-```
-
-Once Pilot Shell is running smoothly again, you can delete the `.bak` copies. Forgot your license key? Recover it in the [Pilot members area](https://polar.sh/max-ritter/portal).
-</details>
-
-<details>
-<summary><b>Using a Dev Container</b></summary>
-
-Pilot Shell works inside Dev Containers. Copy the [`.devcontainer`](https://github.com/maxritter/pilot-shell/tree/main/.devcontainer) folder from this repository into your project, adapt it to your needs (base image, extensions, dependencies), and run the installer inside the container. The installer auto-detects the container environment and skips system-level dependencies like Homebrew.
-
-For tighter isolation when working with untrusted code, combine the dev container with Claude Code's [`/sandbox`](https://code.claude.com/docs/en/sandboxing) — `bubblewrap`, `socat`, `iptables`, and `ipset` are pre-installed in the Dockerfile so it works out of the box on Linux. See Anthropic's [development containers](https://code.claude.com/docs/en/devcontainer) and [sandboxing](https://code.claude.com/docs/en/sandboxing) docs for hardening patterns (egress allowlist, managed settings, persistent volumes).
-
-</details>
-
-<details>
-<summary><b>What the installer does</b></summary>
-
-8-step installer with progress tracking, rollback on failure, and idempotent re-runs. Steps 3 and 4 are agent-conditional — they skip cleanly when the matching agent is not detected. The installer **does not install Claude Code, Codex CLI, or ChatGPT itself**; install at least one yourself per the prerequisites above.
-
-1. **Prerequisites** — Checks/installs Homebrew, Node.js, Python 3.12+, uv, git, jq. Verifies at least one supported agent (Claude Code, Codex CLI, or the Codex binary bundled with ChatGPT on macOS) is on the system; aborts with a clear error otherwise.
-2. **Pilot files** — Agent-neutral Pilot Shell-managed assets. Hooks → `~/.pilot/hooks/`, Console scripts/UI → `~/.pilot/`, MCP server template → `~/.pilot/.mcp.json`, canonical raw sources → `~/.pilot/rules/`, `~/.pilot/skills/`, and `~/.pilot/agents/`. Each agent's adapter consumes these sources in its own format. Always runs.
-3. **Claude files** — Claude-specific assets under the Claude config directory (`$CLAUDE_CONFIG_DIR`, else `~/.claude`): rules, sub-agents, `settings.json` (three-way merged), plus the Claude post-install merges (hooks into settings, app-config MCP block, model config migration). **Skipped when Claude Code CLI is not detected.**
-4. **Codex files** — Codex-specific assets: adapted skills → `~/.agents/skills/`, review agents → `~/.codex/agents/`, guidance → `~/.codex/AGENTS.md`, a provider-derived model catalog that preserves new entries while lifting GPT-5.6 and Astra to their published context ceiling → `~/.codex/.pilot-model-catalog.json`, plus merged `~/.codex/config.toml` and `~/.codex/hooks.json`. **Skipped when neither Codex CLI nor the ChatGPT-bundled Codex binary is detected.**
-5. **Config files** — Creates `.nvmrc` and project config.
-6. **Dependencies** — Installs the latest checksum-verified Open Claude Design release; the pinned Impeccable CLI, skills, supporting agents, and detector with provider hooks left opt-in; Semble; CodeGraph; ast-grep; [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp); [playwright-cli](https://github.com/microsoft/playwright-cli); [agent-browser](https://agent-browser.dev/); language servers; and the `codex@openai-codex` Claude marketplace plugin. Agent-specific dependencies still skip when their target agent is absent. Homebrew is preferred for ast-grep, with an audited pinned npm fallback for hosts without Brew.
-7. **Shell integration** — Auto-configures bash, fish, and zsh with the `pilot` admin alias and a Codex wrapper that raises a low per-process open-file soft limit without lowering a higher one.
-8. **Finalize** — Success message with next steps.
-
-</details>
-
-### First Steps
-
-Start either agent in any project. Work directly, use the agent's native Plan/Goal tools, or invoke a Pilot workflow — these are peer choices, and the same harness stays active around each one.
-
-```bash
-# Claude Code         # Codex CLI
-claude                codex
-```
-
-When you want repository-specific shared guidance, run `/setup-rules` in Claude Code or `$setup-rules` in Codex. It reads the codebase, discovers conventions, and prepares synchronized rules and MCP guidance; it is useful setup, not a prerequisite for using Pilot.
-
-Use `/create-skill` to capture a repeatable procedure and `/benchmark` to measure whether guidance improves output. See [Other Pilot Workflows](#other-pilot-workflows) for the full on-demand toolkit.
+Pilot Shell fought the harness around your agent, with its own hooks, rules and tools. Today's models work best inside their own harness, so QualityLayer stops fighting it. It keeps what made Pilot Shell worth using, an agentic life cycle for quality, collaboration and human alignment, and puts it on top of any coding agent: one adaptive workflow in the Cockpit, team planning, a cheaper model for the build, and reviews across agents.
 
 ---
 
+<h2 id="install">Getting started</h2>
 
-<h2 id="features">Ways of Working</h2>
+### What you need
 
-Pilot supports three peer paths. Choose the contract that fits the work; none is the escalation path or preferred default for another.
+**A coding agent.** Any agent that supports skills and can run shell commands. The installer sets up Claude Code and Codex for you. Two features need both of them: the second review by the other vendor's AI, and messages between agent sessions.
 
-| Path | What it adds |
-|---|---|
-| Direct request | The shortest route from a clear request to implementation and verification |
-| Native agent Plan/Goal tools | The planning, task, approval, and persistence model built into Claude Code or Codex |
-| Pilot workflows | Durable requirements, plans, criteria, TDD loops, reviews, and verification evidence |
+- **Claude Code:** install with the [native installer](https://code.claude.com/docs/en/quickstart); remove an `npm` or `brew` copy first. Needs a Claude subscription: [Max 5x or 20x](https://claude.com/pricing) for one developer, [Team Premium](https://claude.com/pricing) or [Enterprise](https://claude.com/pricing) for a company.
+- **Codex:** install the [Codex CLI](https://developers.openai.com/codex/cli). Needs an OpenAI subscription: [Plus or Pro](https://developers.openai.com/codex/pricing) for one developer, [Business or Enterprise](https://developers.openai.com/codex/pricing) for a company.
 
-## Pilot Workflows
+Start your agent once before you install, so its folder (`~/.claude` or `~/.codex`) exists.
 
-Pilot's four structured workflows remain available when their explicit artifact or lifecycle contract is useful.
+**Terminal, desktop app or IDE.** QualityLayer works wherever your agent runs. You see the most in the terminal, where Claude Code shows the task's progress in its status line. On macOS, [Zentty](https://zentty.org/) works especially well. It keeps the planning agent, the building agent and your dev servers in separate lanes, and shows which one needs you. [Ghostty](https://ghostty.org/) and [iTerm2](https://iterm2.com/) work as well.
 
-| Workflow | Use it when | Contract |
-|---|---|---|
-| [`/spec`](https://pilot-shell.com/docs/workflows/spec) · `$spec` | You want ordered tasks approved before implementation | Plan against the real codebase, implement with TDD, review independently, and verify end to end |
-| [`/build`](https://pilot-shell.com/docs/workflows/build) · `$build` | The outcome is clear but the task list should evolve while building | Define acceptance criteria, build in rounds, and let an independent judge turn gaps into the next round |
-| [`/fix`](https://pilot-shell.com/docs/workflows/fix) · `$fix` | Existing behavior is broken | Reproduce the defect, write the RED test, repair the root cause, run the quality gate, and audit the result |
-| [`/prd`](https://pilot-shell.com/docs/workflows/prd) · `$prd` | The problem, audience, or scope is still unclear | Explore directions and produce a reviewable product requirement document |
+### Install
 
-`/spec` and `/build` are peers: choose `/spec` for an approved plan and `/build` for a goal measured by acceptance criteria. Size alone does not decide.
+```bash
+curl -fsSL https://qualitylayer.dev/install.sh | bash
+```
+
+This installs the `qualitylayer` command-line tool and the skill your agents use. It adds no hooks or MCP servers and leaves your shell profile alone.
+
+<details>
+<summary><b>What the installer adds</b></summary>
+
+It downloads the binary for your platform, checks its SHA-256 checksum, then runs `qualitylayer install`, which adds:
+
+- the binary in `~/.qualitylayer/bin/`
+- the `qualitylayer` skill (and `ql`, its short form) for Claude Code and Codex, which their desktop apps and IDE extensions use too
+- the `qualitylayer-peers` skill, so agent sessions can message each other
+- Codex metadata so the skill runs only when you call it
+- a `qualitylayer` link in `~/.local/bin` when that folder is on your `PATH`
+
+It asks nothing. It also turns on the few agent settings QualityLayer needs, only where they are missing, and lists each one it changes. These are high reasoning effort, Claude Code's task tools, Codex's plan tool and option picker for questions and, when Codex knows your model's limits, its largest context window. A value you already set stays as it is.
+
+Claude Code also gets QualityLayer's status line if you have none. Your own stays; `qualitylayer install --refresh --status-line` swaps in QualityLayer's, and uninstalling puts yours back.
 
 ```text
-Requirement or goal → plan / criteria → TDD implementation → quality gates
-                                            ↑                 ↓
-                                            └─ review and runtime verification loop
+ platform · Opus 5 ⚡high · ◔ 12% · 140K ctx · $1.20 ·  usage-billing +2 ~1
+◆ QL · ▲ review the design · design 3/8 · ✎ 1 draft comment · move API billing to usage…
 ```
 
-Requirements, plans, buildouts, tasks, criteria, and verification evidence live in durable files under `docs/`. Stop guards keep the workflow open until the obligations pass or are reported unresolved.
+The second line shows only while a task is running: what waits for you, the step, the build's progress and your comments.
 
-[Explore all workflow details →](https://pilot-shell.com/docs/category/pilot-workflows)
+</details>
 
-## Other Pilot Workflows
+<details>
+<summary><b>Using another agent</b></summary>
 
-Use these on demand; the full procedures live in the documentation.
+Any agent that supports skills (a folder with a `SKILL.md`) and can run shell commands works. Copy `~/.qualitylayer/skill/qualitylayer` into its skills folder. At handoff, pick **Other agent** in the Cockpit to get its build prompt.
 
-| Workflow | Purpose |
-|---|---|
-| [`/investigate` · `$investigate`](https://pilot-shell.com/docs/workflows/investigate) | Trace one codebase question with cited evidence and no edits |
-| [`/cleanup` · `$cleanup`](https://pilot-shell.com/docs/workflows/cleanup) | Corroborate dead-code candidates without deleting anything |
-| [`/setup-rules` · `$setup-rules`](https://pilot-shell.com/docs/workflows/setup-rules) | Generate modular project guidance from the real codebase |
-| [`/create-skill` · `$create-skill`](https://pilot-shell.com/docs/workflows/create-skill) | Capture and test a reusable procedure |
-| [`/benchmark` · `$benchmark`](https://pilot-shell.com/docs/workflows/benchmark) | Measure a rule or skill against falsifiable before/after evals |
+</details>
 
-## Visual Engineering
+<details>
+<summary><b>Update and uninstall</b></summary>
 
-Pilot installs [Open Claude Design](https://github.com/maxritter/open-claude-design) and [Impeccable](https://github.com/pbakaus/impeccable) as complementary parts of the harness. Open Claude Design connects the real codebase and coding agent to Claude Design's visual workspace; Impeccable adds focused refinement workflows and deterministic checks.
+```bash
+qualitylayer update               # download, verify, replace
+qualitylayer uninstall            # remove exactly what install added
+qualitylayer uninstall --purge    # … and the licence and task state
+```
 
-Ask normally—the design workflow loads in the background, keeps code and design synchronized, and feeds the result into Pilot's implementation and verification process.
+Plans in your repositories stay.
 
-## Pilot Shell Console
+</details>
 
-The local Console at `localhost:41777` makes the harness visible and steerable.
+<details>
+<summary><b>Install a specific version</b></summary>
 
-<img src="docs/img/console/dashboard.webp" alt="Console — Dashboard" width="700">
+To go back to an earlier release (see [releases](https://github.com/maxritter/pilot-shell/releases)):
 
-- Review and annotate requirements, specifications, buildouts, and diffs; feedback flows back into the work that owns them.
-- Recover Claude Code and Codex sessions and search source-linked project knowledge.
-- Inspect progress, verification evidence, notifications, changes, usage, and costs.
-- Manage workflow settings and shared rules, skills, commands, and agents.
+```bash
+curl -fsSL https://qualitylayer.dev/install.sh | VERSION=12.0.0-beta.1 bash
+```
 
-Memory capture runs automatically in the background across Claude Code and Codex. Pilot selects an available low-cost provider, handles temporary quota failures, and keeps saved findings searchable without a model call. This adds project history alongside each agent's native context.
+</details>
 
-Team sharing is optional: keep stored memory local, or let useful findings travel through your project's normal Git commits and pulls. [How automatic memory works](docs/docusaurus/docs/features/knowledge.md).
+<details>
+<summary><b>Coming from Pilot Shell 11</b></summary>
 
-[Explore the Console →](https://pilot-shell.com/docs/features/console)
+Run the installer, or let Pilot Shell 11's own updater run it. It shows one screen about the upgrade, removes Pilot Shell's tools and installs QualityLayer, without asking anything. Your licence and plans carry over.
+
+</details>
+
+### Your first task
+
+Describe a change to your agent in any repository:
+
+```text
+/ql move API billing from seats to usage     # Claude Code
+$ql move API billing from seats to usage     # Codex
+```
+
+Whenever something waits for you, your agent gives you the Cockpit link; `qualitylayer cockpit` opens it any time. To see how a part of your code works, ask for a picture: `/ql show me how a request reaches the ledger`.
+
+QualityLayer runs only when you ask for it: with `/ql` or `/qualitylayer` (`$ql` or `$qualitylayer` in Codex), a build prompt from the Cockpit, or a request to resume a named task. Everything else works as before.
+
+<details>
+<summary><b>Privacy</b></summary>
+
+Five anonymous events are sent with the daily licence check: task started, step entered, check result, task shipped, and the name of a workflow step handed out. Never a repository name, path, branch, title or text. Turn them off with `qualitylayer telemetry off` or `DO_NOT_TRACK=1`.
+
+</details>
+
+---
+
+<h2 id="features">How it works</h2>
+
+### How a request becomes a reviewed change
+
+Describe a change to your agent. It picks one of three routes, and every step where a decision is yours waits for you in the Cockpit.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/routes-dark.svg">
+  <img src="docs/docusaurus/static/img/diagrams/routes-light.svg" alt="Three routes: Feature runs every step, Bug finds the cause before the fix, Quick change goes straight to a test and the change" width="1000">
+</picture>
+
+- **Feature:** before any code exists, you agree on the goal, what the code does today, the design, and the order of the build.
+- **Bug:** the agent reproduces the bug and finds its cause first, then fixes it with a test.
+- **Quick change:** a rename or an obvious fix goes straight to a test and the change. If it turns out bigger, the agent switches to the full plan.
+
+QualityLayer works on the branch and worktree you have checked out and never switches them.
+
+### Built in small pieces, each tested end to end
+
+Your agent builds a feature in slices: thin pieces that each go through every layer, from the screen to the database. Each slice starts with a failing test, and the whole program runs before the next one starts.
+
+**Every change ends simpler.** Once everything is built, another agent reads the whole change and cleans it up: it merges near-copies, reuses code you already have and removes what isn't needed. The behaviour stays the same. If a cleanup breaks something, the final check catches it and undoes it.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/slices-dark.svg">
+  <img src="docs/docusaurus/static/img/diagrams/slices-light.svg" alt="Three slices, each through screen, API, logic and database, each starting with a failing test and ending with an end-to-end run; then one pass simplifies the whole change" width="1000">
+</picture>
+
+### Your agent plans with you, helper agents do the rest
+
+Your agent plans with you on your best model. Helper agents research, build and test on smaller, cheaper models. They work from the written plan, so none of them needs your chat history. With Claude Code and Codex both installed, an AI from the other vendor also reviews the design and the finished change.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/agents-dark.svg">
+  <img src="docs/docusaurus/static/img/diagrams/agents-light.svg" alt="You and your agent write the plan documents; research helpers, slice builders, testers, a simplify helper and an independent check work from them; a second AI from another vendor reviews" width="1000">
+</picture>
+
+You choose the model for each job under **Subagents** in Settings, and for the other vendor's review under **Second opinion**, or turn either off.
+
+---
+
+<h2 id="cockpit">The Cockpit</h2>
+
+The Cockpit is where you review and approve your agent's work. It runs on your computer and opens in your browser. Designs come with diagrams and clickable mockups; select any passage to comment, then approve or request changes.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/cockpit-dark.svg">
+  <img src="docs/docusaurus/static/img/diagrams/cockpit-light.svg" alt="The Cockpit: a design under review with a system diagram, a teammate's comment, a clickable mockup, and Request changes and Approve buttons" width="1000">
+</picture>
+
+### Plan with one agent, build with another
+
+The build starts from the approved plan, not from the planning chat. You pick who builds it, and the Cockpit suggests a model, builds in the session you planned in by default, and gives you the prompt to start the build. Your best model coordinates while helpers on smaller models write the slices.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/handoff-dark.svg">
+  <img src="docs/docusaurus/static/img/diagrams/handoff-light.svg" alt="The Cockpit handoff: choose Claude Code, Codex or another agent, see the recommended setup, and copy the build prompt" width="1000">
+</picture>
+
+Then follow the build as it happens. You see which agent is working, the slices being built side by side and the code changes so far. Each end-to-end check comes with screenshots and steps to try it yourself. At the end, the Review page shows the proof for each point you asked for, how to try the change and the code changes. **Create pull request** opens the pull request when you are ready. Your browser tells you whenever a task needs you.
+
+### Review as a team
+
+With a Team plan, your team comes in twice. **Before any code**, you share a task, and your teammates comment on the plan and approve it in their own Cockpit. People outside the team can comment through a link, without an account. Their feedback goes to your agent, and you decide.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/team-dark.svg">
+  <img src="docs/docusaurus/static/img/diagrams/team-light.svg" alt="A shared plan: Ben approves, Anna asks for changes, Sam comments through a link; your agent answers every comment and you decide" width="1000">
+</picture>
+
+**After the build**, they review the finished change: why and how it was made, the proof, and how much code the cleanup removed. The code itself is reviewed in the pull request, as always. Open questions go back to your agent with `/ql review`, and each one ends fixed, answered or planned again.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/team-change-dark.svg">
+  <img src="docs/docusaurus/static/img/diagrams/team-change-light.svg" alt="Change review: the team reviews the finished change; open threads go back to your agent, which settles each one and checks again before the re-review" width="1000">
+</picture>
+
+To get a teammate's answer, mention them with @ or choose **Ask…** on any passage. A required question holds the approval until they answer.
+
+### Agent sessions that message each other
+
+Claude Code and Codex sessions on your computer can message each other: Claude to Claude, Codex to Codex, or across. One can ask another for a review, hand over a task, or talk a problem through.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/peers-dark.svg">
+  <img src="docs/docusaurus/static/img/diagrams/peers-light.svg" alt="Four agent sessions on one computer: one asks another for a review, one hands over a task, two talk a problem through" width="1000">
+</picture>
+
+To try it yourself, [click through the Cockpit on the website](https://qualitylayer.dev/#cockpit) with example tasks.
 
 ---
 
 ## Documentation
 
-For full details on every component, see the **[Documentation](https://pilot-shell.com/docs/)**.
-
----
+- [Install](https://qualitylayer.dev/docs/install) and [your first task](https://qualitylayer.dev/docs/first-task)
+- [How a task works](https://qualitylayer.dev/docs/workflow/overview): [plan](https://qualitylayer.dev/docs/workflow/plan), [build](https://qualitylayer.dev/docs/workflow/build), [check and ship](https://qualitylayer.dev/docs/workflow/check)
+- [The Cockpit](https://qualitylayer.dev/docs/cockpit), and reviewing [plans](https://qualitylayer.dev/docs/team/plans) and [changes](https://qualitylayer.dev/docs/team/changes) as a team
+- [Commands](https://qualitylayer.dev/docs/reference/commands), [settings](https://qualitylayer.dev/docs/reference/settings), and [files and privacy](https://qualitylayer.dev/docs/reference/files)
 
 ## Changelog
 
-See the full changelog at [GitHub Releases](https://github.com/maxritter/pilot-shell/releases).
-
----
+See [GitHub Releases](https://github.com/maxritter/pilot-shell/releases).
 
 ## Contributing
 
-Found a bug or missing a feature? [Open an issue](https://github.com/maxritter/pilot-shell/issues) on GitHub.
-
----
+Found a bug or missing a feature? [Open an issue](https://github.com/maxritter/pilot-shell/issues).
 
 ## License
 
@@ -278,9 +284,9 @@ See [LICENSE](LICENSE).
 
 <div align="center">
 
-**How real engineers run Claude Code and Codex**
+**The software factory for your coding agents**
 
-Made with 🩵 by [Max Ritter](https://maxritter.net)
+Made by [Max Ritter](https://maxritter.net)
 
 </div>
 

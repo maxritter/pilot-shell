@@ -1,0 +1,14 @@
+{
+  // Dead-code analysis for the website and its API (`npm run deadcode`).
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    // Vercel invokes every route; nothing imports it.
+    "api/**/*.ts",
+    // Run by build-all.sh and by hand, never imported.
+    "scripts/*.mjs"
+  ],
+  "project": ["api/**/*.ts", "src/**/*.{ts,tsx,css}", "scripts/*.mjs", "*.{ts,mjs}"],
+  "compilers": { "css": true },
+  // An export that its own file still uses is code in use, not dead code.
+  "ignoreExportsUsedInFile": true
+}

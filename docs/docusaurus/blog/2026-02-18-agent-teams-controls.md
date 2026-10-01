@@ -227,12 +227,12 @@ With clear rules in CLAUDE.md, teammates self-report exactly what they did witho
 You now have the controls to run agent teams effectively. Start with delegate mode on your next team session and watch the difference it makes in lead behavior. Add a TaskCompleted hook to enforce your test suite. Write module boundaries in your CLAUDE.md and let Claude split work automatically.
 
 For real-world prompts you can copy and adapt, see [Agent Teams Use Cases and Prompt Templates](/blog/agent-teams-use-cases). For troubleshooting common issues and current limitations, see [Agent Teams Best Practices](/blog/agent-teams-best-practices). For the complete planning-to-production workflow that ties these controls together, see the [end-to-end workflow guide](/blog/agent-teams-workflow).
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** installs a structured workflow for agent work on top of Claude Code: `/spec` plans the change, runs implementation under TDD, and verifies with an automated reviewer pass. The orchestration loop most agent setups end up writing by hand.
+**QualityLayer** adds a structured workflow on top of your coding agent: you approve the plan, helper agents build and test it slice by slice, and a fresh agent verifies the result against your request. The orchestration loop most agent setups end up writing by hand.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

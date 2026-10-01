@@ -163,12 +163,12 @@ Two details are worth carrying forward. The June suspension traced to a non-univ
 **Do I need usage credits?** Only on Pro, standard Team seats, standard seat-based Enterprise seats, or if you exceed your plan's included usage. Credits are prepaid, enabled under Settings > Usage, and billed at standard API rates. Without them, your access reverts to your plan's included allowance.
 
 **Fable 5 or Opus 5?** For most work, Opus 5. It costs half as much per token, is included on plans where Fable 5 is not, and wins seven of the eight quantified head-to-head evals. Reach for Fable 5 when your own benchmarks show it winning on your specific workload. See the [full head-to-head](/blog/claude-opus-5-vs-fable-5).
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

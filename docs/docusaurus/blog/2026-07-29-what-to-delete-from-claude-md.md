@@ -167,12 +167,12 @@ That last step is the one people skip and it is the one that makes the whole exe
 - Set up on-demand loading with [the skills guide](/blog/claude-skills-guide)
 - Split always-loaded content using [the rules directory](/blog/rules-directory)
 - Apply the same cut to agent definitions in [what survives cutting an agent fleet](/blog/agent-definitions-what-to-cut)
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

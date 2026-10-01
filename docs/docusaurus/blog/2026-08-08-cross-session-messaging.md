@@ -181,12 +181,12 @@ claude --name payments-api
 Rename a session you already started with `/rename` instead. If `/list-agents` is not recognized, check `claude --version` against the v2.1.224 requirement before anything else.
 
 Then, the next time you finish a change one of the other windows is standing on, say so out loud instead of switching tabs. Claude writes the summary, the other session picks it up mid-task, and the context arrives without you retyping it.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

@@ -237,12 +237,12 @@ Yes. Dynamic Workflows are available on all paid plans including Pro. On Pro, yo
 Ultracode is the most aggressive setting on the `/effort` ladder, and the only one that changes what Claude does rather than just how hard it thinks. It is the workflow toggle left on for the whole session, which means it structurally defeats the three failure modes (early quitting, self-grading, goal drift) that a single context window hits on hard work. That makes it genuinely powerful for audits, migrations, and plan stress-tests you'd otherwise split across several engineers. It also makes it the easiest setting to overspend on, because the automatic workflow layer applies to every substantive task and convergence has no token cap. The Bun team's Zig-to-Rust port (about 750,000 lines of Rust, 11 days from first commit to merge, 99.8% of the test suite passing) is the headline example of what orchestration at this scale can do. You may see it cited elsewhere as a six-day, million-line effort: that framing comes from Bun's own account (six days of active work, roughly 960,000 lines of Zig translated), while the figures here follow Anthropic's count of the Rust output from first commit to merge. Most teams won't be porting a runtime. They'll be deciding, task by task, whether this particular job is worth several engineers' worth of parallel work.
 
 Treat ultracode as a deliberate mode, not a default. Turn it on for the work that earns it, calibrate the cost on a scoped run, and drop back to `/effort high` when you're back to routine edits.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

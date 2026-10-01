@@ -1,33 +1,18 @@
 #!/usr/bin/env bash
-# Pre-commit hook: runs the fast CI checks in PARALLEL, scoped to staged files.
+# Pre-commit hook: the fast CI checks, in parallel, scoped to what is staged.
 #
-# Mirrors the fan-out of .github/workflows/release-dev.yml so a green pre-commit
-# closely predicts green CI, while running every check concurrently (wall time ≈
-# the slowest check, not the sum). Each check is scoped to what you actually
-# staged — Python checks skip when no Python changed, console checks skip when
-# the console is untouched:
+#   • qualitylayer   typecheck + lint (Biome)            (qualitylayer/ staged)
+#   • plaintext      nothing under qualitylayer/ staged in plaintext   (always)
+#   • install.sh     shellcheck                          (install.sh staged)
+#   • trivy          vuln + secret scan                  (always)
 #
-#   • lint          ruff + vulture + deadcode + import-linter   (Python staged)
-#   • python-tests  pytest: installer / launcher / hooks / benchmark   (Python staged)
-#
-# Both test jobs run against a throwaway $HOME with CLAUDE_CONFIG_DIR and
-# CODEX_HOME unset, so a suite that reaches the developer's real config dirs
-# fails here rather than only on a bare CI runner.
-#   • console       tsc typecheck + knip dead-code               (console TS staged)
-#   • console-tests bun test                                     (console TS staged)
-#   • trivy         vuln + secret scan                           (always)
-#
-# Each check runs in its own background subshell; output is captured and only
-# failing checks' logs are printed, followed by a timed summary. CI remains the
-# hard gate — missing local tools are skipped with a warning, never blocking.
+# The test suite is CI's job (`bun run test` in qualitylayer/, a few minutes).
+# Missing local tools are skipped with a warning, never blocking: CI is the gate.
 #
 # Install: ln -sf ../../.github/hooks/pre-commit .git/hooks/pre-commit
-# Requires: uv (Python tools), bun (console deps), trivy (security scan).
 # Bypass:
 #   SKIP_PRECOMMIT=1   skip everything (or: git commit --no-verify)
-#   SKIP_TESTS=1       skip the slow suites (pytest + bun test), keep lint/types/scan
 #   SKIP_TRIVY=1       skip the security scan
-#   SKIP_KNIP=1        skip the console dead-code check (typecheck still runs)
 
 set -uo pipefail
 
@@ -36,9 +21,9 @@ if [ "${SKIP_PRECOMMIT:-0}" = "1" ]; then
   exit 0
 fi
 
-cd "$(git rev-parse --show-toplevel)"
+cd "$(git rev-parse --show-toplevel)" || exit 1
 
-# --- 0a. Author identity gate ---
+# --- Author identity gate ------------------------------------------------------
 #
 # A throwaway identity in .git/config silently re-authors every commit in the
 # repo (repo config wins over ~/.gitconfig), GitHub attributes commits by author
@@ -56,8 +41,6 @@ if [ "${SKIP_IDENTITY_CHECK:-0}" != "1" ]; then
     *)                           _ident_bad="'$_ident_email' is not a valid address" ;;
   esac
 
-  # Throwaway shapes: a one- or two-character local part paired with a one- or
-  # two-character domain label (t@t.com, a@a.io), and the usual example domains.
   if [ -z "$_ident_bad" ]; then
     case "$_ident_email" in
       ?@?.*|?@??.*|??@?.*|??@??.*)          _ident_bad="'$_ident_email' looks like a throwaway address" ;;
@@ -83,36 +66,22 @@ if [ "${SKIP_IDENTITY_CHECK:-0}" != "1" ]; then
   fi
 fi
 
-# --- What did we stage? ------------------------------------------------------
-# Scope each check to its package. Per-package test scoping is safe: lint-imports
-# enforces that launcher / installer / pilot-hooks never import each other, so a
-# change in one cannot break another's tests. A pyproject.toml change (shared
-# deps/config) re-runs every suite. CI still runs the full matrix.
+# --- What did we stage? ----------------------------------------------------------
 staged="$(git diff --cached --name-only --diff-filter=ACMR)"
-py_changed=0
-console_changed=0
-pytest_suites=""
-add_suite() { case " $pytest_suites " in *" $1 "*) ;; *) pytest_suites="$pytest_suites $1" ;; esac; }
+qualitylayer_changed=0
+install_sh_changed=0
 while IFS= read -r f; do
   [ -n "$f" ] || continue
   case "$f" in
-    launcher/*.py)               py_changed=1; add_suite launcher/tests/unit ;;
-    installer/*.py)              py_changed=1; add_suite installer/tests/unit ;;
-    pilot/hooks/*.py)            py_changed=1; add_suite pilot/hooks/tests ;;
-    pilot/skills/benchmark/*.py) py_changed=1; add_suite pilot/skills/benchmark/tests ;;
-    pyproject.toml)
-      py_changed=1
-      add_suite installer/tests/unit; add_suite launcher/tests/unit
-      add_suite pilot/hooks/tests;    add_suite pilot/skills/benchmark/tests ;;
-    console/*.ts|console/*.tsx|console/package.json|console/knip.json|console/tsconfig*.json)
-      console_changed=1 ;;
+    qualitylayer/*) qualitylayer_changed=1 ;;
+    install.sh)     install_sh_changed=1 ;;
   esac
 done < <(printf '%s\n' "$staged")
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-# --- Tiny parallel-job registry (bash 3.2 compatible — no associative arrays) -
+# --- Tiny parallel-job registry (bash 3.2 compatible — no associative arrays) ----
 job_names=()
 job_pids=()
 job_logs=()
@@ -127,110 +96,53 @@ launch() { # launch "<display name>" <command…>
 
 have() { command -v "$1" >/dev/null 2>&1; }
 
-# --- Check definitions (each is one CI-equivalent job; steps run fail-fast) ---
-job_lint() {
-  uv run ruff check launcher installer pilot/hooks || return 1
-  uv run vulture || return 1
-  uv run deadcode launcher installer || return 1
-  uv run lint-imports || return 1
-}
-job_pytest() { # job_pytest <suite-path>
-  # Same home-isolation gate as job_console_tests: a suite that reads the real
-  # ~/.claude, ~/.codex or CLAUDE_CONFIG_DIR passes here and fails on a bare CI
-  # runner. uv keeps its cache outside $HOME's control here, so isolating the
-  # home does not slow the run.
-  local fake_home rc
-  fake_home="$(mktemp -d)" || return 1
-  env -u CLAUDE_CONFIG_DIR -u CODEX_HOME HOME="$fake_home" uv run pytest "$1" -q
-  rc=$?
-  rm -rf "$fake_home"
-  return $rc
-}
-job_console() {
-  cd console || return 1
+# The job_* functions are run through `launch`, which shellcheck cannot follow.
+# shellcheck disable=SC2329
+job_qualitylayer() {
+  cd qualitylayer || return 1
   bun run typecheck || return 1
-  [ "${SKIP_KNIP:-0}" = "1" ] || bun run knip || return 1
+  bun run lint || return 1
 }
-job_console_tests() {
-  # Mock-hygiene gate: mock.module("fs"/"child_process"/...) is process-global
-  # in bun's single-process runner and leaks into later test files; failures
-  # then appear only under CI's (Linux) file order. Use spyOn(realModule, "fn")
-  # + afterAll(() => mock.restore()) instead (see tests/worker/license-routes.test.ts).
-  local staged_tests violations
-  staged_tests="$(git diff --cached --name-only --diff-filter=ACMR -- 'console/tests/*.ts' 'console/tests/**/*.ts')"
-  if [ -n "$staged_tests" ]; then
-    violations="$(printf '%s\n' "$staged_tests" | while IFS= read -r f; do
-      [ -n "$f" ] || continue
-      # Scan the worktree file, NOT `git show :$f` - console sources are
-      # encrypted by git-crypt, so staged blobs are ciphertext and grep would
-      # never match. Keep apostrophes out of comments inside this $( ): bash 3.2
-      # (macOS /bin/bash) does not skip comments while scanning for the closing
-      # paren, so a lone apostrophe opens a quoted string and swallows the rest
-      # of the file - the hook then dies with a syntax error 50 lines later.
-      grep -nE 'mock\.module\(["'"'"'](node:)?(fs|child_process|os|path)["'"'"']' "$f" 2>/dev/null | grep -vE '^[0-9]+:[[:space:]]*(//|\*)' | sed "s|^|$f:|"
-    done)"
-    if [ -n "$violations" ]; then
-      printf 'process-global builtin module mock(s) staged:\n%s\n' "$violations"
-      return 1
-    fi
-  fi
-  # Home-isolation gate: a CI runner has no ~/.claude, no ~/.codex and no
-  # CLAUDE_CONFIG_DIR, so a test that reaches the developer's real home passes
-  # here and fails there. bun resolves os.homedir() ONCE at process start, so a
-  # test reassigning process.env.HOME does not redirect it and silently falls
-  # through to the real config dir. Run the suite against a throwaway home so
-  # that dependency breaks at the commit instead of on main.
-  local fake_home rc
-  fake_home="$(mktemp -d)" || return 1
-  cd console || { rm -rf "$fake_home"; return 1; }
-  env -u CLAUDE_CONFIG_DIR -u CODEX_HOME HOME="$fake_home" bun test
-  rc=$?
-  rm -rf "$fake_home"
-  return $rc
+# shellcheck disable=SC2329
+job_plaintext() {
+  bash scripts/check_qualitylayer_encrypted.sh
 }
+# shellcheck disable=SC2329
+job_shellcheck() {
+  shellcheck install.sh
+}
+# shellcheck disable=SC2329
 job_trivy() {
-  # skip-dirs mirrors release-dev.yml's Trivy job (vendored deps under
-  # docs/*/node_modules and console are CI-skipped) plus the local-only
-  # .pnpm-store cache and the ignored local worker lock, so the hook's verdict
-  # matches CI's clean checkout rather than scanning untracked workspace state.
   trivy fs . \
     --scanners vuln,secret \
     --severity CRITICAL,HIGH \
     --exit-code 1 \
     --ignore-unfixed \
-    --skip-dirs .venv,node_modules,console/node_modules,launcher,docs/site/api,console,docs/site/node_modules,docs/docusaurus/node_modules,.pnpm-store \
-    --skip-files worker/bun.lock \
+    --skip-dirs node_modules,qualitylayer/node_modules,qualitylayer/dist,docs/site/api,docs/site/node_modules,docs/docusaurus/node_modules,.pnpm-store \
     --ignorefile .trivyignore \
     --quiet
 }
 
-# --- Schedule the relevant checks --------------------------------------------
-if [ "$py_changed" = "1" ]; then
-  if have uv; then
-    launch "lint (ruff/vulture/deadcode/imports)" job_lint
-    if [ "${SKIP_TESTS:-0}" != "1" ]; then
-      for s in $pytest_suites; do
-        case "$s" in
-          launcher/*)                lbl=launcher ;;
-          installer/*)               lbl=installer ;;
-          pilot/hooks/*)             lbl=hooks ;;
-          pilot/skills/benchmark/*)  lbl=benchmark ;;
-          *)                         lbl="$s" ;;
-        esac
-        launch "tests: $lbl (pytest)" job_pytest "$s"
-      done
-    fi
+# --- Schedule --------------------------------------------------------------------
+if [ "$qualitylayer_changed" = "1" ]; then
+  if have bun && [ -d qualitylayer/node_modules ]; then
+    launch "qualitylayer (typecheck+lint)" job_qualitylayer
   else
-    echo "⚠ uv not found — skipping Python lint + tests (CI is the gate)."
+    echo "⚠ bun or qualitylayer deps unavailable — skipping (cd qualitylayer && bun install)."
   fi
 fi
 
-if [ "$console_changed" = "1" ]; then
-  if have bun && [ -d console/node_modules ]; then
-    launch "console (typecheck+knip)" job_console
-    [ "${SKIP_TESTS:-0}" = "1" ] || launch "console-tests (bun test)" job_console_tests
+if have git-crypt; then
+  launch "plaintext guard" job_plaintext
+else
+  echo "⚠ git-crypt not installed — skipping the plaintext guard (CI is the gate)."
+fi
+
+if [ "$install_sh_changed" = "1" ]; then
+  if have shellcheck; then
+    launch "install.sh (shellcheck)" job_shellcheck
   else
-    echo "⚠ bun/console deps unavailable — skipping console checks (cd console && bun install)."
+    echo "⚠ shellcheck not installed — skipping (brew install shellcheck)."
   fi
 fi
 
@@ -250,13 +162,11 @@ fi
 echo "Pre-commit: running ${#job_names[@]} check(s) in parallel…"
 overall_start="$(date +%s)"
 
-# --- Wait + collect exit codes -----------------------------------------------
 job_rcs=()
 for i in "${!job_names[@]}"; do
   if wait "${job_pids[$i]}"; then job_rcs+=("0"); else job_rcs+=("$?"); fi
 done
 
-# --- Print failing logs, then a timed summary --------------------------------
 failed=0
 for i in "${!job_names[@]}"; do
   if [ "${job_rcs[$i]}" != "0" ]; then
@@ -281,46 +191,7 @@ done
 if [ "$failed" -ne 0 ]; then
   echo "" >&2
   echo "✖ Pre-commit failed. Fix the above, or bypass with SKIP_PRECOMMIT=1 / git commit --no-verify" >&2
-  echo "  (granular: SKIP_TESTS=1, SKIP_TRIVY=1, SKIP_KNIP=1)." >&2
   exit 1
-fi
-
-# --- Rebuild + stage console artifacts ---------------------------------------
-#
-# pilot/ui/ and pilot/scripts/*.cjs are COMMITTED build outputs: they are what
-# the installer ships, and CI's console-build job only *checks* that the build
-# succeeds - it never regenerates them. Without this step a console source
-# change lands with stale artifacts and users install a Console missing it.
-# Serial and after the gate on purpose: it mutates the index, which is unsafe
-# from the parallel subshells above, and pointless if a check just failed.
-if [ "$console_changed" = "1" ] && [ "${SKIP_ARTIFACT_REBUILD:-0}" != "1" ]; then
-  echo ""
-  echo "Rebuilding console artifacts…"
-  if ( cd console && npm run build >/dev/null 2>&1 && npm run build:viewer >/dev/null 2>&1 ); then
-    artifacts=(
-      "pilot/scripts/mcp-server.cjs"
-      "pilot/scripts/worker-service.cjs"
-      "pilot/scripts/context-generator.cjs"
-      "pilot/scripts/worker-wrapper.cjs"
-      "pilot/ui/viewer-bundle.js"
-      "pilot/ui/viewer.css"
-    )
-    existing=()
-    for a in "${artifacts[@]}"; do [ -f "$a" ] && existing+=("$a"); done
-    # index.js / index3.js and friends are emitted chunk names that change with
-    # the bundle split, so stage whatever the build actually wrote.
-    while IFS= read -r changed; do
-      [ -n "$changed" ] && existing+=("$changed")
-    done < <(git diff --name-only -- pilot/ui pilot/scripts)
-    if [ "${#existing[@]}" -gt 0 ]; then
-      git add "${existing[@]}"
-      echo "  ✔ console artifacts rebuilt and staged"
-    fi
-  else
-    echo "  ✖ console artifact rebuild FAILED — commit blocked" >&2
-    echo "    run: cd console && npm run build && npm run build:viewer" >&2
-    exit 1
-  fi
 fi
 
 echo ""

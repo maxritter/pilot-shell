@@ -1,0 +1,126 @@
+name: QualityLayer CI
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - "qualitylayer/**"
+      - "docs/site/**"
+      - "install.sh"
+      - ".github/workflows/qualitylayer-ci.yml"
+      - "scripts/check_qualitylayer_encrypted.sh"
+  pull_request:
+    branches:
+      - dev
+      - main
+    paths:
+      - "qualitylayer/**"
+      - "docs/site/**"
+      - "install.sh"
+      - ".github/workflows/qualitylayer-ci.yml"
+      - "scripts/check_qualitylayer_encrypted.sh"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qualitylayer-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plaintext-guard:
+    name: Plaintext guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+
+      # Runs against the locked checkout on purpose: what this job sees is
+      # exactly what the public repository serves.
+      - name: Check qualitylayer/ is encrypted
+        run: bash scripts/check_qualitylayer_encrypted.sh
+
+  test:
+    name: Typecheck, lint, test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    needs: plaintext-guard
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+
+      - name: Unlock repository
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Install shellcheck
+        if: runner.os == 'macOS'
+        run: brew install shellcheck
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+
+      - name: Install dependencies
+        working-directory: qualitylayer
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        working-directory: qualitylayer
+        run: bun run typecheck
+
+      - name: Lint
+        working-directory: qualitylayer
+        run: bun run lint
+
+      # One process per test file; the runner builds the binary first. No test
+      # reaches the network: Polar, the trial service and releases are local.
+      - name: Test
+        working-directory: qualitylayer
+        run: bun run test
+
+  site:
+    name: Site API and pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: plaintext-guard
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+
+      # docs/site/api is encrypted; the route tests need its source.
+      - name: Unlock repository
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Setup Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
+        with:
+          node-version: "24.20.0"
+
+      - name: Install dependencies
+        working-directory: docs/site
+        run: npm ci
+
+      - name: Test
+        working-directory: docs/site
+        run: npm test

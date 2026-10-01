@@ -191,12 +191,12 @@ An agentic loop is an agent repeating cycles of work until a stop condition is m
 Look at the work you already do. Find one task where you are the bottleneck and ask which piece you could hand off. Can you write the check that proves the work is done? Is the goal clear enough to state as a number or a state? Does the work arrive on a schedule? The answer points at a loop type.
 
 Then pick that one task, write the verification or the stop condition, and run it. Watch where it stalls or overreaches, and tighten the condition. That loop is the first of many. The engineers pulling ahead right now are not writing better prompts. They are designing better loops.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

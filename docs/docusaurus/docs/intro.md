@@ -1,64 +1,43 @@
 ---
 slug: /
-sidebar_position: 0
-title: Introduction
-description: Complete technical reference for Pilot Shell — professional context and harness engineering for Claude Code and Codex CLI.
+title: QualityLayer documentation
+description: How QualityLayer takes your coding agent from a request to a reviewed change, and where you decide along the way.
 ---
 
-# Pilot Shell Documentation
+QualityLayer runs your coding agent through a proper engineering process. You approve the plan before any code is written, the agent builds it in small tested slices, and an AI that did not write the code checks the result against what you asked for. You review it all in the **Cockpit**, in your browser.
 
-**Pilot Shell** is how real engineers run Claude Code and Codex CLI. It keeps persistent knowledge, enforced quality, professional tools, and runtime proof around the way you already use either agent.
+![The Cockpit: a design under review with a system diagram, a teammate's comment and a clickable mockup](pathname:///img/diagrams/cockpit-light.svg)
+![The Cockpit: a design under review with a system diagram, a teammate's comment and a clickable mockup](pathname:///img/diagrams/cockpit-dark.svg)
 
-Work directly, use the native Plan/Goal tools your agent provides, or invoke a Pilot workflow. These are peer paths through the same harness; Pilot does not prescribe one over another.
+**Start here:** [Install](install.md) · [Your first task](first-task.md) · [How a task works](workflow/overview.md)
 
-## Why Pilot Shell
+## Videos {#videos}
 
-- **Automatic quality** — linting, formatting, type checking, and test enforcement happen as hooks, not suggestions
-- **Persistent context** — architectural decisions, patterns, project knowledge, and working state survive across sessions
-- **Professional tools** — Semble, CodeGraph, ast-grep, browser automation, language servers, and MCP integrations support the complete engineering loop
-- **Runtime proof** — tests, builds, real execution, and browser or device verification replace “looks done” handoffs
-- **Full visibility** — a local dashboard shows what's running, what changed, and what it cost
-- **Structured workflows when useful** — `/spec`, `/build`, `/fix`, and `/prd` add durable artifacts and explicit lifecycle contracts
+A short overview, and a walkthrough of the Cockpit.
 
-## Quick start
+[![Watch the QualityLayer overview video (3:20)](pathname:///img/videos/overview.jpg)](https://www.youtube.com/watch?v=FQuSwPxdNzk)
 
-```bash
-# Install
-curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
+[![Watch the QualityLayer walkthrough video (9:57)](pathname:///img/videos/walkthrough.jpg)](https://www.youtube.com/watch?v=VL3WPkWolPc)
 
-# Start with Claude Code or Codex CLI — Pilot loads automatically
-cd your-project
-claude   # Claude Code — full feature set
-codex    # Codex CLI — supported through CLI or ChatGPT desktop
+## Agree on the plan before any code
 
-# Or restart ChatGPT desktop after installation and open this project there
-```
+Your agent suggests a route: **Feature**, **Bug** or **Quick change**. Each planning document waits for your approval, while a change of mind still costs minutes.
 
-From there, use whichever path fits the work: a direct request, the agent's native Plan/Goal tools, or a Pilot workflow.
+![Three routes: Feature runs every step, Bug finds the cause before the fix, Quick change goes straight to a test and the change](pathname:///img/diagrams/routes-light.svg)
+![Three routes: Feature runs every step, Bug finds the cause before the fix, Quick change goes straight to a test and the change](pathname:///img/diagrams/routes-dark.svg)
 
-```bash
-# Add repository-specific shared guidance when wanted
-> /setup-rules       # Codex: $setup-rules
+## Build in vertical slices
 
-# Pilot workflows add explicit artifact and lifecycle contracts
-> /prd "Add real-time notifications for team updates"   # Codex: $prd
-> /spec "Add user authentication with OAuth"            # Codex: $spec
-> /build "onboarding flow as smooth as Linear's"        # Codex: $build
-> /fix "OAuth callback drops the redirect path"          # Codex: $fix
-> /investigate "How does a CLI flag become persisted config?"   # Codex: $investigate
-> /cleanup "src/auth"                                   # Codex: $cleanup
-> /create-skill                                          # Codex: $create-skill
-```
+Each slice goes through every layer, starts with a failing test, and runs end to end before the next one starts. One last pass makes the whole change simpler, with the same behaviour.
 
-## Architecture
+![Three slices, each through every layer, each starting with a failing test and ending with an end-to-end run; then one pass simplifies the whole change](pathname:///img/diagrams/slices-light.svg)
+![Three slices, each through every layer, each starting with a failing test and ending with an end-to-end run; then one pass simplifies the whole change](pathname:///img/diagrams/slices-dark.svg)
 
-Pilot enhances Claude Code and Codex CLI with:
+## One agent plans with you. Others build and check.
 
-- **Quality hooks** — Claude Code auto-formats, lints, type-checks, and enforces TDD on edits; both agents enforce the checks required by an active workflow
-- **7 MCP servers** — library docs, persistent memory, web search, code search, page fetching, code intelligence
-- **3 language servers** *(Claude Code only)* — Python (basedpyright), TypeScript (vtsls), Go (gopls)
-- **Persistent memory** — decisions and context survive across sessions in a local SQLite database, and can be shared with your team through the project repository
-- **Pilot Console** — local web dashboard at `localhost:41777` for sessions, memories, workflow artifacts, changes, usage, and configuration
-- **Codex compatibility** — adapted skills, `AGENTS.md` guidance, hooks, and support in Codex CLI and the ChatGPT desktop app
+Helper agents on smaller, cheaper models work from the plan documents, never your chat. With Claude Code and Codex both installed, an AI from the other vendor reviews too.
 
-Explore the sidebar for [getting started](/docs/getting-started/prerequisites), the [engineering harness](/docs/features/hooks), [Pilot workflows](/docs/workflows/spec), and the [Console](/docs/features/console).
+![You and your agent write the plan documents; helper agents research, build, test, simplify and check from them; a second AI from another vendor reviews](pathname:///img/diagrams/agents-light.svg)
+![You and your agent write the plan documents; helper agents research, build, test, simplify and check from them; a second AI from another vendor reviews](pathname:///img/diagrams/agents-dark.svg)
+
+**Look something up:** [Commands](reference/commands.md) · [Settings](reference/settings.md) · [Review plans as a team](team/plans.md)

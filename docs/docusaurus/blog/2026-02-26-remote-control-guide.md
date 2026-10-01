@@ -157,12 +157,12 @@ Remote Control launched alongside Cowork (scheduled tasks), signaling Anthropic'
 For now, Remote Control turns your phone into a window to your terminal. That alone changes how you interact with long-running Claude Code sessions. No more being chained to your desk waiting for a build to finish or an agent to complete its work.
 
 Start with `claude remote-control` and see how it fits your workflow. If you're already running multi-agent setups or long autonomous sessions, the ability to monitor and steer from your phone is a meaningful quality-of-life improvement. Keep an eye on the Claude Code changelog for Remote Control updates as it moves beyond the research preview stage.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

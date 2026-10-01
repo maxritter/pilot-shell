@@ -22,39 +22,16 @@ reviews:
 
   path_filters:
     # Exclude git-crypt encrypted directories from reviews (see .gitattributes)
-    - "!launcher/**"
-    - "!console/**"
-    - "!pilot/**"
+    - "!qualitylayer/**"
     - "!docs/site/api/**"
 
   path_instructions:
-    # Test files - brief review focused on coverage
-    - path: "**/tests/**"
+    # install.sh runs as `curl | bash` on users' machines
+    - path: "install.sh"
       instructions: |
-        Review test code briefly. Focus on:
-        - Test coverage for the feature being tested
-        - Proper mocking of external dependencies
-        - Clear test names that describe behavior
-        Skip detailed style comments.
-    - path: "**/*_test.py"
-      instructions: |
-        Review test code briefly. Focus on coverage and proper mocking.
-    - path: "**/test_*.py"
-      instructions: |
-        Review test code briefly. Focus on coverage and proper mocking.
-
-    # Installer code - focus on idempotency and error handling
-    - path: "installer/**/*.py"
-      instructions: |
-        Review installer code for:
-        - Idempotency (can be run multiple times safely)
-        - Proper error handling and user feedback
-        - Cross-platform compatibility
-
-    # Shell scripts - focus on portability
-    - path: "*.sh"
-      instructions: |
-        Review shell scripts for POSIX compatibility and proper error handling.
+        Review for fail-closed behaviour: the checksum must stay mandatory, nothing
+        may be written before verification, and v11's unattended updater must never
+        trigger the major upgrade.
 
     # GitHub workflows
     - path: ".github/workflows/**"

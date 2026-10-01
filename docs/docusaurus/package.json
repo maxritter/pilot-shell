@@ -1,11 +1,11 @@
 {
-  "name": "pilot-shell-docs",
+  "name": "qualitylayer-docs",
   "version": "0.0.0",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "docusaurus build",
+    "build": "node scripts/build.mjs",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -54,6 +54,7 @@
     "websocket-driver": ">=0.7.5",
     "svgo": "^3.3.5",
     "js-yaml": "^4.3.2",
-    "nanoid": "^3.3.17"
+    "nanoid": "^3.3.17",
+    "webpack-dev-middleware": "^7.4.6"
   }
 }

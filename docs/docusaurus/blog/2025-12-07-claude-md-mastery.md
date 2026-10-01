@@ -541,12 +541,12 @@ Request → Load Skills → Route Decision → Execute
 **Remember**: CLAUDE.md isn't documentation for Claude to read - it's an operating system for Claude to run. Define behavior, delegate knowledge to skills, and build a system that improves itself over time.
 
 For a complete system that builds on these principles, see our guide to [5 Claude Code best practices](/blog/agentic-engineering-best-practices) that separate top developers.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

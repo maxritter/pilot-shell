@@ -131,12 +131,12 @@ So the map is short enough to keep in your head. Parallelize a few independent t
 ## Making the Right Call Automatic
 
 Here is the part the comparison table does not solve for you. Knowing the rule is the easy half. Applying it correctly on every task, under deadline, when the request is ambiguous and you are three hours into a session, is the hard half. The decision is not a one-time read. It repeats on every meaningful task you start, and each miss costs you the same way: pick a team for many-independent-units work and you cap your scale and burn 2 to 4x tokens; pick isolated sub-agents for an evolving-contract feature and you get pieces that cannot renegotiate and a build that fights itself. The framework is sound. The discipline to run it every single time is what slips.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

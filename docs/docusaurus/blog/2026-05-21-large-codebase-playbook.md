@@ -255,12 +255,12 @@ Every team that succeeds with Claude Code at scale has invested in their harness
 A year ago, "AI coding tool" meant something you opened, prompted, and read suggestions from. Today it means an agent with file system access, command execution rights, and a context window that needs to be curated like an engineer's working memory. The model is one ingredient. The harness around it is the rest. CLAUDE.md tells Claude the rules. Subdirectory initialization tells it the scope. Codebase maps tell it the geography. Ignore files and permissions tell it the boundaries. Scoped commands tell it the feedback loop. LSP tells it about symbols. Sub-agents give it more context window. Path-scoped skills give it the workflows. None of these are revolutionary on their own. Combined, they are the difference between an agent that works on toy projects and an agent that ships features in your monorepo.
 
 If you want the framework that ties all of this together (the harness as a unified concept rather than eight separate tactics), read our [AI layer pillar](/blog/the-ai-layer). If you want to understand the [agent manager role](/blog/agent-manager-role) that owns this stack inside an org, we have written about that too. And once your team has a harness worth standardizing on, our plugin distribution guide covers how to ship it as a single installable bundle so every engineer starts from the same baseline instead of evolving private variants.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

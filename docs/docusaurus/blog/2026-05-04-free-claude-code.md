@@ -202,12 +202,12 @@ The bigger story is that Claude Code's Anthropic Messages API has become a de fa
 - Pick the right model when you do go back to Anthropic: read model selection for Claude Code
 - Tighten your context strategy for smaller windows: [context engineering basics](/blog/context-engineering)
 - Get more out of any model with skills: [Claude Code skills guide](/blog/claude-skills-guide)
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** is a single install on top of Claude Code that adds `/spec`, `/fix`, `/prd`, project-aware rules, persistent memory across sessions, and a configured hook pipeline. Open source, MIT-licensed.
+**QualityLayer** is a single install on top of Claude Code, Codex or any agent with skills. Describe a change with `/ql`, review the plan in the Cockpit, and an independent agent checks the result.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

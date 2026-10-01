@@ -104,12 +104,12 @@ The decision rule is short. If you code every day, care about catching bugs befo
 If you live inside one ecosystem, generate a lot of video, or run light coding loads that never touch a rate limit, a single plan is fine and the ladder advice holds. The stack is for the power user whose bottleneck is quality and throughput at the same time, which is most people shipping real code with AI this year.
 
 [Agent SDK Credit](/blog/agent-sdk-credit)
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

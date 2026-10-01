@@ -5,14 +5,17 @@ name: Deploy Website
   push:
     branches:
       - main
+      - dev
     paths:
       - "docs/site/**"
       - "docs/docusaurus/**"
       - ".github/workflows/deploy-website.yml"
   workflow_dispatch:
 
+# One deployment at a time per branch: a newer commit replaces an older one, and
+# main (production) is never cancelled by dev (the beta Preview), nor the reverse.
 concurrency:
-  group: deploy-website
+  group: deploy-website-${{ github.ref_name }}
   cancel-in-progress: true
 
 permissions:
@@ -102,16 +105,32 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "24.21.0"
+          node-version: "24.20.0"
 
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      - name: Deploy to Vercel (Production)
+      # main is production. dev is a Preview of the same project, which qualitylayer.dev
+      # is aliased to; only the tip of dev may take the domain, so a slower run never
+      # puts an older page over a newer one.
+      - name: Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
           VERCEL_PROJECT_ID: prj_TXccrJI83HyNvQUZxqStUFgus9NB
         run: |
-          DEPLOY_URL=$(vercel deploy --token="$VERCEL_TOKEN" --prod)
+          if [ "$GITHUB_REF_NAME" = main ]; then
+            DEPLOY_URL=$(vercel deploy --token="$VERCEL_TOKEN" --prod)
+            echo "Deployed to: $DEPLOY_URL"
+            exit 0
+          fi
+          DEPLOY_URL=$(vercel deploy --token="$VERCEL_TOKEN")
           echo "Deployed to: $DEPLOY_URL"
+          git fetch --quiet origin "$GITHUB_REF_NAME"
+          if [ "$(git rev-parse "origin/$GITHUB_REF_NAME")" != "$GITHUB_SHA" ]; then
+            echo "::warning::$GITHUB_REF_NAME moved past $GITHUB_SHA; the domain stays on the newer deployment"
+            exit 0
+          fi
+          for domain in qualitylayer.dev www.qualitylayer.dev; do
+            vercel alias set "$DEPLOY_URL" "$domain" --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID"
+          done

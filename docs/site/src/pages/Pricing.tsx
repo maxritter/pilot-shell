@@ -1,24 +1,22 @@
 import { lazy, Suspense } from "react";
-import NavBar from "@/components/NavBar";
+import Page from "@/components/Page";
 import SEO from "@/components/SEO";
+import { SITE_URL } from "@/lib/product";
 
 const PricingSection = lazy(() => import("@/components/PricingSection"));
-const Footer = lazy(() => import("@/components/Footer"));
 
 const Pricing = () => (
   <>
     <SEO
-      title="Pricing — Pilot Shell for Claude Code & Codex CLI"
-      description="Pilot Shell pricing for solo developers and teams, with persistent context, enforced quality, runtime proof, and supported integrations for Claude Code and Codex CLI."
-      canonicalUrl="https://pilot-shell.com/pricing"
+      title="Pricing — QualityLayer"
+      description="QualityLayer pricing for one developer, for teams, and for companies. Every plan starts with a 7-day trial."
+      canonicalUrl={`${SITE_URL}/pricing`}
     />
-    <NavBar />
-    <main className="min-h-screen bg-background">
+    <Page className="page-pricing">
       <Suspense fallback={<div aria-hidden="true" style={{ minHeight: "60vh" }} />}>
         <PricingSection />
-        <Footer />
       </Suspense>
-    </main>
+    </Page>
   </>
 );
 

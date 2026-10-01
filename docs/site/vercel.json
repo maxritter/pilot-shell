@@ -7,19 +7,60 @@
   "cleanUrls": true,
   "redirects": [
     {
-      "source": "/(.*)",
-      "has": [{ "type": "host", "value": "claude-pilot.com" }],
-      "destination": "https://pilot-shell.com/$1",
+      "source": "/install.sh",
+      "destination": "https://raw.githubusercontent.com/maxritter/pilot-shell/dev/install.sh",
+      "permanent": false
+    },
+    {
+      "source": "/((?!api/|s/|assets/|fonts/|brand/|favicon\\.ico$).*)",
+      "has": [{ "type": "host", "value": "(www\\.)?pilot-shell\\.com" }],
+      "destination": "https://qualitylayer.dev/$1",
       "permanent": true
     },
     {
-      "source": "/(.*)",
-      "has": [{ "type": "host", "value": "www.claude-pilot.com" }],
-      "destination": "https://pilot-shell.com/$1",
+      "source": "/docs/features/:path*",
+      "destination": "/docs",
       "permanent": true
-    }
+    },
+    {
+      "source": "/docs/workflows/:path*",
+      "destination": "/docs",
+      "permanent": true
+    },
+    { "source": "/docs/reference/peers", "destination": "/docs/reference/commands#session-messaging", "permanent": true },
+    { "source": "/docs/reference/reviews", "destination": "/docs/reference/settings#second-opinion", "permanent": true },
+    { "source": "/docs/tutorials/first-task", "destination": "/docs/first-task", "permanent": true },
+    { "source": "/docs/guides/phases", "destination": "/docs/workflow/overview", "permanent": true },
+    { "source": "/docs/guides/cockpit", "destination": "/docs/cockpit", "permanent": true },
+    { "source": "/docs/guides/handoff", "destination": "/docs/workflow/build/handoff", "permanent": true },
+    { "source": "/docs/guides/team", "destination": "/docs/team/plans", "permanent": true },
+    { "source": "/docs/getting-started/prerequisites", "destination": "/docs/install", "permanent": true },
+    { "source": "/docs/getting-started/installation", "destination": "/docs/install", "permanent": true },
+    { "source": "/docs/getting-started/codex-cli", "destination": "/docs/install#other-agents", "permanent": true },
+    { "source": "/docs/phases/frame", "destination": "/docs/workflow/plan/frame", "permanent": true },
+    { "source": "/docs/phases/research", "destination": "/docs/workflow/plan/research", "permanent": true },
+    { "source": "/docs/phases/diagnose", "destination": "/docs/workflow/plan/diagnose", "permanent": true },
+    { "source": "/docs/phases/design", "destination": "/docs/workflow/plan/design", "permanent": true },
+    { "source": "/docs/phases/outline", "destination": "/docs/workflow/plan/outline", "permanent": true },
+    { "source": "/docs/phases/handoff", "destination": "/docs/workflow/build/handoff", "permanent": true },
+    { "source": "/docs/phases/build", "destination": "/docs/workflow/build/slices", "permanent": true },
+    { "source": "/docs/phases/checkpoint", "destination": "/docs/workflow/build/checks", "permanent": true },
+    { "source": "/docs/phases/verify", "destination": "/docs/workflow/check/verify", "permanent": true },
+    { "source": "/docs/phases/approve", "destination": "/docs/workflow/check/review", "permanent": true },
+    { "source": "/docs/phases/shipped", "destination": "/docs/workflow/check/shipped", "permanent": true },
+    { "source": "/docs/phases/stopped-verification", "destination": "/docs/workflow/check/stops", "permanent": true },
+    { "source": "/docs/phases/abandon", "destination": "/docs/workflow/check/stops#stop-archive-or-delete-a-task", "permanent": true },
+    { "source": "/docs/phases/quick", "destination": "/docs/workflow/overview#quick-change", "permanent": true }
   ],
   "rewrites": [
+    {
+      "source": "/s/:id",
+      "destination": "/"
+    },
+    {
+      "source": "/cockpit-demo/:path*",
+      "destination": "/cockpit-demo/:path*"
+    },
     {
       "source": "/docs/:path*",
       "destination": "/docs/:path*"
@@ -56,7 +97,7 @@
     {
       "source": "/s/(.*)",
       "headers": [
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'sha256-3TPUzXhwjpQK+1gL7po7Cix3TpNA/3HGtxVbIF1N2N0=' https://analytics.ahrefs.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self' http://localhost:* https://localhost:*" }
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self' http://localhost:* https://localhost:*" }
       ]
     },
     {

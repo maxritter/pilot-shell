@@ -27,7 +27,7 @@ APT_OPTS=(
 
 PUBLIC_MIRROR="http://archive.ubuntu.com/ubuntu"
 KEYRING="/usr/share/keyrings/ubuntu-archive-keyring.gpg"
-TARGETED_LIST="/etc/apt/sources.list.d/pilot-git-crypt.list"
+TARGETED_LIST="/etc/apt/sources.list.d/qualitylayer-git-crypt.list"
 
 verify() {
   command -v git-crypt >/dev/null 2>&1

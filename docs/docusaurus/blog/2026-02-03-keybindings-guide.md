@@ -453,12 +453,12 @@ Start small. Don't try to remap everything at once. Here's a practical approach:
 6. **Iterate** by adding or adjusting bindings as needed
 
 If you're building a more comprehensive Claude Code setup, your keybindings work alongside [CLAUDE.md configuration](/blog/claude-md-mastery) and custom slash commands to create a fully personalized environment. The keybindings handle the physical interface. The configuration files handle the behavioral interface. Together, they make Claude Code feel like it was built specifically for your workflow.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** is a single install on top of Claude Code that adds `/spec`, `/fix`, `/prd`, project-aware rules, persistent memory across sessions, and a configured hook pipeline. Open source, MIT-licensed.
+**QualityLayer** is a single install on top of Claude Code, Codex or any agent with skills. Describe a change with `/ql`, review the plan in the Cockpit, and an independent agent checks the result.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

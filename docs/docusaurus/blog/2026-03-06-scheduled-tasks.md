@@ -238,12 +238,12 @@ Combined with [Remote Control](/blog/remote-control-guide) (monitor sessions fro
 For teams using multi-agent architectures, this opens a practical pattern: schedule a daily task that reviews overnight agent work, summarizes results, and flags items needing human review. The agent becomes both the worker and the shift supervisor.
 
 Pick one recurring task you do manually today. A morning inbox triage, a weekly metrics pull, an error log scan. Set it up as a scheduled task. Run it for a week. See how much time comes back.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

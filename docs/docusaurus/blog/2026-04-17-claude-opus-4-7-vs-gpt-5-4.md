@@ -217,12 +217,12 @@ Opus 4.7 wins SWE-bench Pro by 10.1 points (64.3% to 54.2%) and SWE-bench Verifi
 **What breaking changes ship with Opus 4.7?**
 
 Three API changes require migration on the Messages API (Claude Managed Agents users are unaffected). Sampling parameters (`temperature`, `top_p`, `top_k`) return a 400 error if set to non-default values. Extended thinking budgets (`thinking.budget_tokens`) return 400; adaptive thinking is the only thinking-on mode. Thinking display defaults to `omitted`, so thinking content is not returned unless you set `display: "summarized"`. Task budgets are available in public beta via the `task-budgets-2026-03-13` beta header, with a 20k token minimum.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** handles model routing in one config file: Opus for `/spec` planning, Sonnet for everyday iteration, Haiku for trivial calls. You set the policy; Pilot Shell picks per request.
+**QualityLayer** lets you choose a model for each job. Your best model plans and coordinates, a smaller one builds the slices, and an AI from the other vendor reviews the design and the finished change. You set it per job in Settings.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

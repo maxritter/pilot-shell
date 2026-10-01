@@ -192,12 +192,12 @@ Worth knowing: `Stop` has a built-in escape hatch that the others do not. The in
 - Apply the same transcript-verification discipline to the [skill activation hook](/blog/skill-activation-hook)
 - See the `Stop` equivalent in [stop hook task enforcement](/blog/stop-hook-task-enforcement)
 - Make your hooks portable with [cross-platform hook patterns](/blog/cross-platform-hooks)
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** ships a configured hook pipeline for Claude Code — formatter and linter on `PostToolUse`, type-check before stop, context capture on session events. Installed once, applied across every project.
+**QualityLayer** needs no hook pipeline. It installs as a skill and a command-line tool, runs only when you call it with `/ql`, and adds no hooks or MCP servers to your agent.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

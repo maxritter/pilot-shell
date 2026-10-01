@@ -1,11 +1,26 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import tailwindcss from "@tailwindcss/vite";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 import sitemapPlugin from "./vite-plugin-sitemap";
 import indexNowPlugin from "./vite-plugin-indexnow";
 
 const DOCUSAURUS_DEV_URL = "http://localhost:3000";
+const COCKPIT_SOURCE = path.resolve(__dirname, "../../qualitylayer/src/ui");
+
+/** The demo uses the production Cockpit. Each app keeps its own shadcn imports. */
+function cockpitDemo(): Plugin {
+  return {
+    name: "qualitylayer-cockpit-demo",
+    enforce: "pre",
+    async resolveId(source, importer) {
+      if (source === "/qualitylayer-cockpit-demo.tsx") return path.join(COCKPIT_SOURCE, "demo/main.tsx");
+      if (!source.startsWith("@/")) return null;
+      const base = importer?.startsWith(COCKPIT_SOURCE) ? COCKPIT_SOURCE : path.resolve(__dirname, "src");
+      return this.resolve(path.join(base, source.slice(2)), importer, { skipSelf: true });
+    },
+  };
+}
 
 function docusaurusRedirect(): Plugin {
   return {
@@ -28,51 +43,40 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    fs: { allow: [__dirname, path.resolve(__dirname, "../../qualitylayer/src"), path.resolve(__dirname, "../../qualitylayer/node_modules")] },
   },
   plugins: [
+    cockpitDemo(),
     react(),
-    mode === "development" && componentTagger(),
+    tailwindcss(),
     mode === "development" && docusaurusRedirect(),
     sitemapPlugin(),
     indexNowPlugin(),
   ].filter(Boolean),
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    dedupe: ["react", "react-dom", "cn", "lucide-react", "radix-ui", "class-variance-authority", "clsx", "tailwind-merge", "dompurify", "marked", "mermaid", "sonner", "tailwindcss", "tw-animate-css", "shadcn"],
   },
   build: {
     target: "es2020",
     cssMinify: true,
     chunkSizeWarningLimit: 800,
-    // Filter out heavy chunks that are only reachable via lazy imports on
-    // routes other than "/" (e.g. the markdown bundle is /shared-only).
+    // Polar's checkout is only reachable through a lazy import on /pricing:
+    // keep it out of the home page's preloads.
     modulePreload: {
       polyfill: false,
       resolveDependencies(_filename, deps) {
-        return deps.filter(
-          (d) =>
-            !d.includes("markdown-") &&
-            !d.includes("Shared-") &&
-            !d.includes("polar-") &&
-            !d.includes("charts-") &&
-            !d.includes("datepicker-") &&
-            !d.includes("carousel-"),
-        );
+        return deps.filter((d) => !d.includes("polar-"));
       },
     },
     rollupOptions: {
+      input: { website: path.resolve(__dirname, "index.html"), cockpit: path.resolve(__dirname, "cockpit-demo/index.html") },
       output: {
         // Split only feature-specific deps into their own chunks. Anything that
         // chains back through react/react-dom stays in the default vendor chunk
         // so we don't create import cycles.
         manualChunks: (id) => {
           if (!id.includes("node_modules")) return undefined;
-          if (id.includes("react-markdown") || id.includes("remark-") || id.includes("micromark") || id.includes("mdast-") || id.includes("hast-") || id.includes("unist-") || id.includes("unified")) return "markdown";
-          if (id.includes("recharts") || id.includes("d3-")) return "charts";
-          if (id.includes("react-day-picker") || id.includes("date-fns")) return "datepicker";
           if (id.includes("@polar-sh")) return "polar";
-          if (id.includes("embla-carousel")) return "carousel";
           return undefined;
         },
       },

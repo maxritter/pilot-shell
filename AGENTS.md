@@ -1,55 +1,75 @@
-# Pilot Shell repository instructions
+# QualityLayer repository instructions
 
 ## Project
 
-Pilot Shell is an engineering harness for Claude Code and Codex. The installer
-ships agent-specific skills, rules, hooks, MCP configuration, the Console, and
-the `pilot` CLI while preserving user-owned configuration.
+QualityLayer is a planning-first harness for any coding agent. One TypeScript
+codebase in `qualitylayer/` compiles (`bun build --compile`) into a single
+`qualitylayer` binary: the CLI that holds every task's state, the Cockpit
+server and its React SPA, and the embedded phase texts, schemas and templates.
+Installation drops the binary and agent skills, with Codex invocation-policy
+metadata. The QualityLayer workflow requires explicit user opt-in.
+
+The repository is public. Everything under `qualitylayer/` (and
+`docs/site/api/`) is git-crypt encrypted; only `package.json`, `bun.lock`,
+`tsconfig.json` and `biome.json` stay plaintext for supply-chain scanners.
 
 ## Commands
 
-- Launcher: `uv run pytest launcher/tests/unit/ -q`
-- Installer: `uv run pytest installer/tests/unit/ -q`
-- Hooks: `uv run pytest pilot/hooks/tests/ -q`
-- Benchmark skill: `uv run pytest pilot/skills/benchmark/tests/ -q`
-- Console: `cd console && bun test`
-- Full Python: `uv run pytest installer/tests/unit/ launcher/tests/unit/ pilot/hooks/tests/ pilot/skills/benchmark/tests/ -q`
-- Build binary: `uv run python -m launcher.build`
-- Agent-asset parity: `node scripts/sync-agent-assets.mjs --check`
+All in `qualitylayer/`:
+
+- `bun run typecheck` · `bun run lint` (Biome) · `bun run lint:fix`
+- `bun run test` — every test file in its own process (plain `bun test` leaks
+  the test DOM between files); builds the binary first
+- `bun run test tests/e2e` — a directory or single files
+- `bun run build` — the development binary in `dist/qualitylayer`;
+  `bun run build --all` — the four release targets with checksums
+- `bun run release-gate --agent claude-code|codex` — a real agent carries the
+  reference task (`tests/release/reference-task/`) to shipped, with the final
+  approval made through the Cockpit API. Uses the agent's own login; all
+  QualityLayer state goes to a temp `QUALITYLAYER_HOME`. Costs real agent time.
+- `bun run evals [--agent …] [--only framing,design]` — phase evals
+  (`tests/evals/*.json`) judged on a real spec run and a real quick run; before
+  releases, not per commit
+- `bun run eval:activation [--agent claude-code|codex]` — real-client opt-in
+  probes using the agent's own login, a temp HOME and a recording stub instead
+  of the QualityLayer binary. `QUALITYLAYER_ACTIVATION_CODEX` and
+  `QUALITYLAYER_ACTIVATION_CLAUDE` can select native executables when a local
+  launcher depends on the real HOME.
+- Do not run `bun run test` or `bun run build` while a release gate is running:
+  both replace `dist/qualitylayer`, which the gate's agent is using
+- From the repository root: `bash scripts/check_qualitylayer_encrypted.sh`
+  before pushing, `shellcheck install.sh` after changing the installer
 
 ## Repository rules
 
 - Preserve unrelated work in the dirty worktree. Do not reset, restore, or
   overwrite concurrent changes.
-- Use shell commands directly, `apply_patch` for source edits, Semble for intent
-  search, CodeGraph for callers or non-local runtime blast radius, and ast-grep
-  for syntax-aware structural search or controlled codemods.
-- Keep `launcher/` and `installer/` independent. They ship as separate packages
-  and must never import one another.
-- Edit generated contracts at their canonical source, regenerate them, and
-  verify the installed/generated artifact rather than assuming source parity.
-- Day-to-day prerelease work normally uses `dev`; production releases use
-  `main`. Never switch branches, commit, push, rebase, or force-update history
+- Never move source, phase texts, schemas or fixtures out of `qualitylayer/`.
+- Use the agent's native file tools for source edits. No bundled tooling (RTK,
+  Semble, CodeGraph) is required or assumed.
+- Tests never touch the real `HOME` or the network: they run the built binary
+  against a temp git repository and a temp `HOME`, with Polar, the trial
+  service and releases pointed at local fixtures or a closed port.
+- Never run `install.sh`, `qualitylayer install`, the v11 upgrade or any
+  uninstaller against the real `HOME` of a development machine; use a temp
+  `HOME`.
+- Never switch branches, commit, push, rebase, or force-update history
   without the corresponding user authorization.
+
+## Layout
+
+- `qualitylayer/src/core/` — task state machine, documents and validation,
+  gates, git, licence, telemetry, install. `advance()` is the only writer of a
+  task's stage.
+- `qualitylayer/src/cli/` — argument parsing and output only.
+- `qualitylayer/src/server/` and `src/ui/` — the Cockpit.
+- `qualitylayer/src/workflow/` — phase texts, schemas, templates, the skill.
+- `install.sh` — public, plaintext: download, verify the checksum, hand over
+  to `qualitylayer install`.
+- `docs/plans/` — QualityLayer's own task folders; local only, untracked and
+  ignored.
 
 ## Cross-agent assets
 
 - `AGENTS.md` is the shared repository core; `CLAUDE.md` must remain exactly
   `@AGENTS.md` plus a trailing newline.
-- `.agents/skills/` is canonical. `.claude/skills/` is generated and must not be
-  edited directly.
-- `scripts/sync-agent-assets.mjs --check` must pass. Use `--write` only to
-  recover drift after fixing the canonical source.
-- Ignored skills outside the explicitly tracked canonical/mirror set remain
-  private local extensions and are never copied or deleted automatically.
-- Provider-generated skills that intentionally install different Claude and
-  Codex variants (currently Impeccable) remain provider-owned and are excluded
-  from canonical/mirror synchronization; never overwrite one variant with the
-  other to force byte parity.
-
-## Matching detailed rules
-
-- `.claude/rules/pilot-shell-codex-skill-sync.md` — `installer/steps/codex_files.py`, `installer/skill_builder.py`, their tests, `pilot/hooks/{codex_skill_sync.py,cc_skill_sync.py,_lib/util.py}`, hook tests, and `pilot/skills/**` — read before changing skill build, adaptation, or license gating.
-- `.claude/rules/pilot-shell-installer-patterns.md` — `installer/**` — read before changing installer merge, ownership, or file-placement behavior.
-- `.claude/rules/pilot-shell-package-boundaries.md` — `installer/**`, `launcher/**` — read before moving logic across package boundaries.
-- `.claude/rules/pilot-shell-shared-display-sections.md` — `pilot/spec/plan-format.json`, `scripts/gen_plan_format.py`, Console Spec rendering, and website feedback rendering — read before changing plan section order or visibility.

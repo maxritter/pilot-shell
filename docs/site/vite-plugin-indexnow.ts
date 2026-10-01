@@ -22,9 +22,9 @@ import { type Plugin } from "vite";
 import fs from "fs";
 import path from "path";
 
-const SITE_HOST = "pilot-shell.com";
+const SITE_HOST = "qualitylayer.dev";
 const SITE_URL = `https://${SITE_HOST}`;
-const INDEXNOW_KEY = "0bd196f90bbc9ec8113bd78de2507fb2";
+const INDEXNOW_KEY = "4cfdecbb7e7995c71fc905bcdf607b8e";
 const INDEXNOW_ENDPOINT = "https://api.indexnow.org/IndexNow";
 
 function shouldSubmitIndexNow(): boolean {

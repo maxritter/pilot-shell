@@ -1,548 +1,109 @@
-/* =====================================================================
- * Pilot Shell — Docusaurus theme overrides.
- * Brand: deep purple (#6d5ce7 light / #a79cf3 dark).
- * Scope discipline: blog cards keyed off `article.margin-bottom--xl`,
- * single-post off `article header h1`, sitewide knobs (code blocks,
- * tables, blockquotes) live under `.markdown` so docs pages benefit too.
- * ===================================================================== */
-
-:root {
-  --ifm-color-primary: #6d5ce7;
-  --ifm-color-primary-dark: #5a47e3;
-  --ifm-color-primary-darker: #503bdf;
-  --ifm-color-primary-darkest: #3a25c8;
-  --ifm-color-primary-light: #8071eb;
-  --ifm-color-primary-lighter: #8a7ded;
-  --ifm-color-primary-lightest: #a79cf3;
-  --ifm-code-font-size: 92%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
-
-  /* Reading-friendly content width on post pages */
-  --post-content-max-width: 760px;
-}
-
-[data-theme="dark"] {
-  --ifm-color-primary: #a79cf3;
-  --ifm-color-primary-dark: #8f81ef;
-  --ifm-color-primary-darker: #8375ed;
-  --ifm-color-primary-darkest: #5f4be6;
-  --ifm-color-primary-light: #bfb7f7;
-  --ifm-color-primary-lighter: #cbc4f9;
-  --ifm-color-primary-lightest: #efedfd;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
-
-  /* Navy backgrounds matching the marketing site + Pilot Shell logo edges
-   * so /docs and /blog feel continuous with the marketing surface. */
-  --ifm-background-color: #090e15;
-  --ifm-background-surface-color: #121821;
-  --ifm-navbar-background-color: #070c12;
-  --ifm-footer-background-color: #070c12;
-  --ifm-color-emphasis-100: #121821;
-  --ifm-color-emphasis-200: #1d2533;
-  --ifm-color-emphasis-300: #2a3344;
-  --ifm-toc-border-color: #1d2533;
-  --ifm-hr-border-color: #1d2533;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-::selection {
-  background: var(--ifm-color-primary);
-  color: white;
-}
-[data-theme="dark"] ::selection {
-  background: var(--ifm-color-primary-lightest);
-  color: #1a1626;
-}
-
-/* =====================================================================
- * Blog cards (list page, tag page, archive page).
- * Discriminator: `article.margin-bottom--xl` is the per-post wrapper used
- * by Docusaurus's BlogPostItems on those routes — single-post pages use
- * a plain `<article>` without that class, so we don't catch them here.
- * ===================================================================== */
-
-article.margin-bottom--xl {
-  margin-bottom: 1.25rem !important;
-  padding: 1.5rem 1.75rem;
-  background: var(--ifm-background-surface-color);
-  border: 1px solid var(--ifm-color-emphasis-200);
-  border-radius: 12px;
-  transition:
-    transform 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease;
-}
-
-article.margin-bottom--xl:hover {
-  transform: translateY(-2px);
-  border-color: var(--ifm-color-primary);
-  box-shadow: 0 8px 24px -12px rgba(109, 92, 231, 0.35);
-}
-
-[data-theme="dark"] article.margin-bottom--xl:hover {
-  box-shadow: 0 8px 24px -8px rgba(167, 156, 243, 0.25);
-}
-
-article.margin-bottom--xl header h2 {
-  font-size: 1.4rem;
-  line-height: 1.3;
-  margin-bottom: 0.5rem;
-  letter-spacing: -0.01em;
-}
-
-article.margin-bottom--xl header h2 a {
-  font-weight: 600;
-  color: var(--ifm-heading-color);
-  transition: color 150ms ease;
-}
-
-article.margin-bottom--xl header h2 a:hover {
-  color: var(--ifm-color-primary);
-  text-decoration: none;
-}
-
-article.margin-bottom--xl header time {
-  font-size: 0.85rem;
-  color: var(--ifm-color-emphasis-700);
-}
-
-article.margin-bottom--xl header .avatar {
-  margin-bottom: 0.75rem;
-}
-
-article.margin-bottom--xl header .avatar .avatar__photo {
-  width: 32px;
-  height: 32px;
-}
-
-article.margin-bottom--xl header .avatar__name {
-  font-weight: 500;
-  font-size: 0.9rem;
-}
-
-article.margin-bottom--xl header .avatar__subtitle {
-  font-size: 0.8rem;
-  color: var(--ifm-color-emphasis-700);
-}
-
-article.margin-bottom--xl .markdown {
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: var(--ifm-color-emphasis-800);
-}
-
-article.margin-bottom--xl .markdown p {
-  margin-bottom: 0.75rem;
-}
-
-/* Headings inside truncated previews are rare — keep them small if they appear */
-article.margin-bottom--xl .markdown h2,
-article.margin-bottom--xl .markdown h3 {
-  font-size: 1rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.25rem;
-}
-
-/* Tag pills (in card footer) */
-article.margin-bottom--xl footer a[href*="/tags/"],
-article footer a[href*="/tags/"] {
-  display: inline-block;
-  padding: 0.2rem 0.7rem;
-  margin: 0 0.25rem 0.25rem 0;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  background: var(--ifm-color-emphasis-100);
-  color: var(--ifm-color-emphasis-800);
-  border: 1px solid var(--ifm-color-emphasis-200);
-  transition: all 150ms ease;
-}
-
-article.margin-bottom--xl footer a[href*="/tags/"]:hover,
-article footer a[href*="/tags/"]:hover {
-  background: var(--ifm-color-primary);
-  color: white;
-  border-color: var(--ifm-color-primary);
-  text-decoration: none;
-}
-
-[data-theme="dark"] article.margin-bottom--xl footer a[href*="/tags/"]:hover,
-[data-theme="dark"] article footer a[href*="/tags/"]:hover {
-  color: #1a1626;
-}
-
-/* "Read more" link — Docusaurus emits a plain <a> inside the col--3 right
- * column of the footer. Style it as a pill button. */
-article.margin-bottom--xl footer .text--right a {
-  display: inline-block;
-  font-size: 0.8rem;
-  font-weight: 500;
-  padding: 0.4rem 1rem;
-  border-radius: 999px;
-  background: var(--ifm-color-primary);
-  color: white;
-  transition: transform 150ms ease, background 150ms ease;
-}
-
-article.margin-bottom--xl footer .text--right a:hover {
-  transform: translateX(2px);
-  background: var(--ifm-color-primary-darker);
-  color: white;
-  text-decoration: none;
-}
-
-[data-theme="dark"] article.margin-bottom--xl footer .text--right a {
-  color: #1a1626;
-}
-
-[data-theme="dark"] article.margin-bottom--xl footer .text--right a:hover {
-  color: #1a1626;
-}
-
-/* =====================================================================
- * Archive page (/blog/archive) — grouped by year, list-style.
- * Markup: <section><div class="container"><div class="row">
- *           <div class="col col--4"><h3>YYYY</h3><ul>
- *             <li><a>Date - Title</a></li>...
- * Treat each year column as a card.
- * ===================================================================== */
-
-main > section .col h3:first-of-type {
-  font-size: 1.6rem;
-  letter-spacing: -0.01em;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--ifm-color-primary);
-  display: inline-block;
-}
-
-main > section .col > ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-main > section .col > ul > li {
-  margin: 0;
-  padding: 0;
-}
-
-main > section .col > ul > li > a {
-  display: block;
-  padding: 0.65rem 0.9rem;
-  border: 1px solid var(--ifm-color-emphasis-200);
-  border-radius: 8px;
-  background: var(--ifm-background-surface-color);
-  color: var(--ifm-color-emphasis-900);
-  font-size: 0.9rem;
-  line-height: 1.5;
-  transition: all 150ms ease;
-  text-decoration: none;
-}
-
-main > section .col > ul > li > a:hover {
-  border-color: var(--ifm-color-primary);
-  color: var(--ifm-color-primary);
-  transform: translateX(2px);
-  text-decoration: none;
-}
-
-/* =====================================================================
- * Single post page (article header h1 only exists here, not on lists).
- * Centered, comfortable reading column.
- * ===================================================================== */
-
-article > header > h1 {
-  font-size: clamp(1.85rem, 1.4rem + 1.6vw, 2.6rem);
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.5rem;
-  font-weight: 700;
-}
-
-/* Subtitle / lede right under the title — Docusaurus emits it as the first
- * <p> after the avatar block. We restyle whatever the first body paragraph
- * looks like into a brand-accent quote. */
-article > .markdown > p:first-of-type {
-  font-size: 1.1rem;
-  line-height: 1.65;
-  color: var(--ifm-color-emphasis-800);
-  border-left: 3px solid var(--ifm-color-primary);
-  padding: 0.25rem 0 0.25rem 1rem;
-  margin: 1.25rem 0 1.75rem;
-  font-weight: 400;
-}
-
-/* Author block on single post: bigger avatar, more presence. */
-article > header .avatar {
-  margin: 1rem 0 1.25rem;
-  align-items: center;
-}
-
-article > header .avatar .avatar__photo {
-  width: 44px;
-  height: 44px;
-}
-
-article > header .avatar__name {
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-article > header .avatar__subtitle {
-  font-size: 0.85rem;
-  color: var(--ifm-color-emphasis-700);
-}
-
-article > header time {
-  font-size: 0.9rem;
-  color: var(--ifm-color-emphasis-700);
-}
-
-/* Body typography: improved rhythm + readability */
-article > .markdown {
-  font-size: 1.0625rem;
-  line-height: 1.7;
-}
-
-article > .markdown h2 {
-  font-size: 1.6rem;
-  margin-top: 2.25rem;
-  margin-bottom: 0.75rem;
-  letter-spacing: -0.015em;
-  padding-bottom: 0.4rem;
-  border-bottom: 1px solid var(--ifm-color-emphasis-200);
-}
-
-article > .markdown h3 {
-  font-size: 1.25rem;
-  margin-top: 1.75rem;
-  margin-bottom: 0.5rem;
-  letter-spacing: -0.01em;
-}
-
-article > .markdown h4 {
-  font-size: 1.05rem;
-  margin-top: 1.25rem;
-  margin-bottom: 0.4rem;
-  font-weight: 600;
-}
-
-article > .markdown p {
-  margin-bottom: 1rem;
-}
-
-article > .markdown ul,
-article > .markdown ol {
-  margin-bottom: 1rem;
-  padding-left: 1.5rem;
-}
-
-article > .markdown li {
-  margin-bottom: 0.35rem;
-}
-
-article > .markdown li::marker {
-  color: var(--ifm-color-primary);
-}
-
-article > .markdown a {
-  color: var(--ifm-color-primary);
-  text-decoration-color: rgba(109, 92, 231, 0.4);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
-  transition: text-decoration-color 150ms ease;
-}
-
-article > .markdown a:hover {
-  text-decoration-color: var(--ifm-color-primary);
-}
-
-[data-theme="dark"] article > .markdown a {
-  text-decoration-color: rgba(167, 156, 243, 0.4);
-}
-
-[data-theme="dark"] article > .markdown a:hover {
-  text-decoration-color: var(--ifm-color-primary);
-}
-
-article > .markdown strong {
-  font-weight: 600;
-  color: var(--ifm-heading-color);
-}
-
-article > .markdown img {
-  border-radius: 10px;
-  margin: 1.5rem auto;
-  display: block;
-  max-width: 100%;
-  border: 1px solid var(--ifm-color-emphasis-200);
-}
-
-article > .markdown hr {
-  margin: 2.5rem 0;
-  border: 0;
-  border-top: 1px solid var(--ifm-color-emphasis-200);
-}
-
-/* =====================================================================
- * Sitewide content polish — applies to blog posts AND docs pages.
- * ===================================================================== */
-
-/* Code blocks */
-.theme-code-block {
-  border-radius: 10px !important;
-  border: 1px solid var(--ifm-color-emphasis-200);
-  margin: 1.25rem 0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
-[data-theme="dark"] .theme-code-block {
-  border-color: var(--ifm-color-emphasis-300);
-  box-shadow: none;
-}
-
-/* Inline code */
-.markdown code:not(.theme-code-block code):not(pre code) {
-  background: var(--ifm-color-emphasis-100);
-  padding: 0.15em 0.4em;
-  border-radius: 4px;
-  font-size: 0.88em;
-  font-weight: 500;
-  color: var(--ifm-color-primary-darkest);
-}
-
-[data-theme="dark"] .markdown code:not(.theme-code-block code):not(pre code) {
-  background: var(--ifm-color-emphasis-200);
-  color: var(--ifm-color-primary-lightest);
-}
-
-/* Tables */
-.markdown table {
-  border-collapse: separate;
-  border-spacing: 0;
-  margin: 1.5rem 0;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid var(--ifm-color-emphasis-200);
-  width: 100%;
-  display: table;
-}
-
-.markdown table th {
-  background: var(--ifm-color-emphasis-100);
-  font-weight: 600;
-  text-align: left;
-  padding: 0.7rem 1rem;
-  border-bottom: 1px solid var(--ifm-color-emphasis-200);
-  font-size: 0.9rem;
-}
-
-.markdown table td {
-  padding: 0.65rem 1rem;
-  border-bottom: 1px solid var(--ifm-color-emphasis-100);
-  font-size: 0.95rem;
-}
-
-.markdown table tr:last-child td {
-  border-bottom: none;
-}
-
-.markdown table tr:nth-child(even) td {
-  background: var(--ifm-color-emphasis-100);
-}
-
-[data-theme="dark"] .markdown table tr:nth-child(even) td {
-  background: rgba(255, 255, 255, 0.02);
-}
-
-/* Blockquotes */
-.markdown blockquote {
-  border-left: 3px solid var(--ifm-color-primary);
-  background: var(--ifm-color-emphasis-100);
-  padding: 0.85rem 1.25rem;
-  margin: 1.25rem 0;
-  border-radius: 0 8px 8px 0;
-  color: var(--ifm-color-emphasis-800);
-}
-
-.markdown blockquote p:last-child {
-  margin-bottom: 0;
-}
-
-/* =====================================================================
- * Pagination ("Newer post / Older post" on single, page nav on lists)
- * ===================================================================== */
-
-nav.pagination-nav {
-  margin-top: 2.5rem;
-}
-
-.pagination-nav__link {
-  border-radius: 10px;
-  border: 1px solid var(--ifm-color-emphasis-200);
-  padding: 1rem 1.25rem;
-  background: var(--ifm-background-surface-color);
-  transition: all 180ms ease;
-}
-
-.pagination-nav__link:hover {
-  border-color: var(--ifm-color-primary);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px -6px rgba(109, 92, 231, 0.3);
-}
-
-.pagination-nav__sublabel {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--ifm-color-emphasis-600);
-  margin-bottom: 0.25rem;
-}
-
-.pagination-nav__label {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: var(--ifm-heading-color);
-}
-
-/* =====================================================================
- * Sidebars (right rail "Recent posts", left sidebar on docs)
- * ===================================================================== */
-
-aside .menu__list-item .menu__link {
-  font-size: 0.85rem;
-  padding: 0.4rem 0.75rem;
-  border-radius: 6px;
-}
-
-aside .menu__link--sublist {
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-aside .menu__link--active {
-  background: rgba(109, 92, 231, 0.08);
-  color: var(--ifm-color-primary);
-}
-
-[data-theme="dark"] aside .menu__link--active {
-  background: rgba(167, 156, 243, 0.12);
-}
-
-/* =====================================================================
- * Tag-page heading + listings (e.g. /blog/tags/models)
- * ===================================================================== */
-
-main > .container > h1,
-main > div > .container > h1 {
-  font-size: clamp(1.65rem, 1.3rem + 1.4vw, 2.2rem);
-  margin-bottom: 1.5rem;
-  letter-spacing: -0.02em;
+/* QualityLayer documentation: shared product palette, Geist and flat surfaces. */
+@import "../../../../qualitylayer/src/ui/brand/palette.css";
+@font-face { font-family: Geist; src: url("../../static/fonts/geist-latin.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Geist Mono"; src: url("../../static/fonts/geist-mono-latin.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+
+:root,
+:root[data-theme="light"],
+:root[data-theme="dark"] {
+  --ifm-font-family-base: Geist, system-ui, sans-serif;
+  --ifm-font-family-monospace: "Geist Mono", monospace;
+  --ifm-font-size-base: 16px;
+  --ifm-line-height-base: 1.65;
+  --ifm-heading-font-weight: 600;
+  --ifm-color-primary: var(--ql-accent);
+  --ifm-color-primary-dark: var(--ql-accent-hover);
+  --ifm-color-primary-darker: var(--ql-accent-hover);
+  --ifm-color-primary-darkest: var(--ql-accent-hover);
+  --ifm-color-primary-light: var(--ql-accent);
+  --ifm-color-primary-lighter: var(--ql-accent);
+  --ifm-color-primary-lightest: var(--ql-accent);
+  --ifm-background-color: var(--ql-bg);
+  --ifm-background-surface-color: var(--ql-surface);
+  --ifm-font-color-base: var(--ql-text);
+  --ifm-heading-color: var(--ql-text);
+  --ifm-color-emphasis-100: var(--ql-bg-sunken);
+  --ifm-color-emphasis-200: var(--ql-border);
+  --ifm-color-emphasis-300: var(--ql-border);
+  --ifm-color-emphasis-600: var(--ql-text-dim);
+  --ifm-color-emphasis-700: var(--ql-text-muted);
+  --ifm-color-emphasis-800: var(--ql-text);
+  --ifm-color-emphasis-900: var(--ql-text);
+  --ifm-navbar-background-color: var(--ql-bg);
+  --ifm-navbar-shadow: none;
+  --ifm-navbar-height: 64px;
+  --ifm-footer-background-color: var(--ql-bg-sunken);
+  --ifm-footer-color: var(--ql-text-muted);
+  --ifm-footer-link-color: var(--ql-text-muted);
+  --ifm-toc-border-color: var(--ql-border);
+  --ifm-hr-border-color: var(--ql-border);
+  --ifm-menu-color: var(--ql-text-muted);
+  --ifm-menu-color-active: var(--ql-accent);
+  --ifm-menu-color-background-active: var(--ql-accent-soft);
+  --ifm-code-background: var(--ql-surface-2);
+  --ifm-code-font-size: 90%;
+  --ifm-table-border-color: var(--ql-border);
+  --ifm-table-stripe-background: var(--ql-bg-sunken);
+  --docusaurus-highlighted-code-line-bg: var(--ql-accent-soft);
+  --doc-sidebar-width: 260px;
+}
+.navbar { border-bottom: 1px solid var(--ql-border); }
+.navbar__title { font-weight: 600; letter-spacing: -.03em; }
+.navbar__logo { height: 26px; }
+.navbar__link { font-size: 14px; font-weight: 500; }
+.footer { border-top: 1px solid var(--ql-border); }
+.footer__title { color: var(--ql-text); }
+.footer__copyright { font-size: 13px; }
+.menu { font-size: 14px; }
+.menu__link { border-radius: 6px; }
+.menu__link--sublist { font-weight: 600; color: var(--ql-text); margin-top: 12px; }
+.menu__link--active:not(.menu__link--sublist) { background: var(--ql-accent-soft); }
+.table-of-contents { font-size: 13px; line-height: 1.6; }
+.table-of-contents__link { color: var(--ql-text-muted); }
+.markdown { max-width: 780px; }
+.markdown h1 { font-size: clamp(32px, 3vw, 42px); line-height: 1.14; letter-spacing: -.035em; margin-bottom: 20px; }
+.markdown h2 { font-size: 25px; letter-spacing: -.025em; margin-top: 40px; }
+.markdown h3 { font-size: 19px; margin-top: 28px; }
+.markdown p, .markdown li { color: var(--ql-text-muted); }
+.markdown strong { color: var(--ql-text); font-weight: 600; }
+.markdown a { text-underline-offset: 3px; }
+.markdown table { display: block; max-width: 100%; overflow-x: auto; font-size: 14px; }
+/* Wide enough: every table spans the column, with the same first-column width, so tables line up page to page. */
+@media (min-width: 700px) {
+  .markdown table { display: table; width: 100%; }
+  /* Two-column tables (label, meaning) share one first-column width; wider tables size themselves. */
+  .markdown tr > :first-child:nth-last-child(2) { width: 30%; }
+}
+.markdown th { background: var(--ql-bg-sunken); text-align: left; }
+.markdown td, .markdown th { padding: 12px 14px; }
+.markdown img { max-width: 100%; height: auto; border: 1px solid var(--ql-border); border-radius: 8px; }
+.markdown blockquote { background: var(--ql-accent-soft); border-left: 3px solid var(--ql-accent); border-radius: 0 6px 6px 0; padding: 12px 18px; }
+.markdown blockquote p:last-child { margin-bottom: 0; }
+.theme-code-block { border: 1px solid var(--ql-border); border-radius: 8px; box-shadow: none; }
+.theme-admonition { background: var(--ql-accent-soft); border: 1px solid var(--ql-accent-line); border-left: 3px solid var(--ql-accent); border-radius: 6px; box-shadow: none; }
+.theme-admonition-warning, .theme-admonition-caution { background: var(--ql-amber-soft); border-color: var(--ql-amber-line); }
+.theme-admonition-danger { background: var(--ql-danger-soft); border-color: var(--ql-danger-line); }
+.theme-admonition-note { background: var(--ql-bg-sunken); border-color: var(--ql-border); }
+.pagination-nav__link { border-color: var(--ql-border); border-radius: 8px; }
+.pagination-nav__sublabel { color: var(--ql-text-dim); font-size: 12px; }
+.pagination-nav__label { font-size: 15px; font-weight: 500; }
+article.margin-bottom--xl { padding: 24px; border: 1px solid var(--ql-border); border-radius: 8px; margin-bottom: 24px !important; }
+article.margin-bottom--xl header h2 { font-size: 26px; }
+article.margin-bottom--xl header h2 a { color: var(--ql-text); }
+article.margin-bottom--xl header h2 a:hover { color: var(--ql-accent); }
+.ql-theme-toggle { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 6px; color: var(--ql-text-muted); }
+.ql-theme-toggle:hover { background: var(--ql-surface-2); color: var(--ql-text); }
+.ql-theme-toggle svg { width: 20px; height: 20px; }
+[data-theme="light"] .ql-light-icon, [data-theme="dark"] .ql-dark-icon { display: none; }
+::selection { background: var(--ql-accent-soft); color: var(--ql-text); }
+/* Diagrams come as a -light and a -dark file; each theme shows its own. */
+[data-theme="light"] .markdown img[src*="-dark"], [data-theme="dark"] .markdown img[src*="-light"] { display: none; }
+.markdown img[src*="-light"], .markdown img[src*="-dark"] { display: block; width: 100%; height: auto; margin: 24px 0 28px; }
+@media (max-width: 996px) {
+  .navbar-sidebar .menu__link, .navbar__toggle { min-height: 44px; }
+  .markdown h1 { font-size: 32px; }
+  .markdown { padding-top: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0s !important; }
 }

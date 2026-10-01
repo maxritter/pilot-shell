@@ -191,12 +191,12 @@ If you're reading this blog, you're probably a developer. Start with Claude Code
 - Want to level up with structured skills? Check out our Claude Code skills guide
 
 [Claude Code vs Cursor](/blog/claude-code-vs-cursor)
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** is Claude Code with the productivity layer pre-built: `/spec`, `/fix`, `/prd` commands, persistent memory, code-graph search, hook pipeline, status line, and worktree isolation — all configured, all upgradable in place.
+**QualityLayer** is the workflow layer for your coding agent: plans you approve before any code, small tested slices, and a check by an agent that did not write the code, all reviewed in one Cockpit.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

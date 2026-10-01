@@ -129,12 +129,12 @@ It's worth noting that Claude also has a separate voice mode on the web and mobi
 - Check the [/simplify and /batch commands](/blog/simplify-batch-commands) for more bundled workflows shipping in recent releases
 
 Voice mode is the kind of feature that seems minor until you use it for a day and can't go back. The hybrid input model, where typed precision meets spoken fluency, matches how developers actually think about code. You don't think in pure text or pure speech. You think in a mix of specifics and intent. Now your terminal input can work the same way.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

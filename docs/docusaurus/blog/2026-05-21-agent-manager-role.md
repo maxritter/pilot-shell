@@ -155,12 +155,12 @@ The [large codebase playbook](/blog/large-codebase-playbook) covers the strategi
 Expect agent manager or an equivalent title to appear in tech-company org charts by the end of 2026. The companies that resist creating the role will end up creating it under a different name twelve months later, after the second or third incident that traces back to nobody owning the harness. The companies that create it early get to define what the role looks like for their org, rather than reverse-engineering it from a postmortem.
 
 If you are the de facto agent manager today, the work is to make the role explicit. Write down what you own. Get your manager and infosec on the same page. Publish the charter. The role exists whether or not it is named, and named roles get the resourcing that unnamed work does not.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

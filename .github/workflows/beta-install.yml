@@ -1,0 +1,32 @@
+name: Beta install
+
+# A clean install of the published beta on Linux, from an empty home, the way a tester
+# runs it. The Release run calls it after each beta is published (a dispatch needs the
+# file on the default branch, which `dev` is not); its log is the evidence (the version
+# and the installed skills). It needs nothing from the repository.
+
+on:
+  workflow_call: {}
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  clean-install:
+    name: Clean install (ubuntu-latest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Install from qualitylayer.dev into an empty home
+        run: |
+          HOME="$(mktemp -d)"
+          export HOME
+          # A tester has the agents installed: the installer adds its skills to each one it finds.
+          mkdir -p "$HOME/.claude" "$HOME/.codex"
+          curl -fsSL https://qualitylayer.dev/install.sh | bash
+
+          echo "--- version"
+          "$HOME/.qualitylayer/bin/qualitylayer" --version
+          echo "--- installed skills"
+          ls -d "$HOME/.claude/skills/ql" "$HOME/.agents/skills/ql"

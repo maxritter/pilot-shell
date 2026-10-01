@@ -10,10 +10,10 @@ import indexNowPlugin from "./vite-plugin-indexnow";
 const TEST_KEY = "test-indexnow-key";
 
 function prepareOutput(): string {
-  const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "pilot-indexnow-"));
+  const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "qualitylayer-indexnow-"));
   fs.writeFileSync(
     path.join(outDir, "sitemap-pages.xml"),
-    "<urlset><url><loc>https://pilot-shell.com/</loc></url></urlset>",
+    "<urlset><url><loc>https://qualitylayer.dev/</loc></url></urlset>",
   );
   fs.writeFileSync(path.join(outDir, `${TEST_KEY}.txt`), TEST_KEY);
   return outDir;

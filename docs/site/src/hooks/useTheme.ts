@@ -1,74 +1,54 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useSyncExternalStore } from "react";
 
-export type ThemePreference = 'system' | 'light' | 'dark';
-export type ResolvedTheme = 'light' | 'dark';
+export type Theme = "light" | "dark";
 
-const STORAGE_KEY = 'pilot-site-theme';
+/** The same key and values as the docs (Docusaurus), which share this origin, so both keep one choice. */
+const KEY = "theme";
+const DARK = "(prefers-color-scheme: dark)";
+const listeners = new Set<() => void>();
 
-function getSystemTheme(): ResolvedTheme {
-  if (typeof window === 'undefined') return 'dark';
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function getStoredPreference(): ThemePreference {
+function saved(): Theme | null {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'system' || stored === 'light' || stored === 'dark') {
-      return stored;
-    }
+    const value = localStorage.getItem(KEY);
+    return value === "light" || value === "dark" ? value : null;
   } catch {
-    // localStorage unavailable
-  }
-  return 'system';
-}
-
-function resolveTheme(preference: ThemePreference): ResolvedTheme {
-  if (preference === 'system') return getSystemTheme();
-  return preference;
-}
-
-function applyTheme(theme: ResolvedTheme) {
-  if (theme === 'dark') {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
+    return null;
   }
 }
 
-export function useTheme() {
-  const [preference, setPreference] = useState<ThemePreference>(getStoredPreference);
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() =>
-    resolveTheme(getStoredPreference())
-  );
+function current(): Theme {
+  return saved() ?? (window.matchMedia(DARK).matches ? "dark" : "light");
+}
 
-  useEffect(() => {
-    const newResolved = resolveTheme(preference);
-    setResolvedTheme(newResolved);
-    applyTheme(newResolved);
-  }, [preference]);
+/** Until the first click the system decides; from then on the last choice holds. */
+export function applySavedTheme(): void {
+  const theme = saved();
+  if (theme) document.documentElement.dataset.theme = theme;
+}
 
-  useEffect(() => {
-    if (preference !== 'system') return;
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent) => {
-      const newTheme: ResolvedTheme = e.matches ? 'dark' : 'light';
-      setResolvedTheme(newTheme);
-      applyTheme(newTheme);
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [preference]);
-
-  const setThemePreference = (newPreference: ThemePreference) => {
-    try {
-      localStorage.setItem(STORAGE_KEY, newPreference);
-    } catch {
-      // localStorage unavailable
-    }
-    setPreference(newPreference);
+const subscribe = (onChange: () => void) => {
+  listeners.add(onChange);
+  const media = window.matchMedia(DARK);
+  media.addEventListener("change", onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    listeners.delete(onChange);
+    media.removeEventListener("change", onChange);
+    window.removeEventListener("storage", onChange);
   };
+};
 
-  return { preference, resolvedTheme, setThemePreference };
+export function useTheme(): { theme: Theme; toggle: () => void } {
+  const theme = useSyncExternalStore(subscribe, current, () => "dark" as Theme);
+  const toggle = useCallback(() => {
+    const next: Theme = current() === "dark" ? "light" : "dark";
+    try {
+      localStorage.setItem(KEY, next);
+    } catch {
+      // The choice then lasts for this page only.
+    }
+    document.documentElement.dataset.theme = next;
+    for (const listener of listeners) listener();
+  }, []);
+  return { theme, toggle };
 }

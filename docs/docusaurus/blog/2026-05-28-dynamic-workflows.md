@@ -153,12 +153,12 @@ When you build a workflow worth keeping, press **"s"** in the workflow menu to s
 ## Where This Fits
 
 Dynamic workflows are the orchestration layer for everything multi-agent. They sit beneath the thread model we describe in [thread-based engineering](/blog/thread-based-engineering), where fan-out-and-synthesize is structured parallel threading with a barrier and loop-until-done is the long-running thread generalized. They are the on-demand cousin of [Agent Teams](/blog/agent-teams), which you reach for when you already know the role decomposition and want a fixed, named roster instead of a harness written fresh each time. For a side-by-side of when to pick each, see [Dynamic Workflows vs Agent Teams](/blog/ultracode-dynamic-workflows-agent-teams). And the always-on switch for them is `ultracode`, covered in depth in our [ultracode guide](/blog/ultracode).
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** wraps Claude Code in three slash commands: `/prd` to scope the work, `/spec` to plan-implement-verify it under TDD, `/fix` for the smaller bugs. Plus persistent memory, code-graph search, and a configured hook pipeline.
+**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)
