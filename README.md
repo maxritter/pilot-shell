@@ -96,7 +96,7 @@ It downloads the binary for your platform, checks its SHA-256 checksum, then run
 - Codex metadata so the skill runs only when you call it
 - a `qualitylayer` link in `~/.local/bin` when that folder is on your `PATH`
 
-It asks nothing. It also turns on the few agent settings QualityLayer needs, only where they are missing, and lists each one it changes. These are high reasoning effort, Claude Code's task tools, Codex's plan tool and option picker for questions and, when Codex knows your model's limits, its largest context window. A value you already set stays as it is.
+It asks nothing. It also turns on the few agent settings QualityLayer needs, only where they are missing, and lists each one it changes. These are high reasoning effort, Claude Code's task tools, Codex's plan tool and option picker for questions (with Codex's startup notice about that picker hidden) and, when Codex knows your model's limits, its largest context window. A value you already set stays as it is.
 
 Claude Code also gets QualityLayer's status line if you have none. Your own stays; `qualitylayer install --refresh --status-line` swaps in QualityLayer's, and uninstalling puts yours back.
 
