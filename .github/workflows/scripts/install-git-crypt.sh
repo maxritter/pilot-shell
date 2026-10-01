@@ -38,6 +38,13 @@ if verify; then
   exit 0
 fi
 
+# A macOS runner has Homebrew and no apt.
+if [ "$(uname -s)" = Darwin ]; then
+  brew install git-crypt
+  verify
+  exit 0
+fi
+
 CODENAME="$(lsb_release -cs 2>/dev/null || echo "")"
 
 # Defense 2: universe-only index from the public mirror.
