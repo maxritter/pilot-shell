@@ -202,8 +202,10 @@ jobs:
 
   prepare-release:
     name: Prepare Release
+    # semantic-release checks, even in a dry run, that it may push: with a read-only token it
+    # stops before naming a version.
     permissions:
-      contents: read
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [check-trigger, supply-chain-gate]
@@ -243,7 +245,12 @@ jobs:
           fi
           npm install -g semantic-release @semantic-release/git @semantic-release/exec
           SR_OUT=/tmp/sr-output.txt
-          if npx semantic-release --dry-run 2>&1 | tee $SR_OUT | grep -q "next release version"; then
+          # An error is not "no release": it fails the run with semantic-release's own words.
+          if ! npx semantic-release --dry-run > "$SR_OUT" 2>&1; then
+            tail -n 60 "$SR_OUT"
+            exit 1
+          fi
+          if grep -q "next release version" "$SR_OUT"; then
             VERSION=$(grep "next release version" $SR_OUT \
               | grep -oP '\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?' | head -1)
             echo "Will release version: $VERSION"
