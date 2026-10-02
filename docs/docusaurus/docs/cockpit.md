@@ -31,4 +31,4 @@ Nothing opens over SSH or in CI. To keep the Cockpit from opening by itself anyw
 
 ## Keep it tidy
 
-**Archive** takes a task off the list; **Restore** brings it back, and **Delete** moves an archived task's files to the Trash. The Cockpit follows your system's light or dark mode until you pick one, remembers your filters, and works on a phone, where the task list and the review open as drawers.
+**Archive** takes a task off the list; **Restore** brings it back, and **Delete** removes an archived task and its files for good, after asking once more; commits and branches in git stay. The Cockpit follows your system's light or dark mode until you pick one, remembers your filters, and works on a phone, where the task list and the review open as drawers.
