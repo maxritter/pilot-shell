@@ -72,8 +72,8 @@ Asking someone outside the group lets them open that one task, and the ask says 
 
 ## Who can read your plans
 
-Plans, task titles, comments, questions and reviews are encrypted on your machine before they are shared, so we can't read them. Only your team's computers, and people with a guest link, can open them. What stays readable to us is who shared a task, an ID that tells tasks apart (never its title), when, and its stage. The page behind a guest link loads its code from us; the plan itself is opened in the guest's browser with the key in the link.
+Plans, task titles, comments, questions and reviews are encrypted on your machine before they are shared, so we can't read them. Only your team's computers, and people with a guest link, can open them. What stays readable to us is who shared a task, who was asked on it, an ID that tells tasks apart (never its title), when, and its stage. The page behind a guest link loads its code from us; the plan itself is opened in the guest's browser with the key in the link.
 
-If you connect Slack, a nudge's task title and question pass through our server to Slack and aren't stored.
+If you connect Slack, a nudge's task title and question pass through our server to Slack. When Slack is busy, they wait on our server for a retry, a day at most, and are deleted after that.
 
 A new teammate on your Team plan needs no code, key or setup step: they install QualityLayer. One of your team's computers hands over the key the next time it checks in, normally within a minute. Until then, a shared task reads **Joining the team** and names who can let the computer in. Every new computer shows in **Settings → Team**. When someone leaves the team, what you share from then on can't be read by their computer.
