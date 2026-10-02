@@ -631,6 +631,8 @@ jobs:
   # A clean Linux install of the beta just published, from qualitylayer.dev.
   beta-install:
     name: Beta install
-    needs: [publish-release]
+    needs: [prepare-release, publish-release]
     if: github.ref_name == 'dev'
     uses: ./.github/workflows/beta-install.yml
+    with:
+      version: ${{ needs.prepare-release.outputs.version }}

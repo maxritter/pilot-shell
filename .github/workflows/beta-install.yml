@@ -3,11 +3,23 @@ name: Beta install
 # A clean install of the published beta on Linux, from an empty home, the way a tester
 # runs it. The Release run calls it after each beta is published (a dispatch needs the
 # file on the default branch, which `dev` is not); its log is the evidence (the version
-# and the installed skills). It needs nothing from the repository.
+# and the installed skills). It needs nothing from the repository. It installs the version it
+# is given and fails when the installed binary reports another one, so a run cannot pass on an
+# older beta that the installer happened to pick.
 
 on:
-  workflow_call: {}
-  workflow_dispatch: {}
+  workflow_call:
+    inputs:
+      version:
+        description: The released version to install and expect, e.g. 12.0.0-beta.9
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The released version to install and expect, e.g. 12.0.0-beta.9
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -19,14 +31,22 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Install from qualitylayer.dev into an empty home
+        env:
+          WANTED: ${{ inputs.version }}
         run: |
+          WANTED="${WANTED#v}"
           HOME="$(mktemp -d)"
           export HOME
           # A tester has the agents installed: the installer adds its skills to each one it finds.
           mkdir -p "$HOME/.claude" "$HOME/.codex"
-          curl -fsSL https://qualitylayer.dev/install.sh | bash
+          curl -fsSL https://qualitylayer.dev/install.sh | VERSION="$WANTED" bash
 
           echo "--- version"
-          "$HOME/.qualitylayer/bin/qualitylayer" --version
+          INSTALLED="$("$HOME/.qualitylayer/bin/qualitylayer" --version)"
+          echo "$INSTALLED"
+          if [ "$INSTALLED" != "$WANTED" ]; then
+            echo "::error::installed '${INSTALLED}', expected the released '${WANTED}'"
+            exit 1
+          fi
           echo "--- installed skills"
           ls -d "$HOME/.claude/skills/ql" "$HOME/.agents/skills/ql"
