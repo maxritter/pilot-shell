@@ -103,6 +103,13 @@ job_qualitylayer() {
   bun run typecheck || return 1
   bun run lint || return 1
 }
+# A release binary built from what is staged must serve a Cockpit that draws:
+# beta.1 to beta.5 shipped a white page while every development-build test passed.
+# shellcheck disable=SC2329
+job_cockpit() {
+  cd qualitylayer || return 1
+  bun run check:cockpit
+}
 # shellcheck disable=SC2329
 job_plaintext() {
   bash scripts/check_qualitylayer_encrypted.sh
@@ -127,6 +134,7 @@ job_trivy() {
 if [ "$qualitylayer_changed" = "1" ]; then
   if have bun && [ -d qualitylayer/node_modules ]; then
     launch "qualitylayer (typecheck+lint)" job_qualitylayer
+    launch "qualitylayer (release Cockpit draws)" job_cockpit
   else
     echo "⚠ bun or qualitylayer deps unavailable — skipping (cd qualitylayer && bun install)."
   fi

@@ -195,6 +195,8 @@ jobs:
 
       - name: Typecheck, lint, test
         working-directory: qualitylayer
+        env:
+          QUALITYLAYER_REQUIRE_RENDER: "1"
         run: |
           bun run typecheck
           bun run lint
@@ -314,6 +316,13 @@ jobs:
         env:
           QUALITYLAYER_VERSION: ${{ needs.prepare-release.outputs.version }}
         run: bun run build --all
+
+      # The binary this run publishes for Linux, started from / with an empty HOME, must
+      # serve its own page, script and stylesheet and draw in Chrome. beta.1 to beta.5
+      # served a white page; nothing reaches Approve Release past this step any more.
+      - name: The release Cockpit draws
+        working-directory: qualitylayer
+        run: bun scripts/check-cockpit.ts dist/release/qualitylayer-linux-x64 --require-render
 
       # Release binaries carry no phase texts; qualitylayer.dev serves them. Only the
       # digest of the served texts leaves this job: the publishing job rebuilds the

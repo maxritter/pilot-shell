@@ -16,6 +16,7 @@
     "deadcode": "knip",
     "test": "bun run scripts/test.ts",
     "build": "bun run scripts/build.ts",
+    "check:cockpit": "bun scripts/check-cockpit.ts --build",
     "dev:skill": "bun run scripts/dev-skill.ts",
     "release-gate": "bun run tests/release/run-agent.ts",
     "beta-smoke": "bun run tests/release/beta-smoke.ts",

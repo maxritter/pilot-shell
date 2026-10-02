@@ -90,8 +90,12 @@ jobs:
 
       # One process per test file; the runner builds the binary first. No test
       # reaches the network: Polar, the trial service and releases are local.
+      # tests/server/cockpit-release.test.ts builds a release binary and needs its Cockpit
+      # to draw in the runner's Chrome: no Chrome is a failure here, not a skip.
       - name: Test
         working-directory: qualitylayer
+        env:
+          QUALITYLAYER_REQUIRE_RENDER: "1"
         run: bun run test
 
   site:
