@@ -324,7 +324,7 @@ jobs:
       # served a white page; nothing reaches Approve Release past this step any more.
       - name: The release Cockpit draws
         working-directory: qualitylayer
-        run: bun scripts/check-cockpit.ts dist/release/qualitylayer-linux-x64 --require-render
+        run: bun scripts/check-cockpit.ts dist/release/qualitylayer-linux-x64 --same-source --require-render
 
       # Release binaries carry no phase texts; qualitylayer.dev serves them. Only the
       # digest of the served texts leaves this job: the publishing job rebuilds the
