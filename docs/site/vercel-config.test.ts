@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -6,7 +6,8 @@ import { describe, expect, it } from "vitest";
  * while pilot-shell.com's API and share links keep answering. This evaluates vercel.json's redirect and rewrite rules the way
  * Vercel does, in order, first match wins: `:name` is one segment, `:name*` the rest,
  * a parenthesised group is a raw regular expression, `$1` and `:name` fill a destination.
- * API routes are files, so they are served before any rewrite. It is an approximation
+ * An API file with a fixed path is served before any rewrite; a dynamic one (`[task].ts`)
+ * only after the rewrites, so a catch-all rewrite would hide it. It is an approximation
  * of Vercel's matcher, enough for the rules this file holds; the deployed check
  * (scripts/check-deploy.sh) is the real one.
  */
@@ -22,6 +23,16 @@ const config = JSON.parse(readFileSync(new URL("./vercel.json", import.meta.url)
   rewrites: Rule[];
   headers: { source: string; headers: { key: string; value: string }[] }[];
 };
+
+/** The deployed API routes, one per file in api/: a `[name]` segment matches any one segment. */
+const apiRoutes = readdirSync(new URL("./api", import.meta.url), { recursive: true, encoding: "utf8" })
+  .filter((file) => file.endsWith(".ts") && !file.endsWith(".test.ts") && !file.startsWith("_lib"))
+  .map((file) => {
+    const route = `/api/${file.replace(/\.ts$/, "")}`;
+    return { dynamic: route.includes("["), regex: new RegExp(`^${route.replace(/\[[^\]]+\]/g, "[^/]+")}$`) };
+  });
+const apiRoute = (path: string, dynamic: boolean) =>
+  apiRoutes.some((route) => route.dynamic === dynamic && route.regex.test(path.split("?")[0] as string));
 
 function compile(source: string): { regex: RegExp; names: string[] } {
   const names: string[] = [];
@@ -84,7 +95,7 @@ function answer(host: string, path: string): Answer {
       location: fill(rule.destination, names, hit.slice(1)),
     };
   }
-  if (path.startsWith("/api/")) return { kind: "function" };
+  if (apiRoute(path, false)) return { kind: "function" };
   for (const rule of config.rewrites) {
     const { regex, names } = compile(rule.source);
     const hit = regex.exec(path);
@@ -92,6 +103,7 @@ function answer(host: string, path: string): Answer {
       return { kind: "rewrite", to: fill(rule.destination, names, hit.slice(1)) };
     }
   }
+  if (apiRoute(path, true)) return { kind: "function" };
   return { kind: "none" };
 }
 
@@ -145,7 +157,7 @@ describe("doc pages that moved or were removed", () => {
 
 describe("what pilot-shell.com still answers itself", () => {
   it("serves its API routes itself", () => {
-    for (const path of ["/api/share", "/api/share/Xk3Jd92xA7pQ4mZr1bTnWe", "/api/share/feedback/batch", "/api/team/pass", "/api/trial"]) {
+    for (const path of ["/api/share", "/api/share/Xk3Jd92xA7pQ4mZr1bTnWe", "/api/share/feedback/batch", "/api/team/pass", "/api/trial/start"]) {
       expect(answer(OLD, path), path).toEqual({ kind: "function" });
     }
   });
@@ -169,6 +181,13 @@ describe("qualitylayer.dev is not redirected", () => {
     expect(answer(NEW, "/docs/cockpit")).toEqual({ kind: "rewrite", to: "/docs/cockpit" });
     expect(answer(NEW, "/api/team/pass")).toEqual({ kind: "function" });
     expect(answer(NEW, V2_LINK)).toEqual({ kind: "rewrite", to: "/" });
+  });
+
+  it("serves every team route, the dynamic ones too, and not the page in their place", () => {
+    // A shared task is PUT to /api/team/tasks/<id>: the page in its place answered 405 to the client.
+    for (const path of ["/api/team/tasks", "/api/team/tasks/t-1", "/api/team/tasks/t-1/comments?after=0", "/api/team/members"]) {
+      expect(answer(NEW, path), path).toEqual({ kind: "function" });
+    }
   });
 });
 

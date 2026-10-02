@@ -70,7 +70,7 @@
       "destination": "/blog/:path*"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/"
     }
   ],
