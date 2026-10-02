@@ -3,8 +3,9 @@
 #
 #   check-deploy.sh --env <production|preview> [--branch <name>]
 #                                         the Vercel project's variables for that environment:
-#                                         the signing key, the three Polar names and the two
-#                                         store names must all be set. Preview is read for
+#                                         the signing key, the three Polar names, the two
+#                                         store names and the three Slack names must all be
+#                                         set. Preview is read for
 #                                         branch <name> (default dev).
 #   check-deploy.sh <base-url> [--keys <file>]
 #                                         the routes a QualityLayer client uses: the install
@@ -25,7 +26,7 @@ set -u
 
 ORG_ID="team_jAsHrk71vRyWK6bCTYGJyp0q"
 PROJECT_ID="prj_TXccrJI83HyNvQUZxqStUFgus9NB"
-NAMES="RSA_PRIVATE_KEY POLAR_ACCESS_TOKEN POLAR_ORGANIZATION_ID POLAR_TEAM_BENEFIT_ID KV_REST_API_URL KV_REST_API_TOKEN"
+NAMES="RSA_PRIVATE_KEY POLAR_ACCESS_TOKEN POLAR_ORGANIZATION_ID POLAR_TEAM_BENEFIT_ID KV_REST_API_URL KV_REST_API_TOKEN SLACK_CLIENT_ID SLACK_CLIENT_SECRET SLACK_TOKEN_KEY"
 
 failed=0
 pass() { printf 'ok       %s\n' "$1"; }

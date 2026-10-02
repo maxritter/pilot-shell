@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>QualityLayer and Slack</title>
+<style>
+  :root {
+    --bg: #fafafa; --card: #ffffff; --border: #e6e6e6; --text: #171717; --muted: #4d4d4d; --danger: hsl(358 66% 48%);
+    --font: Geist, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #000000; --card: #0a0a0a; --border: #2e2e2e; --text: #ededed; --muted: #a1a1a1; --danger: hsl(358 100% 69%); }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px; background: var(--bg); color: var(--text); font: 14px/1.5 var(--font); }
+  main { width: 100%; max-width: 440px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px 24px; text-align: center; }
+  .mark { width: 28px; height: 28px; margin: 0 auto; border-radius: 8px; border: 1px solid var(--border); display: grid; place-items: center; font-weight: 700; font-size: 13px; color: var(--muted); }
+  h1 { margin: 8px 0 4px; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+  p { margin: 0; color: var(--muted); font-size: 13px; }
+  .err { color: var(--danger); }
+</style>
+</head>
+<body>
+<main>
+  <span class="mark">S</span>
+  <h1 id="title">Slack is connected</h1>
+  <p id="text">QualityLayer can now DM your team. You can close this tab; Settings shows the connection.</p>
+</main>
+<script>
+  var reasons = {
+    access_denied: "Slack didn't finish the install (access_denied). On an Enterprise Grid workspace an admin may need to approve the app first.",
+    link_expired: "This install link is no longer valid. Press Add to Slack in Settings › Team again.",
+    link_used: "This install link was already used. Press Add to Slack in Settings › Team again.",
+    invalid_state: "This install link is no longer valid. Press Add to Slack in Settings › Team again.",
+    wrong_browser: "Open Add to Slack in the browser where you pressed it. A forwarded link can't connect a workspace.",
+    slack_unavailable: "Slack could not be reached. Try again in a moment."
+  };
+  var reason = new URLSearchParams(location.search).get("error");
+  if (reason !== null) {
+    document.getElementById("title").textContent = "Slack is not connected";
+    var text = document.getElementById("text");
+    text.className = "err";
+    text.textContent = reasons[reason] || "Slack didn't finish the install (" + reason.replace(/[^a-z_]/g, "") + "). Press Add to Slack in Settings › Team to try again.";
+  }
+</script>
+</body>
+</html>
