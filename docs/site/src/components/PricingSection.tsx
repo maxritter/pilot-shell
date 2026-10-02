@@ -86,7 +86,7 @@ const PricingSection = () => {
           <div className="pr-how">
             <div className="pr-hi" style={hue("build")}><b>Activate once</b><span>Paste your key with <span className="pr-code">qualitylayer licence activate &lt;key&gt;</span>. Manage invoices, seats and payment in <a href={PORTAL_URL} target="_blank" rel="noopener noreferrer">the customer portal</a>.</span></div>
             <div className="pr-hi" style={hue("verify")}><b>Works offline</b><span>The licence is checked once a day. Without a connection, it keeps working for 30 days.</span></div>
-            <div className="pr-hi" style={hue("plan")}><b>Coming from Pilot Shell</b><span>Your subscription and your plans carry over. The installer explains the change on one screen, then asks nothing.</span></div>
+            <div className="pr-hi" style={hue("plan")}><b>Coming from Pilot Shell</b><span>Your subscription and your plans carry over. The installer explains the change on one screen and lets you choose what happens to Pilot’s tools and memories.</span></div>
           </div>
         </div>
       </section>

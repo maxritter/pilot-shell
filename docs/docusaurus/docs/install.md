@@ -28,7 +28,7 @@ QualityLayer is held to these limits, measured on a Mac with a repository of 20,
 curl -fsSL https://qualitylayer.dev/install.sh | bash
 ```
 
-It adds the `qualitylayer` command, the `/ql` skill (`$ql` in Codex) and [session messaging](reference/commands.md#session-messaging). It asks you nothing. It lists every agent setting it adds and keeps any value you set. Your own Claude Code status line stays; `qualitylayer install --refresh --status-line` swaps in QualityLayer's, and uninstalling puts yours back.
+It adds the `qualitylayer` command, the `/ql` skill (`$ql` in Codex) and [session messaging](reference/commands.md#session-messaging). It asks you nothing, apart from the two questions for Pilot Shell users below. It lists every agent setting it adds and keeps any value you set. Your own Claude Code status line stays; `qualitylayer install --refresh --status-line` swaps in QualityLayer's, and uninstalling puts yours back.
 
 QualityLayer runs only when you call it. Everything else works as before.
 
@@ -44,6 +44,18 @@ qualitylayer uninstall
 qualitylayer licence activate <key>
 ```
 
-Uninstalling puts back what the installer changed; your plans stay. The trial lasts seven days. Coming from Pilot Shell 11? Run the installer. It shows one screen about the upgrade, once, then removes Pilot Shell's tools and installs QualityLayer without asking anything. Your licence and plans carry over, and your own agent settings keep working.
+Uninstalling puts back what the installer changed; your plans stay. The trial lasts seven days.
+
+## Coming from Pilot Shell 11
+
+Run the installer. It shows one screen about the change, once. In a terminal it then asks before anything of Pilot Shell's goes:
+
+1. **What moving over removes.** A list: Pilot's own files in `~/.claude`, its entries in your agent settings (restored from Pilot's own baselines, so your values stay), its block in your shell profile, its Codex parts and its runtime in `~/.pilot`. Your own settings, skills and files stay. You confirm, or nothing is changed.
+2. **Which tools Pilot Shell installed should go too.** Only the tools Pilot recorded as its own are listed, and you tick the ones to remove. Our benchmarks show today's models gain nothing from rtk, semble or codegraph, so those start ticked. General tools such as typescript, prettier or ruff, and design tools such as Impeccable, start unticked, because your projects may use them. A tool you leave unticked stays installed and is yours.
+3. **Delete your Pilot Shell memories (`~/.pilot/memory`)?** QualityLayer does not use them, and the answer is no unless you say otherwise. To keep what is in them, ask Claude Code or Codex to move them into its own memory first; QualityLayer does not do that for you. Sessions, logs and configuration in `~/.pilot` stay either way.
+
+Your plans carry over. The summary at the end says what happened to your licence: a paid Pilot Shell licence keeps working, and without one (a Pilot Shell trial does not carry over) a 7-day QualityLayer trial starts.
+
+Without a terminal, including Pilot Shell 11's own updater and `--non-interactive`, nothing is asked: Pilot's own parts are removed, no tool and no memory is, and the summary lists each tool that stayed with the command that removes it.
 
 Next: [your first task](first-task.md).

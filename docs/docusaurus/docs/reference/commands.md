@@ -31,7 +31,7 @@ You rarely type these, but they explain what you see in your agent's chat.
 | `qualitylayer gate open <document>` | Put a document up for your review in the Cockpit |
 | `qualitylayer comments take` | Collect the comments not yet answered, your team's included |
 | `qualitylayer review wait design \| verify` | Wait for the second opinion, which starts on its own |
-| `qualitylayer plan amend --by agent\|user` | Record a change to the approved plan during the build |
+| `qualitylayer plan amend --by agent\|user --for T3 --for T4` | Record a change to the approved plan during the build, one entry for each task named |
 | `qualitylayer card T<n>` | Print one task card with the contract it builds |
 | `qualitylayer validate <document>` | Check that a document is complete |
 | `qualitylayer guide` | Print the workflow rules, for an agent started with a Goal |

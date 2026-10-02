@@ -10,9 +10,13 @@
 # `qualitylayer uninstall` can remove exactly those.
 #
 # Pilot Shell 11's updater downloads and runs this script with its own flags
-# (--auto-update --non-interactive --quiet); they are accepted and ignored.
+# (--auto-update --non-interactive --quiet). --auto-update and --non-interactive
+# mean nothing may be asked; --quiet is accepted and ignored.
 # With Pilot Shell 11 installed, the binary shows its upgrade screen once and
-# moves the machine to QualityLayer without asking anything.
+# moves the machine to QualityLayer. On a terminal it first lists what goes,
+# lets you pick which of the tools Pilot installed to remove and asks whether
+# to delete Pilot's memories; without a terminal (or with --non-interactive)
+# it asks nothing, removes only Pilot's own parts and keeps tools and memories.
 #
 # Environment: VERSION (e.g. 12.0.0-beta.1; default: the newest v12 release),
 # QUALITYLAYER_RELEASE_BASE and QUALITYLAYER_RELEASE_API (mirrors and tests).
@@ -114,13 +118,21 @@ say "Checksum verified (SHA-256)"
 chmod 755 "$work/qualitylayer"
 
 # Pilot Shell 11 is still installed: the binary shows its upgrade screen and moves
-# the machine over, with or without a terminal. Nothing is asked.
+# the machine over, with or without a terminal.
 v11=""
 [ -e "$HOME/.pilot/bin/pilot" ] && v11=yes
 
+# v11's updater (and anyone passing these) must never be asked anything.
+ask=yes
+for arg in "$@"; do
+	case "$arg" in
+	--non-interactive | --auto-update) ask="" ;;
+	esac
+done
+
 # Under `curl | bash` stdin is this script: the installer's questions are answered from the terminal.
-if [ -t 1 ] && (exec </dev/tty) 2>/dev/null; then
+if [ -n "$ask" ] && [ -t 1 ] && (exec </dev/tty) 2>/dev/null; then
 	"$work/qualitylayer" install ${v11:+--upgrade-v11} </dev/tty
 else
-	"$work/qualitylayer" install ${v11:+--upgrade-v11}
+	"$work/qualitylayer" install ${v11:+--upgrade-v11} --non-interactive </dev/null
 fi

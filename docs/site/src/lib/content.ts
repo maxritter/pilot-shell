@@ -78,6 +78,6 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "I use Pilot Shell 11. What happens?",
-    "Run the installer. It explains the change on one screen, once, then removes Pilot Shell’s tools and installs QualityLayer without asking anything. Your licence and plans carry over, and your own agent settings keep working.",
+    "Run the installer. It explains the change on one screen, once. In a terminal it lists what goes, lets you pick which of the tools Pilot Shell installed to remove, and asks about its memories, then installs QualityLayer. Your plans carry over and a paid licence keeps working (without one, your 7-day trial starts), and your own agent settings keep working.",
   ),
 ];

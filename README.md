@@ -143,7 +143,7 @@ curl -fsSL https://qualitylayer.dev/install.sh | VERSION=12.0.0-beta.1 bash
 <details>
 <summary><b>Coming from Pilot Shell 11</b></summary>
 
-Run the installer, or let Pilot Shell 11's own updater run it. It shows one screen about the upgrade, removes Pilot Shell's tools and installs QualityLayer, without asking anything. Your licence and plans carry over.
+Run the installer, or let Pilot Shell 11's own updater run it. It shows one screen about the upgrade and installs QualityLayer. In a terminal it first lists what moving over removes, lets you pick which of the tools Pilot Shell installed should go, and asks whether to delete its memories; the updater asks nothing and keeps the tools and memories. Your plans carry over, and a paid licence keeps working; without one, your 7-day trial starts.
 
 </details>
 
