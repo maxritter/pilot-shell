@@ -33,6 +33,16 @@ export interface Decision {
   comment?: string;
 }
 
+/**
+ * Sealed text, as a link's plan and a guest's submission travel: AES-GCM under the link's key
+ * (`iv` 12 bytes and `ct`, both base64). The server holds it without the key.
+ */
+export interface SealedPayload {
+  v: 3;
+  iv: string;
+  ct: string;
+}
+
 /** Payload for sending feedback annotations back (B→A direction) */
 export interface FeedbackPayload {
   /** Annotations created by the recipient */
@@ -56,8 +66,8 @@ export interface FeedbackQueueEntry {
   position: number;
   /** When the server received this submission (server-side Date.now()). */
   receivedAt: number;
-  /** The submitted feedback batch. */
-  payload: FeedbackPayload;
+  /** The submitted feedback batch: sealed with the link's key, or a plain one an older page sent. */
+  payload: SealedPayload | FeedbackPayload;
 }
 
 /** Client → feedback API batch-read request body. */

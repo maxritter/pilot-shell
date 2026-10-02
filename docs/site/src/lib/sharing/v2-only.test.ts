@@ -18,13 +18,13 @@ async function v11Data(text: string): Promise<string> {
 describe("loading a link", () => {
   it("does not read a valid compressed Pilot Shell 11 spec", async () => {
     const data = await v11Data(JSON.stringify({ specContent: "# Old spec", annotations: [], createdAt: 1 }));
-    const loaded = await loadShare("A".repeat(22), answer(200, { data }));
+    const loaded = await loadShare("A".repeat(22), "A".repeat(43), answer(200, { data }));
     expect(loaded.status).toBe("error");
   });
 
   it("does not take an 8-character id for a link", async () => {
     const never = answer(200, {});
-    expect((await loadShare("ABCD1234", never)).status).toBe("error");
+    expect((await loadShare("ABCD1234", "A".repeat(43), never)).status).toBe("error");
     expect(never).not.toHaveBeenCalled();
   });
 });

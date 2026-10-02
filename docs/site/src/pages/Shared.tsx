@@ -2,13 +2,14 @@ import DOMPurify from "dompurify";
 import { marked } from "marked";
 import { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import Page from "@/components/Page";
 import SEO from "@/components/SEO";
 import {
   type ChangeCommentInput,
   type CommentInput,
   type LoadedShare,
+  linkKeyOf,
   loadShare,
   orderedDocs,
   type SubmitResult,
@@ -257,6 +258,17 @@ export function SharedView({
       </div>
     );
   }
+  if (state.status === "no-key") {
+    return (
+      <div className="sh-status">
+        <h1>This link is missing its key</h1>
+        <p>
+          The plan is encrypted, and the key is the part of the link after the “#”. Ask the owner for the whole link,
+          or copy it again with everything up to the end.
+        </p>
+      </div>
+    );
+  }
   if (state.status === "error") {
     return (
       <div className="sh-status">
@@ -268,38 +280,40 @@ export function SharedView({
   return <Ready share={state} onComment={onComment} onChangeComment={onChangeComment} />;
 }
 
-/** One link's page; keyed by the id, so another link starts from "loading" again. */
-const SharedLink = ({ id }: { id: string }) => {
+/** One link's page; keyed by the id and key, so another link starts from "loading" again. */
+const SharedLink = ({ id, linkKey }: { id: string; linkKey: string }) => {
   const [state, setState] = useState<LoadedShare | { status: "loading" }>({ status: "loading" });
 
   useEffect(() => {
     let live = true;
-    void loadShare(id).then((loaded) => {
+    void loadShare(id, linkKey).then((loaded) => {
       if (live) setState(loaded);
     });
     return () => {
       live = false;
     };
-  }, [id]);
+  }, [id, linkKey]);
 
   return (
     <SharedView
       state={state}
-      onComment={(input) => submitComment(id, input)}
-      onChangeComment={(input) => submitChangeComment(id, input)}
+      onComment={(input) => submitComment(id, linkKey, input)}
+      onChangeComment={(input) => submitChangeComment(id, linkKey, input)}
     />
   );
 };
 
 const Shared = () => {
   const { id = "" } = useParams<{ id?: string }>();
+  // The key is the link's fragment: the browser never sends it to the server.
+  const key = linkKeyOf(useLocation().hash);
   return (
     <Page className="sh-page">
       <SEO title="A shared plan — QualityLayer" description="A plan shared with you from QualityLayer. Read it and comment on it." />
       <Helmet>
         <meta name="robots" content="noindex" />
       </Helmet>
-      <SharedLink key={id} id={id} />
+      <SharedLink key={`${id}#${key}`} id={id} linkKey={key} />
     </Page>
   );
 };
