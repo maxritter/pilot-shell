@@ -3,7 +3,7 @@ title: The Cockpit
 description: Where you read your agent's documents, comment on them, approve each step and follow the build.
 ---
 
-The Cockpit runs on your computer and opens in your browser. Your agent gives you the link when something waits for you, or run `qualitylayer cockpit`.
+The Cockpit runs on your computer and opens in your browser by itself: when a task starts, and whenever a step waits for your approval and no Cockpit tab is open. It never opens a second tab. To open it yourself, run `qualitylayer cockpit`.
 
 ![The Cockpit with numbered parts: the task list, the step tabs, the review bar, a diagram, a comment and a clickable mockup](pathname:///img/diagrams/cockpit-marked-light.svg)
 ![The Cockpit with numbered parts: the task list, the step tabs, the review bar, a diagram, a comment and a clickable mockup](pathname:///img/diagrams/cockpit-marked-dark.svg)
@@ -25,7 +25,9 @@ Each document has a short version **For you** and a detailed one **For the agent
 
 ## Notifications
 
-While the Cockpit is open in a tab, your browser tells you when a document or the final change waits for you, when the build or verification stops, and when a task ships. Everything also collects under the bell.
+While the Cockpit is open in a tab, your browser tells you when a document or the final change waits for you, when the build or verification stops, and when a task ships; allow notifications once when the Cockpit asks. With no tab open, a step that waits for you opens the Cockpit and shows a notification from your system (Notification Center on macOS, `notify-send` on Linux). Everything also collects under the bell.
+
+Nothing opens over SSH or in CI. To keep the Cockpit from opening by itself anywhere, set `QUALITYLAYER_NO_BROWSER=1`; the link still appears in the chat.
 
 ## Keep it tidy
 
