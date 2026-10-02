@@ -34,7 +34,7 @@ QualityLayer runs only when you call it. Everything else works as before.
 
 ## Other agents
 
-Copy `~/.qualitylayer/skill/qualitylayer` into your agent's skills folder. At handoff, pick **Other agent** to get its build prompt. The [second opinion](reference/settings.md#second-opinion) and [session messaging](reference/commands.md#session-messaging) need Claude Code and Codex; everything else works with any agent.
+Copy `~/.qualitylayer/skill/ql` into your agent's skills folder. At handoff, pick **Other agent** to get its build prompt. The [second opinion](reference/settings.md#second-opinion) and [session messaging](reference/commands.md#session-messaging) need Claude Code and Codex; everything else works with any agent.
 
 ## Update, remove and licence {#uninstall}
 

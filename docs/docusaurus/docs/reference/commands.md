@@ -41,7 +41,7 @@ An agent cannot record a change that touches what you decided; it asks you and r
 ![Four agent sessions on one computer: one asks another for a review, one hands over a task, two talk a problem through](pathname:///img/diagrams/peers-light.svg)
 ![Four agent sessions on one computer: one asks another for a review, one hands over a task, two talk a problem through](pathname:///img/diagrams/peers-dark.svg)
 
-Claude Code and Codex sessions on your computer can message each other, in any direction. Your agents use it through the `qualitylayer-peers` skill; you can run it yourself:
+Claude Code and Codex sessions on your computer can message each other, in any direction. Your agents use it through the `ql-peers` skill; you can run it yourself:
 
 ```bash
 qualitylayer peers list

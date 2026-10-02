@@ -91,8 +91,8 @@ This installs the `qualitylayer` command-line tool and the skill your agents use
 It downloads the binary for your platform, checks its SHA-256 checksum, then runs `qualitylayer install`, which adds:
 
 - the binary in `~/.qualitylayer/bin/`
-- the `qualitylayer` skill (and `ql`, its short form) for Claude Code and Codex, which their desktop apps and IDE extensions use too
-- the `qualitylayer-peers` skill, so agent sessions can message each other
+- the `ql` skill for Claude Code and Codex, which their desktop apps and IDE extensions use too
+- the `ql-peers` skill, so agent sessions can message each other
 - Codex metadata so the skill runs only when you call it
 - a `qualitylayer` link in `~/.local/bin` when that folder is on your `PATH`
 
@@ -112,7 +112,7 @@ The second line shows only while a task is running: what waits for you, the step
 <details>
 <summary><b>Using another agent</b></summary>
 
-Any agent that supports skills (a folder with a `SKILL.md`) and can run shell commands works. Copy `~/.qualitylayer/skill/qualitylayer` into its skills folder. At handoff, pick **Other agent** in the Cockpit to get its build prompt.
+Any agent that supports skills (a folder with a `SKILL.md`) and can run shell commands works. Copy `~/.qualitylayer/skill/ql` into its skills folder. At handoff, pick **Other agent** in the Cockpit to get its build prompt.
 
 </details>
 
@@ -158,7 +158,7 @@ $ql move API billing from seats to usage     # Codex
 
 Whenever something waits for you, your agent gives you the Cockpit link; `qualitylayer cockpit` opens it any time. To see how a part of your code works, ask for a picture: `/ql show me how a request reaches the ledger`.
 
-QualityLayer runs only when you ask for it: with `/ql` or `/qualitylayer` (`$ql` or `$qualitylayer` in Codex), a build prompt from the Cockpit, or a request to resume a named task. Everything else works as before.
+QualityLayer runs only when you ask for it: with `/ql` (`$ql` in Codex), a build prompt from the Cockpit, or a request to resume a named task. Everything else works as before.
 
 <details>
 <summary><b>Privacy</b></summary>
