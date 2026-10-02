@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNarrow } from "@/hooks/useNarrow";
-import { OPTIONAL_STEPS, type StepName } from "@ql/core/optional-steps.ts";
+import { OPTIONAL_STEPS, type StepName, stepDef } from "@ql/core/optional-steps.ts";
 import { ROUTE_LIST, type RouteName } from "@ql/core/task/route-picture.ts";
 import { useDemoTour, type Target } from "./demoTour";
 import "./lifecycle.css";
@@ -10,7 +10,6 @@ type Kind = "you" | "ag" | "out" | "opt";
 type Node = [id: string, name: string, caption: string, who: Kind, target: Target | null, optional?: readonly StepName[]];
 type Group = { name: "Plan" | "Build" | "Check" | "Release"; sub: string; flex: number; hue?: string; out?: boolean; nodes: Node[] };
 
-const STEP = Object.fromEntries(OPTIONAL_STEPS.map((s) => [s.name, s])) as Record<StepName, (typeof OPTIONAL_STEPS)[number]>;
 const QUALITY = OPTIONAL_STEPS.filter((s) => s.group === "quality").map((s) => s.name);
 
 /** Where a click on an optional step opens in the Cockpit demo; the others have no screen of their own yet. */
@@ -110,7 +109,7 @@ export default function Lifecycle() {
                     const target: Target | null = id === "research" && key === "spec bugfix" ? { view: "task", id: "invoice", doc: "01-diagnosis.md" } : baseTarget;
                     const live = !!target && !skipped && !narrow;
                     // A step the route never runs (a bugfix has nothing to simplify) is left out.
-                    const steps = skipped ? [] : optional.filter((n) => STEP[n].appliesTo({ lane, type, ui: true }));
+                    const steps = skipped ? [] : optional.filter((n) => stepDef(n).appliesTo({ lane, type, ui: true }));
                     const body = (
                       <>
                         <span aria-hidden="true" className={`w7-dot ${who}`} />
@@ -131,9 +130,9 @@ export default function Lifecycle() {
                               return (
                                 <li key={n}>
                                   {stepTarget && !narrow ? (
-                                    <button type="button" className="lc-opt" title={STEP[n].caption} onClick={() => tour.go(stepTarget)}>{STEP[n].label}</button>
+                                    <button type="button" className="lc-opt" title={stepDef(n).caption} onClick={() => tour.go(stepTarget)}>{stepDef(n).label}</button>
                                   ) : (
-                                    <span className="lc-opt" title={STEP[n].caption}>{STEP[n].label}</span>
+                                    <span className="lc-opt" title={stepDef(n).caption}>{stepDef(n).label}</span>
                                   )}
                                 </li>
                               );
