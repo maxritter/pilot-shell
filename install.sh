@@ -25,9 +25,15 @@ RELEASE_API="${QUALITYLAYER_RELEASE_API:-https://api.github.com/repos/${REPO}/re
 VERSION="${VERSION:-}"
 VERSION="${VERSION#v}"
 
-say() { printf '  %s\n' "$*"; }
+# The installer's own lines match the install screen the binary draws next:
+# a blue ◇ per step and an amber ▲ for a failure, coloured only on a terminal.
+blue="" amber="" reset=""
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ] && [ "${TERM:-}" != "dumb" ]; then
+	blue=$'\033[38;5;74m' amber=$'\033[38;5;214m' reset=$'\033[0m'
+fi
+say() { printf '%s◇%s  %s\n' "$blue" "$reset" "$*"; }
 fail() {
-	printf '  [!!] %s\n' "$*" >&2
+	printf '%s▲%s  %s\n' "$amber" "$reset" "$*" >&2
 	exit 1
 }
 
@@ -58,7 +64,12 @@ asset="qualitylayer-${os}-${arch}"
 
 fetch() {
 	if command -v curl >/dev/null 2>&1; then
-		curl -fsSL --retry 2 -o "$2" "$1"
+		# The binary is about 100 MB: on a terminal its download shows a bar.
+		if [ "${3:-}" = "bar" ] && [ -t 2 ]; then
+			curl -fSL --retry 2 --progress-bar -o "$2" "$1"
+		else
+			curl -fsSL --retry 2 -o "$2" "$1"
+		fi
 	elif command -v wget >/dev/null 2>&1; then
 		wget -q -O "$2" "$1"
 	else
@@ -87,7 +98,7 @@ fi
 
 say "Downloading QualityLayer ${VERSION} (${asset})"
 base="${RELEASE_BASE}/download/v${VERSION}"
-fetch "${base}/${asset}" "$work/qualitylayer" || fail "download failed: ${base}/${asset}"
+fetch "${base}/${asset}" "$work/qualitylayer" bar || fail "download failed: ${base}/${asset}"
 fetch "${base}/${asset}.sha256" "$work/qualitylayer.sha256" || fail "the checksum is missing: ${base}/${asset}.sha256; nothing was installed"
 
 expected="$(awk '{print $1; exit}' "$work/qualitylayer.sha256")"
@@ -98,7 +109,7 @@ case "$expected" in
 esac
 [ "${#expected}" -eq 64 ] || fail "${asset}.sha256 holds no checksum; nothing was installed"
 [ "$expected" = "$actual" ] || fail "checksum mismatch for ${asset} (expected ${expected}, got ${actual}); nothing was installed"
-say "Checksum verified"
+say "Checksum verified (SHA-256)"
 
 chmod 755 "$work/qualitylayer"
 
