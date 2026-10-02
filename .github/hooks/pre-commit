@@ -69,10 +69,12 @@ fi
 # --- What did we stage? ----------------------------------------------------------
 staged="$(git diff --cached --name-only --diff-filter=ACMR)"
 qualitylayer_changed=0
+ui_changed=0
 install_sh_changed=0
 while IFS= read -r f; do
   [ -n "$f" ] || continue
   case "$f" in
+    qualitylayer/src/ui/*|qualitylayer/scripts/check-overflow.ts) qualitylayer_changed=1; ui_changed=1 ;;
     qualitylayer/*) qualitylayer_changed=1 ;;
     install.sh)     install_sh_changed=1 ;;
   esac
@@ -110,6 +112,12 @@ job_cockpit() {
   cd qualitylayer || return 1
   bun run check:cockpit
 }
+# No text spills out of a control in any Cockpit view, at three widths (about a minute).
+# shellcheck disable=SC2329
+job_overflow() {
+  cd qualitylayer || return 1
+  bun run check:overflow
+}
 # shellcheck disable=SC2329
 job_plaintext() {
   bash scripts/check_qualitylayer_encrypted.sh
@@ -135,6 +143,7 @@ if [ "$qualitylayer_changed" = "1" ]; then
   if have bun && [ -d qualitylayer/node_modules ]; then
     launch "qualitylayer (typecheck+lint)" job_qualitylayer
     launch "qualitylayer (release Cockpit draws)" job_cockpit
+    if [ "$ui_changed" = "1" ]; then launch "qualitylayer (no text overflows a control)" job_overflow; fi
   else
     echo "⚠ bun or qualitylayer deps unavailable — skipping (cd qualitylayer && bun install)."
   fi

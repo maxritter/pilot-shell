@@ -98,6 +98,14 @@ jobs:
           QUALITYLAYER_REQUIRE_RENDER: "1"
         run: bun run test
 
+      # Every Cockpit view of the demo, at three widths, in Chrome: no text spills out of a
+      # button, tab, badge or menu item. The self-test first proves the check still catches one.
+      - name: No text overflows a control
+        working-directory: qualitylayer
+        run: |
+          bun scripts/check-overflow.ts --self-test --require-render
+          bun run check:overflow -- --require-render
+
   site:
     name: Site API and pages
     runs-on: ubuntu-latest

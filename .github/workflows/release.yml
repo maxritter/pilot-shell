@@ -201,6 +201,8 @@ jobs:
           bun run typecheck
           bun run lint
           bun run test
+          bun scripts/check-overflow.ts --self-test --require-render
+          bun run check:overflow -- --require-render
 
   prepare-release:
     name: Prepare Release
