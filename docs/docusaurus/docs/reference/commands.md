@@ -5,6 +5,8 @@ description: The commands you type, the ones your agent runs, and session messag
 
 `qualitylayer help` lists every command your installed version has. Add `--json` for machine-readable output, or `--task <slug>` when several tasks are open.
 
+`ql` is the short name for the same command: `ql cockpit` is `qualitylayer cockpit`. If another command on your computer is already called `ql`, the installer leaves it alone and says so; `qualitylayer` always works.
+
 ## For you
 
 | Command | What it does |
