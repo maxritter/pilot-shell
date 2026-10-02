@@ -40,7 +40,7 @@ export const STOPS: Stop[] = [
   { id: "team", label: "Team", side: true, moments: [
     { route: { view: "team-task", id: "billing", doc: "02-design.md" }, context: "Anna’s design, with comments and approvals from Ben, Chen, Dana and you.", hint: "Select a passage to comment, or open Chen’s task from the team list." }] },
   { id: "settings", label: "Settings", side: true, moments: [
-    { route: { view: "settings", tab: "workflow" }, context: "Choose which model does which job, and turn jobs on or off.", hint: "Pick a model for a job, or turn the job off." }] },
+    { route: { view: "settings", tab: "workflow" }, context: "One model for your helper agents per coding agent, one for the second opinion, and a switch for every optional step.", hint: "Pick a model, or switch an optional step off." }] },
 ];
 
 /** The same place, ignoring a settings tab and a scroll anchor. */

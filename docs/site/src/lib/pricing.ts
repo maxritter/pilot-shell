@@ -107,6 +107,8 @@ export const COMPARE: CompareGroup[] = [
       row("Review each part of the plan before code is written", true, true),
       row("Designs shown as diagrams and clickable mockups", true, true),
       row("A lighter process for bugs and small changes", true, true),
+      row("A PRD and a TDD for product managers", true, true, "They take the place of the frame and the design"),
+      row("Copy any document into Confluence, Google Docs or Jira", true, true),
     ],
   },
   {
@@ -116,13 +118,13 @@ export const COMPARE: CompareGroup[] = [
       row("Build with the AI agent and model you choose", true, true),
       row("Lower cost: smaller models build from the plan, in parallel", true, true),
       row("Every step tested end to end, with logs and screenshots", true, true),
-      row("Every change ends simpler, with the same behaviour", true, true, "One pass removes copies and code that isn’t needed"),
     ],
   },
   {
     name: "Check",
     hue: "verify",
     rows: [
+      row("Optional extra checks before the final one", true, true, "Simplify the change, add missing tests, review security, update the docs; each can be switched off"),
       row("An independent check against what you asked for", true, true, "By an AI that did not write the code"),
       row("A second review by an AI from another vendor", true, true, "Needs both Claude Code and Codex"),
     ],
@@ -152,6 +154,12 @@ export const COMPARE: CompareGroup[] = [
       row("Ask a teammate about any part of a plan", false, true, "They get a notification, and approval can wait for their answer"),
       row("See every shared task and how far it is", false, true),
       row("Invite people outside your team to comment", false, true),
+      row(
+        "Plans, comments and links are encrypted on your machine",
+        false,
+        true,
+        "We can’t read them. We see who shared, which task, when and its stage. The guest page’s code comes from us. If you connect Slack, a nudge’s task title and question pass through our server to Slack and aren’t stored.",
+      ),
       row("Manage seats and billing in one place", false, true),
     ],
   },

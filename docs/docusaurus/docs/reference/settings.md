@@ -1,36 +1,52 @@
 ---
 title: Settings
-description: The model for each helper job, the second opinion, notifications, your licence and your team.
+description: Four models, the optional steps, your role, notifications, your licence and your team.
 ---
 
-![Settings: a model for each helper job in Claude Code and Codex, the second opinion, and notifications](pathname:///img/diagrams/settings-light.svg)
-![Settings: a model for each helper job in Claude Code and Codex, the second opinion, and notifications](pathname:///img/diagrams/settings-dark.svg)
+![Settings: one subagent model per agent, one second-opinion model per reviewing agent, a switch for each optional step, and notifications](pathname:///img/diagrams/settings-light.svg)
+![Settings: one subagent model per agent, one second-opinion model per reviewing agent, a switch for each optional step, and notifications](pathname:///img/diagrams/settings-dark.svg)
 
 Open **Settings** at the bottom of the Cockpit's sidebar. Changes save at once and apply to every project on this computer. No setting skips a review: every plan document waits for your approval, and the final approval is always yours.
 
-## Subagents
+## Your role
 
-Helper agents start fresh, with no memory of your chat, and work only from the task's documents. That keeps their work independent.
+**I mostly work as** is **Developer** or **Product manager**. It decides which route your agent offers first for a new feature. A developer gets the Feature route, with a frame and a design. A product manager gets the product route, with a PRD and a TDD. The build and its result are the same. You are asked once, in the Cockpit or in your agent's chat, and every task still lets you pick another route.
 
-| Job | What it does |
-| --- | --- |
-| Research | Answers the research questions without seeing your goal |
-| Outline cold read | Reads the plan like a new builder and reports where it would get stuck |
-| Slice builds | Builds one slice each, in plans with three or more slices |
-| Build checkpoints | Runs the end-to-end scenarios after a slice |
-| Simplify | Makes the finished change simpler, with the same behaviour |
-| Verify judge | Checks the finished change against your request, with evidence |
+## Models
 
-Each job has a model for the agent you work in. In Claude Code you pick **Sonnet 5.5** (the default) or **Opus 5.5**. In Codex you pick **GPT-6.1 Sol** (the default), **GPT-6 Astra**, the most capable and the most expensive, or **GPT-6 Luna**, the fastest and cheapest. **Off** means your agent does the job itself. Every helper thinks at high effort, so there is no effort setting. You set the build session's own model at handoff.
+Every helper agent and every second opinion thinks at high effort, so there is no effort setting. You set the build session's own model at handoff.
 
-## Second opinion
+### Subagents
+
+Helper agents start fresh, with no memory of your chat, and work only from the task's documents. That keeps their work independent. They research, read the outline like a new builder, build slices, run the end-to-end checks, run the quality pass and judge the finished change.
+
+One model covers all of them, per coding agent. In Claude Code you pick **Sonnet 5.5** (the default) or **Opus 5.5**. In Codex you pick **GPT-6.1 Sol** (the default), **GPT-6 Astra**, the most capable and the most expensive, or **GPT-6 Luna**, the fastest and cheapest. **This session** means no helpers: your agent does every step itself.
+
+### Second opinion
 
 With Claude Code and Codex both installed, the other vendor's agent reviews your agent's work:
 
 - **Design:** the frame, the research and the design, as soon as the design is up for your review. **Approve** unlocks once your agent has answered the findings.
 - **Verify:** every plan document, the build record and the code change.
 
-It runs through the other agent's command-line tool (`claude` or `codex`), so install it even if you work in a desktop app. It reads only the documents, never your chat, and changes nothing. Your agent fixes what it agrees with and says why it skips the rest. Each point and direction (**Codex reviews Claude Code**, **Claude Code reviews Codex**) has its own model from the same lists, on by default, or **Off**. A review that has not finished after ten minutes at design, or twelve at verify, is stopped and Approve unlocks anyway.
+It runs through the other agent's command-line tool (`claude` or `codex`), so install it even if you work in a desktop app. It reads only the documents, never your chat, and changes nothing. Your agent fixes what it agrees with and says why it skips the rest. Each direction (**Codex reviews Claude Code**, **Claude Code reviews Codex**) has one model from the same lists. A review that has not finished after ten minutes at design, or twelve at verify, is stopped and Approve unlocks anyway. Whether the second opinion runs at all is its switch under Optional steps.
+
+## Optional steps
+
+Each of these steps has a switch, on by default. A switch sets the default for every new task. When a task starts, your agent's question can switch steps off for that task, and the [handoff](../workflow/build/handoff.md) changes the build-time steps for one build. After the build starts, the list is fixed.
+
+| Group | Step | What it does |
+| --- | --- | --- |
+| While planning | Outline cold read | A fresh helper reads the outline like a new builder and reports where it would get stuck |
+| While planning | Second opinion | The other vendor's agent reviews the design and the finished change |
+| While building | Checkpoints | Runs the end-to-end scenarios after marked slices |
+| Quality pass | Simplify | Reads the whole change once and makes it simpler |
+| Quality pass | Test gaps | Adds the missing edge-case and error-path tests |
+| Quality pass | Security review | Looks for severe issues in the change, in at most 10 minutes |
+| Quality pass | Docs update | Brings the README, the docs and the changelog in line with the change |
+| Quality pass | UI review | For tasks with a screen: compares the running app with the design's mockups |
+
+The [quality pass](../workflow/check/verify.md#the-quality-pass) runs at the start of Verify, before the judge. Every approval always runs; no switch turns one off.
 
 ## Notifications
 
@@ -38,4 +54,4 @@ Your browser tells you when a document or the final change waits for you, when t
 
 ## Licence and team
 
-**Licence** shows your plan, your version and a link to the customer portal for invoices, seats and payment. On another computer, run `qualitylayer licence activate <key>`. **Team** shows your seats, members and shared links, and the name your team sees on your comments.
+**Licence** shows your plan, your version and a link to the customer portal for invoices, seats and payment. On another computer, run `qualitylayer licence activate <key>`. **Team** shows your seats, your members and their computers, your shared links, and the name your team sees on your comments.

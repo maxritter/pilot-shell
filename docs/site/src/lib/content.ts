@@ -19,7 +19,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "What do I actually review?",
-    "Short documents written for you: the goal, how the code works today, the design with diagrams and mockups, and the slices. At the end: what was checked, the evidence, steps to try it, and the diff.",
+    "Short documents written for you: the goal, how the code works today, the design with diagrams and mockups (a PRD and a TDD if you work as a product manager), and the slices. At the end: what was checked, the evidence, steps to try it, and the diff.",
   ),
   faq(
     "How do I know the change really works?",
@@ -31,7 +31,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "Does it use more tokens?",
-    "Planning and checking add some work. The building is done by smaller, cheaper models, each starting from the short plan instead of your whole chat. You choose the model for each helper under Subagents in Settings, or turn it off.",
+    "Planning and checking add some work. The building is done by smaller, cheaper models, each starting from the short plan instead of your whole chat. In Settings you choose one model for the helpers per agent, or have your agent do every step itself, and each optional step has its own switch.",
   ),
   faq(
     "Can I leave while it builds?",
@@ -39,7 +39,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "Does my code leave my computer?",
-    "Plans are Markdown files in your repository, and the Cockpit runs on your computer. Your agent keeps its own provider settings. Sharing with your team sends the plan and its progress, never your code.",
+    "Plans are Markdown files in your repository, and the Cockpit runs on your computer. Your agent keeps its own provider settings. Sharing with your team sends the plan and its progress, encrypted on your machine so we can’t read it, and never your code.",
   ),
   faq(
     "Which agents work with it?",
@@ -70,7 +70,7 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "Does my code leave my computer?",
-    "Plans are Markdown files in your repository, and the Cockpit runs on your computer. Your AI agent keeps its own provider and data settings. When you share a task, its plan is stored in your team’s workspace.",
+    "Plans are Markdown files in your repository, and the Cockpit runs on your computer. Your AI agent keeps its own provider and data settings. When you share a task, its plan is encrypted on your machine first, so we store it but can’t read it. We see who shared it, which task, when and its stage.",
   ),
   faq(
     "What does Enterprise include?",

@@ -54,6 +54,8 @@ export default defineConfig(({ mode }) => ({
     indexNowPlugin(),
   ].filter(Boolean),
   resolve: {
+    // The lifecycle names its routes and optional steps from the product's own tables.
+    alias: { "@ql": path.resolve(__dirname, "../../qualitylayer/src") },
     dedupe: ["react", "react-dom", "cn", "lucide-react", "radix-ui", "class-variance-authority", "clsx", "tailwind-merge", "dompurify", "marked", "mermaid", "sonner", "tailwindcss", "tw-animate-css", "shadcn"],
   },
   build: {

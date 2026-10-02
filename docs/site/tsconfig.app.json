@@ -22,7 +22,8 @@
     "noFallthroughCasesInSwitch": false,
 
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@ql/*": ["../../qualitylayer/src/*"]
     }
   },
   "include": ["src"]

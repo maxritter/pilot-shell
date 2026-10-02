@@ -6,7 +6,7 @@ description: The checks that run the real program after marked slices, and what 
 ![The Feature route with Checkpoint highlighted](pathname:///img/diagrams/track-checkpoint-light.svg)
 ![The Feature route with Checkpoint highlighted](pathname:///img/diagrams/track-checkpoint-dark.svg)
 
-After each slice the outline marks, a fresh helper runs the scenarios on the real program and keeps the test output, logs and screenshots. A pass lets the build go on by itself. These checks are always on.
+After each slice the outline marks, a fresh helper runs the scenarios on the real program and keeps the test output, logs and screenshots. A pass lets the build go on by itself. These checks are on by default. Switch them off in [Settings](../../reference/settings.md#optional-steps), when a task starts, or at the handoff, and the marks in the outline stop holding up any slice.
 
 ![A checkpoint: after a slice the scenarios run; a pass goes on, a failure is fixed and run again, and three failures stop for you](pathname:///img/diagrams/checkpoint-light.svg)
 ![A checkpoint: after a slice the scenarios run; a pass goes on, a failure is fixed and run again, and three failures stop for you](pathname:///img/diagrams/checkpoint-dark.svg)

@@ -8,8 +8,8 @@ description: How the build works through the plan, slice by slice and test first
 
 Each slice goes through every layer, from the screen to the database, and each task starts with a failing test. In a plan with three or more slices, a fresh helper on a smaller, cheaper model builds each slice while your session coordinates, and slices that do not depend on each other build side by side.
 
-![Three slices, each through every layer, each starting with a failing test and ending with an end-to-end run; then one pass simplifies the whole change](pathname:///img/diagrams/slices-light.svg)
-![Three slices, each through every layer, each starting with a failing test and ending with an end-to-end run; then one pass simplifies the whole change](pathname:///img/diagrams/slices-dark.svg)
+![Three slices, each through every layer, each starting with a failing test and ending with an end-to-end run; then an optional quality pass works on the whole change before Verify](pathname:///img/diagrams/slices-light.svg)
+![Three slices, each through every layer, each starting with a failing test and ending with an end-to-end run; then an optional quality pass works on the whole change before Verify](pathname:///img/diagrams/slices-dark.svg)
 
 ## In the Cockpit
 

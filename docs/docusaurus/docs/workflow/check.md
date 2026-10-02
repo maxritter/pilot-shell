@@ -3,8 +3,8 @@ title: Check and ship
 description: An independent check against your request, your final approval, and what happens when something stops.
 ---
 
-![The Feature route with the last steps highlighted: Verify to Shipped](pathname:///img/diagrams/track-check-light.svg)
-![The Feature route with the last steps highlighted: Verify to Shipped](pathname:///img/diagrams/track-check-dark.svg)
+![The Feature route with the last steps highlighted: Quality pass to Shipped](pathname:///img/diagrams/track-check-light.svg)
+![The Feature route with the last steps highlighted: Quality pass to Shipped](pathname:///img/diagrams/track-check-dark.svg)
 
 The change is checked by an AI that did not write it, then you decide.
 

@@ -41,14 +41,14 @@ def svg(w: float, h: float, body: str, title: str) -> str:
 
 # ---------------------------------------------------------------- 1 routes
 def routes(c):
-    W, H = 1000, 372
+    W, H = 1000, 468
     cols = [('Frame', 'plan'), ('Research', 'plan'), ('Design', 'plan'), ('Outline', 'plan'),
-            ('Handoff', 'build'), ('Build', 'build'), ('Checkpoint', 'build'), ('Simplify', 'build'), ('Verify', 'check'),
+            ('Handoff', 'build'), ('Build', 'build'), ('Quality pass', 'check'), ('Verify', 'check'),
             ('Review', 'ok')]
-    x0, cw = 186, 81
+    x0, cw = 186, 87
     cx = [x0 + i * cw + cw / 2 for i in range(len(cols))]
-    groups = [('Plan', 'Before any code', 0, 4, 'violet'), ('Build', 'Tested as it goes', 4, 8, 'blue'),
-              ('Check', 'Independent', 8, 9, 'teal'), ('Ship', 'Your call', 9, 10, 'amber')]
+    groups = [('Plan', 'Before any code', 0, 4, 'violet'), ('Build', 'Tested as it goes', 4, 6, 'blue'),
+              ('Check', 'Independent', 6, 8, 'teal'), ('Ship', 'Your call', 8, 9, 'amber')]
     b = []
     for name, sub, a, z, col in groups:
         xa, xz = x0 + a * cw + 4, x0 + z * cw - 4
@@ -57,12 +57,14 @@ def routes(c):
         b.append(T(xa, 52, sub, 12, 'muted', c=c))
     for i, (n, _) in enumerate(cols):
         b.append(T(cx[i], 86, n, 12, 'muted', 500, 'middle', c=c))
-    you = {'Frame', 'Research', 'Design', 'Outline', 'Handoff', 'Review', 'Diagnose'}
+    you = {'Frame', 'Research', 'Design', 'Outline', 'Handoff', 'Review', 'Diagnose', 'PRD', 'TDD'}
+    optional = {'Quality pass'}
     rows = [
         ('Feature', 'The full plan', {}),
+        ('Product feature', 'A PRD and a TDD', {'Frame': 'PRD', 'Design': 'TDD'}),
         ('Bug', 'Cause first', {'Research': 'Diagnose', 'Design': None}),
         ('Quick change', 'A rename, a setting', {'Frame': None, 'Research': None, 'Design': None, 'Outline': None,
-                                                  'Handoff': None, 'Checkpoint': None, 'Simplify': None, 'Build': 'Change'}),
+                                                  'Handoff': None, 'Quality pass': None, 'Build': 'Change'}),
     ]
     y = 140
     for name, sub, mods in rows:
@@ -78,6 +80,8 @@ def routes(c):
                 continue
             if label in you:
                 b.append(f'<rect x="{cx[i] - 9}" y="{y - 9}" width="18" height="18" rx="3" transform="rotate(45 {cx[i]} {y})" fill="{c["amberf"]}" stroke="{c["amber"]}" stroke-width="2"/>')
+            elif label in optional:
+                b.append(f'<circle cx="{cx[i]}" cy="{y}" r="9" fill="{c["bg"]}" stroke="{c["blue"]}" stroke-width="2" stroke-dasharray="3 2.5"/>')
             else:
                 b.append(f'<circle cx="{cx[i]}" cy="{y}" r="9" fill="{c["blue"]}"/>')
             if label != n:
@@ -90,7 +94,9 @@ def routes(c):
     b.append(T(x0 + 228, ly, 'The agent works on its own', 13, 'muted', c=c))
     b.append(f'<circle cx="{x0 + 442}" cy="{ly - 5}" r="4" fill="{c["bg"]}" stroke="{c["off"]}" stroke-width="2"/>')
     b.append(T(x0 + 454, ly, 'Skipped on this route', 13, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'Three routes through QualityLayer: Feature, Bug and Quick change, from planning to your approval')
+    b.append(f'<circle cx="{x0 + 626}" cy="{ly - 5}" r="7" fill="{c["bg"]}" stroke="{c["blue"]}" stroke-width="2" stroke-dasharray="3 2.5"/>')
+    b.append(T(x0 + 640, ly, 'Optional steps', 13, 'muted', c=c))
+    return svg(W, H, ''.join(b), 'Four routes through QualityLayer: Feature, Product feature, Bug and Quick change, from planning to your approval, with the optional quality pass dashed')
 
 
 # ---------------------------------------------------------------- 2 slices
@@ -129,27 +135,26 @@ def slices(c):
         ax = x + sw + 5
         b.append(f'<path d="M{ax} {cy + 43} h{gap - 10}" stroke="{c["muted"]}" stroke-width="1.6"/>')
         b.append(f'<path d="M{ax + gap - 14} {cy + 38} l6 5 l-6 5" fill="none" stroke="{c["muted"]}" stroke-width="1.6"/>')
-    # Simplify: one pass over the whole change at the end of the build
+    # Quality pass: optional steps over the whole change, before Verify
     x, w = sx + 3 * (sw + gap), W - 24 - (sx + 3 * (sw + gap))
-    b.append(T(x, 30, 'Simplify', 15, 'teal', 650, c=c))
-    b.append(T(x, 50, 'The whole change, once', 13, 'muted', c=c))
+    b.append(T(x, 30, 'Quality pass', 15, 'teal', 650, c=c))
+    b.append(T(x, 50, 'Optional, whole change', 13, 'muted', c=c))
     b.append(f'<rect x="{x}" y="64" width="{w}" height="24" rx="12" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
-    b.append(T(x + 14, 81, 'A fresh helper', 12, 'text', 500, c=c))
-    b.append(f'<rect x="{x + 10}" y="{top + 4}" width="{w - 20}" height="{lh * 4 - 8}" rx="12" fill="{c["teal"]}" fill-opacity="0.07" stroke="{c["teal"]}" stroke-width="2"/>')
-    for i in range(4):
-        yy = top + i * lh + lh / 2
-        mx = x + w / 2
-        b.append(f'<circle cx="{mx}" cy="{yy}" r="9" fill="{c["bg"]}" stroke="{c["teal"]}" stroke-width="1.6"/>')
-        b.append(f'<path d="M{mx - 4} {yy} h8" stroke="{c["teal"]}" stroke-width="2" stroke-linecap="round"/>')
+    b.append(T(x + 14, 81, 'A fresh helper each', 12, 'text', 500, c=c))
+    b.append(f'<rect x="{x + 10}" y="{top + 4}" width="{w - 20}" height="{lh * 4 - 8}" rx="12" fill="{c["teal"]}" fill-opacity="0.07" stroke="{c["teal"]}" stroke-width="2" stroke-dasharray="5 4"/>')
+    for i, step in enumerate(['Simplify', 'Test gaps', 'Security', 'Docs', 'UI review']):
+        yy = top + 14 + i * 38
+        b.append(f'<rect x="{x + 24}" y="{yy}" width="{w - 48}" height="28" rx="14" fill="{c["bg"]}" stroke="{c["teal"]}" stroke-width="1.6" stroke-dasharray="3 2.5"/>')
+        b.append(T(x + w / 2, yy + 19, step, 12, 'text', 500, 'middle', c=c))
     cy = top + lh * 4 + 18
     b.append(f'<rect x="{x}" y="{cy}" width="{w}" height="86" rx="10" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
     b.append(f'<path d="M{x + 14} {cy + 22} l5 5 l9 -10" fill="none" stroke="{c["ok"]}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>')
-    b.append(T(x + 36, cy + 27, 'Same behaviour', 14, 'text', 650, c=c))
-    for ev, ex, ew in [('Merge', 10, 46), ('Reuse', 60, 44), ('Remove', 108, 52)]:
+    b.append(T(x + 36, cy + 27, 'Then Verify', 14, 'text', 650, c=c))
+    for ev, ex, ew in [('Judge', 10, 54), ('Evidence', 68, 76)]:
         b.append(f'<rect x="{x + ex}" y="{cy + 44}" width="{ew}" height="26" rx="6" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
         b.append(T(x + ex + ew / 2, cy + 61, ev, 11, 'muted', 500, 'middle', c=c))
-    b.append(T(W / 2, H - 4, 'Each slice works on its own before the next starts. Then one pass makes the whole change simpler, and verification checks nothing broke.', 13, 'muted', 400, 'middle', c=c))
-    return svg(W, H, ''.join(b), 'A feature built in three vertical slices, each tested end to end with kept evidence, then simplified as a whole while its behaviour stays the same')
+    b.append(T(W / 2, H - 4, 'Each slice works on its own before the next starts. Then the optional quality pass works on the whole change, and Verify checks it.', 13, 'muted', 400, 'middle', c=c))
+    return svg(W, H, ''.join(b), 'A feature built in three vertical slices, each tested end to end with kept evidence, then an optional quality pass (simplify, test gaps, security, docs, UI review) before Verify')
 
 
 # ---------------------------------------------------------------- 3 agents
@@ -188,7 +193,7 @@ def agents(c):
         (8, 'Research helpers', 'Read the code before the plan', 'teal'),
         (100, 'Slice builders', 'Smaller, cheaper models, in parallel', 'blue'),
         (192, 'Testers', 'Run the program end to end', 'blue'),
-        (284, 'Simplify', 'Makes the finished change simpler', 'teal'),
+        (284, 'Quality pass helpers', 'Simplify, test gaps, security, docs', 'teal'),
         (376, 'Independent check', 'An AI that did not write the code', 'teal'),
     ]
     for y, t, s, col in right:
@@ -205,7 +210,7 @@ def agents(c):
     b.append(T(436, 430, 'Second AI', 15, 'text', 650, c=c))
     b.append(T(436, 450, 'Another vendor reviews the', 13, 'muted', c=c))
     b.append(T(436, 466, 'design and the finished change', 13, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'Who does what: you and your agent write the plan; helper agents research, build, test and check from it; an AI from another vendor reviews')
+    return svg(W, H, ''.join(b), 'Who does what: you and your agent write the plan; helper agents research, build, test, run the quality pass and check from it; an AI from another vendor reviews')
 
 
 # ---------------------------------------------------------------- 4 team
@@ -353,7 +358,7 @@ def cockpit(c):
 
 # ---------------------------------------------------------------- 7 cockpit: handoff
 def handoff(c):
-    W, H = 1000, 470
+    W, H = 1000, 534
     b = [window(c, W, H)]
     x0 = 40
     b.append(T(x0, 84, 'Start the build', 18, 'text', 650, c=c))
@@ -374,10 +379,22 @@ def handoff(c):
     b.append(f'<rect x="{x0}" y="{ry}" width="{W - 2 * x0}" height="62" rx="12" fill="{c["bluef"]}" stroke="{c["blue"]}" stroke-width="1.5"/>')
     b.append(T(x0 + 18, ry + 26, 'Recommended', 12, 'blue', 650, c=c))
     b.append(T(x0 + 18, ry + 47, 'This session, cleared · your best model coordinates', 14, 'text', 600, c=c))
-    b.append(T(W - x0 - 18, ry + 37, 'Helpers on smaller models build the slices', 12.5, 'muted', 400, 'end', c=c))
+    b.append(T(W - x0 - 18, ry + 37, 'Helpers on your chosen subagent model build the slices', 12.5, 'muted', 400, 'end', c=c))
+    # optional steps for this build: dashed chips, one switched off
+    b.append(T(x0, 278, 'Optional steps for this build', 13, 'muted', 600, c=c))
+    cx = x0
+    for name, off in [('Checkpoints', False), ('Second opinion', False), ('Simplify', False), ('Test gaps', False),
+                      ('Security review', False), ('Docs update', True)]:
+        w = 26 + len(name) * 6.6
+        col = c['dim'] if off else c['blue']
+        b.append(f'<rect x="{cx}" y="290" width="{w}" height="26" rx="13" fill="{c["bg"] if off else c["bluef"]}" stroke="{col}" stroke-width="1.5" stroke-dasharray="4 3"/>')
+        b.append(T(cx + w / 2, 307, name, 12, 'muted' if off else 'blue', 600, 'middle', c=c))
+        if off:
+            b.append(f'<line x1="{cx + 12}" y1="303" x2="{cx + w - 12}" y2="303" stroke="{c["dim"]}" stroke-width="1.5"/>')
+        cx += w + 10
     # steps
     chips = ['/clear', '/model']
-    y = 280
+    y = 344
     for n in (1, 2, 3):
         b.append(f'<circle cx="{x0 + 14}" cy="{y + 14}" r="13" fill="none" stroke="{c["cardline"]}" stroke-width="1.5"/>')
         b.append(T(x0 + 14, y + 19, str(n), 12, 'muted', 650, 'middle', c=c))
@@ -400,13 +417,14 @@ def handoff(c):
         else:
             b.append(T(x0 + 40, y + 19, 'Watch it here: it stops for you at Review, or earlier only for a decision that is yours', 14, 'text', 600, c=c))
         y += 56
-    return svg(W, H, ''.join(b), 'The Cockpit handoff: choose the agent that builds, a recommended setup, launch steps and the build prompt')
+    return svg(W, H, ''.join(b), 'The Cockpit handoff: choose the agent that builds, a recommended setup, switches for the optional steps, launch steps and the build prompt')
 
 
 # ---------------------------------------------------------------- 8 the steps of the Feature route, for page tracks
 STEPS = [('Frame', 'violet'), ('Research', 'violet'), ('Design', 'violet'), ('Outline', 'violet'),
-         ('Handoff', 'blue'), ('Build', 'blue'), ('Checkpoint', 'blue'), ('Simplify', 'blue'),
+         ('Handoff', 'blue'), ('Build', 'blue'), ('Checkpoint', 'blue'), ('Quality pass', 'teal'),
          ('Verify', 'teal'), ('Review', 'amber'), ('Shipped', 'amber')]
+OPTIONAL = {'Checkpoint', 'Quality pass'}  # drawn dashed: optional steps
 
 
 # ---------------------------------------------------------------- 9 step illustrations
@@ -738,7 +756,7 @@ def track_group(first: str, last: str, label: str):
         b.append(f'<line x1="{xs[0]}" y1="52" x2="{xs[-1]}" y2="52" stroke="{c["line"]}" stroke-width="2"/>')
         for i, (n, _) in enumerate(STEPS):
             inside = a <= i <= z
-            dash = ' stroke-dasharray="3 2.5"' if n == 'Simplify' else ''
+            dash = ' stroke-dasharray="3 2.5"' if n in OPTIONAL else ''
             if inside:
                 b.append(f'<circle cx="{xs[i]}" cy="52" r="8" fill="{c["bg"]}" stroke="{c[col]}" stroke-width="2.5"{dash}/>')
             else:
@@ -789,39 +807,40 @@ def firsttask_ill(c: Theme) -> str:
 
 def settings_ill(c: Theme) -> str:
     W, H = 1000, 360
-    b = [card(c, 0, 0, 600, 356)]
-    b.append(T(20, 30, 'Subagents', 15, 'text', 650, c=c))
-    b.append(T(20, 50, 'Fresh helpers, one job each', 12.5, 'muted', c=c))
-    b.append(T(250, 80, 'In Claude Code', 11.5, 'dim', 700, c=c))
-    b.append(T(420, 80, 'In Codex', 11.5, 'dim', 700, c=c))
-    rows = [('Research', 'Sonnet 5.5', 'GPT-6.1 Sol'), ('Outline cold read', 'Sonnet 5.5', 'GPT-6.1 Sol'),
-            ('Slice builds', 'Sonnet 5.5', 'GPT-6.1 Sol'), ('Build checkpoints', 'Sonnet 5.5', 'GPT-6.1 Sol'),
-            ('Simplify', 'Sonnet 5.5', 'GPT-6.1 Sol'), ('Verify judge', 'Sonnet 5.5', 'Off')]
-    for i, (job, cc, cx) in enumerate(rows):
-        y = 92 + i * 42
+    def switch(x: float, y: float, on: bool = True) -> str:
+        if on:
+            return (f'<rect x="{x}" y="{y}" width="28" height="18" rx="9" fill="{c["blue"]}"/>'
+                    f'<circle cx="{x + 19}" cy="{y + 9}" r="6" fill="#ffffff"/>')
+        return (f'<rect x="{x}" y="{y}" width="28" height="18" rx="9" fill="{c["bg"]}" stroke="{c["cardline"]}"/>'
+                f'<circle cx="{x + 9}" cy="{y + 9}" r="6" fill="{c["dim"]}"/>')
+
+    b = [card(c, 0, 0, 600, 262)]
+    b.append(T(20, 30, 'Models', 15, 'text', 650, c=c))
+    b.append(T(20, 50, 'One model per agent, for every helper and review', 12.5, 'muted', c=c))
+    rows = [('Subagents in Claude Code', 'Sonnet 5.5'), ('Subagents in Codex', 'GPT-6.1 Sol'),
+            ('Codex reviews Claude Code', 'GPT-6.1 Sol'), ('Claude Code reviews Codex', 'Sonnet 5.5')]
+    for i, (what, v) in enumerate(rows):
+        y = 68 + i * 46
         b.append(f'<line x1="20" y1="{y}" x2="580" y2="{y}" stroke="{c["cardline"]}"/>')
-        b.append(T(20, y + 26, job, 13, 'text', 500, c=c))
-        for x, v in ((250, cc), (420, cx)):
-            off = v == 'Off'
-            b.append(f'<rect x="{x}" y="{y + 8}" width="150" height="28" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-            b.append(T(x + 12, y + 27, v, 12.5, 'muted' if off else 'text', 500, c=c))
-            b.append(f'<path d="M{x + 132} {y + 19} l4 4 l4 -4" fill="none" stroke="{c["muted"]}" stroke-width="1.5"/>')
-    b.append(card(c, 620, 0, 380, 236))
-    b.append(T(640, 30, 'Second opinion', 15, 'text', 650, c=c))
-    b.append(T(640, 50, 'The other vendor reviews', 12.5, 'muted', c=c))
-    for i, (pt, who) in enumerate([('Design', 'Codex reviews Claude Code'), ('Verify', 'Claude Code reviews Codex')]):
-        y = 74 + i * 76
-        b.append(card(c, 640, y, 340, 64, fill='bg'))
-        b.append(T(656, y + 26, pt, 13.5, 'text', 650, c=c))
-        b.append(T(656, y + 46, who, 12, 'muted', c=c))
-        b.append(f'<rect x="{940}" y="{y + 22}" width="28" height="18" rx="9" fill="{c["blue"]}"/>')
-        b.append(f'<circle cx="959" cy="{y + 31}" r="6" fill="#ffffff"/>')
-    b.append(card(c, 620, 256, 380, 100))
-    b.append(T(640, 286, 'Notifications', 15, 'text', 650, c=c))
-    b.append(T(640, 308, 'When something waits for you', 12.5, 'muted', c=c))
-    b.append(f'<rect x="940" y="276" width="28" height="18" rx="9" fill="{c["blue"]}"/>')
-    b.append(f'<circle cx="959" cy="285" r="6" fill="#ffffff"/>')
-    return svg(W, H, ''.join(b), 'Settings: a model for each helper job in Claude Code and Codex, the second opinion, and notifications')
+        b.append(T(20, y + 29, what, 13, 'text', 500, c=c))
+        b.append(f'<rect x="400" y="{y + 9}" width="170" height="28" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
+        b.append(T(412, y + 28, v, 12.5, 'text', 500, c=c))
+        b.append(f'<path d="M552 {y + 20} l4 4 l4 -4" fill="none" stroke="{c["muted"]}" stroke-width="1.5"/>')
+    b.append(card(c, 0, 278, 600, 78))
+    b.append(T(20, 308, 'Notifications', 15, 'text', 650, c=c))
+    b.append(T(20, 330, 'When something waits for you', 12.5, 'muted', c=c))
+    b.append(switch(552, 298))
+    b.append(card(c, 620, 0, 380, 356))
+    b.append(T(640, 30, 'Optional steps', 15, 'text', 650, c=c))
+    b.append(T(640, 50, 'On for every new task; off for one task if you say so', 12.5, 'muted', c=c))
+    steps = [('Outline cold read', True), ('Second opinion', True), ('Checkpoints', True), ('Simplify', True),
+             ('Test gaps', True), ('Security review', True), ('Docs update', False), ('UI review', True)]
+    for i, (name, on) in enumerate(steps):
+        y = 68 + i * 35.5
+        b.append(f'<line x1="640" y1="{y}" x2="980" y2="{y}" stroke="{c["cardline"]}"/>')
+        b.append(T(640, y + 23, name, 13, 'text' if on else 'muted', 500, c=c))
+        b.append(switch(940, y + 9, on))
+    return svg(W, H, ''.join(b), 'Settings: one subagent model per agent, one second-opinion model per reviewing agent, a switch for each optional step, and notifications')
 
 
 
@@ -829,7 +848,7 @@ os.makedirs(OUT, exist_ok=True)
 ROUTE_OFF = {
     'feature': set(),
     'bug': {'Design'},
-    'quick': {'Frame', 'Research', 'Design', 'Outline', 'Handoff', 'Checkpoint', 'Simplify'},
+    'quick': {'Frame', 'Research', 'Design', 'Outline', 'Handoff', 'Checkpoint', 'Quality pass'},
 }
 ROUTE_NAME = {'bug': {'Research': 'Diagnose'}, 'quick': {'Build': 'Change'}}
 ROUTE_LABEL = {'feature': 'Feature route', 'bug': 'Bug route', 'quick': 'Quick change route'}
@@ -850,7 +869,7 @@ def track(here: str, route: str = 'feature', stopped: bool = False):
         b.append(f'<line x1="{xs[on[0]]}" y1="52" x2="{xs[cur]}" y2="52" stroke="{c["blue"]}" stroke-width="2.5"/>')
         for i, (n, col) in enumerate(STEPS):
             x, label = xs[i], names.get(n, n)
-            dash = ' stroke-dasharray="3 2.5"' if n == 'Simplify' else ''
+            dash = ' stroke-dasharray="3 2.5"' if n in OPTIONAL else ''
             if n in off:
                 b.append(f'<circle cx="{x}" cy="52" r="4" fill="{c["bg"]}" stroke="{c["off"]}" stroke-width="2"/>')
                 b.append(T(x, 86, label, 12, 'dim', 400, 'middle', c=c))
@@ -1170,15 +1189,15 @@ DRAWINGS = [('routes', routes), ('slices', slices), ('agents', agents), ('team',
             ('shipped', shipped_ill), ('quick', quick_ill), ('stopped', stopped_ill), ('abandon', abandon_ill),
             ('install', install_ill), ('firsttask', firsttask_ill), ('settings', settings_ill),
             ('track-plan', track_group('Frame', 'Outline', 'Plan')),
-            ('track-build', track_group('Handoff', 'Simplify', 'Build')),
-            ('track-check', track_group('Verify', 'Shipped', 'Check and ship')),
+            ('track-build', track_group('Handoff', 'Checkpoint', 'Build')),
+            ('track-check', track_group('Quality pass', 'Shipped', 'Check and ship')),
             ('cockpit-marked', cockpit_marked), ('outline', outline_ill), ('build', build_ill), ('simplify', simplify_ill),
             ('secondop', secondop_ill), ('files', files_ill), ('privacy', privacy_ill),
             ('team-timeline', team_timeline), ('team-plan', team_plan), ('team-change', team_change),
             ('track-frame', track('Frame')), ('track-research', track('Research')),
             ('track-diagnose', track('Research', 'bug')), ('track-design', track('Design')),
             ('track-outline', track('Outline')), ('track-handoff', track('Handoff')), ('track-slices', track('Build')),
-            ('track-checkpoint', track('Checkpoint')), ('track-simplify', track('Simplify')),
+            ('track-checkpoint', track('Checkpoint')), ('track-quality', track('Quality pass')),
             ('track-verify', track('Verify')), ('track-approve', track('Review')), ('track-shipped', track('Shipped')),
             ('track-stopped', track('Verify', stopped=True))]
 for name, fn in DRAWINGS:

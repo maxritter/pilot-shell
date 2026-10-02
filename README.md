@@ -53,7 +53,7 @@ A short overview, and a walkthrough of the Cockpit.
 - **See the plan before any code:** each design comes with diagrams of the system and its data, and mockups of new screens you can click through.
 - **Point at what's wrong:** comment on any sentence, diagram or mockup, and your agent gets all your comments together.
 - **Bring in your team early:** teammates read the plan in their own Cockpit, comment and approve it while changing it is still cheap.
-- **Build in small steps:** helper agents build the change in small pieces, each starting with a failing test. A last pass removes duplicate and unused code.
+- **Build in small steps:** helper agents build the change in small pieces, each starting with a failing test. Optional extra checks then simplify the code, fill test gaps, review security and update the docs.
 - **Get results checked for you:** an AI that did not write the code runs the program and checks each point you asked for, with evidence you can open.
 - **Review everything in one place:** why the change was made, the proof, how to try it and the code changes, before you open the pull request.
 - **Choose who builds it:** the build works from the approved plan alone, so any agent or model can take it on.
@@ -173,11 +173,11 @@ Five anonymous events are sent with the daily licence check: task started, step 
 
 ### How a request becomes a reviewed change
 
-Describe a change to your agent. It picks one of three routes, and every step where a decision is yours waits for you in the Cockpit.
+Describe a change to your agent. It draws the route it suggests, with its optional steps, and asks you once before anything starts. Every step where a decision is yours waits for you in the Cockpit.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/routes-dark.svg">
-  <img src="docs/docusaurus/static/img/diagrams/routes-light.svg" alt="Three routes: Feature runs every step, Bug finds the cause before the fix, Quick change goes straight to a test and the change" width="1000">
+  <img src="docs/docusaurus/static/img/diagrams/routes-light.svg" alt="Four routes: Feature runs every step, Product feature writes a PRD and a TDD in place of the frame and the design, Bug finds the cause before the fix, Quick change goes straight to a test and the change; the optional quality pass is dashed" width="1000">
 </picture>
 
 - **Feature:** before any code exists, you agree on the goal, what the code does today, the design, and the order of the build.
@@ -190,23 +190,24 @@ QualityLayer works on the branch and worktree you have checked out and never swi
 
 Your agent builds a feature in slices: thin pieces that each go through every layer, from the screen to the database. Each slice starts with a failing test, and the whole program runs before the next one starts.
 
-**Every change ends simpler.** Once everything is built, another agent reads the whole change and cleans it up: it merges near-copies, reuses code you already have and removes what isn't needed. The behaviour stays the same. If a cleanup breaks something, the final check catches it and undoes it.
+**Optional extra checks.** Once everything is built, fresh agents can simplify the whole change, add the tests it lacks, review it for severe security issues and update the docs. Each step is on by default, and you can switch any of them off in Settings, when a task starts or at the handoff. Simplifying keeps the behaviour the same, and the final check always runs.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/slices-dark.svg">
-  <img src="docs/docusaurus/static/img/diagrams/slices-light.svg" alt="Three slices, each through screen, API, logic and database, each starting with a failing test and ending with an end-to-end run; then one pass simplifies the whole change" width="1000">
+  <img src="docs/docusaurus/static/img/diagrams/slices-light.svg" alt="Three slices, each through screen, API, logic and database, each starting with a failing test and ending with an end-to-end run; then an optional quality pass works on the whole change before Verify" width="1000">
 </picture>
 
+- **Product feature:** the same, with a PRD and a TDD in place of the frame and the design, for product managers. You can copy them into Confluence, Google Docs or Jira.
 ### Your agent plans with you, helper agents do the rest
 
 Your agent plans with you on your best model. Helper agents research, build and test on smaller, cheaper models. They work from the written plan, so none of them needs your chat history. With Claude Code and Codex both installed, an AI from the other vendor also reviews the design and the finished change.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/agents-dark.svg">
-  <img src="docs/docusaurus/static/img/diagrams/agents-light.svg" alt="You and your agent write the plan documents; research helpers, slice builders, testers, a simplify helper and an independent check work from them; a second AI from another vendor reviews" width="1000">
+  <img src="docs/docusaurus/static/img/diagrams/agents-light.svg" alt="You and your agent write the plan documents; research helpers, slice builders, testers, quality pass helpers and an independent check work from them; a second AI from another vendor reviews" width="1000">
 </picture>
 
-You choose the model for each job under **Subagents** in Settings, and for the other vendor's review under **Second opinion**, or turn either off.
+In Settings you choose one model for the helpers per agent, one for the other vendor's review, and which optional steps run.
 
 ---
 
@@ -225,14 +226,14 @@ The build starts from the approved plan, not from the planning chat. You pick wh
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/handoff-dark.svg">
-  <img src="docs/docusaurus/static/img/diagrams/handoff-light.svg" alt="The Cockpit handoff: choose Claude Code, Codex or another agent, see the recommended setup, and copy the build prompt" width="1000">
+  <img src="docs/docusaurus/static/img/diagrams/handoff-light.svg" alt="The Cockpit handoff: choose Claude Code, Codex or another agent, see the recommended setup and the optional steps, and copy the build prompt" width="1000">
 </picture>
 
 Then follow the build as it happens. You see which agent is working, the slices being built side by side and the code changes so far. Each end-to-end check comes with screenshots and steps to try it yourself. At the end, the Review page shows the proof for each point you asked for, how to try the change and the code changes. **Create pull request** opens the pull request when you are ready. Your browser tells you whenever a task needs you.
 
 ### Review as a team
 
-With a Team plan, your team comes in twice. **Before any code**, you share a task, and your teammates comment on the plan and approve it in their own Cockpit. People outside the team can comment through a link, without an account. Their feedback goes to your agent, and you decide.
+With a Team plan, your team comes in twice. **Before any code**, you share a task, and your teammates comment on the plan and approve it in their own Cockpit. People outside the team can comment through a link, without an account. Their feedback goes to your agent, and you decide. Shared plans, comments and links are encrypted on your machine, so QualityLayer can't read them.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/team-dark.svg">

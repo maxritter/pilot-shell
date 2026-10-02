@@ -1,0 +1,32 @@
+/* Optional steps in the lifecycle: dashed, so they read apart from the steps every task runs. */
+.w7-dot.opt{border:2px dashed var(--ql-accent)}
+.w7-n.lc-wide{flex:2 1 0}
+.lc-opts{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0;padding:0 14px 0 0;list-style:none}
+.lc-opt{position:relative;display:inline-flex;align-items:center;min-height:26px;padding:2px 7px;border:1px dashed var(--ql-accent-line);border-radius:999px;background:var(--ql-accent-soft);color:var(--ql-accent);font:inherit;font-size:12.5px;font-weight:500;line-height:1.3;text-align:left}
+.lc-opts li{min-width:0;max-width:100%}
+.lc-opt{box-sizing:border-box;max-width:100%}
+button.lc-opt{cursor:pointer}
+button.lc-opt:hover{color:var(--ql-text);border-color:var(--ql-accent)}
+button.lc-opt:focus-visible{outline:2px solid var(--ql-accent);outline-offset:2px}
+/* A 44px touch target without a tall pill. */
+button.lc-opt:after{content:"";position:absolute;inset:-9px -4px}
+/* Five route tabs: on a phone they wrap into rows instead of running off the screen. */
+@container (max-width: 640px){
+  .w7-head-row .w7-seg{display:flex;flex-wrap:wrap;max-width:100%}
+  .w7-head-row .w7-seg-b{padding:6px 12px}
+}
+/* Optional steps need more room per stage than the stages alone: stack the stages (as factory.css does
+   below 820px) from 960px down. */
+@container (max-width: 960px){
+  .w7-lc{flex-direction:column;gap:36px}
+  .w7-g{flex:none}
+  .w7-gl{padding-right:0;white-space:normal}
+  .w7-br{display:none}
+  .w7-ns{flex-direction:column;gap:18px;min-height:0}
+  .w7-ns:before{left:10px;right:auto;top:4px;bottom:4px;width:2px;height:auto}
+  .w7-ns.out:before{border-top:0;border-left:2px dashed var(--ql-border)}
+  .w7-nb{flex-direction:row;align-items:flex-start;gap:14px;padding:0}
+  .w7-bn{margin:22px 0 0}
+  .w7-n.lc-wide{flex:none}
+  .lc-opts{padding-left:36px}
+}

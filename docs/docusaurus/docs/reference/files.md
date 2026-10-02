@@ -18,7 +18,7 @@ Each task gets a folder in `docs/plans/` in your repository. Its documents are p
 - **Your computer:** your code, the diff, every plan document, the evidence and the Cockpit itself.
 - **Your agent's provider:** your agent keeps sending your code to its own provider, as it always does. QualityLayer does not change that.
 - **The licence check:** once a day, with five anonymous events (task started, step entered, check result, task shipped, and the name of a step). Never a repository name, path, branch, title or text. Turn the events off with `qualitylayer telemetry off` or `DO_NOT_TRACK=1`.
-- **The team service, only when you share:** the documents a reviewer reads, the task's title and step, and the comments. Only your team, or whoever has your link, can read them. Never your code, the diff or your logs. See [Review plans as a team](../team/plans.md).
+- **The team service, only when you share:** the documents a reviewer reads, the task's title and step, and the comments, encrypted on your machine so we can't read them. Only your team, or whoever has your link, can open them. We see who shared, an ID for the task, when and its stage. Never your code, the diff or your logs. See [Review plans as a team](../team/plans.md).
 - **In a team review of the change:** Done means with its proof, the steps to try it, the check results and the screenshots they cite. The code is reviewed in your pull request, as always. See [Review changes as a team](../team/changes.md).
 
 ## What uninstalling removes
