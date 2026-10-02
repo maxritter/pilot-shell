@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["src/**", "tests/**", "scripts/**"]
+    "includes": ["src/**", "!src/workflow/mod", "tests/**", "scripts/**"]
   },
   "formatter": {
     "enabled": true,
