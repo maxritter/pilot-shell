@@ -93,6 +93,12 @@ check_url() {
   esac
 
   # 3. Trial start: a QualityLayer client gets a trial (a fresh fingerprint, so a probe never meets an ended one);
+  got="$(http /install.ps1 -o /dev/null -w '%{http_code} %{redirect_url}')"
+  case "$got" in
+    "307 https://raw.githubusercontent.com/maxritter/pilot-shell/"*"/install.ps1") pass "/install.ps1 redirects to ${got#307 }" ;;
+    *) fail "/install.ps1 answered '$got', expected 307 to the repository Windows installer" ;;
+  esac
+
   #    a request without a product is refused.
   fingerprint="$(od -An -N32 -tx1 /dev/urandom | tr -d ' \n')"
   trial="$(json /api/trial/start -d "{\"fingerprint\":\"$fingerprint\",\"product\":\"qualitylayer\"}")"

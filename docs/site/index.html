@@ -87,7 +87,7 @@
         "name": "QualityLayer",
         "description": "The software factory for any coding agent: you approve the plan before code is written, the agent builds it in small, tested steps, and an independent check compares it with what you asked.",
         "applicationCategory": "DeveloperApplication",
-        "operatingSystem": "macOS, Linux, Windows (WSL2)",
+        "operatingSystem": "macOS, Linux, Windows",
         "url": "https://qualitylayer.dev/",
         "author": { "@type": "Person", "name": "Max Ritter", "url": "https://maxritter.net/" }
       }
@@ -119,6 +119,8 @@
         <section>
           <h2>Install</h2>
           <pre><code>curl -fsSL https://qualitylayer.dev/install.sh | bash</code></pre>
+          <p>Native Windows support arrives with the next release. In PowerShell:</p>
+          <pre><code>irm https://qualitylayer.dev/install.ps1 | iex</code></pre>
           <p>Then type /ql and the problem in Claude Code, or $ql in Codex, in the terminal, desktop app or IDE. Any agent that supports skills works.</p>
         </section>
         <section>

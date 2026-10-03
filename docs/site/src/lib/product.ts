@@ -3,6 +3,7 @@ export const SITE_URL = "https://qualitylayer.dev";
 
 /** Served from the site (a redirect to the installer in the repository). */
 export const INSTALL_COMMAND = `curl -fsSL ${SITE_URL}/install.sh | bash`;
+export const WINDOWS_INSTALL_COMMAND = `irm ${SITE_URL}/install.ps1 | iex`;
 
 export const GITHUB_URL = "https://github.com/maxritter/pilot-shell";
 /** The documentation, served by Docusaurus under the site's own domain. */

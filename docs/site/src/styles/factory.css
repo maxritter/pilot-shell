@@ -91,7 +91,11 @@ div.w7-nb:hover .w7-nm{color:inherit}
 .w7-install .w7-install-note{margin-top:18px;font-size:14px}
 .w7-root .w7-install-note a{color:var(--ql-hero-text);font-weight:500;text-decoration:underline;text-decoration-color:var(--ql-accent);text-decoration-thickness:2px}
 .w7-root .w7-install-note a:hover{color:var(--ql-accent)}
-.w7-cmd{display:flex;align-items:stretch;max-width:760px;margin-top:28px;border:1px solid var(--ql-hero-border);border-radius:10px;overflow:hidden;background:var(--ql-bg)}
+.w7-install-platform{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}
+.w7-install-platform button{min-height:44px;padding:8px 14px;border:1px solid var(--ql-hero-border);border-radius:6px;background:var(--ql-bg);color:var(--ql-text);font:inherit;font-size:14px;cursor:pointer}
+.w7-install-platform button[aria-pressed=true]{border-color:var(--ql-primary);color:var(--ql-primary)}
+.w7-install-platform button:focus-visible{outline:2px solid var(--ql-primary);outline-offset:3px}
+.w7-cmd{display:flex;align-items:stretch;max-width:760px;margin-top:12px;border:1px solid var(--ql-hero-border);border-radius:10px;overflow:hidden;background:var(--ql-bg)}
 .w7-cmd code{flex:1;min-width:0;padding:16px 20px;overflow-x:auto;white-space:nowrap;font:400 14px/1.5 "Geist Mono",ui-monospace,monospace;color:var(--ql-text);scrollbar-width:thin}
 .w7-cmd button{flex:none;min-width:84px;padding:0 16px;border:0;border-left:1px solid var(--ql-hero-border);background:var(--ql-primary);color:var(--ql-text-on-accent);font-size:14px;font-weight:500;cursor:pointer}
 .w7-cmd button:hover{background:var(--ql-primary-hover)}

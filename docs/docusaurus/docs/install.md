@@ -9,7 +9,9 @@ description: What you need, the one install command, and how to update or remove
 ## What you need
 
 - **A coding agent.** Any agent that supports skills and can run shell commands, in the terminal, its desktop app or its IDE extension. The installer sets up Claude Code and Codex. Sign in to your agent and start it once before you install. The terminal shows you the most: in Claude Code, a status line follows the task.
-- **macOS, Linux, or Windows with WSL2**, plus Git and a repository. Nothing else: no Node.js, Python or Bun.
+- **macOS, Linux, or Windows**, plus Git and a repository. Nothing else: no separate Node.js, Python or Bun runtime. Native Windows builds support x64 and ARM64 and use PowerShell 5.1 or newer.
+
+Native Windows support is included in the next release. Until it is published, use WSL2 with the Linux installer and run your agent inside WSL2 too.
 
 ## What it costs your machine
 
@@ -24,11 +26,27 @@ QualityLayer is held to these limits, measured on a Mac with a repository of 20,
 
 ## Install
 
+On macOS or Linux:
+
 ```bash
 curl -fsSL https://qualitylayer.dev/install.sh | bash
 ```
 
-It adds the `qualitylayer` command, the `/ql` skill (`$ql` in Codex) and [session messaging](reference/commands.md#session-messaging). It asks you nothing, apart from the two questions for Pilot Shell users below. It lists every agent setting it adds and keeps any value you set. Your own Claude Code status line stays; `qualitylayer install --refresh --status-line` swaps in QualityLayer's, and uninstalling puts yours back.
+On Windows, in PowerShell (available with the next release):
+
+```powershell
+irm https://qualitylayer.dev/install.ps1 | iex
+```
+
+WSL2 is optional for the Windows build. Run QualityLayer and your coding agent in the same environment: both native Windows, or both inside WSL2. Local session messaging does not cross that boundary.
+
+The Windows installer checks the download's SHA-256 checksum and installs into `%USERPROFILE%\.qualitylayer\bin`. It adds that directory to the current PowerShell session's `PATH` and prints a line you can put in your PowerShell profile for future sessions; it does not edit the profile. In another terminal, you can also run the binary directly:
+
+```powershell
+& "$env:USERPROFILE\.qualitylayer\bin\qualitylayer.exe" status
+```
+
+It adds the `qualitylayer` command, the `/ql` skill (`$ql` in Codex) and [session messaging](reference/commands.md#session-messaging). It asks you nothing, apart from the migration questions for Pilot Shell users below. It lists every agent setting it adds and keeps any value you set. Your own Claude Code status line stays; `qualitylayer install --refresh --status-line` swaps in QualityLayer's, and uninstalling puts yours back.
 
 QualityLayer runs only when you call it. Everything else works as before.
 

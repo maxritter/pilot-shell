@@ -22,7 +22,7 @@ All in `qualitylayer/`:
   the test DOM between files); builds the binary first
 - `bun run test tests/e2e` — a directory or single files
 - `bun run build` — the development binary in `dist/qualitylayer`;
-  `bun run build --all` — the four release targets with checksums
+  `bun run build --all` — the six release targets with checksums
 - `bun run release-gate --agent claude-code|codex` — a real agent carries the
   reference task (`tests/release/reference-task/`) to shipped, with the final
   approval made through the Cockpit API. Uses the agent's own login; all

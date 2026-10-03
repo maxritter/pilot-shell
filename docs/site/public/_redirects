@@ -1,3 +1,4 @@
 /install.sh    https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh   302
+/install.ps1   https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.ps1  302
 /cockpit-demo/*    /cockpit-demo/:splat   200
 /*    /index.html   200

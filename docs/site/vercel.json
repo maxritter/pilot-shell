@@ -7,6 +7,11 @@
   "cleanUrls": true,
   "redirects": [
     {
+      "source": "/install.ps1",
+      "destination": "https://raw.githubusercontent.com/maxritter/pilot-shell/dev/install.ps1",
+      "permanent": false
+    },
+    {
       "source": "/install.sh",
       "destination": "https://raw.githubusercontent.com/maxritter/pilot-shell/dev/install.sh",
       "permanent": false

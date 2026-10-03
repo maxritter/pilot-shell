@@ -50,3 +50,36 @@ jobs:
           fi
           echo "--- installed skills"
           ls -d "$HOME/.claude/skills/ql" "$HOME/.agents/skills/ql"
+
+  windows-install:
+    name: Clean native Windows install (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, windows-11-arm]
+    steps:
+      - name: Install the published Windows release into an empty home
+        shell: pwsh
+        env:
+          WANTED: ${{ inputs.version }}
+        run: |
+          $qlWanted = $env:WANTED -replace '^v', ''
+          $qlHome = Join-Path $env:RUNNER_TEMP ("qualitylayer-beta-" + [Guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path "$qlHome/.claude", "$qlHome/.codex" -Force | Out-Null
+          $env:HOME = $qlHome
+          $env:USERPROFILE = $qlHome
+          $env:QUALITYLAYER_HOME = Join-Path $qlHome '.qualitylayer'
+          $env:QUALITYLAYER_API_BASE = 'http://127.0.0.1:9'
+          $env:POLAR_API_BASE = 'http://127.0.0.1:9'
+          $qlScript = [ScriptBlock]::Create((Invoke-WebRequest 'https://qualitylayer.dev/install.ps1').Content)
+          & $qlScript -Version $qlWanted -NonInteractive
+          $qlBinary = Join-Path $qlHome '.qualitylayer/bin/qualitylayer.exe'
+          $qlActual = & $qlBinary --version
+          if ($LASTEXITCODE -ne 0 -or $qlActual.Trim() -ne $qlWanted) { throw "Expected $qlWanted, got $qlActual" }
+          foreach ($qlSkill in @("$qlHome/.claude/skills/ql/SKILL.md", "$qlHome/.agents/skills/ql/SKILL.md", "$qlHome/.agents/skills/ql/agents/openai.yaml")) {
+            if (-not (Test-Path $qlSkill)) { throw "Missing installed skill: $qlSkill" }
+          }
+          & $qlBinary uninstall --purge --json
+          if ($LASTEXITCODE -ne 0 -or (Test-Path "$qlHome/.qualitylayer")) { throw 'Published Windows uninstall failed' }

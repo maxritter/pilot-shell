@@ -31,7 +31,7 @@ const structuredData = [
     name: "QualityLayer",
     description: DESCRIPTION,
     applicationCategory: "DeveloperApplication",
-    operatingSystem: "macOS, Linux, Windows (WSL2)",
+    operatingSystem: "macOS, Linux, Windows",
     author: { "@type": "Person", name: AUTHOR_NAME, url: AUTHOR_URL },
     url: `${SITE_URL}/`,
   },

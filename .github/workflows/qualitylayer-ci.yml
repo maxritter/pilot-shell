@@ -9,6 +9,7 @@ on:
       - "qualitylayer/**"
       - "docs/site/**"
       - "install.sh"
+      - "install.ps1"
       - ".github/workflows/qualitylayer-ci.yml"
       - "scripts/check_qualitylayer_encrypted.sh"
   pull_request:
@@ -19,6 +20,7 @@ on:
       - "qualitylayer/**"
       - "docs/site/**"
       - "install.sh"
+      - "install.ps1"
       - ".github/workflows/qualitylayer-ci.yml"
       - "scripts/check_qualitylayer_encrypted.sh"
 
@@ -136,3 +138,67 @@ jobs:
       - name: Test
         working-directory: docs/site
         run: npm test
+
+  windows:
+    name: Native Windows runtime (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    needs: plaintext-guard
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, windows-11-arm]
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup git-crypt
+        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
+        with:
+          msystem: MSYS
+          install: git git-crypt
+          update: true
+          path-type: inherit
+
+      - name: Unlock repository
+        shell: msys2 {0}
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+
+      - name: Install dependencies
+        working-directory: qualitylayer
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        working-directory: qualitylayer
+        run: bun run typecheck
+
+      - name: Windows workflows and installer
+        working-directory: qualitylayer
+        env:
+          QUALITYLAYER_REQUIRE_RENDER: "1"
+        run: bun run test tests/e2e tests/windows tests/core/platform.test.ts tests/core/team-keys.test.ts tests/server/lock.test.ts tests/cli/hook-prompt.test.ts tests/core/install/mod.test.ts
+
+      - name: Release Cockpit draws on Windows
+        working-directory: qualitylayer
+        run: bun scripts/check-cockpit.ts --build --require-render
+
+      - name: Measure native compilation tradeoffs
+        working-directory: qualitylayer
+        run: bun scripts/benchmark-compile.ts --samples 7
+
+      - name: Keep the native performance measurements
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: compile-benchmark-${{ matrix.os }}
+          path: qualitylayer/dist/compile-benchmark.json
+          retention-days: 7

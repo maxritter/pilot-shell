@@ -56,7 +56,7 @@ export default function Sections() {
           <h2 className="w7-h2" id="install-h">Install QualityLayer</h2>
           <p>Installs the command-line tool and the skill for your agents. Then describe a change to your agent in any repository, and it opens the Cockpit.</p>
           <InstallCommand />
-          <p className="w7-install-note">macOS, Linux and WSL2 · Terminal, desktop app or IDE · 7-day trial · <Link to="/pricing">See pricing</Link></p>
+          <p className="w7-install-note">macOS, Linux and Windows · Terminal, desktop app or IDE · 7-day trial · <Link to="/pricing">See pricing</Link></p>
         </div>
       </section>
     </>

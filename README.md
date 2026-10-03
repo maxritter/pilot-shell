@@ -28,7 +28,9 @@ You approve the plan before any code is written. Your agent builds it in small, 
 curl -fsSL https://qualitylayer.dev/install.sh | bash
 ```
 
-**Claude Code, Codex or any agent with skills · terminal, desktop app or IDE · macOS, Linux, Windows (WSL2)**
+**Claude Code, Codex or any agent with skills · terminal, desktop app or IDE · macOS, Linux, Windows**
+
+Native Windows support arrives with the next release. See [installation](#install) for PowerShell and WSL2 instructions.
 
 </div>
 
@@ -79,11 +81,21 @@ Start your agent once before you install, so its folder (`~/.claude` or `~/.code
 
 ### Install
 
+On macOS or Linux:
+
 ```bash
 curl -fsSL https://qualitylayer.dev/install.sh | bash
 ```
 
-This installs the `qualitylayer` command-line tool and the skill your agents use. It adds no hooks or MCP servers and leaves your shell profile alone.
+On Windows, in PowerShell (available with the next release):
+
+```powershell
+irm https://qualitylayer.dev/install.ps1 | iex
+```
+
+The Windows build runs on x64 and ARM64 without WSL2. It needs Git and a native Windows coding agent, but no separate Node.js, Python or Bun runtime. Until the Windows release is published, use the Linux command inside WSL2 with your agent installed there.
+
+This installs the `qualitylayer` command-line tool, agent skills and the agent settings listed below. It leaves your shell profile alone and adds no MCP server.
 
 <details>
 <summary><b>What the installer adds</b></summary>
@@ -96,9 +108,13 @@ It downloads the binary for your platform, checks its SHA-256 checksum, then run
 - Codex metadata so the skill runs only when you call it
 - a `qualitylayer` link in `~/.local/bin` when that folder is on your `PATH`
 
+On Windows, the binary is `%USERPROFILE%\.qualitylayer\bin\qualitylayer.exe`, alongside a `ql.cmd` shortcut. The installer prints the PowerShell profile line to add if that directory is missing from your `PATH`.
+
 It asks nothing. It also turns on the few agent settings QualityLayer needs, only where they are missing, and lists each one it changes. These are high reasoning effort, Claude Code's task tools, Codex's plan tool and option picker for questions (with Codex's startup notice about that picker hidden) and, when Codex knows your model's limits, its largest context window. A value you already set stays as it is.
 
 Claude Code also gets QualityLayer's status line if you have none. Your own stays; `qualitylayer install --refresh --status-line` swaps in QualityLayer's, and uninstalling puts yours back.
+
+Prompt hooks let an explicit approval in your agent's chat reach a pending gate. Session hooks attach agent messaging. The installer records these additions so uninstall can remove them while preserving your own configuration.
 
 ```text
  platform · Opus 5 ⚡high · ◔ 12% · 140K ctx · $1.20 ·  usage-billing +2 ~1

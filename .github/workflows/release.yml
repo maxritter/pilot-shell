@@ -3,7 +3,7 @@ name: Release
 
 # QualityLayer 12. The gates are Pilot Shell's: supply-chain, Trivy, tests,
 # a manual `production` approval and build provenance. What is built is one
-# binary per platform plus its checksum, and install.sh with its checksum
+# binary per platform plus its checksum, and both installers with their checksums
 # (Pilot Shell 11's updater verifies install.sh.sha256 at the tag).
 #
 # `dev` publishes 12.x prereleases (beta); `main` publishes releases once v12 is
@@ -280,7 +280,7 @@ jobs:
           fi
 
   build:
-    name: Build QualityLayer (4 targets)
+    name: Build QualityLayer (6 targets)
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -353,23 +353,25 @@ jobs:
           mkdir -p release
           cp qualitylayer/dist/release/qualitylayer-* release/
           cp install.sh release/install.sh
+          cp install.ps1 release/install.ps1
           (cd release && sha256sum install.sh > install.sh.sha256)
+          (cd release && sha256sum install.ps1 > install.ps1.sha256)
           (cd release && sha256sum -c ./*.sha256)
 
-      # Only binaries, checksums and install.sh may ever be attached: no
+      # Only binaries, checksums and bootstrap installers may ever be attached: no
       # source, no source maps, nothing from the encrypted tree.
       - name: Guard the asset list
         run: |
           cd release
           ls -la
-          ALLOWED='^(qualitylayer-(darwin|linux)-(arm64|x64)(\.sha256)?|install\.sh(\.sha256)?)$'
+          ALLOWED='^(qualitylayer-(darwin|linux)-(arm64|x64)(\.sha256)?|qualitylayer-windows-(arm64|x64)\.exe(\.sha256)?|install\.(sh|ps1)(\.sha256)?)$'
           BAD=$(find . -type f -printf '%f\n' | grep -vE "$ALLOWED" || true)
           if [ -n "$BAD" ]; then
             echo "Refusing to publish unexpected assets:"
             echo "$BAD"
             exit 1
           fi
-          [ "$(find . -type f | wc -l)" -eq 10 ]
+          [ "$(find . -type f | wc -l)" -eq 16 ]
 
       - name: Upload artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -378,13 +380,90 @@ jobs:
           path: release/
           retention-days: 1
 
+  windows-release:
+    name: Native Windows release (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    needs: [prepare-release, build]
+    if: needs.prepare-release.outputs.should_release == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025
+            arch: x64
+          - os: windows-11-arm
+            arch: arm64
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup git-crypt
+        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
+        with:
+          msystem: MSYS
+          install: git git-crypt
+          update: true
+          path-type: inherit
+
+      - name: Unlock repository
+        shell: msys2 {0}
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+
+      - name: Download exact release artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: qualitylayer-release
+          path: release
+
+      - name: Verify checksum and version on the native OS
+        env:
+          QL_ARCH: ${{ matrix.arch }}
+          QL_VERSION: ${{ needs.prepare-release.outputs.version }}
+        run: |
+          $qlFile = Join-Path $PWD "release/qualitylayer-windows-$env:QL_ARCH.exe"
+          $qlExpected = ((Get-Content "$qlFile.sha256" -Raw).Trim() -split '\s+')[0]
+          if ((Get-FileHash $qlFile -Algorithm SHA256).Hash -ne $qlExpected) { throw 'Windows binary checksum mismatch' }
+          $qlActual = & $qlFile --version
+          if ($LASTEXITCODE -ne 0 -or $qlActual.Trim() -ne $env:QL_VERSION) { throw "Windows version mismatch: $qlActual" }
+          $qlHome = Join-Path $env:RUNNER_TEMP ("ql-native-release-" + [Guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path "$qlHome/.claude", "$qlHome/.codex" -Force | Out-Null
+          $env:HOME = $qlHome
+          $env:USERPROFILE = $qlHome
+          $env:QUALITYLAYER_HOME = Join-Path $qlHome '.qualitylayer'
+          $env:QUALITYLAYER_API_BASE = 'http://127.0.0.1:9'
+          $env:POLAR_API_BASE = 'http://127.0.0.1:9'
+          & $qlFile install --non-interactive
+          if ($LASTEXITCODE -ne 0) { throw 'Windows release install failed' }
+          $qlInstalled = Join-Path $qlHome '.qualitylayer/bin/qualitylayer.exe'
+          & $qlInstalled --help
+          if ($LASTEXITCODE -ne 0) { throw 'Installed Windows release failed to run' }
+          & $qlInstalled uninstall --purge --json
+          if ($LASTEXITCODE -ne 0 -or (Test-Path "$qlHome/.qualitylayer")) { throw 'Windows release uninstall failed' }
+
+      - name: The published Windows Cockpit draws
+        working-directory: qualitylayer
+        env:
+          QL_ARCH: ${{ matrix.arch }}
+        run: bun scripts/check-cockpit.ts "../release/qualitylayer-windows-$env:QL_ARCH.exe" --same-source --require-render
+
   approve-release:
     name: Approve Release
     permissions:
       contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [prepare-release, test, build, security-scan]
+    needs: [prepare-release, test, build, windows-release, security-scan]
     if: needs.prepare-release.outputs.should_release == 'true'
     environment: production
     steps:
@@ -399,7 +478,7 @@ jobs:
           echo ""
           echo "- Security scan (Trivy) passed"
           echo "- QualityLayer typecheck, lint and tests passed"
-          echo "- Four binaries built, checksummed and asset-guarded"
+          echo "- Six binaries built, checksummed and asset-guarded; both Windows releases ran natively"
           echo "- After approval: site deployed, workflow texts uploaded and probed, then the release is created"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -569,7 +648,10 @@ jobs:
             release/qualitylayer-darwin-x64
             release/qualitylayer-linux-arm64
             release/qualitylayer-linux-x64
+            release/qualitylayer-windows-x64.exe
+            release/qualitylayer-windows-arm64.exe
             release/install.sh
+            release/install.ps1
 
       - name: Prepend the release to CHANGELOG.md
         uses: orhun/git-cliff-action@e16f179f0be49ecdfe63753837f20b9531642772 # v4
