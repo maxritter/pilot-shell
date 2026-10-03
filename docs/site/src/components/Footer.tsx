@@ -5,7 +5,6 @@ import { CONTACT_EMAIL, DOCS_URL, GITHUB_URL, RELEASES_URL } from "@/lib/product
 const Footer = () => (
   <footer className="w7-ftr">
     <div className="w7-ftr-wrap">
-      <p className="w7-ftr-tag">The missing <span className="w7-accent">quality layer</span> for your coding agents.</p>
       <div className="w7-ftr-row">
         <Logo small />
         <nav className="w7-ftr-nav" aria-label="Footer">
@@ -15,7 +14,7 @@ const Footer = () => (
           <a href={RELEASES_URL}>Changelog</a>
           <a href={`mailto:${CONTACT_EMAIL}`}>Contact</a>
         </nav>
-        <p className="w7-legal">© 2026 QualityLayer · Tasks, code and evidence on this site are illustrative. Prices in US dollars, billed monthly through Polar.</p>
+        <p className="w7-legal">© 2026 QualityLayer · The tasks, people and numbers on this site are an illustration. Prices in US dollars, billed monthly through Polar.</p>
       </div>
     </div>
   </footer>

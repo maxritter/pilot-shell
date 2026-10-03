@@ -176,7 +176,7 @@ function Plan({
         </header>
         {/* biome-ignore lint/a11y/noStaticElementInteractions: selecting text is how a passage is quoted */}
         <div
-          className="sh-doc"
+          className="sh-doc typeset typeset-plan"
           data-testid="shared-doc"
           ref={docRef}
           onMouseUp={() => {

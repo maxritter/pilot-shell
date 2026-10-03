@@ -1,18 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Link, useLocation } from "react-router-dom";
 import { Moon, Sun } from "lucide-react";
 import { useNarrow } from "@/hooks/useNarrow";
 import { useTheme } from "@/hooks/useTheme";
 import { DOCS_URL, GITHUB_URL } from "@/lib/product";
 
-type NavLink = { label: string; to: string; external?: boolean; wideOnly?: boolean };
+type NavLink = { label: string; to: string; external?: boolean };
 
 const LINKS: NavLink[] = [
-  // The clickable App needs a laptop or tablet, so phones do not link to it.
-  { label: "App", to: "/#app", wideOnly: true },
-  { label: "How it works", to: "/#lifecycle" },
-  { label: "Build", to: "/#build" },
-  { label: "Team", to: "/#team" },
+  { label: "How it works", to: "/#tour" },
+  { label: "Teams", to: "/#team" },
   { label: "Pricing", to: "/pricing" },
   { label: "Docs", to: DOCS_URL, external: true },
 ];
@@ -51,17 +49,8 @@ function Icons() {
 
 const NavBar = () => {
   const [open, setOpen] = useState(false);
-  // The menu only exists on narrow screens, and every link in it closes it.
+  // The menu only exists on narrow screens: a shadcn/ui Sheet that traps focus, closes on Escape, and every link in it closes it.
   const narrow = useNarrow();
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
 
   return (
     <header className="w7-hdr">
@@ -70,22 +59,28 @@ const NavBar = () => {
         {narrow ? (
           <div className="w7-hdr-tools">
             <Icons />
-            <button type="button" className="w7-menu" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="mobile-nav">{open ? "Close" : "Menu"}</button>
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger asChild>
+                <button type="button" className="w7-menu">Menu</button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w7-sheet">
+                <SheetTitle className="w7-sr">Menu</SheetTitle>
+                <SheetDescription className="w7-sr">Pages of the QualityLayer site</SheetDescription>
+                <nav className="w7-mnav" aria-label="Mobile">
+                  {LINKS.map((link) => <Item key={link.label} link={link} onClick={() => setOpen(false)} />)}
+                  <Link className="w7-nav-cta" to="/download" onClick={() => setOpen(false)}>Download</Link>
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         ) : (
           <nav className="w7-nav" aria-label="Main">
             {LINKS.map((link) => <Item key={link.label} link={link} />)}
             <span className="w7-hdr-tools"><Icons /></span>
-            <Link className="w7-nav-cta" to="/#install">Install</Link>
+            <Link className="w7-nav-cta" to="/download">Download</Link>
           </nav>
         )}
       </div>
-      {narrow && open ? (
-        <nav id="mobile-nav" className="w7-mnav" aria-label="Mobile">
-          {LINKS.filter((link) => !link.wideOnly).map((link) => <Item key={link.label} link={link} onClick={() => setOpen(false)} />)}
-          <Link className="w7-nav-cta" to="/#install" onClick={() => setOpen(false)}>Install</Link>
-        </nav>
-      ) : null}
     </header>
   );
 };

@@ -24,4 +24,7 @@
 .ap-cli b{display:block;font-size:15px;font-weight:600}
 .ap-cli small{display:block;margin-top:2px;font-size:13px;color:var(--ql-text-dim)}
 .ap-cli .w7-cmd{margin-top:10px}
+/* The text column may shrink below its content, so the command box stays inside the card on a phone. */
+.ap-cli > span{display:block;flex:1;min-width:0}
+@container (max-width: 640px){.ap-cli .w7-cmd code{white-space:normal;overflow-wrap:anywhere;padding:12px 14px;font-size:13px}}
 .ap-note{max-width:60ch;margin:18px 0 0;font-size:13px;line-height:1.55;color:var(--ql-text-dim)}

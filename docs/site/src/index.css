@@ -3,6 +3,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "../../../qualitylayer/src/ui/brand/palette.css";
+/* shadcn/ui Typeset for rendered Markdown (the shared plan); presets live next to their page's styles. */
+@import "./styles/typeset.css";
 
 @font-face {
   font-family: "Geist";

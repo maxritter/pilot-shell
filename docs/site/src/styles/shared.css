@@ -7,23 +7,9 @@
 .sh-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 16px}
 .sh-tabs button,.sh-actions button,.sh-quote button{font:inherit;font-size:13px;padding:6px 12px;border-radius:8px;border:1px solid var(--ql-border, #2e333b);background:transparent;color:inherit;cursor:pointer}
 .sh-tabs button[aria-current="page"]{border-color:var(--ql-accent);color:var(--ql-accent)}
-.sh-doc{line-height:1.65;overflow-wrap:anywhere}
-.sh-doc h1,.sh-doc h2,.sh-doc h3,.sh-doc h4{letter-spacing:-.01em;font-weight:600;line-height:1.25}
-.sh-doc h1{font-size:26px;margin:0 0 16px}
-.sh-doc h2{font-size:20px;margin:28px 0 8px}
-.sh-doc h3{font-size:16px;margin:22px 0 6px}
-.sh-doc h4{font-size:14px;margin:18px 0 4px}
-.sh-doc p{margin:0 0 12px}
-.sh-doc ul,.sh-doc ol{margin:0 0 12px;padding-left:22px}
-.sh-doc ul{list-style:disc}
-.sh-doc ol{list-style:decimal}
-.sh-doc li{margin:2px 0}
-.sh-doc code{font-size:.9em;padding:1px 5px;border-radius:5px;background:var(--ql-surface, #1b1e24)}
-.sh-doc pre code{padding:0;background:none}
-.sh-doc blockquote{margin:0 0 12px;padding:0 0 0 14px;font-style:italic;color:var(--ql-muted, #8a93a1)}
-.sh-doc pre{overflow:auto;padding:12px 14px;border-radius:8px;background:var(--ql-surface, #1b1e24);font-size:13px}
-.sh-doc table{border-collapse:collapse;width:100%;font-size:14px}
-.sh-doc th,.sh-doc td{padding:8px 10px;border:1px solid var(--ql-border, #2e333b);text-align:left}
+/* The plan's Markdown is set by shadcn/ui Typeset (styles/typeset.css) with this Geist preset. */
+.typeset-plan{--typeset-font-body:var(--ql-font-ui);--typeset-font-heading:var(--ql-font-head);--typeset-font-mono:var(--ql-font-code);--typeset-size:16px;--typeset-leading:1.65;--typeset-flow:1em}
+.sh-doc{max-width:72ch;overflow-wrap:anywhere}
 .sh-side{display:grid;gap:8px;align-content:start;position:sticky;top:16px;align-self:start}
 .sh-side h2{margin:0;font-size:16px}
 .sh-side label{font-size:12.5px;color:var(--ql-muted, #8a93a1)}

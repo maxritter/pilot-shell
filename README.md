@@ -6,8 +6,8 @@
 
 ### The software factory for your coding agents
 
-You approve the plan before any code is written. Your agent builds it in small, tested slices.<br>
-**Then an AI that did not write the code checks the result against what you asked for.**
+You approve one plan before any code is written. Your agent builds it test first.<br>
+**Then an AI that did not write the code checks the result against your request.**
 
 [![Stars](https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&color=F59E0B)](https://github.com/maxritter/pilot-shell)
 [![Star History](https://img.shields.io/badge/Star_History-chart-8B5CF6)](https://star-history.com/#maxritter/pilot-shell&Date)
@@ -17,32 +17,22 @@ You approve the plan before any code is written. Your agent builds it in small, 
 <p>
   <a href="#install">Install</a> •
   <a href="#why">Why</a> •
-  <a href="#features">How it works</a> •
-  <a href="#videos">Videos</a> •
+  <a href="#how">How it works</a> •
+  <a href="#team">Teams</a> •
   <a href="https://qualitylayer.dev/docs/">Docs</a> •
   <a href="https://qualitylayer.dev">Website</a> •
   <a href="https://github.com/maxritter/pilot-shell/releases">Changelog</a>
 </p>
 
+**[Download the App](https://qualitylayer.dev/download)** for macOS, Windows or Linux. On a server, in WSL or in a container:
+
 ```bash
 curl -fsSL https://qualitylayer.dev/install.sh | bash
 ```
 
-**Claude Code, Codex or any agent with skills · terminal, desktop app or IDE · macOS, Linux, Windows**
-
-Native Windows support arrives with the next release. See [installation](#install) for PowerShell and WSL2 instructions.
+**For Claude Code and Codex · terminal, desktop app or IDE · 7-day trial**
 
 </div>
-
----
-
-<h2 id="videos">Videos</h2>
-
-A short overview, and a walkthrough of the Cockpit.
-
-<p>
-  <a href="https://www.youtube.com/watch?v=FQuSwPxdNzk"><img src="docs/docusaurus/static/img/videos/overview.jpg" alt="Watch the QualityLayer overview video (3:20)" width="49%"></a>&nbsp;<a href="https://www.youtube.com/watch?v=VL3WPkWolPc"><img src="docs/docusaurus/static/img/videos/walkthrough.jpg" alt="Watch the QualityLayer walkthrough video (9:57)" width="49%"></a>
-</p>
 
 ---
 
@@ -50,19 +40,20 @@ A short overview, and a walkthrough of the Cockpit.
 
 **Coding agents write code fast, but even the best models don't keep a codebase healthy on their own.** Every change passes its tests and still leaves something behind: a copy, a workaround, code nobody reads. Over months, the codebase drifts into something nobody can safely change. Good software still needs people deciding what gets built, before the code exists.
 
-**QualityLayer works alongside the agent you already use**, in the terminal, desktop app or IDE. It opens the Cockpit in your browser when there is something to see, comment on or decide:
+**QualityLayer works inside the agent you already use.** Claude Code or Codex does the work in the terminal, its desktop app or your IDE. The QualityLayer App is where you see, comment on and approve that work:
 
-- **See the plan before any code:** each design comes with diagrams of the system and its data, and mockups of new screens you can click through.
-- **Point at what's wrong:** comment on any sentence, diagram or mockup, and your agent gets all your comments together.
-- **Bring in your team early:** teammates read the plan in their own Cockpit, comment and approve it while changing it is still cheap.
-- **Build in small steps:** helper agents build the change in small pieces, each starting with a failing test. Optional extra checks then simplify the code, fill test gaps, review security and update the docs.
-- **Get results checked for you:** an AI that did not write the code runs the program and checks each point you asked for, with evidence you can open.
-- **Review everything in one place:** why the change was made, the proof, how to try it and the code changes, before you open the pull request.
-- **Choose who builds it:** the build works from the approved plan alone, so any agent or model can take it on.
+- **One plan before any code:** decisions come as diagrams and a clickable mockup, then the slices and the scenarios that prove the change works.
+- **Point at what's wrong:** comment on any line or diagram, and your agent gets all your comments together.
+- **Built test first:** every task starts with a failing test, and QualityLayer records every test run itself.
+- **Checked for you:** an AI that did not write the code checks every point of your request against the running program, with evidence you can open.
+- **Your team, early:** teammates answer questions about the plan while it is still cheap to change, with their own agent if they like.
+- **You stay in charge of cost:** pick the models, and see the tokens and estimated cost of every step.
+
+QualityLayer is for medium and large changes. When a request is too small for a plan, your agent writes a ready prompt for the plain agent instead.
 
 ### From Pilot Shell to QualityLayer
 
-Pilot Shell fought the harness around your agent, with its own hooks, rules and tools. Today's models work best inside their own harness, so QualityLayer stops fighting it. It keeps what made Pilot Shell worth using, an agentic life cycle for quality, collaboration and human alignment, and puts it on top of any coding agent: one adaptive workflow in the Cockpit, team planning, a cheaper model for the build, and reviews across agents.
+Pilot Shell replaced much of the setup around your agent with its own hooks, rules and tools. Today's models work best with the tools their makers ship, so QualityLayer leaves those alone. It keeps what made Pilot Shell worth using and puts it on top of Claude Code and Codex: one plan you approve, a recorded build, an independent check, and your team in the loop.
 
 ---
 
@@ -70,96 +61,74 @@ Pilot Shell fought the harness around your agent, with its own hooks, rules and 
 
 ### What you need
 
-**A coding agent.** Any agent that supports skills and can run shell commands. The installer sets up Claude Code and Codex for you. Two features need both of them: the second review by the other vendor's AI, and messages between agent sessions.
+**A coding agent.** The App sets up Claude Code and Codex for you.
 
 - **Claude Code:** install with the [native installer](https://code.claude.com/docs/en/quickstart); remove an `npm` or `brew` copy first. Needs a Claude subscription: [Max 5x or 20x](https://claude.com/pricing) for one developer, [Team Premium](https://claude.com/pricing) or [Enterprise](https://claude.com/pricing) for a company.
 - **Codex:** install the [Codex CLI](https://developers.openai.com/codex/cli). Needs an OpenAI subscription: [Plus or Pro](https://developers.openai.com/codex/pricing) for one developer, [Business or Enterprise](https://developers.openai.com/codex/pricing) for a company.
 
 Start your agent once before you install, so its folder (`~/.claude` or `~/.codex`) exists.
 
-**Terminal, desktop app or IDE.** QualityLayer works wherever your agent runs. You see the most in the terminal, where Claude Code shows the task's progress in its status line. On macOS, [Zentty](https://zentty.org/) works especially well. It keeps the planning agent, the building agent and your dev servers in separate lanes, and shows which one needs you. [Ghostty](https://ghostty.org/) and [iTerm2](https://iterm2.com/) work as well.
-
 ### Install
 
-On macOS or Linux:
+One rule: a machine with a screen gets the App; one without gets the command line and opens the App in a browser.
+
+| Machine | Install | Updates |
+| --- | --- | --- |
+| macOS (Intel, Apple silicon), Windows, Linux desktop | [Download the App](https://qualitylayer.dev/download) and open it. Its first start sets up the command line, your agents and your licence. The terminal installer below does the same and fetches the App. | The App updates itself and its command line together. It checks daily and asks in the tray; on Windows it waits for running agent commands. `qualitylayer update` hands over to the App. |
+| WSL2 | The terminal installer inside WSL: command line only. Links open in your Windows browser. | `qualitylayer update` |
+| VS Code dev container | The terminal installer in the container: command line only. VS Code forwards the printed link. | `qualitylayer update` |
+| Linux server | The terminal installer over SSH: command line only. Forward the port and open the printed link; you pair once, and links carry no key. | `qualitylayer update` |
+| Pilot Shell 11, any of the above | Nothing to do: Pilot Shell's updater runs the installer, which moves the machine over by the same rule. | As above |
+
+The terminal installer:
 
 ```bash
-curl -fsSL https://qualitylayer.dev/install.sh | bash
+curl -fsSL https://qualitylayer.dev/install.sh | bash      # macOS, Linux, WSL
+irm https://qualitylayer.dev/install.ps1 | iex             # Windows PowerShell
 ```
-
-On Windows, in PowerShell (available with the next release):
-
-```powershell
-irm https://qualitylayer.dev/install.ps1 | iex
-```
-
-The Windows build runs on x64 and ARM64 without WSL2. It needs Git and a native Windows coding agent, but no separate Node.js, Python or Bun runtime. Until the Windows release is published, use the Linux command inside WSL2 with your agent installed there.
-
-This installs the `qualitylayer` command-line tool, agent skills and the agent settings listed below. It leaves your shell profile alone and adds no MCP server.
 
 <details>
-<summary><b>What the installer adds</b></summary>
+<summary><b>What gets installed</b></summary>
 
-It downloads the binary for your platform, checks its SHA-256 checksum, then runs `qualitylayer install`, which adds:
+The installer downloads the binary for your platform, checks its SHA-256 checksum, then runs `qualitylayer install`, which adds:
 
-- the binary in `~/.qualitylayer/bin/`
+- the binary in `~/.qualitylayer/bin/` (on Windows `%USERPROFILE%\.qualitylayer\bin\qualitylayer.exe`, with a `ql.cmd` shortcut)
 - the `ql` skill for Claude Code and Codex, which their desktop apps and IDE extensions use too
 - the `ql-peers` skill, so agent sessions can message each other
 - Codex metadata so the skill runs only when you call it
 - a `qualitylayer` link in `~/.local/bin` when that folder is on your `PATH`
 
-On Windows, the binary is `%USERPROFILE%\.qualitylayer\bin\qualitylayer.exe`, alongside a `ql.cmd` shortcut. The installer prints the PowerShell profile line to add if that directory is missing from your `PATH`.
+It leaves your shell profile alone and adds no MCP server. It turns on the few agent settings QualityLayer needs, only where they are missing, and lists each one it changes. These are high reasoning effort, Claude Code's task tools, Codex's plan tool and option picker and, when Codex knows your model's limits, its largest context window. A value you already set stays as it is.
 
-It asks nothing. It also turns on the few agent settings QualityLayer needs, only where they are missing, and lists each one it changes. These are high reasoning effort, Claude Code's task tools, Codex's plan tool and option picker for questions (with Codex's startup notice about that picker hidden) and, when Codex knows your model's limits, its largest context window. A value you already set stays as it is.
-
-Claude Code also gets QualityLayer's status line if you have none. Your own stays; `qualitylayer install --refresh --status-line` swaps in QualityLayer's, and uninstalling puts yours back.
-
-Prompt hooks let an explicit approval in your agent's chat reach a pending gate. Session hooks attach agent messaging. The installer records these additions so uninstall can remove them while preserving your own configuration.
+Claude Code also gets QualityLayer's status line if you have none, and a band above the prompt that shows what waits for you. Your own status line stays; `qualitylayer install --refresh --status-line` swaps in QualityLayer's, and uninstalling puts yours back.
 
 ```text
- platform · Opus 5 ⚡high · ◔ 12% · 140K ctx · $1.20 ·  usage-billing +2 ~1
-◆ QL · ▲ review the design · design 3/8 · ✎ 1 draft comment · move API billing to usage…
+ platform · Opus 5.5 ⚡high · ◔ 12% · 140K ctx · $1.20 ·  retry-webhooks +2 ~1
+◆ QL · ▲ review the plan · Plan · ✎ 1 draft comment · retry failed webhooks…
 ```
 
-The second line shows only while a task is running: what waits for you, the step, the build's progress and your comments.
+Prompt hooks let an explicit approval in your agent's chat reach a waiting plan. Session hooks attach agent messaging. The installer records these additions so uninstall can remove them while keeping your own configuration.
 
 </details>
 
 <details>
-<summary><b>Using another agent</b></summary>
-
-Any agent that supports skills (a folder with a `SKILL.md`) and can run shell commands works. Copy `~/.qualitylayer/skill/ql` into its skills folder. At handoff, pick **Other agent** in the Cockpit to get its build prompt.
-
-</details>
-
-<details>
-<summary><b>Update and uninstall</b></summary>
+<summary><b>Update, uninstall and older versions</b></summary>
 
 ```bash
-qualitylayer update               # download, verify, replace
+qualitylayer update               # on a desktop, hands over to the App
 qualitylayer uninstall            # remove exactly what install added
 qualitylayer uninstall --purge    # … and the licence and task state
+curl -fsSL https://qualitylayer.dev/install.sh | VERSION=12.0.0-beta.1 bash   # a specific release
 ```
 
-Plans in your repositories stay.
-
-</details>
-
-<details>
-<summary><b>Install a specific version</b></summary>
-
-To go back to an earlier release (see [releases](https://github.com/maxritter/pilot-shell/releases)):
-
-```bash
-curl -fsSL https://qualitylayer.dev/install.sh | VERSION=12.0.0-beta.1 bash
-```
+Plans in your repositories stay. Earlier releases are on the [releases page](https://github.com/maxritter/pilot-shell/releases).
 
 </details>
 
 <details>
 <summary><b>Coming from Pilot Shell 11</b></summary>
 
-Run the installer, or let Pilot Shell 11's own updater run it. It shows one screen about the upgrade and installs QualityLayer. In a terminal it first lists what moving over removes, lets you pick which of the tools Pilot Shell installed should go, and asks whether to delete its memories; the updater asks nothing and keeps the tools and memories. Your plans carry over, and a paid licence keeps working; without one, your 7-day trial starts.
+Pilot Shell's updater moves you over, and so does opening the App or running the terminal installer. In the App or a terminal, it asks which of the tools Pilot Shell installed you want removed, and whether to keep its memories; the updater asks nothing and keeps both. Your plans carry over, and a paid licence keeps working; without one, your 7-day trial starts.
 
 </details>
 
@@ -168,102 +137,122 @@ Run the installer, or let Pilot Shell 11's own updater run it. It shows one scre
 Describe a change to your agent in any repository:
 
 ```text
-/ql move API billing from seats to usage     # Claude Code
-$ql move API billing from seats to usage     # Codex
+/ql retry failed webhooks, and stop after a few tries     # Claude Code
+$ql retry failed webhooks, and stop after a few tries     # Codex
 ```
 
-Whenever something waits for you, your agent gives you the Cockpit link; `qualitylayer cockpit` opens it any time. To see how a part of your code works, ask for a picture: `/ql show me how a request reaches the ledger`.
+Your agent asks its questions in the chat and writes the plan. The App tells you when the plan waits for you; `qualitylayer app` opens it any time. After you approve, start a fresh session your way and type the command the App shows you, such as `/ql implement retry-webhooks`.
 
-QualityLayer runs only when you ask for it: with `/ql` (`$ql` in Codex), a build prompt from the Cockpit, or a request to resume a named task. Everything else works as before.
+QualityLayer runs only when you ask for it: with `/ql` (`$ql` in Codex), `/ql implement`, or a request to resume a named task. Everything else works as before.
 
 <details>
 <summary><b>Privacy</b></summary>
 
-Five anonymous events are sent with the daily licence check: task started, step entered, check result, task shipped, and the name of a workflow step handed out. Never a repository name, path, branch, title or text. Turn them off with `qualitylayer telemetry off` or `DO_NOT_TRACK=1`.
+Plans are files in your repository, and the App runs on your computer. Five anonymous events are sent with the daily licence check: task started, step entered, check result, task shipped, and the name of a workflow step handed out. Never a repository name, path, branch, title or text. Turn them off with `qualitylayer telemetry off` or `DO_NOT_TRACK=1`.
 
 </details>
 
 ---
 
-<h2 id="features">How it works</h2>
+<h2 id="how">How it works</h2>
 
-### How a request becomes a reviewed change
+### Five steps from request to pull request
 
-Describe a change to your agent. It draws the route it suggests, with its optional steps, and asks you once before anything starts. Every step where a decision is yours waits for you in the Cockpit.
+Every task takes the same five steps. You decide twice: when you approve the plan, and when you approve the finished change.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/routes-dark.svg">
-  <img src="docs/docusaurus/static/img/diagrams/routes-light.svg" alt="Four routes: Feature runs every step, Product feature writes a PRD and a TDD in place of the frame and the design, Bug finds the cause before the fix, Quick change goes straight to a test and the change; the optional quality pass is dashed" width="1000">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/flow-dark.svg">
+  <img src="docs/docusaurus/static/img/diagrams/flow-light.svg" alt="Discuss, Plan, Implement, Verify, Review: you approve at Plan and at Review; your agent works in between" width="1000">
 </picture>
 
-- **Feature:** before any code exists, you agree on the goal, what the code does today, the design, and the order of the build.
-- **Product feature:** the same, with a PRD and a TDD in place of the frame and the design, for product managers. You can copy them into Confluence, Google Docs or Jira.
-- **Bug:** the agent reproduces the bug and finds its cause first, then fixes it with a test.
-- **Quick change:** a rename or an obvious fix goes straight to a test and the change. If it turns out bigger, the agent switches to the full plan.
+- **Discuss:** your agent reads the code and asks one question at a time, each with its recommendation. A bug is reproduced and its cause found first. When what to build is still open, you can copy the result as a PRD.
+- **Plan:** decisions first, as diagrams and a clickable mockup, then the slices and the scenarios that prove the change works. A fresh agent reads the plan before it reaches you. You comment, and approve.
+- **Implement:** you start a fresh session and type `/ql implement`. Every task starts with a failing test, and slices that don't overlap build side by side.
+- **Verify:** polish and security review run side by side, then an AI that did not write the code checks every point of your request.
+- **Review:** what changed, the evidence and the diff in one view, with the pull request description already written. Approve, then create the pull request.
 
 QualityLayer works on the branch and worktree you have checked out and never switches them.
 
-### Built in small pieces, each tested end to end
+### Built test first, checked by a different AI
 
-Your agent builds a feature in slices: thin pieces that each go through every layer, from the screen to the database. Each slice starts with a failing test, and the whole program runs before the next one starts.
-
-**Optional extra checks.** Once everything is built, fresh agents can simplify the whole change, add the tests it lacks, review it for severe security issues and update the docs. Each step is on by default, and you can switch any of them off in Settings, when a task starts or at the handoff. Simplifying keeps the behaviour the same, and the final check always runs.
+QualityLayer records every test run itself, with its exit code, so a passing claim always has a run behind it. A slice the plan marks risky stops after it is built, so you can try it before the build goes on. A failure goes to a fresh agent to fix.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/slices-dark.svg">
-  <img src="docs/docusaurus/static/img/diagrams/slices-light.svg" alt="Three slices, each through screen, API, logic and database, each starting with a failing test and ending with an end-to-end run; then an optional quality pass works on the whole change before Verify" width="1000">
+  <img src="docs/docusaurus/static/img/diagrams/slices-light.svg" alt="Slices built test first, two of them side by side, a checkpoint after the risky slice; then polish and security review side by side, then the independent check" width="1000">
 </picture>
 
-### Your agent plans with you, helper agents do the rest
+Security review runs when the change touches outside input, sign-in or secrets. The final check cites the recorded test runs for each point of your request.
 
-Your agent plans with you on your best model. Helper agents research, build and test on smaller, cheaper models. They work from the written plan, so none of them needs your chat history. With Claude Code and Codex both installed, an AI from the other vendor also reviews the design and the finished change.
+### The models you choose, the cost you can see
+
+You plan with your best model in your own session; Opus 5.5 is recommended for Discuss and Plan. Helper agents build on a smaller model, Sonnet 5.5 by default, and work from the written plan, so none of them needs your chat history.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/agents-dark.svg">
-  <img src="docs/docusaurus/static/img/diagrams/agents-light.svg" alt="You and your agent write the plan documents; research helpers, slice builders, testers, quality pass helpers and an independent check work from them; a second AI from another vendor reviews" width="1000">
+  <img src="docs/docusaurus/static/img/diagrams/agents-light.svg" alt="You and your agent write the plan; helper agents build and polish from it; an AI that did not write the code checks it; another vendor's AI can give a second opinion" width="1000">
 </picture>
 
-In Settings you choose one model for the helpers per agent, one for the other vendor's review, and which optional steps run.
+Settings has five choices:
+
+- the helper model and the judge model
+- a second opinion from another vendor's AI, off by default
+- whether checkpoints run after every slice
+- a token budget per task
+
+The App shows the tokens and the estimated cost of every step and helper, and warns you before a task passes your budget.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/cost-dark.svg">
+  <img src="docs/docusaurus/static/img/diagrams/cost-light.svg" alt="Tokens per step for one task, estimated at list prices, against the task's budget" width="1000">
+</picture>
 
 ---
 
-<h2 id="cockpit">The Cockpit</h2>
+<h2 id="app">The QualityLayer App</h2>
 
-The Cockpit is where you review and approve your agent's work. It runs on your computer and opens in your browser. Designs come with diagrams and clickable mockups; select any passage to comment, then approve or request changes.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/cockpit-dark.svg">
-  <img src="docs/docusaurus/static/img/diagrams/cockpit-light.svg" alt="The Cockpit: a design under review with a system diagram, a teammate's comment, a clickable mockup, and Request changes and Approve buttons" width="1000">
-</picture>
-
-### Plan with one agent, build with another
-
-The build starts from the approved plan, not from the planning chat. You pick who builds it, and the Cockpit suggests a model, builds in the session you planned in by default, and gives you the prompt to start the build. Your best model coordinates while helpers on smaller models write the slices.
+The App is where you review and approve your agent's work, on macOS, Windows and Linux. Select any passage to comment, then approve or request changes. Close it, and your tasks keep running: a notification from the menu bar or tray, and the band in Claude Code, tell you when something waits for you.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/handoff-dark.svg">
-  <img src="docs/docusaurus/static/img/diagrams/handoff-light.svg" alt="The Cockpit handoff: choose Claude Code, Codex or another agent, see the recommended setup and the optional steps, and copy the build prompt" width="1000">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/app-dark.svg">
+  <img src="docs/docusaurus/static/img/diagrams/app-light.svg" alt="The QualityLayer App: your tasks on the left, the five steps on top, a plan with a diagram and a comment, and an Approve button" width="1000">
 </picture>
 
-Then follow the build as it happens. You see which agent is working, the slices being built side by side and the code changes so far. Each end-to-end check comes with screenshots and steps to try it yourself. At the end, the Review page shows the proof for each point you asked for, how to try the change and the code changes. **Create pull request** opens the pull request when you are ready. Your browser tells you whenever a task needs you.
+The App never starts an agent for you. After you approve the plan, it shows the command to type in a fresh session, with a Copy button and the model it recommends.
 
-### Review as a team
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/implement-start-dark.svg">
+  <img src="docs/docusaurus/static/img/diagrams/implement-start-light.svg" alt="After approval: the /ql implement command with a Copy button, and the advice to start a fresh session on Sonnet 5.5" width="1000">
+</picture>
 
-With a Team plan, your team comes in twice. **Before any code**, you share a task, and your teammates comment on the plan and approve it in their own Cockpit. People outside the team can comment through a link, without an account. Their feedback goes to your agent, and you decide. Shared plans, comments and links are encrypted on your machine, so QualityLayer can't read them.
+---
+
+<h2 id="team">Bring your team in</h2>
+
+With a Team plan, teammates help shape the plan and review the change, each from their own App.
+
+**Ask while it is still a plan.** Pick a passage, a diagram, a section or the whole plan, and choose who to ask. They get a Slack message that opens the question in their App, and answer with looks right, a suggested change, or a reply. The answer goes straight to your agent; you decide.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/team-dark.svg">
-  <img src="docs/docusaurus/static/img/diagrams/team-light.svg" alt="A shared plan: Ben approves, Anna asks for changes, Sam comments through a link; your agent answers every comment and you decide" width="1000">
+  <img src="docs/docusaurus/static/img/diagrams/team-light.svg" alt="You ask a teammate about a passage; they get a Slack message, answer in their App, and the answer reaches your agent" width="1000">
 </picture>
 
-**After the build**, they review the finished change: why and how it was made, the proof, and how much code the cleanup removed. The code itself is reviewed in the pull request, as always. Open questions go back to your agent with `/ql review`, and each one ends fixed, answered or planned again.
+**Answer with your own agent.** A teammate can hand the question to their Claude Code, Codex or Grok Bot with `/ql answer`. It reads the plan and their code, asks them what it needs, and drafts the answer. Nothing is sent without their yes, and the answer shows which agent wrote it.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/team-agents-dark.svg">
+  <img src="docs/docusaurus/static/img/diagrams/team-agents-light.svg" alt="A teammate's agent drafts an answer; they send, edit or discard it; the sent answer is marked via Claude Code" width="1000">
+</picture>
+
+**Review the change together.** After the build, teammates comment on any line of the finished change, with its proof. Their comments go back to your agent. The code itself is reviewed in your pull request, as always.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/team-change-dark.svg">
-  <img src="docs/docusaurus/static/img/diagrams/team-change-light.svg" alt="Change review: the team reviews the finished change; open threads go back to your agent, which settles each one and checks again before the re-review" width="1000">
+  <img src="docs/docusaurus/static/img/diagrams/team-change-light.svg" alt="Change review: the team comments on the finished change; open comments go back to your agent, which settles each one" width="1000">
 </picture>
 
-To get a teammate's answer, mention them with @ or choose **Ask…** on any passage. A required question holds the approval until they answer.
+The Team space lists every shared task by person and step, with the questions waiting for you on top. People outside the team comment through a link, without an account, and their comments reach your agent too. Sharing sends the plan and its progress, encrypted on your machine, and never your code.
 
 ### Agent sessions that message each other
 
@@ -274,15 +263,15 @@ Claude Code and Codex sessions on your computer can message each other: Claude t
   <img src="docs/docusaurus/static/img/diagrams/peers-light.svg" alt="Four agent sessions on one computer: one asks another for a review, one hands over a task, two talk a problem through" width="1000">
 </picture>
 
-To try it yourself, [click through the Cockpit on the website](https://qualitylayer.dev/#cockpit) with example tasks.
+To see a whole task play out, [scroll through it on the website](https://qualitylayer.dev/#tour).
 
 ---
 
 ## Documentation
 
-- [Install](https://qualitylayer.dev/docs/install) and [your first task](https://qualitylayer.dev/docs/first-task)
-- [How a task works](https://qualitylayer.dev/docs/workflow/overview): [plan](https://qualitylayer.dev/docs/workflow/plan), [build](https://qualitylayer.dev/docs/workflow/build), [check and ship](https://qualitylayer.dev/docs/workflow/check)
-- [The Cockpit](https://qualitylayer.dev/docs/cockpit), and reviewing [plans](https://qualitylayer.dev/docs/team/plans) and [changes](https://qualitylayer.dev/docs/team/changes) as a team
+- [Install](https://qualitylayer.dev/docs/install), [your first task](https://qualitylayer.dev/docs/first-task), [updating](https://qualitylayer.dev/docs/updating) and [moving from Pilot Shell 11](https://qualitylayer.dev/docs/moving-from-pilot-shell)
+- The five steps: [Discuss](https://qualitylayer.dev/docs/steps/discuss), [Plan](https://qualitylayer.dev/docs/steps/plan), [Implement](https://qualitylayer.dev/docs/steps/implement), [Verify](https://qualitylayer.dev/docs/steps/verify), [Review](https://qualitylayer.dev/docs/steps/review)
+- [The App](https://qualitylayer.dev/docs/app), [team plans](https://qualitylayer.dev/docs/team/plans), [teammates' agents](https://qualitylayer.dev/docs/team/agents) and [change review](https://qualitylayer.dev/docs/team/changes)
 - [Commands](https://qualitylayer.dev/docs/reference/commands), [settings](https://qualitylayer.dev/docs/reference/settings), and [files and privacy](https://qualitylayer.dev/docs/reference/files)
 
 ## Changelog

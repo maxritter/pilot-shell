@@ -4,7 +4,6 @@ import Page from "@/components/Page";
 import SEO from "@/components/SEO";
 import { FAQS } from "@/lib/content";
 import { AUTHOR_NAME, AUTHOR_URL, DESCRIPTION, GITHUB_URL, SITE_URL } from "@/lib/product";
-import { DemoTourProvider } from "@/components/home/demoTour";
 
 // Below the fold: one chunk, loaded after first paint.
 const Sections = lazy(() => import("@/components/home/Sections"));
@@ -50,12 +49,10 @@ const Index = () => (
   <>
     <SEO structuredData={structuredData} />
     <Page>
-      <DemoTourProvider>
       <Hero />
       <Suspense fallback={<div aria-hidden="true" style={{ minHeight: "40vh" }} />}>
         <Sections />
       </Suspense>
-      </DemoTourProvider>
     </Page>
   </>
 );

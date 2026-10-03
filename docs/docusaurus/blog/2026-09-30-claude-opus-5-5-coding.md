@@ -42,7 +42,7 @@ Avoid changing the model, prompt, test environment and permissions together. Whe
 
 An approved plan makes model comparison easier. The builder receives the same decisions, task boundaries and expected result, while the model supplies the implementation.
 
-QualityLayer's [Outline](/docs/workflow/plan/outline) and [Handoff](/docs/workflow/build/handoff) separate those responsibilities. Its current Claude Code handoff recommends Sonnet 5.5 for ordinary planned builds; Opus remains an explicit alternative. The available recommendation is a product choice, not a claim that a larger model is unnecessary.
+QualityLayer's [Outline](/docs/steps/plan) and [Handoff](/docs/steps/implement#start-implement) separate those responsibilities. Its current Claude Code handoff recommends Sonnet 5.5 for ordinary planned builds; Opus remains an explicit alternative. The available recommendation is a product choice, not a claim that a larger model is unnecessary.
 
 If a build fails, inspect the failure first. A missing requirement needs a clearer plan. A broken test environment needs repair. A reasoning failure may justify a different model or effort. Those are separate interventions.
 
@@ -50,4 +50,4 @@ If a build fails, inspect the failure first. A missing requirement needs a clear
 
 Keep the model that gives you reliable accepted changes at an acceptable cost. Preserve the evaluation tasks so you can run them again when your repository or agent changes.
 
-For published pricing and availability, use the [current Opus page](https://www.anthropic.com/claude/opus). For the workflow itself, start with [Frame](/docs/workflow/plan/frame): define the outcome before choosing the machinery.
+For published pricing and availability, use the [current Opus page](https://www.anthropic.com/claude/opus). For the workflow itself, start with [Frame](/docs/steps/discuss): define the outcome before choosing the machinery.

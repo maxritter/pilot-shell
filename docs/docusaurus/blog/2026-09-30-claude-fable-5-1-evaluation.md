@@ -47,10 +47,10 @@ Planning a difficult boundary, implementing a complex algorithm and reviewing a 
 
 A model might justify its cost on one role while adding little value on another. You do not need to standardize every stage on the same choice.
 
-QualityLayer lets you separate the planning agent from the builder. Its [Handoff](/docs/workflow/build/handoff) exposes the configured builder options; its [independent reviews](/docs/reference/settings#second-opinion) are configured separately. Do not assume a newly announced model is already in those option lists.
+QualityLayer lets you separate the planning agent from the builder. Its [Handoff](/docs/steps/implement#start-implement) exposes the configured builder options; its [independent reviews](/docs/reference/settings#second-opinion) are configured separately. Do not assume a newly announced model is already in those option lists.
 
 ## Keep the result reviewable
 
 Save the diff, test output and observed behavior. These records let another reviewer assess the result without relying on the producing session's confidence.
 
-Use [verification evidence](/docs/workflow/check/verify) to decide whether the change is ready, and provider documentation to decide whether the model integration is supported. Neither decision should be inferred from a model's name.
+Use [verification evidence](/docs/steps/verify) to decide whether the change is ready, and provider documentation to decide whether the model integration is supported. Neither decision should be inferred from a model's name.

@@ -149,8 +149,10 @@ describe("doc pages that moved or were removed", () => {
   });
 
   it("send each merged page to the section that took it over", () => {
-    expect(answer(NEW, "/docs/phases/verify")).toEqual({ kind: "redirect", status: 308, location: "/docs/workflow/check/verify" });
-    expect(answer(NEW, "/docs/guides/cockpit")).toEqual({ kind: "redirect", status: 308, location: "/docs/cockpit" });
+    expect(answer(NEW, "/docs/phases/verify")).toEqual({ kind: "redirect", status: 308, location: "/docs/steps/verify" });
+    expect(answer(NEW, "/docs/workflow/check/verify")).toEqual({ kind: "redirect", status: 308, location: "/docs/steps/verify" });
+    expect(answer(NEW, "/docs/guides/cockpit")).toEqual({ kind: "redirect", status: 308, location: "/docs/app" });
+    expect(answer(NEW, "/docs/cockpit")).toEqual({ kind: "redirect", status: 308, location: "/docs/app" });
     expect(answer(NEW, "/docs/reference/peers")).toMatchObject({ location: "/docs/reference/commands#session-messaging" });
   });
 });
@@ -178,7 +180,7 @@ describe("what pilot-shell.com still answers itself", () => {
 describe("qualitylayer.dev is not redirected", () => {
   it("serves pages, the API and share links itself", () => {
     expect(answer(NEW, "/pricing")).toEqual({ kind: "rewrite", to: "/" });
-    expect(answer(NEW, "/docs/cockpit")).toEqual({ kind: "rewrite", to: "/docs/cockpit" });
+    expect(answer(NEW, "/docs/app")).toEqual({ kind: "rewrite", to: "/docs/app" });
     expect(answer(NEW, "/api/team/pass")).toEqual({ kind: "function" });
     expect(answer(NEW, V2_LINK)).toEqual({ kind: "rewrite", to: "/" });
   });

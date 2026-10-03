@@ -27,7 +27,7 @@ Verify the CSV against the agreed cases.
 Stop at the first running checkpoint for my review.
 ```
 
-This example is a prompt structure, not a universal command. In QualityLayer, copy the generated prompt from [Handoff](/docs/workflow/build/handoff), because it identifies the task and its actual checkpoints.
+This example is a prompt structure, not a universal command. In QualityLayer, copy the generated prompt from [Handoff](/docs/steps/implement#start-implement), because it identifies the task and its actual checkpoints.
 
 ## Specify evidence
 
@@ -40,7 +40,7 @@ For a CSV export, useful evidence might include:
 
 Tell the agent what the evidence must establish. Asking it to “verify thoroughly” leaves the meaning of verification undefined.
 
-Use the [definition of done](/docs/workflow/plan/frame) to decide the checks. More output is not automatically better evidence.
+Use the [definition of done](/docs/steps/discuss) to decide the checks. More output is not automatically better evidence.
 
 ## Stop at a decision
 
@@ -58,6 +58,6 @@ QualityLayer's current Claude Code goal prompt reads its workflow through `quali
 
 ## Review the result
 
-A precise prompt improves the starting conditions. It does not prove the implementation is correct. [Verify](/docs/workflow/check/verify) still checks the running change, and [Review](/docs/workflow/check/review) still returns the decision to you.
+A precise prompt improves the starting conditions. It does not prove the implementation is correct. [Verify](/docs/steps/verify) still checks the running change, and [Review](/docs/steps/review) still returns the decision to you.
 
 Related: [evaluating Opus 5.5](/blog/claude-opus-5-5-coding) and [moving between Claude Code and Codex](/blog/claude-code-codex-handoff).

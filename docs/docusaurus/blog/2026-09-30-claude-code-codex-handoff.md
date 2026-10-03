@@ -20,7 +20,7 @@ The builder needs an approved outcome and enough detail to implement it. Resolve
 
 The plan should identify working slices, their task boundaries and the checks that show each slice is complete. If those choices remain implicit in the planning conversation, the new agent may reasonably interpret them differently.
 
-QualityLayer separates the readable overview from the technical detail. [Design](/docs/workflow/plan/design) records the choices; [Outline](/docs/workflow/plan/outline) prepares the task cards and acceptance checks.
+QualityLayer separates the readable overview from the technical detail. [Design](/docs/steps/plan) records the choices; [Outline](/docs/steps/plan) prepares the task cards and acceptance checks.
 
 ## Start the chosen builder
 
@@ -46,8 +46,8 @@ Those reviews are opt-in advice. The producing agent considers the findings, whi
 
 ## Review working software
 
-A builder can follow the plan and still misunderstand an interaction. Try a slice at its [checkpoint](/docs/workflow/build/checks), then read the verification evidence before final approval.
+A builder can follow the plan and still misunderstand an interaction. Try a slice at its [checkpoint](/docs/steps/implement#checkpoints), then read the verification evidence before final approval.
 
 The handoff is useful when it preserves the decisions and makes the result easier to assess. It should not require you to reconstruct a second agent's private conversation.
 
-Start with [your first QualityLayer task](/docs/first-task), or read the [workflow overview](/docs/workflow/overview).
+Start with [your first QualityLayer task](/docs/first-task), or read the [workflow overview](/docs#the-five-steps).

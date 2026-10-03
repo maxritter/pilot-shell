@@ -24,6 +24,10 @@ THEMES = {
 SANS = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif"
 MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
 
+# The five steps, in order; Plan and Review wait for your approval.
+STEPS = [('Discuss', 'violet'), ('Plan', 'amber'), ('Implement', 'blue'), ('Verify', 'teal'), ('Review', 'amber')]
+GATES = {'Plan', 'Review'}
+
 
 def T(x: float, y: float, s: str, size: float = 14, fill: str = 'text', weight: int = 400, anchor: str = 'start',
       mono: bool = False, *, c: Theme) -> str:
@@ -39,127 +43,10 @@ def svg(w: float, h: float, body: str, title: str) -> str:
             f'aria-label="{escape(title)}"><title>{escape(title)}</title>{body}</svg>\n')
 
 
-# ---------------------------------------------------------------- 1 routes
-def routes(c):
-    W, H = 1000, 468
-    cols = [('Frame', 'plan'), ('Research', 'plan'), ('Design', 'plan'), ('Outline', 'plan'),
-            ('Handoff', 'build'), ('Build', 'build'), ('Quality pass', 'check'), ('Verify', 'check'),
-            ('Review', 'ok')]
-    x0, cw = 186, 87
-    cx = [x0 + i * cw + cw / 2 for i in range(len(cols))]
-    groups = [('Plan', 'Before any code', 0, 4, 'violet'), ('Build', 'Tested as it goes', 4, 6, 'blue'),
-              ('Check', 'Independent', 6, 8, 'teal'), ('Ship', 'Your call', 8, 9, 'amber')]
-    b = []
-    for name, sub, a, z, col in groups:
-        xa, xz = x0 + a * cw + 4, x0 + z * cw - 4
-        b.append(f'<rect x="{xa}" y="8" width="{xz - xa}" height="4" rx="2" fill="{c[col]}"/>')
-        b.append(T(xa, 34, name, 15, col, 650, c=c))
-        b.append(T(xa, 52, sub, 12, 'muted', c=c))
-    for i, (n, _) in enumerate(cols):
-        b.append(T(cx[i], 86, n, 12, 'muted', 500, 'middle', c=c))
-    you = {'Frame', 'Research', 'Design', 'Outline', 'Handoff', 'Review', 'Diagnose', 'PRD', 'TDD'}
-    optional = {'Quality pass'}
-    rows = [
-        ('Feature', 'The full plan', {}),
-        ('Product feature', 'A PRD and a TDD', {'Frame': 'PRD', 'Design': 'TDD'}),
-        ('Bug', 'Cause first', {'Research': 'Diagnose', 'Design': None}),
-        ('Quick change', 'A rename, a setting', {'Frame': None, 'Research': None, 'Design': None, 'Outline': None,
-                                                  'Handoff': None, 'Quality pass': None, 'Build': 'Change'}),
-    ]
-    y = 140
-    for name, sub, mods in rows:
-        b.append(T(24, y - 2, name, 15, 'text', 650, c=c))
-        b.append(T(24, y + 16, sub, 12, 'muted', c=c))
-        on = [i for i, (n, _) in enumerate(cols) if mods.get(n, n) is not None]
-        b.append(f'<line x1="{cx[0]}" y1="{y}" x2="{cx[-1]}" y2="{y}" stroke="{c["off"]}" stroke-width="2" stroke-dasharray="2 6" stroke-linecap="round"/>')
-        b.append(f'<line x1="{cx[on[0]]}" y1="{y}" x2="{cx[on[-1]]}" y2="{y}" stroke="{c["line"]}" stroke-width="2"/>')
-        for i, (n, _) in enumerate(cols):
-            label = mods.get(n, n)
-            if label is None:
-                b.append(f'<circle cx="{cx[i]}" cy="{y}" r="4" fill="{c["bg"]}" stroke="{c["off"]}" stroke-width="2"/>')
-                continue
-            if label in you:
-                b.append(f'<rect x="{cx[i] - 9}" y="{y - 9}" width="18" height="18" rx="3" transform="rotate(45 {cx[i]} {y})" fill="{c["amberf"]}" stroke="{c["amber"]}" stroke-width="2"/>')
-            elif label in optional:
-                b.append(f'<circle cx="{cx[i]}" cy="{y}" r="9" fill="{c["bg"]}" stroke="{c["blue"]}" stroke-width="2" stroke-dasharray="3 2.5"/>')
-            else:
-                b.append(f'<circle cx="{cx[i]}" cy="{y}" r="9" fill="{c["blue"]}"/>')
-            if label != n:
-                b.append(T(cx[i], y + 30, label, 12, 'text', 600, 'middle', c=c))
-        y += 82
-    ly = H - 16
-    b.append(f'<rect x="{x0 + 4 - 7}" y="{ly - 12}" width="14" height="14" rx="2" transform="rotate(45 {x0 + 4} {ly - 5})" fill="{c["amberf"]}" stroke="{c["amber"]}" stroke-width="2"/>')
-    b.append(T(x0 + 20, ly, 'You review and approve', 13, 'muted', c=c))
-    b.append(f'<circle cx="{x0 + 214}" cy="{ly - 5}" r="7" fill="{c["blue"]}"/>')
-    b.append(T(x0 + 228, ly, 'The agent works on its own', 13, 'muted', c=c))
-    b.append(f'<circle cx="{x0 + 442}" cy="{ly - 5}" r="4" fill="{c["bg"]}" stroke="{c["off"]}" stroke-width="2"/>')
-    b.append(T(x0 + 454, ly, 'Skipped on this route', 13, 'muted', c=c))
-    b.append(f'<circle cx="{x0 + 626}" cy="{ly - 5}" r="7" fill="{c["bg"]}" stroke="{c["blue"]}" stroke-width="2" stroke-dasharray="3 2.5"/>')
-    b.append(T(x0 + 640, ly, 'Optional steps', 13, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'Four routes through QualityLayer: Feature, Product feature, Bug and Quick change, from planning to your approval, with the optional quality pass dashed')
-
-
-# ---------------------------------------------------------------- 2 slices
-def slices(c):
-    W, H = 1000, 430
-    layers = ['Screen', 'API', 'Logic', 'Database']
-    top, lh = 96, 52
-    b = []
-    for i, l in enumerate(layers):
-        y = top + i * lh
-        b.append(f'<line x1="130" y1="{y + lh / 2}" x2="{W - 24}" y2="{y + lh / 2}" stroke="{c["line"]}" stroke-width="1" stroke-dasharray="3 5"/>')
-        b.append(T(24, y + lh / 2 + 5, l, 13, 'muted', 500, c=c))
-    sl = [('s1', 'Slice 1', 'Export one report'), ('s2', 'Slice 2', 'Filter what is exported'),
-          ('s3', 'Slice 3', 'Large reports in the background')]
-    sx, sw, gap = 132, 200, 26
-    for k, (col, name, what) in enumerate(sl):
-        x = sx + k * (sw + gap)
-        b.append(T(x, 30, name, 15, col, 650, c=c))
-        b.append(T(x, 50, what, 13, 'muted', c=c))
-        b.append(f'<rect x="{x}" y="64" width="{sw}" height="24" rx="12" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
-        b.append(f'<circle cx="{x + 14}" cy="76" r="5" fill="none" stroke="{c["danger"]}" stroke-width="2"/>')
-        b.append(T(x + 26, 81, 'A failing test first', 12, 'text', 500, c=c))
-        bx = x + 18
-        b.append(f'<rect x="{bx}" y="{top + 4}" width="{sw - 36}" height="{lh * 4 - 8}" rx="12" fill="{c[col]}" fill-opacity="0.14" stroke="{c[col]}" stroke-width="2"/>')
-        for i in range(4):
-            yy = top + i * lh + lh / 2
-            b.append(f'<circle cx="{bx + (sw - 36) / 2}" cy="{yy}" r="5" fill="{c[col]}"/>')
-        b.append(f'<line x1="{bx + (sw - 36) / 2}" y1="{top + lh / 2}" x2="{bx + (sw - 36) / 2}" y2="{top + 3.5 * lh}" stroke="{c[col]}" stroke-width="2"/>')
-        cy = top + lh * 4 + 18
-        b.append(f'<rect x="{x}" y="{cy}" width="{sw}" height="86" rx="10" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
-        b.append(f'<path d="M{x + 14} {cy + 22} l5 5 l9 -10" fill="none" stroke="{c["ok"]}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>')
-        b.append(T(x + 36, cy + 27, 'Runs end to end', 14, 'text', 650, c=c))
-        for ev, ex, ew in [('Tests', 12, 50), ('Logs', 68, 44), ('Screenshot', 118, 70)]:
-            b.append(f'<rect x="{x + ex}" y="{cy + 44}" width="{ew}" height="26" rx="6" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-            b.append(T(x + ex + ew / 2, cy + 61, ev, 11, 'muted', 500, 'middle', c=c))
-        ax = x + sw + 5
-        b.append(f'<path d="M{ax} {cy + 43} h{gap - 10}" stroke="{c["muted"]}" stroke-width="1.6"/>')
-        b.append(f'<path d="M{ax + gap - 14} {cy + 38} l6 5 l-6 5" fill="none" stroke="{c["muted"]}" stroke-width="1.6"/>')
-    # Quality pass: optional steps over the whole change, before Verify
-    x, w = sx + 3 * (sw + gap), W - 24 - (sx + 3 * (sw + gap))
-    b.append(T(x, 30, 'Quality pass', 15, 'teal', 650, c=c))
-    b.append(T(x, 50, 'Optional, whole change', 13, 'muted', c=c))
-    b.append(f'<rect x="{x}" y="64" width="{w}" height="24" rx="12" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
-    b.append(T(x + 14, 81, 'A fresh helper each', 12, 'text', 500, c=c))
-    b.append(f'<rect x="{x + 10}" y="{top + 4}" width="{w - 20}" height="{lh * 4 - 8}" rx="12" fill="{c["teal"]}" fill-opacity="0.07" stroke="{c["teal"]}" stroke-width="2" stroke-dasharray="5 4"/>')
-    for i, step in enumerate(['Simplify', 'Test gaps', 'Security', 'Docs', 'UI review']):
-        yy = top + 14 + i * 38
-        b.append(f'<rect x="{x + 24}" y="{yy}" width="{w - 48}" height="28" rx="14" fill="{c["bg"]}" stroke="{c["teal"]}" stroke-width="1.6" stroke-dasharray="3 2.5"/>')
-        b.append(T(x + w / 2, yy + 19, step, 12, 'text', 500, 'middle', c=c))
-    cy = top + lh * 4 + 18
-    b.append(f'<rect x="{x}" y="{cy}" width="{w}" height="86" rx="10" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
-    b.append(f'<path d="M{x + 14} {cy + 22} l5 5 l9 -10" fill="none" stroke="{c["ok"]}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>')
-    b.append(T(x + 36, cy + 27, 'Then Verify', 14, 'text', 650, c=c))
-    for ev, ex, ew in [('Judge', 10, 54), ('Evidence', 68, 76)]:
-        b.append(f'<rect x="{x + ex}" y="{cy + 44}" width="{ew}" height="26" rx="6" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-        b.append(T(x + ex + ew / 2, cy + 61, ev, 11, 'muted', 500, 'middle', c=c))
-    b.append(T(W / 2, H - 4, 'Each slice works on its own before the next starts. Then the optional quality pass works on the whole change, and Verify checks it.', 13, 'muted', 400, 'middle', c=c))
-    return svg(W, H, ''.join(b), 'A feature built in three vertical slices, each tested end to end with kept evidence, then an optional quality pass (simplify, test gaps, security, docs, UI review) before Verify')
-
-
-# ---------------------------------------------------------------- 3 agents
-def node(c, x, y, w, h, title, sub, col, fill=None, icon=None):
-    out = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="12" fill="{c[fill] if fill else c["card"]}" stroke="{c[col] if col != "cardline" else c["cardline"]}" stroke-width="{2 if col != "cardline" else 1}"/>']
+# ---------------------------------------------------------------- shared shapes
+def node(c, x, y, w, h, title, sub, col, fill=None, dash=False):
+    d = ' stroke-dasharray="5 4"' if dash else ''
+    out = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="12" fill="{c[fill] if fill else c["card"]}" stroke="{c[col]}" stroke-width="{1 if col == "cardline" else 2}"{d}/>']
     out.append(T(x + 16, y + 28, title, 15, 'text', 650, c=c))
     for i, s in enumerate(sub if isinstance(sub, list) else [sub]):
         out.append(T(x + 16, y + 48 + i * 18, s, 13, 'muted', c=c))
@@ -172,262 +59,10 @@ def curve(c, x1, y1, x2, y2, col='line', dash=False, w=2):
     return f'<path d="M{x1} {y1} C{mx} {y1} {mx} {y2} {x2} {y2}" fill="none" stroke="{c[col]}" stroke-width="{w}"{d}/>'
 
 
-def agents(c):
-    W, H = 1000, 482
-    b = []
-    py, ph = 174, 120
-    # left: you and your agent
-    b.append(curve(c, 196, 234, 236, 234, 'amberl'))
-    b.append(node(c, 24, 194, 172, 80, 'You', 'Approve every step', 'amber', 'amberf'))
-    b.append(node(c, 236, 194, 190, 80, 'Your agent', ['Plans it with you,', 'your best model'], 'blue', 'bluef'))
-    b.append(curve(c, 426, 234, 470, 234, 'blue'))
-    # the plan
-    b.append(f'<rect x="470" y="{py}" width="150" height="{ph}" rx="12" fill="{c["violetf"]}" stroke="{c["violet"]}" stroke-width="2"/>')
-    b.append(T(486, py + 30, 'Plan documents', 15, 'text', 650, c=c))
-    for i in range(4):
-        b.append(f'<rect x="486" y="{py + 46 + i * 15}" width="{[104, 88, 112, 70][i]}" height="6" rx="3" fill="{c["violet"]}" fill-opacity="0.35"/>')
-    b.append(T(545, py + ph + 26, 'Every helper starts from these,', 12, 'muted', 400, 'middle', c=c))
-    b.append(T(545, py + ph + 43, 'never from your chat', 12, 'muted', 400, 'middle', c=c))
-    # right: helpers
-    right = [
-        (8, 'Research helpers', 'Read the code before the plan', 'teal'),
-        (100, 'Slice builders', 'Smaller, cheaper models, in parallel', 'blue'),
-        (192, 'Testers', 'Run the program end to end', 'blue'),
-        (284, 'Quality pass helpers', 'Simplify, test gaps, security, docs', 'teal'),
-        (376, 'Independent check', 'An AI that did not write the code', 'teal'),
-    ]
-    for y, t, s, col in right:
-        b.append(curve(c, 620, py + ph / 2, 690, y + 38, col))
-        b.append(node(c, 690, y, 286, 76, t, s, 'cardline'))
-        if t == 'Slice builders':
-            for k, sc in enumerate(['s1', 's2', 's3']):
-                b.append(f'<rect x="{690 + 286 - 76 + k * 16}" y="{y + 16}" width="12" height="12" rx="3" fill="{c[sc]}"/>')
-        else:
-            b.append(f'<circle cx="{690 + 286 - 20}" cy="{y + 22}" r="6" fill="{c[col]}"/>')
-    # second AI under the plan, reviewing
-    b.append(curve(c, 545, py + ph + 56, 545, 404, 'violet', True))
-    b.append(f'<rect x="420" y="404" width="250" height="68" rx="12" fill="{c["card"]}" stroke="{c["violet"]}" stroke-width="2" stroke-dasharray="5 4"/>')
-    b.append(T(436, 430, 'Second AI', 15, 'text', 650, c=c))
-    b.append(T(436, 450, 'Another vendor reviews the', 13, 'muted', c=c))
-    b.append(T(436, 466, 'design and the finished change', 13, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'Who does what: you and your agent write the plan; helper agents research, build, test, run the quality pass and check from it; an AI from another vendor reviews')
-
-
-# ---------------------------------------------------------------- 4 team
-def team(c):
-    W, H = 1000, 306
-    b = []
-    b.append(node(c, 24, 120, 190, 90, 'Shared plan', ['Design, outline', 'and progress'], 'violet', 'violetf'))
-    people = [(20, 'Ben', 'Approved', 'ok'), (120, 'Anna', 'Asked for changes', 'amber'), (220, 'Sam, by link', 'Comment', 'muted')]
-    for y, who, what, col in people:
-        b.append(curve(c, 214, 165, 290, y + 40, 'line'))
-        b.append(f'<rect x="290" y="{y}" width="250" height="80" rx="12" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
-        b.append(f'<circle cx="320" cy="{y + 40}" r="16" fill="{c["bg"]}" stroke="{c["line"]}" stroke-width="1.5"/>')
-        b.append(T(320, y + 45, who[0], 13, 'text', 650, 'middle', c=c))
-        b.append(T(346, y + 34, who, 14, 'text', 650, c=c))
-        b.append(T(346, y + 54, what, 13, col, 500, c=c))
-        b.append(curve(c, 540, y + 40, 610, 165, 'line'))
-    b.append(node(c, 610, 120, 190, 90, 'Your agent', ['Answers every comment,', 'updates the plan'], 'blue', 'bluef'))
-    b.append(curve(c, 800, 165, 830, 165, 'amberl'))
-    b.append(node(c, 830, 120, 146, 90, 'You decide', ['Feedback is', 'advice'], 'amber', 'amberf'))
-    return svg(W, H, ''.join(b), 'Team review of a plan: teammates and outside reviewers comment, your agent answers, you decide')
-
-
-# ---------------------------------------------------------------- 5 peers
-def peers(c):
-    W, H = 1000, 270
-    b = []
-    pos = {'a': (60, 40, 'Claude Code', 'Building the export', 'blue'), 'b': (60, 190, 'Claude Code', 'Fixing a flaky test', 'blue'),
-           'c': (700, 40, 'Codex', 'Reviewing the design', 'violet'), 'd': (700, 190, 'Codex', 'Idle', 'violet')}
-    links = [('a', 'c', 'Asks for a review'), ('b', 'd', 'Hands over a task'), ('a', 'b', 'Talks a problem through')]
-    for f, t, lab in links:
-        x1, y1 = pos[f][0] + 240, pos[f][1] + 36
-        x2, y2 = pos[t][0], pos[t][1] + 36
-        if f == 'a' and t == 'b':
-            b.append(f'<path d="M{pos[f][0] + 120} {pos[f][1] + 72} V{pos[t][1]}" stroke="{c["line"]}" stroke-width="2"/>')
-            b.append(f'<rect x="{pos[f][0] + 40}" y="{(pos[f][1] + 72 + pos[t][1]) / 2 - 13}" width="160" height="26" rx="13" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-            b.append(T(pos[f][0] + 120, (pos[f][1] + 72 + pos[t][1]) / 2 + 4, lab, 12, 'muted', 500, 'middle', c=c))
-            continue
-        b.append(f'<path d="M{x1} {y1} H{x2}" stroke="{c["line"]}" stroke-width="2"/>')
-        b.append(f'<path d="M{x2 - 8} {y1 - 5} l8 5 l-8 5" fill="none" stroke="{c["line"]}" stroke-width="2"/>')
-        b.append(f'<rect x="{(x1 + x2) / 2 - 80}" y="{y1 - 13}" width="160" height="26" rx="13" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-        b.append(T((x1 + x2) / 2, y1 + 4, lab, 12, 'muted', 500, 'middle', c=c))
-    for k, (x, y, name, what, col) in pos.items():
-        b.append(f'<rect x="{x}" y="{y}" width="240" height="72" rx="12" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
-        b.append(f'<circle cx="{x + 22}" cy="{y + 25}" r="6" fill="{c[col]}"/>')
-        b.append(T(x + 38, y + 30, name, 15, 'text', 650, c=c))
-        b.append(T(x + 22, y + 52, what, 13, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'Claude Code and Codex sessions on one computer messaging each other')
-
-
-# ---------------------------------------------------------------- 6 cockpit: a design under review
 def bars(c, x, y, widths, gap=14, h=6, col='line'):
     return ''.join(f'<rect x="{x}" y="{y + i * gap}" width="{w}" height="{h}" rx="3" fill="{c[col]}"/>' for i, w in enumerate(widths))
 
 
-def window(c, W, H):
-    return (f'<rect x="1" y="1" width="{W - 2}" height="{H - 2}" rx="16" fill="{c["bg"]}" stroke="{c["cardline"]}" stroke-width="1.5"/>'
-            f'<path d="M1 17 a16 16 0 0 1 16 -16 H{W - 17} a16 16 0 0 1 16 16 V40 H1 Z" fill="{c["card"]}"/>'
-            f'<line x1="1" y1="40" x2="{W - 1}" y2="40" stroke="{c["cardline"]}"/>'
-            + ''.join(f'<circle cx="{22 + i * 18}" cy="21" r="5" fill="{c["line"]}"/>' for i in range(3))
-            + T(W / 2, 26, 'localhost · QualityLayer Cockpit', 12, 'dim', 500, 'middle', mono=True, c=c))
-
-
-def cockpit(c):
-    W, H = 1000, 600
-    b = [window(c, W, H)]
-    # sidebar
-    b.append(f'<path d="M1 41 H221 V{H - 1} H17 a16 16 0 0 1 -16 -16 Z" fill="{c["card"]}"/>')
-    b.append(f'<line x1="221" y1="41" x2="221" y2="{H - 1}" stroke="{c["cardline"]}"/>')
-    b.append(T(24, 72, 'QualityLayer', 15, 'text', 700, c=c))
-    b.append(T(24, 108, 'Needs you', 12, 'amber', 650, c=c))
-    tasks = [('Queue migration', 'Design', True), ('Webhooks', 'Build 5/11', False), ('Invoice totals', 'Handoff', False),
-             ('Export API', 'Review', False)]
-    for i, (n, st, sel) in enumerate(tasks):
-        y = 124 + i * 34
-        if sel:
-            b.append(f'<rect x="12" y="{y}" width="198" height="28" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-        b.append(f'<circle cx="28" cy="{y + 14}" r="4.5" fill="none" stroke="{c["blue"]}" stroke-width="2"/>')
-        b.append(T(40, y + 18, n, 12.5, 'text', 500, c=c))
-        b.append(T(200, y + 18, st, 10.5, 'dim', 400, 'end', mono=True, c=c))
-    b.append(T(24, 290, 'In progress', 12, 'muted', 650, c=c))
-    for i in range(2):
-        y = 304 + i * 34
-        b.append(f'<circle cx="28" cy="{y + 14}" r="4.5" fill="none" stroke="{c["dim"]}" stroke-width="2" stroke-dasharray="3 3"/>')
-        b.append(bars(c, 40, y + 11, [[110, 92][i]]))
-    # header and stage track
-    x0 = 250
-    b.append(T(x0, 78, 'Queue migration', 20, 'text', 650, c=c))
-    stages = ['Frame', 'Research', 'Design', 'Outline', 'Handoff', 'Build', 'Verify', 'Review']
-    sx = x0
-    for i, s in enumerate(stages):
-        done, cur = i < 2, i == 2
-        col = c['text'] if done else c['amber'] if cur else c['dim']
-        if done:
-            b.append(f'<circle cx="{sx + 5}" cy="{106}" r="5" fill="{c["text"]}"/>')
-        else:
-            b.append(f'<circle cx="{sx + 5}" cy="{106}" r="5" fill="none" stroke="{col}" stroke-width="2"/>')
-        b.append(f'<text x="{sx + 16}" y="110" font-family="{SANS}" font-size="12.5" font-weight="{600 if cur else 400}" fill="{col}">{s}</text>')
-        sx += 16 + len(s) * 7.2 + 18
-    # review bar
-    by = 128
-    b.append(f'<rect x="222" y="{by}" width="{W - 223}" height="64" fill="{c["amberf"]}"/>')
-    b.append(f'<rect x="222" y="{by}" width="4" height="64" fill="{c["amber"]}"/>')
-    b.append(T(x0, by + 28, 'Your review · the design', 14, 'text', 650, c=c))
-    b.append(T(x0, by + 48, 'Comment on any passage, then decide.', 12.5, 'muted', c=c))
-    b.append(f'<rect x="{W - 290}" y="{by + 16}" width="148" height="34" rx="8" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-    b.append(T(W - 216, by + 38, 'Request changes', 13, 'text', 600, 'middle', c=c))
-    b.append(f'<rect x="{W - 130}" y="{by + 16}" width="100" height="34" rx="8" fill="{c["blue"]}"/>')
-    b.append(T(W - 80, by + 38, 'Approve', 13, '#ffffff', 650, 'middle', c=c))
-    # system design card
-    cy = 218
-    b.append(f'<rect x="{x0}" y="{cy}" width="410" height="350" rx="12" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
-    b.append(T(x0 + 18, cy + 30, 'System design', 14, 'text', 650, c=c))
-    def box(x, y, w, label, col, fill):
-        return (f'<rect x="{x}" y="{y}" width="{w}" height="44" rx="9" fill="{c[fill]}" stroke="{c[col]}" stroke-width="1.8"/>'
-                + T(x + w / 2, y + 27, label, 13, 'text', 600, 'middle', c=c))
-    b.append(box(x0 + 22, cy + 140, 96, 'Jobs', 'cardline', 'bg'))
-    b.append(box(x0 + 160, cy + 140, 104, 'Adapter', 'violet', 'violetf'))
-    b.append(box(x0 + 300, cy + 76, 92, 'New queue', 'blue', 'bluef'))
-    b.append(box(x0 + 300, cy + 204, 92, 'Legacy', 'cardline', 'bg'))
-    b.append(f'<path d="M{x0 + 118} {cy + 162} H{x0 + 160}" stroke="{c["muted"]}" stroke-width="1.8"/>')
-    b.append(curve(c, x0 + 264, cy + 162, x0 + 300, cy + 98, 'blue'))
-    b.append(curve(c, x0 + 264, cy + 162, x0 + 300, cy + 226, 'line', True))
-    # a comment pinned on the adapter
-    b.append(f'<rect x="{x0 + 100}" y="{cy + 262}" width="230" height="58" rx="10" fill="{c["bg"]}" stroke="{c["amberl"]}" stroke-width="1.5"/>')
-    b.append(f'<path d="M{x0 + 205} {cy + 262} l7 -10 l7 10" fill="{c["bg"]}" stroke="{c["amberl"]}" stroke-width="1.5"/>')
-    b.append(f'<rect x="{x0 + 204}" y="{cy + 261}" width="16" height="3" fill="{c["bg"]}"/>')
-    b.append(f'<circle cx="{x0 + 124}" cy="{cy + 291}" r="12" fill="{c["amberf"]}" stroke="{c["amber"]}" stroke-width="1.5"/>')
-    b.append(T(x0 + 124, cy + 295, 'A', 11, 'amber', 700, 'middle', c=c))
-    b.append(T(x0 + 144, cy + 286, 'Anna', 12, 'text', 650, c=c))
-    b.append(T(x0 + 144, cy + 304, 'Keep the retry test green', 12, 'muted', c=c))
-    # mockup card
-    mx = x0 + 430
-    b.append(f'<rect x="{mx}" y="{cy}" width="{W - mx - 30}" height="350" rx="12" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
-    b.append(T(mx + 18, cy + 30, 'Interface mockup', 14, 'text', 650, c=c))
-    b.append(T(W - 48, cy + 30, 'clickable', 11, 'dim', 500, 'end', mono=True, c=c))
-    for i, on in enumerate([True, False, False, True]):
-        ry = cy + 54 + i * 70
-        b.append(f'<rect x="{mx + 18}" y="{ry}" width="{W - mx - 66}" height="56" rx="9" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-        b.append(bars(c, mx + 34, ry + 18, [[96, 120, 84, 104][i], 58], 14, 6, 'line'))
-        tx = W - 102
-        b.append(f'<rect x="{tx}" y="{ry + 17}" width="40" height="22" rx="11" fill="{c["blue"] if on else c["line"]}"/>')
-        b.append(f'<circle cx="{tx + (29 if on else 11)}" cy="{ry + 28}" r="8" fill="#ffffff"/>')
-    return svg(W, H, ''.join(b), 'The Cockpit: a design under review with a system diagram, a teammate comment and a clickable mockup')
-
-
-# ---------------------------------------------------------------- 7 cockpit: handoff
-def handoff(c):
-    W, H = 1000, 534
-    b = [window(c, W, H)]
-    x0 = 40
-    b.append(T(x0, 84, 'Start the build', 18, 'text', 650, c=c))
-    b.append(T(x0, 106, '3 slices · 11 tasks · planning stops here on purpose', 13, 'muted', c=c))
-    # agent switch
-    b.append(T(x0, 152, 'Build with', 13, 'muted', 600, c=c))
-    seg = [('Claude Code', True), ('Codex', False), ('Other agent', False)]
-    sx = x0 + 84
-    b.append(f'<rect x="{sx}" y="{130}" width="314" height="36" rx="9" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
-    for i, (s, on) in enumerate(seg):
-        w = [112, 84, 110][i]
-        if on:
-            b.append(f'<rect x="{sx + 4}" y="134" width="{w}" height="28" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-        b.append(T(sx + 4 + w / 2, 152, s, 13, 'text' if on else 'muted', 600 if on else 500, 'middle', c=c))
-        sx += w + 2
-    # recommendation
-    ry = 186
-    b.append(f'<rect x="{x0}" y="{ry}" width="{W - 2 * x0}" height="62" rx="12" fill="{c["bluef"]}" stroke="{c["blue"]}" stroke-width="1.5"/>')
-    b.append(T(x0 + 18, ry + 26, 'Recommended', 12, 'blue', 650, c=c))
-    b.append(T(x0 + 18, ry + 47, 'This session, cleared · your best model coordinates', 14, 'text', 600, c=c))
-    b.append(T(W - x0 - 18, ry + 37, 'Helpers on your chosen subagent model build the slices', 12.5, 'muted', 400, 'end', c=c))
-    # optional steps for this build: dashed chips, one switched off
-    b.append(T(x0, 278, 'Optional steps for this build', 13, 'muted', 600, c=c))
-    cx = x0
-    for name, off in [('Checkpoints', False), ('Second opinion', False), ('Simplify', False), ('Test gaps', False),
-                      ('Security review', False), ('Docs update', True)]:
-        w = 26 + len(name) * 6.6
-        col = c['dim'] if off else c['blue']
-        b.append(f'<rect x="{cx}" y="290" width="{w}" height="26" rx="13" fill="{c["bg"] if off else c["bluef"]}" stroke="{col}" stroke-width="1.5" stroke-dasharray="4 3"/>')
-        b.append(T(cx + w / 2, 307, name, 12, 'muted' if off else 'blue', 600, 'middle', c=c))
-        if off:
-            b.append(f'<line x1="{cx + 12}" y1="303" x2="{cx + w - 12}" y2="303" stroke="{c["dim"]}" stroke-width="1.5"/>')
-        cx += w + 10
-    # steps
-    chips = ['/clear', '/model']
-    y = 344
-    for n in (1, 2, 3):
-        b.append(f'<circle cx="{x0 + 14}" cy="{y + 14}" r="13" fill="none" stroke="{c["cardline"]}" stroke-width="1.5"/>')
-        b.append(T(x0 + 14, y + 19, str(n), 12, 'muted', 650, 'middle', c=c))
-        if n == 1:
-            b.append(T(x0 + 40, y + 19, 'Start a clean session', 14, 'text', 600, c=c))
-            cx = x0 + 220
-            for ch in chips:
-                w = 22 + len(ch) * 8
-                b.append(f'<rect x="{cx}" y="{y + 1}" width="{w}" height="28" rx="7" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
-                b.append(T(cx + w / 2, y + 20, ch, 12, 'text', 500, 'middle', mono=True, c=c))
-                cx += w + 10
-        elif n == 2:
-            b.append(T(x0 + 40, y + 19, 'Paste the build prompt', 14, 'text', 600, c=c))
-            px, pw = x0 + 220, W - x0 - (x0 + 220)
-            b.append(f'<rect x="{px}" y="{y - 4}" width="{pw}" height="76" rx="10" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
-            b.append(bars(c, px + 18, y + 14, [300, 220], 16, 7))
-            b.append(f'<rect x="{px + pw - 130}" y="{y + 30}" width="114" height="30" rx="7" fill="{c["blue"]}"/>')
-            b.append(T(px + pw - 73, y + 50, 'Copy prompt', 13, '#ffffff', 650, 'middle', c=c))
-            y += 46
-        else:
-            b.append(T(x0 + 40, y + 19, 'Watch it here: it stops for you at Review, or earlier only for a decision that is yours', 14, 'text', 600, c=c))
-        y += 56
-    return svg(W, H, ''.join(b), 'The Cockpit handoff: choose the agent that builds, a recommended setup, switches for the optional steps, launch steps and the build prompt')
-
-
-# ---------------------------------------------------------------- 8 the steps of the Feature route, for page tracks
-STEPS = [('Frame', 'violet'), ('Research', 'violet'), ('Design', 'violet'), ('Outline', 'violet'),
-         ('Handoff', 'blue'), ('Build', 'blue'), ('Checkpoint', 'blue'), ('Quality pass', 'teal'),
-         ('Verify', 'teal'), ('Review', 'amber'), ('Shipped', 'amber')]
-OPTIONAL = {'Checkpoint', 'Quality pass'}  # drawn dashed: optional steps
-
-
-# ---------------------------------------------------------------- 9 step illustrations
 def card(c: Theme, x: float, y: float, w: float, h: float, stroke: str = 'cardline', fill: str = 'card',
          dash: bool = False, sw: float = 1) -> str:
     d = ' stroke-dasharray="5 4"' if dash else ''
@@ -438,7 +73,8 @@ def arrow(c: Theme, x1: float, y1: float, x2: float, y2: float | None = None, co
     y2 = y1 if y2 is None else y2
     d = ' stroke-dasharray="4 4"' if dash else ''
     if y1 == y2:
-        head = f'<path d="M{x2 - 7} {y2 - 5} l7 5 l-7 5" fill="none" stroke="{c[col]}" stroke-width="1.8"/>'
+        s = 1 if x2 > x1 else -1
+        head = f'<path d="M{x2 - 7 * s} {y2 - 5} l{7 * s} 5 l{-7 * s} 5" fill="none" stroke="{c[col]}" stroke-width="1.8"/>'
     else:
         s = 1 if y2 > y1 else -1
         head = f'<path d="M{x2 - 5} {y2 - 7 * s} l5 {7 * s} l5 {-7 * s}" fill="none" stroke="{c[col]}" stroke-width="1.8"/>'
@@ -452,10 +88,32 @@ def mark(c: Theme, x: float, y: float, ok: bool = True) -> str:
             f'stroke-linecap="round"/>')
 
 
-def pill(c: Theme, x: float, y: float, text: str, col: str = 'muted', w: float | None = None, mono: bool = False) -> str:
+def pill(c: Theme, x: float, y: float, text: str, col: str = 'muted', w: float | None = None, mono: bool = False,
+         fill: str = 'bg', stroke: str = 'cardline') -> str:
     w = w if w is not None else 18 + len(text) * (7.4 if mono else 6.6)
-    return (f'<rect x="{x}" y="{y}" width="{w}" height="22" rx="11" fill="{c["bg"]}" stroke="{c["cardline"]}"/>'
+    return (f'<rect x="{x}" y="{y}" width="{w}" height="22" rx="11" fill="{c[fill]}" stroke="{c[stroke]}"/>'
             + T(x + w / 2, y + 15, text, 11.5, col, 600, 'middle', mono, c=c))
+
+
+def button(c: Theme, x: float, y: float, w: float, text: str, primary: bool = False, h: float = 34) -> str:
+    if primary:
+        return (f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8" fill="{c["blue"]}"/>'
+                + T(x + w / 2, y + h / 2 + 4.5, text, 13, '#ffffff', 650, 'middle', c=c))
+    return (f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8" fill="{c["bg"]}" stroke="{c["cardline"]}"/>'
+            + T(x + w / 2, y + h / 2 + 4.5, text, 13, 'text', 600, 'middle', c=c))
+
+
+def switch(c: Theme, x: float, y: float, on: bool = True) -> str:
+    if on:
+        return (f'<rect x="{x}" y="{y}" width="28" height="18" rx="9" fill="{c["blue"]}"/>'
+                f'<circle cx="{x + 19}" cy="{y + 9}" r="6" fill="#ffffff"/>')
+    return (f'<rect x="{x}" y="{y}" width="28" height="18" rx="9" fill="{c["bg"]}" stroke="{c["cardline"]}"/>'
+            f'<circle cx="{x + 9}" cy="{y + 9}" r="6" fill="{c["dim"]}"/>')
+
+
+def diamond(c: Theme, x: float, y: float, r: float, fill: str = 'amberf', stroke: str = 'amber') -> str:
+    return (f'<rect x="{x - r}" y="{y - r}" width="{2 * r}" height="{2 * r}" rx="3" transform="rotate(45 {x} {y})" '
+            f'fill="{c[fill]}" stroke="{c[stroke]}" stroke-width="2"/>')
 
 
 def doc_head(c: Theme, x: float, y: float, w: float, file: str, who: str) -> str:
@@ -463,63 +121,363 @@ def doc_head(c: Theme, x: float, y: float, w: float, file: str, who: str) -> str
             + T(x + 16, y + 22, file, 12, 'muted', 500, mono=True, c=c) + T(x + w - 16, y + 22, who, 12, 'dim', 600, 'end', c=c))
 
 
-def frame_ill(c: Theme) -> str:
+def window(c, W, H, title='QualityLayer'):
+    return (f'<rect x="1" y="1" width="{W - 2}" height="{H - 2}" rx="16" fill="{c["bg"]}" stroke="{c["cardline"]}" stroke-width="1.5"/>'
+            f'<path d="M1 17 a16 16 0 0 1 16 -16 H{W - 17} a16 16 0 0 1 16 16 V40 H1 Z" fill="{c["card"]}"/>'
+            f'<line x1="1" y1="40" x2="{W - 1}" y2="40" stroke="{c["cardline"]}"/>'
+            + ''.join(f'<circle cx="{22 + i * 18}" cy="21" r="5" fill="{c["line"]}"/>' for i in range(3))
+            + T(W / 2, 26, title, 12, 'dim', 500, 'middle', c=c))
+
+
+def num(c: Theme, x: float, y: float, n: int) -> str:
+    return (f'<circle cx="{x}" cy="{y}" r="12" fill="{c["blue"]}" stroke="{c["bg"]}" stroke-width="2.5"/>'
+            + T(x, y + 4.5, str(n), 12.5, '#ffffff', 700, 'middle', c=c))
+
+
+# ---------------------------------------------------------------- the five steps
+def flow(c):
+    W, H = 1000, 280
+    x0, cw = 130, 174
+    cx = [x0 + i * cw + cw / 2 for i in range(5)]
+    b = [f'<line x1="{cx[0]}" y1="62" x2="{cx[-1]}" y2="62" stroke="{c["line"]}" stroke-width="2"/>']
+    for i, (n, col) in enumerate(STEPS):
+        b.append(T(cx[i], 30, n, 16, 'text', 700, 'middle', c=c))
+        b.append(diamond(c, cx[i], 62, 10) if n in GATES else f'<circle cx="{cx[i]}" cy="62" r="10" fill="{c[col]}"/>')
+    you = ['Answer its questions', 'Comment, then approve', 'Start a fresh session', None, 'Try it, then approve']
+    agent = ['Reads the code, asks', 'Writes the Plan', 'Builds test first', 'Another AI checks it', 'Writes the PR text']
+    for row, (label, col, y, cells) in enumerate([('You', 'amber', 100, you), ('Your agent', 'blue', 166, agent)]):
+        b.append(T(0, y + 28, label, 15, col, 700, c=c))
+        for i, s in enumerate(cells):
+            x = cx[i] - 80
+            if s is None:
+                b.append(f'<rect x="{x}" y="{y}" width="160" height="44" rx="10" fill="none" stroke="{c["off"]}" stroke-dasharray="4 4"/>')
+                b.append(T(cx[i], y + 27, 'Nothing to do', 12, 'dim', 500, 'middle', c=c))
+                continue
+            fill, stroke = ('amberf', 'amberl') if row == 0 else ('card', 'cardline')
+            b.append(f'<rect x="{x}" y="{y}" width="160" height="44" rx="10" fill="{c[fill]}" stroke="{c[stroke]}"/>')
+            b.append(T(cx[i], y + 27, s, 12.5, 'text', 500, 'middle', c=c))
+    ly = H - 8
+    b.append(diamond(c, x0 + 8, ly - 5, 6))
+    b.append(T(x0 + 24, ly, 'You approve here', 13, 'muted', c=c))
+    b.append(f'<circle cx="{x0 + 178}" cy="{ly - 5}" r="7" fill="{c["blue"]}"/>')
+    b.append(T(x0 + 192, ly, 'Your agent works on its own', 13, 'muted', c=c))
+    return svg(W, H, ''.join(b), 'The five steps of a QualityLayer task: Discuss, Plan, Implement, Verify and Review. You approve the Plan before any code and the finished change at the end; your agent does the rest')
+
+
+def track(here: str):
+    """The five steps on one line, with the page's own step highlighted."""
+    def draw(c: Theme) -> str:
+        W, H = 1000, 112
+        xs = [100 + i * 200 for i in range(5)]
+        cur = [n for n, _ in STEPS].index(here)
+        b = [T(0, 16, 'The five steps', 12, 'muted', 600, c=c)]
+        b.append(f'<line x1="{xs[0]}" y1="52" x2="{xs[-1]}" y2="52" stroke="{c["line"]}" stroke-width="2"/>')
+        if cur:
+            b.append(f'<line x1="{xs[0]}" y1="52" x2="{xs[cur]}" y2="52" stroke="{c["blue"]}" stroke-width="2.5"/>')
+        for i, (n, col) in enumerate(STEPS):
+            x, gate = xs[i], n in GATES
+            if i == cur:
+                b.append(f'<circle cx="{x}" cy="52" r="17" fill="{c[col]}" fill-opacity="0.16"/>')
+                b.append(diamond(c, x, 52, 9, 'amber', 'amber') if gate else f'<circle cx="{x}" cy="52" r="9" fill="{c[col]}"/>')
+                b.append(T(x, 88, n, 13, 'text', 700, 'middle', c=c))
+                b.append(T(x, 106, 'This page', 11, col, 600, 'middle', c=c))
+            elif i < cur:
+                b.append(diamond(c, x, 52, 5.5, 'blue', 'blue') if gate else f'<circle cx="{x}" cy="52" r="6" fill="{c["blue"]}"/>')
+                b.append(T(x, 88, n, 12, 'muted', 500, 'middle', c=c))
+            else:
+                b.append(diamond(c, x, 52, 5.5, 'bg', 'line') if gate else f'<circle cx="{x}" cy="52" r="6" fill="{c["bg"]}" stroke="{c["line"]}" stroke-width="2"/>')
+                b.append(T(x, 88, n, 12, 'muted', 500, 'middle', c=c))
+        return svg(W, H, ''.join(b), f'The five steps, with {here} highlighted')
+    return draw
+
+
+# ---------------------------------------------------------------- slices, side by side, then Verify
+def slices(c):
+    W, H = 1000, 292
+    b = []
+    for name, xa, xz, col in [('Implement', 0, 610, 'blue'), ('Verify', 640, 1000, 'teal')]:
+        b.append(f'<rect x="{xa}" y="0" width="{xz - xa}" height="4" rx="2" fill="{c[col]}"/>')
+        b.append(T(xa, 26, name, 15, col, 650, c=c))
+
+    def sl(x, y, w, col, title, line2, col2, check):
+        out = [card(c, x, y, w, 80, stroke=col, sw=1.6)]
+        out.append(T(x + 14, y + 24, title, 13.5, 'text', 650, c=c))
+        out.append(T(x + 14, y + 44, line2, 12, col2, 600 if col2 == 'amber' else 400, c=c))
+        out.append(mark(c, x + 20, y + 61))
+        out.append(T(x + 32, y + 66, check, 11, 'blue', 500, mono=True, c=c))
+        return ''.join(out)
+
+    b.append(sl(0, 44, 190, 's1', 'Slice 1 · Export', 'T1, T2, each test first', 'muted', 'check slice 1 · exit 0'))
+    b.append(arrow(c, 192, 84, 214))
+    b.append(sl(216, 44, 214, 's3', 'Slice 3 · Large reports', 'Risky: new mail service', 'amber', 'check slice 3 · exit 0'))
+    b.append(arrow(c, 432, 84, 454))
+    b.append(card(c, 456, 44, 154, 80, stroke='amber', fill='amberf', sw=1.6))
+    b.append(T(470, 68, 'Checkpoint', 13.5, 'text', 650, c=c))
+    b.append(T(470, 88, 'Runs slice 3’s', 12, 'muted', c=c))
+    b.append(T(470, 106, 'scenarios', 12, 'muted', c=c))
+    b.append(sl(0, 144, 300, 's2', 'Slice 2 · Filter the export', 'Side by side: shares no file with slice 1', 'muted', 'check slice 2 · exit 0'))
+    b.append(f'<path d="M610 84 H625 V184 M300 184 H625" fill="none" stroke="{c["muted"]}" stroke-width="1.8"/>')
+    b.append(arrow(c, 625, 84, 644))
+    b.append(arrow(c, 625, 184, 644))
+    b.append(node(c, 646, 44, 170, 80, 'Polish', ['Leftover code,', 'missing tests, docs'], 'teal'))
+    b.append(node(c, 646, 144, 170, 80, 'Security', ['Only when it crosses', 'a trust boundary'], 'teal', dash=True))
+    b.append(curve(c, 816, 84, 838, 134, 'teal'))
+    b.append(curve(c, 816, 184, 838, 134, 'teal', True))
+    b.append(node(c, 838, 94, 154, 80, 'The judge', ['An AI that did not', 'write the code'], 'teal', 'tealf'))
+    b.append(T(W / 2, 258, 'Slices that share no files build side by side, and only a risky slice gets a checkpoint.', 13, 'muted', 400, 'middle', c=c))
+    b.append(T(W / 2, 278, 'Then Polish and Security run side by side, and one judge checks the whole change.', 13, 'muted', 400, 'middle', c=c))
+    return svg(W, H, ''.join(b), 'Implement and Verify: slices built test first, side by side where they share no files, a checkpoint after a risky slice, then Polish and Security side by side, then one judge')
+
+
+# ---------------------------------------------------------------- who does what
+def agents(c):
+    W, H = 1000, 420
+    b = []
+    b.append(node(c, 0, 170, 160, 80, 'You', ['Answer, then approve', 'the Plan and change'], 'amber', 'amberf'))
+    b.append(curve(c, 160, 210, 185, 210, 'amberl'))
+    b.append(node(c, 185, 170, 190, 80, 'Your agent', ['Discuss and Plan,', 'Opus 5.5 recommended'], 'blue', 'bluef'))
+    b.append(curve(c, 375, 210, 400, 210, 'blue'))
+    b.append(f'<rect x="400" y="150" width="120" height="120" rx="12" fill="{c["violetf"]}" stroke="{c["violet"]}" stroke-width="2"/>')
+    b.append(T(416, 180, 'The Plan', 15, 'text', 650, c=c))
+    for i in range(4):
+        b.append(f'<rect x="416" y="{196 + i * 15}" width="{[88, 72, 84, 56][i]}" height="6" rx="3" fill="{c["violet"]}" fill-opacity="0.35"/>')
+    b.append(curve(c, 520, 210, 545, 210, 'blue'))
+    b.append(node(c, 545, 170, 190, 80, 'Implement session', ['You start it fresh,', 'Sonnet 5.5 recommended'], 'blue', 'bluef'))
+    right = [(0, 'Slice helpers', ['Sonnet 5.5,', 'each task test first'], 'blue'),
+             (88, 'Fix helpers', ['A fresh agent', 'for each failure'], 'blue'),
+             (176, 'Polish and Security', ['Side by side,', 'after the build'], 'teal'),
+             (264, 'The judge', ['Opus 5.5. It did not', 'write the code'], 'teal')]
+    for y, t, s, col in right:
+        b.append(curve(c, 735, 210, 770, y + 39, col))
+        b.append(node(c, 770, y, 230, 78, t, s, 'cardline'))
+        b.append(f'<circle cx="{980}" cy="{y + 22}" r="6" fill="{c[col]}"/>')
+    b.append(curve(c, 460, 270, 460, 340, 'violet', True))
+    b.append(node(c, 330, 340, 260, 68, 'Second opinion', 'Another vendor’s AI, off by default', 'violet', dash=True))
+    b.append(T(474, 300, 'Every helper works from the Plan,', 12, 'muted', c=c))
+    b.append(T(474, 316, 'never from your chat', 12, 'muted', c=c))
+    return svg(W, H, ''.join(b), 'Who does what: you and your agent on Opus 5.5 discuss and write the Plan; the implement session you start on Sonnet 5.5 hands work to slice helpers and fix helpers; Polish and Security run side by side; a judge that did not write the code checks it; a second opinion from another vendor is optional')
+
+
+# ---------------------------------------------------------------- the App window
+def app(c):
+    W, H = 1000, 600
+    b = [window(c, W, H, 'CSV export · QualityLayer')]
+    b.append(f'<path d="M1 41 H221 V{H - 1} H17 a16 16 0 0 1 -16 -16 Z" fill="{c["card"]}"/>')
+    b.append(f'<line x1="221" y1="41" x2="221" y2="{H - 1}" stroke="{c["cardline"]}"/>')
+    b.append(T(24, 72, 'QualityLayer', 15, 'text', 700, c=c))
+
+    def task(y, name, step, sel=False, you=True):
+        out = []
+        if sel:
+            out.append(f'<rect x="12" y="{y}" width="198" height="28" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
+        dash = '' if you else ' stroke-dasharray="3 3"'
+        out.append(f'<circle cx="28" cy="{y + 14}" r="4.5" fill="none" stroke="{c["amber"] if you else c["blue"]}" stroke-width="2"{dash}/>')
+        out.append(T(40, y + 18, name, 12.5, 'text', 500, c=c))
+        out.append(T(200, y + 18, step, 10.5, 'dim', 400, 'end', mono=True, c=c))
+        return ''.join(out)
+
+    b.append(T(24, 108, 'Needs you', 12, 'amber', 650, c=c))
+    b.append(task(124, 'CSV export', 'Plan', True))
+    b.append(task(158, 'Invoice PDFs', 'Review'))
+    b.append(T(24, 222, 'In progress', 12, 'muted', 650, c=c))
+    for i, (n, st) in enumerate([('Webhooks', 'Implement'), ('SSO sync', 'Verify'), ('Rate limits', 'Discuss')]):
+        b.append(task(238 + i * 34, n, st, you=False))
+    x0 = 250
+    b.append(T(x0, 78, 'CSV export', 20, 'text', 650, c=c))
+    sx = x0
+    for i, (s, _) in enumerate(STEPS):
+        done, cur = i < 1, i == 1
+        col = c['text'] if done else c['amber'] if cur else c['dim']
+        if done:
+            b.append(f'<circle cx="{sx + 5}" cy="106" r="5" fill="{c["text"]}"/>')
+        else:
+            b.append(f'<circle cx="{sx + 5}" cy="106" r="5" fill="none" stroke="{col}" stroke-width="2"/>')
+        b.append(f'<text x="{sx + 16}" y="110" font-family="{SANS}" font-size="12.5" font-weight="{600 if cur else 400}" fill="{col}">{s}</text>')
+        sx += 16 + len(s) * 7.2 + 24
+    by = 128
+    b.append(f'<rect x="222" y="{by}" width="{W - 223}" height="64" fill="{c["amberf"]}"/>')
+    b.append(f'<rect x="222" y="{by}" width="4" height="64" fill="{c["amber"]}"/>')
+    b.append(T(x0, by + 28, 'Your review · the Plan', 14, 'text', 650, c=c))
+    b.append(T(x0, by + 48, 'Comment on any line or diagram, then decide.', 12.5, 'muted', c=c))
+    b.append(button(c, W - 290, by + 16, 148, 'Request changes'))
+    b.append(button(c, W - 130, by + 16, 100, 'Approve', True))
+    cy = 218
+    b.append(f'<rect x="{x0}" y="{cy}" width="410" height="350" rx="12" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
+    b.append(T(x0 + 18, cy + 30, 'What changes', 14, 'text', 650, c=c))
+
+    def box(x, y, w, label, col, fill):
+        return (f'<rect x="{x}" y="{y}" width="{w}" height="44" rx="9" fill="{c[fill]}" stroke="{c[col]}" stroke-width="1.8"/>'
+                + T(x + w / 2, y + 27, label, 13, 'text', 600, 'middle', c=c))
+    b.append(box(x0 + 22, cy + 140, 96, 'Reports', 'cardline', 'bg'))
+    b.append(box(x0 + 160, cy + 140, 104, 'Exporter', 'violet', 'violetf'))
+    b.append(box(x0 + 300, cy + 76, 92, 'Download', 'blue', 'bluef'))
+    b.append(box(x0 + 300, cy + 204, 92, 'Email', 'blue', 'bluef'))
+    b.append(f'<path d="M{x0 + 118} {cy + 162} H{x0 + 160}" stroke="{c["muted"]}" stroke-width="1.8"/>')
+    b.append(curve(c, x0 + 264, cy + 162, x0 + 300, cy + 98, 'blue'))
+    b.append(curve(c, x0 + 264, cy + 162, x0 + 300, cy + 226, 'blue', True))
+    b.append(f'<rect x="{x0 + 100}" y="{cy + 262}" width="230" height="58" rx="10" fill="{c["bg"]}" stroke="{c["amberl"]}" stroke-width="1.5"/>')
+    b.append(f'<path d="M{x0 + 205} {cy + 262} l7 -10 l7 10" fill="{c["bg"]}" stroke="{c["amberl"]}" stroke-width="1.5"/>')
+    b.append(f'<rect x="{x0 + 204}" y="{cy + 261}" width="16" height="3" fill="{c["bg"]}"/>')
+    b.append(f'<circle cx="{x0 + 124}" cy="{cy + 291}" r="12" fill="{c["amberf"]}" stroke="{c["amber"]}" stroke-width="1.5"/>')
+    b.append(T(x0 + 124, cy + 295, 'A', 11, 'amber', 700, 'middle', c=c))
+    b.append(T(x0 + 144, cy + 286, 'Anna', 12, 'text', 650, c=c))
+    b.append(T(x0 + 144, cy + 304, 'Keep the column order', 12, 'muted', c=c))
+    mx = x0 + 430
+    b.append(f'<rect x="{mx}" y="{cy}" width="{W - mx - 30}" height="350" rx="12" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
+    b.append(T(mx + 18, cy + 30, 'Interface mockup', 14, 'text', 650, c=c))
+    b.append(T(W - 48, cy + 30, 'clickable', 11, 'dim', 500, 'end', mono=True, c=c))
+    for i, on in enumerate([True, False, False, True]):
+        ry = cy + 54 + i * 70
+        b.append(f'<rect x="{mx + 18}" y="{ry}" width="{W - mx - 66}" height="56" rx="9" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
+        b.append(bars(c, mx + 34, ry + 18, [[96, 120, 84, 104][i], 58], 14, 6, 'line'))
+        tx = W - 102
+        b.append(f'<rect x="{tx}" y="{ry + 17}" width="40" height="22" rx="11" fill="{c["blue"] if on else c["line"]}"/>')
+        b.append(f'<circle cx="{tx + (29 if on else 11)}" cy="{ry + 28}" r="8" fill="#ffffff"/>')
+    return svg(W, H, ''.join(b), 'The QualityLayer App: the task list, the five steps, the Plan under review with a diagram, a teammate’s comment, a clickable mockup, and Approve')
+
+
+def app_marked(c: Theme) -> str:
+    """The App drawing with numbered markers for the parts the App page explains."""
+    marks = [(200, 108, 1), (236, 106, 2), (700, 144, 3), (652, 222, 4), (586, 478, 5), (968, 230, 6)]
+    return app(c).replace('</svg>', ''.join(num(c, x, y, n) for x, y, n in marks) + '</svg>')
+
+
+# ---------------------------------------------------------------- after the Plan is approved
+def implement_start(c):
+    W, H = 1000, 350
+    b = [window(c, W, H, 'CSV export · QualityLayer')]
+    x0 = 40
+    b.append(mark(c, x0 + 8, 82))
+    b.append(T(x0 + 26, 88, 'The Plan is approved', 18, 'text', 650, c=c))
+    b.append(T(x0, 116, 'Start Implement in a fresh session, the way you like: terminal, IDE or desktop app.', 13.5, 'muted', c=c))
+    b.append(f'<rect x="{x0}" y="136" width="{W - 2 * x0}" height="64" rx="10" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
+    b.append(T(x0 + 20, 174, '/ql implement csv-export', 16, 'text', 600, mono=True, c=c))
+    b.append(button(c, W - x0 - 112, 151, 96, 'Copy', True))
+    b.append(f'<circle cx="{x0 + 6}" cy="230" r="5" fill="{c["blue"]}"/>')
+    b.append(T(x0 + 20, 235, 'Start a fresh session. Sonnet 5.5 recommended.', 14, 'text', 600, c=c))
+    b.append(T(x0 + 20, 256, 'In Codex: $ql implement csv-export, with GPT-6.1 Sol.', 12.5, 'muted', c=c))
+    b.append(f'<rect x="{x0}" y="276" width="{W - 2 * x0}" height="52" rx="10" fill="{c["bluef"]}" stroke="{c["blue"]}" stroke-opacity="0.6"/>')
+    b.append(T(x0 + 18, 297, 'What runs', 11.5, 'blue', 700, c=c))
+    b.append(T(x0 + 18, 316, '3 slices, slices 1 and 2 side by side, a checkpoint after slice 3 (new mail service), no security review.', 13, 'text', c=c))
+    return svg(W, H, ''.join(b), 'After you approve the Plan, the App shows the prompt /ql implement csv-export with a Copy button and the advice to start a fresh session with Sonnet 5.5')
+
+
+def implement_ill(c: Theme) -> str:
     W, H = 1000, 330
-    b = [card(c, 0, 0, 600, 326), doc_head(c, 0, 0, 600, '00-frame.md', 'For you')]
-    b.append(T(20, 66, 'Add a CSV export to the reports page', 17, 'text', 700, c=c))
-    b.append(T(20, 96, 'PROBLEM', 11, 'dim', 700, c=c))
-    b.append(T(20, 116, 'Support copies report tables by hand to send them to customers.', 13.5, 'muted', c=c))
-    b.append(T(20, 150, 'DONE MEANS', 11, 'dim', 700, c=c))
-    for i, t in enumerate(['An Export button on every report', 'The file opens in a spreadsheet with the same columns',
-                           'A large report arrives by email within five minutes']):
-        y = 164 + i * 50
-        b.append(card(c, 20, y, 560, 40, fill='bg'))
-        b.append(f'<circle cx="42" cy="{y + 20}" r="11" fill="{c["violetf"]}" stroke="{c["violet"]}" stroke-width="1.5"/>')
-        b.append(T(42, y + 24.5, str(i + 1), 12, 'violet', 700, 'middle', c=c))
-        b.append(T(64, y + 25, t, 13.5, 'text', 500, c=c))
-    b.append(card(c, 630, 0, 370, 326))
-    b.append(T(650, 30, 'Decided with you', 14, 'text', 650, c=c))
-    b.append(f'<rect x="650" y="48" width="250" height="40" rx="10" fill="{c["bluef"]}" stroke="{c["blue"]}" stroke-opacity="0.5"/>')
-    b.append(T(664, 73, 'Which reports need the export?', 13, 'text', c=c))
-    b.append(f'<rect x="730" y="98" width="250" height="40" rx="10" fill="{c["amberf"]}" stroke="{c["amberl"]}"/>')
-    b.append(T(744, 123, 'All of them, with their filters', 13, 'text', c=c))
-    b.append(T(650, 176, 'Research questions', 14, 'text', 650, c=c))
-    for i, t in enumerate(['How is a report built today?', 'What happens to a report that runs long?']):
-        y = 192 + i * 34
-        b.append(f'<circle cx="660" cy="{y + 11}" r="3.5" fill="{c["teal"]}"/>')
-        b.append(T(674, y + 15.5, t, 13, 'muted', c=c))
-    b.append(f'<rect x="650" y="274" width="330" height="36" rx="8" fill="{c["blue"]}"/>')
-    b.append(T(815, 297, 'Approve the frame', 13.5, '#ffffff', 650, 'middle', c=c))
-    return svg(W, H, ''.join(b), 'A frame: the problem, three numbered Done means, the questions decided with you, and the research questions')
+    b = [card(c, 0, 0, 1000, 44, stroke='blue', fill='bluef', sw=1.4)]
+    b.append(f'<circle cx="22" cy="22" r="5" fill="{c["blue"]}"/>')
+    b.append(T(36, 27, 'Now: slices 1 and 2, side by side', 13, 'text', 600, c=c))
+    b.append(T(980, 27, 'reported 1 min ago', 12, 'muted', 400, 'end', c=c))
+    rows = [('s1', 'Slice 1', [('T1', 'done'), ('T2', 'done'), ('T3', 'verified')]),
+            ('s2', 'Slice 2', [('T4', 'done'), ('T5', 'building')])]
+    y = 62
+    for col, name, tasks in rows:
+        b.append(T(0, y + 18, name, 13, col, 650, c=c))
+        for k, (t, state) in enumerate(tasks):
+            x = 80 + k * 140
+            b.append(f'<rect x="{x}" y="{y}" width="130" height="28" rx="7" fill="{c["bg"]}" stroke="{c[col] if state != "building" else c["cardline"]}"/>')
+            if state == 'building':
+                b.append(f'<circle cx="{x + 16}" cy="{y + 14}" r="5" fill="none" stroke="{c["blue"]}" stroke-width="2" stroke-dasharray="3 2"/>')
+            else:
+                b.append(mark(c, x + 16, y + 14))
+            b.append(T(x + 30, y + 18.5, f'{t} {state}', 12, 'text', 600, c=c))
+        y += 44
+    b.append(T(540, 80, 'building: a helper is on it', 12, 'muted', c=c))
+    b.append(T(540, 100, 'verified: its check passed', 12, 'muted', c=c))
+    b.append(T(540, 120, 'done: its box is ticked', 12, 'muted', c=c))
+    b.append(card(c, 0, 160, 1000, 166))
+    b.append(T(18, 190, 'Checks · recorded by QualityLayer in 03-build.md', 14, 'text', 650, c=c))
+    lines = [('slice 1 · 4f2a9c1 · bun test tests/export · exit 0 · 14s', 'text', None),
+             ('task T5 · 4f2a9c1 · bun test tests/filter · exit 1 · 3s', 'danger', 'A fresh agent fixes it'),
+             ('task T5 · 9b03e7d · bun test tests/filter · exit 0 · 3s', 'text', None)]
+    for i, (t, col, note) in enumerate(lines):
+        yy = 216 + i * 34
+        b.append(f'<rect x="18" y="{yy}" width="964" height="26" rx="6" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
+        b.append(T(32, yy + 17.5, t, 12, col, 500, mono=True, c=c))
+        if note:
+            b.append(T(966, yy + 17.5, note, 12, 'amber', 600, 'end', c=c))
+    return svg(W, H, ''.join(b), 'The Implement tab: each task building, verified or done, two slices side by side, and the checks QualityLayer recorded with their exit codes')
 
 
-def research_ill(c: Theme) -> str:
+def checkpoint_ill(c: Theme) -> str:
+    W, H = 1000, 300
+    b = []
+    top = [(0, 'Slice 3 built', 'cardline', 'bg'), (220, 'Its scenarios run', 'blue', 'bluef'), (440, 'Passed', 'ok', 'bg'),
+           (660, 'Next slice', 'cardline', 'bg')]
+    for x, t, col, fill in top:
+        b.append(card(c, x, 20, 180, 56, stroke=col, fill=fill, sw=1.6 if col != 'cardline' else 1))
+        b.append(T(x + 90, 54, t, 14, 'text', 650, 'middle', c=c))
+    for x in (0, 220, 440):
+        b.append(arrow(c, x + 182, 48, x + 218))
+    b.append(mark(c, 474, 48))
+    b.append(T(90, 98, 'Risky: new mail service', 12, 'amber', 600, 'middle', c=c))
+    b.append(T(870, 44, 'Tests, logs and a', 12, 'muted', c=c))
+    b.append(T(870, 60, 'screenshot are kept', 12, 'muted', c=c))
+    b.append(card(c, 220, 172, 180, 56, stroke='danger', fill='bg', sw=1.6))
+    b.append(mark(c, 250, 200, False))
+    b.append(T(318, 205, 'Failed', 14, 'text', 650, 'middle', c=c))
+    b.append(arrow(c, 310, 78, 310, 170, 'danger'))
+    b.append(f'<path d="M218 200 H150 V112" fill="none" stroke="{c["muted"]}" stroke-width="1.8" stroke-dasharray="4 4"/>')
+    b.append(f'<path d="M145 119 l5 -7 l5 7" fill="none" stroke="{c["muted"]}" stroke-width="1.8"/>')
+    b.append(T(0, 160, 'A fresh agent', 12, 'muted', c=c))
+    b.append(T(0, 176, 'fixes it, then', 12, 'muted', c=c))
+    b.append(T(0, 192, 'it runs again', 12, 'muted', c=c))
+    b.append(arrow(c, 402, 200, 470))
+    b.append(T(436, 190, '2 runs', 11.5, 'danger', 600, 'middle', c=c))
+    b.append(card(c, 472, 152, 508, 96, stroke='amber', fill='amberf', sw=1.6))
+    b.append(T(490, 180, 'Stopped: the build waits for you', 14, 'text', 650, c=c))
+    for i, (t, w) in enumerate([('Continue', 96), ('Pivot', 72), ('Abandon', 92)]):
+        x = 490 + sum([96, 72, 92][:i]) + i * 10
+        b.append(pill(c, x, 204, t, 'text', w))
+    return svg(W, H, ''.join(b), 'A checkpoint after a risky slice: its scenarios run on the real program; a failure goes to a fresh agent and runs again, and after two failed runs you decide')
+
+
+# ---------------------------------------------------------------- Discuss and Plan
+def discuss_ill(c: Theme) -> str:
     W, H = 1000, 320
-    b = [card(c, 0, 0, 1000, 316), doc_head(c, 0, 0, 1000, '01-research.md', 'For you')]
-    b.append(T(20, 64, 'How a report reaches the page today', 15, 'text', 650, c=c))
-    parts = [('Reports page', 'cardline'), ('Report API', 'cardline'), ('Query builder', 'teal'), ('Database', 'cardline')]
-    for i, (p, col) in enumerate(parts):
-        x = 20 + i * 118
-        b.append(card(c, x, 84, 100, 44, stroke=col, fill='tealf' if col == 'teal' else 'bg', sw=1.6 if col == 'teal' else 1))
-        b.append(T(x + 50, 111, p, 12, 'text', 600, 'middle', c=c))
-        if i < 3:
-            b.append(arrow(c, x + 102, 106, x + 116))
-    b.append(T(20, 160, 'One query builder serves every report; the export can reuse it.', 13, 'muted', c=c))
-    b.append(f'<line x1="500" y1="50" x2="500" y2="296" stroke="{c["cardline"]}"/>')
-    b.append(T(524, 64, 'Findings', 15, 'text', 650, c=c))
-    rows = [('Every report goes through one query builder', 'api/reports/query.ts:41'),
-            ('A report that runs over 30 s times out today', 'api/reports/run.ts:88'),
-            ('Nothing exports a report yet', 'web/reports/page.tsx')]
-    for i, (t, ref) in enumerate(rows):
-        y = 82 + i * 70
-        b.append(card(c, 524, y, 456, 58, fill='bg'))
-        b.append(f'<circle cx="542" cy="{y + 20}" r="3.5" fill="{c["teal"]}"/>')
-        b.append(T(554, y + 24, t, 13, 'text', 500, c=c))
-        b.append(T(554, y + 44, ref, 11.5, 'blue', 500, mono=True, c=c))
-    b.append(f'<rect x="20" y="196" width="460" height="100" rx="10" fill="{c["bg"]}" stroke="{c["cardline"]}" stroke-dasharray="4 4"/>')
-    b.append(T(36, 222, 'For the agent', 12, 'dim', 700, c=c))
-    b.append(bars(c, 36, 236, [380, 320, 350, 260], 12, 5))
-    return svg(W, H, ''.join(b), 'Research: a picture of the parts involved, and findings that each point to the code')
+    b = [card(c, 0, 0, 300, 316)]
+    b.append(T(18, 28, 'In your agent’s chat', 12, 'dim', 600, c=c))
+    b.append(T(18, 60, 'Question 3 of 5', 12, 'muted', 500, c=c))
+    b.append(T(18, 84, 'Which reports need the export?', 14, 'text', 650, c=c))
+    opts = [('All reports, with filters', 'Recommended', True), ('Only the sales report', None, False),
+            ('Something else', None, False)]
+    y = 102
+    for t, sub, on in opts:
+        h = 48 if sub else 36
+        b.append(f'<rect x="18" y="{y}" width="264" height="{h}" rx="9" fill="{c["bluef"] if on else c["bg"]}" stroke="{c["blue"] if on else c["cardline"]}"/>')
+        b.append(T(32, y + (20 if sub else 23), t, 13, 'text', 600 if on else 500, c=c))
+        if sub:
+            b.append(T(32, y + 38, sub, 11.5, 'blue', 600, c=c))
+        y += h + 10
+    b.append(T(18, 296, 'One question at a time', 12, 'dim', 500, c=c))
+    b.append(arrow(c, 302, 158, 328))
+    b.append(card(c, 330, 0, 360, 316))
+    b.append(doc_head(c, 330, 0, 360, '00-discuss.md', 'In the App'))
+    b.append(T(348, 64, 'Add a CSV export to the reports page', 15, 'text', 700, c=c))
+    b.append(T(348, 92, 'PROBLEM', 11, 'dim', 700, c=c))
+    b.append(T(348, 110, 'Support copies report tables by hand.', 13, 'muted', c=c))
+    b.append(T(348, 142, 'DONE MEANS', 11, 'dim', 700, c=c))
+    for i, t in enumerate(['An Export button on every report', 'Opens in a spreadsheet, same columns',
+                           'Large reports arrive by email']):
+        yy = 154 + i * 48
+        b.append(card(c, 348, yy, 324, 38, fill='bg'))
+        b.append(f'<circle cx="368" cy="{yy + 19}" r="10" fill="{c["violetf"]}" stroke="{c["violet"]}" stroke-width="1.5"/>')
+        b.append(T(368, yy + 23.5, str(i + 1), 11.5, 'violet', 700, 'middle', c=c))
+        b.append(T(388, yy + 24, t, 13, 'text', 500, c=c))
+    b.append(arrow(c, 692, 158, 718, dash=True))
+    b.append(T(705, 146, 'or', 12, 'dim', 600, 'middle', c=c))
+    b.append(card(c, 720, 0, 280, 316, stroke='violet', dash=True, sw=1.4))
+    b.append(T(738, 32, 'Too small?', 15, 'text', 650, c=c))
+    for i, t in enumerate(['Done means fits one line,', 'it stays in one area of', 'the code, nothing to decide.']):
+        b.append(T(738, 58 + i * 19, t, 12.5, 'muted', c=c))
+    b.append(f'<line x1="738" y1="128" x2="982" y2="128" stroke="{c["cardline"]}"/>')
+    b.append(T(738, 154, 'No task. A ready prompt', 13, 'text', 600, c=c))
+    b.append(T(738, 173, 'for your plain agent:', 13, 'text', 600, c=c))
+    b.append(button(c, 738, 190, 112, 'Run it here', True, 32))
+    b.append(button(c, 860, 190, 70, 'Copy', False, 32))
+    b.append(T(738, 258, 'You can still insist on', 12, 'dim', 500, c=c))
+    b.append(T(738, 276, 'a QualityLayer task.', 12, 'dim', 500, c=c))
+    return svg(W, H, ''.join(b), 'Discuss: your agent asks one question at a time with a recommendation and fills the Discuss document in the App; a change too small for QualityLayer gets a ready prompt for your plain agent instead')
 
 
 def diagnose_ill(c: Theme) -> str:
@@ -551,40 +509,49 @@ def diagnose_ill(c: Theme) -> str:
         b.append(mark(c, 704, y, True))
         b.append(T(722, y + 5, t, 13, 'text', 500, c=c))
     b.append(T(698, 200, 'Fix: one test, one line.', 13, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'Diagnosis: how to reproduce the bug, its root cause in the code, and the behaviour the fix must have')
+    return svg(W, H, ''.join(b), 'Diagnosis of a bug: how to reproduce it, its root cause in the code, and the behaviour the fix must have')
 
 
-def checkpoint_ill(c: Theme) -> str:
-    W, H = 1000, 300
-    b = []
-    top = [(0, 'Slice 2 built', 'cardline', 'bg'), (220, 'Running', 'blue', 'bluef'), (440, 'Passed', 'ok', 'bg'),
-           (660, 'Next slice', 'cardline', 'bg')]
-    for x, t, col, fill in top:
-        b.append(card(c, x, 20, 180, 56, stroke=col, fill=fill, sw=1.6 if col != 'cardline' else 1))
-        b.append(T(x + 90, 54, t, 14, 'text', 650, 'middle', c=c))
-    for x in (0, 220, 440):
-        b.append(arrow(c, x + 182, 48, x + 218))
-    b.append(mark(c, 474, 48))
-    b.append(T(870, 54, 'Tests, logs and a', 12, 'muted', c=c))
-    b.append(T(870, 70, 'screenshot are kept', 12, 'muted', c=c))
-    b.append(card(c, 220, 172, 180, 56, stroke='danger', fill='bg', sw=1.6))
-    b.append(mark(c, 250, 200, False))
-    b.append(T(318, 205, 'Failed', 14, 'text', 650, 'middle', c=c))
-    b.append(arrow(c, 310, 78, 310, 170, 'danger'))
-    b.append(f'<path d="M218 200 H150 V78" fill="none" stroke="{c["muted"]}" stroke-width="1.8" stroke-dasharray="4 4"/>')
-    b.append(f'<path d="M145 85 l5 -7 l5 7" fill="none" stroke="{c["muted"]}" stroke-width="1.8"/>')
-    b.append(T(84, 150, 'Fixed at the', 12, 'muted', 400, 'middle', c=c))
-    b.append(T(84, 166, 'source, run again', 12, 'muted', 400, 'middle', c=c))
-    b.append(arrow(c, 402, 200, 470))
-    b.append(T(436, 190, '3 runs', 11.5, 'danger', 600, 'middle', c=c))
-    b.append(card(c, 472, 152, 508, 96, stroke='amber', fill='amberf', sw=1.6))
-    b.append(T(490, 180, 'Stopped: the build waits for you', 14, 'text', 650, c=c))
-    for i, (t, w) in enumerate([('Continue', 96), ('Pivot', 72), ('Abandon', 92)]):
-        x = 490 + sum([96, 72, 92][:i]) + i * 10
-        b.append(pill(c, x, 204, t, 'text', w))
-    return svg(W, H, ''.join(b), 'A checkpoint: after a slice the scenarios run; a pass goes on, a failure is fixed and run again, and three failures stop for you')
+def plan_ill(c: Theme) -> str:
+    W, H = 1000, 340
+    b = [card(c, 0, 0, 590, 336), doc_head(c, 0, 0, 590, '02-plan.md', 'You approve this')]
+    b.append(T(18, 62, 'WHAT CHANGES', 11, 'dim', 700, c=c))
+    for i, (t, col, fill) in enumerate([('Reports', 'cardline', 'bg'), ('Exporter', 'violet', 'violetf'), ('CSV file', 'blue', 'bluef')]):
+        x = 18 + i * 150
+        b.append(card(c, x, 74, 120, 36, stroke=col, fill=fill, sw=1.6 if col != 'cardline' else 1))
+        b.append(T(x + 60, 97, t, 12.5, 'text', 600, 'middle', c=c))
+        if i < 2:
+            b.append(arrow(c, x + 122, 92, x + 148))
+    b.append(T(18, 142, 'DECISIONS MADE FOR YOU', 11, 'dim', 700, c=c))
+    for i, t in enumerate(['Large reports go by email, not a download', 'Columns follow the table on screen']):
+        y = 154 + i * 42
+        b.append(f'<rect x="18" y="{y}" width="554" height="34" rx="8" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
+        b.append(T(32, y + 22, t, 13, 'text', 500, c=c))
+        b.append(T(558, y + 22, 'comment to change', 11.5, 'dim', 500, 'end', c=c))
+    b.append(T(18, 262, 'Trust boundary: none', 12.5, 'text', 600, mono=True, c=c))
+    b.append(T(18, 282, 'So Verify skips the security review.', 12.5, 'muted', c=c))
+    b.append(button(c, 270, 288, 148, 'Request changes'))
+    b.append(button(c, 428, 288, 144, 'Approve', True))
+    b.append(card(c, 610, 0, 390, 336))
+    b.append(T(628, 30, 'Slices and scenarios', 14, 'text', 650, c=c))
+    b.append(T(628, 50, 'Drawn by the App from the details', 12, 'dim', 500, c=c))
+    sl = [('s1', 'Slice 1 · Export one report', 'Side by side with slice 2', 'muted'),
+          ('s2', 'Slice 2 · Filter the export', 'Side by side with slice 1', 'muted'),
+          ('s3', 'Slice 3 · Large reports by email', 'Risky: new mail service', 'amber')]
+    for i, (col, t, s, scol) in enumerate(sl):
+        y = 68 + i * 50
+        b.append(f'<rect x="628" y="{y}" width="4" height="40" rx="2" fill="{c[col]}"/>')
+        b.append(T(642, y + 16, t, 13, 'text', 650, c=c))
+        b.append(T(642, y + 34, s, 11.5, scol, 600 if scol == 'amber' else 400, c=c))
+    b.append(T(628, 238, 'Scenarios', 13, 'text', 650, c=c))
+    for i, t in enumerate(['Export a filtered report', '200,000 rows arrive by email']):
+        y = 252 + i * 32
+        b.append(f'<circle cx="638" cy="{y + 10}" r="5" fill="none" stroke="{c["teal"]}" stroke-width="2"/>')
+        b.append(T(652, y + 14.5, t, 12.5, 'text', 500, c=c))
+    return svg(W, H, ''.join(b), 'The Plan: what changes as a picture, the decisions made for you, the trust boundary line, Approve, and the slices and scenarios the App draws from the details')
 
 
+# ---------------------------------------------------------------- Verify and Review
 def verify_ill(c: Theme) -> str:
     W, H = 1000, 330
     b = [card(c, 0, 0, 200, 326)]
@@ -595,8 +562,8 @@ def verify_ill(c: Theme) -> str:
         b.append(mark(c, 34, y + 22, ok))
         b.append(T(50, y + 26, t, 13.5, 'text', 650, c=c))
         b.append(T(50, y + 44, note, 12, 'muted', c=c))
-    groups = [('Automated checks', [('Tests', 'PASS'), ('Lint and types', 'PASS'), ('Build', 'PASS')]),
-              ('Done means', [('1  Export button', 'PASS'), ('2  Opens in a spreadsheet', 'PASS'), ('3  Email within 5 min', 'PASS')]),
+    groups = [('Recorded checks', [('Tests', 'PASS'), ('Lint and types', 'PASS'), ('Build', 'PASS')]),
+              ('Done means', [('1  Export button', 'PASS'), ('2  Opens in a spreadsheet', 'PASS'), ('3  Email for large ones', 'PASS')]),
               ('Scenarios', [('Export a filtered report', 'PASS'), ('Export 200,000 rows', 'PASS')])]
     for g, (title, rows) in enumerate(groups):
         x = 224 + g * 262
@@ -612,13 +579,36 @@ def verify_ill(c: Theme) -> str:
             ex = x + 16 + k * 72
             b.append(f'<rect x="{ex}" y="226" width="62" height="44" rx="6" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
             b.append(bars(c, ex + 8, 236, [44, 30, 38], 9, 4))
-    return svg(W, H, ''.join(b), 'The Verify tab: rounds on the left, then automated checks, Done means and scenarios, each with PASS and its evidence')
+    return svg(W, H, ''.join(b), 'The Verify tab: rounds on the left, then the recorded checks, Done means and scenarios, each with PASS and its evidence')
 
 
-def approve_ill(c: Theme) -> str:
+def stopped_ill(c: Theme) -> str:
+    W, H = 1000, 230
+    b = []
+    for i in range(2):
+        x = i * 136
+        b.append(card(c, x, 85, 120, 60, stroke='danger', fill='bg', sw=1.4))
+        b.append(mark(c, x + 24, 115, False))
+        b.append(T(x + 40, 120, f'Judge run {i + 1}', 13, 'text', 600, c=c))
+    b.append(arrow(c, 258, 115, 290))
+    b.append(card(c, 292, 75, 190, 80, stroke='amber', fill='amberf', sw=1.6))
+    b.append(T(310, 109, 'Stopped', 15, 'text', 650, c=c))
+    b.append(T(310, 131, 'The choice is yours', 12.5, 'muted', c=c))
+    opts = [('Continue', 'Keep the approach, try again'), ('Pivot', 'Agree on a new approach'),
+            ('Abandon', 'Stop, keep the documents'), ('Accept as is', 'Go to Review, with what is open listed')]
+    for i, (t, s) in enumerate(opts):
+        y = i * 58
+        b.append(curve(c, 482, 115, 530, y + 25, 'line'))
+        b.append(card(c, 530, y, 470, 50))
+        b.append(T(548, y + 31, t, 14, 'text', 650, c=c))
+        b.append(T(672, y + 31, s, 12.5, 'muted', c=c))
+    return svg(W, H, ''.join(b), 'When verification keeps failing: after two failed judge runs the task stops, and you choose to continue, pivot, abandon or accept it as is')
+
+
+def review_ill(c: Theme) -> str:
     W, H = 1000, 350
     b = []
-    tiles = [('11', 'tasks built'), ('3', 'checks passed'), ('Round 2', 'verified'), ('1', 'plan change')]
+    tiles = [('11', 'tasks built'), ('4', 'checks recorded'), ('Round 2', 'judge passed'), ('1', 'plan change')]
     for i, (n, t) in enumerate(tiles):
         x = i * 252
         b.append(card(c, x, 0, 238, 74))
@@ -632,7 +622,7 @@ def approve_ill(c: Theme) -> str:
         b.append(T(32, y + 20.5, str(i + 1), 12, 'muted', 650, 'middle', c=c))
         b.append(T(52, y + 21, t, 13, 'text', 500, c=c))
     b.append(card(c, 490, 90, 510, 196))
-    b.append(T(508, 120, 'The change', 14, 'text', 650, c=c))
+    b.append(T(508, 120, 'Files changed', 14, 'text', 650, c=c))
     for i, (f, add, rm) in enumerate([('api/reports/export.ts', 84, 0), ('api/reports/query.ts', 6, 4),
                                        ('web/reports/ExportButton.tsx', 41, 0), ('tests/export.test.ts', 120, 0)]):
         y = 138 + i * 34
@@ -642,11 +632,10 @@ def approve_ill(c: Theme) -> str:
         b.append(f'<rect x="954" y="{y + 6}" width="28" height="10" rx="2" fill="{c["ok"]}" fill-opacity="0.6"/>')
     b.append(f'<rect x="0" y="300" width="1000" height="46" rx="12" fill="{c["amberf"]}"/>')
     b.append(T(18, 328, 'Your review · the finished change', 14, 'text', 650, c=c))
-    b.append(f'<rect x="640" y="307" width="160" height="32" rx="8" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-    b.append(T(720, 328, 'Request changes', 13, 'text', 600, 'middle', c=c))
-    b.append(f'<rect x="812" y="307" width="176" height="32" rx="8" fill="{c["blue"]}"/>')
-    b.append(T(900, 328, 'Approve and ship', 13, '#ffffff', 650, 'middle', c=c))
-    return svg(W, H, ''.join(b), 'The Review stage: what was built and checked, steps to try it, the files changed, and the final decision')
+    b.append(button(c, 470, 307, 150, 'Request changes', h=32))
+    b.append(button(c, 630, 307, 170, 'Create pull request', h=32))
+    b.append(button(c, 812, 307, 176, 'Approve and ship', True, 32))
+    return svg(W, H, ''.join(b), 'Review: what was built and checked, steps to try it, the files changed, Create pull request and the final approval')
 
 
 def shipped_ill(c: Theme) -> str:
@@ -671,59 +660,15 @@ def shipped_ill(c: Theme) -> str:
         b.append(T(x + 53, 100, t, 13.5, 'text', 600, 'middle', c=c))
         if i < 2:
             b.append(arrow(c, x + 108, 95, x + 124))
-    b.append(T(622, 166, 'Your agent can open the pull request, with your OK.', 12.5, 'muted', c=c))
+    b.append(T(622, 166, 'QualityLayer opens the pull request only when you click.', 12.5, 'muted', c=c))
     return svg(W, H, ''.join(b), 'Shipped: the task keeps its documents and evidence; the pull request, merge and deploy stay in your own process')
-
-
-def quick_ill(c: Theme) -> str:
-    W, H = 1000, 230
-    b = []
-    flow = [('Your request', 'Rename --out to --output', 'cardline', 'bg'), ('A failing test', 'The new name is checked', 'danger', 'bg'),
-            ('The change', 'Smallest fix that passes', 'blue', 'bluef'), ('Verify', 'Run it, keep evidence', 'teal', 'tealf'),
-            ('You approve', 'The final decision', 'amber', 'amberf')]
-    for i, (t, s, col, fill) in enumerate(flow):
-        x = i * 204
-        b.append(card(c, x, 10, 184, 80, stroke=col, fill=fill, sw=1.6 if col != 'cardline' else 1))
-        b.append(T(x + 16, 42, t, 14.5, 'text', 650, c=c))
-        b.append(T(x + 16, 66, s, 12, 'muted', c=c))
-        if i < 4:
-            b.append(arrow(c, x + 186, 50, x + 202))
-    b.append(f'<path d="M500 92 V150 H560" fill="none" stroke="{c["muted"]}" stroke-width="1.8" stroke-dasharray="4 4"/>')
-    b.append(f'<path d="M553 145 l7 5 l-7 5" fill="none" stroke="{c["muted"]}" stroke-width="1.8"/>')
-    b.append(T(490, 128, 'Turns out bigger', 12, 'muted', 500, 'end', c=c))
-    b.append(card(c, 562, 120, 300, 64, stroke='violet', fill='violetf', sw=1.6))
-    b.append(T(580, 148, 'Feature route', 14.5, 'text', 650, c=c))
-    b.append(T(580, 170, 'Starts again at Frame, with a plan', 12, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'A quick change: a failing test, the change, a check and your approval; a bigger task moves to the Feature route')
-
-
-def stopped_ill(c: Theme) -> str:
-    W, H = 1000, 220
-    b = []
-    for i in range(3):
-        x = i * 128
-        b.append(card(c, x, 70, 112, 60, stroke='danger', fill='bg', sw=1.4))
-        b.append(mark(c, x + 24, 100, False))
-        b.append(T(x + 40, 105, f'Round {i + 1}', 13, 'text', 600, c=c))
-    b.append(arrow(c, 372, 100, 410))
-    b.append(card(c, 412, 60, 190, 80, stroke='amber', fill='amberf', sw=1.6))
-    b.append(T(430, 94, 'Stopped', 15, 'text', 650, c=c))
-    b.append(T(430, 116, 'The choice is yours', 12.5, 'muted', c=c))
-    opts = [('Continue', 'Keep the approach, try again'), ('Pivot', 'Agree on a new approach'), ('Abandon', 'Stop, keep the documents')]
-    for i, (t, s) in enumerate(opts):
-        y = i * 74
-        b.append(curve(c, 602, 100, 650, y + 30, 'line'))
-        b.append(card(c, 650, y, 350, 60))
-        b.append(T(668, y + 26, t, 14, 'text', 650, c=c))
-        b.append(T(668, y + 46, s, 12.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'Stopped verification: three failed rounds, then you choose to continue, pivot or abandon')
 
 
 def abandon_ill(c: Theme) -> str:
     W, H = 1000, 170
     b = []
     items = [('Abandon', 'Stops the work', 'The documents stay in your repository', 'danger'),
-             ('Archive', 'Off the Cockpit list', 'Restore brings it back', 'muted'),
+             ('Archive', 'Off the App’s task list', 'Restore brings it back', 'muted'),
              ('Delete', 'Archived tasks only', 'Asks first, then moves the files to the Trash', 'dim')]
     for i, (t, s, d, col) in enumerate(items):
         x = i * 340
@@ -741,366 +686,133 @@ def abandon_ill(c: Theme) -> str:
     return svg(W, H, ''.join(b), 'Abandon stops the work and keeps the documents; Archive hides a task; Delete removes an archived task after asking')
 
 
-def track_group(first: str, last: str, label: str):
-    """The Feature route with one group of steps highlighted, for a page that covers several steps."""
-    def draw(c: Theme) -> str:
-        W, H = 1000, 112
-        x0, step = 54, 89.2
-        names = [n for n, _ in STEPS]
-        a, z = names.index(first), names.index(last)
-        xs = [x0 + i * step for i in range(len(STEPS))]
-        col = STEPS[a][1]
-        b = [T(0, 16, 'Feature route', 12, 'muted', 600, c=c)]
-        b.append(f'<rect x="{xs[a] - 30}" y="30" width="{xs[z] - xs[a] + 60}" height="76" rx="14" fill="{c[col]}" fill-opacity="0.09" stroke="{c[col]}" stroke-opacity="0.5"/>')
-        b.append(T((xs[a] + xs[z]) / 2, 22, label, 12.5, col, 700, 'middle', c=c))
-        b.append(f'<line x1="{xs[0]}" y1="52" x2="{xs[-1]}" y2="52" stroke="{c["line"]}" stroke-width="2"/>')
-        for i, (n, _) in enumerate(STEPS):
-            inside = a <= i <= z
-            dash = ' stroke-dasharray="3 2.5"' if n in OPTIONAL else ''
-            if inside:
-                b.append(f'<circle cx="{xs[i]}" cy="52" r="8" fill="{c["bg"]}" stroke="{c[col]}" stroke-width="2.5"{dash}/>')
-            else:
-                b.append(f'<circle cx="{xs[i]}" cy="52" r="5" fill="{c["bg"]}" stroke="{c["line"]}" stroke-width="2"{dash}/>')
-            b.append(T(xs[i], 86, n, 12.5 if inside else 12, 'text' if inside else 'muted', 650 if inside else 500, 'middle', c=c))
-        return svg(W, H, ''.join(b), f'The Feature route with {label} highlighted: {first} to {last}')
-    return draw
-
-
-def install_ill(c: Theme) -> str:
-    W, H = 1000, 200
-    b = []
-    steps = [('1  Install', 'One command in your terminal', 'curl … install.sh | bash', 'cardline'),
-             ('2  Start a task', 'In any repository, in your agent', '/ql add a CSV export', 'blue'),
-             ('3  Review in the Cockpit', 'It opens in your browser', 'localhost', 'amber')]
-    for i, (t, s, code, col) in enumerate(steps):
-        x = i * 340
-        b.append(card(c, x, 10, 310, 170, stroke=col, fill='card', sw=1.6 if col != 'cardline' else 1))
-        b.append(T(x + 20, 46, t, 16, 'text', 700, c=c))
-        b.append(T(x + 20, 72, s, 13, 'muted', c=c))
-        b.append(f'<rect x="{x + 20}" y="96" width="270" height="40" rx="8" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-        b.append(T(x + 34, 121, code, 13, 'text', 500, mono=True, c=c))
-        if i < 2:
-            b.append(arrow(c, x + 314, 95, x + 336))
-    b.append(T(20, 160, 'Claude Code and Codex are set up for you', 12, 'dim', 500, c=c))
-    b.append(T(360, 160, '$ql in Codex', 12, 'dim', 500, c=c))
-    b.append(T(700, 160, 'Approve, or comment and ask for changes', 12, 'dim', 500, c=c))
-    return svg(W, H, ''.join(b), 'Install with one command, start a task with /ql, and review it in the Cockpit')
-
-
-def firsttask_ill(c: Theme) -> str:
-    W, H = 1000, 190
-    b = []
-    steps = [('Describe', 'the change'), ('Approve', 'the frame'), ('Approve', 'research, design'), ('Approve', 'the outline'),
-             ('Hand off', 'the build'), ('Follow', 'the build'), ('Approve', 'the change')]
-    xs = [60 + i * 147 for i in range(len(steps))]
-    b.append(f'<line x1="{xs[0]}" y1="70" x2="{xs[-1]}" y2="70" stroke="{c["line"]}" stroke-width="2"/>')
-    for i, (t, s) in enumerate(steps):
-        you = t in ('Approve', 'Describe', 'Hand off')
-        col = 'amber' if you else 'blue'
-        b.append(f'<circle cx="{xs[i]}" cy="70" r="24" fill="{c["amberf" if you else "bluef"]}" stroke="{c[col]}" stroke-width="2"/>')
-        b.append(T(xs[i], 76, str(i + 1), 16, col, 700, 'middle', c=c))
-        b.append(T(xs[i], 124, t, 14, 'text', 650, 'middle', c=c))
-        b.append(T(xs[i], 144, s, 12.5, 'muted', 400, 'middle', c=c))
-    b.append(T(xs[0] - 24, 22, 'You act at the amber steps; your agent does the rest', 12.5, 'muted', 500, c=c))
-    return svg(W, H, ''.join(b), 'Your first task in seven steps: describe, approve the frame, the research and design, the outline, hand off, follow the build, approve the change')
-
-
-def settings_ill(c: Theme) -> str:
-    W, H = 1000, 360
-    def switch(x: float, y: float, on: bool = True) -> str:
-        if on:
-            return (f'<rect x="{x}" y="{y}" width="28" height="18" rx="9" fill="{c["blue"]}"/>'
-                    f'<circle cx="{x + 19}" cy="{y + 9}" r="6" fill="#ffffff"/>')
-        return (f'<rect x="{x}" y="{y}" width="28" height="18" rx="9" fill="{c["bg"]}" stroke="{c["cardline"]}"/>'
-                f'<circle cx="{x + 9}" cy="{y + 9}" r="6" fill="{c["dim"]}"/>')
-
-    b = [card(c, 0, 0, 600, 262)]
-    b.append(T(20, 30, 'Models', 15, 'text', 650, c=c))
-    b.append(T(20, 50, 'One model per agent, for every helper and review', 12.5, 'muted', c=c))
-    rows = [('Subagents in Claude Code', 'Sonnet 5.5'), ('Subagents in Codex', 'GPT-6.1 Sol'),
-            ('Codex reviews Claude Code', 'GPT-6.1 Sol'), ('Claude Code reviews Codex', 'Sonnet 5.5')]
-    for i, (what, v) in enumerate(rows):
-        y = 68 + i * 46
-        b.append(f'<line x1="20" y1="{y}" x2="580" y2="{y}" stroke="{c["cardline"]}"/>')
-        b.append(T(20, y + 29, what, 13, 'text', 500, c=c))
-        b.append(f'<rect x="400" y="{y + 9}" width="170" height="28" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-        b.append(T(412, y + 28, v, 12.5, 'text', 500, c=c))
-        b.append(f'<path d="M552 {y + 20} l4 4 l4 -4" fill="none" stroke="{c["muted"]}" stroke-width="1.5"/>')
-    b.append(card(c, 0, 278, 600, 78))
-    b.append(T(20, 308, 'Notifications', 15, 'text', 650, c=c))
-    b.append(T(20, 330, 'When something waits for you', 12.5, 'muted', c=c))
-    b.append(switch(552, 298))
-    b.append(card(c, 620, 0, 380, 356))
-    b.append(T(640, 30, 'Optional steps', 15, 'text', 650, c=c))
-    b.append(T(640, 50, 'On for every new task; off for one task if you say so', 12.5, 'muted', c=c))
-    steps = [('Outline cold read', True), ('Second opinion', True), ('Checkpoints', True), ('Simplify', True),
-             ('Test gaps', True), ('Security review', True), ('Docs update', False), ('UI review', True)]
-    for i, (name, on) in enumerate(steps):
-        y = 68 + i * 35.5
-        b.append(f'<line x1="640" y1="{y}" x2="980" y2="{y}" stroke="{c["cardline"]}"/>')
-        b.append(T(640, y + 23, name, 13, 'text' if on else 'muted', 500, c=c))
-        b.append(switch(940, y + 9, on))
-    return svg(W, H, ''.join(b), 'Settings: one subagent model per agent, one second-opinion model per reviewing agent, a switch for each optional step, and notifications')
-
-
-
-os.makedirs(OUT, exist_ok=True)
-ROUTE_OFF = {
-    'feature': set(),
-    'bug': {'Design'},
-    'quick': {'Frame', 'Research', 'Design', 'Outline', 'Handoff', 'Checkpoint', 'Quality pass'},
-}
-ROUTE_NAME = {'bug': {'Research': 'Diagnose'}, 'quick': {'Build': 'Change'}}
-ROUTE_LABEL = {'feature': 'Feature route', 'bug': 'Bug route', 'quick': 'Quick change route'}
-
-
-def track(here: str, route: str = 'feature', stopped: bool = False):
-    """The route on one line, with the page's own step highlighted."""
-    def draw(c: Theme) -> str:
-        W, H = 1000, 112
-        x0, step = 54, 89.2
-        xs = [x0 + i * step for i in range(len(STEPS))]
-        off, names = ROUTE_OFF[route], ROUTE_NAME.get(route, {})
-        cur = [n for n, _ in STEPS].index(here)
-        b = [T(0, 16, ROUTE_LABEL[route], 12, 'muted', 600, c=c)]
-        on = [i for i, (n, _) in enumerate(STEPS) if n not in off]
-        b.append(f'<line x1="{xs[0]}" y1="52" x2="{xs[-1]}" y2="52" stroke="{c["off"]}" stroke-width="2" stroke-dasharray="2 6" stroke-linecap="round"/>')
-        b.append(f'<line x1="{xs[on[0]]}" y1="52" x2="{xs[on[-1]]}" y2="52" stroke="{c["line"]}" stroke-width="2"/>')
-        b.append(f'<line x1="{xs[on[0]]}" y1="52" x2="{xs[cur]}" y2="52" stroke="{c["blue"]}" stroke-width="2.5"/>')
-        for i, (n, col) in enumerate(STEPS):
-            x, label = xs[i], names.get(n, n)
-            dash = ' stroke-dasharray="3 2.5"' if n in OPTIONAL else ''
-            if n in off:
-                b.append(f'<circle cx="{x}" cy="52" r="4" fill="{c["bg"]}" stroke="{c["off"]}" stroke-width="2"/>')
-                b.append(T(x, 86, label, 12, 'dim', 400, 'middle', c=c))
-            elif i == cur:
-                ring = c['danger'] if stopped else c[col]
-                b.append(f'<circle cx="{x}" cy="52" r="15" fill="{ring}" fill-opacity="0.16"/>')
-                b.append(f'<circle cx="{x}" cy="52" r="9" fill="{ring}"/>')
-                b.append(T(x, 86, label, 13, 'text', 700, 'middle', c=c))
-                b.append(T(x, 104, 'Stopped' if stopped else 'This page', 11, 'danger' if stopped else col, 600, 'middle', c=c))
-            elif i < cur:
-                b.append(f'<circle cx="{x}" cy="52" r="6" fill="{c["blue"]}"/>')
-                b.append(T(x, 86, label, 12, 'muted', 500, 'middle', c=c))
-            else:
-                b.append(f'<circle cx="{x}" cy="52" r="6" fill="{c["bg"]}" stroke="{c["line"]}" stroke-width="2"{dash}/>')
-                b.append(T(x, 86, label, 12, 'muted', 500, 'middle', c=c))
-        return svg(W, H, ''.join(b), f'{ROUTE_LABEL[route]}: {names.get(here, here)} highlighted')
-    return draw
-
-
-def num(c: Theme, x: float, y: float, n: int) -> str:
-    return (f'<circle cx="{x}" cy="{y}" r="12" fill="{c["blue"]}" stroke="{c["bg"]}" stroke-width="2.5"/>'
-            + T(x, y + 4.5, str(n), 12.5, '#ffffff', 700, 'middle', c=c))
-
-
-def cockpit_marked(c: Theme) -> str:
-    """The Cockpit drawing with numbered markers for the parts the Cockpit page explains."""
-    marks = [(200, 108, 1), (236, 106, 2), (700, 144, 3), (652, 222, 4), (586, 478, 5), (968, 230, 6)]
-    base = cockpit(c)
-    return base.replace('</svg>', ''.join(num(c, x, y, n) for x, y, n in marks) + '</svg>')
-
-
-def outline_ill(c: Theme) -> str:
-    W, H = 1000, 270
-    b = [card(c, 0, 0, 640, 266)]
-    b.append(T(18, 30, 'Outline', 15, 'text', 650, c=c))
-    slices = [('s1', 'Slice 1 · Export one report', ['T1', 'T2', 'T3'], 'Scenario 1: export a report'),
-              ('s2', 'Slice 2 · Filter what is exported', ['T4', 'T5'], None),
-              ('s3', 'Slice 3 · Large reports by email', ['T6', 'T7', 'T8'], 'Scenario 2: 200,000 rows by email')]
-    y = 48
-    for col, title, tasks, cp in slices:
-        b.append(f'<rect x="18" y="{y}" width="4" height="44" rx="2" fill="{c[col]}"/>')
-        b.append(T(32, y + 15, title, 13, 'text', 650, c=c))
-        for k, t in enumerate(tasks):
-            x = 32 + k * 112
-            b.append(f'<rect x="{x}" y="{y + 22}" width="104" height="22" rx="6" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-            b.append(f'<circle cx="{x + 12}" cy="{y + 33}" r="4" fill="none" stroke="{c["danger"]}" stroke-width="1.6"/>')
-            b.append(T(x + 22, y + 37.5, f'{t} · test first', 11, 'muted', 500, c=c))
-        if cp:
-            b.append(f'<rect x="{390}" y="{y + 22}" width="230" height="22" rx="11" fill="{c["tealf"]}" stroke="{c["teal"]}"/>')
-            b.append(mark(c, 404, y + 32))
-            b.append(T(416, y + 37.5, cp, 11, 'text', 600, c=c))
-        y += 70
-    b.append(card(c, 660, 0, 340, 112, stroke='amber', fill='amberf', sw=1.5))
-    b.append(T(678, 30, 'Before the build', 14, 'text', 650, c=c))
-    b.append(T(678, 56, 'Connect the mail service · granted', 12.5, 'text', 500, c=c))
-    b.append(T(678, 86, 'Then the build runs on its own.', 12.5, 'muted', c=c))
-    b.append(card(c, 660, 128, 340, 138))
-    b.append(T(678, 156, 'Checked end to end', 14, 'text', 650, c=c))
-    for i, t in enumerate(['Export a report, open it', 'Export with filters', '200,000 rows arrive by email']):
-        yy = 170 + i * 30
-        b.append(mark(c, 688, yy + 6))
-        b.append(T(704, yy + 11, t, 12.5, 'text', 500, c=c))
-    return svg(W, H, ''.join(b), 'An outline: slices of test-first tasks, end-to-end checks after marked slices, and what you settle before the build')
-
-
-def build_ill(c: Theme) -> str:
-    W, H = 1000, 320
-    b = [card(c, 0, 0, 1000, 44, stroke='blue', fill='bluef', sw=1.4)]
-    b.append(f'<circle cx="22" cy="22" r="5" fill="{c["blue"]}"/>')
-    b.append(T(36, 27, 'Now: T5 · writing the failing test', 13, 'text', 600, c=c))
-    b.append(T(980, 27, 'reported 1 min ago', 12, 'muted', 400, 'end', c=c))
-    rows = [('s1', 'Slice 1', ['T1', 'T2', 'T3'], 3), ('s2', 'Slice 2', ['T4', 'T5'], 1)]
-    y = 62
-    for col, name, tasks, done in rows:
-        b.append(T(0, y + 18, name, 13, col, 650, c=c))
-        for k, t in enumerate(tasks):
-            x = 80 + k * 120
-            b.append(f'<rect x="{x}" y="{y}" width="110" height="28" rx="7" fill="{c["bg"]}" stroke="{c[col] if k < done else c["cardline"]}"/>')
-            if k < done:
-                b.append(mark(c, x + 16, y + 14))
-            else:
-                b.append(f'<circle cx="{x + 16}" cy="{y + 14}" r="5" fill="none" stroke="{c["blue"]}" stroke-width="2" stroke-dasharray="3 2"/>')
-            b.append(T(x + 30, y + 18.5, t, 12, 'text', 600, c=c))
-        y += 44
-    b.append(f'<rect x="460" y="62" width="250" height="28" rx="14" fill="{c["tealf"]}" stroke="{c["teal"]}"/>')
-    b.append(mark(c, 476, 76))
-    b.append(T(490, 80.5, 'Checkpoint 1 passed on run 2', 12, 'text', 600, c=c))
-    b.append(card(c, 0, 160, 1000, 156))
-    b.append(T(18, 188, 'T3 · Write the CSV file · notes', 14, 'text', 650, c=c))
-    notes = [('tactical', 'The query returns rows lazily; the writer streams them', 'muted'),
-             ('found by checkpoint 1', 'The header row was missing; fixed at the source', 'teal'),
-             ('agreed', 'CSV only, no Excel export — your words, recorded', 'amber')]
-    for i, (tag, t, col) in enumerate(notes):
-        yy = 204 + i * 36
-        w = 18 + len(tag) * 6.9
-        b.append(f'<rect x="18" y="{yy}" width="{w}" height="24" rx="6" fill="{c["bg"]}" stroke="{c[col] if col != "muted" else c["cardline"]}"/>')
-        b.append(T(18 + w / 2, yy + 16.5, tag, 11.5, col if col != 'muted' else 'muted', 600, 'middle', mono=True, c=c))
-        b.append(T(30 + w, yy + 16.5, t, 13, 'text', 400, c=c))
-    return svg(W, H, ''.join(b), 'The Build tab: what the agent does now, slices with ticked tasks, a passed checkpoint, and the notes on a task')
-
-
-def simplify_ill(c: Theme) -> str:
-    W, H = 1000, 300
-    b = []
-    b.append(card(c, 0, 0, 400, 230))
-    b.append(T(18, 30, 'Before', 14, 'text', 650, c=c))
-    for i, y in enumerate((46, 106)):
-        b.append(f'<rect x="18" y="{y}" width="230" height="50" rx="8" fill="{c["amberf"]}" stroke="{c["amberl"]}"/>')
-        b.append(T(30, y + 20, ['writeCsvReport()', 'writeCsvExport()'][i], 12, 'text', 600, mono=True, c=c))
-        b.append(bars(c, 30, y + 30, [180, 150], 9, 4))
-    b.append(T(258, 92, 'near-copies', 12, 'amber', 600, c=c))
-    b.append(f'<rect x="18" y="166" width="230" height="44" rx="8" fill="{c["bg"]}" stroke="{c["danger"]}" stroke-dasharray="4 3"/>')
-    b.append(T(30, 193, 'exportWrapper()', 12, 'muted', 500, mono=True, c=c))
-    b.append(T(258, 193, 'only passes through', 12, 'danger', 600, c=c))
-    b.append(arrow(c, 404, 115, 470, col='teal'))
-    b.append(T(437, 104, 'Simplify', 12, 'teal', 700, 'middle', c=c))
-    b.append(card(c, 472, 0, 528, 230, stroke='teal', sw=1.5))
-    b.append(T(490, 30, 'After', 14, 'text', 650, c=c))
-    b.append(f'<rect x="490" y="46" width="250" height="50" rx="8" fill="{c["tealf"]}" stroke="{c["teal"]}"/>')
-    b.append(T(502, 66, 'writeCsv(rows, columns)', 12, 'text', 600, mono=True, c=c))
-    b.append(bars(c, 502, 76, [190], 9, 4))
-    b.append(T(490, 124, 'One pass over the whole change:', 12.5, 'muted', c=c))
-    for i, t in enumerate(['merge the two writers', 'reuse formatDate()', 'remove the pass-through wrapper']):
-        yy = 140 + i * 26
-        b.append(f'<circle cx="498" cy="{yy + 8}" r="3.5" fill="{c["teal"]}"/>')
-        b.append(T(510, yy + 12.5, t, 12.5, 'text', 500, mono=i == 1, c=c))
-        b.append(T(980, yy + 12.5, 'commit', 11, 'dim', 600, 'end', mono=True, c=c))
-    b.append(card(c, 0, 248, 1000, 48, fill='bg'))
-    b.append(mark(c, 22, 272))
-    b.append(T(38, 277, 'Same behaviour: every test and scenario still passes. A simplification that broke something is undone.', 13, 'text', 500, c=c))
-    return svg(W, H, ''.join(b), 'Simplify: two near-copies merged, existing code reused, a wrapper removed, one commit each, with the same behaviour')
-
-
-def secondop_ill(c: Theme) -> str:
-    W, H = 1000, 230
-    b = [card(c, 0, 70, 180, 80, stroke='violet', fill='violetf', sw=1.5)]
-    b.append(T(18, 104, 'Design is up', 14, 'text', 650, c=c))
-    b.append(T(18, 124, 'for your review', 12.5, 'muted', c=c))
-    b.append(curve(c, 180, 110, 230, 40, 'amberl'))
-    b.append(curve(c, 180, 110, 230, 180, 'violet', True))
-    b.append(card(c, 230, 10, 320, 64, stroke='amber', fill='amberf', sw=1.4))
-    b.append(T(248, 38, 'You', 14, 'text', 650, c=c))
-    b.append(T(248, 58, 'Read, try the mockup, comment', 12.5, 'muted', c=c))
-    b.append(card(c, 230, 146, 320, 64, stroke='violet', dash=True, sw=1.4))
-    b.append(T(248, 174, 'The other vendor’s AI', 14, 'text', 650, c=c))
-    b.append(T(248, 194, 'Reviews frame, research, design', 12.5, 'muted', c=c))
-    b.append(curve(c, 550, 42, 600, 110, 'amberl'))
-    b.append(curve(c, 550, 178, 600, 110, 'violet', True))
-    b.append(card(c, 600, 70, 200, 80, stroke='blue', fill='bluef', sw=1.5))
-    b.append(T(618, 104, 'Your agent', 14, 'text', 650, c=c))
-    b.append(T(618, 124, 'Answers every finding', 12.5, 'muted', c=c))
-    b.append(arrow(c, 802, 110, 836))
-    b.append(f'<rect x="838" y="88" width="160" height="44" rx="9" fill="{c["blue"]}"/>')
-    b.append(T(918, 115, 'Approve unlocks', 13.5, '#ffffff', 650, 'middle', c=c))
-    return svg(W, H, ''.join(b), 'The second opinion: while you review the design, the other vendor’s AI reviews it too; your agent answers its findings, then Approve unlocks')
-
-
-def files_ill(c: Theme) -> str:
-    W, H = 1000, 420
-    b = [card(c, 0, 0, 640, 416)]
-    b.append(T(18, 30, 'docs/plans/2026-10-01-csv-export/', 13.5, 'text', 700, mono=True, c=c))
-    rows = [('README.md', 'The task: its route, step and status', 'dim'),
-            ('00-frame.md · 00-frame-details.md', 'Frame', 'pair'),
-            ('01-research.md · 01-research-details.md', 'Research (or 01-diagnosis)', 'pair'),
-            ('02-design.md · 02-design-details.md', 'Design', 'pair'),
-            ('artifacts/', 'Mockups and diagrams', 'amber'),
-            ('03-outline-overview.md · 03-outline.md', 'Outline', 'pair'),
-            ('04-build.md · 04-build-details.md', 'The build record and its notes', 'blue'),
-            ('reviews/', 'Second-opinion findings', 'violet'),
-            ('evidence/', 'Test output, logs, screenshots', 'teal'),
-            ('pr-description.md', 'The approved pull request text', 'dim')]
-    for i, (f, what, kind) in enumerate(rows):
-        y = 50 + i * 36
-        b.append(f'<line x1="26" y1="{y - 8}" x2="26" y2="{y + 14}" stroke="{c["line"]}"/>')
-        b.append(f'<line x1="26" y1="{y + 6}" x2="38" y2="{y + 6}" stroke="{c["line"]}"/>')
-        if kind == 'pair':
-            b.append(f'<circle cx="48" cy="{y + 6}" r="4.5" fill="{c["amber"]}"/>')
-            b.append(f'<circle cx="60" cy="{y + 6}" r="4.5" fill="{c["blue"]}"/>')
+# ---------------------------------------------------------------- the App around the steps
+def band_ill(c: Theme) -> str:
+    W, H = 1000, 250
+    b = [card(c, 0, 0, 1000, 246)]
+    b.append(T(18, 28, 'Claude Code', 12, 'dim', 600, c=c))
+    rows = [('While the Plan waits', 'amber', 'amberf', '◆ QL plan 2/5 · The Plan waits for you · CSV export', 'Open in the App ↗'),
+            ('While it builds', 'blue', 'bluef', '◆ QL implement 3/5 · slice 2 of 4 · CSV export', None),
+            ('When you are asked', 'amber', 'amberf', '◆ QL 1 ask for you · Dana on CSV export', '/ql answer')]
+    for i, (label, col, fill, text, right) in enumerate(rows):
+        y = 46 + i * 58
+        b.append(T(18, y + 25, label, 12.5, 'muted', 500, c=c))
+        b.append(f'<rect x="190" y="{y}" width="790" height="40" rx="6" fill="{c[fill]}"/>')
+        b.append(f'<rect x="190" y="{y}" width="4" height="40" fill="{c[col]}"/>')
+        b.append(T(208, y + 25, text, 12.5, 'text', 500, mono=True, c=c))
+        if right:
+            b.append(T(966, y + 25, right, 12.5, col, 600, 'end', mono=right.startswith('/'), c=c))
         else:
-            b.append(f'<circle cx="54" cy="{y + 6}" r="4.5" fill="{c[kind]}"/>')
-        b.append(T(74, y + 10.5, f, 12, 'text', 500, mono=True, c=c))
-        b.append(T(622, y + 10.5, what, 12, 'muted', 400, 'end', c=c))
-    b.append(card(c, 660, 0, 340, 416))
-    b.append(T(678, 30, 'What the colours mean', 14, 'text', 650, c=c))
-    leg = [('amber', 'For you: the short version you review'), ('blue', 'For the agent: contracts, files, detail'),
-           ('teal', 'Evidence the checks kept'), ('violet', 'The other vendor’s review'), ('dim', 'Task records')]
-    for i, (k, t) in enumerate(leg):
-        y = 56 + i * 34
-        b.append(f'<circle cx="686" cy="{y}" r="5" fill="{c[k]}"/>')
-        b.append(T(700, y + 4.5, t, 12.5, 'text', 500, c=c))
-    b.append(T(678, 250, 'All of it lives in your repository,', 12.5, 'muted', c=c))
-    b.append(T(678, 270, 'next to your code, and goes into', 12.5, 'muted', c=c))
-    b.append(T(678, 290, 'Git with the change.', 12.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'A task folder in docs/plans: a short and a detailed document per planning step, mockups, the build record, reviews, evidence and the pull request text')
+            b.append(f'<rect x="846" y="{y + 16}" width="120" height="8" rx="4" fill="{c["line"]}"/>')
+            b.append(f'<rect x="846" y="{y + 16}" width="66" height="8" rx="4" fill="{c[col]}"/>')
+    b.append(T(190, 230, '>', 14, 'muted', 600, mono=True, c=c))
+    b.append(f'<rect x="206" y="218" width="8" height="16" fill="{c["muted"]}"/>')
+    return svg(W, H, ''.join(b), 'The band above the Claude Code prompt: the Plan waits for you, how the build runs, or a teammate’s question for you')
 
 
-def privacy_ill(c: Theme) -> str:
-    W, H = 1000, 280
-    b = [card(c, 0, 0, 420, 276, stroke='ok', sw=1.5)]
-    b.append(T(18, 30, 'Stays on your computer', 14, 'text', 650, c=c))
-    for i, t in enumerate(['Your code and the diff', 'Every plan document', 'Build evidence and logs', 'The Cockpit itself']):
-        y = 52 + i * 32
-        b.append(mark(c, 30, y + 8))
-        b.append(T(46, y + 13, t, 13, 'text', 500, c=c))
-    b.append(T(18, 196, 'Your agent sends your code to its own provider,', 12, 'muted', c=c))
-    b.append(T(18, 214, 'as it always does. QualityLayer does not change that.', 12, 'muted', c=c))
-    b.append(card(c, 440, 0, 560, 126))
-    b.append(T(458, 30, 'QualityLayer service', 14, 'text', 650, c=c))
-    b.append(T(458, 54, 'A daily licence check, with five anonymous events:', 12.5, 'muted', c=c))
-    b.append(T(458, 74, 'task started, step entered, check result, task shipped, step name.', 12.5, 'muted', c=c))
-    b.append(T(458, 104, 'qualitylayer telemetry off  ·  DO_NOT_TRACK=1', 12, 'blue', 500, mono=True, c=c))
-    b.append(card(c, 440, 146, 560, 130, stroke='violet', sw=1.4))
-    b.append(T(458, 176, 'Team service · only when you share', 14, 'text', 650, c=c))
-    b.append(T(458, 200, 'The plan a reviewer reads, its title and step, and comments.', 12.5, 'muted', c=c))
-    b.append(T(458, 222, 'Only your team, or whoever has your link, can read it.', 12.5, 'muted', c=c))
-    b.append(T(458, 252, 'Never your code, the diff or your logs.', 12.5, 'text', 600, c=c))
-    return svg(W, H, ''.join(b), 'What stays on your computer, what the licence check sends, and what sharing sends to the team service')
+def cost_ill(c: Theme) -> str:
+    W, H = 1000, 330
+    b = [card(c, 0, 0, 600, 326)]
+    b.append(T(18, 30, 'Cost of this task', 15, 'text', 650, c=c))
+    b.append(T(582, 30, 'estimated, list price', 12, 'dim', 500, 'end', c=c))
+    steps = [('Discuss', 0.3, '$1.40', 'violet'), ('Plan', 0.5, '$2.30', 'amber'), ('Implement', 1.0, '$3.10', 'blue'),
+             ('Verify', 0.6, '$2.20', 'teal'), ('Review', 0.1, '$0.30', 'amber')]
+    for i, (n, m, usd, col) in enumerate(steps):
+        y = 52 + i * 36
+        b.append(T(18, y + 17, n, 13, 'text', 500, c=c))
+        w = 300 * m
+        b.append(f'<rect x="110" y="{y + 5}" width="{w}" height="16" rx="4" fill="{c[col]}" fill-opacity="0.75"/>')
+        b.append(T(120 + w, y + 17, f'{m:.1f}M tokens · {usd}', 12, 'muted', c=c))
+    b.append(f'<line x1="18" y1="240" x2="582" y2="240" stroke="{c["cardline"]}"/>')
+    b.append(T(18, 266, 'Total 2.5M tokens · about $9.30', 13, 'text', 650, c=c))
+    bx, bw = 18, 564
+    edge = bx + bw * 2.0 / 2.5
+    b.append(f'<rect x="{bx}" y="282" width="{bw}" height="14" rx="4" fill="{c["line"]}"/>')
+    b.append(f'<rect x="{bx}" y="282" width="{edge - bx}" height="14" rx="4" fill="{c["blue"]}" fill-opacity="0.75"/>')
+    b.append(f'<rect x="{edge}" y="282" width="{bx + bw - edge}" height="14" rx="4" fill="{c["amberl"]}"/>')
+    b.append(f'<line x1="{edge}" y1="276" x2="{edge}" y2="304" stroke="{c["amber"]}" stroke-width="2" stroke-dasharray="3 3"/>')
+    b.append(T(edge, 318, 'Your budget: 2.0M', 11.5, 'amber', 600, 'middle', c=c))
+    b.append(card(c, 620, 0, 380, 220))
+    b.append(T(638, 30, 'Per helper', 15, 'text', 650, c=c))
+    helpers = [('Slice helper 1', 'Sonnet 5.5', '0.3M'), ('Slice helper 2', 'Sonnet 5.5', '0.2M'),
+               ('Checkpoint', 'Sonnet 5.5', '0.1M'), ('Polish', 'Sonnet 5.5', '0.2M'), ('Judge', 'Opus 5.5', '0.3M')]
+    for i, (n, model, tok) in enumerate(helpers):
+        y = 48 + i * 33
+        b.append(f'<line x1="638" y1="{y}" x2="982" y2="{y}" stroke="{c["cardline"]}"/>')
+        b.append(T(638, y + 22, n, 13, 'text', 500, c=c))
+        b.append(T(800, y + 22, model, 12, 'muted', c=c))
+        b.append(T(982, y + 22, tok, 12, 'text', 600, 'end', mono=True, c=c))
+    b.append(card(c, 620, 236, 380, 90, stroke='amber', fill='amberf', sw=1.5))
+    b.append(T(638, 266, 'Past your budget of 2.0M tokens', 14, 'text', 650, c=c))
+    b.append(T(638, 288, 'Your agent tells you once,', 12.5, 'muted', c=c))
+    b.append(T(638, 306, 'then the task goes on.', 12.5, 'muted', c=c))
+    return svg(W, H, ''.join(b), 'The cost view: tokens and estimated cost at list price for each step and each helper, with a soft warning when a task passes its token budget')
+
+
+# ---------------------------------------------------------------- team
+def team(c):
+    W, H = 1000, 290
+    b = []
+    nodes = [('You ask', ['On a passage, diagram', 'or the whole Plan'], 'amber', 'amberf'),
+             ('Slack DM', ['Opens the question', 'in their App'], 'cardline', None),
+             ('They answer', ['Looks right, a change', 'or a reply'], 'cardline', None),
+             ('Your agent', ['Reads the answer,', 'updates the Plan'], 'blue', 'bluef'),
+             ('You decide', ['Only your approval', 'moves the task on'], 'amber', 'amberf')]
+    xs = [i * 207 for i in range(5)]
+    for i, (t, s, col, fill) in enumerate(nodes):
+        b.append(node(c, xs[i], 30, 172, 96, t, s, col, fill))
+        if i < 4:
+            b.append(arrow(c, xs[i] + 174, 78, xs[i + 1] - 2, col='muted'))
+    b.append(node(c, 414, 180, 172, 96, 'A guest with a link', ['Comments without', 'an account'], 'cardline', dash=True))
+    b.append(f'<path d="M588 228 H707 V132" fill="none" stroke="{c["muted"]}" stroke-width="1.8" stroke-dasharray="4 4"/>')
+    b.append(f'<path d="M702 139 l5 -7 l5 7" fill="none" stroke="{c["muted"]}" stroke-width="1.8"/>')
+    return svg(W, H, ''.join(b), 'Plan review with your team: you ask a teammate about a part of the Plan, a Slack message opens it in their App, they answer, the answer reaches your agent, and you decide; a guest with a link can comment too')
+
+
+def team_agents(c):
+    W, H = 1000, 250
+    b = [card(c, 0, 0, 230, 200)]
+    b.append(T(16, 28, 'Dana’s App', 12, 'dim', 600, c=c))
+    b.append(T(16, 54, 'An ask from you', 15, 'text', 650, c=c))
+    b.append(T(16, 76, 'Work on it with your agent:', 12.5, 'muted', c=c))
+    b.append(pill(c, 16, 92, 'Claude Code', 'text'))
+    b.append(pill(c, 16 + 18 + 11 * 6.6 + 8, 92, 'Codex', 'text'))
+    b.append(pill(c, 16, 122, 'Grok Bot', 'text'))
+    b.append(T(16, 176, '/ql answer 7f3a', 12, 'blue', 500, mono=True, c=c))
+    b.append(arrow(c, 232, 100, 258))
+    b.append(node(c, 260, 0, 230, 200, 'Their agent', ['Reads the ask and the Plan,', 'looks at their own code,', 'asks them what it needs'], 'blue', 'bluef'))
+    b.append(arrow(c, 492, 100, 518))
+    b.append(node(c, 520, 0, 230, 200, 'A draft', ['Nothing is sent', 'without their yes'], 'cardline'))
+    b.append(button(c, 536, 112, 64, 'Send', True, 30))
+    b.append(button(c, 608, 112, 56, 'Edit', False, 30))
+    b.append(button(c, 672, 112, 66, 'Discard', False, 30))
+    b.append(arrow(c, 752, 100, 778))
+    b.append(card(c, 780, 0, 220, 200, stroke='amber', fill='amberf', sw=1.6))
+    b.append(T(796, 28, 'Your App', 12, 'dim', 600, c=c))
+    b.append(f'<circle cx="810" cy="66" r="14" fill="{c["bg"]}" stroke="{c["amber"]}" stroke-width="1.5"/>')
+    b.append(T(810, 70.5, 'D', 12, 'amber', 700, 'middle', c=c))
+    b.append(T(832, 62, 'Dana', 13, 'text', 650, c=c))
+    b.append(T(832, 80, 'via Claude Code', 12, 'muted', 500, c=c))
+    b.append(T(796, 116, 'Suggests a change', 13, 'amber', 600, c=c))
+    b.append(T(796, 140, 'Reaches your agent', 12.5, 'muted', c=c))
+    b.append(T(796, 158, 'like any answer', 12.5, 'muted', c=c))
+    b.append(T(W / 2, 236, 'Their agent runs on their own computer. Codex uses $ql answer; Grok Bot gets the ql skill from the App.', 13, 'muted', 400, 'middle', c=c))
+    return svg(W, H, ''.join(b), 'A teammate answers with their own agent: Claude Code, Codex or Grok Bot reads the ask and the Plan, drafts an answer, sends it only after their yes, and your App shows it via that agent')
 
 
 def team_timeline(c: Theme) -> str:
     W, H = 1000, 210
     b = []
-    bands = [(0, 420, 'Plan', 'violet', 'violetf'), (430, 680, 'Build', 'blue', 'bluef'), (690, 1000, 'Check and ship', 'teal', 'tealf')]
+    bands = [(0, 420, 'Discuss and Plan', 'violet', 'violetf'), (430, 680, 'Implement and Verify', 'blue', 'bluef'),
+             (690, 1000, 'Review', 'amber', 'amberf')]
     for x1, x2, t, col, fill in bands:
         b.append(f'<rect x="{x1}" y="104" width="{x2 - x1}" height="44" rx="10" fill="{c[fill]}" stroke="{c[col]}" stroke-width="1.4"/>')
         b.append(T((x1 + x2) / 2, 131, t, 14, 'text', 650, 'middle', c=c))
     b.append(T(210, 176, 'Comments are cheap: nothing is built yet', 12.5, 'muted', 400, 'middle', c=c))
     b.append(T(555, 176, 'Your agent builds and checks', 12.5, 'muted', 400, 'middle', c=c))
-    b.append(T(845, 176, 'Reviewed like a pull request', 12.5, 'muted', 400, 'middle', c=c))
+    b.append(T(845, 176, 'Reviewed with its proof', 12.5, 'muted', 400, 'middle', c=c))
     callouts = [(40, 340, '1  Review the plan', 'Before any code is written', 'violet'),
-                (650, 350, '2  Review the change', 'After the build, with its proof', 'teal')]
+                (650, 350, '2  Review the change', 'After the build, with its proof', 'amber')]
     for x, w, t, s, col in callouts:
         b.append(card(c, x, 0, w, 62, stroke=col, sw=1.6))
         b.append(T(x + 16, 26, t, 15, 'text', 700, c=c))
@@ -1108,50 +820,6 @@ def team_timeline(c: Theme) -> str:
         b.append(f'<path d="M{x + w / 2} 62 V100" stroke="{c[col]}" stroke-width="1.8"/>')
         b.append(f'<path d="M{x + w / 2 - 5} 94 l5 7 l5 -7" fill="none" stroke="{c[col]}" stroke-width="1.8"/>')
     return svg(W, H, ''.join(b), 'Two moments for your team: review the plan before any code, and review the finished change after the build')
-
-
-def team_plan(c: Theme) -> str:
-    W, H = 1000, 360
-    b = [T(0, 16, 'Your Cockpit', 13, 'muted', 700, c=c), T(520, 16, 'Your teammate’s Cockpit', 13, 'muted', 700, c=c)]
-    b.append(card(c, 0, 28, 480, 328))
-    b.append(T(18, 58, 'Share · CSV export', 14, 'text', 650, c=c))
-    for i, (t, s) in enumerate([('Your team', 'They read, comment and approve'), ('People outside your team', 'A link for 14 days, no account')]):
-        y = 74 + i * 58
-        b.append(card(c, 18, y, 444, 48, fill='bg'))
-        b.append(T(32, y + 21, t, 13, 'text', 600, c=c))
-        b.append(T(32, y + 38, s, 11.5, 'muted', c=c))
-        b.append(f'<rect x="{410}" y="{y + 15}" width="34" height="18" rx="9" fill="{c["blue"]}"/>')
-        b.append(f'<circle cx="435" cy="{y + 24}" r="6.5" fill="#ffffff"/>')
-    b.append(T(18, 214, 'From your team', 13, 'text', 650, c=c))
-    comments = [('B', 'Ben approved', 'The adapter is the right seam', 'ok'),
-                ('A', 'Anna asked for changes', 'Keep the retry test green', 'amber')]
-    for i, (av, who, q, col) in enumerate(comments):
-        y = 226 + i * 54
-        b.append(f'<circle cx="34" cy="{y + 20}" r="13" fill="{c["bg"]}" stroke="{c[col]}" stroke-width="1.5"/>')
-        b.append(T(34, y + 24.5, av, 12, col, 700, 'middle', c=c))
-        b.append(T(56, y + 16, who, 12.5, col, 600, c=c))
-        b.append(T(56, y + 34, q, 12.5, 'text', c=c))
-        b.append(T(462, y + 24, 'reached your agent', 11, 'dim', 500, 'end', c=c))
-    b.append(card(c, 520, 28, 480, 328))
-    b.append(T(538, 58, 'Team', 13, 'muted', 700, c=c))
-    tasks = [('CSV export', 'Design', 'Waits for your review', 'amber'), ('Webhook signing', 'Outline', 'Waits for Chen', 'muted'),
-             ('Rate-limit tiers', 'Build 4/9', 'Building now', 'blue')]
-    for i, (t, st, s, col) in enumerate(tasks):
-        y = 70 + i * 40
-        if i == 0:
-            b.append(f'<rect x="530" y="{y - 4}" width="460" height="34" rx="8" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-        b.append(T(546, y + 17, t, 12.5, 'text', 600, c=c))
-        b.append(T(700, y + 17, st, 11.5, 'muted', 500, mono=True, c=c))
-        b.append(T(980, y + 17, s, 12, col, 600, 'end', c=c))
-    b.append(f'<rect x="538" y="196" width="444" height="92" rx="9" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-    b.append(T(552, 218, '02-design.md · selected passage', 11.5, 'dim', 600, mono=True, c=c))
-    b.append(f'<rect x="552" y="228" width="300" height="10" rx="3" fill="{c["amberf"]}" stroke="{c["amberl"]}"/>')
-    b.append(T(552, 270, 'Can support see which client a job ran on?', 12.5, 'text', c=c))
-    b.append(f'<rect x="538" y="300" width="200" height="34" rx="8" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-    b.append(T(638, 322, 'Ask for changes', 13, 'text', 600, 'middle', c=c))
-    b.append(f'<rect x="750" y="300" width="232" height="34" rx="8" fill="{c["blue"]}"/>')
-    b.append(T(866, 322, 'Approve', 13, '#ffffff', 650, 'middle', c=c))
-    return svg(W, H, ''.join(b), 'Plan review on both sides: you share the task and see your team’s comments; your teammate finds it under Team, comments on a passage and approves or asks for changes')
 
 
 def team_change(c: Theme) -> str:
@@ -1183,23 +851,211 @@ def team_change(c: Theme) -> str:
     return svg(W, H, ''.join(b), 'Change review: the team reviews the finished change; open threads go back to your agent, which settles each one and checks again before the re-review')
 
 
-DRAWINGS = [('routes', routes), ('slices', slices), ('agents', agents), ('team', team), ('peers', peers),
-            ('cockpit', cockpit), ('handoff', handoff), ('frame', frame_ill), ('research', research_ill),
-            ('diagnose', diagnose_ill), ('checkpoint', checkpoint_ill), ('verify', verify_ill), ('approve', approve_ill),
-            ('shipped', shipped_ill), ('quick', quick_ill), ('stopped', stopped_ill), ('abandon', abandon_ill),
-            ('install', install_ill), ('firsttask', firsttask_ill), ('settings', settings_ill),
-            ('track-plan', track_group('Frame', 'Outline', 'Plan')),
-            ('track-build', track_group('Handoff', 'Checkpoint', 'Build')),
-            ('track-check', track_group('Quality pass', 'Shipped', 'Check and ship')),
-            ('cockpit-marked', cockpit_marked), ('outline', outline_ill), ('build', build_ill), ('simplify', simplify_ill),
-            ('secondop', secondop_ill), ('files', files_ill), ('privacy', privacy_ill),
-            ('team-timeline', team_timeline), ('team-plan', team_plan), ('team-change', team_change),
-            ('track-frame', track('Frame')), ('track-research', track('Research')),
-            ('track-diagnose', track('Research', 'bug')), ('track-design', track('Design')),
-            ('track-outline', track('Outline')), ('track-handoff', track('Handoff')), ('track-slices', track('Build')),
-            ('track-checkpoint', track('Checkpoint')), ('track-quality', track('Quality pass')),
-            ('track-verify', track('Verify')), ('track-approve', track('Review')), ('track-shipped', track('Shipped')),
-            ('track-stopped', track('Verify', stopped=True))]
+def peers(c):
+    W, H = 1000, 270
+    b = []
+    pos = {'a': (60, 40, 'Claude Code', 'Building the export', 'blue'), 'b': (60, 190, 'Claude Code', 'Fixing a flaky test', 'blue'),
+           'c': (700, 40, 'Codex', 'Reviewing the Plan', 'violet'), 'd': (700, 190, 'Codex', 'Idle', 'violet')}
+    links = [('a', 'c', 'Asks for a review'), ('b', 'd', 'Hands over a task'), ('a', 'b', 'Talks a problem through')]
+    for f, t, lab in links:
+        x1, y1 = pos[f][0] + 240, pos[f][1] + 36
+        x2 = pos[t][0]
+        if f == 'a' and t == 'b':
+            b.append(f'<path d="M{pos[f][0] + 120} {pos[f][1] + 72} V{pos[t][1]}" stroke="{c["line"]}" stroke-width="2"/>')
+            b.append(f'<rect x="{pos[f][0] + 40}" y="{(pos[f][1] + 72 + pos[t][1]) / 2 - 13}" width="160" height="26" rx="13" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
+            b.append(T(pos[f][0] + 120, (pos[f][1] + 72 + pos[t][1]) / 2 + 4, lab, 12, 'muted', 500, 'middle', c=c))
+            continue
+        b.append(f'<path d="M{x1} {y1} H{x2}" stroke="{c["line"]}" stroke-width="2"/>')
+        b.append(f'<path d="M{x2 - 8} {y1 - 5} l8 5 l-8 5" fill="none" stroke="{c["line"]}" stroke-width="2"/>')
+        b.append(f'<rect x="{(x1 + x2) / 2 - 80}" y="{y1 - 13}" width="160" height="26" rx="13" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
+        b.append(T((x1 + x2) / 2, y1 + 4, lab, 12, 'muted', 500, 'middle', c=c))
+    for x, y, name, what, col in pos.values():
+        b.append(f'<rect x="{x}" y="{y}" width="240" height="72" rx="12" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
+        b.append(f'<circle cx="{x + 22}" cy="{y + 25}" r="6" fill="{c[col]}"/>')
+        b.append(T(x + 38, y + 30, name, 15, 'text', 650, c=c))
+        b.append(T(x + 22, y + 52, what, 13, 'muted', c=c))
+    return svg(W, H, ''.join(b), 'Claude Code and Codex sessions on one computer messaging each other')
+
+
+# ---------------------------------------------------------------- getting started
+def install_ill(c: Theme) -> str:
+    W, H = 1000, 270
+    b = [node(c, 0, 85, 220, 100, 'You install', ['From the download page,', 'the terminal installer', 'or Pilot Shell 11'], 'cardline')]
+    b.append(arrow(c, 222, 135, 270))
+    b.append(diamond(c, 300, 135, 22, 'amberf', 'amber'))
+    b.append(T(300, 190, 'A screen?', 13, 'text', 650, 'middle', c=c))
+    b.append(f'<path d="M322 135 C350 135 350 55 378 55" fill="none" stroke="{c["blue"]}" stroke-width="2"/>')
+    b.append(f'<path d="M322 135 C350 135 350 215 378 215" fill="none" stroke="{c["muted"]}" stroke-width="2"/>')
+    b.append(T(364, 44, 'yes', 12, 'blue', 600, 'middle', c=c))
+    b.append(T(364, 236, 'no', 12, 'muted', 600, 'middle', c=c))
+    b.append(node(c, 380, 10, 300, 90, 'The App', ['macOS, Windows, Linux desktop', 'Sets up the command line too'], 'blue', 'bluef'))
+    b.append(node(c, 380, 170, 300, 90, 'Command line only', ['WSL2, dev containers, servers', 'Opens the App in your browser'], 'cardline'))
+    b.append(arrow(c, 682, 55, 718))
+    b.append(arrow(c, 682, 215, 718))
+    b.append(node(c, 720, 10, 280, 90, 'Updates itself', ['The App and its command line,', 'together'], 'cardline'))
+    b.append(card(c, 720, 170, 280, 90))
+    b.append(T(736, 198, 'Updates by command', 15, 'text', 650, c=c))
+    b.append(T(736, 222, 'qualitylayer update', 13, 'blue', 500, mono=True, c=c))
+    return svg(W, H, ''.join(b), 'One rule: a machine with a screen gets the App, which updates itself; WSL2, dev containers and servers get the command line and open the App in a browser')
+
+
+def firsttask_ill(c: Theme) -> str:
+    W, H = 1000, 190
+    b = []
+    steps = [('Describe', 'the change'), ('Answer', 'its questions'), ('Approve', 'the Plan'), ('Start', 'Implement'),
+             ('Follow', 'the build'), ('Read', 'the check'), ('Approve', 'the change')]
+    you = {0, 1, 2, 3, 6}
+    xs = [60 + i * 147 for i in range(len(steps))]
+    b.append(f'<line x1="{xs[0]}" y1="70" x2="{xs[-1]}" y2="70" stroke="{c["line"]}" stroke-width="2"/>')
+    for i, (t, s) in enumerate(steps):
+        col = 'amber' if i in you else 'blue'
+        b.append(f'<circle cx="{xs[i]}" cy="70" r="24" fill="{c["amberf" if i in you else "bluef"]}" stroke="{c[col]}" stroke-width="2"/>')
+        b.append(T(xs[i], 76, str(i + 1), 16, col, 700, 'middle', c=c))
+        b.append(T(xs[i], 124, t, 14, 'text', 650, 'middle', c=c))
+        b.append(T(xs[i], 144, s, 12.5, 'muted', 400, 'middle', c=c))
+    b.append(T(xs[0] - 24, 22, 'You act at the amber steps; your agent does the rest', 12.5, 'muted', 500, c=c))
+    return svg(W, H, ''.join(b), 'Your first task in seven steps: describe the change, answer its questions, approve the Plan, start Implement, follow the build, read the check, approve the change')
+
+
+def update_ill(c: Theme) -> str:
+    W, H = 1000, 160
+    b = []
+    cards = [('Checks daily', ['Or choose Check', 'for updates'], 'cardline', None),
+             ('Asks you', ['In the tray: now', 'or later'], 'amber', 'amberf'),
+             ('Waits on Windows', ['While agent commands', 'still run'], 'cardline', None),
+             ('Both replaced', ['The App and its', 'command line'], 'blue', 'bluef')]
+    for i, (t, s, col, fill) in enumerate(cards):
+        x = i * 256
+        b.append(node(c, x, 0, 230, 96, t, s, col, fill))
+        if i < 3:
+            b.append(arrow(c, x + 232, 48, x + 254))
+    b.append(T(0, 134, 'Agents keep calling the same command. On WSL2, dev containers and servers, run', 13, 'muted', c=c))
+    b.append(T(0, 154, 'qualitylayer update', 13, 'blue', 500, mono=True, c=c))
+    return svg(W, H, ''.join(b), 'Updating the App: it checks daily, asks you in the tray, waits for running agent commands on Windows, and replaces the App and its command line together')
+
+
+def move_ill(c: Theme) -> str:
+    W, H = 1000, 190
+    b = []
+    cols = [('Carried over', 'ok', ['Your licence', 'Your plans in docs/plans', 'Your own settings and files']),
+            ('Removed', 'cardline', ['Pilot Shell’s own files', 'Its agent settings entries', 'Its shell profile block']),
+            ('You choose', 'amber', ['Tools Pilot Shell installed', 'Pilot Shell memories', 'In the terminal or the App'])]
+    for i, (t, col, items) in enumerate(cols):
+        x = i * 340
+        b.append(card(c, x, 0, 320, 186, stroke=col, fill='amberf' if col == 'amber' else 'card', sw=1 if col == 'cardline' else 1.6))
+        b.append(T(x + 18, 32, t, 15, 'text', 650, c=c))
+        for k, s in enumerate(items):
+            y = 64 + k * 38
+            last = i == 2 and k == 2
+            if not last:
+                b.append(mark(c, x + 26, y + 2) if i == 0 else f'<circle cx="{x + 24}" cy="{y + 1}" r="3.5" fill="{c[col if col != "cardline" else "dim"]}"/>')
+            b.append(T(x + (18 if last else 40), y + 6, s, 13, 'dim' if last else 'text', 500, c=c))
+    return svg(W, H, ''.join(b), 'Moving from Pilot Shell 11: your licence, plans and own files carry over; Pilot Shell’s own parts are removed; you choose about the tools it installed and its memories')
+
+
+# ---------------------------------------------------------------- reference
+def settings_ill(c: Theme) -> str:
+    W, H = 1000, 330
+    b = [card(c, 0, 0, 600, 326)]
+    b.append(T(20, 30, 'Settings › Workflow', 15, 'text', 650, c=c))
+    b.append(T(20, 50, 'For every project on this computer', 12.5, 'muted', c=c))
+    rows = [('Helper model', 'Sonnet 5.5'), ('Judge model', 'Opus 5.5'), ('Second opinion', False),
+            ('Always run checkpoints', False), ('Token budget', 'No budget')]
+    for i, (what, v) in enumerate(rows):
+        y = 66 + i * 50
+        b.append(f'<line x1="20" y1="{y}" x2="580" y2="{y}" stroke="{c["cardline"]}"/>')
+        b.append(T(20, y + 31, what, 13.5, 'text', 500, c=c))
+        if isinstance(v, bool):
+            b.append(switch(c, 552, y + 16, v))
+        else:
+            b.append(f'<rect x="410" y="{y + 11}" width="170" height="30" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
+            b.append(T(422, y + 31, v, 12.5, 'text', 500, c=c))
+            if v != 'No budget':
+                b.append(f'<path d="M562 {y + 23} l4 4 l4 -4" fill="none" stroke="{c["muted"]}" stroke-width="1.5"/>')
+    b.append(card(c, 620, 0, 380, 326))
+    b.append(T(640, 30, 'For one task', 15, 'text', 650, c=c))
+    b.append(T(640, 50, 'Say it in words; your agent records it', 12.5, 'muted', c=c))
+    chips = ['+security', '-security', '+checkpoint:all', '-checkpoint', '+second-opinion', '-second-opinion', '-ui-review']
+    for i, ch in enumerate(chips):
+        x = 640 + (i % 2) * 170
+        y = 72 + (i // 2) * 34
+        b.append(pill(c, x, y, ch, 'text', 160, mono=True))
+    b.append(T(640, 230, '“Skip security” is recorded as', 12.5, 'muted', c=c))
+    b.append(T(640, 250, '-security on this task.', 12.5, 'muted', c=c))
+    return svg(W, H, ''.join(b), 'Settings, Workflow: helper model, judge model, second opinion, always run checkpoints and token budget; and the overrides for one task, said in words')
+
+
+def files_ill(c: Theme) -> str:
+    W, H = 1000, 350
+    b = [card(c, 0, 0, 640, 346)]
+    b.append(T(18, 30, 'docs/plans/2026-10-03-csv-export/', 13.5, 'text', 700, mono=True, c=c))
+    rows = [('00-discuss.md · 00-discuss-details.md', 'Discuss', 'pair'),
+            ('01-research.md or 01-diagnosis.md', 'Research or diagnosis', 'blue'),
+            ('02-plan.md · 02-plan-details.md', 'The Plan you approve', 'pair'),
+            ('artifacts/', 'Mockups and diagrams', 'amber'),
+            ('03-build.md · 03-build-details.md', 'The build record and checks', 'blue'),
+            ('reviews/', 'Second-opinion findings', 'violet'),
+            ('evidence/', 'Test output, logs, screenshots', 'teal'),
+            ('pr-description.md', 'The pull request text', 'dim')]
+    for i, (f, what, kind) in enumerate(rows):
+        y = 50 + i * 36
+        b.append(f'<line x1="26" y1="{y - 8}" x2="26" y2="{y + 14}" stroke="{c["line"]}"/>')
+        b.append(f'<line x1="26" y1="{y + 6}" x2="38" y2="{y + 6}" stroke="{c["line"]}"/>')
+        if kind == 'pair':
+            b.append(f'<circle cx="48" cy="{y + 6}" r="4.5" fill="{c["amber"]}"/>')
+            b.append(f'<circle cx="60" cy="{y + 6}" r="4.5" fill="{c["blue"]}"/>')
+        else:
+            b.append(f'<circle cx="54" cy="{y + 6}" r="4.5" fill="{c[kind]}"/>')
+        b.append(T(74, y + 10.5, f, 12, 'text', 500, mono=True, c=c))
+        b.append(T(622, y + 10.5, what, 12, 'muted', 400, 'end', c=c))
+    b.append(card(c, 660, 0, 340, 346))
+    b.append(T(678, 30, 'What the colours mean', 14, 'text', 650, c=c))
+    leg = [('amber', 'For you: the short version you review'), ('blue', 'For the agent: contracts, files, detail'),
+           ('teal', 'Evidence the checks kept'), ('violet', 'The other vendor’s review'), ('dim', 'Task records')]
+    for i, (k, t) in enumerate(leg):
+        y = 56 + i * 34
+        b.append(f'<circle cx="686" cy="{y}" r="5" fill="{c[k]}"/>')
+        b.append(T(700, y + 4.5, t, 12.5, 'text', 500, c=c))
+    b.append(T(678, 250, 'All of it lives in your repository,', 12.5, 'muted', c=c))
+    b.append(T(678, 270, 'next to your code, and goes into', 12.5, 'muted', c=c))
+    b.append(T(678, 290, 'Git with the change.', 12.5, 'muted', c=c))
+    return svg(W, H, ''.join(b), 'A task folder in docs/plans: the Discuss and Plan documents with their details, research or diagnosis, mockups, the build record, reviews, evidence and the pull request text')
+
+
+def privacy_ill(c: Theme) -> str:
+    W, H = 1000, 280
+    b = [card(c, 0, 0, 420, 276, stroke='ok', sw=1.5)]
+    b.append(T(18, 30, 'Stays on your computer', 14, 'text', 650, c=c))
+    for i, t in enumerate(['Your code and the diff', 'Every plan document', 'Build evidence and logs', 'The App and its cost view']):
+        y = 52 + i * 32
+        b.append(mark(c, 30, y + 8))
+        b.append(T(46, y + 13, t, 13, 'text', 500, c=c))
+    b.append(T(18, 196, 'Your agent sends your code to its own provider,', 12, 'muted', c=c))
+    b.append(T(18, 214, 'as it always does. QualityLayer does not change that.', 12, 'muted', c=c))
+    b.append(card(c, 440, 0, 560, 126))
+    b.append(T(458, 30, 'QualityLayer service', 14, 'text', 650, c=c))
+    b.append(T(458, 54, 'A daily licence check, with a few anonymous events', 12.5, 'muted', c=c))
+    b.append(T(458, 74, 'about steps and results. Never a name, path or text.', 12.5, 'muted', c=c))
+    b.append(T(458, 104, 'qualitylayer telemetry off  ·  DO_NOT_TRACK=1', 12, 'blue', 500, mono=True, c=c))
+    b.append(card(c, 440, 146, 560, 130, stroke='violet', sw=1.4))
+    b.append(T(458, 176, 'Team service · only when you share', 14, 'text', 650, c=c))
+    b.append(T(458, 200, 'The Plan and its progress, the title and step, comments.', 12.5, 'muted', c=c))
+    b.append(T(458, 222, 'Encrypted on your machine; only your team can read it.', 12.5, 'muted', c=c))
+    b.append(T(458, 252, 'Never your code, the diff or your logs.', 12.5, 'text', 600, c=c))
+    return svg(W, H, ''.join(b), 'What stays on your computer, what the licence check sends, and what sharing sends to the team service')
+
+
+DRAWINGS = [('flow', flow), ('slices', slices), ('agents', agents), ('app', app), ('app-marked', app_marked),
+            ('implement-start', implement_start), ('implement', implement_ill), ('checkpoint', checkpoint_ill),
+            ('discuss', discuss_ill), ('diagnose', diagnose_ill), ('plan', plan_ill),
+            ('verify', verify_ill), ('stopped', stopped_ill), ('review', review_ill), ('shipped', shipped_ill),
+            ('abandon', abandon_ill), ('band', band_ill), ('cost', cost_ill),
+            ('team', team), ('team-agents', team_agents), ('team-timeline', team_timeline), ('team-change', team_change),
+            ('peers', peers), ('install', install_ill), ('firsttask', firsttask_ill), ('update', update_ill),
+            ('move', move_ill), ('settings', settings_ill), ('files', files_ill), ('privacy', privacy_ill)]
+DRAWINGS += [(f'track-{n.lower()}', track(n)) for n, _ in STEPS]
+
+os.makedirs(OUT, exist_ok=True)
 for name, fn in DRAWINGS:
     for theme, c in THEMES.items():
         with open(os.path.join(OUT, f'{name}-{theme}.svg'), 'w') as f:

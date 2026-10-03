@@ -38,10 +38,10 @@ export const PLANS: Plan[] = [
     featured: false,
     plus: "Everything one developer needs:",
     highlights: [
-      ["plan", "Review the plan before any code is written"],
-      ["build", "Built in small steps, each tested end to end"],
+      ["plan", "Approve the plan before any code is written"],
+      ["build", "Built test first, every test run recorded"],
       ["verify", "Checked against your request before you see it"],
-      ["review", "Works with Claude Code, Codex and other agents"],
+      ["review", "Works inside Claude Code and Codex"],
     ],
   },
   {
@@ -104,29 +104,30 @@ export const COMPARE: CompareGroup[] = [
     name: "Plan",
     hue: "plan",
     rows: [
-      row("Review each part of the plan before code is written", true, true),
-      row("Designs shown as diagrams and clickable mockups", true, true),
-      row("A lighter process for bugs and small changes", true, true),
-      row("A PRD and a TDD for product managers", true, true, "They take the place of the frame and the design"),
-      row("Copy any document into Confluence, Google Docs or Jira", true, true),
+      row("Approve one plan before any code is written", true, true),
+      row("Decisions shown as diagrams and a clickable mockup", true, true),
+      row("Bugs start with finding their cause", true, true),
+      row("A ready prompt for requests too small for a plan", true, true, "Your plain agent runs it"),
+      row("Copy the plan as a PRD", true, true, "For Confluence, Google Docs or Jira"),
     ],
   },
   {
     name: "Build",
     hue: "build",
     rows: [
-      row("Build with the AI agent and model you choose", true, true),
-      row("Lower cost: smaller models build from the plan, in parallel", true, true),
-      row("Every step tested end to end, with logs and screenshots", true, true),
+      row("Choose the models that build and check", true, true),
+      row("Every task test first, every test run recorded", true, true),
+      row("Slices that don’t overlap build side by side", true, true),
+      row("Tokens and estimated cost for every step", true, true, "With a warning before a task passes your budget"),
     ],
   },
   {
-    name: "Check",
+    name: "Verify",
     hue: "verify",
     rows: [
-      row("Optional extra checks before the final one", true, true, "Simplify the change, add missing tests, review security, update the docs; each can be switched off"),
+      row("Polish and security review before the final check", true, true, "Security runs when the change touches outside input, sign-in or secrets"),
       row("An independent check against what you asked for", true, true, "By an AI that did not write the code"),
-      row("A second review by an AI from another vendor", true, true, "Needs both Claude Code and Codex"),
+      row("A second opinion from another vendor’s AI", true, true, "Off by default; needs Claude Code and Codex"),
     ],
   },
   {
@@ -141,7 +142,8 @@ export const COMPARE: CompareGroup[] = [
     name: "Everyday",
     hue: "build",
     rows: [
-      row("A notification when something needs you", true, true),
+      row("The App for macOS, Windows and Linux", true, true, "On a server or in WSL, it opens in your browser"),
+      row("A notification when something needs you", true, true, "From the menu bar, and in Claude Code above the prompt"),
       row("Your AI agents can message each other", true, true, "Claude Code and Codex sessions on your computer"),
     ],
   },
@@ -151,7 +153,8 @@ export const COMPARE: CompareGroup[] = [
     rows: [
       row("Share plans with your team", false, true),
       row("Team feedback goes straight to your agent", false, true),
-      row("Ask a teammate about any part of a plan", false, true, "They get a notification, and approval can wait for their answer"),
+      row("Ask a teammate about any part of a plan", false, true, "They get a Slack message that opens the question in their App"),
+      row("Teammates answer with their own agent", false, true, "Claude Code, Codex or Grok Bot drafts; nothing is sent without their yes"),
       row("See every shared task and how far it is", false, true),
       row("Invite people outside your team to comment", false, true),
       row(

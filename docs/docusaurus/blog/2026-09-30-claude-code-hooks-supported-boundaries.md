@@ -36,7 +36,7 @@ A hook can report that a command passed. It cannot infer every requirement that 
 
 For a reporting change, lint passing does not establish that filters were preserved or that the exported data has the correct shape. Those checks need to be named in the plan and run against the implementation.
 
-QualityLayer's [Outline](/docs/workflow/plan/outline) records the task checks and whole-flow scenarios. [Verify](/docs/workflow/check/verify) evaluates the result. That workflow can use the repository's tools without treating a hook notification as final approval.
+QualityLayer's [Outline](/docs/steps/plan) records the task checks and whole-flow scenarios. [Verify](/docs/steps/verify) evaluates the result. That workflow can use the repository's tools without treating a hook notification as final approval.
 
 ## Handle failures proportionately
 
@@ -46,4 +46,4 @@ For a check that cannot run in the current environment, report the limitation an
 
 Hooks are most useful when they reduce friction around an understandable process. Keep their scope narrow enough that the same outcome can be verified from the terminal.
 
-Related: [Code review evidence](/blog/claude-text-watermarks-code-review) and [build checkpoints](/docs/workflow/build/checks).
+Related: [Code review evidence](/blog/claude-text-watermarks-code-review) and [build checkpoints](/docs/steps/implement#checkpoints).

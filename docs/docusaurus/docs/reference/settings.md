@@ -1,66 +1,67 @@
 ---
 title: Settings
-description: Four models, auto-advance, the optional steps, your role, notifications, your licence and your team.
+description: The five workflow settings, changes for one task, links, notifications, your licence and your team.
 ---
 
-![Settings: one subagent model per agent, one second-opinion model per reviewing agent, a switch for each optional step, and notifications](pathname:///img/diagrams/settings-light.svg)
-![Settings: one subagent model per agent, one second-opinion model per reviewing agent, a switch for each optional step, and notifications](pathname:///img/diagrams/settings-dark.svg)
+![Settings, Workflow: helper model, judge model, second opinion, always run checkpoints and token budget; and the overrides for one task, said in words](pathname:///img/diagrams/settings-light.svg)
+![Settings, Workflow: helper model, judge model, second opinion, always run checkpoints and token budget; and the overrides for one task, said in words](pathname:///img/diagrams/settings-dark.svg)
 
-Open **Settings** at the bottom of the Cockpit's sidebar. Changes save at once and apply to every project on this computer. With auto-advance on, the frame and the research go on without a review; the design, the outline and the final approval always wait for you.
+Open **Settings** at the bottom of the App's sidebar. Changes save at once and apply to every project on this computer. They live in QualityLayer's config file; the keys are named below.
 
-## Your role
+## Workflow
 
-**I mostly work as** is **Developer** or **Product manager**. It decides which route your agent offers first for a new feature. A developer gets the Feature route, with a frame and a design. A product manager gets the product route, with a PRD and a TDD. The build and its result are the same. You are asked once, in the Cockpit or in your agent's chat, and every task still lets you pick another route.
-
-## Models
-
-Every helper agent and every second opinion thinks at high effort, so there is no effort setting. You set the build session's own model at handoff.
-
-### Subagents
-
-Helper agents start fresh, with no memory of your chat, and work only from the task's documents. That keeps their work independent. They research, read the outline like a new builder, build slices, run the end-to-end checks, run the quality pass and judge the finished change.
-
-One model covers all of them, per coding agent. In Claude Code you pick **Sonnet 5.5** (the default) or **Opus 5.5**. In Codex you pick **GPT-6.1 Sol** (the default), **GPT-6 Astra**, the most capable and the most expensive, or **GPT-6 Luna**, the fastest and cheapest. **This session** means no helpers: your agent does every step itself.
-
-### Second opinion
-
-With Claude Code and Codex both installed, the other vendor's agent reviews your agent's work:
-
-- **Design:** the frame, the research and the design, as soon as the design is up for your review. **Approve** unlocks once your agent has answered the findings.
-- **Verify:** every plan document, the build record and the code change.
-
-It runs through the other agent's command-line tool (`claude` or `codex`), so install it even if you work in a desktop app. It reads only the documents, never your chat, and changes nothing. Your agent fixes what it agrees with and says why it skips the rest. Each direction (**Codex reviews Claude Code**, **Claude Code reviews Codex**) has one model from the same lists. A review that has not finished after ten minutes at design, or twelve at verify, is stopped and Approve unlocks anyway. Whether the second opinion runs at all is its switch under Optional steps.
-
-## Auto-advance
-
-Two switches, both on by default:
-
-- **Frame → Research:** once you have answered your agent's questions in the chat, the frame is approved and the research starts.
-- **Research → Design:** the research goes on to the design without a review.
-
-The documents stay in the Cockpit to read, and your comments still reach the agent. The design is your first full review. A teammate's required answer or a second opinion still holds a gate. Switch one off to review that stage before your agent goes on.
-
-## Optional steps
-
-Each of these steps has a switch, on by default. A switch sets the default for every new task. When a task starts, your agent's question can switch steps off for that task, and the [handoff](../workflow/build/handoff.md) changes the build-time steps for one build. After the build starts, the list is fixed.
-
-| Group | Step | What it does |
+| Setting | Default | Key |
 | --- | --- | --- |
-| While planning | Outline cold read | A fresh helper reads the outline like a new builder and reports where it would get stuck |
-| While planning | Second opinion | The other vendor's agent reviews the design and the finished change |
-| While building | Checkpoints | Runs the end-to-end scenarios after marked slices |
-| Quality pass | Simplify | Reads the whole change once and makes it simpler |
-| Quality pass | Test gaps | Adds the missing edge-case and error-path tests |
-| Quality pass | Security review | Looks for severe issues in the change, in at most 10 minutes |
-| Quality pass | Docs update | Brings the README, the docs and the changelog in line with the change |
-| Quality pass | UI review | For tasks with a screen: compares the running app with the design's mockups |
+| [Helper model](#helper-model) | Sonnet 5.5 · GPT-6.1 Sol in Codex | `models.<agent>.helpers` |
+| [Judge model](#judge-model) | Opus 5.5 · GPT-6.1 Sol in Codex | `models.<agent>.judge` |
+| [Second opinion](#second-opinion) | Off | `secondOpinion.on`, `secondOpinion.models` |
+| [Always run checkpoints](#always-run-checkpoints) | Off | `alwaysCheckpoints` |
+| [Token budget](#token-budget) | None | `budget.tokens` |
 
-The [quality pass](../workflow/check/verify.md#the-quality-pass) runs at the start of Verify, before the judge. No step switch turns an approval off.
+Your own session's model is yours to pick in your agent. Opus 5.5 is recommended for Discuss and Plan, and Sonnet 5.5 for the session that runs Implement.
 
-## Notifications
+### Helper model {#helper-model}
 
-Your browser tells you when a document or the final change waits for you, when the build or verification stops, and when a task ships, while the Cockpit is open.
+Helper agents start fresh, with no memory of your chat, and work from the Plan. They research, build slices, fix what a check found, run checkpoints, and do Polish and Security. One model covers all of them, per coding agent.
+
+In Claude Code you pick **Sonnet 5.5** (the default) or **Opus 5.5**. In Codex you pick **GPT-6.1 Sol** (the default), **GPT-6 Astra**, the most capable and the most expensive, or **GPT-6 Luna**, the fastest and cheapest. **This session** means no helpers: your agent does every step itself.
+
+### Judge model {#judge-model}
+
+The model of the AI that checks the finished change in [Verify](../steps/verify.md). It never wrote the code. The default is **Opus 5.5** in Claude Code and **GPT-6.1 Sol** in Codex.
+
+### Second opinion {#second-opinion}
+
+Off by default. With Claude Code and Codex both installed, the other vendor's AI reviews your agent's work. It reads the Plan while it is up for your review, and the built change in Verify. **Approve** unlocks once your agent has answered its findings.
+
+It runs through the other agent's command line (`claude` or `codex`), so install it even if you work in a desktop app. It reads only the documents, never your chat, and changes nothing. Your agent fixes what it agrees with and says why it skips the rest. Each direction (**Codex reviews Claude Code**, **Claude Code reviews Codex**) has its own model.
+
+### Always run checkpoints {#always-run-checkpoints}
+
+Off by default: only a slice the Plan marks risky gets a [checkpoint](../steps/implement.md#checkpoints). On, every slice with its own scenario gets one.
+
+### Token budget {#token-budget}
+
+A soft limit per task, in tokens. When a task passes it, the App shows a notice and your agent tells you once; the task goes on. See [What it costs](../app.md#what-it-costs).
+
+## For one task {#for-one-task}
+
+Say it in words, such as "skip security" or "run a checkpoint after every slice". Your agent records it on the task with `qualitylayer task override`:
+
+| Override | What it does |
+| --- | --- |
+| `+security` · `-security` | Run the security review, or skip it |
+| `+checkpoint:all` | A checkpoint after every slice with its own scenario |
+| `-checkpoint` | No checkpoints, not even for risky slices |
+| `+second-opinion` · `-second-opinion` | Turn the second opinion on or off for this task |
+| `-ui-review` | Skip comparing the screens with the mockup in Polish |
+
+No setting or override turns an approval off.
+
+## Links and notifications
+
+**Links** opens your agent's links in the App, or always in your browser. **Notifications** turns the App's notifications on; your system asks once.
 
 ## Licence and team
 
-**Licence** shows your plan, your version and a link to the customer portal for invoices, seats and payment. On another computer, run `qualitylayer licence activate <key>`. **Team** shows your seats, your members and their computers, your shared links, and the name your team sees on your comments.
+**Licence** shows your plan, your version and a link to the customer portal for invoices, seats and payment. On another computer, run `qualitylayer licence activate <key>`. **Team** shows your seats, your members and their computers, your shared links, your Slack connection and groups, and the name your team sees on your comments.

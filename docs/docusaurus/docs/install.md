@@ -1,79 +1,69 @@
 ---
 title: Install
-description: What you need, the one install command, and how to update or remove QualityLayer.
+description: One rule for every machine, the download and the terminal installer, what first start sets up, and how to remove QualityLayer.
 ---
 
-![Install with one command, start a task with /ql, and review it in the Cockpit](pathname:///img/diagrams/install-light.svg)
-![Install with one command, start a task with /ql, and review it in the Cockpit](pathname:///img/diagrams/install-dark.svg)
+One rule decides what you get. A machine with a screen gets the QualityLayer App. A machine without one gets the command line and opens the App in a browser.
+
+![One rule: a machine with a screen gets the App, which updates itself; WSL2, dev containers and servers get the command line and open the App in a browser](pathname:///img/diagrams/install-light.svg)
+![One rule: a machine with a screen gets the App, which updates itself; WSL2, dev containers and servers get the command line and open the App in a browser](pathname:///img/diagrams/install-dark.svg)
+
+| Where you work | Install | Update |
+| --- | --- | --- |
+| macOS (Intel, Apple silicon), Windows, Linux desktop | Download the App from [qualitylayer.dev/download](https://qualitylayer.dev/download) and open it. First start sets up the command line, your agents and your licence. Or run the terminal installer, which does the same and fetches the App | The App updates itself and its command line together. It checks daily, asks in the tray, and on Windows waits for running agent commands. `qualitylayer update` hands over to the App |
+| WSL2 | The terminal installer inside WSL: command line only. Links open in your Windows browser | `qualitylayer update` |
+| VS Code dev container | The terminal installer in the container: command line only. VS Code forwards the printed link | `qualitylayer update` |
+| Linux server | The terminal installer over SSH: command line only. Forward the port and open the printed link. You pair the browser once; links carry no key | `qualitylayer update` |
+| Pilot Shell 11, any of the above | Nothing to do. Pilot's updater runs the installer, which moves the machine over by the same rule | As above |
+
+More on [updating](updating.md) and on [moving from Pilot Shell 11](moving-from-pilot-shell.md).
 
 ## What you need
 
-- **A coding agent.** Any agent that supports skills and can run shell commands, in the terminal, its desktop app or its IDE extension. The installer sets up Claude Code and Codex. Sign in to your agent and start it once before you install. The terminal shows you the most: in Claude Code, a status line follows the task.
-- **macOS, Linux, or Windows**, plus Git and a repository. Nothing else: no separate Node.js, Python or Bun runtime. Native Windows builds support x64 and ARM64 and use PowerShell 5.1 or newer.
+- **A coding agent.** Claude Code or Codex, in the terminal, its desktop app or its IDE extension. Sign in and start it once before you install.
+- **macOS, Windows or Linux**, plus Git and a repository. Nothing else: no separate Node.js, Python or Bun. Windows runs on x64 and ARM64, without WSL.
 
-Native Windows support is included in the next release. Until it is published, use WSL2 with the Linux installer and run your agent inside WSL2 too.
+## The terminal installer
 
-## What it costs your machine
-
-QualityLayer is held to these limits, measured on a Mac with a repository of 20,000 files:
-
-- **The Cockpit page** uses about 20 MB of browser memory, and the amount stays the same through half an hour of constant use. Switching pages never freezes it for more than 60 ms, even with the processor slowed to a quarter of its speed.
-- **The Cockpit itself** runs only while you use it, and quits by itself 30 minutes after you close the page, unless a decision is waiting for you. Idle, it uses under 0.2 % of one processor core and about 50 MB. With the page open while your agent works, it uses about 1 % of a core and 100 to 160 MB.
-- **Waiting for your approval** costs your agent's session under 0.5 % of one core.
-- **Linking Claude Code and Codex sessions** costs under 1 % of one core, for as long as the link is on.
-- **The status line** takes about 30 ms each time Claude Code runs it.
-- **When you stop**, nothing keeps running: the Cockpit, the wait for your approval and the session link all end with it.
-
-## Install
-
-On macOS or Linux:
+On macOS, Linux, WSL2, a dev container or a server:
 
 ```bash
 curl -fsSL https://qualitylayer.dev/install.sh | bash
 ```
 
-On Windows, in PowerShell (available with the next release):
+On Windows, in PowerShell:
 
 ```powershell
 irm https://qualitylayer.dev/install.ps1 | iex
 ```
 
-WSL2 is optional for the Windows build. Run QualityLayer and your coding agent in the same environment: both native Windows, or both inside WSL2. Local session messaging does not cross that boundary.
+The first line of its output names what it found, such as "macOS, Apple silicon, with a screen" or "over SSH, no screen". It checks every download against its checksum before it installs anything. `--cli-only` installs only the command line on a desktop, and `--with-app` installs the App where the installer found no screen. In PowerShell the first one is `-CliOnly`.
 
-The Windows installer checks the download's SHA-256 checksum and installs into `%USERPROFILE%\.qualitylayer\bin`. It adds that directory to the current PowerShell session's `PATH` and prints a line you can put in your PowerShell profile for future sessions; it does not edit the profile. In another terminal, you can also run the binary directly:
+Windows may show a SmartScreen notice when you open the App for the first time. The download page says what to expect.
 
-```powershell
-& "$env:USERPROFILE\.qualitylayer\bin\qualitylayer.exe" status
-```
+## First start
 
-It adds the `qualitylayer` command, the `/ql` skill (`$ql` in Codex) and [session messaging](reference/commands.md#session-messaging). It asks you nothing, apart from the migration questions for Pilot Shell users below. It lists every agent setting it adds and keeps any value you set. Your own Claude Code status line stays; `qualitylayer install --refresh --status-line` swaps in QualityLayer's, and uninstalling puts yours back.
+The App opens a setup page the first time:
+
+- **Licence:** enter your key, or start the 7-day trial.
+- **Command line:** placed where your agents call it, so Claude Code and Codex reach it without a terminal.
+- **Agents:** Claude Code, Codex and Grok Bot, found even when your shell's path does not list them. **Show what changes** lists every agent setting before it is applied. **Check again** finds an agent you installed since.
+
+Setup keeps any value you set yourself. QualityLayer sets no Claude Code status line. If an earlier version set one, setup puts yours back.
 
 QualityLayer runs only when you call it. Everything else works as before.
 
 ## Other agents
 
-Copy `~/.qualitylayer/skill/ql` into your agent's skills folder. At handoff, pick **Other agent** to get its build prompt. The [second opinion](reference/settings.md#second-opinion) and [session messaging](reference/commands.md#session-messaging) need Claude Code and Codex; everything else works with any agent.
+Copy `~/.qualitylayer/skill/ql` into your agent's skills folder. The [second opinion](reference/settings.md#second-opinion) and [session messaging](reference/commands.md#session-messaging) need Claude Code and Codex. Everything else works with any agent that supports skills and can run shell commands.
 
-## Update, remove and licence {#uninstall}
+## Remove it, or move your licence {#uninstall}
 
 ```bash
-qualitylayer update
 qualitylayer uninstall
 qualitylayer licence activate <key>
 ```
 
-Uninstalling puts back what the installer changed; your plans stay. The trial lasts seven days.
-
-## Coming from Pilot Shell 11
-
-Run the installer. It shows one screen about the change, once. In a terminal it then asks before anything of Pilot Shell's goes:
-
-1. **What moving over removes.** A list: Pilot's own files in `~/.claude`, its entries in your agent settings (restored from Pilot's own baselines, so your values stay), its block in your shell profile, its Codex parts and its runtime in `~/.pilot`. Your own settings, skills and files stay. You confirm, or nothing is changed.
-2. **Which tools Pilot Shell installed should go too.** Only the tools Pilot recorded as its own are listed, and you tick the ones to remove. Our benchmarks show today's models gain nothing from rtk, semble or codegraph, so those start ticked. General tools such as typescript, prettier or ruff, and design tools such as Impeccable, start unticked, because your projects may use them. A tool you leave unticked stays installed and is yours.
-3. **Delete your Pilot Shell memories (`~/.pilot/memory`)?** QualityLayer does not use them, and the answer is no unless you say otherwise. To keep what is in them, ask Claude Code or Codex to move them into its own memory first; QualityLayer does not do that for you. Sessions, logs and configuration in `~/.pilot` stay either way.
-
-Your plans carry over. The summary at the end says what happened to your licence: a paid Pilot Shell licence keeps working, and without one (a Pilot Shell trial does not carry over) a 7-day QualityLayer trial starts.
-
-Without a terminal, including Pilot Shell 11's own updater and `--non-interactive`, nothing is asked: Pilot's own parts are removed, no tool and no memory is, and the summary lists each tool that stayed with the command that removes it.
+Uninstalling puts back what the installer changed. Your plans stay. `licence activate` moves your licence to another computer.
 
 Next: [your first task](first-task.md).

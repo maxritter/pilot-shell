@@ -87,7 +87,7 @@ const config: Config = {
       {
         name: "keywords",
         content:
-          "QualityLayer, coding agents, SDLC, shift left, planning, test-first development, Cockpit, agent handoff, independent review",
+          "QualityLayer, coding agents, SDLC, shift left, planning, test-first development, QualityLayer App, Claude Code, Codex, independent review, team plan review",
       },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@maxritter" },
@@ -143,7 +143,7 @@ const config: Config = {
           title: "Docs",
           items: [
             { label: "Install", to: "/docs/install" },
-            { label: "How a task works", to: "/docs/workflow/overview" },
+            { label: "The five steps", to: "/docs#the-five-steps" },
             { label: "Command reference", to: "/docs/reference/commands" },
             { label: "Changelog", to: "/docs/changelog" },
             { label: "Blog", to: "/blog" },

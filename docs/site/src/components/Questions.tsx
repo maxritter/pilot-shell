@@ -1,3 +1,4 @@
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import type { Faq } from "@/lib/content";
 
 export default function Questions({ faqs, id = "faq", sunk }: { faqs: Faq[]; id?: string; sunk?: boolean }) {
@@ -5,14 +6,16 @@ export default function Questions({ faqs, id = "faq", sunk }: { faqs: Faq[]; id?
     <section id={id} className={`w7-sec${sunk ? " w7-sunk" : ""}`} aria-labelledby={`${id}-h`}>
       <div className="w7-wrap w7-faq">
         <h2 className="w7-h2" id={`${id}-h`}>Questions</h2>
-        <div className="w7-faql">
+        <Accordion type="multiple" className="w7-faql">
           {faqs.map((faq) => (
-            <details key={faq.question}>
-              <summary>{faq.question}<span aria-hidden="true">+</span></summary>
-              <p>{faq.answer}</p>
-            </details>
+            <AccordionItem key={faq.question} value={faq.question}>
+              <AccordionTrigger>{faq.question}</AccordionTrigger>
+              <AccordionContent>
+                <p>{faq.answer}</p>
+              </AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
       </div>
     </section>
   );

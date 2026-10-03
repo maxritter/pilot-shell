@@ -47,7 +47,7 @@ When tools can write, keep the requested action and its scope visible to the use
 
 A conversation can describe progress, but a durable task record gives later sessions something concrete to inspect.
 
-QualityLayer combines an agent skill with a local CLI that holds task state. The skill explains the workflow; the CLI supplies the next step and records review decisions. The [Cockpit](/docs/cockpit) provides a view of that state.
+QualityLayer combines an agent skill with a local CLI that holds task state. The skill explains the workflow; the CLI supplies the next step and records review decisions. The [Cockpit](/docs/app) provides a view of that state.
 
 An MCP service may be useful beside that workflow, for example to retrieve current documentation. It does not replace the task's approved documents or acceptance checks.
 

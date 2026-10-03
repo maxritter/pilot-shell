@@ -1,24 +1,39 @@
 ---
 title: Commands
-description: The commands you type, the ones your agent runs, and session messaging between agents.
+description: What you type in your agent, the commands you run, the ones your agent runs, and session messaging between agents.
 ---
 
 `qualitylayer help` lists every command your installed version has. Add `--json` for machine-readable output, or `--task <slug>` when several tasks are open.
 
-`ql` is the short name for the same command: `ql cockpit` is `qualitylayer cockpit`. If another command on your computer is already called `ql`, the installer leaves it alone and says so; `qualitylayer` always works.
+`ql` is the short name for the same command: `ql app` is `qualitylayer app`. If another command on your computer is already called `ql`, the installer leaves it alone and says so; `qualitylayer` always works.
+
+## In your agent
+
+| You type | What it does |
+| --- | --- |
+| `/ql <request>` | Start a task with [Discuss](../steps/discuss.md) |
+| `/ql implement <task>` | Build an approved Plan, in a fresh session. See [Implement](../steps/implement.md#start-implement) |
+| `/ql review <task>` | Go through your team's review threads. See [Review changes as a team](../team/changes.md) |
+| `/ql answer <ask>` | Answer a teammate's question with your agent. See [Teammates' agents](../team/agents.md) |
+| `/ql-app` | Open the App at the current task (Claude Code) |
+| `/ql-pane` | Open the pane with the steps and the build's progress (Claude Code) |
+
+In Codex, type `$ql` in place of `/ql`.
 
 ## For you
 
 | Command | What it does |
 | --- | --- |
-| `qualitylayer cockpit` | Open the Cockpit; `cockpit stop` stops it |
+| `qualitylayer app` | Open the App; on a machine without it, open it in your browser and pair the browser once |
+| `qualitylayer app --forget-browsers` | Make every paired browser pair again |
 | `qualitylayer find "<text>"` | Find a task |
 | `qualitylayer tasks` | List tasks, by status or age |
 | `qualitylayer doctor` | Check the setup; `--repair` fixes what it can |
-| `qualitylayer update` | Update to the latest version |
+| `qualitylayer update` | Update; with the App, it hands over to the App |
 | `qualitylayer uninstall` | Remove it; `--purge` also removes the licence and task state |
 | `qualitylayer licence activate <key>` | Activate a licence; `licence portal` opens billing |
 | `qualitylayer telemetry off` | Stop the anonymous events; `DO_NOT_TRACK=1` works too |
+| `qualitylayer ask list` | Questions to you and from you; see [Teammates' agents](../team/agents.md#from-the-command-line) for the rest |
 
 ## Your agent runs
 
@@ -26,17 +41,25 @@ You rarely type these, but they explain what you see in your agent's chat.
 
 | Command | What it does |
 | --- | --- |
-| `qualitylayer next "<request>"` | Start a task, or get its next step |
+| `qualitylayer next "<request>"` | Start Discuss, or get the next step of the open task |
+| `qualitylayer next start feature: <problem>` | Create the task after the first questions; `bug:` for a bug |
+| `qualitylayer next handback "<reason>"` | End a request that is too small; no task is created |
+| `qualitylayer next done` | Finish Discuss and move on to the Plan |
 | `qualitylayer next "show me <topic>"` | Make a picture of how something works |
-| `qualitylayer gate open <document>` | Put a document up for your review in the Cockpit |
-| `qualitylayer comments take` | Collect the comments not yet answered, your team's included |
-| `qualitylayer review wait design \| verify` | Wait for the second opinion, which starts on its own |
-| `qualitylayer plan amend --by agent\|user --for T3 --for T4` | Record a change to the approved plan during the build, one entry for each task named |
+| `qualitylayer gate open 02-plan.md` | Put the Plan up for your approval |
+| `qualitylayer gate open final` | Put the finished change up for your final approval |
+| `qualitylayer check slice <n>` | Run a slice's approved commands and record them |
+| `qualitylayer check task T<n>` | Run one task card's check and record it |
+| `qualitylayer check all` | Run the project's tests, lint, type check and build and record them |
 | `qualitylayer card T<n>` | Print one task card with the contract it builds |
+| `qualitylayer progress build --for T<n> "<line>"` | Report that a task is being built |
+| `qualitylayer comments take` | Collect the comments not yet answered, your team's included |
+| `qualitylayer plan amend --by agent\|user --for T<n>` | Record a change to the approved Plan, one entry for each task named |
+| `qualitylayer task override +security` | Record a change you asked for on this task; see [Settings](settings.md#for-one-task) |
 | `qualitylayer validate <document>` | Check that a document is complete |
-| `qualitylayer guide` | Print the workflow rules, for an agent started with a Goal |
+| `qualitylayer guide` | Print the workflow rules, for an agent started with a goal |
 
-An agent cannot record a change that touches what you decided; it asks you and records your words with `--by user`.
+An agent cannot record a change that touches what you decided. It asks you and records your words with `--by user`.
 
 ## Session messaging
 
@@ -47,12 +70,12 @@ Claude Code and Codex sessions on your computer can message each other, in any d
 
 ```bash
 qualitylayer peers list
-qualitylayer peers send --to cc:<name> --message "The design is ready for review."
+qualitylayer peers send --to cc:<name> --message "The Plan is ready for review."
 qualitylayer peers help
 ```
 
 `ask` waits for the matching reply, `dispatch` hands over work you can carry on beside, and topics let several sessions follow one thread. A built-in limit stops two sessions from replying to each other forever. If a session is missing, run `qualitylayer peers doctor`.
 
-Tell a session `buddy: @<name>` and it consults that peer by default, for reviews or a second opinion. A buddy's agreement is advice, never your approval. When the buddy does the work and your session steers, the buddy checks in at each gate and about every 15 minutes, and your session answers with every correction and decision in one reply, so nothing arrives late or crossed.
+Tell a session `buddy: @<name>` and it consults that peer by default, for reviews or a second opinion. A buddy's agreement is advice, never your approval. When the buddy does the work and your session steers, the buddy checks in at each approval and about every 15 minutes. Your session answers with every correction and decision in one reply, so nothing arrives late or crossed.
 
-A Codex session that ends a turn without an answer now says so to whoever asked, instead of leaving them waiting. After you update QualityLayer, `qualitylayer peers restart <name>` brings an attached Codex session onto the new version and keeps its reply limit where it was.
+A Codex session that ends a turn without an answer tells whoever asked, so nobody waits for nothing. After you update QualityLayer, `qualitylayer peers restart <name>` brings an attached Codex session onto the new version and keeps its reply limit where it was.
