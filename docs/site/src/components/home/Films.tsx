@@ -39,7 +39,7 @@ export default function Films() {
         <h2 id="videos-h" className="w7-h2">
           Watch the overview, then the walkthrough
         </h2>
-        <p className="w7-lead">Two short videos with the real Cockpit. The player loads from YouTube only when you press play.</p>
+        <p className="w7-lead">Two short videos with the real QualityLayer App. The player loads from YouTube only when you press play.</p>
         <div className="w7-films-grid">
           {FILMS.map((film) => (
             <Film key={film.id} film={film} />

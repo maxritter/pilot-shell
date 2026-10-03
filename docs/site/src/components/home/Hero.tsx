@@ -2,7 +2,7 @@ import { useNarrow } from "@/hooks/useNarrow";
 import { DESCRIPTION } from "@/lib/product";
 
 const Hero = () => {
-  // Phones have no clickable Cockpit, so the second button walks through how it works instead.
+  // Phones have no clickable App, so the second button walks through how it works instead.
   const narrow = useNarrow();
   return (
     <section className="w7-hero" id="top" aria-labelledby="hero-h">
@@ -12,9 +12,9 @@ const Hero = () => {
           <p className="w7-hero-lead">{DESCRIPTION}</p>
           <div className="w7-btns">
             <a className="w7-btn-p" href="#install">Install QualityLayer</a>
-            {narrow ? <a className="w7-btn-s" href="#lifecycle">How it works</a> : <a className="w7-btn-s" href="#cockpit">Try the Cockpit</a>}
+            {narrow ? <a className="w7-btn-s" href="#lifecycle">How it works</a> : <a className="w7-btn-s" href="#app">Try the App</a>}
           </div>
-          {narrow ? <p className="w7-hero-hint">The clickable Cockpit demo runs on a laptop or tablet.</p> : null}
+          {narrow ? <p className="w7-hero-hint">The clickable App demo runs on a laptop or tablet.</p> : null}
         </div>
       </div>
     </section>

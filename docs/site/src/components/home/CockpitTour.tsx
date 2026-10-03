@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTheme, type Theme } from "@/hooks/useTheme";
 import { STOPS, useDemoTour, type DemoRoute, type Who } from "./demoTour";
 
-const DEMO_SRC = "/cockpit-demo/index.html";
+const DEMO_SRC = "/app-demo/index.html";
 const dot = (who?: Who) => (who === "you" ? "w7-you" : "w7-ag");
 
 function paintTheme(frame: HTMLIFrameElement | null, theme: Theme) {
@@ -12,7 +12,7 @@ function paintTheme(frame: HTMLIFrameElement | null, theme: Theme) {
   root.classList.toggle("dark", theme === "dark");
 }
 
-/** The real Cockpit, fed illustrative tasks, with a tour bar above it. Laptops and tablets only. */
+/** The real App, fed illustrative tasks, with a tour bar above it. Laptops and tablets only. */
 export default function CockpitTour() {
   const tour = useDemoTour();
   const frame = useRef<HTMLIFrameElement>(null);
@@ -59,11 +59,11 @@ export default function CockpitTour() {
   const stages = STOPS.map((s, i) => ({ s, i })).filter(({ s }) => !s.side);
 
   return (
-    <section id="cockpit" className="w7-cockpit" aria-labelledby="cockpit-h">
+    <section id="app" className="w7-cockpit" aria-labelledby="cockpit-h">
       <div className="w7-cockpit-wrap">
         <div className="w7-cockpit-head">
           <div>
-            <h2 id="cockpit-h">Try the Cockpit</h2>
+            <h2 id="cockpit-h">Try the App</h2>
             <p>Where you review and approve your agent’s work. This demo is fully clickable, with example tasks.</p>
           </div>
           <div className="w7-cockpit-key">
@@ -72,7 +72,7 @@ export default function CockpitTour() {
           </div>
         </div>
 
-        <div role="group" aria-label="Tour of the Cockpit" className="v8-tbar">
+        <div role="group" aria-label="Tour of the App" className="v8-tbar">
           {side("queue", "queue")}
           <span aria-hidden="true" className="v8-tsep" />
           <ol className="v8-stages" aria-label="Stages">
@@ -113,7 +113,7 @@ export default function CockpitTour() {
         <div className="w7-window">
           <div className="w7-window-bar">
             <span aria-hidden="true" className="w7-window-dots"><i /><i /><i /></span>
-            <span className="w7-window-title">QualityLayer Cockpit · runs on your machine</span>
+            <span className="w7-window-title">QualityLayer App · runs on your machine</span>
             <span className="w7-window-note">illustrative data</span>
           </div>
           {failed ? (
@@ -122,7 +122,7 @@ export default function CockpitTour() {
               <button type="button" className="w7-btn-s" onClick={() => { setFailed(false); setReady(false); if (frame.current) frame.current.src = DEMO_SRC; }}>Try again</button>
             </div>
           ) : null}
-          <iframe ref={frame} src={DEMO_SRC} title="Interactive QualityLayer Cockpit with illustrative tasks" className="w7-demo-frame" loading="lazy" onError={() => setFailed(true)} />
+          <iframe ref={frame} src={DEMO_SRC} title="Interactive QualityLayer App with illustrative tasks" className="w7-demo-frame" loading="lazy" onError={() => setFailed(true)} />
         </div>
       </div>
     </section>

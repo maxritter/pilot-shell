@@ -132,7 +132,7 @@ describe("the page", () => {
 });
 
 /**
- * A link reviewer and the finished change: the Cockpit's SharedReview arrives as
+ * A link reviewer and the finished change: the App's SharedReview arrives as
  * docs["review.json"] (fixture from the build session, 625ceb66). They read Overview,
  * Evidence and Try it, and comment; they never vote or see the files.
  */
@@ -169,12 +169,12 @@ describe("the shared change", () => {
     expect(page).not.toContain("Files changed");
   });
 
-  it("anchors a check the way the Cockpit does", () => {
+  it("anchors a check the way the App does", () => {
     expect(checkId("scenario 1")).toBe("scenario:1");
     expect(checkId("dod T3")).toBe("dod:T3");
   });
 
-  it("sends a new thread as the Cockpit reads it, with no verdict", () => {
+  it("sends a new thread as the App reads it, with no verdict", () => {
     const payload = changePayload(
       { author: " Sam ", remark: " Is 429 right? ", thread: "g-abc123", anchor: { kind: "doneMeans", id: "1", quote: "A 61st export" } },
       7,

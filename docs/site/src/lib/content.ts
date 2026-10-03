@@ -15,7 +15,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "Does it replace my coding agent?",
-    "No. Your agent still writes the code, with the model and provider you already pay for. QualityLayer adds the plan you approve, the tests, the checks and the Cockpit around it.",
+    "No. Your agent still writes the code, with the model and provider you already pay for. QualityLayer adds the plan you approve, the tests, the checks and the App around it.",
   ),
   faq(
     "What do I actually review?",
@@ -39,7 +39,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "Does my code leave my computer?",
-    "Plans are Markdown files in your repository, and the Cockpit runs on your computer. Your agent keeps its own provider settings. Sharing with your team sends the plan and its progress, encrypted on your machine so we can’t read it, and never your code.",
+    "Plans are Markdown files in your repository, and the QualityLayer App runs on your computer. Your agent keeps its own provider settings. Sharing with your team sends the plan and its progress, encrypted on your machine so we can’t read it, and never your code.",
   ),
   faq(
     "Which agents work with it?",
@@ -47,7 +47,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "Can my team review plans too?",
-    "Yes, with a Team plan. Teammates comment and approve in their own Cockpit, and people outside the team comment through a link. Their feedback goes to your agent; you decide.",
+    "Yes, with a Team plan. Teammates comment and approve in their own App, and people outside the team comment through a link. Their feedback goes to your agent; you decide.",
   ),
 ];
 
@@ -70,7 +70,7 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "Does my code leave my computer?",
-    "Plans are Markdown files in your repository, and the Cockpit runs on your computer. Your AI agent keeps its own provider and data settings. When you share a task, its plan is encrypted on your machine first, so we store it but can’t read it. We see who shared it, which task, when and its stage.",
+    "Plans are Markdown files in your repository, and the QualityLayer App runs on your computer. Your AI agent keeps its own provider and data settings. When you share a task, its plan is encrypted on your machine first, so we store it but can’t read it. We see who shared it, which task, when and its stage.",
   ),
   faq(
     "What does Enterprise include?",

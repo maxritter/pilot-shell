@@ -28,7 +28,7 @@ const REASONS: Record<Exclude<SubmitResult, { ok: true }>["reason"], string> = {
   network: "The comment could not be sent. Check your connection and try again.",
 };
 
-/** Where a comment is, in words, the way the Cockpit labels it. */
+/** Where a comment is, in words, the way the App labels it. */
 function where(anchor: ChangeAnchor): string {
   if (anchor.kind === "doneMeans") return `Done means ${anchor.id}`;
   if (anchor.kind === "picture") return "A picture";

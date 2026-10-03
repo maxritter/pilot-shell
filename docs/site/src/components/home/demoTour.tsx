@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
-/** A route in the embedded Cockpit demo (qualitylayer/src/ui/demo), as its hash router knows it. */
+/** A route in the embedded App demo (qualitylayer/src/ui/demo), as its hash router knows it. */
 export type DemoRoute =
   | { view: "home" }
   | { view: "settings"; tab?: string }
@@ -79,7 +79,7 @@ type Tour = {
 const Context = createContext<Tour | null>(null);
 
 function scrollToDemo() {
-  const el = document.getElementById("cockpit");
+  const el = document.getElementById("app");
   if (!el) return;
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 60, behavior: reduce ? "instant" : "smooth" });
@@ -134,6 +134,6 @@ export function DemoTourProvider({ children }: { children: ReactNode }) {
 
 export function useDemoTour(): Tour {
   const tour = useContext(Context);
-  if (!tour) throw new Error("The Cockpit tour needs its provider");
+  if (!tour) throw new Error("The App tour needs its provider");
   return tour;
 }

@@ -44,7 +44,7 @@ export default function Sections() {
       <Section id="peers" title="Claude Code and Codex sessions talk to each other" lead="Ask another session for a review, hand over a task, or talk a problem through, in any direction.">
         <Peers />
       </Section>
-      <Section id="team" sunk title="Review the plan as a team" lead="Teammates comment and approve in their own Cockpit while the plan is still cheap to change. Their feedback goes to your agent; you decide.">
+      <Section id="team" sunk title="Review the plan as a team" lead="Teammates comment and approve in their own App while the plan is still cheap to change. Their feedback goes to your agent; you decide.">
         <PlanTeam onOpen={narrow ? undefined : () => tour.go("team")} />
       </Section>
       <Section id="review" title="Review the change as a team" lead="Your team reviews why and how the change was made, with the proof. The code goes through your pull request, as always.">
@@ -54,7 +54,7 @@ export default function Sections() {
       <section id="install" className="w7-install" aria-labelledby="install-h">
         <div className="w7-wrap">
           <h2 className="w7-h2" id="install-h">Install QualityLayer</h2>
-          <p>Installs the command-line tool and the skill for your agents. Then describe a change to your agent in any repository, and it opens the Cockpit.</p>
+          <p>Installs the command-line tool and the skill for your agents. Then describe a change to your agent in any repository, and it opens the QualityLayer App.</p>
           <InstallCommand />
           <p className="w7-install-note">macOS, Linux and Windows · Terminal, desktop app or IDE · 7-day trial · <Link to="/pricing">See pricing</Link></p>
         </div>

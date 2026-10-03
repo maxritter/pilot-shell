@@ -11,7 +11,7 @@ export const FILMS = [
     id: "VL3WPkWolPc",
     name: "Walkthrough",
     length: "9:57",
-    about: "The Cockpit step by step, on one hard change: usage-based billing across nine services.",
+    about: "The App step by step, on one hard change: usage-based billing across nine services.",
     poster: "/videos/walkthrough.webp",
   },
 ] as const;

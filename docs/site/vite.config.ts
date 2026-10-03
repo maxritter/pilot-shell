@@ -71,7 +71,7 @@ export default defineConfig(({ mode }) => ({
       },
     },
     rollupOptions: {
-      input: { website: path.resolve(__dirname, "index.html"), cockpit: path.resolve(__dirname, "cockpit-demo/index.html") },
+      input: { website: path.resolve(__dirname, "index.html"), app: path.resolve(__dirname, "app-demo/index.html") },
       output: {
         // Split only feature-specific deps into their own chunks. Anything that
         // chains back through react/react-dom stays in the default vendor chunk

@@ -6,7 +6,7 @@
  * The plan and every comment are sealed in the browser with a key that only the link's
  * fragment carries, so the server holds ciphertext and never receives the key (a fragment
  * is not sent). Comments go to POST /api/share/feedback in an annotation format, so the
- * owner's Cockpit reads them. Anyone with the whole link may read and comment.
+ * owner's App reads them. Anyone with the whole link may read and comment.
  */
 
 import type { Decision, FeedbackPayload, SealedPayload } from "./types";
@@ -86,7 +86,7 @@ export type LoadedShare =
   | { status: "error"; message: string };
 
 /**
- * What a link reviewer reads of the finished change: the Cockpit's SharedReview
+ * What a link reviewer reads of the finished change: the App's SharedReview
  * (qualitylayer/src/core/review/detail.ts), sent as `docs["review.json"]` once a
  * fresh check has passed. It holds the proofs and evidence only, never threads,
  * reviewers, source, the diff or logs. Only the fields this page shows are typed.
@@ -241,7 +241,7 @@ export function feedbackPayload(input: CommentInput, now = Date.now()): Feedback
   };
 }
 
-/** A place in the shared change a comment is about, as the Cockpit anchors it. */
+/** A place in the shared change a comment is about, as the App anchors it. */
 export type ChangeAnchor = { kind: "doneMeans" | "picture" | "check"; id: string; quote?: string };
 
 /** A link reviewer's comment on the change: a new thread on an anchor, or a reply to their own thread. */
@@ -250,15 +250,15 @@ export type ChangeCommentInput = { author: string; remark: string } & (
   | { replyTo: string }
 );
 
-/** A check line's anchor id, as the Cockpit forms it: "scenario 1" → "scenario:1". */
+/** A check line's anchor id, as the App forms it: "scenario 1" → "scenario:1". */
 export const checkId = (label: string) => label.replace(" ", ":");
 
-/** A new thread id, in the form the Cockpit gives guest threads. */
+/** A new thread id, in the form the App gives guest threads. */
 export const newThreadId = () => `g-${crypto.randomUUID().replace(/-/g, "").slice(0, 12)}`;
 
 /**
  * A comment on the change in the annotation format: the block is the review,
- * the original text a small JSON head the Cockpit decodes (core/review/threads.ts
+ * the original text a small JSON head the App decodes (core/review/threads.ts
  * fromWire). A link reviewer never sends a verdict.
  */
 export function changePayload(input: ChangeCommentInput, now = Date.now()): FeedbackPayload {

@@ -209,6 +209,19 @@ describe("the App's pages and its update endpoint", () => {
   });
 });
 
+describe("the demo of the App", () => {
+  it("moved from /cockpit-demo to /app-demo, and the old address redirects there", () => {
+    for (const [from, to] of [
+      ["/cockpit-demo", "/app-demo/"],
+      ["/cockpit-demo/", "/app-demo/"],
+      ["/cockpit-demo/index.html", "/app-demo/index.html"],
+    ] as const) {
+      expect(answer(NEW, from), from).toEqual({ kind: "redirect", status: 308, location: to });
+    }
+    expect(answer(NEW, "/app-demo/index.html")).toEqual({ kind: "rewrite", to: "/app-demo/index.html" });
+  });
+});
+
 describe("the landing page's own headers", () => {
   const policy = () => {
     const rule = config.headers.find((h) => h.source === "/open/(.*)");

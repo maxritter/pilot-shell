@@ -8,8 +8,8 @@ import { DOCS_URL, GITHUB_URL } from "@/lib/product";
 type NavLink = { label: string; to: string; external?: boolean; wideOnly?: boolean };
 
 const LINKS: NavLink[] = [
-  // The clickable Cockpit needs a laptop or tablet, so phones do not link to it.
-  { label: "Cockpit", to: "/#cockpit", wideOnly: true },
+  // The clickable App needs a laptop or tablet, so phones do not link to it.
+  { label: "App", to: "/#app", wideOnly: true },
   { label: "How it works", to: "/#lifecycle" },
   { label: "Build", to: "/#build" },
   { label: "Team", to: "/#team" },

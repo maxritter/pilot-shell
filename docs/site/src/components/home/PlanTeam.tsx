@@ -29,11 +29,11 @@ export default function PlanTeam({ onOpen }: { onOpen?: () => void }) {
   return (
     <div className="tm">
       <div className="tm-main">
-        <div className="tm-share" aria-label="Share, as in the Cockpit">
+        <div className="tm-share" aria-label="Share, as in the App">
           <div className="tm-sh">Share<span>Queue migration</span></div>
           <div className="tm-row">
             <div className="tm-rt">Acme team<Switch on={team} label="Share with the Acme team" onToggle={() => setTeam(!team)} /></div>
-            <p className="tm-rd">Teammates read the plan, comment, approve or ask for changes, and follow the build in their own Cockpit.</p>
+            <p className="tm-rd">Teammates read the plan, comment, approve or ask for changes, and follow the build in their own App.</p>
           </div>
           <div className="tm-row">
             <div className="tm-rt">People outside the team<Switch on={link} label="Share a link with people outside the team" onToggle={() => setLink(!link)} /></div>
@@ -77,7 +77,7 @@ export default function PlanTeam({ onOpen }: { onOpen?: () => void }) {
       <div className="tm-ws">
         <div className="tm-wh">
           <div><b>Team workspace</b> <span>· every shared plan and its comments, in one place for the team</span></div>
-          {onOpen ? <button type="button" onClick={onOpen} className="tm-open">Open it in the Cockpit</button> : null}
+          {onOpen ? <button type="button" onClick={onOpen} className="tm-open">Open it in the App</button> : null}
         </div>
         {TASKS.map((t) => (
           <div key={t.title} className="tm-wr">

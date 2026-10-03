@@ -18,9 +18,14 @@
 
 # SPA redirect for landing page
 [[redirects]]
-  from = "/cockpit-demo/*"
-  to = "/cockpit-demo/:splat"
+  from = "/app-demo/*"
+  to = "/app-demo/:splat"
   status = 200
+
+[[redirects]]
+  from = "/cockpit-demo/*"
+  to = "/app-demo/:splat"
+  status = 301
 
 [[redirects]]
   from = "/*"

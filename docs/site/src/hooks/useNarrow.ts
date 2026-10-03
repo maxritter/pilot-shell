@@ -1,6 +1,6 @@
 import { useCallback, useSyncExternalStore } from "react";
 
-/** Below this width the page drops what needs a laptop: the clickable Cockpit and the wide diagrams. */
+/** Below this width the page drops what needs a laptop: the clickable App and the wide diagrams. */
 const DEFAULT_MAX_WIDTH = 859;
 
 /** True on phones and narrow windows, up to `maxWidth` pixels. Rendering on the server assumes a wide screen. */

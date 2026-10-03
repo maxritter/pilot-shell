@@ -6,13 +6,13 @@ import { useDemoTour, type Target } from "./demoTour";
 import "./lifecycle.css";
 
 type Kind = "you" | "ag" | "out" | "opt";
-/** A step: its id, name, caption, who acts, where it opens in the Cockpit (null: nowhere), and the optional steps that belong to it. */
+/** A step: its id, name, caption, who acts, where it opens in the App (null: nowhere), and the optional steps that belong to it. */
 type Node = [id: string, name: string, caption: string, who: Kind, target: Target | null, optional?: readonly StepName[]];
 type Group = { name: "Plan" | "Build" | "Check" | "Release"; sub: string; flex: number; hue?: string; out?: boolean; nodes: Node[] };
 
 const QUALITY = OPTIONAL_STEPS.filter((s) => s.group === "quality").map((s) => s.name);
 
-/** Where a click on an optional step opens in the Cockpit demo; the others have no screen of their own yet. */
+/** Where a click on an optional step opens in the App demo; the others have no screen of their own yet. */
 const STEP_TARGET: Partial<Record<StepName, Target>> = {
   checkpoints: { view: "task", id: "webhook", doc: "checkpoint" },
 };
@@ -70,7 +70,7 @@ const BENEFITS: Partial<Record<Group["name"], string>> = {
 export default function Lifecycle() {
   const [key, setKey] = useState<RouteName>("spec feature");
   const tour = useDemoTour();
-  // Phones have no Cockpit demo to open, so the steps are plain text there.
+  // Phones have no App demo to open, so the steps are plain text there.
   const narrow = useNarrow();
   const route = ROUTES[key];
   const { lane, type } = ROUTE_LIST.find((r) => r.name === key)!;
@@ -82,7 +82,7 @@ export default function Lifecycle() {
           <div>
             <h2 id="lifecycle-h" className="w7-h2">How a request becomes a reviewed change</h2>
             <p className="w7-lead w7-lead-tight">
-              Features, product features, bugs and small changes each take their own route.{narrow ? "" : " Select a step to see it in the Cockpit."}
+              Features, product features, bugs and small changes each take their own route.{narrow ? "" : " Select a step to see it in the App."}
             </p>
           </div>
           <div role="group" aria-label="Route" className="w7-seg">
@@ -119,7 +119,7 @@ export default function Lifecycle() {
                     return (
                       <li key={id} className={`w7-n${skipped ? " dim" : ""}${renamed && renamed[0] !== baseName ? " re" : ""}${id === "quality" ? " lc-wide" : ""}`}>
                         {live ? (
-                          <button type="button" className="w7-nb" onClick={() => tour.go(target)} aria-label={`${name}: ${caption}. Open in the Cockpit`}>{body}</button>
+                          <button type="button" className="w7-nb" onClick={() => tour.go(target)} aria-label={`${name}: ${caption}. Open in the App`}>{body}</button>
                         ) : (
                           <div className="w7-nb">{body}</div>
                         )}

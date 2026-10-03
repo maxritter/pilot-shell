@@ -58,7 +58,7 @@ export interface FeedbackPayload {
 }
 
 // ─── Multi-user feedback polling (2026-05-15) ─────────────────────────────────
-// QualityLayer's Cockpit polls this feedback queue API; preserve its request and response shapes.
+// QualityLayer's App polls this feedback queue API; preserve its request and response shapes.
 
 /** One submission on the server-side feedback queue for a single share id. */
 export interface FeedbackQueueEntry {
