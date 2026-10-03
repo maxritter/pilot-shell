@@ -44,9 +44,12 @@ jobs:
         working-directory: qualitylayer
         run: bun install --frozen-lockfile --ignore-scripts
 
+      # GHSA-vfj7-8cjw-p6xm (braces <=3.0.3, no fixed release yet) reaches only build tools
+      # (@tailwindcss/cli's watcher, the shadcn CLI), never the shipped binary; Max accepted it
+      # on 2026-10-03. Drop the --ignore once braces ships a fix.
       - name: Known vulnerabilities in dependencies
         working-directory: qualitylayer
-        run: bun audit --audit-level=high
+        run: bun audit --audit-level=high --ignore=GHSA-vfj7-8cjw-p6xm
 
       - name: Open issue on nightly failure
         if: failure() && github.event_name == 'schedule'
