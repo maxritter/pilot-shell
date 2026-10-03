@@ -197,6 +197,7 @@ Describe a change to your agent. It draws the route it suggests, with its option
 </picture>
 
 - **Feature:** before any code exists, you agree on the goal, what the code does today, the design, and the order of the build.
+- **Product feature:** the same, with a PRD and a TDD in place of the frame and the design, for product managers. You can copy them into Confluence, Google Docs or Jira.
 - **Bug:** the agent reproduces the bug and finds its cause first, then fixes it with a test.
 - **Quick change:** a rename or an obvious fix goes straight to a test and the change. If it turns out bigger, the agent switches to the full plan.
 
@@ -213,7 +214,6 @@ Your agent builds a feature in slices: thin pieces that each go through every la
   <img src="docs/docusaurus/static/img/diagrams/slices-light.svg" alt="Three slices, each through screen, API, logic and database, each starting with a failing test and ending with an end-to-end run; then an optional quality pass works on the whole change before Verify" width="1000">
 </picture>
 
-- **Product feature:** the same, with a PRD and a TDD in place of the frame and the design, for product managers. You can copy them into Confluence, Google Docs or Jira.
 ### Your agent plans with you, helper agents do the rest
 
 Your agent plans with you on your best model. Helper agents research, build and test on smaller, cheaper models. They work from the written plan, so none of them needs your chat history. With Claude Code and Codex both installed, an AI from the other vendor also reviews the design and the finished change.
