@@ -19,8 +19,6 @@ The Cockpit runs on your computer and opens in your browser by itself: when a ta
 
 Each document has a short version **For you** and a detailed one **For the agent**; the switch sits in the review bar. **Show me** collects the pictures the agent made for the task, and **Share** lets your [team](team/plans.md) in.
 
-Above the tabs, a route card shows the task's route. Your approvals have an amber edge, optional steps are dashed, and a step you switched off is struck through. It shrinks to one line once the build starts.
-
 ## Approve in the Cockpit or in the chat
 
 **Approve** in the review bar records your decision. You can also type `approve` as your message in the chat of the agent session that runs the task, in Claude Code or Codex. QualityLayer's own prompt hook, which the installer adds, records it and tells the agent; Codex asks you once to trust the hook. The agent cannot approve for you: if it runs the approve command itself, QualityLayer refuses.
