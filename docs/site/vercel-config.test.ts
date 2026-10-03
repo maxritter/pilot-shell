@@ -191,6 +191,37 @@ describe("qualitylayer.dev is not redirected", () => {
   });
 });
 
+describe("the App's pages and its update endpoint", () => {
+  it("shows the page in the browser for the landing page a Slack DM opens and for the download page", () => {
+    for (const path of ["/open/ask/t_9c2/7f3a", "/open/team/t_9c2", "/download"]) {
+      expect(answer(NEW, path), path).toEqual({ kind: "rewrite", to: "/" });
+    }
+  });
+
+  it("answers the updater's and the download page's addresses from their API routes, which exist", () => {
+    for (const [path, route] of [
+      ["/app/latest.json", "/api/app/latest"],
+      ["/app/downloads.json", "/api/app/downloads"],
+    ] as const) {
+      expect(answer(NEW, path), path).toEqual({ kind: "rewrite", to: route });
+      expect(apiRoute(route, false), route).toBe(true);
+    }
+  });
+});
+
+describe("the landing page's own headers", () => {
+  const policy = () => {
+    const rule = config.headers.find((h) => h.source === "/open/(.*)");
+    return rule?.headers.find((h) => h.key === "Content-Security-Policy")?.value ?? "";
+  };
+
+  it("lets the page make no request and open nothing but the App's own link in a frame", () => {
+    expect(policy()).toContain("connect-src 'none'");
+    expect(policy()).toContain("frame-src qualitylayer:");
+    expect(policy()).toContain("default-src 'self'");
+  });
+});
+
 describe("the share page's own headers", () => {
   it("keep the strict content security policy on /s/*", () => {
     const rule = config.headers.find((h) => h.source === "/s/(.*)");

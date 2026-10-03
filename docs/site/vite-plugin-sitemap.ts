@@ -28,6 +28,7 @@ interface PageEntry {
 const PAGES: PageEntry[] = [
   { loc: "/", changefreq: "weekly", priority: "1.0" },
   { loc: "/pricing", changefreq: "monthly", priority: "0.5" },
+  { loc: "/download", changefreq: "monthly", priority: "0.6" },
 ];
 
 export default function sitemapPlugin(): Plugin {

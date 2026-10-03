@@ -1,0 +1,27 @@
+/* The landing page a Slack DM opens (/open/…) and the download page (/download). Tokens come from the site's. */
+
+/* ---- /open: one centred card of text and buttons ---- */
+.ap-page{display:grid;place-items:center;padding:24px 16px}
+.ap-center{width:100%;max-width:440px;padding:40px 24px;text-align:center}
+.ap-center h1{margin:14px 0 6px;font-size:21px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.ap-center p{margin:0 auto;max-width:46ch;font-size:15px;line-height:1.55;color:var(--ql-text-muted)}
+.ap-mark{width:34px;height:31px;color:var(--ql-text)}
+.ap-stack{display:grid;gap:10px;max-width:320px;margin:22px auto 0}
+.ap-center .ap-fine{margin-top:18px;font-size:13px;color:var(--ql-text-dim)}
+
+/* ---- /download: one card per system, the visitor's first ---- */
+.ap-dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:36px}
+.ap-os{display:flex;flex-direction:column;border:1px solid var(--ql-border);border-radius:10px;background:var(--ql-bg);color:var(--ql-text);text-decoration:none}
+.ap-os:hover{border-color:var(--ql-accent)}
+.ap-os[data-current="true"]{border-color:var(--ql-accent-line);background:var(--ql-accent-soft)}
+.w7-root a.ap-os-main{display:flex;align-items:center;gap:14px;padding:16px;color:var(--ql-text);text-decoration:none}
+.ap-os svg{flex:none;width:30px;height:30px;color:var(--ql-text)}
+.ap-os b{display:block;font-size:15px;font-weight:600}
+.ap-os small{display:block;margin-top:2px;font-size:13px;color:var(--ql-text-dim)}
+.ap-os-other{padding:0 16px 14px 60px;font-size:13px}
+.ap-cli{display:flex;align-items:flex-start;gap:14px;max-width:760px;margin-top:12px;padding:16px;border:1px solid var(--ql-border);border-radius:10px}
+.ap-cli svg{flex:none;width:30px;height:30px;color:var(--ql-text)}
+.ap-cli b{display:block;font-size:15px;font-weight:600}
+.ap-cli small{display:block;margin-top:2px;font-size:13px;color:var(--ql-text-dim)}
+.ap-cli .w7-cmd{margin-top:10px}
+.ap-note{max-width:60ch;margin:18px 0 0;font-size:13px;line-height:1.55;color:var(--ql-text-dim)}

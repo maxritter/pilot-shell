@@ -1,19 +1,22 @@
-import { useSyncExternalStore } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 /** Below this width the page drops what needs a laptop: the clickable Cockpit and the wide diagrams. */
-const QUERY = "(max-width: 859px)";
+const DEFAULT_MAX_WIDTH = 859;
 
-const subscribe = (onChange: () => void) => {
-  const media = window.matchMedia(QUERY);
-  media.addEventListener("change", onChange);
-  return () => media.removeEventListener("change", onChange);
-};
-
-/** True on phones and narrow windows. Rendering on the server assumes a wide screen. */
-export function useNarrow(): boolean {
+/** True on phones and narrow windows, up to `maxWidth` pixels. Rendering on the server assumes a wide screen. */
+export function useNarrow(maxWidth: number = DEFAULT_MAX_WIDTH): boolean {
+  const query = `(max-width: ${maxWidth}px)`;
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      const media = window.matchMedia(query);
+      media.addEventListener("change", onChange);
+      return () => media.removeEventListener("change", onChange);
+    },
+    [query],
+  );
   return useSyncExternalStore(
     subscribe,
-    () => window.matchMedia(QUERY).matches,
+    () => window.matchMedia(query).matches,
     () => false,
   );
 }
