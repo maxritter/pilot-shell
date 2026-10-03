@@ -174,13 +174,19 @@ jobs:
           WEBKIT_DISABLE_COMPOSITING_MODE: "1"
         run: |
           set -o pipefail
-          files=(tests/app/self-test.test.ts tests/app/update.test.ts)
-          if [ "$RUNNER_OS" = Linux ]; then
-            # No desktop on a runner: a virtual display.
-            xvfb-run -a --server-args="-screen 0 1280x1024x24" bun run test "${files[@]}" 2>&1 | tee "${RUNNER_TEMP:?}/proof.log"
-          else
-            bun run test "${files[@]}" 2>&1 | tee "${RUNNER_TEMP:?}/proof.log"
-          fi
+          # One suite after the other: both build the App with scripts/app.ts into the same folders, and
+          # run side by side one replaced the launcher the other was copying.
+          # Both run even when the first fails, so one run shows both results.
+          failed=0
+          for file in tests/app/update.test.ts tests/app/self-test.test.ts; do
+            if [ "$RUNNER_OS" = Linux ]; then
+              # No desktop on a runner: a virtual display.
+              xvfb-run -a --server-args="-screen 0 1280x1024x24" bun run test "$file" 2>&1 | tee -a "${RUNNER_TEMP:?}/proof.log" || failed=1
+            else
+              bun run test "$file" 2>&1 | tee -a "${RUNNER_TEMP:?}/proof.log" || failed=1
+            fi
+          done
+          exit "$failed"
 
       - name: Write the leg's result
         if: success()
