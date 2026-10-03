@@ -1,12 +1,12 @@
 ---
 title: Settings
-description: Four models, the optional steps, your role, notifications, your licence and your team.
+description: Four models, auto-advance, the optional steps, your role, notifications, your licence and your team.
 ---
 
 ![Settings: one subagent model per agent, one second-opinion model per reviewing agent, a switch for each optional step, and notifications](pathname:///img/diagrams/settings-light.svg)
 ![Settings: one subagent model per agent, one second-opinion model per reviewing agent, a switch for each optional step, and notifications](pathname:///img/diagrams/settings-dark.svg)
 
-Open **Settings** at the bottom of the Cockpit's sidebar. Changes save at once and apply to every project on this computer. No setting skips a review: every plan document waits for your approval, and the final approval is always yours.
+Open **Settings** at the bottom of the Cockpit's sidebar. Changes save at once and apply to every project on this computer. With auto-advance on, the frame and the research go on without a review; the design, the outline and the final approval always wait for you.
 
 ## Your role
 
@@ -31,6 +31,15 @@ With Claude Code and Codex both installed, the other vendor's agent reviews your
 
 It runs through the other agent's command-line tool (`claude` or `codex`), so install it even if you work in a desktop app. It reads only the documents, never your chat, and changes nothing. Your agent fixes what it agrees with and says why it skips the rest. Each direction (**Codex reviews Claude Code**, **Claude Code reviews Codex**) has one model from the same lists. A review that has not finished after ten minutes at design, or twelve at verify, is stopped and Approve unlocks anyway. Whether the second opinion runs at all is its switch under Optional steps.
 
+## Auto-advance
+
+Two switches, both on by default:
+
+- **Frame → Research:** once you have answered your agent's questions in the chat, the frame is approved and the research starts.
+- **Research → Design:** the research goes on to the design without a review.
+
+The documents stay in the Cockpit to read, and your comments still reach the agent. The design is your first full review. A teammate's required answer or a second opinion still holds a gate. Switch one off to review that stage before your agent goes on.
+
 ## Optional steps
 
 Each of these steps has a switch, on by default. A switch sets the default for every new task. When a task starts, your agent's question can switch steps off for that task, and the [handoff](../workflow/build/handoff.md) changes the build-time steps for one build. After the build starts, the list is fixed.
@@ -46,7 +55,7 @@ Each of these steps has a switch, on by default. A switch sets the default for e
 | Quality pass | Docs update | Brings the README, the docs and the changelog in line with the change |
 | Quality pass | UI review | For tasks with a screen: compares the running app with the design's mockups |
 
-The [quality pass](../workflow/check/verify.md#the-quality-pass) runs at the start of Verify, before the judge. Every approval always runs; no switch turns one off.
+The [quality pass](../workflow/check/verify.md#the-quality-pass) runs at the start of Verify, before the judge. No step switch turns an approval off.
 
 ## Notifications
 
