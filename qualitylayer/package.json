@@ -25,7 +25,8 @@
     "beta-smoke": "bun run tests/release/beta-smoke.ts",
     "evals": "bun run tests/release/evals.ts",
     "eval:activation": "bun run tests/release/activation.ts",
-    "proof:docker": "bun run tests/proof/docker/run.ts"
+    "proof:docker": "bun run tests/proof/docker/run.ts",
+    "proof:team-agents": "bun run tests/release/team-agents.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.0",
