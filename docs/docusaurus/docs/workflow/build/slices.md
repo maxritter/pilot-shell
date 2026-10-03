@@ -19,7 +19,6 @@ Each slice goes through every layer, from the screen to the database, and each t
 | Part | What it shows |
 | --- | --- |
 | Working now | Who is working at this moment, your agent or a helper, and on what |
-| Plan map | Every slice and its tasks, with the slices that build side by side in parallel lanes |
 | The diff | The change so far, live, in a drawer beside the build |
 | Checkpoints | Each [end-to-end check](checks.md) with its runs, its pictures and the steps to try it yourself |
 
