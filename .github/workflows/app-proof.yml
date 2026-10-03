@@ -25,6 +25,9 @@ name: App proof
       - "qualitylayer/tests/app/**"
       - "qualitylayer/tests/proof/**"
       - "qualitylayer/tests/helpers/screen.ts"
+      - "qualitylayer/tests/windows/**"
+      - "install.sh"
+      - "install.ps1"
   workflow_dispatch:
   workflow_call:
 
@@ -78,6 +81,16 @@ jobs:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
         run: bash .github/workflows/scripts/setup-git-crypt.sh
 
+      - name: What makes the checkout look modified (diagnostic)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        continue-on-error: true
+        run: |
+          git config --show-origin core.autocrlf || true
+          git status --short | head -n 40
+          git diff --stat | tail -n 5
+          git status --short | head -n 10 | sed 's/^...//' | xargs -r git ls-files --eol --
+
       - name: Unlock repository (Windows)
         if: runner.os == 'Windows'
         shell: msys2 {0}
@@ -103,6 +116,14 @@ jobs:
       - name: The launcher's and the App's own tests
         working-directory: qualitylayer
         run: |
+          # The App's build script wants its sidecar files to exist; the tests run none of them.
+          triple="$(rustc -vV | sed -n 's/^host: //p')"
+          ext=""
+          if [ "$RUNNER_OS" = Windows ]; then ext=".exe"; fi
+          mkdir -p dist/app/binaries
+          for program in qualitylayer-cli qualitylayer-launcher; do
+            : > "dist/app/binaries/$program-$triple$ext"
+          done
           cargo test --manifest-path app/launcher/Cargo.toml
           cargo test --manifest-path app/src-tauri/Cargo.toml
 
@@ -205,6 +226,15 @@ jobs:
           install: git git-crypt
           update: true
           path-type: inherit
+
+      - name: What makes the checkout look modified (diagnostic)
+        shell: msys2 {0}
+        continue-on-error: true
+        run: |
+          git config --show-origin core.autocrlf || true
+          git status --short | head -n 40
+          git diff --stat | tail -n 5
+          git status --short | head -n 10 | sed 's/^...//' | xargs -r git ls-files --eol --
 
       - name: Unlock repository
         shell: msys2 {0}
