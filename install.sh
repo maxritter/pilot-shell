@@ -3,16 +3,21 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
 #
-# Downloads the binary for this machine from GitHub Releases, verifies it
-# against its published SHA-256 (mandatory), and lets the binary install
-# itself: `qualitylayer install` places the binary under ~/.qualitylayer,
-# adds the skill for each installed agent, and records every file it wrote so
-# `qualitylayer uninstall` can remove exactly those.
+# One rule decides what is installed: a machine with a screen (macOS, or Linux with a display,
+# and no WSL, container or SSH session) gets the QualityLayer App and its command line; every
+# other machine gets the command line alone and opens the App's pages in a browser. The first
+# line says what was found. --cli-only and --with-app override the rule.
+#
+# Everything is downloaded from GitHub Releases and verified against its published SHA-256
+# (mandatory) before anything is written. The command line then installs itself:
+# `qualitylayer install` adds the skill for each installed agent and records every file it wrote
+# so `qualitylayer uninstall` can remove exactly those. With the App, the App's own command line
+# does this and a small launcher takes the path agents call.
 #
 # Pilot Shell 11's updater downloads and runs this script with its own flags
 # (--auto-update --non-interactive --quiet). --auto-update and --non-interactive
 # mean nothing may be asked; --quiet is accepted and ignored.
-# With Pilot Shell 11 installed, the binary shows its upgrade screen once and
+# With Pilot Shell 11 installed, the install shows its upgrade screen once and
 # moves the machine to QualityLayer. On a terminal it first lists what goes,
 # lets you pick which of the tools Pilot installed to remove and asks whether
 # to delete Pilot's memories; without a terminal (or with --non-interactive)
@@ -41,6 +46,17 @@ fail() {
 	exit 1
 }
 
+# v11's updater (and anyone passing these) must never be asked anything.
+ask=yes cli_only="" with_app=""
+for arg in "$@"; do
+	case "$arg" in
+	--non-interactive | --auto-update) ask="" ;;
+	--cli-only) cli_only=yes ;;
+	--with-app) with_app=yes ;;
+	esac
+done
+[ -z "$cli_only" ] || [ -z "$with_app" ] || fail "--cli-only and --with-app cannot be used together"
+
 case "${HOME:-}" in
 /*) ;;
 *) fail "HOME must be an absolute path, got: '${HOME:-}'" ;;
@@ -53,7 +69,7 @@ export HOME
 case "$(uname -s)" in
 Darwin) os="darwin" ;;
 Linux) os="linux" ;;
-*) fail "QualityLayer runs on macOS and Linux (on Windows, inside WSL)." ;;
+*) fail "QualityLayer runs on macOS and Linux (on Windows, run install.ps1 in PowerShell)." ;;
 esac
 case "$(uname -m)" in
 arm64 | aarch64) arch="arm64" ;;
@@ -65,6 +81,34 @@ if [ "$os" = "darwin" ] && [ "$arch" = "x64" ] && [ "$(sysctl -n sysctl.proc_tra
 	arch="arm64"
 fi
 asset="qualitylayer-${os}-${arch}"
+
+# A variable counts as set unless it is empty, "0" or "false" (the same rule as the CLI's).
+is_set() {
+	local value="${!1:-}"
+	[ -n "$value" ] && [ "$value" != "0" ] && [ "$value" != "false" ]
+}
+
+# What kind of machine this is; the CLI's `screenOf` (src/core/platform.ts) gives the same answer.
+screen_of() {
+	if is_set SSH_CONNECTION || is_set SSH_TTY; then
+		echo ssh
+	elif [ "$os" = "darwin" ]; then
+		echo desktop
+	elif is_set WSL_DISTRO_NAME || is_set WSL_INTEROP || uname -r | grep -qi microsoft; then
+		echo wsl
+	elif [ -e /.dockerenv ] || [ -e /run/.containerenv ] || is_set REMOTE_CONTAINERS || is_set CODESPACES || is_set DEVCONTAINER; then
+		echo container
+	elif is_set DISPLAY || is_set WAYLAND_DISPLAY; then
+		echo desktop
+	else
+		echo none
+	fi
+}
+screen="$(screen_of)"
+
+use_app=""
+{ [ "$screen" = "desktop" ] && [ -z "$cli_only" ]; } && use_app=yes
+[ -z "$with_app" ] || use_app=yes
 
 fetch() {
 	if command -v curl >/dev/null 2>&1; then
@@ -91,8 +135,13 @@ sha256_of() {
 	fi
 }
 
+mounted=""
 work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
+cleanup() {
+	if [ -n "$mounted" ]; then hdiutil detach "$mounted" -quiet >/dev/null 2>&1 || true; fi
+	rm -rf "${work:?}"
+}
+trap cleanup EXIT
 
 if [ -z "$VERSION" ]; then
 	fetch "$RELEASE_API" "$work/releases.json" || fail "cannot reach the release list at $RELEASE_API"
@@ -100,39 +149,130 @@ if [ -z "$VERSION" ]; then
 	[ -n "$VERSION" ] || fail "no QualityLayer 12 release was found"
 fi
 
-say "Downloading QualityLayer ${VERSION} (${asset})"
-base="${RELEASE_BASE}/download/v${VERSION}"
-fetch "${base}/${asset}" "$work/qualitylayer" bar || fail "download failed: ${base}/${asset}"
-fetch "${base}/${asset}.sha256" "$work/qualitylayer.sha256" || fail "the checksum is missing: ${base}/${asset}.sha256; nothing was installed"
-
-expected="$(awk '{print $1; exit}' "$work/qualitylayer.sha256")"
-actual="$(sha256_of "$work/qualitylayer")"
-case "$expected" in
-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]*) ;;
-*) fail "${asset}.sha256 holds no checksum; nothing was installed" ;;
+# The first line says what was found, as the install screen after it says what was done.
+case "$os-$arch" in
+darwin-arm64) system="macOS, Apple silicon" ;;
+darwin-x64) system="macOS, Intel" ;;
+*) system="Linux ${arch}" ;;
 esac
-[ "${#expected}" -eq 64 ] || fail "${asset}.sha256 holds no checksum; nothing was installed"
-[ "$expected" = "$actual" ] || fail "checksum mismatch for ${asset} (expected ${expected}, got ${actual}); nothing was installed"
-say "Checksum verified (SHA-256)"
+case "$screen" in
+desktop) where=", with a screen" ;;
+ssh) where=" over SSH, no screen" ;;
+wsl) where=" in WSL${WSL_DISTRO_NAME:+ (${WSL_DISTRO_NAME})}" ;;
+container)
+	if is_set REMOTE_CONTAINERS || is_set CODESPACES || is_set DEVCONTAINER; then
+		where=" in a dev container"
+	else
+		where=" in a container"
+	fi
+	;;
+*) where=", no screen" ;;
+esac
+say "QualityLayer ${VERSION} · ${system}${where}"
 
-chmod 755 "$work/qualitylayer"
+base="${RELEASE_BASE}/download/v${VERSION}"
 
-# Pilot Shell 11 is still installed: the binary shows its upgrade screen and moves
+# download_verified <file in the release> <where to put it> [what to say when it is missing]:
+# the file and its .sha256, checked before anything is installed.
+download_verified() {
+	local name="$1" dest="$2"
+	fetch "${base}/${name}" "$dest" bar || fail "download failed: ${base}/${name}${3:+; $3}"
+	fetch "${base}/${name}.sha256" "${dest}.sha256" || fail "the checksum is missing: ${base}/${name}.sha256; nothing was installed"
+	local expected actual
+	expected="$(awk '{print $1; exit}' "${dest}.sha256")"
+	actual="$(sha256_of "$dest")"
+	case "$expected" in
+	[0-9a-f][0-9a-f][0-9a-f][0-9a-f]*) ;;
+	*) fail "${name}.sha256 holds no checksum; nothing was installed" ;;
+	esac
+	[ "${#expected}" -eq 64 ] || fail "${name}.sha256 holds no checksum; nothing was installed"
+	[ "$expected" = "$actual" ] || fail "checksum mismatch for ${name} (expected ${expected}, got ${actual}); nothing was installed"
+}
+
+# Pilot Shell 11 is still installed: the install shows its upgrade screen and moves
 # the machine over, with or without a terminal.
 v11=""
 [ -e "$HOME/.pilot/bin/pilot" ] && v11=yes
 
-# v11's updater (and anyone passing these) must never be asked anything.
-ask=yes
-for arg in "$@"; do
-	case "$arg" in
-	--non-interactive | --auto-update) ask="" ;;
-	esac
-done
+# run_install <program> [args]: `install` on a terminal asks its questions there; under
+# `curl | bash` stdin is this script, so they are answered from the terminal, never from the pipe.
+run_install() {
+	local program="$1"
+	shift
+	if [ -n "$ask" ] && [ -t 1 ] && (exec </dev/tty) 2>/dev/null; then
+		"$program" install "$@" ${v11:+--upgrade-v11} </dev/tty
+	else
+		"$program" install "$@" ${v11:+--upgrade-v11} --non-interactive </dev/null
+	fi
+}
 
-# Under `curl | bash` stdin is this script: the installer's questions are answered from the terminal.
-if [ -n "$ask" ] && [ -t 1 ] && (exec </dev/tty) 2>/dev/null; then
-	"$work/qualitylayer" install ${v11:+--upgrade-v11} </dev/tty
+if [ -z "$use_app" ]; then
+	say "Downloading QualityLayer ${VERSION} (${asset})"
+	download_verified "$asset" "$work/qualitylayer"
+	say "Checksum verified (SHA-256)"
+	chmod 755 "$work/qualitylayer"
+	run_install "$work/qualitylayer" ${cli_only:+--cli-only}
+	case "$screen" in
+	wsl) say "No App inside WSL: links open in your Windows browser." ;;
+	container) say "No App here: open the link your agent prints. VS Code forwards the port for you, whatever number it picks." ;;
+	ssh) say "No App here. To review from your computer, forward the port (ssh -L 41888:127.0.0.1:41888 <this machine>) and open the link your agent prints." ;;
+	none) say "No screen here: open the link your agent prints in a browser that can reach this machine." ;;
+	*) say "Command line only. Add --with-app to install the App as well." ;;
+	esac
+	exit 0
+fi
+
+apps="$HOME/Applications"
+if [ "$os" = "darwin" ]; then
+	package="QualityLayer-${VERSION}-macos-${arch}.dmg"
 else
-	"$work/qualitylayer" install ${v11:+--upgrade-v11} --non-interactive </dev/null
+	package="QualityLayer-${VERSION}-linux-${arch}.AppImage"
+fi
+say "Downloading the QualityLayer App ${VERSION} (${package})"
+download_verified "$package" "$work/package" "this release has no App for this machine; add --cli-only to install the command line alone"
+say "Checksum verified (SHA-256)"
+
+new="$apps/.${package%%-*}.new"
+if [ "$os" = "darwin" ]; then
+	mkdir -p "$work/volume"
+	# hdiutil warns on stderr that `attach` is deprecated on new macOS; only a failure is shown.
+	hdiutil attach -nobrowse -readonly -noverify -mountpoint "$work/volume" "$work/package" >/dev/null 2>"$work/hdiutil.err" || fail "could not open the disk image ($(tr '\n' ' ' <"$work/hdiutil.err")); nothing was installed"
+	mounted="$work/volume"
+	app="$(find "$work/volume" -maxdepth 1 -name '*.app' -print -quit)"
+	[ -n "$app" ] || fail "the disk image holds no app; nothing was installed"
+	mkdir -p "$apps"
+	rm -rf "${new:?}"
+	ditto "$app" "$new"
+	rm -rf "${apps:?}/QualityLayer.app"
+	mv "$new" "$apps/QualityLayer.app"
+	hdiutil detach "$mounted" -quiet >/dev/null 2>&1 || true
+	mounted=""
+	app_path="$apps/QualityLayer.app"
+	app_cli="$app_path/Contents/MacOS/qualitylayer-cli"
+	app_open="$app_path"
+	say "Installed QualityLayer.app in ~/Applications"
+else
+	mkdir -p "$apps"
+	chmod 755 "$work/package"
+	mv "$work/package" "$new"
+	mv "$new" "$apps/QualityLayer.AppImage"
+	app_open="$apps/QualityLayer.AppImage"
+	# The App's command line comes out of the image without mounting it (no FUSE needed).
+	(cd "$work" && "$app_open" --appimage-extract 'usr/share/qualitylayer/*' >/dev/null 2>&1) || fail "could not unpack the AppImage"
+	app_path="$work/squashfs-root/usr/share/qualitylayer"
+	app_cli="$app_path/qualitylayer-cli"
+	[ -x "$app_cli" ] || fail "the AppImage holds no command line"
+	say "Installed QualityLayer.AppImage in ~/Applications"
+fi
+
+run_install "$app_cli" --app "$app_path"
+
+# On a terminal the App opens at once, to finish setting up; an unattended update never opens a window.
+if [ -n "$ask" ] && [ -t 1 ]; then
+	say "Opening the QualityLayer App…"
+	if [ "$os" = "darwin" ]; then
+		open "$app_open" >/dev/null 2>&1 || true
+	else
+		(nohup "$app_open" >/dev/null 2>&1 &)
+	fi
 fi

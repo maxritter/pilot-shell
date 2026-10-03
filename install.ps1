@@ -1,9 +1,13 @@
 # QualityLayer bootstrap for native Windows. No administrator rights required.
-# Download, verify SHA-256, then let the binary install its skills and settings.
+# Native Windows always has a screen, so it gets the QualityLayer App: the per-user setup is
+# downloaded, verified against its SHA-256 and run silently, then the App's own command line
+# installs its skills and settings and a small launcher takes the path agents call.
+# -CliOnly installs the command line alone, as before. WSL2 uses install.sh inside the distribution.
 [CmdletBinding()]
 param(
     [string]$Version = $env:VERSION,
-    [switch]$NonInteractive
+    [switch]$NonInteractive,
+    [switch]$CliOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -31,34 +35,71 @@ $qlCpu = switch ($qlArch.ToUpperInvariant()) {
     default { throw "Unsupported Windows CPU: $qlArch" }
 }
 $qlAsset = "qualitylayer-windows-$qlCpu.exe"
+# What a release has to carry for this install: the App's setup, or with -CliOnly the command line.
+$qlWanted = { param($qlTag) if ($CliOnly) { $qlAsset } else { "QualityLayer-$($qlTag -replace '^v', '')-$qlCpu-setup.exe" } }
 $qlWork = Join-Path ([IO.Path]::GetTempPath()) ("qualitylayer-install-" + [Guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($qlWork) | Out-Null
+
+# Save-Verified <file in the release> <where to put it>: the file and its .sha256, checked before
+# anything is installed.
+function Save-Verified([string]$Name, [string]$Destination) {
+    Invoke-WebRequest -UseBasicParsing -Uri "$qlBase/$Name" -OutFile $Destination
+    Invoke-WebRequest -UseBasicParsing -Uri "$qlBase/$Name.sha256" -OutFile "$Destination.sha256"
+    $qlExpected = ((Get-Content -LiteralPath "$Destination.sha256" -Raw).Trim() -split '\s+')[0]
+    if ($qlExpected -notmatch '^[0-9a-fA-F]{64}$') { throw 'The release checksum is invalid; nothing was installed.' }
+    $qlActual = (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash
+    if ($qlExpected -ne $qlActual) { throw 'Checksum mismatch; nothing was installed.' }
+}
+
 try {
     if (-not $Version) {
         $qlReleases = Invoke-RestMethod -Uri $qlReleaseApi
         $qlRelease = $qlReleases | Where-Object {
-            -not $_.draft -and $_.tag_name -match '^v12\.' -and ($_.assets.name -contains $qlAsset)
+            -not $_.draft -and $_.tag_name -match '^v12\.' -and ($_.assets.name -contains (& $qlWanted $_.tag_name))
         } | Select-Object -First 1
-        if (-not $qlRelease) { throw "No QualityLayer 12 release carries $qlAsset." }
+        if (-not $qlRelease) { throw "No QualityLayer 12 release carries $(& $qlWanted 'v12')." }
         $Version = $qlRelease.tag_name
     }
     $Version = $Version -replace '^v', ''
     if ($Version -notmatch '^12\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$') { throw "Invalid QualityLayer version: $Version" }
     $qlBase = "$qlReleaseBase/download/v$Version"
-    $qlBinary = Join-Path $qlWork 'qualitylayer.exe'
-    $qlChecksum = Join-Path $qlWork 'qualitylayer.sha256'
-    Write-Host "Downloading QualityLayer $Version ($qlAsset)"
-    Invoke-WebRequest -UseBasicParsing -Uri "$qlBase/$qlAsset" -OutFile $qlBinary
-    Invoke-WebRequest -UseBasicParsing -Uri "$qlBase/$qlAsset.sha256" -OutFile $qlChecksum
-    $qlExpected = ((Get-Content -LiteralPath $qlChecksum -Raw).Trim() -split '\s+')[0]
-    if ($qlExpected -notmatch '^[0-9a-fA-F]{64}$') { throw 'The release checksum is invalid; nothing was installed.' }
-    $qlActual = (Get-FileHash -LiteralPath $qlBinary -Algorithm SHA256).Hash
-    if ($qlExpected -ne $qlActual) { throw 'Checksum mismatch; nothing was installed.' }
-    Write-Host 'Checksum verified (SHA-256)'
+    $qlQuiet = $NonInteractive -or [Console]::IsInputRedirected
     $qlArguments = @('install')
-    if ($NonInteractive -or [Console]::IsInputRedirected) { $qlArguments += '--non-interactive' }
-    & $qlBinary @qlArguments
-    if ($LASTEXITCODE -ne 0) { throw "QualityLayer install failed (exit $LASTEXITCODE)." }
+    if ($qlQuiet) { $qlArguments += '--non-interactive' }
+
+    if ($CliOnly) {
+        Write-Host "QualityLayer $Version - Windows $qlCpu, command line only"
+        $qlBinary = Join-Path $qlWork 'qualitylayer.exe'
+        Write-Host "Downloading QualityLayer $Version ($qlAsset)"
+        Save-Verified $qlAsset $qlBinary
+        Write-Host 'Checksum verified (SHA-256)'
+        $qlRun = $qlArguments + '--cli-only'
+        & $qlBinary @qlRun
+        if ($LASTEXITCODE -ne 0) { throw "QualityLayer install failed (exit $LASTEXITCODE)." }
+    } else {
+        Write-Host "QualityLayer $Version - Windows $qlCpu, with a screen"
+        $qlPackage = "QualityLayer-$Version-$qlCpu-setup.exe"
+        $qlSetup = Join-Path $qlWork 'setup.exe'
+        Write-Host "Downloading the QualityLayer App $Version ($qlPackage)"
+        Save-Verified $qlPackage $qlSetup
+        Write-Host 'Checksum verified (SHA-256)'
+        $qlLocal = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { Join-Path (Join-Path $qlHome 'AppData') 'Local' }
+        $qlApp = Join-Path (Join-Path $qlLocal 'Programs') 'QualityLayer'
+        # The setup installs for this user only. /D names the folder and must come last.
+        $qlSetupRun = Start-Process -FilePath $qlSetup -ArgumentList @('/S', "/D=$qlApp") -Wait -PassThru
+        if ($qlSetupRun.ExitCode -ne 0) { throw "The QualityLayer App's setup failed (exit $($qlSetupRun.ExitCode))." }
+        $qlCli = Join-Path $qlApp 'qualitylayer-cli.exe'
+        if (-not (Test-Path -LiteralPath $qlCli -PathType Leaf)) { throw "The App's command line is missing: $qlCli" }
+        Write-Host 'Installed the QualityLayer App for this user'
+        $qlRun = $qlArguments + @('--app', $qlApp)
+        & $qlCli @qlRun
+        if ($LASTEXITCODE -ne 0) { throw "QualityLayer install failed (exit $LASTEXITCODE)." }
+        # On a terminal the App opens at once to finish setting up; an unattended run opens nothing.
+        if (-not $qlQuiet) {
+            Write-Host 'Opening the QualityLayer App...'
+            Start-Process -FilePath (Join-Path $qlApp 'QualityLayer.exe')
+        }
+    }
     $qlBinDir = Join-Path $qlHome '.qualitylayer\bin'
     # Current terminal only; the installer prints the command to add to a PowerShell profile.
     if (($env:Path -split ';') -notcontains $qlBinDir) { $env:Path = "$qlBinDir;$env:Path" }
