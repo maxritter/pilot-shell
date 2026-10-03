@@ -3,8 +3,11 @@ name: Release
 
 # QualityLayer 12. The gates are Pilot Shell's: supply-chain, Trivy, tests,
 # a manual `production` approval and build provenance. What is built is one
-# binary per platform plus its checksum, and both installers with their checksums
-# (Pilot Shell 11's updater verifies install.sh.sha256 at the tag).
+# binary per platform plus its checksum, both installers with their checksums
+# (Pilot Shell 11's updater verifies install.sh.sha256 at the tag), and the QualityLayer
+# App: six packages (a .dmg per Mac, a per-user setup per Windows, an AppImage per Linux),
+# each built on its own runner around the binary this run published, signed for the
+# updater, and described by latest.json, which is uploaded after everything it names.
 #
 # `dev` publishes 12.x prereleases (beta); `main` publishes releases once v12 is
 # merged. Pilot Shell 11 keeps its own pipeline on the 11.x branch.
@@ -358,25 +361,207 @@ jobs:
           (cd release && sha256sum install.ps1 > install.ps1.sha256)
           (cd release && sha256sum -c ./*.sha256)
 
-      # Only binaries, checksums and bootstrap installers may ever be attached: no
-      # source, no source maps, nothing from the encrypted tree.
+      # The command line's files only; the asset guard looks at the whole list once the App's
+      # packages have joined it, in assemble-release.
+      - name: Upload artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: qualitylayer-release
+          path: release/
+          retention-days: 1
+
+  # One package per system, each built natively around the command line this run built, so
+  # the App carries the very binary that is published. The Mac packages are signed with the
+  # Developer ID and notarized; every package's update file is signed with the update key.
+  app:
+    name: App package (${{ matrix.name }})
+    permissions:
+      contents: read
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    needs: [prepare-release, build]
+    if: needs.prepare-release.outputs.should_release == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: macos-arm64, target: darwin-arm64, os: macos-26 }
+          - { name: macos-x64, target: darwin-x64, os: macos-15-intel }
+          - { name: windows-x64, target: windows-x64, os: windows-2025 }
+          - { name: windows-arm64, target: windows-arm64, os: windows-11-arm }
+          - { name: linux-x64, target: linux-x64, os: ubuntu-22.04 }
+          - { name: linux-arm64, target: linux-arm64, os: ubuntu-24.04-arm }
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Install git-crypt
+        if: runner.os != 'Windows'
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+
+      - name: Setup git-crypt
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
+        with:
+          msystem: MSYS
+          install: git git-crypt
+          update: true
+          path-type: inherit
+
+      - name: Unlock repository
+        if: runner.os != 'Windows'
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Unlock repository (Windows)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+
+      - name: Toolchain for the App (Rust, Tauri, the system libraries)
+        uses: ./.github/actions/app-toolchain
+
+      # The certificate goes into a keychain of its own that lives as long as this job.
+      - name: Import the Developer ID certificate
+        if: runner.os == 'macOS'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          keychain="${RUNNER_TEMP:?}/ql-signing.keychain-db"
+          password="$(openssl rand -hex 16)"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          printf '%s' "$APPLE_CERTIFICATE" | base64 --decode > "${RUNNER_TEMP:?}/certificate.p12"
+          security import "${RUNNER_TEMP:?}/certificate.p12" -k "$keychain" \
+            -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          rm -f "${RUNNER_TEMP:?}/certificate.p12"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" > /dev/null
+          security list-keychains -d user -s "$keychain" login.keychain-db
+          security find-identity -v -p codesigning "$keychain" | grep -q "Developer ID Application"
+
+      - name: Download the command line this run built
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: qualitylayer-release
+          path: release
+
+      - name: Build the package
+        working-directory: qualitylayer
+        env:
+          VERSION: ${{ needs.prepare-release.outputs.version }}
+          TARGET: ${{ matrix.target }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+        run: |
+          notarize=()
+          if [ "$RUNNER_OS" = macOS ]; then notarize=(--notarize); fi
+          bun scripts/app.ts --release "${notarize[@]}" --version "$VERSION" \
+            --targets "$TARGET" --cli-dir ../release
+
+      - name: A Mac package is accepted by Gatekeeper
+        if: runner.os == 'macOS'
+        run: |
+          for dmg in qualitylayer/dist/app/release/*.dmg; do
+            spctl -a -vv -t install "$dmg" 2>&1 | tee "${RUNNER_TEMP:?}/spctl.txt"
+            grep -q "source=Notarized Developer ID" "${RUNNER_TEMP:?}/spctl.txt"
+            xcrun stapler validate "$dmg"
+          done
+
+      - name: Upload the package
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: app-${{ matrix.name }}
+          path: qualitylayer/dist/app/release/
+          retention-days: 1
+
+  # The whole release list in one place: the command line, the packages, their signatures,
+  # their checksums and latest.json. Nothing but these may ever be attached: no source, no
+  # source maps, nothing from the encrypted tree.
+  assemble-release:
+    name: Assemble Release
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [prepare-release, build, app]
+    if: needs.prepare-release.outputs.should_release == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Install git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+
+      - name: Unlock repository
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+
+      - name: Download the command line and the packages
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: "{qualitylayer-release,app-*}"
+          path: release
+          merge-multiple: true
+
+      # The installers verify a package against its .sha256; the updater verifies the .sig.
+      - name: Checksums and the updater's manifest
+        env:
+          VERSION: ${{ needs.prepare-release.outputs.version }}
+        run: |
+          set -euo pipefail
+          cd release
+          for package in QualityLayer-*.dmg QualityLayer-*-setup.exe QualityLayer-*.AppImage; do
+            sha256sum "$package" > "$package.sha256"
+          done
+          cd ..
+          bun qualitylayer/scripts/app.ts --latest-json release --version "$VERSION" \
+            --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}"
+          (cd release && sha256sum -c ./*.sha256)
+
       - name: Guard the asset list
         run: |
           cd release
           ls -la
-          ALLOWED='^(qualitylayer-(darwin|linux)-(arm64|x64)(\.sha256)?|qualitylayer-windows-(arm64|x64)\.exe(\.sha256)?|install\.(sh|ps1)(\.sha256)?)$'
+          ALLOWED='^(qualitylayer-(darwin|linux)-(arm64|x64)(\.sha256)?|qualitylayer-windows-(arm64|x64)\.exe(\.sha256)?|install\.(sh|ps1)(\.sha256)?|QualityLayer-[0-9][0-9A-Za-z.-]*-(macos-(arm64|x64)\.dmg(\.sha256)?|macos-(arm64|x64)\.app\.tar\.gz(\.sig)?|(x64|arm64)-setup\.exe(\.sha256|\.sig)?|linux-(arm64|x64)\.AppImage(\.sha256|\.sig)?)|latest\.json)$'
           BAD=$(find . -type f -printf '%f\n' | grep -vE "$ALLOWED" || true)
           if [ -n "$BAD" ]; then
             echo "Refusing to publish unexpected assets:"
             echo "$BAD"
             exit 1
           fi
-          [ "$(find . -type f | wc -l)" -eq 16 ]
+          [ "$(find . -type f | wc -l)" -eq 37 ]
 
       - name: Upload artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: qualitylayer-release
+          name: qualitylayer-release-complete
           path: release/
           retention-days: 1
 
@@ -463,7 +648,7 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [prepare-release, test, build, windows-release, security-scan]
+    needs: [prepare-release, test, build, windows-release, security-scan, assemble-release]
     if: needs.prepare-release.outputs.should_release == 'true'
     environment: production
     steps:
@@ -478,7 +663,8 @@ jobs:
           echo ""
           echo "- Security scan (Trivy) passed"
           echo "- QualityLayer typecheck, lint and tests passed"
-          echo "- Six binaries built, checksummed and asset-guarded; both Windows releases ran natively"
+          echo "- Six binaries built and checksummed; both Windows releases ran natively"
+          echo "- Six App packages built on their own runners, the Mac ones notarized; the asset list guarded"
           echo "- After approval: site deployed, workflow texts uploaded and probed, then the release is created"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -492,7 +678,7 @@ jobs:
       attestations: write
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [prepare-release, build, approve-release]
+    needs: [prepare-release, build, assemble-release, approve-release]
     if: needs.prepare-release.outputs.should_release == 'true'
     env:
       VERSION: ${{ needs.prepare-release.outputs.version }}
@@ -637,7 +823,7 @@ jobs:
       - name: Download release assets
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: qualitylayer-release
+          name: qualitylayer-release-complete
           path: release
 
       - name: Attest build provenance
@@ -652,6 +838,10 @@ jobs:
             release/qualitylayer-windows-arm64.exe
             release/install.sh
             release/install.ps1
+            release/QualityLayer-*.dmg
+            release/QualityLayer-*.app.tar.gz
+            release/QualityLayer-*-setup.exe
+            release/QualityLayer-*.AppImage
 
       - name: Prepend the release to CHANGELOG.md
         uses: orhun/git-cliff-action@e16f179f0be49ecdfe63753837f20b9531642772 # v4
@@ -704,7 +894,16 @@ jobs:
             [ "$i" -eq 12 ] && { echo "Release v${VERSION} was not created"; exit 1; }
             sleep 5
           done
-          gh release upload "v${VERSION}" release/* --clobber
+          # Everything the manifest names goes up first.
+          find release -type f ! -name latest.json -print0 | xargs -0 gh release upload "v${VERSION}" --clobber
+
+      # The updater reads latest.json through qualitylayer.dev, which skips a release that has
+      # none: it appears only once every package and signature it names can be downloaded.
+      - name: Upload latest.json last
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "v${VERSION}" release/latest.json --clobber
           # The published list must match the guarded one exactly.
           gh release view "v${VERSION}" --json assets --jq '.assets[].name' | sort > published.txt
           find release -type f -printf '%f\n' | sort > expected.txt

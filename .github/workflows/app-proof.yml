@@ -1,0 +1,247 @@
+name: App proof
+
+# The QualityLayer App on every system it ships for, proved by a real install, a real start and a
+# real update, and not by a unit test of a platform it never ran on. Per runner the job builds the
+# App twice (N and N+1, test versions, a throwaway update key), installs N the way its system
+# installs an App (the .app, the per-user setup, the AppImage), starts it (`--self-test`: it opens
+# its window over the local server and reads the review UI), calls the CLI through the launcher with
+# a hook's JSON on stdin, and updates N to N+1 through a local latest.json while an agent's
+# `gate wait` runs: a Mac and Linux carry on, Windows waits for the command and then updates. Linux
+# also moves the AppImage and checks a qualitylayer:// link still reaches it. A seventh leg runs the
+# command line inside WSL2 and reaches its page from Windows on another port.
+#
+# A dispatch needs this file on the default branch, which `dev` is not: the run starts on a push to
+# `dev` that touches the App or this proof, and the release can call it.
+
+"on":
+  push:
+    branches:
+      - dev
+    paths:
+      - ".github/workflows/app-proof.yml"
+      - ".github/actions/app-toolchain/**"
+      - "qualitylayer/app/**"
+      - "qualitylayer/scripts/app.ts"
+      - "qualitylayer/tests/app/**"
+      - "qualitylayer/tests/proof/**"
+      - "qualitylayer/tests/helpers/screen.ts"
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  proof:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: macOS Apple silicon, leg: macos-arm64, os: macos-26 }
+          - { name: macOS Intel, leg: macos-x64, os: macos-15-intel }
+          - { name: Windows x64, leg: windows-x64, os: windows-2025 }
+          - { name: Windows ARM64, leg: windows-arm64, os: windows-11-arm }
+          - { name: Ubuntu x64, leg: linux-x64, os: ubuntu-22.04 }
+          - { name: Ubuntu ARM64, leg: linux-arm64, os: ubuntu-24.04-arm }
+    defaults:
+      run:
+        shell: bash
+    env:
+      QUALITYLAYER_REQUIRE_RENDER: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install git-crypt
+        if: runner.os != 'Windows'
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+
+      - name: Setup git-crypt
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
+        with:
+          msystem: MSYS
+          install: git git-crypt
+          update: true
+          path-type: inherit
+
+      - name: Unlock repository
+        if: runner.os != 'Windows'
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Unlock repository (Windows)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+
+      - name: Install dependencies
+        working-directory: qualitylayer
+        run: bun install --frozen-lockfile
+
+      # The release builds its packages with this very toolchain step.
+      - name: Toolchain for the App (Rust, Tauri, the system libraries)
+        uses: ./.github/actions/app-toolchain
+
+      # What the launcher and the App decide without a window: the lock rule, the update waiting
+      # rules, the link parser. On Windows and Linux this is the first time the code compiles.
+      - name: The launcher's and the App's own tests
+        working-directory: qualitylayer
+        run: |
+          cargo test --manifest-path app/launcher/Cargo.toml
+          cargo test --manifest-path app/src-tauri/Cargo.toml
+
+      # The certificate the release signs the Mac packages with must import on a runner.
+      - name: The Developer ID certificate signs on this runner
+        if: runner.os == 'macOS'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          keychain="${RUNNER_TEMP:?}/ql-signing.keychain-db"
+          password="$(openssl rand -hex 16)"
+          security create-keychain -p "$password" "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          printf '%s' "$APPLE_CERTIFICATE" | base64 --decode > "${RUNNER_TEMP:?}/certificate.p12"
+          security import "${RUNNER_TEMP:?}/certificate.p12" -k "$keychain" \
+            -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          rm -f "${RUNNER_TEMP:?}/certificate.p12"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" > /dev/null
+          security list-keychains -d user -s "$keychain" login.keychain-db
+          identity="$(security find-identity -v -p codesigning "$keychain" | sed -n 's/.*"\(Developer ID Application: [^"]*\)".*/\1/p' | head -n 1)"
+          [ -n "$identity" ]
+          cp /usr/bin/true "${RUNNER_TEMP:?}/signed-by-the-release-identity"
+          codesign --force --timestamp --sign "$identity" "${RUNNER_TEMP:?}/signed-by-the-release-identity"
+          codesign --verify --strict "${RUNNER_TEMP:?}/signed-by-the-release-identity"
+
+      # Windows installs per user, from the setup the update later replaces. Where the installer's
+      # own test exists it runs here too.
+      - name: The Windows installer
+        if: runner.os == 'Windows' && hashFiles('qualitylayer/tests/windows/install-ps1.test.ts') != ''
+        working-directory: qualitylayer
+        run: bun run test tests/windows/install-ps1.test.ts
+
+      - name: Install, start, call and update the App
+        id: prove
+        working-directory: qualitylayer
+        env:
+          LIBGL_ALWAYS_SOFTWARE: "1"
+          WEBKIT_DISABLE_COMPOSITING_MODE: "1"
+        run: |
+          set -o pipefail
+          files=(tests/app/self-test.test.ts tests/app/update.test.ts)
+          if [ "$RUNNER_OS" = Linux ]; then
+            # No desktop on a runner: a virtual display.
+            xvfb-run -a --server-args="-screen 0 1280x1024x24" bun run test "${files[@]}" 2>&1 | tee "${RUNNER_TEMP:?}/proof.log"
+          else
+            bun run test "${files[@]}" 2>&1 | tee "${RUNNER_TEMP:?}/proof.log"
+          fi
+
+      - name: Write the leg's result
+        if: success()
+        env:
+          LEG: ${{ matrix.leg }}
+        run: |
+          mkdir -p "${RUNNER_TEMP:?}/result"
+          printf '{"leg":"%s","result":"pass","commit":"%s","run":"%s/%s/actions/runs/%s","at":"%s"}\n' \
+            "$LEG" "$GITHUB_SHA" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" \
+            "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "${RUNNER_TEMP:?}/result/app-proof-$LEG.json"
+          {
+            echo "### ${{ matrix.name }}"
+            echo ""
+            echo '```'
+            grep -E "^(ok|not ok|fail|[0-9]+ (pass|fail))|(pass|fail)$" "${RUNNER_TEMP:?}/proof.log" | tail -n 20 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the result and the log
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: app-proof-${{ matrix.leg }}
+          path: |
+            ${{ runner.temp }}/result/
+            ${{ runner.temp }}/proof.log
+          retention-days: 14
+          if-no-files-found: warn
+
+  # The command line inside WSL2: installed by install.sh from a local release mirror, started
+  # there, and its page reached from Windows on another port than the one it listens on, with the
+  # cookie a pairing link gives. If a distribution cannot start under WSL2 on the runner, the leg
+  # falls back to WSL1 and says so (`wsl2: unavailable`), which is a decision for the owner, not a pass.
+  wsl2:
+    name: WSL2
+    runs-on: windows-2025
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      QUALITYLAYER_REQUIRE_RENDER: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup git-crypt
+        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
+        with:
+          msystem: MSYS
+          install: git git-crypt
+          update: true
+          path-type: inherit
+
+      - name: Unlock repository
+        shell: msys2 {0}
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+
+      - name: Install dependencies
+        working-directory: qualitylayer
+        run: bun install --frozen-lockfile
+
+      - name: Install a distribution, install QualityLayer inside it and reach its page
+        id: prove
+        working-directory: qualitylayer
+        run: bun tests/proof/wsl.ts 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP/proof.log"
+
+      - name: Write the leg's result
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p "${RUNNER_TEMP:?}/result"
+          if [ -f "${RUNNER_TEMP:?}/wsl-result.json" ]; then
+            cp "${RUNNER_TEMP:?}/wsl-result.json" "${RUNNER_TEMP:?}/result/app-proof-wsl2.json"
+          fi
+
+      - name: Keep the result and the log
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: app-proof-wsl2
+          path: |
+            ${{ runner.temp }}/result/
+            ${{ runner.temp }}/proof.log
+          retention-days: 14
+          if-no-files-found: warn

@@ -24,7 +24,8 @@
     "release-gate": "bun run tests/release/run-agent.ts",
     "beta-smoke": "bun run tests/release/beta-smoke.ts",
     "evals": "bun run tests/release/evals.ts",
-    "eval:activation": "bun run tests/release/activation.ts"
+    "eval:activation": "bun run tests/release/activation.ts",
+    "proof:docker": "bun run tests/proof/docker/run.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.0",
