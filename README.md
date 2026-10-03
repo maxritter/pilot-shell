@@ -200,7 +200,7 @@ Settings has five choices:
 - whether checkpoints run after every slice
 - a token budget per task
 
-The App shows the tokens and the estimated cost of every step and helper, and warns you before a task passes your budget.
+The App shows the tokens and the estimated cost of every step and helper, and tells you once when a task passes your budget.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/cost-dark.svg">

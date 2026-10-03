@@ -3,20 +3,22 @@ title: Settings
 description: The five workflow settings, changes for one task, links, notifications, your licence and your team.
 ---
 
-![Settings, Workflow: helper model, judge model, second opinion, always run checkpoints and token budget; and the overrides for one task, said in words](pathname:///img/diagrams/settings-light.svg)
-![Settings, Workflow: helper model, judge model, second opinion, always run checkpoints and token budget; and the overrides for one task, said in words](pathname:///img/diagrams/settings-dark.svg)
+![Settings, Workflow: the Models, Second opinion, and Checkpoints and budget cards; and the overrides for one task, said in words](pathname:///img/diagrams/settings-light.svg)
+![Settings, Workflow: the Models, Second opinion, and Checkpoints and budget cards; and the overrides for one task, said in words](pathname:///img/diagrams/settings-dark.svg)
 
 Open **Settings** at the bottom of the App's sidebar. Changes save at once and apply to every project on this computer. They live in QualityLayer's config file; the keys are named below.
 
 ## Workflow
 
-| Setting | Default | Key |
-| --- | --- | --- |
-| [Helper model](#helper-model) | Sonnet 5.5 · GPT-6.1 Sol in Codex | `models.<agent>.helpers` |
-| [Judge model](#judge-model) | Opus 5.5 · GPT-6.1 Sol in Codex | `models.<agent>.judge` |
-| [Second opinion](#second-opinion) | Off | `secondOpinion.on`, `secondOpinion.models` |
-| [Always run checkpoints](#always-run-checkpoints) | Off | `alwaysCheckpoints` |
-| [Token budget](#token-budget) | None | `budget.tokens` |
+**Settings › Workflow** has three cards: **Models**, **Second opinion**, and **Checkpoints and budget**.
+
+| Card | Setting | Default | Key |
+| --- | --- | --- | --- |
+| Models | [Helper model](#helper-model) | Sonnet 5.5 · GPT-6.1 Sol in Codex | `models.<agent>.helpers` |
+| Models | [Judge model](#judge-model) | Opus 5.5 · GPT-6.1 Sol in Codex | `models.<agent>.judge` |
+| Second opinion | [Every task](#second-opinion), and the reviewer models | Off | `secondOpinion.on`, `secondOpinion.models` |
+| Checkpoints and budget | [Checkpoint after every slice](#checkpoint-after-every-slice) | Off | `alwaysCheckpoints` |
+| Checkpoints and budget | [Token budget per task](#token-budget) | None | `budget.tokens` |
 
 Your own session's model is yours to pick in your agent. Opus 5.5 is recommended for Discuss and Plan, and Sonnet 5.5 for the session that runs Implement.
 
@@ -32,17 +34,17 @@ The model of the AI that checks the finished change in [Verify](../steps/verify.
 
 ### Second opinion {#second-opinion}
 
-Off by default. With Claude Code and Codex both installed, the other vendor's AI reviews your agent's work. It reads the Plan while it is up for your review, and the built change in Verify. **Approve** unlocks once your agent has answered its findings.
+Off by default; the **Every task** switch turns it on. With Claude Code and Codex both installed, the other vendor's AI reviews your agent's work. It reads the Plan while it is up for your review, and the built change in Verify. **Approve** unlocks once your agent has answered its findings.
 
 It runs through the other agent's command line (`claude` or `codex`), so install it even if you work in a desktop app. It reads only the documents, never your chat, and changes nothing. Your agent fixes what it agrees with and says why it skips the rest. Each direction (**Codex reviews Claude Code**, **Claude Code reviews Codex**) has its own model.
 
-### Always run checkpoints {#always-run-checkpoints}
+### Checkpoint after every slice {#checkpoint-after-every-slice}
 
 Off by default: only a slice the Plan marks risky gets a [checkpoint](../steps/implement.md#checkpoints). On, every slice with its own scenario gets one.
 
-### Token budget {#token-budget}
+### Token budget per task {#token-budget}
 
-A soft limit per task, in tokens. When a task passes it, the App shows a notice and your agent tells you once; the task goes on. See [What it costs](../app.md#what-it-costs).
+A soft limit per task, in tokens. When a task passes it, a line in the next-step bar says so and the App sends one notification; the task goes on. See [What it costs](../app.md#what-it-costs).
 
 ## For one task {#for-one-task}
 

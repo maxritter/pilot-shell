@@ -58,7 +58,7 @@ A failed run goes to a fresh agent, which fixes it at the source, and the scenar
 - **Pivot:** change the approach; your agent updates the Plan with your words.
 - **Abandon:** stop; the documents and finished slices stay.
 
-To run a checkpoint after every slice, switch on **Always run checkpoints** in [Settings](../reference/settings.md), or say so for one task.
+To run a checkpoint after every slice, switch on **Checkpoint after every slice** in [Settings](../reference/settings.md#checkpoint-after-every-slice), or say so for one task.
 
 ## When the build needs you
 

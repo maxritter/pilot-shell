@@ -959,8 +959,8 @@ def settings_ill(c: Theme) -> str:
     b = [card(c, 0, 0, 600, 326)]
     b.append(T(20, 30, 'Settings › Workflow', 15, 'text', 650, c=c))
     b.append(T(20, 50, 'For every project on this computer', 12.5, 'muted', c=c))
-    rows = [('Helper model', 'Sonnet 5.5'), ('Judge model', 'Opus 5.5'), ('Second opinion', False),
-            ('Always run checkpoints', False), ('Token budget', 'No budget')]
+    rows = [('Helper model', 'Sonnet 5.5'), ('Judge model', 'Opus 5.5'), ('Second opinion · every task', False),
+            ('Checkpoint after every slice', False), ('Token budget per task', 'No budget')]
     for i, (what, v) in enumerate(rows):
         y = 66 + i * 50
         b.append(f'<line x1="20" y1="{y}" x2="580" y2="{y}" stroke="{c["cardline"]}"/>')
@@ -982,7 +982,7 @@ def settings_ill(c: Theme) -> str:
         b.append(pill(c, x, y, ch, 'text', 160, mono=True))
     b.append(T(640, 230, '“Skip security” is recorded as', 12.5, 'muted', c=c))
     b.append(T(640, 250, '-security on this task.', 12.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'Settings, Workflow: helper model, judge model, second opinion, always run checkpoints and token budget; and the overrides for one task, said in words')
+    return svg(W, H, ''.join(b), 'Settings, Workflow: helper and judge model, second opinion on every task, checkpoint after every slice, token budget per task; and the overrides for one task, said in words')
 
 
 def files_ill(c: Theme) -> str:

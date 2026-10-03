@@ -118,7 +118,7 @@ export const COMPARE: CompareGroup[] = [
       row("Choose the models that build and check", true, true),
       row("Every task test first, every test run recorded", true, true),
       row("Slices that don’t overlap build side by side", true, true),
-      row("Tokens and estimated cost for every step", true, true, "With a warning before a task passes your budget"),
+      row("Tokens and estimated cost for every step", true, true, "With a warning when a task passes your budget"),
     ],
   },
   {

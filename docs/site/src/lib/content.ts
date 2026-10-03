@@ -23,7 +23,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "What does it cost to run?",
-    "Your agents’ own usage, on your subscription. The App shows tokens and the estimated cost of each step, and warns you before a task passes your budget.",
+    "Your agents’ own usage, on your subscription. The App shows tokens and the estimated cost of each step, and tells you once when a task passes your budget.",
   ),
   faq(
     "Does my code leave my computer?",

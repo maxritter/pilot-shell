@@ -233,8 +233,8 @@ export default function TourScenes({ ch, step, tries, onRetry }: { ch: number; s
           <div className={`sx-set ${ins(1)}`}>
             <div className="sx-setr"><span>Helper model<small>Builds, polishes, fixes</small></span><span className="sx-sel">Sonnet 5.5</span></div>
             <div className="sx-setr"><span>Judge model<small>Checks the finished change</small></span><span className="sx-sel">Opus 5.5</span></div>
-            <div className="sx-setr"><span>Second opinion<small>Another vendor reviews the plan and the change</small></span><span className="sx-tog" /></div>
-            <div className="sx-setr sx-hide"><span>Always run checkpoints<small>Off: only after risky slices</small></span><span className="sx-tog" /></div>
+            <div className="sx-setr"><span>Second opinion<small>Every task: another vendor’s AI reviews it</small></span><span className="sx-tog" /></div>
+            <div className="sx-setr sx-hide"><span>Checkpoint after every slice<small>Off: only after risky slices</small></span><span className="sx-tog" /></div>
             <div className="sx-setr sx-hide"><span>Token budget per task</span><span className="sx-sel">3M tokens</span></div>
           </div>
           <div className={`sx-cost ${ins(2)}`}>

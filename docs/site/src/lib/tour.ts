@@ -160,7 +160,7 @@ export const CHAPTERS: Chapter[] = [
     act: { id: "setup", title: "You stay in charge of models and cost", text: "QualityLayer works inside the coding agents you already pay for, and shows what each step costs." },
     title: "Choose the models, and see what each step costs",
     text: "Opus 5.5 is recommended for Discuss and Plan, and judges the result. Sonnet 5.5 builds. The App estimates the cost of every step.",
-    bullets: ["Pick the helper and the judge model", "An optional second opinion from another vendor", "A warning before a task passes your budget"],
+    bullets: ["Pick the helper and the judge model", "An optional second opinion from another vendor", "A warning when a task passes your budget"],
     win: {
       title: "Settings · QualityLayer",
       nav: 2,

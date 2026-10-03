@@ -44,7 +44,7 @@ The App tells you when the Plan or the finished change waits for you and when a 
 ![The cost view: tokens and estimated cost at list price for each step and each helper, with a soft warning when a task passes its token budget](pathname:///img/diagrams/cost-light.svg)
 ![The cost view: tokens and estimated cost at list price for each step and each helper, with a soft warning when a task passes its token budget](pathname:///img/diagrams/cost-dark.svg)
 
-The cost panel shows the tokens and the estimated cost of each step and each helper, at list price. Where no list price is known, it shows the tokens alone. With a [token budget](reference/settings.md#token-budget) set, a task that passes it shows a notice and sends one notification. Your agent tells you once in its chat and goes on. The App reads these numbers from your agents' own logs on your computer; nothing is sent anywhere.
+The **Cost** button in a task's header opens the cost panel: the tokens and the estimated cost per step, per helper and in total, marked "estimated, list price". Where no list price is published yet, as for some Codex models, it shows the tokens and "price unknown". With a [token budget](reference/settings.md#token-budget) set, a task that passes it gets a line in the next-step bar and one notification. Your agent tells you once in its chat and goes on. The App reads these numbers from your agents' own logs on your computer; nothing is sent anywhere.
 
 ## In Claude Code
 
