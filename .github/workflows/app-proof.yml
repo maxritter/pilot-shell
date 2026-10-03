@@ -58,7 +58,15 @@ jobs:
         shell: bash
     env:
       QUALITYLAYER_REQUIRE_RENDER: "1"
+      # The suites that start the App fail, not skip, when a screen or the Tauri command line is missing.
+      QUALITYLAYER_REQUIRE_APP: "1"
     steps:
+      # Git for Windows checks out CRLF by default; git-crypt (msys2's git) then sees the whole
+      # tree as modified and refuses to unlock.
+      - name: Check out with LF line endings
+        if: runner.os == 'Windows'
+        run: git config --global core.autocrlf false
+
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
@@ -216,6 +224,9 @@ jobs:
     env:
       QUALITYLAYER_REQUIRE_RENDER: "1"
     steps:
+      - name: Check out with LF line endings
+        run: git config --global core.autocrlf false
+
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 

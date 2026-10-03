@@ -395,6 +395,12 @@ jobs:
       run:
         shell: bash
     steps:
+      # Git for Windows checks out CRLF by default; git-crypt (msys2's git) then sees the whole
+      # tree as modified and refuses to unlock.
+      - name: Check out with LF line endings
+        if: runner.os == 'Windows'
+        run: git config --global core.autocrlf false
+
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
@@ -583,6 +589,11 @@ jobs:
       run:
         shell: pwsh
     steps:
+      # Git for Windows checks out CRLF by default; git-crypt (msys2's git) then sees the whole
+      # tree as modified and refuses to unlock.
+      - name: Check out with LF line endings
+        run: git config --global core.autocrlf false
+
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
