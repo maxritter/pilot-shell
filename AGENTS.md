@@ -4,8 +4,9 @@
 
 QualityLayer is a planning-first harness for any coding agent. One TypeScript
 codebase in `qualitylayer/` compiles (`bun build --compile`) into a single
-`qualitylayer` binary: the CLI that holds every task's state, the Cockpit
-server and its React SPA, and the embedded phase texts, schemas and templates.
+`qualitylayer` binary: the CLI that holds every task's state through one flow
+(Discuss → Plan → Implement → Verify → Review), the App's server and its React
+SPA, and the embedded phase texts, schemas and templates.
 Installation drops the binary and agent skills, with Codex invocation-policy
 metadata. The QualityLayer workflow requires explicit user opt-in.
 
@@ -24,12 +25,17 @@ All in `qualitylayer/`:
 - `bun run build` — the development binary in `dist/qualitylayer`;
   `bun run build --all` — the six release targets with checksums
 - `bun run release-gate --agent claude-code|codex` — a real agent carries the
-  reference task (`tests/release/reference-task/`) to shipped, with the final
-  approval made through the Cockpit API. Uses the agent's own login; all
-  QualityLayer state goes to a temp `QUALITYLAYER_HOME`. Costs real agent time.
-- `bun run evals [--agent …] [--only framing,design]` — phase evals
-  (`tests/evals/*.json`) judged on a real spec run and a real quick run; before
-  releases, not per commit
+  reference task (`tests/release/reference-task/`) to shipped: the Plan gate
+  and the final review are approved through the App API, and the harness
+  starts Implement with `/ql implement <task>` as the user would. `--plan-only`
+  stops at the Implement stop. Uses the agent's own login; all QualityLayer
+  state goes to a temp `QUALITYLAYER_HOME`. Costs real agent time.
+- `bun run evals [--agent …] [--only discuss,plan]` — phase evals
+  (`tests/evals/*.json`) judged on real runs of the flow; before releases, not
+  per commit
+- `bun scripts/transcript-cost.ts <session id | file | folder> [--json]` or
+  `--gate <release-gate logs>` — what a run cost, from the agents' transcripts
+  (estimates at list price)
 - `bun run eval:activation [--agent claude-code|codex]` — real-client opt-in
   probes using the agent's own login, a temp HOME and a recording stub instead
   of the QualityLayer binary. `QUALITYLAYER_ACTIVATION_CODEX` and
@@ -59,10 +65,11 @@ All in `qualitylayer/`:
 ## Layout
 
 - `qualitylayer/src/core/` — task state machine, documents and validation,
-  gates, git, licence, telemetry, install. `advance()` is the only writer of a
-  task's stage.
+  gates, recorded checks, the scaling rules (`scaling.ts`), cost, git, licence,
+  telemetry, install. `advance()` is the only writer of a task's stage;
+  `core/flow.ts` names the five steps for every surface.
 - `qualitylayer/src/cli/` — argument parsing and output only.
-- `qualitylayer/src/server/` and `src/ui/` — the Cockpit.
+- `qualitylayer/src/server/` and `src/ui/` — the App.
 - `qualitylayer/src/workflow/` — phase texts, schemas, templates, the skill.
 - `install.sh` — public, plaintext: download, verify the checksum, hand over
   to `qualitylayer install`.

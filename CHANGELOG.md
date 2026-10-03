@@ -4,20 +4,30 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 ## Unreleased — QualityLayer 12
 
+### One flow: Discuss → Plan → Implement → Verify → Review
+
+- Every task, a feature or a bug fix, takes the same five steps. The agent discusses the task with you until it understands what you want and what done means (a bug is reproduced first), then writes one Plan: the decisions, a mockup for a UI task, the slices and the checks that prove them.
+- One planning decision: you approve the Plan. Implement then starts in a fresh session with one prompt, `/ql implement <task>` in Claude Code or `$ql implement <task>` in Codex, with the recommended model beside it. The second decision is the final review of the change.
+- The flow scales by itself: helpers research the code when there is much to trace, build slices side by side when the Plan has several, and run a checkpoint after each slice the Plan marks risky. A task can ask for more or less with `qualitylayer task override` (`+security`, `-checkpoint`, `+second-opinion` and others).
+- QualityLayer runs the checks the Plan names and records each result (`qualitylayer check slice <n> | task T<n> | all`); a failed check goes to a fix helper.
+- Verify: a polish helper, and a security review when the change crosses a trust boundary, go over the finished change side by side; then one judge, which did not write the code, rules on it with the recorded checks as evidence.
+- No separate lane for small changes and no roles: a small change takes the same five steps, with fewer helpers. The per-step switches, the automatic approval of early gates and the role question are gone.
+- Settings › Workflow: the helper and judge model for each agent, the second opinion (off unless you turn it on), a checkpoint after every slice, and a soft token budget per task.
+- A Cost view in the App shows what a task used per step and per helper, read from the agents' transcripts on your computer. Figures are estimates at list price; a model without a confirmed price shows its tokens only. Passing the budget is said once, and the work goes on.
+- Tasks planned with the earlier flow keep their documents and finish from Verify or Review.
+
+### Also in QualityLayer 12
+
 - Replace the earlier tool bundle with one compiled binary and agent skills.
-- Carry tasks through framing, research or diagnosis, design, outline, build, verification and final approval in the Cockpit.
-- Hand off an approved plan to Claude Code, Codex or another agent, with model and effort recommendations and a copyable build prompt.
-- Add configurable independent reviews between Claude Code and Codex and built-in communication between agent sessions.
-- Run build checkpoints by themselves: after the slices the outline marks, a fresh helper runs the scenarios end to end on the real program, and the build stops for you only after three failed runs or for a decision that is yours.
-- Record every surprise as a note on its task, and amend the approved plan mid-build with `qualitylayer plan amend` without reopening a gate; the final approval lists every amendment and the plan's diff.
-- Give each task the design contract it names (`qualitylayer card`), and show the plan's contracts mapped to their tasks.
-- Show Build, Verify and Approve in the Cockpit as one timeline with a live strip, verdict cards per round, and a pull-request-style diff review with line comments.
-- Frame an open product question at product depth: first release, what the user sees, launch, what is not done, and when it is worth it.
-- Add Team features: share a task with your team for their feedback, and send a 14-day link to reviewers outside the team, both from one Share control; their comments reach your agent as advice. Settings shows the team's seats, members and shared links. Solo licences see the controls locked with an upgrade link, and the team service enforces the same gate.
-- Keep the workflow's phase texts inside the binary: an agent receives only its task's current phase.
+- Add an independent review by the other agent (Claude Code ↔ Codex) and built-in communication between agent sessions.
+- Record every surprise as a note on its task, and amend the approved Plan mid-build with `qualitylayer plan amend` without reopening a gate; the final review lists every amendment and the Plan's diff.
+- Give each task the contract it names (`qualitylayer card`), and show the Plan's contracts mapped to their tasks.
+- Show Implement, Verify and Review in the App as one timeline with a live strip, verdict cards per round, and a pull-request-style diff review with line comments.
+- Add Team features: share a task with your team for their feedback, and send a time-limited link to reviewers outside the team, both from one Share control; their comments reach your agent as advice. Settings shows the team's seats, members and shared links. Solo licences see the controls locked with an upgrade link, and the team service enforces the same gate.
+- Keep the workflow's phase texts inside the binary: an agent receives only its task's current step.
 - Work on the branch and worktree you have checked out: QualityLayer no longer creates a `ql/<task>` branch, and never switches or merges branches or creates worktrees.
-- Use the shared monochrome, blue/amber design for the website, Cockpit and documentation, with saved light/dark mode and Cockpit preferences.
-- Update the website's interactive Cockpit demo, workflow documentation and README.
+- Use the shared monochrome, blue/amber design for the website, the App and the documentation, with saved light/dark mode and preferences.
+- Update the website, its interactive App demo, the documentation and the README.
 
 ## Earlier Pilot Shell notes (previously unreleased)
 
