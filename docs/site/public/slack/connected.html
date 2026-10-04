@@ -26,23 +26,34 @@
 <main>
   <span class="mark">S</span>
   <h1 id="title">Slack is connected</h1>
-  <p id="text">QualityLayer can now DM your team. You can close this tab; Settings shows the connection.</p>
+  <p id="text">QualityLayer can now send your team direct messages in Slack. You can close this tab; Settings shows the connection.</p>
 </main>
 <script>
   var reasons = {
-    access_denied: "Slack didn't finish the install (access_denied). On an Enterprise Grid workspace an admin may need to approve the app first.",
     link_expired: "This install link is no longer valid. Press Add to Slack in Settings › Team again.",
     link_used: "This install link was already used. Press Add to Slack in Settings › Team again.",
-    invalid_state: "This install link is no longer valid. Press Add to Slack in Settings › Team again.",
-    wrong_browser: "Open Add to Slack in the browser where you pressed it. A forwarded link can't connect a workspace.",
-    slack_unavailable: "Slack could not be reached. Try again in a moment."
+    invalid_state: "This install link is no longer valid or was changed on the way. Press Add to Slack in Settings › Team again.",
+    wrong_browser: "Slack stopped the install because the link was opened in another browser. Start again from the browser where you pressed Add to Slack, and finish in the window it opens.",
+    access_denied: "The install was cancelled in Slack, or your workspace needs an admin to approve the app first. Ask a Slack admin to approve QualityLayer, then press Add to Slack in Settings › Team again.",
+    no_code: "Slack sent the browser back without finishing the install. Press Add to Slack in Settings › Team again.",
+    invalid_code: "Slack no longer accepts the code for this install. Press Add to Slack in Settings › Team again.",
+    code_already_used: "Slack already used the code for this install. Press Add to Slack in Settings › Team again.",
+    slack_unavailable: "Slack could not be reached. Try again in a moment.",
+    bad_response: "Slack answered in a way QualityLayer did not expect. Try again. If it keeps happening, send feedback from the App.",
+    bad_redirect_uri: "QualityLayer's Slack app is not set up correctly right now. This is on our side. Try again later, or send feedback from the App.",
+    invalid_client_id: "QualityLayer's Slack app is not set up correctly right now. This is on our side. Try again later, or send feedback from the App.",
+    bad_client_secret: "QualityLayer's Slack app is not set up correctly right now. This is on our side. Try again later, or send feedback from the App.",
+    invalid_team_for_non_distributed_app: "QualityLayer's Slack app is not set up correctly right now. This is on our side. Try again later, or send feedback from the App.",
+    oauth_authorization_url_mismatch: "QualityLayer's Slack app is not set up correctly right now. This is on our side. Try again later, or send feedback from the App.",
+    invalid_scope: "QualityLayer's Slack app is not set up correctly right now. This is on our side. Try again later, or send feedback from the App.",
+    unknown: "Slack stopped the install without saying why. Press Add to Slack in Settings › Team again."
   };
   var reason = new URLSearchParams(location.search).get("error");
   if (reason !== null) {
     document.getElementById("title").textContent = "Slack is not connected";
     var text = document.getElementById("text");
     text.className = "err";
-    text.textContent = reasons[reason] || "Slack didn't finish the install (" + reason.replace(/[^a-z_]/g, "") + "). Press Add to Slack in Settings › Team to try again.";
+    text.textContent = Object.prototype.hasOwnProperty.call(reasons, reason) ? reasons[reason] : reasons.unknown;
   }
 </script>
 </body>

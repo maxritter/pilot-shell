@@ -321,3 +321,6 @@ bun.lock
 
 # Legacy Pilot Shell runtime and memory stay private during migration.
 .pilot/
+
+# Wrangler state from deploying the feedback Worker
+.wrangler/

@@ -1,13 +1,17 @@
 /* The landing page a Slack DM opens (/open/…) and the download page (/download). Tokens come from the site's. */
 
-/* ---- /open: one centred card of text and buttons ---- */
+/* ---- /open: one centred block of text and buttons (Slack 1c) ---- */
 .ap-page{display:grid;place-items:center;padding:24px 16px}
-.ap-center{width:100%;max-width:440px;padding:40px 24px;text-align:center}
-.ap-center h1{margin:14px 0 6px;font-size:21px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
-.ap-center p{margin:0 auto;max-width:46ch;font-size:15px;line-height:1.55;color:var(--ql-text-muted)}
+.ap-center{width:100%;max-width:600px;padding:40px 24px;text-align:center}
+.ap-center h1{margin:14px 0 12px;font-size:18px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.ap-center p{margin:0 auto 12px;max-width:46ch;font-size:14px;line-height:1.55;color:var(--ql-text-muted)}
 .ap-mark{width:34px;height:31px;color:var(--ql-text)}
-.ap-stack{display:grid;gap:10px;max-width:320px;margin:22px auto 0}
-.ap-center .ap-fine{margin-top:18px;font-size:13px;color:var(--ql-text-dim)}
+.ap-open [aria-live]{min-height:112px}
+.ap-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 0 14px}
+.ap-open .w7-btn-p,.ap-open .w7-btn-s{min-height:36px;padding:0 14px;font-size:13px}
+.w7-root .ap-link{display:inline;padding:0;border:0;background:none;color:var(--ql-accent);font:inherit;font-size:13px;text-decoration:none;cursor:pointer}
+.w7-root .ap-link:hover{text-decoration:underline;text-underline-offset:3px}
+@media (max-width:600px){.ap-open .w7-btn-p,.ap-open .w7-btn-s{min-height:44px}}
 
 /* ---- /download: one card per system, the visitor's first ---- */
 .ap-dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:36px}
