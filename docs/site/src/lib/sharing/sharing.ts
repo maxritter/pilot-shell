@@ -1,15 +1,15 @@
 /**
- * The shared-plan page's client: read a link and send a comment.
+ * The shared-plan page's client: read a link and send what a guest wrote.
  *
  *   https://qualitylayer.dev/s/<22 characters>#<43 characters>   sealed plan, 14 days
  *
- * The plan and every comment are sealed in the browser with a key that only the link's
+ * The plan and everything a guest sends are sealed in the browser with a key that only the link's
  * fragment carries, so the server holds ciphertext and never receives the key (a fragment
- * is not sent). Comments go to POST /api/share/feedback in an annotation format, so the
- * owner's App reads them. Anyone with the whole link may read and comment.
+ * is not sent). Answers and comments go to POST /api/share/feedback in an annotation format, so the
+ * owner's App reads them. Anyone with the whole link may read and comment; nobody votes.
  */
 
-import type { Decision, FeedbackPayload, SealedPayload } from "./types";
+import type { FeedbackPayload, SealedPayload } from "./types";
 
 export const SHARE_ID = /^[A-Za-z0-9]{22}$/;
 
@@ -67,13 +67,51 @@ export async function openFromLink(key: string, purpose: Purpose, sealed: unknow
   }
 }
 
+/** The five steps a task goes through, as the App names them. */
+export type FlowStep = "discuss" | "plan" | "implement" | "verify" | "review";
+
+/** The three a link reviewer reads: Build covers the build and what checked it. */
+export type Tab = "discuss" | "plan" | "build";
+
+/** What a guest can say to a question: agree, suggest a change, or reply in their own words. */
+export type GuestAnswer = "agree" | "change" | "reply";
+
+/** The thing a question is about, drawn under it. Only what a guest can see: no diff of the code. */
+export type ItemMedia =
+  | { kind: "artifact"; name: string; title?: string }
+  | { kind: "mermaid"; source: string; title?: string }
+  | { kind: "text"; text: string };
+
+/**
+ * One question the owner asks the guest: the App's item (qualitylayer/src/core/items.ts), sent as
+ * `items` in the plan, reduced to what a guest can answer. Only the fields this page shows are typed.
+ */
+export type ShareItem = {
+  id: string;
+  step: FlowStep;
+  family: "decide" | "look";
+  kind: string;
+  kindLabel: string;
+  what: string;
+  why?: string;
+  /** The buttons, in order. */
+  options: GuestAnswer[];
+  media?: ItemMedia;
+  /** A group ("Decided by the agent · 7"): what its members say. */
+  members?: string[];
+};
+
 export type LoadedShare =
   | {
       status: "ready";
       kind: "v2";
       title: string;
-      /** Documents by name, in the order to show them. */
+      /** Who shared it, as the App names them; the page says "the owner" without it. */
+      owner?: string;
+      /** Documents by name; the page sorts them into steps (`stepDocs`). Research is never among them. */
       docs: Record<string, string>;
+      /** The owner's questions for this link. Empty for a link made before the App sent any. */
+      items: ShareItem[];
       /** ISO time the link runs out. */
       expires?: string;
       /** The finished, verified change, when the task got that far (v2 only). */
@@ -148,32 +186,149 @@ export function parseReview(text: string | undefined): SharedReview | undefined 
   };
 }
 
-/** The documents a person reads, in the order the work produced them. */
-const ORDER = ["README.md", "01-research.md", "01-diagnosis.md", "02-design.md", "03-outline-overview.md"];
+/** Documents that are data for the page, not text to read. */
+const DATA_DOCS = new Set([REVIEW_DOC, "items.json"]);
 
-export function orderedDocs(docs: Record<string, string>): string[] {
-  const known = ORDER.filter((name) => docs[name] !== undefined);
-  return [
-    ...known,
-    ...Object.keys(docs).filter((name) => !known.includes(name) && !name.startsWith("artifacts/") && name !== REVIEW_DOC),
-  ];
+/**
+ * Whether a document is the agent's own: research and diagnosis (top-level Markdown files) never
+ * leave the machine, and a link that carries one anyway shows nothing of it. A mockup is never one.
+ */
+const isPrivate = (name: string) => name.endsWith(".md") && !name.includes("/") && (/^01-/.test(name) || /research|diagnos/i.test(name));
+
+/** The step a document belongs to, by the number its file carries; an old link's frame is Discuss. */
+function tabOf(name: string): Tab {
+  if (name === "README.md" || /^00-/.test(name)) return "discuss";
+  if (/^03-outline/.test(name)) return "plan";
+  if (/^0[3-9]-/.test(name)) return "build";
+  return "plan";
 }
 
+const byName = (a: string, b: string) => a.replace(/\.md$/, "").localeCompare(b.replace(/\.md$/, ""));
+
+/**
+ * The documents a link reader sees, under the three tabs: Discuss, Plan and Build, never their file
+ * names. Research and diagnosis are left out, and so are the mockups and data that ride along.
+ */
+export function stepDocs(docs: Record<string, string>): Record<Tab, string[]> {
+  const steps: Record<Tab, string[]> = { discuss: [], plan: [], build: [] };
+  for (const name of Object.keys(docs).sort(byName)) {
+    if (!name.endsWith(".md") || name.startsWith("artifacts/") || DATA_DOCS.has(name) || isPrivate(name)) continue;
+    steps[tabOf(name)].push(name);
+  }
+  return steps;
+}
+
+/** The tab a question belongs to: what is built and checked is read under Build. */
+export const tabOfStep = (step: FlowStep): Tab => (step === "discuss" ? "discuss" : step === "plan" ? "plan" : "build");
+
+/** The App's answers, read as a guest's three. */
+const AS_GUEST: Record<string, GuestAnswer> = {
+  agree: "agree",
+  accept: "agree",
+  fine: "agree",
+  keep: "agree",
+  add: "agree",
+  change: "change",
+  fix: "change",
+  "ask-why": "change",
+  skip: "change",
+  record: "change",
+  reply: "reply",
+};
+
+/** What a guest is asked: decisions and things to look at. A question for the agent, a stop, a teammate's question and another agent's finding stay in the App. */
+const GUEST_KINDS = new Set(["decision", "decided", "scope", "done", "asked", "mockup", "result", "diagram"]);
+
+const STEPS: readonly string[] = ["discuss", "plan", "implement", "verify", "review"];
+const str = (v: unknown): string | undefined => (typeof v === "string" && v.trim() !== "" ? v : undefined);
+
+function parseMedia(value: unknown): ItemMedia | undefined {
+  const m = value as { kind?: unknown; name?: unknown; source?: unknown; title?: unknown; text?: unknown } | null;
+  if (typeof m !== "object" || m === null) return undefined;
+  const title = str(m.title);
+  if (m.kind === "artifact" && str(m.name) !== undefined) return { kind: "artifact", name: m.name as string, ...(title ? { title } : {}) };
+  if (m.kind === "mermaid" && str(m.source) !== undefined) return { kind: "mermaid", source: m.source as string, ...(title ? { title } : {}) };
+  if (m.kind === "text" && str(m.text) !== undefined) return { kind: "text", text: m.text as string };
+  return undefined;
+}
+
+/**
+ * The owner's questions from untrusted JSON. A guest is asked what a guest can judge: decisions
+ * and things to look at. What only the owner can confirm or fix stays in the App, and so does
+ * anything already settled.
+ */
+export function parseItems(value: unknown): ShareItem[] {
+  if (!isList(value)) return [];
+  const items: ShareItem[] = [];
+  for (const raw of value) {
+    const i = raw as Record<string, unknown> | null;
+    if (typeof i !== "object" || i === null || str(i.id) === undefined || str(i.what) === undefined) continue;
+    const family = i.family === undefined ? "decide" : i.family;
+    if (family !== "decide" && family !== "look") continue;
+    if (!GUEST_KINDS.has(str(i.kind) ?? "decision")) continue;
+    if (i.state === "settled" || i.state === "sent") continue;
+    const asked = (i.answers as { options?: unknown } | undefined)?.options;
+    const options = [
+      ...new Set((isList(asked) ? asked : []).flatMap((o) => (typeof o === "string" && AS_GUEST[o] !== undefined ? [AS_GUEST[o] as GuestAnswer] : []))),
+    ];
+    const members = isList(i.children) ? i.children.flatMap((c) => str((c as { what?: unknown } | null)?.what) ?? []) : [];
+    const media = parseMedia(i.media);
+    const why = str(i.why);
+    items.push({
+      id: i.id as string,
+      step: STEPS.includes(i.step as string) ? (i.step as FlowStep) : "plan",
+      family,
+      kind: str(i.kind) ?? "decision",
+      kindLabel: str(i.kindLabel) ?? "Question",
+      what: i.what as string,
+      ...(why ? { why } : {}),
+      options: options.length > 0 ? options : ["agree", "change"],
+      ...(media ? { media } : {}),
+      ...(members.length > 0 ? { members } : {}),
+    });
+  }
+  return items;
+}
+
+/** The button's words: the App's for a mockup (Looks right), a decision (Agree) and any change (Suggest a change). */
+export function answerWords(item: Pick<ShareItem, "family">, answer: GuestAnswer): string {
+  if (answer === "agree") return item.family === "look" ? "Looks right" : "Agree";
+  return answer === "change" ? "Suggest a change" : "Reply";
+}
+
+type Plan = { task: string; owner?: string; docs: Record<string, string>; items: ShareItem[] };
+
 /** The plan a link holds: its title and the documents, as text. What opened is still untrusted, so it is rebuilt. */
-function parsePlan(text: string | null): { task: string; docs: Record<string, string> } | null {
-  if (text === null) return null;
+function parsePlan(plain: string | null): Plan | null {
+  if (plain === null) return null;
   let value: unknown;
   try {
-    value = JSON.parse(text);
+    value = JSON.parse(plain);
   } catch {
     return null;
   }
-  const plan = value as { task?: unknown; docs?: unknown } | null;
+  const plan = value as { task?: unknown; owner?: unknown; docs?: unknown; items?: unknown } | null;
   if (typeof plan !== "object" || plan === null || typeof plan.docs !== "object" || plan.docs === null) return null;
-  const docs = Object.fromEntries(
+  const all = Object.fromEntries(
     Object.entries(plan.docs).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
   );
-  return { task: typeof plan.task === "string" ? plan.task : "Shared plan", docs };
+  // Research stays with the agent: even a link that carries it does not hand it to the page.
+  const docs = Object.fromEntries(Object.entries(all).filter(([name]) => !isPrivate(name)));
+  let items: unknown = plan.items;
+  if (items === undefined && all["items.json"] !== undefined) {
+    try {
+      items = JSON.parse(all["items.json"]);
+    } catch {
+      items = undefined;
+    }
+  }
+  const owner = str(plan.owner)?.trim().slice(0, 80);
+  return {
+    task: typeof plan.task === "string" ? plan.task : "Shared plan",
+    ...(owner ? { owner } : {}),
+    docs,
+    items: parseItems(items),
+  };
 }
 
 /** Read a share link's plan: fetch the sealed copy and open it with the link's key. */
@@ -194,12 +349,14 @@ export async function loadShare(id: string, key: string, fetchFn: typeof fetch =
   if (plan === null)
     return { status: "error", message: "The plan could not be opened. Check that the whole link was copied." };
   const review = parseReview(plan.docs[REVIEW_DOC]);
-  const { [REVIEW_DOC]: _review, ...docs } = plan.docs;
+  const { [REVIEW_DOC]: _review, "items.json": _items, ...docs } = plan.docs;
   return {
     status: "ready",
     kind: "v2",
     title: plan.task,
+    ...(plan.owner !== undefined ? { owner: plan.owner } : {}),
     docs,
+    items: plan.items,
     expires: body?.expires,
     ...(review !== undefined ? { review } : {}),
   };
@@ -207,48 +364,18 @@ export async function loadShare(id: string, key: string, fetchFn: typeof fetch =
 
 export type SubmitResult = { ok: true } | { ok: false; reason: "gone" | "rate_limited" | "too_large" | "network" };
 
-export type CommentInput = {
-  /** Who is commenting, typed by them. */
-  author: string;
-  /** The document the passage is in. */
-  doc: string;
-  /** The passage selected; empty for a general remark. */
-  quote: string;
-  remark: string;
-  /** A verdict on the plan, with or without a remark. */
-  verdict?: Decision["verdict"];
-};
-
-/** The comment in the annotation format: the block is the document, the original text the passage. */
-export function feedbackPayload(input: CommentInput, now = Date.now()): FeedbackPayload {
-  const remark = input.remark.trim();
-  return {
-    author: input.author.trim() || "Guest",
-    createdAt: now,
-    annotations:
-      remark === ""
-        ? []
-        : [
-            {
-              id: crypto.randomUUID(),
-              blockId: input.doc,
-              originalText: input.quote,
-              text: remark,
-              createdAt: now,
-            },
-          ],
-    ...(input.verdict !== undefined ? { decision: { verdict: input.verdict } } : {}),
-  };
-}
-
 /** A place in the shared change a comment is about, as the App anchors it. */
 export type ChangeAnchor = { kind: "doneMeans" | "picture" | "check"; id: string; quote?: string };
 
-/** A link reviewer's comment on the change: a new thread on an anchor, or a reply to their own thread. */
-export type ChangeCommentInput = { author: string; remark: string } & (
-  | { anchor: ChangeAnchor; thread: string }
-  | { replyTo: string }
-);
+/**
+ * What a guest wrote and has not sent yet. Each becomes an annotation the App already reads:
+ * an answer or a passage comment on the step's document, a thread or a reply on the change.
+ */
+export type Remark =
+  | { kind: "passage"; doc: string; quote: string; text: string }
+  | { kind: "item"; id: string; step: FlowStep; what: string; answer: GuestAnswer; label: string; note: string }
+  | { kind: "thread"; thread: string; anchor: ChangeAnchor; text: string }
+  | { kind: "reply"; thread: string; text: string };
 
 /** A check line's anchor id, as the App forms it: "scenario 1" → "scenario:1". */
 export const checkId = (label: string) => label.replace(" ", ":");
@@ -256,35 +383,41 @@ export const checkId = (label: string) => label.replace(" ", ":");
 /** A new thread id, in the form the App gives guest threads. */
 export const newThreadId = () => `g-${crypto.randomUUID().replace(/-/g, "").slice(0, 12)}`;
 
-/**
- * A comment on the change in the annotation format: the block is the review,
- * the original text a small JSON head the App decodes (core/review/threads.ts
- * fromWire). A link reviewer never sends a verdict.
- */
-export function changePayload(input: ChangeCommentInput, now = Date.now()): FeedbackPayload {
+/** The document an answer is recorded against: the step's own, as the App names it. */
+const DOC_OF_STEP: Record<Tab, string> = { discuss: "00-discuss.md", plan: "02-plan.md", build: "03-build.md" };
+
+const annotation = (blockId: string, originalText: string, body: string, now: number) => ({
+  id: crypto.randomUUID(),
+  blockId,
+  originalText,
+  text: body.trim(),
+  createdAt: now,
+});
+
+function toAnnotation(r: Remark, now: number) {
+  if (r.kind === "passage") return annotation(r.doc, r.quote, r.text, now);
+  if (r.kind === "item") {
+    const note = r.note.trim();
+    return annotation(DOC_OF_STEP[tabOfStep(r.step)], r.what.slice(0, 300), note === "" ? r.label : `${r.label}: ${note}`, now);
+  }
+  // The change's threads carry a small JSON head the App decodes (core/review/threads.ts fromWire).
   const head =
-    "replyTo" in input
-      ? { t: "reply", thread: input.replyTo }
+    r.kind === "reply"
+      ? { t: "reply", thread: r.thread }
       : {
           t: "thread",
-          thread: input.thread,
-          anchor: { ...input.anchor, ...(input.anchor.quote ? { quote: input.anchor.quote.slice(0, 300) } : {}) },
+          thread: r.thread,
+          anchor: { ...r.anchor, ...(r.anchor.quote ? { quote: r.anchor.quote.slice(0, 300) } : {}) },
         };
-  return {
-    author: input.author.trim() || "Guest",
-    createdAt: now,
-    annotations: [{ id: crypto.randomUUID(), blockId: "review", originalText: JSON.stringify(head), text: input.remark.trim(), createdAt: now }],
-  };
+  return annotation("review", JSON.stringify(head), r.text, now);
 }
 
-/** Send a comment on the shared change to its owner. */
-export function submitChangeComment(id: string, key: string, input: ChangeCommentInput, fetchFn: typeof fetch = fetch): Promise<SubmitResult> {
-  return post(id, key, changePayload(input), fetchFn);
-}
-
-/** Send a comment to the plan's owner. */
-export function submitComment(id: string, key: string, input: CommentInput, fetchFn: typeof fetch = fetch): Promise<SubmitResult> {
-  return post(id, key, feedbackPayload(input), fetchFn);
+/**
+ * Everything a guest wrote, as one batch in the annotation format. A link reviewer sends comments
+ * only: there is no verdict to send.
+ */
+export function remarksPayload(author: string, remarks: Remark[], now = Date.now()): FeedbackPayload {
+  return { author: author.trim() || "Guest", createdAt: now, annotations: remarks.map((r) => toAnnotation(r, now)) };
 }
 
 /** What the owner's machine keeps of a comment: it drops a longer one, and the server cannot say so any more (it holds ciphertext). */
@@ -293,7 +426,16 @@ const MAX_TEXT = 4_000;
 const fits = (p: FeedbackPayload) =>
   p.author.length <= MAX_AUTHOR && p.annotations.every((a) => a.text.length <= MAX_TEXT && a.originalText.length <= MAX_TEXT);
 
-async function post(id: string, key: string, payload: FeedbackPayload, fetchFn: typeof fetch): Promise<SubmitResult> {
+/** Send what a guest wrote to the link's owner, sealed with the link's key, in one request. */
+export async function submitRemarks(
+  id: string,
+  key: string,
+  author: string,
+  remarks: Remark[],
+  fetchFn: typeof fetch = fetch,
+): Promise<SubmitResult> {
+  if (remarks.length === 0) return { ok: true };
+  const payload = remarksPayload(author, remarks);
   if (!fits(payload)) return { ok: false, reason: "too_large" };
   let res: Response;
   try {
@@ -310,4 +452,11 @@ async function post(id: string, key: string, payload: FeedbackPayload, fetchFn: 
   if (res.status === 413) return { ok: false, reason: "too_large" };
   if (res.status === 429) return { ok: false, reason: "rate_limited" };
   return { ok: false, reason: "network" };
+}
+
+/** Where a comment on the change is, in words, the way the App labels it. */
+export function where(anchor: ChangeAnchor): string {
+  if (anchor.kind === "doneMeans") return `Done means ${anchor.id}`;
+  if (anchor.kind === "picture") return "A picture";
+  return `Check ${anchor.id.replace(":", " ")}`;
 }

@@ -1,61 +1,49 @@
 import { describe, expect, it } from "vitest";
-import { renderDiagrams } from "./diagrams";
+import { drawDiagram, mermaidThemeVariables } from "./diagrams";
 
 /**
- * A shared plan's ```mermaid blocks become diagrams; one that does not parse keeps
- * its source. The page's DOM is faked: the test environment has none.
+ * A shared plan's ```mermaid blocks become diagrams; one that does not parse keeps its source.
+ * Mermaid itself is a stub here: the test environment has no DOM to draw in.
  */
 
-type Fake = { tag: string; className: string; innerHTML: string; replacedBy?: Fake };
-
-function page(sources: string[]) {
-  const pres: Fake[] = sources.map(() => ({ tag: "pre", className: "", innerHTML: "" }));
-  const codes = sources.map((text, i) => ({
-    textContent: text,
-    closest: (selector: string) => (selector === "pre" ? (pres[i] as unknown as Element) : null),
-  }));
-  for (const pre of pres) (pre as unknown as { replaceWith: (f: Fake) => void }).replaceWith = (f) => (pre.replacedBy = f);
-  const root = {
-    querySelectorAll: (selector: string) => (selector === "pre > code.language-mermaid" ? codes : []),
-  };
-  const doc = { createElement: (tag: string) => ({ tag, className: "", innerHTML: "" }) } as unknown as Document;
-  return { root, pres, doc };
-}
-
-describe("diagrams on a shared plan", () => {
-  it("replaces each mermaid block with its diagram, in order, under its own id", async () => {
-    const { root, pres, doc } = page(["graph LR; A-->B", "graph TD; C-->D"]);
+describe("a diagram on a shared plan", () => {
+  it("is drawn from its source under its own id, and only the sanitised SVG goes on the page", async () => {
     const seen: string[] = [];
-    const count = await renderDiagrams(
-      root,
+    const svg = await drawDiagram(
       async (id, source) => {
         seen.push(`${id}:${source}`);
-        return `<svg id="${id}"><g/></svg>`;
+        return `<svg id="${id}"><script/></svg>`;
       },
-      doc,
-      (svg) => svg.replace("<g/>", ""),
+      "sh-diagram-3",
+      "graph LR; A-->B",
+      (raw) => raw.replace("<script/>", ""),
     );
-    expect(count).toBe(2);
-    expect(seen).toEqual(["sh-diagram-0:graph LR; A-->B", "sh-diagram-1:graph TD; C-->D"]);
-    expect(pres.map((p) => p.replacedBy?.className)).toEqual(["sh-diagram", "sh-diagram"]);
-    expect(pres[0]?.replacedBy?.tag).toBe("figure");
-    // What goes on the page is the sanitised SVG, never the renderer's raw output.
-    expect(pres[0]?.replacedBy?.innerHTML).toBe('<svg id="sh-diagram-0"></svg>');
+    expect(seen).toEqual(["sh-diagram-3:graph LR; A-->B"]);
+    expect(svg).toBe('<svg id="sh-diagram-3"></svg>');
   });
 
-  it("keeps the source of a diagram that does not parse", async () => {
-    const { root, pres, doc } = page(["graph LR; A-->B", "not a diagram"]);
-    const count = await renderDiagrams(
-      root,
-      async (id, source) => {
-        if (source === "not a diagram") throw new Error("Parse error");
-        return `<svg id="${id}"/>`;
+  it("is null when it does not parse, so the page keeps the source", async () => {
+    const svg = await drawDiagram(
+      async () => {
+        throw new Error("Parse error");
       },
-      doc,
-      (svg) => svg,
+      "sh-diagram-0",
+      "not a diagram",
+      (raw) => raw,
     );
-    expect(count).toBe(1);
-    expect(pres[0]?.replacedBy).toBeDefined();
-    expect(pres[1]?.replacedBy).toBeUndefined();
+    expect(svg).toBeNull();
+  });
+
+  it("is null when the drawing comes back empty", async () => {
+    expect(await drawDiagram(async () => "", "sh-diagram-0", "graph LR; A-->B", (raw) => raw)).toBeNull();
+  });
+});
+
+describe("a diagram's colours", () => {
+  it("come from the page's own tokens, with a fallback for each", () => {
+    const vars = mermaidThemeVariables((name) => (name === "--ql-text" ? "#111111" : ""));
+    expect(vars.primaryTextColor).toBe("#111111");
+    expect(vars.lineColor).toMatch(/^#/);
+    expect(vars.fontSize).toBe("14px");
   });
 });

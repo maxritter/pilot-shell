@@ -24,16 +24,6 @@ export interface Annotation {
 }
 
 /**
- * GitHub-PR-style top-level review verdict. Submitted from the shared-plan page
- * alongside (or independently of) inline annotations on the same feedback batch.
- */
-export interface Decision {
-  verdict: "approve" | "request_changes";
-  /** Free-text comment, 0–4000 chars (server-enforced). */
-  comment?: string;
-}
-
-/**
  * Sealed text, as a link's plan and a guest's submission travel: AES-GCM under the link's key
  * (`iv` 12 bytes and `ct`, both base64). The server holds it without the key.
  */
@@ -53,8 +43,6 @@ export interface FeedbackPayload {
   planPath?: string;
   /** Timestamp when feedback was created */
   createdAt: number;
-  /** Optional top-level review verdict for this submit. */
-  decision?: Decision;
 }
 
 // ─── Multi-user feedback polling (2026-05-15) ─────────────────────────────────

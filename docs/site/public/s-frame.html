@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>Mockup</title>
+<!--
+  The page a shared mockup is shown in. The share page loads it in a sandboxed frame (no
+  same-origin), hands over the mockup's HTML by postMessage, and this page writes it into itself.
+  Its own header policy (vercel.json) is what the mockup runs under: scripts and styles inline, images
+  as data, and no network. Only the share page that framed it may speak to it, and only this page's
+  window may answer: the origin comes in the address, and the frame can only be embedded by 'self'.
+-->
+<script>
+(function () {
+  var expected = decodeURIComponent(location.hash.slice(1));
+  var written = false;
+  window.addEventListener("message", function (event) {
+    if (written || event.source !== window.parent) return;
+    if (event.origin !== expected) return;
+    var data = event.data;
+    if (!data || data.type !== "qualitylayer:mockup" || typeof data.html !== "string") return;
+    written = true;
+    document.open();
+    document.write(data.html);
+    document.close();
+  });
+  if (window.parent !== window && expected) window.parent.postMessage({ type: "qualitylayer:frame-ready" }, expected);
+})();
+</script>
+</head>
+<body></body>
+</html>

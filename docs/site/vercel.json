@@ -17,7 +17,7 @@
       "permanent": false
     },
     {
-      "source": "/((?!api/|s/|assets/|fonts/|brand/|favicon\\.ico$).*)",
+      "source": "/((?!api/|s/|s-frame\\.html$|assets/|fonts/|brand/|favicon\\.ico$).*)",
       "has": [{ "type": "host", "value": "(www\\.)?pilot-shell\\.com" }],
       "destination": "https://qualitylayer.dev/$1",
       "permanent": true
@@ -131,7 +131,15 @@
     {
       "source": "/s/(.*)",
       "headers": [
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self' http://localhost:* https://localhost:*" }
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self' http://localhost:* https://localhost:*" }
+      ]
+    },
+    {
+      "source": "/s-frame.html",
+      "headers": [
+        { "key": "Content-Security-Policy", "value": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
       ]
     },
     {

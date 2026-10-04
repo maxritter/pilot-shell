@@ -238,8 +238,29 @@ describe("the landing page's own headers", () => {
 });
 
 describe("the share page's own headers", () => {
-  it("keep the strict content security policy on /s/*", () => {
-    const rule = config.headers.find((h) => h.source === "/s/(.*)");
-    expect(rule?.headers.find((h) => h.key === "Content-Security-Policy")?.value).toContain("default-src 'self'");
+  const policyOf = (source: string) =>
+    config.headers.find((h) => h.source === source)?.headers.find((h) => h.key === "Content-Security-Policy")?.value ?? "";
+
+  it("keep the strict content security policy on /s/*, with a frame only for the site's own mockup page", () => {
+    const policy = policyOf("/s/(.*)");
+    expect(policy).toContain("default-src 'self'");
+    expect(policy).toContain("script-src 'self'");
+    expect(policy).toContain("frame-src 'self'");
+    expect(policy).not.toContain("frame-src 'none'");
+  });
+
+  it("serve the mockup frame under its own policy: inline scripts and styles, data images, no network, framed by the site only", () => {
+    const policy = policyOf("/s-frame.html");
+    for (const part of ["default-src 'none'", "script-src 'unsafe-inline'", "style-src 'unsafe-inline'", "img-src data: blob:", "font-src data:", "frame-ancestors 'self'"])
+      expect(policy, part).toContain(part);
+    // Nothing that lets a mockup reach out: no fetch, no frames of its own, no remote images.
+    expect(policy).not.toContain("connect-src");
+    expect(policy).not.toContain("frame-src");
+    expect(policy).not.toContain("https:");
+  });
+
+  it("keeps the mockup frame where the share page can load it, also on the old host", () => {
+    expect(answer(OLD, "/s-frame.html").kind).not.toBe("redirect");
+    expect(answer(NEW, "/s-frame.html").kind).not.toBe("redirect");
   });
 });

@@ -1,29 +1,18 @@
 import { renderToReadableStream } from "react-dom/server.browser";
 import { describe, expect, it, vi } from "vitest";
 import fixture from "@/lib/sharing/shared-review.fixture.json";
-import {
-  changePayload,
-  checkId,
-  feedbackPayload,
-  linkKeyOf,
-  loadShare,
-  openFromLink,
-  parseReview,
-  sealForLink,
-  submitChangeComment,
-  submitComment,
-} from "@/lib/sharing/sharing";
+import { checkId, type LoadedShare, linkKeyOf, loadShare, openFromLink, parseItems, parseReview, sealForLink } from "@/lib/sharing/sharing";
 import { SharedView } from "./Shared";
 
 /**
  * The page a link opens: the plan is sealed with a key that only the link's fragment carries, so
  * the page opens it in the browser and seals each comment with the same key. A link without its
- * key says so, and "no longer shared" is for a link that is gone. Comments leave in v11's
- * annotation format, inside the seal.
+ * key says so, and "no longer shared" is for a link that is gone. A link reviewer reads Discuss,
+ * Plan and Build, answers the owner's questions and comments; they never vote.
  */
 
 const V2_ID = "A".repeat(22);
-const DOCS = { "README.md": "# Task\n\nThe problem.", "02-design.md": "# Design\n\nOne Vercel deployment." };
+const OLD_DOCS = { "README.md": "# Task\n\nThe problem.", "02-design.md": "# Design\n\nOne Vercel deployment." };
 const KEY = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))))
   .replace(/\+/g, "-")
   .replace(/\//g, "_")
@@ -33,7 +22,7 @@ const answer = (status: number, body?: unknown) =>
   vi.fn(async () => new Response(body === undefined ? null : JSON.stringify(body), { status })) as unknown as typeof fetch;
 
 /** What the backend serves for a link: the plan sealed with the link's key, as the owner's machine seals it. */
-const sealedShare = async (plan: { task: string; docs: Record<string, string> }, expires?: string, key = KEY) =>
+const sealedShare = async (plan: Record<string, unknown>, expires?: string, key = KEY) =>
   answer(200, { ...(await sealForLink(key, "plan", JSON.stringify(plan))), ...(expires !== undefined ? { expires } : {}) });
 
 async function html(node: React.ReactNode): Promise<string> {
@@ -44,9 +33,16 @@ async function html(node: React.ReactNode): Promise<string> {
 
 describe("loading a link", () => {
   it("opens a sealed plan with the key from the link: its documents and expiry", async () => {
-    const fetchFn = await sealedShare({ task: "Pager off-by-one", docs: DOCS }, "2026-10-14T10:00:00.000Z");
+    const fetchFn = await sealedShare({ task: "Pager off-by-one", docs: OLD_DOCS }, "2026-10-14T10:00:00.000Z");
     const loaded = await loadShare(V2_ID, KEY, fetchFn);
-    expect(loaded).toEqual({ status: "ready", kind: "v2", title: "Pager off-by-one", docs: DOCS, expires: "2026-10-14T10:00:00.000Z" });
+    expect(loaded).toEqual({
+      status: "ready",
+      kind: "v2",
+      title: "Pager off-by-one",
+      docs: OLD_DOCS,
+      items: [],
+      expires: "2026-10-14T10:00:00.000Z",
+    });
     expect(fetchFn).toHaveBeenCalledWith(`/api/share?id=${V2_ID}`);
   });
 
@@ -64,13 +60,13 @@ describe("loading a link", () => {
   });
 
   it("does not open a plan sealed with another key, or one the server left in plain text", async () => {
-    const other = await sealedShare({ task: "Pager off-by-one", docs: DOCS }, undefined, "B".repeat(43));
+    const other = await sealedShare({ task: "Pager off-by-one", docs: OLD_DOCS }, undefined, "B".repeat(43));
     expect(await loadShare(V2_ID, KEY, other)).toMatchObject({ status: "error" });
-    expect(await loadShare(V2_ID, KEY, answer(200, { v: 2, task: "Pager off-by-one", docs: DOCS }))).toMatchObject({ status: "error" });
+    expect(await loadShare(V2_ID, KEY, answer(200, { v: 2, task: "Pager off-by-one", docs: OLD_DOCS }))).toMatchObject({ status: "error" });
   });
 
   it("opens only what the seal says it is: a comment's seal is not a plan", async () => {
-    const asComment = await sealForLink(KEY, "feedback", JSON.stringify({ task: "Pager off-by-one", docs: DOCS }));
+    const asComment = await sealForLink(KEY, "feedback", JSON.stringify({ task: "Pager off-by-one", docs: OLD_DOCS }));
     expect(await openFromLink(KEY, "plan", asComment)).toBeNull();
     expect(await loadShare(V2_ID, KEY, answer(200, asComment))).toMatchObject({ status: "error" });
   });
@@ -90,58 +86,202 @@ describe("loading a link", () => {
   });
 });
 
-describe("the page", () => {
-  const noComment = async () => ({ ok: true as const });
+type Ready = Extract<LoadedShare, { status: "ready" }>;
 
-  it("shows a v2 plan: its title, each document by name, and the first one's text", async () => {
-    const page = await html(
-      <SharedView
-        state={{ status: "ready", kind: "v2", title: "Pager off-by-one", docs: DOCS, expires: "2026-10-14T10:00:00.000Z" }}
-        onComment={noComment}
-      />,
-    );
-    expect(page).toContain("Pager off-by-one");
-    expect(page).toContain(">README<");
-    expect(page).toContain(">02-design<");
-    expect(page).toContain("The problem.");
-    expect(page).toContain("anyone who has it can read this plan and comment");
+const ready = (over: Partial<Ready> = {}): Ready => ({ status: "ready", kind: "v2", title: "Settings cleanup", docs: {}, items: [], ...over });
+
+const MOCKUP = "<!doctype html><title>Settings</title><h1>Settings</h1><script>parent.postMessage({type:'x'},'*')</script>";
+
+/** A task as the App shares it once the Plan waits: the five step files, the mockup, the owner's questions. */
+const PLAN_SHARE = ready({
+  owner: "Max",
+  expires: "2026-10-18T10:00:00.000Z",
+  docs: {
+    "00-discuss.md": "# Problem\n\nSettings are too many.",
+    "01-research.md": "# Research\n\nSECRET RESEARCH NOTES",
+    "02-plan.md": [
+      "# Fewer settings",
+      "",
+      "First the configuration changes.",
+      "",
+      "```artifact",
+      "artifacts/settings.html",
+      "```",
+      "",
+      "```mermaid",
+      "graph LR; Config-->Flow",
+      "```",
+    ].join("\n"),
+    "02-plan-details.md": [
+      "## System design contracts",
+      "",
+      "### The flow stops reading the config",
+      "",
+      "A contract body.",
+      "",
+      "### A 429 keeps the error shape",
+      "",
+      "Another body.",
+      "",
+      "## Slice 1: Fewer settings, in the CLI and the App together",
+      "",
+      "- [ ] T1 One",
+      "- [ ] T2 Two",
+      "",
+      "## Slice 2: Select all fills a group",
+      "",
+      "- [ ] T3 Three",
+    ].join("\n"),
+    "artifacts/settings.html": MOCKUP,
+  },
+  items: parseItems([
+    { id: "plan:mockup:1", step: "plan", family: "look", kind: "mockup", kindLabel: "Mockup", what: "Settings after the change", answers: { options: ["agree", "change"] }, media: { kind: "artifact", name: "settings.html" } },
+    { id: "plan:decision:1", step: "plan", family: "decide", kind: "decision", kindLabel: "Engineering decision", what: "The flow stops reading the config", answers: { options: ["agree", "change"] } },
+    { id: "plan:scope:1", step: "plan", family: "decide", kind: "scope", kindLabel: "Out of scope", what: "No migration of old memories", answers: { options: ["agree", "change"] } },
+  ]),
+});
+
+const noSend = async () => ({ ok: true as const });
+
+describe("the page for a task at the Plan", () => {
+  it("names its tabs for the steps, never for files, and says nothing of research", async () => {
+    const page = await html(<SharedView state={PLAN_SHARE} onSend={noSend} />);
+    expect(page).toContain("Settings cleanup");
+    for (const tab of [">Discuss<", ">Plan<", ">Build<"]) expect(page).toContain(tab);
+    // What a reader sees, not the attributes the page keeps for itself.
+    const seen = page.replace(/<[^>]*>/g, " ");
+    for (const file of ["00-discuss", "02-plan", "02-plan-details", "01-research", "README", ".md"]) expect(seen).not.toContain(file);
+    expect(page).not.toContain("SECRET RESEARCH");
+    expect(page).not.toContain(">Research<");
   });
 
-  it("shows a plan with one document without tabs", async () => {
-    const page = await html(
-      <SharedView
-        state={{ status: "ready", kind: "v2", title: "Pager off-by-one", docs: { "README.md": "# Task\n\nOnly the frame." } }}
-        onComment={noComment}
-      />,
-    );
-    expect(page).toContain("Only the frame.");
-    expect(page).not.toContain('aria-label="Documents"');
+  it("opens on the Plan, and says how long the link lives and that no code is shared", async () => {
+    const page = await html(<SharedView state={PLAN_SHARE} onSend={noSend} />);
+    expect(page).toContain("First the configuration changes.");
+    expect(page).toContain("Max shared this with you to read and comment on");
+    expect(page).toContain("the link runs out on");
+    expect(page).toContain("no code is shared");
+  });
+
+  it("shows the mockup as a page in a sandboxed frame of its own, not as its file path", async () => {
+    const page = await html(<SharedView state={PLAN_SHARE} onSend={noSend} />);
+    expect(page).toContain("<iframe");
+    // The frame is the static page with its own header policy; the mockup reaches it by message, not by srcdoc.
+    expect(page).toContain('src="/s-frame.html"');
+    expect(page).not.toContain("srcDoc");
+    expect(page).not.toContain("srcdoc");
+    expect(page).toContain('sandbox="allow-scripts"');
+    expect(page).not.toContain("allow-same-origin");
+    expect(page).not.toContain("artifacts/settings.html");
+    expect(page).not.toContain("settings.html");
+  });
+
+  it("draws a mockup once when the plan's fence and a question name the same file", async () => {
+    const page = await html(<SharedView state={PLAN_SHARE} onSend={noSend} />);
+    expect(page.split("<iframe").length - 1).toBe(1);
+    // With no question for it, the fence draws it where the plan put it.
+    const bare = await html(<SharedView state={{ ...PLAN_SHARE, items: [] }} onSend={noSend} />);
+    expect(bare.split("<iframe").length - 1).toBe(1);
+  });
+
+  it("draws the diagram where the plan has it, and keeps its source until it is drawn", async () => {
+    const page = await html(<SharedView state={PLAN_SHARE} onSend={noSend} />);
+    expect(page).toContain('data-testid="shared-diagram"');
+    expect(page).toContain("Config--&gt;Flow");
+  });
+
+  it("includes the slices with their task counts, and the contracts behind a fold", async () => {
+    const page = await html(<SharedView state={PLAN_SHARE} onSend={noSend} />);
+    expect(page).toContain("The build");
+    expect(page).toContain("2 slices, 3 tasks");
+    expect(page).toContain("Fewer settings, in the CLI and the App together");
+    expect(page).toContain("Select all fills a group");
+    expect(page).toContain("2 tasks");
+    expect(page).toContain("1 task<");
+    expect(page).toContain("Contracts");
+    expect(page).toContain("2 interfaces");
+    expect(page).toContain("The flow stops reading the config");
+    expect(page).toContain("A 429 keeps the error shape");
+  });
+
+  it("shows the questions the owner asks, each with the App's answers", async () => {
+    const page = await html(<SharedView state={PLAN_SHARE} onSend={noSend} />);
+    expect(page).toContain("Max asks you");
+    expect(page).toContain("3 questions");
+    expect(page).toContain("your answers reach Max as comments");
+    expect(page).toContain("Mockup");
+    expect(page).toContain("Settings after the change");
+    expect(page).toContain("Engineering decision");
+    expect(page).toContain("Out of scope");
+    expect(page).toContain(">Looks right<");
+    expect(page).toContain(">Agree<");
+    expect(page).toContain(">Suggest a change<");
+  });
+
+  it("lets a link reviewer comment and nothing more: a name, Send to the owner, no Approve, no Request changes", async () => {
+    const page = await html(<SharedView state={PLAN_SHARE} onSend={noSend} />);
+    expect(page).toContain("Your name");
+    expect(page).toContain("No account needed");
+    expect(page).toContain(">Send to Max<");
+    expect(page).toContain("Approving is for Max&#x27;s team, in the App.");
+    expect(page).not.toContain("Request changes");
+    expect(page).not.toContain(">Approve<");
+    expect(page).not.toContain("Approved");
+    expect(page).toContain("0 of 3 answered");
+  });
+
+  it("names the owner when the link does not say who it is", async () => {
+    const page = await html(<SharedView state={{ ...PLAN_SHARE, owner: undefined }} onSend={noSend} />);
+    expect(page).toContain(">Send to the owner<");
+    expect(page).toContain("The owner asks you");
+  });
+
+  it("shows Discuss as its own step, and a step not reached says what will happen there", async () => {
+    const discuss = await html(<SharedView state={PLAN_SHARE} onSend={noSend} tab="discuss" />);
+    expect(discuss).toContain("Settings are too many.");
+    const build = await html(<SharedView state={PLAN_SHARE} onSend={noSend} tab="build" />);
+    expect(build).toContain("The build has not started");
+    expect(build).not.toContain("Settings are too many.");
+  });
+});
+
+describe("a link made before the App sent steps, items and the owner's name", () => {
+  it("still opens: the frame is Discuss, the design is the Plan, and the page asks nothing", async () => {
+    const state = ready({ title: "Pager off-by-one", docs: OLD_DOCS, expires: "2026-10-14T10:00:00.000Z" });
+    const plan = await html(<SharedView state={state} onSend={noSend} />);
+    expect(plan).toContain("One Vercel deployment");
+    for (const tab of [">Discuss<", ">Plan<", ">Build<"]) expect(plan).toContain(tab);
+    expect(plan).not.toContain(">README<");
+    expect(plan).not.toContain(">02-design<");
+    expect(plan).not.toContain("asks you");
+    expect(plan).toContain(">Send to the owner<");
+    const discuss = await html(<SharedView state={state} onSend={noSend} tab="discuss" />);
+    expect(discuss).toContain("The problem.");
   });
 
   it("says a link that is gone is no longer shared", async () => {
-    const page = await html(<SharedView state={{ status: "gone" }} onComment={noComment} />);
+    const page = await html(<SharedView state={{ status: "gone" }} onSend={noSend} />);
     expect(page).toContain("This plan is no longer shared");
-    expect(page).not.toContain("Add comment");
+    expect(page).not.toContain("Send to");
   });
 
   it("says a link without its key is missing it, and offers no comment box", async () => {
-    const page = await html(<SharedView state={{ status: "no-key" }} onComment={noComment} />);
+    const page = await html(<SharedView state={{ status: "no-key" }} onSend={noSend} />);
     expect(page).toContain("This link is missing its key");
-    expect(page).not.toContain("Add comment");
+    expect(page).not.toContain("Send to");
   });
 });
 
 /**
  * A link reviewer and the finished change: the App's SharedReview arrives as
  * docs["review.json"] (fixture from the build session, 625ceb66). They read Overview,
- * Evidence and Try it, and comment; they never vote or see the files.
+ * Evidence and Try it under Build, and comment; they never vote or see the files.
  */
-describe("the shared change", () => {
+describe("the shared change, under Build", () => {
   const REVIEW = JSON.stringify(fixture);
-  const noComment = async () => ({ ok: true as const });
 
   it("reads the change from review.json and keeps it out of the documents", async () => {
-    const loaded = await loadShare(V2_ID, KEY, await sealedShare({ task: "Rate-limit the export API", docs: { ...DOCS, "review.json": REVIEW } }));
+    const loaded = await loadShare(V2_ID, KEY, await sealedShare({ task: "Rate-limit the export API", docs: { ...OLD_DOCS, "review.json": REVIEW } }));
     expect(loaded.status === "ready" && Object.keys(loaded.docs)).toEqual(["README.md", "02-design.md"]);
     expect(loaded.status === "ready" && loaded.review?.doneMeans[0]?.head).toBe("A 61st export in an hour is refused with a retry time.");
   });
@@ -153,101 +293,22 @@ describe("the shared change", () => {
     expect(Object.keys(review?.images ?? {})).toEqual(["a.png"]);
   });
 
-  it("opens on the change: its proofs, the pull request and the tabs, with comments but no vote", async () => {
+  it("opens on Build once the change is verified: its proofs, the pull request and the tabs, with comments but no vote", async () => {
     const review = parseReview(REVIEW);
-    const page = await html(
-      <SharedView state={{ status: "ready", kind: "v2", title: "Rate-limit the export API", docs: DOCS, review }} onComment={noComment} />,
-    );
-    expect(page).toContain("The change");
+    const page = await html(<SharedView state={ready({ title: "Rate-limit the export API", docs: OLD_DOCS, review })} onSend={noSend} />);
     expect(page).toContain("A 61st export in an hour is refused with a retry time.");
     expect(page).toContain("Proven");
     expect(page).toContain("#42");
-    for (const tab of [">Overview<", ">Evidence<", ">Try it<"]) expect(page).toContain(tab);
+    for (const tab of [">Discuss<", ">Plan<", ">Build<", ">Overview<", ">Evidence<", ">Try it<"]) expect(page).toContain(tab);
     expect(page).toContain("Add comment");
     expect(page).not.toContain("Request changes");
     expect(page).not.toContain(">Approve<");
     expect(page).not.toContain("Files changed");
+    expect(page).not.toContain("round");
   });
 
   it("anchors a check the way the App does", () => {
     expect(checkId("scenario 1")).toBe("scenario:1");
     expect(checkId("dod T3")).toBe("dod:T3");
-  });
-
-  it("sends a new thread as the App reads it, with no verdict", () => {
-    const payload = changePayload(
-      { author: " Sam ", remark: " Is 429 right? ", thread: "g-abc123", anchor: { kind: "doneMeans", id: "1", quote: "A 61st export" } },
-      7,
-    );
-    expect(payload).toMatchObject({ author: "Sam", createdAt: 7, annotations: [{ blockId: "review", text: "Is 429 right?" }] });
-    expect(payload.decision).toBeUndefined();
-    expect(JSON.parse(payload.annotations[0].originalText)).toEqual({
-      t: "thread",
-      thread: "g-abc123",
-      anchor: { kind: "doneMeans", id: "1", quote: "A 61st export" },
-    });
-  });
-
-  it("sends a reply to the guest's own thread, to the same feedback endpoint", async () => {
-    const fetchFn = answer(201, { ok: true });
-    expect(await submitChangeComment(V2_ID, KEY, { author: "Sam", remark: "Thanks", replyTo: "g-abc123" }, fetchFn)).toEqual({ ok: true });
-    const sent = await sentPayload(fetchFn);
-    expect(sent.id).toBe(V2_ID);
-    const opened = JSON.parse((await openFromLink(KEY, "feedback", sent.payload)) ?? "null") as { annotations: { originalText: string }[] };
-    expect(JSON.parse(opened.annotations[0].originalText)).toEqual({ t: "reply", thread: "g-abc123" });
-  });
-});
-
-/** What a submission put on the wire: the link's id and the sealed payload, with the URL it went to checked. */
-async function sentPayload(fetchFn: typeof fetch): Promise<{ id: string; payload: { v: 3; iv: string; ct: string } }> {
-  const [url, init] = (fetchFn as unknown as { mock: { calls: [string, RequestInit][] } }).mock.calls[0] as [string, RequestInit];
-  expect(url).toBe("/api/share/feedback");
-  return JSON.parse(String(init.body));
-}
-
-describe("commenting", () => {
-  it("leaves as v11's annotation, sealed with the link's key: the document is the block, the passage the original text", async () => {
-    const fetchFn = answer(201, { ok: true, position: 0 });
-    const result = await submitComment(
-      V2_ID,
-      KEY,
-      { author: "  Guest Gina ", doc: "02-design.md", quote: "One Vercel deployment", remark: "Why one?" },
-      fetchFn,
-    );
-    expect(result).toEqual({ ok: true });
-    const sent = await sentPayload(fetchFn);
-    expect(sent.id).toBe(V2_ID);
-    // The server sees an envelope and nothing of the words.
-    expect(Object.keys(sent.payload).sort()).toEqual(["ct", "iv", "v"]);
-    expect(JSON.stringify(sent)).not.toContain("Why one?");
-    expect(JSON.parse((await openFromLink(KEY, "feedback", sent.payload)) ?? "null")).toMatchObject({
-      author: "Guest Gina",
-      annotations: [{ blockId: "02-design.md", originalText: "One Vercel deployment", text: "Why one?" }],
-    });
-  });
-
-  it("sends a verdict alone, without an annotation, as v11's decision", () => {
-    expect(feedbackPayload({ author: "", doc: "README.md", quote: "", remark: "", verdict: "approve" }, 5)).toEqual({
-      author: "Guest",
-      createdAt: 5,
-      annotations: [],
-      decision: { verdict: "approve" },
-    });
-  });
-
-  it("refuses a comment the owner's machine would drop, instead of sending it into silence", async () => {
-    const never = answer(201, { ok: true });
-    const long = { author: "G", doc: "README.md", quote: "", remark: "x".repeat(4001) };
-    expect(await submitComment(V2_ID, KEY, long, never)).toEqual({ ok: false, reason: "too_large" });
-    expect(await submitComment(V2_ID, KEY, { ...long, remark: "ok", author: "G".repeat(81) }, never)).toEqual({ ok: false, reason: "too_large" });
-    expect(never).not.toHaveBeenCalled();
-  });
-
-  it("tells a revoked link, a busy connection and a long comment apart", async () => {
-    const input = { author: "G", doc: "README.md", quote: "", remark: "x" };
-    expect(await submitComment(V2_ID, KEY, input, answer(404))).toEqual({ ok: false, reason: "gone" });
-    expect(await submitComment(V2_ID, KEY, input, answer(429))).toEqual({ ok: false, reason: "rate_limited" });
-    expect(await submitComment(V2_ID, KEY, input, answer(413))).toEqual({ ok: false, reason: "too_large" });
-    expect(await submitComment(V2_ID, KEY, input, answer(500))).toEqual({ ok: false, reason: "network" });
   });
 });
