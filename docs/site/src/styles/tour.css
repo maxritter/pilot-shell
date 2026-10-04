@@ -367,8 +367,8 @@
 .sx-pbar i.b{background:var(--ql-accent)}
 .sx-pbar i.a{background:var(--ql-amber)}
 
-/* Review together: a comment on a line, and a link for people outside the team */
-.sx-part{margin:2px 14px 12px;border:1px solid var(--ql-border);border-radius:8px;overflow:hidden;background:var(--ql-bg)}
+/* Review together: a comment on a part of the review, and a link for people outside the team */
+.sx-pcard{margin:2px 14px 12px;border:1px solid var(--ql-border);border-radius:8px;overflow:hidden;background:var(--ql-bg)}
 .sx-ph{display:flex;align-items:center;gap:8px;margin:0;padding:7px 12px;border-bottom:1px solid var(--ql-line);background:var(--ql-bg-sunken);font-size:12.5px;font-weight:500}
 .sx-ph small{font-weight:400;color:var(--ql-text-muted);font-size:12px}
 .sx-pb{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:12px;align-items:start;padding:10px 12px}
@@ -467,7 +467,7 @@
 .sx-nw .sx-q2 .sx-iab,.sx-nw .sx-psg,.sx-nw .sx-lks u{display:none}
 .sx-nw .sx-lks{flex-wrap:wrap;gap:6px 14px;padding:8px 12px}
 .sx-nw .sx-draft{margin:0 12px 10px}
-.sx-nw .sx-part{margin:0 12px 10px}
+.sx-nw .sx-pcard{margin:0 12px 10px}
 .sx-nw .sx-setr small,.sx-nw .sx-seth small,.sx-nw .sx-setn{display:none}
 .sx-nw .sx-cost{padding:10px 12px;gap:8px}
 .sx-nw .sx-ctab{display:none}

@@ -390,7 +390,7 @@ export default function TourScenes({ ch, step, tries, onRetry, only = false }: {
         </div>
         <Needs meta={at(4) ? "1 settled" : "1 open"} settled={at(4)} className={ins(2)}>
           <Item kind="Comment from Ben" what="On Done means, point 3: can support see the count without opening the log?" buttons={["Reply", "Resolve"]} done={at(4)} className="sx-row" />
-          <div className="sx-part">
+          <div className="sx-pcard">
             <p className="sx-ph"><Tick />Done means · 3 <small>Support sees the retry count · evidence: a screenshot</small></p>
             <div className="sx-pb">
               <div className="sx-shotl">
