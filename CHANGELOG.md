@@ -1610,7 +1610,7 @@ Run `pilot update` to upgrade, then start a fresh Claude Code or Codex session t
 - Sandbox support improvements and UX polish
 - Move worktree question to beginning of spec flow
 - Add staleness check to context-pct.json cache
-- Migrate licensing from Gumroad to Polar.sh
+- Move licensing to Polar.sh
 - Simplify dashboard layout and add delta-aware PR reviews
 - Make worktree isolation optional and fix worker startup crash
 - Remove working-directory from deploy step to prevent doubled path
