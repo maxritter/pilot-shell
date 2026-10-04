@@ -18,10 +18,9 @@
 # (--auto-update --non-interactive --quiet). --auto-update and --non-interactive
 # mean nothing may be asked; --quiet is accepted and ignored.
 # With Pilot Shell 11 installed, the install shows its upgrade screen once and
-# moves the machine to QualityLayer. On a terminal it first lists what goes,
-# lets you pick which of the tools Pilot installed to remove and asks whether
-# to delete Pilot's memories; without a terminal (or with --non-interactive)
-# it asks nothing, removes only Pilot's own parts and keeps tools and memories.
+# moves the machine to QualityLayer. The move asks nothing, with or without a
+# terminal: it removes only Pilot's own parts and keeps the tools Pilot installed
+# and its memories; the report says how to remove them later.
 #
 # Environment: VERSION (e.g. 12.0.0-beta.1; default: the newest v12 release),
 # QUALITYLAYER_RELEASE_BASE and QUALITYLAYER_RELEASE_API (mirrors and tests).
@@ -46,7 +45,7 @@ fail() {
 	exit 1
 }
 
-# v11's updater (and anyone passing these) must never be asked anything.
+# v11's updater (and anyone passing these) runs unattended: the App is not opened afterwards.
 ask=yes cli_only="" with_app=""
 for arg in "$@"; do
 	case "$arg" in
@@ -194,16 +193,12 @@ download_verified() {
 v11=""
 [ -e "$HOME/.pilot/bin/pilot" ] && v11=yes
 
-# run_install <program> [args]: `install` on a terminal asks its questions there; under
-# `curl | bash` stdin is this script, so they are answered from the terminal, never from the pipe.
+# run_install <program> [args]: `install` asks nothing, so it runs the same way with or without
+# a terminal, and never reads this script's own stdin under `curl | bash`.
 run_install() {
 	local program="$1"
 	shift
-	if [ -n "$ask" ] && [ -t 1 ] && (exec </dev/tty) 2>/dev/null; then
-		"$program" install "$@" ${v11:+--upgrade-v11} </dev/tty
-	else
-		"$program" install "$@" ${v11:+--upgrade-v11} --non-interactive </dev/null
-	fi
+	"$program" install "$@" ${v11:+--upgrade-v11} --non-interactive </dev/null
 }
 
 if [ -z "$use_app" ]; then
