@@ -2,7 +2,8 @@
 name: Release
 
 # QualityLayer 12. The gates are Pilot Shell's: supply-chain, Trivy, tests,
-# a manual `production` approval and build provenance. What is built is one
+# a manual `production` approval (releases from main only: a dev prerelease goes out
+# without one, through the reviewer-less `beta` environment) and build provenance. What is built is one
 # binary per platform plus its checksum, both installers with their checksums
 # (Pilot Shell 11's updater verifies install.sh.sha256 at the tag), and the QualityLayer
 # App: six packages (a .dmg per Mac, a per-user setup per Windows, an AppImage per Linux),
@@ -268,6 +269,15 @@ jobs:
             echo "should_release=false" >> "$GITHUB_OUTPUT"
             echo "version=" >> "$GITHUB_OUTPUT"
           fi
+
+      # The release's notes are its section of CHANGELOG.md: they go into the GitHub release and the
+      # updater's manifest, and from there into the App and the terminal. A version nobody wrote
+      # notes for does not go out; this stops before any build, naming the file and the heading.
+      - name: The release has notes in CHANGELOG.md
+        if: steps.check.outputs.should_release == 'true'
+        env:
+          VERSION: ${{ steps.check.outputs.version }}
+        run: bash scripts/changelog-section.sh "$VERSION" > /dev/null
 
       # Releases from main wait for the go-live: they need a store of their own, and
       # must never fall back to the beta's.
@@ -549,6 +559,11 @@ jobs:
           cd ..
           bun qualitylayer/scripts/app.ts --latest-json release --version "$VERSION" \
             --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}"
+          # The notes ride in the manifest, so the App's update sheet says what the release says.
+          bash scripts/changelog-section.sh "$VERSION" > "${RUNNER_TEMP:?}/release-notes.md"
+          jq --rawfile notes "${RUNNER_TEMP:?}/release-notes.md" '. + {notes: $notes}' \
+            release/latest.json > "${RUNNER_TEMP:?}/latest.json"
+          mv "${RUNNER_TEMP:?}/latest.json" release/latest.json
           (cd release && sha256sum -c ./*.sha256)
 
       - name: Guard the asset list
@@ -661,12 +676,17 @@ jobs:
     timeout-minutes: 30
     needs: [prepare-release, test, build, windows-release, security-scan, assemble-release]
     if: needs.prepare-release.outputs.should_release == 'true'
-    environment: production
+    # main waits for a reviewer in `production`; a dev prerelease uses `beta`, which has none.
+    environment: ${{ github.ref_name == 'main' && 'production' || 'beta' }}
     steps:
       - name: Display release details for approval
         run: |
           {
-          echo "## Release Approval Required"
+          if [ "$GITHUB_REF_NAME" = main ]; then
+            echo "## Release Approval Required"
+          else
+            echo "## Dev prerelease: no approval needed"
+          fi
           echo ""
           echo "| Current | → | New |"
           echo "|---------|---|-----|"
@@ -676,7 +696,7 @@ jobs:
           echo "- QualityLayer typecheck, lint and tests passed"
           echo "- Six binaries built and checksummed; both Windows releases ran natively"
           echo "- Six App packages built on their own runners, the Mac ones notarized; the asset list guarded"
-          echo "- After approval: site deployed, workflow texts uploaded and probed, then the release is created"
+          echo "- Next: site deployed, workflow texts uploaded and probed, then the release is created"
           } >> "$GITHUB_STEP_SUMMARY"
 
   publish-release:
@@ -837,6 +857,15 @@ jobs:
           name: qualitylayer-release-complete
           path: release
 
+      # The GitHub release says what the updater's manifest says: one section of CHANGELOG.md.
+      - name: The release notes, from the manifest
+        run: |
+          if ! jq -ej '.notes | select(length > 0)' release/latest.json > "${RUNNER_TEMP:?}/release-notes.md"; then
+            echo "::error::latest.json carries no release notes"
+            exit 1
+          fi
+          echo "RELEASE_NOTES_FILE=${RUNNER_TEMP:?}/release-notes.md" >> "$GITHUB_ENV"
+
       - name: Attest build provenance
         uses: actions/attest-build-provenance@43d14bc2b83dec42d39ecae14e916627a18bb661 # v3
         with:
@@ -853,14 +882,6 @@ jobs:
             release/QualityLayer-*.app.tar.gz
             release/QualityLayer-*-setup.exe
             release/QualityLayer-*.AppImage
-
-      - name: Prepend the release to CHANGELOG.md
-        uses: orhun/git-cliff-action@e16f179f0be49ecdfe63753837f20b9531642772 # v4
-        with:
-          config: cliff.toml
-          args: --unreleased --tag v${{ needs.prepare-release.outputs.version }} --prepend CHANGELOG.md
-        env:
-          GITHUB_REPO: ${{ github.repository }}
 
       - name: Create release with semantic-release
         id: semantic-release
@@ -892,7 +913,7 @@ jobs:
           PRE=""
           case "$VERSION" in *-*) PRE="--prerelease" ;; esac
           if ! gh release view "v${VERSION}" >/dev/null 2>&1; then
-            gh release create "v${VERSION}" --title "v${VERSION}" --generate-notes \
+            gh release create "v${VERSION}" --title "v${VERSION}" --notes-file "$RELEASE_NOTES_FILE" \
               --target "${{ github.sha }}" $PRE
           fi
 
@@ -905,6 +926,8 @@ jobs:
             [ "$i" -eq 12 ] && { echo "Release v${VERSION} was not created"; exit 1; }
             sleep 5
           done
+          # Whoever created the release, its body is the changelog's section.
+          gh release edit "v${VERSION}" --notes-file "$RELEASE_NOTES_FILE"
           # Everything the manifest names goes up first.
           find release -type f ! -name latest.json -print0 | xargs -0 gh release upload "v${VERSION}" --clobber
 
