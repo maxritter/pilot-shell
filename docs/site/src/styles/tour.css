@@ -354,6 +354,21 @@
 .sx-nw .sx-cost{gap:6px;padding:10px 12px}
 .sx-nw .sx-row2 > .sx-tag:nth-child(n+4){display:none}
 
+/* Films, under the hero: a poster with a play button, then the video from the media host */
+.sx-films{padding:clamp(8px,1.5cqi,24px) 0 clamp(56px,8cqi,112px)}
+.sx-fgrid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(20px,2.6cqi,32px)}
+.sx-film{min-width:0}
+.sx-fframe{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;border:1px solid var(--ql-border);background:#000}
+.sx-fposter{position:absolute;inset:0;display:block;width:100%;height:100%;padding:0;border:0;background:none;cursor:pointer}
+.sx-fposter:focus-visible{outline:2px solid var(--ql-accent);outline-offset:2px}
+.sx-fimg{display:block;width:100%;height:100%;object-fit:cover}
+.sx-fplay{position:absolute;left:50%;top:50%;display:flex;align-items:center;justify-content:center;width:64px;height:64px;margin:-32px 0 0 -32px;padding-left:4px;border-radius:50%;background:var(--ql-primary);color:var(--ql-text-on-accent);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.sx-fposter:hover .sx-fplay{background:var(--ql-primary-hover)}
+.sx-fvid{position:absolute;inset:0;width:100%;height:100%;background:#000}
+.sx-ftitle{display:flex;align-items:baseline;gap:10px;margin:14px 0 0;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.sx-ftitle span{font:500 13px/1 "Geist Mono",ui-monospace,monospace;color:var(--ql-text-muted)}
+@container (max-width: 760px){.sx-fgrid{grid-template-columns:1fr}}
+
 /* Closing sections */
 .sx-wrap{max-width:1100px;margin:0 auto;padding:0 clamp(16px,4cqi,40px)}
 .sx-h2{margin:0;font-size:clamp(30px,3.8cqi,46px);line-height:1.08;font-weight:600;letter-spacing:-.03em;text-wrap:balance}
