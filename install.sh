@@ -223,6 +223,16 @@ if [ -z "$use_app" ]; then
 fi
 
 apps="$HOME/Applications"
+# A Mac lists its apps in /Applications: the App goes there when this user may write to it (an
+# administrator can, without a password), else to ~/Applications. Tests name another folder.
+system_apps="${QUALITYLAYER_APPLICATIONS:-/Applications}"
+if [ "$os" = "darwin" ] && [ -d "$system_apps" ] && [ -w "$system_apps" ]; then
+	apps="$system_apps"
+fi
+case "$apps" in
+"$HOME"/*) apps_shown="~${apps#"$HOME"}" ;;
+*) apps_shown="$apps" ;;
+esac
 if [ "$os" = "darwin" ]; then
 	package="QualityLayer-${VERSION}-macos-${arch}.dmg"
 else
@@ -250,7 +260,7 @@ if [ "$os" = "darwin" ]; then
 	app_path="$apps/QualityLayer.app"
 	app_cli="$app_path/Contents/MacOS/qualitylayer-cli"
 	app_open="$app_path"
-	say "Installed QualityLayer.app in ~/Applications"
+	say "Installed QualityLayer.app in $apps_shown"
 else
 	mkdir -p "$apps"
 	chmod 755 "$work/package"
@@ -266,6 +276,13 @@ else
 fi
 
 run_install "$app_cli" --app "$app_path"
+
+# One App in one place: a copy an earlier install left in ~/Applications goes once the App in
+# /Applications is the one the command line runs.
+if [ "$os" = "darwin" ] && [ "$apps" != "$HOME/Applications" ] && [ -d "$HOME/Applications/QualityLayer.app" ]; then
+	rm -rf "${HOME:?}/Applications/QualityLayer.app"
+	say "Removed the older copy in ~/Applications"
+fi
 
 # On a terminal the App opens at once, to finish setting up; an unattended update never opens a window.
 if [ -n "$ask" ] && [ -t 1 ]; then

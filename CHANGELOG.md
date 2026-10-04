@@ -15,6 +15,8 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Settings › Workflow: the helper and judge model for each agent, the second opinion (off unless you turn it on), a checkpoint after every slice, and a soft token budget per task.
 - A Cost view in the App shows what a task used per step and per helper, read from the agents' transcripts on your computer. Figures are estimates at list price; a model without a confirmed price shows its tokens only. Passing the budget is said once, and the work goes on.
 - Task folders of the earlier flow (`00-frame.md`, `README.md`, `02-design.md`, `03-outline.md`, `04-build.md`) are no longer read: only tasks with `00-discuss.md` appear and finish.
+- On a Mac the installer puts the App in `/Applications` when you may write there (an administrator can, without a password), else in `~/Applications`, and removes a copy an earlier install left in `~/Applications`.
+- The App's icon has its own light, dark and tinted looks on macOS 26 and later, so the mark stays readable when the Mac shows its icons dark or tinted.
 
 ### Also in QualityLayer 12
 
