@@ -1,7 +1,8 @@
 /**
  * The website's questions and answers. Each answer must hold for the product as it
  * ships; when the product changes, change it here. Plain text only: the home page's
- * structured data reuses these answers.
+ * structured data reuses these answers. Words follow the App's glossary: Needs you, passed,
+ * Checked by agents, Found while checking, Only you can confirm, Questions for you.
  */
 
 export type Faq = { question: string; answer: string };
@@ -11,11 +12,15 @@ const faq = (question: string, answer: string): Faq => ({ question, answer });
 export const FAQS: Faq[] = [
   faq(
     "Does it replace my coding agent?",
-    "No. Claude Code or Codex still writes the code, with the subscription you already have. QualityLayer adds the plan you approve, the tests, the independent check and the App where you review.",
+    "No. Claude Code or Codex still writes the code, with the subscription you already have. QualityLayer adds the plan you approve, the tests, the checks by agents that did not write the code, and the App where you decide.",
+  ),
+  faq(
+    "Can I use it on my own, or only with a team?",
+    "On your own. One developer goes through every step: Discuss, Plan, Implement, Verify and Review. A Team plan adds questions to teammates, Slack messages, and reviewing a change together.",
   ),
   faq(
     "How is this different from plan mode?",
-    "Plan mode gives you a plan in the chat. QualityLayer gives you one plan with diagrams and a mockup to comment on. It builds the plan test first, and an AI that did not write the code checks the result.",
+    "Plan mode gives you a plan in the chat. QualityLayer gives you one plan with diagrams and a mockup to comment on, and shows only what needs you. It builds the plan test first, and agents that did not write the code check the result.",
   ),
   faq(
     "What about small changes and bugs?",
@@ -23,15 +28,19 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "What does it cost to run?",
-    "Your agents’ own usage, on your subscription. The App shows tokens and the estimated cost of each step.",
+    "Your agents’ own usage, on your subscription. The App shows the estimated cost of each step.",
   ),
   faq(
     "Does my code leave my computer?",
-    "No. Plans are files in your repository, and the App runs on your computer. Sharing with your team sends the plan and its progress, encrypted on your machine, never your code.",
+    "No. Plans are files in your repository, and the App runs on your computer. Sharing with your team sends the plan and its progress, encrypted on your machine, never your code. The one way it can leave is a screenshot you attach to a feedback report, if the screenshot shows it.",
+  ),
+  faq(
+    "What does Send feedback share?",
+    "A report goes to QualityLayer as a private issue, with your text and the screenshots you add. Diagnostics are on by default, and you see them before you send. They are the App and command-line versions, your system and its architecture, the versions of Claude Code and Codex, the kind of page you were on, your licence, and how many errors of which kinds happened in the last hour. Never your code, plan or document text, task titles, repository or branch names, or file paths. Screenshots can show code or plans.",
   ),
   faq(
     "Which agents work with it?",
-    "Claude Code and Codex, in the terminal, their desktop apps or your IDE. Teammates can also answer questions with Grok Bot.",
+    "Claude Code and Codex, in the terminal, their desktop apps or your IDE. For another coding agent, the App copies a prompt you can hand it.",
   ),
   faq(
     "I use Pilot Shell today. What happens?",
@@ -50,7 +59,7 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "Which agents does it work with?",
-    "Claude Code and Codex, in the terminal, their desktop apps or your IDE; the App sets both up for you. Teammates can also answer questions with Grok Bot. The second opinion from another vendor’s AI, which runs by itself on risky plans, needs Claude Code and Codex.",
+    "Claude Code and Codex, in the terminal, their desktop apps or your IDE; the App sets both up for you. For another coding agent, the App copies a prompt you can hand it. A second opinion from the other coding agent, which runs by itself on risky plans, needs Claude Code and Codex.",
   ),
   faq(
     "Who needs a seat?",
@@ -58,7 +67,7 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "Does my code leave my computer?",
-    "Plans are files in your repository, and the QualityLayer App runs on your computer. Your AI agent keeps its own provider and data settings. When you share a task, its plan is encrypted on your machine first, so we store it but can’t read it. We see who shared it, which task, when and its stage.",
+    "Plans are files in your repository, and the QualityLayer App runs on your computer. Your AI agent keeps its own provider and data settings. When you share a task, its plan is encrypted on your machine first, so we store it but can’t read it. We see who shared it, which task, when and its step. A screenshot you attach to a feedback report can show code, so attach only what you are happy to send.",
   ),
   faq(
     "What does Enterprise include?",

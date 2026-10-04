@@ -15,6 +15,32 @@ describe("FAQ", () => {
     const home = FAQS.map((faq) => faq.question);
     expect(new Set(home).size).toBe(home.length);
   });
+
+  it("answers for one developer and for a team", () => {
+    const answers = FAQS.map((faq) => `${faq.question} ${faq.answer}`).join(" ");
+    expect(answers).toMatch(/on your own|alone/i);
+    expect(answers).toMatch(/team/i);
+  });
+
+  it("says what a feedback report sends, as the plan lists it, and what it never sends", () => {
+    const answer = FAQS.find((faq) => /feedback/i.test(faq.question))?.answer ?? "";
+    expect(answer).toMatch(/private issue/i);
+    for (const sent of [/command-line versions/, /your system and its architecture/, /versions of Claude Code and Codex/, /the kind of page you were on/, /your licence/, /how many errors of which kinds happened in the last hour/]) expect(answer).toMatch(sent);
+    expect(answer).toMatch(/Never your code, plan or document text, task titles, repository or branch names, or file paths\./);
+    expect(answer).toMatch(/Screenshots can show code or plans\./);
+  });
+
+  it("says a screenshot in a report is the one way code can leave the computer", () => {
+    for (const faq of [...FAQS, ...PRICING_FAQS].filter((f) => f.question === "Does my code leave my computer?")) expect(faq.answer).toMatch(/screenshot you attach to a feedback report/i);
+  });
+
+  it("calls the second opinion one thing", () => {
+    for (const faq of [...FAQS, ...PRICING_FAQS]) expect(faq.answer).not.toMatch(/vendor/i);
+  });
+
+  it("names only the agents the App sets up", () => {
+    for (const faq of [...FAQS, ...PRICING_FAQS]) expect(faq.answer).not.toMatch(/grok/i);
+  });
 });
 
 describe("product facts", () => {

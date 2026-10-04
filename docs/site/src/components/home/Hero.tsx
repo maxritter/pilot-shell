@@ -13,7 +13,7 @@ const Hero = () => {
         {download.direct ? <a className="sx-btn sx-btn-p" href={download.href}>{download.label}</a> : <Link className="sx-btn sx-btn-p" to={download.href}>{download.label}</Link>}
         <a className="sx-btn sx-btn-s" href="#tour">See how it works</a>
       </div>
-      <p className="sx-meta">For Claude Code and Codex · <Link to="/download">macOS, Windows and Linux</Link> · 7-day trial</p>
+      <p className="sx-meta">For one developer or a whole team · Claude Code and Codex · <Link to="/download">macOS, Windows and Linux</Link> · 7-day trial</p>
     </section>
   );
 };

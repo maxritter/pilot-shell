@@ -118,7 +118,7 @@ export const COMPARE: CompareGroup[] = [
       row("Choose the models of the subagents that build and check", true, true),
       row("Every task test first, every test run recorded", true, true),
       row("Slices that don’t overlap build side by side", true, true),
-      row("Tokens and estimated cost for every step", true, true, "Estimated at list price"),
+      row("The cost of every step", true, true, "Estimated at list price"),
     ],
   },
   {
@@ -126,15 +126,15 @@ export const COMPARE: CompareGroup[] = [
     hue: "verify",
     rows: [
       row("Polish and security review before the final check", true, true, "Security runs when the change touches outside input, sign-in or secrets"),
-      row("An independent check against what you asked for", true, true, "By an AI that did not write the code"),
-      row("A second opinion from another vendor’s AI", true, true, "Runs by itself on risky plans; needs Claude Code and Codex"),
+      row("Checked by agents that did not write the code", true, true, "Every check against what you asked for"),
+      row("A second opinion from the other coding agent", true, true, "Runs by itself on risky plans; needs Claude Code and Codex"),
     ],
   },
   {
     name: "Review",
     hue: "review",
     rows: [
-      row("Approve the finished change, with its evidence", true, true),
+      row("Approve the finished change, with its evidence", true, true, "Only you can confirm shows what no agent may check"),
       row("Review finished changes as a team", false, true, "The code itself is reviewed in your pull request"),
     ],
   },
@@ -153,15 +153,15 @@ export const COMPARE: CompareGroup[] = [
     rows: [
       row("Share plans with your team", false, true),
       row("Team feedback goes straight to your agent", false, true),
-      row("Ask a teammate about any part of a plan", false, true, "They get a Slack message that opens the question in their App"),
-      row("Teammates answer with their own agent", false, true, "Claude Code, Codex or Grok Bot drafts; nothing is sent without their yes"),
+      row("Ask a teammate about any part of a plan", false, true, "They get a Slack message that opens the question under Questions for you"),
+      row("Teammates answer with their own agent", false, true, "Their agent drafts the answer; nothing is sent without their yes"),
       row("See every shared task and how far it is", false, true),
       row("Invite people outside your team to comment", false, true),
       row(
         "Plans, comments and links are encrypted on your machine",
         false,
         true,
-        "We can’t read them. We see who shared, who was asked, which task, when and its stage. The guest page’s code comes from us. If you connect Slack, a nudge’s task title and question pass through our server to Slack, and wait a day at most if Slack is busy.",
+        "We can’t read them. We see who shared, who was asked, which task, when and its step. The guest page’s code comes from us. If you connect Slack, the task title and question pass through our server to Slack, and wait a day at most if Slack is busy.",
       ),
       row("Manage seats and billing in one place", false, true),
     ],

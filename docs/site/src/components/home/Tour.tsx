@@ -1,5 +1,6 @@
+import { BookOpen, MessageSquare, Settings, Sun } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { CHAPTERS, nextBar, PARTS, partOf, STAGES, type Who } from "@/lib/tour";
+import { CHAPTERS, PARTS, partOf, sidebarOf, stepLine, tabsOf, type Mark, type Who } from "@/lib/tour";
 import TourScenes from "./TourScenes";
 
 /** The header's height; the window and the step bar pin below it. */
@@ -9,7 +10,8 @@ const WIDE = 1080;
 const PHONE = 640;
 
 const dot = (who: Who) => (who === "you" ? "sx-you" : who === "ok" ? "sx-ok" : "sx-ag");
-const NAV: [string, number][] = [["Tasks", 0], ["Team", 2], ["Settings", 0]];
+const tabDot = (mark: Mark) => (mark === "done" ? "sx-ok" : mark === "you" ? "sx-you" : mark === "ag" ? "sx-ag" : "sx-todo");
+const SETTINGS_TABS = ["Workflow", "Licence", "Team", "About"];
 
 /** `inline`: below WIDE every chapter carries its own window; above it one window stays pinned beside the chapters. */
 type Layout = { lw: number; lh: number; sc: number; side: boolean; inline: boolean };
@@ -19,9 +21,12 @@ const finished = () => CHAPTERS.map((c) => c.steps);
 
 type WinProps = { i: number; step: number; tries: number; onRetry: () => void; layout: Layout; only?: boolean };
 
-/** The App window showing chapter `i` at moment `step`: sidebar, header with the five steps, the scene, the next-step bar. */
+/** The App window showing chapter `i` at moment `step`: sidebar, header with the five steps, the step line, the scene. */
 function AppWindow({ i, step, tries, onRetry, layout, only = false }: WinProps) {
-  const c = CHAPTERS[i], w = c.win, nx = nextBar(i, step);
+  const c = CHAPTERS[i], w = c.win;
+  const task = w.view === "task";
+  const line = task ? stepLine(i, step) : null;
+  const tabs = tabsOf(i, step);
   const { lw, lh, sc, side } = layout;
   return (
     <div role="region" aria-label={`The QualityLayer App: ${c.title}`} className="sx-win" style={{ width: Math.round(lw * sc) + 2 }}>
@@ -32,41 +37,66 @@ function AppWindow({ i, step, tries, onRetry, layout, only = false }: WinProps) 
           {side && (
             <aside className="sx-side">
               <p className="sx-sbrand"><span aria-hidden="true" className="sx-mark" />QualityLayer</p>
-              {NAV.map(([label, badge], k) => (
-                <span key={label} className={`sx-navi${k === w.nav ? " on" : ""}`}>{label}{badge > 0 && <b>{badge}</b>}</span>
-              ))}
-              <p className="sx-sg">{w.head}</p>
-              {w.side.map((t) => (
-                <div key={t.name} className={`sx-ti${t.on ? " on" : ""}`}>
-                  <span aria-hidden="true" className={dot(t.who)} />
-                  <span className="sx-tin"><b>{t.name}</b><small>{t.sub}</small></span>
+              {w.switch && (
+                <div className="sx-sw"><span className={w.switch === "personal" ? "on" : ""}>Personal</span><span className={w.switch === "team" ? "on" : ""}>Team</span></div>
+              )}
+              <span className="sx-find">{w.switch === "team" ? "Search the team’s tasks" : "Search or jump to a task"}<kbd>⌘K</kbd></span>
+              {sidebarOf(i, step).map((g) => (
+                <div key={g.label} className="sx-grp">
+                  <p className={`sx-sg${g.amber && g.count > 0 ? " amb" : ""}`}><span>{g.label}</span><b>{g.count}</b></p>
+                  {g.items.map((t) => (
+                    <div key={t.name} className={`sx-ti${t.on ? " on" : ""}`}>
+                      <span aria-hidden="true" className={dot(t.who)} />
+                      <span className="sx-tin"><b>{t.name}</b><small>{t.sub}</small></span>
+                    </div>
+                  ))}
                 </div>
               ))}
+              <div className="sx-sfoot">
+                {c.id === "agents" && <span className="sx-upd"><span aria-hidden="true" className="sx-udot" /><b>Update ready</b><small>beta.14</small></span>}
+                <div className="sx-me"><span className="sx-avm">{w.foot[0].split(" ").map((n) => n[0]).join("")}</span><span className="sx-tin"><b>{w.foot[0]}</b><small>{w.foot[1]}</small></span></div>
+                <div className="sx-icons">
+                  <span className={`sx-ib${w.view === "settings" ? " on" : ""}`}><Settings size={15} /></span>
+                  <span className="sx-ib"><BookOpen size={15} /></span>
+                  <span className="sx-ib"><Sun size={15} /></span>
+                  <span className="sx-fb"><MessageSquare size={14} />Feedback</span>
+                </div>
+              </div>
             </aside>
           )}
           <div className="sx-main">
             <div className="sx-mh">
               <div style={{ minWidth: 0 }}>
-                <p className="sx-mt">{w.doc}</p>
-                {w.stage >= 0 && (
-                  <ol className="sx-stg" aria-label="Steps of this task">
-                    {STAGES.map((label, k) => (
-                      <li key={label} className={`sx-sp${k < w.stage ? " done" : k === w.stage ? ` cur${w.chip[0] === "ag" ? " ag" : ""}` : ""}`}>
-                        {k < w.stage ? "✓ " : ""}{label}
-                      </li>
-                    ))}
-                  </ol>
-                )}
+                <p className="sx-mt">{w.doc}{task && <span className="sx-chips"><span>retry-webhooks</span><span>Claude Code</span><span>main</span></span>}</p>
+                {w.sub && <p className="sx-sub">{w.sub}</p>}
               </div>
-              <span className={`sx-chip ${w.chip[0]}`}><span aria-hidden="true" className={dot(w.chip[0])} />{w.chip[1]}</span>
+              {task && <span className="sx-tools"><span>Cost · {w.cost}</span><span>Share</span><span>More</span></span>}
             </div>
+            {task && (
+              <ol className="sx-tabs" aria-label="Steps of this task">
+                {tabs.map((t, k) => (
+                  <li key={t.label} className={`sx-tab${t.mark === "you" || t.mark === "ag" ? " cur" : ""}`}>
+                    <span aria-hidden="true" className={tabDot(t.mark)} />{t.label}{t.count ? <b className={`sx-cnt${t.mark === "ag" ? " ag" : ""}`}>{t.count}</b> : null}
+                    {k === 1 && <i aria-hidden="true" className={`sx-appr${t.lit ? " lit" : ""}`} />}
+                  </li>
+                ))}
+              </ol>
+            )}
+            {w.view === "settings" && (
+              <ol className="sx-tabs" aria-label="Settings">
+                {SETTINGS_TABS.map((t, k) => <li key={t} className={`sx-tab${k === 0 ? " cur" : ""}`}>{t}</li>)}
+              </ol>
+            )}
+            {line && (
+              <div className={`sx-line ${line.who}`}>
+                <span aria-hidden="true" className={dot(line.who)} />
+                <span className="sx-lt"><b>{line.head}</b> {line.text}{line.code && <> <code>{line.code}</code></>}</span>
+                {line.seg && <span className="sx-seg2"><span className="on">{line.seg[0]}</span><span>{line.seg[1]}</span></span>}
+                {line.buttons.map(([label, cls]) => <span key={label} className={`sx-fake${cls ? ` ${cls}` : ""}`}>{label}</span>)}
+              </div>
+            )}
             <div className="sx-body">
               <TourScenes ch={i} step={step} tries={tries} onRetry={onRetry} only={only} />
-            </div>
-            <div className={`sx-next${nx.who === "you" ? " you" : ""}`}>
-              <span aria-hidden="true" className={dot(nx.who)} />
-              <span className="sx-nxt">{nx.text}{nx.code && <> <code>{nx.code}</code></>}</span>
-              {nx.buttons.map(([label, cls]) => <span key={label} className={`sx-fake${cls ? ` ${cls}` : ""}`}>{label}</span>)}
             </div>
           </div>
         </div>
@@ -122,7 +152,7 @@ export default function Tour() {
     let next: Layout;
     if (rw >= WIDE) next = { lw: 940, lh: 600, side: true, inline: false, sc: Math.min(stage.clientWidth / 940, (vh - 96 - HEADER) / 600) };
     else if (rw > PHONE) next = { lw: 940, lh: 600, side: true, inline: true, sc: Math.min(chs.clientWidth / 940, (vh * 0.62) / 600) };
-    else next = { lw: 400, lh: 440, side: false, inline: true, sc: Math.min(chs.clientWidth / 400, (vh * 0.62) / 440) };
+    else next = { lw: 400, lh: 540, side: false, inline: true, sc: Math.min(chs.clientWidth / 400, (vh * 0.62) / 540) };
     next.sc = Math.max(0.3, Math.round(next.sc * 1000) / 1000);
     const cur = layoutRef.current;
     if (cur.lw !== next.lw || cur.lh !== next.lh || cur.sc !== next.sc || cur.side !== next.side || cur.inline !== next.inline) {

@@ -12,7 +12,7 @@ function Install() {
   return (
     <section id="install" className="sx-end" aria-labelledby="install-h">
       <span aria-hidden="true" className="sx-mark" />
-      <h2 id="install-h" className="sx-h2" style={{ margin: "24px auto 0", maxWidth: "21ch" }}>Start with your next change. Bring your team when it’s ready.</h2>
+      <h2 id="install-h" className="sx-h2" style={{ margin: "24px auto 0", maxWidth: "21ch" }}>Start with your next change, on your own or with your team.</h2>
       <p className="sx-lede" style={{ marginTop: 16 }}>The App sets up QualityLayer for Claude Code and Codex on first start, no terminal needed.</p>
       <div className="sx-dls">
         {download.direct ? <a className="sx-btn sx-btn-p" href={download.href}>{download.label}</a> : <Link className="sx-btn sx-btn-p" to={download.href}>{download.label}</Link>}
