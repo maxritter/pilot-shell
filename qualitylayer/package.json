@@ -18,6 +18,7 @@
     "build": "bun run scripts/build.ts",
     "app:build": "bun run scripts/app.ts",
     "app:dev": "bun run scripts/app.ts --run",
+    "app:icon": "bun run scripts/app-icon.ts",
     "check:cockpit": "bun scripts/check-cockpit.ts --build",
     "check:overflow": "bun scripts/check-overflow.ts",
     "dev:skill": "bun run scripts/dev-skill.ts",
