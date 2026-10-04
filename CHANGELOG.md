@@ -14,7 +14,7 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - No separate lane for small changes and no roles: a small change takes the same five steps, with fewer helpers. The per-step switches, the automatic approval of early gates and the role question are gone.
 - Settings › Workflow: the helper and judge model for each agent, the second opinion (off unless you turn it on), a checkpoint after every slice, and a soft token budget per task.
 - A Cost view in the App shows what a task used per step and per helper, read from the agents' transcripts on your computer. Figures are estimates at list price; a model without a confirmed price shows its tokens only. Passing the budget is said once, and the work goes on.
-- Tasks planned with the earlier flow keep their documents and finish from Verify or Review.
+- Task folders of the earlier flow (`00-frame.md`, `README.md`, `02-design.md`, `03-outline.md`, `04-build.md`) are no longer read: only tasks with `00-discuss.md` appear and finish.
 
 ### Also in QualityLayer 12
 
