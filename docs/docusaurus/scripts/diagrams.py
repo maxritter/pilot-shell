@@ -711,8 +711,8 @@ def band_ill(c: Theme) -> str:
 
 
 def cost_ill(c: Theme) -> str:
-    W, H = 1000, 330
-    b = [card(c, 0, 0, 600, 326)]
+    W, H = 1000, 290
+    b = [card(c, 0, 0, 600, 286)]
     b.append(T(18, 30, 'Cost of this task', 15, 'text', 650, c=c))
     b.append(T(582, 30, 'estimated, list price', 12, 'dim', 500, 'end', c=c))
     steps = [('Discuss', 0.3, '$1.40', 'violet'), ('Plan', 0.5, '$2.30', 'amber'), ('Implement', 1.0, '$3.10', 'blue'),
@@ -725,28 +725,17 @@ def cost_ill(c: Theme) -> str:
         b.append(T(120 + w, y + 17, f'{m:.1f}M tokens · {usd}', 12, 'muted', c=c))
     b.append(f'<line x1="18" y1="240" x2="582" y2="240" stroke="{c["cardline"]}"/>')
     b.append(T(18, 266, 'Total 2.5M tokens · about $9.30', 13, 'text', 650, c=c))
-    bx, bw = 18, 564
-    edge = bx + bw * 2.0 / 2.5
-    b.append(f'<rect x="{bx}" y="282" width="{bw}" height="14" rx="4" fill="{c["line"]}"/>')
-    b.append(f'<rect x="{bx}" y="282" width="{edge - bx}" height="14" rx="4" fill="{c["blue"]}" fill-opacity="0.75"/>')
-    b.append(f'<rect x="{edge}" y="282" width="{bx + bw - edge}" height="14" rx="4" fill="{c["amberl"]}"/>')
-    b.append(f'<line x1="{edge}" y1="276" x2="{edge}" y2="304" stroke="{c["amber"]}" stroke-width="2" stroke-dasharray="3 3"/>')
-    b.append(T(edge, 318, 'Your budget: 2.0M', 11.5, 'amber', 600, 'middle', c=c))
-    b.append(card(c, 620, 0, 380, 220))
+    b.append(card(c, 620, 0, 380, 286))
     b.append(T(638, 30, 'Per helper', 15, 'text', 650, c=c))
     helpers = [('Slice helper 1', 'Sonnet 5.5', '0.3M'), ('Slice helper 2', 'Sonnet 5.5', '0.2M'),
                ('Checkpoint', 'Sonnet 5.5', '0.1M'), ('Polish', 'Sonnet 5.5', '0.2M'), ('Judge', 'Opus 5.5', '0.3M')]
     for i, (n, model, tok) in enumerate(helpers):
-        y = 48 + i * 33
+        y = 48 + i * 44
         b.append(f'<line x1="638" y1="{y}" x2="982" y2="{y}" stroke="{c["cardline"]}"/>')
-        b.append(T(638, y + 22, n, 13, 'text', 500, c=c))
-        b.append(T(800, y + 22, model, 12, 'muted', c=c))
-        b.append(T(982, y + 22, tok, 12, 'text', 600, 'end', mono=True, c=c))
-    b.append(card(c, 620, 236, 380, 90, stroke='amber', fill='amberf', sw=1.5))
-    b.append(T(638, 266, 'Past your budget of 2.0M tokens', 14, 'text', 650, c=c))
-    b.append(T(638, 288, 'Your agent tells you once,', 12.5, 'muted', c=c))
-    b.append(T(638, 306, 'then the task goes on.', 12.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'The cost view: tokens and estimated cost at list price for each step and each helper, with a soft warning when a task passes its token budget')
+        b.append(T(638, y + 27, n, 13, 'text', 500, c=c))
+        b.append(T(800, y + 27, model, 12, 'muted', c=c))
+        b.append(T(982, y + 27, tok, 12, 'text', 600, 'end', mono=True, c=c))
+    return svg(W, H, ''.join(b), 'The cost view: tokens and estimated cost at list price for each step and each helper')
 
 
 # ---------------------------------------------------------------- team
@@ -939,18 +928,18 @@ def move_ill(c: Theme) -> str:
     b = []
     cols = [('Carried over', 'ok', ['Your licence', 'Your plans in docs/plans', 'Your own settings and files']),
             ('Removed', 'cardline', ['Pilot Shell’s own files', 'Its agent settings entries', 'Its shell profile block']),
-            ('You choose', 'amber', ['Tools Pilot Shell installed', 'Pilot Shell memories', 'In the terminal or the App'])]
+            ('Stays', 'ok', ['Tools Pilot Shell installed', 'Pilot Shell memories', 'Ask your agent to remove any'])]
     for i, (t, col, items) in enumerate(cols):
         x = i * 340
-        b.append(card(c, x, 0, 320, 186, stroke=col, fill='amberf' if col == 'amber' else 'card', sw=1 if col == 'cardline' else 1.6))
+        b.append(card(c, x, 0, 320, 186, stroke=col, fill='card', sw=1 if col == 'cardline' else 1.6))
         b.append(T(x + 18, 32, t, 15, 'text', 650, c=c))
         for k, s in enumerate(items):
             y = 64 + k * 38
             last = i == 2 and k == 2
             if not last:
-                b.append(mark(c, x + 26, y + 2) if i == 0 else f'<circle cx="{x + 24}" cy="{y + 1}" r="3.5" fill="{c[col if col != "cardline" else "dim"]}"/>')
+                b.append(mark(c, x + 26, y + 2) if col == 'ok' else f'<circle cx="{x + 24}" cy="{y + 1}" r="3.5" fill="{c[col if col != "cardline" else "dim"]}"/>')
             b.append(T(x + (18 if last else 40), y + 6, s, 13, 'dim' if last else 'text', 500, c=c))
-    return svg(W, H, ''.join(b), 'Moving from Pilot Shell 11: your licence, plans and own files carry over; Pilot Shell’s own parts are removed; you choose about the tools it installed and its memories')
+    return svg(W, H, ''.join(b), 'Moving from Pilot Shell 11: your licence, plans and own files carry over; Pilot Shell’s own parts are removed; the tools it installed and its memories stay')
 
 
 # ---------------------------------------------------------------- reference
@@ -959,8 +948,9 @@ def settings_ill(c: Theme) -> str:
     b = [card(c, 0, 0, 600, 326)]
     b.append(T(20, 30, 'Settings › Workflow', 15, 'text', 650, c=c))
     b.append(T(20, 50, 'For every project on this computer', 12.5, 'muted', c=c))
-    rows = [('Helper model', 'Sonnet 5.5'), ('Judge model', 'Opus 5.5'), ('Second opinion · every task', False),
-            ('Checkpoint after every slice', False), ('Token budget per task', 'No budget')]
+    rows = [('Workers in Claude Code', 'Sonnet 5.5'), ('Judge in Claude Code', 'Opus 5.5'),
+            ('Codex reviews Claude Code’s work', 'GPT-6.1 Sol'),
+            ('Claude Code reviews Codex’s work', 'Sonnet 5.5'), ('Notifications', True)]
     for i, (what, v) in enumerate(rows):
         y = 66 + i * 50
         b.append(f'<line x1="20" y1="{y}" x2="580" y2="{y}" stroke="{c["cardline"]}"/>')
@@ -970,8 +960,7 @@ def settings_ill(c: Theme) -> str:
         else:
             b.append(f'<rect x="410" y="{y + 11}" width="170" height="30" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
             b.append(T(422, y + 31, v, 12.5, 'text', 500, c=c))
-            if v != 'No budget':
-                b.append(f'<path d="M562 {y + 23} l4 4 l4 -4" fill="none" stroke="{c["muted"]}" stroke-width="1.5"/>')
+            b.append(f'<path d="M562 {y + 23} l4 4 l4 -4" fill="none" stroke="{c["muted"]}" stroke-width="1.5"/>')
     b.append(card(c, 620, 0, 380, 326))
     b.append(T(640, 30, 'For one task', 15, 'text', 650, c=c))
     b.append(T(640, 50, 'Say it in words; your agent records it', 12.5, 'muted', c=c))
@@ -982,7 +971,7 @@ def settings_ill(c: Theme) -> str:
         b.append(pill(c, x, y, ch, 'text', 160, mono=True))
     b.append(T(640, 230, '“Skip security” is recorded as', 12.5, 'muted', c=c))
     b.append(T(640, 250, '-security on this task.', 12.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'Settings, Workflow: helper and judge model, second opinion on every task, checkpoint after every slice, token budget per task; and the overrides for one task, said in words')
+    return svg(W, H, ''.join(b), 'Settings, Workflow: the Subagents and Second opinion cards and Notifications; and the overrides for one task, said in words')
 
 
 def files_ill(c: Theme) -> str:

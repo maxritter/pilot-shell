@@ -115,10 +115,10 @@ export const COMPARE: CompareGroup[] = [
     name: "Build",
     hue: "build",
     rows: [
-      row("Choose the models that build and check", true, true),
+      row("Choose the models of the subagents that build and check", true, true),
       row("Every task test first, every test run recorded", true, true),
       row("Slices that don’t overlap build side by side", true, true),
-      row("Tokens and estimated cost for every step", true, true, "With a warning when a task passes your budget"),
+      row("Tokens and estimated cost for every step", true, true, "Estimated at list price"),
     ],
   },
   {
@@ -127,7 +127,7 @@ export const COMPARE: CompareGroup[] = [
     rows: [
       row("Polish and security review before the final check", true, true, "Security runs when the change touches outside input, sign-in or secrets"),
       row("An independent check against what you asked for", true, true, "By an AI that did not write the code"),
-      row("A second opinion from another vendor’s AI", true, true, "Off by default; needs Claude Code and Codex"),
+      row("A second opinion from another vendor’s AI", true, true, "Runs by itself on risky plans; needs Claude Code and Codex"),
     ],
   },
   {

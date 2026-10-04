@@ -25,11 +25,11 @@ Each document has a short version **For you** and a detailed one **For the agent
 
 Closing the window keeps the App in the menu bar or the tray until you choose **Quit**. Your agents keep working either way: with the App closed, quit or never opened, Claude Code and Codex carry a task on. Open it again and it shows exactly where each task stands.
 
-Links your agent prints open the App at the right place. **Settings › Links** can send them to your browser instead.
+Links your agent prints open the App at the right place. Without the App installed, they open the page in your browser.
 
 ## Notifications
 
-The App tells you when the Plan or the finished change waits for you and when a teammate asks you something, also while its window is closed. Turn notifications on in the App once; your system asks for permission. Everything also collects under the bell.
+The App tells you when the Plan or the finished change waits for you and when a teammate asks you something, also while its window is closed. A finished or stopped task is announced too, and everything collects under the bell. If none arrive, allow QualityLayer in your system's notification settings; you can turn them off in [Settings](reference/settings.md#notifications).
 
 ## Approve in the App or in the chat
 
@@ -41,10 +41,10 @@ The App tells you when the Plan or the finished change waits for you and when a 
 
 ## What it costs
 
-![The cost view: tokens and estimated cost at list price for each step and each helper, with a soft warning when a task passes its token budget](pathname:///img/diagrams/cost-light.svg)
-![The cost view: tokens and estimated cost at list price for each step and each helper, with a soft warning when a task passes its token budget](pathname:///img/diagrams/cost-dark.svg)
+![The cost view: tokens and estimated cost at list price for each step and each helper](pathname:///img/diagrams/cost-light.svg)
+![The cost view: tokens and estimated cost at list price for each step and each helper](pathname:///img/diagrams/cost-dark.svg)
 
-The **Cost** button in a task's header opens the cost panel: the tokens and the estimated cost per step, per helper and in total, marked "estimated, list price". Where no list price is published yet, as for some Codex models, it shows the tokens and "price unknown". With a [token budget](reference/settings.md#token-budget) set, a task that passes it gets a line in the next-step bar and one notification. Your agent tells you once in its chat and goes on. The App reads these numbers from your agents' own logs on your computer; nothing is sent anywhere.
+The **Cost** button in a task's header opens the cost panel: the tokens and the estimated cost per step, per helper and in total, marked "estimated, list price". Where no list price is published yet, as for some Codex models, it shows the tokens and "price unknown". The App reads these numbers from your agents' own logs on your computer; nothing is sent anywhere.
 
 ## In Claude Code
 

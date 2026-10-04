@@ -23,7 +23,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "What does it cost to run?",
-    "Your agents’ own usage, on your subscription. The App shows tokens and the estimated cost of each step, and tells you once when a task passes your budget.",
+    "Your agents’ own usage, on your subscription. The App shows tokens and the estimated cost of each step.",
   ),
   faq(
     "Does my code leave my computer?",
@@ -35,7 +35,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "I use Pilot Shell today. What happens?",
-    "The App replaces Pilot Shell on first start, and your licence carries over. It asks which tools Pilot Shell installed you want removed, and whether to keep its memories.",
+    "The App replaces Pilot Shell on first start, and your licence carries over. It asks nothing: the tools Pilot Shell installed and its memories stay, and your agent can remove what you no longer need.",
   ),
 ];
 
@@ -50,7 +50,7 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "Which agents does it work with?",
-    "Claude Code and Codex, in the terminal, their desktop apps or your IDE; the App sets both up for you. Teammates can also answer questions with Grok Bot. The optional second opinion from another vendor’s AI needs Claude Code and Codex.",
+    "Claude Code and Codex, in the terminal, their desktop apps or your IDE; the App sets both up for you. Teammates can also answer questions with Grok Bot. The second opinion from another vendor’s AI, which runs by itself on risky plans, needs Claude Code and Codex.",
   ),
   faq(
     "Who needs a seat?",
@@ -66,6 +66,6 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "I use Pilot Shell 11. What happens?",
-    "The App replaces Pilot Shell on first start, and Pilot Shell’s own updater moves you over too. It asks which tools Pilot Shell installed you want removed, and whether to keep its memories. Your plans carry over and a paid licence keeps working; without one, your 7-day trial starts.",
+    "The App replaces Pilot Shell on first start, and Pilot Shell’s own updater moves you over too. It asks nothing: the tools Pilot Shell installed and its memories stay, and your agent can remove what you no longer need. Your plans carry over and a paid licence keeps working; without one, your 7-day trial starts.",
   ),
 ];

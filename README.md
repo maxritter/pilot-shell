@@ -128,7 +128,7 @@ Plans in your repositories stay. Earlier releases are on the [releases page](htt
 <details>
 <summary><b>Coming from Pilot Shell 11</b></summary>
 
-Pilot Shell's updater moves you over, and so does opening the App or running the terminal installer. In the App or a terminal, it asks which of the tools Pilot Shell installed you want removed, and whether to keep its memories; the updater asks nothing and keeps both. Your plans carry over, and a paid licence keeps working; without one, your 7-day trial starts.
+Pilot Shell's updater moves you over, and so does opening the App or running the terminal installer. The move asks nothing: Pilot Shell's own hooks, rules and settings go; the tools it installed and its memories stay, and the report says how to remove them. Your plans carry over, and a paid licence keeps working; without one, your 7-day trial starts.
 
 </details>
 
@@ -193,18 +193,16 @@ You plan with your best model in your own session; Opus 5.5 is recommended for D
   <img src="docs/docusaurus/static/img/diagrams/agents-light.svg" alt="You and your agent write the plan; helper agents build and polish from it; an AI that did not write the code checks it; another vendor's AI can give a second opinion" width="1000">
 </picture>
 
-Settings has five choices:
+Settings keeps it short:
 
-- the helper model and the judge model
-- a second opinion from another vendor's AI, off by default
-- whether checkpoints run after every slice
-- a token budget per task
+- the model of the workers and of the judge, or no subagents at all
+- the model of the second opinion, which another vendor's AI gives by itself on risky plans
 
-The App shows the tokens and the estimated cost of every step and helper, and tells you once when a task passes your budget.
+The App shows the tokens and the estimated cost of every step and helper.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/cost-dark.svg">
-  <img src="docs/docusaurus/static/img/diagrams/cost-light.svg" alt="Tokens per step for one task, estimated at list prices, against the task's budget" width="1000">
+  <img src="docs/docusaurus/static/img/diagrams/cost-light.svg" alt="Tokens per step for one task, estimated at list prices" width="1000">
 </picture>
 
 ---

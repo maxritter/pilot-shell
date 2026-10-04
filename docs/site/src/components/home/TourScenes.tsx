@@ -234,11 +234,9 @@ export default function TourScenes({ ch, step, tries, onRetry, only = false }: {
       <div className={scene(8)} aria-hidden={ch !== 8}>
         <div className="sx-two">
           <div className={`sx-set ${ins(1)}`}>
-            <div className="sx-setr"><span>Helper model<small>Builds, polishes, fixes</small></span><span className="sx-sel">Sonnet 5.5</span></div>
-            <div className="sx-setr"><span>Judge model<small>Checks the finished change</small></span><span className="sx-sel">Opus 5.5</span></div>
-            <div className="sx-setr"><span>Second opinion<small>Every task: another vendor’s AI reviews it</small></span><span className="sx-tog" /></div>
-            <div className="sx-setr sx-hide"><span>Checkpoint after every slice<small>Off: only after risky slices</small></span><span className="sx-tog" /></div>
-            <div className="sx-setr sx-hide"><span>Token budget per task</span><span className="sx-sel">3M tokens</span></div>
+            <div className="sx-setr"><span>Workers in Claude Code<small>Research, building, fixes, polish</small></span><span className="sx-sel">Sonnet 5.5</span></div>
+            <div className="sx-setr"><span>Judge in Claude Code<small>Decides pass or fail on the finished change</small></span><span className="sx-sel">Opus 5.5</span></div>
+            <div className="sx-setr"><span>Codex reviews Claude Code’s work<small>A second opinion, by itself on risky plans</small></span><span className="sx-sel">GPT-6.1 Sol</span></div>
           </div>
           <div className={`sx-cost ${ins(2)}`}>
             <p className="sx-k">This task · tokens per step</p>
@@ -249,7 +247,7 @@ export default function TourScenes({ ch, step, tries, onRetry, only = false }: {
                 <span>{v}K</span>
               </div>
             ))}
-            <div className="sx-budget"><span>Estimated at list prices</span><span><b>1.9M</b> of 3M</span></div>
+            <div className="sx-budget"><span>Estimated at list prices</span><span><b>1.9M</b> tokens</span></div>
           </div>
         </div>
         <div className={`sx-helpers sx-hide ${ins(3)}`}>
