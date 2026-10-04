@@ -183,9 +183,11 @@ jobs:
         working-directory: qualitylayer
         run: bun install --frozen-lockfile
 
+      # Bun has no native Windows arm64 build: under x64 emulation it installs TypeScript's x64
+      # compiler, which the runner's arm64 Node cannot find. Under Bun, tsc asks for the x64 one.
       - name: Typecheck
         working-directory: qualitylayer
-        run: bun run typecheck
+        run: bun --bun run typecheck
 
       - name: Windows workflows and installer
         working-directory: qualitylayer
