@@ -2,7 +2,69 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
-## Unreleased — QualityLayer 12
+## 12.0.0-beta.14
+
+### New
+
+- Every step has the same layout. A step line says whose turn it is, Needs you holds only what wants a person, and one violet line, Checked by agents, holds what the agents proved.
+- Each item has its own two answers. Agree or Change, Looks right or Change, I confirm or Ask the agent to record it, Accept or Fix it.
+- Your answers are sent together. The main button reads Approve, or Send 1 change when an answer asks for one.
+- The Comments panel lists your drafts, answered threads and your team's comments.
+- Discuss shows the agent's question in the App. You still answer it in Claude Code or Codex.
+- The Plan puts your decisions first: the mockup, each engineering decision as a diagram you can comment on, and what the agent decided for you. A revised Plan marks what changed since your review.
+- Implement lists the agent's own choices as Decided by the agent while building, with Fine and Ask why.
+- A new task or file outside the Plan waits for your answer on that slice only. The other slices keep building.
+- A checkpoint that fails twice stops the build. You choose Try another fix, Change the Plan or Continue anyway.
+- Verify is a live checklist. Every check is listed from the start and fills in as it runs.
+- After two tries at checking, the task stops and you choose Check once more, Take it as it is or Stop the task.
+- Only you can confirm. A point no agent may settle, such as a call to a live service, is an item in Review and no longer fails a check.
+- Review opens on what needs you: screens to look at, Found while checking, and the agent's choices during the build.
+- Changes are grouped by the task that made them. Files from other sessions' commits are named and left out of the pull request.
+- The Approve menu ships the change: Approve and open a pull request, Approve only, or Copy the git commands. QualityLayer never merges.
+- Home covers all your tasks: what needs you, what runs, and what shipped with its cost.
+- ⌘K finds tasks, jumps to a setting and filters by need, agent or project. The bell is gone.
+- The App opens where you left it: the same task, step and scroll position.
+- Slack tells you when someone answers your question. Remind works at most once every 4 hours, and each member has a switch for Slack messages to them.
+- The Slack card names the teammates it could not find, and errors say what to do next.
+- Outside reviewers comment only. Their comments reach you as an item under Needs you.
+- Notifications follow your setting. They cover a Plan or review that waits, a task that stops or ships, a teammate's question, a reminder and an answer.
+- Settings has four tabs: Workflow, Licence, Team and About.
+- Updates arrive quietly. The App downloads once a day in the background and shows Update ready in the sidebar, with the release notes.
+- qualitylayer update prints the same release notes.
+- Feedback is one click in the sidebar. It sends your text, screenshots and diagnostics you can read first to a private issue, and qualitylayer feedback does the same.
+- Setup is one checklist, with one row for any other coding agent.
+- The share page reads like the App. Its tabs are named Discuss, Plan and Build, and the mockup and diagrams are drawn.
+- The Cost panel names each agent by its work, with time next to cost.
+- A second opinion runs by itself on a risky Plan. Say "no second opinion" to skip it for one task.
+- Fable 5.1 is offered wherever a Claude model is chosen.
+- Select all fills a group in one click.
+
+### Fixed
+
+- Reopening the App no longer lands on Home.
+- Review showed 0 files changed and no gh when the App started from the Dock. The App now reads your login shell's PATH.
+- The step tabs and Stay in the browser work in a browser tab.
+- Implement no longer shows the start card after the build, and the Verify step bar shows only on Verify.
+- Slice text no longer shows raw Markdown.
+- The share page no longer labels tabs with file names or shows the mockup as a file path.
+- The Cost panel lists every agent that worked.
+- Live checks an agent runs while planning save their output.
+- Your approval stands when a document, mockup or evidence file changes after the review opened.
+- Checks that passed are not run again because the Plan or the build log changed.
+- Checking agents skip files that Git ignores and files that are generated.
+- After a fix, only the failed check and what the fix touched are checked again.
+- A computer whose Pilot Shell trial ran out starts a full 7-day trial.
+
+### Good to know
+
+- This is a beta from the `dev` branch.
+- Settings has fewer choices: no Links setting, no checkpoint switch, no token budget. Old settings files keep loading.
+- Moving from Pilot Shell asks nothing. Its tools and memories stay.
+- The App never starts, pauses or stops an agent. With no agent attached, your answers wait.
+- Updates install only when you choose Restart and update. Agents keep working through it.
+- Feedback and usage events never include code, plan or document text, task titles, repository or branch names, or file paths.
+
+## 12.0.0 betas before beta.14
 
 ### One flow: Discuss → Plan → Implement → Verify → Review
 
@@ -12,10 +74,8 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - QualityLayer runs the checks the Plan names and records each result (`qualitylayer check slice <n> | task T<n> | all`); a failed check goes to a fix helper.
 - Verify: a polish helper, and a security review when the change crosses a trust boundary, go over the finished change side by side; then one judge, which did not write the code, rules on it with the recorded checks as evidence.
 - No separate lane for small changes and no roles: a small change takes the same five steps, with fewer helpers. The per-step switches, the automatic approval of early gates and the role question are gone.
-- Settings › Workflow: the worker and judge model for each agent (Sonnet 5.5, Opus 5.5 or Fable 5.1 in Claude Code, or No subagents), the model each agent reviews with in a second opinion, and notifications. The second opinion itself runs by itself on a risky Plan, one that crosses a trust boundary or marks a slice risky; say "get a second opinion" or "no second opinion" to change it for one task. A link your agent prints always opens in the App when it is installed. There is no checkpoint-after-every-slice switch and no token budget.
-- A Cost view in the App shows what a task used per step and per helper, read from the agents' transcripts on your computer. Figures are estimates at list price; a model without a confirmed price shows its tokens only.
-- On a team licence, a group's member list has a Select all, so a group of the whole team takes one click.
-- Moving from Pilot Shell 11 asks nothing: Pilot's own hooks, rules and settings are removed, its tools and memories stay, and the report says your agent can remove leftover tools. The App's first open after a move shows one short note and goes on to Setup or Home. A machine whose Pilot Shell trial ran out starts a full 7-day QualityLayer trial.
+- Settings › Workflow: the helper and judge model for each agent, the second opinion (off unless you turn it on), a checkpoint after every slice, and a soft token budget per task.
+- A Cost view in the App shows what a task used per step and per helper, read from the agents' transcripts on your computer. Figures are estimates at list price; a model without a confirmed price shows its tokens only. Passing the budget is said once, and the work goes on.
 - Task folders of the earlier flow (`00-frame.md`, `README.md`, `02-design.md`, `03-outline.md`, `04-build.md`) are no longer read: only tasks with `00-discuss.md` appear and finish.
 - On a Mac the installer puts the App in `/Applications` when you may write there (an administrator can, without a password), else in `~/Applications`, and removes a copy an earlier install left in `~/Applications`.
 - The App's icon has its own light, dark and tinted looks on macOS 26 and later, so the mark stays readable when the Mac shows its icons dark or tinted.

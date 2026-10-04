@@ -5,7 +5,7 @@ const sidebars: SidebarsConfig = {
     "intro",
     "reference/changelog",
     { type: "category", label: "Get started", collapsed: false, items: [
-      "install", "first-task", "updating", "moving-from-pilot-shell",
+      "install", "agents/other", "first-task", "updating", "moving-from-pilot-shell",
     ] },
     { type: "category", label: "The five steps", collapsed: false, items: [
       "steps/discuss", "steps/plan", "steps/implement", "steps/verify", "steps/review",

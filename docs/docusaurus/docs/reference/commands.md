@@ -29,7 +29,8 @@ In Codex, type `$ql` in place of `/ql`.
 | `qualitylayer find "<text>"` | Find a task |
 | `qualitylayer tasks` | List tasks, by status or age |
 | `qualitylayer doctor` | Check the setup; `--repair` fixes what it can |
-| `qualitylayer update` | Update; with the App, it hands over to the App |
+| `qualitylayer update` | Update and print the release notes; with the App, it hands over to the App. See [Updates](../updating.md) |
+| `qualitylayer feedback "<text>" [--idea] [--image <file>]` | Send feedback from a terminal, the same way as the App's sheet. See [what a report sends](files.md#feedback) |
 | `qualitylayer uninstall` | Remove it; `--purge` also removes the licence and task state |
 | `qualitylayer licence activate <key>` | Activate a licence; `licence portal` opens billing |
 | `qualitylayer telemetry off` | Stop the anonymous events; `DO_NOT_TRACK=1` works too |
@@ -45,12 +46,15 @@ You rarely type these, but they explain what you see in your agent's chat.
 | `qualitylayer next start feature: <problem>` | Create the task after the first questions; `bug:` for a bug |
 | `qualitylayer next handback "<reason>"` | End a request that is too small; no task is created |
 | `qualitylayer next done` | Finish Discuss and move on to the Plan |
+| `qualitylayer question show '<json>'` | Show the question being asked in your agent's picker in the App. The JSON holds `question`, `lead`, `choices` (each with a `label` and a `detail`), `recommended` and `of`. It does not wait. Add `--task <slug>` when several tasks are open |
+| `qualitylayer question answered "<choice>"` | Record your answer and close the question in the App |
 | `qualitylayer next "show me <topic>"` | Make a picture of how something works |
 | `qualitylayer gate open 02-plan.md` | Put the Plan up for your approval |
 | `qualitylayer gate open final` | Put the finished change up for your final approval |
 | `qualitylayer check slice <n>` | Run a slice's approved commands and record them |
 | `qualitylayer check task T<n>` | Run one task card's check and record it |
 | `qualitylayer check all` | Run the project's tests, lint, type check and build and record them |
+| `qualitylayer verdict <assignment> <item> pass\|fail\|missing\|user\|note "<text>"` | Record the result of one check as an agent makes it, so the Verify checklist fills in live. `user` marks a point only you can confirm |
 | `qualitylayer card T<n>` | Print one task card with the contract it builds |
 | `qualitylayer progress build --for T<n> "<line>"` | Report that a task is being built |
 | `qualitylayer comments take` | Collect the comments not yet answered, your team's included |

@@ -10,7 +10,7 @@ One rule decides what you get. A machine with a screen gets the QualityLayer App
 
 | Where you work | Install | Update |
 | --- | --- | --- |
-| macOS (Intel, Apple silicon), Windows, Linux desktop | Download the App from [qualitylayer.dev/download](https://qualitylayer.dev/download) and open it. First start sets up the command line, your agents and your licence. Or run the terminal installer, which does the same and fetches the App | The App updates itself and its command line together. It checks daily, asks in the tray, and on Windows waits for running agent commands. `qualitylayer update` hands over to the App |
+| macOS (Intel, Apple silicon), Windows, Linux desktop | Download the App from [qualitylayer.dev/download](https://qualitylayer.dev/download) and open it. First start sets up the command line, your agents and your licence. Or run the terminal installer, which does the same and fetches the App | The App updates itself and its command line together. It checks daily, downloads in the background and shows **Update ready** in the sidebar. On Windows it waits for running agent commands. `qualitylayer update` hands over to the App |
 | WSL2 | The terminal installer inside WSL: command line only. Links open in your Windows browser | `qualitylayer update` |
 | VS Code dev container | The terminal installer in the container: command line only. VS Code forwards the printed link | `qualitylayer update` |
 | Linux server | The terminal installer over SSH: command line only. Forward the port and open the printed link. You pair the browser once; links carry no key | `qualitylayer update` |
@@ -43,19 +43,23 @@ Windows may show a SmartScreen notice when you open the App for the first time. 
 
 ## First start
 
-The App opens a setup page the first time:
+The App opens a setup page the first time. It is one checklist and one main button:
 
-- **Licence:** enter your key, or start the 7-day trial.
-- **Command line:** placed where your agents call it, so Claude Code and Codex reach it without a terminal.
-- **Agents:** Claude Code, Codex and Grok Bot, found even when your shell's path does not list them. **Show what changes** lists every agent setting before it is applied. **Check again** finds an agent you installed since.
+- **Licence:** enter your key, or the 7-day trial starts by itself.
+- **Command line:** placed where your agents call it, so Claude Code and Codex reach it without a terminal. **Where it lives** shows the path.
+- **Your agents:** **Claude Code** and **Codex**, found even when your shell's path does not list them. Codex may need one step: allow QualityLayer once in Codex, with `/hooks` (there is a **Copy** button). You can finish Codex later. **Another coding agent** is one more row: any agent that runs shell commands can use QualityLayer, and **How to connect it** opens [How to connect another coding agent](agents/other.md).
+
+**Check again** finds an agent you installed since. **Open QualityLayer** opens the App. On a computer with no agent found, the page says what to install, and **Open QualityLayer** stays disabled until one agent is ready.
 
 Setup keeps any value you set yourself. QualityLayer sets no Claude Code status line. If an earlier version set one, setup puts yours back.
 
 QualityLayer runs only when you call it. Everything else works as before.
 
+When the trial has ended, the App says so. Your plans and tasks stay where they are, and the workflow goes on once a licence is active.
+
 ## Other agents
 
-Copy `~/.qualitylayer/skill/ql` into your agent's skills folder. The [second opinion](reference/settings.md#second-opinion) and [session messaging](reference/commands.md#session-messaging) need Claude Code and Codex. Everything else works with any agent that supports skills and can run shell commands.
+Any other agent works as well; see [How to connect another coding agent](agents/other.md). The [second opinion](reference/settings.md#second-opinion) needs Claude Code and Codex both. [Session messaging](reference/commands.md#session-messaging) works between any Claude Code and Codex sessions.
 
 ## Remove it, or move your licence {#uninstall}
 
