@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Pre-push hook: no plaintext blob under the encrypted trees leaves this machine.
+#
+# Runs scripts/check_qualitylayer_encrypted.sh --range over the commits being
+# pushed. It needs neither the key nor git-crypt and prints paths, never
+# contents. The repository is public: a plaintext push cannot be taken back.
+#
+# Active through core.hooksPath=.github/hooks (shared by every worktree).
+# Bypass: SKIP_PREPUSH=1 git push ...   (or git push --no-verify)
+
+set -uo pipefail
+
+if [ "${SKIP_PREPUSH:-0}" = "1" ]; then
+  echo "⚠ SKIP_PREPUSH=1 — skipping the plaintext guard."
+  exit 0
+fi
+
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+remote="$1"
+zero="0000000000000000000000000000000000000000"
+failed=0
+
+while read -r _local_ref local_sha _remote_ref remote_sha; do
+  [ -n "${local_sha:-}" ] || continue
+  [ "$local_sha" = "$zero" ] && continue # a deleted branch pushes no content
+
+  if [ "$remote_sha" != "$zero" ] && git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then
+    range="$remote_sha..$local_sha"
+  else
+    # A new branch, or a remote tip we do not have: check what no remote branch has yet.
+    oldest="$(git rev-list --topo-order "$local_sha" --not --remotes="$remote" | tail -n1)"
+    [ -n "$oldest" ] || continue
+    if git cat-file -e "$oldest^" 2>/dev/null; then
+      range="$oldest^..$local_sha"
+    else
+      range="$local_sha"
+    fi
+  fi
+
+  bash scripts/check_qualitylayer_encrypted.sh --range "$range" || failed=1
+done
+
+if [ "$failed" -ne 0 ]; then
+  echo "✖ Push blocked: plaintext under qualitylayer/ or docs/site/api/ (see above)." >&2
+  exit 1
+fi
+exit 0

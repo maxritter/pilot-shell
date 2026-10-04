@@ -43,8 +43,11 @@ All in `qualitylayer/`:
   launcher depends on the real HOME.
 - Do not run `bun run test` or `bun run build` while a release gate is running:
   both replace `dist/qualitylayer`, which the gate's agent is using
-- From the repository root: `bash scripts/check_qualitylayer_encrypted.sh`
-  before pushing, `shellcheck install.sh` after changing the installer
+- Git hooks (`core.hooksPath=.github/hooks`, shared by every worktree) gate
+  commits and pushes: `pre-commit` runs typecheck, lint, the Cockpit checks,
+  cargo fmt and clippy for the App, shellcheck, actionlint and Trivy on what is
+  staged; `pre-push` runs `scripts/check_qualitylayer_encrypted.sh` over the
+  pushed commits. Fix what they report; never bypass them with `--no-verify`
 
 ## Repository rules
 

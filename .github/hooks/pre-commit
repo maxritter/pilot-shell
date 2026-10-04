@@ -2,8 +2,10 @@
 # Pre-commit hook: the fast CI checks, in parallel, scoped to what is staged.
 #
 #   • qualitylayer   typecheck + lint (Biome)            (qualitylayer/ staged)
+#   • app (Rust)     cargo fmt --check + clippy -D warnings   (a crate under app/ staged)
 #   • plaintext      nothing under qualitylayer/ staged in plaintext   (always)
-#   • install.sh     shellcheck                          (install.sh staged)
+#   • shell          shellcheck                          (shell scripts or hooks staged)
+#   • workflows      actionlint                          (.github/workflows/ staged)
 #   • trivy          vuln + secret scan                  (always)
 #
 # The test suite is CI's job (`bun run test` in qualitylayer/, a few minutes).
@@ -70,15 +72,28 @@ fi
 staged="$(git diff --cached --name-only --diff-filter=ACMR)"
 qualitylayer_changed=0
 ui_changed=0
-install_sh_changed=0
+launcher_changed=0
+tauri_changed=0
+workflows_changed=0
+shell_files=()
 while IFS= read -r f; do
   [ -n "$f" ] || continue
   case "$f" in
+    qualitylayer/app/launcher/*)  launcher_changed=1 ;;
+    qualitylayer/app/src-tauri/*) tauri_changed=1 ;;
+  esac
+  case "$f" in
     qualitylayer/src/ui/*|qualitylayer/scripts/check-overflow.ts) qualitylayer_changed=1; ui_changed=1 ;;
     qualitylayer/*) qualitylayer_changed=1 ;;
-    install.sh)     install_sh_changed=1 ;;
+    .github/workflows/*.yml|.github/workflows/*.yaml) workflows_changed=1 ;;
+  esac
+  case "$f" in
+    *.sh|*.bash|.github/hooks/*|.githooks/*) shell_files+=("$f") ;;
   esac
 done < <(printf '%s\n' "$staged")
+
+# rustup installs cargo here; a GUI git client's PATH often lacks it.
+if [ -d "$HOME/.cargo/bin" ]; then PATH="$HOME/.cargo/bin:$PATH"; fi
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -122,9 +137,20 @@ job_overflow() {
 job_plaintext() {
   bash scripts/check_qualitylayer_encrypted.sh
 }
+# The App's Rust crates: formatted, and clippy-clean with warnings as errors.
+# shellcheck disable=SC2329
+job_rust() { # job_rust <crate dir under qualitylayer/app>
+  cd "qualitylayer/app/$1" || return 1
+  cargo fmt --check || return 1
+  cargo clippy --all-targets --locked --quiet -- -D warnings || return 1
+}
 # shellcheck disable=SC2329
 job_shellcheck() {
-  shellcheck install.sh
+  shellcheck "${shell_files[@]}"
+}
+# shellcheck disable=SC2329
+job_actionlint() {
+  actionlint
 }
 # shellcheck disable=SC2329
 job_trivy() {
@@ -155,11 +181,28 @@ else
   echo "⚠ git-crypt not installed — skipping the plaintext guard (CI is the gate)."
 fi
 
-if [ "$install_sh_changed" = "1" ]; then
+if [ "$launcher_changed" = "1" ] || [ "$tauri_changed" = "1" ]; then
+  if have cargo; then
+    if [ "$launcher_changed" = "1" ]; then launch "app/launcher (fmt+clippy)" job_rust launcher; fi
+    if [ "$tauri_changed" = "1" ]; then launch "app/src-tauri (fmt+clippy)" job_rust src-tauri; fi
+  else
+    echo "⚠ cargo not installed — skipping the App's Rust checks (rustup.rs)."
+  fi
+fi
+
+if [ "${#shell_files[@]}" -gt 0 ]; then
   if have shellcheck; then
-    launch "install.sh (shellcheck)" job_shellcheck
+    launch "shell scripts (shellcheck)" job_shellcheck
   else
     echo "⚠ shellcheck not installed — skipping (brew install shellcheck)."
+  fi
+fi
+
+if [ "$workflows_changed" = "1" ]; then
+  if have actionlint; then
+    launch "workflows (actionlint)" job_actionlint
+  else
+    echo "⚠ actionlint not installed — skipping (brew install actionlint)."
   fi
 fi
 
