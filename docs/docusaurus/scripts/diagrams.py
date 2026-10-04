@@ -252,10 +252,10 @@ def agents(c):
         b.append(node(c, 770, y, 230, 78, t, s, 'cardline'))
         b.append(f'<circle cx="{980}" cy="{y + 22}" r="6" fill="{c[col]}"/>')
     b.append(curve(c, 460, 270, 460, 340, 'violet', True))
-    b.append(node(c, 330, 340, 260, 68, 'Second opinion', 'Another vendor’s AI, off by default', 'violet', dash=True))
+    b.append(node(c, 330, 340, 260, 68, 'Second opinion', 'Another vendor’s AI, on risky Plans', 'violet', dash=True))
     b.append(T(474, 300, 'Every helper works from the Plan,', 12, 'muted', c=c))
     b.append(T(474, 316, 'never from your chat', 12, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'Who does what: you and your agent on Opus 5.5 discuss and write the Plan; the implement session you start on Sonnet 5.5 hands work to slice helpers and fix helpers; Polish and Security run side by side; a judge that did not write the code checks it; a second opinion from another vendor is optional')
+    return svg(W, H, ''.join(b), 'Who does what: you and your agent on Opus 5.5 discuss and write the Plan; the implement session you start on Sonnet 5.5 hands work to slice helpers and fix helpers; Polish and Security run side by side; a judge that did not write the code checks it; a second opinion from another vendor reviews risky Plans by itself')
 
 
 # ---------------------------------------------------------------- the App window

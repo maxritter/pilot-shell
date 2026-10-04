@@ -47,7 +47,7 @@ Your agent states in one line what will run. For example: "3 slices, slices 1 an
 - **New things are tried first.** Your agent tries every new service, library or tool the Plan depends on, in a scratch folder, never in your project. The details record what was tried and what happened.
 - **A fresh agent reads it cold.** It reads the Plan the way a new builder would and reports where it would get stuck. Your agent fixes those gaps first.
 - **A big task gets a split proposal.** Above about 8 slices or 25 tasks, your agent proposes separate tasks.
-- **The second opinion, when on,** reviews the Plan too. See [Settings](../reference/settings.md#second-opinion).
+- **A risky Plan gets a second opinion.** When the Plan crosses a trust boundary or marks a slice risky, the other vendor's AI reviews it too. See [Settings](../reference/settings.md#second-opinion).
 
 ## You decide
 

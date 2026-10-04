@@ -49,7 +49,7 @@ The records are kept under *Quality pass* and *Verification* in `03-build.md`.
 - **Fail:** a fresh agent fixes the gaps, and the judge checks again what the fix could reach.
 - **Two failed judge runs:** the task stops for you.
 
-With the [second opinion](../reference/settings.md#second-opinion) on, an AI from the other vendor also reviews the built change.
+When the Plan crossed a trust boundary or marked a slice risky, a [second opinion](../reference/settings.md#second-opinion) from the other vendor's AI also reviews the built change.
 
 ## When it stops {#when-it-stops}
 

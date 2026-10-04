@@ -36,8 +36,8 @@ It works inside Claude Code and Codex, in the terminal, their desktop apps or yo
 
 ## Who does what
 
-![Who does what: you and your agent discuss and write the Plan; the implement session you start hands work to helpers; a judge that did not write the code checks it; a second opinion is optional](pathname:///img/diagrams/agents-light.svg)
-![Who does what: you and your agent discuss and write the Plan; the implement session you start hands work to helpers; a judge that did not write the code checks it; a second opinion is optional](pathname:///img/diagrams/agents-dark.svg)
+![Who does what: you and your agent discuss and write the Plan; the implement session you start hands work to helpers; a judge that did not write the code checks it; a second opinion from another vendor reviews risky Plans](pathname:///img/diagrams/agents-light.svg)
+![Who does what: you and your agent discuss and write the Plan; the implement session you start hands work to helpers; a judge that did not write the code checks it; a second opinion from another vendor reviews risky Plans](pathname:///img/diagrams/agents-dark.svg)
 
 Opus 5.5 is recommended for Discuss and Plan, in your own session. You start Implement in a fresh session, with Sonnet 5.5 recommended. Helper agents build the slices from the Plan, never from your chat. The judge runs on Opus 5.5. The App shows what each step costs.
 
