@@ -12,10 +12,12 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - The Comments panel lists your drafts, answered threads and your team's comments.
 - Discuss shows the agent's question in the App. You still answer it in Claude Code or Codex.
 - The Plan puts your decisions first: the mockup, each engineering decision as a diagram you can comment on, and what the agent decided for you. A revised Plan marks what changed since your review.
+- Implement shows the slices side by side, with a bar per task, what each agent is doing and the commit of every finished slice.
 - Implement lists the agent's own choices as Decided by the agent while building, with Fine and Ask why.
 - A new task or file outside the Plan waits for your answer on that slice only. The other slices keep building.
 - A checkpoint that fails twice stops the build. You choose Try another fix, Change the Plan or Continue anyway.
 - Verify is a live checklist. Every check is listed from the start and fills in as it runs.
+- Checking agents record each result with `qualitylayer verdict`, and `qualitylayer attest` keeps what you confirmed in your own words.
 - After two tries at checking, the task stops and you choose Check once more, Take it as it is or Stop the task.
 - Only you can confirm. A point no agent may settle, such as a call to a live service, is an item in Review and no longer fails a check.
 - Review opens on what needs you: screens to look at, Found while checking, and the agent's choices during the build.
@@ -46,6 +48,7 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - The step tabs and Stay in the browser work in a browser tab.
 - Implement no longer shows the start card after the build, and the Verify step bar shows only on Verify.
 - Slice text no longer shows raw Markdown.
+- An agent can no longer answer your stop for you or pass a point only you can confirm. An answered stop reads Sent, and Implement no longer turns amber for a stop in Verify.
 - The share page no longer labels tabs with file names or shows the mockup as a file path.
 - The Cost panel lists every agent that worked.
 - Live checks an agent runs while planning save their output.
@@ -60,6 +63,7 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - This is a beta from the `dev` branch.
 - Settings has fewer choices: no Links setting, no checkpoint switch, no token budget. Old settings files keep loading.
 - Moving from Pilot Shell asks nothing. Its tools and memories stay.
+- Licence keys come from Polar.sh only. A key from an earlier provider no longer activates.
 - The App never starts, pauses or stops an agent. With no agent attached, your answers wait.
 - Updates install only when you choose Restart and update. Agents keep working through it.
 - Feedback and usage events never include code, plan or document text, task titles, repository or branch names, or file paths.

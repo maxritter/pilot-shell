@@ -280,11 +280,11 @@ export default function TourScenes({ ch, step, tries, onRetry, only = false }: {
           <Item kind="Found while checking" what="The retry mail goes out in English only" buttons={["Accept", "Fix it"]} className={`sx-row ${ins(3)}`} />
           <Item kind="Decided by the agent during the build" what="Moved the retry delay into settings.ts" done className={`sx-row sx-hide ${ins(3)}`}><span className="sx-itn">Accepted by you</span></Item>
         </Needs>
-        <Violet facts={["3 of 3 points of Done proven", "3 scenarios", "412 tests", "evidence for each"]} className={ins(4)} />
+        <Violet facts={["3 of 3 points of Done passed", "3 scenarios", "412 tests", "evidence for each"]} className={ins(4)} />
         <div className={`sx-menu ${ins(5)}`}>
           <div className="sx-mi first"><b>Approve and open a pull request</b><small>Pushes the branch and opens the pull request with the summary and the evidence. Needs gh.</small></div>
-          <div className="sx-mi"><b>Approve only</b><small>You push and merge yourself</small></div>
-          <div className="sx-mi"><b>Copy the git commands</b><small>gh is not installed here</small></div>
+          <div className="sx-mi"><b>Approve only</b><small>You push the branch yourself</small></div>
+          <div className="sx-mi"><b>Copy the git commands</b><small>Push the branch and open the pull request by hand</small></div>
         </div>
       </div>
 

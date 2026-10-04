@@ -55,6 +55,8 @@ You rarely type these, but they explain what you see in your agent's chat.
 | `qualitylayer check task T<n>` | Run one task card's check and record it |
 | `qualitylayer check all` | Run the project's tests, lint, type check and build and record them |
 | `qualitylayer verdict <assignment> <item> pass\|fail\|missing\|user\|note "<text>"` | Record the result of one check as an agent makes it, so the Verify checklist fills in live. `user` marks a point only you can confirm |
+| `qualitylayer attest <item> "<what you said>" [--evidence <file>]` | Record what you confirmed, such as an **Ask the agent to record it** answer on an Only you can confirm item. It is kept with your words, outside the build log. An agent cannot settle a point only you can confirm on its own |
+| `qualitylayer gate stop '<json>'` | Stop the build after two failed checks, so the App asks you how to go on. Wait for your choice with `qualitylayer gate wait` |
 | `qualitylayer card T<n>` | Print one task card with the contract it builds |
 | `qualitylayer progress build --for T<n> "<line>"` | Report that a task is being built |
 | `qualitylayer comments take` | Collect the comments not yet answered, your team's included |

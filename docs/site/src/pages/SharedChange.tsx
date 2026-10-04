@@ -49,7 +49,7 @@ export function ChangeView({ review, onPick }: { review: SharedReview; onPick: (
     <div className="sh-change">
       <p className="sh-check" data-testid="shared-checked">
         <span className="sh-mark check" aria-hidden="true" />
-        {`${review.verified ? "Checked" : "Not yet checked"} by an agent that did not write the code · ${proven} of ${review.doneMeans.length} points proven`}
+        {`${review.verified ? "Checked" : "Not yet checked"} by an agent that did not write the code · ${proven} of ${review.doneMeans.length} points passed`}
       </p>
       {review.pr !== null ? (
         <div className="sh-pr">
@@ -78,7 +78,7 @@ export function ChangeView({ review, onPick }: { review: SharedReview; onPick: (
                 <div className="sh-point-head">
                   <span className="sh-n">{d.n}</span>
                   <strong>{d.head}</strong>
-                  <span className={d.proven ? "sh-tag ok" : "sh-tag"}>{d.proven ? "Proven" : "Not proven"}</span>
+                  <span className={d.proven ? "sh-tag ok" : "sh-tag"}>{d.proven ? "Passed" : "Not proven"}</span>
                   <CommentOn anchor={{ kind: "doneMeans", id: String(d.n), quote: d.head }} onPick={onPick} />
                 </div>
                 {d.text !== "" ? <p>{d.text}</p> : null}

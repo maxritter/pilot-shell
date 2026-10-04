@@ -297,7 +297,7 @@ describe("the shared change, under Build", () => {
     const review = parseReview(REVIEW);
     const page = await html(<SharedView state={ready({ title: "Rate-limit the export API", docs: OLD_DOCS, review })} onSend={noSend} />);
     expect(page).toContain("A 61st export in an hour is refused with a retry time.");
-    expect(page).toContain("Proven");
+    expect(page).toContain("Passed");
     expect(page).toContain("#42");
     for (const tab of [">Discuss<", ">Plan<", ">Build<", ">Overview<", ">Evidence<", ">Try it<"]) expect(page).toContain(tab);
     expect(page).toContain("Add comment");

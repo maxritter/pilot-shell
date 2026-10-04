@@ -26,7 +26,7 @@ Fixes go back to the agent. It makes them, and only what they touch is checked a
 
 ## What the rest of the page shows
 
-- **Checked by agents.** One violet line, for example 11 of 11 points of Done proven, 11 scenarios, 1,374 tests, evidence for each. It opens to the evidence. Each screenshot names the point of Done it proves.
+- **Checked by agents.** One violet line, for example 11 of 11 points of Done passed, 11 scenarios, 1,374 tests, evidence for each. It opens to the evidence. Each screenshot names the point of Done it proves.
 - **What changed.** A short summary of the change.
 - **Changes by task.** Each file carries the task that changed it. Files that other sessions committed, in the same range, are named **not this task** and are left out of the pull request.
 - **A diff** where you can comment on any line. Your comments go to the agent with your decision.

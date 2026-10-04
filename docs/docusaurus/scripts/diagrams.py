@@ -890,7 +890,7 @@ def review_ill(c: Theme) -> str:
             ('Decided by the agent during the build', 'Kept the old move-over test and rewrote it', ['Fine', 'Ask why'])]
     for i, (k, w_, a) in enumerate(rows):
         b.append(item(c, 14, 106 + i * 62, W - 32, k, w_, a))
-    b.append(vline(c, 14, 360, W - 32, ['11 of 11 points of Done proven', '11 scenarios', '1,374 tests', 'evidence for each']))
+    b.append(vline(c, 14, 360, W - 32, ['11 of 11 points of Done passed', '11 scenarios', '1,374 tests', 'evidence for each']))
     b.append(section_label(c, 20, 424, 'What changed'))
     b.append(T(20, 444, 'Settings asks fewer things. Links always open in the App, and a second opinion runs on risky Plans.', 12.5, 'muted', c=c))
     b.append(section_label(c, 20, 476, 'Changes', '80 files · by task · comment on any line'))
