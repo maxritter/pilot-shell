@@ -393,18 +393,33 @@
 
 @media (prefers-reduced-motion:reduce){.sx-in,.sx-sc,.sx-chin,.sx-seg,.sx-cbt i{transition:none}.sx-pkt.on{animation:none}}
 
-/* Tablets and phones: the window pins under the header, the chapters scroll beneath it and settle one at a time */
-@media (max-width: 1079px){html:has(.sx-tour){scroll-snap-type:y proximity}}
+/* Scroll-linked fades, tied to each element's place on screen: text rises in from below and fades
+   out as it passes under the header; an inline window also grows into place. Browsers without
+   scroll-driven animations show everything still. */
+@keyframes sx-rise{entry 0%{opacity:0;transform:translateY(28px)}entry 70%{opacity:1;transform:none}exit 30%{opacity:1}exit 100%{opacity:0}}
+@keyframes sx-grow{entry 0%{opacity:0;transform:translateY(48px) scale(.94)}entry 55%{opacity:1;transform:none}exit 40%{opacity:1}exit 100%{opacity:.2}}
+@keyframes sx-arrive{from{opacity:0;transform:translateY(40px) scale(.96)}to{opacity:1;transform:none}}
+@supports (animation-timeline: view()){
+  @media (prefers-reduced-motion:no-preference){
+    .sx-rv{animation:sx-rise linear both;animation-timeline:view(block 68px 0px)}
+    .sx-rvw{animation:sx-grow linear both;animation-timeline:view(block 124px 0px);transform-origin:50% 100%}
+    .sx-film{animation:sx-arrive linear both;animation-timeline:view();animation-range:entry 0% entry 80%}
+  }
+}
+
+/* Tablets and phones: every chapter carries its own window, played as it scrolls into view; only the step bar pins under the header */
 @container (max-width: 1079px){
   .sx-tour{display:flex;flex-direction:column;gap:0}
-  .sx-stage{order:-1;position:sticky;top:68px;z-index:5;padding:10px 0 12px;background:var(--ql-bg);border-bottom:1px solid var(--ql-line)}
+  .sx-stage{order:-1;position:sticky;top:68px;z-index:5;padding:10px 0;background:color-mix(in srgb,var(--ql-bg) 88%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--ql-line)}
   .sx-sticky{position:static;height:auto;gap:10px}
   .sx-step{min-height:34px;padding:4px 11px;font-size:13px}
-  .sx-ch,.sx-ch.first,.sx-ch.last{min-height:var(--sx-below,62vh);align-items:center;padding:24px 0;scroll-snap-align:start;scroll-margin-top:calc(var(--sx-under,88px) - 88px)}
-  .sx-chin{max-width:36rem}
-  /* Under a pinned window only the current chapter should read; the neighbours stay as a faint hint. */
-  .sx-ch:not(.on) .sx-chin{opacity:.14}
-  .sx-act-h{min-height:0;padding:72px 0 24px}
+  .sx-ch,.sx-ch.first,.sx-ch.last{min-height:0;display:block;padding:56px 0 8px;scroll-margin-top:124px}
+  .sx-ch.first{padding-top:40px}
+  .sx-ch.last{padding-bottom:72px}
+  .sx-chin{max-width:40rem;margin:0 auto}
+  .sx-ch:not(.on) .sx-chin{opacity:1}
+  .sx-iwin{display:flex;justify-content:center;margin:20px 0 4px}
+  .sx-act-h{min-height:0;max-width:40rem;margin:0 auto;padding:88px 0 0}
 }
 @container (max-width: 640px){
   .sx-step .sx-you,.sx-step .sx-ag{display:none}

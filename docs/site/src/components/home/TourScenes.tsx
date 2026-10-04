@@ -1,3 +1,5 @@
+import { Children } from "react";
+
 /** The ten scenes inside the App window. Each scene's parts appear one per moment: `in(n)` and `on(n)` switch at moment n. */
 
 const LANES = [
@@ -18,7 +20,8 @@ const RECORDS: [string, string, string, string][] = [
 
 const COST: [string, number][] = [["Discuss", 310], ["Plan", 420], ["Implement", 860], ["Verify", 280], ["Review", 40]];
 
-export default function TourScenes({ ch, step, tries, onRetry }: { ch: number; step: number; tries: number; onRetry: () => void }) {
+/** `only` renders just chapter `ch`'s scene, for the windows that sit inline beside each chapter. */
+export default function TourScenes({ ch, step, tries, onRetry, only = false }: { ch: number; step: number; tries: number; onRetry: () => void; only?: boolean }) {
   const at = (n: number) => step >= n;
   const ins = (n: number) => `sx-in${at(n) ? " on" : ""}`;
   const on = (n: number) => (at(n) ? "on" : "");
@@ -31,7 +34,7 @@ export default function TourScenes({ ch, step, tries, onRetry }: { ch: number; s
   const records = RECORDS.slice(0, shown).slice(-4);
   const ringN = ch === 3 ? Math.max(0, Math.min(3, step - 3)) : 3;
 
-  return (
+  const scenes = (
     <>
       <div className={scene(0)} aria-hidden={ch !== 0}>
         <div className="sx-two">
@@ -277,4 +280,5 @@ export default function TourScenes({ ch, step, tries, onRetry }: { ch: number; s
       </div>
     </>
   );
+  return only ? Children.toArray(scenes.props.children)[ch] : scenes;
 }
