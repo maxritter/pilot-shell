@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:edge": "vitest run --environment edge-runtime api/_lib/db.test.ts",
     "typecheck": "tsc -p tsconfig.app.json && tsc -p tsconfig.node.json && tsc -p tsconfig.api.json",
     "deadcode": "knip"
   },

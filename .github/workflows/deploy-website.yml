@@ -114,6 +114,16 @@ jobs:
         working-directory: docs/site
         run: npm ci --ignore-scripts
 
+      # The site's tests run before anything touches a database or the domain; a failing test
+      # stops the deploy. The database seam also runs under the edge runtime the routes see.
+      - name: Test the site
+        working-directory: docs/site
+        run: npm test
+
+      - name: Test the database seam under the edge runtime
+        working-directory: docs/site
+        run: npm run test:edge
+
       # The schema of the environment being deployed goes first; a failed migration stops the deploy.
       - name: Apply the database schema
         working-directory: docs/site
