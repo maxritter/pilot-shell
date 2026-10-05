@@ -5,13 +5,13 @@ export type Film = { src: string; poster: string; duration: number };
 
 export const FILMS = {
   launch: {
-    src: "https://qualitylayer-media.max-ritter.workers.dev/launch-v7.mp4",
-    poster: "https://qualitylayer-media.max-ritter.workers.dev/launch-v7.webp",
-    duration: 231,
+    src: "https://qualitylayer-media.max-ritter.workers.dev/launch-v8.mp4",
+    poster: "https://qualitylayer-media.max-ritter.workers.dev/launch-v8.webp",
+    duration: 252,
   },
   walkthrough: {
-    src: "https://qualitylayer-media.max-ritter.workers.dev/walkthrough-v3.mp4",
-    poster: "https://qualitylayer-media.max-ritter.workers.dev/walkthrough-v3.webp",
-    duration: 590,
+    src: "https://qualitylayer-media.max-ritter.workers.dev/walkthrough-v4.mp4",
+    poster: "https://qualitylayer-media.max-ritter.workers.dev/walkthrough-v4.webp",
+    duration: 609,
   },
 } satisfies Record<string, Film>;
