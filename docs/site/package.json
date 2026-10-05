@@ -14,6 +14,8 @@
     "deadcode": "knip"
   },
   "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@neondatabase/serverless": "^1.2.0",
     "@polar-sh/checkout": "^0.2.0",
     "@upstash/redis": "^1.36.2",
     "@vercel/analytics": "^2.0.1",
@@ -34,6 +36,7 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/dom": "^10.4.2",

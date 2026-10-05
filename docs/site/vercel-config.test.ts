@@ -264,3 +264,19 @@ describe("the share page's own headers", () => {
     expect(answer(NEW, "/s-frame.html").kind).not.toBe("redirect");
   });
 });
+
+describe("where the functions run", () => {
+  it("pins every handler to fra1, next to the database and Redis", () => {
+    const handlers = readdirSync(new URL("./api", import.meta.url), { recursive: true, encoding: "utf8" }).filter(
+      (file) => file.endsWith(".ts") && !file.endsWith(".test.ts") && !file.startsWith("_lib"),
+    );
+    expect(handlers.length).toBeGreaterThan(0);
+    const regions = Object.fromEntries(
+      handlers.map((file) => {
+        const source = readFileSync(new URL(`./api/${file}`, import.meta.url), "utf8");
+        return [file, /export const config = \{[^}]*regions: (\[[^\]]*\])/.exec(source)?.[1]];
+      }),
+    );
+    expect(regions).toEqual(Object.fromEntries(handlers.map((file) => [file, '["fra1"]'])));
+  });
+});

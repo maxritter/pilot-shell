@@ -197,6 +197,11 @@ jobs:
         working-directory: qualitylayer
         run: bun install --frozen-lockfile
 
+      # The suites run the site's real handlers on the in-process database (PGlite) it ships.
+      - name: Install the site's dependencies
+        working-directory: docs/site
+        run: npm ci --ignore-scripts
+
       - name: Typecheck, lint, test
         working-directory: qualitylayer
         env:
@@ -789,6 +794,28 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
+      - name: Install the site's dependencies
+        working-directory: docs/site
+        run: npm ci --ignore-scripts
+
+      # The schema of the environment being released to goes first: the new handlers need its
+      # tables, and a failed migration stops the release before anything is deployed.
+      - name: Apply the database schema
+        working-directory: docs/site
+        run: |
+          pull="${RUNNER_TEMP:?}/database.env"
+          if [ "$GITHUB_REF_NAME" = main ]; then
+            vercel env pull "$pull" --environment=production --token="$VERCEL_TOKEN" --yes
+          else
+            vercel env pull "$pull" --environment=preview --git-branch="$GITHUB_REF_NAME" --token="$VERCEL_TOKEN" --yes
+          fi
+          DATABASE_URL="$(sed -n 's/^DATABASE_URL="\{0,1\}\([^"]*\)"\{0,1\}$/\1/p' "$pull")"
+          rm -f "$pull"
+          [ -n "$DATABASE_URL" ] || { echo "::error::DATABASE_URL is not set for this environment"; exit 1; }
+          echo "::add-mask::$DATABASE_URL"
+          export DATABASE_URL
+          node scripts/db-migrate.ts
+
       # main serves production; dev is a Preview of the same project, named by its branch.
       - name: Deploy the site at this commit
         id: deploy
@@ -829,27 +856,27 @@ jobs:
           bash docs/site/scripts/check-deploy.sh "$DEPLOY_URL"
 
       - name: Upload the workflow texts and read them back
-        env:
-          BETA_KV_REST_API_URL: ${{ secrets.BETA_KV_REST_API_URL }}
-          BETA_KV_REST_API_TOKEN: ${{ secrets.BETA_KV_REST_API_TOKEN }}
-          PROD_KV_REST_API_URL: ${{ secrets.PROD_KV_REST_API_URL }}
-          PROD_KV_REST_API_TOKEN: ${{ secrets.PROD_KV_REST_API_TOKEN }}
+        working-directory: docs/site
         run: |
-          # The store of the environment being released to, never the other one.
+          # The database of the environment being released to, never the other one.
+          pull="${RUNNER_TEMP:?}/database.env"
           if [ "$GITHUB_REF_NAME" = main ]; then
-            KV_REST_API_URL="$PROD_KV_REST_API_URL"
-            KV_REST_API_TOKEN="$PROD_KV_REST_API_TOKEN"
+            vercel env pull "$pull" --environment=production --token="$VERCEL_TOKEN" --yes
           else
-            KV_REST_API_URL="$BETA_KV_REST_API_URL"
-            KV_REST_API_TOKEN="$BETA_KV_REST_API_TOKEN"
+            vercel env pull "$pull" --environment=preview --git-branch="$GITHUB_REF_NAME" --token="$VERCEL_TOKEN" --yes
           fi
-          export KV_REST_API_URL KV_REST_API_TOKEN
-          bash scripts/upload-workflow.sh upload "$VERSION" "$BUNDLE" "$DIGEST"
+          DATABASE_URL="$(sed -n 's/^DATABASE_URL="\{0,1\}\([^"]*\)"\{0,1\}$/\1/p' "$pull")"
+          rm -f "$pull"
+          [ -n "$DATABASE_URL" ] || { echo "::error::DATABASE_URL is not set for this environment"; exit 1; }
+          echo "::add-mask::$DATABASE_URL"
+          export DATABASE_URL
+          node scripts/upload-workflow.ts upload "$VERSION" "$BUNDLE" "$DIGEST"
 
       - name: A fresh trial gets the texts from the deployment
+        working-directory: docs/site
         env:
           DEPLOY_URL: ${{ steps.deploy.outputs.url }}
-        run: bash scripts/upload-workflow.sh probe "$VERSION" "$DEPLOY_URL"
+        run: node scripts/upload-workflow.ts probe "$VERSION" "$DEPLOY_URL"
 
       - name: Download release assets
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4

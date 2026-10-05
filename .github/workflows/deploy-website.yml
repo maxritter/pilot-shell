@@ -110,6 +110,31 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
+      - name: Install the site's dependencies
+        working-directory: docs/site
+        run: npm ci --ignore-scripts
+
+      # The schema of the environment being deployed goes first; a failed migration stops the deploy.
+      - name: Apply the database schema
+        working-directory: docs/site
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
+          VERCEL_PROJECT_ID: prj_TXccrJI83HyNvQUZxqStUFgus9NB
+        run: |
+          pull="${RUNNER_TEMP:?}/database.env"
+          if [ "$GITHUB_REF_NAME" = main ]; then
+            vercel env pull "$pull" --environment=production --token="$VERCEL_TOKEN" --yes
+          else
+            vercel env pull "$pull" --environment=preview --git-branch="$GITHUB_REF_NAME" --token="$VERCEL_TOKEN" --yes
+          fi
+          DATABASE_URL="$(sed -n 's/^DATABASE_URL="\{0,1\}\([^"]*\)"\{0,1\}$/\1/p' "$pull")"
+          rm -f "$pull"
+          [ -n "$DATABASE_URL" ] || { echo "::error::DATABASE_URL is not set for this environment"; exit 1; }
+          echo "::add-mask::$DATABASE_URL"
+          export DATABASE_URL
+          node scripts/db-migrate.ts
+
       # main is production. dev is a Preview of the same project, which qualitylayer.dev
       # is aliased to; only the tip of dev may take the domain, so a slower run never
       # puts an older page over a newer one.
