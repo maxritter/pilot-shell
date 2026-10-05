@@ -4,13 +4,17 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 ## 12.0.0-beta.15
 
+### New
+
+- Feedback you send from the App now also reaches us by e-mail, so no report waits for someone to open GitHub.
+
 ### Fixed
 
 - On Windows with the App installed, `qualitylayer uninstall` now finishes: the small launcher it runs through is moved aside and removed once it closes.
 
 ### Good to know
 
-- Feedback you send from the App now also reaches us by e-mail.
+- On beta.14 the App offers this update by itself: choose Restart and update when the sheet appears.
 
 ## 12.0.0-beta.14
 
