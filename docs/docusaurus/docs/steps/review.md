@@ -64,7 +64,7 @@ Shipped means you gave the final approval and the task is finished. The step lin
 ![Shipped: the task keeps its documents, what you decided and what it cost; the pull request, merge and deploy stay in your own process](pathname:///img/diagrams/shipped-light.svg)
 ![Shipped: the task keeps its documents, what you decided and what it cost; the pull request, merge and deploy stay in your own process](pathname:///img/diagrams/shipped-dark.svg)
 
-The task keeps its documents, the build record, the evidence and the approved pull request description, all in `docs/plans/` in your repository. A closing record goes into `00-discuss.md`. In the App you can still open the diff and the evidence.
+The task keeps its documents, the build record, the evidence and the approved pull request description (`05-review.md`), all in `docs/plans/` in your repository. A closing record goes into `01-discuss.md`. An older task has `00-discuss.md` and keeps its pull request description in QualityLayer's own folder. In the App you can still open the diff and the evidence.
 
 QualityLayer never pushes or opens a pull request by itself. Merging, deploying and releasing stay with your own process.
 

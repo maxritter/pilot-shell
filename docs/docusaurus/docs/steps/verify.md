@@ -79,4 +79,4 @@ When the Plan crossed a trust boundary or marked a slice risky, a [second opinio
 
 ## What is kept
 
-The records are kept in `03-build.md`, with the evidence under `evidence/`. Next: [Review](review.md).
+The records are kept in `04-verify.md`, with the evidence under `evidence/`. An older task keeps them in `03-build.md`. Next: [Review](review.md).

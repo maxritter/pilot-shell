@@ -5,27 +5,30 @@ description: What a task writes into your repository, what stays on your compute
 
 ## A task's files
 
-![A task folder in docs/plans: the Discuss and Plan documents with their details, research or diagnosis, mockups, the build record, reviews, evidence and the pull request text](pathname:///img/diagrams/files-light.svg)
-![A task folder in docs/plans: the Discuss and Plan documents with their details, research or diagnosis, mockups, the build record, reviews, evidence and the pull request text](pathname:///img/diagrams/files-dark.svg)
+![A task folder in docs/plans: one file per step, from 01-discuss to 05-review, with the agent's details beside Discuss, Plan and Implement, research or diagnosis, mockups, reviews and evidence](pathname:///img/diagrams/files-light.svg)
+![A task folder in docs/plans: one file per step, from 01-discuss to 05-review, with the agent's details beside Discuss, Plan and Implement, research or diagnosis, mockups, reviews and evidence](pathname:///img/diagrams/files-dark.svg)
 
 Each task gets a folder in `docs/plans/` in your repository. Its documents are plain Markdown, committed with the change on the branch you are working on, so they go through your normal review and history. Uninstalling QualityLayer never touches them.
 
 | File | Who reads it | What it holds |
 | --- | --- | --- |
-| `00-discuss.md` | You, in the App | The problem, Done means, what was decided with you; PRD sections when what to build was open |
-| `00-discuss-details.md` | Your agent | Your words, verbatim, and the starting points in the code |
-| `01-research.md` | Your agent | Research findings, when research ran |
-| `01-diagnosis.md` | Your agent | A bug's reproduction and investigation |
+| `01-discuss.md` | You, in the App | The problem, Done means, what was decided with you; PRD sections when what to build was open |
+| `01-discuss-details.md` | Your agent | Your words, verbatim, and the starting points in the code |
+| `01-discuss-research.md` | Your agent | Research findings, when research ran |
+| `01-discuss-diagnosis.md` | Your agent | A bug's reproduction and investigation |
 | `02-plan.md` | You, in the App | The Plan you approve |
 | `02-plan-details.md` | The builders | Contracts, patterns, the slices with their task cards, the scenarios |
-| `03-build.md` | Your agent, the checking agents, the App | Notes from the build, the recorded checks, checkpoints, Polish and Security, verification |
-| `03-build-details.md` | Your agent | Changes to the Plan made during the build |
+| `03-implement.md` | You, your agent, the App | Notes from the build, the recorded checks, checkpoints |
+| `03-implement-details.md` | Your agent | Changes to the Plan made during the build |
+| `04-verify.md` | Your agent, the checking agents, the App | Polish and Security, the verification of every Done means point |
+| `05-review.md` | You | The approved pull request text |
 | `artifacts/` | You | Mockups and diagrams |
 | `evidence/` | You, the checking agents | Test output, logs and screenshots |
 | `reviews/` | Your agent | Second-opinion findings, when it ran |
-| `pr-description.md` | You | The approved pull request text |
 
-Tasks planned with an older QualityLayer keep their older document names and still open in the App.
+The App shows the path of the file you are reading at the top of the page. Click it to copy the path, open the file in your editor, reveal it in your file manager, or open any other file of the task. **For the agent** at the end of the step tabs switches between a step's page and its agent file.
+
+A task planned with an older QualityLayer keeps its older names (`00-discuss.md`, `00-discuss-details.md`, `01-research.md`, `01-diagnosis.md`, `03-build.md`, and the pull request text in QualityLayer's own folder as `pr-description.md`) and still opens in the App.
 
 ## What stays on your computer, and what leaves it {#privacy}
 

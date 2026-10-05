@@ -2,13 +2,13 @@
 """QualityLayer concept diagrams: one source, a light and a dark SVG each.
 
 Used by the README and the docs. Regenerate after a change:
-    python3 scripts/diagrams.py static/img/diagrams
+    python3 scripts/diagrams.py [static/img/diagrams]
 """
 import os
 import sys
 from xml.sax.saxutils import escape
 
-OUT = sys.argv[1]
+OUT = sys.argv[1] if len(sys.argv) > 1 else 'static/img/diagrams'
 Theme = dict[str, str]
 
 THEMES = {
@@ -268,16 +268,17 @@ def files_ill(c: Theme) -> str:
     W, H = 1000, 350
     b = [card(c, 0, 0, 640, 346)]
     b.append(T(18, 30, 'docs/plans/2026-10-03-csv-export/', 13.5, 'text', 700, mono=True, c=c))
-    rows = [('00-discuss.md · 00-discuss-details.md', 'Discuss', 'pair'),
-            ('01-research.md or 01-diagnosis.md', 'Research or diagnosis', 'blue'),
+    rows = [('01-discuss.md · 01-discuss-details.md', 'Discuss', 'pair'),
+            ('01-discuss-research.md or 01-discuss-diagnosis.md', 'Research or diagnosis', 'blue'),
             ('02-plan.md · 02-plan-details.md', 'The Plan you approve', 'pair'),
             ('artifacts/', 'Mockups and diagrams', 'amber'),
-            ('03-build.md · 03-build-details.md', 'The build record and checks', 'blue'),
+            ('03-implement.md · 03-implement-details.md', 'The build notes and checks', 'pair'),
+            ('04-verify.md', 'The quality pass and verdicts', 'blue'),
             ('reviews/', 'Second-opinion findings', 'muted'),
             ('evidence/', 'Test output, logs, screenshots', 'violet'),
-            ('pr-description.md', 'The pull request text', 'dim')]
+            ('05-review.md', 'The pull request text', 'dim')]
     for i, (f, what, kind) in enumerate(rows):
-        y = 50 + i * 36
+        y = 50 + i * 32
         b.append(f'<line x1="26" y1="{y - 8}" x2="26" y2="{y + 14}" stroke="{c["line"]}"/>')
         b.append(f'<line x1="26" y1="{y + 6}" x2="38" y2="{y + 6}" stroke="{c["line"]}"/>')
         if kind == 'pair':
@@ -298,7 +299,7 @@ def files_ill(c: Theme) -> str:
     b.append(T(678, 250, 'All of it lives in your repository,', 12.5, 'muted', c=c))
     b.append(T(678, 270, 'next to your code, and goes into', 12.5, 'muted', c=c))
     b.append(T(678, 290, 'Git with the change.', 12.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'A task folder in docs/plans: the Discuss and Plan documents with their details, research or diagnosis, mockups, the build record, reviews, evidence and the pull request text')
+    return svg(W, H, ''.join(b), 'A task folder in docs/plans: one file per step, from 01-discuss to 05-review, with the agent’s details beside Discuss, Plan and Implement, research or diagnosis, mockups, reviews and evidence')
 
 
 # ---------------------------------------------------------------- shared pieces of the App's anatomy

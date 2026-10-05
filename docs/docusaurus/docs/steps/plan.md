@@ -50,7 +50,7 @@ One violet line says what agents proved before the Plan reached you, for example
 
 For a bug, What changes becomes the reproduction, the symptom and root cause, the behaviour you need and the fix.
 
-`02-plan.md` is what you review. `02-plan-details.md` holds what the builders read: the contracts, the patterns to follow, each slice with its task cards and the commands that check it, and the scenario steps.
+`02-plan.md` is what you review. `02-plan-details.md` holds what the builders read: the contracts, the patterns to follow, each slice with its task cards and the commands that check it, and the scenario steps. The **For the agent** switch at the end of the step tabs shows `02-plan-details.md` next to **For you**, with the number of open comments on each. You and your teammates can comment on either.
 
 ## Lines that decide what runs later {#plan-lines}
 

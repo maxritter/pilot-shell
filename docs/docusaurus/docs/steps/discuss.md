@@ -38,7 +38,7 @@ After the first questions, your agent checks the size. When Done means fits one 
 
 ## In the App
 
-The task appears in the App once your agent starts it. `00-discuss.md` fills in while you answer.
+The task appears in the App once your agent starts it. `01-discuss.md` fills in while you answer. The header shows its path, and clicking it copies the path, opens the file or reveals it.
 
 | Section | What it holds |
 | --- | --- |
@@ -47,7 +47,9 @@ The task appears in the App once your agent starts it. `00-discuss.md` fills in 
 | Decided with you | The questions your agent asked, with your answers |
 | In and not in this task | Where the change starts and stops |
 
-`00-discuss-details.md` keeps your request word for word and the starting points in the code.
+`01-discuss-details.md` keeps your request word for word and the starting points in the code. **For the agent**, at the end of the step tabs, shows it beside **For you**.
+
+Tasks started with an older QualityLayer call these files `00-discuss.md` and `00-discuss-details.md`, and still open in the App.
 
 ## When what to build is still open {#prd}
 
@@ -55,11 +57,11 @@ Sometimes no ticket says what to build, or several first versions seem plausible
 
 ## Research
 
-Your agent reads the code itself. When the questions span several areas it cannot trace, other agents research them without seeing your goal, so their findings describe the code as it is. Your agent checks their findings against the code. The findings go to `01-research.md`, for the agent only.
+Your agent reads the code itself. When the questions span several areas it cannot trace, other agents research them without seeing your goal, so their findings describe the code as it is. Your agent checks their findings against the code. The findings go to `01-discuss-research.md`, for the agent only (`01-research.md` in an older task).
 
 ## A bug {#a-bug}
 
-For a bug, your agent reproduces it and finds the cause before anything is planned. The reproduction output and the investigation go to `01-diagnosis.md`, for the agent. The App shows the bug as a contract you agree with:
+For a bug, your agent reproduces it and finds the cause before anything is planned. The reproduction output and the investigation go to `01-discuss-diagnosis.md`, for the agent (`01-diagnosis.md` in an older task). The App shows the bug as a contract you agree with:
 
 - **When** it happens.
 - **Today**, what goes wrong.

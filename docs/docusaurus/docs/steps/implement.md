@@ -45,7 +45,7 @@ You can comment on any slice or task while it builds. The App shows where the co
 ![Implement and Verify: slices built test first, side by side where they share no files, a checkpoint after a risky slice, then Polish and the security review, then checking](pathname:///img/diagrams/slices-light.svg)
 ![Implement and Verify: slices built test first, side by side where they share no files, a checkpoint after a risky slice, then Polish and the security review, then checking](pathname:///img/diagrams/slices-dark.svg)
 
-Your agent does not report its own test results. QualityLayer runs the commands approved in the Plan and records each one, with its exit code, under *Checks* in `03-build.md`.
+Your agent does not report its own test results. QualityLayer runs the commands approved in the Plan and records each one, with its exit code, under *Checks* in `03-implement.md` (`03-build.md` in a task from an older QualityLayer).
 
 | Command | What it runs |
 | --- | --- |
