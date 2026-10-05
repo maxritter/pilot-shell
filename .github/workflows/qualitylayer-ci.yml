@@ -82,6 +82,11 @@ jobs:
         working-directory: qualitylayer
         run: bun install --frozen-lockfile
 
+      # The suites run the site's real handlers on the in-process database (PGlite) it ships.
+      - name: Install the site's dependencies
+        working-directory: docs/site
+        run: npm ci --ignore-scripts
+
       - name: Typecheck
         working-directory: qualitylayer
         run: bun run typecheck
@@ -182,6 +187,11 @@ jobs:
       - name: Install dependencies
         working-directory: qualitylayer
         run: bun install --frozen-lockfile
+
+      # The suites run the site's real handlers on the in-process database (PGlite) it ships.
+      - name: Install the site's dependencies
+        working-directory: docs/site
+        run: npm ci --ignore-scripts
 
       # Bun has no native Windows arm64 build: under x64 emulation it installs TypeScript's x64
       # compiler, which the runner's arm64 Node cannot find. Under Bun, tsc asks for the x64 one.
