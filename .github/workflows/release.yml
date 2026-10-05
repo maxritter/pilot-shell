@@ -182,7 +182,7 @@ jobs:
       - name: Install git-crypt
         run: bash .github/workflows/scripts/install-git-crypt.sh
 
-      - name: Check qualitylayer/ is encrypted in the public tree
+      - name: Check the encrypted paths are encrypted in the public tree
         run: bash scripts/check_qualitylayer_encrypted.sh
 
       - name: Unlock repository

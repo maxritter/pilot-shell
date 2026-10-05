@@ -12,6 +12,7 @@ on:
       - "install.ps1"
       - ".github/workflows/qualitylayer-ci.yml"
       - "scripts/check_qualitylayer_encrypted.sh"
+      - "scripts/cutover.sh"
   pull_request:
     branches:
       - dev
@@ -23,6 +24,7 @@ on:
       - "install.ps1"
       - ".github/workflows/qualitylayer-ci.yml"
       - "scripts/check_qualitylayer_encrypted.sh"
+      - "scripts/cutover.sh"
 
 permissions:
   contents: read
@@ -45,7 +47,7 @@ jobs:
 
       # Runs against the locked checkout on purpose: what this job sees is
       # exactly what the public repository serves.
-      - name: Check qualitylayer/ is encrypted
+      - name: Check the encrypted paths are encrypted
         run: bash scripts/check_qualitylayer_encrypted.sh
 
   test:

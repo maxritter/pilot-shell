@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # Plaintext guard for the encrypted trees.
 #
-# The trees are qualitylayer/ and docs/site/api/. Every tracked path under them
-# must be reported as encrypted by `git-crypt status`, except the four manifest
-# files under qualitylayer/ that supply-chain scanners need in plaintext. A file
-# that slipped into history unencrypted (git-crypt flags it with a NOT
-# ENCRYPTED warning) also fails.
+# The trees are qualitylayer/ and docs/site/api/, plus the site's backend
+# operation scripts, the feedback-store worker and scripts/cutover.sh (see
+# is_guarded). Every tracked path under them must be reported as encrypted by
+# `git-crypt status`, except the four manifest files under qualitylayer/ that
+# supply-chain scanners need in plaintext. A file that slipped into history
+# unencrypted (git-crypt flags it with a NOT ENCRYPTED warning) also fails.
 #
 # With --range, it instead scans a commit range: every blob a commit of the
-# range adds or changes under those trees must begin with git-crypt's header.
+# range adds or changes under those paths must begin with git-crypt's header.
 # That needs no key and no git-crypt, and it prints paths, never contents.
 #
 # Run locally as a pre-push check and in CI (works on a locked checkout).
@@ -54,6 +55,32 @@ is_allowed() {
   return 1
 }
 
+# The guarded paths outside the two trees: the backend operation scripts, their
+# tests and the backup recipient, every file of the feedback-store worker, and
+# the cut-over script. The website's own build scripts stay plaintext.
+is_guarded() {
+  case "$1" in
+  qualitylayer/* | docs/site/api/*) return 0 ;;
+  docs/site/scripts/backup.ts | docs/site/scripts/restore.ts | docs/site/scripts/db-migrate.ts) return 0 ;;
+  docs/site/scripts/upload-workflow.ts | docs/site/scripts/load-check.ts) return 0 ;;
+  docs/site/scripts/backup-recipient.txt | docs/site/scripts/*.test.ts) return 0 ;;
+  docs/site/workers/feedback-store/*) return 0 ;;
+  scripts/cutover.sh) return 0 ;;
+  esac
+  return 1
+}
+
+# Names the guarded paths that sit outside the two trees, so a run shows them.
+list_extra() {
+  local path
+  while IFS= read -r path; do
+    case "$path" in
+    qualitylayer/* | docs/site/api/*) ;;
+    *) echo "  encrypted: $path" ;;
+    esac
+  done
+}
+
 # git-crypt starts every encrypted file with NUL, "GITCRYPT", NUL.
 GITCRYPT_HEADER="004749544352595054"
 
@@ -67,10 +94,7 @@ scan_range() {
   # One "<blob> <path>" line per added or changed path in the range, once each.
   git log --format= --raw --no-renames --diff-filter=AM --root "$RANGE" |
     while IFS=$'\t' read -r meta path; do
-      case "$path" in
-      qualitylayer/* | docs/site/api/*) ;;
-      *) continue ;;
-      esac
+      is_guarded "$path" || continue
       if is_allowed "$path"; then
         continue
       fi
@@ -91,6 +115,7 @@ scan_range() {
     echo "check_qualitylayer_encrypted: $failures plaintext blob(s) in $RANGE" >&2
     exit 1
   fi
+  cut -d' ' -f2- "$LISTING" | list_extra
   echo "check_qualitylayer_encrypted: OK ($checked blob(s) in $RANGE are encrypted)"
 }
 
@@ -106,21 +131,18 @@ fi
 
 failures=0
 checked=0
+extra_paths=""
 
 # `git-crypt status` prints one line per tracked file:
 #   "    encrypted: path" or "not encrypted: path", optionally followed by
 #   " *** WARNING: staged/committed version is NOT ENCRYPTED! ***".
 while IFS= read -r line; do
-  case "$line" in
-  *": qualitylayer/"* | *": docs/site/api/"*) ;;
-  *) continue ;;
-  esac
-
   status="${line%%: *}"
   rest="${line#*: }"
   # Strip a trailing git-crypt warning from the path column.
   path="${rest%% \*\*\**}"
 
+  is_guarded "$path" || continue
   if is_allowed "$path"; then
     continue
   fi
@@ -136,6 +158,8 @@ while IFS= read -r line; do
     if [[ "$line" == *"NOT ENCRYPTED"* ]]; then
       echo "PLAINTEXT IN HISTORY: $path has an unencrypted staged/committed version" >&2
       failures=$((failures + 1))
+    else
+      extra_paths+="$path"$'\n'
     fi
     ;;
   *)
@@ -146,8 +170,9 @@ while IFS= read -r line; do
 done < <(git-crypt status)
 
 if [ "$failures" -gt 0 ]; then
-  echo "check_qualitylayer_encrypted: $failures plaintext path(s) under qualitylayer/ or docs/site/api/" >&2
+  echo "check_qualitylayer_encrypted: $failures plaintext path(s) among the guarded paths" >&2
   exit 1
 fi
 
+printf '%s' "$extra_paths" | list_extra
 echo "check_qualitylayer_encrypted: OK ($checked encrypted path(s), ${#ALLOWLIST[@]} allowlisted)"
