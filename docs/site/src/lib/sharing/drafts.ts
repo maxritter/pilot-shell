@@ -3,7 +3,7 @@
  * Everything leaves together, when they choose Send. Pure, so the page's state is testable.
  */
 
-import { answerWords, type GuestAnswer, type Remark, type ShareItem } from "./sharing";
+import { answerWords, docOfStep, type GuestAnswer, type Remark, type ShareItem } from "./sharing";
 
 export type Drafts = {
   /** By question id. A change or a reply counts once it says something. */
@@ -33,11 +33,11 @@ export function removeRemark(drafts: Drafts, index: number): Drafts {
 const complete = (a: { answer: GuestAnswer; note: string }) => a.answer === "agree" || a.note.trim() !== "";
 
 /** What would leave now: the answers in the order the owner asked, then the comments. */
-export function pending(drafts: Drafts, items: readonly ShareItem[]): Remark[] {
+export function pending(drafts: Drafts, items: readonly ShareItem[], docs: Record<string, string>): Remark[] {
   const answers = items.flatMap((item): Remark[] => {
     const a = drafts.answers[item.id];
     if (a === undefined || !complete(a)) return [];
-    return [{ kind: "item", id: item.id, step: item.step, what: item.what, answer: a.answer, label: answerWords(item, a.answer), note: a.note.trim() }];
+    return [{ kind: "item", id: item.id, step: item.step, doc: docOfStep(item.step, docs), what: item.what, answer: a.answer, label: answerWords(item, a.answer), note: a.note.trim() }];
   });
   return [...answers, ...drafts.remarks];
 }

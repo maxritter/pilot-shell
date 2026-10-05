@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
+import { answerItem, EMPTY, pending } from "./drafts";
 import {
   answerWords,
   loadShare,
   openFromLink,
   parseItems,
   remarksPayload,
+  type ShareItem,
   sealForLink,
   stepDocs,
   submitRemarks,
@@ -161,8 +163,8 @@ describe("the owner's questions", () => {
 
 describe("sending what a guest wrote", () => {
   const remarks = [
-    { kind: "item" as const, id: "plan:decision:1", step: "plan" as const, what: "The second opinion follows the Plan's risk", answer: "change" as const, label: "Suggest a change", note: "Only on risky Plans" },
-    { kind: "item" as const, id: "plan:mockup:1", step: "plan" as const, what: "Settings after the change", answer: "agree" as const, label: "Looks right", note: "" },
+    { kind: "item" as const, id: "plan:decision:1", step: "plan" as const, doc: "02-plan.md", what: "The second opinion follows the Plan's risk", answer: "change" as const, label: "Suggest a change", note: "Only on risky Plans" },
+    { kind: "item" as const, id: "plan:mockup:1", step: "plan" as const, doc: "02-plan.md", what: "Settings after the change", answer: "agree" as const, label: "Looks right", note: "" },
     { kind: "passage" as const, doc: "02-plan.md", quote: "One Vercel deployment", text: "Why one?" },
     { kind: "thread" as const, thread: "g-abc123", anchor: { kind: "doneMeans" as const, id: "1", quote: "A 61st export" }, text: "Is 429 right?" },
     { kind: "reply" as const, thread: "g-abc123", text: "Thanks" },
@@ -188,6 +190,40 @@ describe("sending what a guest wrote", () => {
       anchor: { kind: "doneMeans", id: "1", quote: "A 61st export" },
     });
     expect(JSON.parse(payload.annotations[4]?.originalText ?? "")).toEqual({ t: "reply", thread: "g-abc123" });
+  });
+
+  it("posts an answer on Discuss against the file the shared task keeps Discuss in", () => {
+    const discussItem: ShareItem = {
+      id: "discuss:decision:1",
+      step: "discuss",
+      family: "decide",
+      kind: "decision",
+      kindLabel: "Decision",
+      what: "Which export format",
+      options: ["agree", "change"],
+    };
+    const drafts = answerItem(EMPTY, discussItem.id, "agree");
+    const docOf = (docs: Record<string, string>) =>
+      remarksPayload("Sam", pending(drafts, [discussItem], docs), 1).annotations.map((a) => a.blockId);
+    expect(docOf({ "01-discuss.md": "d", "02-plan.md": "p" })).toEqual(["01-discuss.md"]);
+    expect(docOf({ "00-discuss.md": "d", "02-plan.md": "p" })).toEqual(["00-discuss.md"]);
+  });
+
+  it("posts an answer on the build against the new task's Implement file, and an older task's build log", () => {
+    const buildItem: ShareItem = {
+      id: "implement:decision:1",
+      step: "implement",
+      family: "decide",
+      kind: "decision",
+      kindLabel: "Decision",
+      what: "Retry the export once",
+      options: ["agree", "change"],
+    };
+    const drafts = answerItem(EMPTY, buildItem.id, "agree");
+    const docOf = (docs: Record<string, string>) =>
+      remarksPayload("Sam", pending(drafts, [buildItem], docs), 1).annotations.map((a) => a.blockId);
+    expect(docOf({ "01-discuss.md": "d", "02-plan.md": "p" })).toEqual(["03-implement.md"]);
+    expect(docOf({ "00-discuss.md": "d", "02-plan.md": "p" })).toEqual(["03-build.md"]);
   });
 
   it("names a guest who gave no name Guest", () => {

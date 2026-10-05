@@ -15,6 +15,7 @@ const item = (id: string, over: Partial<ShareItem> = {}): ShareItem => ({
   ...over,
 });
 
+const DOCS = { "01-discuss.md": "d", "02-plan.md": "p" };
 const ITEMS = [item("a"), item("b", { family: "look", kind: "mockup", kindLabel: "Mockup" }), item("c")];
 
 describe("answers to the owner's questions", () => {
@@ -39,15 +40,15 @@ describe("answers to the owner's questions", () => {
     let d = addRemark(EMPTY, { kind: "passage", doc: "02-plan.md", quote: "", text: "General remark" });
     d = answerItem(d, "c", "agree");
     d = answerItem(d, "a", "change", "Rename it");
-    expect(pending(d, ITEMS).map((r) => r.kind)).toEqual(["item", "item", "passage"]);
-    expect(pending(d, ITEMS)[0]).toMatchObject({ kind: "item", id: "a", answer: "change", note: "Rename it" });
-    expect(pending(d, ITEMS)[1]).toMatchObject({ kind: "item", id: "c", answer: "agree" });
+    expect(pending(d, ITEMS, DOCS).map((r) => r.kind)).toEqual(["item", "item", "passage"]);
+    expect(pending(d, ITEMS, DOCS)[0]).toMatchObject({ kind: "item", id: "a", answer: "change", note: "Rename it" });
+    expect(pending(d, ITEMS, DOCS)[1]).toMatchObject({ kind: "item", id: "c", answer: "agree" });
   });
 
   it("sends nothing for a change that says nothing, and nothing for a question that is gone", () => {
     let d = answerItem(EMPTY, "a", "change");
     d = answerItem(d, "gone", "agree");
-    expect(pending(d, ITEMS)).toEqual([]);
+    expect(pending(d, ITEMS, DOCS)).toEqual([]);
   });
 });
 

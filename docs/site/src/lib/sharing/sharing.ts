@@ -374,7 +374,7 @@ export type ChangeAnchor = { kind: "doneMeans" | "picture" | "check"; id: string
  */
 export type Remark =
   | { kind: "passage"; doc: string; quote: string; text: string }
-  | { kind: "item"; id: string; step: FlowStep; what: string; answer: GuestAnswer; label: string; note: string }
+  | { kind: "item"; id: string; step: FlowStep; doc: string; what: string; answer: GuestAnswer; label: string; note: string }
   | { kind: "thread"; thread: string; anchor: ChangeAnchor; text: string }
   | { kind: "reply"; thread: string; text: string };
 
@@ -384,8 +384,17 @@ export const checkId = (label: string) => label.replace(" ", ":");
 /** A new thread id, in the form the App gives guest threads. */
 export const newThreadId = () => `g-${crypto.randomUUID().replace(/-/g, "").slice(0, 12)}`;
 
-/** The document an answer is recorded against: the step's own, as the App names it. */
-const DOC_OF_STEP: Record<Tab, string> = { discuss: "00-discuss.md", plan: "02-plan.md", build: "03-build.md" };
+/**
+ * The document an answer is recorded against: the step's own, as the App names it. A shared task
+ * that holds `01-discuss.md` keeps Discuss there; one that holds `00-discuss.md` is a legacy task.
+ */
+export function docOfStep(step: FlowStep, docs: Record<string, string>): string {
+  const tab = tabOfStep(step);
+  const steps = "01-discuss.md" in docs;
+  if (tab === "discuss") return steps ? "01-discuss.md" : "00-discuss.md";
+  if (tab === "plan") return "02-plan.md";
+  return steps ? "03-implement.md" : "03-build.md";
+}
 
 const annotation = (blockId: string, originalText: string, body: string, now: number) => ({
   id: crypto.randomUUID(),
@@ -399,7 +408,7 @@ function toAnnotation(r: Remark, now: number) {
   if (r.kind === "passage") return annotation(r.doc, r.quote, r.text, now);
   if (r.kind === "item") {
     const note = r.note.trim();
-    return annotation(DOC_OF_STEP[tabOfStep(r.step)], r.what.slice(0, 300), note === "" ? r.label : `${r.label}: ${note}`, now);
+    return annotation(r.doc, r.what.slice(0, 300), note === "" ? r.label : `${r.label}: ${note}`, now);
   }
   // The change's threads carry a small JSON head the App decodes (core/review/threads.ts fromWire).
   const head =

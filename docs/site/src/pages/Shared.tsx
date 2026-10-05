@@ -183,7 +183,7 @@ function Ready({
   const drafted = summary(drafts, items);
   // What was sent still counts as answered.
   const counts = { ...drafted, answered: drafted.answered + items.filter((item) => settled[item.id] !== undefined).length };
-  const waiting = pending(drafts, items);
+  const waiting = pending(drafts, items, share.docs);
   const expires = share.expires === undefined ? null : new Date(share.expires);
   const hasChange = share.review !== undefined;
   // On the change a comment belongs to a point of it; on a document it may be a general remark.
