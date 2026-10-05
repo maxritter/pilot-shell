@@ -8,8 +8,10 @@
 # other machine gets the command line alone and opens the App's pages in a browser. The first
 # line says what was found. --cli-only and --with-app override the rule.
 #
-# Everything is downloaded from GitHub Releases and verified against its published SHA-256
-# (mandatory) before anything is written. The command line then installs itself:
+# Everything is downloaded from GitHub Releases. The release's SHA256SUMS is signed
+# (SHA256SUMS.sig, `ssh-keygen -Y sign`); the signature is checked against the key built into this
+# script, and each download against its signed SHA-256 line, both mandatory, before anything is
+# written. The command line then installs itself:
 # `qualitylayer install` adds the skill for each installed agent and records every file it wrote
 # so `qualitylayer uninstall` can remove exactly those. With the App, the App's own command line
 # does this and a small launcher takes the path agents call.
@@ -24,6 +26,8 @@
 #
 # Environment: VERSION (e.g. 12.0.0-beta.1; default: the newest v12 release),
 # QUALITYLAYER_RELEASE_BASE and QUALITYLAYER_RELEASE_API (mirrors and tests).
+# QUALITYLAYER_RELEASE_SIGNER names another signing key for tests, and counts only when the
+# release base is on this machine (a file: or loopback address).
 
 set -euo pipefail
 
@@ -32,6 +36,19 @@ RELEASE_BASE="${QUALITYLAYER_RELEASE_BASE:-https://github.com/${REPO}/releases}"
 RELEASE_API="${QUALITYLAYER_RELEASE_API:-https://api.github.com/repos/${REPO}/releases?per_page=30}"
 VERSION="${VERSION:-}"
 VERSION="${VERSION#v}"
+
+# The only key that may sign a release; the same line is built into `qualitylayer update`.
+SIGNER_ID="release@qualitylayer.dev"
+SIGNER_NAMESPACE="qualitylayer-release"
+SIGNER_KEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOvc89TsfxkzK1lxTNLr/FHwImLq1oUWYmmXQ1iYL2oU"
+case "$RELEASE_BASE" in
+file://* | http://127.0.0.1[:/]* | http://localhost[:/]*)
+	# A mirror on this machine may be signed with a test key.
+	if [ -n "${QUALITYLAYER_RELEASE_SIGNER:-}" ]; then
+		SIGNER_KEY="$(printf '%s\n' "$QUALITYLAYER_RELEASE_SIGNER" | awk '{print $1 " " $2}')"
+	fi
+	;;
+esac
 
 # The installer's own lines match the install screen the binary draws next:
 # a blue ◇ per step and an amber ▲ for a failure, coloured only on a terminal.
@@ -171,20 +188,32 @@ say "QualityLayer ${VERSION} · ${system}${where}"
 
 base="${RELEASE_BASE}/download/v${VERSION}"
 
+# signed_sums: the release's SHA256SUMS and its signature, fetched once, and the signature checked
+# against the key built into this script before any line of the sums is trusted.
+signed_sums() {
+	[ -f "$work/SHA256SUMS.verified" ] && return 0
+	command -v ssh-keygen >/dev/null 2>&1 || fail "ssh-keygen is required to verify the release signature; nothing was installed"
+	fetch "${base}/SHA256SUMS" "$work/SHA256SUMS" || fail "the release checksums are missing: ${base}/SHA256SUMS; nothing was installed"
+	fetch "${base}/SHA256SUMS.sig" "$work/SHA256SUMS.sig" || fail "the release's SHA256SUMS is not signed by QualityLayer: ${base}/SHA256SUMS.sig is missing; nothing was installed"
+	printf '%s namespaces="%s" %s\n' "$SIGNER_ID" "$SIGNER_NAMESPACE" "$SIGNER_KEY" >"$work/allowed_signers"
+	ssh-keygen -Y verify -f "$work/allowed_signers" -I "$SIGNER_ID" -n "$SIGNER_NAMESPACE" -s "$work/SHA256SUMS.sig" <"$work/SHA256SUMS" >/dev/null 2>&1 ||
+		fail "the release's SHA256SUMS is not signed by QualityLayer; nothing was installed"
+	: >"$work/SHA256SUMS.verified"
+}
+
 # download_verified <file in the release> <where to put it> [what to say when it is missing]:
-# the file and its .sha256, checked before anything is installed.
+# the file, checked against its line in the signed SHA256SUMS before anything is installed.
 download_verified() {
 	local name="$1" dest="$2"
 	fetch "${base}/${name}" "$dest" bar || fail "download failed: ${base}/${name}${3:+; $3}"
-	fetch "${base}/${name}.sha256" "${dest}.sha256" || fail "the checksum is missing: ${base}/${name}.sha256; nothing was installed"
+	signed_sums
 	local expected actual
-	expected="$(awk '{print $1; exit}' "${dest}.sha256")"
+	expected="$(awk -v name="$name" '$2 == name {print $1; exit}' "$work/SHA256SUMS")"
 	actual="$(sha256_of "$dest")"
 	case "$expected" in
-	[0-9a-f][0-9a-f][0-9a-f][0-9a-f]*) ;;
-	*) fail "${name}.sha256 holds no checksum; nothing was installed" ;;
+	*[!0-9a-f]* | "") fail "SHA256SUMS holds no checksum for ${name}; nothing was installed" ;;
 	esac
-	[ "${#expected}" -eq 64 ] || fail "${name}.sha256 holds no checksum; nothing was installed"
+	[ "${#expected}" -eq 64 ] || fail "SHA256SUMS holds no checksum for ${name}; nothing was installed"
 	[ "$expected" = "$actual" ] || fail "checksum mismatch for ${name} (expected ${expected}, got ${actual}); nothing was installed"
 }
 

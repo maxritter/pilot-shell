@@ -8,7 +8,9 @@ name: Release
 # (Pilot Shell 11's updater verifies install.sh.sha256 at the tag), and the QualityLayer
 # App: six packages (a .dmg per Mac, a per-user setup per Windows, an AppImage per Linux),
 # each built on its own runner around the binary this run published, signed for the
-# updater, and described by latest.json, which is uploaded after everything it names.
+# updater, and described by latest.json, which is uploaded after everything it names. The
+# publishing job also signs a SHA256SUMS over every file (SHA256SUMS.sig, `ssh-keygen -Y sign`
+# with RELEASE_SIGNING_KEY); the installers and `qualitylayer update` verify it.
 #
 # `dev` publishes 12.x prereleases (beta); `main` publishes releases once v12 is
 # merged. Pilot Shell 11 keeps its own pipeline on the 11.x branch.
@@ -870,6 +872,30 @@ jobs:
         with:
           name: qualitylayer-release-complete
           path: release
+
+      # One list of every file's hash, signed: install.sh, install.ps1 and `qualitylayer update`
+      # check SHA256SUMS.sig against the key built into them before they trust a hash. The key is
+      # used here only, after the approval, and never on a runner that builds.
+      - name: Sign the checksums
+        env:
+          RELEASE_SIGNING_KEY: ${{ secrets.RELEASE_SIGNING_KEY }}
+          RELEASE_SIGNER: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOvc89TsfxkzK1lxTNLr/FHwImLq1oUWYmmXQ1iYL2oU
+        run: |
+          set -euo pipefail
+          [ -n "$RELEASE_SIGNING_KEY" ] || { echo "::error::RELEASE_SIGNING_KEY is not set"; exit 1; }
+          key="${RUNNER_TEMP:?}/release-signing-key"
+          allowed="${RUNNER_TEMP:?}/release-allowed-signers"
+          (umask 077 && printf '%s\n' "$RELEASE_SIGNING_KEY" > "$key")
+          files="$(cd release && find . -maxdepth 1 -type f ! -name latest.json ! -name '*.sha256' ! -name '*.sig' | sed 's|^\./||' | LC_ALL=C sort)"
+          (cd release && printf '%s\n' "$files" | xargs sha256sum > SHA256SUMS)
+          sums=release/SHA256SUMS
+          signature=release/SHA256SUMS.sig
+          ssh-keygen -Y sign -f "$key" -n qualitylayer-release "$sums"
+          rm -f "${key:?}"
+          # What was signed verifies against the published key, exactly as an installer will check it.
+          printf 'release@qualitylayer.dev namespaces="qualitylayer-release" %s\n' "$RELEASE_SIGNER" > "$allowed"
+          ssh-keygen -Y verify -f "$allowed" -I release@qualitylayer.dev -n qualitylayer-release -s "$signature" < "$sums"
+          (cd release && sha256sum -c SHA256SUMS)
 
       # The GitHub release says what the updater's manifest says: one section of CHANGELOG.md.
       - name: The release notes, from the manifest

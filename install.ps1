@@ -1,8 +1,12 @@
 # QualityLayer bootstrap for native Windows. No administrator rights required.
 # Native Windows always has a screen, so it gets the QualityLayer App: the per-user setup is
-# downloaded, verified against its SHA-256 and run silently, then the App's own command line
+# downloaded, verified against its signed SHA-256 and run silently, then the App's own command line
 # installs its skills and settings and a small launcher takes the path agents call.
 # -CliOnly installs the command line alone, as before. WSL2 uses install.sh inside the distribution.
+# The release's SHA256SUMS is signed (SHA256SUMS.sig, `ssh-keygen -Y sign`): the signature is checked
+# with `ssh-keygen -Y verify` against the key built into this script, then each download against its
+# signed line, both mandatory, before anything is installed. QUALITYLAYER_RELEASE_SIGNER names
+# another key for tests, and counts only when the release base is on this machine.
 [CmdletBinding()]
 param(
     [string]$Version = $env:VERSION,
@@ -17,6 +21,13 @@ if (-not $env:PATHEXT) { $env:PATHEXT = '.COM;.EXE;.BAT;.CMD' }
 
 $qlReleaseBase = if ($env:QUALITYLAYER_RELEASE_BASE) { $env:QUALITYLAYER_RELEASE_BASE } else { 'https://github.com/maxritter/pilot-shell/releases' }
 $qlReleaseApi = if ($env:QUALITYLAYER_RELEASE_API) { $env:QUALITYLAYER_RELEASE_API } else { 'https://api.github.com/repos/maxritter/pilot-shell/releases?per_page=30' }
+# The only key that may sign a release; the same line is built into `qualitylayer update`.
+$qlSignerId = 'release@qualitylayer.dev'
+$qlSignerNamespace = 'qualitylayer-release'
+$qlSignerKey = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOvc89TsfxkzK1lxTNLr/FHwImLq1oUWYmmXQ1iYL2oU'
+if ($env:QUALITYLAYER_RELEASE_SIGNER -and $qlReleaseBase -match '^(file://|http://(127\.0\.0\.1|localhost)([:/]|$))') {
+    $qlSignerKey = (($env:QUALITYLAYER_RELEASE_SIGNER.Trim() -split '\s+')[0..1]) -join ' '
+}
 $qlHome = if ($env:HOME) { $env:HOME } else { $env:USERPROFILE }
 if (-not $qlHome -or -not [IO.Path]::IsPathRooted($qlHome) -or -not (Test-Path -LiteralPath $qlHome -PathType Container)) {
     throw 'HOME or USERPROFILE must name an existing absolute user directory.'
@@ -40,13 +51,40 @@ $qlWanted = { param($qlTag) if ($CliOnly) { $qlAsset } else { "QualityLayer-$($q
 $qlWork = Join-Path ([IO.Path]::GetTempPath()) ("qualitylayer-install-" + [Guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($qlWork) | Out-Null
 
-# Save-Verified <file in the release> <where to put it>: the file and its .sha256, checked before
-# anything is installed.
+# Confirm-SignedSums: the release's SHA256SUMS and its signature, fetched once, and the signature
+# checked against the key built into this script before any line of the sums is trusted.
+$script:qlSums = $null
+function Confirm-SignedSums {
+    if ($script:qlSums) { return }
+    $qlKeygen = Get-Command ssh-keygen -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $qlKeygen) { throw 'ssh-keygen is required to verify the release signature; nothing was installed.' }
+    $qlSumsFile = Join-Path $qlWork 'SHA256SUMS'
+    Invoke-WebRequest -UseBasicParsing -Uri "$qlBase/SHA256SUMS" -OutFile $qlSumsFile
+    try {
+        Invoke-WebRequest -UseBasicParsing -Uri "$qlBase/SHA256SUMS.sig" -OutFile "$qlSumsFile.sig"
+    } catch {
+        throw "The release's SHA256SUMS is not signed by QualityLayer: $qlBase/SHA256SUMS.sig is missing; nothing was installed."
+    }
+    $qlAllowed = Join-Path $qlWork 'allowed_signers'
+    [IO.File]::WriteAllText($qlAllowed, "$qlSignerId namespaces=`"$qlSignerNamespace`" $qlSignerKey`n")
+    $qlVerify = Start-Process -FilePath $qlKeygen.Source -NoNewWindow -Wait -PassThru `
+        -ArgumentList @('-Y', 'verify', '-f', "`"$qlAllowed`"", '-I', $qlSignerId, '-n', $qlSignerNamespace, '-s', "`"$qlSumsFile.sig`"") `
+        -RedirectStandardInput $qlSumsFile -RedirectStandardOutput (Join-Path $qlWork 'verify.out') -RedirectStandardError (Join-Path $qlWork 'verify.err')
+    if ($qlVerify.ExitCode -ne 0) { throw "The release's SHA256SUMS is not signed by QualityLayer; nothing was installed." }
+    $script:qlSums = $qlSumsFile
+}
+
+# Save-Verified <file in the release> <where to put it>: the file, checked against its line in the
+# signed SHA256SUMS before anything is installed.
 function Save-Verified([string]$Name, [string]$Destination) {
     Invoke-WebRequest -UseBasicParsing -Uri "$qlBase/$Name" -OutFile $Destination
-    Invoke-WebRequest -UseBasicParsing -Uri "$qlBase/$Name.sha256" -OutFile "$Destination.sha256"
-    $qlExpected = ((Get-Content -LiteralPath "$Destination.sha256" -Raw).Trim() -split '\s+')[0]
-    if ($qlExpected -notmatch '^[0-9a-fA-F]{64}$') { throw 'The release checksum is invalid; nothing was installed.' }
+    Confirm-SignedSums
+    $qlExpected = $null
+    foreach ($qlLine in Get-Content -LiteralPath $script:qlSums) {
+        $qlFields = $qlLine.Trim() -split '\s+'
+        if ($qlFields.Count -ge 2 -and $qlFields[1] -eq $Name) { $qlExpected = $qlFields[0]; break }
+    }
+    if ($qlExpected -notmatch '^[0-9a-fA-F]{64}$') { throw "SHA256SUMS holds no checksum for $Name; nothing was installed." }
     $qlActual = (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash
     if ($qlExpected -ne $qlActual) { throw 'Checksum mismatch; nothing was installed.' }
 }
