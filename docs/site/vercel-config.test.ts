@@ -24,9 +24,13 @@ const config = JSON.parse(readFileSync(new URL("./vercel.json", import.meta.url)
   headers: { source: string; headers: { key: string; value: string }[] }[];
 };
 
+/** A file in api/ that Vercel deploys as a function: not a test, and not under a folder or named with a leading underscore (`_lib`, `__fixture__`). */
+const isHandler = (file: string) =>
+  file.endsWith(".ts") && !file.endsWith(".test.ts") && !file.split("/").some((part) => part.startsWith("_"));
+
 /** The deployed API routes, one per file in api/: a `[name]` segment matches any one segment. */
 const apiRoutes = readdirSync(new URL("./api", import.meta.url), { recursive: true, encoding: "utf8" })
-  .filter((file) => file.endsWith(".ts") && !file.endsWith(".test.ts") && !file.startsWith("_lib"))
+  .filter(isHandler)
   .map((file) => {
     const route = `/api/${file.replace(/\.ts$/, "")}`;
     return { dynamic: route.includes("["), regex: new RegExp(`^${route.replace(/\[[^\]]+\]/g, "[^/]+")}$`) };
@@ -267,9 +271,7 @@ describe("the share page's own headers", () => {
 
 describe("where the functions run", () => {
   it("pins every handler to fra1, next to the database and Redis", () => {
-    const handlers = readdirSync(new URL("./api", import.meta.url), { recursive: true, encoding: "utf8" }).filter(
-      (file) => file.endsWith(".ts") && !file.endsWith(".test.ts") && !file.startsWith("_lib"),
-    );
+    const handlers = readdirSync(new URL("./api", import.meta.url), { recursive: true, encoding: "utf8" }).filter(isHandler);
     expect(handlers.length).toBeGreaterThan(0);
     const regions = Object.fromEntries(
       handlers.map((file) => {
@@ -278,5 +280,13 @@ describe("where the functions run", () => {
       }),
     );
     expect(regions).toEqual(Object.fromEntries(handlers.map((file) => [file, '["fra1"]'])));
+  });
+});
+
+describe("who may call the API from a browser", () => {
+  it("sets no CORS header for the whole API: each route answers for itself, and only the share page's two do", () => {
+    // A blanket `/api/(.*)` rule once sent `Access-Control-Allow-Origin: *` on every route, over the methods each one serves.
+    const cors = config.headers.filter((rule) => rule.headers.some((header) => header.key.toLowerCase().startsWith("access-control-")));
+    expect(cors).toEqual([]);
   });
 });

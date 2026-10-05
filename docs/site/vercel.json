@@ -110,14 +110,6 @@
   ],
   "headers": [
     {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
-      ]
-    },
-    {
       "source": "/(.*)",
       "headers": [
         { "key": "Content-Security-Policy", "value": "frame-ancestors 'self' http://localhost:* https://localhost:*; object-src 'none'; base-uri 'self'; form-action 'self'" },
