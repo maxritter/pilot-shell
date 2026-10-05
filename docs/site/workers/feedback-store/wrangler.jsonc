@@ -5,5 +5,8 @@
   "main": "worker.js",
   "compatibility_date": "2026-10-01",
   "workers_dev": true,
-  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "qualitylayer-feedback" }]
+  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "qualitylayer-feedback" }],
+  // New reports are e-mailed through Email Routing on pilot-shell.com to its verified address.
+  // MAIL_SECRET (`wrangler secret put MAIL_SECRET`) is held by the feedback repo's workflow.
+  "send_email": [{ "name": "MAIL", "destination_address": "mail@maxritter.net" }]
 }

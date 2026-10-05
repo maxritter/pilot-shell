@@ -1,6 +1,46 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 // @ts-expect-error the Worker is plain JavaScript, bundled by wrangler
-import worker from "./worker.js";
+import worker, { reportMail } from "./worker.js";
+
+// The Workers runtime's e-mail module; outside it, a message is what it was built from.
+vi.mock("cloudflare:email", () => ({
+  EmailMessage: class {
+    constructor(
+      public from: string,
+      public to: string,
+      public raw: string,
+    ) {}
+  },
+}));
+
+describe("POST /mail", () => {
+  const sent: { from: string; to: string; raw: string }[] = [];
+  const env = { MAIL_SECRET: "mail-secret", MAIL: { send: async (m: (typeof sent)[number]) => void sent.push(m) } };
+  const post = (auth: string, body: string) =>
+    worker.fetch(new Request("https://store/mail", { method: "POST", headers: { Authorization: auth }, body }), env);
+
+  beforeEach(() => {
+    sent.length = 0;
+  });
+
+  it("e-mails the report to the owner with its title as the subject", async () => {
+    const res = await post("Bearer mail-secret", JSON.stringify({ title: "It broke", url: "https://x/1", body: "Steps" }));
+    expect(res.status).toBe(200);
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.to).toBe("mail@maxritter.net");
+    expect(sent[0]?.raw).toContain("Steps\r\n\r\nhttps://x/1");
+  });
+
+  it("refuses a wrong secret and sends nothing", async () => {
+    expect((await post("Bearer nope", "{}")).status).toBe(401);
+    expect(sent).toHaveLength(0);
+  });
+
+  it("keeps a multi-line title on one subject line", () => {
+    const raw = reportMail({ title: "a\r\nBcc: x@y.z", url: "", body: "" });
+    expect(raw).not.toContain("\r\nBcc:");
+  });
+});
 
 /**
  * The Worker is the only thing that touches the private bucket. The site's API holds a shared

@@ -4,8 +4,47 @@
 //
 //   PUT /o/<key>   stores the body under its content-type
 //   GET /o/<key>   returns it
+//   POST /mail     e-mails a new report to the owner (MAIL_SECRET; called by the feedback repo's
+//                  workflow for every new issue, because GitHub never e-mails anyone their own issues)
 //
 // A key is exactly what api/feedback writes: feedback/<yyyymmdd>/<32 hex>/<1-5>.<png|jpg|webp>.
+
+import { EmailMessage } from "cloudflare:email";
+
+const FROM = "feedback@pilot-shell.com";
+const TO = "mail@maxritter.net";
+
+/** A plain-text message with a subject, as RFC 5322 wants it (lines end in CRLF, the subject is one line). */
+export function reportMail({ title, url, body }) {
+  const subject = `QualityLayer feedback: ${String(title ?? "").replace(/[\r\n]+/g, " ").slice(0, 150)}`;
+  const encodedSubject = `=?UTF-8?B?${btoa(String.fromCharCode(...new TextEncoder().encode(subject)))}?=`;
+  const text = `${String(body ?? "").slice(0, 20000)}\n\n${String(url ?? "")}\n`;
+  return [
+    `From: QualityLayer Feedback <${FROM}>`,
+    `To: ${TO}`,
+    `Subject: ${encodedSubject}`,
+    `Message-ID: <${crypto.randomUUID()}@pilot-shell.com>`,
+    `Date: ${new Date().toUTCString()}`,
+    "MIME-Version: 1.0",
+    "Content-Type: text/plain; charset=utf-8",
+    "Content-Transfer-Encoding: 8bit",
+    "",
+    text.replace(/\r?\n/g, "\r\n"),
+  ].join("\r\n");
+}
+
+async function mail(request, env) {
+  const bearer = /^Bearer (.+)$/.exec(request.headers.get("Authorization") ?? "");
+  if (!env.MAIL_SECRET || !bearer || !(await sameSecret(bearer[1], env.MAIL_SECRET))) return text(401, "unauthorised");
+  let report;
+  try {
+    report = await request.json();
+  } catch {
+    return text(400, "send JSON with title, url and body");
+  }
+  await env.MAIL.send(new EmailMessage(FROM, TO, reportMail(report)));
+  return text(200, "sent");
+}
 
 const KEY = /^feedback\/(\d{8})\/[0-9a-f]{32}\/[1-5]\.(png|jpg|webp)$/;
 const TYPES = { png: "image/png", jpg: "image/jpeg", webp: "image/webp" };
@@ -37,6 +76,7 @@ function dayOf(digits) {
 
 export default {
   async fetch(request, env) {
+    if (request.method === "POST" && new URL(request.url).pathname === "/mail") return mail(request, env);
     const secret = env.STORE_SECRET;
     const bearer = /^Bearer (.+)$/.exec(request.headers.get("Authorization") ?? "");
     if (!secret || !bearer || !(await sameSecret(bearer[1], secret))) return text(401, "unauthorised");
