@@ -2,6 +2,16 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.15
+
+### Fixed
+
+- On Windows with the App installed, `qualitylayer uninstall` now finishes: the small launcher it runs through is moved aside and removed once it closes.
+
+### Good to know
+
+- Feedback you send from the App now also reaches us by e-mail.
+
 ## 12.0.0-beta.14
 
 ### New
