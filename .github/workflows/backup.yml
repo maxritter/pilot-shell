@@ -1,0 +1,86 @@
+name: Backup
+
+# Every Sunday, each database is copied, encrypted to the age recipient in
+# docs/site/scripts/backup-recipient.txt and put in the EU bucket. The new copy is always made
+# first; the second step then looks at the copy before it and fails the job when that one is over
+# 8 days old (a missed week), so GitHub mails the repository owner and the next run still works.
+# docs/site/scripts/restore.ts loads a copy into an empty database.
+
+"on":
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Back up ${{ matrix.database }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [production, preview]
+    env:
+      BACKUP_DATABASE: ${{ matrix.database }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      # The schema the copy is read by lives in an encrypted folder.
+      - name: Install git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+
+      - name: Unlock repository
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Setup Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
+        with:
+          node-version: "24.20.0"
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Install the site's dependencies
+        working-directory: docs/site
+        run: npm ci --ignore-scripts
+
+      - name: Copy the database to the bucket
+        working-directory: docs/site
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
+          VERCEL_PROJECT_ID: prj_TXccrJI83HyNvQUZxqStUFgus9NB
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BACKUP_ACCESS_KEY_ID: ${{ secrets.R2_BACKUP_ACCESS_KEY_ID }}
+          R2_BACKUP_SECRET_ACCESS_KEY: ${{ secrets.R2_BACKUP_SECRET_ACCESS_KEY }}
+        run: |
+          pull="${RUNNER_TEMP:?}/database.env"
+          if [ "$BACKUP_DATABASE" = production ]; then
+            vercel env pull "$pull" --environment=production --token="$VERCEL_TOKEN" --yes
+          else
+            vercel env pull "$pull" --environment=preview --git-branch=dev --token="$VERCEL_TOKEN" --yes
+          fi
+          DATABASE_URL="$(sed -n 's/^DATABASE_URL="\{0,1\}\([^"]*\)"\{0,1\}$/\1/p' "$pull")"
+          rm -f "$pull"
+          [ -n "$DATABASE_URL" ] || { echo "::error::DATABASE_URL is not set for $BACKUP_DATABASE"; exit 1; }
+          echo "::add-mask::$DATABASE_URL"
+          export DATABASE_URL
+          node scripts/backup.ts --env "$BACKUP_DATABASE"
+
+      - name: Look at the copy before this one
+        working-directory: docs/site
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BACKUP_ACCESS_KEY_ID: ${{ secrets.R2_BACKUP_ACCESS_KEY_ID }}
+          R2_BACKUP_SECRET_ACCESS_KEY: ${{ secrets.R2_BACKUP_SECRET_ACCESS_KEY }}
+        run: node scripts/backup.ts --env "$BACKUP_DATABASE" --check
