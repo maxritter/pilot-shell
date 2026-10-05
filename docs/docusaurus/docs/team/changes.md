@@ -17,13 +17,13 @@ Once Verify has passed, the task moves to **Review**. Your teammates see what th
 
 | | Your side | Your teammates' side |
 | --- | --- | --- |
-| **Start** | **Approve and open a pull request** in the Approve menu pushes the branch and opens the pull request with the written description, only when you choose it. An existing pull request is shown instead | They are asked to review once the pull request exists |
+| **Start** | After your approval, your agent offers to push the branch and open the pull request with the written description, and does it only when you say yes. An existing pull request is shown instead | They are asked to review once the pull request exists |
 | **Read** | Review shows the pull request's number, state and checks | Done means with its proof, the checks, the pictures, the steps to try it, and the Plan's decisions |
 | **Code** | You keep a diff of your local change; your comments there go to your agent | They review the code in the pull request, as usual |
 | **Comment** | Open threads collect in the **Comments** panel | They comment on any line and approve or ask for changes, over as many days as it takes |
 | **Fix** | Run `/ql review <task>` (`$ql review <task>` in Codex); your agent goes through each thread with you, the pull request's open code comments included | Each thread ends **fixed**, **answered** or **replanned** |
 | **Re-review** | Only what a fix touched is checked again before the next review | They are asked to look again |
-| **Ship** | Your agent asks "Approve the change?" once the threads are settled. Answer in the terminal, or with the App's **Approve** menu | |
+| **Ship** | Your agent asks "Approve the change?" once the threads are settled. Answer in the terminal. Your agent then offers to open the pull request | |
 
 ## People outside your team
 

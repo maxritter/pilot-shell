@@ -30,7 +30,7 @@ A teammate can hand your question to their own coding agent. See [Teammates' age
 | **Start** | In **Share**, choose your team or a group | The task appears under **Team** in their App |
 | **Read** | You review as usual | They read the same Plan in their own App |
 | **Ask and answer** | Your question waits under **Your questions to others**. When an answer arrives you get a Slack message and a notification, with the answer quoted | A question for them appears under **Questions for you** |
-| **Decide** | Your agent answers every comment and updates the Plan where it agrees. Only your approval moves the task on, given in the terminal when your agent asks "Approve the Plan?" or with the App's Approve button | Their approval shows as advice in your review |
+| **Decide** | Your agent answers every comment and updates the Plan where it agrees. Only your approval moves the task on, given in the terminal when your agent asks "Approve the Plan?" | Their approval shows as advice in your review |
 
 ## The Team space
 

@@ -25,7 +25,7 @@ $qlReleaseApi = if ($env:QUALITYLAYER_RELEASE_API) { $env:QUALITYLAYER_RELEASE_A
 $qlSignerId = 'release@qualitylayer.dev'
 $qlSignerNamespace = 'qualitylayer-release'
 $qlSignerKey = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOvc89TsfxkzK1lxTNLr/FHwImLq1oUWYmmXQ1iYL2oU'
-if ($env:QUALITYLAYER_RELEASE_SIGNER -and $qlReleaseBase -match '^(file://|http://(127\.0\.0\.1|localhost)([:/]|$))') {
+if ($env:QUALITYLAYER_RELEASE_SIGNER -and $qlReleaseBase -match '^(file://|http://(127\.0\.0\.1|localhost)(:\d+)?(/|$))') {
     $qlSignerKey = (($env:QUALITYLAYER_RELEASE_SIGNER.Trim() -split '\s+')[0..1]) -join ' '
 }
 $qlHome = if ($env:HOME) { $env:HOME } else { $env:USERPROFILE }

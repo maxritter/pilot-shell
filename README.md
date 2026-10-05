@@ -138,7 +138,7 @@ Describe a change to your agent in any repository:
 $ql retry failed webhooks, and stop after a few tries     # Codex
 ```
 
-Your agent asks each decision in the terminal, and the App beside it shows only what the current question is about. Put the App on the left and the terminal on the right. The App folds the rest and records each answer as "answered in the chat". The last question, "Approve the Plan?", you answer in the terminal or with the App's Approve button. `qualitylayer app` opens the App any time.
+Your agent asks each decision in the terminal, and the App beside it shows only what the current question is about. Put the App on the left and the terminal on the right. The App folds the rest and records each answer as "answered in the chat". The last question, "Approve the Plan?", you answer in the terminal, where you can also type `approve`. `qualitylayer app` opens the App any time.
 
 After you approve, the App opens Implement with one command that starts the build, such as `claude --model sonnet --effort high "/goal /ql implement retry-webhooks"`. From there nothing waits for you until the final review.
 
@@ -170,7 +170,7 @@ Every task takes the same five steps. You decide twice: when you approve the pla
 - **Plan:** the mockup and each engineering decision as a diagram, then the slices and the scenarios that prove the change works. A second agent reads the plan before it reaches you. Your agent asks each decision in the terminal and the App shows its diagram. Then it asks "Approve the Plan?".
 - **Implement:** the App opens with one command that starts the build, with the model and effort it recommends. Every task starts with a failing test. Nothing waits for you: when something does not go as planned, your agent takes the recommended way and the App lists it under "Changed while building".
 - **Verify:** polish and, across a trust boundary, a security review, then agents that did not write the code check every point of your request, on a live checklist.
-- **Review:** your agent asks the few items left in the terminal, and you look at the result in the App and approve. The Approve menu can open the pull request.
+- **Review:** your agent asks the few items left in the terminal, and you look at the result in the App, and the final approval is the last question in the terminal. Your agent then offers to open the pull request.
 
 QualityLayer works on the branch and worktree you have checked out and never switches them.
 

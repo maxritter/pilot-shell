@@ -116,9 +116,9 @@ The App speaks only when a person can act. That means a Plan or a review waits, 
 
 The tray menu lists the same lines. If none arrive, allow QualityLayer in your system's notification settings. You can turn them off in [Settings](reference/settings.md#notifications).
 
-## Approve in the chat or with the button
+## Approve in the chat
 
-The approval is the last question your agent asks. Pick **Approve** in its picker, in Claude Code or Codex, and QualityLayer's hook on the picker records it. The App's **Approve** button records the same decision. You can also type `approve` as your message. If a pick cannot be read, the approval stays open and your agent asks you to type `approve` or use the App. Codex asks you once to trust the hooks.
+The approval is the last question your agent asks. Pick **Approve** in its picker, in Claude Code or Codex, and QualityLayer's hook on the picker records it. You can also type `approve` as your message. If a pick cannot be read, the approval stays open and your agent asks you to type `approve`. Codex asks you once to trust the hooks.
 
 **Request changes** takes your words, and **Review in the App first** leaves the approval open while you read. If you answered Change on any decision, an Approve becomes a request for changes that carries those answers. Your agent revises the plan and asks again. Your agent cannot approve for you: if it runs the approve command itself, QualityLayer refuses.
 

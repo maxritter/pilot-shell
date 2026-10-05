@@ -36,6 +36,10 @@ const TELLS_THE_APP = [
   /approve\s+in\s+the\s+app/i,
   /request\s+changes\s+in\s+the\s+app/i,
   /answer[^.\n]{0,60}under\s+\**needs you/i,
+  // "or with the App's Approve button", "the App's Approve menu", "use the App's buttons"
+  /\bapp['\u2019]s\s+\**(approve|request changes|buttons?)/i,
+  /\bapprove\s+(with|using|by)\s+the\s+(app|button)/i,
+  /\bor\s+with\s+the\s+button\b/i,
 ];
 
 describe("the chat-first flow in the copy", () => {

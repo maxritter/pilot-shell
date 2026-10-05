@@ -86,7 +86,7 @@ Your agent answers each note and changes the Plan. The Plan comes back as "Waits
 
 ## You decide
 
-When your agent puts the Plan up for review (`qualitylayer gate open 02-plan.md`), it asks one question per engineering decision, then the last one: "Approve the Plan?", with **Approve**, **Request changes** or **Review in the App first**. Answer in the terminal, or use the App's **Approve** button. You can also type `approve` in your agent's chat.
+When your agent puts the Plan up for review (`qualitylayer gate open 02-plan.md`), it asks one question per engineering decision, then the last one: "Approve the Plan?", with **Approve**, **Request changes** or **Review in the App first**. Answer in the terminal. You can also type `approve` in your agent's chat.
 
 If you answered **Change** on any decision, an Approve becomes a request for changes that carries those answers. **Request changes** takes your words. Your agent revises the Plan and asks again.
 

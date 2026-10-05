@@ -12,10 +12,10 @@ Your agent asks each decision in the terminal, and the App beside it shows only 
 
 1. **Describe it.** `/ql add a CSV export to the reports page` (`$ql` in Codex). The task appears in the App as soon as your agent starts it.
 2. **Answer its questions.** Your agent reads the code, then asks one question at a time in its picker, each with its recommendation. Then it asks whether **Done means** is what you asked for.
-3. **Approve the Plan.** Your agent asks each engineering decision of the Plan, Agree or Change. The App shows the diagram or mockup the question is about; comment there on anything you are not asked. The last question is "Approve the Plan?", with Approve, Request changes or Review in the App first. Answer it in the terminal, or with the App's Approve button.
+3. **Approve the Plan.** Your agent asks each engineering decision of the Plan, Agree or Change. The App shows the diagram or mockup the question is about; comment there on anything you are not asked. The last question is "Approve the Plan?", with Approve, Request changes or Review in the App first. Answer it in the terminal. Pick Review in the App first to read before you decide; the question stays open.
 4. **Start Implement.** The App opens Implement by itself, with the setup it recommends for the build and one command to copy. Adjust the model or effort if you like, and paste the command into a terminal.
 5. **Agents build and check.** Each task starts with a failing test. Nothing waits for you. When something does not go as planned, your agent takes the recommended way and lists it under **Changed while building**. You see the slices fill in, and later one checklist of everything that was checked.
 6. **Settle what is left.** Whatever stays open reaches the final review. Your agent asks it in the terminal: confirm what only you can, look at the result, and accept or fix what the checks found.
-7. **Approve the change.** Answer the last question in the terminal, or choose **Approve and open a pull request** in the App's Approve menu, or **Approve only**.
+7. **Approve the change.** Answer the last question in the terminal. Your agent then offers to open the pull request, or you push the branch yourself.
 
 Next: [The App](app.md) shows how every step is laid out. Then [Discuss](steps/discuss.md), the first of the five steps.

@@ -41,14 +41,27 @@ VERSION="${VERSION#v}"
 SIGNER_ID="release@qualitylayer.dev"
 SIGNER_NAMESPACE="qualitylayer-release"
 SIGNER_KEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOvc89TsfxkzK1lxTNLr/FHwImLq1oUWYmmXQ1iYL2oU"
-case "$RELEASE_BASE" in
-file://* | http://127.0.0.1[:/]* | http://localhost[:/]*)
+# A mirror on this machine is a file: address or a loopback host with at most a port. Anything
+# between the host and the first slash that is not a port (a `user@` part, a second host) is not.
+on_this_machine() {
+	case "$1" in
+	file://*) return 0 ;;
+	http://127.0.0.1 | http://localhost | http://127.0.0.1/* | http://localhost/*) return 0 ;;
+	http://127.0.0.1:* | http://localhost:*)
+		local rest="${1#http://}"
+		local authority="${rest%%/*}"
+		case "${authority#*:}" in
+		'' | *[!0-9]*) return 1 ;;
+		*) return 0 ;;
+		esac
+		;;
+	esac
+	return 1
+}
+if on_this_machine "$RELEASE_BASE" && [ -n "${QUALITYLAYER_RELEASE_SIGNER:-}" ]; then
 	# A mirror on this machine may be signed with a test key.
-	if [ -n "${QUALITYLAYER_RELEASE_SIGNER:-}" ]; then
-		SIGNER_KEY="$(printf '%s\n' "$QUALITYLAYER_RELEASE_SIGNER" | awk '{print $1 " " $2}')"
-	fi
-	;;
-esac
+	SIGNER_KEY="$(printf '%s\n' "$QUALITYLAYER_RELEASE_SIGNER" | awk '{print $1 " " $2}')"
+fi
 
 # The installer's own lines match the install screen the binary draws next:
 # a blue ◇ per step and an amber ▲ for a failure, coloured only on a terminal.

@@ -37,25 +37,25 @@ Fixes go back to the agent. It makes them, and only what they touch is checked a
 ![One answer asks for a change, so the main button reads Send 1 change; the Comments panel lists your drafts, answered threads and your team's comments](pathname:///img/diagrams/comments-light.svg)
 ![One answer asks for a change, so the main button reads Send 1 change; the Comments panel lists your drafts, answered threads and your team's comments](pathname:///img/diagrams/comments-dark.svg)
 
-The last question is "Approve the change?", with **Approve**, **Request changes** or **Review in the App first**. Answer it in the terminal, or use the App's **Approve** button, like on the [Plan](plan.md). If you answered **Fix it** or **Change** on any item, an Approve becomes a request for changes that carries those answers. **Comments · 3** in the step line opens a panel with your drafts, threads the agent has answered, and what your team said.
+The last question is "Approve the change?", with **Approve**, **Request changes** or **Review in the App first**. Answer it in the terminal, like on the [Plan](plan.md). If you answered **Fix it** or **Change** on any item, an Approve becomes a request for changes that carries those answers. **Comments · 3** in the step line opens a panel with your drafts, threads the agent has answered, and what your team said.
 
 **Request changes** sends your words to the agent, which makes the fixes, checks what they touched, and asks again.
 
-In the App, the **Approve ▾** menu is where shipping lives:
+After you approve, your agent offers three ways to ship:
 
 | Choice | What it does |
 | --- | --- |
-| **Approve and open a pull request** | Pushes the branch and opens the pull request with the summary and the evidence. Needs `gh` |
+| **Open a pull request** | Pushes the branch and opens the pull request with the summary and the evidence. Needs `gh` |
 | **Approve only** | You push and open the pull request yourself |
 | **Copy the git commands** | For a machine without `gh` |
 
-QualityLayer does this only when you click it. It never merges, and never switches your branch. A comment that changes Done means is recorded as an agreed change to the Plan, in your words. Your agent opens the final approval with `qualitylayer gate open final`; you can also type `approve` in its chat. A point only you can confirm is asked as "Did you check: …?" with Confirmed or Not yet, and your words are kept with it. A checkpoint that stayed open after the build is named in one plain sentence before you decide.
+QualityLayer does this only when you say yes. It never merges, and never switches your branch. A comment that changes Done means is recorded as an agreed change to the Plan, in your words. Your agent opens the final approval with `qualitylayer gate open final`; you can also type `approve` in its chat. A point only you can confirm is asked as "Did you check: …?" with Confirmed or Not yet, and your words are kept with it. A checkpoint that stayed open after the build is named in one plain sentence before you decide.
 
 With a Team plan, teammates comment on any line in their own App and review the code in the pull request. See [Review changes as a team](../team/changes.md).
 
 ## Ready to ship
 
-When every item is settled, the step line reads "Ready to ship": "All 5 items are settled. The 2 fixes are in and checked." The main button is **Approve and open a pull request**. The page also says how many files are not from this task and left out.
+When every item is settled, the step line reads "Ready to ship": "All 5 items are settled. The 2 fixes are in and checked." Your agent asks the last question in the terminal. The page also says how many files are not from this task and left out.
 
 ## Shipped {#shipped}
 

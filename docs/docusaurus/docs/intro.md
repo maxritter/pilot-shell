@@ -24,7 +24,7 @@ Every task takes the same five steps. You approve twice: the Plan before any cod
 | **[Plan](steps/plan.md)** | The mockup, the engineering decisions as diagrams, and the slices and checks that prove it. Your agent asks each decision, then "Approve the Plan?" |
 | **[Implement](steps/implement.md)** | One command starts the build. Slices built test first, each check recorded by QualityLayer. Nothing waits for you, and you read the choices the build made on its own |
 | **[Verify](steps/verify.md)** | Agents that did not write the code check it against what done means, on a live checklist |
-| **[Review](steps/review.md)** | Your agent asks the few items left, you look at the result, and approve. The Approve menu can open the pull request |
+| **[Review](steps/review.md)** | Your agent asks the few items left, you look at the result, and approve in the terminal. Your agent then offers to open the pull request |
 
 A bug takes the same steps. Its cause is found before anything is planned.
 
