@@ -10,7 +10,7 @@
  *
  * Submitted only when:
  *   - INDEXNOW_SUBMIT=1 (explicit override), or
- *   - a production Vercel/Netlify deploy is running
+ *   - a production Vercel deploy is running
  *
  * Always skipped when INDEXNOW_DISABLE=1, which remains the authoritative
  * emergency/manual override.
@@ -30,8 +30,7 @@ const INDEXNOW_ENDPOINT = "https://api.indexnow.org/IndexNow";
 function shouldSubmitIndexNow(): boolean {
   if (process.env.INDEXNOW_DISABLE === "1") return false;
   if (process.env.INDEXNOW_SUBMIT === "1") return true;
-  if (process.env.VERCEL_ENV === "production") return true;
-  return process.env.NETLIFY === "true" && process.env.CONTEXT === "production";
+  return process.env.VERCEL_ENV === "production";
 }
 
 interface IndexNowOptions {

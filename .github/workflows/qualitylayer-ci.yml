@@ -140,6 +140,10 @@ jobs:
         working-directory: docs/site
         run: npm ci
 
+      - name: Typecheck the app, the build config and the API
+        working-directory: docs/site
+        run: npm run typecheck
+
       - name: Test
         working-directory: docs/site
         run: npm test

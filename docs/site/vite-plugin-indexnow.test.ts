@@ -33,8 +33,6 @@ describe("IndexNow build gating", () => {
     vi.stubEnv("INDEXNOW_DISABLE", "");
     vi.stubEnv("INDEXNOW_SUBMIT", "");
     vi.stubEnv("VERCEL_ENV", "");
-    vi.stubEnv("NETLIFY", "");
-    vi.stubEnv("CONTEXT", "");
     vi.spyOn(console, "log").mockImplementation(() => undefined);
   });
 
@@ -65,17 +63,6 @@ describe("IndexNow build gating", () => {
 
   it("submits in production deploy contexts", async () => {
     vi.stubEnv("VERCEL_ENV", "production");
-    const fetchMock = vi.fn().mockResolvedValue(new Response("", { status: 200 }));
-    vi.stubGlobal("fetch", fetchMock);
-
-    await runPlugin(prepareOutput());
-
-    expect(fetchMock).toHaveBeenCalledOnce();
-  });
-
-  it("recognizes a Netlify production deploy", async () => {
-    vi.stubEnv("NETLIFY", "true");
-    vi.stubEnv("CONTEXT", "production");
     const fetchMock = vi.fn().mockResolvedValue(new Response("", { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
 

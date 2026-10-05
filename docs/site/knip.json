@@ -4,10 +4,10 @@
   "entry": [
     // Vercel invokes every route; nothing imports it.
     "api/**/*.ts",
-    // Run by build-all.sh and by hand, never imported.
-    "scripts/*.mjs"
+    // Run by build-all.sh, by CI and by hand, never imported.
+    "scripts/*.{ts,mjs}"
   ],
-  "project": ["api/**/*.ts", "src/**/*.{ts,tsx,css}", "scripts/*.mjs", "*.{ts,mjs}"],
+  "project": ["api/**/*.ts", "src/**/*.{ts,tsx,css}", "scripts/*.{ts,mjs}", "*.{ts,mjs}"],
   "compilers": { "css": true },
   // An export that its own file still uses is code in use, not dead code.
   "ignoreExportsUsedInFile": true
