@@ -60,23 +60,34 @@ export interface FeedbackQueueEntry {
 
 /** Client → feedback API batch-read request body. */
 export interface FeedbackBatchRequest {
-  items: Array<{ id: string; cursor: number }>;
+  /**
+   * `since` is the change number the client last read for that link (`rev` of an earlier answer);
+   * a link still at that number answers `{ unchanged: true }` and costs no database read.
+   */
+  items: Array<{ id: string; cursor: number; since?: number }>;
+}
+
+/** What the batch answers for a link that has not changed since the number the client sent. */
+export interface FeedbackBatchUnchanged {
+  unchanged: true;
 }
 
 /** Feedback API → client batch-read response. Keyed by share id. */
-export type FeedbackBatchResponse = Record<
-  string,
-  {
-    entries: FeedbackQueueEntry[];
-    /** Cursor to send on the next poll. Equals the input cursor when entries is empty. */
-    cursor: number;
-    /** Present only when `share:<id>` does not exist (expired or never created). */
-    error?: "not_found";
-    /**
-     * Set true when the server returned a full page of entries; the client
-     * should re-poll immediately rather than wait for the next 60s tick.
-     * Absent or false means the queue was fully drained by this read.
-     */
-    hasMore?: boolean;
-  }
->;
+export type FeedbackBatchResponse = Record<string, FeedbackBatchRead | FeedbackBatchUnchanged>;
+
+/** What the batch answers for a link it read. */
+export interface FeedbackBatchRead {
+  entries: FeedbackQueueEntry[];
+  /** The link's change number as it stood before this read: send it back as `since` on the next poll. Absent for a link that is not found. */
+  rev?: number;
+  /** Cursor to send on the next poll. Equals the input cursor when entries is empty. */
+  cursor: number;
+  /** Present only when `share:<id>` does not exist (expired or never created). */
+  error?: "not_found";
+  /**
+   * Set true when the server returned a full page of entries; the client
+   * should re-poll immediately rather than wait for the next 60s tick.
+   * Absent or false means the queue was fully drained by this read.
+   */
+  hasMore?: boolean;
+}
