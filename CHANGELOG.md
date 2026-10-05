@@ -9,6 +9,14 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - While you plan, the agent asks every decision in the chat, including "Is this what you asked for" and "Done means". The App shows only what the open question is about, and an answer you give in the chat settles its item there at once.
 - After you approve the Plan, the App opens Implement with one command that starts the build: pick the agent, model, effort and where it starts, then copy it.
 - Nothing waits for you while agents build and check. They take the recommended way and note it, and what stays open reaches your final review.
+- The agent answers a second opinion's findings itself. You see them as plain lines in one closed row and are asked only what is truly yours to decide.
+- New tasks name their files after the step they belong to, from `01-discuss.md` to `05-review.md`, and tasks you already have keep their names.
+- Each step page shows the path of its file under the title, with Copy path, Open and Reveal, and the task's other files grouped by step.
+- One switch at the end of the step tabs moves between your document and the agent's details, and you can comment on both. Your team now receives the Plan's details and can comment there too.
+- When nobody knows an answer, the Plan records it as an unconfirmed assumption, and you can ask the team about it from there.
+- The Claude Code progress band and pane use the App's colours, in light and dark terminals, and fit narrow windows.
+- A helper that runs far past its time is named, so the agent restarts it instead of waiting for hours.
+- `qualitylayer commit slice` checks the exact files it commits, so another session's unfinished work neither blocks a slice nor slips past it.
 - Team plans, share links and comments now live in a database in Frankfurt, with an encrypted backup every week to a bucket in the EU.
 - `qualitylayer update`, `install.sh` and `install.ps1` check the release's signature as well as its checksums. The installers need `ssh-keygen`, which comes with macOS, Linux and Windows' OpenSSH client.
 
@@ -17,6 +25,11 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Only qualitylayer.dev can grant a paid tier on a machine. An edited local file no longer unlocks Team, and a cancelled licence stops working within 7 days.
 - The App no longer says the agent is gone while it is working, and an answer clicked in the App leaves Needs you at once.
 - The task page's Approve and Request changes show only while a gate is open.
+- An agent can no longer approve its own gate by handing QualityLayer a made-up picker answer: only an answer in the agent's own session record counts.
+- The second opinion reads the whole change, also in repositories with encrypted files, split by area when it is large.
+- A check whose command could not run now counts as failed and says why, instead of passing.
+- A check command the agent corrected during the build now runs, instead of waiting for you to run it.
+- Adding tasks to the Plan during Verify takes the build back to Implement by itself, and a check waits for another session's check instead of failing.
 
 ### Good to know
 
