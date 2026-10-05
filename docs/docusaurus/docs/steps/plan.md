@@ -43,10 +43,10 @@ One violet line says what agents proved before the Plan reached you, for example
 | --- | --- |
 | Summary | The change in a few lines |
 | What changes | A picture of the system after the change, and what changes in each part |
-| Out of scope · Assumptions | What stays outside this task, and what the Plan rests on. Each assumption names the task that depends on it |
+| Out of scope · Assumptions | What stays outside this task, and what the Plan rests on. Each assumption names the task that depends on it. When you did not know an answer in Discuss, your agent takes its recommendation and lists it here as *unconfirmed*, so you can ask the teammate who knows |
 | The build | The slices, each with one sentence on what works afterwards |
 | How we'll know it works | The scenario titles that prove the change |
-| For the agent | Contracts with their diffs, and each slice's task cards with their files and checks. Folded away, since builders read them |
+| For the agent | Contracts with their diffs, and each slice's task cards with their files and checks. Behind the **For the agent** switch, since builders read them |
 
 For a bug, What changes becomes the reproduction, the symptom and root cause, the behaviour you need and the fix.
 

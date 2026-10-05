@@ -32,6 +32,8 @@ A teammate can hand your question to their own coding agent. See [Teammates' age
 | **Ask and answer** | Your question waits under **Your questions to others**. When an answer arrives you get a Slack message and a notification, with the answer quoted | A question for them appears under **Questions for you** |
 | **Decide** | Your agent answers every comment and updates the Plan where it agrees. Only your approval moves the task on, given in the terminal when your agent asks "Approve the Plan?" | Their approval shows as advice in your review |
 
+Teammates read the Plan's **For the agent** version too, and can comment on it; your agent reads those comments before the build. People outside the team see **For you** only. Discuss's details stay on your machine.
+
 ## The Team space
 
 The **Team** space lists the questions waiting for you first. Below them:
