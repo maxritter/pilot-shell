@@ -187,7 +187,7 @@ While agents check, every check is listed from the start and fills in live.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/screen-verify-dark.png">
-  <img src="docs/docusaurus/static/img/diagrams/screen-verify-light.png" alt="The Verify step in the App: Agents are checking, 10 of 19 checks passed, with project checks, scenarios and the points of Done means listed" width="1000">
+  <img src="docs/docusaurus/static/img/diagrams/screen-verify-light.png" alt="The Verify step in the App: Agents are checking, 12 of 22 checks passed, with project checks, scenarios and the points of Done means listed, and Nothing needs you while it checks" width="1000">
 </picture>
 
 ### The models you choose, the cost you can see
@@ -212,11 +212,11 @@ The App is where you read and look, on macOS, Windows and Linux. It shows the pl
   <img src="docs/docusaurus/static/img/diagrams/app-light.svg" alt="The QualityLayer App: the sidebar, the five step tabs, the step line with Approve, the items that need you, the line of what agents checked, and the plan" width="1000">
 </picture>
 
-A Plan with its first item, the mockup, and its two answers.
+While the agent asks about a decision in the terminal, the App opens only that decision and its diagram, and folds the rest of the Plan.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/screen-plan-dark.png">
-  <img src="docs/docusaurus/static/img/diagrams/screen-plan-light.png" alt="The QualityLayer App on a Plan: the step line reads Waits for your approval with Request changes and Approve, and the first item that needs you is a mockup with Looks right and Change" width="1000">
+  <img src="docs/docusaurus/static/img/diagrams/screen-plan-light.png" alt="The QualityLayer App while the agent asks in its terminal: the step line reads Waits for your approval, and the page shows only the card Asked now, question 2 of 5, Agree with this decision, with the decision's sequence diagram" width="1000">
 </picture>
 
 Each item has its own two answers, in the terminal as in the App. Agree or change a decision. Looks right, or change a mockup. Confirm what only you can confirm. Accept or fix a finding.
