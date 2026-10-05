@@ -62,7 +62,7 @@ When a second fix fails too, the task stops and asks you.
 
 ## When it stops {#when-it-stops}
 
-After two tries at checking, the task stops, so your agent does not repeat the same fix without you. The step line reads "Stopped after two checking rounds". The App names the one failure that still stands, what each fix tried, and what checking again costs, for example about $7 and 9 minutes.
+After two tries at checking, the task stops, so your agent does not repeat the same fix without you. The step line reads "Stopped after checking twice". The App names the one failure that still stands, what each fix tried, and what checking again costs, for example about $7 and 9 minutes.
 
 ![When checking keeps failing: after two tries at checking the task stops with the one failure that remains, and you choose to check once more, take it as it is, or stop the task](pathname:///img/diagrams/stopped-light.svg)
 ![When checking keeps failing: after two tries at checking the task stops with the one failure that remains, and you choose to check once more, take it as it is, or stop the task](pathname:///img/diagrams/stopped-dark.svg)
