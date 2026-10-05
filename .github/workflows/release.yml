@@ -284,19 +284,6 @@ jobs:
           VERSION: ${{ steps.check.outputs.version }}
         run: bash scripts/changelog-section.sh "$VERSION" > /dev/null
 
-      # Releases from main wait for the go-live: they need a store of their own, and
-      # must never fall back to the beta's.
-      - name: Check the go-live is configured
-        if: steps.check.outputs.should_release == 'true' && github.ref_name == 'main'
-        env:
-          PROD_KV_REST_API_URL: ${{ secrets.PROD_KV_REST_API_URL }}
-          PROD_KV_REST_API_TOKEN: ${{ secrets.PROD_KV_REST_API_TOKEN }}
-        run: |
-          if [ -z "$PROD_KV_REST_API_URL" ] || [ -z "$PROD_KV_REST_API_TOKEN" ]; then
-            echo "::error::go-live not configured: set the PROD_KV_REST_API_URL and PROD_KV_REST_API_TOKEN secrets before releasing from main"
-            exit 1
-          fi
-
   build:
     name: Build QualityLayer (6 targets)
     permissions:

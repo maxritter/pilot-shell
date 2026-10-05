@@ -17,12 +17,6 @@
       "permanent": false
     },
     {
-      "source": "/((?!api/|s/|s-frame\\.html$|assets/|fonts/|brand/|favicon\\.ico$).*)",
-      "has": [{ "type": "host", "value": "(www\\.)?pilot-shell\\.com" }],
-      "destination": "https://qualitylayer.dev/$1",
-      "permanent": true
-    },
-    {
       "source": "/docs/features/:path*",
       "destination": "/docs",
       "permanent": true

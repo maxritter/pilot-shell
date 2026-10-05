@@ -2,21 +2,18 @@ import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 /**
- * One deployment answers both hosts: pilot-shell.com pages move to qualitylayer.dev,
- * while pilot-shell.com's API and share links keep answering. This evaluates vercel.json's redirect and rewrite rules the way
- * Vercel does, in order, first match wins: `:name` is one segment, `:name*` the rest,
- * a parenthesised group is a raw regular expression, `$1` and `:name` fill a destination.
- * An API file with a fixed path is served before any rewrite; a dynamic one (`[task].ts`)
- * only after the rewrites, so a catch-all rewrite would hide it. It is an approximation
- * of Vercel's matcher, enough for the rules this file holds; the deployed check
- * (scripts/check-deploy.sh) is the real one.
+ * This evaluates vercel.json's redirect and rewrite rules the way Vercel does, in order, first
+ * match wins: `:name` is one segment, `:name*` the rest, a parenthesised group is a raw regular
+ * expression, `$1` and `:name` fill a destination. An API file with a fixed path is served before
+ * any rewrite; a dynamic one (`[task].ts`) only after the rewrites, so a catch-all rewrite would
+ * hide it. It is an approximation of Vercel's matcher, enough for the rules this file holds; the
+ * deployed check (scripts/check-deploy.sh) is the real one.
  */
 
 type Rule = {
   source: string;
   destination: string;
   permanent?: boolean;
-  has?: { type: string; value: string }[];
 };
 const config = JSON.parse(readFileSync(new URL("./vercel.json", import.meta.url), "utf8")) as {
   redirects: Rule[];
@@ -77,22 +74,17 @@ function fill(destination: string, names: string[], groups: string[]): string {
   return out.replace(/\$(\d)/g, (_, digit: string) => groups[Number(digit) - 1] ?? "");
 }
 
-const hostMatches = (rule: Rule, host: string) =>
-  (rule.has ?? []).every(
-    (condition) => condition.type !== "host" || new RegExp(`^(?:${condition.value})$`).test(host),
-  );
-
 type Answer =
   | { kind: "redirect"; status: number; location: string }
   | { kind: "function" }
   | { kind: "rewrite"; to: string }
   | { kind: "none" };
 
-function answer(host: string, path: string): Answer {
+function answer(path: string): Answer {
   for (const rule of config.redirects) {
     const { regex, names } = compile(rule.source);
     const hit = regex.exec(path);
-    if (hit === null || !hostMatches(rule, host)) continue;
+    if (hit === null) continue;
     return {
       kind: "redirect",
       status: rule.permanent === true ? 308 : 307,
@@ -103,7 +95,7 @@ function answer(host: string, path: string): Answer {
   for (const rule of config.rewrites) {
     const { regex, names } = compile(rule.source);
     const hit = regex.exec(path);
-    if (hit !== null && hostMatches(rule, host)) {
+    if (hit !== null) {
       return { kind: "rewrite", to: fill(rule.destination, names, hit.slice(1)) };
     }
   }
@@ -111,35 +103,19 @@ function answer(host: string, path: string): Answer {
   return { kind: "none" };
 }
 
-const OLD = "pilot-shell.com";
-const NEW = "qualitylayer.dev";
 const V2_LINK = "/s/Xk3Jd92xA7pQ4mZr1bTnWe";
 
-describe("pilot-shell.com pages move to qualitylayer.dev", () => {
-  it("sends the pricing page there for good, keeping the path", () => {
-    expect(answer(OLD, "/pricing")).toEqual({
-      kind: "redirect",
-      status: 308,
-      location: "https://qualitylayer.dev/pricing",
-    });
+describe("no Pilot Shell host is left", () => {
+  it("names neither pilot-shell.com nor claude-pilot in any redirect, rewrite or header rule", () => {
+    expect(JSON.stringify(config)).not.toMatch(/pilot-shell\.com|claude-pilot/);
   });
 
-  it("sends the home page, the docs and the blog there, and the www host too", () => {
-    expect(answer(OLD, "/")).toEqual({ kind: "redirect", status: 308, location: "https://qualitylayer.dev/" });
-    expect(answer(OLD, "/docs/features/hooks")).toMatchObject({
-      status: 308,
-      location: "https://qualitylayer.dev/docs/features/hooks",
-    });
-    expect(answer(OLD, "/blog/some-post")).toMatchObject({ location: "https://qualitylayer.dev/blog/some-post" });
-    expect(answer(`www.${OLD}`, "/pricing")).toMatchObject({ location: "https://qualitylayer.dev/pricing" });
-  });
-
-  it("serves the beta's install script from the dev branch, on either host", () => {
-    for (const host of [OLD, NEW]) {
-      expect(answer(host, "/install.sh"), host).toEqual({
+  it("serves the install scripts from the release repository's dev branch", () => {
+    for (const script of ["install.sh", "install.ps1"]) {
+      expect(answer(`/${script}`), script).toEqual({
         kind: "redirect",
         status: 307,
-        location: "https://raw.githubusercontent.com/maxritter/pilot-shell/dev/install.sh",
+        location: `https://raw.githubusercontent.com/maxritter/pilot-shell/dev/${script}`,
       });
     }
   });
@@ -148,51 +124,31 @@ describe("pilot-shell.com pages move to qualitylayer.dev", () => {
 describe("doc pages that moved or were removed", () => {
   it("send the Pilot Shell 11 pages to the docs home", () => {
     for (const path of ["/docs/features/hooks", "/docs/workflows/spec"]) {
-      expect(answer(NEW, path), path).toEqual({ kind: "redirect", status: 308, location: "/docs" });
+      expect(answer(path), path).toEqual({ kind: "redirect", status: 308, location: "/docs" });
     }
   });
 
   it("send each merged page to the section that took it over", () => {
-    expect(answer(NEW, "/docs/phases/verify")).toEqual({ kind: "redirect", status: 308, location: "/docs/steps/verify" });
-    expect(answer(NEW, "/docs/workflow/check/verify")).toEqual({ kind: "redirect", status: 308, location: "/docs/steps/verify" });
-    expect(answer(NEW, "/docs/guides/cockpit")).toEqual({ kind: "redirect", status: 308, location: "/docs/app" });
-    expect(answer(NEW, "/docs/cockpit")).toEqual({ kind: "redirect", status: 308, location: "/docs/app" });
-    expect(answer(NEW, "/docs/reference/peers")).toMatchObject({ location: "/docs/reference/commands#session-messaging" });
-  });
-});
-
-describe("what pilot-shell.com still answers itself", () => {
-  it("serves its API routes itself", () => {
-    for (const path of ["/api/share", "/api/share/Xk3Jd92xA7pQ4mZr1bTnWe", "/api/share/feedback/batch", "/api/team/pass", "/api/trial/start"]) {
-      expect(answer(OLD, path), path).toEqual({ kind: "function" });
-    }
-  });
-
-  it("serves the files the share page loads, or a link opened there would be an empty page", () => {
-    // The page's script, stylesheet and fonts are 'self' under the share page's policy,
-    // so they must come from pilot-shell.com itself, not from a redirect to another origin.
-    for (const path of ["/assets/website-DZk-iDwE.js", "/assets/website-rIc8s26h.css", "/fonts/geist-latin.woff2", "/brand/favicon.svg", "/favicon.ico"]) {
-      expect(answer(OLD, path).kind, path).not.toBe("redirect");
-    }
-  });
-
-  it("shows the share page for a link, without redirecting", () => {
-    expect(answer(OLD, V2_LINK)).toEqual({ kind: "rewrite", to: "/" });
+    expect(answer("/docs/phases/verify")).toEqual({ kind: "redirect", status: 308, location: "/docs/steps/verify" });
+    expect(answer("/docs/workflow/check/verify")).toEqual({ kind: "redirect", status: 308, location: "/docs/steps/verify" });
+    expect(answer("/docs/guides/cockpit")).toEqual({ kind: "redirect", status: 308, location: "/docs/app" });
+    expect(answer("/docs/cockpit")).toEqual({ kind: "redirect", status: 308, location: "/docs/app" });
+    expect(answer("/docs/reference/peers")).toMatchObject({ location: "/docs/reference/commands#session-messaging" });
   });
 });
 
 describe("qualitylayer.dev is not redirected", () => {
   it("serves pages, the API and share links itself", () => {
-    expect(answer(NEW, "/pricing")).toEqual({ kind: "rewrite", to: "/" });
-    expect(answer(NEW, "/docs/app")).toEqual({ kind: "rewrite", to: "/docs/app" });
-    expect(answer(NEW, "/api/team/pass")).toEqual({ kind: "function" });
-    expect(answer(NEW, V2_LINK)).toEqual({ kind: "rewrite", to: "/" });
+    expect(answer("/pricing")).toEqual({ kind: "rewrite", to: "/" });
+    expect(answer("/docs/app")).toEqual({ kind: "rewrite", to: "/docs/app" });
+    expect(answer("/api/team/pass")).toEqual({ kind: "function" });
+    expect(answer(V2_LINK)).toEqual({ kind: "rewrite", to: "/" });
   });
 
   it("serves every team route, the dynamic ones too, and not the page in their place", () => {
     // A shared task is PUT to /api/team/tasks/<id>: the page in its place answered 405 to the client.
     for (const path of ["/api/team/tasks", "/api/team/tasks/t-1", "/api/team/tasks/t-1/comments?after=0", "/api/team/members"]) {
-      expect(answer(NEW, path), path).toEqual({ kind: "function" });
+      expect(answer(path), path).toEqual({ kind: "function" });
     }
   });
 });
@@ -200,7 +156,7 @@ describe("qualitylayer.dev is not redirected", () => {
 describe("the App's pages and its update endpoint", () => {
   it("shows the page in the browser for the landing page a Slack DM opens and for the download page", () => {
     for (const path of ["/open/ask/t_9c2/7f3a", "/open/team/t_9c2", "/download"]) {
-      expect(answer(NEW, path), path).toEqual({ kind: "rewrite", to: "/" });
+      expect(answer(path), path).toEqual({ kind: "rewrite", to: "/" });
     }
   });
 
@@ -209,7 +165,7 @@ describe("the App's pages and its update endpoint", () => {
       ["/app/latest.json", "/api/app/latest"],
       ["/app/downloads.json", "/api/app/downloads"],
     ] as const) {
-      expect(answer(NEW, path), path).toEqual({ kind: "rewrite", to: route });
+      expect(answer(path), path).toEqual({ kind: "rewrite", to: route });
       expect(apiRoute(route, false), route).toBe(true);
     }
   });
@@ -222,9 +178,9 @@ describe("the demo of the App", () => {
       ["/cockpit-demo/", "/app-demo/"],
       ["/cockpit-demo/index.html", "/app-demo/index.html"],
     ] as const) {
-      expect(answer(NEW, from), from).toEqual({ kind: "redirect", status: 308, location: to });
+      expect(answer(from), from).toEqual({ kind: "redirect", status: 308, location: to });
     }
-    expect(answer(NEW, "/app-demo/index.html")).toEqual({ kind: "rewrite", to: "/app-demo/index.html" });
+    expect(answer("/app-demo/index.html")).toEqual({ kind: "rewrite", to: "/app-demo/index.html" });
   });
 });
 
@@ -263,9 +219,8 @@ describe("the share page's own headers", () => {
     expect(policy).not.toContain("https:");
   });
 
-  it("keeps the mockup frame where the share page can load it, also on the old host", () => {
-    expect(answer(OLD, "/s-frame.html").kind).not.toBe("redirect");
-    expect(answer(NEW, "/s-frame.html").kind).not.toBe("redirect");
+  it("keeps the mockup frame where the share page can load it", () => {
+    expect(answer("/s-frame.html").kind).not.toBe("redirect");
   });
 });
 
