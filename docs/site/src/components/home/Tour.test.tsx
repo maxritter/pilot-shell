@@ -134,7 +134,7 @@ describe("the tour", () => {
 
   it("draws the Plan once approved as Plan 1b does", async () => {
     const html = text(await scene(id("plan")));
-    for (const word of ["Approved by you at 13:27 · 5 items settled", "In Codex the command is $ql implement", "For another agent"]) expect(html).toContain(word);
+    for (const word of ["Approved by you at 13:27 · 5 items settled", "Build with Codex or Another agent", "$ql implement"]) expect(html).toContain(word);
     expect(html).not.toContain("Engineering decision");
   });
 
@@ -142,7 +142,7 @@ describe("the tour", () => {
     expect(text(await scene(id("discuss"), 2))).toContain("2 answered so far");
     const html = text(await scene(id("discuss"), 3));
     expect(html).toContain("3 answered so far");
-    expect(html).toContain("Answered in Claude Code");
+    expect(html).toContain("Answered in the chat");
     expect(stepLine(id("discuss"), 3).who).toBe("ag");
   });
 

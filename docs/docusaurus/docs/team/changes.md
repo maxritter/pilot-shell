@@ -23,7 +23,7 @@ Once Verify has passed, the task moves to **Review**. Your teammates see what th
 | **Comment** | Open threads collect in the **Comments** panel | They comment on any line and approve or ask for changes, over as many days as it takes |
 | **Fix** | Run `/ql review <task>` (`$ql review <task>` in Codex); your agent goes through each thread with you, the pull request's open code comments included | Each thread ends **fixed**, **answered** or **replanned** |
 | **Re-review** | Only what a fix touched is checked again before the next review | They are asked to look again |
-| **Ship** | **Approve** once the threads are settled | |
+| **Ship** | Your agent asks "Approve the change?" once the threads are settled. Answer in the terminal, or with the App's **Approve** menu | |
 
 ## People outside your team
 

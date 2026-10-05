@@ -458,7 +458,7 @@ def flow(c):
     for i, (n, col) in enumerate(STEPS):
         b.append(T(cx[i], 30, n, 16, 'text', 700, 'middle', c=c))
         b.append(diamond(c, cx[i], 62, 10) if n in GATES else f'<circle cx="{cx[i]}" cy="62" r="10" fill="{c[col]}"/>')
-    you = ['Answer its questions', 'Look it over, approve', 'Start a fresh session', None, 'Settle what is left']
+    you = ['Answer its questions', 'Answer, then approve', 'Copy one command', None, 'Settle what is left']
     agent = ['Reads the code, asks', 'Writes the Plan', 'Builds test first', 'Agents check it', 'Writes the PR text']
     for row, (label, col, y, cells) in enumerate([('You', 'amber', 100, you), ('Your agent', 'blue', 166, agent)]):
         b.append(T(0, y + 28, label, 15, col, 700, c=c))
@@ -528,7 +528,7 @@ def agents(c):
     for i in range(4):
         b.append(f'<rect x="416" y="{196 + i * 15}" width="{[88, 72, 84, 56][i]}" height="6" rx="3" fill="{c["blue"]}" fill-opacity="0.35"/>')
     b.append(curve(c, 520, 210, 545, 210, 'blue'))
-    b.append(node(c, 545, 170, 190, 80, 'Implement session', ['You start it fresh,', 'Sonnet 5.5 recommended'], 'blue', 'bluef'))
+    b.append(node(c, 545, 170, 190, 80, 'Implement session', ['Started with one command,', 'Sonnet 5.5 recommended'], 'blue', 'bluef'))
     right = [(0, 'Workers', ['Sonnet 5.5, each task', 'test first, fixes too'], 'blue'),
              (88, 'Polish and security', ['Side by side,', 'after the build'], 'violet'),
              (176, 'Checking', ['Opus 5.5. Agents that did', 'not write the code'], 'violet'),
@@ -727,34 +727,49 @@ def plan_ill(c: Theme) -> str:
 
 # ---------------------------------------------------------------- after the Plan is approved
 def implement_start(c):
-    W, H = 1000, 330
+    W, H = 1000, 396
     b = [window(c, W, H, 'Settings cleanup · QualityLayer')]
     x0 = 40
+
+    def segmented(x, y, options, on):
+        """A row of options; the one that is on has the blue fill."""
+        out, cx = [], x
+        for opt in options:
+            w = 22 + len(opt) * 6.6
+            if opt == on:
+                out.append(f'<rect x="{cx}" y="{y}" width="{w}" height="26" rx="7" fill="{c["bluef"]}" stroke="{c["blue"]}"/>')
+                out.append(T(cx + w / 2, y + 17, opt, 12, 'blue', 650, 'middle', c=c))
+            else:
+                out.append(f'<rect x="{cx}" y="{y}" width="{w}" height="26" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
+                out.append(T(cx + w / 2, y + 17, opt, 12, 'muted', 600, 'middle', c=c))
+            cx += w + 8
+        return ''.join(out)
+
     b.append(T(x0, 84, 'Start the build', 18, 'text', 650, c=c))
-    b.append(T(x0, 110, 'In a fresh session, Sonnet 5.5 recommended, type:', 13.5, 'muted', c=c))
-    b.append(f'<rect x="{x0}" y="126" width="{W - 2 * x0}" height="60" rx="10" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
-    b.append(T(x0 + 20, 162, '/ql implement settings-cleanup', 15.5, 'text', 600, mono=True, c=c))
-    b.append(f'<rect x="{W - x0 - 330}" y="140" width="186" height="32" rx="8" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-    b.append(f'<rect x="{W - x0 - 328}" y="142" width="92" height="28" rx="6" fill="{c["bluef"]}"/>')
-    b.append(T(W - x0 - 282, 161, 'Claude Code', 12, 'blue', 650, 'middle', c=c))
-    b.append(T(W - x0 - 190, 161, 'Codex', 12, 'muted', 600, 'middle', c=c))
-    b.append(abtn_svg(c, W - x0 - 128, 140, 'Copy', True, 32, 13, 112))
-    b.append(T(x0, 210, 'In Codex the command is $ql implement settings-cleanup.', 12.5, 'muted', c=c))
-    b.append(T(x0, 230, 'Another agent: give it the prompt from Copy › For another agent.', 12.5, 'muted', c=c))
-    b.append(f'<rect x="{x0}" y="254" width="{W - 2 * x0}" height="40" rx="10" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-    b.append(ring(c, x0 + 20, 274, 'done'))
-    b.append(T(x0 + 38, 279, 'Approved by you at 13:27 · 4 items settled · the agent’s 7 decisions kept', 13, 'text', 500, c=c))
-    return svg(W, H, ''.join(b), 'After you approve the Plan, the App shows /ql implement settings-cleanup with a Claude Code and Codex switch and a Copy button, and a line of what you settled')
+    b.append(T(x0, 124, 'Build with', 13, 'muted', 600, c=c))
+    b.append(segmented(130, 106, ['Claude Code', 'Codex', 'Another agent'], 'Claude Code'))
+    b.append(T(x0, 158, 'Recommended: Sonnet 5.5, high effort, goal mode. The Plan did the hard thinking.', 12.5, 'muted', c=c))
+    b.append(T(x0, 192, 'Adjust', 12, 'dim', 650, c=c))
+    rows = [('Model', ['Sonnet 5.5', 'Opus 5.5'], 'Sonnet 5.5'), ('Effort', ['Medium', 'High', 'Extra high'], 'High'),
+            ('Runs as', ['Goal', 'One prompt'], 'Goal'), ('Start in', ['This session', 'New terminal', 'New worktree'], 'New terminal')]
+    for i, (label, opts, on) in enumerate(rows):
+        y = 204 + i * 32
+        b.append(T(x0, y + 18, label, 13, 'muted', 600, c=c))
+        b.append(segmented(130, y, opts, on))
+    b.append(f'<rect x="{x0}" y="338" width="{W - 2 * x0}" height="38" rx="10" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
+    b.append(T(x0 + 18, 362, 'claude --model sonnet --effort high "/goal /ql implement settings-cleanup"', 13.5, 'text', 600, mono=True, c=c))
+    b.append(abtn_svg(c, W - x0 - 96, 344, 'Copy', True, 26, 12, 80))
+    return svg(W, H, ''.join(b), 'After you approve the Plan, the App opens Implement with a start card: Build with Claude Code, Codex or another agent, the recommended setup, four rows to adjust (model, effort, how it runs, where it starts), and one command with a Copy button')
 
 
 def implement_ill(c: Theme) -> str:
     W, H = 1000, 504
     b = [card(c, 0, 0, W - 4, H - 4)]
     b.append(stepline(c, 14, 14, W - 32, 'agent', 'Agents are building', 'Slices 2 and 3 run side by side. Nothing needs you.', []))
-    b.append(section_label(c, 20, 92, 'Decided by the agent while building', ''))
-    b.append(T(W - 20, 92, 'the build goes on · ask about any of them now or in Review', 11.5, 'dim', 500, 'end', c=c))
-    b.append(item(c, 14, 104, W - 32, 'T1 · outside its files', 'Removed the Settings page’s app prop, which only served the Links row', ['Fine', 'Ask why'], state='dim'))
-    b.append(item(c, 14, 166, W - 32, 'T3 · outside its files', 'Removed TaskView’s notify prop with the budget notice', ['Fine', 'Ask why'], state='dim'))
+    b.append(section_label(c, 20, 92, 'Changed while building', ''))
+    b.append(T(W - 20, 92, 'nothing here waits for you · read them now or ask in Review', 11.5, 'dim', 500, 'end', c=c))
+    b.append(item(c, 14, 104, W - 32, 'T1 · outside its files', 'Removed the Settings page’s app prop, which only served the Links row', [], state='dim'))
+    b.append(item(c, 14, 166, W - 32, 'T3 · outside its files', 'Removed TaskView’s notify prop with the budget notice', [], state='dim'))
     b.append(section_label(c, 20, 256, 'The build', '6 of 11 tasks · 2 agents at work'))
     rows = [('1', 'Fewer settings, in the CLI and the App together', 5, 5, 'committed 08d634bc', 'done'),
             ('2', 'Select all fills a group', 0, 1, 'T6 · running two test files · 49 s', 'agent'),
@@ -770,7 +785,7 @@ def implement_ill(c: Theme) -> str:
             b.append(f'<rect x="{500 + k * 22}" y="{y + 16}" width="18" height="6" rx="3" fill="{fill if kind == "done" else (c["blue"] if k < done_ else c["off"])}"/>')
         b.append(T(W - 32, y + 24, what, 12, 'dim', 500, 'end', mono=what.startswith('committed'), c=c))
     b.append(vline(c, 14, 276 + 4 * 44 - 2, W - 32, ['5 tasks green, test first', '12 checks recorded']))
-    return svg(W, H, ''.join(b), 'The Implement step: agents are building and nothing needs you; choices the agent made outside the Plan wait with Fine and Ask why; the slices fill in with what each agent does now')
+    return svg(W, H, ''.join(b), 'The Implement step: agents are building and nothing needs you; what the agent decided on its own is listed under Changed while building; the slices fill in with what each agent does now')
 
 
 def checkpoint_ill(c: Theme) -> str:
@@ -796,12 +811,12 @@ def checkpoint_ill(c: Theme) -> str:
     b.append(T(0, 160, 'An agent fixes it,', 12, 'muted', c=c))
     b.append(T(0, 176, 'then it runs again', 12, 'muted', c=c))
     b.append(arrow(c, 402, 200, 470))
-    b.append(T(436, 190, 'failed twice', 11.5, 'danger', 600, 'middle', c=c))
-    b.append(card(c, 472, 152, 508, 120, stroke='amber', fill='amberf', sw=1.6))
-    b.append(T(490, 180, 'Stopped: the build waits for you', 14, 'text', 650, c=c))
-    b.append(T(490, 200, 'Both tries are described, their output is kept.', 12.5, 'muted', c=c))
-    b.append(buttons_right(c, 962, 222, [('Try another fix', True), 'Change the Plan', 'Continue anyway'], h=30, size=12.5))
-    return svg(W, H, ''.join(b), 'A checkpoint after a risky slice: its scenarios run on the real program; a failure goes to an agent to fix and runs again, and after two failed runs you choose: try another fix, change the Plan, or continue anyway')
+    b.append(T(436, 190, 'failed 4 times', 11.5, 'danger', 600, 'middle', c=c))
+    b.append(card(c, 472, 152, 508, 120, stroke='cardline', fill='card'))
+    b.append(T(490, 180, 'Recorded as open: the build goes on', 14, 'text', 650, c=c))
+    b.append(T(490, 200, 'Each try used a different approach; their output is kept.', 12.5, 'muted', c=c))
+    b.append(T(490, 222, 'The final review lists it, in one plain sentence.', 12.5, 'muted', c=c))
+    return svg(W, H, ''.join(b), 'A checkpoint after a risky slice: its scenarios run on the real program; a failure goes to an agent to fix and runs again with a different approach; after four failed runs the checkpoint is recorded as open, the build goes on, and the final review lists it')
 
 
 # ---------------------------------------------------------------- Verify
@@ -994,23 +1009,21 @@ def band_ill(c: Theme) -> str:
     W, H = 1000, 250
     b = [card(c, 0, 0, 1000, 246)]
     b.append(T(18, 28, 'Claude Code', 12, 'dim', 600, c=c))
-    rows = [('While the Plan waits', 'amber', 'amberf', 'QL · Settings cleanup · Plan · 5 items need you', '/ql-app'),
+    rows = [('While the agent asks', 'amber', 'amberf', 'QL · Settings cleanup · Plan · the agent asks next: Approve the Plan?', None),
             ('While it builds', 'blue', 'bluef', 'QL · Settings cleanup · Implement · slices 2 and 3 building', None),
-            ('When a teammate asks', 'amber', 'amberf', 'QL · 2 questions for you · Anna, Ben', '/ql-app')]
-    for i, (label, col, fill, text, right) in enumerate(rows):
+            ('When a teammate asks', 'amber', 'amberf', 'QL · 2 questions for you · Anna, Ben', None)]
+    for i, (label, col, fill, text, _) in enumerate(rows):
         y = 46 + i * 58
         b.append(T(18, y + 25, label, 12.5, 'muted', 500, c=c))
         b.append(f'<rect x="190" y="{y}" width="790" height="40" rx="6" fill="{c[fill]}"/>')
         b.append(f'<rect x="190" y="{y}" width="4" height="40" fill="{c[col]}"/>')
         b.append(T(208, y + 25, text, 12.5, 'text', 500, mono=True, c=c))
-        if right:
-            b.append(T(966, y + 25, right, 12.5, col, 600, 'end', mono=True, c=c))
-        else:
+        if i == 1:
             b.append(f'<rect x="846" y="{y + 16}" width="120" height="8" rx="4" fill="{c["line"]}"/>')
             b.append(f'<rect x="846" y="{y + 16}" width="66" height="8" rx="4" fill="{c[col]}"/>')
     b.append(T(190, 230, '>', 14, 'muted', 600, mono=True, c=c))
     b.append(f'<rect x="206" y="218" width="8" height="16" fill="{c["muted"]}"/>')
-    return svg(W, H, ''.join(b), 'The band above the Claude Code prompt: the Plan needs you, how the build runs, or teammates’ questions for you')
+    return svg(W, H, ''.join(b), 'The band above the Claude Code prompt: the question the agent asks next, how the build runs, or teammates’ questions for you')
 
 
 def cost_ill(c: Theme) -> str:

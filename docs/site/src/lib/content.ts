@@ -12,7 +12,7 @@ const faq = (question: string, answer: string): Faq => ({ question, answer });
 export const FAQS: Faq[] = [
   faq(
     "Does it replace my coding agent?",
-    "No. Claude Code or Codex still writes the code, with the subscription you already have. QualityLayer adds the plan you approve, the tests, the checks by agents that did not write the code, and the App where you decide.",
+    "No. Claude Code or Codex still writes the code, with the subscription you already have. QualityLayer adds the plan you approve, the tests, the checks by agents that did not write the code, and the App that shows what each decision is about.",
   ),
   faq(
     "Can I use it on my own, or only with a team?",
@@ -20,7 +20,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "How is this different from plan mode?",
-    "Plan mode gives you a plan in the chat. QualityLayer gives you one plan with diagrams and a mockup to comment on, and shows only what needs you. It builds the plan test first, and agents that did not write the code check the result.",
+    "Plan mode gives you a plan in the chat. QualityLayer gives you one plan with diagrams and a mockup to comment on. Your agent asks you each decision in the chat, one at a time. It builds the plan test first, and agents that did not write the code check the result.",
   ),
   faq(
     "What about small changes and bugs?",

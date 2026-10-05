@@ -1,6 +1,6 @@
 ---
 title: Implement
-description: You start a fresh session, and agents build the approved Plan slice by slice, test first, with every check recorded by QualityLayer. The App shows what they decided on their own.
+description: One command from the App starts the build, and agents build the approved Plan slice by slice, test first, with every check recorded by QualityLayer. Nothing waits for you, and the App lists what they decided on their own.
 ---
 
 ![The five steps, with Implement highlighted](pathname:///img/diagrams/track-implement-light.svg)
@@ -8,25 +8,30 @@ description: You start a fresh session, and agents build the approved Plan slice
 
 ## Start Implement {#start-implement}
 
-Once you approve the Plan, the planning session stops. The App shows "Start the build", with the command and a **Claude Code | Codex** switch.
+When you approve the Plan, the App opens this task's Implement page by itself, and the planning session says where to look. Until a build session reports in, the page shows a start card with one command.
 
-![After you approve the Plan, the App shows the command /ql implement settings-cleanup with a Claude Code and Codex switch and a Copy button](pathname:///img/diagrams/implement-start-light.svg)
-![After you approve the Plan, the App shows the command /ql implement settings-cleanup with a Claude Code and Codex switch and a Copy button](pathname:///img/diagrams/implement-start-dark.svg)
+![After you approve the Plan, the App shows the start card: Build with, the recommended setup, four rows to adjust it and one command with a Copy button](pathname:///img/diagrams/implement-start-light.svg)
+![After you approve the Plan, the App shows the start card: Build with, the recommended setup, four rows to adjust it and one command with a Copy button](pathname:///img/diagrams/implement-start-dark.svg)
 
-Start a fresh session the way you like: the terminal, your IDE or a desktop app. Sonnet 5.5 is recommended (GPT-6.1 Sol in Codex). Type `/ql implement <task>`, or `$ql implement <task>` in Codex. With another coding agent, give it the prompt from **Copy › For another agent**; see [How to connect another coding agent](../agents/other.md). Goal mode is an option in your agent; it is not needed.
+- **Build with:** Claude Code, Codex or another agent.
+- **The recommended setup,** in one line with its reason: Sonnet 5.5 builds in Claude Code (GPT-6.1 Sol in Codex), high effort, and goal mode when your agent has one. Your own session is cleared only for the agent that planned, and a worktree is never the default.
+- **Adjust:** four rows, **Model**, **Effort**, **Runs as** and **Start in**. Each hint says what the choice costs. **Reset** appears once anything differs from the recommendation.
+- **One command,** with **Copy**. For Claude Code it looks like `claude --model sonnet --effort high "/goal /ql implement <task>"`. For Codex it uses `codex -m gpt-6.1-sol -c model_reasoning_effort=high '…'`, with single quotes because the prompt holds `$ql`. Another agent gets a plain prompt; see [How to connect another coding agent](../agents/other.md).
 
-The items you settled fold into one line: "Approved by you at 13:27 · 4 items settled". The build starts from the approved Plan, never from the planning chat. QualityLayer never starts, stops or steers an agent. It builds on the branch you have checked out and never creates or switches one; start a worktree yourself if you want one.
+Paste the command into a terminal, your IDE or a desktop app. Choosing **This session** shows three lines to type instead: `/clear`, `/model <id>`, and the prompt. The build records your choice with its first step, and it stays fixed for this build. When the session reports in, the page becomes the live build.
+
+The build starts from the approved Plan, never from the planning chat. QualityLayer never starts, stops or steers an agent. It builds on the branch you have checked out and never creates or switches one, unless you choose **New worktree** (Claude Code only).
 
 ## While agents build
 
-![The Implement step: agents are building and nothing needs you; choices the agent made outside the Plan wait with Fine and Ask why; the slices fill in with what each agent does now](pathname:///img/diagrams/implement-light.svg)
-![The Implement step: agents are building and nothing needs you; choices the agent made outside the Plan wait with Fine and Ask why; the slices fill in with what each agent does now](pathname:///img/diagrams/implement-dark.svg)
+![The Implement step: agents are building and nothing needs you; what the agent decided on its own is listed under Changed while building; the slices fill in with what each agent does now](pathname:///img/diagrams/implement-light.svg)
+![The Implement step: agents are building and nothing needs you; what the agent decided on its own is listed under Changed while building; the slices fill in with what each agent does now](pathname:///img/diagrams/implement-dark.svg)
 
-The step line reads "Agents are building", for example "Slices 2 and 3 run side by side. Nothing needs you." It has no Pause button, because the App cannot pause an agent.
+The step line reads "Agents are building", for example "Slices 2 and 3 run side by side. Nothing needs you." It has no Pause button, because the App cannot pause an agent. During the build nothing waits for you: when something does not go as planned, the agent takes the recommended way and notes it.
 
 | Part | What it shows |
 | --- | --- |
-| **Decided by the agent while building** | Each choice the build made outside the Plan, such as removing a prop that only served a removed row. **Fine** or **Ask why**. The build goes on; ask about any of them now or in Review |
+| **Changed while building** | A closed row with each decision the agent took itself when something did not go as planned, such as removing a prop that only served a removed row. Nothing here waits for you. Open it to read them, and ask about any of them in Review |
 | **The build** | The slices, with a bar of segments for the tasks of each. A running slice says what its agent does now, such as "writing the failing test"; a finished one shows its commit |
 | **Changes so far** | A fold with the files and lines changed, grouped by task |
 | **Checked by agents** | One violet line: for example, 5 tasks green, test first, and 12 checks recorded |
@@ -50,31 +55,25 @@ Your agent does not report its own test results. QualityLayer runs the commands 
 
 A command changed after you approved the Plan is not run by QualityLayer. Your agent runs it through its own permission prompt, and the record says so.
 
-## When the build wants to add to the Plan {#add-to-the-plan}
+## When the build needs more than the Plan names {#add-to-the-plan}
 
-Your approval covers the Plan as written. If the build needs a new task, a new slice or a file outside the Plan, it does not add it by itself. The App shows an item, **Add to the Plan**, with what the agent found and what it costs, for example "Fix the copy outside slice 4's files that still offers the old switch. About 1 min of building."
+Your approval covers the Plan as written. If the build needs a new task, a new slice or a file outside the Plan, the agent adds it and notes what it found and what it costs. The build goes on. For example: "Fix the copy outside slice 4's files that still offers the old switch. About 1 min of building." You read it afterwards, in the **Changed while building** row and in Review.
 
-Choose **Add T12** or **Skip it**. That slice waits for your answer. The other slices keep building.
+A change to what you decided, such as the problem, the scope or Done means, is still yours. Your agent asks you in its picker and records your words.
 
 ## Checkpoints {#checkpoints}
 
 A slice the Plan marks `**Risky:**` gets a checkpoint. An agent runs that slice's scenarios on the real program and keeps the test output, logs and screenshots. Zero checkpoints is the normal case.
 
-![A checkpoint after a risky slice: its scenarios run on the real program; a failure goes to an agent to fix and runs again, and after two failed runs you choose: try another fix, change the Plan or continue anyway](pathname:///img/diagrams/checkpoint-light.svg)
-![A checkpoint after a risky slice: its scenarios run on the real program; a failure goes to an agent to fix and runs again, and after two failed runs you choose: try another fix, change the Plan or continue anyway](pathname:///img/diagrams/checkpoint-dark.svg)
+![A checkpoint after a risky slice: its scenarios run on the real program; a failure goes to an agent to fix and runs again with a different approach; after four failed runs the checkpoint is recorded as open, the build goes on, and the final review lists it](pathname:///img/diagrams/checkpoint-light.svg)
+![A checkpoint after a risky slice: its scenarios run on the real program; a failure goes to an agent to fix and runs again with a different approach; after four failed runs the checkpoint is recorded as open, the build goes on, and the final review lists it](pathname:///img/diagrams/checkpoint-dark.svg)
 
-A failed run goes to an agent, which fixes it at the source, and the scenarios run again. After two failed runs the build stops. The step line reads "Stopped after a failed checkpoint". An item describes both tries and keeps their output. You choose:
-
-- **Try another fix.** Optionally add a hint for the third try, such as where the cause is read.
-- **Change the Plan.** Your agent updates the Plan with your words.
-- **Continue anyway.** Go on without that checkpoint passing.
+A failed run goes to an agent, which fixes it at the source, and the scenarios run again. From the second failed run on, the agent tries a different approach from the earlier ones. A failing checkpoint never stops the build. After four failed runs in a row, the checkpoint is recorded as open and the build goes on with the next slices. The failure reaches the final review, where your agent names it in one plain sentence.
 
 To run a checkpoint after every slice, say so for one task: "run a checkpoint after every slice". See [For one task](../reference/settings.md#for-one-task).
 
 ## When the build needs you
 
-- A choice outside the Plan wants your answer: **Add to the Plan**.
-- A checkpoint fails twice.
-- A change would touch what you decided: Done means, the scope or a decision of yours. Your agent asks one question and records your answer in your words.
+Nothing waits for you while it builds. The one exception is a change that would touch what you decided: Done means, the scope or a decision of yours. Your agent asks one question in its picker and records your answer in your words.
 
-Everything you must provide, such as a login or a permission, is settled in the Plan, so the build does not stop for it. When the last slice is built, [Verify](verify.md) starts by itself.
+Everything you must provide, such as a login or a permission, is settled in the Plan, so the build does not stop for it. Whatever stays open reaches the final review. When the last slice is built, [Verify](verify.md) starts by itself.

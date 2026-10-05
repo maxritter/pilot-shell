@@ -13,7 +13,7 @@ The Plan is the one document you approve before any code is written. Human taste
 
 ## What needs you {#items}
 
-The step line reads "Waits for your approval", with how many items need you. **Request changes…** takes free text. The items come in this order:
+Your agent asks these in the terminal, one at a time, in this order. The App beside it reads "Waits for your approval", shows only what the current question is about, and folds the rest. The items:
 
 1. **The mockup.** For a change people see: one clickable mockup with its empty, loading and error states, sandboxed. Looks right or Change, with a pin on the spot.
 2. **Engineering decisions.** Each decision that changes behaviour comes with its diff or its diagram. Agree or Change.
@@ -24,7 +24,7 @@ The step line reads "Waits for your approval", with how many items need you. **R
 
 When nothing needs a closer look, the App says so: "Nothing needs a closer look; read the Plan and approve."
 
-You can also comment anywhere in the Plan. Answers and comments are collected on your computer; **Approve** sends them, or **Send 1 change** when an answer asks for a change.
+You can also comment anywhere in the Plan, on anything your agent does not ask. The App records each answer you give in the terminal as "answered in the chat".
 
 ### Diagrams you can comment on {#diagrams}
 
@@ -86,6 +86,10 @@ Your agent answers each note and changes the Plan. The Plan comes back as "Waits
 
 ## You decide
 
-**Approve** unlocks once your agent puts the Plan up for review (`qualitylayer gate open 02-plan.md`). You can also type `approve` in your agent's chat. When the build later teaches something that changes the Plan, your agent records it as an added block and asks you if it touches what you decided.
+When your agent puts the Plan up for review (`qualitylayer gate open 02-plan.md`), it asks one question per engineering decision, then the last one: "Approve the Plan?", with **Approve**, **Request changes** or **Review in the App first**. Answer in the terminal, or use the App's **Approve** button. You can also type `approve` in your agent's chat.
+
+If you answered **Change** on any decision, an Approve becomes a request for changes that carries those answers. **Request changes** takes your words. Your agent revises the Plan and asks again.
+
+After you approve, the App opens [Implement](implement.md) by itself. When the build later teaches something that changes the Plan, your agent records it as an added block and asks you if it touches what you decided.
 
 Next: [Implement](implement.md).

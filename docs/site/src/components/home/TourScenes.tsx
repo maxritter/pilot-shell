@@ -119,7 +119,7 @@ export default function TourScenes({ ch, step, tries, onRetry, only = false }: {
             <span className="sx-opt sx-hide"><i /><span><b>Until it succeeds</b></span></span>
           </div>
           <div className={`sx-nf ${ins(2)}`}>
-            {t(0) >= 3 ? <span className="sx-tag ok">Answered in Claude Code</span> : <span className="sx-fake sm">Answer in Claude Code</span>}
+            {t(0) >= 3 ? <span className="sx-tag ok">Answered in the chat</span> : <span className="sx-fake sm">Waiting for your answer in the chat</span>}
             <small>The question and your answer stay here as a record.</small>
           </div>
         </Needs>
@@ -143,7 +143,7 @@ export default function TourScenes({ ch, step, tries, onRetry, only = false }: {
       <div className={scene(1)} aria-hidden={ch !== 1}>
         {t(1) >= 6 ? (
           <>
-            <p className="sx-note"><span aria-hidden="true" className="sx-todo" /><span>In Codex the command is <code>$ql implement retry-webhooks</code>. Another agent: give it the prompt from Copy › For another agent.</span></p>
+            <p className="sx-note"><span aria-hidden="true" className="sx-todo" /><span>Build with Codex or Another agent and the command changes to match. Adjust the model or effort first if you like. In Codex it ends with <code>$ql implement retry-webhooks</code>.</span></p>
             <p className="sx-note"><span aria-hidden="true" className="sx-ok" /><span>Approved by you at 13:27 · 5 items settled · the agent’s 3 decisions kept <u>Show</u></span></p>
             <Violet facts={["a second agent found nothing missing", "2 live facts tested, 6 questions answered"]} />
             <div className="sx-sum">

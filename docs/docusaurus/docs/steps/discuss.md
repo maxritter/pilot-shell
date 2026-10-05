@@ -8,7 +8,7 @@ description: Your agent reads the code and asks until it understands what you wa
 
 Describe the change in your own words: `/ql <request>` (`$ql` in Codex). Opus 5.5 is recommended for this session. Your agent reads the relevant code first. Then it asks one question at a time, each with its recommendation, so "yes" is often all you type.
 
-Discuss is a conversation in your agent. The App shows the part that needs you.
+Discuss is a conversation in your agent. The App beside it shows what the current question is about.
 
 ![Discuss: your agent asks in Claude Code or Codex and the App shows the question; Done means lists the points you will agree with the Plan; a change too small for QualityLayer gets a ready prompt instead](pathname:///img/diagrams/discuss-light.svg)
 ![Discuss: your agent asks in Claude Code or Codex and the App shows the question; Done means lists the points you will agree with the Plan; a change too small for QualityLayer gets a ready prompt instead](pathname:///img/diagrams/discuss-dark.svg)
@@ -17,16 +17,16 @@ It asks about everything that matters: the scope, the behaviour, what done means
 
 ## The question you are asked {#the-question}
 
-The step line reads "Waits for your answer", with how far along the questions are. A card under **Needs you** shows the question, the recommended choice highlighted, the other choices, and **Answer in Claude Code**. You answer in your agent's own picker, in Claude Code or Codex; the App never answers for you. It counts the question under Needs you, and keeps your answer as a record under **Decided with you**.
+The step line reads "Waits for your answer", with how far along the questions are. A card under **Needs you** shows the question, the recommended choice highlighted and the other choices. You answer in your agent's own picker, in Claude Code or Codex. The App records your answer as "answered in the chat" and keeps it under **Decided with you**.
 
 A line under the card says what your agent read: the files, the live tests it ran with their output saved, and the research questions it still has.
 
 ## Is this what you asked for, and what done means {#done-means}
 
-When the questions are done, the step line says "The agent writes the Plan". Two items wait for you:
+When the questions are done, the step line says "The agent writes the Plan". Your agent asks you two more things, and the App shows each in full:
 
 - **Is this what you asked for?** Your own words next to your agent's reading of them. Answer Yes or Not quite.
-- **Done means.** Every point in full, with a **Comment** on each. This list is what Verify later checks against, so read it with care. A point only you can confirm, such as a call to a live service, is marked here in amber, so nobody finds out in Verify.
+- **Done means.** Every point in full, with a **Comment** on each in the App. This list is what Verify later checks against, so read it with care. A point only you can confirm, such as a call to a live service, is marked here in amber, so nobody finds out in Verify.
 
 Below them, **In this task** and **Not in this task** draw the boundary of the change.
 

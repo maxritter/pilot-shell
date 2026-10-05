@@ -13,14 +13,14 @@ The final approval is always yours. Review opens on what the checks could not se
 
 ## What needs you {#items}
 
-The step line reads "Waits for your review", with how many items need you. Four kinds of item can wait:
+Your agent asks these in the terminal, one at a time, each in its picker. The App beside it reads "Waits for your review", shows the item being asked and folds the rest. Four kinds of item can wait:
 
 | Item | Your answers |
 | --- | --- |
 | **Only you can confirm** | **I confirm**, or **Ask the agent to record it**. Something no agent may do, such as a call to a live service |
 | **Look at the result** | **Looks right**, or **Change** with a pin on the spot. A real screenshot of the running App, for example. Click anywhere on it to pin a change |
 | **Found while checking** | **Accept**, or **Fix it**. A note from the checking agents, with the file and what it costs to fix |
-| **Decided by the agent during the build** | **Fine**, or **Ask why**. Choices the agent made on its own, which you may have already answered during Implement |
+| **Changed while building** | **Fine**, or **Ask why**. Choices the agent made on its own when something did not go as planned. They never waited for you during the build |
 
 Fixes go back to the agent. It makes them, and only what they touch is checked again; then Review comes back to you. While it works, the step line reads "The agent is making your changes", and each of your notes shows picked up, done or checked.
 
@@ -37,11 +37,11 @@ Fixes go back to the agent. It makes them, and only what they touch is checked a
 ![One answer asks for a change, so the main button reads Send 1 change; the Comments panel lists your drafts, answered threads and your team's comments](pathname:///img/diagrams/comments-light.svg)
 ![One answer asks for a change, so the main button reads Send 1 change; the Comments panel lists your drafts, answered threads and your team's comments](pathname:///img/diagrams/comments-dark.svg)
 
-Your answers are collected on your computer, like on the [Plan](plan.md). The main button sends them. If any answer asks for a change, it reads **Send 1 change** (or 2, 3 …) instead of Approve, and your comments go with it. **Comments · 3** in the step line opens a panel with your drafts, threads the agent has answered, and what your team said.
+The last question is "Approve the change?", with **Approve**, **Request changes** or **Review in the App first**. Answer it in the terminal, or use the App's **Approve** button, like on the [Plan](plan.md). If you answered **Fix it** or **Change** on any item, an Approve becomes a request for changes that carries those answers. **Comments · 3** in the step line opens a panel with your drafts, threads the agent has answered, and what your team said.
 
-**Request changes…** sends free text to the agent.
+**Request changes** sends your words to the agent, which makes the fixes, checks what they touched, and asks again.
 
-The **Approve ▾** menu is where shipping lives:
+In the App, the **Approve ▾** menu is where shipping lives:
 
 | Choice | What it does |
 | --- | --- |
@@ -49,7 +49,7 @@ The **Approve ▾** menu is where shipping lives:
 | **Approve only** | You push and open the pull request yourself |
 | **Copy the git commands** | For a machine without `gh` |
 
-QualityLayer does this only when you click it. It never merges, and never switches your branch. A comment that changes Done means is recorded as an agreed change to the Plan, in your words. Your agent opens the final approval with `qualitylayer gate open final`; you can also type `approve` in its chat.
+QualityLayer does this only when you click it. It never merges, and never switches your branch. A comment that changes Done means is recorded as an agreed change to the Plan, in your words. Your agent opens the final approval with `qualitylayer gate open final`; you can also type `approve` in its chat. A point only you can confirm is asked as "Did you check: …?" with Confirmed or Not yet, and your words are kept with it. A checkpoint that stayed open after the build is named in one plain sentence before you decide.
 
 With a Team plan, teammates comment on any line in their own App and review the code in the pull request. See [Review changes as a team](../team/changes.md).
 

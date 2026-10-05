@@ -12,13 +12,14 @@ description: What you type in your agent, the commands you run, the ones your ag
 | You type | What it does |
 | --- | --- |
 | `/ql <request>` | Start a task with [Discuss](../steps/discuss.md) |
-| `/ql implement <task>` | Build an approved Plan, in a fresh session. See [Implement](../steps/implement.md#start-implement) |
+| `/ql implement <task>` | Build an approved Plan. The App's start card gives the whole command, with the model and effort. See [Implement](../steps/implement.md#start-implement) |
 | `/ql review <task>` | Go through your team's review threads. See [Review changes as a team](../team/changes.md) |
 | `/ql answer <ask>` | Answer a teammate's question with your agent. See [Teammates' agents](../team/agents.md) |
-| `/ql-app` | Open the App at the current task (Claude Code) |
 | `/ql-pane` | Open the pane with the steps and the build's progress (Claude Code) |
 
-In Codex, type `$ql` in place of `/ql`.
+In Codex, type `$ql` in place of `/ql`. Your agent gives you the App's link when you need it, and the App shows the current task.
+
+Your agent asks every decision in its picker, so you rarely type a command. The Claude Code band names the question it asks next.
 
 ## For you
 
@@ -46,17 +47,18 @@ You rarely type these, but they explain what you see in your agent's chat.
 | `qualitylayer next start feature: <problem>` | Create the task after the first questions; `bug:` for a bug |
 | `qualitylayer next handback "<reason>"` | End a request that is too small; no task is created |
 | `qualitylayer next done` | Finish Discuss and move on to the Plan |
-| `qualitylayer question show '<json>'` | Show the question being asked in your agent's picker in the App. The JSON holds `question`, `lead`, `choices` (each with a `label` and a `detail`), `recommended` and `of`. It does not wait. Add `--task <slug>` when several tasks are open |
-| `qualitylayer question answered "<choice>"` | Record your answer and close the question in the App |
+| `qualitylayer question show '<json>'` | Show the question being asked in your agent's picker in the App. The JSON holds `question`, `lead`, `choices` (each with a `label` and a `detail`), `recommended` and `of`. For a decision of a Plan it also names the `gate` and the `item`. It does not wait. Add `--task <slug>` when several tasks are open |
+| `qualitylayer question answered "<choice>"` | Close the question in the App, which shows your answer as "answered in the chat" |
 | `qualitylayer next "show me <topic>"` | Make a picture of how something works |
-| `qualitylayer gate open 02-plan.md` | Put the Plan up for your approval |
-| `qualitylayer gate open final` | Put the finished change up for your final approval |
+| `qualitylayer gate open 02-plan.md` | Put the Plan up for your approval. The reply lists the questions your agent asks you, one per decision, and "Approve the Plan?" last |
+| `qualitylayer gate open final` | Put the finished change up for your final approval, with "Approve the change?" last |
+| `qualitylayer hook prompt` · `qualitylayer hook activity` | Run by your agent's hooks, which the installer sets. They record `approve` typed in the session, and the answer you pick in your agent's picker |
 | `qualitylayer check slice <n>` | Run a slice's approved commands and record them |
 | `qualitylayer check task T<n>` | Run one task card's check and record it |
 | `qualitylayer check all` | Run the project's tests, lint, type check and build and record them |
 | `qualitylayer verdict <assignment> <item> pass\|fail\|missing\|user\|note "<text>"` | Record the result of one check as an agent makes it, so the Verify checklist fills in live. `user` marks a point only you can confirm |
 | `qualitylayer attest <item> "<what you said>" [--evidence <file>]` | Record what you confirmed, such as an **Ask the agent to record it** answer on an Only you can confirm item. It is kept with your words, outside the build log. An agent cannot settle a point only you can confirm on its own |
-| `qualitylayer gate stop '<json>'` | Stop the build after two failed checks, so the App asks you how to go on. Wait for your choice with `qualitylayer gate wait` |
+| `qualitylayer gate stop '<json>'` | Stop checking after two failed tries, so your agent asks you how to go on in its picker. Wait for your choice with `qualitylayer gate wait` |
 | `qualitylayer card T<n>` | Print one task card with the contract it builds |
 | `qualitylayer progress build --for T<n> "<line>"` | Report that a task is being built |
 | `qualitylayer comments take` | Collect the comments not yet answered, your team's included |

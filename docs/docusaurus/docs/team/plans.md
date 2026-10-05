@@ -17,7 +17,7 @@ Your team sees the decisions and the slices while they are still a plan. A wrong
 
 Select a passage, a diagram, a table, a section or a whole document, or point at the approval itself, a build item or a comment thread. Choose **Ask…**, pick the person and write the question. Or mention someone with **@**. Asking about a passage works the same as commenting. The Slack message opens the App at that passage.
 
-An ask is **Needed before approval** or **Opinion only**. A needed ask blocks the approval until it is answered, or until the asker chooses **Approve without Anna**. At any approval, **Ask for review** names the people whose review is required or optional.
+An ask is **Needed before approval** or **Opinion only**. A needed ask blocks the approval until it is answered, or until the asker chooses **Approve without Anna** in the App. At any approval, **Ask for review** names the people whose review is required or optional.
 
 The person asked sees it under **Questions for you**, with the passage or diagram in view. They answer **Looks right**, **Suggest a change** or **Reply**, and the answer goes straight to your agent. They can also **Draft with my agent**, **Hand to someone else**, or **Open the Plan at this diagram**.
 
@@ -30,7 +30,7 @@ A teammate can hand your question to their own coding agent. See [Teammates' age
 | **Start** | In **Share**, choose your team or a group | The task appears under **Team** in their App |
 | **Read** | You review as usual | They read the same Plan in their own App |
 | **Ask and answer** | Your question waits under **Your questions to others**. When an answer arrives you get a Slack message and a notification, with the answer quoted | A question for them appears under **Questions for you** |
-| **Decide** | Your agent answers every comment and updates the Plan where it agrees. Only your approval moves the task on | Their approval shows as advice in your review |
+| **Decide** | Your agent answers every comment and updates the Plan where it agrees. Only your approval moves the task on, given in the terminal when your agent asks "Approve the Plan?" or with the App's Approve button | Their approval shows as advice in your review |
 
 ## The Team space
 

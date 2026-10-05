@@ -17,9 +17,8 @@ Claude Code and Codex are set up for you. Any other coding agent can use Quality
 
 ## How it goes
 
-You describe the change to your agent, in a session in your repository, together with the prompt. The agent runs `qualitylayer next "<your request>"`. QualityLayer holds the task's state and tells the agent what the current step is, so the agent never decides the workflow itself. The task appears in the App, and you decide there: [Discuss](../steps/discuss.md), [Plan](../steps/plan.md), [Review](../steps/review.md).
-
-For Implement, the App shows a prompt for the build. Give your agent the prompt from **Copy › For another agent** in a fresh session.
+You describe the change to your agent, in a session in your repository, together with the prompt. The agent runs `qualitylayer next "<your request>"`. QualityLayer holds the task's state and tells the agent what the current step is, so the agent never decides the workflow itself. The task appears in the App, and the agent asks you each decision in its own window, as in [Discuss](../steps/discuss.md), [Plan](../steps/plan.md) and [Review](../steps/review.md).
+For Implement, choose **Another agent** under **Build with** on the start card. It gives a plain prompt for the build: paste it into a fresh session.
 
 ## What works without Claude Code or Codex
 

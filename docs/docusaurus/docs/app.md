@@ -1,9 +1,11 @@
 ---
 title: The QualityLayer App
-description: How every step of the App is laid out, the five kinds of items you answer, how your answers reach your agent, and where to find things, on macOS, Windows and Linux.
+description: What the App is for, how every step is laid out, the five kinds of items, how your answers reach your agent, and where to find things, on macOS, Windows and Linux.
 ---
 
-The QualityLayer App is where you decide. Your agents keep doing the work in their own apps. The App never starts, pauses or stops an agent: every answer you give is a file the waiting agent reads.
+Your agent asks every decision in its own window. The QualityLayer App is where you read and look: the plan and its diagrams, the evidence, and a comment on anything the agent did not ask about. It also mirrors your answers, so you can see what was settled and when. Put it on the left and your agent's terminal on the right.
+
+The App never starts, pauses or stops an agent. It shows only what the current question is about, folds the rest, and records an answer you give in the terminal as "answered in the chat".
 
 It runs on macOS (Intel and Apple silicon), Windows and Linux desktops. On WSL2, in a dev container or on a server, `qualitylayer app` opens the same App in your browser.
 
@@ -12,14 +14,14 @@ It runs on macOS (Intel and Apple silicon), Windows and Linux desktops. On WSL2,
 ![The App with numbered parts: the sidebar, the step tabs, the step line, the items that need you, the line of what agents checked, and the work](pathname:///img/diagrams/app-marked-light.svg)
 ![The App with numbered parts: the sidebar, the step tabs, the step line, the items that need you, the line of what agents checked, and the work](pathname:///img/diagrams/app-marked-dark.svg)
 
-The App shows you only what needs a decision, your taste or your engineering judgement. Everything an agent can check folds into one line of proof that opens on demand. Every step has the same four layers, so you always know where to look.
+The App shows you only what needs a decision, your taste or your engineering judgement, and the decision itself is asked in the terminal. Everything an agent can check folds into one line of proof that opens on demand. Every step has the same four layers, so you always know where to look.
 
 | Part | What it does |
 | --- | --- |
 | **1** Sidebar | Your tasks in three groups: **Needs you** (with the open count and the step), **Running** and **Shipped** |
 | **2** Step tabs | Where the task stands. A filled dot is done, a blue open ring means agents are working, an amber ring with a number means that many items wait for you |
 | **3** Step line | Whose turn it is, in one sentence, and the one main action of the step you are looking at |
-| **4** Needs you | Only the items that need a person. Each names its kind, shows the thing itself, and offers its two answers |
+| **4** Needs you | Only the items that need a person. Each names its kind and shows the thing itself. An item your agent has asked in the terminal moves to a record, "answered in the chat" |
 | **5** Checked by agents | One violet line with what the agents proved. The chevron opens the details and the evidence |
 | **6** The work | The document, the live build or the diff. You can comment anywhere in it |
 
@@ -30,7 +32,7 @@ A finished step says what happened and links to where the task is now. A step no
 ![The five families of items: Decide, Look, Confirm, Fix and Answer, each with its answers and the kinds of item in it](pathname:///img/diagrams/items-light.svg)
 ![The five families of items: Decide, Look, Confirm, Fix and Answer, each with its answers and the kinds of item in it](pathname:///img/diagrams/items-dark.svg)
 
-An item shows the thing itself, such as a screen, a diagram, a diff or a sentence, and the two answers of its family. A comment can go with any answer.
+An item shows the thing itself, such as a screen, a diagram, a diff or a sentence, and the answers of its family. Your agent asks the same answers in the terminal. A comment can go with any answer.
 
 | Family | Your answers | Items in it |
 | --- | --- | --- |
@@ -46,14 +48,16 @@ Change, Fix it and Ask the agent to record it send work back to the agent. The a
 
 | Where | What happens |
 | --- | --- |
-| **Discuss** | The agent asks in its own picker in Claude Code or Codex. The App shows the question, its recommendation and the choices, counts it under Needs you, and records your answer |
-| **Plan and Review** | Your answers are collected on this computer. The main button sends them all: **Approve**, or **Send 1 change** (or 2, 3 …) when an answer asks for a change. Comments ride along as notes |
-| **Implement** | Comments and **Ask why** go at once. The build reads them after each task. **Add to the Plan** holds only that slice; the rest keeps building |
-| **A stop** | When a checkpoint fails twice, or checking stops after two tries, the App offers the choices. Your choice is a decision the waiting agent reads |
+| **Discuss** | The agent asks in its own picker in Claude Code or Codex. The App shows what the question is about, its recommendation and the choices, and records your answer |
+| **Plan** | The agent asks each engineering decision in the picker, one at a time: **Agree** or **Change**. The App shows only the decision that is being asked and folds the rest. The last question is "Approve the Plan?": Approve, Request changes, or Review in the App first |
+| **Implement** | Nothing waits for you. When something does not go as planned, the agent takes the recommended way and lists it in a closed row, **Changed while building**. A failing checkpoint never stops the build. Comments go at once, and the build reads them after each task |
+| **Review** | Whatever stayed open reaches the final review. The agent asks each item in the picker, then "Approve the change?" |
 
-With no agent attached to a task, your answers wait, and the App shows the command that resumes it.
+An item the agent holds for you, such as an addition to the Plan or something only you can confirm, is asked the same way. The agent puts it in its picker, and your pick is recorded as if you had pressed the button.
 
-You can change an answer until it is sent. After you send it, the agent's reply appears on the item. If the agent later changes something you settled, the item opens again, marked **changed since your review**. If you already decided in your agent's window, the App says where and when, and keeps your unsent answers as comments.
+With no agent attached to a task, the App shows the command that resumes it.
+
+If the agent later changes something you settled, the item opens again, marked **changed since your review**. When you answer in the terminal, the App shows where and when, as "answered in the chat". If you see a plan before the agent asks about it, comment on it and the agent answers in the thread.
 
 ## Order and counts
 
@@ -63,7 +67,7 @@ What blocks work comes first: a question, a stop, something only you can confirm
 - The sidebar counts open items per task.
 - The **Team** switch counts questions for you.
 
-An item the agent changes while you read it shows **updated** and keeps your unsent answer.
+An item the agent changes while you read it shows **updated**.
 
 ## Comments
 
@@ -83,7 +87,7 @@ On Plan and Review, **Comments** in the step line opens a panel with three lists
 
 ## Home and ⌘K
 
-**Home** gathers the items of all your tasks, grouped by task. Quick ones, such as confirm, accept and fix, you answer on the spot. Items that need a look say **Open** and take you to that item. Below sit questions from teammates, **Running** with one live line per task, and what shipped this week with its cost. When nothing needs you, Home says so and keeps Running.
+**Home** gathers the items of all your tasks, grouped by task. Each says what your agent asks next, or **Open**, which takes you to the item to look at. Below sit questions from teammates, **Running** with one live line per task, and what shipped this week with its cost. When nothing needs you, Home says so and keeps Running.
 
 **⌘K** opens a command box. It finds tasks by name or content, jumps to a setting and filters the list by need, agent or project. **Send feedback** is in it too.
 
@@ -112,9 +116,11 @@ The App speaks only when a person can act. That means a Plan or a review waits, 
 
 The tray menu lists the same lines. If none arrive, allow QualityLayer in your system's notification settings. You can turn them off in [Settings](reference/settings.md#notifications).
 
-## Approve in the App or in the chat
+## Approve in the chat or with the button
 
-The main button records your decision. You can also type `approve` as your message in the agent session that runs the task, in Claude Code or Codex. QualityLayer's prompt hook records it and tells the agent; Codex asks you once to trust the hook. Your agent cannot approve for you: if it runs the approve command itself, QualityLayer refuses.
+The approval is the last question your agent asks. Pick **Approve** in its picker, in Claude Code or Codex, and QualityLayer's hook on the picker records it. The App's **Approve** button records the same decision. You can also type `approve` as your message. If a pick cannot be read, the approval stays open and your agent asks you to type `approve` or use the App. Codex asks you once to trust the hooks.
+
+**Request changes** takes your words, and **Review in the App first** leaves the approval open while you read. If you answered Change on any decision, an Approve becomes a request for changes that carries those answers. Your agent revises the plan and asks again. Your agent cannot approve for you: if it runs the approve command itself, QualityLayer refuses.
 
 ## What it costs
 
@@ -127,12 +133,12 @@ Figures are estimated at list price. Where no list price is published yet, as fo
 
 ## In Claude Code
 
-With Claude Code 2.1.287 or later, the installer adds a small QualityLayer add-on. It draws a slim band above your prompt while a task or a question for you is live.
+With Claude Code 2.1.287 or later, the installer adds a small QualityLayer add-on. It draws a slim band above your prompt while a task or a question for you is live. While your agent has a question open, the band says what it asks next.
 
-![The band above the Claude Code prompt: the Plan needs you, how the build runs, or teammates' questions for you](pathname:///img/diagrams/band-light.svg)
-![The band above the Claude Code prompt: the Plan needs you, how the build runs, or teammates' questions for you](pathname:///img/diagrams/band-dark.svg)
+![The band above the Claude Code prompt: the question the agent asks next, how the build runs, or teammates’ questions for you](pathname:///img/diagrams/band-light.svg)
+![The band above the Claude Code prompt: the question the agent asks next, how the build runs, or teammates’ questions for you](pathname:///img/diagrams/band-dark.svg)
 
-`/ql-app` opens the App at the task, and `/ql-pane` opens a pane with the steps and the build's progress. The add-on only shows; it never approves or changes anything. QualityLayer sets no status line, so yours stays as it is. In Codex, and where Claude Code draws no add-ons, your agent's own messages carry the links.
+`/ql-pane` opens a pane with the steps and the build's progress. The add-on only shows; it never approves or changes anything. QualityLayer sets no status line, so yours stays as it is. Your agent gives you the App's link when you need it, and the App shows the current task. In Codex, and where Claude Code draws no add-ons, your agent's own messages say what it asks next.
 
 ## Copy a document out
 

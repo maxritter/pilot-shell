@@ -4,7 +4,7 @@ title: QualityLayer documentation
 description: How QualityLayer takes your coding agent from a request to a reviewed change, and where you decide along the way.
 ---
 
-QualityLayer runs your coding agent through a proper engineering process. You approve one plan before any code is written. The agent builds it test first, and agents that did not write the code check the result against what you asked for. In the **QualityLayer App** you see only what needs you: the decisions, the screens to look at, and what only you can confirm.
+QualityLayer runs your coding agent through a proper engineering process. You approve one plan before any code is written. The agent builds it test first, and agents that did not write the code check the result against what you asked for. Your agent asks you each decision in its own window. The **QualityLayer App** beside it shows what the question is about: the diagrams, the screens to look at, and the proof.
 
 ![The QualityLayer App: the sidebar, the five step tabs, the step line with Approve, the items that need you, the line of what agents checked, and the Plan](pathname:///img/diagrams/app-light.svg)
 ![The QualityLayer App: the sidebar, the five step tabs, the step line with Approve, the items that need you, the line of what agents checked, and the Plan](pathname:///img/diagrams/app-dark.svg)
@@ -21,10 +21,10 @@ Every task takes the same five steps. You approve twice: the Plan before any cod
 | Step | What happens |
 | --- | --- |
 | **[Discuss](steps/discuss.md)** | Your agent asks until it understands what you want and what done means. You answer in your agent |
-| **[Plan](steps/plan.md)** | The mockup, the engineering decisions as diagrams, and the slices and checks that prove it. You answer each item and approve |
-| **[Implement](steps/implement.md)** | Slices built test first, each check recorded by QualityLayer. You see the choices the build made on its own |
+| **[Plan](steps/plan.md)** | The mockup, the engineering decisions as diagrams, and the slices and checks that prove it. Your agent asks each decision, then "Approve the Plan?" |
+| **[Implement](steps/implement.md)** | One command starts the build. Slices built test first, each check recorded by QualityLayer. Nothing waits for you, and you read the choices the build made on its own |
 | **[Verify](steps/verify.md)** | Agents that did not write the code check it against what done means, on a live checklist |
-| **[Review](steps/review.md)** | You settle the few items left, look at the result, and approve. The Approve menu can open the pull request |
+| **[Review](steps/review.md)** | Your agent asks the few items left, you look at the result, and approve. The Approve menu can open the pull request |
 
 A bug takes the same steps. Its cause is found before anything is planned.
 
@@ -36,9 +36,9 @@ It works inside Claude Code and Codex, in the terminal, their desktop apps or yo
 
 ## Who does what
 
-![Who does what: you and your agent discuss and write the Plan; the implement session you start hands work to workers; agents that did not write the code check it; a second opinion from another vendor reviews risky Plans](pathname:///img/diagrams/agents-light.svg)
-![Who does what: you and your agent discuss and write the Plan; the implement session you start hands work to workers; agents that did not write the code check it; a second opinion from another vendor reviews risky Plans](pathname:///img/diagrams/agents-dark.svg)
+![Who does what: you and your agent discuss and write the Plan; the implement session you start with one command hands work to workers; agents that did not write the code check it; a second opinion from another vendor reviews risky Plans](pathname:///img/diagrams/agents-light.svg)
+![Who does what: you and your agent discuss and write the Plan; the implement session you start with one command hands work to workers; agents that did not write the code check it; a second opinion from another vendor reviews risky Plans](pathname:///img/diagrams/agents-dark.svg)
 
-Opus 5.5 is recommended for Discuss and Plan, in your own session. You start Implement in a fresh session, with Sonnet 5.5 recommended. Workers build the slices from the Plan, never from your chat. The agents that check the result run on Opus 5.5. The App shows what each step costs.
+Opus 5.5 is recommended for Discuss and Plan, in your own session. You start Implement with one command from the App, with Sonnet 5.5 recommended. Workers build the slices from the Plan, never from your chat. The agents that check the result run on Opus 5.5. The App shows what each step costs.
 
 **Look something up:** [Commands](reference/commands.md) · [Settings](reference/settings.md) · [Review plans as a team](team/plans.md)

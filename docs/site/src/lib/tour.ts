@@ -96,7 +96,7 @@ export const CHAPTERS: Chapter[] = [
     steps: 6,
     act: { id: "steps", title: "From your request to a pull request", text: "On your own or with your team, a change goes through the same five steps. You decide where a decision is needed, and your agents do the rest." },
     title: "Your agent asks until the goal is clear",
-    text: "Describe the change in your own words. Your agent reads the code and asks one question at a time, each with its recommendation, in Claude Code or Codex.",
+    text: "Describe the change in your own words. Your agent reads the code. It asks each decision in the terminal, one at a time, and the App beside it shows only what the current question is about.",
     bullets: ["A bug is reproduced and its cause found", "Too small for a plan? You get a ready prompt", "What you decide is written down as Done means"],
     win: { title: TITLE, view: "task", groups: sidebar("you", "question"), foot: SOLO, doc: TASK, stage: 0, cost: "$2.10" },
   },
@@ -106,7 +106,7 @@ export const CHAPTERS: Chapter[] = [
     who: "you",
     steps: 6,
     title: "You approve one plan before any code",
-    text: "What needs a decision comes first, shown as it will look: a clickable mockup and a diagram for each engineering decision. The full plan follows below.",
+    text: "What needs a decision comes first, shown as it will look: a clickable mockup and a diagram for each engineering decision. Your agent asks them one by one, and the last question is the approval.",
     bullets: ["Comment on any line or diagram", "Everything the agent decided for you is listed, so you can change it", "A second agent reads the Plan before it reaches you"],
     win: { title: TITLE, view: "task", groups: sidebar("you", "Plan · 5"), foot: SOLO, doc: TASK, stage: 1, cost: "$5.95" },
   },
@@ -116,8 +116,8 @@ export const CHAPTERS: Chapter[] = [
     who: "ag",
     steps: 6,
     title: "It is built in slices, each test first",
-    text: "Start a new session your way and type /ql implement. Every task starts with a failing test, and slices that don’t overlap build side by side.",
-    bullets: ["QualityLayer records every test run itself", "What the agent decided on the way is listed, with Fine or Ask why", "Comment on the build while it runs"],
+    text: "After you approve, the App opens Implement with one command that starts the build. Every task starts with a failing test, and slices that don’t overlap build side by side.",
+    bullets: ["QualityLayer records every test run itself", "Nothing waits for you: what the agent decided on the way is listed", "Comment on the build while it runs"],
     win: { title: TITLE, view: "task", groups: sidebar("ag", "Implement"), foot: SOLO, doc: TASK, stage: 2, cost: "$15.35" },
   },
   {
@@ -136,7 +136,7 @@ export const CHAPTERS: Chapter[] = [
     who: "you",
     steps: 5,
     title: "You approve the finished change, with its proof",
-    text: "What needs you comes first: what only you can confirm, the result to look at, and what the checks found. The summary and the diff follow.",
+    text: "Your agent asks what needs you in the terminal: what only you can confirm, the result to look at, and what the checks found. The App shows the summary and the diff.",
     bullets: ["Every changed file is tagged with the task that made it", "Approve and open a pull request, or approve only", "Ask for changes and your notes become the agent’s work"],
     win: { title: TITLE, view: "task", groups: sidebar("you", "Review · 3"), foot: SOLO, doc: TASK, stage: 4, cost: "$20.95" },
   },
@@ -216,7 +216,7 @@ export const CHAPTERS: Chapter[] = [
     who: "ag",
     steps: 5,
     title: "It works where your agents already work",
-    text: "Claude Code and Codex do the work in their own apps. The QualityLayer App is where you review and approve, on macOS, Windows and Linux. On a server or in WSL, it opens in your browser.",
+    text: "Claude Code and Codex do the work in their own apps and ask you each decision there. The QualityLayer App shows the detail, on macOS, Windows and Linux. On a server or in WSL, it opens in your browser.",
     bullets: ["Close the App and the agents keep working", "A notification tells you when something needs you", "Updates download quietly and install when you restart"],
     win: { title: "Needs you · QualityLayer", view: "home", groups: sidebar("you", "Review · 3"), foot: SOLO, doc: "Needs you", sub: "3 items on 1 task", stage: -1 },
   },
@@ -290,7 +290,7 @@ export function stepLine(ch: number, step: number): Line {
         : { who: "you", head: "Waits for your answer", text: "Question 3 of about 5. The agent asks it in Claude Code and waits there.", buttons: [] };
     case "plan":
       return at(6)
-        ? { who: "you", head: "Start the build", text: "In a fresh session (Sonnet 5.5 recommended), type", code: "/ql implement retry-webhooks", seg: ["Claude Code", "Codex"], buttons: [["Copy", "p"]] }
+        ? { who: "you", head: "Start the build", text: "Copy one command, with the model and effort the App recommends (Sonnet 5.5). It ends with", code: "/ql implement retry-webhooks", seg: ["Claude Code", "Codex"], buttons: [["Copy", "p"]] }
         : { who: "you", head: "Waits for your approval", text: "5 items need you before the build starts.", buttons: [["Request changes…", ""], ["Approve", step === 5 ? "p split press" : "p split"]] };
     case "implement":
       return { who: "ag", head: "Agents are building", text: "Slices 1 and 3 run side by side. Nothing needs you.", buttons: [] };
