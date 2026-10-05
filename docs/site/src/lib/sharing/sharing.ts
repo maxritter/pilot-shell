@@ -193,11 +193,11 @@ const DATA_DOCS = new Set([REVIEW_DOC, "items.json"]);
  * Whether a document is the agent's own: research and diagnosis (top-level Markdown files) never
  * leave the machine, and a link that carries one anyway shows nothing of it. A mockup is never one.
  */
-const isPrivate = (name: string) => name.endsWith(".md") && !name.includes("/") && (/^01-/.test(name) || /research|diagnos/i.test(name));
+const isPrivate = (name: string) => name.endsWith(".md") && !name.includes("/") && (/^01-(?!discuss\.md$)/.test(name) || /research|diagnos/i.test(name));
 
 /** The step a document belongs to, by the number its file carries; an old link's frame is Discuss. */
 function tabOf(name: string): Tab {
-  if (name === "README.md" || /^00-/.test(name)) return "discuss";
+  if (name === "README.md" || name === "01-discuss.md" || /^00-/.test(name)) return "discuss";
   if (/^03-outline/.test(name)) return "plan";
   if (/^0[3-9]-/.test(name)) return "build";
   return "plan";
