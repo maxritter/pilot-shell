@@ -4,6 +4,7 @@ docs/site/scripts/restore.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/db-migrate.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/upload-workflow.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/load-check.ts filter=git-crypt diff=git-crypt
+docs/site/scripts/check-deploy.sh filter=git-crypt diff=git-crypt
 docs/site/scripts/*.test.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/backup-recipient.txt filter=git-crypt diff=git-crypt
 docs/site/workers/feedback-store/** filter=git-crypt diff=git-crypt
