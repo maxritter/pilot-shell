@@ -37,7 +37,7 @@ On Windows, in PowerShell:
 irm https://qualitylayer.dev/install.ps1 | iex
 ```
 
-The first line of its output names what it found, such as "macOS, Apple silicon, with a screen" or "over SSH, no screen". It checks every download against its checksum before it installs anything. `--cli-only` installs only the command line on a desktop, and `--with-app` installs the App where the installer found no screen. In PowerShell the first one is `-CliOnly`.
+The first line of its output names what it found, such as "macOS, Apple silicon, with a screen" or "over SSH, no screen". It checks the release's signature and every download's checksum before it installs anything, and needs `ssh-keygen` for the signature, which macOS, Linux and Windows' OpenSSH client include. `--cli-only` installs only the command line on a desktop, and `--with-app` installs the App where the installer found no screen. In PowerShell the first one is `-CliOnly`.
 
 Windows may show a SmartScreen notice when you open the App for the first time. The download page says what to expect.
 

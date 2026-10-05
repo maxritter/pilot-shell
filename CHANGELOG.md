@@ -2,6 +2,26 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.16
+
+### New
+
+- While you plan, the agent asks every decision in the chat, including "Is this what you asked for" and "Done means". The App shows only what the open question is about, and an answer you give in the chat settles its item there at once.
+- After you approve the Plan, the App opens Implement with one command that starts the build: pick the agent, model, effort and where it starts, then copy it.
+- Nothing waits for you while agents build and check. They take the recommended way and note it, and what stays open reaches your final review.
+- Team plans, share links and comments now live in a database in Frankfurt, with an encrypted backup every week to a bucket in the EU.
+- `qualitylayer update`, `install.sh` and `install.ps1` check the release's signature as well as its checksums. The installers need `ssh-keygen`, which comes with macOS, Linux and Windows' OpenSSH client.
+
+### Fixed
+
+- Only qualitylayer.dev can grant a paid tier on a machine. An edited local file no longer unlocks Team, and a cancelled licence stops working within 7 days.
+- The App no longer says the agent is gone while it is working, and an answer clicked in the App leaves Needs you at once.
+- The task page's Approve and Request changes show only while a gate is open.
+
+### Good to know
+
+- Team plans and share links from the beta were not carried over: the new storage starts empty, so share a plan again to get a new link.
+
 ## 12.0.0-beta.15
 
 ### New
