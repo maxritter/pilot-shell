@@ -243,6 +243,25 @@ describe("the page for a task at the Plan", () => {
     expect(build).toContain("The build has not started");
     expect(build).not.toContain("Settings are too many.");
   });
+
+  it("reads a new task's files: Discuss from 01-discuss.md, and none of the agent's own files", async () => {
+    const { "00-discuss.md": _old, "01-research.md": _research, ...kept } = PLAN_SHARE.docs;
+    const docs = {
+      ...kept,
+      "01-discuss.md": "# Problem\n\nSettings are too many, said the new task.",
+      "01-discuss-details.md": "# Details\n\nSECRET DISCUSS DETAILS",
+      "01-discuss-research.md": "# Research\n\nSECRET RESEARCH NOTES",
+    };
+    const state = { ...PLAN_SHARE, docs };
+    const discuss = await html(<SharedView state={state} onSend={noSend} tab="discuss" />);
+    expect(discuss).toContain("said the new task.");
+    const plan = await html(<SharedView state={state} onSend={noSend} />);
+    for (const page of [discuss, plan]) {
+      expect(page).not.toContain("SECRET");
+      // What a reader sees, not the attributes the page keeps for itself.
+      expect(page.replace(/<[^>]*>/g, " ")).not.toContain("01-discuss");
+    }
+  });
 });
 
 describe("a link made before the App sent steps, items and the owner's name", () => {

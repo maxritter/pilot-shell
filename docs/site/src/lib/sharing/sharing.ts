@@ -190,10 +190,11 @@ export function parseReview(text: string | undefined): SharedReview | undefined 
 const DATA_DOCS = new Set([REVIEW_DOC, "items.json"]);
 
 /**
- * Whether a document is the agent's own: research and diagnosis (top-level Markdown files) never
- * leave the machine, and a link that carries one anyway shows nothing of it. A mockup is never one.
+ * Whether a document is the agent's own: research, diagnosis and Discuss's details (top-level
+ * Markdown files, in either layout) never leave the machine, and a link that carries one anyway
+ * shows nothing of it. A mockup is never one. The Plan's details are the Plan's, and are read.
  */
-const isPrivate = (name: string) => name.endsWith(".md") && !name.includes("/") && (/^01-(?!discuss\.md$)/.test(name) || /research|diagnos/i.test(name));
+const isPrivate = (name: string) => name.endsWith(".md") && !name.includes("/") && (/^0[01]-discuss-details\.md$/.test(name) || /research|diagnos/i.test(name));
 
 /** The step a document belongs to, by the number its file carries; an old link's frame is Discuss. */
 function tabOf(name: string): Tab {

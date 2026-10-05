@@ -40,6 +40,30 @@ describe("a link's documents, by step", () => {
     expect(Object.values(steps).flat()).toEqual(["00-discuss.md", "02-plan.md"]);
   });
 
+  it("reads a new task's Discuss and Plan: 01-discuss.md is Discuss, and the slices come from the details", () => {
+    const docs = { "01-discuss.md": "d", "02-plan.md": "p", "02-plan-details.md": "pd" };
+    expect(stepDocs(docs)).toEqual({ discuss: ["01-discuss.md"], plan: ["02-plan.md", "02-plan-details.md"], build: [] });
+  });
+
+  it("keeps the agent's files private by name, in both layouts: research, diagnosis and Discuss's details", () => {
+    const docs = {
+      "01-discuss.md": "d",
+      "01-discuss-research.md": "SECRET",
+      "01-discuss-diagnosis.md": "SECRET",
+      "01-discuss-details.md": "SECRET",
+      "00-discuss.md": "d",
+      "00-discuss-details.md": "SECRET",
+      "01-research.md": "SECRET",
+      "01-diagnosis.md": "SECRET",
+      "02-plan.md": "p",
+    };
+    expect(Object.values(stepDocs(docs)).flat()).toEqual(["00-discuss.md", "01-discuss.md", "02-plan.md"]);
+  });
+
+  it("does not drop a document for its number: only the agent's own files are private", () => {
+    expect(Object.values(stepDocs({ "01-frame.md": "f", "02-plan.md": "p" })).flat()).toEqual(["01-frame.md", "02-plan.md"]);
+  });
+
   it("reads an old link's files too: the frame is Discuss, the design and its outline are the Plan", () => {
     expect(stepDocs({ "README.md": "r", "02-design.md": "d", "03-outline-overview.md": "o" })).toEqual({
       discuss: ["README.md"],
