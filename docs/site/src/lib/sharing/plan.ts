@@ -33,7 +33,7 @@ const fenceWord = (token: Tokens.Code) => (token.lang ?? "").trim().split(/\s+/)
  * mockup, in its body or after the word (the App writes the path in the body).
  */
 export function planBlocks(markdown: string): PlanBlock[] {
-  const tokens = marked.lexer(markdown);
+  const tokens = marked.lexer(markdown.replace(/<!--\s*ql:design\s+([a-z0-9][a-z0-9-]*)\s*-->/g, (_marker, name: string) => `\n\n\`\`\`artifact\ndesign/${name}.html\n\`\`\`\n\n`));
   const blocks: PlanBlock[] = [];
   let run: Token[] = [];
   const flush = () => {

@@ -6,7 +6,7 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 ### New
 
-- Designs: ask your agent to mock up a screen or draw how something works, and it draws a page with `qualitylayer design new`. The App shows it full size, with Jump to, zoom, full screen and comments on any spot; the agent changes the same page and the App tells you it was updated. Designs stay on your computer: never shared, never committed.
+- Designs: ask your agent to mock up a screen or draw how something works, and it draws a page with `qualitylayer design new`. The App shows it full size, with Jump to, zoom, full screen and comments on any spot; the agent changes the same page and the App tells you it was updated. A share link shows a still of the Plan's design; the interactive page and its comments stay on your computer and out of Git.
 - The right sidebar is Comments · Designs, and Home lists the project's designs. The header's file chip opens a menu: the path, Copy path, Open in editor, Reveal in Finder, Open the task folder, Copy the task's name.
 - New tasks keep one document per step: `01-discuss.md` to `05-review.md` for you, and the agent's notes, logs and raw output in the task's `agent/` folder. Tasks you already have keep their files.
 - Each step's page is its document, with QualityLayer's live parts drawn over it: your answers, the decisions, the build board, the proof, the approval. QualityLayer writes the Implement and Verify pages itself and keeps them current; `05-review.md` becomes the pull request's description.
@@ -15,6 +15,8 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 ### Fixed
 
+- The session messaging skill is now `agent-peers`, and Claude Code's task pane opens with `/task-pane`, so typing `/ql` shows only the workflow skill. Updates remove the old `ql-peers` skill when it belongs to QualityLayer and preserve your own files.
+- A share link follows the task without a reload: Discuss, Plan, Implement, Verify and Review, including a still of the Plan's design. Your draft stays in place while the page updates.
 - You can rebase the build onto a newer main, merge main in, amend or squash its commits before Review: the build's commit list, its checks and the pull request show only its own commits. No agent copies a revision or a hash any more.
 - A task added to a slice while it is built reaches the agent building it, or a new agent builds it.
 - A slice with nothing to commit, such as a review whose notes stay in an ignored folder, now succeeds.

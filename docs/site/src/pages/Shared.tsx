@@ -5,12 +5,12 @@ import Page from "@/components/Page";
 import SEO from "@/components/SEO";
 import { addRemark, answerItem, type Drafts, EMPTY, pending, removeRemark, summary } from "@/lib/sharing/drafts";
 import { contractsOf, mockupName, planBlocks, slicesOf } from "@/lib/sharing/plan";
+import { watchShare } from "@/lib/sharing/poll";
 import {
   type ChangeAnchor,
   type GuestAnswer,
   type LoadedShare,
   linkKeyOf,
-  loadShare,
   newThreadId,
   type Remark,
   type ShareItem,
@@ -25,6 +25,8 @@ import { Asks } from "./shared/Asks";
 import { Blocks } from "./shared/Blocks";
 import { ChangeView } from "./SharedChange";
 import "@/styles/shared.css";
+import { flowStepOf } from "@ql/core/flow";
+import { PLAN_STILL, sharedDocuments, stripSharedCode } from "@ql/core/team/publication";
 
 const NAME_KEY = "qualitylayer-guest-name";
 
@@ -46,18 +48,22 @@ const REASONS: Record<Exclude<SubmitResult, { ok: true }>["reason"], string> = {
 const TABS: [Tab, string][] = [
   ["discuss", "Discuss"],
   ["plan", "Plan"],
-  ["build", "Build"],
+  ["implement", "Implement"],
+  ["verify", "Verify"],
+  ["review", "Review"],
 ];
 
 /** What a step with nothing in this link says, in one sentence. */
 const NOT_THERE: Record<Tab, string> = {
-  discuss: "The conversation that settled the problem is not part of this link.",
-  plan: "The Plan is not written yet. It appears here once it waits for approval.",
-  build: "The build has not started. Once it has, this tab shows what was checked and how to try it.",
+  discuss: "Discuss has not started yet.",
+  plan: "Plan has not started yet.",
+  implement: "Implement has not started yet.",
+  verify: "Verify has not started yet.",
+  review: "Review has not started yet.",
 };
 
 /** The file a comment on a step's text is recorded against when the link names none. */
-const DEFAULT_DOC: Record<Tab, string> = { discuss: "00-discuss.md", plan: "02-plan.md", build: "03-build.md" };
+const DEFAULT_DOC: Record<Tab, string> = { discuss: "01-discuss.md", plan: "02-plan.md", implement: "03-implement.md", verify: "04-verify.md", review: "05-review.md" };
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
@@ -84,8 +90,7 @@ const labelOf = (r: Exclude<Remark, { kind: "item" }>): string =>
 type ReadyShare = Extract<LoadedShare, { status: "ready" }>;
 
 function firstTab(share: ReadyShare, steps: Record<Tab, string[]>): Tab {
-  if (share.review !== undefined) return "build";
-  return (["plan", "discuss", "build"] as const).find((tab) => steps[tab].length > 0) ?? "plan";
+  return flowStepOf(share.stage ?? "") ?? (["review", "verify", "implement", "plan", "discuss"] as const).find((tab) => steps[tab].length > 0) ?? "discuss";
 }
 
 function Sections({ share, names, items, drafts, settled, onAnswer }: {
@@ -106,11 +111,11 @@ function Sections({ share, names, items, drafts, settled, onAnswer }: {
   const shown = new Set(items.flatMap((i) => (i.media?.kind === "artifact" ? [mockupName(i.media.name)] : [])));
   return (
     <>
-      <Asks items={items} owner={share.owner} docs={share.docs} drafts={drafts} settled={settled} onAnswer={onAnswer} />
+      <Asks items={items} owner={share.owner} docs={share.docs} stills={share.stills} drafts={drafts} settled={settled} onAnswer={onAnswer} />
       {main.map((name) => (
         // The document a selected passage is in, so a comment is filed against it.
         <div key={name} className="sh-docs" data-doc={name}>
-          <Blocks blocks={planBlocks(share.docs[name] ?? "")} docs={share.docs} shown={shown} />
+          <Blocks blocks={planBlocks(share.docs[name] ?? "")} docs={share.docs} stills={share.stills} shown={shown} />
         </div>
       ))}
       {slices.length > 0 ? (
@@ -187,7 +192,7 @@ function Ready({
   const expires = share.expires === undefined ? null : new Date(share.expires);
   const hasChange = share.review !== undefined;
   // On the change a comment belongs to a point of it; on a document it may be a general remark.
-  const needsPoint = tab === "build" && hasChange && target.kind === "passage";
+  const needsPoint = tab === "review" && hasChange && target.kind === "passage";
 
   const answer = (id: string, a: GuestAnswer | null, note?: string) => {
     setDelivered(false);
@@ -287,13 +292,21 @@ function Ready({
             setTarget({ kind: "passage", quote: picked.slice(0, 1000), doc: from?.closest<HTMLElement>("[data-doc]")?.dataset.doc });
           }}
         >
-          {tab === "build" && hasChange ? (
+          {tab === "review" && hasChange ? (
             <>
-              <Asks items={tabItems} owner={share.owner} docs={share.docs} drafts={drafts} settled={settled} onAnswer={answer} />
+              <Sections share={share} names={names} items={tabItems} drafts={drafts} settled={settled} onAnswer={answer} />
               <ChangeView review={share.review as NonNullable<typeof share.review>} onPick={pick} />
             </>
           ) : names.length > 0 || tabItems.length > 0 ? (
-            <Sections share={share} names={names} items={tabItems} drafts={drafts} settled={settled} onAnswer={answer} />
+            <>
+              {tab === "plan" && share.docs[PLAN_STILL] !== undefined ? (
+                <figure className="sh-frame" data-testid="shared-plan-still">
+                  <figcaption className="sh-frame-bar">Plan design · still image</figcaption>
+                  <img src={share.docs[PLAN_STILL]} alt="Plan design" className="block h-auto w-full" />
+                </figure>
+              ) : null}
+              <Sections share={share} names={names} items={tabItems} drafts={drafts} settled={settled} onAnswer={answer} />
+            </>
           ) : (
             <p className="sh-empty">{NOT_THERE[tab]}</p>
           )}
@@ -435,11 +448,11 @@ export function SharedView({
   /** The step to open on; the first one with something in it when absent. */
   tab?: Tab;
 }) {
-  if (state.status === "loading") return <p className="sh-status">Loading the plan…</p>;
+  if (state.status === "loading") return <p className="sh-status">Loading the task…</p>;
   if (state.status === "gone") {
     return (
       <div className="sh-status">
-        <h1>This plan is no longer shared</h1>
+        <h1>This task is no longer shared</h1>
         <p>The owner stopped sharing it, or the link ran out. Ask them for a new link.</p>
       </div>
     );
@@ -458,49 +471,22 @@ export function SharedView({
   if (state.status === "error") {
     return (
       <div className="sh-status">
-        <h1>The plan could not be opened</h1>
+        <h1>The task could not be opened</h1>
         <p>{state.message}</p>
       </div>
     );
   }
-  return <Ready share={state} initialTab={tab} onSend={onSend} />;
+  return <Ready share={{ ...state, title: stripSharedCode(state.title), docs: sharedDocuments(state.docs, state.stage), items: [], review: undefined }} initialTab={tab} onSend={onSend} />;
 }
 
 /** One link's page; keyed by the id and key, so another link starts from "loading" again. */
 export const SharedLink = ({ id, linkKey }: { id: string; linkKey: string }) => {
   const [state, setState] = useState<LoadedShare | { status: "loading" }>({ status: "loading" });
+  const [problem, setProblem] = useState<string | null>(null);
 
-  useEffect(() => {
-    let live = true;
-    let reading = false;
-    const refresh = async () => {
-      if (reading) return;
-      reading = true;
-      try {
-        const loaded = await loadShare(id, linkKey);
-        // A temporary outage leaves the last page and its unsent comments in place. A revoked
-        // or expired link still removes the page as soon as the service says it is gone.
-        if (live) setState((previous) => loaded.status === "error" && previous.status === "ready" ? previous : loaded);
-      } finally {
-        reading = false;
-      }
-    };
-    const visible = () => {
-      if (document.visibilityState === "visible") void refresh();
-    };
-    void refresh();
-    const timer = window.setInterval(visible, 60_000);
-    window.addEventListener("focus", visible);
-    document.addEventListener("visibilitychange", visible);
-    return () => {
-      live = false;
-      window.clearInterval(timer);
-      window.removeEventListener("focus", visible);
-      document.removeEventListener("visibilitychange", visible);
-    };
-  }, [id, linkKey]);
+  useEffect(() => watchShare(id, linkKey, setState, setProblem), [id, linkKey]);
 
-  return <SharedView state={state} onSend={(author, remarks) => submitRemarks(id, linkKey, author, remarks)} />;
+  return <>{problem !== null ? <p className="sh-hint" role="status">{problem}</p> : null}<SharedView state={state} onSend={(author, remarks) => submitRemarks(id, linkKey, author, remarks)} /></>;
 };
 
 const Shared = () => {
@@ -509,7 +495,7 @@ const Shared = () => {
   const key = linkKeyOf(useLocation().hash);
   return (
     <Page className="sh-page">
-      <SEO title="A shared plan — QualityLayer" description="A plan shared with you from QualityLayer. Read it and comment on it." />
+      <SEO title="A shared task — QualityLayer" description="A task shared with you from QualityLayer. Read its five steps and comment on them." />
       <Helmet>
         <meta name="robots" content="noindex" />
       </Helmet>

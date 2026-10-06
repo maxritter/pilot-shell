@@ -1,8 +1,8 @@
 import type { Drafts } from "@/lib/sharing/drafts";
 import { mockupHtml } from "@/lib/sharing/plan";
-import { answerWords, type GuestAnswer, type ItemMedia, type ShareItem } from "@/lib/sharing/sharing";
+import { answerWords, type GuestAnswer, type ItemMedia, type PlanStill, type ShareItem } from "@/lib/sharing/sharing";
 import { Diagram } from "./Diagram";
-import { MissingMockup, MockupFrame } from "./Frame";
+import { DesignStill, MissingMockup, MockupFrame } from "./Frame";
 
 
 /**
@@ -11,8 +11,10 @@ import { MissingMockup, MockupFrame } from "./Frame";
  * until the reviewer sends them with their comments.
  */
 
-function Media({ media, docs }: { media: ItemMedia; docs: Record<string, string> }) {
+function Media({ media, docs, stills }: { media: ItemMedia; docs: Record<string, string>; stills?: Record<string, PlanStill> }) {
   if (media.kind === "artifact") {
+    const still = stills?.[media.name] ?? stills?.[`design/${media.name}`];
+    if (still !== undefined) return <DesignStill still={still} />;
     const html = mockupHtml(docs, media.name);
     return html === undefined ? <MissingMockup /> : <MockupFrame html={html} title={media.title ?? "Mockup"} />;
   }
@@ -25,12 +27,14 @@ const NOTE_LABEL: Record<Exclude<GuestAnswer, "agree">, string> = { change: "Wha
 function Ask({
   item,
   docs,
+  stills,
   draft,
   sentAs,
   onAnswer,
 }: {
   item: ShareItem;
   docs: Record<string, string>;
+  stills?: Record<string, PlanStill>;
   draft: Drafts["answers"][string] | undefined;
   sentAs: string | undefined;
   onAnswer: (id: string, answer: GuestAnswer | null, note?: string) => void;
@@ -76,7 +80,7 @@ function Ask({
       ) : null}
       {item.media !== undefined ? (
         <div className="sh-ask-full">
-          <Media media={item.media} docs={docs} />
+          <Media media={item.media} docs={docs} stills={stills} />
         </div>
       ) : null}
     </li>
@@ -89,6 +93,7 @@ export function Asks({
   items,
   owner,
   docs,
+  stills,
   drafts,
   settled,
   onAnswer,
@@ -96,6 +101,7 @@ export function Asks({
   items: ShareItem[];
   owner: string | undefined;
   docs: Record<string, string>;
+  stills?: Record<string, PlanStill>;
   drafts: Drafts;
   /** Questions already sent, by id, with the words of the answer. */
   settled: Record<string, string>;
@@ -113,7 +119,7 @@ export function Asks({
       </header>
       <ul>
         {items.map((item) => (
-          <Ask key={item.id} item={item} docs={docs} draft={drafts.answers[item.id]} sentAs={settled[item.id]} onAnswer={onAnswer} />
+          <Ask key={item.id} item={item} docs={docs} stills={stills} draft={drafts.answers[item.id]} sentAs={settled[item.id]} onAnswer={onAnswer} />
         ))}
       </ul>
     </section>
