@@ -102,7 +102,7 @@ The installer downloads the binary for your platform, checks its SHA-256 checksu
 
 - the binary in `~/.qualitylayer/bin/` (on Windows `%USERPROFILE%\.qualitylayer\bin\qualitylayer.exe`, with a `ql.cmd` shortcut)
 - the `ql` skill for Claude Code and Codex, which their desktop apps and IDE extensions use too
-- the `ql-peers` skill, so agent sessions can message each other
+- the `agent-peers` skill, so agent sessions can message each other
 - Codex metadata so the skill runs only when you call it
 - a `qualitylayer` link in `~/.local/bin` when that folder is on your `PATH`
 
