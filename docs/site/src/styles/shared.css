@@ -11,6 +11,7 @@
 .sh-tabs button{font:inherit;font-size:13.5px;padding:8px 12px;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;color:var(--ql-text-muted);cursor:pointer;white-space:nowrap}
 .sh-tabs button:hover{color:var(--ql-text)}
 .sh-tabs button[aria-current="page"]{color:var(--ql-text);border-bottom-color:var(--ql-text)}
+@media(max-width:600px){.sh-tabs button{padding:8px;font-size:13px}}
 .sh-body{display:flex;flex-direction:column;gap:18px;min-width:0}
 .sh-empty{margin:0;padding:18px 0;color:var(--ql-text-muted);font-size:14px;line-height:1.55;max-width:60ch}
 
