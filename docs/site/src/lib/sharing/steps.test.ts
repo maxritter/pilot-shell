@@ -33,7 +33,7 @@ describe("a link's documents, by step", () => {
       "artifacts/settings.html": "<html></html>",
       "review.json": "{}",
     };
-    expect(stepDocs(docs)).toEqual({ discuss: ["00-discuss.md"], plan: ["02-plan.md", "02-plan-details.md"], build: ["03-build.md"] });
+    expect(stepDocs(docs)).toEqual({ discuss: ["00-discuss.md"], plan: ["02-plan.md", "02-plan-details.md"], implement: ["03-build.md"], verify: [], review: [] });
   });
 
   it("never lists research or a diagnosis, even when the link carries them", () => {
@@ -44,7 +44,7 @@ describe("a link's documents, by step", () => {
 
   it("reads a new task's Discuss and Plan: 01-discuss.md is Discuss, and the slices come from the details", () => {
     const docs = { "01-discuss.md": "d", "02-plan.md": "p", "02-plan-details.md": "pd" };
-    expect(stepDocs(docs)).toEqual({ discuss: ["01-discuss.md"], plan: ["02-plan.md", "02-plan-details.md"], build: [] });
+    expect(stepDocs(docs)).toEqual({ discuss: ["01-discuss.md"], plan: ["02-plan.md", "02-plan-details.md"], implement: [], verify: [], review: [] });
   });
 
   it("keeps the agent's files private by name, in both layouts: research, diagnosis and Discuss's details", () => {
@@ -70,7 +70,7 @@ describe("a link's documents, by step", () => {
     expect(stepDocs({ "README.md": "r", "02-design.md": "d", "03-outline-overview.md": "o" })).toEqual({
       discuss: ["README.md"],
       plan: ["02-design.md", "03-outline-overview.md"],
-      build: [],
+      implement: [], verify: [], review: [],
     });
   });
 

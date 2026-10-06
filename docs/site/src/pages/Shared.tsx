@@ -5,12 +5,12 @@ import Page from "@/components/Page";
 import SEO from "@/components/SEO";
 import { addRemark, answerItem, type Drafts, EMPTY, pending, removeRemark, summary } from "@/lib/sharing/drafts";
 import { contractsOf, mockupName, planBlocks, slicesOf } from "@/lib/sharing/plan";
+import { watchShare } from "@/lib/sharing/poll";
 import {
   type ChangeAnchor,
   type GuestAnswer,
   type LoadedShare,
   linkKeyOf,
-  loadShare,
   newThreadId,
   type Remark,
   type ShareItem,
@@ -46,18 +46,22 @@ const REASONS: Record<Exclude<SubmitResult, { ok: true }>["reason"], string> = {
 const TABS: [Tab, string][] = [
   ["discuss", "Discuss"],
   ["plan", "Plan"],
-  ["build", "Build"],
+  ["implement", "Implement"],
+  ["verify", "Verify"],
+  ["review", "Review"],
 ];
 
 /** What a step with nothing in this link says, in one sentence. */
 const NOT_THERE: Record<Tab, string> = {
   discuss: "The conversation that settled the problem is not part of this link.",
   plan: "The Plan is not written yet. It appears here once it waits for approval.",
-  build: "The build has not started. Once it has, this tab shows what was checked and how to try it.",
+  implement: "The build has not started. Its progress appears here when it does.",
+  verify: "Verification has not started. The checks appear here when it does.",
+  review: "The review is not ready yet. The result appears here when it is.",
 };
 
 /** The file a comment on a step's text is recorded against when the link names none. */
-const DEFAULT_DOC: Record<Tab, string> = { discuss: "00-discuss.md", plan: "02-plan.md", build: "03-build.md" };
+const DEFAULT_DOC: Record<Tab, string> = { discuss: "00-discuss.md", plan: "02-plan.md", implement: "03-implement.md", verify: "04-verify.md", review: "05-review.md" };
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
@@ -84,8 +88,8 @@ const labelOf = (r: Exclude<Remark, { kind: "item" }>): string =>
 type ReadyShare = Extract<LoadedShare, { status: "ready" }>;
 
 function firstTab(share: ReadyShare, steps: Record<Tab, string[]>): Tab {
-  if (share.review !== undefined) return "build";
-  return (["plan", "discuss", "build"] as const).find((tab) => steps[tab].length > 0) ?? "plan";
+  if (share.review !== undefined) return "review";
+  return (["plan", "discuss", "implement", "verify", "review"] as const).find((tab) => steps[tab].length > 0) ?? "plan";
 }
 
 function Sections({ share, names, items, drafts, settled, onAnswer }: {
@@ -106,11 +110,11 @@ function Sections({ share, names, items, drafts, settled, onAnswer }: {
   const shown = new Set(items.flatMap((i) => (i.media?.kind === "artifact" ? [mockupName(i.media.name)] : [])));
   return (
     <>
-      <Asks items={items} owner={share.owner} docs={share.docs} drafts={drafts} settled={settled} onAnswer={onAnswer} />
+      <Asks items={items} owner={share.owner} docs={share.docs} stills={share.stills} drafts={drafts} settled={settled} onAnswer={onAnswer} />
       {main.map((name) => (
         // The document a selected passage is in, so a comment is filed against it.
         <div key={name} className="sh-docs" data-doc={name}>
-          <Blocks blocks={planBlocks(share.docs[name] ?? "")} docs={share.docs} shown={shown} />
+          <Blocks blocks={planBlocks(share.docs[name] ?? "")} docs={share.docs} stills={share.stills} shown={shown} />
         </div>
       ))}
       {slices.length > 0 ? (
@@ -187,7 +191,7 @@ function Ready({
   const expires = share.expires === undefined ? null : new Date(share.expires);
   const hasChange = share.review !== undefined;
   // On the change a comment belongs to a point of it; on a document it may be a general remark.
-  const needsPoint = tab === "build" && hasChange && target.kind === "passage";
+  const needsPoint = tab === "review" && hasChange && target.kind === "passage";
 
   const answer = (id: string, a: GuestAnswer | null, note?: string) => {
     setDelivered(false);
@@ -287,9 +291,9 @@ function Ready({
             setTarget({ kind: "passage", quote: picked.slice(0, 1000), doc: from?.closest<HTMLElement>("[data-doc]")?.dataset.doc });
           }}
         >
-          {tab === "build" && hasChange ? (
+          {tab === "review" && hasChange ? (
             <>
-              <Asks items={tabItems} owner={share.owner} docs={share.docs} drafts={drafts} settled={settled} onAnswer={answer} />
+              <Sections share={share} names={names} items={tabItems} drafts={drafts} settled={settled} onAnswer={answer} />
               <ChangeView review={share.review as NonNullable<typeof share.review>} onPick={pick} />
             </>
           ) : names.length > 0 || tabItems.length > 0 ? (
@@ -467,20 +471,13 @@ export function SharedView({
 }
 
 /** One link's page; keyed by the id and key, so another link starts from "loading" again. */
-const SharedLink = ({ id, linkKey }: { id: string; linkKey: string }) => {
+export const SharedLink = ({ id, linkKey }: { id: string; linkKey: string }) => {
   const [state, setState] = useState<LoadedShare | { status: "loading" }>({ status: "loading" });
+  const [problem, setProblem] = useState<string | null>(null);
 
-  useEffect(() => {
-    let live = true;
-    void loadShare(id, linkKey).then((loaded) => {
-      if (live) setState(loaded);
-    });
-    return () => {
-      live = false;
-    };
-  }, [id, linkKey]);
+  useEffect(() => watchShare(id, linkKey, setState, setProblem), [id, linkKey]);
 
-  return <SharedView state={state} onSend={(author, remarks) => submitRemarks(id, linkKey, author, remarks)} />;
+  return <>{problem !== null ? <p className="sh-hint" role="status">{problem}</p> : null}<SharedView state={state} onSend={(author, remarks) => submitRemarks(id, linkKey, author, remarks)} /></>;
 };
 
 const Shared = () => {

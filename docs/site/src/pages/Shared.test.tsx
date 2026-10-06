@@ -1,7 +1,7 @@
 import { renderToReadableStream } from "react-dom/server.browser";
 import { describe, expect, it, vi } from "vitest";
 import fixture from "@/lib/sharing/shared-review.fixture.json";
-import { checkId, type LoadedShare, linkKeyOf, loadShare, openFromLink, parseItems, parseReview, sealForLink } from "@/lib/sharing/sharing";
+import { checkId, type LoadedShare, linkKeyOf, loadShare, openFromLink, parseItems, parseReview, readShareUpdate, sealForLink } from "@/lib/sharing/sharing";
 import { SharedView } from "./Shared";
 
 /**
@@ -32,6 +32,24 @@ async function html(node: React.ReactNode): Promise<string> {
 }
 
 describe("loading a link", () => {
+  it("asks with the link revision only and reads Retry-After without sending the fragment key", async () => {
+    const quiet = answer(304);
+    expect(await readShareUpdate(V2_ID, KEY, 12, quiet)).toEqual({ kind: "unchanged" });
+    expect(quiet).toHaveBeenCalledWith(`/api/share?id=${V2_ID}&since=12`);
+    const busy = vi.fn(async () => new Response(null, { status: 429, headers: { "Retry-After": "120" } })) as unknown as typeof fetch;
+    expect(await readShareUpdate(V2_ID, KEY, 12, busy)).toMatchObject({ kind: "retry", retryAfter: 120_000 });
+  });
+  it("loads only person documents and inline raster stills, never agent records or remote images", async () => {
+    const png = "data:image/png;base64,iVBORw0KGgo=";
+    const fetched = await sealedShare({ task: "ql-verify", docs: { "02-plan.md": "Plan", "agent/03-implement-log.md": "ql-verify-private" }, stills: {
+      "design/settings.html": { title: "Settings", image: png },
+      "design/tracker.html": { title: "Private", image: "https://ql-verify.example.com/track" },
+      "design/script.html": { title: "Script", image: "data:image/svg+xml;base64,PHN2Zz4=" },
+    } });
+    const loaded = await loadShare(V2_ID, KEY, fetched);
+    expect(loaded).toMatchObject({ status: "ready", docs: { "02-plan.md": "Plan" }, stills: { "design/settings.html": { title: "Settings", image: png } } });
+    expect(JSON.stringify(loaded)).not.toMatch(/ql-verify-private|tracker|script|https:/);
+  });
   it("opens a sealed plan with the key from the link: its documents and expiry", async () => {
     const fetchFn = await sealedShare({ task: "Pager off-by-one", docs: OLD_DOCS }, "2026-10-14T10:00:00.000Z");
     const loaded = await loadShare(V2_ID, KEY, fetchFn);
@@ -147,7 +165,7 @@ describe("the page for a task at the Plan", () => {
   it("names its tabs for the steps, never for files, and says nothing of research", async () => {
     const page = await html(<SharedView state={PLAN_SHARE} onSend={noSend} />);
     expect(page).toContain("Settings cleanup");
-    for (const tab of [">Discuss<", ">Plan<", ">Build<"]) expect(page).toContain(tab);
+    for (const tab of [">Discuss<", ">Plan<", ">Implement<", ">Verify<", ">Review<"]) expect(page).toContain(tab);
     // What a reader sees, not the attributes the page keeps for itself.
     const seen = page.replace(/<[^>]*>/g, " ");
     for (const file of ["00-discuss", "02-plan", "02-plan-details", "01-research", "README", ".md"]) expect(seen).not.toContain(file);
@@ -239,7 +257,7 @@ describe("the page for a task at the Plan", () => {
   it("shows Discuss as its own step, and a step not reached says what will happen there", async () => {
     const discuss = await html(<SharedView state={PLAN_SHARE} onSend={noSend} tab="discuss" />);
     expect(discuss).toContain("Settings are too many.");
-    const build = await html(<SharedView state={PLAN_SHARE} onSend={noSend} tab="build" />);
+    const build = await html(<SharedView state={PLAN_SHARE} onSend={noSend} tab="implement" />);
     expect(build).toContain("The build has not started");
     expect(build).not.toContain("Settings are too many.");
   });
@@ -269,7 +287,7 @@ describe("a link made before the App sent steps, items and the owner's name", ()
     const state = ready({ title: "Pager off-by-one", docs: OLD_DOCS, expires: "2026-10-14T10:00:00.000Z" });
     const plan = await html(<SharedView state={state} onSend={noSend} />);
     expect(plan).toContain("One Vercel deployment");
-    for (const tab of [">Discuss<", ">Plan<", ">Build<"]) expect(plan).toContain(tab);
+    for (const tab of [">Discuss<", ">Plan<", ">Implement<", ">Verify<", ">Review<"]) expect(plan).toContain(tab);
     expect(plan).not.toContain(">README<");
     expect(plan).not.toContain(">02-design<");
     expect(plan).not.toContain("asks you");
@@ -318,7 +336,7 @@ describe("the shared change, under Build", () => {
     expect(page).toContain("A 61st export in an hour is refused with a retry time.");
     expect(page).toContain("Passed");
     expect(page).toContain("#42");
-    for (const tab of [">Discuss<", ">Plan<", ">Build<", ">Overview<", ">Evidence<", ">Try it<"]) expect(page).toContain(tab);
+    for (const tab of [">Discuss<", ">Plan<", ">Implement<", ">Verify<", ">Review<", ">Overview<", ">Evidence<", ">Try it<"]) expect(page).toContain(tab);
     expect(page).toContain("Add comment");
     expect(page).not.toContain("Request changes");
     expect(page).not.toContain(">Approve<");
