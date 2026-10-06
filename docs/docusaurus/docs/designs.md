@@ -35,8 +35,8 @@ A design takes the whole content area under one thin bar: **Back**, its name and
 
 Your agent changes the same page and says in one line what changed. The App shows a quiet notice, "Settings page was updated · Open", and the dot comes back. You always see the latest; there is nothing to compare or pick between.
 
-## Never shared {#never-shared}
+## Kept on your computer {#never-shared}
 
-A design stays on your computer. It is never on a share link, on qualitylayer.dev or in a pull request, and QualityLayer keeps the design folders out of Git for you. A share link shows only a still picture of the design the Plan names, marked as a picture.
+The interactive design and its comments stay on your computer, and QualityLayer keeps the design folders out of Git for you. A share link can show a still picture of the design the Plan names, marked as a picture. It cannot open the interactive page.
 
 Your agent can look at its own work too: `qualitylayer design shot` takes a picture of a design. See the [command reference](reference/commands.md#designs).

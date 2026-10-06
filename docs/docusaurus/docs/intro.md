@@ -9,10 +9,10 @@ description: How QualityLayer takes your coding agent from a request to a review
   <figcaption>How QualityLayer works, in about four minutes: the problem it solves, the five steps, and working on your own or with your team.</figcaption>
 </figure>
 
-QualityLayer runs your coding agent through a proper engineering process and keeps the experienced engineer in the loop, where their judgement counts. You agree on a plan before any code is written, the agent builds it in small tested slices, and agents that did not write the code check the result. Your agent asks each decision, and you answer in the **QualityLayer App**, which shows what the question is about.
+QualityLayer runs your coding agent through an engineering process with your decisions recorded along the way. You agree on a plan before any code is written, the agent builds it in small tested slices, and agents that did not write the code check the result. Independent questions arrive in batches in **Your turn** in the **QualityLayer App**. Answer in any order; each answer reaches your agent immediately, while it keeps working on the rest.
 
-![The QualityLayer App: the sidebar with + New, the header with the step's file and the status pill, the five step tabs, the line of what needs you, the question card, the Plan, and the right sidebar with Comments and Designs](pathname:///img/diagrams/app-light.svg)
-![The QualityLayer App: the sidebar with + New, the header with the step's file and the status pill, the five step tabs, the line of what needs you, the question card, the Plan, and the right sidebar with Comments and Designs](pathname:///img/diagrams/app-dark.svg)
+![The QualityLayer App: live status and the five steps in the top bar, one Your turn card beside the Plan, and Comments, Files and Designs in the right sidebar](pathname:///img/diagrams/app-light.svg)
+![The QualityLayer App: live status and the five steps in the top bar, one Your turn card beside the Plan, and Comments, Files and Designs in the right sidebar](pathname:///img/diagrams/app-dark.svg)
 
 **Start here:** [Install](install.md) · [Your first task](first-task.md) · [The App](app.md) · [The five steps](steps/discuss.md) · [Designs](designs.md)
 

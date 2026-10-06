@@ -29,10 +29,12 @@ describe("installation and build instructions", () => {
     expect(doc("reference/commands.md")).toContain("gate open final");
   });
 
-  it("explains how guests read later changes without promising an update timestamp", () => {
+  it("explains live shared updates and preserved drafts without asking guests to reload", () => {
     const sharing = doc("team/plans.md");
     expect(sharing).toContain("Each time you open the link, you read the latest shared copy");
-    expect(sharing).toContain("Reload the page to see later changes");
+    expect(sharing).toContain("The open page updates as the task changes, through all five steps");
+    expect(sharing).toContain("keeps your unsent answers and comments");
+    expect(sharing).not.toContain("Reload the page");
     expect(sharing).not.toContain("with the time it was last updated");
   });
 });

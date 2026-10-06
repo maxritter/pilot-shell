@@ -6,7 +6,7 @@ import { DesignStill, MissingMockup, MockupFrame } from "./Frame";
 
 
 /**
- * The questions the owner asks, as the App shows them under Needs you: the kind, what is asked,
+ * The questions the owner asks, grouped under Your turn: the kind, what is asked,
  * the thing itself (a mockup, a diagram) and the answers of its family. Answers stay in the page
  * until the reviewer sends them with their comments.
  */
@@ -112,7 +112,7 @@ export function Asks({
     <section className="sh-asks" aria-label={`${owner ?? "The owner"} asks you`}>
       <header className="sh-asks-head">
         <span className="sh-mark you" aria-hidden="true" />
-        <h2>{`${owner ?? "The owner"} asks you`}</h2>
+        <h2>{`Your turn · ${owner ?? "The owner"} asks you`}</h2>
         <span className="sh-asks-side">
           {`${plural(items.length, "question", "questions")} · your answers reach ${owner ?? "the owner"} as comments`}
         </span>

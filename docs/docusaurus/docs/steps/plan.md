@@ -22,9 +22,15 @@ Each answer leaves the card and is recorded at the passage it settled. **Undo** 
 
 Approving the Plan is a separate action after you settle its decisions. Sending answers does not approve it. When you request changes, send them back to the agent to revise the Plan.
 
+![Plan: a changed Done means point returns as Was and Now in Your turn; the other point stays agreed and approval is separate](pathname:///img/diagrams/plan-light.svg)
+![Plan: a changed Done means point returns as Was and Now in Your turn; the other point stays agreed and approval is separate](pathname:///img/diagrams/plan-dark.svg)
+
 ## Read the Plan full size {#full-size}
 
 Open the document full size to give it more room. The task list collapses, while the outline and the right sidebar stay within reach. Jump to a section, read the slices and checks, and comment on a passage without leaving the Plan. Exit full size to return to the task view.
+
+![The full-size Plan with its outline, line comments, live agent status and the Comments, Files and Designs tabs](pathname:///img/diagrams/plan-full-light.svg)
+![The full-size Plan with its outline, line comments, live agent status and the Comments, Files and Designs tabs](pathname:///img/diagrams/plan-full-dark.svg)
 
 ### Diagrams you can comment on {#diagrams}
 
