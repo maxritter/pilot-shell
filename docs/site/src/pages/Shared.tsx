@@ -82,7 +82,22 @@ const Inline = ({ text }: { text: string }) => (
 type Target = { kind: "passage"; quote: string; doc?: string } | { kind: "anchor"; anchor: ChangeAnchor } | { kind: "reply"; thread: string; label: string };
 
 /** A comment that was sent, kept on the page so the reviewer sees what the owner got. */
-type SentComment = { key: string; thread?: string; label: string; text: string; replies: string[] };
+type SentComment = { key: string; annotation?: string; thread?: string; label: string; text: string; replies: string[] };
+
+const receiptKey = (id: string) => `qualitylayer-share-receipts:${id}`;
+function savedReceipts(id: string | undefined): SentComment[] {
+  if (!id) return [];
+  try {
+    const data: unknown = JSON.parse(localStorage.getItem(receiptKey(id)) ?? "[]");
+    if (!Array.isArray(data)) return [];
+    return data.slice(-200).flatMap((c) => {
+      if (!c || typeof c.key !== "string" || c.key.length > 200 || typeof c.annotation !== "string" || c.annotation.length > 200 ||
+        typeof c.label !== "string" || c.label.length > 2000 || typeof c.text !== "string" || c.text.length > 4000 || !Array.isArray(c.replies)) return [];
+      return [{ key: c.key, annotation: c.annotation, label: c.label, text: c.text,
+        replies: c.replies.filter((r: unknown): r is string => typeof r === "string" && r.length <= 4000).slice(-200) }];
+    });
+  } catch { return []; }
+}
 
 const labelOf = (r: Exclude<Remark, { kind: "item" }>): string =>
   r.kind === "passage" ? (r.quote !== "" ? `“${r.quote.length > 80 ? `${r.quote.slice(0, 80)}…` : r.quote}”` : "General comment") : r.kind === "thread" ? where(r.anchor) : "Reply";
@@ -173,7 +188,11 @@ function Ready({
   const [author, setAuthor] = useState(storedName);
   const [drafts, setDrafts] = useState<Drafts>(EMPTY);
   const [settled, setSettled] = useState<Record<string, string>>({});
-  const [sent, setSent] = useState<SentComment[]>([]);
+  const [sent, setSent] = useState<SentComment[]>(() => savedReceipts(share.id));
+  useEffect(() => {
+    if (!share.id) return;
+    try { localStorage.setItem(receiptKey(share.id), JSON.stringify(sent.slice(-200))); } catch { /* receipts are a convenience */ }
+  }, [sent, share.id]);
   const [target, setTarget] = useState<Target>({ kind: "passage", quote: "" });
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -207,7 +226,7 @@ function Ready({
   const add = () => {
     const remark: Drafts["remarks"][number] =
       target.kind === "passage"
-        ? { kind: "passage", doc: target.doc ?? steps[tab][0] ?? DEFAULT_DOC[tab], quote: target.quote, text }
+        ? { kind: "passage", id: crypto.randomUUID(), doc: target.doc ?? steps[tab][0] ?? DEFAULT_DOC[tab], quote: target.quote, text }
         : target.kind === "anchor"
           ? { kind: "thread", thread: newThreadId(), anchor: target.anchor, text }
           : { kind: "reply", thread: target.thread, text };
@@ -249,7 +268,7 @@ function Ready({
       for (const r of waiting) {
         if (r.kind === "item") continue;
         if (r.kind === "reply") next = next.map((c) => (c.thread === r.thread ? { ...c, replies: [...c.replies, r.text] } : c));
-        else next = [...next, { key: `${next.length}`, thread: r.kind === "thread" ? r.thread : undefined, label: labelOf(r), text: r.text, replies: [] }];
+        else next = [...next, { key: r.kind === "passage" ? r.id ?? newThreadId() : r.thread, ...(r.kind === "passage" ? { annotation: r.id } : {}), thread: r.kind === "thread" ? r.thread : undefined, label: labelOf(r), text: r.text, replies: [] }];
       }
       return next;
     });
@@ -394,7 +413,9 @@ function Ready({
           {sent.length > 0 ? (
             <div className="sh-sent" aria-label="Sent">
               <h3>{`Sent to ${who}`}</h3>
-              {sent.map((c) => (
+              {sent.map((c) => {
+                const update = c.annotation ? share.threads?.find((t) => t.remoteId.endsWith(`:${c.annotation}`)) : undefined;
+                return (
                 <div key={c.key} className="sh-thread">
                   <p>
                     <strong>{c.label}</strong>: {c.text}
@@ -406,6 +427,8 @@ function Ready({
                       {r}
                     </p>
                   ))}
+                  {update?.replies.map((r) => <p className="sh-reply" key={r.id}><strong>{r.author.name}</strong> · {r.via === "agent" ? "via agent" : "in the App"}: {r.text}</p>)}
+                  {update?.state === "resolved" ? <p className="sh-hint">Resolved</p> : null}
                   {c.thread !== undefined ? (
                     <button
                       type="button"
@@ -419,7 +442,7 @@ function Ready({
                     </button>
                   ) : null}
                 </div>
-              ))}
+              ); })}
             </div>
           ) : null}
         </section>
@@ -476,7 +499,7 @@ export function SharedView({
       </div>
     );
   }
-  return <Ready share={{ ...state, title: stripSharedCode(state.title), docs: sharedDocuments(state.docs, state.stage), items: [], review: undefined }} initialTab={tab} onSend={onSend} />;
+  return <Ready key={state.id} share={{ ...state, title: stripSharedCode(state.title), docs: sharedDocuments(state.docs, state.stage), items: [], review: undefined }} initialTab={tab} onSend={onSend} />;
 }
 
 /** One link's page; keyed by the id and key, so another link starts from "loading" again. */
