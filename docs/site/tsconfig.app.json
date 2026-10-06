@@ -24,6 +24,9 @@
     "noFallthroughCasesInSwitch": false,
 
     "paths": {
+      // Files outside the site (the docs' search landmark) resolve React from here.
+      "react": ["./node_modules/@types/react"],
+      "react/*": ["./node_modules/@types/react/*"],
       "@/*": ["./src/*"],
       "@ql/*": ["../../qualitylayer/src/*"]
     }
