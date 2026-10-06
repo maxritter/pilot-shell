@@ -122,6 +122,20 @@ describe("no Pilot Shell host is left", () => {
 });
 
 describe("doc pages that moved or were removed", () => {
+  it("lands every section redirect on a heading that exists in the current docs", () => {
+    for (const rule of config.redirects) {
+      if (!rule.destination.startsWith("/docs") || !rule.destination.includes("#")) continue;
+      const [route, anchor] = rule.destination.split("#");
+      const file = route === "/docs" ? "intro" : route.slice("/docs/".length);
+      const markdown = readFileSync(new URL(`../docusaurus/docs/${file}.md`, import.meta.url), "utf8");
+      const headings = [...markdown.matchAll(/^#{1,6}\s+(.+)$/gm)].map((match) => {
+        const explicit = match[1].match(/\{#([^}]+)\}/);
+        return explicit?.[1] ?? match[1].toLowerCase().replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-");
+      });
+      expect(headings, `${rule.source} → ${rule.destination}`).toContain(anchor);
+    }
+  });
+
   it("send the Pilot Shell 11 pages to the docs home", () => {
     for (const path of ["/docs/features/hooks", "/docs/workflows/spec"]) {
       expect(answer(path), path).toEqual({ kind: "redirect", status: 308, location: "/docs" });
