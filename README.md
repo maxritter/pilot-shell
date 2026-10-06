@@ -102,13 +102,15 @@ The installer downloads the binary for your platform, checks its SHA-256 checksu
 
 - the binary in `~/.qualitylayer/bin/` (on Windows `%USERPROFILE%\.qualitylayer\bin\qualitylayer.exe`, with a `ql.cmd` shortcut)
 - the `ql` skill for Claude Code and Codex, which their desktop apps and IDE extensions use too
-- the `ql-peers` skill, so agent sessions can message each other
+- the `agent-peers` skill, so agent sessions can message each other
 - Codex metadata so the skill runs only when you call it
 - a `qualitylayer` link in `~/.local/bin` when that folder is on your `PATH`
 
+`/ql` is the only command you need: QualityLayer adds no other command that starts with ql. The `agent-peers` skill works on its own when you ask one agent session to message another.
+
 It leaves your shell profile alone and adds no MCP server. It turns on the few agent settings QualityLayer needs, only where they are missing, and lists each one it changes. These are high reasoning effort, Claude Code's task tools, Codex's plan tool and, when Codex knows your model's limits, its largest context window. A value you already set stays as it is.
 
-Claude Code also gets a band above the prompt while a review waits for you. QualityLayer sets no status line, so yours stays as it is.
+Claude Code also gets a band above the prompt while a review waits for you. `/task-pane` opens the steps and build progress beside your conversation. QualityLayer sets no status line, so yours stays as it is.
 
 A few hooks keep the App's status of each session current, keep a running build from stopping on a question in the agent's own chat, and record an approval you type in the chat yourself. Session hooks attach agent messaging. The installer records these additions so uninstall can remove them while keeping your own configuration.
 

@@ -15,6 +15,7 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 ### Fixed
 
+- The session messaging skill is now `agent-peers`, and Claude Code's task pane opens with `/task-pane`, so typing `/ql` shows only the workflow skill. Updates remove the old `ql-peers` skill when it belongs to QualityLayer and preserve your own files.
 - You can rebase the build onto a newer main, merge main in, amend or squash its commits before Review: the build's commit list, its checks and the pull request show only its own commits. No agent copies a revision or a hash any more.
 - A task added to a slice while it is built reaches the agent building it, or a new agent builds it.
 - A slice with nothing to commit, such as a review whose notes stay in an ignored folder, now succeeds.

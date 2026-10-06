@@ -54,7 +54,7 @@ Ask your agent to draw a page and it shows up in the **Designs** tab. Open it fu
 
 ## In Claude Code
 
-A slim band above your prompt says when something waits for you in the App. `/ql-pane` opens a pane with the steps and the build's progress.
+A slim band above your prompt says when something waits for you in the App. `/task-pane` opens a pane with the steps and the build's progress.
 
 ![The band above the Claude Code prompt: what waits for you in the App, how the build runs, or teammates’ questions for you](pathname:///img/diagrams/band-light.svg)
 ![The band above the Claude Code prompt: what waits for you in the App, how the build runs, or teammates’ questions for you](pathname:///img/diagrams/band-dark.svg)
