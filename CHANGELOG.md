@@ -2,6 +2,24 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.24
+
+### New
+
+- `qualitylayer plan renumber --insert N` makes room for a new slice in the middle of a build. Later slices are renumbered everywhere, and your decisions stay as you approved them.
+
+### Fixed
+
+- Committing a slice marks its agent finished, so a build never waits on an agent that ended without saying so. An agent that stopped without reporting can be restarted with `qualitylayer next "rerun slice N"`.
+- Committing a slice now names every changed file no task lists, instead of quietly leaving it out: add it to a task, or leave it out on purpose.
+- A slice's checks no longer fail at commit because a local tool, such as a Python environment, is missing from the fresh copy. They run again in your checkout, and the commit says where each one ran.
+- A pre-commit hook that only reformats the slice's files no longer fails its first commit. The reformatted files go in, and the commit says so.
+- A Plan change that covers several tasks is one line in the build log and shows on each of their cards. A line that is too long is refused right away with the length allowed.
+- A scenario step that is meant to fail reads "exit 1 · as expected", and one that went wrong reads "exit 0, expected 1", so nobody runs it again to be sure.
+- A task is done when what it describes works, not when the thing it names was renamed. The Plan warns about done lines that can be met that way.
+- The Plan check no longer takes branch names such as `origin/main` for missing files, and a bare file name counts when its task lists it.
+- When the build starts with many files staged and not committed, the agent is first told to commit them on their own, with the command to do it.
+
 ## 12.0.0-beta.23
 
 ### New
