@@ -33,7 +33,7 @@ In Codex, type `$ql` in place of `/ql`.
 | `qualitylayer feedback "<text>" [--idea] [--image <file>]` | Send feedback from a terminal, the same way as the App's sheet. See [what a report sends](files.md#feedback) |
 | `qualitylayer uninstall` | Remove it; `--purge` also removes the licence and task state |
 | `qualitylayer licence activate <key>` | Activate a licence; `licence portal` opens billing |
-| `qualitylayer telemetry off` | Stop the anonymous events; `DO_NOT_TRACK=1` works too |
+| `qualitylayer telemetry off` | Stop the usage events; `DO_NOT_TRACK=1` works too |
 
 ## Your agent runs
 

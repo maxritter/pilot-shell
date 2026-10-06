@@ -36,6 +36,6 @@ Groups split a team, so a shared task reaches only the people it concerns. Your 
 
 ## What is shared {#privacy}
 
-Sharing sends the Plan and its comments, never your code, the diff or your logs. Everything is encrypted on your computer first, so the QualityLayer Server cannot read it. A link carries its own key, which never reaches the server. A new teammate only installs QualityLayer; their computer gets the team's key by itself.
+Sharing is optional; until you share, everything stays on your computer. Shared plans and comments are encrypted on your computer with your team's key, so the server sees who is involved and the step, not your plans or comments. A link carries its own key, which never reaches the server. Your code, the diff and your logs are never sent. A new teammate only installs QualityLayer; their computer gets the team's key by itself.
 
 See [How it fits together](../intro.md#how-it-fits-together) and [Files and privacy](../reference/files.md).

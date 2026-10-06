@@ -18,10 +18,10 @@ QualityLayer runs your coding agent through a proper engineering process and kee
 
 ## How it fits together {#how-it-fits-together}
 
-Everything runs on your computer. Your agent works through the **QualityLayer CLI**, which keeps each task in plain Markdown files in your repository. The **QualityLayer App** reads the same files and shows them to you. When you share a Plan with your team or by link, it is encrypted on your computer first, so the **QualityLayer Server** at qualitylayer.dev only stores what it cannot read.
+Everything runs on your computer. Your agent works through the **QualityLayer CLI**, which keeps each task in plain Markdown files in your repository. The **QualityLayer App** reads the same files and shows them to you. Sharing is optional. When you share a Plan with your team or by link, its contents are encrypted on your computer first, so the **QualityLayer Server** at qualitylayer.dev sees who is involved and the step, never your plans or comments ([your data](reference/files.md#privacy)).
 
-![How QualityLayer fits together: on your computer, your agent runs the QualityLayer CLI, which keeps each task in Markdown files in your repository, and the QualityLayer App reads the same files; only encrypted plans, comments and asks go to the QualityLayer Server at qualitylayer.dev, for your team and for people with a share link](pathname:///img/diagrams/architecture-light.svg)
-![How QualityLayer fits together: on your computer, your agent runs the QualityLayer CLI, which keeps each task in Markdown files in your repository, and the QualityLayer App reads the same files; only encrypted plans, comments and asks go to the QualityLayer Server at qualitylayer.dev, for your team and for people with a share link](pathname:///img/diagrams/architecture-dark.svg)
+![How QualityLayer fits together: on your computer, your agent runs the QualityLayer CLI, which keeps each task in Markdown files in your repository, and the QualityLayer App reads the same files; only when you share, plans and comments go to the QualityLayer Server at qualitylayer.dev, encrypted, for your team and for people with a share link](pathname:///img/diagrams/architecture-light.svg)
+![How QualityLayer fits together: on your computer, your agent runs the QualityLayer CLI, which keeps each task in Markdown files in your repository, and the QualityLayer App reads the same files; only when you share, plans and comments go to the QualityLayer Server at qualitylayer.dev, encrypted, for your team and for people with a share link](pathname:///img/diagrams/architecture-dark.svg)
 
 The files are yours, committed with the change, and they stay when you uninstall ([what each file holds](reference/files.md)). Your agent calls the CLI at every step; the [command reference](reference/commands.md) lists its commands.
 
@@ -47,6 +47,14 @@ A bug takes the same steps. Its cause is found before anything is planned.
 Medium to large changes in a repository you care about, on your own or with your team. A request too small for it gets a ready prompt for your plain agent instead.
 
 It works with Claude Code and Codex, in the terminal, their desktop apps or your IDE, and with [any other agent](agents/other.md) that runs shell commands. Your agent writes the code, on the subscription you already have.
+
+## Coming from plan mode in your IDE {#from-plan-mode}
+
+If you already let Claude write a plan in PhpStorm or VS Code, work through it step by step and check each change in the IDE's diff, QualityLayer keeps that loop and adds what plan mode leaves out:
+
+- **The plan is agreed, not just written:** your agent asks each decision, and the Plan shows mockups and diagrams you and your team can comment on.
+- **The build runs in tested slices** from the approved Plan, and agents that did not write the code check every point you agreed on.
+- **You review what is left,** with the proof beside it. The diff stays where you like to read it, in your IDE.
 
 ## Who does what
 

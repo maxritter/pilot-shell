@@ -17,10 +17,23 @@ Each step has one file for you (`01-discuss.md`, `02-plan.md`, `03-implement.md`
 ![What stays on your computer, what the licence check sends, what sharing sends to the team service, and what a feedback report sends to a private issue](pathname:///img/diagrams/privacy-light.svg)
 ![What stays on your computer, what the licence check sends, what sharing sends to the team service, and what a feedback report sends to a private issue](pathname:///img/diagrams/privacy-dark.svg)
 
-- **Stays on your computer:** your code, the diff, every plan document, the evidence and the cost view.
-- **Your agent's provider:** your agent keeps sending your code to its own provider, as it always does.
-- **The daily licence check** carries a few anonymous usage events, never a name, path, branch, title or text. Turn them off in **Settings › Licence**, with `qualitylayer telemetry off`, or with `DO_NOT_TRACK=1`.
-- **When you share:** the Plan, its progress and the comments, encrypted on your computer so the QualityLayer Server cannot read them. Never your code, the diff or your logs. See [How it fits together](../intro.md#how-it-fits-together).
+Everything stays on your computer until you share: your code, the diff, every plan document, the evidence and the cost view. Your agent keeps sending your code to its own provider, as it always does.
+
+### Without sharing
+
+Sharing is optional. Without it, the App and the CLI call QualityLayer only for:
+
+- **Your licence:** a check about once a day, plus activating it or starting the trial.
+- **The workflow texts** your agent follows, kept for a day.
+- **Updates** of the App.
+
+With a paid licence, the licence check also carries usage events: which steps ran and how they ended, marked with a short hash of your licence key, never a name, path, branch, title or text. Turn them off in **Settings › Licence**, with `qualitylayer telemetry off`, or with `DO_NOT_TRACK=1`.
+
+### When you share {#sharing}
+
+With a Team plan, the task title, the Plan, comments and link shares are encrypted on your computer with your team's key before they leave it. The server sees who is involved (names and e-mails), the step and when, not your plans or comments. A share link carries its own key, which never reaches the server. Never your code, the diff or your logs.
+
+The QualityLayer API runs in Frankfurt, and backups are encrypted and kept in the EU. If your team connects Slack, the task title and the question pass through our server to Slack.
 
 ## Feedback {#feedback}
 
