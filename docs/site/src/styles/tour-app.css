@@ -177,7 +177,7 @@
 
 /* ---- Sidebar: "+ New" beside the logo ---- */
 .sx-new{margin-left:auto;display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 7px;border:1px solid var(--ql-border-strong);border-radius:6px;background:var(--ql-bg);font-size:11px;font-weight:500;color:var(--ql-text)}
-.sx-new.on{border-color:var(--ql-accent);background:var(--ql-accent-soft);color:var(--ql-accent)}
+.sx-new.on{border-color:var(--ql-accent);background:var(--ql-accent-soft);color:var(--ql-accent-hover)}
 
 /* ---- Header: the title, the step's file, the status pill, Cost and Share ---- */
 .sx-mhl{flex:1;min-width:0}
@@ -227,7 +227,7 @@
 .sx-qo{display:flex;align-items:center;gap:10px;min-height:32px;padding:4px 10px;border:1px solid var(--ql-border);border-radius:8px;font-size:12.5px;transition:border-color .3s var(--ql-ease),box-shadow .3s var(--ql-ease),transform .2s var(--ql-ease)}
 .sx-qo kbd,.sx-qown kbd,.sx-qmore kbd{flex:none;display:grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border:1px solid var(--ql-border);border-radius:5px;font:500 10.5px/1 "Geist Mono",ui-monospace,monospace;color:var(--ql-text-muted)}
 .sx-qo b{flex:1;min-width:0;font-weight:500}
-.sx-qo em{flex:none;padding:1px 7px;border:1px solid var(--ql-accent-line);border-radius:999px;background:var(--ql-accent-soft);font-size:11px;font-style:normal;color:var(--ql-accent)}
+.sx-qo em{flex:none;padding:1px 7px;border:1px solid var(--ql-accent-line);border-radius:999px;background:var(--ql-accent-soft);font-size:11px;font-style:normal;color:var(--ql-accent-hover)}
 .sx-qo small{flex:none;font:400 11px/1 "Geist Mono",ui-monospace,monospace;color:var(--ql-text-dim)}
 .sx-qo.rec{border-color:var(--ql-accent-line)}
 .sx-qo.pick{border-color:var(--ql-accent);box-shadow:0 0 0 3px var(--ql-accent-soft);transform:scale(.99)}
@@ -264,9 +264,9 @@
 .sx-str:not(.done){background:var(--ql-amber-soft)}
 .sx-str > span:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column;font-weight:500}
 .sx-str small{font-size:11px;font-weight:400;color:var(--ql-text-dim)}
-.sx-str em{flex:none;display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border:1px solid var(--ql-accent-line);border-radius:7px;background:var(--ql-accent-soft);font-size:11.5px;font-style:normal;color:var(--ql-accent)}
+.sx-str em{flex:none;display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border:1px solid var(--ql-accent-line);border-radius:7px;background:var(--ql-accent-soft);font-size:11.5px;font-style:normal;color:var(--ql-accent-hover)}
 .sx-str em .sx-tick{width:10px;height:10px;color:currentColor}
-.sx-mini{flex:none;position:relative;width:64px;height:38px;overflow:hidden;border:1px solid var(--ql-border);border-radius:5px;background:#fff}
+.sx-mini{flex:none;position:relative;width:64px;height:38px;overflow:hidden;border:1px solid var(--ql-border);border-radius:5px;background:var(--ql-bg)}
 
 /* "Approve the Plan?" and "Approve the change?" */
 .sx-appq{flex:none;position:relative;border:1px solid var(--ql-amber-line);border-radius:11px;overflow:hidden;background:var(--ql-bg)}
@@ -338,7 +338,7 @@
 .sx-rsg b{font-weight:400;color:var(--ql-text-dim)}
 .sx-drow{display:grid;grid-template-columns:64px minmax(0,1fr);gap:9px;padding:7px;border-radius:8px}
 .sx-drow.on{background:var(--ql-surface-2)}
-.sx-thumb{position:relative;display:block;width:64px;height:42px;overflow:hidden;border:1px solid var(--ql-border);border-radius:5px;background:#fff}
+.sx-thumb{position:relative;display:block;width:64px;height:42px;overflow:hidden;border:1px solid var(--ql-border);border-radius:5px;background:var(--ql-bg)}
 .sx-thumb.blank{display:grid;place-items:center;background:var(--ql-surface-2);color:var(--ql-text-dim)}
 .sx-drt{display:flex;flex-direction:column;gap:2px;min-width:0}
 .sx-drt b{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600}
@@ -388,7 +388,7 @@
 .sx-dbar small{font-size:11.5px;color:var(--ql-text-dim)}
 .sx-grow{flex:1}
 .sx-dbtn{flex:none;display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 8px;border:1px solid var(--ql-border);border-radius:7px;color:var(--ql-text);transition:border-color .2s,background-color .2s,color .2s}
-.sx-dbtn.on{border-color:var(--ql-accent);background:var(--ql-accent-soft);color:var(--ql-accent)}
+.sx-dbtn.on{border-color:var(--ql-accent);background:var(--ql-accent-soft);color:var(--ql-accent-hover)}
 .sx-dbtn kbd{padding:0 4px;border:1px solid currentColor;border-radius:4px;font:500 10px/1.4 "Geist Mono",ui-monospace,monospace;opacity:.7}
 .sx-dzoom{flex:none;display:inline-flex;align-items:center;gap:8px;height:26px;padding:0 8px;border:1px solid var(--ql-border);border-radius:7px;color:var(--ql-text)}
 .sx-sc.sx-full{padding:0}
@@ -402,26 +402,27 @@
 .sx-composer .sx-field{border-color:var(--ql-accent)}
 .sx-composer .sx-row2{justify-content:space-between}
 
-/* The design itself: the person's own product page, drawn light in either theme as an agent would draw it */
-.sx-dp{flex:none;width:640px;padding:18px 20px 24px;border-radius:8px 8px 0 0;background:#fff;color:#171717;font-size:12px;box-shadow:0 0 0 1px rgb(0 0 0 / 8%),0 6px 20px rgb(0 0 0 / 8%)}
+/* The drawn page follows the same theme in its preview, thumbnail and full-size canvas. */
+.sx-dp{flex:none;width:640px;padding:18px 20px 24px;border-radius:8px 8px 0 0;background:var(--ql-bg);color:var(--ql-text);font-size:12px;box-shadow:0 0 0 1px var(--ql-border),var(--ql-shadow-sm)}
 .sx-dph{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .sx-dph b{font-size:17px;font-weight:600;letter-spacing:-.01em}
-.sx-dptabs{display:inline-flex;gap:2px;padding:2px;border-radius:7px;background:#f2f2f2;font-size:11.5px;color:#4d4d4d}
+.sx-dptabs{display:inline-flex;gap:2px;padding:2px;border-radius:7px;background:var(--ql-surface-2);font-size:11.5px;color:var(--ql-text-muted)}
 .sx-dptabs span{padding:3px 9px;border-radius:5px}
-.sx-dptabs .on{background:#fff;box-shadow:0 0 0 1px #e6e6e6;font-weight:500;color:#171717}
-.sx-dpt{border:1px solid #e6e6e6;border-radius:8px;overflow:hidden}
-.sx-dpr{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1.45fr) 56px;align-items:center;gap:10px;min-height:38px;padding:4px 12px;border-top:1px solid #ebebeb;transition:background-color .5s var(--ql-ease)}
-.sx-dpr.hd{min-height:28px;border-top:0;background:#fafafa;font-size:11px;color:#6b6b6b}
+.sx-dptabs .on{background:var(--ql-bg);box-shadow:0 0 0 1px var(--ql-border);font-weight:500;color:var(--ql-text)}
+.sx-dpt{border:1px solid var(--ql-border);border-radius:8px;overflow:hidden}
+.sx-dpr{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1.45fr) 56px;align-items:center;gap:10px;min-height:38px;padding:4px 12px;border-top:1px solid var(--ql-line);transition:background-color .5s var(--ql-ease)}
+.sx-dpr.hd{min-height:28px;border-top:0;background:var(--ql-bg-sunken);font-size:11px;color:var(--ql-text-dim)}
 .sx-dpr > span:nth-child(3){position:relative}
-.sx-dpr.new{background:rgb(32 118 197 / 9%)}
-.sx-dp .sx-code{font-size:11px;color:#171717}
-.sx-dp .sx-code.dim{color:#6b6b6b}
-.sx-dp .sx-amb{color:#9d6607}
-.sx-dp .sx-red{color:hsl(358 66% 48%)}
-.sx-dpr small{color:#4d4d4d}
-.sx-dpbtn{display:inline-flex;align-items:center;min-height:24px;padding:1px 9px;border:1px solid #a8a8a8;border-radius:6px;background:#fff;font-size:11px;font-weight:500;color:#171717;cursor:pointer}
-.sx-dpbtn:disabled{border-color:#e6e6e6;color:#6b6b6b;cursor:default}
-.sx-dpin{right:auto;left:calc(100% - 8px);top:-10px;box-shadow:0 0 0 3px #fff}
+.sx-dpr.new{background:var(--ql-accent-soft)}
+.sx-dpr.new .sx-amb{color:color-mix(in srgb,var(--ql-amber-ink) 92%,var(--ql-text))}
+.sx-dp .sx-code{font-size:11px;color:var(--ql-text)}
+.sx-dp .sx-code.dim{color:var(--ql-text-dim)}
+.sx-dp .sx-amb{color:var(--ql-amber-ink)}
+.sx-dp .sx-red{color:var(--ql-danger)}
+.sx-dpr small{color:var(--ql-text-muted)}
+.sx-dpbtn{display:inline-flex;align-items:center;min-height:24px;padding:1px 9px;border:1px solid var(--ql-border-strong);border-radius:6px;background:var(--ql-bg);font-size:11px;font-weight:500;color:var(--ql-text);cursor:pointer}
+.sx-dpbtn:disabled{border-color:var(--ql-border);color:var(--ql-text-dim);cursor:default}
+.sx-dpin{right:auto;left:calc(100% - 8px);top:-10px;box-shadow:0 0 0 3px var(--ql-bg)}
 .sx-dp.prev{transform:scale(.64);transform-origin:50% 0}
 .sx-dp.mini{position:absolute;left:0;top:0;transform:scale(.1);transform-origin:0 0;box-shadow:none}
 .sx-mini .sx-dp.mini{transform:scale(.1)}
@@ -474,7 +475,7 @@
 .sx-psec > .sx-dg{margin-top:0}
 .sx-call{display:flex;align-items:center;gap:10px;padding:6px 10px 6px 14px;border:1px solid var(--ql-border);border-radius:10px;font-size:12.5px}
 .sx-call small{font-size:12px;color:var(--ql-text-muted)}
-.sx-call em{margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border:1px solid var(--ql-accent-line);border-radius:7px;background:var(--ql-accent-soft);font-size:11.5px;font-style:normal;color:var(--ql-accent)}
+.sx-call em{margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border:1px solid var(--ql-accent-line);border-radius:7px;background:var(--ql-accent-soft);font-size:11.5px;font-style:normal;color:var(--ql-accent-hover)}
 .sx-call em .sx-tick{width:10px;height:10px;color:currentColor}
 .sx-call u{color:var(--ql-accent);text-decoration:none}
 .sx-aqr em.sx-amb{display:inline-flex;align-items:center;gap:3px;color:var(--ql-amber-ink)}
@@ -492,9 +493,9 @@
 .sx-cbub b{font-weight:600}
 .sx-cbub .sx-cmr{background:var(--ql-bg-sunken)}
 .sx-dpf{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
-.sx-dpf > div{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border:1px solid #e6e6e6;border-radius:8px;line-height:1.45}
+.sx-dpf > div{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border:1px solid var(--ql-border);border-radius:8px;line-height:1.45}
 .sx-dpf b{font-weight:600}
-.sx-dpf span{color:#4d4d4d}
+.sx-dpf span{color:var(--ql-text-muted)}
 
 /* With the right sidebar open the header is narrower: the branch and Share give way */
 .sx-rson .sx-bchip,.sx-rson .sx-mrow2 .sx-tool:last-child{display:none}

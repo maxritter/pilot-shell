@@ -14,17 +14,18 @@ const luminance = (hex: string) => {
 
 describe("documentation footer contrast", () => {
   for (const theme of ["light", "dark"]) {
-    it(`keeps the headings readable on the dark footer in ${theme} mode`, async () => {
+    it(`themes the footer surface and keeps its headings readable in ${theme} mode`, async () => {
       const window = new Window();
       window.document.documentElement.dataset.theme = theme;
       const style = window.document.createElement("style");
-      style.textContent = `${palette}\n${css}`;
+      // Infima scopes a fixed palette to footer--dark; our footer overrides that local palette.
+      style.textContent = `${palette}\n.footer { color: var(--ifm-footer-color); background-color: var(--ifm-footer-background-color); }\n.footer--dark { --ifm-footer-color: #ebedf0; --ifm-footer-background-color: #303846; }\n${css}`;
       window.document.head.append(style);
-      // The footer's own foreground and surface, as supplied by Docusaurus's dark footer.
-      window.document.body.innerHTML = '<footer class="footer footer--dark" style="color: #ebedf0; background-color: #303846"><h3 class="footer__title">Docs</h3></footer>';
+      window.document.body.innerHTML = '<footer class="footer footer--dark"><h3 class="footer__title">Docs</h3></footer>';
       const title = window.document.querySelector("h3")!;
       const foreground = window.getComputedStyle(title).color;
       const background = window.getComputedStyle(title.parentElement!).backgroundColor;
+      expect(background).toBe(theme === "light" ? "#fafafa" : "#000000");
       const a = luminance(foreground), b = luminance(background);
       expect((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)).toBeGreaterThanOrEqual(4.5);
       await window.happyDOM.close();

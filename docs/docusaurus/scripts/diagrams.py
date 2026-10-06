@@ -12,14 +12,14 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else 'static/img/diagrams'
 Theme = dict[str, str]
 
 THEMES = {
-    'light': dict(text='#1f2328', muted='#59636e', dim='#8c959f', line='#d0d7de', card='#f6f8fa', cardline='#d0d7de',
-                  bg='#ffffff', blue='#2076c5', bluef='#e8f1fb', violet='#6f4fc2',
+    'light': dict(text='#1f2328', muted='#59636e', dim='#656d76', line='#d0d7de', card='#f6f8fa', cardline='#d0d7de',
+                  bg='#ffffff', blue='#2076c5', blueink='#1a649f', bluef='#e8f1fb', violet='#6f4fc2',
                   violetf='#f0ebfb', amber='#9a5b00', amberf='#fff4dc', amberl='#e0a43a', ok='#6f4fc2',
-                  off='#d8dee4', danger='#cf222e'),
-    'dark': dict(text='#e6edf3', muted='#9198a1', dim='#6e7681', line='#3d444d', card='#151b23', cardline='#3d444d',
-                 bg='#0d1117', blue='#5da3e5', bluef='#132235', violet='#b49aed',
+                  off='#d8dee4', danger='#cf222e', onblue='#ffffff'),
+    'dark': dict(text='#e6edf3', muted='#9198a1', dim='#8b949e', line='#3d444d', card='#151b23', cardline='#3d444d',
+                 bg='#0d1117', blue='#5da3e5', blueink='#5da3e5', bluef='#132235', violet='#b49aed',
                  violetf='#1e1830', amber='#e8b04f', amberf='#2a2112', amberl='#b07a1c', ok='#b49aed',
-                 off='#30363d', danger='#f85149'),
+                 off='#30363d', danger='#f85149', onblue='#0d1117'),
 }
 SANS = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif"
 MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
@@ -32,6 +32,8 @@ GATES = {'Plan', 'Review'}
 def T(x: float, y: float, s: str, size: float = 14, fill: str = 'text', weight: int = 400, anchor: str = 'start',
       mono: bool = False, *, c: Theme) -> str:
     """A text element; `fill` is a theme key or a literal colour."""
+    if fill == 'blue':
+        fill = 'blueink'
     return (f'<text x="{x}" y="{y}" font-family="{MONO if mono else SANS}" font-size="{size}" font-weight="{weight}" '
             f'fill="{c.get(fill, fill)}" text-anchor="{anchor}">{escape(s)}</text>')
 
@@ -98,7 +100,7 @@ def pill(c: Theme, x: float, y: float, text: str, col: str = 'muted', w: float |
 def button(c: Theme, x: float, y: float, w: float, text: str, primary: bool = False, h: float = 34) -> str:
     if primary:
         return (f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8" fill="{c["blue"]}"/>'
-                + T(x + w / 2, y + h / 2 + 4.5, text, 13, '#ffffff', 650, 'middle', c=c))
+                + T(x + w / 2, y + h / 2 + 4.5, text, 13, 'onblue', 650, 'middle', c=c))
     return (f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8" fill="{c["bg"]}" stroke="{c["cardline"]}"/>'
             + T(x + w / 2, y + h / 2 + 4.5, text, 13, 'text', 600, 'middle', c=c))
 
@@ -131,7 +133,7 @@ def window(c, W, H, title='QualityLayer'):
 
 def num(c: Theme, x: float, y: float, n: int) -> str:
     return (f'<circle cx="{x}" cy="{y}" r="12" fill="{c["blue"]}" stroke="{c["bg"]}" stroke-width="2.5"/>'
-            + T(x, y + 4.5, str(n), 12.5, '#ffffff', 700, 'middle', c=c))
+            + T(x, y + 4.5, str(n), 12.5, 'onblue', 700, 'middle', c=c))
 
 
 # ---------------------------------------------------------------- the five steps
@@ -334,7 +336,7 @@ def abtn_svg(c: Theme, x: float, y: float, text: str, primary: bool = False, h: 
     w = w if w is not None else abtn(c, x, y, text, primary, h, size)
     if primary:
         return (f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="7" fill="{c["blue"]}"/>'
-                + T(x + w / 2, y + h / 2 + 4, text, size, '#ffffff', 650, 'middle', c=c))
+                + T(x + w / 2, y + h / 2 + 4, text, size, 'onblue', 650, 'middle', c=c))
     return (f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>'
             + T(x + w / 2, y + h / 2 + 4, text, size, 'text', 600, 'middle', c=c))
 
@@ -499,12 +501,12 @@ def lock(c: Theme, x: float, y: float, col: str = 'text') -> str:
 
 def mini_page(c: Theme, x: float, y: float, w: float, h: float) -> str:
     """A design drawn small: a page with a title and a table of rows."""
-    out = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="4" fill="#ffffff" stroke="{c["cardline"]}"/>',
-           f'<rect x="{x + w * 0.08}" y="{y + h * 0.12}" width="{w * 0.3}" height="{max(3, h * 0.07)}" rx="1.5" fill="#1f2328"/>']
+    out = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="4" fill="{c["bg"]}" stroke="{c["cardline"]}"/>',
+           f'<rect x="{x + w * 0.08}" y="{y + h * 0.12}" width="{w * 0.3}" height="{max(3, h * 0.07)}" rx="1.5" fill="{c["text"]}"/>']
     for i in range(4):
         ry = y + h * (0.32 + i * 0.15)
-        out.append(f'<rect x="{x + w * 0.08}" y="{ry}" width="{w * 0.84}" height="{h * 0.1}" rx="1.5" fill="#f0f2f4"/>')
-        out.append(f'<rect x="{x + w * 0.62}" y="{ry + h * 0.03}" width="{w * 0.16}" height="{h * 0.04}" rx="1" fill="{"#d4a017" if i == 1 else "#8c959f"}"/>')
+        out.append(f'<rect x="{x + w * 0.08}" y="{ry}" width="{w * 0.84}" height="{h * 0.1}" rx="1.5" fill="{c["card"]}"/>')
+        out.append(f'<rect x="{x + w * 0.62}" y="{ry + h * 0.03}" width="{w * 0.16}" height="{h * 0.04}" rx="1" fill="{c["amber"] if i == 1 else c["dim"]}"/>')
     return ''.join(out)
 
 
@@ -1570,15 +1572,15 @@ def design_open(c: Theme) -> str:
         bx += w + 6
     b.append(f'<rect x="222" y="85" width="{W - 223}" height="{H - 86}" fill="{c["card"]}"/>')
     px, py, pw_, ph = 300, 108, 520, 340
-    b.append(f'<rect x="{px}" y="{py}" width="{pw_}" height="{ph}" rx="6" fill="#ffffff" stroke="{c["cardline"]}"/>')
-    b.append(T(px + 24, py + 36, 'Settings', 17, '#1f2328', 650, c=c))
+    b.append(f'<rect x="{px}" y="{py}" width="{pw_}" height="{ph}" rx="6" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
+    b.append(T(px + 24, py + 36, 'Settings', 17, 'text', 650, c=c))
     for i, (label, value) in enumerate([('Model for planning', 'Opus 5.5'), ('Model for building', 'Sonnet 5.5'), ('Notifications', 'On'), ('Second opinion', 'Risky Plans')]):
         ry = py + 62 + i * 44
-        b.append(f'<rect x="{px + 24}" y="{ry}" width="{pw_ - 48}" height="36" rx="6" fill="#f6f8fa" stroke="#d0d7de"/>')
-        b.append(T(px + 38, ry + 23, label, 12.5, '#1f2328', 500, c=c))
-        b.append(T(px + pw_ - 38, ry + 23, value, 12.5, '#59636e', 500, 'end', c=c))
+        b.append(f'<rect x="{px + 24}" y="{ry}" width="{pw_ - 48}" height="36" rx="6" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
+        b.append(T(px + 38, ry + 23, label, 12.5, 'text', 500, c=c))
+        b.append(T(px + pw_ - 38, ry + 23, value, 12.5, 'muted', 500, 'end', c=c))
     # the comment on a spot, and the agent's answer
-    b.append(f'<circle cx="{px + 196}" cy="{py + 64}" r="10" fill="{AMBER_FILL}" stroke="#ffffff" stroke-width="2.5"/>')
+    b.append(f'<circle cx="{px + 196}" cy="{py + 64}" r="10" fill="{AMBER_FILL}" stroke="{c["bg"]}" stroke-width="2.5"/>')
     b.append(T(px + 196, py + 68, '1', 11, '#171717', 700, 'middle', c=c))
     cx_, cy_ = px + 210, py + 84
     b.append(f'<rect x="{cx_}" y="{cy_}" width="250" height="96" rx="9" fill="{c["bg"]}" stroke="{c["muted"]}" stroke-opacity="0.6"/>')
@@ -1613,5 +1615,6 @@ os.makedirs(OUT, exist_ok=True)
 for name, fn in DRAWINGS:
     for theme, c in THEMES.items():
         with open(os.path.join(OUT, f'{name}-{theme}.svg'), 'w') as f:
-            f.write(fn(c))
+            # Full-size links open the SVG alone, without the article's themed background.
+            f.write(fn(c).replace('<svg ', f'<svg style="background:{c["bg"]}" ', 1))
 print('ok')

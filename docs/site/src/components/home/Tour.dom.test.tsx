@@ -11,6 +11,20 @@ import TourScenes from "./TourScenes";
 
 afterEach(cleanup);
 
+it("keeps hidden tour overlays from blocking the design's Retry button", async () => {
+  const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../../styles/tour.css"), "utf8");
+  const window = new Window();
+  const style = window.document.createElement("style");
+  style.textContent = css;
+  window.document.head.append(style);
+  window.document.body.innerHTML = '<div class="sx-composer sx-in">Hidden composer</div>';
+  const composer = window.document.querySelector(".sx-composer")!;
+  expect(window.getComputedStyle(composer).pointerEvents).toBe("none");
+  composer.classList.add("on");
+  expect(window.getComputedStyle(composer).pointerEvents).toBe("auto");
+  await window.happyDOM.close();
+});
+
 it("keeps proof visible in the narrow tour after compact document rules apply", async () => {
   const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../../styles/tour-app.css"), "utf8");
   for (const chapter of ["verify", "review"]) {
