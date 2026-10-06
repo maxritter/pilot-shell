@@ -1333,7 +1333,45 @@ def privacy_ill(c: Theme) -> str:
     return svg(W, H, ''.join(b), 'What stays on your computer, what the licence check sends, what sharing sends to the team service, and what a feedback report sends to a private issue')
 
 
-DRAWINGS = [('flow', flow), ('slices', slices), ('agents', agents), ('app', app), ('app-marked', app_marked),
+def architecture(c):
+    """How the parts fit: your agent, the command line, the Markdown files and the App on your computer; only
+    encrypted plans, comments and asks leave it, for the team and for share links."""
+    W, H = 1100, 380
+    b = []
+    # your computer: everything that reads or writes your plans
+    b.append(f'<rect x="0" y="0" width="720" height="{H}" rx="16" fill="none" stroke="{c["cardline"]}" stroke-width="1.5" stroke-dasharray="6 5"/>')
+    b.append(T(20, 30, 'Your computer', 13, 'muted', 650, c=c))
+    b.append(node(c, 20, 126, 170, 96, 'Your agent', ['Claude Code, Codex', 'or any other agent'], 'blue', 'bluef'))
+    b.append(arrow(c, 192, 174, 236))
+    b.append(card(c, 238, 92, 236, 164, 'cardline'))
+    b.append(T(256, 120, 'QualityLayer CLI', 15, 'text', 650, c=c))
+    for i, cmd in enumerate(['qualitylayer next', 'qualitylayer question show', 'qualitylayer check slice', 'qualitylayer gate open']):
+        b.append(T(256, 148 + i * 24, cmd, 12.5, 'blue', 500, mono=True, c=c))
+    b.append(arrow(c, 356, 258, 356, 290))
+    b.append(node(c, 238, 292, 236, 72, 'Markdown files', ['docs/plans/<task>/ in your repo'], 'cardline'))
+    b.append(arrow(c, 476, 174, 518))
+    b.append(node(c, 520, 126, 180, 96, 'QualityLayer App', ['Shows each step', 'and asks you'], 'blue', 'bluef'))
+    b.append(f'<path d="M476 328 H610 V224" fill="none" stroke="{c["muted"]}" stroke-width="1.8" stroke-dasharray="4 4"/>')
+    b.append(f'<path d="M605 231 l5 -7 l5 7" fill="none" stroke="{c["muted"]}" stroke-width="1.8"/>')
+    b.append(T(488, 348, 'reads the same files', 12, 'muted', 500, c=c))
+    # what leaves your computer: sealed with the team key, or with a key only the link carries
+    b.append(arrow(c, 702, 174, 818, col='amber'))
+    b.append(f'<rect x="720" y="186" width="96" height="22" rx="11" fill="{c["bg"]}" stroke="{c["amberl"]}"/>')
+    b.append(f'<rect x="730" y="195" width="9" height="7" rx="1.5" fill="none" stroke="{c["amber"]}" stroke-width="1.5"/>'
+             f'<path d="M732 195 v-2.5 a2.5 2.5 0 0 1 5 0 v2.5" fill="none" stroke="{c["amber"]}" stroke-width="1.5"/>')
+    b.append(T(745, 201, 'encrypted', 11.5, 'amber', 600, c=c))
+    b.append(node(c, 820, 110, 260, 124, 'QualityLayer Server', [], 'cardline'))
+    b.append(T(836, 160, 'qualitylayer.dev', 12.5, 'blue', 500, mono=True, c=c))
+    b.append(T(836, 186, 'Holds only encrypted plans,', 13, 'muted', c=c))
+    b.append(T(836, 204, 'comments and asks', 13, 'muted', c=c))
+    b.append(arrow(c, 900, 236, 900, 274, col='amber'))
+    b.append(arrow(c, 1000, 236, 1000, 274, col='amber'))
+    b.append(node(c, 820, 276, 125, 76, 'Your team', ['In their App'], 'amber', 'amberf'))
+    b.append(node(c, 955, 276, 125, 76, 'Link guests', ['In the browser'], 'cardline', dash=True))
+    return svg(W, H, ''.join(b), 'How QualityLayer fits together: on your computer, your agent runs the QualityLayer CLI, which keeps each task in Markdown files in your repository, and the QualityLayer App reads the same files; only encrypted plans, comments and asks go to the QualityLayer Server at qualitylayer.dev, for your team and for people with a share link')
+
+
+DRAWINGS = [('architecture', architecture), ('flow', flow), ('slices', slices), ('agents', agents), ('app', app), ('app-marked', app_marked),
             ('items', items_ill), ('decision', decision_ill),
             ('implement-start', implement_start), ('implement', implement_ill), ('checkpoint', checkpoint_ill),
             ('discuss', discuss_ill), ('diagnose', diagnose_ill), ('plan', plan_ill),

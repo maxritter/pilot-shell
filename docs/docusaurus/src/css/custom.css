@@ -107,3 +107,21 @@ article.margin-bottom--xl header h2 a:hover { color: var(--ql-accent); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0s !important; }
 }
+
+/* The film at the top of the docs start page (docs/intro.md) */
+.ql-film {
+  margin: 0 0 2rem;
+}
+.ql-film video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--ql-border);
+  border-radius: 12px;
+  background: #000;
+}
+.ql-film figcaption {
+  margin-top: 0.6rem;
+  font-size: 0.875rem;
+  color: var(--ql-text-muted);
+}
