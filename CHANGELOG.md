@@ -2,6 +2,12 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.19
+
+### New
+
+- Settings › Workflow can turn the second opinion off. It then never runs by itself; a task that asks for one still gets it.
+
 ## 12.0.0-beta.18
 
 ### Fixed
