@@ -15,7 +15,7 @@
 #
 # Run locally as a pre-push check and in CI (works on a locked checkout).
 #
-# Usage: scripts/check_qualitylayer_encrypted.sh [--range <rev-range>] [repo-dir]
+# Usage: .github/scripts/check_qualitylayer_encrypted.sh [--range <rev-range>] [repo-dir]
 
 set -euo pipefail
 
