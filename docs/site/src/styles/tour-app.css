@@ -1,9 +1,168 @@
-/* The home tour's App window as the App is drawn now (sx- classes, beside tour.css): "+ New" in the
-   sidebar, the header with the step's file and the live status pill, the one-line index of what needs
-   you, the question card, the Approve cards, Implement Start with the Build defaults, the right sidebar
-   with Comments and Designs, a design open full size, and Settings' defaults. Ported from the Claude
-   Design pages "One Page per Step", "Sidebar and Designs", "Answer in the App", "Implement Start v2"
-   and "Implement Defaults". Keep it in step with them. */
+/* The tour keeps the site's tokens and motion while illustrating beta.25's Interaction Rethink:
+   one Your turn card, question batches beside the document, live status in the top bar, agreement
+   per point and the Plan read full size with its outline and comments. */
+
+/* The quiet step track and live status share the task's top bar. */
+.sx-taskcontent{display:flex;flex:1;min-height:0;min-width:0}
+.sx-taskbar{display:flex;align-items:center;gap:8px;min-height:48px;padding:0 14px;border-bottom:1px solid var(--ql-line)}
+.sx-taskname{min-width:0;max-width:160px;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sx-track{display:flex;flex:none;align-items:center;gap:2px;padding:0;margin:0;list-style:none;color:var(--ql-text-muted);font-size:10.5px}
+.sx-track li{padding:5px;border-radius:6px}
+.sx-track .cur{background:var(--ql-bg-sunken);font-weight:600;color:var(--ql-text)}
+.sx-taskbar .sx-pill{margin-left:auto;flex:0 1 auto;font-size:10.5px}
+.sx-scale .sx-pill.you,.sx-scale .sx-pill.move{background:var(--ql-bg);border-color:var(--ql-border);color:var(--ql-text-muted)}
+.sx-scale .sx-pill.move b,.sx-scale .sx-pill.move svg:first-child{color:var(--ql-text-muted)}
+.sx-turn-pill{display:inline-flex;flex:none;align-items:center;gap:5px;font-size:10.5px;white-space:nowrap}
+.sx-taskmenu{flex:none;color:var(--ql-text-muted)}
+.sx-scale .sx-you{width:8px;height:8px;border:0;background:var(--ql-amber-ink)}
+.sx-scale .sx-cpin{background:var(--ql-accent);color:var(--ql-text-on-accent)}
+.sx-scale .sx-dia{border-color:var(--ql-border-strong)}
+.sx-scale .sx-sg.amb{color:var(--ql-text-muted)}
+.sx-scale .sx-find{font-size:10.5px}
+.sx-turn-pill small{display:none}
+
+/* The batch and the document: amber belongs to the one card holding the person's actions. */
+.sx-nowdoc{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:18px;min-height:0}
+.sx-document .sx-decided > div{padding-top:6px;padding-bottom:6px}
+.sx-turn-column,.sx-document{display:flex;flex-direction:column;gap:12px;min-width:0}
+.sx-nowdoc .sx-document{gap:10px}
+.sx-nowdoc .sx-document > .sx-dg{padding:8px 10px 6px;gap:0}
+.sx-turn{position:relative;flex:none;border:1px solid var(--ql-amber-line);border-radius:11px;background:var(--ql-bg);padding-top:4px}
+.sx-turn-label{display:flex;align-items:center;gap:6px;width:max-content;margin:-13px 0 0 12px;padding:0 5px;background:var(--ql-bg);font-size:11.5px;font-weight:600;color:var(--ql-amber-ink)}
+.sx-turn-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:12px 14px 6px;font-size:14px;line-height:1.3}
+.sx-turn-head small{margin-left:auto;color:var(--ql-text-muted);font-size:11px}
+.sx-turn-intro,.sx-turn-foot{margin:0;padding:0 14px 12px;font-size:12px;line-height:1.5;color:var(--ql-text-muted)}
+.sx-turn-foot{padding:9px 14px;border-top:1px solid var(--ql-line);font-size:11px}
+.sx-batch-open{border-top:1px solid var(--ql-line);padding:12px 14px 0}
+.sx-batch-open > small{font-size:11px;color:var(--ql-text-muted)}
+.sx-batch-open h4{margin:5px 0 10px;font-size:14px;font-weight:600;line-height:1.35}
+.sx-batch-open .sx-qos{padding:0}
+.sx-batch-open .sx-qo{padding:5px 8px;gap:6px;font-size:12px;line-height:1.4}
+.sx-batch-open .sx-qo em{font-size:9px;padding:1px 4px}
+.sx-batch-open .sx-qf{margin:8px -14px 0;padding:6px 14px;font-size:11px}
+.sx-batch-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-top:1px solid var(--ql-line);font-size:12px;line-height:1.4}
+.sx-batch-row > span:first-of-type{flex:1;min-width:0}
+.sx-batch-row > small{font-size:11px;color:var(--ql-text-muted)}
+.sx-batch-row svg{flex:none;color:var(--ql-text-muted)}
+.sx-turn-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px 12px;font-size:12px;line-height:1.4}
+.sx-batch-open .sx-turn-actions{padding-left:0;padding-right:0}
+.sx-turn .sx-ist{border:0}
+.sx-turn .sx-psec{gap:0}
+.sx-turn .sx-ph2{padding:8px 14px;font-size:12px;color:var(--ql-text-muted)}
+.sx-turn .sx-stab{border:0;border-radius:0}
+.sx-approval .sx-aqf{border-color:var(--ql-line)}
+.sx-undo{display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--ql-border);border-radius:7px;font-size:11px}
+.sx-undo u{margin-left:auto;text-decoration:none;color:var(--ql-accent)}
+.sx-meanwhile{display:flex;align-items:center;gap:8px;margin:0;font-size:11px;color:var(--ql-text-muted)}
+.sx-agent-turn{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border:1px solid var(--ql-border);border-radius:11px;font-size:12px;line-height:1.5}
+.sx-agent-turn p{display:flex;align-items:center;gap:8px;margin:0;color:var(--ql-accent)}
+.sx-agent-turn strong{font-size:14px;font-weight:600}
+.sx-agent-turn > span{color:var(--ql-text-muted)}
+.sx-agent-turn > div{display:flex;gap:10px;padding-top:8px;border-top:1px solid var(--ql-line)}
+.sx-agent-turn small{flex:none;color:var(--ql-text-muted)}
+.sx-chk .sx-cr{display:flex;flex-wrap:wrap;gap:4px 16px}
+.sx-dochead{display:flex;align-items:center;gap:8px;padding-bottom:9px;border-bottom:1px solid var(--ql-line);font-size:11px;white-space:nowrap}
+.sx-dochead b{font-weight:600}
+.sx-dochead > span{display:flex;align-items:center;gap:4px;margin-left:auto;color:var(--ql-text-muted);font:10px "Geist Mono",ui-monospace,monospace}
+.sx-dochead > svg{flex:none;color:var(--ql-text-muted)}
+.sx-docpara{margin:0;font-size:12.5px;line-height:1.55;color:var(--ql-text-muted)}
+.sx-point-list{border:1px solid var(--ql-border);border-radius:9px;overflow:hidden}
+.sx-point-list > div{display:flex;align-items:baseline;gap:10px;padding:9px 10px;font-size:12px;line-height:1.4;border-top:1px solid var(--ql-line)}
+.sx-point-list > div:first-child{border-top:0}
+.sx-point-list small{color:var(--ql-text-muted)}
+.sx-point-list span{flex:1;min-width:0}
+.sx-point-list em{font-size:10px;color:var(--ql-text-muted);font-style:normal}
+.sx-decided{border:1px solid var(--ql-border);border-radius:9px;overflow:hidden}
+.sx-decided > div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 8px;padding:8px 10px;border-top:1px solid var(--ql-line);font-size:12px}
+.sx-decided > div:first-child{border-top:0}
+.sx-decided small{font-size:11px;color:var(--ql-text-muted)}
+.sx-decided b{grid-column:1;font-weight:600}
+.sx-decided u{grid-column:2;grid-row:1 / 3;color:var(--ql-accent);font-size:11px;text-decoration:none}
+.sx-decided .sx-earlier-decisions{display:flex;align-items:center;justify-content:space-between;color:var(--ql-text-muted)}
+.sx-wasnow{display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px;font-size:12px;line-height:1.5;padding:0 0 10px}
+.sx-wasnow small,.sx-wasnow s{color:var(--ql-text-muted)}
+.sx-wasnow mark,.sx-line-quote mark{background:var(--ql-accent-soft);color:var(--ql-text)}
+.sx-plan-title{margin:0;font-size:18px;line-height:1.25;font-weight:600}
+.sx-docby{margin:0;color:var(--ql-text-muted);font-size:10.5px;line-height:1.5}
+
+/* The Plan opens across the window, with a compact action card, outline and line comment. */
+.sx-planfull .sx-side{width:44px;padding:14px 10px}
+.sx-planfull .sx-side > :not(.sx-sbrand){display:none}
+.sx-planfull .sx-sbrand{font-size:0;margin:0}
+.sx-planfull .sx-new{display:none}
+.sx-plan-reader{display:grid;grid-template-columns:150px minmax(0,1fr) 190px;gap:18px;min-height:0}
+.sx-plan-outline{display:flex;flex-direction:column;gap:20px;min-width:0}
+.sx-plan-outline .sx-turn-head{font-size:12.5px}
+.sx-plan-outline .sx-turn-head small{margin-left:0}
+.sx-plan-outline .sx-turn-intro{font-size:11px}
+.sx-plan-outline .sx-fake{min-height:28px;padding:4px 10px;font-size:11px}
+.sx-outline{display:flex;flex-direction:column;gap:8px;font-size:11px;color:var(--ql-text-muted)}
+.sx-outline span{padding:4px 8px}
+.sx-outline .on{border-radius:6px;background:var(--ql-bg-sunken);color:var(--ql-text);font-weight:600}
+.sx-full-document{gap:10px}
+.sx-full-document h4:not(.sx-plan-title){margin:6px 0 0;font-size:13px;font-weight:600}
+.sx-plan-tasks{padding-left:18px;margin:0;font-size:12px;line-height:1.7}
+.sx-line-quote{position:relative}
+.sx-line-quote .sx-cpin{left:-16px;top:1px;width:14px;height:14px;font-size:9px;box-shadow:none;background:var(--ql-accent);color:var(--ql-text-on-accent)}
+.sx-line-comment{display:flex;flex-direction:column;gap:10px;padding:0 12px 12px;border-left:1px solid var(--ql-line);min-width:0;font-size:12px;line-height:1.5}
+.sx-reader-tabs{display:flex;align-items:center;gap:8px;padding-bottom:10px;border-bottom:1px solid var(--ql-line);font-size:10.5px;white-space:nowrap}
+.sx-line-comment > small{color:var(--ql-text-muted)}
+.sx-line-comment blockquote{margin:0;padding:8px;border:1px solid var(--ql-accent-line);border-radius:7px;background:var(--ql-accent-soft);font-size:11px}
+.sx-line-comment p{margin:0}
+.sx-line-comment p small{margin-left:8px;font-size:10px;color:var(--ql-text-muted)}
+.sx-comment-reply{display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--ql-bg-sunken);border-radius:7px}
+.sx-comment-links{display:flex;gap:10px;color:var(--ql-accent);font-size:11px;text-underline-offset:3px}
+.sx-phone-comment{display:none}
+
+.sx-nw .sx-taskbar{flex-wrap:wrap;gap:5px 8px;min-height:68px;padding:8px 14px}
+.sx-nw .sx-taskname{max-width:110px}
+.sx-nw .sx-track{order:3;flex-basis:100%;justify-content:space-between}
+.sx-nw .sx-turn-pill,.sx-nw .sx-taskmenu{display:none}
+.sx-nw .sx-pill > span:not(.sx-ag){max-width:142px}
+.sx-nw .sx-nowdoc{grid-template-columns:minmax(0,1fr);gap:12px}
+.sx-nw .sx-nowdoc .sx-document > :not(.sx-dochead):not(.sx-decided):not(.sx-plan-title):not(.sx-docby){display:none}
+.sx-nw .sx-nowdoc .sx-decided > div{display:none}
+.sx-nw .sx-nowdoc .sx-decided > div:first-child{display:grid}
+.sx-nw .sx-nowdoc .sx-dochead{display:none}
+.sx-nw .sx-batch-open{padding-top:8px}
+.sx-nw .sx-batch-open h4{margin-bottom:8px}
+.sx-nw .sx-batch-open .sx-qo,.sx-nw .sx-batch-open .sx-qown{min-height:28px}
+.sx-nw .sx-batch-open .sx-qf{display:none}
+.sx-nw .sx-turn-intro{padding-bottom:8px;font-size:11px}
+.sx-nw .sx-turn-head{padding-top:10px;font-size:13px}
+.sx-nw .sx-batch-row{padding-top:8px;padding-bottom:8px}
+.sx-nw .sx-agent-turn{gap:6px;padding:10px 12px}
+.sx-nw .sx-plan-reader{grid-template-columns:minmax(0,1fr);gap:12px}
+.sx-nw .sx-plan-outline .sx-turn-intro,.sx-nw .sx-outline,.sx-nw .sx-line-comment{display:none}
+.sx-nw .sx-plan-outline .sx-turn-head{padding-bottom:0}
+.sx-nw .sx-plan-outline .sx-turn-head small{margin-left:auto}
+.sx-nw .sx-plan-outline .sx-turn-actions{padding-top:6px;padding-bottom:8px}
+.sx-nw .sx-plan-title{font-size:16px}
+.sx-nw .sx-full-document{gap:8px}
+.sx-nw .sx-full-document .sx-dochead > span{display:none}
+.sx-nw .sx-full-document .sx-dochead > svg:first-of-type{margin-left:auto}
+.sx-nw .sx-full-document .sx-docpara{font-size:12px}
+.sx-nw .sx-full-document h4:not(.sx-plan-title){margin-top:0}
+.sx-nw .sx-plan-tasks{display:none}
+.sx-nw .sx-phone-comment{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:8px;border:1px solid var(--ql-accent-line);border-radius:7px;background:var(--ql-accent-soft);font-size:11px}
+.sx-nw .sx-phone-comment span{flex-basis:100%}
+.sx-nw .sx-share{padding:8px 10px}
+.sx-nw .sx-share small{font-size:10px;line-height:1.4}
+.sx-nw .sx-set2{gap:8px}
+.sx-nw .sx-set2 .sx-col{gap:8px}
+.sx-nw .sx-set2 .sx-seth{padding-top:6px;padding-bottom:6px}
+.sx-nw .sx-set2 .sx-setr{min-height:34px;padding-top:4px;padding-bottom:4px}
+.sx-nw .sx-set2 .sx-cost{gap:6px;padding-top:6px;padding-bottom:6px}
+.sx-nw .sx-rev{display:none}
+.sx-nw .sx-pb{padding:8px}
+.sx-nw .sx-set2 > .sx-col:first-child{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.sx-nw .sx-set2 .sx-defr{grid-template-columns:minmax(0,1fr);gap:4px;padding:4px 8px}
+.sx-nw .sx-set2 .sx-defr .sx-sel{justify-self:start}
+.sx-nw .sx-set2 .sx-defr{padding-top:3px;padding-bottom:3px}
+.sx-nw .sx-set2 .sx-defr .sx-sel{padding:3px 8px;font-size:11px}
+.sx-nw .sx-set2 .sx-atabs{font-size:10px;gap:5px;padding:0 8px}
+.sx-nw .sx-set2 .sx-atabs em{display:none}
+.sx-turn .sx-pop{border:0;box-shadow:none;border-radius:0}
 
 /* ---- Sidebar: "+ New" beside the logo ---- */
 .sx-new{margin-left:auto;display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 7px;border:1px solid var(--ql-border-strong);border-radius:6px;background:var(--ql-bg);font-size:11px;font-weight:500;color:var(--ql-text)}
@@ -155,7 +314,7 @@
 /* ---- The right sidebar: Comments · Designs ---- */
 .sx-rs{flex:none;width:226px;display:flex;flex-direction:column;gap:8px;padding:12px 10px;border-left:1px solid var(--ql-line);background:var(--ql-bg)}
 .sx-rsh{display:flex;align-items:center;gap:6px}
-.sx-rseg{flex:1;display:grid;grid-template-columns:1fr 1fr;padding:2px;border:1px solid var(--ql-border);border-radius:8px;font-size:12px;color:var(--ql-text-muted)}
+.sx-rseg{flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;padding:2px;border:1px solid var(--ql-border);border-radius:8px;font-size:11px;color:var(--ql-text-muted)}
 .sx-rseg > span{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:4px 0;border-radius:6px}
 .sx-rseg .on{background:var(--ql-surface-2);font-weight:500;color:var(--ql-text)}
 .sx-rseg b{padding:0 5px;border:1px solid var(--ql-amber-ink);border-radius:999px;font-size:10.5px;font-weight:500;line-height:1.4;color:var(--ql-amber-ink)}
@@ -292,6 +451,7 @@
 /* The next question or the Approve card arriving */
 .sx-arrive{animation:sx-arrive-in .45s var(--ql-ease) both}
 @keyframes sx-arrive-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.sx-arrive{animation:none}}
 
 /* The Plan's page under the card: a decision, its diagram and your call, recorded in place */
 .sx-dq{display:flex;align-items:baseline;gap:8px;margin:0;font-size:12.5px;font-weight:600}
@@ -371,6 +531,7 @@
 .sx-nw .sx-dpr{grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr) 48px;padding:4px 10px}
 .sx-nw .sx-dpr > :nth-child(2){display:none}
 .sx-nw .sx-composer,.sx-nw .sx-cbub{right:12px;top:150px;width:220px}
+.sx-nw .sx-cbub{top:282px}
 .sx-nw .sx-dpf{grid-template-columns:1fr}
 .sx-nw .sx-menu.drop{right:10px;width:min(270px,calc(100% - 20px))}
 .sx-nw .sx-call{padding-left:12px}

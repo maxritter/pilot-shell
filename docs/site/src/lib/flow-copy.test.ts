@@ -68,12 +68,15 @@ describe("the flow in the copy: asked and answered in the App", () => {
     }
   });
 
-  it("says once, in the README, the first task, the home page and its static copy, that the agent asks in the App while its terminal shows one line", () => {
+  it("keeps the terminal wait explanation in the guides and shows the batch interaction on the home page", () => {
     const layout = /asks each decision in the App, and its terminal shows a single line while it waits/gi;
     const home = homeCopy.map(read).join("\n");
-    for (const [name, text] of Object.entries({ README: read(readme), "first task": read(firstTask), "home page": home, "home page for crawlers": read(homeIndex) })) {
+    for (const [name, text] of Object.entries({ README: read(readme), "first task": read(firstTask), "home page for crawlers": read(homeIndex) })) {
       expect(text.match(layout)?.length, name).toBe(1);
     }
+    expect(home).toContain("Questions arrive together in Your turn");
+    expect(home).toContain("Answer in any order");
+    expect(home).toContain("each answer reaches your agent at once");
   });
 
   it("names no command that opens the App from Claude Code", () => {
