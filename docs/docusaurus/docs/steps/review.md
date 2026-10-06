@@ -6,14 +6,14 @@ description: Settle what agents could not settle for you, look at the result, ap
 ![The five steps, with Review highlighted](pathname:///img/diagrams/track-review-light.svg)
 ![The five steps, with Review highlighted](pathname:///img/diagrams/track-review-dark.svg)
 
-The final approval is always yours. Review asks only what the checks could not settle; the proof that every point holds is one line above the approval.
+The final approval is always yours. Review groups the result and its proof by **Done means** point. **Your turn** holds the questions the checks could not settle and the final approval.
 
-![The Review step: one line names what needs you, what changed, what was settled with you, the line of what agents proved, and the card “Approve the change?” with Approve and open a pull request](pathname:///img/diagrams/review-light.svg)
-![The Review step: one line names what needs you, what changed, what was settled with you, the line of what agents proved, and the card “Approve the change?” with Approve and open a pull request](pathname:///img/diagrams/review-dark.svg)
+![Review: one Your turn card beside the result and proof for each Done means point, with live status in the top bar](pathname:///img/diagrams/review-light.svg)
+![Review: one Your turn card beside the result and proof for each Done means point, with live status in the top bar](pathname:///img/diagrams/review-dark.svg)
 
-## What needs you {#items}
+## Your turn {#items}
 
-The App asks each item in the same card as every other question, and each answer lands under **Settled with you**:
+One amber card holds the open items. Answer in any order; each answer reaches your agent immediately and leaves the card. **Undo** is available for five seconds. The answer stays recorded beside the point it settled:
 
 | Item | Your answers |
 | --- | --- |
@@ -26,7 +26,7 @@ Fixes go back to the agent, which makes them, checks what they touched, and asks
 
 ## The page {#the-page}
 
-Review is `05-review.md`: **What changed** and **How to try it**, written by the agent, then the decisions made for you, what you settled, and the proof. The same file becomes the pull request's description.
+Review is `05-review.md`: **What changed** and **How to try it**, written by the agent, then each **Done means** point with its result, proof and decisions. The same file becomes the pull request's description. The live status at the top shows what the agent is working on; when nothing waits for you, the agent's turn takes the card's place.
 
 ## Approve {#approve}
 
@@ -47,5 +47,5 @@ The task keeps its documents and what it cost, in `docs/plans/` in your reposito
 ## Stop, archive or delete a task {#stop-archive-or-delete-a-task}
 
 - **Stop:** tell your agent at any step. The documents stay.
-- **Archive:** the small button in the task's header takes it off the sidebar; **Restore** brings it back.
-- **Delete:** the button beside it moves the plan folder to the Trash after asking.
+- **Archive:** in the task's **…** menu, takes it off the sidebar; **Restore** brings it back.
+- **Delete:** in the same menu, moves the plan folder to the Trash after asking.

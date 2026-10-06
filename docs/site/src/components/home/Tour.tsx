@@ -41,7 +41,9 @@ function AppWindow({ i, step, tries, onRetry, layout, only = false }: WinProps) 
   const design = w.view === "design";
   const status = task || design ? statusOf(i, step) : null;
   const tabs = tabsOf(i, step);
-  const { lw, lh, sc, side } = layout;
+  const { lw, lh: baseHeight, sc, side } = layout;
+  // Stacked proof and Home's summary need their full height on a phone.
+  const lh = !side && ["verify", "review", "agents"].includes(c.id) ? 680 : baseHeight;
   const right = side && task ? w.right : undefined;
   return (
     <div role="region" aria-label={`The QualityLayer App: ${c.title}`} className="sx-win" style={{ width: Math.round(lw * sc) + 2 }}>

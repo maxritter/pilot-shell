@@ -4,6 +4,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { LoadedShare, Remark } from "@/lib/sharing/sharing";
 import * as sharing from "@/lib/sharing/sharing";
 import { SharedLink, SharedView } from "./Shared";
+import { Asks } from "./shared/Asks";
+import { EMPTY } from "@/lib/sharing/drafts";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.useRealTimers(); localStorage.clear(); });
 const seen = (text: string) => screen.queryAllByText(text).length > 0;
@@ -19,6 +21,14 @@ function addComment(text = "Why one?") {
 }
 
 describe("commenting on the five documents", () => {
+  it("names the owner's question group Your turn and keeps the owner's name", () => {
+    const onAnswer = vi.fn();
+    render(<Asks owner="Max" docs={state.docs} items={[{ id: "d1", family: "decide", kind: "decision", kindLabel: "Engineering decision", what: "Keep one deployment?", options: ["agree", "change"], step: "plan" }]} drafts={EMPTY} settled={{}} onAnswer={onAnswer} />);
+    expect(screen.getByRole("heading", { name: "Your turn · Max asks you" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Agree" }));
+    expect(onAnswer).toHaveBeenCalledWith("d1", "agree", "");
+  });
+
   it("files the comment on its own step document, without an approval vote", async () => {
     const onSend = vi.fn(async (_author: string, _remarks: Remark[]) => ({ ok: true as const }));
     render(<SharedView state={state} onSend={onSend} />);

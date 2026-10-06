@@ -105,7 +105,10 @@ export const COMPARE: CompareGroup[] = [
     hue: "plan",
     rows: [
       row("Approve one plan before any code is written", true, true),
+      row("Answer questions in batches, in any order", true, true, "Each answer reaches your agent immediately in Your turn"),
+      row("Agree to each Done means point separately", true, true, "A changed point returns with its old and new words"),
       row("Decisions shown as diagrams and a clickable mockup", true, true),
+      row("Read the full-size Plan with line comments", true, true),
       row("Bugs start with finding their cause", true, true),
       row("A ready prompt for requests too small for a plan", true, true, "Your plain agent runs it"),
       row("Copy the plan as a PRD", true, true, "For Confluence, Google Docs or Jira"),
@@ -143,7 +146,8 @@ export const COMPARE: CompareGroup[] = [
     hue: "build",
     rows: [
       row("The App for macOS, Windows and Linux", true, true, "On a server or in WSL, it opens in your browser"),
-      row("A notification when something needs you", true, true, "From the menu bar, and in Claude Code above the prompt"),
+      row("A notification when it is Your turn", true, true, "In the App's bell, from the menu bar, and in Claude Code above the prompt"),
+      row("Live agent status and shipped tasks on Home", true, true, "Time, estimated cost and tasks in each step"),
       row("Your AI agents can message each other", true, true, "Claude Code and Codex sessions on your computer"),
     ],
   },
