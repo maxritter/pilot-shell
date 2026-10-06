@@ -62,6 +62,7 @@
 .sh-frame{margin:0;border:1px solid var(--ql-border);border-radius:10px;overflow:hidden;background:var(--ql-bg-sunken)}
 .sh-frame-bar{padding:7px 12px;border-bottom:1px solid var(--ql-line);font-family:var(--ql-font-code);font-size:12px;color:var(--ql-text-dim)}
 .sh-frame iframe{display:block;width:100%;border:0;background:var(--ql-bg-sunken)}
+.sh-frame img{display:block;width:100%;height:auto}
 .sh-frame-missing{margin:0;padding:14px 16px;border:1px dashed var(--ql-border-strong);border-radius:10px;font-size:13px;color:var(--ql-text-muted)}
 .sh-diagram{margin:16px 0;padding:16px;border:1px solid var(--ql-border);border-radius:10px;background:var(--ql-bg-sunken);overflow-x:auto}
 .sh-ask-full .sh-diagram{margin:0}

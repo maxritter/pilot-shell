@@ -5,12 +5,12 @@ import Page from "@/components/Page";
 import SEO from "@/components/SEO";
 import { addRemark, answerItem, type Drafts, EMPTY, pending, removeRemark, summary } from "@/lib/sharing/drafts";
 import { contractsOf, mockupName, planBlocks, slicesOf } from "@/lib/sharing/plan";
+import { watchShare } from "@/lib/sharing/poll";
 import {
   type ChangeAnchor,
   type GuestAnswer,
   type LoadedShare,
   linkKeyOf,
-  loadShare,
   newThreadId,
   type Remark,
   type ShareItem,
@@ -111,11 +111,11 @@ function Sections({ share, names, items, drafts, settled, onAnswer }: {
   const shown = new Set(items.flatMap((i) => (i.media?.kind === "artifact" ? [mockupName(i.media.name)] : [])));
   return (
     <>
-      <Asks items={items} owner={share.owner} docs={share.docs} drafts={drafts} settled={settled} onAnswer={onAnswer} />
+      <Asks items={items} owner={share.owner} docs={share.docs} stills={share.stills} drafts={drafts} settled={settled} onAnswer={onAnswer} />
       {main.map((name) => (
         // The document a selected passage is in, so a comment is filed against it.
         <div key={name} className="sh-docs" data-doc={name}>
-          <Blocks blocks={planBlocks(share.docs[name] ?? "")} docs={share.docs} shown={shown} />
+          <Blocks blocks={planBlocks(share.docs[name] ?? "")} docs={share.docs} stills={share.stills} shown={shown} />
         </div>
       ))}
       {slices.length > 0 ? (
@@ -294,7 +294,7 @@ function Ready({
         >
           {tab === "review" && hasChange ? (
             <>
-              <Asks items={tabItems} owner={share.owner} docs={share.docs} drafts={drafts} settled={settled} onAnswer={answer} />
+              <Sections share={share} names={names} items={tabItems} drafts={drafts} settled={settled} onAnswer={answer} />
               <ChangeView review={share.review as NonNullable<typeof share.review>} onPick={pick} />
             </>
           ) : names.length > 0 || tabItems.length > 0 ? (
@@ -482,38 +482,11 @@ export function SharedView({
 /** One link's page; keyed by the id and key, so another link starts from "loading" again. */
 export const SharedLink = ({ id, linkKey }: { id: string; linkKey: string }) => {
   const [state, setState] = useState<LoadedShare | { status: "loading" }>({ status: "loading" });
+  const [problem, setProblem] = useState<string | null>(null);
 
-  useEffect(() => {
-    let live = true;
-    let reading = false;
-    const refresh = async () => {
-      if (reading) return;
-      reading = true;
-      try {
-        const loaded = await loadShare(id, linkKey);
-        // A temporary outage leaves the last page and its unsent comments in place. A revoked
-        // or expired link still removes the page as soon as the service says it is gone.
-        if (live) setState((previous) => loaded.status === "error" && previous.status === "ready" ? previous : loaded);
-      } finally {
-        reading = false;
-      }
-    };
-    const visible = () => {
-      if (document.visibilityState === "visible") void refresh();
-    };
-    void refresh();
-    const timer = window.setInterval(visible, 60_000);
-    window.addEventListener("focus", visible);
-    document.addEventListener("visibilitychange", visible);
-    return () => {
-      live = false;
-      window.clearInterval(timer);
-      window.removeEventListener("focus", visible);
-      document.removeEventListener("visibilitychange", visible);
-    };
-  }, [id, linkKey]);
+  useEffect(() => watchShare(id, linkKey, setState, setProblem), [id, linkKey]);
 
-  return <SharedView state={state} onSend={(author, remarks) => submitRemarks(id, linkKey, author, remarks)} />;
+  return <>{problem !== null ? <p className="sh-hint" role="status">{problem}</p> : null}<SharedView state={state} onSend={(author, remarks) => submitRemarks(id, linkKey, author, remarks)} /></>;
 };
 
 const Shared = () => {
