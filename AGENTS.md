@@ -46,7 +46,7 @@ All in `qualitylayer/`:
 - Git hooks (`core.hooksPath=.github/hooks`, shared by every worktree) gate
   commits and pushes: `pre-commit` runs typecheck, lint, the Cockpit checks,
   cargo fmt and clippy for the App, shellcheck, actionlint and Trivy on what is
-  staged; `pre-push` runs `scripts/check_qualitylayer_encrypted.sh` over the
+  staged; `pre-push` runs `.github/scripts/check_qualitylayer_encrypted.sh` over the
   pushed commits. Fix what they report; never bypass them with `--no-verify`
 
 ## Repository rules

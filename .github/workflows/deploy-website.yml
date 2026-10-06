@@ -62,7 +62,7 @@ jobs:
         uses: actions/checkout@v6
 
       # docs/docusaurus is not git-crypt encrypted, so no unlock is needed here.
-      # External-URL flakiness is mitigated via retries + the repo-root .lycheeignore.
+      # External-URL flakiness is mitigated via retries + the exclusions in .github/lychee.toml.
       #
       # Scope: external http(s) links only. Internal links are Docusaurus's job --
       # it builds with `onBrokenLinks: "throw"`, so it validates its own routes with
@@ -81,7 +81,7 @@ jobs:
       - name: Link check (lychee)
         uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # v2
         with:
-          args: "--no-progress --max-retries 3 --retry-wait-time 2 --root-dir ${{ github.workspace }} --scheme http --scheme https --accept 100..=103,200..=299,403,429 -- docs/docusaurus/docs docs/docusaurus/blog README.md"
+          args: "--config .github/lychee.toml --no-progress --max-retries 3 --retry-wait-time 2 --root-dir ${{ github.workspace }} --scheme http --scheme https --accept 100..=103,200..=299,403,429 -- docs/docusaurus/docs docs/docusaurus/blog README.md"
           fail: true
 
   deploy:

@@ -11,7 +11,7 @@ on:
       - "install.sh"
       - "install.ps1"
       - ".github/workflows/qualitylayer-ci.yml"
-      - "scripts/check_qualitylayer_encrypted.sh"
+      - ".github/scripts/check_qualitylayer_encrypted.sh"
   pull_request:
     branches:
       - dev
@@ -22,7 +22,7 @@ on:
       - "install.sh"
       - "install.ps1"
       - ".github/workflows/qualitylayer-ci.yml"
-      - "scripts/check_qualitylayer_encrypted.sh"
+      - ".github/scripts/check_qualitylayer_encrypted.sh"
 
 permissions:
   contents: read
@@ -46,7 +46,7 @@ jobs:
       # Runs against the locked checkout on purpose: what this job sees is
       # exactly what the public repository serves.
       - name: Check the encrypted paths are encrypted
-        run: bash scripts/check_qualitylayer_encrypted.sh
+        run: bash .github/scripts/check_qualitylayer_encrypted.sh
 
   test:
     name: Typecheck, lint, test (${{ matrix.os }})
