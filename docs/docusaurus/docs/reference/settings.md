@@ -3,29 +3,34 @@ title: Settings
 description: The four Settings tabs, Workflow, Licence, Team and About, and the changes you can ask for on one task.
 ---
 
-![Settings, Workflow: the Subagents grid, the Second opinion pickers and Notifications, beside the tabs Licence, Team and About; and the overrides for one task, said in words](pathname:///img/diagrams/settings-light.svg)
-![Settings, Workflow: the Subagents grid, the Second opinion pickers and Notifications, beside the tabs Licence, Team and About; and the overrides for one task, said in words](pathname:///img/diagrams/settings-dark.svg)
+![Settings, Workflow: Planning defaults and Build defaults, each with a tab per agent, the independent review, the second opinion and Notifications, beside the tabs Licence, Team and About; and the overrides for one task, said in words](pathname:///img/diagrams/settings-light.svg)
+![Settings, Workflow: Planning defaults and Build defaults, each with a tab per agent, the independent review, the second opinion and Notifications, beside the tabs Licence, Team and About; and the overrides for one task, said in words](pathname:///img/diagrams/settings-dark.svg)
 
 Open **Settings** with the gear at the bottom of the App's sidebar. Changes save at once and apply to every project on this computer.
 
 ## Workflow
 
-### Subagents {#subagents}
+### Planning and Build defaults {#defaults}
 
-Fresh agents your agent starts for parts of the work, from the Plan, never from your chat.
+Two cards, one agent at a time: a tab each for **Claude Code**, **Codex** and **Another agent**. The tab marked **Default** is the one **+ New** and Implement Start open on; **Make default** moves the mark, so you can plan with Claude Code and build with Codex.
 
-- **Workers** research, build the slices and fix what checks find. Default: Sonnet 5.5 in Claude Code, GPT-6.1 Sol in Codex. **No subagents** makes your agent do everything itself: cheaper, with less independent checking.
-- **Checking** sets the agents that check the finished change in [Verify](../steps/verify.md). Default: Opus 5.5, GPT-6.1 Sol in Codex.
+- **Planning defaults** are what **+ New** opens with: the model, the effort and where the session starts. Discuss and Plan run on them. Recommended: the most capable model you can afford, Opus 5.5 or Fable 5.1, at High effort or more.
+- **Build defaults** are what [Implement Start](../steps/implement.md#start-implement) opens with: the orchestrator's model (Opus 5.5 by default, Fable 5.1 if it fits your budget), the workers' model (Sonnet 5.5), one effort for both (High), and where the build starts (the session that planned the task). Anything you change at Implement Start applies to that build only.
+- **Another agent** runs on its own models and effort, set in that agent, so there is nothing to pick; it gets one prompt to paste.
 
-Your own session's model is yours to pick in your agent; Opus 5.5 is recommended for Discuss and Plan.
+**Use recommended** brings a tab back to the recommended setup.
+
+### Independent review {#independent-review}
+
+On every task, an agent that never wrote the code decides whether the finished change passes in [Verify](../steps/verify.md). Pick its model for Claude Code (Opus 5.5) and for Codex (GPT-6.1 Sol).
 
 ### Second opinion {#second-opinion}
 
-With Claude Code and Codex both installed, the other agent reviews a risky Plan and the built change. Each finding becomes an item for you. Pick the model for each direction here.
+With Claude Code and Codex both installed, the other agent reviews a risky Plan and the built change. Each finding becomes an item for you. Pick the model for each direction here, or turn it off; a task that asks for one still gets it.
 
 ### Notifications {#notifications}
 
-One switch: tell me when something needs me, or a task ships or stops.
+One switch: tell me when something needs me, or a task ships or stops. A second switch opens the right sidebar by itself when a teammate comments or asks.
 
 ## For one task {#for-one-task}
 

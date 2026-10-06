@@ -1,6 +1,6 @@
 ---
 title: Implement
-description: One command starts the build. Agents build the approved Plan in small slices, each tested on its own, and nothing waits for you.
+description: One command starts the build. From there your agent works on its own until the final review, in small slices, each tested.
 ---
 
 ![The five steps, with Implement highlighted](pathname:///img/diagrams/track-implement-light.svg)
@@ -8,24 +8,30 @@ description: One command starts the build. Agents build the approved Plan in sma
 
 ## Start Implement {#start-implement}
 
-When you approve the Plan, the App shows one command with its recommended setup. Copy it into a terminal, your IDE or a desktop app; you can change the model or effort first.
+When you approve the Plan, Implement opens with your [Build defaults](../reference/settings.md#defaults), drawn as the build: an orchestrator that plans each slice, reads each report and writes no code, and workers that write the code, a slice each. One effort applies to both.
 
-![After you approve the Plan, the App shows the start card: Build with, the recommended setup, four rows to adjust it and one command with a Copy button](pathname:///img/diagrams/implement-start-light.svg)
-![After you approve the Plan, the App shows the start card: Build with, the recommended setup, four rows to adjust it and one command with a Copy button](pathname:///img/diagrams/implement-start-dark.svg)
+![Implement Start: Build with Claude Code, Codex or another agent; the orchestrator and its workers with their models; one effort for both; and the command to copy, with the lines to type first in the session that planned the task](pathname:///img/diagrams/implement-start-light.svg)
+![Implement Start: Build with Claude Code, Codex or another agent; the orchestrator and its workers with their models; one effort for both; and the command to copy, with the lines to type first in the session that planned the task](pathname:///img/diagrams/implement-start-dark.svg)
 
-The build starts from the approved Plan, never from your planning chat, on the branch you have checked out.
+- **Build with** Claude Code, Codex or another agent; another agent gets one prompt to paste.
+- **Change anything** for this build only, the workers' model included. **Reset** brings your defaults back.
+- **Where it starts:** by default in the session that planned the task. Implement Start then lists the lines to type first (`/clear`, `/model`, `/effort`), each with its own copy button. It can also start a new session or a new worktree.
+
+Copy the command into a terminal, your IDE or a desktop app. The build starts from the approved Plan, never from your planning chat, on the branch you have checked out.
 
 ## While agents build
 
-![The Implement step: agents are building and nothing needs you; what the agent decided on its own is listed under Changed while building; the slices fill in with what each agent does now](pathname:///img/diagrams/implement-light.svg)
-![The Implement step: agents are building and nothing needs you; what the agent decided on its own is listed under Changed while building; the slices fill in with what each agent does now](pathname:///img/diagrams/implement-dark.svg)
+From the command on, your agent works on its own until the final review. It asks you nothing and never stops to wait. You can still write to it at any time, for example to add something to the Plan.
+
+![The Implement step: the status pill says Claude Code is building and nothing needs you; what the agent decided on its own is listed under Decided while building, with Ask why; the slices fill in with what each agent does now](pathname:///img/diagrams/implement-light.svg)
+![The Implement step: the status pill says Claude Code is building and nothing needs you; what the agent decided on its own is listed under Decided while building, with Ask why; the slices fill in with what each agent does now](pathname:///img/diagrams/implement-dark.svg)
 
 - **Vertical slices.** Each slice works end to end and is tested on its own, test first. Slices that share no files build side by side.
 - **An orchestrator with a fresh context** hands out the slices and takes the hard problems; the routine work runs on a cheaper, faster model.
 - **Checks are recorded by QualityLayer,** not reported by the agent.
-- **Nothing waits for you.** When something does not go as planned, the agent takes the recommended way and lists it under **Changed while building**, for you to read in Review.
+- **Nothing waits for you.** When something does not go as planned, the agent takes the recommended way and lists it under **Decided while building**, where you can **Ask why**. Anything only you can do is listed first in the final review.
 
-You can comment on any slice while it builds; the agent reads comments after each task.
+The page is `03-implement.md`, which QualityLayer keeps current from the build's records. You can comment on any slice while it builds; the agent reads comments after each task.
 
 ## Checkpoints {#checkpoints}
 

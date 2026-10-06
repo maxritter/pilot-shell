@@ -5,12 +5,17 @@ description: What a task writes into your repository, what stays on your compute
 
 ## A task's files
 
-![A task folder in docs/plans: one file per step, from 01-discuss to 05-review, with the agent's details beside Discuss, Plan and Implement, research or diagnosis, mockups, reviews and evidence](pathname:///img/diagrams/files-light.svg)
-![A task folder in docs/plans: one file per step, from 01-discuss to 05-review, with the agent's details beside Discuss, Plan and Implement, research or diagnosis, mockups, reviews and evidence](pathname:///img/diagrams/files-dark.svg)
+![A task folder in docs/plans: one document per step for you, from 01-discuss to 05-review; design/ with the pages your agent drew, never shared; evidence/ with pictures and recordings; and agent/ with the agents' details, logs and records](pathname:///img/diagrams/files-light.svg)
+![A task folder in docs/plans: one document per step for you, from 01-discuss to 05-review; design/ with the pages your agent drew, never shared; evidence/ with pictures and recordings; and agent/ with the agents' details, logs and records](pathname:///img/diagrams/files-dark.svg)
 
 Each task gets a folder in `docs/plans/` in your repository: plain Markdown, committed with the change, so it goes through your normal review and history. Uninstalling QualityLayer never touches it.
 
-Each step has one file for you (`01-discuss.md`, `02-plan.md`, `03-implement.md`, `04-verify.md`, `05-review.md`) and, where it helps, a `-details` file for the agents. `artifacts/` holds mockups and diagrams, `evidence/` the test output, logs and screenshots. The path of the file you are reading is at the top of the App.
+- **Five documents, one per step, for you:** `01-discuss.md`, `02-plan.md`, `03-implement.md`, `04-verify.md` and `05-review.md`. Each step's page in the App is its document; QualityLayer draws the live parts over the sections it marks, and keeps a plain Markdown version underneath, so the files read well on GitHub too. `05-review.md` becomes the pull request's description.
+- **`agent/`** holds the agents' records: research, contracts, task cards, the build and checking logs, raw command output and second opinions. It is never shared, and the App opens a record only from the spot it explains, with **Show the record**.
+- **`design/`** holds the pages your agent drew for this task. Designs stay on your computer and out of Git; see [Designs](../designs.md). Designs for the whole project live in `docs/designs/`.
+- **`evidence/`** keeps the pictures and recordings the checks made.
+
+Tasks you started before keep the files they have. The file chip at the top of each step names its document, and its menu copies the path or opens it in your editor.
 
 ## What stays on your computer, and what leaves it {#privacy}
 

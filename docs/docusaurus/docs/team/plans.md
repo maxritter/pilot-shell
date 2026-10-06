@@ -28,7 +28,7 @@ Your team owner connects Slack once, in **Settings › Team**. From then on, tea
 
 ## People outside your team {#outside-links}
 
-**Copy link** in **Share** gives a qualitylayer.dev link that works like a shared document: anyone with it reads the Plan and comments, without an account. The link lasts 14 days; **Revoke** ends it at once. Outside reviewers comment only; approving stays with your team.
+**Copy link** in **Share** gives a qualitylayer.dev link that works like a shared document: anyone with it reads the task, step by step, and comments, without an account. The link always shows the latest state, with the time it was last updated, so you never share it again after a change. In place of a design it shows a still picture, marked as one. The link lasts 14 days; **Revoke** ends it at once. Outside reviewers comment only; approving stays with your team.
 
 ## Groups
 

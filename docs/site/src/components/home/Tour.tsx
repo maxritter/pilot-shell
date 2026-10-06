@@ -1,7 +1,7 @@
-import { BookOpen, MessageSquare, Settings, Sun } from "lucide-react";
+import { Archive, ArrowDown, ArrowLeft, ArrowRight, BookOpen, ChevronDown, Expand, FileText, MessageSquare, MessageSquarePlus, PanelRight, Plus, Settings, SquareTerminal, Sun, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { CHAPTERS, PARTS, partOf, sidebarOf, stepLine, tabsOf, type Mark, type Who } from "@/lib/tour";
-import TourScenes from "./TourScenes";
+import { CHAPTERS, PARTS, partOf, sidebarOf, statusOf, tabsOf, type Mark, type Pill, type Who } from "@/lib/tour";
+import TourScenes, { RightSide } from "./TourScenes";
 
 /** The header's height; the window and the step bar pin below it. */
 const HEADER = 68;
@@ -21,22 +21,38 @@ const finished = () => CHAPTERS.map((c) => c.steps);
 
 type WinProps = { i: number; step: number; tries: number; onRetry: () => void; layout: Layout; only?: boolean };
 
-/** The App window showing chapter `i` at moment `step`: sidebar, header with the five steps, the step line, the scene. */
+/** The live status in the task header: needs you here, an agent at work, your move outside the App, or done. */
+function StatusPill({ pill, compact = false }: { pill: Pill; compact?: boolean }) {
+  return (
+    <span className={`sx-pill ${pill.kind}${compact ? " compact" : ""}`}>
+      {pill.kind === "ag" && <span aria-hidden="true" className="sx-ag" />}
+      {pill.kind === "move" && <SquareTerminal size={12} aria-hidden="true" />}
+      <b>{pill.head}</b>
+      {pill.text && !compact && <span>· {pill.text}</span>}
+      {pill.meta && !compact && <em>{pill.meta}</em>}
+      {pill.kind === "you" ? <ArrowRight size={12} aria-hidden="true" /> : <ChevronDown size={12} aria-hidden="true" />}
+    </span>
+  );
+}
+
+/** The App window showing chapter `i` at moment `step`: sidebar, header with the step's file and the status, the five steps, what needs you, the scene. */
 function AppWindow({ i, step, tries, onRetry, layout, only = false }: WinProps) {
   const c = CHAPTERS[i], w = c.win;
   const task = w.view === "task";
-  const line = task ? stepLine(i, step) : null;
+  const design = w.view === "design";
+  const status = task || design ? statusOf(i, step) : null;
   const tabs = tabsOf(i, step);
   const { lw, lh, sc, side } = layout;
+  const right = side && task ? w.right : undefined;
   return (
     <div role="region" aria-label={`The QualityLayer App: ${c.title}`} className="sx-win" style={{ width: Math.round(lw * sc) + 2 }}>
       <div className="sx-bar" aria-hidden="true"><i /><i /><i /><span>{w.title}</span></div>
       {/* An illustration of the App; the chapter beside it says the same in words. */}
       <div className="sx-fit" aria-hidden="true" style={{ height: Math.round(lh * sc) }}>
-        <div className={`sx-scale${side ? "" : " sx-nw"}`} style={{ width: lw, height: lh, transform: `scale(${sc})` }}>
+        <div className={`sx-scale${side ? "" : " sx-nw"}${right ? " sx-rson" : ""}`} style={{ width: lw, height: lh, transform: `scale(${sc})` }}>
           {side && (
             <aside className="sx-side">
-              <p className="sx-sbrand"><span aria-hidden="true" className="sx-mark" />QualityLayer</p>
+              <p className="sx-sbrand"><span aria-hidden="true" className="sx-mark" />QualityLayer<span className={`sx-new${c.id === "agents" ? " on" : ""}`}><Plus size={11} />New</span></p>
               {w.switch && (
                 <div className="sx-sw"><span className={w.switch === "personal" ? "on" : ""}>Personal</span><span className={w.switch === "team" ? "on" : ""}>Team</span></div>
               )}
@@ -53,7 +69,7 @@ function AppWindow({ i, step, tries, onRetry, layout, only = false }: WinProps) 
                 </div>
               ))}
               <div className="sx-sfoot">
-                {c.id === "agents" && <span className="sx-upd"><span aria-hidden="true" className="sx-udot" /><b>Update ready</b><small>beta.14</small></span>}
+                {c.id === "agents" && <span className="sx-upd"><span aria-hidden="true" className="sx-udot" /><b>Update ready</b><small>Restart</small></span>}
                 <div className="sx-me"><span className="sx-avm">{w.foot[0].split(" ").map((n) => n[0]).join("")}</span><span className="sx-tin"><b>{w.foot[0]}</b><small>{w.foot[1]}</small></span></div>
                 <div className="sx-icons">
                   <span className={`sx-ib${w.view === "settings" ? " on" : ""}`}><Settings size={15} /></span>
@@ -65,13 +81,45 @@ function AppWindow({ i, step, tries, onRetry, layout, only = false }: WinProps) 
             </aside>
           )}
           <div className="sx-main">
-            <div className="sx-mh">
-              <div style={{ minWidth: 0 }}>
-                <p className="sx-mt">{w.doc}{task && <span className="sx-chips"><span>retry-webhooks</span><span>Claude Code</span><span>main</span></span>}</p>
-                {w.sub && <p className="sx-sub">{w.sub}</p>}
+            {design && status && (
+              // A design open full size: one thin bar over the whole content area.
+              <div className="sx-dbar">
+                <span className="sx-dback"><ArrowLeft size={13} />Back to the Plan</span>
+                <i className="sx-dsep" />
+                <b className="sx-dname">{w.doc}</b>
+                <small className="sx-hide">Updated {step >= 5 ? "just now" : "3 min ago"}</small>
+                <span className="sx-grow" />
+                <StatusPill pill={status.pill} compact />
+                <span className={`sx-dbtn${step >= 1 && step < 3 ? " on" : ""}`}><MessageSquarePlus size={13} />Comment<kbd>C</kbd></span>
+                <span className="sx-dbtn sx-hide">Jump to<ChevronDown size={12} /></span>
+                <span className="sx-dicon sx-hide" title="Full screen"><Expand size={13} /></span>
               </div>
-              {task && <span className="sx-tools"><span>Cost · {w.cost}</span><span>Share</span><span>More</span></span>}
-            </div>
+            )}
+            {!design && (
+              <div className={`sx-mh${task ? " sx-mht" : ""}`}>
+                <div className="sx-mhl">
+                  <p className="sx-mt">{w.doc}</p>
+                  {w.sub && <p className="sx-sub">{w.sub}</p>}
+                </div>
+                {task && (
+                  <span className="sx-hicons">
+                    <span className="sx-dicon"><Archive size={13} /></span>
+                    <span className="sx-dicon"><Trash2 size={13} /></span>
+                    {!right && <span className="sx-dicon sx-hide"><PanelRight size={13} /></span>}
+                  </span>
+                )}
+                {task && status && w.file && (
+                  // The step's file opens a menu (its path, Copy path, Open in editor, Reveal), then the live status, Cost and Share.
+                  <div className="sx-mrow2">
+                    <span className="sx-fchip"><FileText size={12} /><b>{w.file[0]}</b><small>{w.file[1]}</small><ChevronDown size={11} /></span>
+                    <span className="sx-bchip sx-hide">main</span>
+                    <StatusPill pill={status.pill} />
+                    <span className="sx-tool sx-hide">Cost · {w.cost}</span>
+                    <span className="sx-tool sx-hide">Share</span>
+                  </div>
+                )}
+              </div>
+            )}
             {task && (
               <ol className="sx-tabs" aria-label="Steps of this task">
                 {tabs.map((t, k) => (
@@ -87,18 +135,20 @@ function AppWindow({ i, step, tries, onRetry, layout, only = false }: WinProps) 
                 {SETTINGS_TABS.map((t, k) => <li key={t} className={`sx-tab${k === 0 ? " cur" : ""}`}>{t}</li>)}
               </ol>
             )}
-            {line && (
-              <div className={`sx-line ${line.who}`}>
-                <span aria-hidden="true" className={dot(line.who)} />
-                <span className="sx-lt"><b>{line.head}</b> {line.text}{line.code && <> <code>{line.code}</code></>}</span>
-                {line.seg && <span className="sx-seg2"><span className="on">{line.seg[0]}</span><span>{line.seg[1]}</span></span>}
-                {line.buttons.map(([label, cls]) => <span key={label} className={`sx-fake${cls ? ` ${cls}` : ""}`}>{label}</span>)}
+            {task && status?.index && (
+              // What needs you, in one line at the top of the step; each name jumps to its place.
+              <div className="sx-idx">
+                <span aria-hidden="true" className="sx-you" />
+                <b>{status.index.count}</b>
+                {status.index.to.map((to) => <span key={to}>{to}<ArrowDown size={11} /></span>)}
+                {status.index.then && <em>then <span>{status.index.then}<ArrowDown size={11} /></span></em>}
               </div>
             )}
             <div className="sx-body">
               <TourScenes ch={i} step={step} tries={tries} onRetry={onRetry} only={only} />
             </div>
           </div>
+          {right && <RightSide ch={i} step={step} tab={right} />}
         </div>
       </div>
     </div>

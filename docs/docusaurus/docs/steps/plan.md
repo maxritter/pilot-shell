@@ -1,6 +1,6 @@
 ---
 title: Plan
-description: "The one document you approve before any code: mockups and diagrams where they help, then the slices and the checks that prove the change."
+description: "The one document you approve before any code: a design and diagrams where they help, then the slices and the checks that prove the change."
 ---
 
 ![The five steps, with Plan highlighted](pathname:///img/diagrams/track-plan-light.svg)
@@ -8,20 +8,20 @@ description: "The one document you approve before any code: mockups and diagrams
 
 The Plan is the one document you approve before any code is written. Agents build from it afterwards, so this is where your judgement pays most.
 
-![The Plan waiting for approval: the items that need you, your agent asking “Approve the Plan?” in the terminal, and the line of what agents checked](pathname:///img/diagrams/plan-light.svg)
-![The Plan waiting for approval: the items that need you, your agent asking “Approve the Plan?” in the terminal, and the line of what agents checked](pathname:///img/diagrams/plan-dark.svg)
+![The Plan waiting for approval: one line names what needs you, the card asks “Approve the Plan?” with every decision you answered and the one still open, your calls are recorded on the page, and the line of what agents checked](pathname:///img/diagrams/plan-light.svg)
+![The Plan waiting for approval: one line names what needs you, the card asks “Approve the Plan?” with every decision you answered and the one still open, your calls are recorded on the page, and the line of what agents checked](pathname:///img/diagrams/plan-dark.svg)
 
 ## What needs you {#items}
 
-Your agent walks you through these one at a time, and the App shows each:
+The review happens in the same card as every other question, one item at a time:
 
-1. **The mockup**, for a change people see: Looks right, or Change.
+1. **The design**, for a change people see: Looks right, or Change. See [Designs](../designs.md).
 2. **Engineering decisions**, each with its diagram: Agree, or Change.
 3. **Done means**, from [Discuss](discuss.md).
-4. **Decided by the agent:** the smaller choices, each with its reason. **Keep all**, or change one.
+4. **Decisions made for you:** the smaller choices, each with its reason. **Ask why** about any of them.
 5. **Extra review:** whether the risk deserves a security review or a second opinion.
 
-Then: "Approve the Plan?" Answer in the terminal, or **Review in the App first**.
+Then the card asks "Approve the Plan?" and lists what you answered and what is still open. Approving takes the open ones as they are; a **Change** turns the button into **Send 1 change**. Each answer is also recorded at the passage it settled.
 
 ### Diagrams you can comment on {#diagrams}
 

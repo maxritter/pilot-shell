@@ -11,7 +11,7 @@ Once Verify has passed, your team sees what the change was meant to do, the proo
 ![Change review: the team reviews the finished change; open threads go back to your agent, which settles each one and checks again what the fix touched before the re-review](pathname:///img/diagrams/team-change-light.svg)
 ![Change review: the team reviews the finished change; open threads go back to your agent, which settles each one and checks again what the fix touched before the re-review](pathname:///img/diagrams/team-change-dark.svg)
 
-1. **Teammates comment** on any line, and approve or ask for changes.
+1. **Teammates comment** on any line, and approve or ask for changes. Their comments reach you in the **Comments** tab of the right sidebar, which opens by itself.
 2. **You run** `/ql review <task>` (`$ql` in Codex): your agent goes through each thread with you, the pull request's code comments included.
 3. **Only what a fix touched** is checked again, and your team looks once more.
 4. **You approve** when the threads are settled.

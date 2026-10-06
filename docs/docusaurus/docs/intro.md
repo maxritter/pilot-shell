@@ -9,12 +9,12 @@ description: How QualityLayer takes your coding agent from a request to a review
   <figcaption>How QualityLayer works, in about four minutes: the problem it solves, the five steps, and working on your own or with your team.</figcaption>
 </figure>
 
-QualityLayer runs your coding agent through a proper engineering process and keeps the experienced engineer in the loop, where their judgement counts. You agree on a plan before any code is written, the agent builds it in small tested slices, and agents that did not write the code check the result. Your agent asks each decision; the **QualityLayer App** beside it shows what the question is about.
+QualityLayer runs your coding agent through a proper engineering process and keeps the experienced engineer in the loop, where their judgement counts. You agree on a plan before any code is written, the agent builds it in small tested slices, and agents that did not write the code check the result. Your agent asks each decision, and you answer in the **QualityLayer App**, which shows what the question is about.
 
-![The QualityLayer App: the sidebar, the five step tabs, the step line with Approve, the items that need you, the line of what agents checked, and the Plan](pathname:///img/diagrams/app-light.svg)
-![The QualityLayer App: the sidebar, the five step tabs, the step line with Approve, the items that need you, the line of what agents checked, and the Plan](pathname:///img/diagrams/app-dark.svg)
+![The QualityLayer App: the sidebar with + New, the header with the step's file and the status pill, the five step tabs, the line of what needs you, the question card, the Plan, and the right sidebar with Comments and Designs](pathname:///img/diagrams/app-light.svg)
+![The QualityLayer App: the sidebar with + New, the header with the step's file and the status pill, the five step tabs, the line of what needs you, the question card, the Plan, and the right sidebar with Comments and Designs](pathname:///img/diagrams/app-dark.svg)
 
-**Start here:** [Install](install.md) · [Your first task](first-task.md) · [The App](app.md) · [The five steps](steps/discuss.md)
+**Start here:** [Install](install.md) · [Your first task](first-task.md) · [The App](app.md) · [The five steps](steps/discuss.md) · [Designs](designs.md)
 
 ## How it fits together {#how-it-fits-together}
 
@@ -23,7 +23,7 @@ Everything runs on your computer. Your agent works through the **QualityLayer CL
 ![How QualityLayer fits together: on your computer, your agent runs the QualityLayer CLI, which keeps each task in Markdown files in your repository, and the QualityLayer App reads the same files; only when you share, plans and comments go to the QualityLayer Server at qualitylayer.dev, encrypted, for your team and for people with a share link](pathname:///img/diagrams/architecture-light.svg)
 ![How QualityLayer fits together: on your computer, your agent runs the QualityLayer CLI, which keeps each task in Markdown files in your repository, and the QualityLayer App reads the same files; only when you share, plans and comments go to the QualityLayer Server at qualitylayer.dev, encrypted, for your team and for people with a share link](pathname:///img/diagrams/architecture-dark.svg)
 
-The files are yours, committed with the change, and they stay when you uninstall ([what each file holds](reference/files.md)). Your agent calls the CLI at every step; the [command reference](reference/commands.md) lists its commands.
+Each step is one document, from `01-discuss.md` to `05-review.md`; the agents' own records go to `agent/`. The files are yours, committed with the change, and they stay when you uninstall ([what each file holds](reference/files.md)). Designs your agent draws stay on your computer and are never shared. Your agent calls the CLI at every step; the [command reference](reference/commands.md) lists its commands.
 
 ## The five steps {#the-five-steps}
 
@@ -35,8 +35,8 @@ Every task takes the same five steps. You approve twice: the Plan before any cod
 | Step | What happens |
 | --- | --- |
 | **[Discuss](steps/discuss.md)** | Your agent asks until it knows what you want and what done means |
-| **[Plan](steps/plan.md)** | Mockups and diagrams where they help; you approve it before any code |
-| **[Implement](steps/implement.md)** | One command starts the build: small slices, each tested |
+| **[Plan](steps/plan.md)** | A design and diagrams where they help; you approve it before any code |
+| **[Implement](steps/implement.md)** | One command starts the build; it runs on its own in small slices, each tested |
 | **[Verify](steps/verify.md)** | Agents that did not write the code check every point |
 | **[Review](steps/review.md)** | You settle what is left and approve; the pull request opens |
 
@@ -58,9 +58,9 @@ If you already let Claude write a plan in PhpStorm or VS Code, work through it s
 
 ## Who does what
 
-![Who does what: you and your agent discuss and write the Plan; the implement session you start with one command hands work to workers; agents that did not write the code check it; a second opinion from another vendor reviews risky Plans](pathname:///img/diagrams/agents-light.svg)
-![Who does what: you and your agent discuss and write the Plan; the implement session you start with one command hands work to workers; agents that did not write the code check it; a second opinion from another vendor reviews risky Plans](pathname:///img/diagrams/agents-dark.svg)
+![Who does what: you and your agent discuss and write the Plan; the orchestrator you start with one command writes no code and hands each slice to workers; agents that did not write the code check it; a second opinion from the other coding agent reviews risky Plans](pathname:///img/diagrams/agents-light.svg)
+![Who does what: you and your agent discuss and write the Plan; the orchestrator you start with one command writes no code and hands each slice to workers; agents that did not write the code check it; a second opinion from the other coding agent reviews risky Plans](pathname:///img/diagrams/agents-dark.svg)
 
-You and your agent discuss and plan in your own session. The build runs in a session you start with one command: an orchestrator hands each slice to a cheaper, faster model. Agents that did not write the code check the result, and the App shows what each step costs.
+You and your agent discuss and plan, with your [Planning defaults](reference/settings.md#defaults). The build runs from one command with your Build defaults: an orchestrator that writes no code hands each slice to a cheaper, faster model, and from there your agent works on its own until the final review. Agents that did not write the code check the result, and the App shows what each step costs.
 
 **Look something up:** [Commands](reference/commands.md) · [Settings](reference/settings.md) · [Plan reviews](team/plans.md)

@@ -10,8 +10,8 @@ Verify starts by itself when the last slice is built. Agents that did not write 
 
 ## A live checklist {#live}
 
-![The Verify step while agents check: every check listed from the start, how many have passed, where the minutes went, and what each checking agent does now](pathname:///img/diagrams/verify-light.svg)
-![The Verify step while agents check: every check listed from the start, how many have passed, where the minutes went, and what each checking agent does now](pathname:///img/diagrams/verify-dark.svg)
+![The Verify step while agents check: the status pill, every check listed from the start, how many have passed, where the minutes went, and what each checking agent does now](pathname:///img/diagrams/verify-light.svg)
+![The Verify step while agents check: the status pill, every check listed from the start, how many have passed, where the minutes went, and what each checking agent does now](pathname:///img/diagrams/verify-dark.svg)
 
 Every check is listed from the start and fills in as it runs:
 
@@ -20,7 +20,7 @@ Every check is listed from the start and fills in as it runs:
 - **Your project's checks:** tests, types, lint and build.
 - **Every point of Done means,** every scenario of the Plan, and the whole diff.
 
-Each result keeps its proof: the output, a screenshot or a file.
+Each result keeps its proof: the output, a screenshot or a file. The page is `04-verify.md`: the open items first, then each point of Done means with its proof, then what agents checked. The status pill in the header says which check runs now.
 
 ## When a check fails {#fixes}
 

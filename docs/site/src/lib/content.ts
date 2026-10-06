@@ -20,7 +20,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "How is this different from plan mode?",
-    "Plan mode gives you a plan in the chat. QualityLayer gives you one plan with diagrams and a mockup to comment on. Your agent asks you each decision in the chat, one at a time. It builds the plan test first, and agents that did not write the code check the result.",
+    "Plan mode gives you a plan in the chat. QualityLayer gives you one plan with diagrams and a design to comment on. Your agent asks you each decision in the App, one at a time. It builds the plan test first, and agents that did not write the code check the result.",
   ),
   faq(
     "What about small changes and bugs?",
@@ -32,7 +32,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "Does my code leave my computer?",
-    "No. Plans are files in your repository, and the App runs on your computer. Sharing with your team sends the plan and its progress, encrypted on your machine, never your code. The one way it can leave is a screenshot you attach to a feedback report, if the screenshot shows it.",
+    "No. Plans are files in your repository, and the App runs on your computer. Designs your agent draws stay on your computer too. Sharing with your team sends the plan and its progress, encrypted on your machine, never your code or your designs. The one way it can leave is a screenshot you attach to a feedback report, if the screenshot shows it.",
   ),
   faq(
     "What does Send feedback share?",
