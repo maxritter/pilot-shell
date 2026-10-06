@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Pre-push hook: no plaintext blob under the encrypted trees leaves this machine.
 #
-# Runs scripts/check_qualitylayer_encrypted.sh --range over the commits being
+# Runs .github/scripts/check_qualitylayer_encrypted.sh --range over the commits being
 # pushed. It needs neither the key nor git-crypt and prints paths, never
 # contents. The repository is public: a plaintext push cannot be taken back.
 #
@@ -38,7 +38,7 @@ while read -r _local_ref local_sha _remote_ref remote_sha; do
     fi
   fi
 
-  bash scripts/check_qualitylayer_encrypted.sh --range "$range" || failed=1
+  bash .github/scripts/check_qualitylayer_encrypted.sh --range "$range" || failed=1
 done
 
 if [ "$failed" -ne 0 ]; then

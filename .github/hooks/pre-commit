@@ -88,7 +88,7 @@ while IFS= read -r f; do
     .github/workflows/*.yml|.github/workflows/*.yaml) workflows_changed=1 ;;
   esac
   case "$f" in
-    *.sh|*.bash|.github/hooks/*|.githooks/*) shell_files+=("$f") ;;
+    *.sh|*.bash|.github/hooks/*) shell_files+=("$f") ;;
   esac
 done < <(printf '%s\n' "$staged")
 
@@ -135,7 +135,7 @@ job_overflow() {
 }
 # shellcheck disable=SC2329
 job_plaintext() {
-  bash scripts/check_qualitylayer_encrypted.sh
+  bash .github/scripts/check_qualitylayer_encrypted.sh
 }
 # The App's Rust crates: formatted, and clippy-clean with warnings as errors.
 # shellcheck disable=SC2329
