@@ -9,13 +9,15 @@ description: What you type in your agent, the commands you run, the ones your ag
 
 ## In your agent
 
+`/ql` is the only command you need: QualityLayer adds no other command that starts with ql. The `agent-peers` skill works on its own when you ask one agent session to message another.
+
 | You type | What it does |
 | --- | --- |
 | `/ql <request>` | Start a task with [Discuss](../steps/discuss.md). **+ New** in the App gives the whole command, with the model, effort and where it starts |
 | `/ql implement <task>` | Build an approved Plan. Implement Start gives the whole command, with your Build defaults. See [Implement](../steps/implement.md#start-implement) |
 | `/ql review <task>` | Go through your team's review threads. See [Change reviews](../team/changes.md) |
 | `/ql answer <ask>` | Answer a teammate's question with your agent. See [Teammates' agents](../team/agents.md) |
-| `/ql-pane` | Open the pane with the steps and the build's progress (Claude Code) |
+| `/task-pane` | Open the pane with the steps and the build's progress (Claude Code) |
 
 In Codex, type `$ql` in place of `/ql`.
 
