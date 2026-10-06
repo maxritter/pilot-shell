@@ -2,6 +2,29 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.25
+
+### New
+
+- Designs: ask your agent to mock up a screen or draw how something works, and it draws a page with `qualitylayer design new`. The App shows it full size, with Jump to, zoom, full screen and comments on any spot; the agent changes the same page and the App tells you it was updated. Designs stay on your computer: never shared, never committed.
+- The right sidebar is Comments · Designs, and Home lists the project's designs. The header's file chip opens a menu: the path, Copy path, Open in editor, Reveal in Finder, Open the task folder, Copy the task's name.
+- New tasks keep one document per step: `01-discuss.md` to `05-review.md` for you, and the agent's notes, logs and raw output in the task's `agent/` folder. Tasks you already have keep their files.
+- Each step's page is its document, with QualityLayer's live parts drawn over it: your answers, the decisions, the build board, the proof, the approval. QualityLayer writes the Implement and Verify pages itself and keeps them current; `05-review.md` becomes the pull request's description.
+- "Needs you" is one line at the top of a step that jumps to each thing in place, and the agent's records open read-only from the spot they explain.
+- `qualitylayer design shot` gives your agent a picture of its own page, and `next` tells you when a newer QualityLayer is out and whether to update now or after the current slice.
+
+### Fixed
+
+- You can rebase the build onto a newer main, merge main in, amend or squash its commits before Review: the build's commit list, its checks and the pull request show only its own commits. No agent copies a revision or a hash any more.
+- A task added to a slice while it is built reaches the agent building it, or a new agent builds it.
+- A slice with nothing to commit, such as a review whose notes stay in an ignored folder, now succeeds.
+- A check that fails because a login expired or the network dropped is tried once more, then recorded as an environment problem, not a code fault.
+- An agent taking over an unfinished slice is told where the previous one left each task.
+- A file belongs to another slice only until that slice is committed.
+- Changing the Plan points out test steps that no longer match it, and agents still finishing their checks when the Plan sends the build back keep being heard.
+- An agent that reviews fixes what it can and proposes the rest as tasks.
+- In Claude Code, QualityLayer's line above the prompt no longer hides other mods there, such as a model router: it sits on top of theirs.
+
 ## 12.0.0-beta.24
 
 ### New
