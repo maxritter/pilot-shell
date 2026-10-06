@@ -55,9 +55,9 @@ const TABS: [Tab, string][] = [
 const NOT_THERE: Record<Tab, string> = {
   discuss: "The conversation that settled the problem is not part of this link.",
   plan: "The Plan is not written yet. It appears here once it waits for approval.",
-  implement: "The build has not started. Its progress appears here when it does.",
-  verify: "Verification has not started. The checks appear here when it does.",
-  review: "The review is not ready yet. The result appears here when it is.",
+  implement: "The implementation document is not part of this link yet.",
+  verify: "The verification document is not part of this link yet.",
+  review: "The review document is not part of this link yet.",
 };
 
 /** The file a comment on a step's text is recorded against when the link names none. */

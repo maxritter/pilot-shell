@@ -258,7 +258,7 @@ describe("the page for a task at the Plan", () => {
     const discuss = await html(<SharedView state={PLAN_SHARE} onSend={noSend} tab="discuss" />);
     expect(discuss).toContain("Settings are too many.");
     const build = await html(<SharedView state={PLAN_SHARE} onSend={noSend} tab="implement" />);
-    expect(build).toContain("The build has not started");
+    expect(build).toContain("The implementation document is not part of this link");
     expect(build).not.toContain("Settings are too many.");
   });
 
@@ -283,6 +283,11 @@ describe("the page for a task at the Plan", () => {
 });
 
 describe("a link made before the App sent steps, items and the owner's name", () => {
+  it("does not say verification has not started when an older verified link lacks that document", async () => {
+    const page = await html(<SharedView state={ready({ review: parseReview(JSON.stringify(fixture)) })} onSend={noSend} tab="verify" />);
+    expect(page).toContain("The verification document is not part of this link");
+    expect(page).not.toContain("Verification has not started");
+  });
   it("still opens: the frame is Discuss, the design is the Plan, and the page asks nothing", async () => {
     const state = ready({ title: "Pager off-by-one", docs: OLD_DOCS, expires: "2026-10-14T10:00:00.000Z" });
     const plan = await html(<SharedView state={state} onSend={noSend} />);
