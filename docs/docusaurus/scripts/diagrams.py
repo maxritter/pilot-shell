@@ -713,7 +713,7 @@ def plan_ill(c: Theme) -> str:
     W, H = 1000, 470
     b = [card(c, 0, 0, W - 4, H - 4)]
     b.append(stepline(c, 14, 14, W - 32, 'you', 'Waits for your approval', '4 slices, 11 tasks. 5 items need you before the build starts.',
-                      ['Request changes…', ('Approve ▾', True)]))
+                      [('Comments · 2', False)]))
     b.append(section_label(c, 20, 94, 'Needs you', '5 open · you can also comment anywhere in the Plan', 'amber'))
     rows = [('Mockup', 'Settings › Workflow after the change, clickable', ['Looks right', 'Change']),
             ('Engineering decision', 'The second opinion follows the Plan’s risk', ['Agree', 'Change']),
@@ -723,7 +723,16 @@ def plan_ill(c: Theme) -> str:
     for i, (k, w_, a) in enumerate(rows):
         b.append(item(c, 14, 106 + i * 62, W - 32, k, w_, a))
     b.append(vline(c, 14, 424 - 4, W - 32, ['read by a second agent, nothing missing', '2 facts tested live', '9 research questions answered']))
-    return svg(W, H, ''.join(b), 'The Plan waiting for approval: a step line with Request changes and Approve, then the items that need you (mockup, engineering decision, Done means, the agent’s decisions, extra review), and the line of what agents checked')
+    # the question in the agent's terminal, asked once the items are settled
+    b.append(f'<rect x="590" y="62" width="380" height="148" rx="11" fill="{c["bg"]}" stroke="{c["cardline"]}" stroke-width="1.5"/>')
+    b.append(T(606, 84, 'Claude Code', 11.5, 'dim', 600, c=c))
+    b.append(T(606, 108, 'Approve the Plan?', 13, 'text', 650, mono=True, c=c))
+    for i, (t, on) in enumerate([('Approve', True), ('Request changes', False), ('Review in the App first', False)]):
+        y = 120 + i * 28
+        if on:
+            b.append(f'<rect x="598" y="{y}" width="364" height="26" rx="6" fill="{c["bluef"]}"/>')
+        b.append(T(612, y + 18, t, 12.5, 'text', 650 if on else 500, c=c))
+    return svg(W, H, ''.join(b), 'The Plan waiting for approval: the items that need you (mockup, engineering decision, Done means, the agent’s decisions, extra review), your agent asking “Approve the Plan?” in the terminal, and the line of what agents checked')
 
 
 # ---------------------------------------------------------------- after the Plan is approved
@@ -898,7 +907,7 @@ def review_ill(c: Theme) -> str:
     W, H = 1000, 572
     b = [card(c, 0, 0, W - 4, H - 4)]
     b.append(stepline(c, 14, 14, W - 32, 'you', 'Waits for your review', 'Every check passed. 4 items need you before it ships.',
-                      ['Request changes…', ('Approve ▾', True)]))
+                      [('Comments · 3', False)]))
     b.append(section_label(c, 20, 94, 'Needs you', '4 of 5 open · each answer goes back to the agent', 'amber'))
     rows = [('Only you can confirm', 'One live call to the trial service gave a full 7-day trial', ['I confirm', 'Ask the agent to record it']),
             ('Look at the result', 'Settings › Workflow as built', ['Looks right', 'Change']),
@@ -915,18 +924,17 @@ def review_ill(c: Theme) -> str:
         y = 488 + i * 22
         b.append(T(20, y + 14, t, 12.5, 'text' if i < 2 else 'dim', 500, c=c))
         b.append(T(W - 28, y + 14, f_, 12, 'dim', 500, 'end', c=c))
-    # the Approve menu, open
+    # the question in the agent's terminal, asked once the items are settled
     b.append(f'<rect x="590" y="62" width="380" height="148" rx="11" fill="{c["bg"]}" stroke="{c["cardline"]}" stroke-width="1.5"/>')
-    opts = [('Approve and open a pull request', 'Pushes the branch and opens it. Needs gh.', True),
-            ('Approve only', 'You push and open the pull request yourself', False),
-            ('Copy the git commands', 'When gh is not installed', False)]
-    for i, (t, s, on) in enumerate(opts):
-        y = 70 + i * 46
+    b.append(T(606, 84, 'Claude Code', 11.5, 'dim', 600, c=c))
+    b.append(T(606, 108, 'Approve the change?', 13, 'text', 650, mono=True, c=c))
+    opts = [('Approve', True), ('Request changes', False), ('Review in the App first', False)]
+    for i, (t, on) in enumerate(opts):
+        y = 120 + i * 28
         if on:
-            b.append(f'<rect x="598" y="{y}" width="364" height="42" rx="8" fill="{c["bluef"]}"/>')
-        b.append(T(612, y + 18, t, 13, 'text', 650, c=c))
-        b.append(T(612, y + 34, s, 11.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'The Review step: the items that need you (only you can confirm, a screen to look at, a note from the check, a choice the agent made), the Approve menu with its three ways to ship, the line of what agents proved, and the changes grouped by task')
+            b.append(f'<rect x="598" y="{y}" width="364" height="26" rx="6" fill="{c["bluef"]}"/>')
+        b.append(T(612, y + 18, t, 12.5, 'text', 650 if on else 500, c=c))
+    return svg(W, H, ''.join(b), 'The Review step: the items that need you (only you can confirm, a screen to look at, a note from the check, a choice the agent made), your agent asking “Approve the change?” in the terminal, the line of what agents proved, and the changes grouped by task')
 
 
 def comments_ill(c: Theme) -> str:

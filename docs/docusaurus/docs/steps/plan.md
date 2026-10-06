@@ -8,8 +8,8 @@ description: The one document you approve before any code. Your decisions come f
 
 The Plan is the one document you approve before any code is written. Human taste and engineering judgement pay most here, because agents build from the Plan afterwards. So the App puts first the parts an agent should not settle alone, and the Plan itself follows as one readable document.
 
-![The Plan waiting for approval: the step line with Request changes and Approve, the items that need you, and the line of what agents checked](pathname:///img/diagrams/plan-light.svg)
-![The Plan waiting for approval: the step line with Request changes and Approve, the items that need you, and the line of what agents checked](pathname:///img/diagrams/plan-dark.svg)
+![The Plan waiting for approval: the items that need you, your agent asking “Approve the Plan?” in the terminal, and the line of what agents checked](pathname:///img/diagrams/plan-light.svg)
+![The Plan waiting for approval: the items that need you, your agent asking “Approve the Plan?” in the terminal, and the line of what agents checked](pathname:///img/diagrams/plan-dark.svg)
 
 ## What needs you {#items}
 

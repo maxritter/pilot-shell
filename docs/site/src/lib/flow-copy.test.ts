@@ -51,6 +51,17 @@ describe("the chat-first flow in the copy", () => {
     expect(offending).toEqual([]);
   });
 
+  it("describes no Approve menu in the docs: the approval is asked in the terminal", () => {
+    // "the Approve menu with its three ways to ship", "open the pull request from the **Approve** menu".
+    // The diagnostics page quotes the page kind "Approve menu open" the report sends; that is not an instruction.
+    const menu = [/\bthe\s+\**approve\**\s+menu\b/i, /\bfrom\s+the\s+\**approve\b/i];
+    const offending = [readme, ...docPages].flatMap((path) => {
+      const text = read(path);
+      return menu.filter((pattern) => pattern.test(text)).map((pattern) => `${path.replace(`${repo}/`, "")}: ${pattern}`);
+    });
+    expect(offending).toEqual([]);
+  });
+
   it("says once, in the README, the first task, the home page and its static copy, that the agent asks in the terminal while the App beside it shows the detail", () => {
     const layout = /asks[^.]*in the terminal[^.]*App beside it shows only what the current question is about/gi;
     const home = homeCopy.map(read).join("\n");

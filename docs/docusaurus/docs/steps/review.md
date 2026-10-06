@@ -8,8 +8,8 @@ description: Settle the few items agents could not settle for you, look at the r
 
 The final approval is always yours. Review opens on what the checks could not settle for you. The proof that every point holds is one violet line, and the diff follows, grouped by the task that changed each file.
 
-![Review: the items that need you, the Approve menu with its three ways to ship, the line of what agents proved, and the changes by task](pathname:///img/diagrams/review-light.svg)
-![Review: the items that need you, the Approve menu with its three ways to ship, the line of what agents proved, and the changes by task](pathname:///img/diagrams/review-dark.svg)
+![Review: the items that need you, your agent asking "Approve the change?" in the terminal, the line of what agents proved, and the changes by task](pathname:///img/diagrams/review-light.svg)
+![Review: the items that need you, your agent asking "Approve the change?" in the terminal, the line of what agents proved, and the changes by task](pathname:///img/diagrams/review-dark.svg)
 
 ## What needs you {#items}
 

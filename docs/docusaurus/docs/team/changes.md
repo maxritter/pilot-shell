@@ -6,7 +6,7 @@ description: After the build, your team reviews why and how a change was made, w
 ![Two moments for your team: review the plan before any code, and review the finished change after the build](pathname:///img/diagrams/team-timeline-light.svg)
 ![Two moments for your team: review the plan before any code, and review the finished change after the build](pathname:///img/diagrams/team-timeline-dark.svg)
 
-QualityLayer shows your team why and how a change was made, and the proof that it works. You open the pull request from the **Approve** menu in Review; the code is reviewed there, as always.
+QualityLayer shows your team why and how a change was made, and the proof that it works. You approve in the terminal, where your agent asks you, and the pull request opens from there; the code is reviewed there, as always.
 
 Once Verify has passed, the task moves to **Review**. Your teammates see what the change was meant to do and the proof for each point of Done means. They also see the checks and scenarios, the pictures, the steps to try it, and the decisions from the Plan. The review links your branch's pull request and shows its number, state and checks.
 
