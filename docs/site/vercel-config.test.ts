@@ -1,4 +1,5 @@
 import { readdirSync, readFileSync } from "node:fs";
+import { matchesGlob } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -16,6 +17,7 @@ type Rule = {
   permanent?: boolean;
 };
 const config = JSON.parse(readFileSync(new URL("./vercel.json", import.meta.url), "utf8")) as {
+  regions: string[];
   redirects: Rule[];
   rewrites: Rule[];
   headers: { source: string; headers: { key: string; value: string }[] }[];
@@ -225,6 +227,28 @@ describe("the share page's own headers", () => {
 });
 
 describe("where the functions run", () => {
+  it("keeps tests and fixtures out of the deployment while including every handler", () => {
+    const patterns = readFileSync(new URL("../../.vercelignore", import.meta.url), "utf8")
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line !== "" && !line.startsWith("#"));
+    const ignoredPath = (path: string) => patterns.some((pattern) => matchesGlob(path, pattern.endsWith("/") ? `${pattern}**` : pattern));
+    const ignored = (file: string) => ignoredPath(`docs/site/api/${file}`);
+    const files = readdirSync(new URL("./api", import.meta.url), { recursive: true, encoding: "utf8" });
+    const tests = files.filter((file) => file.endsWith(".test.ts"));
+    expect(tests.length).toBeGreaterThan(0);
+    expect(tests.filter((file) => !ignored(file))).toEqual([]);
+    expect(ignored("__fixture__/orphan.ts")).toBe(true);
+    expect(files.filter(isHandler).filter((file) => ignored(file))).toEqual([]);
+    for (const privateFile of ["docs/site/.env.local", "qualitylayer/dist/dev-trial-key.json", "docs/plans/a-task/01-discuss.md", "docs/designs/a-design.html", ".verify-backend/live-routes.json", "VERIFY-REPORT.md"]) {
+      expect(ignoredPath(privateFile), privateFile).toBe(true);
+    }
+  });
+
+  it("defaults any newly discovered function to Frankfurt too", () => {
+    expect(config.regions).toEqual(["fra1"]);
+  });
+
   it("pins every handler to fra1, next to the database and Redis", () => {
     const handlers = readdirSync(new URL("./api", import.meta.url), { recursive: true, encoding: "utf8" }).filter(isHandler);
     expect(handlers.length).toBeGreaterThan(0);
