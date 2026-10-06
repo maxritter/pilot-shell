@@ -17,6 +17,7 @@
     "test": "bun run scripts/test.ts",
     "build": "bun run scripts/build.ts",
     "app:build": "bun run scripts/app.ts",
+    "app:install": "bun run scripts/app-install.ts",
     "app:dev": "bun run scripts/app.ts --run",
     "install:local": "bun run scripts/install-local.ts",
     "app:icon": "bun run scripts/app-icon.ts",
