@@ -2,6 +2,18 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.20
+
+### New
+
+- A right sidebar holds the task's comments and its files. Click a file to read it in the App. The sidebar opens by itself when a teammate comments or asks, and Settings › Workflow can turn that off. The header drops its More menu: Archive and Delete are small buttons, and the file name opens the file.
+- The open question sits above the whole page instead of folding the page away. It says how many questions are probably still to come, and it gives as much context as the decision needs: one line for an easy one, facts for each choice for a harder one, and evidence and a small diagram for the hardest. Answered questions are marked at the passage they settled.
+- The Implement start draws the build: the orchestrator (Opus 5.5 by default) coordinates and writes no code, and the workers (Sonnet 5.5 by default, changeable right there) build the slices. The effort you pick now applies to both. Another agent gets a complete prompt to paste.
+
+### Good to know
+
+- From the build on, the agent works on its own until the final review: it asks you nothing and never stops to wait. Anything only you can do is listed first in the final review. You can still write to it at any time, for example to add something to the Plan.
+
 ## 12.0.0-beta.19
 
 ### New
