@@ -2,6 +2,12 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.18
+
+### Fixed
+
+- A task's cost counts only the work done on it. When one agent session works on several tasks in turn, each part of its work goes to the task it was on at the time, and a session from another repository that only looked at a task no longer adds its whole cost there.
+
 ## 12.0.0-beta.17
 
 ### Fixed
