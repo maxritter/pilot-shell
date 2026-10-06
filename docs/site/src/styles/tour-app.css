@@ -128,7 +128,7 @@
 .sx-nw .sx-turn-pill,.sx-nw .sx-taskmenu{display:none}
 .sx-nw .sx-pill > span:not(.sx-ag){max-width:142px}
 .sx-nw .sx-nowdoc{grid-template-columns:minmax(0,1fr);gap:12px}
-.sx-nw .sx-nowdoc .sx-document > :not(.sx-dochead):not(.sx-decided):not(.sx-plan-title):not(.sx-docby){display:none}
+.sx-nw .sx-nowdoc .sx-document > :not(.sx-dochead):not(.sx-decided):not(.sx-plan-title):not(.sx-docby):not(.sx-proof-points){display:none}
 .sx-nw .sx-nowdoc .sx-document > .sx-proof-points{display:grid;gap:6px}
 .sx-nw .sx-proof-point{padding:7px 9px;gap:4px}
 .sx-nw .sx-proof-point strong{font-size:11.5px}
