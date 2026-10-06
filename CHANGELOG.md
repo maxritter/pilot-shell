@@ -2,6 +2,14 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.17
+
+### Fixed
+
+- The Discuss and Plan pages show Sections and Copy again, so you can jump between a Plan's sections in a normal window, and Copy and the comment buttons no longer overlap what is next to them.
+- In a narrow window the For you / For the agent switch moves to its own line instead of running off the screen.
+- The docs and their diagrams show you approving in the terminal, where your agent asks you.
+
 ## 12.0.0-beta.16
 
 ### New
