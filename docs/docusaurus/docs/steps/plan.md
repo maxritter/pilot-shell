@@ -8,20 +8,23 @@ description: "The one document you approve before any code: a design and diagram
 
 The Plan is the one document you approve before any code is written. Agents build from it afterwards, so this is where your judgement pays most.
 
-![The Plan waiting for approval: one line names what needs you, the card asks “Approve the Plan?” with every decision you answered and the one still open, your calls are recorded on the page, and the line of what agents checked](pathname:///img/diagrams/plan-light.svg)
-![The Plan waiting for approval: one line names what needs you, the card asks “Approve the Plan?” with every decision you answered and the one still open, your calls are recorded on the page, and the line of what agents checked](pathname:///img/diagrams/plan-dark.svg)
+## Your turn {#items}
 
-## What needs you {#items}
-
-The review happens in the same card as every other question, one item at a time:
+Independent questions come in batches in one **Your turn** card. Answer the decisions you can make now in any order; each answer reaches your agent immediately:
 
 1. **The design**, for a change people see: Looks right, or Change. See [Designs](../designs.md).
 2. **Engineering decisions**, each with its diagram: Agree, or Change.
-3. **Done means**, from [Discuss](discuss.md).
+3. **Done means**, from [Discuss](discuss.md): agree to each point separately. Only a point whose words change needs your agreement again.
 4. **Decisions made for you:** the smaller choices, each with its reason. **Ask why** about any of them.
 5. **Extra review:** whether the risk deserves a security review or a second opinion.
 
-Then the card asks "Approve the Plan?" and lists what you answered and what is still open. Approving takes the open ones as they are; a **Change** turns the button into **Send 1 change**. Each answer is also recorded at the passage it settled.
+Each answer leaves the card and is recorded at the passage it settled. **Undo** is available for five seconds. Your agent can keep working on the parts that do not depend on an open answer; its live status at the top shows what it is doing.
+
+Approving the Plan is a separate action after you settle its decisions. Sending answers does not approve it. When you request changes, send them back to the agent to revise the Plan.
+
+## Read the Plan full size {#full-size}
+
+Open the document full size to give it more room. The task list collapses, while the outline and the right sidebar stay within reach. Jump to a section, read the slices and checks, and comment on a passage without leaving the Plan. Exit full size to return to the task view.
 
 ### Diagrams you can comment on {#diagrams}
 
@@ -40,6 +43,6 @@ Ask teammates to read along; you see who has read and who approved. See [Plan re
 
 ## When you ask for changes
 
-Your agent answers each note and comes back with revision 2: only your notes, with every changed part marked. **Show the Plan's diff** shows the change line by line.
+Your agent answers each note and revises the Plan. A changed **Done means** point shows its old and new words together; your agreements to unchanged points remain saved. The Plan's diff shows the document changes line by line.
 
 After you approve, the App opens [Implement](implement.md).
