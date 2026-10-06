@@ -31,7 +31,7 @@
   },
   "overrides": [
     {
-      "includes": ["src/ui/timeline.css", "src/ui/build-view.css"],
+      "includes": ["src/ui/timeline.css", "src/ui/build-view.css", "src/ui/design/design.css"],
       "linter": {
         "rules": {
           "style": {
