@@ -36,6 +36,11 @@ curl -fsSL https://qualitylayer.dev/install.sh | bash
 
 ---
 
+> [!TIP]
+> **QualityLayer's open design companion:** [Open Claude Design](https://github.com/maxritter/open-claude-design) connects Claude Design to the coding agent you already use, with codebase-grounded creation and conflict-aware synchronization. When your agent has it together with [Impeccable](https://github.com/pbakaus/impeccable), the Plan uses both for its mockups, so product context, visual iteration, deterministic checks, and engineering verification work as one design layer.
+
+---
+
 <h2 id="why">Why QualityLayer</h2>
 
 **Coding agents write code fast, but even the best models don't keep a codebase healthy on their own.** Every change passes its tests and still leaves something behind: a copy, a workaround, code nobody reads. Over months, the codebase drifts into something nobody can safely change. Good software still needs people deciding what gets built, before the code exists.

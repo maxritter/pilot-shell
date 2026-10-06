@@ -55,6 +55,10 @@
     "svgo": "^3.3.5",
     "js-yaml": "^4.3.2",
     "nanoid": "^3.3.17",
-    "webpack-dev-middleware": "^7.4.6"
+    "webpack-dev-middleware": "^7.4.6",
+    "compression": "^1.8.2",
+    "proxy-addr": "^2.0.8",
+    "source-map-js": "^1.2.2",
+    "tinypool": "^2.1.2"
   }
 }

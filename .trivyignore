@@ -21,3 +21,14 @@ CVE-2026-26996
 # shipped to users: Docusaurus emits static HTML and this only runs during the
 # local `npm run serve` preview.
 CVE-2026-14257
+
+# braces DoS on deeply nested patterns - no fixed version yet. Build-time only in
+# the docs: @docusaurus/core -> chokidar (the `npm start` file watcher) and
+# @docusaurus/utils -> micromatch, which match the docs' own file globs, never
+# input from a visitor. Docusaurus emits static HTML; nothing of it ships.
+CVE-2026-93687
+
+# http-cache-semantics - no fixed version yet. Reached only through
+# @docusaurus/core -> update-notifier -> got -> cacheable-request, the build's
+# check for a newer Docusaurus on the npm registry. Not shipped to users.
+CVE-2026-93748
