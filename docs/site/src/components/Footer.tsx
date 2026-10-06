@@ -14,7 +14,7 @@ const Footer = () => (
           <a href={RELEASES_URL}>Changelog</a>
           <a href={`mailto:${CONTACT_EMAIL}`}>Contact</a>
         </nav>
-        <p className="w7-legal">© 2026 QualityLayer · The tasks, people and numbers on this site are an illustration. Prices in US dollars, billed monthly through Polar.</p>
+        <p className="w7-legal">© 2026 QualityLayer · The example tasks, people and numbers in the tour are fictional. Prices in US dollars, billed monthly through Polar.</p>
       </div>
     </div>
   </footer>
