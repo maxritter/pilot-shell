@@ -48,44 +48,69 @@ describe("the tour", () => {
     expect(team / steps).toBeLessThan(1.33);
   });
 
-  it("draws each task's header with its step's file and the live status pill, in place of the old step line", async () => {
+  it("puts quiet step tabs and honest live status in the top bar", async () => {
     const files = ["discuss", "plan", "start", "verify", "review"].map((name) => CHAPTERS[id(name)].win.file?.[0]);
     expect(files).toEqual(["01-discuss.md", "02-plan.md", "03-implement.md", "04-verify.md", "05-review.md"]);
     const page = await render();
-    expect(page).toContain("sx-pill");
-    expect(page).toContain("sx-fchip");
-    expect(page).not.toMatch(/"sx-line[ "]/);
-    expect(statusOf(id("discuss"), 0).pill).toMatchObject({ kind: "you", head: "Needs you", text: "question 3" });
-    expect(statusOf(id("start"), 0).pill).toMatchObject({ kind: "move", head: "Your move", text: "start the build" });
-    expect(statusOf(id("implement"), 0).pill.kind).toBe("ag");
-    expect(statusOf(id("verify"), 0).pill.head).toBe("Claude Code");
+    expect(page).toContain("sx-taskbar");
+    expect(page).toContain("sx-track");
+    expect(page).not.toContain('class="sx-idx"');
+    expect(page).not.toContain('class="sx-mrow2"');
+    expect(statusOf(id("discuss"), 0)).toMatchObject({ pill: { kind: "ag", head: "Working", text: "reading notify.ts" }, turn: "3 questions" });
+    expect(statusOf(id("plan"), 0).pill.head).toBe("Waits for you");
+    expect(statusOf(id("start"), 0).pill.head).toBe("Plan approved");
+    expect(statusOf(id("verify"), 0).pill.head).toBe("Working");
   });
 
-  it("names what needs you in one line at the top of the step, and drops the line when nothing does", () => {
-    expect(statusOf(id("plan"), 0).index).toEqual({ count: "2 things need you", to: ["Decision 2", "The design"], then: "Approve" });
-    expect(statusOf(id("implement"), 99).index).toBeUndefined();
-    expect(statusOf(id("together"), 99).index).toBeUndefined();
+  it("leaves the person nothing to answer while the agent folds in the finished batch", async () => {
+    const done = text(await scene(id("discuss"), 5));
+    expect(done).toContain("Claude Code’s turn");
+    expect(done).toContain("All 3 answered");
+    expect(done).not.toContain("Your turn");
+    expect(statusOf(id("discuss"), 5).turn).toBeUndefined();
+    expect(statusOf(id("implement"), 99).turn).toBeUndefined();
+    expect(statusOf(id("plan"), 4).turn).toBe("approve");
   });
 
   it("puts “+ New” beside the logo", async () => {
     expect(text(await render())).toContain("QualityLayer New");
   });
 
-  it("asks in the App: the question card takes a choice, your own answer, Tell me more, or your recommendation", async () => {
-    const first = text(await scene(id("discuss"), 2));
-    for (const word of ["How many tries before it stops?", "question 3 · about 2 to come", "Claude Code waits", "Recommended", "Your own answer", "Tell me more", "Not sure, use your recommendation"]) expect(first).toContain(word);
+  it("asks in a batch and answers out of order, removing each answered question and updating every count", async () => {
+    const first = text(await scene(id("discuss"), 0));
+    for (const word of ["Your turn", "3 questions from Claude Code", "0 of 3 answered", "Answer in any order", ...["How many tries before it stops?", "Who hears about it when it stops?", "When does it try again?"], "Your own answer", "Tell me more"]) expect(first).toContain(word);
+    const second = await scene(id("discuss"), 3);
+    expect(text(second)).toContain("2 questions from Claude Code");
+    expect(text(second)).toContain("1 of 3 answered");
+    expect(text(second)).toContain("Undo · 5 s");
+    expect(second).not.toContain("<h4>Who hears about it when it stops?</h4>");
+    expect(second).toContain("<h4>How many tries before it stops?</h4>");
+    expect(text(second)).toContain("Decided with you 3");
+    for (const [step, left] of [[0, 3], [3, 2], [4, 1], [5, 0]]) {
+      expect(tabsOf(id("discuss"), step)[0].count ?? 0).toBe(left);
+      expect(statusOf(id("discuss"), step).turn).toBe(left ? `${left} questions` : undefined);
+      const current = sidebarOf(id("discuss"), step).flatMap((g) => g.items).find((item) => item.on);
+      expect(current?.who).toBe(left ? "you" : "ag");
+    }
     const after = text(await scene(id("discuss")));
-    expect(after).toContain("Answered");
-    expect(after).toContain("Who hears about it when it stops?");
-    expect(after).toContain("Decided with you");
+    expect(after).toContain("Decided with you 5");
     expect(after).not.toMatch(/in the chat|in the terminal/i);
   });
 
-  it("reviews the Plan in the same card, decision by decision, then asks “Approve the Plan?”", async () => {
-    const asking = text(await scene(id("plan"), 2));
-    for (const word of ["Three tries, then one mail. Agree?", "decision 2 of 3, then Approve the Plan?", "Agree", "Codex read the Plan"]) expect(asking).toContain(word);
-    const approve = text(await scene(id("plan")));
-    for (const word of ["Approve the Plan?", "Decision 1", "The design", "Approve", "Your call"]) expect(approve).toContain(word);
+  it("agrees point by point, shows changed words as Was and Now, and keeps the other points agreed", async () => {
+    const asking = text(await scene(id("plan"), 0));
+    for (const word of ["Your turn", "Agree to 2 points", "Done means 2 · changed since you agreed", "Was", "Now", "It stops after 3 tries.", "mails the customer once.", "Agree", "Your other agreed point stays agreed.", "Codex read the Plan"]) expect(asking).toContain(word);
+    expect(text(await scene(id("plan"), 2))).toContain("2 agreed · 1 changed");
+    expect(text(await scene(id("plan"), 3))).toContain("3 agreed");
+    expect(text(await scene(id("plan"), 3))).toContain("Approve Plan");
+  });
+
+  it("reads the Plan full size with an outline and a comment on the selected line", async () => {
+    const full = await scene(id("plan"), 4);
+    for (const word of ["Plan: Retry failed webhooks", "On this page", "Exit full size", "Comments 1", "Files", "Designs", "On slice 2", "Count the first delivery too.", "The limit includes it. I’ll test that explicitly."]) expect(text(full)).toContain(word);
+    expect(full).toContain("sx-line-quote");
+    expect(full).toContain("sx-plan-reader");
+    expect(full).toContain("sx-line-comment");
   });
 
   it("starts the build from Implement Start: the Build defaults as an orchestrator and its workers, one effort for both, one command", async () => {
@@ -95,14 +120,44 @@ describe("the tour", () => {
 
   it("builds on its own: slices test first, what the agent decided while building answered with Ask why", async () => {
     const html2 = text(await scene(id("implement")));
-    for (const word of ["Slice 2 of 3", "committed", "Nothing waits for you", "Decided while building", "Ask why", "Checked by agents"]) expect(html2).toContain(word);
+    for (const word of ["Slice 2 of 3", "committed", "The agents are building and running the tests", "Decided while building", "Ask why", "Checked by agents"]) expect(html2).toContain(word);
   });
 
-  it("draws Verify as one checklist that fills in, then ends passed with the list for Review", async () => {
+  it("groups Verify and Review evidence under the Done means point it proves", async () => {
+    for (const chapter of ["verify", "review"]) {
+      const html2 = await scene(id(chapter));
+      const points = [...html2.matchAll(/<section class="sx-proof-point"[^>]*>[\s\S]*?<\/section>/g)].map((m) => text(m[0]));
+      expect(points).toHaveLength(3);
+      for (const [i, point] of points.entries()) {
+        expect(point).toContain(`Done means · ${i + 1}`);
+        expect(point).toContain(`Scenario ${i + 1}`);
+        expect(point).toContain(["delivery.test.ts", "mailer.test.ts", "row.test.tsx"][i]);
+      }
+    }
+  });
+
+  it("draws Verify filling in, then ends passed with the list for Review", async () => {
     expect(text(await scene(id("verify"), 3))).toMatch(/\d+ of 12 checks passed/);
     const done = text(await scene(id("verify")));
     expect(done).toContain("Waiting for you in Review");
     expect(done).toContain("Only you can confirm");
+  });
+
+  it("keeps a human confirmation open under its point until it is answered", async () => {
+    const before = await scene(id("review"), 0);
+    const open = before.match(/<section class="sx-proof-point" data-point="2">[\s\S]*?<\/section>/)?.[0] ?? "";
+    expect(text(open)).toContain("Your turn");
+    expect(text(open)).toContain("live confirmation waits for you");
+    const after = await scene(id("review"), 1);
+    expect(after).not.toContain("live confirmation waits for you");
+    expect(text(after)).toContain("I confirm · 3 tries in the live call");
+  });
+
+  it("shows Home's shipped time and cost, counts in each step and notification bell", async () => {
+    const home = text(await scene(id("agents")));
+    expect(home).toContain("Notifications · 2");
+    expect(home).toContain("Discuss 1 · Plan 1 · Implement 1 · Verify 0 · Review 1");
+    expect(home).toContain("Shipped · 42 min · $4.20 estimated");
   });
 
   it("draws Review with what is settled with you, the proof and “Approve the change?” with the ways to ship", async () => {
@@ -114,7 +169,7 @@ describe("the tour", () => {
     const plan = text(await scene(id("draw")));
     for (const word of ["Interface", "Preview", "Open full size", "Is this how failed deliveries should look?", "Failed deliveries was updated"]) expect(plan).toContain(word);
     const tab = text(await side(id("draw"), "designs"));
-    for (const word of ["Comments", "Designs", "Only on this computer.", "Never shared.", "This task", "In this project", "Shown in the Plan", "Ask your agent to draw one"]) expect(tab).toContain(word);
+    for (const word of ["Comments", "Files", "Designs", "Interactive page stays here.", "Share links include a still.", "This task", "In this project", "Shown in the Plan", "Ask your agent to draw one"]) expect(tab).toContain(word);
     const full = text(await scene(id("comment"), 2));
     for (const word of ["Click a spot on the design", "this spot", "Say when it tries next."]) expect(full).toContain(word);
     expect(text(await scene(id("comment")))).toContain("Each failed row now says when it tries next.");
@@ -122,11 +177,11 @@ describe("the tour", () => {
     expect(CHAPTERS[id("draw")].win.right).toBe("designs");
   });
 
-  it("says what designs never do: leave the computer, reach a share link, the website or a pull request", () => {
+  it("keeps interactive designs local and explains that share links include a still", () => {
     const words = CHAPTERS.filter((c) => c.id === "draw" || c.id === "together").map((c) => [c.text, ...c.bullets, c.act?.text ?? ""].join(" ")).join(" ");
-    expect(CHAPTERS[id("draw")].act?.text).toMatch(/never leaves your computer/);
-    expect(words).toMatch(/Never on a share link, the website or a pull request/);
-    expect(words).toMatch(/never your code or your designs/);
+    expect(CHAPTERS[id("draw")].act?.text).toMatch(/interactive page and its comments stay on your computer/);
+    expect(words).toMatch(/Share links include a still/);
+    expect(words).toMatch(/Sharing sends the plan, progress and a still of its design/);
   });
 
   it("draws the team's chapters in the App's words: a question on a passage, Slack, Questions for you, review together with Comments", async () => {
@@ -157,6 +212,39 @@ describe("the tour", () => {
     expect(counts("review", 99)).toEqual([]);
     expect(sidebarOf(id("answer"), 5)[0].count).toBe(1);
     expect(sidebarOf(id("answer"), 0)[0].count).toBe(2);
+  });
+
+  it("keeps every pending task action in a single Your turn card", async () => {
+    for (const [name, step] of [["discuss", 0], ["plan", 0], ["plan", 4], ["start", 2], ["verify", 7], ["review", 0], ["review", 5], ["draw", 4], ["ask", 3], ["together", 4]] as const) {
+      const html2 = await scene(id(name), step);
+      expect(html2.match(/class="sx-turn[ "]/g), name).toHaveLength(1);
+    }
+    for (const name of ["implement", "verify"]) {
+      const words = text(await scene(id(name), 3));
+      expect(words).toContain("Claude Code’s turn");
+      expect(words).not.toContain("Your turn");
+    }
+  });
+
+  it("moves a teammate's sent answer out of Your turn while keeping the remaining question", async () => {
+    const pending = text(await scene(id("answer"), 4));
+    expect(pending).toContain("2 open");
+    expect(pending).toContain("Send the draft");
+    const done = text(await scene(id("answer"), 5));
+    expect(done).toContain("1 open");
+    expect(done).toContain("Is the retry queue a single point of failure?");
+    expect(done).toContain("Sent to Max via Claude Code");
+    expect(done).not.toContain("Is one minute right for the partner API?");
+    expect(done).not.toContain("Send the draft");
+  });
+
+  it("updates the Review's remaining count and moves on to approval", () => {
+    for (const step of [0, 1, 2]) {
+      expect(sideSubs("review", step)).toEqual([`Review · ${3 - step} to answer`]);
+      expect(statusOf(id("review"), step).turn).toBe(`${3 - step} to answer`);
+    }
+    expect(sideSubs("review", 3)).toEqual(["Review · ready to approve"]);
+    expect(statusOf(id("review"), 3).turn).toBe("approve");
   });
 
   it("moves the task to Needs you with its three items once Verify has passed, as the tabs do", () => {
@@ -196,7 +284,7 @@ describe("the tour", () => {
     const all = text(await render()) + CHAPTERS.map((c) => JSON.stringify(c)).join(" ");
     for (const scenes of await Promise.all(CHAPTERS.map((_, i) => scene(i)))) expect(text(scenes)).not.toMatch(BANNED_WORDS);
     expect(all).not.toMatch(BANNED_WORDS);
-    expect(all).not.toMatch(/for you \/ for the agent|for the agent|quality pass|files tab|claude design|links\b|frames?\b|versions?\b/i);
+    expect(all).not.toMatch(/for you \/ for the agent|for the agent|quality pass|claude design|frames?\b|versions?\b/i);
   });
 
   it("never sends the person to the terminal to answer", async () => {

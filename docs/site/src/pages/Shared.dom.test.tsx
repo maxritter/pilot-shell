@@ -4,6 +4,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { LoadedShare, Remark } from "@/lib/sharing/sharing";
 import * as sharing from "@/lib/sharing/sharing";
 import { SharedLink, SharedView } from "./Shared";
+import { Asks } from "./shared/Asks";
+import { EMPTY } from "@/lib/sharing/drafts";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.useRealTimers(); localStorage.clear(); });
 const seen = (text: string) => screen.queryAllByText(text).length > 0;
@@ -19,6 +21,14 @@ function addComment(text = "Why one?") {
 }
 
 describe("commenting on the five documents", () => {
+  it("names the owner's question group Your turn and keeps the owner's name", () => {
+    const onAnswer = vi.fn();
+    render(<Asks owner="Max" docs={state.docs} items={[{ id: "d1", family: "decide", kind: "decision", kindLabel: "Engineering decision", what: "Keep one deployment?", options: ["agree", "change"], step: "plan" }]} drafts={EMPTY} settled={{}} onAnswer={onAnswer} />);
+    expect(screen.getByRole("heading", { name: "Your turn · Max asks you" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Agree" }));
+    expect(onAnswer).toHaveBeenCalledWith("d1", "agree", "");
+  });
+
   it("files the comment on its own step document, without an approval vote", async () => {
     const onSend = vi.fn(async (_author: string, _remarks: Remark[]) => ({ ok: true as const }));
     render(<SharedView state={state} onSend={onSend} />);
@@ -47,30 +57,38 @@ describe("keeping an open link current", () => {
   it("refreshes without losing comments, keeps the page through an outage, and hides a revoked link", async () => {
     vi.useFakeTimers();
     vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
-    const load = vi.spyOn(sharing, "loadShare").mockResolvedValue(state);
+    const load = vi.spyOn(sharing, "readShareUpdate").mockResolvedValue({ kind: "loaded", state, rev: 1 });
     await act(async () => { render(<SharedLink id={"A".repeat(22)} linkKey={"B".repeat(43)} />); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
     addComment();
-    load.mockResolvedValue({ ...state, docs: { "02-plan.md": "# Latest Plan\n\nThe Plan changed." } });
-    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    load.mockResolvedValue({ kind: "loaded", state: { ...state, docs: { "02-plan.md": "# Latest Plan\n\nThe Plan changed." } }, rev: 2 });
+    await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
     expect(seen("The Plan changed.")).toBe(true);
     expect(seen("1 comment")).toBe(true);
-    load.mockResolvedValue({ status: "error", message: "Temporary outage" });
-    await act(async () => { fireEvent(window, new Event("focus")); });
+    load.mockResolvedValue({ kind: "retry", message: "Temporary outage" });
+    await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
     expect(seen("The Plan changed.")).toBe(true);
     expect(seen("1 comment")).toBe(true);
-    load.mockResolvedValue({ status: "gone" });
-    await act(async () => { fireEvent(document, new Event("visibilitychange")); });
+    expect(seen("Updates could not be received. Showing the last version until the connection returns.")).toBe(true);
+    load.mockResolvedValue({ kind: "loaded", state: { status: "gone" } });
+    await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
     expect(seen("The Plan changed.")).toBe(false);
     expect(load).toHaveBeenCalledTimes(4);
   });
 
   it("makes no background reads while hidden and clears its timer on unmount", async () => {
     vi.useFakeTimers();
-    vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
-    const load = vi.spyOn(sharing, "loadShare").mockResolvedValue(state);
+    const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    const load = vi.spyOn(sharing, "readShareUpdate").mockResolvedValue({ kind: "loaded", state, rev: 1 });
     const view = render(<SharedLink id={"A".repeat(22)} linkKey={"B".repeat(43)} />);
     await act(async () => { await Promise.resolve(); });
     await act(async () => { await vi.advanceTimersByTimeAsync(120_000); });
+    expect(load).not.toHaveBeenCalled();
+    visibility.mockReturnValue("visible");
+    await act(async () => {
+      fireEvent(document, new Event("visibilitychange"));
+      await vi.advanceTimersByTimeAsync(0);
+    });
     expect(load).toHaveBeenCalledTimes(1);
     view.unmount();
     expect(vi.getTimerCount()).toBe(0);

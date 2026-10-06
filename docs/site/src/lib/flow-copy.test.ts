@@ -37,8 +37,8 @@ const TELLS_THE_TERMINAL = [
   /answered in the chat/i,
 ];
 
-/** Words of the App before questions moved into it and designs replaced the files and the agent's switch. */
-const STALE = [/for you\s*\/\s*for the agent|for the agent["”*]*\s+switch|\*\*for the agent\*\*/i, /\bfiles tab\b/i, /\bdefault_mode_request_user_input\b/, /\b(option|question)[ -]picker\b/i, /\bpicker hooks?\b/i, /\bsync(ed|s)? (it )?to claude design\b/i];
+/** Removed controls and the old serialized question flow. Files is a current sidebar tab. */
+const STALE = [/for you\s*\/\s*for the agent|for the agent["”*]*\s+switch|\*\*for the agent\*\*/i, /\bone question at a time\b/i, /\basks them one by one\b/i, /\bdefault_mode_request_user_input\b/, /\b(option|question)[ -]picker\b/i, /\bpicker hooks?\b/i, /\bsync(ed|s)? (it )?to claude design\b/i];
 
 describe("the flow in the copy: asked and answered in the App", () => {
   it("never tells the person to answer or approve in the terminal or the chat", () => {
@@ -49,7 +49,7 @@ describe("the flow in the copy: asked and answered in the App", () => {
     expect(offending).toEqual([]);
   });
 
-  it("names none of the App's removed parts: the agent's switch, the Files tab, the terminal pickers, Claude Design sync", () => {
+  it("names none of the removed controls or the old one-question flow", () => {
     const offending = [readme, ...docPages, ...homeCopy, homeIndex].flatMap((path) => {
       const text = read(path);
       return STALE.filter((pattern) => pattern.test(text)).map((pattern) => `${path.replace(`${repo}/`, "")}: ${pattern}`);
@@ -57,23 +57,26 @@ describe("the flow in the copy: asked and answered in the App", () => {
     expect(offending).toEqual([]);
   });
 
-  it("describes no Approve menu in the docs: the approval is asked in the terminal", () => {
-    // "the Approve menu with its three ways to ship", "open the pull request from the **Approve** menu".
-    // The diagnostics page quotes the page kind "Approve menu open" the report sends; that is not an instruction.
-    const menu = [/\bthe\s+\**approve\**\s+menu\b/i, /\bfrom\s+the\s+\**approve\b/i];
-    const offending = [readme, ...docPages].flatMap((path) => {
+  it("explains batches, Your turn and immediate answers wherever a first-time reader learns the flow", () => {
+    const pages = [readme, firstTask, join(docs, "steps/discuss.md"), join(docs, "steps/plan.md"), join(docs, "app.md"), join(site, "src/lib/content.ts"), join(site, "src/lib/tour.ts"), homeIndex];
+    for (const path of pages) {
       const text = read(path);
-      return menu.filter((pattern) => pattern.test(text)).map((pattern) => `${path.replace(`${repo}/`, "")}: ${pattern}`);
-    });
-    expect(offending).toEqual([]);
+      const name = path.replace(`${repo}/`, "");
+      expect(text, name).toMatch(/\bbatch(es)?\b/i);
+      expect(text, name).toMatch(/Your turn/i);
+      expect(text, name).toMatch(/immediately|at once/i);
+    }
   });
 
-  it("says once, in the README, the first task, the home page and its static copy, that the agent asks in the App while its terminal shows one line", () => {
+  it("keeps the terminal wait explanation in the guides and shows the batch interaction on the home page", () => {
     const layout = /asks each decision in the App, and its terminal shows a single line while it waits/gi;
     const home = homeCopy.map(read).join("\n");
-    for (const [name, text] of Object.entries({ README: read(readme), "first task": read(firstTask), "home page": home, "home page for crawlers": read(homeIndex) })) {
+    for (const [name, text] of Object.entries({ README: read(readme), "first task": read(firstTask), "home page for crawlers": read(homeIndex) })) {
       expect(text.match(layout)?.length, name).toBe(1);
     }
+    expect(home).toContain("Questions arrive together in Your turn");
+    expect(home).toContain("Answer in any order");
+    expect(home).toContain("each answer reaches your agent at once");
   });
 
   it("names no command that opens the App from Claude Code", () => {
@@ -87,7 +90,7 @@ describe("the flow in the copy: asked and answered in the App", () => {
     expect(read(readme).split("What gets installed")[1]?.split("</details>")[0]).toContain(guarantee);
     expect(commands.split("## In your agent")[1]?.split("## For you")[0]).toContain(guarantee);
     expect(commands).toContain("`/task-pane`");
-    const offending = [readme, ...docPages, ...homeCopy, homeIndex].filter((path) => /[/\$]ql-[a-z]/i.test(read(path)));
+    const offending = [readme, ...docPages, ...homeCopy, homeIndex].filter((path) => /[/$]ql-[a-z]/i.test(read(path)));
     expect(offending).toEqual([]);
   });
 });

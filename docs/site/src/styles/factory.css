@@ -98,7 +98,7 @@
 .pr-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .pr-name{margin:0;font-size:24px;font-weight:600;letter-spacing:-.02em}
 .pr-aud{margin:2px 0 0;font-size:14.5px;color:var(--ql-text-muted)}
-.pr-badge{padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--ql-accent) 14%,var(--ql-bg));color:var(--ql-accent);font-size:12.5px;font-weight:600;white-space:nowrap}
+.pr-badge{padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--ql-accent) 14%,var(--ql-bg));color:var(--ql-accent-hover);font-size:12.5px;font-weight:600;white-space:nowrap}
 .pr-price{display:flex;align-items:baseline;gap:8px}
 .pr-amt{font-size:52px;line-height:1;font-weight:600;letter-spacing:-.04em}
 .pr-per{font-size:14.5px;color:var(--ql-text-muted)}
