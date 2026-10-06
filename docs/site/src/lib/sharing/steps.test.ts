@@ -33,7 +33,7 @@ describe("a link's documents, by step", () => {
       "artifacts/settings.html": "<html></html>",
       "review.json": "{}",
     };
-    expect(stepDocs(docs)).toEqual({ discuss: ["00-discuss.md"], plan: ["02-plan.md", "02-plan-details.md"], build: ["03-build.md"] });
+    expect(stepDocs(docs)).toEqual({ discuss: ["00-discuss.md"], plan: ["02-plan.md", "02-plan-details.md"], implement: ["03-build.md"], verify: [], review: [] });
   });
 
   it("never lists research or a diagnosis, even when the link carries them", () => {
@@ -44,7 +44,7 @@ describe("a link's documents, by step", () => {
 
   it("reads a new task's Discuss and Plan: 01-discuss.md is Discuss, and the slices come from the details", () => {
     const docs = { "01-discuss.md": "d", "02-plan.md": "p", "02-plan-details.md": "pd" };
-    expect(stepDocs(docs)).toEqual({ discuss: ["01-discuss.md"], plan: ["02-plan.md", "02-plan-details.md"], build: [] });
+    expect(stepDocs(docs)).toEqual({ discuss: ["01-discuss.md"], plan: ["02-plan.md", "02-plan-details.md"], implement: [], verify: [], review: [] });
   });
 
   it("keeps the agent's files private by name, in both layouts: research, diagnosis and Discuss's details", () => {
@@ -70,7 +70,7 @@ describe("a link's documents, by step", () => {
     expect(stepDocs({ "README.md": "r", "02-design.md": "d", "03-outline-overview.md": "o" })).toEqual({
       discuss: ["README.md"],
       plan: ["02-design.md", "03-outline-overview.md"],
-      build: [],
+      implement: [], verify: [], review: [],
     });
   });
 
@@ -78,7 +78,7 @@ describe("a link's documents, by step", () => {
     const docs = { "02-plan.md": "p", "artifacts/diagnostics.html": "<html></html>", "artifacts/research-board.html": "<html></html>" };
     const plan = { task: "T", docs: { ...docs, "01-research.md": "SECRET" } };
     const loaded = await loadShare(ID, KEY, answer(200, await sealForLink(KEY, "plan", JSON.stringify(plan))));
-    expect(loaded.status === "ready" && Object.keys(loaded.docs).sort()).toEqual(Object.keys(docs).sort());
+    expect(loaded.status === "ready" && Object.keys(loaded.docs).sort()).toEqual(["02-plan.md"]);
   });
 
   it("does not hand research to the page at all", async () => {
@@ -103,23 +103,11 @@ describe("the owner's questions", () => {
     blocking: false,
   };
 
-  it("reads them from the link, with the owner's name", async () => {
+  it("keeps the owner but leaves questions and source in the App", async () => {
     const plan = { task: "Settings cleanup", owner: "Max", docs: { "02-plan.md": "p" }, items: [wire] };
     const loaded = await loadShare(ID, KEY, answer(200, await sealForLink(KEY, "plan", JSON.stringify(plan))));
     expect(loaded).toMatchObject({ status: "ready", owner: "Max" });
-    expect(loaded.status === "ready" && loaded.items).toEqual([
-      {
-        id: "plan:decision:1",
-        step: "plan",
-        family: "decide",
-        kind: "decision",
-        kindLabel: "Engineering decision",
-        what: "The second opinion follows the Plan's risk",
-        why: "One rule, in one place",
-        options: ["agree", "change"],
-        media: { kind: "mermaid", source: "graph LR; A-->B" },
-      },
-    ]);
+    expect(loaded.status === "ready" && loaded.items).toEqual([]);
   });
 
   it("is empty for a link made before the App sent any", async () => {
@@ -206,7 +194,7 @@ describe("sending what a guest wrote", () => {
     const docOf = (docs: Record<string, string>) =>
       remarksPayload("Sam", pending(drafts, [discussItem], docs), 1).annotations.map((a) => a.blockId);
     expect(docOf({ "01-discuss.md": "d", "02-plan.md": "p" })).toEqual(["01-discuss.md"]);
-    expect(docOf({ "00-discuss.md": "d", "02-plan.md": "p" })).toEqual(["00-discuss.md"]);
+    expect(docOf({ "00-discuss.md": "d", "02-plan.md": "p", "03-build.md": "b" })).toEqual(["00-discuss.md"]);
   });
 
   it("posts an answer on the build against the new task's Implement file, and an older task's build log", () => {
@@ -223,7 +211,7 @@ describe("sending what a guest wrote", () => {
     const docOf = (docs: Record<string, string>) =>
       remarksPayload("Sam", pending(drafts, [buildItem], docs), 1).annotations.map((a) => a.blockId);
     expect(docOf({ "01-discuss.md": "d", "02-plan.md": "p" })).toEqual(["03-implement.md"]);
-    expect(docOf({ "00-discuss.md": "d", "02-plan.md": "p" })).toEqual(["03-build.md"]);
+    expect(docOf({ "00-discuss.md": "d", "02-plan.md": "p", "03-build.md": "b" })).toEqual(["03-build.md"]);
   });
 
   it("names a guest who gave no name Guest", () => {

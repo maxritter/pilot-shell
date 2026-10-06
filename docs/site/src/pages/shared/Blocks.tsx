@@ -1,12 +1,13 @@
 import { mockupHtml, mockupName, type PlanBlock } from "@/lib/sharing/plan";
 import { Diagram } from "./Diagram";
-import { MissingMockup, MockupFrame } from "./Frame";
+import { DesignStill, MissingMockup, MockupFrame } from "./Frame";
+import type { PlanStill } from "@/lib/sharing/sharing";
 
 /**
  * The plan's parts in reading order: text, then each diagram and mockup where the plan put it.
  * `shown` names mockups already drawn elsewhere on the page (under a question), so none is drawn twice.
  */
-export function Blocks({ blocks, docs, shown }: { blocks: PlanBlock[]; docs: Record<string, string>; shown?: ReadonlySet<string> }) {
+export function Blocks({ blocks, docs, stills, shown }: { blocks: PlanBlock[]; docs: Record<string, string>; stills?: Record<string, PlanStill>; shown?: ReadonlySet<string> }) {
   return (
     <>
       {blocks.map((block) => {
@@ -23,6 +24,8 @@ export function Blocks({ blocks, docs, shown }: { blocks: PlanBlock[]; docs: Rec
         }
         if (block.kind === "mermaid") return <Diagram key={block.key} source={block.source} />;
         if (shown?.has(mockupName(block.path))) return null;
+        const still = stills?.[block.path];
+        if (still !== undefined) return <DesignStill key={block.key} still={still} />;
         const html = mockupHtml(docs, block.path);
         return html === undefined ? <MissingMockup key={block.key} /> : <MockupFrame key={block.key} html={html} title="Mockup" />;
       })}

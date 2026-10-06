@@ -71,8 +71,11 @@ export async function openFromLink(key: string, purpose: Purpose, sealed: unknow
 /** The five steps a task goes through, as the App names them. */
 export type FlowStep = "discuss" | "plan" | "implement" | "verify" | "review";
 
-/** The three a link reviewer reads: Build covers the build and what checked it. */
+/** The five steps a link reviewer reads, as the App names them. */
 export type Tab = FlowStep;
+
+/** Only raster stills of designs referenced by the Plan, never the design's source. */
+export type PlanStill = { title: string; image: string };
 
 /** What a guest can say to a question: agree, suggest a change, or reply in their own words. */
 export type GuestAnswer = "agree" | "change" | "reply";
@@ -114,6 +117,7 @@ export type LoadedShare =
       docs: Record<string, string>;
       /** The owner's questions for this link. Empty for a link made before the App sent any. */
       items: ShareItem[];
+      stills?: Record<string, PlanStill>;
       /** ISO time the link runs out. */
       expires?: string;
       /** The finished, verified change, when the task got that far (v2 only). */
@@ -196,7 +200,7 @@ const DATA_DOCS = new Set([REVIEW_DOC, "items.json"]);
  * Markdown files, in either layout) never leave the machine, and a link that carries one anyway
  * shows nothing of it. A mockup is never one. The Plan's details are the Plan's, and are read.
  */
-const isPrivate = (name: string) => name.endsWith(".md") && !name.includes("/") && (/^0[01]-discuss-details\.md$/.test(name) || /research|diagnos/i.test(name));
+const isPrivate = (name: string) => name.startsWith("agent/") || (name.endsWith(".md") && !name.includes("/") && (/^0[01]-discuss-details\.md$/.test(name) || /research|diagnos/i.test(name)));
 
 /** The step a document belongs to, by the number its file carries; an old link's frame is Discuss. */
 function tabOf(name: string): Tab {
@@ -211,7 +215,7 @@ function tabOf(name: string): Tab {
 const byName = (a: string, b: string) => a.replace(/\.md$/, "").localeCompare(b.replace(/\.md$/, ""));
 
 /**
- * The documents a link reader sees, under the three tabs: Discuss, Plan and Build, never their file
+ * The documents a link reader sees under the five step tabs, never their file
  * names. Research and diagnosis are left out, and so are the mockups and data that ride along.
  */
 export function stepDocs(docs: Record<string, string>): Record<Tab, string[]> {
@@ -223,7 +227,7 @@ export function stepDocs(docs: Record<string, string>): Record<Tab, string[]> {
   return steps;
 }
 
-/** The tab a question belongs to: what is built and checked is read under Build. */
+/** A question stays under the step that asked it. */
 export const tabOfStep = (step: FlowStep): Tab => step;
 
 /** The App's answers, read as a guest's three. */
@@ -301,7 +305,7 @@ export function answerWords(item: Pick<ShareItem, "family">, answer: GuestAnswer
   return answer === "change" ? "Suggest a change" : "Reply";
 }
 
-type Plan = { task: string; owner?: string; stage?: string; docs: Record<string, string>; items: ShareItem[] };
+type Plan = { task: string; owner?: string; stage?: string; docs: Record<string, string>; items: ShareItem[]; stills?: Record<string, PlanStill> };
 
 /** The plan a link holds: its title and the documents, as text. What opened is still untrusted, so it is rebuilt. */
 function parsePlan(plain: string | null): Plan | null {
@@ -312,7 +316,7 @@ function parsePlan(plain: string | null): Plan | null {
   } catch {
     return null;
   }
-  const plan = value as { task?: unknown; owner?: unknown; docs?: unknown; items?: unknown; stage?: unknown } | null;
+  const plan = value as { task?: unknown; owner?: unknown; docs?: unknown; items?: unknown; stage?: unknown; stills?: unknown } | null;
   if (typeof plan !== "object" || plan === null || typeof plan.docs !== "object" || plan.docs === null) return null;
   const all = Object.fromEntries(
     Object.entries(plan.docs).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
@@ -320,35 +324,58 @@ function parsePlan(plain: string | null): Plan | null {
   // Research stays with the agent: even a link that carries it does not hand it to the page.
   const docs = sharedDocuments(all, typeof plan.stage === "string" ? plan.stage : undefined);
   const owner = str(plan.owner)?.trim().slice(0, 80);
+  const stills: Record<string, PlanStill> = {};
+  if (typeof plan.stills === "object" && plan.stills !== null) {
+    for (const [name, raw] of Object.entries(plan.stills)) {
+      const still = raw as Partial<PlanStill> | null;
+      if (/^(?:design|artifacts)\/[a-z0-9][a-z0-9-]*\.html$/.test(name) && typeof still?.title === "string" && typeof still.image === "string" && still.image.length <= 400_000 && /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(still.image)) {
+        stills[name] = { title: still.title.slice(0, 160), image: still.image };
+      }
+    }
+  }
   return {
     task: typeof plan.task === "string" ? stripSharedCode(plan.task) : "Shared task",
     ...(owner ? { owner: stripSharedCode(owner) } : {}),
     ...(typeof plan.stage === "string" ? { stage: plan.stage } : {}),
     docs,
     items: [],
+    ...(Object.keys(stills).length > 0 ? { stills } : {}),
   };
 }
 
 /** Read a share link's plan: fetch the sealed copy and open it with the link's key. */
-export async function loadShare(id: string, key: string, fetchFn: typeof fetch = fetch): Promise<LoadedShare> {
-  if (!SHARE_ID.test(id)) return { status: "error", message: "This does not look like a share link." };
-  if (key === "") return { status: "no-key" };
+export type ShareUpdate =
+  | { kind: "loaded"; state: LoadedShare; rev?: number }
+  | { kind: "unchanged" }
+  | { kind: "retry"; message: string; retryAfter?: number };
+
+/** A visible guest polls only this link's sealed payload, never team changes or feedback. */
+export async function readShareUpdate(id: string, key: string, since?: number, fetchFn: typeof fetch = fetch, signal?: AbortSignal): Promise<ShareUpdate> {
+  if (!SHARE_ID.test(id)) return { kind: "loaded", state: { status: "error", message: "This does not look like a share link." } };
+  if (key === "") return { kind: "loaded", state: { status: "no-key" } };
   let res: Response;
   try {
-    res = await fetchFn(`/api/share?id=${encodeURIComponent(id)}`);
+    const url = `/api/share?id=${encodeURIComponent(id)}${since === undefined ? "" : `&since=${since}`}`;
+    res = await (signal === undefined ? fetchFn(url) : fetchFn(url, { signal }));
   } catch {
-    return { status: "error", message: "The share service could not be reached. Try again in a moment." };
+    return { kind: "retry", message: "The share service could not be reached. Try again in a moment." };
   }
-  if (res.status === 404) return { status: "gone" };
-  if (!res.ok) return { status: "error", message: "The plan could not be loaded. Try again in a moment." };
+  if (res.status === 304 && since !== undefined) return { kind: "unchanged" };
+  if (res.status === 404) return { kind: "loaded", state: { status: "gone" } };
+  if (!res.ok) {
+    const raw = res.headers.get("Retry-After");
+    const seconds = raw === null ? Number.NaN : Number(raw);
+    const wait = Number.isFinite(seconds) ? seconds * 1000 : raw === null ? Number.NaN : Date.parse(raw) - Date.now();
+    return { kind: "retry", message: "The plan could not be loaded. Try again in a moment.", ...(res.status === 429 && wait > 0 ? { retryAfter: Math.min(wait, 86_400_000) } : {}) };
+  }
 
-  const body = (await res.json().catch(() => null)) as { expires?: string } | null;
+  const body = (await res.json().catch(() => null)) as { expires?: string; rev?: number } | null;
   const plan = parsePlan(await openFromLink(key, "plan", body));
   if (plan === null)
-    return { status: "error", message: "The plan could not be opened. Check that the whole link was copied." };
+    return { kind: "retry", message: "The plan could not be opened. Check that the whole link was copied." };
   const review = parseReview(plan.docs[REVIEW_DOC]);
   const { [REVIEW_DOC]: _review, "items.json": _items, ...docs } = plan.docs;
-  return {
+  return { kind: "loaded", ...(Number.isSafeInteger(body?.rev) && (body?.rev ?? -1) >= 0 ? { rev: body!.rev } : {}), state: {
     status: "ready",
     kind: "v2",
     title: plan.task,
@@ -356,9 +383,15 @@ export async function loadShare(id: string, key: string, fetchFn: typeof fetch =
     ...(plan.stage !== undefined ? { stage: plan.stage } : {}),
     docs,
     items: plan.items,
+    ...(plan.stills !== undefined ? { stills: plan.stills } : {}),
     expires: body?.expires,
     ...(review !== undefined ? { review } : {}),
-  };
+  } };
+}
+
+export async function loadShare(id: string, key: string, fetchFn: typeof fetch = fetch): Promise<LoadedShare> {
+  const update = await readShareUpdate(id, key, undefined, fetchFn);
+  return update.kind === "loaded" ? update.state : { status: "error", message: update.kind === "retry" ? update.message : "The plan could not be loaded. Try again in a moment." };
 }
 
 export type SubmitResult = { ok: true } | { ok: false; reason: "gone" | "rate_limited" | "too_large" | "network" };

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { withCsp } from "@/lib/sharing/plan";
+import type { PlanStill } from "@/lib/sharing/sharing";
 
 /**
  * A mockup the agent wrote, shown the way the App shows it: a page of its own in a sandboxed
@@ -12,6 +13,13 @@ import { withCsp } from "@/lib/sharing/plan";
 
 const MIN_HEIGHT = 160;
 const MAX_HEIGHT = 2400;
+
+export const DesignStill = ({ still }: { still: PlanStill }) => (
+  <figure className="sh-frame">
+    <figcaption className="sh-frame-bar">{still.title}</figcaption>
+    <img src={still.image} alt={still.title} />
+  </figure>
+);
 
 export function MockupFrame({ html, title }: { html: string; title: string }) {
   const frame = useRef<HTMLIFrameElement>(null);
