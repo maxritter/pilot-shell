@@ -1,0 +1,13 @@
+# Deploys start at the repository root (the project builds docs/site).
+# Tests under api/ are otherwise deployed as public functions.
+docs/site/api/**/*.test.ts
+docs/site/api/__fixture__/
+
+# Local task documents, verification evidence, secrets and build outputs.
+docs/plans/
+docs/designs/
+.verify-*/
+VERIFY-REPORT.md
+**/.env*
+qualitylayer/dist/
+qualitylayer/app/target/

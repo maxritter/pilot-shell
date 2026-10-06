@@ -3,6 +3,7 @@
   "buildCommand": "bash build-all.sh",
   "outputDirectory": "dist",
   "framework": null,
+  "regions": ["fra1"],
   "trailingSlash": false,
   "cleanUrls": true,
   "redirects": [
