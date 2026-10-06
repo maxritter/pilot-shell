@@ -28,4 +28,11 @@ describe("installation and build instructions", () => {
     expect(doc("reference/commands.md")).toContain("qualitylayer gate open 02-plan.md");
     expect(doc("reference/commands.md")).toContain("gate open final");
   });
+
+  it("explains how guests read later changes without promising an update timestamp", () => {
+    const sharing = doc("team/plans.md");
+    expect(sharing).toContain("Each time you open the link, you read the latest shared copy");
+    expect(sharing).toContain("Reload the page to see later changes");
+    expect(sharing).not.toContain("with the time it was last updated");
+  });
 });

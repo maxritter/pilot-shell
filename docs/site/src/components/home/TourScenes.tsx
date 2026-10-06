@@ -562,7 +562,7 @@ export default function TourScenes({ ch, step, tries, onRetry, only = false }: {
         <Fold title="Team activity" meta="today · 2 Plans approved · 1 shipped · 5 answers" className={ins(3)} />
       </div>
 
-      {/* Review with teammates: reviewers, a point of the review with its proof, the comment in the sidebar, a link that always shows the latest. */}
+      {/* Review with teammates: reviewers, a point of the review with its proof, the comment in the sidebar, a link to the shared copy. */}
       <div className={scene(11)} aria-hidden={ch !== 11}>
         <div className={`sx-rev ${ins(1)}`}>
           <span className="sx-who2"><span className="sx-av b">D</span>Dana · required · approved</span>
@@ -583,7 +583,7 @@ export default function TourScenes({ ch, step, tries, onRetry, only = false }: {
             <p className="sx-pbn sx-wide-only">Screenshot 2 · each failed row shows its try count, as Done means 3 asks.</p>
           </div>
         </div>
-        <div className={`sx-share ${ins(4)}`}><span className="sx-av g"><ArrowUpRight size={14} aria-hidden="true" /></span><div><b>A link for people outside the team</b><small>It always shows the task as it stands, as of the time on it. Designs stay on your computer.</small></div><span className="sx-fake sm">Copy link</span></div>
+        <div className={`sx-share ${ins(4)}`}><span className="sx-av g"><ArrowUpRight size={14} aria-hidden="true" /></span><div><b>A link for people outside the team</b><small>Open the link to read the latest shared copy. Reload to see later changes. Designs stay on your computer.</small></div><span className="sx-fake sm">Copy link</span></div>
       </div>
 
       {/* Settings › Workflow: Planning and Build defaults per agent, the independent review; what each step cost. */}

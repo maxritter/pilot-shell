@@ -138,9 +138,10 @@ describe("the tour", () => {
     for (const word of ["Open on Review", "Ben Chen", "Done means · point 3", "Claude Code", "Reply", "Resolve"]) expect(comments).toContain(word);
   });
 
-  it("shares a link that always shows the latest, and never the designs", async () => {
+  it("explains that opening or reloading the link reads the latest shared copy, and keeps designs local", async () => {
     const together = text(await scene(id("together")));
-    expect(together).toContain("It always shows the task as it stands, as of the time on it");
+    expect(together).toContain("Open the link to read the latest shared copy. Reload to see later changes.");
+    expect(together).not.toContain("as of the time on it");
     expect(together).toContain("Designs stay on your computer");
   });
 
