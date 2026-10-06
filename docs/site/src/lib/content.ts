@@ -1,7 +1,7 @@
 /**
  * The website's questions and answers. Each answer must hold for the product as it
  * ships; when the product changes, change it here. Plain text only: the home page's
- * structured data reuses these answers. Words follow the App's glossary: Needs you, passed,
+ * structured data reuses these answers. Words follow the App's glossary: Your turn, passed,
  * Checked by agents, Found while checking, Only you can confirm, Questions for you.
  */
 

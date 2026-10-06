@@ -120,14 +120,44 @@ describe("the tour", () => {
 
   it("builds on its own: slices test first, what the agent decided while building answered with Ask why", async () => {
     const html2 = text(await scene(id("implement")));
-    for (const word of ["Slice 2 of 3", "committed", "Nothing waits for you", "Decided while building", "Ask why", "Checked by agents"]) expect(html2).toContain(word);
+    for (const word of ["Slice 2 of 3", "committed", "The agents are building and running the tests", "Decided while building", "Ask why", "Checked by agents"]) expect(html2).toContain(word);
   });
 
-  it("draws Verify as one checklist that fills in, then ends passed with the list for Review", async () => {
+  it("groups Verify and Review evidence under the Done means point it proves", async () => {
+    for (const chapter of ["verify", "review"]) {
+      const html2 = await scene(id(chapter));
+      const points = [...html2.matchAll(/<section class="sx-proof-point"[^>]*>[\s\S]*?<\/section>/g)].map((m) => text(m[0]));
+      expect(points).toHaveLength(3);
+      for (const [i, point] of points.entries()) {
+        expect(point).toContain(`Done means · ${i + 1}`);
+        expect(point).toContain(`Scenario ${i + 1}`);
+        expect(point).toContain(["delivery.test.ts", "mailer.test.ts", "row.test.tsx"][i]);
+      }
+    }
+  });
+
+  it("draws Verify filling in, then ends passed with the list for Review", async () => {
     expect(text(await scene(id("verify"), 3))).toMatch(/\d+ of 12 checks passed/);
     const done = text(await scene(id("verify")));
     expect(done).toContain("Waiting for you in Review");
     expect(done).toContain("Only you can confirm");
+  });
+
+  it("keeps a human confirmation open under its point until it is answered", async () => {
+    const before = await scene(id("review"), 0);
+    const open = before.match(/<section class="sx-proof-point" data-point="2">[\s\S]*?<\/section>/)?.[0] ?? "";
+    expect(text(open)).toContain("Your turn");
+    expect(text(open)).toContain("live confirmation waits for you");
+    const after = await scene(id("review"), 1);
+    expect(after).not.toContain("live confirmation waits for you");
+    expect(text(after)).toContain("I confirm · 3 tries in the live call");
+  });
+
+  it("shows Home's shipped time and cost, counts in each step and notification bell", async () => {
+    const home = text(await scene(id("agents")));
+    expect(home).toContain("Notifications · 2");
+    expect(home).toContain("Discuss 1 · Plan 1 · Implement 1 · Verify 0 · Review 1");
+    expect(home).toContain("Shipped · 42 min · $4.20 estimated");
   });
 
   it("draws Review with what is settled with you, the proof and “Approve the change?” with the ways to ship", async () => {
@@ -149,7 +179,7 @@ describe("the tour", () => {
 
   it("keeps interactive designs local and explains that share links include a still", () => {
     const words = CHAPTERS.filter((c) => c.id === "draw" || c.id === "together").map((c) => [c.text, ...c.bullets, c.act?.text ?? ""].join(" ")).join(" ");
-    expect(CHAPTERS[id("draw")].act?.text).toMatch(/never leaves your computer/);
+    expect(CHAPTERS[id("draw")].act?.text).toMatch(/interactive page and its comments stay on your computer/);
     expect(words).toMatch(/Share links include a still/);
     expect(words).toMatch(/Sharing sends the plan, progress and a still of its design/);
   });
@@ -186,8 +216,8 @@ describe("the tour", () => {
 
   it("keeps every pending task action in a single Your turn card", async () => {
     for (const [name, step] of [["discuss", 0], ["plan", 0], ["plan", 4], ["start", 2], ["verify", 7], ["review", 0], ["review", 5], ["draw", 4], ["ask", 3], ["together", 4]] as const) {
-      const words = text(await scene(id(name), step));
-      expect(words.match(/Your turn/g), name).toHaveLength(1);
+      const html2 = await scene(id(name), step);
+      expect(html2.match(/class="sx-turn[ "]/g), name).toHaveLength(1);
     }
     for (const name of ["implement", "verify"]) {
       const words = text(await scene(id(name), 3));

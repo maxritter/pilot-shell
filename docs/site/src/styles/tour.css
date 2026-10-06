@@ -1,6 +1,6 @@
 /* The home page, ported from the Claude Design page "QualityLayer Website" (sx- classes).
    One change followed from request to pull request in a pinned App window, then the team and the setup.
-   The window draws the App's own anatomy: sidebar, step line, Needs you, the violet line, the work.
+   The window draws the App's anatomy: sidebar, top-bar step track, Your turn beside the document, and proof by point.
    Keep it in step with the design file. */
 .sx-root{overflow-x:clip;background:var(--ql-bg);color:var(--ql-text)}
 
@@ -153,7 +153,7 @@
 .sx-red{color:var(--ql-danger)}
 .sx-amb{color:var(--ql-amber-ink)}
 
-/* The Needs you card, its items and the violet line: one anatomy on every step */
+/* The Your turn card, its items and recorded proof across the steps */
 .sx-nc{display:flex;flex-direction:column;border:1px solid var(--ql-amber-line);border-radius:10px;overflow:hidden;background:var(--ql-bg)}
 .sx-nc.settled{border-color:var(--ql-border)}
 .sx-nc.settled .sx-nch{background:var(--ql-bg-sunken)}

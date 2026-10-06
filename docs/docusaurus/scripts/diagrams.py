@@ -353,7 +353,7 @@ def buttons_right(c: Theme, right: float, y: float, labels: list, h: float = 26,
 
 def item(c: Theme, x: float, y: float, w: float, kind: str, what: str, answers: list, h: float = 56,
          state: str = 'you', note: str | None = None) -> str:
-    """One item under Needs you: its kind, the thing itself, the two answers of its family."""
+    """One item in Your turn: its kind, the thing itself, the answers of its family."""
     out = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="10" fill="{c["bg"]}" stroke="{c["cardline"]}"/>',
            ring(c, x + 18, y + 20, state),
            T(x + 34, y + 21, kind, 11.5, 'dim', 500, c=c),
@@ -409,7 +409,7 @@ def tabs(c: Theme, x: float, y: float, here: int, counts: dict | None = None, do
 
 
 def sidebar(c: Theme, W: float, H: float, groups: list, selected: str | None = None) -> str:
-    """The App's sidebar: search, Needs you / Running / Shipped, the foot with Feedback."""
+    """The App's sidebar: search, Your turn / Running / Shipped, the foot with Feedback."""
     out = [f'<path d="M1 41 H221 V{H - 1} H17 a16 16 0 0 1 -16 -16 Z" fill="{c["card"]}"/>',
            f'<line x1="221" y1="41" x2="221" y2="{H - 1}" stroke="{c["cardline"]}"/>',
            T(20, 68, 'QualityLayer', 14, 'text', 700, c=c),
@@ -419,7 +419,7 @@ def sidebar(c: Theme, W: float, H: float, groups: list, selected: str | None = N
            T(24, 98, 'Search or jump to a task', 11.5, 'dim', c=c), T(198, 98, '⌘K', 10.5, 'dim', 500, 'end', mono=True, c=c)]
     y = 134
     for title, rows in groups:
-        out.append(T(20, y, title, 11.5, 'amber' if title.startswith('Needs') else 'muted', 650, c=c))
+        out.append(T(20, y, title, 11.5, 'amber' if title.startswith('Your turn') else 'muted', 650, c=c))
         y += 10
         for name, tail, kind in rows:
             if name == selected:
@@ -460,7 +460,7 @@ AMBER_FILL = '#f7b23b'
 
 
 def spill(c: Theme, x: float, y: float, kind: str, head_: str, rest: str = '') -> tuple[str, float]:
-    """The status pill in a task's header: needs you (amber), an agent at work (blue), your move outside the App."""
+    """Live agent status in the top bar: working, waits for you, quiet or stopped."""
     text = head_ + (f' · {rest}' if rest else '')
     w = 30 + len(text) * 6.2 + (12 if kind in ('agent', 'move') else 14)
     if kind == 'you':
@@ -477,94 +477,16 @@ def spill(c: Theme, x: float, y: float, kind: str, head_: str, rest: str = '') -
     return out, w
 
 
-def task_head(c: Theme, x: float, y: float, w: float, title: str, file_: str, by: str, pill_: tuple, cost: str = '$14.20') -> str:
-    """A task's header: the title with Archive and Delete, then the step's file chip (a menu), the status pill, Cost and Share."""
-    out = [T(x, y, title, 18, 'text', 650, c=c)]
-    for i in range(2):
-        out.append(f'<rect x="{x + w - 54 + i * 30}" y="{y - 17}" width="24" height="24" rx="6" fill="{c["bg"]}" stroke="{c["cardline"]}"/>'
-                   f'<rect x="{x + w - 47 + i * 30}" y="{y - 10}" width="10" height="10" rx="1.5" fill="none" stroke="{c["dim"]}" stroke-width="1.3"/>')
-    ry = y + 12
-    fw = 30 + len(file_) * 7.4 + len(by) * 6 + 16
-    out.append(f'<rect x="{x}" y="{ry}" width="{fw}" height="22" rx="6" fill="{c["bg"]}" stroke="{c["muted"]}" stroke-opacity="0.6"/>')
-    out.append(f'<rect x="{x + 8}" y="{ry + 5}" width="9" height="12" rx="1.5" fill="none" stroke="{c["muted"]}" stroke-width="1.2"/>')
-    out.append(T(x + 23, ry + 15, file_, 11.5, 'text', 600, mono=True, c=c))
-    out.append(T(x + 27 + len(file_) * 7.4, ry + 15, by, 11, 'dim', 500, c=c))
-    out.append(f'<path d="M{x + fw - 13} {ry + 9} l3.5 3.5 l3.5 -3.5" fill="none" stroke="{c["muted"]}" stroke-width="1.4"/>')
-    p, pw = spill(c, x + fw + 8, ry, *pill_)
-    out.append(p)
-    tx = x + fw + 8 + pw + 8
-    for t in (f'Cost · {cost}', 'Share'):
-        tw = 18 + len(t) * 6.2
-        out.append(f'<rect x="{tx}" y="{ry}" width="{tw}" height="22" rx="6" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-        out.append(T(tx + tw / 2, ry + 15, t, 11, 'muted', 500, 'middle', c=c))
-        tx += tw + 6
-    return ''.join(out)
-
-
-def index_line(c: Theme, x: float, y: float, w: float, count: str, links: list, then: str | None = None) -> str:
-    """What needs you, in one line at the top of the step; each name jumps to its place."""
-    out = [f'<rect x="{x}" y="{y}" width="{w}" height="32" rx="8" fill="{c["amberf"]}" stroke="{c["amberl"]}" stroke-opacity="0.8"/>',
-           ring(c, x + 18, y + 16, 'you', 5.5), T(x + 32, y + 20.5, count, 12.5, 'text', 650, c=c)]
-    lx = x + 46 + len(count) * 6.8
-    for t in links:
-        out.append(T(lx, y + 20.5, t, 12.5, 'text', 500, c=c))
-        lx += len(t) * 6.9 + 6
-        out.append(f'<path d="M{lx} {y + 11} v9 m-3 -3 l3 3 l3 -3" fill="none" stroke="{c["amber"]}" stroke-width="1.4"/>')
-        lx += 20
-    if then:
-        out.append(T(x + w - 16, y + 20.5, f'then  {then}  ↓', 12, 'muted', 500, 'end', c=c))
-    return ''.join(out)
-
-
-def qcard(c: Theme, x: float, y: float, w: float, title: str, count: str, waits: str, choices: list, foot: str,
-          own: str = 'Your own answer', body: str | None = None) -> tuple[str, float]:
-    """The question card above the page: the question, how many may follow, who waits, its choices, your own answer, Tell me more."""
-    out = []
-    hy = y + 42
-    if body:
-        hy += 26
-    ch_y = hy
-    h = (ch_y - y) + len(choices) * 36 + 36 + 44
-    out.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="11" fill="{c["bg"]}" stroke="{c["amberl"]}" stroke-width="1.4"/>')
-    out.append(f'<path d="M{x + 1} {y + 11} a10 10 0 0 1 10 -10 H{x + w - 11} a10 10 0 0 1 10 10 V{y + 34} H{x + 1} Z" fill="{c["amberf"]}"/>')
-    out.append(f'<line x1="{x}" y1="{y + 34}" x2="{x + w}" y2="{y + 34}" stroke="{c["amberl"]}" stroke-opacity="0.7"/>')
-    out.append(ring(c, x + 18, y + 17, 'you', 6))
-    out.append(T(x + 34, y + 22, title, 13.5, 'text', 650, c=c))
-    if x + 42 + len(title) * 7.3 + len(count) * 6.8 < x + w - 40 - len(waits) * 6.1:
-        out.append(T(x + 42 + len(title) * 7.3, y + 22, count, 11, 'amber', 500, mono=True, c=c))
-    out.append(f'<circle cx="{x + w - 16 - len(waits) * 6.1 - 10}" cy="{y + 18}" r="3" fill="{c["blue"]}"/>')
-    out.append(T(x + w - 16, y + 22, waits, 11.5, 'muted', 500, 'end', c=c))
-    if body:
-        out.append(T(x + 16, y + 56, body, 12.5, 'muted', c=c))
-    for i, (label, rec) in enumerate(choices):
-        cy = ch_y + i * 36
-        out.append(f'<rect x="{x + 14}" y="{cy}" width="{w * 0.72}" height="30" rx="7" fill="{c["bg"]}" stroke="{c["blue"] if rec else c["cardline"]}"/>')
-        out.append(f'<rect x="{x + 22}" y="{cy + 7}" width="16" height="16" rx="4" fill="none" stroke="{c["cardline"]}"/>')
-        out.append(T(x + 30, cy + 19, str(i + 1), 10.5, 'muted', 600, 'middle', mono=True, c=c))
-        out.append(T(x + 48, cy + 19.5, label, 12.5, 'text', 500, c=c))
-        if rec:
-            out.append(pill(c, x + 14 + w * 0.72 - 104, cy + 4, 'Recommended', 'blue', 92, fill='bluef', stroke='blue'))
-    oy = ch_y + len(choices) * 36
-    out.append(f'<rect x="{x + 14}" y="{oy}" width="{w * 0.72 - 70}" height="30" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-    out.append(T(x + 26, oy + 19.5, own, 12.5, 'dim', c=c))
-    out.append(abtn_svg(c, x + 14 + w * 0.72 - 62, oy + 2, 'Answer', False, 26, 12, 62))
-    fy = oy + 40
-    out.append(f'<line x1="{x}" y1="{fy}" x2="{x + w}" y2="{fy}" stroke="{c["cardline"]}"/>')
-    out.append(abtn_svg(c, x + 14, fy + 8, 'Tell me more', False, 24, 11.5, 100))
-    out.append(T(x + 126, fy + 24, foot, 12, 'muted', 500, c=c))
-    return ''.join(out), h
-
-
 def rside(c: Theme, x: float, y: float, w: float, h: float, tab: str) -> str:
-    """The right sidebar: two tabs, Comments and Designs, and the side's toggle."""
+    """The right sidebar: Comments, Files and Designs, and the side's toggle."""
     out = [f'<line x1="{x}" y1="{y}" x2="{x}" y2="{y + h}" stroke="{c["cardline"]}"/>',
            f'<rect x="{x + 12}" y="{y + 12}" width="{w - 56}" height="28" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>']
-    half = (w - 60) / 2
-    for i, t in enumerate(['Comments', 'Designs']):
+    half = (w - 60) / 3
+    for i, t in enumerate(['Comments', 'Files', 'Designs']):
         bx = x + 14 + i * half
         if t.lower() == tab:
             out.append(f'<rect x="{bx}" y="{y + 14}" width="{half}" height="24" rx="6" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
-        out.append(T(bx + half / 2, y + 30, t, 12, 'text' if t.lower() == tab else 'muted', 600 if t.lower() == tab else 500, 'middle', c=c))
+        out.append(T(bx + half / 2, y + 30, t, 10.5, 'text' if t.lower() == tab else 'muted', 600 if t.lower() == tab else 500, 'middle', c=c))
     out.append(f'<rect x="{x + w - 38}" y="{y + 14}" width="24" height="24" rx="6" fill="{c["bg"]}" stroke="{c["cardline"]}"/>'
                f'<rect x="{x + w - 32}" y="{y + 20}" width="12" height="12" rx="2" fill="none" stroke="{c["dim"]}" stroke-width="1.3"/>')
     return ''.join(out)
@@ -680,46 +602,131 @@ def agents(c):
 
 
 # ---------------------------------------------------------------- the App window
-def app(c):
-    W, H = 1100, 620
+def task_example(c: Theme, step: int, sections: list, questions: list, working: str) -> str:
+    """Illustrated beta.25 task: top bar, one turn card, document and three sidebar tabs."""
+    W, H = 1400, 650
     b = [window(c, W, H, 'Settings cleanup · QualityLayer')]
-    b.append(sidebar(c, W, H, [('Needs you  1', [('Settings cleanup', 'Plan', 'you')]),
-                               ('Running  1', [('Shared memory', 'Verify', 'agent')]),
+    group = 'Your turn  1' if questions else 'Running  1'
+    b.append(sidebar(c, W, H, [(group, [('Settings cleanup', STEPS[step][0], 'you' if questions else 'agent')]),
                                ('Shipped  6', [])], selected='Settings cleanup'))
-    x0, wd = 246, 600
-    b.append(task_head(c, x0, 74, wd, 'Settings cleanup', '02-plan.md', 'by Claude Code', ('you', 'Needs you', 'review the Plan')))
-    b.append(tabs(c, x0, 132, 1, {'Plan': 2}))
-    b.append(f'<line x1="222" y1="146" x2="{870}" y2="146" stroke="{c["cardline"]}"/>')
-    b.append(index_line(c, x0 - 10, 158, wd + 10, '2 things need you', ['Decision 2', 'The design'], 'Approve'))
-    q, qh = qcard(c, x0 - 10, 202, wd + 10, 'The flow decides from the Plan. Agree?', 'decision 2 of 3', 'Claude Code waits',
-                  [('Agree', True), ('Change…', False)], 'In the Plan · Engineering decisions', 'What should change?')
-    b.append(q)
-    y = 202 + qh + 30
-    b.append(T(x0, y, 'Fewer, clearer settings, and a move from Pilot Shell that asks nothing', 14, 'text', 650, c=c))
-    b.append(section_label(c, x0, y + 30, 'Interface'))
-    b.append(f'<rect x="{x0 - 10}" y="{y + 40}" width="{wd + 10}" height="96" rx="10" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
-    b.append(mini_page(c, x0 + 150, y + 50, 300, 86))
-    b.append(pill(c, x0, y + 50, 'Preview', 'bg', 66, fill='text', stroke='text'))
-    b.append(vline(c, x0 - 10, H - 46, wd + 10, ['read by a second agent, nothing missing', '2 facts tested live']))
-    # the right sidebar: the task's comments
-    b.append(rside(c, 870, 41, 230, H - 42, 'comments'))
-    b.append(T(884, 108, 'Open on the Plan · 1', 11.5, 'muted', 500, c=c))
-    b.append(f'<rect x="882" y="118" width="206" height="128" rx="9" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
-    b.append(T(896, 140, 'Anna · 10:12', 12, 'text', 650, c=c))
-    b.append(T(896, 160, 'Decision 2 · the config', 11.5, 'muted', 500, c=c))
-    b.append(T(896, 182, 'Do the models stay in the', 12, 'text', c=c))
-    b.append(T(896, 198, 'config file?', 12, 'text', c=c))
-    b.append(T(896, 226, 'Claude Code · Yes, only those.', 11.5, 'blue', 600, c=c))
-    b.append(f'<rect x="882" y="{H - 92}" width="206" height="64" rx="9" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-    b.append(T(894, H - 70, 'Comment on the Plan. Select', 11.5, 'dim', c=c))
-    b.append(T(894, H - 54, 'words or a diagram node.', 11.5, 'dim', c=c))
-    return svg(W, H, ''.join(b), 'The QualityLayer App: the sidebar with + New, the header with the step’s file and the status pill, the five step tabs, the one line of what needs you, the question card, the Plan itself, and the right sidebar with Comments and Designs')
+    b.append(T(238, 67, 'Settings cleanup', 16, 'text', 650, c=c))
+    b.append(tabs(c, 450, 62, step))
+    p, _ = spill(c, 990, 48, 'you' if working == 'Waits for you' else 'agent', working)
+    b.append(p)
+    b.append(T(1368, 66, '…', 18, 'muted', 650, 'end', c=c))
+    b.append(f'<line x1="222" y1="82" x2="{W}" y2="82" stroke="{c["cardline"]}"/>')
+    x, y, w = 238, 112, 316
+    b.append(T(x, y - 9, 'Now', 11.5, 'muted', 650, c=c))
+    if questions:
+        h = 54 + len(questions) * 133 + 62
+        b.append(card(c, x, y, w, h, stroke='amberl', fill='amberf'))
+        b.append(T(x + 16, y + 29, 'Your turn', 17, 'text', 650, c=c))
+        b.append(T(x + w - 16, y + 29, str(len(questions)), 12, 'amber', 650, 'end', c=c))
+        b.append(T(x + 16, y + 49, 'Answer in any order', 12, 'muted', c=c))
+        for i, (kind, lines, choices) in enumerate(questions):
+            yy = y + 64 + i * 133
+            b.append(f'<line x1="{x + 16}" y1="{yy - 5}" x2="{x + w - 16}" y2="{yy - 5}" stroke="{c["amberl"]}" stroke-opacity="0.5"/>')
+            b.append(T(x + 16, yy + 15, kind, 11, 'amber', 650, c=c))
+            for k, line in enumerate(lines):
+                b.append(T(x + 16, yy + 38 + k * 19, line, 12.5, 'text', 500, c=c))
+            bx = x + 16
+            for label in choices:
+                bw = abtn(c, bx, yy + 78, label, False, 26, 11.5)
+                button = abtn_svg(c, bx, yy + 78, label, False, 26, 11.5, bw)
+                if kind in ('Plan approval', 'Final approval') and len(questions) > 1:
+                    button = f'<g opacity="0.45">{button}</g>'
+                b.append(button)
+                bx += bw + 8
+        fy = y + h - 45
+        b.append(T(x + 16, fy, 'Each answer reaches the agent at once.', 11.5, 'muted', c=c))
+        b.append(T(x + 16, fy + 20, 'Undo · 5 seconds', 11.5, 'blue', 600, c=c))
+    else:
+        b.append(card(c, x, y, w, 144, stroke='blue', fill='bluef'))
+        b.append(T(x + 16, y + 29, "Agent’s turn", 17, 'text', 650, c=c))
+        b.append(T(x + 16, y + 56, working, 12.5, 'text', 500, c=c))
+        b.append(T(x + 16, y + 82, 'Open the live status for details.', 12, 'muted', c=c))
+        b.append(T(x + 16, y + 111, 'You can comment while it works.', 12, 'muted', c=c))
+    dx = 578
+    b.append(T(dx, 108, 'Read in full  ↗', 11.5, 'blue', 600, c=c))
+    b.append(T(dx, 133, f'{step + 1:02d}-{STEPS[step][0].lower()}.md  ▾', 11.5, 'muted', 500, mono=True, c=c))
+    b.append(T(dx, 171, STEPS[step][0], 23, 'text', 650, c=c))
+    yy = 205
+    for kind, text in sections:
+        if kind == 'heading':
+            yy += 12
+            b.append(T(dx, yy, text, 14, 'text', 650, c=c))
+            yy += 29
+        else:
+            col = 'violet' if kind == 'proof' else 'blue' if kind == 'agreed' else 'muted'
+            b.append(T(dx, yy, text, 12.5, col, 500, c=c))
+            yy += 24
+    b.append(rside(c, 1140, 82, 260, H - 82, 'comments'))
+    b.append(T(1156, 150, 'On the Plan · 1', 11.5, 'muted', 600, c=c))
+    b.append(T(1156, 180, 'Anna · line 8', 12, 'text', 650, c=c))
+    b.append(T(1156, 204, 'Keep the retry limit visible.', 12, 'text', c=c))
+    b.append(T(1156, 234, 'Agent: changed on the page.', 11.5, 'blue', c=c))
+    b.append(T(dx, H - 24, 'Illustration · example task, people and results', 10.5, 'muted', c=c))
+    return svg(W, H, ''.join(b), f'{STEPS[step][0]} in beta.25: live status in the top bar, one Your turn card or the agent’s turn beside the document, and Comments, Files and Designs')
+
+
+def app(c):
+    return plan_ill(c)
 
 
 def app_marked(c: Theme) -> str:
-    """The App drawing with numbered markers for the parts the App page explains."""
-    marks = [(104, 128, 1), (838, 97, 2), (700, 132, 3), (234, 174, 4), (234, 236, 5), (234, 470, 6), (1084, 104, 7)]
-    return app(c).replace('</svg>', ''.join(num(c, x, y, n) for x, y, n in marks) + '</svg>')
+    """The App illustration uses the same beta.25 layout as the Plan."""
+    return app(c)
+
+
+def home_ill(c: Theme) -> str:
+    W, H = 1100, 540
+    b = [window(c, W, H, 'Home · QualityLayer')]
+    b.append(sidebar(c, W, H, [('Your turn  1', [('Settings cleanup', 'Plan', 'you')]),
+                               ('Running  1', [('Links', 'Verify', 'agent')]), ('Shipped  6', [])]))
+    b.append(T(242, 76, 'Home', 22, 'text', 650, c=c))
+    b.append(T(1076, 76, 'Notifications · 2', 12, 'blue', 600, 'end', c=c))
+    b.append(T(242, 108, 'Discuss 1  ·  Plan 1  ·  Implement 0  ·  Verify 1  ·  Review 0', 12, 'muted', c=c))
+    groups = [('Your turn', 'amber', 'amberf', 'Settings cleanup · 2 questions', 'Answer in any order; each answer reaches the agent at once.'),
+              ('Agents at work', 'blue', 'bluef', 'Links · checking point 2', 'Open the live status for what is working, quiet or stopped.'),
+              ('Shipped', 'cardline', 'card', 'CSV export · shipped today', '42 min · $4.20 estimated · open the result and proof')]
+    for i, (title, col, fill, task, detail) in enumerate(groups):
+        y = 140 + i * 120
+        b.append(card(c, 238, y, 842, 102, stroke=col, fill=fill))
+        b.append(T(258, y + 25, title, 12, 'muted', 650, c=c))
+        b.append(T(258, y + 51, task, 16, 'text', 650, c=c))
+        b.append(T(258, y + 78, detail, 12.5, 'muted', c=c))
+    b.append(T(242, H - 20, 'Illustration · example tasks and costs', 10.5, 'muted', c=c))
+    return svg(W, H, ''.join(b), 'Home: Your turn, live agent work, shipped tasks with time and estimated cost, task counts in each step and the notification bell')
+
+
+def plan_full(c: Theme) -> str:
+    W, H = 1100, 530
+    b = [window(c, W, H, 'Plan · QualityLayer')]
+    b.append(T(18, 70, '← Exit full size', 12, 'blue', 600, c=c))
+    b.append(T(216, 70, 'Settings cleanup · Plan', 16, 'text', 650, c=c))
+    p, _ = spill(c, 832, 51, 'agent', 'Working on the Plan')
+    b.append(p)
+    b.append(T(18, 116, 'Outline', 12, 'muted', 650, c=c))
+    for i, text in enumerate(['The problem', 'Done means', 'Interface', 'Decisions', 'Slices', 'Checks']):
+        b.append(T(18, 148 + i * 29, text, 12.5, 'text', 500, c=c))
+    b.append(T(210, 114, '02-plan.md  ▾', 11.5, 'muted', mono=True, c=c))
+    rows = [('01', 'The Plan'), ('02', ''), ('03', 'Done means'), ('04', '1 · Every setting names what it changes.'),
+            ('05', '2 · A risky Plan gets a second opinion.'), ('06', ''), ('07', 'Engineering decisions'),
+            ('08', 'Keep the retry limit visible beside each setting.'), ('09', ''), ('10', 'Slices and checks'),
+            ('11', '1 · Clearer settings · types, tests and build.'), ('12', '2 · Links · end-to-end scenarios.')]
+    for i, (n, text) in enumerate(rows):
+        y = 158 + i * 26
+        if n == '08':
+            b.append(f'<rect x="202" y="{y - 17}" width="588" height="26" fill="{c["amberf"]}"/>')
+            b.append(T(766, y, '+ 1', 11, 'amber', 650, c=c))
+        b.append(T(210, y, n, 11, 'muted', mono=True, c=c))
+        b.append(T(244, y, text, 12.5, 'text', 650 if n in ('01', '03', '07', '10') else 400, c=c))
+    b.append(rside(c, 810, 86, 290, H - 86, 'comments'))
+    b.append(T(826, 156, 'Line 8 · Anna', 12, 'text', 650, c=c))
+    b.append(T(826, 185, 'Keep the retry limit visible.', 12.5, 'text', c=c))
+    b.append(T(826, 220, 'Agent: changed on line 8.', 12, 'blue', c=c))
+    b.append(T(210, H - 20, 'Illustration · example document and comment', 10.5, 'muted', c=c))
+    return svg(W, H, ''.join(b), 'The full-size Plan: outline, document lines with a comment on line 8, live status, and Comments, Files and Designs')
 
 
 def items_ill(c: Theme) -> str:
@@ -728,7 +735,7 @@ def items_ill(c: Theme) -> str:
             ('Look', ['Looks right', 'Change (pin a spot)'], ['Mockup', 'A diagram', 'Look at the result']),
             ('Confirm', ['I confirm', 'Ask the agent to record it'], ['Only you can confirm']),
             ('Fix', ['Accept · Fix it', 'Fine · Ask why', 'Add · Skip it'], ['Found while checking', 'Decided while building', 'Add to the Plan']),
-            ('Answer', ['In your agent', 'Looks right · Suggest', 'a change · Reply'], ['The agent’s question', 'A teammate’s question'])]
+            ('Answer', ['In Your turn', 'Looks right · Suggest', 'a change · Reply'], ['The agent’s question', 'A teammate’s question'])]
     cw, gap = 188, 15
     out = []
     for i, (name, ans, kinds) in enumerate(fams):
@@ -795,40 +802,17 @@ def decision_ill(c: Theme) -> str:
 
 # ---------------------------------------------------------------- Discuss and Plan
 def discuss_ill(c: Theme) -> str:
-    W, H = 1000, 340
-    b = [card(c, 0, 0, 230, 336)]
-    b.append(T(18, 28, 'In Claude Code or Codex', 12, 'dim', 600, c=c))
-    b.append(T(18, 64, 'qualitylayer question ask', 12, 'blue', 500, mono=True, c=c))
-    b.append(T(18, 90, 'Waiting for your answer', 12.5, 'text', 500, c=c))
-    b.append(T(18, 108, 'in the QualityLayer App.', 12.5, 'text', 500, c=c))
-    b.append(T(18, 300, 'One line while it waits;', 12, 'dim', 500, c=c))
-    b.append(T(18, 318, 'nothing to type here', 12, 'dim', 500, c=c))
-    b.append(arrow(c, 232, 96, 258, dash=True))
-    b.append(card(c, 260, 0, 444, 336))
-    b.append(T(278, 28, 'In the App · Discuss', 12, 'dim', 600, c=c))
-    q, qh = qcard(c, 274, 40, 416, 'When does a second opinion run?', 'question 5', 'Claude Code waits',
-                  [('On risky Plans', True), ('On every Plan', False)], 'Not sure, use your recommendation')
-    b.append(q)
-    y = 40 + qh + 24
-    b.append(section_label(c, 278, y, 'Decided with you', '4'))
-    for i, (qq, a) in enumerate([('Which links open the App?', 'Every link'), ('What is the Models card called?', 'Subagents')]):
-        yy = y + 10 + i * 30
-        b.append(f'<line x1="274" y1="{yy}" x2="690" y2="{yy}" stroke="{c["cardline"]}"/>')
-        b.append(T(278, yy + 20, f'{4 - i}', 11.5, 'dim', 600, mono=True, c=c))
-        b.append(T(298, yy + 20, qq, 12.5, 'text', c=c))
-        b.append(T(686, yy + 20, a, 12.5, 'text', 600, 'end', c=c))
-    b.append(card(c, 724, 0, 276, 336, stroke='cardline', dash=True, sw=1.4))
-    b.append(T(742, 32, 'Too small for a plan?', 15, 'text', 650, c=c))
-    for i, t in enumerate(['One line of Done means, one', 'area of the code, nothing to', 'decide.']):
-        b.append(T(742, 58 + i * 19, t, 12.5, 'muted', c=c))
-    b.append(f'<line x1="742" y1="128" x2="982" y2="128" stroke="{c["cardline"]}"/>')
-    b.append(T(742, 154, 'No task. A ready prompt', 13, 'text', 600, c=c))
-    b.append(T(742, 173, 'for your plain agent:', 13, 'text', 600, c=c))
-    b.append(abtn_svg(c, 742, 190, 'Copy the prompt', True, 30, 12.5))
-    b.append(abtn_svg(c, 860, 190, 'Plan it anyway', False, 30, 12.5))
-    b.append(T(742, 262, 'You can still ask for a', 12, 'dim', 500, c=c))
-    b.append(T(742, 280, 'QualityLayer task.', 12, 'dim', 500, c=c))
-    return svg(W, H, ''.join(b), 'Discuss: your agent asks one question at a time in the App, with its recommendation, while its terminal shows one line; what you decide is written down on the page; a change too small for QualityLayer gets a ready prompt instead')
+    return task_example(c, 0, [
+        ('heading', 'The problem'), ('row', 'Settings should be easier to understand.'),
+        ('heading', 'Done means'), ('agreed', '✓ 1 · Every setting names what it changes.'),
+        ('row', '2 · A risky Plan gets an independent second opinion.'),
+        ('heading', 'Decided with you'), ('agreed', 'Notifications stay on by default.'),
+        ('row', 'Change an earlier answer at its passage.'),
+        ('heading', 'In your agent'), ('row', '👉 Your answer is needed in the QualityLayer App.'),
+    ], [
+        ('Question', ['When should a second opinion run?'], ['Risky Plans', 'Every Plan']),
+        ('Question', ['Should notifications start on?'], ['Yes', 'No', 'Tell me more']),
+    ], 'Working on the scope')
 
 
 def diagnose_ill(c: Theme) -> str:
@@ -874,24 +858,18 @@ def approve_card(c: Theme, x: float, y: float, w: float, title: str, note: str, 
 
 
 def plan_ill(c: Theme) -> str:
-    W, H = 1000, 470
-    b = [card(c, 0, 0, W - 4, H - 4)]
-    b.append(index_line(c, 14, 14, W - 32, '1 thing needs you', ['Approve the Plan']))
-    a, ah = approve_card(c, 14, 58, W - 32, 'Approve the Plan?', '3 of 4 answered',
-                         [('Decision 1 · the flow decides from the Plan', 'Agree', False), ('Decision 2 · the second opinion follows the Plan’s risk', 'Agree', False),
-                          ('The design · Settings › Workflow after the change', 'Looks right', False), ('Done means · 11 points', 'open ↑', True)],
-                         'Approving takes the open ones as they are. A Change turns the button into Send 1 change.', 'Approve')
-    b.append(a)
-    y = 58 + ah + 30
-    b.append(T(20, y, 'Fewer, clearer settings, and a move from Pilot Shell that asks nothing', 15, 'text', 650, c=c))
-    b.append(section_label(c, 20, y + 32, 'Engineering decisions', '2'))
-    b.append(T(20, y + 58, '2  The second opinion follows the Plan’s risk', 13, 'text', 600, c=c))
-    b.append(f'<rect x="14" y="{y + 70}" width="{W - 32}" height="36" rx="9" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-    b.append(ring(c, 34, y + 88, 'done', 5))
-    b.append(T(48, y + 92.5, 'Your call', 12.5, 'muted', c=c))
-    b.append(pill(c, W - 120, y + 77, '✓ Agree', 'blue', 70, fill='bluef', stroke='blue'))
-    b.append(vline(c, 14, H - 50, W - 32, ['read by a second agent, nothing missing', '2 facts tested live', '9 research questions answered']))
-    return svg(W, H, ''.join(b), 'The Plan waiting for approval: one line names what needs you, the card asks “Approve the Plan?” with every decision you answered and the one still open, your calls are recorded on the page, and the line of what agents checked')
+    return task_example(c, 1, [
+        ('heading', 'Interface'), ('row', 'Read the full-size design and comment on a spot.'),
+        ('heading', 'Engineering decisions'), ('agreed', '✓ The Plan determines what each agent builds.'),
+        ('heading', 'Done means'), ('agreed', '✓ 1 · Every setting names what it changes.'),
+        ('row', '2 · The changed point waits for your agreement.'),
+        ('heading', 'Slices and checks'), ('row', '1 · Simplify the settings · types, tests and build.'),
+        ('row', '2 · Keep every link working · end-to-end scenarios.'),
+        ('proof', 'Read by another agent · evidence available'),
+    ], [
+        ('Done means · changed point 2', ['Was: A review on every Plan.', 'Now: A review on risky Plans.'], ['Agree', 'Change']),
+        ('Plan approval', ['Settle the open decisions first.', 'Answers do not approve the Plan.'], ['Approve the Plan']),
+    ], 'Waits for you')
 
 
 # ---------------------------------------------------------------- after the Plan is approved
@@ -945,31 +923,16 @@ def implement_start(c):
 
 
 def implement_ill(c: Theme) -> str:
-    W, H = 1000, 504
-    b = [card(c, 0, 0, W - 4, H - 4)]
-    p, _ = spill(c, 20, 20, 'agent', 'Claude Code', 'building slices 2 and 3 · 2 agents')
-    b.append(p)
-    b.append(T(W - 20, 36, 'Nothing needs you. Anything only you can do goes to the final review.', 12.5, 'muted', 500, 'end', c=c))
-    b.append(section_label(c, 20, 92, 'Decided while building', '2'))
-    b.append(T(W - 20, 92, 'nothing here waits for you · ask why now or in Review', 11.5, 'dim', 500, 'end', c=c))
-    b.append(item(c, 14, 104, W - 32, 'slice 1 · outside its files', 'Removed the Settings page’s app prop, which only served the Links row', ['Ask why'], state='done'))
-    b.append(item(c, 14, 166, W - 32, 'slice 3 · outside its files', 'Removed TaskView’s notify prop with the budget notice', ['Ask why'], state='done'))
-    b.append(section_label(c, 20, 256, 'The build', '6 of 11 tasks · 2 agents at work'))
-    rows = [('1', 'Fewer settings, in the CLI and the App together', 5, 5, 'committed 08d634bc', 'done'),
-            ('2', 'Select all fills a group', 0, 1, 'T6 · running two test files · 49 s', 'agent'),
-            ('3', 'Moving from Pilot Shell asks nothing', 1, 2, 'T7 · writing the failing test', 'agent'),
-            ('4', 'Public copy says what the product does now', 0, 2, 'waits for slice 1', 'dim')]
-    for i, (n, t, done_, total, what, kind) in enumerate(rows):
-        y = 270 + i * 44
-        b.append(f'<rect x="14" y="{y}" width="{W - 32}" height="38" rx="9" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-        b.append(ring(c, 34, y + 19, kind))
-        b.append(T(52, y + 24, f'{n}  {t}', 13, 'text', 600, c=c))
-        for k in range(total):
-            fill = c['text'] if k < done_ else c['off']
-            b.append(f'<rect x="{500 + k * 22}" y="{y + 16}" width="18" height="6" rx="3" fill="{fill if kind == "done" else (c["blue"] if k < done_ else c["off"])}"/>')
-        b.append(T(W - 32, y + 24, what, 12, 'dim', 500, 'end', mono=what.startswith('committed'), c=c))
-    b.append(vline(c, 14, 276 + 4 * 44 - 2, W - 32, ['5 tasks green, test first', '12 checks recorded']))
-    return svg(W, H, ''.join(b), 'The Implement step: the status pill says Claude Code is building and nothing needs you; what the agent decided on its own is listed under Decided while building, with Ask why; the slices fill in with what each agent does now')
+    return task_example(c, 2, [
+        ('heading', 'The build'), ('agreed', '✓ Slice 1 · Clearer settings · committed'),
+        ('row', 'Slice 2 · Sign-in · waiting for your login'),
+        ('row', 'Slice 3 · Links · building and checking'),
+        ('heading', 'Decided while building'), ('row', 'Kept the current settings file · Ask why'),
+        ('heading', 'Checks'), ('proof', 'Slice 1 · tests, types and lint passed'),
+        ('row', 'Other slices keep building while your login waits.'),
+    ], [
+        ('Slice 2 · Only you can provide', ['Sign in to the test service.', 'Set the login in your environment.'], ['Done, it’s set']),
+    ], 'Building slice 3')
 
 
 def checkpoint_ill(c: Theme) -> str:
@@ -1017,39 +980,15 @@ def status(c: Theme, x: float, y: float, state: str) -> str:
 
 
 def verify_ill(c: Theme) -> str:
-    W, H = 1000, 478
-    b = [card(c, 0, 0, W - 4, H - 4)]
-    p, _ = spill(c, 20, 20, 'agent', 'Claude Code', 'checking 14 of 29 · 3 agents')
-    b.append(p)
-    b.append(T(W - 20, 36, 'Three agents that did not write the code test every point. Nothing needs you yet.', 12.5, 'muted', 500, 'end', c=c))
-    b.append(T(24, 98, '14 of 29 checks passed', 15, 'text', 650, c=c))
-    b.append(f'<rect x="250" y="88" width="300" height="8" rx="4" fill="{c["off"]}"/>')
-    b.append(f'<rect x="250" y="88" width="{300 * 14 / 29:.0f}" height="8" rx="4" fill="{c["violet"]}"/>')
-    b.append(T(W - 24, 98, 'polish 13 min · project checks 3 min · checking 4 min so far', 12, 'dim', 500, 'end', c=c))
-    cols = [(24, [('Before checking', [('Polish · 3 simplifications, 6 tests added', 'passed'), ('Security review · not needed', 'passed'),
-                                       ('Project checks · 5 of 5', 'passed')]),
-                  ('Scenarios · run end to end', [('1 · Links open the App when installed', 'passed'), ('2 · The Workflow tab reads as Subagents', 'passed'),
-                                                  ('3 · Fable 5.1 is valid everywhere', 'running'), ('4 · A risky Plan gets a second opinion', 'waiting')])]),
-            (512, [('Done means', [('1 · Links always open in the App', 'passed'), ('2 · The Models card reads as Subagents', 'passed'),
-                                   ('3 · Fable 5.1 wherever a model is chosen', 'running'), ('4 · A second opinion on risky Plans', 'waiting')]),
-                   ('Code review', [('Every changed file against its task', 'waiting')])])]
-    for x, groups in cols:
-        y = 126
-        for title, rows in groups:
-            b.append(T(x, y + 14, title, 12.5, 'text', 650, c=c))
-            y += 24
-            for t, st in rows:
-                b.append(f'<rect x="{x}" y="{y}" width="456" height="30" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-                b.append(status(c, x + 18, y + 15, st))
-                b.append(T(x + 36, y + 20, t, 12.5, 'text' if st != 'waiting' else 'dim', 500, c=c))
-                if st == 'running':
-                    b.append(T(x + 442, y + 20, 'checking now', 11.5, 'blue', 600, 'end', c=c))
-                y += 34
-            y += 14
-    b.append(f'<rect x="14" y="{H - 52}" width="{W - 32}" height="34" rx="9" fill="{c["bluef"]}" stroke="{c["blue"]}" stroke-opacity="0.5"/>')
-    b.append(T(30, H - 31, 'Now', 12, 'blue', 700, c=c))
-    b.append(T(64, H - 31, 'part 1 · scenario 3 on a scratch build   ·   part 2 · ticks 130 people in the group editor   ·   part 3 · moves a home in a temp folder', 12, 'muted', 500, c=c))
-    return svg(W, H, ''.join(b), 'The Verify step while agents check: every check is listed from the start, with how many have passed, where the minutes went, each check passed, checking now or waiting, and what each checking agent does now')
+    return task_example(c, 3, [
+        ('heading', 'Done means · 1'), ('row', 'Every setting names what it changes.'),
+        ('proof', 'Passed · scenario 1 · open output and screenshot'),
+        ('heading', 'Done means · 2'), ('row', 'A risky Plan gets a second opinion.'),
+        ('row', 'Checking now · scenario 2 on the running program'),
+        ('heading', 'Done means · 3'), ('row', 'Every link opens the right page.'),
+        ('row', 'Waiting · scenarios 3 and 4'),
+        ('heading', 'Project checks and agent reviews'), ('proof', 'Types, lint and tests passed · open the evidence'),
+    ], [], 'Checking point 2')
 
 
 def stopped_ill(c: Theme) -> str:
@@ -1079,23 +1018,19 @@ def stopped_ill(c: Theme) -> str:
 
 # ---------------------------------------------------------------- Review
 def review_ill(c: Theme) -> str:
-    W, H = 1000, 532
-    b = [card(c, 0, 0, W - 4, H - 4)]
-    b.append(index_line(c, 14, 14, W - 32, '1 thing needs you', ['Approve the change'], '4 settled'))
-    b.append(section_label(c, 20, 76, 'What changed'))
-    b.append(T(20, 98, 'Settings asks fewer things. Links always open in the App, and a second opinion runs on risky Plans.', 12.5, 'muted', c=c))
-    b.append(section_label(c, 20, 130, 'Settled with you', '4'))
-    rows = [('Only you can confirm', 'One live call to the trial service gave a full 7-day trial', ['✓ I confirm']),
-            ('Look at the result', 'Settings › Workflow as built', ['✓ Looks right']),
-            ('Found while checking', 'The App waits up to 3 s for your login shell before it opens', ['✓ Accept']),
-            ('Decided while building', 'Kept the old move-over test and rewrote it', ['✓ Fine'])]
-    for i, (k, w_, a) in enumerate(rows):
-        b.append(item(c, 14, 142 + i * 60, W - 32, k, w_, a, h=54, state='done'))
-    b.append(vline(c, 14, 390, W - 32, ['11 of 11 points of Done passed', '11 scenarios', '1,374 tests', 'evidence for each']))
-    a, _ = approve_card(c, 14, 438, W - 32, 'Approve the change?', 'branch settings-cleanup', [],
-                        'Approving ships it the way you pick. QualityLayer never merges.', 'Approve and open a pull request  ▾')
-    b.append(a)
-    return svg(W, H, ''.join(b), 'The Review step: one line names what needs you, what changed, what was settled with you (what only you can confirm, the result to look at, a note from the check, a choice the agent made), the line of what agents proved, and the card “Approve the change?” with Approve and open a pull request')
+    return task_example(c, 4, [
+        ('heading', 'What changed'), ('row', 'Settings are clearer and links keep their destination.'),
+        ('heading', 'How to try it'), ('row', 'Open Settings, then follow a link to a task.'),
+        ('heading', 'Done means · 1'), ('row', 'Every setting names what it changes.'),
+        ('proof', 'Passed · scenario 1 · output and screenshot'),
+        ('heading', 'Done means · 2'), ('row', 'A risky Plan gets a second opinion.'),
+        ('proof', 'Passed · scenario 2 · recorded command'),
+        ('heading', 'Done means · 3'), ('row', 'Every link opens the right page.'),
+        ('proof', 'Passed · scenarios 3 and 4 · evidence available'),
+    ], [
+        ('Only you can confirm · point 1', ['Do the settings read clearly to you?'], ['I confirm', 'Change']),
+        ('Final approval', ['After settling the open items:', 'approve and open a pull request.'], ['Approve only']),
+    ], 'Waits for you')
 
 
 def comments_ill(c: Theme) -> str:
@@ -1569,9 +1504,9 @@ def designs_flow(c: Theme) -> str:
     b.append(T(4 * 168 + 78, 156, 'and again, until it looks right', 12, 'muted', 500, 'middle', c=c))
     b.append(f'<rect x="0" y="180" width="996" height="50" rx="10" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
     b.append(lock(c, 18, 197))
-    b.append(T(38, 210, 'Never shared.', 13, 'text', 650, c=c))
-    b.append(T(136, 210, 'A design stays on your computer: not on the share link, not on qualitylayer.dev, not in the pull request.', 12.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'What a design is: you ask your agent, it draws one HTML page in your project, the App lists it under Designs; you open it full size and comment on a spot, the agent changes the same page and the App shows the update; a design is never shared')
+    b.append(T(38, 210, 'Stays local.', 13, 'text', 650, c=c))
+    b.append(T(136, 210, 'The interactive page and its comments stay on your computer. A share link can show a still picture.', 12.5, 'muted', c=c))
+    return svg(W, H, ''.join(b), 'Designs: ask your agent, open its page full size, comment on a spot and see its update; the interactive page stays local, and a share link can show a still picture')
 
 
 def designs_tab(c: Theme) -> str:
@@ -1593,7 +1528,7 @@ def designs_tab(c: Theme) -> str:
     b.append(f'<rect x="672" y="50" width="316" height="28" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
     b.append(lock(c, 682, 57))
     b.append(T(700, 69, 'Only on this computer.', 12, 'text', 600, c=c))
-    b.append(T(840, 69, 'Never shared.', 12, 'muted', c=c))
+    b.append(T(840, 69, 'A still can be shared.', 11, 'muted', c=c))
     rows = [('This task', [('Settings page', 'Every setting on one page', 'Updated just now · Shown in the Plan', True)]),
             ('In this project', [('Onboarding', 'The first start, step by step', 'Updated yesterday', False),
                                  ('Release notes sheet', 'What’s new after an update', 'Updated 3 days ago', False)])]
@@ -1619,13 +1554,13 @@ def design_open(c: Theme) -> str:
     """A design open full size: one thin bar, the page, a comment on a spot and the agent's answer."""
     W, H = 1000, 470
     b = [window(c, W, H, 'Settings page · QualityLayer')]
-    b.append(sidebar(c, W, H, [('Needs you  1', [('Settings cleanup', 'Plan', 'you')]), ('Running  0', []), ('Shipped  6', [])], selected='Settings cleanup'))
+    b.append(sidebar(c, W, H, [('Your turn  1', [('Settings cleanup', 'Plan', 'you')]), ('Running  0', []), ('Shipped  6', [])], selected='Settings cleanup'))
     x0 = 236
     b.append(f'<line x1="222" y1="84" x2="{W - 1}" y2="84" stroke="{c["cardline"]}"/>')
     b.append(T(x0, 67, '← Back to the Plan', 12, 'muted', 500, c=c))
     b.append(T(x0 + 130, 67, 'Settings page', 13.5, 'text', 650, c=c))
     b.append(T(x0 + 228, 67, 'Updated 2 min ago', 11.5, 'dim', c=c))
-    p, pw = spill(c, x0 + 334, 51, 'you', 'Needs you')
+    p, pw = spill(c, x0 + 334, 51, 'you', 'Waits for you')
     b.append(p)
     bx = x0 + 334 + pw + 8
     for t, on in [('Comment  C', True), ('−  Fit  +', False), ('Jump to ▾', False), ('⤢', False)]:
@@ -1661,6 +1596,7 @@ def design_open(c: Theme) -> str:
 
 
 DRAWINGS = [('architecture', architecture), ('flow', flow), ('slices', slices), ('agents', agents), ('app', app), ('app-marked', app_marked),
+            ('home', home_ill), ('plan-full', plan_full),
             ('items', items_ill), ('decision', decision_ill),
             ('implement-start', implement_start), ('implement', implement_ill), ('checkpoint', checkpoint_ill),
             ('discuss', discuss_ill), ('diagnose', diagnose_ill), ('plan', plan_ill),

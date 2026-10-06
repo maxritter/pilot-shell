@@ -59,7 +59,7 @@ export interface Chapter {
     cost?: string;
     /** The step's own document and who writes it: one page per step. */
     file?: [string, string];
-    /** The right sidebar, open on one of its two tabs. */
+    /** The right sidebar, open on Comments or Designs; Files stays visible too. */
     right?: "comments" | "designs";
   };
 }
@@ -118,7 +118,7 @@ export const CHAPTERS: Chapter[] = [
     act: { id: "steps", title: "From your request to a pull request", text: "On your own or with your team, a change goes through the same five steps. You decide where a decision is needed, and your agents do the rest." },
     title: "Your agent asks until the goal is clear",
     text: "Describe the change in your own words. Questions arrive together in Your turn. Answer in any order; each answer reaches your agent at once, while it keeps reading the code.",
-    bullets: ["A bug is reproduced and its cause found", "Too small for a plan? You get a ready prompt", "What you decide is written down as Done means"],
+    bullets: ["A bug is reproduced and its cause found", "Too small for a plan? You get a ready prompt", "Each answer is recorded in Decided with you"],
     win: { title: TITLE, view: "task", groups: sidebar("you", "Discuss · 3 questions"), foot: SOLO, doc: TASK, stage: 0, cost: "$2.10", file: DISCUSS },
   },
   {
@@ -148,7 +148,7 @@ export const CHAPTERS: Chapter[] = [
     steps: 6,
     title: "It is built in slices, on its own",
     text: "From that command on, your agent works on its own until the final review. Every task starts with a failing test, and slices that don’t overlap build side by side.",
-    bullets: ["QualityLayer records every test run itself", "What the agent decided on the way is listed, and you can ask why", "Anything only you can do is listed first in the final review"],
+    bullets: ["QualityLayer records every test run itself", "What the agent decided on the way is listed, and you can ask why", "A login or secret waits in Your turn while other slices keep building"],
     win: { title: TITLE, view: "task", groups: sidebar("ag", "Implement"), foot: SOLO, doc: TASK, stage: 2, cost: "$15.35", file: IMPLEMENT },
   },
   {
@@ -157,7 +157,7 @@ export const CHAPTERS: Chapter[] = [
     who: "ag",
     steps: 7,
     title: "Agents that did not write the code check it",
-    text: "Every check is listed from the start and fills in live: your project checks, each scenario, each point of Done means and a review of every changed file.",
+    text: "Each Done means point keeps its scenarios and evidence together, filling in as agents check it. The live status names what runs now. Project checks and the review of changed files stay available too.",
     bullets: ["Polish and security review come before the checks", "A failure is fixed by the agent, and only what it touched is checked again", "Anything only you can confirm goes to Review"],
     win: { title: TITLE, view: "task", groups: sidebar("ag", "Verify"), foot: SOLO, doc: TASK, stage: 3, cost: "$20.95", file: VERIFY },
   },
@@ -167,7 +167,7 @@ export const CHAPTERS: Chapter[] = [
     who: "you",
     steps: 5,
     title: "You approve the finished change, with its proof",
-    text: "The App asks only what the checks could not settle: what only you can confirm, the result to look at and what the checks found. The last question is “Approve the change?”, and the pull request opens with its proof.",
+    text: "Read the result and proof under each Done means point. Your turn holds what only you can confirm, the result to look at and open findings. Settle them, then approve the change; the pull request opens with its proof.",
     bullets: ["Every changed file is tagged with the task that made it", "Approve and open a pull request, or approve only", "Ask for changes and your notes become the agent’s work"],
     win: { title: TITLE, view: "task", groups: sidebar("you", "Review · 3 to answer"), foot: SOLO, doc: TASK, stage: 4, cost: "$20.95", file: REVIEW },
   },
@@ -176,7 +176,7 @@ export const CHAPTERS: Chapter[] = [
     step: "Draw",
     who: "ag",
     steps: 5,
-    act: { id: "designs", title: "See the page before it is built", text: "Ask your agent to draw a page, open it full size in the App, and point at what should change. It never leaves your computer." },
+    act: { id: "designs", title: "See the page before it is built", text: "Ask your agent to draw a page, open it full size in the App, and point at what should change. The interactive page and its comments stay on your computer." },
     title: "Ask, and your agent draws the page",
     text: "Say “mock up the failed deliveries page”. Your agent draws it as one page, and the App lists it under Designs with what it is for and when it last changed. The Plan shows the one it is about.",
     bullets: ["Inside a task, or for the whole project", "A dot marks a design you have not opened yet", "Share links include a still; the interactive page stays on your computer"],
@@ -247,8 +247,8 @@ export const CHAPTERS: Chapter[] = [
     who: "you",
     steps: 5,
     title: "Review the finished change together",
-    text: "Teammates read what changed and its proof, comment on any part and approve. The code itself is reviewed in your pull request.",
-    bullets: ["Their comments reach you in the Comments tab", "People outside the team reopen the same link to read changes", "Sharing sends the plan, progress and a still of its design"],
+    text: "Teammates read what changed and its proof. They comment on any part and approve. The code itself is reviewed in your pull request.",
+    bullets: ["Their comments reach you in the Comments tab", "The same link updates through all five steps and keeps unsent comments", "Sharing sends the plan, progress and a still of its design"],
     win: { title: TITLE, view: "task", switch: "personal", groups: sidebar("you", "Review · 1 to answer"), foot: TEAM, doc: TASK, stage: 4, cost: "$20.95", file: REVIEW, right: "comments" },
   },
   {

@@ -16,6 +16,9 @@ Each answer reaches your agent immediately. It keeps working on anything that do
 
 The live status at the top says what your agent is doing. Open it to see whether it is working, waiting for you, quiet or stopped.
 
+![Discuss: independent questions in one Your turn card, answered in any order while the agent works on the scope](pathname:///img/diagrams/discuss-light.svg)
+![Discuss: independent questions in one Your turn card, answered in any order while the agent works on the scope](pathname:///img/diagrams/discuss-dark.svg)
+
 ## The page {#the-page}
 
 Discuss is one document, `01-discuss.md`: the problem in your own words, **Done means**, what you **decided with** your agent, and the scope. Each answer lands in **Decided with you** at once. Use **Change** to correct an earlier answer. Open the document full size to read and comment with its outline beside it.

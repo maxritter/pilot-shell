@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUpRight, ChevronDown, ChevronRight, Copy, Expand, FileText, Frame, GitBranch, Infinity as Loop, Lock, MessageSquare, PanelRight, Search, SlidersHorizontal, SquarePlus, X } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Bell, ChevronDown, ChevronRight, Copy, Expand, FileText, Frame, GitBranch, Infinity as Loop, Lock, MessageSquare, PanelRight, Search, SlidersHorizontal, SquarePlus, X } from "lucide-react";
 import { Children, type ReactNode } from "react";
 import { checksPassed, committedTasks, DESIGN, questionsLeft, REQUEST } from "@/lib/tour";
 
@@ -80,7 +80,7 @@ function DiscussBatch({ step }: { step: number }) {
       {left ? <Turn title={`${left} ${left === 1 ? "question" : "questions"} from Claude Code`} meta={`${3 - left} of 3 answered`}>
         <p className="sx-turn-intro">Answer in any order. Claude Code keeps reading the code.</p>
         <div className="sx-batch-open sx-arrive" key={open}>
-          <small>Question {open} · settles Done means {open === 5 ? 1 : 2}</small>
+          <small>Question · settles Done means {open === 5 ? 1 : 2}</small>
           <h4>{active.title}</h4>
           <div className="sx-qos"><Choice n={1} label={active.answer} rec pick={step === 2} /><Choice n={2} label={active.other} />
             <span className="sx-qown"><span>Your own answer</span><kbd>Tab</kbd></span>
@@ -224,6 +224,21 @@ const CHECKS: { group: string; note?: string; items: [string, number, string?][]
 ];
 const TOTAL_CHECKS = 12;
 
+function ProofPoints({ step, pendingUser = false }: { step: number; pendingUser?: boolean }) {
+  const evidence = ["delivery.test.ts · one failed delivery queued once", "mailer.test.ts · 3 tries, then one mail", "row.test.tsx · retry count visible in the delivery row"];
+  return <div className="sx-proof-points">{CHECKS[2].items.map(([label, when], i) => {
+    const needsConfirmation = pendingUser && i === 1;
+    const passed = step >= when && !needsConfirmation;
+    const running = !passed && !needsConfirmation && step >= when - 1;
+    return <section className="sx-proof-point" key={label} data-point={i + 1}>
+      <div><i className={needsConfirmation ? "sx-you" : passed ? "sx-dm" : running ? "sx-ag" : "sx-todo"} /><b>Done means · {i + 1}</b><em>{needsConfirmation ? "Your turn" : passed ? "Passed" : running ? "Checking now" : "Waiting"}</em></div>
+      <strong>{label.replace(/^\d+ · /, "")}</strong>
+      <small>Scenario {i + 1} · {step >= CHECKS[1].items[i][1] ? "passed" : "waiting"}</small>
+      <p className={needsConfirmation ? "sx-needs-confirm" : undefined}>{needsConfirmation ? `${evidence[i]} · live confirmation waits for you` : passed ? evidence[i] : "The recorded output appears here when it passes."}</p>
+    </section>;
+  })}</div>;
+}
+
 const COST: [string, string, string, string][] = [
   ["Discuss", "12 min", "$2.10", "var(--ql-text-dim)"],
   ["Plan", "18 min", "$3.85", "var(--ql-amber)"],
@@ -346,7 +361,7 @@ export default function TourScenes({ ch, step, tries, onRetry, only = false }: {
 
       {/* Implement: the build on its own, slice by slice, test first; what the agent decided on the way. */}
       <div className={scene(3)} aria-hidden={ch !== 3}>
-        <AgentTurn title={`Slice ${committed >= 2 ? 2 : 1} of 3 · task ${committed + 1} of 5`} doing="Nothing waits for you. The agents are building and running the tests." next="Review the finished change with its proof." />
+        <AgentTurn title={`Slice ${committed >= 2 ? 2 : 1} of 3 · task ${committed + 1} of 5`} doing="The agents are building and running the tests." next="Review the finished change with its proof." />
         <div className={`sx-bld ${ins(0)}`}>
           {SLICES.map((s, k) => {
             const state = it >= SLICE_DONE[k] ? "done" : it >= SLICE_RUN[k] ? "run" : "wait";
@@ -368,82 +383,66 @@ export default function TourScenes({ ch, step, tries, onRetry, only = false }: {
         <Violet facts={["2 tasks green, test first", "slice 1’s checks passed", "6 checks recorded"]} className={ins(5)} />
       </div>
 
-      {/* Verify: every check listed from the start, filling in live; then all passed. */}
+      {/* Verify: the agent's turn beside scenarios and evidence grouped by Done means point. */}
       <div className={scene(4)} aria-hidden={ch !== 4}>
-        {checking ? (
-          <>
-            <AgentTurn title="Checking the change" doing={`${passed} of 12 checks passed. Agents that did not write the code check the result.`} next="Confirm what only you can check, in Review." />
+        <div className="sx-nowdoc">
+          <div className="sx-turn-column">
+            {checking ? <AgentTurn title="Checking the change" doing={`${passed} of 12 checks passed. Agents that did not write the code check the result.`} next="Confirm what only you can check, in Review." /> :
+              <Turn title="Waiting for you in Review" meta="3 to answer">
+                <div className="sx-wl">
+                  <div className="sx-wr"><span aria-hidden="true" className="sx-you" /><span><b>Only you can confirm: one live call to the partner API gave 3 tries</b><small>Done means 2 · confirm the live result.</small></span></div>
+                  <div className="sx-wr"><span aria-hidden="true" className="sx-you" /><span><b>Look at the result: Failed deliveries as built</b></span></div>
+                  <div className="sx-wr"><span aria-hidden="true" className="sx-you" /><span><b>The retry mail goes out in English only</b></span></div>
+                </div>
+              </Turn>}
+          </div>
+          <div className="sx-document">
+            <DocHead name="Verify" file="04-verify.md" />
             <div className="sx-vh">
               <b>{passed} of {TOTAL_CHECKS} checks passed</b>
-              <span className="sx-bar2"><i className="v" style={{ width: `${(passed / TOTAL_CHECKS) * 100}%` }} /><i className="b" style={{ width: vt < 6 ? "8%" : "0%" }} /></span>
-              <span className="sx-vm">polish 2 min · project checks 3 min · checking 4 min so far</span>
+              <span className="sx-bar2"><i className="v" style={{ width: `${(passed / TOTAL_CHECKS) * 100}%` }} /></span>
             </div>
-            <div className="sx-chk">
-              <div className="sx-cg">
-                <p className="sx-cl">Before checking</p>
-                <div className="sx-cr">
-                  <span className="sx-ck"><span aria-hidden="true" className={vt >= 1 ? "sx-ok" : "sx-todo"} />Polish · 2 simplifications</span>
-                  <span className="sx-ck mut"><span aria-hidden="true" className="sx-todo" />Security review · not needed</span>
-                </div>
-              </div>
-              {CHECKS.map((g) => (
-                <div className="sx-cg" key={g.group}>
-                  <p className="sx-cl">{g.group}{g.note && <small> · {g.note}</small>}</p>
-                  <div className="sx-cr">
-                    {g.items.map(([label, when, part]) => {
-                      const state = vt >= when ? "ok" : vt >= when - 1 ? "run" : "wait";
-                      return (
-                        <span className="sx-ck" key={label}>
-                          <span aria-hidden="true" className={state === "ok" ? "sx-dm" : state === "run" ? "sx-ag" : "sx-todo"} />{label}{state === "run" && part && <em>{part}</em>}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-              <div className={`sx-now ${ins(2)}`}><b>Now</b>part 2 · scenario 2: fails a webhook three times · part 3 · Done 3: opens the delivery row</div>
-            </div>
-          </>
-        ) : (
-          <>
-            <Violet facts={["12 of 12 passed", "412 tests", "3 agents that did not write the code"]} />
-            <Turn title="Waiting for you in Review" meta="3 to answer">
-            <div className="sx-wl">
-              <div className="sx-wr"><span aria-hidden="true" className="sx-you" /><span><b>Only you can confirm: one live call to the partner API gave 3 tries</b><small>Done 2 asked for a live call. The agent made it while planning but did not keep the output.</small></span><em>no agent may call it</em></div>
-              <div className="sx-wr"><span aria-hidden="true" className="sx-you" /><span><b>Look at the result: Failed deliveries as built</b></span><em>screenshot</em></div>
-              <div className="sx-wr"><span aria-hidden="true" className="sx-you" /><span><b>The retry mail goes out in English only</b></span><em>note from the check</em></div>
-            </div>
-            </Turn>
-            <Fold title="Scenarios" meta="3 of 3 · each with its output kept" violet />
-            <Fold title="Done means" meta="3 of 3 · each with its evidence" violet />
-            <Fold title="Project checks" meta="4 of 4 · tests, types, lint, build" violet className="sx-hide" />
-          </>
-        )}
+            <ProofPoints step={vt} pendingUser={!checking} />
+            <Fold title="Project checks" meta={vt >= 2 ? "4 of 4 · tests, types, lint, build" : "Tests, types, lint, build · waiting"} violet={vt >= 2} className="sx-hide" />
+            <Fold title="Agent reviews" meta={vt >= 6 ? "Polish and code review passed · evidence available" : vt >= 1 ? "Polish passed · code review waiting" : "Polish and code review waiting"} violet={vt >= 6} />
+          </div>
+        </div>
       </div>
 
-      {/* Review: what is settled with you, the proof, then "Approve the change?" and the ways to ship. */}
+      {/* Review: remaining answers leave Your turn; each Done means point keeps its proof. */}
       <div className={scene(5)} aria-hidden={ch !== 5}>
-        <Turn title={rv >= 3 ? "Approve the change?" : `Settle ${Math.max(0, 3 - rv)} things, then approve`} meta={`${Math.min(3, rv)} of 3 settled`}>
-        <div className="sx-psec">
-          <p className="sx-ph2">Settled with you <small>{Math.min(3, rv)} of 3</small></p>
-          <div className="sx-stab">
-            <div className={`sx-str${rv >= 1 ? " done" : ""}`}><span aria-hidden="true" className={rv >= 1 ? "sx-ok" : "sx-you"} /><span><small>Only you can confirm</small>One live call to the partner API gave 3 tries</span>{rv >= 1 ? <em><Tick />I confirm</em> : <span className="sx-iab"><span className="sx-fake sm first">I confirm</span><span className="sx-fake sm sx-hide">Ask the agent to record it</span></span>}</div>
-            <div className={`sx-str${rv >= 2 ? " done" : ""}`}><span aria-hidden="true" className={rv >= 2 ? "sx-ok" : "sx-you"} /><span><small>Look at the result</small>{DESIGN.name} as built</span><span className="sx-mini sx-hide"><DesignPage className="mini" next /></span>{rv >= 2 ? <em><Tick />Looks right</em> : <span className="sx-iab"><span className="sx-fake sm first">Looks right</span><span className="sx-fake sm sx-hide">Change</span></span>}</div>
-            <div className={`sx-str${rv >= 3 ? " done" : ""}`}><span aria-hidden="true" className={rv >= 3 ? "sx-ok" : "sx-you"} /><span><small>Found while checking</small>The retry mail goes out in English only</span>{rv >= 3 ? <em><Tick />Accept</em> : <span className="sx-iab"><span className="sx-fake sm first">Accept</span><span className="sx-fake sm sx-hide">Fix it</span></span>}</div>
+        <div className="sx-nowdoc">
+          <div className="sx-turn-column">
+            <Turn title={rv >= 3 ? "Approve the change?" : `Settle ${Math.max(0, 3 - rv)} things, then approve`} meta={rv >= 3 ? "Everything is settled" : `${3 - rv} to answer`}>
+              <div className="sx-stab">
+                {rv < 1 && <div className="sx-str"><span aria-hidden="true" className="sx-you" /><span><small>Only you can confirm · Done means 2</small>One live call to the partner API gave 3 tries</span><span className="sx-fake sm first">I confirm</span></div>}
+                {rv < 2 && <div className="sx-str"><span aria-hidden="true" className="sx-you" /><span><small>Look at the result · Done means 3</small>{DESIGN.name} as built</span><span className="sx-fake sm first">Looks right</span></div>}
+                {rv < 3 && <div className="sx-str"><span aria-hidden="true" className="sx-you" /><span><small>Found while checking · Done means 2</small>The retry mail goes out in English only</span><span className="sx-fake sm first">Accept</span></div>}
+              </div>
+              {rv < 3 && <p className="sx-turn-foot">Each answer is sent at once · Undo for 5 seconds.</p>}
+              <div className={`sx-apw ${ins(4)}`}>
+                <section className="sx-approval"><div className="sx-aqf"><span className={`sx-fake p split${rv >= 5 ? " glow" : ""}`}>Approve and open a pull request</span></div></section>
+                <div className={`sx-menu drop ${ins(5)}`}>
+                  <div className="sx-mi first"><b>Approve and open a pull request</b><small>05-review.md becomes its description, with the proof</small></div>
+                  <div className="sx-mi"><b>Approve only</b><small>You push and open it yourself</small></div>
+                  <div className="sx-mi"><b>Copy the git commands</b><small>Push the branch and open the pull request by hand</small></div>
+                </div>
+              </div>
+            </Turn>
+          </div>
+          <div className="sx-document">
+            <DocHead name="Review" file="05-review.md" />
+            <p className="sx-ph2">What changed</p><p className="sx-docpara">Failed deliveries are retried three times, then the customer gets one mail.</p>
+            <ProofPoints step={99} pendingUser={rv < 1} />
+            {rv >= 1 && <div className="sx-psec"><p className="sx-ph2">Settled with you</p>
+              <div className="sx-decided">
+                <div><small>Only you can confirm · Done means 2</small><b>I confirm · 3 tries in the live call</b></div>
+                {rv >= 2 && <div><small>Look at the result · Done means 3</small><b>Looks right · {DESIGN.name} as built</b></div>}
+                {rv >= 3 && <div><small>Found while checking · Done means 2</small><b>Accepted · the retry mail is in English</b></div>}
+              </div>
+            </div>}
           </div>
         </div>
-        <div className={`sx-apw ${ins(4)}`}>
-          <section className="sx-approval">
-            <div className="sx-aqf"><span className="sx-hide">Approving ships it the way you pick. QualityLayer never merges.</span><span className={`sx-fake p split${rv >= 5 ? " glow" : ""}`}>Approve and open a pull request</span></div>
-          </section>
-          <div className={`sx-menu drop ${ins(5)}`}>
-            <div className="sx-mi first"><b>Approve and open a pull request</b><small>05-review.md becomes its description, with the proof</small></div>
-            <div className="sx-mi"><b>Approve only</b><small>You push and open it yourself</small></div>
-            <div className="sx-mi"><b>Copy the git commands</b><small>Push the branch and open the pull request by hand</small></div>
-          </div>
-        </div>
-        </Turn>
-        <Violet facts={["3 of 3 points of Done means passed", "3 scenarios", "412 tests"]} className={ins(3)} />
       </div>
 
       {/* Designs, in the Plan: the preview of the design the Plan names, and its question. */}
@@ -658,6 +657,11 @@ export default function TourScenes({ ch, step, tries, onRetry, only = false }: {
           </section>
           <div className="sx-col">
             <div className={`sx-notif ${ins(4)}`}><span className="sx-mark" /><p><small>QualityLayer · from the menu bar</small>Retry failed webhooks needs your review</p></div>
+            <div className={`sx-home-summary ${ins(4)}`}>
+              <p><Bell size={12} aria-hidden="true" /><b>Notifications · 2</b></p>
+              <p>Discuss 1 · Plan 1 · Implement 1 · Verify 0 · Review 1</p>
+              <div className="sx-hr"><span aria-hidden="true" className="sx-ok" />CSV export<small>Shipped · 42 min · $4.20 estimated</small></div>
+            </div>
             <div className={`sx-home sx-hide ${ins(4)}`}>
               <div className="sx-hg amb"><span aria-hidden="true" className="sx-you" /><b>Your turn · 1</b></div>
               <div className="sx-hr"><span aria-hidden="true" className="sx-you" />Retry failed webhooks<small>Review · 3 to answer</small></div>

@@ -13,7 +13,7 @@ It runs on macOS, Windows and Linux. Without a screen, `qualitylayer app` opens 
 | --- | --- |
 | Sidebar | Your tasks under **Your turn**, **Running** and **Shipped**. **+ New** starts a task |
 | Live status | What the agent is working on, when it needs you, and whether it is quiet or stopped. Open it for details |
-| Step tabs | Where the task stands in Discuss, Plan, Implement, Verify and Review |
+| Step track in the top bar | Where the task stands in Discuss, Plan, Implement, Verify and Review |
 | Now | **Your turn** when a decision waits for you; the agent's progress while it works |
 | Your turn | One card for open questions, agreements and approvals |
 | Document | The step's page, with your answers, the build and its proof |
@@ -42,6 +42,11 @@ Open a document full size to collapse the task list and give the page more room.
 ## Home
 
 Home brings together what needs your answer, what your agents are working on, and what shipped. Shipped tasks show their time and estimated cost when those records are available.
+
+The notification bell keeps questions, comments and stopped tasks within reach. Its count updates as you answer. Home also shows how many tasks are in each step.
+
+![Home with Your turn, agents at work, shipped tasks with time and estimated cost, counts in each step and notifications](pathname:///img/diagrams/home-light.svg)
+![Home with Your turn, agents at work, shipped tasks with time and estimated cost, counts in each step and notifications](pathname:///img/diagrams/home-dark.svg)
 
 ## Items and their answers {#items}
 

@@ -99,6 +99,12 @@ article.margin-bottom--xl header h2 a:hover { color: var(--ql-accent); }
 /* Diagrams come as a -light and a -dark file; each theme shows its own. */
 [data-theme="light"] .markdown img[src*="-dark"], [data-theme="dark"] .markdown img[src*="-light"] { display: none; }
 .markdown img[src*="-light"], .markdown img[src*="-dark"] { display: block; width: 100%; height: auto; margin: 24px 0 28px; }
+.ql-diagram { display: block; color: var(--ql-text-muted); text-decoration: none; }
+.ql-diagram img { cursor: zoom-in; }
+.ql-diagram .ql-diagram-open { display: block; margin-top: -20px; margin-bottom: 28px; font-size: 12px; color: var(--ql-accent); }
+.ql-diagram:hover .ql-diagram-open { text-decoration: underline; }
+.ql-diagram:focus-visible { outline: 2px solid var(--ql-accent); outline-offset: 4px; border-radius: 6px; }
+[data-theme="light"] .ql-diagram[data-illustration-theme="dark"], [data-theme="dark"] .ql-diagram[data-illustration-theme="light"] { display: none; }
 @media (max-width: 996px) {
   .navbar-sidebar .menu__link, .navbar__toggle { min-height: 44px; }
   .markdown h1 { font-size: 32px; }

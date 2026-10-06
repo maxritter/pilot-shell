@@ -51,9 +51,9 @@ curl -fsSL https://qualitylayer.dev/install.sh | bash
 - **Questions in batches:** one Your turn card holds the decisions you can make now. Answer in any order; each answer reaches the agent immediately, while it keeps working on the rest. Approving the plan is a separate action.
 - **Designs on your computer:** ask your agent to draw a page, open it full size in the App, and point at what should change. The interactive page and its comments stay local; a share link can show a still of the Plan's design.
 - **Built test first:** every task starts with a failing test, and QualityLayer records every test run itself.
-- **No waiting while it builds:** when something does not go as planned, your agent takes the recommended way and lists it for you to read afterwards.
+- **Routine decisions handled:** your agent takes the recommended way and records it. If it needs a login or secret, you provide it while other slices keep building.
 - **Checked for you:** agents that did not write the code check every point of your request against the running program. You watch a live checklist and can open the evidence.
-- **Only what needs you:** what an agent can check folds into one line of proof, and what only you can confirm is asked at the end.
+- **Your turn:** questions and approvals wait in one card. Each Done means point keeps its proof beside it, and Review asks what only you can confirm.
 - **Your team, early:** teammates answer questions about the plan while it is still cheap to change, with their own agent if they like.
 - **You stay in charge of cost:** pick the models, and see the time and estimated cost of every step.
 
@@ -167,7 +167,7 @@ Feedback is sent only when you press Send feedback. It becomes one issue in a pr
 
 ### Five steps from request to pull request
 
-Every task takes the same five steps. You decide twice: when you approve the plan, and when you approve the finished change.
+Every task takes the same five steps. You approve twice: the plan before any code, and the finished change.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/flow-dark.svg">
@@ -176,9 +176,9 @@ Every task takes the same five steps. You decide twice: when you approve the pla
 
 - **Discuss:** your agent reads the code and asks independent questions in batches, each with its recommendation, in **Your turn**. Answer in any order; the page records each answer immediately. Agree to each **Done means** point separately. A bug is reproduced and its cause found first.
 - **Plan:** read the design, diagrams, slices and checks full size, with comments beside them. A second agent reads the plan before it reaches you. Settle its decisions in **Your turn**, then approve it. If a Done means point changes, only that point needs your agreement again.
-- **Implement:** the App opens with your Build defaults and one command that starts the build: an orchestrator that writes no code, and workers that build the slices. Every task starts with a failing test. Nothing waits for you: when something does not go as planned, your agent takes the recommended way and lists it under "Decided while building".
+- **Implement:** the App opens with your Build defaults and one command that starts the build: an orchestrator that writes no code, and workers that build the slices. Every task starts with a failing test. Routine decisions appear under "Decided while building". A login or secret only you can provide appears in **Your turn**; other slices keep building.
 - **Verify:** polish and, across a trust boundary, a security review, then agents that did not write the code check every point of your request, on a live checklist.
-- **Review:** the App asks the few items left and shows the result to look at. The last question is "Approve the change?", and the pull request opens with its proof.
+- **Review:** read the result and proof under each **Done means** point. Settle the remaining questions in **Your turn**, then approve the change. The pull request opens with its proof.
 
 Each step is one Markdown file in the task's folder, from `01-discuss.md` to `05-review.md`, written for you; the agents' own records go to `agent/`. On GitHub the files read as plain Markdown.
 
@@ -193,11 +193,11 @@ QualityLayer records every test run itself, with its exit code, so a passing cla
   <img src="docs/docusaurus/static/img/diagrams/slices-light.svg" alt="Slices built test first, two of them side by side, a checkpoint after the risky slice; then polish and security review side by side, then agents check every point" width="1000">
 </picture>
 
-While agents check, every check is listed from the start and fills in live.
+While agents check, every **Done means** point keeps its checks and evidence together. Their live status shows what is being checked now.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/screen-verify-dark.png">
-  <img src="docs/docusaurus/static/img/diagrams/screen-verify-light.png" alt="The Verify step in the App: Agents are checking, 12 of 22 checks passed, with project checks, scenarios and the points of Done means listed, and Nothing needs you while it checks" width="1000">
+  <img src="docs/docusaurus/static/img/diagrams/screen-verify-light.png" alt="The Verify step in the App, with the checks and their evidence" width="1000">
 </picture>
 
 ### The models you choose, the cost you can see
