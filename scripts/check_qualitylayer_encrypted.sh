@@ -2,7 +2,8 @@
 # Plaintext guard for the encrypted trees.
 #
 # The trees are qualitylayer/ and docs/site/api/, plus the site's backend
-# operation scripts and deploy check, the feedback-store worker and scripts/cutover.sh (see
+# operation scripts and deploy check, the feedback-store worker, scripts/cutover.sh and the film's
+# sources in video/ (see
 # is_guarded). Every tracked path under them must be reported as encrypted by
 # `git-crypt status`, except the four manifest files under qualitylayer/ that
 # supply-chain scanners need in plaintext. A file that slipped into history
@@ -56,8 +57,8 @@ is_allowed() {
 }
 
 # The guarded paths outside the two trees: the backend operation scripts, the
-# deploy check that probes the routes, their tests and the backup recipient, every file of the feedback-store worker, and
-# the cut-over script. The website's own build scripts stay plaintext.
+# deploy check that probes the routes, their tests and the backup recipient, every file of the feedback-store worker,
+# the cut-over script, and every tracked file of the film in video/. The website's own build scripts stay plaintext.
 is_guarded() {
   case "$1" in
   qualitylayer/* | docs/site/api/*) return 0 ;;
@@ -67,6 +68,7 @@ is_guarded() {
   docs/site/scripts/backup-recipient.txt | docs/site/scripts/*.test.ts) return 0 ;;
   docs/site/workers/feedback-store/*) return 0 ;;
   scripts/cutover.sh) return 0 ;;
+  video/*) return 0 ;;
   esac
   return 1
 }
