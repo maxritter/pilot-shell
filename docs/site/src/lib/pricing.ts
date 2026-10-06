@@ -115,7 +115,7 @@ export const COMPARE: CompareGroup[] = [
     name: "Build",
     hue: "build",
     rows: [
-      row("Choose the models of the subagents that build and check", true, true),
+      row("Choose the models of the agents that build and check", true, true),
       row("Every task test first, every test run recorded", true, true),
       row("Slices that don’t overlap build side by side", true, true),
       row("The cost of every step", true, true, "Estimated at list price"),

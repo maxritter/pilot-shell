@@ -17,13 +17,15 @@ A computer with a screen gets the **QualityLayer App**. A machine without one (W
 
 **[Download the App](https://qualitylayer.dev/download)** and open it. The first start is one checklist: your licence (or a 7-day trial), the CLI, and your agents. **Open QualityLayer** turns on once one agent is ready.
 
+On Windows, you can also install it from PowerShell: `irm https://qualitylayer.dev/install.ps1 | iex`. This installs the App and the command line.
+
 ## Without a screen
 
 ```bash
 curl -fsSL https://qualitylayer.dev/install.sh | bash
 ```
 
-On Windows, in PowerShell: `irm https://qualitylayer.dev/install.ps1 | iex`. The installer prints a link that opens the App in your browser; over SSH, forward the port it names.
+In WSL, run the command above inside your Linux distribution. The installer explains how to open the App in your browser; over SSH, forward the port it names.
 
 ## Updates {#updates}
 

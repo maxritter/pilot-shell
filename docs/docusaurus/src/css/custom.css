@@ -52,7 +52,7 @@
 .navbar__logo { height: 26px; }
 .navbar__link { font-size: 14px; font-weight: 500; }
 .footer { border-top: 1px solid var(--ql-border); }
-.footer__title { color: var(--ql-text); }
+.footer__title { color: inherit; }
 .footer__copyright { font-size: 13px; }
 .menu { font-size: 14px; }
 .menu__link { border-radius: 6px; }

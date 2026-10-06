@@ -30,8 +30,12 @@ describe("FAQ", () => {
     expect(answer).toMatch(/Screenshots can show code or plans\./);
   });
 
-  it("says a screenshot in a report is the one way code can leave the computer", () => {
-    for (const faq of [...FAQS, ...PRICING_FAQS].filter((f) => f.question === "Does my code leave my computer?")) expect(faq.answer).toMatch(/screenshot you attach to a feedback report/i);
+  it("distinguishes the coding agent's provider from QualityLayer sharing and feedback", () => {
+    for (const faq of [...FAQS, ...PRICING_FAQS].filter((f) => f.question === "Does my code leave my computer?")) {
+      expect(faq.answer).toMatch(/your (AI |coding )?agent.*provider/i);
+      expect(faq.answer).toMatch(/screenshot you attach to a feedback report/i);
+      expect(faq.answer).not.toMatch(/^No\.|the one way it can leave/i);
+    }
   });
 
   it("calls the second opinion one thing", () => {

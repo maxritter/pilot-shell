@@ -32,7 +32,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "Does my code leave my computer?",
-    "No. Plans are files in your repository, and the App runs on your computer. Designs your agent draws stay on your computer too. Sharing with your team sends the plan and its progress, encrypted on your machine, never your code or your designs. The one way it can leave is a screenshot you attach to a feedback report, if the screenshot shows it.",
+    "Your coding agent sends code to its provider under your existing data settings. QualityLayer keeps your plans and designs on your computer. Sharing sends the plan and its progress, encrypted on your machine; it does not send your code or the design page. A screenshot you attach to a feedback report can show code, so check it before sending.",
   ),
   faq(
     "What does Send feedback share?",

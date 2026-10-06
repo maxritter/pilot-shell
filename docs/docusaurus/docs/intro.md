@@ -52,7 +52,7 @@ It works with Claude Code and Codex, in the terminal, their desktop apps or your
 
 If you already let Claude write a plan in PhpStorm or VS Code, work through it step by step and check each change in the IDE's diff, QualityLayer keeps that loop and adds what plan mode leaves out:
 
-- **The plan is agreed, not just written:** your agent asks each decision, and the Plan shows mockups and diagrams you and your team can comment on.
+- **You approve the plan:** your agent asks each decision, and the Plan shows mockups and diagrams you and your team can comment on.
 - **The build runs in tested slices** from the approved Plan, and agents that did not write the code check every point you agreed on.
 - **You review what is left,** with the proof beside it. The diff stays where you like to read it, in your IDE.
 

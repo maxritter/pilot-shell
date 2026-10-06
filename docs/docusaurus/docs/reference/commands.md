@@ -43,7 +43,7 @@ You rarely type these; they are what you see in your agent's chat.
 | --- | --- |
 | `qualitylayer next` | Start a task, or get the next step of the open one; it also brings new comments on designs |
 | `qualitylayer question ask` | Ask you a question in the App and wait for your answer; the terminal shows one line meanwhile |
-| `qualitylayer gate open` | Put the Plan or the finished change up for your approval |
+| `qualitylayer gate open 02-plan.md` · `gate open final` | Put the Plan or the finished change up for your approval |
 | `qualitylayer check slice <n>` | Run a slice's approved checks and record them |
 | `qualitylayer comments take` | Collect the comments not yet answered |
 | `qualitylayer ask list` · `ask answer` · `ask draft` | A teammate's agent reads and answers a question; see [Teammates' agents](../team/agents.md) |
