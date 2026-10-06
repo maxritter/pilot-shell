@@ -1,0 +1,36 @@
+name: Site health
+
+# Every hour, read-only: the live site's API still reaches its database. A share link that does
+# not exist must answer 404, which only a route that read the database can say; a missing or
+# deleted database answers 500. A failed run mails the repository owner. Nothing is written.
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: site-health
+  cancel-in-progress: false
+
+jobs:
+  database:
+    name: The live API reaches its database
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ask for a share link that does not exist
+        run: |
+          unknown="$(printf 'A%.0s' $(seq 22))"
+          for host in qualitylayer.dev; do
+            code="$(curl -s -o /dev/null -w '%{http_code}' --retry 2 --retry-all-errors --max-time 20 \
+              "https://$host/api/share?id=$unknown")"
+            if [ "$code" = "404" ]; then
+              echo "$host: the share API read its database (404 for an unknown link)"
+            else
+              echo "::error::$host: the share API answered $code for an unknown link, expected 404; is DATABASE_URL set and the database there?"
+              exit 1
+            fi
+          done
