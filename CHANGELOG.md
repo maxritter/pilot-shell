@@ -2,6 +2,14 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.21
+
+### Fixed
+
+- The agents that build a slice no longer stop early, believing their time is up. A slice's time now grows with its tasks, and the agent checks the real time before it stops for it.
+- The Plan keeps each slice to at most six tasks, so no single agent's run gets long; larger work becomes several slices that are built side by side.
+- After you approve the Plan in the App, Claude Code's QualityLayer band no longer says the agent still asks "Approve the Plan?".
+
 ## 12.0.0-beta.20
 
 ### New
