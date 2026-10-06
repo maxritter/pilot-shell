@@ -5,7 +5,7 @@ description: How QualityLayer takes your coding agent from a request to a review
 ---
 
 <figure class="ql-film">
-  <video controls preload="none" playsinline poster="https://qualitylayer-media.max-ritter.workers.dev/overview-v1.webp" src="https://qualitylayer-media.max-ritter.workers.dev/overview-v1.mp4"></video>
+  <video controls preload="none" playsinline poster="https://qualitylayer-media.max-ritter.workers.dev/overview.webp" src="https://qualitylayer-media.max-ritter.workers.dev/overview.mp4"></video>
   <figcaption>How QualityLayer works, in about four minutes: the problem it solves, the five steps, and working on your own or with your team.</figcaption>
 </figure>
 
