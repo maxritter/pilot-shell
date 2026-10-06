@@ -10,6 +10,7 @@
  */
 
 import type { FeedbackPayload, SealedPayload } from "./types";
+import { sharedDocuments, stripSharedCode, STEP_DOCS } from "../../../../../qualitylayer/src/core/team/publication.ts";
 
 export const SHARE_ID = /^[A-Za-z0-9]{22}$/;
 
@@ -71,7 +72,7 @@ export async function openFromLink(key: string, purpose: Purpose, sealed: unknow
 export type FlowStep = "discuss" | "plan" | "implement" | "verify" | "review";
 
 /** The three a link reviewer reads: Build covers the build and what checked it. */
-export type Tab = "discuss" | "plan" | "build";
+export type Tab = FlowStep;
 
 /** What a guest can say to a question: agree, suggest a change, or reply in their own words. */
 export type GuestAnswer = "agree" | "change" | "reply";
@@ -108,6 +109,7 @@ export type LoadedShare =
       title: string;
       /** Who shared it, as the App names them; the page says "the owner" without it. */
       owner?: string;
+      stage?: string;
       /** Documents by name; the page sorts them into steps (`stepDocs`). Research is never among them. */
       docs: Record<string, string>;
       /** The owner's questions for this link. Empty for a link made before the App sent any. */
@@ -200,7 +202,9 @@ const isPrivate = (name: string) => name.endsWith(".md") && !name.includes("/") 
 function tabOf(name: string): Tab {
   if (name === "README.md" || name === "01-discuss.md" || /^00-/.test(name)) return "discuss";
   if (/^03-outline/.test(name)) return "plan";
-  if (/^0[3-9]-/.test(name)) return "build";
+  if (/^04-/.test(name)) return "verify";
+  if (/^05-/.test(name) || name === "pr-description.md") return "review";
+  if (/^0[3-9]-/.test(name)) return "implement";
   return "plan";
 }
 
@@ -211,7 +215,7 @@ const byName = (a: string, b: string) => a.replace(/\.md$/, "").localeCompare(b.
  * names. Research and diagnosis are left out, and so are the mockups and data that ride along.
  */
 export function stepDocs(docs: Record<string, string>): Record<Tab, string[]> {
-  const steps: Record<Tab, string[]> = { discuss: [], plan: [], build: [] };
+  const steps: Record<Tab, string[]> = { discuss: [], plan: [], implement: [], verify: [], review: [] };
   for (const name of Object.keys(docs).sort(byName)) {
     if (!name.endsWith(".md") || name.startsWith("artifacts/") || DATA_DOCS.has(name) || isPrivate(name)) continue;
     steps[tabOf(name)].push(name);
@@ -220,7 +224,7 @@ export function stepDocs(docs: Record<string, string>): Record<Tab, string[]> {
 }
 
 /** The tab a question belongs to: what is built and checked is read under Build. */
-export const tabOfStep = (step: FlowStep): Tab => (step === "discuss" ? "discuss" : step === "plan" ? "plan" : "build");
+export const tabOfStep = (step: FlowStep): Tab => step;
 
 /** The App's answers, read as a guest's three. */
 const AS_GUEST: Record<string, GuestAnswer> = {
@@ -297,7 +301,7 @@ export function answerWords(item: Pick<ShareItem, "family">, answer: GuestAnswer
   return answer === "change" ? "Suggest a change" : "Reply";
 }
 
-type Plan = { task: string; owner?: string; docs: Record<string, string>; items: ShareItem[] };
+type Plan = { task: string; owner?: string; stage?: string; docs: Record<string, string>; items: ShareItem[] };
 
 /** The plan a link holds: its title and the documents, as text. What opened is still untrusted, so it is rebuilt. */
 function parsePlan(plain: string | null): Plan | null {
@@ -308,27 +312,20 @@ function parsePlan(plain: string | null): Plan | null {
   } catch {
     return null;
   }
-  const plan = value as { task?: unknown; owner?: unknown; docs?: unknown; items?: unknown } | null;
+  const plan = value as { task?: unknown; owner?: unknown; docs?: unknown; items?: unknown; stage?: unknown } | null;
   if (typeof plan !== "object" || plan === null || typeof plan.docs !== "object" || plan.docs === null) return null;
   const all = Object.fromEntries(
     Object.entries(plan.docs).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
   );
   // Research stays with the agent: even a link that carries it does not hand it to the page.
-  const docs = Object.fromEntries(Object.entries(all).filter(([name]) => !isPrivate(name)));
-  let items: unknown = plan.items;
-  if (items === undefined && all["items.json"] !== undefined) {
-    try {
-      items = JSON.parse(all["items.json"]);
-    } catch {
-      items = undefined;
-    }
-  }
+  const docs = sharedDocuments(all, typeof plan.stage === "string" ? plan.stage : undefined);
   const owner = str(plan.owner)?.trim().slice(0, 80);
   return {
-    task: typeof plan.task === "string" ? plan.task : "Shared plan",
-    ...(owner ? { owner } : {}),
+    task: typeof plan.task === "string" ? stripSharedCode(plan.task) : "Shared task",
+    ...(owner ? { owner: stripSharedCode(owner) } : {}),
+    ...(typeof plan.stage === "string" ? { stage: plan.stage } : {}),
     docs,
-    items: parseItems(items),
+    items: [],
   };
 }
 
@@ -356,6 +353,7 @@ export async function loadShare(id: string, key: string, fetchFn: typeof fetch =
     kind: "v2",
     title: plan.task,
     ...(plan.owner !== undefined ? { owner: plan.owner } : {}),
+    ...(plan.stage !== undefined ? { stage: plan.stage } : {}),
     docs,
     items: plan.items,
     expires: body?.expires,
@@ -389,11 +387,7 @@ export const newThreadId = () => `g-${crypto.randomUUID().replace(/-/g, "").slic
  * that holds `01-discuss.md` keeps Discuss there; one that holds `00-discuss.md` is a legacy task.
  */
 export function docOfStep(step: FlowStep, docs: Record<string, string>): string {
-  const tab = tabOfStep(step);
-  const steps = "01-discuss.md" in docs;
-  if (tab === "discuss") return steps ? "01-discuss.md" : "00-discuss.md";
-  if (tab === "plan") return "02-plan.md";
-  return steps ? "03-implement.md" : "03-build.md";
+  return STEP_DOCS[step].find((name) => docs[name] !== undefined) ?? STEP_DOCS[step][0] ?? "";
 }
 
 const annotation = (blockId: string, originalText: string, body: string, now: number) => ({
