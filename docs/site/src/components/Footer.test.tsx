@@ -10,13 +10,15 @@ async function html(path: string): Promise<string> {
 }
 
 describe("the footer's example disclaimer", () => {
-  it("labels the marketing site's fictional tasks and people", async () => {
-    expect(await html("/")).toContain("The tasks, people and numbers on this site are an illustration.");
+  it("scopes the fictional examples to the tour", async () => {
+    const rendered = await html("/");
+    expect(rendered).toContain("in the tour are fictional");
+    expect(rendered).not.toContain("on this site are an illustration");
   });
 
-  it("does not call a customer's shared task an illustration", async () => {
+  it("does not call a customer's shared task fictional", async () => {
     const rendered = await html(`/s/${"A".repeat(22)}`);
-    expect(rendered).not.toContain("are an illustration");
+    expect(rendered).not.toContain("are fictional");
     expect(rendered).toContain("Prices in US dollars, billed monthly through Polar.");
   });
 });

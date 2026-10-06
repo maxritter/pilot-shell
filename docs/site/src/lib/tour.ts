@@ -252,7 +252,7 @@ export const CHAPTERS: Chapter[] = [
     steps: 5,
     title: "Review the finished change together",
     text: "Teammates read what changed and its proof, comment on any part and approve. The code itself is reviewed in your pull request.",
-    bullets: ["Their comments reach you in the Comments tab", "People outside the team comment through a link that always shows the latest", "Sharing sends the plan and progress, never your code or your designs"],
+    bullets: ["Their comments reach you in the Comments tab", "People outside the team reopen the same link to read changes", "Sharing sends the plan and progress, never your code or your designs"],
     win: { title: TITLE, view: "task", switch: "personal", groups: sidebar("you", "Review · 1 to answer"), foot: TEAM, doc: TASK, stage: 4, cost: "$20.95", file: REVIEW, right: "comments" },
   },
   {
