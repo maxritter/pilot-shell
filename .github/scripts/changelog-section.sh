@@ -4,7 +4,7 @@
 # grouped as `### New`, `### Fixed` and `### Good to know`, and goes unchanged into the GitHub
 # release, the updater's manifest, the App and the terminal.
 #
-#   scripts/changelog-section.sh <version> [CHANGELOG.md]
+#   .github/scripts/changelog-section.sh <version> [CHANGELOG.md]
 #
 # A heading is `## 12.0.0-beta.14`, `## v12.0.0-beta.14` or `## [12.0.0-beta.14] - 2026-10-05`: the
 # version is the first word, whole, so beta.1 never finds beta.14. A version with no section, or a
@@ -13,7 +13,7 @@
 set -euo pipefail
 
 if [ "$#" -lt 1 ] || [ "$#" -gt 2 ] || [ -z "$1" ]; then
-  echo "Usage: scripts/changelog-section.sh <version> [CHANGELOG.md]" >&2
+  echo "Usage: .github/scripts/changelog-section.sh <version> [CHANGELOG.md]" >&2
   exit 2
 fi
 

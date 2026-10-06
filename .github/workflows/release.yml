@@ -183,7 +183,7 @@ jobs:
         run: bash .github/workflows/scripts/install-git-crypt.sh
 
       - name: Check the encrypted paths are encrypted in the public tree
-        run: bash scripts/check_qualitylayer_encrypted.sh
+        run: bash .github/scripts/check_qualitylayer_encrypted.sh
 
       - name: Unlock repository
         env:
@@ -284,7 +284,7 @@ jobs:
         if: steps.check.outputs.should_release == 'true'
         env:
           VERSION: ${{ steps.check.outputs.version }}
-        run: bash scripts/changelog-section.sh "$VERSION" > /dev/null
+        run: bash .github/scripts/changelog-section.sh "$VERSION" > /dev/null
 
   build:
     name: Build QualityLayer (6 targets)
@@ -574,7 +574,7 @@ jobs:
           bun qualitylayer/scripts/app.ts --latest-json release --version "$VERSION" \
             --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}"
           # The notes ride in the manifest, so the App's update sheet says what the release says.
-          bash scripts/changelog-section.sh "$VERSION" > "${RUNNER_TEMP:?}/release-notes.md"
+          bash .github/scripts/changelog-section.sh "$VERSION" > "${RUNNER_TEMP:?}/release-notes.md"
           jq --rawfile notes "${RUNNER_TEMP:?}/release-notes.md" '. + {notes: $notes}' \
             release/latest.json > "${RUNNER_TEMP:?}/latest.json"
           mv "${RUNNER_TEMP:?}/latest.json" release/latest.json

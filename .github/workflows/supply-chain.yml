@@ -32,7 +32,7 @@ jobs:
 
       # What the public repository serves: nothing under qualitylayer/ in plaintext.
       - name: Plaintext guard
-        run: bash scripts/check_qualitylayer_encrypted.sh
+        run: bash .github/scripts/check_qualitylayer_encrypted.sh
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
