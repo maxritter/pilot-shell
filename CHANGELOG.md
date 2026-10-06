@@ -6,26 +6,66 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 ### New
 
-- Designs: ask your agent to mock up a screen or draw how something works, and it draws a page with `qualitylayer design new`. The App shows it full size, with Jump to, zoom, full screen and comments on any spot; the agent changes the same page and the App tells you it was updated. A share link shows a still of the Plan's design; the interactive page and its comments stay on your computer and out of Git.
-- The right sidebar is Comments · Designs, and Home lists the project's designs. The header's file chip opens a menu: the path, Copy path, Open in editor, Reveal in Finder, Open the task folder, Copy the task's name.
-- New tasks keep one document per step: `01-discuss.md` to `05-review.md` for you, and the agent's notes, logs and raw output in the task's `agent/` folder. Tasks you already have keep their files.
-- Each step's page is its document, with QualityLayer's live parts drawn over it: your answers, the decisions, the build board, the proof, the approval. QualityLayer writes the Implement and Verify pages itself and keeps them current; `05-review.md` becomes the pull request's description.
-- "Needs you" is one line at the top of a step that jumps to each thing in place, and the agent's records open read-only from the spot they explain.
-- `qualitylayer design shot` gives your agent a picture of its own page, and `next` tells you when a newer QualityLayer is out and whether to update now or after the current slice.
+- Questions come in batches in one **Your turn** card. Answer in any order;
+  each answer reaches your agent at once, while it keeps working on the rest.
+- The card updates as you answer. **Undo** takes an answer back for five seconds,
+  and **Decided with you** records it immediately.
+- A live status at the top says what your agent is working on, when it needs
+  your answer, and when it is quiet or stopped. Open it for the details.
+- Agree to each **Done means** point separately. If the agent changes one,
+  only that point comes back, with its old and new words side by side.
+- Read the Plan full size, with its outline and comments beside it. The right
+  sidebar keeps **Comments**, **Files** and **Designs** within reach.
+- Home shows what needs your answer, what agents are working on, and what
+  shipped, with its time and estimated cost.
+- Ask your agent to mock up a screen or draw how something works. Open its
+  design full size, zoom in, and comment on any spot. The agent changes the
+  same page, and the App tells you when it was updated.
+- New tasks keep one document per step, from `01-discuss.md` to `05-review.md`.
+  Your answers, the build and its proof appear there; agent notes and logs
+  stay in `agent/`. Existing tasks keep their files.
+- The file menu offers Copy path, Open in editor, Reveal in Finder and Open
+  the task folder. Agent records open read-only from the passage they explain.
+- `qualitylayer design shot` gives your agent a picture of its design. `next`
+  tells it when an update is out and whether to wait for the current slice.
 
 ### Fixed
 
-- The session messaging skill is now `agent-peers`, and Claude Code's task pane opens with `/task-pane`, so typing `/ql` shows only the workflow skill. Updates remove the old `ql-peers` skill when it belongs to QualityLayer and preserve your own files.
-- A share link follows the task without a reload: Discuss, Plan, Implement, Verify and Review, including a still of the Plan's design. Your draft stays in place while the page updates.
-- You can rebase the build onto a newer main, merge main in, amend or squash its commits before Review: the build's commit list, its checks and the pull request show only its own commits. No agent copies a revision or a hash any more.
-- A task added to a slice while it is built reaches the agent building it, or a new agent builds it.
-- A slice with nothing to commit, such as a review whose notes stay in an ignored folder, now succeeds.
-- A check that fails because a login expired or the network dropped is tried once more, then recorded as an environment problem, not a code fault.
-- An agent taking over an unfinished slice is told where the previous one left each task.
-- A file belongs to another slice only until that slice is committed.
-- Changing the Plan points out test steps that no longer match it, and agents still finishing their checks when the Plan sends the build back keep being heard.
-- An agent that reviews fixes what it can and proposes the rest as tasks.
-- In Claude Code, QualityLayer's line above the prompt no longer hides other mods there, such as a model router: it sits on top of theirs.
+- Large tasks open quickly, and long status messages and file menus fit in
+  narrow windows. The App keeps following the current question and agent
+  after its local server restarts.
+- Your agreed points survive document edits. Questions about an approval
+  already given close instead of asking you again.
+- A new request beside an open task starts its own task. Its first questions
+  appear on Home, even before the task document exists.
+- You can rebase, merge main, amend or squash before Review. The build's
+  commit list, checks and pull request still show only its own changes.
+- A task added during a build reaches its agent or starts a follow-up agent.
+  An agent taking over is told where the previous one left each task.
+- A slice with nothing to commit succeeds. Its files become available to
+  other slices as soon as it is committed.
+- A check interrupted by an expired login or a dropped connection is retried
+  once. If it still cannot run, the result names the environment problem.
+- Changing the Plan points out test steps that no longer match. Agents still
+  finishing their checks can report, and earlier fix rounds stay recorded.
+- An agent reviewing a change fixes what it can and proposes tasks for the rest.
+- Claude Code's progress band shares the space above the prompt with other mods.
+- The session messaging skill is now `agent-peers`, and Claude Code's task
+  pane opens with `/task-pane`. `/ql` opens the workflow. Updates remove only
+  QualityLayer's old `ql-peers` files and preserve your own.
+
+### Team and sharing
+
+- Shared tasks and links follow all five steps without a reload. Your draft
+  stays in place while the page updates, and revoked links stay revoked.
+- Share links include a still of the Plan's design. The interactive page,
+  its scripts and its comments stay on your computer.
+- Teammates' Plan changes reach an open App, and local comments reach the
+  agent between reviews.
+- Activating the same licence again reuses this machine's activation.
+  A failed licence release keeps the details needed to retry.
+- Feedback emails include the screenshots you attached. Reports remain
+  queued until the mail service accepts them.
 
 ## 12.0.0-beta.24
 
