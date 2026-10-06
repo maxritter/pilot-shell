@@ -2,6 +2,19 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.22
+
+### New
+
+- Settings › Workflow has Planning defaults and Build defaults: the model, the effort and where each session starts, one agent at a time. Each card has its own default agent, so you can plan with Claude Code and build with Codex.
+- Fable 5.1 can orchestrate a build and plan a task. Builds start at High effort, in the session that planned the task, by default.
+- Implement Start opens with your Build defaults. What you change there, the workers' model included, applies to that build only; Reset takes you back to your defaults. In the session that planned the task, it lists the lines to type first (`/clear`, `/model`, `/effort`), each with its own copy button.
+- "+ New" beside the logo starts a task: say what you want, pick the model, effort and where it starts, and copy one command for Claude Code, Codex or another agent. Long prompts with quotes, `$` or several lines are copied exactly as typed.
+
+### Good to know
+
+- The Subagents card in Settings is now Independent review: the agent that never wrote the code decides whether the finished change passes.
+
 ## 12.0.0-beta.21
 
 ### Fixed
