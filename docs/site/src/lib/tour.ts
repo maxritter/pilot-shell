@@ -1,26 +1,22 @@
 /**
  * The home page's tour: one change followed from request to pull request in a pinned App
  * window, then designs, the team and the setup. Each chapter draws a screen of the App as it is
- * built: the sidebar with "+ New", the header with the step's file and the live status pill, the
- * five step tabs, the one-line index of what needs you, the step's page, and on some chapters the
- * right sidebar with Comments and Designs. Ported from the Claude Design pages "One Page per Step",
- * "Sidebar and Designs", "Answer in the App", "Implement Start v2" and "Implement Defaults";
- * change the copy in both places. Tasks, people and numbers are an illustration.
+ * built: live status and a quiet step track in the top bar, one Your turn card beside the document,
+ * question batches, agreement per point, and the Plan read full size with comments. The website's
+ * own visual language stays in place. Tasks, people and numbers are an illustration.
  */
 
 /** Who acts: you (amber ring), an agent (blue turning ring), or nobody because it is done. */
 export type Who = "you" | "ag" | "ok";
 
 /**
- * The status pill in the task header: it needs you here (amber), an agent works (blue), it is your
- * move outside the App (amber outline), or it is done. `head` is the bold part, `text` follows it.
+ * The live status names what the agent is doing or waiting for. The amber dot belongs to the
+ * separate Your turn indicator. `head` is the bold part, `text` follows it.
  */
 export type Pill = { kind: "you" | "ag" | "move" | "ok"; head: string; text: string; meta?: string };
 
-/** The one-line index at the top of a step: how many things need you and where each one is. */
-export type NeedsIndex = { count: string; to: string[]; then?: string };
-
-export type Status = { pill: Pill; index?: NeedsIndex };
+/** The live status and what awaits the person in the single Your turn card. */
+export type Status = { pill: Pill; turn?: string };
 
 export type SideItem = { name: string; sub: string; who: Who; on?: boolean };
 /** A sidebar group: its label, how many items it holds, and the ones worth drawing. */
@@ -63,7 +59,7 @@ export interface Chapter {
     cost?: string;
     /** The step's own document and who writes it: one page per step. */
     file?: [string, string];
-    /** The right sidebar, open on one of its two tabs. */
+    /** The right sidebar, open on Comments or Designs; Files stays visible too. */
     right?: "comments" | "designs";
   };
 }
@@ -76,17 +72,17 @@ const TASK = "Retry failed webhooks";
 const TITLE = `${TASK} · QualityLayer`;
 const OTHER = item("Invoice PDFs", "Implement", "ag");
 
-/** The sidebar of a task's window: the task under Needs you on your turn, under Running on an agent's. */
+/** The sidebar moves the task from Your turn to Running when the batch is answered. */
 const sidebar = (turn: Who, sub: string): Group[] => {
   const current = item(TASK, sub, turn === "you" ? "you" : "ag", true);
   return turn === "you"
     ? [
-        { label: "Needs you", count: 1, items: [current], amber: true },
+        { label: "Your turn", count: 1, items: [current], amber: true },
         { label: "Running", count: 1, items: [OTHER] },
         { label: "Shipped", count: 4, items: [] },
       ]
     : [
-        { label: "Needs you", count: 0, items: [], amber: true },
+        { label: "Your turn", count: 0, items: [], amber: true },
         { label: "Running", count: 2, items: [current, OTHER] },
         { label: "Shipped", count: 4, items: [] },
       ];
@@ -121,9 +117,9 @@ export const CHAPTERS: Chapter[] = [
     steps: 6,
     act: { id: "steps", title: "From your request to a pull request", text: "On your own or with your team, a change goes through the same five steps. You decide where a decision is needed, and your agents do the rest." },
     title: "Your agent asks until the goal is clear",
-    text: "Describe the change in your own words. Your agent reads the code, then asks each decision in the App, and its terminal shows a single line while it waits. Click a choice, type your own answer, or ask it to tell you more.",
-    bullets: ["A bug is reproduced and its cause found", "Too small for a plan? You get a ready prompt", "What you decide is written down as Done means"],
-    win: { title: TITLE, view: "task", groups: sidebar("you", "Discuss · question 3"), foot: SOLO, doc: TASK, stage: 0, cost: "$2.10", file: DISCUSS },
+    text: "Describe the change in your own words. Questions arrive together in Your turn. Answer in any order; each answer reaches your agent at once, while it keeps reading the code.",
+    bullets: ["A bug is reproduced and its cause found", "Too small for a plan? You get a ready prompt", "Each answer is recorded in Decided with you"],
+    win: { title: TITLE, view: "task", groups: sidebar("you", "Discuss · 3 questions"), foot: SOLO, doc: TASK, stage: 0, cost: "$2.10", file: DISCUSS },
   },
   {
     id: "plan",
@@ -131,7 +127,7 @@ export const CHAPTERS: Chapter[] = [
     who: "you",
     steps: 5,
     title: "You approve one plan before any code",
-    text: "What needs a decision comes first: the design, and a diagram for each engineering decision. The App asks them one by one in the same card, and the last question is “Approve the Plan?”.",
+    text: "Read the Plan full size, with its design, diagrams and comments. Settle decisions in Your turn and agree to each Done means point, then approve; only a reworded point needs agreement again.",
     bullets: ["Comment on any line or diagram", "Everything the agent decided for you is listed, so you can change it", "A second agent reads the Plan before it reaches you"],
     win: { title: TITLE, view: "task", groups: sidebar("you", "Plan · 2 to answer"), foot: SOLO, doc: TASK, stage: 1, cost: "$5.95", file: PLAN },
   },
@@ -152,7 +148,7 @@ export const CHAPTERS: Chapter[] = [
     steps: 6,
     title: "It is built in slices, on its own",
     text: "From that command on, your agent works on its own until the final review. Every task starts with a failing test, and slices that don’t overlap build side by side.",
-    bullets: ["QualityLayer records every test run itself", "What the agent decided on the way is listed, and you can ask why", "Anything only you can do is listed first in the final review"],
+    bullets: ["QualityLayer records every test run itself", "What the agent decided on the way is listed, and you can ask why", "A login or secret waits in Your turn while other slices keep building"],
     win: { title: TITLE, view: "task", groups: sidebar("ag", "Implement"), foot: SOLO, doc: TASK, stage: 2, cost: "$15.35", file: IMPLEMENT },
   },
   {
@@ -161,7 +157,7 @@ export const CHAPTERS: Chapter[] = [
     who: "ag",
     steps: 7,
     title: "Agents that did not write the code check it",
-    text: "Every check is listed from the start and fills in live: your project checks, each scenario, each point of Done means and a review of every changed file.",
+    text: "Each Done means point keeps its scenarios and evidence together, filling in as agents check it. The live status names what runs now. Project checks and the review of changed files stay available too.",
     bullets: ["Polish and security review come before the checks", "A failure is fixed by the agent, and only what it touched is checked again", "Anything only you can confirm goes to Review"],
     win: { title: TITLE, view: "task", groups: sidebar("ag", "Verify"), foot: SOLO, doc: TASK, stage: 3, cost: "$20.95", file: VERIFY },
   },
@@ -171,7 +167,7 @@ export const CHAPTERS: Chapter[] = [
     who: "you",
     steps: 5,
     title: "You approve the finished change, with its proof",
-    text: "The App asks only what the checks could not settle: what only you can confirm, the result to look at and what the checks found. The last question is “Approve the change?”, and the pull request opens with its proof.",
+    text: "Read the result and proof under each Done means point. Your turn holds what only you can confirm, the result to look at and open findings. Settle them, then approve the change; the pull request opens with its proof.",
     bullets: ["Every changed file is tagged with the task that made it", "Approve and open a pull request, or approve only", "Ask for changes and your notes become the agent’s work"],
     win: { title: TITLE, view: "task", groups: sidebar("you", "Review · 3 to answer"), foot: SOLO, doc: TASK, stage: 4, cost: "$20.95", file: REVIEW },
   },
@@ -180,10 +176,10 @@ export const CHAPTERS: Chapter[] = [
     step: "Draw",
     who: "ag",
     steps: 5,
-    act: { id: "designs", title: "See the page before it is built", text: "Ask your agent to draw a page, open it full size in the App, and point at what should change. It never leaves your computer." },
+    act: { id: "designs", title: "See the page before it is built", text: "Ask your agent to draw a page, open it full size in the App, and point at what should change. The interactive page and its comments stay on your computer." },
     title: "Ask, and your agent draws the page",
     text: "Say “mock up the failed deliveries page”. Your agent draws it as one page, and the App lists it under Designs with what it is for and when it last changed. The Plan shows the one it is about.",
-    bullets: ["Inside a task, or for the whole project", "A dot marks a design you have not opened yet", "Never on a share link, the website or a pull request"],
+    bullets: ["Inside a task, or for the whole project", "A dot marks a design you have not opened yet", "Share links include a still; the interactive page stays on your computer"],
     win: { title: TITLE, view: "task", groups: sidebar("you", "Plan · 2 to answer"), foot: SOLO, doc: TASK, stage: 1, cost: "$4.80", file: PLAN, right: "designs" },
   },
   {
@@ -251,8 +247,8 @@ export const CHAPTERS: Chapter[] = [
     who: "you",
     steps: 5,
     title: "Review the finished change together",
-    text: "Teammates read what changed and its proof, comment on any part and approve. The code itself is reviewed in your pull request.",
-    bullets: ["Their comments reach you in the Comments tab", "People outside the team reopen the same link to read changes", "Sharing sends the plan and progress, never your code or your designs"],
+    text: "Teammates read what changed and its proof. They comment on any part and approve. The code itself is reviewed in your pull request.",
+    bullets: ["Their comments reach you in the Comments tab", "The same link updates through all five steps and keeps unsent comments", "Sharing sends the plan, progress and a still of its design"],
     win: { title: TITLE, view: "task", switch: "personal", groups: sidebar("you", "Review · 1 to answer"), foot: TEAM, doc: TASK, stage: 4, cost: "$20.95", file: REVIEW, right: "comments" },
   },
   {
@@ -294,14 +290,19 @@ export const committedTasks = (step: number) => (step >= 3 ? 2 : 0) + (step >= 4
 export const PASS_AT = [1, 2, 2, 2, 2, 2, 3, 4, 3, 4, 5, 6];
 export const checksPassed = (step: number) => PASS_AT.filter((when) => step >= when).length;
 
+/** The three questions leave the batch as their answers reach the agent. */
+export const questionsLeft = (step: number) => step >= 5 ? 0 : step >= 4 ? 1 : step >= 3 ? 2 : 3;
+
 /** The sidebar of chapter `ch` at moment `step`: what you have answered leaves the count. */
 export function sidebarOf(ch: number, step: number): Group[] {
   const win = CHAPTERS[ch].win;
   switch (CHAPTERS[ch].id) {
     case "discuss":
-      return step >= 4 ? sidebar("you", "Discuss · question 4") : win.groups;
+      return questionsLeft(step) ? sidebar("you", `Discuss · ${questionsLeft(step)} questions`) : sidebar("ag", "Discuss · writing Done means");
     case "plan":
-      return step >= 4 ? sidebar("you", "Plan · approve") : win.groups;
+      return sidebar("you", step >= 3 ? "Plan · approve" : `Plan · ${step >= 2 ? 1 : 2} to agree`);
+    case "review":
+      return sidebar("you", step >= 3 ? "Review · ready to approve" : `Review · ${3 - step} to answer`);
     case "implement":
       return sidebar("ag", `${committedTasks(step)}/5`);
     case "verify":
@@ -321,8 +322,8 @@ export function sidebarOf(ch: number, step: number): Group[] {
 export function tabsOf(ch: number, step: number): Tab[] {
   const { stage } = CHAPTERS[ch].win;
   const id = CHAPTERS[ch].id;
-  const turn: Mark = CHAPTERS[ch].who === "you" ? "you" : "ag";
-  const counts: Record<string, number | undefined> = { discuss: 1, plan: step >= 4 ? 1 : 2, draw: 2, comment: 2, review: step >= 4 ? undefined : 3, ask: 1, together: step >= 4 ? undefined : 1 };
+  const turn: Mark = id === "discuss" && !questionsLeft(step) ? "ag" : CHAPTERS[ch].who === "you" ? "you" : "ag";
+  const counts: Record<string, number | undefined> = { discuss: questionsLeft(step) || undefined, plan: step >= 2 ? 1 : 2, draw: 1, comment: 1, review: step >= 4 ? undefined : Math.max(0, 3 - step), ask: 1, together: step >= 4 ? undefined : 1 };
   return STAGES.map((label, k): Tab => {
     // Verify ends with its three items waiting in Review; the Plan, once approved, lights the line after it.
     if (id === "verify" && step >= 7 && k >= 3) return k === 3 ? { label, mark: "done" } : { label, mark: "you", count: 3 };
@@ -337,42 +338,40 @@ export function tabsOf(ch: number, step: number): Tab[] {
   });
 }
 
-/** The status pill and the index of what needs you, for a task chapter at moment `step` of its scene. */
+/** The top bar's live status and Your turn indicator at each moment of a scene. */
 export function statusOf(ch: number, step: number): Status {
   const at = (n: number) => step >= n;
   switch (CHAPTERS[ch].id) {
     case "discuss": {
-      const q = at(4) ? 4 : 3;
-      return { pill: { kind: "you", head: "Needs you", text: `question ${q}` }, index: { count: "1 thing needs you", to: [`Question ${q}`] } };
+      const left = questionsLeft(step);
+      return { pill: { kind: "ag", head: "Working", text: left ? "reading notify.ts" : "writing Done means" }, ...(left ? { turn: `${left} questions` } : {}) };
     }
     case "plan":
-      return at(4)
-        ? { pill: { kind: "you", head: "Needs you", text: "approve the Plan", meta: "1 open" }, index: { count: "1 thing needs you", to: ["Approve the Plan"] } }
-        : { pill: { kind: "you", head: "Needs you", text: "review the Plan", meta: "2 to answer" }, index: { count: "2 things need you", to: ["Decision 2", "The design"], then: "Approve" } };
+      return { pill: { kind: "you", head: "Waits for you", text: at(3) ? "approve the Plan" : "agree to Done means" }, turn: at(3) ? "approve" : `${at(2) ? 1 : 2} to agree` };
     case "start":
-      return { pill: { kind: "move", head: "Your move", text: "start the build" } };
+      return { pill: { kind: "move", head: "Plan approved", text: "start the build" }, turn: "start" };
     case "implement":
-      return { pill: { kind: "ag", head: "Claude Code", text: `building slice ${at(3) ? 2 : 1} of 3`, meta: "2 agents" } };
+      return { pill: { kind: "ag", head: "Working", text: `building slice ${at(3) ? 2 : 1} of 3` } };
     case "verify":
       return at(7)
-        ? { pill: { kind: "you", head: "Waits for your review", text: "", meta: "3 items" } }
-        : { pill: { kind: "ag", head: "Claude Code", text: `checking ${checksPassed(step)} of 12`, meta: "3 agents" } };
+        ? { pill: { kind: "you", head: "Waits for you", text: "review the change" }, turn: "3 items" }
+        : { pill: { kind: "ag", head: "Working", text: `checking ${checksPassed(step)} of 12` } };
     case "review":
-      return at(4)
-        ? { pill: { kind: "you", head: "Waits for your review", text: "", meta: "ready to approve" }, index: { count: "1 thing needs you", to: ["Approve the change"], then: "3 settled" } }
-        : { pill: { kind: "you", head: "Needs you", text: "review the change", meta: "3 to answer" }, index: { count: "3 things need you", to: ["Only you can confirm", "Look at the result", "Found while checking"] } };
+      return at(3)
+        ? { pill: { kind: "you", head: "Waits for you", text: "approve the change" }, turn: "approve" }
+        : { pill: { kind: "you", head: "Waits for you", text: "review the change" }, turn: `${Math.max(0, 3 - step)} to answer` };
     case "draw":
-      return { pill: { kind: "you", head: "Needs you", text: "review the Plan", meta: "2 to answer" }, index: { count: "2 things need you", to: ["The design", "Decision 2"], then: "Approve" } };
+      return { pill: { kind: "ag", head: "Working", text: "drawing failed deliveries" }, turn: "1 design" };
     case "comment":
       return at(3) && !at(5)
-        ? { pill: { kind: "ag", head: "Claude Code", text: "changing the design" } }
-        : { pill: { kind: "you", head: "Needs you", text: "the Plan" } };
+        ? { pill: { kind: "ag", head: "Working", text: "changing the design" } }
+        : { pill: { kind: "you", head: "Waits for you", text: "the design" }, turn: "1 design" };
     case "ask":
-      return { pill: { kind: "you", head: "Needs you", text: "review the Plan", meta: at(5) ? "Dana answered" : at(2) ? "waits for Dana" : "1 to answer" }, index: { count: "1 thing needs you", to: [at(5) ? "Dana’s change" : "Decision 2"], then: "Approve" } };
+      return { pill: { kind: "you", head: "Waits for you", text: at(5) ? "Dana’s change" : "review the Plan" }, turn: "1 to answer" };
     case "together":
       return at(4)
-        ? { pill: { kind: "you", head: "Waits for your review", text: "", meta: "ready to approve" } }
-        : { pill: { kind: "you", head: "Needs you", text: "a comment from Ben" }, index: { count: "1 thing needs you", to: ["Ben’s comment"], then: "Approve" } };
+        ? { pill: { kind: "you", head: "Waits for you", text: "approve the change" }, turn: "approve" }
+        : { pill: { kind: "you", head: "Waits for you", text: "Ben’s comment" }, turn: "1 comment" };
     default:
       return { pill: { kind: "ok", head: "", text: "" } };
   }

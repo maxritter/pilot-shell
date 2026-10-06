@@ -1,6 +1,9 @@
 <div align="center">
 
-<img src="docs/site/public/logo.png" alt="QualityLayer" width="120">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/brand/qualitylayer-mark.svg">
+  <img src="docs/site/public/brand/qualitylayer-mark-light.svg" alt="QualityLayer" width="120">
+</picture>
 
 # QualityLayer
 
@@ -9,10 +12,22 @@
 You approve one plan before any code is written. Your agent builds it test first.<br>
 **Then agents that did not write the code check the result against your request.**
 
-[![Stars](https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&color=F59E0B)](https://github.com/maxritter/pilot-shell)
-[![Star History](https://img.shields.io/badge/Star_History-chart-8B5CF6)](https://star-history.com/#maxritter/pilot-shell&Date)
-[![Downloads](https://img.shields.io/github/downloads/maxritter/pilot-shell/total?color=3B82F6)](https://github.com/maxritter/pilot-shell/releases)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-2076C5.svg)](https://github.com/maxritter/pilot-shell/pulls)
+<a href="https://github.com/maxritter/pilot-shell"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&amp;color=9d6607&amp;labelColor=30363d">
+  <img src="https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&amp;color=9d6607&amp;labelColor=555555" alt="Stars">
+</picture></a>
+<a href="https://star-history.com/#maxritter/pilot-shell&amp;Date"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Star_History-chart-6f4fc2?labelColor=30363d">
+  <img src="https://img.shields.io/badge/Star_History-chart-6f4fc2?labelColor=555555" alt="Star History">
+</picture></a>
+<a href="https://github.com/maxritter/pilot-shell/releases"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/downloads/maxritter/pilot-shell/total?color=2076c5&amp;labelColor=30363d">
+  <img src="https://img.shields.io/github/downloads/maxritter/pilot-shell/total?color=2076c5&amp;labelColor=555555" alt="Downloads">
+</picture></a>
+<a href="https://github.com/maxritter/pilot-shell/pulls"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/PRs-welcome-2076C5.svg?labelColor=30363d">
+  <img src="https://img.shields.io/badge/PRs-welcome-2076C5.svg?labelColor=555555" alt="PRs Welcome">
+</picture></a>
 
 <p>
   <a href="#install">Install</a> •
@@ -48,12 +63,12 @@ curl -fsSL https://qualitylayer.dev/install.sh | bash
 **QualityLayer works inside the agent you already use.** Claude Code or Codex does the work in the terminal, its desktop app or your IDE. You answer in the QualityLayer App, which shows what each question is about:
 
 - **One plan before any code:** the design and each engineering decision as a diagram you can comment on. Then the slices, and the scenarios that prove the change works.
-- **One question at a time:** your agent asks each decision in the App, with its recommendation: click a choice, type your own answer, or ask it to tell you more. The last question is the approval of the plan.
-- **Designs on your computer:** ask your agent to draw a page, open it full size in the App, and point at what should change. A design is never shared.
+- **Questions in batches:** one Your turn card holds the decisions you can make now. Answer in any order; each answer reaches the agent immediately, while it keeps working on the rest. Approving the plan is a separate action.
+- **Designs on your computer:** ask your agent to draw a page, open it full size in the App, and point at what should change. The interactive page and its comments stay local; a share link can show a still of the Plan's design.
 - **Built test first:** every task starts with a failing test, and QualityLayer records every test run itself.
-- **No waiting while it builds:** when something does not go as planned, your agent takes the recommended way and lists it for you to read afterwards.
+- **Routine decisions handled:** your agent takes the recommended way and records it. If it needs a login or secret, you provide it while other slices keep building.
 - **Checked for you:** agents that did not write the code check every point of your request against the running program. You watch a live checklist and can open the evidence.
-- **Only what needs you:** what an agent can check folds into one line of proof, and what only you can confirm is asked at the end.
+- **Your turn:** questions and approvals wait in one card. Each Done means point keeps its proof beside it, and Review asks what only you can confirm.
 - **Your team, early:** teammates answer questions about the plan while it is still cheap to change, with their own agent if they like.
 - **You stay in charge of cost:** pick the models, and see the time and estimated cost of every step.
 
@@ -146,7 +161,7 @@ Describe a change to your agent in any repository:
 $ql retry failed webhooks, and stop after a few tries     # Codex
 ```
 
-Or click **+ New** in the App: say what you want, pick the model, the effort and where it starts, and copy one command. Your agent asks each decision in the App, and its terminal shows a single line while it waits. Click a choice, type your own answer, or ask it to tell you more. The last question is "Approve the Plan?". `qualitylayer app` opens the App any time.
+Or click **+ New** in the App: say what you want, pick the model, the effort and where it starts, and copy one command. Your agent asks each decision in the App, and its terminal shows a single line while it waits. Questions come in batches in **Your turn**: click a choice, type your own answer, or ask it to tell you more. Each answer goes to the agent immediately. Settle the decisions, then approve the Plan. `qualitylayer app` opens the App any time.
 
 After you approve, Implement opens with your Build defaults and one command that starts the build, such as `claude --model opus --effort high "/goal /ql implement retry-webhooks"`. From there your agent works on its own until the final review.
 
@@ -167,18 +182,18 @@ Feedback is sent only when you press Send feedback. It becomes one issue in a pr
 
 ### Five steps from request to pull request
 
-Every task takes the same five steps. You decide twice: when you approve the plan, and when you approve the finished change.
+Every task takes the same five steps. You approve twice: the plan before any code, and the finished change.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/flow-dark.svg">
   <img src="docs/docusaurus/static/img/diagrams/flow-light.svg" alt="Discuss, Plan, Implement, Verify, Review: you approve at Plan and at Review; your agent works in between" width="1000">
 </picture>
 
-- **Discuss:** your agent reads the code and asks one question at a time, each with its recommendation, in a card above the page. The page shows what you decided and what done means. A bug is reproduced and its cause found first.
-- **Plan:** the design and each engineering decision as a diagram, then the slices and the scenarios that prove the change works. A second agent reads the plan before it reaches you. The same card takes each decision in turn, then asks "Approve the Plan?".
-- **Implement:** the App opens with your Build defaults and one command that starts the build: an orchestrator that writes no code, and workers that build the slices. Every task starts with a failing test. Nothing waits for you: when something does not go as planned, your agent takes the recommended way and lists it under "Decided while building".
+- **Discuss:** your agent reads the code and asks independent questions in batches, each with its recommendation, in **Your turn**. Answer in any order; the page records each answer immediately. Agree to each **Done means** point separately. A bug is reproduced and its cause found first.
+- **Plan:** read the design, diagrams, slices and checks full size, with comments beside them. A second agent reads the plan before it reaches you. Settle its decisions in **Your turn**, then approve it. If a Done means point changes, only that point needs your agreement again.
+- **Implement:** the App opens with your Build defaults and one command that starts the build: an orchestrator that writes no code, and workers that build the slices. Every task starts with a failing test. Routine decisions appear under "Decided while building". A login or secret only you can provide appears in **Your turn**; other slices keep building.
 - **Verify:** polish and, across a trust boundary, a security review, then agents that did not write the code check every point of your request, on a live checklist.
-- **Review:** the App asks the few items left and shows the result to look at. The last question is "Approve the change?", and the pull request opens with its proof.
+- **Review:** read the result and proof under each **Done means** point. Settle the remaining questions in **Your turn**, then approve the change. The pull request opens with its proof.
 
 Each step is one Markdown file in the task's folder, from `01-discuss.md` to `05-review.md`, written for you; the agents' own records go to `agent/`. On GitHub the files read as plain Markdown.
 
@@ -193,11 +208,11 @@ QualityLayer records every test run itself, with its exit code, so a passing cla
   <img src="docs/docusaurus/static/img/diagrams/slices-light.svg" alt="Slices built test first, two of them side by side, a checkpoint after the risky slice; then polish and security review side by side, then agents check every point" width="1000">
 </picture>
 
-While agents check, every check is listed from the start and fills in live.
+While agents check, every **Done means** point keeps its checks and evidence together. Their live status shows what is being checked now.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/screen-verify-dark.png">
-  <img src="docs/docusaurus/static/img/diagrams/screen-verify-light.png" alt="The Verify step in the App: Agents are checking, 12 of 22 checks passed, with project checks, scenarios and the points of Done means listed, and Nothing needs you while it checks" width="1000">
+  <img src="docs/docusaurus/static/img/diagrams/screen-verify-light.png" alt="The Verify step in the App, with the checks and their evidence" width="1000">
 </picture>
 
 ### The models you choose, the cost you can see
@@ -215,12 +230,7 @@ Settings keeps it short. Planning defaults and Build defaults set the model, the
 
 <h2 id="app">The QualityLayer App</h2>
 
-The App is where you answer, read and look, on macOS, Windows and Linux. Each step is one page: its document, with the live parts drawn over it, and one line at the top that names what needs you. A pill in the header always says what is going on: an agent at work, a question for you, or your move. The right sidebar holds the task's Comments and its Designs. Close the App, and your tasks keep running: a notification, and the band in Claude Code, tell you when something needs you.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/app-dark.svg">
-  <img src="docs/docusaurus/static/img/diagrams/app-light.svg" alt="The QualityLayer App: the sidebar, the five step tabs, the step line with Approve, the items that need you, the line of what agents checked, and the plan" width="1000">
-</picture>
+The App is where you answer, read and comment, on macOS, Windows and Linux. Each step has a live status at the top, **Your turn** beside the work, and the document. The status says what the agent is working on, when it needs you, and whether it is quiet or stopped. The right sidebar holds **Comments**, **Files** and **Designs**. Open the Plan full size to read with its outline and comments beside it. Home shows what needs you, what is running, and what shipped, with time and estimated cost when available. Close the App, and your tasks keep running.
 
 Each item has its own two answers. Agree or change a decision. Looks right, or change a design. Confirm what only you can confirm. Accept or fix a finding.
 
@@ -229,14 +239,14 @@ Each item has its own two answers. Agree or change a decision. Looks right, or c
   <img src="docs/docusaurus/static/img/diagrams/items-light.svg" alt="Five families of items, each with its answers: Decide, Look, Confirm, Fix and Answer" width="1000">
 </picture>
 
-An answer goes to your waiting agent at once; Change on its receipt corrects it. The App never starts, pauses or stops an agent. After you approve the plan, it opens Implement with your Build defaults drawn as the build: the orchestrator, its workers, one effort for both, and one command to copy.
+Each answer goes to your agent at once and leaves **Your turn**. **Undo** is available for five seconds; **Change** corrects an earlier answer. The agent keeps working on anything that does not depend on an open answer. After you approve the plan, Implement opens with your Build defaults: the orchestrator, its workers, one effort for both, and one command to copy.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/implement-start-dark.svg">
   <img src="docs/docusaurus/static/img/diagrams/implement-start-light.svg" alt="Implement Start: Build with Claude Code, Codex or another agent; the orchestrator and its workers with their models; one effort for both; one command with a Copy button" width="1000">
 </picture>
 
-**Designs.** Ask your agent to "mock up the settings page" and it draws one HTML page in your project. The App lists it under Designs, opens it full size, and takes a comment on any spot. The agent changes the same page and says in one line what changed. Designs stay on your computer: never on a share link, the website or a pull request.
+**Designs.** Ask your agent to "mock up the settings page" and it draws one HTML page in your project. The App lists it under Designs, opens it full size, and takes a comment on any spot. The agent changes the same page and says in one line what changed. The interactive page and its comments stay on your computer; a share link can show a still of the Plan's design.
 
 Updates arrive quietly: the App checks once a day, downloads in the background and shows an Update ready line with the release notes. Feedback is one click in the sidebar.
 
@@ -267,7 +277,7 @@ With a Team plan, teammates help shape the plan and review the change, each from
   <img src="docs/docusaurus/static/img/diagrams/team-change-light.svg" alt="Change review: the team comments on the finished change; open comments go back to your agent, which settles each one" width="1000">
 </picture>
 
-The Team space lists the questions waiting for you first, then your questions to others, with a reminder at most every four hours, and what each teammate is working on. People outside the team read and comment through a link, without an account; they cannot approve. The link always shows the task as it stands, with the time it was last updated. Sharing sends the plan and its progress, encrypted on your machine, and never your code or your designs.
+The Team space lists the questions waiting for you first, then your questions to others, with a reminder at most every four hours, and what each teammate is working on. People outside the team read and comment through a link, without an account; they cannot approve. The link always shows the task as it stands, with the time it was last updated. Sharing sends the plan and its progress, encrypted on your machine. Links can include a still of the Plan's design; your code and the interactive design page stay local.
 
 ### Agent sessions that message each other
 

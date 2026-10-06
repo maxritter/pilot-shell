@@ -3,32 +3,50 @@ title: The App
 description: Where you answer, read and comment while your agent works. One page per step, one layout for all five.
 ---
 
-Your agent asks every decision in the QualityLayer App, and its terminal shows a single line while it waits. The App is where you answer and where you read and look: the Plan and its diagrams, the designs, the result, the proof. It never starts or stops an agent; close it any time and your agents keep working.
+Your agent groups independent questions into batches in the QualityLayer App. You answer in one **Your turn** card, while the agent keeps working on anything that does not depend on those answers. Read the Plan, comment on its diagrams and designs, and follow the build and its proof. Close the App any time; your agents keep working.
 
 It runs on macOS, Windows and Linux. Without a screen, `qualitylayer app` opens it in your browser.
 
 ## One page for every step
 
-![The App with numbered parts: the sidebar, the status pill, the step tabs, the line of what needs you, the question card, the step's page, and the right sidebar](pathname:///img/diagrams/app-marked-light.svg)
-![The App with numbered parts: the sidebar, the status pill, the step tabs, the line of what needs you, the question card, the step's page, and the right sidebar](pathname:///img/diagrams/app-marked-dark.svg)
-
 | Part | What it does |
 | --- | --- |
-| **1** Sidebar | Your tasks: **Needs you**, **Running** and **Shipped**. **+ New** beside the logo starts a task |
-| **2** Status pill | Always says what is going on: an agent at work, a question for you, or your move outside the App |
-| **3** Step tabs | Where the task stands; an amber number means something waits for you |
-| **4** What needs you | One line at the top of the step; each name jumps to its place on the page |
-| **5** The question | The card your agent asks in: its choices, your own answer, **Tell me more** |
-| **6** The page | The step's document, with the live parts drawn over it: the build, the checklist, your answers |
-| **7** Right sidebar | The task's **Comments** and its **Designs** |
+| Sidebar | Your tasks under **Your turn**, **Running** and **Shipped**. **+ New** starts a task |
+| Live status | What the agent is working on, when it needs you, and whether it is quiet or stopped. Open it for details |
+| Step track in the top bar | Where the task stands in Discuss, Plan, Implement, Verify and Review |
+| Now | **Your turn** when a decision waits for you; the agent's progress while it works |
+| Your turn | One card for open questions, agreements and approvals |
+| Document | The step's page, with your answers, the build and its proof |
+| Right sidebar | **Comments**, **Files** and **Designs** |
 
 The file chip under the title names the step's document. Its menu copies the path, opens the file in your editor, reveals it in the Finder, or opens the task folder.
 
-## Answering a question {#questions}
+## Answering questions {#questions}
 
-Each question comes with its recommendation. Click a choice, press its number, type your own answer, or choose **Tell me more** and your agent explains it first. **Not sure, use your recommendation** takes the agent's pick. An answer goes out at once; **Change** on its receipt corrects it. If the agent stopped waiting, your answer is kept and it reads it when the task continues.
+Questions come in batches. Answer in any order: each has a recommendation, choices and a place for your own answer. Choose **Tell me more** for an explanation, or **Not sure, use your recommendation** to take the agent's pick.
 
-You can also tell your agent in its chat to answer or approve for you, in your own words. The App shows that it did, with your words.
+Each answer goes to the agent at once and appears in **Decided with you**. The item leaves **Your turn**, and the card, sidebar and notification counts update together. **Undo** is available for five seconds; **Change** corrects an earlier answer. If the agent has stopped, your answer stays saved for when it continues.
+
+The agent keeps working on independent parts of the task while questions remain open. Answering a batch does not approve the Plan or the finished change; each approval remains your own action.
+
+## Agreements and live status
+
+Agree to each **Done means** point separately. If its words change, you see the old and new wording and agree again to that point. Unchanged points keep your agreement.
+
+The top bar shows the agent's live status: what it is doing, waiting for you, quiet, stopped or finished with the step. Open the status for details and, when it has stopped, the command to continue. Answers and comments stay saved.
+
+## Full-size reading
+
+Open a document full size to collapse the task list and give the page more room. Keep the outline and right sidebar beside it, jump between sections, and comment as you read. Exit full size to return to the task view.
+
+## Home
+
+Home brings together what needs your answer, what your agents are working on, and what shipped. Shipped tasks show their time and estimated cost when those records are available.
+
+The notification bell keeps questions, comments and stopped tasks within reach. Its count updates as you answer. Home also shows how many tasks are in each step.
+
+![Home with Your turn, agents at work, shipped tasks with time and estimated cost, counts in each step and notifications](pathname:///img/diagrams/home-light.svg)
+![Home with Your turn, agents at work, shipped tasks with time and estimated cost, counts in each step and notifications](pathname:///img/diagrams/home-dark.svg)
 
 ## Items and their answers {#items}
 
