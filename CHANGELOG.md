@@ -6,6 +6,11 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 ### New
 
+- Every task shows one live status at the top: what the agent is doing, whether something waits for you, and whether the agent is still alive. Click it for the details. It comes from the agent's own activity, never from the agent remembering to report.
+- The header shrinks to one line as you scroll, and the step line under the tabs is gone; its buttons sit in a plain row.
+- When the build needs something only you can give, like a key or a login, it keeps building everything else and shows a card under the slice that waits. You set the secret in your own environment and press "Done, it's set"; the App never takes the key itself.
+- You get a notification when a question, a need or a permission prompt waits for you, or when an agent stops. The dock badge and the window title count what waits for you.
+- In Claude Code, the band shows where the build is (slice and task) and roughly how long is left.
 - `qualitylayer plan renumber --insert N` makes room for a new slice in the middle of a build. Later slices are renumbered everywhere, and your decisions stay as you approved them.
 
 ### Fixed
