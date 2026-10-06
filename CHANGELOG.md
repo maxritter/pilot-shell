@@ -12,6 +12,10 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Your agent can approve a step or answer for you when you ask it to in your own words in its chat. The App shows that it did, with your words.
 - `peers list` says what every live session is doing even when it set no status: its QualityLayer task and step, its own title, or the first thing it was asked, each marked as a guess. Each session also shows its git branch and how long ago it last did something, and nothing that looks like a password, key or token is ever shown.
 
+### Fixed
+
+- A large task opens in the App again. A task in Review with many tasks and many changed files on its branch stayed on "Loading…" for over a minute and slowed every other page. It now opens in about half a second, and in a few seconds the first time after the App starts.
+
 ### Good to know
 
 - During a build, Claude Code can no longer stop to ask you a question.
