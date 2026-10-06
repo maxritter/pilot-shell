@@ -6,22 +6,26 @@ description: Your agent reads the code and asks until it knows what you want and
 ![The five steps, with Discuss highlighted](pathname:///img/diagrams/track-discuss-light.svg)
 ![The five steps, with Discuss highlighted](pathname:///img/diagrams/track-discuss-dark.svg)
 
-Describe the change in your own words: **+ New** in the App, or `/ql <request>` in your agent (`$ql` in Codex). Your agent reads the code first, then asks one question at a time, each with its recommendation, so one click is often all it takes.
+Describe the change in your own words: **+ New** in the App, or `/ql <request>` in your agent (`$ql` in Codex). Your agent reads the code first, then groups the questions it can ask together into a batch. Each comes with its recommendation.
 
-![Discuss: your agent asks one question at a time in the App, with its recommendation, while its terminal shows one line; what you decide is written down on the page; a change too small for QualityLayer gets a ready prompt instead](pathname:///img/diagrams/discuss-light.svg)
-![Discuss: your agent asks one question at a time in the App, with its recommendation, while its terminal shows one line; what you decide is written down on the page; a change too small for QualityLayer gets a ready prompt instead](pathname:///img/diagrams/discuss-dark.svg)
+## Questions in batches {#the-question}
 
-## The question you are asked {#the-question}
+One **Your turn** card holds the open questions beside the document. Answer in any order: click a choice, type your own answer, choose **Tell me more**, or take the recommendation when you are not sure.
 
-The question sits in a card above the page, with how many are probably still to come. Click a choice, type your own answer, ask the agent to **Tell me more**, or say you're not sure and take its recommendation. An easy question gets one line of context; a hard one gets the facts for each choice, and the hardest a small diagram. Your agent's terminal shows a single line while it waits. See [Answering a question](../app.md#questions).
+Each answer reaches your agent immediately. It keeps working on anything that does not depend on an open answer, and asks a follow-up batch when your answers raise another decision. The card and its counts update together; **Undo** is available for five seconds. See [Answering questions](../app.md#questions).
+
+The live status at the top says what your agent is doing. Open it to see whether it is working, waiting for you, quiet or stopped.
+
+![Discuss: independent questions in one Your turn card, answered in any order while the agent works on the scope](pathname:///img/diagrams/discuss-light.svg)
+![Discuss: independent questions in one Your turn card, answered in any order while the agent works on the scope](pathname:///img/diagrams/discuss-dark.svg)
 
 ## The page {#the-page}
 
-Discuss is one document, `01-discuss.md`: the problem in your own words, **Done means**, what you **decided with** your agent, and the scope. Each answer lands in its row of **Decided with you**, and **Change** reopens it.
+Discuss is one document, `01-discuss.md`: the problem in your own words, **Done means**, what you **decided with** your agent, and the scope. Each answer lands in **Decided with you** at once. Use **Change** to correct an earlier answer. Open the document full size to read and comment with its outline beside it.
 
 ## What done means {#done-means}
 
-**Done means** is the numbered list of results you will accept the change by. Verify later checks every point, so read them with care: **Looks right**, or **Change**. You approve them together with the Plan.
+**Done means** is the numbered list of results you will accept the change by. Verify later checks every point, so read and agree to each one separately. If the agent rewords a point, only that point comes back for agreement, with the old and new words shown. Your agreement to the others stays saved. Approving the Plan is a separate action.
 
 ## Too small for QualityLayer {#too-small}
 

@@ -1,7 +1,7 @@
 /**
  * Words the site never shows: the App's internal terms (Max's copy rules and the glossary of the
  * App redesign), and the names of elements the redesign removed. The tests read every page's text
- * against this list; the words to use instead are Needs you, passed, Checked by agents, Found
+ * against this list; the words to use instead are Your turn, passed, Checked by agents, Found
  * while checking, Only you can confirm, Questions for you, Agents are building / checking.
  */
 export const BANNED_WORDS =
