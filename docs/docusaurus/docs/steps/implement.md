@@ -23,15 +23,15 @@ Copy the command into a terminal, your IDE or a desktop app. The build starts fr
 
 From the command on, your agent builds and checks the approved Plan through to the final review. You can still write to it at any time, for example to add something to the Plan.
 
-![The Implement step: the status pill says Claude Code is building and nothing needs you; what the agent decided on its own is listed under Decided while building, with Ask why; the slices fill in with what each agent does now](pathname:///img/diagrams/implement-light.svg)
-![The Implement step: the status pill says Claude Code is building and nothing needs you; what the agent decided on its own is listed under Decided while building, with Ask why; the slices fill in with what each agent does now](pathname:///img/diagrams/implement-dark.svg)
+![Implement: a login waits in Your turn while another slice keeps building; the live status names the slice, and the document records the build and its checks](pathname:///img/diagrams/implement-light.svg)
+![Implement: a login waits in Your turn while another slice keeps building; the live status names the slice, and the document records the build and its checks](pathname:///img/diagrams/implement-dark.svg)
 
 - **Vertical slices.** Each slice works end to end and is tested on its own, test first. Slices that share no files build side by side.
 - **An orchestrator with a fresh context** hands out the slices and takes the hard problems; the routine work runs on a cheaper, faster model.
 - **Checks are recorded by QualityLayer,** not reported by the agent.
 - **The agent handles routine decisions.** When something does not go as planned, it takes the recommended way and lists it under **Decided while building**, where you can **Ask why**.
 
-If the build needs a login, a secret or something only you can provide, a card appears under the slice that needs it. Set it in your own environment, then press **Done, it’s set**. The App never takes the secret itself. Other slices keep building; when no other work remains, the agent waits for that need to be resolved.
+If the build needs a login, a secret or something only you can provide, **Your turn** names the slice that needs it. Set it in your own environment, then press **Done, it’s set**. The App never takes the secret itself. Other slices keep building; when no other work remains, the agent waits for that need to be resolved. When nothing waits for you, the agent's turn shows what is being built.
 
 The page is `03-implement.md`, which QualityLayer keeps current from the build's records. You can comment on any slice while it builds; the agent reads comments after each task.
 

@@ -1,7 +1,7 @@
 /**
  * The website's questions and answers. Each answer must hold for the product as it
  * ships; when the product changes, change it here. Plain text only: the home page's
- * structured data reuses these answers. Words follow the App's glossary: Needs you, passed,
+ * structured data reuses these answers. Words follow the App's glossary: Your turn, passed,
  * Checked by agents, Found while checking, Only you can confirm, Questions for you.
  */
 
@@ -20,7 +20,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "How is this different from plan mode?",
-    "Plan mode gives you a plan in the chat. QualityLayer gives you one plan with diagrams and a design to comment on. Your agent asks you each decision in the App, one at a time. It builds the plan test first, and agents that did not write the code check the result.",
+    "Plan mode gives you a plan in the chat. QualityLayer gives you one plan with diagrams and a design to comment on. Independent questions come in batches in Your turn. Answer in any order; each answer reaches your agent immediately, while it keeps working on the rest. It builds the plan test first, and agents that did not write the code check the result.",
   ),
   faq(
     "What about small changes and bugs?",

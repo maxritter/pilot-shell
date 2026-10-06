@@ -1,6 +1,6 @@
-import { Archive, ArrowDown, ArrowLeft, ArrowRight, BookOpen, ChevronDown, Expand, FileText, MessageSquare, MessageSquarePlus, PanelRight, Plus, Settings, SquareTerminal, Sun, Trash2 } from "lucide-react";
+import { ArrowLeft, BookOpen, ChevronDown, Expand, MessageSquare, MessageSquarePlus, Plus, Settings, SquareTerminal, Sun } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { CHAPTERS, PARTS, partOf, sidebarOf, statusOf, tabsOf, type Mark, type Pill, type Who } from "@/lib/tour";
+import { CHAPTERS, PARTS, partOf, sidebarOf, statusOf, tabsOf, type Pill, type Who } from "@/lib/tour";
 import TourScenes, { RightSide } from "./TourScenes";
 
 /** The header's height; the window and the step bar pin below it. */
@@ -10,7 +10,6 @@ const WIDE = 1080;
 const PHONE = 640;
 
 const dot = (who: Who) => (who === "you" ? "sx-you" : who === "ok" ? "sx-ok" : "sx-ag");
-const tabDot = (mark: Mark) => (mark === "done" ? "sx-ok" : mark === "you" ? "sx-you" : mark === "ag" ? "sx-ag" : "sx-todo");
 const SETTINGS_TABS = ["Workflow", "Licence", "Team", "About"];
 
 /** `inline`: below WIDE every chapter carries its own window; above it one window stays pinned beside the chapters. */
@@ -30,7 +29,7 @@ function StatusPill({ pill, compact = false }: { pill: Pill; compact?: boolean }
       <b>{pill.head}</b>
       {pill.text && !compact && <span>· {pill.text}</span>}
       {pill.meta && !compact && <em>{pill.meta}</em>}
-      {pill.kind === "you" ? <ArrowRight size={12} aria-hidden="true" /> : <ChevronDown size={12} aria-hidden="true" />}
+      <ChevronDown size={12} aria-hidden="true" />
     </span>
   );
 }
@@ -42,14 +41,16 @@ function AppWindow({ i, step, tries, onRetry, layout, only = false }: WinProps) 
   const design = w.view === "design";
   const status = task || design ? statusOf(i, step) : null;
   const tabs = tabsOf(i, step);
-  const { lw, lh, sc, side } = layout;
+  const { lw, lh: baseHeight, sc, side } = layout;
+  // Stacked proof and Home's summary need their full height on a phone.
+  const lh = !side && ["verify", "review", "agents"].includes(c.id) ? 680 : baseHeight;
   const right = side && task ? w.right : undefined;
   return (
     <div role="region" aria-label={`The QualityLayer App: ${c.title}`} className="sx-win" style={{ width: Math.round(lw * sc) + 2 }}>
       <div className="sx-bar" aria-hidden="true"><i /><i /><i /><span>{w.title}</span></div>
       {/* An illustration of the App; the chapter beside it says the same in words. */}
       <div className="sx-fit" aria-hidden="true" style={{ height: Math.round(lh * sc) }}>
-        <div className={`sx-scale${side ? "" : " sx-nw"}${right ? " sx-rson" : ""}`} style={{ width: lw, height: lh, transform: `scale(${sc})` }}>
+        <div className={`sx-scale${side ? "" : " sx-nw"}${right ? " sx-rson" : ""}${c.id === "plan" && step >= 4 ? " sx-planfull" : ""}`} style={{ width: lw, height: lh, transform: `scale(${sc})` }}>
           {side && (
             <aside className="sx-side">
               <p className="sx-sbrand"><span aria-hidden="true" className="sx-mark" />QualityLayer<span className={`sx-new${c.id === "agents" ? " on" : ""}`}><Plus size={11} />New</span></p>
@@ -95,60 +96,36 @@ function AppWindow({ i, step, tries, onRetry, layout, only = false }: WinProps) 
                 <span className="sx-dicon sx-hide" title="Full screen"><Expand size={13} /></span>
               </div>
             )}
-            {!design && (
-              <div className={`sx-mh${task ? " sx-mht" : ""}`}>
+            {task && status ? (
+              <div className="sx-taskbar">
+                <b className="sx-taskname">{w.doc}</b>
+                <ol className="sx-track" aria-label="Steps of this task">
+                  {tabs.map((t) => <li key={t.label} className={t.mark === "you" || t.mark === "ag" ? "cur" : ""}>{t.label}</li>)}
+                </ol>
+                <StatusPill pill={status.pill} />
+                {status.turn && <span className="sx-turn-pill"><i className="sx-you" />Your turn<small> · {status.turn}</small></span>}
+                <span className="sx-taskmenu" aria-hidden="true">···</span>
+              </div>
+            ) : !design && (
+              <div className="sx-mh">
                 <div className="sx-mhl">
                   <p className="sx-mt">{w.doc}</p>
                   {w.sub && <p className="sx-sub">{w.sub}</p>}
                 </div>
-                {task && (
-                  <span className="sx-hicons">
-                    <span className="sx-dicon"><Archive size={13} /></span>
-                    <span className="sx-dicon"><Trash2 size={13} /></span>
-                    {!right && <span className="sx-dicon sx-hide"><PanelRight size={13} /></span>}
-                  </span>
-                )}
-                {task && status && w.file && (
-                  // The step's file opens a menu (its path, Copy path, Open in editor, Reveal), then the live status, Cost and Share.
-                  <div className="sx-mrow2">
-                    <span className="sx-fchip"><FileText size={12} /><b>{w.file[0]}</b><small>{w.file[1]}</small><ChevronDown size={11} /></span>
-                    <span className="sx-bchip sx-hide">main</span>
-                    <StatusPill pill={status.pill} />
-                    <span className="sx-tool sx-hide">Cost · {w.cost}</span>
-                    <span className="sx-tool sx-hide">Share</span>
-                  </div>
-                )}
               </div>
-            )}
-            {task && (
-              <ol className="sx-tabs" aria-label="Steps of this task">
-                {tabs.map((t, k) => (
-                  <li key={t.label} className={`sx-tab${t.mark === "you" || t.mark === "ag" ? " cur" : ""}`}>
-                    <span aria-hidden="true" className={tabDot(t.mark)} />{t.label}{t.count ? <b className={`sx-cnt${t.mark === "ag" ? " ag" : ""}`}>{t.count}</b> : null}
-                    {k === 1 && <i aria-hidden="true" className={`sx-appr${t.lit ? " lit" : ""}`} />}
-                  </li>
-                ))}
-              </ol>
             )}
             {w.view === "settings" && (
               <ol className="sx-tabs" aria-label="Settings">
                 {SETTINGS_TABS.map((t, k) => <li key={t} className={`sx-tab${k === 0 ? " cur" : ""}`}>{t}</li>)}
               </ol>
             )}
-            {task && status?.index && (
-              // What needs you, in one line at the top of the step; each name jumps to its place.
-              <div className="sx-idx">
-                <span aria-hidden="true" className="sx-you" />
-                <b>{status.index.count}</b>
-                {status.index.to.map((to) => <span key={to}>{to}<ArrowDown size={11} /></span>)}
-                {status.index.then && <em>then <span>{status.index.then}<ArrowDown size={11} /></span></em>}
+            <div className="sx-taskcontent">
+              <div className="sx-body">
+                <TourScenes ch={i} step={step} tries={tries} onRetry={onRetry} only={only} />
               </div>
-            )}
-            <div className="sx-body">
-              <TourScenes ch={i} step={step} tries={tries} onRetry={onRetry} only={only} />
+              {right && <RightSide ch={i} step={step} tab={right} />}
             </div>
           </div>
-          {right && <RightSide ch={i} step={step} tab={right} />}
         </div>
       </div>
     </div>
