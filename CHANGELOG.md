@@ -54,7 +54,7 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   pane opens with `/task-pane`. `/ql` opens the workflow. Updates remove only
   QualityLayer's old `ql-peers` files and preserve your own.
 
-### Team and sharing
+### Good to know
 
 - Shared tasks and links follow all five steps without a reload. Your draft
   stays in place while the page updates, and revoked links stay revoked.
