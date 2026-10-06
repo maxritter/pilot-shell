@@ -282,11 +282,13 @@ scrollcraft/
 
 # Public documentation is opt-in. Keep plans, reviews, research, buildouts,
 # recordings, and other working documents local unless deliberately published
-# inside one of these three public trees.
+# inside one of these public trees. docs/video/ (the film's sources) is tracked
+# but git-crypt encrypted; its renders and node_modules stay out (docs/video/.gitignore).
 /docs/*
 !/docs/docusaurus/
 !/docs/site/
 !/docs/img/
+!/docs/video/
 
 # Local design settings, critique reports, and iteration state.
 /.impeccable/
@@ -295,7 +297,6 @@ scrollcraft/
 # folder (.claude/, .agents/, .codex/) stays private.
 !AGENTS.md
 !CLAUDE.md
-docs/video
 docs/slides
 docs/prd
 docs/posts
