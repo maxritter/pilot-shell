@@ -467,16 +467,36 @@ export function SharedView({
 }
 
 /** One link's page; keyed by the id and key, so another link starts from "loading" again. */
-const SharedLink = ({ id, linkKey }: { id: string; linkKey: string }) => {
+export const SharedLink = ({ id, linkKey }: { id: string; linkKey: string }) => {
   const [state, setState] = useState<LoadedShare | { status: "loading" }>({ status: "loading" });
 
   useEffect(() => {
     let live = true;
-    void loadShare(id, linkKey).then((loaded) => {
-      if (live) setState(loaded);
-    });
+    let reading = false;
+    const refresh = async () => {
+      if (reading) return;
+      reading = true;
+      try {
+        const loaded = await loadShare(id, linkKey);
+        // A temporary outage leaves the last page and its unsent comments in place. A revoked
+        // or expired link still removes the page as soon as the service says it is gone.
+        if (live) setState((previous) => loaded.status === "error" && previous.status === "ready" ? previous : loaded);
+      } finally {
+        reading = false;
+      }
+    };
+    const visible = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    void refresh();
+    const timer = window.setInterval(visible, 60_000);
+    window.addEventListener("focus", visible);
+    document.addEventListener("visibilitychange", visible);
     return () => {
       live = false;
+      window.clearInterval(timer);
+      window.removeEventListener("focus", visible);
+      document.removeEventListener("visibilitychange", visible);
     };
   }, [id, linkKey]);
 

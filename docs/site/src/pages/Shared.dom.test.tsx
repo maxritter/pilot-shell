@@ -1,15 +1,20 @@
 // @vitest-environment happy-dom
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { type LoadedShare, parseItems, type Remark } from "@/lib/sharing/sharing";
-import { SharedView } from "./Shared";
+import * as sharing from "@/lib/sharing/sharing";
+import { SharedLink, SharedView } from "./Shared";
 
 /**
  * A link reviewer at work in a real DOM: they pick answers, write a note, send, and the page
  * hands exactly their answers to the sender, with no vote, and shows what was sent.
  */
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+  vi.useRealTimers();
+});
 
 /** The text is on the page; below 900 px the sticky bar repeats the count and the Send button, so there may be two. */
 const seen = (text: string) => screen.queryAllByText(text).length > 0;
@@ -87,5 +92,40 @@ describe("answering the owner's questions and sending", () => {
     fireEvent.click(sendButton());
     await waitFor(() => expect(onSend).toHaveBeenCalledTimes(1));
     expect(onSend.mock.calls[0]?.[1]).toEqual([{ kind: "passage", doc: "02-plan.md", quote: "", text: "Why one?" }]);
+  });
+});
+
+describe("keeping an open link current", () => {
+  it("refreshes on the timer and on returning to the page, keeps drafts through an outage, and hides a revoked link", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+    const load = vi.spyOn(sharing, "loadShare").mockResolvedValue(state);
+    await act(async () => { render(<SharedLink id={"A".repeat(22)} linkKey={"B".repeat(43)} />); });
+    fireEvent.click(screen.getByRole("button", { name: "Looks right" }));
+    expect(seen("1 of 3 answered · 0 comments")).toBe(true);
+    load.mockResolvedValue({ ...state, docs: { "02-plan.md": "# Latest Plan\n\nThe Plan changed." } });
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    expect(seen("The Plan changed.")).toBe(true);
+    expect(seen("1 of 3 answered · 0 comments")).toBe(true);
+    load.mockResolvedValue({ status: "error", message: "Temporary outage" });
+    await act(async () => { fireEvent(window, new Event("focus")); });
+    expect(seen("The Plan changed.")).toBe(true);
+    expect(seen("1 of 3 answered · 0 comments")).toBe(true);
+    load.mockResolvedValue({ status: "gone" });
+    await act(async () => { fireEvent(document, new Event("visibilitychange")); });
+    expect(seen("The Plan changed.")).toBe(false);
+    expect(load).toHaveBeenCalledTimes(4);
+  });
+
+  it("makes no background reads while hidden and clears its timer on unmount", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    const load = vi.spyOn(sharing, "loadShare").mockResolvedValue(state);
+    const view = render(<SharedLink id={"A".repeat(22)} linkKey={"B".repeat(43)} />);
+    await act(async () => { await Promise.resolve(); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(120_000); });
+    expect(load).toHaveBeenCalledTimes(1);
+    view.unmount();
+    expect(vi.getTimerCount()).toBe(0);
   });
 });
