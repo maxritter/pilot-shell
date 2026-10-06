@@ -1,5 +1,7 @@
 /** Facts the whole site shares. Change them here, nowhere else. */
 export const SITE_URL = "https://qualitylayer.dev";
+/** Mirrors the CLI's offline window; copy.test.tsx checks the rendered claim against its constant. */
+export const OFFLINE_DAYS = 7;
 
 /** Served from the site (a redirect to the installer in the repository). */
 export const INSTALL_COMMAND = `curl -fsSL ${SITE_URL}/install.sh | bash`;

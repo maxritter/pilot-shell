@@ -9,6 +9,7 @@ import { FAQS, PRICING_FAQS } from "@/lib/content";
 import { COMPARE, PLANS } from "@/lib/pricing";
 import { DESCRIPTION } from "@/lib/product";
 import { DownloadView } from "./Download";
+import { readFileSync } from "node:fs";
 
 /** The words of every page the redesign touches, read against the App's glossary. */
 
@@ -41,6 +42,22 @@ describe("the site's copy", () => {
 
   it("calls the App the App", async () => {
     expect(await textOf(<Sections />)).not.toMatch(/cockpit/i);
+  });
+
+  it("describes the offline licence window enforced by the binary", async () => {
+    // Read the real policy without importing the CLI's Bun environment into the website.
+    const policy = readFileSync(new URL("../../../../qualitylayer/src/core/licence/constants.ts", import.meta.url), "utf8");
+    const hours = policy.match(/export const OFFLINE_GRACE_PERIOD_HOURS = (\d+)/);
+    expect(hours).not.toBeNull();
+    const pricing = await textOf(<PricingSection />);
+    expect(pricing).toContain(`up to ${Number(hours![1]) / 24} days after its last successful check`);
+    expect(pricing).not.toContain("30 days");
+  });
+
+  it("describes the unattended upgrade that preserves Pilot's tools and memories", async () => {
+    const pricing = await textOf(<PricingSection />);
+    expect(pricing).toMatch(/tools.*memories stay/i);
+    expect(pricing).not.toMatch(/lets you choose what happens/i);
   });
 
   it("tells one developer and a team the same story: the closing says both", async () => {
