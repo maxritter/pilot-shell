@@ -405,10 +405,17 @@ jobs:
         if: runner.os == 'Windows'
         run: git config --global core.autocrlf false
 
+      # The package needs only the App's own sources and its packaging script (the command line
+      # comes from this run's build): a sparse checkout leaves the rest encrypted and unread, so
+      # unlocking decrypts some 50 files instead of every one (minutes on Windows).
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           ref: ${{ github.sha }}
+          sparse-checkout: |
+            .github
+            qualitylayer/app
+            qualitylayer/scripts
 
       - name: Install git-crypt
         if: runner.os != 'Windows'
@@ -443,6 +450,19 @@ jobs:
 
       - name: Toolchain for the App (Rust, Tauri, the system libraries)
         uses: ./.github/actions/app-toolchain
+
+      # The App's compiled dependencies, per platform: a release then compiles only what changed
+      # instead of every crate (ten minutes on the Intel Mac). Only release runs on main and dev
+      # write it; the packages themselves (bundle/) are never cached.
+      - name: Cached App build
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            qualitylayer/app/src-tauri/target
+            qualitylayer/app/launcher/target
+            !qualitylayer/app/src-tauri/target/**/bundle
+          key: app-target-${{ matrix.target }}-${{ hashFiles('qualitylayer/app/**/Cargo.lock') }}
+          restore-keys: app-target-${{ matrix.target }}-
 
       # The certificate goes into a keychain of its own that lives as long as this job.
       - name: Import the Developer ID certificate
@@ -603,8 +623,15 @@ jobs:
       - name: Check out with LF line endings
         run: git config --global core.autocrlf false
 
+      # The job checks the published binary; from the tree it needs only the Cockpit check and the
+      # one core module it imports. A sparse checkout decrypts those instead of every file.
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          sparse-checkout: |
+            .github
+            qualitylayer/scripts
+            qualitylayer/src/core
 
       - name: Setup git-crypt
         uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
