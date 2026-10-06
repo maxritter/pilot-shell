@@ -47,30 +47,38 @@ describe("keeping an open link current", () => {
   it("refreshes without losing comments, keeps the page through an outage, and hides a revoked link", async () => {
     vi.useFakeTimers();
     vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
-    const load = vi.spyOn(sharing, "loadShare").mockResolvedValue(state);
+    const load = vi.spyOn(sharing, "readShareUpdate").mockResolvedValue({ kind: "loaded", state, rev: 1 });
     await act(async () => { render(<SharedLink id={"A".repeat(22)} linkKey={"B".repeat(43)} />); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
     addComment();
-    load.mockResolvedValue({ ...state, docs: { "02-plan.md": "# Latest Plan\n\nThe Plan changed." } });
-    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    load.mockResolvedValue({ kind: "loaded", state: { ...state, docs: { "02-plan.md": "# Latest Plan\n\nThe Plan changed." } }, rev: 2 });
+    await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
     expect(seen("The Plan changed.")).toBe(true);
     expect(seen("1 comment")).toBe(true);
-    load.mockResolvedValue({ status: "error", message: "Temporary outage" });
-    await act(async () => { fireEvent(window, new Event("focus")); });
+    load.mockResolvedValue({ kind: "retry", message: "Temporary outage" });
+    await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
     expect(seen("The Plan changed.")).toBe(true);
     expect(seen("1 comment")).toBe(true);
-    load.mockResolvedValue({ status: "gone" });
-    await act(async () => { fireEvent(document, new Event("visibilitychange")); });
+    expect(seen("Updates could not be received. Showing the last version until the connection returns.")).toBe(true);
+    load.mockResolvedValue({ kind: "loaded", state: { status: "gone" } });
+    await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
     expect(seen("The Plan changed.")).toBe(false);
     expect(load).toHaveBeenCalledTimes(4);
   });
 
   it("makes no background reads while hidden and clears its timer on unmount", async () => {
     vi.useFakeTimers();
-    vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
-    const load = vi.spyOn(sharing, "loadShare").mockResolvedValue(state);
+    const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    const load = vi.spyOn(sharing, "readShareUpdate").mockResolvedValue({ kind: "loaded", state, rev: 1 });
     const view = render(<SharedLink id={"A".repeat(22)} linkKey={"B".repeat(43)} />);
     await act(async () => { await Promise.resolve(); });
     await act(async () => { await vi.advanceTimersByTimeAsync(120_000); });
+    expect(load).not.toHaveBeenCalled();
+    visibility.mockReturnValue("visible");
+    await act(async () => {
+      fireEvent(document, new Event("visibilitychange"));
+      await vi.advanceTimersByTimeAsync(0);
+    });
     expect(load).toHaveBeenCalledTimes(1);
     view.unmount();
     expect(vi.getTimerCount()).toBe(0);
