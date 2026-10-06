@@ -17,6 +17,11 @@
       "permanent": false
     },
     {
+      "source": "/docs/updating",
+      "destination": "/docs/install#updates",
+      "permanent": true
+    },
+    {
       "source": "/docs/features/:path*",
       "destination": "/docs",
       "permanent": true

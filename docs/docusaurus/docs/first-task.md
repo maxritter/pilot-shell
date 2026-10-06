@@ -6,7 +6,7 @@ description: One change, from your request to your approval, in seven steps.
 ![Your first task in seven steps: describe the change, answer its questions, approve the Plan, start Implement, agents build and check, settle what is left, approve the change](pathname:///img/diagrams/firsttask-light.svg)
 ![Your first task in seven steps: describe the change, answer its questions, approve the Plan, start Implement, agents build and check, settle what is left, approve the change](pathname:///img/diagrams/firsttask-dark.svg)
 
-Pick a medium-sized feature in a repository you know. Put the App on the left and your agent's terminal on the right: your agent asks, and the App shows what each question is about.
+Pick a medium-sized feature in a repository you know. Your agent asks each decision in the terminal, and the App beside it shows only what the current question is about. Put the App on the left and your agent's terminal on the right.
 
 1. **Describe it.** `/ql add a CSV export to the reports page` (`$ql` in Codex).
 2. **Answer its questions.** Your agent reads the code and asks one question at a time, each with its recommendation.
