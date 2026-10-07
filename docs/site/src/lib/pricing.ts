@@ -12,13 +12,12 @@ export interface Plan {
   id: "solo" | "team" | "enterprise";
   name: string;
   audience: string;
-  /** US dollars per month (per seat for Team): billed monthly, and billed yearly at 20% off. "Custom" for Enterprise. */
+  /** US dollars per month (per seat for Team): billed monthly, and billed yearly at about 20% off in whole dollars. "Custom" for Enterprise. */
   price: { monthly: number; yearly: number } | "Custom";
   per: string;
   cta: string;
   /** The Polar checkout for each billing period; Enterprise has one mail link. */
   href: { monthly: string; yearly: string } | string;
-  featured: boolean;
   badge?: string;
   plus: string;
   /** Four short highlights per plan, of about the same length; the table holds the detail. */
@@ -30,14 +29,13 @@ export const PLANS: Plan[] = [
     id: "solo",
     name: "Solo",
     audience: "For one developer.",
-    price: { monthly: 20, yearly: 16 },
+    price: { monthly: 19, yearly: 15 },
     per: "per month",
     cta: "Start Solo",
     href: {
       monthly: import.meta.env.VITE_POLAR_CHECKOUT_SOLO_MONTHLY || "https://buy.polar.sh/polar_cl_7qzxxKiqZXIFe3Uabodh7IauA937iVROT5qVW4VyuUf",
       yearly: import.meta.env.VITE_POLAR_CHECKOUT_SOLO_YEARLY || "https://buy.polar.sh/polar_cl_9krLYPvWYMBAXX4nL4LolXKgB5cAEA7J57H8Y3j0oQY",
     },
-    featured: false,
     plus: "Everything one developer needs:",
     highlights: [
       ["plan", "Approve the plan before any code is written"],
@@ -50,15 +48,13 @@ export const PLANS: Plan[] = [
     id: "team",
     name: "Team",
     audience: "For teams, per seat.",
-    price: { monthly: 40, yearly: 32 },
+    price: { monthly: 39, yearly: 31 },
     per: "per seat / month",
     cta: "Start Team",
     href: {
       monthly: import.meta.env.VITE_POLAR_CHECKOUT_TEAM_MONTHLY || "https://buy.polar.sh/polar_cl_Qeegkxuq603Ai4UAWSTCT7rOqLmKACxgmKbw40AAj5b",
       yearly: import.meta.env.VITE_POLAR_CHECKOUT_TEAM_YEARLY || "https://buy.polar.sh/polar_cl_vDV57vWuG7nb2SCgK9RZUzunpOJo9pfjCELnc1PxhTh",
     },
-    featured: true,
-    badge: "For teams",
     plus: "Everything in Solo, plus:",
     highlights: [
       ["plan", "Share plans and collect your team’s feedback"],
@@ -75,7 +71,6 @@ export const PLANS: Plan[] = [
     per: "volume pricing",
     cta: "Contact us",
     href: `mailto:${CONTACT_EMAIL}?subject=QualityLayer%20Enterprise`,
-    featured: false,
     badge: "On request",
     plus: "Everything in Team, plus:",
     highlights: [

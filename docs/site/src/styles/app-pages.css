@@ -17,7 +17,7 @@
 .ap-dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:36px}
 .ap-os{display:flex;flex-direction:column;border:1px solid var(--mx-line2);border-radius:6px;background:var(--mx-panel);color:var(--ql-text);text-decoration:none}
 .ap-os:hover{border-color:var(--ql-accent)}
-/* The visitor's own system: a blue edge, as the featured pricing plan. */
+/* The visitor's own system: a blue edge. */
 .ap-os[data-current="true"]{border-color:var(--ql-accent);box-shadow:0 0 0 1px var(--ql-accent)}
 .w7-root a.ap-os-main{display:flex;align-items:center;gap:14px;padding:16px;color:var(--ql-text);text-decoration:none}
 .ap-os svg{flex:none;width:30px;height:30px;color:var(--ql-accent)}

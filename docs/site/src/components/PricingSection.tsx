@@ -66,13 +66,13 @@ const PricingSection = () => {
           </div>
           <div className="pr-plans">
             {PLANS.map((plan) => (
-              <article key={plan.id} className={`pr-plan${plan.featured ? " feat" : ""}`} aria-labelledby={`${plan.id}-h`}>
+              <article key={plan.id} className="pr-plan" aria-labelledby={`${plan.id}-h`}>
                 <div className="pr-top">
                   <div><h2 id={`${plan.id}-h`} className="pr-name">{plan.name}</h2><p className="pr-aud">{plan.audience}</p></div>
-                  {plan.badge ? <span className={`pr-badge${plan.featured ? "" : " req"}`}>{plan.badge}</span> : null}
+                  {plan.badge ? <span className="pr-badge req">{plan.badge}</span> : null}
                 </div>
                 <Price plan={plan} billing={billing} />
-                <Button asChild size="xl" variant={plan.featured ? "default" : "outline"} className="pr-btn"><a href={typeof plan.href === "string" ? plan.href : plan.href[billing]} {...checkoutProps(plan)}>{plan.cta}</a></Button>
+                <Button asChild size="xl" variant={plan.id === "enterprise" ? "outline" : "default"} className="pr-btn"><a href={typeof plan.href === "string" ? plan.href : plan.href[billing]} {...checkoutProps(plan)}>{plan.cta}</a></Button>
                 <p className="pr-plus">{plan.plus}</p>
                 <ul className="pr-hl">
                   {plan.highlights.map(([h, text]) => (

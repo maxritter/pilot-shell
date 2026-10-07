@@ -172,7 +172,6 @@ html:has(.mx-filmov[open]){overflow:hidden}
 
 /* ---- Pricing: the same corners and black actions ---- */
 .pr-plan{border-color:var(--mx-line2);border-radius:6px;background:var(--mx-panel)}
-.pr-plan.feat{border-color:var(--mx-ink);box-shadow:0 0 0 1px var(--mx-ink)}
 .pr-h1,.pr-h2,.pr-name,.pr-amt{font-weight:500}
 .pr-badge{border-radius:4px;background:var(--mx-btn);color:var(--mx-btn-ink);font-weight:500}
 .pr-badge.req{background:var(--mx-sunk);color:var(--mx-ink2)}
@@ -219,8 +218,6 @@ html:has(.mx-filmov[open]){overflow:hidden}
 :where(.w7-root) a:not([data-slot]):hover{color:var(--ql-accent)}
 .sx-step.on{border-color:var(--ql-accent);color:var(--ql-accent)}
 .pr-amt{color:var(--ql-accent)}
-.pr-plan.feat{border-color:var(--ql-accent);box-shadow:0 0 0 1px var(--ql-accent)}
-.pr-plan.feat .pr-badge{background:var(--ql-accent);color:#fff}
 .pr-save{background:var(--ql-accent-soft);color:var(--ql-accent)}
 .pr-seg [data-variant="default"] .pr-save{background:var(--ql-accent);color:#fff}
 .pr-root .pr-ck{background:var(--ql-accent)}

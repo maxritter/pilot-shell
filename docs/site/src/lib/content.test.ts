@@ -58,8 +58,10 @@ describe("product facts", () => {
     for (const plan of PLANS.filter((p) => p.id !== "enterprise")) {
       const { price, href } = plan;
       if (price === "Custom" || typeof href === "string") throw new Error(`${plan.id} must sell monthly and yearly`);
-      // Yearly is 20% off the monthly price, in whole dollars.
-      expect(price.yearly).toBe(price.monthly * 0.8);
+      // Yearly is about 20% off the monthly price, in whole dollars, so "Save 20%" stays true.
+      expect(Number.isInteger(price.yearly)).toBe(true);
+      expect(1 - price.yearly / price.monthly).toBeGreaterThanOrEqual(0.19);
+      expect(1 - price.yearly / price.monthly).toBeLessThanOrEqual(0.22);
       for (const link of [href.monthly, href.yearly]) expect(link).toMatch(/^https:\/\/(sandbox-api\.polar\.sh|buy\.polar\.sh)\//);
     }
     expect(String(PLANS.find((p) => p.id === "enterprise")?.href)).toMatch(new RegExp(`^mailto:${CONTACT_EMAIL}\\?`));
