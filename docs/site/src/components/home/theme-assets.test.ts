@@ -16,9 +16,9 @@ const contrast = (foreground: string, background: string) => {
 
 describe("illustrations in both themes", () => {
   it("keeps the drawn design and its thumbnails on the site's theme palette", () => {
-    const css = read("docs/site/src/styles/tour-app.css");
-    const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(([, selector]) => /\.sx-(?:dp|mini|thumb)/.test(selector));
-    expect(rules.length).toBeGreaterThan(20);
+    const css = read("docs/site/src/styles/closeup.css");
+    const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(([, selector]) => /\.cu-(?:dp|dz)/.test(selector));
+    expect(rules.length).toBeGreaterThan(12);
     for (const [rule, selector] of rules) {
       expect(rule, selector).not.toMatch(/#[\da-f]{3,8}\b|\b(?:rgb|hsl)a?\(/i);
     }
@@ -52,7 +52,7 @@ describe("illustrations in both themes", () => {
   });
 
   it("uses the stronger accent for text on tinted surfaces and themes the docs footer itself", () => {
-    for (const file of ["tour.css", "tour-app.css", "shared.css", "factory.css"]) {
+    for (const file of ["tour.css", "closeup.css", "shared.css", "factory.css"]) {
       const css = read(`docs/site/src/styles/${file}`);
       for (const [rule] of css.matchAll(/[^{}]+\{[^{}]*\}/g)) {
         if (/background:var\(--ql-accent-soft\)|background:color-mix\(in srgb,var\(--ql-accent\)/.test(rule)) {

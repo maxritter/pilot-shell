@@ -137,20 +137,8 @@ html:has(.mx-filmov[open]){overflow:hidden}
 .sx-replay{border-radius:4px;border-color:var(--mx-line2);color:var(--mx-ink2)}
 .sx-step{min-height:32px;border-radius:4px;border-color:var(--mx-line);background:var(--mx-panel);color:var(--mx-ink2)}
 .sx-step.on{border-color:var(--mx-ink);background:var(--mx-panel);color:var(--mx-ink)}
-.sx-win{border-radius:8px;border-color:var(--mx-line2);box-shadow:var(--mx-shadow)}
 @container (min-width: 1080px){.sx-sticky{top:72px;height:calc(100vh - 88px)}}
-
-/* The App drawings in the new look: smaller corners and black primary actions. Amber is your turn,
-   blue an agent at work, violet the agents' checks, red a failure. */
-.sx-win :is(.sx-bld,.sx-bnode,.sx-call,.sx-card,.sx-cbub,.sx-chk,.sx-cmd,.sx-composer,.sx-cost,.sx-dg,.sx-dtab,.sx-stab,.sx-fl,.sx-home,.sx-look,.sx-menu,.sx-mk,.sx-nc,.sx-node,.sx-pdoc,.sx-pop,.sx-sban,.sx-set,.sx-share,.sx-slk,.sx-tbl,.sx-term,.sx-toast,.sx-vio,.sx-wl,.sx-words,.sx-agent-turn,.sx-appq,.sx-ist,.sx-prev,.sx-qc,.sx-rcpt,.sx-turn,.sx-newc,.sx-notif,.sx-cm,.sx-cmdb,.sx-cmode,.sx-decided,.sx-home-summary,.sx-idx,.sx-point-list,.sx-proof-point,.sx-rsc){border-radius:6px}
-.sx-win :is(.sx-adj,.sx-cmr,.sx-comment-reply,.sx-dbtn,.sx-dicon,.sx-dptabs,.sx-dzoom,.sx-fchip,.sx-line-comment blockquote,.sx-phone-comment,.sx-qmore,.sx-str em,.sx-call em,.sx-tool,.sx-undo,.sx-dpf > div,.sx-dpt,.sx-draft,.sx-drow,.sx-fake,.sx-fb,.sx-field,.sx-find,.sx-ib,.sx-lock,.sx-mbtn,.sx-opt,.sx-pcard,.sx-psg,.sx-qo,.sx-qown,.sx-rseg,.sx-seg2,.sx-seg3,.sx-sel,.sx-shotl,.sx-slkm,.sx-sw,.sx-thread,.sx-tools span,.sx-upd,.sx-ti,.sx-new,.sx-track li){border-radius:4px}
-.sx-win :is(.sx-atabs em,.sx-bchip,.sx-chips span,.sx-cnt,.sx-pill,.sx-plan,.sx-prevt,.sx-qo em,.sx-rseg b,.sx-tag,.sx-whoi){border-radius:4px}
-.sx-win :is(.sx-sw span,.sx-seg2 span,.sx-seg3 > span,.sx-rseg > span){border-radius:3px}
-.sx-fake.p{background:var(--mx-btn);border-color:var(--mx-btn);color:var(--mx-btn-ink)}
-.sx-fake.glow{box-shadow:0 0 0 4px color-mix(in srgb,var(--mx-ink) 12%,transparent)}
-.sx-tog.on{background:var(--mx-btn);border-color:var(--mx-btn)}
-.sx-tog.on:after{background:var(--mx-btn-ink)}
-.sx-side{background:var(--mx-page)}
+/* The close-ups keep the App's own look (blue action, amber Your turn) inside the site's quiet frame. */
 
 /* ---- Questions ---- */
 #faq.w7-sec{border-top:0;padding-top:clamp(80px,11cqi,150px);padding-bottom:0}
