@@ -65,6 +65,17 @@ All in `qualitylayer/`:
 - Never switch branches, commit, push, rebase, or force-update history
   without the corresponding user authorization.
 
+## Design changes
+
+- Show a design change before building it, unless it is as small as a single
+  button or switch. This covers the App, the Cockpit, the website and the docs.
+- Outside a QualityLayer run: mock the change with Open Claude Design
+  together with Impeccable (its context, craft floor and critique), and show
+  it to the user before touching the source.
+- Inside a QualityLayer run: the Plan's mockup shows it (`ui: true`, one
+  mockup per changed surface). Use the same two tools for its check pass and
+  to sync it to Claude Design.
+
 ## Layout
 
 - `qualitylayer/src/core/` — task state machine, documents and validation,
