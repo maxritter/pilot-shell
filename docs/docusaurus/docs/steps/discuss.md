@@ -8,20 +8,20 @@ description: Your agent reads the code and asks until it knows what you want and
 
 Describe the change in your own words: **+ New** in the App, or `/ql <request>` in your agent (`$ql` in Codex). Your agent reads the code first, then groups the questions it can ask together into a batch. Each comes with its recommendation.
 
-## Questions in batches {#the-question}
+## One focused question {#the-question}
 
-One **Your turn** card holds the open questions beside the document. Answer in any order: click a choice, type your own answer, choose **Tell me more**, or take the recommendation when you are not sure.
+The **Your turn** card shows one question at a time, with its recommendation and relevant context. Answer in any order: **Skip for now** moves to another open question. Click a choice, write in the visible **Your own answer** field and press **Send**, choose **Tell me more**, or take the recommendation when you are not sure.
 
-Each answer reaches your agent immediately. It keeps working on anything that does not depend on an open answer, and asks a follow-up batch when your answers raise another decision. The card and its counts update together; **Undo** is available for five seconds. See [Answering questions](../app.md#questions).
+Each answer reaches your agent immediately. It keeps working on anything that does not depend on an open answer, and asks follow-up questions when your answers raise another decision. The card and its counts update together. See [Answering questions and shortcuts](../app.md#questions).
 
-The live status at the top says what your agent is doing. Open it to see whether it is working, waiting for you, quiet or stopped.
+The named agent status at the top says what your agent is doing. Open **Agent status** to see whether it is working, waiting for you, quiet or stopped.
 
-![Discuss: independent questions in one Your turn card, answered in any order while the agent works on the scope](pathname:///img/diagrams/discuss-light.svg)
-![Discuss: independent questions in one Your turn card, answered in any order while the agent works on the scope](pathname:///img/diagrams/discuss-dark.svg)
+![Discuss: one focused question in Your turn, with a visible own-answer field and Send, while the agent works on the scope](pathname:///img/diagrams/discuss-light.svg)
+![Discuss: one focused question in Your turn, with a visible own-answer field and Send, while the agent works on the scope](pathname:///img/diagrams/discuss-dark.svg)
 
 ## The page {#the-page}
 
-Discuss is one document, `01-discuss.md`: the problem in your own words, **Done means**, what you **decided with** your agent, and the scope. Each answer lands in **Decided with you** at once. Use **Change** to correct an earlier answer. Open the document full size to read and comment with its outline beside it.
+Discuss is one document, `01-discuss.md`: the problem in your own words, **Done means**, what you **decided with** your agent, and the scope. Each answer lands in the folded **Decided with you** history at once. Use **Change** while still in Discuss to correct an earlier answer. Open the complete document full size to read and comment with its outline beside it. Returning to Discuss after this step opens full reading; the document header names its file and opens the agent's records.
 
 ## What done means {#done-means}
 

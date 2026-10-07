@@ -275,7 +275,7 @@ def files_ill(c: Theme) -> str:
             ('03-implement.md', 'The build, kept current by QualityLayer', 'amber'),
             ('04-verify.md', 'The proof for every point', 'amber'),
             ('05-review.md', 'What changed: the pull request text', 'amber'),
-            ('design/', 'The pages your agent drew · never shared', 'lock'),
+            ('design/', 'Interactive pages · local, out of Git', 'lock'),
             ('evidence/', 'Pictures and recordings', 'violet'),
             ('agent/', 'The agents’ details, logs and records', 'blue')]
     for i, (f, what, kind) in enumerate(rows):
@@ -288,11 +288,11 @@ def files_ill(c: Theme) -> str:
             b.append(f'<circle cx="54" cy="{y + 6}" r="4.5" fill="{c[kind]}"/>')
         b.append(T(74, y + 10.5, f, 12.5, 'text', 600 if kind == 'amber' else 500, mono=True, c=c))
         b.append(T(622, y + 10.5, what, 12, 'muted', 400, 'end', c=c))
-    b.append(T(18, 334, 'Outside a task, designs for the whole project go to docs/designs/', 12, 'dim', 500, c=c))
+    b.append(T(18, 334, 'Files lists the five documents and designs; Comments holds their threads.', 12, 'dim', 500, c=c))
     b.append(card(c, 660, 0, 340, 346))
-    b.append(T(678, 30, 'What the colours mean', 14, 'text', 650, c=c))
-    leg = [('amber', 'For you: one document per step'), ('blue', 'For the agents: never shared,'),
-           (None, 'opened only from the spot it explains'), ('violet', 'Evidence the checks kept'), ('lock', 'Designs stay on this computer')]
+    b.append(T(678, 30, 'What you can read', 14, 'text', 650, c=c))
+    leg = [('amber', 'One document per step'), ('blue', 'Agent records: read-only,'),
+           (None, 'opened from the document-header chip'), ('violet', 'Evidence the checks kept'), ('lock', 'Interactive designs stay local')]
     for i, (k, t) in enumerate(leg):
         y = 56 + i * 30
         if k == 'lock':
@@ -304,7 +304,7 @@ def files_ill(c: Theme) -> str:
     b.append(T(678, 250, 'Markdown on GitHub. They live in your', 12.5, 'muted', c=c))
     b.append(T(678, 270, 'repository and go into Git with', 12.5, 'muted', c=c))
     b.append(T(678, 290, 'the change.', 12.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'A task folder in docs/plans: one document per step for you, from 01-discuss to 05-review; design/ with the pages your agent drew, never shared; evidence/ with pictures and recordings; and agent/ with the agents’ details, logs and records')
+    return svg(W, H, ''.join(b), 'A task folder in docs/plans: five human documents, local interactive designs out of Git, evidence, and private agent details and logs. Files lists documents and designs; the document-header chip opens agent records read-only')
 
 
 # ---------------------------------------------------------------- shared pieces of the App's anatomy
@@ -462,29 +462,22 @@ AMBER_FILL = '#f7b23b'
 
 
 def spill(c: Theme, x: float, y: float, kind: str, head_: str, rest: str = '') -> tuple[str, float]:
-    """Live agent status in the top bar: working, waits for you, quiet or stopped."""
-    text = head_ + (f' · {rest}' if rest else '')
-    w = 30 + len(text) * 6.2 + (12 if kind in ('agent', 'move') else 14)
-    if kind == 'you':
-        out = (f'<rect x="{x}" y="{y}" width="{w}" height="22" rx="11" fill="{AMBER_FILL}"/>'
-               + T(x + 12, y + 15, text, 11.5, '#171717', 650, c=c)
-               + f'<path d="M{x + w - 18} {y + 11} h8 m-3 -3 l3 3 l-3 3" fill="none" stroke="#171717" stroke-width="1.5"/>')
-    elif kind == 'agent':
-        out = (f'<rect x="{x}" y="{y}" width="{w}" height="22" rx="11" fill="{c["bluef"]}" stroke="{c["blue"]}" stroke-opacity="0.6"/>'
-               + ring(c, x + 14, y + 11, 'agent', 4.5) + T(x + 25, y + 15, text, 11.5, 'text', 600, c=c))
-    else:
-        out = (f'<rect x="{x}" y="{y}" width="{w}" height="22" rx="11" fill="{c["bg"]}" stroke="{c["amberl"]}"/>'
-               + f'<rect x="{x + 9}" y="{y + 6}" width="10" height="10" rx="2" fill="none" stroke="{c["amber"]}" stroke-width="1.4"/>'
-               + T(x + 25, y + 15, text, 11.5, 'amber', 650, c=c))
+    """A neutral named agent chip; its mark carries the live state."""
+    text = 'Claude Code · ' + head_ + (f' · {rest}' if rest else '')
+    w = 34 + len(text) * 6.2
+    out = (f'<rect x="{x}" y="{y}" width="{w}" height="22" rx="11" fill="{c["bg"]}" stroke="{c["cardline"]}"/>'
+           + ring(c, x + 14, y + 11, 'you' if kind == 'you' else 'agent', 4.5)
+           + T(x + 25, y + 15, text, 11.5, 'text', 600, c=c))
     return out, w
 
 
 def rside(c: Theme, x: float, y: float, w: float, h: float, tab: str) -> str:
-    """The right sidebar: Comments, Files and Designs, and the side's toggle."""
+    """The right sidebar: Files and Comments; designs are rows within Files."""
     out = [f'<line x1="{x}" y1="{y}" x2="{x}" y2="{y + h}" stroke="{c["cardline"]}"/>',
            f'<rect x="{x + 12}" y="{y + 12}" width="{w - 56}" height="28" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>']
-    half = (w - 60) / 3
-    for i, t in enumerate(['Comments', 'Files', 'Designs']):
+    tab = 'files' if tab == 'designs' else tab
+    half = (w - 60) / 2
+    for i, t in enumerate(['Files', 'Comments']):
         bx = x + 14 + i * half
         if t.lower() == tab:
             out.append(f'<rect x="{bx}" y="{y + 14}" width="{half}" height="24" rx="6" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
@@ -605,70 +598,82 @@ def agents(c):
 
 # ---------------------------------------------------------------- the App window
 def task_example(c: Theme, step: int, sections: list, questions: list, working: str) -> str:
-    """Illustrated beta.25 task: top bar, one turn card, document and three sidebar tabs."""
-    W, H = 1400, 650
+    """Current App model: two header rows, one focused card above the work, Files / Comments."""
+    h = 118 + len(questions[0][2]) * 44 + 132 if questions else 144
+    content_height = sum(41 if kind == 'heading' else 24 for kind, _ in sections) + (84 if step == 2 else 0)
+    W, H = 1400, max(860, 138 + h + 32 + 65 + content_height + 62)
     b = [window(c, W, H, 'Settings cleanup · QualityLayer')]
     group = 'Your turn  1' if questions else 'Running  1'
     b.append(sidebar(c, W, H, [(group, [('Settings cleanup', STEPS[step][0], 'you' if questions else 'agent')]),
                                ('Shipped  6', [])], selected='Settings cleanup'))
     b.append(T(238, 67, 'Settings cleanup', 16, 'text', 650, c=c))
-    b.append(tabs(c, 450, 62, step))
-    p, _ = spill(c, 990, 48, 'you' if working == 'Waits for you' else 'agent', working)
+    b.append(tabs(c, 238, 104, step))
+    p, _ = spill(c, 790, 48, 'you' if working == 'Waits for you' else 'agent', working)
     b.append(p)
     b.append(T(1368, 66, '…', 18, 'muted', 650, 'end', c=c))
     b.append(f'<line x1="222" y1="82" x2="{W}" y2="82" stroke="{c["cardline"]}"/>')
-    x, y, w = 238, 112, 316
-    b.append(T(x, y - 9, 'Now', 11.5, 'muted', 650, c=c))
+    x, y, w = 258, 138, 850
     if questions:
-        h = 54 + len(questions) * 133 + 62
-        b.append(card(c, x, y, w, h, stroke='amberl', fill='amberf'))
-        b.append(T(x + 16, y + 29, 'Your turn', 17, 'text', 650, c=c))
-        b.append(T(x + w - 16, y + 29, str(len(questions)), 12, 'amber', 650, 'end', c=c))
-        b.append(T(x + 16, y + 49, 'Answer in any order', 12, 'muted', c=c))
-        for i, (kind, lines, choices) in enumerate(questions):
-            yy = y + 64 + i * 133
-            b.append(f'<line x1="{x + 16}" y1="{yy - 5}" x2="{x + w - 16}" y2="{yy - 5}" stroke="{c["amberl"]}" stroke-opacity="0.5"/>')
-            b.append(T(x + 16, yy + 15, kind, 11, 'amber', 650, c=c))
-            for k, line in enumerate(lines):
-                b.append(T(x + 16, yy + 38 + k * 19, line, 12.5, 'text', 500, c=c))
-            bx = x + 16
-            for label in choices:
-                bw = abtn(c, bx, yy + 78, label, False, 26, 11.5)
-                button = abtn_svg(c, bx, yy + 78, label, False, 26, 11.5, bw)
-                if kind in ('Plan approval', 'Final approval') and len(questions) > 1:
-                    button = f'<g opacity="0.45">{button}</g>'
-                b.append(button)
-                bx += bw + 8
-        fy = y + h - 45
-        b.append(T(x + 16, fy, 'Each answer reaches the agent at once.', 11.5, 'muted', c=c))
-        b.append(T(x + 16, fy + 20, 'Undo · 5 seconds', 11.5, 'blue', 600, c=c))
+        kind, lines, choices = questions[0]
+        b.append(card(c, x, y, w, h, stroke='amber', fill='bg'))
+        b.append(T(x + 20, y + 29, 'Your turn', 17, 'text', 650, c=c))
+        b.append(T(x + w - 20, y + 29, f'0 of {len(questions)} answered', 12, 'muted', 500, 'end', c=c))
+        b.append(T(x + 20, y + 57, kind, 12, 'muted', 500, c=c))
+        for k, line in enumerate(lines):
+            b.append(T(x + 20, y + 83 + k * 19, line, 15, 'text', 600, c=c))
+        for i, label in enumerate(choices):
+            cy = y + 118 + i * 44
+            b.append(f'<rect data-choice="{i + 1}" x="{x + 20}" y="{cy}" width="{w - 40}" height="36" rx="8" fill="{c["bg"]}" stroke="{c["blue"] if kind == "Question" and i == 0 else c["cardline"]}"/>')
+            b.append(T(x + 34, cy + 23, str(i + 1), 12, 'muted', 500, c=c))
+            b.append(T(x + 58, cy + 23, label, 13, 'text', 600, c=c))
+            if kind == 'Question' and i == 0:
+                b.append(T(x + w - 34, cy + 23, 'Recommended', 11.5, 'blue', 600, 'end', c=c))
+        own_y = y + 118 + len(choices) * 44
+        b.append(T(x + 20, own_y + 14, 'Your own answer', 12, 'muted', 500, c=c))
+        b.append(f'<rect data-own-words="true" x="{x + 20}" y="{own_y + 26}" width="{w - 130}" height="38" rx="6" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
+        b.append(T(x + 32, own_y + 50, 'Write what works for you…', 12.5, 'dim', c=c))
+        b.append(abtn_svg(c, x + w - 96, own_y + 26, 'Send', True, 38, 12.5, 76))
+        if kind == 'Question':
+            b.append(T(x + 20, own_y + 96, 'Tell me more', 12, 'blue', 600, c=c))
+            b.append(T(x + 148, own_y + 96, 'Skip for now', 12, 'blue', 600, c=c))
+            b.append(T(x + w - 20, own_y + 96, 'Each answer reaches the agent immediately.', 12, 'muted', 400, 'end', c=c))
+        else:
+            b.append(T(x + 20, own_y + 96, 'Settle this point, then continue to the next open decision.', 12, 'muted', c=c))
+            if step == 1:
+                b.append(T(x + 20, own_y + 116, 'Answers do not approve the Plan.', 12, 'muted', c=c))
     else:
-        b.append(card(c, x, y, w, 144, stroke='blue', fill='bluef'))
+        h = 144
+        b.append(card(c, x, y, w, h))
         b.append(T(x + 16, y + 29, "Agent’s turn", 17, 'text', 650, c=c))
         b.append(T(x + 16, y + 56, working, 12.5, 'text', 500, c=c))
         b.append(T(x + 16, y + 82, 'Open the live status for details.', 12, 'muted', c=c))
         b.append(T(x + 16, y + 111, 'You can comment while it works.', 12, 'muted', c=c))
-    dx = 578
-    b.append(T(dx, 108, 'Read in full  ↗', 11.5, 'blue', 600, c=c))
-    b.append(T(dx, 133, f'{step + 1:02d}-{STEPS[step][0].lower()}.md  ▾', 11.5, 'muted', 500, mono=True, c=c))
-    b.append(T(dx, 171, STEPS[step][0], 23, 'text', 650, c=c))
-    yy = 205
+    dx, dy = 258, y + h + 32
+    b.append(T(dx, dy, f'{step + 1:02d}-{STEPS[step][0].lower()}.md  ▾', 11.5, 'muted', 500, mono=True, c=c))
+    b.append(T(dx + w, dy, 'Read in full', 12, 'blue', 600, 'end', c=c))
+    b.append(T(dx, dy + 36, 'Build' if step == 2 else STEPS[step][0], 23, 'text', 650, c=c))
+    yy = dy + 65
     for kind, text in sections:
         if kind == 'heading':
             yy += 12
             b.append(T(dx, yy, text, 14, 'text', 650, c=c))
             yy += 29
         else:
-            col = 'violet' if kind == 'proof' else 'blue' if kind == 'agreed' else 'muted'
+            col = 'violet' if kind == 'proof' else 'text' if kind == 'agreed' else 'muted'
             b.append(T(dx, yy, text, 12.5, col, 500, c=c))
             yy += 24
-    b.append(rside(c, 1140, 82, 260, H - 82, 'comments'))
-    b.append(T(1156, 150, 'On the Plan · 1', 11.5, 'muted', 600, c=c))
-    b.append(T(1156, 180, 'Anna · line 8', 12, 'text', 650, c=c))
-    b.append(T(1156, 204, 'Keep the retry limit visible.', 12, 'text', c=c))
-    b.append(T(1156, 234, 'Agent: changed on the page.', 11.5, 'blue', c=c))
+    if step == 2:
+        for i, label in enumerate(['▸ 11 helpers allocated', '▸ 14 helpers awaiting commit', '▸ 34 helpers finished']):
+            b.append(T(dx, yy + 18 + i * 28, label, 12, 'muted', c=c))
+    b.append(rside(c, 1140, 82, 260, H - 82, 'files'))
+    b.append(T(1156, 148, 'Settings cleanup', 12, 'muted', 600, c=c))
+    for i, label in enumerate(['01-discuss.md', '02-plan.md', '03-implement.md', '04-verify.md', '05-review.md']):
+        b.append(T(1156, 184 + i * 32, label, 12, 'text' if i <= step else 'dim', 500, mono=True, c=c))
+    b.append(T(1156, 368, 'Designs · 1', 12, 'muted', 600, c=c))
+    b.append(T(1156, 398, 'Settings page', 12.5, 'text', 600, c=c))
+    b.append(T(1156, 420, 'Only on this computer', 11.5, 'muted', c=c))
     b.append(T(dx, H - 24, 'Illustration · example task, people and results', 10.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), f'{STEPS[step][0]} in beta.25: live status in the top bar, one Your turn card or the agent’s turn beside the document, and Comments, Files and Designs')
+    return svg(W, H, ''.join(b), f'{STEPS[step][0]}: named agent status, one focused Your turn card above the work, visible own words and Send for questions, and Files / Comments with designs within Files')
 
 
 def app(c):
@@ -676,7 +681,7 @@ def app(c):
 
 
 def app_marked(c: Theme) -> str:
-    """The App illustration uses the same beta.25 layout as the Plan."""
+    """The App illustration uses the current focused-card layout of the Plan."""
     return app(c)
 
 
@@ -706,12 +711,13 @@ def plan_full(c: Theme) -> str:
     b = [window(c, W, H, 'Plan · QualityLayer')]
     b.append(T(18, 70, '← Exit full size', 12, 'blue', 600, c=c))
     b.append(T(216, 70, 'Settings cleanup · Plan', 16, 'text', 650, c=c))
-    p, _ = spill(c, 832, 51, 'agent', 'Working on the Plan')
+    p, _ = spill(c, 758, 51, 'agent', 'Writing the Plan')
     b.append(p)
     b.append(T(18, 116, 'Outline', 12, 'muted', 650, c=c))
     for i, text in enumerate(['The problem', 'Done means', 'Interface', 'Decisions', 'Slices', 'Checks']):
         b.append(T(18, 148 + i * 29, text, 12.5, 'text', 500, c=c))
     b.append(T(210, 114, '02-plan.md  ▾', 11.5, 'muted', mono=True, c=c))
+    b.append(T(374, 114, 'Path · Editor · More agent records', 11.5, 'blue', c=c))
     rows = [('01', 'The Plan'), ('02', ''), ('03', 'Done means'), ('04', '1 · Every setting names what it changes.'),
             ('05', '2 · A risky Plan gets a second opinion.'), ('06', ''), ('07', 'Engineering decisions'),
             ('08', 'Keep the retry limit visible beside each setting.'), ('09', ''), ('10', 'Slices and checks'),
@@ -728,7 +734,7 @@ def plan_full(c: Theme) -> str:
     b.append(T(826, 185, 'Keep the retry limit visible.', 12.5, 'text', c=c))
     b.append(T(826, 220, 'Agent: changed on line 8.', 12, 'blue', c=c))
     b.append(T(210, H - 20, 'Illustration · example document and comment', 10.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'The full-size Plan: outline, document lines with a comment on line 8, live status, and Comments, Files and Designs')
+    return svg(W, H, ''.join(b), 'The full-size Plan: outline, document-header file chip, lines with a comment on line 8, named agent status, and Files / Comments')
 
 
 def items_ill(c: Theme) -> str:
@@ -809,12 +815,11 @@ def discuss_ill(c: Theme) -> str:
         ('heading', 'Done means'), ('agreed', '✓ 1 · Every setting names what it changes.'),
         ('row', '2 · A risky Plan gets an independent second opinion.'),
         ('heading', 'Decided with you'), ('agreed', 'Notifications stay on by default.'),
-        ('row', 'Change an earlier answer at its passage.'),
-        ('heading', 'In your agent'), ('row', '👉 Your answer is needed in the QualityLayer App.'),
+        ('row', 'Earlier answers stay in Decided with you, with Change.'),
     ], [
         ('Question', ['When should a second opinion run?'], ['Risky Plans', 'Every Plan']),
         ('Question', ['Should notifications start on?'], ['Yes', 'No', 'Tell me more']),
-    ], 'Working on the scope')
+    ], 'Waits for you')
 
 
 def diagnose_ill(c: Theme) -> str:
@@ -867,7 +872,7 @@ def plan_ill(c: Theme) -> str:
         ('row', '2 · The changed point waits for your agreement.'),
         ('heading', 'Slices and checks'), ('row', '1 · Simplify the settings · types, tests and build.'),
         ('row', '2 · Keep every link working · end-to-end scenarios.'),
-        ('proof', 'Read by another agent · evidence available'),
+        ('proof', 'Plan review recorded · read the evidence for who checked it'),
     ], [
         ('Done means · changed point 2', ['Was: A review on every Plan.', 'Now: A review on risky Plans.'], ['Agree', 'Change']),
         ('Plan approval', ['Settle the open decisions first.', 'Answers do not approve the Plan.'], ['Approve the Plan']),
@@ -1136,7 +1141,7 @@ def cost_ill(c: Theme) -> str:
     W, H = 1000, 452
     b = [card(c, 0, 0, W - 4, H - 4)]
     b.append(T(20, 34, '$47.25 so far', 20, 'text', 700, c=c))
-    b.append(T(176, 34, '2 h 30 min · estimated at list price, read on this computer', 12.5, 'muted', c=c))
+    b.append(T(176, 34, 'Example · 2 h 30 min · estimated at list price, read on this computer', 12.5, 'muted', c=c))
     steps = [('Discuss', '27 min', '12M', '$5.65', 0.31, 'blue'), ('Plan', '35 min', '25M', '$8.57', 0.47, 'blue'),
              ('Implement', '44 min', '60M', '$18.22', 1.0, 'blue'), ('Verify', '40 min', '39M', '$14.81', 0.81, 'violet')]
     for k, (h, x) in enumerate([('Step', 20), ('time', 700), ('tokens', 790), ('cost', 960)]):
@@ -1165,10 +1170,10 @@ def cost_ill(c: Theme) -> str:
     b.append(T(700, y + 30, '2 h 30', 12.5, 'text', 600, 'end', c=c))
     b.append(T(790, y + 30, '136M', 12.5, 'text', 600, 'end', c=c))
     b.append(T(960, y + 30, '$47.25', 13.5, 'text', 700, 'end', c=c))
-    b.append(f'<rect x="20" y="{y + 44}" width="{W - 48}" height="34" rx="9" fill="{c["amberf"]}" stroke="{c["amberl"]}" stroke-opacity="0.7"/>')
-    b.append(T(34, y + 66, 'Worth a look', 12, 'amber', 700, c=c))
-    b.append(T(130, y + 66, 'Slice 1 cost $6.30 of Implement’s $18.22: one agent built five tasks in one long context.', 12, 'muted', 500, c=c))
-    return svg(W, H, ''.join(b), 'The Cost panel: the total, each step with its time, tokens and cost, Verify opened to show each agent named after its work and model, and one line that says where time and money went')
+    b.append(f'<rect x="20" y="{y + 44}" width="{W - 48}" height="34" rx="9" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
+    b.append(T(34, y + 66, 'Pricing coverage', 12, 'text', 600, c=c))
+    b.append(T(150, y + 66, 'Priced usage is estimated; unpriced models keep their tokens and show “no list price”.', 12, 'muted', 500, c=c))
+    return svg(W, H, ''.join(b), 'Illustrative Cost panel: recorded time and tokens, estimates at list price for priced models, each step and helper named by its work. Unpriced models retain their tokens and show no list price; cost is read on this computer')
 
 
 def attention_ill(c: Theme) -> str:
@@ -1488,7 +1493,7 @@ def designs_flow(c: Theme) -> str:
     W, H = 1000, 236
     steps = [('You', 'amber', 'amberf', 'Ask your agent', ['“Mock up the', 'settings page”']),
              ('Your agent', 'blue', 'bluef', 'Draws one page', ['One HTML file', 'in your project']),
-             ('The App', 'cardline', 'card', 'Lists it', ['Under Designs,', 'with a New dot']),
+             ('The App', 'cardline', 'card', 'Lists it', ['Inside Files,', 'with a New dot']),
              ('You', 'amber', 'amberf', 'Open it full size', ['Click a spot, say', 'what should change']),
              ('Your agent', 'blue', 'bluef', 'Changes it', ['Edits the same page', 'and says what changed']),
              ('The App', 'cardline', 'card', 'Shows the update', ['A quiet notice.', 'Always the latest'])]
@@ -1512,7 +1517,7 @@ def designs_flow(c: Theme) -> str:
 
 
 def designs_tab(c: Theme) -> str:
-    """A step shows the design the Plan names as a preview; the Designs tab is the shelf for all of them."""
+    """A step shows its named preview; Files contains the documents and designs."""
     W, H = 1000, 400
     b = [card(c, 0, 0, 640, 396)]
     b.append(T(18, 32, 'The Plan · Interface', 12, 'dim', 600, c=c))
@@ -1524,17 +1529,16 @@ def designs_tab(c: Theme) -> str:
     b.append(T(130, 272, 'Updated just now · 2 comments', 12, 'dim', c=c))
     b.append(abtn_svg(c, 516, 258, 'Open full size', False, 24, 11.5, 100))
     b.append(item(c, 14, 300, 612, 'Look', 'Is this how Settings should read?', ['Looks right', 'Change'], h=52))
-    b.append(T(18, 380, 'A step shows only the design its Plan names; the Designs tab holds them all.', 12, 'dim', 500, c=c))
+    b.append(T(18, 380, 'The Plan shows its named preview; Files lists the documents and designs.', 12, 'dim', 500, c=c))
     b.append(card(c, 660, 0, 340, 396))
     b.append(rside(c, 660, 0, 340, 396, 'designs').replace(f'<line x1="660" y1="0" x2="660" y2="396" stroke="{c["cardline"]}"/>', ''))
     b.append(f'<rect x="672" y="50" width="316" height="28" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
     b.append(lock(c, 682, 57))
     b.append(T(700, 69, 'Only on this computer.', 12, 'text', 600, c=c))
-    b.append(T(840, 69, 'A still can be shared.', 11, 'muted', c=c))
-    rows = [('This task', [('Settings page', 'Every setting on one page', 'Updated just now · Shown in the Plan', True)]),
-            ('In this project', [('Onboarding', 'The first start, step by step', 'Updated yesterday', False),
-                                 ('Release notes sheet', 'What’s new after an update', 'Updated 3 days ago', False)])]
-    y = 100
+    for i, name in enumerate(['01-discuss.md', '02-plan.md', '03-implement.md', '04-verify.md', '05-review.md']):
+        b.append(T(680, 102 + i * 27, name, 12.5, 'text', 500, mono=True, c=c))
+    rows = [('Designs · 1', [('Settings page', 'Every setting on one page', 'Updated just now · Shown in the Plan', True)])]
+    y = 258
     for g, items_ in rows:
         b.append(T(674, y, g, 11.5, 'muted', 600, c=c))
         y += 10
@@ -1548,12 +1552,12 @@ def designs_tab(c: Theme) -> str:
             b.append(T(756, y + 55, when, 10.5, 'dim', c=c))
             y += 68
         y += 18
-    b.append(T(674, 376, 'Ask your agent to draw one: “mock up the settings page”.', 11, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'A step shows the design its Plan names as a preview with Open full size and its question; the Designs tab of the right sidebar lists this task’s designs and the project’s, each with what it is for, when it was updated and a dot until you have looked; designs are only on this computer and never shared')
+    b.append(T(674, 376, 'Shared Plans may include a labelled still picture.', 11.5, 'muted', c=c))
+    return svg(W, H, ''.join(b), 'The Plan shows its named preview and question; Files / Comments is the sidebar, with designs within Files. Interactive designs and their comments stay local; an explicitly shared Plan can include a labelled still picture')
 
 
 def design_open(c: Theme) -> str:
-    """A design open full size: one thin bar, the page, a comment on a spot and the agent's answer."""
+    """A design in the viewer: its toolbar, page, pinned comment and the agent's answer."""
     W, H = 1000, 470
     b = [window(c, W, H, 'Settings page · QualityLayer')]
     b.append(sidebar(c, W, H, [('Your turn  1', [('Settings cleanup', 'Plan', 'you')]), ('Running  0', []), ('Shipped  6', [])], selected='Settings cleanup'))
@@ -1562,16 +1566,16 @@ def design_open(c: Theme) -> str:
     b.append(T(x0, 67, '← Back to the Plan', 12, 'muted', 500, c=c))
     b.append(T(x0 + 130, 67, 'Settings page', 13.5, 'text', 650, c=c))
     b.append(T(x0 + 228, 67, 'Updated 2 min ago', 11.5, 'dim', c=c))
-    p, pw = spill(c, x0 + 334, 51, 'you', 'Waits for you')
+    p, pw = spill(c, x0 + 330, 87, 'you', 'Waits for you')
     b.append(p)
-    bx = x0 + 334 + pw + 8
+    bx = x0
     for t, on in [('Comment  C', True), ('−  Fit  +', False), ('Jump to ▾', False), ('⤢', False)]:
         w = 22 + len(t) * 6.6
-        b.append(f'<rect x="{bx}" y="51" width="{w}" height="24" rx="6" fill="{c["bluef"] if on else c["bg"]}" stroke="{c["blue"] if on else c["cardline"]}"/>')
-        b.append(T(bx + w / 2, 67, t, 11.5, 'blue' if on else 'text', 600, 'middle', c=c))
+        b.append(f'<rect x="{bx}" y="86" width="{w}" height="24" rx="6" fill="{c["bluef"] if on else c["bg"]}" stroke="{c["blue"] if on else c["cardline"]}"/>')
+        b.append(T(bx + w / 2, 102, t, 11.5, 'blue' if on else 'text', 600, 'middle', c=c))
         bx += w + 6
-    b.append(f'<rect x="222" y="85" width="{W - 223}" height="{H - 86}" fill="{c["card"]}"/>')
-    px, py, pw_, ph = 300, 108, 520, 340
+    b.append(f'<rect x="222" y="120" width="{W - 223}" height="{H - 121}" fill="{c["card"]}"/>')
+    px, py, pw_, ph = 300, 132, 520, 308
     b.append(f'<rect x="{px}" y="{py}" width="{pw_}" height="{ph}" rx="6" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
     b.append(T(px + 24, py + 36, 'Settings', 17, 'text', 650, c=c))
     for i, (label, value) in enumerate([('Model for planning', 'Opus 5.5'), ('Model for building', 'Sonnet 5.5'), ('Notifications', 'On'), ('Second opinion', 'Risky Plans')]):
@@ -1594,7 +1598,7 @@ def design_open(c: Theme) -> str:
     b.append(f'<circle cx="{W / 2 - 24}" cy="{H - 29}" r="3.5" fill="{c["blue"]}"/>')
     b.append(T(W / 2 - 14, H - 24.5, 'Settings page was updated', 12, 'text', 600, c=c))
     b.append(T(W / 2 + 186, H - 24.5, 'Open', 12, 'blue', 600, 'end', c=c))
-    return svg(W, H, ''.join(b), 'A design open full size: one thin bar with Back to the Plan, its name, when it was updated, the status pill, Comment, zoom, Jump to and full screen; a comment pinned to a spot with the agent’s answer; and a quiet notice when the page was updated')
+    return svg(W, H, ''.join(b), 'A design in the viewer: Back to the Plan, its name and update time, named agent status, Comment, zoom, Jump to and full screen. A pinned comment keeps the agent’s answer beside the spot; a quiet notice reports an update')
 
 
 DRAWINGS = [('architecture', architecture), ('flow', flow), ('slices', slices), ('agents', agents), ('app', app), ('app-marked', app_marked),

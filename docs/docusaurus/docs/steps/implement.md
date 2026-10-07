@@ -8,7 +8,7 @@ description: One command starts the build. From there your agent works on its ow
 
 ## Start Implement {#start-implement}
 
-When you approve the Plan, Implement opens with your [Build defaults](../reference/settings.md#defaults), drawn as the build: an orchestrator that plans each slice, reads each report and writes no code, and workers that write the code, a slice each. One effort applies to both.
+When you approve the Plan, Implement opens with your [Build defaults](../reference/settings.md#defaults). It shows the orchestrator, which plans each slice and reads each report, and the workers, which write the code. The orchestrator writes no code. One effort applies to both.
 
 ![Implement Start: Build with Claude Code, Codex or another agent; the orchestrator and its workers with their models; one effort for both; and the command to copy, with the lines to type first in the session that planned the task](pathname:///img/diagrams/implement-start-light.svg)
 ![Implement Start: Build with Claude Code, Codex or another agent; the orchestrator and its workers with their models; one effort for both; and the command to copy, with the lines to type first in the session that planned the task](pathname:///img/diagrams/implement-start-dark.svg)
@@ -33,7 +33,7 @@ From the command on, your agent builds and checks the approved Plan through to t
 
 If the build needs a login, a secret or something only you can provide, **Your turn** names the slice that needs it. Set it in your own environment, then press **Done, it’s set**. The App never takes the secret itself. Other slices keep building; when no other work remains, the agent waits for that need to be resolved. When nothing waits for you, the agent's turn shows what is being built.
 
-The page is `03-implement.md`, which QualityLayer keeps current from the build's records. You can comment on any slice while it builds; the agent reads comments after each task.
+Implement opens on **Build**, with the slices, changed files and checks as they happen. You can comment on any slice while it builds; the agent reads comments after each task. QualityLayer also keeps `03-implement.md` current from the build's records. Open that document from **Files** when you want the complete written record; it is not another Implement tab.
 
 ## Checkpoints {#checkpoints}
 

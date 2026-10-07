@@ -15,7 +15,7 @@ Open **Settings** with the gear at the bottom of the App's sidebar. Changes save
 Two cards, one agent at a time: a tab each for **Claude Code**, **Codex** and **Another agent**. The tab marked **Default** is the one **+ New** and Implement Start open on; **Make default** moves the mark, so you can plan with Claude Code and build with Codex.
 
 - **Planning defaults** are what **+ New** opens with: the model, the effort and where the session starts. Discuss and Plan run on them. Recommended: the most capable model you can afford, Opus 5.5 or Fable 5.1, at High effort or more.
-- **Build defaults** are what [Implement Start](../steps/implement.md#start-implement) opens with: the orchestrator's model (Opus 5.5 by default, Fable 5.1 if it fits your budget), the workers' model (Sonnet 5.5), one effort for both (High), and where the build starts (the session that planned the task). Anything you change at Implement Start applies to that build only.
+- **Build defaults** are what [Implement Start](../steps/implement.md#start-implement) opens with. Choose the orchestrator's model, the workers' model, one effort for both and where the build starts. The defaults are Opus 5.5 for the orchestrator, Sonnet 5.5 for workers, High effort and the session that planned the task. Fable 5.1 is another orchestrator choice. Changes at Implement Start apply to that build only.
 - **Another agent** runs on its own models and effort, set in that agent, so there is nothing to pick; it gets one prompt to paste.
 
 **Use recommended** brings a tab back to the recommended setup.
@@ -39,6 +39,8 @@ Say it to your agent in words, such as "skip security", "run a checkpoint after 
 ## Licence
 
 Your plan or the days left of your trial, and a link to the customer portal for invoices, seats and payment. **On another computer** shows the command that moves your licence.
+
+This tab also explains the licence check, workflow-text requests and update checks that contact QualityLayer. The App sends no usage events. Optional sharing and feedback are separate; see [Files and privacy](files.md#privacy).
 
 ## Team
 

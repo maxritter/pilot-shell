@@ -63,7 +63,7 @@ curl -fsSL https://qualitylayer.dev/install.sh | bash
 **QualityLayer works inside the agent you already use.** Claude Code or Codex does the work in the terminal, its desktop app or your IDE. You answer in the QualityLayer App, which shows what each question is about:
 
 - **One plan before any code:** the design and each engineering decision as a diagram you can comment on. Then the slices, and the scenarios that prove the change works.
-- **Questions in batches:** one Your turn card holds the decisions you can make now. Answer in any order; each answer reaches the agent immediately, while it keeps working on the rest. Approving the plan is a separate action.
+- **One focused question:** independent questions can arrive together in a batch. **Your turn** shows one with its context, a visible field for your own answer and **Send**. Skip for now to answer another first; each answer reaches the agent immediately. Approving the plan is a separate action.
 - **Designs on your computer:** ask your agent to draw a page, open it full size in the App, and point at what should change. The interactive page and its comments stay local; a share link can show a still of the Plan's design.
 - **Built test first:** every task starts with a failing test, and QualityLayer records every test run itself.
 - **Routine decisions handled:** your agent takes the recommended way and records it. If it needs a login or secret, you provide it while other slices keep building.
@@ -76,7 +76,7 @@ QualityLayer is for medium and large changes. When a request is too small for a 
 
 ### From Pilot Shell to QualityLayer
 
-Pilot Shell replaced much of the setup around your agent with its own hooks, rules and tools. Today's models work best with the tools their makers ship, so QualityLayer leaves those alone. It keeps what made Pilot Shell worth using and puts it on top of Claude Code and Codex, or any agent that runs shell commands: one plan you approve, a recorded build, an independent check, and your team in the loop.
+Pilot Shell replaced much of the setup around your agent with its own hooks, rules and tools. QualityLayer keeps the tools that Claude Code and Codex ship. It adds a plan you approve, a recorded build, an independent check, and your team in the loop. Any agent that runs shell commands can follow the same flow.
 
 ---
 
@@ -127,7 +127,7 @@ It leaves your shell profile alone and adds no MCP server. It turns on the few a
 
 Claude Code also gets a band above the prompt while a review waits for you. `/task-pane` opens the steps and build progress beside your conversation. QualityLayer sets no status line, so yours stays as it is.
 
-A few hooks keep the App's status of each session current, keep a running build from stopping on a question in the agent's own chat, and record an approval you type in the chat yourself. Session hooks attach agent messaging. The installer records these additions so uninstall can remove them while keeping your own configuration.
+A few hooks keep each session's App status current and direct a running build's questions to the App. They also record an approval you type in the agent's chat. Session hooks attach agent messaging. The installer records these additions so uninstall can remove them while keeping your own configuration.
 
 </details>
 
@@ -161,7 +161,7 @@ Describe a change to your agent in any repository:
 $ql retry failed webhooks, and stop after a few tries     # Codex
 ```
 
-Or click **+ New** in the App: say what you want, pick the model, the effort and where it starts, and copy one command. Your agent asks each decision in the App, and its terminal shows a single line while it waits. Questions come in batches in **Your turn**: click a choice, type your own answer, or ask it to tell you more. Each answer goes to the agent immediately. Settle the decisions, then approve the Plan. `qualitylayer app` opens the App any time.
+Or click **+ New** in the App: say what you want, pick the model, the effort and where it starts, and copy one command. Your agent asks each decision in the App, and its terminal shows a single line while it waits. **Your turn** shows one question with its context: click a choice, type in **Your own answer** and press **Send**, or ask it to tell you more. **Skip for now** lets you answer another question first. Each answer goes to the agent immediately. Read the complete Plan, settle its decisions, then approve it. `qualitylayer app` opens the App any time.
 
 After you approve, Implement opens with your Build defaults and one command that starts the build, such as `claude --model opus --effort high "/goal /ql implement retry-webhooks"`. From there your agent works on its own until the final review.
 
@@ -170,7 +170,7 @@ QualityLayer runs only when you ask for it: with `/ql` (`$ql` in Codex), `/ql im
 <details>
 <summary><b>Privacy</b></summary>
 
-Plans are files in your repository, and the App runs on your computer. A few anonymous events go out with the daily licence check, such as a task started or shipped, a step entered or a check result. Never a repository name, path, branch, title or text. Turn them off in Settings, with `qualitylayer telemetry off`, or with `DO_NOT_TRACK=1`.
+Plans are files in your repository, and the App runs on your computer. QualityLayer sends no usage events. It contacts QualityLayer for your licence, the workflow texts your agent follows and updates. Optional sharing encrypts the reached steps' readable documents and comments on this computer before sending them. Your code, diff, agent records and interactive design pages stay local. A shared Plan may include a labelled raster still of its design. See [files and privacy](https://qualitylayer.dev/docs/reference/files#privacy).
 
 Feedback is sent only when you press Send feedback. It becomes one issue in a private repository, with your text, the screenshots you add and diagnostics you can read first. Never code, plan or document text, task titles, repository or branch names, or file paths.
 
@@ -189,9 +189,9 @@ Every task takes the same five steps. You approve twice: the plan before any cod
   <img src="docs/docusaurus/static/img/diagrams/flow-light.svg" alt="Discuss, Plan, Implement, Verify, Review: you approve at Plan and at Review; your agent works in between" width="1000">
 </picture>
 
-- **Discuss:** your agent reads the code and asks independent questions in batches, each with its recommendation, in **Your turn**. Answer in any order; the page records each answer immediately. Agree to each **Done means** point separately. A bug is reproduced and its cause found first.
-- **Plan:** read the design, diagrams, slices and checks full size, with comments beside them. A second agent reads the plan before it reaches you. Settle its decisions in **Your turn**, then approve it. If a Done means point changes, only that point needs your agreement again.
-- **Implement:** the App opens with your Build defaults and one command that starts the build: an orchestrator that writes no code, and workers that build the slices. Every task starts with a failing test. Routine decisions appear under "Decided while building". A login or secret only you can provide appears in **Your turn**; other slices keep building.
+- **Discuss:** your agent reads the code and asks independent questions, each with its recommendation. **Your turn** shows one focused question; answer in any order with **Skip for now**. The page records each answer immediately. Agree to each **Done means** point separately. A bug is reproduced and its cause found first.
+- **Plan:** read the design, diagrams, slices and checks full size, with comments beside them. The App shows the recorded Plan reviews. Settle its decisions in **Your turn**, then approve it. If a Done means point changes, only that point needs your agreement again.
+- **Implement:** the App opens with your Build defaults and one command that starts the build: an orchestrator that writes no code, and workers that build the slices. **Build** shows the slices, changes and checks. Routine decisions appear under "Decided while building". A login or secret only you can provide appears in **Your turn**; other slices keep building.
 - **Verify:** polish and, across a trust boundary, a security review, then agents that did not write the code check every point of your request, on a live checklist.
 - **Review:** read the result and proof under each **Done means** point. Settle the remaining questions in **Your turn**, then approve the change. The pull request opens with its proof.
 
@@ -224,13 +224,15 @@ You plan with your best model; Opus 5.5 is the default for Discuss and Plan, and
   <img src="docs/docusaurus/static/img/diagrams/agents-light.svg" alt="You and your agent write the plan; workers build from it; agents that did not write the code check it; another vendor's AI can give a second opinion" width="1000">
 </picture>
 
-Settings keeps it short. Planning defaults and Build defaults set the model, the effort and where each session starts, for Claude Code and Codex each, so you can plan with one and build with the other. Independent review picks the model of the agent that never wrote the code and decides whether the change passes, and the second opinion comes from the other coding agent on risky plans. The App shows the time, tokens and estimated cost of every step, with each agent named after its work.
+Planning defaults and Build defaults set the model, effort and where each session starts for Claude Code and Codex. You can plan with one and build with the other. Independent review selects the model that checks whether the finished change passes. A second opinion comes from the other coding agent on risky plans. The App shows each step's time, tokens and estimated cost, with each agent named after its work.
 
 ---
 
 <h2 id="app">The QualityLayer App</h2>
 
-The App is where you answer, read and comment, on macOS, Windows and Linux. Each step has a live status at the top, **Your turn** beside the work, and the document. The status says what the agent is working on, when it needs you, and whether it is quiet or stopped. The right sidebar holds **Comments**, **Files** and **Designs**. Open the Plan full size to read with its outline and comments beside it. Home shows what needs you, what is running, and what shipped, with time and estimated cost when available. Close the App, and your tasks keep running.
+The App is where you answer, read and comment, on macOS, Windows and Linux. **Your turn** shows one focused question or decision with the context it needs. The top bar names the agent; **Agent status** opens its current work and whether it is waiting, quiet or stopped. The dollar amount opens the estimated cost, with unpriced tokens shown as muted detail.
+
+The right sidebar holds **Files** and **Comments**. Files lists the five documents and compact designs. Discuss and Plan offer the complete document for reading, with folded decision lists. Before Plan approval, full reading opens with its outline and comments within reach. The file chip and menu in the document header open the agent's version and records in a read-only reader. Implement shows **Build**, with its written record available from Files. Home shows what needs you, what is running, and what shipped, with time and estimated cost when available. Close the App, and your tasks keep running.
 
 Each item has its own two answers. Agree or change a decision. Looks right, or change a design. Confirm what only you can confirm. Accept or fix a finding.
 
@@ -239,14 +241,14 @@ Each item has its own two answers. Agree or change a decision. Looks right, or c
   <img src="docs/docusaurus/static/img/diagrams/items-light.svg" alt="Five families of items, each with its answers: Decide, Look, Confirm, Fix and Answer" width="1000">
 </picture>
 
-Each answer goes to your agent at once and leaves **Your turn**. **Undo** is available for five seconds; **Change** corrects an earlier answer. The agent keeps working on anything that does not depend on an open answer. After you approve the plan, Implement opens with your Build defaults: the orchestrator, its workers, one effort for both, and one command to copy.
+Each answer goes to your agent at once and leaves **Your turn**. Write in the visible **Your own answer** field and press **Send**. Discuss keeps earlier answers under the folded **Decided with you** history, where **Change** corrects them while that step remains open. The agent keeps working on anything that does not depend on an open answer. After you approve the plan, Implement opens with your Build defaults: the orchestrator, its workers, one effort for both, and one command to copy. See [answering questions and shortcuts](https://qualitylayer.dev/docs/app#questions).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/implement-start-dark.svg">
   <img src="docs/docusaurus/static/img/diagrams/implement-start-light.svg" alt="Implement Start: Build with Claude Code, Codex or another agent; the orchestrator and its workers with their models; one effort for both; one command with a Copy button" width="1000">
 </picture>
 
-**Designs.** Ask your agent to "mock up the settings page" and it draws one HTML page in your project. The App lists it under Designs, opens it full size, and takes a comment on any spot. The agent changes the same page and says in one line what changed. The interactive page and its comments stay on your computer; a share link can show a still of the Plan's design.
+**Designs.** Ask your agent to "mock up the settings page" and it draws one HTML page in your project. The App lists it as a compact entry in **Files**, opens it full size, and takes a comment on any spot. The agent changes the same page and says in one line what changed. The interactive page and its comments stay on your computer; an explicitly shared Plan can include a labelled raster still.
 
 Updates arrive quietly: the App checks once a day, downloads in the background and shows an Update ready line with the release notes. Feedback is one click in the sidebar.
 

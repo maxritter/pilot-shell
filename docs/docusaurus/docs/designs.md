@@ -5,29 +5,29 @@ description: Ask your agent to draw a page, open it full size in the App, and po
 
 A design is one page your agent draws for you: a screen, a flow, a diagram of how something fits together. You see it full size in the App, comment on a spot, and your agent changes the same page. It works at any step, inside a task or outside one.
 
-![What a design is: you ask your agent, it draws one HTML page in your project, the App lists it under Designs; you open it full size and comment on a spot, the agent changes the same page and the App shows the update; a design is never shared](pathname:///img/diagrams/designs-light.svg)
-![What a design is: you ask your agent, it draws one HTML page in your project, the App lists it under Designs; you open it full size and comment on a spot, the agent changes the same page and the App shows the update; a design is never shared](pathname:///img/diagrams/designs-dark.svg)
+![Ask your agent for a design, open its compact entry in Files, comment on a spot and see the same page update; the interactive page stays local](pathname:///img/diagrams/designs-light.svg)
+![Ask your agent for a design, open its compact entry in Files, comment on a spot and see the same page update; the interactive page stays local](pathname:///img/diagrams/designs-dark.svg)
 
 ## Ask for one
 
-Say it in your own words: "mock up the settings page", or "draw how the five files map to the App". Your agent writes one self-contained page and the App lists it under **Designs**, with what it is for and when it was last updated. A dot marks a design you have not opened yet.
+Say it in your own words: "mock up the settings page", or "draw how the five files map to the App". Your agent writes one self-contained page and the App lists it as a compact entry in **Files**, with what it is for and when it was last updated. A dot marks a design you have not opened yet.
 
 - **In a task**, the page goes into the task's `design/` folder.
 - **Outside a task**, it goes into `docs/designs/` and belongs to the whole project.
 
-## The Designs tab {#designs-tab}
+## Designs in Files {#designs-tab}
 
-![A step shows the design its Plan names as a preview with Open full size; the Designs tab of the right sidebar lists this task’s designs and the project’s; designs are only on this computer and never shared](pathname:///img/diagrams/designs-tab-light.svg)
-![A step shows the design its Plan names as a preview with Open full size; the Designs tab of the right sidebar lists this task’s designs and the project’s; designs are only on this computer and never shared](pathname:///img/diagrams/designs-tab-dark.svg)
+![Files lists compact designs for this task and the project; a design opens full size when you choose it](pathname:///img/diagrams/designs-tab-light.svg)
+![Files lists compact designs for this task and the project; a design opens full size when you choose it](pathname:///img/diagrams/designs-tab-dark.svg)
 
-The right sidebar's **Designs** tab holds them in two groups, **This task** and **In this project**, each with its open comments. On Home, with no task open, it shows the project's designs. When the Plan is about a design, its Interface section shows a preview with **Open full size**, and the review asks you whether it looks right.
+The right sidebar's **Files** tab lists designs for this task and the project, with their open comments. On Home, with no task open, it lists the project's designs. A question about a design shows the relevant preview, and the review asks whether it looks right. Other questions keep their own context.
 
 ## Open it full size {#full-size}
 
 ![A design open full size: one thin bar with Back to the Plan, its name, when it was updated, the status pill, Comment, zoom, Jump to and full screen; a comment pinned to a spot with the agent’s answer; and a quiet notice when the page was updated](pathname:///img/diagrams/design-open-light.svg)
 ![A design open full size: one thin bar with Back to the Plan, its name, when it was updated, the status pill, Comment, zoom, Jump to and full screen; a comment pinned to a spot with the agent’s answer; and a quiet notice when the page was updated](pathname:///img/diagrams/design-open-dark.svg)
 
-A design takes the whole content area under one thin bar: **Back**, its name and when it was updated, the status pill, **Comment** (C), zoom and **Fit**, **Jump to** a section of the page, **Full screen** (F) and **Open in browser**.
+A design takes the whole content area. Its bar shows **Back**, the design's name, when it was updated and the agent's status. Use **Comment** (C) to mark a spot, zoom or **Fit** to see the page, and **Jump to** to find a section. **Full screen** (F) and **Open in browser** give it more room.
 
 **Comment** lets you click a spot and say what should change. The comment shows under the design in the **Comments** tab, with **Jump to the spot**, and reaches your agent like any other comment.
 

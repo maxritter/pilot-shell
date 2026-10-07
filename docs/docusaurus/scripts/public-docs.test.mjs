@@ -31,10 +31,32 @@ test("the built guides explain current answers, changed agreements and live shar
   const discuss = page("steps/discuss/");
   assert.match(discuss, /Your turn/);
   assert.match(discuss, /Answer in any order/);
+  assert.match(discuss, /one question at a time/);
+  assert.match(discuss, /Skip for now/);
+  assert.match(discuss, /Your own answer/);
+  assert.match(discuss, /Send/);
   assert.match(discuss, /immediately/);
-  assert.doesNotMatch(discuss, /one question at a time|question N/);
+  assert.doesNotMatch(discuss, /question N|Undo.{0,40}five seconds/);
   assert.match(page("steps/plan/"), /Was and Now/);
   assert.match(page("steps/verify/"), /Proof for each Done means point/);
   assert.match(page("team/plans/"), /open page updates as the task changes/);
   assert.doesNotMatch(page("team/plans/"), /Reload the page/);
+});
+
+test("the built App guides use Files and Comments and explain the current reading and privacy boundaries", () => {
+  const app = page("app/");
+  assert.match(app, /Files/);
+  assert.match(app, /Comments/);
+  assert.match(app, /compact designs/);
+  assert.match(app, /document header/);
+  assert.match(app, /Agent status/);
+  assert.match(app, /dollar amount/);
+  assert.match(app, /tokens unpriced/);
+  assert.doesNotMatch(app, /Designs.{0,20}tab|Comments.{0,30}Files.{0,30}and.{0,30}Designs/);
+  assert.match(page("steps/implement/"), /Implement opens on/);
+  assert.match(page("steps/implement/"), /Build/);
+  assert.match(page("designs/"), /compact entry in/);
+  assert.match(page("reference/files/"), /sends no usage events/);
+  assert.match(page("reference/files/"), /raster still/);
+  assert.match(page("reference/files/"), /interactive design pages/);
 });

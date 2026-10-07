@@ -13,7 +13,7 @@ The final approval is always yours. Review groups the result and its proof by **
 
 ## Your turn {#items}
 
-One amber card holds the open items. Answer in any order; each answer reaches your agent immediately and leaves the card. **Undo** is available for five seconds. The answer stays recorded beside the point it settled:
+**Your turn** shows one focused decision with the result it concerns. Move between decisions, choose an answer or write your own words and press **Send**. Each answer reaches your agent immediately and leaves the card. The answer stays recorded beside the point it settled; long settled lists fold in the document:
 
 | Item | Your answers |
 | --- | --- |

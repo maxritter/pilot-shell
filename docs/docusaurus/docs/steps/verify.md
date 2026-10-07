@@ -20,7 +20,7 @@ Each **Done means** point shows its checks and evidence together, filling in as 
 - **Your project's checks:** tests, types, lint and build.
 - **Every point of Done means,** every scenario of the Plan, and the whole diff.
 
-Each result keeps its proof: the output, a screenshot or a file. The page is `04-verify.md`: each **Done means** point with its proof, then what agents checked. The live status in the top bar says which check runs now. With nothing waiting for you, the agent's turn shows beside the work; a stopped check that needs a decision appears in **Your turn**.
+Each result keeps its proof: the output, a screenshot or a file. The page is `04-verify.md`: each **Done means** point with its proof, then what agents checked. The named agent status in the top bar says which check runs now; **Agent status** opens the details. With nothing waiting for you, the page shows the agent's work. A stopped check that needs a decision appears in **Your turn**.
 
 ## When a check fails {#fixes}
 
@@ -30,8 +30,8 @@ An agent writes a failing test, fixes the code, and the check runs again. You ar
 
 If checking fails twice, the task stops and names the one failure that remains. You choose: **Check once more**, **Take it as it is**, or **Stop the task**.
 
-![When checking keeps failing: after two tries at checking the task stops with the one failure that remains, and you choose to check once more, take it as it is, or stop the task](pathname:///img/diagrams/stopped-light.svg)
-![When checking keeps failing: after two tries at checking the task stops with the one failure that remains, and you choose to check once more, take it as it is, or stop the task](pathname:///img/diagrams/stopped-dark.svg)
+![After two failed checks, the task names the remaining failure. Choose Check once more, Take it as it is or Stop the task](pathname:///img/diagrams/stopped-light.svg)
+![After two failed checks, the task names the remaining failure. Choose Check once more, Take it as it is or Stop the task](pathname:///img/diagrams/stopped-dark.svg)
 
 ## Only you can confirm {#only-you}
 

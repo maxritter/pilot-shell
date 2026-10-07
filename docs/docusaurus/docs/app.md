@@ -3,7 +3,7 @@ title: The App
 description: Where you answer, read and comment while your agent works. One page per step, one layout for all five.
 ---
 
-Your agent groups independent questions into batches in the QualityLayer App. You answer in one **Your turn** card, while the agent keeps working on anything that does not depend on those answers. Read the Plan, comment on its diagrams and designs, and follow the build and its proof. Close the App any time; your agents keep working.
+The QualityLayer App shows one focused question or decision in **Your turn**, with the context you need to answer. Your agent keeps working on anything that does not depend on your answer. Open the step's document to read, comment on its diagrams and designs, and follow the build and its proof. Close the App any time; your agents keep working.
 
 It runs on macOS, Windows and Linux. Without a screen, `qualitylayer app` opens it in your browser.
 
@@ -15,29 +15,33 @@ It runs on macOS, Windows and Linux. Without a screen, `qualitylayer app` opens 
 | Live status | What the agent is working on, when it needs you, and whether it is quiet or stopped. Open it for details |
 | Step track in the top bar | Where the task stands in Discuss, Plan, Implement, Verify and Review |
 | Now | **Your turn** when a decision waits for you; the agent's progress while it works |
-| Your turn | One card for open questions, agreements and approvals |
+| Your turn | One focused question or decision, followed by agreements and approvals |
 | Document | The step's page, with your answers, the build and its proof |
-| Right sidebar | **Comments**, **Files** and **Designs** |
+| Right sidebar | **Files** and **Comments**; compact designs are listed in **Files** |
 
-The file chip under the title names the step's document. Its menu copies the path, opens the file in your editor, reveals it in the Finder, or opens the task folder.
+The file chip in the document header names the step's document. Its menu copies the path, opens the file in your editor, reveals it in the Finder, or opens the task folder. It also opens the agent's version and records in a read-only reader.
 
 ## Answering questions {#questions}
 
-Questions come in batches. Answer in any order: each has a recommendation, choices and a place for your own answer. Choose **Tell me more** for an explanation, or **Not sure, use your recommendation** to take the agent's pick.
+Independent questions can arrive together, and the card shows one question at a time. Answer in any order: use **Skip for now** to reach another question, then return to the skipped one. Each question has choices and a marked recommendation. **Your own answer** stays visible; type your words and press **Send**. **Tell me more** asks for the context you need before deciding.
 
-Each answer goes to the agent at once and appears in **Decided with you**. The item leaves **Your turn**, and the card, sidebar and notification counts update together. **Undo** is available for five seconds; **Change** corrects an earlier answer. If the agent has stopped, your answer stays saved for when it continues.
+Each answer goes to the agent at once and appears in the folded **Decided with you** history. The item leaves **Your turn**, and the card, sidebar and notification counts update together. **Change** corrects an earlier answer. If the agent has stopped, your answer stays saved for when it continues.
 
 The agent keeps working on independent parts of the task while questions remain open. Answering a batch does not approve the Plan or the finished change; each approval remains your own action.
+
+With the question card focused, **1–9** chooses the matching answer, **Enter** or **R** takes the recommendation, **M** opens Tell me more, and **↑/↓** moves between questions. **Tab** from the card opens your own answer. In the answer field, **Enter** sends and **Shift+Enter** adds a line. Choice shortcuts leave typing fields, links, menus and dialogs alone; **⌘**, **Ctrl**, **Alt** and text composition do not submit a choice.
 
 ## Agreements and live status
 
 Agree to each **Done means** point separately. If its words change, you see the old and new wording and agree again to that point. Unchanged points keep your agreement.
 
-The top bar shows the agent's live status: what it is doing, waiting for you, quiet, stopped or finished with the step. Open the status for details and, when it has stopped, the command to continue. Answers and comments stay saved.
+The top bar names the agent and shows whether it is working, waiting for you, quiet or stopped. Open **Agent status** for its current work, other active agents and, when it has stopped, the command to continue. Answers and comments stay saved.
 
 ## Full-size reading
 
-Open a document full size to collapse the task list and give the page more room. Keep the outline and right sidebar beside it, jump between sections, and comment as you read. Exit full size to return to the task view.
+Discuss and Plan offer the complete document in reading order. The App opens full reading before Plan approval and when you return to a completed Discuss. Open **Document full size** to give it more room, use the outline to jump between sections, and comment as you read. Long decision lists fold without removing their contents from the file. The document menu opens the agent's version and records with a way back to the human document.
+
+Implement shows **Build**: the slices, changes and checks as they happen. Its generated document is available from **Files**. See [Implement](steps/implement.md).
 
 ## Home
 
@@ -61,14 +65,14 @@ Select any passage, line or part of a diagram and write a comment; it shows in t
 
 ## Designs
 
-Ask your agent to draw a page and it shows up in the **Designs** tab. Open it full size and comment on a spot. See [Designs](designs.md).
+Ask your agent to draw a page and it appears as a compact entry in **Files**. Open it full size and comment on a spot. See [Designs](designs.md).
 
 ## What it costs {#cost}
 
 ![The cost panel: the total, each step with its time, tokens and cost, and each agent named after its work](pathname:///img/diagrams/cost-light.svg)
 ![The cost panel: the total, each step with its time, tokens and cost, and each agent named after its work](pathname:///img/diagrams/cost-dark.svg)
 
-**Cost** in a task's header shows the total and each step's time and cost, estimated at list price from your agents' own logs. Nothing is sent anywhere.
+The dollar amount in a task's header opens its cost: the total, each step's time, tokens and cost, and the agents that did the work. Estimates use list prices and your agents' logs on this computer. Tokens with no known price appear as muted **tokens unpriced** detail; they are not added to the dollar total. Nothing is sent anywhere.
 
 ## In Claude Code
 

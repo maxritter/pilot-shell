@@ -51,7 +51,7 @@ export const CHAPTERS: Chapter[] = [
     steps: 5,
     title: "You approve one plan before any code",
     text: "Each engineering decision comes to you as a diagram with the agent's recommendation. Agree or say what to change, then approve the Plan. A reworded point asks for your agreement again.",
-    bullets: ["Comment on any line or diagram", "Everything the agent decided for you is listed, so you can change it", "A second agent reads the Plan before it reaches you"],
+    bullets: ["Comment on any line or diagram", "Everything the agent decided for you is listed, so you can change it", "The Plan is reviewed; a local fallback is a self-review"],
   },
   {
     id: "start",

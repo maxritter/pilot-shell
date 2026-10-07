@@ -10,7 +10,7 @@ The Plan is the one document you approve before any code is written. Agents buil
 
 ## Your turn {#items}
 
-Independent questions come in batches in one **Your turn** card. Answer the decisions you can make now in any order; each answer reaches your agent immediately:
+**Your turn** shows one decision at a time, with the diagram or design that explains it. Use **Previous** and **Next** to move between decisions. Your own words and **Send** stay visible; each answer reaches your agent immediately:
 
 1. **The design**, for a change people see: Looks right, or Change. See [Designs](../designs.md).
 2. **Engineering decisions**, each with its diagram: Agree, or Change.
@@ -18,7 +18,9 @@ Independent questions come in batches in one **Your turn** card. Answer the deci
 4. **Decisions made for you:** the smaller choices, each with its reason. **Ask why** about any of them.
 5. **Extra review:** whether the risk deserves a security review or a second opinion.
 
-Each answer leaves the card and is recorded at the passage it settled. **Undo** is available for five seconds. Your agent can keep working on the parts that do not depend on an open answer; its live status at the top shows what it is doing.
+Each answer leaves the card and is recorded at the passage it settled. Long decision lists fold in the document. Your agent can keep working on the parts that do not depend on an open answer; its named status at the top shows what it is doing.
+
+In a focused decision card, **1–9** selects the matching answer and **←/→** moves between decisions. **Enter** sends your words; **Shift+Enter** adds a line. Choice shortcuts leave typing fields and text composition alone, and do not run with **⌘**, **Ctrl** or **Alt**.
 
 Approving the Plan is a separate action after you settle its decisions. Sending answers does not approve it. When you request changes, send them back to the agent to revise the Plan.
 
@@ -27,10 +29,10 @@ Approving the Plan is a separate action after you settle its decisions. Sending 
 
 ## Read the Plan full size {#full-size}
 
-Open the document full size to give it more room. The task list collapses, while the outline and the right sidebar stay within reach. Jump to a section, read the slices and checks, and comment on a passage without leaving the Plan. Exit full size to return to the task view.
+Once the decisions are settled, the App opens the complete Plan in full reading before you approve it. The outline and right sidebar stay within reach. Jump to a section, read the slices and checks, and comment on a passage without leaving the Plan. The document header holds its file chip, reading controls and menu for the agent's version and records.
 
-![The full-size Plan with its outline, line comments, live agent status and the Comments, Files and Designs tabs](pathname:///img/diagrams/plan-full-light.svg)
-![The full-size Plan with its outline, line comments, live agent status and the Comments, Files and Designs tabs](pathname:///img/diagrams/plan-full-dark.svg)
+![The full-size Plan with its document header, outline, line comments, named agent status and Files and Comments tabs](pathname:///img/diagrams/plan-full-light.svg)
+![The full-size Plan with its document header, outline, line comments, named agent status and Files and Comments tabs](pathname:///img/diagrams/plan-full-dark.svg)
 
 ### Diagrams you can comment on {#diagrams}
 
@@ -41,7 +43,7 @@ Click any part of a diagram to pin a comment. Your agent answers in the thread a
 
 ## Before it reaches you
 
-A second agent reads the Plan the way a new builder would, and your agent fixes the gaps it finds. Anything new the Plan depends on is tried out first, outside your project. With Claude Code and Codex both installed, a risky Plan also gets a [second opinion](../reference/settings.md#second-opinion) from the other agent.
+A review checks whether a new builder could follow the Plan, and your agent fixes the gaps it finds. QualityLayer asks for a separate reviewer; when the client cannot start one, it provides a local review fallback. That fallback is a self-review, and does not prove that another agent checked the Plan. The App shows the recorded review facts. Anything new the Plan depends on is tried out first, outside your project. With Claude Code and Codex both installed, a risky Plan also gets a [second opinion](../reference/settings.md#second-opinion) from the other agent.
 
 ## With reviewers {#reviewers}
 

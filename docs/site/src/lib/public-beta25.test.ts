@@ -11,7 +11,7 @@ const diagrams = join(repo, "docs/docusaurus/static/img/diagrams");
 const read = (path: string) => readFileSync(join(repo, path), "utf8");
 const words = (svg: string) => [...svg.matchAll(/<(?:text|title)\b[^>]*>(.*?)<\/(?:text|title)>/gs)].map((m) => m[1]).join(" ");
 
-describe("beta.25 public illustrations and guides", () => {
+describe("current public illustrations and guides", () => {
   it("regenerates every diagram from its source without restoring the old interaction", () => {
     const output = mkdtempSync(join(tmpdir(), "ql-public-diagrams-"));
     try {
@@ -29,11 +29,21 @@ describe("beta.25 public illustrations and guides", () => {
     }
   });
 
-  it("shows a batch, individual changed agreements and evidence by point", () => {
+  it("shows full-width numbered focus choices, changed agreements and evidence by point", () => {
     for (const theme of ["light", "dark"]) {
       const drawing = (name: string) => words(read(`docs/docusaurus/static/img/diagrams/${name}-${theme}.svg`));
-      expect(drawing("discuss")).toContain("Answer in any order");
-      expect(drawing("discuss")).toContain("Your answer is needed in the QualityLayer App.");
+      expect(drawing("discuss")).toContain("Waits for you");
+      expect(drawing("discuss")).toContain("Each answer reaches the agent immediately.");
+      for (const step of ["discuss", "plan", "app", "review"]) {
+        const svg = read(`docs/docusaurus/static/img/diagrams/${step}-${theme}.svg`);
+        const choices = [...svg.matchAll(/<rect data-choice="(\d+)" x="([\d.]+)" y="([\d.]+)" width="([\d.]+)"/g)].map((m) => m.slice(1).map(Number));
+        expect(choices.map(([n]) => n)).toEqual([1, 2]);
+        expect(choices.every(([, x, , width]) => x === 278 && width === 810)).toBe(true);
+        expect(choices[1]![2]).toBeGreaterThan(choices[0]![2]!);
+        expect(svg).toContain('data-own-words="true"');
+        expect(drawing(step)).toContain("Your own answer");
+        expect(drawing(step)).toContain("Send");
+      }
       expect(drawing("plan")).toMatch(/Was:.*Now:/);
       expect(drawing("plan")).toContain("Answers do not approve the Plan");
       for (const step of ["verify", "review"]) {
@@ -41,12 +51,24 @@ describe("beta.25 public illustrations and guides", () => {
       }
       expect(drawing("verify")).toContain("Agent’s turn");
       for (const step of ["app", "discuss", "plan", "implement", "verify", "review"]) {
-        expect(drawing(step)).toMatch(/Comments.*Files.*Designs/);
+        const svg = read(`docs/docusaurus/static/img/diagrams/${step}-${theme}.svg`);
+        const sidebar = [...svg.matchAll(/<text\b[^>]*>(Files|Comments)<\/text>/g)].map((m) => m[1]);
+        expect(sidebar).toEqual(["Files", "Comments"]);
+        expect(drawing(step)).toMatch(/Files.*Comments.*Designs/);
       }
       expect(drawing("items")).toContain("In Your turn");
       expect(drawing("items")).not.toContain("In your agent");
       expect(drawing("designs")).toContain("A share link can show a still picture");
     }
+  });
+
+  it("keeps independent batch behavior and truthful review provenance in the guides and tour", () => {
+    const discuss = read("docs/docusaurus/docs/steps/discuss.md");
+    expect(discuss).toMatch(/groups the questions.*batch/);
+    expect(discuss).toContain("Answer in any order");
+    expect(discuss).toMatch(/immediately|at once/);
+    expect(read("docs/site/src/lib/tour.ts")).toContain("a local fallback is a self-review");
+    expect(read("docs/site/src/lib/tour.ts")).not.toContain("A second agent reads the Plan before it reaches you");
   });
 
   it("does not promise that a build can never need its owner", () => {
