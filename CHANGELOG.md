@@ -2,6 +2,56 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.27
+
+### New
+
+- Checks can run in the background, show test-file progress and reuse successful
+  results when their code and environment have not changed.
+- After two fixing rounds that still leave failed checks, you choose another
+  round, review the work as it stands, or stop. The fixes and evidence stay
+  with the task.
+- Agent spending is kept by call and time. Home shows Today, Week and Month;
+  task details show the work, time, tokens and estimated cost of each step.
+  Models without a confirmed list price contribute their tokens.
+- Settings uses the same model controls throughout. Independent review can be
+  turned off; project checks and the quality steps still run, and Verify and
+  Review say how the change was checked. Final approval remains yours.
+- Team questions show their passage context and recorded answers. Reply from
+  the keyboard, edit an unsent agent draft, or hand a question to another teammate.
+
+### Fixed
+
+- Agents wait for your answers and continue when they arrive. Their Stop hook
+  keeps an open question, approval or requested check from being left unread.
+- Stopped sessions show their kept work and a resume command. A quiet command
+  or an active check no longer makes an agent look stopped.
+- Planning questions show one focus point with its design. Keyboard choices
+  and your own words send once, and the card shows when the answer landed.
+- Files lists the documents written for you and the task's local designs.
+  Agent records open read-only from the passage they explain.
+- Home, task filters and sidebar controls keep the current task within reach.
+  Completed slices and helpers fold away while parallel work stays visible.
+- New task and Implement start use your saved defaults, with compact controls
+  for changing one task's command. Copying a command confirms that the App is
+  waiting for your coding agent to start it.
+- Notifications share one delivery record across the App's foreground and
+  background states. The Claude Code band shows only its own session's task.
+- The design viewer keeps its controls together on narrow screens and hides
+  the agent's licence notice. Plan price labels match the website catalog.
+- Phase instructions are sent once per session and step; helper replies name
+  the file to read instead of repeating the instructions.
+
+### Good to know
+
+- QualityLayer no longer sends usage events. Settings explains the licence
+  check and what is sent when you share tasks or connect team messaging.
+- With the matching Team service update, you can withdraw your own unanswered
+  questions. Withdrawal clears the request without approving the task.
+- Release preflight checks the version, release notes, the Linux test suite
+  and the source represented by HEAD. Release jobs reuse CI results only when
+  all required checks passed for that same commit.
+
 ## 12.0.0-beta.26
 
 ### Fixed

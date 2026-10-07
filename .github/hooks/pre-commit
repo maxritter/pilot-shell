@@ -69,7 +69,12 @@ if [ "${SKIP_IDENTITY_CHECK:-0}" != "1" ]; then
 fi
 
 # --- What did we stage? ----------------------------------------------------------
-staged="$(git diff --cached --name-only --diff-filter=ACMR)"
+if [ "${QUALITYLAYER_PREFLIGHT_HEAD:-0}" = "1" ]; then
+  # Release preflight checks the exact HEAD snapshot, whose index equals HEAD.
+  staged="$(git ls-files --cached)"
+else
+  staged="$(git diff --cached --name-only --diff-filter=ACMR)"
+fi
 qualitylayer_changed=0
 ui_changed=0
 launcher_changed=0
@@ -118,7 +123,8 @@ have() { command -v "$1" >/dev/null 2>&1; }
 job_qualitylayer() {
   cd qualitylayer || return 1
   bun run typecheck || return 1
-  bun run lint || return 1
+  # Errors must not be hidden behind the warning limit; warnings remain available in normal lint.
+  bun run lint -- --diagnostic-level=error --max-diagnostics=none || return 1
 }
 # A release binary built from what is staged must serve a Cockpit that draws:
 # beta.1 to beta.5 shipped a white page while every development-build test passed.
@@ -150,7 +156,12 @@ job_shellcheck() {
 }
 # shellcheck disable=SC2329
 job_actionlint() {
-  actionlint
+  # A checked-out commit tree need not contain Git's metadata directory.
+  local workflows=() file
+  for file in .github/workflows/*.yml .github/workflows/*.yaml; do
+    [ ! -f "$file" ] || workflows+=("$file")
+  done
+  [ "${#workflows[@]}" -eq 0 ] || actionlint "${workflows[@]}"
 }
 # shellcheck disable=SC2329
 job_trivy() {

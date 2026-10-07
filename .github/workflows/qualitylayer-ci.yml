@@ -49,7 +49,7 @@ jobs:
         run: bash .github/scripts/check_qualitylayer_encrypted.sh
 
   test:
-    name: Typecheck, lint, test (${{ matrix.os }})
+    name: Typecheck, lint, test (${{ matrix.os }}, shard ${{ matrix.shard }}/4)
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     needs: plaintext-guard
@@ -57,6 +57,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-14]
+        shard: [1, 2, 3, 4]
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -87,6 +88,9 @@ jobs:
         working-directory: docs/site
         run: npm ci --ignore-scripts
 
+      - name: Install the pinned native Claude Code for mod tests
+        run: bash .github/workflows/scripts/setup-claude-code.sh "${RUNNER_TEMP:?}/ql-native-claude"
+
       - name: Typecheck
         working-directory: qualitylayer
         run: bun run typecheck
@@ -103,7 +107,7 @@ jobs:
         working-directory: qualitylayer
         env:
           QUALITYLAYER_REQUIRE_RENDER: "1"
-        run: bun run test
+        run: bun run test --shard ${{ matrix.shard }}/4
 
       # Every Cockpit view of the demo, at three widths, in Chrome: no text spills out of a
       # button, tab, badge or menu item. The self-test first proves the check still catches one.
@@ -149,7 +153,7 @@ jobs:
         run: npm test
 
   windows:
-    name: Native Windows runtime (${{ matrix.os }})
+    name: Native Windows runtime (${{ matrix.os }}, shard ${{ matrix.shard }}/4)
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     needs: plaintext-guard
@@ -157,6 +161,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-2025, windows-11-arm]
+        shard: [1, 2, 3, 4]
     defaults:
       run:
         shell: pwsh
@@ -207,7 +212,7 @@ jobs:
         working-directory: qualitylayer
         env:
           QUALITYLAYER_REQUIRE_RENDER: "1"
-        run: bun run test tests/e2e tests/windows tests/core/platform.test.ts tests/core/team-keys.test.ts tests/server/lock.test.ts tests/cli/hook-prompt.test.ts tests/core/install/mod.test.ts
+        run: bun run test --shard ${{ matrix.shard }}/4 tests/e2e tests/windows tests/core/platform.test.ts tests/core/team-keys.test.ts tests/server/lock.test.ts tests/cli/hook-prompt.test.ts tests/core/install/mod.test.ts
 
       - name: Release Cockpit draws on Windows
         working-directory: qualitylayer
@@ -220,6 +225,6 @@ jobs:
       - name: Keep the native performance measurements
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: compile-benchmark-${{ matrix.os }}
+          name: compile-benchmark-${{ matrix.os }}-shard-${{ matrix.shard }}
           path: qualitylayer/dist/compile-benchmark.json
           retention-days: 7

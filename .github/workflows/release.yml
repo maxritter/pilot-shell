@@ -171,40 +171,89 @@ jobs:
     name: QualityLayer Tests
     permissions:
       contents: read
+      checks: read
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [check-trigger, supply-chain-gate]
     if: needs.check-trigger.outputs.should_run == 'true'
     steps:
+      - name: Decide whether to reuse CI or run checks
+        id: ci
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          checks="${RUNNER_TEMP:?}/ci-checks.json"
+          if ! gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?per_page=100" > "$checks"; then
+            echo "reuse=false" >> "$GITHUB_OUTPUT"
+            echo "CI results unavailable; run checks"
+            exit 0
+          fi
+          required="${RUNNER_TEMP:?}/required-ci-checks.txt"
+          printf '%s\n' 'Plaintext guard' 'Site API and pages' > "$required"
+          for os in ubuntu-latest macos-14; do
+            for shard in 1 2 3 4; do
+              printf 'Typecheck, lint, test (%s, shard %s/4)\n' "$os" "$shard" >> "$required"
+            done
+          done
+          for os in windows-2025 windows-11-arm; do
+            for shard in 1 2 3 4; do
+              printf 'Native Windows runtime (%s, shard %s/4)\n' "$os" "$shard" >> "$required"
+            done
+          done
+          if jq -e --arg sha "$GITHUB_SHA" --rawfile required "$required" '
+            [.[].check_runs[] | select(.head_sha == $sha and .app.slug == "github-actions")]
+            | group_by(.name) | map(max_by(.id)) as $latest
+            | ($required | split("\n") | map(select(length > 0)))
+            | all(. as $name | any($latest[]; .name == $name and .status == "completed" and .conclusion == "success"))
+          ' "$checks" > /dev/null; then
+            echo "reuse=true" >> "$GITHUB_OUTPUT"
+            echo "Reuse CI: every required check passed for $GITHUB_SHA"
+          else
+            echo "reuse=false" >> "$GITHUB_OUTPUT"
+            echo "Required CI checks have not all passed; run checks"
+          fi
+
       - name: Checkout
+        if: steps.ci.outputs.reuse != 'true'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
+        if: steps.ci.outputs.reuse != 'true'
         run: bash .github/workflows/scripts/install-git-crypt.sh
 
       - name: Check the encrypted paths are encrypted in the public tree
+        if: steps.ci.outputs.reuse != 'true'
         run: bash .github/scripts/check_qualitylayer_encrypted.sh
 
       - name: Unlock repository
+        if: steps.ci.outputs.reuse != 'true'
         env:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
         run: bash .github/workflows/scripts/setup-git-crypt.sh
 
       - name: Setup Bun
+        if: steps.ci.outputs.reuse != 'true'
         uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
           bun-version: "1.4.2"
 
       - name: Install dependencies
+        if: steps.ci.outputs.reuse != 'true'
         working-directory: qualitylayer
         run: bun install --frozen-lockfile
 
       # The suites run the site's real handlers on the in-process database (PGlite) it ships.
       - name: Install the site's dependencies
+        if: steps.ci.outputs.reuse != 'true'
         working-directory: docs/site
         run: npm ci --ignore-scripts
 
+      - name: Install the pinned native Claude Code for mod tests
+        if: steps.ci.outputs.reuse != 'true'
+        run: bash .github/workflows/scripts/setup-claude-code.sh "${RUNNER_TEMP:?}/ql-native-claude"
+
       - name: Typecheck, lint, test
+        if: steps.ci.outputs.reuse != 'true'
         working-directory: qualitylayer
         env:
           QUALITYLAYER_REQUIRE_RENDER: "1"

@@ -26,19 +26,19 @@ Everything stays on your computer until you share: your code, the diff, every pl
 
 ### Without sharing
 
-Sharing is optional. Without it, the App and the CLI call QualityLayer only for:
+Sharing is optional. Without it, the App and the CLI contact QualityLayer for:
 
-- **Your licence:** a check about once a day, plus activating it or starting the trial.
+- **Your licence:** a daily check to qualitylayer.dev, plus activating it or starting the trial.
 - **The workflow texts** your agent follows, kept for a day.
 - **Updates** of the App.
 
-With a paid licence, the licence check also carries usage events: which steps ran and how they ended, marked with a short hash of your licence key, never a name, path, branch, title or text. Turn them off in **Settings › Licence**, with `qualitylayer telemetry off`, or with `DO_NOT_TRACK=1`.
+QualityLayer sends no usage events. It has no local usage-event queue or ingestion endpoint. **Settings › Licence** describes what leaves this computer.
 
 ### When you share {#sharing}
 
-With a Team plan, the task title, the Plan, comments and link shares are encrypted on your computer with your team's key before they leave it. The server sees who is involved (names and e-mails), the step and when, not your plans or comments. A share link carries its own key, which never reaches the server. Never your code, the diff or your logs.
+With team sharing on, shared tasks, documents and comments go to the team backend. The task title, the Plan, comments and link shares are encrypted on your computer with your team's key before they leave it. The server sees who is involved (names and e-mails), the step and when, not your plans or comments. A share link carries its own key, which never reaches the server. Your code, the diff and your logs stay local.
 
-The QualityLayer API runs in Frankfurt, and backups are encrypted and kept in the EU. If your team connects Slack, the task title and the question pass through our server to Slack.
+The QualityLayer API runs in Frankfurt, and backups are encrypted and kept in the EU. With Slack set up, notices go there. The task title and the question pass through our server to Slack.
 
 ## Feedback {#feedback}
 
