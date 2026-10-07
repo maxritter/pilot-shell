@@ -37,7 +37,7 @@ const Hero = () => {
   return (
     <section className="sx-hero" id="top" aria-labelledby="hero-h">
       <span aria-hidden="true" className="sx-mark mx-hmark" />
-      <h1 id="hero-h" className="sx-h1">The software factory for your coding agents</h1>
+      <h1 id="hero-h" className="sx-h1">The <span className="mx-acc">software factory</span> for your coding agents</h1>
       <p className="sx-lede">{DESCRIPTION}</p>
       <div className="sx-ctas">
         <Button asChild size="xl">{download.direct ? <a href={download.href}>{download.label}</a> : <Link to={download.href}>{download.label}</Link>}</Button>

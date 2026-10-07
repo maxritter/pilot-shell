@@ -204,6 +204,27 @@ html:has(.mx-filmov[open]){overflow:hidden}
 .pr-hi{padding:22px 24px;border:1px solid var(--mx-line2);border-radius:6px;background:var(--mx-panel)}
 .pr-hi b{font-weight:500}
 
+/* Pilot blue in a few chosen places (approved Colour Draft, 2026-10-07): the brand phrase, the mark, icons, one
+   tinted band, the closing panel and the pricing that matters. Buttons stay black; the page stays gray. */
+.sx-h1 .mx-acc{color:var(--ql-accent)}
+.mx-hmark{color:var(--ql-accent)}
+.mx-wi .mx-ic,.mx-chip .mx-ic{color:var(--ql-accent)}
+.mx-pr h3{color:var(--ql-accent)}
+.mx-mq{background:linear-gradient(135deg,color-mix(in srgb,var(--ql-accent) 13%,var(--mx-sunk)) 0%,var(--mx-sunk) 60%)}
+.mx-end{background:radial-gradient(120% 160% at 100% 0%,color-mix(in srgb,var(--ql-accent) 55%,#0a1424) 0%,#0a1424 58%);color:#eef3fa}
+.mx-end p,.w7-root .mx-endn{color:#a9b6c8}
+.mx-end .sx-mark{color:#fff}
+.w7-root .mx-end [data-slot="button"][data-variant="default"]{background:#eef3fa;color:#0a1424}
+.w7-root .mx-end [data-slot="button"][data-variant="outline"]{border-color:rgb(255 255 255 / 22%);color:#eef3fa}
+:where(.w7-root) a:not([data-slot]):hover{color:var(--ql-accent)}
+.sx-step.on{border-color:var(--ql-accent);color:var(--ql-accent)}
+.pr-amt{color:var(--ql-accent)}
+.pr-plan.feat{border-color:var(--ql-accent);box-shadow:0 0 0 1px var(--ql-accent)}
+.pr-plan.feat .pr-badge{background:var(--ql-accent);color:#fff}
+.pr-save{background:var(--ql-accent-soft);color:var(--ql-accent)}
+.pr-seg [data-variant="default"] .pr-save{background:var(--ql-accent);color:#fff}
+.pr-root .pr-ck{background:var(--ql-accent)}
+
 /* ---- Tablets ---- */
 @container (max-width: 1079px){
   .mx-mq{grid-template-columns:minmax(0,1fr);padding:32px 0}

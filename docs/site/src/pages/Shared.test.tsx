@@ -15,7 +15,7 @@ const noSend = async () => ({ ok: true as const });
 describe("opening encrypted links", () => {
   it("opens old document aliases with their expiry and fetches only the link id", async () => {
     const fetcher = await sealed({ task: "A shared task", docs: DOCS }, "2026-10-14T10:00:00.000Z");
-    expect(await loadShare(ID, KEY, fetcher)).toEqual({ status: "ready", kind: "v2", title: "A shared task", docs: DOCS, items: [], expires: "2026-10-14T10:00:00.000Z" });
+    expect(await loadShare(ID, KEY, fetcher)).toEqual({ status: "ready", kind: "v2", id: ID, title: "A shared task", docs: DOCS, items: [], threads: [], expires: "2026-10-14T10:00:00.000Z" });
     expect(fetcher).toHaveBeenCalledWith(`/api/share?id=${ID}`);
   });
   it("a keyless or malformed link never asks the service", async () => {

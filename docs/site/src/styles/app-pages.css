@@ -5,7 +5,7 @@
 .ap-center{width:100%;max-width:600px;padding:40px 24px;text-align:center}
 .ap-center h1{margin:14px 0 12px;font-size:18px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
 .ap-center p{margin:0 auto 12px;max-width:46ch;font-size:14px;line-height:1.55;color:var(--ql-text-muted)}
-.ap-mark{width:34px;height:31px;color:var(--ql-text)}
+.ap-mark{width:34px;height:31px;color:var(--ql-accent)}
 .ap-open [aria-live]{min-height:112px}
 .ap-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 0 14px}
 .ap-open [data-slot="button"]{height:36px;padding:0 14px;font-size:13px}
@@ -16,16 +16,16 @@
 /* ---- /download: one card per system, the visitor's first ---- */
 .ap-dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:36px}
 .ap-os{display:flex;flex-direction:column;border:1px solid var(--mx-line2);border-radius:6px;background:var(--mx-panel);color:var(--ql-text);text-decoration:none}
-.ap-os:hover{border-color:var(--mx-ink)}
-/* The visitor's own system: an ink edge, as the featured pricing plan. */
-.ap-os[data-current="true"]{border-color:var(--mx-ink);box-shadow:0 0 0 1px var(--mx-ink)}
+.ap-os:hover{border-color:var(--ql-accent)}
+/* The visitor's own system: a blue edge, as the featured pricing plan. */
+.ap-os[data-current="true"]{border-color:var(--ql-accent);box-shadow:0 0 0 1px var(--ql-accent)}
 .w7-root a.ap-os-main{display:flex;align-items:center;gap:14px;padding:16px;color:var(--ql-text);text-decoration:none}
-.ap-os svg{flex:none;width:30px;height:30px;color:var(--ql-text)}
+.ap-os svg{flex:none;width:30px;height:30px;color:var(--ql-accent)}
 .ap-os b{display:block;font-size:15px;font-weight:500}
 .ap-os small{display:block;margin-top:2px;font-size:13px;color:var(--ql-text-dim)}
 .ap-os-other{padding:0 16px 14px 60px;font-size:13px}
 .ap-cli{display:flex;align-items:flex-start;gap:14px;max-width:760px;margin-top:12px;padding:16px;border:1px solid var(--mx-line2);border-radius:6px;background:var(--mx-panel)}
-.ap-cli svg{flex:none;width:30px;height:30px;color:var(--ql-text)}
+.ap-cli svg{flex:none;width:30px;height:30px;color:var(--ql-accent)}
 .ap-cli b{display:block;font-size:15px;font-weight:500}
 .ap-cli small{display:block;margin-top:2px;font-size:13px;color:var(--ql-text-dim)}
 .ap-cli .w7-cmd{margin-top:10px}
