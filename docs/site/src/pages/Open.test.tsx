@@ -81,8 +81,8 @@ describe("the landing page on a computer", () => {
 
   it("makes Open in the App the one filled button, the browser a plain one and the download a link", async () => {
     const shown = await html(<OpenView links={openLinks("/open/ask/t_9c2/7f3a")!} device="computer" phase="offer" />);
-    expect(shown).toMatch(/<a class="w7-btn-p"[^>]*>Open in the App<\/a>/);
-    expect(shown).toMatch(/<a class="w7-btn-s"[^>]*>Open in this browser<\/a>/);
+    expect(shown).toMatch(/<a [^>]*data-slot="button" data-variant="default"[^>]*>Open in the App<\/a>/);
+    expect(shown).toMatch(/<a [^>]*data-slot="button" data-variant="outline"[^>]*>Open in this browser<\/a>/);
     expect(shown).toMatch(/<a class="ap-link" href="\/download">Get the QualityLayer App<\/a>/);
   });
 
@@ -145,7 +145,7 @@ describe("the landing page on a phone", () => {
     const shown = await html(<OpenView links={openLinks("/open/ask/t_9c2/7f3a")!} device="phone" phase="offer" />);
     expect(shown).toContain("Open this on your computer");
     expect(shown).toContain("Questions are answered in the QualityLayer App, where the Plan and your agent are.");
-    expect(shown).toMatch(/<button type="button" class="w7-btn-s"[^>]*>Copy the link<\/button>/);
+    expect(shown).toMatch(/<button data-slot="button" data-variant="outline"[^>]*type="button">Copy the link<\/button>/);
     expect(shown).not.toContain("qualitylayer://");
     expect(shown).not.toContain("<iframe");
   });

@@ -5,11 +5,6 @@
 .sx-root{overflow-x:clip;background:var(--ql-bg);color:var(--ql-text)}
 
 .sx-mark{display:inline-block;width:22px;height:22px;background:currentColor;-webkit-mask:url(/brand/qualitylayer-mark.svg) center/contain no-repeat;mask:url(/brand/qualitylayer-mark.svg) center/contain no-repeat}
-.sx-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 20px;border-radius:8px;font-size:15px;font-weight:500;text-decoration:none;white-space:nowrap;cursor:pointer}
-.sx-btn-p{background:var(--ql-primary);color:var(--ql-text-on-accent);border:1px solid var(--ql-primary)}
-.sx-btn-p:hover{background:var(--ql-primary-hover);color:var(--ql-text-on-accent)}
-.sx-btn-s{background:var(--ql-bg);color:var(--ql-text);border:1px solid var(--ql-border-strong)}
-.sx-btn-s:hover{border-color:var(--ql-accent);color:var(--ql-accent)}
 
 /* Who acts: amber ring for you, blue turning ring for an agent */
 .sx-you{flex:none;display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid var(--ql-amber-ink)}
@@ -474,31 +469,7 @@
 .sx-nw .sx-share small{display:none}
 .sx-nw .sx-slk{padding:10px}
 
-/* Films, under the hero: a poster with a play button, then the video from the media host */
-.sx-films{padding:clamp(8px,1.5cqi,24px) 0 clamp(56px,8cqi,112px)}
-.sx-film{min-width:0;max-width:1040px;margin:0 auto}
-.sx-fframe{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;border:1px solid var(--ql-border);background:#000}
-.sx-fposter{position:absolute;inset:0;display:block;width:100%;height:100%;padding:0;border:0;background:none;cursor:pointer}
-.sx-fposter:focus-visible{outline:2px solid var(--ql-accent);outline-offset:2px}
-.sx-fimg{display:block;width:100%;height:100%;object-fit:cover}
-.sx-fplay{position:absolute;left:50%;top:50%;display:flex;align-items:center;justify-content:center;width:64px;height:64px;margin:-32px 0 0 -32px;padding-left:4px;border-radius:50%;background:var(--ql-primary);color:var(--ql-text-on-accent);box-shadow:0 10px 30px rgba(0,0,0,.35)}
-.sx-fposter:hover .sx-fplay{background:var(--ql-primary-hover)}
-.sx-fvid{position:absolute;inset:0;width:100%;height:100%;background:#000}
-.sx-ftitle{display:flex;align-items:baseline;gap:10px;margin:14px 0 0;font-size:17px;font-weight:600;letter-spacing:-.01em}
-.sx-ftitle span{font:500 13px/1 "Geist Mono",ui-monospace,monospace;color:var(--ql-text-muted)}
-
-/* Closing sections */
-.sx-wrap{max-width:1100px;margin:0 auto;padding:0 clamp(16px,4cqi,40px)}
-.sx-h2{margin:0;font-size:clamp(30px,3.8cqi,46px);line-height:1.08;font-weight:600;letter-spacing:-.03em;text-wrap:balance}
-.sx-end{padding:clamp(96px,12cqi,160px) clamp(16px,4cqi,40px) 40px;text-align:center}
-.sx-end .sx-mark{width:52px;height:52px;color:var(--ql-text)}
-.sx-dls{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:30px}
-.sx-cmdn{margin:28px 0 0;font-size:14px;color:var(--ql-text-muted)}
-.sx-cmd{display:flex;align-items:stretch;max-width:600px;margin:10px auto 0;border:1px solid var(--ql-border-strong);border-radius:10px;overflow:hidden;background:var(--ql-bg-sunken);text-align:left}
-.sx-cmd code{flex:1;min-width:0;padding:14px 18px;overflow-x:auto;white-space:nowrap;font:400 14px/1.5 "Geist Mono",ui-monospace,monospace;color:var(--ql-text);scrollbar-width:thin}
-.sx-cmd button{flex:none;min-width:84px;padding:0 16px;border:0;border-left:1px solid var(--ql-border-strong);background:var(--ql-primary);color:var(--ql-text-on-accent);font-size:14px;font-weight:500;cursor:pointer}
-.sx-cmd button:hover{background:var(--ql-primary-hover)}
-.sx-small{margin:16px 0 0;font-size:14px;color:var(--ql-text-muted)}
+/* Closing */
 .sx-ch.last{min-height:100vh}
 
 @media (prefers-reduced-motion:reduce){.sx-replay{display:none}.sx-in,.sx-sc,.sx-chin{transition:none}.sx-pkt.on{animation:none}}
@@ -508,12 +479,10 @@
    scroll-driven animations show everything still. */
 @keyframes sx-rise{entry 0%{opacity:0;transform:translateY(28px)}entry 70%{opacity:1;transform:none}exit 30%{opacity:1}exit 100%{opacity:0}}
 @keyframes sx-grow{entry 0%{opacity:0;transform:translateY(48px) scale(.94)}entry 55%{opacity:1;transform:none}exit 40%{opacity:1}exit 100%{opacity:.2}}
-@keyframes sx-arrive{from{opacity:0;transform:translateY(40px) scale(.96)}to{opacity:1;transform:none}}
 @supports (animation-timeline: view()){
   @media (prefers-reduced-motion:no-preference){
     .sx-rv{animation:sx-rise linear both;animation-timeline:view(block 68px 0px)}
     .sx-rvw{animation:sx-grow linear both;animation-timeline:view(block 124px 0px);transform-origin:50% 100%}
-    .sx-film{animation:sx-arrive linear both;animation-timeline:view();animation-range:entry 0% entry 80%}
   }
 }
 
@@ -543,6 +512,4 @@
   .sx-ch,.sx-ch.first,.sx-ch.last{padding:16px 0}
   .sx-act-h h2{font-size:30px}
   .sx-act-h p{font-size:16px}
-  /* The install line wraps on phones instead of hiding its end; Copy still copies it whole. */
-  .sx-cmd code{white-space:normal;overflow-wrap:anywhere;padding:12px 14px;font-size:13px}
 }

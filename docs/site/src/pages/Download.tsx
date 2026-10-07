@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import Page from "@/components/Page";
 import SEO from "@/components/SEO";
 import { useCopy } from "@/hooks/useCopy";
@@ -27,8 +28,15 @@ const CARDS: { id: Card; title: string; about: string; icon: string; main: strin
   { id: "linux", title: "Linux", about: "x64 or ARM64 · AppImage", icon: LINUX_ICON, main: "linux-x64", other: { id: "linux-arm64", label: "ARM64" } },
 ];
 
-export function DownloadView({ data, system }: { data: Packages | null; system: Card | null }) {
+/** The Windows packages are not code-signed yet, so SmartScreen can stop a first run; said only once a Windows download starts. */
+export const WindowsNote = () => (
+  <p className="ap-note" role="status">Your download has started. If Windows shows a SmartScreen notice, choose More info, then Run anyway.</p>
+);
+
+export function DownloadView({ data, system, windowsStarted = false }: { data: Packages | null; system: Card | null; windowsStarted?: boolean }) {
   const { copy, state } = useCopy(INSTALL_COMMAND);
+  const [windows, setWindows] = useState(windowsStarted);
+  const started = (id: Card) => (id === "windows" ? () => setWindows(true) : undefined);
   const find = (id: string) => data?.packages.find((p) => p.id === id);
   const cards = [...CARDS].sort((a, b) => Number(b.id === system) - Number(a.id === system));
   return (
@@ -42,7 +50,7 @@ export function DownloadView({ data, system }: { data: Packages | null; system: 
             const other = card.other && find(card.other.id);
             return (
               <div className="ap-os" data-current={card.id === system ? "true" : undefined} key={card.id}>
-                <a className="ap-os-main" href={main?.url ?? RELEASES_URL}>
+                <a className="ap-os-main" href={main?.url ?? RELEASES_URL} onClick={main ? started(card.id) : undefined}>
                   <Icon path={card.icon} />
                   <span>
                     <b>{card.title}</b>
@@ -51,7 +59,7 @@ export function DownloadView({ data, system }: { data: Packages | null; system: 
                   </span>
                 </a>
                 {other && (
-                  <a className="ap-os-other" href={other.url}>
+                  <a className="ap-os-other" href={other.url} onClick={started(card.id)}>
                     {`${card.other!.label} version · ${sizeLabel(other.size)}`}
                   </a>
                 )}
@@ -66,13 +74,13 @@ export function DownloadView({ data, system }: { data: Packages | null; system: 
             <small>WSL, dev containers and servers: the App opens in your browser</small>
             <span className="w7-cmd">
               <code>{INSTALL_COMMAND}</code>
-              <button type="button" onClick={() => void copy()} aria-label="Copy install command">
+              <Button type="button" onClick={() => void copy()} aria-label="Copy install command">
                 {state === "done" ? "Copied" : state === "error" ? "Select the text" : "Copy"}
-              </button>
+              </Button>
             </span>
           </span>
         </div>
-        <p className="ap-note">Windows may show a SmartScreen notice for a new app: choose More info, then Run anyway.</p>
+        {windows ? <WindowsNote /> : null}
       </div>
     </section>
   );

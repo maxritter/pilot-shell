@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Link, useLocation } from "react-router-dom";
 import { Moon, Sun } from "lucide-react";
@@ -9,6 +10,7 @@ import { DOCS_URL, GITHUB_URL } from "@/lib/product";
 type NavLink = { label: string; to: string; external?: boolean };
 
 const LINKS: NavLink[] = [
+  { label: "Your agents", to: "/#agents" },
   { label: "How it works", to: "/#tour" },
   { label: "Teams", to: "/#team" },
   { label: "Pricing", to: "/pricing" },
@@ -39,10 +41,10 @@ function Icons() {
   const next = theme === "dark" ? "light" : "dark";
   return (
     <>
-      <a className="w7-icon" href={GITHUB_URL} aria-label="GitHub repository"><GitHubMark /></a>
-      <button type="button" className="w7-icon" onClick={toggle} aria-label={`Switch to ${next} mode`} title={`Switch to ${next} mode`}>
+      <Button asChild variant="ghost" size="icon-lg" className="w7-icon"><a href={GITHUB_URL} aria-label="GitHub repository"><GitHubMark /></a></Button>
+      <Button type="button" variant="ghost" size="icon-lg" className="w7-icon" onClick={toggle} aria-label={`Switch to ${next} mode`} title={`Switch to ${next} mode`}>
         {theme === "dark" ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
-      </button>
+      </Button>
     </>
   );
 }
@@ -61,14 +63,14 @@ const NavBar = () => {
             <Icons />
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
-                <button type="button" className="w7-menu">Menu</button>
+                <Button type="button" variant="outline" size="lg" className="w7-menu">Menu</Button>
               </SheetTrigger>
               <SheetContent side="right" className="w7-sheet">
                 <SheetTitle className="w7-sr">Menu</SheetTitle>
                 <SheetDescription className="w7-sr">Pages of the QualityLayer site</SheetDescription>
                 <nav className="w7-mnav" aria-label="Mobile">
                   {LINKS.map((link) => <Item key={link.label} link={link} onClick={() => setOpen(false)} />)}
-                  <Link className="w7-nav-cta" to="/download" onClick={() => setOpen(false)}>Download</Link>
+                  <Button asChild size="xl" className="w7-nav-cta"><Link to="/download" onClick={() => setOpen(false)}>Download</Link></Button>
                 </nav>
               </SheetContent>
             </Sheet>
@@ -77,7 +79,7 @@ const NavBar = () => {
           <nav className="w7-nav" aria-label="Main">
             {LINKS.map((link) => <Item key={link.label} link={link} />)}
             <span className="w7-hdr-tools"><Icons /></span>
-            <Link className="w7-nav-cta" to="/download">Download</Link>
+            <Button asChild size="lg" className="w7-nav-cta"><Link to="/download">Download</Link></Button>
           </nav>
         )}
       </div>

@@ -25,11 +25,15 @@ module.exports = function changelogPlugin(context) {
       if (fence === null) return line.replace(/^(#{2,6}) /, (_, hashes) => "#".repeat(Math.min(6, hashes.length + 2)) + " ");
       return line;
     }).join("\n");
+    // Each current release becomes one section, so the page can set the version beside its notes.
+    const [intro, ...releases] = current.trim().split(/^(?=## )/m);
+    const sections = releases.map((release, i) =>
+      `<section class="cl-rel${i === 0 ? " cl-latest" : ""}">\n\n${release.trim()}\n\n</section>`).join("\n\n");
     const content = [
       "---", "title: Changelog", "slug: /changelog",
       "description: Current QualityLayer development changes and preserved Pilot Shell release history.",
       "toc_max_heading_level: 2", "---", "",
-      current.trim(), "",
+      intro.trim(), "", sections, "",
       history ? "## Earlier releases\n\n<details>\n<summary>Pilot Shell release history</summary>\n\n" + history.trim() + "\n\n</details>" : "",
       "", "[Published release downloads](https://github.com/maxritter/pilot-shell/releases)", "",
     ].join("\n");

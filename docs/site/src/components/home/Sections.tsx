@@ -1,32 +1,29 @@
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import Questions from "@/components/Questions";
-import { useCopy } from "@/hooks/useCopy";
 import { useDownload } from "@/hooks/useDownload";
 import { FAQS } from "@/lib/content";
-import { INSTALL_COMMAND } from "@/lib/product";
+import Intro from "./Intro";
 import Tour from "./Tour";
 
 function Install() {
-  const { copy, state, status } = useCopy(INSTALL_COMMAND);
   const download = useDownload();
   return (
-    <section id="install" className="sx-end" aria-labelledby="install-h">
-      <span aria-hidden="true" className="sx-mark" />
-      <h2 id="install-h" className="sx-h2" style={{ margin: "24px auto 0", maxWidth: "21ch" }}>Start with your next change, on your own or with your team.</h2>
-      <p className="sx-lede" style={{ marginTop: 16 }}>The App sets up QualityLayer for Claude Code and Codex on first start, no terminal needed.</p>
-      <div className="sx-dls">
-        {download.direct ? <a className="sx-btn sx-btn-p" href={download.href}>{download.label}</a> : <Link className="sx-btn sx-btn-p" to={download.href}>{download.label}</Link>}
-        <Link className="sx-btn sx-btn-s" to="/download">All downloads</Link>
+    <section id="install" className="mx-sec" aria-labelledby="install-h">
+      <div className="mx-wrap">
+        <div className="mx-end">
+          <div>
+            <span aria-hidden="true" className="sx-mark" />
+            <h2 id="install-h">Start with your next change</h2>
+            <p>The App sets up Claude Code and Codex on first start. Every plan starts with a 7-day trial.</p>
+            <div className="sx-ctas">
+              <Button asChild size="xl">{download.direct ? <a href={download.href}>{download.label}</a> : <Link to={download.href}>{download.label}</Link>}</Button>
+              <Button asChild variant="outline" size="xl"><Link to="/pricing">See pricing</Link></Button>
+            </div>
+            <p className="mx-endn">On a server, in WSL or in a container? <Link to="/download">Install the command line</Link></p>
+          </div>
+        </div>
       </div>
-      <p className="sx-cmdn">On a server, in WSL or in a container, install the command line. The App then opens in your browser.</p>
-      <div className="sx-cmd">
-        <code>{INSTALL_COMMAND}</code>
-        <button type="button" onClick={() => void copy()} aria-label="Copy install command">
-          {state === "done" ? "Copied" : state === "error" ? "Select the text" : "Copy"}
-        </button>
-      </div>
-      <p className="w7-sr" role="status">{status}</p>
-      <p className="sx-small">macOS, Windows and Linux · 7-day trial · <Link to="/pricing">See pricing</Link></p>
     </section>
   );
 }
@@ -34,6 +31,7 @@ function Install() {
 export default function Sections() {
   return (
     <>
+      <Intro />
       <Tour />
       <Questions faqs={FAQS} />
       <Install />

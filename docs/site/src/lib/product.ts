@@ -10,9 +10,10 @@ export const GITHUB_URL = "https://github.com/maxritter/pilot-shell";
 /** The documentation, served by Docusaurus under the site's own domain. */
 export const DOCS_URL = "/docs/";
 export const RELEASES_URL = `${GITHUB_URL}/releases`;
+export const CHANGELOG_URL = "/docs/changelog";
 export const CONTACT_EMAIL = "mail@maxritter.net";
 export const AUTHOR_URL = "https://maxritter.net";
 export const AUTHOR_NAME = "Max Ritter";
 
 export const DESCRIPTION =
-  "You approve one plan before any code is written. Your agent builds it test first, and an AI that did not write the code checks the result against your request.";
+  "You approve one plan before any code is written. Your agent builds it test first in its own terminal, app or editor, and an AI that did not write the code checks the result against your request.";

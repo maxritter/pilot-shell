@@ -42,8 +42,8 @@
   --card-foreground: var(--ql-text);
   --popover: var(--ql-surface);
   --popover-foreground: var(--ql-text);
-  --primary: var(--ql-primary);
-  --primary-foreground: var(--ql-text-on-accent);
+  --primary: var(--mx-btn);
+  --primary-foreground: var(--mx-btn-ink);
   --secondary: var(--ql-surface-2);
   --secondary-foreground: var(--ql-text);
   --muted: var(--ql-surface-2);
@@ -53,7 +53,7 @@
   --destructive: var(--ql-danger);
   --border: var(--ql-border);
   --input: var(--ql-border-strong);
-  --ring: var(--ql-accent);
+  --ring: var(--mx-ink);
 }
 
 @theme inline {

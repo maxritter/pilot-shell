@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Helmet } from "react-helmet-async";
 import { useLocation } from "react-router-dom";
 import { useCopy } from "@/hooks/useCopy";
@@ -27,9 +28,9 @@ const what = (links: OpenLinks) => (links.path.startsWith("ask/") ? "question" :
 function CopyLink() {
   const { copy, state } = useCopy(typeof window === "undefined" ? "" : window.location.href);
   return (
-    <button type="button" className="w7-btn-s" onClick={() => void copy()}>
+    <Button type="button" variant="outline" size="xl" onClick={() => void copy()}>
       {state === "done" ? "Copied" : state === "error" ? "Select the address and copy it" : "Copy the link"}
-    </button>
+    </Button>
   );
 }
 
@@ -62,8 +63,8 @@ export function OpenView({ links, device, phase, onOptions }: { links: OpenLinks
           <>
             <p>Nothing happened? Pick one:</p>
             <div className="ap-row">
-              <a className="w7-btn-p" href={links.app}>Open in the App</a>
-              <a className="w7-btn-s" href={links.browser}>Open in this browser</a>
+              <Button asChild size="xl"><a href={links.app}>Open in the App</a></Button>
+              <Button asChild variant="outline" size="xl"><a href={links.browser}>Open in this browser</a></Button>
             </div>
             <a className="ap-link" href="/download">Get the QualityLayer App</a>
           </>

@@ -9,16 +9,12 @@ async function html(path: string): Promise<string> {
   return new Response(stream).text();
 }
 
-describe("the footer's example disclaimer", () => {
-  it("scopes the fictional examples to the tour", async () => {
-    const rendered = await html("/");
-    expect(rendered).toContain("in the tour are fictional");
-    expect(rendered).not.toContain("on this site are an illustration");
-  });
-
-  it("does not call a customer's shared task fictional", async () => {
-    const rendered = await html(`/s/${"A".repeat(22)}`);
-    expect(rendered).not.toContain("are fictional");
-    expect(rendered).toContain("Prices in US dollars, billed monthly through Polar.");
+describe("the footer", () => {
+  it("carries the links and the copyright, no fine print", async () => {
+    for (const path of ["/", "/pricing", `/s/${"A".repeat(22)}`]) {
+      const rendered = await html(path);
+      expect(rendered).toContain("© 2026 QualityLayer");
+      expect(rendered).not.toMatch(/fictional|illustration|billed monthly/);
+    }
   });
 });

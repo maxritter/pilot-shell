@@ -1,5 +1,4 @@
 import { lazy, Suspense } from "react";
-import Films from "@/components/home/Films";
 import Hero from "@/components/home/Hero";
 import Page from "@/components/Page";
 import SEO from "@/components/SEO";
@@ -51,7 +50,6 @@ const Index = () => (
     <SEO structuredData={structuredData} />
     <Page>
       <Hero />
-      <Films />
       <Suspense fallback={<div aria-hidden="true" style={{ minHeight: "40vh" }} />}>
         <Sections />
       </Suspense>

@@ -25,8 +25,8 @@ describe("FAQ", () => {
   it("says what a feedback report sends, as the plan lists it, and what it never sends", () => {
     const answer = FAQS.find((faq) => /feedback/i.test(faq.question))?.answer ?? "";
     expect(answer).toMatch(/private issue/i);
-    for (const sent of [/command-line versions/, /your system and its architecture/, /versions of Claude Code and Codex/, /the kind of page you were on/, /your licence/, /how many errors of which kinds happened in the last hour/]) expect(answer).toMatch(sent);
-    expect(answer).toMatch(/Never your code, plan or document text, task titles, repository or branch names, or file paths\./);
+    for (const sent of [/versions of the App, the command line, Claude Code and Codex/, /your system and its architecture/, /the kind of page you were on/, /your licence/, /errors of the last hour by kind/]) expect(answer).toMatch(sent);
+    expect(answer).toMatch(/never include your code, the text of a plan or document, task titles, repository or branch names, or file paths\./);
     expect(answer).toMatch(/Screenshots can show code or plans\./);
   });
 
@@ -56,10 +56,13 @@ describe("product facts", () => {
   it("sells Solo and Team through live checkouts, and Enterprise by mail", () => {
     expect(PLANS.map((plan) => plan.id)).toEqual(["solo", "team", "enterprise"]);
     for (const plan of PLANS.filter((p) => p.id !== "enterprise")) {
-      expect(plan.price).toBeGreaterThan(0);
-      expect(plan.href).toMatch(/^https:\/\/buy\.polar\.sh\//);
+      const { price, href } = plan;
+      if (price === "Custom" || typeof href === "string") throw new Error(`${plan.id} must sell monthly and yearly`);
+      // Yearly is 20% off the monthly price, in whole dollars.
+      expect(price.yearly).toBe(price.monthly * 0.8);
+      for (const link of [href.monthly, href.yearly]) expect(link).toMatch(/^https:\/\/(sandbox-api\.polar\.sh|buy\.polar\.sh)\//);
     }
-    expect(PLANS.find((p) => p.id === "enterprise")?.href).toMatch(new RegExp(`^mailto:${CONTACT_EMAIL}\\?`));
+    expect(String(PLANS.find((p) => p.id === "enterprise")?.href)).toMatch(new RegExp(`^mailto:${CONTACT_EMAIL}\\?`));
   });
 
   it("gives every plan four highlights, as the cards are drawn", () => {

@@ -72,10 +72,6 @@
 .w7-h2{margin:0;font-size:clamp(30px,3.8cqi,46px);line-height:1.1;font-weight:600;letter-spacing:-.03em;text-wrap:balance}
 .w7-lead{margin:18px 0 0;max-width:60ch;font-size:17px;line-height:1.6;color:var(--ql-text-muted);text-wrap:pretty}
 
-.w7-btn-p{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:12px 22px;border-radius:8px;background:var(--ql-primary);color:var(--ql-text-on-accent);text-decoration:none;font-size:15px;font-weight:500}
-.w7-btn-p:hover{background:var(--ql-primary-hover);color:var(--ql-text-on-accent)}
-.w7-btn-s{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:12px 22px;border:1px solid var(--ql-border-strong);border-radius:8px;background:var(--ql-bg);color:var(--ql-text);text-decoration:none;font-size:15px;font-weight:500;cursor:pointer}
-.w7-btn-s:hover{border-color:var(--ql-accent);color:var(--ql-accent)}
 
 /* ---- Pricing ---- */
 .pr-root{container-type:inline-size;--hl-teal:oklch(0.52 0.1 178);--hl-violet:oklch(0.55 0.14 298)}
@@ -88,9 +84,6 @@
 .pr-h1{margin:0;font-size:clamp(40px,5.6cqi,72px);line-height:1.02;font-weight:600;letter-spacing:-.04em}
 .pr-h2{margin:0;font-size:clamp(28px,3.4cqi,40px);line-height:1.1;font-weight:600;letter-spacing:-.03em}
 .pr-lead{margin:18px 0 0;max-width:62ch;font-size:18px;line-height:1.6;color:var(--ql-text-muted);text-wrap:pretty}
-.pr-btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:12px 22px;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none}
-.pr-btn.p{background:var(--ql-primary);color:var(--ql-text-on-accent)}.pr-btn.p:hover{background:var(--ql-primary-hover);color:var(--ql-text-on-accent)}
-.pr-btn.s{border:1px solid var(--ql-border-strong);color:var(--ql-text)}.pr-btn.s:hover{border-color:var(--ql-accent);color:var(--ql-accent)}
 
 .pr-plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:48px}
 .pr-plan{display:flex;flex-direction:column;gap:20px;padding:clamp(22px,2.6cqi,32px);border:1px solid var(--ql-border);border-radius:16px;background:var(--ql-bg)}

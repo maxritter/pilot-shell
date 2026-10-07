@@ -1,10 +1,8 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Logo } from "@/components/NavBar";
-import { CONTACT_EMAIL, DOCS_URL, GITHUB_URL, RELEASES_URL } from "@/lib/product";
+import { CHANGELOG_URL, CONTACT_EMAIL, DOCS_URL, GITHUB_URL } from "@/lib/product";
 
-const Footer = () => {
-  const shared = useLocation().pathname.startsWith("/s/");
-  return (
+const Footer = () => (
   <footer className="w7-ftr">
     <div className="w7-ftr-wrap">
       <div className="w7-ftr-row">
@@ -13,14 +11,13 @@ const Footer = () => {
           <a href={DOCS_URL}>Docs</a>
           <Link to="/pricing">Pricing</Link>
           <a href={GITHUB_URL}>GitHub</a>
-          <a href={RELEASES_URL}>Changelog</a>
+          <a href={CHANGELOG_URL}>Changelog</a>
           <a href={`mailto:${CONTACT_EMAIL}`}>Contact</a>
         </nav>
-        <p className="w7-legal">© 2026 QualityLayer · {!shared && "The example tasks, people and numbers in the tour are fictional. "}Prices in US dollars, billed monthly through Polar.</p>
+        <p className="w7-legal">© 2026 QualityLayer</p>
       </div>
     </div>
   </footer>
-  );
-};
+);
 
 export default Footer;

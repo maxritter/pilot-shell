@@ -8,24 +8,25 @@
 .ap-mark{width:34px;height:31px;color:var(--ql-text)}
 .ap-open [aria-live]{min-height:112px}
 .ap-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 0 14px}
-.ap-open .w7-btn-p,.ap-open .w7-btn-s{min-height:36px;padding:0 14px;font-size:13px}
-.w7-root .ap-link{display:inline;padding:0;border:0;background:none;color:var(--ql-accent);font:inherit;font-size:13px;text-decoration:none;cursor:pointer}
+.ap-open [data-slot="button"]{height:36px;padding:0 14px;font-size:13px}
+.w7-root .ap-link{display:inline;padding:0;border:0;background:none;color:var(--ql-text);text-decoration:underline;text-underline-offset:3px;font:inherit;font-size:13px;cursor:pointer}
 .w7-root .ap-link:hover{text-decoration:underline;text-underline-offset:3px}
-@media (max-width:600px){.ap-open .w7-btn-p,.ap-open .w7-btn-s{min-height:44px}}
+@media (max-width:600px){.ap-open [data-slot="button"]{height:44px}}
 
 /* ---- /download: one card per system, the visitor's first ---- */
 .ap-dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:36px}
-.ap-os{display:flex;flex-direction:column;border:1px solid var(--ql-border);border-radius:10px;background:var(--ql-bg);color:var(--ql-text);text-decoration:none}
-.ap-os:hover{border-color:var(--ql-accent)}
-.ap-os[data-current="true"]{border-color:var(--ql-accent-line);background:var(--ql-accent-soft)}
+.ap-os{display:flex;flex-direction:column;border:1px solid var(--mx-line2);border-radius:6px;background:var(--mx-panel);color:var(--ql-text);text-decoration:none}
+.ap-os:hover{border-color:var(--mx-ink)}
+/* The visitor's own system: an ink edge, as the featured pricing plan. */
+.ap-os[data-current="true"]{border-color:var(--mx-ink);box-shadow:0 0 0 1px var(--mx-ink)}
 .w7-root a.ap-os-main{display:flex;align-items:center;gap:14px;padding:16px;color:var(--ql-text);text-decoration:none}
 .ap-os svg{flex:none;width:30px;height:30px;color:var(--ql-text)}
-.ap-os b{display:block;font-size:15px;font-weight:600}
+.ap-os b{display:block;font-size:15px;font-weight:500}
 .ap-os small{display:block;margin-top:2px;font-size:13px;color:var(--ql-text-dim)}
 .ap-os-other{padding:0 16px 14px 60px;font-size:13px}
-.ap-cli{display:flex;align-items:flex-start;gap:14px;max-width:760px;margin-top:12px;padding:16px;border:1px solid var(--ql-border);border-radius:10px}
+.ap-cli{display:flex;align-items:flex-start;gap:14px;max-width:760px;margin-top:12px;padding:16px;border:1px solid var(--mx-line2);border-radius:6px;background:var(--mx-panel)}
 .ap-cli svg{flex:none;width:30px;height:30px;color:var(--ql-text)}
-.ap-cli b{display:block;font-size:15px;font-weight:600}
+.ap-cli b{display:block;font-size:15px;font-weight:500}
 .ap-cli small{display:block;margin-top:2px;font-size:13px;color:var(--ql-text-dim)}
 .ap-cli .w7-cmd{margin-top:10px}
 /* The text column may shrink below its content, so the command box stays inside the card on a phone. */

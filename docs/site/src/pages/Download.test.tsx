@@ -87,10 +87,11 @@ describe("the cards", () => {
     expect(markup).toContain("curl -fsSL https://qualitylayer.dev/install.sh | bash");
   });
 
-  it("says what Windows may show on a new app", async () => {
-    const markup = await html(<DownloadView data={PACKAGES} system={null} />);
-    expect(markup).toContain("SmartScreen");
-    expect(markup).toContain("Run anyway");
+  it("says what Windows may show only once a Windows download has started", async () => {
+    expect(await html(<DownloadView data={PACKAGES} system="windows" />)).not.toContain("SmartScreen");
+    const started = await html(<DownloadView data={PACKAGES} system={null} windowsStarted />);
+    expect(started).toContain("SmartScreen");
+    expect(started).toContain("Run anyway");
   });
 
   it("still shows every card when the release list is unavailable, linking to the releases page with no size", async () => {

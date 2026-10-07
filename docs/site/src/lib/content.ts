@@ -5,9 +5,20 @@
  * Checked by agents, Found while checking, Only you can confirm, Questions for you.
  */
 
+import { PLANS } from "./pricing";
+
 export type Faq = { question: string; answer: string };
 
 const faq = (question: string, answer: string): Faq => ({ question, answer });
+
+/** Monthly and yearly prices of a plan, read from the plans themselves so the answer below never drifts. */
+const priced = (id: "solo" | "team") => {
+  const price = PLANS.find((p) => p.id === id)?.price;
+  if (price === undefined || price === "Custom") throw new Error(`${id} has no price`);
+  return { ...price, year: price.yearly * 12 };
+};
+const solo = priced("solo");
+const team = priced("team");
 
 export const FAQS: Faq[] = [
   faq(
@@ -36,7 +47,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "What does Send feedback share?",
-    "A report goes to QualityLayer as a private issue, with your text and the screenshots you add. Diagnostics are on by default, and you see them before you send. They are the App and command-line versions, your system and its architecture, the versions of Claude Code and Codex, the kind of page you were on, your licence, and how many errors of which kinds happened in the last hour. Never your code, plan or document text, task titles, repository or branch names, or file paths. Screenshots can show code or plans.",
+    "A report goes to QualityLayer as a private issue, with your text and the screenshots you add. Diagnostics are on by default, and you see them before you send. They name the versions of the App, the command line, Claude Code and Codex, your system and its architecture, the kind of page you were on and your licence. They also count the errors of the last hour by kind. They never include your code, the text of a plan or document, task titles, repository or branch names, or file paths. Screenshots can show code or plans.",
   ),
   faq(
     "Which agents work with it?",
@@ -54,12 +65,20 @@ export const PRICING_FAQS: Faq[] = [
     "Seven days, starting the first time you run QualityLayer, with everything in Solo. Sharing with a team needs a Team plan. After the trial, choose a plan to keep going.",
   ),
   faq(
+    "Monthly or yearly?",
+    `Yearly saves 20%. Solo is $${solo.yearly} a month, billed as $${solo.year} a year, instead of $${solo.monthly} a month. Team is $${team.yearly} per seat a month, billed as $${team.year} a year, instead of $${team.monthly}.`,
+  ),
+  faq(
+    "Do I pay for AI usage here?",
+    "No. Your agents run on your own Claude Code or Codex plan, as they do today. QualityLayer charges only for itself.",
+  ),
+  faq(
     "Is there a limit on tasks or repositories?",
     "No. Each plan is per developer, for as many tasks, repositories and agents as you use.",
   ),
   faq(
     "Which agents does it work with?",
-    "Claude Code and Codex, in the terminal, their desktop apps or your IDE; the App sets both up for you. For another coding agent, the App copies a prompt you can hand it. A second opinion from the other coding agent, which runs by itself on risky plans, needs Claude Code and Codex.",
+    "Claude Code and Codex, in the terminal, their desktop apps or your IDE; the App sets both up for you. For another coding agent, the App copies a prompt you can hand it. On a risky plan, the other coding agent reviews it too, which needs both Claude Code and Codex.",
   ),
   faq(
     "Who needs a seat?",
@@ -71,10 +90,10 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "What does Enterprise include?",
-    "Enterprise is built with you when your company asks for it: hosting in your own cloud or on-premise, volume pricing, single sign-on, advanced metrics and custom terms. Write to us and we will scope it together.",
+    "Enterprise is built with you when your company asks for it, for 20 developers or more: hosting in your own cloud or on-premise, volume pricing, single sign-on, invoicing and custom terms. Write to us and we will scope it together.",
   ),
   faq(
     "I use Pilot Shell 11. What happens?",
-    "The App replaces Pilot Shell on first start, and Pilot Shell’s own updater moves you over too. It asks nothing: the tools Pilot Shell installed and its memories stay, and your agent can remove what you no longer need. Your plans carry over and a paid licence keeps working; without one, your 7-day trial starts.",
+    "The App replaces Pilot Shell on first start, and Pilot Shell’s own updater moves you over too. It asks nothing: the tools Pilot Shell installed and its memories stay, and your agent can remove what you no longer need. Your plans carry over, and a paid licence keeps working at the price you pay today. Without one, your 7-day trial starts.",
   ),
 ];

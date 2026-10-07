@@ -137,7 +137,7 @@ export const CHAPTERS: Chapter[] = [
     who: "you",
     steps: 3,
     title: "One command starts the build",
-    text: "Implement opens with your Build defaults: an orchestrator that plans each slice and writes no code, and workers that build them. Change anything for this build, or copy the command as it is.",
+    text: "Implement opens with your Build defaults: one agent that plans each slice and writes no code, and the agents that build the slices. Change anything for this build, or copy the command as it is.",
     bullets: ["Claude Code, Codex or another agent", "Reset brings your Build defaults back", "In the session that planned it, it lists what to type first"],
     win: { title: TITLE, view: "task", groups: sidebar("you", "start"), foot: SOLO, doc: TASK, stage: 2, cost: "$5.95", file: IMPLEMENT },
   },
@@ -259,7 +259,7 @@ export const CHAPTERS: Chapter[] = [
     act: { id: "setup", title: "You stay in charge of models and cost", text: "QualityLayer works inside the coding agents you already pay for, and shows what each step costs." },
     title: "Choose the models, and see what each step costs",
     text: "Planning defaults and Build defaults set the model, the effort and where each session starts. Plan with Claude Code and build with Codex if you like. The cost of every step is estimated at list price.",
-    bullets: ["Change anything for one build when you start it", "An agent that never wrote the code decides whether it passes", "A second opinion from the other coding agent on risky plans"],
+    bullets: ["Change anything for one build when you start it", "An agent that never wrote the code decides whether it passes", "The other coding agent also reviews risky plans"],
     win: { title: "Settings · QualityLayer", view: "settings", groups: sidebar("you", "Review · 3 to answer"), foot: SOLO, doc: "Settings", sub: "For every project on this computer. Changes save at once.", stage: -1 },
   },
   {

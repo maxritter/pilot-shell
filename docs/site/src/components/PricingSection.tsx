@@ -1,4 +1,5 @@
-import { useEffect, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
+import { Button } from "@/components/ui/button";
 import { PolarEmbedCheckout } from "@polar-sh/checkout/embed";
 import Questions from "@/components/Questions";
 import { PRICING_FAQS } from "@/lib/content";
@@ -8,6 +9,8 @@ import { COMPARE, PLANS, USE_EMBED_CHECKOUT, type Cell, type Hue, type Plan } fr
 
 const HUE: Record<Hue, string> = { plan: "var(--hl-violet)", build: "var(--ql-accent)", verify: "var(--hl-teal)", review: "var(--ql-amber-ink)" };
 const hue = (h: Hue) => ({ "--g": HUE[h] }) as CSSProperties;
+
+type Billing = "monthly" | "yearly";
 
 /** Live checkouts open Polar's overlay in production; Enterprise is a mail link. */
 const checkoutProps = (plan: Plan) =>
@@ -21,7 +24,32 @@ function CellMark({ value }: { value: Cell }) {
   return <span role="img" aria-label="Not included" className="pr-dash" />;
 }
 
+/** The price as the switch shows it: per month, and for yearly the full year struck through beside what it costs. */
+function Price({ plan, billing }: { plan: Plan; billing: Billing }) {
+  if (plan.price === "Custom") {
+    return (
+      <>
+        <div className="pr-price"><b className="pr-amt">Custom</b><span className="pr-per">{plan.per}</span></div>
+        <p className="pr-bill">Seats, hosting and terms set together</p>
+      </>
+    );
+  }
+  const { monthly, yearly } = plan.price;
+  const seat = plan.id === "team" ? " per seat" : "";
+  return (
+    <>
+      <div className="pr-price"><b className="pr-amt">${billing === "yearly" ? yearly : monthly}</b><span className="pr-per">{plan.per}</span></div>
+      {billing === "yearly" ? (
+        <p className="pr-bill"><s aria-label={`instead of $${monthly * 12}`}>${monthly * 12}</s> ${yearly * 12}{seat} billed yearly</p>
+      ) : (
+        <p className="pr-bill">Billed monthly · cancel any time</p>
+      )}
+    </>
+  );
+}
+
 const PricingSection = () => {
+  const [billing, setBilling] = useState<Billing>("yearly");
   useEffect(() => {
     if (USE_EMBED_CHECKOUT) PolarEmbedCheckout.init();
   }, []);
@@ -31,7 +59,11 @@ const PricingSection = () => {
       <section id="plans" className="pr-top-sec" aria-labelledby="pr-h">
         <div className="pr-wrap">
           <h1 id="pr-h" className="pr-h1">Pricing</h1>
-          <p className="pr-lead">Every plan starts with a 7-day trial the first time you run QualityLayer. One price per developer, with no limits on tasks, repositories or agents.</p>
+          <p className="pr-lead">Every plan starts with a 7-day trial the first time you run QualityLayer. One price per developer, with no limits on tasks, repositories or agents. Your Claude Code or Codex subscription stays as it is.</p>
+          <div className="pr-seg" role="group" aria-label="Billing">
+            <Button type="button" variant={billing === "monthly" ? "default" : "ghost"} aria-pressed={billing === "monthly"} onClick={() => setBilling("monthly")}>Monthly</Button>
+            <Button type="button" variant={billing === "yearly" ? "default" : "ghost"} aria-pressed={billing === "yearly"} onClick={() => setBilling("yearly")}>Yearly <span className="pr-save">Save 20%</span></Button>
+          </div>
           <div className="pr-plans">
             {PLANS.map((plan) => (
               <article key={plan.id} className={`pr-plan${plan.featured ? " feat" : ""}`} aria-labelledby={`${plan.id}-h`}>
@@ -39,8 +71,8 @@ const PricingSection = () => {
                   <div><h2 id={`${plan.id}-h`} className="pr-name">{plan.name}</h2><p className="pr-aud">{plan.audience}</p></div>
                   {plan.badge ? <span className={`pr-badge${plan.featured ? "" : " req"}`}>{plan.badge}</span> : null}
                 </div>
-                <div className="pr-price"><b className="pr-amt">{typeof plan.price === "number" ? `$${plan.price}` : plan.price}</b><span className="pr-per">{plan.per}</span></div>
-                <a className={`pr-btn ${plan.featured ? "p" : "s"}`} href={plan.href} {...checkoutProps(plan)}>{plan.cta}</a>
+                <Price plan={plan} billing={billing} />
+                <Button asChild size="xl" variant={plan.featured ? "default" : "outline"} className="pr-btn"><a href={typeof plan.href === "string" ? plan.href : plan.href[billing]} {...checkoutProps(plan)}>{plan.cta}</a></Button>
                 <p className="pr-plus">{plan.plus}</p>
                 <ul className="pr-hl">
                   {plan.highlights.map(([h, text]) => (
@@ -87,7 +119,7 @@ const PricingSection = () => {
           <div className="pr-how">
             <div className="pr-hi" style={hue("build")}><b>Activate once</b><span>Paste your key in the App on first start, or run <span className="pr-code">qualitylayer licence activate &lt;key&gt;</span>. Manage invoices, seats and payment in <a href={PORTAL_URL} target="_blank" rel="noopener noreferrer">the customer portal</a>.</span></div>
             <div className="pr-hi" style={hue("verify")}><b>Works offline</b><span>The licence is checked once a day. Without a connection, a paid licence works for up to {OFFLINE_DAYS} days after its last successful check.</span></div>
-            <div className="pr-hi" style={hue("plan")}><b>Coming from Pilot Shell</b><span>Your subscription and your plans carry over. The App or Pilot Shell’s updater moves you over automatically. Pilot’s tools and memories stay; ask your agent to remove what you no longer use.</span></div>
+            <div className="pr-hi" style={hue("plan")}><b>Coming from Pilot Shell</b><span>Your subscription and your plans carry over, at the price you pay today. The App or Pilot Shell’s updater moves you over automatically. Pilot’s tools and memories stay; ask your agent to remove what you no longer use.</span></div>
           </div>
         </div>
       </section>

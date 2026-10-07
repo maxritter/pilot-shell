@@ -69,5 +69,5 @@ console.log("  Landing page: http://localhost:8080");
 console.log("  Docs + Blog:  http://localhost:3000 (proxied from :8080/docs and :8080/blog)");
 console.log("");
 
-start("docusaurus", "npx", ["docusaurus", "start", "--port", "3000"], docusaurusDir);
+start("docusaurus", "npx", ["docusaurus", "start", "--port", "3000", "--no-open"], docusaurusDir);
 start("vite", "npx", ["vite", "--port", "8080", "--host"], __dirname);

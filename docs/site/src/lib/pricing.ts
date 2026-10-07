@@ -12,11 +12,12 @@ export interface Plan {
   id: "solo" | "team" | "enterprise";
   name: string;
   audience: string;
-  /** A number of US dollars, or "Custom" for Enterprise. */
-  price: number | "Custom";
+  /** US dollars per month (per seat for Team): billed monthly, and billed yearly at 20% off. "Custom" for Enterprise. */
+  price: { monthly: number; yearly: number } | "Custom";
   per: string;
   cta: string;
-  href: string;
+  /** The Polar checkout for each billing period; Enterprise has one mail link. */
+  href: { monthly: string; yearly: string } | string;
   featured: boolean;
   badge?: string;
   plus: string;
@@ -29,12 +30,13 @@ export const PLANS: Plan[] = [
     id: "solo",
     name: "Solo",
     audience: "For one developer.",
-    price: 14,
+    price: { monthly: 20, yearly: 16 },
     per: "per month",
-    cta: "Buy Solo",
-    href:
-      import.meta.env.VITE_POLAR_CHECKOUT_SOLO ||
-      "https://buy.polar.sh/polar_cl_nxoqkuI0m3K60V4EpyaruDdPsd7CjS4jalKqc4TszL3",
+    cta: "Start Solo",
+    href: {
+      monthly: import.meta.env.VITE_POLAR_CHECKOUT_SOLO_MONTHLY || "https://buy.polar.sh/polar_cl_7qzxxKiqZXIFe3Uabodh7IauA937iVROT5qVW4VyuUf",
+      yearly: import.meta.env.VITE_POLAR_CHECKOUT_SOLO_YEARLY || "https://buy.polar.sh/polar_cl_9krLYPvWYMBAXX4nL4LolXKgB5cAEA7J57H8Y3j0oQY",
+    },
     featured: false,
     plus: "Everything one developer needs:",
     highlights: [
@@ -48,12 +50,13 @@ export const PLANS: Plan[] = [
     id: "team",
     name: "Team",
     audience: "For teams, per seat.",
-    price: 35,
-    per: "per seat, per month",
-    cta: "Buy Team",
-    href:
-      import.meta.env.VITE_POLAR_CHECKOUT_TEAM ||
-      "https://buy.polar.sh/polar_cl_y5uSffkVLnESyfzfOSJ1M9YmMd8sIpcT7bza82oFv4C",
+    price: { monthly: 40, yearly: 32 },
+    per: "per seat / month",
+    cta: "Start Team",
+    href: {
+      monthly: import.meta.env.VITE_POLAR_CHECKOUT_TEAM_MONTHLY || "https://buy.polar.sh/polar_cl_Qeegkxuq603Ai4UAWSTCT7rOqLmKACxgmKbw40AAj5b",
+      yearly: import.meta.env.VITE_POLAR_CHECKOUT_TEAM_YEARLY || "https://buy.polar.sh/polar_cl_vDV57vWuG7nb2SCgK9RZUzunpOJo9pfjCELnc1PxhTh",
+    },
     featured: true,
     badge: "For teams",
     plus: "Everything in Solo, plus:",
@@ -67,7 +70,7 @@ export const PLANS: Plan[] = [
   {
     id: "enterprise",
     name: "Enterprise",
-    audience: "For companies, built with you.",
+    audience: "For 20 developers or more.",
     price: "Custom",
     per: "volume pricing",
     cta: "Contact us",
@@ -78,8 +81,8 @@ export const PLANS: Plan[] = [
     highlights: [
       ["plan", "Host it in your own cloud or on-premise"],
       ["build", "Volume pricing for many seats"],
-      ["verify", "Advanced metrics across your teams"],
-      ["review", "Single sign-on and custom terms"],
+      ["verify", "Single sign-on"],
+      ["review", "Invoicing and custom terms"],
     ],
   },
 ];
@@ -130,7 +133,7 @@ export const COMPARE: CompareGroup[] = [
     rows: [
       row("Polish and security review before the final check", true, true, "Security runs when the change touches outside input, sign-in or secrets"),
       row("Checked by agents that did not write the code", true, true, "Every check against what you asked for"),
-      row("A second opinion from the other coding agent", true, true, "Runs by itself on risky plans; needs Claude Code and Codex"),
+      row("The other coding agent reviews risky plans too", true, true, "Runs by itself; needs Claude Code and Codex"),
     ],
   },
   {
@@ -176,7 +179,6 @@ export const COMPARE: CompareGroup[] = [
     rows: [
       onRequest("Host it in your own cloud, on-premise or in a private VPC"),
       onRequest("Volume pricing"),
-      onRequest("Advanced metrics across teams and projects"),
       onRequest("Single sign-on (SSO)"),
       onRequest("Custom terms and invoicing"),
     ],
