@@ -18,6 +18,12 @@
 
 set -uo pipefail
 
+serial="${QUALITYLAYER_PRECOMMIT_SERIAL:-0}"
+case "$serial" in
+  0|1) : ;;
+  *) echo "invalid QUALITYLAYER_PRECOMMIT_SERIAL: expected 0 or 1" >&2; exit 1 ;;
+esac
+
 if [ "${SKIP_PRECOMMIT:-0}" = "1" ]; then
   echo "⚠ SKIP_PRECOMMIT=1 — skipping all pre-commit checks."
   exit 0
@@ -103,17 +109,26 @@ if [ -d "$HOME/.cargo/bin" ]; then PATH="$HOME/.cargo/bin:$PATH"; fi
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-# --- Tiny parallel-job registry (bash 3.2 compatible — no associative arrays) ----
+# --- Job registry (bash 3.2 compatible — no associative arrays) -----------------
 job_names=()
 job_pids=()
 job_logs=()
 job_durs=()
+job_rcs=()
+overall_start="$(date +%s)"
 launch() { # launch "<display name>" <command…>
   local name="$1"; shift
   local idx="${#job_names[@]}"
   local log="$TMP/job_${idx}.log" dur="$TMP/job_${idx}.dur"
-  ( start="$(date +%s)"; "$@"; rc=$?; echo $(( $(date +%s) - start )) >"$dur"; exit "$rc" ) >"$log" 2>&1 &
-  job_names+=("$name"); job_pids+=("$!"); job_logs+=("$log"); job_durs+=("$dur")
+  job_names+=("$name"); job_logs+=("$log"); job_durs+=("$dur")
+  if [ "$serial" = "1" ]; then
+    echo "Pre-commit: running $name (serial)…"
+    ( start="$(date +%s)"; "$@"; rc=$?; echo $(( $(date +%s) - start )) >"$dur"; exit "$rc" ) >"$log" 2>&1
+    job_rcs+=("$?")
+  else
+    ( start="$(date +%s)"; "$@"; rc=$?; echo $(( $(date +%s) - start )) >"$dur"; exit "$rc" ) >"$log" 2>&1 &
+    job_pids+=("$!")
+  fi
 }
 
 have() { command -v "$1" >/dev/null 2>&1; }
@@ -230,13 +245,12 @@ if [ "${#job_names[@]}" -eq 0 ]; then
   exit 0
 fi
 
-echo "Pre-commit: running ${#job_names[@]} check(s) in parallel…"
-overall_start="$(date +%s)"
-
-job_rcs=()
-for i in "${!job_names[@]}"; do
-  if wait "${job_pids[$i]}"; then job_rcs+=("0"); else job_rcs+=("$?"); fi
-done
+if [ "$serial" = "0" ]; then
+  echo "Pre-commit: running ${#job_names[@]} check(s) in parallel…"
+  for i in "${!job_names[@]}"; do
+    if wait "${job_pids[$i]}"; then job_rcs+=("0"); else job_rcs+=("$?"); fi
+  done
+fi
 
 failed=0
 for i in "${!job_names[@]}"; do
