@@ -2,6 +2,27 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.26
+
+### Fixed
+
+- Teammates and share-link guests see your replies to their comments, and
+  resolving a comment reaches them. Two quick updates no longer overwrite
+  each other, and a shared page drops its content when access ends.
+- Agreeing to a Plan point keeps it agreed; it reopens only when the point
+  changes. Review approval waits for your confirmations.
+- An approved Plan opens at the Implement start, and the copied start command
+  works in Claude Code as well as Codex.
+- The live status no longer says an agent stopped while it works, and no
+  longer counts a waiting approval as an unanswered question.
+- Files changed and cost match the task's records on large tasks, including
+  older ones. Long outlines, file names and cost details fit their space.
+- Cost, Share, Archive and Delete live in the task menu. The bell groups
+  waiting questions by task and includes your teammates' questions.
+- The App tells you when its local server stopped, even while idle.
+- Checks report a missing test file or an all-skipped run as a failure
+  instead of a pass, and long checks get enough time to finish.
+
 ## 12.0.0-beta.25
 
 ### New
