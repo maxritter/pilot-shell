@@ -21,6 +21,35 @@ function addComment(text = "Why one?") {
 }
 
 describe("commenting on the five documents", () => {
+  it("keeps receipts on their own link and ignores malformed saved replies", async () => {
+    const id = "abcdefghijklmnopqrstuv";
+    localStorage.setItem(`qualitylayer-share-receipts:${id}`, JSON.stringify([{ key: "a", annotation: "a", label: "Summary", text: "My private receipt", replies: [{ text: "Malformed" }] }]));
+    const onSend = vi.fn(async () => ({ ok: true as const }));
+    const view = render(<SharedView state={{ ...state, id }} onSend={onSend} />);
+    expect(await screen.findByText(/My private receipt/)).toBeTruthy();
+    view.rerender(<SharedView state={{ ...state, id: "another-share-link-id" }} onSend={onSend} />);
+    expect(screen.queryByText(/My private receipt/)).toBeNull();
+    expect(localStorage.getItem("qualitylayer-share-receipts:another-share-link-id")).not.toContain("My private receipt");
+  });
+  it("keeps a receipt across reload and shows the owner's live reply and resolution", async () => {
+    const share = { ...state, id: "abcdefghijklmnopqrstuv" };
+    let annotation = "";
+    const onSend = vi.fn(async (_author: string, remarks: Remark[]) => {
+      const r = remarks[0];
+      if (r.kind === "passage") annotation = r.id ?? "";
+      return { ok: true as const };
+    });
+    const view = render(<SharedView state={share} onSend={onSend} />);
+    addComment("Please check this passage");
+    fireEvent.click(sendButton());
+    await waitFor(() => expect(onSend).toHaveBeenCalledTimes(1));
+    expect(annotation).not.toBe("");
+    view.unmount();
+    render(<SharedView state={{ ...share, threads: [{ remoteId: `0:${annotation}`, created: 1, doc: "02-plan.md", state: "resolved", replies: [{ id: "r1", author: { name: "Agent", email: "" }, text: "Added the check", at: 2, via: "agent" }] }] }} onSend={onSend} />);
+    expect(await screen.findByText(/Added the check/)).toBeTruthy();
+    expect(screen.getByText("Resolved")).toBeTruthy();
+    expect(screen.getByText(/via agent/)).toBeTruthy();
+  });
   it("names the owner's question group Your turn and keeps the owner's name", () => {
     const onAnswer = vi.fn();
     render(<Asks owner="Max" docs={state.docs} items={[{ id: "d1", family: "decide", kind: "decision", kindLabel: "Engineering decision", what: "Keep one deployment?", options: ["agree", "change"], step: "plan" }]} drafts={EMPTY} settled={{}} onAnswer={onAnswer} />);
@@ -37,7 +66,7 @@ describe("commenting on the five documents", () => {
     expect(seen("1 comment")).toBe(true);
     fireEvent.click(sendButton());
     await waitFor(() => expect(onSend).toHaveBeenCalledTimes(1));
-    expect(onSend.mock.calls[0]).toEqual(["Gina", [{ kind: "passage", doc: "02-plan.md", quote: "", text: "Why one?" }]]);
+    expect(onSend.mock.calls[0]).toEqual(["Gina", [{ kind: "passage", id: expect.any(String), doc: "02-plan.md", quote: "", text: "Why one?" }]]);
     expect(JSON.stringify(onSend.mock.calls)).not.toMatch(/verdict|approve|request_changes/);
     expect(seen("Sent to Max.")).toBe(true);
   });

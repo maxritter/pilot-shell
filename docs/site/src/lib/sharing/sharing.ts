@@ -11,6 +11,7 @@
 
 import type { FeedbackPayload, SealedPayload } from "./types";
 import { sharedDocuments, stripSharedCode, STEP_DOCS } from "../../../../../qualitylayer/src/core/team/publication.ts";
+import { threadUpdates, type ThreadUpdate } from "../../../../../qualitylayer/src/core/team/thread-publication.ts";
 
 export const SHARE_ID = /^[A-Za-z0-9]{22}$/;
 
@@ -110,6 +111,8 @@ export type LoadedShare =
       status: "ready";
       kind: "v2";
       title: string;
+      id?: string;
+      threads?: ThreadUpdate[];
       /** Who shared it, as the App names them; the page says "the owner" without it. */
       owner?: string;
       stage?: string;
@@ -305,7 +308,7 @@ export function answerWords(item: Pick<ShareItem, "family">, answer: GuestAnswer
   return answer === "change" ? "Suggest a change" : "Reply";
 }
 
-type Plan = { task: string; owner?: string; stage?: string; docs: Record<string, string>; items: ShareItem[]; stills?: Record<string, PlanStill> };
+type Plan = { task: string; owner?: string; stage?: string; docs: Record<string, string>; items: ShareItem[]; stills?: Record<string, PlanStill>; threads?: ThreadUpdate[] };
 
 /** The plan a link holds: its title and the documents, as text. What opened is still untrusted, so it is rebuilt. */
 function parsePlan(plain: string | null): Plan | null {
@@ -316,7 +319,7 @@ function parsePlan(plain: string | null): Plan | null {
   } catch {
     return null;
   }
-  const plan = value as { task?: unknown; owner?: unknown; docs?: unknown; items?: unknown; stage?: unknown; stills?: unknown } | null;
+  const plan = value as { task?: unknown; owner?: unknown; docs?: unknown; items?: unknown; stage?: unknown; stills?: unknown; threads?: unknown } | null;
   if (typeof plan !== "object" || plan === null || typeof plan.docs !== "object" || plan.docs === null) return null;
   const all = Object.fromEntries(
     Object.entries(plan.docs).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
@@ -339,6 +342,7 @@ function parsePlan(plain: string | null): Plan | null {
     ...(typeof plan.stage === "string" ? { stage: plan.stage } : {}),
     docs,
     items: [],
+    threads: threadUpdates(plan.threads, docs),
     ...(Object.keys(stills).length > 0 ? { stills } : {}),
   };
 }
@@ -379,6 +383,8 @@ export async function readShareUpdate(id: string, key: string, since?: number, f
     status: "ready",
     kind: "v2",
     title: plan.task,
+    id,
+    threads: plan.threads ?? [],
     ...(plan.owner !== undefined ? { owner: plan.owner } : {}),
     ...(plan.stage !== undefined ? { stage: plan.stage } : {}),
     docs,
@@ -404,7 +410,7 @@ export type ChangeAnchor = { kind: "doneMeans" | "picture" | "check"; id: string
  * an answer or a passage comment on the step's document, a thread or a reply on the change.
  */
 export type Remark =
-  | { kind: "passage"; doc: string; quote: string; text: string }
+  | { kind: "passage"; id?: string; doc: string; quote: string; text: string }
   | { kind: "item"; id: string; step: FlowStep; doc: string; what: string; answer: GuestAnswer; label: string; note: string }
   | { kind: "thread"; thread: string; anchor: ChangeAnchor; text: string }
   | { kind: "reply"; thread: string; text: string };
@@ -432,7 +438,7 @@ const annotation = (blockId: string, originalText: string, body: string, now: nu
 });
 
 function toAnnotation(r: Remark, now: number) {
-  if (r.kind === "passage") return annotation(r.doc, r.quote, r.text, now);
+  if (r.kind === "passage") return { ...annotation(r.doc, r.quote, r.text, now), ...(r.id ? { id: r.id } : {}) };
   if (r.kind === "item") {
     const note = r.note.trim();
     return annotation(r.doc, r.what.slice(0, 300), note === "" ? r.label : `${r.label}: ${note}`, now);
