@@ -1,4 +1,5 @@
-# QualityLayer bootstrap for native Windows. No administrator rights required.
+# QualityLayer bootstrap for native Windows. Installs per user; an optional Defender repair
+# asks for administrator approval only when a relevant ASR restriction is detected.
 # Native Windows always has a screen, so it gets the QualityLayer App: the per-user setup is
 # downloaded, verified against its signed SHA-256 and run silently, then the App's own command line
 # installs its skills and settings and a small launcher takes the path agents call.
@@ -129,6 +130,20 @@ try {
         $qlCli = Join-Path $qlApp 'qualitylayer-cli.exe'
         if (-not (Test-Path -LiteralPath $qlCli -PathType Leaf)) { throw "The App's command line is missing: $qlCli" }
         Write-Host 'Installed the QualityLayer App for this user'
+        # The NSIS package is run silently here, so an interactive bootstrap performs its optional
+        # ASR check before invoking a CLI that Defender might otherwise prevent from starting.
+        $qlRepair = Join-Path $qlApp 'QualityLayer-Windows-Repair.ps1'
+        if (-not $qlQuiet -and (Test-Path -LiteralPath $qlRepair -PathType Leaf)) {
+            $qlPowerShell = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+            $qlNativePowerShell = Join-Path $env:SystemRoot 'Sysnative\WindowsPowerShell\v1.0\powershell.exe'
+            if (Test-Path -LiteralPath $qlNativePowerShell -PathType Leaf) { $qlPowerShell = $qlNativePowerShell }
+            # A separate process keeps -WindowStyle Hidden from hiding the caller's console.
+            $qlRepairArguments = '-NoLogo -NoProfile -ExecutionPolicy Bypass -File "' + $qlRepair + '" -Automatic'
+            $qlRepairRun = Start-Process -FilePath $qlPowerShell -ArgumentList $qlRepairArguments -WindowStyle Hidden -Wait -PassThru
+            if ($qlRepairRun.ExitCode -ne 0) {
+                Write-Warning 'Windows security repair did not finish. Use QualityLayer - Repair Windows launch from the Start menu to retry.'
+            }
+        }
         $qlRun = $qlArguments + @('--app', $qlApp)
         & $qlCli @qlRun
         if ($LASTEXITCODE -ne 0) { throw "QualityLayer install failed (exit $LASTEXITCODE)." }
