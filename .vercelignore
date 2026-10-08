@@ -1,12 +1,10 @@
 # Only the public website, documentation and their shared images are deployable.
-**
-!docs/
-!docs/site/
-!docs/site/**
-!docs/docusaurus/
-!docs/docusaurus/**
-!docs/img/
-!docs/img/**
+/*
+!/docs
+/docs/*
+!/docs/site
+!/docs/docusaurus
+!/docs/img
 
 # Exclude local credentials, build output and public API regression-test routes.
 **/node_modules/**
