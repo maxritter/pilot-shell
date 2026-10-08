@@ -12,17 +12,17 @@ The Plan is the one document you approve before any code is written. Agents buil
 
 Review the complete Plan, including its diagrams, designs and reasoning:
 
-1. **The design**, for a change people see. Settle its review in **Your turn**, and comment on anything that needs correction. See [Designs](../designs.md).
-2. **Engineering decisions**, each with its diagram and reasoning. Settle these one at a time in **Your turn**.
+1. **The design**, for a change people see. Read it and comment on anything that needs correction. See [Designs](../designs.md).
+2. **Engineering decisions**, each with its diagram and reasoning. These explain the agent's proposals; a heading does not automatically ask for your approval.
 3. **Done means**, from [Discuss](discuss.md): review the proposed results and their reasoning. Your final Plan approval covers these criteria together with the Plan.
 4. **Decisions made for you:** the smaller choices, each with its reason. Ask your agent to explain or revise any of them.
 5. **Extra review:** whether the risk deserves a security review or a second opinion. Request one when you need it.
 
-**Your turn** shows each open engineering decision in turn and asks about other choices that remain unresolved. Each answer reaches your agent immediately and is recorded at the passage it settled. The complete Plan stays visible in the main pane while your agent works on anything that does not depend on an open answer.
+**Your turn** focuses one explicitly asked choice at a time. Open the document context when you need it. Each answer reaches your agent immediately and is recorded at the passage it settled. Technical review findings return to the planning agent to fix or answer; only a new ambiguous or hard choice needing your judgement becomes a question.
 
 In a focused decision card, **1–9** selects the matching answer and **←/→** moves between decisions. **Enter** sends your words; **Shift+Enter** adds a line. Choice shortcuts leave typing fields and text composition alone, and do not run with **⌘**, **Ctrl** or **Alt**.
 
-Once the unresolved choices are answered, approve the complete Plan once. That approval covers the proposed criteria, decisions and design together. Comment on a passage or request changes when something needs revision; answering a question does not approve the Plan.
+Once the real choices are answered, the complete Plan appears in the main pane. Use **Approve Plan** at the top right to approve it once, covering the proposed criteria, decisions and design together. **Give feedback** opens a place to write and send the changes you want. Approval waits while required reviewer work is still being processed; answering a question does not approve the Plan.
 
 ## Read the Plan full size {#full-size}
 

@@ -33,13 +33,13 @@ With the question card focused, **1–9** chooses the matching answer, **Enter**
 
 ## Agreements and live status
 
-Agree to each **Done means** point separately. If its words change, you see the old and new wording and agree again to that point. Unchanged points keep your agreement.
+**Done means** is proposed document content in Discuss and Plan. Comment on anything that needs correcting; the complete Plan approval covers the criteria together. Only explicitly asked choices need separate answers. Technical reviewer findings go to your planning agent to fix or answer.
 
-The top bar names the agent and shows whether it is working, waiting for you, quiet or stopped. Open **Agent status** for its current work, other active agents and, when it has stopped, the command to continue. Answers and comments stay saved.
+The top bar keeps the agent's name stable while work changes. Open its chip for current work, process signals, active helpers and folded helper history, or use **Agent status** in the task menu on narrow screens. Cost details remain accessible there. Ordinary activity stays out of the document body; stopped recovery, build slices and recorded checks stay available. Escape or an outside click closes the activity panel.
 
 ## Full-size reading
 
-Discuss and Plan offer the complete document in reading order. The App opens full reading before Plan approval and when you return to a completed Discuss. Open **Document full size** to give it more room, use the outline to jump between sections, and comment as you read. Long decision lists fold without removing their contents from the file. The document menu opens the agent's version and records with a way back to the human document.
+Discuss and Plan offer the complete document in reading order. While an actual choice needs your answer, its focused card can open the document context. After those choices close, the complete Plan appears with **Approve Plan** and **Give feedback** at the top right. Open **Document full size** to give it more room, use the outline to jump between sections, and comment as you read. The document menu opens the agent's version and records with a way back to the human document.
 
 Implement shows **Build**: the slices, changes and checks as they happen. Its generated document is available from **Files**. See [Implement](steps/implement.md).
 
