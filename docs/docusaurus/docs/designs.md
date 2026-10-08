@@ -17,10 +17,10 @@ Say it in your own words: "mock up the settings page", or "draw how the five fil
 
 ## Designs in Files {#designs-tab}
 
-![Files lists compact designs for this task and the project; a design opens full size when you choose it](pathname:///img/diagrams/designs-tab-light.svg)
-![Files lists compact designs for this task and the project; a design opens full size when you choose it](pathname:///img/diagrams/designs-tab-dark.svg)
+![Design entries in Files; choosing one opens its preview](pathname:///img/diagrams/designs-tab-light.svg)
+![Design entries in Files; choosing one opens its preview](pathname:///img/diagrams/designs-tab-dark.svg)
 
-The right sidebar's **Files** tab lists designs for this task and the project, with their open comments. On Home, with no task open, it lists the project's designs. A question about a design shows the relevant preview, and the review asks whether it looks right. Other questions keep their own context.
+The right sidebar's **Files** tab lists only designs owned by the open task, with their open comments. On Home, with no task open, it lists the project's designs. A question about a design shows the relevant preview. Read the design with the complete Plan and approve the Plan from its header; the agent asks a separate design question only when it needs your judgement.
 
 ## Open it full size {#full-size}
 

@@ -60,12 +60,20 @@ You rarely type these; they are what you see in your agent's chat.
 | --- | --- |
 | `qualitylayer next` | Start a task, or get the next step of the open one; it also brings new comments on designs |
 | `qualitylayer question ask` | Ask you a question in the App and wait for your answer; the terminal shows one line meanwhile |
+| `qualitylayer question poll` | Read answers and delivery receipts for the current question batch |
+| `qualitylayer question answered "<your words>" --id <question-id>` | Record what you actually answered in the agent's chat, on that exact open question |
+| `qualitylayer question cancel --id <question-id>` · `cancel --batch <batch-id>` | Withdraw an open question or batch raised by the same session, keeping its history |
+| `qualitylayer wait` · `wait --until-event` | Wait for an answer, comment, review result or finished check |
 | `qualitylayer gate open 02-plan.md` · `gate open final` | Put the Plan or the finished change up for your approval |
 | `qualitylayer check slice <n>` | Run a slice's approved checks and record them |
 | `qualitylayer comments take` | Collect the comments not yet answered |
 | `qualitylayer ask list` · `ask answer` · `ask draft` | A teammate's agent reads and answers a question; see [Teammates' agents](../team/agents.md) |
 
 Your agent cannot approve for you unless you tell it to in its chat, in your own words; the App then shows that it did. It cannot record a change that touches what you decided without asking you.
+
+`qualitylayer wait` returns after an event or 50 seconds. For a background command, use `qualitylayer wait --until-event`: it waits for an event or up to 1,800 seconds. `--seconds` accepts 1 to 1,800 seconds. A timeout returns `pending`; keep the open work and wait again. If your shell still reports a running process, wait for that process's result.
+
+Use `question answered --id` only for an answer you gave in the agent's chat. QualityLayer records it in **Decided with you**; the agent updates its own details. Cancelling a question records its withdrawal and preserves earlier answers. Existing taskless Home questions can be polled or cancelled with `--home`. New local intake questions belong to a named Discuss task.
 
 ## Designs {#designs}
 
@@ -88,10 +96,23 @@ Claude Code and Codex sessions on your computer can message each other, in any d
 
 ```bash
 qualitylayer peers list
-qualitylayer peers send --to cc:<name> --message "The Plan is ready for review."
+qualitylayer peers send --to 'cc:<name-or-uuid>' --message-file ./review-request.txt --json
 qualitylayer peers help
 ```
 
-`peers list` says what every live session is doing, even one that set no status: its QualityLayer task and step, its own title, or the first thing it was asked, each marked as a guess. Each session also shows its git branch and how long ago it last did something. Nothing that looks like a password, key or token is ever shown.
+`peers list` shows what each live session is doing. It uses the session's status, task and step, title, or first request; inferred descriptions are marked as guesses. It also shows the git branch and time since the last activity. Descriptions replace text matching its password, key and token patterns with `[hidden]`.
 
 If a session is missing, run `qualitylayer peers doctor`.
+
+Use `cc:` for a native Claude Code session and `codex:` for a native Codex thread. Copy its name or UUID from `peers list`. A Codex stand-in uses the Codex thread UUID, even though Claude Code can see its socket.
+
+| Command | What it records |
+| --- | --- |
+| `qualitylayer peers inbox --json` | This session's pending requests and ordinary messages; returning an ordinary message records `picked_up` |
+| `qualitylayer peers ack --message-id <uuid> --json` | The native recipient explicitly acknowledges an ordinary message |
+| `qualitylayer peers receipt --message-id <uuid> --json` | The native sender reads its ordinary message's delivery and acknowledgment status |
+| `qualitylayer peers dispatch --to cc:<name-or-uuid> --message-file <file> --json` | Open a request and return its ID; `codex:` also works |
+| `qualitylayer peers await --request <uuid> --json` | Read that request's reply from its original sending session |
+| `qualitylayer peers reply --request <uuid> --message-file <file>` | The named native recipient answers the request once |
+
+`queued` and `socket_write_succeeded` confirm transport submission. `picked_up` means the recipient's inbox command returned the message. `acknowledged` confirms its explicit ACK. A busy Codex thread may process its native queue after the current turn; an agent can poll its own inbox at checkpoints. Older queued messages are not imported into this inbox. Requests expire at their timeout; an `await` that returns `pending` can be run again while the request remains valid.

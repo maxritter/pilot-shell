@@ -25,6 +25,11 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 ### Fixed
 
+- Agents can wait in the background for an App event without waking every
+  minute. They can see whether a message is queued, picked up or acknowledged.
+- Chat answers can target one question in a batch. Cancelling an obsolete
+  question keeps earlier answers, and resolving a comment does not repeat
+  its linked answer or block the Plan's next review.
 - New requests create a named Discuss task before the first question, so the
   task is available in the sidebar from the start.
 - Discuss and Plan ask unresolved choices. The planning agent handles technical
