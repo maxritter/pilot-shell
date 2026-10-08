@@ -5,8 +5,8 @@
 QualityLayer is a planning-first harness for any coding agent. One TypeScript
 codebase in `qualitylayer/` compiles (`bun build --compile`) into a single
 `qualitylayer` binary: the CLI that holds every task's state through one flow
-(Discuss → Plan → Implement → Verify → Review), the App's server and its React
-SPA, and the embedded phase texts, schemas and templates.
+(Discuss → Research → Plan → Outline → Implement → Verify → Review, one
+Markdown file per step), the App's server and its React SPA, and the embedded phase texts, schemas and templates.
 Installation drops the binary and agent skills, with Codex invocation-policy
 metadata. The QualityLayer workflow requires explicit user opt-in.
 
@@ -94,7 +94,7 @@ All in `qualitylayer/`:
 - `qualitylayer/src/core/` — task state machine, documents and validation,
   gates, recorded checks, the scaling rules (`scaling.ts`), cost, git, licence,
   telemetry, install. `advance()` is the only writer of a task's stage;
-  `core/flow.ts` names the five steps for every surface.
+  `core/flow.ts` names the seven steps for every surface.
 - `qualitylayer/src/cli/` — argument parsing and output only.
 - `qualitylayer/src/server/` and `src/ui/` — the App.
 - `qualitylayer/src/workflow/` — phase texts, schemas, templates, the skill.

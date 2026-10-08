@@ -106,7 +106,10 @@ const labelOf = (r: Exclude<Remark, { kind: "item" }>): string =>
 type ReadyShare = Extract<LoadedShare, { status: "ready" }>;
 
 function firstTab(share: ReadyShare, steps: Record<Tab, string[]>): Tab {
-  return flowStepOf(share.stage ?? "") ?? (["review", "verify", "implement", "plan", "discuss"] as const).find((tab) => steps[tab].length > 0) ?? "discuss";
+  // A shared page has five tabs: Research is read with Discuss and the Outline with the Plan.
+  const at = flowStepOf(share.stage ?? "");
+  const own = at === "research" ? "discuss" : at === "outline" ? "plan" : at;
+  return own ?? (["review", "verify", "implement", "plan", "discuss"] as const).find((tab) => steps[tab].length > 0) ?? "discuss";
 }
 
 function MarkdownActions({ docs, name }: { docs: Record<string, string>; name: string }) {
