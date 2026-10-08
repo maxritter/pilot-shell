@@ -230,6 +230,34 @@ jobs:
             coverage.xml
           retention-days: 7
 
+  website-tests:
+    name: Website API and Skill Sync Tests
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [check-trigger, supply-chain-gate]
+    if: needs.check-trigger.outputs.should_run == 'true'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Install git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+      - name: Unlock repository
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
+        with:
+          node-version: "24.21.0"
+      - name: Run skill sync regression tests
+        run: node --test pilot/skills/setup-rules/tests/sync-agent-assets.test.mjs
+      - name: Install website dependencies
+        working-directory: docs/site
+        run: npm ci
+      - name: Run website and trial API tests
+        working-directory: docs/site
+        run: npm test
+
   console-tests:
     name: Console Unit Tests
     permissions:
@@ -711,6 +739,7 @@ jobs:
     needs:
       - prepare-release
       - python-tests
+      - website-tests
       - console-tests
       - console-build
       - lint
@@ -738,6 +767,7 @@ jobs:
           ### Build Status
           - ✅ Security scan (Trivy) passed
           - ✅ Python unit tests passed
+          - ✅ Website API and skill sync tests passed
           - ✅ Console unit tests passed
           - ✅ Console build & typecheck passed
           - ✅ Linux x86_64 build ready
@@ -1019,5 +1049,10 @@ jobs:
           VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
           VERCEL_PROJECT_ID: prj_TXccrJI83HyNvQUZxqStUFgus9NB
         run: |
-          DEPLOY_URL=$(vercel deploy --token="$VERCEL_TOKEN" --prod)
+          # This project also hosts QualityLayer under separate aliases. Build
+          # with production secrets, then move only the Pilot Shell domains.
+          DEPLOY_URL=$(vercel deploy --token="$VERCEL_TOKEN" --prod --skip-domain)
+          for DOMAIN in pilot-shell.com www.pilot-shell.com claude-pilot.com www.claude-pilot.com claude-pilot.vercel.app pilot-shell-maxritter.vercel.app; do
+            vercel alias set "$DEPLOY_URL" "$DOMAIN" --token="$VERCEL_TOKEN"
+          done
           echo "Deployed to: $DEPLOY_URL"

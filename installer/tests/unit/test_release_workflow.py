@@ -61,3 +61,25 @@ def test_every_release_binary_runs_through_the_shipped_wrapper_before_upload() -
     prerelease_workflow = (REPO_ROOT / ".github" / "workflows" / "release-dev.yml").read_text()
     assert prerelease_workflow.count("scripts/smoke_pilot_artifact.py") == 2
     assert prerelease_workflow.count("Verify installer on macOS system Bash") == 1
+
+
+def test_pilot_website_release_moves_only_legacy_product_aliases() -> None:
+    workflow = (REPO_ROOT / ".github" / "workflows" / "release.yml").read_text()
+    deploy = workflow[workflow.index("  deploy-website:") :]
+    assert "--prod --skip-domain" in deploy
+    alias_loop = deploy[
+        deploy.index("for DOMAIN in ") : deploy.index("; do", deploy.index("for DOMAIN in "))
+    ]
+    assert "pilot-shell.com" in alias_loop
+    assert "claude-pilot.com" in alias_loop
+    assert "qualitylayer.dev" not in alias_loop
+    assert 'vercel alias set "$DEPLOY_URL" "$DOMAIN"' in deploy
+
+
+def test_release_gates_trial_and_skill_sync_regressions_and_excludes_public_test_routes() -> None:
+    workflow = (REPO_ROOT / ".github" / "workflows" / "release.yml").read_text()
+    approval = workflow[workflow.index("  approve-release:") : workflow.index("  publish-release:")]
+    assert "      - website-tests" in approval
+    assert "node --test pilot/skills/setup-rules/tests/sync-agent-assets.test.mjs" in workflow
+    assert "working-directory: docs/site\n        run: npm test" in workflow
+    assert "**/*.test.ts" in (REPO_ROOT / ".vercelignore").read_text()

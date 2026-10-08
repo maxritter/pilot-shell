@@ -53,6 +53,47 @@ const LOCAL_SKILL_PROVENANCE_GIT_PATH = 'pilot/sync-local-skills.json'
 const SKILL_NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const MAX_SKILL_NAME_LENGTH = 64
 const PROVIDER_GENERATED_SKILLS = new Set(['impeccable'])
+const externalSkillOwnership = new Map()
+
+function externallyGeneratedSkills(repo) {
+  if (!externalSkillOwnership.has(repo)) {
+    externalSkillOwnership.set(repo, loadExternallyGeneratedSkills(repo))
+  }
+  return externalSkillOwnership.get(repo)
+}
+
+async function loadExternallyGeneratedSkills(repo) {
+  const label = '.ai-rulez/.generated-manifest.json'
+  const rootInfo = await inspect(path.join(repo, '.ai-rulez'))
+  if (rootInfo === null) return new Set()
+  if (!rootInfo.isDirectory() || rootInfo.isSymbolicLink()) {
+    throw new Error('.ai-rulez must be a regular directory')
+  }
+  const manifestPath = path.join(repo, label)
+  const info = await inspect(manifestPath)
+  if (info === null) return new Set()
+  if (!info.isFile() || info.isSymbolicLink()) {
+    throw new Error(`${label} must be a regular file`)
+  }
+  let manifest
+  try {
+    manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
+  } catch {
+    throw new Error(`${label} contains invalid JSON; regenerate it before syncing`)
+  }
+  if (manifest?.version !== '1' || !Array.isArray(manifest.files) ||
+      !manifest.files.every(file => typeof file === 'string')) {
+    throw new Error(`${label} has an unsupported schema; regenerate it before syncing`)
+  }
+  const names = new Set()
+  for (const file of manifest.files) {
+    // Only an exact generated skill entry claims a skill. Never interpret
+    // absolute paths, traversal, directories or unrelated outputs as owners.
+    const match = /^\.(?:agents|claude)\/skills\/([a-z0-9]+(?:-[a-z0-9]+)*)\/SKILL\.md$/.exec(file)
+    if (match && match[1].length <= MAX_SKILL_NAME_LENGTH) names.add(match[1])
+  }
+  return names
+}
 
 class UsageError extends Error {}
 
@@ -466,6 +507,7 @@ function validateSkillName(name, label) {
 }
 
 async function discoverSkills(repo) {
+  const externalSkills = await externallyGeneratedSkills(repo)
   const sourceRoot = path.join(repo, '.agents', 'skills')
   const sourceInfo = await inspect(sourceRoot)
   if (sourceInfo === null) return []
@@ -477,6 +519,7 @@ async function discoverSkills(repo) {
   const skills = []
   for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
     if (entry.name.startsWith('.') || !entry.isDirectory()) continue
+    if (externalSkills.has(entry.name)) continue
 
     const label = `.agents/skills/${entry.name}`
     const skillFileLabel = `${label}/SKILL.md`
@@ -696,6 +739,7 @@ function hasTrackedSkillAssets(repo, name) {
 }
 
 async function discoverIgnoredSkillPairs(repo) {
+  const externalSkills = await externallyGeneratedSkills(repo)
   const canonicalRoot = path.join(repo, '.agents', 'skills')
   const mirrorRoot = path.join(repo, '.claude', 'skills')
   const [canonicalEntries, mirrorEntries] = await Promise.all([
@@ -706,7 +750,7 @@ async function discoverIgnoredSkillPairs(repo) {
   const pairs = []
   for (const name of [...names].sort()) {
     validateSkillName(name, `local skill ${name}`)
-    if (PROVIDER_GENERATED_SKILLS.has(name)) continue
+    if (PROVIDER_GENERATED_SKILLS.has(name) || externalSkills.has(name)) continue
     const canonical = canonicalEntries.get(name) ?? path.join(canonicalRoot, name)
     const mirror = mirrorEntries.get(name) ?? path.join(mirrorRoot, name)
     const [canonicalInfo, mirrorInfo] = await Promise.all([inspect(canonical), inspect(mirror)])
@@ -750,10 +794,12 @@ async function discoverIgnoredSkillPairs(repo) {
 }
 
 async function validatePairedMirrorSkills(repo) {
+  const externalSkills = await externallyGeneratedSkills(repo)
   const canonicalRoot = path.join(repo, '.agents', 'skills')
   const mirrorRoot = path.join(repo, '.claude', 'skills')
   const mirrors = await skillDirectories(mirrorRoot)
   for (const [name, mirror] of mirrors) {
+    if (externalSkills.has(name)) continue
     const canonical = path.join(canonicalRoot, name)
     const [canonicalInfo, mirrorInfo, mirrorSkill] = await Promise.all([
       inspect(canonical),
@@ -893,9 +939,10 @@ async function synchronizeRootInstructions(repo) {
   }
 }
 
-function isIgnoredCanonicalAsset(repo, assetPath) {
+async function isIgnoredCanonicalAsset(repo, assetPath) {
   const skillName = assetPath.split('/')[0]
-  return Boolean(skillName) && isGitIgnored(repo, `.agents/skills/${skillName}/SKILL.md`)
+  return (await externallyGeneratedSkills(repo)).has(skillName) ||
+    (Boolean(skillName) && isGitIgnored(repo, `.agents/skills/${skillName}/SKILL.md`))
 }
 
 function trackedSkillAssets(repo) {
@@ -923,13 +970,14 @@ function trackedSkillAssets(repo) {
 }
 
 async function trackedMirrorOnlyAssets(repo, canonicalNames, trackedAssets) {
+  const externalSkills = await externallyGeneratedSkills(repo)
   const prefix = '.claude/skills/'
   const assets = []
   for (const normalized of [...trackedAssets].sort()) {
     if (!normalized.startsWith(prefix)) continue
     const remainder = normalized.slice(prefix.length)
     const skillName = remainder.split('/')[0]
-    if (!skillName || canonicalNames.has(skillName)) continue
+    if (!skillName || canonicalNames.has(skillName) || externalSkills.has(skillName)) continue
 
     const absolute = path.join(repo, ...normalized.split('/'))
     if ((await inspect(absolute)) !== null) assets.push({ absolute, relative: normalized })
@@ -1181,7 +1229,7 @@ async function auditOwnershipManifest(repo, skills, targetRoot, manifest) {
   }
   for (const assetPath of manifest.files.keys()) {
     if (!source.files.has(assetPath)) {
-      if (isIgnoredCanonicalAsset(repo, assetPath)) continue
+      if (await isIgnoredCanonicalAsset(repo, assetPath)) continue
       issues.push(`${OWNERSHIP_MANIFEST_PATH}: stale managed file record: ${assetPath}`)
     }
   }
@@ -1336,7 +1384,7 @@ async function findStaleManifestConflicts(
   const candidates = new Set([...manifest.files.keys(), ...localProvenance.files.keys()])
   for (const assetPath of candidates) {
     if (source.files.has(assetPath)) continue
-    if (isIgnoredCanonicalAsset(repo, assetPath)) continue
+    if (await isIgnoredCanonicalAsset(repo, assetPath)) continue
     const targetAsset = target.files.get(assetPath)
     if (targetAsset !== undefined) {
       const label = relative(repo, path.join(targetRoot, ...assetPath.split('/')))
@@ -1358,7 +1406,7 @@ async function removeStaleManifestAssets(repo, skills, targetRoot, trackedAssets
   const candidates = new Set([...manifest.files.keys(), ...localProvenance.files.keys()])
   for (const assetPath of candidates) {
     if (source.files.has(assetPath)) continue
-    if (isIgnoredCanonicalAsset(repo, assetPath)) continue
+    if (await isIgnoredCanonicalAsset(repo, assetPath)) continue
     const targetAsset = target.files.get(assetPath)
     if (targetAsset !== undefined) {
       const label = relative(repo, path.join(targetRoot, ...assetPath.split('/')))

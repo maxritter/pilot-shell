@@ -157,6 +157,98 @@ test('mismatched generated provenance remains a preserved conflict', () => {
   }
 })
 
+test('ai-rulez generated skills retain their agent variants in every mode', () => {
+  for (const ownership of ['untracked', 'tracked', 'ignored', 'claude-only', 'prior-baseline']) {
+    const repo = makeRepo()
+    try {
+      git(repo, 'init', '-q')
+      const files = ['.agents/skills/generated/SKILL.md', '.claude/skills/generated/SKILL.md']
+      const contents = [
+        '---\ndescription: "Demo skill"\n---\n\nDo the demo.\n',
+        '---\ndescription: Demo skill\nuser_invocable: false\n---\n\nDo the demo.\n',
+      ]
+      for (let index = 0; index < files.length; index += 1) {
+        if (ownership === 'claude-only' && index === 0) continue
+        const destination = path.join(repo, files[index])
+        mkdirSync(path.dirname(destination), { recursive: true })
+        writeFileSync(destination, contents[index])
+      }
+      if (ownership === 'tracked' || ownership === 'claude-only') git(repo, 'add', '.agents', '.claude')
+      if (ownership === 'ignored') writeFileSync(path.join(repo, '.gitignore'), '**/skills/generated/\n')
+      if (ownership === 'prior-baseline') {
+        const manifestPath = path.join(repo, '.claude/skills/.pilot-sync-manifest.json')
+        const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
+        manifest.files['generated/SKILL.md'] = { sha256: '0'.repeat(64), executableMode: 0 }
+        writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
+      }
+      mkdirSync(path.join(repo, '.ai-rulez'))
+      writeFileSync(path.join(repo, '.ai-rulez/.generated-manifest.json'), JSON.stringify({version: '1', files}))
+      for (const mode of ['--check', '--write', '--install', '--check']) {
+        const result = run(repo, mode)
+        assert.equal(result.status, 0, `${ownership} ${mode}: ${result.stderr}`)
+        for (let index = 0; index < files.length; index += 1) {
+          if (ownership === 'claude-only' && index === 0) {
+            assert.equal(statOrNull(path.join(repo, files[index])), null)
+          } else {
+            assert.equal(readFileSync(path.join(repo, files[index]), 'utf8'), contents[index])
+          }
+        }
+      }
+      // Ordinary skill drift still needs repair alongside generated skills.
+      writeFileSync(path.join(repo, '.agents/skills/demo-skill/scripts/run.sh'), '#!/bin/sh\necho changed\n')
+      assert.equal(run(repo, '--check').status, 1)
+      assert.equal(run(repo, '--write').status, 0)
+      assert.equal(run(repo, '--check').status, 0)
+    } finally {
+      cleanup(repo)
+    }
+  }
+})
+
+test('invalid or symlinked ai-rulez manifests fail before modifying skills', () => {
+  for (const contents of ['{', JSON.stringify({version: '2', files: []}), JSON.stringify({version: '1', files: [null]})]) {
+    const repo = makeRepo()
+    try {
+      mkdirSync(path.join(repo, '.ai-rulez'))
+      writeFileSync(path.join(repo, '.ai-rulez/.generated-manifest.json'), contents)
+      const before = readFileSync(path.join(repo, '.claude/skills/demo-skill/SKILL.md'), 'utf8')
+      assert.equal(run(repo, '--write').status, 1)
+      assert.equal(readFileSync(path.join(repo, '.claude/skills/demo-skill/SKILL.md'), 'utf8'), before)
+    } finally {
+      cleanup(repo)
+    }
+  }
+  const repo = makeRepo()
+  try {
+    mkdirSync(path.join(repo, '.ai-rulez'))
+    symlinkSync('../AGENTS.md', path.join(repo, '.ai-rulez/.generated-manifest.json'))
+    assert.match(run(repo, '--write').stderr, /must be a regular file/)
+  } finally {
+    cleanup(repo)
+  }
+})
+
+test('unrelated and non-normalized ai-rulez entries cannot exempt an ordinary skill', () => {
+  const repo = makeRepo()
+  try {
+    mkdirSync(path.join(repo, '.ai-rulez'))
+    const files = [
+      '../.agents/skills/demo-skill/SKILL.md',
+      '/.agents/skills/demo-skill/SKILL.md',
+      '.agents/skills/demo-skill/../demo-skill/SKILL.md',
+      '.agents/skills/demo-skill/scripts/run.sh',
+      '.codex/skills/demo-skill/SKILL.md',
+    ]
+    writeFileSync(path.join(repo, '.ai-rulez/.generated-manifest.json'), JSON.stringify({version: '1', files}))
+    writeFileSync(path.join(repo, '.claude/skills/demo-skill/SKILL.md'), 'local conflict\n')
+    assert.equal(run(repo, '--check').status, 1)
+    assert.equal(run(repo, '--write').status, 1)
+    assert.equal(readFileSync(path.join(repo, '.claude/skills/demo-skill/SKILL.md'), 'utf8'), 'local conflict\n')
+  } finally {
+    cleanup(repo)
+  }
+})
+
 test('instruction symlinks outside the exact repository counterpart are rejected', () => {
   for (const linkedFile of ['AGENTS.md', 'CLAUDE.md']) {
     const repo = makeRepo()

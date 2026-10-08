@@ -1,0 +1,3 @@
+# API regression tests must not become public serverless endpoints.
+**/*.test.ts
+**/*.test.tsx
