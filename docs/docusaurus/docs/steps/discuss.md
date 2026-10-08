@@ -6,7 +6,7 @@ description: Your agent reads the code and asks until it knows what you want and
 ![The five steps, with Discuss highlighted](pathname:///img/diagrams/track-discuss-light.svg)
 ![The five steps, with Discuss highlighted](pathname:///img/diagrams/track-discuss-dark.svg)
 
-Describe the change in your own words: **+ New** in the App, or `/ql <request>` in your agent (`$ql` in Codex). Your agent reads the code first, then groups the questions it can ask together into a batch. Each comes with its recommendation.
+Describe the change in your own words: **+ New** in the App, or `/ql <request>` in your agent (`$ql` in Codex). Your agent first names and creates the task with its Discuss document, so it appears in the task list immediately. It then reads the code and groups the questions it can ask together into a batch. Each comes with its recommendation.
 
 ## One focused question {#the-question}
 

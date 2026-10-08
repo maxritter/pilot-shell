@@ -72,7 +72,7 @@ curl -fsSL https://qualitylayer.dev/install.sh | bash
 - **Your team, early:** teammates answer questions about the plan while it is still cheap to change, with their own agent if they like.
 - **You stay in charge of cost:** pick the models, and see the time and estimated cost of every step.
 
-QualityLayer is for medium and large changes. When a request is too small for a plan, your agent writes a ready prompt for the plain agent instead.
+QualityLayer is for medium and large changes. Every new request starts as a named task in Discuss. For a change too small for a plan, your agent keeps that document and closes the task with a ready prompt for the plain agent.
 
 ### From Pilot Shell to QualityLayer
 

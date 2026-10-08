@@ -44,7 +44,7 @@ A bug takes the same steps. Its cause is found before anything is planned.
 
 ## Who it is for
 
-Medium to large changes in a repository you care about, on your own or with your team. A request too small for it gets a ready prompt for your plain agent instead.
+Medium to large changes in a repository you care about, on your own or with your team. A new request first gets a named Discuss task. If it is too small for a plan, that task closes with its document preserved and a ready prompt for your plain agent.
 
 It works with Claude Code and Codex, in the terminal, their desktop apps or your IDE, and with [any other agent](agents/other.md) that runs shell commands. Your agent writes the code, on the subscription you already have.
 
