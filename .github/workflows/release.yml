@@ -220,11 +220,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           checks="${RUNNER_TEMP:?}/ci-checks.json"
-          if ! gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?per_page=100" > "$checks"; then
-            echo "reuse=false" >> "$GITHUB_OUTPUT"
-            echo "CI results unavailable; run checks"
-            exit 0
-          fi
           required="${RUNNER_TEMP:?}/required-ci-checks.txt"
           printf '%s\n' 'Plaintext guard' 'Site API and pages' > "$required"
           for os in ubuntu-latest macos-14; do
@@ -237,18 +232,52 @@ jobs:
               printf 'Native Windows runtime (%s, shard %s/4)\n' "$os" "$shard" >> "$required"
             done
           done
-          if jq -e --arg sha "$GITHUB_SHA" --rawfile required "$required" '
-            [.[].check_runs[] | select(.head_sha == $sha and .app.slug == "github-actions")]
-            | group_by(.name) | map(max_by(.id)) as $latest
-            | ($required | split("\n") | map(select(length > 0)))
-            | all(. as $name | any($latest[]; .name == $name and .status == "completed" and .conclusion == "success"))
-          ' "$checks" > /dev/null; then
-            echo "reuse=true" >> "$GITHUB_OUTPUT"
-            echo "Reuse CI: every required check passed for $GITHUB_SHA"
-          else
-            echo "reuse=false" >> "$GITHUB_OUTPUT"
-            echo "Required CI checks have not all passed; run checks"
-          fi
+          started=$(date +%s)
+          while true; do
+            remaining=$((300 - $(date +%s) + started))
+            if [ "$remaining" -le 0 ]; then
+              echo "reuse=false" >> "$GITHUB_OUTPUT"
+              echo "Required CI checks still pending or missing after five minutes; run checks"
+              exit 0
+            fi
+            if ! timeout "${remaining}s" gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?per_page=100" > "$checks"; then
+              echo "reuse=false" >> "$GITHUB_OUTPUT"
+              echo "CI results unavailable; run checks"
+              exit 0
+            fi
+            if ! state=$(jq -r --arg sha "$GITHUB_SHA" --rawfile required "$required" '
+              [.[].check_runs[] | select(.head_sha == $sha and .app.slug == "github-actions")]
+              | group_by(.name) | map(max_by(.id)) as $latest
+              | ($required | split("\n") | map(select(length > 0))) as $wanted
+              | if any($latest[]; . as $run | ($wanted | index($run.name)) != null and $run.status == "completed" and $run.conclusion != "success") then "failed"
+                elif all($wanted[]; . as $name | any($latest[]; .name == $name and .status == "completed" and .conclusion == "success")) then "success"
+                else "pending" end
+            ' "$checks"); then
+              echo "reuse=false" >> "$GITHUB_OUTPUT"
+              echo "CI results could not be read; run checks"
+              exit 0
+            fi
+            case "$state" in
+              success)
+                echo "reuse=true" >> "$GITHUB_OUTPUT"
+                echo "Reuse CI: every required check passed for $GITHUB_SHA"
+                exit 0
+                ;;
+              failed)
+                echo "::error::A latest required CI check failed for $GITHUB_SHA; refusing a full-suite fallback"
+                exit 1
+                ;;
+              pending)
+                remaining=$((300 - $(date +%s) + started))
+                if [ "$remaining" -gt 0 ]; then
+                  pause=15
+                  if [ "$remaining" -lt "$pause" ]; then pause="$remaining"; fi
+                  sleep "$pause"
+                fi
+                ;;
+              *) echo "::error::Unknown CI decision state"; exit 1 ;;
+            esac
+          done
 
       - name: Checkout
         if: steps.ci.outputs.reuse != 'true'
@@ -894,7 +923,7 @@ jobs:
           echo "BUNDLE=${RUNNER_TEMP:?}/workflow-bundle.json" >> "$GITHUB_ENV"
 
       - name: Install Vercel CLI
-        run: npm install -g vercel
+        run: npm install -g vercel@59.1.3
 
       - name: Install the site's dependencies
         working-directory: docs/site
@@ -922,11 +951,22 @@ jobs:
       - name: Deploy the site at this commit
         id: deploy
         run: |
+          umask 077
+          receipt="${RUNNER_TEMP:?}/website-deployment.json"
+          runtime="${RUNNER_TEMP:?}/website-runtime.json"
+          verifier=docs/site/scripts/verify-deployment-runtime.mjs
+          git checkout -B "$GITHUB_REF_NAME" "$GITHUB_SHA"
           if [ "$GITHUB_REF_NAME" = main ]; then
-            DEPLOY_URL=$(vercel deploy --token="$VERCEL_TOKEN" --prod)
+            target=production
+            vercel deploy --token="$VERCEL_TOKEN" --prod --json --meta "githubCommitRef=$GITHUB_REF_NAME" --meta "githubCommitSha=$GITHUB_SHA" > "$receipt"
           else
-            DEPLOY_URL=$(vercel deploy --token="$VERCEL_TOKEN")
+            target=preview
+            vercel deploy --token="$VERCEL_TOKEN" --target preview --json --meta "githubCommitRef=$GITHUB_REF_NAME" --meta "githubCommitSha=$GITHUB_SHA" > "$receipt"
           fi
+          deployment_id=$(node "$verifier" receipt-id --deployment "$receipt")
+          vercel api "/v13/deployments/$deployment_id" --method GET --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID" --raw > "$runtime"
+          DEPLOY_URL=$(node "$verifier" verify --deployment "$receipt" --metadata "$runtime" --project "$VERCEL_PROJECT_ID" --target "$target" --git-ref "$GITHUB_REF_NAME" --git-sha "$GITHUB_SHA")
+          bash docs/site/scripts/check-deploy.sh "$DEPLOY_URL"
           echo "Deployed to: $DEPLOY_URL"
           echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
 
@@ -945,17 +985,6 @@ jobs:
           for domain in qualitylayer.dev www.qualitylayer.dev; do
             vercel alias set "$DEPLOY_URL" "$domain" --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID"
           done
-
-      - name: Variables and routes of the deployment
-        env:
-          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
-        run: |
-          if [ "$GITHUB_REF_NAME" = main ]; then
-            bash docs/site/scripts/check-deploy.sh --env production
-          else
-            bash docs/site/scripts/check-deploy.sh --env preview --branch "$GITHUB_REF_NAME"
-          fi
-          bash docs/site/scripts/check-deploy.sh "$DEPLOY_URL"
 
       - name: Upload the workflow texts and read them back
         working-directory: docs/site
