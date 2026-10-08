@@ -1,3 +1,20 @@
-# API regression tests must not become public serverless endpoints.
+# Only the public website, documentation and their shared images are deployable.
+**
+!docs/
+!docs/site/
+!docs/site/**
+!docs/docusaurus/
+!docs/docusaurus/**
+!docs/img/
+!docs/img/**
+
+# Exclude local credentials, build output and public API regression-test routes.
+**/node_modules/**
+**/dist/**
+**/build/**
+**/.docusaurus/**
+**/.env*
+**/.DS_Store
+**/*.log
 **/*.test.ts
 **/*.test.tsx
