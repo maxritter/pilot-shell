@@ -108,7 +108,7 @@ jobs:
           node-version: "24.20.0"
 
       - name: Install Vercel CLI
-        run: npm install -g vercel
+        run: npm install -g vercel@59.1.3
 
       - name: Install the site's dependencies
         working-directory: docs/site
@@ -154,13 +154,24 @@ jobs:
           VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
           VERCEL_PROJECT_ID: prj_TXccrJI83HyNvQUZxqStUFgus9NB
         run: |
+          umask 077
+          receipt="${RUNNER_TEMP:?}/website-deployment.json"
+          runtime="${RUNNER_TEMP:?}/website-runtime.json"
+          verifier=docs/site/scripts/verify-deployment-runtime.mjs
+          git checkout -B "$GITHUB_REF_NAME" "$GITHUB_SHA"
           if [ "$GITHUB_REF_NAME" = main ]; then
-            DEPLOY_URL=$(vercel deploy --token="$VERCEL_TOKEN" --prod)
-            echo "Deployed to: $DEPLOY_URL"
-            exit 0
+            target=production
+            vercel deploy --token="$VERCEL_TOKEN" --prod --json --meta "githubCommitRef=$GITHUB_REF_NAME" --meta "githubCommitSha=$GITHUB_SHA" > "$receipt"
+          else
+            target=preview
+            vercel deploy --token="$VERCEL_TOKEN" --target preview --json --meta "githubCommitRef=$GITHUB_REF_NAME" --meta "githubCommitSha=$GITHUB_SHA" > "$receipt"
           fi
-          DEPLOY_URL=$(vercel deploy --token="$VERCEL_TOKEN")
+          deployment_id=$(node "$verifier" receipt-id --deployment "$receipt")
+          vercel api "/v13/deployments/$deployment_id" --method GET --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID" --raw > "$runtime"
+          DEPLOY_URL=$(node "$verifier" verify --deployment "$receipt" --metadata "$runtime" --project "$VERCEL_PROJECT_ID" --target "$target" --git-ref "$GITHUB_REF_NAME" --git-sha "$GITHUB_SHA")
+          bash docs/site/scripts/check-deploy.sh "$DEPLOY_URL"
           echo "Deployed to: $DEPLOY_URL"
+          if [ "$GITHUB_REF_NAME" = main ]; then exit 0; fi
           git fetch --quiet origin "$GITHUB_REF_NAME"
           if [ "$(git rev-parse "origin/$GITHUB_REF_NAME")" != "$GITHUB_SHA" ]; then
             echo "::warning::$GITHUB_REF_NAME moved past $GITHUB_SHA; the domain stays on the newer deployment"
