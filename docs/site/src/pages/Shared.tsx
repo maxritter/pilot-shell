@@ -6,6 +6,7 @@ import SEO from "@/components/SEO";
 import { addRemark, answerItem, type Drafts, EMPTY, pending, removeRemark, summary } from "@/lib/sharing/drafts";
 import { contractsOf, mockupName, planBlocks, slicesOf } from "@/lib/sharing/plan";
 import { watchShare } from "@/lib/sharing/poll";
+import { copyMarkdown, downloadMarkdown } from "@/lib/sharing/exports";
 import {
   type ChangeAnchor,
   type GuestAnswer,
@@ -108,6 +109,18 @@ function firstTab(share: ReadyShare, steps: Record<Tab, string[]>): Tab {
   return flowStepOf(share.stage ?? "") ?? (["review", "verify", "implement", "plan", "discuss"] as const).find((tab) => steps[tab].length > 0) ?? "discuss";
 }
 
+function MarkdownActions({ docs, name }: { docs: Record<string, string>; name: string }) {
+  const [status, setStatus] = useState("");
+  return <div className="sh-markdown-actions" aria-label={`Markdown actions for ${name}`} onMouseUp={(event) => event.stopPropagation()}>
+    <span className="sh-markdown-name">{name}</span>
+    <div className="sh-row">
+      <button type="button" className="sh-btn sm quiet" onClick={async () => setStatus(await copyMarkdown(docs, name) ? "Markdown copied." : "Could not copy. Try again or download the Markdown.")}>Copy Markdown</button>
+      <button type="button" className="sh-btn sm quiet" onClick={() => setStatus(downloadMarkdown(docs, name) ? "Markdown download started." : "Could not download. Try again.")}>Download Markdown</button>
+    </div>
+    <span className="sh-hint sh-markdown-status" role="status">{status}</span>
+  </div>;
+}
+
 function Sections({ share, names, items, drafts, settled, onAnswer }: {
   share: ReadyShare;
   names: string[];
@@ -130,6 +143,7 @@ function Sections({ share, names, items, drafts, settled, onAnswer }: {
       {main.map((name) => (
         // The document a selected passage is in, so a comment is filed against it.
         <div key={name} className="sh-docs" data-doc={name}>
+          <MarkdownActions docs={share.docs} name={name} />
           <Blocks blocks={planBlocks(share.docs[name] ?? "")} docs={share.docs} stills={share.stills} shown={shown} />
         </div>
       ))}

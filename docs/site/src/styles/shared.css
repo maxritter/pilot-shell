@@ -167,6 +167,12 @@
 .sh-steps{margin:0;padding-left:22px;display:grid;gap:8px;line-height:1.55}
 .sh-steps code{display:block;width:fit-content;max-width:100%;margin-top:4px;font-size:13px;padding:2px 8px;border-radius:6px;background:var(--ql-surface-2);overflow-wrap:anywhere}
 
+.sh-markdown-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin:0 0 16px;padding:0 0 12px;border-bottom:1px solid var(--ql-border)}
+.sh-markdown-name{font-family:var(--ql-font-code);font-size:12px;color:var(--ql-text-muted);overflow-wrap:anywhere;margin-right:auto}
+.sh-markdown-actions .sh-row{flex-wrap:wrap}
+.sh-markdown-status:empty{display:none}
+.sh-markdown-status{flex-basis:100%}
+
 /* A narrow window: the parts stack, the side comes after the page, and sending stays in reach. */
 @container page (max-width: 900px){
   .sh-layout{grid-template-columns:minmax(0,1fr);gap:24px;padding:20px 16px 28px}

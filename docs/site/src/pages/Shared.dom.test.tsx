@@ -21,6 +21,27 @@ function addComment(text = "Why one?") {
 }
 
 describe("commenting on the five documents", () => {
+  it("copies and downloads published Markdown, retries clipboard failure and preserves unsent forms", async () => {
+    const clipboard = vi.fn().mockRejectedValueOnce(new Error("blocked")).mockResolvedValueOnce(undefined);
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: clipboard } });
+    const create = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:markdown");
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function () { expect(this.download).toBe("02-plan.md"); });
+    const onSend = vi.fn(async () => ({ ok: true as const }));
+    render(<SharedView state={state} onSend={onSend} />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Comment" }), { target: { value: "Unsent text" } });
+    expect(screen.getByText("02-plan.md")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Copy Markdown" }));
+    await screen.findByText("Could not copy. Try again or download the Markdown.");
+    fireEvent.click(screen.getByRole("button", { name: "Copy Markdown" }));
+    await screen.findByText("Markdown copied.");
+    expect(clipboard.mock.calls).toEqual([[state.docs["02-plan.md"]], [state.docs["02-plan.md"]]]);
+    fireEvent.click(screen.getByRole("button", { name: "Download Markdown" }));
+    expect(await (create.mock.calls[0][0] as Blob).text()).toBe(state.docs["02-plan.md"]);
+    expect(click).toHaveBeenCalledOnce();
+    expect((screen.getByRole("textbox", { name: "Comment" }) as HTMLTextAreaElement).value).toBe("Unsent text");
+    expect(onSend).not.toHaveBeenCalled();
+  });
   it("keeps receipts on their own link and ignores malformed saved replies", async () => {
     const id = "abcdefghijklmnopqrstuv";
     localStorage.setItem(`qualitylayer-share-receipts:${id}`, JSON.stringify([{ key: "a", annotation: "a", label: "Summary", text: "My private receipt", replies: [{ text: "Malformed" }] }]));

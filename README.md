@@ -281,6 +281,14 @@ With a Team plan, teammates help shape the plan and review the change, each from
 
 The Team space lists the questions waiting for you first, then your questions to others, with a reminder at most every four hours, and what each teammate is working on. People outside the team read and comment through a link, without an account; they cannot approve. The link always shows the task as it stands, with the time it was last updated. Sharing sends the plan and its progress, encrypted on your machine. Links can include a still of the Plan's design; your code and the interactive design page stay local.
 
+Shared documents offer **Copy Markdown** and **Download Markdown**. An agent can read the same published documents with the binary alone:
+
+```sh
+qualitylayer share fetch --link-file /path/to/private-link.txt --out ./shared-copies --json
+```
+
+The private file holds the complete link, including its `#` fragment. Use `--link-stdin` to read it from standard input, or pass the link directly. File and standard-input options keep the link out of shell history and command arguments. Fetching needs no licence or workflow opt-in and leaves local tasks alone. Each fetch creates a new snapshot with its revision, expiry, fetch time, and document hashes; earlier files and edits are preserved. Fetch again to check for updates. See [shared plans](https://qualitylayer.dev/docs/team/plans) for the privacy and freshness limits.
+
 ### Agent sessions that message each other
 
 Claude Code and Codex sessions on your computer can message each other: Claude to Claude, Codex to Codex, or across. One can ask another for a review, hand over a task, or talk a problem through.

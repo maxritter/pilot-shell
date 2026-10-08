@@ -36,6 +36,22 @@ In Codex, type `$ql` in place of `/ql`.
 | `qualitylayer uninstall` | Remove it; `--purge` also removes the licence and task state |
 | `qualitylayer licence activate <key>` | Activate a licence; `licence portal` opens billing |
 
+## Read a public share
+
+```sh
+qualitylayer share fetch --link-file /path/to/private-link.txt --out ./shared-copies --json
+qualitylayer share fetch --link-stdin --out ./shared-copies --json < /path/to/private-link.txt
+qualitylayer share fetch '<complete-link>' --out ./shared-copies --json
+```
+
+Supply exactly one link source and an explicit output directory. File and standard-input sources keep the full link out of command arguments and shell history. The fragment key decrypts locally and is excluded from requests, errors, and the manifest. Only HTTPS links on `qualitylayer.dev` or `www.qualitylayer.dev` are accepted; redirects are refused.
+
+The binary can read a share without a licence, workflow opt-in, or installed agent skills. Fetching leaves local tasks and sessions alone and grants no approval or publication rights.
+
+Every success writes a new snapshot folder containing only the reached human Markdown documents and `manifest.json`. JSON output returns its paths, revision, expiry, fetch time, and per-file SHA-256 hashes. Designs, agent records, code, and logs are excluded. Local edits and earlier downloads are preserved. Use a private output directory: ownership and permission checks on Unix, or directory access rules on Windows, must show that other users cannot replace its path components. Symbolic links and unsafe directories are refused. Existing directories' permissions are left unchanged.
+
+A snapshot stays at the fetched revision. Fetch again to read the latest published copy. Network, revoked-link, and expired-link errors never report an older snapshot as current. Revocation cannot remove files you already downloaded. Network reads have a 15-second timeout and a 512 KiB decrypted-copy limit.
+
 ## Your agent runs
 
 You rarely type these; they are what you see in your agent's chat.
