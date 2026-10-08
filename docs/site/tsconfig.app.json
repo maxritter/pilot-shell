@@ -27,6 +27,7 @@
       // Files outside the site (the docs' search landmark) resolve React from here.
       "react": ["./node_modules/@types/react"],
       "react/*": ["./node_modules/@types/react/*"],
+      "marked": ["./node_modules/marked"],
       "@/*": ["./src/*"],
       "@ql/*": ["../../qualitylayer/src/*"]
     }
