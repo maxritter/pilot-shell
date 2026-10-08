@@ -106,4 +106,22 @@ All in `qualitylayer/`:
 ## Cross-agent assets
 
 - `AGENTS.md` is the shared repository core; `CLAUDE.md` must remain exactly
-  `@AGENTS.md` plus a trailing newline.
+`@AGENTS.md` plus a trailing newline.
+
+<!-- antislop:start -->
+## Anti-slop review
+
+Use the installed `antislop` plugin for UI and reader-facing copy work in both
+Claude Code and Codex. Read its core skill, then `antislop-ui`,
+`antislop-human`, `antislop-layoutmobile` or `antislop-copywriting` as relevant.
+Reuse the user-level installation; do not vendor a second copy into this repo.
+
+For implementation, apply the filter during the work and keep the approved
+App Model and `qualitylayer/DESIGN.md` as the visual direction. Explicit user
+instructions take precedence. A review-only request remains read-only.
+Check controls, loading/empty/error states, keyboard use, contrast, responsive
+layout, duplicated UI and unsupported claims. Record concrete evidence and
+unverified states in the task's QA report; a source scan is not a browser pass.
+Use the delivery checklist alongside Impeccable and the checks in
+`qualitylayer/TESTING.md`, without adding duplicate installations or review loops.
+<!-- antislop:end -->
