@@ -10,26 +10,23 @@ The Plan is the one document you approve before any code is written. Agents buil
 
 ## Your turn {#items}
 
-**Your turn** shows one decision at a time, with the diagram or design that explains it. Use **Previous** and **Next** to move between decisions. Your own words and **Send** stay visible; each answer reaches your agent immediately:
+Review the complete Plan, including its diagrams, designs and reasoning:
 
-1. **The design**, for a change people see: Looks right, or Change. See [Designs](../designs.md).
-2. **Engineering decisions**, each with its diagram: Agree, or Change.
-3. **Done means**, from [Discuss](discuss.md): agree to each point separately. Only a point whose words change needs your agreement again.
-4. **Decisions made for you:** the smaller choices, each with its reason. **Ask why** about any of them.
-5. **Extra review:** whether the risk deserves a security review or a second opinion.
+1. **The design**, for a change people see. Settle its review in **Your turn**, and comment on anything that needs correction. See [Designs](../designs.md).
+2. **Engineering decisions**, each with its diagram and reasoning. Settle these one at a time in **Your turn**.
+3. **Done means**, from [Discuss](discuss.md): review the proposed results and their reasoning. Your final Plan approval covers these criteria together with the Plan.
+4. **Decisions made for you:** the smaller choices, each with its reason. Ask your agent to explain or revise any of them.
+5. **Extra review:** whether the risk deserves a security review or a second opinion. Request one when you need it.
 
-Each answer leaves the card and is recorded at the passage it settled. Long decision lists fold in the document. Your agent can keep working on the parts that do not depend on an open answer; its named status at the top shows what it is doing.
+**Your turn** shows each open engineering decision in turn and asks about other choices that remain unresolved. Each answer reaches your agent immediately and is recorded at the passage it settled. The complete Plan stays visible in the main pane while your agent works on anything that does not depend on an open answer.
 
 In a focused decision card, **1–9** selects the matching answer and **←/→** moves between decisions. **Enter** sends your words; **Shift+Enter** adds a line. Choice shortcuts leave typing fields and text composition alone, and do not run with **⌘**, **Ctrl** or **Alt**.
 
-Approving the Plan is a separate action after you settle its decisions. Sending answers does not approve it. When you request changes, send them back to the agent to revise the Plan.
-
-![Plan: a changed Done means point returns as Was and Now in Your turn; the other point stays agreed and approval is separate](pathname:///img/diagrams/plan-light.svg)
-![Plan: a changed Done means point returns as Was and Now in Your turn; the other point stays agreed and approval is separate](pathname:///img/diagrams/plan-dark.svg)
+Once the unresolved choices are answered, approve the complete Plan once. That approval covers the proposed criteria, decisions and design together. Comment on a passage or request changes when something needs revision; answering a question does not approve the Plan.
 
 ## Read the Plan full size {#full-size}
 
-Once the decisions are settled, the App opens the complete Plan in full reading before you approve it. The outline and right sidebar stay within reach. Jump to a section, read the slices and checks, and comment on a passage without leaving the Plan. The document header holds its file chip, reading controls and menu for the agent's version and records.
+Read the complete Plan in the main pane before approving it. **Document full size** adds the outline when you want more room. Jump to a section, read the slices and checks, and comment on a passage without leaving the Plan. The document header holds its file chip, reading controls and menu for the agent's version and records.
 
 ![The full-size Plan with its document header, outline, line comments, named agent status and Files and Comments tabs](pathname:///img/diagrams/plan-full-light.svg)
 ![The full-size Plan with its document header, outline, line comments, named agent status and Files and Comments tabs](pathname:///img/diagrams/plan-full-dark.svg)
@@ -51,6 +48,6 @@ Ask teammates to read along; you see who has read and who approved. See [Plan re
 
 ## When you ask for changes
 
-Your agent answers each note and revises the Plan. A changed **Done means** point shows its old and new words together; your agreements to unchanged points remain saved. The Plan's diff shows the document changes line by line.
+Your agent answers each note and revises the Plan. Earlier answers and agreements stay saved. Changes to **Done means** invalidate the Plan's approval, so you can review the current document before approving again. The Plan's diff shows the document changes line by line.
 
 After you approve, the App opens [Implement](implement.md).

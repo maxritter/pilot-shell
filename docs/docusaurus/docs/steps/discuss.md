@@ -21,11 +21,11 @@ The named agent status at the top says what your agent is doing. Open **Agent st
 
 ## The page {#the-page}
 
-Discuss is one document, `01-discuss.md`: the problem in your own words, **Done means**, what you **decided with** your agent, and the scope. Each answer lands in the folded **Decided with you** history at once. Use **Change** while still in Discuss to correct an earlier answer. Open the complete document full size to read and comment with its outline beside it. Returning to Discuss after this step opens full reading; the document header names its file and opens the agent's records.
+Discuss is one document, `01-discuss.md`: the problem in your own words, proposed **Done means**, what you **decided with** your agent, and the scope. The complete document and its reasoning stay visible in the task workspace after the questions. Comment on a passage to request a correction, or ask your agent to update the local Markdown file. Each answer lands in **Decided with you** at once. Use **Change** while still in Discuss to correct an earlier answer. Full size adds the outline; the document header names its file and opens the agent's records.
 
 ## What done means {#done-means}
 
-**Done means** is the numbered list of results you will accept the change by. Verify later checks every point, so read and agree to each one separately. If the agent rewords a point, only that point comes back for agreement, with the old and new words shown. Your agreement to the others stays saved. Approving the Plan is a separate action.
+**Done means** is the proposed numbered list of results you will accept the change by. Verify later checks every point. You approve the current criteria together with the final Plan. Earlier answers and agreements remain in the history; a separate confirmation of each point is unnecessary. Changes to the criteria invalidate the Plan's approval.
 
 ## Too small for QualityLayer {#too-small}
 
