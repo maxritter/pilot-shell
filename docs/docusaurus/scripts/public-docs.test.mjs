@@ -27,7 +27,7 @@ test("App illustrations open at full size from each guide, with an accessible na
   }
 });
 
-test("the built guides explain current answers, changed agreements and live sharing", () => {
+test("the built guides explain current answers, complete Plan approval and live sharing", () => {
   const discuss = page("steps/discuss/");
   assert.match(discuss, /Your turn/);
   assert.match(discuss, /Answer in any order/);
@@ -37,7 +37,12 @@ test("the built guides explain current answers, changed agreements and live shar
   assert.match(discuss, /Send/);
   assert.match(discuss, /immediately/);
   assert.doesNotMatch(discuss, /question N|Undo.{0,40}five seconds/);
-  assert.match(page("steps/plan/"), /Was and Now/);
+  const plan = page("steps/plan/");
+  assert.match(plan, /Technical review findings return to the planning agent/);
+  assert.match(plan, /complete Plan appears in the main pane/);
+  assert.match(plan, /Approve Plan/);
+  assert.match(plan, /Give feedback/);
+  assert.doesNotMatch(plan, /Agree to each.{0,40}Done means/);
   assert.match(page("steps/verify/"), /Proof for each Done means point/);
   assert.match(page("team/plans/"), /open page updates as the task changes/);
   assert.doesNotMatch(page("team/plans/"), /Reload the page/);

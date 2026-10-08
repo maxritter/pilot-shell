@@ -20,6 +20,9 @@
     "app:build": "bun run scripts/app.ts",
     "app:install": "bun run scripts/app-install.ts",
     "app:dev": "bun run scripts/app.ts --run",
+    "dev:ui": "bun run scripts/ui-dev.ts",
+    "test:ui": "playwright test --config playwright.ui.config.ts",
+    "test:ui:headed": "playwright test --config playwright.ui.config.ts --headed",
     "install:local": "bun run scripts/install-local.ts",
     "app:icon": "bun run scripts/app-icon.ts",
     "check:cockpit": "bun scripts/check-cockpit.ts --build",
@@ -35,7 +38,9 @@
     "proof:team-agents": "bun run tests/release/team-agents.ts"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@biomejs/biome": "^2.3.0",
+    "@playwright/test": "1.64.0",
     "@tailwindcss/cli": "^4.3.3",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "16",

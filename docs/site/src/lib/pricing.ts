@@ -104,7 +104,7 @@ export const COMPARE: CompareGroup[] = [
     rows: [
       row("Approve one plan before any code is written", true, true),
       row("Answer questions in batches, in any order", true, true, "Each answer reaches your agent immediately in Your turn"),
-      row("Agree to each Done means point separately", true, true, "A changed point returns with its old and new words"),
+      row("Review the outcomes with the complete Plan", true, true, "Answer unresolved choices, then approve the Plan or give feedback"),
       row("Decisions shown as diagrams and a clickable mockup", true, true),
       row("Read the full-size Plan with line comments", true, true),
       row("Bugs start with finding their cause", true, true),

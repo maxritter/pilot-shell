@@ -6,6 +6,9 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 ### New
 
+- Shared documents offer **Copy Markdown** and **Download Markdown**.
+  Agents can use `qualitylayer share fetch` to decrypt a shared link locally
+  into Markdown files and a revision manifest.
 - Checks can run in the background, show test-file progress and reuse successful
   results when their code and environment have not changed.
 - After two fixing rounds that still leave failed checks, you choose another
@@ -22,6 +25,15 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 ### Fixed
 
+- New requests create a named Discuss task before the first question, so the
+  task is available in the sidebar from the start.
+- Discuss and Plan ask unresolved choices. The planning agent handles technical
+  review findings; you read the complete Plan and approve it or give feedback
+  from its header, without separate consent cards for each outcome.
+- Home uses compact task links for attention and running work, alongside spending
+  and shipped history. Unpriced token details stay in the expanded estimate.
+- Ordinary agent activity lives in the header panel. Step navigation preserves
+  the sidebars, and future steps explain what needs to happen first.
 - Agents wait for your answers and continue when they arrive. Their Stop hook
   keeps an open question, approval or requested check from being left unread.
 - Stopped sessions show their kept work and a resume command. A quiet command

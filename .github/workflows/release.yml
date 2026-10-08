@@ -73,6 +73,43 @@ jobs:
           echo "No release trigger commit in $RANGE - skipping"
           echo "should_run=false" >> "$GITHUB_OUTPUT"
 
+  source-ui-gate:
+    # Reuse the standalone one-worker UI check on this SHA; never start a second browser suite here.
+    name: Source UI Gate
+    permissions:
+      contents: read
+      checks: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: check-trigger
+    if: needs.check-trigger.outputs.should_run == 'true'
+    steps:
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const expected = 'Source UI browser checks';
+            const deadline = Date.now() + 12 * 60 * 1000;
+            let latest = null;
+            while (Date.now() < deadline) {
+              const runs = await github.paginate(github.rest.checks.listForRef, {
+                ...context.repo, ref: context.sha, filter: 'all', per_page: 100
+              });
+              latest = runs.filter(r => r.name === expected &&
+                r.head_sha === context.sha && r.app?.slug === 'github-actions')
+                .sort((a, b) => b.id - a.id)[0] ?? null;
+              if (latest?.status === 'completed') {
+                if (latest.conclusion === 'success') {
+                  core.info(`${expected} succeeded for ${context.sha} (check ${latest.id}).`);
+                  return;
+                }
+                core.setFailed(`${expected} concluded ${latest.conclusion} for ${context.sha}; release blocked.`);
+                return;
+              }
+              await new Promise(resolve => setTimeout(resolve, 30_000));
+            }
+            core.setFailed(`${expected} did not succeed within 12m for ${context.sha}; ` +
+              `last status ${latest?.status ?? 'missing'}. Release blocked.`);
+
   supply-chain-gate:
     # Cross-workflow `needs:` does not link supply-chain.yml to this workflow;
     # poll the Checks API for its result on the release SHA instead.
@@ -744,7 +781,7 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [prepare-release, test, build, windows-release, security-scan, assemble-release]
+    needs: [prepare-release, test, build, windows-release, security-scan, assemble-release, source-ui-gate]
     if: needs.prepare-release.outputs.should_release == 'true'
     # main waits for a reviewer in `production`; a dev prerelease uses `beta`, which has none.
     environment: ${{ github.ref_name == 'main' && 'production' || 'beta' }}

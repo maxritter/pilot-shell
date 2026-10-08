@@ -1,0 +1,66 @@
+name: QualityLayer source UI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - "qualitylayer/src/**"
+      - "qualitylayer/tests/frontend/**"
+      - "qualitylayer/scripts/ui-dev.ts"
+      - "qualitylayer/playwright.ui.config.ts"
+      - "qualitylayer/package.json"
+      - "qualitylayer/bun.lock"
+      - "docs/site/**"
+      - ".github/workflows/qualitylayer-ui.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qualitylayer-ui-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Source UI browser checks
+    # Forks cannot unlock the encrypted source. Existing plaintext/CI gates remain separate.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/qualitylayer/dist/.ui-browsers
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Install git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+      - name: Unlock source
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+      - uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+      - name: Install locked QualityLayer dependencies
+        working-directory: qualitylayer
+        run: bun install --frozen-lockfile
+      - name: Install locked website dependencies
+        working-directory: docs/site
+        run: npm ci --ignore-scripts
+      - name: Install managed Chromium
+        working-directory: qualitylayer
+        run: bun x playwright install --with-deps chromium
+      - name: Source UI interactions, geometry and accessibility
+        working-directory: qualitylayer
+        run: bun run test:ui
+      - name: Keep fixture failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: qualitylayer-source-ui-${{ github.run_id }}
+          # Source-dev traces contain decrypted JS/response bodies. Keep them off public artifacts.
+          path: qualitylayer/dist/ui-test-results/**/*.png
+          if-no-files-found: warn
+          retention-days: 7

@@ -14,8 +14,7 @@ It runs on macOS, Windows and Linux. Without a screen, `qualitylayer app` opens 
 | Sidebar | Your tasks under **Your turn**, **Running** and **Shipped**. **+ New** starts a task |
 | Live status | What the agent is working on, when it needs you, and whether it is quiet or stopped. Open it for details |
 | Step track in the top bar | Where the task stands in Discuss, Plan, Implement, Verify and Review |
-| Now | **Your turn** when a decision waits for you; the agent's progress while it works |
-| Your turn | One focused question or decision, followed by agreements and approvals |
+| Your turn | One focused question or decision when your judgement is needed |
 | Document | The step's page, with your answers, the build and its proof |
 | Right sidebar | **Files** and **Comments**; compact designs are listed in **Files** |
 
@@ -45,12 +44,12 @@ Implement shows **Build**: the slices, changes and checks as they happen. Its ge
 
 ## Home
 
-Home brings together what needs your answer, what your agents are working on, and what shipped. Shipped tasks show their time and estimated cost when those records are available.
+Home has four areas: **Needs attention**, **Running**, **Spent on agents**, and **Shipped**. Each attention row opens the task where you can answer or review. Shipped tasks show their time and estimated cost when those records are available.
 
-The notification bell keeps questions, comments and stopped tasks within reach. Its count updates as you answer. Home also shows how many tasks are in each step.
+The notification bell keeps questions, comments and stopped tasks within reach. Its count updates as you answer. Spending shows known dollar estimates; expand **About the estimate** for unpriced usage and calculation details.
 
-![Home with Your turn, agents at work, shipped tasks with time and estimated cost, counts in each step and notifications](pathname:///img/diagrams/home-light.svg)
-![Home with Your turn, agents at work, shipped tasks with time and estimated cost, counts in each step and notifications](pathname:///img/diagrams/home-dark.svg)
+![Home with compact task destinations under Needs attention and Running, alongside spending and Shipped](pathname:///img/diagrams/home-light.svg)
+![Home with compact task destinations under Needs attention and Running, alongside spending and Shipped](pathname:///img/diagrams/home-dark.svg)
 
 ## Items and their answers {#items}
 

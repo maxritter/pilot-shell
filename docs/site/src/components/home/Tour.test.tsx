@@ -78,15 +78,18 @@ describe("the tour", () => {
 
   it("shows a decision as a diagram, the words that changed, and Approve after everything is settled", async () => {
     expect(await shot("plan", 0)).toContain("cu-dgm");
-    expect(text(await shot("plan", 2))).toMatch(/Was.*It stops after 3 tries\..*Now/);
+    expect(text(await shot("plan", 2))).toContain("When the endpoint recovers, who starts a new attempt?");
     expect(text(await shot("plan", 4))).toContain("Approve Plan");
+    expect(await shot("plan", 4)).not.toContain('class="cu-yt"');
+    expect(text(await shot("plan", 4))).toContain("Give feedback");
   });
 
   it("starts the build from one line of Build defaults and one command", async () => {
     const start = text(await shot("start"));
     expect(start).toContain("Opus 5.5");
     expect(start).toContain("Sonnet 5.5");
-    expect(start).toContain("/goal /ql implement retry-webhooks");
+    expect(start).toContain("/ql implement retry-webhooks");
+    expect(start).not.toContain("/goal /ql implement");
   });
 
   it("builds on its own, test first, and counts the committed tasks", async () => {

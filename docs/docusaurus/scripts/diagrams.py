@@ -599,8 +599,8 @@ def agents(c):
 # ---------------------------------------------------------------- the App window
 def task_example(c: Theme, step: int, sections: list, questions: list, working: str) -> str:
     """Current App model: two header rows, one focused card above the work, Files / Comments."""
-    h = 118 + len(questions[0][2]) * 44 + 132 if questions else 144
-    content_height = sum(41 if kind == 'heading' else 24 for kind, _ in sections) + (84 if step == 2 else 0)
+    h = 118 + len(questions[0][2]) * 44 + 132 if questions else 0
+    content_height = sum(41 if kind == 'heading' else 24 for kind, _ in sections)
     W, H = 1400, max(860, 138 + h + 32 + 65 + content_height + 62)
     b = [window(c, W, H, 'Settings cleanup · QualityLayer')]
     group = 'Your turn  1' if questions else 'Running  1'
@@ -610,7 +610,9 @@ def task_example(c: Theme, step: int, sections: list, questions: list, working: 
     b.append(tabs(c, 238, 104, step))
     p, _ = spill(c, 790, 48, 'you' if working == 'Waits for you' else 'agent', working)
     b.append(p)
-    b.append(T(1368, 66, '…', 18, 'muted', 650, 'end', c=c))
+    if step == 1 and not questions:
+        b.append(abtn_svg(c, 1040, 49, 'Give feedback'))
+        b.append(abtn_svg(c, 1174, 49, 'Approve Plan', True))
     b.append(f'<line x1="222" y1="82" x2="{W}" y2="82" stroke="{c["cardline"]}"/>')
     x, y, w = 258, 138, 850
     if questions:
@@ -641,13 +643,6 @@ def task_example(c: Theme, step: int, sections: list, questions: list, working: 
             b.append(T(x + 20, own_y + 96, 'Settle this point, then continue to the next open decision.', 12, 'muted', c=c))
             if step == 1:
                 b.append(T(x + 20, own_y + 116, 'Answers do not approve the Plan.', 12, 'muted', c=c))
-    else:
-        h = 144
-        b.append(card(c, x, y, w, h))
-        b.append(T(x + 16, y + 29, "Agent’s turn", 17, 'text', 650, c=c))
-        b.append(T(x + 16, y + 56, working, 12.5, 'text', 500, c=c))
-        b.append(T(x + 16, y + 82, 'Open the live status for details.', 12, 'muted', c=c))
-        b.append(T(x + 16, y + 111, 'You can comment while it works.', 12, 'muted', c=c))
     dx, dy = 258, y + h + 32
     b.append(T(dx, dy, f'{step + 1:02d}-{STEPS[step][0].lower()}.md  ▾', 11.5, 'muted', 500, mono=True, c=c))
     b.append(T(dx + w, dy, 'Read in full', 12, 'blue', 600, 'end', c=c))
@@ -662,9 +657,6 @@ def task_example(c: Theme, step: int, sections: list, questions: list, working: 
             col = 'violet' if kind == 'proof' else 'text' if kind == 'agreed' else 'muted'
             b.append(T(dx, yy, text, 12.5, col, 500, c=c))
             yy += 24
-    if step == 2:
-        for i, label in enumerate(['▸ 11 helpers allocated', '▸ 14 helpers awaiting commit', '▸ 34 helpers finished']):
-            b.append(T(dx, yy + 18 + i * 28, label, 12, 'muted', c=c))
     b.append(rside(c, 1140, 82, 260, H - 82, 'files'))
     b.append(T(1156, 148, 'Settings cleanup', 12, 'muted', 600, c=c))
     for i, label in enumerate(['01-discuss.md', '02-plan.md', '03-implement.md', '04-verify.md', '05-review.md']):
@@ -692,18 +684,20 @@ def home_ill(c: Theme) -> str:
                                ('Running  1', [('Links', 'Verify', 'agent')]), ('Shipped  6', [])]))
     b.append(T(242, 76, 'Home', 22, 'text', 650, c=c))
     b.append(T(1076, 76, 'Notifications · 2', 12, 'blue', 600, 'end', c=c))
-    b.append(T(242, 108, 'Discuss 1  ·  Plan 1  ·  Implement 0  ·  Verify 1  ·  Review 0', 12, 'muted', c=c))
-    groups = [('Your turn', 'amber', 'amberf', 'Settings cleanup · 2 questions', 'Answer in any order; each answer reaches the agent at once.'),
-              ('Agents at work', 'blue', 'bluef', 'Links · checking point 2', 'Open the live status for what is working, quiet or stopped.'),
-              ('Shipped', 'cardline', 'card', 'CSV export · shipped today', '42 min · $4.20 estimated · open the result and proof')]
-    for i, (title, col, fill, task, detail) in enumerate(groups):
-        y = 140 + i * 120
-        b.append(card(c, 238, y, 842, 102, stroke=col, fill=fill))
-        b.append(T(258, y + 25, title, 12, 'muted', 650, c=c))
-        b.append(T(258, y + 51, task, 16, 'text', 650, c=c))
-        b.append(T(258, y + 78, detail, 12.5, 'muted', c=c))
+    groups = [
+        (238, 120, 444, 'Needs attention', 'Settings cleanup', 'Plan · 2 questions', 'Open →'),
+        (238, 270, 444, 'Running', 'Links', 'Verify · checking point 2', 'Open →'),
+        (706, 120, 374, 'Spent on agents', '$18.40', 'Known estimate · this week', 'About the estimate ▸'),
+        (706, 270, 374, 'Shipped', 'CSV export', '42 min · $4.20 estimated', 'Open →'),
+    ]
+    for x, y, w, title, task, detail, action in groups:
+        b.append(T(x, y, title, 14, 'text', 650, c=c))
+        b.append(card(c, x, y + 18, w, 110, stroke='cardline', fill='bg'))
+        b.append(T(x + 18, y + 48, task, 17, 'text', 650, c=c))
+        b.append(T(x + 18, y + 75, detail, 12.5, 'muted', c=c))
+        b.append(T(x + 18, y + 104, action, 12, 'blue', 500, c=c))
     b.append(T(242, H - 20, 'Illustration · example tasks and costs', 10.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'Home: Your turn, live agent work, shipped tasks with time and estimated cost, task counts in each step and the notification bell')
+    return svg(W, H, ''.join(b), 'Home: compact task destinations under Needs attention and Running, with spending and Shipped beside them')
 
 
 def plan_full(c: Theme) -> str:
@@ -812,7 +806,7 @@ def decision_ill(c: Theme) -> str:
 def discuss_ill(c: Theme) -> str:
     return task_example(c, 0, [
         ('heading', 'The problem'), ('row', 'Settings should be easier to understand.'),
-        ('heading', 'Done means'), ('agreed', '✓ 1 · Every setting names what it changes.'),
+        ('heading', 'Done means · proposed'), ('row', '1 · Every setting names what it changes.'),
         ('row', '2 · A risky Plan gets an independent second opinion.'),
         ('heading', 'Decided with you'), ('agreed', 'Notifications stay on by default.'),
         ('row', 'Earlier answers stay in Decided with you, with Change.'),
@@ -868,15 +862,12 @@ def plan_ill(c: Theme) -> str:
     return task_example(c, 1, [
         ('heading', 'Interface'), ('row', 'Read the full-size design and comment on a spot.'),
         ('heading', 'Engineering decisions'), ('agreed', '✓ The Plan determines what each agent builds.'),
-        ('heading', 'Done means'), ('agreed', '✓ 1 · Every setting names what it changes.'),
-        ('row', '2 · The changed point waits for your agreement.'),
+        ('heading', 'Done means · proposed'), ('row', '1 · Every setting names what it changes.'),
+        ('row', '2 · A risky Plan gets a second opinion.'),
         ('heading', 'Slices and checks'), ('row', '1 · Simplify the settings · types, tests and build.'),
         ('row', '2 · Keep every link working · end-to-end scenarios.'),
         ('proof', 'Plan review recorded · read the evidence for who checked it'),
-    ], [
-        ('Done means · changed point 2', ['Was: A review on every Plan.', 'Now: A review on risky Plans.'], ['Agree', 'Change']),
-        ('Plan approval', ['Settle the open decisions first.', 'Answers do not approve the Plan.'], ['Approve the Plan']),
-    ], 'Waits for you')
+    ], [], 'Ready for review')
 
 
 # ---------------------------------------------------------------- after the Plan is approved

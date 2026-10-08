@@ -224,7 +224,7 @@ export default function CloseUp({ id, step, tries = 2, onRetry }: { id: string; 
           gate={<GateTrack items={[{ label: `Questions · ${answered} of 3 answered`, state: done ? "done" : "cur", pips: [answered, 3] }, { label: "Done means · 3", state: done ? "cur" : undefined }, { label: "Claude Code writes the Plan" }]} turn={done ? undefined : `Your turn · ${3 - shown} ${3 - shown === 1 ? "question" : "questions"}`} />}>
           {shown > 0 && !done && <Sent>Sent to Claude Code · {QUESTIONS[shown - 1].choices[0][0]}</Sent>}
           {done ? (
-            <AgentTurn who="Claude Code" title="Writing Done means from your answers" note="2 min" sub="All 3 answered. It keeps reading the delivery code, then asks you to agree to each point.">
+            <AgentTurn who="Claude Code" title="Writing Done means from your answers" note="2 min" sub="All 3 answered. The complete discussion records the proposed outcomes; you approve them together with the Plan.">
               <div className="cu-list">
                 {QUESTIONS.map((x) => <p key={x.title}><span className="cu-k">{x.title}</span><b>{x.choices[0][0]}</b></p>)}
               </div>
@@ -244,10 +244,10 @@ export default function CloseUp({ id, step, tries = 2, onRetry }: { id: string; 
       return (
         <Frame label="Plan"
           top={<TopBar stage={1} chip={waits("waits for you")} />}
-          gate={<GateTrack items={[{ label: "Done means · 3 agreed", state: "done" }, { label: `Decisions · ${at(1) ? (at(3) ? 2 : 1) : 0} of 2`, state: approve ? "done" : "cur", pips: [at(3) ? 2 : at(1) ? 1 : 0, 2] }, { label: "Designs · 1", state: "done" }, { label: "Second opinion · read", state: "done" }, { label: "Approve", state: approve ? "cur" : undefined }]} turn={approve ? "Your turn · approve" : `Your turn · ${at(1) ? 1 : 2} to settle`} />}>
-          {at(1) && !approve && <Sent>Agreed · Three tries, then one mail</Sent>}
+          gate={approve ? <div className="cu-gt"><span>The Plan is ready to review</span><span className="cu-grow" /><span className="cu-btn">Give feedback</span><span className={`cu-btn pri${at(4) ? " glow" : ""}`}>Approve Plan</span></div> : undefined}>
+          {at(1) && !approve && <Sent>Agreed · Support can retry failed deliveries only</Sent>}
           {!at(2) && (
-            <YourTurn kind="Decision 1 of 2 · engineering" count="1 of 2" title="Three tries, then one mail" text="Every failed delivery goes to a retry queue. The queue sends it again until the third try, then mails the customer once and stops."
+            <YourTurn kind="Decision 1 of 2 · product choice" count="1 of 2" title="Which deliveries can support retry?" text="Retrying a completed delivery could repeat an action at the customer's endpoint. Limit the manual Retry control to failed deliveries, or allow support to repeat a completed one too."
               foot={<Keys keys={[["1", "agree"], ["2", "change it"], ["C", "comment on the diagram"]]} />}>
               <div className="cu-dgm">
                 <p className="cu-dgmh"><span>What happens to a failed delivery</span><span>flow</span></p>
@@ -262,29 +262,29 @@ export default function CloseUp({ id, step, tries = 2, onRetry }: { id: string; 
                   <span className="cu-dn">Mail the customer<small>once, then stop</small></span>
                 </div>
               </div>
-              <p className="cu-not"><b>Not chosen:</b> retrying until it succeeds.</p>
-              <Choices items={[["Agree"], ["Change it…", "say what to change below"]]} picked={at(1) ? 0 : -1} own="Or say what to change…" />
+              <Choices items={[["Failed deliveries only"], ["Include completed deliveries", "may repeat an action"]]} picked={at(1) ? 0 : -1} own="Or say what to change…" />
             </YourTurn>
           )}
           {at(2) && !approve && (
-            <YourTurn kind="Done means 2 · changed since you agreed" count="2 of 2" title="Is the new wording still what you mean?"
+            <YourTurn kind="One unresolved choice" count="2 of 2" title="When the endpoint recovers, who starts a new attempt?"
               foot={<Keys keys={[["1", "agree"], ["2", "change it"]]} />}>
               <div className="cu-was">
-                <p><span className="cu-k">Was</span><s>It stops after 3 tries.</s></p>
-                <p><span className="cu-k">Now</span><span>It stops after 3 tries <em>and mails the customer once.</em></span></p>
+                <p><span className="cu-k">Support</span><span>Someone checks the endpoint and chooses Retry.</span></p>
+                <p><span className="cu-k">Automatic</span><span>A health check restarts delivery when the endpoint responds.</span></p>
               </div>
-              <Choices items={[["Agree"], ["Change it…"]]} />
+              <Choices items={[["Support chooses Retry"], ["Restart automatically"]]} />
             </YourTurn>
           )}
           {approve && (
-            <YourTurn kind="then the build" title="Approve the Plan?" text="Everything is settled. Nothing is built before you approve."
-              foot={<><Keys keys={[["↵", "approve"]]} /><span className="cu-grow" /><span className={`cu-split${at(4) ? " glow" : ""}`}><span className="cu-btn pri">Approve Plan</span><span className="cu-btn pri"><ChevronDown size={13} aria-hidden="true" /></span></span></>}>
+            <section className="cu-card">
+              <p className="cu-cardh"><b>Retry failed webhook deliveries</b><span className="cu-k">02-plan.md</span></p>
+              <p className="cu-yp">Queue failed deliveries, retry three times, then notify the customer once. Support can start a new attempt after checking the endpoint.</p>
               <div className="cu-skim">
-                {([["Done means", "3 points agreed"], ["Decisions", "2 agreed · one with your comment"], ["Design", "Failed deliveries · looks right"], ["Second opinion", "Codex found nothing missing"]] as const).map(([k, v]) => (
+                {([["Done means", "Retry failures · stop after 3 tries · show the retry count"], ["Decisions", "Your choices are incorporated"], ["Design", "Failed deliveries page"], ["Second opinion", "Technical findings handled by the planning agent"]] as const).map(([k, v]) => (
                   <p key={k}><Mk k="done" /><span className="cu-k">{k}</span><span>{v}</span></p>
                 ))}
               </div>
-            </YourTurn>
+            </section>
           )}
         </Frame>
       );
@@ -298,7 +298,7 @@ export default function CloseUp({ id, step, tries = 2, onRetry }: { id: string; 
           <YourTurn kind="Implement" title="Start the build" text="Paste one command in a fresh session. From then on the build runs on its own until the final review.">
             <span className="cu-seg"><span className="on">Claude Code</span><span>Codex</span><span>Another agent</span></span>
             <p className={`cu-defs ${show(1)}`}><span><span className="cu-k">Plans each slice</span> Opus 5.5</span><span><span className="cu-k">Builds</span> Sonnet 5.5</span><span><span className="cu-k">Effort</span> High</span><span className="cu-lnk">Change</span></p>
-            <div className={`cu-cmd ${show(2)}`}><code>/goal /ql implement retry-webhooks</code><span className={`cu-btn pri sm${step === 2 ? " press" : ""}`}>{at(3) ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}{at(3) ? "Copied" : "Copy"}</span></div>
+            <div className={`cu-cmd ${show(2)}`}><code>/ql implement retry-webhooks</code><span className={`cu-btn pri sm${step === 2 ? " press" : ""}`}>{at(3) ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}{at(3) ? "Copied" : "Copy"}</span></div>
           </YourTurn>
         </Frame>
       );

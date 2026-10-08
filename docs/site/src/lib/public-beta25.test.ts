@@ -29,12 +29,12 @@ describe("current public illustrations and guides", () => {
     }
   });
 
-  it("shows full-width numbered focus choices, changed agreements and evidence by point", () => {
+  it("shows numbered questions, whole-Plan approval and evidence by point", () => {
     for (const theme of ["light", "dark"]) {
       const drawing = (name: string) => words(read(`docs/docusaurus/static/img/diagrams/${name}-${theme}.svg`));
       expect(drawing("discuss")).toContain("Waits for you");
       expect(drawing("discuss")).toContain("Each answer reaches the agent immediately.");
-      for (const step of ["discuss", "plan", "app", "review"]) {
+      for (const step of ["discuss", "review"]) {
         const svg = read(`docs/docusaurus/static/img/diagrams/${step}-${theme}.svg`);
         const choices = [...svg.matchAll(/<rect data-choice="(\d+)" x="([\d.]+)" y="([\d.]+)" width="([\d.]+)"/g)].map((m) => m.slice(1).map(Number));
         expect(choices.map(([n]) => n)).toEqual([1, 2]);
@@ -44,12 +44,17 @@ describe("current public illustrations and guides", () => {
         expect(drawing(step)).toContain("Your own answer");
         expect(drawing(step)).toContain("Send");
       }
-      expect(drawing("plan")).toMatch(/Was:.*Now:/);
-      expect(drawing("plan")).toContain("Answers do not approve the Plan");
+      for (const step of ["plan", "app"]) {
+        const svg = read(`docs/docusaurus/static/img/diagrams/${step}-${theme}.svg`);
+        expect(svg).not.toContain("data-choice=");
+        expect(drawing(step)).toContain("Done means · proposed");
+        expect(drawing(step).match(/Approve Plan/g)).toHaveLength(1);
+        expect(drawing(step).match(/Give feedback/g)).toHaveLength(1);
+      }
       for (const step of ["verify", "review"]) {
         expect(drawing(step)).toMatch(/Done means · 1.*scenario 1.*Done means · 2.*scenario 2/);
       }
-      expect(drawing("verify")).toContain("Agent’s turn");
+      expect(drawing("verify")).not.toContain("Agent’s turn");
       for (const step of ["app", "discuss", "plan", "implement", "verify", "review"]) {
         const svg = read(`docs/docusaurus/static/img/diagrams/${step}-${theme}.svg`);
         const sidebar = [...svg.matchAll(/<text\b[^>]*>(Files|Comments)<\/text>/g)].map((m) => m[1]);
@@ -78,12 +83,13 @@ describe("current public illustrations and guides", () => {
     expect(read("docs/docusaurus/docs/steps/implement.md")).toContain("**Your turn** names the slice");
   });
 
-  it("includes immediate batches and changed points in the pricing comparison", () => {
+  it("includes immediate batches and complete Plan review in the pricing comparison", () => {
     const rows = COMPARE.flatMap((group) => group.rows);
     const batch = rows.find((row) => /questions in batches/.test(row.feature));
     expect(batch?.note).toMatch(/immediately.*Your turn/);
     expect(batch?.solo).toBe(true);
     expect(batch?.team).toBe(true);
-    expect(rows.find((row) => /Done means point separately/.test(row.feature))?.note).toMatch(/old and new words/);
+    expect(rows.find((row) => /Review the outcomes with the complete Plan/.test(row.feature))?.note).toMatch(/approve the Plan or give feedback/);
+    expect(rows.some((row) => /Done means point separately/.test(row.feature))).toBe(false);
   });
 });

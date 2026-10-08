@@ -84,15 +84,15 @@ describe("the flow in the copy: asked and answered in the App", () => {
   it("explains the Plan's focused decisions, navigation and immediate answers before approval", () => {
     const text = read(join(docs, "steps/plan.md"));
     expect(text).toMatch(/Your turn/i);
-    expect(text).toMatch(/one decision at a time/i);
-    expect(text).toMatch(/Previous/);
-    expect(text).toMatch(/Next/);
-    expect(text).toMatch(/diagram or design/i);
-    expect(text).toMatch(/own words and \*\*Send\*\* stay visible/i);
+    expect(text).toMatch(/one explicitly asked choice at a time/i);
+    expect(text).toMatch(/document context/i);
+    expect(text).toMatch(/Technical review findings return to the planning agent/i);
+    expect(text).toMatch(/complete Plan appears in the main pane/i);
     expect(text).toMatch(/each answer reaches your agent immediately/i);
     expect(text).toMatch(/approve/i);
-    expect(text).toMatch(/Approving the Plan is a separate action after you settle its decisions/);
-    expect(text).toMatch(/Sending answers does not approve it/);
+    expect(text).toMatch(/Approve Plan\*\* at the top right/);
+    expect(text).toMatch(/Give feedback/);
+    expect(text).toMatch(/answering a question does not approve the Plan/);
   });
 
   it("keeps the terminal wait explanation in the guides and shows the batch interaction on the home page", () => {

@@ -19,6 +19,10 @@ The repository is public. Everything under `qualitylayer/` (and
 All in `qualitylayer/`:
 
 - `bun run typecheck` · `bun run lint` (Biome) · `bun run lint:fix`
+- `bun run dev:ui` — source-backed App demo on loopback with Vite reload;
+  `bun run test:ui` — one-worker Playwright desktop/phone light/dark checks
+  with semantic interactions, geometry and axe. Both Claude Code and Codex
+  use these commands. Read `qualitylayer/TESTING.md` for setup and evidence.
 - `bun run test` — every test file in its own process (plain `bun test` leaks
   the test DOM between files); builds the binary first
 - `bun run test tests/e2e` — a directory or single files
@@ -75,6 +79,15 @@ All in `qualitylayer/`:
 - Inside a QualityLayer run: the Plan's mockup shows it (`ui: true`, one
   mockup per changed surface). Use the same two tools for its check pass and
   to sync it to Claude Design.
+- Use the approved unified App Model and current `qualitylayer/PRODUCT.md`
+  and `qualitylayer/DESIGN.md`: only genuine human choices, full documents
+  with approval in the shared header, quiet future steps, and the four Home
+  areas. Activity belongs in its header chip panel, with no duplicated status.
+- Start frontend iteration with the source demo and focused browser checks.
+  Demo fixtures do not prove the real API/session path or installed App.
+  Before release, verify the actual installed final candidate and record its
+  source commit, command results, artifact hash and installed version. Never
+  accept visual reference changes automatically or bypass existing gates.
 
 ## Layout
 
