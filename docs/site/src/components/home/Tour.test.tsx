@@ -48,7 +48,7 @@ describe("the tour", () => {
   it("draws the App's top bar on a task: the five steps, the current one marked, and the agent chip", async () => {
     const plan = await shot("plan", 0);
     for (const stage of STAGES) expect(text(plan)).toContain(stage);
-    expect(plan).toMatch(/<li class="cur">Plan<\/li>/);
+    expect(plan).toMatch(/<li class="cur" aria-current="step">Plan<\/li>/);
     expect(plan).toContain("cu-chip");
     expect(text(plan)).toContain("Claude Code");
   });

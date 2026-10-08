@@ -5,8 +5,8 @@ import { checksPassed, committedTasks, DESIGN, discussAt, REQUEST, STAGES, TASK 
 /**
  * One close-up of the QualityLayer App per chapter, at reading size. Each is a crop of the App's
  * main column as qualitylayer/design/app draws it: the top bar (the task, its five steps and the
- * agent chip), the step's own track with what waits for you, and then the one amber Your turn card
- * or the agent's turn. A close-up plays its moments one per second; `step` is the moment.
+ * agent chip), the connected five steps, and then the question or full document. Agent activity
+ * opens from its chip. A close-up plays its moments one per second; `step` is the moment.
  */
 
 type Mark = "you" | "work" | "wait" | "done" | "check" | "open";
@@ -15,60 +15,39 @@ const Mk = ({ k }: { k: Mark }) => <span aria-hidden="true" className={`cu-mk ${
 type Chip = { mark: Mark; name: string; words: string } | null;
 
 /** The top bar: a task with its five steps and the agent chip, or a page's title. */
-function TopBar({ stage, title = TASK, kind = "feature", chip }: { stage: number; title?: string; kind?: string; chip: Chip }) {
+function TopBar({ stage, title = TASK, kind = "feature", chip, approval, activity }: { stage: number; title?: string; kind?: string; chip: Chip; approval?: ReactNode; activity?: ReactNode }) {
   return (
+    <>
     <div className={`cu-tb${stage >= 0 ? " task" : ""}`}>
       <b className="cu-title">{title}</b>
-      {kind && <span className="cu-kind">{kind}</span>}
-      {stage >= 0 && (
-        <>
-          <i className="cu-sep" />
-          <ol className="cu-track">
-            {STAGES.map((label, k) => (
-              <li key={label} className={k < stage ? "done" : k === stage ? "cur" : "future"}>
-                {k < stage ? <Check size={13} aria-hidden="true" /> : k > stage ? <span aria-hidden="true" className="cu-o" /> : null}
-                {label}
-              </li>
-            ))}
-          </ol>
-        </>
-      )}
-      <span className="cu-grow" />
+      {stage < 0 && kind && <span className="cu-kind">{kind}</span>}
       {chip && (
-        <span className={`cu-chip ${chip.mark}`}>
-          <Mk k={chip.mark} />
-          <b>{chip.name}</b>
-          <span className="cu-chipw">{chip.words}</span>
-        </span>
+        <details className="cu-status">
+          <summary aria-label={`${chip.name} status`} className={`cu-chip ${chip.mark}`}>
+            <Mk k={chip.mark} /><b>{chip.name}</b><ChevronDown size={13} aria-hidden="true" />
+          </summary>
+          <div className="cu-status-panel">
+            <p className="cu-k">{chip.name} · {chip.words}</p>
+            {activity ?? <p>{chip.words}</p>}
+          </div>
+        </details>
       )}
     </div>
+    {stage >= 0 && <div className="cu-workspace-track">
+      <ol className="cu-track" aria-label="Task steps">
+        {STAGES.map((label, k) => <li key={label} className={k < stage ? "done" : k === stage ? "cur" : "future"} aria-current={k === stage ? "step" : undefined}>{label}</li>)}
+      </ol>
+      {approval}
+    </div>}
+    </>
   );
 }
 
 type Gate = { label: string; state?: "cur" | "done"; pips?: [number, number] };
 
-/** The step's own track, and on the right what waits for you, or that nothing does. */
-function GateTrack({ items, turn }: { items: Gate[]; turn?: string }) {
-  return (
-    <div className="cu-gt">
-      <span className="cu-gi">
-        {items.map((g, k) => (
-          <span key={g.label} className="cu-gwrap">
-            {k > 0 && <ChevronRight size={13} aria-hidden="true" className="cu-gsep" />}
-            <span className={`cu-g ${g.state ?? ""}`}>
-              {g.label}
-              {g.pips && (
-                <span className="cu-pips" aria-hidden="true">
-                  {Array.from({ length: g.pips[1] }, (_, i) => <i key={i} className={i < g.pips![0] ? "on" : ""} />)}
-                </span>
-              )}
-            </span>
-          </span>
-        ))}
-      </span>
-      {turn ? <span className="cu-pill"><Mk k="you" />{turn}</span> : <span className="cu-pill none">Nothing needs you now</span>}
-    </div>
-  );
+/** A genuine person-needed note; the workflow stays in the connected header. */
+function GateTrack({ turn }: { items: Gate[]; turn?: string }) {
+  return turn ? <p className="cu-step-note"><Mk k="you" />{turn}</p> : null;
 }
 
 function Frame({ top, gate, children, label }: { top: ReactNode; gate?: ReactNode; children: ReactNode; label: string }) {
@@ -94,16 +73,23 @@ function YourTurn({ kind, count, title, text, children, foot }: { kind: string; 
   );
 }
 
-/** The agent's turn, when nothing waits for you. */
-function AgentTurn({ who, title, note, sub, children }: { who: string; title: string; note?: string; sub?: string; children?: ReactNode }) {
+/** Activity belongs in the status panel, leaving the document in the workspace. */
+function AgentActivity({ title, note, sub, children }: { title: string; note?: string; sub?: string; children?: ReactNode }) {
   return (
-    <section className="cu-at">
-      <p className="cu-atw"><Mk k="work" />{who}’s turn</p>
+    <div>
       <h4 className="cu-ah">{title}{note && <span className="cu-k">{note}</span>}</h4>
       {sub && <p className="cu-as">{sub}</p>}
       {children}
-    </section>
+    </div>
   );
+}
+
+function DeliveryFlow() {
+  return <div className="cu-dgm">
+    <p className="cu-dgmh"><span>What happens to a failed delivery</span><span>flow</span></p>
+    <div className="cu-dgr"><span className="cu-dn on">Retry queue<small>keeps each failed delivery once</small></span><span className="cu-dl"><em>try &lt; 3</em></span><span className="cu-dn">Send again<small>a minute apart</small></span></div>
+    <div className="cu-dgr"><span className="cu-dn you">Third try failed</span><span className="cu-dl" /><span className="cu-dn">Mail the customer<small>once, then stop</small></span></div>
+  </div>;
 }
 
 /** Numbered choices with the recommendation marked, and the own-words field always in view. */
@@ -220,15 +206,20 @@ export default function CloseUp({ id, step, tries = 2, onRetry }: { id: string; 
       const done = shown >= 3;
       return (
         <Frame label="Discuss"
-          top={<TopBar stage={0} chip={works(done ? "writing Done means" : "reading notify.ts")} />}
+          top={<TopBar stage={0} chip={works(done ? "writing Done means" : "reading notify.ts")} activity={done ? <AgentActivity title="Writing Done means from your answers" note="2 min" sub="All 3 answered. Nothing needs you now." /> : undefined} />}
           gate={<GateTrack items={[{ label: `Questions · ${answered} of 3 answered`, state: done ? "done" : "cur", pips: [answered, 3] }, { label: "Done means · 3", state: done ? "cur" : undefined }, { label: "Claude Code writes the Plan" }]} turn={done ? undefined : `Your turn · ${3 - shown} ${3 - shown === 1 ? "question" : "questions"}`} />}>
           {shown > 0 && !done && <Sent>Sent to Claude Code · {QUESTIONS[shown - 1].choices[0][0]}</Sent>}
           {done ? (
-            <AgentTurn who="Claude Code" title="Writing Done means from your answers" note="2 min" sub="All 3 answered. The complete discussion records the proposed outcomes; you approve them together with the Plan.">
+            <article className="cu-document" aria-label="Discuss document">
+              <h4>Retry failed webhook deliveries</h4>
+              <p>The complete discussion records the proposed outcomes; you approve them together with the Plan.</p>
+              <h5>Done means</h5>
+              <ol>{POINTS.map(([title]) => <li key={title}>{title}</li>)}</ol>
+              <h5>Decided with you</h5>
               <div className="cu-list">
                 {QUESTIONS.map((x) => <p key={x.title}><span className="cu-k">{x.title}</span><b>{x.choices[0][0]}</b></p>)}
               </div>
-            </AgentTurn>
+            </article>
           ) : (
             <YourTurn kind="3 questions from Claude Code" count={`${shown + 1} of 3`} title={q.title} text={<>{q.text} <span className="cu-k">Settles {q.settles}.</span></>}
               foot={<Keys keys={[["1", "pick"], ["↵", "send"], ["M", "tell me more"], ["← →", "previous · next"]]} />}>
@@ -243,31 +234,18 @@ export default function CloseUp({ id, step, tries = 2, onRetry }: { id: string; 
       const approve = at(3);
       return (
         <Frame label="Plan"
-          top={<TopBar stage={1} chip={waits("waits for you")} />}
-          gate={approve ? <div className="cu-gt"><span>The Plan is ready to review</span><span className="cu-grow" /><span className="cu-btn">Give feedback</span><span className={`cu-btn pri${at(4) ? " glow" : ""}`}>Approve Plan</span></div> : undefined}>
-          {at(1) && !approve && <Sent>Agreed · Support can retry failed deliveries only</Sent>}
+          top={<TopBar stage={1} chip={waits(approve ? "waits for your review" : "waits for your answer")} approval={<div className="cu-approval"><span className="cu-k">{approve ? "Ready to approve" : "One choice needs you"}</span><span className="cu-btn sm">Give feedback</span><span aria-disabled={!approve} className={`cu-btn pri sm${approve ? "" : " disabled"}${at(4) ? " glow" : ""}`}>Approve Plan</span></div>} />}>
+          {at(1) && !approve && <Sent>Sent to Claude Code · Support can retry failed deliveries only</Sent>}
           {!at(2) && (
             <YourTurn kind="Decision 1 of 2 · product choice" count="1 of 2" title="Which deliveries can support retry?" text="Retrying a completed delivery could repeat an action at the customer's endpoint. Limit the manual Retry control to failed deliveries, or allow support to repeat a completed one too."
-              foot={<Keys keys={[["1", "agree"], ["2", "change it"], ["C", "comment on the diagram"]]} />}>
-              <div className="cu-dgm">
-                <p className="cu-dgmh"><span>What happens to a failed delivery</span><span>flow</span></p>
-                <div className="cu-dgr">
-                  <span className="cu-dn on">Retry queue<small>keeps each failed delivery once</small></span>
-                  <span className="cu-dl"><em>try &lt; 3</em></span>
-                  <span className="cu-dn">Send again<small>a minute apart</small></span>
-                </div>
-                <div className="cu-dgr">
-                  <span className="cu-dn you">Third try failed</span>
-                  <span className="cu-dl" />
-                  <span className="cu-dn">Mail the customer<small>once, then stop</small></span>
-                </div>
-              </div>
+              foot={<Keys keys={[["1 2", "pick"], ["↵", "send"], ["C", "comment on the diagram"]]} />}>
+              <DeliveryFlow />
               <Choices items={[["Failed deliveries only"], ["Include completed deliveries", "may repeat an action"]]} picked={at(1) ? 0 : -1} own="Or say what to change…" />
             </YourTurn>
           )}
           {at(2) && !approve && (
             <YourTurn kind="One unresolved choice" count="2 of 2" title="When the endpoint recovers, who starts a new attempt?"
-              foot={<Keys keys={[["1", "agree"], ["2", "change it"]]} />}>
+              foot={<Keys keys={[["1 2", "pick"], ["↵", "send"]]} />}>
               <div className="cu-was">
                 <p><span className="cu-k">Support</span><span>Someone checks the endpoint and chooses Retry.</span></p>
                 <p><span className="cu-k">Automatic</span><span>A health check restarts delivery when the endpoint responds.</span></p>
@@ -276,15 +254,17 @@ export default function CloseUp({ id, step, tries = 2, onRetry }: { id: string; 
             </YourTurn>
           )}
           {approve && (
-            <section className="cu-card">
-              <p className="cu-cardh"><b>Retry failed webhook deliveries</b><span className="cu-k">02-plan.md</span></p>
-              <p className="cu-yp">Queue failed deliveries, retry three times, then notify the customer once. Support can start a new attempt after checking the endpoint.</p>
-              <div className="cu-skim">
-                {([["Done means", "Retry failures · stop after 3 tries · show the retry count"], ["Decisions", "Your choices are incorporated"], ["Design", "Failed deliveries page"], ["Second opinion", "Technical findings handled by the planning agent"]] as const).map(([k, v]) => (
-                  <p key={k}><Mk k="done" /><span className="cu-k">{k}</span><span>{v}</span></p>
-                ))}
-              </div>
-            </section>
+            <article className="cu-document" aria-label="Plan document">
+              <h4>Retry failed webhook deliveries</h4>
+              <p>Queue failed deliveries, retry three times, then notify the customer once. Support can start a new attempt after checking the endpoint.</p>
+              <h5>Done means</h5>
+              <ol>{POINTS.map(([title]) => <li key={title}>{title}</li>)}</ol>
+              <h5>Decisions</h5><p>Your choices are incorporated: support can retry failed deliveries and chooses a new attempt after checking the endpoint.</p>
+              <DeliveryFlow />
+              <h5>Design</h5><p>Failed deliveries page</p>
+              <h5>Slices</h5><ol>{SLICES.map((slice) => <li key={slice.title}>{slice.title}</li>)}</ol>
+              <h5>Second opinion</h5><p>Technical findings handled by the planning agent</p>
+            </article>
           )}
         </Frame>
       );
@@ -308,14 +288,10 @@ export default function CloseUp({ id, step, tries = 2, onRetry }: { id: string; 
       const slicesDone = SLICES.filter((s) => step >= s.done).length;
       return (
         <Frame label="Implement"
-          top={<TopBar stage={2} chip={works(`building slice ${done >= 2 ? 2 : 1}`)} />}
+          top={<TopBar stage={2} chip={works(`building slice ${done >= 2 ? 2 : 1}`)} activity={<AgentActivity title={`Building slice ${done >= 2 ? 2 : 1} of 3`} note={`${10 + step * 3} min`} sub="Every task starts with a failing test. Slices that don’t overlap build side by side."><p className="cu-prog">{done} of 5 tasks committed · every test run recorded</p></AgentActivity>} />}
           gate={<GateTrack items={[{ label: "Started 14:02", state: "done" }, { label: `Slices · ${slicesDone} of 3`, state: "cur", pips: [slicesDone, 3] }, { label: "Checked as it builds" }, { label: "Agents check every point" }]} />}>
-          <AgentTurn who="Claude Code" title={`Building slice ${done >= 2 ? 2 : 1} of 3`} note={`${10 + step * 3} min`} sub="Every task starts with a failing test. Slices that don’t overlap build side by side.">
-            <span className="cu-bar blue"><i style={{ transform: `scaleX(${Math.max(0.06, done / 5)})` }} /></span>
-            <p className="cu-prog">{done} of 5 tasks committed · every test run recorded</p>
-          </AgentTurn>
           <section className="cu-card">
-            <p className="cu-cardh"><b>Slices</b><span className="cu-k">{slicesDone} of 3 done · 5 tasks</span></p>
+            <p className="cu-cardh"><b>Slices</b><span className="cu-k">{slicesDone} of 3 done · {done} of 5 tasks committed</span></p>
             {SLICES.map((s, k) => {
               const state = step >= s.done ? "done" : step >= s.run ? "run" : "next";
               return (
@@ -328,7 +304,7 @@ export default function CloseUp({ id, step, tries = 2, onRetry }: { id: string; 
               );
             })}
           </section>
-          <p className={`cu-row ${show(4)}`}><Mk k="you" /><span className="cu-k">Decided while building</span><span>Moved the retry delay into settings.ts</span><span className="cu-grow" /><span className="cu-btn sm">Fine</span><span className="cu-btn sm">Ask why</span></p>
+          <p className={`cu-row ${show(4)}`}><Mk k="done" /><span className="cu-k">Decided while building</span><span>Moved the retry delay into settings.ts</span><span className="cu-grow" /><span className="cu-btn sm">Ask why</span></p>
           <div className={show(5)}><Checked facts={["2 tasks green, test first", "6 test runs recorded"]} /></div>
         </Frame>
       );
@@ -340,16 +316,9 @@ export default function CloseUp({ id, step, tries = 2, onRetry }: { id: string; 
       const pointsPassed = POINTS.filter(([, , when]) => step >= when).length;
       return (
         <Frame label="Verify"
-          top={<TopBar stage={3} chip={done ? waits("waits for your review") : works(`checking ${passed} of 12`)} />}
+          top={<TopBar stage={3} chip={done ? waits("waits for your review") : works(`checking ${passed} of 12`)} activity={<AgentActivity title="Agents that did not write the code are checking" note={`${passed} of 12`}><p className="cu-prog">412 tests passed · types, lint and build passed</p></AgentActivity>} />}
           gate={<GateTrack items={[{ label: "Polish", state: "done" }, { label: "Project checks · 4", state: at(2) ? "done" : "cur" }, { label: `Done means · ${pointsPassed} of 3`, state: at(2) && !done ? "cur" : at(6) ? "done" : undefined, pips: [pointsPassed, 3] }, { label: "Code review", state: at(6) ? "done" : undefined }]} turn={done ? "Your turn · 2 in Review" : undefined} />}>
-          {done ? (
-            <Checked facts={["12 of 12 passed", "412 tests", "evidence for each point"]} />
-          ) : (
-            <AgentTurn who="Claude Code" title="Agents that did not write the code are checking" note={`${passed} of 12`}>
-              <span className="cu-bar"><i style={{ transform: `scaleX(${passed / 12})` }} /></span>
-              <p className="cu-prog">412 tests passed · types, lint and build passed</p>
-            </AgentTurn>
-          )}
+          {done && <Checked facts={["12 of 12 passed", "412 tests", "evidence for each point"]} />}
           <section className="cu-card">
             <p className="cu-cardh"><b>Done means</b><span className="cu-k">each point against the running program</span></p>
             {POINTS.map(([title, evidence, when], k) => {
@@ -406,17 +375,15 @@ export default function CloseUp({ id, step, tries = 2, onRetry }: { id: string; 
       const drawn = at(2);
       return (
         <Frame label="Designs"
-          top={<TopBar stage={1} chip={drawn ? waits("waits for you") : works("drawing Failed deliveries")} />}
-          gate={<GateTrack items={[{ label: "Done means · 3 agreed", state: "done" }, { label: "Decisions · 2 of 2", state: "done" }, { label: "Designs · 1", state: "cur", pips: [at(4) ? 1 : 0, 1] }, { label: "Approve" }]} turn={drawn && !at(4) ? "Your turn · 1 design" : undefined} />}>
+          top={<TopBar stage={1} chip={drawn ? waits("waits for you") : works("drawing Failed deliveries")} activity={!drawn ? <AgentActivity title="Drawing the page you asked for" note="1 min" sub="“Mock up the failed deliveries page.” It draws one clickable page in your product’s look, and the Plan asks you about it." /> : undefined} />}
+          gate={<GateTrack items={[{ label: "Done means · 3", state: "done" }, { label: "Decisions · 2 of 2", state: "done" }, { label: "Designs · 1", state: "cur", pips: [at(4) ? 1 : 0, 1] }, { label: "Approve" }]} turn={drawn && !at(4) ? "Your turn · 1 design" : undefined} />}>
           {drawn ? (
             <YourTurn kind="Design · shown in the Plan" title="Is this how failed deliveries should look?" text={DESIGN.purpose + "."}
               foot={<Keys keys={[["1", "looks right"], ["2", "change it"], ["F", "full size"]]} />}>
               <DesignIn><DesignPage /></DesignIn>
               <Choices items={[["Looks right"], ["Change it…", "point at a spot full size"]]} picked={at(4) ? 0 : -1} own="Or say what to change…" />
             </YourTurn>
-          ) : (
-            <AgentTurn who="Claude Code" title="Drawing the page you asked for" note="1 min" sub="“Mock up the failed deliveries page.” It draws one clickable page in your product’s look, and the Plan asks you about it." />
-          )}
+          ) : null}
         </Frame>
       );
     }
@@ -442,7 +409,7 @@ export default function CloseUp({ id, step, tries = 2, onRetry }: { id: string; 
       return (
         <Frame label="Ask"
           top={<TopBar stage={1} chip={waits("waits for you")} />}
-          gate={<GateTrack items={[{ label: "Done means · 3 agreed", state: "done" }, { label: "Decisions · 2 of 2", state: "done" }, { label: "Team · Dana", state: "cur", pips: [at(5) ? 1 : 0, 1] }, { label: "Approve" }]} turn={at(3) && !at(5) ? undefined : "Your turn · approve"} />}>
+          gate={<GateTrack items={[{ label: "Done means · 3", state: "done" }, { label: "Decisions · 2 of 2", state: "done" }, { label: "Team · Dana", state: "cur", pips: [at(5) ? 1 : 0, 1] }, { label: "Approve" }]} turn={at(3) && !at(5) ? undefined : "Your turn · approve"} />}>
           <section className="cu-doc">
             <p className="cu-k">02-plan.md · Decided by the agent</p>
             <p>A failed delivery is sent again <mark>one minute apart</mark>, three times, then the customer gets one mail.</p>
