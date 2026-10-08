@@ -10,8 +10,8 @@ Verify starts by itself when the last slice is built. Agents that did not write 
 
 ## Proof for each Done means point {#live}
 
-![Verify: the agent's turn beside proof grouped by Done means point; the live status says which point is being checked](pathname:///img/diagrams/verify-light.svg)
-![Verify: the agent's turn beside proof grouped by Done means point; the live status says which point is being checked](pathname:///img/diagrams/verify-dark.svg)
+![Verify: the agent's work above proof grouped by Done means point; its named status shows what is being checked](pathname:///img/diagrams/verify-light.svg)
+![Verify: the agent's work above proof grouped by Done means point; its named status shows what is being checked](pathname:///img/diagrams/verify-dark.svg)
 
 Each **Done means** point shows its checks and evidence together, filling in as they run. Open a point to read its scenarios and proof. Project checks and the agents' reviews stay available too:
 
@@ -28,10 +28,12 @@ An agent writes a failing test, fixes the code, and the check runs again. You ar
 
 ## When it stops {#when-it-stops}
 
-If checking fails twice, the task stops and names the one failure that remains. You choose: **Check once more**, **Take it as it is**, or **Stop the task**.
+After the initial review and two failed fixing rounds, **Your turn** shows what the recorded rounds fixed, their time and estimated cost, and what still fails. You choose **One more round**, **Review it as it is**, or **Stop here**. One more round allows exactly one additional review run; if it fails, the choice returns. Earlier records keep their actual history.
 
-![After two failed checks, the task names the remaining failure. Choose Check once more, Take it as it is or Stop the task](pathname:///img/diagrams/stopped-light.svg)
-![After two failed checks, the task names the remaining failure. Choose Check once more, Take it as it is or Stop the task](pathname:///img/diagrams/stopped-dark.svg)
+![The fixing hold lists recorded rounds and open failures, with One more round, Review it as it is and Stop here](pathname:///img/diagrams/stopped-light.svg)
+![The fixing hold lists recorded rounds and open failures, with One more round, Review it as it is and Stop here](pathname:///img/diagrams/stopped-dark.svg)
+
+During Verify, the **Task menu** also offers **Stop checking and review**. Its confirmation explains that open items will remain in Review.
 
 ## Only you can confirm {#only-you}
 

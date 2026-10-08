@@ -999,28 +999,37 @@ def verify_ill(c: Theme) -> str:
 
 
 def stopped_ill(c: Theme) -> str:
-    W, H = 1000, 230
-    b = []
-    for i in range(2):
-        x = i * 150
-        b.append(card(c, x, 85, 136, 60, stroke='danger', fill='bg', sw=1.4))
-        b.append(mark(c, x + 24, 115, False))
-        b.append(T(x + 40, 120, ['First try', 'Second try'][i], 13, 'text', 600, c=c))
-    b.append(arrow(c, 288, 115, 318))
-    b.append(card(c, 320, 60, 220, 110, stroke='amber', fill='amberf', sw=1.6))
-    b.append(T(338, 94, 'Stopped', 15, 'text', 650, c=c))
-    b.append(T(338, 116, 'One check still fails after', 12.5, 'muted', c=c))
-    b.append(T(338, 134, 'two fixes. Checking again costs', 12.5, 'muted', c=c))
-    b.append(T(338, 152, 'about $7 and 9 min.', 12.5, 'muted', c=c))
-    opts = [('Check once more', 'Check again, the same way'), ('Take it as it is', 'Go to Review; what is open is listed'),
-            ('Stop the task', 'The documents and evidence stay')]
-    for i, (t, s) in enumerate(opts):
-        y = 10 + i * 72
-        b.append(curve(c, 540, 115, 590, y + 25, 'line'))
-        b.append(card(c, 590, y, 410, 56))
-        b.append(T(608, y + 34, t, 14, 'text', 650, c=c))
-        b.append(T(752, y + 34, s, 12.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'When checking keeps failing: after two tries the task stops with the one failure that remains, and you choose to check once more, take it as it is, or stop the task')
+    W, H = 1000, 490
+    b = [card(c, 0, 0, W, H - 28, stroke='amber', fill='bg')]
+    b.append(T(24, 32, 'Your turn · after two fixing rounds', 12.5, 'muted', 500, c=c))
+    b.append(T(24, 62, 'Verify sent the build back twice', 22, 'text', 650, c=c))
+    b.append(T(24, 86, '4 update tests still fail. Each recorded round so far:', 13.5, 'muted', c=c))
+    b.append(T(24, 117, 'Fixing work', 12, 'muted', 500, c=c))
+    b.append(T(810, 117, 'Time', 12, 'muted', 500, 'end', c=c))
+    b.append(T(976, 117, 'Cost', 12, 'muted', 500, 'end', c=c))
+    rounds = [('Round 1 · fixed 3 failing tests', '48 min', '$11.40'),
+              ('Round 2 · fixed the token retry', '2 h 39 min', '$19.05')]
+    for i, (fixed, minutes, cost) in enumerate(rounds):
+        y = 143 + i * 30
+        b.append(T(24, y, fixed, 13.5, 'text', 500, c=c))
+        b.append(T(810, y, minutes, 13, 'muted', 400, 'end', c=c))
+        b.append(T(976, y, cost, 13, 'text', 500, 'end', c=c))
+    b.append(T(24, 207, 'Still failing · 4 update tests', 13.5, 'danger', 500, c=c))
+    opts = [('One more round', 'Fix and check once; another failure asks you again'),
+            ('Review it as it is', 'Review lists the open tests'),
+            ('Stop here', 'The work and its evidence stay')]
+    for i, (label, hint) in enumerate(opts):
+        y = 227 + i * 48
+        b.append(f'<rect data-choice="{i + 1}" x="24" y="{y}" width="952" height="40" rx="8" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
+        b.append(T(40, y + 26, str(i + 1), 12, 'muted', 500, c=c))
+        b.append(T(64, y + 26, label, 13.5, 'text', 600, c=c))
+        b.append(T(310, y + 26, hint, 12.5, 'muted', c=c))
+    b.append(T(24, 391, 'Your own words', 12, 'muted', 500, c=c))
+    b.append(f'<rect data-own-words="true" x="24" y="402" width="852" height="38" rx="6" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
+    b.append(T(36, 427, 'Or tell the agent what to try…', 12.5, 'dim', c=c))
+    b.append(abtn_svg(c, 892, 402, 'Send', True, 38, 12.5, 84))
+    b.append(T(24, 484, 'Illustration · example fixing work, times and costs', 10.5, 'muted', c=c))
+    return svg(W, H, ''.join(b), 'After the initial review and two recorded fixing rounds, checks still fail. You choose One more round, Review it as it is, or Stop here; each round shows its fixing work, time and cost.')
 
 
 # ---------------------------------------------------------------- Review
