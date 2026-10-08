@@ -163,7 +163,7 @@ $ql retry failed webhooks, and stop after a few tries     # Codex
 
 Or click **+ New** in the App: say what you want, pick the model, the effort and where it starts, and copy one command. Your agent asks each decision in the App, and its terminal shows a single line while it waits. **Your turn** shows one question with its context: click a choice, type in **Your own answer** and press **Send**, or ask it to tell you more. **Skip for now** lets you answer another question first. Each answer goes to the agent immediately. Read the complete Plan, settle its decisions, then approve it. `qualitylayer app` opens the App any time.
 
-After you approve, Implement opens with your Build defaults and one command that starts the build, such as `claude --model opus --effort high "/goal /ql implement retry-webhooks"`. From there your agent works on its own until the final review.
+After you approve, Implement opens with your Build defaults and one command that starts the build in a fresh session, such as `claude --model opus --effort high "/ql implement retry-webhooks"`. From there your agent works on its own until the final review.
 
 QualityLayer runs only when you ask for it: with `/ql` (`$ql` in Codex), `/ql implement`, or a request to resume a named task. Everything else works as before.
 

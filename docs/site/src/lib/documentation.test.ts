@@ -4,6 +4,13 @@ import { describe, expect, it } from "vitest";
 const doc = (path: string) => readFileSync(new URL(`../../../docusaurus/docs/${path}`, import.meta.url), "utf8");
 
 describe("installation and build instructions", () => {
+  it("uses direct Claude workflow opt-in in the README build example", () => {
+    const readme = readFileSync(new URL("../../../../README.md", import.meta.url), "utf8");
+    expect(readme).toContain('claude --model opus --effort high "/ql implement retry-webhooks"');
+    expect(readme).not.toContain("/goal /ql implement");
+    expect(readme).toContain("starts the build in a fresh session");
+    expect(readme).toContain("QualityLayer runs only when you ask for it");
+  });
   it("puts native Windows PowerShell installation with the App and WSL with Linux", () => {
     const install = doc("install.md");
     const [desktop, headless] = install.split("## Without a screen");
