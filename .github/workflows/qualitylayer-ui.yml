@@ -29,7 +29,8 @@ jobs:
     # Forks cannot unlock the encrypted source. Existing plaintext/CI gates remain separate.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Over 300 checks, one worker: about 20 minutes on a runner.
+    timeout-minutes: 35
     env:
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/qualitylayer/dist/.ui-browsers
     steps:
