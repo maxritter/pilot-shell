@@ -1,9 +1,10 @@
 import { renderToReadableStream } from "react-dom/server.browser";
 import { describe, expect, it } from "vitest";
 import { BANNED_WORDS } from "@/lib/banned-words";
-import { CHAPTERS, checksPassed, committedTasks, discussAt, PARTS, STAGES } from "@/lib/tour";
+import { CHAPTERS, chapterInView, checksPassed, committedTasks, discussAt, PARTS, READ_LINE, STAGES } from "@/lib/tour";
 import CloseUp from "./CloseUps";
 import Tour from "./Tour";
+import { CLAIMS, missing } from "./tour-claims";
 
 async function html(node: React.ReactNode): Promise<string> {
   const stream = await renderToReadableStream(node);
@@ -54,27 +55,65 @@ describe("the tour", () => {
     expect(text(plan)).toContain("Claude Code");
   });
 
-  it("asks one Discuss question at a time with numbered choices, the recommendation and the own-words field", async () => {
-    expect(discussAt(0)).toEqual({ shown: 0, answered: 0, picked: false });
-    expect(discussAt(6)).toMatchObject({ shown: 3, answered: 3 });
+  it("asks Discuss as one batch of four: the strip of all four, one question in focus with numbered choices, the recommendation and the own-words field, answered in any order", async () => {
+    expect(discussAt(0)).toEqual({ answered: [], focus: 0, picked: false, sent: null });
+    expect(discussAt(99)).toMatchObject({ answered: [0, 2], focus: 1 });
     const first = text(await shot("discuss", 0));
     expect(first).toContain("How many tries before it stops?");
+    expect(first).toContain("a batch of 4 from Claude Code");
+    expect(first).toContain("1 2 3 4");
+    expect(first).toContain("question 1 of 4");
     expect(first).toContain("recommended");
     expect(first).toContain("Or write your own answer");
-    expect(first).toContain("Your turn · 3 questions");
-    const second = text(await shot("discuss", 2));
-    expect(second).toContain("Sent to Claude Code");
-    expect(second).toContain("Who hears about it when it stops?");
-    const done = text(await shot("discuss", 6));
-    expect(done).toContain("Writing Done means from your answers");
-    expect(done).toContain("Nothing needs you now");
+    expect(first).toContain("Your turn · 4 questions");
+    // the third question is answered before the second: any order
+    const later = await shot("discuss", 4);
+    expect(text(later)).toContain("Sent to Claude Code · A minute apart");
+    expect(text(later)).toContain("Who hears about it when it stops?");
+    expect(later).toContain('aria-current="true"');
+    expect(later.match(/class="done/g)).toHaveLength(2);
+    // the batch never gives way to the document: it is still the question in view at the end
+    expect(text(await shot("discuss", 99))).toContain("Your turn · 2 questions");
+    expect(await shot("discuss", 99)).not.toContain("Discuss document");
   });
 
   it("keeps everything that waits for the person in the one amber Your turn card", async () => {
-    for (const [id, step] of [["discuss", 0], ["research", 3], ["plan", 0], ["start", 0], ["review", 0], ["draw", 2], ["answer", 0], ["together", 0]] as const) {
+    for (const [id, step] of [["discuss", 0], ["research", 3], ["start", 0], ["review", 0], ["draw", 2], ["answer", 0], ["together", 0]] as const) {
       expect((await shot(id, step)).match(/class="cu-yt"/g), id).toHaveLength(1);
     }
-    for (const [id, step] of [["research", 0], ["outline", 2], ["implement", 2], ["verify", 2]] as const) expect(await shot(id, step), id).not.toContain('class="cu-yt"');
+    for (const [id, step] of [["research", 0], ["plan", 0], ["outline", 2], ["implement", 2], ["verify", 2]] as const) expect(await shot(id, step), id).not.toContain('class="cu-yt"');
+  });
+
+  it("opens every chapter's close-up on what the chapter says, and never takes it away", async () => {
+    expect(Object.keys(CLAIMS).sort()).toEqual(CHAPTERS.map((c) => c.id).sort());
+    for (const chapter of CHAPTERS) {
+      const claim = CLAIMS[chapter.id];
+      for (let step = 0; step <= chapter.steps; step++) {
+        const seen = text(await shot(chapter.id, step));
+        expect(missing(seen, claim.always), `${chapter.id} at moment ${step} lacks what its text says`).toEqual([]);
+        if (step === 0) expect(missing(seen, claim.first), `${chapter.id} opens without its claim`).toEqual([]);
+        if (step === chapter.steps) expect(missing(seen, claim.last), `${chapter.id} ends without its claim`).toEqual([]);
+      }
+      // the last moment is the last there is: nothing more appears after it
+      expect(text(await shot(chapter.id, chapter.steps)), `${chapter.id} has moments past its steps`).toBe(text(await shot(chapter.id, 99)));
+    }
+  });
+
+  it("names the chapter in view from where the text is: the last whose first line has risen past the read line", () => {
+    const tops = [100, 874, 1648, 2422];
+    const vh = 900;
+    expect(chapterInView(tops, vh, READ_LINE.pinned)).toBe(0);
+    expect(chapterInView([-200, 600, 1374], vh, READ_LINE.pinned)).toBe(1);
+    expect(chapterInView([-974, -200, 700], vh, READ_LINE.pinned)).toBe(1);
+    expect(chapterInView([-1748, -974, 600], vh, READ_LINE.pinned)).toBe(2);
+    // before any chapter has been read, the first is in view
+    expect(chapterInView([1200, 1974], vh, READ_LINE.pinned)).toBe(0);
+    // the read line is a share of the screen's height, one for each layout
+    for (const line of Object.values(READ_LINE)) expect(line).toBeGreaterThan(0.4);
+    for (const line of Object.values(READ_LINE)) expect(line).toBeLessThan(0.9);
+    // a chapter's close-up changes exactly when its heading passes the line, in either direction
+    expect(chapterInView([-300, vh * READ_LINE.pinned], vh, READ_LINE.pinned)).toBe(1);
+    expect(chapterInView([-300, vh * READ_LINE.pinned + 1], vh, READ_LINE.pinned)).toBe(0);
   });
 
   it("tells the seven steps in order, with Research after Discuss and the Outline after the Plan", () => {
@@ -114,12 +153,16 @@ describe("the tour", () => {
     expect([...order].sort((a, b) => a - b)).toEqual(order);
   });
 
-  it("shows a decision as a diagram, the words that changed, and Approve after everything is settled", async () => {
-    expect(await shot("plan", 0)).toContain("cu-dgm");
-    expect(text(await shot("plan", 2))).toContain("When the endpoint recovers, who starts a new attempt?");
-    expect(text(await shot("plan", 4))).toContain("Approve Plan");
-    expect(await shot("plan", 4)).not.toContain('class="cu-yt"');
-    expect(text(await shot("plan", 4))).toContain("Give feedback");
+  it("shows the complete Plan with its diagram from the first moment, a comment on the diagram, and Approve in the header", async () => {
+    const opening = await shot("plan", 0);
+    expect(opening).toContain("cu-dgm");
+    expect(opening).toContain('aria-label="Plan document"');
+    expect(opening).not.toContain('class="cu-pin"');
+    const last = await shot("plan", 2);
+    expect(last).toContain('class="cu-pin"');
+    expect(text(last)).toContain("Approve Plan");
+    expect(last).not.toContain('class="cu-yt"');
+    expect(text(last)).toContain("Give feedback");
   });
 
   it("starts the build from one line of Build defaults and one command", async () => {
@@ -131,9 +174,11 @@ describe("the tour", () => {
   });
 
   it("builds on its own, test first, and counts the committed tasks", async () => {
-    expect(committedTasks(4)).toBe(3);
+    // slice 1 is done when it opens; slices 2 and 3 build side by side
+    expect([0, 1, 2, 3, 4].map(committedTasks)).toEqual([2, 3, 4, 5, 5]);
+    expect(text(await shot("implement", 0))).toContain("2 of 5 tasks committed");
     const build = text(await shot("implement", 4));
-    expect(build).toContain("3 of 5 tasks committed");
+    expect(build).toContain("5 of 5 tasks committed");
     expect(build).toContain("Ask why");
     expect(text(await shot("implement", 5))).toContain("Checked by agents");
   });

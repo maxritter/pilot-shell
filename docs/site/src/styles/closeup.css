@@ -75,6 +75,11 @@
 .cu-document h5{font-size:14px;font-weight:600;margin:18px 0 6px}
 .cu-document ol{margin:0;padding-left:20px}
 .cu-document .cu-dgm{margin-top:14px}
+.cu-document.compact h4{margin-bottom:6px}
+.cu-document.compact h5{margin:12px 0 3px}
+.cu-document.compact .cu-dgm{margin-top:10px}
+.cu-document.compact .row{margin-top:10px}
+.cu-document.compact .row b{font-weight:600}
 
 /* the step's own track, and what waits for you */
 .cu-gt{display:flex;align-items:center;gap:2px;min-width:0;height:42px;padding:0 16px;border-bottom:1px solid var(--ql-line);overflow:hidden;flex:none}
@@ -210,6 +215,8 @@
 .cu-dpr .amb{color:var(--ql-amber-ink)}
 .cu-dpr .red{color:var(--ql-danger)}
 .cu-dpb{display:inline-flex;align-items:center;justify-content:center;height:26px;padding:0 10px;border:1px solid var(--ql-border-strong);border-radius:6px;background:var(--ql-bg);color:var(--ql-text);font:500 12px Geist,system-ui,sans-serif;cursor:pointer}
+.cu-dp.brief .cu-dpr{min-height:34px}
+.cu-dzf:has(.cu-dp.brief){padding:10px}
 .cu-dpb:disabled{border-color:var(--ql-border);color:var(--ql-text-dim);cursor:default}
 .cu-dpf{padding:8px 12px;border-top:1px solid var(--ql-line);font-size:12px;color:var(--ql-text-muted)}
 .cu-pin{display:inline-grid;flex:none;place-items:center;width:20px;height:20px;border-radius:50% 50% 50% 4px;background:var(--ql-amber);color:#1a1200;font-size:11px;font-weight:600}
@@ -257,7 +264,7 @@
 /* Settings and cost, New task, the notification */
 .cu-two{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;align-items:start}
 .cu-col{display:flex;flex-direction:column;gap:14px;min-width:0}
-.cu-set{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:46px;padding:7px 16px;border-top:1px solid var(--ql-line);font-size:13px}
+.cu-set{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:42px;padding:5px 16px;border-top:1px solid var(--ql-line);font-size:13px}
 .cu-cardh + .cu-set{border-top:0}
 .cu-set small{display:block;font-size:12px;color:var(--ql-text-dim)}
 .cu-cost{padding-bottom:10px}
@@ -283,6 +290,20 @@
 .cu-notif small{font-size:12px;color:var(--ql-text-dim)}
 .cu-runs{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font-size:12.5px}
 .cu-runs > span:not(.cu-k){padding:3px 10px;border:1px solid var(--ql-border);border-radius:999px}
+
+/* A batch of questions (Discuss): the strip shows every question, one is in focus, answered ones carry a check. As in the App's batch card. */
+.cu-bq{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;font-size:12.5px}
+.cu-bq b{font-weight:550}
+.cu-strip{display:inline-flex;gap:4px}
+.cu-strip > span{display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:28px;height:24px;padding:0 7px;border:1px solid var(--ql-border);border-radius:6px;background:var(--ql-bg);font:500 12px "Geist Mono",ui-monospace,monospace;color:var(--ql-text-dim)}
+.cu-strip > .done{background:var(--ql-surface-2);color:var(--ql-text-muted)}
+.cu-strip > .done svg{color:var(--ql-accent)}
+.cu-strip > .on{border-color:var(--ql-amber-edge);color:var(--ql-text);box-shadow:0 0 0 2px var(--ql-amber-soft)}
+.cu-bqr{margin-left:auto;color:var(--ql-text-dim)}
+.cu-tr .cu-acts{margin-top:0}
+/* A comment pin on the Plan's diagram */
+.cu-dgm{position:relative}
+.cu-dgm > .cu-pin{position:absolute;right:-6px;top:-8px;box-shadow:0 0 0 3px var(--ql-bg)}
 
 /* The top bar gives way as the close-up narrows: the chip's words, the kind, then the step labels. */
 @container cu (max-width: 800px){
@@ -315,5 +336,6 @@
   .cu-cmd code{font-size:11.5px}
   .cu-ytag{flex-wrap:wrap}
   .cu-ytag > .cu-grow,.cu-ytag > .cu-grow + .cu-k,.cu-dzh .cu-k{display:none}
+  .cu-bqr{margin-left:0;flex-basis:100%}
 }
 @media (prefers-reduced-motion:reduce){.cu-mk.work{animation:none}.cu-in,.cu-bar i{transition:none}}

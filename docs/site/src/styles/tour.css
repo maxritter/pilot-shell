@@ -59,7 +59,8 @@
 .sx-cuw{display:flex;justify-content:center}
 .sx-cuin{animation:sx-cuin .45s var(--ql-ease) both}
 @keyframes sx-cuin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.sx-iwin{position:relative;max-height:min(600px,78vh);overflow:hidden;-webkit-mask:linear-gradient(#000 calc(100% - 40px),transparent);mask:linear-gradient(#000 calc(100% - 40px),transparent)}
+/* Inline, the whole close-up shows: the reader scrolls past it with the chapter, so nothing it says is cut off. */
+.sx-iwin{position:relative}
 
 @media (prefers-reduced-motion:reduce){.sx-replay{display:none}.sx-chin{transition:none}.sx-cuin{animation:none}}
 
@@ -99,7 +100,6 @@
   .sx-chp{margin-top:10px;font-size:15.5px;line-height:1.55}
   .sx-bul,.sx-replay{display:none}
   .sx-ch,.sx-ch.first,.sx-ch.last{padding:16px 0}
-  .sx-iwin{max-height:min(520px,72vh)}
   .sx-act-h h2{font-size:30px}
   .sx-act-h p{font-size:16px}
 }

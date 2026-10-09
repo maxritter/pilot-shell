@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { CHAPTERS, PARTS, partOf, type Who } from "@/lib/tour";
+import { CHAPTERS, chapterInView, PARTS, partOf, READ_LINE, type Who } from "@/lib/tour";
 import CloseUp from "./CloseUps";
 
 /** The header's height; the step bar pins below it. */
@@ -11,6 +11,16 @@ const dot = (who: Who) => (who === "you" ? "sx-you" : who === "ok" ? "sx-ok" : "
 
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 const finished = () => CHAPTERS.map((c) => c.steps);
+
+/**
+ * Where each chapter's text begins: its act heading when it opens a part, else its own heading.
+ * That is the line the chapter in view is read from.
+ */
+const leads = (tour: HTMLElement, inline: boolean) =>
+  Array.from(tour.querySelectorAll<HTMLElement>(".sx-ch"), (el) => {
+    const act = el.previousElementSibling?.classList.contains("sx-act-h") ? el.previousElementSibling.querySelector("h2") : null;
+    return (act ?? el.querySelector(inline ? ".sx-h3" : ".sx-chin") ?? el).getBoundingClientRect().top;
+  });
 
 /**
  * One change followed from request to pull request, then designs, the team and the setup. Each
@@ -25,11 +35,14 @@ export default function Tour() {
   const [steps, setSteps] = useState<number[]>(() => (reducedMotion() ? finished() : CHAPTERS.map(() => 0)));
   const [tries, setTries] = useState(2);
   const [inline, setInline] = useState(false);
+  // Whether the current chapter's close-up is on screen. Its moments advance only then, so a reader who arrives later still meets the first one.
+  const [seen, setSeen] = useState(false);
 
   const tourRef = useRef<HTMLElement>(null);
   const stepsRef = useRef<HTMLOListElement>(null);
   const chRef = useRef(0);
   const inlineRef = useRef(false);
+  const seenRef = useRef(false);
 
   /** Make chapter `i` current. The pinned close-up replays; an inline one carries on, unless asked to start over. */
   const play = useCallback((i: number, again = false) => {
@@ -40,13 +53,13 @@ export default function Tour() {
     if (again || !inlineRef.current) setSteps((s) => s.map((v, k) => (k === i ? 0 : v)));
   }, []);
 
-  // The current close-up's moments advance one per second.
+  // The current close-up's moments advance one per second, once it is on screen.
   const step = steps[ch];
   useEffect(() => {
-    if (reducedMotion() || step >= CHAPTERS[ch].steps) return;
+    if (!seen || reducedMotion() || step >= CHAPTERS[ch].steps) return;
     const id = setTimeout(() => setSteps((s) => s.map((v, k) => (k === ch ? v + 1 : v))), 1000);
     return () => clearTimeout(id);
-  }, [ch, step]);
+  }, [ch, step, seen]);
 
   const measure = useCallback(() => {
     const next = document.documentElement.clientWidth < WIDE;
@@ -57,30 +70,24 @@ export default function Tour() {
   }, []);
 
   /**
-   * The current chapter. Beside the pinned close-up: the chapter nearest a line a little above
-   * mid-screen. Inline: the last chapter whose close-up has risen past 70 % of the screen.
+   * The chapter whose text is in view: the last one whose first line has risen past the read
+   * line (see chapterInView), beside the pinned close-up and inline alike.
    */
   const current = useCallback(() => {
     const tour = tourRef.current;
     if (!tour) return chRef.current;
+    const inl = inlineRef.current;
+    return chapterInView(leads(tour, inl), window.innerHeight, inl ? READ_LINE.inline : READ_LINE.pinned);
+  }, []);
+
+  /** Whether chapter `i`'s close-up is on screen: pinned, once its text has been read (the first close-up waits for the first chapter's); inline, when 40 % of its own is in view. */
+  const onScreen = useCallback((i: number) => {
+    const tour = tourRef.current;
+    if (!tour) return false;
     const vh = window.innerHeight;
-    if (inlineRef.current) {
-      let best = 0;
-      tour.querySelectorAll(".sx-ch").forEach((el, i) => {
-        const shot = el.querySelector(".sx-iwin") ?? el;
-        if (shot.getBoundingClientRect().top <= vh * 0.7) best = i;
-      });
-      return best;
-    }
-    let best = chRef.current, bd = Infinity;
-    tour.querySelectorAll(".sx-chin").forEach((el, i) => {
-      const r = el.getBoundingClientRect(), d = Math.abs((r.top + r.bottom) / 2 - vh * 0.4);
-      if (d < bd) {
-        bd = d;
-        best = i;
-      }
-    });
-    return best;
+    if (!inlineRef.current) return leads(tour, false)[i] <= vh * READ_LINE.pinned;
+    const r = tour.querySelectorAll(".sx-ch")[i]?.querySelector(".sx-iwin")?.getBoundingClientRect();
+    return !!r && Math.min(r.bottom, vh) - Math.max(r.top, 0) >= Math.min(r.height, vh) * 0.4;
   }, []);
 
   const frame = useCallback(() => {
@@ -90,7 +97,12 @@ export default function Tour() {
     if (tr.bottom < 0 || tr.top > window.innerHeight) return;
     const best = current();
     if (best !== chRef.current) play(best);
-  }, [current, play]);
+    const now = onScreen(best);
+    if (now !== seenRef.current) {
+      seenRef.current = now;
+      setSeen(now);
+    }
+  }, [current, onScreen, play]);
 
   useLayoutEffect(() => {
     measure();
