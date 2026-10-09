@@ -75,7 +75,8 @@ You rarely type these; they are what you see in your agent's chat.
 | `qualitylayer wait --json` | The same reply as one JSON object, each answer with its `answer_at` time; the plain reply opens with one line per answer |
 | `qualitylayer plan draft` | Check the Plan and start its review, without asking you anything yet; your agent opens the approval once the findings are folded in |
 | `qualitylayer gate open 03-plan.md` · `gate open final` | Put the Plan or the finished change up for your approval (`02-plan.md` for a task started before the seven steps) |
-| `qualitylayer plan amend` · `outline amend` | Record a change to the Plan or the Outline made after the Plan was approved, the Outline step included, with the reason; it reaches the final review |
+| `qualitylayer plan amend` · `outline amend` | Record a change to the Plan or the Outline made after the Plan was approved, the Outline step included, with the reason; it reaches the final review. Only the build session runs it: a helper reports the change and the session records it |
+| `qualitylayer plan amend --for T<n> --add-file <path>` | Put a file on a task card's Files (repeat `--add-file` for several) and record it, so adding a file to a card is not a hand edit; it needs a note and names one task |
 | `qualitylayer check slice <n>` | Run a slice's approved checks and record them |
 | `qualitylayer comments take` | Collect the comments not yet answered |
 | `qualitylayer ask list` · `ask answer` · `ask draft` | A teammate's agent reads and answers a question; see [Teammates' agents](../team/agents.md) |
