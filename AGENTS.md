@@ -68,6 +68,11 @@ All in `qualitylayer/`:
   `HOME`.
 - Never switch branches, commit, push, rebase, or force-update history
   without the corresponding user authorization.
+- Resource budget: any change to the server, its polls, watchers, hooks or
+  background CLI paths keeps `tests/e2e/resource-budget.test.ts` green. Git and
+  `gh` calls are cached on what changes their answer, children are reaped, and
+  idle is near 0% CPU. Files that grow in the QualityLayer home carry a cap
+  (`core/home-caps.ts`); the server's own check is `server/resource-guard.ts`.
 
 ## Design changes
 
