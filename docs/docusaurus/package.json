@@ -13,7 +13,7 @@
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
     "typecheck": "tsc",
-    "test": "node --test scripts/public-docs.test.mjs"
+    "test": "node --test scripts/public-docs.test.mjs scripts/changelog-plugin.test.mjs"
   },
   "dependencies": {
     "@docusaurus/core": "^3.10.1",
