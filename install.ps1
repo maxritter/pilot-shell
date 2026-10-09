@@ -71,7 +71,14 @@ function Confirm-SignedSums {
     $qlVerify = Start-Process -FilePath $qlKeygen.Source -NoNewWindow -Wait -PassThru `
         -ArgumentList @('-Y', 'verify', '-f', "`"$qlAllowed`"", '-I', $qlSignerId, '-n', $qlSignerNamespace, '-s', "`"$qlSumsFile.sig`"") `
         -RedirectStandardInput $qlSumsFile -RedirectStandardOutput (Join-Path $qlWork 'verify.out') -RedirectStandardError (Join-Path $qlWork 'verify.err')
-    if ($qlVerify.ExitCode -ne 0) { throw "The release's SHA256SUMS is not signed by QualityLayer; nothing was installed." }
+    if ($qlVerify.ExitCode -ne 0) {
+        $qlVerifyExit = if ($null -eq $qlVerify.ExitCode) { 'unavailable' } else { [string]$qlVerify.ExitCode }
+        $qlVerifyError = [IO.File]::ReadAllText((Join-Path $qlWork 'verify.err')).Trim()
+        $qlVerifyOutput = [IO.File]::ReadAllText((Join-Path $qlWork 'verify.out')).Trim()
+        if ($qlVerifyError.Length -gt 4096) { $qlVerifyError = $qlVerifyError.Substring($qlVerifyError.Length - 4096) }
+        if ($qlVerifyOutput.Length -gt 1024) { $qlVerifyOutput = $qlVerifyOutput.Substring($qlVerifyOutput.Length - 1024) }
+        throw "The release's SHA256SUMS is not signed by QualityLayer; nothing was installed. Verifier: $($qlKeygen.Source); exit: $qlVerifyExit; stderr: $qlVerifyError; stdout: $qlVerifyOutput"
+    }
     $script:qlSums = $qlSumsFile
 }
 
