@@ -13,7 +13,7 @@ Each task gets a folder in `docs/plans/` in your repository: plain Markdown, com
 - **Seven documents, one per step:** each holds everything about its step, and the App decides what to show where. The step page shows the sections that matter now; the reader shows the whole file. QualityLayer draws the live parts over the sections it marks and keeps plain Markdown underneath, so the files read well on GitHub too.
 - **`design/`** holds the pages your agent drew for this task. Designs stay on your computer and out of Git; see [Designs](../designs.md). Designs for the whole project live in `docs/designs/`.
 - **`reviews/`** holds what the other agents wrote, as they wrote it: the Plan review, the check of the Outline and the second opinion on the change. Only the reviews that ran appear.
-- **`records/`** holds the raw output of every command the build and the checks ran.
+- **`records/`** holds the raw output of every command the build and the checks ran. Once Review starts it also holds `pull-request-body.md`, the description the pull request is opened with. Its file lines link to their diffs in the pull request once it exists, and the reader marks the sections QualityLayer wrote as generated.
 - **`evidence/`** keeps the pictures and recordings the checks made.
 
 Nothing else goes in the folder.
@@ -30,7 +30,7 @@ Each document starts with the sections you read first, then the working sections
 | `04-outline.md` | **The build, slice by slice:** how the build runs, the slices, the oracle, what was decided while outlining, how each point is proved and the check of the Outline. Working sections: the program design, the shape of the code, the scenarios and every command the build runs |
 | `05-implement.md` | **The build as it runs:** the slices and their state, every recorded check and what was decided while building. Working sections: checkpoints, deviations, plan amendments and what a restarted session found |
 | `06-verify.md` | **What was checked:** the six checks in order, each **Done means** point with its verdict and evidence, and what is still open. Working sections: the quality pass, the recorded project checks, each independent review, the fix rounds and the second opinion |
-| `07-review.md` | **The change.** The first sections are the pull request's description, exactly as written: why the change, what a reviewer must know, what changed, how it was verified, **Try it yourself** and any security findings. Then what was accepted with open items, what was decided while building, what you settled and the ship |
+| `07-review.md` | **The change.** The first sections are the pull request's description, exactly as written: why the change, what a reviewer must know, what changed, three sections QualityLayer writes (the slices and their files, what was asked for and how each point was proved, and what was deliberately not changed), how it was verified, **Try it yourself** and any security findings. Then what was accepted with open items, what was decided while building, what you settled and the ship |
 
 Your agent writes only the sections it owns. `05-implement.md` and `06-verify.md` are created when their steps start; the Plan, the Outline and the review sections are written by your agent.
 

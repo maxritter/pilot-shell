@@ -23,7 +23,7 @@ Copy the command into a terminal, your IDE or a desktop app. The build starts fr
 
 Below your defaults, a **Lands on** row names the branch you have checked out and the branch a pull request will go into, the main line of your repository. It offers two choices: **Stay on** your branch, or **Start on a new branch** named `ql/` and the task's name. Nothing changes until you pick: choosing the new branch creates it in your checkout at that click, and the commands below follow.
 
-- **On your main branch** the row turns amber. A pull request cannot be opened from the branch it goes into, so Review would offer none. The new branch is recommended, and `git switch -c ql/<task>` shows first among the commands if you would rather run it yourself.
+- **On your main branch** the row turns amber. A pull request cannot be opened from the branch it goes into, so at the [approval](review.md#approve) **Approve and open a pull request** says so instead of pushing your main branch. The new branch is recommended, and `git switch -c ql/<task>` shows first among the commands if you would rather run it yourself.
 - **If git refuses** the new branch, for example because the name exists, the card shows git's reason and keeps that command for you to run.
 - **A new worktree** keeps its own branch, and the row says so.
 

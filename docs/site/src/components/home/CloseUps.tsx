@@ -188,6 +188,98 @@ const POINTS: [string, string, number][] = [
   ["Support sees the retry count", "row.test.tsx · screenshot 2 shows the count in each row", 5],
 ];
 
+/** Where each Done means point was built: the slice whose scenario proves it. */
+const BUILT_IN = [1, 2, 3];
+
+/** A few lines of the diff of one file, as the walkthrough opens it; the comment is on line 14. */
+const DIFF: [string, number, string][] = [
+  ["ctx", 12, "export function nextTry(delivery: Delivery) {"],
+  ["add", 13, "  if (delivery.tries >= settings.maxTries) return stop(delivery)"],
+  ["add", 14, "  return retryAt(delivery, settings.retryDelay)"],
+  ["ctx", 15, "}"],
+];
+
+/**
+ * The change top to bottom, as the Review step draws it under the approval card: why, what you
+ * asked for, the slices with their files and diffs, what was left alone, how it was checked and where
+ * it ships. The pull request's description reads in the same order.
+ */
+function Walkthrough() {
+  return (
+    <section className="cu-card cu-wt" aria-label="The change, top to bottom">
+      <p className="cu-cardh"><b>The change, top to bottom</b><span className="cu-k">3 slices · 5 tasks · 8 files</span><span className="cu-grow" /><span className="cu-k cu-wt-same">same order as the pull request</span></p>
+      <div className="cu-wr">
+        <span className="cu-wk">Why</span>
+        <p>A failed webhook delivery is lost today. After this change it is tried three times, and the customer gets one mail if it still fails.</p>
+      </div>
+      <div className="cu-wr">
+        <span className="cu-wk">What you asked for<small>3 points</small></span>
+        <div className="cu-wpts">
+          {POINTS.map(([title], k) => (
+            <p key={title}><span className="cu-num">{k + 1}</span><span>{title}<small>built in slice {BUILT_IN[k]} · proved by scenario {k + 1}</small></span><span className="cu-k">passed</span></p>
+          ))}
+        </div>
+      </div>
+      <div className="cu-wr">
+        <span className="cu-wk">Built, slice by slice<small>comment on any line</small></span>
+        <div className="cu-wsl">
+          {SLICES.map((slice, k) => (
+            <div key={slice.title} className={`cu-ws${k === 1 ? " open" : ""}`}>
+              <p className="cu-wsh">{k === 1 ? <ChevronDown size={13} aria-hidden="true" /> : <ChevronRight size={13} aria-hidden="true" />}<span className="cu-num">{k + 1}</span><span className="cu-wst">{slice.title}</span><span className="cu-k">{slice.tasks.length} {slice.tasks.length === 1 ? "task" : "tasks"} · {k === 2 ? 2 : 3} files{k === 1 ? " · 1 decision" : ""}</span></p>
+              {k === 1 && (
+                <div className="cu-wsb">
+                  <p className="cu-wd"><Mk k="done" /><span>Decided while building · Moved the retry delay into settings.ts</span><span className="cu-lnk">Ask why</span></p>
+                  <p className="cu-wf"><span className="cu-k">T3</span><code>src/delivery/retry.ts</code><span className="cu-k">+38 −4</span></p>
+                  <div className="cu-wdf" role="group" aria-label="Diff of src/delivery/retry.ts">
+                    {DIFF.map(([kind, n, line]) => (
+                      <div key={n}>
+                        <p className={`cu-wl ${kind}`}><span>{n}</span><code>{line}</code></p>
+                        {n === 14 && <p className="cu-wth"><i className="cu-av">D</i><span><b>Dana</b> <span className="cu-k">from the team</span><br />Does the count start again after a delivery succeeds?</span></p>}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="cu-wf"><span className="cu-k">T3</span><code>tests/delivery/retry.test.ts</code><span className="cu-k">new · +54</span></p>
+                  <p className="cu-wf"><span className="cu-k">T4</span><code>src/mail/stop-notice.ts</code><span className="cu-k">new · +22</span></p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="cu-wr">
+        <span className="cu-wk">Deliberately not changed</span>
+        <p>Deliveries to endpoints that no longer exist stay as they are. The mail for other events keeps its wording.</p>
+      </div>
+      <div className="cu-wr">
+        <span className="cu-wk">How it was checked</span>
+        <p className="cu-wchk"><Mk k="check" />12 of 12 checks passed<span className="cu-k">· 3 steps to try it yourself · 1 thing only you can confirm</span></p>
+      </div>
+      <div className="cu-wr">
+        <span className="cu-wk">Ship</span>
+        <p>Lands on <code>ql/retry-webhooks</code> · pull request to <code>main</code> · no security findings</p>
+      </div>
+    </section>
+  );
+}
+
+/** After the approval: the pull request's checks and reviews, until it is merged. */
+function PullRequest() {
+  const rows: [Mark, string, string][] = [
+    ["work", "CI · macOS", "running · 4 min"],
+    ["check", "CI · Linux", "passed · 6 min"],
+    ["check", "Shellcheck and actionlint", "passed · 12 s"],
+    ["wait", "Anna and Ben were asked", "no review yet"],
+  ];
+  return (
+    <section className="cu-card" aria-label="Pull request">
+      <p className="cu-cardh"><b>Pull request #412</b><span className="cu-k">ql/retry-webhooks → main · checks and reviews</span></p>
+      {rows.map(([mark, what, state]) => (
+        <p key={what} className="cu-pr"><Mk k={mark} /><span>{what}</span><span className="cu-k">{state}</span></p>
+      ))}
+    </section>
+  );
+}
+
 const COST: [string, string, string, string][] = [
   ["Discuss", "7 min", "$1.30", "var(--ql-text-dim)"],
   ["Research", "5 min", "$0.80", "var(--ql-text-muted)"],
@@ -386,7 +478,21 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
     }
 
     case "review": {
+      // The approval card, then the change top to bottom; once approved, the pull request stays on the page until it is merged.
       const left = Math.max(0, 2 - step);
+      const approved = at(5);
+      if (approved)
+        return (
+          <Frame label="Review"
+            top={<TopBar stage={6} chip={{ mark: "done", name: "Claude Code", words: "pull request #412 is open" }} />}>
+            <section className="cu-card cu-calm">
+              <p className="cu-cardh"><b>Approved · pull request #412 opened</b><span className="cu-k">on ql/retry-webhooks</span></p>
+              <p className="cu-calmp">Checks run on GitHub now. The task stays open until the pull request is merged, and you are told when a review or a failing check needs you.</p>
+            </section>
+            <PullRequest />
+            <p className="cu-fold"><b>The change, top to bottom</b><span className="cu-k">as you approved it · 8 files</span><ChevronRight size={14} aria-hidden="true" /></p>
+          </Frame>
+        );
       return (
         <Frame label="Review"
           top={<TopBar stage={6} chip={waits("waits for your review")} />}
@@ -410,10 +516,11 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
             )}
           </YourTurn>
           <div className={`cu-menu ${show(4)}`}>
-            <p className="first"><b>Approve and open a pull request</b><small>07-review.md becomes its description, with the proof</small></p>
+            <p className="first"><b>Approve and open a pull request</b><small>Its description follows this page, with the proof</small></p>
             <p><b>Approve only</b><small>You push and open it yourself</small></p>
             <p><b>Copy the git commands</b><small>Push the branch and open the pull request by hand</small></p>
           </div>
+          <Walkthrough />
         </Frame>
       );
     }

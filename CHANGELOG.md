@@ -2,6 +2,50 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## Unreleased
+
+### New
+
+- Review reads the finished change top to bottom, under the approval card:
+  why it was made, what you asked for with the slice and scenario that proved
+  each point, the slices with their tasks, decisions and files, what was
+  deliberately left alone, how it was checked and where it ships. Open a file
+  to read its diff and comment on any line. QualityLayer draws the page from
+  the task's records, so your agent writes nothing extra for it, and your team
+  reads the same page without the code.
+- The pull request opens with a description in the same order. Three sections
+  are new: the slices with their files, what was asked for and how each point
+  was proved, and what was deliberately not changed. Each file links to its
+  own diff in the pull request. The description is kept as
+  `records/pull-request-body.md`, and **Files** opens it.
+- A task stays open until its pull request is merged. After the approval, the
+  Review page shows the pull request with its checks and reviews. A thread, a
+  request for changes or a failing check brings the task back to **Needs
+  attention**, the sidebar and the bell, and `/ql review <task>` goes through
+  them with you. Your agent fixes what needs fixing and checks again what the
+  fix touched; **Push the fix** sends it, and QualityLayer never pushes on its
+  own. The merge closes the task. Without `gh`, the pull request is not
+  followed and the task closes at the approval, as before.
+- The start card says where the build lands: the branch you have checked out
+  and the branch a pull request will go into. **Start on a new branch** creates
+  `ql/<task>` when you click it, and `qualitylayer branch new [name]` does the
+  same from a terminal.
+
+### Changed
+
+- The Outline checks for gaps once, before its scenarios are final: what could
+  stop the change from working, what happens on cancel, empty, zero, limit and
+  duplicate inputs, and two things at once. What matters becomes a scenario
+  step, a definition of done or a *Not doing* line, and one line under
+  **Decided while outlining** records it. The check of the Outline by a second
+  reader now also looks for a gap this check should have caught.
+
+### Fixed
+
+- A task started on your main branch no longer pushes that branch when you
+  approve. **Approve and open a pull request** says that there is no branch to
+  open a pull request from and gives the commands.
+
 ## 12.0.0-beta.28
 
 ### New
