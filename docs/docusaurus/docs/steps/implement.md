@@ -17,7 +17,17 @@ When you approve the Plan, the [Outline](outline.md) is finished and Implement o
 - **Change anything** for this build only, the workers' model included. **Reset** brings your defaults back.
 - **Where it starts:** by default in the session that planned the task. Implement Start then lists the lines to type first (`/clear`, `/model`, `/effort`), each with its own copy button. It can also start a new session or a new worktree.
 
-Copy the command into a terminal, your IDE or a desktop app. The build starts from the approved Plan, never from your planning chat, on the branch you have checked out.
+Copy the command into a terminal, your IDE or a desktop app. The build starts from the approved Plan, never from your planning chat.
+
+### Where the build lands {#where-it-lands}
+
+Below your defaults, a **Lands on** row names the branch you have checked out and the branch a pull request will go into, the main line of your repository. It offers two choices: **Stay on** your branch, or **Start on a new branch** named `ql/` and the task's name. Nothing changes until you pick: choosing the new branch creates it in your checkout at that click, and the commands below follow.
+
+- **On your main branch** the row turns amber. A pull request cannot be opened from the branch it goes into, so Review would offer none. The new branch is recommended, and `git switch -c ql/<task>` shows first among the commands if you would rather run it yourself.
+- **If git refuses** the new branch, for example because the name exists, the card shows git's reason and keeps that command for you to run.
+- **A new worktree** keeps its own branch, and the row says so.
+
+You can do the same from a terminal with `qualitylayer branch new`, or `qualitylayer branch new <name>` for a name of your own. QualityLayer creates a branch only when you ask, and never merges or pushes one.
 
 ## While agents build
 

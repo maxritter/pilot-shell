@@ -28,6 +28,7 @@ In Codex, type `$ql` in place of `/ql`.
 | --- | --- |
 | `qualitylayer app` | Open the App; on a machine without it, open it in your browser and pair the browser once |
 | `qualitylayer app --forget-browsers` | Make every paired browser pair again |
+| `qualitylayer branch new [name]` | Start the build on a new branch: create `ql/<task>`, or the name you give, switch to it and note it on the task. See [where the build lands](../steps/implement.md#where-it-lands) |
 | `qualitylayer find "<text>"` | Find a task |
 | `qualitylayer tasks` | List tasks, by status or age |
 | `qualitylayer doctor` | Check the setup; `--repair` fixes what it can |
