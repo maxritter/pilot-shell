@@ -3,6 +3,15 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "../../../qualitylayer/src/ui/brand/palette.css";
+/* The share page draws the App's Reader: the utility classes its components use are made here too. */
+@source "../../../qualitylayer/src/ui/reader";
+@source "../../../qualitylayer/src/ui/steps/StepDocument.tsx";
+@source "../../../qualitylayer/src/ui/components/ui/button.tsx";
+@source "../../../qualitylayer/src/ui/components/ui/dropdown-menu.tsx";
+@source "../../../qualitylayer/src/ui/components/ui/popover.tsx";
+@source "../../../qualitylayer/src/ui/components/ui/dialog.tsx";
+@source "../../../qualitylayer/src/ui/components/ui/tooltip.tsx";
+@source "../../../qualitylayer/src/ui/components/ui/sonner.tsx";
 /* shadcn/ui Typeset for rendered Markdown (the shared plan); presets live next to their page's styles. */
 @import "./styles/typeset.css";
 

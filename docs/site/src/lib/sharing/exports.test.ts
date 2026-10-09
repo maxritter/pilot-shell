@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from "vitest";
-import { copyMarkdown, downloadMarkdown, markdownExport } from "./exports";
+import { downloadMarkdown, markdownExport } from "./exports";
 
 afterEach(() => vi.restoreAllMocks());
 const docs = { "02-plan.md": "# Plan\n\nExact published ütf-8 text.", "agent/private.md": "Private", "../other.md": "Unsafe", "plan-design.png": "Still" };
@@ -11,13 +11,7 @@ it("exports exact published text, UTF-8 Markdown and safe filenames only", async
   expect(file?.blob.type).toBe("text/markdown;charset=utf-8");
   for (const name of ["agent/private.md", "../other.md", "plan-design.png", "missing.md"]) expect(markdownExport(docs, name)).toBeNull();
 });
-it("clipboard refusal is recoverable and a retry copies the same text", async () => {
-  const write = vi.fn().mockRejectedValueOnce(new Error("blocked")).mockResolvedValueOnce(undefined);
-  Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: write } });
-  expect(await copyMarkdown(docs, "02-plan.md")).toBe(false);
-  expect(await copyMarkdown(docs, "02-plan.md")).toBe(true);
-  expect(write.mock.calls).toEqual([[docs["02-plan.md"]], [docs["02-plan.md"]]]);
-});
+// Copying is the Reader's Copy menu now; its refusal-then-retry is tested in pages/Shared.dom.test.tsx and pages/SharedDocument.test.tsx.
 it("downloads the actual Markdown filename and releases its object URL", () => {
   vi.useFakeTimers();
   const create = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:published");

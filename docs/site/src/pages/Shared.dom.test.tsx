@@ -28,17 +28,26 @@ describe("commenting on the five documents", () => {
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
     const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function () { expect(this.download).toBe("02-plan.md"); });
     const onSend = vi.fn(async () => ({ ok: true as const }));
-    render(<SharedView state={state} onSend={onSend} />);
+    const plan = "# The Plan\n\n## Why\n\nOne deployment.\n\n## What\n\nThe page.\n\n## How\n\nIn steps.";
+    render(<SharedView state={{ ...state, docs: { "02-plan.md": plan } }} onSend={onSend} />);
     fireEvent.change(screen.getByRole("textbox", { name: "Comment" }), { target: { value: "Unsent text" } });
-    expect(screen.getByText("02-plan.md")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Copy Markdown" }));
-    await screen.findByText("Could not copy. Try again or download the Markdown.");
-    fireEvent.click(screen.getByRole("button", { name: "Copy Markdown" }));
-    await screen.findByText("Markdown copied.");
-    expect(clipboard.mock.calls).toEqual([[state.docs["02-plan.md"]], [state.docs["02-plan.md"]]]);
+    // The document is named by the Sections menu, as it is in the App.
+    fireEvent.click(screen.getByRole("button", { name: /Sections/ }));
+    expect((await screen.findByTestId("doc-path")).textContent).toBe("02-plan.md");
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
+    const copyMarkdown = async () => {
+      fireEvent.pointerDown(screen.getByRole("button", { name: "Copy document" }), { button: 0, ctrlKey: false });
+      fireEvent.click(await screen.findByRole("menuitem", { name: /^Copy as Markdown/ }));
+    };
+    await copyMarkdown();
+    await screen.findByText("Copy failed: select the text instead");
+    await copyMarkdown();
+    await screen.findByText("Copied as Markdown. Paste it into your page.");
+    expect(clipboard.mock.calls).toEqual([[plan], [plan]]);
     fireEvent.click(screen.getByRole("button", { name: "Download Markdown" }));
-    expect(await (create.mock.calls[0][0] as Blob).text()).toBe(state.docs["02-plan.md"]);
+    expect(await (create.mock.calls[0][0] as Blob).text()).toBe(plan);
     expect(click).toHaveBeenCalledOnce();
+    await screen.findByText("Markdown download started.");
     expect((screen.getByRole("textbox", { name: "Comment" }) as HTMLTextAreaElement).value).toBe("Unsent text");
     expect(onSend).not.toHaveBeenCalled();
   });

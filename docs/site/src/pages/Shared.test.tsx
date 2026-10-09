@@ -1,4 +1,6 @@
-import { renderToReadableStream } from "react-dom/server.browser";
+// @vitest-environment happy-dom
+// The page is drawn in a DOM: the Reader sanitises with the page's own, and the page is client-rendered only.
+import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { type LoadedShare, linkKeyOf, loadShare, openFromLink, sealForLink } from "@/lib/sharing/sharing";
 import { SharedView } from "./Shared";
@@ -8,7 +10,7 @@ const KEY = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32
 const DOCS = { "README.md": "# Task\n\nThe problem.", "02-design.md": "# Design\n\nOne deployment." };
 const answer = (status: number, body?: unknown) => vi.fn(async () => new Response(body === undefined ? null : JSON.stringify(body), { status })) as unknown as typeof fetch;
 const sealed = async (plan: Record<string, unknown>, expires?: string, key = KEY) => answer(200, { ...(await sealForLink(key, "plan", JSON.stringify(plan))), ...(expires ? { expires } : {}) });
-async function html(node: React.ReactNode) { const stream = await renderToReadableStream(node); await stream.allReady; return new Response(stream).text(); }
+async function html(node: React.ReactNode) { const view = render(node); const drawn = view.container.innerHTML; view.unmount(); return drawn; }
 const ready = (docs: Record<string, string> = DOCS): Extract<LoadedShare, { status: "ready" }> => ({ status: "ready", kind: "v2", title: "A shared task", docs, items: [], owner: "Max" });
 const noSend = async () => ({ ok: true as const });
 
@@ -88,12 +90,14 @@ describe("the approved document view", () => {
     expect(page).not.toContain("shared-mockup-missing");
     expect(page).not.toContain("<iframe");
   });
-  it("renders only a PNG still and never an old HTML design or Mermaid source", async () => {
+  it("renders a PNG still and the plan's diagram, and never an old HTML design or any other fence", async () => {
     const png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aQ1sAAAAASUVORK5CYII=";
-    const docs = { ...DOCS, "plan-design.png": png, "artifacts/settings.html": "SECRET_HTML", "02-plan.md": "# Plan\n\n```artifact\nartifacts/settings.html\n```\n\n```mermaid\nSECRET_MERMAID\n```" };
+    const docs = { ...DOCS, "plan-design.png": png, "artifacts/settings.html": "SECRET_HTML", "02-plan.md": "# Plan\n\n```artifact\nartifacts/settings.html\n```\n\n```ts\nSECRET_TS\n```\n\n```mermaid\nflowchart LR\n  A --> B\n```" };
     const page = await html(<SharedView state={ready(docs)} onSend={noSend} tab="plan" />);
     expect(page).toContain('alt="Plan design"');
     expect(page).toContain(png);
+    // The diagram is part of the document and gets its frame; nothing else of a fence is carried.
+    expect(page).toContain('data-testid="mermaid"');
     expect(page).not.toContain("SECRET_");
     expect(page).not.toContain("<iframe");
     expect(page).not.toContain("shared-mockup-missing");

@@ -19,6 +19,16 @@ A computer with a screen gets the **QualityLayer App**. A machine without one (W
 
 On Windows, you can also install it from PowerShell: `irm https://qualitylayer.dev/install.ps1 | iex`. This installs the App and the command line.
 
+### Remove it on Windows {#uninstall-windows}
+
+One PowerShell command removes QualityLayer without starting any of its programs, which also works when the App, the CLI or the uninstaller is blocked or gone:
+
+```powershell
+& ([scriptblock]::Create((irm https://qualitylayer.dev/install.ps1))) -Uninstall
+```
+
+It takes QualityLayer's own hooks and settings out of Claude Code and Codex and leaves every other line of those files as it is, keeping a copy of each file it changed. It also removes the skills, the launcher, the App folder and its shortcuts. Your licence and tasks in `.qualitylayer` stay; add `-Purge` to remove them too.
+
 ## Without a screen
 
 ```bash
@@ -35,13 +45,7 @@ The App updates itself and the CLI together. When **Update ready** shows in the 
 
 `qualitylayer uninstall` puts back what the installer changed. Your plans stay. `qualitylayer licence activate <key>` moves your licence to another computer.
 
-On Windows, one PowerShell command removes QualityLayer without starting any of its programs, which also works when the App, the CLI or the uninstaller is blocked or gone:
-
-```powershell
-& ([scriptblock]::Create((irm https://qualitylayer.dev/install.ps1))) -Uninstall
-```
-
-It takes QualityLayer's own hooks and settings out of Claude Code and Codex and leaves every other line of those files as it is, keeping a copy of each file it changed. It also removes the skills, the launcher, the App folder and its shortcuts. Your licence and tasks in `.qualitylayer` stay; add `-Purge` to remove them too.
+On Windows, one PowerShell command removes it even when the App, the CLI or the uninstaller is blocked or gone: see [Remove it on Windows](#uninstall-windows).
 
 Coming from Pilot Shell 11? Its updater moves you over by itself; see [From Pilot Shell 11](moving-from-pilot-shell.md).
 
@@ -58,6 +62,6 @@ On a Windows PC that your company manages, setup can be refused with "Microsoft 
 
 **Without administrator help.** Use WSL. Inside a Linux distribution, install the command line with the command from [Without a screen](#without-a-screen), and QualityLayer opens its App in your Windows browser. The Windows rule does not apply to Linux programs inside WSL.
 
-**If files were removed.** Your agent's hooks stay silent when the App is gone, so Claude Code and Codex do not show an error on every tool call. `qualitylayer doctor` shows what a hook found, and opening the App once repairs the install. If the App itself is blocked, remove QualityLayer with the [one-line script above](#uninstall).
+**If files were removed.** Your agent's hooks stay silent when the App is gone, so Claude Code and Codex do not show an error on every tool call. `qualitylayer doctor` shows what a hook found, and opening the App once repairs the install. If the App itself is blocked, remove QualityLayer with the [one-line script above](#uninstall-windows).
 
 Next: [your first task](first-task.md).

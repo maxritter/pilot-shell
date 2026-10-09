@@ -1,6 +1,8 @@
 /* The shared-plan page: a task to read in three steps, the owner's questions, and a place to
    answer and comment. It reads like the App: the same anatomy and the same --ql-* tokens, light
-   and dark. Scoped .sh- classes only. */
+   and dark. Scoped .sh- classes only; the documents are the App's Reader and take its own rules. */
+@import "../../../../qualitylayer/src/ui/reader/reader.css";
+@import "../../../../qualitylayer/src/ui/design/preview.css";
 .sh-page main{min-height:70vh}
 .sh-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:32px;max-width:1180px;margin:0 auto;padding:28px 28px 72px;align-items:start}
 .sh-main{min-width:0}
@@ -80,6 +82,14 @@
 .sh-doc h3{font-size:14px;line-height:1.45}
 .sh-doc>:first-child{margin-block-start:0}
 .sh-docs{display:flex;flex-direction:column;gap:18px;min-width:0}
+/* The documents are the App's Reader. Its outline column opens beside the text on a wide window; here the
+   comment column is already beside the text, so Sections stays the button at the top on every width.
+   (Unlayered rules win over the Reader's layered ones.) */
+.sh-docs .doc-outline{display:none}
+.sh-docs [data-testid="outline-button"]{display:inline-flex}
+/* The page below a document is the comment column, not a 96 px tail; on a phone the gutter for the + is narrower. */
+.sh-docs .page{padding-bottom:24px}
+@media(max-width:680px){.sh-docs .page{padding:20px 12px 24px 48px}}
 .sh-doc table{display:block;max-width:100%;overflow-x:auto}
 .sh-doc th,.sh-doc td{overflow-wrap:normal}
 .sh-sec h2{margin:0 0 10px;font-size:15px;font-weight:600}

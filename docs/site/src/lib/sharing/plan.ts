@@ -141,3 +141,12 @@ export function withCsp(html: string): string {
   if (/<html(\s[^>]*)?>/i.test(html)) return html.replace(/<html(\s[^>]*)?>/i, (tag) => `${tag}<head>${meta}</head>`);
   return `<head>${meta}</head>${html}`;
 }
+
+/** A mockup fence that names one of `shown` (mockups drawn under a question), taken out of the Markdown. */
+export function withoutShownMockups(markdown: string, shown: ReadonlySet<string>): string {
+  if (shown.size === 0) return markdown;
+  return markdown.replace(/^```artifact[ \t]*([^\n]*)\n(?:([^\n`][^\n]*)\n)?```[ \t]*(?:\n|$)/gm, (fence, inline: string, body?: string) => {
+    const path = (body ?? inline).trim();
+    return path !== "" && shown.has(mockupName(path)) ? "" : fence;
+  });
+}

@@ -1,12 +1,18 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useLocation, useParams } from "react-router-dom";
+import { DownloadIcon } from "lucide-react";
+import { toast } from "sonner";
+import type { StepComment } from "@ql/ui/steps/StepDocument";
+import { Button } from "@ql/ui/components/ui/button";
+import { Toaster } from "@ql/ui/components/ui/sonner";
 import Page from "@/components/Page";
 import SEO from "@/components/SEO";
+import { useTheme } from "@/hooks/useTheme";
 import { addRemark, answerItem, type Drafts, EMPTY, pending, removeRemark, summary } from "@/lib/sharing/drafts";
 import { contractsOf, mockupName, planBlocks, slicesOf } from "@/lib/sharing/plan";
 import { watchShare } from "@/lib/sharing/poll";
-import { copyMarkdown, downloadMarkdown } from "@/lib/sharing/exports";
+import { downloadMarkdown } from "@/lib/sharing/exports";
 import {
   type ChangeAnchor,
   docOfStep,
@@ -26,6 +32,7 @@ import {
 } from "@/lib/sharing/sharing";
 import { Asks } from "./shared/Asks";
 import { Blocks } from "./shared/Blocks";
+import { SharedDocument } from "./shared/SharedDocument";
 import { ChangeView } from "./SharedChange";
 import "@/styles/shared.css";
 import { flowStepOf } from "@ql/core/flow";
@@ -79,7 +86,18 @@ const Inline = ({ text }: { text: string }) => (
 type Target = { kind: "passage"; quote: string; doc?: string } | { kind: "anchor"; anchor: ChangeAnchor } | { kind: "reply"; thread: string; label: string };
 
 /** A comment that was sent, kept on the page so the reviewer sees what the owner got. */
-type SentComment = { key: string; annotation?: string; thread?: string; label: string; text: string; replies: string[] };
+type SentComment = {
+  key: string;
+  annotation?: string;
+  thread?: string;
+  label: string;
+  text: string;
+  replies: string[];
+  /** A comment on a passage keeps the document and the words it was made on, to stay under them. */
+  doc?: string;
+  quote?: string;
+  at?: number;
+};
 
 const receiptKey = (id: string) => `qualitylayer-share-receipts:${id}`;
 function savedReceipts(id: string | undefined): SentComment[] {
@@ -90,7 +108,9 @@ function savedReceipts(id: string | undefined): SentComment[] {
     return data.slice(-200).flatMap((c) => {
       if (!c || typeof c.key !== "string" || c.key.length > 200 || typeof c.annotation !== "string" || c.annotation.length > 200 ||
         typeof c.label !== "string" || c.label.length > 2000 || typeof c.text !== "string" || c.text.length > 4000 || !Array.isArray(c.replies)) return [];
+      const placed = typeof c.doc === "string" && c.doc.length <= 200 && typeof c.quote === "string" && c.quote.length <= 1000;
       return [{ key: c.key, annotation: c.annotation, label: c.label, text: c.text,
+        ...(placed ? { doc: c.doc, quote: c.quote, ...(typeof c.at === "number" ? { at: c.at } : {}) } : {}),
         replies: c.replies.filter((r: unknown): r is string => typeof r === "string" && r.length <= 4000).slice(-200) }];
     });
   } catch { return []; }
@@ -108,25 +128,35 @@ function firstTab(share: ReadyShare, steps: Record<Tab, string[]>, tabs: readonl
   return own ?? [...tabs].reverse().find((tab) => steps[tab].length > 0) ?? "discuss";
 }
 
-function MarkdownActions({ docs, name }: { docs: Record<string, string>; name: string }) {
-  const [status, setStatus] = useState("");
-  return <div className="sh-markdown-actions" aria-label={`Markdown actions for ${name}`} onMouseUp={(event) => event.stopPropagation()}>
-    <span className="sh-markdown-name">{name}</span>
-    <div className="sh-row">
-      <button type="button" className="sh-btn sm quiet" onClick={async () => setStatus(await copyMarkdown(docs, name) ? "Markdown copied." : "Could not copy. Try again or download the Markdown.")}>Copy Markdown</button>
-      <button type="button" className="sh-btn sm quiet" onClick={() => setStatus(downloadMarkdown(docs, name) ? "Markdown download started." : "Could not download. Try again.")}>Download Markdown</button>
-    </div>
-    <span className="sh-hint sh-markdown-status" role="status">{status}</span>
-  </div>;
+/** Download beside the Reader's Sections and Copy: the document exactly as the link carries it. */
+function DownloadMarkdown({ docs, name }: { docs: Record<string, string>; name: string }) {
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      className="text-muted-foreground"
+      aria-label="Download Markdown"
+      onClick={() => (downloadMarkdown(docs, name) ? toast.success("Markdown download started.") : toast.error("Could not download. Try again."))}
+    >
+      <DownloadIcon />
+      Download
+    </Button>
+  );
 }
 
-function Sections({ share, names, items, drafts, settled, onAnswer }: {
+function Sections({ share, names, items, drafts, settled, onAnswer, commentsOn, onQuote, onSelected }: {
   share: ReadyShare;
   names: string[];
   items: ShareItem[];
   drafts: Drafts;
   settled: Record<string, string>;
   onAnswer: (id: string, answer: GuestAnswer | null, note?: string) => void;
+  /** The comments made on one document, to show under their passages. */
+  commentsOn: (name: string) => StepComment[];
+  /** Start a comment on a passage of a document. */
+  onQuote: (name: string, quote: string) => void;
+  /** Words were selected in the contracts, which the Reader does not draw: they quote like a passage. */
+  onSelected: (doc: string | undefined) => void;
 }) {
   const details = names.filter((n) => /-details\.md$/.test(n));
   const main = names.filter((n) => !details.includes(n));
@@ -142,8 +172,15 @@ function Sections({ share, names, items, drafts, settled, onAnswer }: {
       {main.map((name) => (
         // The document a selected passage is in, so a comment is filed against it.
         <div key={name} className="sh-docs" data-doc={name}>
-          <MarkdownActions docs={share.docs} name={name} />
-          <Blocks blocks={planBlocks(share.docs[name] ?? "")} docs={share.docs} stills={share.stills} shown={shown} />
+          <SharedDocument
+            name={name}
+            markdown={share.docs[name] ?? ""}
+            docs={share.docs}
+            comments={commentsOn(name)}
+            onQuote={(quote) => onQuote(name, quote)}
+            extraTools={<DownloadMarkdown docs={share.docs} name={name} />}
+            shown={shown}
+          />
         </div>
       ))}
       {slices.length > 0 ? (
@@ -163,7 +200,8 @@ function Sections({ share, names, items, drafts, settled, onAnswer }: {
         </section>
       ) : null}
       {contracts.length > 0 ? (
-        <details className="sh-fold" data-doc={details[0]}>
+        // biome-ignore lint/a11y/noStaticElementInteractions: selecting text is how a passage of the contracts is quoted
+        <details className="sh-fold" data-doc={details[0]} onMouseUp={() => onSelected(details[0])}>
           <summary>
             <span className="sh-mark todo" aria-hidden="true" />
             <b>Contracts</b>
@@ -215,6 +253,9 @@ function Ready({
   const box = useRef<HTMLTextAreaElement>(null);
   const nameBox = useRef<HTMLInputElement>(null);
   const [askedName, setAskedName] = useState(false);
+  const { theme } = useTheme();
+  // When each unsent comment was written, for the time the Reader shows on it.
+  const [written, setWritten] = useState<Record<string, number>>({});
 
   const who = share.owner ?? "the owner";
   const items = share.items;
@@ -237,6 +278,27 @@ function Ready({
     box.current?.focus();
   };
 
+  // A passage chosen in a document starts a comment on it, as the + and the selection do in the App.
+  const quote = (doc: string, passage: string) => {
+    setTarget({ kind: "passage", quote: passage.slice(0, 1000), doc });
+    box.current?.focus();
+  };
+
+  const quoteSelection = (doc: string | undefined) => {
+    const picked = window.getSelection()?.toString().trim() ?? "";
+    if (picked !== "") setTarget({ kind: "passage", quote: picked.slice(0, 1000), doc });
+  };
+
+  // Every comment on a passage stays under it, sent or not, as the App shows a comment.
+  const commentsOn = useMemo(() => {
+    const byDoc = new Map<string, StepComment[]>();
+    const put = (doc: string, comment: StepComment) => byDoc.set(doc, [...(byDoc.get(doc) ?? []), comment]);
+    for (const c of sent) if (c.doc !== undefined && c.quote) put(c.doc, { id: c.key, doc: c.doc, quote: c.quote, remark: c.text, created: c.at ?? 0 });
+    for (const r of drafts.remarks)
+      if (r.kind === "passage" && r.quote !== "") put(r.doc, { id: r.id ?? `draft-${r.text}`, doc: r.doc, quote: r.quote, remark: r.text, created: written[r.id ?? ""] ?? 0 });
+    return (doc: string) => byDoc.get(doc) ?? [];
+  }, [sent, drafts.remarks, written]);
+
   const add = () => {
     const remark: Drafts["remarks"][number] =
       target.kind === "passage"
@@ -244,6 +306,10 @@ function Ready({
         : target.kind === "anchor"
           ? { kind: "thread", thread: newThreadId(), anchor: target.anchor, text }
           : { kind: "reply", thread: target.thread, text };
+    if (remark.kind === "passage" && remark.id !== undefined) {
+      const id = remark.id;
+      setWritten((w) => ({ ...w, [id]: Date.now() }));
+    }
     setDelivered(false);
     setDrafts((d) => addRemark(d, remark));
     setText("");
@@ -282,7 +348,11 @@ function Ready({
       for (const r of waiting) {
         if (r.kind === "item") continue;
         if (r.kind === "reply") next = next.map((c) => (c.thread === r.thread ? { ...c, replies: [...c.replies, r.text] } : c));
-        else next = [...next, { key: r.kind === "passage" ? r.id ?? newThreadId() : r.thread, ...(r.kind === "passage" ? { annotation: r.id } : {}), thread: r.kind === "thread" ? r.thread : undefined, label: labelOf(r), text: r.text, replies: [] }];
+        else next = [...next, {
+          key: r.kind === "passage" ? r.id ?? newThreadId() : r.thread,
+          ...(r.kind === "passage" ? { annotation: r.id, ...(r.quote !== "" ? { doc: r.doc, quote: r.quote, at: written[r.id ?? ""] ?? Date.now() } : {}) } : {}),
+          thread: r.kind === "thread" ? r.thread : undefined, label: labelOf(r), text: r.text, replies: [],
+        }];
       }
       return next;
     });
@@ -313,21 +383,10 @@ function Ready({
           </nav>
         </header>
 
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: selecting text is how a passage is quoted */}
-        <div
-          className="sh-body"
-          data-testid="shared-doc"
-          onMouseUp={() => {
-            const picked = window.getSelection()?.toString().trim() ?? "";
-            if (picked === "") return;
-            const node = window.getSelection()?.anchorNode;
-            const from = node instanceof Element ? node : node?.parentElement;
-            setTarget({ kind: "passage", quote: picked.slice(0, 1000), doc: from?.closest<HTMLElement>("[data-doc]")?.dataset.doc });
-          }}
-        >
+        <div className="sh-body" data-testid="shared-doc">
           {tab === "review" && hasChange ? (
             <>
-              <Sections share={share} names={names} items={tabItems} drafts={drafts} settled={settled} onAnswer={answer} />
+              <Sections share={share} names={names} items={tabItems} drafts={drafts} settled={settled} onAnswer={answer} commentsOn={commentsOn} onQuote={quote} onSelected={quoteSelection} />
               <ChangeView review={share.review as NonNullable<typeof share.review>} onPick={pick} />
             </>
           ) : names.length > 0 || tabItems.length > 0 ? (
@@ -338,7 +397,7 @@ function Ready({
                   <img src={share.docs[PLAN_STILL]} alt="Plan design" className="block h-auto w-full" />
                 </figure>
               ) : null}
-              <Sections share={share} names={names} items={tabItems} drafts={drafts} settled={settled} onAnswer={answer} />
+              <Sections share={share} names={names} items={tabItems} drafts={drafts} settled={settled} onAnswer={answer} commentsOn={commentsOn} onQuote={quote} onSelected={quoteSelection} />
             </>
           ) : (
             <p className="sh-empty">{notThere(tab)}</p>
@@ -470,6 +529,7 @@ function Ready({
           </button>
         </div>
       ) : null}
+      <Toaster theme={theme} position="bottom-center" />
     </div>
   );
 }

@@ -8,12 +8,6 @@ export function markdownExport(docs: Record<string, string>, name: string): { na
   return { name, text: docs[name], blob: new Blob([docs[name]], { type: "text/markdown;charset=utf-8" }) };
 }
 
-export async function copyMarkdown(docs: Record<string, string>, name: string): Promise<boolean> {
-  const file = markdownExport(docs, name);
-  if (!file) return false;
-  try { await navigator.clipboard.writeText(file.text); return true; } catch { return false; }
-}
-
 export function downloadMarkdown(docs: Record<string, string>, name: string): boolean {
   const file = markdownExport(docs, name);
   if (!file) return false;
