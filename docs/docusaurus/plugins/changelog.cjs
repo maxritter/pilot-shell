@@ -27,8 +27,10 @@ module.exports = function changelogPlugin(context) {
     }).join("\n");
     // Each current release becomes one section, so the page can set the version beside its notes.
     const [intro, ...releases] = current.trim().split(/^(?=## )/m);
+    // "Latest" belongs to the newest published version; an "Unreleased" section above it is not one.
+    const latest = releases.findIndex((release) => /^## \[?v?\d/.test(release));
     const sections = releases.map((release, i) =>
-      `<section class="cl-rel${i === 0 ? " cl-latest" : ""}">\n\n${release.trim()}\n\n</section>`).join("\n\n");
+      `<section class="cl-rel${i === latest ? " cl-latest" : ""}">\n\n${release.trim()}\n\n</section>`).join("\n\n");
     const content = [
       "---", "title: Changelog", "slug: /changelog",
       "description: Current QualityLayer development changes and preserved Pilot Shell release history.",

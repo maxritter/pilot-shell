@@ -106,9 +106,9 @@ export const CHAPTERS: Chapter[] = [
     step: "Review",
     who: "you",
     steps: 5,
-    title: "You approve the finished change, with its proof",
-    text: "Your turn holds only what agents could not settle: a live result only you can confirm, and what the agent decided while building. Settle them, then approve; the pull request opens with its proof.",
-    bullets: ["Every changed file is tagged with the task that made it", "Approve and open a pull request, or approve only", "Ask for changes and your notes become the agent’s work"],
+    title: "You read the finished change top to bottom, then approve it",
+    text: "Your turn holds only what agents could not settle: a live result only you can confirm, and what the agent decided while building. Below it the change reads top to bottom, from why to how it was checked; approve, and the pull request opens in the same order and stays open until it is merged.",
+    bullets: ["Every changed file is tagged with the task that made it, and any line takes a comment", "Approve and open a pull request, or approve only", "Threads and failing checks on the pull request come back to you"],
   },
   {
     id: "draw",

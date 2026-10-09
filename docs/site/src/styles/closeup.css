@@ -194,6 +194,40 @@
 .cu-menu b{font-weight:500}
 .cu-menu small{font-size:12px;line-height:1.4;color:var(--ql-text-dim)}
 
+/* Review: the change top to bottom, then the pull request after the approval */
+.cu-wr{display:grid;grid-template-columns:128px minmax(0,1fr);gap:4px 16px;padding:12px 16px;border-top:1px solid var(--ql-line);font-size:13.5px;line-height:1.5}
+.cu-cardh + .cu-wr{border-top:0}
+.cu-wk{font-size:12.5px;font-weight:600;color:var(--ql-text-muted)}
+.cu-wk small{display:block;font-size:12px;font-weight:400;color:var(--ql-text-dim)}
+.cu-wpts{display:flex;flex-direction:column;gap:8px}
+.cu-wpts p{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:6px}
+.cu-wpts small{display:block;font-size:12.5px;color:var(--ql-text-dim)}
+.cu-wsl{display:flex;flex-direction:column;border:1px solid var(--ql-line);border-radius:10px;overflow:hidden}
+.cu-ws + .cu-ws{border-top:1px solid var(--ql-line)}
+.cu-wsh{display:grid;grid-template-columns:14px 18px minmax(0,1fr) auto;align-items:center;gap:6px;padding:8px 10px;font-size:13px}
+.cu-wsh svg{color:var(--ql-text-dim)}
+.cu-wsh .cu-num{padding-top:0}
+.cu-wst{font-weight:550}
+.cu-wsh .cu-k{font-size:12px;white-space:nowrap}
+.cu-wsb{display:flex;flex-direction:column;gap:4px;padding:0 10px 10px 38px}
+.cu-wd{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ql-text-muted)}
+.cu-wd .cu-lnk{margin-left:auto;white-space:nowrap}
+.cu-wf{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:8px;font-size:12.5px}
+.cu-wf code{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.cu-wf .cu-k{font-size:12px;white-space:nowrap}
+.cu-wdf{border:1px solid var(--ql-line);border-radius:8px;background:var(--ql-bg-sunken);overflow:hidden}
+.cu-wl{display:grid;grid-template-columns:32px minmax(0,1fr);line-height:1.7}
+.cu-wl span{padding-right:8px;text-align:right;color:var(--ql-text-dim);font:11.5px/1.7 "Geist Mono",ui-monospace,monospace}
+.cu-wl code{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:pre;font-size:12px}
+.cu-wl.add{background:var(--ql-check-soft)}
+.cu-wth{display:grid;grid-template-columns:22px minmax(0,1fr);gap:9px;margin:0 8px 6px 32px;padding:8px 10px;border:1px solid var(--ql-border);border-radius:8px;background:var(--ql-bg);font-size:12.5px;line-height:1.5}
+.cu-wchk{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.cu-wchk .cu-k{font-size:12.5px}
+.cu-calmp{padding:12px 16px;font-size:13.5px;line-height:1.55;color:var(--ql-text-muted)}
+.cu-pr{display:grid;grid-template-columns:12px minmax(0,1fr) auto;align-items:center;gap:10px;padding:9px 16px;border-top:1px solid var(--ql-line);font-size:13.5px}
+.cu-cardh + .cu-pr{border-top:0}
+.cu-pr .cu-k{font-size:12px;white-space:nowrap}
+
 /* Designs: the page the agent drew, inside its card and full size */
 .cu-dz{border:1px solid var(--ql-border);border-radius:10px;overflow:hidden}
 .cu-dzh{display:flex;align-items:center;gap:8px;padding:7px 8px 7px 10px;border-bottom:1px solid var(--ql-line);background:var(--ql-surface-2);font-size:12.5px}
@@ -333,6 +367,11 @@
   .cu-skim p{grid-template-columns:12px minmax(0,1fr)}
   .cu-skim .cu-k{display:none}
   .cu-slr,.cu-vr{padding:10px 12px}
+  .cu-wr{grid-template-columns:minmax(0,1fr);padding:12px}
+  .cu-wk small{display:inline;margin-left:6px}
+  .cu-wt-same{display:none}
+  .cu-wsb{padding-left:12px}
+  .cu-wsh .cu-k{display:none}
   .cu-cmd code{font-size:11.5px}
   .cu-ytag{flex-wrap:wrap}
   .cu-ytag > .cu-grow,.cu-ytag > .cu-grow + .cu-k,.cu-dzh .cu-k{display:none}

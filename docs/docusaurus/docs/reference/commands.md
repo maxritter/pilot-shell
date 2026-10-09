@@ -15,7 +15,7 @@ description: What you type in your agent, the commands you run, the ones your ag
 | --- | --- |
 | `/ql <request>` | Start a task with [Discuss](../steps/discuss.md); Research, the Plan and the Outline follow in the same session. **+ New** in the App gives the whole command, with the model, effort and where it starts |
 | `/ql implement <task>` | Build an approved Plan. Implement Start gives the whole command, with your Build defaults. See [Implement](../steps/implement.md#start-implement) |
-| `/ql review <task>` | Go through your team's review threads. See [Change reviews](../team/changes.md) |
+| `/ql review <task>` | Go through your team's review threads. After the task has shipped, it answers the threads and failing checks of its pull request. See [Change reviews](../team/changes.md) and [the pull request](../steps/review.md#pull-request) |
 | `/ql answer <ask>` | Answer a teammate's question with your agent. See [Teammates' agents](../team/agents.md) |
 | `/task-pane` | Open the pane with the steps and the build's progress (Claude Code) |
 
@@ -28,6 +28,7 @@ In Codex, type `$ql` in place of `/ql`.
 | --- | --- |
 | `qualitylayer app` | Open the App; on a machine without it, open it in your browser and pair the browser once |
 | `qualitylayer app --forget-browsers` | Make every paired browser pair again |
+| `qualitylayer branch new [name]` | Start the build on a new branch: create `ql/<task>`, or the name you give, switch to it and note it on the task. See [where the build lands](../steps/implement.md#where-it-lands) |
 | `qualitylayer find "<text>"` | Find a task |
 | `qualitylayer tasks` | List tasks, by status or age |
 | `qualitylayer doctor` | Check the setup; `--repair` fixes what it can |

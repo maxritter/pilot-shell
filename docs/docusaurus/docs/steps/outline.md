@@ -15,6 +15,7 @@ Once the Plan is ready for you, your agent writes `04-outline.md` while it waits
 - **Slices.** The change is cut into vertical slices, each of which works from end to end and can be checked on its own. The first is the thinnest path that works. Each slice has task cards: what to do, which files, the test to write first and how to know it is done.
 - **Waves.** QualityLayer works out which slices can be built side by side because they share no files, and which risky slice is tried on the running program before the build goes on.
 - **Scenarios and the one oracle.** Every point of **Done means** lands in a scenario that proves it, a definition of done, or the oracle: the single check that tells whether the whole change works.
+- **A check for gaps.** Before the scenarios are final, your agent asks what could stop the change from working, what happens when someone cancels, which unusual inputs matter (empty, zero, the limit, a duplicate) and what happens when two things run at once. Each real gap becomes a scenario step, a definition of done or a line under *Not doing*, and one line under **Decided while outlining** says what was added.
 
 If you ask for changes to the Plan, your agent applies them to the Plan first, then revises the Outline where a decision moved. A second agent that did not write the Outline reads it the way a builder would, looking for cards nobody could build and requirements nothing proves; your agent fixes what it finds.
 

@@ -194,9 +194,33 @@ describe("the tour", () => {
   it("draws Review with what only you can confirm, then Approve and the ways to ship", async () => {
     expect(text(await shot("review", 0))).toContain("Only you can confirm");
     expect(text(await shot("review", 0))).toContain("I confirm");
-    const last = text(await shot("review", 5));
-    expect(last).toContain("Approve the change?");
-    expect(last).toContain("Approve and open a pull request");
+    const menu = text(await shot("review", 4));
+    expect(menu).toContain("Approve the change?");
+    expect(menu).toContain("Approve and open a pull request");
+  });
+
+  it("reads the change top to bottom under the approval card, in the order of the pull request", async () => {
+    const page = text(await shot("review", 0));
+    const order = ["The change, top to bottom", "Why", "What you asked for", "Built, slice by slice", "Deliberately not changed", "How it was checked", "Ship"].map((part) => page.indexOf(part, page.indexOf("The change, top to bottom")));
+    expect(order.every((at) => at >= 0)).toBe(true);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    // a slice opens to its decision, its files and a diff that takes a comment and carries a teammate's thread
+    expect(page).toContain("Decided while building");
+    expect(page).toContain("src/delivery/retry.ts");
+    expect(page).toContain("from the team");
+    expect(page).toContain("built in slice 2 · proved by scenario 2");
+  });
+
+  it("keeps the task open after the approval: the pull request on the page until it is merged", async () => {
+    const before = text(await shot("review", 4));
+    expect(before).not.toContain("stays open");
+    const after = text(await shot("review", 99));
+    expect(after).toContain("Approved · pull request #412 opened");
+    expect(after).toContain("The task stays open until the pull request is merged");
+    expect(after).toContain("CI · macOS");
+    expect(after).toContain("Anna and Ben were asked");
+    expect(after).not.toContain("Approve the change?");
+    expect(CHAPTERS.find((c) => c.id === "review")?.text).toMatch(/stays open until it is merged/);
   });
 
   it("shows the design inside the question it belongs to, and keeps the full-size design clickable", async () => {

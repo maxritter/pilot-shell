@@ -8,6 +8,8 @@ description: After the build, your team sees why and how a change was made, with
 
 Once Verify has passed, your team sees what the change was meant to do, the proof for each point, the screenshots, the steps to try it and the Plan's decisions. The code itself is reviewed in the pull request, as always.
 
+Your team reads the same walkthrough you do, **The change, top to bottom**, without the code: why the change was made, what was asked for and how each point was proved, then the slices with their tasks, the decisions made while building them and the names of their files. A comment on a slice or on a point stays attached to it.
+
 ![Change review: the team reviews the finished change; open threads go back to your agent, which settles each one and checks again what the fix touched before the re-review](pathname:///img/diagrams/team-change-light.svg)
 ![Change review: the team reviews the finished change; open threads go back to your agent, which settles each one and checks again what the fix touched before the re-review](pathname:///img/diagrams/team-change-dark.svg)
 
