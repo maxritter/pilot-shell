@@ -18,6 +18,15 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   the choices* or your own words. The card shows your agent picking it up and
   rewriting the question in plainer words, with the earlier wording one click
   away. A question can let you pick more than one choice.
+- Teams follow each other's tasks. **Follow** a teammate's shared task to hear
+  its milestones in Slack. Slack messages are grouped per person, and each one
+  opens the exact step or ask in the App. Everyone sets a morning digest, quiet
+  hours and a time zone.
+- **For you** on Home lists everything waiting on you, and the sidebar badge
+  and the bell count the same things. The task header says who an approval
+  waits on.
+- A teammate's shared task uses the same header and all seven steps. Teammates
+  can ask and comment on any step's passage.
 - Research is its own step. Agents read the code without your request in front
   of them, so the Plan rests on how the code works today. The findings are
   written up in `02-research.md` (for a bug, **Why it breaks**), and Research
