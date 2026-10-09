@@ -2,7 +2,7 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
-## Unreleased
+## 12.0.0-beta.29
 
 ### New
 
@@ -30,17 +30,50 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   and the branch a pull request will go into. **Start on a new branch** creates
   `ql/<task>` when you click it, and `qualitylayer branch new [name]` does the
   same from a terminal.
-
-### Changed
-
 - The Outline checks for gaps once, before its scenarios are final: what could
   stop the change from working, what happens on cancel, empty, zero, limit and
   duplicate inputs, and two things at once. What matters becomes a scenario
   step, a definition of done or a *Not doing* line, and one line under
   **Decided while outlining** records it. The check of the Outline by a second
   reader now also looks for a gap this check should have caught.
+- Project checks report each part as it finishes, and a long suite is split
+  into parts on its own. Only a failed part runs again. A test that fails once
+  and passes when run again alone is recorded as flaky and shown, and Verify
+  goes on. A check that is no longer in the project's list no longer counts.
+- A commit from a checkout that other sessions share looks only at the build's
+  own files, so their unfinished work no longer blocks it.
+- `plan amend` can reopen a finished task in Verify and Review, accepts an
+  approved passage restored word for word, and says how long its note may be.
+  `plan amend --for T<n> --add-file <path>` adds files to a task's card
+  without editing the document by hand.
+- Slice helpers no longer amend the Plan themselves. They report what should
+  change, and your agent records it.
+- The Review card lets you approve while only non-blocking items are open, as
+  the approval already did; they are settled with it.
 
 ### Fixed
+
+- The App no longer keeps a processor core busy while an agent works. The page
+  read everything again on every saved file, and each read started the same
+  git commands again. Git's answers are now kept until something changes them,
+  the page hears about a burst of saves once a second, and each change makes
+  the page read only what it can affect. On a test task, git dropped from about
+  200 commands a second to 5, the page's reads from 51 a second to 6 and the
+  App's processor use from 42% to under 10% while an agent wrote files. It
+  stays near 0% when idle.
+  The App now also watches its own use: if it ever runs hot for a while, it
+  slows its background reads, frees memory and notes it in `server.log`. Files
+  that grow in `~/.qualitylayer` (cost timelines, session logs) are capped.
+- **Accept as is** after two fix rounds lets your agent go on at once; before,
+  it waited up to 100 seconds.
+- Two QualityLayer Apps on one computer (another home, or a teammate's App
+  through a forward) no longer sign each other's pages out.
+- Slack messages no longer get lost when several updates go out at once, and
+  Home shows who a locked Plan approval is waiting on.
+- When a background wait is already running, the stop check no longer asks for
+  a new one, and the reply says when a second opinion has started.
+- A check that went stale after a code change is set aside and assigned again,
+  instead of blocking Verify.
 
 - A task started on your main branch no longer pushes that branch when you
   approve. **Approve and open a pull request** says that there is no branch to

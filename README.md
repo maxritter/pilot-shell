@@ -195,7 +195,7 @@ Every task takes the same seven steps. You approve twice: the plan before any co
 - **Outline:** the agent cuts the plan into slices while you read it. Nothing to approve.
 - **Implement:** agents build it test first, slice by slice. The App opens with your Build defaults and one command that starts the build: an orchestrator that writes no code, and workers that build the slices. **Build** shows the slices, changes and checks. A login or secret only you can provide appears in **Your turn**; other slices keep building.
 - **Verify:** six named checks in a fixed order: Polish, Security review (across a trust boundary), your project's checks, an independent review by agents that did not write the code, a second opinion when the change is risky, and fixing what they find. A live checklist shows every point of your request.
-- **Review:** you look, confirm and ship. Read the result and proof under each **Done means** point, settle the remaining questions in **Your turn**, then approve the change. The pull request opens with its proof.
+- **Review:** you look, confirm and ship. The page walks through the change top to bottom: why, each point you asked for with its proof, the slices and their files, and what was left alone. Settle the remaining questions in **Your turn**, then approve. The pull request opens with the same walkthrough, and the task stays open until it is merged: review threads and failing checks come back to you and your agent.
 
 Each step writes one Markdown file in the task's folder, from `01-discuss.md` to `07-review.md`. The step's page shows what matters now; **Files** opens the whole file. On GitHub the files read as plain Markdown.
 
