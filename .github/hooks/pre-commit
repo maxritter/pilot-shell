@@ -156,7 +156,7 @@ job_qualitylayer() {
   if [ "$typescript_staged" = "1" ]; then bun run typecheck || return 1; fi
   if [ "${#qualitylayer_files[@]}" -gt 0 ] && [ -x ./node_modules/.bin/biome ]; then
     ./node_modules/.bin/biome check --diagnostic-level=error --max-diagnostics=none \
-      --files-ignore-unknown=true "${qualitylayer_files[@]}" || return 1
+      --files-ignore-unknown=true --no-errors-on-unmatched "${qualitylayer_files[@]}" || return 1
   fi
 }
 # A release binary built from what is staged must serve a Cockpit that draws:
