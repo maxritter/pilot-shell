@@ -6,7 +6,7 @@ description: How QualityLayer takes your coding agent from a request to a review
 
 <figure class="ql-film">
   <video controls preload="none" playsinline poster="https://qualitylayer-media.max-ritter.workers.dev/overview.webp" src="https://qualitylayer-media.max-ritter.workers.dev/overview.mp4"></video>
-  <figcaption>How QualityLayer works, in about four minutes: the problem it solves, the seven steps, and working on your own or with your team.</figcaption>
+  <figcaption>How QualityLayer works, in about five minutes: the problem it solves, the seven steps, and working on your own or with your team.</figcaption>
 </figure>
 
 QualityLayer runs your coding agent through an engineering process with your decisions recorded along the way. You agree on a plan before any code is written, the agent builds it in small tested slices, and agents that did not write the code check the result. **Your turn** in the **QualityLayer App** shows one focused question. Independent questions can arrive together; skip one for now or write your own answer and press **Send**. Each answer reaches your agent immediately, while it keeps working on the rest.
