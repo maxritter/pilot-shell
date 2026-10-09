@@ -44,6 +44,20 @@ describe("the link a DM carries", () => {
     expect(openLinks("/open/team/t_9c2")).toMatchObject({ path: "team/t_9c2", app: "qualitylayer://team/t_9c2" });
   });
 
+  it("maps a step link to the step of the task, in the App, the browser page and the App link, for the seven step names only", () => {
+    expect(openLinks("/open/step/abc/verify")).toEqual({
+      path: "step/abc/verify",
+      app: "qualitylayer://step/abc/verify",
+      browser: "http://127.0.0.1:41888/#/step/abc/verify",
+    });
+    for (const step of ["discuss", "research", "plan", "outline", "implement", "verify", "review"]) {
+      expect(openLinks(`/open/step/abc/${step}`), step).toMatchObject({ app: `qualitylayer://step/abc/${step}` });
+    }
+    for (const bad of ["/open/step/abc/deploy", "/open/step/abc/Verify", "/open/step/abc", "/open/step/abc/verify/x", "/open/step/..%2f/verify", "/open/step/../verify", "/open/step/abc/%2e%2e"]) {
+      expect(openLinks(bad), bad).toBeNull();
+    }
+  });
+
   it("accepts nothing else: another place, a missing id, an extra segment, a path out of the folder, a long id", () => {
     for (const bad of [
       "/open/ask/..%2f/x",
