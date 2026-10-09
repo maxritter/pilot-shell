@@ -26,6 +26,18 @@ An ask can be **needed before approval** or **opinion only**. **Remind** nudges 
 
 Your team owner connects Slack once, in **Settings › Team**. From then on, teammates get a direct message when something waits for them: a question, an answer, or a build that finished. Messages go out only when a person can act.
 
+Messages for one person that arrive within five minutes of each other come as one, with a line and a link for each. A link opens the exact step or question in the App.
+
+**Follow** a teammate's shared task, in the header of their task, to hear when its Plan is ready, its checks pass, it is in review with open items accepted, and when it ships. The person who made the change and the task's owner are not told of their own news. **Following** stops it.
+
+Each member sets their own Slack in **Settings › Team**:
+
+- **Morning digest:** one message a day, at the time you choose, that lists what still waits for you.
+- **Quiet hours:** nothing arrives in these hours, and optionally on weekends. What happened meanwhile comes with the next digest, or when the quiet hours end.
+- **Time zone:** taken from your computer; the times above use it.
+
+When a required question holds a step's approval, the task's header says who the approval waits on.
+
 ## People outside your team {#outside-links}
 
 **Copy link** in **Share** gives a qualitylayer.dev link: anyone with it reads the task, step by step, and comments, without an account. Each time you open the link, you read the latest shared copy. The open page updates as the task changes, through all seven steps, and keeps your unsent answers and comments. In place of a design it shows a still picture, marked as one. The link lasts 14 days; **Revoke** ends it at once. Outside reviewers comment only; approving stays with your team.

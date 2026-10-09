@@ -58,7 +58,7 @@ Implement shows **Build**: the slices, changes and checks as they happen. Its wr
 
 ## Home
 
-Home has four areas: **Needs attention**, **Running**, **Spent on agents**, and **Shipped**. Each attention row opens the task where you can answer or review. Shipped tasks show their time and estimated cost when those records are available.
+Home has four areas: **Needs attention**, **Running**, **Spent on agents**, and **Shipped**. Each attention row opens the task where you can answer or review. With a team, **Needs attention** also lists what teammates wait on you for: a question to answer, a request to review again, an opinion they asked for and the answer to a question you asked. The sidebar's Team count, the bell and, in a narrow window, the top bar's **Needs you** count all show the number of rows listed here. Shipped tasks show their time and estimated cost when those records are available.
 
 The notification bell keeps questions, comments and stopped tasks within reach. Its count updates as you answer. Spending shows known dollar estimates; expand **About the estimate** for unpriced usage and calculation details.
 

@@ -80,7 +80,7 @@ jobs:
       contents: read
       checks: read
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45
     needs: check-trigger
     if: needs.check-trigger.outputs.should_run == 'true'
     steps:
@@ -88,7 +88,8 @@ jobs:
         with:
           script: |
             const expected = 'Source UI browser checks';
-            const deadline = Date.now() + 12 * 60 * 1000;
+            // The browser suite takes about 20 minutes on a runner; its own job stops at 35.
+            const deadline = Date.now() + 40 * 60 * 1000;
             let latest = null;
             while (Date.now() < deadline) {
               const runs = await github.paginate(github.rest.checks.listForRef, {
@@ -107,7 +108,7 @@ jobs:
               }
               await new Promise(resolve => setTimeout(resolve, 30_000));
             }
-            core.setFailed(`${expected} did not succeed within 12m for ${context.sha}; ` +
+            core.setFailed(`${expected} did not succeed within 40m for ${context.sha}; ` +
               `last status ${latest?.status ?? 'missing'}. Release blocked.`);
 
   supply-chain-gate:
@@ -129,10 +130,12 @@ jobs:
             const deadline = Date.now() + 12 * 60 * 1000;
             let last = null;
             while (Date.now() < deadline) {
-              const { data } = await github.rest.checks.listForRef({
-                ...context.repo, ref: context.sha
+              // Every page: a release commit carries more check runs than one page holds.
+              const runs = await github.paginate(github.rest.checks.listForRef, {
+                ...context.repo, ref: context.sha, filter: 'all', per_page: 100
               });
-              const sc = data.check_runs.find(r => r.name === 'supply-chain');
+              const sc = runs.filter(r => r.name === 'supply-chain' && r.head_sha === context.sha)
+                .sort((a, b) => b.id - a.id)[0];
               last = sc;
               if (sc && sc.status === 'completed') {
                 if (sc.conclusion === 'success') return;
