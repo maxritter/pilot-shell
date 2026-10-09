@@ -41,9 +41,9 @@ describe("static marketing shell", () => {
     expect(String(software.description)).toContain("your coding agents");
   });
 
-  it("gives crawlers without JavaScript the promise, the five steps and the install line", () => {
+  it("gives crawlers without JavaScript the promise, the seven steps and the install line", () => {
     expect(staticText).toContain("The software factory for your coding agents");
-    for (const step of ["Discuss:", "Plan:", "Implement:", "Verify:", "Review:"]) expect(staticText).toContain(step);
+    for (const step of ["Discuss:", "Research:", "Plan:", "Outline:", "Implement:", "Verify:", "Review:"]) expect(staticText).toContain(step);
     expect(staticText).toContain("qualitylayer.dev/download");
     expect(staticText).toContain("curl -fsSL https://qualitylayer.dev/install.sh | bash");
     expect(staticText).toContain("type /ql and the problem");

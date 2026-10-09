@@ -45,7 +45,8 @@ describe("the tour", () => {
     expect(team / steps).toBeLessThan(1.33);
   });
 
-  it("draws the App's top bar on a task: the five steps, the current one marked, and the agent chip", async () => {
+  it("draws the App's top bar on a task: the seven steps, the current one marked, and the agent chip", async () => {
+    expect(STAGES).toEqual(["Discuss", "Research", "Plan", "Outline", "Implement", "Verify", "Review"]);
     const plan = await shot("plan", 0);
     for (const stage of STAGES) expect(text(plan)).toContain(stage);
     expect(plan).toMatch(/<li class="cur" aria-current="step">Plan<\/li>/);
@@ -70,10 +71,47 @@ describe("the tour", () => {
   });
 
   it("keeps everything that waits for the person in the one amber Your turn card", async () => {
-    for (const [id, step] of [["discuss", 0], ["plan", 0], ["start", 0], ["review", 0], ["draw", 2], ["answer", 0], ["together", 0]] as const) {
+    for (const [id, step] of [["discuss", 0], ["research", 3], ["plan", 0], ["start", 0], ["review", 0], ["draw", 2], ["answer", 0], ["together", 0]] as const) {
       expect((await shot(id, step)).match(/class="cu-yt"/g), id).toHaveLength(1);
     }
-    for (const [id, step] of [["implement", 2], ["verify", 2]] as const) expect(await shot(id, step), id).not.toContain('class="cu-yt"');
+    for (const [id, step] of [["research", 0], ["outline", 2], ["implement", 2], ["verify", 2]] as const) expect(await shot(id, step), id).not.toContain('class="cu-yt"');
+  });
+
+  it("tells the seven steps in order, with Research after Discuss and the Outline after the Plan", () => {
+    const steps = CHAPTERS.map((c) => c.step);
+    expect(steps.indexOf("Research")).toBe(steps.indexOf("Discuss") + 1);
+    expect(steps.indexOf("Outline")).toBe(steps.indexOf("Plan") + 1);
+    expect(CHAPTERS.find((c) => c.id === "research")?.title).toMatch(/read the code before anything is designed/);
+    expect(CHAPTERS.find((c) => c.id === "outline")?.title).toMatch(/cut into slices while you read the Plan/);
+    expect(CHAPTERS.find((c) => c.id === "discuss")?.text).toMatch(/one batch/);
+    expect(CHAPTERS.find((c) => c.id === "plan")?.text).toMatch(/contracts/);
+    expect(CHAPTERS.find((c) => c.id === "verify")?.text).toMatch(/Six checks/);
+  });
+
+  it("draws Research as agents reading the code with no request in view, then one batch of the choices the code leaves open", async () => {
+    const reading = text(await shot("research", 1));
+    expect(reading).toContain("The questions");
+    expect(reading).toContain("answered by agents that never see your request");
+    expect(reading).toContain("3 agents reading the code");
+    const asked = text(await shot("research", 3));
+    expect(asked).toContain("A choice the code leaves open");
+    expect(asked).toContain("From Research");
+    expect(asked).toContain("Your turn · 1 choice");
+  });
+
+  it("draws the Outline as the Plan cut into waves and slices, with every Done means point proved and nothing to approve", async () => {
+    const early = text(await shot("outline", 0));
+    expect(early).toContain("The build, slice by slice");
+    expect(early).not.toContain("Approve");
+    const done = text(await shot("outline", 4));
+    for (const words of ["How the build runs", "Wave 2", "Slices 2 and 3, side by side", "How each point is proved", "Checked by a second reader"]) expect(done).toContain(words);
+  });
+
+  it("names Verify's six checks in the order they run", async () => {
+    const verify = text(await shot("verify", 0));
+    const order = ["Polish", "Security review", "Project checks", "Independent review", "Second opinion", "Fixes"].map((name) => verify.indexOf(name));
+    expect(order.every((at) => at >= 0)).toBe(true);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
   });
 
   it("shows a decision as a diagram, the words that changed, and Approve after everything is settled", async () => {
@@ -132,7 +170,7 @@ describe("the tour", () => {
 
   it("draws Settings with Planning and Build defaults and the cost of each step, and New task with one command", async () => {
     const settings = text(await shot("settings"));
-    for (const words of ["Planning defaults", "Build defaults", "$20.95", "estimated at list price"]) expect(settings).toContain(words);
+    for (const words of ["Planning defaults", "Build defaults", "$20.95", "estimated at list price", "Research", "Outline"]) expect(settings).toContain(words);
     expect(text(await shot("agents"))).toContain('claude --model opus --effort high');
   });
 

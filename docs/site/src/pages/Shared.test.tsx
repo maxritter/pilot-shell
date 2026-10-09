@@ -63,6 +63,25 @@ describe("the approved document view", () => {
     expect(page).not.toContain(">Approve<");
     expect(page).not.toContain("Request changes");
   });
+  it("draws all seven steps for a task started with them, each reading its own document", async () => {
+    const docs = { "01-discuss.md": "Seven discuss", "02-research.md": "Seven research", "03-plan.md": "Seven plan", "04-outline.md": "Seven outline", "05-implement.md": "Seven build", "06-verify.md": "Seven checks", "07-review.md": "Seven review" };
+    const page = await html(<SharedView state={ready(docs)} onSend={noSend} />);
+    const tabs = page.match(/<nav class="sh-tabs"[\s\S]*?<\/nav>/)?.[0] ?? "";
+    expect([...tabs.matchAll(/>([A-Za-z]+)<\/button>/g)].map((m) => m[1])).toEqual(["Discuss", "Research", "Plan", "Outline", "Implement", "Verify", "Review"]);
+    for (const [tab, text] of [["discuss", "Seven discuss"], ["research", "Seven research"], ["plan", "Seven plan"], ["outline", "Seven outline"], ["implement", "Seven build"], ["verify", "Seven checks"], ["review", "Seven review"]] as const)
+      expect(await html(<SharedView state={ready(docs)} onSend={noSend} tab={tab} />)).toContain(text);
+  });
+  it("opens a seven-step task on the step it is at, and says a step not reached has not started", async () => {
+    const docs = { "01-discuss.md": "Seven discuss", "02-research.md": "Seven research" };
+    const at = (stage: string, tab?: "outline") => html(<SharedView state={{ ...ready(docs), stage }} onSend={noSend} tab={tab} />);
+    expect(await at("research")).toContain("Seven research");
+    expect(await at("outline", "outline")).toContain("Outline has not started yet.");
+  });
+  it("keeps five steps for an older task", async () => {
+    const page = await html(<SharedView state={ready({ "01-discuss.md": "d", "02-plan.md": "p" })} onSend={noSend} />);
+    const tabs = page.match(/<nav class="sh-tabs"[\s\S]*?<\/nav>/)?.[0] ?? "";
+    expect([...tabs.matchAll(/>([A-Za-z]+)<\/button>/g)].map((m) => m[1])).toEqual(["Discuss", "Plan", "Implement", "Verify", "Review"]);
+  });
   it("a missing future step is not started, and no design produces no mockup error", async () => {
     const page = await html(<SharedView state={ready()} onSend={noSend} tab="verify" />);
     expect(page).toContain("Verify has not started yet.");

@@ -2,6 +2,50 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.28
+
+### New
+
+- A task now takes seven steps: Discuss, Research, Plan, Outline, Implement,
+  Verify and Review. Each step writes one Markdown file, from `01-discuss.md`
+  to `07-review.md`, that holds everything about it. The step page shows what
+  matters now, **Files** opens the whole document, and there is no separate
+  folder of agent notes. You still approve twice: the Plan before any code,
+  and the finished change.
+- Research is its own step. Agents read the code without your request in front
+  of them, so the Plan rests on how the code works today. The findings are
+  written up in `02-research.md` (for a bug, **Why it breaks**), and Research
+  starts while your Discuss questions are still open.
+- Questions come in batches, only in Discuss and Research. A batch has three to
+  six questions, each with its facts side by side, and a step with nothing to
+  ask has no batch. A strip lists the whole batch, and **Use the
+  recommendations for all** answers the rest at once. The Plan asks no batch;
+  a choice that only appears once a design is drawn sits inside it as **Your
+  call**, at most two per task.
+- The Plan is reviewed before you are told. The review starts with the first
+  full draft, and your agent folds the findings in before the Plan reaches you.
+  With one agent installed, a separate reviewer of that agent reads the Plan
+  instead. **Reviewed by** shows who read it and what happened to each finding.
+  The contracts between the parts show on the Plan, folded to one headline
+  each.
+- The Outline cuts the approved design into slices while you read the Plan.
+  It needs no approval, and you can start the build as soon as you approve.
+  A command that pushes, deploys or reaches an outside address is refused
+  unless the Plan's **Before the build** granted it.
+- Verify runs six named checks in a fixed order: Polish, Security review,
+  Project checks, Independent review, Second opinion and Fix rounds. The same
+  names appear in the App, the commands and the docs.
+- Settings has two Second opinion selects: **On the Plan** (Always, When risky)
+  and **On the built change** (When risky, Always).
+
+### Changed
+
+- New commands: `qualitylayer plan draft` checks the Plan and starts its
+  review, and `outline amend` records a change to the Outline made while
+  building. `question ask --batch` refuses a batch the step may not ask, one of
+  more than seven questions, and a fourth batch in a step.
+- Tasks you started before keep the files and the five steps they began with.
+
 ## 12.0.0-beta.27
 
 ### New

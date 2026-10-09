@@ -28,7 +28,7 @@ Your team owner connects Slack once, in **Settings › Team**. From then on, tea
 
 ## People outside your team {#outside-links}
 
-**Copy link** in **Share** gives a qualitylayer.dev link: anyone with it reads the task, step by step, and comments, without an account. Each time you open the link, you read the latest shared copy. The open page updates as the task changes, through all five steps, and keeps your unsent answers and comments. In place of a design it shows a still picture, marked as one. The link lasts 14 days; **Revoke** ends it at once. Outside reviewers comment only; approving stays with your team.
+**Copy link** in **Share** gives a qualitylayer.dev link: anyone with it reads the task, step by step, and comments, without an account. Each time you open the link, you read the latest shared copy. The open page updates as the task changes, through all seven steps, and keeps your unsent answers and comments. In place of a design it shows a still picture, marked as one. The link lasts 14 days; **Revoke** ends it at once. Outside reviewers comment only; approving stays with your team.
 
 ## Read the published Markdown
 

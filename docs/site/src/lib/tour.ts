@@ -1,7 +1,7 @@
 /**
  * The home page's tour: one change followed from request to pull request, then designs, the team
  * and the setup. Each chapter shows one close-up of the QualityLayer App at reading size, drawn
- * from the App's design (qualitylayer/design/app): the top bar with the five steps and the agent,
+ * from the App's design (qualitylayer/design/app): the top bar with the seven steps and the agent,
  * the step's own track, and the one Your turn card or the agent's turn. Tasks, people and numbers
  * are an illustration.
  */
@@ -23,7 +23,7 @@ export interface Chapter {
   act?: { id: string; title: string; text: string };
 }
 
-export const STAGES = ["Discuss", "Plan", "Implement", "Verify", "Review"];
+export const STAGES = ["Discuss", "Research", "Plan", "Outline", "Implement", "Verify", "Review"];
 
 export const TASK = "Retry failed webhooks";
 
@@ -39,10 +39,19 @@ export const CHAPTERS: Chapter[] = [
     step: "Discuss",
     who: "you",
     steps: 6,
-    act: { id: "steps", title: "From your request to a pull request", text: "On your own or with your team, a change goes through the same five steps. You decide where a decision is needed, and your agents do the rest." },
-    title: "Your agent asks until the goal is clear",
-    text: "Describe the change in your own words. Questions arrive together in Your turn as one batch, each with a recommendation. Answer in any order; each answer reaches your agent at once, while it keeps reading the code.",
+    act: { id: "steps", title: "From your request to a pull request", text: "On your own or with your team, a change goes through the same seven steps. You decide where a decision is needed, and your agents do the rest." },
+    title: "Your agent asks one batch until the goal is clear",
+    text: "Describe the change in your own words. Questions arrive together in Your turn as one batch of three to six, each with a recommendation. Answer in any order; each answer reaches your agent at once, while it keeps reading the code.",
     bullets: ["A bug is reproduced and its cause found", "Too small for a plan? You get a ready prompt", "Each answer becomes part of Done means"],
+  },
+  {
+    id: "research",
+    step: "Research",
+    who: "you",
+    steps: 5,
+    title: "Agents read the code before anything is designed",
+    text: "Research starts while you answer. Agents read the code without your request in front of them, so they report how it works today; when it leaves real choices open, you get one more batch, and a clear task goes straight to the Plan.",
+    bullets: ["Findings are folded to one headline each", "Each choice shows what the code says, side by side", "Nothing in Research needs your approval"],
   },
   {
     id: "plan",
@@ -50,8 +59,17 @@ export const CHAPTERS: Chapter[] = [
     who: "you",
     steps: 5,
     title: "You approve one plan before any code",
-    text: "Your agent incorporates technical review findings and asks only choices that need your judgement. Then read the complete Plan with its diagrams and proposed outcomes. Approve it or give feedback from its header.",
-    bullets: ["Comment on any line or diagram", "Everything the agent decided for you is listed, so you can change it", "The Plan is reviewed; a local fallback is a self-review"],
+    text: "Another agent reads the Plan first when it can, and yours folds in what it found before you are told. Read the complete Plan with its diagrams, the contracts the build is held to and its proposed outcomes, then approve it or give feedback from its header.",
+    bullets: ["Comment on any line or diagram", "Everything the agent decided for you is listed, so you can change it", "The review is recorded under Reviewed by; a local fallback is a self-review"],
+  },
+  {
+    id: "outline",
+    step: "Outline",
+    who: "ag",
+    steps: 5,
+    title: "The build is cut into slices while you read the Plan",
+    text: "While you read, your agent cuts the Plan into slices: what is built first, which can run side by side, and the scenario that proves each Done means point. An agent that did not write it reads it the way a builder would, and you do not approve it.",
+    bullets: ["Every Done means point is tied to a scenario", "Nothing runs that the Plan did not allow", "Approve the Plan and the build can start at once"],
   },
   {
     id: "start",
@@ -77,8 +95,8 @@ export const CHAPTERS: Chapter[] = [
     who: "ag",
     steps: 7,
     title: "Agents that did not write the code check it",
-    text: "Every point of Done means is checked against the running program, with its evidence kept beside it. The agent chip names what runs now, and you can watch the count fill in.",
-    bullets: ["Polish and security review come before the checks", "A failure is fixed by the agent, and only what it touched is checked again", "Anything only you can confirm goes to Review"],
+    text: "Six checks run in a fixed order. Every point of Done means is checked against the running program, with its evidence beside it, and the agent chip names what runs now.",
+    bullets: ["Polish and security review come first, then your project's checks", "A second opinion reads a risky change, and a failure is fixed by the agent", "Anything only you can confirm goes to Review"],
   },
   {
     id: "review",
@@ -143,7 +161,7 @@ export const CHAPTERS: Chapter[] = [
     steps: 5,
     title: "Review the finished change together",
     text: "Teammates read what changed and its proof. They comment on any part and approve. The code itself is reviewed in your pull request.",
-    bullets: ["Their comments reach you in the Comments tab", "The same link follows the task through all five steps", "Sharing sends the plan, progress and a still of its design"],
+    bullets: ["Their comments reach you in the Comments tab", "The same link follows the task through all seven steps", "Sharing sends the plan, progress and a still of its design"],
   },
   {
     id: "settings",
@@ -153,7 +171,7 @@ export const CHAPTERS: Chapter[] = [
     act: { id: "setup", title: "You stay in charge of models and cost", text: "QualityLayer works inside the coding agents you already pay for, and shows what each step costs." },
     title: "Choose the models, and see what each step costs",
     text: "Planning defaults and Build defaults set the model, the effort and where each session starts. Plan with Claude Code and build with Codex if you like. The cost of every step is estimated at list price.",
-    bullets: ["Change anything for one build when you start it", "An agent that never wrote the code decides whether it passes", "The other coding agent also reviews risky plans"],
+    bullets: ["Change anything for one build when you start it", "An agent that never wrote the code decides whether it passes", "The other coding agent reads the Plan, and risky changes"],
   },
   {
     id: "agents",

@@ -110,9 +110,11 @@
           <h2>How a request becomes a reviewed change</h2>
           <ul>
             <li>Discuss: describe the change. Your agent reads the code, then asks each decision in the App, and its terminal shows a single line while it waits. Questions come in batches in Your turn, each with its recommendation. Answer in any order; each answer reaches the agent immediately.</li>
-            <li>Plan: answer unresolved choices in Your turn, then read the complete plan with its diagrams, design and proposed outcomes. Your agent handles technical review findings. Approve Plan or Give feedback from the header before any code is written. Undo is available for five seconds after an answer.</li>
+            <li>Research: agents read the code without your request in front of them, so the plan rests on how it works today. When the code leaves real choices open, they reach you as one more batch in Your turn.</li>
+            <li>Plan: read the complete plan with its diagrams, design, the contracts the build is held to and proposed outcomes. Another agent reads it first when it can, and your agent folds in what it found. Approve Plan or Give feedback from the header before any code is written. Undo is available for five seconds after an answer.</li>
+            <li>Outline: while you read the plan, your agent cuts it into slices, each with the scenario that proves it. Nothing to approve.</li>
             <li>Implement: the App opens with your Build defaults and one command that starts the build. From there your agent works on its own until the final review. Every task starts with a failing test, and QualityLayer records every test run.</li>
-            <li>Verify: polish and security review run side by side, then an AI that did not write the code checks every point of your request, with evidence.</li>
+            <li>Verify: six checks in a fixed order. Polish and security review run side by side, then your project's checks, then an AI that did not write the code checks every point of your request, with evidence. A second opinion reads a risky change.</li>
             <li>Review: the App asks the few items left, and you approve the finished change with its proof, then create the pull request.</li>
             <li>Designs: ask your agent to draw a page, open it full size in the App and comment on a spot. Designs never leave your computer.</li>
             <li>With a Team plan, teammates answer questions about the plan, with their own agent if they like, and review the change in their own App.</li>

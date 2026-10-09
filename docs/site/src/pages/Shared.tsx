@@ -9,6 +9,7 @@ import { watchShare } from "@/lib/sharing/poll";
 import { copyMarkdown, downloadMarkdown } from "@/lib/sharing/exports";
 import {
   type ChangeAnchor,
+  docOfStep,
   type GuestAnswer,
   type LoadedShare,
   linkKeyOf,
@@ -20,6 +21,7 @@ import {
   submitRemarks,
   type Tab,
   tabOfStep,
+  tabsOf,
   where,
 } from "@/lib/sharing/sharing";
 import { Asks } from "./shared/Asks";
@@ -46,25 +48,19 @@ const REASONS: Record<Exclude<SubmitResult, { ok: true }>["reason"], string> = {
   network: "It could not be sent. Check your connection and try again.",
 };
 
-const TABS: [Tab, string][] = [
-  ["discuss", "Discuss"],
-  ["plan", "Plan"],
-  ["implement", "Implement"],
-  ["verify", "Verify"],
-  ["review", "Review"],
-];
-
-/** What a step with nothing in this link says, in one sentence. */
-const NOT_THERE: Record<Tab, string> = {
-  discuss: "Discuss has not started yet.",
-  plan: "Plan has not started yet.",
-  implement: "Implement has not started yet.",
-  verify: "Verify has not started yet.",
-  review: "Review has not started yet.",
+/** The steps, named as the App names them: seven for a task started with them, five for an older one. */
+const LABELS: Record<Tab, string> = {
+  discuss: "Discuss",
+  research: "Research",
+  plan: "Plan",
+  outline: "Outline",
+  implement: "Implement",
+  verify: "Verify",
+  review: "Review",
 };
 
-/** The file a comment on a step's text is recorded against when the link names none. */
-const DEFAULT_DOC: Record<Tab, string> = { discuss: "01-discuss.md", plan: "02-plan.md", implement: "03-implement.md", verify: "04-verify.md", review: "05-review.md" };
+/** What a step with nothing in this link says, in one sentence. */
+const notThere = (tab: Tab) => `${LABELS[tab]} has not started yet.`;
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
@@ -105,11 +101,11 @@ const labelOf = (r: Exclude<Remark, { kind: "item" }>): string =>
 
 type ReadyShare = Extract<LoadedShare, { status: "ready" }>;
 
-function firstTab(share: ReadyShare, steps: Record<Tab, string[]>): Tab {
-  // A shared page has five tabs: Research is read with Discuss and the Outline with the Plan.
+/** The step a link opens on: where the task is, else the furthest step with something in it. */
+function firstTab(share: ReadyShare, steps: Record<Tab, string[]>, tabs: readonly Tab[]): Tab {
   const at = flowStepOf(share.stage ?? "");
-  const own = at === "research" ? "discuss" : at === "outline" ? "plan" : at;
-  return own ?? (["review", "verify", "implement", "plan", "discuss"] as const).find((tab) => steps[tab].length > 0) ?? "discuss";
+  const own = at !== null && tabs.includes(at) ? at : undefined;
+  return own ?? [...tabs].reverse().find((tab) => steps[tab].length > 0) ?? "discuss";
 }
 
 function MarkdownActions({ docs, name }: { docs: Record<string, string>; name: string }) {
@@ -201,7 +197,8 @@ function Ready({
   onSend: (author: string, remarks: Remark[]) => Promise<SubmitResult>;
 }) {
   const steps = stepDocs(share.docs);
-  const [tab, setTab] = useState<Tab>(initialTab ?? firstTab(share, steps));
+  const tabs = tabsOf(share.docs, share.stage);
+  const [tab, setTab] = useState<Tab>(initialTab ?? firstTab(share, steps, tabs));
   const [author, setAuthor] = useState(storedName);
   const [drafts, setDrafts] = useState<Drafts>(EMPTY);
   const [settled, setSettled] = useState<Record<string, string>>({});
@@ -243,7 +240,7 @@ function Ready({
   const add = () => {
     const remark: Drafts["remarks"][number] =
       target.kind === "passage"
-        ? { kind: "passage", id: crypto.randomUUID(), doc: target.doc ?? steps[tab][0] ?? DEFAULT_DOC[tab], quote: target.quote, text }
+        ? { kind: "passage", id: crypto.randomUUID(), doc: target.doc ?? steps[tab][0] ?? docOfStep(tab, share.docs), quote: target.quote, text }
         : target.kind === "anchor"
           ? { kind: "thread", thread: newThreadId(), anchor: target.anchor, text }
           : { kind: "reply", thread: target.thread, text };
@@ -308,9 +305,9 @@ function Ready({
             } · no code is shared`}
           </p>
           <nav className="sh-tabs" aria-label="Steps">
-            {TABS.map(([id, label]) => (
+            {tabs.map((id) => (
               <button key={id} type="button" aria-current={id === tab ? "page" : undefined} onClick={() => setTab(id)}>
-                {label}
+                {LABELS[id]}
               </button>
             ))}
           </nav>
@@ -344,7 +341,7 @@ function Ready({
               <Sections share={share} names={names} items={tabItems} drafts={drafts} settled={settled} onAnswer={answer} />
             </>
           ) : (
-            <p className="sh-empty">{NOT_THERE[tab]}</p>
+            <p className="sh-empty">{notThere(tab)}</p>
           )}
         </div>
       </article>
@@ -535,7 +532,7 @@ const Shared = () => {
   const key = linkKeyOf(useLocation().hash);
   return (
     <Page className="sh-page">
-      <SEO title="A shared task — QualityLayer" description="A task shared with you from QualityLayer. Read its five steps and comment on them." />
+      <SEO title="A shared task — QualityLayer" description="A task shared with you from QualityLayer. Read its steps and comment on them." />
       <Helmet>
         <meta name="robots" content="noindex" />
       </Helmet>

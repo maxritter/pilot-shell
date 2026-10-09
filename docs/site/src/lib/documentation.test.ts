@@ -32,14 +32,14 @@ describe("installation and build instructions", () => {
   });
 
   it("includes the document argument required to open an approval", () => {
-    expect(doc("reference/commands.md")).toContain("qualitylayer gate open 02-plan.md");
+    expect(doc("reference/commands.md")).toContain("qualitylayer gate open 03-plan.md");
     expect(doc("reference/commands.md")).toContain("gate open final");
   });
 
   it("explains live shared updates and preserved drafts without asking guests to reload", () => {
     const sharing = doc("team/plans.md");
     expect(sharing).toContain("Each time you open the link, you read the latest shared copy");
-    expect(sharing).toContain("The open page updates as the task changes, through all five steps");
+    expect(sharing).toContain("The open page updates as the task changes, through all seven steps");
     expect(sharing).toContain("keeps your unsent answers and comments");
     expect(sharing).not.toContain("Reload the page");
     expect(sharing).not.toContain("with the time it was last updated");

@@ -128,7 +128,7 @@ export const COMPARE: CompareGroup[] = [
     rows: [
       row("Polish and security review before the final check", true, true, "Security runs when the change touches outside input, sign-in or secrets"),
       row("Checked by agents that did not write the code", true, true, "Every check against what you asked for"),
-      row("The other coding agent reviews risky plans too", true, true, "Runs by itself; needs Claude Code and Codex"),
+      row("The other coding agent reads your plan, and risky changes", true, true, "Runs by itself; needs Claude Code and Codex"),
     ],
   },
   {

@@ -144,7 +144,7 @@ const config: Config = {
           title: "Docs",
           items: [
             { label: "Install", to: "/docs/install" },
-            { label: "The five steps", to: "/docs#the-five-steps" },
+            { label: "The seven steps", to: "/docs#the-seven-steps" },
             { label: "Command reference", to: "/docs/reference/commands" },
             { label: "Changelog", to: "/docs/changelog" },
             { label: "Blog", to: "/blog" },

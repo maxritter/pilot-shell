@@ -10,7 +10,7 @@ A design is one page your agent draws for you: a screen, a flow, a diagram of ho
 
 ## Ask for one
 
-Say it in your own words: "mock up the settings page", or "draw how the five files map to the App". Your agent writes one self-contained page and the App lists it as a compact entry in **Files**, with what it is for and when it was last updated. A dot marks a design you have not opened yet.
+Say it in your own words: "mock up the settings page", or "draw how the seven files map to the App". Your agent writes one self-contained page and the App lists it as a compact entry in **Files**, with what it is for and when it was last updated. A dot marks a design you have not opened yet.
 
 - **In a task**, the page goes into the task's `design/` folder.
 - **Outside a task**, it goes into `docs/designs/` and belongs to the whole project.

@@ -13,7 +13,7 @@ description: What you type in your agent, the commands you run, the ones your ag
 
 | You type | What it does |
 | --- | --- |
-| `/ql <request>` | Start a task with [Discuss](../steps/discuss.md). **+ New** in the App gives the whole command, with the model, effort and where it starts |
+| `/ql <request>` | Start a task with [Discuss](../steps/discuss.md); Research, the Plan and the Outline follow in the same session. **+ New** in the App gives the whole command, with the model, effort and where it starts |
 | `/ql implement <task>` | Build an approved Plan. Implement Start gives the whole command, with your Build defaults. See [Implement](../steps/implement.md#start-implement) |
 | `/ql review <task>` | Go through your team's review threads. See [Change reviews](../team/changes.md) |
 | `/ql answer <ask>` | Answer a teammate's question with your agent. See [Teammates' agents](../team/agents.md) |
@@ -48,7 +48,7 @@ Supply exactly one link source and an explicit output directory. File and standa
 
 The binary can read a share without a licence, workflow opt-in, or installed agent skills. Fetching leaves local tasks and sessions alone and grants no approval or publication rights.
 
-Every success writes a new snapshot folder containing only the reached human Markdown documents and `manifest.json`. JSON output returns its paths, revision, expiry, fetch time, and per-file SHA-256 hashes. Designs, agent records, code, and logs are excluded. Local edits and earlier downloads are preserved. Use a private output directory: ownership and permission checks on Unix, or directory access rules on Windows, must show that other users cannot replace its path components. Symbolic links and unsafe directories are refused. Existing directories' permissions are left unchanged.
+Every success writes a new snapshot folder containing only the reached human Markdown documents and `manifest.json`. JSON output returns its paths, revision, expiry, fetch time, and per-file SHA-256 hashes. Designs, reviews, command output, code, and logs are excluded. Local edits and earlier downloads are preserved. Use a private output directory: ownership and permission checks on Unix, or directory access rules on Windows, must show that other users cannot replace its path components. Symbolic links and unsafe directories are refused. Existing directories' permissions are left unchanged.
 
 A snapshot stays at the fetched revision. Fetch again to read the latest published copy. Network, revoked-link, and expired-link errors never report an older snapshot as current. Revocation cannot remove files you already downloaded. Network reads have a 15-second timeout and a 512 KiB decrypted-copy limit.
 
@@ -59,12 +59,16 @@ You rarely type these; they are what you see in your agent's chat.
 | Command | What it does |
 | --- | --- |
 | `qualitylayer next` | Start a task, or get the next step of the open one; it also brings new comments on designs |
+| `qualitylayer next done` | Finish the current step. In [Discuss](../steps/discuss.md) and [Research](../steps/research.md) it checks the document and moves on; in the [Outline](../steps/outline.md) it checks that every **Done means** point has a scenario and moves to Implement |
 | `qualitylayer question ask` | Ask you a question in the App and wait for your answer; the terminal shows one line meanwhile |
+| `qualitylayer question ask --batch` | Ask a batch. Only Discuss and Research may ask one (the Plan only a **Your call**, at most two). A batch has 3 to 6 questions, or 1 to 2 with a reason; more than 7 is refused. A third batch in a step needs a reason, and a fourth is refused |
 | `qualitylayer question poll` | Read answers and delivery receipts for the current question batch |
 | `qualitylayer question answered "<your words>" --id <question-id>` | Record what you actually answered in the agent's chat, on that exact open question |
 | `qualitylayer question cancel --id <question-id>` · `cancel --batch <batch-id>` | Withdraw an open question or batch raised by the same session, keeping its history |
 | `qualitylayer wait` · `wait --until-event` | Wait for an answer, comment, review result or finished check |
-| `qualitylayer gate open 02-plan.md` · `gate open final` | Put the Plan or the finished change up for your approval |
+| `qualitylayer plan draft` | Check the Plan and start its review, without asking you anything yet; your agent opens the approval once the findings are folded in |
+| `qualitylayer gate open 03-plan.md` · `gate open final` | Put the Plan or the finished change up for your approval (`02-plan.md` for a task started before the seven steps) |
+| `qualitylayer plan amend` · `outline amend` | Record a change to the Plan or the Outline made while building, with the reason; it reaches the final review |
 | `qualitylayer check slice <n>` | Run a slice's approved checks and record them |
 | `qualitylayer comments take` | Collect the comments not yet answered |
 | `qualitylayer ask list` · `ask answer` · `ask draft` | A teammate's agent reads and answers a question; see [Teammates' agents](../team/agents.md) |

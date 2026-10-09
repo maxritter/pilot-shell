@@ -14,7 +14,7 @@ Open **Settings** with the gear at the bottom of the App's sidebar. Changes save
 
 Two cards, one agent at a time: a tab each for **Claude Code**, **Codex** and **Another agent**. The tab marked **Default** is the one **+ New** and Implement Start open on; **Make default** moves the mark, so you can plan with Claude Code and build with Codex.
 
-- **Planning defaults** are what **+ New** opens with: the model, the effort and where the session starts. Discuss and Plan run on them. Recommended: the most capable model you can afford, Opus 5.5 or Fable 5.1, at High effort or more.
+- **Planning defaults** are what **+ New** opens with: the model, the effort and where the session starts. Discuss, Research, Plan and Outline run on them. Recommended: the most capable model you can afford, Opus 5.5 or Fable 5.1, at High effort or more.
 - **Build defaults** are what [Implement Start](../steps/implement.md#start-implement) opens with. Choose the orchestrator's model, the workers' model, one effort for both and where the build starts. The defaults are Opus 5.5 for the orchestrator, Sonnet 5.5 for workers, High effort and the session that planned the task. Fable 5.1 is another orchestrator choice. Changes at Implement Start apply to that build only.
 - **Another agent** runs on its own models and effort, set in that agent, so there is nothing to pick; it gets one prompt to paste.
 
@@ -26,7 +26,14 @@ On every task, an agent that never wrote the code decides whether the finished c
 
 ### Second opinion {#second-opinion}
 
-With Claude Code and Codex both installed, the other agent reviews a risky Plan and the built change. Each finding becomes an item for you. Pick the model for each direction here, or turn it off; a task that asks for one still gets it.
+With Claude Code and Codex both installed, the other agent reviews your work. Two selects say when:
+
+- **On the Plan:** **Always** (recommended) or **When risky**. The review reads the Discuss, Research and Plan documents, not code, and starts with the first full draft. Your agent folds the findings in before you are told the Plan is ready, so you approve a reviewed Plan.
+- **On the built change:** **When risky** (recommended) or **Always**. It is the sixth check in [Verify](../steps/verify.md#lanes). A change is risky when it crosses a trust boundary, when the Plan's risks name a new dependency, an outside system or a migration, or when the Outline marks a slice risky.
+
+Pick the model for each direction here, or turn it off; a task that asks for one still gets it.
+
+With only one agent installed, or when the other agent's command cannot be found, no second opinion can run. A separate reviewer of the agent you have, Sonnet 5.5 in Claude Code, reads the Plan with the same questions instead. **Reviewed by** in the Plan names who read it.
 
 ### Notifications {#notifications}
 

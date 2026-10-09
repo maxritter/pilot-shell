@@ -24,8 +24,8 @@ const MODELS: Chip[] = [
 const SETUPS: Chip[] = [
   ["Sonnet 5.5 writes the code", "term"],
   ["Opus 5.5 checks it", "file"],
-  ["Codex reviews risky plans", "braces"],
-  ["Claude Code reviews risky plans", "ast"],
+  ["Codex reads the plan", "braces"],
+  ["Claude Code reads the plan", "ast"],
   ["Or one agent does every step", "term"],
 ];
 
@@ -83,7 +83,7 @@ export default function Intro() {
         <div className="mx-mq">
           <div className="mx-mqt">
             <h2 id="mod-h" className="mx-h3">Use the models you already pay for</h2>
-            <p>Choose which model writes the code and which one checks it, in Claude Code and Codex. On a risky plan, the other coding agent reviews it too.</p>
+            <p>Choose which model writes the code and which one checks it, in Claude Code and Codex. The other coding agent also reads your plan, and risky changes.</p>
           </div>
           <div className="mx-mqr">
             <p className="w7-sr">Models: {MODELS.filter(([, icon]) => icon === "cpu").map(([label]) => label).join(", ")}, through Claude Code and Codex. {SETUPS.map(([label]) => label).join(". ")}.</p>

@@ -10,6 +10,7 @@ import {
   sealForLink,
   stepDocs,
   submitRemarks,
+  tabsOf,
 } from "./sharing";
 
 /**
@@ -33,7 +34,7 @@ describe("a link's documents, by step", () => {
       "artifacts/settings.html": "<html></html>",
       "review.json": "{}",
     };
-    expect(stepDocs(docs)).toEqual({ discuss: ["00-discuss.md"], plan: ["02-plan.md", "02-plan-details.md"], implement: ["03-build.md"], verify: [], review: [] });
+    expect(stepDocs(docs)).toEqual({ discuss: ["00-discuss.md"], research: [], plan: ["02-plan.md", "02-plan-details.md"], outline: [], implement: ["03-build.md"], verify: [], review: [] });
   });
 
   it("never lists research or a diagnosis, even when the link carries them", () => {
@@ -44,7 +45,7 @@ describe("a link's documents, by step", () => {
 
   it("reads a new task's Discuss and Plan: 01-discuss.md is Discuss, and the slices come from the details", () => {
     const docs = { "01-discuss.md": "d", "02-plan.md": "p", "02-plan-details.md": "pd" };
-    expect(stepDocs(docs)).toEqual({ discuss: ["01-discuss.md"], plan: ["02-plan.md", "02-plan-details.md"], implement: [], verify: [], review: [] });
+    expect(stepDocs(docs)).toEqual({ discuss: ["01-discuss.md"], research: [], plan: ["02-plan.md", "02-plan-details.md"], outline: [], implement: [], verify: [], review: [] });
   });
 
   it("keeps the agent's files private by name, in both layouts: research, diagnosis and Discuss's details", () => {
@@ -69,9 +70,32 @@ describe("a link's documents, by step", () => {
   it("reads an old link's files too: the frame is Discuss, the design and its outline are the Plan", () => {
     expect(stepDocs({ "README.md": "r", "02-design.md": "d", "03-outline-overview.md": "o" })).toEqual({
       discuss: ["README.md"],
+      research: [],
       plan: ["02-design.md", "03-outline-overview.md"],
+      outline: [],
       implement: [], verify: [], review: [],
     });
+  });
+
+  it("sorts a seven-step task's files into its seven steps, each by its own name", () => {
+    const docs = { "01-discuss.md": "d", "02-research.md": "r", "03-plan.md": "p", "04-outline.md": "o", "05-implement.md": "i", "06-verify.md": "v", "07-review.md": "w" };
+    expect(stepDocs(docs)).toEqual({
+      discuss: ["01-discuss.md"], research: ["02-research.md"], plan: ["03-plan.md"], outline: ["04-outline.md"],
+      implement: ["05-implement.md"], verify: ["06-verify.md"], review: ["07-review.md"],
+    });
+  });
+
+  it("reads a seven-step task's research, which is a step's own document, while an older task's research stays private", () => {
+    expect(Object.values(stepDocs({ "01-discuss.md": "d", "02-research.md": "r" })).flat()).toEqual(["01-discuss.md", "02-research.md"]);
+    expect(Object.values(stepDocs({ "01-discuss.md": "d", "01-research.md": "SECRET", "02-plan.md": "p" })).flat()).toEqual(["01-discuss.md", "02-plan.md"]);
+  });
+
+  it("draws seven steps for a task started with them, five for an older one, told by its files", () => {
+    expect(tabsOf({ "01-discuss.md": "d" })).toHaveLength(7);
+    expect(tabsOf({ "01-discuss.md": "d", "02-research.md": "r", "03-plan.md": "p" })).toHaveLength(7);
+    expect(tabsOf({ "01-discuss.md": "d" }, "outline")).toHaveLength(7);
+    expect(tabsOf({ "01-discuss.md": "d", "02-plan.md": "p" })).toEqual(["discuss", "plan", "implement", "verify", "review"]);
+    expect(tabsOf({ "00-discuss.md": "d" })).toHaveLength(5);
   });
 
   it("takes research for a top-level Markdown file only: a mockup named diagnostics is a mockup", async () => {

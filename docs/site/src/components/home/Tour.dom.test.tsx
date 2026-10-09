@@ -6,12 +6,12 @@ import CloseUp from "./CloseUps";
 
 afterEach(cleanup);
 
-it("keeps all five named workflow steps together below the compact task header", () => {
+it("keeps all seven named workflow steps together below the compact task header", () => {
   const { container } = render(<CloseUp id="plan" step={0} />);
   const header = container.querySelector(".cu-tb") as HTMLElement;
   const steps = screen.getByRole("list", { name: "Task steps" });
   expect(header.contains(steps)).toBe(false);
-  expect(steps.textContent).toBe("DiscussPlanImplementVerifyReview");
+  expect(steps.textContent).toBe("DiscussResearchPlanOutlineImplementVerifyReview");
   expect(steps.querySelector('[aria-current="step"]')?.textContent).toBe("Plan");
 });
 
@@ -36,8 +36,9 @@ it("focuses an unresolved Plan choice, then shows the full document and header a
   const document = screen.getByRole("article", { name: "Plan document" });
   expect(document.textContent).toContain("Support can start a new attempt after checking the endpoint");
   expect(document.textContent).toContain("Done means");
-  expect(document.textContent).toContain("Slices");
-  expect(document.textContent).toContain("Technical findings handled by the planning agent");
+  expect(document.textContent).toContain("Contracts");
+  expect(document.textContent).not.toContain("Slices");
+  expect(document.textContent).toContain("the findings are folded in");
   expect(view.container.querySelector(".cu-stage .cu-yt")).toBeNull();
   expect(view.container.querySelector(".cu-workspace-track")?.textContent).toContain("Approve Plan");
   expect(view.container.querySelector(".cu-stage")?.textContent).not.toContain("Approve Plan");

@@ -3,8 +3,8 @@ title: Review
 description: Settle what agents could not settle for you, look at the result, approve, and the pull request opens.
 ---
 
-![The five steps, with Review highlighted](pathname:///img/diagrams/track-review-light.svg)
-![The five steps, with Review highlighted](pathname:///img/diagrams/track-review-dark.svg)
+![The seven steps, with Review highlighted](pathname:///img/diagrams/track-review-light.svg)
+![The seven steps, with Review highlighted](pathname:///img/diagrams/track-review-dark.svg)
 
 The final approval is always yours. Review groups the result and its proof by **Done means** point. **Your turn** holds the questions the checks could not settle and the final approval.
 
@@ -26,7 +26,7 @@ Fixes go back to the agent, which makes them, checks what they touched, and asks
 
 ## The page {#the-page}
 
-Review is `05-review.md`: **What changed** and **How to try it**, written by the agent, then each **Done means** point with its result, proof and decisions. The same file becomes the pull request's description. The live status at the top shows what the agent is working on; when nothing waits for you, the agent's turn takes the card's place.
+Review is `07-review.md`: **Why the change**, **What a reviewer must know**, **What changed**, **How it was verified** and **Try it yourself**, then what was decided while building and what you settled. The first sections become the pull request's description exactly as written; each **Done means** point keeps its result and proof beside it. The live status at the top shows what the agent is working on; when nothing waits for you, the agent's turn takes the card's place.
 
 ## Approve {#approve}
 

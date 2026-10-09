@@ -27,7 +27,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "Can I use it on my own, or only with a team?",
-    "On your own. One developer goes through every step: Discuss, Plan, Implement, Verify and Review. A Team plan adds questions to teammates, Slack messages, and reviewing a change together.",
+    "On your own. One developer goes through every step: Discuss, Research, Plan, Outline, Implement, Verify and Review. A Team plan adds questions to teammates, Slack messages, and reviewing a change together.",
   ),
   faq(
     "How is this different from plan mode?",
@@ -78,7 +78,7 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "Which agents does it work with?",
-    "Claude Code and Codex, in the terminal, their desktop apps or your IDE; the App sets both up for you. For another coding agent, the App copies a prompt you can hand it. On a risky plan, the other coding agent reviews it too, which needs both Claude Code and Codex.",
+    "Claude Code and Codex, in the terminal, their desktop apps or your IDE; the App sets both up for you. For another coding agent, the App copies a prompt you can hand it. The other coding agent also reads your plan, and risky changes, which needs both Claude Code and Codex.",
   ),
   faq(
     "Who needs a seat?",

@@ -62,8 +62,8 @@ curl -fsSL https://qualitylayer.dev/install.sh | bash
 
 **QualityLayer works inside the agent you already use.** Claude Code or Codex does the work in the terminal, its desktop app or your IDE. You answer in the QualityLayer App, which shows what each question is about:
 
-- **One plan before any code:** the design and each engineering decision as a diagram you can comment on. Then the slices, and the scenarios that prove the change works.
-- **One focused question:** independent questions can arrive together in a batch. **Your turn** shows one with its context, a visible field for your own answer and **Send**. Skip for now to answer another first; each answer reaches the agent immediately. Approving the plan is a separate action.
+- **One plan before any code:** agents read the code first, so the plan rests on how it works today. The design and each engineering decision come as a diagram you can comment on. The slices and the scenarios that prove the change works are written while you read, and need no approval from you.
+- **Questions in batches:** independent questions arrive together, 3 to 6 at a time, and only when there is something to ask. **Your turn** shows one with its context, a visible field for your own answer and **Send**. Answer in any order, or Skip for now to answer another first; each answer reaches the agent immediately. Approving the plan is a separate action.
 - **Designs on your computer:** ask your agent to draw a page, open it full size in the App, and point at what should change. The interactive page and its comments stay local; a share link can show a still of the Plan's design.
 - **Built test first:** every task starts with a failing test, and QualityLayer records every test run itself.
 - **Routine decisions handled:** your agent takes the recommended way and records it. If it needs a login or secret, you provide it while other slices keep building.
@@ -180,22 +180,24 @@ Feedback is sent only when you press Send feedback. It becomes one issue in a pr
 
 <h2 id="how">How it works</h2>
 
-### Five steps from request to pull request
+### Seven steps from request to pull request
 
-Every task takes the same five steps. You approve twice: the plan before any code, and the finished change.
+Every task takes the same seven steps. You approve twice: the plan before any code, and the finished change.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/flow-dark.svg">
-  <img src="docs/docusaurus/static/img/diagrams/flow-light.svg" alt="Discuss, Plan, Implement, Verify, Review: you approve at Plan and at Review; your agent works in between" width="1000">
+  <img src="docs/docusaurus/static/img/diagrams/flow-light.svg" alt="Discuss, Research, Plan, Outline, Implement, Verify, Review: you approve at Plan and at Review; your agent works in between" width="1000">
 </picture>
 
-- **Discuss:** your agent creates a named task before asking questions. **Your turn** shows one unresolved choice; answer in any order with **Skip for now**. Each answer is recorded immediately. The complete discussion and proposed **Done means** follow. A bug is reproduced and its cause found first.
-- **Plan:** read the design, diagrams, slices and checks, with comments beside them. Your agent incorporates technical review findings and asks only choices that need your judgement. When the Plan is ready, use **Approve Plan** or **Give feedback** in its header. Approval covers the Plan and its proposed outcomes together.
-- **Implement:** the App opens with your Build defaults and one command that starts the build: an orchestrator that writes no code, and workers that build the slices. **Build** shows the slices, changes and checks. Routine decisions appear under "Decided while building". A login or secret only you can provide appears in **Your turn**; other slices keep building.
-- **Verify:** polish and, across a trust boundary, a security review, then agents that did not write the code check every point of your request, on a live checklist.
-- **Review:** read the result and proof under each **Done means** point. Settle the remaining questions in **Your turn**, then approve the change. The pull request opens with its proof.
+- **Discuss:** the agent asks in batches, and you agree on what done means. **Your turn** shows one unresolved choice; answer in any order with **Skip for now**. Each answer is recorded immediately. A bug is reproduced and its cause found first.
+- **Research:** agents read the code, then you settle what it leaves open, in one batch when there is anything to settle.
+- **Plan:** you approve the decided design, once, before any code. Read the design, diagrams, contracts and checks, with comments beside them. Another agent has already reviewed it, and your agent has folded in what it found, before you are told. Use **Approve Plan** or **Give feedback** in its header.
+- **Outline:** the agent cuts the plan into slices while you read it. Nothing to approve.
+- **Implement:** agents build it test first, slice by slice. The App opens with your Build defaults and one command that starts the build: an orchestrator that writes no code, and workers that build the slices. **Build** shows the slices, changes and checks. A login or secret only you can provide appears in **Your turn**; other slices keep building.
+- **Verify:** six named checks in a fixed order: Polish, Security review (across a trust boundary), your project's checks, an independent review by agents that did not write the code, a second opinion when the change is risky, and fixing what they find. A live checklist shows every point of your request.
+- **Review:** you look, confirm and ship. Read the result and proof under each **Done means** point, settle the remaining questions in **Your turn**, then approve the change. The pull request opens with its proof.
 
-Each step is one Markdown file in the task's folder, from `01-discuss.md` to `05-review.md`, written for you; the agents' own records go to `agent/`. On GitHub the files read as plain Markdown.
+Each step writes one Markdown file in the task's folder, from `01-discuss.md` to `07-review.md`. The step's page shows what matters now; **Files** opens the whole file. On GitHub the files read as plain Markdown.
 
 QualityLayer works on the branch and worktree you have checked out and never switches them.
 
@@ -217,14 +219,14 @@ While agents check, every **Done means** point keeps its checks and evidence tog
 
 ### The models you choose, the cost you can see
 
-You plan with your best model; Opus 5.5 is the default for Discuss and Plan, and Fable 5.1 can plan and orchestrate too. Workers build on a smaller model, Sonnet 5.5 by default, and start from the written plan, so none of them needs your chat history.
+You plan with your best model; Opus 5.5 is the default for the planning steps, and Fable 5.1 can plan and orchestrate too. Workers build on a smaller model, Sonnet 5.5 by default, and start from the written plan, so none of them needs your chat history.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/agents-dark.svg">
   <img src="docs/docusaurus/static/img/diagrams/agents-light.svg" alt="You and your agent write the plan; workers build from it; agents that did not write the code check it; another vendor's AI can give a second opinion" width="1000">
 </picture>
 
-Planning defaults and Build defaults set the model, effort and where each session starts for Claude Code and Codex. You can plan with one and build with the other. Independent review selects the model that checks whether the finished change passes. A second opinion comes from the other coding agent on risky plans. The App shows each step's time, tokens and estimated cost, with each agent named after its work.
+Planning defaults and Build defaults set the model, effort and where each session starts for Claude Code and Codex. You can plan with one and build with the other. Independent review selects the model that checks whether the finished change passes. A second opinion comes from the other coding agent: it reads the plan, and risky changes. The App shows each step's time, tokens and estimated cost, with each agent named after its work.
 
 ---
 
@@ -232,7 +234,7 @@ Planning defaults and Build defaults set the model, effort and where each sessio
 
 The App is where you answer, read and comment, on macOS, Windows and Linux. **Your turn** shows one focused question or decision with the context it needs. The top bar names the agent; **Agent status** opens its current work and whether it is waiting, quiet or stopped. The dollar amount opens the estimated cost, with unpriced tokens shown as muted detail.
 
-The right sidebar holds **Files** and **Comments**. Files lists the five documents and compact designs. Discuss and Plan offer the complete document for reading, with folded decision lists. Before Plan approval, full reading opens with its outline and comments within reach. The file chip and menu in the document header open the agent's version and records in a read-only reader. Implement shows **Build**, with its written record available from Files. Home shows what needs you, what is running, and what shipped, with time and estimated cost when available. Close the App, and your tasks keep running.
+The right sidebar holds **Files** and **Comments**. Files lists the seven documents, compact designs and the reviews other agents wrote. Each step page shows what matters now, with a strip naming what else its document holds; open the whole document in the reader, with its outline and comments within reach. Implement shows **Build**, with its written record available from Files. Home shows what needs you, what is running, and what shipped, with time and estimated cost when available. Close the App, and your tasks keep running.
 
 Each item has its own two answers. Agree or change a decision. Looks right, or change a design. Confirm what only you can confirm. Accept or fix a finding.
 
@@ -309,7 +311,7 @@ Two films show it: an overview, and every step in the App. Watch them on the [we
 ## Documentation
 
 - [Install](https://qualitylayer.dev/docs/install) (with [updates](https://qualitylayer.dev/docs/install#updates)), [your first task](https://qualitylayer.dev/docs/first-task), [other agents](https://qualitylayer.dev/docs/agents/other) and [moving from Pilot Shell 11](https://qualitylayer.dev/docs/moving-from-pilot-shell)
-- The five steps: [Discuss](https://qualitylayer.dev/docs/steps/discuss), [Plan](https://qualitylayer.dev/docs/steps/plan), [Implement](https://qualitylayer.dev/docs/steps/implement), [Verify](https://qualitylayer.dev/docs/steps/verify), [Review](https://qualitylayer.dev/docs/steps/review)
+- The seven steps: [Discuss](https://qualitylayer.dev/docs/steps/discuss), [Research](https://qualitylayer.dev/docs/steps/research), [Plan](https://qualitylayer.dev/docs/steps/plan), [Outline](https://qualitylayer.dev/docs/steps/outline), [Implement](https://qualitylayer.dev/docs/steps/implement), [Verify](https://qualitylayer.dev/docs/steps/verify), [Review](https://qualitylayer.dev/docs/steps/review)
 - [The App](https://qualitylayer.dev/docs/app), [team plans](https://qualitylayer.dev/docs/team/plans), [teammates' agents](https://qualitylayer.dev/docs/team/agents) and [change review](https://qualitylayer.dev/docs/team/changes)
 - [Commands](https://qualitylayer.dev/docs/reference/commands), [settings](https://qualitylayer.dev/docs/reference/settings), and [files and privacy](https://qualitylayer.dev/docs/reference/files)
 
