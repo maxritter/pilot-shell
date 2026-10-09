@@ -8,9 +8,10 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 - A task now takes seven steps: Discuss, Research, Plan, Outline, Implement,
   Verify and Review. Each step writes one Markdown file, from `01-discuss.md`
-  to `07-review.md`, that holds everything about it. The step page shows what
-  matters now, **Files** opens the whole document, and there is no separate
-  folder of agent notes. You still approve twice: the Plan before any code,
+  to `07-review.md`, that holds everything about it, and there is no separate
+  folder of agent notes. Discuss and Research show their document the way
+  **Files** does, with **Sections** and **Copy**; open questions take its place
+  while you answer them. You still approve twice: the Plan before any code,
   and the finished change.
 - Research is its own step. Agents read the code without your request in front
   of them, so the Plan rests on how the code works today. The findings are
@@ -38,12 +39,40 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Settings has two Second opinion selects: **On the Plan** (Always, When risky)
   and **On the built change** (When risky, Always).
 
+### Fixed
+
+- The App on macOS no longer quits unexpectedly when its output closes, so
+  macOS stops asking to reopen its windows at the next start.
+- On Windows, a hook stays silent when the App or the CLI is missing or blocked
+  (for example by a Defender rule), instead of showing a hook error on every
+  tool call. `qualitylayer doctor` reports it. `install.ps1 -Uninstall` removes
+  QualityLayer without running any of its programs and keeps a copy of each
+  agent settings file it changes.
+- `/ql` inside pasted text still starts QualityLayer in Claude Code, Codex and
+  the other agents, also when the paste starts with another slash command.
+- When the Plan's review cannot run, the agent tries once more and then says
+  why, instead of counting the review as done.
+- Browser checks no longer fail when the terminal forces coloured output.
+- After an update the App always shows the new version: a server from another
+  build is replaced, an install stops the old servers, and a server nothing
+  points at ends by itself.
+- A long question can be scrolled to its Send button. While a batch is open it
+  fills the page, and its counts agree with the strip.
+- Your agent wakes once when a batch is answered, not once per answer, and at
+  once when you ask for more.
+- The task page has one sidebar toggle, in the header.
+- On a shared seven-step task, a teammate's ask holds the right approval, and
+  teammates see the Review conversation and the Plan's picture.
+
 ### Good to know
 
 - New commands: `qualitylayer plan draft` checks the Plan and starts its
   review, and `outline amend` records a change to the Outline made while
   building. `question ask --batch` refuses a batch the step may not ask, one of
-  more than seven questions, and a fourth batch in a step.
+  more than seven questions, and a fourth batch in a step. `question more`
+  answers one Tell me more without resending the batch, `question show` prints
+  a batch, `question link` ties answers to Done means points, and `helper
+  result` keeps a research helper's report in the task.
 - Tasks you started before keep the files and the five steps they began with.
 
 ## 12.0.0-beta.27
