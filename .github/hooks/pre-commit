@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Pre-commit hook: the fast CI checks, in parallel, scoped to what is staged.
 #
-#   • qualitylayer   typecheck + lint (Biome)            (qualitylayer/ staged)
+#   • qualitylayer   Biome on the staged files; typecheck when TypeScript is staged,
+#                    on the staged tree when another session has unstaged work   (qualitylayer/ staged)
 #   • app (Rust)     cargo fmt --check + clippy -D warnings   (a crate under app/ staged)
 #   • plaintext      nothing under qualitylayer/ staged in plaintext   (always)
 #   • shell          shellcheck                          (shell scripts or hooks staged)
@@ -87,6 +88,8 @@ launcher_changed=0
 tauri_changed=0
 workflows_changed=0
 shell_files=()
+qualitylayer_files=()
+typescript_staged=0
 while IFS= read -r f; do
   [ -n "$f" ] || continue
   case "$f" in
@@ -100,6 +103,12 @@ while IFS= read -r f; do
   esac
   case "$f" in
     *.sh|*.bash|.github/hooks/*) shell_files+=("$f") ;;
+  esac
+  case "$f" in
+    qualitylayer/*) qualitylayer_files+=("${f#qualitylayer/}") ;;
+  esac
+  case "$f" in
+    qualitylayer/*.ts|qualitylayer/*.tsx|qualitylayer/tsconfig*.json) typescript_staged=1 ;;
   esac
 done < <(printf '%s\n' "$staged")
 
@@ -136,10 +145,19 @@ have() { command -v "$1" >/dev/null 2>&1; }
 # The job_* functions are run through `launch`, which shellcheck cannot follow.
 # shellcheck disable=SC2329
 job_qualitylayer() {
-  cd qualitylayer || return 1
-  bun run typecheck || return 1
-  # Errors must not be hidden behind the warning limit; warnings remain available in normal lint.
-  bun run lint -- --diagnostic-level=error --max-diagnostics=none || return 1
+  cd "$qualitylayer_tree/qualitylayer" || return 1
+  if [ "${QUALITYLAYER_PREFLIGHT_HEAD:-0}" = "1" ]; then
+    bun run typecheck || return 1
+    # Errors must not be hidden behind the warning limit; warnings remain available in normal lint.
+    bun run lint -- --diagnostic-level=error --max-diagnostics=none || return 1
+    return 0
+  fi
+  # Only what is staged is this commit's: another session's unfinished files do not block it.
+  if [ "$typescript_staged" = "1" ]; then bun run typecheck || return 1; fi
+  if [ "${#qualitylayer_files[@]}" -gt 0 ] && [ -x ./node_modules/.bin/biome ]; then
+    ./node_modules/.bin/biome check --diagnostic-level=error --max-diagnostics=none \
+      --files-ignore-unknown=true "${qualitylayer_files[@]}" || return 1
+  fi
 }
 # A release binary built from what is staged must serve a Cockpit that draws:
 # beta.1 to beta.5 shipped a white page while every development-build test passed.
@@ -191,6 +209,25 @@ job_trivy() {
 }
 
 # --- Schedule --------------------------------------------------------------------
+# The tree the typecheck and Biome read: the checkout, or, when another session has unstaged or
+# new files under qualitylayer/, the staged tree checked out of the index (smudge filters run).
+qualitylayer_tree="$PWD"
+if [ "$qualitylayer_changed" = "1" ] && [ "${QUALITYLAYER_PREFLIGHT_HEAD:-0}" != "1" ] \
+  && have bun && [ -d qualitylayer/node_modules ]; then
+  if ! git diff --quiet -- qualitylayer \
+    || [ -n "$(git ls-files --others --exclude-standard -- qualitylayer | head -n 1)" ]; then
+    # The tests import from docs/site too, so both folders are checked out.
+    mkdir -p "$TMP/staged" \
+      && git ls-files -z -- qualitylayer docs/site | xargs -0 git checkout-index --prefix="$TMP/staged/" -- \
+      && ln -s "$PWD/qualitylayer/node_modules" "$TMP/staged/qualitylayer/node_modules" \
+      && { [ ! -d docs/site/node_modules ] || ln -s "$PWD/docs/site/node_modules" "$TMP/staged/docs/site/node_modules"; } \
+      && qualitylayer_tree="$TMP/staged"
+    if [ "$qualitylayer_tree" != "$TMP/staged" ]; then
+      echo "⚠ could not check out the staged tree — checking the working copy instead."
+    fi
+  fi
+fi
+
 if [ "$qualitylayer_changed" = "1" ]; then
   if have bun && [ -d qualitylayer/node_modules ]; then
     launch "qualitylayer (typecheck+lint)" job_qualitylayer
