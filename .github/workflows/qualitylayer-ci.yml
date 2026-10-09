@@ -212,7 +212,7 @@ jobs:
         working-directory: qualitylayer
         env:
           QUALITYLAYER_REQUIRE_RENDER: "1"
-        run: bun run test --shard ${{ matrix.shard }}/4 tests/e2e tests/windows tests/core/platform.test.ts tests/core/team-keys.test.ts tests/server/lock.test.ts tests/cli/hook-prompt.test.ts tests/core/install/mod.test.ts
+        run: bun run test --shard ${{ matrix.shard }}/4 tests/e2e tests/windows tests/core/platform.test.ts tests/core/team-keys.test.ts tests/server/lock.test.ts tests/cli/hook-prompt.test.ts tests/core/install/mod.test.ts tests/scripts/chrome-shutdown.test.ts
 
       - name: Release Cockpit draws on Windows
         working-directory: qualitylayer
