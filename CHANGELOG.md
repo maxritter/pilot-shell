@@ -66,6 +66,9 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   that grow in `~/.qualitylayer` (cost timelines, session logs) are capped.
 - **Accept as is** after two fix rounds lets your agent go on at once; before,
   it waited up to 100 seconds.
+- Right after the approval, a review thread or failing check no longer asks
+  you to push a fix that was never made: the task's own closing commit is not
+  counted as one.
 - On Windows, the installer no longer refuses a folder written with its short
   name (such as `C:\Users\RUNNER~1`) as outside your home folder.
 - Two QualityLayer Apps on one computer (another home, or a teammate's App
