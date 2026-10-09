@@ -61,14 +61,20 @@ You rarely type these; they are what you see in your agent's chat.
 | `qualitylayer next` | Start a task, or get the next step of the open one; it also brings new comments on designs |
 | `qualitylayer next done` | Finish the current step. In [Discuss](../steps/discuss.md) and [Research](../steps/research.md) it checks the document and moves on; in the [Outline](../steps/outline.md) it checks that every **Done means** point has a scenario and moves to Implement |
 | `qualitylayer question ask` | Ask you a question in the App and wait for your answer; the terminal shows one line meanwhile |
-| `qualitylayer question ask --batch` | Ask a batch. Only Discuss and Research may ask one (the Plan only a **Your call**, at most two). A batch has 3 to 6 questions, or 1 to 2 with a reason; more than 7 is refused. A third batch in a step needs a reason, and a fourth is refused |
+| `qualitylayer question ask --batch` | Ask a batch. Only Discuss and Research may ask one (the Plan only a **Your call**, at most two). A batch has 3 to 6 questions, or 1 to 2 with a reason; more than 7 is refused. Batches are counted per step: a second needs no reason, a third in the same step does, and a fourth is refused. The reply says which batch of the step it is |
+| `qualitylayer question link <question-id> --points 1,3` · `--points none` | Say which **Done means** points an answer settles, once those points exist |
+| `qualitylayer question more <question-id> --file <json>` | Answer a **Tell me more**: the agent sends the question again in plainer words, with what was missing |
+| `qualitylayer question show <batch-id>` | Read one batch with every answer given so far |
+| `qualitylayer helper result <helper-id>` | Save a finished helper's report, so Research is written from the file rather than from memory |
 | `qualitylayer question poll` | Read answers and delivery receipts for the current question batch |
 | `qualitylayer question answered "<your words>" --id <question-id>` | Record what you actually answered in the agent's chat, on that exact open question |
 | `qualitylayer question cancel --id <question-id>` · `cancel --batch <batch-id>` | Withdraw an open question or batch raised by the same session, keeping its history |
 | `qualitylayer wait` · `wait --until-event` | Wait for an answer, comment, review result or finished check |
+| `qualitylayer wait --batch <batch-id>` · `--quiet <seconds>` | Wait for a whole batch: it returns when every question is answered, or when no new answer came for the quiet time (45 seconds unless set) |
+| `qualitylayer wait --json` | The same reply as one JSON object, each answer with its `answer_at` time; the plain reply opens with one line per answer |
 | `qualitylayer plan draft` | Check the Plan and start its review, without asking you anything yet; your agent opens the approval once the findings are folded in |
 | `qualitylayer gate open 03-plan.md` · `gate open final` | Put the Plan or the finished change up for your approval (`02-plan.md` for a task started before the seven steps) |
-| `qualitylayer plan amend` · `outline amend` | Record a change to the Plan or the Outline made while building, with the reason; it reaches the final review |
+| `qualitylayer plan amend` · `outline amend` | Record a change to the Plan or the Outline made after the Plan was approved, the Outline step included, with the reason; it reaches the final review |
 | `qualitylayer check slice <n>` | Run a slice's approved checks and record them |
 | `qualitylayer comments take` | Collect the comments not yet answered |
 | `qualitylayer ask list` · `ask answer` · `ask draft` | A teammate's agent reads and answers a question; see [Teammates' agents](../team/agents.md) |
