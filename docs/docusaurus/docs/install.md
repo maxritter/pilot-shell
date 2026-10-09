@@ -35,6 +35,29 @@ The App updates itself and the CLI together. When **Update ready** shows in the 
 
 `qualitylayer uninstall` puts back what the installer changed. Your plans stay. `qualitylayer licence activate <key>` moves your licence to another computer.
 
+On Windows, one PowerShell command removes QualityLayer without starting any of its programs, which also works when the App, the CLI or the uninstaller is blocked or gone:
+
+```powershell
+& ([scriptblock]::Create((irm https://qualitylayer.dev/install.ps1))) -Uninstall
+```
+
+It takes QualityLayer's own hooks and settings out of Claude Code and Codex and leaves every other line of those files as it is, keeping a copy of each file it changed. It also removes the skills, the launcher, the App folder and its shortcuts. Your licence and tasks in `.qualitylayer` stay; add `-Purge` to remove them too.
+
 Coming from Pilot Shell 11? Its updater moves you over by itself; see [From Pilot Shell 11](moving-from-pilot-shell.md).
+
+## Windows with Intune or Defender Exploit Guard {#managed-windows}
+
+On a Windows PC that your company manages, setup can be refused with "Microsoft Defender Exploit Guard blocked an operation that was not allowed by your IT administrator", or the App's update can be blocked, or a file of QualityLayer's can disappear after the install.
+
+**Why.** QualityLayer's installer and programs are not signed with a code-signing certificate yet. A Defender rule called *Block executable files from running unless they meet a prevalence, age, or trusted list criterion* stops programs that are new, rarely seen and unsigned. Your IT administrator has turned that rule on, and you cannot switch it off yourself.
+
+**What your IT administrator can allow.** Either of these is enough:
+
+- An exclusion for the rule on the App's folder, `%LOCALAPPDATA%\QualityLayer`, and on the launcher's folder, `%USERPROFILE%\.qualitylayer\bin`. In Intune this is under Endpoint security, Attack surface reduction, *Attack Surface Reduction Only Exclusions*.
+- A file indicator for the setup file by its SHA-256. The checksums are in `SHA256SUMS` on the release page.
+
+**Without administrator help.** Use WSL. Inside a Linux distribution, install the command line with the command from [Without a screen](#without-a-screen), and QualityLayer opens its App in your Windows browser. The Windows rule does not apply to Linux programs inside WSL.
+
+**If files were removed.** Your agent's hooks stay silent when the App is gone, so Claude Code and Codex do not show an error on every tool call. `qualitylayer doctor` shows what a hook found, and opening the App once repairs the install. If the App itself is blocked, remove QualityLayer with the [one-line script above](#uninstall).
 
 Next: [your first task](first-task.md).
