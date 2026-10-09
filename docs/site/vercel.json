@@ -4,6 +4,7 @@
   "outputDirectory": "dist",
   "framework": null,
   "regions": ["fra1"],
+  "crons": [{ "path": "/api/team/slack/due", "schedule": "*/15 * * * *" }],
   "trailingSlash": false,
   "cleanUrls": true,
   "redirects": [
