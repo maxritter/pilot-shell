@@ -64,7 +64,7 @@ is_guarded() {
   qualitylayer/* | docs/site/api/*) return 0 ;;
   docs/site/scripts/backup.ts | docs/site/scripts/restore.ts | docs/site/scripts/db-migrate.ts) return 0 ;;
   docs/site/scripts/upload-workflow.ts | docs/site/scripts/load-check.ts) return 0 ;;
-  docs/site/scripts/check-deploy.sh | docs/site/scripts/deploy-website.sh) return 0 ;;
+  docs/site/scripts/check-deploy.sh | docs/site/scripts/deploy-website.sh | docs/site/scripts/verify-deployment-runtime.mjs) return 0 ;;
   docs/site/scripts/backup-recipient.txt | docs/site/scripts/*.test.ts) return 0 ;;
   docs/site/workers/feedback-store/*) return 0 ;;
   scripts/cutover.sh) return 0 ;;

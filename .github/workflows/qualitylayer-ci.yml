@@ -208,11 +208,21 @@ jobs:
         working-directory: qualitylayer
         run: bun --bun run typecheck
 
+      - name: Check Windows platform probes early
+        if: matrix.shard == 1
+        working-directory: qualitylayer
+        run: bun test --timeout 180000 tests/core/platform.test.ts
+
+      - name: Check detached reviewer startup early
+        if: matrix.shard == 1
+        working-directory: qualitylayer
+        run: bun test --timeout 180000 tests/windows/review-startup.test.ts
+
       - name: Windows workflows and installer
         working-directory: qualitylayer
         env:
           QUALITYLAYER_REQUIRE_RENDER: "1"
-        run: bun run test --shard ${{ matrix.shard }}/4 tests/e2e tests/windows tests/core/platform.test.ts tests/core/team-keys.test.ts tests/server/lock.test.ts tests/cli/hook-prompt.test.ts tests/core/install/mod.test.ts
+        run: bun run test --shard ${{ matrix.shard }}/4 tests/e2e tests/windows tests/core/platform.test.ts tests/core/team-keys.test.ts tests/server/lock.test.ts tests/cli/hook-prompt.test.ts tests/core/install/mod.test.ts tests/scripts/chrome-shutdown.test.ts
 
       - name: Release Cockpit draws on Windows
         working-directory: qualitylayer
