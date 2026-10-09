@@ -82,6 +82,9 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - The Plan's reviewer looks at the rendered mockups, not only their source.
 - The Implement page folds its checks into one line, and opens it when a check
   failed.
+- The Verify page opens with how the change is checked. The commands the
+  project checks ran or reused, and how far a running check is, sit in the
+  Project checks lane instead of in two blocks above it.
 - A message from another agent session that mentions `/ql` no longer starts
   QualityLayer.
 
