@@ -38,7 +38,7 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Settings has two Second opinion selects: **On the Plan** (Always, When risky)
   and **On the built change** (When risky, Always).
 
-### Changed
+### Good to know
 
 - New commands: `qualitylayer plan draft` checks the Plan and starts its
   review, and `outline amend` records a change to the Outline made while
