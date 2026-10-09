@@ -9,10 +9,15 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - A task now takes seven steps: Discuss, Research, Plan, Outline, Implement,
   Verify and Review. Each step writes one Markdown file, from `01-discuss.md`
   to `07-review.md`, that holds everything about it, and there is no separate
-  folder of agent notes. Discuss and Research show their document the way
-  **Files** does, with **Sections** and **Copy**; open questions take its place
-  while you answer them. You still approve twice: the Plan before any code,
-  and the finished change.
+  folder of agent notes. Discuss, Research and the Outline show their document
+  the way **Files** does, with **Sections** and **Copy**; open questions take
+  its place while you answer them. A shared link on qualitylayer.dev shows the
+  same document, diagrams included. You still approve twice: the Plan before
+  any code, and the finished change.
+- **Tell me more** asks what would help: *I don't get the question*, *Explain
+  the choices* or your own words. The card shows your agent picking it up and
+  rewriting the question in plainer words, with the earlier wording one click
+  away. A question can let you pick more than one choice.
 - Research is its own step. Agents read the code without your request in front
   of them, so the Plan rests on how the code works today. The findings are
   written up in `02-research.md` (for a bug, **Why it breaks**), and Research
@@ -63,6 +68,13 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - The task page has one sidebar toggle, in the header.
 - On a shared seven-step task, a teammate's ask holds the right approval, and
   teammates see the Review conversation and the Plan's picture.
+- The Plan page shows when the Outline's check is still running beside
+  Approve, and lists what changed in the Plan after you approved it.
+- The Plan's reviewer looks at the rendered mockups, not only their source.
+- The Implement page folds its checks into one line, and opens it when a check
+  failed.
+- A message from another agent session that mentions `/ql` no longer starts
+  QualityLayer.
 
 ### Good to know
 
