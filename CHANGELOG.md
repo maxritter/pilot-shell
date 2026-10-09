@@ -66,6 +66,8 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   that grow in `~/.qualitylayer` (cost timelines, session logs) are capped.
 - **Accept as is** after two fix rounds lets your agent go on at once; before,
   it waited up to 100 seconds.
+- On Windows, the installer no longer refuses a folder written with its short
+  name (such as `C:\Users\RUNNER~1`) as outside your home folder.
 - Two QualityLayer Apps on one computer (another home, or a teammate's App
   through a forward) no longer sign each other's pages out.
 - Slack messages no longer get lost when several updates go out at once, and
