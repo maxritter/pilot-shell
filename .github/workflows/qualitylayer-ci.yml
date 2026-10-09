@@ -218,6 +218,23 @@ jobs:
         working-directory: qualitylayer
         run: bun test --timeout 180000 tests/windows/review-startup.test.ts
 
+      - name: Check compiled reviewer behavior early
+        if: matrix.shard == 1
+        working-directory: qualitylayer
+        env:
+          QUALITYLAYER_REQUIRE_RENDER: "1"
+        run: |
+          bun run build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          bun test --timeout 180000 --test-name-pattern 'opening the Plan gate starts|a reviewer that fails' tests/e2e/cross-review.test.ts
+
+      - name: Check signed PowerShell bootstrap early
+        if: matrix.shard == 1
+        working-directory: qualitylayer
+        env:
+          QUALITYLAYER_REQUIRE_RENDER: "1"
+        run: bun test --timeout 180000 --test-name-pattern 'PowerShell bootstrap' tests/windows/native.test.ts
+
       - name: Windows workflows and installer
         working-directory: qualitylayer
         env:
