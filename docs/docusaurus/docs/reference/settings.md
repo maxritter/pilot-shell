@@ -53,7 +53,7 @@ This tab also explains the licence check, workflow-text requests and update chec
 
 - **Your name**, shown to your team.
 - **People and groups:** seats, members and their computers, and the groups.
-- **Slack:** your team owner connects it once; each member can turn Slack messages off. See [Plan reviews](../team/plans.md#slack).
+- **Slack:** your team owner connects it once; each member can turn Slack messages off and set a morning digest and quiet hours. See [Plan reviews](../team/plans.md#slack).
 - **Shared links:** each link with **Copy** and **Revoke**.
 
 ## About
