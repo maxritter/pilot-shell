@@ -287,7 +287,7 @@ jobs:
               pending)
                 remaining=$((wait - $(date +%s) + started))
                 if [ "$remaining" -gt 0 ]; then
-                  pause=15
+                  pause=30
                   if [ "$remaining" -lt "$pause" ]; then pause="$remaining"; fi
                   sleep "$pause"
                 fi
