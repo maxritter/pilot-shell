@@ -152,106 +152,70 @@ jobs:
         working-directory: docs/site
         run: npm test
 
+  # Every push runs the Windows-specific suites and a short end-to-end smoke set natively on both
+  # Windows runners, split so each job ends within ten minutes. The full end-to-end suite runs on
+  # Linux and macOS above on every push, and on Windows nightly in qualitylayer-windows-nightly.yml
+  # (CLI calls that start Windows PowerShell make it far slower there than one push should wait).
   windows:
-    name: Native Windows runtime (${{ matrix.os }}, shard ${{ matrix.shard }}/4)
+    name: Native Windows runtime (${{ matrix.os }}, shard ${{ matrix.shard }}/6)
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
+    timeout-minutes: 12
     needs: plaintext-guard
     strategy:
       fail-fast: false
       matrix:
         os: [windows-2025, windows-11-arm]
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
     defaults:
       run:
         shell: pwsh
     steps:
-      # Git for Windows checks out CRLF by default; git-crypt (msys2's git) then sees the whole
-      # tree as modified and refuses to unlock.
+      # Git checks out CRLF by default on Windows; the encrypted files must arrive byte for byte.
       - name: Check out with LF line endings
         run: git config --global core.autocrlf false
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Setup git-crypt
-        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
-        with:
-          msystem: MSYS
-          install: git git-crypt
-          update: true
-          path-type: inherit
-
-      - name: Unlock repository
-        shell: msys2 {0}
-        env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: bash .github/workflows/scripts/setup-git-crypt.sh
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
           bun-version: "1.4.2"
 
+      # One filter process instead of git-crypt's one process per file (minutes under msys2).
+      - name: Unlock repository
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          $key = Join-Path $env:RUNNER_TEMP 'git-crypt.key'
+          [IO.File]::WriteAllBytes($key, [Convert]::FromBase64String($env:GIT_CRYPT_KEY))
+          try { bun .github/workflows/scripts/git-crypt-unlock.ts $key } finally { Remove-Item -LiteralPath $key -Force }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Install dependencies
         working-directory: qualitylayer
         run: bun install --frozen-lockfile
 
-      # The suites run the site's real handlers on the in-process database (PGlite) it ships.
+      # The team suites run the site's real handlers on the in-process database (PGlite) it ships.
       - name: Install the site's dependencies
         working-directory: docs/site
         run: npm ci --ignore-scripts
 
-      # Bun has no native Windows arm64 build: under x64 emulation it installs TypeScript's x64
-      # compiler, which the runner's arm64 Node cannot find. Under Bun, tsc asks for the x64 one.
-      - name: Typecheck
-        working-directory: qualitylayer
-        run: bun --bun run typecheck
-
-      - name: Check Windows platform probes early
-        if: matrix.shard == 1
-        working-directory: qualitylayer
-        run: bun test --timeout 180000 tests/core/platform.test.ts
-
-      - name: Check detached reviewer startup early
-        if: matrix.shard == 1
-        working-directory: qualitylayer
-        run: bun test --timeout 180000 tests/windows/review-startup.test.ts
-
-      - name: Check compiled reviewer behavior early
-        if: matrix.shard == 1
+      - name: Windows suites and end-to-end smoke
         working-directory: qualitylayer
         env:
           QUALITYLAYER_REQUIRE_RENDER: "1"
-        run: |
-          bun run build
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          bun test --timeout 180000 --test-name-pattern 'opening the Plan gate starts|a reviewer that fails' tests/e2e/cross-review.test.ts
+        run: bun run test --shard ${{ matrix.shard }}/6 tests/windows tests/core/platform.test.ts tests/core/team-keys.test.ts tests/server/lock.test.ts tests/cli/hook-prompt.test.ts tests/core/install/mod.test.ts tests/scripts/chrome-shutdown.test.ts tests/e2e/statusline.test.ts tests/e2e/sessions.test.ts tests/e2e/cockpit-diagrams.test.ts tests/e2e/research.test.ts tests/e2e/documents.test.ts
 
-      - name: Check signed PowerShell bootstrap early
-        if: matrix.shard == 1
+      # The Plan gate starts the other agent's review detached, through the compiled binary.
+      - name: Compiled reviewer starts and fails safely
+        if: matrix.shard == 5
         working-directory: qualitylayer
         env:
           QUALITYLAYER_REQUIRE_RENDER: "1"
-        run: bun test --timeout 180000 --test-name-pattern 'PowerShell bootstrap' tests/windows/native.test.ts
-
-      - name: Windows workflows and installer
-        working-directory: qualitylayer
-        env:
-          QUALITYLAYER_REQUIRE_RENDER: "1"
-        run: bun run test --shard ${{ matrix.shard }}/4 tests/e2e tests/windows tests/core/platform.test.ts tests/core/team-keys.test.ts tests/server/lock.test.ts tests/cli/hook-prompt.test.ts tests/core/install/mod.test.ts tests/scripts/chrome-shutdown.test.ts
+        run: bun run test tests/e2e/cross-review.test.ts -t 'opening the Plan gate starts|a reviewer that fails'
 
       - name: Release Cockpit draws on Windows
+        if: matrix.shard == 6
         working-directory: qualitylayer
         run: bun scripts/check-cockpit.ts --build --require-render
-
-      - name: Measure native compilation tradeoffs
-        working-directory: qualitylayer
-        run: bun scripts/benchmark-compile.ts --samples 7
-
-      - name: Keep the native performance measurements
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: compile-benchmark-${{ matrix.os }}-shard-${{ matrix.shard }}
-          path: qualitylayer/dist/compile-benchmark.json
-          retention-days: 7
