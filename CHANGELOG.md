@@ -2,6 +2,14 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.31
+
+### Fixed
+
+- With **Reduce motion** turned on in your system settings, menus and pop-ups
+  open where they belong. A menu could stay drawn at its starting place, off
+  the screen, for a moment or longer on a busy computer.
+
 ## 12.0.0-beta.30
 
 ### Fixed
