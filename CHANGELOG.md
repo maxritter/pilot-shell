@@ -2,6 +2,16 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.39
+
+### Fixed
+
+- Checks find tools in their own toolchain folders, such as `cargo` in
+  `~/.cargo/bin`, even when your shell's startup files never add them.
+- A Plan you approved before the one-sentence Oracle rule keeps its Oracle:
+  the rule only warns there, so amending the Plan mid-build is not refused
+  over the format of words you already approved.
+
 ## 12.0.0-beta.38
 
 ### Fixed
