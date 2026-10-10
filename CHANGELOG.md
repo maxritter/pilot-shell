@@ -2,6 +2,15 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.42
+
+### Fixed
+
+- When an agent changes a source file through a shell command instead of
+  its file tools, QualityLayer notices right away. It tells the agent to
+  use its file tools, and counts the change as the task's own when it
+  scopes the reviews.
+
 ## 12.0.0-beta.41
 
 ### Fixed
