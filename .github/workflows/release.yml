@@ -232,8 +232,8 @@ jobs:
             done
           done
           for os in windows-2025 windows-11-arm; do
-            for shard in 1 2 3 4; do
-              printf 'Native Windows runtime (%s, shard %s/4)\n' "$os" "$shard" >> "$required"
+            for shard in 1 2 3 4 5 6; do
+              printf 'Native Windows runtime (%s, shard %s/6)\n' "$os" "$shard" >> "$required"
             done
           done
           started=$(date +%s)

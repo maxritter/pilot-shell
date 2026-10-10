@@ -1,0 +1,84 @@
+name: QualityLayer Windows nightly
+
+# The whole end-to-end suite, natively on both Windows runners, once a night and on demand.
+# Every push runs it on Linux and macOS and runs the Windows-specific suites plus an end-to-end
+# smoke set on Windows (qualitylayer-ci.yml); this job is not a required check for a release.
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qualitylayer-windows-nightly-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-full:
+    name: Windows full suite (${{ matrix.os }}, shard ${{ matrix.shard }}/16)
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, windows-11-arm]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check out with LF line endings
+        run: git config --global core.autocrlf false
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+
+      - name: Unlock repository
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          $key = Join-Path $env:RUNNER_TEMP 'git-crypt.key'
+          [IO.File]::WriteAllBytes($key, [Convert]::FromBase64String($env:GIT_CRYPT_KEY))
+          try { bun .github/workflows/scripts/git-crypt-unlock.ts $key } finally { Remove-Item -LiteralPath $key -Force }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Install dependencies
+        working-directory: qualitylayer
+        run: bun install --frozen-lockfile
+
+      - name: Install the site's dependencies
+        working-directory: docs/site
+        run: npm ci --ignore-scripts
+
+      # Bun has no native Windows arm64 build: under x64 emulation it installs TypeScript's x64
+      # compiler, which the runner's arm64 Node cannot find. Under Bun, tsc asks for the x64 one.
+      - name: Typecheck
+        if: matrix.shard == 1
+        working-directory: qualitylayer
+        run: bun --bun run typecheck
+
+      - name: Windows workflows and installer
+        working-directory: qualitylayer
+        env:
+          QUALITYLAYER_REQUIRE_RENDER: "1"
+        run: bun run test --shard ${{ matrix.shard }}/16 tests/e2e tests/windows tests/core/platform.test.ts tests/core/team-keys.test.ts tests/server/lock.test.ts tests/cli/hook-prompt.test.ts tests/core/install/mod.test.ts tests/scripts/chrome-shutdown.test.ts
+
+      - name: Measure native compilation tradeoffs
+        if: matrix.shard == 1
+        working-directory: qualitylayer
+        run: bun scripts/benchmark-compile.ts --samples 7
+
+      - name: Keep the native performance measurements
+        if: matrix.shard == 1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: compile-benchmark-${{ matrix.os }}
+          path: qualitylayer/dist/compile-benchmark.json
+          retention-days: 7
