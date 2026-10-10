@@ -2,6 +2,14 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.41
+
+### Fixed
+
+- When the independent judge fails a round, its notes go to the fix helper
+  along with the failed items. A note can name a real defect no failed item
+  covers; the helper fixes it, or says why it stands.
+
 ## 12.0.0-beta.40
 
 ### Fixed
