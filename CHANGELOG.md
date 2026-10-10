@@ -2,6 +2,18 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.33
+
+### Fixed
+
+- QualityLayer never refuses work because of its version. A copy that
+  qualitylayer.dev holds no workflow texts for, because it was installed
+  before its release finished or was never released, now gets the nearest
+  texts the site has and switches to its own within minutes of their
+  release. Offline, a copy runs on the texts it still holds from the
+  release before. Before this, such a copy stopped with "this release is
+  no longer served" and asked for an update that could not help.
+
 ## 12.0.0-beta.32
 
 ### Fixed
