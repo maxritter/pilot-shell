@@ -870,10 +870,11 @@ jobs:
     needs: [prepare-release, test, build, windows-release, security-scan, assemble-release, source-ui-gate]
     # !cancelled() and the explicit results instead of the implicit success(): when CI is reused the
     # fallback shards are skipped, and a skipped job up the chain would skip the release with it.
+    # Wrapped in ${{ }}: a condition that opens with ! must be, or GitHub does not read it as one.
     if: >-
-      !cancelled() && needs.prepare-release.outputs.should_release == 'true' &&
+      ${{ !cancelled() && needs.prepare-release.outputs.should_release == 'true' &&
       !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'skipped') &&
-      !contains(needs.*.result, 'cancelled')
+      !contains(needs.*.result, 'cancelled') }}
     # main waits for a reviewer in `production`; a dev prerelease uses `beta`, which has none.
     environment: ${{ github.ref_name == 'main' && 'production' || 'beta' }}
     steps:
@@ -909,8 +910,8 @@ jobs:
     timeout-minutes: 30
     needs: [prepare-release, build, assemble-release, approve-release]
     if: >-
-      !cancelled() && needs.prepare-release.outputs.should_release == 'true' &&
-      needs.approve-release.result == 'success'
+      ${{ !cancelled() && needs.prepare-release.outputs.should_release == 'true' &&
+      needs.approve-release.result == 'success' }}
     env:
       VERSION: ${{ needs.prepare-release.outputs.version }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

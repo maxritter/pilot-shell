@@ -18,6 +18,23 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   the site, then leaves it alone for half an hour, instead of waiting up to
   a minute on every command. A licence that needs re-registering while the
   licence server is down keeps running on the one it holds.
+- Research's instructions put **What the goal puts at risk** where the
+  check expects it, right after Findings, so `qualitylayer next done` no
+  longer refuses a document written as told.
+- Research helpers save their own report under the task before they end,
+  so the agent no longer digs it out of a transcript.
+- `qualitylayer question more` passes over the whole-question fields an
+  agent sends along (id, recommended, points) instead of refusing them, and
+  every instruction now describes the same command.
+- A Plan's Summary may name a new script by the command that runs it
+  (`bun scripts/bench.ts`).
+- A failed check lists warnings apart from the errors that block, in text
+  and in `--json`.
+- An engineering decision the agent settled no longer reads "Your call:
+  waits for your review"; only a decision left to the person does.
+- An experiment that could change a Plan's approach, such as a benchmark
+  between two runtimes, runs before the Plan is approved, never as a build
+  slice.
 
 ## 12.0.0-beta.32
 
