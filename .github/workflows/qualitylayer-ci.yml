@@ -49,8 +49,9 @@ jobs:
         run: bash .github/scripts/check_qualitylayer_encrypted.sh
 
   # The whole suite, every file, on Linux and macOS on every push. Each shard holds about the same
-  # recorded seconds (scripts/test-timings.json), so every job ends within ten minutes: four on
-  # Linux, five on the slower 3-core macOS runner. Windows runs its own suites below.
+  # recorded seconds (scripts/test-timings.json), so every job ends within ten minutes: three on
+  # Linux, five on the slower 3-core macOS runner. Windows runs its own suites below. GitHub runs
+  # at most 20 jobs of this account at once (5 on macOS), so no more shards than that needs.
   test:
     name: Typecheck, lint, test (${{ matrix.os }}, shard ${{ matrix.shard }}/${{ matrix.shards }})
     runs-on: ${{ matrix.os }}
@@ -60,10 +61,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-latest, shard: 1, shards: 4 }
-          - { os: ubuntu-latest, shard: 2, shards: 4 }
-          - { os: ubuntu-latest, shard: 3, shards: 4 }
-          - { os: ubuntu-latest, shard: 4, shards: 4 }
+          - { os: ubuntu-latest, shard: 1, shards: 3 }
+          - { os: ubuntu-latest, shard: 2, shards: 3 }
+          - { os: ubuntu-latest, shard: 3, shards: 3 }
           - { os: macos-14, shard: 1, shards: 5 }
           - { os: macos-14, shard: 2, shards: 5 }
           - { os: macos-14, shard: 3, shards: 5 }

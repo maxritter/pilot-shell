@@ -234,8 +234,8 @@ jobs:
           required="${RUNNER_TEMP:?}/required-ci-checks.txt"
           wait=900
           printf '%s\n' 'Plaintext guard' 'Site API and pages' > "$required"
-          for shard in 1 2 3 4; do
-            printf 'Typecheck, lint, test (ubuntu-latest, shard %s/4)\n' "$shard" >> "$required"
+          for shard in 1 2 3; do
+            printf 'Typecheck, lint, test (ubuntu-latest, shard %s/3)\n' "$shard" >> "$required"
           done
           for shard in 1 2 3 4 5; do
             printf 'Typecheck, lint, test (macos-14, shard %s/5)\n' "$shard" >> "$required"
