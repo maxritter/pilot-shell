@@ -2,6 +2,14 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.37
+
+### Fixed
+
+- The helpers that write code during a build edit files with the agent's
+  own file tools, so every change shows up as a reviewable edit, instead of
+  patching files with shell commands.
+
 ## 12.0.0-beta.36
 
 ### Fixed
