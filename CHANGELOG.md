@@ -2,6 +2,20 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.30
+
+### Fixed
+
+- **Files** for an older task opens in a few seconds instead of about 30. One
+  renamed file used to make QualityLayer compare the whole tree, and pictures
+  and recordings were decrypted only to count zero lines.
+- Showing a task's cost no longer reads your whole cost history several times.
+  On a long-used computer one task's cost could take more than 500 MB of memory
+  for a moment; it now reads only that task's rows.
+- Opening a task that you haven't looked at since the App restarted is quick:
+  its build fingerprint is kept, and its timeline asks git twice instead of
+  twice for every commit.
+
 ## 12.0.0-beta.29
 
 ### New
