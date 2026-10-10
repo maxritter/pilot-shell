@@ -2,6 +2,23 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.34
+
+### Fixed
+
+- A slice that is committed with every task done is never handed out to be
+  built again. An amendment that only records what the slice already
+  built now has it checked, instead of starting its whole build over.
+- When two builds share one checkout and QualityLayer refuses to commit a
+  file the other build also changed, it says what to do next: commit this
+  slice's part by hand, then run `qualitylayer commit slice` again to
+  record the slice.
+- Research always writes **What the goal puts at risk**, at least one line,
+  right after its findings.
+- Running QualityLayer's own test suite uses only the processor cores that
+  are free, so two builds testing at once no longer slow the computer to a
+  crawl.
+
 ## 12.0.0-beta.33
 
 ### Fixed
