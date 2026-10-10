@@ -210,16 +210,17 @@ jobs:
           sarif_file: trivy-results.sarif
 
   # The tests of the release SHA are the ones CI ran on its push (qualitylayer-ci.yml): every job
-  # there ends within ten minutes, so this waits up to fifteen for all of them and reuses their
-  # result. Only when they are still missing then does the suite run here, split over parallel
-  # jobs (test-fallback). The Windows nightly (qualitylayer-windows-nightly.yml) is not required.
+  # there ends within ten minutes, so this waits up to twenty for all of them (jobs queue behind
+  # the account's 20 concurrent jobs) and reuses their result. Only when they are still missing
+  # then does the suite run here, split over parallel jobs (test-fallback). The Windows nightly
+  # (qualitylayer-windows-nightly.yml) is not a required check.
   ci-reuse:
     name: Reuse CI results
     permissions:
       contents: read
       checks: read
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     needs: [check-trigger, supply-chain-gate]
     if: needs.check-trigger.outputs.should_run == 'true'
     outputs:
@@ -232,7 +233,7 @@ jobs:
         run: |
           checks="${RUNNER_TEMP:?}/ci-checks.json"
           required="${RUNNER_TEMP:?}/required-ci-checks.txt"
-          wait=900
+          wait=1200
           printf '%s\n' 'Plaintext guard' 'Site API and pages' > "$required"
           for shard in 1 2 3; do
             printf 'Typecheck, lint, test (ubuntu-latest, shard %s/3)\n' "$shard" >> "$required"
@@ -253,7 +254,7 @@ jobs:
             remaining=$((wait - $(date +%s) + started))
             if [ "$remaining" -le 0 ]; then
               echo "reuse=false" >> "$GITHUB_OUTPUT"
-              echo "Required CI checks still pending or missing after fifteen minutes; run checks"
+              echo "Required CI checks still pending or missing after twenty minutes; run checks"
               exit 0
             fi
             if ! timeout "${remaining}s" gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?per_page=100" > "$checks"; then
