@@ -290,12 +290,19 @@ if [ "$serial" = "0" ]; then
 fi
 
 failed=0
+failed_names=()
 for i in "${!job_names[@]}"; do
   if [ "${job_rcs[$i]}" != "0" ]; then
     failed=1
+    failed_names+=("${job_names[$i]} (exit ${job_rcs[$i]})")
     echo ""
     echo "──────── ✖ ${job_names[$i]} ────────"
-    cat "${job_logs[$i]}"
+    if [ -s "${job_logs[$i]}" ]; then
+      cat "${job_logs[$i]}"
+    else
+      # A job killed under load (a signal, a timeout) can end without a word: say so.
+      echo "(no output; exit ${job_rcs[$i]}: it may have been killed or timed out, so run the commit again)"
+    fi
   fi
 done
 
@@ -312,7 +319,8 @@ done
 
 if [ "$failed" -ne 0 ]; then
   echo "" >&2
-  echo "✖ Pre-commit failed. Fix the above, or bypass with SKIP_PRECOMMIT=1 / git commit --no-verify" >&2
+  failed_list="$(printf '%s, ' "${failed_names[@]}")"
+  echo "✖ Pre-commit failed: ${failed_list%, }. Fix the above, or bypass with SKIP_PRECOMMIT=1 / git commit --no-verify" >&2
   exit 1
 fi
 

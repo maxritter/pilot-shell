@@ -57,6 +57,12 @@ All in `qualitylayer/`:
 
 - Preserve unrelated work in the dirty worktree. Do not reset, restore, or
   overwrite concurrent changes.
+- Several sessions can share one worktree, and its index too. Commit by hand
+  through a private index, the way `qualitylayer commit slice` does: set
+  `GIT_INDEX_FILE` to a temporary file, `git read-tree HEAD`, add only your
+  files (`git update-index` or `hash-object --path`, which runs the git-crypt
+  filter), then commit. Never stage, unstage or reset paths in the shared index
+  that are not yours.
 - Never move source, phase texts, schemas or fixtures out of `qualitylayer/`.
 - Use the agent's native file tools for source edits. No bundled tooling (RTK,
   Semble, CodeGraph) is required or assumed.
