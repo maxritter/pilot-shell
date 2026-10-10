@@ -13,6 +13,11 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   release. Offline, a copy runs on the texts it still holds from the
   release before. Before this, such a copy stopped with "this release is
   no longer served" and asked for an update that could not help.
+- While qualitylayer.dev is down, QualityLayer keeps working at full speed.
+  A machine that holds its licence and texts waits at most five seconds for
+  the site, then leaves it alone for half an hour, instead of waiting up to
+  a minute on every command. A licence that needs re-registering while the
+  licence server is down keeps running on the one it holds.
 
 ## 12.0.0-beta.32
 
