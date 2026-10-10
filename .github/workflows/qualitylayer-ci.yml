@@ -48,16 +48,27 @@ jobs:
       - name: Check the encrypted paths are encrypted
         run: bash .github/scripts/check_qualitylayer_encrypted.sh
 
+  # The whole suite, every file, on Linux and macOS on every push. Each shard holds about the same
+  # recorded seconds (scripts/test-timings.json), so every job ends within ten minutes: three on
+  # Linux, five on the slower 3-core macOS runner. Windows runs its own suites below. GitHub runs
+  # at most 20 jobs of this account at once (5 on macOS), so no more shards than that needs.
   test:
-    name: Typecheck, lint, test (${{ matrix.os }}, shard ${{ matrix.shard }}/4)
+    name: Typecheck, lint, test (${{ matrix.os }}, shard ${{ matrix.shard }}/${{ matrix.shards }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 15
     needs: plaintext-guard
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-14]
-        shard: [1, 2, 3, 4]
+        include:
+          - { os: ubuntu-latest, shard: 1, shards: 3 }
+          - { os: ubuntu-latest, shard: 2, shards: 3 }
+          - { os: ubuntu-latest, shard: 3, shards: 3 }
+          - { os: macos-14, shard: 1, shards: 5 }
+          - { os: macos-14, shard: 2, shards: 5 }
+          - { os: macos-14, shard: 3, shards: 5 }
+          - { os: macos-14, shard: 4, shards: 5 }
+          - { os: macos-14, shard: 5, shards: 5 }
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -107,7 +118,38 @@ jobs:
         working-directory: qualitylayer
         env:
           QUALITYLAYER_REQUIRE_RENDER: "1"
-        run: bun run test --shard ${{ matrix.shard }}/4
+        run: bun run test --shard ${{ matrix.shard }}/${{ matrix.shards }}
+
+  # Once per system, not once per test shard: the demo is the same in every shard.
+  overflow:
+    name: No text overflows a control (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    needs: plaintext-guard
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+
+      - name: Unlock repository
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+
+      - name: Install dependencies
+        working-directory: qualitylayer
+        run: bun install --frozen-lockfile
 
       # Every Cockpit view of the demo, at three widths, in Chrome: no text spills out of a
       # button, tab, badge or menu item. The self-test first proves the check still catches one.

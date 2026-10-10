@@ -25,12 +25,17 @@ concurrency:
 
 jobs:
   frontend:
-    name: Source UI browser checks
+    name: Source UI browser checks (shard ${{ matrix.shard }}/4)
     # Forks cannot unlock the encrypted source. Existing plaintext/CI gates remain separate.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    # Over 300 checks, one worker: about 20 minutes on a runner.
-    timeout-minutes: 35
+    # Over 400 checks take about 24 minutes on one worker; four parallel shards of one worker
+    # each (Playwright's --shard) keep every check and end in about seven.
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     env:
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/qualitylayer/dist/.ui-browsers
     steps:
@@ -55,13 +60,32 @@ jobs:
         run: bun x playwright install --with-deps chromium
       - name: Source UI interactions, geometry and accessibility
         working-directory: qualitylayer
-        run: bun run test:ui
+        run: bun run test:ui --shard ${{ matrix.shard }}/4
       - name: Keep fixture failure screenshots
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: qualitylayer-source-ui-${{ github.run_id }}
+          name: qualitylayer-source-ui-${{ github.run_id }}-shard-${{ matrix.shard }}
           # Source-dev traces contain decrypted JS/response bodies. Keep them off public artifacts.
           path: qualitylayer/dist/ui-test-results/**/*.png
           if-no-files-found: warn
           retention-days: 7
+
+  # The one check the release waits for (release.yml, Source UI Gate): green only when every shard
+  # above passed on this commit; a failed, cancelled or skipped shard makes it fail.
+  result:
+    name: Source UI browser checks
+    if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    needs: frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every shard passed
+        env:
+          RESULT: ${{ needs.frontend.result }}
+        run: |
+          if [ "$RESULT" != success ]; then
+            echo "::error::the source UI shards concluded $RESULT"
+            exit 1
+          fi
+          echo "Every source UI shard passed"
