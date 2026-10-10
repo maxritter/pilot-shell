@@ -2,6 +2,16 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.38
+
+### Fixed
+
+- A checkpoint's result is handed to QualityLayer, which files it in the
+  build log itself. A helper that edited the log by hand once took the
+  build's deviations heading with it.
+- When a checkpoint ran while code changed, its line in the build log says
+  what to do: run it again, or keep it and say why.
+
 ## 12.0.0-beta.37
 
 ### Fixed
