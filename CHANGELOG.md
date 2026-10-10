@@ -35,6 +35,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - An experiment that could change a Plan's approach, such as a benchmark
   between two runtimes, runs before the Plan is approved, never as a build
   slice.
+- A reviewer's finding that QualityLayer copies into a Plan no longer fails
+  the Plan's path check; it is QualityLayer's text, not the author's.
+- The Outline's checks no longer flag a type and a function that differ only
+  in case when both exist in the code, an environment variable beside a
+  parameter of the same name, or a name inside a code block. They also stop
+  flagging the task's own records and runtime files outside the repository.
+- A Plan's Oracle is one sentence on its own line. An Oracle that runs on is
+  refused, so the Outline never carries one cut off after its colon.
+- A planning session that was also asked to build starts the build itself
+  once the Outline is done, instead of sending you to a fresh session.
+- When two builds share one checkout, `qualitylayer commit slice` refuses a
+  file the other build changed and has not committed, naming the file and
+  the other task, instead of committing that build's half-done edits.
 
 ## 12.0.0-beta.32
 

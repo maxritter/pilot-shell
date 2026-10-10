@@ -868,13 +868,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [prepare-release, test, build, windows-release, security-scan, assemble-release, source-ui-gate]
-    # !cancelled() and the explicit results instead of the implicit success(): when CI is reused the
-    # fallback shards are skipped, and a skipped job up the chain would skip the release with it.
-    # Wrapped in ${{ }}: a condition that opens with ! must be, or GitHub does not read it as one.
+    # always() and each direct result instead of the implicit success(): when CI is reused the
+    # fallback shards are skipped, and a skipped job up the chain skips every job below it that
+    # does not say always(); !cancelled() did not (beta.33 built three times and published nothing).
+    # A cancelled run still stops here: its jobs' results are not success.
     if: >-
-      ${{ !cancelled() && needs.prepare-release.outputs.should_release == 'true' &&
-      !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'skipped') &&
-      !contains(needs.*.result, 'cancelled') }}
+      ${{ always() && needs.prepare-release.outputs.should_release == 'true' &&
+      needs.prepare-release.result == 'success' && needs.test.result == 'success' &&
+      needs.build.result == 'success' && needs.windows-release.result == 'success' &&
+      needs.security-scan.result == 'success' && needs.assemble-release.result == 'success' &&
+      needs.source-ui-gate.result == 'success' }}
     # main waits for a reviewer in `production`; a dev prerelease uses `beta`, which has none.
     environment: ${{ github.ref_name == 'main' && 'production' || 'beta' }}
     steps:
@@ -910,8 +913,9 @@ jobs:
     timeout-minutes: 30
     needs: [prepare-release, build, assemble-release, approve-release]
     if: >-
-      ${{ !cancelled() && needs.prepare-release.outputs.should_release == 'true' &&
-      needs.approve-release.result == 'success' }}
+      ${{ always() && needs.prepare-release.outputs.should_release == 'true' &&
+      needs.prepare-release.result == 'success' && needs.build.result == 'success' &&
+      needs.assemble-release.result == 'success' && needs.approve-release.result == 'success' }}
     env:
       VERSION: ${{ needs.prepare-release.outputs.version }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -1194,7 +1198,7 @@ jobs:
   beta-install:
     name: Beta install
     needs: [prepare-release, publish-release]
-    if: ${{ !cancelled() && github.ref_name == 'dev' && needs.publish-release.result == 'success' }}
+    if: ${{ always() && github.ref_name == 'dev' && needs.publish-release.result == 'success' }}
     uses: ./.github/workflows/beta-install.yml
     with:
       version: ${{ needs.prepare-release.outputs.version }}
