@@ -2,6 +2,17 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.35
+
+### Fixed
+
+- A checkpoint that is already running is not handed out a second time.
+  Asking for the next step while it runs names the running checkpoint and
+  says the build waits for its result.
+- Checks and test steps find the tools your own terminal finds, such as
+  `cargo` in `~/.cargo/bin`. They used to miss them when the agent's shell
+  had a shorter PATH, and a checkpoint failed on "command not found".
+
 ## 12.0.0-beta.34
 
 ### Fixed
