@@ -61,11 +61,12 @@ jobs:
           fi
 
           # Every commit since the last release tag, not only the tip: a merge
-          # commit on top must not hide a fix:/feat: underneath it.
+          # commit on top must not hide a fix:/feat:/perf: underneath it. A perf:
+          # change is one users feel, so it ships like a fix.
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           RANGE="${LAST_TAG:+$LAST_TAG..}HEAD"
           COMMIT_MSGS=$(git log "$RANGE" --pretty=%B)
-          if echo "$COMMIT_MSGS" | grep -qE "(^|\* )(fix|feat)(\([^)]*\))?!?:"; then
+          if echo "$COMMIT_MSGS" | grep -qE "(^|\* )(fix|feat|perf)(\([^)]*\))?!?:"; then
             echo "Release commit found in $RANGE"
             echo "should_run=true" >> "$GITHUB_OUTPUT"
             exit 0
