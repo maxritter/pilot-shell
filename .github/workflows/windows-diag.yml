@@ -10,27 +10,22 @@ permissions:
 
 jobs:
   diag:
-    name: Windows diag (${{ matrix.os }}, exclusion ${{ matrix.exclusion }})
+    name: Windows diag (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2025, windows-11-arm]
-        exclusion: [early, late]
+        os: [windows-2025]
     defaults:
       run:
         shell: pwsh
     steps:
-      - name: Defender status and early exclusion
+      - name: Audit process creation with command lines
         run: |
-          Get-MpComputerStatus | Select-Object AMRunningMode,RealTimeProtectionEnabled,OnAccessProtectionEnabled,IoavProtectionEnabled,BehaviorMonitorEnabled | Format-List
-          "cpus: $([Environment]::ProcessorCount)"
-          if ('${{ matrix.exclusion }}' -eq 'early') {
-            Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE, $env:RUNNER_TEMP, $env:TEMP, ([IO.Path]::GetTempPath()), "$env:USERPROFILE\.bun", 'C:\msys64'
-            (Get-MpPreference).ExclusionPath
-          }
           auditpol /set /subcategory:"Process Creation" /success:enable
+          New-Item -Path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System\Audit' -Force | Out-Null
+          Set-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System\Audit' -Name ProcessCreationIncludeCmdLine_Enabled -Value 1 -Type DWord
 
       - name: Check out with LF line endings
         run: git config --global core.autocrlf false
@@ -38,24 +33,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Setup git-crypt
-        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
-        with:
-          msystem: MSYS
-          install: git git-crypt
-          update: true
-          path-type: inherit
-
-      - name: Unlock repository
-        shell: msys2 {0}
-        env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: bash .github/workflows/scripts/setup-git-crypt.sh
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
           bun-version: "1.4.2"
+
+      - name: Unlock repository
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          $key = Join-Path $env:RUNNER_TEMP 'git-crypt.key'
+          [IO.File]::WriteAllBytes($key, [Convert]::FromBase64String($env:GIT_CRYPT_KEY))
+          try { bun .github/workflows/scripts/git-crypt-unlock.ts $key } finally { Remove-Item -LiteralPath $key -Force }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Install dependencies
         working-directory: qualitylayer
@@ -65,41 +55,17 @@ jobs:
         working-directory: qualitylayer
         run: bun run build
 
-      - name: Diagnostics before late exclusion
+      - name: Which PowerShell scripts one next starts
         working-directory: qualitylayer
         run: |
           $start = Get-Date
-          bun scripts/diag-windows.ts before
-          Get-WinEvent -FilterHashtable @{LogName='Security';Id=4688;StartTime=$start} -ErrorAction SilentlyContinue | ForEach-Object { Split-Path -Leaf $_.Properties[5].Value } | Group-Object | Sort-Object Count -Descending | Select-Object -First 15 Count,Name | Format-Table -AutoSize
-
-      - name: One CLI flow file before late exclusion
-        working-directory: qualitylayer
-        run: |
-          $start = Get-Date
-          bun test --timeout 300000 --test-name-pattern 'opening the Plan gate starts' tests/e2e/cross-review.test.ts
-          "elapsed: $(((Get-Date) - $start).TotalSeconds) s"
-          Get-WinEvent -FilterHashtable @{LogName='Security';Id=4688;StartTime=$start} -ErrorAction SilentlyContinue | ForEach-Object { Split-Path -Leaf $_.Properties[5].Value } | Group-Object | Sort-Object Count -Descending | Select-Object -First 15 Count,Name | Format-Table -AutoSize
-
-      - name: Late exclusion
-        if: matrix.exclusion == 'late'
-        run: Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE, $env:RUNNER_TEMP, $env:TEMP, ([IO.Path]::GetTempPath()), "$env:USERPROFILE\.bun", 'C:\msys64'
-
-      - name: Diagnostics after
-        working-directory: qualitylayer
-        run: bun scripts/diag-windows.ts after
-
-      - name: One CLI flow file after
-        working-directory: qualitylayer
-        run: |
-          $start = Get-Date
-          bun test --timeout 300000 --test-name-pattern 'opening the Plan gate starts' tests/e2e/cross-review.test.ts
-          "elapsed: $(((Get-Date) - $start).TotalSeconds) s"
-
-      - name: Cockpit speed file
-        working-directory: qualitylayer
-        env:
-          QUALITYLAYER_REQUIRE_RENDER: "1"
-        run: |
-          $start = Get-Date
-          bun test --timeout 300000 tests/e2e/cockpit-speed.test.ts
-          "elapsed: $(((Get-Date) - $start).TotalSeconds) s"
+          bun scripts/diag-windows.ts trace
+          Get-WinEvent -FilterHashtable @{LogName='Security';Id=4688;StartTime=$start} -ErrorAction SilentlyContinue | ForEach-Object {
+            $line = [string]$_.Properties[8].Value
+            $parent = Split-Path -Leaf ([string]$_.Properties[13].Value)
+            if ($line -match '-EncodedCommand\s+(\S+)') {
+              $code = [Text.Encoding]::Unicode.GetString([Convert]::FromBase64String($Matches[1]))
+              $i = $code.IndexOf('ConvertFrom-Json; ')
+              "$($_.TimeCreated.ToString('HH:mm:ss.fff')) [$parent] PS: " + $code.Substring([Math]::Max(0, $i + 18)).Substring(0, [Math]::Min(110, $code.Length - [Math]::Max(0, $i + 18)))
+            } elseif ($line -notmatch 'conhost') { "$($_.TimeCreated.ToString('HH:mm:ss.fff')) [$parent] " + $line.Substring(0, [Math]::Min(140, $line.Length)) }
+          }
