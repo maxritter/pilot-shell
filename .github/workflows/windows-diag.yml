@@ -1,0 +1,105 @@
+name: Windows diagnostics (temporary)
+
+on:
+  push:
+    branches:
+      - ci/windows-speed
+
+permissions:
+  contents: read
+
+jobs:
+  diag:
+    name: Windows diag (${{ matrix.os }}, exclusion ${{ matrix.exclusion }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, windows-11-arm]
+        exclusion: [early, late]
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Defender status and early exclusion
+        run: |
+          Get-MpComputerStatus | Select-Object AMRunningMode,RealTimeProtectionEnabled,OnAccessProtectionEnabled,IoavProtectionEnabled,BehaviorMonitorEnabled | Format-List
+          "cpus: $([Environment]::ProcessorCount)"
+          if ('${{ matrix.exclusion }}' -eq 'early') {
+            Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE, $env:RUNNER_TEMP, $env:TEMP, ([IO.Path]::GetTempPath()), "$env:USERPROFILE\.bun", 'C:\msys64'
+            (Get-MpPreference).ExclusionPath
+          }
+          auditpol /set /subcategory:"Process Creation" /success:enable
+
+      - name: Check out with LF line endings
+        run: git config --global core.autocrlf false
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup git-crypt
+        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
+        with:
+          msystem: MSYS
+          install: git git-crypt
+          update: true
+          path-type: inherit
+
+      - name: Unlock repository
+        shell: msys2 {0}
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+
+      - name: Install dependencies
+        working-directory: qualitylayer
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        working-directory: qualitylayer
+        run: bun run build
+
+      - name: Diagnostics before late exclusion
+        working-directory: qualitylayer
+        run: |
+          $start = Get-Date
+          bun scripts/diag-windows.ts before
+          Get-WinEvent -FilterHashtable @{LogName='Security';Id=4688;StartTime=$start} -ErrorAction SilentlyContinue | ForEach-Object { Split-Path -Leaf $_.Properties[5].Value } | Group-Object | Sort-Object Count -Descending | Select-Object -First 15 Count,Name | Format-Table -AutoSize
+
+      - name: One CLI flow file before late exclusion
+        working-directory: qualitylayer
+        run: |
+          $start = Get-Date
+          bun test --timeout 300000 --test-name-pattern 'opening the Plan gate starts' tests/e2e/cross-review.test.ts
+          "elapsed: $(((Get-Date) - $start).TotalSeconds) s"
+          Get-WinEvent -FilterHashtable @{LogName='Security';Id=4688;StartTime=$start} -ErrorAction SilentlyContinue | ForEach-Object { Split-Path -Leaf $_.Properties[5].Value } | Group-Object | Sort-Object Count -Descending | Select-Object -First 15 Count,Name | Format-Table -AutoSize
+
+      - name: Late exclusion
+        if: matrix.exclusion == 'late'
+        run: Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE, $env:RUNNER_TEMP, $env:TEMP, ([IO.Path]::GetTempPath()), "$env:USERPROFILE\.bun", 'C:\msys64'
+
+      - name: Diagnostics after
+        working-directory: qualitylayer
+        run: bun scripts/diag-windows.ts after
+
+      - name: One CLI flow file after
+        working-directory: qualitylayer
+        run: |
+          $start = Get-Date
+          bun test --timeout 300000 --test-name-pattern 'opening the Plan gate starts' tests/e2e/cross-review.test.ts
+          "elapsed: $(((Get-Date) - $start).TotalSeconds) s"
+
+      - name: Cockpit speed file
+        working-directory: qualitylayer
+        env:
+          QUALITYLAYER_REQUIRE_RENDER: "1"
+        run: |
+          $start = Get-Date
+          bun test --timeout 300000 tests/e2e/cockpit-speed.test.ts
+          "elapsed: $(((Get-Date) - $start).TotalSeconds) s"
