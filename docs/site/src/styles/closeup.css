@@ -53,7 +53,7 @@
 .cu-kind{flex:none;font-size:12.5px;color:var(--ql-text-dim);white-space:nowrap}
 .cu-sep{flex:none;width:1px;height:18px;background:var(--ql-line)}
 .cu-workspace-track{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--ql-line);flex:none;min-width:0}
-.cu-track{display:flex;flex:1;min-width:0;align-items:center;margin:0;padding:0;border:1px solid var(--ql-border);border-radius:8px;list-style:none;overflow-x:auto}
+.cu-track{display:flex;flex:1 1 max-content;min-width:0;align-items:center;margin:0;padding:0;border:1px solid var(--ql-border);border-radius:8px;list-style:none;overflow-x:auto}
 .cu-track li{display:flex;flex:1;min-width:max-content;align-items:center;justify-content:center;gap:5px;min-height:34px;padding:5px 8px;font-size:12px;font-weight:500;color:var(--ql-text-dim);white-space:nowrap}
 .cu-track li+li{border-left:1px solid var(--ql-border)}
 .cu-track li.done{color:var(--ql-text-muted)}
@@ -348,7 +348,8 @@
 }
 @container cu (max-width: 560px){
   .cu-track{flex-basis:100%}
-  .cu-track li{padding:5px 6px;min-height:44px}
+  .cu-workspace-track{padding:8px}
+  .cu-track li{padding:5px 2px;min-height:44px;font-size:11px}
   .cu-chip{padding:0 10px}
   .cu-gt{padding:0 12px}
   .cu-pill{display:none}
