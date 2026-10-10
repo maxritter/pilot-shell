@@ -9,6 +9,8 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - With **Reduce motion** turned on in your system settings, menus and pop-ups
   open where they belong. A menu could stay drawn at its starting place, off
   the screen, for a moment or longer on a busy computer.
+- On Linux, an open App no longer wakes every 15 seconds to read everything
+  again while nothing changes.
 
 ## 12.0.0-beta.30
 
