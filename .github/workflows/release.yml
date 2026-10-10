@@ -75,13 +75,14 @@ jobs:
           echo "should_run=false" >> "$GITHUB_OUTPUT"
 
   source-ui-gate:
-    # Reuse the standalone one-worker UI check on this SHA; never start a second browser suite here.
+    # Reuse the standalone UI check on this SHA (qualitylayer-ui.yml: parallel shards, then the one
+    # "Source UI browser checks" result); never start a second browser suite here.
     name: Source UI Gate
     permissions:
       contents: read
       checks: read
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 25
     needs: check-trigger
     if: needs.check-trigger.outputs.should_run == 'true'
     steps:
@@ -89,8 +90,8 @@ jobs:
         with:
           script: |
             const expected = 'Source UI browser checks';
-            // The browser suite takes about 20 minutes on a runner; its own job stops at 35.
-            const deadline = Date.now() + 40 * 60 * 1000;
+            // The sharded browser suite takes about seven minutes; each shard stops at 15.
+            const deadline = Date.now() + 20 * 60 * 1000;
             let latest = null;
             while (Date.now() < deadline) {
               const runs = await github.paginate(github.rest.checks.listForRef, {
@@ -109,7 +110,7 @@ jobs:
               }
               await new Promise(resolve => setTimeout(resolve, 30_000));
             }
-            core.setFailed(`${expected} did not succeed within 40m for ${context.sha}; ` +
+            core.setFailed(`${expected} did not succeed within 20m for ${context.sha}; ` +
               `last status ${latest?.status ?? 'missing'}. Release blocked.`);
 
   supply-chain-gate:
@@ -208,15 +209,21 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
 
-  test:
-    name: QualityLayer Tests
+  # The tests of the release SHA are the ones CI ran on its push (qualitylayer-ci.yml): every job
+  # there ends within ten minutes, so this waits up to fifteen for all of them and reuses their
+  # result. Only when they are still missing then does the suite run here, split over parallel
+  # jobs (test-fallback). The Windows nightly (qualitylayer-windows-nightly.yml) is not required.
+  ci-reuse:
+    name: Reuse CI results
     permissions:
       contents: read
       checks: read
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     needs: [check-trigger, supply-chain-gate]
     if: needs.check-trigger.outputs.should_run == 'true'
+    outputs:
+      reuse: ${{ steps.ci.outputs.reuse }}
     steps:
       - name: Decide whether to reuse CI or run checks
         id: ci
@@ -225,11 +232,16 @@ jobs:
         run: |
           checks="${RUNNER_TEMP:?}/ci-checks.json"
           required="${RUNNER_TEMP:?}/required-ci-checks.txt"
+          wait=900
           printf '%s\n' 'Plaintext guard' 'Site API and pages' > "$required"
+          for shard in 1 2 3 4; do
+            printf 'Typecheck, lint, test (ubuntu-latest, shard %s/4)\n' "$shard" >> "$required"
+          done
+          for shard in 1 2 3 4 5; do
+            printf 'Typecheck, lint, test (macos-14, shard %s/5)\n' "$shard" >> "$required"
+          done
           for os in ubuntu-latest macos-14; do
-            for shard in 1 2 3 4; do
-              printf 'Typecheck, lint, test (%s, shard %s/4)\n' "$os" "$shard" >> "$required"
-            done
+            printf 'No text overflows a control (%s)\n' "$os" >> "$required"
           done
           for os in windows-2025 windows-11-arm; do
             for shard in 1 2 3 4 5 6; do
@@ -238,10 +250,10 @@ jobs:
           done
           started=$(date +%s)
           while true; do
-            remaining=$((300 - $(date +%s) + started))
+            remaining=$((wait - $(date +%s) + started))
             if [ "$remaining" -le 0 ]; then
               echo "reuse=false" >> "$GITHUB_OUTPUT"
-              echo "Required CI checks still pending or missing after five minutes; run checks"
+              echo "Required CI checks still pending or missing after fifteen minutes; run checks"
               exit 0
             fi
             if ! timeout "${remaining}s" gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?per_page=100" > "$checks"; then
@@ -272,7 +284,7 @@ jobs:
                 exit 1
                 ;;
               pending)
-                remaining=$((300 - $(date +%s) + started))
+                remaining=$((wait - $(date +%s) + started))
                 if [ "$remaining" -gt 0 ]; then
                   pause=15
                   if [ "$remaining" -lt "$pause" ]; then pause="$remaining"; fi
@@ -283,56 +295,96 @@ jobs:
             esac
           done
 
+  # The same suite as CI's Linux jobs, in four parallel shards; only when CI cannot be reused.
+  test-fallback:
+    name: QualityLayer Tests (fallback, shard ${{ matrix.shard }}/4)
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: ci-reuse
+    if: needs.ci-reuse.outputs.reuse == 'false'
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
       - name: Checkout
-        if: steps.ci.outputs.reuse != 'true'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install git-crypt
-        if: steps.ci.outputs.reuse != 'true'
         run: bash .github/workflows/scripts/install-git-crypt.sh
 
       - name: Check the encrypted paths are encrypted in the public tree
-        if: steps.ci.outputs.reuse != 'true'
         run: bash .github/scripts/check_qualitylayer_encrypted.sh
 
       - name: Unlock repository
-        if: steps.ci.outputs.reuse != 'true'
         env:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
         run: bash .github/workflows/scripts/setup-git-crypt.sh
 
       - name: Setup Bun
-        if: steps.ci.outputs.reuse != 'true'
         uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
           bun-version: "1.4.2"
 
       - name: Install dependencies
-        if: steps.ci.outputs.reuse != 'true'
         working-directory: qualitylayer
         run: bun install --frozen-lockfile
 
       # The suites run the site's real handlers on the in-process database (PGlite) it ships.
       - name: Install the site's dependencies
-        if: steps.ci.outputs.reuse != 'true'
         working-directory: docs/site
         run: npm ci --ignore-scripts
 
       - name: Install the pinned native Claude Code for mod tests
-        if: steps.ci.outputs.reuse != 'true'
         run: bash .github/workflows/scripts/setup-claude-code.sh "${RUNNER_TEMP:?}/ql-native-claude"
 
       - name: Typecheck, lint, test
-        if: steps.ci.outputs.reuse != 'true'
         working-directory: qualitylayer
         env:
           QUALITYLAYER_REQUIRE_RENDER: "1"
+          SHARD: ${{ matrix.shard }}
         run: |
           bun run typecheck
           bun run lint
-          bun run test
+          bun run test --shard "$SHARD/4"
+
+      - name: No text overflows a control
+        if: matrix.shard == 1
+        working-directory: qualitylayer
+        run: |
           bun scripts/check-overflow.ts --self-test --require-render
           bun run check:overflow -- --require-render
+
+  # What Approve Release waits for: CI's results reused, or every fallback shard green.
+  test:
+    name: QualityLayer Tests
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [check-trigger, ci-reuse, test-fallback]
+    if: always() && needs.check-trigger.outputs.should_run == 'true'
+    steps:
+      - name: CI reused or the fallback passed
+        env:
+          DECIDED: ${{ needs.ci-reuse.result }}
+          REUSE: ${{ needs.ci-reuse.outputs.reuse }}
+          FALLBACK: ${{ needs.test-fallback.result }}
+        run: |
+          if [ "$DECIDED" != success ]; then
+            echo "::error::the CI reuse decision concluded $DECIDED"
+            exit 1
+          fi
+          if [ "$REUSE" = true ]; then
+            echo "Reused CI: every required check passed for $GITHUB_SHA"
+          elif [ "$FALLBACK" = success ]; then
+            echo "Every fallback shard passed for $GITHUB_SHA"
+          else
+            echo "::error::the fallback suite concluded $FALLBACK"
+            exit 1
+          fi
 
   prepare-release:
     name: Prepare Release
