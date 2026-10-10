@@ -2,6 +2,14 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.40
+
+### Fixed
+
+- When two builds commit to the same branch, each task's reviews look at
+  its own change. Files only the other build edited stay out of Polish,
+  the security review, the independent judge and the pull request.
+
 ## 12.0.0-beta.39
 
 ### Fixed
