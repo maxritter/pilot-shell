@@ -2,6 +2,17 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.32
+
+### Fixed
+
+- On Windows, every QualityLayer command is quick again. Each call asked
+  Windows for its process list up to nine times, about six seconds per
+  command; it now asks once and answers in under a second.
+- **Approve and open a pull request** always opens it with the task's closing
+  record. Before, the push could go out first, and the record reached the pull
+  request only with the first fix.
+
 ## 12.0.0-beta.31
 
 ### Fixed
