@@ -2,6 +2,16 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.36
+
+### Fixed
+
+- A Plan may name a folder outside the repository, such as `cost/` in
+  QualityLayer's home, without the Files check asking for it.
+- When new work is added to a slice that is waiting for its commit, the
+  next step says to commit that slice first; then the new work is handed
+  out.
+
 ## 12.0.0-beta.35
 
 ### Fixed
