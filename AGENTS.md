@@ -61,8 +61,10 @@ All in `qualitylayer/`:
   through a private index, the way `qualitylayer commit slice` does: set
   `GIT_INDEX_FILE` to a temporary file, `git read-tree HEAD`, add only your
   files (`git update-index` or `hash-object --path`, which runs the git-crypt
-  filter), then commit. Never stage, unstage or reset paths in the shared index
-  that are not yours.
+  filter), then commit. Afterwards bring your own paths in the shared index up
+  to the new commit (`git reset -q HEAD -- <your paths>`); otherwise it keeps
+  their old blobs and the next commit from it reverts yours. Never stage,
+  unstage or reset paths in the shared index that are not yours.
 - Never move source, phase texts, schemas or fixtures out of `qualitylayer/`.
 - Use the agent's native file tools for source edits. No bundled tooling (RTK,
   Semble, CodeGraph) is required or assumed.
