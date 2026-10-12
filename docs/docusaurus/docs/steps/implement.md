@@ -49,6 +49,6 @@ Comment on any slice while it builds, or write to your agent at any time. The fu
 ![A checkpoint after a risky slice: its scenarios run on the real program, a failure goes to an agent to fix and runs again, and after four failed runs it is recorded as open while the build goes on](pathname:///img/diagrams/checkpoint-light.svg)
 ![A checkpoint after a risky slice: its scenarios run on the real program, a failure goes to an agent to fix and runs again, and after four failed runs it is recorded as open while the build goes on](pathname:///img/diagrams/checkpoint-dark.svg)
 
-After a slice the Plan marks risky, its scenarios run on the real program. A failure goes to an agent to fix; after four failed runs it is noted for the final review and the build goes on.
+After a risky slice that two or more slices build on, its scenarios run on the real program. A failure goes to an agent to fix; after four failed runs it is noted for the final review and the build goes on.
 
 When the last slice is built, [Verify](verify.md) starts by itself.

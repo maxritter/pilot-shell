@@ -84,7 +84,7 @@ You rarely type these; they are what you see in your agent's chat.
 | `qualitylayer plan draft` | Check the Plan and start its review, without asking you anything yet; your agent opens the approval once the findings are folded in |
 | `qualitylayer gate open 03-plan.md` · `gate open final` | Put the Plan or the finished change up for your approval |
 | `qualitylayer plan amend` · `outline amend` | Record a change to the Plan or the Outline made after the Plan was approved, with the reason; it reaches the final review. `--for T<n> --add-file <path>` puts a file on one task card, and `--add-file T<n>:<path>` names the card in each flag, for several cards in one call. Only the build session runs it |
-| `qualitylayer task override +security` · `-security` · `+checkpoint:all` · `-checkpoint` · `+second-opinion` · `-second-opinion` | Change which optional checks one task gets, as when you say "skip security" in words |
+| `qualitylayer task override +security` · `-security` · `+checkpoint:all` · `+checkpoint` · `-checkpoint` · `+second-opinion` · `-second-opinion` | Change which optional checks one task gets, as when you say "skip security" in words |
 | `qualitylayer check slice <n>` | Run a slice's approved checks and record them |
 | `qualitylayer check failed` | Rerun only the test files that failed in the last full run, with the fast project checks; `--background` runs it detached |
 | `qualitylayer commit fix` | Commit the files this task's sessions edited since the latest fix agent was handed out, the way `commit slice` commits a slice; `--message` and `--take-staged` work as there |
