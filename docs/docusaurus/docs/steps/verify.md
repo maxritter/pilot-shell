@@ -24,7 +24,7 @@ Verify starts by itself when the last slice is built. Agents that did not write 
 | **5. Second opinion** | On a risky change, the other coding agent looks for what would break ([Settings](../reference/settings.md#second-opinion) can make it always run) |
 | **6. Fix rounds** | One agent fixes everything found at once; only what failed or what a fix touched runs again |
 
-Checks 1 and 2 run side by side, and so do 4 and 5. A small change (one or two slices, nothing risky, no screen, no sign-in or secrets) skips Polish, and the page says "skipped · light task"; its Independent review runs on the helpers' model (Sonnet 5.5 in Claude Code) and still proves every point.
+Checks 1 and 2 run side by side, and the Second opinion starts with them. Its findings are fixed before the Independent review starts, so that review runs once, on the final code. A small change (one or two slices, nothing risky, no screen, no sign-in or secrets) skips Polish, and the page says "skipped · light task"; its Independent review runs on the helpers' model (Sonnet 5.5 in Claude Code) and still proves every point.
 
 ## Proof for each point {#live}
 
