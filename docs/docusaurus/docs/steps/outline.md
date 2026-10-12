@@ -21,7 +21,7 @@ The Plan says what the change is; the Outline says how it is built, slice by sli
 | **Gaps checked** | Cancelling, empty or duplicate input, the limits, two things at once. Each real gap becomes a scenario or a line under *Not doing* |
 | **Every command the build will run** | In the whole file, so nothing runs unseen. A push, deploy, publish or outside call is refused unless the Plan's **Before the build** allows it |
 
-The Outline follows the Plan's size: fewer, larger tasks build faster than many small ones. For a risky Plan of two or more slices, or a build of four or more slices, a second agent also reads the Outline as a builder would, looking for cards nobody could build and points nothing proves; the build session fixes what it finds.
+The Outline follows the Plan's size: fewer, larger tasks build faster than many small ones. A small task's Outline of one or two slices is written by the planning agent while you read the Plan, so its build starts the moment you approve. For a risky Plan of two or more slices, or a build of four or more slices, a second agent also reads the Outline as a builder would, looking for cards nobody could build and points nothing proves; the build session fixes what it finds.
 
 ## What you do {#what-you-do}
 
