@@ -33,6 +33,7 @@ import {
 import { Asks } from "./shared/Asks";
 import { Blocks } from "./shared/Blocks";
 import { SharedDocument } from "./shared/SharedDocument";
+import { SharedDesigns } from "@ql/ui/design/SharedDesigns";
 import { ChangeView } from "./SharedChange";
 import "@/styles/shared.css";
 import { flowStepOf } from "@ql/core/flow";
@@ -372,7 +373,7 @@ function Ready({
           <p className="sh-meta">
             {`${share.owner !== undefined ? `${share.owner} shared this with you` : "Shared with you"} to read and comment on${
               expires !== null ? ` · the link runs out on ${expires.toLocaleDateString("en-US", { day: "numeric", month: "short" })}` : ""
-            } · no code is shared`}
+            } · project source code is kept private`}
           </p>
           <nav className="sh-tabs" aria-label="Steps">
             {tabs.map((id) => (
@@ -384,6 +385,7 @@ function Ready({
         </header>
 
         <div className="sh-body" data-testid="shared-doc">
+          <SharedDesigns docs={share.docs} theme={theme} comments={sent.flatMap((c) => c.doc ? [{ id: c.key, doc: c.doc, remark: c.text, author: author || "Guest" }] : [])} onComment={(file, title) => quote(file, `Design: ${title}`)} />
           {tab === "review" && hasChange ? (
             <>
               <Sections share={share} names={names} items={tabItems} drafts={drafts} settled={settled} onAnswer={answer} commentsOn={commentsOn} onQuote={quote} onSelected={quoteSelection} />

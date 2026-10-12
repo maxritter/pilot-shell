@@ -6,6 +6,7 @@
  */
 
 import DOMPurify from "dompurify";
+import { sharedDesignHtml } from "@ql/ui/design/shared-html";
 import { marked, type Token, type Tokens, type TokensList } from "marked";
 
 export type PlanBlock =
@@ -128,8 +129,10 @@ export function contractsOf(details: string): Contract[] {
 export const mockupName = (path: string) => path.replace(/^artifacts\//, "");
 
 /** A mockup's html from the link: the fence names `artifacts/settings.html`, an item just `settings.html`. */
-export const mockupHtml = (docs: Record<string, string>, path: string): string | undefined =>
-  docs[path] ?? docs[`artifacts/${mockupName(path)}`];
+export const mockupHtml = (docs: Record<string, string>, path: string): string | undefined => {
+  const html = docs[path] ?? docs[`artifacts/${mockupName(path)}`];
+  return html !== undefined && path.startsWith("design/") ? sharedDesignHtml(html) : html;
+};
 
 const CSP =
   "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:";

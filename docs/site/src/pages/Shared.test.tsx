@@ -59,7 +59,7 @@ describe("the approved document view", () => {
     for (const step of ["Discuss", "Plan", "Implement", "Verify", "Review"]) expect(page).toContain(`>${step}<`);
     expect(page).toContain("One deployment.");
     expect(page).toContain("Max shared this with you");
-    expect(page).toContain("no code is shared");
+    expect(page).toContain("project source code is kept private");
     expect(page).toContain("Your name");
     expect(page).toContain(">Send to Max<");
     expect(page).not.toContain(">Approve<");

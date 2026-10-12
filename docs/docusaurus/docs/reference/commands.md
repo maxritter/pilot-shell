@@ -49,7 +49,7 @@ Give one link source and an output folder. Reading a link from a file or standar
 <summary>What a fetch reads, writes and checks</summary>
 
 - **The link.** Only HTTPS links on `qualitylayer.dev` or `www.qualitylayer.dev` are accepted, and redirects are refused. The fragment key decrypts the copy on your computer. It is left out of requests, errors and the manifest. Network reads time out after 15 seconds and accept a decrypted copy of up to 512 KiB.
-- **The snapshot.** Every success writes a new folder with only the reached Markdown documents and `manifest.json`: the title, reached step, share ID, revision, expiry, fetch time and a SHA-256 hash for each file. JSON output returns the same paths and values. Designs, reviews, command output, code and logs are excluded. Local edits and earlier downloads are kept.
+- **The snapshot.** Every successful fetch writes a new folder with the reached Markdown documents, explicitly included task designs and `manifest.json`. The manifest records the title, reached step, share ID, revision, expiry, fetch time and a SHA-256 hash for each file. JSON output returns the same paths and values. Agent records, repository source, command output and logs are excluded. Local edits and earlier downloads are kept.
 - **A snapshot stays at the fetched revision.** Fetch again to read the latest published copy. Network, revoked-link and expired-link errors never present an older snapshot as current. Revoking a link cannot remove files you already downloaded.
 - **The output directory** should be private. Ownership and permission checks on Unix, or directory access rules on Windows, must show that other users cannot replace its path components. Symbolic links and unsafe directories are refused, and an existing directory's permissions are left unchanged.
 
@@ -111,6 +111,17 @@ Your agent draws [designs](../designs.md) with these, at any step, inside a task
 | `qualitylayer design new <name> --wire` | Start a wireframe instead: grey boxes and real labels that settle the layout. A name ending in `-options` gets two layouts side by side. The finished design for the Plan is made without `--wire` |
 | `qualitylayer design show <name> [--changed "<line>"]` | Mark it updated, with one line of what changed, so you see it as soon as it renders |
 | `qualitylayer design list` | List the designs |
+| `qualitylayer design context` | Read the local product documents and tokens before authoring |
+| `qualitylayer design inspect <name>` | Read HTML, metadata and the source revision |
+| `qualitylayer design push <name> --from <html> --if-match <revision\|0>` | Create or update from a local file; `0` requires an absent design, and stale revisions are refused |
+| `qualitylayer design pull <name> --out <html>` | Export the current self-contained source to a new file; `import` and `export` alias `push` and `pull` |
+| `qualitylayer design metadata <name> --title <title> --purpose <purpose> --if-match <revision>` | Update the title and purpose |
+| `qualitylayer design copy\|rename <name> --to <name> --if-match <revision>` | Duplicate an artboard or change its filename |
+| `qualitylayer design delete <name> --if-match <revision>` | Remove an unreferenced design, retaining its source in history |
+| `qualitylayer design history <name>` | List saved source revisions |
+| `qualitylayer design restore <name> --revision <id> --if-match <revision\|0>` | Restore a revision while keeping the current source |
+| `qualitylayer design check <name>` | Check native HTML structure and local resources; rendered quality still needs screenshots and interactions |
+| `qualitylayer design sharing [--on\|--off]` | Include or exclude the selected task's designs in its team copy and public link; access follows the workflow's share controls |
 | `qualitylayer design shot <name> [--width <px>] [--theme light\|dark]` | Take a picture of a design, so the agent can look at its own work |
 | `qualitylayer design comments <name>` | The open comments on a design, each with its spot |
 
