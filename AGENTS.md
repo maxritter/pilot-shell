@@ -80,16 +80,17 @@ All in `qualitylayer/`:
   idle is near 0% CPU. Files that grow in the QualityLayer home carry a cap
   (`core/home-caps.ts`); the server's own check is `server/resource-guard.ts`.
 
-## Workflow changes are measured
+## Bigger workflow changes are measured
 
-- A change to how a task runs (phase texts, schemas, briefs, helpers, gates,
-  scaling rules, `next`, settings defaults, the CLI paths agents call, the
-  skill) lands with a bench compare on Claude Code **and** Codex: `bun run
-  bench` (skill `ql-bench`, design `qualitylayer/design/bench.md`). Take the
-  baseline before editing, on the same cells.
-- Keep it only when acceptance is not worse on any cell and agent, and time,
-  cost or fresh tokens are better without another getting worse. A verdict
-  with `?` needs more repeats before it is claimed.
+- The bench is on demand: run it for a bigger change to how a task runs (a
+  new or reshaped step, helpers, gates, scaling rules, settings defaults,
+  several phase-text changes at once), or when the person asks. Not for every
+  release or small wording fix: a run costs real time and tokens. `bun run
+  bench` (skill `ql-bench`, design `qualitylayer/design/bench.md`) runs
+  Claude Code **and** Codex; take the baseline on the same cells.
+- Quality first: keep a measured change only when acceptance and test
+  strength are not worse on any cell and agent; then time, cost and fresh
+  tokens decide. A verdict with `?` needs more repeats before it is claimed.
 - Put the compare's headline in the commit body and in
   `qualitylayer/design/bench-log.md`. Compare QualityLayer with its own
   earlier version only; the plain agents calibrate the acceptance checks.

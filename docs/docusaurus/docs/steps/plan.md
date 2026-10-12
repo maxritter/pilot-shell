@@ -19,13 +19,17 @@ The Plan is the one document you approve before any code is written. Agents buil
 | --- | --- |
 | **What the Plan rests on** | The research findings behind it, one sentence each |
 | **The design** | For a change people see: a wireframe for a small change to a screen that exists, a finished design for a new screen; comment on any spot ([Designs](../designs.md)) |
-| **Engineering decisions** | Each with its diagram and reasoning; the **contracts** between parts fold to one headline each |
+| **Engineering decisions** | Each in two sentences; one that a picture shows better gets a diagram through the lens its question asks (architecture, sequence, state, data, screens, commands, services or flow), with every arrow saying why. The **contracts** between parts fold to one headline each |
 | **Done means** | The results from [Discuss](discuss.md); your approval covers them |
 | **Decided by you**, **Decisions made for you** | Your answers, then the smaller choices your agent took, each with its reason |
 | **Not doing**, **Before the build** | What stays untouched, and what must be ready first, such as a login only you can give |
 | **How we will know it works** | The one check for the whole change, its size, and whether it is risky and why |
 
 At the **Engineering** level every section is open. At the **Product** level each decision says what changes for the user and why, and the diagrams and contracts fold under **More in this document** ([two levels](../intro.md#two-levels)).
+
+### What to read first {#read-first}
+
+A decision the change can break where its tests do not reach is labelled **risky**, one that rests on something nobody could check yet is labelled **unsure**, and each carries a **Look here** line saying why, with an amber edge. In its diagram the part the risk sits on is drawn amber too. Sections with nothing marked, such as **Decided by you** and **Not doing**, fold to their heading with a count; one click opens them. A Plan with nothing risky marks nothing.
 
 ## Approve or give feedback {#answering}
 

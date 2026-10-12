@@ -30,6 +30,8 @@ Each card has a tab per agent: **Claude Code**, **Codex** and **Another agent**.
 
 **Another agent** uses the models set in that agent, so there is nothing to pick here.
 
+**No subagents** as the workers makes the session build and check everything itself, with no fresh agent anywhere. It is faster and cheaper, but on a risky change the tests it writes catch far fewer faults ([Verify](../steps/verify.md#lanes)), so the recommended setup keeps the workers.
+
 ### Independent review {#independent-review}
 
 On every task, an agent that never wrote the code decides whether the change passes [Verify](../steps/verify.md). Pick its model for Claude Code (Opus 5.5) and for Codex (GPT-6.1 Sol), or switch it off. A small change's review runs on the helpers' model (Sonnet 5.5 in Claude Code) unless you picked a model here yourself.

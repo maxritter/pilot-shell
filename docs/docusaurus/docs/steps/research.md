@@ -29,6 +29,6 @@ Usually nothing; comment on a finding you disagree with. When the code leaves a 
 
 ## The document {#the-page}
 
-`02-research.md` is titled **How the code works today**. It opens with a summary in plain words, then the questions and their state. Each finding folds to one headline; open it for its call tree or data shape. It ends with what the goal puts at risk and **Decided with you**.
+`02-research.md` is titled **How the code works today**. It opens with a summary in plain words, then the questions and their state. Each finding folds to one headline; open it for its call tree or data shape. It ends with what the goal puts at risk and **Decided with you**. Your agent labels at most three findings or risks you should read first, **risky** or **unsure**, each with a **Look here** line saying why; sections with nothing marked, such as the questions and the code references, fold to their heading.
 
 Next: [Plan](plan.md).

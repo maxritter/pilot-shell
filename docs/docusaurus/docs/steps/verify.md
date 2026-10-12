@@ -26,6 +26,8 @@ Verify starts by itself when the last slice is built. Agents that did not write 
 
 Checks 1 and 2 run side by side, and the Second opinion starts with them. Its findings are fixed before the Independent review starts, so that review runs once, on the final code. A small change (one or two slices, nothing risky, no screen, no sign-in or secrets) skips Polish, and the page says "skipped · light task"; its Independent review runs on the helpers' model (Sonnet 5.5 in Claude Code) and still proves every point.
 
+With **No subagents** in [Settings](../reference/settings.md#defaults), the build session runs every check itself, and the page says so: the review is marked **not independent**. Measured on a change across a trust boundary, that halved the time and cost but let the change's own tests catch far fewer planted faults, so QualityLayer recommends keeping the agents on. A second opinion that does not run says why: the change is not risky, Settings switched it off, or you asked for none.
+
 ## Proof for each point {#live}
 
 Each **Done means** point shows its checks and evidence as they come in. Open one for its scenarios and proof: the output, a screenshot or a file. The record is `06-verify.md`.
