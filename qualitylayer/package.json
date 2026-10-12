@@ -29,6 +29,7 @@
     "check:overflow": "bun scripts/check-overflow.ts",
     "dev:skill": "bun run scripts/dev-skill.ts",
     "release-gate": "bun run tests/release/run-agent.ts",
+    "bench": "bun run tests/release/bench.ts",
     "person-test": "bun run tests/release/person-session.ts",
     "beta-smoke": "bun run tests/release/beta-smoke.ts",
     "evals": "bun run tests/release/evals.ts",
