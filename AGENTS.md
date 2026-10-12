@@ -91,8 +91,8 @@ All in `qualitylayer/`:
   cost or fresh tokens are better without another getting worse. A verdict
   with `?` needs more repeats before it is claimed.
 - Put the compare's headline in the commit body and in
-  `qualitylayer/design/bench-log.md`. Measure the gap to the plain agents
-  (`plain-claude`, `plain-codex`) before a release.
+  `qualitylayer/design/bench-log.md`. Compare QualityLayer with its own
+  earlier version only; the plain agents calibrate the acceptance checks.
 
 ## Design changes
 
