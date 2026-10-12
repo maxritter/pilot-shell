@@ -30,11 +30,11 @@ Each card has a tab per agent: **Claude Code**, **Codex** and **Another agent**.
 
 **Another agent** uses the models set in that agent, so there is nothing to pick here.
 
-**No subagents** as the workers makes the session build and check everything itself, with no fresh agent anywhere. It is faster and cheaper, but on a risky change the tests it writes catch far fewer faults ([Verify](../steps/verify.md#lanes)), so the recommended setup keeps the workers.
+**No subagents** as the workers makes the session build and check everything itself, with no fresh agent anywhere, Polish included. The recommended setup keeps the workers: a fresh Polish agent adds the tests the build missed, and without it a medium change's own tests caught fewer planted faults ([Verify](../steps/verify.md#lanes)).
 
 ### Independent review {#independent-review}
 
-On every task, an agent that never wrote the code decides whether the change passes [Verify](../steps/verify.md). Pick its model for Claude Code (Opus 5.5) and for Codex (GPT-6.1 Sol), or switch it off. A small change's review runs on the helpers' model (Sonnet 5.5 in Claude Code) unless you picked a model here yourself.
+An agent that never wrote the code decides whether a risky change passes [Verify](../steps/verify.md): **Fresh agent: When risky** (recommended) or **Always**. On a change that is not risky, the build session runs the same review itself and the page marks it **not independent**; measured, that changed nothing the checks catch on small and medium changes and saved the review's time and cost, while on a risky change the fresh agent found a security fault the checks missed. Pick its model for Claude Code (Opus 5.5) and for Codex (GPT-6.1 Sol), or switch it off.
 
 ### Second opinion {#second-opinion}
 
@@ -53,7 +53,7 @@ A change is risky when the Plan says so, when it touches sign-in, secrets or out
 
 ## For one task {#for-one-task}
 
-Tell your agent in words: "skip security", "run a checkpoint after every slice", "get a second opinion", "no second opinion". A small change skips Polish and the second read of its Outline; ask to bring either back. No setting turns an approval off.
+Tell your agent in words: "skip security", "run a checkpoint after every slice", "get a second opinion", "no second opinion". A small change skips the second read of its Outline; ask to bring it back, or say "skip polish" to leave Polish out. No setting turns an approval off.
 
 ## Licence
 

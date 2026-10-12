@@ -6,7 +6,7 @@ description: After you approve the Plan, the build session cuts it into slices, 
 ![The eight steps, with Outline highlighted](pathname:///img/diagrams/track-outline-light.svg)
 ![The eight steps, with Outline highlighted](pathname:///img/diagrams/track-outline-dark.svg)
 
-The Plan says what the change is; the Outline says how it is built, slice by slice. The session you start after approving the Plan writes it from the Plan in a few minutes, then builds it in the same session. **You do not approve it.**
+The Plan says what the change is; the Outline says how it is built, slice by slice. The session you start after approving the Plan writes it from the Plan in a few minutes, then builds it in the same session; a small task's Outline is written by the planning agent while you read the Plan. **You do not approve it.**
 
 ![Outline: the build order, the slices, how each Done means point is proved and the check by a second reader](pathname:///img/diagrams/outline-light.svg)
 ![Outline: the build order, the slices, how each Done means point is proved and the check by a second reader](pathname:///img/diagrams/outline-dark.svg)
