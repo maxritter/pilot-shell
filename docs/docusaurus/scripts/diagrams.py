@@ -1087,28 +1087,6 @@ def pull_request_ill(c: Theme) -> str:
     return svg(W, H, ''.join(b), 'The pull request step: you approve and QualityLayer opens the pull request on GitHub and follows its checks and reviewers. When a thread, a request for changes or a failing check arrives, it waits in Your turn; your agent goes through it with you and you push the fix. You merge the pull request yourself, and the task closes')
 
 
-def abandon_ill(c: Theme) -> str:
-    W, H = 1000, 170
-    b = []
-    items = [('Stop the task', 'Stops the work', 'The documents stay in your repository', 'muted'),
-             ('Archive', 'Off the App’s task list', 'Restore brings it back', 'muted'),
-             ('Delete', 'Removes the plan folder', 'Asks first, then moves the files to the Trash', 'dim')]
-    for i, (t, s, d, col) in enumerate(items):
-        x = i * 340
-        b.append(card(c, x, 0, 320, 166))
-        b.append(f'<rect x="{x + 18}" y="20" width="34" height="34" rx="9" fill="{c["bg"]}" stroke="{c[col]}" stroke-width="1.6"/>')
-        if i == 0:
-            b.append(f'<rect x="{x + 28}" y="30" width="14" height="14" rx="2" fill="{c[col]}"/>')
-        elif i == 1:
-            b.append(f'<path d="M{x + 27} {33} h16 v11 h-16 z M{x + 25} {29} h20 v4 h-20 z" fill="none" stroke="{c[col]}" stroke-width="1.6"/>')
-        else:
-            b.append(f'<path d="M{x + 28} {32} h14 l-1.5 13 h-11 z M{x + 26} {30} h18 M{x + 32} {28} h6" fill="none" stroke="{c[col]}" stroke-width="1.6"/>')
-        b.append(T(x + 66, 44, t, 16, 'text', 650, c=c))
-        b.append(T(x + 18, 92, s, 13.5, 'text', 500, c=c))
-        b.append(T(x + 18, 116, d, 12.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'Stop the task ends the work and keeps the documents; Archive hides a task; Delete removes its plan folder after asking')
-
-
 # ---------------------------------------------------------------- the App around the steps
 def band_ill(c: Theme) -> str:
     W, H = 1000, 250
@@ -1545,7 +1523,7 @@ DRAWINGS = [('architecture', architecture), ('flow-pr', lambda c: flow(c, pr=Tru
             ('implement', implement_ill), ('checkpoint', checkpoint_ill),
             ('discuss', discuss_ill), ('research', research_ill), ('diagnose', diagnose_ill), ('plan', plan_ill), ('outline', outline_ill),
             ('verify', verify_ill), ('stopped', stopped_ill), ('review', review_ill), ('comments', comments_ill),
-            ('pull-request', pull_request_ill), ('abandon', abandon_ill), ('band', band_ill), ('cost', cost_ill),
+            ('pull-request', pull_request_ill), ('band', band_ill), ('cost', cost_ill),
             ('attention', attention_ill), ('feedback', feedback_ill), ('agents-other', agents_other_ill),
             ('team', team), ('team-agents', team_agents), ('team-timeline', team_timeline), ('team-change', team_change),
             ('peers', peers), ('install', install_ill), ('firsttask', firsttask_ill), ('update', update_ill),
