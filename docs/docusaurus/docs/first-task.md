@@ -23,7 +23,8 @@ Pick a medium-sized feature in a repository you know, and keep the App open besi
 
 - Saying "Using QualityLayer, plan …" works too. Without the name, nothing starts.
 - In **Your turn**, **Skip for now** moves on; **Tell me more** asks for detail.
-- The Outline needs no approval: your agent writes it while you read the Plan.
+- A comment you leave on any passage reaches your agent within a minute and is answered on the comment.
+- The Outline needs no approval: the build session you start writes it from the approved Plan, then builds it.
 - With several approved Plans waiting, "Implement this using QualityLayer" lists their commands.
 
 </details>

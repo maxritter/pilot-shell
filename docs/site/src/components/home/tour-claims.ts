@@ -28,7 +28,7 @@ export const CLAIMS: Record<string, Claim> = {
     always: ["Retry failed webhook deliveries", "Done means", "What happens to a failed delivery", "Contracts", "Reviewed by", "Ready to approve", "Give feedback", "Approve Plan"],
     last: ["1 comment"],
   },
-  // "The build is cut into slices while you read the Plan": waves, slices, the scenario for each point, nothing to approve
+  // "The build session cuts the Plan into slices": waves, slices, the scenario for each point, nothing to approve
   outline: {
     always: ["How the build runs", "Wave 2", "Slices 2 and 3, side by side", "How each point is proved", "scenario 3"],
     last: ["Checked by a second reader"],

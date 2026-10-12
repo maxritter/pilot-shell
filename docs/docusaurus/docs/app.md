@@ -61,7 +61,7 @@ Every step writes one Markdown file. The App shows it three ways:
 | **Reader** | The whole file in order, with **On this page**. Code shapes, paths and commands live here |
 | **Files** | The seven documents with their state, the designs, the reviews, and the records of every command and check |
 
-A document can appear before its step: `02-research.md` while you answer Discuss, `04-outline.md` while you read the Plan. The file chip in the header copies the path, opens the file in your editor or shows it in its folder. **Copy document** pastes it into Confluence, Notion, Jira or GitHub.
+A document can appear before its step: `02-research.md` while you answer Discuss. `04-outline.md` appears once the build session you start after approving the Plan writes it. The file chip in the header copies the path, opens the file in your editor or shows it in its folder. **Copy document** pastes it into Confluence, Notion, Jira or GitHub.
 
 ## Comments and designs
 

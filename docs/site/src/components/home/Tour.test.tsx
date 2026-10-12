@@ -121,7 +121,7 @@ describe("the tour", () => {
     expect(steps.indexOf("Research")).toBe(steps.indexOf("Discuss") + 1);
     expect(steps.indexOf("Outline")).toBe(steps.indexOf("Plan") + 1);
     expect(CHAPTERS.find((c) => c.id === "research")?.title).toMatch(/read the code before anything is designed/);
-    expect(CHAPTERS.find((c) => c.id === "outline")?.title).toMatch(/cut into slices while you read the Plan/);
+    expect(CHAPTERS.find((c) => c.id === "outline")?.title).toMatch(/build session cuts the Plan into slices/);
     expect(CHAPTERS.find((c) => c.id === "discuss")?.text).toMatch(/one batch/);
     expect(CHAPTERS.find((c) => c.id === "plan")?.text).toMatch(/contracts/);
     expect(CHAPTERS.find((c) => c.id === "verify")?.text).toMatch(/Six checks/);

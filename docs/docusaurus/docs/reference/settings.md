@@ -32,7 +32,7 @@ Each card has a tab per agent: **Claude Code**, **Codex** and **Another agent**.
 
 ### Independent review {#independent-review}
 
-On every task, an agent that never wrote the code decides whether the change passes [Verify](../steps/verify.md). Pick its model for Claude Code (Opus 5.5) and for Codex (GPT-6.1 Sol), or switch it off.
+On every task, an agent that never wrote the code decides whether the change passes [Verify](../steps/verify.md). Pick its model for Claude Code (Opus 5.5) and for Codex (GPT-6.1 Sol), or switch it off. A small change's review runs on the helpers' model (Sonnet 5.5 in Claude Code) unless you picked a model here yourself.
 
 ### Second opinion {#second-opinion}
 
@@ -40,10 +40,10 @@ With Claude Code and Codex both installed, each reviews the other's work:
 
 | When | Choices | What it reads |
 | --- | --- | --- |
-| **On the Plan** | **Always** (recommended) or **When risky** | Discuss, Research and the first full Plan draft, before the Plan reaches you |
+| **On the Plan** | **When risky** (recommended) or **Always** | Discuss, Research and the first full Plan draft, before the Plan reaches you |
 | **On the built change** | **When risky** (recommended) or **Always** | The finished code, as [Verify's](../steps/verify.md#lanes) fifth check |
 
-A change is risky when the Plan says so, when it touches sign-in, secrets or outside input, or when the Outline marks a slice risky. With only one agent installed, a separate reviewer of that agent (Sonnet 5.5 in Claude Code) reads the Plan instead. **Reviewed by** in the Plan names who read it.
+A change is risky when the Plan says so, when it touches sign-in, secrets or outside input, or when the Outline marks a slice risky. **Always** sends every Plan or every change to the other agent, a few minutes more each; if you picked **Always** before, it stays. With only one agent installed, a separate reviewer of that agent (Sonnet 5.5 in Claude Code) reads instead. **Reviewed by** in the Plan names who read it.
 
 ### Notifications {#notifications}
 
@@ -51,7 +51,7 @@ A change is risky when the Plan says so, when it touches sign-in, secrets or out
 
 ## For one task {#for-one-task}
 
-Tell your agent in words: "skip security", "run a checkpoint after every slice", "no second opinion". A small change skips Polish and the second read of its Outline; ask to bring either back. No setting turns an approval off.
+Tell your agent in words: "skip security", "run a checkpoint after every slice", "get a second opinion", "no second opinion". A small change skips Polish and the second read of its Outline; ask to bring either back. No setting turns an approval off.
 
 ## Licence
 
