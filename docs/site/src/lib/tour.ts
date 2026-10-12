@@ -99,7 +99,7 @@ export const CHAPTERS: Chapter[] = [
     steps: 7,
     title: "Agents that did not write the code check it",
     text: "Six checks run in a fixed order. Every point of Done means is checked against the running program, with its evidence beside it, and the agent chip names what runs now.",
-    bullets: ["Polish and security review come first, then your project's checks", "A second opinion reads a risky change, and a failure is fixed by the agent", "Anything only you can confirm goes to Review"],
+    bullets: ["Polish, security review and, on a risky change, a second opinion come first", "What they find is fixed before the independent review, which runs once", "Anything only you can confirm goes to Review"],
   },
   {
     id: "review",
@@ -219,7 +219,7 @@ export const PASS_AT = [1, 2, 2, 2, 2, 2, 3, 4, 3, 4, 5, 6];
 export const checksPassed = (step: number) => PASS_AT.filter((when) => step >= when).length;
 
 /** The check that runs at moment `step` of the Verify close-up, in the order the chapter names them. */
-export const VERIFY_CHECKS = ["Polish", "Security review", "Project checks", "Independent review", "Second opinion", "Fixes"];
+export const VERIFY_CHECKS = ["Polish", "Security review", "Second opinion", "Project checks", "Independent review", "Fixes"];
 export const checkRunning = (step: number) => VERIFY_CHECKS[Math.max(0, Math.min(VERIFY_CHECKS.length - 1, step - 1))];
 
 /**

@@ -148,7 +148,7 @@ describe("the tour", () => {
 
   it("names Verify's six checks in the order they run", async () => {
     const verify = text(await shot("verify", 0));
-    const order = ["Polish", "Security review", "Project checks", "Independent review", "Second opinion", "Fixes"].map((name) => verify.indexOf(name));
+    const order = ["Polish", "Security review", "Second opinion", "Project checks", "Independent review", "Fixes"].map((name) => verify.indexOf(name));
     expect(order.every((at) => at >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
   });
