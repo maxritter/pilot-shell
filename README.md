@@ -159,7 +159,7 @@ Every task takes the same eight steps, in order. The first seven each write one 
   <img src="docs/docusaurus/static/img/diagrams/flow-pr-light.svg" alt="Discuss, Research, Plan, Outline, Implement, Verify, Review and the pull request: you approve at Plan and at Review and merge the pull request; your agent works in between" width="1000">
 </picture>
 
-**Agree on the plan.** In Discuss you settle what done means; a bug is reproduced first. Agents research the code, and the Plan shows the design, diagrams and checks, sized to the change; a comment you leave is answered within a minute. A risky Plan is reviewed by another agent before you read it. Once you approve, the build session cuts it into slices, with nothing for you to approve, and builds.
+**Agree on the plan.** In Discuss you settle what done means; a bug is reproduced first. Agents research the code, and the Plan shows the design, diagrams and checks, sized to the change; a comment you leave is answered within a minute. A risky Plan is read by another agent while you read it; Approve unlocks once its findings are folded in. Once you approve, the build session cuts it into slices, with nothing for you to approve, and builds.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/plan-dark.webp">

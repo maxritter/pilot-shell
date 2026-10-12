@@ -62,7 +62,7 @@ export const CHAPTERS: Chapter[] = [
     who: "you",
     steps: 2,
     title: "You approve one plan before any code",
-    text: "A risky Plan is read by another agent first, and yours folds in what it found before you are told. Read the complete Plan with its diagrams, the contracts the build is held to and its proposed outcomes, then approve it or give feedback from its header.",
+    text: "A risky Plan is read by another agent while you read it, and yours folds in what it found before Approve unlocks. Read the complete Plan with its diagrams, the contracts the build is held to and its proposed outcomes, then approve it or give feedback from its header.",
     bullets: ["Comment on any line or diagram: your agent answers within a minute", "Everything the agent decided for you is listed, so you can change it", "The review is recorded under Reviewed by; a local fallback is a self-review"],
   },
   {

@@ -45,6 +45,6 @@ Click any part of a diagram or any passage to pin a comment. Your agent picks it
 
 ## Before it reaches you {#before-it-reaches-you}
 
-Your agent rereads every Plan as a reviewer would before you are told. When the Plan is risky (its **Risky** line, a trust boundary, a risky slice) another agent reads the first full draft too: Codex reads Claude Code's Plan and the other way round, or a separate reviewer when you have only one. It looks for decisions that do not follow from what you agreed, a simpler shape, missed risks and contradictions with the code. Your agent folds the findings in; **Reviewed by** shows what each became. [Settings](../reference/settings.md#second-opinion) can send every Plan to it instead.
+Your agent rereads every Plan as a reviewer would before you are told. When the Plan is risky (its **Risky** line, a trust boundary, a risky slice) another agent reads it too, while you do: Codex reads Claude Code's Plan and the other way round, or a separate reviewer when you have only one. It looks for decisions that do not follow from what you agreed, a simpler shape, missed risks and contradictions with the code. You can read the Plan as soon as it is written; **Approve Plan** unlocks once your agent has folded the findings in, and **Reviewed by** shows what each became. [Settings](../reference/settings.md#second-opinion) can send every Plan to it instead.
 
 After you approve, the planning session stops and the App shows the prompt that starts the build; that session writes the [Outline](outline.md), then builds it.
