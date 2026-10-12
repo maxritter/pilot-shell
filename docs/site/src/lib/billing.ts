@@ -8,7 +8,13 @@ export type BillingAccount = {
   email: string; subscriptions: Subscription[];
   paymentMethods: { id: string; label: string; isDefault: boolean }[];
   invoices: { id: string; number: string; date: string; amount: number; currency: string; receiptAvailable: boolean }[];
-  licences: { id: string; key: string; label: string; status: string }[];
+  licences: {
+    id: string; key: string; label: string; status: string;
+    /** How many machines the key may run on; null when Polar sets no limit. */
+    limit: number | null;
+    /** Each machine the key is activated on: `name` and `product` when the client sent them, else null (older clients send only `label`, a machine code). */
+    machines: { id: string; label: string; name: string | null; product: string | null; added: string }[];
+  }[];
   seats: { subscriptionId: string; total: number; seats: { id: string; email: string; status: string }[] }[];
 };
 export type BillingQuote = { id: string; subscriptionId: string; amount: number; currency: string; interval: string; effectiveAt: string; dueNow: number; seats: number | null; name: string };
