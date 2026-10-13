@@ -197,6 +197,10 @@ Every task takes the same eight steps, in order. The first seven each write one 
 
 **Engineering**, the default, starts each task from the full technical plan. **Product** starts from a product brief that becomes a PRD, with the engineering detail folded away. Pick one at **Setup**, change it in **Settings › Workflow**, or switch one task from the task header; the steps and checks stay the same. [How the levels differ](https://qualitylayer.dev/docs/#two-levels).
 
+### Your rules, every step
+
+Write your standing instructions once in **Settings › Workflow**: coding standards, things never to do, how you like a Plan. Your agent gets them in every step, and helpers and reviewers read them too. A team owner adds instructions for the whole team, encrypted on their computer. [Your instructions](https://qualitylayer.dev/docs/reference/settings#instructions).
+
 ### Your models, your cost
 
 Choose which agent and model plans, builds and checks. The App shows each step's time and estimated cost. See [the App guide](https://qualitylayer.dev/docs/app) for the screens and controls.

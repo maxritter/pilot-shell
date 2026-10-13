@@ -10,6 +10,7 @@ This App-run candidate is being verified locally. It has not been published or a
 - Fold and reopen agent windows while work continues. Interrupt, Stop, move to a terminal, or resume a stopped conversation. Resume can open the conversation without continuing the task.
 - Choose permission handling for each run: your agent's own settings, Fewer prompts, or Bypass prompts with a separate confirmation. Session choice and working checkout are separate.
 - Choose whether quitting the App keeps runs going or stops them. Updating or relaunching the App preserves them.
+- Give your agent standing instructions in **Settings › Workflow › Your instructions**: coding standards, things never to do, how you like a Plan. They reach the agent once in each step and are never copied into a task's documents; a `## Implement` heading keeps lines for one step. A team owner writes **Team instructions** in **Settings › Team**, encrypted with the team's key; teammates read them, and they come first ([Settings](https://qualitylayer.dev/docs/reference/settings#instructions)).
 - Draft an answer to a teammate's question with your agent in the App. These runs use your agent's own settings; you review the draft and press Send the draft. A teammate cannot start or control your agent.
 
 ### Good to know

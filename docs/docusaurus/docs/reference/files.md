@@ -47,6 +47,7 @@ Your code, the diff, every plan document, the evidence and the cost view stay on
 | **When you share** | Tasks, documents and comments, encrypted on your computer with your team's key. **Include designs** adds the task's selected design previews; it starts off for existing shares. The server sees names, e-mails, the step and when; never the content. A share link carries its own key, which never reaches the server |
 | **Never** | Repository code, the diff, host logs, launch settings, terminal output and command output. Shared design previews disable scripts and navigation; they do not give a reviewer your local interactive session |
 | **With Slack** | The task title and the question, through the QualityLayer server to Slack |
+| **Instructions** | Your own instructions (`~/.qualitylayer/instructions.md`) never leave your computer. The team owner's are encrypted with the team's key before they are sent; each teammate's computer keeps a local copy, readable by its user alone ([Team instructions](settings.md#team-instructions)) |
 | **Project lessons (next release)** | Local lessons stay in your QualityLayer home. For repositories where you enable memory sharing, eligible lessons become readable files under `.qualitylayer/memories/` and travel through your normal Git commits and pushes. This is separate from encrypted task sharing. See [Project memory](../memory.md) |
 
 The QualityLayer API runs in Frankfurt, and backups are encrypted and kept in the EU.

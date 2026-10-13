@@ -1,6 +1,6 @@
 ---
 title: Settings
-description: Global Settings, project memory and the changes you can ask for on one task.
+description: Global Settings, your and your team's instructions, project memory and the changes you can ask for on one task.
 ---
 
 Open **Settings** with the gear at the bottom of the sidebar. Changes save at once and apply to every project on this computer.
@@ -22,6 +22,14 @@ Pause local memory, search saved lessons or retire one that no longer applies. *
 | **Product** | A product brief in product words, with engineering detail folded away |
 
 Each task keeps its level; change it in the task header until you approve the Plan ([two levels](../intro.md#two-levels)).
+
+### Your instructions {#instructions}
+
+Your own standing instructions for every task, in every project: coding standards, things never to do, how you like a Plan written. **Edit** opens a Markdown editor with **Write** and **Preview**. **Start from an outline** gives you a few headings to fill in, and the text holds up to 12,000 characters. The text is kept in `~/.qualitylayer/instructions.md`, so you can also edit it there.
+
+Your agent receives the text once per step, inside that step's workflow text, and follows it like your repository's own rules. Helpers, reviewers and the judge read it too. It is never copied into a task's documents. A heading named after a step (`## Plan`, `## Implement`, `## Verify`, …) keeps the lines under it for that step alone; lines under no step heading apply to every step. An edit reaches a running task at its next step reply.
+
+Your team's instructions come first and win where the two disagree ([Team](#team)). Neither can switch off an approval: a line asking the agent to approve a gate itself is passed on and approves nothing.
 
 ### Planning and Building {#defaults}
 
@@ -65,7 +73,11 @@ Your plan or the days left of your trial. **Open billing account** opens quality
 
 ## Team
 
-Your name as your team sees it; **People and groups** with seats, members and their computers; **Slack**, connected once by the team owner, with each member's own digest and quiet hours ([Slack](../team/plans.md#slack)); and **Shared links**, each with **Copy** and **Revoke**.
+Your name as your team sees it; **People and groups** with seats, members and their computers; **Team instructions**; **Slack**, connected once by the team owner, with each member's own digest and quiet hours ([Slack](../team/plans.md#slack)); and **Shared links**, each with **Copy** and **Revoke**.
+
+### Team instructions {#team-instructions}
+
+The team owner writes standing instructions for the whole team, in the same editor as [your own](#instructions). They reach every teammate's agent in each step, before the teammate's own instructions, and win where the two disagree. Teammates see them read-only with **View**, along with who changed them last and when. The text is encrypted on the owner's computer with the team's key; the server keeps only the encrypted copy. Each computer keeps a local copy, so the instructions still apply while the team service cannot be reached. When two owner windows save at once, the second one is shown the newer text instead of overwriting it.
 
 ## About
 
