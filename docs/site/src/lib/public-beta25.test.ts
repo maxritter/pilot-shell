@@ -63,7 +63,8 @@ describe("current public illustrations and guides", () => {
       }
       expect(drawing("items")).toContain("In Your turn");
       expect(drawing("items")).not.toContain("In your agent");
-      expect(drawing("designs")).toContain("A share link can show a still picture");
+      expect(drawing("designs")).toContain("Designs stay local until you choose Include designs");
+      expect(drawing("designs")).toContain("Shared previews and comments are encrypted");
     }
   });
 

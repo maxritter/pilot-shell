@@ -2,11 +2,11 @@ import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
-import sitemapPlugin from "./vite-plugin-sitemap";
-import indexNowPlugin from "./vite-plugin-indexnow";
+import sitemapPlugin from "./vite-plugin-sitemap.ts";
+import indexNowPlugin from "./vite-plugin-indexnow.ts";
 
 const DOCUSAURUS_DEV_URL = "http://localhost:3000";
-const COCKPIT_SOURCE = path.resolve(__dirname, "../../qualitylayer/src/ui");
+const COCKPIT_SOURCE = path.resolve(import.meta.dirname, "../../qualitylayer/src/ui");
 
 /** The demo uses the production Cockpit. Each app keeps its own shadcn imports. */
 function cockpitDemo(): Plugin {
@@ -16,7 +16,7 @@ function cockpitDemo(): Plugin {
     async resolveId(source, importer) {
       if (source === "/qualitylayer-cockpit-demo.tsx") return path.join(COCKPIT_SOURCE, "demo/main.tsx");
       if (!source.startsWith("@/")) return null;
-      const base = importer?.startsWith(COCKPIT_SOURCE) ? COCKPIT_SOURCE : path.resolve(__dirname, "src");
+      const base = importer?.startsWith(COCKPIT_SOURCE) ? COCKPIT_SOURCE : path.resolve(import.meta.dirname, "src");
       return this.resolve(path.join(base, source.slice(2)), importer, { skipSelf: true });
     },
   };
@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    fs: { allow: [__dirname, path.resolve(__dirname, "../../qualitylayer/src"), path.resolve(__dirname, "../../qualitylayer/node_modules")] },
+    fs: { allow: [import.meta.dirname, path.resolve(import.meta.dirname, "../../qualitylayer/src"), path.resolve(import.meta.dirname, "../../qualitylayer/node_modules")] },
     // The release list is an edge function in production; in development it comes from the live site, so the cards download directly.
     proxy: {
       "/app/downloads.json": { target: "https://qualitylayer.dev", changeOrigin: true },
@@ -63,7 +63,7 @@ export default defineConfig(({ mode }) => ({
   ].filter(Boolean),
   resolve: {
     // The lifecycle names its routes and optional steps from the product's own tables.
-    alias: { "@ql": path.resolve(__dirname, "../../qualitylayer/src") },
+    alias: { "@ql": path.resolve(import.meta.dirname, "../../qualitylayer/src") },
     dedupe: ["react", "react-dom", "cn", "lucide-react", "radix-ui", "class-variance-authority", "clsx", "tailwind-merge", "dompurify", "marked", "mermaid", "sonner", "tailwindcss", "tw-animate-css", "shadcn"],
   },
   build: {
@@ -79,7 +79,7 @@ export default defineConfig(({ mode }) => ({
       },
     },
     rollupOptions: {
-      input: { website: path.resolve(__dirname, "index.html"), app: path.resolve(__dirname, "app-demo/index.html") },
+      input: { website: path.resolve(import.meta.dirname, "index.html"), app: path.resolve(import.meta.dirname, "app-demo/index.html") },
       output: {
         // Split only feature-specific deps into their own chunks. Anything that
         // chains back through react/react-dom stays in the default vendor chunk

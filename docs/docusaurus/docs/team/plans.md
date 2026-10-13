@@ -38,7 +38,7 @@ Your team owner connects Slack once, in **Settings › Team**. Teammates then ge
 
 ## People outside your team {#outside-links}
 
-**Share › Copy link** gives a qualitylayer.dev link. Anyone with it reads the task step by step and comments, without an account; approving stays with your team. Each time you open the link, you read the latest shared copy. The open page updates as the task changes, through all seven steps, and keeps your unsent answers and comments. A design shows as a still picture. A link lasts 14 days, and **Revoke** ends it at once.
+**Share › Copy link** gives a qualitylayer.dev link. Anyone with it reads the task step by step and comments, without an account; approving stays with your team. Each time you open the link, you read the latest shared copy. The open page updates as the task changes, through all seven steps, and keeps your unsent answers and comments. **Include designs** adds script-free artboard previews that readers can comment on ([Designs](../designs.md#never-shared)). A link lasts 14 days, and **Revoke** ends it at once.
 
 Each shared document offers **Copy as Markdown** and **Download Markdown**. A coding agent can fetch them too, with no licence needed:
 

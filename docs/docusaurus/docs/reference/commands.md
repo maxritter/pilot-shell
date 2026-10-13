@@ -109,6 +109,7 @@ Your agent draws [designs](../designs.md) with these, at any step, inside a task
 
 | Command | What it does |
 | --- | --- |
+| `qualitylayer design guide` | Read the authoring guide before drawing the first design |
 | `qualitylayer design new <name> [--purpose "<line>"] [--project]` | Start a design in the task's `design/` folder, or in `docs/designs/` outside a task or with `--project` |
 | `qualitylayer design new <name> --wire` | Start a wireframe instead: grey boxes and real labels that settle the layout. A name ending in `-options` gets two layouts side by side. The finished design for the Plan is made without `--wire` |
 | `qualitylayer design show <name> [--changed "<line>"]` | Mark it updated, with one line of what changed, so you see it as soon as it renders |
@@ -117,15 +118,22 @@ Your agent draws [designs](../designs.md) with these, at any step, inside a task
 | `qualitylayer design inspect <name>` | Read HTML, metadata and the source revision |
 | `qualitylayer design push <name> --from <html> --if-match <revision\|0>` | Create or update from a local file; `0` requires an absent design, and stale revisions are refused |
 | `qualitylayer design pull <name> --out <html>` | Export the current self-contained source to a new file; `import` and `export` alias `push` and `pull` |
-| `qualitylayer design metadata <name> --title <title> --purpose <purpose> --if-match <revision>` | Update the title and purpose |
+| `qualitylayer design metadata <name> [--title <title>] [--purpose <purpose>] --if-match <revision>` | Update the title, purpose or both; provide at least one |
 | `qualitylayer design copy\|rename <name> --to <name> --if-match <revision>` | Duplicate an artboard or change its filename |
 | `qualitylayer design delete <name> --if-match <revision>` | Remove an unreferenced design, retaining its source in history |
 | `qualitylayer design history <name>` | List saved source revisions |
 | `qualitylayer design restore <name> --revision <id> --if-match <revision\|0>` | Restore a revision while keeping the current source |
-| `qualitylayer design check <name>` | Check native HTML structure and local resources; rendered quality still needs screenshots and interactions |
+| `qualitylayer design check <name>` | Check HTML structure and local resources; rendered quality still needs screenshots and interactions |
 | `qualitylayer design sharing [--on\|--off]` | Include or exclude the selected task's designs in its team copy and public link; access follows the workflow's share controls |
-| `qualitylayer design shot <name> [--width <px>] [--theme light\|dark]` | Take a picture of a design, so the agent can look at its own work |
+| `qualitylayer design shot <name> [--width <px>] [--theme light\|dark] [--section <label>] [--out <file>]` | Render a PNG of the page or a named section; needs Chrome |
 | `qualitylayer design comments <name>` | The open comments on a design, each with its spot |
+| `qualitylayer design comments <name> resolve <id…\|all> [--answer "<line>"]` | Resolve selected comments or all open comments, optionally recording an answer |
+
+Existing designs are found in the selected task first, then `docs/designs/`. Add `--project` to target the project's copy explicitly. New designs go in the task's folder unless you use `--project` or work outside a task. `import` aliases `push`; `export` aliases `pull`. `pull` and `export` require a new output path.
+
+Get the current revision with `design inspect` before changing a design. `--if-match 0` creates an absent design; any other value must match its current revision. Closed task designs are read-only. A referenced design cannot be deleted until its references are removed.
+
+`design shot` needs Chrome. If the agent's sandbox prevents Chrome from starting, inspect the same page in the App; a successful source check does not establish that it rendered correctly.
 
 ## Session messaging
 

@@ -70,6 +70,7 @@ curl -fsSL https://qualitylayer.dev/install.sh | bash
 - Agents that did not write the code check each point of your request against the running program.
 - Your agent settles routine choices and records them. Only real decisions come to you.
 - You see the time and estimated cost of every step, and teammates can comment while the plan is still cheap to change.
+- Ask your agent for a screen mockup, wireframe or diagram. Compare designs in the App's canvas, pin comments and restore earlier versions. Task sharing can include an encrypted preview. [Design guide](https://qualitylayer.dev/docs/designs) · [CLI reference](https://qualitylayer.dev/docs/reference/commands#designs).
 
 QualityLayer is for medium and large changes. When a request turns out too small for a plan, your agent closes the task with a ready prompt for the plain agent.
 
@@ -92,7 +93,7 @@ QualityLayer is a command line your coding agent calls, plus the QualityLayer Ap
 <details>
 <summary><b>What leaves your computer</b></summary>
 
-Your coding agent talks to its model provider exactly as it does today. QualityLayer itself contacts its server only for your licence, the workflow texts your agent follows and updates. Optional sharing encrypts the shared documents and comments on your computer before sending them; your code, diff and interactive design pages stay local. See [files and privacy](https://qualitylayer.dev/docs/reference/files#privacy).
+Your coding agent talks to its model provider exactly as it does today. QualityLayer itself contacts its server only for your licence, the workflow texts your agent follows and updates. Optional sharing encrypts task documents, comments and explicitly included design previews on your computer before sending them. Your repository source files, diff and agent terminal output stay local. See [files and privacy](https://qualitylayer.dev/docs/reference/files#privacy).
 
 </details>
 

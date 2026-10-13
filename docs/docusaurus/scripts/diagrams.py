@@ -1427,9 +1427,9 @@ def designs_flow(c: Theme) -> str:
     b.append(T(4 * 168 + 78, 156, 'and again, until it looks right', 12, 'muted', 500, 'middle', c=c))
     b.append(f'<rect x="0" y="180" width="996" height="50" rx="10" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
     b.append(lock(c, 18, 197))
-    b.append(T(38, 210, 'Stays local.', 13, 'text', 650, c=c))
-    b.append(T(136, 210, 'The interactive page and its comments stay on your computer. A share link can show a still picture.', 12.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'Designs: ask your agent, open its page full size, comment on a spot and see its update; the interactive page stays local, and a share link can show a still picture')
+    b.append(T(38, 210, 'Your choice.', 13, 'text', 650, c=c))
+    b.append(T(136, 210, 'Designs stay local until you choose Include designs. Shared previews and comments are encrypted.', 12.5, 'muted', c=c))
+    return svg(W, H, ''.join(b), 'Designs: ask your agent, review its page and comment on a spot; designs stay local until you choose an encrypted shared preview')
 
 
 def designs_tab(c: Theme) -> str:

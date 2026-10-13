@@ -1,16 +1,16 @@
 ---
 title: Designs
-description: Open designs full size, compare their artboards and comment on a spot. Include previews in a shared task only when you choose.
+description: Create screen mockups, wireframes and diagrams with your agent. Review, edit and share them in QualityLayer.
 ---
 
-A design is one page your agent draws for you: a screen, a flow, a diagram of how something fits together. Open it full size in the App, comment on a spot, and your agent changes the same page. It works at any step, inside a task or outside one.
+A design is an HTML page you review with your coding agent in QualityLayer. Use one to try a screen layout, compare alternatives or explain a flow. You can work on designs during a task or keep them with the project.
 
-![Ask your agent for a design, open its compact entry in Files, comment on a spot and see the same page update; the interactive page stays local](pathname:///img/diagrams/designs-light.svg)
-![Ask your agent for a design, open its compact entry in Files, comment on a spot and see the same page update; the interactive page stays local](pathname:///img/diagrams/designs-dark.svg)
+![Ask your agent for a design, open its compact entry in Files and comment on a spot. Designs stay local until you include them in an encrypted shared task](pathname:///img/diagrams/designs-light.svg)
+![Ask your agent for a design, open its compact entry in Files and comment on a spot. Designs stay local until you include them in an encrypted shared task](pathname:///img/diagrams/designs-dark.svg)
 
-## Ask for one
+## Create a design
 
-Say it in your own words: "mock up the settings page", or "draw how checkout talks to billing". Your agent writes one self-contained page and the App lists it in **Files**. A dot marks one you have not opened.
+Ask your agent to mock up a screen or draw a flow, for example: "Show two layouts for the settings page." It writes a self-contained page with local styles and images. The App lists it in **Files**; a dot marks one you have not opened.
 
 | Asked | Saved in | Listed |
 | --- | --- | --- |
@@ -19,14 +19,24 @@ Say it in your own words: "mock up the settings page", or "draw how checkout tal
 
 At the **Product** level, Discuss also draws a grey wireframe of each screen that changes, and two side by side when you have a layout to choose. The Plan's finished design is a separate page, approved with the Plan.
 
-## Open it full size {#full-size}
+To start a project design from the terminal:
+
+```sh
+qualitylayer design guide
+qualitylayer design new settings --project
+qualitylayer design show settings --project
+```
+
+`new` creates the page for you or your agent to edit. `show` tells the App to display its latest version. The [CLI reference](reference/commands.md#designs) covers the full command list.
+
+## Review and comment {#full-size}
 
 ![A design open full size: Back to the Plan, the design's name and update time, Comment, zoom, Light and Dark, Desktop and Phone, Jump to and full screen; the Comments tab lists numbered spots with the agent's answers](pathname:///img/app/design-light.webp)
 ![A design open full size: Back to the Plan, the design's name and update time, Comment, zoom, Light and Dark, Desktop and Phone, Jump to and full screen; the Comments tab lists numbered spots with the agent's answers](pathname:///img/app/design-dark.webp)
 
 *Example design in a fictional project.*
 
-A design takes the whole content area. Its bar holds the controls:
+Open the design's compact entry in **Files** to give it the whole content area. Its toolbar lets you change the view:
 
 | Control | What it does |
 | --- | --- |
@@ -36,12 +46,20 @@ A design takes the whole content area. Its bar holds the controls:
 | **Jump to** | Find a section of the design |
 | **Full screen** (F), **Open in browser** | Give it more room |
 
-A comment appears in the **Comments** tab with **Jump to the spot** and reaches your agent like any other. Your agent changes the same page and says in one line what changed; the App shows "Settings page was updated · Open". You always see the latest.
+A pinned comment appears in **Comments** with **Jump to the spot**. Your agent reads it, edits the same page and answers in the thread. The App shows when the design changes.
 
-## Kept on your computer {#never-shared}
+## Compare, edit and restore
 
-Designs are local files with revision history. **Open design canvas** compares named artboards: choose which to show, search, zoom and pan. Details lets you edit the source, duplicate or rename a design, and restore an earlier revision. A failed save keeps your edits; stale writes are refused.
+Choose **Open design canvas** to compare artboards side by side. Search by name, choose which to show, then zoom or pan around them.
 
-The task's Share menu can **Include designs** in its encrypted Team copy or external link. This starts off for existing shares. Shared previews disable scripts and navigation and show isolated artboards. Reviewers can comment or request improvements; they cannot control your local preview. The share keeps the same team, group or link access as the task.
+Open **Details** to edit the HTML source, change the title, duplicate or rename a design, or restore a saved revision. A failed save keeps your edits. If someone else has changed the same design, QualityLayer asks you to reload before saving over it.
 
-Your agent can check its work with `qualitylayer design shot` ([commands](reference/commands.md#designs)). Agent terminal output and launch settings are not part of a design or a shared task.
+Agents can use `design inspect`, `push`, `pull` and `history` for the same work. Updates require the revision returned by `inspect`, so an agent cannot silently overwrite a newer version.
+
+## Share a preview {#never-shared}
+
+Designs stay on your computer until you choose **Share › Include designs** for a task. This adds them to that task's encrypted Team copy or external link, with the same access as its documents. Project designs in `docs/designs/` are separate from the task's shared copy.
+
+Shared previews disable scripts and navigation. Readers can comment or request improvements; they cannot edit your local source. Turning **Include designs** off removes the designs from existing shared copies.
+
+For agent authoring, start with `qualitylayer design guide` and `qualitylayer design context`. Use `design check` for source checks and `design shot` to inspect the rendered page.
