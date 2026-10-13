@@ -4,7 +4,7 @@
 # The trees are qualitylayer/ and docs/site/api/, plus the site's backend
 # operation scripts and deploy check, the feedback-store worker, scripts/cutover.sh and the film's
 # sources in docs/video/ (see
-# is_guarded). Every tracked path under them must be reported as encrypted by
+# is_guarded), and every path .gitattributes encrypts. Every tracked path under them must be reported as encrypted by
 # `git-crypt status`, except the four manifest files under qualitylayer/ that
 # supply-chain scanners need in plaintext. A file that slipped into history
 # unencrypted (git-crypt flags it with a NOT ENCRYPTED warning) also fails.
@@ -70,8 +70,25 @@ is_guarded() {
   scripts/cutover.sh) return 0 ;;
   docs/video/*) return 0 ;;
   esac
+  local pattern
+  # Every path .gitattributes encrypts is guarded too, so a new encrypted path needs no edit here.
+  # The list above stays: a later "!filter" line can switch encryption off but never the guard.
+  for pattern in ${ATTRIBUTE_PATTERNS[@]+"${ATTRIBUTE_PATTERNS[@]}"}; do
+    # Unquoted on purpose: a glob. "*" and "**" both match across "/", wider than git, never narrower.
+    # shellcheck disable=SC2053
+    [[ "$1" == $pattern ]] && return 0
+  done
   return 1
 }
+
+# The patterns .gitattributes gives `filter=git-crypt`, read once.
+ATTRIBUTE_PATTERNS=()
+if [ -f .gitattributes ]; then
+  while read -r pattern rest || [ -n "$pattern" ]; do
+    case "$pattern" in "" | \#*) continue ;; esac
+    case " $rest " in *" filter=git-crypt "*) ATTRIBUTE_PATTERNS+=("$pattern") ;; esac
+  done <.gitattributes
+fi
 
 # Names the guarded paths that sit outside the two trees, so a run shows them.
 list_extra() {
