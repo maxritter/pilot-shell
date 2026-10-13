@@ -23,6 +23,8 @@ Sharing starts off for each repository. Enable it for the repositories where you
 
 QualityLayer writes eligible lessons under `.qualitylayer/memories/`. Review and commit those files with your normal Git workflow. QualityLayer imports shared changes before retrieving lessons. It does not make hidden commits or push them for you.
 
+Anyone who can read the repository can read its shared lessons. In a public repository, that includes everyone. Choose a private repository for lessons meant only for your team.
+
 Only project lessons supported by recorded QualityLayer checks can be published. Personal preferences, prompts, transcripts, credentials and home-directory paths are excluded. Imported lessons carry their source and remain historical evidence: the agent must check them against the current code and approved plan.
 
 Retire a lesson when it no longer applies. Retirement is recorded explicitly, so an older import cannot bring it back. Git retains earlier committed versions in its history.
