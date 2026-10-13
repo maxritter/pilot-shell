@@ -211,7 +211,7 @@ job_trivy() {
     --severity CRITICAL,HIGH \
     --exit-code 1 \
     --ignore-unfixed \
-    --skip-dirs node_modules,qualitylayer/node_modules,qualitylayer/dist,docs/site/api,docs/site/node_modules,docs/docusaurus/node_modules,.pnpm-store \
+    --skip-dirs node_modules,qualitylayer/node_modules,qualitylayer/dist,qualitylayer/app/launcher/target,qualitylayer/app/src-tauri/target,docs/site/api,docs/site/node_modules,docs/docusaurus/node_modules,.pnpm-store \
     --ignorefile .trivyignore \
     --quiet
 }
