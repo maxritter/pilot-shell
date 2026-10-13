@@ -16,4 +16,4 @@ export const AUTHOR_URL = "https://maxritter.net";
 export const AUTHOR_NAME = "Max Ritter";
 
 export const DESCRIPTION =
-  "You approve one plan before any code is written. Your agent builds it test first, and an AI that did not write the code checks the result against your request.";
+  "You approve one plan before any code is written. Your agent builds it test first, an AI that did not write the code polishes and tests it, and a risky change gets its independent review against your request.";

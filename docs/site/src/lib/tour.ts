@@ -70,8 +70,8 @@ export const CHAPTERS: Chapter[] = [
     step: "Outline",
     who: "ag",
     steps: 3,
-    title: "The Plan becomes tested slices",
-    text: "The build session writes the Outline from the approved Plan. It orders the slices, names which can run together and ties each Done means point to a scenario. A small task can have its Outline ready earlier. Another agent reads risky or large Outlines. You do not approve it again.",
+    title: "The build session cuts the Plan into slices",
+    text: "After you approve, the build session writes the Outline (what is built first, which slices run side by side, the scenario that proves each Done means point), and a small task can have it ready sooner. Another agent reads a risky or large Outline, and you do not approve it again.",
     bullets: ["Every Done means point is tied to a scenario", "Nothing runs that the Plan did not allow", "Fewer, larger tasks: the Outline follows the Plan's size"],
   },
   {
@@ -80,7 +80,7 @@ export const CHAPTERS: Chapter[] = [
     who: "you",
     steps: 2,
     title: "Choose where your agent builds",
-    text: "Implement shows the model, workers and effort for this build. The unreleased App-run candidate adds Here in the App, with your agent's own interactive window. In my terminal keeps the copied command.",
+    text: "Implement shows the model, workers and effort for this build; the unreleased App-run candidate adds Here in the App, with your agent's own interactive window, and In my terminal keeps the copied command.",
     bullets: ["Claude Code, Codex or another agent", "Your defaults come back for the next build", "App runs on Windows are planned for later"],
   },
   {
@@ -97,7 +97,7 @@ export const CHAPTERS: Chapter[] = [
     step: "Verify",
     who: "ag",
     steps: 7,
-    title: "Agents that did not write the code check it",
+    title: "Every change is polished and checked",
     text: "Six checks run in a fixed order. Every point of Done means is checked against the running program, with its evidence beside it, and the agent chip names what runs now.",
     bullets: ["Polish, security review and, on a risky change, a second opinion come first", "What they find is fixed before the independent review, which runs once", "Anything only you can confirm goes to Review"],
   },
@@ -174,7 +174,7 @@ export const CHAPTERS: Chapter[] = [
     act: { id: "setup", title: "You stay in charge of models and cost", text: "QualityLayer works inside the coding agents you already pay for, and shows what each step costs." },
     title: "Choose the models, and see what each step costs",
     text: "Planning defaults and Build defaults set the model, the effort and where each session starts. Plan with Claude Code and build with Codex if you like. The cost of every step is estimated at list price.",
-    bullets: ["Change anything for one build when you start it", "An agent that never wrote the code decides whether it passes", "The other coding agent reads the Plan, and risky changes"],
+    bullets: ["Change anything for one build when you start it", "On a risky change, an agent that never wrote the code decides whether it passes", "The other coding agent reads the Plan, and risky changes"],
   },
   {
     id: "agents",

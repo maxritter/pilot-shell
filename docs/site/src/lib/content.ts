@@ -27,7 +27,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "How is this different from plan mode?",
-    "Plan mode gives you a plan in the chat. In QualityLayer, questions arrive together as a batch in Your turn; answer in any order, and each answer reaches your agent immediately. You then read one plan with diagrams and designs to comment on, and approve it before any code is written. Your agent builds it test first, and agents that did not write the code check the result.",
+    "Plan mode gives you a plan in the chat. In QualityLayer, questions arrive together as a batch in Your turn; answer in any order, and each answer reaches your agent immediately. You then read one plan with diagrams and designs to comment on, and approve it before any code is written. Your agent builds it test first, an agent that did not write the code polishes and tests it, and a risky change gets its independent review.",
   ),
   faq(
     "What about small changes and bugs?",

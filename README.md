@@ -158,7 +158,7 @@ QualityLayer runs only when you ask for it: with `/ql` (`$ql` in Codex), `/ql im
 
 ### Eight steps from request to pull request
 
-Every task takes the same eight steps, in order. The first seven each write one Markdown file in the task's folder; the last follows the pull request until you merge it. You approve twice: the plan before any code, and the finished change. QualityLayer works on the branch you have checked out and never switches it.
+Every task takes the same eight steps, in order. The first seven each write one Markdown file in the task's folder; the last follows the pull request until you merge it. You approve twice: the plan before any code, and the finished change. QualityLayer works on the branch you have checked out; it moves to a new `ql/<task>` branch only when you pick **Start on a new branch** before the build, and it never merges or pushes.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/flow-pr-dark.svg">
@@ -173,7 +173,7 @@ Every task takes the same eight steps, in order. The first seven each write one 
 </picture>
 <sub>Example task in a fictional project: usage-based billing across nine services.</sub>
 
-**Build and prove it.** Your agent builds slice by slice, each starting with a failing test. In Verify, agents that did not write the code check every point of your request, and a live checklist keeps each point next to its evidence. Review walks you through the change before the pull request opens, and the task stays open until it is merged.
+**Build and prove it.** Your agent builds slice by slice, each starting with a failing test. In Verify, every change is polished and checked against each point of your request, and a live checklist keeps each point next to its evidence. A risky change also gets a review from an agent that did not write the code. Review walks you through the change before the pull request opens, and the task stays open until it is merged.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/verify-dark.webp">
