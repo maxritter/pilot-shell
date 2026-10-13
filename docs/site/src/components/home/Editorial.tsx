@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Expand, ExternalLink, House, Palette, PenTool, SlidersHorizontal, Users, X, type LucideIcon } from "lucide-react";
+import { BookOpen, Expand, ExternalLink, House, PenTool, SlidersHorizontal, Users, X, type LucideIcon } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useNarrow } from "@/hooks/useNarrow";
@@ -16,23 +16,22 @@ type Item = { id: string; name: string; who?: Who; icon?: LucideIcon; line: stri
 const WHO: Record<Who, string> = { you: "You decide", agent: "Agents work", check: "Agents check" };
 
 const STEPS: Item[] = [
-  { id: "discuss", name: "Discuss", who: "you", line: "Settle what you want", text: "Your agent asks only the questions that change the result, each with its recommendation. Answer them in any order.", shot: { id: "discuss", title: "Discuss", alt: "A question about a webhook retry policy, with three choices and a recommendation, in the QualityLayer App" } },
-  { id: "research", name: "Research", who: "agent", line: "Read the code first", text: "Agents trace how the code works today and what it can reuse, before anything is decided.", shot: { id: "research", title: "Research", alt: "Research on identity provisioning: a diagram of the existing services and a table of what the change can reuse" } },
-  { id: "plan", name: "Plan", who: "you", line: "Approve it before any code", text: "Read the whole plan with its diagrams, designs and decisions. Comment on any part, then approve it.", shot: { id: "plan", title: "Plan", alt: "A complete plan for usage-based billing with a diagram, and Approve Plan in the task's header" } },
-  { id: "outline", name: "Outline", who: "agent", line: "Split it into slices", text: "Your agent breaks the plan into slices and tasks, each with the scenario that proves it works.", shot: { id: "outline", title: "Outline", alt: "A queue migration split into six slices in build order, with the scenarios that prove them" } },
-  { id: "implement", name: "Implement", who: "agent", line: "Build it test first", text: "Slices that touch different files are built side by side. Every test run is recorded with the task.", shot: { id: "implement", title: "Implement", alt: "The billing build: slice 3 of 7 in progress, its tasks listed, finished slices marked done" } },
-  { id: "verify", name: "Verify", who: "check", line: "Polish it, then check every point", text: "An agent that did not write the code polishes the change and adds missing tests. Then every point of the plan is tested against the result, on a risky change by an agent of its own.", shot: { id: "verify", title: "Verify", alt: "Verification lanes for the billing change: polish, security, checks, an independent review and the outcome checks" } },
-  { id: "review", name: "Review", who: "you", line: "Read the change and its proof", text: "See what changed, why, and the evidence for each point you agreed. Approve it, or ask for another pass.", shot: { id: "review", title: "Review", alt: "The finished billing change with what you asked for, what changed and how each point was checked" } },
-  { id: "pull-request", name: "Pull request", who: "agent", line: "Follow it until it is merged", text: "Review threads and failing checks come back to the task, which stays open until the pull request is merged.", shot: { id: "pull-request", title: "Pull request", alt: "An open pull request with its checks and review threads kept on the task" } },
+  { id: "discuss", name: "Discuss", who: "you", line: "Settle what you want", text: "Your agent asks only questions that change the result, each with a recommendation. Answer in any order.", shot: { id: "discuss", title: "Discuss", alt: "A question about a webhook retry policy, with three choices and a recommendation, in the QualityLayer App" } },
+  { id: "research", name: "Research", who: "agent", line: "Read the code first", text: "Agents trace how the code works today and what can be reused.", shot: { id: "research", title: "Research", alt: "Research on identity provisioning: a diagram of the existing services and a table of what the change can reuse" } },
+  { id: "plan", name: "Plan", who: "you", line: "Approve it before any code", text: "Read the plan with its diagrams and designs. Comment on any part, then approve it.", shot: { id: "plan", title: "Plan", alt: "A complete plan for usage-based billing with a diagram, and Approve Plan in the task's header" } },
+  { id: "outline", name: "Outline", who: "agent", line: "Split it into tasks", text: "Your agent splits the plan into tasks, each with a scenario that proves it works.", shot: { id: "outline", title: "Outline", alt: "A queue migration split into six slices in build order, with the scenarios that prove them" } },
+  { id: "implement", name: "Implement", who: "agent", line: "Build it test first", text: "Work on separate files runs in parallel. Every test run is recorded.", shot: { id: "implement", title: "Implement", alt: "The billing build: slice 3 of 7 in progress, its tasks listed, finished slices marked done" } },
+  { id: "verify", name: "Verify", who: "check", line: "Polish it, then check every point", text: "An agent that did not write the code polishes it, adds missing tests and checks every point of the plan. Risky changes get an independent review.", shot: { id: "verify", title: "Verify", alt: "Verification lanes for the billing change: polish, security, checks, an independent review and the outcome checks" } },
+  { id: "review", name: "Review", who: "you", line: "Read the change and its proof", text: "See what changed, why, and the evidence for each agreed point. Approve, or ask for another pass.", shot: { id: "review", title: "Review", alt: "The finished billing change with what you asked for, what changed and how each point was checked" } },
+  { id: "pull-request", name: "Pull request", who: "agent", line: "Follow it until it is merged", text: "Review threads and failing checks return to the task until the pull request merges.", shot: { id: "pull-request", title: "Pull request", alt: "An open pull request with its checks and review threads kept on the task" } },
 ];
 
 const EXTRAS: Item[] = [
-  { id: "memory", name: "Memory · next release", icon: BookOpen, line: "Keep useful project lessons", text: "Claude Code and Codex reuse local lessons between tasks. Choose which repositories share checked lessons through Git, and search or retire them in Settings.", shot: { id: "memory", title: "Project memory", alt: "The upcoming Memory tab with local lessons, per-project sharing and a searchable lesson browser; illustrative project data" }, link: { to: "/docs/memory", label: "Read about project memory" } },
-  { id: "designs", name: "Design", icon: PenTool, line: "Comment on the spot", text: "Open a design full size and pin a comment where it needs work. Your agent answers in the same thread and changes the design.", shot: { id: "design", title: "Design", alt: "A queue migration console open full size, with three numbered comment pins and the comments beside it" } },
-  { id: "lasting", name: "Designs", icon: Palette, line: "Keep the designs every task builds on", text: "Each project keeps its lasting designs in one place, with the drafts open tasks are changing. A task starts from them, and its changes are folded back in when you review it.", shot: { id: "designs", title: "Designs", alt: "The Designs place: each project's lasting designs as thumbnails, with the drafts that open tasks are changing below them" } },
-  { id: "team", name: "Team", icon: Users, line: "Ask the people who know", text: "Teammates answer questions about the plan and review the finished change, each from their own App.", shot: { id: "team", title: "Team", alt: "The Team space with questions about shared plans, replies and the team's tasks" }, link: { to: "/pricing", label: "See the Team plan" } },
-  { id: "cost", name: "Home", icon: House, line: "See what needs you", text: "Home lists what waits for you, what is running and what shipped, with the estimated agent cost of each task.", shot: { id: "home", title: "Home", alt: "Home with tasks that need you, running work, agent cost estimates and shipped tasks" } },
-  { id: "setup", name: "Settings", icon: SlidersHorizontal, line: "Pick your agents and models", text: "Choose which agent and model plans, builds and checks, and whether a task starts as a product brief or a full technical plan.", shot: { id: "setup", title: "Settings", alt: "Settings with the Product or Engineering level, the planning and building agents and models, and the review options" } },
+  { id: "memory", name: "Memory", icon: BookOpen, line: "Keep useful project lessons", text: "Claude Code and Codex reuse lessons between tasks. Share them per repository through Git; search or retire them in Settings.", shot: { id: "memory", title: "Project memory", alt: "The Memory tab with local lessons, per-project sharing and a searchable lesson browser; illustrative project data" }, link: { to: "/docs/memory", label: "Read about project memory" } },
+  { id: "designs", name: "Design", icon: PenTool, line: "Comment on the spot", text: "Pin a comment anywhere on a design. Your agent replies in the thread and updates the design.", shot: { id: "design", title: "Design", alt: "A queue migration console open full size, with three numbered comment pins and the comments beside it" } },
+  { id: "team", name: "Team", icon: Users, line: "Ask the people who know", text: "Teammates answer plan questions and review the finished change from their own App.", shot: { id: "team", title: "Team", alt: "The Team space with questions about shared plans, replies and the team's tasks" }, link: { to: "/pricing", label: "See the Team plan" } },
+  { id: "cost", name: "Home", icon: House, line: "See what needs you", text: "What waits for you, what is running and what shipped, with each task's estimated cost.", shot: { id: "home", title: "Home", alt: "Home with tasks that need you, running work, agent cost estimates and shipped tasks" } },
+  { id: "setup", name: "Settings", icon: SlidersHorizontal, line: "Pick your agents and models", text: "Choose the agent and model that plans, builds and checks, and whether tasks start as a product brief or a technical plan.", shot: { id: "setup", title: "Settings", alt: "Settings with the Product or Engineering level, the planning and building agents and models, and the review options" } },
 ];
 
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -63,7 +62,7 @@ function ImageDialog({ shot, theme, onClose, opener }: { shot: Shot; theme: "lig
           <DialogClose asChild><Button type="button" variant="outline" size="xl" aria-label="Close preview"><X size={18} aria-hidden="true" />Close</Button></DialogClose>
         </div>
         <Picture shot={shot} theme={theme} lazy={false} />
-        <DialogDescription>{shot.id === "memory" ? "Illustrative projects in the upcoming Memory settings." : "Example task in the QualityLayer App."}</DialogDescription>
+        <DialogDescription>{shot.id === "memory" ? "Illustrative projects in the Memory settings." : "Example task in the QualityLayer App."}</DialogDescription>
         <Button asChild variant="outline" size="xl"><a href={src(shot, theme)} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} aria-hidden="true" />Open full-size image</a></Button>
       </DialogContent>
     </Dialog>
@@ -175,7 +174,7 @@ export default function Editorial() {
       <section id="tour" className="ed-section mx-wrap" aria-labelledby="ed-workflow-h">
         <div className="ed-head">
           <h2 id="ed-workflow-h">From request to pull request in eight steps</h2>
-          <p>Every task takes the same eight steps, in this order. You make the decisions; agents do the work and check it. Engineers start from the full technical plan, product people from a product brief.</p>
+          <p>You make the decisions; agents do the work and check it. Engineers start from a technical plan, product people from a product brief.</p>
           <ul className="ed-legend" aria-label="Colours">
             {(Object.keys(WHO) as Who[]).map((who) => <li key={who} data-who={who}><span className="ed-dot" aria-hidden="true" />{WHO[who]}</li>)}
           </ul>
@@ -184,7 +183,7 @@ export default function Editorial() {
         <div className="ed-outcome" id="films"><p>Every decision, document and test run stays with the change.</p><div><a href="/docs/">Read the workflow docs</a><a href={FILMS.overview.src} target="_blank" rel="noopener noreferrer">Watch the walkthrough</a></div></div>
       </section>
       <section className="ed-section mx-wrap" aria-labelledby="ed-context-h">
-        <div className="ed-head"><h2 id="ed-context-h">Also in the App</h2><p>Not steps of their own: these work alongside the eight steps on every task.</p></div>
+        <div className="ed-head"><h2 id="ed-context-h">Also in the App</h2><p>Available on every task.</p></div>
         <Scroller items={EXTRAS} numbered={false} theme={theme} onOpen={open} />
       </section>
       {shown ? <ImageDialog shot={shown.shot} theme={theme} opener={shown.opener} onClose={() => setShown(null)} /> : null}

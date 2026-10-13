@@ -1,6 +1,6 @@
 /** Under the hero: the agents QualityLayer works with, what it adds, and the models you already pay for. */
 import type { LucideIcon } from "lucide-react";
-import { ArrowRight, BadgeCheck, FileText, KeyRound, Laptop, LockKeyhole, SquareTerminal, Users, Workflow } from "lucide-react";
+import { ArrowRight, BadgeCheck, FileText, KeyRound, Laptop, SquareTerminal, Workflow } from "lucide-react";
 
 type Chip = [label: string, icon: string];
 
@@ -33,9 +33,9 @@ const SETUPS: Chip[] = [
 
 /** Each card in the App's colours: blue for the agent's work, amber for your decision, violet for what agents checked. */
 const PRINCIPLES: { who: "agent" | "you" | "check"; icon: LucideIcon; title: string; lead: string; text: string }[] = [
-  { who: "agent", icon: SquareTerminal, title: "Your agent", lead: "The tools you already trust", text: "Claude Code or Codex writes the code on your subscription. Keep your terminal or use its interactive window in the unreleased App-run candidate." },
-  { who: "you", icon: Workflow, title: "One plan", lead: "Approved by you before any code", text: "See each decision as a diagram and each screen as a clickable mockup, and comment on any part." },
-  { who: "check", icon: BadgeCheck, title: "Proof", lead: "Polished and tested by an agent that did not write it", text: "Every test run is recorded, every point you agreed is checked, and the proof is one click away." },
+  { who: "agent", icon: SquareTerminal, title: "Your agent", lead: "The tools you already use", text: "Claude Code or Codex writes the code on your subscription, in your terminal or in the App." },
+  { who: "you", icon: Workflow, title: "One plan", lead: "Approved by you before any code", text: "Decisions as diagrams, screens as clickable mockups. Comment on any part." },
+  { who: "check", icon: BadgeCheck, title: "Proof", lead: "Checked by an agent that did not write it", text: "Every test run is recorded and every agreed point is checked." },
 ];
 
 /** From where you work to the files you keep: what QualityLayer connects, all inside one dashed frame, your computer. */
@@ -64,7 +64,7 @@ export default function Intro() {
   return (
     <>
       <section id="agents" className="mx-with" aria-labelledby="with-h">
-        <h2 id="with-h" className="mx-withp">Works with the agents you already use, wherever you run them</h2>
+        <h2 id="with-h" className="mx-withp">Works with the agents you already use</h2>
         <ul className="mx-withg">
           {AGENTS.map(([label, icon]) => (
             <li key={label} className="mx-wi"><Icon name={icon} />{label}</li>
@@ -76,7 +76,7 @@ export default function Intro() {
         <div className="mx-wrap">
           <div className="mx-head c">
             <h2 id="pr-h" className="mx-h2">Decided before it is built, proven after</h2>
-            <p className="mx-lead">QualityLayer holds the workflow, so your agent never skips a step. You see only what needs a person.</p>
+            <p className="mx-lead">QualityLayer keeps your agent on every step, in order. You see only what needs you.</p>
           </div>
           <div className="mx-pr3">
             {PRINCIPLES.map(({ who, icon: Glyph, title, lead, text }) => (
@@ -93,8 +93,8 @@ export default function Intro() {
 
       <section id="local" className="mx-wrap mx-sec" aria-labelledby="local-h">
         <div className="mx-head c">
-          <h2 id="local-h" className="mx-h2">Runs on your computer, with what you already have</h2>
-          <p className="mx-lead">Keep your agent, your editor and your model plan. QualityLayer connects to them, with nothing else to install or host.</p>
+          <h2 id="local-h" className="mx-h2">Runs on your computer</h2>
+          <p className="mx-lead">Keep your agent, editor and model plan. Nothing to host.</p>
         </div>
         <div className="mx-local">
           <span className="mx-local-tag"><Laptop size={15} strokeWidth={1.75} aria-hidden="true" />Your computer</span>
@@ -110,18 +110,13 @@ export default function Intro() {
             ))}
           </ol>
         </div>
-        <div className="mx-share">
-          <span className="mx-tile" aria-hidden="true"><LockKeyhole size={20} strokeWidth={1.75} /></span>
-          <p><b>Shared only when you choose.</b> Share a task with your team and it is encrypted on your computer before it leaves. Your code is never sent.</p>
-          <span className="mx-share-to" aria-hidden="true"><Users size={15} strokeWidth={1.75} />Your team</span>
-        </div>
       </section>
 
       <section className="mx-wrap mx-sec" aria-labelledby="mod-h">
         <div className="mx-mq">
           <div className="mx-mqt">
             <h2 id="mod-h" className="mx-h3">Use the models you already pay for</h2>
-            <p>Choose which model writes the code and which one checks it, in Claude Code and Codex. With both installed, the other coding agent also reviews your plan and any risky change.</p>
+            <p>Pick which model writes the code and which checks it. With Claude Code and Codex both installed, the other agent also reviews your plan and risky changes.</p>
           </div>
           <div className="mx-mqr">
             <p className="w7-sr">Models: {MODELS.filter(([, icon]) => icon === "cpu").map(([label]) => label).join(", ")}, through Claude Code and Codex. {SETUPS.map(([label]) => label).join(". ")}.</p>

@@ -9,7 +9,7 @@ const Pricing = () => (
   <>
     <SEO
       title="Pricing — QualityLayer"
-      description="QualityLayer pricing for one developer, for teams, and for companies. Every plan starts with a 7-day trial."
+      description="QualityLayer pricing for developers, teams and companies. Every plan starts with a 7-day trial."
       canonicalUrl={`${SITE_URL}/pricing`}
     />
     <Page className="page-pricing">

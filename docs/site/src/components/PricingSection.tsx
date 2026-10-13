@@ -52,7 +52,7 @@ const PricingSection = () => {
       <section id="plans" className="pr-top-sec" aria-labelledby="pr-h">
         <div className="pr-wrap">
           <h1 id="pr-h" className="pr-h1">Pricing</h1>
-          <p className="pr-lead">Every plan starts with a 7-day trial the first time you run QualityLayer. One price per developer, with no limits on tasks, repositories or agents. Your Claude Code or Codex subscription stays as it is.</p>
+          <p className="pr-lead">Every plan starts with a 7-day trial on first run. One price per developer, with unlimited tasks, repositories and agents. Keep your Claude Code or Codex subscription.</p>
           <div className="pr-seg" role="group" aria-label="Billing">
             <Button type="button" variant={billing === "monthly" ? "default" : "ghost"} aria-pressed={billing === "monthly"} onClick={() => setBilling("monthly")}>Monthly</Button>
             <Button type="button" variant={billing === "yearly" ? "default" : "ghost"} aria-pressed={billing === "yearly"} onClick={() => setBilling("yearly")}>Yearly <span className="pr-save">Save 20%</span></Button>
@@ -112,8 +112,8 @@ const PricingSection = () => {
           <h2 id="licence-h" className="pr-h2">How the licence works</h2>
           <div className="pr-how">
             <div className="pr-hi" style={hue("build")}><b><KeyRound size={16} aria-hidden="true" />Activate once</b><span>Paste your key in the App on first start, or run <span className="pr-code">qualitylayer licence activate &lt;key&gt;</span>. Manage invoices, seats and payment in <Link to="/billing">your billing account</Link>.</span></div>
-            <div className="pr-hi" style={hue("verify")}><b><WifiOff size={16} aria-hidden="true" />Works offline</b><span>The licence is checked once a day. Without a connection, a paid licence works for up to {OFFLINE_DAYS} days after its last successful check.</span></div>
-            <div className="pr-hi" style={hue("plan")}><b><ArrowRightLeft size={16} aria-hidden="true" />Coming from Pilot Shell</b><span>Your subscription and your plans carry over, at the price you pay today. The App or Pilot Shell’s updater moves you over automatically. Pilot’s tools and memories stay; ask your agent to remove what you no longer use.</span></div>
+            <div className="pr-hi" style={hue("verify")}><b><WifiOff size={16} aria-hidden="true" />Works offline</b><span>Checked once a day. Offline, a paid licence works for up to {OFFLINE_DAYS} days after its last successful check.</span></div>
+            <div className="pr-hi" style={hue("plan")}><b><ArrowRightLeft size={16} aria-hidden="true" />Coming from Pilot Shell</b><span>The App or Pilot Shell’s updater moves you over. Your subscription, its price and your plans carry over; Pilot’s tools and memories stay.</span></div>
           </div>
         </div>
       </section>

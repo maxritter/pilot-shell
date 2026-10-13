@@ -89,7 +89,7 @@ describe("the flow in the copy: asked and answered in the App", () => {
     expect(text).toMatch(/shows them one at a time/i);
     expect(text).toMatch(/the part of the Plan each concerns/i);
     expect(text).toMatch(/Findings from the technical review return to the planning agent/i);
-    expect(text).toMatch(/complete Plan appears in the main pane/i);
+    expect(text).toMatch(/Read the complete Plan/i);
     expect(text).toMatch(/each answer reaches your agent immediately/i);
     expect(text).toMatch(/approve/i);
     expect(text).toMatch(/Approve Plan\*\* at the top right/);

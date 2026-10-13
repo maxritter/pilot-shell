@@ -87,7 +87,7 @@ export function DownloadView({
     <section className="w7-sec w7-nf" aria-labelledby="dl-h">
       <div className="w7-wrap">
         <h1 id="dl-h" className="w7-h2">Get the QualityLayer App</h1>
-        <p className="w7-lead">The App and the command line your agents use, in one download. Updates download quietly and install when you restart. The unreleased App-run candidate is not included in these public downloads; Windows App runs are planned for later.</p>
+        <p className="w7-lead">The App and the command line your agents use, in one download. Updates install when you restart.</p>
         <ReleaseLine data={data} loading={loading} />
         <div className="ap-dl">
           {cards.map((card) => {
@@ -156,7 +156,7 @@ const Download = () => {
     <>
       <SEO
         title="Download the QualityLayer App — QualityLayer"
-        description="The QualityLayer App for macOS, Windows and Linux, with the command line your agents use. Updates download quietly and install when you restart."
+        description="The QualityLayer App for macOS, Windows and Linux, with the command line your agents use."
         canonicalUrl={`${SITE_URL}/download`}
       />
       <Page>
