@@ -1,6 +1,13 @@
 {
   "fixtureHash": "83b8ba0286489a2eec548e51b6330ca6dc776a6647f4a3caaaae6603786d4832",
-  "capturedAt": "2026-10-13T01:16:58.073Z",
+  "memoryInputs": {
+    "qualitylayer/src/ui/demo/memory.ts": "dd4b5657abcdf98678580e129d23730b64969ea056e24d82cdf126c2cdead4fb",
+    "qualitylayer/src/ui/settings/Memory.tsx": "5fe63b588c496bbe7db0bec42f3da7a5c0d3aad13ad801deab4bbe3d1776d9aa",
+    "qualitylayer/src/ui/settings/memory.css": "8ebd46846e0381918ebfa71ec6b7d42163271c09a7a8e8d9b3bf86c223f0be6c",
+    "qualitylayer/src/ui/settings/Rows.tsx": "9701fa7681d5edf1091015b0736598c5db6c1d420e4c45e90481135a05df6387",
+    "qualitylayer/src/ui/globals.css": "a3c2b9fa95be3079c3ae53353fa84c680edff290b503ce08dacedf9f35ea77d5"
+  },
+  "capturedAt": "2026-10-13T09:25:52.519Z",
   "scenes": [
     "discuss",
     "research",
@@ -14,7 +21,8 @@
     "design",
     "team",
     "home",
-    "setup"
+    "setup",
+    "memory"
   ],
   "images": [
     {
@@ -328,6 +336,30 @@
       "width": 780,
       "height": 1400,
       "sha256": "95284355bc51f84abff5168c18aa2e19ba37e413e3146b0a8ad879bfd39dcc6f"
+    },
+    {
+      "file": "memory-light.webp",
+      "width": 2880,
+      "height": 1920,
+      "sha256": "0260b70c53a3e97dddc92b3fc202d83438299ca5b4918a3c61ac94c6b308ac81"
+    },
+    {
+      "file": "memory-phone-light.webp",
+      "width": 780,
+      "height": 1400,
+      "sha256": "01888ebeb16d272ec89cdfe1bbc4fa1525ce1d04a47cc29e03085d4da8e5f033"
+    },
+    {
+      "file": "memory-dark.webp",
+      "width": 2880,
+      "height": 1920,
+      "sha256": "4629b4f1a6ed6854681d8578af70176a3f08771baddd42d36d482c0dfdbd0a64"
+    },
+    {
+      "file": "memory-phone-dark.webp",
+      "width": 780,
+      "height": 1400,
+      "sha256": "ae81a0b4852f248b3621bf4ca52d05261df90027645b15586b716761f36a3883"
     }
   ]
 }

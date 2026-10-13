@@ -25,7 +25,7 @@
     "test:ui:headed": "playwright test --config playwright.ui.config.ts --headed",
     "install:local": "bun run scripts/install-local.ts",
     "app:icon": "bun run scripts/app-icon.ts",
-    "check:cockpit": "bun scripts/check-cockpit.ts --build",
+    "check:cockpit": "bun scripts/check-cockpit.ts --build --test-build",
     "check:overflow": "bun scripts/check-overflow.ts",
     "dev:skill": "bun run scripts/dev-skill.ts",
     "release-gate": "bun run tests/release/run-agent.ts",

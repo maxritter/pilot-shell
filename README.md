@@ -99,6 +99,17 @@ Your coding agent talks to its model provider exactly as it does today. QualityL
 
 ---
 
+### Project lessons (next release)
+
+Claude Code and Codex reuse useful local lessons between tasks. Search them in Settings, retire outdated advice, and choose which repositories share checked lessons through Git. The pinned memory engine comes with the App and command line; it needs no extra key or service. [Project memory](https://qualitylayer.dev/docs/memory).
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/memory-dark.webp">
+  <img src="docs/site/public/product/memory-light.webp" alt="The upcoming Memory settings with a searchable lesson list and per-project Git sharing; illustrative project data" width="1000">
+</picture>
+
+---
+
 <h2 id="install">Getting started</h2>
 
 ### What you need

@@ -1,9 +1,13 @@
 ---
 title: Settings
-description: The four Settings tabs, Workflow, Licence, Team and About, and the changes you can ask for on one task.
+description: Global Settings, project memory and the changes you can ask for on one task.
 ---
 
 Open **Settings** with the gear at the bottom of the sidebar. Changes save at once and apply to every project on this computer.
+
+## Memory (next release)
+
+Pause local memory, search saved lessons or retire one that no longer applies. **Manage projects** opens a searchable list where you enable Git sharing separately for each repository. Your choice stays local to this computer. See [Project memory](../memory.md) for privacy, Pilot imports and command-line use.
 
 ![Settings, Workflow: the Level card with its two choices, the Planning and Building cards with a tab per agent, Independent review, Second opinion and Notifications, beside the tabs Licence, Team and About](pathname:///img/app/settings-light.webp)
 ![Settings, Workflow: the Level card with its two choices, the Planning and Building cards with a tab per agent, Independent review, Second opinion and Notifications, beside the tabs Licence, Team and About](pathname:///img/app/settings-dark.webp)

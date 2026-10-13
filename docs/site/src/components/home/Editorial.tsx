@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import { Expand, ExternalLink, House, PenTool, SlidersHorizontal, Users, X, type LucideIcon } from "lucide-react";
+import { BookOpen, Expand, ExternalLink, House, PenTool, SlidersHorizontal, Users, X, type LucideIcon } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useNarrow } from "@/hooks/useNarrow";
@@ -27,6 +27,7 @@ const STEPS: Item[] = [
 ];
 
 const EXTRAS: Item[] = [
+  { id: "memory", name: "Memory · next release", icon: BookOpen, line: "Keep useful project lessons", text: "Claude Code and Codex reuse local lessons between tasks. Choose which repositories share checked lessons through Git, and search or retire them in Settings.", shot: { id: "memory", title: "Project memory", alt: "The upcoming Memory tab with local lessons, per-project sharing and a searchable lesson browser; illustrative project data" }, link: { to: "/docs/memory", label: "Read about project memory" } },
   { id: "designs", name: "Design", icon: PenTool, line: "Comment on the spot", text: "Open a design full size and pin a comment where it needs work. Your agent answers in the same thread and changes the design.", shot: { id: "design", title: "Design", alt: "A queue migration console open full size, with three numbered comment pins and the comments beside it" } },
   { id: "team", name: "Team", icon: Users, line: "Ask the people who know", text: "Teammates answer questions about the plan and review the finished change, each from their own App.", shot: { id: "team", title: "Team", alt: "The Team space with questions about shared plans, replies and the team's tasks" }, link: { to: "/pricing", label: "See the Team plan" } },
   { id: "cost", name: "Home", icon: House, line: "See what needs you", text: "Home lists what waits for you, what is running and what shipped, with the estimated agent cost of each task.", shot: { id: "home", title: "Home", alt: "Home with tasks that need you, running work, agent cost estimates and shipped tasks" } },
@@ -61,7 +62,7 @@ function ImageDialog({ shot, theme, onClose, opener }: { shot: Shot; theme: "lig
           <DialogClose asChild><Button type="button" variant="outline" size="xl" aria-label="Close preview"><X size={18} aria-hidden="true" />Close</Button></DialogClose>
         </div>
         <Picture shot={shot} theme={theme} lazy={false} />
-        <DialogDescription>Example task in the QualityLayer App.</DialogDescription>
+        <DialogDescription>{shot.id === "memory" ? "Illustrative projects in the upcoming Memory settings." : "Example task in the QualityLayer App."}</DialogDescription>
         <Button asChild variant="outline" size="xl"><a href={src(shot, theme)} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} aria-hidden="true" />Open full-size image</a></Button>
       </DialogContent>
     </Dialog>

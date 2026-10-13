@@ -135,6 +135,26 @@ Get the current revision with `design inspect` before changing a design. `--if-m
 
 `design shot` needs Chrome. If the agent's sandbox prevents Chrome from starting, inspect the same page in the App; a successful source check does not establish that it rendered correctly.
 
+## Project memory (next release) {#memory}
+
+The App and agents use the same local lesson store. Run project commands inside the repository. Sharing remains off until you enable it locally; exchange writes files for your normal Git review and commit. See [Project memory](../memory.md).
+
+| Command | What it does |
+| --- | --- |
+| `qualitylayer memory overview` | Show the project's active lesson counts and local memory status |
+| `qualitylayer memory projects [--query text] [--limit n] [--cursor token]` | List registered repositories in bounded pages |
+| `qualitylayer memory list [--query text] [--source task\|repository\|pilot\|manual\|all] [--scope private\|project\|all] [--limit n] [--cursor token]` | Browse previews in the current repository, including retired lessons |
+| `qualitylayer memory search text` · `memory context text` | Retrieve up to eight relevant lessons with distinct content |
+| `qualitylayer memory read id` | Read one lesson in the current repository |
+| `qualitylayer memory store --title text --content text [--kind decision\|architecture\|bugfix\|pattern\|discovery\|preference]` | Save or revise a lesson; publication requires recorded task/check evidence |
+| `qualitylayer memory retire id` · `memory restore id` | Retire a lesson or explicitly reactivate it |
+| `qualitylayer memory pause` · `memory resume` | Pause or resume local capture and task retrieval, preserving saved lessons |
+| `qualitylayer memory share on` · `memory share off` | Change your sharing choice for this repository |
+| `qualitylayer memory sync` · `memory export` · `memory import` | Exchange eligible lesson records with tracked repository files; all three use the same exchange and make no commits or pushes |
+| `qualitylayer memory import-pilot file…` | Import bounded Pilot JSONL/Markdown records as private lessons |
+
+All commands accept `--json`. Page sizes are 1–100; queries are at most 500 characters. Pilot CLI imports accept at most 32 files, each at most 1 MB and 2 MB in total.
+
 ## Session messaging
 
 ![Four agent sessions on one computer: one asks another for a review, one hands over a task, two talk a problem through](pathname:///img/diagrams/peers-light.svg)
