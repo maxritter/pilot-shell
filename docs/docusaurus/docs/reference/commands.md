@@ -33,6 +33,7 @@ description: What you type in your agent, the commands you run, the ones your ag
 | `qualitylayer update` | Update and print the release notes; with the App, it hands over to the App. See [Updates](../install.md#updates) |
 | `qualitylayer feedback "<text>" [--idea] [--image <file>]` | Send feedback from a terminal, the same way as the App's sheet. See [what a report sends](files.md#feedback) |
 | `qualitylayer uninstall` | Remove it; `--purge` also removes the licence and task state |
+| `qualitylayer reset --first-start` | Start the App as on its first day (Setup, the first-task page, the tour), keeping the licence and the team. The settings, projects, cost and the App's page storage move into a dated folder; `reset --restore <folder>` puts them back |
 | `qualitylayer licence activate <key>` | Activate a licence on this computer |
 | `qualitylayer licence deactivate` | Free this computer's activation, for example to use the licence elsewhere |
 | `qualitylayer licence portal` | Open your billing account at qualitylayer.dev/billing |
