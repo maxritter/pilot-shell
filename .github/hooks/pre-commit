@@ -81,6 +81,14 @@ if [ "${QUALITYLAYER_PREFLIGHT_HEAD:-0}" = "1" ]; then
 else
   staged="$(git diff --cached --name-only --diff-filter=ACMR)"
 fi
+# A helper's temporary file left in the shared checkout is never committed (Polish's
+# ql-debug-polish-shots.spec.ts went into another session's commit on 2026-10-13).
+debug_files="$(printf '%s\n' "$staged" | grep -E '(^|/)ql-debug[^/]*$' || true)"
+if [ -n "$debug_files" ]; then
+  echo "✖ Pre-commit refused: temporary ql-debug files are staged. Unstage them (they belong in a temp folder):" >&2
+  printf '%s\n' "$debug_files" | sed 's/^/  /' >&2
+  exit 1
+fi
 qualitylayer_changed=0
 ui_changed=0
 launcher_changed=0
