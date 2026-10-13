@@ -146,6 +146,8 @@ Your agent asks each decision in the App, and its terminal shows a single line w
 
 After you approve, Implement offers the same two places to run. In the unreleased candidate, choose Claude Code or Codex, select **Here in the App**, then press **Start the build**. The terminal option still shows the launch command for a fresh session. Your agent then works on its own until the final review. If it needs a login or secret only you have, it asks in **Your turn** while other slices keep building.
 
+For example, **In my terminal** shows `claude --model opus --effort high "/ql implement retry-webhooks"`, which starts the build in a fresh session. Run the command in the task's checkout.
+
 An App run keeps working when you fold its window or navigate away. Reopen it to type, paste or answer the agent's own permission prompts. **Interrupt** sends the agent's interrupt key; **Stop** ends the run. A paired phone watches by default, and the computer's key-paired session controls who may type. Settings chooses whether quitting the App keeps runs going or stops them; an update preserves them. See [App runs](https://qualitylayer.dev/docs/app#agent-runs) for permissions, resume and other agents. This candidate is under local verification and has not been released.
 
 QualityLayer runs only when you ask for it: with `/ql` (`$ql` in Codex), `/ql implement`, or a request to resume a named task. Everything else works as before.
