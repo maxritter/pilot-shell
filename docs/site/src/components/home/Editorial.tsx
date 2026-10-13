@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Expand, ExternalLink, House, PenTool, SlidersHorizontal, Users, X, type LucideIcon } from "lucide-react";
+import { BookOpen, Expand, ExternalLink, House, Palette, PenTool, SlidersHorizontal, Users, X, type LucideIcon } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useNarrow } from "@/hooks/useNarrow";
@@ -29,6 +29,7 @@ const STEPS: Item[] = [
 const EXTRAS: Item[] = [
   { id: "memory", name: "Memory · next release", icon: BookOpen, line: "Keep useful project lessons", text: "Claude Code and Codex reuse local lessons between tasks. Choose which repositories share checked lessons through Git, and search or retire them in Settings.", shot: { id: "memory", title: "Project memory", alt: "The upcoming Memory tab with local lessons, per-project sharing and a searchable lesson browser; illustrative project data" }, link: { to: "/docs/memory", label: "Read about project memory" } },
   { id: "designs", name: "Design", icon: PenTool, line: "Comment on the spot", text: "Open a design full size and pin a comment where it needs work. Your agent answers in the same thread and changes the design.", shot: { id: "design", title: "Design", alt: "A queue migration console open full size, with three numbered comment pins and the comments beside it" } },
+  { id: "lasting", name: "Designs", icon: Palette, line: "Keep the designs every task builds on", text: "Each project keeps its lasting designs in one place, with the drafts open tasks are changing. A task starts from them, and its changes are folded back in when you review it.", shot: { id: "designs", title: "Designs", alt: "The Designs place: each project's lasting designs as thumbnails, with the drafts that open tasks are changing below them" } },
   { id: "team", name: "Team", icon: Users, line: "Ask the people who know", text: "Teammates answer questions about the plan and review the finished change, each from their own App.", shot: { id: "team", title: "Team", alt: "The Team space with questions about shared plans, replies and the team's tasks" }, link: { to: "/pricing", label: "See the Team plan" } },
   { id: "cost", name: "Home", icon: House, line: "See what needs you", text: "Home lists what waits for you, what is running and what shipped, with the estimated agent cost of each task.", shot: { id: "home", title: "Home", alt: "Home with tasks that need you, running work, agent cost estimates and shipped tasks" } },
   { id: "setup", name: "Settings", icon: SlidersHorizontal, line: "Pick your agents and models", text: "Choose which agent and model plans, builds and checks, and whether a task starts as a product brief or a full technical plan.", shot: { id: "setup", title: "Settings", alt: "Settings with the Product or Engineering level, the planning and building agents and models, and the review options" } },
