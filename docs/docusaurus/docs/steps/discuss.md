@@ -15,7 +15,7 @@ Describe the change in your own words: **+ New** in the App, or `/ql <request>` 
 
 ## Answer the batch {#the-question}
 
-**Your turn** shows one question at a time. Pick a choice, write your own answer, or ask **Tell me more**. Answer in any order: **Skip for now** moves on ([all controls and shortcuts](../app.md#questions)). Each answer reaches your agent immediately, and [Research](research.md) starts while the batch is still open. A second batch comes only when your answers raise a new decision.
+**Your turn** shows one question at a time. Pick a choice, type in **Your own answer** and press **Send**, or ask **Tell me more**. Answer in any order: **Skip for now** moves on ([all controls and shortcuts](../app.md#questions)). Each answer reaches your agent immediately, and [Research](research.md) starts while the batch is still open. A second batch comes only when your answers raise a new decision.
 
 ## The document {#the-page}
 

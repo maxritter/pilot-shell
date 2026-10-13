@@ -70,8 +70,8 @@ export const CHAPTERS: Chapter[] = [
     step: "Outline",
     who: "ag",
     steps: 3,
-    title: "The build session cuts the Plan into slices",
-    text: "After you approve, the session you start cuts the Plan into slices (what is built first, which can run side by side, the scenario that proves each Done means point) and then builds them. A risky or large build is read once more by an agent that did not write it, and you do not approve it.",
+    title: "The Plan becomes tested slices",
+    text: "The build session writes the Outline from the approved Plan. It orders the slices, names which can run together and ties each Done means point to a scenario. A small task can have its Outline ready earlier. Another agent reads risky or large Outlines. You do not approve it again.",
     bullets: ["Every Done means point is tied to a scenario", "Nothing runs that the Plan did not allow", "Fewer, larger tasks: the Outline follows the Plan's size"],
   },
   {
@@ -79,9 +79,9 @@ export const CHAPTERS: Chapter[] = [
     step: "Start",
     who: "you",
     steps: 2,
-    title: "One command starts the build",
-    text: "Implement opens with your Build defaults in one line: the model that plans each slice, the model that builds them, and the effort. Change them for this build, or copy the command as it is.",
-    bullets: ["Claude Code, Codex or another agent", "Your defaults come back for the next build", "Paste it in a fresh session"],
+    title: "Choose where your agent builds",
+    text: "Implement shows the model, workers and effort for this build. The unreleased App-run candidate adds Here in the App, with your agent's own interactive window. In my terminal keeps the copied command.",
+    bullets: ["Claude Code, Codex or another agent", "Your defaults come back for the next build", "App runs on Windows are planned for later"],
   },
   {
     id: "implement",
@@ -89,7 +89,7 @@ export const CHAPTERS: Chapter[] = [
     who: "ag",
     steps: 5,
     title: "It is built in slices, on its own",
-    text: "From that command on, your agent works on its own until the final review. Every task starts with a failing test, and slices that don’t overlap build side by side.",
+    text: "Once started, your agent works on its own until the final review. Every task starts with a failing test, and slices that don’t overlap build side by side.",
     bullets: ["QualityLayer records every test run itself", "What the agent decided on the way is listed, and you can ask why", "A login or secret waits in Your turn while other slices keep building"],
   },
   {

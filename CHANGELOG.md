@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+This App-run candidate is being verified locally. It has not been published or approved for release.
+
+### New
+
+- Start a new task or an approved build with Claude Code or Codex in the App, with the agent's own interactive window. The terminal launch option remains available. Windows App runs are planned for later.
+- Fold and reopen agent windows while work continues. Interrupt, Stop, move to a terminal, or resume a stopped conversation. Resume can open the conversation without continuing the task.
+- Choose permission handling for each run: your agent's own settings, Fewer prompts, or Bypass prompts with a separate confirmation. Session choice and working checkout are separate.
+- Choose whether quitting the App keeps runs going or stops them. Updating or relaunching the App preserves them.
+- Draft an answer to a teammate's question with your agent in the App. These runs use your agent's own settings; you review the draft and press Send the draft. A teammate cannot start or control your agent.
+
+### Good to know
+
+- Other agents use a program path and JSON argument list. Their request is sent only when you press Send request; agent-specific interrupt and resume controls are unavailable.
+- Agent output stays in owner-only local run records and is not included in shared task documents.
+- Required browser, platform and installed-App qualification is unfinished. This entry does not claim a release or a complete test pass.
+
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 ## 12.0.0-beta.55

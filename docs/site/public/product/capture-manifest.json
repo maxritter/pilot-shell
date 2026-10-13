@@ -1,11 +1,12 @@
 {
-  "fixtureHash": "1b539ca17df2246bfded8fd71b6accac8ffc6644773610cf79e6fd623775da1f",
-  "capturedAt": "2026-10-12T06:37:00.288Z",
+  "fixtureHash": "83b8ba0286489a2eec548e51b6330ca6dc776a6647f4a3caaaae6603786d4832",
+  "capturedAt": "2026-10-13T01:16:58.073Z",
   "scenes": [
     "discuss",
     "research",
     "plan",
     "outline",
+    "implement-start",
     "implement",
     "verify",
     "review",
@@ -68,7 +69,7 @@
       "file": "implement-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "39a84790095d28737d942c8090a88054aa9d598006f4d32a165a902b66398182"
+      "sha256": "13306db344933f5cf0fdcb760ccf4309e2e35185618fd0e84f104d847301c951"
     },
     {
       "file": "implement-phone-light.webp",
@@ -128,13 +129,13 @@
       "file": "team-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "f90665ffc98ab5ca4e591773e0ec4ce8fef37cf89f869a793bdc73d6536d190f"
+      "sha256": "643f54c66098b947f037560ec5b139155eebc8e3d6331ce11b14201bf80452e4"
     },
     {
       "file": "team-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "615bb98e05a78769bb226d15e88fc72be284cbc941e7681a1968c94c9cf52c49"
+      "sha256": "86140610272c2322fc98aaf5c20eedfc734872547e603be847ec3d04c015ee2b"
     },
     {
       "file": "home-light.webp",
@@ -152,13 +153,13 @@
       "file": "setup-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "f8c3fa80c2d433e643eb55e98255b64cffe8a27bccdc61ff44c2496b8d788e15"
+      "sha256": "3f0b761a02d3ad586f680b762129e04cd8d0467dafd0ff02e277fc6e31614da1"
     },
     {
       "file": "setup-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "2e41e320c1cdb28d632234537e89f02dd537fc7d3c7ad996c90922ed586de169"
+      "sha256": "a3926b94e727469b2798329d7a4ed4a31a8fcc39b6d2b9a19f8398564caf005a"
     },
     {
       "file": "discuss-dark.webp",
@@ -212,7 +213,7 @@
       "file": "implement-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "c6a89951b2af4b574a44ffc05cfde97b0d0aa4604e3557a445adf2d60b6a49c9"
+      "sha256": "2a4fad7cd17be2cd1740433826a3dc7870a9c45f215d1a2bf070877093f2d7f3"
     },
     {
       "file": "implement-phone-dark.webp",
@@ -272,13 +273,13 @@
       "file": "team-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "5624625ffa82c00c848682176165e50bfa66bccb8dcbde2a7651ddcb31e7d040"
+      "sha256": "94fb490f74c02faa4f289e52fd0123213ab80e1be70817e30e4500d52635fdbf"
     },
     {
       "file": "team-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "5686f2cb1febc77ef12caad741ca50261b278c3a4c074aeb13ba5c528c74ec5f"
+      "sha256": "252b7a248e6072b63324374695cc6a9bc584bd98883f6643f48ae5fb5a2515a6"
     },
     {
       "file": "home-dark.webp",
@@ -296,13 +297,37 @@
       "file": "setup-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "be7ec475167432558a7721c8320fa239ca794eca6dfe674f69377a847cbe9e75"
+      "sha256": "7f2dd744c4fcd6fc919d277106690107839647d2565c6929f3ea5d2ee59f6be7"
     },
     {
       "file": "setup-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "77267a7068fa5a2de0efb96f4ffa3cc359b6464e4fb4aa24ebdf99e16211b4ca"
+      "sha256": "ddc54a4bf62ed819a2967f6a691d7186096cbdb4eb913430020af8ffe8a08925"
+    },
+    {
+      "file": "implement-start-light.webp",
+      "width": 2880,
+      "height": 1920,
+      "sha256": "9dbef0d0e054abd60dcb09cee3dc01f02da43dd63d41dd857f7d8787bf3b7932"
+    },
+    {
+      "file": "implement-start-phone-light.webp",
+      "width": 780,
+      "height": 1400,
+      "sha256": "45b1baf724648bbadb0f2a9088e8f69dbe61672685ef98304bea7f2449dab163"
+    },
+    {
+      "file": "implement-start-dark.webp",
+      "width": 2880,
+      "height": 1920,
+      "sha256": "6ec7bbc46b415cb7281f8fe93b37b14d28204a6826f2f06cfffccd6e03475a21"
+    },
+    {
+      "file": "implement-start-phone-dark.webp",
+      "width": 780,
+      "height": 1400,
+      "sha256": "95284355bc51f84abff5168c18aa2e19ba37e413e3146b0a8ad879bfd39dcc6f"
     }
   ]
 }

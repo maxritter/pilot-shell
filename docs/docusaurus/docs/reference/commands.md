@@ -17,7 +17,7 @@ description: What you type in your agent, the commands you run, the ones your ag
 | `/ql answer <ask>` | Answer a teammate's question with your agent ([Teammates' agents](../team/agents.md)) |
 | `/task-pane` | Open the pane with the steps and the build's progress (Claude Code) |
 
-**+ New** and Implement in the App give you the whole command, with the model and effort.
+**+ New** and Implement show the terminal command with the model and effort. The unreleased App-run candidate also offers **Here in the App**, which starts the interactive agent without copying a command. See [App runs](../app.md#agent-runs).
 
 ## For you
 
@@ -25,6 +25,7 @@ description: What you type in your agent, the commands you run, the ones your ag
 | --- | --- |
 | `qualitylayer app` | Open the App; on a machine without it, open it in your browser and pair the browser once |
 | `qualitylayer app --forget-browsers` | Make every paired browser pair again |
+| `qualitylayer agent-runs stop --all --reason app-quit [--json]` | The App's Quit helper in the unreleased candidate. It asks confirmed local hosts to stop only when Settings says **Stop agents**; it keeps runs when Settings says **Agents keep running** |
 | `qualitylayer branch new [name]` | Start the build on a new branch: create `ql/<task>`, or the name you give, switch to it and note it on the task. See [where the build lands](../steps/implement.md#where-it-lands) |
 | `qualitylayer find "<text>"` | Find a task |
 | `qualitylayer tasks` | List tasks, by status or age |

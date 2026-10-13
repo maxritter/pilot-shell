@@ -1,6 +1,6 @@
 ---
 title: Designs
-description: Ask your agent to draw a page, open it full size in the App, and point at what should change. Designs stay on your computer.
+description: Open designs full size, compare their artboards and comment on a spot. Include previews in a shared task only when you choose.
 ---
 
 A design is one page your agent draws for you: a screen, a flow, a diagram of how something fits together. Open it full size in the App, comment on a spot, and your agent changes the same page. It works at any step, inside a task or outside one.
@@ -40,4 +40,8 @@ A comment appears in the **Comments** tab with **Jump to the spot** and reaches 
 
 ## Kept on your computer {#never-shared}
 
-The interactive design and its comments stay on your computer, and the design folders stay out of Git. A share link shows at most a still picture of the Plan's design. Your agent can check its own work with `qualitylayer design shot` ([commands](reference/commands.md#designs)).
+Designs are local files with revision history. **Open design canvas** compares named artboards: choose which to show, search, zoom and pan. Details lets you edit the source, duplicate or rename a design, and restore an earlier revision. A failed save keeps your edits; stale writes are refused.
+
+The task's Share menu can **Include designs** in its encrypted Team copy or external link. This starts off for existing shares. Shared previews disable scripts and navigation and show isolated artboards. Reviewers can comment or request improvements; they cannot control your local preview. The share keeps the same team, group or link access as the task.
+
+Your agent can check its work with `qualitylayer design shot` ([commands](reference/commands.md#designs)). Agent terminal output and launch settings are not part of a design or a shared task.

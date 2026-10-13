@@ -38,12 +38,16 @@ export const FAQS: Faq[] = [
     "Yes. Choose Product or Engineering at Setup, and change it any time in Settings › Workflow. With Product, a task starts as a product brief: Discuss settles the problem, how success is measured and the first release, and the plan reads in product words with the engineering detail folded away. With Engineering, a task starts with the full technical plan. The task header shows each task's level and switches it for that one task.",
   ),
   faq(
+    "Can I run my agent in the App?",
+    "The unreleased App-run candidate lets you start Claude Code or Codex from New task or Implement, type in its own interactive window, and fold it while work continues. Your terminal remains an option. Windows App runs are planned for later. This candidate is being verified locally and is not available as a public release yet.",
+  ),
+  faq(
     "What does it cost to run?",
     "Your agents’ own usage, on your subscription. The App shows the estimated cost of each step.",
   ),
   faq(
     "Does my code leave my computer?",
-    "Your coding agent sends code to its provider under your existing data settings. QualityLayer keeps your plans and designs on your computer. Sharing sends the plan and its progress, encrypted on your machine; it does not send your code or the design page. A screenshot you attach to a feedback report can show code, so check it before sending.",
+    "Your coding agent sends code to its provider under your existing data settings. QualityLayer keeps your plans, designs and agent output on your computer. Sharing sends the task and its progress, encrypted on your machine, with designs only when you include them; it does not send repository code or terminal output. A screenshot you attach to a feedback report can show code, so check it before sending.",
   ),
   faq(
     "I use Pilot Shell today. What happens?",

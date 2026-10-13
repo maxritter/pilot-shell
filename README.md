@@ -140,9 +140,13 @@ Describe a change to your agent in any repository:
 $ql retry failed webhooks, and stop after a few tries     # Codex
 ```
 
-Or click **+ New** in the App and copy the one command it gives you. Your agent asks each decision in the App, and its terminal shows a single line while it waits. It sends independent questions together in batches, and **Your turn** shows one focused question with its context. You can answer in any order or press **Skip for now**; each answer reaches the agent immediately. Approving the plan is a separate action you take once you have read it.
+Or click **+ New** in the App. The unreleased App-run candidate adds **Here in the App**: choose your agent and repository, write the request and start its interactive window. **In my terminal** keeps the command you can copy into your terminal, editor or agent app. App runs on Windows are planned for later; use the terminal option there.
 
-After you approve, Implement shows one command that starts the build in a fresh session, such as `claude --model opus --effort high "/ql implement retry-webhooks"`. Your agent then works on its own until the final review. If it needs a login or secret only you have, it asks in **Your turn** while other slices keep building.
+Your agent asks each decision in the App, and its terminal shows a single line while it waits. It sends independent questions together in batches, and **Your turn** shows one focused question with its context. You can answer in any order or press **Skip for now**; each answer reaches the agent immediately. Approving the plan is a separate action you take once you have read it.
+
+After you approve, Implement offers the same two places to run. In the unreleased candidate, choose Claude Code or Codex, select **Here in the App**, then press **Start the build**. The terminal option still shows the launch command for a fresh session. Your agent then works on its own until the final review. If it needs a login or secret only you have, it asks in **Your turn** while other slices keep building.
+
+An App run keeps working when you fold its window or navigate away. Reopen it to type, paste or answer the agent's own permission prompts. **Interrupt** sends the agent's interrupt key; **Stop** ends the run. A paired phone watches by default, and the computer's key-paired session controls who may type. Settings chooses whether quitting the App keeps runs going or stops them; an update preserves them. See [App runs](https://qualitylayer.dev/docs/app#agent-runs) for permissions, resume and other agents. This candidate is under local verification and has not been released.
 
 QualityLayer runs only when you ask for it: with `/ql` (`$ql` in Codex), `/ql implement`, or a request to resume a named task. Everything else works as before.
 
@@ -159,7 +163,7 @@ Every task takes the same eight steps, in order. The first seven each write one 
   <img src="docs/docusaurus/static/img/diagrams/flow-pr-light.svg" alt="Discuss, Research, Plan, Outline, Implement, Verify, Review and the pull request: you approve at Plan and at Review and merge the pull request; your agent works in between" width="1000">
 </picture>
 
-**Agree on the plan.** In Discuss you settle what done means; a bug is reproduced first. Agents research the code, and the Plan shows the design, diagrams and checks, sized to the change; a comment you leave is answered within a minute. A risky Plan is read by another agent while you read it; Approve unlocks once its findings are folded in. Once you approve, the build session cuts it into slices, with nothing for you to approve, and builds.
+**Agree on the plan.** In Discuss you settle what done means; a bug is reproduced first. Agents research the code, and the Plan shows the design, diagrams and checks, sized to the change; a comment you leave is answered within a minute. A risky Plan is read by another agent while you read it; Approve unlocks once its findings are folded in. The build session writes the Outline from the approved Plan, then builds it. A small task's Outline can be ready while you read the Plan, so its build starts sooner.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/plan-dark.webp">

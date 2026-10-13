@@ -33,7 +33,7 @@ const SETUPS: Chip[] = [
 
 /** Each card in the App's colours: blue for the agent's work, amber for your decision, violet for what agents checked. */
 const PRINCIPLES: { who: "agent" | "you" | "check"; icon: LucideIcon; title: string; lead: string; text: string }[] = [
-  { who: "agent", icon: SquareTerminal, title: "Your agent", lead: "The tools you already trust", text: "Claude Code or Codex writes the code in its own terminal, app or editor, on your subscription." },
+  { who: "agent", icon: SquareTerminal, title: "Your agent", lead: "The tools you already trust", text: "Claude Code or Codex writes the code on your subscription. Keep your terminal or use its interactive window in the unreleased App-run candidate." },
   { who: "you", icon: Workflow, title: "One plan", lead: "Approved by you before any code", text: "See each decision as a diagram and each screen as a clickable mockup, and comment on any part." },
   { who: "check", icon: BadgeCheck, title: "Proof", lead: "Checked by agents that did not write it", text: "Every test run is recorded, every point you agreed is checked, and the proof is one click away." },
 ];

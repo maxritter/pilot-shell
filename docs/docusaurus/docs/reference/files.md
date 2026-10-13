@@ -13,7 +13,7 @@ Each task gets a folder in `docs/plans/`: plain Markdown, committed with the cha
 | In the folder | What it holds |
 | --- | --- |
 | **Seven documents** | One per step, readable on GitHub too. The App draws its live parts over sections QualityLayer marks |
-| `design/` | Pages your agent drew for this task; on your computer only, out of Git ([Designs](../designs.md)) |
+| `design/` | Local designs and their revision history. Sharing includes them only when you choose **Include designs** ([Designs](../designs.md)) |
 | `reviews/` | What the other agents wrote: the Plan review, the Outline check, the second opinion. Only those that ran |
 | `records/` | The raw output of every command, and `pull-request-body.md` once Review starts |
 | `evidence/` | Pictures and recordings the checks made |
@@ -44,11 +44,13 @@ Your code, the diff, every plan document, the evidence and the cost view stay on
 | | What is sent |
 | --- | --- |
 | **Always** | A daily licence check to qualitylayer.dev (plus activation or the trial start), the workflow texts your agent follows, and App updates. No usage events |
-| **When you share** | Tasks, documents and comments, encrypted on your computer with your team's key. The server sees names, e-mails, the step and when; never the content. A share link carries its own key, which never reaches the server |
-| **Never** | Your code, the diff, your logs, raw HTML, command output, interactive designs. A shared Plan can carry a still picture of its design, marked as one |
+| **When you share** | Tasks, documents and comments, encrypted on your computer with your team's key. **Include designs** adds the task's selected design previews; it starts off for existing shares. The server sees names, e-mails, the step and when; never the content. A share link carries its own key, which never reaches the server |
+| **Never** | Repository code, the diff, host logs, launch settings, terminal output and command output. Shared design previews disable scripts and navigation; they do not give a reviewer your local interactive session |
 | **With Slack** | The task title and the question, through the QualityLayer server to Slack |
 
 The QualityLayer API runs in Frankfurt, and backups are encrypted and kept in the EU.
+
+The unreleased App-run candidate keeps terminal output and process records in owner-only local run folders. They are separate from the task's Markdown and stay out of Team and public copies. An image you deliberately attach to feedback can contain that output; review it before sending.
 
 ## Feedback {#feedback}
 
