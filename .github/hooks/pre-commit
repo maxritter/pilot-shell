@@ -13,9 +13,7 @@
 # Missing local tools are skipped with a warning, never blocking: CI is the gate.
 #
 # Install: ln -sf ../../.github/hooks/pre-commit .git/hooks/pre-commit
-# Bypass:
-#   SKIP_PRECOMMIT=1   skip everything (or: git commit --no-verify)
-#   SKIP_TRIVY=1       skip the security scan
+# Fix failed checks before retrying the commit. Repository work must pass these gates.
 
 set -uo pipefail
 
@@ -38,7 +36,7 @@ cd "$(git rev-parse --show-toplevel)" || exit 1
 # repo (repo config wins over ~/.gitconfig), GitHub attributes commits by author
 # email, and the author is baked into the commit hash - so the only cure after
 # the fact is a history rewrite. Catch it here, before it can be committed.
-# Bypass: SKIP_IDENTITY_CHECK=1
+# Confirm the intended author identity before committing.
 if [ "${SKIP_IDENTITY_CHECK:-0}" != "1" ]; then
   _ident_email="$(git config user.email 2>/dev/null || true)"
   _ident_name="$(git config user.name 2>/dev/null || true)"
@@ -70,7 +68,7 @@ if [ "${SKIP_IDENTITY_CHECK:-0}" != "1" ]; then
       echo "  fix:    git config --global user.email 'you@example-real.com'" >&2
     fi
     echo "  then:   git config user.email   # confirm before committing" >&2
-    echo "  bypass: SKIP_IDENTITY_CHECK=1 git commit ..." >&2
+    echo "  retry the commit normally after correcting the identity." >&2
     exit 1
   fi
 fi
@@ -320,7 +318,7 @@ done
 if [ "$failed" -ne 0 ]; then
   echo "" >&2
   failed_list="$(printf '%s, ' "${failed_names[@]}")"
-  echo "✖ Pre-commit failed: ${failed_list%, }. Fix the above, or bypass with SKIP_PRECOMMIT=1 / git commit --no-verify" >&2
+  echo "✖ Pre-commit failed: ${failed_list%, }. Fix the failed checks above, then retry the commit normally." >&2
   exit 1
 fi
 
