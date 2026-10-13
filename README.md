@@ -70,7 +70,8 @@ curl -fsSL https://qualitylayer.dev/install.sh | bash
 - Agents that did not write the code check each point of your request against the running program.
 - Your agent settles routine choices and records them. Only real decisions come to you.
 - You see the time and estimated cost of every step, and teammates can comment while the plan is still cheap to change.
-- Ask your agent for a screen mockup, wireframe or diagram. Compare designs in the App's canvas, pin comments and restore earlier versions. Task sharing can include an encrypted preview. [Design guide](https://qualitylayer.dev/docs/designs) · [CLI reference](https://qualitylayer.dev/docs/reference/commands#designs).
+- Your tasks stand under their projects in the App, with what needs you shown first. Fold, reorder, color or hide a project, and find any task by name. [The sidebar](https://qualitylayer.dev/docs/app#sidebar).
+- Ask your agent for a screen mockup, wireframe, diagram, or a folder of pages that clicks through like an app. Compare designs in the App's canvas, pin comments and restore earlier versions. Keep the ones every task builds on as lasting designs in your repository, and fold a task's changes back in at Review. Task sharing can include an encrypted preview. [Design guide](https://qualitylayer.dev/docs/designs) · [CLI reference](https://qualitylayer.dev/docs/reference/commands#designs).
 
 QualityLayer is for medium and large changes. When a request turns out too small for a plan, your agent closes the task with a ready prompt for the plain agent.
 
@@ -185,7 +186,7 @@ Every task takes the same eight steps, in order. The first seven each write one 
 </picture>
 <sub>Example task in a fictional project: usage-based billing across nine services.</sub>
 
-**Build and prove it.** Your agent builds slice by slice, each starting with a failing test. In Verify, every change is polished and checked against each point of your request, and a live checklist keeps each point next to its evidence. A risky change also gets a review from an agent that did not write the code. Review walks you through the change before the pull request opens, and the task stays open until it is merged.
+**Build and prove it.** Your agent builds slice by slice, each starting with a failing test. In Verify, every change is polished and checked against each point of your request, and a live checklist keeps each point next to its evidence. A risky change also gets a review from an agent that did not write the code. Review walks you through the change before the pull request opens. Your agent then watches its checks and fixes failures, up to three times, and the task stays open until you merge it.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/verify-dark.webp">

@@ -91,6 +91,7 @@ You rarely type these; they are what you see in your agent's chat.
 | `qualitylayer check failed` | Rerun only the test files that failed in the last full run, with the fast project checks; `--background` runs it detached |
 | `qualitylayer commit fix` | Commit the files this task's sessions edited since the latest fix agent was handed out, the way `commit slice` commits a slice; `--message` and `--take-staged` work as there |
 | `qualitylayer comments take` | Collect the comments not yet answered |
+| `qualitylayer pr watch [--wait <seconds>] [--limit <seconds>] [--again]` | After the pull request opens, wait for its checks and answer what to do next: nothing (they pass), fix these failing checks (each with the end of its log), resolve this conflict, or stop for you. At most three fix attempts for the pull request, failures and conflicts together; `--again` allows three more when you ask. `--wait` is the time before the first read (300 seconds), `--limit` how long one call waits for running checks (540). The pull request card shows the watch ([Pull request](../steps/pull-request.md#watch)) |
 | `qualitylayer handover` · `handover --push` | Hand an approved Plan to your team: write its approval record and commit the task's files, then list the commits that would go. `--push` pushes the branch and, with a Team plan, lists the task for your teammates. It is the terminal's way to the **Hand over** button |
 | `qualitylayer attest handover "<what the person said>"` | On a teammate's machine without a Team plan, record that you build from the approval on this branch. The first `qualitylayer next` there asks you for it |
 | `qualitylayer ask list` · `ask answer` · `ask draft` | A teammate's agent reads and answers a question; see [Teammates' agents](../team/agents.md) |
@@ -110,10 +111,13 @@ Your agent draws [designs](../designs.md) with these, at any step, inside a task
 | Command | What it does |
 | --- | --- |
 | `qualitylayer design guide` | Read the authoring guide before drawing the first design |
-| `qualitylayer design new <name> [--purpose "<line>"] [--project]` | Start a design in the task's `design/` folder, or in `docs/designs/` outside a task or with `--project` |
+| `qualitylayer design new <name> [--purpose "<line>"] [--project]` | Start a design in the task's `design/` folder, or in `docs/designs/` on this Mac outside a task or with `--project` |
 | `qualitylayer design new <name> --wire` | Start a wireframe instead: grey boxes and real labels that settle the layout. A name ending in `-options` gets two layouts side by side. The finished design for the Plan is made without `--wire` |
-| `qualitylayer design show <name> [--changed "<line>"]` | Mark it updated, with one line of what changed, so you see it as soon as it renders |
-| `qualitylayer design list` | List the designs |
+| `qualitylayer design new <name> --folder` | Start a design of several pages: a folder with `index.html`, to which you add more pages, scripts (JSX is allowed and React is provided), styles, fonts and pictures. It opens interactive and loads nothing from the network |
+| `qualitylayer design new <name> --on <design>[/<page>]` | Draft on a lasting design of the project: copy the design, or one page and the files it uses, into the task and remember where it came from. At Review the pages you changed can be folded back in ([Designs](../designs.md#fold-in)). Needs a task |
+| `qualitylayer design show <name> [--page <page>] [--changed "<line>"]` | Mark it updated, with one line of what changed, so you see it as soon as it renders. `--page` names a page of a design of several pages |
+| `qualitylayer design keep <name> [--only-here] [--title "<title>"] [--purpose "<line>"]` | Make a draft a lasting design of the project, in `.qualitylayer/designs/<name>/` where it goes into the task's changes and pull request. `--only-here` keeps it in `docs/designs/` on this Mac instead, out of git. The draft stays as it is ([Keep](../designs.md#keep)) |
+| `qualitylayer design list` | List the designs: the task's drafts with what each drafts on, the project's lasting designs with their pages, and the designs only on this Mac |
 | `qualitylayer design context` | Read the local product documents and tokens before authoring |
 | `qualitylayer design inspect <name>` | Read HTML, metadata and the source revision |
 | `qualitylayer design push <name> --from <html> --if-match <revision\|0>` | Create or update from a local file; `0` requires an absent design, and stale revisions are refused |
@@ -125,11 +129,11 @@ Your agent draws [designs](../designs.md) with these, at any step, inside a task
 | `qualitylayer design restore <name> --revision <id> --if-match <revision\|0>` | Restore a revision while keeping the current source |
 | `qualitylayer design check <name>` | Check HTML structure and local resources; rendered quality still needs screenshots and interactions |
 | `qualitylayer design sharing [--on\|--off]` | Include or exclude the selected task's designs in its team copy and public link; access follows the workflow's share controls |
-| `qualitylayer design shot <name> [--width <px>] [--theme light\|dark] [--section <label>] [--out <file>]` | Render a PNG of the page or a named section; needs Chrome |
+| `qualitylayer design shot <name> [--page <page>] [--width <px>] [--theme light\|dark] [--section <label>] [--out <file>]` | Render a PNG of the page or a named section; needs Chrome. `--page` picks a page of a design of several pages |
 | `qualitylayer design comments <name>` | The open comments on a design, each with its spot |
 | `qualitylayer design comments <name> resolve <id…\|all> [--answer "<line>"]` | Resolve selected comments or all open comments, optionally recording an answer |
 
-Existing designs are found in the selected task first, then `docs/designs/`. Add `--project` to target the project's copy explicitly. New designs go in the task's folder unless you use `--project` or work outside a task. `import` aliases `push`; `export` aliases `pull`. `pull` and `export` require a new output path.
+Existing designs are found in the selected task first, then `docs/designs/`. A project's lasting designs are in `.qualitylayer/designs/`; read them with `design list` and draft on them with `design new --on`. Add `--project` to target the project's copy explicitly. New designs go in the task's folder unless you use `--project` or work outside a task. `import` aliases `push`; `export` aliases `pull`. `pull` and `export` require a new output path.
 
 Get the current revision with `design inspect` before changing a design. `--if-match 0` creates an absent design; any other value must match its current revision. Closed task designs are read-only. A referenced design cannot be deleted until its references are removed.
 

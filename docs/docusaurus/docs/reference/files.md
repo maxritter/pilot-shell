@@ -34,6 +34,17 @@ Each document opens with what you read first, then working sections (code shapes
 | `06-verify.md` | **What was checked:** the six checks, each point with its evidence, what is still open |
 | `07-review.md` | **The change:** first the pull request's description, word for word, then what you settled and how it ships |
 
+## Lasting designs and how projects look {#lasting}
+
+| File | What it holds |
+| --- | --- |
+| `.qualitylayer/designs/<name>/` in the repository | A [lasting design](../designs.md#keep): its pages, scripts, styles, fonts and pictures, and a `design.json` with its title, what it shows, its first page (`entry`) and, if you gave one, its Claude Design link. Commit it with the change; it goes through pull requests like code |
+| `design.json` `source` | Optional. Names another folder of the same repository where the design's files are, for a design that already lives there. A folder outside the repository, or one that crosses a symbolic link, is refused |
+| `docs/designs/` | Designs kept only on this Mac. Git does not see them |
+| `~/.qualitylayer/project-look.json` | How the sidebar shows your projects on this computer: their order, color, display name, whether each is hidden, and the lasting designs of other projects listed under it. The folders keep their own names. Delete the file to start from the defaults |
+
+Folds, grouping and rows are remembered by the App window you use; they are not in a file you can edit.
+
 ## What stays on your computer, and what leaves it {#privacy}
 
 ![What stays on your computer, what the licence check sends, what sharing sends to the team service, and what a feedback report sends to a private issue](pathname:///img/diagrams/privacy-light.svg)
@@ -48,6 +59,7 @@ Your code, the diff, every plan document, the evidence and the cost view stay on
 | **Never** | Repository code, the diff, host logs, launch settings, terminal output and command output. Shared design previews disable scripts and navigation; they do not give a reviewer your local interactive session |
 | **With Slack** | The task title and the question, through the QualityLayer server to Slack |
 | **Instructions** | Your own instructions (`~/.qualitylayer/instructions.md`) never leave your computer. The team owner's are encrypted with the team's key before they are sent; each teammate's computer keeps a local copy, readable by its user alone ([Team instructions](settings.md#team-instructions)) |
+| **Lasting designs** | A design kept **In the repository** is a file in `.qualitylayer/designs/`. It travels with your commits and pull requests, so anyone who can read the repository can read it. **Only on this Mac** keeps it out of git |
 | **Project lessons (next release)** | Local lessons stay in your QualityLayer home. For repositories where you enable memory sharing, eligible lessons become readable files under `.qualitylayer/memories/` and travel through your normal Git commits and pushes. This is separate from encrypted task sharing. See [Project memory](../memory.md) |
 
 The QualityLayer API runs in Frankfurt, and backups are encrypted and kept in the EU.

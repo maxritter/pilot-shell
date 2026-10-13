@@ -5,19 +5,66 @@ description: Where you answer, read and comment while your agent works. One page
 
 The QualityLayer App is where you answer, read and comment while your agent works. It runs on macOS, Windows and Linux, and without a screen `qualitylayer app` opens it in your browser. Closing a window leaves work running. Quitting follows the run setting described below.
 
-![The App at Discuss: your tasks on the left, the step track across the top, one question in Your turn with its choices and a field for your own answer, the Discuss document below, and Files and Comments on the right](pathname:///img/app/discuss-light.webp)
-![The App at Discuss: your tasks on the left, the step track across the top, one question in Your turn with its choices and a field for your own answer, the Discuss document below, and Files and Comments on the right](pathname:///img/app/discuss-dark.webp)
+![The App at Discuss: your tasks grouped by project on the left, the step track across the top, one question in Your turn with its choices and a field for your own answer, the Discuss document below, and Files and Comments on the right](pathname:///img/app/discuss-light.webp)
+![The App at Discuss: your tasks grouped by project on the left, the step track across the top, one question in Your turn with its choices and a field for your own answer, the Discuss document below, and Files and Comments on the right](pathname:///img/app/discuss-dark.webp)
 
 *Example task in a fictional project.*
 
 | Part | What it does |
 | --- | --- |
-| **Sidebar** | Your tasks: what needs you, what runs, what shipped. **+ New** starts one |
+| **Sidebar** | The places (Home, Team, Designs) and your tasks under their projects. **+ New** starts one ([The sidebar](#sidebar)) |
 | **Agent status** | The chip in the top bar: what the agent does now, whether it needs you, is quiet or has stopped |
 | **Step track** | Where the task stands. A person icon marks the two steps you approve |
 | **Your turn** | One question or decision, when your judgement is needed |
 | **Step page** | The step's document as the parts that matter now |
 | **Right sidebar** | **Files** (documents, designs, reviews, records) and **Comments** |
+
+## The sidebar {#sidebar}
+
+Your tasks stand under the project they come from. A project is a repository on this computer. Its header has a colored tile with two letters and its name; its open tasks follow, the ones that wait on you first, then stopped, working, quiet and pull request open. One row at the end, such as **Shipped 3 · archived 1**, holds finished work. A project with nothing open reads **Nothing open** with **New task** beside it.
+
+A project appears by itself when you start a task in its repository. **Add a project** (the folder button above the list) picks a folder, then asks for the name and color the project shows.
+
+| You want to | How |
+| --- | --- |
+| Fold a project | Click its header, or press **←** on it. A folded project keeps a sign: an amber count of what waits on you, else a ring while an agent works, else the number of open tasks |
+| Reorder projects | Drag a header, or press **⌥↑** and **⌥↓**, or choose **Move up** and **Move down** |
+| Change a color | One of eight in the project menu: Gray, Slate, Teal, Green, Olive, Brown, Rose or Plum. Blue, amber, violet and red are left out because they already mean agent work, your turn, checks and failure |
+| Rename a project | **Rename** in the project menu. It changes the name shown in the list; the folder keeps its name |
+| Hide a project | **Hide from the list** moves it into **Hidden projects** at the bottom; **Show again** brings it back |
+| Start a task in a project | **+** on its header opens **New task** with that project chosen |
+
+The task you have open always stays in the list, even under a folded project, a hidden project or a filter.
+
+The project menu opens from the **⋯** on a header or with a right-click on it. It also holds **New task here**, **Fold the others**, **Open in Finder** and **Copy path**. A right-click on a task offers **Open**, **Rename**, **Archive** or **Restore**, and **Delete**. Renaming a task changes its title; its folder keeps its name.
+
+The sliders button above the list opens **View**:
+
+| Choice | What it does |
+| --- | --- |
+| **Group by** | **Project** (the default) or **Status**. Status shows today's groups (Your turn, Running, Shipped, Archived) with a small project tile at the end of each row |
+| **Show** | **Everything open**, **What needs you**, **Running** or **Shipped**, each with its count |
+| **Agent** | **Any**, **Claude Code** or **Codex** |
+| **Rows** | **Two lines**, or **One line** with the step at the end |
+| **Fold all projects**, **Unfold all projects** | Fold or unfold every project at once |
+
+The search button opens **Find**, which filters by task and project name across everything, shipped and archived work included. A filter shows a chip with **Show all**, and a line such as "2 projects have nothing that needs you". **⌘K** still searches everything, and choosing a project there shows only that project.
+
+With the list focused, **↑** and **↓** move through projects and tasks, **←** and **→** fold and unfold a project, and **Enter** opens. A project's tile and name also appear on Home's rows and in each task's header, so you can tell where a task comes from at a glance. On a phone the same list opens as a sheet with larger rows.
+
+The order, colors, names and hidden projects are kept on the computer that runs the App, so a paired phone or browser shows your projects the same way. Folds, grouping, rows and Find belong to the window you use.
+
+With a team, **Team** groups the tasks your teammates shared by project in the same way when the task names its project, with your name for it. Questions waiting for you stay on top.
+
+### The places {#places}
+
+Three places sit above the list.
+
+| Place | What it shows |
+| --- | --- |
+| **Home** | What needs you, what runs, the cost and what shipped ([Home](#home)) |
+| **Team** | With a Team plan: the questions teammates wait on you for, and the tasks they shared |
+| **Designs** | Every project's lasting designs and the drafts in open tasks ([Designs](designs.md#designs-place)) |
 
 ## Answering questions {#questions}
 
@@ -65,15 +112,14 @@ A document can appear before its step: `02-research.md` while you answer Discuss
 
 ## Comments and designs
 
-Select a passage, a line or part of a diagram and comment. Your agent answers in the thread and says what it changed; **Ask…** passes the question to a teammate. Designs appear as compact entries in **Files**; open one full size and comment on a spot. **Open design canvas** compares its named artboards ([Designs](designs.md)). File actions belong to the document header.
+Select a passage, a line or part of a diagram and comment. Your agent answers in the thread and says what it changed; **Ask…** passes the question to a teammate. Designs appear as compact entries in **Files**; open one full size and comment on a spot. **Open design canvas** compares its named artboards. The designs a project keeps for good, and the drafts that change them, are in the **Designs** place ([Designs](designs.md)). File actions belong to the document header.
 
-## Home
-
+## Home {#home}
 
 ![Home: Needs attention with a row for each task that waits, Spent on agents with the estimated cost, and Shipped](pathname:///img/app/home-light.webp)
 ![Home: Needs attention with a row for each task that waits, Spent on agents with the estimated cost, and Shipped](pathname:///img/app/home-dark.webp)
 
-Four areas: **Needs attention**, **Running**, **Spent on agents** and **Shipped**. Each row in **Needs attention** opens the task where you answer or review; with a team it also lists what teammates wait on you for. The bell and the counts show the same number. The App notifies you only when you can act.
+Four areas: **Needs attention**, **Running**, **Spent on agents** and **Shipped**. Each row in **Needs attention** and **Running** shows its project's tile and name before the title. A row in **Needs attention** opens the task where you answer or review; with a team it also lists what teammates wait on you for. The bell and the counts show the same number. The App notifies you only when you can act.
 
 ## What it costs {#cost}
 

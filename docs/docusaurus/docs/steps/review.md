@@ -41,6 +41,8 @@ Under the approval card, **The change, top to bottom** always reads in this orde
 
 At the **Product** level the page reads as a release note, and **Built, slice by slice** folds to its headline ([two levels](../intro.md#two-levels)). The page is `07-review.md`. Its first sections are the pull request's description, word for word.
 
+When the task drew on a [lasting design](../designs.md#lasting), a card above the page, **This task changes App Model**, shows each page it changed, before and after. You pick the pages to **Fold … in** to the lasting design; they go into the task's commits and its pull request ([Fold in at Review](../designs.md#fold-in)).
+
 ## Approve {#approve}
 
 The last question is "Approve the change?". Choose how it ships:
@@ -50,6 +52,8 @@ The last question is "Approve the change?". Choose how it ships:
 | **Approve and open a pull request** | Pushes the branch and opens the pull request with this page as its description. Needs `gh` and a branch of the task's own |
 | **Approve only** | You push and open it yourself |
 | **Copy the git commands** | Commit, push and open it from your terminal |
+
+Once the pull request is open, your agent stays with it: it watches the checks, and fixes a failing check or a conflict itself, at most three times ([Pull request](pull-request.md#watch)).
 
 When an answer asks for a change, the button reads **Send 1 change** instead. QualityLayer never pushes, opens a pull request or merges without your yes. A task built on your main branch has no branch to open a pull request from; see [where the build lands](implement.md#where-it-lands).
 

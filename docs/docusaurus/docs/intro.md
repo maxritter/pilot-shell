@@ -34,7 +34,7 @@ Every task takes the same steps, in order. The first seven each write one docume
 | **[Implement](steps/implement.md)** | One command starts the build, in small slices, each tested |
 | **[Verify](steps/verify.md)** | Six checks, including agents that did not write the code |
 | **[Review](steps/review.md)** | You settle what is left and approve; the pull request opens |
-| **[Pull request](steps/pull-request.md)** | QualityLayer follows checks and reviewers. You merge it, and the task closes |
+| **[Pull request](steps/pull-request.md)** | Your agent watches the checks and fixes failures, up to three times; QualityLayer follows the reviewers. You merge it, and the task closes |
 
 A bug takes the same steps. Its cause is found in Research, before anything is planned.
 
