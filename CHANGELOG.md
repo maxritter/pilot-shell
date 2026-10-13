@@ -1,28 +1,36 @@
 # Changelog
 
-## Unreleased
+Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
-This App-run candidate is being verified locally. It has not been published or approved for release.
+## 12.0.0-beta.56
 
 ### New
 
-- Start a new task or an approved build with Claude Code or Codex in the App, with the agent's own interactive window. The terminal launch option remains available. Windows App runs are planned for later.
-- Fold and reopen agent windows while work continues. Interrupt, Stop, move to a terminal, or resume a stopped conversation. Resume can open the conversation without continuing the task.
-- Choose permission handling for each run: your agent's own settings, Fewer prompts, or Bypass prompts with a separate confirmation. Session choice and working checkout are separate.
-- Choose whether quitting the App keeps runs going or stops them. Updating or relaunching the App preserves them.
-- Give your agent standing instructions in **Settings › Workflow › Your instructions**: coding standards, things never to do, how you like a Plan. They reach the agent once in each step and are never copied into a task's documents; a `## Implement` heading keeps lines for one step. A team owner writes **Team instructions** in **Settings › Team**, encrypted with the team's key; teammates read them, and they come first ([Settings](https://qualitylayer.dev/docs/reference/settings#instructions)).
-- Draft an answer to a teammate's question with your agent in the App. These runs use your agent's own settings; you review the draft and press Send the draft. A teammate cannot start or control your agent.
-- Your tasks now stand under their projects in the sidebar. Fold a project, drag it into place, give it one of eight colors and a name, hide it, or start a task in it with one click. **View** groups by project or status and shortens the rows, **Find** searches tasks and projects, and a right-click opens a project's or a task's menu; a task can be renamed. Home's rows and each task's header show the project ([The sidebar](https://qualitylayer.dev/docs/app#sidebar)).
-- The **Designs** place lists every project's lasting designs and the drafts in open tasks. Keep a draft as a lasting design in the repository or only on this Mac. A design can be a folder of pages that clicks through like an app. A task drafts on a lasting design, and at Review it can fold the pages it changed back in ([Designs](https://qualitylayer.dev/docs/designs)).
-- After the pull request opens, your agent watches its checks and fixes failures or conflicts, at most three times. The pull request card shows the watch ([Pull request](https://qualitylayer.dev/docs/steps/pull-request#watch)).
+- **Run your agent in the App.** Start a new task or an approved build with Claude Code or Codex in its own window inside the App, or keep using your terminal. Fold the window and work continues; Interrupt, Stop, move to a terminal or resume later. Choose the permission handling per run, and whether quitting the App keeps runs going. On Windows, use your terminal for now.
+- **Projects in the sidebar.** Your tasks stand under their projects. Fold, reorder, rename or hide a project, start a task in it with one click, and right-click a project or task for its menu. **View** groups by project or status; **Find** searches tasks and projects.
+- **Designs.** One place lists every project's lasting designs and the drafts open tasks are changing. A design can be a folder of pages that clicks through like an app. A task starts from a lasting design and folds its changed pages back in at Review.
+- **Your instructions.** Write standing instructions in **Settings › Workflow** (coding standards, things never to do). A team owner writes **Team instructions** in **Settings › Team**, encrypted with the team's key.
+- **Project memory.** Claude Code and Codex reuse local project lessons between tasks. Choose which repositories share checked lessons through Git, and search or retire them in **Settings › Memory**.
+- **Your agent follows its pull request.** After the pull request opens, your agent watches its checks and fixes failures or conflicts, at most three times.
+- **Files on comments.** Attach pictures and text files to a comment; your agent reads them, and teammates receive them sealed.
+- **Large teams.** Ask a teammate by name in a team of hundreds; every people list stays in its box.
+- Settings is one calm column of grouped rows. The bell's Earlier list has **Clear all**. Billing shows the machines on each licence key and lets you release one.
+- Draft an answer to a teammate's question with your own agent, then review and send it.
+
+### Fixed
+
+- On Windows, the App no longer opens a console window for git and its other background programs.
+- Verify reruns a failing check once and then moves on; checks that still fail are listed on the final review. Other sessions' work on the same branch never holds your task or asks for a new review.
+- A lasting design keeps its `lib/` or `dist/` folders even where the project ignores those names.
+- Projects start in one quiet color instead of a different color each.
+- Selecting text no longer scrolls the document sideways; the Team page shows "Questions for you" only when there is one.
+- A key activated in a terminal reaches an open App at once.
+- A slice that loses a commit race to another session is checked again and committed, never stopping the build.
 
 ### Good to know
 
-- Other agents use a program path and JSON argument list. Their request is sent only when you press Send request; agent-specific interrupt and resume controls are unavailable.
-- Agent output stays in owner-only local run records and is not included in shared task documents.
-- Required browser, platform and installed-App qualification is unfinished. This entry does not claim a release or a complete test pass.
-
-Notable changes to QualityLayer and its predecessor, Pilot Shell.
+- Other agents than Claude Code and Codex start from a program path and argument list; their interrupt and resume controls are not available.
+- Agent output stays in local run records on your computer and is never part of a shared task.
 
 ## 12.0.0-beta.55
 
