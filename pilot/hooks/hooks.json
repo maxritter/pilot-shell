@@ -302,7 +302,7 @@
           },
           {
             "type": "command",
-            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" --exec bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code summarize",
+            "command": "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" --single-flight summarize --exec bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code summarize",
             "async": true,
             "timeout": 15
           }

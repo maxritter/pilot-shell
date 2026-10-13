@@ -394,7 +394,7 @@
       "handlers": [
         "CLAUDE_PROJECT_PLATFORM=claude uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/spec_stop_guard.py\"",
         "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
-        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" --exec bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code summarize"
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" --single-flight summarize --exec bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook claude-code summarize"
       ],
       "async": [
         false,
@@ -617,7 +617,7 @@
       "handlers": [
         "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/spec_stop_guard.py\"",
         "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" \"$HOME/.pilot/hooks/repo_agent_sync.py\"",
-        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" --exec bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex summarize"
+        "uv run --no-project --python python3 python \"$HOME/.pilot/hooks/run_if_licensed.py\" --single-flight summarize --exec bun \"$HOME/.pilot/scripts/worker-service.cjs\" hook codex summarize"
       ],
       "async": [
         false,
