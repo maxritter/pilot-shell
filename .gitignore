@@ -325,3 +325,8 @@ bun.lock
 
 # Wrangler state from deploying the feedback Worker
 .wrangler/
+
+# Local Memory spike and implementation evidence; product screenshots live under docs/.
+qualitylayer/spikes/engram-2026-10-13/
+qualitylayer/design/memory/implementation-qa/
+qualitylayer/design/memory/artifact-create.json
