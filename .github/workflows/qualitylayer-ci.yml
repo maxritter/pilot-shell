@@ -11,6 +11,8 @@ on:
       - "install.sh"
       - "install.ps1"
       - ".github/workflows/qualitylayer-ci.yml"
+      - ".github/workflows/release.yml"
+      - ".github/workflows/scripts/**"
       - ".github/scripts/check_qualitylayer_encrypted.sh"
   pull_request:
     branches:
@@ -23,6 +25,8 @@ on:
       - "install.ps1"
       - ".github/workflows/qualitylayer-ci.yml"
       - ".github/scripts/check_qualitylayer_encrypted.sh"
+  # Proves a fix on any branch without releasing: gh workflow run "QualityLayer CI" --ref <branch>.
+  workflow_dispatch:
 
 permissions:
   contents: read

@@ -14,6 +14,30 @@ check below runs **before** the push. Each step names the mistake that taught it
 here (the step, and the mistake in one line) before ending the turn. Max asked for this on
 2026-10-12: the same release mistake must not happen twice.
 
+## 0. CI on dev is green before anything else
+
+```bash
+gh run list --branch dev --workflow "QualityLayer CI" --limit 3 --json headSha,conclusion \
+  --jq '.[] | "\(.headSha[0:9]) \(.conclusion)"'
+gh run list --branch dev --workflow "QualityLayer source UI" --limit 3 --json headSha,conclusion \
+  --jq '.[] | "\(.headSha[0:9]) \(.conclusion)"'
+```
+
+A red CI on dev blocks every release, and local suites do not see CI-only failures (Linux
+runners, macos-14, slower machines, a fresh clone). Fix CI first, then prepare the release.
+*(2026-10-13: CI had been red since 13:00; beta.56 needed six release runs over three hours.)*
+
+- Prove CI fixes **without releasing**: push to a scratch branch and run
+  `gh workflow run "QualityLayer CI" --ref <branch>` and `gh workflow run "QualityLayer source UI"
+  --ref <branch>` (both take workflow_dispatch). Only a push to dev releases.
+- A Linux-only failure reproduces locally in a container on the unlocked checkout:
+  `docker run --rm -v "$PWD":/w -w /w/qualitylayer oven/bun:1.4.2 bun run test <file>`.
+  *(The fake PTY agent's commands and /proc/<pid>/environ EACCES only failed on Linux.)*
+- Read failures per job (`gh api …/actions/jobs/<id>/logs`); `gh run view --json jobs` can answer
+  HTTP 502 for big runs, use `gh api "…/runs/<id>/jobs?per_page=50"` or wait a minute.
+- Split real failures across helpers by area (process tests, build tools, browser e2e, UI units and
+  site), each with exclusive files and the saved job logs; commit each group as it lands.
+
 ## 1. Know what ships
 
 ```bash
@@ -21,7 +45,9 @@ git describe --tags --abbrev=0                    # last tag, e.g. v12.0.0-beta.
 git log --oneline <tag>..HEAD                     # everything that goes out
 ```
 
-The next version is the tag's beta number + 1.
+The next version is the tag's beta number + 1. Everything on dev ships (Max, 2026-10-13: "do not
+leave anything behind from dev"); a half-finished file in the shared checkout is named to Max, not
+shipped.
 
 ## 2. Notes and version, in the same commit
 
@@ -53,8 +79,8 @@ checks included, so a failure anywhere blocks it.
    skips, such as the memory engine's `releaseQualified` flag per target in
    `src/memory-engine/payloads/manifest.json`. *(2026-10-13: beta.56's first run failed in
    "Build QualityLayer (6 targets)" because no target was qualified; every local suite had passed.)*
-   After `bun run test` in a fresh worktree, `bun run build` before `bun run test:ui`: the suite
-   builds `dist/e2e`, the UI specs need `dist/qualitylayer`.
+   `bun run test:ui` builds `dist/qualitylayer` itself when it is missing or older than src
+   (810466732); `bun run test` builds only `dist/e2e`.
    Specs that drive the PTY host or CDP on iframes can fail on CI's Linux only (`/proc/<pid>/environ`
    EACCES, frames without their own CDP session); read the failure before calling it a flake.
 6. **The shipped binary is a different program.** Only `--release`/`--all` builds obfuscate the
@@ -121,10 +147,34 @@ the run; look for `FAIL` twice (the retry failed too). Read the failure's number
 choosing a cause: identical coordinates in two runs mean a layout fact, not a race.
 
 Then fix, rerun that test locally (step 3.4 for timing), cancel the doomed run
-(`gh run cancel <release-run-id>`), and push the fix; the new push starts a new run.
+(`gh run cancel <release-run-id>`), and push the fix; the new push starts a new run. Batch: wait
+for the doomed run's CI to finish so every failure goes into one push, not one push per failure.
 
-## 6. Done means published
+A **cancelled** source UI shard hit its 15-minute limit: the suite outgrew its shards. Add shards
+in `qualitylayer-ui.yml` (8 since 2026-10-13) rather than raising the limit.
+*(Two runs lost to 4 shards that had been taking 13-15 minutes.)*
 
-`gh release view v12.0.0-beta.N` lists the assets, and the download page names the version.
+A commit that changes no CI path starts no CI run; "Reuse CI results" then waits 20 minutes and
+runs its fallback suite. That still releases; it is just slow (since 2026-10-14 CI also runs on
+release.yml and workflow-script changes).
+
+`tests/e2e/design-page.test.ts` skips its <=820 px viewer and Escape-dialog cases on macOS CI
+(`macRunner`) since the macos-14 Chrome hang; e2770b1b2 keeps hidden pages running. After the
+next CI run, remove the skip if those cases pass with it lifted on a scratch branch.
+
+## 6. Done means published, deployed and checked live
+
+- `gh release view v12.0.0-beta.N` lists the assets (39 for beta.56).
+- The site and the database ship inside **Publish Release**, not the Deploy Website workflow
+  (that one skips scoped subjects like `chore(release):`): its log shows
+  `db-migrate: applied migration <n>` (or nothing to apply), and `vercel inspect qualitylayer.dev`
+  names a deployment created minutes ago.
+- Live checks: `curl -s https://qualitylayer.dev/api/app/latest` names the new version; `/`,
+  `/download`, `/docs/changelog` answer 200; `/api/licence/entitlement` POST without a key
+  answers 400 "Missing key".
+- The installed App against the live backend: with the token from `~/.qualitylayer/cockpit.lock`
+  as `x-qualitylayer-token`, `GET /api/licence`, `/api/team`, `/api/team/instructions` and
+  `/api/memory/overview` answer `ok: true`.
+- Close the feedback issues the release fixes, with the version and how to update.
 Tell Max the version, what is in it, and anything left open. Install it on his Mac only when he
 asks (memory: QualityLayer installed, clean-worktree recipe).
