@@ -24,7 +24,7 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 - Cross-project copies are independent. Also-show is a shared reference; **Stop showing** removes only that project's listing. Updates to another project's source still go through a task there.
 - Archived designs stay readable from existing tasks. Deleted library entries retain their files for Restore; there is no permanent purge or expiry in this release.
-- Preliminary reference runs on the earlier candidate cost, estimated at list price: terminal Codex **$1.19**, including Polish **$0.11**; App Claude **$3.19**; App Codex **price unknown**. App helper lane totals were unavailable. These figures describe the earlier runs, before the UI changes; final candidate qualification is recorded separately.
+- Preliminary reference runs on the earlier candidate cost, estimated at list price: terminal Codex **$1.19**, including Polish **$0.11**; App Claude **$3.19**, including Research **$0.23** and Polish **$0.17**; App Codex **price unknown**, with Polish priced at **$0.11** and other usage unpriced. These figures describe the earlier runs, before the UI changes; final candidate qualification is recorded separately.
 
 ## 12.0.0-beta.56
 
