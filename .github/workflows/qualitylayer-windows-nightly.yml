@@ -57,8 +57,14 @@ jobs:
         working-directory: docs/site
         run: npm ci --ignore-scripts
 
-      # Bun has no native Windows arm64 build: under x64 emulation it installs TypeScript's x64
-      # compiler, which the runner's arm64 Node cannot find. Under Bun, tsc asks for the x64 one.
+      - name: Verify native runtime architecture
+        run: |
+          $expected = if ('${{ matrix.os }}' -eq 'windows-11-arm') { 'arm64' } else { 'x64' }
+          $runtime = bun -p 'JSON.stringify({platform:process.platform,arch:process.arch,bun:Bun.version})' | ConvertFrom-Json
+          if ($runtime.platform -ne 'win32' -or $runtime.arch -ne $expected -or [Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant() -ne $expected) { throw 'Native architecture mismatch' }
+          "QUALITYLAYER_EXPECT_ARCH=$expected" >> $env:GITHUB_ENV
+          $runtime | ConvertTo-Json -Compress
+
       - name: Typecheck
         if: matrix.shard == 1
         working-directory: qualitylayer
@@ -68,8 +74,7 @@ jobs:
         working-directory: qualitylayer
         env:
           QUALITYLAYER_REQUIRE_RENDER: "1"
-          # Bun has no native Windows ARM build: the runner emulates x64, so times are not held there.
-          QUALITYLAYER_EMULATED_CPU: ${{ matrix.os == 'windows-11-arm' && '1' || '0' }}
+          QUALITYLAYER_REQUIRE_WINDOWS_NATIVE: "1"
         run: bun run test --shard ${{ matrix.shard }}/16 tests/e2e tests/windows tests/core/platform.test.ts tests/core/team-keys.test.ts tests/server/lock.test.ts tests/cli/hook-prompt.test.ts tests/core/install/mod.test.ts tests/scripts/chrome-shutdown.test.ts
 
       - name: Measure native compilation tradeoffs

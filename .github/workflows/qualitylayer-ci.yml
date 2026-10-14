@@ -201,9 +201,7 @@ jobs:
   # Every push runs the Windows-specific suites and a short end-to-end smoke set natively on
   # windows-2025, split so each job ends within ten minutes. The full end-to-end suite runs on
   # Linux and macOS above on every push, and on both Windows runners nightly in
-  # qualitylayer-windows-nightly.yml. The ARM runner is nightly only: Bun has no native Windows
-  # ARM build, so it tests the x64 binary under emulation, slowly; the release's native Windows
-  # job runs the real arm64 binary on it.
+  # qualitylayer-windows-nightly.yml. The dedicated ConPTY job below checks both native targets.
   windows:
     name: Native Windows runtime (${{ matrix.os }}, shard ${{ matrix.shard }}/6)
     runs-on: ${{ matrix.os }}
@@ -283,3 +281,64 @@ jobs:
         if: matrix.shard == 6
         working-directory: qualitylayer
         run: bun scripts/check-cockpit.ts --build --require-render
+
+  windows-terminal:
+    name: Native ConPTY (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    needs: plaintext-guard
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-2025, arch: x64 }
+          - { os: windows-11-arm, arch: arm64 }
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: qualitylayer
+    steps:
+      - name: Check out with LF line endings
+        working-directory: .
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+      - name: Unlock repository
+        working-directory: .
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          $key = Join-Path $env:RUNNER_TEMP 'git-crypt.key'
+          [IO.File]::WriteAllBytes($key, [Convert]::FromBase64String($env:GIT_CRYPT_KEY))
+          try { bun .github/workflows/scripts/git-crypt-unlock.ts $key } finally { Remove-Item -LiteralPath $key -Force }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - run: bun install --frozen-lockfile
+      - name: Verify OS and Bun run natively
+        run: |
+          $expected = '${{ matrix.arch }}'
+          $osArch = [Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
+          $runtime = bun -p 'JSON.stringify({bun:Bun.version,platform:process.platform,arch:process.arch})' | ConvertFrom-Json
+          if ($osArch -ne $expected -or $runtime.arch -ne $expected -or $runtime.platform -ne 'win32' -or $runtime.bun -ne '1.4.2') { throw 'Native runtime architecture/version mismatch' }
+          $runtime | ConvertTo-Json -Compress
+      - name: Build matching private candidate and key
+        run: |
+          $env:QUALITYLAYER_TEST_BINARY = Join-Path $env:RUNNER_TEMP 'ql-conpty/qualitylayer.exe'
+          bun run build --out $env:QUALITYLAYER_TEST_BINARY --target bun-windows-${{ matrix.arch }}
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "QUALITYLAYER_TEST_BINARY=$env:QUALITYLAYER_TEST_BINARY" >> $env:GITHUB_ENV
+          "QUALITYLAYER_TEST_TRIAL_KEY_FILE=$PWD/dist/dev-trial-key.json" >> $env:GITHUB_ENV
+      - name: Execute compiled ConPTY and Job lifecycle contracts
+        env:
+          QUALITYLAYER_REQUIRE_WINDOWS_NATIVE: "1"
+          QUALITYLAYER_EXPECT_ARCH: ${{ matrix.arch }}
+        run: |
+          bun run test tests/windows/run-pty.test.ts tests/windows/run-job.test.ts tests/windows/run-in-app.probe.test.ts tests/e2e/resource-budget.test.ts 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP/conpty.log"
+          exit $LASTEXITCODE
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: native-conpty-${{ matrix.arch }}
+          path: ${{ runner.temp }}/conpty.log
+          retention-days: 7

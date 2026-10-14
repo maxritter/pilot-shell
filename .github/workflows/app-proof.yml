@@ -27,6 +27,11 @@ name: App proof
       - "qualitylayer/tests/helpers/screen.ts"
       - "qualitylayer/tests/helpers/measure.ts"
       - "qualitylayer/tests/windows/**"
+      - "qualitylayer/src/core/run/**"
+      - "qualitylayer/src/server/runs.ts"
+      - "qualitylayer/scripts/native-terminal/**"
+      - "qualitylayer/scripts/qualify-terminal.ts"
+      - "qualitylayer/scripts/qualify-native-observer.ts"
       # The server files that decide how it starts, how it crashes and what it costs idle.
       - "qualitylayer/src/server/serve.ts"
       - "qualitylayer/src/server/lock.ts"
@@ -196,6 +201,41 @@ jobs:
           done
           exit "$failed"
 
+      - name: Installed Windows terminal receives native keys, IME and clipboard
+        if: runner.os == 'Windows'
+        shell: pwsh
+        working-directory: qualitylayer
+        env:
+          QUALITYLAYER_REQUIRE_APP: "1"
+          QUALITYLAYER_REQUIRE_RENDER: "1"
+        run: |
+          $probe = Join-Path $env:RUNNER_TEMP 'installed-terminal'
+          New-Item -ItemType Directory -Force -Path $probe | Out-Null
+          $env:TAURI_SIGNING_PRIVATE_KEY = Join-Path $probe 'updater.key'
+          $env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = 'test'
+          cargo tauri signer generate --ci -w $env:TAURI_SIGNING_PRIVATE_KEY -p test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $build = bun scripts/app.ts --test-updater --version 0.0.0-terminal-proof
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $built = $build[-1] | ConvertFrom-Json
+          $installed = Join-Path $probe 'app'
+          $env:QL_PROBE_ACCOUNT = Join-Path $probe 'account'
+          $env:HOME = $env:QL_PROBE_ACCOUNT
+          $env:USERPROFILE = $env:QL_PROBE_ACCOUNT
+          $env:QUALITYLAYER_HOME = Join-Path $env:QL_PROBE_ACCOUNT '.qualitylayer'
+          $env:QUALITYLAYER_TEST_TRIAL_KEY_FILE = Join-Path $PWD 'dist/dev-trial-key.json'
+          $env:QL_PROBE_FIXTURE = Join-Path $probe 'agent.ts'
+          bun -e 'import {injectTrial} from "./tests/helpers/licence.ts";await injectTrial(process.env.QL_PROBE_ACCOUNT);const source=await Bun.file("tests/helpers/ptyAgent.ts").text();await Bun.write(process.env.QL_PROBE_FIXTURE,"#!bun\n"+source.split("// executable source\n")[1]);'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $setup = Start-Process -FilePath $built.package -ArgumentList @('/S',"/D=$installed") -PassThru -Wait
+          if ($setup.ExitCode -ne 0) { throw 'Disposable App installation failed' }
+          $cli = Join-Path $installed 'qualitylayer-cli.exe'
+          $app = Join-Path $installed 'QualityLayer.exe'
+          & $cli install --app $installed --json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          bun scripts/qualify-terminal.ts --binary $cli --agent codex --fake-agent $env:QL_PROBE_FIXTURE --request-template scripts/native-terminal/request.example.json --target installed --installed-app $app --out "$probe/evidence"
+          exit $LASTEXITCODE
+
       - name: Write the leg's result
         if: success()
         env:
@@ -221,6 +261,7 @@ jobs:
           path: |
             ${{ runner.temp }}/result/
             ${{ runner.temp }}/proof.log
+            ${{ runner.temp }}/installed-terminal/evidence/
           retention-days: 14
           if-no-files-found: warn
 
