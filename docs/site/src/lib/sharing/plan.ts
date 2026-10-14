@@ -7,11 +7,14 @@
 
 import DOMPurify from "dompurify";
 import { sharedDesignHtml } from "@ql/ui/design/shared-html";
+import { parseFence } from "@ql/core/docs/fragments";
 import { marked, type Token, type Tokens, type TokensList } from "marked";
 
 export type PlanBlock =
   | { kind: "html"; key: string; html: string }
   | { kind: "mermaid"; key: string; source: string }
+  | { kind: "wireframe"; key: string; source: string }
+  | { kind: "panel"; key: string; source: string }
   /** `path` as the plan's fence names it: `artifacts/settings.html`. */
   | { kind: "artifact"; key: string; path: string };
 
@@ -45,6 +48,11 @@ export function planBlocks(markdown: string): PlanBlock[] {
     if (token.type === "code" && fenceWord(token as Tokens.Code) === "mermaid") {
       flush();
       blocks.push({ kind: "mermaid", key: `m${blocks.length}`, source: (token as Tokens.Code).text });
+    } else if (token.type === "code" && ["wireframe", "panel"].includes(fenceWord(token as Tokens.Code))) {
+      const code = token as Tokens.Code;
+      const kind = fenceWord(code) as "wireframe" | "panel";
+      flush();
+      if (parseFence(kind, code.text).fragment !== "") blocks.push({ kind, key: `v${blocks.length}`, source: code.text });
     } else if (token.type === "code" && fenceWord(token as Tokens.Code) === "artifact") {
       const code = token as Tokens.Code;
       const path = code.text.trim() || (code.lang ?? "").trim().split(/\s+/).slice(1).join(" ");

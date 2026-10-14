@@ -4,6 +4,8 @@ import { loadMermaidFrom } from "@ql/ui/reader/MermaidBlock";
 import { StepDocument } from "@ql/ui/steps/StepDocument";
 import { useTheme } from "@/hooks/useTheme";
 import { mockupHtml, withoutShownMockups } from "@/lib/sharing/plan";
+import { FencedVisual } from "./FencedVisual";
+import { FenceRenderer } from "@ql/ui/reader/FenceRenderer";
 
 // A shared document is drawn by the App's own Reader, so it looks the same here as in the App's step
 // page and its Files tab: Sections and Copy at the top, diagrams, comments under their passages.
@@ -39,6 +41,7 @@ export function SharedDocument({ name, markdown, docs, comments, onQuote, extraT
     [docs],
   );
   return (
+    <FenceRenderer.Provider value={(kind, source) => <FencedVisual kind={kind} source={source} theme={theme} onComment={onQuote} />}>
     <StepDocument
       path={name}
       markdown={shown === undefined ? markdown : withoutShownMockups(markdown, shown)}
@@ -49,5 +52,6 @@ export function SharedDocument({ name, markdown, docs, comments, onQuote, extraT
       onQuote={onQuote}
       extraTools={extraTools}
     />
+    </FenceRenderer.Provider>
   );
 }

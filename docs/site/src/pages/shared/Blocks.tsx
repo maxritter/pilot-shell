@@ -1,5 +1,7 @@
 import { mockupHtml, mockupName, type PlanBlock } from "@/lib/sharing/plan";
 import { Diagram } from "./Diagram";
+import { FencedVisual } from "./FencedVisual";
+import { useTheme } from "@/hooks/useTheme";
 import { DesignStill, MissingMockup, MockupFrame } from "./Frame";
 import type { PlanStill } from "@/lib/sharing/sharing";
 
@@ -8,6 +10,7 @@ import type { PlanStill } from "@/lib/sharing/sharing";
  * `shown` names mockups already drawn elsewhere on the page (under a question), so none is drawn twice.
  */
 export function Blocks({ blocks, docs, stills, shown }: { blocks: PlanBlock[]; docs: Record<string, string>; stills?: Record<string, PlanStill>; shown?: ReadonlySet<string> }) {
+  const { theme } = useTheme();
   return (
     <>
       {blocks.map((block) => {
@@ -23,6 +26,7 @@ export function Blocks({ blocks, docs, stills, shown }: { blocks: PlanBlock[]; d
           );
         }
         if (block.kind === "mermaid") return <Diagram key={block.key} source={block.source} />;
+        if (block.kind === "wireframe" || block.kind === "panel") return <FencedVisual key={block.key} kind={block.kind} source={block.source} theme={theme} />;
         if (shown?.has(mockupName(block.path))) return null;
         const still = stills?.[block.path];
         if (still !== undefined) return <DesignStill key={block.key} still={still} />;

@@ -25,6 +25,15 @@ const PLAN = [
 ].join("\n");
 
 describe("a plan cut into parts", () => {
+  it("keeps safe visual fences as blocks and refuses hostile source", () => {
+    const wire = 'name: settings\nsurface: phone\n\n<div class="screen">Settings</div>';
+    const panel = 'name: data\nlens: data-flow\n\n<div class="panel">Data</div>';
+    const blocks = planBlocks(`\`\`\`wireframe\n${wire}\n\`\`\`\n\n\`\`\`panel\n${panel}\n\`\`\`\n\n\`\`\`wireframe\n${wire}<script>attack()</script>\n\`\`\``);
+    expect(blocks.map((block) => block.kind)).toEqual(["wireframe", "panel"]);
+    expect(blocks[0]).toMatchObject({ kind: "wireframe", source: wire });
+    expect(blocks[1]).toMatchObject({ kind: "panel", source: panel });
+  });
+
   it("keeps the order: text, a diagram, text, a mockup, text", () => {
     const blocks = planBlocks(PLAN);
     expect(blocks.map((b) => b.kind)).toEqual(["html", "mermaid", "html", "artifact", "html"]);
