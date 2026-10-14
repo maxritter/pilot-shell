@@ -17,7 +17,7 @@ const MODELS: Chip[] = [
   ["Opus 5.5", "cpu"],
   ["Sonnet 5.5", "cpu"],
   ["Fable 5.1", "cpu"],
-  ["Haiku 4.5", "cpu"],
+  ["Haiku 5.5", "cpu"],
   ["GPT-6.1 Sol", "cpu"],
   ["Claude Code", "ast"],
   ["Codex", "braces"],

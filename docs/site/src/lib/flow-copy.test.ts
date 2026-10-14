@@ -59,8 +59,9 @@ describe("the flow in the copy: asked and answered in the App", () => {
     expect(offending).toEqual([]);
   });
 
+  // The README stays short (Max, 2026-10-14) and links to these guides; they carry the details.
   it("keeps focused questions inside independent batches with answer order and Skip", () => {
-    for (const path of [readme, join(docs, "app.md"), join(docs, "steps/discuss.md")]) {
+    for (const path of [join(docs, "app.md"), join(docs, "steps/discuss.md")]) {
       const text = read(path);
       const name = path.replace(`${repo}/`, "");
       expect(text, name).toMatch(/independent questions|questions it can ask together/i);
@@ -73,7 +74,7 @@ describe("the flow in the copy: asked and answered in the App", () => {
   });
 
   it("explains batches, Your turn and immediate answers wherever a first-time reader learns the flow", () => {
-    const pages = [readme, firstTask, join(docs, "steps/discuss.md"), join(docs, "app.md"), join(site, "src/lib/content.ts"), join(site, "src/lib/tour.ts"), homeIndex];
+    const pages = [firstTask, join(docs, "steps/discuss.md"), join(docs, "app.md"), join(site, "src/lib/content.ts"), join(site, "src/lib/tour.ts"), homeIndex];
     for (const path of pages) {
       const text = read(path);
       const name = path.replace(`${repo}/`, "");
@@ -100,7 +101,7 @@ describe("the flow in the copy: asked and answered in the App", () => {
   it("keeps the terminal wait explanation in the guides and shows the batch interaction on the home page", () => {
     const layout = /asks each decision in the App, and its terminal shows a single line while it waits/gi;
     const home = homeCopy.map(read).join("\n");
-    for (const [name, text] of Object.entries({ README: read(readme), "first task": read(firstTask), "home page for crawlers": read(homeIndex) })) {
+    for (const [name, text] of Object.entries({ "first task": read(firstTask), "home page for crawlers": read(homeIndex) })) {
       expect(text.match(layout)?.length, name).toBe(1);
     }
     expect(home).toContain("Questions arrive together in Your turn");
@@ -142,7 +143,6 @@ describe("the flow in the copy: asked and answered in the App", () => {
   it("documents ql as the only installed command beginning with ql", () => {
     const guarantee = "`/ql` is the only command you need: QualityLayer adds no other command that starts with ql. The `agent-peers` skill works on its own when you ask one agent session to message another.";
     const commands = read(join(docs, "reference/commands.md"));
-    expect(read(readme).split("What gets installed")[1]?.split("</details>")[0]).toContain(guarantee);
     expect(commands.split("## In your agent")[1]?.split("## For you")[0]).toContain(guarantee);
     expect(commands).toContain("`/task-pane`");
     const offending = [readme, ...docPages, ...homeCopy, homeIndex].filter((path) => /[/$]ql-[a-z]/i.test(read(path)));

@@ -41,7 +41,7 @@ A planning-first workflow around the Claude Code or Codex you already use.<br>
 curl -fsSL https://qualitylayer.dev/install.sh | bash
 ```
 
-**macOS · Windows · Linux** — or [download the App](https://qualitylayer.dev/download). 7-day trial.
+**macOS · Windows · Linux**, or [download the App](https://qualitylayer.dev/download). 7-day trial.
 
 <br>
 
@@ -60,12 +60,12 @@ curl -fsSL https://qualitylayer.dev/install.sh | bash
 
 **Coding agents write code fast**, but each change still leaves copies, workarounds and dead code behind. QualityLayer runs inside your agent and brings the real decisions to you:
 
-- **One plan, approved by you** — written after agents read your code, before any code changes
-- **Test-first builds** — your agent builds in small slices, each starting with a failing test
-- **Independent checks** — agents that did not write the code check every point of your request against the running program
-- **Only real decisions reach you** — your agent settles routine choices and records them
-- **Visible cost** — every step shows its time and estimated cost
-- **Local first** — your subscription, your files: each step is one Markdown file in your repository
+- You approve one plan, written after agents read your code, before anything changes.
+- Your agent builds it in small slices, each starting with a failing test.
+- Agents that did not write the code check every point of your request against the running program.
+- Your agent settles routine choices and records them; only real decisions reach you.
+- Every step shows its time and estimated cost.
+- It runs on your own subscription, and each step is one Markdown file in your repository.
 
 Made for medium and large changes. A request too small for a plan gets a ready prompt for your plain agent.
 
@@ -139,7 +139,9 @@ Each step writes one Markdown file. You approve twice: the plan and the finished
 | [Review](https://qualitylayer.dev/docs/steps/review) | A walkthrough of the change, **approved by you** |
 | [Pull request](https://qualitylayer.dev/docs/steps/pull-request) | Failing checks fixed; the task stays open until you merge |
 
-**Two levels:** Engineering (default) starts from a technical plan, Product from a brief that becomes a PRD. [How they differ](https://qualitylayer.dev/docs/#two-levels).
+### Two levels
+
+Engineering (default) starts from a technical plan, Product from a brief that becomes a PRD. Pick one at Setup, change it in Settings › Workflow, or per task in the task header. [How they differ](https://qualitylayer.dev/docs/#two-levels).
 
 ## Designs
 
@@ -155,8 +157,8 @@ Ask your agent for a mockup, diagram or clickable design and compare versions in
 - Answer your agent's questions and comment on any passage; answers reach it at once.
 - Follow every task with what needs you shown first, plus time and cost per step.
 - Set standing instructions and the models that plan, build and check.
-- **Project memory:** your agents reuse lessons from earlier tasks; share them through Git if you like. [Memory](https://qualitylayer.dev/docs/memory).
-- **Teams:** ask a teammate about any passage of the plan over Slack, and let them review the finished change. [Team plans](https://qualitylayer.dev/docs/team/plans).
+- Your agents reuse lessons from earlier tasks, and can share them through Git. [Project memory](https://qualitylayer.dev/docs/memory).
+- With a Team plan, ask a teammate about any passage over Slack, and let them review the finished change. [Team plans](https://qualitylayer.dev/docs/team/plans).
 
 Your code and usage data stay on your computer; shared tasks are encrypted first. [Files and privacy](https://qualitylayer.dev/docs/reference/files#privacy).
 

@@ -80,7 +80,6 @@ describe("current public illustrations and guides", () => {
   it("does not promise that a build can never need its owner", () => {
     const readme = read("README.md");
     expect(readme).not.toMatch(/No waiting while it builds|Nothing waits for you/);
-    expect(readme).toContain("other slices keep building");
     expect(read("docs/docusaurus/docs/steps/implement.md")).toContain("**Your turn** names the slice");
   });
 

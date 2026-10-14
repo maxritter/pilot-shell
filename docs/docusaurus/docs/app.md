@@ -32,7 +32,7 @@ Tasks sit under their project (a repository on this computer), the ones waiting 
 | Rename, archive or delete a task | Right-click it |
 | Filter or regroup | **View** (sliders button) or **Find** (search button). **⌘K** searches everything |
 
-Order, colors, names and hidden projects are stored on the computer that runs the App, so a paired phone shows the same list.
+Order, colors, names and hidden projects are stored on the computer that runs the App, so every paired browser shows the same list.
 
 ### The places {#places}
 
