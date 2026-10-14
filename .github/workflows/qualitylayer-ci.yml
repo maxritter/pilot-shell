@@ -5,7 +5,6 @@ on:
     branches:
       - dev
       - main
-      - 'qa/**'
     paths:
       - "qualitylayer/**"
       - "docs/site/**"
@@ -26,7 +25,7 @@ on:
       - "install.ps1"
       - ".github/workflows/qualitylayer-ci.yml"
       - ".github/scripts/check_qualitylayer_encrypted.sh"
-  # A push to qa/** proves the exact commit without releasing, even before this workflow is on main.
+  # Manual dispatch also requires this workflow to be registered on the default branch.
   workflow_dispatch:
 
 permissions:
