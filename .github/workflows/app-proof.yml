@@ -123,6 +123,7 @@ jobs:
         uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
           bun-version: "1.4.2"
+          bun-download-url: ${{ matrix.os == 'windows-11-arm' && 'https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-windows-aarch64.zip' || '' }}
 
       - name: Install dependencies
         working-directory: qualitylayer

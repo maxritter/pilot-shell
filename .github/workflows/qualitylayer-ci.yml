@@ -305,6 +305,7 @@ jobs:
       - uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
           bun-version: "1.4.2"
+          bun-download-url: https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-windows-${{ matrix.arch == 'arm64' && 'aarch64' || 'x64' }}.zip
       - name: Unlock repository
         working-directory: .
         env:
@@ -320,6 +321,7 @@ jobs:
           $expected = '${{ matrix.arch }}'
           $osArch = [Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
           $runtime = bun -p 'JSON.stringify({bun:Bun.version,platform:process.platform,arch:process.arch})' | ConvertFrom-Json
+          @{ osArch = $osArch; runtime = $runtime } | ConvertTo-Json -Compress
           if ($osArch -ne $expected -or $runtime.arch -ne $expected -or $runtime.platform -ne 'win32' -or $runtime.bun -ne '1.4.2') { throw 'Native runtime architecture/version mismatch' }
           $runtime | ConvertTo-Json -Compress
       - name: Build matching private candidate and key

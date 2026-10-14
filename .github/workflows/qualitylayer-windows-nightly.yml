@@ -39,6 +39,7 @@ jobs:
         uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
           bun-version: "1.4.2"
+          bun-download-url: https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-windows-${{ matrix.os == 'windows-11-arm' && 'aarch64' || 'x64' }}.zip
 
       - name: Unlock repository
         env:
@@ -61,6 +62,7 @@ jobs:
         run: |
           $expected = if ('${{ matrix.os }}' -eq 'windows-11-arm') { 'arm64' } else { 'x64' }
           $runtime = bun -p 'JSON.stringify({platform:process.platform,arch:process.arch,bun:Bun.version})' | ConvertFrom-Json
+          @{ osArch = [Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString(); runtime = $runtime } | ConvertTo-Json -Compress
           if ($runtime.platform -ne 'win32' -or $runtime.arch -ne $expected -or [Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant() -ne $expected) { throw 'Native architecture mismatch' }
           "QUALITYLAYER_EXPECT_ARCH=$expected" >> $env:GITHUB_ENV
           $runtime | ConvertTo-Json -Compress
