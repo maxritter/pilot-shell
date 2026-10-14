@@ -74,15 +74,24 @@ checks included, so a failure anywhere blocks it.
    slower and expose timing races a single local run hides:
    `for i in 1 2 3 4; do (bun test tests/e2e/<new>.test.ts > /tmp/run-$i.log 2>&1; echo "run $i $?") & done; wait`
    *(2026-10-12: the tour's ring lagged one stop behind its card on CI only.)*
-5. Never run `bun run test` or `bun run build` while a release gate runs (they replace `dist/`).
+5. Freeze the source and build a private candidate with `bun run build --out <absolute-path>`.
+   Supply it as `QUALITYLAYER_TEST_BINARY` for the full Bun and UI checks, from the same source
+   directory as its development trial key. Run heavy suites sequentially on this Mac; overlapping
+   Bun, browser, Rust and docs builds caused native stop/replay, crash-recovery and HTTP timing
+   failures in beta.57 qualification. The unchanged cases passed in the controlled full rerun.
+   Never replace a gate's binary or signer while it runs.
    Run `bun run build --all` (the release build) once locally: it enforces guards the dev build
    skips, such as the memory engine's `releaseQualified` flag per target in
    `src/memory-engine/payloads/manifest.json`. *(2026-10-13: beta.56's first run failed in
    "Build QualityLayer (6 targets)" because no target was qualified; every local suite had passed.)*
-   `bun run test:ui` builds `dist/qualitylayer` itself when it is missing or older than src
-   (810466732); `bun run test` builds only `dist/e2e`.
+   Without an explicit candidate, both test launchers build privately. The UI launcher removes
+   its own temporary folder after success or failure; it preserves caller-supplied candidates.
    Specs that drive the PTY host or CDP on iframes can fail on CI's Linux only (`/proc/<pid>/environ`
    EACCES, frames without their own CDP session); read the failure before calling it a flake.
+   Before a real Claude turn, prepare its configured account method in the private profile.
+   A working `apiKeyHelper` takes precedence over an expired OAuth copy. Copy only that helper
+   and the fixture's required hooks; preserve personal settings and credentials. Without a
+   helper, keep the refreshable private OAuth copy. A failed login preflight spends no model turn.
 6. **The shipped binary is a different program.** Only `--release`/`--all` builds obfuscate the
    licence, team, gate, install and server code, and every other suite drives the development
    build. `tests/release/protection.test.ts` › "a new user's first minutes" runs the trial, a key
