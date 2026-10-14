@@ -16,7 +16,7 @@ Ask your agent, for example: "Show two layouts for the settings page." The desig
 | --- | --- |
 | In a task | The task's `design/` folder |
 | For the project | `.qualitylayer/designs/<name>/` in the repository |
-| On this Mac only | `docs/designs/`, out of git |
+| On this computer only | `docs/designs/`, out of git |
 
 From the terminal:
 
@@ -30,10 +30,10 @@ All commands: [CLI reference](reference/commands.md#designs).
 
 ## The Designs place {#designs-place}
 
-![The Designs place: Everything, Lasting and Drafts in tasks at the top, each project's lasting designs as cards with their pages and which open tasks change them, Drafts in open tasks with Open, and On this Mac](pathname:///img/app/designs-light.webp)
-![The Designs place: Everything, Lasting and Drafts in tasks at the top, each project's lasting designs as cards with their pages and which open tasks change them, Drafts in open tasks with Open, and On this Mac](pathname:///img/app/designs-dark.webp)
+![The Designs place: Everything, Lasting and Drafts in tasks at the top, each project's lasting designs as cards with their pages and which open tasks change them, Drafts in open tasks with Open, and On this computer](pathname:///img/app/designs-light.webp)
+![The Designs place: Everything, Lasting and Drafts in tasks at the top, each project's lasting designs as cards with their pages and which open tasks change them, Drafts in open tasks with Open, and On this computer](pathname:///img/app/designs-dark.webp)
 
-**Designs** in the sidebar lists every project's lasting designs, the drafts in open tasks and the designs on this Mac. **Show** filters them; **New design** starts a lasting design.
+**Designs** in the sidebar lists every project's lasting designs, the drafts in open tasks and the designs on this computer. **Show** filters them; **New design** starts a lasting design.
 
 ## A lasting design open {#lasting}
 
@@ -67,7 +67,7 @@ Choose **Keep as a lasting design…** on a draft, or run `qualitylayer design k
 | Where it lives | Saved in | Who sees it |
 | --- | --- | --- |
 | **In the repository** | `.qualitylayer/designs/<name>/` | Anyone who can read the repository. It goes into pull requests like code |
-| **Only on this Mac** | `docs/designs/` | Only you; git does not see it |
+| **Only on this computer** | `docs/designs/` | Only you; git does not see it |
 
 ## Fold in at Review {#fold-in}
 
