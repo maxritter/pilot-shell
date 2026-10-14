@@ -443,7 +443,7 @@ export type ChangeAnchor = { kind: "doneMeans" | "picture" | "check"; id: string
  * an answer or a passage comment on the step's document, a thread or a reply on the change.
  */
 export type Remark =
-  | { kind: "passage"; id?: string; doc: string; quote: string; text: string }
+  | { kind: "passage"; id?: string; doc: string; quote: string; text: string; for?: "agent" | "person"; before?: string; after?: string; section?: string }
   | { kind: "item"; id: string; step: FlowStep; doc: string; what: string; answer: GuestAnswer; label: string; note: string }
   | { kind: "thread"; thread: string; anchor: ChangeAnchor; text: string }
   | { kind: "reply"; thread: string; text: string };
@@ -471,7 +471,10 @@ const annotation = (blockId: string, originalText: string, body: string, now: nu
 });
 
 function toAnnotation(r: Remark, now: number) {
-  if (r.kind === "passage") return { ...annotation(r.doc, r.quote, r.text, now), ...(r.id ? { id: r.id } : {}) };
+  if (r.kind === "passage") {
+    const context = { ...(r.before !== undefined ? { before: r.before } : {}), ...(r.after !== undefined ? { after: r.after } : {}), ...(r.section !== undefined ? { section: r.section } : {}) };
+    return { ...annotation(r.for === "person" ? "review" : r.doc, r.for === "person" ? JSON.stringify({ t: "thread", note: true, for: "person", doc: r.doc, quote: r.quote, ...context }) : r.quote, r.text, now), ...context, ...(r.for ? { for: r.for } : {}), ...(r.id ? { id: r.id } : {}) };
+  }
   if (r.kind === "item") {
     const note = r.note.trim();
     return annotation(r.doc, r.what.slice(0, 300), note === "" ? r.label : `${r.label}: ${note}`, now);

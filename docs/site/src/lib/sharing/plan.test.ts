@@ -1,5 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { contractsOf, mockupHtml, mockupName, planBlocks, slicesOf, withCsp } from "./plan";
+import { remarksPayload } from "./sharing";
+import { addRemark, EMPTY, pending } from "./drafts";
+
+it("a person note remains structured after draft storage and keeps passage context", () => {
+  const drafts = addRemark(EMPTY, { kind: "passage", doc: "03-plan.md", quote: "Repeat", text: "For Max", for: "person", before: "Second ", after: " here", section: "scope" });
+  const note = remarksPayload("Guest", pending(drafts, [], {}), 1).annotations[0]!;
+  expect(note.blockId).toBe("review");
+  expect(JSON.parse(note.originalText)).toEqual({ t: "thread", note: true, for: "person", doc: "03-plan.md", quote: "Repeat", before: "Second ", after: " here", section: "scope" });
+  const ordinary = remarksPayload("Guest", [{ kind: "passage", doc: "03-plan.md", quote: "Repeat", text: "Fix this", before: "Second ", after: " here", section: "scope" }], 1).annotations[0]!;
+  expect(ordinary).toMatchObject({ blockId: "03-plan.md", originalText: "Repeat", text: "Fix this", before: "Second ", after: " here", section: "scope" });
+});
 
 /**
  * A shared plan's markdown, cut into what the page draws: text, diagrams and mockups. The page

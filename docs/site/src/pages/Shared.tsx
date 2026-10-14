@@ -117,8 +117,8 @@ function savedReceipts(id: string | undefined): SentComment[] {
   } catch { return []; }
 }
 
-const labelOf = (r: Exclude<Remark, { kind: "item" }>): string =>
-  r.kind === "passage" ? (r.quote !== "" ? `“${r.quote.length > 80 ? `${r.quote.slice(0, 80)}…` : r.quote}”` : "General comment") : r.kind === "thread" ? where(r.anchor) : "Reply";
+const labelOf = (r: Exclude<Remark, { kind: "item" }>, owner: string): string =>
+  r.kind === "passage" ? `${r.for === "person" ? `Note for ${owner} · ` : ""}${r.quote !== "" ? `“${r.quote.length > 80 ? `${r.quote.slice(0, 80)}…` : r.quote}”` : "General comment"}` : r.kind === "thread" ? where(r.anchor) : "Reply";
 
 type ReadyShare = Extract<LoadedShare, { status: "ready" }>;
 
@@ -248,6 +248,7 @@ function Ready({
   }, [sent, share.id]);
   const [target, setTarget] = useState<Target>({ kind: "passage", quote: "" });
   const [text, setText] = useState("");
+  const [recipient, setRecipient] = useState<"agent" | "person">("agent");
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState("");
   const [delivered, setDelivered] = useState(false);
@@ -303,7 +304,7 @@ function Ready({
   const add = () => {
     const remark: Drafts["remarks"][number] =
       target.kind === "passage"
-        ? { kind: "passage", id: crypto.randomUUID(), doc: target.doc ?? steps[tab][0] ?? docOfStep(tab, share.docs), quote: target.quote, text }
+        ? { kind: "passage", id: crypto.randomUUID(), doc: target.doc ?? steps[tab][0] ?? docOfStep(tab, share.docs), quote: target.quote, text, ...(recipient === "person" ? { for: "person" as const } : {}) }
         : target.kind === "anchor"
           ? { kind: "thread", thread: newThreadId(), anchor: target.anchor, text }
           : { kind: "reply", thread: target.thread, text };
@@ -352,7 +353,7 @@ function Ready({
         else next = [...next, {
           key: r.kind === "passage" ? r.id ?? newThreadId() : r.thread,
           ...(r.kind === "passage" ? { annotation: r.id, ...(r.quote !== "" ? { doc: r.doc, quote: r.quote, at: written[r.id ?? ""] ?? Date.now() } : {}) } : {}),
-          thread: r.kind === "thread" ? r.thread : undefined, label: labelOf(r), text: r.text, replies: [],
+          thread: r.kind === "thread" ? r.thread : undefined, label: labelOf(r, who), text: r.text, replies: [],
         }];
       }
       return next;
@@ -424,6 +425,13 @@ function Ready({
           <label htmlFor="sh-remark">
             <b>Comment</b>
           </label>
+          {target.kind === "passage" ? <>
+            <div className="sh-row" role="group" aria-label="Recipient">
+              <button type="button" className="sh-btn" style={{ color: "var(--ql-text)" }} aria-pressed={recipient === "agent"} onClick={() => setRecipient("agent")}>For the agent</button>
+              <button type="button" className="sh-btn" style={{ color: "var(--ql-text)" }} aria-pressed={recipient === "person"} onClick={() => setRecipient("person")}>For {who}</button>
+            </div>
+            {recipient === "person" ? <p className="sh-hint">A note for {who} stays between people. The agent never reads it; {who} can quote it to the agent.</p> : null}
+          </> : null}
           {target.kind === "passage" && target.quote !== "" ? (
             <blockquote className="sh-quote">
               {target.quote}
@@ -455,7 +463,7 @@ function Ready({
                 // A draft is told apart by its place in the list, and only removal reorders it.
                 // biome-ignore lint/suspicious/noArrayIndexKey: removal re-keys the rest
                 <li key={i}>
-                  <span className="sh-draft-label">{labelOf(r)}</span>
+                  <span className="sh-draft-label">{labelOf(r, who)}</span>
                   <span>{r.text}</span>
                   <button type="button" className="sh-link" onClick={() => setDrafts((d) => removeRemark(d, i))}>
                     Remove

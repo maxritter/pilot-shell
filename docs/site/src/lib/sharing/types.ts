@@ -4,6 +4,10 @@
  */
 
 export interface Annotation {
+  for?: "agent" | "person";
+  before?: string;
+  after?: string;
+  section?: string;
   id: string;
   blockId: string;
   /** The text that was selected */
