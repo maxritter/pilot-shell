@@ -2,6 +2,30 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.57
+
+### New
+
+- Home separates your **Needs you** queue from **Running** work. Teammate questions stay in Team, with **My attention**, **Everyone** and **My questions** views.
+- Designs is a compact **Library** with collapsible project groups, search, filters and previews on demand. Working drafts stay in task Files, linked to the reusable designs they build on.
+- Manage reusable designs from their list or viewer: rename, copy, show in another project, archive, delete and restore. Renaming keeps links and draft history. Deleting a source-backed entry keeps its application files; **Archived › Recently deleted** provides recovery after leaving the viewer.
+- Save selected draft pages and their dependencies to another project's Library while keeping the working draft.
+- Agent windows have controls for font size, line spacing, light/dark appearance, selection and copying, and returning to the latest output.
+
+### Fixed
+
+- Dollar amounts stay behind a task's **Cost** control. Home has no spend counter or shipped summary. Notification setup lives in Settings with permission feedback and retry.
+- Closing a task's details returns keyboard focus to the control that opened them. Switching tasks closes the previous details and preserves separate cost disclosure.
+- Source-backed designs refresh after JSX or CSS edits. A rendering failure provides an error and Reload instead of a blank preview.
+- The native agent window preserves dark-theme contrast after the stylesheet is minified. Native process checks recover from a brief macOS permission race while protecting unreadable live processes.
+- Release checks verify the server key needed for readable Slack notifications.
+
+### Good to know
+
+- Cross-project copies are independent. Also-show is a shared reference; **Stop showing** removes only that project's listing. Updates to another project's source still go through a task there.
+- Archived designs stay readable from existing tasks. Deleted library entries retain their files for Restore; there is no permanent purge or expiry in this release.
+- Preliminary reference runs on the earlier candidate cost, estimated at list price: terminal Codex **$1.19**, including Polish **$0.11**; App Claude **$3.19**; App Codex **price unknown**. App helper lane totals were unavailable. These figures describe the earlier runs, before the UI changes; final candidate qualification is recorded separately.
+
 ## 12.0.0-beta.56
 
 ### New
