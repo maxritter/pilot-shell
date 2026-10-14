@@ -2,7 +2,7 @@ name: QualityLayer source UI
 
 on:
   push:
-    branches: [dev, main]
+    branches: [dev, main, 'qa/**']
   pull_request:
     branches: [dev, main]
     paths:

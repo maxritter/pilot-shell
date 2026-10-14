@@ -5,6 +5,7 @@ on:
     branches:
       - dev
       - main
+      - 'qa/**'
     paths:
       - "qualitylayer/**"
       - "docs/site/**"
@@ -25,7 +26,7 @@ on:
       - "install.ps1"
       - ".github/workflows/qualitylayer-ci.yml"
       - ".github/scripts/check_qualitylayer_encrypted.sh"
-  # Proves a fix on any branch without releasing: gh workflow run "QualityLayer CI" --ref <branch>.
+  # A push to qa/** proves the exact commit without releasing, even before this workflow is on main.
   workflow_dispatch:
 
 permissions:
