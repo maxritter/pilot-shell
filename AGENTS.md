@@ -66,6 +66,8 @@ All in `qualitylayer/`:
   their old blobs and the next commit from it reverts yours. Never stage,
   unstage or reset paths in the shared index that are not yours.
 - Never move source, phase texts, schemas or fixtures out of `qualitylayer/`.
+- Read committed encrypted paths with `git cat-file --filters HEAD:<path>`.
+  `git show HEAD:<path>` returns git-crypt ciphertext and cannot be linted as source.
 - Use the agent's native file tools for source edits. No bundled tooling (RTK,
   Semble, CodeGraph) is required or assumed.
 - Tests never touch the real `HOME` or the network: they run the built binary
@@ -101,16 +103,20 @@ All in `qualitylayer/`:
 
 - Show a design change before building it, unless it is as small as a single
   button or switch. This covers the App, the Cockpit, the website and the docs.
-- Outside a QualityLayer run: mock the change with Open Claude Design
-  together with Impeccable (its context, craft floor and critique), and show
-  it to the user before touching the source.
+- Outside a QualityLayer run: use QualityLayer's local Designs workspace
+  and the `ql-design` skill together with Impeccable (context, craft and
+  critique). Start from the existing lasting design and show the prototype
+  before changing production UI source. Design commands do not start a workflow.
 - Inside a QualityLayer run: the Plan's mockup shows it (`ui: true`, one
-  mockup per changed surface). Use the same two tools for its check pass and
-  to sync it to Claude Design.
+  mockup per changed surface). Use the local design guide and Impeccable for
+  its check pass; review and comments stay in QualityLayer. Use Claude Design
+  only for an explicit request or a supplied remote project/artifact.
 - Use the approved unified App Model and current `qualitylayer/PRODUCT.md`
   and `qualitylayer/DESIGN.md`: only genuine human choices, full documents
-  with approval in the shared header, quiet future steps, and the four Home
-  areas. Activity belongs in its header chip panel, with no duplicated status.
+  with approval in the shared header, quiet future steps, personal attention
+  and running work on Home, and teammate asks in Team. Reusable designs live in
+  the compact Library and working drafts in task Files. Activity belongs in its
+  header chip panel, with no duplicated status.
 - Start frontend iteration with the source demo and focused browser checks.
   Demo fixtures do not prove the real API/session path or installed App.
   Before release, verify the actual installed final candidate and record its
