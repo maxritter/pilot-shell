@@ -30,21 +30,23 @@ All commands: [CLI reference](reference/commands.md#designs).
 
 ## The Designs place {#designs-place}
 
-![The Designs place: Everything, Lasting and Drafts in tasks at the top, each project's lasting designs as cards with their pages and which open tasks change them, Drafts in open tasks with Open, and On this computer](pathname:///img/app/designs-light.webp)
-![The Designs place: Everything, Lasting and Drafts in tasks at the top, each project's lasting designs as cards with their pages and which open tasks change them, Drafts in open tasks with Open, and On this computer](pathname:///img/app/designs-dark.webp)
+![The design Library: compact rows grouped by project, collapsible groups, search and sort, with previews opened on demand and Archived beside Library](pathname:///img/app/designs-light.webp)
+![The design Library: compact rows grouped by project, collapsible groups, search and sort, with previews opened on demand and Archived beside Library](pathname:///img/app/designs-dark.webp)
 
-**Designs** in the sidebar lists every project's lasting designs, the drafts in open tasks and the designs on this computer. **Show** filters them; **New design** starts a lasting design.
+**Designs** in the sidebar opens the reusable **Library**. Fold a project, search names and pages, or choose a project and sort order. Large groups reveal more rows as you need them; a preview loads when you open it. **New design** starts a reusable design. Working drafts stay in their task's **Files**, where their base design and the pages being changed are visible.
+
+The row menu and full viewer offer rename, copy, show in another project, archive and delete. Renaming keeps existing links. A cross-project copy is independent; **Also show** adds a listing of the same original, and **Stop showing** removes that listing. **Archived** holds archived designs and a folded **Recently deleted** section for Restore. Deleting a source-backed entry keeps its application files.
 
 ## A lasting design open {#lasting}
 
-![A lasting design open: a tab per page, a dot on the page an open task changes, Open in Claude Design and New task on this design at the top, and the Activity tab listing the tasks changing it and every past change](pathname:///img/app/designs-open-light.webp)
-![A lasting design open: a tab per page, a dot on the page an open task changes, Open in Claude Design and New task on this design at the top, and the Activity tab listing the tasks changing it and every past change](pathname:///img/app/designs-open-dark.webp)
+![A reusable design open: page tabs, a return to the Library, a management menu and New task on this design, with current work and history in its sidebar](pathname:///img/app/designs-open-light.webp)
+![A reusable design open: page tabs, a return to the Library, a management menu and New task on this design, with current work and history in its sidebar](pathname:///img/app/designs-open-dark.webp)
 
 | Tab | What it holds |
 | --- | --- |
 | **Activity** | Open tasks changing the design, then every past change |
 | **Comments** | Comment threads per page |
-| **Details** | Its pages, where its files are, its Claude Design link |
+| **Details** | Its pages, where its files are, and any external reference you kept |
 
 ## A design of many pages {#folders}
 

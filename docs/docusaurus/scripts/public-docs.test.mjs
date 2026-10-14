@@ -9,6 +9,11 @@ const page = (route) => {
   return readFileSync(url, "utf8");
 };
 
+const text = (route) => page(route)
+  .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, "")
+  .replace(/<[^>]+>/g, " ")
+  .replace(/\s+/g, " ");
+
 test("App illustrations open at full size from each guide, with an accessible name and the right theme", () => {
   for (const route of ["", "app/", "steps/discuss/", "steps/plan/", "steps/implement/", "steps/verify/", "steps/review/", "designs/"]) {
     const html = page(route);
@@ -28,48 +33,48 @@ test("App illustrations open at full size from each guide, with an accessible na
 });
 
 test("the built guides explain current answers, complete Plan approval and live sharing", () => {
-  const discuss = page("steps/discuss/");
+  const discuss = text("steps/discuss/");
   assert.match(discuss, /Your turn/);
   assert.match(discuss, /Answer in any order/);
   assert.match(discuss, /one question at a time/);
   assert.match(discuss, /Skip for now/);
-  assert.match(discuss, /Your own answer/);
+  assert.match(discuss, /your own answer/i);
   assert.match(discuss, /Send/);
   assert.match(discuss, /immediately/);
   assert.doesNotMatch(discuss, /question N|Undo.{0,40}five seconds/);
-  const plan = page("steps/plan/");
+  const plan = text("steps/plan/");
   assert.match(plan, /Findings from the technical review return to the planning agent/);
-  assert.match(plan, /complete Plan appears in the main pane/);
+  assert.match(plan, /Read the complete Plan/);
   assert.match(plan, /Approve Plan/);
   assert.match(plan, /Give feedback/);
   assert.doesNotMatch(plan, /Agree to each.{0,40}Done means/);
   assert.match(page("steps/verify/"), /Proof for each point/);
   assert.match(page("steps/verify/"), /Done means/);
-  assert.match(page("steps/verify/"), /checks and evidence/);
+  assert.match(text("steps/verify/"), /point shows its evidence as it comes in/);
   assert.match(page("team/plans/"), /open page updates as the task changes/);
   assert.doesNotMatch(page("team/plans/"), /Reload the page/);
 });
 
 test("the built App guides use Files and Comments and explain the current reading and privacy boundaries", () => {
-  const app = page("app/");
+  const app = text("app/");
   assert.match(app, /Files/);
   assert.match(app, /Comments/);
-  assert.match(app, /Designs appear as compact entries in/);
+  assert.match(app, /Working designs are compact entries in/);
   assert.match(app, /Open design canvas/);
   assert.match(app, /document header/);
   assert.match(app, /Agent status/);
-  assert.match(app, /dollar amount/);
+  assert.match(app, /Dollar amounts stay hidden until you open it/);
   assert.match(app, /tokens unpriced/);
   assert.doesNotMatch(app, /Designs.{0,20}tab|Comments.{0,30}Files.{0,30}and.{0,30}Designs/);
   assert.match(page("steps/implement/"), /Here in the App/);
   assert.match(page("steps/implement/"), /In my terminal/);
   assert.match(page("steps/implement/"), /Start the build/);
-  assert.match(page("steps/implement/"), /Choose Claude Code or Codex/);
+  assert.match(text("steps/implement/"), /Claude Code, Codex or another agent/);
   assert.doesNotMatch(page("steps/implement/"), /Start with (?:Codex|Claude Code)/);
   assert.match(page("steps/implement/"), /Build/);
   assert.match(page("designs/"), /compact entry in/);
-  assert.match(page("reference/files/"), /No usage events/);
-  assert.match(page("reference/files/"), /Include designs/);
-  assert.match(page("reference/files/"), /scripts and navigation/);
-  assert.match(page("reference/files/"), /terminal output/);
+  assert.match(text("reference/files/"), /No usage events/);
+  assert.match(text("reference/files/"), /Include designs/);
+  assert.match(text("reference/files/"), /Shared design previews run no scripts/);
+  assert.match(text("reference/files/"), /terminal output/);
 });

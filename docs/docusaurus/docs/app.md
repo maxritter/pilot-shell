@@ -38,9 +38,9 @@ Order, colors, names and hidden projects are stored on the computer that runs th
 
 | Place | What it shows |
 | --- | --- |
-| **Home** | What needs you, what runs, the cost and what shipped ([Home](#home)) |
-| **Team** | With a Team plan: questions teammates wait on you for, and tasks they shared |
-| **Designs** | Every project's lasting designs and the drafts in open tasks ([Designs](designs.md#designs-place)) |
+| **Home** | Your own **Needs you** queue and **Running** work ([Home](#home)) |
+| **Team** | **My attention**, **Everyone** and **My questions** for shared work |
+| **Designs** | A compact **Library** grouped by project, with **Archived** and recovery ([Designs](designs.md#designs-place)) |
 
 ## Answering questions {#questions}
 
@@ -71,14 +71,16 @@ Every step writes one Markdown file, shown three ways:
 
 ## Comments and designs
 
-Select a passage, a line or part of a diagram to comment. Your agent answers in the thread and says what it changed. **Ask…** sends the question to a teammate. Designs have their own page: [Designs](designs.md).
+Select a passage, a line or part of a diagram to comment. Your agent answers in the thread and says what it changed. **Ask…** sends the question to a teammate. Working designs are compact entries in **Files**; **Open design canvas** opens their full page, with comments and their base design. The document header opens Files and Comments. The **Agent status** chip shows the current work. See [Designs](designs.md).
 
 ## Home {#home}
 
-![Home: Needs attention with a row for each task that waits, Spent on agents with the estimated cost, and Shipped](pathname:///img/app/home-light.webp)
-![Home: Needs attention with a row for each task that waits, Spent on agents with the estimated cost, and Shipped](pathname:///img/app/home-dark.webp)
+![Home: a Needs you section for your own questions and approvals, followed by a separate Running section for your agents' work](pathname:///img/app/home-light.webp)
+![Home: a Needs you section for your own questions and approvals, followed by a separate Running section for your agents' work](pathname:///img/app/home-dark.webp)
 
-**Needs attention**, **Running**, **Spent on agents** and **Shipped**. The App notifies you only when you can act:
+**Needs you** is your move: questions, approvals and tasks you can continue. **Running** is your agents' work, with its current step and activity. A row opens the exact task or document. Teammate questions and answers belong to Team.
+
+Notifications are configured in **Settings › Workflow**. Home shows no spending or shipped summary. The App notifies you only when you can act:
 
 ![Who hears about what: the App, Slack and the Claude Code band speak only when a person can act, and agent progress and checks never notify](pathname:///img/diagrams/attention-light.svg)
 ![Who hears about what: the App, Slack and the Claude Code band speak only when a person can act, and agent progress and checks never notify](pathname:///img/diagrams/attention-dark.svg)
@@ -88,7 +90,7 @@ Select a passage, a line or part of a diagram to comment. Your agent answers in 
 ![The cost panel: the total, each step with its time, tokens and cost, and each agent named after its work](pathname:///img/diagrams/cost-light.svg)
 ![The cost panel: the total, each step with its time, tokens and cost, and each agent named after its work](pathname:///img/diagrams/cost-dark.svg)
 
-The dollar amount in a task's header opens the cost per step and agent, estimated from list prices and your agents' local logs. Nothing is sent anywhere.
+The **Cost** control in a task's header opens the cost per step and agent, estimated from list prices and your agents' local logs. Dollar amounts stay hidden until you open it. Unpriced usage shows **tokens unpriced**, so an unknown price is never shown as free. Nothing is sent anywhere.
 
 ## Agent runs {#agent-runs}
 
