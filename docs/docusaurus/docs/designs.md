@@ -62,6 +62,8 @@ qualitylayer design new <name> --on <design>[/<page>]
 
 The lasting design stays as it is until you fold the draft in at Review. A draft's menu (right-click or **…**) also offers **Keep as a lasting design…**, **Compare with …** and **Share with the team**.
 
+Outside a task, the same command creates a personal copy in `docs/designs/` and remembers its base. It does not change the lasting design or start a workflow.
+
 ## Keep as a lasting design {#keep}
 
 Choose **Keep as a lasting design…** on a draft, or run `qualitylayer design keep <name>`.

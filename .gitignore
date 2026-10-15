@@ -10,10 +10,6 @@ claude-pace/
 /docs/docusaurus/docs/reference/changelog.md
 /docs/docusaurus/.docusaurus-build/
 
-# Local product and design context (not part of the public repository)
-/PRODUCT.md
-/DESIGN.md
-
 # Local-only blog migration helper, kept off the source tree on purpose.
 scripts/sync-blog.py
 scripts/blog-dates.json
@@ -289,6 +285,12 @@ scrollcraft/
 !/docs/site/
 !/docs/img/
 !/docs/video/
+!/docs/designs/
+/docs/designs/*
+!/docs/designs/README.md
+!/docs/designs/demo-story.md
+!/docs/designs/workflow-bench.md
+!/docs/designs/workflow-bench-log.md
 
 # Local design settings, critique reports, and iteration state.
 /.impeccable/
@@ -328,5 +330,3 @@ bun.lock
 
 # Local Memory spike and implementation evidence; product screenshots live under docs/.
 qualitylayer/spikes/engram-2026-10-13/
-qualitylayer/design/memory/implementation-qa/
-qualitylayer/design/memory/artifact-create.json

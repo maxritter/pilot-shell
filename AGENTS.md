@@ -109,16 +109,28 @@ All in `qualitylayer/`:
   new or reshaped step, helpers, gates, scaling rules, settings defaults,
   several phase-text changes at once), or when the person asks. Not for every
   release or small wording fix: a run costs real time and tokens. `bun run
-  bench` (skill `ql-bench`, design `qualitylayer/design/bench.md`) runs
+  bench` (skill `ql-bench`, design `docs/designs/workflow-bench.md`) runs
   Claude Code **and** Codex; take the baseline on the same cells.
 - Quality first: keep a measured change only when acceptance and test
   strength are not worse on any cell and agent; then time, cost and fresh
   tokens decide. A verdict with `?` needs more repeats before it is claimed.
 - Put the compare's headline in the commit body and in
-  `qualitylayer/design/bench-log.md`. Compare QualityLayer with its own
+  `docs/designs/workflow-bench-log.md`. Compare QualityLayer with its own
   earlier version only; the plain agents calibrate the acceptance checks.
 
 ## Design changes
+
+- Product and visual guidance live only in `qualitylayer/PRODUCT.md` and
+  `qualitylayer/DESIGN.md`, covering the App, website and docs. Read those
+  files for all product/UI work. Load Impeccable context with
+  `impeccable context --target qualitylayer` from the repository root.
+- Put project design guides and prototypes in `docs/designs/`, task-specific
+  material in `docs/plans/<task>/`, and historical work in
+  `docs/plans/archive/YYYY-MM-DD-topic/`. Preserve original phase filenames in
+  history. Registered executable models in `qualitylayer/design/` stay at the
+  paths named by `.qualitylayer/designs/*/design.json`; move them only with
+  their consumers and the sessions editing them. Do not add plans or slice
+  briefs beside those model sources.
 
 - Before every user-visible UI change, update the canonical lasting design:
   the App Model for the App, the website design for the website, or the
