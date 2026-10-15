@@ -149,7 +149,8 @@ function Scroller({ items, numbered, theme, onOpen }: { items: Item[]; numbered:
     const block = root.current?.querySelectorAll<HTMLElement>(".ed-item")[i];
     if (!block) return;
     setActive(i);
-    root.current?.style.setProperty("--ed-camera", "0");
+    // Keep the measured camera when this chapter is already at its destination: no scroll
+    // event follows a no-op scrollTo, so resetting it here would leave the picture frozen.
     const r = block.getBoundingClientRect();
     const top = narrow ? r.top + window.scrollY - HEADER - 72 : r.top + window.scrollY - (window.innerHeight - r.height) / 2;
     window.scrollTo({ top, behavior: reducedMotion() ? "auto" : "smooth" });
