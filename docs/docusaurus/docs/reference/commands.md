@@ -11,13 +11,13 @@ description: What you type in your agent, the commands you run, the ones your ag
 
 | You type | What it does |
 | --- | --- |
-| `/ql <request>` | Start a task with [Discuss](../steps/discuss.md); Research, the Plan and the Outline follow in the same session |
+| `/ql <request>` | Start a task with [Discuss](../steps/discuss.md); Research and the Plan follow in the same session |
 | `/ql implement <task>` | Build an approved Plan ([Implement](../steps/implement.md#start-implement)) |
 | `/ql review <task>` | Go through review threads: your team's ([Change reviews](../team/changes.md)) or the pull request's ([Pull request](../steps/pull-request.md)) |
 | `/ql answer <ask>` | Answer a teammate's question with your agent ([Teammates' agents](../team/agents.md)) |
 | `/task-pane` | Open the pane with the steps and the build's progress (Claude Code) |
 
-**+ New** and Implement show the terminal command with the model and effort. The unreleased App-run candidate also offers **Here in the App**, which starts the interactive agent without copying a command. See [App runs](../app.md#agent-runs).
+**+ New** and Implement show the terminal command with the model and effort. **Here in the App** starts the interactive agent without copying a command. See [App runs](../app.md#agent-runs) for platform support.
 
 ## For you
 
@@ -25,7 +25,7 @@ description: What you type in your agent, the commands you run, the ones your ag
 | --- | --- |
 | `qualitylayer app` | Open the App; on a machine without it, open it in your browser and pair the browser once |
 | `qualitylayer app --forget-browsers` | Make every paired browser pair again |
-| `qualitylayer agent-runs stop --all --reason app-quit [--json]` | The App's Quit helper in the unreleased candidate. It asks confirmed local hosts to stop only when Settings says **Stop agents**; it keeps runs when Settings says **Agents keep running** |
+| `qualitylayer agent-runs stop --all --reason app-quit [--json]` | The App's Quit helper. It asks confirmed local hosts to stop only when Settings says **Stop agents**; it keeps runs when Settings says **Agents keep running** |
 | `qualitylayer branch new [name]` | Start the build on a new branch: create `ql/<task>`, or the name you give, switch to it and note it on the task. See [where the build lands](../steps/implement.md#where-it-lands) |
 | `qualitylayer find "<text>"` | Find a task |
 | `qualitylayer tasks` | List tasks, by status or age |
@@ -114,7 +114,7 @@ Your agent draws [designs](../designs.md) with these, at any step, inside a task
 | `qualitylayer design new <name> [--purpose "<line>"] [--project]` | Start a design in the task's `design/` folder, or in `docs/designs/` on this Mac outside a task or with `--project` |
 | `qualitylayer design new <name> --wire` | Start a wireframe instead: grey boxes and real labels that settle the layout. A name ending in `-options` gets two layouts side by side. The finished design for the Plan is made without `--wire` |
 | `qualitylayer design new <name> --folder` | Start a design of several pages: a folder with `index.html`, to which you add more pages, scripts (JSX is allowed and React is provided), styles, fonts and pictures. It opens interactive and loads nothing from the network |
-| `qualitylayer design new <name> --on <design>[/<page>]` | Draft on a lasting design of the project: copy the design, or one page and the files it uses, into the task and remember where it came from. At Review the pages you changed can be folded back in ([Designs](../designs.md#fold-in)). Needs a task |
+| `qualitylayer design new <name> --on <design>[/<page>]` | Copy a lasting design or one of its pages, keeping its ancestry. In a task, draft on it and fold changes back in at [Review](../designs.md#fold-in). Outside a task, create a personal copy in `docs/designs/` |
 | `qualitylayer design show <name> [--page <page>] [--changed "<line>"]` | Mark it updated, with one line of what changed, so you see it as soon as it renders. `--page` names a page of a design of several pages |
 | `qualitylayer design keep <name> [--only-here] [--title "<title>"] [--purpose "<line>"]` | Make a draft a lasting design of the project, in `.qualitylayer/designs/<name>/` where it goes into the task's changes and pull request. `--only-here` keeps it in `docs/designs/` on this Mac instead, out of git. The draft stays as it is ([Keep](../designs.md#keep)) |
 | `qualitylayer design list` | List the designs: the task's drafts with what each drafts on, the project's lasting designs with their pages, and the designs only on this Mac |
@@ -139,7 +139,7 @@ Get the current revision with `design inspect` before changing a design. `--if-m
 
 `design shot` needs Chrome. If the agent's sandbox prevents Chrome from starting, inspect the same page in the App; a successful source check does not establish that it rendered correctly.
 
-## Project memory (next release) {#memory}
+## Project memory {#memory}
 
 The App and agents use the same local lesson store. Run project commands inside the repository. Sharing remains off until you enable it locally; exchange writes files for your normal Git review and commit. See [Project memory](../memory.md).
 

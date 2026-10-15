@@ -19,7 +19,7 @@ Describe the change with **+ New** in the App or `/ql <request>` in your agent (
 2. Answer in any order. **Skip for now** moves on; **Tell me more** explains.
 3. Each answer reaches your agent immediately. A second batch comes only if your answers raise a new decision.
 
-[Research](research.md) starts while you answer ([all controls](../app.md#questions)).
+[Research](research.md) can start while you answer ([all controls](../app.md#questions)).
 
 ## What done means {#done-means}
 
@@ -27,7 +27,7 @@ Describe the change with **+ New** in the App or `/ql <request>` in your agent (
 
 ## Too small for a plan {#too-small}
 
-For one small, clear edit, the App hands you a ready prompt for your agent. **Plan it anyway** keeps the full flow.
+Small requests keep a short Plan and one slice. If you ask for a plain prompt instead, your agent hands one back and closes the task.
 
 ## What to build is still open {#prd}
 

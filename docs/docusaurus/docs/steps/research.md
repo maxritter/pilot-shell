@@ -1,12 +1,12 @@
 ---
 title: Research
-description: Agents read the code before anything is designed, without your request in front of them. You settle only what the code leaves open.
+description: Agents read the code before anything is designed. You settle only what the code leaves open.
 ---
 
 ![The eight steps, with Research highlighted](pathname:///img/diagrams/track-research-light.svg)
 ![The eight steps, with Research highlighted](pathname:///img/diagrams/track-research-dark.svg)
 
-Research maps how the code works today. It starts while you answer Discuss and needs no approval.
+Research maps how the code works today. It can start while you answer Discuss and needs no approval.
 
 ![Research in the App: the code today and the findings](pathname:///img/app/research-light.webp)
 ![Research in the App: the code today and the findings](pathname:///img/app/research-dark.webp)
@@ -17,7 +17,7 @@ Research maps how the code works today. It starts while you answer Discuss and n
 
 | | |
 | --- | --- |
-| **Reads blind** | Research agents never see your request, so findings describe the code as it is |
+| **Reads blind** | Research helpers do not see your request; without helpers, your agent reads the code as it is before proposing changes |
 | **Checks claims** | Each cited file is reopened before a finding is written |
 | **Names risks** | Code to reuse, files that change often, how it is tested |
 

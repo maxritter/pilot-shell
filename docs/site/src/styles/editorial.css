@@ -20,9 +20,10 @@
 
 /* The two columns: items on the left, the pinned stage on the right */
 .ed-scroll{display:grid;grid-template-columns:minmax(260px,.6fr) minmax(0,1.6fr);gap:clamp(28px,4cqi,64px)}
+.ed-scroll.numbered{--ed-rail-space:79px}
 .ed-items{min-width:0}
 .ed-item{min-height:62vh;display:flex;flex-direction:column;justify-content:center;padding:24px 0;scroll-margin-top:84px;transition:opacity .45s var(--ql-ease)}
-.ed-item:first-child{min-height:44vh;justify-content:flex-start;padding-top:4vh}
+.ed-item:first-child{min-height:44vh;justify-content:flex-start;padding-top:calc(24px + var(--ed-rail-space,0px))}
 .ed-item:last-child{min-height:calc(100vh - 60px)}
 .ed-item:not(.on){opacity:.32}
 .ed-item h3{display:flex;align-items:center;gap:12px;margin:0;font-size:clamp(26px,2.6cqi,34px);line-height:1.15;font-weight:500;letter-spacing:-.03em}
@@ -32,8 +33,9 @@
 .ed-who{display:inline-flex;align-items:center;gap:8px;margin:18px 0 0;font-size:13px;color:var(--mx-ink2)}
 .ed-link{display:inline-flex;align-items:center;min-height:44px;margin-top:8px;font-size:14px}
 
-.ed-stage{position:relative;min-width:0;margin-right:calc(-1 * clamp(0px,(100cqi - 1240px) / 2,120px))}
-.ed-pin{position:sticky;top:60px;height:calc(100vh - 60px);display:flex;flex-direction:column;justify-content:center;gap:28px}
+.ed-stage{position:relative;min-width:0;padding-top:24px;margin-right:calc(-1 * clamp(0px,(100cqi - 1240px) / 2,120px))}
+.ed-pin{position:sticky;top:84px;display:flex;flex-direction:column;gap:28px}
+.ed-pin>.ed-rail{height:51px}
 
 /* The rail: eight numbered steps on one line; the line behind them fills up to the step in view */
 .ed-rail{position:relative;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));margin:0;padding:0;list-style:none}

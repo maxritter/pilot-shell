@@ -202,44 +202,14 @@ jobs:
           done
           exit "$failed"
 
-      - name: Provision Japanese input for the current Windows runner login
-        if: runner.os == 'Windows'
-        shell: pwsh
-        timeout-minutes: 12
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $languages = Get-WinUserLanguageList
-          $capability = Get-WindowsCapability -Online -Name 'Language.Basic~~~ja-JP~0.0.1.0'
-          if ($capability.State -ne 'Installed') {
-            if (Get-Command Install-Language -ErrorAction SilentlyContinue) {
-              Install-Language -Language ja-JP | Out-Null
-            } else {
-              $installed = Add-WindowsCapability -Online -Name $capability.Name
-              if ($installed.RestartNeeded) { throw 'Japanese IME installation requires a fresh runner login/restart; this run cannot qualify composition' }
-            }
-          }
-          # Append the input profile, preserving the runner's existing language order and display language.
-          # Do not use Install-Language -CopyToSettings: it changes system/default settings and needs a restart/login.
-          if (-not ($languages | Where-Object LanguageTag -eq 'ja-JP')) {
-            $languages.Add('ja-JP')
-            Set-WinUserLanguageList -LanguageList $languages -Force
-          }
-          $registered = Get-WinUserLanguageList
-          $japanese = $registered | Where-Object LanguageTag -eq 'ja-JP'
-          if (-not $japanese -or -not ($japanese.InputMethodTips | Where-Object { $_ -like '0411:*' })) {
-            throw 'Japanese IME input profile was not registered for this runner user; composition requires a provisioned login'
-          }
-          $japanese | Select-Object LanguageTag, InputMethodTips | ConvertTo-Json -Compress
-          # Registration is a prerequisite only. The driver must observe a loaded Japanese HKL,
-          # focused-thread activation and trusted composition in the newly launched App.
-
-      - name: Installed Windows terminal receives native keys, IME and clipboard
+      - name: Installed Windows terminal receives native keys, clipboard and shortcuts
         if: runner.os == 'Windows'
         shell: pwsh
         working-directory: qualitylayer
         env:
           QUALITYLAYER_REQUIRE_APP: "1"
           QUALITYLAYER_REQUIRE_RENDER: "1"
+          QUALITYLAYER_WINDOWS_IME: "0"
         run: |
           $probe = Join-Path $env:RUNNER_TEMP 'installed-terminal'
           New-Item -ItemType Directory -Force -Path $probe | Out-Null

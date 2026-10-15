@@ -59,7 +59,7 @@ With Claude Code and Codex both installed, each reviews the other's work:
 | When | Choices | What it reads |
 | --- | --- | --- |
 | **On the Plan** | **When risky** (recommended) or **Always** | Discuss, Research and the first full Plan draft, before the Plan reaches you |
-| **On the built change** | **When risky** (recommended) or **Always** | The finished code, as [Verify's](../steps/verify.md#lanes) fifth check |
+| **On the built change** | **When risky** (recommended) or **Always** | The finished code, alongside Polish and Security review in [Verify](../steps/verify.md#lanes) |
 
 Risky means the Plan says so, the change touches sign-in, secrets or outside input, or the Outline marks a slice risky. **Always** adds a few minutes per Plan or change. With one agent installed, a separate reviewer of that agent reads instead (Sonnet 5.5 in Claude Code). **Reviewed by** in the Plan names who read it.
 

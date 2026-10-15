@@ -24,7 +24,7 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Agent windows have task tabs, bottom or right docking and a resizable workspace. Close a tab and reopen it from its task without stopping the agent or losing unsent input.
 - Agent windows have readable input, font size, line spacing, light/dark appearance, selection and copying, and a control to return to the latest output.
 - Local design previews retain interactive state through motion and layout changes. Design edit history records where a change came from.
-- The website and README show current App screens, with an interactive workflow tour on the website.
+- The website shows current App screens with an interactive workflow tour.
 
 ### Fixed
 
@@ -34,6 +34,7 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Session progress follows reported agent activity and keeps an unconfirmed start visible until the agent reports it.
 - The native agent window preserves dark-theme contrast after the stylesheet is minified. Native process checks recover from a brief macOS permission race while protecting unreadable live processes.
 - Release checks verify the server key needed for readable Slack notifications.
+- In a VS Code dev container, over Remote-SSH and in WSL2, the App's pages open in your own browser already signed in, and **Open** and **Reveal** work. Rebuilding a container restores Claude Code's QualityLayer setup, and a WSL2 server no longer collides with the Windows App's port.
 
 ### Good to know
 

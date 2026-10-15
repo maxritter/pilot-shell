@@ -17,7 +17,7 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Agent windows have task tabs, bottom or right docking and a resizable workspace. Close a tab and reopen it from its task without stopping the agent or losing unsent input.
 - Agent windows have readable input, font size, line spacing, light/dark appearance, selection and copying, and a control to return to the latest output.
 - Local design previews retain interactive state through motion and layout changes. Design edit history records where a change came from.
-- The website and README show current App screens, with an interactive workflow tour on the website.
+- The website shows current App screens with an interactive workflow tour.
 
 ### Fixed
 

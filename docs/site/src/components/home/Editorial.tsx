@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { Link } from "react-router-dom";
 import { BookOpen, Expand, ExternalLink, House, PenTool, SlidersHorizontal, Users, X, type LucideIcon } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,7 @@ type Item = { id: string; name: string; who?: Who; icon?: LucideIcon; line: stri
 
 const WHO: Record<Who, string> = { you: "You decide", agent: "Agents work", check: "Agents check" };
 
-const STEPS: Item[] = [
+const STEPS: Item[] = ([
   { id: "discuss", name: "Discuss", who: "you", line: "Settle what you want", text: "Your agent asks only questions that change the result, each with a recommendation. Answer in any order.", shot: { id: "discuss", title: "Discuss", alt: "A question about a webhook retry policy, with three choices and a recommendation, in the QualityLayer App" } },
   { id: "research", name: "Research", who: "agent", line: "Read the code first", text: "Agents trace how the code works today and what can be reused.", shot: { id: "research", title: "Research", alt: "Research on identity provisioning: a diagram of the existing services and a table of what the change can reuse" } },
   { id: "plan", name: "Plan", who: "you", line: "Approve it before any code", text: "Read the plan with its diagrams and designs. Comment on any part, then approve it.", shot: { id: "plan", title: "Plan", alt: "A complete plan for usage-based billing with a diagram, and Approve Plan in the task's header" } },
@@ -24,14 +23,14 @@ const STEPS: Item[] = [
   { id: "verify", name: "Verify", who: "check", line: "Polish it, then check every point", text: "An agent that did not write the code polishes it, adds missing tests and checks every point of the plan. Risky changes get an independent review.", shot: { id: "verify", title: "Verify", alt: "Verification lanes for the billing change: polish, security, checks, an independent review and the outcome checks" } },
   { id: "review", name: "Review", who: "you", line: "Read the change and its proof", text: "See what changed, why, and the evidence for each agreed point. Approve, or ask for another pass.", shot: { id: "review", title: "Review", alt: "The finished billing change with what you asked for, what changed and how each point was checked" } },
   { id: "pull-request", name: "Pull request", who: "agent", line: "Follow it until it is merged", text: "Review threads and failing checks return to the task until the pull request merges.", shot: { id: "pull-request", title: "Pull request", alt: "An open pull request with its checks and review threads kept on the task" } },
-];
+] satisfies Item[]).map((item) => ({ ...item, link: { to: `/docs/steps/${item.id}`, label: `Read about ${item.name.toLowerCase()}` } }));
 
 const EXTRAS: Item[] = [
   { id: "memory", name: "Memory", icon: BookOpen, line: "Keep useful project lessons", text: "Your agents reuse lessons between tasks, whichever coding agent you use. Share them per repository through Git; search or retire them in Settings.", shot: { id: "memory", title: "Project memory", alt: "The Memory tab with local lessons, per-project sharing and a searchable lesson browser; illustrative project data" }, link: { to: "/docs/memory", label: "Read about project memory" } },
-  { id: "designs", name: "Design", icon: PenTool, line: "Comment on the spot", text: "Pin a comment anywhere on a design. Your agent replies in the thread and updates the design.", shot: { id: "design", title: "Design", alt: "A queue migration console open full size, with three numbered comment pins and the comments beside it" } },
-  { id: "team", name: "Team", icon: Users, line: "Ask the people who know", text: "Teammates answer plan questions and review the finished change from their own App.", shot: { id: "team", title: "Team", alt: "The Team space with questions about shared plans, replies and the team's tasks" }, link: { to: "/pricing", label: "See the Team plan" } },
-  { id: "cost", name: "Home", icon: House, line: "See what needs you", text: "Your tasks that need attention and your running work, with the current step and what happens next.", shot: { id: "home", title: "Home", alt: "Home with personal tasks that need attention and running work" } },
-  { id: "setup", name: "Settings", icon: SlidersHorizontal, line: "Pick your agents and models", text: "Choose the agent and model that plans, builds and checks, and whether tasks start as a product brief or a technical plan.", shot: { id: "setup", title: "Settings", alt: "Settings with the Product or Engineering level, the planning and building agents and models, and the review options" } },
+  { id: "designs", name: "Design", icon: PenTool, line: "Comment on the spot", text: "Pin a comment anywhere on a design. Your agent replies in the thread and updates the design.", shot: { id: "design", title: "Design", alt: "A queue migration console open full size, with three numbered comment pins and the comments beside it" }, link: { to: "/docs/designs", label: "Read about designs" } },
+  { id: "team", name: "Team", icon: Users, line: "Ask the people who know", text: "Teammates answer plan questions and review the finished change from their own App.", shot: { id: "team", title: "Team", alt: "The Team space with questions about shared plans, replies and the team's tasks" }, link: { to: "/docs/team/plans", label: "Read about team collaboration" } },
+  { id: "cost", name: "Home", icon: House, line: "See what needs you", text: "Your tasks that need attention and your running work, with the current step and what happens next.", shot: { id: "home", title: "Home", alt: "Home with personal tasks that need attention and running work" }, link: { to: "/docs/app#home", label: "Read about Home" } },
+  { id: "setup", name: "Settings", icon: SlidersHorizontal, line: "Pick your agents and models", text: "Choose the agent and model that plans, builds and checks, and whether tasks start as a product brief or a technical plan.", shot: { id: "setup", title: "Settings", alt: "Settings with the Product or Engineering level, the planning and building agents and models, and the review options" }, link: { to: "/docs/reference/settings", label: "Read about settings" } },
 ];
 
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -173,7 +172,7 @@ function Scroller({ items, numbered, theme, onOpen }: { items: Item[]; numbered:
             ) : null}
             <p className="ed-text">{item.text}</p>
             {numbered && item.who ? <p className="ed-who"><span className="ed-dot" aria-hidden="true" />{WHO[item.who]}</p> : null}
-            {item.link ? <Link className="ed-link" to={item.link.to}>{item.link.label}</Link> : null}
+            {item.link ? <a className="ed-link" href={item.link.to}>{item.link.label}</a> : null}
           </article>
         ))}
       </div>
@@ -203,7 +202,7 @@ export default function Editorial() {
     <>
       <section id="tour" className="ed-section mx-wrap" aria-labelledby="ed-workflow-h">
         <div className="ed-head">
-          <h2 id="ed-workflow-h">From request to pull request in eight steps</h2>
+          <h2 id="ed-workflow-h">From prompt to pull request in eight steps</h2>
           <p>You make the decisions; agents do the work and check it. Engineers start from a technical plan, product people from a product brief.</p>
           <ul className="ed-legend" aria-label="Colours">
             {(Object.keys(WHO) as Who[]).map((who) => <li key={who} data-who={who}><span className="ed-dot" aria-hidden="true" />{WHO[who]}</li>)}

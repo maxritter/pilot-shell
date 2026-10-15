@@ -134,9 +134,9 @@ jobs:
         run: |
           pull="${RUNNER_TEMP:?}/database.env"
           if [ "$GITHUB_REF_NAME" = main ]; then
-            vercel env pull "$pull" --environment=production --token="$VERCEL_TOKEN" --yes
+            vercel env pull "$pull" --environment=production --token="$VERCEL_TOKEN" --yes # repowise-security-ignore: hardcoded_secret -- token is supplied by GitHub Secrets
           else
-            vercel env pull "$pull" --environment=preview --git-branch="$GITHUB_REF_NAME" --token="$VERCEL_TOKEN" --yes
+            vercel env pull "$pull" --environment=preview --git-branch="$GITHUB_REF_NAME" --token="$VERCEL_TOKEN" --yes # repowise-security-ignore: hardcoded_secret -- token is supplied by GitHub Secrets
           fi
           DATABASE_URL="$(sed -n 's/^DATABASE_URL="\{0,1\}\([^"]*\)"\{0,1\}$/\1/p' "$pull")"
           rm -f "$pull"

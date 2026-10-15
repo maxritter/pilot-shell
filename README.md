@@ -34,7 +34,7 @@ Works with the Claude Code or Codex you already use.
   <a href="#features">Features</a> •
   <a href="https://qualitylayer.dev/docs/">Docs</a> •
   <a href="https://qualitylayer.dev">Website</a> •
-  <a href="https://github.com/maxritter/pilot-shell/releases">Changelog</a>
+  <a href="https://qualitylayer.dev/docs/changelog">Changelog</a>
 </p>
 
 ```bash
@@ -67,7 +67,7 @@ curl -fsSL https://qualitylayer.dev/install.sh | bash
 - Every step shows its time and estimated cost.
 - It runs on your own subscription, and each step is one Markdown file in your repository.
 
-Made for medium and large changes. A request too small for a plan gets a ready prompt for your plain agent.
+Made for medium and large changes. Small requests keep a short Plan and one slice; ask for a ready prompt if you prefer your plain agent.
 
 ---
 
@@ -88,7 +88,7 @@ curl -fsSL https://qualitylayer.dev/install.sh | bash      # macOS, Linux, WSL
 irm https://qualitylayer.dev/install.ps1 | iex             # Windows PowerShell
 ```
 
-The App updates itself; without it, run `qualitylayer update`.
+The App updates itself; without it, run `qualitylayer update`. [Installation guide](https://qualitylayer.dev/docs/install).
 
 <details>
 <summary><b>Uninstalling</b></summary>
@@ -121,7 +121,7 @@ Answer your agent's questions in the App, approve the Plan, then start the build
 
 <h2 id="features">The Workflow</h2>
 
-Each step writes one Markdown file. You approve twice: the plan and the finished change. QualityLayer never merges or pushes.
+Each of the first seven steps writes one Markdown file. You approve twice: the plan and the finished change. QualityLayer never merges and pushes only with your approval.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/flow-pr-dark.svg">
@@ -130,8 +130,8 @@ Each step writes one Markdown file. You approve twice: the plan and the finished
 
 | Step | What happens |
 |---|---|
-| [Discuss](https://qualitylayer.dev/docs/steps/discuss) | Settles what done means; a bug is reproduced first |
-| [Research](https://qualitylayer.dev/docs/steps/research) | Agents read how your code works today |
+| [Discuss](https://qualitylayer.dev/docs/steps/discuss) | Settles what done means and clarifies a bug report |
+| [Research](https://qualitylayer.dev/docs/steps/research) | Agents read how your code works today; a bug is reproduced and diagnosed here |
 | [Plan](https://qualitylayer.dev/docs/steps/plan) | Design, diagrams and checks, **approved by you** |
 | [Outline](https://qualitylayer.dev/docs/steps/outline) | The plan split into small slices |
 | [Implement](https://qualitylayer.dev/docs/steps/implement) | Each slice starts with a failing test |
@@ -156,7 +156,7 @@ Ask your agent for a mockup, diagram or clickable design and compare versions in
 
 - Answer your agent's questions and comment on any passage; answers reach it at once.
 - Follow every task with what needs you shown first, plus time and cost per step.
-- Set standing instructions and the models that plan, build and check.
+- Set standing instructions and the models that plan, build and check. [Settings](https://qualitylayer.dev/docs/reference/settings).
 - Your agents reuse lessons from earlier tasks, and can share them through Git. [Project memory](https://qualitylayer.dev/docs/memory).
 - With a Team plan, ask a teammate about any passage over Slack, and let them review the finished change. [Team plans](https://qualitylayer.dev/docs/team/plans).
 
@@ -168,7 +168,7 @@ Your code and usage data stay on your computer; shared tasks are encrypted first
 
 ## Documentation
 
-For every step, command and setting, see the **[Documentation](https://qualitylayer.dev/docs/)**.
+For every step, [command](https://qualitylayer.dev/docs/reference/commands) and [setting](https://qualitylayer.dev/docs/reference/settings), see the **[Documentation](https://qualitylayer.dev/docs/)**.
 
 ---
 

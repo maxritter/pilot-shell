@@ -14,4 +14,6 @@ Pilot Shell is now QualityLayer. Pilot Shell's updater, the App or the installer
 | **Removed** | What Pilot Shell added to your agents and shell |
 | **Stays** | Its tools and `~/.pilot` memories. Ask your agent to remove what you don't use |
 
+You can [import Pilot lessons](memory.md#import-pilot-lessons) into QualityLayer's project memory.
+
 Next: [your first task](first-task.md).
