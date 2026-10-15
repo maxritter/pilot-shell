@@ -139,6 +139,17 @@ All in `qualitylayer/`:
   single button, switch, wording, interaction state or motion change. Keep
   the model and implementation aligned; revise the model first when the UI
   needs to change during implementation.
+- Review composition separately from correctness. Inspect before/after renders
+  at actual desktop scale, including 1440 × 900 and 1024 × 720, in both themes.
+  For a shared control, inspect every consumer and its expanded, disabled and
+  selected states. Check hierarchy, density and primary-action visibility;
+  matching tokens, shadcn use, green tests and detector output do not establish
+  visual approval.
+- Structural changes to shared controls need an independent visual critique
+  before release. Keep that judgment separate from mechanical findings. Record
+  the inspected states and remaining gaps, and never accept visual-reference
+  updates automatically. Correct the model when both model and code reproduce
+  a poor composition; synchronization alone is not a quality check.
 - Outside a QualityLayer run: use QualityLayer's local Designs workspace
   and the `ql-design` skill together with Impeccable (context, craft and
   critique). Start from the existing lasting design and show the prototype
