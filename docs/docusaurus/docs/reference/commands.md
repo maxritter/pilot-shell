@@ -110,7 +110,7 @@ Your agent draws [designs](../designs.md) with these, at any step, inside a task
 
 | Command | What it does |
 | --- | --- |
-| `qualitylayer design guide` | Read the authoring guide before drawing the first design |
+| `qualitylayer design guide [authoring\|review]` | Read the authoring or review prompt once per design assignment; works without a task or repository |
 | `qualitylayer design new <name> [--purpose "<line>"] [--project]` | Start a design in the task's `design/` folder, or in `docs/designs/` on this Mac outside a task or with `--project` |
 | `qualitylayer design new <name> --wire` | Start a wireframe instead: grey boxes and real labels that settle the layout. A name ending in `-options` gets two layouts side by side. The finished design for the Plan is made without `--wire` |
 | `qualitylayer design new <name> --folder` | Start a design of several pages: a folder with `index.html`, to which you add more pages, scripts (JSX is allowed and React is provided), styles, fonts and pictures. It opens interactive and loads nothing from the network |

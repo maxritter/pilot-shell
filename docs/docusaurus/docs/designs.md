@@ -26,6 +26,10 @@ qualitylayer design new settings --project
 qualitylayer design show settings --project
 ```
 
+Your agent reads `qualitylayer design guide` once per design assignment and reuses it
+while revising. For a design audit, `qualitylayer design guide review` returns the
+review instructions. Both work without starting a workflow and need no repository.
+
 All commands: [CLI reference](reference/commands.md#designs).
 
 ## The Designs place {#designs-place}
