@@ -15,5 +15,13 @@ export const CONTACT_EMAIL = "mail@maxritter.net";
 export const AUTHOR_URL = "https://maxritter.net";
 export const AUTHOR_NAME = "Max Ritter";
 
+/** The hero's subtitle and the default page description. */
 export const DESCRIPTION =
-  "You approve the plan before any code is written. Your agent builds it test first, and another agent checks the result against your request.";
+  "Plan each change visually with your agent and your team: the architecture as diagrams, the screens as clickable designs, every decision in the open. When everyone shares the same picture, your agents build it.";
+/** The line under the name wherever the product is introduced: the hero, page titles, the README and the CLI. */
+export const SLOGAN = "The software factory with you in the loop";
+/** The sentence shown when the site is shared or listed in search (under 160 characters); index.html repeats it by hand. */
+export const SHARE_DESCRIPTION =
+  "Plan each change visually with your coding agent and your team, in diagrams and clickable designs. When everyone shares the same picture, your agents build it.";
+/** One engineer's words about QualityLayer, relayed by Max on 2026-10-15. Quote it as it is; the attribution stays anonymous. */
+export const ENGINEER_QUOTE = "With QualityLayer, developing software with agents finally feels like doing real engineering again.";

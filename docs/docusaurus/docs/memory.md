@@ -5,7 +5,7 @@ description: Reuse project lessons across agents and choose which repositories s
 
 # Project memory
 
-Claude Code and Codex reuse lessons from earlier tasks: decisions, fixes and constraints. The memory engine runs locally and needs no extra API key or service.
+Your agents reuse lessons from earlier tasks: decisions, fixes and constraints. This works with any coding agent you use with QualityLayer. The memory engine runs locally and needs no extra API key or service.
 
 ![Memory settings with project sharing and a searchable lesson list; illustrative project data](pathname:///img/app/memory-light.webp)
 ![Memory settings with project sharing and a searchable lesson list; illustrative project data](pathname:///img/app/memory-dark.webp)

@@ -9,7 +9,7 @@ description: QualityLayer takes your coding agent from a request to a merged pul
   <figcaption>How QualityLayer works, in about five minutes.</figcaption>
 </figure>
 
-QualityLayer guides your coding agent from a request to a merged pull request. You approve a plan in the **App** before any code. Your agent builds test first, and agents that did not write the code check the result against your request.
+QualityLayer is the software factory with you in the loop. Your agent reads the code and plans each change with you in the **App**: the architecture as diagrams, the screens as clickable designs, every decision in the open. Once you and your team agree on the plan, your agent builds it test first and takes it to a pull request; agents that did not write the code check the result against your request.
 
 ![The QualityLayer App at the Plan step: the step track, the Plan with a diagram, and Approve Plan and Give feedback at the top right](pathname:///img/app/plan-light.webp)
 ![The QualityLayer App at the Plan step: the step track, the Plan with a diagram, and Approve Plan and Give feedback at the top right](pathname:///img/app/plan-dark.webp)

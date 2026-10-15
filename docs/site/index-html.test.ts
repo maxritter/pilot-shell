@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { ENGINEER_QUOTE, SHARE_DESCRIPTION, SLOGAN } from "./src/lib/product";
 
 const html = readFileSync(new URL("./index.html", import.meta.url), "utf8");
 const schemas = Array.from(
@@ -14,7 +15,7 @@ const schema = (type: string) => {
 };
 
 const meta = (attribute: "name" | "property", key: string) =>
-  html.match(new RegExp(`<meta ${attribute}="${key}"\\s+content="([^"]*)"`))?.[1];
+  html.match(new RegExp(`<meta\\s+${attribute}="${key}"\\s+content="([^"]*)"`))?.[1];
 
 const staticText = Array.from(html.matchAll(/<noscript>([\s\S]*?)<\/noscript>/g), (match) => match[1])
   .join(" ")
@@ -38,11 +39,22 @@ describe("static marketing shell", () => {
     expect(website.url).toBe("https://qualitylayer.dev/");
     const software = schema("SoftwareApplication");
     expect(software.name).toBe("QualityLayer");
-    expect(String(software.description)).toContain("your coding agents");
+    expect(software.description).toBe(`${SLOGAN}. ${SHARE_DESCRIPTION}`);
+  });
+
+  it("shares the same title and sentence the app's SEO sets after hydration", () => {
+    const title = `QualityLayer: ${SLOGAN}`;
+    expect(html).toContain(`<title>${title}</title>`);
+    for (const key of ["og:title"]) expect(meta("property", key)).toBe(title);
+    expect(meta("name", "twitter:title")).toBe(title);
+    for (const key of ["description", "twitter:description"]) expect(meta("name", key)).toBe(SHARE_DESCRIPTION);
+    expect(meta("property", "og:description")).toBe(SHARE_DESCRIPTION);
+    expect(SHARE_DESCRIPTION.length).toBeLessThanOrEqual(160);
   });
 
   it("gives crawlers without JavaScript the promise, the seven steps and the install line", () => {
-    expect(staticText).toContain("The software factory for your coding agents");
+    expect(staticText).toContain(SLOGAN);
+    expect(staticText).toContain(ENGINEER_QUOTE);
     for (const step of ["Discuss:", "Research:", "Plan:", "Outline:", "Implement:", "Verify:", "Review:"]) expect(staticText).toContain(step);
     expect(staticText).toContain("qualitylayer.dev/download");
     expect(staticText).toContain("curl -fsSL https://qualitylayer.dev/install.sh | bash");

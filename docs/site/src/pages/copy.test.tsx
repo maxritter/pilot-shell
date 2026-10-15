@@ -7,7 +7,7 @@ import PricingSection from "@/components/PricingSection";
 import { BANNED_WORDS } from "@/lib/banned-words";
 import { FAQS, PRICING_FAQS } from "@/lib/content";
 import { COMPARE, PLANS } from "@/lib/pricing";
-import { DESCRIPTION } from "@/lib/product";
+import { DESCRIPTION, ENGINEER_QUOTE } from "@/lib/product";
 import { DownloadView } from "./Download";
 import { readFileSync } from "node:fs";
 
@@ -58,6 +58,12 @@ describe("the site's copy", () => {
     const pricing = await textOf(<PricingSection />);
     expect(pricing).toMatch(/tools.*memories stay/i);
     expect(pricing).not.toMatch(/lets you choose what happens/i);
+  });
+
+  it("quotes the engineer word for word, attributed without a name", async () => {
+    const home = await textOf(<Sections />);
+    expect(home).toContain(`“${ENGINEER_QUOTE}”`);
+    expect(home).toContain("An engineer who uses QualityLayer");
   });
 
   it("tells one developer and a team the same story: the closing says both", async () => {

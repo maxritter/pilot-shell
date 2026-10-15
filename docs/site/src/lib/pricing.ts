@@ -144,7 +144,7 @@ export const COMPARE: CompareGroup[] = [
     rows: [
       row("The App for macOS, Windows and Linux", true, true, "On a server or in WSL, it opens in your browser"),
       row("A notification when it is Your turn", true, true, "App bell, menu bar, and above the Claude Code prompt"),
-      row("Live agent status and shipped tasks on Home", true, true, "Time, estimated cost and tasks in each step"),
+      row("Your tasks and agent status on Home", true, true, "Tasks that need you and work in progress"),
       row("Your AI agents can message each other", true, true, "Claude Code and Codex sessions on your computer"),
     ],
   },

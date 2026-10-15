@@ -2,172 +2,200 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/brand/qualitylayer-mark.svg">
-  <img src="docs/site/public/brand/qualitylayer-mark-light.svg" alt="QualityLayer" width="72">
+  <img src="docs/site/public/brand/qualitylayer-mark-light.svg" alt="QualityLayer" width="120">
 </picture>
 
 # QualityLayer
 
-A planning-first workflow for the Claude Code or Codex you already use.
+### The software factory with you in the loop
 
-[Download the App](https://qualitylayer.dev/download) · [Documentation](https://qualitylayer.dev/docs/) · [Website](https://qualitylayer.dev) · [Releases](https://github.com/maxritter/pilot-shell/releases)
+**Plan each change visually with your coding agent and your team, then let your agents build it.**<br>
+Works with the Claude Code or Codex you already use.
 
-</div>
+<a href="https://github.com/maxritter/pilot-shell"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&amp;color=9d6607&amp;labelColor=30363d">
+  <img src="https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&amp;color=9d6607&amp;labelColor=555555" alt="Stars">
+</picture></a>
+<a href="https://star-history.com/#maxritter/pilot-shell&amp;Date"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Star_History-chart-6f4fc2?labelColor=30363d">
+  <img src="https://img.shields.io/badge/Star_History-chart-6f4fc2?labelColor=555555" alt="Star History">
+</picture></a>
+<a href="https://github.com/maxritter/pilot-shell/releases"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/downloads/maxritter/pilot-shell/total?color=2076c5&amp;labelColor=30363d">
+  <img src="https://img.shields.io/github/downloads/maxritter/pilot-shell/total?color=2076c5&amp;labelColor=555555" alt="Downloads">
+</picture></a>
+<a href="https://github.com/maxritter/pilot-shell/pulls"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/PRs-welcome-2076C5.svg?labelColor=30363d">
+  <img src="https://img.shields.io/badge/PRs-welcome-2076C5.svg?labelColor=555555" alt="PRs Welcome">
+</picture></a>
 
-QualityLayer helps you agree on a coding change before your agent builds it, then review the evidence for the finished work. You approve the plan and the result. Your agent researches the code, builds in small slices and checks the change against your request.
-
-QualityLayer runs only when you ask for it. Each step stays in a Markdown file in your repository, alongside the designs and review records.
-
-<picture>
-  <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="docs/site/public/product/plan-phone-dark.webp">
-  <source media="(max-width: 600px)" srcset="docs/site/public/product/plan-phone-light.webp">
-  <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/plan-dark.webp">
-  <img src="docs/site/public/product/plan-light.webp" alt="The Plan in QualityLayer, with a fictional billing change, its design and the approval controls" width="1000">
-</picture>
-
-Screenshots show illustrative task data.
-
-<details>
-<summary>Watch the five-minute walkthrough</summary>
-
-<a href="https://qualitylayer-media.max-ritter.workers.dev/overview.mp4"><img src="docs/img/film-poster.webp" alt="Play the film: How QualityLayer works, 5 minutes" width="700"></a>
-
-</details>
-
-## Plan, build and review
-
-### Agree on the change
-
-- Your agent asks about the outcome, reproduces a bug when needed, and reads how your code works today.
-- The Plan brings together the design, technical decisions and checks. You can comment on a passage or ask for changes before approving it.
-
-### Build from the approved plan
-
-- Your agent splits the work into small slices and starts each slice with a failing test.
-- The App shows what is running and what needs your attention. Routine technical choices stay with the agent and are recorded.
-- An agent that did not write the code checks the running result against every point of your request. Failed checks lead to fixes and another check.
-
-### Read the result
-
-- Review shows why the change was made, the files and diffs, what was checked, and any remaining decisions for you.
-- You approve the finished change. Approval does not merge a pull request or switch a branch.
-- The task stays open while the pull request needs review or has failing checks; it closes when you merge.
-
-<details>
-<summary>The seven steps</summary>
-
-| Step | What happens |
-|---|---|
-| [Discuss](https://qualitylayer.dev/docs/steps/discuss) | Agree on what done means; reproduce a bug first |
-| [Research](https://qualitylayer.dev/docs/steps/research) | Read how the code works today |
-| [Plan](https://qualitylayer.dev/docs/steps/plan) | Review the design and decisions; approve the plan |
-| [Outline](https://qualitylayer.dev/docs/steps/outline) | Split the approved plan into buildable slices |
-| [Implement](https://qualitylayer.dev/docs/steps/implement) | Build each slice, starting with a failing test |
-| [Verify](https://qualitylayer.dev/docs/steps/verify) | Check every point of the request and keep the evidence |
-| [Review](https://qualitylayer.dev/docs/steps/review) | Read the change and approve the result |
-
-[Pull requests](https://qualitylayer.dev/docs/steps/pull-request) remain connected to the task until you merge them.
-
-</details>
-
-### Two levels
-
-Engineering (default) starts from a technical plan; Product starts from a brief that becomes a PRD. Pick one at Setup, change it in Settings › Workflow, or per task in the task header. [How they differ](https://qualitylayer.dev/docs/#two-levels).
-
-QualityLayer is intended for medium and large changes. A request too small for a plan gets a ready prompt for your plain agent.
-
-## Designs in your project
-
-Ask your agent for a mockup, diagram or clickable design and review it in QualityLayer's local Designs workspace. Pin comments, compare versions and keep reusable designs in your repository. Design commands can be used without starting the coding workflow.
-
-<picture>
-  <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="docs/site/public/product/design-phone-dark.webp">
-  <source media="(max-width: 600px)" srcset="docs/site/public/product/design-phone-light.webp">
-  <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/design-dark.webp">
-  <img src="docs/site/public/product/design-light.webp" alt="A local design preview in QualityLayer for the fictional task, with comments beside the design" width="1000">
-</picture>
-
-[Working with Designs](https://qualitylayer.dev/docs/designs).
-
-## Follow your work and bring in your team
-
-- Home brings together your tasks that need attention and your running work.
-- Set standing instructions and choose the models that plan, build and check. Open a task's cost details when you want its time and estimated usage cost.
-- Project memory keeps lessons from earlier tasks, with sharing through Git when enabled. [Project memory](https://qualitylayer.dev/docs/memory).
-- With a Team plan, ask a teammate about a passage, receive Slack notifications and share the task for review. [Team plans](https://qualitylayer.dev/docs/team/plans).
-
-[Explore the App](https://qualitylayer.dev/docs/app).
-
-## Install
-
-**[Download the QualityLayer App](https://qualitylayer.dev/download)** for macOS, Windows or Linux. Setup activates your licence or starts the 7-day trial, installs the `qualitylayer` command and connects your agents.
-
-You need Git, a repository, and Claude Code or Codex signed in and started once. Use your own Claude or ChatGPT subscription, or an API key. QualityLayer's licence is separate from model usage; your agent provider bills that usage.
-
-Other agents that run shell commands can [connect by hand](https://qualitylayer.dev/docs/agents/other). Use your agent in its terminal or IDE; availability of starting an agent inside the App depends on the platform and release.
-
-For macOS, Linux, WSL, servers and containers:
+<p>
+  <a href="#install">Install</a> •
+  <a href="#features">Features</a> •
+  <a href="https://qualitylayer.dev/docs/">Docs</a> •
+  <a href="https://qualitylayer.dev">Website</a> •
+  <a href="https://github.com/maxritter/pilot-shell/releases">Changelog</a>
+</p>
 
 ```bash
 curl -fsSL https://qualitylayer.dev/install.sh | bash
 ```
 
-For Windows PowerShell:
+**macOS · Windows · Linux**, or [download the App](https://qualitylayer.dev/download). 7-day trial.
 
-```powershell
-irm https://qualitylayer.dev/install.ps1 | iex
+<br>
+
+<a href="https://qualitylayer-media.max-ritter.workers.dev/overview.mp4"><img src="docs/img/film-poster.webp" alt="Play the film: How QualityLayer works, 5 minutes" width="700"></a>
+
+</div>
+
+---
+
+## Why QualityLayer
+
+> “With QualityLayer, developing software with agents finally feels like doing real engineering again.”
+>
+> *An engineer who uses QualityLayer*
+
+**Coding agents write code fast**, but each change still leaves copies, workarounds and dead code behind. QualityLayer puts you back in the loop while the change is still a plan:
+
+- Your agent reads the code and draws up one plan: the architecture as diagrams, the screens as clickable designs, each decision with its reasons.
+- You comment on any part and approve the plan before anything changes; with a Team plan, your teammates comment too.
+- Your agent builds it in small slices, each starting with a failing test.
+- Agents that did not write the code check every point of your request against the running program.
+- Your agent settles routine choices and records them; only real decisions reach you.
+- Every step shows its time and estimated cost.
+- It runs on your own subscription, and each step is one Markdown file in your repository.
+
+Made for medium and large changes. A request too small for a plan gets a ready prompt for your plain agent.
+
+---
+
+<h2 id="install">Getting Started</h2>
+
+### Prerequisites
+
+- **Claude Code or Codex**, signed in and started once, in the terminal, the desktop app or your IDE. Other agents that run shell commands can [connect by hand](https://qualitylayer.dev/docs/agents/other).
+- **Your own subscription** (Claude or ChatGPT plan, or API key). QualityLayer never charges for model usage.
+- **Git** and a repository.
+
+### Installation
+
+**[Download the App](https://qualitylayer.dev/download)** and open it. Setup activates your licence or starts the trial, installs the `qualitylayer` command and connects your agents. On a server, in WSL or in a container:
+
+```bash
+curl -fsSL https://qualitylayer.dev/install.sh | bash      # macOS, Linux, WSL
+irm https://qualitylayer.dev/install.ps1 | iex             # Windows PowerShell
 ```
 
-The App updates itself. Without it, run `qualitylayer update`.
-
-### Start a task
-
-In Claude Code:
-
-```text
-/ql retry failed webhooks, and stop after a few tries
-```
-
-In Codex:
-
-```text
-$ql retry failed webhooks, and stop after a few tries
-```
-
-Answer the questions in the App, approve the Plan, then start the build. Ordinary agent conversations do not start a QualityLayer task. [Your first task](https://qualitylayer.dev/docs/first-task).
+The App updates itself; without it, run `qualitylayer update`.
 
 <details>
-<summary>Uninstall or move from Pilot Shell 11</summary>
+<summary><b>Uninstalling</b></summary>
 
-`qualitylayer uninstall` undoes the installer changes; your plans stay. On Windows, even after removing the App:
+`qualitylayer uninstall` undoes what the installer changed; your plans stay. On Windows, even when the App is gone:
 
 ```powershell
 & ([scriptblock]::Create((irm https://qualitylayer.dev/install.ps1))) -Uninstall
 ```
 
-The Pilot Shell 11 updater moves you over with your plans and licence. [Moving from Pilot Shell](https://qualitylayer.dev/docs/moving-from-pilot-shell).
+</details>
+
+<details>
+<summary><b>Coming from Pilot Shell 11</b></summary>
+
+Its updater moves you over with your plans and licence. [Moving from Pilot Shell](https://qualitylayer.dev/docs/moving-from-pilot-shell).
 
 </details>
 
-## Files and privacy
+### First Steps
 
-Task documents, designs, terminal output and usage records stay on your computer. Shared tasks are encrypted before publication; including designs is an explicit sharing choice. Your coding agent's own provider and permissions govern its model requests.
+```text
+/ql retry failed webhooks, and stop after a few tries     # Claude Code
+$ql retry failed webhooks, and stop after a few tries     # Codex
+```
 
-[Files and privacy](https://qualitylayer.dev/docs/reference/files#privacy) explains licence checks, sharing and feedback reports.
+Answer your agent's questions in the App, approve the Plan, then start the build. QualityLayer runs only when you ask for it; everything else works as before. [Your first task](https://qualitylayer.dev/docs/first-task).
 
-## Technical reference
+---
 
-QualityLayer's CLI, App server and React interface are built from one TypeScript codebase compiled with Bun. The App uses a native Tauri shell. The workflow stores one Markdown document per step.
+<h2 id="features">The Workflow</h2>
 
-[Documentation](https://qualitylayer.dev/docs/) covers commands, settings and agent integration. [Changelog](https://qualitylayer.dev/docs/changelog) and [GitHub Releases](https://github.com/maxritter/pilot-shell/releases) describe released changes.
+Each step writes one Markdown file. You approve twice: the plan and the finished change. QualityLayer never merges or pushes.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/flow-pr-dark.svg">
+  <img src="docs/docusaurus/static/img/diagrams/flow-pr-light.svg" alt="Discuss, Research, Plan, Outline, Implement, Verify, Review and the pull request: you approve at Plan and at Review and merge the pull request; your agent works in between" width="1000">
+</picture>
+
+| Step | What happens |
+|---|---|
+| [Discuss](https://qualitylayer.dev/docs/steps/discuss) | Settles what done means; a bug is reproduced first |
+| [Research](https://qualitylayer.dev/docs/steps/research) | Agents read how your code works today |
+| [Plan](https://qualitylayer.dev/docs/steps/plan) | Design, diagrams and checks, **approved by you** |
+| [Outline](https://qualitylayer.dev/docs/steps/outline) | The plan split into small slices |
+| [Implement](https://qualitylayer.dev/docs/steps/implement) | Each slice starts with a failing test |
+| [Verify](https://qualitylayer.dev/docs/steps/verify) | Every point of your request, with its evidence |
+| [Review](https://qualitylayer.dev/docs/steps/review) | A walkthrough of the change, **approved by you** |
+| [Pull request](https://qualitylayer.dev/docs/steps/pull-request) | Failing checks fixed; the task stays open until you merge |
+
+### Two levels
+
+Engineering (default) starts from a technical plan, Product from a brief that becomes a PRD. Pick one at Setup, change it in Settings › Workflow, or per task in the task header. [How they differ](https://qualitylayer.dev/docs/#two-levels).
+
+## Designs
+
+Ask your agent for a mockup, diagram or clickable design and compare versions in the App: pin comments, restore earlier versions, and keep the designs every task builds on in your repository. [Designs](https://qualitylayer.dev/docs/designs).
+
+## QualityLayer App
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/plan-dark.webp">
+  <img src="docs/site/public/product/plan-light.webp" alt="The Plan step in the App for a fictional task, usage-based billing across nine services: the design, its decisions and the Approve Plan button" width="1000">
+</picture>
+
+- Answer your agent's questions and comment on any passage; answers reach it at once.
+- Follow every task with what needs you shown first, plus time and cost per step.
+- Set standing instructions and the models that plan, build and check.
+- Your agents reuse lessons from earlier tasks, and can share them through Git. [Project memory](https://qualitylayer.dev/docs/memory).
+- With a Team plan, ask a teammate about any passage over Slack, and let them review the finished change. [Team plans](https://qualitylayer.dev/docs/team/plans).
+
+Your code and usage data stay on your computer; shared tasks are encrypted first. [Files and privacy](https://qualitylayer.dev/docs/reference/files#privacy).
+
+[Explore the App →](https://qualitylayer.dev/docs/app)
+
+---
+
+## Documentation
+
+For every step, command and setting, see the **[Documentation](https://qualitylayer.dev/docs/)**.
+
+---
+
+## Changelog
+
+See [the changelog](https://qualitylayer.dev/docs/changelog) or [GitHub Releases](https://github.com/maxritter/pilot-shell/releases).
+
+---
 
 ## Contributing
 
-Report bugs and suggest improvements in [GitHub Issues](https://github.com/maxritter/pilot-shell/issues).
+Found a bug or missing a feature? [Open an issue](https://github.com/maxritter/pilot-shell/issues).
 
-## Licence
+---
 
-QualityLayer uses a commercial licence. See [LICENSE](LICENSE) for the terms, and [plans and pricing](https://qualitylayer.dev/pricing) for subscriptions.
+## License
 
-Made by [Max Ritter](https://maxritter.net).
+See [LICENSE](LICENSE).
+
+---
+
+<div align="center">
+
+**The software factory with you in the loop**
+
+Made by [Max Ritter](https://maxritter.net)
+
+</div>
 
 [osai-verify: 8d67182dee08d42091c5]: #

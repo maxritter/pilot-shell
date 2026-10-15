@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet-async";
-import { DESCRIPTION, SITE_URL } from "@/lib/product";
+import { SHARE_DESCRIPTION, SITE_URL, SLOGAN } from "@/lib/product";
 
 interface SEOProps {
   title?: string;
@@ -20,9 +20,9 @@ interface SEOProps {
  * the site is shared. Keep it in the product's own words.
  */
 const SEO = ({
-  title = "QualityLayer — The software factory for your coding agents",
-  description = DESCRIPTION,
-  keywords = "claude code, codex cli, ai coding agent, spec driven development, agent planning, code verification, QualityLayer",
+  title = `QualityLayer: ${SLOGAN}`,
+  description = SHARE_DESCRIPTION,
+  keywords = "software factory, human in the loop, visual planning, claude code, codex cli, ai coding agent, spec driven development, plan review, QualityLayer",
   canonicalUrl = `${SITE_URL}/`,
   ogImage = `${SITE_URL}/og.png`,
   type = "website",

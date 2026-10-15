@@ -1,6 +1,7 @@
-/** Under the hero: the agents QualityLayer works with, what it adds, and the models you already pay for. */
+/** Under the hero: the agents QualityLayer works with, what it adds, one engineer's words, and the models you already pay for. */
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight, BadgeCheck, FileText, KeyRound, Laptop, SquareTerminal, Workflow } from "lucide-react";
+import { ENGINEER_QUOTE } from "@/lib/product";
 
 type Chip = [label: string, icon: string];
 
@@ -89,6 +90,14 @@ export default function Intro() {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* Right after the plan card it describes: the user's words as they said them, attributed without a name at their wish. */}
+      <section className="mx-wrap mx-sec" aria-label="What an engineer says about QualityLayer">
+        <figure className="mx-quote">
+          <blockquote><p>{`“${ENGINEER_QUOTE}”`}</p></blockquote>
+          <figcaption>An engineer who uses QualityLayer</figcaption>
+        </figure>
       </section>
 
       <section id="local" className="mx-wrap mx-sec" aria-labelledby="local-h">

@@ -7,6 +7,6 @@ export const FILMS = {
   overview: {
     src: "https://qualitylayer-media.max-ritter.workers.dev/overview.mp4",
     poster: "https://qualitylayer-media.max-ritter.workers.dev/overview.webp",
-    duration: 292,
+    duration: 318,
   },
 } satisfies Record<string, Film>;

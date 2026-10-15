@@ -12,12 +12,15 @@ describe("installation and build instructions", () => {
   });
   it("puts native Windows PowerShell installation with the App and WSL with Linux", () => {
     const install = doc("install.md");
-    const [desktop, rest] = install.split("## Without a screen");
-    const headless = rest.split("\n## ")[0];
+    const sections = install.split(/^## /m);
+    const desktop = sections.find((section) => section.startsWith("On your computer\n"));
+    const headless = sections.find((section) => section.split("\n")[0].includes("{#without-a-screen}"));
     expect(desktop).toContain("irm https://qualitylayer.dev/install.ps1 | iex");
     expect(desktop).toContain("This installs the App and the command line");
     expect(headless).toContain("curl -fsSL https://qualitylayer.dev/install.sh | bash");
-    expect(headless).toContain("inside your Linux distribution");
+    expect(headless).toContain("Install QualityLayer where your agent runs");
+    expect(headless).toContain("**WSL2**");
+    expect(headless).toContain("In your Windows browser");
     expect(headless).not.toContain("install.ps1");
   });
 

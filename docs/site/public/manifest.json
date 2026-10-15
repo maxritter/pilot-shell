@@ -1,7 +1,7 @@
 {
   "name": "QualityLayer",
   "short_name": "QualityLayer",
-  "description": "The software factory for your coding agents.",
+  "description": "The software factory with you in the loop.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

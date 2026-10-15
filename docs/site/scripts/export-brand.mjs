@@ -64,11 +64,11 @@ await writeFile(`${publicDir}favicon.ico`, ico);
 const wordmark = themed(await readFile(`${brandDir}qualitylayer-logo.svg`, "utf8"), false);
 const logo = await sharp(Buffer.from(wordmark)).resize({ width: 300 }).png().toBuffer();
 const headline = await sharp({ text: {
-  text: '<span foreground="#11243a" weight="600">The software factory\nfor your coding agents</span>',
+  text: '<span foreground="#11243a" weight="600">The software factory\nwith you in the loop</span>',
   font: "Geist 68", fontfile: `${fontDir}geist-latin.woff2`, width: 1056, dpi: 72, rgba: true,
 } }).png().toBuffer();
 const caption = await sharp({ text: {
-  text: '<span foreground="#2076c5">Discuss · Plan · Implement · Verify · Review</span>',
+  text: '<span foreground="#2076c5">Discuss · Research · Plan · Outline · Implement · Verify · Review</span>',
   font: "Geist Mono 22", fontfile: `${fontDir}geist-mono-latin.woff2`, dpi: 72, rgba: true,
 } }).png().toBuffer();
 await sharp({ create: { width: 1200, height: 630, channels: 4, background: "#e9f2fb" } })

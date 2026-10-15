@@ -3,7 +3,9 @@ import Hero from "@/components/home/Hero";
 import Page from "@/components/Page";
 import SEO from "@/components/SEO";
 import { FAQS } from "@/lib/content";
-import { AUTHOR_NAME, AUTHOR_URL, DESCRIPTION, GITHUB_URL, SITE_URL } from "@/lib/product";
+import { AUTHOR_NAME, AUTHOR_URL, GITHUB_URL, SHARE_DESCRIPTION, SITE_URL, SLOGAN } from "@/lib/product";
+
+const ABOUT = `${SLOGAN}. ${SHARE_DESCRIPTION}`;
 
 // Below the fold: one chunk, loaded after first paint.
 const Sections = lazy(() => import("@/components/home/Sections"));
@@ -14,7 +16,7 @@ const structuredData = [
     "@type": "WebSite",
     name: "QualityLayer",
     url: `${SITE_URL}/`,
-    description: DESCRIPTION,
+    description: ABOUT,
     inLanguage: "en-US",
     publisher: {
       "@type": "Organization",
@@ -28,7 +30,7 @@ const structuredData = [
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     name: "QualityLayer",
-    description: DESCRIPTION,
+    description: ABOUT,
     applicationCategory: "DeveloperApplication",
     operatingSystem: "macOS, Linux, Windows",
     author: { "@type": "Person", name: AUTHOR_NAME, url: AUTHOR_URL },

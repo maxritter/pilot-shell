@@ -5,7 +5,7 @@ import { docsSourceUrl } from "./source-links";
 
 const config: Config = {
   title: "QualityLayer",
-  tagline: "Workflows and references for the software factory around your coding agents",
+  tagline: "Guides and reference for QualityLayer, the software factory with you in the loop",
   favicon: "img/favicon.png",
 
   url: "https://qualitylayer.dev",

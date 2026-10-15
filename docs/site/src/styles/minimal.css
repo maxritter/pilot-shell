@@ -130,6 +130,12 @@ html:has(.mx-filmov[open]){overflow:hidden}
 .mx-pr b{font-size:14.5px;font-weight:500}
 .mx-pr p{margin:4px 0 0;font-size:14.5px;line-height:1.55;color:var(--mx-ink2);text-wrap:pretty}
 
+/* One engineer's words, on a white panel after the plan card they describe */
+.mx-quote{max-width:980px;margin:0 auto;padding:clamp(36px,5cqi,64px) clamp(24px,5cqi,72px);border:1px solid var(--mx-line2);border-radius:6px;background:var(--mx-panel);text-align:center}
+.mx-quote blockquote{margin:0}
+.mx-quote blockquote p{margin:0;font-size:clamp(26px,3.2cqi,40px);line-height:1.2;font-weight:500;letter-spacing:-.03em;text-wrap:balance}
+.mx-quote figcaption{margin-top:24px;font-size:14px;color:var(--mx-ink3)}
+
 /* Models: two rows of chips drifting in opposite directions, faded at the edges */
 .mx-mq{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.35fr);gap:clamp(28px,4cqi,64px);align-items:center;padding:clamp(32px,4.5cqi,64px) 0 clamp(32px,4.5cqi,64px) clamp(28px,4cqi,56px);border-radius:8px;background:var(--mx-sunk);overflow:hidden}
 .mx-mqt p{margin:14px 0 0;max-width:24rem;font-size:15px;line-height:1.6;color:var(--mx-ink2);text-wrap:pretty}
@@ -270,6 +276,7 @@ html:has(.mx-filmov[open]){overflow:hidden}
   .mx-wi{justify-content:flex-start;min-height:56px;padding:12px 14px;font-size:14px}
   .mx-pr3{margin-top:32px}
   .mx-pr h3{margin-bottom:8px}
+  .mx-quote{padding:32px 20px}
   .mx-mq{border-radius:6px;padding:28px 0}
   .mx-mqt,.mx-mqn{padding:0 20px}
   .mx-chip{height:42px;padding:0 14px;font-size:14px}
@@ -277,12 +284,3 @@ html:has(.mx-filmov[open]){overflow:hidden}
   .mx-end .sx-ctas{max-width:none;margin-left:0;margin-right:0}
     .mx-filmov{padding:64px 0 0}
 }
-/* The full example reserves the typed command's dimensions and accessible text. */
-.sx-prompt{max-width:38rem;margin:28px auto;text-align:left}
-.sx-prompt code{position:relative;display:block;padding:18px 20px;background:var(--mx-panel);border:1px solid var(--mx-line2);border-radius:8px;font:clamp(14px,2.5vw,18px)/1.5 "Geist Mono",monospace;white-space:pre-wrap}
-.sx-prompt-source{color:transparent;user-select:none}
-.sx-prompt-typed{position:absolute;inset:18px 20px;color:var(--mx-ink)}
-.sx-prompt button{float:right;min-height:44px;padding:0 8px;border:0;background:none;color:var(--mx-ink);font:inherit;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
-.sx-prompt p{margin:8px 0 0;min-height:44px;font-size:12px;line-height:1.5;color:var(--mx-ink2)}
-.sx-prompt button:focus-visible{outline:2px solid var(--ql-accent);outline-offset:2px}
-@media(max-width:480px){.sx-prompt button{float:none}.sx-prompt p{min-height:0}}
