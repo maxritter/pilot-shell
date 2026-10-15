@@ -8,6 +8,7 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 - Home separates your **Needs you** queue from **Running** work. Teammate questions stay in Team, with **My attention**, **Everyone** and **My questions** views.
 - Designs is a compact **Library** with collapsible project groups, search, filters and previews on demand. Working drafts stay in task Files, linked to the reusable designs they build on.
+- Star designs to keep them in your personal **Favorites** section across projects.
 - Manage reusable designs from their list or viewer: rename, copy, show in another project, archive, delete and restore. Renaming keeps links and draft history. Deleting a source-backed entry keeps its application files; **Archived › Recently deleted** provides recovery after leaving the viewer.
 - Save selected draft pages and their dependencies to another project's Library while keeping the working draft.
 - Discuss and Plan can show wireframes and panels beside the document. Select an element to leave an annotation on the part you mean.
@@ -16,6 +17,8 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - **New task** and **Implement** share the agent and launch chooser. Choose to run here in the App or copy the command for your terminal.
 - Agent windows have task tabs, bottom or right docking and a resizable workspace. Close a tab and reopen it from its task without stopping the agent or losing unsent input.
 - Agent windows have readable input, font size, line spacing, light/dark appearance, selection and copying, and a control to return to the latest output.
+- **New terminal** opens a shell or agent window without creating a task. Terminal text defaults to 13 px with compact line spacing, and bundled glyphs support common shell prompt icons.
+- Updated Apps detect concurrent group edits and keep your unsaved choices. Slack settings have message delivery and an optional morning digest.
 - Local design previews retain interactive state through motion and layout changes. Design edit history records where a change came from.
 - The website shows current App screens with an interactive workflow tour.
 
@@ -25,6 +28,11 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Closing a task's details returns keyboard focus to the control that opened them. Switching tasks closes the previous details and preserves separate cost disclosure.
 - Source-backed designs refresh after JSX or CSS edits. A rendering failure provides an error and Reload instead of a blank preview.
 - Session progress follows reported agent activity and keeps an unconfirmed start visible until the agent reports it.
+- Approving a Plan keeps the build-session choice explicit. Claude Code can start a fresh App session, and Codex can continue in the existing one through Outline, Implement, Verify and Review.
+- Checks history starts collapsed. Opening a task avoids duplicate initial document reads; the recorded results remain available on request.
+- Settings share control styles, design annotations use **Feedback**, and the sidebar's **Report** menu opens bug reports or ideas.
+- A verified implementation checkpoint can remind your agent to save a useful project lesson. Repeated checks do not repeat that reminder.
+- Sharing failures remain visible with a retry. Comment retries and attachment ownership survive cache loss, and uncertain comment responses preserve uploaded attachments.
 - The native agent window preserves dark-theme contrast after the stylesheet is minified. Native process checks recover from a brief macOS permission race while protecting unreadable live processes.
 - Release checks verify the server key needed for readable Slack notifications.
 - In a VS Code dev container, over Remote-SSH and in WSL2, the App's pages open in your own browser already signed in, and **Open** and **Reveal** work. Rebuilding a container restores Claude Code's QualityLayer setup, and a WSL2 server no longer collides with the Windows App's port.
