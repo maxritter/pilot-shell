@@ -99,11 +99,20 @@
 
     <!-- Static content for crawlers that do not run JavaScript. Replaced by the app on load. -->
     <noscript>
+      <style>
+        body{margin:0;background:#f4f4f4;color:#0d0d0d;font:16px/1.6 Geist,system-ui,sans-serif}
+        header,main{max-width:72rem;margin:0 auto;padding:24px}
+        section{margin:40px 0}img{display:block;max-width:100%;height:auto}a{color:#1a649f}
+        pre{white-space:pre-wrap;overflow-wrap:anywhere}picture{display:block;max-width:60rem}
+        @media(prefers-color-scheme:dark){body{background:#0a0a0a;color:#ededed}a{color:#79b5ec}}
+      </style>
       <header>
         <h1>The software factory for your coding agents</h1>
         <p>
           You approve one plan before any code is written. Your agent builds it test first in its own terminal, app or editor, an AI that did not write the code polishes and tests it, and a risky change gets its independent review against your request.
         </p>
+        <pre><code>/ql add usage-based billing</code></pre>
+        <p>Illustrative prompt; no task is submitted. <a href="/download">Download the App</a> · <a href="/pricing">See pricing</a></p>
       </header>
       <main>
         <section>
@@ -112,13 +121,20 @@
             <li>Discuss: describe the change. Your agent reads the code, then asks each decision in the App, and its terminal shows a single line while it waits. Questions come in batches in Your turn, each with its recommendation. Answer in any order; each answer reaches the agent immediately.</li>
             <li>Research: agents read the code without your request in front of them, so the plan rests on how it works today. When the code leaves real choices open, they reach you as one more batch in Your turn.</li>
             <li>Plan: read the complete plan with its diagrams, design, the contracts the build is held to and proposed outcomes. Another agent reads it first when it can, and your agent folds in what it found. Approve Plan or Give feedback from the header before any code is written. Undo is available for five seconds after an answer.</li>
-            <li>Outline: while you read the plan, your agent cuts it into slices, each with the scenario that proves it. Nothing to approve.</li>
-            <li>Implement: the App opens with your Build defaults and one command that starts the build. From there your agent works on its own until the final review. Every task starts with a failing test, and QualityLayer records every test run.</li>
+            <li>Outline: after you approve the Plan and start the build, your agent cuts it into slices, each with the scenario that proves it. Nothing to approve here.</li>
+            <li>Implement: start the build from the approved Plan, in a new App session, an existing session or your terminal. From there your agent works until the final review. Every task starts with a failing test, and QualityLayer records every test run.</li>
             <li>Verify: six checks in a fixed order. Polish and security review run side by side, then your project's checks, then the independent review checks every point of your request, with evidence: by an AI that did not write the code on a risky change, by the build session on any other. A second opinion reads a risky change.</li>
             <li>Review: the App asks the few items left, and you approve the finished change with its proof, then create the pull request.</li>
-            <li>Designs: ask your agent to draw a page, open it full size in the App and comment on a spot. Designs never leave your computer.</li>
+            <li>Designs: ask your agent to draw a page, open it full size in the App and comment on a spot. Designs stay local unless you explicitly include them in an encrypted share.</li>
             <li>With a Team plan, teammates answer questions about the plan, with their own agent if they like, and review the change in their own App.</li>
           </ul>
+          <picture>
+            <source media="(max-width:640px) and (prefers-color-scheme:dark)" srcset="/product/plan-phone-dark.webp" width="780" height="1400">
+            <source media="(max-width:640px)" srcset="/product/plan-phone-light.webp" width="780" height="1400">
+            <source media="(prefers-color-scheme:dark)" srcset="/product/plan-dark.webp">
+            <img src="/product/plan-light.webp" width="2880" height="1920" alt="Illustrative Plan in QualityLayer, with the account billing wireframe">
+          </picture>
+          <p>Illustrative billing task in the QualityLayer App. You approve the Plan before the build starts.</p>
         </section>
         <section>
           <h2>Install</h2>

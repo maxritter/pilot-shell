@@ -1,13 +1,13 @@
 {
-  "fixtureHash": "06866e8e9de8f956b080137479adb22d6d620846a429e7591c47e04f01f23609",
+  "fixtureHash": "db4a6df48870d8410a255c13d73e0586b32f1a26d2e1cdb0c2c538d649c6dc99",
   "memoryInputs": {
     "qualitylayer/src/ui/demo/memory.ts": "dd4b5657abcdf98678580e129d23730b64969ea056e24d82cdf126c2cdead4fb",
-    "qualitylayer/src/ui/settings/Memory.tsx": "34dc636a352c2b7163203f29038e4ca0d8c4da0370b70ba894c41b57081d67f7",
+    "qualitylayer/src/ui/settings/Memory.tsx": "29115209d42006015490836168c0ed56e2a0ad68f20da735f2251e6248919966",
     "qualitylayer/src/ui/settings/memory.css": "0ede9edf3206ea667fba7cfd7bed8ced102c8b284751ae51f631de08d5587cb5",
     "qualitylayer/src/ui/settings/Rows.tsx": "9701fa7681d5edf1091015b0736598c5db6c1d420e4c45e90481135a05df6387",
     "qualitylayer/src/ui/globals.css": "79a83b79e7a7f243f8a2e26ca446de76c83cab749882a40b40f0c83d72e043d1"
   },
-  "capturedAt": "2026-10-14T13:26:35.437Z",
+  "capturedAt": "2026-10-15T01:29:53.548Z",
   "scenes": [
     "discuss",
     "research",
@@ -31,7 +31,7 @@
       "file": "discuss-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "1b49bf2e02d9fb8eebb00b95ab417a28e587bc232539f355abfa17468fb0c617"
+      "sha256": "8e1754251ff6e5d902d2e307e522e404ea08ca23e87c7b2789551a5b612de6e9"
     },
     {
       "file": "discuss-phone-light.webp",
@@ -43,7 +43,7 @@
       "file": "research-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "1017081992f2152c32865c8050d039cbb41d3f784985b10954158c935983b40a"
+      "sha256": "06ac1a5fcd877047522e3fe2ade9606afd680270f020e4a70e1a000cad6746d1"
     },
     {
       "file": "research-phone-light.webp",
@@ -55,55 +55,55 @@
       "file": "plan-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "456dedfbd31f0c4ccaf59f9899db45eda96999ed5cf1082fdcfe226fab7b078e"
+      "sha256": "2f119421cbe3602a02dad8e2b814a820fc379dcd315b2b6dc318406f416e5f99"
     },
     {
       "file": "plan-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "2fd260f719c02469ec7a6ecc952f475a11cf3416bb89a4b1585e53b8b0045d70"
+      "sha256": "c0708925091a20f2d6db2d65f5175df5d70d84d78d987272c9d2d1dcd001cc5b"
     },
     {
       "file": "outline-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "852a04ce33fe2f8bc379047156f45be67716a4ac6fac6f887d5ae2395453f910"
+      "sha256": "6aad9e0f5143de85f6a78b3bb03fca29920d4d080bfe3565def988ddac575f58"
     },
     {
       "file": "outline-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "3aefd4be0949996f194b896cb1b17726afa2345775e6f8014762b681cce5e82b"
+      "sha256": "f013aeece6906cad3c2a77de684af9006bda715df4abcdd7b92a1cfccbaf6895"
     },
     {
       "file": "implement-start-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "b3073399b576109c5d881bddf29c810fa3eb7d7b34fd5240922f3dcc03048c63"
+      "sha256": "8b5a637f629dbcbfbca3b87f6e4a9f5a146a2ae89faf97c8c7fde02cbe4b6adb"
     },
     {
       "file": "implement-start-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "d3ddef3a676be5d6a129202ac012273a65618b42036c87cb483fc65080dc3775"
+      "sha256": "c7d6031a3be1ed176b536a4889ad41a8fc76fb7731953e4345672da5830f9589"
     },
     {
       "file": "implement-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "2832e373ed39b06a329a896ca0c1cdfdd0bc78f26e3ed0df699ab3ec8c0e457a"
+      "sha256": "89125611cca82fb3ac2a126213b791824ca6f581f85a28b28845bd46093d6549"
     },
     {
       "file": "implement-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "0f930cb3e55c2e3186e6b9462d145750da1a43726609995e2b9ffd51f0e83dde"
+      "sha256": "ca2e459f3e29f1c4df0f0500f59f8d08bbd28ae74b789fd221a816d3442a514f"
     },
     {
       "file": "verify-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "c94bd2dd675044dd0f77f04edc579a4e01050f40fe61ed4151c72e8e2be4f234"
+      "sha256": "8fe74deea47e804efb430d02bd863b4472da646c63951419bea8af842976166e"
     },
     {
       "file": "verify-phone-light.webp",
@@ -115,31 +115,31 @@
       "file": "review-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "ebb079b26506614a9525a2b8d57b5625e90b7e0024fd58bfb287f102b7763913"
+      "sha256": "2a7b993b1abf36ffa6063d7c9d62b3db022736136cdc51d3019b58ce024e4f23"
     },
     {
       "file": "review-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "728bbe07cfd8207bea86f9c324c15d45fd9419befeff3ebaaf68ac0e3f7d7dc9"
+      "sha256": "93eff8e4398efc361de84248f39f25bcfdf130174deb884da86569b905c0d925"
     },
     {
       "file": "pull-request-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "624350075353d5e6c3d60049e4eaba66727e757dd15c0d3ee1f42dae9b187ab7"
+      "sha256": "a6c875b69e95959fd6fc2e465850995f7054d1b5e4c8c687b5a6c872ad4a2a52"
     },
     {
       "file": "pull-request-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "1b5afde758c3d37a475c9a30f0afeb4961146f25843d101d520c68748b03ca9d"
+      "sha256": "73a1e8be45a133950a39fae5656b87817562480dd70b011ff2a7cf21281300da"
     },
     {
       "file": "design-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "b3f45bef1d79212ca225d0658ff579b7fbe646c818d6945d89385402e80d6f43"
+      "sha256": "7197e2fbb72917766740573f24afbfa949a709ffbe4861823efc1de1df626627"
     },
     {
       "file": "design-phone-light.webp",
@@ -163,67 +163,67 @@
       "file": "home-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "e1f9b5048804a84527f7fdd6b6d93ef81b7958e7a089a8f568bd07ea659b221e"
+      "sha256": "70fee2b1a8f42058dab1a9ecb76090702bbf0c19ec3c011aae488dc8fee61ace"
     },
     {
       "file": "home-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "c896a33e1f2601ef3bb7726dbadfedbaea344f1957352229b8195d0d312017d1"
+      "sha256": "368620444c820e46d395f5da7edc158cfe49025cf3fa8094ff9f7b5dc42081b1"
     },
     {
       "file": "setup-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "352973580d56f5a30e98fb97e640812287cb33fdaa53d4a920cf377474ad4646"
+      "sha256": "fb63b1dec6a9ab1a9584ef57afbb890265213b5cb8dc89bd77d60e19f788b032"
     },
     {
       "file": "setup-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "2e2b8b9b07ca55a7d1791c9522dcae448f5077a280b06c5492907d17c22966fe"
+      "sha256": "bc939504e6b09347196680ebce2a50befc0f1ce13ad92190f212be556fd0d88c"
     },
     {
       "file": "memory-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "82d7f855a9440d3f97fb89afbdd8df770c7058aac754214877e716ea68708939"
+      "sha256": "219c4114565a872b01a5abcc61e6b31b6a1e6471f5d050599a0117599b443621"
     },
     {
       "file": "memory-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "581ce0f3b7ddf08a06718896dedac3930ae3d1320e2ad875ce299d7c89a4dd7d"
+      "sha256": "44e966a53dc340b3d7db8b305e1cbf249001278893dfe99b3f42f7e295b5fc4f"
     },
     {
       "file": "designs-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "7c35373536119ce41cf721709e4938ab649a8b61d0adaac3ecf8c2e9b1919673"
+      "sha256": "31b8ee87dfd7aafd61931b7062ca9b768ab68dc236da66f4d20ade241918b09d"
     },
     {
       "file": "designs-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "5fc9dab273a417c1c7f21b636507c1df71c60d931a5a3cc7bde76e7696264a5a"
+      "sha256": "2b23703cf21ba5faa7378f1cf389b09f3044777e6fdb14bc21d506a0c846a03d"
     },
     {
       "file": "designs-open-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "23c9860b52e890fc8b54229bbde466f7265da36388929a990b55751907060981"
+      "sha256": "21cc274d9872f149fc2d4058c1eb648f2b2f25d487145a5915dc32519adcc140"
     },
     {
       "file": "designs-open-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "9f0ae82f2ef9c3626729eac1616e511fbff9ca86a4de9653d62d2a53817ce113"
+      "sha256": "45d8014a10386b595667b6297b9f51d6efbef4e0b201b1d1b0dc1ef2018b95a6"
     },
     {
       "file": "discuss-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "f04f132423a4f53669e8ace3b6251225a392c3b86b103a78120d3abce050d398"
+      "sha256": "76b63479ee4f64fa08fd306b6633a5ed1e238b9c6e2392971a15823f2b7c41aa"
     },
     {
       "file": "discuss-phone-dark.webp",
@@ -235,67 +235,67 @@
       "file": "research-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "918679b079c394234102d9ff8cf3cc20fd2ba6fe736ade07872209cce9e4db01"
+      "sha256": "8642ca693a556566acf2502f4d06e4f81a42ac4d69b6f81de7093c722d227b57"
     },
     {
       "file": "research-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "be908600b66f4f8c981e27741720fba166cede1f1d88a4aecb1c56d7106a5060"
+      "sha256": "8a575526e8ad56e53164870e8f888742505e7f0ee54eb4f3021eb3cd5f9c59ee"
     },
     {
       "file": "plan-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "1ed3c61c350d90b1b0465299cb353ed18a8d2959443cebffde433c06e12fe889"
+      "sha256": "0ef27ea1ff51fde45ac2df83e85633a240b383c8d31b7bcd179b8fab7b108563"
     },
     {
       "file": "plan-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "148fa4a772e05fa5d17fc157d3a9742ba18992bd7a4a187cafbea4226ef54161"
+      "sha256": "07aa6916df7eaa6dc7b6f13176efd044b861920891bd4e6413bd548726a80bb7"
     },
     {
       "file": "outline-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "fd4b30e19db58cda601ffbd7694b5bbcff0485c7915416717ab61ba39972bfbb"
+      "sha256": "f3c018c3ed7c929527d1cdc3871092a7fd0a40b875caf37e71d389b4296424c1"
     },
     {
       "file": "outline-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "73ec70fc6e044f5087e3217f8a9ab5941ec853b85fe93461580ae4ee6d9a5c98"
+      "sha256": "3c0154c74b6b5f3f36c3d0837799b2f99e2ad9d0042af2d36d80fd723e66d0bc"
     },
     {
       "file": "implement-start-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "a7f6dc08ba10b3ded24ff886a2074546a1149da3d95d148e813a74c27711be6f"
+      "sha256": "63c47b2bf9c154e7d0e280f1fb5502e26891281ce688e2d68c6e93279077d735"
     },
     {
       "file": "implement-start-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "6d159a61a146b751798a06ddf3e2d93acad06c5f522f5ee116379726f085c34a"
+      "sha256": "750d0193502510f49aedbc1c97ffa92148bc139a78bb097b5ee30515c6a53c99"
     },
     {
       "file": "implement-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "b2d59dd2b2a1fc39cc0f294f63102c6def95b5ec29325ccefa7208d154649455"
+      "sha256": "ba6ad84dd8c2881bbe473e1e4a913d4ffb2a7bddf19113f1977d372ade3d0c7d"
     },
     {
       "file": "implement-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "e96e72a32cd1c316233c7b6f51debafe49e7f3c66754b26d0877ac47cfa315f9"
+      "sha256": "a43268b5bdc6be57e77ac5d630122485b1a8e7ace0b55c36adf11775bd193e48"
     },
     {
       "file": "verify-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "9863009c1041ae362530a0afeac8594db782f090641b1196d053613c94e416d1"
+      "sha256": "a4df7c3e79f42ae41f1e67b9bce2d6225cbd0c0c5d6072c291c6c8864f6171ba"
     },
     {
       "file": "verify-phone-dark.webp",
@@ -307,7 +307,7 @@
       "file": "review-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "10471da4096b54d45454961172970183d52e422a5dfc1bfeb47e5870cdd29d7c"
+      "sha256": "7e2c13689464d32fe24f5a7e5dbda938a149a94801f9fabe667c4b64c10c0293"
     },
     {
       "file": "review-phone-dark.webp",
@@ -319,19 +319,19 @@
       "file": "pull-request-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "a189ec742a5c8475adb16d5b3ce1ff73d3956fd57a30d5f085e9837cdcb8d8c9"
+      "sha256": "efe835c6ebfa51ec749d87c0fdab9a26326258b73111e7b175cfb5e2c8edece3"
     },
     {
       "file": "pull-request-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "391bec5ec5532f20c234fb88b6551cbe804ac939c485679bc7c499b53fdb05fe"
+      "sha256": "659edfab4515d1ff8434acdb26fd2c88068a58d2cbac516f183faf6107eb4810"
     },
     {
       "file": "design-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "7bff792acbb370f895190495f67b7c482d1809b375a8564abdca09911d98eec9"
+      "sha256": "40c48d2381a049eb5f7e22fe6e0938f6b6bd8a70002f0da8a017c5bacfe8eb74"
     },
     {
       "file": "design-phone-dark.webp",
@@ -355,61 +355,61 @@
       "file": "home-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "e61edba46898890fcf85746d9c007244df3d6c61f44a05e7d3328b85c67f0e99"
+      "sha256": "5ef7a35207d6924df746107e82c6057df5a49dd03b1adb8f0b2f4f974951f5ff"
     },
     {
       "file": "home-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "fc0f8461c3c3825a2777e07e5ef1acefcd7b442d3839723de20ff1eef9c6e92b"
+      "sha256": "0f24d18dc52995035c74e9e99b3ff658228044d980ef5790a2f97d933e43ce07"
     },
     {
       "file": "setup-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "605a0fb8f94f063dfd8a1401e50744607f2f3fb27d6b21a80ea8b1b9916b576e"
+      "sha256": "1662c80202f0573e7947baee32c728bcfa39a24f9f3968f6bd20ef3b0efd2941"
     },
     {
       "file": "setup-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "42aeeeaf56bd7359e4cd570abe4e77b70ad92ed95a2fd29bbd703739cbd89b39"
+      "sha256": "1a968c3f710fc81a37010d52918befce691f16939232db825727d42820b6c241"
     },
     {
       "file": "memory-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "3b162b02ff5b74af18b9e9c4fdb0844b855b95b71e48b81297ad1dc72279bac4"
+      "sha256": "0de21b25b63f2b4b276498c0e18c7dd76a6c8a0124ea4e1e215028b6e6f00a21"
     },
     {
       "file": "memory-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "78754e0f6989d2c1cff4c326e07c18f42c0073e45d85d287e7923d2ffc9b2fc4"
+      "sha256": "0c617e69173b4f3efa0851a5796a1978c2af282f5f45a1699a3524b8af214e83"
     },
     {
       "file": "designs-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "f22b417151354124b4a23c987dfb1b8a71f458837a9955a6d31d4baf681c00a3"
+      "sha256": "7f0f834fbc9bc045549b57f858b773b635a2527e04e0026f4c13cfb6c4181213"
     },
     {
       "file": "designs-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "1f7bdadcee1101929504c8d1de2bb05c194f061f66316184a12a51b2df9da703"
+      "sha256": "f635950ee6fc910314ee8de65ad33d7ba632b3f624d1bb23a68dbaefc7c551a7"
     },
     {
       "file": "designs-open-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "abfda93a2be4ec5d07dd33b83439ee3c745ea82756bc89f3158cdcee87207733"
+      "sha256": "09c345b12f9083ff8593feb2c641743f709fe64e6ea3138eec6a8f486673bc63"
     },
     {
       "file": "designs-open-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "38265ad33ca0ae3da4a32cbecf0b6f2f49c8a9d120583d382ff1b6a4b3fe44b9"
+      "sha256": "a1a60d070d023b4c28e5736f7c551e41a5133bd3e87c0e4adc40e700ceed0272"
     }
   ]
 }

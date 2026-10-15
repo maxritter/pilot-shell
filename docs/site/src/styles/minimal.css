@@ -277,3 +277,12 @@ html:has(.mx-filmov[open]){overflow:hidden}
   .mx-end .sx-ctas{max-width:none;margin-left:0;margin-right:0}
     .mx-filmov{padding:64px 0 0}
 }
+/* The full example reserves the typed command's dimensions and accessible text. */
+.sx-prompt{max-width:38rem;margin:28px auto;text-align:left}
+.sx-prompt code{position:relative;display:block;padding:18px 20px;background:var(--mx-panel);border:1px solid var(--mx-line2);border-radius:8px;font:clamp(14px,2.5vw,18px)/1.5 "Geist Mono",monospace;white-space:pre-wrap}
+.sx-prompt-source{color:transparent;user-select:none}
+.sx-prompt-typed{position:absolute;inset:18px 20px;color:var(--mx-ink)}
+.sx-prompt button{float:right;min-height:44px;padding:0 8px;border:0;background:none;color:var(--mx-ink);font:inherit;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.sx-prompt p{margin:8px 0 0;min-height:44px;font-size:12px;line-height:1.5;color:var(--mx-ink2)}
+.sx-prompt button:focus-visible{outline:2px solid var(--ql-accent);outline-offset:2px}
+@media(max-width:480px){.sx-prompt button{float:none}.sx-prompt p{min-height:0}}

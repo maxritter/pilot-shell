@@ -30,7 +30,7 @@ const EXTRAS: Item[] = [
   { id: "memory", name: "Memory", icon: BookOpen, line: "Keep useful project lessons", text: "Claude Code and Codex reuse lessons between tasks. Share them per repository through Git; search or retire them in Settings.", shot: { id: "memory", title: "Project memory", alt: "The Memory tab with local lessons, per-project sharing and a searchable lesson browser; illustrative project data" }, link: { to: "/docs/memory", label: "Read about project memory" } },
   { id: "designs", name: "Design", icon: PenTool, line: "Comment on the spot", text: "Pin a comment anywhere on a design. Your agent replies in the thread and updates the design.", shot: { id: "design", title: "Design", alt: "A queue migration console open full size, with three numbered comment pins and the comments beside it" } },
   { id: "team", name: "Team", icon: Users, line: "Ask the people who know", text: "Teammates answer plan questions and review the finished change from their own App.", shot: { id: "team", title: "Team", alt: "The Team space with questions about shared plans, replies and the team's tasks" }, link: { to: "/pricing", label: "See the Team plan" } },
-  { id: "cost", name: "Home", icon: House, line: "See what needs you", text: "What waits for you, what is running and what shipped, with each task's estimated cost.", shot: { id: "home", title: "Home", alt: "Home with tasks that need you, running work, agent cost estimates and shipped tasks" } },
+  { id: "cost", name: "Home", icon: House, line: "See what needs you", text: "Your tasks that need attention and your running work, with the current step and what happens next.", shot: { id: "home", title: "Home", alt: "Home with personal tasks that need attention and running work" } },
   { id: "setup", name: "Settings", icon: SlidersHorizontal, line: "Pick your agents and models", text: "Choose the agent and model that plans, builds and checks, and whether tasks start as a product brief or a technical plan.", shot: { id: "setup", title: "Settings", alt: "Settings with the Product or Engineering level, the planning and building agents and models, and the review options" } },
 ];
 
@@ -45,11 +45,15 @@ const PHONE = "(max-width: 640px)";
 
 /** The desktop capture, or on a phone the phone capture. */
 function Picture({ shot, theme, lazy = true }: { shot: Shot; theme: "light" | "dark"; lazy?: boolean }) {
+  const [failed, setFailed] = useState(false);
   return (
+    <>
     <picture>
       <source media={PHONE} srcSet={phoneSrc(shot, theme)} width={780} height={1400} />
-      <img src={src(shot, theme)} alt={shot.alt} width="2880" height="1920" loading={lazy ? "lazy" : undefined} decoding="async" />
+      <img src={src(shot, theme)} alt={shot.alt} width="2880" height="1920" loading={lazy ? "lazy" : undefined} decoding="async" onError={() => setFailed(true)} onLoad={() => setFailed(false)} />
     </picture>
+    {failed ? <span className="ed-image-error">{shot.title} image unavailable. {lazy ? "Open the preview to retry." : "Use the full-size image link to retry."}</span> : null}
+    </>
   );
 }
 
@@ -93,6 +97,7 @@ function Rail({ items, active, onPick }: { items: Item[]; active: number; onPick
 function Scroller({ items, numbered, theme, onOpen }: { items: Item[]; numbered: boolean; theme: "light" | "dark"; onOpen: (shot: Shot, el: HTMLElement) => void }) {
   const narrow = useNarrow(1079);
   const [active, setActive] = useState(0);
+  const [failed, setFailed] = useState<Set<string>>(() => new Set());
   const root = useRef<HTMLDivElement>(null);
 
   const measure = useCallback(() => {
@@ -107,21 +112,44 @@ function Scroller({ items, numbered, theme, onOpen }: { items: Item[]; numbered:
       const d = r.top <= line && r.bottom >= line ? 0 : Math.min(Math.abs(r.top - line), Math.abs(r.bottom - line));
       if (d < gap) { gap = d; best = i; }
     });
-    setActive(best);
-  }, [narrow]);
+    const bounds = blocks[best]?.getBoundingClientRect();
+    const within = bounds?.height ? Math.min(1, Math.max(0, (line - bounds.top) / bounds.height)) : 0;
+    const progress = Math.min(1, Math.max(0, (best + within) / items.length));
+    const chapter = Math.min(items.length - 1, Math.floor(progress * items.length));
+    const local = progress * items.length - chapter;
+    setActive(chapter);
+    el.style.setProperty("--ed-camera", reducedMotion() ? "0" : String(local * local * (3 - 2 * local)));
+  }, [narrow, items.length]);
 
   useEffect(() => {
     let raf = 0;
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; measure(); }); };
+    let visible = true;
+    const cancel = () => { cancelAnimationFrame(raf); raf = 0; };
+    const onScroll = () => {
+      if (!visible || document.hidden) return;
+      if (reducedMotion()) { measure(); return; }
+      if (!raf) raf = requestAnimationFrame(() => { raf = 0; measure(); });
+    };
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => { cancel(); if (media.matches) root.current?.style.setProperty("--ed-camera", "0"); onScroll(); };
+    const observer = typeof IntersectionObserver === "undefined" ? null : new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible) onScroll(); else cancel();
+    });
+    if (root.current) observer?.observe(root.current);
     measure();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); };
+    document.addEventListener("visibilitychange", sync);
+    media.addEventListener("change", sync);
+    return () => { cancel(); observer?.disconnect(); window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); document.removeEventListener("visibilitychange", sync); media.removeEventListener("change", sync); };
   }, [measure]);
 
   const pick = (i: number) => {
     const block = root.current?.querySelectorAll<HTMLElement>(".ed-item")[i];
     if (!block) return;
+    setActive(i);
+    root.current?.style.setProperty("--ed-camera", "0");
     const r = block.getBoundingClientRect();
     const top = narrow ? r.top + window.scrollY - HEADER - 72 : r.top + window.scrollY - (window.innerHeight - r.height) / 2;
     window.scrollTo({ top, behavior: reducedMotion() ? "auto" : "smooth" });
@@ -154,8 +182,9 @@ function Scroller({ items, numbered, theme, onOpen }: { items: Item[]; numbered:
             {numbered ? <Rail items={items} active={active} onPick={pick} /> : null}
             <button type="button" className="ed-frame" aria-label={`Enlarge ${current.shot.title}`} onClick={(event) => onOpen(current.shot, event.currentTarget)}>
               {items.map((item, i) => (
-                <img key={item.id} className={i === active ? "on" : undefined} src={src(item.shot, theme)} alt={i === active ? item.shot.alt : ""} aria-hidden={i === active ? undefined : true} width="2880" height="1920" loading={i < 2 ? "eager" : "lazy"} decoding="async" />
+                <img key={item.id} className={i === active ? "on" : undefined} src={src(item.shot, theme)} alt={i === active ? item.shot.alt : ""} aria-hidden={i === active ? undefined : true} width="2880" height="1920" loading={i < 2 ? "eager" : "lazy"} decoding="async" onError={() => setFailed(previous => new Set(previous).add(item.shot.id))} onLoad={() => setFailed(previous => { if (!previous.has(item.shot.id)) return previous; const next = new Set(previous); next.delete(item.shot.id); return next; })} />
               ))}
+              {failed.has(current.shot.id) ? <span className="ed-image-error">{current.shot.title} image unavailable. Open the preview to retry.</span> : null}
               <span className="ed-enlarge"><Expand size={14} aria-hidden="true" />Enlarge</span>
             </button>
           </div>
