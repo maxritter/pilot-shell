@@ -38,7 +38,7 @@ const SETUPS: Chip[] = [
 
 /** Each card in the App's colours: blue for the agent's work, amber for your decision, violet for what agents checked. */
 const PRINCIPLES: { who: "agent" | "you" | "check"; icon: LucideIcon; title: string; lead: string; text: string }[] = [
-  { who: "agent", icon: SquareTerminal, title: "Your agent", lead: "The tools you already use", text: "Claude Code, Codex, Pi or OpenCode writes the code with your existing login, in your terminal or in the App." },
+  { who: "agent", icon: SquareTerminal, title: "Your agent", lead: "The tools you already use", text: "Your coding agent writes the code with the login you already have." },
   { who: "you", icon: Workflow, title: "One plan", lead: "Approved by you before any code", text: "Decisions as diagrams, screens as clickable mockups. Comment on any part." },
   { who: "check", icon: BadgeCheck, title: "Proof", lead: "Checked by an agent that did not write it", text: "Every test run is recorded and every agreed point is checked." },
 ];

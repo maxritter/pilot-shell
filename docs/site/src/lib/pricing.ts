@@ -41,7 +41,7 @@ export const PLANS: Plan[] = [
       ["plan", "Approve the plan before any code is written"],
       ["build", "Built test first, every test run recorded"],
       ["verify", "Checked against your request before you see it"],
-      ["review", "Works with Claude Code, Codex, Pi and OpenCode"],
+      ["review", "Works with any coding agent"],
     ],
   },
   {

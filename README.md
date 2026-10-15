@@ -10,7 +10,7 @@
 ### The software factory with you in the loop
 
 **Plan each change visually with your coding agent and your team, then let your agents build it.**<br>
-Works with the Claude Code, Codex, Pi or OpenCode you already use.
+Works with Claude Code, Codex, Pi, OpenCode, or any other coding agent you already use.
 
 <a href="https://github.com/maxritter/pilot-shell"><picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&amp;color=9d6607&amp;labelColor=30363d">
@@ -75,7 +75,7 @@ Made for medium and large changes. Small requests keep a short Plan and one slic
 
 ### Prerequisites
 
-- **Claude Code, Codex, Pi or OpenCode**, signed in and started once. QualityLayer connects them in the App and your terminal. Other agents that run shell commands can [connect by hand](https://qualitylayer.dev/docs/agents/other).
+- **A coding agent**, ready to run shell commands in your repository: Claude Code, Codex, Pi, OpenCode, or [any other agent](https://qualitylayer.dev/docs/agents/other). The four native integrations also work in the App.
 - **Your own subscription** (Claude or ChatGPT plan, or API key). QualityLayer never charges for model usage.
 - **Git** and a repository.
 
@@ -119,7 +119,7 @@ $ql retry failed webhooks, and stop after a few tries     # Codex
 
 Answer your agent's questions in the App, approve the Plan, then start the build. QualityLayer runs only when you ask for it; everything else works as before. [Your first task](https://qualitylayer.dev/docs/first-task).
 
-Choose any of the four agents for planning, building and a separate review in Settings. New terminal also opens each agent with its own login. [Native agent setup and controls](https://qualitylayer.dev/docs/agents/native).
+Choose Claude Code, Codex, Pi or OpenCode for native App planning, building and separate review in Settings. New terminal opens each with its own login. [Native agent setup and controls](https://qualitylayer.dev/docs/agents/native).
 
 ---
 
