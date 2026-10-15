@@ -162,7 +162,7 @@ export const COMPARE: CompareGroup[] = [
         "Plans, comments and links are encrypted on your machine",
         false,
         true,
-        "We can’t read them. We see who shared, who was asked, which task, when and its step. The guest page’s code comes from us. With Slack connected, task titles and questions pass through our server to Slack, held up to a day if Slack is busy.",
+        "We can’t read them. We see who shared, who was asked, which task, when and its step. The guest page’s code comes from us. With Slack connected, task titles and questions pass through our server to Slack. Pending notifications expire after 72 hours.",
       ),
       row("Manage seats and billing in one place", false, true),
     ],

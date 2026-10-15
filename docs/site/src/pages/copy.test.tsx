@@ -54,6 +54,15 @@ describe("the site's copy", () => {
     expect(pricing).not.toContain("30 days");
   });
 
+  it("describes the pending Slack delivery window without promising deletion of every copy", async () => {
+    const policy = readFileSync(new URL("../../api/_lib/slack-queue.ts", import.meta.url), "utf8");
+    const hours = policy.match(/const QUEUE_LIFE_MS = (\d+) \* 3_600_000/);
+    expect(hours).not.toBeNull();
+    const pricing = await textOf(<PricingSection />);
+    expect(pricing).toContain(`Pending notifications expire after ${Number(hours![1])} hours.`);
+    expect(pricing).not.toContain("held up to a day");
+  });
+
   it("describes the unattended upgrade that preserves Pilot's tools and memories", async () => {
     const pricing = await textOf(<PricingSection />);
     expect(pricing).toMatch(/tools.*memories stay/i);
