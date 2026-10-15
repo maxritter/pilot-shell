@@ -101,8 +101,13 @@ All in `qualitylayer/`:
 
 ## Design changes
 
-- Show a design change before building it, unless it is as small as a single
-  button or switch. This covers the App, the Cockpit, the website and the docs.
+- Before every user-visible UI change, update the canonical lasting design:
+  the App Model for the App, the website design for the website, or the
+  corresponding design for the Cockpit and docs. Show and review that change
+  in QualityLayer before changing production UI source. This includes a
+  single button, switch, wording, interaction state or motion change. Keep
+  the model and implementation aligned; revise the model first when the UI
+  needs to change during implementation.
 - Outside a QualityLayer run: use QualityLayer's local Designs workspace
   and the `ql-design` skill together with Impeccable (context, craft and
   critique). Start from the existing lasting design and show the prototype
