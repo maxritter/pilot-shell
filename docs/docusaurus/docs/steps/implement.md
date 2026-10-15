@@ -17,7 +17,7 @@ After you approve the Plan, the start card shows your defaults from [Settings](.
 
 | On the card | What it picks |
 | --- | --- |
-| **Build with** | Claude Code, Codex or another agent |
+| **Build with** | Claude Code, Codex, Pi, OpenCode or another agent |
 | **Orchestrator** | The model that hands out slices; it writes no code |
 | **Workers** | The model that writes each slice |
 | **Where agents run** | **Here in the App** or **In my terminal** (Windows: terminal) |

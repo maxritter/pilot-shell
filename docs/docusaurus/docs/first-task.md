@@ -10,7 +10,7 @@ Pick a medium-sized feature in a repository you know. Your agent asks each decis
 
 | | You do | Where |
 | --- | --- | --- |
-| 1 | **Describe the change:** `/ql add a CSV export to the reports page` (`$ql` in Codex), or **+ New** | Your agent or the App |
+| 1 | **Describe the change:** `/ql add a CSV export to the reports page` (`$ql` in Codex, `/skill:ql` in Pi), or **+ New** | Your agent or the App |
 | 2 | **Answer the questions.** They arrive as a batch in **Your turn**; each answer reaches your agent immediately | App |
 | 3 | **Read the Plan**, then **Approve Plan** or **Give feedback** | App |
 | 4 | **Start the build** | App or your agent |
@@ -19,6 +19,8 @@ Pick a medium-sized feature in a repository you know. Your agent asks each decis
 | 7 | **Merge the pull request** | GitHub |
 
 **+ New** and **Start the build** can run your agent in a window inside the App (**Here in the App**) or give you the command for your terminal (**In my terminal**). See [App runs](app.md#agent-runs).
+
+Claude Code, Codex, Pi and OpenCode have [native setup, model choices and session controls](agents/native.md). Other agents can use a copied prompt.
 
 <details>
 <summary>Good to know</summary>

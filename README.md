@@ -10,7 +10,7 @@
 ### The software factory with you in the loop
 
 **Plan each change visually with your coding agent and your team, then let your agents build it.**<br>
-Works with the Claude Code or Codex you already use.
+Works with the Claude Code, Codex, Pi or OpenCode you already use.
 
 <a href="https://github.com/maxritter/pilot-shell"><picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&amp;color=9d6607&amp;labelColor=30363d">
@@ -75,7 +75,7 @@ Made for medium and large changes. Small requests keep a short Plan and one slic
 
 ### Prerequisites
 
-- **Claude Code or Codex**, signed in and started once, in the terminal, the desktop app or your IDE. Other agents that run shell commands can [connect by hand](https://qualitylayer.dev/docs/agents/other).
+- **Claude Code, Codex, Pi or OpenCode**, signed in and started once. QualityLayer connects them in the App and your terminal. Other agents that run shell commands can [connect by hand](https://qualitylayer.dev/docs/agents/other).
 - **Your own subscription** (Claude or ChatGPT plan, or API key). QualityLayer never charges for model usage.
 - **Git** and a repository.
 
@@ -113,9 +113,13 @@ Its updater moves you over with your plans and licence. [Moving from Pilot Shell
 ```text
 /ql retry failed webhooks, and stop after a few tries     # Claude Code
 $ql retry failed webhooks, and stop after a few tries     # Codex
+/skill:ql retry failed webhooks, and stop after a few tries # Pi
+/ql retry failed webhooks, and stop after a few tries     # OpenCode
 ```
 
 Answer your agent's questions in the App, approve the Plan, then start the build. QualityLayer runs only when you ask for it; everything else works as before. [Your first task](https://qualitylayer.dev/docs/first-task).
+
+Choose any of the four agents for planning, building and a separate review in Settings. New terminal also opens each agent with its own login. [Native agent setup and controls](https://qualitylayer.dev/docs/agents/native).
 
 ---
 

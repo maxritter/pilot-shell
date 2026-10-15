@@ -38,7 +38,7 @@ Each of the first seven steps writes one document. You approve twice: the Plan, 
 
 ## Who it is for
 
-Medium and large changes, solo or with a team, in Claude Code, Codex or [any other agent](agents/other.md) that runs shell commands, on the subscription you already have.
+Medium and large changes, solo or with a team, in [Claude Code, Codex, Pi or OpenCode](agents/native.md), or [any other agent](agents/other.md) that runs shell commands, with the subscription or API account you already have.
 
 ## Two levels
 

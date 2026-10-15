@@ -39,7 +39,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "Can I run my agent in the App?",
-    "Yes. Start Claude Code or Codex from New task or Implement and type in its interactive window, or keep your terminal. On Windows, use your terminal.",
+    "Yes. Start Claude Code, Codex, Pi or OpenCode from New task or Implement and type in its interactive window. You can also keep your terminal.",
   ),
   faq(
     "What does it cost to run?",
@@ -66,7 +66,7 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "Do I pay for AI usage here?",
-    "No. Your agents run on your own Claude Code or Codex plan. QualityLayer charges only for itself.",
+    "No. Claude Code, Codex, Pi and OpenCode use your own subscriptions or API accounts. QualityLayer charges only for itself.",
   ),
   faq(
     "Is there a limit on tasks or repositories?",
@@ -74,7 +74,7 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "Which agents does it work with?",
-    "Claude Code and Codex, in the terminal, their desktop apps or your IDE; the App sets both up. For another coding agent, the App copies a prompt to hand it. With both installed, the other agent also reviews your plan and risky changes.",
+    "Claude Code, Codex, Pi and OpenCode have native setup, model choices and interactive sessions in the App. Choose any installed agent for a separate review. Other agents that run shell commands can follow the same workflow from your terminal.",
   ),
   faq(
     "Who needs a seat?",

@@ -96,7 +96,7 @@ export const CLAIMS: Record<string, Claim> = {
   },
   // "It works where your agents already work": one command, the systems it runs on
   agents: {
-    always: ["New task", "Claude Code", "Codex", "Another agent", "claude --model opus --effort high", "macOS", "Windows", "Linux", "WSL"],
+    always: ["New task", "Claude Code", "Codex", "Pi", "OpenCode", "Another agent", "claude --model opus --effort high", "macOS", "Windows", "Linux", "WSL"],
     last: ["Copied", "needs your review"],
   },
 };

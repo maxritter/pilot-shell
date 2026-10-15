@@ -37,12 +37,12 @@ Standing instructions for every task in every project: coding standards, things 
 
 ### Planning and Building {#defaults}
 
-Each card has a tab per agent: **Claude Code**, **Codex** and **Another agent**. **Make default** picks the tab that **+ New** and Implement open on, so you can plan with Claude Code and build with Codex. **Use recommended** resets a tab.
+Choose **Claude Code**, **Codex**, **Pi**, **OpenCode** or **Another agent**. **Make default** picks what **+ New** and Implement open on; planning and building can use different agents. **Use recommended** resets its values.
 
 | Card | Used for | Recommended |
 | --- | --- | --- |
-| **Planning** | Discuss to Outline | The most capable model you can afford (Opus 5.5 or Fable 5.1), High effort or more |
-| **Building** | [Implement](../steps/implement.md#start-implement) | Opus 5.5 orchestrator (or Fable 5.1), Sonnet 5.5 workers, High effort, a plain prompt, in the session that planned the task |
+| **Planning** | Discuss to Outline | The agent's recommended planning model at High effort |
+| **Building** | [Implement](../steps/implement.md#start-implement) | Its recommended build and worker models at High effort; a native goal mode only where supported |
 
 **Another agent** uses the models set in that agent.
 
@@ -50,11 +50,11 @@ Each card has a tab per agent: **Claude Code**, **Codex** and **Another agent**.
 
 ### Independent review {#independent-review}
 
-Who decides whether a change passes [Verify](../steps/verify.md): **Fresh agent: When risky** (recommended) or **Always**, or off. Pick its model for Claude Code (Opus 5.5) and Codex (GPT-6.1 Sol). On a change that is not risky, the build session reviews itself and the page marks it **not independent**. Measured: on small and medium changes this made no difference to what the checks catch and saved time and cost; on a risky change the fresh agent found a security fault the checks missed.
+Who decides whether a change passes [Verify](../steps/verify.md): **Fresh agent: When risky** (recommended) or **Always**, or off. Pick its model for each native agent: Opus 5.5 by default in Claude Code, GPT-6.1 Sol in Codex, Pi and OpenCode. On a change that is not risky, the build session reviews itself and the page marks it **not independent**.
 
 ### Second opinion {#second-opinion}
 
-With Claude Code and Codex both installed, each reviews the other's work:
+**Second opinion by** chooses an installed reviewer: Claude Code, Codex, Pi or OpenCode. **Automatic** prefers another installed agent. A named choice starts a fresh review with that agent's selected model.
 
 | When | Choices | What it reads |
 | --- | --- | --- |
@@ -62,6 +62,8 @@ With Claude Code and Codex both installed, each reviews the other's work:
 | **On the built change** | **When risky** (recommended) or **Always** | The finished code, alongside Polish and Security review in [Verify](../steps/verify.md#lanes) |
 
 Risky means the Plan says so, the change touches sign-in, secrets or outside input, or the Outline marks a slice risky. **Always** adds a few minutes per Plan or change. With one agent installed, a separate reviewer of that agent reads instead (Sonnet 5.5 in Claude Code). **Reviewed by** in the Plan names who read it.
+
+Pi and OpenCode can use the same provider as another agent. A different agent gives you a fresh context; select another model family if you want a different provider too. See [native agents](../agents/native.md).
 
 ### Notifications {#notifications}
 

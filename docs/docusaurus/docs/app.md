@@ -112,12 +112,14 @@ Defaults live in Settings › Workflow › **Where agents run**:
 
 | Setting | Choices |
 | --- | --- |
-| **Permissions** | **Your agent's own settings**; **Fewer prompts** (Claude Code's auto mode or Codex's reviewer, which may not refuse every risky request); **Bypass prompts** (no approvals or sandbox, confirmed at every start) |
+| **Permissions** | The agent's own settings; supported agents also offer **Fewer prompts** or a confirmed bypass. Pi keeps its own tool permissions; OpenCode can reduce prompts while retaining explicit deny rules. See [native agents](agents/native.md) |
 | **Works in** | The checkout. **Lands on** shows the branch or creates a new one |
 | **Typing and starting agents** | Whether other paired browsers may start runs and type |
 | **When you quit the App** | **Agents keep running** or **Stop agents**. Closing a window never stops work |
 
 For **Another agent**, set its program path and arguments in Settings; Interrupt, Restart, Move and Resume are not available. Terminal output stays on this computer and is never shared.
+
+New terminal offers Claude Code, Codex, Pi, OpenCode and your shell. Planning and build starts use the selected model and effort; an ordinary terminal starts with the agent's own defaults.
 
 ## In Claude Code
 

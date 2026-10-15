@@ -8,6 +8,8 @@ type Chip = [label: string, icon: string];
 const AGENTS: Chip[] = [
   ["Claude Code", "ast"],
   ["Codex", "braces"],
+  ["Pi", "term"],
+  ["OpenCode", "term"],
   ["Terminal", "term"],
   ["Desktop apps", "app"],
   ["VS Code", "code"],
@@ -22,6 +24,8 @@ const MODELS: Chip[] = [
   ["GPT-6.1 Sol", "cpu"],
   ["Claude Code", "ast"],
   ["Codex", "braces"],
+  ["Pi", "term"],
+  ["OpenCode", "term"],
 ];
 
 const SETUPS: Chip[] = [
@@ -34,7 +38,7 @@ const SETUPS: Chip[] = [
 
 /** Each card in the App's colours: blue for the agent's work, amber for your decision, violet for what agents checked. */
 const PRINCIPLES: { who: "agent" | "you" | "check"; icon: LucideIcon; title: string; lead: string; text: string }[] = [
-  { who: "agent", icon: SquareTerminal, title: "Your agent", lead: "The tools you already use", text: "Claude Code or Codex writes the code on your subscription, in your terminal or in the App." },
+  { who: "agent", icon: SquareTerminal, title: "Your agent", lead: "The tools you already use", text: "Claude Code, Codex, Pi or OpenCode writes the code with your existing login, in your terminal or in the App." },
   { who: "you", icon: Workflow, title: "One plan", lead: "Approved by you before any code", text: "Decisions as diagrams, screens as clickable mockups. Comment on any part." },
   { who: "check", icon: BadgeCheck, title: "Proof", lead: "Checked by an agent that did not write it", text: "Every test run is recorded and every agreed point is checked." },
 ];
@@ -42,7 +46,7 @@ const PRINCIPLES: { who: "agent" | "you" | "check"; icon: LucideIcon; title: str
 /** From where you work to the files you keep: what QualityLayer connects, all inside one dashed frame, your computer. */
 const CHAIN: { icon: LucideIcon | "mark"; title: string; text: string; chips: string[]; ql?: true }[] = [
   { icon: SquareTerminal, title: "Where you work", text: "Keep the tools you use today.", chips: ["Terminal", "Desktop app", "VS Code", "JetBrains"] },
-  { icon: KeyRound, title: "Your agent, your subscription", text: "On the plan or API key you already pay for.", chips: ["Claude Code", "Codex"] },
+  { icon: KeyRound, title: "Your agent, your subscription", text: "On the plan or API key you already pay for.", chips: ["Claude Code", "Codex", "Pi", "OpenCode"] },
   { icon: "mark", title: "QualityLayer", text: "A command line your agent calls, and the App where you decide.", chips: ["Command line", "The App"], ql: true },
   { icon: FileText, title: "Your repository", text: "Every step is a Markdown file you can read, diff and commit.", chips: ["Plan", "Decisions", "Test runs"] },
 ];
@@ -125,10 +129,10 @@ export default function Intro() {
         <div className="mx-mq">
           <div className="mx-mqt">
             <h2 id="mod-h" className="mx-h3">Use the models you already pay for</h2>
-            <p>Pick which model writes the code and which checks it. With Claude Code and Codex both installed, the other agent also reviews your plan and risky changes.</p>
+            <p>Pick which model writes the code and which checks it. Choose Claude Code, Codex, Pi or OpenCode for a separate review of your plan and risky changes.</p>
           </div>
           <div className="mx-mqr">
-            <p className="w7-sr">Models: {MODELS.filter(([, icon]) => icon === "cpu").map(([label]) => label).join(", ")}, through Claude Code and Codex. {SETUPS.map(([label]) => label).join(". ")}.</p>
+            <p className="w7-sr">Models: {MODELS.filter(([, icon]) => icon === "cpu").map(([label]) => label).join(", ")}, through Claude Code, Codex, Pi and OpenCode. {SETUPS.map(([label]) => label).join(". ")}.</p>
             <div className="mx-mqm" aria-hidden="true">
               <Track chips={MODELS} />
               <Track chips={SETUPS} reverse />
