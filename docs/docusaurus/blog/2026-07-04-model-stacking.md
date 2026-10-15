@@ -100,6 +100,6 @@ Multi-Agent Orchestrators
 
 ## About QualityLayer
 
-**QualityLayer** is a single install on top of Claude Code, Codex or any agent with skills. Describe a change with `/ql`, review the plan in the Cockpit, and an independent agent checks the result.
+**QualityLayer** works with Claude Code, Codex, Pi, OpenCode or any other coding agent that runs shell commands. Describe a change with `/ql`, review the plan in the Cockpit, and an independent agent checks the result.
 
 [Try QualityLayer →](https://qualitylayer.dev)

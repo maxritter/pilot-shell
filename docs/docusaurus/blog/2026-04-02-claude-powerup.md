@@ -150,6 +150,6 @@ The feature nobody talked about on April 1 might end up being the one that actua
 
 ## About QualityLayer
 
-**QualityLayer** is a planning-first workflow for coding agents such as Claude Code and Codex. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
+**QualityLayer** is a planning-first workflow for any coding agent, including Claude Code, Codex, Pi and OpenCode. You approve the plan in the Cockpit before any code is written, helper agents build it in small tested slices, and an AI that did not write the code checks the result against what you asked for.
 
 [Try QualityLayer →](https://qualitylayer.dev)

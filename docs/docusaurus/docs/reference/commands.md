@@ -164,14 +164,14 @@ All commands accept `--json`. Page sizes are 1–100; queries are at most 500 ch
 ![Four agent sessions on one computer: one asks another for a review, one hands over a task, two talk a problem through](pathname:///img/diagrams/peers-light.svg)
 ![Four agent sessions on one computer: one asks another for a review, one hands over a task, two talk a problem through](pathname:///img/diagrams/peers-dark.svg)
 
-Claude Code and Codex sessions on your computer can message each other. Ask one session to ask another for a review, hand over a task or talk a problem through; your agents use the `agent-peers` skill for it. You can run it yourself:
+Claude Code, Codex, Pi and OpenCode sessions on your computer can message each other. Ask one session to ask another for a review, hand over a task or talk a problem through; your agents use the `agent-peers` skill for it. You can run it yourself:
 
 ```bash
 qualitylayer peers list
 qualitylayer peers send --to 'cc:<name-or-uuid>' --message-file ./review-request.txt --json
 ```
 
-`peers list` shows each live session's task, step, branch and last activity, with passwords and keys replaced by `[hidden]`. Address a Claude Code session with `cc:` and a Codex thread with `codex:`, using the name or UUID from the list. A session is missing? Run `qualitylayer peers doctor`.
+`peers list` shows each live session's task, step, branch and last activity, with passwords and keys replaced by `[hidden]`. Use `cc:` for Claude Code, `codex:` for Codex, `pi:` for Pi or `opencode:` for OpenCode, followed by the name or UUID from the list. A session is missing? Run `qualitylayer peers doctor`.
 
 <details>
 <summary>Receipts and requests</summary>
