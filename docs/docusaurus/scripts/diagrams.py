@@ -1212,11 +1212,24 @@ def agents_other_ill(c: Theme) -> str:
     b.append(curve(c, 252, 100, 330, 60, 'line'))
     b.append(curve(c, 252, 150, 330, 190, 'line'))
     b.append(node(c, 332, 20, 300, 80, 'The command line', ['qualitylayer on the agent’s PATH', 'The App sets this up for you'], 'blue', 'bluef'))
-    b.append(node(c, 332, 150, 300, 80, 'The skill text', ['Copy › For another agent', 'in the App, or the prompt it shows'], 'blue', 'bluef'))
+    b.append(node(c, 332, 150, 300, 80, 'One prompt from the App', ['+ New › Another agent to plan,', 'Build with › Another agent to build'], 'blue', 'bluef'))
     b.append(curve(c, 634, 60, 700, 120, 'blue'))
     b.append(curve(c, 634, 190, 700, 130, 'blue'))
-    b.append(node(c, 702, 70, 298, 110, 'The same seven steps', ['It asks for the next step and records', 'the checks. You decide in the App.'], 'amber', 'amberf'))
-    return svg(W, H, ''.join(b), 'Connecting another coding agent: any agent that runs shell commands needs the qualitylayer command on its path and the skill text from Copy, For another agent; then it follows the same seven steps and you decide in the App')
+    b.append(node(c, 702, 70, 298, 110, 'The same steps', ['It asks for the next step and records', 'the checks. You decide in the App.'], 'amber', 'amberf'))
+    return svg(W, H, ''.join(b), 'Connecting another coding agent: any agent that runs shell commands needs the qualitylayer command on its path and one prompt from the App; then it follows the same steps and you decide in the App')
+
+
+def agents_mix_ill(c: Theme) -> str:
+    W, H = 1000, 110
+    b = []
+    b.append(node(c, 0, 0, 235, H, 'Plan with Claude Code', ['Asks you, reads the code,', 'writes the Plan'], 'blue', 'bluef'))
+    b.append(arrow(c, 237, H / 2, 273))
+    b.append(node(c, 275, 0, 190, H, 'You approve', ['the Plan in the App'], 'amber', 'amberf'))
+    b.append(arrow(c, 467, H / 2, 503))
+    b.append(node(c, 505, 0, 235, H, 'Build with your agent', ['Another agent, for example', 'one on a local model'], 'blue', 'bluef'))
+    b.append(arrow(c, 742, H / 2, 778))
+    b.append(node(c, 780, 0, 220, H, 'Same checks', ['QualityLayer runs them,', 'then you approve', 'the finished change'], 'violet', 'violetf'))
+    return svg(W, H, ''.join(b), 'Plan with Claude Code, approve the Plan in the App, build with another agent such as one on a local model, then QualityLayer runs the same checks and you approve the finished change')
 
 
 # ---------------------------------------------------------------- team
@@ -1524,7 +1537,7 @@ DRAWINGS = [('architecture', architecture), ('flow-pr', lambda c: flow(c, pr=Tru
             ('discuss', discuss_ill), ('research', research_ill), ('diagnose', diagnose_ill), ('plan', plan_ill), ('outline', outline_ill),
             ('verify', verify_ill), ('stopped', stopped_ill), ('review', review_ill), ('comments', comments_ill),
             ('pull-request', pull_request_ill), ('band', band_ill), ('cost', cost_ill),
-            ('attention', attention_ill), ('feedback', feedback_ill), ('agents-other', agents_other_ill),
+            ('attention', attention_ill), ('feedback', feedback_ill), ('agents-other', agents_other_ill), ('agents-mix', agents_mix_ill),
             ('team', team), ('team-agents', team_agents), ('team-timeline', team_timeline), ('team-change', team_change),
             ('peers', peers), ('install', install_ill), ('firsttask', firsttask_ill), ('update', update_ill),
             ('move', move_ill), ('files', files_ill), ('privacy', privacy_ill),
