@@ -12,7 +12,7 @@ const seen = (text: string) => screen.queryAllByText(text).length > 0;
 const sendButton = () => screen.getAllByRole("button", { name: "Send to Max" })[0] as HTMLButtonElement;
 const state: Extract<LoadedShare, { status: "ready" }> = {
   status: "ready", kind: "v2", title: "Settings cleanup", owner: "Max", stage: "plan",
-  docs: { "02-plan.md": "# The Plan\n\nOne deployment." }, items: [],
+  docs: { "03-plan.md": "# The Plan\n\nOne deployment." }, items: [],
 };
 function addComment(text = "Why one?") {
   fireEvent.change(screen.getByLabelText("Your name"), { target: { value: "Gina" } });
@@ -20,20 +20,20 @@ function addComment(text = "Why one?") {
   fireEvent.click(screen.getByRole("button", { name: "Add comment" }));
 }
 
-describe("commenting on the five documents", () => {
+describe("commenting on the step documents", () => {
   it("copies and downloads published Markdown, retries clipboard failure and preserves unsent forms", async () => {
     const clipboard = vi.fn().mockRejectedValueOnce(new Error("blocked")).mockResolvedValueOnce(undefined);
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: clipboard } });
     const create = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:markdown");
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
-    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function () { expect(this.download).toBe("02-plan.md"); });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function () { expect(this.download).toBe("03-plan.md"); });
     const onSend = vi.fn(async () => ({ ok: true as const }));
     const plan = "# The Plan\n\n## Why\n\nOne deployment.\n\n## What\n\nThe page.\n\n## How\n\nIn steps.";
-    render(<SharedView state={{ ...state, docs: { "02-plan.md": plan } }} onSend={onSend} />);
+    render(<SharedView state={{ ...state, docs: { "03-plan.md": plan } }} onSend={onSend} />);
     fireEvent.change(screen.getByRole("textbox", { name: "Comment" }), { target: { value: "Unsent text" } });
     // The document is named by the Sections menu, as it is in the App.
     fireEvent.click(screen.getByRole("button", { name: /Sections/ }));
-    expect((await screen.findByTestId("doc-path")).textContent).toBe("02-plan.md");
+    expect((await screen.findByTestId("doc-path")).textContent).toBe("03-plan.md");
     fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
     const copyMarkdown = async () => {
       fireEvent.pointerDown(screen.getByRole("button", { name: "Copy document" }), { button: 0, ctrlKey: false });
@@ -75,7 +75,7 @@ describe("commenting on the five documents", () => {
     await waitFor(() => expect(onSend).toHaveBeenCalledTimes(1));
     expect(annotation).not.toBe("");
     view.unmount();
-    render(<SharedView state={{ ...share, threads: [{ remoteId: `0:${annotation}`, created: 1, doc: "02-plan.md", state: "resolved", replies: [{ id: "r1", author: { name: "Agent", email: "" }, text: "Added the check", at: 2, via: "agent" }] }] }} onSend={onSend} />);
+    render(<SharedView state={{ ...share, threads: [{ remoteId: `0:${annotation}`, created: 1, doc: "03-plan.md", state: "resolved", replies: [{ id: "r1", author: { name: "Agent", email: "" }, text: "Added the check", at: 2, via: "agent" }] }] }} onSend={onSend} />);
     expect(await screen.findByText(/Added the check/)).toBeTruthy();
     expect(screen.getByText("Resolved")).toBeTruthy();
     expect(screen.getByText(/via agent/)).toBeTruthy();
@@ -96,7 +96,7 @@ describe("commenting on the five documents", () => {
     expect(seen("1 comment")).toBe(true);
     fireEvent.click(sendButton());
     await waitFor(() => expect(onSend).toHaveBeenCalledTimes(1));
-    expect(onSend.mock.calls[0]).toEqual(["Gina", [{ kind: "passage", id: expect.any(String), doc: "02-plan.md", quote: "", text: "Why one?" }]]);
+    expect(onSend.mock.calls[0]).toEqual(["Gina", [{ kind: "passage", id: expect.any(String), doc: "03-plan.md", quote: "", text: "Why one?" }]]);
     expect(JSON.stringify(onSend.mock.calls)).not.toMatch(/verdict|approve|request_changes/);
     expect(seen("Sent to Max.")).toBe(true);
   });
@@ -120,7 +120,7 @@ describe("keeping an open link current", () => {
     await act(async () => { render(<SharedLink id={"A".repeat(22)} linkKey={"B".repeat(43)} />); });
     await act(async () => { await vi.advanceTimersByTimeAsync(0); });
     addComment();
-    load.mockResolvedValue({ kind: "loaded", state: { ...state, docs: { "02-plan.md": "# Latest Plan\n\nThe Plan changed." } }, rev: 2 });
+    load.mockResolvedValue({ kind: "loaded", state: { ...state, docs: { "03-plan.md": "# Latest Plan\n\nThe Plan changed." } }, rev: 2 });
     await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
     expect(seen("The Plan changed.")).toBe(true);
     expect(seen("1 comment")).toBe(true);

@@ -3,11 +3,11 @@ import { afterEach, expect, it, vi } from "vitest";
 import { downloadMarkdown, markdownExport } from "./exports";
 
 afterEach(() => vi.restoreAllMocks());
-const docs = { "02-plan.md": "# Plan\n\nExact published ütf-8 text.", "agent/private.md": "Private", "../other.md": "Unsafe", "plan-design.png": "Still" };
+const docs = { "03-plan.md": "# Plan\n\nExact published ütf-8 text.", "agent/private.md": "Private", "../other.md": "Unsafe", "plan-design.png": "Still" };
 it("exports exact published text, UTF-8 Markdown and safe filenames only", async () => {
-  const file = markdownExport(docs, "02-plan.md");
-  expect(file?.name).toBe("02-plan.md");
-  expect(await file?.blob.text()).toBe(docs["02-plan.md"]);
+  const file = markdownExport(docs, "03-plan.md");
+  expect(file?.name).toBe("03-plan.md");
+  expect(await file?.blob.text()).toBe(docs["03-plan.md"]);
   expect(file?.blob.type).toBe("text/markdown;charset=utf-8");
   for (const name of ["agent/private.md", "../other.md", "plan-design.png", "missing.md"]) expect(markdownExport(docs, name)).toBeNull();
 });
@@ -17,9 +17,9 @@ it("downloads the actual Markdown filename and releases its object URL", () => {
   const create = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:published");
   const revoke = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
   const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function () {
-    expect(this.download).toBe("02-plan.md"); expect(this.href).toBe("blob:published");
+    expect(this.download).toBe("03-plan.md"); expect(this.href).toBe("blob:published");
   });
-  expect(downloadMarkdown(docs, "02-plan.md")).toBe(true);
+  expect(downloadMarkdown(docs, "03-plan.md")).toBe(true);
   expect(create).toHaveBeenCalledWith(expect.any(Blob));
   expect(click).toHaveBeenCalledOnce();
   vi.advanceTimersByTime(1000);

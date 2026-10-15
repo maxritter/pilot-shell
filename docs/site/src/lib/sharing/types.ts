@@ -58,8 +58,8 @@ export interface FeedbackQueueEntry {
   position: number;
   /** When the server received this submission (server-side Date.now()). */
   receivedAt: number;
-  /** The submitted feedback batch: sealed with the link's key, or a plain one an older page sent. */
-  payload: SealedPayload | FeedbackPayload;
+  /** The submitted feedback batch, sealed with the link's key. */
+  payload: SealedPayload;
 }
 
 /** Client → feedback API batch-read request body. */

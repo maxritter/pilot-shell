@@ -33,11 +33,11 @@ export function removeRemark(drafts: Drafts, index: number): Drafts {
 const complete = (a: { answer: GuestAnswer; note: string }) => a.answer === "agree" || a.note.trim() !== "";
 
 /** What would leave now: the answers in the order the owner asked, then the comments. */
-export function pending(drafts: Drafts, items: readonly ShareItem[], docs: Record<string, string>): Remark[] {
+export function pending(drafts: Drafts, items: readonly ShareItem[]): Remark[] {
   const answers = items.flatMap((item): Remark[] => {
     const a = drafts.answers[item.id];
     if (a === undefined || !complete(a)) return [];
-    return [{ kind: "item", id: item.id, step: item.step, doc: docOfStep(item.step, docs), what: item.what, answer: a.answer, label: answerWords(item, a.answer), note: a.note.trim() }];
+    return [{ kind: "item", id: item.id, step: item.step, doc: docOfStep(item.step), what: item.what, answer: a.answer, label: answerWords(item, a.answer), note: a.note.trim() }];
   });
   return [...answers, ...drafts.remarks];
 }

@@ -10,12 +10,11 @@ import {
   sealForLink,
   stepDocs,
   submitRemarks,
-  tabsOf,
 } from "./sharing";
 
 /**
- * What a link holds, named the way the App names it: Discuss, Plan and Build, never the files;
- * research is the agent's own and never leaves the machine; the owner's questions arrive as items.
+ * What a link holds, named the way the App names it: the seven steps, never the files; only the
+ * seven step documents are read; the owner's questions arrive as items.
  */
 
 const KEY = "A".repeat(43);
@@ -25,59 +24,7 @@ const answer = (status: number, body?: unknown) =>
   vi.fn(async () => new Response(body === undefined ? null : JSON.stringify(body), { status })) as unknown as typeof fetch;
 
 describe("a link's documents, by step", () => {
-  it("sorts the five step files into Discuss, Plan and Build, in the order the work produced them", () => {
-    const docs = {
-      "03-build.md": "b",
-      "02-plan-details.md": "pd",
-      "02-plan.md": "p",
-      "00-discuss.md": "d",
-      "artifacts/settings.html": "<html></html>",
-      "review.json": "{}",
-    };
-    expect(stepDocs(docs)).toEqual({ discuss: ["00-discuss.md"], research: [], plan: ["02-plan.md", "02-plan-details.md"], outline: [], implement: ["03-build.md"], verify: [], review: [] });
-  });
-
-  it("never lists research or a diagnosis, even when the link carries them", () => {
-    const docs = { "00-discuss.md": "d", "01-research.md": "SECRET", "01-diagnosis.md": "SECRET", "02-plan.md": "p" };
-    const steps = stepDocs(docs);
-    expect(Object.values(steps).flat()).toEqual(["00-discuss.md", "02-plan.md"]);
-  });
-
-  it("reads a new task's Discuss and Plan: 01-discuss.md is Discuss, and the slices come from the details", () => {
-    const docs = { "01-discuss.md": "d", "02-plan.md": "p", "02-plan-details.md": "pd" };
-    expect(stepDocs(docs)).toEqual({ discuss: ["01-discuss.md"], research: [], plan: ["02-plan.md", "02-plan-details.md"], outline: [], implement: [], verify: [], review: [] });
-  });
-
-  it("keeps the agent's files private by name, in both layouts: research, diagnosis and Discuss's details", () => {
-    const docs = {
-      "01-discuss.md": "d",
-      "01-discuss-research.md": "SECRET",
-      "01-discuss-diagnosis.md": "SECRET",
-      "01-discuss-details.md": "SECRET",
-      "00-discuss.md": "d",
-      "00-discuss-details.md": "SECRET",
-      "01-research.md": "SECRET",
-      "01-diagnosis.md": "SECRET",
-      "02-plan.md": "p",
-    };
-    expect(Object.values(stepDocs(docs)).flat()).toEqual(["00-discuss.md", "01-discuss.md", "02-plan.md"]);
-  });
-
-  it("does not drop a document for its number: only the agent's own files are private", () => {
-    expect(Object.values(stepDocs({ "01-frame.md": "f", "02-plan.md": "p" })).flat()).toEqual(["01-frame.md", "02-plan.md"]);
-  });
-
-  it("reads an old link's files too: the frame is Discuss, the design and its outline are the Plan", () => {
-    expect(stepDocs({ "README.md": "r", "02-design.md": "d", "03-outline-overview.md": "o" })).toEqual({
-      discuss: ["README.md"],
-      research: [],
-      plan: ["02-design.md", "03-outline-overview.md"],
-      outline: [],
-      implement: [], verify: [], review: [],
-    });
-  });
-
-  it("sorts a seven-step task's files into its seven steps, each by its own name", () => {
+  it("sorts a task's files into its seven steps, each by its own name", () => {
     const docs = { "01-discuss.md": "d", "02-research.md": "r", "03-plan.md": "p", "04-outline.md": "o", "05-implement.md": "i", "06-verify.md": "v", "07-review.md": "w" };
     expect(stepDocs(docs)).toEqual({
       discuss: ["01-discuss.md"], research: ["02-research.md"], plan: ["03-plan.md"], outline: ["04-outline.md"],
@@ -85,30 +32,25 @@ describe("a link's documents, by step", () => {
     });
   });
 
-  it("reads a seven-step task's research, which is a step's own document, while an older task's research stays private", () => {
-    expect(Object.values(stepDocs({ "01-discuss.md": "d", "02-research.md": "r" })).flat()).toEqual(["01-discuss.md", "02-research.md"]);
-    expect(Object.values(stepDocs({ "01-discuss.md": "d", "01-research.md": "SECRET", "02-plan.md": "p" })).flat()).toEqual(["01-discuss.md", "02-plan.md"]);
+  it("lists only the seven step files: a stray Markdown file, a private folder or a name from before the seven steps is not a document", () => {
+    const docs = {
+      "01-discuss.md": "d",
+      "02-research.md": "r",
+      "03-plan.md": "p",
+      "notes.md": "SECRET",
+      "agent/private.md": "SECRET",
+      "artifacts/settings.html": "<html></html>",
+      "review.json": "{}",
+      "02-plan.md": "SECRET",
+      "00-discuss.md": "SECRET",
+    };
+    expect(Object.values(stepDocs(docs)).flat()).toEqual(["01-discuss.md", "02-research.md", "03-plan.md"]);
   });
 
-  it("draws seven steps for a task started with them, five for an older one, told by its files", () => {
-    expect(tabsOf({ "01-discuss.md": "d" })).toHaveLength(7);
-    expect(tabsOf({ "01-discuss.md": "d", "02-research.md": "r", "03-plan.md": "p" })).toHaveLength(7);
-    expect(tabsOf({ "01-discuss.md": "d" }, "outline")).toHaveLength(7);
-    expect(tabsOf({ "01-discuss.md": "d", "02-plan.md": "p" })).toEqual(["discuss", "plan", "implement", "verify", "review"]);
-    expect(tabsOf({ "00-discuss.md": "d" })).toHaveLength(5);
-  });
-
-  it("takes research for a top-level Markdown file only: a mockup named diagnostics is a mockup", async () => {
-    const docs = { "02-plan.md": "p", "artifacts/diagnostics.html": "<html></html>", "artifacts/research-board.html": "<html></html>" };
-    const plan = { task: "T", docs: { ...docs, "01-research.md": "SECRET" } };
-    const loaded = await loadShare(ID, KEY, answer(200, await sealForLink(KEY, "plan", JSON.stringify(plan))));
-    expect(loaded.status === "ready" && Object.keys(loaded.docs).sort()).toEqual(["02-plan.md"]);
-  });
-
-  it("does not hand research to the page at all", async () => {
-    const plan = { task: "T", docs: { "02-plan.md": "p", "01-research.md": "SECRET" } };
-    const loaded = await loadShare(ID, KEY, answer(200, await sealForLink(KEY, "plan", JSON.stringify(plan))));
-    expect(loaded.status === "ready" && Object.keys(loaded.docs)).toEqual(["02-plan.md"]);
+  it("hands the page the step files and nothing else of what a link carries", async () => {
+    const docs = { "03-plan.md": "p", "notes.md": "SECRET", "artifacts/diagnostics.html": "<html></html>" };
+    const loaded = await loadShare(ID, KEY, answer(200, await sealForLink(KEY, "plan", JSON.stringify({ task: "T", docs }))));
+    expect(loaded.status === "ready" && Object.keys(loaded.docs).sort()).toEqual(["03-plan.md"]);
   });
 });
 
@@ -128,14 +70,14 @@ describe("the owner's questions", () => {
   };
 
   it("keeps the owner but leaves questions and source in the App", async () => {
-    const plan = { task: "Settings cleanup", owner: "Max", docs: { "02-plan.md": "p" }, items: [wire] };
+    const plan = { task: "Settings cleanup", owner: "Max", docs: { "03-plan.md": "p" }, items: [wire] };
     const loaded = await loadShare(ID, KEY, answer(200, await sealForLink(KEY, "plan", JSON.stringify(plan))));
     expect(loaded).toMatchObject({ status: "ready", owner: "Max" });
     expect(loaded.status === "ready" && loaded.items).toEqual([]);
   });
 
   it("is empty for a link made before the App sent any", async () => {
-    const loaded = await loadShare(ID, KEY, answer(200, await sealForLink(KEY, "plan", JSON.stringify({ task: "T", docs: { "02-plan.md": "p" } }))));
+    const loaded = await loadShare(ID, KEY, answer(200, await sealForLink(KEY, "plan", JSON.stringify({ task: "T", docs: { "03-plan.md": "p" } }))));
     expect(loaded).toMatchObject({ status: "ready", items: [] });
     expect(loaded.status === "ready" && loaded.owner).toBeUndefined();
   });
@@ -175,9 +117,9 @@ describe("the owner's questions", () => {
 
 describe("sending what a guest wrote", () => {
   const remarks = [
-    { kind: "item" as const, id: "plan:decision:1", step: "plan" as const, doc: "02-plan.md", what: "The second opinion follows the Plan's risk", answer: "change" as const, label: "Suggest a change", note: "Only on risky Plans" },
-    { kind: "item" as const, id: "plan:mockup:1", step: "plan" as const, doc: "02-plan.md", what: "Settings after the change", answer: "agree" as const, label: "Looks right", note: "" },
-    { kind: "passage" as const, doc: "02-plan.md", quote: "One Vercel deployment", text: "Why one?" },
+    { kind: "item" as const, id: "plan:decision:1", step: "plan" as const, doc: "03-plan.md", what: "The second opinion follows the Plan's risk", answer: "change" as const, label: "Suggest a change", note: "Only on risky Plans" },
+    { kind: "item" as const, id: "plan:mockup:1", step: "plan" as const, doc: "03-plan.md", what: "Settings after the change", answer: "agree" as const, label: "Looks right", note: "" },
+    { kind: "passage" as const, doc: "03-plan.md", quote: "One Vercel deployment", text: "Why one?" },
     { kind: "thread" as const, thread: "g-abc123", anchor: { kind: "doneMeans" as const, id: "1", quote: "A 61st export" }, text: "Is 429 right?" },
     { kind: "reply" as const, thread: "g-abc123", text: "Thanks" },
   ];
@@ -187,9 +129,9 @@ describe("sending what a guest wrote", () => {
     expect(payload).toMatchObject({ author: "Sam", createdAt: 7 });
     expect("decision" in payload).toBe(false);
     expect(payload.annotations.map((a) => [a.blockId, a.originalText === "" ? "" : a.originalText.slice(0, 1)])).toEqual([
-      ["02-plan.md", "T"],
-      ["02-plan.md", "S"],
-      ["02-plan.md", "O"],
+      ["03-plan.md", "T"],
+      ["03-plan.md", "S"],
+      ["03-plan.md", "O"],
       ["review", "{"],
       ["review", "{"],
     ]);
@@ -204,7 +146,7 @@ describe("sending what a guest wrote", () => {
     expect(JSON.parse(payload.annotations[4]?.originalText ?? "")).toEqual({ t: "reply", thread: "g-abc123" });
   });
 
-  it("posts an answer on Discuss against the file the shared task keeps Discuss in", () => {
+  it("posts an answer on Discuss against the Discuss file", () => {
     const discussItem: ShareItem = {
       id: "discuss:decision:1",
       step: "discuss",
@@ -215,13 +157,10 @@ describe("sending what a guest wrote", () => {
       options: ["agree", "change"],
     };
     const drafts = answerItem(EMPTY, discussItem.id, "agree");
-    const docOf = (docs: Record<string, string>) =>
-      remarksPayload("Sam", pending(drafts, [discussItem], docs), 1).annotations.map((a) => a.blockId);
-    expect(docOf({ "01-discuss.md": "d", "02-plan.md": "p" })).toEqual(["01-discuss.md"]);
-    expect(docOf({ "00-discuss.md": "d", "02-plan.md": "p", "03-build.md": "b" })).toEqual(["00-discuss.md"]);
+    expect(remarksPayload("Sam", pending(drafts, [discussItem]), 1).annotations.map((a) => a.blockId)).toEqual(["01-discuss.md"]);
   });
 
-  it("posts an answer on the build against the new task's Implement file, and an older task's build log", () => {
+  it("posts an answer on the build against the Implement file", () => {
     const buildItem: ShareItem = {
       id: "implement:decision:1",
       step: "implement",
@@ -232,10 +171,7 @@ describe("sending what a guest wrote", () => {
       options: ["agree", "change"],
     };
     const drafts = answerItem(EMPTY, buildItem.id, "agree");
-    const docOf = (docs: Record<string, string>) =>
-      remarksPayload("Sam", pending(drafts, [buildItem], docs), 1).annotations.map((a) => a.blockId);
-    expect(docOf({ "01-discuss.md": "d", "02-plan.md": "p" })).toEqual(["03-implement.md"]);
-    expect(docOf({ "00-discuss.md": "d", "02-plan.md": "p", "03-build.md": "b" })).toEqual(["03-build.md"]);
+    expect(remarksPayload("Sam", pending(drafts, [buildItem]), 1).annotations.map((a) => a.blockId)).toEqual(["05-implement.md"]);
   });
 
   it("names a guest who gave no name Guest", () => {
@@ -258,7 +194,7 @@ describe("sending what a guest wrote", () => {
   it("sends nothing when there is nothing to send, and refuses what the owner's machine would drop", async () => {
     const never = answer(201, { ok: true });
     expect(await submitRemarks(ID, KEY, "Sam", [], never)).toEqual({ ok: true });
-    const long = [{ kind: "passage" as const, doc: "02-plan.md", quote: "", text: "x".repeat(4001) }];
+    const long = [{ kind: "passage" as const, doc: "03-plan.md", quote: "", text: "x".repeat(4001) }];
     expect(await submitRemarks(ID, KEY, "Sam", long, never)).toEqual({ ok: false, reason: "too_large" });
     expect(await submitRemarks(ID, KEY, "G".repeat(81), [remarks[2] as never], never)).toEqual({ ok: false, reason: "too_large" });
     expect(never).not.toHaveBeenCalled();

@@ -21,7 +21,7 @@ import { addRemark, EMPTY, pending } from "./drafts";
 
 it("a person note remains structured after draft storage and keeps passage context", () => {
   const drafts = addRemark(EMPTY, { kind: "passage", doc: "03-plan.md", quote: "Repeat", text: "For Max", for: "person", before: "Second ", after: " here", section: "scope" });
-  const note = remarksPayload("Guest", pending(drafts, [], {}), 1).annotations[0]!;
+  const note = remarksPayload("Guest", pending(drafts, []), 1).annotations[0]!;
   expect(note.blockId).toBe("review");
   expect(JSON.parse(note.originalText)).toEqual({ t: "thread", note: true, for: "person", doc: "03-plan.md", quote: "Repeat", before: "Second ", after: " here", section: "scope" });
   const ordinary = remarksPayload("Guest", [{ kind: "passage", doc: "03-plan.md", quote: "Repeat", text: "Fix this", before: "Second ", after: " here", section: "scope" }], 1).annotations[0]!;
@@ -45,7 +45,7 @@ const PLAN = [
   "",
   "## Interface",
   "",
-  "```artifact artifacts/settings.html",
+  "```artifact design/settings.html",
   "```",
   "",
   "A closing remark.",
@@ -65,14 +65,14 @@ describe("a plan cut into parts", () => {
     const blocks = planBlocks(PLAN);
     expect(blocks.map((b) => b.kind)).toEqual(["html", "mermaid", "html", "artifact", "html"]);
     expect(blocks[1]).toMatchObject({ kind: "mermaid", source: "graph LR; A-->B" });
-    expect(blocks[3]).toMatchObject({ kind: "artifact", path: "artifacts/settings.html" });
+    expect(blocks[3]).toMatchObject({ kind: "artifact", path: "design/settings.html" });
   });
 
   it("never lets the fence's words stand in for the picture", () => {
     const text = planBlocks(PLAN)
       .flatMap((b) => (b.kind === "html" ? [b.html] : []))
       .join("");
-    expect(text).not.toContain("artifacts/settings.html");
+    expect(text).not.toContain("design/settings.html");
     expect(text).not.toContain("graph LR");
     expect(text).toContain("First the configuration changes.");
     expect(text).toContain("A closing remark.");
@@ -167,10 +167,11 @@ describe("a mockup's page", () => {
   });
 
   it("is found by the plan's path or by the bare name a question gives", () => {
-    const docs = { "artifacts/settings.html": "<p>m</p>" };
-    expect(mockupHtml(docs, "artifacts/settings.html")).toBe("<p>m</p>");
-    expect(mockupHtml(docs, "settings.html")).toBe("<p>m</p>");
+    const html = "<!doctype html><html><body><p>m</p></body></html>";
+    const docs = { "design/settings.html": html };
+    expect(mockupHtml(docs, "design/settings.html")).toContain("Content-Security-Policy");
+    expect(mockupHtml(docs, "settings.html")).toBe(mockupHtml(docs, "design/settings.html"));
     expect(mockupHtml(docs, "other.html")).toBeUndefined();
-    expect(mockupName("artifacts/settings.html")).toBe("settings.html");
+    expect(mockupName("design/settings.html")).toBe("settings.html");
   });
 });

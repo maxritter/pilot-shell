@@ -15,7 +15,6 @@ const item = (id: string, over: Partial<ShareItem> = {}): ShareItem => ({
   ...over,
 });
 
-const DOCS = { "01-discuss.md": "d", "02-plan.md": "p" };
 const ITEMS = [item("a"), item("b", { family: "look", kind: "mockup", kindLabel: "Mockup" }), item("c")];
 
 describe("answers to the owner's questions", () => {
@@ -37,24 +36,24 @@ describe("answers to the owner's questions", () => {
   });
 
   it("sends the answers in the order the questions are asked, before the comments", () => {
-    let d = addRemark(EMPTY, { kind: "passage", doc: "02-plan.md", quote: "", text: "General remark" });
+    let d = addRemark(EMPTY, { kind: "passage", doc: "03-plan.md", quote: "", text: "General remark" });
     d = answerItem(d, "c", "agree");
     d = answerItem(d, "a", "change", "Rename it");
-    expect(pending(d, ITEMS, DOCS).map((r) => r.kind)).toEqual(["item", "item", "passage"]);
-    expect(pending(d, ITEMS, DOCS)[0]).toMatchObject({ kind: "item", id: "a", answer: "change", note: "Rename it" });
-    expect(pending(d, ITEMS, DOCS)[1]).toMatchObject({ kind: "item", id: "c", answer: "agree" });
+    expect(pending(d, ITEMS).map((r) => r.kind)).toEqual(["item", "item", "passage"]);
+    expect(pending(d, ITEMS)[0]).toMatchObject({ kind: "item", id: "a", answer: "change", note: "Rename it" });
+    expect(pending(d, ITEMS)[1]).toMatchObject({ kind: "item", id: "c", answer: "agree" });
   });
 
   it("sends nothing for a change that says nothing, and nothing for a question that is gone", () => {
     let d = answerItem(EMPTY, "a", "change");
     d = answerItem(d, "gone", "agree");
-    expect(pending(d, ITEMS, DOCS)).toEqual([]);
+    expect(pending(d, ITEMS)).toEqual([]);
   });
 });
 
 describe("comments", () => {
   it("counts the comments apart from the answers and lets one be removed", () => {
-    let d = addRemark(EMPTY, { kind: "passage", doc: "02-plan.md", quote: "One", text: "Why?" });
+    let d = addRemark(EMPTY, { kind: "passage", doc: "03-plan.md", quote: "One", text: "Why?" });
     d = addRemark(d, { kind: "thread", thread: "g-1", anchor: { kind: "doneMeans", id: "1" }, text: "Proof?" });
     expect(summary(d, ITEMS)).toEqual({ answered: 0, total: 3, comments: 2 });
     d = removeRemark(d, 0);

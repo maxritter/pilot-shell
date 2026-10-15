@@ -11,7 +11,7 @@ vi.mock("@/lib/sharing/sharing", async (original) => {
 import { readShareUpdate } from "@/lib/sharing/sharing";
 
 const ready = (title = "ql-verify-before"): Extract<LoadedShare, { status: "ready" }> => ({
-  status: "ready", kind: "v2", title, docs: { "02-plan.md": `# ${title}` }, items: [],
+  status: "ready", kind: "v2", title, docs: { "03-plan.md": `# ${title}` }, items: [],
 });
 const loaded = (rev: number, state = ready()) => ({ kind: "loaded", rev, state });
 const flush = async (ms = 0) => act(async () => { await vi.advanceTimersByTimeAsync(ms); });
@@ -46,19 +46,19 @@ describe("an open share follows its owner", () => {
     expect(readShareUpdate).toHaveBeenCalledTimes(2);
   });
 
-  it("updates the five steps and Plan still without remounting the guest's draft", async () => {
+  it("updates the seven steps and Plan still without remounting the guest's draft", async () => {
     vi.mocked(readShareUpdate).mockResolvedValueOnce(loaded(1) as never);
     const { unmount } = render(<SharedLink id={"A".repeat(22)} linkKey={"B".repeat(43)} />);
     await flush();
     fireEvent.change(screen.getByRole("textbox", { name: "Comment" }), { target: { value: "ql-verify-draft" } });
-    const docs = Object.fromEntries(["01-discuss.md", "02-plan.md", "03-implement.md", "04-verify.md", "05-review.md"].map((name) => [name, `# ql-verify-latest-${name}`]));
+    const docs = Object.fromEntries(["01-discuss.md", "02-research.md", "03-plan.md", "04-outline.md", "05-implement.md", "06-verify.md", "07-review.md"].map((name) => [name, `# ql-verify-latest-${name}`]));
     docs["plan-design.png"] = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aQ1sAAAAASUVORK5CYII=";
     vi.mocked(readShareUpdate).mockResolvedValueOnce(loaded(2, { ...ready("ql-verify-after"), docs, stills: { "design/settings.html": { title: "ql-verify-settings", image: "data:image/png;base64,iVBORw0KGgo=" } } } as never) as never);
     await flush(30_000);
     expect(screen.getAllByText("ql-verify-after").length).toBeGreaterThan(0);
     expect((screen.getByRole("textbox", { name: "Comment" }) as HTMLTextAreaElement).value).toBe("ql-verify-draft");
     expect((screen.getByRole("img", { name: "Plan design" }) as HTMLImageElement).src).toBe("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aQ1sAAAAASUVORK5CYII=");
-    for (const step of ["Discuss", "Plan", "Implement", "Verify", "Review"]) expect(screen.getByRole("button", { name: step })).toBeTruthy();
+    for (const step of ["Discuss", "Research", "Plan", "Outline", "Implement", "Verify", "Review"]) expect(screen.getByRole("button", { name: step })).toBeTruthy();
     unmount();
     await flush(300_000);
     expect(readShareUpdate).toHaveBeenCalledTimes(2);

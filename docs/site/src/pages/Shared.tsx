@@ -15,6 +15,7 @@ import { DesignStill } from "./shared/Frame";
 import { watchShare } from "@/lib/sharing/poll";
 import { downloadMarkdown } from "@/lib/sharing/exports";
 import {
+  ALL_TABS,
   type ChangeAnchor,
   docOfStep,
   type GuestAnswer,
@@ -28,7 +29,6 @@ import {
   submitRemarks,
   type Tab,
   tabOfStep,
-  tabsOf,
   where,
 } from "@/lib/sharing/sharing";
 import { Asks } from "./shared/Asks";
@@ -57,7 +57,7 @@ const REASONS: Record<Exclude<SubmitResult, { ok: true }>["reason"], string> = {
   network: "It could not be sent. Check your connection and try again.",
 };
 
-/** The steps, named as the App names them: seven for a task started with them, five for an older one. */
+/** The seven steps, named as the App names them. */
 const LABELS: Record<Tab, string> = {
   discuss: "Discuss",
   research: "Research",
@@ -124,10 +124,9 @@ const labelOf = (r: Exclude<Remark, { kind: "item" }>, owner: string): string =>
 type ReadyShare = Extract<LoadedShare, { status: "ready" }>;
 
 /** The step a link opens on: where the task is, else the furthest step with something in it. */
-function firstTab(share: ReadyShare, steps: Record<Tab, string[]>, tabs: readonly Tab[]): Tab {
-  const at = flowStepOf(share.stage ?? "");
-  const own = at !== null && tabs.includes(at) ? at : undefined;
-  return own ?? [...tabs].reverse().find((tab) => steps[tab].length > 0) ?? "discuss";
+function firstTab(share: ReadyShare, steps: Record<Tab, string[]>): Tab {
+  const own = flowStepOf(share.stage ?? "") ?? undefined;
+  return own ?? [...ALL_TABS].reverse().find((tab) => steps[tab].length > 0) ?? "discuss";
 }
 
 /** Download beside the Reader's Sections and Copy: the document exactly as the link carries it. */
@@ -250,8 +249,7 @@ function Ready({
   onSend: (author: string, remarks: Remark[]) => Promise<SubmitResult>;
 }) {
   const steps = stepDocs(share.docs);
-  const tabs = tabsOf(share.docs, share.stage);
-  const [tab, setTab] = useState<Tab>(initialTab ?? firstTab(share, steps, tabs));
+  const [tab, setTab] = useState<Tab>(initialTab ?? firstTab(share, steps));
   const [author, setAuthor] = useState(storedName);
   const [drafts, setDrafts] = useState<Drafts>(EMPTY);
   const [settled, setSettled] = useState<Record<string, string>>({});
@@ -278,7 +276,7 @@ function Ready({
   const drafted = summary(drafts, items);
   // What was sent still counts as answered.
   const counts = { ...drafted, answered: drafted.answered + items.filter((item) => settled[item.id] !== undefined).length };
-  const waiting = pending(drafts, items, share.docs);
+  const waiting = pending(drafts, items);
   const expires = share.expires === undefined ? null : new Date(share.expires);
   const hasChange = share.review !== undefined;
   // On the change a comment belongs to a point of it; on a document it may be a general remark.
@@ -318,7 +316,7 @@ function Ready({
   const add = () => {
     const remark: Drafts["remarks"][number] =
       target.kind === "passage"
-        ? { kind: "passage", id: crypto.randomUUID(), doc: target.doc ?? steps[tab][0] ?? docOfStep(tab, share.docs), quote: target.quote, text, ...(recipient === "person" ? { for: "person" as const } : {}) }
+        ? { kind: "passage", id: crypto.randomUUID(), doc: target.doc ?? steps[tab][0] ?? docOfStep(tab), quote: target.quote, text, ...(recipient === "person" ? { for: "person" as const } : {}) }
         : target.kind === "anchor"
           ? { kind: "thread", thread: newThreadId(), anchor: target.anchor, text }
           : { kind: "reply", thread: target.thread, text };
@@ -391,7 +389,7 @@ function Ready({
             } · project source code is kept private`}
           </p>
           <nav className="sh-tabs" aria-label="Steps">
-            {tabs.map((id) => (
+            {ALL_TABS.map((id) => (
               <button key={id} type="button" aria-current={id === tab ? "page" : undefined} onClick={() => setTab(id)}>
                 {LABELS[id]}
               </button>

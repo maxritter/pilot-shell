@@ -21,7 +21,7 @@ export type PlanBlock =
   | { kind: "mermaid"; key: string; source: string }
   | { kind: "wireframe"; key: string; source: string }
   | { kind: "panel"; key: string; source: string }
-  /** `path` as the plan's fence names it: `artifacts/settings.html`. */
+  /** `path` as the plan's fence names it: `design/settings.html`. */
   | { kind: "artifact"; key: string; path: string };
 
 const escapeHtml = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -140,12 +140,12 @@ export function contractsOf(details: string): Contract[] {
 }
 
 /** A mockup file by its bare name, so the plan's fence and a question name it alike. */
-export const mockupName = (path: string) => path.replace(/^artifacts\//, "");
+export const mockupName = (path: string) => path.replace(/^design\//, "");
 
-/** A mockup's html from the link: the fence names `artifacts/settings.html`, an item just `settings.html`. */
+/** A mockup's html from the link: the fence names `design/settings.html`, an item just `settings.html`. */
 export const mockupHtml = (docs: Record<string, string>, path: string): string | undefined => {
-  const html = docs[path] ?? docs[`artifacts/${mockupName(path)}`];
-  return html !== undefined && path.startsWith("design/") ? sharedDesignHtml(html) : html;
+  const html = docs[`design/${mockupName(path)}`];
+  return html === undefined ? undefined : sharedDesignHtml(html);
 };
 
 const CSP =
