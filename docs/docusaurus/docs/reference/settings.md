@@ -82,8 +82,10 @@ Your plan or trial days left. **Open billing account** opens qualitylayer.dev/bi
 | Your name | How your team sees you |
 | **People and groups** | Seats, members and their computers |
 | **Team instructions** | See [below](#team-instructions) |
-| **Slack** | Connected once by the team owner; each member sets digest and quiet hours ([Slack](../team/plans.md#slack)) |
+| **Slack** | The owner connects the workspace; each person controls messages and an optional morning digest ([Slack](../team/plans.md#slack)) |
 | **Shared links** | Each with **Copy** and **Revoke** |
+
+Groups limit who sees a shared task. If another device changes groups while you edit, your input is kept. Unrelated edits can be merged; a conflict on your group offers **Use latest** or **Save my changes** after comparison.
 
 ### Team instructions {#team-instructions}
 

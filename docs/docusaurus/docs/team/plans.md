@@ -17,17 +17,23 @@ With a Team plan, your team reviews the Plan before any code (this page) and the
 2. They answer with **Looks right**, **Suggest a change** or **Reply**, or let [their agent draft it](agents.md).
 3. Your agent updates the Plan. Only your approval moves the task on.
 
+On a shared Plan or Review, **Looks right** sends your review to the owner. **Suggest changes** asks what should change before sending. **Comment** leaves feedback without requesting a decision. The owner decides when to approve the task.
+
 ## Hand over an approved Plan {#hand-over}
 
 **Hand to the team › Hand over** on the Implement card (or `qualitylayer handover --push`) commits the task and pushes its branch. The first teammate to run `qualitylayer next` on that branch builds it; the final approval comes back to you. It is refused on the base branch, or when the Plan changed since you approved it.
 
 ## Slack {#slack}
 
-The team owner connects Slack once in **Settings › Team**. Teammates get a message only when they can act, linking to the exact step. **Follow** on a shared task tells you when it moves on. Each member sets **Morning digest** and **Quiet hours**.
+The team owner connects Slack once in **Settings › Team**. Each person controls **Slack messages to you** and an optional **Morning digest**. Digest timing uses the computer's local time automatically; Slack controls do-not-disturb hours. **Follow** subscribes you to a shared task's updates.
+
+Questions and answers always appear in Team. Slack delivery depends on your own notification setting and account match. If your emails differ, link your own Slack account in Settings.
 
 ## People outside your team {#outside-links}
 
-**Share › Copy link** gives a qualitylayer.dev link. Anyone with it can read and comment without an account; only your team approves. The open page updates as the task changes and keeps your unsent answers and comments. A link lasts 14 days; **Revoke** ends it at once. **Include designs** adds previews ([Designs](../designs.md#never-shared)).
+**Share › Copy link** gives a qualitylayer.dev link. Anyone with it can read and comment without an account; the task owner decides approval. The open page updates as the task changes and keeps your unsent answers and comments. A link lasts 14 days; **Revoke** ends it at once. **Include designs** adds previews ([Designs](../designs.md#never-shared)).
+
+If an update cannot be published, Share shows the problem and keeps the last complete copy. Reduce oversized content, then use **Retry sharing** for the team or **Renew** for an external link.
 
 A coding agent can fetch the shared documents as Markdown, no licence needed:
 
@@ -39,4 +45,4 @@ The file holds the whole link, including the part after `#`; keep it private ([d
 
 ## What is shared {#privacy}
 
-Nothing leaves your computer until you share. Shared plans and comments are encrypted with your team's key, so the server never sees the content. Your code, the diff and your logs are never sent. More in [Files and privacy](../reference/files.md#privacy).
+Shared documents, designs and comment bodies are encrypted with your team's key before publication. The server stores their ciphertext. Slack notifications can include task titles and short question or answer excerpts, which pass through the notification service. Your code, the diff and your logs are not included in the shared task. More in [Files and privacy](../reference/files.md#privacy).
