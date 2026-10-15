@@ -79,6 +79,8 @@ checks included, so a failure anywhere blocks it.
    directory as its development trial key. Run heavy suites sequentially on this Mac; overlapping
    Bun, browser, Rust and docs builds caused native stop/replay, crash-recovery and HTTP timing
    failures in beta.57 qualification. The unchanged cases passed in the controlled full rerun.
+   Record the frozen source commit, private candidate path and hash, and matching development
+   trial key before starting. Keep that candidate/key pair together throughout qualification.
    Never replace a gate's binary or signer while it runs.
    Run `bun run build --all` (the release build) once locally: it enforces guards the dev build
    skips, such as the memory engine's `releaseQualified` flag per target in
@@ -92,6 +94,10 @@ checks included, so a failure anywhere blocks it.
    A working `apiKeyHelper` takes precedence over an expired OAuth copy. Copy only that helper
    and the fixture's required hooks; preserve personal settings and credentials. Without a
    helper, keep the refreshable private OAuth copy. A failed login preflight spends no model turn.
+   Real App-start checks preserve the selected **Own settings** and the user's existing
+   permissions. A stricter automatic permission mode is unverified until its actual consent
+   prompt is handled. Retain a bounded native startup trace on failure; change trust-prompt
+   recognition only for the observed prompt, preserving consent and session ownership.
 6. **The shipped binary is a different program.** Only `--release`/`--all` builds obfuscate the
    licence, team, gate, install and server code, and every other suite drives the development
    build. `tests/release/protection.test.ts` › "a new user's first minutes" runs the trial, a key
@@ -126,6 +132,12 @@ gh run watch <release-run-id> --exit-status --interval 60   # in the background
 Release jobs, in order: Check Release Trigger → Prepare Release (CHANGELOG) → Reuse CI results
 (needs QualityLayer CI green) + Source UI Gate (waits up to 20 min for the source UI run) →
 builds, App packages for six targets, native Windows → publish.
+
+Tauri parses `CI` as a boolean: set `CI=true` or `CI=false`, never `CI=1`.
+*(2026-10-15: a native App qualification build stopped before startup on `CI=1`.)*
+
+Restore any publishing workflows paused for candidate qualification before final publication,
+then verify that the release's required gates and publish jobs are enabled.
 
 **Diagnose a failure while the run is still going.** `gh run view --log-failed` is empty until the
 whole run ends; read each failed job instead:
