@@ -122,7 +122,7 @@ jobs:
         working-directory: qualitylayer
         env:
           QUALITYLAYER_REQUIRE_RENDER: "1"
-        run: bun run test --shard ${{ matrix.shard }}/${{ matrix.shards }}
+        run: bun run test --all --shard ${{ matrix.shard }}/${{ matrix.shards }}
 
   # Once per system, not once per test shard: the demo is the same in every shard.
   overflow:

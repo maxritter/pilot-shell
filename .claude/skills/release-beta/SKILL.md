@@ -64,7 +64,8 @@ shipped.
 The Release workflow reuses CI's results and waits for the **whole** source UI run, website
 checks included, so a failure anywhere blocks it.
 
-1. `cd qualitylayer && bun run test`: the full suite (~7 min). A one-off temp-folder cleanup race
+1. `cd qualitylayer && bun run test --all`: the full suite (`bun run test` alone is the fast
+   working tier and skips every file over 3 s). A one-off temp-folder cleanup race
    in `tests/cli/hook-prompt.test.ts` passes on rerun; anything else is real.
 2. `bun run test:ui`: the whole Playwright suite, not only the specs you touched. Other sessions'
    site changes break `tests/frontend/website.spec.ts` (headings, axe contrast).

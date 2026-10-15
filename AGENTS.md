@@ -23,9 +23,12 @@ All in `qualitylayer/`:
   `bun run test:ui` — one-worker Playwright desktop/phone light/dark checks
   with semantic interactions, geometry and axe. Both Claude Code and Codex
   use these commands. Read `qualitylayer/TESTING.md` for setup and evidence.
-- `bun run test` — every test file in its own process (plain `bun test` leaks
-  the test DOM between files); builds the binary first
-- `bun run test tests/e2e` — a directory or single files
+- `bun run test` — the working run: every test file recorded within 3 seconds, each
+  in its own process (plain `bun test` leaks the test DOM between files); builds the
+  binary first. A couple of minutes
+- `bun run test tests/e2e/x.test.ts` — a directory or single files, whatever their
+  time: the slower files that cover what you changed
+- `bun run test --all` — every file: once before a push; CI runs it on every push
 - `bun run build` — the development binary in `dist/qualitylayer`;
   `bun run build --all` — the six release targets with checksums
 - `bun run release-gate --agent claude-code|codex` — a real agent carries the
@@ -83,6 +86,20 @@ All in `qualitylayer/`:
   `gh` calls are cached on what changes their answer, children are reaped, and
   idle is near 0% CPU. Files that grow in the QualityLayer home carry a cap
   (`core/home-caps.ts`); the server's own check is `server/resource-guard.ts`.
+
+## Test cost
+
+- Tests are budgeted: `qualitylayer/scripts/test-tiers.ts` and
+  `tests/scripts/test-budget.test.ts`. A file over ten seconds needs its reason
+  there; the working run and the full suite stay within their minutes. Raising a
+  budget needs the person's approval, never a way to make a run pass.
+- Test at the cheapest level that proves the behaviour (TESTING.md): unit and
+  component tests first, an in-process server for the API, and the built binary, a
+  browser or the native App only for what only they show, one flow per journey.
+- No fixed sleeps to wait for something; share a fixture per file; tests for
+  retired behaviour leave with the code.
+- While working run `bun run test` plus the slower files you touched; run
+  `--all` once before a push, never several full runs at once.
 
 ## Bigger workflow changes are measured
 

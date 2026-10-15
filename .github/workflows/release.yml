@@ -347,7 +347,7 @@ jobs:
         run: |
           bun run typecheck
           bun run lint
-          bun run test --shard "$SHARD/4"
+          bun run test --all --shard "$SHARD/4"
 
       - name: No text overflows a control
         if: matrix.shard == 1

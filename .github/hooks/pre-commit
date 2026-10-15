@@ -10,7 +10,7 @@
 #   • workflows      actionlint                          (.github/workflows/ staged)
 #   • trivy          vuln + secret scan                  (always)
 #
-# The test suite is CI's job (`bun run test` in qualitylayer/, a few minutes).
+# The test suite is CI's job (`bun run test --all` in qualitylayer/, a few minutes).
 # Missing local tools are skipped with a warning, never blocking: CI is the gate.
 #
 # Install: ln -sf ../../.github/hooks/pre-commit .git/hooks/pre-commit
