@@ -67,7 +67,7 @@ checks included, so a failure anywhere blocks it.
 1. `cd qualitylayer && bun run test --all`: the full suite (`bun run test` alone is the fast
    working tier and skips every file over 3 s). A one-off temp-folder cleanup race
    in `tests/cli/hook-prompt.test.ts` passes on rerun; anything else is real.
-2. `bun run test:ui`: the whole Playwright suite, not only the specs you touched. Other sessions'
+2. `bun run test:ui --all`: the whole Playwright suite in every project, not only the specs you touched. Other sessions'
    site changes break `tests/frontend/website.spec.ts` (headings, axe contrast).
    *(2026-10-12: beta.54's first run was blocked by website checks left failing by a site redesign.)*
 3. `cd docs/site && bun run test && bun run typecheck` when the site changed.

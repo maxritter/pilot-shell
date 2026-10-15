@@ -64,7 +64,7 @@ jobs:
         run: bun run build
       - name: Source UI interactions, geometry and accessibility
         working-directory: qualitylayer
-        run: bun run test:ui --shard ${{ matrix.shard }}/8
+        run: bun run test:ui --all --shard ${{ matrix.shard }}/8
       - name: Keep fixture failure screenshots
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

@@ -20,8 +20,10 @@ All in `qualitylayer/`:
 
 - `bun run typecheck` · `bun run lint` (Biome) · `bun run lint:fix`
 - `bun run dev:ui` — source-backed App demo on loopback with Vite reload;
-  `bun run test:ui` — one-worker Playwright desktop/phone light/dark checks
-  with semantic interactions, geometry and axe. Both Claude Code and Codex
+  `bun run test:ui` — Playwright checks with semantic interactions, geometry
+  and axe, in desktop light while working; `bun run test:ui --all` adds dark
+  (CI runs `--all`); `--project desktop-small` checks a 1024 × 720 window. Nobody uses the App on a
+  phone: there are no phone checks. Both Claude Code and Codex
   use these commands. Read `qualitylayer/TESTING.md` for setup and evidence.
 - `bun run test` — the working run: every test file recorded within 3 seconds, each
   in its own process (plain `bun test` leaks the test DOM between files); builds the
