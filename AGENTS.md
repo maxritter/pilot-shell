@@ -186,6 +186,9 @@ All in `qualitylayer/`:
 
 ## Cross-agent assets
 
+- For delegated QualityLayer findings, use `ql-feedback` before edits. Cite the
+  exact `~/QualityLayer-feedback/inbox.md` heading in the handoff and link
+  private evidence from that shared block.
 - `AGENTS.md` is the shared repository core; `CLAUDE.md` must remain exactly
 `@AGENTS.md` plus a trailing newline.
 
