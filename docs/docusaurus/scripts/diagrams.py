@@ -249,6 +249,28 @@ def install_ill(c: Theme) -> str:
     return svg(W, H, ''.join(b), 'One rule: a machine with a screen gets the App, which updates itself; WSL2, dev containers and servers get the command line and open the App in a browser')
 
 
+def remote_ill(c: Theme) -> str:
+    W, H = 1000, 250
+    # Your computer: only a browser is needed.
+    b = [card(c, 0, 20, 300, 210)]
+    b.append(T(20, 52, 'Your computer', 15, 'text', 650, c=c))
+    b.append(T(20, 72, 'macOS, Windows or Linux', 13, 'muted', c=c))
+    b.append(node(c, 20, 100, 260, 100, 'Browser', ['The App’s pages: answer,', 'read, approve'], 'blue', 'bluef'))
+    # The forwarded port between them.
+    b.append(arrow(c, 532, 150, 302, col='blue'))
+    b.append(arrow(c, 302, 150, 532, col='blue'))
+    b.append(T(417, 132, 'One forwarded port', 13, 'text', 650, 'middle', c=c))
+    for i, how in enumerate(['VS Code forwards it', 'WSL2 forwards it', 'Over SSH: ssh -L']):
+        b.append(T(417, 178 + i * 18, how, 12.5, 'muted', anchor='middle', c=c))
+    # Where the agent runs: QualityLayer and its server run there too.
+    b.append(card(c, 534, 20, 466, 210, 'blue', 'card', dash=True, sw=1.5))
+    b.append(T(554, 52, 'Where your agent runs', 15, 'text', 650, c=c))
+    b.append(T(554, 72, 'Dev container, WSL2 or a server', 13, 'muted', c=c))
+    b.append(node(c, 554, 100, 200, 100, 'Your agent', ['Claude Code or Codex', 'in the terminal'], 'cardline', 'bg'))
+    b.append(node(c, 772, 100, 208, 100, 'QualityLayer', ['Command line and', 'the App’s server'], 'cardline', 'bg'))
+    return svg(W, H, ''.join(b), 'Install QualityLayer where your agent runs, in a dev container, WSL2 or on a server. Its pages open in the browser on your computer through one forwarded port')
+
+
 def move_ill(c: Theme) -> str:
     W, H = 1000, 190
     b = []
@@ -1539,7 +1561,7 @@ DRAWINGS = [('architecture', architecture), ('flow-pr', lambda c: flow(c, pr=Tru
             ('pull-request', pull_request_ill), ('band', band_ill), ('cost', cost_ill),
             ('attention', attention_ill), ('feedback', feedback_ill), ('agents-other', agents_other_ill), ('agents-mix', agents_mix_ill),
             ('team', team), ('team-agents', team_agents), ('team-timeline', team_timeline), ('team-change', team_change),
-            ('peers', peers), ('install', install_ill), ('firsttask', firsttask_ill), ('update', update_ill),
+            ('peers', peers), ('install', install_ill), ('remote', remote_ill), ('firsttask', firsttask_ill), ('update', update_ill),
             ('move', move_ill), ('files', files_ill), ('privacy', privacy_ill),
             ('designs', designs_flow), ('designs-tab', designs_tab), ('design-open', design_open)]
 DRAWINGS += [(f'track-{n.lower().replace(" ", "-")}', track(n)) for n, _ in STEPS_PR]

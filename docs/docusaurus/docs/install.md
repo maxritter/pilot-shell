@@ -19,15 +19,36 @@ description: Download the App, or run one command on a machine without a screen.
 
 On Windows you can also run `irm https://qualitylayer.dev/install.ps1 | iex` in PowerShell. This installs the App and the command line.
 
-## Without a screen {#without-a-screen}
+## WSL2, dev containers and servers {#without-a-screen}
 
-For WSL2, dev containers and servers:
+Install QualityLayer where your agent runs. Its pages open in your computer's browser, so you don't need the App there.
+
+![Install QualityLayer where your agent runs, in a dev container, WSL2 or on a server. Its pages open in the browser on your computer through one forwarded port](pathname:///img/diagrams/remote-light.svg)
+![Install QualityLayer where your agent runs, in a dev container, WSL2 or on a server. Its pages open in the browser on your computer through one forwarded port](pathname:///img/diagrams/remote-dark.svg)
+
+Install your agent first, then run this where it runs:
 
 ```bash
 curl -fsSL https://qualitylayer.dev/install.sh | bash
 ```
 
-In WSL, run it inside your Linux distribution. The installer prints how to open the App in your browser; over SSH, forward the port it names.
+| Your agent runs in | The App's pages open |
+| --- | --- |
+| **WSL2** | In your Windows browser |
+| **A VS Code dev container** (on macOS, Windows or Linux) | In your browser. VS Code forwards the port |
+| **A server over SSH** | In VS Code Remote-SSH, by themselves. With plain `ssh`, forward the port that `qualitylayer app pair` prints |
+
+`qualitylayer app` opens the pages again at any time. An App installed on your computer shows only that computer's tasks.
+
+To keep your licence, Claude Code login and QualityLayer setup when the container is rebuilt, add this to `devcontainer.json`:
+
+```json
+"mounts": [
+  "source=qualitylayer-${devcontainerId},target=/home/vscode/.qualitylayer,type=volume",
+  "source=claude-${devcontainerId},target=/home/vscode/.claude,type=volume"
+],
+"postCreateCommand": "sudo chown vscode ~/.qualitylayer ~/.claude && curl -fsSL https://claude.ai/install.sh | bash && curl -fsSL https://qualitylayer.dev/install.sh | bash"
+```
 
 ## Updates {#updates}
 
@@ -55,7 +76,7 @@ If setup fails with "Microsoft Defender Exploit Guard blocked an operation that 
 | --- | --- |
 | **Exclusion** (IT) | Exclude `%LOCALAPPDATA%\QualityLayer` and `%USERPROFILE%\.qualitylayer\bin`. Intune: Endpoint security › Attack surface reduction › *Attack Surface Reduction Only Exclusions* |
 | **File indicator** (IT) | Allow the setup file by its SHA-256 from `SHA256SUMS` on the release page |
-| **WSL** (no IT) | Install [without a screen](#without-a-screen); the App opens in your Windows browser |
+| **WSL** (no IT) | Install [in WSL2](#without-a-screen); the App opens in your Windows browser |
 
 Then run `qualitylayer doctor` and open the App once to repair the install.
 
