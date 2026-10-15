@@ -10,7 +10,8 @@ import Page from "@/components/Page";
 import SEO from "@/components/SEO";
 import { useTheme } from "@/hooks/useTheme";
 import { addRemark, answerItem, type Drafts, EMPTY, pending, removeRemark, summary } from "@/lib/sharing/drafts";
-import { contractsOf, mockupName, planBlocks, slicesOf } from "@/lib/sharing/plan";
+import { contractsOf, mockupName, planBlocks, slicesOf, screenPairsOf } from "@/lib/sharing/plan";
+import { DesignStill } from "./shared/Frame";
 import { watchShare } from "@/lib/sharing/poll";
 import { downloadMarkdown } from "@/lib/sharing/exports";
 import {
@@ -165,11 +166,24 @@ function Sections({ share, names, items, drafts, settled, onAnswer, commentsOn, 
   const slices = slicesOf(detailText);
   const tasks = slices.reduce((sum, s) => sum + s.tasks, 0);
   const contracts = contractsOf(detailText);
+  const screens = main.some((name) => /review\.md$/.test(name)) ? screenPairsOf(share.docs, share.stills) : [];
   // A mockup that is a question is drawn there; the plan's own fence for it would draw it twice.
   const shown = new Set(items.flatMap((i) => (i.media?.kind === "artifact" ? [mockupName(i.media.name)] : [])));
   return (
     <>
       <Asks items={items} owner={share.owner} docs={share.docs} stills={share.stills} drafts={drafts} settled={settled} onAnswer={onAnswer} />
+      {screens.length > 0 ? <section className="sh-sec" aria-label="Screens compared">
+        <h2>Screens compared</h2>
+        {screens.map((screen) => <div key={`${screen.key}:${screen.width}:${screen.theme}`}>
+          <h3>{screen.key}</h3>
+          <p>{screen.width} px · {screen.theme} · {screen.outcome}{screen.stale ? " · stale: the design or build changed after capture" : ""}</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            {screen.image ? <DesignStill still={{ title: `Design ${screen.key}`, image: screen.image }} /> : <p>Design picture unavailable.</p>}
+            {screen.outcome === "captured" && screen.built ? <DesignStill still={{ title: `Built ${screen.key}`, image: screen.built }} /> : <p>No built picture. {screen.outcome}</p>}
+          </div>
+          <p><b>Polish</b> {screen.verdict}</p>
+        </div>)}
+      </section> : null}
       {main.map((name) => (
         // The document a selected passage is in, so a comment is filed against it.
         <div key={name} className="sh-docs" data-doc={name}>

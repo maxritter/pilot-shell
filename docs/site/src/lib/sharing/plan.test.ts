@@ -1,6 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { contractsOf, mockupHtml, mockupName, planBlocks, slicesOf, withCsp } from "./plan";
-import { remarksPayload } from "./sharing";
+import { contractsOf, mockupHtml, mockupName, planBlocks, slicesOf, withCsp, screenPairsOf } from "./plan";
+import { remarksPayload, parsePlan } from "./sharing";
+
+it("built pairs round-trip the publication allowlist and oversized pairs stay text", () => {
+  const png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLttAAAAABJRU5ErkJggg==";
+  const review = "# Review\n\n## Screens compared\n\n- **settings** · 840 px · light · captured · stale\n  - Polish: Field order matches.\n- **large** · 1280 px · dark · captured · current\n  - Polish: No comparison recorded.\n";
+  const plan = parsePlan(JSON.stringify({ docs: { "07-review.md": review }, stills: {
+    "screen/settings/840/light": { title: "Settings", image: png, built: png },
+    "screen/large/1280/dark": { title: "Large", image: "", outcome: "omitted: size" },
+    "screen/hostile/840/light": { title: "Hostile", image: png, built: "data:text/html,unsafe" },
+  } }));
+  expect(plan?.stills?.["screen/settings/840/light"]?.built).toBe(png);
+  expect(plan?.stills?.["screen/hostile/840/light"]).toBeUndefined();
+  const screens = screenPairsOf(plan!.docs, plan!.stills);
+  expect(screens[0]).toMatchObject({ key: "settings", built: png, stale: true, verdict: "Field order matches." });
+  expect(screens[1]).toMatchObject({ key: "large", outcome: "omitted: size" });
+  expect(screens[1]?.built).toBeUndefined();
+});
 import { addRemark, EMPTY, pending } from "./drafts";
 
 it("a person note remains structured after draft storage and keeps passage context", () => {

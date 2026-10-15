@@ -9,6 +9,12 @@ import DOMPurify from "dompurify";
 import { sharedDesignHtml } from "@ql/ui/design/shared-html";
 import { parseFence } from "@ql/core/docs/fragments";
 import { marked, type Token, type Tokens, type TokensList } from "marked";
+import { screensFromReview, withScreenStills } from "@ql/core/review/screen-pairs";
+import { sharedScreenStills } from "@ql/core/team/publication";
+
+export function screenPairsOf(docs: Record<string, string>, stills: unknown) {
+  return withScreenStills(screensFromReview(docs["07-review.md"] ?? ""), sharedScreenStills(stills));
+}
 
 export type PlanBlock =
   | { kind: "html"; key: string; html: string }
