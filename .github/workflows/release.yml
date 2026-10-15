@@ -238,8 +238,8 @@ jobs:
           for shard in 1 2 3; do
             printf 'Typecheck, lint, test (ubuntu-latest, shard %s/3)\n' "$shard" >> "$required"
           done
-          for shard in 1 2 3 4 5; do
-            printf 'Typecheck, lint, test (macos-14, shard %s/5)\n' "$shard" >> "$required"
+          for shard in 1 2 3 4 5 6; do
+            printf 'Typecheck, lint, test (macos-14, shard %s/6)\n' "$shard" >> "$required"
           done
           for os in ubuntu-latest macos-14; do
             printf 'No text overflows a control (%s)\n' "$os" >> "$required"

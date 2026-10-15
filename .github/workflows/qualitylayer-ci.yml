@@ -53,9 +53,9 @@ jobs:
         run: bash .github/scripts/check_qualitylayer_encrypted.sh
 
   # The whole suite, every file, on Linux and macOS on every push. Each shard holds about the same
-  # recorded seconds (scripts/test-timings.json), so every job ends within ten minutes: three on
-  # Linux, five on the slower 3-core macOS runner. Windows runs its own suites below. GitHub runs
-  # at most 20 jobs of this account at once (5 on macOS), so no more shards than that needs.
+  # recorded seconds (scripts/test-timings.json): three on Linux, six on the slower 3-core macOS
+  # runner. Six Mac shards leave room for setup within the fifteen-minute job limit; the account's
+  # five concurrent Mac slots mean one can queue. Windows runs its own suites below.
   test:
     name: Typecheck, lint, test (${{ matrix.os }}, shard ${{ matrix.shard }}/${{ matrix.shards }})
     runs-on: ${{ matrix.os }}
@@ -68,11 +68,12 @@ jobs:
           - { os: ubuntu-latest, shard: 1, shards: 3 }
           - { os: ubuntu-latest, shard: 2, shards: 3 }
           - { os: ubuntu-latest, shard: 3, shards: 3 }
-          - { os: macos-14, shard: 1, shards: 5 }
-          - { os: macos-14, shard: 2, shards: 5 }
-          - { os: macos-14, shard: 3, shards: 5 }
-          - { os: macos-14, shard: 4, shards: 5 }
-          - { os: macos-14, shard: 5, shards: 5 }
+          - { os: macos-14, shard: 1, shards: 6 }
+          - { os: macos-14, shard: 2, shards: 6 }
+          - { os: macos-14, shard: 3, shards: 6 }
+          - { os: macos-14, shard: 4, shards: 6 }
+          - { os: macos-14, shard: 5, shards: 6 }
+          - { os: macos-14, shard: 6, shards: 6 }
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -97,6 +98,11 @@ jobs:
       - name: Install dependencies
         working-directory: qualitylayer
         run: bun install --frozen-lockfile
+
+      - name: Install managed Mac test browsers
+        if: runner.os == 'macOS'
+        working-directory: qualitylayer
+        run: bun x playwright install chromium
 
       # The suites run the site's real handlers on the in-process database (PGlite) it ships.
       - name: Install the site's dependencies
