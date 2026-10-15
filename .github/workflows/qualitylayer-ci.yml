@@ -128,6 +128,8 @@ jobs:
         working-directory: qualitylayer
         env:
           QUALITYLAYER_REQUIRE_RENDER: "1"
+          QUALITYLAYER_TEST_RETRIES: "0"
+          QUALITYLAYER_TEST_ALLOW_LEAKS: "0"
         run: bun run test --all --shard ${{ matrix.shard }}/${{ matrix.shards }}
 
   # Once per system, not once per test shard: the demo is the same in every shard.
