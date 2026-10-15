@@ -216,6 +216,7 @@ jobs:
           $env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = 'test'
           cargo tauri signer generate --ci -w $env:TAURI_SIGNING_PRIVATE_KEY -p test
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:QUALITYLAYER_UPDATE_PUBKEY = (Get-Content -Raw "$env:TAURI_SIGNING_PRIVATE_KEY.pub").Trim()
           $build = bun scripts/app.ts --test-updater --version 0.0.0-terminal-proof
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $built = $build[-1] | ConvertFrom-Json
