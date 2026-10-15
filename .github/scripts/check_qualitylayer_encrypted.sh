@@ -13,13 +13,19 @@
 # range adds or changes under those paths must begin with git-crypt's header.
 # That needs no key and no git-crypt, and it prints paths, never contents.
 #
+# With --staged, the same check over what the index adds or changes against HEAD
+# (GIT_INDEX_FILE is honoured): the pre-commit hook's guard. A path staged
+# unchanged was checked when it was committed; `git-crypt status` over the whole
+# tree took one to two minutes on every commit.
+#
 # Run locally as a pre-push check and in CI (works on a locked checkout).
 #
-# Usage: .github/scripts/check_qualitylayer_encrypted.sh [--range <rev-range>] [repo-dir]
+# Usage: .github/scripts/check_qualitylayer_encrypted.sh [--range <rev-range> | --staged] [repo-dir]
 
 set -euo pipefail
 
 RANGE=""
+STAGED=0
 REPO_DIR="."
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -29,6 +35,10 @@ while [ $# -gt 0 ]; do
     ;;
   --range=*)
     RANGE="${1#--range=}"
+    shift
+    ;;
+  --staged)
+    STAGED=1
     shift
     ;;
   *)
@@ -101,46 +111,71 @@ list_extra() {
   done
 }
 
-# git-crypt starts every encrypted file with NUL, "GITCRYPT", NUL.
-GITCRYPT_HEADER="004749544352595054"
 
 LISTING=""
 
 scan_range() {
-  local failures=0 checked=0 meta blob path head
+  # One raw line per added or changed path in the range.
+  git log --format= --raw --no-abbrev --no-renames --diff-filter=AM --root "$RANGE" | scan_raw "$RANGE"
+}
+
+scan_staged() {
+  local base
+  base="$(git rev-parse --verify -q HEAD || git hash-object -t tree /dev/null)"
+  git diff --cached --raw --no-abbrev --no-renames --diff-filter=AM "$base" | scan_raw "the staged changes"
+}
+
+# Checks the new blob of every guarded path in `git diff --raw` lines on stdin.
+scan_raw() {
+  local label="$1" failures=0 checked=0 meta blob path
   LISTING="$(mktemp)"
   trap 'rm -f "${LISTING:?}"' EXIT
 
-  # One "<blob> <path>" line per added or changed path in the range, once each.
-  git log --format= --raw --no-renames --diff-filter=AM --root "$RANGE" |
-    while IFS=$'\t' read -r meta path; do
-      is_guarded "$path" || continue
-      if is_allowed "$path"; then
-        continue
-      fi
-      read -r _ _ _ blob _ <<<"$meta"
-      printf '%s %s\n' "$blob" "$path"
-    done | sort -u >"$LISTING"
+  # One "<blob> <path>" line per path, once each.
+  while IFS=$'\t' read -r meta path; do
+    is_guarded "$path" || continue
+    if is_allowed "$path"; then
+      continue
+    fi
+    read -r _ _ _ blob _ <<<"$meta"
+    printf '%s %s\n' "$blob" "$path"
+  done | sort -u >"$LISTING"
 
+  # One `git cat-file --batch` reads every blob; perl names the ones without the header. Four
+  # processes per blob took twenty seconds for a few hundred staged files.
+  local plain
+  plain="$(cut -d' ' -f1 "$LISTING" | git cat-file --batch | perl -e '
+    binmode STDIN;
+    while (my $line = <STDIN>) {
+      my ($sha, $type, $size) = split / /, $line;
+      chomp $size;
+      read(STDIN, my $body, $size); read(STDIN, my $newline, 1);
+      print "$sha\n" if substr($body, 0, 9) ne "\0GITCRYPT";
+    }')"
   while IFS=' ' read -r blob path; do
     checked=$((checked + 1))
-    head="$(git cat-file blob "$blob" | head -c 9 | od -An -tx1 | tr -d ' \n' || true)"
-    if [ "$head" != "$GITCRYPT_HEADER" ]; then
-      echo "PLAINTEXT IN RANGE: $path (blob ${blob:0:10}) is not encrypted" >&2
+    case $'\n'"$plain"$'\n' in
+    *$'\n'"$blob"$'\n'*)
+      echo "PLAINTEXT in $label: $path (blob ${blob:0:10}) is not encrypted" >&2
       failures=$((failures + 1))
-    fi
+      ;;
+    esac
   done <"$LISTING"
 
   if [ "$failures" -gt 0 ]; then
-    echo "check_qualitylayer_encrypted: $failures plaintext blob(s) in $RANGE" >&2
+    echo "check_qualitylayer_encrypted: $failures plaintext blob(s) in $label" >&2
     exit 1
   fi
   cut -d' ' -f2- "$LISTING" | list_extra
-  echo "check_qualitylayer_encrypted: OK ($checked blob(s) in $RANGE are encrypted)"
+  echo "check_qualitylayer_encrypted: OK ($checked blob(s) in $label are encrypted)"
 }
 
 if [ -n "$RANGE" ]; then
   scan_range
+  exit 0
+fi
+if [ "$STAGED" = "1" ]; then
+  scan_staged
   exit 0
 fi
 
