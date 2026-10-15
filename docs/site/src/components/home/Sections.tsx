@@ -14,7 +14,7 @@ function Install() {
         <div className="mx-end">
           <div>
             <h2 id="install-h">Start with your next change</h2>
-            <p>On your own or with your team. The App sets up Claude Code and Codex on first start. Every plan starts with a 7-day trial.</p>
+            <p>On your own or with your team. The App connects Claude Code, Codex, Pi and OpenCode on first start. Other agents can follow the same workflow from your terminal. Every plan starts with a 7-day trial.</p>
             <p className="mx-endn">On a server, in WSL or in a container? <Link to="/download">Install the command line</Link></p>
           </div>
             <div className="sx-ctas">

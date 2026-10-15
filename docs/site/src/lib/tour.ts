@@ -81,7 +81,7 @@ export const CHAPTERS: Chapter[] = [
     steps: 2,
     title: "Choose where your agent builds",
     text: "Implement shows the model, workers and effort for this build; the unreleased App-run candidate adds Here in the App, with your agent's own interactive window, and In my terminal keeps the copied command.",
-    bullets: ["Claude Code, Codex or another agent", "Your defaults come back for the next build", "App runs on Windows are planned for later"],
+    bullets: ["Claude Code, Codex, Pi, OpenCode or another agent", "Your defaults come back for the next build", "Start in the App or your terminal"],
   },
   {
     id: "implement",
@@ -182,7 +182,7 @@ export const CHAPTERS: Chapter[] = [
     who: "ag",
     steps: 3,
     title: "It works where your agents already work",
-    text: "New task: say what you want, pick the model and where it starts, and copy one command for Claude Code, Codex or another agent. The App runs on macOS, Windows and Linux. On a server or in WSL, it opens in your browser.",
+    text: "New task: say what you want, pick Claude Code, Codex, Pi or OpenCode, and start in the App or your terminal. Other agents can use the same workflow from your terminal. The App runs on macOS, Windows and Linux; servers and WSL use your browser.",
     bullets: ["Close the App and the agents keep working", "A notification tells you when something needs you", "Updates download quietly and install when you restart"],
   },
 ];

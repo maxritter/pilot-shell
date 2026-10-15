@@ -41,7 +41,7 @@ export const PLANS: Plan[] = [
       ["plan", "Approve the plan before any code is written"],
       ["build", "Built test first, every test run recorded"],
       ["verify", "Checked against your request before you see it"],
-      ["review", "Works inside Claude Code and Codex"],
+      ["review", "Works with Claude Code, Codex, Pi and OpenCode"],
     ],
   },
   {
@@ -127,7 +127,7 @@ export const COMPARE: CompareGroup[] = [
     rows: [
       row("Polish and security review before the final check", true, true, "Security review runs when a change touches outside input, sign-in or secrets"),
       row("Polished and tested by an agent that did not write the code", true, true, "Risky changes also get an independent review against your request"),
-      row("The other coding agent reviews your plan and risky changes", true, true, "Runs automatically; needs Claude Code and Codex"),
+      row("A separate coding agent reviews your plan and risky changes", true, true, "Choose an installed reviewer: Claude Code, Codex, Pi or OpenCode"),
     ],
   },
   {

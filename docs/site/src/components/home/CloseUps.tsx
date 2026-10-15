@@ -412,7 +412,7 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
           top={<TopBar stage={4} chip={waits("Plan approved")} />}
           gate={<GateTrack items={[{ label: "Start", state: "cur" }, { label: "Slices · 3" }, { label: "Checked as it builds" }, { label: "Agents check every point" }]} turn="Your turn · start the build" />}>
           <YourTurn kind="Implement" title="Start the build" text="Paste one command in a fresh session. From then on the build runs on its own until the final review.">
-            <span className="cu-seg"><span className="on">Claude Code</span><span>Codex</span><span>Another agent</span></span>
+            <span className="cu-seg cu-agent-seg"><span className="on">Claude Code</span><span>Codex</span><span>Pi</span><span>OpenCode</span><span>Another agent</span></span>
             <p className="cu-defs"><span><span className="cu-k">Plans each slice</span> Opus 5.5</span><span><span className="cu-k">Builds</span> Sonnet 5.5</span><span><span className="cu-k">Effort</span> High</span><span className="cu-lnk">Change</span></p>
             <div className="cu-cmd"><code>/ql implement retry-webhooks</code><span className={`cu-btn pri sm${step === 1 ? " press" : ""}`}>{at(2) ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}{at(2) ? "Copied" : "Copy"}</span></div>
           </YourTurn>
@@ -655,14 +655,14 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
             <div className="cu-col">
               <section className="cu-card">
                 <p className="cu-cardh"><b>Planning defaults</b><span className="cu-k">Discuss, Research, Plan, Outline</span></p>
-                <p className="cu-set"><span>Agent</span><span className="cu-seg"><span className="on">Claude Code</span><span>Codex</span></span></p>
+                <p className="cu-set"><span>Agent</span><span className="cu-seg cu-agent-seg"><span className="on">Claude Code</span><span>Codex</span><span>Pi</span><span>OpenCode</span></span></p>
                 <p className="cu-set"><span>Model</span><span className="cu-sel">Opus 5.5</span></p>
                 <p className="cu-set"><span>Effort</span><span className="cu-sel">High</span></p>
                 <p className="cu-set"><span>Starts in</span><span className="cu-sel">This session</span></p>
               </section>
               <section className="cu-card">
                 <p className="cu-cardh"><b>Build defaults</b><span className="cu-k">Implement</span></p>
-                <p className="cu-set"><span>Agent</span><span className="cu-seg"><span className={at(1) ? "" : "on"}>Claude Code</span><span className={at(1) ? "on" : ""}>Codex</span></span></p>
+                <p className="cu-set"><span>Agent</span><span className="cu-seg cu-agent-seg"><span className={at(1) ? "" : "on"}>Claude Code</span><span className={at(1) ? "on" : ""}>Codex</span><span>Pi</span><span>OpenCode</span></span></p>
                 <p className="cu-set"><span>Plans each slice</span><span className="cu-sel">Opus 5.5</span></p>
                 <p className="cu-set"><span>Builds</span><span className="cu-sel">{at(1) ? "GPT-6.1 Sol" : "Sonnet 5.5"}</span></p>
                 <p className="cu-set"><span>Checks it<small>never wrote the code</small></span><span className="cu-sel">{at(1) ? "Opus 5.5" : "GPT-6.1 Sol"}</span></p>
@@ -688,7 +688,7 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
           <section className="cu-card cu-new">
             <p className="cu-cardh"><b>New task</b><span className="cu-k">starts in your coding agent</span></p>
             <div className="cu-newb">
-              <span className="cu-seg"><span className="on">Claude Code</span><span>Codex</span><span>Another agent</span></span>
+              <span className="cu-seg cu-agent-seg"><span className="on">Claude Code</span><span>Codex</span><span>Pi</span><span>OpenCode</span><span>Another agent</span></span>
               <span className="cu-field">{REQUEST}</span>
               <p className="cu-defs"><span><span className="cu-k">Model</span> Opus 5.5</span><span><span className="cu-k">Effort</span> High</span><span><span className="cu-k">Starts in</span> a new session</span><span className="cu-lnk">Change</span></p>
               <div className="cu-cmd"><code>claude --model opus --effort high "/ql {REQUEST}"</code><span className={`cu-btn pri sm${step === 1 ? " press" : ""}`}>{at(2) ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}{at(2) ? "Copied" : "Copy"}</span></div>

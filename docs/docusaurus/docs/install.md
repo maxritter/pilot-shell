@@ -6,7 +6,7 @@ description: Download the App, or run one command on a machine without a screen.
 ![One rule: a machine with a screen gets the App, which updates itself; WSL2, dev containers and servers get the command line and open the App in a browser](pathname:///img/diagrams/install-light.svg)
 ![One rule: a machine with a screen gets the App, which updates itself; WSL2, dev containers and servers get the command line and open the App in a browser](pathname:///img/diagrams/install-dark.svg)
 
-**You need** macOS, Windows or Linux, Git, a repository, and Claude Code, Codex or [another agent](agents/other.md) that you have signed in to and started once.
+**You need** macOS, Windows or Linux, Git, a repository, and Claude Code, Codex, Pi, OpenCode or [another agent](agents/other.md) that you have signed in to and started once. See [native agent setup](agents/native.md) for supported versions and commands.
 
 ## On your computer
 
@@ -14,7 +14,7 @@ description: Download the App, or run one command on a machine without a screen.
 
 1. **Licence:** activate yours, or start the 7-day trial.
 2. **Command line:** the App installs the `qualitylayer` command, skills and hooks.
-3. **Your agents:** Claude Code and Codex are set up for you.
+3. **Your agents:** Claude Code, Codex, Pi and OpenCode are connected when found on this computer.
 4. **Your level:** Engineering (default) or Product. [What each changes](intro.md#two-levels).
 
 On Windows you can also run `irm https://qualitylayer.dev/install.ps1 | iex` in PowerShell. This installs the App and the command line.
@@ -66,7 +66,7 @@ Works even when the App or CLI is blocked or gone:
 & ([scriptblock]::Create((irm https://qualitylayer.dev/install.ps1))) -Uninstall
 ```
 
-It removes QualityLayer from Claude Code and Codex (keeping a backup of each changed file), plus the skills, App and shortcuts. Your licence and tasks stay; add `-Purge` to remove them too.
+It removes QualityLayer's integrations from Claude Code, Codex, Pi and OpenCode (keeping a backup of changed files), plus the skills, App and shortcuts. Your native logins, settings and session history stay. Your licence and tasks stay; add `-Purge` to remove QualityLayer's data too.
 
 ## Windows with Intune or Defender Exploit Guard {#managed-windows}
 

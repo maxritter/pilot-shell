@@ -3,7 +3,7 @@ title: Other agents
 description: Use QualityLayer with any coding agent that can run shell commands, including one that runs a model on your own machine.
 ---
 
-Claude Code and Codex are set up when you install. Any other agent that can run shell commands in your repository follows the same steps, including one on a local model.
+[Claude Code, Codex, Pi and OpenCode](native.md) have native integrations. Any other agent that can run shell commands in your repository follows the same steps, including one on a local model.
 
 ![Another agent with the qualitylayer command and a prompt from the App follows the same steps](pathname:///img/diagrams/agents-other-light.svg)
 ![Another agent with the qualitylayer command and a prompt from the App follows the same steps](pathname:///img/diagrams/agents-other-dark.svg)
@@ -28,14 +28,14 @@ Pick **Another agent** under **Build with** when the build starts. To make it th
 
 ## What changes {#differences}
 
-| | Claude Code and Codex | Another agent |
+| | The four native agents | Another agent |
 | --- | --- | --- |
 | Setup | Done when you install | One pasted prompt |
 | Model and effort | Set in QualityLayer | Set in your agent |
 | Building | Workers build slices side by side | One session builds every slice |
 | Window controls | Interrupt, Stop, Resume, Move | Stop |
 | Cost panel | Per step | Not shown |
-| [Second opinion](../reference/settings.md#second-opinion) | Claude Code and Codex review each other | Needs both installed |
+| [Second opinion](../reference/settings.md#second-opinion) | Choose an installed native reviewer | Can use an installed native reviewer |
 
 Results depend on the model: it has to call tools reliably over many turns.
 

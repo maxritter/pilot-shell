@@ -39,6 +39,7 @@
 .cu-seg{display:inline-flex;align-self:flex-start;gap:2px;padding:2px;border-radius:8px;background:var(--ql-surface-2)}
 .cu-seg > span{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:6px;font-size:12.5px;font-weight:500;color:var(--ql-text-dim);white-space:nowrap}
 .cu-seg > .on{background:var(--ql-bg);color:var(--ql-text);box-shadow:0 0 0 1px var(--ql-border)}
+.cu-agent-seg{flex-wrap:wrap;max-width:100%}
 .cu-sel{display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 10px;border:1px solid var(--ql-border);border-radius:8px;font-size:13px;white-space:nowrap}
 .cu-sel:after{content:"";width:5px;height:5px;margin-top:-3px;border-right:1.5px solid var(--ql-text-dim);border-bottom:1.5px solid var(--ql-text-dim);transform:rotate(45deg)}
 .cu-sw{position:relative;width:30px;height:18px;border-radius:999px;background:var(--ql-border-strong)}
