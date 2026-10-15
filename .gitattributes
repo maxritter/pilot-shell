@@ -1,5 +1,6 @@
 docs/site/api/** filter=git-crypt diff=git-crypt
 docs/site/scripts/backup.ts filter=git-crypt diff=git-crypt
+docs/site/scripts/backfill-team-files.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/restore.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/db-migrate.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/upload-workflow.ts filter=git-crypt diff=git-crypt
