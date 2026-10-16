@@ -34,7 +34,7 @@ Each **Done means** point shows its evidence as it comes in: output, a screensho
 
 ## When it stops {#when-it-stops}
 
-After two failed fix rounds, **Your turn** shows what still fails and the cost so far:
+When further fixing needs your decision, **Your turn** shows what still fails and the cost so far:
 
 | Choice | What happens |
 | --- | --- |

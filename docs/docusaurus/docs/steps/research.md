@@ -29,6 +29,6 @@ Usually nothing. Comment on a finding you disagree with. If the code leaves a re
 
 ## The document {#the-page}
 
-`02-research.md` opens with a plain summary. Findings fold to one headline each; up to three are marked **risky** or **unsure**. Read those first.
+`02-research.md` opens with a plain summary. Read the findings and any unresolved uncertainty before approving the later Plan. Open questions remain visible until you answer them.
 
 Next: [Plan](plan.md).

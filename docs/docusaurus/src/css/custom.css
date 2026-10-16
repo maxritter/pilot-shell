@@ -135,6 +135,23 @@ article.margin-bottom--xl header h2 a:hover { color: var(--ql-accent); }
   color: var(--ql-text-muted);
 }
 
+/* The lesson's path: capture, local retrieval, then context in the coding agent. */
+.memory-flow { margin: 28px 0 36px; }
+.memory-flow ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--ql-border); border-bottom: 1px solid var(--ql-border); }
+.memory-flow li { padding: 20px 24px 20px 0; margin: 0; min-width: 0; }
+.memory-flow li + li { margin-top: 0; padding-left: 24px; border-left: 1px solid var(--ql-border); }
+.memory-flow ~ table td, .memory-flow ~ table th { vertical-align: top; }
+.memory-flow strong { display: block; font-size: 15px; margin-bottom: 6px; }
+.memory-flow span { display: block; font-size: 14px; line-height: 1.55; }
+.memory-flow figcaption { font-size: 13px; color: var(--ql-text-muted); margin-top: 12px; line-height: 1.55; }
+@media (max-width: 996px) {
+  .memory-flow ol { grid-template-columns: 1fr; }
+  .memory-flow li, .memory-flow li + li { padding: 16px 0; border-left: 0; }
+  .memory-flow li + li { border-top: 1px solid var(--ql-border); }
+  .memory-flow strong { margin-bottom: 4px; }
+  .memory-flow { margin: 24px 0 32px; }
+}
+
 /* Changelog: one row per release, the version pinned beside its notes; New, Fixed and Good to know as quiet labels. */
 .cl-rel { display: grid; grid-template-columns: 148px minmax(0, 1fr); column-gap: 32px; padding: 32px 0 8px; border-top: 1px solid var(--ql-border); }
 .cl-rel > * { grid-column: 2; }

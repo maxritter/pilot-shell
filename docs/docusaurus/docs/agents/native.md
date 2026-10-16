@@ -1,7 +1,10 @@
 ---
-title: Claude Code, Codex, Pi and OpenCode
+title: Supported agents
+sidebar_label: Supported agents
 description: Set up the four native coding agents, choose their models and reviewers, and control their sessions in the App.
 ---
+
+# Supported agents {#claude-code-codex-pi-and-opencode}
 
 QualityLayer connects **Claude Code**, **Codex**, **Pi** and **OpenCode** to the same workflow. Install your agent, sign in through its own login and start it once, then run QualityLayer setup. The App and CLI installers add the integration for each agent they find.
 
@@ -16,7 +19,7 @@ An ordinary coding request stays an ordinary request. QualityLayer starts when y
 
 ## Models and reviews
 
-Settings › Workflow has planning, build, helper and review models for all four agents. Each can be the default. Pi and OpenCode use provider-qualified model IDs, such as `openai-codex/gpt-6.1-sol` in Pi and `openai/gpt-6.1-sol` in OpenCode. Workflow defaults use High effort; your native login and provider settings stay in your agent.
+Choose the agent, model and effort when starting a task or build. Settings › Workflow keeps the review models and general run controls. Pi and OpenCode use provider-qualified model IDs, such as `openai-codex/gpt-6.1-sol` in Pi and `openai/gpt-6.1-sol` in OpenCode. Workflow defaults use High effort; your native login and provider settings stay in your agent.
 
 **Second opinion by** selects an installed reviewer. **Automatic** chooses another installed agent when available; you can choose a particular one for a fresh review. The reviewer inspects files in a separate context and does not edit them.
 
@@ -24,7 +27,7 @@ Pi and OpenCode can use the same model provider as your working agent. Choose a 
 
 ## Sessions in the App
 
-New task and Implement start any of the four agents. New terminal opens an ordinary agent session or your shell in the selected project. A folded or closed terminal tab keeps its work; **Stop** ends the owned run.
+Choose the agent, model, effort and workspace when you start a task or build. The task’s **Agent** tab holds its conversation in the App. Closing the sidebar keeps the run; **Stop** ends it. If the local runtime cannot start an App session, use **In my terminal**.
 
 The App records the native conversation, accepts one typing controller and offers Interrupt, Stop, Resume, Move and settings changes at a completed turn. Resume requires saved native state and verified process cleanup. If the conversation is still open in another terminal, the App refuses to resume it there.
 
@@ -35,7 +38,7 @@ The App records the native conversation, accepts one typing controller and offer
 | Pi | Its own tool permissions |
 | OpenCode | Own settings or Fewer prompts; explicit deny rules remain in force |
 
-The App uses a private OpenCode server for each managed run, with its build agent for workflow work and its plan agent for read-only reviews. A plain terminal keeps your native agent choice. Stopping a managed run leaves other OpenCode sessions alone. Native goal modes and permission overrides appear only for agents that support them.
+The App uses a private OpenCode server for each managed run, with its build agent for workflow work and its plan agent for read-only reviews. A session in your terminal keeps your native agent choice. Stopping a managed run leaves other OpenCode sessions alone. Available permission controls depend on the installed client and its supported options.
 
 ## Peer sessions
 

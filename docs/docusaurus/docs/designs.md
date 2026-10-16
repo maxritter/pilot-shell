@@ -48,9 +48,11 @@ The row menu and full viewer offer rename, copy, show in another project, archiv
 
 | Tab | What it holds |
 | --- | --- |
-| **Activity** | Open tasks changing the design, then every past change |
-| **Comments** | Comment threads per page |
-| **Details** | Its pages, where its files are, and any external reference you kept |
+| **Activity** | Current work, past changes, and folded **Details and history** |
+| **Feedback** | Threads and pinned feedback per page |
+| **Agent** | The conversation working on this design, or the choices to start one |
+
+A design’s **Agent** conversation can work on its selected page without creating a workflow task. Choose an installed agent, model and effort, or copy the validated design context for your terminal.
 
 ## A design of many pages {#folders}
 
@@ -92,8 +94,8 @@ A lasting design can store its Claude Design link for **Open in Claude Design**.
 
 ## Review and comment {#full-size}
 
-![A design open full size: Back to the Plan, the design's name and update time, Comment, zoom, Light and Dark, Desktop and Phone, Jump to and full screen; the Comments tab lists numbered spots with the agent's answers](pathname:///img/app/design-light.webp)
-![A design open full size: Back to the Plan, the design's name and update time, Comment, zoom, Light and Dark, Desktop and Phone, Jump to and full screen; the Comments tab lists numbered spots with the agent's answers](pathname:///img/app/design-dark.webp)
+![A design open full size: Back to the Plan, the design's name and update time, Comment, zoom, Light and Dark, Desktop and Phone, Jump to and full screen; the Feedback tab lists numbered spots with the agent's answers](pathname:///img/app/design-light.webp)
+![A design open full size: Back to the Plan, the design's name and update time, Comment, zoom, Light and Dark, Desktop and Phone, Jump to and full screen; the Feedback tab lists numbered spots with the agent's answers](pathname:///img/app/design-dark.webp)
 
 *Example design in a fictional project.*
 
@@ -101,8 +103,14 @@ Press **C** (**Comment**), click a spot and say what should change. Your agent e
 
 ## Compare, edit and restore
 
-**Open design canvas** shows artboards side by side. **Details** edits the HTML, renames, duplicates or restores a revision. Agents use `design inspect`, `push`, `pull` and `history`; a push cannot overwrite a newer version.
+**Open design canvas** shows artboards side by side. The **Actions** menu keeps rename, copy and revision controls; metadata lives under **Activity → Details and history**. Agents use `design inspect`, `push`, `pull` and `history`; a push cannot overwrite a newer version.
 
 ## Share a preview {#never-shared}
 
-Designs stay on your computer until you choose **Share › Include designs** for a task. They then join its encrypted shared copy or link as previews that run no scripts; readers comment but cannot edit. Lasting designs in the repository travel with your pull requests instead.
+For a task draft, choose **Share › Include designs** to add previews to that task’s encrypted shared copy or link.
+
+For a standalone design, use **Actions → Share preview…**. Choose the pages and audience. **Update shared preview** publishes a new preview explicitly; a local edit does not silently replace what others see. Shared previews run no scripts. A snapshot preview names its fixed viewport and crop.
+
+People invited through a question can retain access while the design is shared. **Stop sharing** ends fresh access; it cannot remove a copy someone already downloaded. Shared Feedback supports questions, replies and attachments. Person-only feedback is kept out of the owner’s agent context. A remote viewer’s Agent tab does not start an agent from somebody else’s design.
+
+A design kept in the repository also travels with its commits and pull requests. That is separate from sharing a preview.

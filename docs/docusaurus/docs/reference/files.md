@@ -56,9 +56,9 @@ Your code, the diff, plan documents, evidence and the cost view stay on your com
 | --- | --- |
 | **Always** | A daily licence check to qualitylayer.dev (plus activation or the trial start), the workflow texts your agent follows, and App updates. No usage events |
 | **When you share** | Tasks, documents and comments, encrypted on your computer with your team's key. **Include designs** adds the task's design previews; it starts off for existing shares. The server sees names, e-mails, the step and when, never the content. A share link carries its own key, which never reaches the server |
-| **Never** | Repository code, the diff, host logs, launch settings, terminal output and command output. Shared design previews run no scripts |
+| **Not included automatically** | Repository source, diffs, host logs, launch settings, terminal output and command output. Text or attachments you explicitly share can contain code or other sensitive content. Shared design previews run no scripts |
 | **With Slack** | The task title and the question, through the QualityLayer server to Slack |
-| **Instructions** | Yours (`~/.qualitylayer/instructions.md`) never leave your computer. The team owner's are encrypted with the team's key before sending; each teammate's computer keeps a copy only its user can read ([Team instructions](settings.md#team-instructions)) |
+| **Instructions** | Yours (`~/.qualitylayer/instructions.md`) are stored locally and supplied to your agent; a cloud agent may send them to its provider. The team owner's are encrypted with the team's key before sending; each teammate's computer keeps a copy only its user can read ([Team instructions](settings.md#team-instructions)) |
 | **Lasting designs** | A design kept **In the repository** travels with your commits and pull requests, so anyone who can read the repository can read it. **Only on this Mac** keeps it out of git |
 | **Project lessons** | Local lessons stay in your QualityLayer home. Where you turn on memory sharing, eligible lessons become files under `.qualitylayer/memories/` and travel through your Git pushes, separate from encrypted task sharing ([Project memory](../memory.md)) |
 
@@ -66,9 +66,9 @@ The QualityLayer API runs in Frankfurt; backups are encrypted and kept in the EU
 
 Agent runs started in the App keep terminal output in local folders only you can read, outside the task's Markdown and never in shared copies. A screenshot you attach to feedback can show that output, so check it first.
 
-## Feedback {#feedback}
+## Report a problem {#feedback}
 
 ![Feedback: from the sidebar, the command box or an error, one sheet with your text, screenshots and diagnostics you can read first; it goes to a private issue, and offline it waits on your computer](pathname:///img/diagrams/feedback-light.svg)
 ![Feedback: from the sidebar, the command box or an error, one sheet with your text, screenshots and diagnostics you can read first; it goes to a private issue, and offline it waits on your computer](pathname:///img/diagrams/feedback-dark.svg)
 
-**Feedback** in the sidebar sends your text, any screenshots, and diagnostics you can read first under **Show what is sent**. It becomes an issue in a private repository. Diagnostics never include code, plan text, task titles, repository or branch names, or file paths.
+**Report** in the sidebar sends your text, any screenshots, and diagnostics you can read first under **Show what is sent**. It becomes an issue in a private repository. Diagnostics never include code, plan text, task titles, repository or branch names, or file paths.

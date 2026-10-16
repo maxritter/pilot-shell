@@ -17,7 +17,7 @@ description: What you type in your agent, the commands you run, the ones your ag
 | `/ql answer <ask>` | Answer a teammate's question with your agent ([Teammates' agents](../team/agents.md)) |
 | `/task-pane` | Open the pane with the steps and the build's progress (Claude Code) |
 
-**+ New** and Implement show the terminal command with the model and effort. **Here in the App** starts the interactive agent without copying a command. See [App runs](../app.md#agent-runs) for platform support.
+**+ New** and Implement show the terminal command with the model and effort. **In the App** opens the task’s Agent conversation without copying a command. See [App runs](../app.md#agent-runs) for platform support.
 
 ## For you
 
@@ -141,7 +141,7 @@ Get the current revision with `design inspect` before changing a design. `--if-m
 
 ## Project memory {#memory}
 
-The App and agents use the same local lesson store. Run project commands inside the repository. Sharing remains off until you enable it locally; exchange writes files for your normal Git review and commit. See [Project memory](../memory.md).
+The App and agents use the same local lesson store. Lessons sent to a cloud agent may reach its provider; local storage and local embedding do not prevent that. Run project commands inside the repository. Sharing remains off until you enable it locally; exchange writes files for your normal Git review and commit. See [Project memory](../memory.md).
 
 | Command | What it does |
 | --- | --- |
@@ -150,7 +150,7 @@ The App and agents use the same local lesson store. Run project commands inside 
 | `qualitylayer memory list [--query text] [--source task\|repository\|pilot\|manual\|all] [--scope private\|project\|all] [--limit n] [--cursor token]` | Browse previews in the current repository, including retired lessons |
 | `qualitylayer memory search text` · `memory context text` | Retrieve up to eight relevant lessons with distinct content |
 | `qualitylayer memory read id [--around 1..3]` | Read one lesson in the current repository; `--around` also names the lessons saved just before and after it |
-| `qualitylayer memory store --title text --content text [--kind decision\|architecture\|bugfix\|pattern\|discovery\|preference] [--replaces id]` | Save or revise a lesson; `--replaces` retires an older lesson this one makes obsolete. Publication requires recorded task/check evidence |
+| `qualitylayer memory store --title text --content text [--kind decision\|architecture\|bugfix\|pattern\|discovery\|preference] [--replaces id]` | Save or revise a lesson; `--replaces` retires an older lesson this one makes obsolete. Sharing requires an eligible project lesson and the repository’s sharing switch; passing checks are not required |
 | `qualitylayer memory pin id` · `memory unpin id` | Put a lesson in every session's lesson block, up to five per project, or take it out |
 | `qualitylayer memory sessions on` · `memory sessions off` | Turn the lessons agents receive at the start of a session on or off |
 | `qualitylayer memory mcp` | Serve `memory_search`, `memory_read` and `memory_save` over standard input and output for an agent; install registers it with Claude Code and Codex |

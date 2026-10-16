@@ -19,12 +19,11 @@ description: Use QualityLayer with any coding agent that can run shell commands,
 ![Plan with Claude Code, approve the Plan, build with another agent, then the same checks and your approval](pathname:///img/diagrams/agents-mix-light.svg)
 ![Plan with Claude Code, approve the Plan, build with another agent, then the same checks and your approval](pathname:///img/diagrams/agents-mix-dark.svg)
 
-Pick **Another agent** under **Build with** when the build starts. To make it the default, use **Make default** in Settings › Workflow › [Planning and building](../reference/settings.md#defaults).
+Pick **Another agent** under **Build with** when the build starts. Choose it for this run; [Settings](../reference/settings.md#defaults) holds the general run controls.
 
-## Let the App open your agent {#app-start}
+## Run in your terminal {#app-start}
 
-1. In Settings › Workflow › Agents › **More**, enter your agent's program and its arguments as a JSON array, such as `["--model", "my-model"]`.
-2. Start with **Another agent** and press **Send the request** when its window is ready.
+Choose **Another agent** and copy the request into that agent’s terminal. App conversations are available for the four supported integrations; another agent does not gain those controls from a copied prompt.
 
 ## What changes {#differences}
 

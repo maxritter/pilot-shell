@@ -5,8 +5,16 @@ description: Global Settings, your and your team's instructions, project memory 
 
 Open **Settings** with the gear at the bottom of the sidebar. Changes save at once and apply to every project on this computer.
 
-![Settings, Workflow: the Level card with its two choices, the Planning and Building cards with a tab per agent, Independent review, Second opinion and Notifications, beside the tabs Licence, Team and About](pathname:///img/app/settings-light.webp)
-![Settings, Workflow: the Level card with its two choices, the Planning and Building cards with a tab per agent, Independent review, Second opinion and Notifications, beside the tabs Licence, Team and About](pathname:///img/app/settings-dark.webp)
+<details>
+<summary>Earlier Settings illustration</summary>
+
+![Earlier Settings layout with Planning and Building cards](pathname:///img/app/settings-light.webp)
+![Earlier Settings layout with Planning and Building cards](pathname:///img/app/settings-dark.webp)
+
+
+This illustration predates the current **Agents** section. Use the controls described below.
+
+</details>
 
 ## Memory {#memory}
 
@@ -35,18 +43,19 @@ Standing instructions for every task in every project: coding standards, things 
 | Team instructions | Come first and win on conflict ([Team](#team-instructions)) |
 | Approvals | No line can approve a gate |
 
-### Planning and Building {#defaults}
+### Agents {#defaults}
 
-Choose **Claude Code**, **Codex**, **Pi**, **OpenCode** or **Another agent**. **Make default** picks what **+ New** and Implement open on; planning and building can use different agents. **Use recommended** resets its values.
+Choose the **agent**, **model**, **effort** and **workspace** when you start a task or build. Those choices apply to that run.
 
-| Card | Used for | Recommended |
-| --- | --- | --- |
-| **Planning** | Discuss to Outline | The agent's recommended planning model at High effort |
-| **Building** | [Implement](../steps/implement.md#start-implement) | Its recommended build and worker models at High effort; a native goal mode only where supported |
+| Setting | What it changes |
+| --- | --- |
+| **Where agents run by default** | **In the App** or **In my terminal** |
+| **Agent appearance** | Text, colours and scrolling in agent sessions |
+| **When you quit the App** | Keep agents running, or stop them |
+| **Typing and starting agents** | The App and its key-paired browsers, or also other paired browsers |
+| **Reviewer models** | Models used by Independent review and Second opinion |
 
-**Another agent** uses the models set in that agent.
-
-**No subagents** makes the session build and check everything itself, Polish included. The recommended setup keeps workers: without a fresh Polish agent, a medium change's own tests caught fewer planted faults ([Verify](../steps/verify.md#lanes)).
+The quitting and browser choices are under **More**. Other coding agents use the workflow in your terminal. Permissions are chosen at launch where the native client supports them.
 
 ### Independent review {#independent-review}
 
@@ -67,7 +76,7 @@ Pi and OpenCode can use the same provider as another agent. A different agent gi
 
 ### Notifications {#notifications}
 
-**Notifications** tell you when something needs you, or a task ships or stops. **Open comments by themselves** switches to Comments when a teammate writes to you, never while you type.
+**Notifications** tell you when something needs you, or a task ships or stops. **Open Feedback automatically** switches to Feedback when a teammate writes to you, never while you type.
 
 ## For one task {#for-one-task}
 

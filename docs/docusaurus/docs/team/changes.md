@@ -13,4 +13,4 @@ Once Verify passes, your team reads the walkthrough of the change with its proof
 3. What a fix touched is checked again, and your team looks once more.
 4. You approve.
 
-Pull request threads and failing checks come back the same way ([Pull request](../steps/pull-request.md)). Your code, the diff and your logs are never sent.
+Pull request threads and failing checks come back the same way ([Pull request](../steps/pull-request.md)). Shared tasks do not automatically include source files, diffs or host logs. Review any text or attachments you add before sending.

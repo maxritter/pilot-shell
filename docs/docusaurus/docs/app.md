@@ -1,14 +1,14 @@
 ---
 title: The App
-description: Where you answer, read and comment while your agent works. One page for every step.
+description: Read the work, answer questions and give feedback beside your agent’s conversation.
 ---
 
-The App is where you answer questions, read documents and comment while your agent works. It runs on macOS, Windows and Linux; without a screen, `qualitylayer app` opens it in your browser.
+The App is where you answer questions, read documents and give feedback while your agent works. It runs on macOS, Windows and Linux; without a screen, `qualitylayer app` opens it in your browser.
 
-![The App at Discuss: your tasks grouped by project on the left, the step track across the top, one question in Your turn with its choices and a field for your own answer, the Discuss document below, and Files and Comments on the right](pathname:///img/app/discuss-light.webp)
-![The App at Discuss: your tasks grouped by project on the left, the step track across the top, one question in Your turn with its choices and a field for your own answer, the Discuss document below, and Files and Comments on the right](pathname:///img/app/discuss-dark.webp)
+![Discuss with a question, document and sidebar in an earlier App layout](pathname:///img/app/discuss-light.webp)
+![Discuss with a question, document and sidebar in an earlier App layout](pathname:///img/app/discuss-dark.webp)
 
-*Example task in a fictional project.*
+*Example task in a fictional project; the illustration shows an earlier layout. Current controls are described below.*
 
 | Part | What it does |
 | --- | --- |
@@ -17,7 +17,7 @@ The App is where you answer questions, read documents and comment while your age
 | **Step track** | Where the task stands. A person icon marks the two steps you approve |
 | **Your turn** | One question or decision that needs you |
 | **Step page** | The parts of the step's document that matter now |
-| **Right sidebar** | **Files** and **Comments** |
+| **Right sidebar** | **Files**, **Feedback** and the task’s **Agent** conversation |
 
 ## The sidebar {#sidebar}
 
@@ -69,9 +69,11 @@ Every step writes one Markdown file, shown three ways:
 
 **Copy document** pastes a document into Confluence, Notion, Jira or GitHub.
 
-## Comments and designs
+## Feedback and designs {#comments-and-designs}
 
-Select a passage, a line or part of a diagram to comment. Your agent answers in the thread and says what it changed. **Ask…** sends the question to a teammate. Working designs are compact entries in **Files**; **Open design canvas** opens their full page, with comments and their base design. The document header opens Files and Comments. The **Agent status** chip shows the current work. See [Designs](designs.md).
+Select a passage, a line or part of a diagram and choose **Give feedback**. The thread keeps that context with your words. Choose **To agent**, ask a teammate a question, or address feedback to a person. Person-only feedback is not sent to the agent.
+
+Working designs are compact entries in **Files**. **Open design canvas** opens the full page, its Feedback and its base design. The document header opens Files and Feedback; **Agent** opens the task’s conversation. The **Agent status** chip shows current activity. See [Designs](designs.md).
 
 ## Home {#home}
 
@@ -94,32 +96,24 @@ The **Cost** control in a task's header opens the cost per step and agent, estim
 
 ## Agent runs {#agent-runs}
 
-**+ New**, **Start the build** and **Draft with my agent** run the agent **Here in the App** or **In my terminal**. In the App, the agent's own program opens in a window with its usual keys and prompts. On Windows, use your terminal.
+**New task** and **Start the build** let you choose an installed agent, model, effort and workspace. **In the App** opens its conversation in the task’s **Agent** tab. **In my terminal** gives you the launch command.
 
-![Start the build: Build myself or Hand to the team, the agent tabs, the branch it lands on, permissions, and Here in the App or In my terminal above the Start the build button](pathname:///img/app/implement-start-light.webp)
-![Start the build: Build myself or Hand to the team, the agent tabs, the branch it lands on, permissions, and Here in the App or In my terminal above the Start the build button](pathname:///img/app/implement-start-dark.webp)
+The App checks the local runtime before starting. If it cannot start the selected agent here, it explains why and keeps the terminal option available. Permissions and sign-in prompts still belong to your agent.
 
 | To | Do |
 | --- | --- |
-| Keep working elsewhere | Fold the window into the dock; the run continues |
-| Type from another window | **Take control**. One window types at a time |
-| Interrupt the agent | **Interrupt** (usually sends Esc) |
-| End the run | **Stop**. A failed cleanup stays visible |
-| Continue a stopped run | **Resume here** or **Open the session** |
-| Move to your terminal | **Move to my terminal** gives the resume command |
+| Read the task beside the conversation | Open **Agent** in the right sidebar; drag the divider to resize it |
+| Keep working elsewhere | Close the sidebar or open another task; this does not stop the run |
+| Type from another window | Use **Take control**; one window types at a time |
+| Interrupt or end the run | Use **Interrupt** or **Stop** in the agent menu |
+| Return to a saved conversation | Use its available **Resume** or **Open the conversation** action |
+| Move to your terminal | **Move to my terminal** gives the supported resume command |
 
-Defaults live in Settings › Workflow › **Where agents run**:
+**Settings → Workflow → Agents** controls where agents run by default, appearance, other paired browsers and quitting the App. Choose models, effort and workspace when starting a run. See [Settings](reference/settings.md#defaults).
 
-| Setting | Choices |
-| --- | --- |
-| **Permissions** | The agent's own settings; supported agents also offer **Fewer prompts** or a confirmed bypass. Pi keeps its own tool permissions; OpenCode can reduce prompts while retaining explicit deny rules. See [native agents](agents/native.md) |
-| **Works in** | The checkout. **Lands on** shows the branch or creates a new one |
-| **Typing and starting agents** | Whether other paired browsers may start runs and type |
-| **When you quit the App** | **Agents keep running** or **Stop agents**. Closing a window never stops work |
+An agent can wait for a permission, sign-in, answer or approval. A visible running process is not proof that it is making progress; read its current status and conversation. **Stop** and a user pause remain boundaries.
 
-For **Another agent**, set its program path and arguments in Settings; Interrupt, Restart, Move and Resume are not available. Terminal output stays on this computer and is never shared.
-
-New terminal offers Claude Code, Codex, Pi, OpenCode and your shell. Planning and build starts use the selected model and effort; an ordinary terminal starts with the agent's own defaults.
+Other coding agents use the copied terminal prompt. Terminal output stays local and is not included in shared tasks.
 
 ## In Claude Code
 

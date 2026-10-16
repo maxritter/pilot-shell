@@ -13,11 +13,11 @@ With a Team plan, your team reviews the Plan before any code (this page) and the
 ![Plan review with your team: you ask a teammate about a part of the Plan, a Slack message opens it in their App, they answer, the answer reaches your agent, and you decide; a guest with a link can comment too](pathname:///img/diagrams/team-light.svg)
 ![Plan review with your team: you ask a teammate about a part of the Plan, a Slack message opens it in their App, they answer, the answer reaches your agent, and you decide; a guest with a link can comment too](pathname:///img/diagrams/team-dark.svg)
 
-1. Select a passage and choose **Ask…**, or type **@**. Mark it **needed before approval** or **opinion only**.
+1. Select a passage, choose **Give feedback**, then **Ask a teammate**. Mark it **needed before approval** or **opinion only**.
 2. They answer with **Looks right**, **Suggest a change** or **Reply**, or let [their agent draft it](agents.md).
 3. Your agent updates the Plan. Only your approval moves the task on.
 
-On a shared Plan or Review, **Looks right** sends your review to the owner. **Suggest changes** asks what should change before sending. **Comment** leaves feedback without requesting a decision. The owner decides when to approve the task.
+On a shared Plan or Review, **Looks right** sends your review to the owner. **Suggest changes** asks what should change before sending. **Give feedback** leaves a thread without requesting a decision. The owner decides when to approve the task.
 
 ## Hand over an approved Plan {#hand-over}
 

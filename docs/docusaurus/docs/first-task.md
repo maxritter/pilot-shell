@@ -14,11 +14,11 @@ Pick a medium-sized feature in a repository you know. Your agent asks each decis
 | 2 | **Answer the questions.** They arrive as a batch in **Your turn**; each answer reaches your agent immediately | App |
 | 3 | **Read the Plan**, then **Approve Plan** or **Give feedback** | App |
 | 4 | **Start the build** | App or your agent |
-| 5 | Nothing: agents build and check on their own | |
+| 5 | Follow the build and checks; respond if the agent needs a permission, sign-in or other human input | App or terminal |
 | 6 | **Confirm what only you can**, look at the result, approve | App |
 | 7 | **Merge the pull request** | GitHub |
 
-**+ New** and **Start the build** can run your agent in a window inside the App (**Here in the App**) or give you the command for your terminal (**In my terminal**). See [App runs](app.md#agent-runs).
+**New task** and **Start the build** open the task’s **Agent** tab with **In the App**, or give you a command with **In my terminal**. See [App runs](app.md#agent-runs).
 
 Claude Code, Codex, Pi and OpenCode have [native setup, model choices and session controls](agents/native.md). Other agents can use a copied prompt.
 
@@ -27,7 +27,7 @@ Claude Code, Codex, Pi and OpenCode have [native setup, model choices and sessio
 
 - "Using QualityLayer, plan …" works too. Without the name, nothing starts.
 - **Skip for now** moves to the next question; **Tell me more** asks for detail.
-- A comment on any passage is answered within a minute.
+- Select a passage to give feedback. It reaches the agent when it next reads the task; a stopped or disconnected agent cannot answer yet.
 - With several approved Plans waiting, "Implement this using QualityLayer" lists their commands.
 
 </details>
