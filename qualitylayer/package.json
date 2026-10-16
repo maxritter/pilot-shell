@@ -90,5 +90,29 @@
   },
   "patchedDependencies": {
     "@xterm/addon-webgl@0.19.0": "patches/@xterm%2Faddon-webgl@0.19.0.patch"
+  },
+  "qualitylayer": {
+    "recordedTree": {
+      "schema": 1,
+      "outputs": [
+        "dist",
+        "src/server/ui"
+      ],
+      "producers": {
+        "bun run build": [
+          "dist",
+          "src/server/ui"
+        ],
+        "bun run test": [
+          "dist",
+          "src/server/ui"
+        ],
+        "bun run test:ui": [
+          "dist",
+          "src/server/ui"
+        ]
+      },
+      "tools": []
+    }
   }
 }
