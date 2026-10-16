@@ -3,7 +3,8 @@ import Hero from "@/components/home/Hero";
 import Page from "@/components/Page";
 import SEO from "@/components/SEO";
 import { FAQS } from "@/lib/content";
-import { AUTHOR_NAME, AUTHOR_URL, GITHUB_URL, SHARE_DESCRIPTION, SITE_URL, SLOGAN } from "@/lib/product";
+import { GITHUB_URL, SHARE_DESCRIPTION, SITE_URL, SLOGAN } from "@/lib/product";
+import { faqStructuredData, SOFTWARE_APPLICATION } from "@/lib/structured-data";
 
 const ABOUT = `${SLOGAN}. ${SHARE_DESCRIPTION}`;
 
@@ -26,25 +27,8 @@ const structuredData = [
       sameAs: [GITHUB_URL, "https://www.linkedin.com/in/rittermax/"],
     },
   },
-  {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "QualityLayer",
-    description: ABOUT,
-    applicationCategory: "DeveloperApplication",
-    operatingSystem: "macOS, Linux, Windows",
-    author: { "@type": "Person", name: AUTHOR_NAME, url: AUTHOR_URL },
-    url: `${SITE_URL}/`,
-  },
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: FAQS.map((faq) => ({
-      "@type": "Question",
-      name: faq.question,
-      acceptedAnswer: { "@type": "Answer", text: faq.answer },
-    })),
-  },
+  SOFTWARE_APPLICATION,
+  faqStructuredData(FAQS),
 ];
 
 const Index = () => (

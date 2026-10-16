@@ -30,7 +30,7 @@ const EXTRAS: Item[] = [
   { id: "designs", name: "Design", icon: PenTool, line: "Comment on the spot", text: "Pin a comment anywhere on a design. Your agent replies in the thread and updates the design.", shot: { id: "design", title: "Design", alt: "A queue migration console open full size, with three numbered comment pins and the comments beside it" }, link: { to: "/docs/designs", label: "Read about designs" } },
   { id: "team", name: "Team", icon: Users, line: "Ask the people who know", text: "Teammates answer plan questions and review the finished change from their own App.", shot: { id: "team", title: "Team", alt: "The Team space with questions about shared plans, replies and the team's tasks" }, link: { to: "/docs/team/plans", label: "Read about team collaboration" } },
   { id: "cost", name: "Home", icon: House, line: "See what needs you", text: "Your tasks that need attention and your running work, with the current step and what happens next.", shot: { id: "home", title: "Home", alt: "Home with personal tasks that need attention and running work" }, link: { to: "/docs/app#home", label: "Read about Home" } },
-  { id: "setup", name: "Settings", icon: SlidersHorizontal, line: "Pick your agents and models", text: "Choose the agent and model that plans, builds and checks, and whether tasks start as a product brief or a technical plan.", shot: { id: "setup", title: "Settings", alt: "Settings with the Product or Engineering level, the planning and building agents and models, and the review options" }, link: { to: "/docs/reference/settings", label: "Read about settings" } },
+  { id: "setup", name: "Settings", icon: SlidersHorizontal, line: "Set run preferences and reviewers", text: "Set where agents run, their appearance and review agents. Choose the agent, model, effort and workspace when you start a run.", shot: { id: "setup", title: "Settings", alt: "Agents settings with the default run location, appearance and global review options" }, link: { to: "/docs/reference/settings", label: "Read about settings" } },
 ];
 
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -59,7 +59,7 @@ function Picture({ shot, theme, lazy = true }: { shot: Shot; theme: "light" | "d
 function ImageDialog({ shot, theme, onClose, opener }: { shot: Shot; theme: "light" | "dark"; onClose: () => void; opener: HTMLElement | null }) {
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="ed-image-dialog" showCloseButton={false} onCloseAutoFocus={(event) => { event.preventDefault(); opener?.focus(); }}>
+      <DialogContent aria-modal="true" className="ed-image-dialog" showCloseButton={false} onCloseAutoFocus={(event) => { event.preventDefault(); opener?.focus(); }}>
         <div className="ed-dialog-header">
           <DialogTitle>{shot.title}</DialogTitle>
           <DialogClose asChild><Button type="button" variant="outline" size="xl" aria-label="Close preview"><X size={18} aria-hidden="true" />Close</Button></DialogClose>

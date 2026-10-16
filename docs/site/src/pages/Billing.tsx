@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Dialog as Modal } from "radix-ui";
 import { DownloadIcon, LogOutIcon } from "lucide-react";
 import Page from "@/components/Page";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -141,7 +142,7 @@ export default function Billing() {
   }
   const status = subscription?.canceled ? "Ends at period end" : subscription?.pauseScheduled ? "Pauses at period end" : subscription?.status.replaceAll("_", " ");
 
-  return <><Helmet><title>Subscription &amp; billing | QualityLayer</title><meta name="robots" content="noindex,nofollow" /><meta name="referrer" content="no-referrer" /></Helmet><Page className="page-billing"><div className="bl-wrap">
+  return <><SEO /><Helmet><meta name="referrer" content="no-referrer" /></Helmet><Page className="page-billing"><div className="bl-wrap">
     <div ref={message} tabIndex={-1} className="bl-feedback">
       {error && <div className="bl-notice error" role="alert">{error}</div>}
       {notice && <div className="bl-notice" role="status">{notice}</div>}

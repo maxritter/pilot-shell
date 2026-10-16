@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Helmet } from "react-helmet-async";
 import { Link, useSearchParams } from "react-router-dom";
 import Page from "@/components/Page";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { billingRequest } from "@/lib/billing";
 import "@/styles/billing.css";
@@ -28,7 +28,7 @@ export default function CheckoutSuccess() {
     return () => { active = false; };
   }, [id]);
   const paid = status === "succeeded", failed = ["failed", "expired"].includes(status);
-  return <><Helmet><title>Purchase confirmation | QualityLayer</title><meta name="robots" content="noindex,nofollow" /></Helmet><Page><div className="bl-wrap"><section className="bl-confirmation">
+  return <><SEO /><Page><div className="bl-wrap"><section className="bl-confirmation">
     <h1>{paid ? "Your subscription is ready" : failed ? "Payment was not completed" : status === "unknown" ? "Check your subscription" : "Confirming your purchase"}</h1>
     <p>{paid ? "Activate QualityLayer with your licence key." : failed ? "Return to pricing to try again, or contact support if you need help." : "Polar is still confirming the payment. You can check again in a moment."}</p>
     {error && <p role="alert">{error}</p>}

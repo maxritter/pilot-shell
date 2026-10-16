@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 import { useLocation } from "react-router-dom";
 import { useCopy } from "@/hooks/useCopy";
 import { useNarrow } from "@/hooks/useNarrow";
@@ -90,10 +90,7 @@ const Open = () => {
 
   return (
     <div className="w7-root ap-page">
-      <Helmet>
-        <title>Open in the QualityLayer App</title>
-        <meta name="robots" content="noindex" />
-      </Helmet>
+      <SEO />
       <main id="main" className="ap-center ap-open">
         <span className="w7-mark ap-mark" aria-hidden="true" />
         {links === null ? (

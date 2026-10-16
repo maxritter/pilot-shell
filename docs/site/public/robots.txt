@@ -25,3 +25,4 @@ Allow: /
 
 # Sitemap
 Sitemap: https://qualitylayer.dev/sitemap.xml
+Sitemap: https://qualitylayer.dev/docs/sitemap.xml

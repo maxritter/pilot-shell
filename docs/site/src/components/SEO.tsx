@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { useLocation } from "react-router-dom";
 import { SITE_URL } from "@/lib/product";
-import { pageMetadata } from "@/lib/seo";
+import { pageMetadata, serializeStructuredData } from "@/lib/seo";
 
 interface SEOProps {
   title?: string;
@@ -55,7 +55,7 @@ const SEO = ({
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImage} />
 
-      {structuredData && <script type="application/ld+json">{JSON.stringify(structuredData)}</script>}
+      {structuredData && <script type="application/ld+json">{serializeStructuredData(structuredData)}</script>}
     </Helmet>
   );
 };
