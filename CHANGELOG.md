@@ -21,6 +21,7 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Updated Apps detect concurrent group edits and keep your unsaved choices. Slack settings have message delivery and an optional morning digest.
 - Local design previews retain interactive state through motion and layout changes. Design edit history records where a change came from.
 - The website shows current App screens with an interactive workflow tour.
+- **Project memory reaches every session.** Agents get your pinned and matching lessons on their first message and after compaction, find lessons by meaning as well as by words, and can search, read and save lessons through `memory_search`, `memory_read` and `memory_save` in Claude Code, Codex, Pi and OpenCode. A task's **Memory** record in Files shows what each step used and saved.
 
 ### Fixed
 

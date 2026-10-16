@@ -149,8 +149,13 @@ The App and agents use the same local lesson store. Run project commands inside 
 | `qualitylayer memory projects [--query text] [--limit n] [--cursor token]` | List registered repositories in bounded pages |
 | `qualitylayer memory list [--query text] [--source task\|repository\|pilot\|manual\|all] [--scope private\|project\|all] [--limit n] [--cursor token]` | Browse previews in the current repository, including retired lessons |
 | `qualitylayer memory search text` · `memory context text` | Retrieve up to eight relevant lessons with distinct content |
-| `qualitylayer memory read id` | Read one lesson in the current repository |
-| `qualitylayer memory store --title text --content text [--kind decision\|architecture\|bugfix\|pattern\|discovery\|preference]` | Save or revise a lesson; publication requires recorded task/check evidence |
+| `qualitylayer memory read id [--around 1..3]` | Read one lesson in the current repository; `--around` also names the lessons saved just before and after it |
+| `qualitylayer memory store --title text --content text [--kind decision\|architecture\|bugfix\|pattern\|discovery\|preference] [--replaces id]` | Save or revise a lesson; `--replaces` retires an older lesson this one makes obsolete. Publication requires recorded task/check evidence |
+| `qualitylayer memory pin id` · `memory unpin id` | Put a lesson in every session's lesson block, up to five per project, or take it out |
+| `qualitylayer memory sessions on` · `memory sessions off` | Turn the lessons agents receive at the start of a session on or off |
+| `qualitylayer memory mcp` | Serve `memory_search`, `memory_read` and `memory_save` over standard input and output for an agent; install registers it with Claude Code and Codex |
+| `qualitylayer memory tool memory_search\|memory_read\|memory_save [json]` | Run one of those tools with its arguments as JSON, for plugins and scripts |
+| `qualitylayer memory reindex` | Rebuild the meaning index of every saved lesson |
 | `qualitylayer memory retire id` · `memory restore id` | Retire a lesson or explicitly reactivate it |
 | `qualitylayer memory pause` · `memory resume` | Pause or resume local capture and task retrieval, preserving saved lessons |
 | `qualitylayer memory share on` · `memory share off` | Change your sharing choice for this repository |
