@@ -120,6 +120,12 @@ All in `qualitylayer/`:
 
 ## Design changes
 
+- QualityLayer's App, website, docs, onboarding and workflow designs are
+  authored, shown and reviewed only in QualityLayer's local Designs workspace.
+  Use the canonical App Model or website design and the `ql-design` skill.
+  Claude Code, including Opus, may give a second opinion; Claude Design is not
+  a design workspace for this repository. This is Max's project rule from
+  16 October 2026 and supersedes the earlier remote-design exception.
 - Product and visual guidance live only in `qualitylayer/PRODUCT.md` and
   `qualitylayer/DESIGN.md`, covering the App, website and docs. Read those
   files for all product/UI work. Load Impeccable context with
@@ -156,8 +162,7 @@ All in `qualitylayer/`:
   before changing production UI source. Design commands do not start a workflow.
 - Inside a QualityLayer run: the Plan's mockup shows it (`ui: true`, one
   mockup per changed surface). Use the local design guide and Impeccable for
-  its check pass; review and comments stay in QualityLayer. Use Claude Design
-  only for an explicit request or a supplied remote project/artifact.
+  its check pass; review and comments stay in QualityLayer.
 - Use the approved unified App Model and current `qualitylayer/PRODUCT.md`
   and `qualitylayer/DESIGN.md`: only genuine human choices, full documents
   with approval in the shared header, quiet future steps, personal attention

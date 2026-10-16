@@ -1,17 +1,18 @@
 {
-  "fixtureHash": "db4a6df48870d8410a255c13d73e0586b32f1a26d2e1cdb0c2c538d649c6dc99",
+  "fixtureHash": "ebbad261b9ac5073498725ca1b17735fe0cc31c53cc332a20e7d250ec71c4a06",
   "memoryInputs": {
     "qualitylayer/src/ui/demo/memory.ts": "dd4b5657abcdf98678580e129d23730b64969ea056e24d82cdf126c2cdead4fb",
-    "qualitylayer/src/ui/settings/Memory.tsx": "29115209d42006015490836168c0ed56e2a0ad68f20da735f2251e6248919966",
+    "qualitylayer/src/ui/settings/Memory.tsx": "0173d84f01eacd97bf74b24c87374ff06cc11536b2ae0b43ff290986d8b89603",
     "qualitylayer/src/ui/settings/memory.css": "0ede9edf3206ea667fba7cfd7bed8ced102c8b284751ae51f631de08d5587cb5",
-    "qualitylayer/src/ui/settings/Rows.tsx": "9701fa7681d5edf1091015b0736598c5db6c1d420e4c45e90481135a05df6387",
+    "qualitylayer/src/ui/settings/Rows.tsx": "e29af5f67d144f573d87659280a970313549e85456c735792385d37414029604",
     "qualitylayer/src/ui/globals.css": "79a83b79e7a7f243f8a2e26ca446de76c83cab749882a40b40f0c83d72e043d1"
   },
-  "capturedAt": "2026-10-15T01:29:53.548Z",
+  "capturedAt": "2026-10-16T08:01:02.656Z",
   "scenes": [
     "discuss",
     "research",
     "plan",
+    "terminal",
     "outline",
     "implement-start",
     "implement",
@@ -410,6 +411,30 @@
       "width": 780,
       "height": 1400,
       "sha256": "a1a60d070d023b4c28e5736f7c551e41a5133bd3e87c0e4adc40e700ceed0272"
+    },
+    {
+      "file": "terminal-light.webp",
+      "width": 2880,
+      "height": 1920,
+      "sha256": "9c2dc0c078663bd10c7e19bbf9f894cdbe2613cf0b05576884a72a5858e33859"
+    },
+    {
+      "file": "terminal-phone-light.webp",
+      "width": 780,
+      "height": 1400,
+      "sha256": "d73993f6f7de4173825a5a2b9bc1d1031bff764d9742931ee4fdf10873450525"
+    },
+    {
+      "file": "terminal-dark.webp",
+      "width": 2880,
+      "height": 1920,
+      "sha256": "191bc966465487941e43d6d433002bb178ee088390c05ea7b6cd668a4a6a6528"
+    },
+    {
+      "file": "terminal-phone-dark.webp",
+      "width": 780,
+      "height": 1400,
+      "sha256": "9a5c1823eab862c335514a897567ec4ed4d83cc6860ba57fc987f553c34d3ec6"
     }
   ]
 }
