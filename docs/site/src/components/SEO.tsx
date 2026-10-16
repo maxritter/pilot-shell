@@ -1,5 +1,7 @@
 import { Helmet } from "react-helmet-async";
-import { SHARE_DESCRIPTION, SITE_URL, SLOGAN } from "@/lib/product";
+import { useLocation } from "react-router-dom";
+import { SITE_URL } from "@/lib/product";
+import { pageMetadata } from "@/lib/seo";
 
 interface SEOProps {
   title?: string;
@@ -9,31 +11,32 @@ interface SEOProps {
   ogImage?: string;
   type?: string;
   structuredData?: object | object[];
+  robots?: string;
 }
 
-/*
- * The defaults here must match the head of index.html by hand: this is a client-rendered
- * SPA, so index.html is what Slack, LinkedIn and X unfurls and non-JavaScript crawlers see,
- * and react-helmet-async only rewrites the head after hydration.
- *
- * The description is product positioning, not a keyword slot: it is the sentence shown when
- * the site is shared. Keep it in the product's own words.
- */
+/** Used by both the browser and the build-time renderer. */
 const SEO = ({
-  title = `QualityLayer: ${SLOGAN}`,
-  description = SHARE_DESCRIPTION,
+  title,
+  description,
   keywords = "software factory, human in the loop, visual planning, claude code, codex cli, ai coding agent, spec driven development, plan review, QualityLayer",
-  canonicalUrl = `${SITE_URL}/`,
+  canonicalUrl,
   ogImage = `${SITE_URL}/og.png`,
   type = "website",
   structuredData,
+  robots,
 }: SEOProps) => {
+  const defaults = pageMetadata(useLocation().pathname);
+  title ??= defaults.title;
+  description ??= defaults.description;
+  canonicalUrl ??= defaults.canonicalUrl;
+  robots ??= defaults.robots;
   return (
     <Helmet>
       <title>{title}</title>
       <meta name="title" content={title} />
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
+      <meta name="robots" content={robots} />
 
       <link rel="canonical" href={canonicalUrl} />
 

@@ -141,9 +141,10 @@ describe("the flow in the copy: asked and answered in the App", () => {
   });
 
   it("documents ql as the only installed command beginning with ql", () => {
-    const guarantee = "`/ql` is the only command you need: QualityLayer adds no other command that starts with ql. The `agent-peers` skill works on its own when you ask one agent session to message another.";
     const commands = read(join(docs, "reference/commands.md"));
-    expect(commands.split("## In your agent")[1]?.split("## For you")[0]).toContain(guarantee);
+    const agentCommands = commands.split("## In your agent")[1]?.split("## For you")[0];
+    expect(agentCommands).toContain("Use `/ql` in Claude Code and OpenCode, `$ql` in Codex, or `/skill:ql` in Pi.");
+    expect(agentCommands).toContain("The `agent-peers` skill works on its own when you ask one agent session to message another.");
     expect(commands).toContain("`/task-pane`");
     const offending = [readme, ...docPages, ...homeCopy, homeIndex].filter((path) => /[/$]ql-[a-z]/i.test(read(path)));
     expect(offending).toEqual([]);

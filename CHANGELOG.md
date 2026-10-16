@@ -2,6 +2,38 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## 12.0.0-beta.58
+
+### New
+
+- Work with your agent in the right sidebar alongside **Files** and **Feedback**. A single **Agent** menu holds session controls and appearance; the separate bottom terminal and terminal tab strip are gone.
+- Choose the agent, model and effort when starting a task, its build or a design conversation. Workspace choices stay with each launch.
+- **Approve and start** opens the build session and keeps the planning conversation as history. An empty Agent view offers an App launch or instructions for your own terminal.
+- Open designs use **Activity**, **Feedback** and **Agent**, with teammate recipients, attachments, replies and questions alongside design annotations.
+- Search, read and save project lessons through agent tools. Pin lessons for new sessions, control session memory and Git sharing in Settings, and see what each task used and saved in its Memory record.
+- The Memory guide shows how lessons move from local search into agent context and optional Git sharing. Documentation uses shorter navigation labels and updated Agent and Feedback instructions.
+
+### Fixed
+
+- After Plan approval, Outline, Implement and Verify continue available work without asking human questions. A missing login, account or other human-only prerequisite stays unverified for Review; blocked tasks and failed checks retain their evidence.
+- A deferred item no longer replaces the implementation or verification document. Home and notifications distinguish autonomous work from a decision that actually needs you.
+- Every Implement slice stays visible, including future and completed slices. An open task detail stays open when its slice finishes, and the opening line avoids repeating the counts below it.
+- Verify summaries show concise results across all check lanes. Expand a result for its full evidence; stale Polish evidence says **Needs refresh** instead of appearing to be running.
+- Plan reading order prioritizes the change, scope, decisions and risks. Supporting reference material folds away, and an approval blocked by an agent review explains why.
+- Documents use Markdown for written information, wireframes for layout questions, inline designs for visual decisions and Mermaid for diagrams.
+- The Agent view uses the sidebar's available height. Resize works from Files and Feedback too, and navigation closes the opposite sidebar when entering or leaving a task or design.
+- Agent output can recover a dropped connection after heavy output through a guarded reconnect to the same running process, preserving final output and unsent input.
+- Claude Code and Codex integrations no longer force their native task lists. Skills, hooks, Memory tools and supported effort and context settings remain.
+- Shared reviews use **Feedback** consistently; contacting the QualityLayer team uses **Report**.
+- Memory labels distinguish locally stored lessons from lessons shared by a repository. Search results identify whether semantic search was available.
+- Project-memory refresh handles delayed native file notifications without scanning the repository or repeating the same revision.
+- Generated Outline progress no longer makes an unchanged scenario look edited when rechecking it in Review.
+
+### Good to know
+
+- Locally retrieved lessons can become context for your coding agent, including a cloud provider. Git sharing is a separate repository choice; Memory exchange does not commit or push for you.
+- Native agent availability depends on the installed client and platform. A missing provider login or quota remains an explicit unverified result, not a passing check.
+
 ## 12.0.0-beta.57
 
 ### New
@@ -21,7 +53,6 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Updated Apps detect concurrent group edits and keep your unsaved choices. Slack settings have message delivery and an optional morning digest.
 - Local design previews retain interactive state through motion and layout changes. Design edit history records where a change came from.
 - The website shows current App screens with an interactive workflow tour.
-- **Project memory reaches every session.** Agents get your pinned and matching lessons on their first message and after compaction, find lessons by meaning as well as by words, and can search, read and save lessons through `memory_search`, `memory_read` and `memory_save` in Claude Code, Codex, Pi and OpenCode. A task's **Memory** record in Files shows what each step used and saved.
 
 ### Fixed
 

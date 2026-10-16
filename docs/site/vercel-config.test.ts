@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { matchesGlob } from "node:path";
 import { describe, expect, it } from "vitest";
+import { PUBLIC_PAGES } from "./src/lib/seo";
 
 /**
  * This evaluates vercel.json's redirect and rewrite rules the way Vercel does, in order, first
@@ -15,6 +16,7 @@ type Rule = {
   source: string;
   destination: string;
   permanent?: boolean;
+  statusCode?: number;
 };
 const config = JSON.parse(readFileSync(new URL("./vercel.json", import.meta.url), "utf8")) as {
   regions: string[];
@@ -36,6 +38,13 @@ const apiRoutes = readdirSync(new URL("./api", import.meta.url), { recursive: tr
   });
 const apiRoute = (path: string, dynamic: boolean) =>
   apiRoutes.some((route) => route.dynamic === dynamic && route.regex.test(path.split("?")[0] as string));
+
+const blogRoutes = new Set(["/blog", ...readdirSync(new URL("../docusaurus/blog", import.meta.url))
+  .filter((file) => file.endsWith(".md"))
+  .map((file) => {
+    const markdown = readFileSync(new URL(`../docusaurus/blog/${file}`, import.meta.url), "utf8");
+    return `/blog/${markdown.match(/^slug:\s*(.+)$/m)?.[1] ?? file.replace(/^\d{4}-\d\d-\d\d-/, "").replace(/\.md$/, "")}`;
+  })]);
 
 function compile(source: string): { regex: RegExp; names: string[] } {
   const names: string[] = [];
@@ -80,6 +89,7 @@ type Answer =
   | { kind: "redirect"; status: number; location: string }
   | { kind: "function" }
   | { kind: "rewrite"; to: string }
+  | { kind: "static" }
   | { kind: "none" };
 
 function answer(path: string): Answer {
@@ -89,11 +99,12 @@ function answer(path: string): Answer {
     if (hit === null) continue;
     return {
       kind: "redirect",
-      status: rule.permanent === true ? 308 : 307,
+      status: rule.statusCode ?? (rule.permanent === true ? 308 : 307),
       location: fill(rule.destination, names, hit.slice(1)),
     };
   }
   if (apiRoute(path, false)) return { kind: "function" };
+  if (Object.hasOwn(PUBLIC_PAGES, path) || blogRoutes.has(path) || path === "/billing" || path === "/checkout/success") return { kind: "static" };
   for (const rule of config.rewrites) {
     const { regex, names } = compile(rule.source);
     const hit = regex.exec(path);
@@ -106,6 +117,26 @@ function answer(path: string): Answer {
 }
 
 const V2_LINK = "/s/Xk3Jd92xA7pQ4mZr1bTnWe";
+
+describe("search routing", () => {
+  it("preserves every existing article, including Pilot Shell-era URLs", () => {
+    for (const route of blogRoutes) expect(answer(route), route).toEqual({ kind: "static" });
+  });
+  it.each(["/does-not-exist", "/pricing/typo", "/download/typo", "/s/a/b", "/api/missing"])("lets %s reach Vercel's real 404", (url) => {
+    expect(answer(url)).toEqual({ kind: "none" });
+  });
+
+  it("uses explicit 301 redirects for retired article aliases", () => {
+    expect(answer("/blog/claude-code-hooks")).toEqual({ kind: "redirect", status: 301, location: "/blog/hooks-guide" });
+    for (const rule of config.redirects.filter((r) => r.source.startsWith("/blog/"))) {
+      expect(rule.statusCode).toBe(301);
+      const slug = rule.destination.slice("/blog/".length);
+      const posts = readdirSync(new URL("../docusaurus/blog", import.meta.url)).filter((f) => f.endsWith(".md"));
+      expect(posts.some((file) => readFileSync(new URL(`../docusaurus/blog/${file}`, import.meta.url), "utf8").includes(`slug: ${slug}\n`))).toBe(true);
+    }
+    expect(answer("/blog/claude-unknown-retired-post")).toEqual({ kind: "rewrite", to: "/api/legacy-blog" });
+  });
+});
 
 describe("no Pilot Shell host is left", () => {
   it("names neither pilot-shell.com nor claude-pilot in any redirect, rewrite or header rule", () => {
@@ -155,10 +186,10 @@ describe("doc pages that moved or were removed", () => {
 
 describe("qualitylayer.dev is not redirected", () => {
   it("serves pages, the API and share links itself", () => {
-    expect(answer("/pricing")).toEqual({ kind: "rewrite", to: "/" });
+    expect(answer("/pricing")).toEqual({ kind: "static" });
     expect(answer("/docs/app")).toEqual({ kind: "rewrite", to: "/docs/app" });
     expect(answer("/api/team/pass")).toEqual({ kind: "function" });
-    expect(answer(V2_LINK)).toEqual({ kind: "rewrite", to: "/" });
+    expect(answer(V2_LINK)).toEqual({ kind: "rewrite", to: "/shared" });
   });
 
   it("serves every team route, the dynamic ones too, and not the page in their place", () => {
@@ -171,9 +202,10 @@ describe("qualitylayer.dev is not redirected", () => {
 
 describe("the App's pages and its update endpoint", () => {
   it("shows the page in the browser for the landing page a Slack DM opens and for the download page", () => {
-    for (const path of ["/open/ask/t_9c2/7f3a", "/open/team/t_9c2", "/download"]) {
-      expect(answer(path), path).toEqual({ kind: "rewrite", to: "/" });
+    for (const path of ["/open/ask/t_9c2/7f3a", "/open/team/t_9c2"]) {
+      expect(answer(path), path).toEqual({ kind: "rewrite", to: "/open" });
     }
+    expect(answer("/download")).toEqual({ kind: "static" });
   });
 
   it("answers the updater's and the download page's addresses from their API routes, which exist", () => {

@@ -51,9 +51,9 @@ function storedName(): string {
 }
 
 const REASONS: Record<Exclude<SubmitResult, { ok: true }>["reason"], string> = {
-  gone: "This plan is no longer shared, so it cannot take comments.",
-  rate_limited: "Too many comments from this connection. Wait a few minutes and try again.",
-  too_large: "A comment is too long. Shorten it and try again.",
+  gone: "This plan is no longer shared, so it cannot take feedback.",
+  rate_limited: "Too much feedback from this connection. Wait a few minutes and try again.",
+  too_large: "A feedback message is too long. Shorten it and try again.",
   network: "It could not be sent. Check your connection and try again.",
 };
 
@@ -119,7 +119,7 @@ function savedReceipts(id: string | undefined): SentComment[] {
 }
 
 const labelOf = (r: Exclude<Remark, { kind: "item" }>, owner: string): string =>
-  r.kind === "passage" ? `${r.for === "person" ? `Note for ${owner} · ` : ""}${r.quote !== "" ? `“${r.quote.length > 80 ? `${r.quote.slice(0, 80)}…` : r.quote}”` : "General comment"}` : r.kind === "thread" ? where(r.anchor) : "Reply";
+  r.kind === "passage" ? `${r.for === "person" ? `Note for ${owner} · ` : ""}${r.quote !== "" ? `“${r.quote.length > 80 ? `${r.quote.slice(0, 80)}…` : r.quote}”` : "General feedback"}` : r.kind === "thread" ? where(r.anchor) : "Reply";
 
 type ReadyShare = Extract<LoadedShare, { status: "ready" }>;
 
@@ -376,7 +376,7 @@ function Ready({
 
   const names = steps[tab];
   const tabItems = items.filter((item) => tabOfStep(item.step) === tab);
-  const count = `${counts.total > 0 ? `${counts.answered} of ${counts.total} answered · ` : ""}${plural(counts.comments, "comment", "comments")}`;
+  const count = `${counts.total > 0 ? `${counts.answered} of ${counts.total} answered · ` : ""}${plural(counts.comments, "feedback message", "feedback messages")}`;
 
   return (
     <div className="sh-layout">
@@ -384,7 +384,7 @@ function Ready({
         <header>
           <h1>{share.title}</h1>
           <p className="sh-meta">
-            {`${share.owner !== undefined ? `${share.owner} shared this with you` : "Shared with you"} to read and comment on${
+            {`${share.owner !== undefined ? `${share.owner} shared this with you` : "Shared with you"} to read and give feedback on${
               expires !== null ? ` · the link runs out on ${expires.toLocaleDateString("en-US", { day: "numeric", month: "short" })}` : ""
             } · project source code is kept private`}
           </p>
@@ -420,7 +420,7 @@ function Ready({
         </div>
       </article>
 
-      <aside className="sh-side" aria-label="Your answers and comments">
+      <aside className="sh-side" aria-label="Your answers and feedback">
         <section className="sh-card">
           <label htmlFor="sh-author">
             <b>Your name</b>
@@ -429,13 +429,13 @@ function Ready({
           <span className="sh-hint">
             {askedName && author.trim() === ""
               ? "Add a name so the owner knows who wrote this, or press Send again to send as Guest."
-              : "Shown next to your comments. No account needed."}
+              : "Shown next to your feedback. No account needed."}
           </span>
         </section>
 
-        <section className="sh-card" aria-label="Comment">
+        <section className="sh-card" aria-label="Feedback">
           <label htmlFor="sh-remark">
-            <b>Comment</b>
+            <b>Feedback</b>
           </label>
           {target.kind === "passage" ? <>
             <div className="sh-row" role="group" aria-label="Recipient">
@@ -460,17 +460,17 @@ function Ready({
             </blockquote>
           ) : (
             <span className="sh-hint">
-              {needsPoint ? "Choose Comment beside a point, a check or a picture." : "Select a passage to comment on it, or leave a general remark."}
+              {needsPoint ? "Choose Give feedback beside a point, a check or a picture." : "Select a passage to give feedback on it, or leave a general message."}
             </span>
           )}
           <textarea id="sh-remark" ref={box} value={text} onChange={(e) => setText(e.target.value)} rows={4} />
           <div className="sh-row">
             <button type="button" className="sh-btn" disabled={text.trim() === "" || needsPoint} onClick={add}>
-              Add comment
+              Add feedback
             </button>
           </div>
           {drafts.remarks.length > 0 ? (
-            <ul className="sh-drafts" aria-label="Comments not sent yet">
+            <ul className="sh-drafts" aria-label="Feedback not sent yet">
               {drafts.remarks.map((r, i) => (
                 // A draft is told apart by its place in the list, and only removal reorders it.
                 // biome-ignore lint/suspicious/noArrayIndexKey: removal re-keys the rest
@@ -614,7 +614,7 @@ const Shared = () => {
   const key = linkKeyOf(useLocation().hash);
   return (
     <Page className="sh-page">
-      <SEO title="A shared task — QualityLayer" description="A task shared with you from QualityLayer. Read its steps and comment on them." />
+      <SEO title="A shared task — QualityLayer" description="A task shared with you from QualityLayer. Read its steps and give feedback on them." />
       <Helmet>
         <meta name="robots" content="noindex" />
       </Helmet>

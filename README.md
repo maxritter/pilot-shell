@@ -10,7 +10,7 @@
 ### The software factory with you in the loop
 
 **Plan each change visually with your coding agent and your team, then let your agents build it.**<br>
-Works with Claude Code, Codex, Pi, OpenCode, or any other coding agent you already use.
+Native integrations for Claude Code, Codex, Pi and OpenCode. Other coding agents use the same workflow through the CLI.
 
 <a href="https://github.com/maxritter/pilot-shell"><picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&amp;color=9d6607&amp;labelColor=30363d">
@@ -117,9 +117,9 @@ $ql retry failed webhooks, and stop after a few tries     # Codex
 /ql retry failed webhooks, and stop after a few tries     # OpenCode
 ```
 
-Answer your agent's questions in the App, approve the Plan, then start the build. QualityLayer runs only when you ask for it; everything else works as before. [Your first task](https://qualitylayer.dev/docs/first-task).
+Answer your agent's questions in the App, approve the Plan, then start the build. Your agent continues through Outline, Implement and Verify until Review. Human-only prerequisites and blocked checks stay unverified for your decision there. QualityLayer runs only when you ask for it. [Your first task](https://qualitylayer.dev/docs/first-task).
 
-Choose Claude Code, Codex, Pi or OpenCode for native App planning, building and separate review in Settings. New terminal opens each with its own login. [Native agent setup and controls](https://qualitylayer.dev/docs/agents/native).
+Choose the agent, model, effort and workspace when starting a task or build. **In the App** opens the task's **Agent** conversation beside **Files** and **Feedback**; **In my terminal** gives you the launch command. Settings keeps global run controls and review models. [Supported agents](https://qualitylayer.dev/docs/agents/native).
 
 ---
 
@@ -137,7 +137,7 @@ Each of the first seven steps writes one Markdown file. You approve twice: the p
 | [Discuss](https://qualitylayer.dev/docs/steps/discuss) | Settles what done means and clarifies a bug report |
 | [Research](https://qualitylayer.dev/docs/steps/research) | Agents read how your code works today; a bug is reproduced and diagnosed here |
 | [Plan](https://qualitylayer.dev/docs/steps/plan) | Design, diagrams and checks, **approved by you** |
-| [Outline](https://qualitylayer.dev/docs/steps/outline) | The plan split into small slices |
+| [Outline](https://qualitylayer.dev/docs/steps/outline) | The build session splits the approved Plan into small slices |
 | [Implement](https://qualitylayer.dev/docs/steps/implement) | Each slice starts with a failing test |
 | [Verify](https://qualitylayer.dev/docs/steps/verify) | Every point of your request, with its evidence |
 | [Review](https://qualitylayer.dev/docs/steps/review) | A walkthrough of the change, **approved by you** |
@@ -149,7 +149,7 @@ Engineering (default) starts from a technical plan, Product from a brief that be
 
 ## Designs
 
-Ask your agent for a mockup, diagram or clickable design and compare versions in the App: pin comments, restore earlier versions, and keep the designs every task builds on in your repository. [Designs](https://qualitylayer.dev/docs/designs).
+Ask your agent for a mockup, diagram or clickable design. Compare versions in the App, pin feedback and restore earlier versions. Keep the designs every task builds on in your repository. [Designs](https://qualitylayer.dev/docs/designs).
 
 ## QualityLayer App
 
@@ -160,7 +160,8 @@ Ask your agent for a mockup, diagram or clickable design and compare versions in
 
 - Answer your agent's questions and comment on any passage; answers reach it at once.
 - Follow every task with what needs you shown first, plus time and cost per step.
-- Set standing instructions and the models that plan, build and check. [Settings](https://qualitylayer.dev/docs/reference/settings).
+- Choose model, effort and workspace at launch. Keep standing instructions, reviewer models and general run controls in [Settings](https://qualitylayer.dev/docs/reference/settings).
+- Work beside your agent in the **Agent** sidebar. Closing the sidebar keeps its session running.
 - Your agents reuse lessons from earlier tasks, and can share them through Git. [Project memory](https://qualitylayer.dev/docs/memory).
 - With a Team plan, ask a teammate about any passage over Slack, and let them review the finished change. [Team plans](https://qualitylayer.dev/docs/team/plans).
 

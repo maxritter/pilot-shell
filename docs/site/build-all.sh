@@ -54,11 +54,8 @@ fi
 # Copy Docusaurus img (favicon etc.) — merge into existing img or create
 [ -d "$BUILD/img" ] && cp -r "$BUILD/img" "$DIST/img"
 
-# Move Docusaurus's sitemap into /docs/ so it doesn't overwrite the Vite-generated
-# sitemap index at /sitemap.xml (which references both pages and docs sitemaps).
-if [ -f "$BUILD/sitemap.xml" ]; then
-  cp "$BUILD/sitemap.xml" "$DIST/docs/sitemap.xml"
-fi
+# Generate the docs/blog sitemap from final canonical HTML; preserve the marketing index.
+node "$SITE_DIR/scripts/generate-docs-sitemap.mjs" "$DIST"
 # Copy any other Docusaurus xml files (rss, atom, etc.) to /docs/
 for f in "$BUILD"/*.xml; do
   if [ -f "$f" ] && [ "$(basename "$f")" != "sitemap.xml" ]; then

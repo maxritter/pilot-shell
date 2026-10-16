@@ -94,11 +94,11 @@ describe("comments on a passage of the document", () => {
   it("the + beside a block quotes it, the comment is marked in the document and goes out against its document", async () => {
     const onSend = vi.fn(async (_author: string, _remarks: Remark[]) => ({ ok: true as const }));
     render(<SharedView state={ready({ "03-plan.md": DOC })} onSend={onSend} />);
-    fireEvent.click(screen.getAllByRole("button", { name: "Comment on this block" })[2] as HTMLElement);
+    fireEvent.click(screen.getAllByRole("button", { name: "Give feedback on this block" })[2] as HTMLElement);
     expect(screen.getByText(/Because one deployment is enough\./, { selector: "blockquote" })).toBeTruthy();
     fireEvent.change(screen.getByLabelText("Your name"), { target: { value: "Gina" } });
-    fireEvent.change(screen.getByRole("textbox", { name: "Comment" }), { target: { value: "Why one?" } });
-    fireEvent.click(screen.getByRole("button", { name: "Add comment" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Feedback" }), { target: { value: "Why one?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add feedback" }));
     // Under the passage it is about, as the App shows a comment.
     const inline = await screen.findByTestId("inline-comment");
     expect(inline.textContent).toContain("Why one?");
@@ -115,9 +115,9 @@ describe("comments on a passage of the document", () => {
     const docs = { "03-plan.md": "# Plan\n\nPlan words here." };
     const onSend = vi.fn(async (_author: string, _remarks: Remark[]) => ({ ok: true as const }));
     render(<SharedView state={ready(docs)} onSend={onSend} />);
-    fireEvent.click(screen.getAllByRole("button", { name: "Comment on this block" })[1] as HTMLElement);
-    fireEvent.change(screen.getByRole("textbox", { name: "Comment" }), { target: { value: "Check" } });
-    fireEvent.click(screen.getByRole("button", { name: "Add comment" }));
+    fireEvent.click(screen.getAllByRole("button", { name: "Give feedback on this block" })[1] as HTMLElement);
+    fireEvent.change(screen.getByRole("textbox", { name: "Feedback" }), { target: { value: "Check" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add feedback" }));
     fireEvent.click(screen.getAllByRole("button", { name: "Send to Max" })[0] as HTMLElement);
     await waitFor(() => expect(onSend).toHaveBeenCalledTimes(1));
     expect(onSend.mock.calls[0]?.[1][0]).toMatchObject({ kind: "passage", doc: "03-plan.md", quote: "Plan words here." });

@@ -16,8 +16,8 @@ const TABS: [ChangeTab, string][] = [
 
 function CommentOn({ anchor, onPick }: { anchor: ChangeAnchor; onPick: (a: ChangeAnchor) => void }) {
   return (
-    <button type="button" className="sh-on" onClick={() => onPick(anchor)} aria-label={`Comment on ${where(anchor)}`}>
-      Comment
+    <button type="button" className="sh-on" onClick={() => onPick(anchor)} aria-label={`Give feedback on ${where(anchor)}`}>
+      Give feedback
     </button>
   );
 }

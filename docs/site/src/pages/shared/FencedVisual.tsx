@@ -28,8 +28,8 @@ export function FencedVisual({ kind, source, theme = "light", onComment }: { kin
       <iframe title={title} sandbox="" referrerPolicy="no-referrer" srcDoc={html} style={{ display: "block", border: 0, width: "100%", maxWidth: kind === "panel" ? undefined : SURFACES[surface], height: HEIGHTS[surface] }} />
       {kind === "panel" ? <VisualLegend marks={panelNodes(parsed.fragment).flatMap((node) => node.marks)} /> : null}
       {onComment !== undefined ? <div className="visual-bar" style={{ flexWrap: "wrap" }}>
-        <button type="button" className="q-link" style={{ minHeight: 44 }} onClick={() => onComment(`${kind} ${parsed.header.name ?? kind}`)}>Comment on this {kind}</button>
-        <span>a comment here is on the whole {kind}</span>
+        <button type="button" className="q-link" style={{ minHeight: 44 }} onClick={() => onComment(`${kind} ${parsed.header.name ?? kind}`)}>Give feedback on this {kind}</button>
+        <span>feedback here is on the whole {kind}</span>
       </div> : null}
     </figure>
   );

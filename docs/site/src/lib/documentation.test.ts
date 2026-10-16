@@ -24,13 +24,15 @@ describe("installation and build instructions", () => {
     expect(headless).not.toContain("install.ps1");
   });
 
-  it("explains what to do when only the person can unblock a build", () => {
+  it("keeps human-only prerequisites unverified for Review while available work continues", () => {
     const implement = doc("steps/implement.md");
-    expect(implement).toMatch(/login, a secret/);
-    expect(implement).toContain("Set it in your own environment");
-    expect(implement).toContain("It's set");
-    expect(implement).toContain("Other slices keep building");
-    expect(implement).toContain("the agent waits for that need to be resolved");
+    expect(implement).toContain("A login, secret, account or other human-only prerequisite");
+    expect(implement).toContain("stays unverified for Review");
+    expect(implement).toContain("Available work continues");
+    expect(implement).toContain("blocked checks retain their evidence instead of being marked passed");
+    expect(implement).toContain("The App never takes the secret");
+    expect(implement).toContain("Native permission or sign-in prompts still require their normal response");
+    expect(implement).toContain("An explicit stop or pause remains in force");
     expect(implement).not.toMatch(/never stops to wait|Nothing waits for you/);
   });
 

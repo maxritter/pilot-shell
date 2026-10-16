@@ -5,16 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!--
-      This is a client-rendered SPA, so THIS block is what every consumer that does not
-      execute JavaScript sees: Slack, LinkedIn and X unfurls, and crawlers that index the raw
-      response. react-helmet-async in src/components/SEO.tsx only rewrites the head after
-      hydration, so keep the two in sync by hand.
+      Development fallback. The production build renders each public route and
+      replaces this head with the metadata from the same React components.
     -->
     <title>QualityLayer: The software factory with you in the loop</title>
     <meta name="title" content="QualityLayer: The software factory with you in the loop" />
     <meta
       name="description"
-      content="Plan each change visually with your coding agent and your team, in diagrams and clickable designs. When everyone shares the same picture, your agents build it."
+      content="Visual planning and spec-driven development with Claude Code and Codex. Review the plan, keep a human in the loop, and let your agents build it."
     />
     <meta
       name="keywords"
@@ -46,7 +44,7 @@
     <meta property="og:title" content="QualityLayer: The software factory with you in the loop" />
     <meta
       property="og:description"
-      content="Plan each change visually with your coding agent and your team, in diagrams and clickable designs. When everyone shares the same picture, your agents build it."
+      content="Visual planning and spec-driven development with Claude Code and Codex. Review the plan, keep a human in the loop, and let your agents build it."
     />
     <meta property="og:image" content="https://qualitylayer.dev/og.png" />
     <meta property="og:image:width" content="1200" />
@@ -60,7 +58,7 @@
     <meta name="twitter:title" content="QualityLayer: The software factory with you in the loop" />
     <meta
       name="twitter:description"
-      content="Plan each change visually with your coding agent and your team, in diagrams and clickable designs. When everyone shares the same picture, your agents build it."
+      content="Visual planning and spec-driven development with Claude Code and Codex. Review the plan, keep a human in the loop, and let your agents build it."
     />
     <meta name="twitter:image" content="https://qualitylayer.dev/og.png" />
 
@@ -85,7 +83,7 @@
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "QualityLayer",
-        "description": "The software factory with you in the loop. Plan each change visually with your coding agent and your team, in diagrams and clickable designs. When everyone shares the same picture, your agents build it.",
+        "description": "The software factory with you in the loop. Visual planning and spec-driven development with Claude Code and Codex. Review the plan, keep a human in the loop, and let your agents build it.",
         "applicationCategory": "DeveloperApplication",
         "operatingSystem": "macOS, Linux, Windows",
         "url": "https://qualitylayer.dev/",

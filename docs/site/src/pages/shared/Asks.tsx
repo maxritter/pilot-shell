@@ -114,7 +114,7 @@ export function Asks({
         <span className="sh-mark you" aria-hidden="true" />
         <h2>{`Your turn · ${owner ?? "The owner"} asks you`}</h2>
         <span className="sh-asks-side">
-          {`${plural(items.length, "question", "questions")} · your answers reach ${owner ?? "the owner"} as comments`}
+          {`${plural(items.length, "question", "questions")} · your answers reach ${owner ?? "the owner"} as feedback`}
         </span>
       </header>
       <ul>

@@ -7,7 +7,7 @@ description: What you type in your agent, the commands you run, the ones your ag
 
 ## In your agent
 
-`/ql` is the only command you need: QualityLayer adds no other command that starts with ql. The `agent-peers` skill works on its own when you ask one agent session to message another. In Codex, type `$ql` instead.
+Use `/ql` in Claude Code and OpenCode, `$ql` in Codex, or `/skill:ql` in Pi. The examples below use `/ql`; the request text stays the same in each agent. The `agent-peers` skill works on its own when you ask one agent session to message another.
 
 | You type | What it does |
 | --- | --- |
@@ -153,7 +153,7 @@ The App and agents use the same local lesson store. Lessons sent to a cloud agen
 | `qualitylayer memory store --title text --content text [--kind decision\|architecture\|bugfix\|pattern\|discovery\|preference] [--replaces id]` | Save or revise a lesson; `--replaces` retires an older lesson this one makes obsolete. Sharing requires an eligible project lesson and the repository’s sharing switch; passing checks are not required |
 | `qualitylayer memory pin id` · `memory unpin id` | Put a lesson in every session's lesson block, up to five per project, or take it out |
 | `qualitylayer memory sessions on` · `memory sessions off` | Turn the lessons agents receive at the start of a session on or off |
-| `qualitylayer memory mcp` | Serve `memory_search`, `memory_read` and `memory_save` over standard input and output for an agent; install registers it with Claude Code and Codex |
+| `qualitylayer memory mcp` | Serve `memory_search`, `memory_read` and `memory_save` over standard input and output; install registers it with Claude Code and Codex. Pi and OpenCode expose the same tools through their native integrations |
 | `qualitylayer memory tool memory_search\|memory_read\|memory_save [json]` | Run one of those tools with its arguments as JSON, for plugins and scripts |
 | `qualitylayer memory reindex` | Rebuild the meaning index of every saved lesson |
 | `qualitylayer memory retire id` · `memory restore id` | Retire a lesson or explicitly reactivate it |

@@ -16,8 +16,8 @@ const state: Extract<LoadedShare, { status: "ready" }> = {
 };
 function addComment(text = "Why one?") {
   fireEvent.change(screen.getByLabelText("Your name"), { target: { value: "Gina" } });
-  fireEvent.change(screen.getByRole("textbox", { name: "Comment" }), { target: { value: text } });
-  fireEvent.click(screen.getByRole("button", { name: "Add comment" }));
+  fireEvent.change(screen.getByRole("textbox", { name: "Feedback" }), { target: { value: text } });
+  fireEvent.click(screen.getByRole("button", { name: "Add feedback" }));
 }
 
 describe("commenting on the step documents", () => {
@@ -30,7 +30,7 @@ describe("commenting on the step documents", () => {
     const onSend = vi.fn(async () => ({ ok: true as const }));
     const plan = "# The Plan\n\n## Why\n\nOne deployment.\n\n## What\n\nThe page.\n\n## How\n\nIn steps.";
     render(<SharedView state={{ ...state, docs: { "03-plan.md": plan } }} onSend={onSend} />);
-    fireEvent.change(screen.getByRole("textbox", { name: "Comment" }), { target: { value: "Unsent text" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "Feedback" }), { target: { value: "Unsent text" } });
     // The document is named by the Sections menu, as it is in the App.
     fireEvent.click(screen.getByRole("button", { name: /Sections/ }));
     expect((await screen.findByTestId("doc-path")).textContent).toBe("03-plan.md");
@@ -48,7 +48,7 @@ describe("commenting on the step documents", () => {
     expect(await (create.mock.calls[0][0] as Blob).text()).toBe(plan);
     expect(click).toHaveBeenCalledOnce();
     await screen.findByText("Markdown download started.");
-    expect((screen.getByRole("textbox", { name: "Comment" }) as HTMLTextAreaElement).value).toBe("Unsent text");
+    expect((screen.getByRole("textbox", { name: "Feedback" }) as HTMLTextAreaElement).value).toBe("Unsent text");
     expect(onSend).not.toHaveBeenCalled();
   });
   it("keeps receipts on their own link and ignores malformed saved replies", async () => {
@@ -93,7 +93,7 @@ describe("commenting on the step documents", () => {
     render(<SharedView state={state} onSend={onSend} />);
     expect(sendButton().disabled).toBe(true);
     addComment();
-    expect(seen("1 comment")).toBe(true);
+    expect(seen("1 feedback message")).toBe(true);
     fireEvent.click(sendButton());
     await waitFor(() => expect(onSend).toHaveBeenCalledTimes(1));
     expect(onSend.mock.calls[0]).toEqual(["Gina", [{ kind: "passage", id: expect.any(String), doc: "03-plan.md", quote: "", text: "Why one?" }]]);
@@ -107,7 +107,7 @@ describe("commenting on the step documents", () => {
     fireEvent.click(sendButton());
     await screen.findByRole("alert");
     expect(screen.getByRole("alert").textContent).toContain("could not be sent");
-    expect(seen("1 comment")).toBe(true);
+    expect(seen("1 feedback message")).toBe(true);
     expect(seen("Sent to Max.")).toBe(false);
   });
 });
@@ -123,11 +123,11 @@ describe("keeping an open link current", () => {
     load.mockResolvedValue({ kind: "loaded", state: { ...state, docs: { "03-plan.md": "# Latest Plan\n\nThe Plan changed." } }, rev: 2 });
     await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
     expect(seen("The Plan changed.")).toBe(true);
-    expect(seen("1 comment")).toBe(true);
+    expect(seen("1 feedback message")).toBe(true);
     load.mockResolvedValue({ kind: "retry", message: "Temporary outage" });
     await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
     expect(seen("The Plan changed.")).toBe(true);
-    expect(seen("1 comment")).toBe(true);
+    expect(seen("1 feedback message")).toBe(true);
     expect(seen("Updates could not be received. Showing the last version until the connection returns.")).toBe(true);
     load.mockResolvedValue({ kind: "loaded", state: { status: "gone" } });
     await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });

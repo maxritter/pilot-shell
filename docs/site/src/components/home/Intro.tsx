@@ -126,7 +126,7 @@ export default function Intro() {
         <div className="mx-mq">
           <div className="mx-mqt">
             <h2 id="mod-h" className="mx-h3">Use the models you already pay for</h2>
-            <p>Pick which model writes the code and which checks it. Choose Claude Code, Codex, Pi or OpenCode for a separate review of your plan and risky changes.</p>
+            <p>Pick your models for coding and AI code review. Choose Claude Code, Codex, Pi or OpenCode for a separate review of your plan and risky changes.</p>
           </div>
           <div className="mx-mqr">
             <p className="w7-sr">Models: {MODELS.filter(([, icon]) => icon === "cpu").map(([label]) => label).join(", ")}, through Claude Code, Codex, Pi and OpenCode. {SETUPS.map(([label]) => label).join(". ")}.</p>

@@ -9,4 +9,6 @@ import "./styles/closeup.css";
 
 applySavedTheme();
 
+// This app mounts afresh; React then owns the metadata emitted during prerendering.
+document.head.querySelectorAll("[data-prerendered-head]").forEach((element) => element.remove());
 createRoot(document.getElementById("root")!).render(<App />);

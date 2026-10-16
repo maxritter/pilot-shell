@@ -11,7 +11,7 @@ description: Use QualityLayer with any coding agent that can run shell commands,
 ## Start a task {#start}
 
 1. In the agent's terminal, run `qualitylayer help`. Nothing listed? Run `qualitylayer doctor`.
-2. In the App, choose **+ New › Another agent**, describe the change and copy the prompt.
+2. In the App, choose **+ New**, describe the change, then choose **Another agent** and copy the prompt.
 3. Paste it into your agent. Answer its questions and approve the Plan in the App.
 
 ## Plan with one agent, build with another {#mix}
@@ -19,7 +19,7 @@ description: Use QualityLayer with any coding agent that can run shell commands,
 ![Plan with Claude Code, approve the Plan, build with another agent, then the same checks and your approval](pathname:///img/diagrams/agents-mix-light.svg)
 ![Plan with Claude Code, approve the Plan, build with another agent, then the same checks and your approval](pathname:///img/diagrams/agents-mix-dark.svg)
 
-Pick **Another agent** under **Build with** when the build starts. Choose it for this run; [Settings](../reference/settings.md#defaults) holds the general run controls.
+Pick **Another agent** when starting the build and copy its terminal prompt. After you start, it follows Outline, Implement and Verify until human Review. [Settings](../reference/settings.md#defaults) holds the general run controls.
 
 ## Run in your terminal {#app-start}
 
@@ -32,7 +32,7 @@ Choose **Another agent** and copy the request into that agent’s terminal. App 
 | Setup | Done when you install | One pasted prompt |
 | Model and effort | Set in QualityLayer | Set in your agent |
 | Building | Workers build slices side by side | One session builds every slice |
-| Window controls | Interrupt, Stop, Resume, Move | Stop |
+| Sessions | The App's **Agent** sidebar and supported session controls | Your agent's terminal and its own controls |
 | Cost panel | Per step | Not shown |
 | [Second opinion](../reference/settings.md#second-opinion) | Choose an installed native reviewer | Can use an installed native reviewer |
 

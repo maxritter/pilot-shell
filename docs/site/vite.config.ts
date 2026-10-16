@@ -4,6 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import sitemapPlugin from "./vite-plugin-sitemap.ts";
 import indexNowPlugin from "./vite-plugin-indexnow.ts";
+import prerenderPlugin from "./vite-plugin-prerender.ts";
 
 const DOCUSAURUS_DEV_URL = "http://localhost:3000";
 const COCKPIT_SOURCE = path.resolve(import.meta.dirname, "../../qualitylayer/src/ui");
@@ -59,6 +60,7 @@ export default defineConfig(({ mode }) => ({
     tailwindcss(),
     mode === "development" && docusaurusRedirect(),
     sitemapPlugin(),
+    prerenderPlugin(),
     indexNowPlugin(),
   ].filter(Boolean),
   resolve: {
@@ -67,6 +69,7 @@ export default defineConfig(({ mode }) => ({
     dedupe: ["react", "react-dom", "cn", "lucide-react", "radix-ui", "class-variance-authority", "clsx", "tailwind-merge", "dompurify", "css-tree", "parse5", "marked", "mermaid", "sonner", "tailwindcss", "tw-animate-css", "shadcn"],
   },
   build: {
+    manifest: true,
     target: "es2020",
     cssMinify: true,
     chunkSizeWarningLimit: 800,

@@ -6,7 +6,7 @@ description: The Outline orders the tested slices. The build session writes it f
 ![The eight steps, with Outline highlighted](pathname:///img/diagrams/track-outline-light.svg)
 ![The eight steps, with Outline highlighted](pathname:///img/diagrams/track-outline-dark.svg)
 
-The Plan says what changes; the Outline says how it is built, slice by slice. The build session writes it from the approved Plan. **You do not approve it again.**
+The Plan says what changes; the Outline says how it is built, slice by slice. The build session writes it from the approved Plan, then continues through Implement and Verify until human Review. **You do not approve the Outline again.**
 
 ![Outline: build order, slices, and how each Done means point is proved](pathname:///img/diagrams/outline-light.svg)
 ![Outline: build order, slices, and how each Done means point is proved](pathname:///img/diagrams/outline-dark.svg)
@@ -24,6 +24,6 @@ On a larger or risky build, a second agent checks that every card can be built.
 
 ## What you do {#what-you-do}
 
-[Start the build](implement.md#start-implement). Comment on any slice if you want.
+[Start the build](implement.md#start-implement). You can follow progress or comment on a slice. Missing human-only prerequisites stay unverified for Review while available work continues; they do not create another workflow approval here.
 
 Next: [Implement](implement.md).

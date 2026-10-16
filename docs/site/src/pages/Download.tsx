@@ -154,11 +154,7 @@ const Download = () => {
 
   return (
     <>
-      <SEO
-        title="Download the QualityLayer App — QualityLayer"
-        description="The QualityLayer App for macOS, Windows and Linux, with the command line your agents use."
-        canonicalUrl={`${SITE_URL}/download`}
-      />
+      <SEO />
       <Page>
         <DownloadView data={data} system={system} loading={loading} />
       </Page>

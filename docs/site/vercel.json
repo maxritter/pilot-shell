@@ -77,12 +77,16 @@
     { "source": "/docs/workflow/check/review", "destination": "/docs/steps/review", "permanent": true },
     { "source": "/docs/workflow/check/shipped", "destination": "/docs/steps/pull-request#merged", "permanent": true },
     { "source": "/docs/workflow/check/stops", "destination": "/docs/steps/verify#when-it-stops", "permanent": true },
-    { "source": "/docs/workflow/:path*", "destination": "/docs#the-seven-steps", "permanent": true }
+    { "source": "/docs/workflow/:path*", "destination": "/docs#the-seven-steps", "permanent": true },
+    { "source": "/blog/claude-code-hooks", "destination": "/blog/hooks-guide", "statusCode": 301 },
+    { "source": "/blog/claude-code-best-practices", "destination": "/blog/agentic-engineering-best-practices", "statusCode": 301 },
+    { "source": "/blog/claude-code-review", "destination": "/blog/code-review", "statusCode": 301 },
+    { "source": "/blog/claude-code-memory", "destination": "/blog/auto-memory", "statusCode": 301 }
   ],
   "rewrites": [
     {
       "source": "/s/:id",
-      "destination": "/"
+      "destination": "/shared"
     },
     {
       "source": "/app/latest.json",
@@ -106,11 +110,11 @@
     },
     {
       "source": "/blog/:path*",
-      "destination": "/blog/:path*"
+      "destination": "/api/legacy-blog"
     },
     {
-      "source": "/((?!api/).*)",
-      "destination": "/"
+      "source": "/open/:path*",
+      "destination": "/open"
     }
   ],
   "headers": [

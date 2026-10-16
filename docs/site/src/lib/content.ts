@@ -27,7 +27,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "How is this different from plan mode?",
-    "Plan mode gives you a plan in the chat. Here, questions arrive as a batch in Your turn; answer in any order, and each answer reaches your agent immediately. You comment on one plan with diagrams and designs, and approve it before coding. Your agent builds it test first, another agent polishes and tests it, and risky changes get an independent review.",
+    "Spec-driven development starts with an approved plan. Here, questions arrive as a batch in Your turn; answer in any order, and each answer reaches your agent immediately. You comment on one plan with diagrams and designs, and approve it before coding. Your agent builds it test first, another agent polishes and tests it, and risky changes get independent AI code review.",
   ),
   faq(
     "What about small changes and bugs?",

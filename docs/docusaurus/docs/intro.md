@@ -20,7 +20,7 @@ QualityLayer is the software factory with you in the loop. Your agent reads the 
 
 ## The eight steps {#the-seven-steps}
 
-Each of the first seven steps writes one document. You approve twice: the Plan, and the finished change.
+Each of the first seven steps writes one document. You approve twice: the Plan, and the finished change. After you start the build, your agent continues through Outline, Implement and Verify without workflow questions. Human-only prerequisites and blocked checks stay unverified for Review.
 
 ![The eight steps from Discuss to the pull request; you approve the Plan and the finished change, and merge](pathname:///img/diagrams/flow-pr-light.svg)
 ![The eight steps from Discuss to the pull request; you approve the Plan and the finished change, and merge](pathname:///img/diagrams/flow-pr-dark.svg)
@@ -31,14 +31,14 @@ Each of the first seven steps writes one document. You approve twice: the Plan, 
 | **[Research](steps/research.md)** | Agents read the code; a bug's cause is found here |
 | **[Plan](steps/plan.md)** | The design, with diagrams. You approve it before any code |
 | **[Outline](steps/outline.md)** | Your agent cuts the Plan into slices. Nothing to approve |
-| **[Implement](steps/implement.md)** | One command starts the build, in small tested slices |
+| **[Implement](steps/implement.md)** | Your agent builds the approved Plan in small tested slices |
 | **[Verify](steps/verify.md)** | Six checks, including agents that did not write the code |
 | **[Review](steps/review.md)** | You settle what is left and approve; the pull request opens |
 | **[Pull request](steps/pull-request.md)** | Your agent fixes failing checks, up to three times. You merge |
 
 ## Who it is for
 
-Use it for medium and large changes, solo or with a team. It connects [supported agents](agents/native.md), or [another agent](agents/other.md) that runs shell commands, using your existing agent account.
+Use it for medium and large changes, solo or with a team. Claude Code, Codex, Pi and OpenCode have [native integrations](agents/native.md). [Other coding agents](agents/other.md) use the same workflow through the CLI. Your agent keeps its own login and provider settings.
 
 ## Two levels
 

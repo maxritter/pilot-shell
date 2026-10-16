@@ -1,8 +1,20 @@
 {
   "name": "qualitylayer",
-  "version": "12.0.0-beta.57",
+  "version": "12.0.0-beta.58",
   "private": true,
   "type": "module",
+  "qualitylayer": {
+    "recordedTree": {
+      "schema": 1,
+      "outputs": ["dist", "src/server/ui"],
+      "producers": {
+        "bun run build": ["dist", "src/server/ui"],
+        "bun run test": ["dist", "src/server/ui"],
+        "bun run test:ui": ["dist", "src/server/ui"]
+      },
+      "tools": []
+    }
+  },
   "imports": {
     "#workflow": {
       "sealed": "./src/workflow/sealed.ts",
@@ -11,6 +23,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "agent:check": "bun scripts/agent-checks.ts",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "deadcode": "knip",
@@ -90,29 +103,5 @@
   },
   "patchedDependencies": {
     "@xterm/addon-webgl@0.19.0": "patches/@xterm%2Faddon-webgl@0.19.0.patch"
-  },
-  "qualitylayer": {
-    "recordedTree": {
-      "schema": 1,
-      "outputs": [
-        "dist",
-        "src/server/ui"
-      ],
-      "producers": {
-        "bun run build": [
-          "dist",
-          "src/server/ui"
-        ],
-        "bun run test": [
-          "dist",
-          "src/server/ui"
-        ],
-        "bun run test:ui": [
-          "dist",
-          "src/server/ui"
-        ]
-      },
-      "tools": []
-    }
   }
 }

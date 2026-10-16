@@ -203,7 +203,7 @@ export default function Editorial() {
       <section id="tour" className="ed-section mx-wrap" aria-labelledby="ed-workflow-h">
         <div className="ed-head">
           <h2 id="ed-workflow-h">From prompt to pull request in eight steps</h2>
-          <p>You make the decisions; agents do the work and check it. Engineers start from a technical plan, product people from a product brief.</p>
+          <p>Spec-driven development keeps a human in the loop: you approve the plan, and agents build and check it. Engineers start from a technical plan, product people from a product brief.</p>
           <ul className="ed-legend" aria-label="Colours">
             {(Object.keys(WHO) as Who[]).map((who) => <li key={who} data-who={who}><span className="ed-dot" aria-hidden="true" />{WHO[who]}</li>)}
           </ul>

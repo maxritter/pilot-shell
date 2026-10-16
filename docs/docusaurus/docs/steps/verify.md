@@ -6,7 +6,7 @@ description: Agents that did not write the code check every Done means point, wi
 ![The eight steps, with Verify highlighted](pathname:///img/diagrams/track-verify-light.svg)
 ![The eight steps, with Verify highlighted](pathname:///img/diagrams/track-verify-dark.svg)
 
-Verify starts when the last slice is built. Agents that did not write the code check it. You do nothing unless it stops for you.
+Verify starts when the last slice is built. Agents that did not write the code check it and continue available work until Review, without workflow questions.
 
 ![Verify in the App: the six checks and their results](pathname:///img/app/verify-light.webp)
 ![Verify in the App: the six checks and their results](pathname:///img/app/verify-dark.webp)
@@ -32,17 +32,20 @@ On a change that is not risky, the build session runs the review itself and mark
 
 Each **Done means** point shows its evidence as it comes in: output, a screenshot or a file. Failures are fixed test first, without asking you.
 
-## When it stops {#when-it-stops}
+## What reaches Review {#when-it-stops}
 
-When further fixing needs your decision, **Your turn** shows what still fails and the cost so far:
+Failed checks keep their results and evidence. Human-only prerequisites, unavailable environments and exhausted fix rounds reach Review as unresolved work. They do not become passed checks or ask you to approve another build step.
 
-| Choice | What happens |
-| --- | --- |
-| **One more round** | One more review run |
-| **Review it as it is** | Goes to Review with the open items listed |
-| **Stop here** | The work and its evidence stay |
+In Review, you can request another fix round or decide what to do with the remaining gaps. Your agent's native permissions and your explicit stop or pause still apply.
 
-![The fixing hold with its three choices](pathname:///img/diagrams/stopped-light.svg)
-![The fixing hold with its three choices](pathname:///img/diagrams/stopped-dark.svg)
+<details>
+<summary>Earlier fixing-hold illustration</summary>
+
+![Earlier fixing hold with three choices](pathname:///img/diagrams/stopped-light.svg)
+![Earlier fixing hold with three choices](pathname:///img/diagrams/stopped-dark.svg)
+
+This illustration shows an earlier pause during Verify. Current unresolved checks reach Review as described above.
+
+</details>
 
 Next: [Review](review.md).
