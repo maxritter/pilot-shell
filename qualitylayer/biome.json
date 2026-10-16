@@ -6,7 +6,13 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["src/**", "!src/workflow/mod", "tests/**", "scripts/**"]
+    "includes": [
+      "src/**",
+      "!src/workflow/mod",
+      "!src/memory-embed/assets",
+      "tests/**",
+      "scripts/**"
+    ]
   },
   "formatter": {
     "enabled": true,
