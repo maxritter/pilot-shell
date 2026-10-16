@@ -42,6 +42,15 @@ name: App proof
       - "install.sh"
       - "install.ps1"
   workflow_dispatch:
+    inputs:
+      platforms:
+        description: "Platforms to qualify (Windows-only is a scoped rerun, not a full-platform verdict)"
+        type: choice
+        required: true
+        default: all
+        options:
+          - all
+          - windows
   workflow_call:
 
 permissions:
@@ -59,13 +68,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { name: macOS Apple silicon, leg: macos-arm64, os: macos-26 }
-          - { name: macOS Intel, leg: macos-x64, os: macos-15-intel }
-          - { name: Windows x64, leg: windows-x64, os: windows-2025 }
-          - { name: Windows ARM64, leg: windows-arm64, os: windows-11-arm }
-          - { name: Ubuntu x64, leg: linux-x64, os: ubuntu-22.04 }
-          - { name: Ubuntu ARM64, leg: linux-arm64, os: ubuntu-24.04-arm }
+        include: >-
+          ${{ fromJSON(
+            github.event_name == 'workflow_dispatch' && inputs.platforms == 'windows' &&
+            '[{"name":"Windows x64","leg":"windows-x64","os":"windows-2025"},{"name":"Windows ARM64","leg":"windows-arm64","os":"windows-11-arm"}]' ||
+            '[{"name":"macOS Apple silicon","leg":"macos-arm64","os":"macos-26"},{"name":"macOS Intel","leg":"macos-x64","os":"macos-15-intel"},{"name":"Windows x64","leg":"windows-x64","os":"windows-2025"},{"name":"Windows ARM64","leg":"windows-arm64","os":"windows-11-arm"},{"name":"Ubuntu x64","leg":"linux-x64","os":"ubuntu-22.04"},{"name":"Ubuntu ARM64","leg":"linux-arm64","os":"ubuntu-24.04-arm"}]'
+          ) }}
     defaults:
       run:
         shell: bash
@@ -285,6 +293,7 @@ jobs:
   # falls back to WSL1 and says so (`wsl2: unavailable`), which is a decision for the owner, not a pass.
   wsl2:
     name: WSL2
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.platforms != 'windows' }}
     runs-on: windows-2025
     timeout-minutes: 60
     defaults:
