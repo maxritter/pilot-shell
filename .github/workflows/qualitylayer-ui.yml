@@ -58,13 +58,10 @@ jobs:
       - name: Install managed Chromium
         working-directory: qualitylayer
         run: bun x playwright install --with-deps chromium
-      # The click-speed project measures the built server, whichever shard it lands in.
-      - name: Build the binary
-        working-directory: qualitylayer
-        run: bun run build
+      # test:ui builds one private candidate and passes it to every project, including click-speed.
       - name: Source UI interactions, geometry and accessibility
         working-directory: qualitylayer
-        run: bun run test:ui --all --shard ${{ matrix.shard }}/8
+        run: bun run test:ui --all --shard ${{ matrix.shard }}/8 --reporter=github,./scripts/ui-duration-reporter.ts
       - name: Keep fixture failure screenshots
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
