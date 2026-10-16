@@ -9,7 +9,13 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 <section class="cl-rel cl-latest">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.57
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.57" datetime="2026-10-16T06:50:36Z">Published 16 Oct 2026, 06:50 UTC</time></p>
+
+</header>
 
 ### New
 
@@ -49,11 +55,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Cross-project copies are independent. Also-show is a shared reference; **Stop showing** removes only that project's listing. Updates to another project's source still go through a task there.
 - Archived designs stay readable from existing tasks. Deleted library entries retain their files for Restore; there is no permanent purge or expiry in this release.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.56
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.56" datetime="2026-10-13T21:59:11Z">Published 13 Oct 2026, 21:59 UTC</time></p>
+
+</header>
 
 ### New
 
@@ -83,11 +97,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Other agents than Claude Code and Codex start from a program path and argument list; their interrupt and resume controls are not available.
 - Agent output stays in local run records on your computer and is never part of a shared task.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.55
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.55" datetime="2026-10-12T12:11:31Z">Published 12 Oct 2026, 12:11 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -97,11 +119,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   level, then every setting, open. The "This browser" card and the folded
   section are gone.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.54
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.54" datetime="2026-10-12T09:58:46Z">Published 12 Oct 2026, 09:58 UTC</time></p>
+
+</header>
 
 ### New
 
@@ -139,11 +169,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   switch back to the App often. If the allowance does run out, Home says when
   the questions come back instead of showing an error.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.53
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.53" datetime="2026-10-12T02:10:53Z">Published 12 Oct 2026, 02:10 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -171,11 +209,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - The Files panel shows a file's path under its own row, and Home says
   "1 task".
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.52
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.52" datetime="2026-10-11T23:23:31Z">Published 11 Oct 2026, 23:23 UTC</time></p>
+
+</header>
 
 ### New
 
@@ -248,11 +294,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - **Settings › Licence** opens your billing account on qualitylayer.dev,
   with your invoices, receipts and payment method.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.51
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.51" datetime="2026-10-11T10:59:12Z">Published 11 Oct 2026, 10:59 UTC</time></p>
+
+</header>
 
 ### New
 
@@ -303,11 +357,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - A comment you leave on the Outline after planning has stopped reaches the
   build's first step and is answered there.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.50
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.50" datetime="2026-10-11T01:25:16Z">Published 11 Oct 2026, 01:25 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -315,11 +377,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   after the wait times out instead of starting the wait over and over. You
   pick the task up with `qualitylayer` when you are back.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.49
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.49" datetime="2026-10-10T21:56:39Z">Published 10 Oct 2026, 21:56 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -327,11 +397,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   build, even one QualityLayer does not run, commits to the same branch,
   its files no longer appear under your task's slices in the final review.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.48
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.48" datetime="2026-10-10T21:23:27Z">Published 10 Oct 2026, 21:23 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -339,22 +417,38 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   this task's files under its slices, and its header counts only this
   task's files and commits. The other build's files stay under Not doing.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.47
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.47" datetime="2026-10-10T20:58:21Z">Published 10 Oct 2026, 20:58 UTC</time></p>
+
+</header>
 
 ### Fixed
 
 - After a fix round, the first request for the independent judge hands the
   judge out at once. It used to take a second, identical request.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.46
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.46" datetime="2026-10-10T19:56:37Z">Published 10 Oct 2026, 19:56 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -362,11 +456,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   **One more round** now goes back to its fix helper too, instead of asking
   for a judge on unchanged code.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.45
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.45" datetime="2026-10-10T19:13:15Z">Published 10 Oct 2026, 19:13 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -375,11 +477,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   unchanged code once more. When QualityLayer takes that round by itself,
   it says so instead of saying you chose it.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.44
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.44" datetime="2026-10-10T18:28:28Z">Published 10 Oct 2026, 18:28 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -387,11 +497,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   automatic extra round too, when its last round fixed something, instead
   of waiting for your click.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.43
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.43" datetime="2026-10-10T17:50:44Z">Published 10 Oct 2026, 17:50 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -402,11 +520,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   when the fixes stop landing, so an unattended build does not wait hours
   on one click.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.42
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.42" datetime="2026-10-10T16:57:46Z">Published 10 Oct 2026, 16:57 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -415,11 +541,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   use its file tools, and counts the change as the task's own when it
   scopes the reviews.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.41
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.41" datetime="2026-10-10T15:44:21Z">Published 10 Oct 2026, 15:44 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -427,11 +561,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   judge's notes. A note can name a real defect no failed item covers; the
   helper fixes such a note and leaves the others.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.40
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.40" datetime="2026-10-10T14:40:48Z">Published 10 Oct 2026, 14:40 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -439,11 +581,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   its own change. Files only the other build edited stay out of Polish,
   the security review, the independent judge and the pull request.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.39
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.39" datetime="2026-10-10T14:06:42Z">Published 10 Oct 2026, 14:06 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -453,11 +603,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   the rule only warns there, so amending the Plan mid-build is not refused
   over the format of words you already approved.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.38
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.38" datetime="2026-10-10T13:35:06Z">Published 10 Oct 2026, 13:35 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -467,11 +625,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - When a checkpoint ran while code changed, its line in the build log says
   what to do: run it again, or keep it and say why.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.37
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.37" datetime="2026-10-10T12:49:35Z">Published 10 Oct 2026, 12:49 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -479,11 +645,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   own file tools, so every change shows up as a reviewable edit, instead of
   patching files with shell commands.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.36
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.36" datetime="2026-10-10T12:25:52Z">Published 10 Oct 2026, 12:25 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -493,11 +667,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   next step says to commit that slice first; then the new work is handed
   out.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.35
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.35" datetime="2026-10-10T12:00:10Z">Published 10 Oct 2026, 12:00 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -508,11 +690,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   `cargo` in `~/.cargo/bin`. They used to miss them when the agent's shell
   had a shorter PATH, and a checkpoint failed on "command not found".
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.34
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.34" datetime="2026-10-10T11:36:54Z">Published 10 Oct 2026, 11:36 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -529,11 +719,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   are free, so two builds testing at once no longer slow the computer to a
   crawl.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.33
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.33" datetime="2026-10-10T11:13:32Z">Published 10 Oct 2026, 11:13 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -580,11 +778,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   file the other build changed and has not committed, naming the file and
   the other task, instead of committing that build's half-done edits.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.32
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.32" datetime="2026-10-10T08:52:59Z">Published 10 Oct 2026, 08:52 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -595,11 +801,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   record. Before, the push could go out first, and the record reached the pull
   request only with the first fix.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.31
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.31" datetime="2026-10-10T05:12:55Z">Published 10 Oct 2026, 05:12 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -611,11 +825,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - On Linux, an open App no longer wakes every 15 seconds to read everything
   again while nothing changes.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.30
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.30" datetime="2026-10-10T02:07:06Z">Published 10 Oct 2026, 02:07 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -629,11 +851,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   its build fingerprint is kept, and its timeline asks git twice instead of
   twice for every commit.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.29
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.29" datetime="2026-10-10T00:31:04Z">Published 10 Oct 2026, 00:31 UTC</time></p>
+
+</header>
 
 ### New
 
@@ -715,11 +945,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   approve. **Approve and open a pull request** says that there is no branch to
   open a pull request from and gives the commands.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.28
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.28" datetime="2026-10-09T18:02:09Z">Published 9 Oct 2026, 18:02 UTC</time></p>
+
+</header>
 
 ### New
 
@@ -816,11 +1054,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   result` keeps a research helper's report in the task.
 - Tasks you started before keep the files and the five steps they began with.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.27
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.27" datetime="2026-10-09T17:29:53Z">Published 9 Oct 2026, 17:29 UTC</time></p>
+
+</header>
 
 ### New
 
@@ -887,11 +1133,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
   and the source represented by HEAD. Release jobs reuse CI results only when
   all required checks passed for that same commit.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.26
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.26" datetime="2026-10-07T06:45:17Z">Published 7 Oct 2026, 06:45 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -912,11 +1166,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Checks report a missing test file or an all-skipped run as a failure
   instead of a pass, and long checks get enough time to finish.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.25
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.25" datetime="2026-10-07T05:24:08Z">Published 7 Oct 2026, 05:24 UTC</time></p>
+
+</header>
 
 ### New
 
@@ -981,11 +1243,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Feedback emails include the screenshots you attached. Reports remain
   queued until the mail service accepts them.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.24
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.24" datetime="2026-10-06T11:30:15Z">Published 6 Oct 2026, 11:30 UTC</time></p>
+
+</header>
 
 ### New
 
@@ -1008,11 +1278,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - The Plan check no longer takes branch names such as `origin/main` for missing files, and a bare file name counts when its task lists it.
 - When the build starts with many files staged and not committed, the agent is first told to commit them on their own, with the command to do it.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.23
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.23" datetime="2026-10-06T11:05:28Z">Published 6 Oct 2026, 11:05 UTC</time></p>
+
+</header>
 
 ### New
 
@@ -1031,11 +1309,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - During a build, Claude Code can no longer stop to ask you a question.
 - Codex no longer needs its question-picker setting; updating QualityLayer removes the one it added.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.22
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.22" datetime="2026-10-06T10:33:48Z">Published 6 Oct 2026, 10:33 UTC</time></p>
+
+</header>
 
 ### New
 
@@ -1048,11 +1334,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 - The Subagents card in Settings is now Independent review: the agent that never wrote the code decides whether the finished change passes.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.21
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.21" datetime="2026-10-06T09:43:29Z">Published 6 Oct 2026, 09:43 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -1060,11 +1354,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - The Plan keeps each slice to at most six tasks, so no single agent's run gets long; larger work becomes several slices that are built side by side.
 - After you approve the Plan in the App, Claude Code's QualityLayer band no longer says the agent still asks "Approve the Plan?".
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.20
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.20" datetime="2026-10-06T09:12:28Z">Published 6 Oct 2026, 09:12 UTC</time></p>
+
+</header>
 
 ### New
 
@@ -1076,31 +1378,55 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 - From the build on, the agent works on its own until the final review: it asks you nothing and never stops to wait. Anything only you can do is listed first in the final review. You can still write to it at any time, for example to add something to the Plan.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.19
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.19" datetime="2026-10-06T07:35:51Z">Published 6 Oct 2026, 07:35 UTC</time></p>
+
+</header>
 
 ### New
 
 - Settings › Workflow can turn the second opinion off. It then never runs by itself; a task that asks for one still gets it.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.18
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.18" datetime="2026-10-06T06:57:29Z">Published 6 Oct 2026, 06:57 UTC</time></p>
+
+</header>
 
 ### Fixed
 
 - A task's cost counts only the work done on it. When one agent session works on several tasks in turn, each part of its work goes to the task it was on at the time, and a session from another repository that only looked at a task no longer adds its whole cost there.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.17
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.17" datetime="2026-10-06T06:34:27Z">Published 6 Oct 2026, 06:34 UTC</time></p>
+
+</header>
 
 ### Fixed
 
@@ -1108,11 +1434,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - In a narrow window the For you / For the agent switch moves to its own line instead of running off the screen.
 - The docs and their diagrams show you approving in the terminal, where your agent asks you.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.16
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.16" datetime="2026-10-06T00:38:55Z">Published 6 Oct 2026, 00:38 UTC</time></p>
+
+</header>
 
 ### New
 
@@ -1145,11 +1479,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 - Team plans and share links from the beta were not carried over: the new storage starts empty, so share a plan again to get a new link.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.15
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.15" datetime="2026-10-05T07:21:27Z">Published 5 Oct 2026, 07:21 UTC</time></p>
+
+</header>
 
 ### New
 
@@ -1163,11 +1505,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 - On beta.14 the App offers this update by itself: choose Restart and update when the sheet appears.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0-beta.14
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.14" datetime="2026-10-05T06:16:09Z">Published 5 Oct 2026, 06:16 UTC</time></p>
+
+</header>
 
 ### New
 
@@ -1233,11 +1583,19 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Updates install only when you choose Restart and update. Agents keep working through it.
 - Feedback and usage events never include code, plan or document text, task titles, repository or branch names, or file paths.
 
+
+
 </section>
 
 <section class="cl-rel">
 
+<header class="cl-version">
+
 ## 12.0.0 betas before beta.14
+
+
+
+</header>
 
 ### One flow: Discuss → Plan → Implement → Verify → Review
 
@@ -1265,6 +1623,8 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - Work on the branch and worktree you have checked out: QualityLayer no longer creates a `ql/<task>` branch, and never switches or merges branches or creates worktrees.
 - Use the shared monochrome, blue/amber design for the website, the App and the documentation, with saved light/dark mode and preferences.
 - Update the website, its interactive App demo, the documentation and the README.
+
+<details class="cl-history-dates"><summary>Publication dates for betas 1–13</summary><ul><li><span class="cl-history-version">12.0.0-beta.13</span><time data-release-version="12.0.0-beta.13" datetime="2026-10-04T08:58:08Z">Published 4 Oct 2026, 08:58 UTC</time></li><li><span class="cl-history-version">12.0.0-beta.12</span><time data-release-version="12.0.0-beta.12" datetime="2026-10-04T07:55:40Z">Published 4 Oct 2026, 07:55 UTC</time></li><li><span class="cl-history-version">12.0.0-beta.11</span><time data-release-version="12.0.0-beta.11" datetime="2026-10-02T09:13:42Z">Published 2 Oct 2026, 09:13 UTC</time></li><li><span class="cl-history-version">12.0.0-beta.10</span><time data-release-version="12.0.0-beta.10" datetime="2026-10-02T08:41:17Z">Published 2 Oct 2026, 08:41 UTC</time></li><li><span class="cl-history-version">12.0.0-beta.9</span><time data-release-version="12.0.0-beta.9" datetime="2026-10-02T07:58:50Z">Published 2 Oct 2026, 07:58 UTC</time></li><li><span class="cl-history-version">12.0.0-beta.8</span><time data-release-version="12.0.0-beta.8" datetime="2026-10-02T07:36:03Z">Published 2 Oct 2026, 07:36 UTC</time></li><li><span class="cl-history-version">12.0.0-beta.7</span><time data-release-version="12.0.0-beta.7" datetime="2026-10-02T06:57:16Z">Published 2 Oct 2026, 06:57 UTC</time></li><li><span class="cl-history-version">12.0.0-beta.6</span><time data-release-version="12.0.0-beta.6" datetime="2026-10-02T06:47:03Z">Published 2 Oct 2026, 06:47 UTC</time></li><li><span class="cl-history-version">12.0.0-beta.5</span><time data-release-version="12.0.0-beta.5" datetime="2026-10-02T05:49:36Z">Published 2 Oct 2026, 05:49 UTC</time></li><li><span class="cl-history-version">12.0.0-beta.4</span><time data-release-version="12.0.0-beta.4" datetime="2026-10-01T23:43:29Z">Published 1 Oct 2026, 23:43 UTC</time></li><li><span class="cl-history-version">12.0.0-beta.3</span><time data-release-version="12.0.0-beta.3" datetime="2026-10-01T23:25:00Z">Published 1 Oct 2026, 23:25 UTC</time></li><li><span class="cl-history-version">12.0.0-beta.2</span><time data-release-version="12.0.0-beta.2" datetime="2026-10-01T21:27:43Z">Published 1 Oct 2026, 21:27 UTC</time></li><li><span class="cl-history-version">12.0.0-beta.1</span><time data-release-version="12.0.0-beta.1" datetime="2026-10-01T20:50:37Z">Published 1 Oct 2026, 20:50 UTC</time></li></ul></details>
 
 </section>
 

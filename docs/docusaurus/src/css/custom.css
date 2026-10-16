@@ -138,9 +138,16 @@ article.margin-bottom--xl header h2 a:hover { color: var(--ql-accent); }
 /* Changelog: one row per release, the version pinned beside its notes; New, Fixed and Good to know as quiet labels. */
 .cl-rel { display: grid; grid-template-columns: 148px minmax(0, 1fr); column-gap: 32px; padding: 32px 0 8px; border-top: 1px solid var(--ql-border); }
 .cl-rel > * { grid-column: 2; }
-.cl-rel > h2 { grid-column: 1; grid-row: 1 / span 40; align-self: start; position: sticky; top: calc(var(--ifm-navbar-height) + 20px); margin: 0; font: 500 15px/1.4 var(--ifm-font-family-monospace); letter-spacing: 0; color: var(--ql-text); }
-.cl-rel > h2 .hash-link { display: none; }
-.cl-latest > h2::after { content: "Latest"; display: table; margin-top: 8px; padding: 1px 7px; border: 1px solid var(--ql-border-strong); border-radius: 4px; font: 500 12px/1.5 var(--ifm-font-family-base); color: var(--ql-text-muted); }
+.cl-version { grid-column: 1; grid-row: 1 / span 40; align-self: start; position: sticky; top: calc(var(--ifm-navbar-height) + 20px); }
+.cl-version > h2 { margin: 0; font: 500 15px/1.4 var(--ifm-font-family-monospace); letter-spacing: 0; color: var(--ql-text); }
+.cl-version > h2 .hash-link { display: none; }
+.cl-latest .cl-version > h2::after { content: "Latest"; display: table; margin-top: 8px; padding: 1px 7px; border: 1px solid var(--ql-border-strong); border-radius: 4px; font: 500 12px/1.5 var(--ifm-font-family-base); color: var(--ql-text-muted); }
+.cl-rel .cl-published { margin: 8px 0 0; font: 400 12px/1.5 var(--ifm-font-family-base); color: var(--ql-text-muted); }
+.cl-history-dates { margin-top: 16px; }
+.cl-history-dates summary { min-height: 32px; padding: 4px 0; font-size: 13px; color: var(--ql-text-muted); }
+.cl-rel .cl-history-dates li { margin: 0 0 10px; font-size: 12px; line-height: 1.5; }
+.cl-history-version { font-family: var(--ifm-font-family-monospace); color: var(--ql-text); }
+.cl-history-dates time { display: block; color: var(--ql-text-muted); }
 .cl-rel > h3 { margin: 0 0 10px; font-size: 14px; font-weight: 600; letter-spacing: 0; color: var(--ql-text-muted); }
 .cl-rel > h3:not(:nth-child(2)) { margin-top: 22px; }
 .cl-rel > ul { margin: 0 0 4px; padding-left: 18px; }
@@ -149,6 +156,7 @@ article.margin-bottom--xl header h2 a:hover { color: var(--ql-accent); }
 .cl-rel p { font-size: 15px; }
 @media (max-width: 760px) {
   .cl-rel { display: block; padding-top: 24px; }
-  .cl-rel > h2 { position: static; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
-  .cl-latest > h2::after { display: inline-block; margin-top: 0; }
+  .cl-version { position: static; margin-bottom: 16px; }
+  .cl-version > h2 { display: flex; align-items: center; gap: 10px; }
+  .cl-latest .cl-version > h2::after { display: inline-block; margin-top: 0; }
 }

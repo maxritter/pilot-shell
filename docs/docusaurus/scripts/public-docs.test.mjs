@@ -69,7 +69,7 @@ test("the built App guides use Files and Comments and explain the current readin
   assert.match(page("steps/implement/"), /Here in the App/);
   assert.match(page("steps/implement/"), /In my terminal/);
   assert.match(page("steps/implement/"), /Start the build/);
-  assert.match(text("steps/implement/"), /Claude Code, Codex or another agent/);
+  assert.match(text("steps/implement/"), /Claude Code, Codex, Pi, OpenCode or another agent/);
   assert.doesNotMatch(page("steps/implement/"), /Start with (?:Codex|Claude Code)/);
   assert.match(page("steps/implement/"), /Build/);
   assert.match(page("designs/"), /compact entry in/);

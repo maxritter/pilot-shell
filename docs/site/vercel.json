@@ -93,6 +93,10 @@
       "destination": "/api/app/downloads"
     },
     {
+      "source": "/app/releases.json",
+      "destination": "/api/app/releases"
+    },
+    {
       "source": "/app-demo/:path*",
       "destination": "/app-demo/:path*"
     },

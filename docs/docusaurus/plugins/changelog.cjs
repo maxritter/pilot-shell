@@ -1,5 +1,14 @@
 const fs = require("node:fs");
 const path = require("node:path");
+const publications = require("./release-publications.json");
+const { publicationDate } = require("./publication-date.cjs");
+const versionOf = (heading) => heading.match(/^## \[?v?(\d+\.\d+\.\d+(?:-[\w.-]+)?)(?:\](?:\([^)]*\))?)?\s*$/)?.[1];
+
+function publicationTime(version) {
+  const published = publications[version];
+  const label = publicationDate(published);
+  return `<time data-release-version="${version}"${label ? ` datetime="${published}"` : ""}>${label ?? "Publication date unavailable"}</time>`;
+}
 
 // Render the repository's changelog without maintaining another copy by hand.
 module.exports = function changelogPlugin(context) {
@@ -26,11 +35,23 @@ module.exports = function changelogPlugin(context) {
       return line;
     }).join("\n");
     // Each current release becomes one section, so the page can set the version beside its notes.
-    const [intro, ...releases] = current.trim().split(/^(?=## )/m);
+    const releases = current.trim().split(/^(?=## )/m);
+    const intro = releases[0]?.startsWith("## ") ? "" : releases.shift() ?? "";
     // "Latest" belongs to the newest published version; an "Unreleased" section above it is not one.
-    const latest = releases.findIndex((release) => /^## \[?v?\d/.test(release));
-    const sections = releases.map((release, i) =>
-      `<section class="cl-rel${i === latest ? " cl-latest" : ""}">\n\n${release.trim()}\n\n</section>`).join("\n\n");
+    const latest = releases.findIndex((release) => versionOf(release.split("\n")[0]));
+    const sections = releases.map((release, i) => {
+      const [heading, ...body] = release.trim().split("\n");
+      const version = versionOf(heading);
+      const metadata = version
+        ? publicationTime(version)
+        : /^## \[?Unreleased\]?\s*$/i.test(heading) ? "Not published" : "";
+      const before = heading.match(/^## 12\.0\.0 betas before beta\.(\d+)$/)?.[1];
+      const grouped = before ? Object.keys(publications)
+        .filter((v) => /^12\.0\.0-beta\.\d+$/.test(v) && Number(v.split(".").at(-1)) < Number(before))
+        .sort((a, b) => Number(b.split(".").at(-1)) - Number(a.split(".").at(-1))) : [];
+      const dates = grouped.length ? `<details class="cl-history-dates"><summary>Publication dates for betas 1–${Number(before) - 1}</summary><ul>${grouped.map((v) => `<li><span class="cl-history-version">${v}</span>${publicationTime(v)}</li>`).join("")}</ul></details>` : "";
+      return `<section class="cl-rel${i === latest ? " cl-latest" : ""}">\n\n<header class="cl-version">\n\n${heading}\n\n${metadata ? `<p class="cl-published">${metadata}</p>` : ""}\n\n</header>\n\n${body.join("\n").trim()}\n\n${dates}\n\n</section>`;
+    }).join("\n\n");
     const content = [
       "---", "title: Changelog", "slug: /changelog",
       "description: Current QualityLayer development changes and preserved Pilot Shell release history.",
@@ -47,6 +68,7 @@ module.exports = function changelogPlugin(context) {
   generate();
   return {
     name: "qualitylayer-changelog",
+    getClientModules: () => [path.join(context.siteDir, "src/changelog-dates.mjs")],
     getPathsToWatch: () => [source],
     loadContent: generate,
   };
