@@ -5,16 +5,8 @@ description: Global Settings, your and your team's instructions, project memory 
 
 Open **Settings** with the gear at the bottom of the sidebar. Changes save at once and apply to every project on this computer.
 
-<details>
-<summary>Earlier Settings illustration</summary>
-
-![Earlier Settings layout with Planning and Building cards](pathname:///img/app/settings-light.webp)
-![Earlier Settings layout with Planning and Building cards](pathname:///img/app/settings-dark.webp)
-
-
-This illustration predates the current **Agents** section. Use the controls described below.
-
-</details>
+![Settings: workflow level, your instructions, Agents and Reviews](pathname:///img/app/settings-light.webp)
+![Settings: workflow level, your instructions, Agents and Reviews](pathname:///img/app/settings-dark.webp)
 
 ## Memory {#memory}
 

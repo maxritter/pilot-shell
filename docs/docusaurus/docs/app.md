@@ -5,10 +5,10 @@ description: Read the work, answer questions and give feedback beside your agent
 
 The App is where you answer questions, read documents and give feedback while your agent works. It runs on macOS, Windows and Linux; without a screen, `qualitylayer app` opens it in your browser.
 
-![Discuss with a question, document and sidebar in an earlier App layout](pathname:///img/app/discuss-light.webp)
-![Discuss with a question, document and sidebar in an earlier App layout](pathname:///img/app/discuss-dark.webp)
+![Discuss with a question, document and sidebar](pathname:///img/app/discuss-light.webp)
+![Discuss with a question, document and sidebar](pathname:///img/app/discuss-dark.webp)
 
-*Example task in a fictional project; the illustration shows an earlier layout. Current controls are described below.*
+*Example task in a fictional project.*
 
 | Part | What it does |
 | --- | --- |

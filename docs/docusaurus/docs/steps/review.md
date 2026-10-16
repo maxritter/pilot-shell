@@ -8,8 +8,8 @@ description: Settle what agents could not settle for you, look at the result, an
 
 The final approval is always yours. After Outline, Implement and Verify, Review brings back the decisions and unverified checks that need you. It shows the whole change with proof for each **Done means** point.
 
-![Review in the App: the approval banner above each Done means point](pathname:///img/app/review-light.webp)
-![Review in the App: the approval banner above each Done means point](pathname:///img/app/review-dark.webp)
+![Review in the App: the change walkthrough, requested outcomes and approval prompt](pathname:///img/app/review-light.webp)
+![Review in the App: the change walkthrough, requested outcomes and approval prompt](pathname:///img/app/review-dark.webp)
 
 *Example task in a fictional project.*
 

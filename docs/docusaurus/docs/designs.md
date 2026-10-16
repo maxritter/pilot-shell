@@ -94,8 +94,8 @@ A lasting design can store its Claude Design link for **Open in Claude Design**.
 
 ## Review and comment {#full-size}
 
-![A design open full size: Back to the Plan, the design's name and update time, Comment, zoom, Light and Dark, Desktop and Phone, Jump to and full screen; the Feedback tab lists numbered spots with the agent's answers](pathname:///img/app/design-light.webp)
-![A design open full size: Back to the Plan, the design's name and update time, Comment, zoom, Light and Dark, Desktop and Phone, Jump to and full screen; the Feedback tab lists numbered spots with the agent's answers](pathname:///img/app/design-dark.webp)
+![A task design with Give feedback, zoom and View controls, alongside numbered feedback and the agent's reply](pathname:///img/app/design-light.webp)
+![A task design with Give feedback, zoom and View controls, alongside numbered feedback and the agent's reply](pathname:///img/app/design-dark.webp)
 
 *Example design in a fictional project.*
 
