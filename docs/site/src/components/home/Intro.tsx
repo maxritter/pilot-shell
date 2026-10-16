@@ -10,10 +10,6 @@ const AGENTS: Chip[] = [
   ["Codex", "braces"],
   ["Pi", "term"],
   ["OpenCode", "term"],
-  ["Terminal", "term"],
-  ["Desktop apps", "app"],
-  ["VS Code", "code"],
-  ["JetBrains", "code"],
 ];
 
 const MODELS: Chip[] = [
@@ -75,6 +71,7 @@ export default function Intro() {
             <li key={label} className="mx-wi"><Icon name={icon} />{label}</li>
           ))}
         </ul>
+        <p className="mx-with-other"><a href="/docs/agents/other">Other coding agents</a> can use the CLI.</p>
       </section>
 
       <section className="mx-sec" aria-labelledby="pr-h">
