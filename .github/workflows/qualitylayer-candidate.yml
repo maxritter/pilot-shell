@@ -76,17 +76,13 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
+      - uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+          bun-download-url: ${{ runner.os == 'Windows' && format('https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-windows-{0}.zip', matrix.arch == 'arm64' && 'aarch64' || 'x64') || '' }}
       - name: Install git-crypt
         if: runner.os != 'Windows'
         run: bash .github/workflows/scripts/install-git-crypt.sh
-      - name: Setup Windows git-crypt
-        if: runner.os == 'Windows'
-        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
-        with:
-          msystem: MSYS
-          install: git git-crypt
-          update: true
-          path-type: inherit
       - name: Unlock repository
         if: runner.os != 'Windows'
         env:
@@ -94,14 +90,14 @@ jobs:
         run: bash .github/workflows/scripts/setup-git-crypt.sh
       - name: Unlock repository on Windows
         if: runner.os == 'Windows'
-        shell: msys2 {0}
+        shell: pwsh
         env:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: bash .github/workflows/scripts/setup-git-crypt.sh
-      - uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
-        with:
-          bun-version: "1.4.2"
-          bun-download-url: ${{ runner.os == 'Windows' && format('https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-windows-{0}.zip', matrix.arch == 'arm64' && 'aarch64' || 'x64') || '' }}
+        run: |
+          $key = Join-Path $env:RUNNER_TEMP 'git-crypt.key'
+          [IO.File]::WriteAllBytes($key, [Convert]::FromBase64String($env:GIT_CRYPT_KEY))
+          try { bun .github/workflows/scripts/git-crypt-unlock.ts $key } finally { Remove-Item -LiteralPath $key -Force }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - run: bun install --frozen-lockfile
         working-directory: qualitylayer
       - name: Read pinned current and approved previous bytes without rebuilding Go
@@ -654,6 +650,7 @@ jobs:
             .github
             qualitylayer/scripts
             qualitylayer/src/core
+            qualitylayer/src/server
 
       - name: Setup git-crypt
         uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
@@ -792,28 +789,25 @@ jobs:
         run: git config --global core.autocrlf false
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with: { ref: "${{ github.sha }}", persist-credentials: false }
-      - if: runner.os != 'Windows'
-        run: bash .github/workflows/scripts/install-git-crypt.sh
-      - if: runner.os == 'Windows'
-        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
-        with:
-          {
-            msystem: MSYS,
-            install: "git git-crypt",
-            update: true,
-            path-type: inherit,
-          }
-      - if: runner.os != 'Windows'
-        env: { GIT_CRYPT_KEY: "${{ secrets.GIT_CRYPT_KEY }}" }
-        run: bash .github/workflows/scripts/setup-git-crypt.sh
-      - if: runner.os == 'Windows'
-        shell: msys2 {0}
-        env: { GIT_CRYPT_KEY: "${{ secrets.GIT_CRYPT_KEY }}" }
-        run: bash .github/workflows/scripts/setup-git-crypt.sh
       - uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
           bun-version: "1.4.2"
           bun-download-url: ${{ runner.os == 'Windows' && format('https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-windows-{0}.zip', matrix.arch == 'arm64' && 'aarch64' || 'x64') || '' }}
+      - if: runner.os != 'Windows'
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+      - if: runner.os != 'Windows'
+        env: { GIT_CRYPT_KEY: "${{ secrets.GIT_CRYPT_KEY }}" }
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+      - name: Unlock repository on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          $key = Join-Path $env:RUNNER_TEMP 'git-crypt.key'
+          [IO.File]::WriteAllBytes($key, [Convert]::FromBase64String($env:GIT_CRYPT_KEY))
+          try { bun .github/workflows/scripts/git-crypt-unlock.ts $key } finally { Remove-Item -LiteralPath $key -Force }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - run: bun install --frozen-lockfile
         working-directory: qualitylayer
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
