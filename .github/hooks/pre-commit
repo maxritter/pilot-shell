@@ -246,6 +246,15 @@ stage_tree() { # stage_tree <dir>
   echo "Pre-commit: staged tree ready in $(($(date +%s) - started))s ($(tr -cd '\0' <"$paths" | wc -c | tr -d ' ') file(s) from the index)."
 }
 
+link_dependencies() { # link_dependencies <borrowed directory> <snapshot destination>
+  local source="$1" destination="$2"
+  if [ -e "$destination" ] || [ -L "$destination" ]; then
+    echo "✖ Pre-commit refused: staged dependency destination already exists: $destination" >&2
+    return 1
+  fi
+  ln -s "$source" "$destination"
+}
+
 # --- Schedule --------------------------------------------------------------------
 # All QualityLayer jobs share one staged tree, even when the checkout starts clean: another
 # session can start editing at any time. Dependency installations are linked, not recopied.
@@ -254,8 +263,8 @@ if [ "$qualitylayer_changed" = "1" ] && have bun && [ -d qualitylayer/node_modul
   # Tests import docs/site; release builds also embed the root CHANGELOG.md.
   if ! { mkdir -p "$TMP/staged" \
     && stage_tree "$TMP/staged" \
-    && ln -s "$PWD/qualitylayer/node_modules" "$TMP/staged/qualitylayer/node_modules" \
-    && { [ ! -d docs/site/node_modules ] || ln -s "$PWD/docs/site/node_modules" "$TMP/staged/docs/site/node_modules"; }; }; then
+    && link_dependencies "$PWD/qualitylayer/node_modules" "$TMP/staged/qualitylayer/node_modules" \
+    && { [ ! -d docs/site/node_modules ] || link_dependencies "$PWD/docs/site/node_modules" "$TMP/staged/docs/site/node_modules"; }; }; then
     echo "✖ Pre-commit refused: could not materialize the staged tree; no working-copy fallback." >&2
     exit 1
   fi
