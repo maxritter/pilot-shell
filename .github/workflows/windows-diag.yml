@@ -28,7 +28,8 @@ jobs:
             icacls $taskHome /inheritance:r /grant:r "*${sid}:(OI)(CI)F" '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F'
             if (Test-Path 'Q:/') { throw 'Diagnostic drive is already occupied' }
             subst Q: $taskHome
-            $taskHome = 'Q:/'
+            $taskHome = 'Q:/home'
+            New-Item -ItemType Directory -Path "$taskHome/project", "$taskHome/tmp" -Force | Out-Null
             $env:HOME=$taskHome; $env:USERPROFILE=$taskHome
             $env:QUALITYLAYER_HOME=Join-Path $taskHome '.qualitylayer'
             $env:APPDATA=Join-Path $taskHome 'AppData/Roaming'; $env:LOCALAPPDATA=Join-Path $taskHome 'AppData/Local'
