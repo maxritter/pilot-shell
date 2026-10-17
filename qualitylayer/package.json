@@ -102,6 +102,7 @@
     "sonner": "^2.0.8"
   },
   "patchedDependencies": {
-    "@xterm/addon-webgl@0.19.0": "patches/@xterm%2Faddon-webgl@0.19.0.patch"
+    "@xterm/addon-webgl@0.19.0": "patches/@xterm%2Faddon-webgl@0.19.0.patch",
+    "@xterm/xterm@6.0.0": "patches/@xterm%2Fxterm@6.0.0.patch"
   }
 }

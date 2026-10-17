@@ -2,8 +2,8 @@
 # Pre-commit hook: the fast CI checks, in parallel, scoped to what is staged.
 #
 #   • qualitylayer   Biome on the staged files; typecheck when TypeScript is staged; the release
-#                    Cockpit build and the overflow check. All of them run on the staged tree
-#                    when another session has unstaged work   (qualitylayer/ staged)
+#                    Cockpit build and the overflow check. All of them run on an isolated
+#                    staged tree   (qualitylayer/ staged)
 #   • app (Rust)     cargo fmt --check + clippy -D warnings   (a crate under app/ staged)
 #   • plaintext      nothing under qualitylayer/ staged in plaintext   (always)
 #   • shell          shellcheck                          (shell scripts or hooks staged)
@@ -74,6 +74,24 @@ if [ "${SKIP_IDENTITY_CHECK:-0}" != "1" ]; then
   fi
 fi
 
+TMP="$(mktemp -d)" || exit 1
+trap 'rm -rf "${TMP:?}"' EXIT
+
+# Git replaces index files atomically. Copy that single snapshot before any staged reads;
+# never refresh the caller's shared or private index. write-tree omits intent-to-add entries
+# and resolves split indexes; read-tree gives the checks only the actual candidate tree.
+if ! caller_index="$(git rev-parse --git-path index)" \
+  || ! cp "$caller_index" "$TMP/index"; then
+  echo "✖ Pre-commit refused: could not freeze the staged index." >&2
+  exit 1
+fi
+export GIT_INDEX_FILE="$TMP/index"
+if ! staged_tree="$(git -c core.splitIndex=false write-tree)" \
+  || ! git -c core.splitIndex=false read-tree "$staged_tree"; then
+  echo "✖ Pre-commit refused: could not resolve the staged tree." >&2
+  exit 1
+fi
+
 # --- What did we stage? ----------------------------------------------------------
 if [ "${QUALITYLAYER_PREFLIGHT_HEAD:-0}" = "1" ]; then
   # Release preflight checks the exact HEAD snapshot, whose index equals HEAD.
@@ -121,9 +139,6 @@ done < <(printf '%s\n' "$staged")
 
 # rustup installs cargo here; a GUI git client's PATH often lacks it.
 if [ -d "$HOME/.cargo/bin" ]; then PATH="$HOME/.cargo/bin:$PATH"; fi
-
-TMP="$(mktemp -d)"
-trap 'rm -rf "${TMP:?}"' EXIT
 
 # --- Job registry (bash 3.2 compatible — no associative arrays) -----------------
 job_names=()
@@ -216,44 +231,35 @@ job_trivy() {
     --quiet
 }
 
-# The staged tree in <dir>. A file whose working copy equals the index is copied as it is (it is
-# already plain text); only the others, another session's unstaged edits, come out of the index
-# through the smudge filter. Checking every file out ran git-crypt once per file, about 2,900
-# times, and took minutes under load before any check started.
+# Materialize only immutable index blobs. Copying index-equal working files races with a
+# concurrent edit after the comparison. Full checkout costs one smudge call per filtered file;
+# that cost is necessary until an optimization can prove the copied bytes match the index.
 stage_tree() { # stage_tree <dir>
-  local out="$1" changed="$TMP/changed-paths" started
+  local out="$1" paths="$TMP/staged-paths" started git_dir
   started="$(date +%s)"
-  git diff --name-only -z -- qualitylayer docs/site CHANGELOG.md >"$changed" || return 1
-  git ls-files -z -- qualitylayer docs/site CHANGELOG.md \
-    | perl -0ne 'BEGIN { local $/ = "\0"; open my $f, "<", shift @ARGV or die; %c = map { $_ => 1 } <$f> } print unless $c{$_}' "$changed" \
-    | tar --null -T - -cf - | tar -xf - -C "$out" || return 1
-  if [ -s "$changed" ]; then
-    xargs -0 git checkout-index --force --prefix="$out/" -- <"$changed" || return 1
-  fi
-  echo "Pre-commit: staged tree ready in $(($(date +%s) - started))s ($(tr -cd '\0' <"$changed" | wc -c | tr -d ' ') file(s) from the index)."
+  git_dir="$(git rev-parse --absolute-git-dir)" || return 1
+  git ls-files -z -- .gitattributes qualitylayer docs/site CHANGELOG.md >"$paths" || return 1
+  # Resolve attributes against the empty output worktree and frozen index, never unstaged
+  # .gitattributes in the shared checkout. checkout-index preserves modes and runs smudge.
+  ( cd "$out" && git --git-dir="$git_dir" --work-tree="$out" \
+      checkout-index --force -z --stdin <"$paths" ) || return 1
+  echo "Pre-commit: staged tree ready in $(($(date +%s) - started))s ($(tr -cd '\0' <"$paths" | wc -c | tr -d ' ') file(s) from the index)."
 }
 
 # --- Schedule --------------------------------------------------------------------
-# The tree the typecheck, Biome, the release Cockpit build and the overflow check read: the
-# checkout, or, when another session has unstaged or new files under qualitylayer/, the staged
-# tree checked out of the index (GIT_INDEX_FILE is honoured, so a private index works; smudge
-# filters run, so git-crypt files come out as plain text). One tree is shared by those jobs.
+# All QualityLayer jobs share one staged tree, even when the checkout starts clean: another
+# session can start editing at any time. Dependency installations are linked, not recopied.
 qualitylayer_tree="$PWD"
-if [ "$qualitylayer_changed" = "1" ] && [ "${QUALITYLAYER_PREFLIGHT_HEAD:-0}" != "1" ] \
-  && have bun && [ -d qualitylayer/node_modules ]; then
-  if ! git diff --quiet -- qualitylayer \
-    || [ -n "$(git ls-files --others --exclude-standard -- qualitylayer | head -n 1)" ]; then
-    # The tests import from docs/site too, so both folders are checked out, and the release build
-    # embeds the root CHANGELOG.md.
-    mkdir -p "$TMP/staged" \
-      && stage_tree "$TMP/staged" \
-      && ln -s "$PWD/qualitylayer/node_modules" "$TMP/staged/qualitylayer/node_modules" \
-      && { [ ! -d docs/site/node_modules ] || ln -s "$PWD/docs/site/node_modules" "$TMP/staged/docs/site/node_modules"; } \
-      && qualitylayer_tree="$TMP/staged"
-    if [ "$qualitylayer_tree" != "$TMP/staged" ]; then
-      echo "⚠ could not check out the staged tree — checking the working copy instead."
-    fi
+if [ "$qualitylayer_changed" = "1" ] && have bun && [ -d qualitylayer/node_modules ]; then
+  # Tests import docs/site; release builds also embed the root CHANGELOG.md.
+  if ! { mkdir -p "$TMP/staged" \
+    && stage_tree "$TMP/staged" \
+    && ln -s "$PWD/qualitylayer/node_modules" "$TMP/staged/qualitylayer/node_modules" \
+    && { [ ! -d docs/site/node_modules ] || ln -s "$PWD/docs/site/node_modules" "$TMP/staged/docs/site/node_modules"; }; }; then
+    echo "✖ Pre-commit refused: could not materialize the staged tree; no working-copy fallback." >&2
+    exit 1
   fi
+  qualitylayer_tree="$TMP/staged"
 fi
 
 if [ "$qualitylayer_changed" = "1" ]; then
