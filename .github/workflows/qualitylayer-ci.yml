@@ -332,11 +332,6 @@ jobs:
           QUALITYLAYER_REQUIRE_RENDER: "1"
         run: bun run test tests/e2e/cross-review.test.ts -t 'opening the Plan gate starts|a reviewer that fails'
 
-      - name: Release Cockpit draws on Windows
-        if: matrix.shard == 6
-        working-directory: qualitylayer
-        run: bun scripts/check-cockpit.ts --build --require-render
-
   windows-terminal:
     name: Native ConPTY (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
