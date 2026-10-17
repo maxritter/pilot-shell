@@ -21,9 +21,14 @@ jobs:
           $expected = ((Get-Content "$out/SHA256SUMS" | Where-Object { $_ -match '  qualitylayer-windows-x64.exe$' }) -split '  ')[0]
           if ((Get-FileHash $cli -Algorithm SHA256).Hash -ne $expected) { throw 'Previous official CLI checksum mismatch' }
           $env:GH_TOKEN = $null
-          foreach ($mode in @('inherited-modules','compatible-modules')) {
+          foreach ($mode in @('private-drive')) {
             $taskHome = Join-Path $out $mode
             New-Item -ItemType Directory -Path "$taskHome/project", "$taskHome/tmp" -Force | Out-Null
+            $sid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+            icacls $taskHome /inheritance:r /grant:r "*${sid}:(OI)(CI)F" '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F'
+            if (Test-Path 'Q:/') { throw 'Diagnostic drive is already occupied' }
+            subst Q: $taskHome
+            $taskHome = 'Q:/'
             $env:HOME=$taskHome; $env:USERPROFILE=$taskHome
             $env:QUALITYLAYER_HOME=Join-Path $taskHome '.qualitylayer'
             $env:APPDATA=Join-Path $taskHome 'AppData/Roaming'; $env:LOCALAPPDATA=Join-Path $taskHome 'AppData/Local'
@@ -38,6 +43,7 @@ jobs:
             & $cli memory store --title 'Preserved migration rule' --content 'Keep bounded migration locks and preserve catalog provenance.' --json > "$out/$mode-store.stdout.txt" 2> "$out/$mode-store.stderr.txt"
             "store=$LASTEXITCODE" | Add-Content "$out/$mode-result.txt"
             Pop-Location
+            subst Q: /d
           }
           Get-Content "$out/*-result.txt", "$out/*-store.stdout.txt", "$out/*-store.stderr.txt"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
