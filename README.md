@@ -154,8 +154,8 @@ Ask your agent for a mockup, diagram or clickable design. Compare versions in th
 ## QualityLayer App
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/design-dark.webp">
-  <img src="docs/site/public/product/design-light.webp" alt="A clickable queue-routing design with charts, rollout controls and pinned team feedback in the App. Fictional project." width="1000">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/discuss-dark.webp">
+  <img src="docs/site/public/product/discuss-light.webp" alt="A Discuss question with answer choices beside an illustrative Claude Code session in the Agent sidebar. Fictional project." width="1000">
 </picture>
 
 - Answer your agent's questions and comment on any passage; answers reach it at once.

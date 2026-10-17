@@ -1,13 +1,13 @@
 {
   "fixtureHash": "758d4cad951b7ce30d7208ca0484af13c1a7ff81766e5e1840acecdada4572e8",
   "memoryInputs": {
-    "qualitylayer/src/ui/demo/memory.ts": "fb57cd4e897d3166afa413b2ad0db6193f5ffb58e1fb6f277e0cfe717c41004e",
-    "qualitylayer/src/ui/settings/Memory.tsx": "2ee76c73de8f6feeffe3b011066480a48a6f1e970206e1fce91c1b805658ebde",
-    "qualitylayer/src/ui/settings/memory.css": "0ede9edf3206ea667fba7cfd7bed8ced102c8b284751ae51f631de08d5587cb5",
+    "qualitylayer/src/ui/demo/memory.ts": "98f9b6c73ac08d1adb6ceccd1cbe6951e4177a77487ae3b0548e3d187ea5fe6d",
+    "qualitylayer/src/ui/settings/Memory.tsx": "c12ae3f15eb4f1f4099c8d8f56214d00d7854d0b556969d6d731ef0f45bc6f26",
+    "qualitylayer/src/ui/settings/memory.css": "819a6497a866b33cf5c7eea27592fa7e37da0a51dfed1184c2ed62bc2a6ce51d",
     "qualitylayer/src/ui/settings/Rows.tsx": "e29af5f67d144f573d87659280a970313549e85456c735792385d37414029604",
     "qualitylayer/src/ui/globals.css": "79a83b79e7a7f243f8a2e26ca446de76c83cab749882a40b40f0c83d72e043d1"
   },
-  "capturedAt": "2026-10-16T23:48:19.795Z",
+  "capturedAt": "2026-10-17T20:18:39.219Z",
   "scenes": [
     "discuss",
     "research",
@@ -32,8 +32,8 @@
       "file": "discuss-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "4d0ad920e5ede3427744942a85644c5735318107164930c709a26d3217046eca",
-      "capture": "workflow-with-files",
+      "sha256": "8d8dbe9c75023922b4a9b73906cb2cfe5b85925105557c86d7537d3d63a937d3",
+      "capture": "workflow-with-claude-code",
       "sourceViewport": {
         "width": 1440,
         "height": 960
@@ -66,8 +66,8 @@
       "file": "plan-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "6e72ca6bb459bf16eaf5298b5d64098644fe6129915ebd0ca6f9e185994a4ab8",
-      "capture": "workflow-with-files",
+      "sha256": "d12ce162ad4061269fbcae620c4b0e7a3e49f9c2f574174548b9e9ae829de989",
+      "capture": "workflow-with-claude-code",
       "sourceViewport": {
         "width": 1440,
         "height": 960
@@ -77,13 +77,13 @@
       "file": "plan-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "b646e6ea534497fc81ef4cef5e36686714d821e37e9c3c7f924a3456a84457e6"
+      "sha256": "1824e660af2ac3c3d527dd83b9b9351b5c0fd78b02bb6de3b192a6688dc7ce55"
     },
     {
       "file": "terminal-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "c7c9348b7d1c75fe35020b8bef9c4f93ce1480264941f3e77a910356bb27ed69"
+      "sha256": "59050388b2cf7185a850a4d8b557790d3fba6ce41c9ee64b3c6b6241dd8a0a68"
     },
     {
       "file": "terminal-phone-light.webp",
@@ -208,13 +208,13 @@
       "file": "design-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "320152e8217d57b1d0f0d1cf3e29dea61da4b7bbf11ac267e6326dbaa0b4ff9d"
+      "sha256": "80190d7c78324d319ed85d6ea82cc975d019aac476cba4f52c91343e4ca05adb"
     },
     {
       "file": "design-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "968ea5af88e7a734733805980d742ac15611925cb0aee2e540e5e27ca2a5b876",
+      "sha256": "7ea4449aa20d74c353c76523f895d4ddcac0c7fce3978c77ab93b2b8f209787e",
       "capture": "narrow-feedback-sheet",
       "sourceViewport": {
         "width": 390,
@@ -297,8 +297,8 @@
       "file": "discuss-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "3f33c06209fad4b7f4cb1dd037aca2a26f6d012254634f3312029665db2a474f",
-      "capture": "workflow-with-files",
+      "sha256": "cfe6365959031dc055cd8d19d68de7b0bb5c417d185ea5725aa8ebd40cf3ff54",
+      "capture": "workflow-with-claude-code",
       "sourceViewport": {
         "width": 1440,
         "height": 960
@@ -331,8 +331,8 @@
       "file": "plan-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "03103a5e4dad0e8c5885014b7b61c2b40fb038acc7f096b1439f8a1ffdd37858",
-      "capture": "workflow-with-files",
+      "sha256": "422dec6743fa44dfe7b57c8ac58185260d0b78d194c7fce55da65454e7b12b42",
+      "capture": "workflow-with-claude-code",
       "sourceViewport": {
         "width": 1440,
         "height": 960
@@ -348,7 +348,7 @@
       "file": "terminal-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "41f2709896c355e2d3385de33742345188fcbaa1155a5a56a8e1d6c724f31838"
+      "sha256": "95da646d6c10422d70c6a14bf75c7ff51915cc0581abd690f47a4f9d6a0734f0"
     },
     {
       "file": "terminal-phone-dark.webp",
@@ -473,13 +473,13 @@
       "file": "design-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "c85f575e69557a63de99f0558c1cf5f18c44b6ba146b5a85d425e96e8fd5ad6e"
+      "sha256": "15d5257af3cb3fed0411286d522448a08535ef16a83a7ffb4eec9593d47191ab"
     },
     {
       "file": "design-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "9ba485e9e3303c7d77771ec004876fcea5952f4fae81960feb3145b55168631f",
+      "sha256": "3aa2d8e02af8901df577644c9344330686705b13cb9a86c3767ae8e083fc80d8",
       "capture": "narrow-feedback-sheet",
       "sourceViewport": {
         "width": 390,
