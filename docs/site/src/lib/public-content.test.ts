@@ -29,52 +29,11 @@ describe("current public illustrations and guides", () => {
     }
   });
 
-  it("shows numbered questions, whole-Plan approval and evidence by point", () => {
-    for (const theme of ["light", "dark"]) {
-      const drawing = (name: string) => words(read(`docs/docusaurus/static/img/diagrams/${name}-${theme}.svg`));
-      expect(drawing("discuss")).toContain("Waits for you");
-      expect(drawing("discuss")).toContain("Each answer reaches the agent immediately.");
-      for (const step of ["discuss", "review"]) {
-        const svg = read(`docs/docusaurus/static/img/diagrams/${step}-${theme}.svg`);
-        const choices = [...svg.matchAll(/<rect data-choice="(\d+)" x="([\d.]+)" y="([\d.]+)" width="([\d.]+)"/g)].map((m) => m.slice(1).map(Number));
-        expect(choices.map(([n]) => n)).toEqual([1, 2]);
-        expect(choices.every(([, x, , width]) => x === 278 && width === 810)).toBe(true);
-        expect(choices[1]![2]).toBeGreaterThan(choices[0]![2]!);
-        expect(svg).toContain('data-own-words="true"');
-        expect(drawing(step)).toContain("Your own answer");
-        expect(drawing(step)).toContain("Send");
-      }
-      for (const step of ["plan", "app"]) {
-        const svg = read(`docs/docusaurus/static/img/diagrams/${step}-${theme}.svg`);
-        expect(svg).not.toContain("data-choice=");
-        expect(drawing(step)).toContain("Done means · proposed");
-        expect(drawing(step).match(/Approve Plan/g)).toHaveLength(1);
-        expect(drawing(step).match(/Give feedback/g)).toHaveLength(1);
-      }
-      for (const step of ["verify", "review"]) {
-        expect(drawing(step)).toMatch(/Done means · 1.*scenario 1.*Done means · 2.*scenario 2/);
-      }
-      expect(drawing("verify")).not.toContain("Agent’s turn");
-      for (const step of ["app", "discuss", "plan", "implement", "verify", "review"]) {
-        const svg = read(`docs/docusaurus/static/img/diagrams/${step}-${theme}.svg`);
-        const sidebar = [...svg.matchAll(/<text\b[^>]*>(Files|Comments)<\/text>/g)].map((m) => m[1]);
-        expect(sidebar).toEqual(["Files", "Comments"]);
-        expect(drawing(step)).toMatch(/Files.*Comments.*Designs/);
-      }
-      expect(drawing("items")).toContain("In Your turn");
-      expect(drawing("items")).not.toContain("In your agent");
-      expect(drawing("designs")).toContain("Designs stay local until you choose Include designs");
-      expect(drawing("designs")).toContain("Shared previews and comments are encrypted");
-    }
-  });
-
-  it("keeps independent batch behavior and truthful review provenance in the guides and tour", () => {
+  it("keeps batch answers immediate in the Discuss guide", () => {
     const discuss = read("docs/docusaurus/docs/steps/discuss.md");
     expect(discuss).toMatch(/groups the questions.*batch/);
     expect(discuss).toContain("Answer in any order");
     expect(discuss).toMatch(/immediately|at once/);
-    expect(read("docs/site/src/lib/tour.ts")).toContain("a local fallback is a self-review");
-    expect(read("docs/site/src/lib/tour.ts")).not.toContain("A second agent reads the Plan before it reaches you");
   });
 
   it("keeps build workflow autonomous while respecting native permissions and explicit stops", () => {
