@@ -511,7 +511,16 @@ jobs:
           for dmg in qualitylayer/dist/app/release/*.dmg; do
             spctl -a -vv -t install "$dmg" 2>&1 | tee "${RUNNER_TEMP:?}/spctl.txt"
             grep -q "source=Notarized Developer ID" "${RUNNER_TEMP:?}/spctl.txt"
-            xcrun stapler validate "$dmg"
+            for attempt in 1 2 3; do
+              if xcrun stapler validate "$dmg"; then
+                break
+              else
+                status=$?
+                # Apple can drop the CloudKit connection after accepting and stapling the package.
+                [ "$status" -eq 68 ] && [ "$attempt" -lt 3 ] || exit "$status"
+                sleep 5
+              fi
+            done
           done
 
       - name: Retain the exact signed standalone Mac CLI
