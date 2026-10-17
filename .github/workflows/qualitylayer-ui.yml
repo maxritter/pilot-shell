@@ -25,7 +25,7 @@ concurrency:
 
 jobs:
   frontend:
-    name: Source UI browser checks (shard ${{ matrix.shard }}/8)
+    name: Source UI browser checks (shard ${{ matrix.shard }}/2)
     # Forks cannot unlock the encrypted source. Existing plaintext/CI gates remain separate.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest

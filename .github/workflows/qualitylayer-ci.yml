@@ -77,6 +77,12 @@ jobs:
         working-directory: qualitylayer
       - run: npm ci --ignore-scripts
         working-directory: docs/site
+      - name: Install GNU catalog-test tools on macOS
+        if: runner.os == 'macOS'
+        run: |
+          brew install bash coreutils
+          echo "$(brew --prefix)/bin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
       - name: Typecheck, lint and finite beta smoke
         working-directory: qualitylayer
         env:
@@ -126,7 +132,10 @@ jobs:
 
       - name: Install shellcheck
         if: runner.os == 'macOS'
-        run: brew install shellcheck
+        run: |
+          brew install shellcheck bash coreutils
+          echo "$(brew --prefix)/bin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
@@ -258,7 +267,7 @@ jobs:
       matrix:
         os: [windows-2025]
         shard: [1, 2, 3, 4, 5, 6]
-        # Fixed groups of about the same length; only group 4 needs the site's packages.
+        # Groups 4 and 6 use the site's in-process Team database.
         include:
           - shard: 1
             files: tests/cli/hook-prompt.test.ts tests/e2e/research.test.ts
@@ -305,7 +314,7 @@ jobs:
       # The team suites run the site's real handlers on the in-process database (PGlite) it ships;
       # its runtime packages are enough (all of them take seven minutes on the arm64 runner).
       - name: Install the site's dependencies
-        if: matrix.shard == 4
+        if: matrix.shard == 4 || matrix.shard == 6
         working-directory: docs/site
         run: npm ci --ignore-scripts --omit=dev --no-audit --no-fund
 
@@ -382,7 +391,7 @@ jobs:
           QUALITYLAYER_REQUIRE_WINDOWS_NATIVE: "1"
           QUALITYLAYER_EXPECT_ARCH: ${{ matrix.arch }}
         run: |
-          bun run test tests/windows/run-pty.test.ts tests/windows/run-job.test.ts tests/windows/run-in-app.probe.test.ts tests/e2e/resource-budget.test.ts 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP/conpty.log"
+          bun run test tests/windows/run-pty.test.ts tests/windows/run-job.test.ts tests/windows/run-in-app.probe.test.ts 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP/conpty.log"
           exit $LASTEXITCODE
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()

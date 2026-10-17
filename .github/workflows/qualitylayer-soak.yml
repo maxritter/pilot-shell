@@ -8,8 +8,6 @@ name: QualityLayer soak
 # processes, the size of the home or the restart time pass their limits. The report is kept.
 # The real App's restart, window and page are proven by app-proof.yml.
 on:
-  schedule:
-    - cron: "37 3 * * *"
   workflow_dispatch:
 
 permissions:

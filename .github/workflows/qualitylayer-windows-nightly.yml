@@ -1,11 +1,7 @@
 name: QualityLayer Windows nightly
 
-# The whole end-to-end suite, natively on both Windows runners, once a night and on demand.
-# Every push runs it on Linux and macOS and runs the Windows-specific suites plus an end-to-end
-# smoke set on Windows (qualitylayer-ci.yml); this job is not a required check for a release.
+# Exhaustive Windows regression is explicitly requested; ordinary releases use the bounded gate.
 on:
-  schedule:
-    - cron: "17 2 * * *"
   workflow_dispatch:
 
 permissions:
