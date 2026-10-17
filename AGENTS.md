@@ -35,7 +35,9 @@ Use `qualitylayer/PRODUCT.md`, `qualitylayer/DESIGN.md` and `ql-design`.
 Before every visible change, including wording or one control, update the lasting
 App Model or website design, show and review it in local QualityLayer Designs,
 then implement. Keep code and model aligned. Claude Design is not a workspace for
-this repository; Claude Code may provide a second opinion.
+this repository; Claude Code may provide a second opinion. Inside a QualityLayer
+build the independent visual critique is Polish's, once per build, not each
+slice's.
 
 Read `docs/agents/design.md` for design authoring/review, composition checks,
 model ownership and release evidence. Use Impeccable and the user-level Anti-slop
