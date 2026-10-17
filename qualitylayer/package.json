@@ -10,9 +10,11 @@
       "producers": {
         "bun run build": ["dist", "src/server/ui"],
         "bun run test": ["dist", "src/server/ui"],
-        "bun run test:ui": ["dist", "src/server/ui"]
+        "bun run test --all": ["dist", "src/server/ui"],
+        "bun run test:ui": ["dist", "src/server/ui"],
+        "bun run test:ui --all": ["dist", "src/server/ui"]
       },
-      "tools": []
+      "tools": ["cargo", "rustc", "cc"]
     }
   },
   "imports": {
