@@ -4,73 +4,45 @@ on:
     branches: [qa/beta58-win-install-probe]
 permissions:
   contents: read
-  actions: read
 jobs:
   diag:
     runs-on: windows-2025
     timeout-minutes: 8
     steps:
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: qualitylayer-release-cli-1
-          run-id: 39071362312
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/release
-      - name: Inspect the retained CLI in disposable homes
+      - name: Diagnose beta.57 memory seeding in disposable homes
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          $cli = Join-Path $env:RUNNER_TEMP 'release/qualitylayer-windows-x64.exe'
-          $expected = ((Get-Content "$cli.sha256" -Raw).Trim() -split '\s+')[0]
-          if ((Get-FileHash $cli -Algorithm SHA256).Hash -ne $expected) { throw 'Retained binary checksum mismatch' }
-          $bytes = [IO.File]::ReadAllBytes($cli)
-          $pe = [BitConverter]::ToInt32($bytes, 0x3c)
-          $subsystem = [BitConverter]::ToUInt16($bytes, $pe + 4 + 20 + 68)
-          $out = Join-Path $env:RUNNER_TEMP 'install-probe'
-          New-Item -ItemType Directory -Path $out -Force | Out-Null
-          $rows = @()
-          foreach ($mode in @('original', 'wait-json')) {
-            $homeDir = Join-Path $out $mode
-            New-Item -ItemType Directory -Path "$homeDir/.claude", "$homeDir/.codex" -Force | Out-Null
-            $env:HOME = $homeDir
-            $env:USERPROFILE = $homeDir
-            $env:QUALITYLAYER_HOME = Join-Path $homeDir '.qualitylayer'
-            $env:CLAUDE_CONFIG_DIR = Join-Path $homeDir '.claude'
-            $env:CODEX_HOME = Join-Path $homeDir '.codex'
-            $env:PI_CODING_AGENT_DIR = Join-Path $homeDir '.pi/agent'
-            $env:OPENCODE_CONFIG_DIR = Join-Path $homeDir '.config/opencode'
-            $env:XDG_CONFIG_HOME = Join-Path $homeDir '.config'
-            $env:HTTP_PROXY = 'http://127.0.0.1:9'
-            $env:HTTPS_PROXY = 'http://127.0.0.1:9'
-            $env:ALL_PROXY = 'http://127.0.0.1:9'
-            $env:QUALITYLAYER_NO_BROWSER = '1'
-            $timer = [Diagnostics.Stopwatch]::StartNew()
-            if ($mode -eq 'original') {
-              & $cli install --non-interactive
-              $code = $LASTEXITCODE
-              $returnedMs = $timer.ElapsedMilliseconds
-              $active = @(Get-Process -Name 'qualitylayer-windows-x64' -ErrorAction SilentlyContinue)
-              $active | Wait-Process -Timeout 90 -ErrorAction SilentlyContinue
-              $timedOut = @($active | Where-Object { -not $_.HasExited }).Count -gt 0
-            } else {
-              $stdout = Join-Path $out 'install.stdout.txt'
-              $stderr = Join-Path $out 'install.stderr.txt'
-              $p = Start-Process -FilePath $cli -ArgumentList @('install','--non-interactive','--json') -PassThru -NoNewWindow -RedirectStandardOutput $stdout -RedirectStandardError $stderr
-              $timedOut = -not $p.WaitForExit(90000)
-              if ($timedOut) { $p.Kill() }
-              $code = $p.ExitCode
-              $returnedMs = $timer.ElapsedMilliseconds
-              Get-Content $stdout -Raw
-              Get-Content $stderr -Raw
-            }
-            $files = @(Get-ChildItem -LiteralPath $homeDir -Recurse -Force -File | Select-Object -First 100 | ForEach-Object { [IO.Path]::GetRelativePath($homeDir,$_.FullName) })
-            $rows += @{ mode=$mode; code=$code; returnedMs=$returnedMs; totalMs=$timer.ElapsedMilliseconds; timedOut=$timedOut; files=$files; expectedExists=(Test-Path "$homeDir/.qualitylayer/bin/qualitylayer.exe") }
+          $out = Join-Path $env:RUNNER_TEMP 'old-memory-probe'
+          New-Item -ItemType Directory -Path $out | Out-Null
+          gh release download v12.0.0-beta.57 --repo maxritter/pilot-shell --pattern qualitylayer-windows-x64.exe --pattern SHA256SUMS --pattern SHA256SUMS.sig --dir $out
+          $cli = Join-Path $out 'qualitylayer-windows-x64.exe'
+          $expected = ((Get-Content "$out/SHA256SUMS" | Where-Object { $_ -match '  qualitylayer-windows-x64.exe$' }) -split '  ')[0]
+          if ((Get-FileHash $cli -Algorithm SHA256).Hash -ne $expected) { throw 'Previous official CLI checksum mismatch' }
+          $env:GH_TOKEN = $null
+          foreach ($mode in @('inherited-modules','compatible-modules')) {
+            $taskHome = Join-Path $out $mode
+            New-Item -ItemType Directory -Path "$taskHome/project", "$taskHome/tmp" -Force | Out-Null
+            $env:HOME=$taskHome; $env:USERPROFILE=$taskHome
+            $env:QUALITYLAYER_HOME=Join-Path $taskHome '.qualitylayer'
+            $env:APPDATA=Join-Path $taskHome 'AppData/Roaming'; $env:LOCALAPPDATA=Join-Path $taskHome 'AppData/Local'
+            $env:TMPDIR=Join-Path $taskHome 'tmp'; $env:TMP=$env:TMPDIR; $env:TEMP=$env:TMPDIR
+            $env:CLAUDE_CONFIG_DIR=Join-Path $taskHome '.claude'; $env:CODEX_HOME=Join-Path $taskHome '.codex'
+            $env:QUALITYLAYER_NO_BROWSER='1'; $env:QUALITYLAYER_NO_COCKPIT='1'; $env:QUALITYLAYER_API_BASE='http://127.0.0.1:9'
+            if ($mode -eq 'compatible-modules') { $env:PSModulePath=$null }
+            Push-Location "$taskHome/project"
+            git init --quiet
+            & $cli install --cli-only --non-interactive --json > "$out/$mode-install.stdout.txt" 2> "$out/$mode-install.stderr.txt"
+            "install=$LASTEXITCODE" | Set-Content "$out/$mode-result.txt"
+            & $cli memory store --title 'Preserved migration rule' --content 'Keep bounded migration locks and preserve catalog provenance.' --json > "$out/$mode-store.stdout.txt" 2> "$out/$mode-store.stderr.txt"
+            "store=$LASTEXITCODE" | Add-Content "$out/$mode-result.txt"
+            Pop-Location
           }
-          @{ at=(Get-Date).ToUniversalTime().ToString('o'); subsystem=$subsystem; cases=$rows } | ConvertTo-Json -Depth 6 | Tee-Object -FilePath (Join-Path $out 'result.json')
+          Get-Content "$out/*-result.txt", "$out/*-store.stdout.txt", "$out/*-store.stderr.txt"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
-          name: beta58-win-install-diagnostic
-          path: |
-            ${{ runner.temp }}/install-probe/*.json
-            ${{ runner.temp }}/install-probe/*.txt
+          name: beta58-win-legacy-memory-diagnostic
+          path: ${{ runner.temp }}/old-memory-probe/*.txt
           retention-days: 7
