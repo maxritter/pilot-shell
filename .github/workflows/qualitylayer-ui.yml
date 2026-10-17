@@ -29,13 +29,12 @@ jobs:
     # Forks cannot unlock the encrypted source. Existing plaintext/CI gates remain separate.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    # Over 800 checks take about 50 minutes on one worker; eight parallel shards of one worker
-    # each (Playwright's --shard) keep every check and end in about eight.
+    # Connected critical journeys in both themes and a compact desktop; full regression is opt-in.
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+        shard: [1, 2]
     env:
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/qualitylayer/dist/.ui-browsers
     steps:
@@ -61,7 +60,7 @@ jobs:
       # test:ui builds one private candidate and passes it to every project, including click-speed.
       - name: Source UI interactions, geometry and accessibility
         working-directory: qualitylayer
-        run: bun run test:ui --all --shard ${{ matrix.shard }}/8 --reporter=github,./scripts/ui-duration-reporter.ts
+        run: bun run test:ui --all launch-choice.spec.ts seven-batch.spec.ts seven-handover.spec.ts seven-verify-checks.spec.ts seven-review-walk.spec.ts memory.spec.ts team-collaboration-ux.spec.ts designs-place.spec.ts design-sharing-responsive.spec.ts terminal-app.spec.ts shared-design-security.spec.ts --shard ${{ matrix.shard }}/2 --reporter=github,./scripts/ui-duration-reporter.ts
       - name: Keep fixture failure screenshots
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

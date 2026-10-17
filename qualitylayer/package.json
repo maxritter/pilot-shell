@@ -31,6 +31,7 @@
     "deadcode": "knip",
     "test": "bun run scripts/test.ts",
     "test:beta": "bun run scripts/test-beta.ts",
+    "test:smoke": "bun run scripts/test.ts",
     "preflight": "bun run scripts/preflight.ts",
     "build": "bun run scripts/build.ts",
     "app:build": "bun run scripts/app.ts",

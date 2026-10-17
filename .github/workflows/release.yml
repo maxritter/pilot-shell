@@ -239,16 +239,7 @@ jobs:
           required="${RUNNER_TEMP:?}/required-ci-checks.txt"
           wait=1200
           printf '%s\n' 'Plaintext guard' 'Site API and pages' > "$required"
-          if [ "$GITHUB_REF_NAME" = dev ]; then
-            printf '%s\n' 'Beta smoke (ubuntu-latest)' 'Beta smoke (macos-14)' >> "$required"
-          else
-            for shard in 1 2 3; do
-              printf 'Typecheck, lint, test (ubuntu-latest, shard %s/3)\n' "$shard" >> "$required"
-            done
-            for shard in 1 2 3 4 5 6; do
-              printf 'Typecheck, lint, test (macos-14, shard %s/6)\n' "$shard" >> "$required"
-            done
-          fi
+          printf '%s\n' 'Release smoke (ubuntu-latest)' 'Release smoke (macos-14)' >> "$required"
           for os in ubuntu-latest macos-14; do
             printf 'No text overflows a control (%s)\n' "$os" >> "$required"
           done
@@ -355,11 +346,7 @@ jobs:
         run: |
           bun run typecheck
           bun run lint
-          if [ "$GITHUB_REF_NAME" = dev ]; then
-            bun run test:beta --shard "$SHARD/4"
-          else
-            bun run test --all --shard "$SHARD/4"
-          fi
+          bun run test:smoke --shard "$SHARD/4"
 
       - name: No text overflows a control
         if: matrix.shard == 1

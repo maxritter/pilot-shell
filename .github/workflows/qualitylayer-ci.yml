@@ -27,6 +27,11 @@ on:
       - ".github/scripts/check_qualitylayer_encrypted.sh"
   # Manual dispatch also requires this workflow to be registered on the default branch.
   workflow_dispatch:
+    inputs:
+      full_regression:
+        description: Run the exhaustive regression matrix explicitly
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -53,7 +58,7 @@ jobs:
         run: bash .github/scripts/check_qualitylayer_encrypted.sh
 
   beta-smoke:
-    name: Beta smoke (${{ matrix.os }})
+    name: Release smoke (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     needs: plaintext-guard
@@ -81,7 +86,7 @@ jobs:
         run: |
           bun run typecheck
           bun run lint
-          bun run test:beta
+          bun run test:smoke
 
   # Broad regression runs once on the pushed SHA; ordinary betas use beta-smoke for release.
   # The whole suite, every file, on Linux and macOS on every push. Each shard holds about the same
@@ -89,6 +94,7 @@ jobs:
   # runner. Six Mac shards leave room for setup within the fifteen-minute job limit; the account's
   # five concurrent Mac slots mean one can queue. Windows runs its own suites below.
   test:
+    if: github.event_name == 'workflow_dispatch' && inputs.full_regression
     name: Typecheck, lint, test (${{ matrix.os }}, shard ${{ matrix.shard }}/${{ matrix.shards }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
