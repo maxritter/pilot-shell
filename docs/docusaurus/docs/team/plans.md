@@ -13,11 +13,17 @@ With a Team plan, your team reviews the Plan before any code (this page) and the
 ![Plan review with your team: you ask a teammate about a part of the Plan, a Slack message opens it in their App, they answer, the answer reaches your agent, and you decide; a guest with a link can comment too](pathname:///img/diagrams/team-light.svg)
 ![Plan review with your team: you ask a teammate about a part of the Plan, a Slack message opens it in their App, they answer, the answer reaches your agent, and you decide; a guest with a link can comment too](pathname:///img/diagrams/team-dark.svg)
 
-1. Select a passage, choose **Give feedback**, then **Ask a teammate**. Mark it **needed before approval** or **opinion only**.
-2. They answer with **Looks right**, **Suggest a change** or **Reply**, or let [their agent draft it](agents.md).
+1. Select a passage and choose **Give feedback**. Pick a person in **To**, then choose **Before approval** or **Opinion only** and **Send**.
+2. They open the request in Home's **Needs you** and write their answer to the fixed asker, or let [their agent draft it](agents.md).
 3. Your agent updates the Plan. Only your approval moves the task on.
 
 On a shared Plan or Review, **Looks right** sends your review to the owner. **Suggest changes** asks what should change before sending. **Give feedback** leaves a thread without requesting a decision. The owner decides when to approve the task.
+
+## Share and reading status
+
+**Share** brings team or group access, people with access, review requests, design inclusion and the outside link into one sheet. Seat management stays in Settings.
+
+The task header shows who it waits on and offers **Remind**. **Seen by** names confirmed readers of the current shared version and opens the same Share sheet. When reading data is unavailable, the App leaves reading status out. **Not opened yet** appears only when that data is known.
 
 ## Hand over an approved Plan {#hand-over}
 

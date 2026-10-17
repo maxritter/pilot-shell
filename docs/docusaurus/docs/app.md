@@ -38,7 +38,7 @@ Order, colors, names and hidden projects are stored on the computer that runs th
 
 | Place | What it shows |
 | --- | --- |
-| **Home** | Your own **Needs you** queue and **Running** work ([Home](#home)) |
+| **Home** | **Needs you** for your tasks and teammate requests, plus your agents' **Running** work ([Home](#home)) |
 | **Team** | **My attention**, **Everyone** and **My questions** for shared work |
 | **Designs** | A compact **Library** grouped by project, with **Archived** and recovery ([Designs](designs.md#designs-place)) |
 
@@ -71,7 +71,7 @@ Every step writes one Markdown file, shown three ways:
 
 ## Feedback and designs {#comments-and-designs}
 
-Select a passage, a line or part of a diagram and choose **Give feedback**. The thread keeps that context with your words. Choose **To agent**, ask a teammate a question, or address feedback to a person. Person-only feedback is not sent to the agent.
+Select a passage, a line or part of a diagram and choose **Give feedback**. The thread keeps that context with your words. The **To** picker chooses the agent, a named teammate or **Everyone on the task** when access is known. Each recipient keeps its own draft. Person-only feedback is not sent to the agent.
 
 Working designs are compact entries in **Files**. **Open design canvas** opens the full page, its Feedback and its base design. The document header opens Files and Feedback; **Agent** opens the task’s conversation. The **Agent status** chip shows current activity. See [Designs](designs.md).
 
@@ -80,7 +80,7 @@ Working designs are compact entries in **Files**. **Open design canvas** opens t
 ![Home: a Needs you section for your own questions and approvals, followed by a separate Running section for your agents' work](pathname:///img/app/home-light.webp)
 ![Home: a Needs you section for your own questions and approvals, followed by a separate Running section for your agents' work](pathname:///img/app/home-dark.webp)
 
-**Needs you** is your move: questions, approvals and tasks you can continue. **Running** is your agents' work, with its current step and activity. A row opens the exact task or document. Teammate questions and answers belong to Team.
+**Needs you** combines your questions, approvals and tasks you can continue with teammate questions, review requests and replies. Shared rows name the person and open the exact passage, diagram or design spot. **Running** is your agents' work, with its current step and activity. Team keeps the shared history.
 
 Notifications are configured in **Settings › Workflow**. Home shows no spending or shipped summary. The App notifies you only when you can act:
 
