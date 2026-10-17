@@ -9,8 +9,8 @@
 
 ### The software factory with you in the loop
 
-**Plan each change visually with your coding agent and your team, then let your agents build it.**<br>
-Native integrations for Claude Code, Codex, Pi and OpenCode. Other coding agents use the same workflow through the CLI.
+**Plan each change visually with your agent and your team.**<br>
+Claude Code, Codex, Pi and OpenCode in the App. Other agents via the CLI.
 
 <a href="https://github.com/maxritter/pilot-shell"><picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&amp;color=9d6607&amp;labelColor=30363d">
@@ -154,8 +154,8 @@ Ask your agent for a mockup, diagram or clickable design. Compare versions in th
 ## QualityLayer App
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/plan-dark.webp">
-  <img src="docs/site/public/product/plan-light.webp" alt="The Plan step in the App for a fictional task, usage-based billing across nine services: the design, its decisions and the Approve Plan button" width="1000">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/design-dark.webp">
+  <img src="docs/site/public/product/design-light.webp" alt="A clickable queue-routing design with charts, rollout controls and pinned team feedback in the App. Fictional project." width="1000">
 </picture>
 
 - Answer your agent's questions and comment on any passage; answers reach it at once.

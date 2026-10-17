@@ -52,6 +52,38 @@ jobs:
       - name: Check the encrypted paths are encrypted
         run: bash .github/scripts/check_qualitylayer_encrypted.sh
 
+  beta-smoke:
+    name: Beta smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    needs: plaintext-guard
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - run: bash .github/workflows/scripts/install-git-crypt.sh
+      - env: { GIT_CRYPT_KEY: "${{ secrets.GIT_CRYPT_KEY }}" }
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+      - uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with: { bun-version: "1.4.2" }
+      - run: bun install --frozen-lockfile
+        working-directory: qualitylayer
+      - run: npm ci --ignore-scripts
+        working-directory: docs/site
+      - name: Typecheck, lint and finite beta smoke
+        working-directory: qualitylayer
+        env:
+          QUALITYLAYER_TEST_RETRIES: "0"
+          QUALITYLAYER_TEST_ALLOW_LEAKS: "0"
+          QUALITYLAYER_TEST_WORKERS: "2"
+        run: |
+          bun run typecheck
+          bun run lint
+          bun run test:beta
+
+  # Broad regression runs once on the pushed SHA; ordinary betas use beta-smoke for release.
   # The whole suite, every file, on Linux and macOS on every push. Each shard holds about the same
   # recorded seconds (scripts/test-timings.json): three on Linux, six on the slower 3-core macOS
   # runner. Six Mac shards leave room for setup within the fifteen-minute job limit; the account's

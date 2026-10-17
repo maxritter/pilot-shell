@@ -30,6 +30,7 @@
     "lint:fix": "biome check --write .",
     "deadcode": "knip",
     "test": "bun run scripts/test.ts",
+    "test:beta": "bun run scripts/test-beta.ts",
     "preflight": "bun run scripts/preflight.ts",
     "build": "bun run scripts/build.ts",
     "app:build": "bun run scripts/app.ts",
