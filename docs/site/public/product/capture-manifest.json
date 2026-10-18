@@ -7,7 +7,7 @@
     "qualitylayer/src/ui/settings/Rows.tsx": "e29af5f67d144f573d87659280a970313549e85456c735792385d37414029604",
     "qualitylayer/src/ui/globals.css": "816b115e343a42897ba0c0fa22c52184d1d749b6366fc33fb7ec0193f1aecbcb"
   },
-  "capturedAt": "2026-10-18T14:02:39.678Z",
+  "capturedAt": "2026-10-18T14:16:33.549Z",
   "scenes": [
     "discuss",
     "research",
@@ -249,7 +249,7 @@
       "file": "setup-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "04e3fe242e967203411c4a860a2795736e7965f1686447c889440d4ec8e872fd"
+      "sha256": "8c9dd37b85da2a32bf3428351f27b4ce30d283f0d24aa40277ced8349bbcba05"
     },
     {
       "file": "setup-phone-light.webp",
@@ -388,7 +388,7 @@
       "file": "implement-start-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "701a0e26b72267cb827bd0b6ec938c2cfe8624b92015d0037f357f4e77403077",
+      "sha256": "96a6ea5d79eb739ab1f2c152b3571a8a786e484ad7b8e987cde4d0706fed48ac",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -514,7 +514,7 @@
       "file": "setup-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "0d2ed88063a77a101c5a18779be7c0236664fb502938f84acbd003ba8910e0c2"
+      "sha256": "ba76ce3e0c66d752648378a350253a372661760f7bc6f214684db9487608a45a"
     },
     {
       "file": "setup-phone-dark.webp",
