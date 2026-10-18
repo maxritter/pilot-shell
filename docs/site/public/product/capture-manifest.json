@@ -1,5 +1,5 @@
 {
-  "fixtureHash": "28f1ad25e7d54c19cd36da714b849af3be20045d5241358f73e1a0edeec6c931",
+  "fixtureHash": "9ca37d472119043257f5f215f6b3ab98d875c731a19c4ef2e539cd5ba89a8aa2",
   "memoryInputs": {
     "qualitylayer/src/ui/demo/memory.ts": "98f9b6c73ac08d1adb6ceccd1cbe6951e4177a77487ae3b0548e3d187ea5fe6d",
     "qualitylayer/src/ui/settings/Memory.tsx": "c12ae3f15eb4f1f4099c8d8f56214d00d7854d0b556969d6d731ef0f45bc6f26",
@@ -7,7 +7,7 @@
     "qualitylayer/src/ui/settings/Rows.tsx": "e29af5f67d144f573d87659280a970313549e85456c735792385d37414029604",
     "qualitylayer/src/ui/globals.css": "816b115e343a42897ba0c0fa22c52184d1d749b6366fc33fb7ec0193f1aecbcb"
   },
-  "capturedAt": "2026-10-18T14:16:33.549Z",
+  "capturedAt": "2026-10-18T14:29:53.063Z",
   "scenes": [
     "discuss",
     "research",
@@ -106,7 +106,7 @@
       "file": "outline-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "e25e53fb8c96cd0d7a9ea7900fa208e2d5baaef26c1cfb30528b88a72966443c",
+      "sha256": "9a3a762ebc48333089be48113279e6db080e1505070a2b40849eb4a310a3f19c",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -117,7 +117,7 @@
       "file": "outline-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "56c129511da86d370d18f9ec8c1ee732631a5bf805777b1d115341ee07bf9e02"
+      "sha256": "2bc4f781217f941863825e1704981f47248f1d8fc36e2c4c8b03c8460ef499c5"
     },
     {
       "file": "implement-start-light.webp",
@@ -371,7 +371,7 @@
       "file": "outline-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "3738d6bb41c7ced5a1baf37af54f1a6bc6a573eabaf2e7a0408236f6edc9dfe4",
+      "sha256": "b8f5da1e0bd0fd0f5bfd5b957e1ec47911faabe46153d1ac90fd98576bc14fc9",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -382,7 +382,7 @@
       "file": "outline-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "2c72be28f9e25927e0aec6d75cedde443132fd92194f96cc6706bb3f0a257a80"
+      "sha256": "f2026caacf84b608e18aabc08302b0c423359d932e788d00ebcf5b8135b2e5c2"
     },
     {
       "file": "implement-start-dark.webp",
