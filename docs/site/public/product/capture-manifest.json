@@ -1,13 +1,13 @@
 {
-  "fixtureHash": "758d4cad951b7ce30d7208ca0484af13c1a7ff81766e5e1840acecdada4572e8",
+  "fixtureHash": "28f1ad25e7d54c19cd36da714b849af3be20045d5241358f73e1a0edeec6c931",
   "memoryInputs": {
     "qualitylayer/src/ui/demo/memory.ts": "98f9b6c73ac08d1adb6ceccd1cbe6951e4177a77487ae3b0548e3d187ea5fe6d",
     "qualitylayer/src/ui/settings/Memory.tsx": "c12ae3f15eb4f1f4099c8d8f56214d00d7854d0b556969d6d731ef0f45bc6f26",
     "qualitylayer/src/ui/settings/memory.css": "819a6497a866b33cf5c7eea27592fa7e37da0a51dfed1184c2ed62bc2a6ce51d",
     "qualitylayer/src/ui/settings/Rows.tsx": "e29af5f67d144f573d87659280a970313549e85456c735792385d37414029604",
-    "qualitylayer/src/ui/globals.css": "79a83b79e7a7f243f8a2e26ca446de76c83cab749882a40b40f0c83d72e043d1"
+    "qualitylayer/src/ui/globals.css": "816b115e343a42897ba0c0fa22c52184d1d749b6366fc33fb7ec0193f1aecbcb"
   },
-  "capturedAt": "2026-10-17T20:18:39.219Z",
+  "capturedAt": "2026-10-18T14:02:39.678Z",
   "scenes": [
     "discuss",
     "research",
@@ -32,7 +32,7 @@
       "file": "discuss-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "8d8dbe9c75023922b4a9b73906cb2cfe5b85925105557c86d7537d3d63a937d3",
+      "sha256": "851f16d79311c894c7e67fad0ef92a56a14054c3d77013a7d56f2b55a7b61517",
       "capture": "workflow-with-claude-code",
       "sourceViewport": {
         "width": 1440,
@@ -49,7 +49,7 @@
       "file": "research-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "79dd9cc5a8781be2aad7acbfc073c911ae0c0cc4fbd2e2dde5090cd4fb3302d8",
+      "sha256": "da880298098feca795fc3cef92d4de61920b152cb6f2240f5f7cbd9e8c6139e8",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -60,13 +60,13 @@
       "file": "research-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "5e2dc44bd1efd181d80e19c11e066622a842a94a2b76da31916df63dfe5aa4f7"
+      "sha256": "a5bbed6a233d9a793fb5f7a444d035d6eb1e57f70200d735a5807aaf20b7b141"
     },
     {
       "file": "plan-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "d12ce162ad4061269fbcae620c4b0e7a3e49f9c2f574174548b9e9ae829de989",
+      "sha256": "ac475e25640438c0bc258a23bfe0c83fd44bcff4083d3c0faabd791272767b5a",
       "capture": "workflow-with-claude-code",
       "sourceViewport": {
         "width": 1440,
@@ -77,13 +77,13 @@
       "file": "plan-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "1824e660af2ac3c3d527dd83b9b9351b5c0fd78b02bb6de3b192a6688dc7ce55"
+      "sha256": "fb137d5632011f10f4215f594c38a6f162c196db8e424dc59a81829029687f4f"
     },
     {
       "file": "terminal-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "59050388b2cf7185a850a4d8b557790d3fba6ce41c9ee64b3c6b6241dd8a0a68"
+      "sha256": "7de1e0a684edb75daa9229e37909f36ea74b85467acd55be464670b60168234d"
     },
     {
       "file": "terminal-phone-light.webp",
@@ -106,7 +106,7 @@
       "file": "outline-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "f55743c739913d8b0521bfb91224b3e49c47b7c35ec47001ec88e5e087563827",
+      "sha256": "e25e53fb8c96cd0d7a9ea7900fa208e2d5baaef26c1cfb30528b88a72966443c",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -117,13 +117,13 @@
       "file": "outline-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "79475952e722d2205cc29aa3d6c8da13d7aa2eafc4c3c981067f8e7f66a230a1"
+      "sha256": "56c129511da86d370d18f9ec8c1ee732631a5bf805777b1d115341ee07bf9e02"
     },
     {
       "file": "implement-start-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "40402d8c6b0c5b24968f68e95348fd3e0d9ea9743c2a14a85bc91be669c0c521",
+      "sha256": "462ef9d0386105e02a6fc7c47e1b752d36e235bad9a36e14d7ae0568a15c1b8c",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -134,13 +134,13 @@
       "file": "implement-start-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "0ef3774d2a1e963b6a16be9e37e3e9028354df31db24cf21a37dcaef86b47de1"
+      "sha256": "4d4d16efc9a21c38f515ac48727308e844e2f5130a5cd94885c2247b17950f5c"
     },
     {
       "file": "implement-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "aca8b5e9a96e226d50f7c5761a3851d346eac9aaeedaf3ae0f3147e3b41e014c",
+      "sha256": "744489f3577c20700ef7a0223de221da0f2723c3e8baba158799abcf9fd7af1d",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -151,13 +151,13 @@
       "file": "implement-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "965cbe9a497209c369defa2c07ee10bc7613881702ce0d1914ded7103a88f8d7"
+      "sha256": "82a15fbbd28dbc68f7781db7bb31cc40ef0571232b7dde23daaae44fd163dc73"
     },
     {
       "file": "verify-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "1fc393c74e199e8cf386a91a3535cba4cf80b3618f64462f0f1493af5f2b68e8",
+      "sha256": "44ec072d312d51fcaa33f2fb50a76e85e82cc537edea4688033a54f36db9acb0",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -168,13 +168,13 @@
       "file": "verify-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "b0aa8915330d07df3f1b25d5863dae656b9936786eeac9e77614a050179b9a72"
+      "sha256": "3dbb1cf16dbeec16551fd1198b5df2f599f81fe88c8f58dcace968004969f398"
     },
     {
       "file": "review-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "09234238f0c5d3a3c2488f4512a46a79c3f8d2e7a4f1d9674f5fc986bb8bef51",
+      "sha256": "e8a1f1d469d104492444b61176ab17193da5c9b04e686c573d3dbfd2becd57a7",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -185,13 +185,13 @@
       "file": "review-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "25f0eb0258d609a2e5c9a05472aff85f21446030fddb241d6226efef284102f9"
+      "sha256": "242c4c5c369d173e2378334741a87a1058de0a4c8f7f08bf7d125aa501c93df0"
     },
     {
       "file": "pull-request-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "b8c2f224e64a0663e9c9411fd3f607ee47fe5fce52a9c237c6e491df09dee043",
+      "sha256": "9f3f86094876aa8c1e5951e9ce9e2439c82d46fb2fa34eb2233f040d476fb5ce",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -214,7 +214,7 @@
       "file": "design-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "7ea4449aa20d74c353c76523f895d4ddcac0c7fce3978c77ab93b2b8f209787e",
+      "sha256": "de01023968a73c381dbc278b129da85190c2a64d440253b78b3451553b02b56e",
       "capture": "narrow-feedback-sheet",
       "sourceViewport": {
         "width": 390,
@@ -225,37 +225,37 @@
       "file": "team-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "3f7f1a79c044a28a31f44bbd7eeae5cc8504c196679227c0c7b0bb3c6602501e"
+      "sha256": "22aeb87a1d8da7b6822a388c3e7f57c91999535f38e1c2a2541dec0084a5dc6a"
     },
     {
       "file": "team-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "500a3d6749c321d00a9e1ac401ba13c8c50d7fb030e4293ad374a9ce9d4b2023"
+      "sha256": "bbf60ae48030f067f9d36025514c5bb3a70a0147caeb07c1e50aa35ced6ed3c4"
     },
     {
       "file": "home-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "096cc8d131142ef112f78676e706e3539ab71e7424bdd6d857d900710db64d67"
+      "sha256": "de9ef97cca6cff435cb3b6f0b6564cb785a15bfa931a9ef4884754d54d64f62a"
     },
     {
       "file": "home-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "f4fe12ce07113259a32b92286e8cb26b371f397e813e363ce85cb66a384488ca"
+      "sha256": "abe490661a0ca85cb3bc49b843e5c519ac9e6c2c0eff79582f418cf00fd18ab8"
     },
     {
       "file": "setup-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "8b3c6da3932f084fa0f2b58568c398ac6c0e1b03059e257f5f8228c30bf1ab08"
+      "sha256": "04e3fe242e967203411c4a860a2795736e7965f1686447c889440d4ec8e872fd"
     },
     {
       "file": "setup-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "96d1245d1001a396bfe41ae131599476ccfb8f02dea5a858aeb631e494d3b37f"
+      "sha256": "c03f351b4507fcd474e0511bffcf429c9066fa00ba802978211957512d155a50"
     },
     {
       "file": "memory-light.webp",
@@ -285,7 +285,7 @@
       "file": "designs-open-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "5a5ddac823e95a96fec2eb03106ff6b6c54f8682babf7f3e163b075694897dad"
+      "sha256": "8ad580265b964a713ed77e7ddc31b61765b7091e1c72cb4d0813f2a514dec89c"
     },
     {
       "file": "designs-open-phone-light.webp",
@@ -297,7 +297,7 @@
       "file": "discuss-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "cfe6365959031dc055cd8d19d68de7b0bb5c417d185ea5725aa8ebd40cf3ff54",
+      "sha256": "e561b5de90578fe4ebb70e668a852c0ff3c53851fa8b0d55090bbb873bfb115f",
       "capture": "workflow-with-claude-code",
       "sourceViewport": {
         "width": 1440,
@@ -314,7 +314,7 @@
       "file": "research-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "a2756f276da5a183104c67a5a9d5a8b2dc3725ccf80b28a93506074521cdc621",
+      "sha256": "c1c66570e950bdf613b482425222aad80428709a021838434ea84bf4dbb5de1b",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -325,13 +325,13 @@
       "file": "research-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "b4f98ea262129790cd452d2c8e198c02dbf817b289716009efcf0472eef465bb"
+      "sha256": "368d008584c1b190d942786a2a7c23c88cb24b2f4670e31921447cb3e3694165"
     },
     {
       "file": "plan-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "422dec6743fa44dfe7b57c8ac58185260d0b78d194c7fce55da65454e7b12b42",
+      "sha256": "d8ce2fb784ac8f28f56cd1b94b943cbdcf92978e5dd9876cf68d81cb3fa9611a",
       "capture": "workflow-with-claude-code",
       "sourceViewport": {
         "width": 1440,
@@ -342,13 +342,13 @@
       "file": "plan-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "b17142cc9b62076014a9be3bcea568db9741c09f6ae0d1fabd6cc22af0c8edaa"
+      "sha256": "b3a28b6a0a395fecb4272141aea7504faeb735d82a1b617ef9b5d356ace99614"
     },
     {
       "file": "terminal-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "95da646d6c10422d70c6a14bf75c7ff51915cc0581abd690f47a4f9d6a0734f0"
+      "sha256": "be5d2927a96403dae6b684093547f74e81f768598362d7551857ad3ae7c8bbcf"
     },
     {
       "file": "terminal-phone-dark.webp",
@@ -371,7 +371,7 @@
       "file": "outline-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "cde3a19ed8b1cf065554c934b880655f065a6b28253d6bf2d5cbf575a8201ec9",
+      "sha256": "3738d6bb41c7ced5a1baf37af54f1a6bc6a573eabaf2e7a0408236f6edc9dfe4",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -382,13 +382,13 @@
       "file": "outline-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "313113c2cf7ae0d154e9f40d657d7f612858b6500a8bd03eced17d710cbe106f"
+      "sha256": "2c72be28f9e25927e0aec6d75cedde443132fd92194f96cc6706bb3f0a257a80"
     },
     {
       "file": "implement-start-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "45c74a19db16bc9aa582155d4c57ff1cd81612554316c58cefe96284d08547dc",
+      "sha256": "701a0e26b72267cb827bd0b6ec938c2cfe8624b92015d0037f357f4e77403077",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -399,13 +399,13 @@
       "file": "implement-start-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "de26c3389f1bcb19804f0878bb633325bf52773cc2b3a7c9d9ac449dd84adc62"
+      "sha256": "287c63758567632e0d9bb0ad78cac462a61cd96358b67f8a41315cb660e74d3e"
     },
     {
       "file": "implement-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "da948a6204607bd30a16683318927768b296b974d14465bfce2b2cf6fdf4cce8",
+      "sha256": "9d29497b0aaa6836ec1c2abcb2c9e88d2bbe2c25a5820b907f3c644a1c01a590",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -416,13 +416,13 @@
       "file": "implement-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "3d360e47fd2591c66723c488ac2d7f8ae762cbc4ab9b71389290ec205ac354eb"
+      "sha256": "1bd19cb5f18a624809f17c1c4a93a29255ca329564e8f117d8040b741b11aa75"
     },
     {
       "file": "verify-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "efb096847124fdadb5601d19e50dceb39cb65f3d16719c309f4d6221caff8662",
+      "sha256": "b5f169186e572bc3f48f79f71daf42f47ca42e5ac330f90f1dbc592cd96aa38c",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -433,13 +433,13 @@
       "file": "verify-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "b2f79bb892c7858ea9bed33725dc7cb515141ee4f96de319c369f6226daac85d"
+      "sha256": "41bcc5d9c1fdb8ac9c985f8263a4ce80bcc1b1ba420e71d3939216c96ee2ad84"
     },
     {
       "file": "review-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "23a910af52236b0e53cf20f128e4e1f4f1effcb101bb9e92a9d8c9d75a190136",
+      "sha256": "12be288fd374c834951923678d4ac3d517e3a7f48c8fd5f67077eae27d91d7bd",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -450,13 +450,13 @@
       "file": "review-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "da3aeefd058773fac33f2d20355c949dceb39c1f3ba1d4a17df2d9612a1f7717"
+      "sha256": "b7a0a4983195fdb9d577765bf142dc4570269c8c34d15615d89ae0c3cf00157f"
     },
     {
       "file": "pull-request-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "878ec8bcaa1418a3397e9498f0710b06651bcd9e737f682bd20517f7f1597772",
+      "sha256": "e1e9de8068188838d577555d36a648f94801f184852577f11415660dca4099b2",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -473,13 +473,13 @@
       "file": "design-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "15d5257af3cb3fed0411286d522448a08535ef16a83a7ffb4eec9593d47191ab"
+      "sha256": "05f9dd2f4a030265cb2d1d1411bd9c3507a152ff3991d5b3fad23a0db9c40486"
     },
     {
       "file": "design-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "3aa2d8e02af8901df577644c9344330686705b13cb9a86c3767ae8e083fc80d8",
+      "sha256": "8aed670d1d500cd1be1a4b4c51185787586f7ce88b9e85d0d44047f368a78d8b",
       "capture": "narrow-feedback-sheet",
       "sourceViewport": {
         "width": 390,
@@ -490,37 +490,37 @@
       "file": "team-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "539de6cf1ff50d27b31be52aa55dd69e3a4933ff864dcb8069ac07710c168832"
+      "sha256": "787729a6f498b1225c009cb8efaffe78930dc233e37b45493d18cb4fd4e10f35"
     },
     {
       "file": "team-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "f0fb2cfb7b91b8989f234b2d4136e9b2bf70b130e6a6f1b4dc46c2334f41d7a4"
+      "sha256": "2563cbeea2c0bf462cdb8a5b8eb29ba5021939a13b9d3aafc71903e4745fbdf6"
     },
     {
       "file": "home-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "4f5cf5094f55b7a576c6805ca4826978e7a85664ebdfed723bf9750e134f7ce5"
+      "sha256": "eb47dd8eb32139e67a5bc57f0586130fdfee8ec9a71e61414249de1c9affe059"
     },
     {
       "file": "home-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "a53c5b03fb670d4917fd28fbfedc1dae858d542c86260b94156662e03df843c1"
+      "sha256": "a8c2031abb70fc626f0192b34a1fec62e47fc29a8ea5835b077c9dd12965b615"
     },
     {
       "file": "setup-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "2ea870fa6a6ac77cf3669db9a9908c901066277e6557ee12bcf0e944dcf669a5"
+      "sha256": "0d2ed88063a77a101c5a18779be7c0236664fb502938f84acbd003ba8910e0c2"
     },
     {
       "file": "setup-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "c8e77c115c954db83a25cc02fcc638235c2b1509eb389be92118ee067c74b744"
+      "sha256": "fdf9f7b30fb320cc2b03dcb53ee50875d7a1b7c4c542063d76556845d4a4241b"
     },
     {
       "file": "memory-dark.webp",
@@ -550,7 +550,7 @@
       "file": "designs-open-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "5cef995a8efea0da7a0fbf1281eedb82280aabd5733e5e6c44dada8e7f94b5d2"
+      "sha256": "f8f84c20b825e8beb3569d87d4e403c0d87db79551b0fed714418c7050132621"
     },
     {
       "file": "designs-open-phone-dark.webp",
