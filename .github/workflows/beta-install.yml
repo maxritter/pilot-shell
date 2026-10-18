@@ -35,8 +35,13 @@ jobs:
           WANTED: ${{ inputs.version }}
         run: |
           WANTED="${WANTED#v}"
-          HOME="$(mktemp -d)"
-          export HOME
+          qlHome="$(mktemp -d)"
+          export HOME="$qlHome" USERPROFILE="$qlHome" QUALITYLAYER_HOME="$qlHome/.qualitylayer"
+          export XDG_CONFIG_HOME="$qlHome/.config" XDG_DATA_HOME="$qlHome/.local/share" XDG_CACHE_HOME="$qlHome/.cache"
+          export APPDATA="$qlHome/AppData/Roaming" LOCALAPPDATA="$qlHome/AppData/Local"
+          export TMPDIR="$qlHome/tmp" TMP="$qlHome/tmp" TEMP="$qlHome/tmp"
+          unset CLAUDE_CONFIG_DIR CODEX_HOME PI_CODING_AGENT_DIR OPENCODE_CONFIG_DIR
+          mkdir -p "$qlHome/tmp"
           # A tester has the agents installed: the installer adds its skills to each one it finds.
           mkdir -p "$HOME/.claude" "$HOME/.codex"
           curl -fsSL https://qualitylayer.dev/install.sh | VERSION="$WANTED" bash
@@ -71,6 +76,18 @@ jobs:
           $env:HOME = $qlHome
           $env:USERPROFILE = $qlHome
           $env:QUALITYLAYER_HOME = Join-Path $qlHome '.qualitylayer'
+          $env:APPDATA = Join-Path $qlHome 'AppData/Roaming'
+          $env:LOCALAPPDATA = Join-Path $qlHome 'AppData/Local'
+          $env:XDG_CONFIG_HOME = Join-Path $qlHome '.config'
+          $env:XDG_DATA_HOME = Join-Path $qlHome '.local/share'
+          $env:XDG_CACHE_HOME = Join-Path $qlHome '.cache'
+          $env:TMPDIR = Join-Path $qlHome 'tmp'
+          $env:TMP = $env:TMPDIR
+          $env:TEMP = $env:TMPDIR
+          New-Item -ItemType Directory -Path $env:TMPDIR -Force | Out-Null
+          foreach ($name in @('CLAUDE_CONFIG_DIR','CODEX_HOME','PI_CODING_AGENT_DIR','OPENCODE_CONFIG_DIR')) {
+            Remove-Item "Env:$name" -ErrorAction SilentlyContinue
+          }
           $env:QUALITYLAYER_API_BASE = 'http://127.0.0.1:9'
           $env:POLAR_API_BASE = 'http://127.0.0.1:9'
           $qlScript = [ScriptBlock]::Create((Invoke-WebRequest 'https://qualitylayer.dev/install.ps1').Content)
