@@ -43,8 +43,8 @@ hash and matching development trial key for native workflow tests; never
 replace a running gate's executable. A development trial key is not a
 production signing credential.
 
-For bigger workflow changes, use ql-bench on the matching baseline and both
-primary agents. Quality comes before time or cost. Binary comparisons need
+A beta ships without a bench. When Max asks for one, use ql-bench on the
+matching baseline and both primary agents. Quality comes before time or cost. Binary comparisons need
 each side's own installed skills and bridges, isolated native profiles and
 pinned tools. Record failed and unrun attempts; do not retry, void or regrade
 an unfavorable run to manufacture acceptance.

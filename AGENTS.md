@@ -47,6 +47,6 @@ Mechanical checks and matching tokens do not establish visual approval.
 ## Ownership
 
 `AGENTS.md` is the shared source; `CLAUDE.md` stays exactly `@AGENTS.md` plus a
-newline. Before workflow/gate changes read the benchmark section in
-`docs/agents/verification.md`. For delegated QualityLayer findings, use
+newline. A workflow bench runs only when Max asks for one; then read the
+benchmark section in `docs/agents/verification.md`. For delegated QualityLayer findings, use
 `ql-feedback` before edits and cite the shared inbox heading and evidence.
