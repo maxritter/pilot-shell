@@ -54,7 +54,14 @@ jobs:
             exit 1
           fi
           echo "--- installed skills"
-          ls -d "$HOME/.claude/skills/ql" "$HOME/.agents/skills/ql"
+          for skill in ql-workflow ql-design ql-peer ql-manage; do
+            test -f "$HOME/.claude/skills/$skill/SKILL.md"
+            test -f "$HOME/.agents/skills/$skill/SKILL.md"
+            grep -q 'allow_implicit_invocation: true' "$HOME/.agents/skills/$skill/agents/openai.yaml"
+            echo "$skill"
+          done
+          test ! -e "$HOME/.claude/skills/ql"
+          test ! -e "$HOME/.agents/skills/ql"
 
   windows-install:
     name: Clean native Windows install (${{ matrix.os }})
@@ -95,8 +102,15 @@ jobs:
           $qlBinary = Join-Path $qlHome '.qualitylayer/bin/qualitylayer.exe'
           $qlActual = & $qlBinary --version
           if ($LASTEXITCODE -ne 0 -or $qlActual.Trim() -ne $qlWanted) { throw "Expected $qlWanted, got $qlActual" }
-          foreach ($qlSkill in @("$qlHome/.claude/skills/ql/SKILL.md", "$qlHome/.agents/skills/ql/SKILL.md", "$qlHome/.agents/skills/ql/agents/openai.yaml")) {
-            if (-not (Test-Path $qlSkill)) { throw "Missing installed skill: $qlSkill" }
+          foreach ($qlName in @('ql-workflow', 'ql-design', 'ql-peer', 'ql-manage')) {
+            foreach ($qlSkill in @("$qlHome/.claude/skills/$qlName/SKILL.md", "$qlHome/.agents/skills/$qlName/SKILL.md")) {
+              if (-not (Test-Path $qlSkill)) { throw "Missing installed skill: $qlSkill" }
+            }
+            $qlPolicy = Get-Content -Raw "$qlHome/.agents/skills/$qlName/agents/openai.yaml"
+            if ($qlPolicy -notmatch 'allow_implicit_invocation: true') { throw "Natural-language skill invocation disabled: $qlName" }
+          }
+          foreach ($qlRetired in @("$qlHome/.claude/skills/ql", "$qlHome/.agents/skills/ql")) {
+            if (Test-Path $qlRetired) { throw "Retired duplicate skill: $qlRetired" }
           }
           & $qlBinary uninstall --purge --json
           if ($LASTEXITCODE -ne 0 -or (Test-Path "$qlHome/.qualitylayer")) { throw 'Published Windows uninstall failed' }
