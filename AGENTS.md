@@ -32,9 +32,19 @@ runner while a release gate is using `dist/qualitylayer`.
 ## Product and visible changes
 
 Use `qualitylayer/PRODUCT.md`, `qualitylayer/DESIGN.md` and `ql-design`.
-Before every visible change, including wording or one control, update the lasting
-App Model or website design, show and review it in local QualityLayer Designs,
-then implement. Keep code and model aligned. Claude Design is not a workspace for
+Each surface has one lasting design in local QualityLayer Designs; change it first, show
+and review it there, then implement, so design and code never drift:
+
+- App Model (`qualitylayer/design/app/app-model`): every visible App change, including
+  wording or one control.
+- Website (`qualitylayer/design/site/website-model`): the site and the docs guides.
+- Team Model (`qualitylayer/design/collaboration-data-model`): the team backend's
+  tables, lifetimes, storage and API authority.
+- Workflow (`qualitylayer/design/app/workflow`): the steps, what a step page shows, the
+  sections and order of each step's Markdown file, its schemas and phase texts, and
+  what the person is asked or approves.
+
+Keep code and its design aligned. Claude Design is not a workspace for
 this repository; Claude Code may provide a second opinion. Inside a QualityLayer
 build the independent visual critique is Polish's, once per build, not each
 slice's.
