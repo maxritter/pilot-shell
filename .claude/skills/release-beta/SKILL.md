@@ -31,9 +31,10 @@ development builds, installed candidates and public readback.
 
 ## Qualification
 
-Run the required gates on fixed source: the working tier and changed slow
-files while iterating, then the full suite and supported desktop UI matrix
-before pushing. Run site tests and typechecks when the site changes. Use
+Run the required gates on fixed source: the finite smoke gate and focused
+checks for changed risks, then the selected desktop browser gate on the exact
+release SHA in CI. Keep local batches within the 5–10 minute target; broad
+regression runs only when explicitly requested. Run site tests and typechecks when the site changes. Use
 semantic browser expectations and actual rendered geometry; preserve original
 failures and investigate their causes before repeating tests.
 
@@ -60,7 +61,7 @@ qualifies six native Memory payload and distribution targets, signing policy,
 notarization where required, upgrade/migration behavior and installation
 notices. Never flip releaseQualified flags in lieu of those receipts.
 
-CI and the complete source UI run must pass for the exact candidate SHA.
+CI and the required source UI browser gate must pass for the exact candidate SHA.
 A scratch branch can verify CI changes without staging a dev candidate.
 Read failed job logs before attributing a failure to the platform. Retrying
 an infrastructure failure creates a new run attempt whose artifacts and

@@ -3,7 +3,7 @@ title: From Pilot Shell 11
 description: Pilot Shell is now QualityLayer. The move asks nothing of you; your licence and plans carry over.
 ---
 
-Pilot Shell is now QualityLayer. Pilot Shell's updater, the App or the installer moves you over. `/spec` is now `/ql`, and the Console is the App.
+Pilot Shell is now QualityLayer. Pilot Shell's updater, the App or the installer moves you over. Ask naturally to plan or implement using QualityLayer or QL; the old `/spec` invocation is no longer needed. The Console is now the QualityLayer App.
 
 ![Moving from Pilot Shell 11: your licence, plans and own files carry over; Pilot Shell's own parts are removed; the tools it installed and its memories stay](pathname:///img/diagrams/move-light.svg)
 ![Moving from Pilot Shell 11: your licence, plans and own files carry over; Pilot Shell's own parts are removed; the tools it installed and its memories stay](pathname:///img/diagrams/move-dark.svg)

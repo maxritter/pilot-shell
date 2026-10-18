@@ -20,7 +20,7 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 ### New
 
 - Work with your agent in the right sidebar alongside **Files** and **Feedback**. A single **Agent** menu holds session controls and appearance; the separate bottom terminal and terminal tab strip are gone.
-- Choose the agent, model and effort when starting a task, its build or a design conversation. Workspace choices stay with each launch rather than global Planning and Building settings.
+- Choose the agent, model and effort when starting a task, its build or a design conversation. Workspace choices stay with each launch.
 - **Approve and start** opens the build session and keeps the planning conversation as history. An empty Agent view offers an App launch or instructions for your own terminal.
 - Open designs use **Activity**, **Feedback** and **Agent**, with teammate recipients, attachments, replies and questions alongside design annotations.
 - Search, read and save project lessons through agent tools. Pin lessons for new sessions, control session memory and Git sharing in Settings, and see what each task used and saved in its Memory record.

@@ -27,6 +27,8 @@ Keep decisions, fixes and constraints for later work. Your agents can search the
 
 Lesson text is labelled as saved reference data. It does not replace your request or the agent’s instructions.
 
+A specific lookup can return no results when nearby lessons do not fit the combined topic. Try concrete code terms or a shorter phrase. In JSON, `semantic: full` reports meaning-search index coverage. Read a returned lesson against the current code before using it.
+
 ## Manage your lessons
 
 Open **Settings → Memory**.

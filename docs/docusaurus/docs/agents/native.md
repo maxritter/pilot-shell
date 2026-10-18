@@ -8,14 +8,18 @@ description: Set up the four native coding agents, choose their models and revie
 
 QualityLayer connects **Claude Code**, **Codex**, **Pi** and **OpenCode** to the same workflow. Install your agent, sign in through its own login and start it once, then run QualityLayer setup. The App and CLI installers add the integration for each agent they find.
 
-| Agent | Start a task | What QualityLayer adds |
-| --- | --- | --- |
-| [Claude Code](https://docs.claude.com/en/docs/claude-code/setup) | `/ql your request` | Skill, lifecycle hooks and its existing prompt integration |
-| [Codex](https://developers.openai.com/codex/cli) | `$ql your request` | Skill, invocation policy and lifecycle hooks |
-| [Pi](https://pi.dev/) 1.2.0 or later | `/skill:ql your request` | Skill, lifecycle extension and fresh helper sessions |
-| [OpenCode](https://opencode.ai/docs/) 2.0.29 or later | `/ql your request` | Skill, command and lifecycle plugin |
+Say “Using QualityLayer, plan a CSV export” in any supported agent. The same wording works with **QL** and with requests to implement, verify or continue an existing task.
 
-An ordinary coding request stays an ordinary request. QualityLayer starts when you invoke its workflow or explicitly ask it to handle a task by name.
+| Agent | What QualityLayer adds |
+| --- | --- |
+| [Claude Code](https://code.claude.com/docs/en/setup) | Skills, lifecycle hooks and its existing prompt integration |
+| [Codex](https://developers.openai.com/codex/cli) | Skills, implicit invocation policies and lifecycle hooks |
+| [Pi](https://pi.dev/) 1.2.0 or later | Skills, a lifecycle extension and fresh helper sessions |
+| [OpenCode](https://opencode.ai/docs/) 2.0.29 or later | Skills, a command and lifecycle plugin |
+
+An ordinary coding request stays an ordinary request. Ask QualityLayer or QL to carry the work; merely discussing the product or quoting an example does not start a workflow. Natural wording, clear spelling variants and requests in other languages are supported.
+
+The installed skills are `ql-workflow`, `ql-design`, `ql-peer` and `ql-manage`. Your agent loads the one the request needs. A standalone design, peer message or settings operation does not create a workflow task. The design skill points to the CLI's design guide, which is read once per assignment.
 
 ## Models and reviews
 
@@ -27,7 +31,9 @@ Pi and OpenCode can use the same model provider as your working agent. Choose a 
 
 ## Sessions in the App
 
-Choose the agent, model, effort and workspace when you start a task or build. The task’s **Agent** tab holds its conversation in the App. Closing the sidebar keeps the run; **Stop** ends it. If the local runtime cannot start an App session, use **In my terminal**.
+Choose the agent, model, effort and workspace when you start a task or build. The task’s **Agent** tab holds its conversation in QualityLayer. Closing the sidebar keeps the run; **Stop** ends it. If the local runtime cannot start a session, use **In my terminal, app or IDE**.
+
+To continue after a crash or in another agent, stop the previous run if it is still active, then name the same task and intended stage: “Using QL, continue verification of task retry-webhooks.” Keep the task's recorded approvals, changes and evidence; the CLI resolves ownership before work resumes.
 
 The App records the native conversation, accepts one typing controller and offers Interrupt, Stop, Resume, Move and settings changes at a completed turn. Resume requires saved native state and verified process cleanup. If the conversation is still open in another terminal, the App refuses to resume it there.
 
@@ -48,8 +54,10 @@ A queued message confirms transport. The recipient acknowledges it with `quality
 
 ## Setup and removal
 
+Settings › Workflow › Agents shows a compact row for all four agents. Open an agent's help for its last executable/version result and installation link; **Check again** runs a fresh check. A responding version does not prove account access, which is checked when a session starts. The same results are available through `qualitylayer agents list` and `qualitylayer agents check`.
+
 Both QualityLayer installers add skills and lifecycle files to the initialized agents they discover. Pi uses `~/.pi/agent`; OpenCode uses `~/.config/opencode`. Their configured root overrides are respected. QualityLayer does not replace their authentication or personal model settings.
 
-An update replaces unchanged integration files it owns. Uninstall removes those files and preserves your native settings, login and session history. Files you edited are kept.
+An update replaces unchanged integration files it owns and retires its legacy skill names. Edited legacy files are backed up outside skill discovery, so they do not activate alongside the new names. Unrelated custom skills stay. Uninstall preserves your native settings, login and session history, along with files you edited.
 
 Other coding agents can still [follow the same workflow](other.md) through the CLI.

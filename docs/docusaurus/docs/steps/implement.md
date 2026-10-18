@@ -20,10 +20,10 @@ After you approve the Plan, **Start the build** appears on that Plan page. Choos
 | **Agent** | An installed native agent, or **Another agent** for your terminal |
 | **Model and effort** | The choices for this run |
 | **Workspace** | **Project checkout**, **New branch** or **New worktree** |
-| **Where agents run** | **In the App** or **In my terminal**, according to the local runtime’s capabilities |
+| **Where agents run** | **In QualityLayer** or **In my terminal, app or IDE**, according to the local runtime’s capabilities |
 | **Who builds** | Build it yourself or hand it to a teammate ([Hand over](../team/plans.md#hand-over)) |
 
-Press **Start the build**, or copy the command with **In my terminal**. In the App, the task's **Agent** conversation opens beside **Files** and **Feedback**. Closing the sidebar or switching tasks keeps the run. Use its available session controls to stop or return to it ([agent runs](../app.md#agent-runs)).
+Press **Start the build**, or copy the request with **In my terminal, app or IDE**. In QualityLayer, the task's **Agent** conversation opens beside **Files** and **Feedback**. Closing the sidebar or switching tasks keeps the run. Use its available session controls to stop or return to it ([agent runs](../app.md#agent-runs)).
 
 ### Where the build lands {#where-it-lands}
 
@@ -40,6 +40,8 @@ Open **Workspace** to keep the project checkout, create a **New branch**, or use
 ![Slices built test first, side by side, then the checks in Verify](pathname:///img/diagrams/slices-dark.svg)
 
 Each slice is written test first. QualityLayer runs and records every check itself.
+
+The page shows the board of slices, in the order of `05-implement.md`. Every slice is a row, finished and still to come, and the running one is open to its tasks. Nothing here asks for your approval. **Look here** lists what needs a glance: a checkpoint left open after two failed runs, a stopped session or helper, something only you can supply, queued for Review, a deviation that changes what you approved, and a failure that was there before the build. The decisions made while building, the recorded checks and the checkpoints are collapsed, each with a count and a one-line summary. The deviations, plan changes and restarts are in the document.
 
 Routine choices appear under **Decided while building**. Outline, Implement and Verify continue without workflow questions until Review. A login, secret, account or other human-only prerequisite is recorded with the affected task and stays unverified for Review. Available work continues; blocked checks retain their evidence instead of being marked passed. The App never takes the secret.
 

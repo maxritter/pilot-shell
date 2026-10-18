@@ -11,7 +11,7 @@ description: Use QualityLayer with any coding agent that can run shell commands,
 ## Start a task {#start}
 
 1. In the agent's terminal, run `qualitylayer help`. Nothing listed? Run `qualitylayer doctor`.
-2. In the App, choose **+ New**, describe the change, then choose **Another agent** and copy the prompt.
+2. In QualityLayer, choose **+ New**, describe the change, then choose **Another agent** and copy the prompt.
 3. Paste it into your agent. Answer its questions and approve the Plan in the App.
 
 ## Plan with one agent, build with another {#mix}

@@ -54,6 +54,8 @@ To keep your licence, Claude Code login and QualityLayer setup when the containe
 
 Click **Update ready** in the App's sidebar, then **Restart and update**. Without the App, run `qualitylayer update`. See the [changelog](reference/changelog.md).
 
+Setup installs `ql-workflow`, `ql-design`, `ql-peer` and `ql-manage` into each supported agent it finds. Ask naturally to plan, implement, design or continue using QualityLayer or QL; the agent loads the matching instructions. Updates retire QualityLayer's old skill names and preserve edited legacy files as inactive backups, keeping unrelated custom skills.
+
 ## Remove it {#uninstall}
 
 `qualitylayer uninstall` undoes what the installer changed; your plans stay. To move your licence, run `qualitylayer licence activate <key>` on the other computer.

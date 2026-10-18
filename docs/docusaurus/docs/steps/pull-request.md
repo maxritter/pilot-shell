@@ -36,7 +36,7 @@ It never force-pushes commits that are not its own.
 
 A new review thread or failing check moves the task to **Needs attention**:
 
-1. Run `/ql review <task>` (`$ql review <task>` in Codex).
+1. Ask your agent: “Using QL, review task retry-webhooks”, naming your actual task.
 2. Your agent works through each thread with you and fixes what needs fixing.
 3. Press **Push the fix**. Your answers post on GitHub in your name.
 

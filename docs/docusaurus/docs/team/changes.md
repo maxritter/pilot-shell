@@ -9,7 +9,7 @@ Once Verify passes, your team reads the walkthrough of the change with its proof
 ![Change review: the team reviews the finished change; open threads go back to your agent, which settles each one and checks again what the fix touched before the re-review](pathname:///img/diagrams/team-change-dark.svg)
 
 1. Teammates comment, approve or ask for changes.
-2. Run `/ql review <task>` (`$ql` in Codex) to settle each thread with your agent.
+2. Ask “Using QL, review task retry-webhooks”, naming your actual task, to settle each thread with your agent.
 3. What a fix touched is checked again, and your team looks once more.
 4. You approve.
 

@@ -80,7 +80,7 @@ export const CHAPTERS: Chapter[] = [
     who: "you",
     steps: 2,
     title: "Choose where your agent builds",
-    text: "Implement shows the model, workers and effort for this build; the unreleased App-run candidate adds Here in the App, with your agent's own interactive window, and In my terminal keeps the copied command.",
+    text: "Choose the agent, model and effort for the build. In QualityLayer opens its interactive session; In my terminal, app or IDE copies a natural-language request.",
     bullets: ["Claude Code, Codex, Pi, OpenCode or another agent", "Your defaults come back for the next build", "Start in the App or your terminal"],
   },
   {

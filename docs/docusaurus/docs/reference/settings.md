@@ -41,7 +41,8 @@ Choose the **agent**, **model**, **effort** and **workspace** when you start a t
 
 | Setting | What it changes |
 | --- | --- |
-| **Where agents run by default** | **In the App** or **In my terminal** |
+| **Where agents run by default** | **In QualityLayer** or **In my terminal, app or IDE** |
+| **Installed agents** | Last executable/version result for Claude Code, Codex, Pi and OpenCode; open setup help or use **Check again** |
 | **Agent appearance** | Text, colours and scrolling in agent sessions |
 | **When you quit the App** | Keep agents running, or stop them |
 | **Typing and starting agents** | The App and its key-paired browsers, or also other paired browsers |

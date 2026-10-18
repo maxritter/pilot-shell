@@ -411,10 +411,10 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
         <Frame label="Start"
           top={<TopBar stage={4} chip={waits("Plan approved")} />}
           gate={<GateTrack items={[{ label: "Start", state: "cur" }, { label: "Slices · 3" }, { label: "Checked as it builds" }, { label: "Agents check every point" }]} turn="Your turn · start the build" />}>
-          <YourTurn kind="Implement" title="Start the build" text="Paste one command in a fresh session. From then on the build runs on its own until the final review.">
+          <YourTurn kind="Implement" title="Start the build" text="Paste this request into your agent. From then on the build runs on its own until the final review.">
             <span className="cu-seg cu-agent-seg"><span className="on">Claude Code</span><span>Codex</span><span>Pi</span><span>OpenCode</span><span>Another agent</span></span>
             <p className="cu-defs"><span><span className="cu-k">Plans each slice</span> Opus 5.5</span><span><span className="cu-k">Builds</span> Sonnet 5.5</span><span><span className="cu-k">Effort</span> High</span><span className="cu-lnk">Change</span></p>
-            <div className="cu-cmd"><code>/ql implement retry-webhooks</code><span className={`cu-btn pri sm${step === 1 ? " press" : ""}`}>{at(2) ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}{at(2) ? "Copied" : "Copy"}</span></div>
+            <div className="cu-cmd"><code>Using QualityLayer, implement the approved plan for task retry-webhooks</code><span className={`cu-btn pri sm${step === 1 ? " press" : ""}`}>{at(2) ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}{at(2) ? "Copied" : "Copy request"}</span></div>
           </YourTurn>
         </Frame>
       );
@@ -691,7 +691,7 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
               <span className="cu-seg cu-agent-seg"><span className="on">Claude Code</span><span>Codex</span><span>Pi</span><span>OpenCode</span><span>Another agent</span></span>
               <span className="cu-field">{REQUEST}</span>
               <p className="cu-defs"><span><span className="cu-k">Model</span> Opus 5.5</span><span><span className="cu-k">Effort</span> High</span><span><span className="cu-k">Starts in</span> a new session</span><span className="cu-lnk">Change</span></p>
-              <div className="cu-cmd"><code>claude --model opus --effort high "/ql {REQUEST}"</code><span className={`cu-btn pri sm${step === 1 ? " press" : ""}`}>{at(2) ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}{at(2) ? "Copied" : "Copy"}</span></div>
+              <div className="cu-cmd"><code>Using QualityLayer, plan {REQUEST}</code><span className={`cu-btn pri sm${step === 1 ? " press" : ""}`}>{at(2) ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}{at(2) ? "Copied" : "Copy request"}</span></div>
             </div>
           </section>
           <p className="cu-runs"><span className="cu-k">The App runs on</span><span>macOS</span><span>Windows</span><span>Linux</span><span className="cu-k">and opens in your browser on a server or in WSL</span></p>

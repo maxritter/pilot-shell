@@ -35,7 +35,7 @@ export const CLAIMS: Record<string, Claim> = {
   },
   // "One command starts the build": the Build defaults in one line and the command
   start: {
-    always: ["Plans each slice", "Builds", "Effort", "/ql implement retry-webhooks"],
+    always: ["Plans each slice", "Builds", "Effort", "Using QualityLayer, implement the approved plan for task retry-webhooks"],
     first: ["Copy"],
     last: ["Copied"],
   },
@@ -96,7 +96,7 @@ export const CLAIMS: Record<string, Claim> = {
   },
   // "It works where your agents already work": one command, the systems it runs on
   agents: {
-    always: ["New task", "Claude Code", "Codex", "Pi", "OpenCode", "Another agent", "claude --model opus --effort high", "macOS", "Windows", "Linux", "WSL"],
+    always: ["New task", "Claude Code", "Codex", "Pi", "OpenCode", "Another agent", "Using QualityLayer, plan", "macOS", "Windows", "Linux", "WSL"],
     last: ["Copied", "needs your review"],
   },
 };

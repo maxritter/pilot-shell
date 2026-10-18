@@ -16,7 +16,7 @@ The App is where you answer questions, read documents and give feedback while yo
 | **Agent status** | The top-bar chip: working, needs you, quiet or stopped |
 | **Step track** | Where the task stands. A person icon marks the two steps you approve |
 | **Your turn** | One question or decision that needs you |
-| **Step page** | The parts of the step's document that matter now |
+| **Step page** | What needs you, what to look at, then the part of the step's document that matters now ([how it is built](#step-pages)) |
 | **Right sidebar** | **Files**, **Feedback** and the task’s **Agent** conversation |
 
 ## The sidebar {#sidebar}
@@ -69,6 +69,23 @@ Every step writes one Markdown file, shown three ways:
 
 **Copy document** pastes a document into Confluence, Notion, Jira or GitHub.
 
+### The step page {#step-pages}
+
+Every step page reads top to bottom in the same way:
+
+| Part | What it shows |
+| --- | --- |
+| **What needs you** | Only your own cards: a batch of questions, a **Your call**, the approval, a confirmation. A step with nothing for you leaves it out |
+| **Look here** | Up to three lines, one for each kind of thing: failures first, then what only you can confirm, then what the agent marked risky or unsure. Each names its first item and how many there are, and jumps to it |
+| **The gist** | The step as a takeaway for this task, who writes or runs it and when, a short summary and up to five counts |
+| **The core** | The part that is the step, as rows you can open: the numbered **Done means** in Discuss, the findings in Research, the designs and decisions in the Plan, the build map in the Outline, the board in Implement, the checked points in Verify, the walkthrough in Review |
+| **Collapsed sections** | The other sections the step leads with, one line each: heading, count and takeaway. Open one in place |
+| **More in this document** | Links to the working sections, which open in the Reader |
+
+The sections come in the order of the file, so the page, the Reader and GitHub tell the same story. Review is the exception: its file keeps the order of the pull request description, and its page draws the walkthrough. A design, a wireframe, a diagram or a screen is always shown where it stands, never collapsed. The engineering and product levels show the same page and collapse the same sections; they differ in words and in how far a row opens ([two levels](intro.md#two-levels)). A step you have not reached shows one quiet line, a finished step keeps its page without the part for you, and a closed task or a link shows it read-only.
+
+The page is laid out for the column beside an open **Agent** sidebar, so each part is one column that stays readable on a laptop screen.
+
 ## Feedback and designs {#comments-and-designs}
 
 Select a passage, a line or part of a diagram and choose **Give feedback**. The thread keeps that context with your words. The **To** picker chooses the agent, a named teammate or **Everyone on the task** when access is known. Each recipient keeps its own draft. Person-only feedback is not sent to the agent.
@@ -96,7 +113,7 @@ The **Cost** control in a task's header opens the cost per step and agent, estim
 
 ## Agent runs {#agent-runs}
 
-**New task** and **Start the build** let you choose an installed agent, model, effort and workspace. **In the App** opens its conversation in the task’s **Agent** tab. **In my terminal** gives you the launch command.
+**New task** and **Start the build** let you choose an installed agent, model, effort and workspace. **In QualityLayer** opens its conversation in the task’s **Agent** tab. **In my terminal, app or IDE** copies a request for your agent.
 
 The App checks the local runtime before starting. If it cannot start the selected agent here, it explains why and keeps the terminal option available. Permissions and sign-in prompts still belong to your agent.
 

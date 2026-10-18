@@ -8,7 +8,7 @@ A teammate you ask can let their own agent draft the answer. Nothing is sent wit
 ![A teammate answers with their own agent: it reads the question and the Plan, drafts an answer, sends it only after their yes, and your App shows it via that agent](pathname:///img/diagrams/team-agents-light.svg)
 ![A teammate answers with their own agent: it reads the question and the Plan, drafts an answer, sends it only after their yes, and your App shows it via that agent](pathname:///img/diagrams/team-agents-dark.svg)
 
-1. Choose **Draft with my agent**: **Here in the App**, or **In my terminal** with `/ql answer <ask>` (`$ql answer <ask>` in Codex).
+1. Choose **Draft with my agent**: **In QualityLayer**, or **In my terminal, app or IDE** with a request such as “Using QL, answer the team ask a1”.
 2. Check the draft, then **Send the draft**, **Edit it** or **Discard the draft**.
 3. The answer arrives marked with its agent, such as "Dana via Claude Code".
 

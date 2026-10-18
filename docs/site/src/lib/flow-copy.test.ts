@@ -140,11 +140,14 @@ describe("the flow in the copy: asked and answered in the App", () => {
     }
   });
 
-  it("documents ql as the only installed command beginning with ql", () => {
+  it("uses natural requests and names capability skills without requiring manual invocations", () => {
     const commands = read(join(docs, "reference/commands.md"));
     const agentCommands = commands.split("## In your agent")[1]?.split("## For you")[0];
-    expect(agentCommands).toContain("Use `/ql` in Claude Code and OpenCode, `$ql` in Codex, or `/skill:ql` in Pi.");
-    expect(agentCommands).toContain("The `agent-peers` skill works on its own when you ask one agent session to message another.");
+    expect(agentCommands).toContain("natural language");
+    expect(agentCommands).toContain("QualityLayer");
+    expect(agentCommands).toContain("QL");
+    for (const name of ["ql-workflow", "ql-design", "ql-peer", "ql-manage"]) expect(agentCommands).toContain(name);
+    expect(agentCommands).not.toMatch(/[/$]ql(?:\s|`)/);
     expect(commands).toContain("`/task-pane`");
     const offending = [readme, ...docPages, ...homeCopy, homeIndex].filter((path) => /[/$]ql-[a-z]/i.test(read(path)));
     expect(offending).toEqual([]);

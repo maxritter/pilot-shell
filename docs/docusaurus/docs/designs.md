@@ -10,7 +10,7 @@ A design is an HTML page, or a folder of pages that clicks through like an app. 
 
 ## Create a design
 
-Ask your agent, for example: "Show two layouts for the settings page." The design appears in **Files**.
+Ask your agent, for example: “Using QL, show two layouts for the settings page.” A standalone design does not start a workflow. A task's draft appears in **Files**; reusable designs appear in the **Library**.
 
 | Made | Saved in |
 | --- | --- |
@@ -52,7 +52,18 @@ The row menu and full viewer offer rename, copy, show in another project, archiv
 | **Feedback** | Threads and pinned feedback per page |
 | **Agent** | The conversation working on this design, or the choices to start one |
 
-A design’s **Agent** conversation can work on its selected page without creating a workflow task. Choose an installed agent, model and effort, or copy the validated design context for your terminal.
+A design’s **Agent** conversation can work on its selected page without creating a workflow task. Choose an installed agent, model and effort, or copy a request and its validated design context into your terminal, app or IDE.
+
+The viewer refreshes when an agent changes the design's HTML, styles or imported code. It keeps the selected page and viewer state. The expand button fills the current window by hiding both sidebars and fitting the width; press it again to restore their previous state and refit the design.
+
+Ask to open the design you are working on: “Open the current QL design in my browser at Billing.” The agent keeps the exact design and page from the conversation. Missing or ambiguous sections are reported rather than silently selecting another one. From the CLI:
+
+```sh
+qualitylayer design open settings --project --page billing.html --section billing
+qualitylayer design open settings --project --page billing.html --section billing --browser
+```
+
+Library management is also available through `qualitylayer design library inspect|rename|copy|archive|restore|delete`. Read its management revision first and pass it with `--if-match`; renaming keeps the design's identity, and deleting a source-backed entry keeps its application files. See the [CLI reference](reference/commands.md#designs).
 
 ## A design of many pages {#folders}
 

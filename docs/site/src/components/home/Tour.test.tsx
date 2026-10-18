@@ -165,11 +165,11 @@ describe("the tour", () => {
     expect(text(last)).toContain("Give feedback");
   });
 
-  it("starts the build from one line of Build defaults and one command", async () => {
+  it("starts the build from one line of Build defaults and one request", async () => {
     const start = text(await shot("start"));
     expect(start).toContain("Opus 5.5");
     expect(start).toContain("Sonnet 5.5");
-    expect(start).toContain("/ql implement retry-webhooks");
+    expect(start).toContain("Using QualityLayer, implement the approved plan for task retry-webhooks");
     expect(start).not.toContain("/goal /ql implement");
   });
 
@@ -237,10 +237,11 @@ describe("the tour", () => {
     expect(text(await shot("together", 5))).toContain("Ready to approve");
   });
 
-  it("draws Settings with Planning and Build defaults and the cost of each step, and New task with one command", async () => {
+  it("draws Settings with Planning and Build defaults and the cost of each step, and New task with one request", async () => {
     const settings = text(await shot("settings"));
     for (const words of ["Planning defaults", "Build defaults", "$20.95", "estimated at list price", "Research", "Outline"]) expect(settings).toContain(words);
-    expect(text(await shot("agents"))).toContain('claude --model opus --effort high');
+    expect(text(await shot("agents"))).toContain("Using QualityLayer, plan");
+    expect(text(await shot("agents"))).not.toContain("claude --model");
   });
 
   it("paints red only for a delivery that stopped, never for a planned step", async () => {

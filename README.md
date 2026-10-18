@@ -111,21 +111,22 @@ Its updater moves you over with your plans and licence. [Moving from Pilot Shell
 ### First Steps
 
 ```text
-/ql retry failed webhooks, and stop after a few tries     # Claude Code
-$ql retry failed webhooks, and stop after a few tries     # Codex
-/skill:ql retry failed webhooks, and stop after a few tries # Pi
-/ql retry failed webhooks, and stop after a few tries     # OpenCode
+Using QualityLayer, plan retries for failed webhooks and stop after a few tries.
 ```
+
+Use the same natural wording in Claude Code, Codex, Pi or OpenCode. Name **QualityLayer** or **QL** and say what you want to plan, implement or continue. No slash command is needed.
 
 Answer your agent's questions in the App, approve the Plan, then start the build. Your agent continues through Outline, Implement and Verify until Review. Human-only prerequisites and blocked checks stay unverified for your decision there. QualityLayer runs only when you ask for it. [Your first task](https://qualitylayer.dev/docs/first-task).
 
-Choose the agent, model, effort and workspace when starting a task or build. **In the App** opens the task's **Agent** conversation beside **Files** and **Feedback**; **In my terminal** gives you the launch command. Settings keeps global run controls and review models. [Supported agents](https://qualitylayer.dev/docs/agents/native).
+Choose the agent, model, effort and workspace when starting a task or build. **In QualityLayer** opens the task's **Agent** conversation beside **Files** and **Feedback**; **In my terminal, app or IDE** copies a request for your agent. Settings keeps global run controls and review models. [Supported agents](https://qualitylayer.dev/docs/agents/native).
+
+To continue elsewhere after a stopped run, stop the previous session if it is still active, then ask: “Using QL, continue verification of task retry-webhooks.” The task keeps its approved Plan, changes and evidence.
 
 ---
 
 <h2 id="features">The Workflow</h2>
 
-Each of the first seven steps writes one Markdown file. You approve twice: the plan and the finished change. QualityLayer never merges and pushes only with your approval.
+Each of the first seven steps writes one Markdown file, and the App draws it as a page: what needs you, what to look at, the gist, the core of the step, then the rest collapsed. You approve twice: the plan and the finished change. QualityLayer never merges and pushes only with your approval.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/flow-pr-dark.svg">
@@ -159,7 +160,7 @@ Ask your agent for a mockup, diagram or clickable design. Compare versions in th
 </picture>
 
 - Answer your agent's questions and comment on any passage; answers reach it at once.
-- Follow every task with what needs you shown first, plus time and cost per step.
+- Follow every task: each step's page opens with what needs you, then what to look at, then the gist. Time and cost per step are one click away.
 - Choose model, effort and workspace at launch. Keep standing instructions, reviewer models and general run controls in [Settings](https://qualitylayer.dev/docs/reference/settings).
 - Work beside your agent in the **Agent** sidebar. Closing the sidebar keeps its session running.
 - Your agents reuse lessons from earlier tasks, and can share them through Git. [Project memory](https://qualitylayer.dev/docs/memory).
