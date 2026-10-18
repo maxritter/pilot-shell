@@ -98,8 +98,6 @@ jobs:
           [IO.File]::WriteAllBytes($key, [Convert]::FromBase64String($env:GIT_CRYPT_KEY))
           try { bun .github/workflows/scripts/git-crypt-unlock.ts $key } finally { Remove-Item -LiteralPath $key -Force }
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - run: bun install --frozen-lockfile
-        working-directory: qualitylayer
       - name: Read pinned current and approved previous bytes without rebuilding Go
         env:
           TARGET: ${{ matrix.target }}
@@ -817,8 +815,6 @@ jobs:
           [IO.File]::WriteAllBytes($key, [Convert]::FromBase64String($env:GIT_CRYPT_KEY))
           try { bun .github/workflows/scripts/git-crypt-unlock.ts $key } finally { Remove-Item -LiteralPath $key -Force }
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - run: bun install --frozen-lockfile
-        working-directory: qualitylayer
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           {
