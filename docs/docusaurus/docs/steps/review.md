@@ -25,9 +25,9 @@ Routine build decisions stay under **Decided while building**. Open the record t
 
 ## The page {#the-page}
 
-The App puts unresolved decisions and checks first, then the reason for the change and concise outcome evidence. Built slices, files, diffs, screenshots and completed check details start folded. Full paths, commit IDs and evidence remain accessible, including other sessions' changes carried by the branch.
+The App puts what needs you first: the approval, each point only you can confirm, and anything the checks left open. **Look here** then lists an unverified point, an item you accepted as open and any commit by another session that the push includes. Below the summary, one walkthrough runs top to bottom: what you asked for, with what needs attention first; the built slices, collapsed; the screens that changed, one picture for each; what was deliberately not changed; how it was checked, collapsed; and the way to ship it. The decisions made while building, grouped by where they were made, and what you settled sit in collapsed sections. Full paths, commit IDs and evidence remain accessible, including other sessions' changes carried by the branch.
 
-`07-review.md` keeps the complete record in its original order. Its top becomes the pull request's description. If the task changed a [lasting design](../designs.md#lasting), you pick which pages to [fold in](../designs.md#fold-in).
+`07-review.md` keeps the complete record in the order the pull request description needs, which is why this page draws the walkthrough instead of following the file. Its top becomes the pull request's description. If the task changed a [lasting design](../designs.md#lasting), you pick which pages to [fold in](../designs.md#fold-in).
 
 ## Approve {#approve}
 

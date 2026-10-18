@@ -32,6 +32,8 @@ On a change that is not risky, the build session runs the review itself and mark
 
 Each **Done means** point shows its evidence as it comes in: output, a screenshot or a file. Failures are fixed test first, without asking you.
 
+The page puts the outcome before the process, in the order of `06-verify.md`. **Look here** lists, failures first, a failed point, a point the environment blocked, a critical or high security finding, a flaky test file and anything only you can confirm. **Done means, checked** groups the points as failed, being checked, still to check, yours to confirm and passed; past six, the passed points collapse under one line with their count. **How it is checked** lists the checks in the order they ran, one row each with who ran it and a short result; open a row for its full description, its commands and the recorded text. The fix rounds, the second opinion and the project checks are collapsed, each with a one-line summary. The quality pass, the independent review and the full verification record are in the document.
+
 ## What reaches Review {#when-it-stops}
 
 Failed checks keep their results and evidence. Human-only prerequisites, unavailable environments and exhausted fix rounds reach Review as unresolved work. They do not become passed checks or ask you to approve another build step.

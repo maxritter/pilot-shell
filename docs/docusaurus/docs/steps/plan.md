@@ -15,21 +15,22 @@ The Plan is the one document you approve before any code is written. It puts the
 
 ## What you read {#items}
 
+The page shows the sections in the order of `03-plan.md`, so the file, the Reader and the page tell the same story.
+
 | Part | What it tells you |
 | --- | --- |
+| **Summary** | The change in a few lines, with the size of the build, whether it is risky and what reviewed it |
+| **Done means** | The results from [Discuss](discuss.md), and how each will be checked |
 | **The design** | A wireframe or finished design for anything people see ([Designs](../designs.md)) |
-| **Engineering decisions** | Two sentences each, with a diagram where a picture is clearer |
-| **Done means** | The results from [Discuss](discuss.md) |
-| **Decisions made for you** | Your agent's smaller choices, with reasons |
-| **Not doing**, **Before the build** | What stays untouched; what must be ready first, such as a login |
+| **Today and after the change** | The same view before and after, side by side |
+| **Engineering decisions** | Two sentences each, with the diagram open beside them where a picture is clearer |
+| **Not doing**, **Decisions made for you**, **Assumptions**, **Before the build** | What stays untouched; your agent's smaller choices, with reasons; what the Plan takes for granted; what must be ready first, such as a login |
 
-Both levels keep the important choices readable. Supporting engineering details can be expanded under **Reference** ([two levels](../intro.md#two-levels)).
+Designs, wireframes and diagrams are never collapsed, so you approve what you can see. Risks, your earlier answers, what the Plan rests on, the review findings and the system design contracts are collapsed under them, each with a one-line summary. Both levels show the same sections; the product level uses plainer words for them ([two levels](../intro.md#two-levels)). Patterns to follow and the proof gathered before the gate are in the document.
 
 ### What to read first {#read-first}
 
-Start with **Summary**, anything under **Needs you**, scope, decisions made for you, risks and how the result will be checked. Supporting material sits under **Reference**, including earlier answers and resolved review details.
-
-**Risky** jumps to explicitly marked concerns and opens their section. Unresolved or unknown review findings remain visible; a recorded research source does not mean the Plan review is complete.
+Start with **Look here**, the lines under the summary. Each names its first item and how many there are, and jumps to it: a risky concern, an assumption or decision the agent is unsure of, and the trust boundary when the Plan names one. Unresolved or unknown review findings remain visible; a recorded research source does not mean the Plan review is complete.
 
 ## Approve or give feedback {#answering}
 

@@ -54,7 +54,7 @@ export const CHAPTERS: Chapter[] = [
     steps: 4,
     title: "Agents read the code before anything is designed",
     text: "Research starts while you answer. Agents read the code without your request in front of them, so they report how it works today; when it leaves real choices open, you get one more batch, and a clear task goes straight to the Plan.",
-    bullets: ["Findings are folded to one headline each", "Each choice shows what the code says, side by side", "Nothing in Research needs your approval"],
+    bullets: ["Each finding is a row: a headline and its first sentence, open for the rest", "Each choice shows what the code says, side by side", "Nothing in Research needs your approval"],
   },
   {
     id: "plan",
@@ -62,7 +62,7 @@ export const CHAPTERS: Chapter[] = [
     who: "you",
     steps: 2,
     title: "You approve one plan before any code",
-    text: "A risky Plan is read by another agent while you read it, and yours folds in what it found before Approve unlocks. Read the complete Plan with its diagrams, the contracts the build is held to and its proposed outcomes, then approve it or give feedback from its header.",
+    text: "A risky Plan is read by another agent while you read it, and yours folds in what it found before Approve unlocks. The designs and decisions come first, with their diagrams, and stay open; the contracts the build is held to take one line each. Read the whole Plan, then approve it or give feedback from its header.",
     bullets: ["Comment on any line or diagram: your agent answers within a minute", "Everything the agent decided for you is listed, so you can change it", "The review is recorded under Reviewed by; a local fallback is a self-review"],
   },
   {

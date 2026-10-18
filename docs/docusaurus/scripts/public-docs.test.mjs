@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { test } from "node:test";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const page = (route) => {
   const paths = [`../build/docs/${route}index.html`, route ? `../build/docs/${route.replace(/\/$/, "")}.html` : "../build/docs.html"];
@@ -111,4 +112,12 @@ test("navigation names supported agents without changing their route or removing
   assert.match(page("app/"), /id="comments-and-designs"/);
   assert.match(page("reference/settings/"), /id="defaults"/);
   assert.match(page("reference/settings/"), /Open Feedback automatically/);
+});
+
+test("the docs design matches the shipped guides (a docs edit without its design is red here)", () => {
+  const renderer = fileURLToPath(new URL("../../../qualitylayer/design/site/website-model/docs/render.mjs", import.meta.url));
+  const result = spawnSync(process.execPath, [renderer, "--check-source"], { encoding: "utf8" });
+  const drift = result.stderr.split("\n").find((line) => /^Error: /.test(line)) ?? result.stderr;
+  assert.equal(result.status, 0, `Update qualitylayer/design/site/website-model/docs/copy.json, then regenerate the pages with render.mjs --patch: ${drift}`);
+  assert.match(result.stdout, /Docs model matches \d+ authored guide pages/);
 });
