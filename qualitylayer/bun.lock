@@ -19,6 +19,7 @@
         "css-tree": "3.2.1",
         "dompurify": "^3.4.16",
         "geist": "1.7.2",
+        "grok-mermaid": "0.2.3",
         "lucide-react": "^1.48.0",
         "marked": "^18.0.14",
         "mermaid": "^12.0.0",
@@ -52,8 +53,8 @@
     },
   },
   "patchedDependencies": {
-    "@xterm/addon-webgl@0.19.0": "patches/@xterm%2Faddon-webgl@0.19.0.patch",
     "@xterm/xterm@6.0.0": "patches/@xterm%2Fxterm@6.0.0.patch",
+    "@xterm/addon-webgl@0.19.0": "patches/@xterm%2Faddon-webgl@0.19.0.patch",
   },
   "overrides": {
     "dompurify": "^3.4.16",
@@ -1110,6 +1111,8 @@
     "gopd": ["gopd@1.2.0", "", {}, "sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg=="],
 
     "graceful-fs": ["graceful-fs@4.2.11", "", {}, "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="],
+
+    "grok-mermaid": ["grok-mermaid@0.2.3", "", {}, "sha512-/4KopAbsjvuRP9MdPtlDjOHUmUVEohOX73JNcsWpzAtFxh+bq5+Dhb6gzvRieLDwIPQIR3/vy8V1NNTuz4Zsmg=="],
 
     "guid-typescript": ["guid-typescript@1.0.9", "", {}, "sha512-Y8T4vYhEfwJOTbouREvG+3XDsjr8E3kIr7uf+JZ0BYloFsttiHU0WfvANVsR7TxNUJa/WpCnw/Ino/p+DeBhBQ=="],
 

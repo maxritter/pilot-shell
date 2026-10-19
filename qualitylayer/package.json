@@ -97,6 +97,7 @@
     "css-tree": "3.2.1",
     "dompurify": "^3.4.16",
     "geist": "1.7.2",
+    "grok-mermaid": "0.2.3",
     "lucide-react": "^1.48.0",
     "marked": "^18.0.14",
     "mermaid": "^12.0.0",
