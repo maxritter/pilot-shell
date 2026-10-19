@@ -13,7 +13,7 @@ name: Deploy Website
   workflow_dispatch:
 
 # One deployment at a time per branch: a newer commit replaces an older one, and
-# main (production) is never cancelled by dev (the beta Preview), nor the reverse.
+# one branch's deployment never cancels another's.
 concurrency:
   group: deploy-website-${{ github.ref_name }}
   cancel-in-progress: true
@@ -125,43 +125,50 @@ jobs:
         run: npm run test:edge
 
       # The schema of the environment being deployed goes first; a failed migration stops the deploy.
+      # Migrations run as the database owner (OWNER_DATABASE_URL); the routes may use a narrower role.
       - name: Apply the database schema
         working-directory: docs/site
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
-          VERCEL_PROJECT_ID: prj_TXccrJI83HyNvQUZxqStUFgus9NB
+          VERCEL_PROJECT_ID: prj_SbOGJL2YBjvq9P5MSjxcrj87IGbi
+          PRODUCTION_BRANCH: ${{ vars.SITE_PRODUCTION_BRANCH || 'dev' }}
         run: |
           pull="${RUNNER_TEMP:?}/database.env"
-          if [ "$GITHUB_REF_NAME" = main ]; then
+          if [ "$GITHUB_REF_NAME" = "$PRODUCTION_BRANCH" ]; then
             vercel env pull "$pull" --environment=production --token="$VERCEL_TOKEN" --yes # repowise-security-ignore: hardcoded_secret -- token is supplied by GitHub Secrets
           else
             vercel env pull "$pull" --environment=preview --git-branch="$GITHUB_REF_NAME" --token="$VERCEL_TOKEN" --yes # repowise-security-ignore: hardcoded_secret -- token is supplied by GitHub Secrets
           fi
-          DATABASE_URL="$(sed -n 's/^DATABASE_URL="\{0,1\}\([^"]*\)"\{0,1\}$/\1/p' "$pull")"
+          value() { sed -n "s/^$1=\"\\{0,1\\}\\([^\"]*\\)\"\\{0,1\\}\$/\\1/p" "$pull"; }
+          DATABASE_URL="$(value OWNER_DATABASE_URL)"
+          [ -n "$DATABASE_URL" ] || DATABASE_URL="$(value DATABASE_URL)"
           rm -f "$pull"
-          [ -n "$DATABASE_URL" ] || { echo "::error::DATABASE_URL is not set for this environment"; exit 1; }
+          [ -n "$DATABASE_URL" ] || { echo "::error::no database is set for this environment"; exit 1; }
           echo "::add-mask::$DATABASE_URL"
           export DATABASE_URL
           node scripts/db-migrate.ts
 
-      # main is production. dev is a Preview of the same project, which qualitylayer.dev
-      # is aliased to; only the tip of dev may take the domain, so a slower run never
-      # puts an older page over a newer one.
+      # qualitylayer.dev is the Production of the Vercel project qualitylayer-site, built from
+      # SITE_PRODUCTION_BRANCH (dev until the final release moves it to main). Another branch
+      # becomes a protected Preview. The project that serves pilot-shell.com is never deployed
+      # to from here. A Production build takes the domains only once its checks pass, and only
+      # while it is the branch's tip, so a slower run never puts an older page over a newer one.
       - name: Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
-          VERCEL_PROJECT_ID: prj_TXccrJI83HyNvQUZxqStUFgus9NB
+          VERCEL_PROJECT_ID: prj_SbOGJL2YBjvq9P5MSjxcrj87IGbi
+          PRODUCTION_BRANCH: ${{ vars.SITE_PRODUCTION_BRANCH || 'dev' }}
         run: |
           umask 077
           receipt="${RUNNER_TEMP:?}/website-deployment.json"
           runtime="${RUNNER_TEMP:?}/website-runtime.json"
           verifier=docs/site/scripts/verify-deployment-runtime.mjs
           git checkout -B "$GITHUB_REF_NAME" "$GITHUB_SHA"
-          if [ "$GITHUB_REF_NAME" = main ]; then
+          if [ "$GITHUB_REF_NAME" = "$PRODUCTION_BRANCH" ]; then
             target=production
-            vercel deploy --token="$VERCEL_TOKEN" --prod --json --meta "githubCommitRef=$GITHUB_REF_NAME" --meta "githubCommitSha=$GITHUB_SHA" > "$receipt"
+            vercel deploy --token="$VERCEL_TOKEN" --prod --skip-domain --json --meta "githubCommitRef=$GITHUB_REF_NAME" --meta "githubCommitSha=$GITHUB_SHA" > "$receipt"
           else
             target=preview
             vercel deploy --token="$VERCEL_TOKEN" --target preview --json --meta "githubCommitRef=$GITHUB_REF_NAME" --meta "githubCommitSha=$GITHUB_SHA" > "$receipt"
@@ -171,12 +178,10 @@ jobs:
           DEPLOY_URL=$(node "$verifier" verify --deployment "$receipt" --metadata "$runtime" --project "$VERCEL_PROJECT_ID" --target "$target" --git-ref "$GITHUB_REF_NAME" --git-sha "$GITHUB_SHA")
           bash docs/site/scripts/check-deploy.sh "$DEPLOY_URL"
           echo "Deployed to: $DEPLOY_URL"
-          if [ "$GITHUB_REF_NAME" = main ]; then exit 0; fi
+          if [ "$target" != production ]; then exit 0; fi
           git fetch --quiet origin "$GITHUB_REF_NAME"
           if [ "$(git rev-parse "origin/$GITHUB_REF_NAME")" != "$GITHUB_SHA" ]; then
             echo "::warning::$GITHUB_REF_NAME moved past $GITHUB_SHA; the domain stays on the newer deployment"
             exit 0
           fi
-          for domain in qualitylayer.dev www.qualitylayer.dev; do
-            vercel alias set "$DEPLOY_URL" "$domain" --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID"
-          done
+          vercel promote "$DEPLOY_URL" --yes --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID"

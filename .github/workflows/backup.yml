@@ -26,7 +26,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        database: [production, preview]
+        # qualitylayer-site's Production (qualitylayer.dev). The old Preview database stopped
+        # taking writes at the cut-over and is kept, unchanged, as its rollback copy.
+        database: [production]
     env:
       BACKUP_DATABASE: ${{ matrix.database }}
     steps:
@@ -59,20 +61,18 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
-          VERCEL_PROJECT_ID: prj_TXccrJI83HyNvQUZxqStUFgus9NB
+          VERCEL_PROJECT_ID: prj_SbOGJL2YBjvq9P5MSjxcrj87IGbi
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
           R2_BACKUP_ACCESS_KEY_ID: ${{ secrets.R2_BACKUP_ACCESS_KEY_ID }}
           R2_BACKUP_SECRET_ACCESS_KEY: ${{ secrets.R2_BACKUP_SECRET_ACCESS_KEY }}
         run: |
           pull="${RUNNER_TEMP:?}/database.env"
-          if [ "$BACKUP_DATABASE" = production ]; then
-            vercel env pull "$pull" --environment=production --token="$VERCEL_TOKEN" --yes
-          else
-            vercel env pull "$pull" --environment=preview --git-branch=dev --token="$VERCEL_TOKEN" --yes
-          fi
-          DATABASE_URL="$(sed -n 's/^DATABASE_URL="\{0,1\}\([^"]*\)"\{0,1\}$/\1/p' "$pull")"
+          vercel env pull "$pull" --environment="$BACKUP_DATABASE" --token="$VERCEL_TOKEN" --yes
+          value() { sed -n "s/^$1=\"\\{0,1\\}\\([^\"]*\\)\"\\{0,1\\}\$/\\1/p" "$pull"; }
+          DATABASE_URL="$(value OWNER_DATABASE_URL)"
+          [ -n "$DATABASE_URL" ] || DATABASE_URL="$(value DATABASE_URL)"
           rm -f "$pull"
-          [ -n "$DATABASE_URL" ] || { echo "::error::DATABASE_URL is not set for $BACKUP_DATABASE"; exit 1; }
+          [ -n "$DATABASE_URL" ] || { echo "::error::no database is set for $BACKUP_DATABASE"; exit 1; }
           echo "::add-mask::$DATABASE_URL"
           export DATABASE_URL
           node scripts/backup.ts --env "$BACKUP_DATABASE"

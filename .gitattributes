@@ -14,7 +14,6 @@ docs/site/scripts/website-screenshots.mjs filter=git-crypt diff=git-crypt
 docs/site/scripts/*.test.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/backup-recipient.txt filter=git-crypt diff=git-crypt
 docs/site/workers/feedback-store/** filter=git-crypt diff=git-crypt
-docs/site/workers/slack-scheduler/** filter=git-crypt diff=git-crypt
 scripts/cutover.sh filter=git-crypt diff=git-crypt
 qualitylayer/** filter=git-crypt diff=git-crypt
 docs/video/** filter=git-crypt diff=git-crypt
