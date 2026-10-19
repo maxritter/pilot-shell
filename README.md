@@ -11,10 +11,8 @@
 
 ### The software factory with you in the loop
 
-**Your agent draws up each change as diagrams and clickable designs.**<br>
-You and your team agree on the plan; your agents build it and check every point.<br>
-Use the App or browser: your task on the left, your agent on the right.<br>
-Claude Code, Codex, Pi and OpenCode connect directly. Other agents use the CLI.
+**Plan each change visually, then let your agents build and verify it.**<br>
+Work side by side in the App or browser.
 
 <a href="https://github.com/maxritter/pilot-shell"><picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&amp;color=9d6607&amp;labelColor=30363d">
