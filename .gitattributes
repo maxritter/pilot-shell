@@ -1,6 +1,9 @@
 docs/site/api/** filter=git-crypt diff=git-crypt
 docs/site/scripts/backup.ts filter=git-crypt diff=git-crypt
-docs/site/scripts/backfill-team-files.ts filter=git-crypt diff=git-crypt
+docs/site/scripts/db-role.ts filter=git-crypt diff=git-crypt
+docs/site/scripts/purge-redis-team-files.ts filter=git-crypt diff=git-crypt
+docs/site/scripts/rehash-trials.ts filter=git-crypt diff=git-crypt
+docs/site/scripts/team-data.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/restore.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/db-migrate.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/upload-workflow.ts filter=git-crypt diff=git-crypt
