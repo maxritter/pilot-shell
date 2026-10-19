@@ -17,7 +17,7 @@ export const AUTHOR_NAME = "Max Ritter";
 
 /** The hero's subtitle and the default page description. */
 export const DESCRIPTION =
-  "Your agent draws up each change as diagrams and clickable artifacts. You and your team agree on the plan; your agents build it and check every point of your request.";
+  "Your agent draws up each change as diagrams and clickable designs. You and your team agree on the plan; your agents build it and check every point of your request.";
 /** The line under the name wherever the product is introduced: the hero, page titles, the README and the CLI. */
 export const SLOGAN = "The software factory with you in the loop";
 /** The brand line, shown with the mark above the slogan (Max, 2026-10-19). Kept out of titles and keywords: alone it does not say what the product is. */

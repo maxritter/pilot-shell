@@ -11,7 +11,7 @@
 
 ### The software factory with you in the loop
 
-**Your agent draws up each change as diagrams and clickable artifacts.**<br>
+**Your agent draws up each change as diagrams and clickable designs.**<br>
 You and your team agree on the plan; your agents build it and check every point.<br>
 Use the App or browser: your task on the left, your agent on the right.<br>
 Claude Code, Codex, Pi and OpenCode connect directly. Other agents use the CLI.
@@ -61,7 +61,7 @@ Prefer your browser? [Set up the browser workspace](https://qualitylayer.dev/doc
 
 **Coding agents write code fast**, but each change still leaves copies, workarounds and dead code behind. QualityLayer puts you back in the loop while the change is still a plan:
 
-- Your agent reads the code and draws up one plan: the architecture as diagrams, the screens as clickable artifacts, each decision with its reasons.
+- Your agent reads the code and draws up one plan: the architecture as diagrams, the screens as clickable designs, each decision with its reasons.
 - You comment on any part and approve the plan before anything changes; with a Team plan, your teammates comment too.
 - Your agent builds it in small slices, each starting with a failing test.
 - Agents that did not write the code check every point of your request against the running program.
