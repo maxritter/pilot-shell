@@ -7,8 +7,6 @@
 
 # QualityLayer
 
-**Quality by design**
-
 ### The software factory with you in the loop
 
 **Plan each change visually, then let your agents build and verify it.**<br>
@@ -40,8 +38,6 @@ Work side by side in the App or browser.
 </p>
 
 **[Download the App](https://qualitylayer.dev/download)** for macOS, Windows or Linux. 7-day trial.
-
-Prefer your browser? [Set up the browser workspace](https://qualitylayer.dev/docs/install#browser).
 
 <br>
 
