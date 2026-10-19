@@ -7,7 +7,9 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 ### New
 
 - Coming from Pilot Shell: QualityLayer installs next to Pilot Shell, which keeps working.
-- Work with the agent beside your task or design in QualityLayer. Open a plain project shell from the same sidebar, or hand the recorded request to your own terminal or IDE.
+- Work with the agent beside your task or artifact in QualityLayer. Switch between Conversation and Terminal for the same session, or hand the recorded request to your own terminal or IDE.
+- Send messages with images, PDFs or logs from Conversation. Your draft stays when you switch views, and a failed send keeps your words and selected files.
+- Change the session's model, effort and supported Fast mode from the Conversation header. Settings apply at a safe turn boundary and resume the same conversation.
 - Attach images, logs, PDFs and other files when answering a workflow question. Drafts and attachments remain available if sending fails.
 - Run a task in Terminal mode to answer questions, approve the Plan and review the finished change in your agent's chat. Choose it in your request, Settings or the task's launch controls; screenless computers select it automatically. Read diagrams and design sketches through the CLI.
 
@@ -17,6 +19,7 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 - New tasks appear in their project before the agent starts. Agents and shells use the task or design sidebar, with Agent first and no global bottom dock.
 - Sidebar dividers are easier to grab and release reliably. Terminal cursors blink by default, shells open in the relevant project or design folder, and wheel scrolling works after terminal applications change mouse modes.
 - Agent views show connection and loading states, recover interrupted native conversations, and reconnect to surviving sessions after the App reopens.
+- Terminal waits for a newly allocated task's host before connecting, and transport errors remain visible until retry. Conversation keeps its composer at the bottom while output loads; all workflow step titles use the same scale.
 - Passage feedback works across all seven steps. Question recommendations wrap separately from their labels, and answered questions leave the active notification list.
 - Focused Plan designs open in a preview overlay. Full-size designs open with the sidebar closed, retain their page and section, and use the design content's update time.
 - Verification detects an oversized source export before copying dependencies and offers the explicitly labelled working-tree check path, retaining the original export limits.
