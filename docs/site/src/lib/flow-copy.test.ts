@@ -6,9 +6,8 @@ import { FAQS } from "./content";
 import { CHAPTERS } from "./tour";
 
 /**
- * The flow asks every question in the App, the approvals included, and the agent's terminal shows
- * a single line while it waits. The README, the docs and the home page must say that, and none may
- * send the person to the terminal or the chat to answer.
+ * App is the default answer location. Only the explicit Terminal mode reference may describe
+ * answering in chat and native pickers; removed controls stay forbidden in both modes.
  */
 
 const site = fileURLToPath(new URL("../../", import.meta.url));
@@ -31,6 +30,15 @@ const firstTask = join(docs, "first-task.md");
 const docPages = filesUnder(docs, [".md"]).filter((path) => !path.endsWith("changelog.md"));
 const homeCopy = [...filesUnder(join(site, "src/lib"), [".ts"]), ...filesUnder(join(site, "src/components"), [".tsx"]), join(site, "src/pages/Index.tsx")].filter(existsSync);
 const homeIndex = join(site, "index.html");
+const commandsPage = join(docs, "reference/commands.md");
+
+function modeCopy(path: string, text: string): { app: string; terminal: string } {
+  const start = path === commandsPage ? text.indexOf("\n## Terminal mode\n") : -1;
+  if (start < 0) return { app: text, terminal: "" };
+  const next = text.indexOf("\n## ", start + 1);
+  const end = next < 0 ? text.length : next;
+  return { app: text.slice(0, start) + text.slice(end), terminal: text.slice(start, end) };
+}
 
 const TELLS_THE_TERMINAL = [
   // "asks each decision in the terminal", "you answer in the terminal", "approve in the terminal"
@@ -40,12 +48,13 @@ const TELLS_THE_TERMINAL = [
 ];
 
 /** Removed controls and serialized delivery. A batch still displays one focused question. */
-const STALE = [/for you\s*\/\s*for the agent|for the agent["”*]*\s+switch|\*\*for the agent\*\*/i, /\b(?:agent|QualityLayer|it) asks? one question at a time\b/i, /\basks them one by one\b/i, /\bdefault_mode_request_user_input\b/, /\b(option|question)[ -]picker\b/i, /\bpicker hooks?\b/i, /\bsync(ed|s)? (it )?to claude design\b/i];
+const STALE = [/for you\s*\/\s*for the agent|for the agent["”*]*\s+switch|\*\*for the agent\*\*/i, /\b(?:agent|QualityLayer|it) asks? one question at a time\b/i, /\basks them one by one\b/i, /\bdefault_mode_request_user_input\b/, /\bsync(ed|s)? (it )?to claude design\b/i];
+const NATIVE_PICKERS = [/\b(option|question)[ -]picker\b/i, /\bpicker hooks?\b/i];
 
 describe("the flow in the copy: asked and answered in the App", () => {
-  it("never tells the person to answer or approve in the terminal or the chat", () => {
+  it("keeps default instructions in the App outside the explicit Terminal mode reference", () => {
     const offending = [readme, ...docPages, ...homeCopy, homeIndex].flatMap((path) => {
-      const text = read(path);
+      const text = modeCopy(path, read(path)).app;
       return TELLS_THE_TERMINAL.filter((pattern) => pattern.test(text)).map((pattern) => `${path.replace(`${repo}/`, "")}: ${pattern}`);
     });
     expect(offending).toEqual([]);
@@ -54,9 +63,26 @@ describe("the flow in the copy: asked and answered in the App", () => {
   it("names none of the removed controls or serialized question delivery", () => {
     const offending = [readme, ...docPages, ...homeCopy, homeIndex].flatMap((path) => {
       const text = read(path);
-      return STALE.filter((pattern) => pattern.test(text)).map((pattern) => `${path.replace(`${repo}/`, "")}: ${pattern}`);
+      const app = modeCopy(path, text).app;
+      return [...STALE.filter((pattern) => pattern.test(text)), ...NATIVE_PICKERS.filter((pattern) => pattern.test(app))].map((pattern) => `${path.replace(`${repo}/`, "")}: ${pattern}`);
     });
     expect(offending).toEqual([]);
+  });
+
+  it("allows native answers only in the named opt-in section and retains human approval", () => {
+    const { app, terminal } = modeCopy(commandsPage, read(commandsPage));
+    expect(app).toContain("Ask you a question in the App and wait for your answer");
+    expect(terminal).toContain("Using QualityLayer in the terminal");
+    expect(terminal).toContain("Only your own picks or words count as answers and approvals");
+    expect(terminal).toMatch(/question picker/);
+    const sample = "\n## Terminal mode\nYou answer in the terminal using a question picker.\n## For you\nYou answer in the terminal using a question picker.";
+    for (const path of [commandsPage, readme]) {
+      const scoped = modeCopy(path, sample);
+      expect(TELLS_THE_TERMINAL.some((pattern) => pattern.test(scoped.app))).toBe(true);
+      expect(NATIVE_PICKERS.some((pattern) => pattern.test(scoped.app))).toBe(true);
+    }
+    const removed = "\n## Terminal mode\nQualityLayer asks one question at a time. For you / For the agent.";
+    expect(STALE.filter((pattern) => pattern.test(modeCopy(commandsPage, removed).terminal))).toHaveLength(2);
   });
 
   // The README stays short (Max, 2026-10-14) and links to these guides; they carry the details.
