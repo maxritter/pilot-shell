@@ -34,7 +34,7 @@ const structuredData = [
 const Index = () => (
   <>
     <SEO structuredData={structuredData} />
-    <Page>
+    <Page className="mx-home">
       <Hero />
       <Suspense fallback={<div aria-hidden="true" style={{ minHeight: "40vh" }} />}>
         <Sections />

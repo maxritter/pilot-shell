@@ -1,16 +1,26 @@
 // @vitest-environment happy-dom
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { SLOGAN } from "@/lib/product";
+import { BRAND_LINE, SLOGAN } from "@/lib/product";
 import Hero from "./Hero";
 
 beforeEach(() => { vi.stubGlobal("fetch", async () => new Response("{}", { status: 503 })); });
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
-it("opens on the slogan the rest of the site and the README use", () => {
+it("opens on the brand line and the slogan the rest of the site and the README use", () => {
   render(<MemoryRouter><Hero /></MemoryRouter>);
-  expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(SLOGAN);
+  const h1 = screen.getByRole("heading", { level: 1 });
+  expect(h1.textContent).toBe(SLOGAN);
+  expect(h1.previousElementSibling?.textContent).toBe(BRAND_LINE);
+});
+
+it("lists the seven steps as stations that each open their step in the tour", () => {
+  render(<MemoryRouter><Hero /></MemoryRouter>);
+  const stations = within(screen.getByRole("navigation", { name: "The seven steps" })).getAllByRole("listitem");
+  expect(stations.map((s) => s.querySelector(".mx-station-name")?.lastChild?.textContent)).toEqual(["Discuss", "Research", "Plan", "Outline", "Implement", "Verify", "Review"]);
+  expect(stations.map((s) => within(s).getByRole("link").getAttribute("href"))).toEqual(["/#discuss", "/#research", "/#plan", "/#outline", "/#implement", "/#verify", "/#review"]);
+  expect(screen.getByRole("link", { name: "See each step in the App" }).getAttribute("href")).toBe("/#plan");
 });
 
 it("offers the download and film directly from the hero", () => {

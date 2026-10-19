@@ -7,9 +7,12 @@
 
 # QualityLayer
 
+**Quality by design**
+
 ### The software factory with you in the loop
 
-**Plan each change visually with your agent and your team.**<br>
+**Your agent draws up each change as diagrams and clickable designs.**<br>
+You and your team agree on the plan; your agents build it and check every point.<br>
 Use the App or browser: your task on the left, your agent on the right.<br>
 Claude Code, Codex, Pi and OpenCode connect directly. Other agents use the CLI.
 
@@ -201,7 +204,7 @@ See [LICENSE](LICENSE).
 
 <div align="center">
 
-**The software factory with you in the loop**
+**Quality by design.** The software factory with you in the loop.
 
 Made by [Max Ritter](https://maxritter.net)
 

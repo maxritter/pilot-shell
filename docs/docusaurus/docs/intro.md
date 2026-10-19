@@ -9,7 +9,7 @@ description: QualityLayer takes your coding agent from a request to a merged pul
   <figcaption>How QualityLayer works, in about five minutes.</figcaption>
 </figure>
 
-QualityLayer is the software factory with you in the loop. Use the **App or browser**, with the task on the left and your agent in the right sidebar. Your agent reads the code and plans each change with you: the architecture as diagrams, the screens as clickable designs, every decision in the open. Once you and your team agree on the plan, your agent builds it test first and takes it to a pull request; agents that did not write the code check the result against your request.
+**Quality by design.** QualityLayer is the software factory with you in the loop. Use the **App or browser**, with the task on the left and your agent in the right sidebar. Your agent reads the code and plans each change with you: the architecture as diagrams, the screens as clickable designs, every decision in the open. Once you and your team agree on the plan, your agent builds it test first and takes it to a pull request; agents that did not write the code check the result against your request.
 
 ![The visual Plan: request retries, replay and a write-once ledger, with Approve Plan](pathname:///img/app/plan-light.webp)
 ![The visual Plan: request retries, replay and a write-once ledger, with Approve Plan](pathname:///img/app/plan-dark.webp)

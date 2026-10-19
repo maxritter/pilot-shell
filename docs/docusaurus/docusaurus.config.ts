@@ -88,8 +88,9 @@ const config: Config = {
       {
         name: "keywords",
         content:
-          "QualityLayer, coding agents, SDLC, shift left, planning, test-first development, QualityLayer App, Claude Code, Codex, independent review, team plan review",
+          "QualityLayer, software factory, agentic software factory, human in the loop, coding agents, SDLC, shift left, planning, test-first development, QualityLayer App, Claude Code, Codex, independent review, team plan review",
       },
+      { property: "og:image:alt", content: "QualityLayer, quality by design: the software factory with you in the loop. Seven steps: Discuss, Research, Plan, Outline, Implement, Verify, Review" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@maxritter" },
       { property: "og:type", content: "website" },
