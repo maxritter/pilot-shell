@@ -6,7 +6,7 @@
 .lg-article h3{margin:24px 0 6px;font-size:17px;line-height:1.4;font-weight:500}
 .lg-article p,.lg-article li{max-width:70ch;color:var(--mx-ink2)}
 .lg-article p{margin:0 0 12px}
-.lg-article ul{margin:0 0 12px;padding-left:20px}
+.lg-article ul{margin:0 0 12px;padding-left:20px;list-style:disc}
 .lg-article li{margin:4px 0}
 .lg-article .lg-lead{color:var(--mx-ink);font-size:18px;line-height:1.65}
 .lg-article address{font-style:normal;color:var(--mx-ink)}
