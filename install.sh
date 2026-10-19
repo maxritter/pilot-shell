@@ -72,11 +72,14 @@ fail() {
 	exit 1
 }
 
-# v11's updater (and anyone passing these) runs unattended: the App is not opened afterwards.
-ask=yes cli_only="" with_app=""
+# --non-interactive runs unattended: nothing is asked and the App is not opened afterwards.
+# --auto-update is passed only by Pilot Shell 11's `pilot update`, after its user confirmed the
+# update in a terminal: the move is explained, and on a terminal the App opens to finish setup.
+ask=yes from_pilot="" cli_only="" with_app=""
 for arg in "$@"; do
 	case "$arg" in
-	--non-interactive | --auto-update) ask="" ;;
+	--non-interactive) ask="" ;;
+	--auto-update) ask="" from_pilot=yes ;;
 	--cli-only) cli_only=yes ;;
 	--with-app) with_app=yes ;;
 	esac
@@ -195,6 +198,9 @@ container)
 *) where=", no screen" ;;
 esac
 say "QualityLayer ${VERSION} · ${system}${where}"
+if [ -n "$from_pilot" ]; then
+	say "Pilot Shell is now QualityLayer. It installs next to Pilot Shell, which keeps working as before."
+fi
 
 base="${RELEASE_BASE}/download/v${VERSION}"
 
@@ -313,12 +319,15 @@ if [ "$os" = "darwin" ] && [ "$apps" != "$HOME/Applications" ] && [ -d "$HOME/Ap
 	say "Removed the older copy in ~/Applications"
 fi
 
-# On a terminal the App opens at once, to finish setting up; an unattended update never opens a window.
-if [ -n "$ask" ] && [ -t 1 ]; then
+# On a terminal the App opens at once, to finish setting up; an unattended update never opens a
+# window. Pilot Shell's update was confirmed by its user, so it opens the App too, or says where it is.
+if { [ -n "$ask" ] || [ -n "$from_pilot" ]; } && [ -t 1 ]; then
 	say "Opening the QualityLayer App…"
 	if [ "$os" = "darwin" ]; then
 		open "$app_open" >/dev/null 2>&1 || true
 	else
 		(nohup "$app_open" >/dev/null 2>&1 &)
 	fi
+elif [ -n "$from_pilot" ]; then
+	say "Open QualityLayer from ${apps_shown} to finish setting up."
 fi
