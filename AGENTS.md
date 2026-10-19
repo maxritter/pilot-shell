@@ -53,6 +53,11 @@ Read `docs/agents/design.md` for design authoring/review, composition checks,
 model ownership and release evidence. Use Impeccable and the user-level Anti-slop
 plugin for relevant UI/copy work; reuse their installations and effective hooks.
 Mechanical checks and matching tokens do not establish visual approval.
+For shared UI, inspect the production consumers at their actual content widths,
+with long labels, paths and requests in both themes. Focused Plan previews reuse
+the real design components and open the exact page and stable section; do not
+approve simplified redraws in their place. Record the visual critique and fix
+clipping before local installation or release.
 
 ## Ownership
 
