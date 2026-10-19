@@ -67,7 +67,7 @@ export const COMPARISONS: Comparison[] = [
     rows: [
       { topic: "Plan a change", qualitylayer: "Review diagrams and clickable designs in the App, then approve the Plan.", other: "Create a proposal with spec deltas, design and tasks; revise artifacts as needed.", source: 1 },
       { topic: "Verify the code", qualitylayer: "Record output, screenshots or files against each agreed outcome, with risk-based independent review.", other: "The optional verify skill reports completeness, correctness and coherence against the artifacts.", source: 2 },
-      { topic: "Finish the change", qualitylayer: "Review the evidence and open checks; approve, then follow the GitHub pull request until you merge.", other: "Archive the change and sync its spec updates. Archive warns about incomplete artifacts or tasks.", source: 2 },
+      { topic: "Finish the change", qualitylayer: "Review the evidence and open checks; approve locally, or ask QualityLayer to open and follow a pull request.", other: "Archive the change and sync its spec updates. Archive warns about incomplete artifacts or tasks.", source: 2 },
     ],
     chooseOther: "Choose OpenSpec if maintaining evolving specifications and small change proposals in your repository is the main goal. Its flexible artifact editing fits work where requirements change during implementation.",
     chooseQualityLayer: "Choose QualityLayer if you want explicit human approvals and evidence for the running result in the App. OpenSpec also checks implementation; QualityLayer's emphasis is how that proof reaches your review and pull request.",

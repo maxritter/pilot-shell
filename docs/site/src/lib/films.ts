@@ -5,8 +5,8 @@ export type Film = { src: string; poster: string; duration: number };
 
 export const FILMS = {
   overview: {
-    src: "https://qualitylayer-media.max-ritter.workers.dev/overview.mp4",
-    poster: "https://qualitylayer-media.max-ritter.workers.dev/overview.webp",
-    duration: 318,
+    src: "https://qualitylayer-media.max-ritter.workers.dev/overview-v20261020.mp4",
+    poster: "https://qualitylayer-media.max-ritter.workers.dev/overview-v20261020.webp",
+    duration: 320,
   },
 } satisfies Record<string, Film>;

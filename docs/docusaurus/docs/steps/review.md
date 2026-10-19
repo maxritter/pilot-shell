@@ -1,6 +1,6 @@
 ---
 title: Review
-description: Settle what agents could not settle for you, look at the result, and approve. Then the pull request opens.
+description: Settle what agents could not settle for you, look at the result, and approve. Open a pull request when you choose.
 ---
 
 ![The eight steps, with Review highlighted](pathname:///img/diagrams/track-review-light.svg)
@@ -33,14 +33,14 @@ The App puts what needs you first: the approval, each point only you can confirm
 
 | Choice | What happens |
 | --- | --- |
+| **Approve** | Approves the change locally. You push and open a pull request yourself |
 | **Approve and open a pull request** | Pushes the task's branch and opens the pull request. Needs `gh` |
-| **Approve only** | You push and open it yourself |
 | **Copy the git commands** | Run them in your terminal |
 
 ![When an answer asks for a change, the button reads Send 1 change](pathname:///img/diagrams/comments-light.svg)
 ![When an answer asks for a change, the button reads Send 1 change](pathname:///img/diagrams/comments-dark.svg)
 
-Nothing is pushed or merged without your yes. A task built on your main branch has no branch to open a pull request from ([where the build lands](implement.md#where-it-lands)). After approval, your agent [watches the checks](pull-request.md#watch). Teammates comment in their own App ([Change reviews](../team/changes.md)).
+Nothing is pushed or merged without your yes. A task built on your main branch has no branch to open a pull request from ([where the build lands](implement.md#where-it-lands)). If you choose to open a pull request, your agent [watches the checks](pull-request.md#watch). Teammates comment in their own App ([Change reviews](../team/changes.md)).
 
 ## Stop, archive or delete a task {#stop-archive-or-delete-a-task}
 

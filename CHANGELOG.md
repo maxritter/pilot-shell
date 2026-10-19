@@ -8,20 +8,22 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 - Coming from Pilot Shell: QualityLayer installs next to Pilot Shell, which keeps working.
 - Work with the agent beside your task or artifact in QualityLayer. Switch between Conversation and Terminal for the same session, or hand the recorded request to your own terminal or IDE.
+- Keep diagrams, wireframes and clickable prototypes in **Artifacts**, with direct links to a page or section.
 - Send messages with images, PDFs or logs from Conversation. Your draft stays when you switch views, and a failed send keeps your words and selected files.
 - Change the session's model, effort and supported Fast mode from the Conversation header. Settings apply at a safe turn boundary and resume the same conversation.
 - Attach images, logs, PDFs and other files when answering a workflow question. Drafts and attachments remain available if sending fails.
-- Run a task in Terminal mode to answer questions, approve the Plan and review the finished change in your agent's chat. Choose it in your request, Settings or the task's launch controls; screenless computers select it automatically. Read diagrams and design sketches through the CLI.
+- Run a task in Terminal mode to answer questions, approve the Plan and review the finished change in your agent's chat. Choose it in your request, Settings or the task's launch controls; screenless computers select it automatically. Read diagrams and artifact sketches through the CLI.
 
 ### Fixed
 
+- Review shows one visual check or decision at a time, with enlarged image previews. **Approve** is the default; opening a pull request is optional.
 - Verify shows current work and completed checks first, with expanded check cards and folded acceptance criteria below. Finding counts distinguish planned fixes from fixes with passing check records.
-- New tasks appear in their project before the agent starts. Agents and shells use the task or design sidebar, with Agent first and no global bottom dock.
-- Sidebar dividers are easier to grab and release reliably. Terminal cursors blink by default, shells open in the relevant project or design folder, and wheel scrolling works after terminal applications change mouse modes.
+- New tasks appear in their project before the agent starts. Agents and shells use the task or artifact sidebar, with Agent first and no global bottom dock.
+- Sidebar dividers are easier to grab and release reliably. Terminal cursors blink by default, shells open in the relevant project or artifact folder, and wheel scrolling works after terminal applications change mouse modes.
 - Agent views show connection and loading states, recover interrupted native conversations, and reconnect to surviving sessions after the App reopens.
 - Terminal waits for a newly allocated task's host before connecting, and transport errors remain visible until retry. Conversation keeps its composer at the bottom while output loads; all workflow step titles use the same scale.
 - Passage feedback works across all seven steps. Question recommendations wrap separately from their labels, and answered questions leave the active notification list.
-- Focused Plan designs open in a preview overlay. Full-size designs open with the sidebar closed, retain their page and section, and use the design content's update time.
+- Focused Plan artifacts open in a preview overlay. Full-size artifacts open with the sidebar closed, retain their page and section, and use the artifact content's update time.
 - Verification detects an oversized source export before copying dependencies and offers the explicitly labelled working-tree check path, retaining the original export limits.
 
 ## 12.0.0-beta.59

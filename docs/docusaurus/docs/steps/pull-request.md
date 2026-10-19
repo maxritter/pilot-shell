@@ -1,6 +1,6 @@
 ---
 title: Pull request
-description: After you approve, QualityLayer opens the pull request and follows its checks and reviewers until you merge it.
+description: Choose to open a pull request from Review, then follow its checks and reviewers until you merge it.
 ---
 
 ![The eight steps, with Pull request highlighted](pathname:///img/diagrams/track-pull-request-light.svg)

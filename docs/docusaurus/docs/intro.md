@@ -5,7 +5,7 @@ description: QualityLayer takes your coding agent from a request to a merged pul
 ---
 
 <figure class="ql-film">
-  <video controls preload="none" playsinline poster="https://qualitylayer-media.max-ritter.workers.dev/overview.webp" src="https://qualitylayer-media.max-ritter.workers.dev/overview.mp4"></video>
+  <video controls preload="none" playsinline poster="https://qualitylayer-media.max-ritter.workers.dev/overview-v20261020.webp" src="https://qualitylayer-media.max-ritter.workers.dev/overview-v20261020.mp4"></video>
   <figcaption>How QualityLayer works, in about five minutes.</figcaption>
 </figure>
 
@@ -33,7 +33,7 @@ Each of the first seven steps writes one document. You approve twice: the Plan, 
 | **[Outline](steps/outline.md)** | Your agent cuts the Plan into slices. Nothing to approve |
 | **[Implement](steps/implement.md)** | Your agent builds the approved Plan in small tested slices |
 | **[Verify](steps/verify.md)** | Six checks, including agents that did not write the code |
-| **[Review](steps/review.md)** | You settle what is left and approve; the pull request opens |
+| **[Review](steps/review.md)** | You settle what is left and approve; opening a pull request is optional |
 | **[Pull request](steps/pull-request.md)** | Your agent fixes failing checks, up to three times. You merge |
 
 ## Who it is for

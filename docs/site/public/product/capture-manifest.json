@@ -1,32 +1,16 @@
 {
   "sourceInputs": {
     "qualitylayer/src/ui/demo/plan-doc.ts": "8d0de2e58a29769c1dcdb7d69cca49eb0c9e4b439008ee0f0abf2208c7e8e3ba",
-    "qualitylayer/src/ui/demo/agent-window.ts": "ecaf8c82058875dc9f38e1dbf394da36050b6bcdf5bbcf2b661c27f804376c7a",
+    "qualitylayer/src/ui/demo/agent-window.ts": "f88db4f3ae0da822f3b4d69febe2145f7b1cd8b624e67dab8d01692dfd5c8fdb",
     "qualitylayer/src/ui/demo/agent-window-fixture.ts": "767072c114ab11ba1e1aebef583385caf9ac920ba571940e9ffdc3de8a65ab06",
     "qualitylayer/src/ui/demo/claude-terminal.ts": "cc7d80bb640163bb5c03795be54fa42fd872cf046051762a2fdfbaa8ab52488a",
     "qualitylayer/src/ui/demo/claude-terminal.css": "d453ca9e529af7e72791b583b4c9ff46aa0abae05d13cd935b092f1043f79d3b",
     "qualitylayer/src/workflow/mod/qualitylayer/hooks/register.tsx": "9c05d0c5e6b30ecd4f8cd0d1822128dabe256ba0458b32beb0fe1c85313d5d7e"
   },
   "refreshedScenes": [
-    "discuss",
-    "research",
-    "plan",
-    "terminal",
-    "outline",
-    "implement-start",
-    "implement",
-    "verify",
-    "review",
-    "pull-request",
-    "artifact",
-    "team",
-    "home",
-    "setup",
-    "memory",
-    "artifacts",
-    "artifacts-open"
+    "review"
   ],
-  "fixtureHash": "c4ccf18a98245eb8d96cab2f7b1428e654ce00f71152b3af10eae09e3761f4ad",
+  "fixtureHash": "e91db5514dbb435446a082db5bd0bcbb228f94602b7796f4a5420bda3a8b942d",
   "memoryInputs": {
     "qualitylayer/src/ui/demo/memory.ts": "98f9b6c73ac08d1adb6ceccd1cbe6951e4177a77487ae3b0548e3d187ea5fe6d",
     "qualitylayer/src/ui/settings/Memory.tsx": "c12ae3f15eb4f1f4099c8d8f56214d00d7854d0b556969d6d731ef0f45bc6f26",
@@ -34,7 +18,7 @@
     "qualitylayer/src/ui/settings/Rows.tsx": "e29af5f67d144f573d87659280a970313549e85456c735792385d37414029604",
     "qualitylayer/src/ui/globals.css": "d66b0d6aed715cbdf6b934788ef75d20eb3aeea9e4d52062bd01badf48ca3a4d"
   },
-  "capturedAt": "2026-10-19T17:12:21.387Z",
+  "capturedAt": "2026-10-19T23:12:59.991Z",
   "scenes": [
     "discuss",
     "research",
@@ -59,7 +43,7 @@
       "file": "discuss-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "d774451c162461a4cb1a57b935f7eaa4a2d7487bf03e328b9a7db59d62912dfb",
+      "sha256": "5d661b514daf563fb247c02dfc657a3e2b2f2189d3d5d41f00c5f702073876c2",
       "capture": "workflow-with-claude-code",
       "sourceViewport": {
         "width": 1440,
@@ -93,7 +77,7 @@
       "file": "plan-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "90340c91a0299fd65c37e7092038062e8166e279545c475486421f1e5c085dc3",
+      "sha256": "964d53b804c57473997cb528a471dccc4443207280283cb4a5133a744b74958f",
       "capture": "workflow-with-claude-code",
       "sourceViewport": {
         "width": 1440,
@@ -104,19 +88,19 @@
       "file": "plan-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "182c87277352101ff0507667c34735b60b3905801756f1e80f5e55050f232274"
+      "sha256": "9891139f2d3e8dec1da16e1c4d9225e4f26ab491074089312d65df22876d472e"
     },
     {
       "file": "terminal-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "90340c91a0299fd65c37e7092038062e8166e279545c475486421f1e5c085dc3"
+      "sha256": "964d53b804c57473997cb528a471dccc4443207280283cb4a5133a744b74958f"
     },
     {
       "file": "terminal-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "9257431eca56d9334e60442d1565e30172f164ec710242a7e83cecc6c37b8c95",
+      "sha256": "ea4fffae75fe66ef46c05134d036d4c410f5a2c7c5274770a6d272b07eb4270d",
       "capture": "desktop-agent-column",
       "sourceViewport": {
         "width": 1440,
@@ -150,7 +134,7 @@
       "file": "implement-start-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "6db0ad8f62952c224a7f125a85d9a9c03d126949668065272c6d322b3f53222d",
+      "sha256": "3c6226b9d779586a474e987b7ace1e880b50706ccc505265c01cf68b573eebc0",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -201,7 +185,7 @@
       "file": "review-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "d381b6d4eacd6992d33c887083a7e25aded4863c9f45498a720f88612f29f106",
+      "sha256": "5565a2d618bbdb1ec9835e9699d188f2f87921b7666b708aa24945703944d836",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -212,7 +196,7 @@
       "file": "review-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "12cfc2f396506dca27d56a441c935c21faa3c533d396437fb90e59c83987a11b"
+      "sha256": "e916761b61a43a0aa1016e7ce8b4afb2c29a1b720f19ab48286fec7d651353c1"
     },
     {
       "file": "pull-request-light.webp",
@@ -235,13 +219,13 @@
       "file": "artifact-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "008228e22a7d3b2f24eed471750771ae5dcfd13f1cbe0ec29982fe70b0e335af"
+      "sha256": "768dd7af80b59643631ffc76aef25c68e7717ed446c129443736214fc9521b8d"
     },
     {
       "file": "artifact-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "3ee53d1c3980d7bfb6a17330be8fca7d4537a2ad7bc7719d02a0c42c36a99ecb",
+      "sha256": "0da9097784b128723d75c1affd210c1b0c2c88d9f6474106022a09d60edfa20e",
       "capture": "narrow-feedback-sheet",
       "sourceViewport": {
         "width": 390,
@@ -276,13 +260,13 @@
       "file": "setup-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "3cac42d18554fbe99a71d5dfb7955d3a49701a2cafeb43ad24e3b89b928fa102"
+      "sha256": "f4af9aefa9e3d7acc252abcf1eecb372f86d8e01de38a9a6ea0e035a074aa5c0"
     },
     {
       "file": "setup-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "62fe60b8c6c1ddbc7cab3c3f00eaf338afba376158f1c3c0065f375087fcf487"
+      "sha256": "20988d0fc85b5596f4d92242233ac0c010ce4eb982f23cf1433593097ba886da"
     },
     {
       "file": "memory-light.webp",
@@ -324,7 +308,7 @@
       "file": "discuss-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "ace716facdbdf1ea3d3a3deca840e6a378bb3b0bc996b580e78ff80a66b9cba5",
+      "sha256": "cc399803e4eb04f6353b7f11a4e18a08e2cd0d9d45ec7d6d7be1684c5f7049e2",
       "capture": "workflow-with-claude-code",
       "sourceViewport": {
         "width": 1440,
@@ -335,7 +319,7 @@
       "file": "discuss-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "74cf46a635ff1c3f6b1cd1d0ad57809421fa7a8fe04c41bb1ea8776a242d6092"
+      "sha256": "61b2910f7b277eb8ff7bc616ed9ba0c5b55c9500676049a849da06c761e500ef"
     },
     {
       "file": "research-dark.webp",
@@ -358,7 +342,7 @@
       "file": "plan-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "50b6e8b8c944f1099fd369a7e8f2a8a328cd63025d0775ec97582b103b67814a",
+      "sha256": "28b34e3ea74cd3f6e2da9c27d8f2ce8222f977db84c267148e1af57cd8c143e0",
       "capture": "workflow-with-claude-code",
       "sourceViewport": {
         "width": 1440,
@@ -369,19 +353,19 @@
       "file": "plan-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "a90a5eb2e75611e2c7d859e337564caef97374695b9de997f1c63ce1c10e3b44"
+      "sha256": "3f9a3b98982232b691c2c975e68daa9a63b6e897bc51fb225ce9a3d0f4e86876"
     },
     {
       "file": "terminal-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "50b6e8b8c944f1099fd369a7e8f2a8a328cd63025d0775ec97582b103b67814a"
+      "sha256": "28b34e3ea74cd3f6e2da9c27d8f2ce8222f977db84c267148e1af57cd8c143e0"
     },
     {
       "file": "terminal-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "e462f1caba6adfdfb882b3e73ced581538b0efc5bfb8694ee0966b959f82b1ff",
+      "sha256": "f5347811af7174235ad04188828e4340ece0cb2b05a98a40ff9e07f564d6cd64",
       "capture": "desktop-agent-column",
       "sourceViewport": {
         "width": 1440,
@@ -398,7 +382,7 @@
       "file": "outline-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "e659f2ff84f1b3b1daa8b27f4bb1fe90d57fbbc28f2b8530eb696c502207fe4d",
+      "sha256": "3c93408601c0166d7104c8c37496f6dbf3ff7ed0267808ad6b70a274fddda9fc",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -415,7 +399,7 @@
       "file": "implement-start-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "0aa5db3d477e85d5dd28391fafe23873b30ba7d8ad21267dda0123844f7ffe6f",
+      "sha256": "bb7c08e11758871c17c4c1e1f1c773b87cf77967635f1da71d1db0f8f02d53cd",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -466,7 +450,7 @@
       "file": "review-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "98cbf1b4aaa0b75cff288c646e420d62ca1b81544eaa6ef4f321c6e1e5985c79",
+      "sha256": "b0c39dd0712d46cfd2669645b093003fbe3b0eb0655983c94a967d78120c24dd",
       "capture": "workflow-with-files",
       "sourceViewport": {
         "width": 1440,
@@ -477,7 +461,7 @@
       "file": "review-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "a960bebe1c741a1629d42b1d699160239f40550c7d291b77fb47f5758d1f05f0"
+      "sha256": "35d45d26b670c1e445d549bcce9ff8e23037c5e6b7da0eea04b9f2812e32922b"
     },
     {
       "file": "pull-request-dark.webp",
@@ -500,13 +484,13 @@
       "file": "artifact-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "0fa5bc2bcd1b947cc3230d6f1b7209de129b035c9aed0df6505733d3078a4466"
+      "sha256": "b547c168966f784254b4ccb8df329cb6b8350ef267cc4617e0fef614aaa6310d"
     },
     {
       "file": "artifact-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "535eba9dc082bed0bd7c5806d5827842e0c9230ad93bd8fcd52852052afd948c",
+      "sha256": "916fa593a1dd9ec65fb3b2b378bbc1857c5c0406bfa26000dbc7d52a289dadb3",
       "capture": "narrow-feedback-sheet",
       "sourceViewport": {
         "width": 390,
@@ -541,13 +525,13 @@
       "file": "setup-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "37f058ec36e857f81b087ab5da900e7d41753ad231dc01b8bfcd4e3d2529d014"
+      "sha256": "5c4d9ad3e4be8ec4df9096ed9bb243cc427a4438cbfaa29550f0ca5f2795ad5d"
     },
     {
       "file": "setup-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "295a248391c5c98fef53d9c3f9df02c8327e66d8deb351db1f6a685503f7e7dc"
+      "sha256": "2d8337a96b8d76024ca917b214eaae0fae3f5d6a253ccd89b682ba9bf3568979"
     },
     {
       "file": "memory-dark.webp",
@@ -577,7 +561,7 @@
       "file": "artifacts-open-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "d164920847985481a563b446d884fc38bf3fdfb46a53488b4515000c5cba303a"
+      "sha256": "1e956dcbc0f2bc0795714a634582b808ee5b6b700b0d38ab67b18d4265a8b3b4"
     },
     {
       "file": "artifacts-open-phone-dark.webp",
