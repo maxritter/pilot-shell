@@ -230,7 +230,7 @@ def peers(c):
 # ---------------------------------------------------------------- getting started
 def install_ill(c: Theme) -> str:
     W, H = 1000, 270
-    b = [node(c, 0, 85, 220, 100, 'You install', ['From the download page,', 'the terminal installer', 'or Pilot Shell 11'], 'cardline')]
+    b = [node(c, 0, 85, 220, 100, 'Get QualityLayer', ['Download the App,', 'or set up the browser', 'workspace with the CLI'], 'cardline')]
     b.append(arrow(c, 222, 135, 270))
     b.append(diamond(c, 300, 135, 22, 'amberf', 'amber'))
     b.append(T(300, 190, 'A screen?', 13, 'text', 650, 'middle', c=c))
@@ -266,7 +266,7 @@ def remote_ill(c: Theme) -> str:
     b.append(card(c, 534, 20, 466, 210, 'blue', 'card', dash=True, sw=1.5))
     b.append(T(554, 52, 'Where your agent runs', 15, 'text', 650, c=c))
     b.append(T(554, 72, 'Dev container, WSL2 or a server', 13, 'muted', c=c))
-    b.append(node(c, 554, 100, 200, 100, 'Your agent', ['Claude Code or Codex', 'in the terminal'], 'cardline', 'bg'))
+    b.append(node(c, 554, 100, 200, 100, 'Your agent', ['Claude Code, Codex,', 'Pi or OpenCode'], 'cardline', 'bg'))
     b.append(node(c, 772, 100, 208, 100, 'QualityLayer', ['Command line and', 'the App’s server'], 'cardline', 'bg'))
     return svg(W, H, ''.join(b), 'Install QualityLayer where your agent runs, in a dev container, WSL2 or on a server. Its pages open in the browser on your computer through one forwarded port')
 
@@ -1071,7 +1071,7 @@ def pull_request_ill(c: Theme) -> str:
         b.append(arrow(c, x + 2, 62, x + 33))
     # The loop: something waits, your agent goes through it with you, you push the fix, and it is followed again.
     loop = [(207, 'Your turn', ['The thread or the failing', 'check, with a command'], 'amber', 'amberf'),
-            (414, '/ql review <task>', ['Your agent goes through', 'each one with you'], 'blue', 'bluef'),
+            (414, 'Open the task', ['Review the feedback', 'beside your agent'], 'blue', 'bluef'),
             (621, 'Push the fix', ['One click from you.', 'It pushes nothing by itself'], 'amber', 'amberf')]
     for x, title, sub, col, fill in loop:
         b.append(f'<rect x="{x}" y="166" width="172" height="84" rx="12" fill="{c[fill]}" stroke="{c[col]}" stroke-width="1.8"/>')
@@ -1242,10 +1242,10 @@ def team_agents(c):
     b.append(T(16, 28, 'Dana’s App', 12, 'dim', 600, c=c))
     b.append(T(16, 54, 'A question for you', 15, 'text', 650, c=c))
     b.append(abtn_svg(c, 16, 74, 'Draft with my agent', False, 28, 12.5, 170))
-    b.append(T(16, 128, 'Their own Claude Code or Codex', 12.5, 'muted', c=c))
-    b.append(T(16, 146, 'reads it. Another agent takes', 12.5, 'muted', c=c))
-    b.append(T(16, 164, 'the prompt, as /ql answer.', 12.5, 'muted', c=c))
-    b.append(T(16, 188, '/ql answer 7f3a', 12, 'blue', 500, mono=True, c=c))
+    b.append(T(16, 128, 'Their agent reads the question', 12.5, 'muted', c=c))
+    b.append(T(16, 146, 'beside it in the App.', 12.5, 'muted', c=c))
+    b.append(T(16, 164, 'Other agents take a prompt:', 12.5, 'muted', c=c))
+    b.append(T(16, 188, 'Using QL, draft a reply.', 12, 'blue', 500, c=c))
     b.append(arrow(c, 232, 100, 258))
     b.append(node(c, 260, 0, 230, 200, 'Their agent', ['Reads the question and the Plan,', 'looks at their own code,', 'asks them what it needs'], 'blue', 'bluef'))
     b.append(arrow(c, 492, 100, 518))
@@ -1262,7 +1262,7 @@ def team_agents(c):
     b.append(T(796, 116, 'Suggests a change', 13, 'amber', 600, c=c))
     b.append(T(796, 140, 'Reaches your agent', 12.5, 'muted', c=c))
     b.append(T(796, 158, 'like any answer', 12.5, 'muted', c=c))
-    b.append(T(W / 2, 236, 'Their agent runs on their own computer. Codex uses $ql answer.', 13, 'muted', 400, 'middle', c=c))
+    b.append(T(W / 2, 236, 'Their agent runs on their own computer, beside the question in the App or browser.', 13, 'muted', 400, 'middle', c=c))
     return svg(W, H, ''.join(b), 'A teammate answers with their own agent: it reads the question and the Plan, drafts an answer, sends it only after their yes, and your App shows it via that agent')
 
 
@@ -1301,7 +1301,7 @@ def team_change(c: Theme) -> str:
         b.append(T(x + 16, 72, s, 12, 'muted', c=c))
     for x1, x2 in ((222, 228), (452, 498), (722, 768)):
         b.append(arrow(c, x1, 57, x2))
-    bottom = [(500, 'Back to your agent', '/ql review csv-export', 'blue', True), (230, 'Checked again', 'Only what the fix touched', 'violet', False)]
+    bottom = [(500, 'Open the task', 'Review the feedback beside your agent', 'blue', False), (230, 'Checked again', 'Only what the fix touched', 'violet', False)]
     for x, t, s, col, mono in bottom:
         b.append(card(c, x, 190, 220, 74, stroke=col, sw=1.6))
         b.append(T(x + 16, 220, t, 14.5, 'text', 650, c=c))
@@ -1332,7 +1332,7 @@ def firsttask_ill(c: Theme) -> str:
         b.append(T(xs[i], 76, str(i + 1), 16, col, 700, 'middle', c=c))
         b.append(T(xs[i], 124, t, 14, 'text', 650, 'middle', c=c))
         b.append(T(xs[i], 144, s, 12.5, 'muted', 400, 'middle', c=c))
-    b.append(T(xs[0] - 24, 22, 'You act at the amber steps; your agent does the rest', 12.5, 'muted', 500, c=c))
+    b.append(T(xs[0] - 24, 22, 'Start in the App or browser; your task and agent stay side by side', 12.5, 'muted', 500, c=c))
     return svg(W, H, ''.join(b), 'Your first task in seven moves: describe the change, answer its questions, approve the Plan, start Implement, agents build and check, settle what is left, approve the change')
 
 
@@ -1389,19 +1389,14 @@ def architecture(c):
     # your computer: everything that reads or writes your plans
     b.append(f'<rect x="0" y="0" width="720" height="{H}" rx="16" fill="none" stroke="{c["cardline"]}" stroke-width="1.5" stroke-dasharray="6 5"/>')
     b.append(T(20, 30, 'Your computer', 13, 'muted', 650, c=c))
-    b.append(node(c, 20, 126, 170, 96, 'Your agent', ['Claude Code, Codex', 'or any other agent'], 'blue', 'bluef'))
-    b.append(arrow(c, 192, 174, 236))
-    b.append(card(c, 238, 92, 236, 164, 'cardline'))
-    b.append(T(256, 120, 'QualityLayer CLI', 15, 'text', 650, c=c))
-    for i, cmd in enumerate(['qualitylayer next', 'qualitylayer question show', 'qualitylayer check slice', 'qualitylayer gate open']):
-        b.append(T(256, 148 + i * 24, cmd, 12.5, 'blue', 500, mono=True, c=c))
-    b.append(arrow(c, 356, 258, 356, 290))
-    b.append(node(c, 238, 292, 236, 72, 'Markdown files', ['docs/plans/<task>/ in your repo'], 'cardline'))
-    b.append(arrow(c, 476, 174, 518))
-    b.append(node(c, 520, 126, 180, 96, 'QualityLayer App', ['Shows each step', 'and asks you'], 'blue', 'bluef'))
-    b.append(f'<path d="M476 328 H610 V224" fill="none" stroke="{c["muted"]}" stroke-width="1.8" stroke-dasharray="4 4"/>')
-    b.append(f'<path d="M605 231 l5 -7 l5 7" fill="none" stroke="{c["muted"]}" stroke-width="1.8"/>')
-    b.append(T(488, 348, 'reads the same files', 12, 'muted', 500, c=c))
+    b.append(card(c, 20, 52, 680, 192, 'blue', 'bg'))
+    b.append(T(38, 80, 'QualityLayer App or browser', 15, 'text', 650, c=c))
+    b.append(node(c, 38, 100, 306, 124, 'Your task', ['Questions, diagrams and designs', 'Read the Plan, give feedback', 'and approve the change'], 'cardline'))
+    b.append(node(c, 364, 100, 318, 124, 'Agent sidebar', ['Claude Code, Codex, Pi or OpenCode', 'Your agent’s own conversation', 'and subscription'], 'cardline'))
+    b.append(node(c, 20, 278, 328, 76, 'CLI integration', ['Also connects external agents', 'in a terminal, VS Code or another IDE'], 'cardline'))
+    b.append(node(c, 372, 278, 328, 76, 'Task files in your repository', ['Plans, decisions and recorded checks'], 'cardline'))
+    b.append(f'<path d="M184 278 V258 H536 V278" fill="none" stroke="{c["muted"]}" stroke-width="1.8"/>')
+    b.append(f'<path d="M536 258 V246" fill="none" stroke="{c["muted"]}" stroke-width="1.8"/>')
     # what leaves your computer: sealed with the team key, or with a key only the link carries
     b.append(arrow(c, 702, 174, 818, col='amber'))
     b.append(f'<rect x="720" y="186" width="96" height="22" rx="11" fill="{c["bg"]}" stroke="{c["amberl"]}"/>')
@@ -1416,7 +1411,7 @@ def architecture(c):
     b.append(arrow(c, 1000, 236, 1000, 274, col='amber'))
     b.append(node(c, 820, 276, 125, 76, 'Your team', ['In their App'], 'amber', 'amberf'))
     b.append(node(c, 955, 276, 125, 76, 'Link guests', ['In the browser'], 'cardline', dash=True))
-    return svg(W, H, ''.join(b), 'How QualityLayer fits together: on your computer, your agent runs the QualityLayer CLI, which keeps each task in Markdown files in your repository, and the QualityLayer App reads the same files; only when you share, plans and comments go to the QualityLayer Server at qualitylayer.dev, encrypted, for your team and for people with a share link')
+    return svg(W, H, ''.join(b), 'QualityLayer in the App or browser: the task on the left and the agent on the right. Task files stay in your repository; the CLI also connects external agents. Shared plans and comments go to the server encrypted')
 
 
 # ---------------------------------------------------------------- designs

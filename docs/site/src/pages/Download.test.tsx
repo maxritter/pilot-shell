@@ -84,9 +84,9 @@ describe("the cards", () => {
     expect(markup).toContain("88 MB");
   });
 
-  it("offers the command line for machines with no screen, with the install command", async () => {
+  it("offers browser setup and CLI integration with the install command", async () => {
     const markup = await html(<DownloadView data={PACKAGES} system={null} />);
-    expect(markup).toContain("Command line only");
+    expect(markup).toContain("Browser setup and CLI");
     expect(markup).toContain("curl -fsSL https://qualitylayer.dev/install.sh | bash");
   });
 

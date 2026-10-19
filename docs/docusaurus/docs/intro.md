@@ -9,10 +9,10 @@ description: QualityLayer takes your coding agent from a request to a merged pul
   <figcaption>How QualityLayer works, in about five minutes.</figcaption>
 </figure>
 
-QualityLayer is the software factory with you in the loop. Your agent reads the code and plans each change with you in the **App**: the architecture as diagrams, the screens as clickable designs, every decision in the open. Once you and your team agree on the plan, your agent builds it test first and takes it to a pull request; agents that did not write the code check the result against your request.
+QualityLayer is the software factory with you in the loop. Use the **App or browser**, with the task on the left and your agent in the right sidebar. Your agent reads the code and plans each change with you: the architecture as diagrams, the screens as clickable designs, every decision in the open. Once you and your team agree on the plan, your agent builds it test first and takes it to a pull request; agents that did not write the code check the result against your request.
 
-![The Plan in the App: its summary, interface wireframe and Approve Plan](pathname:///img/app/plan-light.webp)
-![The Plan in the App: its summary, interface wireframe and Approve Plan](pathname:///img/app/plan-dark.webp)
+![The visual Plan: request retries, replay and a write-once ledger, with Approve Plan](pathname:///img/app/plan-light.webp)
+![The visual Plan: request retries, replay and a write-once ledger, with Approve Plan](pathname:///img/app/plan-dark.webp)
 
 *Example task in a fictional project.*
 
@@ -38,7 +38,7 @@ Each of the first seven steps writes one document. You approve twice: the Plan, 
 
 ## Who it is for
 
-Use it for medium and large changes, solo or with a team. Claude Code, Codex, Pi and OpenCode have [native integrations](agents/native.md). [Other coding agents](agents/other.md) use the same workflow through the CLI. Your agent keeps its own login and provider settings.
+Use it for medium and large changes, solo or with a team. Claude Code, Codex, Pi and OpenCode run beside your task in the App or browser through [native integrations](agents/native.md). [Other coding agents](agents/other.md) use the same workflow through the CLI. Your agent keeps its own login and provider settings.
 
 ## Two levels
 
@@ -54,8 +54,8 @@ Both levels take the same steps and write the same files.
 
 ## How it fits together {#how-it-fits-together}
 
-![On your computer, your agent runs the QualityLayer CLI, which keeps each task in Markdown files in your repository, and the App reads the same files; only shared plans and comments go to the QualityLayer server, encrypted](pathname:///img/diagrams/architecture-light.svg)
-![On your computer, your agent runs the QualityLayer CLI, which keeps each task in Markdown files in your repository, and the App reads the same files; only shared plans and comments go to the QualityLayer server, encrypted](pathname:///img/diagrams/architecture-dark.svg)
+![QualityLayer in the App or browser: your task on the left, your agent on the right. Task files stay in your repository; the CLI also connects external agents. Shared plans and comments reach the server encrypted](pathname:///img/diagrams/architecture-light.svg)
+![QualityLayer in the App or browser: your task on the left, your agent on the right. Task files stay in your repository; the CLI also connects external agents. Shared plans and comments reach the server encrypted](pathname:///img/diagrams/architecture-dark.svg)
 
 The task documents, `01-discuss.md` to `07-review.md`, live in your repository and stay when you uninstall ([what each holds](reference/files.md#documents)). Anything you share is encrypted on your computer first ([your data](reference/files.md#privacy)).
 

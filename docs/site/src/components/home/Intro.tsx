@@ -41,9 +41,9 @@ const PRINCIPLES: { who: "agent" | "you" | "check"; icon: LucideIcon; title: str
 
 /** From where you work to the files you keep: what QualityLayer connects, all inside one dashed frame, your computer. */
 const CHAIN: { icon: LucideIcon | "mark"; title: string; text: string; chips: string[]; ql?: true }[] = [
-  { icon: SquareTerminal, title: "Where you work", text: "Keep the tools you use today.", chips: ["Terminal", "Desktop app", "VS Code", "JetBrains"] },
+  { icon: Laptop, title: "Where you work", text: "Your task on the left, your agent on the right.", chips: ["QualityLayer App", "Browser"] },
   { icon: KeyRound, title: "Your agent, your subscription", text: "On the plan or API key you already pay for.", chips: ["Claude Code", "Codex", "Pi", "OpenCode"] },
-  { icon: "mark", title: "QualityLayer", text: "A command line your agent calls, and the App where you decide.", chips: ["Command line", "The App"], ql: true },
+  { icon: "mark", title: "QualityLayer", text: "Plan, answer and review beside your agent. The CLI also connects external agents.", chips: ["Visual plans", "Agent sidebar"], ql: true },
   { icon: FileText, title: "Your repository", text: "Every step is a Markdown file you can read, diff and commit.", chips: ["Plan", "Decisions", "Test runs"] },
 ];
 
@@ -71,7 +71,7 @@ export default function Intro() {
             <li key={label} className="mx-wi"><Icon name={icon} />{label}</li>
           ))}
         </ul>
-        <p className="mx-with-other"><a href="/docs/agents/other">Other coding agents</a> can use the CLI.</p>
+        <p className="mx-with-other">Run them in the App or browser. Prefer your own terminal or IDE? <a href="/docs/agents/other">The CLI connects other agents too.</a></p>
       </section>
 
       <section className="mx-sec" aria-labelledby="pr-h">

@@ -119,6 +119,12 @@ function answer(path: string): Answer {
 const V2_LINK = "/s/Xk3Jd92xA7pQ4mZr1bTnWe";
 
 describe("search routing", () => {
+  it("serves comparison pages as static HTML and leaves unknown comparisons at the real 404", () => {
+    for (const route of ["/compare", "/compare/humanlayer", "/compare/spec-kit", "/compare/openspec", "/compare/kiro", "/best-spec-driven-development-tools"]) {
+      expect(answer(route), route).toEqual({ kind: "static" });
+    }
+    expect(answer("/compare/missing-tool")).toEqual({ kind: "none" });
+  });
   it("preserves every existing article, including Pilot Shell-era URLs", () => {
     for (const route of blogRoutes) expect(answer(route), route).toEqual({ kind: "static" });
   });

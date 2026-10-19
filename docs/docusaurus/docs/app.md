@@ -3,10 +3,10 @@ title: The App
 description: Read the work, answer questions and give feedback beside your agent’s conversation.
 ---
 
-The App is where you answer questions, read documents and give feedback while your agent works. It runs on macOS, Windows and Linux; without a screen, `qualitylayer app` opens it in your browser.
+Read the task on the left and work with your agent in the right sidebar. Answer questions, inspect diagrams and give feedback beside its conversation. Use the desktop App on macOS, Windows or Linux, or run `qualitylayer app` to open the same workspace in your browser.
 
-![Discuss with a question, document and sidebar](pathname:///img/app/discuss-light.webp)
-![Discuss with a question, document and sidebar](pathname:///img/app/discuss-dark.webp)
+![A visual billing Plan explains retries, buffering and replay beside Claude Code, its QualityLayer band and a custom status line](pathname:///img/app/plan-light.webp)
+![A visual billing Plan explains retries, buffering and replay beside Claude Code, its QualityLayer band and a custom status line](pathname:///img/app/plan-dark.webp)
 
 *Example task in a fictional project.*
 
@@ -17,7 +17,7 @@ The App is where you answer questions, read documents and give feedback while yo
 | **Step track** | Where the task stands. A person icon marks the two steps you approve |
 | **Your turn** | One question or decision that needs you |
 | **Step page** | What needs you, what to look at, then the part of the step's document that matters now ([how it is built](#step-pages)) |
-| **Right sidebar** | **Files**, **Feedback** and the task’s **Agent** conversation |
+| **Right sidebar** | the task’s **Agent** conversation, **Files** and **Feedback** |
 
 ## The sidebar {#sidebar}
 

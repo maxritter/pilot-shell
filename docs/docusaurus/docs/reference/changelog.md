@@ -11,6 +11,41 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 <header class="cl-version">
 
+## 12.0.0-beta.59
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.59">Publication date unavailable</time></p>
+
+</header>
+
+### New
+
+- Ask your agent to plan, implement or continue work using QualityLayer or QL in your own words. Separate skills cover workflows, designs, agent communication and administration.
+- Choose **In QualityLayer** or **In my terminal, app or IDE**. External handoffs give you a request that carries the task and its recorded stage into the next session.
+- Check whether Claude Code, Codex, Pi and OpenCode are found on your computer, with version details and installation or repair guidance in Settings.
+- Open a design at the page and section you are working on, in QualityLayer or your browser. The CLI also supports renaming, copying, archiving, restoring and deleting Library entries.
+- Each workflow step opens with what needs your attention and a short overview. Supporting detail stays available in folds, with clearer progress and results during implementation and verification.
+
+### Fixed
+
+- Managed launches pick up shell PATH changes without restarting the server.
+- Design previews refresh when their source or dependencies change. Expanding a design fills the window and restores the previous sidebars when you leave the expanded view.
+- Feedback written before a design refresh keeps its text and asks you to select the spot again before sending.
+- Memory word matches are ranked by relevance before the result limit. Older, precise lessons can remain visible alongside semantic matches.
+- Draft Plans and Outlines enforce their size and source-file rules while approved work can continue. Repeated check summaries and generated-file lists are easier to scan.
+
+### Good to know
+
+- The updater replaces QualityLayer-owned legacy skills with the four current skills and preserves edited files as backups. Unrelated custom skills remain yours.
+- An available agent executable can still need a provider login or account access.
+
+
+
+</section>
+
+<section class="cl-rel">
+
+<header class="cl-version">
+
 ## 12.0.0-beta.58
 
 <p class="cl-published"><time data-release-version="12.0.0-beta.58">Publication date unavailable</time></p>

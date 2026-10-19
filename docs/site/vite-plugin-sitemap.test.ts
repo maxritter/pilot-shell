@@ -5,6 +5,7 @@ import type { ResolvedConfig } from "vite";
 import { describe, expect, it } from "vitest";
 import sitemapPlugin from "./vite-plugin-sitemap";
 import { PUBLIC_PAGES } from "./src/lib/seo";
+import { COMPARISON_PATHS } from "./src/lib/comparisons";
 
 const locations = (xml: string) => [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
 
@@ -24,6 +25,7 @@ describe("crawler discovery", () => {
       const pages = readFileSync(join(outDir, "sitemap-pages.xml"), "utf8");
       expect(pages).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
       expect(locations(pages)).toEqual(Object.keys(PUBLIC_PAGES).map((route) => `https://qualitylayer.dev${route}`));
+      for (const route of COMPARISON_PATHS) expect(locations(pages).filter((url) => url === `https://qualitylayer.dev${route}`)).toHaveLength(1);
     } finally {
       rmSync(outDir, { recursive: true, force: true });
     }

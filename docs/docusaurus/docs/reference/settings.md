@@ -77,7 +77,7 @@ Tell your agent: "skip security", "run a checkpoint after every slice", "get a s
 
 ## Licence
 
-Your plan or trial days left. **Open billing account** opens qualitylayer.dev/billing (subscription, invoices, seats, payment method). **On another computer** shows the command that moves your licence; if no activation is free, run `qualitylayer licence deactivate` on the old machine or write to mail@maxritter.net. The tab also lists what contacts QualityLayer ([Files and privacy](files.md#privacy)).
+Your plan or trial days left. **Open billing account** opens qualitylayer.dev/billing (subscription, invoices, seats, payment method). **On another computer** shows the command that moves your licence; if no activation is free, run `qualitylayer licence deactivate` on the old machine or write to hello@qualitylayer.dev. The tab also lists what contacts QualityLayer ([Files and privacy](files.md#privacy)).
 
 ## Team
 

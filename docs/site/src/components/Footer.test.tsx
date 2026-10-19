@@ -14,6 +14,8 @@ describe("the footer", () => {
     for (const path of ["/", "/pricing", `/s/${"A".repeat(22)}`]) {
       const rendered = await html(path);
       expect(rendered).toContain("© 2026 QualityLayer");
+      expect(rendered).toContain('href="/compare"');
+      expect(rendered).toContain(">Compare</a>");
       // Who makes it: the author's own site, as the README's footer has it.
       expect(rendered).toMatch(/by <a href="https:\/\/www\.maxritter\.net\/">Max Ritter<\/a>/);
       // Every page links the imprint, privacy policy and terms a seller in Germany must show.

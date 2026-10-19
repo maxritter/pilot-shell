@@ -46,7 +46,7 @@ const Hero = () => {
           Watch the film <span className="mx-dur">{clock(FILMS.overview.duration)}</span>
         </Button>
       </div>
-      <p className="sx-meta">For one developer or a whole team · <Link to="/download">macOS, Windows and Linux</Link> · 7-day trial</p>
+      <p className="sx-meta">App or browser · <Link to="/download">macOS, Windows and Linux</Link> · 7-day trial</p>
       {film ? <FilmDialog onClose={() => { setFilm(false); opener.current?.focus(); }} /> : null}
     </section>
   );

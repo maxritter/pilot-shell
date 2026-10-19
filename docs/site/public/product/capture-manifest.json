@@ -7,7 +7,7 @@
     "qualitylayer/src/ui/settings/Rows.tsx": "e29af5f67d144f573d87659280a970313549e85456c735792385d37414029604",
     "qualitylayer/src/ui/globals.css": "816b115e343a42897ba0c0fa22c52184d1d749b6366fc33fb7ec0193f1aecbcb"
   },
-  "capturedAt": "2026-10-18T14:29:53.063Z",
+  "capturedAt": "2026-10-19T08:09:17.754Z",
   "scenes": [
     "discuss",
     "research",
@@ -32,18 +32,20 @@
       "file": "discuss-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "851f16d79311c894c7e67fad0ef92a56a14054c3d77013a7d56f2b55a7b61517",
+      "sha256": "b01ceb8c309faf725701b3ad288255f64c2266bb9bdbff7e00bbd0325a7cd441",
       "capture": "workflow-with-claude-code",
       "sourceViewport": {
         "width": 1440,
         "height": 960
-      }
+      },
+      "capturedAt": "2026-10-19T08:09:17.754Z"
     },
     {
       "file": "discuss-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "5638ed6b88d8b7be2b5270b9c07036df2f0331d432532f672441a8bc7827239c"
+      "sha256": "46529aef89d31f48801d8bc3bb9311ce30b55475c891a88616e2d93716a56c0d",
+      "capturedAt": "2026-10-19T08:09:17.754Z"
     },
     {
       "file": "research-light.webp",
@@ -66,41 +68,45 @@
       "file": "plan-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "ac475e25640438c0bc258a23bfe0c83fd44bcff4083d3c0faabd791272767b5a",
+      "sha256": "e9f97d0d93c38ac7d9dd81acaa6cad3acf51827a6244116ff256c5c999437349",
       "capture": "workflow-with-claude-code",
       "sourceViewport": {
         "width": 1440,
         "height": 960
-      }
+      },
+      "capturedAt": "2026-10-19T08:09:17.754Z"
     },
     {
       "file": "plan-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "fb137d5632011f10f4215f594c38a6f162c196db8e424dc59a81829029687f4f"
+      "sha256": "4e3d09b22ee4d275b8829089206888f5b19aba833724394c1f03c9181c1f212f",
+      "capturedAt": "2026-10-19T08:09:17.754Z"
     },
     {
       "file": "terminal-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "7de1e0a684edb75daa9229e37909f36ea74b85467acd55be464670b60168234d"
+      "sha256": "e9f97d0d93c38ac7d9dd81acaa6cad3acf51827a6244116ff256c5c999437349",
+      "capturedAt": "2026-10-19T08:09:17.754Z"
     },
     {
       "file": "terminal-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "42338adc9144f939b9b72fcb247623f819d980977106d4150ef4c45ef6bfa5d4",
+      "sha256": "9257431eca56d9334e60442d1565e30172f164ec710242a7e83cecc6c37b8c95",
       "capture": "desktop-agent-column",
       "sourceViewport": {
         "width": 1440,
         "height": 960
       },
       "clip": {
-        "x": 920,
+        "x": 800,
         "y": 107,
-        "width": 520,
+        "width": 640,
         "height": 853
-      }
+      },
+      "capturedAt": "2026-10-19T08:09:17.754Z"
     },
     {
       "file": "outline-light.webp",
@@ -208,18 +214,20 @@
       "file": "design-light.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "80190d7c78324d319ed85d6ea82cc975d019aac476cba4f52c91343e4ca05adb"
+      "sha256": "a384683d9d50d563a36b97363c5d0d8f1f028fa0c05eb3d97bd6ddcf1c7f4de3",
+      "capturedAt": "2026-10-19T08:07:38.973Z"
     },
     {
       "file": "design-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "de01023968a73c381dbc278b129da85190c2a64d440253b78b3451553b02b56e",
+      "sha256": "3ee53d1c3980d7bfb6a17330be8fca7d4537a2ad7bc7719d02a0c42c36a99ecb",
       "capture": "narrow-feedback-sheet",
       "sourceViewport": {
         "width": 390,
         "height": 700
-      }
+      },
+      "capturedAt": "2026-10-19T08:07:38.973Z"
     },
     {
       "file": "team-light.webp",
@@ -297,18 +305,20 @@
       "file": "discuss-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "e561b5de90578fe4ebb70e668a852c0ff3c53851fa8b0d55090bbb873bfb115f",
+      "sha256": "94c302c52fb80af58b76e0814241472e7799a000e66148e74affad88eafefab3",
       "capture": "workflow-with-claude-code",
       "sourceViewport": {
         "width": 1440,
         "height": 960
-      }
+      },
+      "capturedAt": "2026-10-19T08:09:17.754Z"
     },
     {
       "file": "discuss-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "865761b92494b6a1b7135b4d4d5fe33412d30e65427517c726cdfb951a95613f"
+      "sha256": "77ff43e57a4fc27a7e52ea2a924878d5062395e32db9762738aa8e401c30e7b3",
+      "capturedAt": "2026-10-19T08:09:17.754Z"
     },
     {
       "file": "research-dark.webp",
@@ -331,41 +341,45 @@
       "file": "plan-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "d8ce2fb784ac8f28f56cd1b94b943cbdcf92978e5dd9876cf68d81cb3fa9611a",
+      "sha256": "6fc02b4fc22f542a212559a29aba8ca01798ab89b98c5cfd3ad07474fd4680e1",
       "capture": "workflow-with-claude-code",
       "sourceViewport": {
         "width": 1440,
         "height": 960
-      }
+      },
+      "capturedAt": "2026-10-19T08:09:17.754Z"
     },
     {
       "file": "plan-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "b3a28b6a0a395fecb4272141aea7504faeb735d82a1b617ef9b5d356ace99614"
+      "sha256": "4c1e29707929118b088d3add64ce9eb39f62de6393d8841a7a0aaabcb400244b",
+      "capturedAt": "2026-10-19T08:09:17.754Z"
     },
     {
       "file": "terminal-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "be5d2927a96403dae6b684093547f74e81f768598362d7551857ad3ae7c8bbcf"
+      "sha256": "6fc02b4fc22f542a212559a29aba8ca01798ab89b98c5cfd3ad07474fd4680e1",
+      "capturedAt": "2026-10-19T08:09:17.754Z"
     },
     {
       "file": "terminal-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "47c9af8f6f2159852c45dc1b74da2704f57193e0e600e7867469ce87ca4557a5",
+      "sha256": "e462f1caba6adfdfb882b3e73ced581538b0efc5bfb8694ee0966b959f82b1ff",
       "capture": "desktop-agent-column",
       "sourceViewport": {
         "width": 1440,
         "height": 960
       },
       "clip": {
-        "x": 920,
+        "x": 800,
         "y": 107,
-        "width": 520,
+        "width": 640,
         "height": 853
-      }
+      },
+      "capturedAt": "2026-10-19T08:09:17.754Z"
     },
     {
       "file": "outline-dark.webp",
@@ -473,18 +487,20 @@
       "file": "design-dark.webp",
       "width": 2880,
       "height": 1920,
-      "sha256": "05f9dd2f4a030265cb2d1d1411bd9c3507a152ff3991d5b3fad23a0db9c40486"
+      "sha256": "da2a6aa84048ba75e5b14e3f1d385e79a6676eadd4066c1c09607dff119b7f97",
+      "capturedAt": "2026-10-19T08:07:38.973Z"
     },
     {
       "file": "design-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "8aed670d1d500cd1be1a4b4c51185787586f7ce88b9e85d0d44047f368a78d8b",
+      "sha256": "535eba9dc082bed0bd7c5806d5827842e0c9230ad93bd8fcd52852052afd948c",
       "capture": "narrow-feedback-sheet",
       "sourceViewport": {
         "width": 390,
         "height": 700
-      }
+      },
+      "capturedAt": "2026-10-19T08:07:38.973Z"
     },
     {
       "file": "team-dark.webp",
@@ -558,5 +574,20 @@
       "height": 1400,
       "sha256": "5516a68eac3b37806795e1d4f584ee96c65d1898cbd1e617b37339dff5b5a630"
     }
-  ]
+  ],
+  "sourceInputs": {
+    "qualitylayer/src/ui/demo/plan-doc.ts": "8d0de2e58a29769c1dcdb7d69cca49eb0c9e4b439008ee0f0abf2208c7e8e3ba",
+    "qualitylayer/src/ui/demo/agent-window.ts": "f30fbaeb538c5c1a2908e7f9e557d990bc889c4a06b789ab9179dcf0ac3c7c69",
+    "qualitylayer/src/ui/demo/agent-window-fixture.ts": "83ae4a347946fee414ae0c914672a6ba22ff7fc8a06afd298d273bc9bcfe4585",
+    "qualitylayer/src/ui/demo/claude-terminal.ts": "91ea45c8f30c8874a724f622c7339e1a264a8ae43ab76e5bbbe50d994969afb7",
+    "qualitylayer/src/ui/demo/claude-terminal.css": "d453ca9e529af7e72791b583b4c9ff46aa0abae05d13cd935b092f1043f79d3b",
+    "qualitylayer/src/workflow/mod/qualitylayer/hooks/register.tsx": "9c05d0c5e6b30ecd4f8cd0d1822128dabe256ba0458b32beb0fe1c85313d5d7e"
+  },
+  "refreshedScenes": [
+    "plan",
+    "terminal",
+    "discuss",
+    "design"
+  ],
+  "captureScriptHash": "50feeddb1b6f1974422d2499a641e70bdef9c9e425a83958f4fedab0ca636eac"
 }

@@ -5,6 +5,7 @@ import { Dialog as Modal } from "radix-ui";
 import { DownloadIcon, LogOutIcon } from "lucide-react";
 import Page from "@/components/Page";
 import SEO from "@/components/SEO";
+import { CONTACT_EMAIL } from "@/lib/product";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -155,7 +156,7 @@ export default function Billing() {
         <Button className="bl-primary" type="submit" disabled={busy}>{busy ? "Please wait…" : challenge ? "Sign in" : "Send sign-in code"}</Button>
         {challenge && <Button type="button" variant="ghost" className="bl-link" disabled={busy} onClick={() => { setChallenge(null); setCode(""); setError(""); }}>Use another email or request a new code</Button>}
       </form>
-      <a href="mailto:mail@maxritter.net">Contact support</a>
+      <a href={`mailto:${CONTACT_EMAIL}`}>Contact support</a>
     </section> : <>
       <div className="bl-intro"><div><h1>Subscription &amp; billing</h1><p>Your plan, payment method and licence, in one place.</p></div><div className="bl-account"><div className="bl-identity"><small>Signed in as</small><span>{account.email}</span></div><Button variant="outline" disabled={busy} onClick={() => void run(async () => { await billingRequest("sign-out"); setAccount(null); setDownloads({}); setPaymentSession(null); setEmail(""); setCode(""); setChallenge(null); })}><LogOutIcon data-icon="inline-start" aria-hidden="true" />Sign out</Button></div></div>
       {account.subscriptions.length > 1 && <Field className="bl-field bl-picker"><FieldLabel htmlFor="subscription-choice">Subscription</FieldLabel><Select value={subscription?.id} onValueChange={(id) => { setSelected(id); setSeatCount(null); setMemberSearch(""); setMemberPage(0); setDetailTab("invoices"); }}><SelectTrigger id="subscription-choice"><SelectValue /></SelectTrigger><SelectContent position="popper"><SelectGroup>{account.subscriptions.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}{item.seats !== null ? ` · ${item.seats} ${item.seats === 1 ? "seat" : "seats"}` : ""} · {item.interval === "year" ? "Yearly" : "Monthly"}</SelectItem>)}</SelectGroup></SelectContent></Select></Field>}
@@ -201,7 +202,7 @@ export default function Billing() {
           <form className="bl-seat-form" onSubmit={(event) => { event.preventDefault(); void quote("seats"); }}><FieldGroup><Field><FieldLabel htmlFor="seat-count">Purchased seats</FieldLabel><Input id="seat-count" type="number" min={Math.max(1, team.seats.length)} max={1000} required disabled={subscription.legacy} value={seatCount ?? team.total} onChange={(event) => setSeatCount(Number(event.target.value))} /></Field><Button variant="outline" disabled={subscription.legacy || busy || !!subscription.pending || subscription.canceled || subscription.pauseScheduled || subscription.status !== "active" || (seatCount ?? team.total) === team.total} type="submit">Review seat count</Button></FieldGroup></form></div><p className="bl-hint">{subscription.legacy ? "Contact support to change purchased seats while preserving your existing subscription terms." : "Enter a different count to review the price. Changes take effect at the next renewal. Existing assignments must fit within the new total."}</p>
         </TabsContent>}
       </Tabs>
-      <div className="bl-bottom"><a href="mailto:mail@maxritter.net">Contact support</a></div>
+      <div className="bl-bottom"><a href={`mailto:${CONTACT_EMAIL}`}>Contact support</a></div>
     </>}
   </div></Page>
   <Modal.Root open={!!dialog || !!paymentSession} onOpenChange={(open) => { if (!open && !busy) { setDialog(null); setPaymentSession(null); } }}><Modal.Portal><Modal.Overlay className="bl-overlay" /><Modal.Content className="bl-dialog" onCloseAutoFocus={(event) => { event.preventDefault(); opener.current?.focus(); }} onEscapeKeyDown={(event) => { if (busy) event.preventDefault(); }} onPointerDownOutside={(event) => { if (busy) event.preventDefault(); }}>

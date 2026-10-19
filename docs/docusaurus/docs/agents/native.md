@@ -8,7 +8,9 @@ description: Set up the four native coding agents, choose their models and revie
 
 QualityLayer connects **Claude Code**, **Codex**, **Pi** and **OpenCode** to the same workflow. Install your agent, sign in through its own login and start it once, then run QualityLayer setup. The App and CLI installers add the integration for each agent they find.
 
-Say “Using QualityLayer, plan a CSV export” in any supported agent. The same wording works with **QL** and with requests to implement, verify or continue an existing task.
+In the App or browser, choose **+ New**, pick your agent and describe the change. The task stays on the left and its agent conversation opens in the right sidebar.
+
+In your own terminal, VS Code or another IDE, say “Using QualityLayer, plan a CSV export”. The same wording works with **QL** and requests to implement, verify or continue an existing task.
 
 | Agent | What QualityLayer adds |
 | --- | --- |
@@ -29,7 +31,7 @@ Choose the agent, model and effort when starting a task or build. Settings › W
 
 Pi and OpenCode can use the same model provider as your working agent. Choose a different model or provider when you want a second model family, as well as a fresh context.
 
-## Sessions in the App
+## Sessions in the App or browser
 
 Choose the agent, model, effort and workspace when you start a task or build. The task’s **Agent** tab holds its conversation in QualityLayer. Closing the sidebar keeps the run; **Stop** ends it. If the local runtime cannot start a session, use **In my terminal, app or IDE**.
 

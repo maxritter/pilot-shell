@@ -1,6 +1,6 @@
 ---
 title: Install
-description: Download the App, or run one command on a machine without a screen. Updates come through the App.
+description: Use QualityLayer in the desktop App or your browser, with your task and coding agent side by side.
 ---
 
 ![One rule: a machine with a screen gets the App, which updates itself; WSL2, dev containers and servers get the command line and open the App in a browser](pathname:///img/diagrams/install-light.svg)
@@ -19,7 +19,11 @@ description: Download the App, or run one command on a machine without a screen.
 
 On Windows you can also run `irm https://qualitylayer.dev/install.ps1 | iex` in PowerShell. This installs the App and the command line.
 
-## WSL2, dev containers and servers {#without-a-screen}
+## In your browser {#browser}
+
+The browser shows the same workspace: task content on the left, your agent on the right. After installation, run `qualitylayer app` to open it. Your agents run on the computer where QualityLayer is installed.
+
+### WSL2, dev containers and servers {#without-a-screen}
 
 Install QualityLayer where your agent runs. Its pages open in your computer's browser, so you don't need the App there.
 

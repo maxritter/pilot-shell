@@ -54,6 +54,9 @@ fi
 # Copy Docusaurus img (favicon etc.) — merge into existing img or create
 [ -d "$BUILD/img" ] && cp -r "$BUILD/img" "$DIST/img"
 
+echo "=== Adding Web Analytics to Docusaurus pages ==="
+node "$SITE_DIR/scripts/inject-docusaurus-analytics.mjs" "$DIST"
+
 # Generate the docs/blog sitemap from final canonical HTML; preserve the marketing index.
 node "$SITE_DIR/scripts/generate-docs-sitemap.mjs" "$DIST"
 # Copy any other Docusaurus xml files (rss, atom, etc.) to /docs/

@@ -14,6 +14,7 @@ const Open = lazy(() => import("./pages/Open"));
 const Download = lazy(() => import("./pages/Download"));
 const Billing = lazy(() => import("./pages/Billing"));
 const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
+const Compare = lazy(() => import("./pages/Compare"));
 const Legal = lazy(() => import("./pages/Legal"));
 
 /** Page statistics everywhere but on the page a Slack DM opens, which reads its link and sends nothing. */
@@ -42,6 +43,12 @@ const App = () => (
           <Route path="/s/:id" element={<Shared />} />
           <Route path="/open/*" element={<Open />} />
           <Route path="/download" element={<Download />} />
+          <Route path="/compare" element={<Compare />} />
+          <Route path="/compare/humanlayer" element={<Compare />} />
+          <Route path="/compare/spec-kit" element={<Compare />} />
+          <Route path="/compare/openspec" element={<Compare />} />
+          <Route path="/compare/kiro" element={<Compare />} />
+          <Route path="/best-spec-driven-development-tools" element={<Compare />} />
           <Route path="/imprint" element={<Legal />} />
           <Route path="/privacy" element={<Legal />} />
           <Route path="/terms" element={<Legal />} />

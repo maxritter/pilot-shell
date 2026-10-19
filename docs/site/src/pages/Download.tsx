@@ -87,7 +87,7 @@ export function DownloadView({
     <section className="w7-sec w7-nf" aria-labelledby="dl-h">
       <div className="w7-wrap">
         <h1 id="dl-h" className="w7-h2">Get the QualityLayer App</h1>
-        <p className="w7-lead">The App and the command line your agents use, in one download. Updates install when you restart.</p>
+        <p className="w7-lead">Your task on the left, your agent on the right. Use the desktop App or open the same workspace in your browser. Updates install when you restart the App.</p>
         <ReleaseLine data={data} loading={loading} />
         <div className="ap-dl">
           {cards.map((card) => {
@@ -115,8 +115,8 @@ export function DownloadView({
         <div className="ap-cli">
           <Icon path={TERMINAL} stroke />
           <span>
-            <b>Command line only</b>
-            <small>WSL, dev containers and servers: the App opens in your browser</small>
+            <b>Browser setup and CLI</b>
+            <small>Install where your agent runs, then open the workspace with qualitylayer app. Works in WSL, dev containers and servers.</small>
             <span className="w7-cmd">
               <code>{INSTALL_COMMAND}</code>
               <Button type="button" onClick={() => void copy()} aria-label="Copy install command">

@@ -38,8 +38,8 @@ export const FAQS: Faq[] = [
     "Yes. Choose Product or Engineering at Setup or in Settings › Workflow. Product starts with a brief: the problem, how success is measured and the first release, with engineering detail folded away. Engineering starts with the full technical plan. The task header switches the level for one task.",
   ),
   faq(
-    "Can I run my agent in the App?",
-    "Yes. Start Claude Code, Codex, Pi or OpenCode from New task or Implement and type in its interactive window. You can also keep your terminal.",
+    "Can I run my agent in the App or browser?",
+    "Yes. Start Claude Code, Codex, Pi or OpenCode from New task or Implement. Your task stays on the left and the agent runs in the right sidebar. Use the desktop App or the browser connected to your local installation. Your own terminal, VS Code and other IDEs remain available.",
   ),
   faq(
     "What does it cost to run?",
@@ -74,7 +74,7 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "Which agents does it work with?",
-    "Claude Code, Codex, Pi and OpenCode have native setup, model choices and interactive sessions in the App. Choose any installed agent for a separate review. Other agents that run shell commands can follow the same workflow from your terminal.",
+    "Claude Code, Codex, Pi and OpenCode have native setup, model choices and interactive sessions in the App or browser. Choose any installed agent for a separate review. The CLI connects other agents that run shell commands, including in your own terminal, VS Code or another IDE.",
   ),
   faq(
     "Who needs a seat?",

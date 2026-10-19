@@ -10,7 +10,8 @@
 ### The software factory with you in the loop
 
 **Plan each change visually with your agent and your team.**<br>
-Claude Code, Codex, Pi and OpenCode in the App. Other agents via the CLI.
+Use the App or browser: your task on the left, your agent on the right.<br>
+Claude Code, Codex, Pi and OpenCode connect directly. Other agents use the CLI.
 
 <a href="https://github.com/maxritter/pilot-shell"><picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&amp;color=9d6607&amp;labelColor=30363d">
@@ -37,11 +38,9 @@ Claude Code, Codex, Pi and OpenCode in the App. Other agents via the CLI.
   <a href="https://qualitylayer.dev/docs/changelog">Changelog</a>
 </p>
 
-```bash
-curl -fsSL https://qualitylayer.dev/install.sh | bash
-```
+**[Download the App](https://qualitylayer.dev/download)** for macOS, Windows or Linux. 7-day trial.
 
-**macOS · Windows · Linux**, or [download the App](https://qualitylayer.dev/download). 7-day trial.
+Prefer your browser? [Set up the browser workspace](https://qualitylayer.dev/docs/install#browser).
 
 <br>
 
@@ -75,7 +74,7 @@ Made for medium and large changes. Small requests keep a short Plan and one slic
 
 ### Prerequisites
 
-- **A coding agent**, ready to run shell commands in your repository: Claude Code, Codex, Pi, OpenCode, or [any other agent](https://qualitylayer.dev/docs/agents/other). The four native integrations also work in the App.
+- **A coding agent:** Claude Code, Codex, Pi or OpenCode, installed and signed in. Choose it in the App or browser. [Other agents](https://qualitylayer.dev/docs/agents/other) connect through the CLI.
 - **Your own subscription** (Claude or ChatGPT plan, or API key). QualityLayer never charges for model usage.
 - **Git** and a repository.
 
@@ -110,15 +109,19 @@ Keep using Pilot Shell 11 alongside QualityLayer for as long as you want. Your p
 
 ### First Steps
 
+In the App or browser, choose **+ New**, pick your repository and agent, and describe the change:
+
 ```text
-Using QualityLayer, plan retries for failed webhooks and stop after a few tries.
+Plan retries for failed webhooks and stop after a few tries.
 ```
 
-Use the same natural wording in Claude Code, Codex, Pi or OpenCode. Name **QualityLayer** or **QL** and say what you want to plan, implement or continue. No slash command is needed.
+The task stays on the left and your agent works in the **Agent** sidebar on the right. Read the diagrams and comment on the Plan beside the conversation.
 
 Answer your agent's questions in the App, approve the Plan, then start the build. Your agent continues through Outline, Implement and Verify until Review. Human-only prerequisites and blocked checks stay unverified for your decision there. QualityLayer runs only when you ask for it. [Your first task](https://qualitylayer.dev/docs/first-task).
 
-Choose the agent, model, effort and workspace when starting a task or build. **In QualityLayer** opens the task's **Agent** conversation beside **Files** and **Feedback**; **In my terminal, app or IDE** copies a request for your agent. Settings keeps global run controls and review models. [Supported agents](https://qualitylayer.dev/docs/agents/native).
+Choose the agent, model, effort and workspace when starting a task or build. **In QualityLayer** keeps the agent beside the task. Settings keeps global run controls and review models. [Supported agents](https://qualitylayer.dev/docs/agents/native).
+
+Prefer your own terminal, VS Code or another IDE? **In my terminal, app or IDE** copies the request for that session. You can also ask there directly: “Using QualityLayer, plan retries for failed webhooks.” Other agents that run shell commands can use the CLI. No slash command is needed.
 
 To continue elsewhere after a stopped run, stop the previous session if it is still active, then ask: “Using QL, continue verification of task retry-webhooks.” The task keeps its approved Plan, changes and evidence.
 
@@ -155,8 +158,8 @@ Ask your agent for a mockup, diagram or clickable design. Compare versions in th
 ## QualityLayer App
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/discuss-dark.webp">
-  <img src="docs/site/public/product/discuss-light.webp" alt="A Discuss question with answer choices beside an illustrative Claude Code session in the Agent sidebar. Fictional project." width="1000">
+  <source media="(prefers-color-scheme: light)" srcset="docs/site/public/product/terminal-light.webp">
+  <img src="docs/site/public/product/terminal-dark.webp" alt="A visual Plan explains retries, buffering and replay beside an illustrative Claude Code session with the QualityLayer mod and a custom status line. Fictional project." width="1000">
 </picture>
 
 - Answer your agent's questions and comment on any passage; answers reach it at once.

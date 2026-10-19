@@ -3,7 +3,7 @@ title: Other agents
 description: Use QualityLayer with any coding agent that can run shell commands, including one that runs a model on your own machine.
 ---
 
-[Claude Code, Codex, Pi and OpenCode](native.md) have native integrations. Any other agent that can run shell commands in your repository follows the same steps, including one on a local model.
+[Claude Code, Codex, Pi and OpenCode](native.md) run directly in the App or browser beside your task. The CLI connects other agents that can run shell commands in your repository, including one on a local model.
 
 ![Another agent with the qualitylayer command and a prompt from the App follows the same steps](pathname:///img/diagrams/agents-other-light.svg)
 ![Another agent with the qualitylayer command and a prompt from the App follows the same steps](pathname:///img/diagrams/agents-other-dark.svg)
@@ -23,7 +23,7 @@ Pick **Another agent** when starting the build and copy its terminal prompt. Aft
 
 ## Run in your terminal {#app-start}
 
-Choose **Another agent** and copy the request into that agent’s terminal. App conversations are available for the four supported integrations; another agent does not gain those controls from a copied prompt.
+Choose **Another agent** and copy the request into that agent’s terminal. Conversations in the App or browser are available for the four supported integrations; another agent does not gain those controls from a copied prompt.
 
 ## What changes {#differences}
 
