@@ -74,6 +74,41 @@ if [ "${SKIP_IDENTITY_CHECK:-0}" != "1" ]; then
   fi
 fi
 
+# A configured registry helper missing from PATH would otherwise fail only after the staged copy.
+if [ "${SKIP_TRIVY:-0}" != "1" ] && command -v trivy >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
+  _ql_docker_file="${DOCKER_CONFIG:-${HOME}/.docker}/config.json"
+  if ! _ql_scan_helpers="$(python3 -I - "$_ql_docker_file" <<'PY'
+import json, os, pathlib, re, sys
+try:
+    raw = os.environ.get("DOCKER_AUTH_CONFIG")
+    path = pathlib.Path(sys.argv[1])
+    if raw is None and not path.is_file():
+        sys.exit(0)
+    if raw is None and path.stat().st_size > 1024 * 1024:
+        raise ValueError("registry configuration exceeds its cap")
+    config = json.loads(raw if raw is not None else path.read_text())
+    helpers = [config.get("credsStore"), *config.get("credHelpers", {}).values()]
+    for name in sorted({name for name in helpers if name}):
+        if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+", name):
+            raise ValueError("invalid registry helper name")
+        print("docker-credential-" + name)
+except Exception:
+    print("Pre-commit could not inspect the configured registry credential helpers.", file=sys.stderr)
+    sys.exit(1)
+PY
+)"; then
+    exit 1
+  fi
+  while IFS= read -r _ql_scan_helper; do
+    [ -n "$_ql_scan_helper" ] || continue
+    if ! command -v "$_ql_scan_helper" >/dev/null 2>&1; then
+      echo "✖ Pre-commit prerequisite: configured registry helper $_ql_scan_helper is not executable on this PATH." >&2
+      echo "  Restore the existing helper's directory to PATH, then retry. No staged snapshot or security scan was started." >&2
+      exit 1
+    fi
+  done <<<"$_ql_scan_helpers"
+fi
+
 TMP="$(mktemp -d)" || exit 1
 trap 'rm -rf "${TMP:?}"' EXIT
 
