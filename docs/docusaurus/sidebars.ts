@@ -9,7 +9,7 @@ const sidebars: SidebarsConfig = {
       "steps/discuss", "steps/research", "steps/plan", "steps/outline", "steps/implement", "steps/verify", "steps/review", "steps/pull-request",
     ] },
     { type: "category", label: "App and team", collapsed: false, items: [
-      "app", "designs", "memory", "team/plans", "team/agents", "team/changes",
+      "app", "artifacts", "memory", "team/plans", "team/agents", "team/changes",
     ] },
     { type: "category", label: "Reference", collapsed: false, items: [
       "reference/commands", "reference/settings", "reference/files", "reference/changelog",

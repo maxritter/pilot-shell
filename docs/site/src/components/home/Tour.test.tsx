@@ -28,13 +28,13 @@ describe("the tour", () => {
 
   it("keeps the anchors the header and other pages link to, each once", async () => {
     const page = await render();
-    for (const name of ["tour", "designs", "team", "setup"]) expect(page.match(new RegExp(`id="${name}"`, "g"))).toHaveLength(1);
+    for (const name of ["tour", "artifacts", "team", "setup"]) expect(page.match(new RegExp(`id="${name}"`, "g"))).toHaveLength(1);
   });
 
-  it("opens each of its four parts with a heading: the steps for you alone first, then designs, the team and the setup", () => {
-    expect(PARTS.map((p) => p.label)).toEqual(["Steps", "Designs", "Team", "Setup"]);
+  it("opens each of its four parts with a heading: the steps for you alone first, then artifacts, the team and the setup", () => {
+    expect(PARTS.map((p) => p.label)).toEqual(["Steps", "Artifacts", "Team", "Setup"]);
     expect(CHAPTERS[0].act?.text).toMatch(/alone|your own/i);
-    expect(CHAPTERS[PARTS[1].from].act?.id).toBe("designs");
+    expect(CHAPTERS[PARTS[1].from].act?.id).toBe("artifacts");
     expect(CHAPTERS[PARTS[2].from].act?.id).toBe("team");
   });
 
@@ -223,7 +223,7 @@ describe("the tour", () => {
     expect(CHAPTERS.find((c) => c.id === "review")?.text).toMatch(/stays open until it is merged/);
   });
 
-  it("shows the design inside the question it belongs to, and keeps the full-size design clickable", async () => {
+  it("shows the artifact inside the question it belongs to, and keeps the full-size artifact clickable", async () => {
     expect(await shot("draw", 2)).toContain("cu-dz");
     expect(await shot("comment", 6)).toContain("cu-dpb");
     expect(text(await shot("comment", 6))).toContain("Each failed row now says when it tries next");

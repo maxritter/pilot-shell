@@ -1,10 +1,10 @@
 import { ArrowRight, Check, ChevronDown, ChevronRight, Copy, Image, Maximize2, MessageSquare, Plus, Send } from "lucide-react";
 import type { ReactNode } from "react";
-import { CHAPTERS, checkRunning, checksPassed, committedTasks, DESIGN, DISCUSS_BATCH, discussAt, REQUEST, STAGES, TASK, VERIFY_CHECKS } from "@/lib/tour";
+import { CHAPTERS, checkRunning, checksPassed, committedTasks, ARTIFACT, DISCUSS_BATCH, discussAt, REQUEST, STAGES, TASK, VERIFY_CHECKS } from "@/lib/tour";
 
 /**
  * One close-up of the QualityLayer App per chapter, at reading size. Each is a crop of the App's
- * main column as qualitylayer/design/app draws it: the top bar (the task, its seven steps and the
+ * main column as qualitylayer/artifacts/app draws it: the top bar (the task, its seven steps and the
  * agent chip), the connected seven steps, and then the question or full document. Agent activity
  * opens from its chip. A close-up plays its moments one per second; `step` is the moment.
  */
@@ -129,7 +129,7 @@ const Checked = ({ facts, head = "Checked by agents" }: { facts: string[]; head?
  * The page the agent drew for this task: the person's own product, drawn in its theme. Full size,
  * its Retry button works: three tries and the delivery stops and mails the customer.
  */
-export function DesignPage({ tries = 2, onRetry, next = false, pin = false, brief = false }: { tries?: number; onRetry?: () => void; next?: boolean; pin?: boolean; brief?: boolean }) {
+export function ArtifactPage({ tries = 2, onRetry, next = false, pin = false, brief = false }: { tries?: number; onRetry?: () => void; next?: boolean; pin?: boolean; brief?: boolean }) {
   const stopped = tries >= 3;
   const rows: [string, string, string][] = [
     ["order.paid", "/hooks/orders", "Delivered"],
@@ -159,10 +159,10 @@ export function DesignPage({ tries = 2, onRetry, next = false, pin = false, brie
   );
 }
 
-/** A design inside the card it belongs to. */
-const DesignIn = ({ children }: { children: ReactNode }) => (
+/** An artifact inside the card it belongs to. */
+const ArtifactIn = ({ children }: { children: ReactNode }) => (
   <div className="cu-dz">
-    <p className="cu-dzh"><Image size={13} aria-hidden="true" /><b>failed-deliveries</b><span className="cu-k">· the design for this question</span><span className="cu-grow" /><span className="cu-btn sm"><Maximize2 size={12} aria-hidden="true" />Full size</span></p>
+    <p className="cu-dzh"><Image size={13} aria-hidden="true" /><b>failed-deliveries</b><span className="cu-k">· the artifact for this question</span><span className="cu-grow" /><span className="cu-btn sm"><Maximize2 size={12} aria-hidden="true" />Full size</span></p>
     <div className="cu-dzf">{children}</div>
   </div>
 );
@@ -292,7 +292,7 @@ const COST: [string, string, string, string][] = [
 const waits = (words: string): Chip => ({ mark: "wait", name: "Claude Code", words });
 const works = (words: string): Chip => ({ mark: "work", name: "Claude Code", words });
 
-/** The close-up of chapter `id` at moment `step`. `tries` drives the design's working Retry button. */
+/** The close-up of chapter `id` at moment `step`. `tries` drives the artifact's working Retry button. */
 export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: string; step: number; tries?: number; onRetry?: () => void }) {
   // A close-up has no moment past its last.
   const step = Math.min(asked, CHAPTERS.find((c) => c.id === id)?.steps ?? asked);
@@ -528,12 +528,12 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
     case "draw": {
       // The request and the drawn page, inside the Plan's question, from the first moment.
       return (
-        <Frame label="Designs"
+        <Frame label="Artifacts"
           top={<TopBar stage={2} chip={waits("waits for you")} activity={<AgentActivity title="Drew the page you asked for" note="1 min" sub="It drew one clickable page in your product’s look, and the Plan asks you about it." />} />}
-          gate={<GateTrack items={[]} turn={at(2) ? undefined : "Your turn · 1 design"} />}>
-          <YourTurn kind="Design · shown in the Plan" title="Is this how failed deliveries should look?" text={`You asked: “Mock up the ${DESIGN.name.toLowerCase()} page.”`}
+          gate={<GateTrack items={[]} turn={at(2) ? undefined : "Your turn · 1 artifact"} />}>
+          <YourTurn kind="Artifact · shown in the Plan" title="Is this how failed deliveries should look?" text={`You asked: “Mock up the ${ARTIFACT.name.toLowerCase()} page.”`}
             foot={<Keys keys={[["1", "looks right"], ["2", "change it"], ["F", "full size"]]} />}>
-            <DesignIn><DesignPage brief /></DesignIn>
+            <ArtifactIn><ArtifactPage brief /></ArtifactIn>
             <Choices items={[["Looks right"], ["Change it…", "say what to change, or point at a spot full size"]]} picked={at(1) ? 0 : -1} own={null} />
           </YourTurn>
         </Frame>
@@ -543,10 +543,10 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
     case "comment":
       return (
         <Frame label="Comment"
-          top={<TopBar stage={2} chip={at(2) && !at(3) ? works("changing the design") : waits("waits for you")} />}
+          top={<TopBar stage={2} chip={at(2) && !at(3) ? works("changing the artifact") : waits("waits for you")} />}
           gate={<div className="cu-gt"><span className="cu-g done"><Image size={13} aria-hidden="true" />failed-deliveries · full size</span><span className="cu-grow" /><span className={`cu-btn sm${!at(2) ? " on" : ""}`}><MessageSquare size={12} aria-hidden="true" />Comment <kbd>C</kbd></span></div>}>
-          {!at(2) && <p className="cu-mode"><b>Comment</b><span>Click a spot on the design</span><kbd>Esc</kbd></p>}
-          <div className="cu-dzf big"><DesignPage tries={tries} onRetry={onRetry} pin={at(1)} next={at(3)} /></div>
+          {!at(2) && <p className="cu-mode"><b>Comment</b><span>Click a spot on the artifact</span><kbd>Esc</kbd></p>}
+          <div className="cu-dzf big"><ArtifactPage tries={tries} onRetry={onRetry} pin={at(1)} next={at(3)} /></div>
           {at(1) && !at(2) && <div className="cu-compose"><p className="cu-k">You · on invoice.sent</p><span className="cu-field">Say when it tries next.</span><span className={`cu-btn pri sm${step === 1 ? " press" : ""}`}>Comment</span></div>}
           {at(2) && (
             <section className="cu-th">
@@ -635,7 +635,7 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
             foot={ready ? <><span className="cu-votes"><span><b>Dana</b> approved</span><span><b>Ben</b> commented</span></span><span className="cu-grow" /><span className="cu-split glow"><span className="cu-btn pri">Approve</span><span className="cu-btn pri"><ChevronDown size={13} aria-hidden="true" /></span></span></> : <Keys keys={[["R", "reply"], ["E", "resolve"]]} />}>
             <div className="cu-proof">
               <p className="cu-k"><Mk k="check" />Done means 3 · Support sees the retry count · screenshot 2</p>
-              <DesignPage tries={3} />
+              <ArtifactPage tries={3} />
             </div>
             <section className="cu-th">
               <div className="cu-msg"><i className="cu-av">B</i><p><b>Ben</b> <span className="cu-k">teammate</span><br />Can support see this without the log?</p></div>

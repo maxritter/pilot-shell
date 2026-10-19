@@ -3,13 +3,13 @@ import { afterEach, expect, it, vi } from "vitest";
 import { downloadMarkdown, markdownExport } from "./exports";
 
 afterEach(() => vi.restoreAllMocks());
-const docs = { "03-plan.md": "# Plan\n\nExact published ütf-8 text.", "agent/private.md": "Private", "../other.md": "Unsafe", "plan-design.png": "Still" };
+const docs = { "03-plan.md": "# Plan\n\nExact published ütf-8 text.", "agent/private.md": "Private", "../other.md": "Unsafe", "plan-artifact.png": "Still" };
 it("exports exact published text, UTF-8 Markdown and safe filenames only", async () => {
   const file = markdownExport(docs, "03-plan.md");
   expect(file?.name).toBe("03-plan.md");
   expect(await file?.blob.text()).toBe(docs["03-plan.md"]);
   expect(file?.blob.type).toBe("text/markdown;charset=utf-8");
-  for (const name of ["agent/private.md", "../other.md", "plan-design.png", "missing.md"]) expect(markdownExport(docs, name)).toBeNull();
+  for (const name of ["agent/private.md", "../other.md", "plan-artifact.png", "missing.md"]) expect(markdownExport(docs, name)).toBeNull();
 });
 // Copying is the Reader's Copy menu now; its refusal-then-retry is tested in pages/Shared.dom.test.tsx and pages/SharedDocument.test.tsx.
 it("downloads the actual Markdown filename and releases its object URL", () => {

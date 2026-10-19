@@ -26,7 +26,7 @@ development builds, installed candidates and public readback.
 - Read the actual workflow inputs before dispatching. The stage version is
   selected from current source and tags; flags and older notes can be stale.
 - For public copy, use Deslop, Anti-slop and Impeccable. Preserve the existing
-  website and README design. Update the canonical local QL design before
+  website and README artifact. Update the canonical local QL artifact before
   visible changes, then inspect the implemented screens.
 
 ## Qualification

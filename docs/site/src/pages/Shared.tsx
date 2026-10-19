@@ -11,7 +11,7 @@ import SEO from "@/components/SEO";
 import { useTheme } from "@/hooks/useTheme";
 import { addRemark, answerItem, type Drafts, EMPTY, pending, removeRemark, summary } from "@/lib/sharing/drafts";
 import { contractsOf, mockupName, planBlocks, slicesOf, screenPairsOf } from "@/lib/sharing/plan";
-import { DesignStill } from "./shared/Frame";
+import { ArtifactStill } from "./shared/Frame";
 import { watchShare } from "@/lib/sharing/poll";
 import { downloadMarkdown } from "@/lib/sharing/exports";
 import {
@@ -34,7 +34,7 @@ import {
 import { Asks } from "./shared/Asks";
 import { Blocks } from "./shared/Blocks";
 import { SharedDocument } from "./shared/SharedDocument";
-import { SharedDesigns } from "@ql/ui/design/SharedDesigns";
+import { SharedArtifacts } from "@ql/ui/artifact/SharedArtifacts";
 import { ChangeView } from "./SharedChange";
 import "@/styles/shared.css";
 import { flowStepOf } from "@ql/core/flow";
@@ -175,10 +175,10 @@ function Sections({ share, names, items, drafts, settled, onAnswer, commentsOn, 
         <h2>Screens compared</h2>
         {screens.map((screen) => <div key={`${screen.key}:${screen.width}:${screen.theme}`}>
           <h3>{screen.key}</h3>
-          <p>{screen.width} px · {screen.theme} · {screen.outcome}{screen.stale ? " · stale: the design or build changed after capture" : ""}</p>
+          <p>{screen.width} px · {screen.theme} · {screen.outcome}{screen.stale ? " · stale: the artifact or build changed after capture" : ""}</p>
           <div className="grid gap-4 md:grid-cols-2">
-            {screen.image ? <DesignStill still={{ title: `Design ${screen.key}`, image: screen.image }} /> : <p>Design picture unavailable.</p>}
-            {screen.outcome === "captured" && screen.built ? <DesignStill still={{ title: `Built ${screen.key}`, image: screen.built }} /> : <p>No built picture. {screen.outcome}</p>}
+            {screen.image ? <ArtifactStill still={{ title: `Artifact ${screen.key}`, image: screen.image }} /> : <p>Artifact picture unavailable.</p>}
+            {screen.outcome === "captured" && screen.built ? <ArtifactStill still={{ title: `Built ${screen.key}`, image: screen.built }} /> : <p>No built picture. {screen.outcome}</p>}
           </div>
           <p><b>Polish</b> {screen.verdict}</p>
         </div>)}
@@ -398,7 +398,7 @@ function Ready({
         </header>
 
         <div className="sh-body" data-testid="shared-doc">
-          <SharedDesigns docs={share.docs} theme={theme} comments={sent.flatMap((c) => c.doc ? [{ id: c.key, doc: c.doc, remark: c.text, author: author || "Guest" }] : [])} onComment={(file, title) => quote(file, `Design: ${title}`)} />
+          <SharedArtifacts docs={share.docs} theme={theme} comments={sent.flatMap((c) => c.doc ? [{ id: c.key, doc: c.doc, remark: c.text, author: author || "Guest" }] : [])} onComment={(file, title) => quote(file, `Artifact: ${title}`)} />
           {tab === "review" && hasChange ? (
             <>
               <Sections share={share} names={names} items={tabItems} drafts={drafts} settled={settled} onAnswer={answer} commentsOn={commentsOn} onQuote={quote} onSelected={quoteSelection} />
@@ -408,8 +408,8 @@ function Ready({
             <>
               {tab === "plan" && share.docs[PLAN_STILL] !== undefined ? (
                 <figure className="sh-frame" data-testid="shared-plan-still">
-                  <figcaption className="sh-frame-bar">Plan design · still image</figcaption>
-                  <img src={share.docs[PLAN_STILL]} alt="Plan design" className="block h-auto w-full" />
+                  <figcaption className="sh-frame-bar">Plan artifact · still image</figcaption>
+                  <img src={share.docs[PLAN_STILL]} alt="Plan artifact" className="block h-auto w-full" />
                 </figure>
               ) : null}
               <Sections share={share} names={names} items={tabItems} drafts={drafts} settled={settled} onAnswer={answer} commentsOn={commentsOn} onQuote={quote} onSelected={quoteSelection} />

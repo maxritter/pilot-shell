@@ -51,7 +51,7 @@ it("shows the complete Plan with header approval at once, then a comment on its 
   expect(view.container.querySelector(".cu-dgm .cu-pin")?.textContent).toBe("1");
 });
 
-it("keeps the full-size design's Retry working after the agent replies to its comment", () => {
+it("keeps the full-size artifact's Retry working after the agent replies to its comment", () => {
   function Preview() {
     const [tries, setTries] = useState(2);
     return <CloseUp id="comment" step={6} tries={tries} onRetry={() => setTries((n) => Math.min(3, n + 1))} />;
@@ -170,12 +170,12 @@ it("keeps the previous chapter's close-up until the next chapter's text has rise
   expect(missing(shown("discuss"), CLAIMS.discuss.always)).toEqual([]);
 });
 
-it("treats an act heading as the start of the chapter it opens: the Designs heading brings the Draw close-up", async () => {
+it("treats an act heading as the start of the chapter it opens: the Artifacts heading brings the Draw close-up", async () => {
   layOut();
   render(<Tour />);
   const draw = CHAPTERS.findIndex((c) => c.id === "draw");
   expect(CHAPTERS[draw].act).toBeTruthy();
-  // the act heading of the Designs part is on screen, the chapter's own text is not yet
+  // the act heading of the Artifacts part is on screen, the chapter's own text is not yet
   await readChapterAt(draw, READ_LINE.pinned - 0.03);
   expect(document.querySelector("#tour .sx-ch.on")?.id).toBe("draw");
   expect(missing(shown("draw"), CLAIMS.draw.always)).toEqual([]);

@@ -1,4 +1,4 @@
-/** Under the hero: the agents QualityLayer works with, what it adds, one engineer's words, and the models you already pay for. */
+/** After the hero: the agents QualityLayer works with, what it adds, one engineer's words, and the models you already pay for. */
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight, BadgeCheck, FileText, KeyRound, Laptop, SquareTerminal, Workflow } from "lucide-react";
 import { ENGINEER_QUOTE } from "@/lib/product";
@@ -64,19 +64,21 @@ const Track = ({ chips, reverse }: { chips: Chip[]; reverse?: boolean }) => (
 export default function Intro() {
   return (
     <>
-      <section id="agents" className="mx-with" aria-labelledby="with-h">
-        <h2 id="with-h" className="mx-withp">Works with the agents you already use</h2>
+      <section id="agents" className="mx-wrap mx-sec mx-with" aria-labelledby="with-h">
+        <div>
+          <h2 id="with-h" className="mx-h2">Works with the agents you already use</h2>
+          <p className="mx-lead">Run them in the App or browser. Prefer your own terminal or IDE? <a href="/docs/agents/other">The CLI connects other agents too.</a></p>
+        </div>
         <ul className="mx-withg">
           {AGENTS.map(([label, icon]) => (
-            <li key={label} className="mx-wi"><Icon name={icon} />{label}</li>
+            <li key={label} className="mx-wi"><Icon name={icon} /><b>{label}</b></li>
           ))}
         </ul>
-        <p className="mx-with-other">Run them in the App or browser. Prefer your own terminal or IDE? <a href="/docs/agents/other">The CLI connects other agents too.</a></p>
       </section>
 
       <section className="mx-sec" aria-labelledby="pr-h">
         <div className="mx-wrap">
-          <div className="mx-head c">
+          <div className="mx-head">
             <h2 id="pr-h" className="mx-h2">Decided before it is built, proven after</h2>
             <p className="mx-lead">QualityLayer keeps your agent on every step, in order. You see only what needs you.</p>
           </div>
@@ -102,7 +104,7 @@ export default function Intro() {
       </section>
 
       <section id="local" className="mx-wrap mx-sec" aria-labelledby="local-h">
-        <div className="mx-head c">
+        <div className="mx-head">
           <h2 id="local-h" className="mx-h2">Runs on your computer</h2>
           <p className="mx-lead">Keep your agent, editor and model plan. Nothing to host.</p>
         </div>
@@ -125,8 +127,8 @@ export default function Intro() {
       <section className="mx-wrap mx-sec" aria-labelledby="mod-h">
         <div className="mx-mq">
           <div className="mx-mqt">
-            <h2 id="mod-h" className="mx-h3">Use the models you already pay for</h2>
-            <p>Pick your models for coding and AI code review. Choose Claude Code, Codex, Pi or OpenCode for a separate review of your plan and risky changes.</p>
+            <h2 id="mod-h" className="mx-h2">Use the models you already pay for</h2>
+            <p className="mx-lead">Pick your models for coding and AI code review. Choose Claude Code, Codex, Pi or OpenCode for a separate review of your plan and risky changes.</p>
           </div>
           <div className="mx-mqr">
             <p className="w7-sr">Models: {MODELS.filter(([, icon]) => icon === "cpu").map(([label]) => label).join(", ")}, through Claude Code, Codex, Pi and OpenCode. {SETUPS.map(([label]) => label).join(". ")}.</p>

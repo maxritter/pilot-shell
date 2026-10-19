@@ -78,7 +78,7 @@ export type Tab = FlowStep;
 /** Every step, in the order the work runs. */
 export const ALL_TABS: readonly Tab[] = ["discuss", "research", "plan", "outline", "implement", "verify", "review"];
 
-/** Only raster stills of designs referenced by the Plan, never the design's source. */
+/** Only raster stills of artifacts referenced by the Plan, never the artifact's source. */
 export type PlanStill = { title: string; image: string; built?: string; outcome?: "omitted: size" };
 
 /** What a guest can say to a question: agree, suggest a change, or reply in their own words. */
@@ -319,7 +319,7 @@ export function parsePlan(plain: string | null): Plan | null {
   if (typeof plan.stills === "object" && plan.stills !== null) {
     for (const [name, raw] of Object.entries(plan.stills)) {
       const still = raw as Partial<PlanStill> | null;
-      if (/^(?:design|artifacts)\/[a-z0-9][a-z0-9-]*\.html$/.test(name) && typeof still?.title === "string" && typeof still.image === "string" && still.image.length <= 400_000 && /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(still.image)) {
+      if (/^(?:artifact|artifacts)\/[a-z0-9][a-z0-9-]*\.html$/.test(name) && typeof still?.title === "string" && typeof still.image === "string" && still.image.length <= 400_000 && /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(still.image)) {
         if (still.built !== undefined && !isBuiltStill(still.built)) continue;
         const size = still.image.length + (still.built?.length ?? 0);
         if (count >= 6 || used + size > 400_000) continue;

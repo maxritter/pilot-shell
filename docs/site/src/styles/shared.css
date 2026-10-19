@@ -2,7 +2,7 @@
    answer and comment. It reads like the App: the same anatomy and the same --ql-* tokens, light
    and dark. Scoped .sh- classes only; the documents are the App's Reader and take its own rules. */
 @import "../../../../qualitylayer/src/ui/reader/reader.css";
-@import "../../../../qualitylayer/src/ui/design/preview.css";
+@import "../../../../qualitylayer/src/ui/artifact/preview.css";
 .sh-page main{min-height:70vh}
 .sh-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:32px;max-width:1180px;margin:0 auto;padding:28px 28px 72px;align-items:start}
 .sh-main{min-width:0}

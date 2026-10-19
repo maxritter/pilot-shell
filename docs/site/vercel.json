@@ -66,6 +66,7 @@
     { "source": "/docs/workflow/plan/research", "destination": "/docs/steps/discuss", "permanent": true },
     { "source": "/docs/workflow/plan/diagnose", "destination": "/docs/steps/discuss#a-bug", "permanent": true },
     { "source": "/docs/workflow/plan/design", "destination": "/docs/steps/plan", "permanent": true },
+    { "source": "/docs/designs", "destination": "/docs/artifacts", "permanent": true },
     { "source": "/docs/workflow/plan/outline", "destination": "/docs/steps/plan", "permanent": true },
     { "source": "/docs/workflow/build", "destination": "/docs/steps/implement", "permanent": true },
     { "source": "/docs/workflow/build/handoff", "destination": "/docs/steps/implement#start-implement", "permanent": true },

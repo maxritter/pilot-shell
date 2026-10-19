@@ -42,14 +42,14 @@ Choose the **agent**, **model**, **effort** and **workspace** when you start a t
 | Setting | What it changes |
 | --- | --- |
 | **Where agents run by default** | **In QualityLayer** or **In my terminal, app or IDE** |
-| **Where you answer** | **QualityLayer** or **Agent's chat**, for questions, approvals and design feedback |
+| **Where you answer** | **QualityLayer** or **Agent's chat**, for questions, approvals and artifact feedback |
 | **Installed agents** | Last executable/version result for Claude Code, Codex, Pi and OpenCode; open setup help or use **Check again** |
 | **Agent appearance** | Text, colours and scrolling in agent sessions |
 | **When you quit the App** | Keep agents running, or stop them |
 | **Typing and starting agents** | The App and its key-paired browsers, or also other paired browsers |
 | **Reviewer models** | Models used by Independent review and Second opinion |
 
-Questions, approvals and design feedback can stay in **QualityLayer** (the default) or **Agent's chat**. Each task remembers its choice. **Answer in** on New task and Start the build overrides this default for that task. Asking “Using QualityLayer in the terminal, plan …” also selects Agent's chat; a computer without a screen selects it automatically. This choice is separate from where the agent runs. See [Terminal mode](commands.md#terminal-mode) for CLI settings and document reading.
+Questions, approvals and artifact feedback can stay in **QualityLayer** (the default) or **Agent's chat**. Each task remembers its choice. **Answer in** on New task and Start the build overrides this default for that task. Asking “Using QualityLayer in the terminal, plan …” also selects Agent's chat; a computer without a screen selects it automatically. This choice is separate from where the agent runs. See [Terminal mode](commands.md#terminal-mode) for CLI settings and document reading.
 
 The quitting and browser choices are under **More**. Other coding agents use the workflow in your terminal. Permissions are chosen at launch where the native client supports them.
 

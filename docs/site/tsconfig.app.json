@@ -28,7 +28,7 @@
       "react": ["./node_modules/@types/react"],
       "react/*": ["./node_modules/@types/react/*"],
       "marked": ["./node_modules/marked"],
-      // The shared-design files the site follows live under qualitylayer/, where only the App's own install
+      // The shared-artifact files the site follows live under qualitylayer/, where only the App's own install
       // resolves these; the site job installs just its own dependencies.
       "css-tree": ["./node_modules/@types/css-tree"],
       "parse5": ["./node_modules/parse5"],

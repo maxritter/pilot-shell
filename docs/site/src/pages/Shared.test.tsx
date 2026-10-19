@@ -79,17 +79,17 @@ describe("the approved document view", () => {
     expect(await at("research")).toContain("Seven research");
     expect(await at("outline", "outline")).toContain("Outline has not started yet.");
   });
-  it("a missing future step is not started, and no design produces no mockup error", async () => {
+  it("a missing future step is not started, and no artifact produces no mockup error", async () => {
     const page = await html(<SharedView state={ready()} onSend={noSend} tab="verify" />);
     expect(page).toContain("Verify has not started yet.");
     expect(page).not.toContain("shared-mockup-missing");
     expect(page).not.toContain("<iframe");
   });
-  it("renders a PNG still and the plan's diagram, and never an HTML design or any other fence", async () => {
+  it("renders a PNG still and the plan's diagram, and never an HTML artifact or any other fence", async () => {
     const png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aQ1sAAAAASUVORK5CYII=";
-    const docs = { ...DOCS, "plan-design.png": png, "design/settings.html": "SECRET_HTML", "03-plan.md": "# Plan\n\n```artifact\ndesign/settings.html\n```\n\n```ts\nSECRET_TS\n```\n\n```mermaid\nflowchart LR\n  A --> B\n```" };
+    const docs = { ...DOCS, "plan-artifact.png": png, "artifacts/settings.html": "SECRET_HTML", "03-plan.md": "# Plan\n\n```artifact\nartifacts/settings.html\n```\n\n```ts\nSECRET_TS\n```\n\n```mermaid\nflowchart LR\n  A --> B\n```" };
     const page = await html(<SharedView state={ready(docs)} onSend={noSend} tab="plan" />);
-    expect(page).toContain('alt="Plan design"');
+    expect(page).toContain('alt="Plan artifact"');
     expect(page).toContain(png);
     // The diagram is part of the document and gets its frame; nothing else of a fence is carried.
     expect(page).toContain('data-testid="mermaid"');

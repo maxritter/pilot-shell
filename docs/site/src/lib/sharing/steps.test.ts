@@ -48,7 +48,7 @@ describe("a link's documents, by step", () => {
   });
 
   it("hands the page the step files and nothing else of what a link carries", async () => {
-    const docs = { "03-plan.md": "p", "notes.md": "SECRET", "artifacts/diagnostics.html": "<html></html>" };
+    const docs = { "03-plan.md": "p", "notes.md": "SECRET", "other/diagnostics.html": "<html></html>" };
     const loaded = await loadShare(ID, KEY, answer(200, await sealForLink(KEY, "plan", JSON.stringify({ task: "T", docs }))));
     expect(loaded.status === "ready" && Object.keys(loaded.docs).sort()).toEqual(["03-plan.md"]);
   });

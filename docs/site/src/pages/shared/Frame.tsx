@@ -14,7 +14,7 @@ import type { PlanStill } from "@/lib/sharing/sharing";
 const MIN_HEIGHT = 160;
 const MAX_HEIGHT = 2400;
 
-export const DesignStill = ({ still }: { still: PlanStill }) => (
+export const ArtifactStill = ({ still }: { still: PlanStill }) => (
   <figure className="sh-frame">
     <figcaption className="sh-frame-bar">{still.title}</figcaption>
     <img src={still.image} alt={still.title} />

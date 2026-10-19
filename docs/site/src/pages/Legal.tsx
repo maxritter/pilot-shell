@@ -74,7 +74,7 @@ function Privacy() {
 
       <h2>Sharing with your team</h2>
       <p>
-        On a Team plan you can share tasks, plans, comments, designs and files. They are encrypted on your computer with your team's key, so we store only ciphertext. To route them we also store your team members' names and e-mail addresses from Polar, task names and steps, who asked whom, who read which version, and each computer's public key (Art. 6 (1) (b)).
+        On a Team plan you can share tasks, plans, comments, artifacts and files. They are encrypted on your computer with your team's key, so we store only ciphertext. To route them we also store your team members' names and e-mail addresses from Polar, task names and steps, who asked whom, who read which version, and each computer's public key (Art. 6 (1) (b)).
       </p>
       <table className="lg-table">
         <thead>

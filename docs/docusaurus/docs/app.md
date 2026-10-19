@@ -12,7 +12,7 @@ Read the task on the left and work with your agent in the right sidebar. Answer 
 
 | Part | What it does |
 | --- | --- |
-| **Sidebar** | Home, Team, Designs and your tasks by project. **+ New** starts a task |
+| **Sidebar** | Home, Team, Artifacts and your tasks by project. **+ New** starts a task |
 | **Agent status** | The top-bar chip: working, needs you, quiet or stopped |
 | **Step track** | Where the task stands. A person icon marks the two steps you approve |
 | **Your turn** | One question or decision that needs you |
@@ -40,7 +40,7 @@ Order, colors, names and hidden projects are stored on the computer that runs th
 | --- | --- |
 | **Home** | **Needs you** for your tasks and teammate requests, plus your agents' **Running** work ([Home](#home)) |
 | **Team** | **My attention**, **Everyone** and **My questions** for shared work |
-| **Designs** | A compact **Library** grouped by project, with **Archived** and recovery ([Designs](designs.md#designs-place)) |
+| **Artifacts** | A compact **Library** grouped by project, with **Archived** and recovery ([Artifacts](artifacts.md#artifacts-place)) |
 
 ## Answering questions {#questions}
 
@@ -65,7 +65,7 @@ Every step writes one Markdown file, shown three ways:
 | --- | --- |
 | **Step page** | What matters now: **Done means**, decisions with diagrams, slices, checks |
 | **Reader** | The whole file, with code shapes, paths and commands |
-| **Files** | All seven documents, designs, reviews and command records |
+| **Files** | All seven documents, artifacts, reviews and command records |
 
 **Copy document** pastes a document into Confluence, Notion, Jira or GitHub.
 
@@ -78,26 +78,26 @@ Every step page reads top to bottom in the same way:
 | **What needs you** | Only your own cards: a batch of questions, a **Your call**, the approval, a confirmation. A step with nothing for you leaves it out |
 | **Look here** | Up to three lines, one for each kind of thing: failures first, then what only you can confirm, then what the agent marked risky or unsure. Each names its first item and how many there are, and jumps to it |
 | **The gist** | The step as a takeaway for this task, who writes or runs it and when, a short summary and up to five counts |
-| **The core** | The part that is the step, as rows you can open: the numbered **Done means** in Discuss, the findings in Research, the designs and decisions in the Plan, the build map in the Outline, the board in Implement, the checked points in Verify, the walkthrough in Review |
+| **The core** | The part that is the step, as rows you can open: the numbered **Done means** in Discuss, the findings in Research, the artifacts and decisions in the Plan, the build map in the Outline, the board in Implement, the checked points in Verify, the walkthrough in Review |
 | **Collapsed sections** | The other sections the step leads with, one line each: heading, count and takeaway. Open one in place |
 | **More in this document** | Links to the working sections, which open in the Reader |
 
-The sections come in the order of the file, so the page, the Reader and GitHub tell the same story. Review is the exception: its file keeps the order of the pull request description, and its page draws the walkthrough. A design, a wireframe, a diagram or a screen is always shown where it stands, never collapsed. The engineering and product levels show the same page and collapse the same sections; they differ in words and in how far a row opens ([two levels](intro.md#two-levels)). A step you have not reached shows one quiet line, a finished step keeps its page without the part for you, and a closed task or a link shows it read-only.
+The sections come in the order of the file, so the page, the Reader and GitHub tell the same story. Review is the exception: its file keeps the order of the pull request description, and its page draws the walkthrough. An artifact, a wireframe, a diagram or a screen is always shown where it stands, never collapsed. The engineering and product levels show the same page and collapse the same sections; they differ in words and in how far a row opens ([two levels](intro.md#two-levels)). A step you have not reached shows one quiet line, a finished step keeps its page without the part for you, and a closed task or a link shows it read-only.
 
 The page is laid out for the column beside an open **Agent** sidebar, so each part is one column that stays readable on a laptop screen.
 
-## Feedback and designs {#comments-and-designs}
+## Feedback and artifacts {#comments-and-artifacts}
 
 Select a passage, a line or part of a diagram and choose **Give feedback**. The thread keeps that context with your words. The **To** picker chooses the agent, a named teammate or **Everyone on the task** when access is known. Each recipient keeps its own draft. Person-only feedback is not sent to the agent.
 
-Working designs are compact entries in **Files**. **Open design canvas** opens the full page, its Feedback and its base design. The document header opens Files and Feedback; **Agent** opens the task’s conversation. The **Agent status** chip shows current activity. See [Designs](designs.md).
+Working artifacts are compact entries in **Files**. **Open artifact canvas** opens the full page, its Feedback and its base artifact. The document header opens Files and Feedback; **Agent** opens the task’s conversation. The **Agent status** chip shows current activity. See [Artifacts](artifacts.md).
 
 ## Home {#home}
 
 ![Home: a Needs you section for your own questions and approvals, followed by a separate Running section for your agents' work](pathname:///img/app/home-light.webp)
 ![Home: a Needs you section for your own questions and approvals, followed by a separate Running section for your agents' work](pathname:///img/app/home-dark.webp)
 
-**Needs you** combines your questions, approvals and tasks you can continue with teammate questions, review requests and replies. Shared rows name the person and open the exact passage, diagram or design spot. **Running** is your agents' work, with its current step and activity. Team keeps the shared history.
+**Needs you** combines your questions, approvals and tasks you can continue with teammate questions, review requests and replies. Shared rows name the person and open the exact passage, diagram or artifact spot. **Running** is your agents' work, with its current step and activity. Team keeps the shared history.
 
 Notifications are configured in **Settings › Workflow**. Home shows no spending or shipped summary. The App notifies you only when you can act:
 

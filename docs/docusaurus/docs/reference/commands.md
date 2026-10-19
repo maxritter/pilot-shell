@@ -1,6 +1,6 @@
 ---
 title: Commands
-description: What you type in your agent, the commands you run, the ones your agent runs, designs, and session messaging between agents.
+description: What you type in your agent, the commands you run, the ones your agent runs, artifacts, and session messaging between agents.
 ---
 
 `qualitylayer help` lists every command your installed version has. Add `--json` for machine-readable output, or `--task <slug>` when several tasks are open. `ql` is the short name for the same command.
@@ -16,12 +16,12 @@ Ask your agent in natural language, naming **QualityLayer** or **QL**. The same 
 | “Using QL, review task retry-webhooks” | Go through review threads: your team's ([Change reviews](../team/changes.md)) or the pull request's ([Pull request](../steps/pull-request.md)) |
 | “Using QL, answer the team ask a1” | Answer a teammate's question with your agent ([Teammates' agents](../team/agents.md)) |
 | “Using QL, continue verification of task retry-webhooks in this IDE” | Continue the recorded task after resolving the previous run's ownership |
-| “Open the current QualityLayer design in my browser at Billing” | Open the exact design page and section; clarify an ambiguous current design |
+| “Open the current QualityLayer artifact in my browser at Billing” | Open the exact artifact page and section; clarify an ambiguous current artifact |
 | `/task-pane` | Open the pane with the steps and the build's progress (Claude Code) |
 
 **+ New** and **Start the build** offer **In QualityLayer** and **In my terminal, app or IDE**. The external option copies a request; choose the model and effort in the agent receiving it. See [App runs](../app.md#agent-runs) for platform support.
 
-Your agent loads `ql-workflow` for workflow execution, `ql-design` for designs, `ql-peer` for other agent sessions, and `ql-manage` for lookup, memory, sharing, setup and diagnostics. Standalone design and administrative requests do not create a workflow task. Each skill uses the current CLI's instructions for the operation.
+Your agent loads `ql-workflow` for workflow execution, `ql-artifact` for artifacts, `ql-peer` for other agent sessions, and `ql-manage` for lookup, memory, sharing, setup and diagnostics. Standalone artifact and administrative requests do not create a workflow task. Each skill uses the current CLI's instructions for the operation.
 
 ## Terminal mode
 
@@ -35,10 +35,10 @@ In **Settings › Workflow › Agents**, **Where you answer** sets the default: 
 | `qualitylayer settings set answers terminal` | Make Agent's chat the default; use `app` to return to QualityLayer |
 | `qualitylayer task set answers=terminal` | Change where you answer for the current task; use `answers=app` to return |
 | `qualitylayer read 03-plan.md [--width 100] [--lead]` | Read a task document with diagrams drawn as terminal text; `--lead` selects its leading sections |
-| `qualitylayer read design <name> [--page <page>] [--width 100]` | Read a text sketch of the exact design page |
-| `qualitylayer design show <name> --page <page> --terminal` | Show a text sketch and save a screenshot when Chrome is available; otherwise explain how to add Chrome |
+| `qualitylayer read artifact <name> [--page <page>] [--width 100]` | Read a text sketch of the exact artifact page |
+| `qualitylayer artifact show <name> --page <page> --terminal` | Show a text sketch and save a screenshot when Chrome is available; otherwise explain how to add Chrome |
 
-Terminal design feedback uses `qualitylayer design comments add <name> --page <page> --section <id> --asked "<your exact words>"`. The command checks those words against your session. Task lists, saved lessons and teammate asks remain available through the commands below.
+Terminal artifact feedback uses `qualitylayer artifact comments add <name> --page <page> --section <id> --asked "<your exact words>"`. The command checks those words against your session. Task lists, saved lessons and teammate asks remain available through the commands below.
 
 ## For you
 
@@ -74,7 +74,7 @@ Give one link source and an output folder. Reading a link from a file or standar
 <summary>What a fetch reads, writes and checks</summary>
 
 - **The link.** Only HTTPS links on `qualitylayer.dev` or `www.qualitylayer.dev` are accepted, and redirects are refused. The fragment key decrypts the copy on your computer. It is left out of requests, errors and the manifest. Network reads time out after 15 seconds and accept a decrypted copy of up to 512 KiB.
-- **The snapshot.** Every successful fetch writes a new folder with the reached Markdown documents, explicitly included task designs and `manifest.json`. The manifest records the title, reached step, share ID, revision, expiry, fetch time and a SHA-256 hash for each file. JSON output returns the same paths and values. Agent records, repository source, command output and logs are excluded. Local edits and earlier downloads are kept.
+- **The snapshot.** Every successful fetch writes a new folder with the reached Markdown documents, explicitly included task artifacts and `manifest.json`. The manifest records the title, reached step, share ID, revision, expiry, fetch time and a SHA-256 hash for each file. JSON output returns the same paths and values. Agent records, repository source, command output and logs are excluded. Local edits and earlier downloads are kept.
 - **A snapshot stays at the fetched revision.** Fetch again to read the latest published copy. Network, revoked-link and expired-link errors never present an older snapshot as current. Revoking a link cannot remove files you already downloaded.
 - **The output directory** should be private. Ownership and permission checks on Unix, or directory access rules on Windows, must show that other users cannot replace its path components. Symbolic links and unsafe directories are refused, and an existing directory's permissions are left unchanged.
 
@@ -89,7 +89,7 @@ You rarely type these; they are what you see in your agent's chat.
 
 | Command | What it does |
 | --- | --- |
-| `qualitylayer next` | Start a task, or get the next step of the open one; it also brings new comments on designs |
+| `qualitylayer next` | Start a task, or get the next step of the open one; it also brings new comments on artifacts |
 | `qualitylayer next --implement` | Build the one approved Plan waiting for implementation, or list the candidates and stop when the target is unclear |
 | `qualitylayer next done` | Finish the current step. In [Discuss](../steps/discuss.md) and [Research](../steps/research.md) it checks the document and moves on; in the [Outline](../steps/outline.md) it checks that every **Done means** point has a scenario and moves to Implement |
 | `qualitylayer question ask` | Ask you a question in the App and wait for your answer; the terminal shows one line meanwhile |
@@ -127,47 +127,47 @@ Use `question answered --id` only for an answer you gave in the agent's chat. Qu
 
 </details>
 
-## Designs {#designs}
+## Artifacts {#artifacts}
 
-Your agent draws [designs](../designs.md) with these, at any step, inside a task or outside one:
+Your agent draws [artifacts](../artifacts.md) with these, at any step, inside a task or outside one:
 
 | Command | What it does |
 | --- | --- |
-| `qualitylayer design guide [authoring\|review]` | Read the authoring or review prompt once per design assignment; works without a task or repository |
-| `qualitylayer design new <name> [--purpose "<line>"] [--project]` | Start a design in the task's `design/` folder, or in `docs/designs/` on this Mac outside a task or with `--project` |
-| `qualitylayer design new <name> --wire` | Start a wireframe instead: grey boxes and real labels that settle the layout. A name ending in `-options` gets two layouts side by side. The finished design for the Plan is made without `--wire` |
-| `qualitylayer design new <name> --folder` | Start a design of several pages: a folder with `index.html`, to which you add more pages, scripts (JSX is allowed and React is provided), styles, fonts and pictures. It opens interactive and loads nothing from the network |
-| `qualitylayer design new <name> --on <design>[/<page>]` | Copy a lasting design or one of its pages, keeping its ancestry. In a task, draft on it and fold changes back in at [Review](../designs.md#fold-in). Outside a task, create a personal copy in `docs/designs/` |
-| `qualitylayer design show <name> [--page <page>] [--changed "<line>"]` | Mark it updated, with one line of what changed, so you see it as soon as it renders. `--page` names a page of a design of several pages |
-| `qualitylayer design open <name> [--project] [--page <page>] [--section <id-or-label>] [--browser] [--no-open]` | Open an exact design page in QualityLayer or the browser viewer. A missing or ambiguous section is reported in the viewer. `--no-open` prepares the link |
-| `qualitylayer design keep <name> [--only-here] [--title "<title>"] [--purpose "<line>"]` | Make a draft a lasting design of the project, in `.qualitylayer/designs/<name>/` where it goes into the task's changes and pull request. `--only-here` keeps it in `docs/designs/` on this Mac instead, out of git. The draft stays as it is ([Keep](../designs.md#keep)) |
-| `qualitylayer design list` | List the designs: the task's drafts with what each drafts on, the project's lasting designs with their pages, and the designs only on this Mac |
-| `qualitylayer design context` | Read the local product documents and tokens before authoring |
-| `qualitylayer design inspect <name>` | Read HTML, metadata and the source revision |
-| `qualitylayer design library inspect <name>` | Read a lasting design's title, state, pages and management revision, including deleted entries |
-| `qualitylayer design library rename <name> --title "<title>" [--purpose "<line>"] --if-match <revision>` | Change a lasting design's display title or description while keeping its identity and links |
-| `qualitylayer design library copy <name> --to <copy-name> --title "<title>" [--to-project <id>] --if-match <revision>` | Make an independent copy in the current or another registered project |
-| `qualitylayer design library archive\|restore\|delete <name> --if-match <revision> [--confirm-in-use]` | Retire or restore a Library entry. Deletion keeps its source files and requires explicit confirmation when active drafts use it |
-| `qualitylayer design push <name> --from <html> --if-match <revision\|0>` | Create or update from a local file; `0` requires an absent design, and stale revisions are refused |
-| `qualitylayer design pull <name> --out <html>` | Export the current self-contained source to a new file; `import` and `export` alias `push` and `pull` |
-| `qualitylayer design metadata <name> [--title <title>] [--purpose <purpose>] --if-match <revision>` | Update the title, purpose or both; provide at least one |
-| `qualitylayer design copy\|rename <name> --to <name> --if-match <revision>` | Duplicate an artboard or change its filename |
-| `qualitylayer design delete <name> --if-match <revision>` | Remove an unreferenced design, retaining its source in history |
-| `qualitylayer design history <name>` | List saved source revisions |
-| `qualitylayer design restore <name> --revision <id> --if-match <revision\|0>` | Restore a revision while keeping the current source |
-| `qualitylayer design check <name>` | Check HTML structure and local resources; rendered quality still needs screenshots and interactions |
-| `qualitylayer design sharing [--on\|--off]` | Include or exclude the selected task's designs in its team copy and public link; access follows the workflow's share controls |
-| `qualitylayer design shot <name> [--page <page>] [--width <px>] [--theme light\|dark] [--section <label>] [--out <file>]` | Render a PNG of the page or a named section; needs Chrome. `--page` picks a page of a design of several pages |
-| `qualitylayer design comments <name>` | The open comments on a design, each with its spot |
-| `qualitylayer design comments <name> resolve <id…\|all> [--answer "<line>"]` | Resolve selected comments or all open comments, optionally recording an answer |
+| `qualitylayer artifact guide [authoring\|review]` | Read the authoring or review prompt once per artifact assignment; works without a task or repository |
+| `qualitylayer artifact new <name> [--purpose "<line>"] [--project]` | Start an artifact in the task's `artifacts/` folder, or in `docs/artifacts/` on this Mac outside a task or with `--project` |
+| `qualitylayer artifact new <name> --wire` | Start a wireframe instead: grey boxes and real labels that settle the layout. A name ending in `-options` gets two layouts side by side. The finished artifact for the Plan is made without `--wire` |
+| `qualitylayer artifact new <name> --folder` | Start an artifact of several pages: a folder with `index.html`, to which you add more pages, scripts (JSX is allowed and React is provided), styles, fonts and pictures. It opens interactive and loads nothing from the network |
+| `qualitylayer artifact new <name> --on <artifact>[/<page>]` | Copy a lasting artifact or one of its pages, keeping its ancestry. In a task, draft on it and fold changes back in at [Review](../artifacts.md#fold-in). Outside a task, create a personal copy in `docs/artifacts/` |
+| `qualitylayer artifact show <name> [--page <page>] [--changed "<line>"]` | Mark it updated, with one line of what changed, so you see it as soon as it renders. `--page` names a page of an artifact of several pages |
+| `qualitylayer artifact open <name> [--project] [--page <page>] [--section <id-or-label>] [--browser] [--no-open]` | Open an exact artifact page in QualityLayer or the browser viewer. A missing or ambiguous section is reported in the viewer. `--no-open` prepares the link |
+| `qualitylayer artifact keep <name> [--only-here] [--title "<title>"] [--purpose "<line>"]` | Make a draft a lasting artifact of the project, in `.qualitylayer/artifacts/<name>/` where it goes into the task's changes and pull request. `--only-here` keeps it in `docs/artifacts/` on this Mac instead, out of git. The draft stays as it is ([Keep](../artifacts.md#keep)) |
+| `qualitylayer artifact list` | List the artifacts: the task's drafts with what each drafts on, the project's lasting artifacts with their pages, and the artifacts only on this Mac |
+| `qualitylayer artifact context` | Read the local product documents and tokens before authoring |
+| `qualitylayer artifact inspect <name>` | Read HTML, metadata and the source revision |
+| `qualitylayer artifact library inspect <name>` | Read a lasting artifact's title, state, pages and management revision, including deleted entries |
+| `qualitylayer artifact library rename <name> --title "<title>" [--purpose "<line>"] --if-match <revision>` | Change a lasting artifact's display title or description while keeping its identity and links |
+| `qualitylayer artifact library copy <name> --to <copy-name> --title "<title>" [--to-project <id>] --if-match <revision>` | Make an independent copy in the current or another registered project |
+| `qualitylayer artifact library archive\|restore\|delete <name> --if-match <revision> [--confirm-in-use]` | Retire or restore a Library entry. Deletion keeps its source files and requires explicit confirmation when active drafts use it |
+| `qualitylayer artifact push <name> --from <html> --if-match <revision\|0>` | Create or update from a local file; `0` requires an absent artifact, and stale revisions are refused |
+| `qualitylayer artifact pull <name> --out <html>` | Export the current self-contained source to a new file; `import` and `export` alias `push` and `pull` |
+| `qualitylayer artifact metadata <name> [--title <title>] [--purpose <purpose>] --if-match <revision>` | Update the title, purpose or both; provide at least one |
+| `qualitylayer artifact copy\|rename <name> --to <name> --if-match <revision>` | Duplicate an artboard or change its filename |
+| `qualitylayer artifact delete <name> --if-match <revision>` | Remove an unreferenced artifact, retaining its source in history |
+| `qualitylayer artifact history <name>` | List saved source revisions |
+| `qualitylayer artifact restore <name> --revision <id> --if-match <revision\|0>` | Restore a revision while keeping the current source |
+| `qualitylayer artifact check <name>` | Check HTML structure and local resources; rendered quality still needs screenshots and interactions |
+| `qualitylayer artifact sharing [--on\|--off]` | Include or exclude the selected task's artifacts in its team copy and public link; access follows the workflow's share controls |
+| `qualitylayer artifact shot <name> [--page <page>] [--width <px>] [--theme light\|dark] [--section <label>] [--out <file>]` | Render a PNG of the page or a named section; needs Chrome. `--page` picks a page of an artifact of several pages |
+| `qualitylayer artifact comments <name>` | The open comments on an artifact, each with its spot |
+| `qualitylayer artifact comments <name> resolve <id…\|all> [--answer "<line>"]` | Resolve selected comments or all open comments, optionally recording an answer |
 
-Existing designs are found in the selected task first, then `docs/designs/`. A project's lasting designs are in `.qualitylayer/designs/`; read them with `design list` and draft on them with `design new --on`. Add `--project` to target the project's copy explicitly. New designs go in the task's folder unless you use `--project` or work outside a task. `import` aliases `push`; `export` aliases `pull`. `pull` and `export` require a new output path.
+Existing artifacts are found in the selected task first, then `docs/artifacts/`. A project's lasting artifacts are in `.qualitylayer/artifacts/`; read them with `artifact list` and draft on them with `artifact new --on`. Add `--project` to target the project's copy explicitly. New artifacts go in the task's folder unless you use `--project` or work outside a task. `import` aliases `push`; `export` aliases `pull`. `pull` and `export` require a new output path.
 
-Get the current revision with `design inspect` before changing a design. `--if-match 0` creates an absent design; any other value must match its current revision. Closed task designs are read-only. A referenced design cannot be deleted until its references are removed.
+Get the current revision with `artifact inspect` before changing an artifact. `--if-match 0` creates an absent artifact; any other value must match its current revision. Closed task artifacts are read-only. A referenced artifact cannot be deleted until its references are removed.
 
-Library operations use the revision from `design library inspect`, which includes metadata and every source dependency. `design show` reports a source-folder revision for a source-backed design and a separate `page_revision` for its HTML. The viewer refreshes source changes while keeping its selected page. Its expand control hides both sidebars within the current window; toggling it again restores their previous state and refits the design.
+Library operations use the revision from `artifact library inspect`, which includes metadata and every source dependency. `artifact show` reports a source-folder revision for a source-backed artifact and a separate `page_revision` for its HTML. The viewer refreshes source changes while keeping its selected page. Its expand control hides both sidebars within the current window; toggling it again restores their previous state and refits the artifact.
 
-`design shot` needs Chrome. If the agent's sandbox prevents Chrome from starting, inspect the same page in the App; a successful source check does not establish that it rendered correctly.
+`artifact shot` needs Chrome. If the agent's sandbox prevents Chrome from starting, inspect the same page in the App; a successful source check does not establish that it rendered correctly.
 
 ## Project memory {#memory}
 

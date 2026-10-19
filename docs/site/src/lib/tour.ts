@@ -1,7 +1,7 @@
 /**
- * The home page's tour: one change followed from request to pull request, then designs, the team
+ * The home page's tour: one change followed from request to pull request, then artifacts, the team
  * and the setup. Each chapter shows one close-up of the QualityLayer App at reading size, drawn
- * from the App's design (qualitylayer/design/app): the top bar with the seven steps and the agent,
+ * from the App's artifact (qualitylayer/artifacts/app): the top bar with the seven steps and the agent,
  * the step's own track, and the one Your turn card or the agent's turn. Tasks, people and numbers
  * are an illustration.
  */
@@ -30,8 +30,8 @@ export const STAGES = ["Discuss", "Research", "Plan", "Outline", "Implement", "V
 
 export const TASK = "Retry failed webhooks";
 
-/** The design the Designs chapters draw, ask about and open full size. */
-export const DESIGN = { name: "Failed deliveries", purpose: "Every delivery that failed, and when it tries again" };
+/** The artifact the Artifacts chapters draw, ask about and open full size. */
+export const ARTIFACT = { name: "Failed deliveries", purpose: "Every delivery that failed, and when it tries again" };
 
 /** The words a new task starts from, in the New task card. */
 export const REQUEST = "Retry failed webhooks, then mail the customer once";
@@ -62,7 +62,7 @@ export const CHAPTERS: Chapter[] = [
     who: "you",
     steps: 2,
     title: "You approve one plan before any code",
-    text: "A risky Plan is read by another agent while you read it, and yours folds in what it found before Approve unlocks. Its designs and decisions come first with their diagrams, the contracts the build is held to take one line each, and you approve it or give feedback from its header.",
+    text: "A risky Plan is read by another agent while you read it, and yours folds in what it found before Approve unlocks. Its artifacts and decisions come first with their diagrams, the contracts the build is held to take one line each, and you approve it or give feedback from its header.",
     bullets: ["Comment on any line or diagram: your agent answers within a minute", "Everything the agent decided for you is listed, so you can change it", "The review is recorded under Reviewed by; a local fallback is a self-review"],
   },
   {
@@ -115,10 +115,10 @@ export const CHAPTERS: Chapter[] = [
     step: "Draw",
     who: "ag",
     steps: 2,
-    act: { id: "designs", title: "See the page before it is built", text: "Ask your agent to draw a page, and it shows inside the question it belongs to. Open it full size and point at what should change. The interactive page stays on your computer." },
+    act: { id: "artifacts", title: "See the page before it is built", text: "Ask your agent to draw a page, and it shows inside the question it belongs to. Open it full size and point at what should change. The interactive page stays on your computer." },
     title: "Ask, and your agent draws the page",
     text: "Say “mock up the failed deliveries page”. Your agent draws it as one page, and the Plan asks you about it with the page in view: looks right, or say what to change.",
-    bullets: ["Inside a task, or for the whole project", "Every design is listed in Files", "Share links include a still; the interactive page stays on your computer"],
+    bullets: ["Inside a task, or for the whole project", "Every artifact is listed in Files", "Share links include a still; the interactive page stays on your computer"],
   },
   {
     id: "comment",
@@ -164,7 +164,7 @@ export const CHAPTERS: Chapter[] = [
     steps: 2,
     title: "Review the finished change together",
     text: "Teammates read what changed and its proof. They comment on any part and approve. The code itself is reviewed in your pull request.",
-    bullets: ["Their comments reach you in the Comments tab", "The same link follows the task through all seven steps", "Sharing sends the plan, progress and a still of its design"],
+    bullets: ["Their comments reach you in the Comments tab", "The same link follows the task through all seven steps", "Sharing sends the plan, progress and a still of its artifact"],
   },
   {
     id: "settings",
@@ -190,7 +190,7 @@ export const CHAPTERS: Chapter[] = [
 /** The story's parts, as the step bar groups them: a part starts at a chapter with an act heading. */
 export const PARTS: { label: string; from: number; to: number }[] = (() => {
   const starts = CHAPTERS.flatMap((c, i) => (c.act ? [i] : []));
-  const labels = ["Steps", "Designs", "Team", "Setup"];
+  const labels = ["Steps", "Artifacts", "Team", "Setup"];
   return starts.map((from, k) => ({ label: labels[k] ?? CHAPTERS[from].step, from, to: (starts[k + 1] ?? CHAPTERS.length) - 1 }));
 })();
 

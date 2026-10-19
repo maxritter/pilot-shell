@@ -285,12 +285,12 @@ scrollcraft/
 !/docs/site/
 !/docs/img/
 !/docs/video/
-!/docs/designs/
-/docs/designs/*
-!/docs/designs/README.md
-!/docs/designs/demo-story.md
-!/docs/designs/workflow-bench.md
-!/docs/designs/workflow-bench-log.md
+!/docs/artifacts/
+/docs/artifacts/*
+!/docs/artifacts/README.md
+!/docs/artifacts/demo-story.md
+!/docs/artifacts/workflow-bench.md
+!/docs/artifacts/workflow-bench-log.md
 
 # Local design settings, critique reports, and iteration state.
 /.impeccable/

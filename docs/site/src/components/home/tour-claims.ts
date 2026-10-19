@@ -59,12 +59,12 @@ export const CLAIMS: Record<string, Claim> = {
   },
   // "Ask, and your agent draws the page": the request, and the page inside the Plan's question
   draw: {
-    always: ["Mock up the failed deliveries page", "the design for this question", "Full size", "Looks right", "Change it"],
+    always: ["Mock up the failed deliveries page", "the artifact for this question", "Full size", "Looks right", "Change it"],
   },
   // "Open it full size and point at what to change"
   comment: {
     always: ["failed-deliveries · full size", "Comment", "Retry"],
-    first: ["Click a spot on the design"],
+    first: ["Click a spot on the artifact"],
     last: ["Each failed row now says when it tries next"],
   },
   // "Ask a teammate about any part of the plan": the passage, who to ask, the Slack message

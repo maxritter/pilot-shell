@@ -278,12 +278,12 @@ def files_ill(c: Theme) -> str:
     b.append(T(18, 30, 'docs/plans/2026-10-06-csv-export/', 13.5, 'text', 700, mono=True, c=c))
     rows = [('01-discuss.md', 'What you want and what done means', 'amber'),
             ('02-research.md', 'How the code works today', 'amber'),
-            ('03-plan.md', 'The decided design you approve', 'amber'),
+            ('03-plan.md', 'The decided artifact you approve', 'amber'),
             ('04-outline.md', 'The build, slice by slice', 'amber'),
             ('05-implement.md', 'The build as it runs', 'amber'),
             ('06-verify.md', 'What was checked, with its proof', 'amber'),
             ('07-review.md', 'The change: the pull request text', 'amber'),
-            ('design/', 'Interactive pages · local, out of Git', 'lock'),
+            ('artifacts/', 'Interactive pages · local, out of Git', 'lock'),
             ('reviews/', 'What the other agents said, as written', 'blue'),
             ('records/', 'The output of every command', 'blue'),
             ('evidence/', 'Pictures and recordings', 'violet')]
@@ -297,11 +297,11 @@ def files_ill(c: Theme) -> str:
             b.append(f'<circle cx="54" cy="{y + 6}" r="4.5" fill="{c[kind]}"/>')
         b.append(T(74, y + 10.5, f, 12.5, 'text', 600 if kind == 'amber' else 500, mono=True, c=c))
         b.append(T(622, y + 10.5, what, 12, 'muted', 400, 'end', c=c))
-    b.append(T(18, 436, 'Files lists the seven documents, designs and reviews; Comments holds their threads.', 12, 'dim', 500, c=c))
+    b.append(T(18, 436, 'Files lists the seven documents, artifacts and reviews; Comments holds their threads.', 12, 'dim', 500, c=c))
     b.append(card(c, 660, 0, 340, 452))
     b.append(T(678, 30, 'What you can read', 14, 'text', 650, c=c))
     leg = [('amber', 'One document per step'), ('blue', 'Reviews and command output,'),
-           (None, 'opened from Files'), ('violet', 'Evidence the checks kept'), ('lock', 'Interactive designs stay local')]
+           (None, 'opened from Files'), ('violet', 'Evidence the checks kept'), ('lock', 'Interactive artifacts stay local')]
     for i, (k, t) in enumerate(leg):
         y = 56 + i * 30
         if k == 'lock':
@@ -313,7 +313,7 @@ def files_ill(c: Theme) -> str:
     b.append(T(678, 250, 'Markdown on GitHub. They live in your', 12.5, 'muted', c=c))
     b.append(T(678, 270, 'repository and go into Git with', 12.5, 'muted', c=c))
     b.append(T(678, 290, 'the change.', 12.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'A task folder in docs/plans: seven documents, one per step, local interactive designs out of Git, reviews, command output and evidence. Files lists documents, designs and reviews')
+    return svg(W, H, ''.join(b), 'A task folder in docs/plans: seven documents, one per step, local interactive artifacts out of Git, reviews, command output and evidence. Files lists documents, artifacts and reviews')
 
 
 # ---------------------------------------------------------------- shared pieces of the App's anatomy
@@ -481,10 +481,10 @@ def spill(c: Theme, x: float, y: float, kind: str, head_: str, rest: str = '') -
 
 
 def rside(c: Theme, x: float, y: float, w: float, h: float, tab: str) -> str:
-    """The right sidebar: Files and Comments; designs are rows within Files."""
+    """The right sidebar: Files and Comments; artifacts are rows within Files."""
     out = [f'<line x1="{x}" y1="{y}" x2="{x}" y2="{y + h}" stroke="{c["cardline"]}"/>',
            f'<rect x="{x + 12}" y="{y + 12}" width="{w - 56}" height="28" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>']
-    tab = 'files' if tab == 'designs' else tab
+    tab = 'files' if tab == 'artifacts' else tab
     half = (w - 60) / 2
     for i, t in enumerate(['Files', 'Comments']):
         bx = x + 14 + i * half
@@ -502,7 +502,7 @@ def lock(c: Theme, x: float, y: float, col: str = 'text') -> str:
 
 
 def mini_page(c: Theme, x: float, y: float, w: float, h: float) -> str:
-    """A design drawn small: a page with a title and a table of rows."""
+    """An artifact drawn small: a page with a title and a table of rows."""
     out = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="4" fill="{c["bg"]}" stroke="{c["cardline"]}"/>',
            f'<rect x="{x + w * 0.08}" y="{y + h * 0.12}" width="{w * 0.3}" height="{max(3, h * 0.07)}" rx="1.5" fill="{c["text"]}"/>']
     for i in range(4):
@@ -674,11 +674,11 @@ def task_example(c: Theme, step: int, sections: list, questions: list, working: 
     b.append(T(1156, 148, 'Settings cleanup', 12, 'muted', 600, c=c))
     for i, label in enumerate(DOC_FILES):
         b.append(T(1156, 184 + i * 30, label, 12, 'text' if i <= step else 'dim', 500, mono=True, c=c))
-    b.append(T(1156, 428, 'Designs · 1', 12, 'muted', 600, c=c))
+    b.append(T(1156, 428, 'Artifacts · 1', 12, 'muted', 600, c=c))
     b.append(T(1156, 458, 'Settings page', 12.5, 'text', 600, c=c))
     b.append(T(1156, 480, 'Only on this computer', 11.5, 'muted', c=c))
     b.append(T(dx, H - 24, 'Illustration · example task, people and results', 10.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), f'{STEPS[step][0]}: named agent status, one focused Your turn card above the work, visible own words and Send for questions, and Files / Comments with designs within Files')
+    return svg(W, H, ''.join(b), f'{STEPS[step][0]}: named agent status, one focused Your turn card above the work, visible own words and Send for questions, and Files / Comments with artifacts within Files')
 
 
 def app(c):
@@ -897,7 +897,7 @@ def approve_card(c: Theme, x: float, y: float, w: float, title: str, note: str, 
 
 def plan_ill(c: Theme) -> str:
     return task_example(c, 2, [
-        ('heading', 'Interface'), ('row', 'Read the full-size design and comment on a spot.'),
+        ('heading', 'Interface'), ('row', 'Read the full-size artifact and comment on a spot.'),
         ('heading', 'Engineering decisions'), ('agreed', '✓ The Plan determines what each agent builds.'),
         ('heading', 'Done means · proposed'), ('row', '1 · Every setting names what it changes.'),
         ('row', '2 · A risky Plan gets a second opinion.'),
@@ -1391,7 +1391,7 @@ def architecture(c):
     b.append(T(20, 30, 'Your computer', 13, 'muted', 650, c=c))
     b.append(card(c, 20, 52, 680, 192, 'blue', 'bg'))
     b.append(T(38, 80, 'QualityLayer App or browser', 15, 'text', 650, c=c))
-    b.append(node(c, 38, 100, 306, 124, 'Your task', ['Questions, diagrams and designs', 'Read the Plan, give feedback', 'and approve the change'], 'cardline'))
+    b.append(node(c, 38, 100, 306, 124, 'Your task', ['Questions, diagrams and artifacts', 'Read the Plan, give feedback', 'and approve the change'], 'cardline'))
     b.append(node(c, 364, 100, 318, 124, 'Agent sidebar', ['Claude Code, Codex, Pi or OpenCode', 'Your agent’s own conversation', 'and subscription'], 'cardline'))
     b.append(node(c, 20, 278, 328, 76, 'CLI integration', ['Also connects external agents', 'in a terminal, VS Code or another IDE'], 'cardline'))
     b.append(node(c, 372, 278, 328, 76, 'Task files in your repository', ['Plans, decisions and recorded checks'], 'cardline'))
@@ -1414,9 +1414,9 @@ def architecture(c):
     return svg(W, H, ''.join(b), 'QualityLayer in the App or browser: the task on the left and the agent on the right. Task files stay in your repository; the CLI also connects external agents. Shared plans and comments go to the server encrypted')
 
 
-# ---------------------------------------------------------------- designs
-def designs_flow(c: Theme) -> str:
-    """What a design is: you ask, your agent draws one page, the App shows it, you comment, it changes the same page."""
+# ---------------------------------------------------------------- artifacts
+def artifacts_flow(c: Theme) -> str:
+    """What an artifact is: you ask, your agent draws one page, the App shows it, you comment, it changes the same page."""
     W, H = 1000, 236
     steps = [('You', 'amber', 'amberf', 'Ask your agent', ['“Mock up the', 'settings page”']),
              ('Your agent', 'blue', 'bluef', 'Draws one page', ['One HTML file', 'in your project']),
@@ -1439,12 +1439,12 @@ def designs_flow(c: Theme) -> str:
     b.append(f'<rect x="0" y="180" width="996" height="50" rx="10" fill="{c["card"]}" stroke="{c["cardline"]}"/>')
     b.append(lock(c, 18, 197))
     b.append(T(38, 210, 'Your choice.', 13, 'text', 650, c=c))
-    b.append(T(136, 210, 'Designs stay local until you choose Include designs. Shared previews and comments are encrypted.', 12.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'Designs: ask your agent, review its page and comment on a spot; designs stay local until you choose an encrypted shared preview')
+    b.append(T(136, 210, 'Artifacts stay local until you choose Include artifacts. Shared previews and comments are encrypted.', 12.5, 'muted', c=c))
+    return svg(W, H, ''.join(b), 'Artifacts: ask your agent, review its page and comment on a spot; artifacts stay local until you choose an encrypted shared preview')
 
 
-def designs_tab(c: Theme) -> str:
-    """A step shows its named preview; Files contains the documents and designs."""
+def artifacts_tab(c: Theme) -> str:
+    """A step shows its named preview; Files contains the documents and artifacts."""
     W, H = 1000, 400
     b = [card(c, 0, 0, 640, 396)]
     b.append(T(18, 32, 'The Plan · Interface', 12, 'dim', 600, c=c))
@@ -1456,15 +1456,15 @@ def designs_tab(c: Theme) -> str:
     b.append(T(130, 272, 'Updated just now · 2 comments', 12, 'dim', c=c))
     b.append(abtn_svg(c, 516, 258, 'Open full size', False, 24, 11.5, 100))
     b.append(item(c, 14, 300, 612, 'Look', 'Is this how Settings should read?', ['Looks right', 'Change'], h=52))
-    b.append(T(18, 380, 'The Plan shows its named preview; Files lists the documents and designs.', 12, 'dim', 500, c=c))
+    b.append(T(18, 380, 'The Plan shows its named preview; Files lists the documents and artifacts.', 12, 'dim', 500, c=c))
     b.append(card(c, 660, 0, 340, 396))
-    b.append(rside(c, 660, 0, 340, 396, 'designs').replace(f'<line x1="660" y1="0" x2="660" y2="396" stroke="{c["cardline"]}"/>', ''))
+    b.append(rside(c, 660, 0, 340, 396, 'artifacts').replace(f'<line x1="660" y1="0" x2="660" y2="396" stroke="{c["cardline"]}"/>', ''))
     b.append(f'<rect x="672" y="50" width="316" height="28" rx="7" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
     b.append(lock(c, 682, 57))
     b.append(T(700, 69, 'Only on this computer.', 12, 'text', 600, c=c))
     for i, name in enumerate(DOC_FILES):
         b.append(T(680, 102 + i * 21, name, 12.5, 'text', 500, mono=True, c=c))
-    rows = [('Designs · 1', [('Settings page', 'Every setting on one page', 'Updated just now · Shown in the Plan', True)])]
+    rows = [('Artifacts · 1', [('Settings page', 'Every setting on one page', 'Updated just now · Shown in the Plan', True)])]
     y = 258
     for g, items_ in rows:
         b.append(T(674, y, g, 11.5, 'muted', 600, c=c))
@@ -1480,11 +1480,11 @@ def designs_tab(c: Theme) -> str:
             y += 68
         y += 18
     b.append(T(674, 376, 'Shared Plans may include a labelled still picture.', 11.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'The Plan shows its named preview and question; Files / Comments is the sidebar, with designs within Files. Interactive designs and their comments stay local; an explicitly shared Plan can include a labelled still picture')
+    return svg(W, H, ''.join(b), 'The Plan shows its named preview and question; Files / Comments is the sidebar, with artifacts within Files. Interactive artifacts and their comments stay local; an explicitly shared Plan can include a labelled still picture')
 
 
-def design_open(c: Theme) -> str:
-    """A design in the viewer: its toolbar, page, pinned comment and the agent's answer."""
+def artifact_open(c: Theme) -> str:
+    """An artifact in the viewer: its toolbar, page, pinned comment and the agent's answer."""
     W, H = 1000, 470
     b = [window(c, W, H, 'Settings page · QualityLayer')]
     b.append(sidebar(c, W, H, [('Your turn  1', [('Settings cleanup', 'Plan', 'you')]), ('Running  0', []), ('Shipped  6', [])], selected='Settings cleanup'))
@@ -1525,7 +1525,7 @@ def design_open(c: Theme) -> str:
     b.append(f'<circle cx="{W / 2 - 24}" cy="{H - 29}" r="3.5" fill="{c["blue"]}"/>')
     b.append(T(W / 2 - 14, H - 24.5, 'Settings page was updated', 12, 'text', 600, c=c))
     b.append(T(W / 2 + 186, H - 24.5, 'Open', 12, 'blue', 600, 'end', c=c))
-    return svg(W, H, ''.join(b), 'A design in the viewer: Back to the Plan, its name and update time, named agent status, Comment, zoom, Jump to and full screen. A pinned comment keeps the agent’s answer beside the spot; a quiet notice reports an update')
+    return svg(W, H, ''.join(b), 'An artifact in the viewer: Back to the Plan, its name and update time, named agent status, Comment, zoom, Jump to and full screen. A pinned comment keeps the agent’s answer beside the spot; a quiet notice reports an update')
 
 
 DRAWINGS = [('architecture', architecture), ('flow-pr', lambda c: flow(c, pr=True)), ('slices', slices), ('agents', agents), ('app', app),
@@ -1539,7 +1539,7 @@ DRAWINGS = [('architecture', architecture), ('flow-pr', lambda c: flow(c, pr=Tru
             ('team', team), ('team-agents', team_agents), ('team-timeline', team_timeline), ('team-change', team_change),
             ('peers', peers), ('install', install_ill), ('remote', remote_ill), ('firsttask', firsttask_ill), ('update', update_ill),
             ('files', files_ill), ('privacy', privacy_ill),
-            ('designs', designs_flow), ('designs-tab', designs_tab), ('design-open', design_open)]
+            ('artifacts', artifacts_flow), ('artifacts-tab', artifacts_tab), ('artifact-open', artifact_open)]
 DRAWINGS += [(f'track-{n.lower().replace(" ", "-")}', track(n)) for n, _ in STEPS_PR]
 
 os.makedirs(OUT, exist_ok=True)

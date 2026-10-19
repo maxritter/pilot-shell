@@ -54,7 +54,7 @@ jobs:
             exit 1
           fi
           echo "--- installed skills"
-          for skill in ql-workflow ql-design ql-peer ql-manage; do
+          for skill in ql-workflow ql-artifact ql-peer ql-manage; do
             test -f "$HOME/.claude/skills/$skill/SKILL.md"
             test -f "$HOME/.agents/skills/$skill/SKILL.md"
             grep -q 'allow_implicit_invocation: true' "$HOME/.agents/skills/$skill/agents/openai.yaml"
@@ -102,7 +102,7 @@ jobs:
           $qlBinary = Join-Path $qlHome '.qualitylayer/bin/qualitylayer.exe'
           $qlActual = & $qlBinary --version
           if ($LASTEXITCODE -ne 0 -or $qlActual.Trim() -ne $qlWanted) { throw "Expected $qlWanted, got $qlActual" }
-          foreach ($qlName in @('ql-workflow', 'ql-design', 'ql-peer', 'ql-manage')) {
+          foreach ($qlName in @('ql-workflow', 'ql-artifact', 'ql-peer', 'ql-manage')) {
             foreach ($qlSkill in @("$qlHome/.claude/skills/$qlName/SKILL.md", "$qlHome/.agents/skills/$qlName/SKILL.md")) {
               if (-not (Test-Path $qlSkill)) { throw "Missing installed skill: $qlSkill" }
             }

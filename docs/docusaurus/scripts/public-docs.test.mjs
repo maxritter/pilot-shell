@@ -18,7 +18,7 @@ const text = (route) => page(route)
   .replace(/\s+/g, " ");
 
 test("App illustrations open at full size from each guide, with an accessible name and the right theme", () => {
-  for (const route of ["", "app/", "steps/discuss/", "steps/plan/", "steps/implement/", "steps/verify/", "steps/review/", "designs/", "memory/", "reference/settings/"]) {
+  for (const route of ["", "app/", "steps/discuss/", "steps/plan/", "steps/implement/", "steps/verify/", "steps/review/", "artifacts/", "memory/", "reference/settings/"]) {
     const html = page(route);
     const links = [...html.matchAll(/<a\b[^>]*class="ql-diagram"[^>]*>[\s\S]*?<\/a>/g)].map((m) => m[0]);
     assert.ok(links.length >= 2, `${route}: no full-size illustrations; run npm run build first`);
@@ -63,23 +63,23 @@ test("the built App guides use Files, Feedback and Agent and explain the current
   assert.match(app, /Files/);
   assert.match(app, /Feedback/);
   assert.match(app, /Agent/);
-  assert.match(app, /Working designs are compact entries in/);
-  assert.match(app, /Open design canvas/);
+  assert.match(app, /Working artifacts are compact entries in/);
+  assert.match(app, /Open artifact canvas/);
   assert.match(app, /document header/);
   assert.match(app, /Agent status/);
   assert.match(app, /Dollar amounts stay hidden until you open it/);
   assert.match(app, /tokens unpriced/);
-  assert.doesNotMatch(app, /Designs.{0,20}tab|Comments.{0,30}Files.{0,30}and.{0,30}Designs/);
+  assert.doesNotMatch(app, /Artifacts.{0,20}tab|Comments.{0,30}Files.{0,30}and.{0,30}Artifacts/);
   assert.match(page("steps/implement/"), /In QualityLayer/);
   assert.match(page("steps/implement/"), /In my terminal, app or IDE/);
   assert.match(page("steps/implement/"), /Start the build/);
   assert.match(text("steps/implement/"), /An installed native agent, or Another agent for your terminal/);
   assert.doesNotMatch(page("steps/implement/"), /Start with (?:Codex|Claude Code)/);
   assert.match(page("steps/implement/"), /Build/);
-  assert.match(page("designs/"), /compact entry in/);
+  assert.match(page("artifacts/"), /compact entry in/);
   assert.match(text("reference/files/"), /No usage events/);
-  assert.match(text("reference/files/"), /Include designs/);
-  assert.match(text("reference/files/"), /Shared design previews run no scripts/);
+  assert.match(text("reference/files/"), /Include artifacts/);
+  assert.match(text("reference/files/"), /Shared artifact previews run no scripts/);
   assert.match(text("reference/files/"), /terminal output/);
 });
 
@@ -109,15 +109,15 @@ test("navigation names supported agents without changing their route or removing
   assert.match(html, />Workflow<\/a>/);
   for (const step of ["discuss", "research", "plan", "outline", "implement", "verify", "review", "pull-request"]) assert.ok(html.includes(`/docs/steps/${step}`));
   assert.match(page(""), /id="the-seven-steps"/);
-  assert.match(page("app/"), /id="comments-and-designs"/);
+  assert.match(page("app/"), /id="comments-and-artifacts"/);
   assert.match(page("reference/settings/"), /id="defaults"/);
   assert.match(page("reference/settings/"), /Open Feedback automatically/);
 });
 
-test("the docs design matches the shipped guides (a docs edit without its design is red here)", () => {
-  const renderer = fileURLToPath(new URL("../../../qualitylayer/design/site/website-model/docs/render.mjs", import.meta.url));
+test("the docs artifact matches the shipped guides (a docs edit without its artifact is red here)", () => {
+  const renderer = fileURLToPath(new URL("../../../qualitylayer/artifacts/site/website-model/docs/render.mjs", import.meta.url));
   const result = spawnSync(process.execPath, [renderer, "--check-source"], { encoding: "utf8" });
   const drift = result.stderr.split("\n").find((line) => /^Error: /.test(line)) ?? result.stderr;
-  assert.equal(result.status, 0, `Update qualitylayer/design/site/website-model/docs/copy.json, then regenerate the pages with render.mjs --patch: ${drift}`);
+  assert.equal(result.status, 0, `Update qualitylayer/artifacts/site/website-model/docs/copy.json, then regenerate the pages with render.mjs --patch: ${drift}`);
   assert.match(result.stdout, /Docs model matches \d+ authored guide pages/);
 });

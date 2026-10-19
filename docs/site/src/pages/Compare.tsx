@@ -160,8 +160,8 @@ function Roundup() {
   const bySlug = (slug: string) => COMPARISONS.find((c) => c.slug === slug)!;
   const tools = [
     { slug: "spec-kit", fit: "A process your team can customize", note: "Specifications, plans and tasks with configurable extensions and presets. Converge checks the implementation against those artifacts." },
-    { slug: "humanlayer", fit: "Shared planning and agent sessions", note: "Collaborative workspaces, inline design discussions and portable RPI skills for Claude Code and Codex." },
-    { slug: "kiro", fit: "Specs in an integrated coding environment", note: "Requirements, designs and tasks in Kiro. The IDE includes property-based testing; capabilities vary across its surfaces." },
+    { slug: "humanlayer", fit: "Shared planning and agent sessions", note: "Collaborative workspaces, inline artifact discussions and portable RPI skills for Claude Code and Codex." },
+    { slug: "kiro", fit: "Specs in an integrated coding environment", note: "Requirements, artifacts and tasks in Kiro. The IDE includes property-based testing; capabilities vary across its surfaces." },
     { slug: "openspec", fit: "Evolving specs in an existing repository", note: "Change proposals and spec deltas, with flexible artifact editing, optional verification and archiving into the main specs." },
   ];
   const sources = COMPARISONS.flatMap((c) => c.sources);

@@ -71,20 +71,20 @@ describe("the share page draws a document with the App's Reader", () => {
   });
 
   it("a mockup the link carries is shown, and one it does not carry says so", async () => {
-    const docs = { "design/settings.html": "<html><body>Settings</body></html>" };
+    const docs = { "artifacts/settings.html": "<html><body>Settings</body></html>" };
     const doc = (path: string) => `# Plan\n\n\`\`\`artifact\n${path}\n\`\`\`\n`;
-    const { rerender } = render(<SharedDocument name="03-plan.md" markdown={doc("design/settings.html")} docs={docs} comments={[]} onQuote={() => {}} />);
-    const preview = await screen.findByTestId("design-preview");
+    const { rerender } = render(<SharedDocument name="03-plan.md" markdown={doc("artifacts/settings.html")} docs={docs} comments={[]} onQuote={() => {}} />);
+    const preview = await screen.findByTestId("artifact-preview");
     await waitFor(() => expect(preview.querySelector("iframe")).not.toBeNull());
-    rerender(<SharedDocument name="03-plan.md" markdown={doc("design/gone.html")} docs={docs} comments={[]} onQuote={() => {}} />);
+    rerender(<SharedDocument name="03-plan.md" markdown={doc("artifacts/gone.html")} docs={docs} comments={[]} onQuote={() => {}} />);
     expect(await screen.findByText("The mockup is not part of this link. Ask for a new link to see it.")).toBeTruthy();
   });
 
   it("leaves out the mockups a question already shows, so none is drawn twice", () => {
-    const md = "# Plan\n\n```artifact\ndesign/settings.html\n```\n\nKept.\n\n```artifact\ndesign/other.html\n```\n";
+    const md = "# Plan\n\n```artifact\nartifacts/settings.html\n```\n\nKept.\n\n```artifact\nartifacts/other.html\n```\n";
     const out = withoutShownMockups(md, new Set(["settings.html"]));
     expect(out).not.toContain("settings.html");
-    expect(out).toContain("design/other.html");
+    expect(out).toContain("artifacts/other.html");
     expect(out).toContain("Kept.");
     expect(withoutShownMockups(md, new Set())).toBe(md);
   });

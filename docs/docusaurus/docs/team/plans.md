@@ -21,7 +21,7 @@ On a shared Plan or Review, **Looks right** sends your review to the owner. **Su
 
 ## Share and reading status
 
-**Share** brings team or group access, people with access, review requests, design inclusion and the outside link into one sheet. Seat management stays in Settings.
+**Share** brings team or group access, people with access, review requests, artifact inclusion and the outside link into one sheet. Seat management stays in Settings.
 
 The task header shows who it waits on and offers **Remind**. **Seen by** names confirmed readers of the current shared version and opens the same Share sheet. When reading data is unavailable, the App leaves reading status out. **Not opened yet** appears only when that data is known.
 
@@ -37,7 +37,7 @@ Questions and answers always appear in Team. Slack delivery depends on your own 
 
 ## People outside your team {#outside-links}
 
-**Share › Copy link** gives a qualitylayer.dev link. Anyone with it can read and comment without an account; the task owner decides approval. The open page updates as the task changes and keeps your unsent answers and comments. A link lasts 14 days; **Revoke** ends it at once. **Include designs** adds previews ([Designs](../designs.md#never-shared)).
+**Share › Copy link** gives a qualitylayer.dev link. Anyone with it can read and comment without an account; the task owner decides approval. The open page updates as the task changes and keeps your unsent answers and comments. A link lasts 14 days; **Revoke** ends it at once. **Include artifacts** adds previews ([Artifacts](../artifacts.md#never-shared)).
 
 If an update cannot be published, Share shows the problem and keeps the last complete copy. Reduce oversized content, then use **Retry sharing** for the team or **Renew** for an external link.
 
@@ -51,4 +51,4 @@ The file holds the whole link, including the part after `#`; keep it private ([d
 
 ## What is shared {#privacy}
 
-Shared documents, designs and comment bodies are encrypted with your team's key before publication. The server stores their ciphertext. Slack notifications can include task titles and short question or answer excerpts, which pass through the notification service. Your code, the diff and your logs are not included in the shared task. More in [Files and privacy](../reference/files.md#privacy).
+Shared documents, artifacts and comment bodies are encrypted with your team's key before publication. The server stores their ciphertext. Slack notifications can include task titles and short question or answer excerpts, which pass through the notification service. Your code, the diff and your logs are not included in the shared task. More in [Files and privacy](../reference/files.md#privacy).

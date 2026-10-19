@@ -1,7 +1,8 @@
 import { Helmet } from "react-helmet-async";
 import { useLocation } from "react-router-dom";
-import { SITE_URL } from "@/lib/product";
+import { BRAND_LINE, SITE_URL, SLOGAN } from "@/lib/product";
 import { pageMetadata, serializeStructuredData } from "@/lib/seo";
+import { WORKFLOW_STEPS } from "@/lib/steps";
 
 interface SEOProps {
   title?: string;
@@ -9,18 +10,23 @@ interface SEOProps {
   keywords?: string;
   canonicalUrl?: string;
   ogImage?: string;
+  ogImageAlt?: string;
   type?: string;
   structuredData?: object | object[];
   robots?: string;
 }
 
+/** What the shared og.png shows, for readers who cannot see it. */
+const OG_IMAGE_ALT = `QualityLayer, ${BRAND_LINE.toLowerCase()}: ${SLOGAN.charAt(0).toLowerCase()}${SLOGAN.slice(1)}. Seven steps: ${WORKFLOW_STEPS.map((step) => step.name).join(", ")}`;
+
 /** Used by both the browser and the build-time renderer. */
 const SEO = ({
   title,
   description,
-  keywords = "software factory, human in the loop, visual planning, claude code, codex cli, ai coding agent, spec driven development, plan review, QualityLayer",
+  keywords = "software factory, agentic software factory, human in the loop, agentic coding, visual planning, claude code, codex cli, ai coding agent, spec driven development, plan review, QualityLayer",
   canonicalUrl,
   ogImage = `${SITE_URL}/og.png`,
+  ogImageAlt = ogImage === `${SITE_URL}/og.png` ? OG_IMAGE_ALT : undefined,
   type = "website",
   structuredData,
   robots,
@@ -47,6 +53,7 @@ const SEO = ({
       <meta property="og:image" content={ogImage} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
+      {ogImageAlt ? <meta property="og:image:alt" content={ogImageAlt} /> : null}
       <meta property="og:site_name" content="QualityLayer" />
 
       <meta name="twitter:card" content="summary_large_image" />
@@ -54,6 +61,7 @@ const SEO = ({
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImage} />
+      {ogImageAlt ? <meta name="twitter:image:alt" content={ogImageAlt} /> : null}
 
       {structuredData && <script type="application/ld+json">{serializeStructuredData(structuredData)}</script>}
     </Helmet>

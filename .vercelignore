@@ -5,7 +5,7 @@ docs/site/api/__fixture__/
 
 # Local task documents, verification evidence, secrets and build outputs.
 docs/plans/
-docs/designs/
+docs/artifacts/
 .verify-*/
 VERIFY-REPORT.md
 **/.env*

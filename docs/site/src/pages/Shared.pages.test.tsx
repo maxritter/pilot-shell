@@ -19,7 +19,7 @@ describe("the seven public step pages", () => {
     expect(screen.queryByRole("button", { name: "Build" })).toBeNull();
   });
 
-  it("a future step says not started and a task without a design has no mockup section", () => {
+  it("a future step says not started and a task without an artifact has no mockup section", () => {
     render(<SharedView state={state({ "01-discuss.md": "Discuss body", "03-plan.md": "Plan body" }, "plan")} onSend={async () => ({ ok: true })} />);
     fireEvent.click(screen.getByRole("button", { name: "Verify" }));
     expect(screen.getByText("Verify has not started yet.")).toBeTruthy();

@@ -187,6 +187,8 @@ describe("doc pages that moved or were removed", () => {
     expect(answer("/docs/guides/cockpit")).toEqual({ kind: "redirect", status: 308, location: "/docs/app" });
     expect(answer("/docs/cockpit")).toEqual({ kind: "redirect", status: 308, location: "/docs/app" });
     expect(answer("/docs/reference/peers")).toMatchObject({ location: "/docs/reference/commands#session-messaging" });
+    // Designs became Artifacts on 2026-10-19; the indexed page keeps working.
+    expect(answer("/docs/designs")).toEqual({ kind: "redirect", status: 308, location: "/docs/artifacts" });
   });
 });
 
@@ -292,7 +294,7 @@ describe("where the functions run", () => {
     expect(tests.filter((file) => !ignored(file))).toEqual([]);
     expect(ignored("__fixture__/orphan.ts")).toBe(true);
     expect(files.filter(isHandler).filter((file) => ignored(file))).toEqual([]);
-    for (const privateFile of ["docs/site/.env.local", "qualitylayer/dist/dev-trial-key.json", "docs/plans/a-task/01-discuss.md", "docs/designs/a-design.html", ".verify-backend/live-routes.json", "VERIFY-REPORT.md"]) {
+    for (const privateFile of ["docs/site/.env.local", "qualitylayer/dist/dev-trial-key.json", "docs/plans/a-task/01-discuss.md", "docs/artifacts/an-artifact.html", ".verify-backend/live-routes.json", "VERIFY-REPORT.md"]) {
       expect(ignoredPath(privateFile), privateFile).toBe(true);
     }
   });

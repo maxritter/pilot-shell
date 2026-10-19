@@ -172,7 +172,7 @@ describe("the flow in the copy: asked and answered in the App", () => {
     expect(agentCommands).toContain("natural language");
     expect(agentCommands).toContain("QualityLayer");
     expect(agentCommands).toContain("QL");
-    for (const name of ["ql-workflow", "ql-design", "ql-peer", "ql-manage"]) expect(agentCommands).toContain(name);
+    for (const name of ["ql-workflow", "ql-artifact", "ql-peer", "ql-manage"]) expect(agentCommands).toContain(name);
     expect(agentCommands).not.toMatch(/[/$]ql(?:\s|`)/);
     expect(commands).toContain("`/task-pane`");
     const offending = [readme, ...docPages, ...homeCopy, homeIndex].filter((path) => /[/$]ql-[a-z]/i.test(read(path)));

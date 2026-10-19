@@ -23,6 +23,15 @@ describe("page component metadata", () => {
     if (route === "/billing") expect(html).toContain('name="referrer" content="no-referrer"');
   });
 
+  it("describes the shared image and keeps the brand line out of the keywords", () => {
+    const html = renderToStaticMarkup(<HelmetProvider><StaticRouter location="/"><SEO /></StaticRouter></HelmetProvider>);
+    const alt = "QualityLayer, quality by design: the software factory with you in the loop. Seven steps: Discuss, Research, Plan, Outline, Implement, Verify, Review";
+    expect(html).toContain(`property="og:image:alt" content="${alt}"`);
+    expect(html).toContain(`name="twitter:image:alt" content="${alt}"`);
+    expect(html).toMatch(/name="keywords" content="[^"]*agentic software factory/);
+    expect(html).not.toMatch(/name="keywords" content="[^"]*quality by design/i);
+  });
+
   it("keeps HTML and script-closing text inside valid, inert JSON-LD", () => {
     const data = { "@type": "Thing", name: '</script><script>alert("unexpected")</script><b>& text' };
     const html = renderToStaticMarkup(<HelmetProvider><StaticRouter location="/"><SEO structuredData={data} /></StaticRouter></HelmetProvider>);

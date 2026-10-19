@@ -1,6 +1,6 @@
 /* The home page's hero and tour (sx- classes): one change followed from request to pull request,
-   then designs, the team and the setup. Beside each chapter a close-up of the QualityLayer App at
-   reading size (cu- classes in closeup.css). Keep it in step with the design file. */
+   then artifacts, the team and the setup. Beside each chapter a close-up of the QualityLayer App at
+   reading size (cu- classes in closeup.css). Keep it in step with the artifact file. */
 .sx-root{overflow-x:clip;background:var(--ql-bg);color:var(--ql-text)}
 
 .sx-mark{display:inline-block;width:22px;height:22px;background:currentColor;-webkit-mask:url(/brand/qualitylayer-mark.svg) center/contain no-repeat;mask:url(/brand/qualitylayer-mark.svg) center/contain no-repeat}

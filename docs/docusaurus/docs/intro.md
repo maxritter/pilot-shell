@@ -9,14 +9,14 @@ description: QualityLayer takes your coding agent from a request to a merged pul
   <figcaption>How QualityLayer works, in about five minutes.</figcaption>
 </figure>
 
-QualityLayer is the software factory with you in the loop. Use the **App or browser**, with the task on the left and your agent in the right sidebar. Your agent reads the code and plans each change with you: the architecture as diagrams, the screens as clickable designs, every decision in the open. Once you and your team agree on the plan, your agent builds it test first and takes it to a pull request; agents that did not write the code check the result against your request.
+**Quality by design.** QualityLayer is the software factory with you in the loop. Use the **App or browser**, with the task on the left and your agent in the right sidebar. Your agent reads the code and plans each change with you: the architecture as diagrams, the screens as clickable artifacts, every decision in the open. Once you and your team agree on the plan, your agent builds it test first and takes it to a pull request; agents that did not write the code check the result against your request.
 
 ![The visual Plan: request retries, replay and a write-once ledger, with Approve Plan](pathname:///img/app/plan-light.webp)
 ![The visual Plan: request retries, replay and a write-once ledger, with Approve Plan](pathname:///img/app/plan-dark.webp)
 
 *Example task in a fictional project.*
 
-**Start here:** [Install](install.md) · [Your first task](first-task.md) · [The App](app.md) · [Workflow](steps/discuss.md) · [Designs](designs.md)
+**Start here:** [Install](install.md) · [Your first task](first-task.md) · [The App](app.md) · [Workflow](steps/discuss.md) · [Artifacts](artifacts.md)
 
 ## The eight steps {#the-seven-steps}
 
@@ -29,7 +29,7 @@ Each of the first seven steps writes one document. You approve twice: the Plan, 
 | --- | --- |
 | **[Discuss](steps/discuss.md)** | Your agent asks until it knows what done means |
 | **[Research](steps/research.md)** | Agents read the code; a bug's cause is found here |
-| **[Plan](steps/plan.md)** | The design, with diagrams. You approve it before any code |
+| **[Plan](steps/plan.md)** | The artifact, with diagrams. You approve it before any code |
 | **[Outline](steps/outline.md)** | Your agent cuts the Plan into slices. Nothing to approve |
 | **[Implement](steps/implement.md)** | Your agent builds the approved Plan in small tested slices |
 | **[Verify](steps/verify.md)** | Six checks, including agents that did not write the code |

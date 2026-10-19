@@ -27,7 +27,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "How is this different from plan mode?",
-    "Spec-driven development starts with an approved plan. Here, questions arrive as a batch in Your turn; answer in any order, and each answer reaches your agent immediately. You comment on one plan with diagrams and designs, and approve it before coding. Your agent builds it test first, another agent polishes and tests it, and risky changes get independent AI code review.",
+    "Spec-driven development starts with an approved plan. Here, questions arrive as a batch in Your turn; answer in any order, and each answer reaches your agent immediately. You comment on one plan with diagrams and artifacts, and approve it before coding. Your agent builds it test first, another agent polishes and tests it, and risky changes get independent AI code review.",
   ),
   faq(
     "What about small changes and bugs?",
@@ -47,7 +47,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "Does my code leave my computer?",
-    "Your coding agent sends code to its provider under your existing data settings. QualityLayer keeps plans, designs and agent output on your computer. Sharing sends the task and its progress, encrypted on your machine, with designs only if you include them; never repository code or terminal output. A screenshot you attach to a feedback report can show code, so check it first.",
+    "Your coding agent sends code to its provider under your existing data settings. QualityLayer keeps plans, artifacts and agent output on your computer. Sharing sends the task and its progress, encrypted on your machine, with artifacts only if you include them; never repository code or terminal output. A screenshot you attach to a feedback report can show code, so check it first.",
   ),
   faq(
     "I use Pilot Shell today. What happens?",

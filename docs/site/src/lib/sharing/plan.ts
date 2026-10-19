@@ -6,7 +6,7 @@
  */
 
 import DOMPurify from "dompurify";
-import { sharedDesignHtml } from "@ql/ui/design/shared-html";
+import { sharedArtifactHtml } from "@ql/ui/artifact/shared-html";
 import { parseFence } from "@ql/core/docs/fragments";
 import { marked, type Token, type Tokens, type TokensList } from "marked";
 import { screensFromReview, withScreenStills } from "@ql/core/review/screen-pairs";
@@ -21,7 +21,7 @@ export type PlanBlock =
   | { kind: "mermaid"; key: string; source: string }
   | { kind: "wireframe"; key: string; source: string }
   | { kind: "panel"; key: string; source: string }
-  /** `path` as the plan's fence names it: `design/settings.html`. */
+  /** `path` as the plan's fence names it: `artifacts/settings.html`. */
   | { kind: "artifact"; key: string; path: string };
 
 const escapeHtml = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -43,7 +43,7 @@ const fenceWord = (token: Tokens.Code) => (token.lang ?? "").trim().split(/\s+/)
  * mockup, in its body or after the word (the App writes the path in the body).
  */
 export function planBlocks(markdown: string): PlanBlock[] {
-  const tokens = marked.lexer(markdown.replace(/<!--\s*ql:design\s+([a-z0-9][a-z0-9-]*)\s*-->/g, (_marker, name: string) => `\n\n\`\`\`artifact\ndesign/${name}.html\n\`\`\`\n\n`));
+  const tokens = marked.lexer(markdown.replace(/<!--\s*ql:artifact\s+([a-z0-9][a-z0-9-]*)\s*-->/g, (_marker, name: string) => `\n\n\`\`\`artifact\nartifacts/${name}.html\n\`\`\`\n\n`));
   const blocks: PlanBlock[] = [];
   let run: Token[] = [];
   const flush = () => {
@@ -140,12 +140,12 @@ export function contractsOf(details: string): Contract[] {
 }
 
 /** A mockup file by its bare name, so the plan's fence and a question name it alike. */
-export const mockupName = (path: string) => path.replace(/^design\//, "");
+export const mockupName = (path: string) => path.replace(/^artifacts\//, "");
 
-/** A mockup's html from the link: the fence names `design/settings.html`, an item just `settings.html`. */
+/** A mockup's html from the link: the fence names `artifacts/settings.html`, an item just `settings.html`. */
 export const mockupHtml = (docs: Record<string, string>, path: string): string | undefined => {
-  const html = docs[`design/${mockupName(path)}`];
-  return html === undefined ? undefined : sharedDesignHtml(html);
+  const html = docs[`artifacts/${mockupName(path)}`];
+  return html === undefined ? undefined : sharedArtifactHtml(html);
 };
 
 const CSP =

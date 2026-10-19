@@ -24,8 +24,8 @@ export type StepDocumentProps = {
   onQuote?: ((quote: string) => void) | undefined;
   at?: string | undefined;
   extraTools?: ReactNode | undefined;
-  /** Draw the designs the document's `ql:design` markers name, where they stand (Discuss's wireframe). */
-  designs?: { open?: ((name: string) => void) | undefined } | undefined;
+  /** Draw the artifacts the document's `ql:artifact` markers name, where they stand (Discuss's wireframe). */
+  artifacts?: { open?: ((name: string) => void) | undefined } | undefined;
 };
 
 export function StepDocument(props: StepDocumentProps): ReactNode;

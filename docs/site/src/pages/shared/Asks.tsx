@@ -2,7 +2,7 @@ import type { Drafts } from "@/lib/sharing/drafts";
 import { mockupHtml } from "@/lib/sharing/plan";
 import { answerWords, type GuestAnswer, type ItemMedia, type PlanStill, type ShareItem } from "@/lib/sharing/sharing";
 import { Diagram } from "./Diagram";
-import { DesignStill, MissingMockup, MockupFrame } from "./Frame";
+import { ArtifactStill, MissingMockup, MockupFrame } from "./Frame";
 
 
 /**
@@ -13,8 +13,8 @@ import { DesignStill, MissingMockup, MockupFrame } from "./Frame";
 
 function Media({ media, docs, stills }: { media: ItemMedia; docs: Record<string, string>; stills?: Record<string, PlanStill> }) {
   if (media.kind === "artifact") {
-    const still = stills?.[media.name] ?? stills?.[`design/${media.name}`];
-    if (still !== undefined) return <DesignStill still={still} />;
+    const still = stills?.[media.name] ?? stills?.[`artifacts/${media.name}`];
+    if (still !== undefined) return <ArtifactStill still={still} />;
     const html = mockupHtml(docs, media.name);
     return html === undefined ? <MissingMockup /> : <MockupFrame html={html} title={media.title ?? "Mockup"} />;
   }

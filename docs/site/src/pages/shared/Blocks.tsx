@@ -2,7 +2,7 @@ import { mockupHtml, mockupName, type PlanBlock } from "@/lib/sharing/plan";
 import { Diagram } from "./Diagram";
 import { FencedVisual } from "./FencedVisual";
 import { useTheme } from "@/hooks/useTheme";
-import { DesignStill, MissingMockup, MockupFrame } from "./Frame";
+import { ArtifactStill, MissingMockup, MockupFrame } from "./Frame";
 import type { PlanStill } from "@/lib/sharing/sharing";
 
 /**
@@ -29,7 +29,7 @@ export function Blocks({ blocks, docs, stills, shown }: { blocks: PlanBlock[]; d
         if (block.kind === "wireframe" || block.kind === "panel") return <FencedVisual key={block.key} kind={block.kind} source={block.source} theme={theme} />;
         if (shown?.has(mockupName(block.path))) return null;
         const still = stills?.[block.path];
-        if (still !== undefined) return <DesignStill key={block.key} still={still} />;
+        if (still !== undefined) return <ArtifactStill key={block.key} still={still} />;
         const html = mockupHtml(docs, block.path);
         return html === undefined ? <MissingMockup key={block.key} /> : <MockupFrame key={block.key} html={html} title="Mockup" />;
       })}

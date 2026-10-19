@@ -19,13 +19,13 @@
     "verify",
     "review",
     "pull-request",
-    "design",
+    "artifact",
     "team",
     "home",
     "setup",
     "memory",
-    "designs",
-    "designs-open"
+    "artifacts",
+    "artifacts-open"
   ],
   "images": [
     {
@@ -211,14 +211,14 @@
       "sha256": "2edfce50cd44e06cce2fdec3164bb5cbbabdda5d333081277ad74317e0ad09a6"
     },
     {
-      "file": "design-light.webp",
+      "file": "artifact-light.webp",
       "width": 2880,
       "height": 1920,
       "sha256": "a384683d9d50d563a36b97363c5d0d8f1f028fa0c05eb3d97bd6ddcf1c7f4de3",
       "capturedAt": "2026-10-19T08:07:38.973Z"
     },
     {
-      "file": "design-phone-light.webp",
+      "file": "artifact-phone-light.webp",
       "width": 780,
       "height": 1400,
       "sha256": "3ee53d1c3980d7bfb6a17330be8fca7d4537a2ad7bc7719d02a0c42c36a99ecb",
@@ -278,25 +278,25 @@
       "sha256": "8918ce1dc2008a264244b55afe5336be53b738652a96283effe12bf9c30d5f47"
     },
     {
-      "file": "designs-light.webp",
+      "file": "artifacts-light.webp",
       "width": 2880,
       "height": 1920,
       "sha256": "fd1943963305177bceba727a5017b44c0de52f236196094a99a877d93fb7e23e"
     },
     {
-      "file": "designs-phone-light.webp",
+      "file": "artifacts-phone-light.webp",
       "width": 780,
       "height": 1400,
       "sha256": "d7b19fc1ecce16030dd4f3503b67f938489557a1f1c5da786e437045687725f7"
     },
     {
-      "file": "designs-open-light.webp",
+      "file": "artifacts-open-light.webp",
       "width": 2880,
       "height": 1920,
       "sha256": "8ad580265b964a713ed77e7ddc31b61765b7091e1c72cb4d0813f2a514dec89c"
     },
     {
-      "file": "designs-open-phone-light.webp",
+      "file": "artifacts-open-phone-light.webp",
       "width": 780,
       "height": 1400,
       "sha256": "94d5d79e5e5bac987454611880c69cfcb03766e7e63f825e8b49781a7ebc0165"
@@ -484,14 +484,14 @@
       "sha256": "5180711f1d2e7ebb905d1a079c0ae01a2af462922443e4b8c6165c263d926dab"
     },
     {
-      "file": "design-dark.webp",
+      "file": "artifact-dark.webp",
       "width": 2880,
       "height": 1920,
       "sha256": "da2a6aa84048ba75e5b14e3f1d385e79a6676eadd4066c1c09607dff119b7f97",
       "capturedAt": "2026-10-19T08:07:38.973Z"
     },
     {
-      "file": "design-phone-dark.webp",
+      "file": "artifact-phone-dark.webp",
       "width": 780,
       "height": 1400,
       "sha256": "535eba9dc082bed0bd7c5806d5827842e0c9230ad93bd8fcd52852052afd948c",
@@ -551,25 +551,25 @@
       "sha256": "29a1e475b4d3d4cb548ecc09fe3b0ef43c2f5ccd49cba496feed69ea477af641"
     },
     {
-      "file": "designs-dark.webp",
+      "file": "artifacts-dark.webp",
       "width": 2880,
       "height": 1920,
       "sha256": "ad580f04791e5abc0f93dd4daa5068d0661838cfc3a734670ad5d1e00c16f706"
     },
     {
-      "file": "designs-phone-dark.webp",
+      "file": "artifacts-phone-dark.webp",
       "width": 780,
       "height": 1400,
       "sha256": "869c9f2a75c63cde6ab6c7e575e91637d0fa69029e5dc6b9afce49c91b2d9271"
     },
     {
-      "file": "designs-open-dark.webp",
+      "file": "artifacts-open-dark.webp",
       "width": 2880,
       "height": 1920,
       "sha256": "f8f84c20b825e8beb3569d87d4e403c0d87db79551b0fed714418c7050132621"
     },
     {
-      "file": "designs-open-phone-dark.webp",
+      "file": "artifacts-open-phone-dark.webp",
       "width": 780,
       "height": 1400,
       "sha256": "5516a68eac3b37806795e1d4f584ee96c65d1898cbd1e617b37339dff5b5a630"
@@ -587,7 +587,7 @@
     "plan",
     "terminal",
     "discuss",
-    "design"
+    "artifact"
   ],
   "captureScriptHash": "50feeddb1b6f1974422d2499a641e70bdef9c9e425a83958f4fedab0ca636eac"
 }

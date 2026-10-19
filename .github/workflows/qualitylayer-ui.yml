@@ -60,7 +60,7 @@ jobs:
       # test:ui builds one private candidate and passes it to every project, including click-speed.
       - name: Source UI interactions, geometry and accessibility
         working-directory: qualitylayer
-        run: bun run test:ui --all launch-choice.spec.ts seven-batch.spec.ts seven-handover.spec.ts seven-verify-checks.spec.ts seven-review-walk.spec.ts memory.spec.ts team-collaboration-ux.spec.ts designs-place.spec.ts design-sharing-responsive.spec.ts terminal-app.spec.ts shared-design-security.spec.ts --shard ${{ matrix.shard }}/2 --reporter=github,./scripts/ui-duration-reporter.ts
+        run: bun run test:ui --all launch-choice.spec.ts seven-batch.spec.ts seven-handover.spec.ts seven-verify-checks.spec.ts seven-review-walk.spec.ts memory.spec.ts team-collaboration-ux.spec.ts artifacts-place.spec.ts artifact-sharing-responsive.spec.ts terminal-app.spec.ts shared-artifact-security.spec.ts --shard ${{ matrix.shard }}/2 --reporter=github,./scripts/ui-duration-reporter.ts
       - name: Keep fixture failure screenshots
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

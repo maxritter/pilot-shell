@@ -7,7 +7,7 @@ description: Regenerate QualityLayer website and README screenshots from the sou
 
 Use the website's source App demo and its curated developer projects. The
 fixtures in `qualitylayer/src/ui/demo/website-gallery.ts` supply questions,
-documents, designs and checks; production components supply the interface.
+documents, artifacts and checks; production components supply the interface.
 The screenshot command uses a temporary browser profile and in-memory data.
 
 From `docs/site/`, run `npm run screenshots`. It starts and closes its own

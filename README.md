@@ -7,9 +7,12 @@
 
 # QualityLayer
 
+**Quality by design**
+
 ### The software factory with you in the loop
 
-**Plan each change visually with your agent and your team.**<br>
+**Your agent draws up each change as diagrams and clickable artifacts.**<br>
+You and your team agree on the plan; your agents build it and check every point.<br>
 Use the App or browser: your task on the left, your agent on the right.<br>
 Claude Code, Codex, Pi and OpenCode connect directly. Other agents use the CLI.
 
@@ -58,7 +61,7 @@ Prefer your browser? [Set up the browser workspace](https://qualitylayer.dev/doc
 
 **Coding agents write code fast**, but each change still leaves copies, workarounds and dead code behind. QualityLayer puts you back in the loop while the change is still a plan:
 
-- Your agent reads the code and draws up one plan: the architecture as diagrams, the screens as clickable designs, each decision with its reasons.
+- Your agent reads the code and draws up one plan: the architecture as diagrams, the screens as clickable artifacts, each decision with its reasons.
 - You comment on any part and approve the plan before anything changes; with a Team plan, your teammates comment too.
 - Your agent builds it in small slices, each starting with a failing test.
 - Agents that did not write the code check every point of your request against the running program.
@@ -140,7 +143,7 @@ Each of the first seven steps writes one Markdown file, and the App draws it as 
 |---|---|
 | [Discuss](https://qualitylayer.dev/docs/steps/discuss) | Settles what done means and clarifies a bug report |
 | [Research](https://qualitylayer.dev/docs/steps/research) | Agents read how your code works today; a bug is reproduced and diagnosed here |
-| [Plan](https://qualitylayer.dev/docs/steps/plan) | Design, diagrams and checks, **approved by you** |
+| [Plan](https://qualitylayer.dev/docs/steps/plan) | Artifact, diagrams and checks, **approved by you** |
 | [Outline](https://qualitylayer.dev/docs/steps/outline) | The build session splits the approved Plan into small slices |
 | [Implement](https://qualitylayer.dev/docs/steps/implement) | Each slice starts with a failing test |
 | [Verify](https://qualitylayer.dev/docs/steps/verify) | Every point of your request, with its evidence |
@@ -151,9 +154,9 @@ Each of the first seven steps writes one Markdown file, and the App draws it as 
 
 Engineering (default) starts from a technical plan, Product from a brief that becomes a PRD. Pick one at Setup, change it in Settings › Workflow, or per task in the task header. [How they differ](https://qualitylayer.dev/docs/#two-levels).
 
-## Designs
+## Artifacts
 
-Ask your agent for a mockup, diagram or clickable design. Compare versions in the App, pin feedback and restore earlier versions. Keep the designs every task builds on in your repository. [Designs](https://qualitylayer.dev/docs/designs).
+Ask your agent for a mockup, diagram or clickable artifact. Compare versions in the App, pin feedback and restore earlier versions. Keep the artifacts every task builds on in your repository. [Artifacts](https://qualitylayer.dev/docs/artifacts).
 
 ## QualityLayer App
 
@@ -201,7 +204,7 @@ See [LICENSE](LICENSE).
 
 <div align="center">
 
-**The software factory with you in the loop**
+**Quality by design.** The software factory with you in the loop.
 
 Made by [Max Ritter](https://maxritter.net)
 

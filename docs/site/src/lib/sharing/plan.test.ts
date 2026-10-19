@@ -45,7 +45,7 @@ const PLAN = [
   "",
   "## Interface",
   "",
-  "```artifact design/settings.html",
+  "```artifact artifacts/settings.html",
   "```",
   "",
   "A closing remark.",
@@ -65,14 +65,14 @@ describe("a plan cut into parts", () => {
     const blocks = planBlocks(PLAN);
     expect(blocks.map((b) => b.kind)).toEqual(["html", "mermaid", "html", "artifact", "html"]);
     expect(blocks[1]).toMatchObject({ kind: "mermaid", source: "graph LR; A-->B" });
-    expect(blocks[3]).toMatchObject({ kind: "artifact", path: "design/settings.html" });
+    expect(blocks[3]).toMatchObject({ kind: "artifact", path: "artifacts/settings.html" });
   });
 
   it("never lets the fence's words stand in for the picture", () => {
     const text = planBlocks(PLAN)
       .flatMap((b) => (b.kind === "html" ? [b.html] : []))
       .join("");
-    expect(text).not.toContain("design/settings.html");
+    expect(text).not.toContain("artifacts/settings.html");
     expect(text).not.toContain("graph LR");
     expect(text).toContain("First the configuration changes.");
     expect(text).toContain("A closing remark.");
@@ -168,10 +168,10 @@ describe("a mockup's page", () => {
 
   it("is found by the plan's path or by the bare name a question gives", () => {
     const html = "<!doctype html><html><body><p>m</p></body></html>";
-    const docs = { "design/settings.html": html };
-    expect(mockupHtml(docs, "design/settings.html")).toContain("Content-Security-Policy");
-    expect(mockupHtml(docs, "settings.html")).toBe(mockupHtml(docs, "design/settings.html"));
+    const docs = { "artifacts/settings.html": html };
+    expect(mockupHtml(docs, "artifacts/settings.html")).toContain("Content-Security-Policy");
+    expect(mockupHtml(docs, "settings.html")).toBe(mockupHtml(docs, "artifacts/settings.html"));
     expect(mockupHtml(docs, "other.html")).toBeUndefined();
-    expect(mockupName("design/settings.html")).toBe("settings.html");
+    expect(mockupName("artifacts/settings.html")).toBe("settings.html");
   });
 });

@@ -23,7 +23,7 @@ const leads = (tour: HTMLElement, inline: boolean) =>
   });
 
 /**
- * One change followed from request to pull request, then designs, the team and the setup. Each
+ * One change followed from request to pull request, then artifacts, the team and the setup. Each
  * chapter shows one close-up of the QualityLayer App at reading size: the part of the App that
  * chapter is about, playing its moments one per second. On wide screens the chapters scroll on the
  * left while the close-up stays pinned on the right; on tablets and phones each chapter carries

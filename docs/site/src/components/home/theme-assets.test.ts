@@ -15,7 +15,7 @@ const contrast = (foreground: string, background: string) => {
 };
 
 describe("illustrations in both themes", () => {
-  it("keeps the drawn design and its thumbnails on the site's theme palette", () => {
+  it("keeps the drawn artifact and its thumbnails on the site's theme palette", () => {
     const css = read("docs/site/src/styles/closeup.css");
     const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(([, selector]) => /\.cu-(?:dp|dz)/.test(selector));
     expect(rules.length).toBeGreaterThan(12);

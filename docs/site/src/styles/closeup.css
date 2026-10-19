@@ -1,5 +1,5 @@
 /* The tour's close-ups of the QualityLayer App (cu- classes), at reading size. Measurements follow the
-   App's design (qualitylayer/design/app/app-model/model.css): top bar, the step's own track, the amber
+   App's artifact (qualitylayer/artifacts/app/app-model/model.css): top bar, the step's own track, the amber
    Your turn card, the agent's turn, choices, slices, checks. Colours are the shared palette's --ql-*
    tokens, so both themes follow the site: amber is your turn, blue an agent at work and the action,
    violet what agents checked, red a failure. */
@@ -229,7 +229,7 @@
 .cu-cardh + .cu-pr{border-top:0}
 .cu-pr .cu-k{font-size:12px;white-space:nowrap}
 
-/* Designs: the page the agent drew, inside its card and full size */
+/* Artifacts: the page the agent drew, inside its card and full size */
 .cu-dz{border:1px solid var(--ql-border);border-radius:10px;overflow:hidden}
 .cu-dzh{display:flex;align-items:center;gap:8px;padding:7px 8px 7px 10px;border-bottom:1px solid var(--ql-line);background:var(--ql-surface-2);font-size:12.5px}
 .cu-dzh b{font:600 12px "Geist Mono",ui-monospace,monospace}

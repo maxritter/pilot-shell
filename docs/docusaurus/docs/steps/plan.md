@@ -1,6 +1,6 @@
 ---
 title: Plan
-description: "The one document you approve before any code: what it rests on, the design and its decisions, and how you will know it works."
+description: "The one document you approve before any code: what it rests on, the artifact and its decisions, and how you will know it works."
 ---
 
 ![The eight steps, with Plan highlighted](pathname:///img/diagrams/track-plan-light.svg)
@@ -21,12 +21,12 @@ The page shows the sections in the order of `03-plan.md`, so the file, the Reade
 | --- | --- |
 | **Summary** | The change in a few lines, with the size of the build, whether it is risky and what reviewed it |
 | **Done means** | The results from [Discuss](discuss.md), and how each will be checked |
-| **The design** | A wireframe or finished design for anything people see ([Designs](../designs.md)) |
+| **The artifact** | A wireframe or finished artifact for anything people see ([Artifacts](../artifacts.md)) |
 | **Today and after the change** | The same view before and after, side by side |
 | **Engineering decisions** | Two sentences each, with the diagram open beside them where a picture is clearer |
 | **Not doing**, **Decisions made for you**, **Assumptions**, **Before the build** | What stays untouched; your agent's smaller choices, with reasons; what the Plan takes for granted; what must be ready first, such as a login |
 
-Designs, wireframes and diagrams are never collapsed, so you approve what you can see. Risks, your earlier answers, what the Plan rests on, the review findings and the system design contracts are collapsed under them, each with a one-line summary. Both levels show the same sections; the product level uses plainer words for them ([two levels](../intro.md#two-levels)). Patterns to follow and the proof gathered before the gate are in the document.
+Artifacts, wireframes and diagrams are never collapsed, so you approve what you can see. Risks, your earlier answers, what the Plan rests on, the review findings and the system design contracts are collapsed under them, each with a one-line summary. Both levels show the same sections; the product level uses plainer words for them ([two levels](../intro.md#two-levels)). Patterns to follow and the proof gathered before the gate are in the document.
 
 ### What to read first {#read-first}
 
@@ -34,11 +34,11 @@ Start with **Look here**, the lines under the summary. Each names its first item
 
 ## Approve or give feedback {#answering}
 
-A choice that only appears once a design is drawn is a **Your call** (at most two). **Your turn** shows them one at a time, with the part of the Plan each concerns, and each answer reaches your agent immediately. Findings from the technical review return to the planning agent; only a new hard choice reaches you.
+A choice that only appears once an artifact is drawn is a **Your call** (at most two). **Your turn** shows them one at a time, with the part of the Plan each concerns, and each answer reaches your agent immediately. Findings from the technical review return to the planning agent; only a new hard choice reaches you.
 
 1. Read the complete Plan.
 2. Pin comments, or press **Give feedback**. Your agent revises; the diff shows what changed.
-3. Press **Approve Plan** at the top right. It approves the Plan, **Done means** and the design together.
+3. Press **Approve Plan** at the top right. It approves the Plan, **Done means** and the artifact together.
 
 Only your click approves: answering a question does not approve the Plan.
 

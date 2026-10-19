@@ -52,12 +52,12 @@ describe("an open share follows its owner", () => {
     await flush();
     fireEvent.change(screen.getByRole("textbox", { name: "Feedback" }), { target: { value: "ql-verify-draft" } });
     const docs = Object.fromEntries(["01-discuss.md", "02-research.md", "03-plan.md", "04-outline.md", "05-implement.md", "06-verify.md", "07-review.md"].map((name) => [name, `# ql-verify-latest-${name}`]));
-    docs["plan-design.png"] = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aQ1sAAAAASUVORK5CYII=";
-    vi.mocked(readShareUpdate).mockResolvedValueOnce(loaded(2, { ...ready("ql-verify-after"), docs, stills: { "design/settings.html": { title: "ql-verify-settings", image: "data:image/png;base64,iVBORw0KGgo=" } } } as never) as never);
+    docs["plan-artifact.png"] = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aQ1sAAAAASUVORK5CYII=";
+    vi.mocked(readShareUpdate).mockResolvedValueOnce(loaded(2, { ...ready("ql-verify-after"), docs, stills: { "artifacts/settings.html": { title: "ql-verify-settings", image: "data:image/png;base64,iVBORw0KGgo=" } } } as never) as never);
     await flush(30_000);
     expect(screen.getAllByText("ql-verify-after").length).toBeGreaterThan(0);
     expect((screen.getByRole("textbox", { name: "Feedback" }) as HTMLTextAreaElement).value).toBe("ql-verify-draft");
-    expect((screen.getByRole("img", { name: "Plan design" }) as HTMLImageElement).src).toBe("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aQ1sAAAAASUVORK5CYII=");
+    expect((screen.getByRole("img", { name: "Plan artifact" }) as HTMLImageElement).src).toBe("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aQ1sAAAAASUVORK5CYII=");
     for (const step of ["Discuss", "Research", "Plan", "Outline", "Implement", "Verify", "Review"]) expect(screen.getByRole("button", { name: step })).toBeTruthy();
     unmount();
     await flush(300_000);
