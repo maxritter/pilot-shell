@@ -644,6 +644,7 @@ jobs:
       # The schema of the environment being released to goes first: the new handlers need its
       # tables, and a failed migration stops the release before anything is deployed.
       - name: Apply the database schema
+        if: ${{ !contains(env.VERSION, '-') }}
         working-directory: docs/site
         run: |
           pull="${RUNNER_TEMP:?}/database.env"
@@ -665,6 +666,7 @@ jobs:
       # qualitylayer.dev is qualitylayer-site's Production, built from SITE_PRODUCTION_BRANCH (dev
       # until the final release moves it to main); another branch becomes a protected Preview.
       - name: Deploy the site at this commit
+        if: ${{ !contains(env.VERSION, '-') }}
         id: deploy
         run: |
           umask 077
@@ -689,7 +691,7 @@ jobs:
       # The domains move only to a Production deployment of the branch's tip: a newer commit
       # that landed meanwhile keeps them.
       - name: Point qualitylayer.dev at this release
-        if: github.ref_name == env.PRODUCTION_BRANCH
+        if: ${{ !contains(env.VERSION, '-') && github.ref_name == env.PRODUCTION_BRANCH }}
         env:
           DEPLOY_URL: ${{ steps.deploy.outputs.url }}
         run: |
@@ -722,7 +724,7 @@ jobs:
       - name: A fresh trial gets the texts from the deployment
         working-directory: docs/site
         env:
-          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
+          DEPLOY_URL: ${{ steps.deploy.outputs.url || 'https://qualitylayer.dev' }}
         run: node scripts/upload-workflow.ts probe "$VERSION" "$DEPLOY_URL"
 
       # The GitHub release says what the updater's manifest says: one section of CHANGELOG.md.
