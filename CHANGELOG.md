@@ -2,6 +2,12 @@
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+## Unreleased
+
+### New
+
+- Run a task in Terminal mode to answer questions, approve the Plan and review the finished change in your agent's chat. Choose it in your request, Settings or the task's launch controls; screenless computers select it automatically. Read diagrams and design sketches through the CLI.
+
 ## 12.0.0-beta.59
 
 ### New

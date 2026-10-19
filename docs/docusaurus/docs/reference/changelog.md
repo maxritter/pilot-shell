@@ -7,6 +7,24 @@ toc_max_heading_level: 2
 
 Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
+<section class="cl-rel">
+
+<header class="cl-version">
+
+## Unreleased
+
+<p class="cl-published">Not published</p>
+
+</header>
+
+### New
+
+- Run a task in Terminal mode to answer questions, approve the Plan and review the finished change in your agent's chat. Choose it in your request, Settings or the task's launch controls; screenless computers select it automatically. Read diagrams and design sketches through the CLI.
+
+
+
+</section>
+
 <section class="cl-rel cl-latest">
 
 <header class="cl-version">
