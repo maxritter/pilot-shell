@@ -195,6 +195,12 @@ job_overflow() {
   cd "$qualitylayer_tree/qualitylayer" || return 1
   bun run check:overflow
 }
+# Both browser checks retain their own assertions; release startup precedes the layout matrix.
+# shellcheck disable=SC2329
+job_browser_checks() {
+  job_cockpit || return 1
+  if [ "$ui_changed" = "1" ]; then job_overflow || return 1; fi
+}
 # shellcheck disable=SC2329
 job_plaintext() {
   bash .github/scripts/check_qualitylayer_encrypted.sh --staged
@@ -274,8 +280,7 @@ fi
 if [ "$qualitylayer_changed" = "1" ]; then
   if have bun && [ -d qualitylayer/node_modules ]; then
     launch "qualitylayer (typecheck+lint)" job_qualitylayer
-    launch "qualitylayer (release Cockpit draws)" job_cockpit
-    if [ "$ui_changed" = "1" ]; then launch "qualitylayer (no text overflows a control)" job_overflow; fi
+    launch "qualitylayer (release Cockpit and controls)" job_browser_checks
   else
     echo "⚠ bun or qualitylayer deps unavailable — skipping (cd qualitylayer && bun install)."
   fi
