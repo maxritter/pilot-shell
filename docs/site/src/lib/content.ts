@@ -51,7 +51,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "I use Pilot Shell today. What happens?",
-    "The App replaces Pilot Shell on first start, without questions. Your licence carries over, Pilot Shell's tools and memories stay, and your agent can remove what you no longer need.",
+    "Keep using Pilot Shell 11 for as long as you want, including alongside QualityLayer. Setup leaves Pilot Shell and its tools in place. Your paid licence carries over; import memories per project in Settings → Memory.",
   ),
 ];
 
@@ -90,6 +90,6 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "I use Pilot Shell 11. What happens?",
-    "The App or Pilot Shell’s own updater moves you over, without questions. Your plans, Pilot Shell's tools and its memories stay; your agent can remove what you no longer need. A paid licence keeps today's price. Without one, your 7-day trial starts.",
+    "You can use Pilot Shell 11 and QualityLayer in parallel. QualityLayer leaves Pilot Shell, its tools and its configuration in place. Your paid licence keeps its existing price. Without an active licence, you get a fresh seven-day trial. Import memories per project in Settings → Memory.",
   ),
 ];

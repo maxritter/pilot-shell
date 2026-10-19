@@ -63,10 +63,12 @@ describe("the site's copy", () => {
     expect(pricing).not.toContain("held up to a day");
   });
 
-  it("describes the unattended upgrade that preserves Pilot's tools and memories", async () => {
+  it("lets Pilot users keep both products and import memories when ready", async () => {
     const pricing = await textOf(<PricingSection />);
-    expect(pricing).toMatch(/tools.*memories stay/i);
-    expect(pricing).not.toMatch(/lets you choose what happens/i);
+    expect(pricing).toMatch(/Pilot Shell 11 alongside QualityLayer/i);
+    expect(pricing).toMatch(/paid subscription keeps its price/i);
+    expect(pricing).toMatch(/Import memories per project/i);
+    expect(pricing).not.toMatch(/updater moves you over|replaces Pilot Shell/i);
   });
 
   it("quotes the engineer word for word, attributed without a name", async () => {

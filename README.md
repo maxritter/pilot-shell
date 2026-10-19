@@ -104,7 +104,7 @@ The App updates itself; without it, run `qualitylayer update`. [Installation gui
 <details>
 <summary><b>Coming from Pilot Shell 11</b></summary>
 
-Its updater moves you over with your plans and licence. [Moving from Pilot Shell](https://qualitylayer.dev/docs/moving-from-pilot-shell).
+Keep using Pilot Shell 11 alongside QualityLayer for as long as you want. Your paid licence carries over; import memories per project when you are ready. [Moving from Pilot Shell](https://qualitylayer.dev/docs/moving-from-pilot-shell).
 
 </details>
 

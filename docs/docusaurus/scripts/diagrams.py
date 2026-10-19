@@ -271,25 +271,6 @@ def remote_ill(c: Theme) -> str:
     return svg(W, H, ''.join(b), 'Install QualityLayer where your agent runs, in a dev container, WSL2 or on a server. Its pages open in the browser on your computer through one forwarded port')
 
 
-def move_ill(c: Theme) -> str:
-    W, H = 1000, 190
-    b = []
-    cols = [('Carried over', 'ok', ['Your licence', 'Your plans in docs/plans', 'Your own settings and files']),
-            ('Removed', 'cardline', ['Pilot Shell’s own files', 'Its agent settings entries', 'Its shell profile block']),
-            ('Stays', 'ok', ['Tools Pilot Shell installed', 'Pilot Shell memories', 'Ask your agent to remove any'])]
-    for i, (t, col, items) in enumerate(cols):
-        x = i * 340
-        b.append(card(c, x, 0, 320, 186, stroke='cardline', fill='card'))
-        b.append(T(x + 18, 32, t, 15, 'text', 650, c=c))
-        for k, s in enumerate(items):
-            y = 64 + k * 38
-            last = i == 2 and k == 2
-            if not last:
-                b.append(mark(c, x + 26, y + 2) if col == 'ok' else f'<circle cx="{x + 24}" cy="{y + 1}" r="3.5" fill="{c[col if col != "cardline" else "dim"]}"/>')
-            b.append(T(x + (18 if last else 40), y + 6, s, 13, 'dim' if last else 'text', 500, c=c))
-    return svg(W, H, ''.join(b), 'Moving from Pilot Shell 11: your licence, plans and own files carry over; Pilot Shell’s own parts are removed; the tools it installed and its memories stay')
-
-
 # ---------------------------------------------------------------- reference
 def files_ill(c: Theme) -> str:
     W, H = 1000, 456
@@ -1562,7 +1543,7 @@ DRAWINGS = [('architecture', architecture), ('flow-pr', lambda c: flow(c, pr=Tru
             ('attention', attention_ill), ('feedback', feedback_ill), ('agents-other', agents_other_ill), ('agents-mix', agents_mix_ill),
             ('team', team), ('team-agents', team_agents), ('team-timeline', team_timeline), ('team-change', team_change),
             ('peers', peers), ('install', install_ill), ('remote', remote_ill), ('firsttask', firsttask_ill), ('update', update_ill),
-            ('move', move_ill), ('files', files_ill), ('privacy', privacy_ill),
+            ('files', files_ill), ('privacy', privacy_ill),
             ('designs', designs_flow), ('designs-tab', designs_tab), ('design-open', design_open)]
 DRAWINGS += [(f'track-{n.lower().replace(" ", "-")}', track(n)) for n, _ in STEPS_PR]
 

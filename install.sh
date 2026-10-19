@@ -19,10 +19,7 @@
 # Pilot Shell 11's updater downloads and runs this script with its own flags
 # (--auto-update --non-interactive --quiet). --auto-update and --non-interactive
 # mean nothing may be asked; --quiet is accepted and ignored.
-# With Pilot Shell 11 installed, the install shows its upgrade screen once and
-# moves the machine to QualityLayer. The move asks nothing, with or without a
-# terminal: it removes only Pilot's own parts and keeps the tools Pilot installed
-# and its memories; the report says how to remove them later.
+# QualityLayer installs alongside Pilot Shell without changing its files or tools.
 #
 # Environment: VERSION (e.g. 12.0.0-beta.1; default: the newest v12 release),
 # QUALITYLAYER_RELEASE_BASE and QUALITYLAYER_RELEASE_API (mirrors and tests).
@@ -230,17 +227,12 @@ download_verified() {
 	[ "$expected" = "$actual" ] || fail "checksum mismatch for ${name} (expected ${expected}, got ${actual}); nothing was installed"
 }
 
-# Pilot Shell 11 is still installed: the install shows its upgrade screen and moves
-# the machine over, with or without a terminal.
-v11=""
-[ -e "$HOME/.pilot/bin/pilot" ] && v11=yes
-
 # run_install <program> [args]: `install` asks nothing, so it runs the same way with or without
 # a terminal, and never reads this script's own stdin under `curl | bash`.
 run_install() {
 	local program="$1"
 	shift
-	"$program" install "$@" ${v11:+--upgrade-v11} --non-interactive </dev/null
+	"$program" install "$@" --non-interactive </dev/null
 }
 
 if [ -z "$use_app" ]; then

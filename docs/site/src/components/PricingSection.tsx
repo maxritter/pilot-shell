@@ -113,7 +113,7 @@ const PricingSection = () => {
           <div className="pr-how">
             <div className="pr-hi" style={hue("build")}><b><KeyRound size={16} aria-hidden="true" />Activate once</b><span>Paste your key in the App on first start, or run <span className="pr-code">qualitylayer licence activate &lt;key&gt;</span>. Manage invoices, seats and payment in <Link to="/billing">your billing account</Link>.</span></div>
             <div className="pr-hi" style={hue("verify")}><b><WifiOff size={16} aria-hidden="true" />Works offline</b><span>Checked once a day. Offline, a paid licence works for up to {OFFLINE_DAYS} days after its last successful check.</span></div>
-            <div className="pr-hi" style={hue("plan")}><b><ArrowRightLeft size={16} aria-hidden="true" />Coming from Pilot Shell</b><span>The App or Pilot Shell’s updater moves you over. Your subscription, its price and your plans carry over; Pilot’s tools and memories stay.</span></div>
+            <div className="pr-hi" style={hue("plan")}><b><ArrowRightLeft size={16} aria-hidden="true" />Coming from Pilot Shell</b><span>Use Pilot Shell 11 alongside QualityLayer for as long as you want. Your paid subscription keeps its price. Import memories per project when you are ready.</span></div>
           </div>
         </div>
       </section>
