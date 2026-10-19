@@ -12,7 +12,8 @@ describe("installation and build instructions", () => {
   });
   it("puts native Windows PowerShell installation with the App and WSL with Linux", () => {
     const install = doc("install.md");
-    const sections = install.split(/^## /m);
+    // Servers and WSL2 sit under "In your browser" as their own ### part; split at both levels.
+    const sections = install.split(/^#{2,3} /m);
     const desktop = sections.find((section) => section.startsWith("On your computer\n"));
     const headless = sections.find((section) => section.split("\n")[0].includes("{#without-a-screen}"));
     expect(desktop).toContain("irm https://qualitylayer.dev/install.ps1 | iex");

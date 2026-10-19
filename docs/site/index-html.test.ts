@@ -58,7 +58,8 @@ describe("static marketing shell", () => {
     for (const step of ["Discuss:", "Research:", "Plan:", "Outline:", "Implement:", "Verify:", "Review:"]) expect(staticText).toContain(step);
     expect(staticText).toContain("qualitylayer.dev/download");
     expect(staticText).toContain("curl -fsSL https://qualitylayer.dev/install.sh | bash");
-    expect(staticText).toContain("type /ql and the problem");
+    // The first task starts in the App (2026-10-19, a3023a9d7): + New, an agent, the change in words.
+    expect(staticText).toContain("Choose + New, pick Claude Code, Codex, Pi or OpenCode, and describe the change");
   });
 
   it("carries no leftover from the previous products", () => {

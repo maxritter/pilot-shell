@@ -161,8 +161,8 @@ Ask your agent for a mockup, diagram or clickable artifact. Compare versions in 
 ## QualityLayer App
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="docs/site/public/product/terminal-light.webp">
-  <img src="docs/site/public/product/terminal-dark.webp" alt="A visual Plan explains retries, buffering and replay beside an illustrative Claude Code session with the QualityLayer mod and a custom status line. Fictional project." width="1000">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/terminal-dark.webp">
+  <img src="docs/site/public/product/terminal-light.webp" alt="A visual Plan explains retries, buffering and replay beside an illustrative Claude Code session with the QualityLayer mod and a custom status line. Fictional project." width="1000">
 </picture>
 
 - Answer your agent's questions and comment on any passage; answers reach it at once.
