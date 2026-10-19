@@ -5,7 +5,7 @@
  * Checked by agents, Found while checking, Only you can confirm, Questions for you.
  */
 
-import { PLANS } from "./pricing";
+import { PLANS, formatPrice } from "./pricing";
 
 export type Faq = { question: string; answer: string };
 
@@ -15,7 +15,7 @@ const faq = (question: string, answer: string): Faq => ({ question, answer });
 const priced = (id: "solo" | "team") => {
   const price = PLANS.find((p) => p.id === id)?.price;
   if (price === undefined || price === "Custom") throw new Error(`${id} has no price`);
-  return { ...price, year: price.yearly * 12 };
+  return { monthly: formatPrice(price.monthly), yearly: formatPrice(price.yearly / 12), year: formatPrice(price.yearly) };
 };
 const solo = priced("solo");
 const team = priced("team");
@@ -62,7 +62,7 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "Monthly or yearly?",
-    `Yearly saves 20%. Solo is $${solo.yearly} a month, billed as $${solo.year} a year, instead of $${solo.monthly} a month. Team is $${team.yearly} per seat a month, billed as $${team.year} a year, instead of $${team.monthly}.`,
+    `Solo costs ${solo.year} a year, equivalent to ${solo.yearly} a month, instead of ${solo.monthly} billed monthly. Team costs ${team.year} per seat a year, equivalent to ${team.yearly} per seat a month, instead of ${team.monthly} billed monthly.`,
   ),
   faq(
     "Do I pay for AI usage here?",
@@ -90,6 +90,6 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "I use Pilot Shell 11. What happens?",
-    "You can use Pilot Shell 11 and QualityLayer in parallel. QualityLayer leaves Pilot Shell, its tools and its configuration in place. Your paid licence keeps its existing price. Without an active licence, you get a fresh seven-day trial. Import memories per project in Settings → Memory.",
+    "You can use Pilot Shell 11 and QualityLayer in parallel. QualityLayer leaves Pilot Shell, its tools and its configuration in place. Your paid subscription keeps its existing price while it stays active. If it ends, a new subscription uses current prices. Without an active licence, you get a fresh seven-day trial. Import memories per project in Settings → Memory.",
   ),
 ];

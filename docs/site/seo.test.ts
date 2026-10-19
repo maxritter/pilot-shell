@@ -91,7 +91,7 @@ describe("HTML available before JavaScript runs", () => {
     const software = schemas(head).find((item) => item["@type"] === "SoftwareApplication")!;
     const expected = PLANS.flatMap((plan) => plan.price === "Custom" ? [] : [
       { name: `${plan.name} — monthly`, price: plan.price.monthly, duration: "P1M" },
-      { name: `${plan.name} — yearly`, price: plan.price.yearly * 12, duration: "P1Y" },
+      { name: `${plan.name} — yearly`, price: plan.price.yearly, duration: "P1Y" },
     ]);
     expect(software.offers).toEqual(expected.map(({ name, price, duration }) => expect.objectContaining({
       "@type": "Offer", name, price, priceCurrency: "USD", url: "https://qualitylayer.dev/pricing#plans",

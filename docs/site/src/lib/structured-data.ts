@@ -25,11 +25,11 @@ export const PRICING_APPLICATION = {
       name: `${plan.name} — ${billing}`,
       description: `${plan.audience} Billed ${billing}.`,
       url: `${SITE_URL}/pricing#plans`,
-      price: billing === "yearly" ? yearly * 12 : monthly,
+      price: billing === "yearly" ? yearly : monthly,
       priceCurrency: "USD",
       priceSpecification: {
         "@type": "UnitPriceSpecification",
-        price: billing === "yearly" ? yearly * 12 : monthly,
+        price: billing === "yearly" ? yearly : monthly,
         priceCurrency: "USD",
         billingDuration: billing === "yearly" ? "P1Y" : "P1M",
       },

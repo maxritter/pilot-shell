@@ -12,7 +12,7 @@ export interface Plan {
   id: "solo" | "team" | "enterprise";
   name: string;
   audience: string;
-  /** US dollars per month (per seat for Team): billed monthly, and billed yearly at about 20% off in whole dollars. "Custom" for Enterprise. */
+  /** Full charge in US dollars for each billing period, per seat for Team. "Custom" for Enterprise. */
   price: { monthly: number; yearly: number } | "Custom";
   per: string;
   cta: string;
@@ -29,7 +29,7 @@ export const PLANS: Plan[] = [
     id: "solo",
     name: "Solo",
     audience: "For one developer.",
-    price: { monthly: 19, yearly: 15 },
+    price: { monthly: 29, yearly: 288 },
     per: "per month",
     cta: "Start Solo",
     href: {
@@ -48,7 +48,7 @@ export const PLANS: Plan[] = [
     id: "team",
     name: "Team",
     audience: "For teams, per seat.",
-    price: { monthly: 39, yearly: 31 },
+    price: { monthly: 49, yearly: 468 },
     per: "per seat / month",
     cta: "Start Team",
     href: {
@@ -81,6 +81,10 @@ export const PLANS: Plan[] = [
     ],
   },
 ];
+
+export const formatPrice = (amount: number): string =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(amount);
+
 /** A cell: included, not included, or available when a company asks for it. */
 export type Cell = boolean | "request";
 export type CompareRow = { feature: string; solo: Cell; team: Cell; enterprise: Cell; note?: string };

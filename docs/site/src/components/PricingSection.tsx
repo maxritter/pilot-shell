@@ -5,7 +5,7 @@ import CheckoutLink from "@/components/CheckoutLink";
 import Questions from "@/components/Questions";
 import { PRICING_FAQS } from "@/lib/content";
 import { OFFLINE_DAYS } from "@/lib/product";
-import { COMPARE, PLANS, type Cell, type Hue, type Plan } from "@/lib/pricing";
+import { COMPARE, PLANS, formatPrice, type Cell, type Hue, type Plan } from "@/lib/pricing";
 import { Link } from "react-router-dom";
 
 /** The home page's step colours: amber where you decide, blue where agents build, violet where they check. */
@@ -34,9 +34,9 @@ function Price({ plan, billing }: { plan: Plan; billing: Billing }) {
   const seat = plan.id === "team" ? " per seat" : "";
   return (
     <>
-      <div className="pr-price"><b className="pr-amt">${billing === "yearly" ? yearly : monthly}</b><span className="pr-per">{plan.per}</span></div>
+      <div className="pr-price"><b className="pr-amt">{formatPrice(billing === "yearly" ? yearly / 12 : monthly)}</b><span className="pr-per">{plan.per}</span></div>
       {billing === "yearly" ? (
-        <p className="pr-bill"><s aria-label={`instead of $${monthly * 12}`}>${monthly * 12}</s> ${yearly * 12}{seat} billed yearly</p>
+        <p className="pr-bill"><s aria-label={`instead of ${formatPrice(monthly * 12)}`}>{formatPrice(monthly * 12)}</s> {formatPrice(yearly)}{seat} billed yearly</p>
       ) : (
         <p className="pr-bill">Billed monthly · cancel any time</p>
       )}
@@ -55,7 +55,7 @@ const PricingSection = () => {
           <p className="pr-lead">Every plan starts with a 7-day trial on first run. One price per developer, with unlimited tasks, repositories and agents. Keep your agent subscriptions and API accounts.</p>
           <div className="pr-seg" role="group" aria-label="Billing">
             <Button type="button" variant={billing === "monthly" ? "default" : "ghost"} aria-pressed={billing === "monthly"} onClick={() => setBilling("monthly")}>Monthly</Button>
-            <Button type="button" variant={billing === "yearly" ? "default" : "ghost"} aria-pressed={billing === "yearly"} onClick={() => setBilling("yearly")}>Yearly <span className="pr-save">Save 20%</span></Button>
+            <Button type="button" variant={billing === "yearly" ? "default" : "ghost"} aria-pressed={billing === "yearly"} onClick={() => setBilling("yearly")}>Yearly <span className="pr-save">Save up to 20%</span></Button>
           </div>
           <p className="pr-account-link">Already subscribed? <Link to="/billing">Manage billing</Link></p>
           <div className="pr-plans">
@@ -113,7 +113,7 @@ const PricingSection = () => {
           <div className="pr-how">
             <div className="pr-hi" style={hue("build")}><b><KeyRound size={16} aria-hidden="true" />Activate once</b><span>Paste your key in the App on first start, or run <span className="pr-code">qualitylayer licence activate &lt;key&gt;</span>. Manage invoices, seats and payment in <Link to="/billing">your billing account</Link>.</span></div>
             <div className="pr-hi" style={hue("verify")}><b><WifiOff size={16} aria-hidden="true" />Works offline</b><span>Checked once a day. Offline, a paid licence works for up to {OFFLINE_DAYS} days after its last successful check.</span></div>
-            <div className="pr-hi" style={hue("plan")}><b><ArrowRightLeft size={16} aria-hidden="true" />Coming from Pilot Shell</b><span>Use Pilot Shell 11 alongside QualityLayer for as long as you want. Your paid subscription keeps its price. Import memories per project when you are ready.</span></div>
+            <div className="pr-hi" style={hue("plan")}><b><ArrowRightLeft size={16} aria-hidden="true" />Coming from Pilot Shell</b><span>Use Pilot Shell 11 alongside QualityLayer for as long as you want. Your paid subscription keeps its price while it stays active. If it ends, a new subscription uses current prices. Import memories per project when you are ready.</span></div>
           </div>
         </div>
       </section>
