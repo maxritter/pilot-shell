@@ -163,6 +163,14 @@ const config: Config = {
           title: "More",
           items: [{ label: "Home", href: "https://qualitylayer.dev" }],
         },
+        {
+          title: "Legal",
+          items: [
+            { label: "Imprint", href: "https://qualitylayer.dev/imprint" },
+            { label: "Privacy", href: "https://qualitylayer.dev/privacy" },
+            { label: "Terms", href: "https://qualitylayer.dev/terms" },
+          ],
+        },
       ],
       copyright: `Copyright ${new Date().getFullYear()} QualityLayer.`,
     },

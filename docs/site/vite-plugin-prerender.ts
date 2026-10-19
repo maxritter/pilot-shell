@@ -2,6 +2,7 @@ import { createServer, type Plugin } from "vite";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { PUBLIC_PAGES } from "./src/lib/seo.ts";
+import { LEGAL_PATHS } from "./src/lib/legal.ts";
 
 /** Replace the fallback head and body with the same components the browser uses. */
 export function renderedHtml(template: string, head: string, body: string) {
@@ -33,6 +34,7 @@ export default function prerenderPlugin(): Plugin {
         "/pricing": "src/pages/Pricing.tsx",
         "/download": "src/pages/Download.tsx",
         "/404": "src/pages/NotFound.tsx",
+        ...Object.fromEntries(LEGAL_PATHS.map((route) => [route, "src/pages/Legal.tsx"])),
       };
       function styles(entry: string | undefined, seen = new Set<string>()): string[] {
         if (!entry || seen.has(entry)) return [];

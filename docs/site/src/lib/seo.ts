@@ -10,6 +10,18 @@ export const PUBLIC_PAGES = {
     title: "Download the QualityLayer App — QualityLayer",
     description: "Download QualityLayer for macOS, Windows and Linux. Plan and review changes with Claude Code, Codex and your team.",
   },
+  "/imprint": {
+    title: "Imprint — QualityLayer",
+    description: "Who sells QualityLayer and how to reach us: address, e-mail and VAT ID.",
+  },
+  "/privacy": {
+    title: "Privacy policy — QualityLayer",
+    description: "What QualityLayer sends, to whom, why and for how long, and your rights under the GDPR.",
+  },
+  "/terms": {
+    title: "Terms of service — QualityLayer",
+    description: "The terms for qualitylayer.dev, the QualityLayer App and the team service.",
+  },
 } as const;
 
 export const INDEXABLE_ROBOTS = "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1";

@@ -14,6 +14,7 @@ const Open = lazy(() => import("./pages/Open"));
 const Download = lazy(() => import("./pages/Download"));
 const Billing = lazy(() => import("./pages/Billing"));
 const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
+const Legal = lazy(() => import("./pages/Legal"));
 
 /** Page statistics everywhere but on the page a Slack DM opens, which reads its link and sends nothing. */
 export const Metrics = () => {
@@ -41,6 +42,9 @@ const App = () => (
           <Route path="/s/:id" element={<Shared />} />
           <Route path="/open/*" element={<Open />} />
           <Route path="/download" element={<Download />} />
+          <Route path="/imprint" element={<Legal />} />
+          <Route path="/privacy" element={<Legal />} />
+          <Route path="/terms" element={<Legal />} />
           {/* /docs is served by Docusaurus static files */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

@@ -1,0 +1,16 @@
+/* The imprint, privacy policy and terms: one reading column in the site's palette. */
+.lg-article{max-width:760px;padding-top:56px;padding-bottom:88px;font-size:16px;line-height:1.7}
+.lg-article h1{margin:0;font-size:clamp(34px,4.5cqi,48px);font-weight:500;line-height:1.1;letter-spacing:-.03em}
+.lg-stamp{margin:10px 0 40px;color:var(--mx-ink3);font-size:14px}
+.lg-article h2{margin:40px 0 10px;font-size:22px;line-height:1.35;font-weight:500;letter-spacing:-.015em}
+.lg-article h3{margin:24px 0 6px;font-size:17px;line-height:1.4;font-weight:500}
+.lg-article p,.lg-article li{max-width:70ch;color:var(--mx-ink2)}
+.lg-article p{margin:0 0 12px}
+.lg-article ul{margin:0 0 12px;padding-left:20px}
+.lg-article li{margin:4px 0}
+.lg-article .lg-lead{color:var(--mx-ink);font-size:18px;line-height:1.65}
+.lg-article address{font-style:normal;color:var(--mx-ink)}
+.lg-article a{text-decoration:underline;text-underline-offset:3px}
+.lg-table{width:100%;max-width:70ch;border-collapse:collapse;margin:8px 0 16px;font-size:15px}
+.lg-table th,.lg-table td{padding:10px 12px 10px 0;text-align:left;vertical-align:top;border-bottom:1px solid var(--mx-line);color:var(--mx-ink2)}
+.lg-table th{color:var(--mx-ink);font-weight:500}

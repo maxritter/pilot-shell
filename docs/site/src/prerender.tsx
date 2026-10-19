@@ -7,8 +7,13 @@ import Pricing from "./pages/Pricing";
 import Download from "./pages/Download";
 import NotFound from "./components/NotFound";
 import SEO from "./components/SEO";
+import Legal from "./pages/Legal";
+import { LEGAL_PATHS } from "./lib/legal";
 
-const pages = { "/": Index, "/pricing": Pricing, "/download": Download, "/404": NotFound };
+const pages = {
+  "/": Index, "/pricing": Pricing, "/download": Download, "/404": NotFound,
+  ...Object.fromEntries(LEGAL_PATHS.map((route) => [route, Legal])),
+};
 
 export async function render(pathname: string) {
   const Page = pages[pathname as keyof typeof pages];

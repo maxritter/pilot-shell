@@ -15,7 +15,7 @@ const Footer = () => (
           <a href={`mailto:${CONTACT_EMAIL}`}>Contact</a>
         </nav>
         <p className="w7-legal">
-          © 2026 QualityLayer · by <a href="https://www.maxritter.net/">Max Ritter</a>
+          © 2026 QualityLayer · by <a href="https://www.maxritter.net/">Max Ritter</a> · <Link to="/imprint">Imprint</Link> · <Link to="/privacy">Privacy</Link> · <Link to="/terms">Terms</Link>
         </p>
       </div>
     </div>

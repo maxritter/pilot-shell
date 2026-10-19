@@ -16,6 +16,10 @@ describe("the footer", () => {
       expect(rendered).toContain("© 2026 QualityLayer");
       // Who makes it: the author's own site, as the README's footer has it.
       expect(rendered).toMatch(/by <a href="https:\/\/www\.maxritter\.net\/">Max Ritter<\/a>/);
+      // Every page links the imprint, privacy policy and terms a seller in Germany must show.
+      for (const [path, label] of [["/imprint", "Imprint"], ["/privacy", "Privacy"], ["/terms", "Terms"]]) {
+        expect(rendered).toMatch(new RegExp(`href="${path}"[^>]*>${label}</a>`));
+      }
       expect(rendered).not.toMatch(/fictional|illustration|billed monthly/);
     }
   });
