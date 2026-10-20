@@ -11,7 +11,7 @@ echo "=== Building Vite landing page ==="
 cd "$SITE_DIR"
 npm ci --prefer-offline 2>/dev/null || npm install
 if [ "${VERCEL:-}" = "1" ]; then
-  node "$SITE_DIR/scripts/compile-shared-api.mjs"
+  node "$SITE_DIR/scripts/compile-shared-api.mjs" --profile "${QUALITYLAYER_BACKEND_PROFILE:-current}"
 fi
 npm run build
 

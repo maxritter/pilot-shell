@@ -158,7 +158,9 @@ jobs:
 
       - name: Test the prepared schema-9 API and real callers
         working-directory: ${{ env.DEPLOY_SOURCE }}/docs/site
-        run: npx vitest run --maxWorkers=2 api scripts/db-beta9.test.ts
+        run: |
+          npx vitest run --maxWorkers=2 --dir api
+          npx vitest run --maxWorkers=2 scripts/db-beta9.test.ts
 
       # The schema of the environment being deployed goes first; a failed migration stops the deploy.
       # Migrations run as the database owner (OWNER_DATABASE_URL); the routes may use a narrower role.
@@ -216,10 +218,10 @@ jobs:
           backend_digest="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8")).overlayDigest)' "$prepared/receipt.json")"
           if [ "$GITHUB_REF_NAME" = "$PRODUCTION_BRANCH" ]; then
             target=production
-            (cd "$source" && vercel deploy --token="$VERCEL_TOKEN" --prod --skip-domain --json --meta "githubCommitRef=$GITHUB_REF_NAME" --meta "githubCommitSha=$GITHUB_SHA" --meta "backendBaseSha=$backend_base" --meta "backendOverlayDigest=$backend_digest") > "$receipt"
+            (cd "$source" && vercel deploy --token="$VERCEL_TOKEN" --prod --skip-domain --json --build-env QUALITYLAYER_BACKEND_PROFILE=legacy9 --meta "githubCommitRef=$GITHUB_REF_NAME" --meta "githubCommitSha=$GITHUB_SHA" --meta "backendBaseSha=$backend_base" --meta "backendOverlayDigest=$backend_digest") > "$receipt"
           else
             target=preview
-            (cd "$source" && vercel deploy --token="$VERCEL_TOKEN" --target preview --json --meta "githubCommitRef=$GITHUB_REF_NAME" --meta "githubCommitSha=$GITHUB_SHA" --meta "backendBaseSha=$backend_base" --meta "backendOverlayDigest=$backend_digest") > "$receipt"
+            (cd "$source" && vercel deploy --token="$VERCEL_TOKEN" --target preview --json --build-env QUALITYLAYER_BACKEND_PROFILE=legacy9 --meta "githubCommitRef=$GITHUB_REF_NAME" --meta "githubCommitSha=$GITHUB_SHA" --meta "backendBaseSha=$backend_base" --meta "backendOverlayDigest=$backend_digest") > "$receipt"
           fi
           deployment_id=$(node "$verifier" receipt-id --deployment "$receipt")
           vercel api "/v13/deployments/$deployment_id" --method GET --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID" --raw > "$runtime"
