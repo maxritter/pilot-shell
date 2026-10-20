@@ -230,7 +230,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $built = $build[-1] | ConvertFrom-Json
           $installed = Join-Path $probe 'app'
-          $env:QL_PROBE_ACCOUNT = Join-Path $probe 'account'
+          # The hosted workspace temp can grant replacement rights to other accounts.
+          # Keep the disposable user profile beneath the runner's ordinary user temp;
+          # protect only this newly created directory, never an existing ancestor.
+          $accountParent = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Temp'
+          $env:QL_PROBE_ACCOUNT = Join-Path $accountParent ('qualitylayer-terminal-' + [Guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $env:QL_PROBE_ACCOUNT -ErrorAction Stop | Out-Null
+          $accountSid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+          icacls $env:QL_PROBE_ACCOUNT /inheritance:r /grant:r "*${accountSid}:(OI)(CI)F" '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' /q
+          if ($LASTEXITCODE -ne 0) { throw 'Disposable account ACL protection failed' }
           $env:HOME = $env:QL_PROBE_ACCOUNT
           $env:USERPROFILE = $env:QL_PROBE_ACCOUNT
           $env:QUALITYLAYER_HOME = Join-Path $env:QL_PROBE_ACCOUNT '.qualitylayer'
@@ -242,6 +250,19 @@ jobs:
           if ($setup.ExitCode -ne 0) { throw 'Disposable App installation failed' }
           $cli = Join-Path $installed 'qualitylayer-cli.exe'
           $app = Join-Path $installed 'QualityLayer.exe'
+          $aclEvidence = @()
+          $directory = [IO.DirectoryInfo]::new($env:QUALITYLAYER_HOME)
+          while ($null -ne $directory) {
+            if ($directory.Exists) {
+              $acl = Get-Acl -LiteralPath $directory.FullName
+              $rules = @($acl.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]) | ForEach-Object {
+                @{ sid = $_.IdentityReference.Value; rights = [int64]$_.FileSystemRights; allow = ($_.AccessControlType -eq 'Allow'); inheritOnly = (([int]$_.PropagationFlags -band 2) -ne 0) }
+              })
+              $aclEvidence += @{ path = $directory.FullName; owner = $acl.GetOwner([Security.Principal.SecurityIdentifier]).Value; rules = $rules }
+            }
+            $directory = $directory.Parent
+          }
+          $aclEvidence | ConvertTo-Json -Depth 6 | Tee-Object -FilePath (Join-Path $probe 'account-acls.json')
           & $cli install --app $installed --json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $desktopDriver = @()
@@ -284,6 +305,7 @@ jobs:
             ${{ runner.temp }}/result/
             ${{ runner.temp }}/proof.log
             ${{ runner.temp }}/installed-terminal/evidence/
+            ${{ runner.temp }}/installed-terminal/account-acls.json
           retention-days: 14
           if-no-files-found: warn
 
