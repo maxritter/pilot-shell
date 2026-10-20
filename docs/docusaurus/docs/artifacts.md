@@ -81,6 +81,8 @@ The lasting artifact stays as it is until you fold the draft in at Review. A dra
 
 Outside a task, the same command creates a personal copy in `docs/artifacts/` and remembers its base. It does not change the lasting artifact or start a workflow.
 
+To draft on an artifact your team shares, use `--on shared:<name>` instead. See [Let your agent change a shared artifact](#shared-save).
+
 ## Keep as a lasting artifact {#keep}
 
 Choose **Keep as a lasting artifact…** on a draft, or run `qualitylayer artifact keep <name>`.
@@ -147,11 +149,42 @@ Press **C** (**Comment**), click a spot and say what should change. Your agent e
 
 **Open artifact canvas** shows artboards side by side. The **Actions** menu keeps rename, copy and revision controls; metadata lives under **Activity → Details and history**. Agents use `artifact inspect`, `push`, `pull` and `history`; a push cannot overwrite a newer version.
 
+## Share an artifact with your team {#team-shared}
+
+With a Team plan, you can share a whole artifact. Teammates open its real pages in their App, not a picture of them. The pages run in the same sandboxed frame as your own artifacts: scripts work and nothing loads from the network.
+
+Choose **Share with the team…** on the artifact. **Who can open it** sets the audience. **People with access** gives each person **Can comment** or **Can edit**. The default is **Can comment**.
+
+| Access | What the person can do |
+| --- | --- |
+| **You own it** | Everything an editor can do, plus change the audience and the editors, and stop sharing |
+| **Can edit** | Open it, comment, and have their agent save new versions. Restore an older version |
+| **Can comment** | Open it and comment. A save is refused |
+
+Every save is a new version, and every version is kept. **Version history…** lists each one with who saved it and through what, such as “Claude Code · fix the sidebar”. **Restore** saves an older version again as the newest; the older one stays in the list. Nobody can change or remove a saved version.
+
+**Stop sharing** removes the artifact from the team and from everyone’s shared list. Every version stays on the owner’s computer. Earlier picture previews of an artifact are not carried over; share it again.
+
+## Let your agent change a shared artifact {#shared-save}
+
+Your agent drafts on the shared artifact in a task, then saves the next version:
+
+```sh
+qualitylayer artifact shared list
+qualitylayer artifact new app-model-draft --on shared:app-model
+qualitylayer artifact shared save app-model-draft --note "Tighter spacing"
+```
+
+- `--on shared:<name>[/<page>]` copies the newest version, or one page and the files it uses, into the task. The draft remembers the version it started from.
+- `save` makes the next version for everyone; teammates see it within about a minute. A page draft changes only its own files; the other pages stay. Add `--delete <path>` to remove a file.
+- A save from an out-of-date draft is refused instead of overwriting: “app-model has version 3 now; your draft started from 2.” Run `artifact shared pull <draft>`. It merges the newer version in, file by file. A file changed on both sides stays unmerged with the team’s copy beside it, and `save` waits until you resolve it.
+- A person with **Can comment** is told whom to ask for edit access.
+
+All commands: [CLI reference](reference/commands.md#artifacts).
+
 ## Share a preview {#never-shared}
 
-For a task draft, choose **Share › Include artifacts** to add previews to that task’s encrypted shared copy or link.
-
-For a standalone artifact, use **Actions → Share preview…**. Choose the pages and audience. **Update shared preview** publishes a new preview explicitly; a local edit does not silently replace what others see. Shared previews run no scripts. A snapshot preview names its fixed viewport and crop.
+For a task draft, choose **Share › Include artifacts** to add previews to that task’s encrypted shared copy or link. These previews run no scripts.
 
 People invited through a question can retain access while the artifact is shared. **Stop sharing** ends fresh access; it cannot remove a copy someone already downloaded. Shared Feedback supports questions, replies and attachments. Person-only feedback is kept out of the owner’s agent context. A remote viewer’s Agent tab does not start an agent from somebody else’s artifact.
 
