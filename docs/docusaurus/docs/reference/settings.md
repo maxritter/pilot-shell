@@ -37,22 +37,21 @@ Standing instructions for every task in every project: coding standards, things 
 
 ### Agents {#defaults}
 
-Choose the **agent**, **model**, **effort** and **workspace** when you start a task or build. Those choices apply to that run.
+Choose where the agent runs, and its **agent**, **model**, **effort** and **branch**, when you start a task or build. Those choices apply to that run. New task and Start the build open with your last choice, so Settings has no default for it.
 
 | Setting | What it changes |
 | --- | --- |
-| **Where agents run by default** | **In QualityLayer** or **In my terminal, app or IDE** |
 | **Installed agents** | Last executable/version result for Claude Code, Codex, Pi and OpenCode; open setup help or use **Check again** |
 | **Agent appearance** | Text, colours and scrolling in agent sessions |
 | **When you quit the App** | Keep agents running, or stop them |
 | **Typing and starting agents** | The App and its key-paired browsers, or also other paired browsers |
 | **Reviewer models** | Models used by Independent review and Second opinion |
 
-For a run started from **New task** or **Start the build**, the run location also sets where you answer. **In QualityLayer** keeps questions, approvals and artifact feedback in the App or browser. **In my terminal, app or IDE** uses the agent's chat.
+Where the agent runs also decides where you answer. **In QualityLayer** keeps questions, approvals and artifact feedback in the App or browser. **In my terminal, app or IDE** uses the agent's chat.
 
 New App sessions open in **Conversation**. Switch to **Terminal** in the Agent tab when needed. See [Terminal mode](commands.md#terminal-mode) for CLI controls and document reading.
 
-The quitting and browser choices are under **More**. Other coding agents use the workflow in your terminal. Permissions are chosen at launch where the native client supports them.
+The quitting and browser choices are under **More**. Any other coding agent can take the copied prompt in your terminal. Permissions are chosen at launch where the native client supports them.
 
 ### Independent review {#independent-review}
 

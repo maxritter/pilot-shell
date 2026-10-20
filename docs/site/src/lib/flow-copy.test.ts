@@ -124,12 +124,14 @@ describe("the flow in the copy: asked and answered in the App", () => {
     expect(text).toMatch(/answering a question does not approve the Plan/);
   });
 
-  it("keeps the terminal wait explanation in the guides and shows the batch interaction on the home page", () => {
+  it("keeps where each mode asks in the guides and shows the batch interaction on the home page", () => {
     const layout = /asks each decision in the App, and its terminal shows a single line while it waits/gi;
     const home = homeCopy.map(read).join("\n");
-    for (const [name, text] of Object.entries({ "first task": read(firstTask), "home page for crawlers": read(homeIndex) })) {
-      expect(text.match(layout)?.length, name).toBe(1);
-    }
+    expect(read(homeIndex).match(layout)?.length, "home page for crawlers").toBe(1);
+    // An agent outside the App asks in its own chat; the guide never says it asks in the App.
+    const guide = read(firstTask);
+    expect(guide).toMatch(/When the agent runs in your terminal, app or IDE, it asks each decision in its own chat/);
+    expect(guide).not.toMatch(layout);
     expect(home).toContain("Questions arrive together in Your turn");
     expect(home).toContain("Answer in any order");
     expect(home).toContain("each answer reaches your agent at once");

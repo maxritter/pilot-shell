@@ -7,7 +7,7 @@
 
 # QualityLayer
 
-### The software factory with you in the loop
+## The software factory with you in the loop
 
 **Plan each change visually, then let your agents build and verify it.**<br>
 Work side by side in the App or browser.
@@ -117,7 +117,7 @@ The task stays on the left and your agent works in the **Agent** sidebar on the 
 
 Answer your agent's questions in the App, approve the Plan, then start the build. Your agent continues through Outline, Implement and Verify until Review. Human-only prerequisites and blocked checks stay unverified for your decision there. QualityLayer runs only when you ask for it. [Your first task](https://qualitylayer.dev/docs/first-task).
 
-Choose the agent, model, effort and workspace when starting a task or build. **In QualityLayer** keeps the agent beside the task. Settings keeps global run controls and review models. [Supported agents](https://qualitylayer.dev/docs/agents/native).
+Choose the agent, model, effort, project and branch when starting a task or build. **In QualityLayer** keeps the agent beside the task. Settings keeps global run controls and review models. [Supported agents](https://qualitylayer.dev/docs/agents/native).
 
 Prefer your own terminal, VS Code or another IDE? **In my terminal, app or IDE** copies the request for that session. You can also ask there directly: “Using QualityLayer, plan retries for failed webhooks.” Other agents that run shell commands can use the CLI. No slash command is needed.
 
@@ -162,7 +162,7 @@ Ask your agent for a mockup, diagram or clickable artifact. Compare versions in 
 
 - Answer your agent's questions and comment on any passage; answers reach it at once.
 - Follow every task: each step's page opens with what needs you, then what to look at, then the gist. Time and cost per step are one click away.
-- Choose model, effort and workspace at launch. Keep standing instructions, reviewer models and general run controls in [Settings](https://qualitylayer.dev/docs/reference/settings).
+- Choose agent, model, effort and branch at launch. Keep standing instructions, reviewer models and general run controls in [Settings](https://qualitylayer.dev/docs/reference/settings).
 - Work beside your agent in the **Agent** sidebar. Closing the sidebar keeps its session running.
 - Your agents reuse lessons from earlier tasks, and can share them through Git. [Project memory](https://qualitylayer.dev/docs/memory).
 - With a Team plan, ask a teammate about any passage over Slack, and let them review the finished change. [Team plans](https://qualitylayer.dev/docs/team/plans).

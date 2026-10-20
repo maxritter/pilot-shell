@@ -113,7 +113,16 @@ The **Cost** control in a task's header opens the cost per step and agent, estim
 
 ## Agent runs {#agent-runs}
 
-**New task** and **Start the build** let you choose an installed agent, model, effort and workspace. **In QualityLayer** opens its conversation in the task’s **Agent** tab. **In my terminal, app or IDE** copies a request for your agent.
+**New task** asks for a **Feature** or **Bugfix**, then your request and files, then where the agent runs. **Start the build** asks the same last question.
+
+| Choice | What you do | Where you answer |
+| --- | --- | --- |
+| **In QualityLayer** (recommended) | Pick the agent (Claude Code, Codex, Pi or OpenCode), model, effort, project and branch. Its conversation opens in the task’s **Agent** tab | Questions, approvals and feedback happen in the App |
+| **In my terminal, app or IDE** | Copy one prompt into any coding agent. Files you attached are saved on this computer and listed in the prompt by path | The agent asks its questions and takes your feedback in its own chat. The App shows the questions without answering them |
+
+The branch is **Current branch**, **New branch** or **New worktree**. A worktree takes a name, which gives its folder and its branch; QualityLayer puts the folder next to your project, so other work in the project stays untouched.
+
+The prompt for a new task starts with “Using QualityLayer” and says `start feature` or `start bug`, followed by your request. The build’s prompt says `implement the approved task` and names the task. New task and Start the build open with your last choice.
 
 The App checks the local runtime before starting. If it cannot start the selected agent here, it explains why and keeps the terminal option available. Permissions and sign-in prompts still belong to your agent.
 
@@ -126,11 +135,11 @@ The App checks the local runtime before starting. If it cannot start the selecte
 | Return to a saved conversation | Use its available **Resume** or **Open the conversation** action |
 | Move to your terminal | **Move to my terminal** gives the supported resume command |
 
-**Settings → Workflow → Agents** controls where agents run by default, appearance, other paired browsers and quitting the App. Choose models, effort and workspace when starting a run. See [Settings](reference/settings.md#defaults).
+**Settings → Workflow → Agents** controls appearance, other paired browsers and quitting the App. Choose the agent, model, effort and branch when starting a run. See [Settings](reference/settings.md#defaults).
 
 An agent can wait for a permission, sign-in, answer or approval. A visible running process is not proof that it is making progress; read its current status and conversation. **Stop** and a user pause remain boundaries.
 
-Other coding agents use the copied terminal prompt. Terminal output stays local and is not included in shared tasks.
+Any other coding agent can take the copied prompt. Terminal output stays local and is not included in shared tasks.
 
 ## In Claude Code
 

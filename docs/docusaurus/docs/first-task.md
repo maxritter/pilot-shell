@@ -10,7 +10,7 @@ Open QualityLayer in the App or browser and pick a medium-sized feature in a rep
 
 | | You do | Where |
 | --- | --- | --- |
-| 1 | Choose **+ New**, pick your repository and agent, then describe the change: “Plan a CSV export for the reports page” | App or browser |
+| 1 | Choose **+ New**, pick **Feature** or **Bugfix**, describe the change (“Add a CSV export to the reports page”) with any files, and choose where the agent runs | App or browser |
 | 2 | **Answer the questions.** They arrive as a batch in **Your turn**; each answer reaches your agent immediately | App or browser |
 | 3 | **Read the Plan**, then **Approve Plan** or **Give feedback** | App or browser |
 | 4 | **Start the build** | App or browser |
@@ -18,16 +18,21 @@ Open QualityLayer in the App or browser and pick a medium-sized feature in a rep
 | 6 | **Confirm what only you can**, look at the result, approve | App or browser |
 | 7 | **Merge the pull request** | GitHub |
 
-**New task** and **Start the build** let you choose the agent, model, effort and workspace for that run. **In QualityLayer** opens the agent in the right sidebar beside the task. **In my terminal, app or IDE** copies a request for your own terminal, VS Code or another IDE. See [App runs](app.md#agent-runs).
+**New task** asks for a **Feature** or **Bugfix**, your request with any files, and where the agent runs. **Start the build** asks the same last question.
 
-Claude Code, Codex, Pi and OpenCode have [native setup and session controls](agents/native.md). Other coding agents [use the CLI and a copied prompt](agents/other.md). Global settings cover run location, appearance and reviewers; launch choices apply to the current run.
+- **In QualityLayer** (recommended): pick the agent (Claude Code, Codex, Pi or OpenCode), model, effort, project and branch. The agent opens in the right sidebar beside the task, and every question and piece of feedback happens in the App.
+- **In my terminal, app or IDE**: copy one prompt into any coding agent. Files you attached are listed in the prompt by path. The agent asks its questions and takes your feedback in its own chat.
+
+New task and Start the build open with your last choice. See [Agent runs](app.md#agent-runs).
+
+Claude Code, Codex, Pi and OpenCode have [native setup and session controls](agents/native.md). Other coding agents [use the CLI and a copied prompt](agents/other.md). Global settings cover appearance and reviewers; launch choices apply to the current run.
 
 <details>
 <summary>Good to know</summary>
 
-- In an external session, your agent asks each decision in the App, and its terminal shows a single line while it waits.
+- When the agent runs in your terminal, app or IDE, it asks each decision in its own chat. The App shows those questions without answering them.
 - Name QualityLayer or QL when asking it to start work; follow-up answers continue the authorized task. No slash command is needed.
-- Each step's page opens with what needs you, then a few **Look here** lines for what is risky, failed or yours to confirm, then the gist. The rest opens from its row or in the document ([the step page](app.md#step-pages)).
+- Each step's page opens with what needs you, then the gist, then **Look here** for anything only you can still do. The rest opens from its row or in the document ([the step page](app.md#step-pages)).
 - **Skip for now** moves to the next question; **Tell me more** asks for detail.
 - Select a passage to give feedback. It reaches the agent when it next reads the task; a stopped or disconnected agent cannot answer yet.
 - You can stop or pause the run. Your agent's own permission and sign-in prompts still require their normal response.

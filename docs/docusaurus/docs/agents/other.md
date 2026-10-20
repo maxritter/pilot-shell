@@ -11,23 +11,23 @@ description: Use QualityLayer with any coding agent that can run shell commands,
 ## Start a task {#start}
 
 1. In the agent's terminal, run `qualitylayer help`. Nothing listed? Run `qualitylayer doctor`.
-2. In QualityLayer, choose **+ New**, describe the change, then choose **Another agent** and copy the prompt.
-3. Paste it into your agent. Answer its questions and approve the Plan in the App.
+2. In QualityLayer, choose **+ New**, describe the change, then choose **In my terminal, app or IDE** and copy the prompt.
+3. Paste it into your agent. It asks its questions and takes your feedback in its own chat.
 
 ## Plan with one agent, build with another {#mix}
 
 ![Plan with Claude Code, approve the Plan, build with another agent, then the same checks and your approval](pathname:///img/diagrams/agents-mix-light.svg)
 ![Plan with Claude Code, approve the Plan, build with another agent, then the same checks and your approval](pathname:///img/diagrams/agents-mix-dark.svg)
 
-Pick **Another agent** when starting the build and copy its terminal prompt. After you start, it follows Outline, Implement and Verify until human Review. [Settings](../reference/settings.md#defaults) holds the general run controls.
+Pick **In my terminal, app or IDE** when starting the build and copy its prompt. After you start, it follows Outline, Implement and Verify until human Review. [Settings](../reference/settings.md#defaults) holds the general run controls.
 
 ## Run in your terminal {#app-start}
 
-Choose **Another agent** and copy the request into that agent’s terminal. Conversations in the App or browser are available for the four supported integrations; another agent does not gain those controls from a copied prompt.
+Choose **In my terminal, app or IDE** and paste the prompt into any coding agent. Conversations in the App or browser are available for the four supported integrations; another agent does not gain those controls from a copied prompt.
 
 ## What changes {#differences}
 
-| | The four native agents | Another agent |
+| | The four native agents | Any other agent |
 | --- | --- | --- |
 | Setup | Done when you install | One pasted prompt |
 | Model and effort | Set in QualityLayer | Set in your agent |

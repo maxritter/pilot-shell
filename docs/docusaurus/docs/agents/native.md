@@ -35,7 +35,7 @@ Pi and OpenCode can use the same model provider as your working agent. Choose a 
 
 ## Sessions in the App or browser
 
-Choose the agent, model, effort and workspace when you start a task or build. The task’s **Agent** tab holds its conversation in QualityLayer. Closing the sidebar keeps the run; **Stop** ends it. If the local runtime cannot start a session, use **In my terminal, app or IDE**.
+With **In QualityLayer**, choose the agent, model, effort, project and branch when you start a task or build. The task’s **Agent** tab holds its conversation in QualityLayer. Closing the sidebar keeps the run; **Stop** ends it. If the local runtime cannot start a session, use **In my terminal, app or IDE**.
 
 To continue after a crash or in another agent, stop the previous run if it is still active, then name the same task and intended stage: “Using QL, continue verification of task retry-webhooks.” Keep the task's recorded approvals, changes and evidence; the CLI resolves ownership before work resumes.
 

@@ -27,12 +27,12 @@ Your agent loads `ql-workflow` for workflow execution, `ql-artifact` for artifac
 
 Ask “Using QualityLayer in the terminal, plan a CSV export” to answer questions and approve the Plan and finished change in your agent's chat. Claude Code, Codex, Pi and OpenCode use their available question picker; numbered chat choices are the fallback. Only your own picks or words count as answers and approvals.
 
-In **Settings › Workflow › Agents**, **Where you answer** sets the default: **QualityLayer** or **Agent's chat**. **Answer in** on New task and Start the build chooses it for that task. This is separate from where the agent runs. A computer without a screen selects Terminal mode automatically; existing tasks retain their saved choice. The App can still show the task without opening or notifying by itself.
+Where the agent runs decides where you answer: **In QualityLayer** keeps questions and approvals in the App, **In my terminal, app or IDE** in the agent's chat. `qualitylayer task set answers=app|terminal` changes it later for the current task. A computer without a screen selects Terminal mode automatically; existing tasks retain their saved choice. The App can still show the task without opening or notifying by itself.
 
 | Command | What it does |
 | --- | --- |
 | `qualitylayer settings get [<key>]` | Read all saved settings or one key, including dotted keys such as `notifications.gateOpened` |
-| `qualitylayer settings set answers terminal` | Make Agent's chat the default; use `app` to return to QualityLayer |
+| `qualitylayer settings set answers terminal` | Set where you answer for tasks started without a location, such as a plain terminal request; use `app` to answer in QualityLayer |
 | `qualitylayer task set answers=terminal` | Change where you answer for the current task; use `answers=app` to return |
 | `qualitylayer read 03-plan.md [--width 100] [--lead]` | Read a task document with diagrams drawn as terminal text; `--lead` selects its leading sections |
 | `qualitylayer read artifact <name> [--page <page>] [--width 100]` | Read a text sketch of the exact artifact page |
