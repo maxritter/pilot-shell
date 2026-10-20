@@ -107,6 +107,8 @@ When a task drafted on a lasting artifact, Review shows a card such as **This ta
 
 If the lasting artifact changed since the draft began, the card asks you to compare first, then offers **Fold anyway**.
 
+If you share the lasting artifact with your team, folding in also saves the next version for them, with the folded files. If a teammate saved a newer version meanwhile, or a conflict is still open, the folded files stay in your folder and the version is not saved. Ask your agent to save it with `qualitylayer artifact shared save`: it brings the team’s version in first, then saves yours.
+
 ## Publish to Claude {#claude-design}
 
 A lasting artifact can store its Claude Design link for **Open in Claude Design**. QualityLayer keeps the link and changes nothing on Claude until you ask.
@@ -165,11 +167,16 @@ Choose **Share with the team…** on the artifact. Once it is shared, the same m
 | **Can edit** | Open it, comment, and have their agent save new versions. Restore an older version, through the command line only |
 | **Can comment** | Open it and comment. A save is refused |
 
-Every save is a new version, and every version is kept. Nobody can change or remove a saved version.
+Every save is a new version, and every version is kept. Nobody can change or remove a saved version. A version holds at most 14 MB. A first share sends all the files at once, up to about 10 MB. If yours are larger, the App says so and sends nothing; remove or shrink files, then share again.
 
 In the App, the owner sees the list of versions in the share dialog, or under **Version history…** in the artifact's menu. Each version shows who saved it and through what, such as “Claude Code · fix the sidebar”. **Restore** saves an older version again as the newest; the older one stays in the list. A teammate who can edit does not see Restore in the App. They restore with `qualitylayer artifact shared restore <name> --version <n>`, or ask the owner.
 
-**Stop sharing** removes the artifact from the team and from everyone’s shared list. The versions this computer can open stay here. A version this computer can't open is lost when sharing stops. The App asks first and names those versions, so you can ask a teammate who joined earlier to restore them, or stop anyway. The command line calls the owner’s access **You own it**; it is the same as **Owner**.
+**Stop sharing** removes the artifact from the team and from everyone’s shared list. The versions this computer can open stay here. A version this computer can't open is lost when sharing stops. The App asks first and names those versions, so you can ask a teammate who joined earlier to restore them, or stop anyway. If teammates keep saving versions while you stop, sharing is not stopped; the App says so and you try again. The command line calls the owner’s access **You own it**; it is the same as **Owner**.
+
+If you keep the shared artifact in the repository, your own edits and the team’s versions meet like this:
+
+- When you change its files in the folder, the App shows **newer edits on this computer** beside the sharing status. They reach the team as a new version when you fold a draft in at Review, or when your agent saves them with `qualitylayer artifact shared save`, including any files you deleted in the folder.
+- When a teammate saves a new version, your folder takes it on its own, as ordinary changes you can commit. A folder that holds edits of yours is left as it is. A save then brings the team’s version in first, file by file. A file changed on both sides stays as you have it, with the team’s copy beside it, for example `index.team.html`. The save waits until you have merged what you need and deleted that copy.
 
 ## Let your agent change a shared artifact {#shared-save}
 
@@ -182,7 +189,7 @@ qualitylayer artifact shared save app-model-draft --note "Tighter spacing"
 ```
 
 - `--on shared:<name>[/<page>]` copies the newest version, or one page and the files it uses, into the task. The draft remembers the version it started from.
-- `save` makes the next version for everyone; teammates see it shortly after. Their App checks the team about once a minute while it is open. A page draft changes only its own files; the other pages stay. Add `--delete <path>` to remove a file.
+- `save` makes the next version for everyone. A teammate’s App checks the team about once a minute while it is open, so they see the save within about a minute of opening the Library or the artifact. A page draft changes only its own files; the other pages stay. Add `--delete <path>` to remove a file.
 - A save from an out-of-date draft is refused instead of overwriting: “app-model has version 3 now; your draft started from 2.” Run `artifact shared pull <draft>`. It merges the newer version in, file by file. A file changed on both sides stays unmerged with the team’s copy beside it, and `save` waits until you resolve it.
 - A person with **Can comment** is told whom to ask for edit access.
 

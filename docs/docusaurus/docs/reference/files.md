@@ -40,7 +40,7 @@ Each document opens with what you read first, then working sections (code shapes
 | --- | --- |
 | `.qualitylayer/artifacts/<name>/` in the repository | A [lasting artifact](../artifacts.md#keep): its pages, scripts, styles, fonts and pictures, and an `artifact.json` with its title, what it shows, its first page (`entry`) and an optional Claude Design link. Committed with the change. Artifacts stored earlier in `.qualitylayer/designs/` are still read as artifacts; saves go to the artifacts folder |
 | `artifact.json` `source` | Optional. Another folder of the same repository that holds the artifact's files. A folder outside the repository, or behind a symbolic link, is refused |
-| `docs/artifacts/` | Artifacts kept only on this Mac, out of git |
+| `docs/artifacts/` | Artifacts kept only on this computer, out of git |
 | `~/.qualitylayer/project-look.json` | How the sidebar shows your projects on this computer: order, color, display name, hidden, and other projects' lasting artifacts listed under each. Delete it to reset |
 
 Folds, grouping and rows belong to the App window, not to a file.
@@ -59,7 +59,7 @@ Your code, the diff, plan documents, evidence and the cost view stay on your com
 | **Not included automatically** | Repository source, diffs, host logs, launch settings, terminal output and command output. Text or attachments you explicitly share can contain code or other sensitive content. Shared artifact previews run no scripts |
 | **With Slack** | The task title and the question, through the QualityLayer server to Slack |
 | **Instructions** | Yours (`~/.qualitylayer/instructions.md`) are stored locally and supplied to your agent; a cloud agent may send them to its provider. The team owner's are encrypted with the team's key before sending; each teammate's computer keeps a copy only its user can read ([Team instructions](settings.md#team-instructions)) |
-| **Lasting artifacts** | An artifact kept **In the repository** travels with your commits and pull requests, so anyone who can read the repository can read it. **Only on this Mac** keeps it out of git |
+| **Lasting artifacts** | An artifact kept **In the repository** travels with your commits and pull requests, so anyone who can read the repository can read it. **Only on this computer** keeps it out of git |
 | **Project lessons** | Local lessons stay in your QualityLayer home. Where you turn on memory sharing, eligible lessons become files under `.qualitylayer/memories/` and travel through your Git pushes, separate from encrypted task sharing ([Project memory](../memory.md)) |
 
 The QualityLayer API runs in Frankfurt; backups are encrypted and kept in the EU.
