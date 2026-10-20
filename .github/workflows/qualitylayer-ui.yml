@@ -24,6 +24,34 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  checkout:
+    name: Subscription checkout browser check
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - run: bash .github/workflows/scripts/install-git-crypt.sh
+      - env: { GIT_CRYPT_KEY: "${{ secrets.GIT_CRYPT_KEY }}" }
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+      - uses: actions/setup-node@v6
+        with: { node-version: "24.20.0" }
+      - run: npm ci --ignore-scripts
+        working-directory: docs/site
+      - run: npx playwright install --with-deps chromium
+        working-directory: docs/site
+      - name: Checkout and catalog regressions
+        run: npm test -- src/components/CheckoutLink.test.tsx scripts/verify-commerce.test.ts
+        working-directory: docs/site
+      - name: Open every plan's real Polar and Stripe form without payment
+        working-directory: docs/site
+        run: |
+          npm run dev:site-only -- --host 127.0.0.1 --port 8082 --mode production > "$RUNNER_TEMP/checkout-vite.log" 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          node --input-type=module -e 'for(let i=0;i<30;i++){try{if((await fetch("http://127.0.0.1:8082/pricing")).ok)process.exit(0)}catch{}await new Promise(r=>setTimeout(r,200))}process.exit(1)'
+          npm run test:checkout -- http://127.0.0.1:8082
+
   frontend:
     name: Source UI browser checks (shard ${{ matrix.shard }}/2)
     # Forks cannot unlock the encrypted source. Existing plaintext/CI gates remain separate.
@@ -76,16 +104,17 @@ jobs:
   result:
     name: Source UI browser checks
     if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-    needs: frontend
+    needs: [frontend, checkout]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Every shard passed
         env:
           RESULT: ${{ needs.frontend.result }}
+          CHECKOUT: ${{ needs.checkout.result }}
         run: |
-          if [ "$RESULT" != success ]; then
-            echo "::error::the source UI shards concluded $RESULT"
+          if [ "$RESULT" != success ] || [ "$CHECKOUT" != success ]; then
+            echo "::error::source UI: $RESULT; subscription checkout: $CHECKOUT"
             exit 1
           fi
           echo "Every source UI shard passed"
