@@ -175,8 +175,8 @@ In the App, the owner sees the list of versions in the share dialog, or under **
 
 If you keep the shared artifact in the repository, your own edits and the team’s versions meet like this:
 
-- When you change its files in the folder, the App shows **newer edits on this computer** beside the sharing status. They reach the team as a new version when you fold a draft in at Review, or when your agent saves them with `qualitylayer artifact shared save`, including any files you deleted in the folder.
-- When a teammate saves a new version, your folder takes it on its own, as ordinary changes you can commit. A folder that holds edits of yours is left as it is. A save then brings the team’s version in first, file by file. A file changed on both sides stays as you have it, with the team’s copy beside it, for example `index.team.html`. The save waits until you have merged what you need and deleted that copy.
+- When you change its files in the folder, the artifact's header says **Newer edits on this computer**, with a **Save for the team** button. The same button is in the share dialog and the artifact's menu. It saves your edits as the next version, including any files you deleted in the folder, and says which version it made. Folding a draft in at Review saves a version too.
+- When a teammate saves a new version, your folder takes it on its own, as ordinary changes you can commit. A folder that holds edits of yours is left as it is. **Save for the team** then brings the team’s version in first, file by file, and names it, for example “Version 16 saved for your team. Anna’s version 15 was merged in first.” A file changed on both sides stays as you have it, with the team’s copy beside it, for example `index.team.html`. Nothing is saved until you have merged what you need and deleted that copy; the App names the file.
 
 ## Let your agent change a shared artifact {#shared-save}
 
