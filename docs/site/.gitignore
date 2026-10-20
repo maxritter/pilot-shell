@@ -3,3 +3,10 @@
 
 # Vitest results cache
 .vitest/
+
+# Shared Edge helpers emitted only for the Vercel build.
+/api/_lib/team-files.js
+/api/_lib/team-purge.js
+/api/_lib/screenshots.js
+/api/_lib/sha256.js
+/api/_lib/trial-hash.js

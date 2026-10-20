@@ -10,6 +10,9 @@ DOCUSAURUS_DIR="$SCRIPT_DIR/../docusaurus"
 echo "=== Building Vite landing page ==="
 cd "$SITE_DIR"
 npm ci --prefer-offline 2>/dev/null || npm install
+if [ "${VERCEL:-}" = "1" ]; then
+  node "$SITE_DIR/scripts/compile-shared-api.mjs"
+fi
 npm run build
 
 echo "=== Verifying CSP inline-script hashes ==="
