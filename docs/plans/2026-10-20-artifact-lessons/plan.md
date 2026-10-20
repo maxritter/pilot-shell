@@ -101,19 +101,22 @@ edit. Never touch files another session has modified (`git status`).
 Agreed with the Artifacts page UX task (`2026-10-20-i-would-love-to-improve-the-artifacts-pa`):
 it owns every visible App change, App Model first; this plan owns the data.
 
-1. `GET /api/artifacts`: each lasting row gains `tokens: { state, count?, reason? }`;
-   `GET /api/artifacts/tokens?project=&name=` gives the changed list.
+1. ~~`GET /api/artifacts`: each lasting row gains `tokens: { state, count?, reason? }`;
+   `GET /api/artifacts/tokens?project=&name=` gives the changed list.~~
+   Removed 2026-10-20 (Max): no token or script-error UI; agent-side only.
 2. `GET /api/artifacts/claude?project=&name=` → `{ status: published|stale|none|unavailable, url?, reason?, install? }`;
    `POST` the same path `{ action: publish|update }`.
 3. `GET /api/artifacts/claude/comments?project=&name=` → `{ threads: [{ id, author, text, sentToClaude, at }] }`.
-4. Shot records the server returns carry `diagnostics: { errors, blocked }`.
+4. ~~Shot records the server returns carry `diagnostics: { errors, blocked }`.~~
+   Removed 2026-10-20 (Max): no token or script-error UI; agent-side only.
 5. The artifact comments route marks each comment `anchor: missing|ok`.
 
 ## Ownership
 
 - This plan: CLI, core, renderer, guide, skill, public docs, and the S5 routes.
-- Artifacts page task: all App UI for 1–5 (drift badge, Publish to Claude, Claude threads,
-  runtime errors beside shots, missing-anchor marker); team-shared editable artifacts with
+- Artifacts page task: all App UI for 2, 3 and 5 (Publish to Claude, Claude threads,
+  missing-anchor marker; the drift badge and runtime errors beside shots were removed
+  2026-10-20 (Max): no token or script-error UI, agent-side only); team-shared editable artifacts with
   version history and restore, including their CLI (`artifact shared …`, dispatch line
   coordinated) and team service; interactive shared previews (Max's decision: sandboxed
   frame with scripts, no same-origin, no network). It sends doc text for the team-sharing
