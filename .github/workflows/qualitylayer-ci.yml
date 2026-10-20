@@ -401,7 +401,7 @@ jobs:
           QUALITYLAYER_REQUIRE_WINDOWS_NATIVE: "1"
           QUALITYLAYER_EXPECT_ARCH: ${{ matrix.arch }}
         run: |
-          bun run test tests/windows/run-pty.test.ts tests/windows/run-job.test.ts tests/windows/run-in-app.probe.test.ts 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP/conpty.log"
+          bun run test tests/windows/run-pty.test.ts tests/windows/run-job.test.ts tests/windows/run-in-app.probe.test.ts tests/core/no-replace-rename.test.ts 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP/conpty.log"
           exit $LASTEXITCODE
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
