@@ -124,21 +124,61 @@ jobs:
         working-directory: docs/site
         run: npm run test:edge
 
+      # Frontend checks above cover dev source. The deployed API is separately pinned to the
+      # schema-9 service plus the reviewed artifact overlay, without taking launch migration 10.
+      - name: Prepare the private schema-9 deployment source
+        run: |
+          set -euo pipefail
+          umask 077
+          base=fc55eda687413634a235df1e38daf320ef19823a
+          git cat-file -e "$base^{commit}" 2>/dev/null || git fetch --quiet --no-tags --depth=1 origin "$base"
+          source="$(mktemp -d "${RUNNER_TEMP:?}/ql-deploy-source.XXXXXX")"
+          prepared="${source}-backend"
+          echo "DEPLOY_SOURCE=$source" >> "$GITHUB_ENV"
+          echo "PREPARED_BACKEND=$prepared" >> "$GITHUB_ENV"
+          common="$(git rev-parse --path-format=absolute --git-common-dir)"
+          [ -f "$common/git-crypt/keys/default" ] || { echo "::error::git-crypt key is unavailable"; exit 1; }
+          git clone --quiet --no-checkout --shared "$GITHUB_WORKSPACE" "$source"
+          git -C "$source" remote set-url origin "$(git remote get-url origin)"
+          for setting in filter.git-crypt.clean filter.git-crypt.smudge filter.git-crypt.required diff.git-crypt.textconv; do
+            git -C "$source" config "$setting" "$(git config --get "$setting")"
+          done
+          mkdir -p "$source/.git/git-crypt/keys"
+          cp "$common/git-crypt/keys/default" "$source/.git/git-crypt/keys/default"
+          git -C "$source" checkout --quiet -B "$GITHUB_REF_NAME" "$GITHUB_SHA"
+          ln -s "$GITHUB_WORKSPACE/docs/site/node_modules" "$source/docs/site/node_modules"
+          preparer="$source/docs/site/scripts/prepare-beta-backend.mjs"
+          node "$preparer" prepare --repo "$source" --frontend "$GITHUB_SHA" --out "$prepared" >/dev/null
+          node "$preparer" verify --prepared "$prepared" --frontend "$GITHUB_SHA"
+          mv "$source/docs/site/api" "$prepared/unused-current-api"
+          cp -R "$prepared/api" "$source/docs/site/api"
+          cp "$prepared/source-lineage.json" "$source/source-lineage.json"
+          cp "$prepared/deployment-script-provenance.json" "$source/deployment-script-provenance.json"
+          node "$preparer" verify --prepared "$prepared" --frontend "$GITHUB_SHA" --api "$source/docs/site/api"
+
+      - name: Test the prepared schema-9 API and real callers
+        working-directory: ${{ env.DEPLOY_SOURCE }}/docs/site
+        run: npx vitest run --maxWorkers=2 api scripts/db-beta9.test.ts
+
       # The schema of the environment being deployed goes first; a failed migration stops the deploy.
       # Migrations run as the database owner (OWNER_DATABASE_URL); the routes may use a narrower role.
       - name: Apply the database schema
-        working-directory: docs/site
+        working-directory: ${{ env.DEPLOY_SOURCE }}/docs/site
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
           VERCEL_PROJECT_ID: prj_SbOGJL2YBjvq9P5MSjxcrj87IGbi
           PRODUCTION_BRANCH: ${{ vars.SITE_PRODUCTION_BRANCH || 'dev' }}
         run: |
+          set -euo pipefail
+          umask 077
+          node scripts/prepare-beta-backend.mjs verify --prepared "${PREPARED_BACKEND:?}" --frontend "$GITHUB_SHA" --api "${DEPLOY_SOURCE:?}/docs/site/api"
           pull="${RUNNER_TEMP:?}/database.env"
+          trap 'rm -f "$pull"' EXIT
           if [ "$GITHUB_REF_NAME" = "$PRODUCTION_BRANCH" ]; then
-            vercel env pull "$pull" --environment=production --token="$VERCEL_TOKEN" --yes # repowise-security-ignore: hardcoded_secret -- token is supplied by GitHub Secrets
+            vercel env pull "$pull" --environment=production --token="$VERCEL_TOKEN" --yes
           else
-            vercel env pull "$pull" --environment=preview --git-branch="$GITHUB_REF_NAME" --token="$VERCEL_TOKEN" --yes # repowise-security-ignore: hardcoded_secret -- token is supplied by GitHub Secrets
+            vercel env pull "$pull" --environment=preview --git-branch="$GITHUB_REF_NAME" --token="$VERCEL_TOKEN" --yes
           fi
           value() { sed -n "s/^$1=\"\\{0,1\\}\\([^\"]*\\)\"\\{0,1\\}\$/\\1/p" "$pull"; }
           DATABASE_URL="$(value OWNER_DATABASE_URL)"
@@ -147,7 +187,9 @@ jobs:
           [ -n "$DATABASE_URL" ] || { echo "::error::no database is set for this environment"; exit 1; }
           echo "::add-mask::$DATABASE_URL"
           export DATABASE_URL
+          export MIGRATION_DATABASE_URL="$DATABASE_URL"
           node scripts/db-migrate.ts
+          node scripts/db-beta9.ts
 
       # qualitylayer.dev is the Production of the Vercel project qualitylayer-site, built from
       # SITE_PRODUCTION_BRANCH (dev until the final release moves it to main). Another branch
@@ -161,22 +203,29 @@ jobs:
           VERCEL_PROJECT_ID: prj_SbOGJL2YBjvq9P5MSjxcrj87IGbi
           PRODUCTION_BRANCH: ${{ vars.SITE_PRODUCTION_BRANCH || 'dev' }}
         run: |
+          set -euo pipefail
           umask 077
           receipt="${RUNNER_TEMP:?}/website-deployment.json"
           runtime="${RUNNER_TEMP:?}/website-runtime.json"
-          verifier=docs/site/scripts/verify-deployment-runtime.mjs
-          git checkout -B "$GITHUB_REF_NAME" "$GITHUB_SHA"
+          source="${DEPLOY_SOURCE:?}"
+          prepared="${PREPARED_BACKEND:?}"
+          verifier="$source/docs/site/scripts/verify-deployment-runtime.mjs"
+          preparer="$source/docs/site/scripts/prepare-beta-backend.mjs"
+          node "$preparer" verify --prepared "$prepared" --frontend "$GITHUB_SHA" --api "$source/docs/site/api"
+          backend_base=fc55eda687413634a235df1e38daf320ef19823a
+          backend_digest="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8")).overlayDigest)' "$prepared/receipt.json")"
           if [ "$GITHUB_REF_NAME" = "$PRODUCTION_BRANCH" ]; then
             target=production
-            vercel deploy --token="$VERCEL_TOKEN" --prod --skip-domain --json --meta "githubCommitRef=$GITHUB_REF_NAME" --meta "githubCommitSha=$GITHUB_SHA" > "$receipt"
+            (cd "$source" && vercel deploy --token="$VERCEL_TOKEN" --prod --skip-domain --json --meta "githubCommitRef=$GITHUB_REF_NAME" --meta "githubCommitSha=$GITHUB_SHA" --meta "backendBaseSha=$backend_base" --meta "backendOverlayDigest=$backend_digest") > "$receipt"
           else
             target=preview
-            vercel deploy --token="$VERCEL_TOKEN" --target preview --json --meta "githubCommitRef=$GITHUB_REF_NAME" --meta "githubCommitSha=$GITHUB_SHA" > "$receipt"
+            (cd "$source" && vercel deploy --token="$VERCEL_TOKEN" --target preview --json --meta "githubCommitRef=$GITHUB_REF_NAME" --meta "githubCommitSha=$GITHUB_SHA" --meta "backendBaseSha=$backend_base" --meta "backendOverlayDigest=$backend_digest") > "$receipt"
           fi
           deployment_id=$(node "$verifier" receipt-id --deployment "$receipt")
           vercel api "/v13/deployments/$deployment_id" --method GET --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID" --raw > "$runtime"
           DEPLOY_URL=$(node "$verifier" verify --deployment "$receipt" --metadata "$runtime" --project "$VERCEL_PROJECT_ID" --target "$target" --git-ref "$GITHUB_REF_NAME" --git-sha "$GITHUB_SHA")
-          bash docs/site/scripts/check-deploy.sh "$DEPLOY_URL"
+          node "$preparer" verify-runtime --prepared "$prepared" --frontend "$GITHUB_SHA" --api "$source/docs/site/api" --metadata "$runtime"
+          bash "$source/docs/site/scripts/check-deploy.sh" "$DEPLOY_URL"
           echo "Deployed to: $DEPLOY_URL"
           if [ "$target" != production ]; then exit 0; fi
           git fetch --quiet origin "$GITHUB_REF_NAME"
@@ -185,3 +234,14 @@ jobs:
             exit 0
           fi
           vercel promote "$DEPLOY_URL" --yes --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID"
+
+      - name: Remove private deployment sources
+        if: always()
+        run: |
+          for path in "${DEPLOY_SOURCE:-}" "${PREPARED_BACKEND:-}"; do
+            case "$path" in
+              "${RUNNER_TEMP:?}"/ql-deploy-source.*) rm -rf -- "$path" ;;
+              "") ;;
+              *) echo "::error::refusing to remove an unexpected deployment path"; exit 1 ;;
+            esac
+          done

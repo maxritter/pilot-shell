@@ -6,6 +6,9 @@ docs/site/scripts/rehash-trials.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/team-data.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/restore.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/db-migrate.ts filter=git-crypt diff=git-crypt
+docs/site/scripts/db-beta9.ts filter=git-crypt diff=git-crypt
+docs/site/scripts/prepare-beta-backend.mjs filter=git-crypt diff=git-crypt
+docs/site/scripts/prepare-beta-backend.test.mjs filter=git-crypt diff=git-crypt
 docs/site/scripts/upload-workflow.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/load-check.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/check-deploy.sh filter=git-crypt diff=git-crypt
