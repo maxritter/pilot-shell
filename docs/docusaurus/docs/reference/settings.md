@@ -71,12 +71,6 @@ Risky means the Plan says so, the change touches sign-in, secrets or outside inp
 
 Pi and OpenCode can use the same provider as another agent. A different agent gives you a fresh context; select another model family if you want a different provider too. See [native agents](../agents/native.md).
 
-### Your review commands {#review-commands}
-
-Add up to **8 commands** under **Settings › Workflow › Your review commands**. Use tools you already run, such as Semgrep, a linter or `codex review`.
-
-Each command runs once per task in its checkout when Review first opens. After a fix, choose **Run again** in the Review workspace footer to repeat them. Output can be SARIF or `path:line: message` lines; findings that name changed lines appear as threads. Commands run with your account's permissions, and agent-based tools may use your subscription or API credits.
-
 ### Notifications {#notifications}
 
 **Notifications** tell you when something needs you, or a task ships or stops. **Open Feedback automatically** switches to Feedback when a teammate writes to you, never while you type.

@@ -51,10 +51,6 @@ The findings of the security review and the second opinion appear as threads on 
 
 **Ask another reviewer** has an installed agent that did not build the change review one file or the whole change. It reads the change and the task's documents and edits nothing. It stops after 8 minutes, its findings arrive as threads, and its cost is listed.
 
-### Your review commands {#review-commands}
-
-Under **Settings › Workflow › Your review commands**, list up to 8 commands your team already uses, such as Semgrep, a linter, `codex review` or CodeRabbit's CLI. Each runs once per task, in the task's checkout, when Review first opens. **Run again** runs them again, for example after a fix. QualityLayer reads their output as SARIF or as `path:line: message` lines, and the findings on changed lines arrive as threads.
-
 ### Approve with open comments {#open-comments}
 
 You can approve while comments are still open. They are not sent to your agent. When the pull request opens, they are posted to it as one GitHub review on their lines, and a **Replace with** becomes a suggestion the author can apply.
