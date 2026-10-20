@@ -55,10 +55,11 @@ Work side by side in the App or browser.
 
 **Coding agents write code fast**, but each change still leaves copies, workarounds and dead code behind. QualityLayer puts you back in the loop while the change is still a plan:
 
-- Your agent reads the code and draws up one plan: the architecture as diagrams, the screens as clickable designs, each decision with its reasons.
+- Your agent reads the code and draws up one plan: the architecture as diagrams, the screens as clickable artifacts, each decision with its reasons.
 - You comment on any part and approve the plan before anything changes; with a Team plan, your teammates comment too.
 - Your agent builds it in small slices, each starting with a failing test.
 - Agents that did not write the code check every point of your request against the running program.
+- Local [code-health feedback](https://qualitylayer.dev/docs/reference/code-health) helps your agent review complexity and structure; broader duplication checks are available when needed.
 - Your agent settles routine choices and records them; only real decisions reach you.
 - Every step shows its time and estimated cost.
 - It runs on your own subscription, and each step is one Markdown file in your repository.
@@ -156,7 +157,7 @@ Ask your agent for a mockup, diagram or clickable artifact. Compare versions in 
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/terminal-dark.webp">
-  <img src="docs/site/public/product/terminal-light.webp" alt="A visual Plan explains retries, buffering and replay beside an illustrative Claude Code session with the QualityLayer mod and a custom status line. Fictional project." width="1000">
+  <img src="docs/site/public/product/terminal-light.webp" alt="A visual Plan explains retries, buffering and replay beside Claude Code messages and tool calls in QualityLayer's Conversation view. Fictional project." width="1000">
 </picture>
 
 - Answer your agent's questions and comment on any passage; answers reach it at once.

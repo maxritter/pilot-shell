@@ -25,8 +25,8 @@ export const COMPARISONS: Comparison[] = [
     strengths: "HumanLayer brings sessions, artifacts and worktrees into a shared workspace. Its design documents support inline team comments that feed back to agents. That makes it a strong option when coordinating people and agent sessions is your main problem.",
     agents: "HumanLayer's portable RPI skill runs in Claude Code and Codex: /rpi in Claude Code and $rpi in Codex. Its app also supports both agents. Working inside these tools is shared ground with QualityLayer.",
     rows: [
-      { topic: "Agree on the change", qualitylayer: "Review architecture diagrams and clickable designs, then approve the Plan before code.", other: "Use structured planning phases and collaborative design documents.", source: 1 },
-      { topic: "Work in your agent", qualitylayer: "Use Claude Code or Codex, with the App for planning and review.", other: "Use portable RPI skills in Claude Code or Codex, or work in the HumanLayer app.", source: 2 },
+      { topic: "Agree on the change", qualitylayer: "Review architecture diagrams and clickable artifacts, then approve the Plan before code.", other: "Use structured planning phases and collaborative design documents.", source: 1 },
+      { topic: "Work in your agent", qualitylayer: "Use your coding agent, with the App for planning and review.", other: "Use portable RPI skills in Claude Code or Codex, or work in the HumanLayer app.", source: 2 },
       { topic: "Check the result", qualitylayer: "Verify records evidence for each agreed outcome; review independence depends on risk and settings.", other: "RPI works from local documents, with fresh sessions for its phases by default.", source: 2 },
     ],
     chooseOther: "Choose HumanLayer if shared workspaces, inline design discussions and managing multiple agent sessions are central to your day.",
@@ -44,7 +44,7 @@ export const COMPARISONS: Comparison[] = [
     strengths: "Spec Kit is an open source toolkit with project principles, specifications, technical plans and implementation tasks. Extensions, presets and workflows let teams adapt the process to their own standards.",
     agents: "Spec Kit supports both Claude Code and Codex, alongside other coding agents. QualityLayer also works in those sessions. The decision is about the process you want around the agent.",
     rows: [
-      { topic: "Define the work", qualitylayer: "Plan visually with diagrams and clickable designs; approve the Plan before implementation.", other: "Create a constitution, specification, technical plan and dependency-ordered tasks.", source: 1 },
+      { topic: "Define the work", qualitylayer: "Plan visually with diagrams and clickable artifacts; approve the Plan before implementation.", other: "Create a constitution, specification, technical plan and dependency-ordered tasks.", source: 1 },
       { topic: "Check the artifacts", qualitylayer: "Keep the agreed outcomes with the task through implementation and Review.", other: "Use clarification, requirements checklists and cross-artifact analysis as quality checks.", source: 2 },
       { topic: "Check the implementation", qualitylayer: "Record running-program evidence for each outcome, then bring gaps to human Review.", other: "Converge assesses code against spec, plan and tasks, appending remaining work. The bug-fixing extension records verification too.", source: 1 },
       { topic: "Adapt the process", qualitylayer: "Use the documented planning, build, Verify and Review flow in the App and your agent.", other: "Customize with extensions, presets, workflows and project-local overrides.", source: 1 },
@@ -65,7 +65,7 @@ export const COMPARISONS: Comparison[] = [
     strengths: "OpenSpec is an open source option for evolving an existing codebase. Each change has its own planning artifacts, and archiving folds spec updates into the main specifications. You can revise artifacts as your understanding changes.",
     agents: "OpenSpec supports Claude Code and Codex through tool-specific commands or skills. QualityLayer works with both too. Keeping your agent is a shared capability; compare how each process checks and closes the change.",
     rows: [
-      { topic: "Plan a change", qualitylayer: "Review diagrams and clickable designs in the App, then approve the Plan.", other: "Create a proposal with spec deltas, design and tasks; revise artifacts as needed.", source: 1 },
+      { topic: "Plan a change", qualitylayer: "Review diagrams and clickable artifacts in the App, then approve the Plan.", other: "Create a proposal with spec deltas, design and tasks; revise artifacts as needed.", source: 1 },
       { topic: "Verify the code", qualitylayer: "Record output, screenshots or files against each agreed outcome, with risk-based independent review.", other: "The optional verify skill reports completeness, correctness and coherence against the artifacts.", source: 2 },
       { topic: "Finish the change", qualitylayer: "Review the evidence and open checks; approve locally, or ask QualityLayer to open and follow a pull request.", other: "Archive the change and sync its spec updates. Archive warns about incomplete artifacts or tasks.", source: 2 },
     ],
@@ -80,17 +80,17 @@ export const COMPARISONS: Comparison[] = [
   {
     slug: "kiro",
     name: "Kiro",
-    summary: "Integrated spec workflows and property-based testing, compared with QualityLayer's process in Claude Code and Codex.",
-    lead: "Kiro integrates specifications into its coding environment. QualityLayer works with agents such as Claude Code and Codex. Compare the environment you want to use and the evidence you want before approval.",
+    summary: "Integrated spec workflows and property-based testing, compared with QualityLayer's process around your coding agent.",
+    lead: "Kiro integrates specifications into its coding environment. QualityLayer works with Claude Code, Codex, Pi and OpenCode. Compare the environment you want to use and the evidence you want before approval.",
     strengths: "Kiro turns requirements into technical designs and trackable tasks. Feature Specs support requirements-first and design-first approaches. Its IDE also supports property-based testing that connects specified behavior to executable checks.",
-    agents: "Kiro documents its own spec workflow in its IDE, CLI and web surfaces. QualityLayer's workflow runs with your Claude Code or Codex session. Kiro has a CLI too, so describing this as a choice between an IDE and a terminal would miss the point.",
+    agents: "Kiro documents its own spec workflow in its IDE, CLI and web surfaces. QualityLayer's workflow runs with your coding agent. Kiro has a CLI too, so describing this as a choice between an IDE and a terminal would miss the point.",
     rows: [
-      { topic: "Shape the specification", qualitylayer: "Use visual architecture and clickable designs, with a human-approved Plan.", other: "Generate requirements, design and tasks; start from requirements or a technical design.", source: 1 },
+      { topic: "Shape the specification", qualitylayer: "Use visual architecture and clickable artifacts, with a human-approved Plan.", other: "Generate requirements, design and tasks; start from requirements or a technical design.", source: 1 },
       { topic: "Verify behavior", qualitylayer: "Check each agreed outcome on the running program and retain the evidence for Review.", other: "In the IDE, derive executable properties from specs and test generated inputs for counterexamples.", source: 2 },
       { topic: "Review planning", qualitylayer: "Approve the Plan before code, then inspect outcome evidence at final Review.", other: "Review spec documents with comments on exact passages. Quick Spec can generate artifacts without approval steps.", source: 3 },
     ],
     chooseOther: "Choose Kiro if you want specifications and task execution integrated into Kiro's environment. Its property-based testing is a substantive verification capability, with availability that varies by surface.",
-    chooseQualityLayer: "Choose QualityLayer if you want to keep building in Claude Code or Codex and review an explicit record of outcomes, unresolved checks and approval decisions in the App.",
+    chooseQualityLayer: "Choose QualityLayer if you want to keep your coding agent and review an explicit record of outcomes, unresolved checks and approval decisions in the App.",
     sources: [
       { label: "Kiro Feature Specs and workflow variants", url: "https://kiro.dev/docs/specs/feature-specs/" },
       { label: "Kiro correctness and property-based testing", url: "https://kiro.dev/docs/specs/correctness/" },

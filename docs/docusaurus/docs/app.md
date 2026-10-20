@@ -5,8 +5,8 @@ description: Read the work, answer questions and give feedback beside your agent
 
 Read the task on the left and work with your agent in the right sidebar. Answer questions, inspect diagrams and give feedback beside its conversation. Use the desktop App on macOS, Windows or Linux, or run `qualitylayer app` to open the same workspace in your browser.
 
-![A visual billing Plan explains retries, buffering and replay beside Claude Code, its QualityLayer band and a custom status line](pathname:///img/app/plan-light.webp)
-![A visual billing Plan explains retries, buffering and replay beside Claude Code, its QualityLayer band and a custom status line](pathname:///img/app/plan-dark.webp)
+![A visual billing Plan explains retries, buffering and replay beside Claude Code messages and tool calls in QualityLayer's Conversation view](pathname:///img/app/plan-light.webp)
+![A visual billing Plan explains retries, buffering and replay beside Claude Code messages and tool calls in QualityLayer's Conversation view](pathname:///img/app/plan-dark.webp)
 
 *Example task in a fictional project.*
 

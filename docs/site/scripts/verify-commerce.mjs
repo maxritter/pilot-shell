@@ -5,6 +5,7 @@ import { QUALITYLAYER_PRODUCTS } from "../src/lib/polar-products.ts";
 export const LEGACY_PRODUCTS = ["35801944-799d-4763-88fa-b2046765464f", "c0a1f846-2909-4aff-b3fe-42a4818c34b5", "bf3d0ac1-6cda-4122-bd76-a20d0beef958"];
 const BENEFITS = { solo: "ae926479-bddd-4362-824d-7772cd4fbc72", team: "b65424b6-3609-42de-9be3-3c4d59bbff36" };
 const PRICES = { solo: { monthly: 2900, yearly: 28800 }, team: { monthly: 4900, yearly: 46800 } };
+const ORGANIZATION_ID = "c71d489f-2c38-4b32-abea-1e10bf67fe04";
 
 export function verifyCatalog(products, discounts, now = Date.now()) {
   const errors = [];
@@ -41,15 +42,19 @@ export function verifyCatalog(products, discounts, now = Date.now()) {
 
 export async function verifyRemoteCatalog(token, request = fetch) {
   if (!token) throw new Error("POLAR_ACCESS_TOKEN is required for the live commerce audit");
-  const read = async resource => {
-    const response = await request(`https://api.polar.sh/v1/${resource}/?limit=100`, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(15000) });
+  const get = async resource => {
+    const response = await request(`https://api.polar.sh/v1/${resource}`, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(15000) });
     if (!response.ok) throw new Error(`Polar ${resource}: HTTP ${response.status}`);
-    const data = await response.json();
+    return response.json();
+  };
+  const read = async resource => {
+    const data = await get(`${resource}/?limit=100`);
     if (data.pagination?.max_page > 1) throw new Error(`Polar ${resource}: audit requires pagination before this catalog can be verified`);
     return data.items;
   };
-  const [products, discounts] = await Promise.all([read("products"), read("discounts")]);
-  return verifyCatalog(products, discounts);
+  const [products, discounts, organization] = await Promise.all([read("products"), read("discounts"), get(`organizations/${ORGANIZATION_ID}`)]);
+  if (organization.id !== ORGANIZATION_ID || organization.email !== "hello@qualitylayer.dev") throw new Error("Polar public support email: expected hello@qualitylayer.dev on the QualityLayer organization");
+  return { ...verifyCatalog(products, discounts), supportEmail: organization.email };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

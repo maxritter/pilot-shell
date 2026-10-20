@@ -30,9 +30,17 @@ try {
       for (const field of ["Card number", "Expiration date", "Security code"]) await payment.getByRole("textbox", { name: field, exact: true }).waitFor();
       const amount = plan === "Solo" ? (billing === "yearly" ? 288 : 29) : (billing === "yearly" ? 468 : 49);
       assert((await page.locator("body").innerText()).includes(`$${amount}`), `${name}: expected price missing`);
+      await page.getByRole("button", { name: "Add discount code", exact: true }).click();
+      await page.locator('input[name="discount_code"]').fill("PILOTTHANKS20");
+      await page.getByRole("button", { name: "Apply", exact: true }).click();
+      const discountedAmount = (amount * 0.8).toFixed(2);
+      // Polar renders both responsive summaries; require the visible total.
+      await page.getByText(`$${discountedAmount}`, { exact: true }).filter({ visible: true }).first().waitFor();
+      await page.getByText(/discount \(first year\)/i).filter({ visible: true }).first().waitFor();
+      assert((await page.locator("body").innerText()).includes("-20%"), `${name}: newsletter discount missing`);
       if (output) await page.screenshot({ path: resolve(output, `${plan.toLowerCase()}-${billing}.png`) });
-      results.push({ plan, billing, amount, currency: "USD", paymentFieldsReady: true, paymentSubmitted: false });
-      console.log(`PASS ${plan} ${billing}: $${amount}; Stripe payment fields ready; no payment submitted`);
+      results.push({ plan, billing, amount, discountedAmount: Number(discountedAmount), promo: "PILOTTHANKS20", currency: "USD", paymentFieldsReady: true, paymentSubmitted: false });
+      console.log(`PASS ${plan} ${billing}: $${amount}, newsletter total $${discountedAmount}; Stripe payment fields ready; no payment submitted`);
     }
   }
 } finally { await browser.close(); }

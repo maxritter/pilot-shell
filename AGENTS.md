@@ -22,6 +22,11 @@ alone does not start the full workflow.
 
 ## Verification
 
+For substantive code changes, quality regressions or retrospective reviews, read
+the repository's `local-code-quality` skill when installed. Its local Sonar
+analysis and reviewed Qlty baseline complement the existing verification gates;
+the internal release preflight is mandatory. Customer tooling uses `ql-quality`.
+
 From `qualitylayer/`, use `bun run typecheck`, `bun run lint` and focused
 `bun run test <files>` for the affected behavior. Plain `bun test` can leak DOM
 state. Read `docs/agents/verification.md` for the checkout's test tiers, browser
@@ -60,6 +65,11 @@ approve simplified redraws in their place. Record the visual critique and fix
 clipping before local installation or release.
 
 ## Ownership
+
+Before publishing a QualityLayer beta or stable release, follow the internal
+`local-code-quality` skill: Sonar's gate must be green and Qlty must have zero
+unreviewed findings for the actual candidate source. Missing or stale evidence
+does not pass. Keep this repository release policy outside the shipped workflow.
 
 `AGENTS.md` is the shared source; `CLAUDE.md` stays exactly `@AGENTS.md` plus a
 newline. A workflow bench runs only when Max asks for one; then read the

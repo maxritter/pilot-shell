@@ -21,7 +21,9 @@ In your own terminal, VS Code or another IDE, say “Using QualityLayer, plan a 
 
 An ordinary coding request stays an ordinary request. Ask QualityLayer or QL to carry the work; merely discussing the product or quoting an example does not start a workflow. Natural wording, clear spelling variants and requests in other languages are supported.
 
-The installed skills are `ql-workflow`, `ql-artifact`, `ql-peer` and `ql-manage`. Your agent loads the one the request needs. A standalone artifact, peer message or settings operation does not create a workflow task. The artifact skill points to the CLI's artifact guide, which is read once per assignment.
+The installed skills are `ql-workflow`, `ql-artifact`, `ql-peer`, `ql-manage` and `ql-quality`. Your agent loads the one the request needs. A standalone artifact, peer message or settings operation does not create a workflow task. The artifact skill points to the CLI's artifact guide, which is read once per assignment.
+
+The `ql-quality` skill helps your agent inspect local Qlty findings. Automatic feedback checks edited files for structural issues; deliberate CLI checks cover broader duplication and function metrics. See [Code health](../reference/code-health.md) for availability, review decisions and project controls.
 
 ## Models and reviews
 

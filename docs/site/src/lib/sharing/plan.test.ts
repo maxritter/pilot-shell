@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contractsOf, mockupHtml, mockupName, planBlocks, slicesOf, withCsp, screenPairsOf } from "./plan";
+import { contractsOf, mockupHtml, mockupName, planBlocks, slicesOf, withCsp, screenPairsOf, withoutShownMockups } from "./plan";
 import { remarksPayload, parsePlan } from "./sharing";
 
 it("built pairs round-trip the publication allowlist and oversized pairs stay text", () => {
@@ -127,6 +127,27 @@ const DETAILS = [
 ].join("\n");
 
 describe("the build's slices", () => {
+  it("keeps heading whitespace and line-terminator behavior", () => {
+    const rows = [
+      ["## Slice 1:  title\t\r", "title"],
+      ["##\tSlice\u00a01\u2028:\t`title`\u2029", "title"],
+      ["## Slice 1: ", " "],
+      ["## Slice 1:\t\r", "\t"],
+      ["## Slice 1: **", ""],
+    ];
+    for (const [heading, title] of rows) {
+      expect(slicesOf(`${heading}\n- [ ] T1 Keep behavior`)).toEqual([{ n: 1, title, tasks: 1 }]);
+    }
+    for (const heading of ["## Slice 1:", "## Slice 1:\r", "## Slice 1: first\u2028second", "## Slice 1: first\rsecond"]) {
+      expect(slicesOf(`${heading}\n- [ ] T1 Not a slice`)).toEqual([]);
+    }
+  });
+
+  it("reads a title with a long interior whitespace run without repeating suffix scans", () => {
+    const title = `First${" \t".repeat(25_000)}last`;
+    expect(slicesOf(`## Slice 3: ${title}\n- [x] T1 Done`)).toEqual([{ n: 3, title, tasks: 1 }]);
+  });
+
   it("lists each slice with its title and its tasks", () => {
     expect(slicesOf(DETAILS)).toEqual([
       { n: 1, title: "Fewer settings, in the CLI and the App together", tasks: 2 },
@@ -140,6 +161,25 @@ describe("the build's slices", () => {
 });
 
 describe("the contracts the build must keep", () => {
+  it("preserves empty-heading, CRLF and Unicode whitespace captures", () => {
+    for (const [heading, title] of [
+      ["### Title\t\r", "Title"],
+      ["###\u2028Title\u2029", "Title"],
+      ["###  ", " "],
+      ["### \t\r", "\t"],
+    ]) {
+      expect(contractsOf(`## Program design\r\n${heading}\nBody.`)).toEqual([{ title, body: "Body." }]);
+    }
+    for (const heading of ["###", "### ", "### \r", "### First\u2028second", "### First\rsecond", "#### Nested"]) {
+      expect(contractsOf(`## Program design\n${heading}\nBody.`)).toEqual([]);
+    }
+  });
+
+  it("keeps the whole contract title across a long interior whitespace run", () => {
+    const title = `First${" \t".repeat(25_000)}last`;
+    expect(contractsOf(`## Program design\n### ${title}\nBody.`)).toEqual([{ title, body: "Body." }]);
+  });
+
   it("takes each H3 under the contract sections, with its body", () => {
     const contracts = contractsOf(DETAILS);
     expect(contracts.map((c) => c.title)).toEqual([
@@ -157,6 +197,43 @@ describe("the contracts the build must keep", () => {
 });
 
 describe("a mockup's page", () => {
+  it("removes shown inline and body paths while preserving surrounding Markdown and other fences", () => {
+    const markdown = [
+      "Before.",
+      "```artifact \t artifacts/inline.html \t",
+      "``` \t",
+      "Between.",
+      "```artifact artifacts/unused-inline.html",
+      "artifacts/body.html",
+      "```",
+      "```artifact artifacts/keep.html",
+      "```",
+      "After.",
+    ].join("\n");
+    expect(withoutShownMockups(markdown, new Set(["inline.html", "body.html"]))).toBe(
+      "Before.\nBetween.\n```artifact artifacts/keep.html\n```\nAfter.",
+    );
+    expect(withoutShownMockups(markdown, new Set(["unused-inline.html"]))).toBe(markdown);
+    expect(withoutShownMockups(markdown, new Set())).toBe(markdown);
+  });
+
+  it("keeps incomplete, empty and multiline fences, and removes a shown fence at end of input", () => {
+    for (const markdown of [
+      "```artifact artifacts/settings.html",
+      "```artifact artifacts/settings.html\n",
+      "```artifact\n```",
+      "```artifact\n\n```",
+      "```artifact\nartifacts/settings.html\nextra\n```",
+      "```artifact\n`artifacts/settings.html`\n```",
+    ]) expect(withoutShownMockups(markdown, new Set(["settings.html"]))).toBe(markdown);
+    expect(withoutShownMockups("```artifact\nartifacts/settings.html\n```", new Set(["settings.html"]))).toBe("");
+  });
+
+  it("keeps a malformed fence with a long whitespace header intact", () => {
+    const markdown = `Before.\n\`\`\`artifact${" \t".repeat(50_000)}artifacts/settings.html\nnot a closing fence\nAfter.`;
+    expect(withoutShownMockups(markdown, new Set(["settings.html"]))).toBe(markdown);
+  });
+
   it("gets the policy before any of its own scripts, and never mistakes a <header> for the <head>", () => {
     const withHead = withCsp("<!doctype html><html><head><title>x</title></head><body><script>1</script></body></html>");
     expect(withHead.indexOf("Content-Security-Policy")).toBeLessThan(withHead.indexOf("<title>"));

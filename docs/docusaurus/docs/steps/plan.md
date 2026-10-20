@@ -51,6 +51,6 @@ Click any part of a diagram or passage to pin a comment. Your agent reads it whe
 
 ## Before it reaches you {#before-it-reaches-you}
 
-Your agent rereads every Plan as a reviewer would. A risky Plan also gets a second opinion from the other coding agent. While a required review is running, its amber reason sits beside the blocked **Approve Plan** button. Hover or focus the approval control to read why it is blocked. It unlocks once required findings and human choices are settled ([Settings](../reference/settings.md#second-opinion)).
+Your agent rereads every Plan as a reviewer would. A risky Plan also gets a separate review using an installed agent selected in [Settings](../reference/settings.md#second-opinion). While a required review is running, its amber reason sits beside the blocked **Approve Plan** button. Hover or focus the approval control to read why it is blocked. It unlocks once required findings and human choices are settled ([Settings](../reference/settings.md#second-opinion)).
 
 Next: [Start Implement](implement.md#start-implement). The build session writes the [Outline](outline.md), then builds it.

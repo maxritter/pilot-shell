@@ -21,7 +21,7 @@ Polish, Security review and Second opinion start side by side when enabled. Proj
 | --- | --- |
 | **1. Polish** | Removes dead code, adds missing tests, updates docs |
 | **2. Security review** | When the change touches sign-in, secrets or outside input |
-| **3. Second opinion** | Risky changes: the other coding agent looks for breakage; its findings are addressed before Independent review |
+| **3. Second opinion** | Risky changes: a separate reviewer checks for breakage using the installed agent selected in [Settings](../reference/settings.md#second-opinion); its findings are addressed before Independent review |
 | **4. Project checks** | Your tests, types, lint and build |
 | **5. Independent review** | Proves every **Done means** point on the running program |
 | **6. Fix rounds** | Fixes everything found, then reruns what it touched |

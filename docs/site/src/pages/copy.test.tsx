@@ -21,6 +21,13 @@ async function textOf(node: React.ReactNode): Promise<string> {
 }
 
 describe("the site's copy", () => {
+  it("summarizes visual planning and checked implementation with the current artifact name", async () => {
+    const hero = await textOf(<Hero />);
+    expect(hero).toContain("Approve a visual plan with clickable artifacts.");
+    expect(hero).toContain("Your coding agent builds the change and checks every requirement.");
+    expect(hero).not.toContain("clickable designs");
+  });
+
   it("uses the glossary, not the App's internal words, on the home page, download page and pricing page", async () => {
     const pages = {
       home: await textOf(<><Hero /><Sections /></>),

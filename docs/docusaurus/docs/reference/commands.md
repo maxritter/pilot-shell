@@ -180,6 +180,19 @@ Library operations use the revision from `artifact library inspect`, which inclu
 
 `artifact shot` needs Chrome. If the agent's sandbox prevents Chrome from starting, inspect the same page in the App; a successful source check does not establish that it rendered correctly.
 
+## Code health {#code-health}
+
+Local Qlty checks are advisory. See [Code health](code-health.md) for automatic feedback, availability and how to review findings.
+
+| Command | What it does |
+| --- | --- |
+| `qualitylayer quality status` · `quality setup` | Inspect availability or retry managed tool setup |
+| `qualitylayer quality check [paths...] [--all] [--duplication] [--fail-on-new]` | Check changed or named source; `--all` selects the project, `--duplication` broadens the analysis, and `--fail-on-new` explicitly fails while findings remain unreviewed |
+| `qualitylayer quality metrics [paths...] [--all]` | Return function metrics with source capture metadata |
+| `qualitylayer quality lint [paths...] [--all]` | Run enabled project linters without autofixes; plugin tools may need setup |
+| `qualitylayer quality acknowledge <id> --reason "<evidence>"` | Retain an intentional or deferred finding with a specific reason; source or metric changes require review again |
+| `qualitylayer quality on` · `quality off` | Resume or pause checks in this project |
+
 ## Project memory {#memory}
 
 The App and agents use the same local lesson store. Lessons sent to a cloud agent may reach its provider; local storage and local embedding do not prevent that. Run project commands inside the repository. Sharing remains off until you enable it locally; exchange writes files for your normal Git review and commit. See [Project memory](../memory.md).

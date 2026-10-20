@@ -42,14 +42,15 @@ Choose the **agent**, **model**, **effort** and **workspace** when you start a t
 | Setting | What it changes |
 | --- | --- |
 | **Where agents run by default** | **In QualityLayer** or **In my terminal, app or IDE** |
-| **Where you answer** | **QualityLayer** or **Agent's chat**, for questions, approvals and artifact feedback |
 | **Installed agents** | Last executable/version result for Claude Code, Codex, Pi and OpenCode; open setup help or use **Check again** |
 | **Agent appearance** | Text, colours and scrolling in agent sessions |
 | **When you quit the App** | Keep agents running, or stop them |
 | **Typing and starting agents** | The App and its key-paired browsers, or also other paired browsers |
 | **Reviewer models** | Models used by Independent review and Second opinion |
 
-Questions, approvals and artifact feedback can stay in **QualityLayer** (the default) or **Agent's chat**. Each task remembers its choice. **Answer in** on New task and Start the build overrides this default for that task. Asking “Using QualityLayer in the terminal, plan …” also selects Agent's chat; a computer without a screen selects it automatically. This choice is separate from where the agent runs. See [Terminal mode](commands.md#terminal-mode) for CLI settings and document reading.
+For a run started from **New task** or **Start the build**, the run location also sets where you answer. **In QualityLayer** keeps questions, approvals and artifact feedback in the App or browser. **In my terminal, app or IDE** uses the agent's chat.
+
+New App sessions open in **Conversation**. Switch to **Terminal** in the Agent tab when needed. See [Terminal mode](commands.md#terminal-mode) for CLI controls and document reading.
 
 The quitting and browser choices are under **More**. Other coding agents use the workflow in your terminal. Permissions are chosen at launch where the native client supports them.
 
@@ -69,6 +70,12 @@ Who decides whether a change passes [Verify](../steps/verify.md): **Fresh agent:
 Risky means the Plan says so, the change touches sign-in, secrets or outside input, or the Outline marks a slice risky. **Always** adds a few minutes per Plan or change. With one agent installed, a separate reviewer of that agent reads instead (Sonnet 5.5 in Claude Code). **Reviewed by** in the Plan names who read it.
 
 Pi and OpenCode can use the same provider as another agent. A different agent gives you a fresh context; select another model family if you want a different provider too. See [native agents](../agents/native.md).
+
+### Your review commands {#review-commands}
+
+Add up to **8 commands** under **Settings › Workflow › Your review commands**. Use tools you already run, such as Semgrep, a linter or `codex review`.
+
+Each command runs once per task in its checkout when Review first opens. After a fix, choose **Run again** in the Review workspace footer to repeat them. Output can be SARIF or `path:line: message` lines; findings that name changed lines appear as threads. Commands run with your account's permissions, and agent-based tools may use your subscription or API credits.
 
 ### Notifications {#notifications}
 

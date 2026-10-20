@@ -89,14 +89,26 @@ function* outsideFences(markdown: string): Generator<string> {
 
 const plain = (title: string) => title.replace(/[`*]/g, "");
 
+function headingTitle(raw: string): string | null {
+  const title = raw.trim();
+  if (title !== "") return /[\r\n\u2028\u2029]/.test(title) ? null : title;
+  // The old reader kept one whitespace character when its title contained no words.
+  for (let at = raw.length - 1; at >= 0; at--) {
+    const char = raw.charAt(at);
+    if (!/[\r\n\u2028\u2029]/.test(char)) return char;
+  }
+  return null;
+}
+
 /** The build's slices: each `## Slice N: title` with the number of `- [ ] T1 …` task lines under it. */
 export function slicesOf(details: string): Slice[] {
   const slices: Slice[] = [];
   let current: Slice | null = null;
   for (const line of outsideFences(details)) {
-    const slice = /^##\s+Slice\s+(\d+)\s*[:.–—-]\s*(.+?)\s*$/.exec(line);
-    if (slice !== null) {
-      current = { n: Number(slice[1]), title: plain(slice[2] ?? ""), tasks: 0 };
+    const slice = /^##\s+Slice\s+(\d+)\s*[:.–—-]/.exec(line);
+    const title = slice === null ? null : headingTitle(line.slice(slice[0].length));
+    if (slice !== null && title !== null) {
+      current = { n: Number(slice[1]), title: plain(title), tasks: 0 };
       slices.push(current);
     } else if (/^##\s/.test(line)) {
       current = null;
@@ -125,12 +137,13 @@ export function contractsOf(details: string): Contract[] {
   };
   for (const line of details.split("\n")) {
     if (/^\s*(```|~~~)/.test(line)) fenced = !fenced;
-    const heading = fenced ? null : /^(#{1,3})\s+(.+?)\s*$/.exec(line);
-    if (heading !== null) {
+    const heading = fenced ? null : /^(#{1,3})\s/.exec(line);
+    const title = heading === null ? null : headingTitle(line.slice(heading[0].length));
+    if (heading !== null && title !== null) {
       close();
       const level = (heading[1] ?? "").length;
-      if (level <= 2) inContracts = level === 2 && /contract|program design/i.test(heading[2] ?? "");
-      else if (inContracts) current = { title: heading[2] ?? "", lines: [] };
+      if (level <= 2) inContracts = level === 2 && /contract|program design/i.test(title);
+      else if (inContracts) current = { title, lines: [] };
       continue;
     }
     current?.lines.push(line);
@@ -162,7 +175,7 @@ export function withCsp(html: string): string {
 /** A mockup fence that names one of `shown` (mockups drawn under a question), taken out of the Markdown. */
 export function withoutShownMockups(markdown: string, shown: ReadonlySet<string>): string {
   if (shown.size === 0) return markdown;
-  return markdown.replace(/^```artifact[ \t]*([^\n]*)\n(?:([^\n`][^\n]*)\n)?```[ \t]*(?:\n|$)/gm, (fence, inline: string, body?: string) => {
+  return markdown.replace(/^```artifact([^\n]*)\n(?:([^\n`][^\n]*)\n)?```[ \t]*(?:\n|$)/gm, (fence, inline: string, body?: string) => {
     const path = (body ?? inline).trim();
     return path !== "" && shown.has(mockupName(path)) ? "" : fence;
   });
