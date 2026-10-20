@@ -117,7 +117,7 @@ test("navigation names supported agents without changing their route or removing
 test("the docs artifact matches the shipped guides (a docs edit without its artifact is red here)", () => {
   const renderer = fileURLToPath(new URL("../../../qualitylayer/artifacts/site/website-model/docs/render.mjs", import.meta.url));
   const result = spawnSync(process.execPath, [renderer, "--check-source"], { encoding: "utf8" });
-  const drift = result.stderr.split("\n").find((line) => /^Error: /.test(line)) ?? result.stderr;
-  assert.equal(result.status, 0, `Update qualitylayer/artifacts/site/website-model/docs/copy.json, then regenerate the pages with render.mjs --patch: ${drift}`);
+  const drift = result.stderr.split("\n").filter((line) => /^Docs (?:model|copy|asset) drift: /.test(line)).join("; ") || result.stderr;
+  assert.equal(result.status, 0, `Update qualitylayer/artifacts/site/website-model/docs/copy.json, then regenerate the pages with render.mjs --write (or inspect them with --patch): ${drift}`);
   assert.match(result.stdout, /Docs model matches \d+ authored guide pages/);
 });

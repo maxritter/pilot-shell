@@ -141,9 +141,10 @@ Your agent draws [artifacts](../artifacts.md) with these, at any step, inside a 
 | `qualitylayer artifact show <name> [--page <page>] [--changed "<line>"]` | Mark it updated, with one line of what changed, so you see it as soon as it renders. `--page` names a page of an artifact of several pages |
 | `qualitylayer artifact open <name> [--project] [--page <page>] [--section <id-or-label>] [--browser] [--no-open]` | Open an exact artifact page in QualityLayer or the browser viewer. A missing or ambiguous section is reported in the viewer. `--no-open` prepares the link |
 | `qualitylayer artifact keep <name> [--only-here] [--title "<title>"] [--purpose "<line>"]` | Make a draft a lasting artifact of the project, in `.qualitylayer/artifacts/<name>/` where it goes into the task's changes and pull request. `--only-here` keeps it in `docs/artifacts/` on this Mac instead, out of git. The draft stays as it is ([Keep](../artifacts.md#keep)) |
-| `qualitylayer artifact list` | List the artifacts: the task's drafts with what each drafts on, the project's lasting artifacts with their pages, and the artifacts only on this Mac |
+| `qualitylayer artifact list` | List the artifacts: the task's drafts with what each drafts on, the project's lasting artifacts with their pages, and the artifacts only on this Mac. Each shows whether its design tokens still match the project's design file: `current`, `drifted` (with how many differ), `n/a` or `unassessed` |
 | `qualitylayer artifact context` | Read the local product documents and tokens before authoring |
-| `qualitylayer artifact inspect <name>` | Read HTML, metadata and the source revision |
+| `qualitylayer artifact inspect <name>` | Read HTML, metadata and the source revision, and whether its design tokens match the design file |
+| `qualitylayer artifact tokens <name> [--project] [--page <page>] [--refresh --if-match <revision>]` | List the colour, type and spacing values of the page that differ from the project's design file. `--refresh` rewrites exactly those values in the page and the stylesheets it links, in a task or project draft; it writes nothing if any of those files changed since. A lasting artifact is refreshed in a task draft of it |
 | `qualitylayer artifact library inspect <name>` | Read a lasting artifact's title, state, pages and management revision, including deleted entries |
 | `qualitylayer artifact library rename <name> --title "<title>" [--purpose "<line>"] --if-match <revision>` | Change a lasting artifact's display title or description while keeping its identity and links |
 | `qualitylayer artifact library copy <name> --to <copy-name> --title "<title>" [--to-project <id>] --if-match <revision>` | Make an independent copy in the current or another registered project |
@@ -155,9 +156,11 @@ Your agent draws [artifacts](../artifacts.md) with these, at any step, inside a 
 | `qualitylayer artifact delete <name> --if-match <revision>` | Remove an unreferenced artifact, retaining its source in history |
 | `qualitylayer artifact history <name>` | List saved source revisions |
 | `qualitylayer artifact restore <name> --revision <id> --if-match <revision\|0>` | Restore a revision while keeping the current source |
-| `qualitylayer artifact check <name>` | Check HTML structure and local resources; rendered quality still needs screenshots and interactions |
+| `qualitylayer artifact check <name> [--render]` | Check HTML structure and local resources. `--render` also loads the page at its width and at 390 px, light and dark, and reports script errors, blocked requests and failed pictures; needs Chrome. Visual quality still needs the pictures and interactions |
 | `qualitylayer artifact sharing [--on\|--off]` | Include or exclude the selected task's artifacts in its team copy and public link; access follows the workflow's share controls |
-| `qualitylayer artifact shot <name> [--page <page>] [--width <px>] [--theme light\|dark] [--section <label>] [--out <file>]` | Render a PNG of the page or a named section; needs Chrome. `--page` picks a page of an artifact of several pages |
+| `qualitylayer artifact shot <name> [--page <page>] [--width <px>] [--theme light\|dark] [--section <label>] [--out <file>]` | Render a PNG of the page or a named section, with the script errors and blocked requests it raised; needs Chrome. `--page` picks a page of an artifact of several pages |
+| `qualitylayer artifact shot <name> --matrix [--page <page>]` | Render four PNGs: the artifact's width (or 1280) and 390 px, each light and dark, with the errors and blocked requests of each |
+| `qualitylayer artifact claude <name> status\|publish --if-match <revision> [--title "<title>"]\|update [--if-remote <sha256>]\|comments [--open-only]` | Publish a lasting artifact to Claude through Open Claude Design 1.8.0 or later, store the link, push it again on request, and list the Claude comments ([Publish to Claude](../artifacts.md#claude-design)) |
 | `qualitylayer artifact comments <name>` | The open comments on an artifact, each with its spot |
 | `qualitylayer artifact comments <name> resolve <id…\|all> [--answer "<line>"]` | Resolve selected comments or all open comments, optionally recording an answer |
 

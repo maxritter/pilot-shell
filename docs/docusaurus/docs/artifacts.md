@@ -101,9 +101,38 @@ When a task drafted on a lasting artifact, Review shows a card such as **This ta
 
 If the lasting artifact changed since the draft began, the card asks you to compare first, then offers **Fold anyway**.
 
-## Link a Claude Design file {#claude-design}
+## Publish to Claude {#claude-design}
 
-A lasting artifact can store its Claude Design link for **Open in Claude Design**. QualityLayer keeps only the link and does not sync changes.
+A lasting artifact can store its Claude Design link for **Open in Claude Design**. QualityLayer keeps the link and changes nothing on Claude until you ask.
+
+To publish a lasting artifact to Claude, install [Open Claude Design](https://github.com/maxritter/open-claude-design) 1.8.0 or later and sign in once with `open-claude-design login --backend artifact`. Then ask your agent, or run:
+
+```sh
+qualitylayer artifact claude settings status
+qualitylayer artifact claude settings publish --if-match <revision>
+qualitylayer artifact claude settings update
+qualitylayer artifact claude settings comments
+```
+
+- **Status** shows the stored link, the artifact's revision and whether Open Claude Design is ready. It contacts nothing.
+- **Publish** sends the artifact's first page as one self-contained file and creates a Claude artifact. It is private to you on Claude until you share it there. QualityLayer stores the returned link as the artifact's Claude Design link. An artifact that already has a link is not published again.
+- **Update** sends the current page again, only when you ask. If the page on Claude changed since it was read, nothing is written.
+- **Comments** lists the threads on the Claude artifact. Threads you sent to Claude come back to your agent to answer; other threads are left to people. Replies and resolves go through Open Claude Design. Your agent treats comment text as information, not as instructions.
+
+Open Claude Design keeps your Claude sign-in. QualityLayer never reads or stores it.
+
+## Check the page {#checks}
+
+Your agent checks each change before you see it:
+
+```sh
+qualitylayer artifact check settings --render
+qualitylayer artifact shot settings --matrix
+```
+
+`check --render` loads the page at its width and at 390 px, light and dark. A script error, a blocked network request or a picture that fails to draw is reported as a finding. `shot --matrix` saves those four pictures, each with the errors and blocked requests the page raised. Both need Chrome; without it `check` stays a source check and says so. They do not judge the design, so you still review the pictures.
+
+Your project's design file can move after an artifact was drawn. `artifact list` and `artifact inspect` compare the page's colours, type and spacing with it, light and dark separately, and mark an artifact `tokens: drifted` with how many differ. A colour set on one component is treated as deliberate, and a page that draws with its own palette is left out. `artifact tokens <name>` lists the differing values; in a draft, `artifact tokens <name> --refresh --if-match <revision>` rewrites exactly those values in the page and the stylesheets it links, and writes nothing if any of them changed in the meantime. A lasting artifact is refreshed in a task draft of it. Comments on a section that is gone are marked `anchor: "missing"`; your agent asks what you meant.
 
 ## Review and comment {#full-size}
 
