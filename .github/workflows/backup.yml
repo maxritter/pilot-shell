@@ -34,6 +34,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: dev
+          fetch-depth: 0
 
       # The schema the copy is read by and the backup script live in encrypted paths.
       - name: Install git-crypt
@@ -56,6 +59,15 @@ jobs:
         working-directory: docs/site
         run: npm ci --ignore-scripts
 
+      - name: Prepare the recorded production backend
+        run: |
+          source="$(git rev-parse HEAD)"
+          prepared="${RUNNER_TEMP:?}/qualitylayer-backup-backend"
+          node docs/site/scripts/prepare-beta-backend.mjs prepare --repo "$GITHUB_WORKSPACE" --frontend "$source" --out "$prepared"
+          node docs/site/scripts/prepare-beta-backend.mjs verify --prepared "$prepared" --frontend "$source"
+          echo "QL_BACKUP_SOURCE=$source" >> "$GITHUB_ENV"
+          echo "QL_BACKUP_PREPARED=$prepared" >> "$GITHUB_ENV"
+
       - name: Copy the database to the bucket
         working-directory: docs/site
         env:
@@ -75,7 +87,7 @@ jobs:
           [ -n "$DATABASE_URL" ] || { echo "::error::no database is set for $BACKUP_DATABASE"; exit 1; }
           echo "::add-mask::$DATABASE_URL"
           export DATABASE_URL
-          node scripts/backup.ts --env "$BACKUP_DATABASE"
+          node scripts/backup.ts --env "$BACKUP_DATABASE" --prepared "$QL_BACKUP_PREPARED" --source "$QL_BACKUP_SOURCE"
 
       - name: Look at the copy before this one
         working-directory: docs/site

@@ -66,11 +66,11 @@ export function stateFromCatalog(catalog: Row[][], ledger: Row[], feature: Row[]
   const expected = [...LEGACY_TABLES, "schema_migrations", ...(hasFeature ? ["beta9_overlay_migrations", ...ARTIFACT_TABLES] : [])].sort();
   if (JSON.stringify(names) !== JSON.stringify(expected))
     throw new Error("Backup public tables differ from the complete known schema9 table set.");
-  if (hasFeature && (feature.length !== 1 || feature[0]?.id !== FEATURE_ID || !validTime(feature[0]?.applied_at)))
-    throw new Error("Backup artifact feature ledger is unknown or incomplete.");
+  const features = hasFeature ? copyFeatures(feature) : [];
+  if (hasFeature && features.length !== 1) throw new Error("Backup artifact feature ledger is incomplete.");
   if (hash(JSON.stringify(catalog.slice(1))) !== CATALOG_HASHES[hasFeature ? "artifacts" : "base"])
     throw new Error("Backup schema9 column, constraint or trigger shape differs from the reviewed contract.");
-  return { tables: [...LEGACY_TABLES, ...(hasFeature ? ARTIFACT_TABLES : [])], features: hasFeature ? [{ id: FEATURE_ID, applied_at: feature[0]!.applied_at as string }] : [] };
+  return { tables: [...LEGACY_TABLES, ...(hasFeature ? ARTIFACT_TABLES : [])], features };
 }
 
 export async function inspectPrepared(query: Query): Promise<PreparedState> {
@@ -83,8 +83,13 @@ export async function inspectPrepared(query: Query): Promise<PreparedState> {
 
 /** Only allow the two known feature states, with original ledger time preserved as decimal text. */
 export function copyFeatures(value: unknown): Feature[] {
-  if (!Array.isArray(value) || value.length > 1 || value.some((row) => !row || typeof row !== "object" || Object.keys(row).sort().join() !== "applied_at,id" || row.id !== FEATURE_ID || !validTime(row.applied_at)))
+  if (!Array.isArray(value) || value.length > 1)
     throw new Error("Backup contains unknown or malformed artifact feature metadata.");
+  for (const row of value) {
+    if (!row || typeof row !== "object") throw new Error("Backup feature metadata must be an object.");
+    if (Object.keys(row).sort().join() !== "applied_at,id") throw new Error("Backup feature metadata has unknown fields.");
+    if (row.id !== FEATURE_ID || !validTime(row.applied_at)) throw new Error("Backup feature identity or ledger time is invalid.");
+  }
   return value as Feature[];
 }
 
@@ -94,4 +99,30 @@ function validTime(value: unknown): value is string {
 
 export function preparedTables(features: Feature[]): string[] {
   return [...LEGACY_TABLES, ...(features.length ? ARTIFACT_TABLES : [])];
+}
+
+export function validatePreparedTables(tables: string[], data: Record<string, unknown>): void {
+  for (const table of tables) {
+    if (!Object.hasOwn(data, table)) throw new Error(`Prepared copy is missing business table ${table}.`);
+    const rows = data[table];
+    if (!Array.isArray(rows)) throw new Error(`Prepared copy table ${table} must contain rows.`);
+    for (const row of rows) {
+      if (row === null || typeof row !== "object" || Array.isArray(row)) throw new Error(`Prepared copy table ${table} contains a malformed row.`);
+    }
+  }
+}
+
+export function validateProvenance(value: unknown, source: PreparedSource): void {
+  if (!value || typeof value !== "object") throw new Error("Prepared copy lacks source provenance.");
+  const fields = value as Record<string, unknown>;
+  const keys = Object.keys(source.provenance).sort();
+  if (JSON.stringify(Object.keys(fields).sort()) !== JSON.stringify(keys)) throw new Error("Backup source provenance has unknown or missing fields.");
+  for (const key of keys) {
+    const pattern = key === "frontendCommit" || key === "backendBase" ? /^[a-f0-9]{40}$/ : /^[a-f0-9]{64}$/;
+    if (typeof fields[key] !== "string") throw new Error("Backup source provenance must contain hash strings.");
+    if (!pattern.test(fields[key])) throw new Error("Backup source provenance contains a malformed hash.");
+  }
+  for (const key of ["backendBase", "schemaSha256", "featureSha256"] as const) {
+    if (fields[key] !== source.provenance[key]) throw new Error("Backup schema/feature provenance does not match the known local prepared source.");
+  }
 }
