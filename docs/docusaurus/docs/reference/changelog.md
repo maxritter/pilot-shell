@@ -11,6 +11,44 @@ Notable changes to QualityLayer and its predecessor, Pilot Shell.
 
 <header class="cl-version">
 
+## 12.0.0-beta.61
+
+<p class="cl-published"><time data-release-version="12.0.0-beta.61">Publication date unavailable</time></p>
+
+</header>
+
+### New
+
+- Browse Artifacts as a list or picture gallery. Share an artifact with your team, choose who can view, comment or edit, and review its saved versions.
+- Review changed files, findings and teammate comments in one workspace.
+- Ask a teammate to review code through your repository's Git remote. A push confirms the previewed task branch, commit and destination before sending.
+- Conversation has a compact footer with session controls, installed-skill suggestions and session actions. Open available subagent history read-only; messages stay with the lead agent.
+- Attach files when starting a task or build. App sessions open in Conversation; running outside QualityLayer puts questions and approvals in your agent's chat.
+- Local Qlty checks report structure and complexity findings from edited files to your agent's next prompt or tool result. Inspect duplication and metrics explicitly, or pause checks per project.
+
+### Fixed
+
+- Shared artifact updates check the saved version before writing. Conflicting files and recovery copies remain visible for you to reconcile.
+- New tasks recover from stale run records. Archive and delete controls distinguish task history from a running agent, and stopped sessions keep explicit recovery choices.
+- Conversation follows native model and effort changes, keeps active subagents visible, and preserves unsent text and files across view changes.
+- Your turn stays above the current step's content. Questions have inline keyboard hints; Research, Plan and Outline fold supporting detail into readable sections.
+- Implement can advance to Verify when the plan names read-only references outside the repository. An unavailable optional CI comparison reports a warning instead of hiding a successful transition.
+- Helpers return their result to the coordinating agent, and completed build slices record their commit before continuing.
+
+### Good to know
+
+- Native commands and subagent history depend on the installed client. Conversation directs unsupported operations to Terminal; child conversations remain read-only.
+- Filesystems without atomic file replacement keep recovery copies of shared-file updates. Follow the reported paths before retrying. Teammates with edit access save through the CLI.
+- Code-health checks are advisory. QualityLayer acknowledgements cover built-in structure and duplication findings; review plugin findings with your linter's own controls.
+
+
+
+</section>
+
+<section class="cl-rel">
+
+<header class="cl-version">
+
 ## 12.0.0-beta.60
 
 <p class="cl-published"><time data-release-version="12.0.0-beta.60">Publication date unavailable</time></p>
