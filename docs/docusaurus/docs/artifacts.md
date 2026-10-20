@@ -34,10 +34,14 @@ All commands: [CLI reference](reference/commands.md#artifacts).
 
 ## The Artifacts place {#artifacts-place}
 
-![The artifact Library: compact rows grouped by project, collapsible groups, search and sort, with previews opened on demand and Archived beside Library](pathname:///img/app/artifacts-light.webp)
-![The artifact Library: compact rows grouped by project, collapsible groups, search and sort, with previews opened on demand and Archived beside Library](pathname:///img/app/artifacts-dark.webp)
+![The artifact Library: All, Yours and Shared with you, a List and Gallery switch, Favorites, projects as collapsible groups, search and sort, with Archived beside Library](pathname:///img/app/artifacts-light.webp)
+![The artifact Library: All, Yours and Shared with you, a List and Gallery switch, Favorites, projects as collapsible groups, search and sort, with Archived beside Library](pathname:///img/app/artifacts-dark.webp)
 
-**Artifacts** in the sidebar opens the reusable **Library**. Fold a project, search names and pages, or choose a project and sort order. Large groups reveal more rows as you need them; a preview loads when you open it. **New artifact** starts a reusable artifact. Working drafts stay in their task's **Files**, where their base artifact and the pages being changed are visible.
+**Artifacts** in the sidebar opens the reusable **Library**. Three buttons at the top choose whose artifacts you see: **All**, **Yours**, or **Shared with you**. **Shared with you** lists the artifacts your teammates have shared with you. Each one says who shared it and whether you can edit or only comment.
+
+Switch between **List** and **Gallery**. The list shows one line per artifact. The gallery shows each artifact as a card with a picture of its first page. Star an artifact to add it to **Favorites** at the top. Only you see your favorites.
+
+Fold a project, search names and pages, or choose a project and sort order. Large groups reveal more rows as you need them; a preview loads when you open it. **New artifact** starts a reusable artifact. Working drafts stay in their task's **Files**, where their base artifact and the pages being changed are visible.
 
 The row menu and full viewer offer rename, copy, show in another project, archive and delete. Renaming keeps existing links. A cross-project copy is independent; **Also show** adds a listing of the same original, and **Stop showing** removes that listing. **Archived** holds archived artifacts and a folded **Recently deleted** section for Restore. Deleting a source-backed entry keeps its application files.
 
@@ -77,7 +81,7 @@ Your agent changes a lasting artifact by drafting on it in the task:
 qualitylayer artifact new <name> --on <artifact>[/<page>]
 ```
 
-The lasting artifact stays as it is until you fold the draft in at Review. A draft's menu (right-click or **…**) also offers **Keep as a lasting artifact…**, **Compare with …** and **Share with the team**.
+The lasting artifact stays as it is until you fold the draft in at Review. A draft's menu (right-click or **…**) also offers **Keep as a lasting artifact…**, **Compare with …** and **Task sharing…**. **Task sharing…** opens the sharing of the task the draft belongs to; see [Share a preview](#never-shared).
 
 Outside a task, the same command creates a personal copy in `docs/artifacts/` and remembers its base. It does not change the lasting artifact or start a workflow.
 
@@ -153,17 +157,19 @@ Press **C** (**Comment**), click a spot and say what should change. Your agent e
 
 With a Team plan, you can share a whole artifact. Teammates open its real pages in their App, not a picture of them. The pages run in the same sandboxed frame as your own artifacts: scripts work and nothing loads from the network.
 
-Choose **Share with the team…** on the artifact. **Who can open it** sets the audience. **People with access** gives each person **Can comment** or **Can edit**. The default is **Can comment**.
+Choose **Share with the team…** on the artifact. Once it is shared, the same menu item reads **Sharing and access…**. **Who can open it** sets the audience. **People with access** gives each person **Can comment** or **Can edit**. The default is **Can comment**.
 
 | Access | What the person can do |
 | --- | --- |
-| **You own it** | Everything an editor can do, plus change the audience and the editors, and stop sharing |
-| **Can edit** | Open it, comment, and have their agent save new versions. Restore an older version |
+| **Owner** | Everything an editor can do, plus change the audience and the editors, and stop sharing |
+| **Can edit** | Open it, comment, and have their agent save new versions. Restore an older version, through the command line only |
 | **Can comment** | Open it and comment. A save is refused |
 
-Every save is a new version, and every version is kept. **Version history…** lists each one with who saved it and through what, such as “Claude Code · fix the sidebar”. **Restore** saves an older version again as the newest; the older one stays in the list. Nobody can change or remove a saved version.
+Every save is a new version, and every version is kept. Nobody can change or remove a saved version.
 
-**Stop sharing** removes the artifact from the team and from everyone’s shared list. Every version stays on the owner’s computer. Earlier picture previews of an artifact are not carried over; share it again.
+In the App, the owner sees the list of versions in the share dialog, or under **Version history…** in the artifact's menu. Each version shows who saved it and through what, such as “Claude Code · fix the sidebar”. **Restore** saves an older version again as the newest; the older one stays in the list. A teammate who can edit does not see Restore in the App. They restore with `qualitylayer artifact shared restore <name> --version <n>`, or ask the owner.
+
+**Stop sharing** removes the artifact from the team and from everyone’s shared list. The versions this computer can open stay here. A version this computer can't open is lost when sharing stops. The App asks first and names those versions, so you can ask a teammate who joined earlier to restore them, or stop anyway. The command line calls the owner’s access **You own it**; it is the same as **Owner**.
 
 ## Let your agent change a shared artifact {#shared-save}
 
@@ -176,7 +182,7 @@ qualitylayer artifact shared save app-model-draft --note "Tighter spacing"
 ```
 
 - `--on shared:<name>[/<page>]` copies the newest version, or one page and the files it uses, into the task. The draft remembers the version it started from.
-- `save` makes the next version for everyone; teammates see it within about a minute. A page draft changes only its own files; the other pages stay. Add `--delete <path>` to remove a file.
+- `save` makes the next version for everyone; teammates see it shortly after. Their App checks the team about once a minute while it is open. A page draft changes only its own files; the other pages stay. Add `--delete <path>` to remove a file.
 - A save from an out-of-date draft is refused instead of overwriting: “app-model has version 3 now; your draft started from 2.” Run `artifact shared pull <draft>`. It merges the newer version in, file by file. A file changed on both sides stays unmerged with the team’s copy beside it, and `save` waits until you resolve it.
 - A person with **Can comment** is told whom to ask for edit access.
 
