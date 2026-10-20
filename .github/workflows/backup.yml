@@ -1,0 +1,98 @@
+name: Backup
+
+# Every day, each database is copied, encrypted to the age recipient in
+# docs/site/scripts/backup-recipient.txt and put in the EU bucket, which keeps a copy 30 days.
+# The new copy is always made first; the second step then looks at the copy before it and fails
+# the job when that one is over 2 days old (a missed day), so GitHub mails the repository owner and
+# the next run still works. docs/site/scripts/restore.ts loads a copy into an empty database.
+
+"on":
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Back up ${{ matrix.database }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        # qualitylayer-site's Production (qualitylayer.dev). The old Preview database stopped
+        # taking writes at the cut-over and is kept, unchanged, as its rollback copy.
+        database: [production]
+    env:
+      BACKUP_DATABASE: ${{ matrix.database }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      # The schema the copy is read by and the backup script live in encrypted paths.
+      - name: Install git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+
+      - name: Unlock repository
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Setup Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
+        with:
+          node-version: "24.20.0"
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Install the site's dependencies
+        working-directory: docs/site
+        run: npm ci --ignore-scripts
+
+      - name: Prepare the recorded production backend
+        run: |
+          source="$(git rev-parse HEAD)"
+          prepared="${RUNNER_TEMP:?}/qualitylayer-backup-backend"
+          node docs/site/scripts/prepare-beta-backend.mjs prepare --repo "$GITHUB_WORKSPACE" --frontend "$source" --out "$prepared"
+          node docs/site/scripts/prepare-beta-backend.mjs verify --prepared "$prepared" --frontend "$source"
+          echo "QL_BACKUP_SOURCE=$source" >> "$GITHUB_ENV"
+          echo "QL_BACKUP_PREPARED=$prepared" >> "$GITHUB_ENV"
+
+      - name: Copy the database to the bucket
+        working-directory: docs/site
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
+          VERCEL_PROJECT_ID: prj_SbOGJL2YBjvq9P5MSjxcrj87IGbi
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BACKUP_ACCESS_KEY_ID: ${{ secrets.R2_BACKUP_ACCESS_KEY_ID }}
+          R2_BACKUP_SECRET_ACCESS_KEY: ${{ secrets.R2_BACKUP_SECRET_ACCESS_KEY }}
+        run: |
+          pull="${RUNNER_TEMP:?}/database.env"
+          vercel env pull "$pull" --environment="$BACKUP_DATABASE" --token="$VERCEL_TOKEN" --yes
+          value() { sed -n "s/^$1=\"\\{0,1\\}\\([^\"]*\\)\"\\{0,1\\}\$/\\1/p" "$pull"; }
+          DATABASE_URL="$(value OWNER_DATABASE_URL)"
+          [ -n "$DATABASE_URL" ] || DATABASE_URL="$(value DATABASE_URL)"
+          rm -f "$pull"
+          [ -n "$DATABASE_URL" ] || { echo "::error::no database is set for $BACKUP_DATABASE"; exit 1; }
+          echo "::add-mask::$DATABASE_URL"
+          export DATABASE_URL
+          node scripts/backup.ts --env "$BACKUP_DATABASE" --prepared "$QL_BACKUP_PREPARED" --source "$QL_BACKUP_SOURCE"
+
+      - name: Look at the copy before this one
+        working-directory: docs/site
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BACKUP_ACCESS_KEY_ID: ${{ secrets.R2_BACKUP_ACCESS_KEY_ID }}
+          R2_BACKUP_SECRET_ACCESS_KEY: ${{ secrets.R2_BACKUP_SECRET_ACCESS_KEY }}
+        run: node scripts/backup.ts --env "$BACKUP_DATABASE" --check
