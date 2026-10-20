@@ -8,7 +8,7 @@
     "qualitylayer/src/workflow/mod/qualitylayer/hooks/register.tsx": "9c05d0c5e6b30ecd4f8cd0d1822128dabe256ba0458b32beb0fe1c85313d5d7e"
   },
   "refreshedScenes": [
-    "review"
+    "verify"
   ],
   "fixtureHash": "e91db5514dbb435446a082db5bd0bcbb228f94602b7796f4a5420bda3a8b942d",
   "memoryInputs": {
@@ -18,7 +18,7 @@
     "qualitylayer/src/ui/settings/Rows.tsx": "e29af5f67d144f573d87659280a970313549e85456c735792385d37414029604",
     "qualitylayer/src/ui/globals.css": "d66b0d6aed715cbdf6b934788ef75d20eb3aeea9e4d52062bd01badf48ca3a4d"
   },
-  "capturedAt": "2026-10-19T23:12:59.991Z",
+  "capturedAt": "2026-10-20T00:17:00.581Z",
   "scenes": [
     "discuss",
     "research",
@@ -179,7 +179,7 @@
       "file": "verify-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "d489cb0eedd73e2cee25df19c010d43db85e61f5c89f4e96595a6f5ee6c0f18f"
+      "sha256": "8bb745825a2194d5fc4680481af47b060dd0d8f4b24bfe6a4404c802ce58cbf3"
     },
     {
       "file": "review-light.webp",
@@ -444,7 +444,7 @@
       "file": "verify-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "7e40d26f237b84a332f404c020d7c6a149d74e0cdccdcd18760ea2c44c15469f"
+      "sha256": "0c8b9939953e7cd6bb564bfe0472b14fa0697684aab51998498f1b6b184fa8fd"
     },
     {
       "file": "review-dark.webp",
