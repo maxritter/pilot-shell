@@ -5,7 +5,7 @@ description: QualityLayer takes your coding agent from a request to a merged pul
 ---
 
 <figure class="ql-film">
-  <video controls preload="none" playsinline poster="https://qualitylayer-media.max-ritter.workers.dev/overview-v20261020.webp" src="https://qualitylayer-media.max-ritter.workers.dev/overview-v20261020.mp4"></video>
+  <video controls preload="none" playsinline poster="https://qualitylayer-media.max-ritter.workers.dev/overview-v2026102001.webp" src="https://qualitylayer-media.max-ritter.workers.dev/overview-v2026102001.mp4"></video>
   <figcaption>How QualityLayer works, in about five minutes.</figcaption>
 </figure>
 
