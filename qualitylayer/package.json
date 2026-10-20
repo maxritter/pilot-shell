@@ -27,6 +27,8 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "perf:check": "bun scripts/performance/run.ts",
+    "perf:heap": "bun scripts/performance/run.ts --heap",
     "agent:check": "bun scripts/agent-checks.ts",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
