@@ -163,8 +163,8 @@ export const CHAPTERS: Chapter[] = [
     who: "you",
     steps: 2,
     title: "Review the finished change together",
-    text: "Teammates read what changed and its proof. They comment on any part and approve. The code itself is reviewed in your pull request.",
-    bullets: ["Their comments reach you in the Comments tab", "The same link follows the task through all seven steps", "Sharing sends the plan, progress and a still of its artifact"],
+    text: "Teammates read what changed and its proof. They comment on any part and approve. With access to your Git remote, they read the code too and comment on its lines.",
+    bullets: ["Their comments reach you in the Comments tab", "The same link follows the task through all seven steps", "Sharing sends the plan, progress and a still of its artifact; the code stays on your own Git remote"],
   },
   {
     id: "settings",

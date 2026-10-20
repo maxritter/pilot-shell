@@ -46,7 +46,7 @@ function Privacy() {
       <h1>Privacy policy</h1>
       <Updated />
       <p className="lg-lead">
-        Your code, plans and task documents stay on your computer. QualityLayer receives only what you share with your team, a daily licence check, and reports you choose to send. What you share is encrypted on your computer first; we cannot read it.
+        Your code, plans and task documents stay on your computer. Code your team reviews travels only to your own Git remote. QualityLayer receives only what you share with your team (a review comment can quote a few lines of code), a daily licence check, and reports you choose to send. What you share is encrypted on your computer first; we cannot read it.
       </p>
 
       <h2>Who is responsible</h2>
@@ -75,6 +75,9 @@ function Privacy() {
       <h2>Sharing with your team</h2>
       <p>
         On a Team plan you can share tasks, plans, comments, artifacts and files. They are encrypted on your computer with your team's key, so we store only ciphertext. To route them we also store your team members' names and e-mail addresses from Polar, task names and steps, who asked whom, who read which version, and each computer's public key (Art. 6 (1) (b)).
+      </p>
+      <p>
+        Review code travels between your computer and your own Git remote. When you click Ask for review, QualityLayer pushes the task's branch to your team's Git remote, and teammates with access to it read the code there. We store your team's comments on lines of code, the short lines of code they quote (up to 300 characters each) and the repository, branch and commits they point to. All of it is encrypted on your computer with your team's key. Apart from those quoted lines, we never receive the code.
       </p>
       <table className="lg-table">
         <thead>

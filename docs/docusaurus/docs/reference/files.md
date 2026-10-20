@@ -50,12 +50,13 @@ Folds, grouping and rows belong to the App window, not to a file.
 ![What stays on your computer, what the licence check sends, what sharing sends to the team service, and what a feedback report sends to a private issue](pathname:///img/diagrams/privacy-light.svg)
 ![What stays on your computer, what the licence check sends, what sharing sends to the team service, and what a feedback report sends to a private issue](pathname:///img/diagrams/privacy-dark.svg)
 
-Your code, the diff, plan documents, evidence and the cost view stay on your computer until you share. Your agent still sends code to its own provider, as it always does.
+Your code, the diff, plan documents, evidence and the cost view stay on your computer until you share. Code your team reviews travels only through your own Git remote. Your agent still sends code to its own provider, as it always does.
 
 | | What is sent |
 | --- | --- |
 | **Always** | A daily licence check to qualitylayer.dev (plus activation or the trial start), the workflow texts your agent follows, and App updates. No usage events |
 | **When you share** | Tasks, documents and comments, encrypted on your computer with your team's key. **Include artifacts** adds the task's artifact previews; it starts off for existing shares. The server sees names, e-mails, the step and when, never the content. A share link carries its own key, which never reaches the server |
+| **When your team reviews the code** | **Ask for review** pushes the task's branch to your own Git remote, only when you click it. QualityLayer's servers store the team's comments on lines, the short lines of code they quote (up to 300 characters each) and the repository, branch and commits they point to, all encrypted with your team's key. They never receive the code itself |
 | **Not included automatically** | Repository source, diffs, host logs, launch settings, terminal output and command output. Text or attachments you explicitly share can contain code or other sensitive content. Shared artifact previews run no scripts |
 | **With Slack** | The task title and the question, through the QualityLayer server to Slack |
 | **Instructions** | Yours (`~/.qualitylayer/instructions.md`) are stored locally and supplied to your agent; a cloud agent may send them to its provider. The team owner's are encrypted with the team's key before sending; each teammate's computer keeps a copy only its user can read ([Team instructions](settings.md#team-instructions)) |

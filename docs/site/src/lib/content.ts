@@ -47,7 +47,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "Does my code leave my computer?",
-    "Your coding agent sends code to its provider under your existing data settings. QualityLayer keeps plans, artifacts and agent output on your computer. Sharing sends the task and its progress, encrypted on your machine, with artifacts only if you include them; never repository code or terminal output. A screenshot you attach to a feedback report can show code, so check it first.",
+    "Your coding agent sends code to its provider under your existing data settings. QualityLayer keeps plans, artifacts and agent output on your computer. Sharing sends the task and its progress, encrypted on your machine, with artifacts only if you include them; never terminal output or the repository's code. Review code travels between your computer and your own Git remote. QualityLayer stores your team's encrypted comments, the short lines of code they quote and the commits they point to. A screenshot you attach to a feedback report can show code, so check it first.",
   ),
   faq(
     "I use Pilot Shell today. What happens?",
@@ -82,7 +82,7 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "Does my code leave my computer?",
-    "Plans are files in your repository, and the App runs on your computer. Your AI agent keeps its own provider and data settings. A shared plan is encrypted on your machine first, so we store it but can’t read it. We see who shared it, which task, when and its step. A screenshot you attach to a feedback report can show code, so check it first.",
+    "Plans are files in your repository, and the App runs on your computer. Your AI agent keeps its own provider and data settings. A shared plan is encrypted on your machine first, so we store it but can’t read it. We see who shared it, which task, when and its step. Review code travels between your computer and your own Git remote. QualityLayer stores your team's encrypted comments, the short lines of code they quote and the commits they point to. A screenshot you attach to a feedback report can show code, so check it first.",
   ),
   faq(
     "What does Enterprise include?",

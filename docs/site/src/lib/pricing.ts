@@ -139,7 +139,13 @@ export const COMPARE: CompareGroup[] = [
     hue: "review",
     rows: [
       row("Approve the finished change, with its evidence", true, true, "Only you can confirm shows what no agent may check"),
-      row("Review finished changes as a team", false, true, "The code itself is reviewed in your pull request"),
+      row("Read the whole change like a pull request", true, true, "Split or unified, comments on any line, viewed marks per file"),
+      row("Ask, Change or Replace with, on any line", true, true, "Ask gets an answer without changing code. Change goes to your agent with your decision. Replace with sends exact lines"),
+      row("Agent findings appear on their lines", true, true, "Make one your change request, or say why it is not a problem and it becomes a project lesson"),
+      row("Ask another agent to review a file or the change", true, true, "An installed agent that did not build it reads the change, read-only, for up to 8 minutes. Its cost is listed"),
+      row("Run the review tools your team already uses", true, true, "Up to 8 commands, such as Semgrep, a linter, codex review or CodeRabbit’s CLI. Findings on changed lines arrive as threads"),
+      row("Approve with comments still open", true, true, "They are posted to the pull request as one GitHub review"),
+      row("Review the code as a team", false, true, "Ask for review pushes the branch to your own Git remote. Teammates with a checkout of the repository read the code there and comment on lines; others see the walkthrough"),
     ],
   },
   {
@@ -166,7 +172,7 @@ export const COMPARE: CompareGroup[] = [
         "Plans, comments and links are encrypted on your machine",
         false,
         true,
-        "We can’t read them. We see who shared, who was asked, which task, when and its step. The guest page’s code comes from us. With Slack connected, task titles and questions pass through our server to Slack. Pending notifications expire after 72 hours.",
+        "We can’t read them. We see who shared, who was asked, which task, when and its step. The guest page’s code comes from us. With Slack connected, task titles and questions pass through our server to Slack. Pending notifications expire after 72 hours. Review code travels between your computer and your own Git remote. We store your team’s encrypted comments, the short lines of code they quote and the commits they point to.",
       ),
       row("Manage seats and billing in one place", false, true),
     ],

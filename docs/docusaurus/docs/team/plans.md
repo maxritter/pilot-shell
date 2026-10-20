@@ -51,4 +51,4 @@ The file holds the whole link, including the part after `#`; keep it private ([d
 
 ## What is shared {#privacy}
 
-Shared documents, artifacts and comment bodies are encrypted with your team's key before publication. The server stores their ciphertext. Slack notifications can include task titles and short question or answer excerpts, which pass through the notification service. Your code, the diff and your logs are not included in the shared task. More in [Files and privacy](../reference/files.md#privacy).
+Shared documents, artifacts and comment bodies are encrypted with your team's key before publication. The server stores their ciphertext. Slack notifications can include task titles and short question or answer excerpts, which pass through the notification service. Review code travels between your computer and your own Git remote. QualityLayer stores your team's encrypted comments, the short lines of code they quote (up to 300 characters each) and the commits and branch they point to. The shared task includes no source files, diffs or logs. More in [Files and privacy](../reference/files.md#privacy).
