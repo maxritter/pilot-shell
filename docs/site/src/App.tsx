@@ -1,9 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -14,34 +10,55 @@ import Index from "./pages/Index";
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Shared = lazy(() => import("./pages/Shared"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const Open = lazy(() => import("./pages/Open"));
+const Download = lazy(() => import("./pages/Download"));
+const Billing = lazy(() => import("./pages/Billing"));
+const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
+const Compare = lazy(() => import("./pages/Compare"));
+const Legal = lazy(() => import("./pages/Legal"));
 
-const queryClient = new QueryClient();
+/** Page statistics everywhere but on the page a Slack DM opens, which reads its link and sends nothing. */
+export const Metrics = () => {
+  const { pathname } = useLocation();
+  if (pathname.startsWith("/open/") || pathname === "/billing" || pathname.startsWith("/checkout/")) return null;
+  return (
+    <>
+      <Analytics />
+      <SpeedInsights />
+    </>
+  );
+};
 
 const App = () => (
   <HelmetProvider>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <ScrollToHash />
-          <Suspense fallback={null}>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/shared" element={<Shared />} />
-              <Route path="/s/:id" element={<Shared />} />
-              {/* /docs is served by Docusaurus static files */}
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-        <Analytics />
-        <SpeedInsights />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <BrowserRouter>
+      <ScrollToTop />
+      <ScrollToHash />
+      <Suspense fallback={null}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/billing" element={<Billing />} />
+          <Route path="/checkout/success" element={<CheckoutSuccess />} />
+          <Route path="/s/:id" element={<Shared />} />
+          <Route path="/open/*" element={<Open />} />
+          <Route path="/download" element={<Download />} />
+          <Route path="/compare" element={<Compare />} />
+          <Route path="/compare/humanlayer" element={<Compare />} />
+          <Route path="/compare/spec-kit" element={<Compare />} />
+          <Route path="/compare/openspec" element={<Compare />} />
+          <Route path="/compare/kiro" element={<Compare />} />
+          <Route path="/best-spec-driven-development-tools" element={<Compare />} />
+          <Route path="/imprint" element={<Legal />} />
+          <Route path="/privacy" element={<Legal />} />
+          <Route path="/terms" element={<Legal />} />
+          {/* /docs is served by Docusaurus static files */}
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+      <Metrics />
+    </BrowserRouter>
   </HelmetProvider>
 );
 

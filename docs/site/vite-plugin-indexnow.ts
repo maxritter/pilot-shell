@@ -10,7 +10,7 @@
  *
  * Submitted only when:
  *   - INDEXNOW_SUBMIT=1 (explicit override), or
- *   - a production Vercel/Netlify deploy is running
+ *   - a production Vercel deploy is running
  *
  * Always skipped when INDEXNOW_DISABLE=1, which remains the authoritative
  * emergency/manual override.
@@ -22,16 +22,15 @@ import { type Plugin } from "vite";
 import fs from "fs";
 import path from "path";
 
-const SITE_HOST = "pilot-shell.com";
+const SITE_HOST = "qualitylayer.dev";
 const SITE_URL = `https://${SITE_HOST}`;
-const INDEXNOW_KEY = "0bd196f90bbc9ec8113bd78de2507fb2";
+const INDEXNOW_KEY = "4cfdecbb7e7995c71fc905bcdf607b8e";
 const INDEXNOW_ENDPOINT = "https://api.indexnow.org/IndexNow";
 
 function shouldSubmitIndexNow(): boolean {
   if (process.env.INDEXNOW_DISABLE === "1") return false;
   if (process.env.INDEXNOW_SUBMIT === "1") return true;
-  if (process.env.VERCEL_ENV === "production") return true;
-  return process.env.NETLIFY === "true" && process.env.CONTEXT === "production";
+  return process.env.VERCEL_ENV === "production";
 }
 
 interface IndexNowOptions {

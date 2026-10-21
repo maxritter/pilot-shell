@@ -1,0 +1,138 @@
+---
+title: The App
+description: Read the work, answer questions and give feedback beside your agent’s conversation.
+---
+
+Read the task on the left and work with your agent in the right sidebar. Answer questions, inspect diagrams and give feedback beside its conversation. Use the desktop App on macOS, Windows or Linux, or run `qualitylayer app` to open the same workspace in your browser.
+
+![A visual billing Plan explains retries, buffering and replay beside Claude Code messages and tool calls in QualityLayer's Conversation view](pathname:///img/app/plan-light.webp)
+![A visual billing Plan explains retries, buffering and replay beside Claude Code messages and tool calls in QualityLayer's Conversation view](pathname:///img/app/plan-dark.webp)
+
+*Example task in a fictional project.*
+
+| Part | What it does |
+| --- | --- |
+| **Sidebar** | Home, Team, Artifacts and your tasks by project. **+ New** starts a task |
+| **Agent status** | The top-bar chip: working, needs you, quiet or stopped |
+| **Step track** | Where the task stands. A person icon marks the two steps you approve |
+| **Your turn** | One question or decision that needs you |
+| **Step page** | What needs you, what to look at, then the part of the step's document that matters now ([how it is built](#step-pages)) |
+| **Right sidebar** | the task’s **Agent** conversation, **Files** and **Feedback** |
+
+## The sidebar {#sidebar}
+
+Tasks sit under their project (a repository on this computer), the ones waiting on you first. A project appears when you start a task in it; the folder button adds one by hand.
+
+| To | Do |
+| --- | --- |
+| Fold a project | Click its header or press **←**. Folded, it still shows what waits on you |
+| Reorder projects | Drag a header, or **⌥↑** / **⌥↓** |
+| Rename, recolor or hide a project | The project menu (**⋯** or right-click) |
+| Start a task in a project | **+** on its header |
+| Rename, archive or delete a task | Right-click it |
+| Filter or regroup | **View** (sliders button) or **Find** (search button). **⌘K** searches everything |
+
+Order, colors, names and hidden projects are stored on the computer that runs the App, so every paired browser shows the same list.
+
+### The places {#places}
+
+| Place | What it shows |
+| --- | --- |
+| **Home** | **Needs you** for your tasks and teammate requests, plus your agents' **Running** work ([Home](#home)) |
+| **Team** | **My attention**, **Everyone** and **My questions** for shared work |
+| **Artifacts** | A compact **Library** grouped by project, with **Archived** and recovery ([Artifacts](artifacts.md#artifacts-place)) |
+
+## Answering questions {#questions}
+
+Questions come in Discuss and Research. Independent questions arrive as a batch, and **Your turn** shows one question at a time. Each answer reaches your agent at once.
+
+| Control | Key | What it does |
+| --- | --- | --- |
+| A choice | **1–9** | Answers. The recommended one is marked (**Enter** or **R** takes it) |
+| **Your own answer** | **Tab** | Type and press **Send** |
+| **Tell me more** | **M** | Asks for more context first |
+| **Skip for now** | | Moves on, so you can answer in any order |
+| **Use the recommendations for all N** | | Answers the rest of the batch |
+| **Change** | | Corrects an earlier answer, under **Decided with you** |
+
+**↑** / **↓** move between questions. Answering never approves anything. Approving the Plan and the change are separate clicks.
+
+## Reading a document {#documents}
+
+Every step writes one Markdown file, shown three ways:
+
+| View | What it shows |
+| --- | --- |
+| **Step page** | What matters now: **Done means**, decisions with diagrams, slices, checks |
+| **Reader** | The whole file, with code shapes, paths and commands |
+| **Files** | All seven documents, artifacts, reviews and command records |
+
+**Copy document** pastes a document into Confluence, Notion, Jira or GitHub.
+
+### The step page {#step-pages}
+
+Questions and approvals appear first. **Look here** points to failures, risks and anything only you can confirm. Below that, read the step's summary and main result: requirements, findings, the Plan, the slice board or checked outcomes.
+
+Open a row for its details, or switch to **Reader** for the complete document. Diagrams and artifacts stay visible where you need them. Both workflow levels use the same page, with more engineering detail at the Engineering level.
+
+## Feedback and artifacts {#comments-and-artifacts}
+
+Select a passage, a line or part of a diagram and choose **Give feedback**. The thread keeps that context with your words. The **To** picker chooses the agent, a named teammate or **Everyone on the task** when access is known. Each recipient keeps its own draft. Person-only feedback is not sent to the agent.
+
+Working artifacts are compact entries in **Files**. **Open artifact canvas** opens the full page, its Feedback and its base artifact. The document header opens Files and Feedback; **Agent** opens the task’s conversation. The **Agent status** chip shows current activity. See [Artifacts](artifacts.md).
+
+## Home {#home}
+
+![Home: a Needs you section for your own questions and approvals, followed by a separate Running section for your agents' work](pathname:///img/app/home-light.webp)
+![Home: a Needs you section for your own questions and approvals, followed by a separate Running section for your agents' work](pathname:///img/app/home-dark.webp)
+
+**Needs you** combines your questions, approvals and tasks you can continue with teammate questions, review requests and replies. Shared rows name the person and open the exact passage, diagram or artifact spot. **Running** is your agents' work, with its current step and activity. Team keeps the shared history.
+
+Notifications are configured in **Settings › Workflow**. The App notifies you only when you can act:
+
+![Who hears about what: the App, Slack and the Claude Code band speak only when a person can act, and agent progress and checks never notify](pathname:///img/diagrams/attention-light.svg)
+![Who hears about what: the App, Slack and the Claude Code band speak only when a person can act, and agent progress and checks never notify](pathname:///img/diagrams/attention-dark.svg)
+
+## What it costs {#cost}
+
+![The cost panel: the total, each step with its time, tokens and cost, and each agent named after its work](pathname:///img/diagrams/cost-light.svg)
+![The cost panel: the total, each step with its time, tokens and cost, and each agent named after its work](pathname:///img/diagrams/cost-dark.svg)
+
+The **Cost** control in a task's header opens the cost per step and agent, estimated from list prices and your agents' local logs. Dollar amounts stay hidden until you open it. Unpriced usage shows **tokens unpriced**, so an unknown price is never shown as free. Nothing is sent anywhere.
+
+## Agent runs {#agent-runs}
+
+**New task** asks for a **Feature** or **Bugfix**, then your request and files, then where the agent runs. **Start the build** asks the same last question.
+
+| Choice | What you do | Where you answer |
+| --- | --- | --- |
+| **In QualityLayer** (recommended) | Pick the agent (Claude Code, Codex, Pi or OpenCode), model, effort, project and branch. Its conversation opens in the task’s **Agent** tab | Questions, approvals and feedback happen in the App |
+| **In my terminal, app or IDE** | Copy one prompt into any coding agent. Files you attached are saved on this computer and listed in the prompt by path | The agent asks its questions and takes your feedback in its own chat. The App shows the questions without answering them |
+
+The branch is **Current branch**, **New branch** or **New worktree**. A worktree takes a name, which gives its folder and its branch; QualityLayer puts the folder next to your project, so other work in the project stays untouched.
+
+The prompt for a new task starts with “Using QualityLayer” and says `start feature` or `start bug`, followed by your request. The build’s prompt says `implement the approved task` and names the task. New task and Start the build open with your last choice.
+
+The App checks the local runtime before starting. If it cannot start the selected agent here, it explains why and keeps the terminal option available. Permissions and sign-in prompts still belong to your agent.
+
+| To | Do |
+| --- | --- |
+| Read the task beside the conversation | Open **Agent** in the right sidebar; drag the divider to resize it |
+| Keep working elsewhere | Close the sidebar or open another task; this does not stop the run |
+| Type from another window | Use **Take control**; one window types at a time |
+| Interrupt or end the run | Use **Interrupt** or **Stop** in the agent menu |
+| Return to a saved conversation | Use its available **Resume** or **Open the conversation** action |
+| Move to your terminal | **Move to my terminal** gives the supported resume command |
+
+**Settings → Workflow → Agents** controls appearance, other paired browsers and quitting the App. Choose the agent, model, effort and branch when starting a run. See [Settings](reference/settings.md#defaults).
+
+An agent can wait for a permission, sign-in, answer or approval. A visible running process is not proof that it is making progress; read its current status and conversation. **Stop** and a user pause remain boundaries.
+
+Any other coding agent can take the copied prompt. Terminal output stays local and is not included in shared tasks.
+
+## In Claude Code
+
+A band above your prompt says when something waits for you in the App. `/task-pane` opens a pane with the steps and the build's progress.
+
+![The band above the Claude Code prompt: what waits for you in the App, how the build runs, or teammates’ questions for you](pathname:///img/diagrams/band-light.svg)
+![The band above the Claude Code prompt: what waits for you in the App, how the build runs, or teammates’ questions for you](pathname:///img/diagrams/band-dark.svg)

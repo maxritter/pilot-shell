@@ -338,12 +338,12 @@ Named after a community technique, this pattern uses Stop hooks to create persis
 - Configure [Context Recovery](/blog/context-recovery-hook) to survive compaction
 - Learn Skill Activation for automatic skill loading
 - Explore Permission Hooks for auto-approval
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** ships a configured hook pipeline for Claude Code — formatter and linter on `PostToolUse`, type-check before stop, context capture on session events. Installed once, applied across every project.
+**QualityLayer** needs no hook pipeline. It installs as a skill and a command-line tool, runs only when you call it with `/ql`, and adds no hooks or MCP servers to your agent.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

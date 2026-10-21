@@ -1,1 +1,0 @@
-import{j as a}from"./vendor-markdown.js";const i={xs:"loading-xs",sm:"loading-sm",md:"loading-md",lg:"loading-lg"};function l({size:s="md",className:n=""}){return a.jsx("span",{className:`loading loading-spinner ${i[s]} ${n}`})}export{l as S};

@@ -1,120 +1,46 @@
 import { lazy, Suspense } from "react";
-import NavBar from "@/components/NavBar";
-import { useRevealObserver } from "@/hooks/use-reveal";
-import HeroSection from "@/components/HeroSection";
+import Hero from "@/components/home/Hero";
+import Page from "@/components/Page";
 import SEO from "@/components/SEO";
+import { FAQS } from "@/lib/content";
+import { GITHUB_URL, SHARE_DESCRIPTION, SITE_URL, SLOGAN } from "@/lib/product";
+import { faqStructuredData, SOFTWARE_APPLICATION } from "@/lib/structured-data";
 
-// Below-the-fold sections — split into separate chunks loaded after first paint.
-const AnatomySection = lazy(() => import("@/components/AnatomySection"));
-const WorkflowSteps = lazy(() => import("@/components/WorkflowSteps"));
-const SpecCollabSection = lazy(() => import("@/components/SpecCollabSection"));
-const TeamSection = lazy(() => import("@/components/TeamSection"));
-const InstallSection = lazy(() => import("@/components/InstallSection"));
-const ConsoleSection = lazy(() => import("@/components/ConsoleSection"));
-const AgentsSection = lazy(() => import("@/components/AgentsSection"));
-const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection"));
-const FAQSection = lazy(() => import("@/components/FAQSection"));
-const Footer = lazy(() => import("@/components/Footer"));
+const ABOUT = `${SLOGAN}. ${SHARE_DESCRIPTION}`;
 
-// Reserve space while a chunk is in flight. The exact height isn't critical
-// since CLS is already 0 — but a placeholder avoids a brief jump.
-const SectionFallback = () => <div aria-hidden="true" style={{ minHeight: "40vh" }} />;
+// Below the fold: one chunk, loaded after first paint.
+const Sections = lazy(() => import("@/components/home/Sections"));
 
-const Index = () => {
-  useRevealObserver();
-
-  const websiteStructuredData = {
+const structuredData = [
+  {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Pilot Shell",
-    url: "https://pilot-shell.com/",
-    description:
-      "Spec-driven planning, enforced TDD, persistent memory, and quality automation for Claude Code, with Codex compatibility for supported integrations.",
+    name: "QualityLayer",
+    url: `${SITE_URL}/`,
+    description: ABOUT,
     inLanguage: "en-US",
     publisher: {
       "@type": "Organization",
-      name: "Pilot Shell",
-      url: "https://pilot-shell.com/",
-      logo: {
-        "@type": "ImageObject",
-        url: "https://pilot-shell.com/logo.png",
-      },
-      sameAs: [
-        "https://github.com/maxritter/pilot-shell",
-        "https://www.linkedin.com/in/rittermax/",
-      ],
+      name: "QualityLayer",
+      url: `${SITE_URL}/`,
+      logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png` },
+      sameAs: [GITHUB_URL, "https://www.linkedin.com/in/rittermax/"],
     },
-  };
+  },
+  SOFTWARE_APPLICATION,
+  faqStructuredData(FAQS),
+];
 
-  const breadcrumbStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Home",
-        item: "https://pilot-shell.com/",
-      },
-    ],
-  };
-
-  const softwareStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "Pilot Shell",
-    description:
-      "Spec-driven planning, enforced TDD, persistent memory, and quality automation for Claude Code, with Codex compatibility for supported integrations.",
-    applicationCategory: "DeveloperApplication",
-    applicationSubCategory: "AI Development Tools",
-    operatingSystem: "Linux, macOS, Windows",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-      availability: "https://schema.org/InStock",
-    },
-    author: {
-      "@type": "Person",
-      name: "Max Ritter",
-      url: "https://maxritter.net/",
-    },
-    license: "https://github.com/maxritter/pilot-shell/blob/main/LICENSE",
-    url: "https://github.com/maxritter/pilot-shell",
-    downloadUrl: "https://github.com/maxritter/pilot-shell",
-  };
-
-  return (
-    <>
-      <SEO
-        title="Spec-driven development for Claude Code & Codex CLI"
-        description="Spec-driven planning, enforced TDD, persistent memory, and quality automation for Claude Code, with Codex compatibility for supported integrations across Python, TypeScript, Go, and C#."
-        structuredData={[
-          websiteStructuredData,
-          breadcrumbStructuredData,
-          softwareStructuredData,
-        ]}
-      />
-      <NavBar />
-      <main className="min-h-screen bg-background">
-        <HeroSection />
-        <Suspense fallback={<SectionFallback />}>
-          <AnatomySection />
-          <WorkflowSteps />
-          <SpecCollabSection />
-          <TeamSection />
-          <InstallSection />
-          <ConsoleSection />
-          <AgentsSection />
-          <TestimonialsSection />
-          <FAQSection />
-        </Suspense>
-      </main>
-      <Suspense fallback={null}>
-        <Footer />
+const Index = () => (
+  <>
+    <SEO structuredData={structuredData} />
+    <Page className="mx-home">
+      <Hero />
+      <Suspense fallback={<div aria-hidden="true" style={{ minHeight: "40vh" }} />}>
+        <Sections />
       </Suspense>
-    </>
-  );
-};
+    </Page>
+  </>
+);
 
 export default Index;

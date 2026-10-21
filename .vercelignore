@@ -1,18 +1,16 @@
-# Only the public website, documentation and their shared images are deployable.
-/*
-!/docs
-/docs/*
-!/docs/site
-!/docs/docusaurus
-!/docs/img
+# Deploys start at the repository root (the project builds docs/site).
+# Tests under api/ are otherwise deployed as public functions.
+docs/site/api/**/*.test.ts
+docs/site/api/__fixture__/
+docs/site/api/compat/
+source-lineage.json
+deployment-script-provenance.json
 
-# Exclude local credentials, build output and public API regression-test routes.
-**/node_modules/**
-**/dist/**
-**/build/**
-**/.docusaurus/**
+# Local task documents, verification evidence, secrets and build outputs.
+docs/plans/
+docs/artifacts/
+.verify-*/
+VERIFY-REPORT.md
 **/.env*
-**/.DS_Store
-**/*.log
-**/*.test.ts
-**/*.test.tsx
+qualitylayer/dist/
+qualitylayer/app/target/

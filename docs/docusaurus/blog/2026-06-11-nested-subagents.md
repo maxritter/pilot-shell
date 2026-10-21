@@ -128,12 +128,12 @@ Keep a usage monitor open the first few times you run a deep workflow. Watch whe
 Treat all of this as experimental, because it is. Cherny shipped depth 5 "to start" and openly asked whether the cap is right. The same-release bug fix tells you nesting was exercised hard enough to surface edge cases within days, and the docs have not caught up. None of that is a reason to avoid the feature; it is a reason to use it deliberately, with telemetry on and a token budget in mind.
 
 The deeper shift is worth watching. Orchestration in Claude Code keeps moving from something you script by hand toward something the model decides on its own, first across agents, now down through them. The open question is whether a Claude four levels removed from your original prompt still does its best work, or whether quality decays with distance. Anthropic capped depth at 5 precisely because nobody knows yet. Go deep when the task earns it, keep your scopes tight at every layer, and let the verdicts, not the noise, be the only thing that climbs back up to you.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** installs a structured workflow for agent work on top of Claude Code: `/spec` plans the change, runs implementation under TDD, and verifies with an automated reviewer pass. The orchestration loop most agent setups end up writing by hand.
+**QualityLayer** adds a structured workflow on top of your coding agent: you approve the plan, helper agents build and test it slice by slice, and a fresh agent verifies the result against your request. The orchestration loop most agent setups end up writing by hand.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

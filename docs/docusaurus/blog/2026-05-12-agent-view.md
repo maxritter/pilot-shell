@@ -111,12 +111,12 @@ A few practical habits to adopt early:
 Agent view is the missing dashboard. Once you stop alt-tabbing between sessions and start scanning a list, you will not go back -- and the ceiling on how many agents you can usefully run goes up by an order of magnitude.
 
 Agent Fundamentals
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** installs a structured workflow for agent work on top of Claude Code: `/spec` plans the change, runs implementation under TDD, and verifies with an automated reviewer pass. The orchestration loop most agent setups end up writing by hand.
+**QualityLayer** adds a structured workflow on top of your coding agent: you approve the plan, helper agents build and test it slice by slice, and a fresh agent verifies the result against your request. The orchestration loop most agent setups end up writing by hand.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

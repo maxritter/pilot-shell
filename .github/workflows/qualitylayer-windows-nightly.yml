@@ -1,0 +1,89 @@
+name: QualityLayer Windows nightly
+
+# Exhaustive Windows regression is explicitly requested; ordinary releases use the bounded gate.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qualitylayer-windows-nightly-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-full:
+    name: Windows full suite (${{ matrix.os }}, shard ${{ matrix.shard }}/16)
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, windows-11-arm]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check out with LF line endings
+        run: git config --global core.autocrlf false
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+          bun-download-url: https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-windows-${{ matrix.os == 'windows-11-arm' && 'aarch64' || 'x64' }}.zip
+
+      - name: Unlock repository
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          $key = Join-Path $env:RUNNER_TEMP 'git-crypt.key'
+          [IO.File]::WriteAllBytes($key, [Convert]::FromBase64String($env:GIT_CRYPT_KEY))
+          try { bun .github/workflows/scripts/git-crypt-unlock.ts $key } finally { Remove-Item -LiteralPath $key -Force }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Install dependencies
+        working-directory: qualitylayer
+        run: bun install --frozen-lockfile
+
+      - name: Install the site's dependencies
+        working-directory: docs/site
+        run: npm ci --ignore-scripts
+
+      - name: Verify native runtime architecture
+        run: |
+          $expected = if ('${{ matrix.os }}' -eq 'windows-11-arm') { 'arm64' } else { 'x64' }
+          $runtime = bun -p 'JSON.stringify({platform:process.platform,arch:process.arch,bun:Bun.version})' | ConvertFrom-Json
+          @{ osArch = [Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString(); runtime = $runtime } | ConvertTo-Json -Compress
+          if ($runtime.platform -ne 'win32' -or $runtime.arch -ne $expected -or [Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant() -ne $expected) { throw 'Native architecture mismatch' }
+          "QUALITYLAYER_EXPECT_ARCH=$expected" >> $env:GITHUB_ENV
+          $runtime | ConvertTo-Json -Compress
+
+      - name: Typecheck
+        if: matrix.shard == 1
+        working-directory: qualitylayer
+        run: bun --bun run typecheck
+
+      - name: Windows workflows and installer
+        working-directory: qualitylayer
+        env:
+          QUALITYLAYER_REQUIRE_RENDER: "1"
+          QUALITYLAYER_REQUIRE_WINDOWS_NATIVE: "1"
+        run: bun run test --shard ${{ matrix.shard }}/16 tests/e2e tests/windows tests/core/platform.test.ts tests/core/team-keys.test.ts tests/server/lock.test.ts tests/cli/hook-prompt.test.ts tests/core/install/mod.test.ts tests/scripts/chrome-shutdown.test.ts
+
+      - name: Measure native compilation tradeoffs
+        if: matrix.shard == 1
+        working-directory: qualitylayer
+        run: bun scripts/benchmark-compile.ts --samples 7
+
+      - name: Keep the native performance measurements
+        if: matrix.shard == 1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: compile-benchmark-${{ matrix.os }}
+          path: qualitylayer/dist/compile-benchmark.json
+          retention-days: 7

@@ -10,6 +10,9 @@ DOCUSAURUS_DIR="$SCRIPT_DIR/../docusaurus"
 echo "=== Building Vite landing page ==="
 cd "$SITE_DIR"
 npm ci --prefer-offline 2>/dev/null || npm install
+if [ "${VERCEL:-}" = "1" ]; then
+  node "$SITE_DIR/scripts/compile-shared-api.mjs" --profile "${QUALITYLAYER_BACKEND_PROFILE:-current}"
+fi
 npm run build
 
 echo "=== Verifying CSP inline-script hashes ==="
@@ -54,11 +57,11 @@ fi
 # Copy Docusaurus img (favicon etc.) — merge into existing img or create
 [ -d "$BUILD/img" ] && cp -r "$BUILD/img" "$DIST/img"
 
-# Move Docusaurus's sitemap into /docs/ so it doesn't overwrite the Vite-generated
-# sitemap index at /sitemap.xml (which references both pages and docs sitemaps).
-if [ -f "$BUILD/sitemap.xml" ]; then
-  cp "$BUILD/sitemap.xml" "$DIST/docs/sitemap.xml"
-fi
+echo "=== Adding Web Analytics to Docusaurus pages ==="
+node "$SITE_DIR/scripts/inject-docusaurus-analytics.mjs" "$DIST"
+
+# Generate the docs/blog sitemap from final canonical HTML; preserve the marketing index.
+node "$SITE_DIR/scripts/generate-docs-sitemap.mjs" "$DIST"
 # Copy any other Docusaurus xml files (rss, atom, etc.) to /docs/
 for f in "$BUILD"/*.xml; do
   if [ -f "$f" ] && [ "$(basename "$f")" != "sitemap.xml" ]; then

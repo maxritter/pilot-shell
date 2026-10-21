@@ -154,12 +154,12 @@ The before-and-after is stark. The manual path is reading this guide, getting th
 Treat the pace of the last few releases as a signal: this is new, and the surface will keep moving. Resume shipped ungated while teams mode stayed experimental, nesting is capped, the docs lag the binary by weeks, and the handle expires across boundaries you do not fully control. None of that is a reason to wait. The persistent sub-agent pattern is already the most efficient way we have found to run iterative work in Claude Code, and the field data backs it: warm beats cold by roughly an order of magnitude on latency, and a clean T1 window beats a stuffed one on both cost and fidelity.
 
 The deeper trend is that the unit of work in Claude Code is shifting from the one-shot agent to the durable one. Orchestration used to mean spawning the right throwaway and filling it; increasingly it means keeping the right specialist warm and feeding it. Start with the agent fundamentals if the lifecycle is new to you, layer in [parallel and sequential dispatch](/blog/sub-agent-best-practices) for the work that fans out from the main thread, and read how task distribution decides what gets delegated where. Then keep one specialist warm per domain, name it for the mission and not the task, and let the throwaway children absorb the noise. That is the new way to run Claude Code sub-agents.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** installs a structured workflow for agent work on top of Claude Code: `/spec` plans the change, runs implementation under TDD, and verifies with an automated reviewer pass. The orchestration loop most agent setups end up writing by hand.
+**QualityLayer** adds a structured workflow on top of your coding agent: you approve the plan, helper agents build and test it slice by slice, and a fresh agent verifies the result against your request. The orchestration loop most agent setups end up writing by hand.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

@@ -1,4 +1,8 @@
-import { Helmet } from 'react-helmet-async';
+import { Helmet } from "react-helmet-async";
+import { useLocation } from "react-router-dom";
+import { BRAND_LINE, SITE_URL, SLOGAN } from "@/lib/product";
+import { pageMetadata, serializeStructuredData } from "@/lib/seo";
+import { WORKFLOW_STEPS } from "@/lib/steps";
 
 interface SEOProps {
   title?: string;
@@ -6,57 +10,42 @@ interface SEOProps {
   keywords?: string;
   canonicalUrl?: string;
   ogImage?: string;
+  ogImageAlt?: string;
   type?: string;
   structuredData?: object | object[];
+  robots?: string;
 }
 
+/** What the shared og.png shows, for readers who cannot see it. */
+const OG_IMAGE_ALT = `QualityLayer, ${BRAND_LINE.toLowerCase()}: ${SLOGAN.charAt(0).toLowerCase()}${SLOGAN.slice(1)}. Seven steps: ${WORKFLOW_STEPS.map((step) => step.name).join(", ")}`;
+
+/** Used by both the browser and the build-time renderer. */
 const SEO = ({
-  /*
-   * KEYWORDS retain measured US search terms (DataForSEO, 2026-08). The TITLE
-   * and DESCRIPTION carry the product's harness-first positioning instead of
-   * making one optional Pilot workflow look like the whole product:
-   *
-   *   codex cli                  27100/mo   competition 30
-   *   claude code skills         12100/mo   competition  9
-   *   spec driven development     6600/mo   competition 42
-   *   claude code agents          5400/mo   competition 21
-   *   claude code plugins         5400/mo   competition  3
-   *   claude code hooks           3600/mo   competition  2
-   *   claude code subagents       2900/mo   competition  5
-   *   claude code mcp             2900/mo   competition  9
-   *   claude code framework         40/mo   <- what the old keywords led with
-   *
-   * "claude code" itself is 550000/mo but navigational to Anthropic, so it is
-   * carried for relevance and never chased as a target.
-   *
-   * Do not "optimize" the description into a keyword list. It is product positioning, not an SEO
-   * slot, and it is the sentence Slack, LinkedIn and X show when the site is
-   * shared. An earlier pass rewrote it into a feature list (skills, hooks,
-   * subagents, MCP) and that was rejected: it understates what Pilot Shell
-   * does. Keep it, and the og:/twitter: variants, in the product's own words.
-   *
-   * The title stays around 60 characters so search results remain readable.
-   */
-  title = "Pilot Shell — Engineering harness for Claude Code & Codex",
-  description = "Professional context, enforced quality, persistent knowledge, code intelligence, and runtime proof for Claude Code and Codex — with Pilot workflows when you want their contract.",
-  keywords = "claude code skills, codex cli, spec driven development, claude code agents, claude code plugins, claude code hooks, claude code subagents, claude code mcp, claude code setup, claude code best practices, Pilot Shell",
-  canonicalUrl = "https://pilot-shell.com/",
-  ogImage = "https://pilot-shell.com/logo.png",
+  title,
+  description,
+  keywords = "software factory, agentic software factory, human in the loop, agentic coding, visual planning, claude code, codex cli, ai coding agent, spec driven development, plan review, QualityLayer",
+  canonicalUrl,
+  ogImage = `${SITE_URL}/og.png`,
+  ogImageAlt = ogImage === `${SITE_URL}/og.png` ? OG_IMAGE_ALT : undefined,
   type = "website",
-  structuredData
+  structuredData,
+  robots,
 }: SEOProps) => {
+  const defaults = pageMetadata(useLocation().pathname);
+  title ??= defaults.title;
+  description ??= defaults.description;
+  canonicalUrl ??= defaults.canonicalUrl;
+  robots ??= defaults.robots;
   return (
     <Helmet>
-      {/* Primary Meta Tags */}
       <title>{title}</title>
       <meta name="title" content={title} />
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
+      <meta name="robots" content={robots} />
 
-      {/* Canonical URL */}
       <link rel="canonical" href={canonicalUrl} />
 
-      {/* Open Graph / Facebook */}
       <meta property="og:type" content={type} />
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:title" content={title} />
@@ -64,21 +53,17 @@ const SEO = ({
       <meta property="og:image" content={ogImage} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
-      <meta property="og:site_name" content="Pilot Shell" />
+      {ogImageAlt ? <meta property="og:image:alt" content={ogImageAlt} /> : null}
+      <meta property="og:site_name" content="QualityLayer" />
 
-      {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:url" content={canonicalUrl} />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImage} />
+      {ogImageAlt ? <meta name="twitter:image:alt" content={ogImageAlt} /> : null}
 
-      {/* Structured Data */}
-      {structuredData && (
-        <script type="application/ld+json">
-          {JSON.stringify(structuredData)}
-        </script>
-      )}
+      {structuredData && <script type="application/ld+json">{serializeStructuredData(structuredData)}</script>}
     </Helmet>
   );
 };

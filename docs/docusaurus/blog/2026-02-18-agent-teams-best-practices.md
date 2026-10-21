@@ -162,12 +162,12 @@ This guide covers the operational patterns. For the full picture:
 - **[Use Cases and Prompt Templates](/blog/agent-teams-use-cases)** for copy-paste prompts across 10+ real-world scenarios
 - **[End-to-End Workflow](/blog/agent-teams-workflow)** for the complete 7-step pipeline from brain dump to validated production code
 - **[Sub-agent best practices](/blog/sub-agent-best-practices)** for when a full team is overkill and focused subagents are the better fit
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** installs a structured workflow for agent work on top of Claude Code: `/spec` plans the change, runs implementation under TDD, and verifies with an automated reviewer pass. The orchestration loop most agent setups end up writing by hand.
+**QualityLayer** adds a structured workflow on top of your coding agent: you approve the plan, helper agents build and test it slice by slice, and a fresh agent verifies the result against your request. The orchestration loop most agent setups end up writing by hand.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

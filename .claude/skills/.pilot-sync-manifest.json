@@ -1,9 +1,0 @@
-{
-  "version": 1,
-  "files": {
-    "upstream-audit/SKILL.md": {
-      "sha256": "d08ae8b0fbbb3c67c99322d029a8d06e4f2367f774b0bf83f01debd6d2b90b7e",
-      "executableMode": 73
-    }
-  }
-}

@@ -1,11 +1,27 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import tailwindcss from "@tailwindcss/vite";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
-import sitemapPlugin from "./vite-plugin-sitemap";
-import indexNowPlugin from "./vite-plugin-indexnow";
+import sitemapPlugin from "./vite-plugin-sitemap.ts";
+import indexNowPlugin from "./vite-plugin-indexnow.ts";
+import prerenderPlugin from "./vite-plugin-prerender.ts";
 
 const DOCUSAURUS_DEV_URL = "http://localhost:3000";
+const COCKPIT_SOURCE = path.resolve(import.meta.dirname, "../../qualitylayer/src/ui");
+
+/** The demo uses the production Cockpit. Each app keeps its own shadcn imports. */
+function cockpitDemo(): Plugin {
+  return {
+    name: "qualitylayer-cockpit-demo",
+    enforce: "pre",
+    async resolveId(source, importer) {
+      if (source === "/qualitylayer-cockpit-demo.tsx") return path.join(COCKPIT_SOURCE, "demo/main.tsx");
+      if (!source.startsWith("@/")) return null;
+      const base = importer?.startsWith(COCKPIT_SOURCE) ? COCKPIT_SOURCE : path.resolve(import.meta.dirname, "src");
+      return this.resolve(path.join(base, source.slice(2)), importer, { skipSelf: true });
+    },
+  };
+}
 
 function docusaurusRedirect(): Plugin {
   return {
@@ -28,51 +44,52 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    fs: { allow: [import.meta.dirname, path.resolve(import.meta.dirname, "../../qualitylayer/src"), path.resolve(import.meta.dirname, "../../qualitylayer/node_modules")] },
+    // The release list is an edge function in production; in development it comes from the live site, so the cards download directly.
+    proxy: {
+      "/app/downloads.json": { target: "https://qualitylayer.dev", changeOrigin: true },
+      ...(process.env.QUALITYLAYER_BILLING_DEV_PROXY ? {
+        "/api/billing": { target: process.env.QUALITYLAYER_BILLING_DEV_PROXY },
+        "/__billing-fixture__": { target: process.env.QUALITYLAYER_BILLING_DEV_PROXY },
+      } : {}),
+    },
   },
   plugins: [
+    cockpitDemo(),
     react(),
-    mode === "development" && componentTagger(),
+    tailwindcss(),
     mode === "development" && docusaurusRedirect(),
     sitemapPlugin(),
+    prerenderPlugin(),
     indexNowPlugin(),
   ].filter(Boolean),
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    // The lifecycle names its routes and optional steps from the product's own tables.
+    alias: { "@ql": path.resolve(import.meta.dirname, "../../qualitylayer/src") },
+    dedupe: ["react", "react-dom", "cn", "lucide-react", "radix-ui", "class-variance-authority", "clsx", "tailwind-merge", "dompurify", "css-tree", "parse5", "marked", "mermaid", "sonner", "tailwindcss", "tw-animate-css", "shadcn", "@pierre/diffs"],
   },
   build: {
+    manifest: true,
     target: "es2020",
     cssMinify: true,
     chunkSizeWarningLimit: 800,
-    // Filter out heavy chunks that are only reachable via lazy imports on
-    // routes other than "/" (e.g. the markdown bundle is /shared-only).
+    // Polar's checkout is only reachable through a lazy import on /pricing:
+    // keep it out of the home page's preloads.
     modulePreload: {
       polyfill: false,
       resolveDependencies(_filename, deps) {
-        return deps.filter(
-          (d) =>
-            !d.includes("markdown-") &&
-            !d.includes("Shared-") &&
-            !d.includes("polar-") &&
-            !d.includes("charts-") &&
-            !d.includes("datepicker-") &&
-            !d.includes("carousel-"),
-        );
+        return deps.filter((d) => !d.includes("polar-"));
       },
     },
     rollupOptions: {
+      input: { website: path.resolve(import.meta.dirname, "index.html"), app: path.resolve(import.meta.dirname, "app-demo/index.html") },
       output: {
         // Split only feature-specific deps into their own chunks. Anything that
         // chains back through react/react-dom stays in the default vendor chunk
         // so we don't create import cycles.
         manualChunks: (id) => {
           if (!id.includes("node_modules")) return undefined;
-          if (id.includes("react-markdown") || id.includes("remark-") || id.includes("micromark") || id.includes("mdast-") || id.includes("hast-") || id.includes("unist-") || id.includes("unified")) return "markdown";
-          if (id.includes("recharts") || id.includes("d3-")) return "charts";
-          if (id.includes("react-day-picker") || id.includes("date-fns")) return "datepicker";
           if (id.includes("@polar-sh")) return "polar";
-          if (id.includes("embla-carousel")) return "carousel";
           return undefined;
         },
       },

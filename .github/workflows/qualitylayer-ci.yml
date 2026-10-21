@@ -1,0 +1,420 @@
+name: QualityLayer CI
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - "qualitylayer/**"
+      - "docs/site/**"
+      - "install.sh"
+      - "install.ps1"
+      - ".github/workflows/qualitylayer-ci.yml"
+      - ".github/workflows/release.yml"
+      - ".github/workflows/scripts/**"
+      - ".github/scripts/check_qualitylayer_encrypted.sh"
+  pull_request:
+    branches:
+      - dev
+      - main
+    paths:
+      - "qualitylayer/**"
+      - "docs/site/**"
+      - "install.sh"
+      - "install.ps1"
+      - ".github/workflows/qualitylayer-ci.yml"
+      - ".github/scripts/check_qualitylayer_encrypted.sh"
+  # Manual dispatch also requires this workflow to be registered on the default branch.
+  workflow_dispatch:
+    inputs:
+      full_regression:
+        description: Run the exhaustive regression matrix explicitly
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qualitylayer-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plaintext-guard:
+    name: Plaintext guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+
+      # Runs against the locked checkout on purpose: what this job sees is
+      # exactly what the public repository serves.
+      - name: Check the encrypted paths are encrypted
+        run: bash .github/scripts/check_qualitylayer_encrypted.sh
+
+  beta-smoke:
+    name: Release smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    needs: plaintext-guard
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - run: bash .github/workflows/scripts/install-git-crypt.sh
+      - env: { GIT_CRYPT_KEY: "${{ secrets.GIT_CRYPT_KEY }}" }
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+      - uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with: { bun-version: "1.4.2" }
+      - run: bun install --frozen-lockfile
+        working-directory: qualitylayer
+      - run: npm ci --ignore-scripts
+        working-directory: docs/site
+      - name: Install GNU catalog-test tools on macOS
+        if: runner.os == 'macOS'
+        run: |
+          brew install bash coreutils
+          echo "$(brew --prefix)/bin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
+      - name: Typecheck, lint and finite beta smoke
+        working-directory: qualitylayer
+        env:
+          QUALITYLAYER_TEST_RETRIES: "0"
+          QUALITYLAYER_TEST_ALLOW_LEAKS: "0"
+          QUALITYLAYER_TEST_WORKERS: "2"
+        run: |
+          bun run typecheck
+          bun run lint
+          bun run test:smoke
+
+  # Broad regression runs once on the pushed SHA; ordinary betas use beta-smoke for release.
+  # The whole suite, every file, on Linux and macOS on every push. Each shard holds about the same
+  # recorded seconds (scripts/test-timings.json): three on Linux, six on the slower 3-core macOS
+  # runner. Six Mac shards leave room for setup within the fifteen-minute job limit; the account's
+  # five concurrent Mac slots mean one can queue. Windows runs its own suites below.
+  test:
+    if: github.event_name == 'workflow_dispatch' && inputs.full_regression
+    name: Typecheck, lint, test (${{ matrix.os }}, shard ${{ matrix.shard }}/${{ matrix.shards }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    needs: plaintext-guard
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, shard: 1, shards: 3 }
+          - { os: ubuntu-latest, shard: 2, shards: 3 }
+          - { os: ubuntu-latest, shard: 3, shards: 3 }
+          - { os: macos-14, shard: 1, shards: 6 }
+          - { os: macos-14, shard: 2, shards: 6 }
+          - { os: macos-14, shard: 3, shards: 6 }
+          - { os: macos-14, shard: 4, shards: 6 }
+          - { os: macos-14, shard: 5, shards: 6 }
+          - { os: macos-14, shard: 6, shards: 6 }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+
+      - name: Unlock repository
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Install shellcheck
+        if: runner.os == 'macOS'
+        run: |
+          brew install shellcheck bash coreutils
+          echo "$(brew --prefix)/bin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+
+      - name: Install dependencies
+        working-directory: qualitylayer
+        run: bun install --frozen-lockfile
+
+      - name: Install managed Mac test browsers
+        if: runner.os == 'macOS'
+        working-directory: qualitylayer
+        run: bun x playwright install chromium
+
+      # The suites run the site's real handlers on the in-process database (PGlite) it ships.
+      - name: Install the site's dependencies
+        working-directory: docs/site
+        run: npm ci --ignore-scripts
+
+      - name: Install the pinned native Claude Code for mod tests
+        run: bash .github/workflows/scripts/setup-claude-code.sh "${RUNNER_TEMP:?}/ql-native-claude"
+
+      - name: Typecheck
+        working-directory: qualitylayer
+        run: bun run typecheck
+
+      - name: Lint
+        working-directory: qualitylayer
+        run: bun run lint
+
+      # One process per test file; the runner builds the binary first. No test
+      # reaches the network: Polar, the trial service and releases are local.
+      # tests/server/cockpit-release.test.ts builds a release binary and needs its Cockpit
+      # to draw in the runner's Chrome: no Chrome is a failure here, not a skip.
+      - name: Test
+        working-directory: qualitylayer
+        env:
+          QUALITYLAYER_REQUIRE_RENDER: "1"
+          QUALITYLAYER_TEST_RETRIES: "0"
+          QUALITYLAYER_TEST_ALLOW_LEAKS: "0"
+        run: bun run test --all --shard ${{ matrix.shard }}/${{ matrix.shards }}
+
+  # Once per system, not once per test shard: the demo is the same in every shard.
+  overflow:
+    name: No text overflows a control (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    needs: plaintext-guard
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+
+      - name: Unlock repository
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+
+      - name: Install dependencies
+        working-directory: qualitylayer
+        run: bun install --frozen-lockfile
+
+      # Every Cockpit view of the demo, at three widths, in Chrome: no text spills out of a
+      # button, tab, badge or menu item. The self-test first proves the check still catches one.
+      - name: No text overflows a control
+        working-directory: qualitylayer
+        run: |
+          bun scripts/check-overflow.ts --self-test --require-render
+          bun run check:overflow -- --require-render
+
+  site:
+    name: Site API and pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: plaintext-guard
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+
+      # docs/site/api is encrypted; the route tests need its source.
+      - name: Unlock repository
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+
+      - name: Setup Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
+        with:
+          node-version: "24.20.0"
+
+      - name: Install dependencies
+        working-directory: docs/site
+        run: npm ci
+
+      - name: Typecheck the app, the build config and the API
+        working-directory: docs/site
+        run: npm run typecheck
+
+      - name: Test
+        working-directory: docs/site
+        run: npm test
+
+      - name: Build production pages and App demo with only site dependencies
+        working-directory: docs/site
+        env:
+          INDEXNOW_DISABLE: "1"
+        run: |
+          test ! -e ../../qualitylayer/node_modules
+          npm run build
+          node scripts/verify-csp-hash.mjs
+
+  # Every push runs the Windows-specific suites and a short end-to-end smoke set natively on
+  # windows-2025, split so each job ends within ten minutes. The full end-to-end suite runs on
+  # Linux and macOS above on every push, and on both Windows runners nightly in
+  # qualitylayer-windows-nightly.yml. The dedicated ConPTY job below checks both native targets.
+  windows:
+    name: Native Windows runtime (${{ matrix.os }}, shard ${{ matrix.shard }}/6)
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    needs: plaintext-guard
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025]
+        shard: [1, 2, 3, 4, 5, 6]
+        # Groups 4 and 6 use the site's in-process Team database.
+        include:
+          - shard: 1
+            files: tests/cli/hook-prompt.test.ts tests/e2e/research.test.ts
+          - shard: 2
+            files: tests/windows/native.test.ts tests/e2e/sessions.test.ts tests/e2e/statusline.test.ts tests/core/check-process-options.test.ts tests/core/live-signals.test.ts tests/core/interaction-shell-process.test.ts
+          - shard: 3
+            files: tests/windows/install-ps1.test.ts tests/windows/setup-recovery.test.ts tests/windows/uninstall-ps1.test.ts tests/core/install/mod.test.ts tests/windows/fixture-cleanup.test.ts
+          - shard: 4
+            files: tests/core/team-keys.test.ts tests/scripts/chrome-shutdown.test.ts tests/windows/repair-defender.test.ts tests/windows/process-output.test.ts
+          - shard: 5
+            files: tests/server/lock.test.ts tests/windows/review-startup.test.ts tests/e2e/cockpit-diagrams.test.ts tests/core/platform.test.ts
+          - shard: 6
+            files: tests/e2e/documents.test.ts tests/e2e/resource-budget.test.ts tests/e2e/server-survives.test.ts tests/e2e/command-speed.test.ts
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      # Git checks out CRLF by default on Windows; the encrypted files must arrive byte for byte.
+      - name: Check out with LF line endings
+        run: git config --global core.autocrlf false
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+
+      # One filter process instead of git-crypt's one process per file (minutes under msys2).
+      - name: Unlock repository
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          $key = Join-Path $env:RUNNER_TEMP 'git-crypt.key'
+          [IO.File]::WriteAllBytes($key, [Convert]::FromBase64String($env:GIT_CRYPT_KEY))
+          try { bun .github/workflows/scripts/git-crypt-unlock.ts $key } finally { Remove-Item -LiteralPath $key -Force }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Install dependencies
+        working-directory: qualitylayer
+        run: bun install --frozen-lockfile
+
+      # The team suites run the site's real handlers on the in-process database (PGlite) it ships;
+      # its runtime packages are enough (all of them take seven minutes on the arm64 runner).
+      - name: Install the site's dependencies
+        if: matrix.shard == 4 || matrix.shard == 6
+        working-directory: docs/site
+        run: npm ci --ignore-scripts --omit=dev --no-audit --no-fund
+
+      - name: Windows suites and end-to-end smoke
+        working-directory: qualitylayer
+        env:
+          QUALITYLAYER_REQUIRE_RENDER: "1"
+        run: bun run test ${{ matrix.files }}
+
+      # The Plan gate starts the other agent's review detached, through the compiled binary.
+      - name: Compiled reviewer starts and fails safely
+        if: matrix.shard == 5
+        working-directory: qualitylayer
+        env:
+          QUALITYLAYER_REQUIRE_RENDER: "1"
+        run: bun run test tests/e2e/cross-review.test.ts -t 'opening the Plan gate starts|a reviewer that fails'
+
+  windows-terminal:
+    name: Native ConPTY (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    needs: plaintext-guard
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-2025, arch: x64 }
+          - { os: windows-11-arm, arch: arm64 }
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: qualitylayer
+    steps:
+      - name: Check out with LF line endings
+        working-directory: .
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+          bun-download-url: https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-windows-${{ matrix.arch == 'arm64' && 'aarch64' || 'x64' }}.zip
+      - name: Unlock repository
+        working-directory: .
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          $key = Join-Path $env:RUNNER_TEMP 'git-crypt.key'
+          [IO.File]::WriteAllBytes($key, [Convert]::FromBase64String($env:GIT_CRYPT_KEY))
+          try { bun .github/workflows/scripts/git-crypt-unlock.ts $key } finally { Remove-Item -LiteralPath $key -Force }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - run: bun install --frozen-lockfile
+      - name: Verify OS and Bun run natively
+        run: |
+          $expected = '${{ matrix.arch }}'
+          $osArch = [Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
+          $runtime = bun -p 'JSON.stringify({bun:Bun.version,platform:process.platform,arch:process.arch})' | ConvertFrom-Json
+          @{ osArch = $osArch; runtime = $runtime } | ConvertTo-Json -Compress
+          if ($osArch -ne $expected -or $runtime.arch -ne $expected -or $runtime.platform -ne 'win32' -or $runtime.bun -ne '1.4.2') { throw 'Native runtime architecture/version mismatch' }
+          $runtime | ConvertTo-Json -Compress
+      - name: Build matching private candidate and key
+        run: |
+          $env:QUALITYLAYER_TEST_BINARY = Join-Path $env:RUNNER_TEMP 'ql-conpty/qualitylayer.exe'
+          bun run build --out $env:QUALITYLAYER_TEST_BINARY --target bun-windows-${{ matrix.arch }}
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "QUALITYLAYER_TEST_BINARY=$env:QUALITYLAYER_TEST_BINARY" >> $env:GITHUB_ENV
+          "QUALITYLAYER_TEST_TRIAL_KEY_FILE=$PWD/dist/dev-trial-key.json" >> $env:GITHUB_ENV
+      - name: Build matching native Rust launcher for the installed command path
+        timeout-minutes: 5
+        run: |
+          $target = if ('${{ matrix.arch }}' -eq 'arm64') { 'aarch64-pc-windows-msvc' } else { 'x86_64-pc-windows-msvc' }
+          $toolchain = "stable-$target"
+          rustup toolchain install $toolchain --profile minimal
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $info = rustup run $toolchain rustc -vV
+          if ($LASTEXITCODE -ne 0 -or -not ($info -contains "host: $target")) { throw 'Rust toolchain is not native to the runner architecture' }
+          $output = Join-Path $env:RUNNER_TEMP 'ql-conpty-launcher'
+          rustup run $toolchain cargo build --locked --manifest-path app/launcher/Cargo.toml --target $target --target-dir $output --bin qualitylayer-launcher --jobs 2
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $launcher = Join-Path $output "$target/debug/qualitylayer-launcher.exe"
+          if (-not (Test-Path -LiteralPath $launcher -PathType Leaf)) { throw 'Native launcher artifact is missing' }
+          "QUALITYLAYER_TEST_LAUNCHER=$launcher" >> $env:GITHUB_ENV
+      - name: Execute compiled ConPTY and Job lifecycle contracts
+        env:
+          QUALITYLAYER_REQUIRE_WINDOWS_NATIVE: "1"
+          QUALITYLAYER_EXPECT_ARCH: ${{ matrix.arch }}
+        run: |
+          bun run test tests/windows/run-pty.test.ts tests/windows/run-job.test.ts tests/windows/run-in-app.probe.test.ts tests/core/no-replace-rename.test.ts 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP/conpty.log"
+          exit $LASTEXITCODE
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: native-conpty-${{ matrix.arch }}
+          path: ${{ runner.temp }}/conpty.log
+          retention-days: 7

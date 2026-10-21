@@ -372,12 +372,12 @@ The first time takes longer as you build the muscle memory. By the third feature
 For troubleshooting common issues during execution, see [best practices and troubleshooting](/blog/agent-teams-best-practices). For copy-paste prompts across specific scenarios, see [use cases and prompt templates](/blog/agent-teams-use-cases). And if you're new to the feature itself, start with the [Agent Teams overview](/blog/agent-teams).
 
 [Team Best Practices](/blog/agent-teams-best-practices)
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** installs a structured workflow for agent work on top of Claude Code: `/spec` plans the change, runs implementation under TDD, and verifies with an automated reviewer pass. The orchestration loop most agent setups end up writing by hand.
+**QualityLayer** adds a structured workflow on top of your coding agent: you approve the plan, helper agents build and test it slice by slice, and a fresh agent verifies the result against your request. The orchestration loop most agent setups end up writing by hand.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

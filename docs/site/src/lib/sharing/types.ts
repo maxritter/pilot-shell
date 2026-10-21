@@ -1,9 +1,13 @@
 /**
- * Types for the secure spec sharing system.
- * Ported from console/src/shared/sharing/types.ts — kept in sync.
+ * The annotation and feedback contracts of shared plans. Task documents and link
+ * loading are defined in sharing.ts. Keep these wire shapes stable.
  */
 
 export interface Annotation {
+  for?: "agent" | "person";
+  before?: string;
+  after?: string;
+  section?: string;
   id: string;
   blockId: string;
   /** The text that was selected */
@@ -23,30 +27,14 @@ export interface Annotation {
   importedAt?: number;
 }
 
-/** Payload for sharing a spec with another user (A→B direction) */
-export interface SharePayload {
-  /** Full markdown content of the spec */
-  specContent: string;
-  /** Existing annotations from the spec owner */
-  annotations: Annotation[];
-  /** Display name of the sharer */
-  author?: string;
-  /** Original plan file path */
-  planPath?: string;
-  /** Whether this is a specification or requirement */
-  contentType?: "specification" | "requirement";
-  /** Timestamp when the share was created */
-  createdAt: number;
-}
-
 /**
- * GitHub-PR-style top-level review verdict. Submitted from pilot-shell.com
- * alongside (or independently of) inline annotations on the same feedback batch.
+ * Sealed text, as a link's plan and a guest's submission travel: AES-GCM under the link's key
+ * (`iv` 12 bytes and `ct`, both base64). The server holds it without the key.
  */
-export interface Decision {
-  verdict: "approve" | "request_changes";
-  /** Free-text comment, 0–4000 chars (server-enforced). */
-  comment?: string;
+export interface SealedPayload {
+  v: 3;
+  iv: string;
+  ct: string;
 }
 
 /** Payload for sending feedback annotations back (B→A direction) */
@@ -59,13 +47,10 @@ export interface FeedbackPayload {
   planPath?: string;
   /** Timestamp when feedback was created */
   createdAt: number;
-  /** Optional top-level review verdict for this submit. */
-  decision?: Decision;
 }
 
 // ─── Multi-user feedback polling (2026-05-15) ─────────────────────────────────
-// These types are shared verbatim between the Console worker and the pilotshell.com
-// Edge API. The same block must appear in console/src/shared/sharing/types.ts.
+// QualityLayer's App polls this feedback queue API; preserve its request and response shapes.
 
 /** One submission on the server-side feedback queue for a single share id. */
 export interface FeedbackQueueEntry {
@@ -73,29 +58,40 @@ export interface FeedbackQueueEntry {
   position: number;
   /** When the server received this submission (server-side Date.now()). */
   receivedAt: number;
-  /** The submitted feedback batch. */
-  payload: FeedbackPayload;
+  /** The submitted feedback batch, sealed with the link's key. */
+  payload: SealedPayload;
 }
 
-/** Console → pilotshell.com batch-read request body. */
+/** Client → feedback API batch-read request body. */
 export interface FeedbackBatchRequest {
-  items: Array<{ id: string; cursor: number }>;
+  /**
+   * `since` is the change number the client last read for that link (`rev` of an earlier answer);
+   * a link still at that number answers `{ unchanged: true }` and costs no database read.
+   */
+  items: Array<{ id: string; cursor: number; since?: number }>;
 }
 
-/** pilotshell.com → Console batch-read response. Keyed by share id. */
-export type FeedbackBatchResponse = Record<
-  string,
-  {
-    entries: FeedbackQueueEntry[];
-    /** Cursor to send on the next poll. Equals the input cursor when entries is empty. */
-    cursor: number;
-    /** Present only when `share:<id>` does not exist (expired or never created). */
-    error?: "not_found";
-    /**
-     * Set true when the server returned a full page of entries; the client
-     * should re-poll immediately rather than wait for the next 60s tick.
-     * Absent or false means the queue was fully drained by this read.
-     */
-    hasMore?: boolean;
-  }
->;
+/** What the batch answers for a link that has not changed since the number the client sent. */
+export interface FeedbackBatchUnchanged {
+  unchanged: true;
+}
+
+/** Feedback API → client batch-read response. Keyed by share id. */
+export type FeedbackBatchResponse = Record<string, FeedbackBatchRead | FeedbackBatchUnchanged>;
+
+/** What the batch answers for a link it read. */
+export interface FeedbackBatchRead {
+  entries: FeedbackQueueEntry[];
+  /** The link's change number as it stood before this read: send it back as `since` on the next poll. Absent for a link that is not found. */
+  rev?: number;
+  /** Cursor to send on the next poll. Equals the input cursor when entries is empty. */
+  cursor: number;
+  /** Present only when `share:<id>` does not exist (expired or never created). */
+  error?: "not_found";
+  /**
+   * Set true when the server returned a full page of entries; the client
+   * should re-poll immediately rather than wait for the next 60s tick.
+   * Absent or false means the queue was fully drained by this read.
+   */
+  hasMore?: boolean;
+}

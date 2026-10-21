@@ -3,45 +3,122 @@
   "buildCommand": "bash build-all.sh",
   "outputDirectory": "dist",
   "framework": null,
+  "regions": ["fra1"],
+  "crons": [{ "path": "/api/team/slack/due", "schedule": "*/5 * * * *" }],
   "trailingSlash": false,
   "cleanUrls": true,
   "redirects": [
     {
-      "source": "/(.*)",
-      "has": [{ "type": "host", "value": "claude-pilot.com" }],
-      "destination": "https://pilot-shell.com/$1",
+      "source": "/install.ps1",
+      "destination": "https://raw.githubusercontent.com/maxritter/qualitylayer/main/install.ps1",
+      "permanent": false
+    },
+    {
+      "source": "/install.sh",
+      "destination": "https://raw.githubusercontent.com/maxritter/qualitylayer/main/install.sh",
+      "permanent": false
+    },
+    {
+      "source": "/docs/updating",
+      "destination": "/docs/install#updates",
       "permanent": true
     },
     {
-      "source": "/(.*)",
-      "has": [{ "type": "host", "value": "www.claude-pilot.com" }],
-      "destination": "https://pilot-shell.com/$1",
+      "source": "/docs/features/:path*",
+      "destination": "/docs",
       "permanent": true
-    }
+    },
+    {
+      "source": "/docs/workflows/:path*",
+      "destination": "/docs",
+      "permanent": true
+    },
+    { "source": "/docs/reference/peers", "destination": "/docs/reference/commands#session-messaging", "permanent": true },
+    { "source": "/docs/reference/reviews", "destination": "/docs/reference/settings#second-opinion", "permanent": true },
+    { "source": "/docs/tutorials/first-task", "destination": "/docs/first-task", "permanent": true },
+    { "source": "/docs/guides/phases", "destination": "/docs#the-seven-steps", "permanent": true },
+    { "source": "/cockpit-demo", "destination": "/app-demo/", "permanent": true },
+    { "source": "/cockpit-demo/:path*", "destination": "/app-demo/:path*", "permanent": true },
+    { "source": "/docs/guides/cockpit", "destination": "/docs/app", "permanent": true },
+    { "source": "/docs/guides/handoff", "destination": "/docs/steps/implement#start-implement", "permanent": true },
+    { "source": "/docs/guides/team", "destination": "/docs/team/plans", "permanent": true },
+    { "source": "/docs/getting-started/prerequisites", "destination": "/docs/install", "permanent": true },
+    { "source": "/docs/getting-started/installation", "destination": "/docs/install", "permanent": true },
+    { "source": "/docs/getting-started/codex-cli", "destination": "/docs/install", "permanent": true },
+    { "source": "/docs/phases/frame", "destination": "/docs/steps/discuss", "permanent": true },
+    { "source": "/docs/phases/research", "destination": "/docs/steps/discuss", "permanent": true },
+    { "source": "/docs/phases/diagnose", "destination": "/docs/steps/discuss#a-bug", "permanent": true },
+    { "source": "/docs/phases/design", "destination": "/docs/steps/plan", "permanent": true },
+    { "source": "/docs/phases/outline", "destination": "/docs/steps/plan", "permanent": true },
+    { "source": "/docs/phases/handoff", "destination": "/docs/steps/implement#start-implement", "permanent": true },
+    { "source": "/docs/phases/build", "destination": "/docs/steps/implement", "permanent": true },
+    { "source": "/docs/phases/checkpoint", "destination": "/docs/steps/implement#checkpoints", "permanent": true },
+    { "source": "/docs/phases/verify", "destination": "/docs/steps/verify", "permanent": true },
+    { "source": "/docs/phases/approve", "destination": "/docs/steps/review", "permanent": true },
+    { "source": "/docs/phases/shipped", "destination": "/docs/steps/pull-request#merged", "permanent": true },
+    { "source": "/docs/phases/stopped-verification", "destination": "/docs/steps/verify#when-it-stops", "permanent": true },
+    { "source": "/docs/phases/abandon", "destination": "/docs/steps/review#stop-archive-or-delete-a-task", "permanent": true },
+    { "source": "/docs/phases/quick", "destination": "/docs/steps/discuss#too-small", "permanent": true },
+    { "source": "/docs/cockpit", "destination": "/docs/app", "permanent": true },
+    { "source": "/docs/workflow/overview", "destination": "/docs#the-seven-steps", "permanent": true },
+    { "source": "/docs/workflow/plan", "destination": "/docs/steps/plan", "permanent": true },
+    { "source": "/docs/workflow/plan/frame", "destination": "/docs/steps/discuss", "permanent": true },
+    { "source": "/docs/workflow/plan/research", "destination": "/docs/steps/discuss", "permanent": true },
+    { "source": "/docs/workflow/plan/diagnose", "destination": "/docs/steps/discuss#a-bug", "permanent": true },
+    { "source": "/docs/workflow/plan/design", "destination": "/docs/steps/plan", "permanent": true },
+    { "source": "/docs/designs", "destination": "/docs/artifacts", "permanent": true },
+    { "source": "/docs/workflow/plan/outline", "destination": "/docs/steps/plan", "permanent": true },
+    { "source": "/docs/workflow/build", "destination": "/docs/steps/implement", "permanent": true },
+    { "source": "/docs/workflow/build/handoff", "destination": "/docs/steps/implement#start-implement", "permanent": true },
+    { "source": "/docs/workflow/build/slices", "destination": "/docs/steps/implement", "permanent": true },
+    { "source": "/docs/workflow/build/checks", "destination": "/docs/steps/implement#checkpoints", "permanent": true },
+    { "source": "/docs/workflow/build/simplify", "destination": "/docs/steps/verify#live", "permanent": true },
+    { "source": "/docs/workflow/check", "destination": "/docs/steps/verify", "permanent": true },
+    { "source": "/docs/workflow/check/verify", "destination": "/docs/steps/verify", "permanent": true },
+    { "source": "/docs/workflow/check/review", "destination": "/docs/steps/review", "permanent": true },
+    { "source": "/docs/workflow/check/shipped", "destination": "/docs/steps/pull-request#merged", "permanent": true },
+    { "source": "/docs/workflow/check/stops", "destination": "/docs/steps/verify#when-it-stops", "permanent": true },
+    { "source": "/docs/workflow/:path*", "destination": "/docs#the-seven-steps", "permanent": true },
+    { "source": "/blog/claude-code-hooks", "destination": "/blog/hooks-guide", "statusCode": 301 },
+    { "source": "/blog/claude-code-best-practices", "destination": "/blog/agentic-engineering-best-practices", "statusCode": 301 },
+    { "source": "/blog/claude-code-review", "destination": "/blog/code-review", "statusCode": 301 },
+    { "source": "/blog/claude-code-memory", "destination": "/blog/auto-memory", "statusCode": 301 }
   ],
   "rewrites": [
+    {
+      "source": "/s/:id",
+      "destination": "/shared"
+    },
+    {
+      "source": "/app/latest.json",
+      "destination": "/api/app/latest"
+    },
+    {
+      "source": "/app/downloads.json",
+      "destination": "/api/app/downloads"
+    },
+    {
+      "source": "/app/releases.json",
+      "destination": "/api/app/releases"
+    },
+    {
+      "source": "/app-demo/:path*",
+      "destination": "/app-demo/:path*"
+    },
     {
       "source": "/docs/:path*",
       "destination": "/docs/:path*"
     },
     {
       "source": "/blog/:path*",
-      "destination": "/blog/:path*"
+      "destination": "/api/legacy-blog"
     },
     {
-      "source": "/(.*)",
-      "destination": "/"
+      "source": "/open/:path*",
+      "destination": "/open"
     }
   ],
   "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
-      ]
-    },
     {
       "source": "/(.*)",
       "headers": [
@@ -56,7 +133,22 @@
     {
       "source": "/s/(.*)",
       "headers": [
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'sha256-3TPUzXhwjpQK+1gL7po7Cix3TpNA/3HGtxVbIF1N2N0=' https://analytics.ahrefs.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self' http://localhost:* https://localhost:*" }
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self' http://localhost:* https://localhost:*" }
+      ]
+    },
+    {
+      "source": "/s-frame.html",
+      "headers": [
+        { "key": "Content-Security-Policy", "value": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
+      ]
+    },
+    {
+      "source": "/open/(.*)",
+      "headers": [
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src 'none'; frame-src qualitylayer:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'" },
+        { "key": "Referrer-Policy", "value": "no-referrer" }
       ]
     },
     {

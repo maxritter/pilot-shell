@@ -181,12 +181,12 @@ Start with micro validation on your most-used agent. Add a Stop hook the first t
 ## Beyond Single Agents
 
 Self-validation and team validation aren't competing strategies. They're layers. An agent with embedded PostToolUse hooks and a Stop script handles 90% of quality issues before a validator ever looks at the output. The validator then focuses on integration concerns and architectural correctness instead of catching lint errors.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** ships a configured hook pipeline for Claude Code — formatter and linter on `PostToolUse`, type-check before stop, context capture on session events. Installed once, applied across every project.
+**QualityLayer** needs no hook pipeline. It installs as a skill and a command-line tool, runs only when you call it with `/ql`, and adds no hooks or MCP servers to your agent.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

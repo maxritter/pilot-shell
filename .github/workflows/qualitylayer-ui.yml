@@ -1,0 +1,147 @@
+name: QualityLayer source UI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - "qualitylayer/src/**"
+      - "qualitylayer/tests/frontend/**"
+      - "qualitylayer/tests/performance/**"
+      - "qualitylayer/scripts/performance/**"
+      - "qualitylayer/tools/performance/**"
+      - "qualitylayer/playwright.performance.config.ts"
+      - "qualitylayer/scripts/ui-dev.ts"
+      - "qualitylayer/playwright.ui.config.ts"
+      - "qualitylayer/package.json"
+      - "qualitylayer/bun.lock"
+      - "docs/site/**"
+      - ".github/workflows/qualitylayer-ui.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qualitylayer-ui-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checkout:
+    name: Subscription checkout browser check
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - run: bash .github/workflows/scripts/install-git-crypt.sh
+      - env: { GIT_CRYPT_KEY: "${{ secrets.GIT_CRYPT_KEY }}" }
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+      - uses: actions/setup-node@v6
+        with: { node-version: "24.20.0" }
+      - run: npm ci --ignore-scripts
+        working-directory: docs/site
+      - run: npx playwright install --with-deps chromium
+        working-directory: docs/site
+      - name: Checkout and catalog regressions
+        run: npm test -- src/components/CheckoutLink.test.tsx scripts/verify-commerce.test.ts
+        working-directory: docs/site
+      - name: Open every plan's real Polar and Stripe form without payment
+        working-directory: docs/site
+        run: |
+          npm run dev:site-only -- --host 127.0.0.1 --port 8082 --mode production > "$RUNNER_TEMP/checkout-vite.log" 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          node --input-type=module -e 'for(let i=0;i<30;i++){try{if((await fetch("http://127.0.0.1:8082/pricing")).ok)process.exit(0)}catch{}await new Promise(r=>setTimeout(r,200))}process.exit(1)'
+          npm run test:checkout -- http://127.0.0.1:8082
+
+  frontend:
+    name: Source UI browser checks (shard ${{ matrix.shard }}/2)
+    # Forks cannot unlock the encrypted source. Existing plaintext/CI gates remain separate.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    # Connected critical journeys in both themes and a compact desktop; full regression is opt-in.
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/qualitylayer/dist/.ui-browsers
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Install git-crypt
+        run: bash .github/workflows/scripts/install-git-crypt.sh
+      - name: Unlock source
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: bash .github/workflows/scripts/setup-git-crypt.sh
+      - uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+      - name: Install locked QualityLayer dependencies
+        working-directory: qualitylayer
+        run: bun install --frozen-lockfile
+      - name: Install locked website dependencies
+        working-directory: docs/site
+        run: npm ci --ignore-scripts
+      - name: Install managed Chromium
+        working-directory: qualitylayer
+        run: bun x playwright install --with-deps chromium
+      # test:ui builds one private candidate and passes it to every project, including click-speed.
+      - name: Source UI interactions, geometry and accessibility
+        working-directory: qualitylayer
+        run: bun run test:ui --all launch-choice.spec.ts seven-batch.spec.ts seven-handover.spec.ts seven-verify-checks.spec.ts seven-review-walk.spec.ts memory.spec.ts team-collaboration-ux.spec.ts artifacts-place.spec.ts artifact-sharing-responsive.spec.ts terminal-app.spec.ts shared-artifact-security.spec.ts --shard ${{ matrix.shard }}/2 --reporter=github,./scripts/ui-duration-reporter.ts
+      - name: Setup heap analysis runtime
+        if: matrix.shard == 1
+        timeout-minutes: 2
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with: { node-version: "24.20.0" }
+      - name: Install pinned performance tools without browser downloads
+        if: matrix.shard == 1
+        timeout-minutes: 2
+        working-directory: qualitylayer/tools/performance
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Bounded application performance and heap regression
+        if: matrix.shard == 1
+        timeout-minutes: 2
+        working-directory: qualitylayer
+        run: bun run perf:heap
+      - name: Keep numeric performance evidence
+        if: always() && matrix.shard == 1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: qualitylayer-performance-${{ github.run_id }}
+          path: qualitylayer/dist/performance-summary.json
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Keep fixture failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: qualitylayer-source-ui-${{ github.run_id }}-shard-${{ matrix.shard }}
+          # Source-dev traces contain decrypted JS/response bodies. Keep them off public artifacts.
+          path: qualitylayer/dist/ui-test-results/**/*.png
+          if-no-files-found: warn
+          retention-days: 7
+
+  # The one check the release waits for (release.yml, Source UI Gate): green only when every shard
+  # above passed on this commit; a failed, cancelled or skipped shard makes it fail.
+  result:
+    name: Source UI browser checks
+    if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    needs: [frontend, checkout]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every shard passed
+        env:
+          RESULT: ${{ needs.frontend.result }}
+          CHECKOUT: ${{ needs.checkout.result }}
+        run: |
+          if [ "$RESULT" != success ] || [ "$CHECKOUT" != success ]; then
+            echo "::error::source UI: $RESULT; subscription checkout: $CHECKOUT"
+            exit 1
+          fi
+          echo "Every source UI shard passed"

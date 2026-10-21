@@ -5,6 +5,8 @@
     "lib": ["ES2020", "esnext", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+    // The site's tests read repository files with Node's own modules.
+    "types": ["node"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -22,7 +24,24 @@
     "noFallthroughCasesInSwitch": false,
 
     "paths": {
-      "@/*": ["./src/*"]
+      // Files outside the site (the docs' search landmark) resolve React from here.
+      "react": ["./node_modules/@types/react"],
+      "react/*": ["./node_modules/@types/react/*"],
+      "marked": ["./node_modules/marked"],
+      // The shared-artifact files the site follows live under qualitylayer/, where only the App's own install
+      // resolves these; the site job installs just its own dependencies.
+      "css-tree": ["./node_modules/@types/css-tree"],
+      "parse5": ["./node_modules/parse5"],
+      "dompurify": ["./node_modules/dompurify"],
+      "@/*": ["./src/*"],
+      // The App's Reader is a React component the site draws, not code it type-checks: following its files
+      // would pull the App's server and core into this project. The site types the few modules it uses
+      // by hand (src/types/ql); Vite loads the real ones (src/types/ql/ql-typings.test.ts keeps them in step).
+      "@ql/ui/steps/StepDocument": ["./src/types/ql/step-document.d.ts"],
+      "@ql/ui/reader/MermaidBlock": ["./src/types/ql/mermaid-block.d.ts"],
+      "@ql/ui/components/ui/button": ["./src/types/ql/button.d.ts"],
+      "@ql/ui/components/ui/sonner": ["./src/types/ql/sonner.d.ts"],
+      "@ql/*": ["../../qualitylayer/src/*"]
     }
   },
   "include": ["src"]

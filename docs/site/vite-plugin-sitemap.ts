@@ -1,20 +1,20 @@
 /**
  * Vite plugin that generates two sitemap files at build time:
  *
- *   - /sitemap-pages.xml — landing-page URLs and on-page anchors
+ *   - /sitemap-pages.xml — canonical marketing pages
  *   - /sitemap.xml       — sitemap index referencing /sitemap-pages.xml
- *                          and the Docusaurus-generated /docs/sitemap.xml
+ *                          and /docs/sitemap.xml
  *
- * Docusaurus emits its own sitemap into the docs build directory; build-all.sh
- * copies it to /docs/sitemap.xml in the final output. The sitemap index points
+ * build-all.sh generates /docs/sitemap.xml from the combined HTML output. The index points
  * search engines and IndexNow consumers at both files.
  */
 
 import { type Plugin } from "vite";
 import fs from "fs";
 import path from "path";
+import { PUBLIC_PAGES } from "./src/lib/seo.ts";
 
-const SITE_URL = "https://pilot-shell.com";
+const SITE_URL = "https://qualitylayer.dev";
 
 interface PageEntry {
   loc: string;
@@ -24,12 +24,10 @@ interface PageEntry {
 
 // Only canonical URLs are listed. Hash-anchor URLs (#installation, #features,
 // ...) share the canonical with "/" and were flagged as "non-canonical pages
-// in sitemap" by SEO crawlers. /shared is a paste-only tool page; it lives in
-// robots.txt but not the sitemap so it doesn't surface as an orphan.
-const PAGES: PageEntry[] = [
-  { loc: "/", changefreq: "weekly", priority: "1.0" },
-  { loc: "/pricing", changefreq: "monthly", priority: "0.5" },
-];
+// in sitemap" by SEO crawlers.
+const PAGES: PageEntry[] = Object.keys(PUBLIC_PAGES).map((loc) => ({
+  loc, changefreq: loc === "/" ? "weekly" : "monthly", priority: loc === "/" ? "1.0" : "0.6",
+}));
 
 export default function sitemapPlugin(): Plugin {
   let outDir: string;
@@ -43,14 +41,11 @@ export default function sitemapPlugin(): Plugin {
     },
 
     closeBundle() {
-      const today = new Date().toISOString().split("T")[0];
-
       const pagesXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${PAGES.map(
   (p) => `  <url>
     <loc>${SITE_URL}${p.loc}</loc>
-    <lastmod>${today}</lastmod>
     <changefreq>${p.changefreq}</changefreq>
     <priority>${p.priority}</priority>
   </url>`
@@ -62,11 +57,9 @@ ${PAGES.map(
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
     <loc>${SITE_URL}/sitemap-pages.xml</loc>
-    <lastmod>${today}</lastmod>
   </sitemap>
   <sitemap>
     <loc>${SITE_URL}/docs/sitemap.xml</loc>
-    <lastmod>${today}</lastmod>
   </sitemap>
 </sitemapindex>
 `;

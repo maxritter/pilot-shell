@@ -197,12 +197,12 @@ No. An observer has exactly one tool, ObserverReport, which queues a single advi
 ### Are observer agents documented or official?
 
 Not yet. As of Claude Code 2.1.209 the feature ships in the binary but appears nowhere in the official changelog or docs, and it is gated behind an experimental flag plus a remote toggle. Everything known about it comes from inspecting the shipped client. Expect the behavior to change before any public announcement.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** installs a structured workflow for agent work on top of Claude Code: `/spec` plans the change, runs implementation under TDD, and verifies with an automated reviewer pass. The orchestration loop most agent setups end up writing by hand.
+**QualityLayer** adds a structured workflow on top of your coding agent: you approve the plan, helper agents build and test it slice by slice, and a fresh agent verifies the result against your request. The orchestration loop most agent setups end up writing by hand.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

@@ -1,9 +1,0 @@
-"""Pilot Shell status line formatter for Claude Code CLI.
-
-This module provides a status line that displays in Claude Code's native
-status line area, showing context usage, memory, plans, and license info.
-"""
-
-from launcher.statusline.formatter import format_status_line, run_formatter
-
-__all__ = ["format_status_line", "run_formatter"]

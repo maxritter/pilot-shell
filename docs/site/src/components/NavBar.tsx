@@ -1,183 +1,89 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { BookOpen, Github, Menu, Moon, Newspaper, Sun, X } from "lucide-react";
-import { navigateToSection } from "@/utils/navigateToSection";
-import { useScrollSpy } from "@/hooks/use-reveal";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Link, useLocation } from "react-router-dom";
+import { Moon, Sun } from "lucide-react";
+import { useNarrow } from "@/hooks/useNarrow";
 import { useTheme } from "@/hooks/useTheme";
+import { DOCS_URL, GITHUB_URL } from "@/lib/product";
 
-const sectionLinks = [
-  { id: "anatomy", label: "The Harness" },
-  { id: "workflows", label: "Workflows" },
-  { id: "shift-left", label: "Teams" },
-  { id: "console", label: "Console" },
-  { id: "faq", label: "FAQ" },
+type NavLink = { label: string; to: string; external?: boolean };
+
+const LINKS: NavLink[] = [
+  { label: "Your agents", to: "/#agents" },
+  { label: "How it works", to: "/#tour" },
+  { label: "Teams", to: "/#team" },
+  { label: "Pricing", to: "/pricing" },
+  { label: "Docs", to: DOCS_URL, external: true },
 ];
 
-const externalLinks = [
-  { label: "Docs", href: "/docs", icon: BookOpen },
-  { label: "Blog", href: "/blog", icon: Newspaper },
-];
+const Item = ({ link, onClick }: { link: NavLink; onClick?: () => void }) => {
+  const { pathname } = useLocation();
+  if (link.external) return <a href={link.to}>{link.label}</a>;
+  return <Link to={link.to} onClick={onClick} aria-current={pathname === link.to ? "page" : undefined}>{link.label}</Link>;
+};
 
-const NavBar = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolledPastHeader, setScrolledPastHeader] = useState(false);
-  const headerRef = useRef<HTMLElement>(null);
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { resolvedTheme, setThemePreference } = useTheme();
+export const Logo = ({ small }: { small?: boolean }) => (
+  <Link className={`w7-logo${small ? " sm" : ""}`} to="/" aria-label="QualityLayer home">
+    <span className="w7-mark" aria-hidden="true" />qualitylayer
+  </Link>
+);
 
-  // The section row only means something on the homepage, where the sections live.
-  const showSectionNav = location.pathname === "/";
-  const activeSection = useScrollSpy(showSectionNav);
+/** The GitHub mark (Octicons, MIT). */
+const GitHubMark = () => (
+  <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="currentColor">
+    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+  </svg>
+);
 
-  const themeLabel =
-    resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode";
-
-  const toggleTheme = () => {
-    setThemePreference(resolvedTheme === "dark" ? "light" : "dark");
-  };
-
-  const handleSectionClick = (id: string) => {
-    navigateToSection(id, location.pathname, navigate);
-    setMobileMenuOpen(false);
-  };
-
-  // The compact brand + CTA slide into the sticky row once the main bar is gone.
-  useEffect(() => {
-    const header = headerRef.current;
-    if (!header) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setScrolledPastHeader(!entry.isIntersecting),
-      { threshold: 0 },
-    );
-    observer.observe(header);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!mobileMenuOpen) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMobileMenuOpen(false);
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [mobileMenuOpen]);
-
+function Icons() {
+  const { theme, toggle } = useTheme();
+  const next = theme === "dark" ? "light" : "dark";
   return (
     <>
-      <header className="ps-bar-a" ref={headerRef}>
-        <div className="ps-ctr ps-row-a">
-          <Link to="/" className="ps-brand" aria-label="Pilot Shell home">
-            <img className="ps-mark" src="/box.webp" alt="" width={28} height={28} decoding="async" />
-            <span className="ps-brand-t">Pilot Shell</span>
-          </Link>
-
-          <nav className="ps-util" aria-label="Site">
-            <div className="ps-util-links">
-              {externalLinks.map((link) => (
-                <a key={link.href} className="ps-nl" href={link.href}>
-                  {link.label}
-                </a>
-              ))}
-            </div>
-            <div className="ps-ico-grp">
-              <a
-                className="ps-ibtn ps-gh"
-                href="https://github.com/maxritter/pilot-shell"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub repository"
-              >
-                <Github className="h-[18px] w-[18px]" aria-hidden="true" />
-              </a>
-              <button type="button" className="ps-ibtn" onClick={toggleTheme} aria-label={themeLabel} title={themeLabel}>
-                {resolvedTheme === "dark" ? (
-                  <Sun className="h-[18px] w-[18px]" aria-hidden="true" />
-                ) : (
-                  <Moon className="h-[18px] w-[18px]" aria-hidden="true" />
-                )}
-              </button>
-              <button
-                type="button"
-                className="ps-ibtn ps-ham"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-                aria-expanded={mobileMenuOpen}
-                aria-controls="mobile-menu"
-              >
-                {mobileMenuOpen ? (
-                  <X className="h-[18px] w-[18px]" aria-hidden="true" />
-                ) : (
-                  <Menu className="h-[18px] w-[18px]" aria-hidden="true" />
-                )}
-              </button>
-            </div>
-            <Link className="ps-btn ps-btn-sm ps-btn-sec" to="/pricing">
-              Subscribe
-            </Link>
-          </nav>
-        </div>
-
-        {mobileMenuOpen && (
-          <div className="ps-mpanel" id="mobile-menu">
-            {showSectionNav &&
-              sectionLinks.map((link) => (
-                <button key={link.id} type="button" onClick={() => handleSectionClick(link.id)}>
-                  {link.label}
-                </button>
-              ))}
-            {externalLinks.map((link) => (
-              <a key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)}>
-                <link.icon className="h-4 w-4" aria-hidden="true" />
-                {link.label}
-              </a>
-            ))}
-            <a href="https://github.com/maxritter/pilot-shell" target="_blank" rel="noopener noreferrer">
-              <Github className="h-4 w-4" aria-hidden="true" />
-              GitHub
-            </a>
-            <Link className="ps-btn ps-btn-sm ps-btn-sec" to="/pricing" onClick={() => setMobileMenuOpen(false)}>
-              Subscribe
-            </Link>
-          </div>
-        )}
-      </header>
-
-      {showSectionNav && (
-        <div className={`ps-bar-b${scrolledPastHeader ? " ps-stuck" : ""}`}>
-          <div className="ps-ctr ps-row-b">
-            <Link to="/" className="ps-brand ps-brand-c" aria-label="Pilot Shell home" tabIndex={scrolledPastHeader ? 0 : -1}>
-              <img className="ps-mark" src="/box.webp" alt="" width={28} height={28} decoding="async" />
-              <span className="ps-brand-t">Pilot Shell</span>
-            </Link>
-            <nav className="ps-secnav" aria-label="Page sections">
-              {sectionLinks.map((link) => (
-                <a
-                  key={link.id}
-                  className="ps-sl"
-                  href={`#${link.id}`}
-                  aria-current={activeSection === link.id ? "location" : undefined}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    handleSectionClick(link.id);
-                  }}
-                >
-                  <span className="ps-dot" aria-hidden="true" />
-                  {link.label}
-                </a>
-              ))}
-            </nav>
-            <Link
-              className="ps-btn ps-btn-sm ps-btn-sec ps-cta-c"
-              to="/pricing"
-              tabIndex={scrolledPastHeader ? 0 : -1}
-            >
-              Subscribe
-            </Link>
-          </div>
-        </div>
-      )}
+      <Button asChild variant="ghost" size="icon-lg" className="w7-icon"><a href={GITHUB_URL} aria-label="GitHub repository"><GitHubMark /></a></Button>
+      <Button type="button" variant="ghost" size="icon-lg" className="w7-icon" onClick={toggle} aria-label={`Switch to ${next} mode`} title={`Switch to ${next} mode`}>
+        {theme === "dark" ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
+      </Button>
     </>
+  );
+}
+
+const NavBar = () => {
+  const [open, setOpen] = useState(false);
+  // The menu only exists on narrow screens: a shadcn/ui Sheet that traps focus, closes on Escape, and every link in it closes it.
+  const narrow = useNarrow();
+
+  return (
+    <header className="w7-hdr">
+      <div className="w7-hdr-row">
+        <Logo />
+        {narrow ? (
+          <div className="w7-hdr-tools">
+            <Icons />
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger asChild>
+                <Button type="button" variant="outline" size="lg" className="w7-menu">Menu</Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w7-sheet">
+                <SheetTitle className="w7-sr">Menu</SheetTitle>
+                <SheetDescription className="w7-sr">Pages of the QualityLayer site</SheetDescription>
+                <nav className="w7-mnav" aria-label="Mobile">
+                  {LINKS.map((link) => <Item key={link.label} link={link} onClick={() => setOpen(false)} />)}
+                  <Button asChild size="xl" className="w7-nav-cta"><Link to="/download" onClick={() => setOpen(false)}>Download</Link></Button>
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
+        ) : (
+          <nav className="w7-nav" aria-label="Main">
+            {LINKS.map((link) => <Item key={link.label} link={link} />)}
+            <span className="w7-hdr-tools"><Icons /></span>
+            <Button asChild size="lg" className="w7-nav-cta"><Link to="/download">Download</Link></Button>
+          </nav>
+        )}
+      </div>
+    </header>
   );
 };
 

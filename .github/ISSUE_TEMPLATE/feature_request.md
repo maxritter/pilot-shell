@@ -23,7 +23,7 @@ labels: enhancement, needs-triage
 ## Environment
 
 - **OS**: <!-- e.g., macOS 15.3, Ubuntu 24.04 -->
-- **Pilot version**: <!-- pilot --version -->
+- **QualityLayer version**: <!-- qualitylayer --version -->
 - **Tier**: <!-- Trial / Solo / Team -->
 
 ## Checklist

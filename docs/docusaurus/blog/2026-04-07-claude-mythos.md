@@ -224,12 +224,12 @@ Anthropic's evaluation describes Mythos Preview as "the best-aligned model we've
 "Mythos-class" is Anthropic's phrasing for the capability tier above Opus, referenced internally as "Capybara." The Opus 4.7 announcement uses the term in the context of "a future broad release of Mythos-class models," suggesting Mythos Preview is the first in an internal class rather than a one-off. Future Mythos-class models would presumably ship to the public once safeguard infrastructure catches up with their capability. Opus 4.7 is the live test vehicle for those safeguards.
 
 Claude Opus 4.5 Guide
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** handles model routing in one config file: Opus for `/spec` planning, Sonnet for everyday iteration, Haiku for trivial calls. You set the policy; Pilot Shell picks per request.
+**QualityLayer** lets you choose a model for each job. Your best model plans and coordinates, a smaller one builds the slices, and an AI from the other vendor reviews the design and the finished change. You set it per job in Settings.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

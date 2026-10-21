@@ -21,8 +21,8 @@ labels: bug, needs-triage
 ## Environment
 
 - **OS**: <!-- e.g., macOS 15.3, Ubuntu 24.04 -->
-- **Claude Code version**: <!-- claude --version -->
-- **Pilot version**: <!-- pilot --version -->
+- **Coding agent and version**: <!-- Claude Code, Codex or another agent -->
+- **QualityLayer version**: <!-- qualitylayer --version -->
 - **Tier**: <!-- Trial / Solo / Team -->
 
 ## Error Output
@@ -33,6 +33,6 @@ Paste any error messages or logs here
 
 ## Checklist
 
-- [ ] I am using the latest version of Pilot Shell
+- [ ] I am using the latest version of QualityLayer
 - [ ] I have searched existing issues to avoid duplicates
 - [ ] I can reproduce this consistently with the steps above

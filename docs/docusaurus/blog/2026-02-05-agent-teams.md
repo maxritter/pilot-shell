@@ -198,12 +198,12 @@ Agent Teams sits at one end of a spectrum of multi-agent approaches in Claude Co
 Combine these approaches based on your needs. Use Agent Teams for the collaborative exploration phase, then switch to [builder-validator patterns](/blog/team-orchestration) for the implementation phase where quality gates matter. For keeping context manageable across long-running team sessions, apply the same strategies you would with any multi-agent workflow.
 
 Start with a review task this week. The overhead is low, and the capabilities will change how you think about complex development work.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** installs a structured workflow for agent work on top of Claude Code: `/spec` plans the change, runs implementation under TDD, and verifies with an automated reviewer pass. The orchestration loop most agent setups end up writing by hand.
+**QualityLayer** adds a structured workflow on top of your coding agent: you approve the plan, helper agents build and test it slice by slice, and a fresh agent verifies the result against your request. The orchestration loop most agent setups end up writing by hand.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

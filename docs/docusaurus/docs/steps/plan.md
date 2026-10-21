@@ -1,0 +1,56 @@
+---
+title: Plan
+description: "The one document you approve before any code: what it rests on, the artifact and its decisions, and how you will know it works."
+---
+
+![The eight steps, with Plan highlighted](pathname:///img/diagrams/track-plan-light.svg)
+![The eight steps, with Plan highlighted](pathname:///img/diagrams/track-plan-dark.svg)
+
+The Plan is the one document you approve before any code is written. It puts the proposed change, important decisions and unresolved issues first.
+
+![The Plan in the App, with Approve Plan and Give feedback at the top right](pathname:///img/app/plan-light.webp)
+![The Plan in the App, with Approve Plan and Give feedback at the top right](pathname:///img/app/plan-dark.webp)
+
+*Example task in a fictional project.*
+
+## What you read {#items}
+
+The page shows the sections in the order of `03-plan.md`, so the file, the Reader and the page tell the same story.
+
+| Part | What it tells you |
+| --- | --- |
+| **Summary** | The change in a few lines, with the size of the build, whether it is risky and what reviewed it |
+| **Done means** | The results from [Discuss](discuss.md), and how each will be checked |
+| **The artifact** | A wireframe or finished artifact for anything people see ([Artifacts](../artifacts.md)) |
+| **Today and after the change** | The same view before and after, side by side |
+| **Engineering decisions** | Two sentences each, with the diagram open beside them where a picture is clearer |
+| **Not doing**, **Decisions made for you**, **Assumptions**, **Before the build** | What stays untouched; your agent's smaller choices, with reasons; what the Plan takes for granted; what must be ready first, such as a login |
+
+Artifacts, wireframes and diagrams are never collapsed, so you approve what you can see. Risks, your earlier answers, what the Plan rests on, the review findings and the system design contracts are collapsed under them, each with a one-line summary. Both levels show the same sections; the product level uses plainer words for them ([two levels](../intro.md#two-levels)). Patterns to follow and the proof gathered before the gate are in the document.
+
+### What to read first {#read-first}
+
+Start with **Look here**, the lines under the summary. Each names its first item and how many there are, and jumps to it: a risky concern, an assumption or decision the agent is unsure of, and the trust boundary when the Plan names one. Unresolved or unknown review findings remain visible; a recorded research source does not mean the Plan review is complete.
+
+## Approve or give feedback {#answering}
+
+A choice that only appears once an artifact is drawn is a **Your call** (at most two). **Your turn** shows them one at a time, with the part of the Plan each concerns, and each answer reaches your agent immediately. Findings from the technical review return to the planning agent; only a new hard choice reaches you.
+
+1. Read the complete Plan.
+2. Pin comments, or press **Give feedback**. Your agent revises; the diff shows what changed.
+3. Press **Approve Plan** at the top right. It approves the Plan, **Done means** and the artifact together.
+
+Only your click approves: answering a question does not approve the Plan.
+
+## Comment on a diagram {#diagrams}
+
+![A pinned comment on a diagram: the agent answers and changes the Plan](pathname:///img/diagrams/decision-light.svg)
+![A pinned comment on a diagram: the agent answers and changes the Plan](pathname:///img/diagrams/decision-dark.svg)
+
+Click any part of a diagram or passage to pin a comment. Your agent reads it when it next checks the task; a stopped or disconnected agent cannot answer yet. Teammates can comment too ([Plan reviews](../team/plans.md)).
+
+## Before it reaches you {#before-it-reaches-you}
+
+Your agent rereads every Plan as a reviewer would. A risky Plan also gets a separate review using an installed agent selected in [Settings](../reference/settings.md#second-opinion). While a required review is running, its amber reason sits beside the blocked **Approve Plan** button. Hover or focus the approval control to read why it is blocked. It unlocks once required findings and human choices are settled ([Settings](../reference/settings.md#second-opinion)).
+
+Next: [Start Implement](implement.md#start-implement). The build session writes the [Outline](outline.md), then builds it.

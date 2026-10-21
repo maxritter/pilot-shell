@@ -235,12 +235,12 @@ The answer is yes. Agents are good enough. You just need to standardize it.
 For simpler scenarios where you just need to load different context for different session types, see conditional context loading with slash commands. When you don't need installation scripts, a slash command is often enough.
 
 Setup hooks shine when you want **one command** that installs everything, diagnoses problems, and walks new engineers through the process. Combine deterministic scripts with intelligent agents, and you get the best of both worlds. If your team works across Windows, Linux, and macOS, see [cross-platform hook patterns](/blog/cross-platform-hooks) to make sure your setup hooks work on every OS.
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** ships a configured hook pipeline for Claude Code — formatter and linter on `PostToolUse`, type-check before stop, context capture on session events. Installed once, applied across every project.
+**QualityLayer** needs no hook pipeline. It installs as a skill and a command-line tool, runs only when you call it with `/ql`, and adds no hooks or MCP servers to your agent.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

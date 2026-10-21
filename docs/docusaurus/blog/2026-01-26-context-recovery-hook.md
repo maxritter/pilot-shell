@@ -296,12 +296,12 @@ The full implementation handles edge cases - session changes, transcript discove
 - [Session Lifecycle Hooks](/blog/session-lifecycle-hooks) - Setup and cleanup automation
 
 [Session Lifecycle](/blog/session-lifecycle-hooks)
-<!-- pilot-shell-cta -->
+<!-- qualitylayer-cta -->
 
 ---
 
-## About Pilot Shell
+## About QualityLayer
 
-**Pilot Shell** ships a configured hook pipeline for Claude Code — formatter and linter on `PostToolUse`, type-check before stop, context capture on session events. Installed once, applied across every project.
+**QualityLayer** needs no hook pipeline. It installs as a skill and a command-line tool, runs only when you call it with `/ql`, and adds no hooks or MCP servers to your agent.
 
-[See Pilot Shell on GitHub →](https://github.com/maxritter/pilot-shell)
+[Try QualityLayer →](https://qualitylayer.dev)

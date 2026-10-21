@@ -1,55 +1,77 @@
-# Pilot Shell repository instructions
+# QualityLayer repository instructions
 
-## Project
+QualityLayer is an opt-in planning/build harness. The TypeScript code in
+`qualitylayer/` compiles into the CLI, server and App. Running an artifact command
+alone does not start the full workflow.
 
-Pilot Shell is an engineering harness for Claude Code and Codex. The installer
-ships agent-specific skills, rules, hooks, MCP configuration, the Console, and
-the `pilot` CLI while preserving user-owned configuration.
+## Invariants
 
-## Commands
+- Preserve unrelated working changes and the shared index. Git writes require the
+  corresponding user authorization. Before committing in a shared checkout,
+  read `docs/agents/operations.md` for the private-index procedure.
+- Keep source, phase texts, schemas and fixtures under `qualitylayer/`.
+  `advance()` owns task-stage writes; `core/flow.ts` owns the seven workflow steps.
+- Source under `qualitylayer/` and `docs/site/api/` is git-crypt encrypted, except
+  the declared package/lock/TypeScript/Biome files. Read committed encrypted source
+  with `git cat-file --filters HEAD:<path>`.
+- Tests use temporary homes/repositories and fixture services. Never run an
+  installer, upgrade or uninstaller against the real home. Never install Pilot
+  Shell on this Mac.
+- Keep the resource-budget contract when changing polls, watchers, hooks or
+  background work; read `docs/agents/operations.md` for its checks.
 
-- Launcher: `uv run pytest launcher/tests/unit/ -q`
-- Installer: `uv run pytest installer/tests/unit/ -q`
-- Hooks: `uv run pytest pilot/hooks/tests/ -q`
-- Benchmark skill: `uv run pytest pilot/skills/benchmark/tests/ -q`
-- Console: `cd console && bun test`
-- Full Python: `uv run pytest installer/tests/unit/ launcher/tests/unit/ pilot/hooks/tests/ pilot/skills/benchmark/tests/ -q`
-- Build binary: `uv run python -m launcher.build`
-- Agent-asset parity: `node scripts/sync-agent-assets.mjs --check`
+## Verification
 
-## Repository rules
+For substantive code changes, quality regressions or retrospective reviews, read
+the repository's `local-code-quality` skill when installed. Its local Sonar
+analysis and reviewed Qlty baseline complement the existing verification gates;
+the internal release preflight is mandatory. Customer tooling uses `ql-quality`.
 
-- Preserve unrelated work in the dirty worktree. Do not reset, restore, or
-  overwrite concurrent changes.
-- Use shell commands directly, `apply_patch` for source edits, Semble for intent
-  search, CodeGraph for callers or non-local runtime blast radius, and ast-grep
-  for syntax-aware structural search or controlled codemods.
-- Keep `launcher/` and `installer/` independent. They ship as separate packages
-  and must never import one another.
-- Edit generated contracts at their canonical source, regenerate them, and
-  verify the installed/generated artifact rather than assuming source parity.
-- Day-to-day prerelease work normally uses `dev`; production releases use
-  `main`. Never switch branches, commit, push, rebase, or force-update history
-  without the corresponding user authorization.
+From `qualitylayer/`, use `bun run typecheck`, `bun run lint` and focused
+`bun run test <files>` for the affected behavior. Plain `bun test` can leak DOM
+state. Read `docs/agents/verification.md` for the checkout's test tiers, browser
+matrix, release gates and workflow benchmark; package scripts are executable truth.
+Git commit/push hooks remain mandatory. Do not build or run the building test
+runner while a release gate is using `dist/qualitylayer`.
 
-## Cross-agent assets
+## Product and visible changes
 
-- `AGENTS.md` is the shared repository core; `CLAUDE.md` must remain exactly
-  `@AGENTS.md` plus a trailing newline.
-- `.agents/skills/` is canonical. `.claude/skills/` is generated and must not be
-  edited directly.
-- `scripts/sync-agent-assets.mjs --check` must pass. Use `--write` only to
-  recover drift after fixing the canonical source.
-- Ignored skills outside the explicitly tracked canonical/mirror set remain
-  private local extensions and are never copied or deleted automatically.
-- Provider-generated skills that intentionally install different Claude and
-  Codex variants (currently Impeccable) remain provider-owned and are excluded
-  from canonical/mirror synchronization; never overwrite one variant with the
-  other to force byte parity.
+Use `qualitylayer/PRODUCT.md`, `qualitylayer/DESIGN.md` and `ql-artifact`.
+Each surface has one lasting artifact in local QualityLayer Artifacts; change it first, show
+and review it there, then implement, so artifact and code never drift:
 
-## Matching detailed rules
+- App Model (`qualitylayer/artifacts/app/app-model`): every visible App change, including
+  wording or one control.
+- Website (`qualitylayer/artifacts/site/website-model`): the site and the docs guides.
+- Team Model (`qualitylayer/artifacts/collaboration-data-model`): the team backend's
+  tables, lifetimes, storage and API authority.
+- Workflow (`qualitylayer/artifacts/app/workflow`): the steps, what a step page shows, the
+  sections and order of each step's Markdown file, its schemas and phase texts, and
+  what the person is asked or approves.
 
-- `.claude/rules/pilot-shell-codex-skill-sync.md` — `installer/steps/codex_files.py`, `installer/skill_builder.py`, their tests, `pilot/hooks/{codex_skill_sync.py,cc_skill_sync.py,_lib/util.py}`, hook tests, and `pilot/skills/**` — read before changing skill build, adaptation, or license gating.
-- `.claude/rules/pilot-shell-installer-patterns.md` — `installer/**` — read before changing installer merge, ownership, or file-placement behavior.
-- `.claude/rules/pilot-shell-package-boundaries.md` — `installer/**`, `launcher/**` — read before moving logic across package boundaries.
-- `.claude/rules/pilot-shell-shared-display-sections.md` — `pilot/spec/plan-format.json`, `scripts/gen_plan_format.py`, Console Spec rendering, and website feedback rendering — read before changing plan section order or visibility.
+Keep code and its artifact aligned. Claude Design is not a workspace for
+this repository; Claude Code may provide a second opinion. Inside a QualityLayer
+build the independent visual critique is Polish's, once per build, not each
+slice's.
+
+Read `docs/agents/artifact.md` for artifact authoring/review, composition checks,
+model ownership and release evidence. Use Impeccable and the user-level Anti-slop
+plugin for relevant UI/copy work; reuse their installations and effective hooks.
+Mechanical checks and matching tokens do not establish visual approval.
+For shared UI, inspect the production consumers at their actual content widths,
+with long labels, paths and requests in both themes. Focused Plan previews reuse
+the real artifact components and open the exact page and stable section; do not
+approve simplified redraws in their place. Record the visual critique and fix
+clipping before local installation or release.
+
+## Ownership
+
+Before publishing a QualityLayer beta or stable release, follow the internal
+`local-code-quality` skill: Sonar's gate must be green and Qlty must have zero
+unreviewed findings for the actual candidate source. Missing or stale evidence
+does not pass. Keep this repository release policy outside the shipped workflow.
+
+`AGENTS.md` is the shared source; `CLAUDE.md` stays exactly `@AGENTS.md` plus a
+newline. A workflow bench runs only when Max asks for one; then read the
+benchmark section in `docs/agents/verification.md`. For delegated QualityLayer findings, use
+`ql-feedback` before edits and cite the shared inbox heading and evidence.
