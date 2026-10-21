@@ -248,7 +248,7 @@ jobs:
         run: bash .github/workflows/scripts/setup-git-crypt.sh
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
-          node-version: "24.21.0"
+          node-version: "24.22.0"
       - name: Run skill sync regression tests
         run: node --test pilot/skills/setup-rules/tests/sync-agent-assets.test.mjs
       - name: Install website dependencies
@@ -281,7 +281,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
-          bun-version: "1.4.2"
+          bun-version: "1.4.3"
 
       - name: Install dependencies
         working-directory: console
@@ -314,12 +314,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
-          node-version: "24.21.0"
+          node-version: "24.22.0"
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
-          bun-version: "1.4.2"
+          bun-version: "1.4.3"
 
       - name: Install dependencies
         working-directory: console
@@ -414,7 +414,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
-          node-version: "24.21.0"
+          node-version: "24.22.0"
 
       - name: Get current version
         id: current
@@ -855,12 +855,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
-          node-version: "24.21.0"
+          node-version: "24.22.0"
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
-          bun-version: "1.4.2"
+          bun-version: "1.4.3"
 
       - name: Install Console dependencies for versioned bundle rebuild
         working-directory: console
@@ -1038,7 +1038,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
-          node-version: "24.21.0"
+          node-version: "24.22.0"
 
       - name: Install Vercel CLI
         run: npm install -g vercel

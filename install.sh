@@ -790,7 +790,7 @@ run_installer() {
 
 	# shellcheck disable=SC2086 # These optional strings intentionally expand to multiple CLI arguments.
 	uv run --python 3.12 --no-project --no-config \
-		--with rich==15.0.0 --with certifi==2026.7.22 --with PyYAML==6.0.3 \
+		--with rich==15.0.0 --with certifi==2026.10.19 --with PyYAML==6.0.3 \
 		python -m installer install $system_arg $version_arg $local_arg "$@"
 }
 

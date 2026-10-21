@@ -186,6 +186,10 @@ These files contain hardcoded version strings that duplicate the manifest. After
 | `install.sh` | PyPI bootstrap: `rich==X`, `certifi==X`, `PyYAML==X` |
 | `launcher/build.py` | PyPI bootstrap: `cryptography==X` |
 | `.github/workflows/supply-chain.yml` | CI PyPI pin: `PyYAML==X` |
+| `.github/workflows/{release,release-dev,deploy-website}.yml` | CI runtimes: `node-version: "X"` (node-24-brew), `bun-version: "X"` (bun-brew) |
+
+Then run `uv run python scripts/check_manifest_drift.py`; it must print
+`OK: no manifest drift detected.` and names any pin the table missed.
 
 For curl entries with version-pinned URLs (e.g., `nvm-curl`), also update `source_url`
 to embed the new version in the URL path.
