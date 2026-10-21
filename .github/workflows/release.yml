@@ -428,6 +428,8 @@ jobs:
 
   candidate:
     name: Stage the exact candidate without publication
+    permissions:
+      contents: read
     needs: prepare-release
     if: >-
       ${{ always() && inputs.operation != 'promote' &&
@@ -888,6 +890,8 @@ jobs:
   # A clean Linux install of the beta just published, from qualitylayer.dev.
   beta-install:
     name: Beta install
+    permissions:
+      contents: read
     needs: [prepare-release, publish-release]
     if: ${{ always() && github.ref_name == 'dev' && needs.publish-release.result == 'success' }}
     uses: ./.github/workflows/beta-install.yml
