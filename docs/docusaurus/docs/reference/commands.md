@@ -11,7 +11,7 @@ description: Ask in plain language, or look up the CLI commands for tasks, artif
 ![A visual Plan beside its agent conversation](pathname:///img/app/plan-dark.webp)
 
 
-Ask your agent in natural language, naming **QualityLayer** or **QL**. The same wording works in Claude Code, Codex, Pi and OpenCode; no slash or dollar skill invocation is required.
+Ask your agent in natural language, naming **QualityLayer** or **QL**. The same wording works in Claude Code, Codex, Cursor, Grok, Antigravity, Pi and OpenCode; no slash or dollar skill invocation is required.
 
 | Example request | What it does |
 | --- | --- |
@@ -23,15 +23,15 @@ Ask your agent in natural language, naming **QualityLayer** or **QL**. The same 
 | “Open the current QualityLayer artifact in my browser at Billing” | Open the exact artifact page and section; clarify an ambiguous current artifact |
 | `/task-pane` | Open the pane with the steps and the build's progress (Claude Code) |
 
-**+ New** and **Start the build** offer **In QualityLayer** and **In my terminal, app or IDE**. The external option copies a request; choose the model and effort in the agent receiving it. See [App runs](../app.md#agent-runs) for platform support.
+**+ New** and **Start the build** offer **In the App** and **In my terminal**. The external option copies a request; choose the model and effort in the agent receiving it. See [App runs](../app.md#agent-runs) for platform support.
 
 Your agent loads `ql-workflow` for workflow execution, `ql-artifact` for artifacts, `ql-peer` for other agent sessions, and `ql-manage` for lookup, memory, sharing, setup and diagnostics. Standalone artifact and administrative requests do not create a workflow task. Each skill uses the current CLI's instructions for the operation.
 
 ## Terminal mode
 
-Ask “Using QualityLayer in the terminal, plan a CSV export” to answer questions and approve the Plan and finished change in your agent's chat. Claude Code, Codex, Pi and OpenCode use their available question picker; numbered chat choices are the fallback. Only your own picks or words count as answers and approvals.
+Ask “Using QualityLayer in the terminal, plan a CSV export” to answer questions and approve the Plan and finished change in your agent's chat. Claude Code, Codex, Pi and OpenCode use their available question picker; numbered chat choices are the fallback, and the only form in Cursor, Grok and Antigravity. Only your own picks or words count as answers and approvals.
 
-Where the agent runs decides where you answer: **In QualityLayer** keeps questions and approvals in the App, **In my terminal, app or IDE** in the agent's chat. `qualitylayer task set answers=app|terminal` changes it later for the current task. A computer without a screen selects Terminal mode automatically; existing tasks retain their saved choice. The App can still show the task without opening or notifying by itself.
+Where the agent runs decides where you answer: **In the App** keeps questions and approvals in the App, **In my terminal** in the agent's chat. `qualitylayer task set answers=app|terminal` changes it later for the current task. A computer without a screen selects Terminal mode automatically; existing tasks retain their saved choice. The App can still show the task without opening or notifying by itself.
 
 | Command | What it does |
 | --- | --- |
@@ -56,7 +56,8 @@ Terminal artifact feedback uses `qualitylayer artifact comments add <name> --pag
 | `qualitylayer tasks` | List tasks, by status or age |
 | `qualitylayer doctor` | Check the setup; `--repair` fixes what it can |
 | `qualitylayer agents list` | Read the last executable/version results without running another check |
-| `qualitylayer agents check [all\|claude-code\|codex\|pi\|opencode]` | Check installed executables and versions with the current login PATH; account access is checked when a session starts |
+| `qualitylayer agents check [all\|claude-code\|codex\|pi\|opencode\|cursor\|grok\|antigravity]` | Check installed executables and versions with the current login PATH, and each agent's sign-in as its own status command reports it |
+| `qualitylayer agents repair <agent>` | Reinstall QualityLayer's skills and hooks for one agent, then report its state |
 | `qualitylayer update` | Update and print the release notes; with the App, it hands over to the App. See [Updates](../install.md#updates) |
 | `qualitylayer feedback "<text>" [--idea] [--image <file>]` | Send feedback from a terminal, the same way as the App's sheet. See [what a report sends](files.md#feedback) |
 | `qualitylayer uninstall` | Remove it; `--purge` also removes the licence and task state |

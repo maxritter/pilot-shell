@@ -39,11 +39,15 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "Can I run my agent in the App or browser?",
-    "Yes. Start Claude Code, Codex, Pi or OpenCode from New task or Implement. Your task stays on the left and the agent runs in the right sidebar. Use the desktop App or the browser connected to your local installation. Your own terminal, VS Code and other IDEs remain available.",
+    "Yes. Start Claude Code, Codex, Cursor, Grok, Antigravity, Pi or OpenCode from New task or Implement. Your task stays on the left and the agent runs in the right sidebar. Use the desktop App or the browser connected to your local installation. Your own terminal, VS Code and other IDEs remain available.",
   ),
   faq(
     "What does it cost to run?",
-    "Your agents run on your own subscription. The App shows each step's estimated cost.",
+    "Your agents run on your own subscription. The App shows each step's estimated cost. Settings › Usage adds the tokens and estimated cost of the last 7, 30 or 90 days for Claude Code, Codex, Pi and OpenCode.",
+  ),
+  faq(
+    "Can I see how much of my plan is left?",
+    "For Claude Code and Codex, yes. The sidebar shows the window with the least left, the conversation footer warns when one runs low, and Settings › Usage lists every window with its reset time. The other agents report no limits, and the App says so. A build that stops on a limit can continue by itself when the window resets.",
   ),
   faq(
     "Does my code leave my computer?",
@@ -66,7 +70,7 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "Do I pay for AI usage here?",
-    "No. Claude Code, Codex, Pi and OpenCode use your own subscriptions or API accounts. QualityLayer charges only for itself.",
+    "No. Your coding agents use your own subscriptions or API accounts. QualityLayer charges only for itself.",
   ),
   faq(
     "Is there a limit on tasks or repositories?",
@@ -74,7 +78,7 @@ export const PRICING_FAQS: Faq[] = [
   ),
   faq(
     "Which agents does it work with?",
-    "Claude Code, Codex, Pi and OpenCode have native setup, model choices and interactive sessions in the App or browser. Choose any installed agent for a separate review. The CLI connects other agents that run shell commands, including in your own terminal, VS Code or another IDE.",
+    "Claude Code, Codex, Cursor, Grok, Antigravity, Pi and OpenCode have native setup, model choices and interactive sessions in the App or browser. Choose any installed agent for a separate review. The CLI connects other agents that run shell commands, including in your own terminal, VS Code or another IDE.",
   ),
   faq(
     "Who needs a seat?",

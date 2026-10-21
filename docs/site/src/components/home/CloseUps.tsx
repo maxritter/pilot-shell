@@ -289,6 +289,12 @@ const COST: [string, string, string, string][] = [
   ["Verify", "21 min", "$5.60", "var(--ql-check)"],
 ];
 
+/** Each reporting agent's windows: label, what is left in percent, when it resets. Below 25 % the row turns amber. */
+const LIMITS: [string, [string, number, string][]][] = [
+  ["Claude Code", [["5 hours", 62, "1 h 20 min"], ["This week", 71, "3 days"]]],
+  ["Codex", [["5 hours", 18, "40 min"], ["This week", 64, "4 days"]]],
+];
+
 const waits = (words: string): Chip => ({ mark: "wait", name: "Claude Code", words });
 const works = (words: string): Chip => ({ mark: "work", name: "Claude Code", words });
 
@@ -412,7 +418,7 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
           top={<TopBar stage={4} chip={waits("Plan approved")} />}
           gate={<GateTrack items={[{ label: "Start", state: "cur" }, { label: "Slices · 3" }, { label: "Checked as it builds" }, { label: "Agents check every point" }]} turn="Your turn · start the build" />}>
           <YourTurn kind="Implement" title="Start the build" text="Paste this request into your agent. From then on the build runs on its own until the final review.">
-            <span className="cu-seg cu-agent-seg"><span className="on">Claude Code</span><span>Codex</span><span>Pi</span><span>OpenCode</span><span>Another agent</span></span>
+            <span className="cu-seg cu-agent-seg"><span className="on">Claude Code</span><span>Codex</span><span>Cursor</span><span>Grok</span><span>Antigravity</span><span>Pi</span><span>OpenCode</span><span>Another agent</span></span>
             <p className="cu-defs"><span><span className="cu-k">Plans each slice</span> Opus 5.5</span><span><span className="cu-k">Builds</span> Sonnet 5.5</span><span><span className="cu-k">Effort</span> High</span><span className="cu-lnk">Change</span></p>
             <div className="cu-cmd"><code>Using QualityLayer, implement the approved plan for task retry-webhooks</code><span className={`cu-btn pri sm${step === 1 ? " press" : ""}`}>{at(2) ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}{at(2) ? "Copied" : "Copy request"}</span></div>
           </YourTurn>
@@ -589,9 +595,9 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
       // The question with its passage in view from the first moment; your agent's draft waits, not sent, for your yes.
       return (
         <Frame label="Questions for you"
-          top={<TopBar stage={-1} title="Team" kind="Ritter Labs · Dana’s App" chip={null} />}
+          top={<TopBar stage={-1} title="Team" kind="Northwind Labs · Dana’s App" chip={null} />}
           gate={<GateTrack items={[]} turn="Your turn · 2 questions" />}>
-          <YourTurn kind="Question from Max Ritter · 25 min ago" count="1 of 2" title="“Is one minute right for the partner API?”" text={<>Retry failed webhooks · Plan · <b>needed before approval</b></>}
+          <YourTurn kind="Question from Priya Shah · 25 min ago" count="1 of 2" title="“Is one minute right for the partner API?”" text={<>Retry failed webhooks · Plan · <b>needed before approval</b></>}
             foot={<Keys keys={[["1", "looks right"], ["2", "suggest a change"], ["R", "reply"]]} />}>
             <p className="cu-quote">A failed delivery is sent again <mark>one minute apart</mark>, three times, then the customer gets one mail.</p>
             <Choices items={[["Looks right"], ["Suggest a change"], ["Reply"]]} rec={-1} picked={at(1) ? 1 : -1} own="Or hand it to someone else…" />
@@ -608,7 +614,7 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
     case "space":
       return (
         <Frame label="Team space"
-          top={<TopBar stage={-1} title="Team" kind="Ritter Labs · 4 members" chip={null} />}
+          top={<TopBar stage={-1} title="Team" kind="Northwind Labs · 4 members" chip={null} />}
           gate={<GateTrack items={[{ label: "Questions for you · 0", state: "done" }, { label: "Your questions to others · 2", state: "cur" }, { label: "Working now · 3" }]} />}>
           <section className="cu-card">
             <p className="cu-cardh"><b>Your questions to others</b><span className="cu-k">2</span></p>
@@ -650,22 +656,27 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
       return (
         <Frame label="Settings"
           top={<TopBar stage={-1} title="Settings" kind="every project on this computer" chip={null} />}
-          gate={<div className="cu-gt"><span className="cu-seg"><span className="on">Workflow</span><span>Licence</span><span>Team</span><span>About</span></span></div>}>
+          gate={<div className="cu-gt"><span className="cu-seg"><span>Workflow</span><span>Agents</span><span className="on">Usage</span><span>Sessions</span><span>About</span></span></div>}>
           <div className="cu-two">
             <div className="cu-col">
-              <section className="cu-card">
-                <p className="cu-cardh"><b>Planning defaults</b><span className="cu-k">Discuss, Research, Plan, Outline</span></p>
-                <p className="cu-set"><span>Agent</span><span className="cu-seg cu-agent-seg"><span className="on">Claude Code</span><span>Codex</span><span>Pi</span><span>OpenCode</span></span></p>
-                <p className="cu-set"><span>Model</span><span className="cu-sel">Opus 5.5</span></p>
-                <p className="cu-set"><span>Effort</span><span className="cu-sel">High</span></p>
-                <p className="cu-set"><span>Starts in</span><span className="cu-sel">This session</span></p>
-              </section>
-              <section className="cu-card">
-                <p className="cu-cardh"><b>Build defaults</b><span className="cu-k">Implement</span></p>
-                <p className="cu-set"><span>Agent</span><span className="cu-seg cu-agent-seg"><span className={at(1) ? "" : "on"}>Claude Code</span><span className={at(1) ? "on" : ""}>Codex</span><span>Pi</span><span>OpenCode</span></span></p>
-                <p className="cu-set"><span>Plans each slice</span><span className="cu-sel">Opus 5.5</span></p>
-                <p className="cu-set"><span>Builds</span><span className="cu-sel">{at(1) ? "GPT-6.1 Sol" : "Sonnet 5.5"}</span></p>
-                <p className="cu-set"><span>Checks it<small>never wrote the code</small></span><span className="cu-sel">{at(1) ? "Opus 5.5" : "GPT-6.1 Sol"}</span></p>
+              <section className="cu-card cu-lim">
+                <p className="cu-cardh"><b>Plan limits</b><span className="cu-k">checked 1 min ago</span></p>
+                {LIMITS.map(([agent, windows]) => (
+                  <div key={agent} className="cu-lim-a">
+                    <p className="cu-lim-h"><b>{agent}</b></p>
+                    {windows.map(([label, left, resets]) => (
+                      <p key={label} className={`cu-lim-w${left < 25 ? " low" : ""}`}>
+                        <span>{label}</span>
+                        <span className="cu-lim-track"><i style={{ width: `${left}%` }} /></span>
+                        <span>{left} %</span>
+                        <span className="cu-k">{resets}</span>
+                      </p>
+                    ))}
+                  </div>
+                ))}
+                <p className="cu-lim-note cu-k">Pi, OpenCode, Cursor, Grok and Antigravity don't report plan limits.</p>
+                <p className="cu-set"><span>Resume when a limit resets<small>A stopped build continues by itself</small></span><span className="cu-sel">On</span></p>
+                <p className={`cu-lim-note ${show(1)}`}>If Codex stops at its limit, the build continues when the window resets.</p>
               </section>
             </div>
             <section className="cu-card cu-cost">
@@ -688,7 +699,7 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
           <section className="cu-card cu-new">
             <p className="cu-cardh"><b>New task</b><span className="cu-k">starts in your coding agent</span></p>
             <div className="cu-newb">
-              <span className="cu-seg cu-agent-seg"><span className="on">Claude Code</span><span>Codex</span><span>Pi</span><span>OpenCode</span><span>Another agent</span></span>
+              <span className="cu-seg cu-agent-seg"><span className="on">Claude Code</span><span>Codex</span><span>Cursor</span><span>Grok</span><span>Antigravity</span><span>Pi</span><span>OpenCode</span><span>Another agent</span></span>
               <span className="cu-field">{REQUEST}</span>
               <p className="cu-defs"><span><span className="cu-k">Model</span> Opus 5.5</span><span><span className="cu-k">Effort</span> High</span><span><span className="cu-k">Starts in</span> a new session</span><span className="cu-lnk">Change</span></p>
               <div className="cu-cmd"><code>Using QualityLayer, plan {REQUEST}</code><span className={`cu-btn pri sm${step === 1 ? " press" : ""}`}>{at(2) ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}{at(2) ? "Copied" : "Copy request"}</span></div>

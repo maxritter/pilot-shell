@@ -130,7 +130,7 @@ describe("the flow in the copy: asked and answered in the App", () => {
     expect(read(homeIndex).match(layout)?.length, "home page for crawlers").toBe(1);
     // An agent outside the App asks in its own chat; the guide never says it asks in the App.
     const guide = read(firstTask);
-    expect(guide).toMatch(/When the agent runs in your terminal, app or IDE, it asks each decision in its own chat/);
+    expect(guide).toMatch(/When the agent runs in your terminal, it asks each decision in its own chat/);
     expect(guide).not.toMatch(layout);
     expect(home).toContain("Questions arrive together in Your turn");
     expect(home).toContain("Answer in any order");

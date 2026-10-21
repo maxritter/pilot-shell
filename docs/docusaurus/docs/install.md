@@ -6,7 +6,7 @@ description: Use QualityLayer in the desktop App or your browser, with your task
 ![One rule: a machine with a screen gets the App, which updates itself; WSL2, dev containers and servers get the command line and open the App in a browser](pathname:///img/diagrams/install-light.svg)
 ![One rule: a machine with a screen gets the App, which updates itself; WSL2, dev containers and servers get the command line and open the App in a browser](pathname:///img/diagrams/install-dark.svg)
 
-**You need** macOS, Windows or Linux, Git, a repository, and Claude Code, Codex, Pi, OpenCode or [another agent](agents/other.md) that you have signed in to and started once. See [native agent setup](agents/native.md) for supported versions and commands.
+**You need** macOS, Windows or Linux, Git, a repository, and Claude Code, Codex, Cursor, Grok, Antigravity, Pi, OpenCode or [another agent](agents/other.md) that you have signed in to and started once. See [native agent setup](agents/native.md) for supported versions and commands.
 
 ## On your computer
 
@@ -14,8 +14,9 @@ description: Use QualityLayer in the desktop App or your browser, with your task
 
 1. **Licence:** activate yours, or start the 7-day trial.
 2. **Command line:** the App installs the `qualitylayer` command, skills and hooks.
-3. **Your agents:** Claude Code, Codex, Pi and OpenCode are connected when found on this computer.
-4. **Your level:** Engineering (default) or Product. [What each changes](intro.md#two-levels).
+3. **Your agents:** each of the seven supported agents is shown with its sign-in and plan, and connected when found on this computer. One that is missing offers **Install…**, which opens the vendor's install page or shows the command for you to run.
+4. **Your projects:** the repositories your agents worked in lately, found in their own history on this computer. Those with a conversation in the last 14 days start checked; **Open QualityLayer** adds the checked ones.
+5. **Your level:** Engineering (default) or Product. [What each changes](intro.md#two-levels).
 
 On Windows you can also run `irm https://qualitylayer.dev/install.ps1 | iex` in PowerShell. This installs the App and the command line.
 
@@ -58,6 +59,8 @@ To keep your licence, Claude Code login and QualityLayer setup when the containe
 
 Click **Update ready** in the App's sidebar, then **Restart and update**. Without the App, run `qualitylayer update`. See the [changelog](reference/changelog.md).
 
+**Settings › About › Update channel** chooses what you are offered. **Stable** (the default) takes stable releases only. **Beta** also takes betas, and moves to each stable release once it is newer than your beta, so switching never takes you back to an older version. `qualitylayer update` follows the same channel. An installed beta counts as Beta until you choose.
+
 Setup connects the supported agents it finds. Updates preserve unrelated skills and your agents' personal settings.
 
 ## Remove it {#uninstall}
@@ -72,7 +75,7 @@ Works even when the App or CLI is blocked or gone:
 & ([scriptblock]::Create((irm https://qualitylayer.dev/install.ps1))) -Uninstall
 ```
 
-It removes QualityLayer's integrations from Claude Code, Codex, Pi and OpenCode (keeping a backup of changed files), plus the skills, App and shortcuts. Your native logins, settings and session history stay. Your licence and tasks stay; add `-Purge` to remove QualityLayer's data too.
+It removes QualityLayer's integrations from your coding agents (keeping a backup of changed files), plus the skills, App and shortcuts. Your native logins, settings and session history stay. Your licence and tasks stay; add `-Purge` to remove QualityLayer's data too.
 
 ## Windows with Intune or Defender Exploit Guard {#managed-windows}
 

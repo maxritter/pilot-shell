@@ -38,7 +38,7 @@ Each of the first seven steps writes one document. You approve twice: the Plan, 
 
 ## Who it is for
 
-Use it for medium and large changes, solo or with a team. Claude Code, Codex, Pi and OpenCode run beside your task in the App or browser through [native integrations](agents/native.md). [Other coding agents](agents/other.md) use the same workflow through the CLI. Your agent keeps its own login and provider settings.
+Use it for medium and large changes, solo or with a team. Claude Code, Codex, Cursor, Grok, Antigravity, Pi and OpenCode run beside your task in the App or browser through [native integrations](agents/native.md). [Other coding agents](agents/other.md) use the same workflow through the CLI. Your agent keeps its own login and provider settings.
 
 ## Two levels
 

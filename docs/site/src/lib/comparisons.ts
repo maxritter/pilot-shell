@@ -81,7 +81,7 @@ export const COMPARISONS: Comparison[] = [
     slug: "kiro",
     name: "Kiro",
     summary: "Integrated spec workflows and property-based testing, compared with QualityLayer's process around your coding agent.",
-    lead: "Kiro integrates specifications into its coding environment. QualityLayer works with Claude Code, Codex, Pi and OpenCode. Compare the environment you want to use and the evidence you want before approval.",
+    lead: "Kiro integrates specifications into its coding environment. QualityLayer works with Claude Code, Codex, Cursor, Grok, Antigravity, Pi and OpenCode. Compare the environment you want to use and the evidence you want before approval.",
     strengths: "Kiro turns requirements into technical designs and trackable tasks. Feature Specs support requirements-first and design-first approaches. Its IDE also supports property-based testing that connects specified behavior to executable checks.",
     agents: "Kiro documents its own spec workflow in its IDE, CLI and web surfaces. QualityLayer's workflow runs with your coding agent. Kiro has a CLI too, so describing this as a choice between an IDE and a terminal would miss the point.",
     rows: [

@@ -70,8 +70,8 @@ test("the built App guides use Files, Feedback and Agent and explain the current
   assert.match(app, /Dollar amounts stay hidden until you open it/);
   assert.match(app, /tokens unpriced/);
   assert.doesNotMatch(app, /Artifacts.{0,20}tab|Comments.{0,30}Files.{0,30}and.{0,30}Artifacts/);
-  assert.match(page("steps/implement/"), /In QualityLayer/);
-  assert.match(page("steps/implement/"), /In my terminal, app or IDE/);
+  assert.match(page("steps/implement/"), /In the App/);
+  assert.match(page("steps/implement/"), /In my terminal/);
   assert.match(page("steps/implement/"), /Start the build/);
   assert.match(text("steps/implement/"), /An installed native agent, or Another agent for your terminal/);
   assert.doesNotMatch(page("steps/implement/"), /Start with (?:Codex|Claude Code)/);

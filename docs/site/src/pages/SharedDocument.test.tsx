@@ -46,7 +46,7 @@ describe("the share page draws a document with the App's Reader", () => {
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: write } });
     render(<SharedView state={ready({ "03-plan.md": DOC })} onSend={noSend} />);
     const copy = async () => {
-      fireEvent.pointerDown(screen.getByRole("button", { name: "Copy document" }), { button: 0, ctrlKey: false });
+      fireEvent.click(screen.getByRole("button", { name: "Copy document" }));
       fireEvent.click(await popover().findByRole("menuitem", { name: /^Copy as Markdown/ }));
     };
     await copy();

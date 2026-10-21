@@ -133,7 +133,7 @@ export const COMPARE: CompareGroup[] = [
     rows: [
       row("Polish and security review before the final check", true, true, "Security review runs when a change touches outside input, sign-in or secrets"),
       row("Polished and tested by an agent that did not write the code", true, true, "Risky changes also get an independent review against your request"),
-      row("A separate coding agent reviews your plan and risky changes", true, true, "Choose an installed reviewer: Claude Code, Codex, Pi or OpenCode"),
+      row("A separate coding agent reviews your plan and risky changes", true, true, "Choose any installed agent: Claude Code, Codex, Cursor, Grok, Antigravity, Pi or OpenCode"),
     ],
   },
   {
@@ -157,6 +157,8 @@ export const COMPARE: CompareGroup[] = [
       row("The App for macOS, Windows and Linux", true, true, "On a server or in WSL, it opens in your browser"),
       row("A notification when it is Your turn", true, true, "App bell, menu bar, and above the Claude Code prompt"),
       row("Your tasks and agent status on Home", true, true, "Tasks that need you and work in progress"),
+      row("Seven coding agents in the App or browser", true, true, "Claude Code, Codex, Cursor, Grok, Antigravity, Pi and OpenCode, each in its own terminal with its own permission modes"),
+      row("See how much of your plan is left", true, true, "Claude Code and Codex limits in the sidebar, the conversation footer and Settings › Usage"),
       row("Your AI agents can message each other", true, true, "Claude Code, Codex, Pi and OpenCode sessions on your computer"),
     ],
   },

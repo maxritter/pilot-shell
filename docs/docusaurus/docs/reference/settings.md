@@ -1,20 +1,30 @@
 ---
 title: Settings
-description: Global Settings, your and your team's instructions, project memory and the changes you can ask for on one task.
+description: Workflow, agents, plan limits, sessions, notifications, editor, appearance, memory, licence, team and updates, plus the changes you can ask for on one task.
 ---
 
-Open **Settings** with the gear at the bottom of the sidebar. Changes save at once and apply to every project on this computer.
+Open **Settings** with the gear at the bottom of the sidebar. Settings take the sidebar's place: **Back** returns you to where you were, a search finds a section or a single setting, and the sections run down the left. Each section opens with one line that says what it is for. Changes save at once and apply to every project on this computer.
 
-![Settings: workflow level, your instructions, Agents and Reviews](pathname:///img/app/settings-light.webp)
-![Settings: workflow level, your instructions, Agents and Reviews](pathname:///img/app/settings-dark.webp)
+![Settings: its sections in the sidebar's place, with the task level, your instructions and the reviews in Workflow](pathname:///img/app/settings-light.webp)
+![Settings: its sections in the sidebar's place, with the task level, your instructions and the reviews in Workflow](pathname:///img/app/settings-dark.webp)
 
-## Memory {#memory}
-
-Pause local memory, search saved lessons or retire one. **Manage projects** turns Git sharing on per repository; the choice stays on this computer. More in [Project memory](../memory.md).
+| Section | What it holds |
+| --- | --- |
+| [Workflow](#workflow) | The level of new tasks, your instructions, reviews |
+| [Agents](#defaults) | The seven agents, how each starts, the default view, the terminal shell |
+| [Usage](#usage) | Plan limits, and tokens and estimated cost |
+| [Sessions](#sessions) | The agents running now, and when idle ones stop |
+| [Notifications](#notifications) | What tells you a task needs you |
+| [Git and editor](#git-and-editor) | Git and GitHub status, where files open, pull request watching |
+| [Appearance](#appearance) | Theme, task rows, the agent terminal |
+| [Memory](#memory) | Lessons your agents keep between tasks |
+| [Licence](#licence) | Your plan, billing and activation |
+| [Team](#team) | Seats, people, Slack, shared links, team instructions |
+| [About](#about) | Version, update channel, help and what changed |
 
 ## Workflow
 
-### Level {#level}
+### New tasks {#level}
 
 | Choice | A new task starts as |
 | --- | --- |
@@ -35,27 +45,9 @@ Standing instructions for every task in every project: coding standards, things 
 | Team instructions | Come first and win on conflict ([Team](#team-instructions)) |
 | Approvals | No line can approve a gate |
 
-### Agents {#defaults}
-
-Choose where the agent runs, and its **agent**, **model**, **effort** and **branch**, when you start a task or build. Those choices apply to that run. New task and Start the build open with your last choice, so Settings has no default for it.
-
-| Setting | What it changes |
-| --- | --- |
-| **Installed agents** | Last executable/version result for Claude Code, Codex, Pi and OpenCode; open setup help or use **Check again** |
-| **Agent appearance** | Text, colours and scrolling in agent sessions |
-| **When you quit the App** | Keep agents running, or stop them |
-| **Typing and starting agents** | The App and its key-paired browsers, or also other paired browsers |
-| **Reviewer models** | Models used by Independent review and Second opinion |
-
-Where the agent runs also decides where you answer. **In QualityLayer** keeps questions, approvals and artifact feedback in the App or browser. **In my terminal, app or IDE** uses the agent's chat.
-
-New App sessions open in **Conversation**. Switch to **Terminal** in the Agent tab when needed. See [Terminal mode](commands.md#terminal-mode) for CLI controls and document reading.
-
-The quitting and browser choices are under **More**. Any other coding agent can take the copied prompt in your terminal. Permissions are chosen at launch where the native client supports them.
-
 ### Independent review {#independent-review}
 
-Who decides whether a change passes [Verify](../steps/verify.md): **Fresh agent: When risky** (recommended) or **Always**, or off. Pick its model for each native agent: Opus 5.5 by default in Claude Code, GPT-6.1 Sol in Codex, Pi and OpenCode. On a change that is not risky, the build session reviews itself and the page marks it **not independent**.
+Who decides whether a change passes [Verify](../steps/verify.md): **Fresh agent: When risky** (recommended) or **Always**, or off. Pick its model for each agent: Opus 5.5 by default in Claude Code, GPT-6.1 Sol in Codex, Pi and OpenCode, Auto in Cursor, Grok 4.7 in Grok and Gemini 3.8 Flash (High) in Antigravity. On a change that is not risky, the build session reviews itself and the page marks it **not independent**.
 
 ### Second opinion {#second-opinion}
 
@@ -70,17 +62,76 @@ Risky means the Plan says so, the change touches sign-in, secrets or outside inp
 
 Pi and OpenCode can use the same provider as another agent. A different agent gives you a fresh context; select another model family if you want a different provider too. See [native agents](../agents/native.md).
 
-### Notifications {#notifications}
+### Design review {#design-review}
 
-**Notifications** tell you when something needs you, or a task ships or stops. **Open Feedback automatically** switches to Feedback when a teammate writes to you, never while you type.
+**Finished designs** (the default) has a fresh agent check each finished design once, about a minute per design. The author fixes what it finds before you see it, and the Plan says so in one line. **Off** shows designs as the author drew them. A wireframe is never reviewed. For work outside a task, `qualitylayer artifact review` writes the same check for your agent to hand on ([commands](commands.md)).
 
-## For one task {#for-one-task}
+## Agents {#defaults}
 
-Tell your agent: "skip security", "run a checkpoint after every slice", "get a second opinion", "no second opinion", "skip polish". A small change skips the second read of its Outline; ask to bring it back. No setting turns an approval off.
+**Show agent sessions as** sets the view new sessions open in, **Conversation** or **Terminal**. Each session's own switch changes only its window.
+
+**On this computer** lists the seven agents with their version, sign-in (and plan, where the agent reports one), the state of QualityLayer's integration and a **Use** switch. **Check again** runs a fresh check. An agent that is not installed offers **Install…**, which opens the vendor's install page or shows the command for you to run; QualityLayer never runs an installer. An integration that needs fixing shows **Repair**.
+
+The **⋯** menu on a row offers **Repair skill and hooks** and **Edit launch…**:
+
+| Setting | What it changes |
+| --- | --- |
+| **Command** | The program that starts the agent, as an absolute path. Empty uses the one found on your computer |
+| **Extra arguments** | Added to every start. Arguments that switch off permission checks are refused |
+| **Config folder** | Where the agent keeps its settings, for agents that let it be moved |
+| **Default permission mode** | The mode a run starts in. A mode that skips every check is chosen per run, never as a default ([modes](../agents/native.md#permission-modes)) |
+
+An environment variable such as `QUALITYLAYER_CODEX_BIN` wins over **Command**, which wins over what is found on your PATH. Changing what starts a program needs the App itself or a browser paired with its key; agents and the command line cannot.
+
+**Another agent** takes the program and arguments of any coding agent that runs shell commands. It gets the request and the CLI instructions in its own terminal. **Terminal › Shell** sets what a plain Terminal opens in a task or artifact.
+
+The choice of agent, model, effort and branch belongs to each run: New task and Start the build open with your last choice, so Settings has no default for them. Where the agent runs also decides where you answer: **In the App** keeps questions, approvals and artifact feedback in the App or browser, **In my terminal** uses the agent's chat. See [Terminal mode](commands.md#terminal-mode) for CLI controls and document reading.
+
+## Usage {#usage}
+
+**Plan limits** show how much of each plan window is left for Claude Code and Codex. A marker shows where an even pace would leave it, and each window says when it resets. The section says when it last checked. The other agents report no limits, and it says so. The same limits appear at the foot of the sidebar and, when a window runs low, as a warning in the conversation footer. How they are read: [plan limits](../agents/native.md#plan-limits).
+
+**Resume when a limit resets** (on by default) lets a build that stopped on a plan limit continue by itself when the window resets. It only does so if nobody has typed in the session since. You can cancel it on the task.
+
+**Tokens and estimated cost** adds up the last 7, 30 or 90 days by agent, and by model under **By model**. It reads the session files your agents keep on this computer and counts each message once. Costs are estimates at API prices; subscriptions bill differently. A model with no listed price has its tokens counted and no cost. Cursor, Grok and Antigravity keep no token counts, so they show no usage.
+
+## Sessions {#sessions}
+
+**Running now** lists the agents running on this computer. Each row shows the agent, task and project, what it is doing, when its last turn ended and the memory it uses, with a total. Memory is read when you open the page, never in the background. Choose a row to open its task. **Stop idle** stops every idle agent at once. A stopped agent keeps its conversation, and the task's **Continue** resumes it.
+
+**Session rules:**
+
+| Setting | What it does |
+| --- | --- |
+| **Stop agents that sit idle** | **Never**, after 2 hours, after 8 hours (default) or after a day. It never stops an agent with an open question, approval, turn or helper |
+| **Who can type in a session** | **The App and its browsers** (default), or also other paired browsers. Every paired browser can stop a run |
+| **When you quit the App** | **Agents keep running** (default), or **Stop agents** |
+
+## Notifications {#notifications}
+
+**Tell me when a task needs me** raises a system notification for a question, an approval or a stopped agent. It opens the exact task, and progress stays quiet. **Play a sound with it** adds a sound, never while you type. **Open Feedback automatically** switches to Feedback when a teammate gives feedback or asks you something, or the agent answers you, never while you type. Slack messages are set in [Team](#team).
+
+## Git and editor {#git-and-editor}
+
+**Tools** shows whether Git and the GitHub CLI (`gh`) are available and signed in. Without `gh`, pull requests are not opened or followed. **Check again** runs the check once more.
+
+**Open files and folders in** picks VS Code, Cursor, Zed, Finder or Terminal. The Files tab, **Review the code** and file chips open there.
+
+**Watch pull requests** (on by default) reads each open pull request every 2 minutes while QualityLayer is open and the task's pull request is open. A failing check, a review asking for changes or a conflict appears in **Needs you** and wakes the task's agent, resuming its session if it stopped: once per event, at most 3 times a day per pull request, and not with less than 10 % of the plan left. Past a limit the event only shows in Needs you and says why the agent was not woken.
+
+## Appearance {#appearance}
+
+**Theme** is System, Light or Dark. **Task rows** sets how the sidebar draws a task: **Detailed** adds the branch, the pull request with its checks and the agent; **Two lines** and **One line** are shorter.
+
+**Agent terminal** sets how agent sessions look: font size, font, weight, letter spacing, line spacing, colours, a blinking cursor, WebGL drawing and how many lines each terminal keeps. A sample shows the result, and **Reset to recommended** undoes your changes.
+
+## Memory {#memory}
+
+Pause local memory, search saved lessons or retire one. **Manage projects** turns Git sharing on per repository; the choice stays on this computer. More in [Project memory](../memory.md).
 
 ## Licence
 
-Your plan or trial days left. **Open billing account** opens qualitylayer.dev/billing (subscription, invoices, seats, payment method). **On another computer** shows the command that moves your licence; if no activation is free, run `qualitylayer licence deactivate` on the old machine or write to hello@qualitylayer.dev. The tab also lists what contacts QualityLayer ([Files and privacy](files.md#privacy)).
+Your plan or trial days left. **Open billing account** opens qualitylayer.dev/billing (subscription, invoices, seats, payment method). **On another computer** shows the command that moves your licence; if no activation is free, run `qualitylayer licence deactivate` on the old machine or write to hello@qualitylayer.dev. The section also lists what contacts QualityLayer ([Files and privacy](files.md#privacy)).
 
 ## Team
 
@@ -100,4 +151,10 @@ The team owner writes instructions for the whole team in the same editor as [you
 
 ## About
 
-The version, **Check now**, and what's new ([Updates](../install.md#updates)).
+The version and **Check now**. Updates come once a day; they download in the background and ask before the App restarts ([Updates](../install.md#updates)).
+
+**Update channel** is **Stable** (the default) or **Beta**. Stable offers stable releases only. Beta offers betas first, and moves to each stable release once it is newer; switching never takes you back to an older version. Agents and the command line cannot change the channel. **What's new** shows the notes of the releases on your channel. **Something wrong?** sends a report, and **Documentation** opens these pages.
+
+## For one task {#for-one-task}
+
+Tell your agent: "skip security", "run a checkpoint after every slice", "get a second opinion", "no second opinion", "skip polish". A small change skips the second read of its Outline; ask to bring it back. No setting turns an approval off.

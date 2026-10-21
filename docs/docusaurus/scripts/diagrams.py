@@ -266,7 +266,7 @@ def remote_ill(c: Theme) -> str:
     b.append(card(c, 534, 20, 466, 210, 'blue', 'card', dash=True, sw=1.5))
     b.append(T(554, 52, 'Where your agent runs', 15, 'text', 650, c=c))
     b.append(T(554, 72, 'Dev container, WSL2 or a server', 13, 'muted', c=c))
-    b.append(node(c, 554, 100, 200, 100, 'Your agent', ['Claude Code, Codex,', 'Pi or OpenCode'], 'cardline', 'bg'))
+    b.append(node(c, 554, 100, 200, 100, 'Your agent', ['Claude Code, Codex, Cursor,', 'Grok, Antigravity,', 'Pi or OpenCode'], 'cardline', 'bg'))
     b.append(node(c, 772, 100, 208, 100, 'QualityLayer', ['Command line and', 'the App’s server'], 'cardline', 'bg'))
     return svg(W, H, ''.join(b), 'Install QualityLayer where your agent runs, in a dev container, WSL2 or on a server. Its pages open in the browser on your computer through one forwarded port')
 
@@ -444,7 +444,7 @@ def sidebar(c: Theme, W: float, H: float, groups: list, selected: str | None = N
     out.append(f'<line x1="1" y1="{fy}" x2="221" y2="{fy}" stroke="{c["cardline"]}"/>')
     out.append(f'<circle cx="28" cy="{fy + 20}" r="11" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
     out.append(T(28, fy + 24, 'MR', 9.5, 'muted', 650, 'middle', c=c))
-    out.append(T(46, fy + 18, 'Max Ritter', 12, 'text', 600, c=c))
+    out.append(T(46, fy + 18, 'Sam Rivera', 12, 'text', 600, c=c))
     out.append(T(46, fy + 33, 'Team licence', 10.5, 'dim', c=c))
     for i in range(3):
         out.append(f'<rect x="{14 + i * 34}" y="{fy + 40}" width="28" height="20" rx="6" fill="{c["bg"]}" stroke="{c["cardline"]}"/>'
@@ -1196,7 +1196,7 @@ def feedback_ill(c: Theme) -> str:
     b.append(switch(c, 270, 160, True))
     b.append(T(306, 173, 'Include diagnostics', 12.5, 'text', 500, c=c))
     b.append(T(440, 173, 'Show what is sent', 12, 'blue', 600, c=c))
-    b.append(T(270, 204, 'From Max Ritter · from your Team licence', 12, 'dim', 500, c=c))
+    b.append(T(270, 204, 'From Priya Shah · from your Team licence', 12, 'dim', 500, c=c))
     b.append(arrow(c, 584, 110, 650))
     b.append(node(c, 652, 60, 170, 100, 'qualitylayer.dev', ['Checks your licence', 'or trial, rate limits'], 'cardline'))
     b.append(arrow(c, 824, 110, 850))
@@ -1392,7 +1392,7 @@ def architecture(c):
     b.append(card(c, 20, 52, 680, 192, 'blue', 'bg'))
     b.append(T(38, 80, 'QualityLayer App or browser', 15, 'text', 650, c=c))
     b.append(node(c, 38, 100, 306, 124, 'Your task', ['Questions, diagrams and artifacts', 'Read the Plan, give feedback', 'and approve the change'], 'cardline'))
-    b.append(node(c, 364, 100, 318, 124, 'Agent sidebar', ['Claude Code, Codex, Pi or OpenCode', 'Your agent’s own conversation', 'and subscription'], 'cardline'))
+    b.append(node(c, 364, 100, 318, 124, 'Agent sidebar', ['Claude Code, Codex, Cursor, Grok,', 'Antigravity, Pi or OpenCode', 'Your agent’s own conversation', 'and subscription'], 'cardline'))
     b.append(node(c, 20, 278, 328, 76, 'CLI integration', ['Also connects external agents', 'in a terminal, VS Code or another IDE'], 'cardline'))
     b.append(node(c, 372, 278, 328, 76, 'Task files in your repository', ['Plans, decisions and recorded checks'], 'cardline'))
     b.append(f'<path d="M184 278 V258 H536 V278" fill="none" stroke="{c["muted"]}" stroke-width="1.8"/>')

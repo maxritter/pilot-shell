@@ -45,7 +45,13 @@ describe("FAQ", () => {
   });
 
   it("names only the agents the App sets up", () => {
-    for (const faq of [...FAQS, ...PRICING_FAQS]) expect(faq.answer).not.toMatch(/grok/i);
+    for (const faq of [...FAQS, ...PRICING_FAQS]) expect(faq.answer).not.toMatch(/grok bot|muse code/i);
+  });
+
+  it("names all seven agents the App sets up where it lists them", () => {
+    const listing = [...FAQS, ...PRICING_FAQS].filter((faq) => faq.answer.includes("Antigravity"));
+    expect(listing.length).toBeGreaterThan(0);
+    for (const faq of listing) for (const name of ["Claude Code", "Codex", "Cursor", "Grok", "Antigravity", "Pi", "OpenCode"]) expect(faq.answer, faq.question).toContain(name);
   });
 });
 

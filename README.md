@@ -61,7 +61,7 @@ Made for medium and large changes. Small requests keep a short Plan and one slic
 
 ### Prerequisites
 
-- **A coding agent:** Claude Code, Codex, Pi or OpenCode, installed and signed in. Choose it in the App or browser. [Other agents](https://qualitylayer.dev/docs/agents/other) connect through the CLI.
+- **A coding agent:** Claude Code, Codex, Cursor, Grok, Antigravity, Pi or OpenCode, installed and signed in. Choose it in the App or browser. [Other agents](https://qualitylayer.dev/docs/agents/other) connect through the CLI.
 - **Your own subscription** (Claude or ChatGPT plan, or API key). QualityLayer never charges for model usage.
 - **Git** and a repository.
 
@@ -108,8 +108,8 @@ Plan retries for failed webhooks and stop after a few tries.
 
 | Where you work | How to start |
 | --- | --- |
-| **App or browser** | Choose **In QualityLayer** to keep the agent beside the task. |
-| **Your terminal or IDE** | Choose **In my terminal, app or IDE** to copy the request, or ask there: “Using QualityLayer, plan retries for failed webhooks.” |
+| **App or browser** | Choose **In the App** to keep the agent beside the task. |
+| **Your terminal or IDE** | Choose **In my terminal** to copy the request, or ask there: “Using QualityLayer, plan retries for failed webhooks.” |
 | **Another agent** | Agents that run shell commands can use the CLI. [Supported agents](https://qualitylayer.dev/docs/agents/native). |
 
 To continue elsewhere, stop the active run, then ask: “Using QL, continue verification of task retry-webhooks.” Your Plan, changes and evidence stay with the task.
@@ -158,7 +158,10 @@ Ask your agent for a mockup, diagram or clickable artifact. Compare versions in 
 | In the App | What you can do |
 | --- | --- |
 | **Agent workspace** | Read artifacts beside the conversation. Answer questions and pin feedback. |
-| **Run controls** | Choose agent, model, effort and branch. Set defaults in [Settings](https://qualitylayer.dev/docs/reference/settings). |
+| **Run controls** | Choose agent, model, effort, permission mode and branch. Seven agents run in their own terminals, with their own sign-in. |
+| **Plan limits** | See how much of your Claude Code and Codex plans is left, and when each window resets. |
+| **Files and Review** | See the branch and what changed, and open any file in VS Code, Cursor, Zed, Finder or Terminal. |
+| **Settings** | Agents, usage, sessions, notifications, editor, appearance and the update channel. [Settings](https://qualitylayer.dev/docs/reference/settings). |
 | **Project memory** | Reuse lessons across tasks and share them through Git. [Project memory](https://qualitylayer.dev/docs/memory). |
 | **Team review** | Ask teammates over Slack and review shared work with a [Team plan](https://qualitylayer.dev/docs/team/plans). |
 

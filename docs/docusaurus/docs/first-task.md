@@ -20,17 +20,17 @@ Open QualityLayer in the App or browser and pick a medium-sized feature in a rep
 
 **New task** asks for a **Feature** or **Bugfix**, your request with any files, and where the agent runs. **Start the build** asks the same last question.
 
-- **In QualityLayer** (recommended): pick the agent (Claude Code, Codex, Pi or OpenCode), model, effort, project and branch. The agent opens in the right sidebar beside the task, and every question and piece of feedback happens in the App.
-- **In my terminal, app or IDE**: copy one prompt into any coding agent. Files you attached are listed in the prompt by path. The agent asks its questions and takes your feedback in its own chat.
+- **In the App** (recommended): pick the agent (Claude Code, Codex, Cursor, Grok, Antigravity, Pi or OpenCode), model, effort, project and branch. The agent opens in the right sidebar beside the task, and every question and piece of feedback happens in the App.
+- **In my terminal**: copy one prompt into any coding agent, app or IDE. Files you attached are listed in the prompt by path. The agent asks its questions and takes your feedback in its own chat.
 
 New task and Start the build open with your last choice. See [Agent runs](app.md#agent-runs).
 
-Claude Code, Codex, Pi and OpenCode have [native setup and session controls](agents/native.md). Other coding agents [use the CLI and a copied prompt](agents/other.md). Global settings cover appearance and reviewers; launch choices apply to the current run.
+Claude Code, Codex, Cursor, Grok, Antigravity, Pi and OpenCode have [native setup and session controls](agents/native.md). Other coding agents [use the CLI and a copied prompt](agents/other.md). [Settings](reference/settings.md) cover your agents, plan limits, reviewers and appearance; launch choices apply to the current run.
 
 <details>
 <summary>Good to know</summary>
 
-- When the agent runs in your terminal, app or IDE, it asks each decision in its own chat. The App shows those questions without answering them.
+- When the agent runs in your terminal, it asks each decision in its own chat. The App shows those questions without answering them.
 - Name QualityLayer or QL when asking it to start work; follow-up answers continue the authorized task. No slash command is needed.
 - Each step's page opens with what needs you, then the gist, then **Look here** for anything only you can still do. The rest opens from its row or in the document ([the step page](app.md#step-pages)).
 - **Skip for now** moves to the next question; **Tell me more** asks for detail.

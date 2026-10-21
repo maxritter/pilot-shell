@@ -16,7 +16,7 @@ function Install() {
           <div>
             <p className="mx-qbd"><span aria-hidden="true" className="w7-mark" />{BRAND_LINE}</p>
             <h2 id="install-h">Start with your next change</h2>
-            <p>Open the App or browser and work beside Claude Code, Codex, Pi or OpenCode. Your own terminal, VS Code and other IDEs work too. On your own or with your team, start with a 7-day trial.</p>
+            <p>Open the App or browser and work beside Claude Code, Codex, Cursor, Grok, Antigravity, Pi or OpenCode. Your own terminal, VS Code and other IDEs work too. On your own or with your team, start with a 7-day trial.</p>
             <p className="mx-endn">On a server, in WSL or in a container? <Link to="/download">Install the command line</Link></p>
           </div>
           <div className="sx-ctas">

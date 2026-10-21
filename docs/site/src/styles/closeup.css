@@ -311,6 +311,16 @@
 .cu-ctr > span:nth-child(n+2){text-align:right;color:var(--ql-text-muted)}
 .cu-ctr > span:first-child{display:flex;align-items:center;gap:8px}
 .cu-ctr i{width:8px;height:8px;border-radius:2px}
+.cu-lim-a{padding:8px 16px 4px}
+.cu-lim-h{margin:0 0 4px;font-size:13px}
+.cu-lim-w{display:grid;grid-template-columns:72px minmax(0,1fr) 40px 78px;align-items:center;gap:10px;margin:0;padding:3px 0;font-size:12.5px}
+.cu-lim-w > span:nth-child(3){text-align:right}
+.cu-lim-w .cu-k{text-align:right}
+.cu-lim-track{display:block;height:6px;border-radius:999px;background:var(--ql-surface-2);overflow:hidden}
+.cu-lim-track i{display:block;height:100%;border-radius:999px;background:var(--ql-accent)}
+.cu-lim-w.low .cu-lim-track i{background:var(--ql-amber)}
+.cu-lim-w.low > span:nth-child(3){color:var(--ql-amber-ink)}
+.cu-lim-note{margin:0;padding:8px 16px;font-size:12px}
 .cu-defs{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:9px 12px;border-radius:8px;background:var(--ql-surface-2);font-size:13px}
 .cu-defs .cu-k{margin-right:4px;font-size:12px}
 .cu-defs .cu-lnk{margin-left:auto}

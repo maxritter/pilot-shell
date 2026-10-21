@@ -8,6 +8,9 @@ type Chip = [label: string, icon: string];
 const AGENTS: Chip[] = [
   ["Claude Code", "ast"],
   ["Codex", "braces"],
+  ["Cursor", "code"],
+  ["Grok", "term"],
+  ["Antigravity", "term"],
   ["Pi", "term"],
   ["OpenCode", "term"],
 ];
@@ -18,10 +21,9 @@ const MODELS: Chip[] = [
   ["Fable 5.1", "cpu"],
   ["Haiku 5.5", "cpu"],
   ["GPT-6.1 Sol", "cpu"],
-  ["Claude Code", "ast"],
-  ["Codex", "braces"],
-  ["Pi", "term"],
-  ["OpenCode", "term"],
+  ["Grok 4.7", "cpu"],
+  ["Gemini 3.8 Flash", "cpu"],
+  ...AGENTS,
 ];
 
 const SETUPS: Chip[] = [
@@ -42,7 +44,7 @@ const PRINCIPLES: { who: "agent" | "you" | "check"; icon: LucideIcon; title: str
 /** From where you work to the files you keep: what QualityLayer connects, all inside one dashed frame, your computer. */
 const CHAIN: { icon: LucideIcon | "mark"; title: string; text: string; chips: string[]; ql?: true }[] = [
   { icon: Laptop, title: "Where you work", text: "Your task on the left, your agent on the right.", chips: ["QualityLayer App", "Browser"] },
-  { icon: KeyRound, title: "Your agent, your subscription", text: "On the plan or API key you already pay for.", chips: ["Claude Code", "Codex", "Pi", "OpenCode"] },
+  { icon: KeyRound, title: "Your agent, your subscription", text: "On the plan or API key you already pay for.", chips: AGENTS.map(([label]) => label) },
   { icon: "mark", title: "QualityLayer", text: "Plan, answer and review beside your agent. The CLI also connects external agents.", chips: ["Visual plans", "Agent sidebar"], ql: true },
   { icon: FileText, title: "Your repository", text: "Every step is a Markdown file you can read, diff and commit.", chips: ["Plan", "Decisions", "Test runs"] },
 ];
@@ -128,10 +130,10 @@ export default function Intro() {
         <div className="mx-mq">
           <div className="mx-mqt">
             <h2 id="mod-h" className="mx-h2">Use the models you already pay for</h2>
-            <p className="mx-lead">Pick your models for coding and AI code review. Choose Claude Code, Codex, Pi or OpenCode for a separate review of your plan and risky changes.</p>
+            <p className="mx-lead">Pick your models for coding and AI code review. Any installed agent can give a separate review of your plan and risky changes.</p>
           </div>
           <div className="mx-mqr">
-            <p className="w7-sr">Models: {MODELS.filter(([, icon]) => icon === "cpu").map(([label]) => label).join(", ")}, through Claude Code, Codex, Pi and OpenCode. {SETUPS.map(([label]) => label).join(". ")}.</p>
+            <p className="w7-sr">Models: {MODELS.filter(([, icon]) => icon === "cpu").map(([label]) => label).join(", ")}, through {AGENTS.slice(0, -1).map(([label]) => label).join(", ")} and {AGENTS[AGENTS.length - 1][0]}. {SETUPS.map(([label]) => label).join(". ")}.</p>
             <div className="mx-mqm" aria-hidden="true">
               <Track chips={MODELS} />
               <Track chips={SETUPS} reverse />

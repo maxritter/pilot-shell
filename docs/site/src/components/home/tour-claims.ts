@@ -75,7 +75,7 @@ export const CLAIMS: Record<string, Claim> = {
   },
   // "Teammates see the questions for them first": the passage in view, a draft that is not sent
   answer: {
-    always: ["Question from Max Ritter", "one minute apart", "Looks right", "Suggest a change", "Reply", "Or hand it to someone else"],
+    always: ["Question from Priya Shah", "one minute apart", "Looks right", "Suggest a change", "Reply", "Or hand it to someone else"],
     last: ["Draft by your Claude Code · not sent yet"],
   },
   // "See your team's work in one place": remind or hand on
@@ -89,14 +89,14 @@ export const CLAIMS: Record<string, Claim> = {
     first: ["Comment from Ben"],
     last: ["Ready to approve", "Dana approved"],
   },
-  // "Choose the models, and see what each step costs"
+  // "See how much of your plan is left, and what each step costs"
   settings: {
-    always: ["Planning defaults", "Build defaults", "Starts in", "$20.95", "estimated at list price", "never wrote the code"],
-    last: ["GPT-6.1 Sol"],
+    always: ["Plan limits", "5 hours", "This week", "Resume when a limit resets", "$20.95", "estimated at list price"],
+    last: ["the build continues when the window resets"],
   },
   // "It works where your agents already work": one command, the systems it runs on
   agents: {
-    always: ["New task", "Claude Code", "Codex", "Pi", "OpenCode", "Another agent", "Using QualityLayer, plan", "macOS", "Windows", "Linux", "WSL"],
+    always: ["New task", "Claude Code", "Codex", "Cursor", "Grok", "Antigravity", "Pi", "OpenCode", "Another agent", "Using QualityLayer, plan", "macOS", "Windows", "Linux", "WSL"],
     last: ["Copied", "needs your review"],
   },
 };

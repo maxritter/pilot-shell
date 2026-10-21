@@ -12,8 +12,8 @@ Read the task on the left and work with your agent in the right sidebar. Answer 
 
 | Part | What it does |
 | --- | --- |
-| **Sidebar** | Home, Team, Artifacts and your tasks by project. **+ New** starts a task |
-| **Agent status** | The top-bar chip: working, needs you, quiet or stopped |
+| **Sidebar** | A **Search** row, Home, Team, Artifacts and your tasks by project, with your plan limits at the foot. **+ New** starts a task |
+| **Agent status** | The top-bar chip: the agent's mark and whether it is working, needs you, quiet or stopped |
 | **Step track** | Where the task stands. A person icon marks the two steps you approve |
 | **Your turn** | One question or decision that needs you |
 | **Step page** | What needs you, what to look at, then the part of the step's document that matters now ([how it is built](#step-pages)) |
@@ -23,16 +23,27 @@ Read the task on the left and work with your agent in the right sidebar. Answer 
 
 Tasks sit under their project (a repository on this computer), the ones waiting on you first. A project appears when you start a task in it; the folder button adds one by hand.
 
+Each task row shows its age, a dot while something is unread, its branch, its pull request with the state of its checks and the mark of the agent working on it. **View › Rows** switches to **Two lines** or **One line**; **Detailed** is the default.
+
 | To | Do |
 | --- | --- |
+| Search everything | The **Search** row or **⌘K** ([below](#command-box)) |
 | Fold a project | Click its header or press **←**. Folded, it still shows what waits on you |
 | Reorder projects | Drag a header, or **⌥↑** / **⌥↓** |
 | Rename, recolor or hide a project | The project menu (**⋯** or right-click) |
 | Start a task in a project | **+** on its header |
-| Rename, archive or delete a task | Right-click it |
-| Filter or regroup | **View** (sliders button) or **Find** (search button). **⌘K** searches everything |
+| Rename, archive or delete a task | Right-click it, or **⋯ More** in its header |
+| Filter or regroup | **View** (sliders button) |
 
 Order, colors, names and hidden projects are stored on the computer that runs the App, so every paired browser shows the same list.
+
+### Plan limits at the foot {#limits}
+
+For each agent that reports its plan limits (Claude Code and Codex), the foot of the sidebar shows the window with the least left. Open it for every window, a marker where an even pace would leave it now, and when it resets. The block is hidden when no agent reports limits. It reads when the sidebar shows, when a turn ends and when you open it, never on a timer. More in [plan limits](agents/native.md#plan-limits) and **Settings › Usage**.
+
+### Search with ⌘K {#command-box}
+
+**⌘K** (**Ctrl+K** elsewhere) opens one box for actions, projects, tasks and the open task's files. Actions come first and name their keys. Projects answer **⌘1** to **⌘9** while the box is open, and each task shows its agent's mark. Type `›` first to see only actions, or `/` to see only the open task's files. **⌘U** opens **Settings › Usage**, **⇧⌘N** starts a task and **⌘P** goes to a file.
 
 ### The places {#places}
 
@@ -81,6 +92,12 @@ Select a passage, a line or part of a diagram and choose **Give feedback**. The 
 
 Working artifacts are compact entries in **Files**. **Open artifact canvas** opens the full page, its Feedback and its base artifact. The document header opens Files and Feedback; **Agent** opens the task’s conversation. The **Agent status** chip shows current activity. See [Artifacts](artifacts.md).
 
+## Files and Review {#files}
+
+The **Files** tab opens with the task's checkout: its branch and pull request, then what the build changed, each file with its mark, plus and minus counts, and a way into **Review the code**. **Open** opens the checkout in your editor, shown by its mark; the arrow beside it picks VS Code, Cursor, Zed, Finder or Terminal. The choice is saved in **Settings › Git and editor**. Below the card, Files groups Documents, Artifacts, Reviews and Records.
+
+In Review, files carry the same marks in the tree and in their headers, and **Open** uses your editor, shown by its mark.
+
 ## Home {#home}
 
 ![Home: a Needs you section for your own questions and approvals, followed by a separate Running section for your agents' work](pathname:///img/app/home-light.webp)
@@ -88,7 +105,7 @@ Working artifacts are compact entries in **Files**. **Open artifact canvas** ope
 
 **Needs you** combines your questions, approvals and tasks you can continue with teammate questions, review requests and replies. Shared rows name the person and open the exact passage, diagram or artifact spot. **Running** is your agents' work, with its current step and activity. Team keeps the shared history.
 
-Notifications are configured in **Settings › Workflow**. The App notifies you only when you can act:
+Notifications are configured in **Settings › Notifications**. The App notifies you only when you can act:
 
 ![Who hears about what: the App, Slack and the Claude Code band speak only when a person can act, and agent progress and checks never notify](pathname:///img/diagrams/attention-light.svg)
 ![Who hears about what: the App, Slack and the Claude Code band speak only when a person can act, and agent progress and checks never notify](pathname:///img/diagrams/attention-dark.svg)
@@ -106,8 +123,8 @@ The **Cost** control in a task's header opens the cost per step and agent, estim
 
 | Choice | What you do | Where you answer |
 | --- | --- | --- |
-| **In QualityLayer** (recommended) | Pick the agent (Claude Code, Codex, Pi or OpenCode), model, effort, project and branch. Its conversation opens in the task’s **Agent** tab | Questions, approvals and feedback happen in the App |
-| **In my terminal, app or IDE** | Copy one prompt into any coding agent. Files you attached are saved on this computer and listed in the prompt by path | The agent asks its questions and takes your feedback in its own chat. The App shows the questions without answering them |
+| **In the App** (recommended) | Pick the agent (Claude Code, Codex, Cursor, Grok, Antigravity, Pi or OpenCode, each with its mark), model, effort, project and branch. Its conversation opens in the task’s **Agent** tab | Questions, approvals and feedback happen in the App |
+| **In my terminal** | Copy one prompt into any coding agent, app or IDE. Files you attached are saved on this computer and listed in the prompt by path | The agent asks its questions and takes your feedback in its own chat. The App shows the questions without answering them |
 
 The branch is **Current branch**, **New branch** or **New worktree**. A worktree takes a name, which gives its folder and its branch; QualityLayer puts the folder next to your project, so other work in the project stays untouched.
 
@@ -124,11 +141,22 @@ The App checks the local runtime before starting. If it cannot start the selecte
 | Return to a saved conversation | Use its available **Resume** or **Open the conversation** action |
 | Move to your terminal | **Move to my terminal** gives the supported resume command |
 
-**Settings → Workflow → Agents** controls appearance, other paired browsers and quitting the App. Choose the agent, model, effort and branch when starting a run. See [Settings](reference/settings.md#defaults).
+**Settings › Agents** shows each agent's sign-in and how it starts; **Sessions** holds the running agents, other paired browsers and quitting the App; **Appearance** holds the terminal's look. Choose the agent, model, effort and branch when starting a run. See [Settings](reference/settings.md#defaults).
 
 An agent can wait for a permission, sign-in, answer or approval. A visible running process is not proof that it is making progress; read its current status and conversation. **Stop** and a user pause remain boundaries.
 
 Any other coding agent can take the copied prompt. Terminal output stays local and is not included in shared tasks.
+
+### The conversation {#conversation}
+
+The agent's **Conversation** view reads its session record, and **Terminal** shows the program itself. In the Conversation:
+
+- A finished turn folds its thinking and tool calls into one line, such as “Worked for 2 min”. The answer, the workflow's own messages, errors and anything that needs you stay open.
+- A file or commit the agent names becomes a chip. A turn that changed files ends with those files and their plus and minus counts, recorded in QualityLayer's own folder, never in your repository.
+- A strip of marks in the left margin has one mark per turn. Click one, or use the arrow keys, to jump to that turn.
+- A long session opens at its last turns. **Show N earlier messages** loads the rest, and a long tool output opens with **Show more**.
+
+One row under the message box holds the controls: the **model** with its agent's mark, the **effort** (not shown for an agent that has none), the **permission mode** and the **context** ring. When a plan window runs low, the row warns with “N % left”. The row lists each agent's real [permission modes](agents/native.md#permission-modes); a mode that skips every check asks you to confirm. Subagents are listed above the box.
 
 ## In Claude Code
 

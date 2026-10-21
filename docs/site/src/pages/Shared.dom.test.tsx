@@ -36,7 +36,7 @@ describe("commenting on the step documents", () => {
     expect((await screen.findByTestId("doc-path")).textContent).toBe("03-plan.md");
     fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
     const copyMarkdown = async () => {
-      fireEvent.pointerDown(screen.getByRole("button", { name: "Copy document" }), { button: 0, ctrlKey: false });
+      fireEvent.click(screen.getByRole("button", { name: "Copy document" }));
       fireEvent.click(await screen.findByRole("menuitem", { name: /^Copy as Markdown/ }));
     };
     await copyMarkdown();

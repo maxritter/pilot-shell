@@ -5,4 +5,4 @@
  * while checking, Only you can confirm, Questions for you, Agents are building / checking.
  */
 export const BANNED_WORDS =
-  /\b(judges?|helpers?|gates?|verdicts?|probes?|cold reads?|rounds?|cockpit|token budget|checkpoint switch|checkpoints?|grok( bot)?|iterations?|fresh (agent|helper|judge)|quality pass|second-opinion|soon)\b/i;
+  /\b(judges?|helpers?|gates?|verdicts?|probes?|cold reads?|rounds?|cockpit|token budget|checkpoint switch|checkpoints?|grok bot|iterations?|fresh (agent|helper|judge)|quality pass|second-opinion|soon)\b/i;

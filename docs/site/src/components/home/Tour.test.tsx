@@ -237,9 +237,10 @@ describe("the tour", () => {
     expect(text(await shot("together", 5))).toContain("Ready to approve");
   });
 
-  it("draws Settings with Planning and Build defaults and the cost of each step, and New task with one request", async () => {
+  it("draws Settings with the plan limits and the cost of each step, and New task with one request", async () => {
     const settings = text(await shot("settings"));
-    for (const words of ["Planning defaults", "Build defaults", "$20.95", "estimated at list price", "Research", "Outline"]) expect(settings).toContain(words);
+    for (const words of ["Plan limits", "This week", "Resume when a limit resets", "$20.95", "estimated at list price", "Research", "Outline"]) expect(settings).toContain(words);
+    expect(settings).not.toContain("Planning defaults");
     expect(text(await shot("agents"))).toContain("Using QualityLayer, plan");
     expect(text(await shot("agents"))).not.toContain("claude --model");
   });
