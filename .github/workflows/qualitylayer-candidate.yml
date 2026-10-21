@@ -35,11 +35,11 @@ jobs:
           AUTHORIZATION: ${{ inputs.authorization_environment }}
         run: |
           set -euo pipefail
-          [ "$GITHUB_REPOSITORY" = maxritter/pilot-shell ]
+          [ "$GITHUB_REPOSITORY" = maxritter/qualitylayer ]
           [[ "$GITHUB_SHA" =~ ^[a-f0-9]{40}$ ]]
           [[ "$VERSION" =~ ^12\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]]
           case "$GITHUB_WORKFLOW_REF" in
-            maxritter/pilot-shell/.github/workflows/release.yml@refs/heads/main|maxritter/pilot-shell/.github/workflows/release.yml@refs/heads/dev) ;;
+            maxritter/qualitylayer/.github/workflows/release.yml@refs/heads/main|maxritter/qualitylayer/.github/workflows/release.yml@refs/heads/dev) ;;
             *) echo 'Stage through the guarded Release workflow on main or dev'; exit 1 ;;
           esac
           case "$AUTHORIZATION" in
@@ -62,7 +62,6 @@ jobs:
           - { target: linux-x64, os: ubuntu-22.04, arch: x64 }
           - { target: linux-arm64, os: ubuntu-24.04-arm, arch: arm64 }
           - { target: win32-x64, os: windows-2025, arch: x64 }
-          - { target: win32-arm64, os: windows-11-arm, arch: arm64 }
     environment: ${{ inputs.authorization_environment }}
     defaults:
       run:
@@ -79,7 +78,7 @@ jobs:
       - uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
           bun-version: "1.4.2"
-          bun-download-url: ${{ runner.os == 'Windows' && format('https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-windows-{0}.zip', matrix.arch == 'arm64' && 'aarch64' || 'x64') || '' }}
+          bun-download-url: ${{ runner.os == 'Windows' && 'https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-windows-x64.zip' || '' }}
       - name: Install git-crypt
         if: runner.os != 'Windows'
         run: bash .github/workflows/scripts/install-git-crypt.sh
@@ -189,11 +188,11 @@ jobs:
         with:
           pattern: memory-payload-*-${{ github.run_attempt }}
           path: ${{ runner.temp }}/pieces
-      - name: Validate six native cells and bind their exact receipts
+      - name: Validate five native cells and bind their exact receipts
         id: provenance
         run: |
           set -euo pipefail
-          for target in darwin-arm64 darwin-x64 linux-arm64 linux-x64 win32-arm64 win32-x64; do
+          for target in darwin-arm64 darwin-x64 linux-arm64 linux-x64 win32-x64; do
             mv "$RUNNER_TEMP/pieces/memory-payload-$target-$GITHUB_RUN_ATTEMPT" "$RUNNER_TEMP/pieces/$target"
           done
           bun qualitylayer/scripts/memory-qualification-stage.ts merge --source-root "$PWD/qualitylayer" --pieces "$RUNNER_TEMP/pieces" --payload-dir "$RUNNER_TEMP/stage"
@@ -228,8 +227,8 @@ jobs:
         run: |
           set -euo pipefail
           [ "$(sha256sum stage/provenance.json | awk '{print $1}')" = "$EXPECTED_SHA256" ]
-          jq -e --arg sha "$GITHUB_SHA" --arg run "$GITHUB_RUN_ID" --argjson attempt "$GITHUB_RUN_ATTEMPT" '.kind == "memory-payload-authorization" and .repository == "maxritter/pilot-shell" and .workflow == ".github/workflows/qualitylayer-candidate.yml" and .sourceCommit == $sha and .runId == $run and .runAttempt == $attempt and (.receipts | keys | sort) == ["darwin-arm64","darwin-x64","linux-arm64","linux-x64","win32-arm64","win32-x64"]' stage/provenance.json
-          for target in darwin-arm64 darwin-x64 linux-arm64 linux-x64 win32-arm64 win32-x64; do
+          jq -e --arg sha "$GITHUB_SHA" --arg run "$GITHUB_RUN_ID" --argjson attempt "$GITHUB_RUN_ATTEMPT" '.kind == "memory-payload-authorization" and .repository == "maxritter/qualitylayer" and .workflow == ".github/workflows/qualitylayer-candidate.yml" and .sourceCommit == $sha and .runId == $run and .runAttempt == $attempt and (.receipts | keys | sort) == ["darwin-arm64","darwin-x64","linux-arm64","linux-x64","win32-x64"]' stage/provenance.json
+          for target in darwin-arm64 darwin-x64 linux-arm64 linux-x64 win32-x64; do
             expected=$(jq -r --arg target "$target" '.receipts[$target]' stage/provenance.json)
             [ "$(sha256sum "stage/receipts/$target.json" | awk '{print $1}')" = "$expected" ]
             jq -e --arg sha "$GITHUB_SHA" --arg target "$target" '.status == "passed" and .target == $target and .sourceCommit == $sha' "stage/receipts/$target.json"
@@ -366,7 +365,6 @@ jobs:
           - { name: macos-arm64, target: darwin-arm64, os: macos-26 }
           - { name: macos-x64, target: darwin-x64, os: macos-15-intel }
           - { name: windows-x64, target: windows-x64, os: windows-2025 }
-          - { name: windows-arm64, target: windows-arm64, os: windows-11-arm }
           - { name: linux-x64, target: linux-x64, os: ubuntu-22.04 }
           - { name: linux-arm64, target: linux-arm64, os: ubuntu-24.04-arm }
     defaults:
@@ -608,14 +606,14 @@ jobs:
         run: |
           cd release
           ls -la
-          ALLOWED='^(qualitylayer-(darwin|linux)-(arm64|x64)(\.sha256)?|qualitylayer-windows-(arm64|x64)\.exe(\.sha256)?|install\.(sh|ps1)(\.sha256)?|QualityLayer-[0-9][0-9A-Za-z.-]*-(macos-(arm64|x64)\.dmg(\.sha256)?|macos-(arm64|x64)\.app\.tar\.gz(\.sig)?|(x64|arm64)-setup\.exe(\.sha256|\.sig)?|linux-(arm64|x64)\.AppImage(\.sha256|\.sig)?)|latest\.json)$'
+          ALLOWED='^(qualitylayer-(darwin|linux)-(arm64|x64)(\.sha256)?|qualitylayer-windows-x64\.exe(\.sha256)?|install\.(sh|ps1)(\.sha256)?|QualityLayer-[0-9][0-9A-Za-z.-]*-(macos-(arm64|x64)\.dmg(\.sha256)?|macos-(arm64|x64)\.app\.tar\.gz(\.sig)?|x64-setup\.exe(\.sha256|\.sig)?|linux-(arm64|x64)\.AppImage(\.sha256|\.sig)?)|latest\.json)$'
           BAD=$(find . -type f -printf '%f\n' | grep -vE "$ALLOWED" || true)
           if [ -n "$BAD" ]; then
             echo "Refusing to publish unexpected assets:"
             echo "$BAD"
             exit 1
           fi
-          [ "$(find . -type f | wc -l)" -eq 37 ]
+          [ "$(find . -type f | wc -l)" -eq 32 ]
 
       - name: Upload artifact
         id: assets
@@ -637,8 +635,6 @@ jobs:
         include:
           - os: windows-2025
             arch: x64
-          - os: windows-11-arm
-            arch: arm64
     defaults:
       run:
         shell: pwsh
@@ -766,16 +762,17 @@ jobs:
           set -euo pipefail
           [[ "$VERSION" =~ ^12\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]]
           expected=()
-          for target in darwin-arm64 darwin-x64 linux-arm64 linux-x64 windows-arm64.exe windows-x64.exe; do
+          for target in darwin-arm64 darwin-x64 linux-arm64 linux-x64 windows-x64.exe; do
             expected+=("qualitylayer-$target" "qualitylayer-$target.sha256")
           done
           for script in install.sh install.ps1; do expected+=("$script" "$script.sha256"); done
           for arch in arm64 x64; do
             expected+=("QualityLayer-$VERSION-macos-$arch.dmg" "QualityLayer-$VERSION-macos-$arch.dmg.sha256" "QualityLayer-$VERSION-macos-$arch.app.tar.gz" "QualityLayer-$VERSION-macos-$arch.app.tar.gz.sig")
-            for package in "QualityLayer-$VERSION-$arch-setup.exe" "QualityLayer-$VERSION-linux-$arch.AppImage"; do
-              expected+=("$package" "$package.sha256" "$package.sig")
-            done
+            package="QualityLayer-$VERSION-linux-$arch.AppImage"
+            expected+=("$package" "$package.sha256" "$package.sig")
           done
+          package="QualityLayer-$VERSION-x64-setup.exe"
+          expected+=("$package" "$package.sha256" "$package.sig")
           expected+=(latest.json)
           printf '%s\n' "${expected[@]}" | LC_ALL=C sort > "$RUNNER_TEMP/expected-assets"
           [ -z "$(find release -mindepth 1 -maxdepth 1 ! -type f -print)" ]
@@ -815,7 +812,6 @@ jobs:
           - { target: linux-x64, os: ubuntu-22.04, arch: x64 }
           - { target: linux-arm64, os: ubuntu-24.04-arm, arch: arm64 }
           - { target: win32-x64, os: windows-2025, arch: x64 }
-          - { target: win32-arm64, os: windows-11-arm, arch: arm64 }
     defaults:
       run: { shell: bash }
     steps:
@@ -826,7 +822,7 @@ jobs:
       - uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
           bun-version: "1.4.2"
-          bun-download-url: ${{ runner.os == 'Windows' && format('https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-windows-{0}.zip', matrix.arch == 'arm64' && 'aarch64' || 'x64') || '' }}
+          bun-download-url: ${{ runner.os == 'Windows' && 'https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-windows-x64.zip' || '' }}
       - if: runner.os != 'Windows'
         run: bash .github/workflows/scripts/install-git-crypt.sh
       - if: runner.os != 'Windows'
@@ -879,7 +875,7 @@ jobs:
             win32-*) cli="qualitylayer-windows-${TARGET#win32-}.exe"; package="QualityLayer-12.0.0-beta.57-${TARGET#win32-}-setup.exe"; installer=install.ps1 ;;
             *) exit 1 ;;
           esac
-          gh release download v12.0.0-beta.57 --repo maxritter/pilot-shell --pattern "$cli" --pattern "$package" --pattern "$installer" --pattern SHA256SUMS --pattern SHA256SUMS.sig --dir "$RUNNER_TEMP/previous"
+          gh release download v12.0.0-beta.57 --repo maxritter/qualitylayer --pattern "$cli" --pattern "$package" --pattern "$installer" --pattern SHA256SUMS --pattern SHA256SUMS.sig --dir "$RUNNER_TEMP/previous"
           printf 'PREVIOUS_CLI=%s\nPREVIOUS_PACKAGE=%s\n' "$RUNNER_TEMP/previous/$cli" "$RUNNER_TEMP/previous/$package" >> "$GITHUB_ENV"
       - name: Execute both real installer and upgrade routes in the disposable principal
         env:
@@ -948,7 +944,7 @@ jobs:
           pattern: memory-distribution-*-${{ github.run_attempt }}
           path: distribution
           merge-multiple: true
-      - name: Validate all six final native receipts without touching public assets
+      - name: Validate all five final native receipts without touching public assets
         run: bun qualitylayer/scripts/memory-qualification.ts distribution --source-root "$PWD/qualitylayer" --release-dir "$PWD/release" --receipts "$PWD/distribution" --payload-dir "$PWD/payload-stage" --out "$RUNNER_TEMP/distribution-set.json"
       - name: Bind immutable artifact IDs and Root-installable file hashes
         id: manifest

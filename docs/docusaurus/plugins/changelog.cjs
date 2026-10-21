@@ -58,7 +58,7 @@ module.exports = function changelogPlugin(context) {
       "toc_max_heading_level: 2", "---", "",
       intro.trim(), "", sections, "",
       history ? "## Earlier releases\n\n<details>\n<summary>Pilot Shell release history</summary>\n\n" + history.trim() + "\n\n</details>" : "",
-      "", "[Published release downloads](https://github.com/maxritter/pilot-shell/releases)", "",
+      "", "[Published release downloads](https://github.com/maxritter/qualitylayer/releases)", "",
     ].join("\n");
     fs.mkdirSync(path.dirname(destination), { recursive: true });
     if (!fs.existsSync(destination) || fs.readFileSync(destination, "utf8") !== content) fs.writeFileSync(destination, content);

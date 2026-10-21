@@ -132,7 +132,7 @@ const config: Config = {
           position: "right",
         },
         {
-          href: "https://github.com/maxritter/pilot-shell",
+          href: "https://github.com/maxritter/qualitylayer",
           label: "GitHub",
           position: "right",
         },
@@ -156,7 +156,7 @@ const config: Config = {
           items: [
             {
               label: "GitHub",
-              href: "https://github.com/maxritter/pilot-shell",
+              href: "https://github.com/maxritter/qualitylayer",
             },
           ],
         },

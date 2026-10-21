@@ -170,7 +170,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
           VERCEL_PROJECT_ID: prj_SbOGJL2YBjvq9P5MSjxcrj87IGbi
-          PRODUCTION_BRANCH: ${{ vars.SITE_PRODUCTION_BRANCH || 'dev' }}
+          PRODUCTION_BRANCH: ${{ vars.SITE_PRODUCTION_BRANCH || 'main' }}
         run: |
           set -euo pipefail
           umask 077
@@ -203,7 +203,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
           VERCEL_PROJECT_ID: prj_SbOGJL2YBjvq9P5MSjxcrj87IGbi
-          PRODUCTION_BRANCH: ${{ vars.SITE_PRODUCTION_BRANCH || 'dev' }}
+          PRODUCTION_BRANCH: ${{ vars.SITE_PRODUCTION_BRANCH || 'main' }}
         run: |
           set -euo pipefail
           umask 077

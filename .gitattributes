@@ -1,5 +1,6 @@
 docs/site/api/** filter=git-crypt diff=git-crypt
 docs/site/scripts/backup.ts filter=git-crypt diff=git-crypt
+docs/site/scripts/backup-schema.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/db-role.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/purge-redis-team-files.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/rehash-trials.ts filter=git-crypt diff=git-crypt
@@ -14,6 +15,8 @@ docs/site/scripts/load-check.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/check-deploy.sh filter=git-crypt diff=git-crypt
 docs/site/scripts/deploy-website.sh filter=git-crypt diff=git-crypt
 docs/site/scripts/verify-deployment-runtime.mjs filter=git-crypt diff=git-crypt
+docs/site/scripts/verify-commerce.mjs filter=git-crypt diff=git-crypt
+docs/site/scripts/verify-commerce.d.mts filter=git-crypt diff=git-crypt
 docs/site/scripts/configure-polar.ts filter=git-crypt diff=git-crypt
 docs/site/scripts/billing-dev.mjs filter=git-crypt diff=git-crypt
 docs/site/scripts/website-screenshots.mjs filter=git-crypt diff=git-crypt

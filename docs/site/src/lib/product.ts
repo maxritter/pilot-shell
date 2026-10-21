@@ -6,7 +6,7 @@ export const OFFLINE_DAYS = 7;
 /** Served from the site (a redirect to the installer in the repository). */
 export const INSTALL_COMMAND = `curl -fsSL ${SITE_URL}/install.sh | bash`;
 
-export const GITHUB_URL = "https://github.com/maxritter/pilot-shell";
+export const GITHUB_URL = "https://github.com/maxritter/qualitylayer";
 /** The documentation, served by Docusaurus under the site's own domain. */
 export const DOCS_URL = "/docs/";
 export const RELEASES_URL = `${GITHUB_URL}/releases`;

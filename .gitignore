@@ -294,10 +294,12 @@ scrollcraft/
 # Local design settings, critique reports, and iteration state.
 /.impeccable/
 
-# The shared repository instructions are public; every other local agent
-# folder (.claude/, .agents/, .codex/) stays private.
-!AGENTS.md
-!CLAUDE.md
+# Repository-specific agent instructions and working plans stay local.
+/.claude/
+/AGENTS.md
+/CLAUDE.md
+/docs/plans/
+/qualitylayer/docs/plans/
 docs/slides
 docs/prd
 docs/posts

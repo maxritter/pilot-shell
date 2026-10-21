@@ -16,7 +16,7 @@ const MAC = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.1
 const LINUX = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
 const ANDROID = "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36";
 
-const asset = (id: string, file: string, size: number) => ({ id, name: file, url: `https://github.com/maxritter/pilot-shell/releases/download/v12.0.0/${file}`, size });
+const asset = (id: string, file: string, size: number) => ({ id, name: file, url: `https://github.com/maxritter/qualitylayer/releases/download/v12.0.0/${file}`, size });
 const PACKAGES: Packages = {
   version: "12.0.0",
   published: "2026-10-12T02:10:53Z",
@@ -24,7 +24,6 @@ const PACKAGES: Packages = {
     asset("macos-arm64", "QualityLayer-12.0.0-macos-arm64.dmg", 84_300_000),
     asset("macos-x64", "QualityLayer-12.0.0-macos-x64.dmg", 88_100_000),
     asset("windows-x64", "QualityLayer-12.0.0-x64-setup.exe", 61_900_000),
-    asset("windows-arm64", "QualityLayer-12.0.0-arm64-setup.exe", 58_400_000),
     asset("linux-x64", "QualityLayer-12.0.0-linux-x64.AppImage", 97_000_000),
     asset("linux-arm64", "QualityLayer-12.0.0-linux-arm64.AppImage", 95_200_000),
   ],
@@ -69,19 +68,32 @@ describe("the cards", () => {
   it("links each card to the package the release names and shows its size", async () => {
     const markup = await html(<DownloadView data={PACKAGES} system={null} />);
     const windows = cardOf(markup, "Windows");
-    expect(windows).toContain('href="https://github.com/maxritter/pilot-shell/releases/download/v12.0.0/QualityLayer-12.0.0-x64-setup.exe"');
+    expect(windows).toContain('href="https://github.com/maxritter/qualitylayer/releases/download/v12.0.0/QualityLayer-12.0.0-x64-setup.exe"');
     expect(windows).toContain("62 MB");
-    expect(windows).toContain('href="https://github.com/maxritter/pilot-shell/releases/download/v12.0.0/QualityLayer-12.0.0-arm64-setup.exe"');
-    expect(windows).toContain("58 MB");
+    expect(windows).toContain("x64 · no admin needed");
+    expect(windows).not.toContain("ARM64");
 
     const linux = cardOf(markup, "Linux");
     expect(linux).toContain("QualityLayer-12.0.0-linux-x64.AppImage");
     expect(linux).toContain("97 MB");
+    expect(linux).toContain("QualityLayer-12.0.0-linux-arm64.AppImage");
+    expect(linux).toContain("ARM64 version");
 
     expect(markup).toContain("QualityLayer-12.0.0-macos-arm64.dmg");
     expect(markup).toContain("84 MB");
     expect(markup).toContain("QualityLayer-12.0.0-macos-x64.dmg");
     expect(markup).toContain("88 MB");
+  });
+
+  it("never offers a Windows ARM64 package even if an older feed still includes one", async () => {
+    const stale: Packages = {
+      ...PACKAGES,
+      packages: [...PACKAGES.packages, asset("windows-arm64", "QualityLayer-12.0.0-arm64-setup.exe", 58_400_000)],
+    };
+    const markup = await html(<DownloadView data={stale} system="windows" />);
+    expect(cardOf(markup, "Windows")).not.toContain("ARM64");
+    expect(markup).not.toContain("QualityLayer-12.0.0-arm64-setup.exe");
+    expect(markup).toContain("QualityLayer-12.0.0-linux-arm64.AppImage");
   });
 
   it("offers browser setup and CLI integration with the install command", async () => {
@@ -101,7 +113,7 @@ describe("the cards", () => {
     const markup = await html(<DownloadView data={null} system="linux" />);
     expect(markup).toContain("<b>macOS</b>");
     expect(markup).toContain("<b>Windows</b>");
-    expect(markup).toContain('href="https://github.com/maxritter/pilot-shell/releases"');
+    expect(markup).toContain('href="https://github.com/maxritter/qualitylayer/releases"');
     expect(markup).not.toMatch(/\d+ MB/);
   });
 });
@@ -117,7 +129,7 @@ describe("the release line", () => {
     expect(line).toContain('<time dateTime="2026-10-12T02:10:53Z">October 12, 2026</time>');
     expect(line).toContain('href="/docs/changelog#1200-beta53"');
     expect(line).toContain("What&#x27;s new");
-    expect(line).toContain('href="https://github.com/maxritter/pilot-shell/releases"');
+    expect(line).toContain('href="https://github.com/maxritter/qualitylayer/releases"');
     expect(line).toContain("All releases on GitHub");
   });
 
@@ -139,7 +151,7 @@ describe("the release line", () => {
     expect(line).toContain("Looking up the latest version");
     expect(line).not.toContain("could not be loaded");
     expect(line).toContain('href="/docs/changelog"');
-    expect(line).toContain('href="https://github.com/maxritter/pilot-shell/releases"');
+    expect(line).toContain('href="https://github.com/maxritter/qualitylayer/releases"');
   });
 
   it("says the version could not be loaded when the release list fails, and keeps both links", async () => {

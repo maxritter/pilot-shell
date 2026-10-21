@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # QualityLayer installer.
 #
-#   curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/install.sh | bash
+#   curl -fsSL https://qualitylayer.dev/install.sh | bash
 #
 # One rule decides what is installed: a machine with a screen (macOS, or Linux with a display,
 # and no WSL, container or SSH session) gets the QualityLayer App and its command line; every
@@ -21,16 +21,21 @@
 # mean nothing may be asked; --quiet is accepted and ignored.
 # QualityLayer installs alongside Pilot Shell without changing its files or tools.
 #
-# Environment: VERSION (e.g. 12.0.0-beta.1; default: the newest v12 release),
+# Environment: VERSION (e.g. 12.0.0; default: the latest stable v12 release),
+# QUALITYLAYER_CHANNEL=beta explicitly selects prereleases,
 # QUALITYLAYER_RELEASE_BASE and QUALITYLAYER_RELEASE_API (mirrors and tests).
 # QUALITYLAYER_RELEASE_SIGNER names another signing key for tests, and counts only when the
 # release base is on this machine (a file: or loopback address).
 
 set -euo pipefail
 
-REPO="maxritter/pilot-shell"
+REPO="maxritter/qualitylayer"
+CHANNEL="${QUALITYLAYER_CHANNEL:-stable}"
+case "$CHANNEL" in stable | beta) ;; *) printf '%s\n' 'QUALITYLAYER_CHANNEL must be stable or beta' >&2; exit 1 ;; esac
 RELEASE_BASE="${QUALITYLAYER_RELEASE_BASE:-https://github.com/${REPO}/releases}"
-RELEASE_API="${QUALITYLAYER_RELEASE_API:-https://api.github.com/repos/${REPO}/releases?per_page=30}"
+release_list="https://api.github.com/repos/${REPO}/releases/latest"
+[ "$CHANNEL" != beta ] || release_list="https://api.github.com/repos/${REPO}/releases?per_page=30"
+RELEASE_API="${QUALITYLAYER_RELEASE_API:-$release_list}"
 VERSION="${VERSION:-}"
 VERSION="${VERSION#v}"
 
@@ -174,7 +179,9 @@ trap cleanup EXIT
 
 if [ -z "$VERSION" ]; then
 	fetch "$RELEASE_API" "$work/releases.json" || fail "cannot reach the release list at $RELEASE_API"
-	VERSION="$(grep -o '"tag_name": *"v12[^"]*"' "$work/releases.json" | head -n 1 | sed 's/.*"v\(.*\)"/\1/' || true)"
+	pattern='"tag_name": *"v12\.[0-9]+\.[0-9]+"'
+	[ "$CHANNEL" != beta ] || pattern='"tag_name": *"v12\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?"'
+	VERSION="$(grep -Eo "$pattern" "$work/releases.json" | head -n 1 | sed 's/.*"v\(.*\)"/\1/' || true)"
 	[ -n "$VERSION" ] || fail "no QualityLayer 12 release was found"
 fi
 

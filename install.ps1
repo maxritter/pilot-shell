@@ -25,8 +25,10 @@ $ProgressPreference = 'SilentlyContinue'
 if (-not $env:PATHEXT) { $env:PATHEXT = '.COM;.EXE;.BAT;.CMD' }
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-$qlReleaseBase = if ($env:QUALITYLAYER_RELEASE_BASE) { $env:QUALITYLAYER_RELEASE_BASE } else { 'https://github.com/maxritter/pilot-shell/releases' }
-$qlReleaseApi = if ($env:QUALITYLAYER_RELEASE_API) { $env:QUALITYLAYER_RELEASE_API } else { 'https://api.github.com/repos/maxritter/pilot-shell/releases?per_page=30' }
+$qlChannel = if ($env:QUALITYLAYER_CHANNEL) { $env:QUALITYLAYER_CHANNEL } else { 'stable' }
+if ($qlChannel -notin @('stable', 'beta')) { throw 'QUALITYLAYER_CHANNEL must be stable or beta.' }
+$qlReleaseBase = if ($env:QUALITYLAYER_RELEASE_BASE) { $env:QUALITYLAYER_RELEASE_BASE } else { 'https://github.com/maxritter/qualitylayer/releases' }
+$qlReleaseApi = if ($env:QUALITYLAYER_RELEASE_API) { $env:QUALITYLAYER_RELEASE_API } elseif ($qlChannel -eq 'beta') { 'https://api.github.com/repos/maxritter/qualitylayer/releases?per_page=30' } else { 'https://api.github.com/repos/maxritter/qualitylayer/releases/latest' }
 # The only key that may sign a release; the same line is built into `qualitylayer update`.
 $qlSignerId = 'release@qualitylayer.dev'
 $qlSignerNamespace = 'qualitylayer-release'
@@ -664,7 +666,7 @@ if ($Uninstall) {
 $qlArch = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE }
 $qlCpu = switch ($qlArch.ToUpperInvariant()) {
     'AMD64' { 'x64' }
-    'ARM64' { 'arm64' }
+    'ARM64' { throw 'Windows ARM64 is not supported. QualityLayer for Windows requires x64 (Intel or AMD).' }
     default { throw "Unsupported Windows CPU: $qlArch" }
 }
 $qlAsset = "qualitylayer-windows-$qlCpu.exe"
@@ -879,7 +881,9 @@ try {
     if (-not $Version) {
         $qlReleases = Invoke-RestMethod -Uri $qlReleaseApi
         $qlRelease = $qlReleases | Where-Object {
-            -not $_.draft -and $_.tag_name -match '^v12\.' -and ($_.assets.name -contains (& $qlWanted $_.tag_name))
+            -not $_.draft -and $_.tag_name -match '^v12\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$' -and
+            ($qlChannel -eq 'beta' -or (-not $_.prerelease -and $_.tag_name -notmatch '-')) -and
+            ($_.assets.name -contains (& $qlWanted $_.tag_name))
         } | Select-Object -First 1
         if (-not $qlRelease) { throw "No QualityLayer 12 release carries $(& $qlWanted 'v12')." }
         $Version = $qlRelease.tag_name

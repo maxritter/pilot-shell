@@ -149,12 +149,12 @@ describe("no Pilot Shell host is left", () => {
     expect(JSON.stringify(config)).not.toMatch(/pilot-shell\.com|claude-pilot/);
   });
 
-  it("serves the install scripts from the release repository's dev branch", () => {
+  it("serves the install scripts from the QualityLayer release repository's main branch", () => {
     for (const script of ["install.sh", "install.ps1"]) {
       expect(answer(`/${script}`), script).toEqual({
         kind: "redirect",
         status: 307,
-        location: `https://raw.githubusercontent.com/maxritter/pilot-shell/dev/${script}`,
+        location: `https://raw.githubusercontent.com/maxritter/qualitylayer/main/${script}`,
       });
     }
   });

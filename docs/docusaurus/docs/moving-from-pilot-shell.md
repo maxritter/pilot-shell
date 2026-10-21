@@ -33,7 +33,7 @@ The import copies lessons into QualityLayer's private project memory. It leaves 
 Once your workflows work in QualityLayer, you can remove Pilot Shell with its own uninstaller:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/maxritter/qualitylayer/main/uninstall.sh | bash
 ```
 
 It asks before removing anything and keeps the tools Pilot Shell installed; add `--remove-tools` to remove those too. QualityLayer does not run it or remove Pilot Shell's tools for you.

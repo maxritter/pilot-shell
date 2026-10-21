@@ -12,10 +12,10 @@
 **Plan each change visually, then let your agents build and verify it.**<br>
 Work side by side in the App or browser, or use your favourite terminal or IDE.
 
-<a href="https://github.com/maxritter/pilot-shell"><img src="https://img.shields.io/github/stars/maxritter/pilot-shell?style=flat&amp;color=9d6607&amp;labelColor=30363d" alt="Stars"></a>
-<a href="https://star-history.com/#maxritter/pilot-shell&amp;Date"><img src="https://img.shields.io/badge/Star_History-chart-6f4fc2?labelColor=30363d" alt="Star History"></a>
-<a href="https://github.com/maxritter/pilot-shell/releases"><img src="https://img.shields.io/github/downloads/maxritter/pilot-shell/total?color=2076c5&amp;labelColor=30363d" alt="Downloads"></a>
-<a href="https://github.com/maxritter/pilot-shell/pulls"><img src="https://img.shields.io/badge/PRs-welcome-2076C5.svg?labelColor=30363d" alt="PRs Welcome"></a>
+<a href="https://github.com/maxritter/qualitylayer"><img src="https://img.shields.io/github/stars/maxritter/qualitylayer?style=flat&amp;color=9d6607&amp;labelColor=30363d" alt="Stars"></a>
+<a href="https://star-history.com/#maxritter/qualitylayer&amp;Date"><img src="https://img.shields.io/badge/Star_History-chart-6f4fc2?labelColor=30363d" alt="Star History"></a>
+<a href="https://github.com/maxritter/qualitylayer/releases"><img src="https://img.shields.io/github/downloads/maxritter/qualitylayer/total?color=2076c5&amp;labelColor=30363d" alt="Downloads"></a>
+<a href="https://github.com/maxritter/qualitylayer/pulls"><img src="https://img.shields.io/badge/PRs-welcome-2076C5.svg?labelColor=30363d" alt="PRs Welcome"></a>
 
 <p>
   <a href="#install">Install</a> •
@@ -176,13 +176,13 @@ Guides for [getting started](https://qualitylayer.dev/docs/), [commands](https:/
 
 ## Changelog
 
-See [the changelog](https://qualitylayer.dev/docs/changelog) or [GitHub Releases](https://github.com/maxritter/pilot-shell/releases).
+See [the changelog](https://qualitylayer.dev/docs/changelog) or [GitHub Releases](https://github.com/maxritter/qualitylayer/releases).
 
 ---
 
 ## Contributing
 
-Found a bug or missing a feature? [Open an issue](https://github.com/maxritter/pilot-shell/issues).
+Found a bug or missing a feature? [Open an issue](https://github.com/maxritter/qualitylayer/issues).
 
 ---
 

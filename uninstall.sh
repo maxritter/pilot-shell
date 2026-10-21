@@ -2,7 +2,7 @@
 # Pilot Shell 11 uninstaller, kept at this path for Pilot Shell users.
 #
 # Pilot Shell's README, docs and its own messages tell users to run
-#   curl -fsSL https://raw.githubusercontent.com/maxritter/pilot-shell/main/uninstall.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/maxritter/qualitylayer/main/uninstall.sh | bash
 # Now that main carries QualityLayer, this script downloads Pilot Shell's last uninstaller (v11.0.8),
 # checks it against the SHA-256 below and runs it with the same options (--yes, --remove-tools,
 # --purge-data, --help). QualityLayer itself uninstalls with `qualitylayer uninstall`.
@@ -10,7 +10,7 @@
 set -euo pipefail
 
 # PILOT_UNINSTALL_URL names a mirror for tests; whatever it serves must still match the checksum.
-PILOT_UNINSTALL_URL="${PILOT_UNINSTALL_URL:-https://raw.githubusercontent.com/maxritter/pilot-shell/v11.0.8/uninstall.sh}"
+PILOT_UNINSTALL_URL="${PILOT_UNINSTALL_URL:-https://raw.githubusercontent.com/maxritter/qualitylayer/v11.0.8/uninstall.sh}"
 PILOT_UNINSTALL_SHA256="eee6e1cf2a20c48af7dd7d4e9470437218591ed5c4f4a54a5d161618973cdc97"
 
 script="$(mktemp "${TMPDIR:-/tmp}/pilot-uninstall.XXXXXX")"

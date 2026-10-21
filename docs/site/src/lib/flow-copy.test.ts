@@ -90,7 +90,7 @@ describe("the flow in the copy: asked and answered in the App", () => {
     for (const path of [join(docs, "app.md"), join(docs, "steps/discuss.md")]) {
       const text = read(path);
       const name = path.replace(`${repo}/`, "");
-      expect(text, name).toMatch(/independent questions|questions it can ask together/i);
+      expect(text, name).toMatch(/independent questions|questions it can ask together|groups related questions into a batch/i);
       expect(text, name).toMatch(/\bbatch(es)?\b/i);
       expect(text, name).toMatch(/one (focused )?question|shows one with its context/i);
       expect(text, name).toMatch(/answer in any order|answer another first|answer another question first/i);

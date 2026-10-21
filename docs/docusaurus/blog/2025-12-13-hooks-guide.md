@@ -72,9 +72,9 @@ Every hook communicates via exit codes:
 
 **Exit code 2 is your power tool.** A PreToolUse hook that exits 2 stops the tool. A Stop hook that exits 2 forces Claude to keep working.
 
-## Hook Types: Command, HTTP, Prompt, and Agent
+## Hook Types: Command, HTTP, MCP Tool, Prompt, and Agent {#hook-types-command-http-prompt-and-agent}
 
-Claude Code supports four hook handler types. Pick the one that fits your use case:
+Claude Code supports five hook handler types: command, HTTP, MCP tool (`mcp_tool`), prompt, and agent. Pick the one that fits your use case. See the [official handler reference](https://code.claude.com/docs/en/hooks#hook-handler-fields) for the current fields.
 
 **Command hooks** run shell scripts:
 
@@ -106,6 +106,21 @@ HTTP hooks send the event's JSON input as the POST body (`Content-Type: applicat
 - **Header env vars**: Use `$VAR_NAME` or `${VAR_NAME}` in header values. Only variables listed in `allowedEnvVars` get resolved; unlisted ones become empty strings.
 - **Deduplication**: HTTP hooks are deduplicated by URL (command hooks by command string).
 - **Config only**: Must be added by editing settings JSON directly. The `/hooks` interactive menu only supports command hooks.
+
+**MCP tool hooks** call a tool on a configured MCP server, without a shell command or HTTP endpoint. This example assumes your `my_server` server exposes a `security_scan` tool:
+
+```json
+{
+  "type": "mcp_tool",
+  "server": "my_server",
+  "tool": "security_scan",
+  "input": {
+    "file_path": "${tool_input.file_path}"
+  }
+}
+```
+
+`server` and `tool` are required; `input` is optional and can refer to event fields. Tool text follows command-hook JSON output rules. An `isError: true` result is non-blocking. MCP tool hooks are skipped at initial `SessionStart` and `Setup`; use a command hook for startup work. See [MCP tool hook fields](https://code.claude.com/docs/en/hooks#mcp-tool-hook-fields).
 
 **Prompt hooks** use LLM evaluation (great for Stop/SubagentStop):
 

@@ -428,12 +428,13 @@ jobs:
 
   candidate:
     name: Stage the exact candidate without publication
-    needs: [prepare-release, test, security-scan, source-ui-gate]
+    permissions:
+      contents: read
+    needs: prepare-release
     if: >-
       ${{ always() && inputs.operation != 'promote' &&
       needs.prepare-release.outputs.should_release == 'true' &&
-      needs.prepare-release.result == 'success' && needs.test.result == 'success' &&
-      needs.security-scan.result == 'success' && needs.source-ui-gate.result == 'success' }}
+      needs.prepare-release.result == 'success' }}
     uses: ./.github/workflows/qualitylayer-candidate.yml
     with:
       version: ${{ needs.prepare-release.outputs.version }}
@@ -532,7 +533,7 @@ jobs:
           MANIFEST: ${{ needs.verify-candidate.outputs.manifest_sha256 }}
         run: |
           # shellcheck disable=SC2016
-          printf '## Promote v%s\n\nCandidate run %s, attempt %s; source `%s`; manifest `%s`.\n\nRoot installed this exact App/CLI/engine. Source UI, supply-chain, security, tests and six native distribution receipts passed. Publication reuses these bytes without rebuilding or resigning.\n' "$VERSION" "$RUN_ID" "$ATTEMPT" "$GITHUB_SHA" "$MANIFEST" >> "$GITHUB_STEP_SUMMARY"
+          printf '## Promote v%s\n\nCandidate run %s, attempt %s; source `%s`; manifest `%s`.\n\nRoot installed this exact App/CLI/engine. Source UI, supply-chain, security, tests and five native distribution receipts passed. Publication reuses these bytes without rebuilding or resigning.\n' "$VERSION" "$RUN_ID" "$ATTEMPT" "$GITHUB_SHA" "$MANIFEST" >> "$GITHUB_STEP_SUMMARY"
 
   publish-release:
     name: Publish Release
@@ -557,7 +558,7 @@ jobs:
       # qualitylayer-site; the project that serves pilot-shell.com is never deployed to from here.
       VERCEL_PROJECT_ID: prj_SbOGJL2YBjvq9P5MSjxcrj87IGbi
       # Stable promotion is main/Production even while the beta site's variable still names dev.
-      PRODUCTION_BRANCH: ${{ !contains(needs.prepare-release.outputs.version, '-') && 'main' || vars.SITE_PRODUCTION_BRANCH || 'dev' }}
+      PRODUCTION_BRANCH: ${{ !contains(needs.prepare-release.outputs.version, '-') && 'main' || vars.SITE_PRODUCTION_BRANCH || 'main' }}
     steps:
       # The tested revision, never the branch tip: what is released is what was built.
       - name: Checkout
@@ -731,23 +732,9 @@ jobs:
           vercel api "/v13/deployments/$deployment_id" --method GET --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID" --raw > "$runtime"
           DEPLOY_URL=$(node "$verifier" verify --deployment "$receipt" --metadata "$runtime" --project "$VERCEL_PROJECT_ID" --target "$target" --git-ref "$GITHUB_REF_NAME" --git-sha "$GITHUB_SHA")
           node "$preparer" verify-runtime --prepared "$prepared" --frontend "$GITHUB_SHA" --api "$source/docs/site/api" --metadata "$runtime"
-          bash "$source/docs/site/scripts/check-deploy.sh" "$DEPLOY_URL"
+          bash "$source/docs/site/scripts/check-deploy.sh" "$DEPLOY_URL" --pending-release "$VERSION"
           echo "Deployed to: $DEPLOY_URL"
           echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
-
-      # The domains move only to a Production deployment of the branch's tip: a newer commit
-      # that landed meanwhile keeps them.
-      - name: Point qualitylayer.dev at this release
-        if: ${{ !contains(env.VERSION, '-') && github.ref_name == 'main' }}
-        env:
-          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
-        run: |
-          git fetch --quiet origin "$GITHUB_REF_NAME"
-          if [ "$(git rev-parse "origin/$GITHUB_REF_NAME")" != "$GITHUB_SHA" ]; then
-            echo "::warning::$GITHUB_REF_NAME moved past $GITHUB_SHA; qualitylayer.dev stays on the newer deployment"
-            exit 0
-          fi
-          vercel promote "$DEPLOY_URL" --yes --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID"
 
       - name: Upload the workflow texts and read them back
         working-directory: docs/site
@@ -759,14 +746,11 @@ jobs:
             cd "${DEPLOY_SOURCE:?}/docs/site"
             node scripts/prepare-beta-backend.mjs verify --prepared "${PREPARED_BACKEND:?}" --frontend "$GITHUB_SHA" --api "${DEPLOY_SOURCE:?}/docs/site/api"
           fi
-          # The database of the environment being released to, never the other one.
+          # Released stable and beta Apps both use normal Production accounts.
+          # This writes only their signed, versioned workflow bundle; beta API code stays in Preview.
           pull="${RUNNER_TEMP:?}/database.env"
           trap 'rm -f "$pull"' EXIT
-          if [ "$GITHUB_REF_NAME" = "$PRODUCTION_BRANCH" ]; then
-            vercel env pull "$pull" --environment=production --token="$VERCEL_TOKEN" --yes
-          else
-            vercel env pull "$pull" --environment=preview --git-branch="$GITHUB_REF_NAME" --token="$VERCEL_TOKEN" --yes
-          fi
+          vercel env pull "$pull" --environment=production --token="$VERCEL_TOKEN" --yes
           value() { sed -n "s/^$1=\"\\{0,1\\}\\([^\"]*\\)\"\\{0,1\\}\$/\\1/p" "$pull"; }
           DATABASE_URL="$(value OWNER_DATABASE_URL)"
           [ -n "$DATABASE_URL" ] || DATABASE_URL="$(value DATABASE_URL)"
@@ -783,17 +767,6 @@ jobs:
         run: |
           if [[ "$VERSION" != *-* ]]; then cd "${DEPLOY_SOURCE:?}/docs/site"; fi
           node scripts/upload-workflow.ts probe "$VERSION" "$DEPLOY_URL"
-
-      - name: Remove private stable deployment sources
-        if: always()
-        run: |
-          for path in "${DEPLOY_SOURCE:-}" "${PREPARED_BACKEND:-}"; do
-            case "$path" in
-              "${RUNNER_TEMP:?}"/ql-stable-source.*) rm -rf -- "$path" ;;
-              "") ;;
-              *) echo "::error::refusing to remove an unexpected stable deployment path"; exit 1 ;;
-            esac
-          done
 
       # The GitHub release says what the updater's manifest says: one section of CHANGELOG.md.
       - name: The release notes, from the manifest
@@ -813,7 +786,6 @@ jobs:
             release/qualitylayer-linux-arm64
             release/qualitylayer-linux-x64
             release/qualitylayer-windows-x64.exe
-            release/qualitylayer-windows-arm64.exe
             release/install.sh
             release/install.ps1
             release/QualityLayer-*.dmg
@@ -831,19 +803,23 @@ jobs:
           set -euo pipefail
           marker="<!-- qualitylayer-candidate:$CANDIDATE_RUN:$CANDIDATE_ATTEMPT:$MANIFEST_SHA256 -->"
           printf '\n%s\n' "$marker" >> "$RELEASE_NOTES_FILE"
-          prerelease=()
-          case "$VERSION" in *-*) prerelease=(--prerelease) ;; esac
+          release_flags=(--draft --latest=false)
+          case "$VERSION" in *-*) release_flags+=(--prerelease) ;; esac
           if gh release view "v$VERSION" --json body > "$RUNNER_TEMP/existing-release.json" 2>/dev/null; then
             jq -e --arg marker "$marker" '.body | contains($marker)' "$RUNNER_TEMP/existing-release.json"
-            git fetch --quiet origin "refs/tags/v$VERSION:refs/tags/v$VERSION"
-            [ "$(git rev-parse "v$VERSION^{commit}")" = "$GITHUB_SHA" ]
+            if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
+              git fetch --quiet origin "refs/tags/v$VERSION:refs/tags/v$VERSION"
+              [ "$(git rev-parse "v$VERSION^{commit}")" = "$GITHUB_SHA" ]
+            else
+              gh release view "v$VERSION" --json isDraft,targetCommitish | jq -e --arg sha "$GITHUB_SHA" '.isDraft == true and .targetCommitish == $sha'
+            fi
           else
             # A preexisting tag for other bytes is never moved or overwritten.
             if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
               git fetch --quiet origin "refs/tags/v$VERSION:refs/tags/v$VERSION"
               [ "$(git rev-parse "v$VERSION^{commit}")" = "$GITHUB_SHA" ]
             fi
-            gh release create "v$VERSION" --title "v$VERSION" --notes-file "$RELEASE_NOTES_FILE" --target "$GITHUB_SHA" "${prerelease[@]}"
+            gh release create "v$VERSION" --title "v$VERSION" --notes-file "$RELEASE_NOTES_FILE" --target "$GITHUB_SHA" "${release_flags[@]}"
           fi
 
       - name: Upload assets to the release
@@ -872,9 +848,50 @@ jobs:
           find release -type f -printf '%f\n' | sort > expected.txt
           diff -u expected.txt published.txt
 
+      - name: Publish only the complete candidate release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [[ "$VERSION" == *-* ]]; then
+            gh release edit "v$VERSION" --draft=false --prerelease --latest=false
+          else
+            gh release edit "v$VERSION" --draft=false --prerelease=false --latest
+            [ "$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)" = "v$VERSION" ]
+          fi
+
+      # The domains move only to a Production deployment of the branch's tip: a newer commit
+      # that landed meanwhile keeps them.
+      - name: Point qualitylayer.dev at this release
+        if: ${{ !contains(env.VERSION, '-') && github.ref_name == 'main' }}
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          set -euo pipefail
+          bash "${DEPLOY_SOURCE:?}/docs/site/scripts/check-deploy.sh" "$DEPLOY_URL"
+          git fetch --quiet origin "$GITHUB_REF_NAME"
+          if [ "$(git rev-parse "origin/$GITHUB_REF_NAME")" != "$GITHUB_SHA" ]; then
+            echo "::warning::$GITHUB_REF_NAME moved past $GITHUB_SHA; qualitylayer.dev stays on the newer deployment"
+            exit 0
+          fi
+          vercel promote "$DEPLOY_URL" --yes --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID"
+
+      - name: Remove private stable deployment sources
+        if: always()
+        run: |
+          for path in "${DEPLOY_SOURCE:-}" "${PREPARED_BACKEND:-}"; do
+            case "$path" in
+              "${RUNNER_TEMP:?}"/ql-stable-source.*) rm -rf -- "$path" ;;
+              "") ;;
+              *) echo "::error::refusing to remove an unexpected stable deployment path"; exit 1 ;;
+            esac
+          done
+
   # A clean Linux install of the beta just published, from qualitylayer.dev.
   beta-install:
     name: Beta install
+    permissions:
+      contents: read
     needs: [prepare-release, publish-release]
     if: ${{ always() && github.ref_name == 'dev' && needs.publish-release.result == 'success' }}
     uses: ./.github/workflows/beta-install.yml

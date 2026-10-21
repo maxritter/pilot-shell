@@ -238,7 +238,8 @@ job_browser_checks() {
 }
 # shellcheck disable=SC2329
 job_plaintext() {
-  bash .github/scripts/check_qualitylayer_encrypted.sh --staged
+  ( cd "$qualitylayer_tree" && GIT_DIR="$repo_git_dir" GIT_WORK_TREE="$qualitylayer_tree" \
+      bash .github/scripts/check_qualitylayer_encrypted.sh --staged )
 }
 # The App's Rust crates: formatted, and clippy-clean with warnings as errors.
 # shellcheck disable=SC2329
@@ -249,10 +250,12 @@ job_rust() { # job_rust <crate dir under qualitylayer/app>
 }
 # shellcheck disable=SC2329
 job_shellcheck() {
+  cd "$qualitylayer_tree" || return 1
   shellcheck "${shell_files[@]}"
 }
 # shellcheck disable=SC2329
 job_actionlint() {
+  cd "$qualitylayer_tree" || return 1
   # A checked-out commit tree need not contain Git's metadata directory.
   local workflows=() file
   for file in .github/workflows/*.yml .github/workflows/*.yaml; do
@@ -262,6 +265,7 @@ job_actionlint() {
 }
 # shellcheck disable=SC2329
 job_trivy() {
+  cd "$qualitylayer_tree" || return 1
   trivy fs . \
     --scanners vuln,secret \
     --severity CRITICAL,HIGH \
@@ -272,17 +276,39 @@ job_trivy() {
     --quiet
 }
 
-# Materialize only immutable index blobs. Copying index-equal working files races with a
-# concurrent edit after the comparison. Full checkout costs one smudge call per filtered file;
-# that cost is necessary until an optimization can prove the copied bytes match the index.
+# Materialize only immutable index blobs: index-equal working files can change during a copy.
+# The unchanged committed filter can serve encrypted blobs in one process; other configurations
+# retain Git's configured smudge path, with no working-copy fallback on failure.
 stage_tree() { # stage_tree <dir>
-  local out="$1" paths="$TMP/staged-paths" started git_dir
+  local out="$1" paths="$TMP/staged-paths" started git_dir common_dir key script
+  local candidate_helper committed_helper process_filter="" filter_config=()
   started="$(date +%s)"
   git_dir="$(git rev-parse --absolute-git-dir)" || return 1
-  git ls-files -z -- .gitattributes qualitylayer docs/site CHANGELOG.md >"$paths" || return 1
+  git ls-files --cached -z >"$paths" || return 1
+  # Reuse only the unchanged, committed filter implementation, never a working-copy edit.
+  # This config applies to this checkout-index command only; keys stay in Git metadata.
+  script=".github/workflows/scripts/git-crypt-unlock.ts"
+  candidate_helper="$(git rev-parse --verify ":$script" 2>/dev/null || true)"
+  committed_helper="$(git rev-parse --verify "HEAD:$script" 2>/dev/null || true)"
+  key="$git_dir/git-crypt/keys/default"
+  if [ ! -r "$key" ]; then
+    common_dir="$(git rev-parse --git-common-dir)" || return 1
+    common_dir="$(cd "$common_dir" && pwd -P)" || return 1
+    key="$common_dir/git-crypt/keys/default"
+  fi
+  if [ -n "$candidate_helper" ] && [ "$candidate_helper" = "$committed_helper" ] \
+    && [ -r "$key" ] && have bun && have python3; then
+    git cat-file blob "$candidate_helper" >"$TMP/git-crypt-unlock.ts" || return 1
+    process_filter="$(python3 -I - "$(command -v bun)" "$TMP/git-crypt-unlock.ts" "$key" <<'PY'
+import shlex, sys
+print(shlex.join([sys.argv[1], sys.argv[2], "filter", sys.argv[3]]))
+PY
+)" || return 1
+    filter_config=(-c "filter.git-crypt.process=$process_filter" -c "filter.git-crypt.required=true")
+  fi
   # Resolve attributes against the empty output worktree and frozen index, never unstaged
   # .gitattributes in the shared checkout. checkout-index preserves modes and runs smudge.
-  ( cd "$out" && git --git-dir="$git_dir" --work-tree="$out" \
+  ( cd "$out" && git ${filter_config[@]+"${filter_config[@]}"} --git-dir="$git_dir" --work-tree="$out" \
       checkout-index --force -z --stdin <"$paths" ) || return 1
   echo "Pre-commit: staged tree ready in $(($(date +%s) - started))s ($(tr -cd '\0' <"$paths" | wc -c | tr -d ' ') file(s) from the index)."
 }
@@ -297,19 +323,21 @@ link_dependencies() { # link_dependencies <borrowed directory> <snapshot destina
 }
 
 # --- Schedule --------------------------------------------------------------------
-# All QualityLayer jobs share one staged tree, even when the checkout starts clean: another
-# session can start editing at any time. Dependency installations are linked, not recopied.
-qualitylayer_tree="$PWD"
+# Security and workflow-only commits need the complete candidate too: every tracked manifest
+# (including Docusaurus and video), source and scanner configuration comes from the frozen index.
+# Ignored local candidates never enter this tree. Borrow dependencies only for the App jobs.
+repo_git_dir="$(git rev-parse --absolute-git-dir)" || exit 1
+qualitylayer_tree="$TMP/staged"
+if ! { mkdir -p "$qualitylayer_tree" && stage_tree "$qualitylayer_tree"; }; then
+  echo "✖ Pre-commit refused: could not materialize the staged tree; no working-copy fallback." >&2
+  exit 1
+fi
 if [ "$qualitylayer_changed" = "1" ] && have bun && [ -d qualitylayer/node_modules ]; then
-  # Tests import docs/site; release builds also embed the root CHANGELOG.md.
-  if ! { mkdir -p "$TMP/staged" \
-    && stage_tree "$TMP/staged" \
-    && link_dependencies "$PWD/qualitylayer/node_modules" "$TMP/staged/qualitylayer/node_modules" \
+  if ! { link_dependencies "$PWD/qualitylayer/node_modules" "$qualitylayer_tree/qualitylayer/node_modules" \
     && { [ ! -d docs/site/node_modules ] || link_dependencies "$PWD/docs/site/node_modules" "$TMP/staged/docs/site/node_modules"; }; }; then
     echo "✖ Pre-commit refused: could not materialize the staged tree; no working-copy fallback." >&2
     exit 1
   fi
-  qualitylayer_tree="$TMP/staged"
 fi
 
 if [ "$qualitylayer_changed" = "1" ]; then
