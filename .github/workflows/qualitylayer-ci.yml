@@ -351,7 +351,6 @@ jobs:
       matrix:
         include:
           - { os: windows-2025, arch: x64 }
-          - { os: windows-11-arm, arch: arm64 }
     defaults:
       run:
         shell: pwsh
@@ -364,7 +363,7 @@ jobs:
       - uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
           bun-version: "1.4.2"
-          bun-download-url: https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-windows-${{ matrix.arch == 'arm64' && 'aarch64' || 'x64' }}.zip
+          bun-download-url: https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-windows-x64.zip
       - name: Unlock repository
         working-directory: .
         env:
@@ -393,7 +392,7 @@ jobs:
       - name: Build matching native Rust launcher for the installed command path
         timeout-minutes: 5
         run: |
-          $target = if ('${{ matrix.arch }}' -eq 'arm64') { 'aarch64-pc-windows-msvc' } else { 'x86_64-pc-windows-msvc' }
+          $target = 'x86_64-pc-windows-msvc'
           $toolchain = "stable-$target"
           rustup toolchain install $toolchain --profile minimal
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -24,7 +24,7 @@ const TERMINAL = "M3 4h18v16H3zM7 9l3 3-3 3M12 15h5";
 const CARDS: { id: Card; title: string; about: string; icon: string; main: string; other?: { id: string; label: string } }[] = [
   { id: "macos-arm64", title: "macOS", about: "Apple silicon · .dmg", icon: APPLE, main: "macos-arm64" },
   { id: "macos-x64", title: "macOS", about: "Intel · .dmg", icon: APPLE, main: "macos-x64" },
-  { id: "windows", title: "Windows", about: "x64 or ARM64 · no admin needed", icon: WINDOWS_ICON, main: "windows-x64", other: { id: "windows-arm64", label: "ARM64" } },
+  { id: "windows", title: "Windows", about: "x64 · no admin needed", icon: WINDOWS_ICON, main: "windows-x64" },
   { id: "linux", title: "Linux", about: "x64 or ARM64 · AppImage", icon: LINUX_ICON, main: "linux-x64", other: { id: "linux-arm64", label: "ARM64" } },
 ];
 

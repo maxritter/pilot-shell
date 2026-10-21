@@ -70,7 +70,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2025, windows-11-arm]
+        os: [windows-2025]
     steps:
       - name: Install the published Windows release into an empty home
         shell: pwsh

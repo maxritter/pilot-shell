@@ -71,8 +71,8 @@ jobs:
         include: >-
           ${{ fromJSON(
             github.event_name == 'workflow_dispatch' && inputs.platforms == 'windows' &&
-            '[{"name":"Windows x64","leg":"windows-x64","os":"windows-2025"},{"name":"Windows ARM64","leg":"windows-arm64","os":"windows-11-arm"}]' ||
-            '[{"name":"macOS Apple silicon","leg":"macos-arm64","os":"macos-26"},{"name":"macOS Intel","leg":"macos-x64","os":"macos-15-intel"},{"name":"Windows x64","leg":"windows-x64","os":"windows-2025"},{"name":"Windows ARM64","leg":"windows-arm64","os":"windows-11-arm"},{"name":"Ubuntu x64","leg":"linux-x64","os":"ubuntu-22.04"},{"name":"Ubuntu ARM64","leg":"linux-arm64","os":"ubuntu-24.04-arm"}]'
+            '[{"name":"Windows x64","leg":"windows-x64","os":"windows-2025"}]' ||
+            '[{"name":"macOS Apple silicon","leg":"macos-arm64","os":"macos-26"},{"name":"macOS Intel","leg":"macos-x64","os":"macos-15-intel"},{"name":"Windows x64","leg":"windows-x64","os":"windows-2025"},{"name":"Ubuntu x64","leg":"linux-x64","os":"ubuntu-22.04"},{"name":"Ubuntu ARM64","leg":"linux-arm64","os":"ubuntu-24.04-arm"}]'
           ) }}
     defaults:
       run:
@@ -131,7 +131,6 @@ jobs:
         uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
         with:
           bun-version: "1.4.2"
-          bun-download-url: ${{ matrix.os == 'windows-11-arm' && 'https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-windows-aarch64.zip' || '' }}
 
       - name: Install dependencies
         working-directory: qualitylayer
@@ -265,19 +264,8 @@ jobs:
           $aclEvidence | ConvertTo-Json -Depth 6 | Tee-Object -FilePath (Join-Path $probe 'account-acls.json')
           & $cli install --app $installed --json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $desktopDriver = @()
-          if ($env:RUNNER_ARCH -eq 'ARM64') {
-            $desktopDriver = @('--native-driver', (Join-Path $env:GITHUB_WORKSPACE 'qualitylayer/scripts/native-terminal/windows-arm-desktop.ps1'))
-          }
-          bun scripts/qualify-terminal.ts --binary $cli --agent codex --fake-agent $env:QL_PROBE_FIXTURE --request-template scripts/native-terminal/request.example.json --target installed --installed-app $app --out "$probe/evidence" @desktopDriver
+          bun scripts/qualify-terminal.ts --binary $cli --agent codex --fake-agent $env:QL_PROBE_FIXTURE --request-template scripts/native-terminal/request.example.json --target installed --installed-app $app --out "$probe/evidence"
           exit $LASTEXITCODE
-
-      - name: Restore the original ARM input desktop
-        if: always() && runner.os == 'Windows' && runner.arch == 'ARM64'
-        shell: pwsh
-        run: |
-          $state = Join-Path $env:RUNNER_TEMP 'installed-terminal/evidence/desktop-state.json'
-          if (Test-Path -LiteralPath $state) { ./qualitylayer/scripts/native-terminal/windows-arm-desktop.ps1 -Restore }
 
       - name: Write the leg's result
         if: success()

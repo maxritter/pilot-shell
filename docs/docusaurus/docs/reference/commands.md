@@ -217,7 +217,7 @@ With no paths, `check` selects changed and untracked source files. A focused dup
 <details>
 <summary>Availability and reviewing findings</summary>
 
-Automatic structure checks use a managed local Qlty binary, without model calls or plugin downloads. Installation and updates prepare it; retry `quality setup` if it is unavailable. Native builds cover macOS and Linux on x64 and ARM64, and Windows x64. Windows ARM64 reports unavailable.
+Automatic structure checks use a managed local Qlty binary, without model calls or plugin downloads. Installation and updates prepare it; retry `quality setup` if it is unavailable. Native builds cover macOS and Linux on x64 and ARM64, and Windows x64.
 
 Read every finding against the source. `known` means seen before, not reviewed. Acknowledge an intentional pattern or deferred improvement with its evidence and repair boundary. Acknowledging retains the finding; it does not repair the code. Changed source, analyzer settings, duplication counterparts or increased metrics require review again.
 

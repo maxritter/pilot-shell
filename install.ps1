@@ -666,7 +666,7 @@ if ($Uninstall) {
 $qlArch = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE }
 $qlCpu = switch ($qlArch.ToUpperInvariant()) {
     'AMD64' { 'x64' }
-    'ARM64' { 'arm64' }
+    'ARM64' { throw 'Windows ARM64 is not supported. QualityLayer for Windows requires x64 (Intel or AMD).' }
     default { throw "Unsupported Windows CPU: $qlArch" }
 }
 $qlAsset = "qualitylayer-windows-$qlCpu.exe"

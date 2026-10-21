@@ -531,7 +531,7 @@ jobs:
           MANIFEST: ${{ needs.verify-candidate.outputs.manifest_sha256 }}
         run: |
           # shellcheck disable=SC2016
-          printf '## Promote v%s\n\nCandidate run %s, attempt %s; source `%s`; manifest `%s`.\n\nRoot installed this exact App/CLI/engine. Source UI, supply-chain, security, tests and six native distribution receipts passed. Publication reuses these bytes without rebuilding or resigning.\n' "$VERSION" "$RUN_ID" "$ATTEMPT" "$GITHUB_SHA" "$MANIFEST" >> "$GITHUB_STEP_SUMMARY"
+          printf '## Promote v%s\n\nCandidate run %s, attempt %s; source `%s`; manifest `%s`.\n\nRoot installed this exact App/CLI/engine. Source UI, supply-chain, security, tests and five native distribution receipts passed. Publication reuses these bytes without rebuilding or resigning.\n' "$VERSION" "$RUN_ID" "$ATTEMPT" "$GITHUB_SHA" "$MANIFEST" >> "$GITHUB_STEP_SUMMARY"
 
   publish-release:
     name: Publish Release
@@ -784,7 +784,6 @@ jobs:
             release/qualitylayer-linux-arm64
             release/qualitylayer-linux-x64
             release/qualitylayer-windows-x64.exe
-            release/qualitylayer-windows-arm64.exe
             release/install.sh
             release/install.ps1
             release/QualityLayer-*.dmg
