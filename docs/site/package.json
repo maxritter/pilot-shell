@@ -21,6 +21,7 @@
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",
     "@neondatabase/serverless": "^1.2.0",
+    "@pierre/diffs": "1.5.2",
     "@polar-sh/checkout": "0.4.3",
     "@polar-sh/sdk": "1.0.2",
     "@upstash/redis": "^1.36.2",

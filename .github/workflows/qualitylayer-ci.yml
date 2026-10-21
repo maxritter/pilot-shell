@@ -253,6 +253,15 @@ jobs:
         working-directory: docs/site
         run: npm test
 
+      - name: Build production pages and App demo with only site dependencies
+        working-directory: docs/site
+        env:
+          INDEXNOW_DISABLE: "1"
+        run: |
+          test ! -e ../../qualitylayer/node_modules
+          npm run build
+          node scripts/verify-csp-hash.mjs
+
   # Every push runs the Windows-specific suites and a short end-to-end smoke set natively on
   # windows-2025, split so each job ends within ten minutes. The full end-to-end suite runs on
   # Linux and macOS above on every push, and on both Windows runners nightly in
