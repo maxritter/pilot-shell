@@ -59,13 +59,34 @@ claude                codex
 
 Detailed `.claude/rules/` files keep their `paths` frontmatter, so they load only for relevant Claude Code work. `AGENTS.md` carries a compact index telling Codex which matching rule to read; it does not duplicate the detailed content.
 
-Pilot synchronizes complete project-skill trees between `.agents/skills/` and `.claude/skills/`, including `scripts/`, `references/`, and `assets/`. It runs on SessionStart and supported edits made through either Claude Code or Codex. A Stop hook covers Code Mode when no edit event fired.
+Synchronization is opt-in. Pilot only changes files in a repository that contains `scripts/sync-agent-assets.mjs`, which `/setup-rules` installs. In every other repository it leaves `AGENTS.md`, `CLAUDE.md` and both skill folders alone.
+
+In an opted-in repository, Pilot synchronizes complete project-skill trees between `.agents/skills/` and `.claude/skills/`, including `scripts/`, `references/`, and `assets/`. It runs on SessionStart and supported edits made through either Claude Code or Codex. A Stop hook covers Code Mode when no edit event fired.
 
 Tracked skills retain `.agents/skills/` as their durable source, but a Claude-side edit synchronizes back when the Codex copy still matches the last trusted baseline. Untracked and gitignored skills use the same conflict-safe two-way rule with a baseline under `.git/pilot`. One-sided skills are copied automatically; when both sides changed independently, Pilot preserves both and reports the conflict.
 
+Pilot never copies a skill that only one agent can run:
+
+- A skill in `.claude/skills/` that uses Claude Code tools such as `AskUserQuestion`, `Skill(...)`, `TaskCreate` or `subagent_type` stays Claude-only. A skill in `.agents/skills/` that uses Codex tools such as `request_user_input` or `update_plan` stays Codex-only.
+- When the Claude and Codex copies of a skill use different agent-specific tools, Pilot treats them as hand-maintained versions and leaves both alone.
+
+To control the rest, add a `.pilot-sync.json` file at the repository root:
+
+```json
+{ "exclude": ["ios-release", "xcode-build"] }
+```
+
+leaves the named skills alone, and
+
+```json
+{ "enabled": false }
+```
+
+turns synchronization off for the whole repository.
+
 Gitignored `.claude/rules/` remain one physical source. Pilot adds a bounded path index to the agent-only SessionStart context so Codex can load the relevant rule on demand without copying its contents into every prompt or printing hook status in the user-facing session.
 
-The shared hook executes only Pilot's installed, trusted checker and automatically detects repositories containing agent assets. The repository copy is the command used by CI and manual recovery; hooks update it when present but never execute repository-controlled code. Successful synchronization is silent in both clients; only actionable conflicts or unsafe layouts surface to the user.
+The shared hook executes only Pilot's installed, trusted checker. The repository copy is the command used by CI and manual recovery; hooks update it when present but never execute repository-controlled code. Successful synchronization is silent in both clients; only actionable conflicts or unsafe layouts surface to the user.
 
 When an established repository uses exact shared aliases, edits to the physical instruction file remain allowed from either agent and Stop verifies the layout without trying to create a second copy.
 

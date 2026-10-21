@@ -12,6 +12,13 @@ The final repository contract is:
 
 Untracked and gitignored project skills participate in two-way local synchronization. Their baseline lives under `.git/pilot`, so private skill contents never enter shared CI metadata. Invalid one-sided directories remain untouched because they are not valid portable skills.
 
+Synchronization is opt-in: Pilot's hook writes only in repositories that contain `scripts/sync-agent-assets.mjs` (installed in Step 11.2). The checker never copies a skill written for one agent to the other:
+
+- A one-sided skill that uses its own agent's tools stays one-sided: Claude Code's structured-question, Skill, task and subagent tools or CC-ONLY blocks in `.claude/skills/`; Codex's `request_user_input` or `update_plan` tools or CODEX-START blocks in `.agents/skills/`.
+- A pair whose sides use different agent-specific tools is treated as hand-maintained variants and left alone in both directions.
+
+Teams control the rest with a root `.pilot-sync.json`: `{"exclude": ["skill-name"]}` leaves named skills alone, and `{"enabled": false}` turns synchronization off for the repository while keeping the installed script. Mention both options in the summary when the repository has agent-specific skills.
+
 ### Step 11.1: Confirm Destructive Reconciliation — CONDITIONAL
 
 Reuse the migration decision from Step 7. Ask again only if Step 10 found independent edits on both sides or another conflict that cannot be resolved from the trusted baseline.
@@ -43,7 +50,7 @@ If the bundled script cannot be resolved, stop this step before changing `CLAUDE
 
 Pilot installs one shared agent-asset hook through both its Claude Code and Codex adapters. Do not add repository-specific hooks. Confirm the installed adapters provide these behaviors:
 
-1. **SessionStart:** detect repositories with agent assets, converge `CLAUDE.md`, and synchronize both skill trees before work begins.
+1. **SessionStart:** in repositories that installed the checker, converge `CLAUDE.md` and synchronize both skill trees before work begins. Other repositories only receive the read-only rule index.
 2. **Either-side edit:** after either agent edits `AGENTS.md`, `.agents/skills/`, `.claude/skills/`, or `.claude/rules/`, run the trusted synchronizer.
 3. **Conflict safety:** copy the side that diverged from the trusted baseline; when both diverged, preserve both and report the exact conflict.
 4. **Ignored assets:** synchronize gitignored skills locally and expose ignored rule paths to Codex as a bounded on-demand index.

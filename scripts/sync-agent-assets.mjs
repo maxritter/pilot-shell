@@ -21,6 +21,14 @@
  * two-sided edits fail without overwriting either version. Provider-generated
  * skills whose installers intentionally emit different Claude and Codex trees
  * remain under that provider's ownership and are excluded from mirror sync.
+ *
+ * Skills written for one agent are never copied verbatim to the other: a
+ * one-sided skill that uses its own agent's tools (for example AskUserQuestion
+ * or Skill(...) in .claude/skills) stays one-sided, and a pair whose sides use
+ * different agent-specific tools is treated as intentional variants and left
+ * alone. Teams opt out explicitly with a root .pilot-sync.json:
+ *   { "enabled": false }            disable all synchronization in this repo
+ *   { "exclude": ["skill-name"] }   leave the named skills alone
  */
 
 import {
@@ -53,13 +61,114 @@ const LOCAL_SKILL_PROVENANCE_GIT_PATH = 'pilot/sync-local-skills.json'
 const SKILL_NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const MAX_SKILL_NAME_LENGTH = 64
 const PROVIDER_GENERATED_SKILLS = new Set(['impeccable'])
+const SYNC_CONFIG = '.pilot-sync.json'
+// Tool and syntax names that only one agent can execute. A skill that relies on
+// them is agent-specific; copying it byte for byte would hand the other agent
+// instructions it cannot perform.
+const CLAUDE_ONLY_MARKERS =
+  /\b(?:AskUserQuestion|TodoWrite|TaskCreate|TaskUpdate|EnterPlanMode|ExitPlanMode|SlashCommand)\b|\bSkill\(|\bsubagent_type\b|\$\{CLAUDE_[A-Z_]+\}|<!--\s*CC-ONLY/g
+const CODEX_ONLY_MARKERS = /\b(?:request_user_input|update_plan|spawn_agent)\b|<!--\s*CODEX-START/g
+const MAX_MARKER_SCAN_BYTES = 1024 * 1024
 const externalSkillOwnership = new Map()
 
 function externallyGeneratedSkills(repo) {
   if (!externalSkillOwnership.has(repo)) {
-    externalSkillOwnership.set(repo, loadExternallyGeneratedSkills(repo))
+    externalSkillOwnership.set(repo, loadUnmanagedSkills(repo))
   }
   return externalSkillOwnership.get(repo)
+}
+
+async function loadUnmanagedSkills(repo) {
+  const config = await loadSyncConfig(repo)
+  return new Set([
+    ...(await loadExternallyGeneratedSkills(repo)),
+    ...config.exclude,
+    ...(await agentSpecificSkills(repo)),
+  ])
+}
+
+async function loadSyncConfig(repo) {
+  const configPath = path.join(repo, SYNC_CONFIG)
+  const info = await inspect(configPath)
+  if (info === null) return { enabled: true, exclude: [] }
+  if (!info.isFile() || info.isSymbolicLink()) throw new Error(`${SYNC_CONFIG} must be a regular file`)
+  let config
+  try {
+    config = JSON.parse(await readFile(configPath, 'utf8'))
+  } catch {
+    throw new Error(`${SYNC_CONFIG} contains invalid JSON`)
+  }
+  if (config === null || typeof config !== 'object' || Array.isArray(config)) {
+    throw new Error(`${SYNC_CONFIG} must be a JSON object`)
+  }
+  const enabled = config.enabled ?? true
+  const exclude = config.exclude ?? []
+  if (typeof enabled !== 'boolean') throw new Error(`${SYNC_CONFIG}: "enabled" must be true or false`)
+  if (!Array.isArray(exclude) || !exclude.every(name => typeof name === 'string')) {
+    throw new Error(`${SYNC_CONFIG}: "exclude" must be a list of skill names`)
+  }
+  return { enabled, exclude }
+}
+
+async function markdownMarkers(root, pattern) {
+  const found = new Set()
+  async function visit(current) {
+    let entries
+    try {
+      entries = await readdir(current, { withFileTypes: true })
+    } catch {
+      return
+    }
+    for (const entry of entries) {
+      const absolute = path.join(current, entry.name)
+      if (entry.isDirectory()) {
+        await visit(absolute)
+      } else if (entry.isFile() && entry.name.endsWith('.md')) {
+        const info = await inspect(absolute)
+        if (info === null || info.size > MAX_MARKER_SCAN_BYTES) continue
+        for (const match of (await readFile(absolute, 'utf8')).matchAll(pattern)) found.add(match[0])
+      }
+    }
+  }
+  await visit(root)
+  return found
+}
+
+function hasMarkerMissingFrom(markers, other) {
+  return [...markers].some(marker => !other.has(marker))
+}
+
+async function agentSpecificSkills(repo) {
+  // Shared roots are one physical tree, so there is nothing to copy.
+  if (await usesSharedSkillRoot(repo)) return new Set()
+  const [canonicalEntries, mirrorEntries] = await Promise.all([
+    skillDirectories(path.join(repo, '.agents', 'skills')),
+    skillDirectories(path.join(repo, '.claude', 'skills')),
+  ])
+  const names = new Set()
+  for (const name of new Set([...canonicalEntries.keys(), ...mirrorEntries.keys()])) {
+    const canonical = canonicalEntries.get(name)
+    const mirror = mirrorEntries.get(name)
+    const [codexOnCodex, claudeOnClaude] = await Promise.all([
+      canonical === undefined ? new Set() : markdownMarkers(canonical, CODEX_ONLY_MARKERS),
+      mirror === undefined ? new Set() : markdownMarkers(mirror, CLAUDE_ONLY_MARKERS),
+    ])
+    if (canonical === undefined || mirror === undefined) {
+      // A one-sided skill that uses its own agent's tools stays one-sided.
+      if (codexOnCodex.size > 0 || claudeOnClaude.size > 0) names.add(name)
+      continue
+    }
+    const [codexOnClaude, claudeOnCodex] = await Promise.all([
+      markdownMarkers(mirror, CODEX_ONLY_MARKERS),
+      markdownMarkers(canonical, CLAUDE_ONLY_MARKERS),
+    ])
+    // Each side uses its own agent's tools that the other side lacks: these are
+    // hand-maintained variants, and either direction of copying would break one.
+    if (hasMarkerMissingFrom(claudeOnClaude, claudeOnCodex) || hasMarkerMissingFrom(codexOnCodex, codexOnClaude)) {
+      names.add(name)
+    }
+  }
+  return names
 }
 
 async function loadExternallyGeneratedSkills(repo) {
@@ -1693,6 +1802,15 @@ async function main() {
 
   if (options.help) {
     console.log(usage())
+    return
+  }
+
+  if (!(await loadSyncConfig(options.repo)).enabled) {
+    if (options.mode === 'install') {
+      const destination = await install(options.repo)
+      console.log(`Installed ${relative(options.repo, destination)}`)
+    }
+    console.log(`Agent asset synchronization is disabled by ${SYNC_CONFIG}.`)
     return
   }
 

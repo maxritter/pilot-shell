@@ -100,24 +100,57 @@ class TestSessionStart:
         assert handle(_session_payload(repo)) == {"continue": True}
         run.assert_not_called()
 
-    def test_repository_with_local_agent_assets_auto_syncs_without_checker_marker(
+    def test_repository_with_agent_assets_but_no_checker_is_never_synchronized(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         repo = tmp_path / "repo"
         (repo / ".git").mkdir(parents=True)
+        (repo / "CLAUDE.md").write_text("# Claude notes\n")
         local_skill = repo / ".claude" / "skills" / "local-skill"
         local_skill.mkdir(parents=True)
         (local_skill / "SKILL.md").write_text("---\nname: local-skill\ndescription: Local project skill.\n---\n")
-        bundled = tmp_path / "bundled.mjs"
-        bundled.write_text("// trusted checker\n")
-        run = Mock(side_effect=[CheckerResult(False, "missing Codex counterpart"), CheckerResult(True)])
-        monkeypatch.setattr(repo_agent_sync, "_bundled_checker", lambda: bundled)
+        run = Mock()
+        monkeypatch.setattr(repo_agent_sync, "_run_checker", run)
+
+        assert handle(_session_payload(repo)) == {"continue": True}
+        assert handle(_stop_payload(repo)) == {"continue": True}
+        assert handle(_pre_payload(repo, "Edit", {"file_path": "CLAUDE.md"})) == {"continue": True}
+        assert handle(_post_payload(repo, "Edit", {"file_path": ".claude/skills/local-skill/SKILL.md"})) == {
+            "continue": True
+        }
+        run.assert_not_called()
+        assert not (repo / ".agents").exists()
+
+    def test_pilot_sync_config_opts_an_enrolled_repository_out(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        repo = tmp_path / "repo"
+        _enroll(repo)
+        (repo / ".pilot-sync.json").write_text('{"enabled": false}\n')
+        run = Mock()
+        monkeypatch.setattr(repo_agent_sync, "_run_checker", run)
+
+        assert handle(_session_payload(repo)) == {"continue": True}
+        assert handle(_stop_payload(repo)) == {"continue": True}
+        assert handle(_pre_payload(repo, "Edit", {"file_path": "CLAUDE.md"})) == {"continue": True}
+        assert handle(_post_payload(repo, "Edit", {"file_path": "AGENTS.md"})) == {"continue": True}
+        run.assert_not_called()
+
+    def test_invalid_pilot_sync_config_is_left_to_the_checker(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        repo = tmp_path / "repo"
+        _enroll(repo)
+        (repo / ".pilot-sync.json").write_text("{")
+        bundled = repo_agent_sync._bundled_checker()
+        assert bundled is not None
+        run = Mock(return_value=CheckerResult(False, ".pilot-sync.json contains invalid JSON"))
         monkeypatch.setattr(repo_agent_sync, "_run_checker", run)
 
         result = handle(_session_payload(repo))
 
-        assert run.call_args_list == [call(bundled, "check", repo), call(bundled, "write", repo)]
-        assert result == {"continue": True}
+        assert run.call_args_list[0] == call(bundled, "check", repo)
+        assert ".pilot-sync.json contains invalid JSON" in result["hookSpecificOutput"]["additionalContext"]
 
     def test_session_start_surfaces_gitignored_local_rule_paths(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -692,11 +725,13 @@ class TestBundledCheckerIntegration:
         bundled = repo_agent_sync._bundled_checker()
         assert bundled is not None
         local_checker.write_bytes(bundled.read_bytes())
+
         def generated(target: str) -> str:
             return (
                 "<!--\n🤖 AI-RULEZ :: GENERATED FILE — DO NOT EDIT\n"
                 f"Source: .ai-rulez/config.toml | Target: {target}\n-->\n"
             )
+
         agents = generated("AGENTS.md")
         claude = generated("CLAUDE.md")
         (repo / "AGENTS.md").write_text(agents)

@@ -87,6 +87,9 @@ def test_installed_hook_chain_defers_transient_asset_errors_without_user_visible
     subprocess.run(["git", "init", "--quiet", str(repo)], check=True)
     (repo / "AGENTS.md").write_text("# Shared instructions\n")
     (repo / "CLAUDE.md").write_text("@AGENTS.md\n")
+    # Synchronization is opt-in: /setup-rules enrolls a repository by installing the checker.
+    (repo / "scripts").mkdir()
+    shutil.copy2(SOURCE_CHECKER, repo / "scripts" / SOURCE_CHECKER.name)
     run_if, sync_hook = _install_runtime(home)
 
     if scenario == "incomplete_skill":

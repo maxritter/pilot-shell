@@ -1353,3 +1353,157 @@ function statOrNull(candidate) {
     throw error
   }
 }
+
+function writeSkill(repo, root, name, body) {
+  const destination = path.join(repo, root, 'skills', name, 'SKILL.md')
+  mkdirSync(path.dirname(destination), { recursive: true })
+  writeFileSync(destination, `---\nname: ${name}\ndescription: ${name} skill.\n---\n\n${body}\n`)
+  return destination
+}
+
+test('a Claude-only skill that uses Claude tools is never copied to Codex', () => {
+  for (const ownership of ['untracked', 'tracked', 'ignored']) {
+    const repo = makeRepo()
+    try {
+      git(repo, 'init', '-q')
+      if (ownership === 'ignored') writeFileSync(path.join(repo, '.gitignore'), '**/skills/ios-release/\n')
+      const claudeSkill = writeSkill(repo, '.claude', 'ios-release', 'Use AskUserQuestion, then Skill(xcode-build).')
+      if (ownership === 'tracked') git(repo, 'add', '.claude')
+      const before = readFileSync(claudeSkill, 'utf8')
+
+      for (const mode of ['--check', '--write', '--check']) {
+        const result = run(repo, mode)
+        assert.equal(result.status, 0, `${ownership} ${mode}: ${result.stderr}`)
+      }
+      assert.equal(statOrNull(path.join(repo, '.agents', 'skills', 'ios-release')), null)
+      assert.equal(readFileSync(claudeSkill, 'utf8'), before)
+    } finally {
+      cleanup(repo)
+    }
+  }
+})
+
+test('a Codex-only skill that uses Codex tools is never copied to Claude', () => {
+  const repo = makeRepo()
+  try {
+    git(repo, 'init', '-q')
+    writeFileSync(path.join(repo, '.gitignore'), '**/skills/codex-plan/\n')
+    writeSkill(repo, '.agents', 'codex-plan', 'Call request_user_input and keep update_plan current.')
+
+    for (const mode of ['--check', '--write', '--check']) {
+      assert.equal(run(repo, mode).status, 0)
+    }
+    assert.equal(statOrNull(path.join(repo, '.claude', 'skills', 'codex-plan')), null)
+  } finally {
+    cleanup(repo)
+  }
+})
+
+test('hand-maintained Claude and Codex variants are left alone even with a stale baseline', () => {
+  const repo = makeRepo()
+  try {
+    git(repo, 'init', '-q')
+    const claudeSkill = writeSkill(repo, '.claude', 'ios-release', 'Ask with AskUserQuestion.')
+    const codexSkill = writeSkill(repo, '.agents', 'ios-release', 'Ask the user in plain text and wait.')
+    // The baseline records the Claude version, so the old logic would copy the
+    // Codex edit over the Claude variant.
+    const manifestPath = path.join(repo, '.claude/skills/.pilot-sync-manifest.json')
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
+    manifest.files['ios-release/SKILL.md'] = {
+      sha256: createHash('sha256').update(readFileSync(claudeSkill)).digest('hex'),
+      executableMode: 0,
+    }
+    writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
+    git(repo, 'add', '.agents', '.claude')
+    const claudeBefore = readFileSync(claudeSkill, 'utf8')
+    const codexBefore = readFileSync(codexSkill, 'utf8')
+
+    for (const mode of ['--check', '--write', '--check']) {
+      const result = run(repo, mode)
+      assert.equal(result.status, 0, `${mode}: ${result.stderr}`)
+    }
+    assert.equal(readFileSync(claudeSkill, 'utf8'), claudeBefore)
+    assert.equal(readFileSync(codexSkill, 'utf8'), codexBefore)
+  } finally {
+    cleanup(repo)
+  }
+})
+
+test('a portable skill that only mentions a Claude tool on both sides still synchronizes edits', () => {
+  const repo = makeRepo()
+  try {
+    git(repo, 'init', '-q')
+    writeFileSync(path.join(repo, '.gitignore'), '**/skills/portable/\n')
+    const body = 'Ask with AskUserQuestion when available, otherwise ask in plain text.'
+    writeSkill(repo, '.claude', 'portable', body)
+    assert.equal(run(repo, '--write').status, 0)
+    const codexSkill = path.join(repo, '.agents', 'skills', 'portable', 'SKILL.md')
+    assert.equal(statOrNull(codexSkill), null, 'Claude-only skill must stay one-sided')
+
+    writeSkill(repo, '.agents', 'portable', body)
+    assert.equal(run(repo, '--write').status, 0)
+    writeSkill(repo, '.agents', 'portable', `${body}\nNew shared step.`)
+    const result = run(repo, '--write')
+    assert.equal(result.status, 0, result.stderr)
+    assert.match(readFileSync(path.join(repo, '.claude', 'skills', 'portable', 'SKILL.md'), 'utf8'), /New shared step/)
+  } finally {
+    cleanup(repo)
+  }
+})
+
+test('.pilot-sync.json can disable synchronization for the whole repository', () => {
+  const repo = makeRepo({ claude: '# Claude only notes\n' })
+  try {
+    git(repo, 'init', '-q')
+    writeFileSync(path.join(repo, '.pilot-sync.json'), JSON.stringify({ enabled: false }))
+    const plain = writeSkill(repo, '.claude', 'plain', 'Portable steps.')
+    writeFileSync(path.join(repo, '.agents/skills/demo-skill/scripts/run.sh'), '#!/bin/sh\necho changed\n')
+
+    for (const mode of ['--check', '--write', '--check']) {
+      const result = run(repo, mode)
+      assert.equal(result.status, 0, `${mode}: ${result.stderr}`)
+      assert.match(result.stdout, /disabled by \.pilot-sync\.json/)
+    }
+    assert.equal(statOrNull(path.join(repo, '.agents', 'skills', 'plain')), null)
+    assert.equal(readFileSync(path.join(repo, 'CLAUDE.md'), 'utf8'), '# Claude only notes\n')
+    assert.match(readFileSync(path.join(repo, '.claude/skills/demo-skill/scripts/run.sh'), 'utf8'), /echo demo/)
+    assert.ok(readFileSync(plain, 'utf8').includes('Portable steps.'))
+  } finally {
+    cleanup(repo)
+  }
+})
+
+test('.pilot-sync.json exclude leaves the named skills alone', () => {
+  const repo = makeRepo()
+  try {
+    git(repo, 'init', '-q')
+    writeFileSync(path.join(repo, '.gitignore'), '**/skills/plain/\n')
+    writeFileSync(path.join(repo, '.pilot-sync.json'), JSON.stringify({ exclude: ['plain'] }))
+    writeSkill(repo, '.claude', 'plain', 'Portable steps.')
+
+    for (const mode of ['--check', '--write', '--check']) {
+      assert.equal(run(repo, mode).status, 0)
+    }
+    assert.equal(statOrNull(path.join(repo, '.agents', 'skills', 'plain')), null)
+  } finally {
+    cleanup(repo)
+  }
+})
+
+test('an invalid .pilot-sync.json fails without modifying skills', () => {
+  for (const contents of ['{', '[]', JSON.stringify({ enabled: 'no' }), JSON.stringify({ exclude: 'plain' })]) {
+    const repo = makeRepo()
+    try {
+      git(repo, 'init', '-q')
+      writeFileSync(path.join(repo, '.gitignore'), '**/skills/plain/\n')
+      writeFileSync(path.join(repo, '.pilot-sync.json'), contents)
+      writeSkill(repo, '.claude', 'plain', 'Portable steps.')
+      const result = run(repo, '--write')
+      assert.equal(result.status, 1, contents)
+      assert.match(result.stderr, /\.pilot-sync\.json/)
+      assert.equal(statOrNull(path.join(repo, '.agents', 'skills', 'plain')), null)
+    } finally {
+      cleanup(repo)
+    }
+  }
+})

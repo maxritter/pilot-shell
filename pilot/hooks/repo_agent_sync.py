@@ -1,10 +1,12 @@
 """Keep repository-owned agent instructions synchronized for both agents.
 
-Repositories with agent instructions, rules, or skills are discovered
-automatically. ``scripts/sync-agent-assets.mjs`` remains an optional recovery
-and CI checker installed through ``/setup-rules`` or ``$setup-rules``; the
-global hook always executes the trusted checker bundled with Pilot. The checker
-owns this synchronization contract:
+Synchronization is opt-in. A repository enrolls by containing
+``scripts/sync-agent-assets.mjs``, which ``/setup-rules`` or ``$setup-rules``
+installs; a root ``.pilot-sync.json`` with ``{"enabled": false}`` opts an
+enrolled repository back out. Every other repository is never written to: it
+only receives a read-only index of its ``.claude/rules`` files at SessionStart
+so Codex can find them. The global hook always executes the trusted checker
+bundled with Pilot, never the repository copy. The checker owns this contract:
 
 * ``AGENTS.md`` is the shared rule source and ``CLAUDE.md`` imports it, or one
   may be an exact in-repository symlink to the other for legacy shared layouts.
@@ -12,16 +14,17 @@ owns this synchronization contract:
   their managed mirror.
 * Gitignored local skills synchronize in both directions using a trusted local
   baseline outside the repository worktree.
+* Skills that use one agent's tools, hand-maintained per-agent variants, and
+  skills listed in ``.pilot-sync.json``'s ``exclude`` are left alone.
 
 At SessionStart the bundled checker refreshes an enrolled repository's local
 copy when present and converges drift. PreToolUse protects only the generated
-``CLAUDE.md`` import; PostToolUse synchronizes skill edits in either direction
-and refreshes rule availability.
+``CLAUDE.md`` import; PostToolUse synchronizes skill edits in either direction.
 Stop performs the same convergence as a backstop for clients or modes that do
 not emit edit hooks, including Codex Code Mode.
 
 Hook input is untrusted and best-effort.  Malformed payloads and repositories
-without the opt-in checker are quiet no-ops.  Checker processes and the
+that have not opted in are quiet no-ops.  Checker processes and the
 cross-agent lock are bounded so an unrelated tool or broken repository cannot
 stall the client indefinitely.
 """
@@ -46,6 +49,7 @@ _CHECKER_RELATIVE = Path("scripts") / "sync-agent-assets.mjs"
 _BUNDLED_CHECKER_RELATIVE = Path("skills") / "setup-rules" / "scripts" / "sync-agent-assets.mjs"
 _CANONICAL_SKILLS = Path(".agents") / "skills"
 _MIRRORED_SKILLS = Path(".claude") / "skills"
+_SYNC_CONFIG = Path(".pilot-sync.json")
 _RUN_TIMEOUT_SECONDS = 8
 _LOCK_WAIT_SECONDS = 3.0
 _STALE_LOCK_SECONDS = 30.0
@@ -100,6 +104,21 @@ def _has_agent_assets(candidate: Path) -> bool:
         except OSError:
             continue
     return False
+
+
+def _sync_enabled(repo: Path) -> bool:
+    """Whether the repository opted into writes and has not opted back out."""
+    if not _is_regular_file(repo / _CHECKER_RELATIVE):
+        return False
+    config = repo / _SYNC_CONFIG
+    if not _is_regular_file(config):
+        return True
+    try:
+        parsed = json.loads(config.read_text())
+    except (OSError, UnicodeDecodeError, ValueError):
+        # The checker reports the invalid file; keep that diagnosis in one place.
+        return True
+    return not (isinstance(parsed, dict) and parsed.get("enabled") is False)
 
 
 def _enrolled_repo_from(candidate: Path) -> Path | None:
@@ -381,6 +400,8 @@ def _rule_context(repo: Path) -> str:
 def _session_start(repo: Path, payload: dict) -> dict:
     local_checker = repo / _CHECKER_RELATIVE
     rules = _rule_context(repo)
+    if not _sync_enabled(repo):
+        return _context_payload(rules, "SessionStart", payload)
     bundled = _bundled_checker()
     if bundled is None:
         return _context_payload(
@@ -514,7 +535,7 @@ def handle(payload: object) -> dict:
         return _session_start(repo, payload) if repo is not None else _payload(payload, event)
     if event == "Stop":
         repo = _find_enrolled_repo(payload, [])
-        return _stop(repo, payload) if repo is not None else _payload(payload, event)
+        return _stop(repo, payload) if repo is not None and _sync_enabled(repo) else _payload(payload, event)
     if event not in {"PreToolUse", "PostToolUse"}:
         return _payload()
 
@@ -522,7 +543,7 @@ def handle(payload: object) -> dict:
     if not raw_paths:
         return _payload(payload, event)
     repo = _find_enrolled_repo(payload, raw_paths)
-    if repo is None:
+    if repo is None or not _sync_enabled(repo):
         return _payload(payload, event)
     if event == "PreToolUse":
         return _pre_tool_use(repo, payload, raw_paths)
