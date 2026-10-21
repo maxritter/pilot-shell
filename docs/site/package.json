@@ -19,6 +19,7 @@
     "deadcode": "knip"
   },
   "dependencies": {
+    "@base-ui/react": "1.9.0",
     "@electric-sql/pglite": "^0.5.8",
     "@neondatabase/serverless": "^1.2.0",
     "@pierre/diffs": "1.5.2",

@@ -39,7 +39,7 @@ Only workflow requests start a planning/build task. The other skills can work on
 
 Choose the agent, model and effort when starting a task or build. Settings › Workflow keeps the review models and general run controls. Pi and OpenCode use provider-qualified model IDs, such as `openai-codex/gpt-6.1-sol` in Pi and `openai/gpt-6.1-sol` in OpenCode. Workflow defaults use High effort; your native login and provider settings stay in your agent.
 
-**Second opinion by** selects an installed reviewer. **Automatic** chooses another installed agent when available; you can choose a particular one for a fresh review. The reviewer inspects files in a separate context and does not edit them.
+**Second opinion by** selects an installed reviewer. **Automatic** chooses another installed agent when available, preferring one whose read-only mode the agent itself enforces (Claude Code, Codex, Pi, OpenCode, Grok) over Cursor and Antigravity, which are chosen only when nothing else is installed or when you name them. You can choose a particular one for a fresh review. The reviewer inspects files in a separate context and does not edit them. Cursor and Antigravity cannot be made read-only, so they review a disposable copy of exactly what is under review, made in QualityLayer's folder and deleted afterwards, and QualityLayer stops them the moment they start a tool that is not read-only. Your agent's project hooks may run during a review, as they do for Claude Code in print mode.
 
 Pi and OpenCode can use the same model provider as your working agent. Choose a different model or provider when you want a second model family, as well as a fresh context.
 

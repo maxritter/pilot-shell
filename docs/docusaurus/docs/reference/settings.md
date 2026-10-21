@@ -59,7 +59,7 @@ Who decides whether a change passes [Verify](../steps/verify.md): **Fresh agent:
 
 ### Second opinion {#second-opinion}
 
-**Second opinion by** chooses an installed reviewer: Claude Code, Codex, Pi or OpenCode. **Automatic** prefers another installed agent. A named choice starts a fresh review with that agent's selected model.
+**Second opinion by** chooses an installed reviewer: Claude Code, Codex, Pi, OpenCode, Cursor, Grok or Antigravity. **Automatic** prefers another installed agent, and one that is enforced read-only (everything but Cursor and Antigravity) before those two. Cursor and Antigravity review a disposable copy and are stopped if they start a tool that is not read-only; a trusted project's hooks may run during any review. A named choice starts a fresh review with that agent's selected model.
 
 | When | Choices | What it reads |
 | --- | --- | --- |
