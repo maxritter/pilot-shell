@@ -78,7 +78,12 @@ jobs:
           WANTED: ${{ inputs.version }}
         run: |
           $qlWanted = $env:WANTED -replace '^v', ''
-          $qlHome = Join-Path $env:RUNNER_TEMP ("qualitylayer-beta-" + [Guid]::NewGuid().ToString('N'))
+          $qlParent = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Temp'
+          $qlHome = Join-Path $qlParent ("qualitylayer-beta-" + [Guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $qlHome -ErrorAction Stop | Out-Null
+          $qlSid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+          icacls $qlHome /inheritance:r /grant:r "*${qlSid}:(OI)(CI)F" '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' /q
+          if ($LASTEXITCODE -ne 0) { throw 'Private Windows beta account ACL protection failed' }
           New-Item -ItemType Directory -Path "$qlHome/.claude", "$qlHome/.codex" -Force | Out-Null
           $env:HOME = $qlHome
           $env:USERPROFILE = $qlHome
