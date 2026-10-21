@@ -341,6 +341,15 @@ jobs:
           QUALITYLAYER_REQUIRE_RENDER: "1"
         run: bun run test tests/e2e/cross-review.test.ts -t 'opening the Plan gate starts|a reviewer that fails'
 
+      - name: Keep native Windows hook timing receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-windows-timings-${{ matrix.shard }}
+          path: qualitylayer/dist/test-runs/command-speed-*.json
+          retention-days: 7
+          if-no-files-found: ignore
+
   windows-terminal:
     name: Native ConPTY (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
