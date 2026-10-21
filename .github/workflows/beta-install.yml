@@ -1,0 +1,121 @@
+name: Beta install
+
+# A clean install of the published beta on Linux, from an empty home, the way a tester
+# runs it. The Release run calls it after each beta is published (a dispatch needs the
+# file on the default branch, which `dev` is not); its log is the evidence (the version
+# and the installed skills). It needs nothing from the repository. It installs the version it
+# is given and fails when the installed binary reports another one, so a run cannot pass on an
+# older beta that the installer happened to pick.
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: The released version to install and expect, e.g. 12.0.0-beta.9
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The released version to install and expect, e.g. 12.0.0-beta.9
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  clean-install:
+    name: Clean install (ubuntu-latest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Install from qualitylayer.dev into an empty home
+        env:
+          WANTED: ${{ inputs.version }}
+        run: |
+          WANTED="${WANTED#v}"
+          qlHome="$(mktemp -d)"
+          export HOME="$qlHome" USERPROFILE="$qlHome" QUALITYLAYER_HOME="$qlHome/.qualitylayer"
+          export XDG_CONFIG_HOME="$qlHome/.config" XDG_DATA_HOME="$qlHome/.local/share" XDG_CACHE_HOME="$qlHome/.cache"
+          export APPDATA="$qlHome/AppData/Roaming" LOCALAPPDATA="$qlHome/AppData/Local"
+          export TMPDIR="$qlHome/tmp" TMP="$qlHome/tmp" TEMP="$qlHome/tmp"
+          unset CLAUDE_CONFIG_DIR CODEX_HOME PI_CODING_AGENT_DIR OPENCODE_CONFIG_DIR
+          mkdir -p "$qlHome/tmp"
+          # A tester has the agents installed: the installer adds its skills to each one it finds.
+          mkdir -p "$HOME/.claude" "$HOME/.codex"
+          curl -fsSL https://qualitylayer.dev/install.sh | VERSION="$WANTED" bash
+
+          echo "--- version"
+          INSTALLED="$("$HOME/.qualitylayer/bin/qualitylayer" --version)"
+          echo "$INSTALLED"
+          if [ "$INSTALLED" != "$WANTED" ]; then
+            echo "::error::installed '${INSTALLED}', expected the released '${WANTED}'"
+            exit 1
+          fi
+          echo "--- installed skills"
+          for skill in ql-workflow ql-artifact ql-peer ql-manage; do
+            test -f "$HOME/.claude/skills/$skill/SKILL.md"
+            test -f "$HOME/.agents/skills/$skill/SKILL.md"
+            grep -q 'allow_implicit_invocation: true' "$HOME/.agents/skills/$skill/agents/openai.yaml"
+            echo "$skill"
+          done
+          test ! -e "$HOME/.claude/skills/ql"
+          test ! -e "$HOME/.agents/skills/ql"
+
+  windows-install:
+    name: Clean native Windows install (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, windows-11-arm]
+    steps:
+      - name: Install the published Windows release into an empty home
+        shell: pwsh
+        env:
+          WANTED: ${{ inputs.version }}
+        run: |
+          $qlWanted = $env:WANTED -replace '^v', ''
+          $qlParent = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Temp'
+          $qlHome = Join-Path $qlParent ("qualitylayer-beta-" + [Guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $qlHome -ErrorAction Stop | Out-Null
+          $qlSid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+          icacls $qlHome /inheritance:r /grant:r "*${qlSid}:(OI)(CI)F" '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' /q
+          if ($LASTEXITCODE -ne 0) { throw 'Private Windows beta account ACL protection failed' }
+          New-Item -ItemType Directory -Path "$qlHome/.claude", "$qlHome/.codex" -Force | Out-Null
+          $env:HOME = $qlHome
+          $env:USERPROFILE = $qlHome
+          $env:QUALITYLAYER_HOME = Join-Path $qlHome '.qualitylayer'
+          $env:APPDATA = Join-Path $qlHome 'AppData/Roaming'
+          $env:LOCALAPPDATA = Join-Path $qlHome 'AppData/Local'
+          $env:XDG_CONFIG_HOME = Join-Path $qlHome '.config'
+          $env:XDG_DATA_HOME = Join-Path $qlHome '.local/share'
+          $env:XDG_CACHE_HOME = Join-Path $qlHome '.cache'
+          $env:TMPDIR = Join-Path $qlHome 'tmp'
+          $env:TMP = $env:TMPDIR
+          $env:TEMP = $env:TMPDIR
+          New-Item -ItemType Directory -Path $env:TMPDIR -Force | Out-Null
+          foreach ($name in @('CLAUDE_CONFIG_DIR','CODEX_HOME','PI_CODING_AGENT_DIR','OPENCODE_CONFIG_DIR')) {
+            Remove-Item "Env:$name" -ErrorAction SilentlyContinue
+          }
+          $env:QUALITYLAYER_API_BASE = 'http://127.0.0.1:9'
+          $env:POLAR_API_BASE = 'http://127.0.0.1:9'
+          $qlScript = [ScriptBlock]::Create((Invoke-WebRequest 'https://qualitylayer.dev/install.ps1').Content)
+          & $qlScript -Version $qlWanted -NonInteractive
+          $qlBinary = Join-Path $qlHome '.qualitylayer/bin/qualitylayer.exe'
+          $qlActual = & $qlBinary --version
+          if ($LASTEXITCODE -ne 0 -or $qlActual.Trim() -ne $qlWanted) { throw "Expected $qlWanted, got $qlActual" }
+          foreach ($qlName in @('ql-workflow', 'ql-artifact', 'ql-peer', 'ql-manage')) {
+            foreach ($qlSkill in @("$qlHome/.claude/skills/$qlName/SKILL.md", "$qlHome/.agents/skills/$qlName/SKILL.md")) {
+              if (-not (Test-Path $qlSkill)) { throw "Missing installed skill: $qlSkill" }
+            }
+            $qlPolicy = Get-Content -Raw "$qlHome/.agents/skills/$qlName/agents/openai.yaml"
+            if ($qlPolicy -notmatch 'allow_implicit_invocation: true') { throw "Natural-language skill invocation disabled: $qlName" }
+          }
+          foreach ($qlRetired in @("$qlHome/.claude/skills/ql", "$qlHome/.agents/skills/ql")) {
+            if (Test-Path $qlRetired) { throw "Retired duplicate skill: $qlRetired" }
+          }
+          & $qlBinary uninstall --purge --json
+          if ($LASTEXITCODE -ne 0 -or (Test-Path "$qlHome/.qualitylayer")) { throw 'Published Windows uninstall failed' }
