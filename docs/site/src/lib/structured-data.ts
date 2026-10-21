@@ -1,5 +1,5 @@
 import type { Faq } from "./content";
-import { PLANS } from "./pricing";
+import { PLANS, PRICE_CURRENCY } from "./pricing";
 import { AUTHOR_NAME, AUTHOR_URL, SHARE_DESCRIPTION, SITE_URL, SLOGAN } from "./product";
 
 export const SOFTWARE_APPLICATION = {
@@ -26,11 +26,11 @@ export const PRICING_APPLICATION = {
       description: `${plan.audience} Billed ${billing}.`,
       url: `${SITE_URL}/pricing#plans`,
       price: billing === "yearly" ? yearly : monthly,
-      priceCurrency: "USD",
+      priceCurrency: PRICE_CURRENCY,
       priceSpecification: {
         "@type": "UnitPriceSpecification",
         price: billing === "yearly" ? yearly : monthly,
-        priceCurrency: "USD",
+        priceCurrency: PRICE_CURRENCY,
         billingDuration: billing === "yearly" ? "P1Y" : "P1M",
       },
     }));

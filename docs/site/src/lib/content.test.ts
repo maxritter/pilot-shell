@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { FAQS, PRICING_FAQS } from "./content";
 import { CONTACT_EMAIL, INSTALL_COMMAND, SITE_URL } from "./product";
 import { COMPARE, PLANS } from "./pricing";
+import { PRICING_APPLICATION } from "./structured-data";
 
 describe("FAQ", () => {
   it("answers in plain text, so structured data can reuse it", () => {
@@ -73,12 +74,18 @@ describe("product facts", () => {
       { monthly: 49, yearly: 468 },
     ]);
     const annual = PRICING_FAQS.find((faq) => faq.question === "Monthly or yearly?")!.answer;
-    expect(annual).toContain("$288 a year, equivalent to $24 a month");
-    expect(annual).toContain("$468 per seat a year, equivalent to $39 per seat a month");
+    expect(annual).toContain("€288 a year, equivalent to €24 a month");
+    expect(annual).toContain("€468 per seat a year, equivalent to €39 per seat a month");
   });
 
   it("gives every plan four highlights, as the cards are drawn", () => {
     for (const plan of PLANS) expect(plan.highlights).toHaveLength(4);
+  });
+
+  it("publishes the euro charges for search engines", () => {
+    expect(PRICING_APPLICATION.offers.map((offer) => [offer.price, offer.priceCurrency, offer.priceSpecification.priceCurrency])).toEqual([
+      [29, "EUR", "EUR"], [288, "EUR", "EUR"], [49, "EUR", "EUR"], [468, "EUR", "EUR"],
+    ]);
   });
 
   it("offers the Enterprise-only rows on request, and nothing else", () => {

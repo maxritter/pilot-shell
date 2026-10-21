@@ -5,6 +5,8 @@
  */
 import { CONTACT_EMAIL } from "./product";
 
+export const PRICE_CURRENCY = "EUR";
+
 /** A table group's colour: the workflow part it belongs to (as the home page colours the steps), or plain for the rest. */
 export type Hue = "plan" | "build" | "verify" | "review" | "plain";
 
@@ -12,7 +14,7 @@ export interface Plan {
   id: "solo" | "team" | "enterprise";
   name: string;
   audience: string;
-  /** Full charge in US dollars for each billing period, per seat for Team. "Custom" for Enterprise. */
+  /** Full charge in euros for each billing period, per seat for Team. "Custom" for Enterprise. */
   price: { monthly: number; yearly: number } | "Custom";
   per: string;
   cta: string;
@@ -83,7 +85,7 @@ export const PLANS: Plan[] = [
 ];
 
 export const formatPrice = (amount: number): string =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(amount);
+  new Intl.NumberFormat("en-US", { style: "currency", currency: PRICE_CURRENCY, minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(amount);
 
 /** A cell: included, not included, or available when a company asks for it. */
 export type Cell = boolean | "request";

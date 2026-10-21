@@ -20,7 +20,7 @@ export function verifyCatalog(products, discounts, now = Date.now()) {
       const prices = product?.prices.filter(price => !price.is_archived) ?? [];
       require(prices.length === 1, `${label}: expected one active price`);
       const price = prices[0];
-      require(price?.price_currency === "usd", `${label}: wrong currency`);
+      require(price?.price_currency === "eur", `${label}: wrong currency`);
       if (plan === "solo") require(price?.amount_type === "fixed" && price.price_amount === PRICES[plan][interval], `${label}: wrong price`);
       else {
         const tiers = price?.seat_tiers;
@@ -31,13 +31,14 @@ export function verifyCatalog(products, discounts, now = Date.now()) {
     }
   }
   for (const id of LEGACY_PRODUCTS) require(products.find(product => product.id === id)?.is_archived === true, `Legacy product ${id}: new purchases still enabled`);
-  const promo = discounts.find(discount => discount.code === "PILOTTHANKS20");
-  require(promo?.type === "percentage" && promo.basis_points === 2000, "Newsletter offer: expected 20 percent");
+  const promo = discounts.find(discount => discount.code === "PILOTTHANKS15");
+  require(!discounts.some(discount => discount.code === "PILOTTHANKS20"), "Newsletter offer: retired 20 percent coupon still exists");
+  require(promo?.type === "percentage" && promo.basis_points === 1500, "Newsletter offer: expected 15 percent");
   require(promo?.duration === "repeating" && promo.duration_in_months === 12, "Newsletter offer: must end after 12 months");
   require(JSON.stringify(promo?.products.map(product => product.id).sort()) === JSON.stringify(ids), "Newsletter offer: must apply to all four QL products and no others");
   require(promo && (!promo.starts_at || Date.parse(promo.starts_at) <= now) && (!promo.ends_at || Date.parse(promo.ends_at) > now) && (promo.max_redemptions == null || promo.redemptions_count < promo.max_redemptions), "Newsletter offer: not currently redeemable");
   if (errors.length) throw new Error(errors.join("\n"));
-  return { products: 4, legacyProductsClosed: LEGACY_PRODUCTS.length, newsletterPercent: 20, newsletterMonths: 12, licenceBenefits: 2 };
+  return { products: 4, legacyProductsClosed: LEGACY_PRODUCTS.length, newsletterPercent: 15, newsletterMonths: 12, licenceBenefits: 2 };
 }
 
 export async function verifyRemoteCatalog(token, request = fetch) {
@@ -54,6 +55,7 @@ export async function verifyRemoteCatalog(token, request = fetch) {
   };
   const [products, discounts, organization] = await Promise.all([read("products"), read("discounts"), get(`organizations/${ORGANIZATION_ID}`)]);
   if (organization.id !== ORGANIZATION_ID || organization.email !== "hello@qualitylayer.dev") throw new Error("Polar public support email: expected hello@qualitylayer.dev on the QualityLayer organization");
+  if (organization.default_presentment_currency !== "eur") throw new Error("Polar default payment currency: expected EUR");
   return { ...verifyCatalog(products, discounts), supportEmail: organization.email };
 }
 

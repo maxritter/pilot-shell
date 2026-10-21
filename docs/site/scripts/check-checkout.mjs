@@ -32,22 +32,22 @@ try {
       const payment = page.frameLocator('iframe[title="Secure payment input frame"]');
       for (const field of ["Card number", "Expiration date", "Security code"]) await payment.getByRole("textbox", { name: field, exact: true }).waitFor();
       const amount = plan === "Solo" ? (billing === "yearly" ? 288 : 29) : (billing === "yearly" ? 468 : 49);
-      assert((await page.locator("body").innerText()).includes(`$${amount}`), `${name}: expected price missing`);
+      assert((await page.locator("body").innerText()).includes(`€${amount}`), `${name}: expected price missing`);
       await page.getByRole("button", { name: "Add discount code", exact: true }).click();
       const discount = page.locator('input[name="discount_code"]');
-      await discount.fill("PILOTTHANKS20");
-      await expect(discount).toHaveValue("PILOTTHANKS20");
+      await discount.fill("PILOTTHANKS15");
+      await expect(discount).toHaveValue("PILOTTHANKS15");
       // Polar handles Enter here as Apply and prevents payment-form submission.
       await discount.press("Enter");
-      const discountedAmount = (amount * 0.8).toFixed(2);
+      const discountedAmount = (amount * 0.85).toFixed(2);
       // Polar renders both responsive summaries; require the visible total.
-      await page.getByText(`$${discountedAmount}`, { exact: true }).filter({ visible: true }).first().waitFor();
+      await page.getByText(`€${discountedAmount}`, { exact: true }).filter({ visible: true }).first().waitFor();
       await page.getByText(/discount \(first year\)/i).filter({ visible: true }).first().waitFor();
-      assert((await page.locator("body").innerText()).includes("-20%"), `${name}: newsletter discount missing`);
+      assert((await page.locator("body").innerText()).includes("-15%"), `${name}: newsletter discount missing`);
       for (const field of ["Card number", "Expiration date", "Security code"]) await payment.getByRole("textbox", { name: field, exact: true }).waitFor();
       if (output) await page.screenshot({ path: resolve(output, `${plan.toLowerCase()}-${billing}.png`) });
-      results.push({ plan, billing, amount, discountedAmount: Number(discountedAmount), promo: "PILOTTHANKS20", currency: "USD", paymentFieldsReady: true, paymentSubmitted: false });
-      console.log(`PASS ${plan} ${billing}: $${amount}, newsletter total $${discountedAmount}; Stripe payment fields ready; no payment submitted`);
+      results.push({ plan, billing, amount, discountedAmount: Number(discountedAmount), promo: "PILOTTHANKS15", currency: "EUR", paymentFieldsReady: true, paymentSubmitted: false });
+      console.log(`PASS ${plan} ${billing}: €${amount}, newsletter total €${discountedAmount}; Stripe payment fields ready; no payment submitted`);
     }
   }
 } catch (error) {

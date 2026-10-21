@@ -94,8 +94,8 @@ describe("HTML available before JavaScript runs", () => {
       { name: `${plan.name} — yearly`, price: plan.price.yearly, duration: "P1Y" },
     ]);
     expect(software.offers).toEqual(expected.map(({ name, price, duration }) => expect.objectContaining({
-      "@type": "Offer", name, price, priceCurrency: "USD", url: "https://qualitylayer.dev/pricing#plans",
-      priceSpecification: { "@type": "UnitPriceSpecification", price, priceCurrency: "USD", billingDuration: duration },
+      "@type": "Offer", name, price, priceCurrency: "EUR", url: "https://qualitylayer.dev/pricing#plans",
+      priceSpecification: { "@type": "UnitPriceSpecification", price, priceCurrency: "EUR", billingDuration: duration },
     })));
   });
 

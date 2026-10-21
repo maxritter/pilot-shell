@@ -57,6 +57,7 @@ const PricingSection = () => {
             <Button type="button" variant={billing === "monthly" ? "default" : "ghost"} aria-pressed={billing === "monthly"} onClick={() => setBilling("monthly")}>Monthly</Button>
             <Button type="button" variant={billing === "yearly" ? "default" : "ghost"} aria-pressed={billing === "yearly"} onClick={() => setBilling("yearly")}>Yearly <span className="pr-save">Save up to 20%</span></Button>
           </div>
+          <p className="pr-account-link">All prices are in EUR. Tax is included or added at checkout based on your billing country.</p>
           <p className="pr-account-link">Already subscribed? <Link to="/billing">Manage billing</Link></p>
           <div className="pr-plans">
             {PLANS.map((plan) => (
