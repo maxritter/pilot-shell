@@ -694,13 +694,31 @@ jobs:
           if ((Get-FileHash $qlFile -Algorithm SHA256).Hash -ne $qlExpected) { throw 'Windows binary checksum mismatch' }
           $qlActual = & $qlFile --version
           if ($LASTEXITCODE -ne 0 -or $qlActual.Trim() -ne $env:QL_VERSION) { throw "Windows version mismatch: $qlActual" }
-          $qlHome = Join-Path $env:RUNNER_TEMP ("ql-native-release-" + [Guid]::NewGuid().ToString('N'))
+          $qlParent = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Temp'
+          $qlHome = Join-Path $qlParent ("ql-native-release-" + [Guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $qlHome -ErrorAction Stop | Out-Null
+          $qlSid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+          icacls $qlHome /inheritance:r /grant:r "*${qlSid}:(OI)(CI)F" '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' /q
+          if ($LASTEXITCODE -ne 0) { throw 'Private Windows release account ACL protection failed' }
           New-Item -ItemType Directory -Path "$qlHome/.claude", "$qlHome/.codex" -Force | Out-Null
           $env:HOME = $qlHome
           $env:USERPROFILE = $qlHome
           $env:QUALITYLAYER_HOME = Join-Path $qlHome '.qualitylayer'
           $env:QUALITYLAYER_API_BASE = 'http://127.0.0.1:9'
           $env:POLAR_API_BASE = 'http://127.0.0.1:9'
+          $qlEvidence = @()
+          $qlDirectory = [IO.DirectoryInfo]::new($qlHome)
+          while ($null -ne $qlDirectory) {
+            if ($qlDirectory.Exists) {
+              $qlAcl = Get-Acl -LiteralPath $qlDirectory.FullName
+              $qlRules = @($qlAcl.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]) | ForEach-Object {
+                @{ sid = $_.IdentityReference.Value; rights = [int64]$_.FileSystemRights; allow = ($_.AccessControlType -eq 'Allow'); inheritOnly = (([int]$_.PropagationFlags -band 2) -ne 0) }
+              })
+              $qlEvidence += @{ path = $qlDirectory.FullName; owner = $qlAcl.GetOwner([Security.Principal.SecurityIdentifier]).Value; rules = $qlRules }
+            }
+            $qlDirectory = $qlDirectory.Parent
+          }
+          $qlEvidence | ConvertTo-Json -Depth 6 | Tee-Object -FilePath (Join-Path $env:RUNNER_TEMP 'ql-release-account-acls.json')
           & $qlFile install --non-interactive
           if ($LASTEXITCODE -ne 0) { throw 'Windows release install failed' }
           $qlInstalled = Join-Path $qlHome '.qualitylayer/bin/qualitylayer.exe'
@@ -708,6 +726,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Installed Windows release failed to run' }
           & $qlInstalled uninstall --purge --json
           if ($LASTEXITCODE -ne 0 -or (Test-Path "$qlHome/.qualitylayer")) { throw 'Windows release uninstall failed' }
+
+      - name: Keep the disposable Windows account ACL evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-release-account-acls-${{ matrix.arch }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ql-release-account-acls.json
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: The published Windows Cockpit draws
         working-directory: qualitylayer
