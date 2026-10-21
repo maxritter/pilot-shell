@@ -24,14 +24,17 @@ describe("illustrations in both themes", () => {
     }
   });
 
-  it("gives every README image a dark source and an existing fallback", () => {
+  it("keeps README theme pairs and a directly linked video poster", () => {
     const markdown = read("README.md");
     const pictures = [...markdown.matchAll(/<picture>([\s\S]*?)<\/picture>/g)];
     expect(pictures.length).toBeGreaterThan(0);
-    // The film's poster is a frame of the film, the same in both themes; every other image is a light/dark pair.
-    const poster = /<img src="docs\/img\/film-poster\.webp"[^>]*>/;
-    expect(markdown, "README film poster").toMatch(poster);
-    expect(markdown.replace(/<picture>[\s\S]*?<\/picture>/g, "").replace(poster, "")).not.toMatch(/<img\b/);
+    const poster = /<a href="https:\/\/qualitylayer-media\.max-ritter\.workers\.dev\/[^"]+\.mp4"[^>]*><img src="docs\/img\/film-poster-dark\.webp"[^>]*><\/a>/;
+    expect(markdown, "README film poster plays the video").toMatch(poster);
+    expect(existsSync(resolve(root, "docs/img/film-poster-dark.webp"))).toBe(true);
+    const standalone = markdown.replace(/<picture>[\s\S]*?<\/picture>/g, "")
+      .replace(poster, "")
+      .replace(/<img\b[^>]*src="https:\/\/img\.shields\.io\/[^>]*>/g, "");
+    expect(standalone).not.toMatch(/<img\b/);
     for (const [, picture] of pictures) {
       expect(picture).toContain('(prefers-color-scheme: dark)');
       const source = picture.match(/srcset="([^"]+)"/)?.[1];
@@ -98,7 +101,10 @@ describe("illustrations in both themes", () => {
     }
     for (const file of readdirSync(resolve(root, diagrams)).filter((file) => file.endsWith(".svg"))) {
       const background = file.endsWith("-dark.svg") ? "#0d1117" : "#ffffff";
-      expect(read(`${diagrams}/${file}`), `Full-size ${file}`).toContain(`<svg style="background:${background}"`);
+      const rootTag = read(`${diagrams}/${file}`).match(/<svg\b[^>]*>/)?.[0] ?? "";
+      const color = rootTag.match(/\bstyle="[^"]*background:\s*(#[\da-f]+)/i)?.[1];
+      const fullHex = color?.length === 4 ? `#${[...color.slice(1)].map((digit) => digit + digit).join("")}` : color;
+      expect(fullHex, `Full-size ${file}`).toBe(background);
     }
   });
 });

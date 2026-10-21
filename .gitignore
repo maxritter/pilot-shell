@@ -324,6 +324,9 @@ bun.lock
 # Legacy Pilot Shell runtime and memory stay private during migration.
 .pilot/
 
+# Local QualityLayer workspace, registrations, and comparison artifacts.
+/.qualitylayer/
+
 # Wrangler state from deploying the feedback Worker
 .wrangler/
 

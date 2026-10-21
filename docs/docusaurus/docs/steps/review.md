@@ -8,8 +8,8 @@ description: Settle what agents could not settle for you, look at the result, an
 
 The final approval is always yours. After Outline, Implement and Verify, Review brings back the decisions and unverified checks that need you. It shows the whole change with proof for each **Done means** point.
 
-![Review in the App: the change walkthrough, requested outcomes and approval prompt](pathname:///img/app/review-light.webp)
-![Review in the App: the change walkthrough, requested outcomes and approval prompt](pathname:///img/app/review-dark.webp)
+![Visual Review in the App: a captured billing screen with its invoice preview and review controls](pathname:///img/app/review-light.webp)
+![Visual Review in the App: a captured billing screen with its invoice preview and review controls](pathname:///img/app/review-dark.webp)
 
 *Example task in a fictional project.*
 
@@ -25,11 +25,14 @@ Routine build decisions stay under **Decided while building**. Open the record t
 
 ## The page {#the-page}
 
-The App puts what needs you first: the approval, each point only you can confirm, and anything the checks left open. **Look here** then lists an unverified point, an item you accepted as open and any commit by another session that the push includes. Below the summary, one walkthrough runs top to bottom: what you asked for, with what needs attention first; the built slices, collapsed; the screens that changed, one picture for each; what was deliberately not changed; how it was checked, collapsed; and the way to ship it. The decisions made while building, grouped by where they were made, and what you settled sit in collapsed sections. Full paths, commit IDs and evidence remain accessible, including other sessions' changes carried by the branch.
+Review opens with what needs your decision, then a walkthrough of the change, its screenshots and its checks. Open supporting records when you need the full paths, commits or evidence.
 
 `07-review.md` keeps the complete record in the order the pull request description needs, which is why this page draws the walkthrough instead of following the file. Its top becomes the pull request's description. If the task changed a [lasting artifact](../artifacts.md#lasting), you pick which pages to [fold in](../artifacts.md#fold-in).
 
 ## Read the code {#code}
+
+![The separate code review workspace with changed files and a split diff](pathname:///img/app/review-code-light.webp)
+![The separate code review workspace with changed files and a split diff](pathname:///img/app/review-code-dark.webp)
 
 **Review the code** opens the Review workspace: the whole change, read like a pull request, in the full window. A file tree lists the changed files, the diff shows **Unified** or **Split**, and **Viewed** marks the files you have read. Your own progress counts only your marks.
 

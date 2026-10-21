@@ -22,7 +22,7 @@ The Plan says what changes; the Outline says how it is built, slice by slice. Th
 
 On a larger or risky build, a second agent checks that every card can be built.
 
-The page shows the build map first, then the proof, in the order of `04-outline.md`. Nothing here waits for you, so there is no approval at the top. **Look here** lists each risky slice with its checkpoint, a gap the second agent found and the build session chose to keep, and an Outline that grew past the Plan's size. The build map groups the slices by wave, one row each with its number, title, task count and tags such as risky, checkpoint or depends on 4; open a row for the slice's story, its tasks and how it is validated, and a task opens its card. Under it, each **Done means** point is followed to the scenario that proves it and the slice after which it runs; points only you can confirm are marked. The decisions made while outlining and that second agent's check are collapsed, each with a one-line summary. The program design, the shape of the code, the scenarios and the commands are in the document.
+The build map groups slices by their build order. Open a slice for its tasks and tests. Each **Done means** point links to the scenario and slice that proves it.
 
 Independent slices run side by side. When extra build waves are necessary, the Outline records why. Cards name source files; check output, pictures and other evidence stay in the task’s records.
 

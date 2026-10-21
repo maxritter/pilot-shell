@@ -20,14 +20,14 @@ Keep decisions, fixes and constraints for later work. Your agents can search the
 
 | How | What happens |
 | --- | --- |
-| **Session lessons** | With the installed hooks or plugins enabled, Claude Code, Codex, Pi and OpenCode can receive pinned lessons and matches for the first message in a repository. The block is at most 3 KiB. |
+| **Session lessons** | With the installed hooks or plugins enabled, Claude Code, Codex, Pi and OpenCode can receive pinned lessons and matches for the first message in a repository.  |
 | **After compaction** | A supported client’s compaction hook can restore that lesson block. If hooks are disabled, unavailable or too slow, automatic delivery can be skipped. |
 | **Search and save tools** | `memory_search`, `memory_read` and `memory_save` let an agent choose what to retrieve or save. Install registers the tools with Claude Code and Codex; Pi and OpenCode expose them through their plugins. Other agents use the [CLI](#command-line). |
 | **Task lessons** | In Review, QualityLayer records decisions, fixed findings and plan amendments. Evidence stays with a lesson when available; missing or failed checks do not become passing evidence. A task’s **Memory** record in Files shows what each step used and saved. |
 
 Lesson text is labelled as saved reference data. It does not replace your request or the agent’s instructions.
 
-A specific lookup can return no results when nearby lessons do not fit the combined topic. Try concrete code terms or a shorter phrase. In JSON, `semantic: full` reports meaning-search index coverage. Read a returned lesson against the current code before using it.
+Search with concrete project terms and read an older lesson against the current code before using it.
 
 ## Manage your lessons
 

@@ -10,7 +10,7 @@ Open QualityLayer in the App or browser and pick a medium-sized feature in a rep
 
 | | You do | Where |
 | --- | --- | --- |
-| 1 | Choose **+ New**, pick **Feature** or **Bugfix**, describe the change (“Add a CSV export to the reports page”) with any files, and choose where the agent runs | App or browser |
+| 1 | Choose **+ New** and **Feature** or **Bugfix**. Describe the change, attach files if needed, then choose your agent | App or browser |
 | 2 | **Answer the questions.** They arrive as a batch in **Your turn**; each answer reaches your agent immediately | App or browser |
 | 3 | **Read the Plan**, then **Approve Plan** or **Give feedback** | App or browser |
 | 4 | **Start the build** | App or browser |
@@ -36,7 +36,7 @@ Claude Code, Codex, Pi and OpenCode have [native setup and session controls](age
 - **Skip for now** moves to the next question; **Tell me more** asks for detail.
 - Select a passage to give feedback. It reaches the agent when it next reads the task; a stopped or disconnected agent cannot answer yet.
 - You can stop or pause the run. Your agent's own permission and sign-in prompts still require their normal response.
-- To continue in another terminal, app or IDE, stop the old run if it is still active and name the same task: “Using QL, continue implementation of task retry-webhooks.” Its recorded stage, approved Plan and evidence are kept.
+- To continue elsewhere, stop the old run if it is still active. Name the same task: “Using QL, continue implementation of task retry-webhooks.” Its recorded stage, approved Plan and evidence are kept.
 - With several approved Plans waiting, "Implement this using QualityLayer" lists their commands.
 
 </details>

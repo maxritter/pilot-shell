@@ -9,8 +9,8 @@ export default function Img(props: Props): ReactNode {
   const screenshot = src.includes("/img/app/");
   if (!drawing && !screenshot) return <OriginalImg {...props} />;
   const theme = /-dark\.(svg|png|webp)$/.test(src) ? "dark" : "light";
-  // App screenshots are 2880 by 1920 (3:2); the hidden theme's copy loads only when it is shown.
-  const extra = screenshot ? { loading: "lazy" as const, decoding: "async" as const, width: 2880, height: 1920 } : {};
+  // App screenshots are 2240 by 1800 (56:45); the hidden theme's copy loads only when it is shown.
+  const extra = screenshot ? { loading: "lazy" as const, decoding: "async" as const, width: 2240, height: 1800 } : {};
   return (
     <a className="ql-diagram" data-illustration-theme={theme} href={src} target="_blank" rel="noopener noreferrer" aria-label={`Open illustration full size: ${props.alt ?? "Diagram"}`}>
       <OriginalImg {...extra} {...props} />

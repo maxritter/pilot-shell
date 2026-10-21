@@ -1,11 +1,15 @@
 ---
 title: Commands
-description: What you type in your agent, the commands you run, the ones your agent runs, artifacts, and session messaging between agents.
+description: Ask in plain language, or look up the CLI commands for tasks, artifacts, code health and memory.
 ---
 
 `qualitylayer help` lists every command your installed version has. Add `--json` for machine-readable output, or `--task <slug>` when several tasks are open. `ql` is the short name for the same command.
 
 ## In your agent
+
+![A visual Plan beside its agent conversation](pathname:///img/app/plan-light.webp)
+![A visual Plan beside its agent conversation](pathname:///img/app/plan-dark.webp)
+
 
 Ask your agent in natural language, naming **QualityLayer** or **QL**. The same wording works in Claude Code, Codex, Pi and OpenCode; no slash or dollar skill invocation is required.
 
@@ -129,6 +133,15 @@ Use `question answered --id` only for an answer you gave in the agent's chat. Qu
 
 ## Artifacts {#artifacts}
 
+![Open a lasting artifact, choose a page and continue with its agent](pathname:///img/app/artifacts-open-light.webp)
+![Open a lasting artifact, choose a page and continue with its agent](pathname:///img/app/artifacts-open-dark.webp)
+
+Ask your agent to create, open or revise an artifact. [The visual guide](../artifacts.md) explains the workspace.
+
+<details>
+<summary>Artifact CLI commands and file locations</summary>
+
+
 Your agent draws [artifacts](../artifacts.md) with these, at any step, inside a task or outside one:
 
 | Command | What it does |
@@ -161,7 +174,7 @@ Your agent draws [artifacts](../artifacts.md) with these, at any step, inside a 
 | `qualitylayer artifact sharing [--on\|--off]` | Include or exclude the selected task's artifacts in its team copy and public link; access follows the workflow's share controls |
 | `qualitylayer artifact shot <name> [--page <page>] [--width <px>] [--theme light\|dark] [--section <label>] [--out <file>]` | Render a PNG of the page or a named section, with the script errors and blocked requests it raised; needs Chrome. `--page` picks a page of an artifact of several pages |
 | `qualitylayer artifact shot <name> --matrix [--page <page>]` | Render four PNGs: the artifact's width (or 1280) and 390 px, each light and dark, with the errors and blocked requests of each |
-| `qualitylayer artifact claude <name> status\|publish --if-match <revision> [--title "<title>"]\|update [--if-remote <sha256>]\|comments [--open-only]` | Publish a lasting artifact to Claude through Open Claude Design 1.8.0 or later, store the link, push it again on request, and list the Claude comments ([Publish to Claude](../artifacts.md#claude-design)) |
+| `qualitylayer artifact claude <name> status\|publish --if-match <revision> [--title "<title>"]\|update [--if-remote <sha256>]\|comments [--open-only]` | Publish through Open Claude Design 1.8.0 or later, update on request, or read comments. The artifact keeps the link ([Publish to Claude](../artifacts.md#claude-design)) |
 | `qualitylayer artifact shared list [--json]` | List the artifacts your team shares with you: name, title, owner, newest version, your access (`You own it`, `Can edit`, `Can comment`) and remote id |
 | `qualitylayer artifact shared versions <name> [--json]` | List every saved version of a shared artifact: who saved it, through what, and its note. With `--json`, `saved_by` names the team member whose sign-in saved a version when that is a different person from the author |
 | `qualitylayer artifact shared restore <name> --version <n>` | Save version `<n>` again as the newest. The older version stays in the list. Needs Can edit or ownership |
@@ -180,7 +193,13 @@ Library operations use the revision from `artifact library inspect`, which inclu
 
 `artifact shot` needs Chrome. If the agent's sandbox prevents Chrome from starting, inspect the same page in the App; a successful source check does not establish that it rendered correctly.
 
+</details>
+
 ## Code health {#code-health}
+
+![Local checks feed findings back to your agent, which fixes or reviews them](pathname:///img/diagrams/code-health-light.svg)
+![Local checks feed findings back to your agent, which fixes or reviews them](pathname:///img/diagrams/code-health-dark.svg)
+
 
 Local Qlty checks are advisory. See [Code health](code-health.md) for automatic feedback, availability and how to review findings.
 
@@ -193,9 +212,31 @@ Local Qlty checks are advisory. See [Code health](code-health.md) for automatic 
 | `qualitylayer quality acknowledge <id> --reason "<evidence>"` | Retain an intentional or deferred finding with a specific reason; source or metric changes require review again |
 | `qualitylayer quality on` · `quality off` | Resume or pause checks in this project |
 
+With no paths, `check` selects changed and untracked source files. A focused duplication check compares only its selected files; use `--all --duplication` for a project-wide review.
+
+<details>
+<summary>Availability and reviewing findings</summary>
+
+Automatic structure checks use a managed local Qlty binary, without model calls or plugin downloads. Installation and updates prepare it; retry `quality setup` if it is unavailable. Native builds cover macOS and Linux on x64 and ARM64, and Windows x64. Windows ARM64 reports unavailable.
+
+Read every finding against the source. `known` means seen before, not reviewed. Acknowledge an intentional pattern or deferred improvement with its evidence and repair boundary. Acknowledging retains the finding; it does not repair the code. Changed source, analyzer settings, duplication counterparts or increased metrics require review again.
+
+Manual linting uses the project's enabled Qlty plugins and may need their tools or runtimes. QualityLayer acknowledgments cover built-in structure and duplication findings. Review plugin findings through the linter's own controls.
+
+Checks are advisory unless you add `--fail-on-new`. Failed, skipped or unavailable checks give no passing evidence. Pause and resume per project with `quality off` and `quality on`.
+
+</details>
+
 ## Project memory {#memory}
 
+![Memory settings, saved lessons and project sharing](pathname:///img/app/memory-light.webp)
+![Memory settings, saved lessons and project sharing](pathname:///img/app/memory-dark.webp)
+
+
 The App and agents use the same local lesson store. Lessons sent to a cloud agent may reach its provider; local storage and local embedding do not prevent that. Run project commands inside the repository. Sharing remains off until you enable it locally; exchange writes files for your normal Git review and commit. See [Project memory](../memory.md).
+
+<details>
+<summary>Memory CLI commands</summary>
 
 | Command | What it does |
 | --- | --- |
@@ -217,6 +258,8 @@ The App and agents use the same local lesson store. Lessons sent to a cloud agen
 | `qualitylayer memory import-pilot file…` | Import bounded Pilot JSONL/Markdown records as private lessons |
 
 All commands accept `--json`. Page sizes are 1–100; queries are at most 500 characters. Pilot CLI imports accept at most 32 files, each at most 1 MB and 2 MB in total.
+
+</details>
 
 ## Session messaging
 

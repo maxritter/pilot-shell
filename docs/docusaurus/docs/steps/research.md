@@ -31,6 +31,6 @@ Usually nothing. Comment on a finding you disagree with. If the code leaves a re
 
 `02-research.md` opens with a plain summary. Read the findings and any unresolved uncertainty before approving the later Plan. Open questions remain visible until you answer them.
 
-The page follows the file. An open batch stands first. **Look here** points to what the goal puts at risk and to any open question. Below the summary come the risks, marked ones first, then the open questions, which are what the code could not answer, and then the findings. Each finding is one row with its title, the questions it answers and its first sentence; open it for the full text and how that code is tested today. While helpers are still reading, the page lists the questions instead, each with its helper's state. The questions, your earlier answers and how the code is tested today are collapsed under the findings, each with a one-line summary. Code references are in the document.
+Read the risks and open questions first, then expand a finding for its evidence. Earlier answers and code references remain available in the document.
 
 Next: [Plan](plan.md).

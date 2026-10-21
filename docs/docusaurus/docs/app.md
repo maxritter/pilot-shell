@@ -71,20 +71,9 @@ Every step writes one Markdown file, shown three ways:
 
 ### The step page {#step-pages}
 
-Every step page reads top to bottom in the same way:
+Questions and approvals appear first. **Look here** points to failures, risks and anything only you can confirm. Below that, read the step's summary and main result: requirements, findings, the Plan, the slice board or checked outcomes.
 
-| Part | What it shows |
-| --- | --- |
-| **What needs you** | Only your own cards: a batch of questions, a **Your call**, the approval, a confirmation. A step with nothing for you leaves it out |
-| **Look here** | Up to three lines, one for each kind of thing: failures first, then what only you can confirm, then what the agent marked risky or unsure. Each names its first item and how many there are, and jumps to it |
-| **The gist** | The step as a takeaway for this task, who writes or runs it and when, a short summary and up to five counts |
-| **The core** | The part that is the step, as rows you can open: the numbered **Done means** in Discuss, the findings in Research, the artifacts and decisions in the Plan, the build map in the Outline, the board in Implement, the checked points in Verify, the walkthrough in Review |
-| **Collapsed sections** | The other sections the step leads with, one line each: heading, count and takeaway. Open one in place |
-| **More in this document** | Links to the working sections, which open in the Reader |
-
-The sections come in the order of the file, so the page, the Reader and GitHub tell the same story. Review is the exception: its file keeps the order of the pull request description, and its page draws the walkthrough. An artifact, a wireframe, a diagram or a screen is always shown where it stands, never collapsed. The engineering and product levels show the same page and collapse the same sections; they differ in words and in how far a row opens ([two levels](intro.md#two-levels)). A step you have not reached shows one quiet line, a finished step keeps its page without the part for you, and a closed task or a link shows it read-only.
-
-The page is laid out for the column beside an open **Agent** sidebar, so each part is one column that stays readable on a laptop screen.
+Open a row for its details, or switch to **Reader** for the complete document. Diagrams and artifacts stay visible where you need them. Both workflow levels use the same page, with more engineering detail at the Engineering level.
 
 ## Feedback and artifacts {#comments-and-artifacts}
 
@@ -99,7 +88,7 @@ Working artifacts are compact entries in **Files**. **Open artifact canvas** ope
 
 **Needs you** combines your questions, approvals and tasks you can continue with teammate questions, review requests and replies. Shared rows name the person and open the exact passage, diagram or artifact spot. **Running** is your agents' work, with its current step and activity. Team keeps the shared history.
 
-Notifications are configured in **Settings › Workflow**. Home shows no spending or shipped summary. The App notifies you only when you can act:
+Notifications are configured in **Settings › Workflow**. The App notifies you only when you can act:
 
 ![Who hears about what: the App, Slack and the Claude Code band speak only when a person can act, and agent progress and checks never notify](pathname:///img/diagrams/attention-light.svg)
 ![Who hears about what: the App, Slack and the Claude Code band speak only when a person can act, and agent progress and checks never notify](pathname:///img/diagrams/attention-dark.svg)

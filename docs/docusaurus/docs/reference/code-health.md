@@ -1,39 +1,36 @@
 ---
 title: Code health
-description: Review structure, complexity and duplication with local Qlty checks.
+description: Let your agent spot complex functions and duplicated code, then review what needs changing.
 ---
 
-# Code health
+QualityLayer checks edited code locally and gives your agent feedback on complexity and structure. Ask “Using QL, review code health in this project” for a closer look, including duplication.
 
-QualityLayer uses local Qlty checks to help your agent review complexity and code structure. Install and update prepare a separate, pinned binary and verify it before use. Your project configuration and personal agent settings stay yours.
+![Edited code is checked locally. Your agent reads each finding, fixes a problem or records why the code should stay. Tests verify the change.](pathname:///img/diagrams/code-health-light.svg)
+![Edited code is checked locally. Your agent reads each finding, fixes a problem or records why the code should stay. Tests verify the change.](pathname:///img/diagrams/code-health-dark.svg)
 
-Installed hooks collect the files a session edits. At the end of its turn, a short structure check covers a bounded batch of those files. Findings reach the agent with its next prompt or tool result; the check does not start another turn. The `ql-quality` skill helps your agent inspect the findings without starting a workflow.
+## What happens as you work
 
-## Check and review
+1. **You or your agent edits code.** At the end of the agent's turn, a local structure check looks at those files.
+2. **Your agent gets the findings.** It reads the source and explains the consequence before changing anything.
+3. **It fixes or reviews each finding.** A useful fix is checked with the affected tests. An intentional pattern keeps its review reason.
 
-Run these commands inside your repository:
+Checks do not start another agent turn. Findings reach it when the conversation next continues.
 
-| To | Run |
+## What a finding means
+
+| Finding | What your agent looks for |
 | --- | --- |
-| Tool status | `qualitylayer quality status --json` |
-| Retry setup | `qualitylayer quality setup --json` |
-| Edited files | `qualitylayer quality check [paths...] --json` |
-| Duplication | `qualitylayer quality check --all --duplication --json` |
-| Metrics | `qualitylayer quality metrics [paths...] --json` |
-| Linters | `qualitylayer quality lint [paths...] --json` |
-| Review a finding | `qualitylayer quality acknowledge <id> --reason "<evidence>"` |
-| Pause / resume | `qualitylayer quality off` / `qualitylayer quality on` |
+| Complex function | Branches or responsibilities that make a change difficult to understand |
+| Duplicated code | Copies that could drift apart; broader duplication checks run when you ask |
+| Previously seen | A finding the tool already reported; it still needs review |
+| Acknowledged | A finding retained with a specific reason; the code has not been repaired |
 
-With no paths, `check` selects changed source files. Use `--all --duplication` for a deliberate project-wide comparison.
+A changed function, analyzer configuration or duplication counterpart can require a new review. A higher metric can too.
 
-Read each finding against its source. Fix relevant problems and run the affected tests. For an intentional pattern or deferred improvement, record the evidence and repair boundary. Acknowledging it retains the finding; it does not fix the code. `known` means seen before, not reviewed. Changed source, analyzer settings, duplication counterparts or increased metrics require review again.
+## Ask for a broader check
 
-Checks are advisory. Add `--fail-on-new` to `quality check` only when you want unreviewed findings to fail the command. Your tests, security checks and release requirements still apply. `quality off` pauses checks for this project; run `quality on` before checking again.
+Try “Check this project's duplication” or “Review the complexity of the files we changed.” Your agent can also run your project's enabled linters.
 
-## Availability
+Code health is advisory. Your tests, security checks and release requirements still apply. A failed, skipped or unavailable check gives no passing evidence.
 
-Automatic structure checks run locally without model calls or plugin downloads. Manual linting uses the project's enabled Qlty plugins and may need their tools or runtimes. Failed, skipped or unavailable checks provide no passing evidence.
-
-QualityLayer acknowledgments cover built-in structure and duplication findings. Review plugin findings with your project linter’s own controls; their policies can depend on configuration beyond the checked files.
-
-Native Qlty builds cover macOS and Linux on x64 and ARM64, and Windows x64. Windows ARM64 reports unavailable. If setup fails, check download access and archive tools, then retry `quality setup`.
+[Commands and setup troubleshooting](commands.md#code-health) · [Supported agents](../agents/native.md)

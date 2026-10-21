@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useDownload } from "@/hooks/useDownload";
 import { FILMS } from "@/lib/films";
+import { OVERVIEW_POSTERS } from "@/lib/film-posters";
+import { useTheme } from "@/hooks/useTheme";
 import { BRAND_LINE, DESCRIPTION, SLOGAN } from "@/lib/product";
 import { FIRST_STEP, WORKFLOW_STEPS } from "@/lib/steps";
 
@@ -18,6 +20,7 @@ function FilmDialog({ onClose }: { onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const close = useRef<HTMLButtonElement>(null);
   const film = FILMS.overview;
+  const { theme } = useTheme();
   useEffect(() => {
     const dialog = ref.current;
     if (dialog && !dialog.open) dialog.showModal();
@@ -28,7 +31,7 @@ function FilmDialog({ onClose }: { onClose: () => void }) {
     <dialog ref={ref} className="mx-filmov" aria-label={`How QualityLayer works, ${clock(film.duration)}`} onClose={onClose} onClick={(e) => { if (e.target === e.currentTarget) ref.current?.close(); }}>
       <div className="mx-filmbox">
         {/* The film shows its narration as captions, and chapter titles beside the App. */}
-        <video src={film.src} poster={film.poster} controls autoPlay playsInline preload="auto" />
+        <video src={film.src} poster={OVERVIEW_POSTERS[theme]} controls autoPlay playsInline preload="auto" />
       </div>
       <Button type="button" variant="outline" size="xl" ref={close} className="mx-filmx" onClick={() => ref.current?.close()}>Close</Button>
     </dialog>

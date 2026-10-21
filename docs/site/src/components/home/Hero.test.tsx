@@ -4,6 +4,8 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { BRAND_LINE, SLOGAN } from "@/lib/product";
 import Hero from "./Hero";
+import { useTheme } from "@/hooks/useTheme";
+import { OVERVIEW_POSTERS } from "@/lib/film-posters";
 
 beforeEach(() => { vi.stubGlobal("fetch", async () => new Response("{}", { status: 503 })); });
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
@@ -47,4 +49,24 @@ it("opens the overview film and returns focus when the dialog closes", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(document.activeElement).toBe(opener);
   } finally { show.mockRestore(); }
+});
+
+it("updates the open film poster when the website theme changes", () => {
+  const show = vi.spyOn(HTMLDialogElement.prototype, "showModal").mockImplementation(function () { this.open = true; });
+  function Page() {
+    const { toggle } = useTheme();
+    return <MemoryRouter><button onClick={toggle}>Toggle theme</button><Hero /></MemoryRouter>;
+  }
+  localStorage.setItem("theme", "dark");
+  try {
+    render(<Page />);
+    fireEvent.click(screen.getByRole("button", { name: /Watch the film/ }));
+    const video = screen.getByRole("dialog").querySelector("video")!;
+    expect(video.getAttribute("poster")).toBe(OVERVIEW_POSTERS.dark);
+    fireEvent.click(screen.getByRole("button", { name: "Toggle theme" }));
+    expect(video.getAttribute("poster")).toBe(OVERVIEW_POSTERS.light);
+  } finally {
+    localStorage.removeItem("theme");
+    show.mockRestore();
+  }
 });

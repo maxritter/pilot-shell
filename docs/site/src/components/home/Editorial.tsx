@@ -15,10 +15,10 @@ type Extra = { id: string; name: string; icon: LucideIcon; line: string; text: s
 
 const EXTRAS: Extra[] = [
   { id: "memory", name: "Memory", icon: BookOpen, line: "Keep useful project lessons", text: "Your agents reuse lessons between tasks, whichever coding agent you use. Share them per repository through Git; search or retire them in Settings.", shot: { id: "memory", title: "Project memory", alt: "The Memory tab with local lessons, per-project sharing and a searchable lesson browser; illustrative project data" }, link: { to: "/docs/memory", label: "Read about project memory" } },
-  { id: "artifacts", name: "Artifacts", icon: Shapes, line: "Comment on the spot", text: "Pin a comment anywhere on an artifact. Your agent replies in the thread and updates the artifact.", shot: { id: "artifact", title: "Artifact", alt: "A queue migration console open full size, with three numbered comment pins and the comments beside it" }, link: { to: "/docs/artifacts", label: "Read about artifacts" } },
+  { id: "artifacts", name: "Artifacts", icon: Shapes, line: "Comment on the spot", text: "Pin a comment anywhere on an artifact. Your agent replies in the thread and updates the artifact.", shot: { id: "artifact", title: "Artifact", alt: "An interactive billing limits design with current usage, field validation and pinned comments" }, link: { to: "/docs/artifacts", label: "Read about artifacts" } },
   { id: "team", name: "Team", icon: Users, line: "Ask the people who know", text: "Teammates answer plan questions and review the finished change from their own App.", shot: { id: "team", title: "Team", alt: "The Team space with questions about shared plans, replies and the team's tasks" }, link: { to: "/docs/team/plans", label: "Read about team collaboration" } },
   { id: "cost", name: "Home", icon: House, line: "See what needs you", text: "Your tasks that need attention and your running work, with the current step and what happens next.", shot: { id: "home", title: "Home", alt: "Home with personal tasks that need attention and running work" }, link: { to: "/docs/app#home", label: "Read about Home" } },
-  { id: "setup", name: "Settings", icon: SlidersHorizontal, line: "Set run preferences and reviewers", text: "Set where agents run, their appearance and review agents. Choose the agent, model, effort and workspace when you start a run.", shot: { id: "setup", title: "Settings", alt: "Agents settings with the default run location, appearance and global review options" }, link: { to: "/docs/reference/settings", label: "Read about settings" } },
+  { id: "setup", name: "Settings", icon: SlidersHorizontal, line: "Set run preferences and reviewers", text: "Set agent appearance and reviewers. Choose where the agent runs, its model, effort and workspace when you start a task or build.", shot: { id: "setup", title: "Settings", alt: "Agent appearance and global review options in Settings" }, link: { to: "/docs/reference/settings", label: "Read about settings" } },
 ];
 
 const shotOf = (step: (typeof STEPS)[number]): Shot => ({ id: step.id, title: step.name, alt: step.alt });
@@ -35,7 +35,7 @@ function Picture({ shot, theme, eager, inDialog }: { shot: Shot; theme: "light" 
     <>
     <picture>
       <source media={PHONE} srcSet={phoneSrc(shot, theme)} width={780} height={1400} />
-      <img src={src(shot, theme)} alt={shot.alt} width="2880" height="1920" loading={eager || inDialog ? undefined : "lazy"} decoding="async" onError={() => setFailed(true)} onLoad={() => setFailed(false)} />
+      <img src={src(shot, theme)} alt={shot.alt} width="2240" height="1800" loading={eager || inDialog ? undefined : "lazy"} decoding="async" onError={() => setFailed(true)} onLoad={() => setFailed(false)} />
     </picture>
     {failed ? <span className="ed-image-error">{shot.title} image unavailable. {inDialog ? "Use the full-size image link to retry." : "Open the preview to retry."}</span> : null}
     </>
@@ -108,7 +108,7 @@ function Tour({ active, onPick, theme, onOpen }: { active: string; onPick: (id: 
             <button type="button" className="ed-frame" aria-label={`Enlarge ${current.name}`} onClick={(event) => onOpen(shotOf(current), event.currentTarget)}>
               {STEPS.map((step) => {
                 const on = step.id === current.id;
-                return <img key={step.id} className={on ? "on" : undefined} src={src(shotOf(step), theme)} alt={on ? step.alt : ""} aria-hidden={on ? undefined : true} width="2880" height="1920" loading={on ? "eager" : "lazy"} decoding="async" onError={() => setFailed(previous => new Set(previous).add(step.id))} onLoad={() => setFailed(previous => { if (!previous.has(step.id)) return previous; const next = new Set(previous); next.delete(step.id); return next; })} />;
+                return <img key={step.id} className={on ? "on" : undefined} src={src(shotOf(step), theme)} alt={on ? step.alt : ""} aria-hidden={on ? undefined : true} width="2240" height="1800" loading={on ? "eager" : "lazy"} decoding="async" onError={() => setFailed(previous => new Set(previous).add(step.id))} onLoad={() => setFailed(previous => { if (!previous.has(step.id)) return previous; const next = new Set(previous); next.delete(step.id); return next; })} />;
               })}
               {failed.has(current.id) ? <span className="ed-image-error">{current.name} image unavailable. Open the preview to retry.</span> : null}
               <span className="ed-enlarge"><Expand size={14} aria-hidden="true" />Enlarge</span>

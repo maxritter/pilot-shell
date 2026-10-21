@@ -6,7 +6,7 @@ description: Your agent reads the code and asks until it knows what you want and
 ![The eight steps, with Discuss highlighted](pathname:///img/diagrams/track-discuss-light.svg)
 ![The eight steps, with Discuss highlighted](pathname:///img/diagrams/track-discuss-dark.svg)
 
-Describe the change with **+ New** in QualityLayer or ask your agent: “Using QL, plan a CSV export.” Your agent reads the code and groups the questions it can ask together into one batch of three to six, each with a recommendation.
+Describe the change with **+ New** in QualityLayer or ask your agent: “Using QL, plan a CSV export.” Your agent reads the code and groups related questions into a batch, each with a recommendation.
 
 ![Discuss in the App: one question with its choices](pathname:///img/app/discuss-light.webp)
 ![Discuss in the App: one question with its choices](pathname:///img/app/discuss-dark.webp)
@@ -25,7 +25,7 @@ Describe the change with **+ New** in QualityLayer or ask your agent: “Using Q
 
 `01-discuss.md` records your request, the scope and **Done means**: the numbered results you accept the change by. Verify checks each one. You approve it with the Plan; changing it later withdraws that approval.
 
-The page follows the file. An open batch stands first. **Look here** then points to anything only you can confirm and any area the agent could not trace in the code. Below the task title and a short summary, **Done means** is a list of numbered rows, each with how it will show; a point changed after you agreed stays in place, marked as changed, and a withdrawn one is struck through. **Scope** follows as two short columns, in this task and not in this task. Your earlier answers and anything added while building are collapsed under them, each with a one-line summary. The context and the first look at the code are in the document.
+**Done means** lists the results you will accept, with scope and earlier answers below. Open the full document for the code context.
 
 ## Too small for a plan {#too-small}
 

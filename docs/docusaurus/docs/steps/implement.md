@@ -18,7 +18,7 @@ After you approve the Plan, **Start the build** appears on that Plan page. Choos
 | On the card | What it picks |
 | --- | --- |
 | **Where the agent runs** | **In QualityLayer** (recommended) or **In my terminal, app or IDE**, according to the local runtime’s capabilities |
-| **Agent** | Claude Code, Codex, Pi or OpenCode, when it runs in QualityLayer |
+| **Agent** | An installed native agent, or Another agent for your terminal |
 | **Model and effort** | The choices for this run |
 | **Branch** | **Current branch**, **New branch** or **New worktree** |
 | **Who builds** | Build it yourself or hand it to a teammate ([Hand over](../team/plans.md#hand-over)) |
@@ -41,7 +41,7 @@ Under **Branch**, keep the **Current branch**, create a **New branch**, or use a
 
 Each slice is written test first. QualityLayer runs and records every check itself.
 
-The page shows the board of slices, in the order of `05-implement.md`. Every slice is a row, finished and still to come, and the running one is open to its tasks. Nothing here asks for your approval. **Look here** lists what needs a glance: a checkpoint left open after two failed runs, a stopped session or helper, something only you can supply, queued for Review, a deviation that changes what you approved, and a failure that was there before the build. The decisions made while building, the recorded checks and the checkpoints are collapsed, each with a count and a one-line summary. The deviations, plan changes and restarts are in the document.
+Follow the slice board to see what is running and what is finished. **Look here** highlights failures, stopped work and anything only you can supply. Open the recorded checks for their output.
 
 Routine choices appear under **Decided while building**. Outline, Implement and Verify continue without workflow questions until Review. A login, secret, account or other human-only prerequisite is recorded with the affected task and stays unverified for Review. Available work continues; blocked checks retain their evidence instead of being marked passed. The App never takes the secret.
 

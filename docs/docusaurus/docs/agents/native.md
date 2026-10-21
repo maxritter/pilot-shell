@@ -21,9 +21,19 @@ In your own terminal, VS Code or another IDE, say “Using QualityLayer, plan a 
 
 An ordinary coding request stays an ordinary request. Ask QualityLayer or QL to carry the work; merely discussing the product or quoting an example does not start a workflow. Natural wording, clear spelling variants and requests in other languages are supported.
 
-The installed skills are `ql-workflow`, `ql-artifact`, `ql-peer`, `ql-manage` and `ql-quality`. Your agent loads the one the request needs. A standalone artifact, peer message or settings operation does not create a workflow task. The artifact skill points to the CLI's artifact guide, which is read once per assignment.
+## The five skills
 
-The `ql-quality` skill helps your agent inspect local Qlty findings. Automatic feedback checks edited files for structural issues; deliberate CLI checks cover broader duplication and function metrics. See [Code health](../reference/code-health.md) for availability, review decisions and project controls.
+QualityLayer installs these skills for the supported agents. Ask in plain language; your agent chooses the right one.
+
+| Skill | What it does |
+| --- | --- |
+| `ql-workflow` | Plan, build, verify and review a change |
+| `ql-artifact` | Create and revise mockups, diagrams and clickable pages |
+| `ql-manage` | Find tasks and manage memory, sharing, settings and setup |
+| `ql-peer` | Coordinate other agent sessions on your computer |
+| `ql-quality` | Review code complexity, structure and duplication |
+
+Only workflow requests start a planning/build task. The other skills can work on their own. See [Artifacts](../artifacts.md), [Project memory](../memory.md) and [Code health](../reference/code-health.md).
 
 ## Models and reviews
 
@@ -48,13 +58,11 @@ The App records the native conversation, accepts one typing controller and offer
 | Pi | Its own tool permissions |
 | OpenCode | Own settings or Fewer prompts; explicit deny rules remain in force |
 
-The App uses a private OpenCode server for each managed run, with its build agent for workflow work and its plan agent for read-only reviews. A session in your terminal keeps your native agent choice. Stopping a managed run leaves other OpenCode sessions alone. Available permission controls depend on the installed client and its supported options.
+The available permission controls depend on your installed agent. Stopping a run in QualityLayer leaves your other sessions alone.
 
 ## Peer sessions
 
-All four agents use `qualitylayer peers` for messages, correlated requests, buddy selection, task status and checkout claims. Pi and OpenCode register through their installed integrations. Use the `pi:<uuid>` or `opencode:<uuid>` address printed by `qualitylayer peers list`; OpenCode's peer UUID maps to its native session ID.
-
-A queued message confirms transport. The recipient acknowledges it with `qualitylayer peers ack --message-id <uuid>`, and a correlated request gets its own explicit reply. Native peer reply chains stop after three consecutive outgoing messages until the person's next prompt or thirty quiet minutes. Review workers stay outside the peer registry.
+Ask one agent session to review another's work, hand over a task or discuss a problem. Claude Code, Codex, Pi and OpenCode can coordinate on this computer. [Session messaging commands](../reference/commands.md#session-messaging).
 
 ## Setup and removal
 
