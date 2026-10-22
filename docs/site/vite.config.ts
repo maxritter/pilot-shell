@@ -66,7 +66,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     // The lifecycle names its routes and optional steps from the product's own tables.
     alias: { "@ql": path.resolve(import.meta.dirname, "../../qualitylayer/src") },
-    dedupe: ["react", "react-dom", "cn", "lucide-react", "radix-ui", "@base-ui/react", "class-variance-authority", "clsx", "tailwind-merge", "dompurify", "css-tree", "parse5", "marked", "mermaid", "sonner", "tailwindcss", "tw-animate-css", "shadcn", "@pierre/diffs"],
+    dedupe: ["react", "react-dom", "cn", "lucide-react", "radix-ui", "@base-ui/react", "class-variance-authority", "clsx", "tailwind-merge", "dompurify", "css-tree", "parse5", "marked", "mermaid", "sonner", "tailwindcss", "tw-animate-css", "shadcn", "@pierre/diffs", "@tanstack/react-virtual"],
   },
   build: {
     manifest: true,
