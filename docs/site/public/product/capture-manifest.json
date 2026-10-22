@@ -1,6 +1,6 @@
 {
-  "sourceCommit": "0b39de6be5d61e177a92c2e0cd5c8e26345a4fd3",
-  "sourceTree": "54a6f8480d206a3dfa4ba80da6111c0b4f423f02",
+  "sourceCommit": "8f1ac967398f220752f9865ad9abd55f452d9ee8",
+  "sourceTree": "ad92b8b596546cdd60a9a60064c6cbb4654bb248",
   "sourceInputs": {
     "docs/site/app-demo/index.html": "e8c23d49cf064adafd7a84964e060b83bd5afb5e2261fa3e0c1295cdd4f8b199",
     "docs/site/package-lock.json": "3acb81dd53e014cec207b7c49abd7cf228645bfcb568aec26c1aebd6b1cb2825",
@@ -9,7 +9,7 @@
     "docs/site/scripts/website-screenshots.mjs": "446eb1a63abc7d91fce1af13f3bac7e64fe94bfcde1f2aa8378c75507f9836a1",
     "docs/site/vite.config.ts": "582c73cb5373171b52c81547bdf134f2c7327594e48720b986e1c11b2f466abd",
     "qualitylayer/bun.lock": "12c8078ccd99c45dc804678ad0f018d3111bd3fe1d6b1c0bf64b2bcdb3b7885b",
-    "qualitylayer/package.json": "62a616a9683083e68c3445c2d15785d6786f3d7df858e4e26ca5573c0855b7d9",
+    "qualitylayer/package.json": "f5705676f31eecb6e896db9740f283c9d8813abeee5a63dbf728052a12440a65",
     "qualitylayer/scripts/ui-dev.ts": "d28a6118a113aa95c65b5f65a33eb6e40ec872362e7ca41030aff6656c307153",
     "qualitylayer/src/core/config-values.ts": "bde9f237bafa8f4db0549de0824a0ee1d2f7422bc1f23d0699fbd78b77b68118",
     "qualitylayer/src/core/config.ts": "f1e2e41b58b3cea8688bc59ddcbc5e4bf5f89f0dd4bf99079fa39dfae227342b",
@@ -30,11 +30,11 @@
     "qualitylayer/src/ui/Handover.tsx": "6907cdd2c597532e9b40366145c115bcb9af6b951829cb95dab54e4f271e2877",
     "qualitylayer/src/ui/Home.tsx": "1cbab6db4e8fb1b8fdc6fe20d8257d0010216c67e69171a0df3274a8fdcc87a7",
     "qualitylayer/src/ui/HomeQuestion.tsx": "7a19fe75a3daba2cd3c21b567425a0581301372d6589cf2b18dfdf8f06f8426d",
-    "qualitylayer/src/ui/ImplementStart.tsx": "f76b3c9c8ca7b848f677311fcd3c67b49fd1e275c4ec196b439e28a23c6d1fad",
+    "qualitylayer/src/ui/ImplementStart.tsx": "a455cbc9ada4d357db5040b959e89e7101eb078da9c508eae8a6e4d7e482e070",
     "qualitylayer/src/ui/ItemMedia.tsx": "ce276d1273b8239e34a1fb686372ce2e488e4d09e59d58386ea974eb1699d8d2",
     "qualitylayer/src/ui/Logo.tsx": "8899a4cb4d0872dd7fdd6b04207497c56fa05cb8a23ffac4a267ce46b7c02889",
     "qualitylayer/src/ui/ModelPick.tsx": "8b126166ea8fdbe70b92c5f7303d64646a29012ca379b2dc96922c405ecde65b",
-    "qualitylayer/src/ui/NewTask.tsx": "889d4b71aba2bd1122b1b36870bf2d71e4b98146b74299e81537827cd6d54b96",
+    "qualitylayer/src/ui/NewTask.tsx": "98d52f36d83969a64054d994be9a1afa6394e14ceb2fb4eec0c075601e329767",
     "qualitylayer/src/ui/NewTaskParts.tsx": "e254a18ab3899b86ebb80945571dc3e5c3723cc4d41058360577022b67719910",
     "qualitylayer/src/ui/OutsideDecide.tsx": "d88a35fba261841a304d07d902cbeb206fbd1f02267b3fc8a0d4125d76d685f6",
     "qualitylayer/src/ui/PeopleWindow.tsx": "d59da5993a575b1005a1936d3b1bfc60e549dc0151d2e0d1c0ebf93a42e87c29",
@@ -59,7 +59,7 @@
     "qualitylayer/src/ui/StepTabs.tsx": "9a9b8f8622012e9d5e0542e46e6df047672941feb75bf7eb4bfca7a61f3a833f",
     "qualitylayer/src/ui/TaskLoading.tsx": "3b3d18dc87b87c1e0301b80af8c819d182d6b18e29ff4be0a740be7fad38b316",
     "qualitylayer/src/ui/TaskPointMenu.tsx": "969f7bdb5c9ca03e657d5d35059c2c322e3152e680555e6b78e10bc8699283d5",
-    "qualitylayer/src/ui/TaskView.tsx": "3e6b3d41c937b8a172922d0b561cbf416cf406f2040b97ae8fe0a8e2b03eb475",
+    "qualitylayer/src/ui/TaskView.tsx": "1eec44d93d5b95bddeeb1a627a401f910cd2b898dd9288843037e19cf2522f9d",
     "qualitylayer/src/ui/TeamSpace.tsx": "b8575e83700d9df9b9ff0fc398bc8375d55794abfca2d04b6f39556c7c4390c2",
     "qualitylayer/src/ui/TeamTaskView.tsx": "54a3fd2835c5ad5f42fb24f9c0eda87af379dbd98e353289df420518cc5f8c8d",
     "qualitylayer/src/ui/TeamUpgrade.tsx": "1d7ffe1efa89ed76bc245e8bae4627a4ad69ef7fab1be0fe449a5fdbc1fccead",
@@ -77,7 +77,7 @@
     "qualitylayer/src/ui/agent-window/conversation/Blocks.tsx": "f2442bf5d33c19ae66dc4c0317a74096be26c88c14df56053408203f07bf5643",
     "qualitylayer/src/ui/agent-window/conversation/ChildConversation.tsx": "3f5a21090a12fd721d1f591ee1e76f4393edd70159b2cad9bd37f8ac31ab2fc2",
     "qualitylayer/src/ui/agent-window/conversation/CommandMenu.tsx": "0dc2873e866b1e2fcdeae96136db8bd96cb54e925b337396ebb1c1bde7ad0e82",
-    "qualitylayer/src/ui/agent-window/conversation/Conversation.tsx": "4a343ffe4b34f7f32f9f75a116845b1fbc48649a16dfc7abc5953e26737c34c8",
+    "qualitylayer/src/ui/agent-window/conversation/Conversation.tsx": "1e0394f13a9b403140bace2901f9a6c2dc66e391054398b7e28b05983471f0de",
     "qualitylayer/src/ui/agent-window/conversation/Earlier.tsx": "cf4b503c7a06a0e781ffbcb3a6974a48562581e5070cd3b8745be609ca3784ba",
     "qualitylayer/src/ui/agent-window/conversation/Footer.tsx": "eb640cb1967dde854101bc5280cec767df41e137aec373aa7273001df18d25fa",
     "qualitylayer/src/ui/agent-window/conversation/JumpMarks.tsx": "36cb6b73a03dabce2a8913396ebf900836fe59e96a215421ffce0dc7d67c3f4e",
@@ -127,7 +127,7 @@
     "qualitylayer/src/ui/artifact/ArtifactCanvas.tsx": "3a9c5c4e1e5025dedcbe63d8c6360d5f643f33db42317066ec286dbc453cf809",
     "qualitylayer/src/ui/artifact/ArtifactCollaboration.tsx": "5bc6de5eb8534c41866cfe68538f244d5b3f15ceed80cf9550f1b5b03b4dd552",
     "qualitylayer/src/ui/artifact/ArtifactComments.tsx": "0f8ffad34cb0f84ed66cbd7e633ff0826174fed585fbe7b0717b2c0969efe89b",
-    "qualitylayer/src/ui/artifact/ArtifactFeedback.tsx": "fafedbcdd8f87b9a7140e0d1965e0fdd3149e13177b2369dfe0accc9cfa25b97",
+    "qualitylayer/src/ui/artifact/ArtifactFeedback.tsx": "a988ff2cdfc409b4b3332bcf8a6db16983eab0fc6aed0c4024657196650bc2f6",
     "qualitylayer/src/ui/artifact/ArtifactManage.tsx": "6b8cbe2b15844ca3defeae2e326002501f24804adcfa8f1953a1756f5e604974",
     "qualitylayer/src/ui/artifact/ArtifactMenus.tsx": "5dea7f50db7373571be33225ea718c1a8af338b5aa6d7148e56fb602a0be4ae2",
     "qualitylayer/src/ui/artifact/ArtifactPage.tsx": "e61a34a0957847945642422e01d31a4670296f8907c6723de234e750cabc7215",
@@ -160,7 +160,7 @@
     "qualitylayer/src/ui/artifact/notice.tsx": "9f611060d8d64965497053623398c3550c3eeee778fdf1492fcd7eb31661b158",
     "qualitylayer/src/ui/artifact/prepare-shared.ts": "b406b4b34d2bd5dc0071a51e5cc4468b5365c66470b93cf241d10167d77f9888",
     "qualitylayer/src/ui/artifact/preview-cache.ts": "60741a5ba115e592681c9713b9bd6ffa875bc2040ca0fb8ade88e2b3b8bf7aec",
-    "qualitylayer/src/ui/artifact/preview.css": "c8e722082b689c1f84b3ba95a46735227b8d865749e360215b78b73c4269a310",
+    "qualitylayer/src/ui/artifact/preview.css": "52a76b7473cbd89aef863701610a94c9e5bd50f590bf8f54fccd8ab4bbee4580",
     "qualitylayer/src/ui/artifact/seen.ts": "f20daa56e71129f3665edc2157a672af90027b91379d1aadae133e71dbd3536b",
     "qualitylayer/src/ui/artifact/share-dialog.css": "30d5c7ebc355e44c06ca2a50b2904a27e2605a7f6295dfb8a869c5083fe5f44e",
     "qualitylayer/src/ui/artifact/shared-artifacts.css": "5ee75f6f25549e23b00eac4288086213fc7f6f17f43352e9fd88ea28f468dae7",
@@ -171,7 +171,7 @@
     "qualitylayer/src/ui/artifact/team-view.css": "90e53731ea3e8c51c6a3c6c01dd9c65634fa2e99098c580047c030bfa3a140d5",
     "qualitylayer/src/ui/artifacts/ArtifactCard.tsx": "b3b1627c0d7f25301f91d6194ab9a4444c5a38fb7af92673a2350882c2040598",
     "qualitylayer/src/ui/artifacts/ArtifactRoute.tsx": "94ad0a7b9092d9280e7d55320305b49dfbe056f3d41b5456dc0eb104c41689fd",
-    "qualitylayer/src/ui/artifacts/ArtifactSide.tsx": "a4e37d5fb2d3b56899ae48f6cdaa152df2a864e0c0597064bf243138d35f5179",
+    "qualitylayer/src/ui/artifacts/ArtifactSide.tsx": "024331e2cc8f0a43afb89d6d8eddd161b2e0e207ed65d25f112106bb49b6c8da",
     "qualitylayer/src/ui/artifacts/ArtifactsPage.tsx": "315d34cbedc6a7751bbdec906387480871a5bf4f494af424a10e44cc95ffc9a8",
     "qualitylayer/src/ui/artifacts/FavoriteButton.tsx": "e8aa487c66e79699ad53f71a44028f4e9d8f356ffd35d71ec3f98eb3032831ac",
     "qualitylayer/src/ui/artifacts/LibraryActions.tsx": "fdf768d4ef16134424c87f41a38c481cd770c50326129ebcb42d048ebadb4e98",
@@ -206,8 +206,8 @@
     "qualitylayer/src/ui/demo/agent-setup.ts": "bd7f963ada16cefb44440f5f5c3de6717a5ddbb8ee9f99e8a3a901641584ed0f",
     "qualitylayer/src/ui/demo/agent-window-fixture.ts": "f10620a7f978e788318640a445a00a64cb6cc3b3b4a3127a457f3e8f6ab6e03c",
     "qualitylayer/src/ui/demo/agent-window.ts": "afaf4829640b80a1266d5bf83af13975c6f76602b1f6ad3cdc6e84d0b18f8697",
-    "qualitylayer/src/ui/demo/api.ts": "fe94d4b1f6570c6b0c5815e98d1866de8ee92811dfc7ed092bf57c0b3da105f3",
-    "qualitylayer/src/ui/demo/artifact-collaboration.ts": "0eea8f1468201bb8df75c3fbb46ab7ad477a27a4cad39e7338b82f46ebfcecee",
+    "qualitylayer/src/ui/demo/api.ts": "8c49d96ed44ea251aaf248ef30f4cdcccd0d30c1054bc8c1e98e4c9199d0a548",
+    "qualitylayer/src/ui/demo/artifact-collaboration.ts": "78cd095a91fa9252d9f33e89be97c9a78682b733be1991c75231388876586a33",
     "qualitylayer/src/ui/demo/artifact-source.ts": "b61906500292b8be21a0929e6fd8f35faa03ea30af88734b20766e8cc9e89560",
     "qualitylayer/src/ui/demo/artifact-thumbs.ts": "06f732e2563c4065b0fcda3bb49e6ba717a97206432a072450205e4996881860",
     "qualitylayer/src/ui/demo/artifacts.ts": "8e2d3293b3905931acaf741611fee1a36e1be8694290763e6caeeb1f51d1831f",
@@ -283,10 +283,10 @@
     "qualitylayer/src/ui/docs/RecordDocument.tsx": "c2c3b77eb65bcdf93d2b35086f75256fca68780c39918da767256ac7491f56be",
     "qualitylayer/src/ui/docs/RecordReader.tsx": "cc14ba95bc33ab8ef80fbea1db3b9c1f3382fc07f1cc8ace6b306ff89307dec3",
     "qualitylayer/src/ui/docs/TeamAskActions.tsx": "321c046eac4e759489ee82032c7879447125a553824a5db0709c5768a65eb931",
-    "qualitylayer/src/ui/docs/ThreadPanel.tsx": "9cd207ba599c8f4940615bb981f09d86e667d4ad8763f684ef4c7f79df975da3",
+    "qualitylayer/src/ui/docs/ThreadPanel.tsx": "b0b3108fb4f8428c0c618216f00f944aae4464caee6d8c0b21e08ef520c39644",
     "qualitylayer/src/ui/docs/attachment-preview.css": "491553819e1fe90169ee4ea308d9b4feab96b5c022f8f91a4c146bcb0b76da72",
     "qualitylayer/src/ui/docs/context.ts": "a108146abd8ea6b12c0502d00ef8989a1a78de31f9432ceb72d280dbf8d25016",
-    "qualitylayer/src/ui/docs/docs.css": "66fae5d331f1770bb7b55e978be640e06264136e73984fa19f8bdb22813de08d",
+    "qualitylayer/src/ui/docs/docs.css": "3a0c769384c0f8e3e7db3243c7b543fc20ba2f2c70a0c0ad3860716f327c0159",
     "qualitylayer/src/ui/docs/document-states.ts": "e2a8d705cffd03d966cd059e81cb3c3c1d29622cde2a5cfd1ce48757359aa40a",
     "qualitylayer/src/ui/docs/files/Records.tsx": "376378b219d7acbf887491bb69d0f2af5660acd40c34b4086a683ac1053d92f0",
     "qualitylayer/src/ui/docs/files/Reviews.tsx": "80a50ef3787273b7ae7905e7e7aedc7e1e71689d21e1b8c8b32da617c5fd4b1f",
@@ -326,13 +326,13 @@
     "qualitylayer/src/ui/kit/CheckLine.tsx": "435c2d8dee351db514b13c73df7da8a7006e47c76838d5b9a799b5388d72352f",
     "qualitylayer/src/ui/kit/CommandBox.tsx": "97e238865d83e27d5d98efe2d407e907777643a674d10d3333a316e405453739",
     "qualitylayer/src/ui/kit/CommentsPanel.tsx": "59d48d75842b332df7e354d71a7035c5c7df70d30476775829842d8b082084dd",
-    "qualitylayer/src/ui/kit/FeedbackComposer.tsx": "d378ce57914d09dafa5d0f5e5a20e76038d0279c80d2da2b1522145ff611b5c4",
+    "qualitylayer/src/ui/kit/FeedbackComposer.tsx": "d0407acb6e9115ea0f444d37aaf06d117491fe4617ad9958fac4c0150fb876a6",
     "qualitylayer/src/ui/kit/Fold.tsx": "0f47c0d6d23d2af30c71d3d0c1eb594cf7e1f162ca5169e5f96970f31134a375",
     "qualitylayer/src/ui/kit/InstallAction.tsx": "27944676f784dc6b368903e9e78fe86be27020bbf3b87b3d899f4729aa45e713",
     "qualitylayer/src/ui/kit/ItemRow.tsx": "11214129feb42073542f2dd19cd0f0cb24a2b2e429c096ea60bcd1334dac9da6",
     "qualitylayer/src/ui/kit/LimitsPanel.tsx": "978e66e17589f397c8f054d54090d17c29567d0255b3d00011a924cda94af086",
     "qualitylayer/src/ui/kit/LiveList.tsx": "1e2160a8a5f4fa2143b4cb04dabfc1c500a1bbd85ccae3ed45b0fb12fe5b7c32",
-    "qualitylayer/src/ui/kit/LoadingState.tsx": "a2c1cfbe36ab8dcdb9e02a6f49696fc213d5289153478fc5118445925373411a",
+    "qualitylayer/src/ui/kit/LoadingState.tsx": "ac8a907bee9c3a328494812967a1df8fe76288a6c1065ee54e30e66e0677fc20",
     "qualitylayer/src/ui/kit/NeedsYou.tsx": "0ad54afd62b41605a1be88f1b1d974842ee5f6a3e133299669bb50a03f1ccd9e",
     "qualitylayer/src/ui/kit/PointMenu.tsx": "65d5da2e2f0b77774713566ab3f637633186f91f7329242dac276551e778b770",
     "qualitylayer/src/ui/kit/ReviewerFindings.tsx": "f5cf501e4cd7d58ca0ba3e25adec97ee7e442a752461d6e2084374fa031dfaca",
@@ -346,10 +346,10 @@
     "qualitylayer/src/ui/kit/command-query.ts": "5c22b1061e838a910542fd0ed474e847b12f85c15370bff0c47ca53955b7f44f",
     "qualitylayer/src/ui/kit/command-types.ts": "c4522456e45579ef226c2dc9fcd675158f9c5b507638f4fa90a6f73444b7566e",
     "qualitylayer/src/ui/kit/credits-note.ts": "21f673c377c54c0ef0d1c1a469f3dad26b3763576323defddff1242c9519c73a",
-    "qualitylayer/src/ui/kit/feedback-composer.css": "c7876a97c4475f716f8240fbf398bee71679afc0ad98a409cbabe64494cf0c4b",
+    "qualitylayer/src/ui/kit/feedback-composer.css": "88ecd4cb6754af61743c73d061c9fff5448d01c3c404283a624e67cbe56e5248",
     "qualitylayer/src/ui/kit/kit.css": "119baefe8e0ddb8d69f5330dba9e4ca1ccf1b8be1d25b0ef5020313be71e6197",
     "qualitylayer/src/ui/kit/limits.css": "a4478e38649d280f4185fa298d35c73c8271fa927a9feb94f1cd2f173aeb0199",
-    "qualitylayer/src/ui/kit/loading-state.css": "0189d950d42e41447b26e3908f0815817f5f5e7a855998c6a33f5b1f2ee61df9",
+    "qualitylayer/src/ui/kit/loading-state.css": "76eb85268460ea9a5ed3835e6bc08d9eb6305be642a94d2cba2b07c03c69b908",
     "qualitylayer/src/ui/kit/marks/AgentMark.tsx": "995a1a06f7ce389aad06a60710d6dd88917b918d166c8e2d9004d6e01603a412",
     "qualitylayer/src/ui/kit/marks/Chips.tsx": "4d1abfe3a02b7db2d9b6ae02ffc16d1ef9b3f882898a2d5c761b8f62713605ed",
     "qualitylayer/src/ui/kit/marks/FileIcon.tsx": "813d1f595911e2aa425491f29559aafef39c42a66798101693c720d550f2f940",
@@ -429,13 +429,13 @@
     "qualitylayer/src/ui/run/AgentTabMenu.tsx": "9a80f43bad81fd9c902aa2a964cb128cd24e08073c23086eafd3c34ca726f064",
     "qualitylayer/src/ui/run/ArtifactAgentLaunch.tsx": "985128c9f5984765ef63cb93218efc08608cee072e7a8c2dde59bff20c3000c9",
     "qualitylayer/src/ui/run/HandoffRequest.tsx": "820d94393423cdc7252b6740011fefb6d508d7b1021f06e601fa5df494d4989c",
-    "qualitylayer/src/ui/run/LaunchAttachments.tsx": "f16d4e117c07344d065de8eabba88a5b774e255468c00f804314d03cf620c92e",
+    "qualitylayer/src/ui/run/LaunchAttachments.tsx": "0178f5c7f116c7c27f90df26cf25c4d8b08eeec426f790cee5371a3e9a5d8ea0",
     "qualitylayer/src/ui/run/LaunchBranch.tsx": "55276125112642b6e39ca76056e5c398d6cde061fc781cb73e8cfd8f8b9076c9",
     "qualitylayer/src/ui/run/LaunchChoice.tsx": "bc1fbb2255242c798aa056d8f5759ac13475c7ffd7e5a1aed2b36ce367df68c0",
     "qualitylayer/src/ui/run/LaunchPrompt.tsx": "1417e6864a37f5485474b571ab171740a636d927129c7ae6dab24b279cc2fcae",
     "qualitylayer/src/ui/run/LaunchSettings.tsx": "eb4321d5bb86534c5df3c4aa71afa4bff0d7c7a8b04f9c706c3efdafb7d52c3f",
     "qualitylayer/src/ui/run/OpenTerminal.tsx": "46135f20831e1ab004a6a09ad27946177947bf826e5b7c5aaa04a4c869b8483e",
-    "qualitylayer/src/ui/run/OutsideLead.tsx": "f42006d887096f8cf04b920eb1243c738a0bf31a636eb83e3ede3b03bce14bd3",
+    "qualitylayer/src/ui/run/OutsideLead.tsx": "365ae5d3fa3fa4a5067e9ddbdea76a42f2c74d346eae529cf0da0ea591d2dc3d",
     "qualitylayer/src/ui/run/StartupPromptCard.tsx": "8022fbae4ea479c67c1442bba59562aa4780f214353b2fbc1cadd5154750b2d5",
     "qualitylayer/src/ui/run/TaskAgentLaunch.tsx": "05a044a0996fa90b0ba2af889d349a16ce2c36c667aaea9b8b8a38c13c79c0e8",
     "qualitylayer/src/ui/run/agent-launch-fields.css": "f28c4bde917075f93ffd014e419641a4202393ea5d581d0fd4ba14066cd704c9",
@@ -448,9 +448,9 @@
     "qualitylayer/src/ui/run/launch-prompt.css": "1758d608181fcee0c7ff29a87b1a2f863ff90e59bd3bc57aa954f6c3d8a0bfdc",
     "qualitylayer/src/ui/run/launch-settings.css": "ea1a399ac1a2bb7451a5dd9bbe959c2ff5938ac2c4d4f2ea68567c1f482ac645",
     "qualitylayer/src/ui/run/open-terminal.css": "382fa05ffbb17985c1756288dc6eab687d23bd96571f38f58311da9ad723564f",
-    "qualitylayer/src/ui/run/outside-lead.css": "8f97ebc6991a28f3a7630e3e7ec1a9b3111827cb0062e5a47ba6a060d31761ed",
-    "qualitylayer/src/ui/run/startup-prompt.css": "ab069ecdd06faaceed1995590e1518190c8b3350a1c8463467fd0329b52eeb82",
-    "qualitylayer/src/ui/runs-api.ts": "b3e73fd0a8181f6df97ecb5e0b412be910643a5d41f8edcffc03ef7680c18f4d",
+    "qualitylayer/src/ui/run/outside-lead.css": "07f035f52a4e7c5717c6ebfbf5a98863f59e5d78d334748309f725303d88c122",
+    "qualitylayer/src/ui/run/startup-prompt.css": "b7ea4d6bc6e870eb012c2a12f9efdc3805c48874c65249d3d55d9646f794db83",
+    "qualitylayer/src/ui/runs-api.ts": "e3587d6bee145557cec28ec3ce14127001b5f278636bca6eed5e292776c4ab00",
     "qualitylayer/src/ui/settings/About.tsx": "9bd8bb18c1e45f46c011f54d536380af562cf147f18f4df90a18c859c47d395f",
     "qualitylayer/src/ui/settings/AgentHealth.tsx": "8164c6da09e7da5c9a68d2fc00965a542e892d53d1c3a15d53bad5fb4191da6a",
     "qualitylayer/src/ui/settings/AgentModels.tsx": "5d126fb2c4851e8432daec96a8ee37ef1d8fbe6be519c3c0ce120f72cd820845",
@@ -499,8 +499,8 @@
     "qualitylayer/src/ui/settings/useIntegration.ts": "15845c4f21f5ce7a7e012e4084a568b8742469959f00415d5a6cde1751d96223",
     "qualitylayer/src/ui/settings/useSettingsNav.tsx": "a14fb6e2a0cd4f3eab69ef24e1687df7bb149205dbb205cd821191fb32846d24",
     "qualitylayer/src/ui/share-sheet.css": "8b357aa4198c161f09143af596fc0d93bfbc46b841031da52d3c2fc92608ac0f",
-    "qualitylayer/src/ui/shell/AgentChip.tsx": "acb74d069d1672e37ed85ba341d26c92562919f7c9ff665e6783c7efd1d7bcc8",
-    "qualitylayer/src/ui/shell/AgentTurn.tsx": "f3d2b7351cd389c2b0af40a3fad475dec1713fc3a1dbfabeb4bd4477920ed524",
+    "qualitylayer/src/ui/shell/AgentChip.tsx": "69bf1b3dce4dd897a9c65f8af386598123e2c9a929799fde4ce7bc12ca3dce9d",
+    "qualitylayer/src/ui/shell/AgentTurn.tsx": "f4dd6c89c6379d739ce06ab375f931651201f15a45a351895b29004c0a85c2db",
     "qualitylayer/src/ui/shell/HomeFacts.tsx": "160e97e54b5959743b5f31e3fb740c11d93275fbba203fd24d4985fe7e5f0a9e",
     "qualitylayer/src/ui/shell/HomeQueue.tsx": "87b808d0fd789e58c342701a778cfca449b6f21e45ae1739630826347a3c7c72",
     "qualitylayer/src/ui/shell/Notifications.tsx": "01f187b9adf108e1437e8ed78ce34bdbdaa781d299abdc4f2274193bfa479370",
@@ -519,8 +519,8 @@
     "qualitylayer/src/ui/shell/notification-host.tsx": "94249e88ea0ae2937e437f7ce39d61b3d1db55f667f4fbdb7f7296fe2914e059",
     "qualitylayer/src/ui/shell/notification-rows.ts": "c40b80881943560bc0b7c28497c52f7841d026f988c028458a2dd7bb12c8cb43",
     "qualitylayer/src/ui/shell/notification-text.ts": "140b00e35eef78baa7da6642127c17b8bec8c160c645a91827838e5bdc8b51b9",
-    "qualitylayer/src/ui/shell/queue.css": "993aefa472231a0f8e956aeba15cf52dc59caa0502c14f1b080c091da46ee355",
-    "qualitylayer/src/ui/shell/shell.css": "a6dc922f8eda348fce338b9ebe22eb1cae349fc5fd0af5f370714a4cfa3495d0",
+    "qualitylayer/src/ui/shell/queue.css": "d941b85a97cd3bd31ef7f21b0fc21d7e17a0b519abcf665f5fe8972d8e285755",
+    "qualitylayer/src/ui/shell/shell.css": "b0bb82c3710dc3caee2d556b4db84571430cf3abcc3223f492d337b1cee283c6",
     "qualitylayer/src/ui/sidebar/AddProject.tsx": "73bcded91db90cf7c54061ccd2f80c46478c041f4fd80f6e6934a013c7609f57",
     "qualitylayer/src/ui/sidebar/FileActions.tsx": "9c937f5b01f25a2f31754d9404ee00f1d1b931c5bc5ea2389d3f8a28a0a51a36",
     "qualitylayer/src/ui/sidebar/HeaderButtons.tsx": "59253931869e5596dbff806e4db7a03e927074c64ad2e9fdc5a409aaa46da1d4",
@@ -589,7 +589,7 @@
     "qualitylayer/src/ui/step-page/look.ts": "dd98ac3a68b03f7e0f9ae8282f23e622089a0b98d5f42d98f7eb2a06bf2a4400",
     "qualitylayer/src/ui/step-page/sections.ts": "03409c2a74594d743c5194c3e3b0ca5e1c02174cf259122506443cbe28eb2035",
     "qualitylayer/src/ui/step-page/segments.ts": "9674fa95f4f4f86275a6078ef26b2b5c5c2dd515e1715742426ca81bfae7e0bc",
-    "qualitylayer/src/ui/step-page/state.ts": "2273570c7f2932233925320969765bf1dd8f48fe24c59859971062e3c3f50cfd",
+    "qualitylayer/src/ui/step-page/state.ts": "89e55299151a4baa3e5f0e89345e77db5e6ddcc99593368e4faa4ac89b5991f8",
     "qualitylayer/src/ui/step-page/step-page.css": "b1963da507302158094a14cad80ab7aca71d736e1e4d43e1588e392c0e899a2b",
     "qualitylayer/src/ui/step-page/task-cards.css": "f1b7af28d956302e42068e568636197db595dd80532a0ba7931c21ea99ab05f6",
     "qualitylayer/src/ui/steps/CheckFacts.tsx": "b42458ff953d7a8fdadffe58fce5740de787b70c68ac9c9265e2e11e6b59a859",
@@ -642,7 +642,7 @@
     "qualitylayer/src/ui/steps/review/Page.tsx": "a20009a562c607de7cd4244b076fbe6817965f73ec0b871619d88a69258eb6ab",
     "qualitylayer/src/ui/steps/review/PullRequestCard.tsx": "d7d1516849457e35e4f24b098bddbc90f229cd4abe6e0f57638d0ae8add2e7eb",
     "qualitylayer/src/ui/steps/review/WalkthroughPanel.tsx": "58803590816638d34a6ed596fafb3e2003733270d655b6bc670f9e0334c3fa6e",
-    "qualitylayer/src/ui/steps/review/decision-queue.css": "3e9f19b728e3718768dcfec534b954f23ba6e66f8cf7d760baad307ceb15b717",
+    "qualitylayer/src/ui/steps/review/decision-queue.css": "63c4031f63631d39e664793b2a26fd885db33e83765cc3bf8e947ef7fcc21ec5",
     "qualitylayer/src/ui/steps/review/fold.css": "134ec198e0a2b8f86bc9a1f27111b6a0722ddaffe6ee5534f81d2cd87625665a",
     "qualitylayer/src/ui/steps/review/lanes.tsx": "629a23a8e6bb5a91d8b303316d89719dfdbaa0378b00814da6b464c790b7fddb",
     "qualitylayer/src/ui/steps/review/look.ts": "01903fbb360847b743dbaa17f20446c17df293893ce9e7172c39027af6ca5477",
@@ -680,7 +680,7 @@
     "qualitylayer/src/ui/timeline/ReviewView.tsx": "5890d05c64968ca37a88fa7424ab1b5d03042a9239de584e75649a63c5ca3b5d",
     "qualitylayer/src/ui/timeline/TeamReview.tsx": "634c7bce00fadc773fb44ecbcef4f0165038d24cedc066d34add4813ce02ed69",
     "qualitylayer/src/ui/timeline/VerifyPage.tsx": "ade6ea096c68f4e6b750b477afa8ed377a608d9c711c171232f073922b178e4b",
-    "qualitylayer/src/ui/timeline/Walkthrough.tsx": "f7d84183c9de7434f2c4095631473ef71fc7486aa2cb2c58193e17ef4c132e6e",
+    "qualitylayer/src/ui/timeline/Walkthrough.tsx": "1ec0fdc2f70927ba3516fea7d721954c13183742b4adc9d1158b2ba494a549e7",
     "qualitylayer/src/ui/timeline/cards.tsx": "6c13c86055672d357e40134d0a1df655bda2ea193aa86e7d1052d774094d205e",
     "qualitylayer/src/ui/timeline/diff.ts": "d43a8f28a5e7eadfd2b0467a747f0d21c9dbc4f095daf0aa5f4fecdad38e1128",
     "qualitylayer/src/ui/timeline/parts.tsx": "c4b10ee3e6b1824847bce83cff4bbf53d83aaaae25f81fc0f1865f40bfacf7e7",
@@ -702,7 +702,7 @@
     "qualitylayer/src/ui/turn/ApproveCard.tsx": "2d0aabdf4607cdc202318ad7aa7f598125b2deec536e8e3c95238754e9853796",
     "qualitylayer/src/ui/turn/AskedOutside.tsx": "db51e6b194ca52b4f2d4af1ce7d0dc049acbc2dcf23b0d8c4f14bee394ddccae",
     "qualitylayer/src/ui/turn/BatchAnswers.tsx": "1a2a0c95c5dc6fa1f4c4d66d301149b9eb1f5a6155fa8f80506f2731460da59a",
-    "qualitylayer/src/ui/turn/BatchStrip.tsx": "ada7bfffd8a31b1889fb21b7821a98da55ebb43d3210aa23da29aa6345399b17",
+    "qualitylayer/src/ui/turn/BatchStrip.tsx": "8ac41d2170efd4da8e0aef95f2ebc43d3f05abb3ab35926c7282b53a02aa7a5e",
     "qualitylayer/src/ui/turn/ContinueCommand.tsx": "22500414ff53dbcd90a382d46fcf8a2df118a71d48b6325722254885246a1cdb",
     "qualitylayer/src/ui/turn/DecisionCard.tsx": "f7d9fd388f0e694422af9500133472c168e0d406956b7692c334e2ff3365cd62",
     "qualitylayer/src/ui/turn/DiscussWork.tsx": "efade7d340fba87a45cc2cc937aa8fb44b9121eed83419bf862c2ed9062e565f",
@@ -714,7 +714,7 @@
     "qualitylayer/src/ui/turn/PullRequestTurn.tsx": "8620e083f32793bc64225f1c166f6360e437d714d9fc5f9a288e373cb227efa2",
     "qualitylayer/src/ui/turn/QuestionBatch.tsx": "4f813708d2c6e6a507bf00e80ee33683d1e45cd1e577d8278f86db0c67585083",
     "qualitylayer/src/ui/turn/QuestionComposer.tsx": "c02541a820b3d148f527476d619627fbfe636392fb7be67c7a647e182d1e18b5",
-    "qualitylayer/src/ui/turn/YourTurn.tsx": "ccc1338ceed17633081d1e5561e6b267cb6b01cb2e86fec94c5b2528a8ebc227",
+    "qualitylayer/src/ui/turn/YourTurn.tsx": "453892c398473d1b2f78aca060a2f07f40862998c4ab0e929c31bc4aef0cf99e",
     "qualitylayer/src/ui/turn/acknowledge.ts": "9ce6538ead3005342964a17c808154631c51521a4e23c259608caa2293433740",
     "qualitylayer/src/ui/turn/actions.ts": "6266b2b06bad2e5561bd84eb2ef863e91a40194154f966a848852bd28e313dee",
     "qualitylayer/src/ui/turn/answer-body.ts": "f5c1250daaecd43d6c1b955379ad147ba1d74f540f8fbaaa340c6799c6fcc58f",
@@ -803,9 +803,9 @@
   "sourceDirtyFiles": [],
   "sourceMode": "committed",
   "captureSources": {
-    "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8": {
-      "sourceCommit": "0b39de6be5d61e177a92c2e0cd5c8e26345a4fd3",
-      "sourceTree": "54a6f8480d206a3dfa4ba80da6111c0b4f423f02",
+    "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07": {
+      "sourceCommit": "8f1ac967398f220752f9865ad9abd55f452d9ee8",
+      "sourceTree": "ad92b8b596546cdd60a9a60064c6cbb4654bb248",
       "sourceInputs": {
         "docs/site/app-demo/index.html": "e8c23d49cf064adafd7a84964e060b83bd5afb5e2261fa3e0c1295cdd4f8b199",
         "docs/site/package-lock.json": "3acb81dd53e014cec207b7c49abd7cf228645bfcb568aec26c1aebd6b1cb2825",
@@ -814,7 +814,7 @@
         "docs/site/scripts/website-screenshots.mjs": "446eb1a63abc7d91fce1af13f3bac7e64fe94bfcde1f2aa8378c75507f9836a1",
         "docs/site/vite.config.ts": "582c73cb5373171b52c81547bdf134f2c7327594e48720b986e1c11b2f466abd",
         "qualitylayer/bun.lock": "12c8078ccd99c45dc804678ad0f018d3111bd3fe1d6b1c0bf64b2bcdb3b7885b",
-        "qualitylayer/package.json": "62a616a9683083e68c3445c2d15785d6786f3d7df858e4e26ca5573c0855b7d9",
+        "qualitylayer/package.json": "f5705676f31eecb6e896db9740f283c9d8813abeee5a63dbf728052a12440a65",
         "qualitylayer/scripts/ui-dev.ts": "d28a6118a113aa95c65b5f65a33eb6e40ec872362e7ca41030aff6656c307153",
         "qualitylayer/src/core/config-values.ts": "bde9f237bafa8f4db0549de0824a0ee1d2f7422bc1f23d0699fbd78b77b68118",
         "qualitylayer/src/core/config.ts": "f1e2e41b58b3cea8688bc59ddcbc5e4bf5f89f0dd4bf99079fa39dfae227342b",
@@ -835,11 +835,11 @@
         "qualitylayer/src/ui/Handover.tsx": "6907cdd2c597532e9b40366145c115bcb9af6b951829cb95dab54e4f271e2877",
         "qualitylayer/src/ui/Home.tsx": "1cbab6db4e8fb1b8fdc6fe20d8257d0010216c67e69171a0df3274a8fdcc87a7",
         "qualitylayer/src/ui/HomeQuestion.tsx": "7a19fe75a3daba2cd3c21b567425a0581301372d6589cf2b18dfdf8f06f8426d",
-        "qualitylayer/src/ui/ImplementStart.tsx": "f76b3c9c8ca7b848f677311fcd3c67b49fd1e275c4ec196b439e28a23c6d1fad",
+        "qualitylayer/src/ui/ImplementStart.tsx": "a455cbc9ada4d357db5040b959e89e7101eb078da9c508eae8a6e4d7e482e070",
         "qualitylayer/src/ui/ItemMedia.tsx": "ce276d1273b8239e34a1fb686372ce2e488e4d09e59d58386ea974eb1699d8d2",
         "qualitylayer/src/ui/Logo.tsx": "8899a4cb4d0872dd7fdd6b04207497c56fa05cb8a23ffac4a267ce46b7c02889",
         "qualitylayer/src/ui/ModelPick.tsx": "8b126166ea8fdbe70b92c5f7303d64646a29012ca379b2dc96922c405ecde65b",
-        "qualitylayer/src/ui/NewTask.tsx": "889d4b71aba2bd1122b1b36870bf2d71e4b98146b74299e81537827cd6d54b96",
+        "qualitylayer/src/ui/NewTask.tsx": "98d52f36d83969a64054d994be9a1afa6394e14ceb2fb4eec0c075601e329767",
         "qualitylayer/src/ui/NewTaskParts.tsx": "e254a18ab3899b86ebb80945571dc3e5c3723cc4d41058360577022b67719910",
         "qualitylayer/src/ui/OutsideDecide.tsx": "d88a35fba261841a304d07d902cbeb206fbd1f02267b3fc8a0d4125d76d685f6",
         "qualitylayer/src/ui/PeopleWindow.tsx": "d59da5993a575b1005a1936d3b1bfc60e549dc0151d2e0d1c0ebf93a42e87c29",
@@ -864,7 +864,7 @@
         "qualitylayer/src/ui/StepTabs.tsx": "9a9b8f8622012e9d5e0542e46e6df047672941feb75bf7eb4bfca7a61f3a833f",
         "qualitylayer/src/ui/TaskLoading.tsx": "3b3d18dc87b87c1e0301b80af8c819d182d6b18e29ff4be0a740be7fad38b316",
         "qualitylayer/src/ui/TaskPointMenu.tsx": "969f7bdb5c9ca03e657d5d35059c2c322e3152e680555e6b78e10bc8699283d5",
-        "qualitylayer/src/ui/TaskView.tsx": "3e6b3d41c937b8a172922d0b561cbf416cf406f2040b97ae8fe0a8e2b03eb475",
+        "qualitylayer/src/ui/TaskView.tsx": "1eec44d93d5b95bddeeb1a627a401f910cd2b898dd9288843037e19cf2522f9d",
         "qualitylayer/src/ui/TeamSpace.tsx": "b8575e83700d9df9b9ff0fc398bc8375d55794abfca2d04b6f39556c7c4390c2",
         "qualitylayer/src/ui/TeamTaskView.tsx": "54a3fd2835c5ad5f42fb24f9c0eda87af379dbd98e353289df420518cc5f8c8d",
         "qualitylayer/src/ui/TeamUpgrade.tsx": "1d7ffe1efa89ed76bc245e8bae4627a4ad69ef7fab1be0fe449a5fdbc1fccead",
@@ -882,7 +882,7 @@
         "qualitylayer/src/ui/agent-window/conversation/Blocks.tsx": "f2442bf5d33c19ae66dc4c0317a74096be26c88c14df56053408203f07bf5643",
         "qualitylayer/src/ui/agent-window/conversation/ChildConversation.tsx": "3f5a21090a12fd721d1f591ee1e76f4393edd70159b2cad9bd37f8ac31ab2fc2",
         "qualitylayer/src/ui/agent-window/conversation/CommandMenu.tsx": "0dc2873e866b1e2fcdeae96136db8bd96cb54e925b337396ebb1c1bde7ad0e82",
-        "qualitylayer/src/ui/agent-window/conversation/Conversation.tsx": "4a343ffe4b34f7f32f9f75a116845b1fbc48649a16dfc7abc5953e26737c34c8",
+        "qualitylayer/src/ui/agent-window/conversation/Conversation.tsx": "1e0394f13a9b403140bace2901f9a6c2dc66e391054398b7e28b05983471f0de",
         "qualitylayer/src/ui/agent-window/conversation/Earlier.tsx": "cf4b503c7a06a0e781ffbcb3a6974a48562581e5070cd3b8745be609ca3784ba",
         "qualitylayer/src/ui/agent-window/conversation/Footer.tsx": "eb640cb1967dde854101bc5280cec767df41e137aec373aa7273001df18d25fa",
         "qualitylayer/src/ui/agent-window/conversation/JumpMarks.tsx": "36cb6b73a03dabce2a8913396ebf900836fe59e96a215421ffce0dc7d67c3f4e",
@@ -932,7 +932,7 @@
         "qualitylayer/src/ui/artifact/ArtifactCanvas.tsx": "3a9c5c4e1e5025dedcbe63d8c6360d5f643f33db42317066ec286dbc453cf809",
         "qualitylayer/src/ui/artifact/ArtifactCollaboration.tsx": "5bc6de5eb8534c41866cfe68538f244d5b3f15ceed80cf9550f1b5b03b4dd552",
         "qualitylayer/src/ui/artifact/ArtifactComments.tsx": "0f8ffad34cb0f84ed66cbd7e633ff0826174fed585fbe7b0717b2c0969efe89b",
-        "qualitylayer/src/ui/artifact/ArtifactFeedback.tsx": "fafedbcdd8f87b9a7140e0d1965e0fdd3149e13177b2369dfe0accc9cfa25b97",
+        "qualitylayer/src/ui/artifact/ArtifactFeedback.tsx": "a988ff2cdfc409b4b3332bcf8a6db16983eab0fc6aed0c4024657196650bc2f6",
         "qualitylayer/src/ui/artifact/ArtifactManage.tsx": "6b8cbe2b15844ca3defeae2e326002501f24804adcfa8f1953a1756f5e604974",
         "qualitylayer/src/ui/artifact/ArtifactMenus.tsx": "5dea7f50db7373571be33225ea718c1a8af338b5aa6d7148e56fb602a0be4ae2",
         "qualitylayer/src/ui/artifact/ArtifactPage.tsx": "e61a34a0957847945642422e01d31a4670296f8907c6723de234e750cabc7215",
@@ -965,7 +965,7 @@
         "qualitylayer/src/ui/artifact/notice.tsx": "9f611060d8d64965497053623398c3550c3eeee778fdf1492fcd7eb31661b158",
         "qualitylayer/src/ui/artifact/prepare-shared.ts": "b406b4b34d2bd5dc0071a51e5cc4468b5365c66470b93cf241d10167d77f9888",
         "qualitylayer/src/ui/artifact/preview-cache.ts": "60741a5ba115e592681c9713b9bd6ffa875bc2040ca0fb8ade88e2b3b8bf7aec",
-        "qualitylayer/src/ui/artifact/preview.css": "c8e722082b689c1f84b3ba95a46735227b8d865749e360215b78b73c4269a310",
+        "qualitylayer/src/ui/artifact/preview.css": "52a76b7473cbd89aef863701610a94c9e5bd50f590bf8f54fccd8ab4bbee4580",
         "qualitylayer/src/ui/artifact/seen.ts": "f20daa56e71129f3665edc2157a672af90027b91379d1aadae133e71dbd3536b",
         "qualitylayer/src/ui/artifact/share-dialog.css": "30d5c7ebc355e44c06ca2a50b2904a27e2605a7f6295dfb8a869c5083fe5f44e",
         "qualitylayer/src/ui/artifact/shared-artifacts.css": "5ee75f6f25549e23b00eac4288086213fc7f6f17f43352e9fd88ea28f468dae7",
@@ -976,7 +976,7 @@
         "qualitylayer/src/ui/artifact/team-view.css": "90e53731ea3e8c51c6a3c6c01dd9c65634fa2e99098c580047c030bfa3a140d5",
         "qualitylayer/src/ui/artifacts/ArtifactCard.tsx": "b3b1627c0d7f25301f91d6194ab9a4444c5a38fb7af92673a2350882c2040598",
         "qualitylayer/src/ui/artifacts/ArtifactRoute.tsx": "94ad0a7b9092d9280e7d55320305b49dfbe056f3d41b5456dc0eb104c41689fd",
-        "qualitylayer/src/ui/artifacts/ArtifactSide.tsx": "a4e37d5fb2d3b56899ae48f6cdaa152df2a864e0c0597064bf243138d35f5179",
+        "qualitylayer/src/ui/artifacts/ArtifactSide.tsx": "024331e2cc8f0a43afb89d6d8eddd161b2e0e207ed65d25f112106bb49b6c8da",
         "qualitylayer/src/ui/artifacts/ArtifactsPage.tsx": "315d34cbedc6a7751bbdec906387480871a5bf4f494af424a10e44cc95ffc9a8",
         "qualitylayer/src/ui/artifacts/FavoriteButton.tsx": "e8aa487c66e79699ad53f71a44028f4e9d8f356ffd35d71ec3f98eb3032831ac",
         "qualitylayer/src/ui/artifacts/LibraryActions.tsx": "fdf768d4ef16134424c87f41a38c481cd770c50326129ebcb42d048ebadb4e98",
@@ -1011,8 +1011,8 @@
         "qualitylayer/src/ui/demo/agent-setup.ts": "bd7f963ada16cefb44440f5f5c3de6717a5ddbb8ee9f99e8a3a901641584ed0f",
         "qualitylayer/src/ui/demo/agent-window-fixture.ts": "f10620a7f978e788318640a445a00a64cb6cc3b3b4a3127a457f3e8f6ab6e03c",
         "qualitylayer/src/ui/demo/agent-window.ts": "afaf4829640b80a1266d5bf83af13975c6f76602b1f6ad3cdc6e84d0b18f8697",
-        "qualitylayer/src/ui/demo/api.ts": "fe94d4b1f6570c6b0c5815e98d1866de8ee92811dfc7ed092bf57c0b3da105f3",
-        "qualitylayer/src/ui/demo/artifact-collaboration.ts": "0eea8f1468201bb8df75c3fbb46ab7ad477a27a4cad39e7338b82f46ebfcecee",
+        "qualitylayer/src/ui/demo/api.ts": "8c49d96ed44ea251aaf248ef30f4cdcccd0d30c1054bc8c1e98e4c9199d0a548",
+        "qualitylayer/src/ui/demo/artifact-collaboration.ts": "78cd095a91fa9252d9f33e89be97c9a78682b733be1991c75231388876586a33",
         "qualitylayer/src/ui/demo/artifact-source.ts": "b61906500292b8be21a0929e6fd8f35faa03ea30af88734b20766e8cc9e89560",
         "qualitylayer/src/ui/demo/artifact-thumbs.ts": "06f732e2563c4065b0fcda3bb49e6ba717a97206432a072450205e4996881860",
         "qualitylayer/src/ui/demo/artifacts.ts": "8e2d3293b3905931acaf741611fee1a36e1be8694290763e6caeeb1f51d1831f",
@@ -1088,10 +1088,10 @@
         "qualitylayer/src/ui/docs/RecordDocument.tsx": "c2c3b77eb65bcdf93d2b35086f75256fca68780c39918da767256ac7491f56be",
         "qualitylayer/src/ui/docs/RecordReader.tsx": "cc14ba95bc33ab8ef80fbea1db3b9c1f3382fc07f1cc8ace6b306ff89307dec3",
         "qualitylayer/src/ui/docs/TeamAskActions.tsx": "321c046eac4e759489ee82032c7879447125a553824a5db0709c5768a65eb931",
-        "qualitylayer/src/ui/docs/ThreadPanel.tsx": "9cd207ba599c8f4940615bb981f09d86e667d4ad8763f684ef4c7f79df975da3",
+        "qualitylayer/src/ui/docs/ThreadPanel.tsx": "b0b3108fb4f8428c0c618216f00f944aae4464caee6d8c0b21e08ef520c39644",
         "qualitylayer/src/ui/docs/attachment-preview.css": "491553819e1fe90169ee4ea308d9b4feab96b5c022f8f91a4c146bcb0b76da72",
         "qualitylayer/src/ui/docs/context.ts": "a108146abd8ea6b12c0502d00ef8989a1a78de31f9432ceb72d280dbf8d25016",
-        "qualitylayer/src/ui/docs/docs.css": "66fae5d331f1770bb7b55e978be640e06264136e73984fa19f8bdb22813de08d",
+        "qualitylayer/src/ui/docs/docs.css": "3a0c769384c0f8e3e7db3243c7b543fc20ba2f2c70a0c0ad3860716f327c0159",
         "qualitylayer/src/ui/docs/document-states.ts": "e2a8d705cffd03d966cd059e81cb3c3c1d29622cde2a5cfd1ce48757359aa40a",
         "qualitylayer/src/ui/docs/files/Records.tsx": "376378b219d7acbf887491bb69d0f2af5660acd40c34b4086a683ac1053d92f0",
         "qualitylayer/src/ui/docs/files/Reviews.tsx": "80a50ef3787273b7ae7905e7e7aedc7e1e71689d21e1b8c8b32da617c5fd4b1f",
@@ -1131,13 +1131,13 @@
         "qualitylayer/src/ui/kit/CheckLine.tsx": "435c2d8dee351db514b13c73df7da8a7006e47c76838d5b9a799b5388d72352f",
         "qualitylayer/src/ui/kit/CommandBox.tsx": "97e238865d83e27d5d98efe2d407e907777643a674d10d3333a316e405453739",
         "qualitylayer/src/ui/kit/CommentsPanel.tsx": "59d48d75842b332df7e354d71a7035c5c7df70d30476775829842d8b082084dd",
-        "qualitylayer/src/ui/kit/FeedbackComposer.tsx": "d378ce57914d09dafa5d0f5e5a20e76038d0279c80d2da2b1522145ff611b5c4",
+        "qualitylayer/src/ui/kit/FeedbackComposer.tsx": "d0407acb6e9115ea0f444d37aaf06d117491fe4617ad9958fac4c0150fb876a6",
         "qualitylayer/src/ui/kit/Fold.tsx": "0f47c0d6d23d2af30c71d3d0c1eb594cf7e1f162ca5169e5f96970f31134a375",
         "qualitylayer/src/ui/kit/InstallAction.tsx": "27944676f784dc6b368903e9e78fe86be27020bbf3b87b3d899f4729aa45e713",
         "qualitylayer/src/ui/kit/ItemRow.tsx": "11214129feb42073542f2dd19cd0f0cb24a2b2e429c096ea60bcd1334dac9da6",
         "qualitylayer/src/ui/kit/LimitsPanel.tsx": "978e66e17589f397c8f054d54090d17c29567d0255b3d00011a924cda94af086",
         "qualitylayer/src/ui/kit/LiveList.tsx": "1e2160a8a5f4fa2143b4cb04dabfc1c500a1bbd85ccae3ed45b0fb12fe5b7c32",
-        "qualitylayer/src/ui/kit/LoadingState.tsx": "a2c1cfbe36ab8dcdb9e02a6f49696fc213d5289153478fc5118445925373411a",
+        "qualitylayer/src/ui/kit/LoadingState.tsx": "ac8a907bee9c3a328494812967a1df8fe76288a6c1065ee54e30e66e0677fc20",
         "qualitylayer/src/ui/kit/NeedsYou.tsx": "0ad54afd62b41605a1be88f1b1d974842ee5f6a3e133299669bb50a03f1ccd9e",
         "qualitylayer/src/ui/kit/PointMenu.tsx": "65d5da2e2f0b77774713566ab3f637633186f91f7329242dac276551e778b770",
         "qualitylayer/src/ui/kit/ReviewerFindings.tsx": "f5cf501e4cd7d58ca0ba3e25adec97ee7e442a752461d6e2084374fa031dfaca",
@@ -1151,10 +1151,10 @@
         "qualitylayer/src/ui/kit/command-query.ts": "5c22b1061e838a910542fd0ed474e847b12f85c15370bff0c47ca53955b7f44f",
         "qualitylayer/src/ui/kit/command-types.ts": "c4522456e45579ef226c2dc9fcd675158f9c5b507638f4fa90a6f73444b7566e",
         "qualitylayer/src/ui/kit/credits-note.ts": "21f673c377c54c0ef0d1c1a469f3dad26b3763576323defddff1242c9519c73a",
-        "qualitylayer/src/ui/kit/feedback-composer.css": "c7876a97c4475f716f8240fbf398bee71679afc0ad98a409cbabe64494cf0c4b",
+        "qualitylayer/src/ui/kit/feedback-composer.css": "88ecd4cb6754af61743c73d061c9fff5448d01c3c404283a624e67cbe56e5248",
         "qualitylayer/src/ui/kit/kit.css": "119baefe8e0ddb8d69f5330dba9e4ca1ccf1b8be1d25b0ef5020313be71e6197",
         "qualitylayer/src/ui/kit/limits.css": "a4478e38649d280f4185fa298d35c73c8271fa927a9feb94f1cd2f173aeb0199",
-        "qualitylayer/src/ui/kit/loading-state.css": "0189d950d42e41447b26e3908f0815817f5f5e7a855998c6a33f5b1f2ee61df9",
+        "qualitylayer/src/ui/kit/loading-state.css": "76eb85268460ea9a5ed3835e6bc08d9eb6305be642a94d2cba2b07c03c69b908",
         "qualitylayer/src/ui/kit/marks/AgentMark.tsx": "995a1a06f7ce389aad06a60710d6dd88917b918d166c8e2d9004d6e01603a412",
         "qualitylayer/src/ui/kit/marks/Chips.tsx": "4d1abfe3a02b7db2d9b6ae02ffc16d1ef9b3f882898a2d5c761b8f62713605ed",
         "qualitylayer/src/ui/kit/marks/FileIcon.tsx": "813d1f595911e2aa425491f29559aafef39c42a66798101693c720d550f2f940",
@@ -1234,13 +1234,13 @@
         "qualitylayer/src/ui/run/AgentTabMenu.tsx": "9a80f43bad81fd9c902aa2a964cb128cd24e08073c23086eafd3c34ca726f064",
         "qualitylayer/src/ui/run/ArtifactAgentLaunch.tsx": "985128c9f5984765ef63cb93218efc08608cee072e7a8c2dde59bff20c3000c9",
         "qualitylayer/src/ui/run/HandoffRequest.tsx": "820d94393423cdc7252b6740011fefb6d508d7b1021f06e601fa5df494d4989c",
-        "qualitylayer/src/ui/run/LaunchAttachments.tsx": "f16d4e117c07344d065de8eabba88a5b774e255468c00f804314d03cf620c92e",
+        "qualitylayer/src/ui/run/LaunchAttachments.tsx": "0178f5c7f116c7c27f90df26cf25c4d8b08eeec426f790cee5371a3e9a5d8ea0",
         "qualitylayer/src/ui/run/LaunchBranch.tsx": "55276125112642b6e39ca76056e5c398d6cde061fc781cb73e8cfd8f8b9076c9",
         "qualitylayer/src/ui/run/LaunchChoice.tsx": "bc1fbb2255242c798aa056d8f5759ac13475c7ffd7e5a1aed2b36ce367df68c0",
         "qualitylayer/src/ui/run/LaunchPrompt.tsx": "1417e6864a37f5485474b571ab171740a636d927129c7ae6dab24b279cc2fcae",
         "qualitylayer/src/ui/run/LaunchSettings.tsx": "eb4321d5bb86534c5df3c4aa71afa4bff0d7c7a8b04f9c706c3efdafb7d52c3f",
         "qualitylayer/src/ui/run/OpenTerminal.tsx": "46135f20831e1ab004a6a09ad27946177947bf826e5b7c5aaa04a4c869b8483e",
-        "qualitylayer/src/ui/run/OutsideLead.tsx": "f42006d887096f8cf04b920eb1243c738a0bf31a636eb83e3ede3b03bce14bd3",
+        "qualitylayer/src/ui/run/OutsideLead.tsx": "365ae5d3fa3fa4a5067e9ddbdea76a42f2c74d346eae529cf0da0ea591d2dc3d",
         "qualitylayer/src/ui/run/StartupPromptCard.tsx": "8022fbae4ea479c67c1442bba59562aa4780f214353b2fbc1cadd5154750b2d5",
         "qualitylayer/src/ui/run/TaskAgentLaunch.tsx": "05a044a0996fa90b0ba2af889d349a16ce2c36c667aaea9b8b8a38c13c79c0e8",
         "qualitylayer/src/ui/run/agent-launch-fields.css": "f28c4bde917075f93ffd014e419641a4202393ea5d581d0fd4ba14066cd704c9",
@@ -1253,9 +1253,9 @@
         "qualitylayer/src/ui/run/launch-prompt.css": "1758d608181fcee0c7ff29a87b1a2f863ff90e59bd3bc57aa954f6c3d8a0bfdc",
         "qualitylayer/src/ui/run/launch-settings.css": "ea1a399ac1a2bb7451a5dd9bbe959c2ff5938ac2c4d4f2ea68567c1f482ac645",
         "qualitylayer/src/ui/run/open-terminal.css": "382fa05ffbb17985c1756288dc6eab687d23bd96571f38f58311da9ad723564f",
-        "qualitylayer/src/ui/run/outside-lead.css": "8f97ebc6991a28f3a7630e3e7ec1a9b3111827cb0062e5a47ba6a060d31761ed",
-        "qualitylayer/src/ui/run/startup-prompt.css": "ab069ecdd06faaceed1995590e1518190c8b3350a1c8463467fd0329b52eeb82",
-        "qualitylayer/src/ui/runs-api.ts": "b3e73fd0a8181f6df97ecb5e0b412be910643a5d41f8edcffc03ef7680c18f4d",
+        "qualitylayer/src/ui/run/outside-lead.css": "07f035f52a4e7c5717c6ebfbf5a98863f59e5d78d334748309f725303d88c122",
+        "qualitylayer/src/ui/run/startup-prompt.css": "b7ea4d6bc6e870eb012c2a12f9efdc3805c48874c65249d3d55d9646f794db83",
+        "qualitylayer/src/ui/runs-api.ts": "e3587d6bee145557cec28ec3ce14127001b5f278636bca6eed5e292776c4ab00",
         "qualitylayer/src/ui/settings/About.tsx": "9bd8bb18c1e45f46c011f54d536380af562cf147f18f4df90a18c859c47d395f",
         "qualitylayer/src/ui/settings/AgentHealth.tsx": "8164c6da09e7da5c9a68d2fc00965a542e892d53d1c3a15d53bad5fb4191da6a",
         "qualitylayer/src/ui/settings/AgentModels.tsx": "5d126fb2c4851e8432daec96a8ee37ef1d8fbe6be519c3c0ce120f72cd820845",
@@ -1304,8 +1304,8 @@
         "qualitylayer/src/ui/settings/useIntegration.ts": "15845c4f21f5ce7a7e012e4084a568b8742469959f00415d5a6cde1751d96223",
         "qualitylayer/src/ui/settings/useSettingsNav.tsx": "a14fb6e2a0cd4f3eab69ef24e1687df7bb149205dbb205cd821191fb32846d24",
         "qualitylayer/src/ui/share-sheet.css": "8b357aa4198c161f09143af596fc0d93bfbc46b841031da52d3c2fc92608ac0f",
-        "qualitylayer/src/ui/shell/AgentChip.tsx": "acb74d069d1672e37ed85ba341d26c92562919f7c9ff665e6783c7efd1d7bcc8",
-        "qualitylayer/src/ui/shell/AgentTurn.tsx": "f3d2b7351cd389c2b0af40a3fad475dec1713fc3a1dbfabeb4bd4477920ed524",
+        "qualitylayer/src/ui/shell/AgentChip.tsx": "69bf1b3dce4dd897a9c65f8af386598123e2c9a929799fde4ce7bc12ca3dce9d",
+        "qualitylayer/src/ui/shell/AgentTurn.tsx": "f4dd6c89c6379d739ce06ab375f931651201f15a45a351895b29004c0a85c2db",
         "qualitylayer/src/ui/shell/HomeFacts.tsx": "160e97e54b5959743b5f31e3fb740c11d93275fbba203fd24d4985fe7e5f0a9e",
         "qualitylayer/src/ui/shell/HomeQueue.tsx": "87b808d0fd789e58c342701a778cfca449b6f21e45ae1739630826347a3c7c72",
         "qualitylayer/src/ui/shell/Notifications.tsx": "01f187b9adf108e1437e8ed78ce34bdbdaa781d299abdc4f2274193bfa479370",
@@ -1324,8 +1324,8 @@
         "qualitylayer/src/ui/shell/notification-host.tsx": "94249e88ea0ae2937e437f7ce39d61b3d1db55f667f4fbdb7f7296fe2914e059",
         "qualitylayer/src/ui/shell/notification-rows.ts": "c40b80881943560bc0b7c28497c52f7841d026f988c028458a2dd7bb12c8cb43",
         "qualitylayer/src/ui/shell/notification-text.ts": "140b00e35eef78baa7da6642127c17b8bec8c160c645a91827838e5bdc8b51b9",
-        "qualitylayer/src/ui/shell/queue.css": "993aefa472231a0f8e956aeba15cf52dc59caa0502c14f1b080c091da46ee355",
-        "qualitylayer/src/ui/shell/shell.css": "a6dc922f8eda348fce338b9ebe22eb1cae349fc5fd0af5f370714a4cfa3495d0",
+        "qualitylayer/src/ui/shell/queue.css": "d941b85a97cd3bd31ef7f21b0fc21d7e17a0b519abcf665f5fe8972d8e285755",
+        "qualitylayer/src/ui/shell/shell.css": "b0bb82c3710dc3caee2d556b4db84571430cf3abcc3223f492d337b1cee283c6",
         "qualitylayer/src/ui/sidebar/AddProject.tsx": "73bcded91db90cf7c54061ccd2f80c46478c041f4fd80f6e6934a013c7609f57",
         "qualitylayer/src/ui/sidebar/FileActions.tsx": "9c937f5b01f25a2f31754d9404ee00f1d1b931c5bc5ea2389d3f8a28a0a51a36",
         "qualitylayer/src/ui/sidebar/HeaderButtons.tsx": "59253931869e5596dbff806e4db7a03e927074c64ad2e9fdc5a409aaa46da1d4",
@@ -1394,7 +1394,7 @@
         "qualitylayer/src/ui/step-page/look.ts": "dd98ac3a68b03f7e0f9ae8282f23e622089a0b98d5f42d98f7eb2a06bf2a4400",
         "qualitylayer/src/ui/step-page/sections.ts": "03409c2a74594d743c5194c3e3b0ca5e1c02174cf259122506443cbe28eb2035",
         "qualitylayer/src/ui/step-page/segments.ts": "9674fa95f4f4f86275a6078ef26b2b5c5c2dd515e1715742426ca81bfae7e0bc",
-        "qualitylayer/src/ui/step-page/state.ts": "2273570c7f2932233925320969765bf1dd8f48fe24c59859971062e3c3f50cfd",
+        "qualitylayer/src/ui/step-page/state.ts": "89e55299151a4baa3e5f0e89345e77db5e6ddcc99593368e4faa4ac89b5991f8",
         "qualitylayer/src/ui/step-page/step-page.css": "b1963da507302158094a14cad80ab7aca71d736e1e4d43e1588e392c0e899a2b",
         "qualitylayer/src/ui/step-page/task-cards.css": "f1b7af28d956302e42068e568636197db595dd80532a0ba7931c21ea99ab05f6",
         "qualitylayer/src/ui/steps/CheckFacts.tsx": "b42458ff953d7a8fdadffe58fce5740de787b70c68ac9c9265e2e11e6b59a859",
@@ -1447,7 +1447,7 @@
         "qualitylayer/src/ui/steps/review/Page.tsx": "a20009a562c607de7cd4244b076fbe6817965f73ec0b871619d88a69258eb6ab",
         "qualitylayer/src/ui/steps/review/PullRequestCard.tsx": "d7d1516849457e35e4f24b098bddbc90f229cd4abe6e0f57638d0ae8add2e7eb",
         "qualitylayer/src/ui/steps/review/WalkthroughPanel.tsx": "58803590816638d34a6ed596fafb3e2003733270d655b6bc670f9e0334c3fa6e",
-        "qualitylayer/src/ui/steps/review/decision-queue.css": "3e9f19b728e3718768dcfec534b954f23ba6e66f8cf7d760baad307ceb15b717",
+        "qualitylayer/src/ui/steps/review/decision-queue.css": "63c4031f63631d39e664793b2a26fd885db33e83765cc3bf8e947ef7fcc21ec5",
         "qualitylayer/src/ui/steps/review/fold.css": "134ec198e0a2b8f86bc9a1f27111b6a0722ddaffe6ee5534f81d2cd87625665a",
         "qualitylayer/src/ui/steps/review/lanes.tsx": "629a23a8e6bb5a91d8b303316d89719dfdbaa0378b00814da6b464c790b7fddb",
         "qualitylayer/src/ui/steps/review/look.ts": "01903fbb360847b743dbaa17f20446c17df293893ce9e7172c39027af6ca5477",
@@ -1485,7 +1485,7 @@
         "qualitylayer/src/ui/timeline/ReviewView.tsx": "5890d05c64968ca37a88fa7424ab1b5d03042a9239de584e75649a63c5ca3b5d",
         "qualitylayer/src/ui/timeline/TeamReview.tsx": "634c7bce00fadc773fb44ecbcef4f0165038d24cedc066d34add4813ce02ed69",
         "qualitylayer/src/ui/timeline/VerifyPage.tsx": "ade6ea096c68f4e6b750b477afa8ed377a608d9c711c171232f073922b178e4b",
-        "qualitylayer/src/ui/timeline/Walkthrough.tsx": "f7d84183c9de7434f2c4095631473ef71fc7486aa2cb2c58193e17ef4c132e6e",
+        "qualitylayer/src/ui/timeline/Walkthrough.tsx": "1ec0fdc2f70927ba3516fea7d721954c13183742b4adc9d1158b2ba494a549e7",
         "qualitylayer/src/ui/timeline/cards.tsx": "6c13c86055672d357e40134d0a1df655bda2ea193aa86e7d1052d774094d205e",
         "qualitylayer/src/ui/timeline/diff.ts": "d43a8f28a5e7eadfd2b0467a747f0d21c9dbc4f095daf0aa5f4fecdad38e1128",
         "qualitylayer/src/ui/timeline/parts.tsx": "c4b10ee3e6b1824847bce83cff4bbf53d83aaaae25f81fc0f1865f40bfacf7e7",
@@ -1507,7 +1507,7 @@
         "qualitylayer/src/ui/turn/ApproveCard.tsx": "2d0aabdf4607cdc202318ad7aa7f598125b2deec536e8e3c95238754e9853796",
         "qualitylayer/src/ui/turn/AskedOutside.tsx": "db51e6b194ca52b4f2d4af1ce7d0dc049acbc2dcf23b0d8c4f14bee394ddccae",
         "qualitylayer/src/ui/turn/BatchAnswers.tsx": "1a2a0c95c5dc6fa1f4c4d66d301149b9eb1f5a6155fa8f80506f2731460da59a",
-        "qualitylayer/src/ui/turn/BatchStrip.tsx": "ada7bfffd8a31b1889fb21b7821a98da55ebb43d3210aa23da29aa6345399b17",
+        "qualitylayer/src/ui/turn/BatchStrip.tsx": "8ac41d2170efd4da8e0aef95f2ebc43d3f05abb3ab35926c7282b53a02aa7a5e",
         "qualitylayer/src/ui/turn/ContinueCommand.tsx": "22500414ff53dbcd90a382d46fcf8a2df118a71d48b6325722254885246a1cdb",
         "qualitylayer/src/ui/turn/DecisionCard.tsx": "f7d9fd388f0e694422af9500133472c168e0d406956b7692c334e2ff3365cd62",
         "qualitylayer/src/ui/turn/DiscussWork.tsx": "efade7d340fba87a45cc2cc937aa8fb44b9121eed83419bf862c2ed9062e565f",
@@ -1519,7 +1519,7 @@
         "qualitylayer/src/ui/turn/PullRequestTurn.tsx": "8620e083f32793bc64225f1c166f6360e437d714d9fc5f9a288e373cb227efa2",
         "qualitylayer/src/ui/turn/QuestionBatch.tsx": "4f813708d2c6e6a507bf00e80ee33683d1e45cd1e577d8278f86db0c67585083",
         "qualitylayer/src/ui/turn/QuestionComposer.tsx": "c02541a820b3d148f527476d619627fbfe636392fb7be67c7a647e182d1e18b5",
-        "qualitylayer/src/ui/turn/YourTurn.tsx": "ccc1338ceed17633081d1e5561e6b267cb6b01cb2e86fec94c5b2528a8ebc227",
+        "qualitylayer/src/ui/turn/YourTurn.tsx": "453892c398473d1b2f78aca060a2f07f40862998c4ab0e929c31bc4aef0cf99e",
         "qualitylayer/src/ui/turn/acknowledge.ts": "9ce6538ead3005342964a17c808154631c51521a4e23c259608caa2293433740",
         "qualitylayer/src/ui/turn/actions.ts": "6266b2b06bad2e5561bd84eb2ef863e91a40194154f966a848852bd28e313dee",
         "qualitylayer/src/ui/turn/answer-body.ts": "f5c1250daaecd43d6c1b955379ad147ba1d74f540f8fbaaa340c6799c6fcc58f",
@@ -1636,7 +1636,7 @@
     "qualitylayer/src/ui/settings/Rows.tsx": "d014cee655c93ea59e0d8a784cc461213484b7ab71db50ef794fa6139f981ebc",
     "qualitylayer/src/ui/globals.css": "8be0ea01e1d164c87d7269b07536f8bf024af957f4eacc28fcb449a8108a1ea4"
   },
-  "capturedAt": "2026-10-22T15:04:52.420Z",
+  "capturedAt": "2026-10-22T16:03:28.068Z",
   "scenes": [
     "discuss",
     "research",
@@ -1662,13 +1662,13 @@
       "file": "discuss-dark.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "e6ee678531ef349be003d26f3658b1a17d4496aaf9143ebd9fe57ab573f22406",
+      "sha256": "6210cbfeb52268e025531e8b8207bc208842e990440c21728454cafc58025480",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "discuss-phone-dark.webp",
@@ -1679,19 +1679,19 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "research-dark.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "c3e77ba11c8fe8b56c1c1031ad63d080d4aece03554362b8a7ae94c96feaad5a",
+      "sha256": "d0967ecc9230d7f0e17def2001b6172f6173cd282d0064b8d42eac82901f73e6",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "research-phone-dark.webp",
@@ -1702,19 +1702,19 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "plan-dark.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "5ae1efe092f54e7928af937529ec70cbecb58037c4af5fa64af44f6ac1204ae7",
+      "sha256": "e733e2808a9cda51ef739461146e62e52a7a9a9d72913f0fcc10f2de65c23e13",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "plan-phone-dark.webp",
@@ -1725,25 +1725,25 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "terminal-dark.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "5ae1efe092f54e7928af937529ec70cbecb58037c4af5fa64af44f6ac1204ae7",
+      "sha256": "e733e2808a9cda51ef739461146e62e52a7a9a9d72913f0fcc10f2de65c23e13",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "terminal-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "7658fbfc2b85cdcb89273e14bb96faca91171a49f63679ec393f7ac673aeff08",
+      "sha256": "908df498658891a0951a6dfb6cf30e62358f8d74018256e0b3cba37eb1ef18f5",
       "sourceViewport": {
         "width": 1120,
         "height": 900
@@ -1755,19 +1755,19 @@
         "width": 320,
         "height": 793
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "outline-dark.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "fede424cd668a65aa726f7d053fb2effa55e104d65b6ca1059480073c43ccfee",
+      "sha256": "43c57bbef1990a254f880de764595a2732942227d153fc5bb153ff5cb9d24ab9",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "outline-phone-dark.webp",
@@ -1778,7 +1778,7 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "implement-start-dark.webp",
@@ -1790,7 +1790,7 @@
         "height": 900
       },
       "capture": "workflow-with-files",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "implement-start-phone-dark.webp",
@@ -1801,19 +1801,19 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "implement-dark.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "a480726be840c65536596acace7ed530c01a9101af7f375a04629c12dbee523e",
+      "sha256": "c1827bc34634c46d2971236ca981d6c1e46c4cd53399a4117335451e619f66f3",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "implement-phone-dark.webp",
@@ -1824,19 +1824,19 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "verify-dark.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "cb953d5671fc2772bf7b193f9810761f0e0b2aa7007a14b65a31fc6d12d6d96e",
+      "sha256": "936fedfb98efe040c2addf9692d0652587629a037b9b99ba562665e8741460ad",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "verify-phone-dark.webp",
@@ -1847,31 +1847,31 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "review-dark.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "74524e27164be705f31c2486a015841ef95d44e6dc319e754063f11828698e4f",
+      "sha256": "362c65ddf36ae7e10ba272b0ce1a24e1a9d5d066498beccc405b58cbda0cd19a",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-visual-review",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "review-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "d997da82a2a72d31a24536536841c3a4166d0836e650e59d10ec663994f5a3c6",
+      "sha256": "9037a4ca0b9ced6cf88d9d7aadbcfffcb120d7726bf9c62f3efae7601c2ac164",
       "sourceViewport": {
         "width": 390,
         "height": 700
       },
       "capture": "workflow-with-visual-review",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "review-code-dark.webp",
@@ -1883,19 +1883,19 @@
         "height": 900
       },
       "capture": "workflow-with-code-review",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "pull-request-dark.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "3408e78f78ab30463c3d5e096ed73988ba6e13e770ae428098f3d502cb0a35cb",
+      "sha256": "b09618ed804866d9e402e7b2f70e12c390e689b0dc96fcc91aa1b83cbcf8c714",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "pull-request-phone-dark.webp",
@@ -1906,31 +1906,31 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "artifact-dark.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "89e1cab37ab1363eaf38443fc1f87d5c782afdb8d67912f906c6f7e3c6bf4714",
+      "sha256": "2d4121517ee7589fb91992dc446307de555aaef4005e8b864bc3c8ead3021723",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "artifact-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "a9e9dd3b6e976914c580631b1ce2c4c18e89411a8dbe83d301ac7a7b13a78c4e",
+      "sha256": "3aedef1b657bcd160b62b2bf188257b5a3eafd7e0a2f947b84c37c6381f93441",
       "sourceViewport": {
         "width": 390,
         "height": 700
       },
       "capture": "narrow-feedback-sheet",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "team-dark.webp",
@@ -1941,7 +1941,7 @@
         "width": 1120,
         "height": 900
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "team-phone-dark.webp",
@@ -1952,7 +1952,7 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "home-dark.webp",
@@ -1963,7 +1963,7 @@
         "width": 1120,
         "height": 900
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "home-phone-dark.webp",
@@ -1974,7 +1974,7 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "setup-dark.webp",
@@ -1985,7 +1985,7 @@
         "width": 1120,
         "height": 900
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "setup-phone-dark.webp",
@@ -1996,18 +1996,18 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "memory-dark.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "dbdcc11272d1cdfdf37c7a03a0e937236606618ab9e7b7de87f7d1643b4b27f0",
+      "sha256": "72ba9eca67a05435c1d6ee579e7941adf42c2b4c8cf060e982a0e28f75ca06a3",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "memory-phone-dark.webp",
@@ -2018,7 +2018,7 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "artifacts-dark.webp",
@@ -2029,7 +2029,7 @@
         "width": 1120,
         "height": 900
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "artifacts-phone-dark.webp",
@@ -2040,41 +2040,41 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "artifacts-open-dark.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "e7cf87a05e753d1c9770636731cb9826b8f71e4202f297522d47c53759f9e6ce",
+      "sha256": "f7bc12eefd1e57041477650403032030f7906dc00854e26ffeeb5e8e13c7f921",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "artifacts-open-phone-dark.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "8aba171ca475ec9df49bd83a1d82e5aab2b121f140a0f1e25ca9a15fb6530f7a",
+      "sha256": "b365dc6cebfb2b009a08ea11299609651132531dd226d325eb353aef11627ac4",
       "sourceViewport": {
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "discuss-light.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "3eff0a5d5e457f851d50adc24d43838f8493bd2202d799506e7dbd90f8f5fe90",
+      "sha256": "08730cca14e4e9259775a13c840880b0d1262d68e40576980f231cff0218b4a0",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "discuss-phone-light.webp",
@@ -2085,19 +2085,19 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "research-light.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "1579777ee9520c942232ccd647515e4448f5780eb294f6d8390bbfcb86afe699",
+      "sha256": "9f649036bc6927dfd2070812b979b60b2258b38995362cc336f0299c95efcf26",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "research-phone-light.webp",
@@ -2108,19 +2108,19 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "plan-light.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "32f9b2fe6bf9cd05a9bea73e2e22a367ac92836e7d5ef76ff0fcc2dac029a515",
+      "sha256": "b965106d5f14722ee8fd9d58bfe540a7f0196b0809df87fab30071e7c93001e1",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "plan-phone-light.webp",
@@ -2131,25 +2131,25 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "terminal-light.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "32f9b2fe6bf9cd05a9bea73e2e22a367ac92836e7d5ef76ff0fcc2dac029a515",
+      "sha256": "b965106d5f14722ee8fd9d58bfe540a7f0196b0809df87fab30071e7c93001e1",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "terminal-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "74e5e88b34a642ca9af89813716d5bcb5de655ceec8e5bb742aaf67e2c3e0a79",
+      "sha256": "d1503cb1ba1d094335fae07666a642576e9516efe5218cf8fc81ea13e089f100",
       "sourceViewport": {
         "width": 1120,
         "height": 900
@@ -2161,19 +2161,19 @@
         "width": 320,
         "height": 793
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "outline-light.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "ff22721dfc2c500ee74cfaa4298603ac8e456ec15e6bae9cc6946fc628fc01f8",
+      "sha256": "c1764f55d94d6a576e356f1cee82f505210917ad401b9b6f8e80e6999be51bf5",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "outline-phone-light.webp",
@@ -2184,7 +2184,7 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "implement-start-light.webp",
@@ -2196,7 +2196,7 @@
         "height": 900
       },
       "capture": "workflow-with-files",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "implement-start-phone-light.webp",
@@ -2207,19 +2207,19 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "implement-light.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "b2fb75ad64749f22fd464fd0311e99e6d70e11871759cc644ae60331f01982e7",
+      "sha256": "3112d6837fef1ff280b0ad796e6e9e943dd454766e4a538e2e3c945d95a442e2",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "implement-phone-light.webp",
@@ -2230,19 +2230,19 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "verify-light.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "4f4219408ebb708a47734537b3043224e7af7b5c15df125fb1b05ae9ba5115f6",
+      "sha256": "054fae13e022b0b09e695bce406a13ef1330875f3583f84c4a3723e13b367754",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "verify-phone-light.webp",
@@ -2253,31 +2253,31 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "review-light.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "423d608f3bc7f1c5e4a710fcd093552b2ab53960e11fe2498d6b363cd5b79514",
+      "sha256": "0cc5f8a3b7381622e2a55e51068bc66552e56a15b5677386f7ad1b4bd0abf679",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-visual-review",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "review-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "e7c73ca67671a5b007608d074251a27819c99489dca8eff1869a94f8b6b0fe67",
+      "sha256": "5b1702c68a13970566662b8db5b523baaed9ff5a8b5ed74f2b1810f710497777",
       "sourceViewport": {
         "width": 390,
         "height": 700
       },
       "capture": "workflow-with-visual-review",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "review-code-light.webp",
@@ -2289,19 +2289,19 @@
         "height": 900
       },
       "capture": "workflow-with-code-review",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "pull-request-light.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "264035fb217b050b207ac0d814756b6c58322b4fb6ccb332995ba10bad026770",
+      "sha256": "8d89d30147f72ab056ae6c4d395aa4724dfbe2da4920ab8ba1eb62fed652cc13",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "pull-request-phone-light.webp",
@@ -2312,31 +2312,31 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "artifact-light.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "630aef8c73ab2edd2bb74262068a6b49b37014da7e74faf0dac45cf5ec1d3a48",
+      "sha256": "04adf7ed4b638419cf9dd3caebf4240babf6e07705465ddbd377664413cb8fc4",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
       "capture": "workflow-with-conversation",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "artifact-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "b0a7ceb812474866ea42afe3f353f6f480e269f837123dfc5b2a65c8fbffcee6",
+      "sha256": "9408c83727a60bb632c1185bae329b0fc4c02d2d7df0d093851f3e6a9c9ea2b2",
       "sourceViewport": {
         "width": 390,
         "height": 700
       },
       "capture": "narrow-feedback-sheet",
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "team-light.webp",
@@ -2347,7 +2347,7 @@
         "width": 1120,
         "height": 900
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "team-phone-light.webp",
@@ -2358,7 +2358,7 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "home-light.webp",
@@ -2369,18 +2369,18 @@
         "width": 1120,
         "height": 900
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "home-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "ddad0f1e13b9caa0e0383800398ad442e426ba1836bb3437d6fcdefc01b2a64f",
+      "sha256": "d7638d9b528a733c611ea400986127d6cac99c6da8839acb95fae6cd013b1449",
       "sourceViewport": {
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "setup-light.webp",
@@ -2391,7 +2391,7 @@
         "width": 1120,
         "height": 900
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "setup-phone-light.webp",
@@ -2402,7 +2402,7 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "memory-light.webp",
@@ -2413,7 +2413,7 @@
         "width": 1120,
         "height": 900
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "memory-phone-light.webp",
@@ -2424,7 +2424,7 @@
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "artifacts-light.webp",
@@ -2435,40 +2435,40 @@
         "width": 1120,
         "height": 900
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "artifacts-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "8af17211ddd4290fd4f88d96c4a6ab2032b95f9d8f6b7d2d34656b170eccf6cd",
+      "sha256": "aa6e76d3caf5387b09bfb8543c6edb29c911887f70931647a84b745080a6014e",
       "sourceViewport": {
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "artifacts-open-light.webp",
       "width": 2240,
       "height": 1800,
-      "sha256": "3b79de33901984fd0b48c54994a389682251e35f41e9755004af2d24fcbb8d70",
+      "sha256": "688f99b971111ed812bae5f652813b648921303489327a715d7d461822a74d40",
       "sourceViewport": {
         "width": 1120,
         "height": 900
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     },
     {
       "file": "artifacts-open-phone-light.webp",
       "width": 780,
       "height": 1400,
-      "sha256": "229d6b5767e930d4c254a3ca852112efa20a725a01fd89d63c9508e1c85a68b4",
+      "sha256": "121463a86d08c9cd93525265a4a6da6a8a4fe0222870023cc99fbebf212e4cfa",
       "sourceViewport": {
         "width": 390,
         "height": 700
       },
-      "captureSource": "9a155ae7066cc8a7ac0b31d787c6419edc2a6bd62fcd5c0ad43f184c81dbb1a8"
+      "captureSource": "a930080702d7c8908b97e602ca14e391d161ddf664f59253d306fd0a7b72ee07"
     }
   ]
 }
