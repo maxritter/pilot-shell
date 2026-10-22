@@ -51,7 +51,11 @@ Who decides whether a change passes [Verify](../steps/verify.md): **Fresh agent:
 
 ### Second opinion {#second-opinion}
 
-**Second opinion by** chooses an installed reviewer: Claude Code, Codex, Pi, OpenCode, Cursor, Grok or Antigravity. **Automatic** prefers another installed agent, and one that is enforced read-only (everything but Cursor and Antigravity) before those two. Cursor and Antigravity review a disposable copy and are stopped if they start a tool that is not read-only; a trusted project's hooks may run during any review. A named choice starts a fresh review with that agent's selected model.
+**Second opinion by** chooses who reviews: **Off** (only when you ask for one on a task), **Other model family**, or a named agent: Claude Code, Codex, Pi, OpenCode, Cursor, Grok or Antigravity.
+
+**Other model family** picks by the model that would do the review, not by the tool that runs it. A candidate is an installed agent that did not build the change and is not signed out. The pick is a candidate whose model comes from a different maker than the model that built the change: GPT reviews Claude, Claude reviews GPT. A model whose maker cannot be told, such as Cursor's Auto, never counts as different. Among those, an agent that enforces read-only itself (everything but Cursor and Antigravity) comes first, then the order Claude Code, Codex, Grok, Pi, OpenCode, Cursor, Antigravity. When only the builder's maker has models at hand, a fresh agent of that maker reviews and Settings says so.
+
+Cursor and Antigravity review a disposable copy and are stopped if they start a tool that is not read-only; a trusted project's hooks may run during any review. A named choice starts a fresh review with that agent's selected model, or with another agent when the named one built the change.
 
 | When | Choices | What it reads |
 | --- | --- | --- |
@@ -60,7 +64,7 @@ Who decides whether a change passes [Verify](../steps/verify.md): **Fresh agent:
 
 Risky means the Plan says so, the change touches sign-in, secrets or outside input, or the Outline marks a slice risky. **Always** adds a few minutes per Plan or change. With one agent installed, a separate reviewer of that agent reads instead (Sonnet 5.5 in Claude Code). **Reviewed by** in the Plan names who read it.
 
-Pi and OpenCode can use the same provider as another agent. A different agent gives you a fresh context; select another model family if you want a different provider too. See [native agents](../agents/native.md).
+Pi and OpenCode can run the same model as another agent, so **Other model family** compares the models the reviewers would use (the **Second opinion** column of **Reviewer models**), not the tools. Give OpenCode a DeepSeek model and it can review Pi's GPT work. See [native agents](../agents/native.md).
 
 ### Design review {#design-review}
 
