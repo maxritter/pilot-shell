@@ -60,6 +60,8 @@ Every agent keeps running as its own program in its own terminal. The **Conversa
 
 A permission question that the Conversation cannot show appears in the Terminal view. Cursor, Grok and Antigravity cannot show a choice list for workflow questions, so each one arrives as a numbered list in the chat.
 
+Codex shows its choice list outside Plan mode because the installer adds `[features] default_mode_request_user_input = true` to `~/.codex/config.toml`. A value you set yourself stays. Codex closes an untouched list after two minutes; press any key in the list and it stays open until you answer. A list that closed without an answer comes back as a numbered list in the chat.
+
 To continue after a crash or in another agent, stop the previous run if it is still active, then name the same task and intended stage: “Using QL, continue verification of task retry-webhooks.” Keep the task's recorded approvals, changes and evidence; the CLI resolves ownership before work resumes.
 
 The App records the native conversation, accepts one typing controller and offers Interrupt, Stop, Resume, Move and settings changes at a completed turn. Resume requires saved native state and verified process cleanup. If the conversation is still open in another terminal, the App refuses to resume it there.
