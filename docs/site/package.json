@@ -25,6 +25,7 @@
     "@pierre/diffs": "1.5.2",
     "@polar-sh/checkout": "0.4.3",
     "@polar-sh/sdk": "1.0.2",
+    "@tanstack/react-virtual": "3.14.12",
     "@upstash/redis": "^1.36.2",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
