@@ -993,20 +993,21 @@ jobs:
             name: "memory-payload-signature-${{ github.run_attempt }}",
             path: "${{ runner.temp }}/payload-stage",
           }
-      - name: Download the approved beta.57 distribution once for this target
+      - name: Download the published stable 12.0.0 distribution once for this target
         env:
           GH_TOKEN: ${{ github.token }}
           TARGET: ${{ matrix.target }}
         run: |
           set -euo pipefail
+          previous=12.0.0
           mkdir "$RUNNER_TEMP/previous"
           case "$TARGET" in
-            darwin-*) cli="qualitylayer-$TARGET"; package="QualityLayer-12.0.0-beta.57-macos-${TARGET#darwin-}.dmg"; installer=install.sh ;;
-            linux-*) cli="qualitylayer-$TARGET"; package="QualityLayer-12.0.0-beta.57-$TARGET.AppImage"; installer=install.sh ;;
-            win32-*) cli="qualitylayer-windows-${TARGET#win32-}.exe"; package="QualityLayer-12.0.0-beta.57-${TARGET#win32-}-setup.exe"; installer=install.ps1 ;;
+            darwin-*) cli="qualitylayer-$TARGET"; package="QualityLayer-$previous-macos-${TARGET#darwin-}.dmg"; installer=install.sh ;;
+            linux-*) cli="qualitylayer-$TARGET"; package="QualityLayer-$previous-$TARGET.AppImage"; installer=install.sh ;;
+            win32-*) cli="qualitylayer-windows-${TARGET#win32-}.exe"; package="QualityLayer-$previous-${TARGET#win32-}-setup.exe"; installer=install.ps1 ;;
             *) exit 1 ;;
           esac
-          gh release download v12.0.0-beta.57 --repo maxritter/qualitylayer --pattern "$cli" --pattern "$package" --pattern "$installer" --pattern SHA256SUMS --pattern SHA256SUMS.sig --dir "$RUNNER_TEMP/previous"
+          gh release download "v$previous" --repo maxritter/qualitylayer --pattern "$cli" --pattern "$package" --pattern "$installer" --pattern SHA256SUMS --pattern SHA256SUMS.sig --dir "$RUNNER_TEMP/previous"
           printf 'PREVIOUS_CLI=%s\nPREVIOUS_PACKAGE=%s\n' "$RUNNER_TEMP/previous/$cli" "$RUNNER_TEMP/previous/$package" >> "$GITHUB_ENV"
       - name: Execute both real installer and upgrade routes in the disposable principal
         env:
