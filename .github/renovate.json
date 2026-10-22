@@ -10,7 +10,7 @@
   "prConcurrentLimit": 3,
   "prHourlyLimit": 1,
   "schedule": ["before 7am on monday"],
-  "dependencyDashboard": true,
+  "dependencyDashboard": false,
   "major": {
     "enabled": false
   },

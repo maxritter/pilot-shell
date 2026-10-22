@@ -860,6 +860,25 @@ jobs:
             [ "$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)" = "v$VERSION" ]
           fi
 
+      # A stable release retires the betas that led to it, so the Releases page lists betas only
+      # for a version with no stable release yet. Their tags stay.
+      - name: Remove the betas this stable release supersedes
+        if: ${{ !contains(env.VERSION, '-') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+            --jq '.[] | select(.prerelease and (.draft | not)) | .tag_name' |
+            while read -r tag; do
+              base="${tag#v}"
+              base="${base%%-*}"
+              [[ "$base" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || continue
+              if [ "$(printf '%s\n%s\n' "$base" "$VERSION" | sort -V | tail -1)" = "$VERSION" ]; then
+                gh release delete "$tag" --yes
+              fi
+            done
+
       # The domains move only to a Production deployment of the branch's tip: a newer commit
       # that landed meanwhile keeps them.
       - name: Point qualitylayer.dev at this release
