@@ -12,7 +12,7 @@ Open **Settings** with the gear at the bottom of the sidebar. Settings take the 
 | --- | --- |
 | [Workflow](#workflow) | The level of new tasks, your instructions, reviews |
 | [Agents](#defaults) | The seven agents, how each starts, the default view, the terminal shell |
-| [Usage](#usage) | Plan limits, and tokens and estimated cost |
+| [Usage](#usage) | Plan limits, and what your agents used |
 | [Sessions](#sessions) | The agents running now, and when idle ones stop |
 | [Notifications](#notifications) | What tells you a task needs you |
 | [Git and editor](#git-and-editor) | Git and GitHub status, where files open, pull request watching |
@@ -93,7 +93,9 @@ The choice of agent, model, effort and branch belongs to each run: New task and 
 
 **Resume when a limit resets** (on by default) lets a build that stopped on a plan limit continue by itself when the window resets. It only does so if nobody has typed in the session since. You can cancel it on the task.
 
-**Tokens and estimated cost** adds up the last 7, 30 or 90 days by agent, and by model under **By model**. It reads the session files your agents keep on this computer and counts each message once. Costs are estimates at API prices; subscriptions bill differently. A model with no listed price has its tokens counted and no cost. Cursor, Grok and Antigravity keep no token counts, so they show no usage.
+**What your agents used** adds up the last 7 or 30 days or this month from the session files your agents keep on this computer, and counts each message once. A daily chart shows each agent in its own colour, with the change against the period before. **Where the tokens went** splits the tokens by kind, and **Breakdown** lists every model or every day.
+
+An agent on a plan shows its limits and its tokens, never dollars. Turn on **Show plan use at API prices** to see what that use would cost at list prices, marked as not billed. An agent billed by use, on an API key or through a gateway, shows an estimated cost, by kind of token and by speed, with what the cache saved. Billed by use and on a plan are two figures and are never added together. Dollar amounts are estimates at list prices, and your bill can differ. A model with no listed price has its tokens counted and no cost. Cursor, Grok and Antigravity keep no token counts, so they show no usage.
 
 ## Sessions {#sessions}
 
