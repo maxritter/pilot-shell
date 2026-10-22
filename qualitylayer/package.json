@@ -74,6 +74,7 @@
     "@types/react": "19",
     "@types/react-dom": "19",
     "happy-dom": "20.14.5",
+    "next": "16.4.2",
     "javascript-obfuscator": "5.8.0",
     "knip": "6.38.0",
     "onnxruntime-web": "1.30.0",
@@ -85,7 +86,8 @@
   "overrides": {
     "@modelcontextprotocol/sdk": "1.32.0",
     "lodash-es": "4.18.1",
-    "dompurify": "3.4.16",
+    "dompurify": "3.4.17",
+    "next": "16.4.2",
     "source-map-js": "1.2.2"
   },
   "dependencies": {
@@ -104,7 +106,7 @@
     "class-variance-authority": "0.7.1",
     "cn": "0.4.0",
     "css-tree": "3.2.1",
-    "dompurify": "3.4.16",
+    "dompurify": "3.4.17",
     "geist": "1.7.2",
     "grok-mermaid": "0.2.3",
     "lucide-react": "1.48.0",
