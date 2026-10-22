@@ -21,21 +21,18 @@ remote="$1"
 zero="0000000000000000000000000000000000000000"
 failed=0
 
-while read -r _local_ref local_sha _remote_ref remote_sha; do
+while read -r _local_ref local_sha _remote_ref _remote_sha; do
   [ -n "${local_sha:-}" ] || continue
   [ "$local_sha" = "$zero" ] && continue # a deleted branch pushes no content
 
-  if [ "$remote_sha" != "$zero" ] && git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then
-    range="$remote_sha..$local_sha"
+  # Check what no remote branch has yet. A commit another remote branch already carries
+  # (dev's history arriving on main) is already on the remote; refusing it protects nothing.
+  oldest="$(git rev-list --topo-order "$local_sha" --not --remotes="$remote" | tail -n1)"
+  [ -n "$oldest" ] || continue
+  if git cat-file -e "$oldest^" 2>/dev/null; then
+    range="$oldest^..$local_sha"
   else
-    # A new branch, or a remote tip we do not have: check what no remote branch has yet.
-    oldest="$(git rev-list --topo-order "$local_sha" --not --remotes="$remote" | tail -n1)"
-    [ -n "$oldest" ] || continue
-    if git cat-file -e "$oldest^" 2>/dev/null; then
-      range="$oldest^..$local_sha"
-    else
-      range="$local_sha"
-    fi
+    range="$local_sha"
   fi
 
   bash .github/scripts/check_qualitylayer_encrypted.sh --range "$range" || failed=1
