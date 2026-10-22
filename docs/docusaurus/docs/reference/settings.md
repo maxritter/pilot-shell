@@ -171,4 +171,4 @@ The version and **Check now**. Updates come once a day; they download in the bac
 
 ## For one task {#for-one-task}
 
-Tell your agent: "skip security", "run a checkpoint after every slice", "get a second opinion", "no second opinion", "skip polish". A small change skips the second read of its Outline; ask to bring it back. No setting turns an approval off.
+Tell your agent: "skip security", "run a checkpoint after every slice", "get a second opinion", "no second opinion", "skip polish". A small change skips the second read of its Outline; ask to bring it back. It also has one fresh agent for Polish and the independent review, so it starts no separate Polish helper; "skip polish" or "run the security review" keeps the two apart. No setting turns an approval off.
