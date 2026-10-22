@@ -92,6 +92,20 @@ With **Resume when a limit resets** on, a build that stopped on a plan limit con
 
 Ask one agent session to review another's work, hand over a task or discuss a problem. Claude Code, Codex, Pi and OpenCode can coordinate on this computer. [Session messaging commands](../reference/commands.md#session-messaging).
 
+## How QualityLayer finds your agents {#finding-agents}
+
+An App opened from the Dock or Finder does not get your terminal's PATH, so QualityLayer looks in this order and uses the first match:
+
+1. A command you chose in Settings › Agents › **Edit launch…** › **Command**. It is never searched past: if that file cannot run, the agent counts as missing.
+2. The PATH of the App, then the PATH your login shell prints.
+3. The folders agents install to: `~/.local/bin`, Codex's standalone folder `~/.codex/packages/standalone/current/bin`, Homebrew, `~/.npm-global/bin`, Bun, Volta, pnpm, and the folders of nvm and fnm.
+4. npm's global folder, asked the way your login shell would.
+5. For Codex, the command inside the ChatGPT or Codex desktop app in `/Applications` or `~/Applications`.
+
+The agent's version comes from `--version`, which must name the agent: `codex-cli 0.163.0` for Codex, `… (Claude Code)` for Claude Code. An install that starts with `#!/usr/bin/env node` is asked with its own folder first on the PATH, because its `node` sits beside it.
+
+The Version column in Settings › Agents shows the file it found when you point at it. An agent QualityLayer does not find shows **Not installed**; **Check again** repeats the search. If it is installed somewhere else, open **⋯ › Edit launch…** and enter the full path in **Command**, for example `/opt/tools/bin/codex`. The New task agent list and the other pickers show every agent found this way, whether or not it is signed in; a sign-in problem appears in Settings › Agents instead of hiding the agent.
+
 ## Setup and removal
 
 Settings › Agents lists all seven agents with their version, sign-in and plan where the agent reports one, and the state of QualityLayer's integration. A **Use** switch lets you turn an agent off for QualityLayer. An agent that is not installed offers **Install…**, which opens the vendor's install page or shows the command for you to run; QualityLayer never runs an installer. **Check again** runs a fresh check. The **⋯** menu offers **Edit launch…** (the command, extra arguments, config folder and default permission mode) and **Repair skill and hooks**. A responding version does not prove account access, which is checked when a session starts. The same results are available through `qualitylayer agents list` and `qualitylayer agents check`.
