@@ -142,6 +142,38 @@ if [ -n "$debug_files" ]; then
   printf '%s\n' "$debug_files" | sed 's/^/  /' >&2
   exit 1
 fi
+# A stale private index puts older versions back: another session's newer commit to a file is undone
+# without a word (3ba7f2b90 reverted ee2e02ad3's small-change.ts on 2026-10-22). A staged blob that
+# differs from HEAD's but equals the file's blob in one of its last 30 commits is that revert. Blob ids
+# are clean-filtered (git-crypt ciphertext) on both sides, so they compare without decrypting.
+if [ "${QL_ALLOW_REVERT:-0}" != "1" ] && [ "${QUALITYLAYER_PREFLIGHT_HEAD:-0}" != "1" ] \
+  && git rev-parse -q --verify HEAD >/dev/null; then
+  revert_paths=()
+  while IFS= read -r f; do
+    [ -n "$f" ] && revert_paths+=("$f")
+  done < <(git diff --cached --name-only --diff-filter=AM --no-renames HEAD)
+  if [ "${#revert_paths[@]}" -gt 0 ]; then
+    git ls-files -s -- "${revert_paths[@]}" | awk '{ split($0, t, "\t"); split(t[1], f, " "); print f[2] "\t" t[2] }' >"$TMP/staged-blobs"
+    reverts="$(git log -n 400 --format='commit %H' --raw --no-abbrev --no-renames HEAD -- "${revert_paths[@]}" \
+      | awk -F'\t' -v staged="$TMP/staged-blobs" '
+          BEGIN { while ((getline line < staged) > 0) { split(line, s, "\t"); want[s[2]] = s[1] } }
+          /^commit / { sha = substr($0, 8); next }
+          /^:/ {
+            path = $2; split($1, m, " ")
+            if (!(path in want) || (path in found) || ++seen[path] > 30) next
+            if (m[4] == want[path]) { found[path] = 1; print path "\t" substr(sha, 1, 9) }
+          }')"
+    if [ -n "$reverts" ]; then
+      echo "✖ Pre-commit refused: a staged file is an older version of itself (a stale index?):" >&2
+      while IFS=$'\t' read -r path sha; do
+        echo "  this reverts $path to $sha; set QL_ALLOW_REVERT=1 if that is intended" >&2
+      done <<<"$reverts"
+      echo "  Rebuild the private index from the current HEAD (git read-tree HEAD), stage your files again, and retry." >&2
+      exit 1
+    fi
+  fi
+fi
+
 qualitylayer_changed=0
 ui_changed=0
 launcher_changed=0
@@ -350,12 +382,8 @@ if [ "$qualitylayer_changed" = "1" ] && have bun && [ -d qualitylayer/node_modul
   fi
 fi
 
-# A note, never a blocker: the website model's sync manifest records a hash for each source file
-# its generated pages were built from, so a staged change to one leaves the manifest behind.
-website_note="$qualitylayer_tree/qualitylayer/scripts/website-model-stale.ts"
-if have bun && [ -f "$website_note" ]; then
-  printf '%s\n' "$staged" | bun "$website_note" "$qualitylayer_tree" || true
-fi
+# The lasting models (App Model, Website model, Team Model, Workflow) are guarded in commit-msg, where
+# the message's escape line can be read: see .github/hooks/commit-msg and docs/agents/models.md.
 
 if [ "$qualitylayer_changed" = "1" ]; then
   if have bun && [ -d qualitylayer/node_modules ]; then
