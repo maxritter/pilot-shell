@@ -20,7 +20,7 @@ Open **Settings** with the gear at the bottom of the sidebar. Settings take the 
 | [Memory](#memory) | Lessons your agents keep between tasks |
 | [Licence](#licence) | Your plan, billing and activation |
 | [Team](#team) | Seats, people, Slack, shared links, team instructions |
-| [About](#about) | Version, update channel, help and what changed |
+| [About](#about) | Version, update channel, the server's port, help and what changed |
 
 ## Workflow
 
@@ -160,6 +160,14 @@ The team owner writes instructions for the whole team in the same editor as [you
 The version and **Check now**. Updates come once a day; they download in the background and ask before the App restarts ([Updates](../install.md#updates)).
 
 **Update channel** is **Stable** (the default) or **Beta**. Stable offers stable releases only. Beta offers betas first, and moves to each stable release once it is newer; switching never takes you back to an older version. Agents and the command line cannot change the channel. **What's new** shows the notes of the releases on your channel. **Something wrong?** sends a report, and **Documentation** opens these pages.
+
+### Server {#server}
+
+**Server port** is where the App and your browsers reach QualityLayer on this computer: 41888 unless you change it, from 1024 to 65535. Type a new port and click **Restart on N**. The setting is saved and the server starts again on that port. The App's window follows the new server on its own, and running agents keep going. A browser tab shows **Open on N** instead of jumping by itself, because that port may need forwarding first ([a port for each machine](../install.md#port)).
+
+**In use now** is the port the server really listens on, with its address and **Copy**. When the port you set was taken at start, the server uses the next free one and says so: "41888 was taken, so it uses 41889. Your setting stays 41888." **Try 41888 again** restarts the server to look at that port once more. Settings reads the server when you open the page; it does not check in the background.
+
+`QUALITYLAYER_PORT` sets the port for one server and wins over this setting. While it is set, the field is off and says so. From the command line: `qualitylayer settings set cockpit.port <port>`, then `qualitylayer app restart`; `qualitylayer app status` prints the port.
 
 ## For one task {#for-one-task}
 

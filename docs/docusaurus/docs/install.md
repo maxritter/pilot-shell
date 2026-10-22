@@ -45,6 +45,33 @@ curl -fsSL https://qualitylayer.dev/install.sh | bash
 
 `qualitylayer app` opens the pages again at any time. An App installed on your computer shows only that computer's tasks.
 
+### A port for each machine {#port}
+
+QualityLayer's server listens on port 41888 of the machine it runs on, and only on that machine. Plain `ssh -L`, VS Code and most forwarding tools carry that port to your computer. If something else already uses 41888, the server takes the next free port (41889, 41890 and so on) and **Settings › About › Server** says which one. On WSL2 the first port is 41910, so it stays clear of the Windows App.
+
+Reaching several remote machines from one laptop is where the default stops working: two machines cannot both be forwarded to port 41888 on your laptop, and some forwarding tools cannot send a remote port to a different port on your laptop. Give each machine its own port, and forward each machine's port to the same number on your laptop.
+
+Say you have three servers for three isolated projects. On each one, pick a port from 1024 to 65535 and restart the server:
+
+```bash
+qualitylayer settings set cockpit.port 41901   # on the first server; 41902 on the second, 41903 on the third
+qualitylayer app restart
+```
+
+From your laptop, forward the three ports. With plain `ssh`:
+
+```bash
+ssh -N -L 41901:127.0.0.1:41901 first-server
+ssh -N -L 41902:127.0.0.1:41902 second-server
+ssh -N -L 41903:127.0.0.1:41903 third-server
+```
+
+Then open `http://127.0.0.1:41901`, `:41902` and `:41903` in your browser. `qualitylayer app pair` on each server prints the link that signs your browser in, with that server's port. The setting is saved on that machine and survives updates and restarts.
+
+To try a port once, without saving it, start the server with it: `QUALITYLAYER_PORT=41901 qualitylayer app restart`. The variable wins over the setting for that server only. A value that is not a port from 1024 to 65535 is ignored.
+
+`qualitylayer app status` says which port the server listens on, and whether it had to take another one. You can also change the port in **Settings › About › Server**; the browser tab you used gets a link to the new port ([Settings](reference/settings.md#server)).
+
 To keep your licence, Claude Code login and QualityLayer setup when the container is rebuilt, add this to `devcontainer.json`:
 
 ```json

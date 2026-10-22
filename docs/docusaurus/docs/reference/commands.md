@@ -50,6 +50,9 @@ Terminal artifact feedback uses `qualitylayer artifact comments add <name> --pag
 | --- | --- |
 | `qualitylayer app` | Open the App; on a machine without it, open it in your browser and pair the browser once |
 | `qualitylayer app --forget-browsers` | Make every paired browser pair again |
+| `qualitylayer app status` | The port the App's server listens on, and whether it had to take another because yours was in use. Reads only; it starts nothing |
+| `qualitylayer app restart` | Stop the server and start it again, so a new `cockpit.port` takes effect. `QUALITYLAYER_PORT=<port>` before it sets the port for that server only ([a port for each machine](../install.md#port)) |
+| `qualitylayer settings set cockpit.port <port>` | Choose the server's port, from 1024 to 65535 (default 41888). It applies when the server starts again |
 | `qualitylayer agent-runs stop --all --reason app-quit [--json]` | The App's Quit helper. It asks confirmed local hosts to stop only when Settings says **Stop agents**; it keeps runs when Settings says **Agents keep running** |
 | `qualitylayer branch new [name]` | Start the build on a new branch: create `ql/<task>`, or the name you give, switch to it and note it on the task. See [where the build lands](../steps/implement.md#where-it-lands) |
 | `qualitylayer find "<text>"` | Find a task |
