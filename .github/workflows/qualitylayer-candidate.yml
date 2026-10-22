@@ -15,6 +15,12 @@ on:
       TAURI_SIGNING_PRIVATE_KEY: { required: true }
       TAURI_SIGNING_PRIVATE_KEY_PASSWORD: { required: false }
       RELEASE_SIGNING_KEY: { required: true }
+      # Windows Authenticode through Azure Artifact Signing: the Entra app
+      # qualitylayer-github-signing, reached with this run's OIDC token (no client secret). Optional:
+      # without them, or without an active certificate profile, Windows builds unsigned with a warning.
+      AZURE_CLIENT_ID: { required: false }
+      AZURE_TENANT_ID: { required: false }
+      AZURE_SUBSCRIPTION_ID: { required: false }
     outputs:
       bundle_digest:
         value: ${{ jobs.build.outputs.bundle_digest }}
@@ -51,6 +57,9 @@ jobs:
   memory-payload:
     name: Native memory payload (${{ matrix.target }})
     needs: validate-inputs
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     strategy:
@@ -151,6 +160,46 @@ jobs:
           (umask 077 && printf '%s' "$ASC_PRIVATE_KEY" > "$key")
           xcrun notarytool submit "$signed/engine.zip" --key "$key" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" --wait --output-format json > "$signed/notary.json"
           jq -e '.status == "Accepted"' "$signed/notary.json"
+      # Without an active certificate profile the engine stays unsigned (windows-unsigned-beta).
+      - name: Windows signing
+        id: signing
+        if: runner.os == 'Windows'
+        uses: ./.github/actions/windows-signing
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resource-group: ${{ vars.AZURE_SIGNING_RESOURCE_GROUP }}
+          endpoint: ${{ vars.AZURE_SIGNING_ENDPOINT }}
+          account: ${{ vars.AZURE_SIGNING_ACCOUNT }}
+          profile: ${{ vars.AZURE_SIGNING_PROFILE }}
+      # The CLI unpacks this engine as engram.exe and runs it; it is signed like every shipped .exe.
+      - name: Sign the actual Windows engine before compression
+        if: runner.os == 'Windows' && steps.signing.outputs.enabled == 'true'
+        shell: pwsh
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $raw = Join-Path $env:RUNNER_TEMP 'engine/engram'
+          $signed = Join-Path $env:RUNNER_TEMP "piece/signing/$env:TARGET"
+          # signtool and WinVerifyTrust choose the PE format by the file's extension.
+          $exe = Join-Path $env:RUNNER_TEMP 'engine/engram.exe'
+          Copy-Item -LiteralPath $raw -Destination $exe
+          & ./.github/workflows/scripts/windows-sign.ps1 -Path $exe
+          & ./.github/workflows/scripts/verify-authenticode.ps1 -Path $exe
+          $signtool = ($env:QUALITYLAYER_WINDOWS_SIGN_COMMAND | ConvertFrom-Json).cmd
+          & $signtool verify /pa /v $exe *> (Join-Path $signed 'verify.txt')
+          if ($LASTEXITCODE -ne 0) { throw 'signtool cannot verify the signed engine' }
+          $signature = Get-AuthenticodeSignature -LiteralPath $exe
+          [ordered]@{
+            status = "$($signature.Status)"
+            subject = $signature.SignerCertificate.Subject
+            thumbprint = $signature.SignerCertificate.Thumbprint
+            timeStamper = $signature.TimeStamperCertificate.Subject
+            sha256 = (Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $signed 'authenticode.json') -Encoding utf8
+          Move-Item -LiteralPath $exe -Destination $raw -Force
       - name: Record the exact platform signing policy and stage bytes
         env:
           TARGET: ${{ matrix.target }}
@@ -158,7 +207,7 @@ jobs:
           set -euo pipefail
           # JavaScript template expressions must stay unexpanded by the shell.
           # shellcheck disable=SC2016
-          bun -e 'import {createHash} from "node:crypto";const t=process.env.TARGET,p=process.env.RUNNER_TEMP,s=`${p}/piece`,d=`signing/${t}`;const hash=b=>createHash("sha256").update(b).digest("hex");const raw=hash(await Bun.file(`${p}/engine/engram`).bytes());const trusted=await Bun.file("qualitylayer/src/memory-engine/payloads/manifest.json").json();const pre=trusted.artifacts[t].sha256;let proof={policy:t.startsWith("darwin-")?"darwin-developer-id":t.startsWith("win32-")?"windows-unsigned-beta":"linux-signed-catalog",rawSha256:raw,preSignSha256:pre,evidence:[]};if(t.startsWith("darwin-")){const sig=await Bun.file(`${s}/${d}/signature.txt`).text();const notary=await Bun.file(`${s}/${d}/notary.json`).json();proof={...proof,identity:/^Authority=(Developer ID Application:.*)$/m.exec(sig)?.[1],teamId:/^TeamIdentifier=(.*)$/m.exec(sig)?.[1],timestamp:/^Timestamp=(.*)$/m.exec(sig)?.[1],notary:{status:notary.status,id:notary.id,containerSha256:hash(await Bun.file(`${s}/${d}/engine.zip`).bytes()),containerPath:`${d}/engine.zip`,entryPath:"engram"}};for(const name of ["signature.txt","verify.txt","notary.json"]){const path=`${d}/${name}`,b=await Bun.file(`${s}/${path}`).bytes();proof.evidence.push({path,sha256:hash(b),bytes:b.length});}}else{const path=`${d}/policy.json`,b=Buffer.from(JSON.stringify({target:t,policy:proof.policy,rawSha256:raw,unsigned:true}));await Bun.write(`${s}/${path}`,b);proof.evidence.push({path,sha256:hash(b),bytes:b.length});}await Bun.write(`${p}/signing.json`,JSON.stringify(proof,null,2)+"\n");'
+          bun -e 'import {createHash} from "node:crypto";const t=process.env.TARGET,p=process.env.RUNNER_TEMP,s=`${p}/piece`,d=`signing/${t}`;const hash=b=>createHash("sha256").update(b).digest("hex");const raw=hash(await Bun.file(`${p}/engine/engram`).bytes());const trusted=await Bun.file("qualitylayer/src/memory-engine/payloads/manifest.json").json();const pre=trusted.artifacts[t].sha256;let proof={policy:t.startsWith("darwin-")?"darwin-developer-id":t.startsWith("win32-")?(await Bun.file(`${s}/${d}/authenticode.json`).exists()?"windows-authenticode":"windows-unsigned-beta"):"linux-signed-catalog",rawSha256:raw,preSignSha256:pre,evidence:[]};if(t.startsWith("darwin-")){const sig=await Bun.file(`${s}/${d}/signature.txt`).text();const notary=await Bun.file(`${s}/${d}/notary.json`).json();proof={...proof,identity:/^Authority=(Developer ID Application:.*)$/m.exec(sig)?.[1],teamId:/^TeamIdentifier=(.*)$/m.exec(sig)?.[1],timestamp:/^Timestamp=(.*)$/m.exec(sig)?.[1],notary:{status:notary.status,id:notary.id,containerSha256:hash(await Bun.file(`${s}/${d}/engine.zip`).bytes()),containerPath:`${d}/engine.zip`,entryPath:"engram"}};for(const name of ["signature.txt","verify.txt","notary.json"]){const path=`${d}/${name}`,b=await Bun.file(`${s}/${path}`).bytes();proof.evidence.push({path,sha256:hash(b),bytes:b.length});}}else if(proof.policy==="windows-authenticode"){const auth=await Bun.file(`${s}/${d}/authenticode.json`).json();const verify=await Bun.file(`${s}/${d}/verify.txt`).text();proof={...proof,identity:auth.subject,thumbprint:auth.thumbprint,timestamp:/^The signature is timestamped: (.+)$/m.exec(verify)?.[1]?.trim()??auth.timeStamper};for(const name of ["authenticode.json","verify.txt"]){const path=`${d}/${name}`,b=await Bun.file(`${s}/${path}`).bytes();proof.evidence.push({path,sha256:hash(b),bytes:b.length});}}else{const path=`${d}/policy.json`,b=Buffer.from(JSON.stringify({target:t,policy:proof.policy,rawSha256:raw,unsigned:true}));await Bun.write(`${s}/${path}`,b);proof.evidence.push({path,sha256:hash(b),bytes:b.length});}await Bun.write(`${p}/signing.json`,JSON.stringify(proof,null,2)+"\n");'
           bun qualitylayer/scripts/memory-qualification-stage.ts target --source-root "$PWD/qualitylayer" --payload-dir "$RUNNER_TEMP/piece" --target "$TARGET" --raw "$RUNNER_TEMP/engine/engram"
           bun qualitylayer/scripts/memory-qualification-run.ts --source-root "$PWD/qualitylayer" --payload-dir "$RUNNER_TEMP/piece" --target "$TARGET" --signing-receipt "$RUNNER_TEMP/signing.json" --previous-payload "$RUNNER_TEMP/previous-engine" --previous-manifest "$RUNNER_TEMP/previous-manifest.json" --out "$RUNNER_TEMP/piece/receipts/$TARGET.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -348,11 +397,13 @@ jobs:
 
   # One package per system, each built natively around the command line this run built, so
   # the App carries the very binary that is published. The Mac packages are signed with the
-  # Developer ID and notarized; every package's update file is signed with the update key.
+  # Developer ID and notarized, the Windows CLI and setup with Authenticode (Azure Artifact
+  # Signing); every package's update file is then signed with the update key.
   app:
     name: App package (${{ matrix.name }})
     permissions:
       contents: read
+      id-token: write
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     environment: ${{ inputs.authorization_environment }}
@@ -463,6 +514,42 @@ jobs:
           name: qualitylayer-release-cli-${{ github.run_attempt }}
           path: release
 
+      # Windows signs with Azure Artifact Signing (Public Trust): the standalone CLI here, then
+      # Tauri signs the App, the launcher, the NSIS plugins, the uninstaller and the setup with the
+      # same command before it writes the updater signature. Without an active certificate profile
+      # the preflight warns and the Windows package is built unsigned, as before.
+      - name: Windows signing
+        id: signing
+        if: runner.os == 'Windows'
+        uses: ./.github/actions/windows-signing
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resource-group: ${{ vars.AZURE_SIGNING_RESOURCE_GROUP }}
+          endpoint: ${{ vars.AZURE_SIGNING_ENDPOINT }}
+          account: ${{ vars.AZURE_SIGNING_ACCOUNT }}
+          profile: ${{ vars.AZURE_SIGNING_PROFILE }}
+
+      # Tauri leaves an already signed sidecar alone, so the App carries the very bytes published.
+      - name: Sign the standalone Windows CLI
+        if: runner.os == 'Windows' && steps.signing.outputs.enabled == 'true'
+        shell: pwsh
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $name = 'qualitylayer-windows-x64.exe'
+          $cli = Join-Path $PWD "release/$name"
+          $expected = ((Get-Content "$cli.sha256" -Raw).Trim() -split '\s+')[0]
+          if ((Get-FileHash -LiteralPath $cli -Algorithm SHA256).Hash -ne $expected) { throw 'The CLI is not the one this run built' }
+          & ./.github/workflows/scripts/windows-sign.ps1 -Path $cli
+          & ./.github/workflows/scripts/verify-authenticode.ps1 -Path $cli
+          $actual = & $cli --version
+          if ($LASTEXITCODE -ne 0 -or "$actual".Trim() -ne $env:VERSION) { throw "The signed CLI does not run: $actual" }
+          $hash = (Get-FileHash -LiteralPath $cli -Algorithm SHA256).Hash.ToLowerInvariant()
+          [IO.File]::WriteAllText("$cli.sha256", "$hash  $name`n")
+
       - name: Finalize the standalone Mac CLI signature
         if: runner.os == 'macOS'
         env:
@@ -519,6 +606,41 @@ jobs:
             done
           done
 
+      # The setup, and everything it installs including its uninstaller, carries the signature; the
+      # installed CLI is byte for byte the standalone one. A silent per-user install skips the
+      # optional Defender repair (hooks.nsh), so it changes nothing on the runner's security.
+      - name: Every Windows file is signed
+        if: runner.os == 'Windows' && steps.signing.outputs.enabled == 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $setup = @(Get-ChildItem -LiteralPath 'qualitylayer/dist/app/release' -Filter '*-setup.exe')
+          if ($setup.Count -ne 1) { throw "Expected one setup, found $($setup.Count)" }
+          & ./.github/workflows/scripts/verify-authenticode.ps1 -Path $setup[0].FullName
+          $dir = Join-Path $env:RUNNER_TEMP 'ql-signed-install'
+          $install = Start-Process -FilePath $setup[0].FullName -ArgumentList '/S', "/D=$dir" -Wait -PassThru
+          if ($install.ExitCode -ne 0) { throw "The setup failed silently ($($install.ExitCode))" }
+          foreach ($name in 'QualityLayer.exe', 'qualitylayer-cli.exe', 'qualitylayer-launcher.exe', 'uninstall.exe') {
+            if (-not (Test-Path -LiteralPath (Join-Path $dir $name))) { throw "The setup did not install $name" }
+          }
+          $files = @(Get-ChildItem -LiteralPath $dir -Recurse -File -Include '*.exe', '*.dll' | ForEach-Object FullName)
+          & ./.github/workflows/scripts/verify-authenticode.ps1 -Path $files
+          $standalone = (Get-FileHash -LiteralPath 'release/qualitylayer-windows-x64.exe' -Algorithm SHA256).Hash
+          if ((Get-FileHash -LiteralPath (Join-Path $dir 'qualitylayer-cli.exe') -Algorithm SHA256).Hash -ne $standalone) {
+            throw 'The App carries a different CLI than the standalone download'
+          }
+
+      # Signed or (without a certificate profile) the build's own bytes: the native Windows check
+      # downloads the CLI from this package either way.
+      - name: Retain the exact standalone Windows CLI
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($name in 'qualitylayer-windows-x64.exe', 'qualitylayer-windows-x64.exe.sha256') {
+            Copy-Item -LiteralPath "release/$name" -Destination "qualitylayer/dist/app/release/$name" -Force
+          }
+
       - name: Retain the exact signed standalone Mac CLI
         if: runner.os == 'macOS'
         env:
@@ -574,8 +696,9 @@ jobs:
         with:
           name: qualitylayer-release-cli-${{ github.run_attempt }}
           path: release
-      # Mac packages carry their native-finalized CLI and checksum; replace only those known files.
-      - name: Download the native packages and finalized Mac CLIs
+      # Mac and Windows packages carry their natively signed CLI and checksum; replace only those
+      # known files.
+      - name: Download the native packages and finalized Mac and Windows CLIs
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           pattern: app-*-${{ github.run_attempt }}
@@ -627,8 +750,8 @@ jobs:
     name: Native Windows release (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
-    needs: build
-    if: needs.build.result == 'success'
+    needs: [build, app]
+    if: needs.build.result == 'success' && needs.app.result == 'success'
     strategy:
       fail-fast: false
       matrix:
@@ -674,11 +797,19 @@ jobs:
         with:
           bun-version: "1.4.2"
 
+      # The signed CLI and setup the Windows App job finalized: the bytes the release publishes.
       - name: Download exact release artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: qualitylayer-release-cli-${{ github.run_attempt }}
+          name: app-windows-${{ matrix.arch }}-${{ github.run_attempt }}
           path: release
+
+      # All signed by one validated signer, or (no certificate profile yet) all unsigned with a warning.
+      - name: The published Windows files are signed alike
+        run: |
+          $files = @(Get-ChildItem -LiteralPath release -File | Where-Object { $_.Extension -in '.exe', '.msi' } | ForEach-Object FullName)
+          if ($files.Count -ne 2) { throw "Expected the CLI and the setup, found: $($files -join ', ')" }
+          & ./.github/workflows/scripts/verify-authenticode.ps1 -Consistent -Path $files
 
       - name: Verify checksum and version on the native OS
         env:
