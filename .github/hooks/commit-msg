@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# commit-msg hook: the model drift guard. A commit that changes code one of the four lasting models
+# describes (App Model, Website model, Team Model, Workflow) changes that model too, or says why not.
+# The rules and their fixes are in qualitylayer/scripts/models/guard.ts and docs/agents/models.md.
+#
+# It runs here, not in pre-commit, because only the message can carry the escape line
+#   Model: none (<why>)              the model stays right; the reason stays in the commit
+#   Model: updated in <commit>       the model changed first, in that commit
+# Never --no-verify.
+#
+# The guard runs from the index's own copy of its scripts, so another session's unfinished edit in
+# the shared checkout cannot change the verdict. GIT_INDEX_FILE (a private index) is honoured.
+#
+# Install: core.hooksPath=.github/hooks (or ln -sf ../../.github/hooks/commit-msg .git/hooks/commit-msg).
+
+set -uo pipefail
+
+message_file="${1:?commit-msg: no message file}"
+case "$message_file" in
+  /*) : ;;
+  *) message_file="$PWD/$message_file" ;;
+esac
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+if ! command -v bun >/dev/null 2>&1; then
+  echo "⚠ bun not found — the model drift guard is skipped (install bun to run it)." >&2
+  exit 0
+fi
+
+guard_paths=(qualitylayer/scripts/model-guard.ts qualitylayer/scripts/models)
+# Inert until the guard and the checks it imports are all in the index.
+if ! git ls-files --error-unmatch qualitylayer/scripts/model-guard.ts qualitylayer/scripts/models/guard.ts \
+  qualitylayer/scripts/models/app-coverage.ts qualitylayer/scripts/models/workflow.ts >/dev/null 2>&1; then
+  exit 0
+fi
+
+tmp="$(mktemp -d)" || exit 1
+trap 'rm -rf "${tmp:?}"' EXIT
+# checkout-index applies the git-crypt smudge filter, so the copies are plain TypeScript.
+if ! git ls-files -z -- "${guard_paths[@]}" | git checkout-index -z --stdin --prefix="$tmp/"; then
+  echo "✖ Model guard: could not copy its scripts out of the index." >&2
+  exit 1
+fi
+
+bun "$tmp/qualitylayer/scripts/model-guard.ts" "$message_file"
