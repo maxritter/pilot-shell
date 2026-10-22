@@ -12,7 +12,7 @@ Read the task on the left and work with your agent in the right sidebar. Answer 
 
 | Part | What it does |
 | --- | --- |
-| **Sidebar** | A **Search** row, Home, Team, Artifacts and your tasks by project, with your plan limits at the foot. **+ New** starts a task |
+| **Sidebar** | A **Search** row, Home, Team, Artifacts and your tasks by project, with your plan limits or usage at the foot. **+ New** starts a task |
 | **Agent status** | The top-bar chip: the agent's mark and whether it is working, needs you, quiet or stopped |
 | **Step track** | Where the task stands. A person icon marks the two steps you approve |
 | **Your turn** | One question or decision that needs you |
@@ -37,9 +37,9 @@ Each task row shows its age, a dot while something is unread, its branch, its pu
 
 Order, colors, names and hidden projects are stored on the computer that runs the App, so every paired browser shows the same list.
 
-### Plan limits at the foot {#limits}
+### Usage at the foot {#limits}
 
-For each agent that reports its plan limits (Claude Code and Codex), the foot of the sidebar shows the window with the least left. Open it for every window, a marker where an even pace would leave it now, and when it resets. The block is hidden when no agent reports limits. It reads when the sidebar shows, when a turn ends and when you open it, never on a timer. More in [plan limits](agents/native.md#plan-limits) and **Settings › Usage**.
+For each agent on a plan that reports its limits (Claude Code and Codex), the foot of the sidebar shows the window with the least left. For an agent billed by use, on an API key or through a gateway, it shows what that agent cost today as an estimate, with the last seven days as a small chart and their total. Billed by use and on a plan are never added together. Open it for every limit window, a marker where an even pace would leave it now, and when it resets; for use billed by a key, the week by agent and by day; for a plan, today's tokens, sessions and most used model. The block is hidden when there is nothing to show. It reads when the sidebar shows, when a turn ends and when you open it, never on a timer. More in [plan limits](agents/native.md#plan-limits) and **Settings › Usage**.
 
 ### Search with ⌘K {#command-box}
 

@@ -82,7 +82,7 @@ A mode that skips every check (Bypass, Full access or Run everything) asks you t
 
 ### Plan limits {#plan-limits}
 
-For **Claude Code** and **Codex**, QualityLayer shows how much of each plan window is left and when it resets. The sidebar shows the window with the least left for each agent. The footer under the message box warns when one is below a quarter, and **Settings › Usage** lists every window. Claude Code's numbers come from its own `/usage` report on your existing login, and Codex's from its session records. QualityLayer never changes your agent's settings or status line to read them. The other agents report no limits, and the App says so.
+For **Claude Code** and **Codex**, QualityLayer shows how much of each plan window is left and when it resets. The sidebar shows the window with the least left for each agent. The footer under the message box shows the agent's tightest window as a chip, such as **Week · 42 % left**, which turns amber only when you use the plan faster than an even pace. For an agent billed by use, on an API key or through a gateway, the chip shows what the session has cost so far as an estimate at list prices; a plan never shows dollars. Choose the chip for the usage details; **Settings › Usage** lists every window. Claude Code's numbers come from its own `/usage` report on your existing login, and Codex's from its session records. QualityLayer never changes your agent's settings or status line to read them. The other agents report no limits, and the App says so.
 
 With **Resume when a limit resets** on, a build that stopped on a plan limit continues by itself when the window resets. It only does so if nobody has typed in the session since. You can cancel it on the task.
 

@@ -93,7 +93,7 @@ The choice of agent, model, effort and branch belongs to each run: New task and 
 
 ## Usage {#usage}
 
-**Plan limits** show how much of each plan window is left for Claude Code and Codex. A marker shows where an even pace would leave it, and each window says when it resets. The section says when it last checked. The other agents report no limits, and it says so. The same limits appear at the foot of the sidebar and, when a window runs low, as a warning in the conversation footer. How they are read: [plan limits](../agents/native.md#plan-limits).
+**Plan limits** show how much of each plan window is left for Claude Code and Codex. A marker shows where an even pace would leave it, and each window says when it resets. The section says when it last checked. The other agents report no limits, and it says so. The same limits appear at the foot of the sidebar and, in the conversation footer, as the tightest window of the agent in that session. How they are read: [plan limits](../agents/native.md#plan-limits).
 
 **Resume when a limit resets** (on by default) lets a build that stopped on a plan limit continue by itself when the window resets. It only does so if nobody has typed in the session since. You can cancel it on the task.
 
