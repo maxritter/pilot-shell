@@ -75,7 +75,8 @@ test("the built App guides use Files, Feedback and Agent and explain the current
   assert.match(page("steps/implement/"), /Start the build/);
   assert.match(text("steps/implement/"), /An installed native agent, or Another agent for your terminal/);
   assert.doesNotMatch(page("steps/implement/"), /Start with (?:Codex|Claude Code)/);
-  assert.match(page("steps/implement/"), /Build/);
+  // The "Build it yourself or hand it to a teammate" row went with the team hand-over (2d1a756d2).
+  assert.doesNotMatch(page("steps/implement/"), /Hand over|hand it to a teammate/);
   assert.match(page("artifacts/"), /compact entry in/);
   assert.match(text("reference/files/"), /No usage events/);
   assert.match(text("reference/files/"), /Include artifacts/);
