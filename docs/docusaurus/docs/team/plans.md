@@ -25,10 +25,6 @@ On a shared Plan or Review, **Looks right** sends your review to the owner. **Su
 
 The task header shows who it waits on and offers **Remind**. **Seen by** names confirmed readers of the current shared version and opens the same Share sheet. When reading data is unavailable, the App leaves reading status out. **Not opened yet** appears only when that data is known.
 
-## Hand over an approved Plan {#hand-over}
-
-**Hand to the team › Hand over** on the Implement card (or `qualitylayer handover --push`) commits the task and pushes its branch. The first teammate to run `qualitylayer next` on that branch builds it; the final approval comes back to you. It is refused on the base branch, or when the Plan changed since you approved it.
-
 ## Slack {#slack}
 
 The team owner connects Slack once in **Settings › Team**. Each person controls **Slack messages to you** and an optional **Morning digest**. Digest timing uses the computer's local time automatically; Slack controls do-not-disturb hours. **Follow** subscribes you to a shared task's updates.

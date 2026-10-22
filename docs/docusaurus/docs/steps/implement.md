@@ -21,7 +21,6 @@ After you approve the Plan, **Start the build** appears on that Plan page. Choos
 | **Agent** | An installed native agent, or Another agent for your terminal |
 | **Model and effort** | The choices for this run |
 | **Branch** | **Current branch**, **New branch** or **New worktree** |
-| **Who builds** | Build it yourself or hand it to a teammate ([Hand over](../team/plans.md#hand-over)) |
 
 Press **Approve & start**, or **Approve & copy prompt** with **In my terminal**. In the App, the task's **Agent** conversation opens beside **Files** and **Feedback**, and every question and piece of feedback happens in the App. In your terminal, the copied prompt says `implement the approved task` and names it; the agent asks its questions and takes your feedback in its own chat. Closing the sidebar or switching tasks keeps the run. Use its available session controls to stop or return to it ([agent runs](../app.md#agent-runs)).
 
