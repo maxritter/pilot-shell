@@ -17,6 +17,22 @@ it("opens on the brand line and the slogan the rest of the site and the README u
   expect(h1.previousElementSibling?.textContent).toBe(BRAND_LINE);
 });
 
+it("shows the App at a decision beside the copy, light and dark, with a phone crop and fixed sizes", () => {
+  const { container } = render(<MemoryRouter><Hero /></MemoryRouter>);
+  const pictures = [...container.querySelectorAll(".sx-shot picture")];
+  expect(pictures.map((p) => p.className)).toEqual(["sx-shot-light", "sx-shot-dark"]);
+  for (const [picture, theme] of pictures.map((p, i) => [p, i ? "dark" : "light"] as const)) {
+    const img = picture.querySelector("img")!;
+    expect(img.getAttribute("src")).toBe(`/hero/decision-agent-${theme}.webp`);
+    expect([img.getAttribute("width"), img.getAttribute("height")]).toEqual(["1006", "504"]);
+    expect(img.getAttribute("alt")).toMatch(/through a queue, or straight to the billing database/);
+    const phone = picture.querySelector("source")!;
+    expect(phone.getAttribute("media")).toBe("(max-width: 640px)");
+    expect(phone.getAttribute("srcset")).toBe(`/hero/decision-${theme}.webp`);
+    expect([phone.getAttribute("width"), phone.getAttribute("height")]).toEqual(["650", "504"]);
+  }
+});
+
 it("lists the seven steps as stations that each open their step in the tour", () => {
   render(<MemoryRouter><Hero /></MemoryRouter>);
   const stations = within(screen.getByRole("navigation", { name: "The seven steps" })).getAllByRole("listitem");

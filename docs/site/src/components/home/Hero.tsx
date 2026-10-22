@@ -10,8 +10,27 @@ import { BRAND_LINE, DESCRIPTION, SLOGAN } from "@/lib/product";
 import { FIRST_STEP, WORKFLOW_STEPS } from "@/lib/steps";
 
 const STEP_ICONS: Record<string, LucideIcon> = { discuss: MessageSquare, research: Search, plan: Network, outline: ListChecks, implement: Code, verify: ShieldCheck, review: FileCheck };
-/** The slogan's second half, drawn on its own line in blue. */
-const LOOP = "with you in the loop";
+
+/** What the hero picture shows, for screen readers; the phone picture is its question card alone. */
+const SHOT_ALT = "The QualityLayer App asks: meter writes through a queue, or straight to the billing database? Two choices sit side by side, each with its system diagram and trade-offs; the queue is recommended because a database failover then never fails an API request. Beside it, Claude Code has read the meter and the database pool, a helper found every write to the billing database, another helper is still timing writes during a failover, and Claude Code waits for your answer.";
+
+/**
+ * One App window from the Website model (hero-a-images.html): the person chooses between two architectures
+ * while the agent keeps working beside it. Captured at 2x; light and dark switch by the site's theme, and a
+ * phone gets the question card alone. Width and height hold the space while the picture loads.
+ */
+function HeroShot() {
+  return (
+    <figure className="sx-shot">
+      {(["light", "dark"] as const).map((theme) => (
+        <picture key={theme} className={`sx-shot-${theme}`}>
+          <source media="(max-width: 640px)" srcSet={`/hero/decision-${theme}.webp`} width={650} height={504} />
+          <img src={`/hero/decision-agent-${theme}.webp`} alt={SHOT_ALT} width={1006} height={504} decoding="async" />
+        </picture>
+      ))}
+    </figure>
+  );
+}
 
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
@@ -69,24 +88,29 @@ function Stations() {
   );
 }
 
-/** Opens on the brand line, the slogan and its working action: the visitor's own download, one click away, and the film. */
+/** Opens on the brand line, the slogan and its working action (the visitor's own download and the film), beside the App at a decision. */
 const Hero = () => {
   const download = useDownload();
   const [film, setFilm] = useState(false);
   const opener = useRef<HTMLButtonElement>(null);
   return (
     <section className="sx-hero" id="top" aria-labelledby="hero-h">
-      <p className="mx-qbd"><span aria-hidden="true" className="w7-mark" />{BRAND_LINE}</p>
-      <h1 id="hero-h" className="sx-h1">{SLOGAN.slice(0, -LOOP.length)}<span className="mx-acc">{LOOP}</span></h1>
-      <p className="sx-lede">{DESCRIPTION}</p>
-      <div className="sx-ctas">
-        <Button asChild size="xl">{download.direct ? <a href={download.href}>{download.label}</a> : <Link to={download.href}>{download.label}</Link>}</Button>
-        <Button ref={opener} type="button" variant="outline" size="xl" onClick={() => setFilm(true)}>
-          <svg className="mx-play" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.53.85l10.4-6.5a1 1 0 0 0 0-1.7L9.53 4.65A1 1 0 0 0 8 5.5z" /></svg>
-          Watch the film <span className="mx-dur">{clock(FILMS.overview.duration)}</span>
-        </Button>
+      <div className="sx-hero-row">
+        <div className="sx-hero-copy">
+          <p className="mx-qbd"><span aria-hidden="true" className="w7-mark" />{BRAND_LINE}</p>
+          <h1 id="hero-h" className="sx-h1">{SLOGAN}</h1>
+          <p className="sx-lede">{DESCRIPTION}</p>
+          <div className="sx-ctas">
+            <Button asChild size="xl">{download.direct ? <a href={download.href}>{download.label}</a> : <Link to={download.href}>{download.label}</Link>}</Button>
+            <Button ref={opener} type="button" variant="outline" size="xl" onClick={() => setFilm(true)}>
+              <svg className="mx-play" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.53.85l10.4-6.5a1 1 0 0 0 0-1.7L9.53 4.65A1 1 0 0 0 8 5.5z" /></svg>
+              Watch the film <span className="mx-dur">{clock(FILMS.overview.duration)}</span>
+            </Button>
+          </div>
+          <p className="sx-meta">Runs on your computer, on the agent plan you already pay for · <Link to="/download">macOS, Windows and Linux</Link> · 7-day trial</p>
+        </div>
+        <HeroShot />
       </div>
-      <p className="sx-meta">App or browser · <Link to="/download">macOS, Windows and Linux</Link> · 7-day trial</p>
       <Stations />
       {film ? <FilmDialog onClose={() => { setFilm(false); opener.current?.focus(); }} /> : null}
     </section>

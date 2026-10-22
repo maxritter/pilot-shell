@@ -63,15 +63,25 @@ html{scroll-padding-top:76px}
 .mx-play{flex:none;width:14px;height:14px}
 .mx-dur{font-weight:400;color:var(--mx-ink3)}
 
-/* ---- Hero: the brand line, the slogan in heavy type, then the seven steps as one line ---- */
-.sx-hero{max-width:1240px;margin:0 auto;padding:clamp(64px,8cqi,112px) clamp(16px,3cqi,40px) 0;text-align:left}
+/* ---- Hero: the brand line, the slogan and the download beside the App at a decision, then the seven steps as one line ---- */
+.sx-hero{max-width:1240px;margin:0 auto;padding:clamp(48px,6cqi,88px) clamp(16px,3cqi,40px) 0;text-align:left}
+.sx-hero-row{display:grid;grid-template-columns:minmax(0,1fr);gap:36px;align-items:center}
+@container (min-width: 900px){.sx-hero-row{grid-template-columns:minmax(0,28.5rem) minmax(0,1fr);gap:clamp(24px,2cqi,32px)}}
 .mx-qbd{display:flex;align-items:center;gap:.38em;margin:0 0 clamp(18px,2cqi,26px);font-size:clamp(24px,2.6cqi,36px);line-height:1.05;font-weight:800;letter-spacing:-.035em;color:var(--ql-accent)}
+.sx-hero .mx-qbd{margin-bottom:clamp(14px,1.4cqi,20px);font-size:clamp(19px,1.7cqi,24px)}
 .mx-qbd .w7-mark{flex:none;width:1.1em;height:1.1em}
-.sx-h1{margin:0;max-width:none;font-size:clamp(42px,7.6cqi,104px);line-height:.98;font-weight:800;letter-spacing:-.05em}
-.sx-h1 .mx-acc{display:block;color:var(--ql-accent)}
-.sx-lede{max-width:40rem;margin:clamp(20px,2.4cqi,30px) 0 0;font-size:clamp(17px,1.4cqi,19px);line-height:1.55;color:var(--mx-ink2)}
-.sx-ctas{justify-content:flex-start;gap:12px;margin-top:32px}
-.sx-meta{max-width:none;margin:16px 0 0;font-size:14px;color:var(--mx-ink3)}
+.sx-h1{margin:0;max-width:none;font-size:clamp(34px,3.2cqi,46px);line-height:1.02;font-weight:800;letter-spacing:-.04em;text-wrap:balance}
+.sx-lede{max-width:28.5rem;margin:clamp(20px,2.4cqi,30px) 0 0;font-size:17px;line-height:1.55;color:var(--mx-ink2);text-wrap:balance}
+.sx-ctas{justify-content:flex-start;gap:12px;margin-top:28px}
+.sx-meta{max-width:28.5rem;margin:14px 0 0;font-size:14px;color:var(--mx-ink3)}
+/* The App window: captured at 2x, drawn at most at its own size. Beside the copy it runs to the page's right edge. */
+.sx-shot{max-width:1006px;margin:0;border:1px solid var(--mx-line2);border-radius:8px;background:var(--mx-panel);box-shadow:var(--mx-shadow);overflow:hidden}
+.sx-shot picture,.sx-shot img{display:block;width:100%;height:auto}
+.sx-shot .sx-shot-dark{display:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sx-shot .sx-shot-light{display:none}:root:not([data-theme="light"]) .sx-shot .sx-shot-dark{display:block}}
+:root[data-theme="dark"] .sx-shot .sx-shot-light{display:none}
+:root[data-theme="dark"] .sx-shot .sx-shot-dark{display:block}
+@container (min-width: 900px){.sx-shot{margin-right:calc((min(1240px,100cqi) - 100cqi) / 2 - clamp(16px,3cqi,40px));border-right:0;border-radius:8px 0 0 8px}}
 .sx-meta a{color:var(--mx-ink2)}
 .sx-meta a,.w7-root .mx-endn a{text-decoration-line:underline}
 
@@ -291,7 +301,6 @@ html:has(.mx-filmov[open]){overflow:hidden}
   .pr-seg [data-slot="button"]{flex:1}
   .pr-amt{font-size:42px}
   .sx-hero{padding-top:44px}
-  .sx-h1{font-size:clamp(31px,9.4cqi,42px)}
   .sx-meta{font-size:13.5px}
   .sx-ctas{flex-direction:column;align-items:stretch;max-width:380px;margin-left:0;margin-right:0}
   /* The stations become a list along a vertical line */
