@@ -340,6 +340,13 @@ if [ "$qualitylayer_changed" = "1" ] && have bun && [ -d qualitylayer/node_modul
   fi
 fi
 
+# A note, never a blocker: the website model's sync manifest records a hash for each source file
+# its generated pages were built from, so a staged change to one leaves the manifest behind.
+website_note="$qualitylayer_tree/qualitylayer/scripts/website-model-stale.ts"
+if have bun && [ -f "$website_note" ]; then
+  printf '%s\n' "$staged" | bun "$website_note" "$qualitylayer_tree" || true
+fi
+
 if [ "$qualitylayer_changed" = "1" ]; then
   if have bun && [ -d qualitylayer/node_modules ]; then
     launch "qualitylayer (typecheck+lint)" job_qualitylayer
