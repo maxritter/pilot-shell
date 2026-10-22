@@ -266,10 +266,12 @@ jobs:
   # windows-2025, split so each job ends within ten minutes. The full end-to-end suite runs on
   # Linux and macOS above on every push, and on both Windows runners nightly in
   # qualitylayer-windows-nightly.yml. The dedicated ConPTY job below checks both native targets.
+  # The limit catches a runaway, not a slow hosted runner: shard 3's installer suites take 11-12
+  # minutes on a slow windows-2025 host.
   windows:
     name: Native Windows runtime (${{ matrix.os }}, shard ${{ matrix.shard }}/6)
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 12
+    timeout-minutes: 20
     needs: plaintext-guard
     strategy:
       fail-fast: false
