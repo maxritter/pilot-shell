@@ -48,6 +48,7 @@
     "app:icon": "bun run scripts/app-icon.ts",
     "check:cockpit": "bun scripts/check-cockpit.ts --build --test-build",
     "check:overflow": "bun scripts/check-overflow.ts",
+    "dev:cli": "bun run scripts/dev-cli.ts",
     "dev:skill": "bun run scripts/dev-skill.ts",
     "release-gate": "bun run tests/release/run-agent.ts",
     "bench": "bun run tests/release/bench.ts",
