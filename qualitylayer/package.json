@@ -48,6 +48,7 @@
     "app:icon": "bun run scripts/app-icon.ts",
     "check:cockpit": "bun scripts/check-cockpit.ts --build --test-build",
     "check:overflow": "bun scripts/check-overflow.ts",
+    "check:models": "bun scripts/check-models.ts",
     "dev:cli": "bun run scripts/dev-cli.ts",
     "dev:models": "bun artifacts/app/serve.ts",
     "dev:skill": "bun run scripts/dev-skill.ts",
