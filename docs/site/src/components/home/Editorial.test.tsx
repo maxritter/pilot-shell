@@ -10,7 +10,7 @@ const step = (name: string) => screen.getByRole("button", { name: new RegExp(`^S
 
 it("opens on Plan and opens any other step with its own screen on a click", () => {
   render(<MemoryRouter><Editorial /></MemoryRouter>);
-  const steps = screen.getByRole("list", { name: "The eight steps" });
+  const steps = screen.getByRole("list", { name: "The seven steps and the pull request" });
   expect(within(steps).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual(
     ["Discuss", "Research", "Plan", "Outline", "Implement", "Verify", "Review", "Pull request"].map((name, i) => `${i + 1}Step ${i + 1}: ${name}`),
   );

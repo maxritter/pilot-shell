@@ -18,7 +18,7 @@
 .ed-legend li{display:inline-flex;align-items:center;gap:8px}
 .ed-num{flex:none;display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--ink);color:var(--ink);font:700 13px/1 Geist,system-ui,sans-serif;letter-spacing:0;font-variant-numeric:tabular-nums;transition:background-color .2s var(--ql-ease),color .2s var(--ql-ease)}
 
-/* The tour: the eight steps on the left, the open step's screen pinned on the right */
+/* The tour: the seven steps and the pull request on the left, the open step's screen pinned on the right */
 .ed-tour{display:grid;grid-template-columns:minmax(0,23rem) minmax(0,1fr);gap:clamp(32px,4cqi,56px);align-items:start}
 .ed-steps{margin:0;padding:0;list-style:none;border-bottom:1px solid var(--mx-line)}
 .ed-steps>li{border-top:1px solid var(--mx-line);scroll-margin-top:84px}

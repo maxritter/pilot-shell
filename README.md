@@ -47,6 +47,7 @@ QualityLayer keeps design decisions and verification visible while your agents w
 
 | You get | How it works |
 | --- | --- |
+| **Your own agent and plan** | Claude Code, Codex, Cursor and four more run on the subscription or API key you already have. QualityLayer never charges for AI usage. |
 | **A design you can review** | Comment on diagrams and clickable screens, then approve the Plan before code changes. |
 | **Small, tested changes** | Your agent builds in slices, each starting with a failing test. |
 | **An independent check** | Agents that did not write the code check it against your request. Anything they cannot verify stays open for your decision. |
@@ -131,7 +132,7 @@ Each step writes a Markdown file in your repository. Read questions, decisions a
 |---|---|
 | [Discuss](https://qualitylayer.dev/docs/steps/discuss) | Settles what done means and clarifies a bug report |
 | [Research](https://qualitylayer.dev/docs/steps/research) | Agents read how your code works today; a bug is reproduced and diagnosed here |
-| [Plan](https://qualitylayer.dev/docs/steps/plan) | Artifact, diagrams and checks, **approved by you** |
+| [Plan](https://qualitylayer.dev/docs/steps/plan) | Diagrams, clickable artifacts and checks, **approved by you** |
 | [Outline](https://qualitylayer.dev/docs/steps/outline) | The build session splits the approved Plan into small slices |
 | [Implement](https://qualitylayer.dev/docs/steps/implement) | Each slice starts with a failing test |
 | [Verify](https://qualitylayer.dev/docs/steps/verify) | Every point of your request, with its evidence |
@@ -144,7 +145,14 @@ Each step writes a Markdown file in your repository. Read questions, decisions a
 
 ## Artifacts
 
-Ask your agent for a mockup, diagram or clickable artifact. Compare versions in the App, pin feedback and restore earlier versions. Keep the artifacts every task builds on in your repository. [Artifacts](https://qualitylayer.dev/docs/artifacts).
+An artifact is a mockup, diagram or clickable page your agent draws, so you can try a flow before any code exists. Click a spot to say what should change; your agent edits the page and answers. Keep the ones every task builds on in your repository. [Artifacts](https://qualitylayer.dev/docs/artifacts).
+
+<a href="docs/site/public/product/artifact-dark.webp">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/artifact-dark.webp">
+    <img src="docs/site/public/product/artifact-light.webp" alt="A queue migration console drawn as an artifact, with pinned comments and the agent's reply beside it. Fictional project." width="1000">
+  </picture>
+</a>
 
 ## QualityLayer App
 
