@@ -20,38 +20,42 @@ const priced = (id: "solo" | "team") => {
 const solo = priced("solo");
 const team = priced("team");
 
+/** Asked on the home page and on pricing, answered the same way on both. */
+const CODE_LEAVES = faq(
+  "Does my code leave my computer?",
+  "Your coding agent sends code to its provider under your existing data settings, as it does today. QualityLayer keeps your code, plans, artifacts and agent output on your computer. Sharing encrypts tasks, documents and comments on your computer first: we can't read them, and see only who shared which task, when and at which step. Artifacts go along only if you include them; terminal output and the repository's code never do. Code your team reviews travels through your own Git remote; we store only the team's encrypted comments, the short lines of code they quote and the commits they point to. With Slack connected, task titles and questions pass through our server to Slack. A screenshot you attach to a feedback report can show code, so check it first.",
+);
+
+/** Ordered by what a visitor asks first: cost, the difference, privacy, then how they would use it. */
 export const FAQS: Faq[] = [
   faq(
-    "Can I use it on my own, or only with a team?",
-    "On your own. One developer runs all eight steps. The Team plan adds questions to teammates, Slack messages and reviewing a change together.",
+    "Can I use the models and subscriptions I already have?",
+    "Yes. Claude Code, Codex, Cursor, Grok, Antigravity, Pi and OpenCode run on the login or API key you already have, with the models your plan offers. QualityLayer charges only for itself, never for AI usage. The App shows each step's estimated cost, and Settings › Usage adds up the last 7, 30 or 90 days.",
   ),
   faq(
     "How is this different from plan mode?",
-    "Spec-driven development starts with an approved plan. Here, questions arrive as a batch in Your turn; answer in any order, and each answer reaches your agent immediately. You comment on one plan with diagrams and artifacts, and approve it before coding. Your agent builds it test first, another agent polishes and tests it, and risky changes get independent AI code review.",
+    "Plan mode gives you a plan in the chat, then one long build that you check yourself. With QualityLayer, your agent asks its questions in one batch. Then it shows one plan with diagrams and clickable mockups, which you comment on and approve before any code is written. It builds the plan in tested slices. Agents that did not write the code check it against what you agreed, and you approve the finished change with its evidence.",
   ),
+  CODE_LEAVES,
   faq(
     "What about small changes and bugs?",
     "Choose Chat with Claude Code or Codex for a question, an exploration or a small change. Add a saved plan, slices, artifacts or checks when needed. Feature and Bugfix use the structured workflow, with a Plan you approve before implementation.",
   ),
   faq(
-    "Is it for product managers as well as engineers?",
-    "Yes. Choose Product or Engineering at Setup or in Settings › Workflow. Product starts with a brief: the problem, how success is measured and the first release, with engineering detail folded away. Engineering starts with the full technical plan. The task header switches the level for one task.",
-  ),
-  faq(
     "Can I run my agent in the App or browser?",
-    "Yes. Start Claude Code, Codex, Cursor, Grok, Antigravity, Pi or OpenCode from New task or Implement. Your task stays on the left and the agent runs in the right sidebar. Use the desktop App or the browser connected to your local installation. Your own terminal, VS Code and other IDEs remain available.",
+    "Yes. Start Claude Code, Codex, Cursor, Grok, Antigravity, Pi or OpenCode when you create a task, or from the Agent tab at any step. Your task stays on the left and the agent works on the right, in the desktop App or in your browser. Your own terminal, VS Code and other IDEs still work.",
   ),
   faq(
-    "What does it cost to run?",
-    "Your agents run on your own subscription. The App shows each step's estimated cost. Settings › Usage adds the tokens and estimated cost of the last 7, 30 or 90 days for Claude Code, Codex, Pi and OpenCode.",
+    "Can I use it on my own, or only with a team?",
+    "On your own: one developer runs all seven steps. The Team plan adds sharing plans for feedback, asking teammates through Slack and reviewing a change together.",
+  ),
+  faq(
+    "Is it for product managers as well as engineers?",
+    "Yes. Choose Product or Engineering at Setup or in Settings › Workflow. Product starts with a brief: the problem, how success is measured, the first release and what the user sees, which you can copy as a PRD; the engineering detail stays folded away. Engineering starts with the full technical plan. Each task can switch in its header.",
   ),
   faq(
     "Can I see how much of my plan is left?",
-    "For Claude Code and Codex, yes. The sidebar shows the window with the least left, the conversation footer warns when one runs low, and Settings › Usage lists every window with its reset time. The other agents report no limits, and the App says so. A build that stops on a limit can continue by itself when the window resets.",
-  ),
-  faq(
-    "Does my code leave my computer?",
-    "Your coding agent sends code to its provider under your existing data settings. QualityLayer keeps plans, artifacts and agent output on your computer. Sharing sends the task and its progress, encrypted on your machine, with artifacts only if you include them; never terminal output or the repository's code. Review code travels between your computer and your own Git remote. QualityLayer stores your team's encrypted comments, the short lines of code they quote and the commits they point to. A screenshot you attach to a feedback report can show code, so check it first.",
+    "For Claude Code and Codex, yes. The sidebar shows the window with the least left, the conversation footer marks one that runs low, and Settings › Usage lists every window with its reset time. The other agents report no limits, and the App says so. A build that stops on a limit continues by itself when the window resets, unless you turn that off.",
   ),
   faq(
     "I use Pilot Shell today. What happens?",
@@ -84,10 +88,7 @@ export const PRICING_FAQS: Faq[] = [
     "Who needs a seat?",
     "Everyone on your team who uses QualityLayer. Outside people you invite to comment through a link do not.",
   ),
-  faq(
-    "Does my code leave my computer?",
-    "Plans are files in your repository, and the App runs on your computer. Your AI agent keeps its own provider and data settings. A shared plan is encrypted on your machine first, so we store it but can’t read it. We see who shared it, which task, when and its step. Review code travels between your computer and your own Git remote. QualityLayer stores your team's encrypted comments, the short lines of code they quote and the commits they point to. A screenshot you attach to a feedback report can show code, so check it first.",
-  ),
+  CODE_LEAVES,
   faq(
     "What does Enterprise include?",
     "For companies with 20 developers or more. It can include hosting in your own cloud or on-premise, volume pricing, single sign-on, invoicing and custom terms. Write to us and we scope it together.",

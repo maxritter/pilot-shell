@@ -44,6 +44,13 @@ const App = () => (
           <Route path="/open/*" element={<Open />} />
           <Route path="/download" element={<Download />} />
           <Route path="/compare" element={<Compare />} />
+          <Route path="/compare/superpowers" element={<Compare />} />
+          <Route path="/compare/bmad-method" element={<Compare />} />
+          <Route path="/compare/gsd" element={<Compare />} />
+          <Route path="/compare/traycer" element={<Compare />} />
+          <Route path="/compare/compound-engineering" element={<Compare />} />
+          <Route path="/compare/claude-code-plan-mode" element={<Compare />} />
+          <Route path="/compare/cursor-plan-mode" element={<Compare />} />
           <Route path="/compare/humanlayer" element={<Compare />} />
           <Route path="/compare/spec-kit" element={<Compare />} />
           <Route path="/compare/openspec" element={<Compare />} />

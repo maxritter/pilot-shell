@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Page from "@/components/Page";
 import SEO from "@/components/SEO";
@@ -8,47 +8,113 @@ import { pageMetadata } from "@/lib/seo";
 import { faqStructuredData } from "@/lib/structured-data";
 import "@/styles/comparisons.css";
 
-function Sources({ sources }: { sources: ComparisonSource[] }) {
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const longDate = (iso: string) => {
+  const [year, month, day] = iso.split("-").map(Number);
+  return `${MONTHS[month - 1]} ${day}, ${year}`;
+};
+/** The earliest and the latest date these comparisons were checked. */
+const span = (comparisons: Comparison[]) => {
+  const dates = comparisons.map((c) => c.checked).sort();
+  return { from: dates[0], checked: dates.at(-1)! };
+};
+
+function Sources({ sources, checked, from }: { sources: ComparisonSource[]; checked: string; from?: string }) {
   return (
     <section className="cp-sources" aria-labelledby="sources">
-      <h2 id="sources">Sources, checked October 2026</h2>
-      <p>Checked on <time dateTime="2026-10-19">October 19, 2026</time>. This is QualityLayer's comparison of public documentation, not a hands-on benchmark.</p>
+      <h2 id="sources">Sources, checked {MONTHS[Number(checked.slice(5, 7)) - 1]} {checked.slice(0, 4)}</h2>
+      <p>{from !== undefined && from !== checked ? <>Checked between {longDate(from)} and <time dateTime={checked}>{longDate(checked)}</time></> : <>Checked on <time dateTime={checked}>{longDate(checked)}</time></>}. This compares public documentation; it is not a hands-on benchmark. QualityLayer's claims follow its <a href="/docs/steps/plan">Plan</a>, <a href="/docs/steps/verify">Verify</a>, <a href="/docs/steps/review">Review</a> and <a href="/docs/steps/pull-request">pull request</a> guides.</p>
       <ol>
         {sources.map(({ label, url }, index) => <li key={url} id={`source-${index + 1}`}><a href={url}>{label}</a></li>)}
       </ol>
-      <p>QualityLayer's claims follow its <a href="/docs/steps/plan">Plan</a>, <a href="/docs/steps/verify">Verify</a>, <a href="/docs/steps/review">Review</a> and <a href="/docs/steps/pull-request">pull request</a> guides. Availability and behavior can change; check the linked docs for your setup.</p>
     </section>
   );
 }
 
-function ComparisonLinks({ current }: { current?: string }) {
+/** Every comparison as a card: the tool, what it is best for and the link. */
+function ComparisonCards({ current }: { current?: string }) {
   return (
-    <ul className="cp-links">
-      {COMPARISONS.filter(({ slug }) => slug !== current).map(({ slug, name, summary }) => (
+    <ul className="cp-cards">
+      {COMPARISONS.filter(({ slug }) => slug !== current).map(({ slug, name, bestFor }) => (
         <li key={slug}>
-          <Link to={`/compare/${slug}`}>QualityLayer vs {name}</Link>
-          <p>{summary}</p>
+          <Link to={`/compare/${slug}`}>
+            <span className="cp-card-name">QualityLayer vs {name}</span>
+            <span className="cp-card-fit">{bestFor}</span>
+          </Link>
         </li>
       ))}
     </ul>
   );
 }
 
+const QUALITYLAYER_ROW = {
+  bestFor: "Approving a visual Plan, then reviewing evidence that the change works",
+  plansWith: "Discuss, Research and a Plan with diagrams and clickable artifacts",
+  runsIn: "Claude Code, Codex, Cursor, Grok, Antigravity, Pi and OpenCode, with the App",
+};
+
+/** One row per tool, QualityLayer first, the same three questions for each. */
+function Glance() {
+  return (
+    <div className="cp-table-scroll" role="region" aria-label="Spec-driven development tools at a glance" tabIndex={0}>
+      <table className="cp-glance">
+        <thead><tr><th scope="col">Tool</th><th scope="col">Consider it for</th><th scope="col">Plans with</th><th scope="col">Runs in</th></tr></thead>
+        <tbody>
+          <tr className="cp-ours"><th scope="row">QualityLayer</th><td>{QUALITYLAYER_ROW.bestFor}</td><td>{QUALITYLAYER_ROW.plansWith}</td><td>{QUALITYLAYER_ROW.runsIn}</td></tr>
+          {COMPARISONS.map(({ slug, name, bestFor, plansWith, runsIn }) => (
+            <tr key={slug}><th scope="row"><Link to={`/compare/${slug}`} aria-label={`QualityLayer vs ${name}`}>{name}</Link></th><td>{bestFor}</td><td>{plansWith}</td><td>{runsIn}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** The two products a head-to-head page compares, for search engines. */
+function comparedProducts(c: Comparison) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `QualityLayer vs ${c.name}`,
+    itemListElement: [
+      { "@type": "ListItem", position: 1, item: { "@type": "SoftwareApplication", name: "QualityLayer", url: SITE_URL, applicationCategory: "DeveloperApplication" } },
+      { "@type": "ListItem", position: 2, item: { "@type": "SoftwareApplication", name: c.name, url: c.sources[0].url, applicationCategory: "DeveloperApplication" } },
+    ],
+  };
+}
+
+/** Every comparison the hub lists, in its order. */
+const comparisonList = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "QualityLayer comparisons",
+  itemListElement: COMPARISONS.map(({ slug, name }, index) => ({
+    "@type": "ListItem", position: index + 1, name: `QualityLayer vs ${name}`, url: `${SITE_URL}/compare/${slug}`,
+  })),
+};
+
+/** What QualityLayer carries from the approved Plan to the merged pull request, said once per page. */
 function ProofAndReview() {
   return (
-    <section aria-labelledby="proof">
+    <section className="cp-proof" aria-labelledby="proof">
       <h2 id="proof">How QualityLayer carries proof into review</h2>
-      <p>The <a href="/docs/steps/verify">Verify step</a> records output, screenshots or files for each agreed outcome. Checks that fail or cannot run stay visible in <a href="/docs/steps/review">Review</a>.</p>
-      <p>Independent review depends on risk and settings. On a change that is not risky, the build session can review its own work and marks that review <em>not independent</em>.</p>
-      <p>You approve the Plan before implementation and the result at Review. With GitHub's <code>gh</code> CLI, QualityLayer <a href="/docs/steps/pull-request">follows the pull request</a> through checks and review until you merge it. QualityLayer never merges it.</p>
+      <ul>
+        <li><b>Before code</b><span>You approve the Plan: what changes, what stays, and how you will know it works.</span></li>
+        <li><b>After the build</b><span>The <a href="/docs/steps/verify">Verify step</a> records output, screenshots or files for each agreed outcome. Checks that fail or cannot run stay visible in <a href="/docs/steps/review">Review</a>. A low-risk change may be reviewed by the session that built it, marked <em>not independent</em>.</span></li>
+        <li><b>Until it merges</b><span>With GitHub's <code>gh</code> CLI, QualityLayer <a href="/docs/steps/pull-request">follows the pull request</a> through checks and review. QualityLayer never merges it.</span></li>
+      </ul>
     </section>
   );
 }
 
-function Frame({ title, lead, sources, children, faq = false }: {
+function Frame({ title, lead, sources, checked, from, children, faq = false, data = [] }: {
   title: string;
   lead: string;
   sources: ComparisonSource[];
+  checked: string;
+  from?: string;
+  /** Structured data this page adds: what it compares, or the comparisons it lists. */
+  data?: Record<string, unknown>[];
   children: ReactNode;
   faq?: boolean;
 }) {
@@ -65,7 +131,8 @@ function Frame({ title, lead, sources, children, faq = false }: {
       name: metadata.title,
       description: metadata.description,
       inLanguage: "en",
-      lastReviewed: "2026-10-19",
+      lastReviewed: checked,
+      dateModified: checked,
       publisher: { "@type": "Organization", name: "QualityLayer", url: SITE_URL },
       citation: sources.map(({ url }) => url),
     },
@@ -77,6 +144,7 @@ function Frame({ title, lead, sources, children, faq = false }: {
       })),
     },
     ...(faq ? [faqStructuredData(ROUNDUP_FAQS)] : []),
+    ...data,
   ];
   return (
     <>
@@ -91,7 +159,7 @@ function Frame({ title, lead, sources, children, faq = false }: {
             <p className="w7-lead">{lead}</p>
           </header>
           {children}
-          <Sources sources={sources} />
+          <Sources sources={sources} checked={checked} {...(from !== undefined ? { from } : {})} />
         </article>
       </Page>
     </>
@@ -100,38 +168,43 @@ function Frame({ title, lead, sources, children, faq = false }: {
 
 function HeadToHead({ comparison: c }: { comparison: Comparison }) {
   return (
-    <Frame title={`QualityLayer vs ${c.name}`} lead={c.lead} sources={c.sources}>
-      <section aria-labelledby="strengths">
-        <h2 id="strengths">Where {c.name} is strong</h2>
-        <p>{c.strengths} <a href="#source-1">[1]</a>{c.slug === "kiro" && <> <a href="#source-2">[2]</a></>}</p>
-      </section>
-      <section aria-labelledby="agents">
-        <h2 id="agents">Working with Claude Code and Codex</h2>
-        <p>{c.agents} <a href={`#source-${c.sources.length}`}>[{c.sources.length}]</a>{c.slug === "humanlayer" && <> <a href="#source-1">[1]</a></>}</p>
-      </section>
+    <Frame title={`QualityLayer vs ${c.name}`} lead={c.lead} sources={c.sources} checked={c.checked} data={[comparedProducts(c)]}>
       <section aria-labelledby="workflow">
-        <h2 id="workflow">Compare the workflow</h2>
+        <h2 id="workflow">At a glance</h2>
         <div className="cp-table-scroll" role="region" aria-label={`${c.name} and QualityLayer workflow table`} tabIndex={0}>
           <table>
-            <caption>Documented approaches to planning and checking a change</caption>
             <thead><tr><th scope="col">Your task</th><th scope="col">QualityLayer</th><th scope="col">{c.name}</th></tr></thead>
-            <tbody>{c.rows.map(({ topic, qualitylayer, other, source }) => (
-              <tr key={topic}><th scope="row">{topic}</th><td>{qualitylayer}</td><td>{other} <a href={`#source-${source}`}>[{source}]</a></td></tr>
-            ))}</tbody>
+            <tbody>
+              <tr><th scope="row">Consider it for</th><td>{QUALITYLAYER_ROW.bestFor}</td><td>{c.bestFor}</td></tr>
+              {c.rows.map(({ topic, qualitylayer, other, source }) => (
+                <tr key={topic}><th scope="row">{topic}</th><td>{qualitylayer}</td><td>{other} <a href={`#source-${source}`}>[{source}]</a></td></tr>
+              ))}
+              <tr><th scope="row">Runs in</th><td>{QUALITYLAYER_ROW.runsIn}</td><td>{c.runsIn} <a href={`#source-${c.runsInSource ?? c.sources.length}`}>[{c.runsInSource ?? c.sources.length}]</a></td></tr>
+            </tbody>
           </table>
+        </div>
+        <p className="cp-note">{c.agents}</p>
+      </section>
+      <section aria-labelledby="choose">
+        <h2 id="choose">Which fits your work?</h2>
+        <div className="cp-choose">
+          <div>
+            <h3>Where {c.name} is strong</h3>
+            <p>{c.strengths}{(c.strengthsSources ?? [1]).map((n) => <Fragment key={n}>{" "}<a href={`#source-${n}`}>[{n}]</a></Fragment>)}</p>
+            <p>{c.chooseOther}</p>
+          </div>
+          <div className="cp-ours">
+            <h3>Where QualityLayer fits</h3>
+            <p>{c.chooseQualityLayer}</p>
+            <p className="cp-cta"><Link to="/download">Download the App</Link><Link to="/pricing">See pricing</Link></p>
+          </div>
         </div>
       </section>
       <ProofAndReview />
-      <section aria-labelledby="choose">
-        <h2 id="choose">Which fits your work?</h2>
-        <p>{c.chooseOther}</p>
-        <p>{c.chooseQualityLayer}</p>
-        <p><Link to="/pricing">See QualityLayer pricing</Link> or <Link to="/download">download the App</Link> to evaluate it on your own change.</p>
-      </section>
       <section aria-labelledby="related">
         <h2 id="related">Other comparisons</h2>
-        <p><Link to={ROUNDUP_PATH}>Compare spec-driven development tools by use case</Link>, or <Link to="/compare">browse all comparisons</Link>.</p>
-        <ComparisonLinks current={c.slug} />
+        <ComparisonCards current={c.slug} />
+        <p className="cp-more"><Link to="/compare">All comparisons</Link><Link to={ROUNDUP_PATH}>Spec-driven development tools by use case</Link></p>
       </section>
     </Frame>
   );
@@ -139,34 +212,22 @@ function HeadToHead({ comparison: c }: { comparison: Comparison }) {
 
 function CompareIndex() {
   return (
-    <Frame title="Compare QualityLayer" lead="Choose a workflow for planning, building and reviewing agent-written code. These comparisons explain the overlap, each tool's strengths and where QualityLayer puts your attention." sources={[COMPARISONS[0].sources[1], COMPARISONS[1].sources[2], COMPARISONS[2].sources[2], COMPARISONS[3].sources[2]]}>
-      <section aria-labelledby="comparisons">
-        <h2 id="comparisons">Compare one tool at a time</h2>
-        <ComparisonLinks />
-      </section>
-      <section aria-labelledby="start">
-        <h2 id="start">Start with your review process</h2>
-        <p>Supporting Claude Code and Codex is common ground: HumanLayer's portable RPI skills, GitHub Spec Kit and OpenSpec also work in these agents. Kiro offers its own coding environment, including a CLI.</p>
-        <p>The useful questions are what you approve before code, how the implementation gets checked and what evidence reaches the reviewer. Each detailed comparison links to the documentation behind its claims.</p>
-        <p><Link to={ROUNDUP_PATH}>Read the spec-driven development tools guide</Link> for a comparison by use case, including how to verify AI generated code.</p>
+    <Frame title="Compare QualityLayer" lead="QualityLayer plans a change with you, builds it with your coding agent and checks the result before you approve it. Here is how it compares with other spec-driven development tools." sources={COMPARISONS.map((c) => c.sources.at(-1)!)} {...span(COMPARISONS)} data={[comparisonList]}>
+      <section aria-labelledby="glance">
+        <h2 id="glance">At a glance</h2>
+        <p>Each tool's name opens its side-by-side comparison.</p>
+        <Glance />
+        <p className="cp-more"><Link to={ROUNDUP_PATH}>Spec-driven development tools by use case</Link><a href="/docs/steps/verify">How Verify works</a></p>
       </section>
       <ProofAndReview />
-      <p className="cp-next"><Link to="/pricing">QualityLayer pricing</Link><Link to="/docs/steps/verify" reloadDocument>Explore Verify</Link></p>
     </Frame>
   );
 }
 
 function Roundup() {
-  const bySlug = (slug: string) => COMPARISONS.find((c) => c.slug === slug)!;
-  const tools = [
-    { slug: "spec-kit", fit: "A process your team can customize", note: "Specifications, plans and tasks with configurable extensions and presets. Converge checks the implementation against those artifacts." },
-    { slug: "humanlayer", fit: "Shared planning and agent sessions", note: "Collaborative workspaces, inline artifact discussions and portable RPI skills for Claude Code and Codex." },
-    { slug: "kiro", fit: "Specs in an integrated coding environment", note: "Requirements, artifacts and tasks in Kiro. The IDE includes property-based testing; capabilities vary across its surfaces." },
-    { slug: "openspec", fit: "Evolving specs in an existing repository", note: "Change proposals and spec deltas, with flexible artifact editing, optional verification and archiving into the main specs." },
-  ];
   const sources = COMPARISONS.flatMap((c) => c.sources);
   return (
-    <Frame title="Best spec-driven development tools for your workflow" lead="The best fit depends on where you want structure: writing specs, coordinating agents or reviewing evidence. Here is how QualityLayer, HumanLayer, GitHub Spec Kit, OpenSpec and Kiro approach that work." sources={sources} faq>
+    <Frame title="Best spec-driven development tools for your workflow" lead="The best fit depends on where you want structure: writing specs, coordinating agents or reviewing evidence. Here is how QualityLayer and ten other tools, from GitHub Spec Kit and Superpowers to Kiro and the agents' own plan modes, approach that work." sources={sources} {...span(COMPARISONS)} faq>
       <section aria-labelledby="criteria">
         <h2 id="criteria">How to choose</h2>
         <p>Compare the tools on the same change: define an outcome, inspect the plan, build it and ask what proves it works. This guide uses the public docs linked below. It assigns no scores or performance ranking.</p>
@@ -179,7 +240,7 @@ function Roundup() {
             <caption>A starting point for evaluating your own workflow</caption>
             <thead><tr><th scope="col">Tool</th><th scope="col">Consider it for</th><th scope="col">What the docs describe</th></tr></thead>
             <tbody>
-              {tools.map(({ slug, fit, note }) => <tr key={slug}><th scope="row"><Link to={`/compare/${slug}`}>{bySlug(slug).name}</Link></th><td>{fit}</td><td>{note} <a href={bySlug(slug).sources[0].url}>Docs</a>{slug === "kiro" && <> · <a href={bySlug(slug).sources[1].url}>Testing</a></>}{slug === "openspec" && <> · <a href={bySlug(slug).sources[1].url}>Verification</a></>}</td></tr>)}
+              {COMPARISONS.map(({ slug, name, bestFor, plansWith, sources: [docs] }) => <tr key={slug}><th scope="row"><Link to={`/compare/${slug}`}>{name}</Link></th><td>{bestFor}</td><td>Plans with: {plansWith}. <a href={docs.url}>Docs</a></td></tr>)}
               <tr><th scope="row"><Link to="/">QualityLayer</Link></th><td>Visual planning and human review with recorded proof</td><td>Approve the Plan, check agreed outcomes in Verify and review the evidence before opening a pull request. <a href="/docs/steps/review">Docs</a></td></tr>
             </tbody>
           </table>

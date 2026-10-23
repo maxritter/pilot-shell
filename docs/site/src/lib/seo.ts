@@ -12,10 +12,38 @@ export const PUBLIC_PAGES = {
   },
   "/compare": {
     title: "Compare QualityLayer with spec-driven development tools",
-    description: "Compare QualityLayer with HumanLayer, GitHub Spec Kit, OpenSpec and Kiro. See their strengths, agent support and approaches to verification and review.",
+    description: "Compare QualityLayer with Superpowers, GitHub Spec Kit, OpenSpec, BMAD Method, GSD, Kiro, Traycer, Compound Engineering, plan modes and HumanLayer.",
+  },
+  "/compare/superpowers": {
+    title: "QualityLayer vs Superpowers: skills, approvals and evidence",
+    description: "Compare Superpowers' test-driven skills for Claude Code and Codex with QualityLayer's visual Plan, recorded verification and human review.",
+  },
+  "/compare/bmad-method": {
+    title: "QualityLayer vs BMAD Method: planning artifacts and review",
+    description: "Looking for a BMAD Method alternative? Compare BMAD's agile planning paths and parallel review with QualityLayer's approved Plan and recorded evidence.",
+  },
+  "/compare/gsd": {
+    title: "QualityLayer vs GSD (Get Shit Done): spec loop and proof",
+    description: "Compare GSD's discuss, plan, execute, verify and ship loop with QualityLayer's approvals, verification evidence and pull request follow-up.",
+  },
+  "/compare/traycer": {
+    title: "QualityLayer vs Traycer: desktop apps for coding agents",
+    description: "Compare Traycer's parallel agents, artifacts and tickets with QualityLayer's approved Plan, recorded verification and human Review.",
+  },
+  "/compare/compound-engineering": {
+    title: "QualityLayer vs Compound Engineering: plans and reviews",
+    description: "Compare Every's Compound Engineering plugin with QualityLayer: planning, review against the plan, saved lessons and recorded evidence.",
+  },
+  "/compare/claude-code-plan-mode": {
+    title: "QualityLayer vs Claude Code plan mode: plan, build, verify",
+    description: "Compare Claude Code's built-in plan mode with QualityLayer's full plan, build, verify and review flow inside Claude Code.",
+  },
+  "/compare/cursor-plan-mode": {
+    title: "QualityLayer vs Cursor plan mode: planning and verification",
+    description: "Compare Cursor's plan mode and Projects with QualityLayer's visual Plan, recorded verification and review across coding agents.",
   },
   "/compare/humanlayer": {
-    title: "QualityLayer vs HumanLayer: planning, verification and review",
+    title: "QualityLayer vs HumanLayer: planning, proof and review",
     description: "Considering a HumanLayer alternative? Compare agent support, collaborative planning, recorded verification and human review in QualityLayer and HumanLayer.",
   },
   "/compare/spec-kit": {
@@ -31,8 +59,8 @@ export const PUBLIC_PAGES = {
     description: "Compare Kiro's integrated specs and property-based testing with QualityLayer's Claude Code and Codex workflow, recorded verification and human review.",
   },
   "/best-spec-driven-development-tools": {
-    title: "Best spec-driven development tools for your workflow | QualityLayer",
-    description: "A practical comparison of spec-driven development tools: QualityLayer, HumanLayer, GitHub Spec Kit, OpenSpec and Kiro. Choose by workflow, review and verification.",
+    title: "Best spec-driven development tools compared | QualityLayer",
+    description: "Compare spec-driven development tools, from GitHub Spec Kit, OpenSpec and Superpowers to Kiro and QualityLayer, by workflow, review and verification.",
   },
   "/imprint": {
     title: "Imprint — QualityLayer",

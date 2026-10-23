@@ -6,7 +6,8 @@ import { BANNED_WORDS } from "../lib/banned-words";
 import { PUBLIC_PAGES } from "../lib/seo";
 import { render } from "../prerender";
 
-const ROUTES = ["/compare", "/compare/humanlayer", "/compare/spec-kit", "/compare/openspec", "/compare/kiro", "/best-spec-driven-development-tools"];
+const SLUGS = ["superpowers", "spec-kit", "openspec", "bmad-method", "gsd", "kiro", "traycer", "compound-engineering", "claude-code-plan-mode", "cursor-plan-mode", "humanlayer"];
+const ROUTES = ["/compare", ...SLUGS.map((slug) => `/compare/${slug}`), "/best-spec-driven-development-tools"];
 
 function plainText(html: string) {
   function walk(node: DefaultTreeAdapterMap["node"]): string {
@@ -21,12 +22,12 @@ function schemas(head: string): Record<string, unknown>[] {
 }
 
 describe("comparison pages", () => {
-  it("registers all six requested URLs with distinct search metadata and explicit client routes", () => {
+  it("registers every comparison URL with distinct search metadata and explicit client routes", () => {
     expect(COMPARISON_PATHS).toEqual(ROUTES);
     const pages = ROUTES.map((route) => PUBLIC_PAGES[route as keyof typeof PUBLIC_PAGES]);
     expect(pages.every(Boolean)).toBe(true);
-    expect(new Set(pages.map((page) => page.title)).size).toBe(6);
-    expect(new Set(pages.map((page) => page.description)).size).toBe(6);
+    expect(new Set(pages.map((page) => page.title)).size).toBe(ROUTES.length);
+    expect(new Set(pages.map((page) => page.description)).size).toBe(ROUTES.length);
     const app = readFileSync(new URL("../App.tsx", import.meta.url), "utf8");
     for (const route of ROUTES) expect(app).toContain(`<Route path="${route}" element={<Compare />} />`);
     expect(app).not.toContain('path="/compare/*"');
@@ -37,14 +38,16 @@ describe("comparison pages", () => {
     const metadata = PUBLIC_PAGES[route as keyof typeof PUBLIC_PAGES];
     expect(body.match(/<h1[ >]/g)).toHaveLength(1);
     expect(body.match(/<main[ >]/g)).toHaveLength(1);
+    const comparison = COMPARISONS.find(({ slug }) => route === `/compare/${slug}`);
+    const checked = comparison?.checked ?? COMPARISONS.map((c) => c.checked).sort().at(-1);
     expect(body).toContain("Sources, checked October 2026");
-    expect(body).toContain('datetime="2026-10-19"');
+    expect(body).toContain(`datetime="${checked}"`);
     expect(body).toContain('aria-label="Breadcrumb"');
     expect(head).not.toContain("noindex");
     const data = schemas(head);
     expect(data.find((s) => s["@type"] === "WebPage")).toMatchObject({
       url: `https://qualitylayer.dev${route}`, name: metadata.title,
-      description: metadata.description, lastReviewed: "2026-10-19",
+      description: metadata.description, lastReviewed: checked,
       publisher: { name: "QualityLayer" },
     });
     const breadcrumb = data.find((s) => s["@type"] === "BreadcrumbList");
