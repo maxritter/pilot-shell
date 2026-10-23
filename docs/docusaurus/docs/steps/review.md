@@ -25,16 +25,16 @@ Routine build decisions stay under **Decided while building**. Open the record t
 
 ## The page {#the-page}
 
-Review opens with what needs your decision, then a walkthrough of the change, its screenshots and its checks. Open supporting records when you need the full paths, commits or evidence.
+Review opens with what needs your decision, then a walkthrough of the change, its screenshots and its checks. Open supporting records for full paths, commits or evidence.
 
-`07-review.md` keeps the complete record in the order the pull request description needs, which is why this page draws the walkthrough instead of following the file. Its top becomes the pull request's description. If the task changed a [lasting artifact](../artifacts.md#lasting), you pick which pages to [fold in](../artifacts.md#fold-in).
+`07-review.md` keeps the complete record in the order the pull request description needs, so the page draws the walkthrough instead of following the file. The top of the file becomes the pull request's description. If the task changed a [lasting artifact](../artifacts.md#lasting), you pick which pages to [fold in](../artifacts.md#fold-in).
 
 ## Read the code {#code}
 
 ![The separate code review workspace with changed files and a split diff](pathname:///img/app/review-code-light.webp)
 ![The separate code review workspace with changed files and a split diff](pathname:///img/app/review-code-dark.webp)
 
-**Review the code** opens the Review workspace: the whole change, read like a pull request, in the full window. A file tree lists the changed files, the diff shows **Unified** or **Split**, and **Viewed** marks the files you have read. Your own progress counts only your marks.
+**Review the code** opens the whole change in the full window, read like a pull request. A file tree lists the changed files, the diff shows **Unified** or **Split**, and **Viewed** marks the files you have read. Your progress counts only your own marks.
 
 ### Comment on any line {#line-comments}
 
@@ -56,11 +56,16 @@ The findings of the security review and the second opinion appear as threads on 
 
 ### Approve with open comments {#open-comments}
 
-You can approve while comments are still open. They are not sent to your agent. When the pull request opens, they are posted to it as one GitHub review on their lines, and a **Replace with** becomes a suggestion the author can apply.
+You can approve while comments are still open. They are not sent to your agent. When the pull request opens, they post as one GitHub review on their lines, and a **Replace with** becomes a suggestion the author can apply.
 
 ### Review with your team {#team-review}
 
-**Ask for review** asks teammates to read the code. It shows the Git remote and the commits first, and pushes the task's branch to your team's own Git remote only when you confirm. Teammates with a checkout of the same repository read the code from their own checkout and comment on lines. Teammates without one see the walkthrough with file names. QualityLayer stores the team's encrypted comments, the short lines of code they quote and the commits they point to, never the code itself ([What is shared](../team/plans.md#privacy)).
+**Ask for review** asks teammates to read the code. It shows the Git remote and the commits first, and pushes the task's branch to your team's own Git remote only when you confirm.
+
+- Teammates with a checkout of the same repository read the code there and comment on lines.
+- Teammates without one see the walkthrough with file names.
+
+QualityLayer stores the team's encrypted comments, the short lines they quote and the commits they point to, never the code itself ([What is shared](../team/plans.md#privacy)).
 
 ## Approve {#approve}
 
@@ -73,7 +78,7 @@ You can approve while comments are still open. They are not sent to your agent. 
 ![When an answer asks for a change, the button reads Send 1 change](pathname:///img/diagrams/comments-light.svg)
 ![When an answer asks for a change, the button reads Send 1 change](pathname:///img/diagrams/comments-dark.svg)
 
-Nothing is pushed or merged without your yes. A task built on your main branch has no branch to open a pull request from ([where the build lands](implement.md#where-it-lands)). If you choose to open a pull request, your agent [watches the checks](pull-request.md#watch). Teammates comment in their own App ([Change reviews](../team/changes.md)).
+Nothing is pushed or merged without your yes. A task built on your main branch has no branch to open a pull request from ([where the build lands](implement.md#where-it-lands)). Once a pull request is open, your agent [watches the checks](pull-request.md#watch). Teammates comment in their own App ([Change reviews](../team/changes.md)).
 
 ## Stop, archive or delete a task {#stop-archive-or-delete-a-task}
 

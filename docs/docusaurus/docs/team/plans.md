@@ -21,21 +21,29 @@ On a shared Plan or Review, **Looks right** sends your review to the owner. **Su
 
 ## Share and reading status
 
-**Share** brings team or group access, people with access, review requests, artifact inclusion and the outside link into one sheet. Seat management stays in Settings.
+**Share** holds team or group access, people with access, review requests, artifact inclusion and the outside link in one sheet. Seats are managed in Settings.
 
-The task header shows who it waits on and offers **Remind**. **Seen by** names confirmed readers of the current shared version and opens the same Share sheet. When reading data is unavailable, the App leaves reading status out. **Not opened yet** appears only when that data is known.
+The task header shows who it waits on and offers **Remind**. **Seen by** names confirmed readers of the current shared version and opens the same Share sheet. **Not opened yet** appears only when reading data is known; otherwise the App shows no reading status.
 
 ## Slack {#slack}
 
-The team owner connects Slack once in **Settings › Team**. Each person controls **Slack messages to you** and an optional **Morning digest**. Digest timing uses the computer's local time automatically; Slack controls do-not-disturb hours. **Follow** subscribes you to a shared task's updates.
+The team owner connects Slack once in **Settings › Team**. Each person then controls:
 
-Questions and answers always appear in Team. Slack delivery depends on your own notification setting and account match. If your emails differ, link your own Slack account in Settings.
+- **Slack messages to you**
+- an optional **Morning digest**, sent by your computer's local time
+- **Follow**, which subscribes you to a shared task's updates
+
+Slack controls do-not-disturb hours. Questions and answers always appear in Team. Slack delivery depends on your own notification setting and account match. If your emails differ, link your own Slack account in Settings.
 
 ## People outside your team {#outside-links}
 
-**Share › Copy link** gives a qualitylayer.dev link. Anyone with it can read and comment without an account; the task owner decides approval. The open page updates as the task changes and keeps your unsent answers and comments. A link lasts 14 days; **Revoke** ends it at once. **Include artifacts** adds previews ([Artifacts](../artifacts.md#never-shared)).
+**Share › Copy link** gives a qualitylayer.dev link. Anyone with it can read and comment without an account. The task owner decides approval.
 
-If an update cannot be published, Share shows the problem and keeps the last complete copy. Reduce oversized content, then use **Retry sharing** for the team or **Renew** for an external link.
+- The open page updates as the task changes and keeps your unsent answers and comments.
+- A link lasts 14 days; **Revoke** ends it at once.
+- **Include artifacts** adds previews ([Artifacts](../artifacts.md#never-shared)).
+
+If an update cannot be published, Share shows the problem and keeps the last complete copy. Shrink oversized content, then use **Retry sharing** for the team or **Renew** for an external link.
 
 A coding agent can fetch the shared documents as Markdown, no licence needed:
 
@@ -47,4 +55,9 @@ The file holds the whole link, including the part after `#`; keep it private ([d
 
 ## What is shared {#privacy}
 
-Shared documents, artifacts and comment bodies are encrypted with your team's key before publication. The server stores their ciphertext. Slack notifications can include task titles and short question or answer excerpts, which pass through the notification service. Review code travels between your computer and your own Git remote. QualityLayer stores your team's encrypted comments, the short lines of code they quote (up to 300 characters each) and the commits and branch they point to. The shared task includes no source files, diffs or logs. More in [Files and privacy](../reference/files.md#privacy).
+- Shared documents, artifacts and comment bodies are encrypted with your team's key before publication. The server stores only ciphertext.
+- Slack notifications can include task titles and short question or answer excerpts, which pass through the notification service.
+- Review code travels between your computer and your own Git remote. QualityLayer stores your team's encrypted comments, the short lines of code they quote (up to 300 characters each) and the commits and branch they point to.
+- The shared task includes no source files, diffs or logs.
+
+More in [Files and privacy](../reference/files.md#privacy).

@@ -29,8 +29,6 @@ Usually nothing. Comment on a finding you disagree with. If the code leaves a re
 
 ## The document {#the-page}
 
-`02-research.md` opens with a plain summary. Read the findings and any unresolved uncertainty before approving the later Plan. Open questions remain visible until you answer them.
-
-Read the risks and open questions first, then expand a finding for its evidence. Earlier answers and code references remain available in the document.
+`02-research.md` opens with a plain summary. Read the risks and open questions first; they stay visible until you answer them. Then expand a finding for its evidence. Earlier answers and code references stay in the document.
 
 Next: [Plan](plan.md).

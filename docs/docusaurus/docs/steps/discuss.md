@@ -6,7 +6,7 @@ description: Your agent reads the code and asks until it knows what you want and
 ![The eight steps, with Discuss highlighted](pathname:///img/diagrams/track-discuss-light.svg)
 ![The eight steps, with Discuss highlighted](pathname:///img/diagrams/track-discuss-dark.svg)
 
-Describe the change with **+ New** in QualityLayer or ask your agent: “Using QL, plan a CSV export.” Your agent reads the code and groups related questions into a batch, each with a recommendation.
+Describe the change with **+ New**, or ask your agent: “Using QL, plan a CSV export.” Your agent reads the code and groups related questions into a batch, each with a recommendation.
 
 ![Discuss in the App: one question with its choices](pathname:///img/app/discuss-light.webp)
 ![Discuss in the App: one question with its choices](pathname:///img/app/discuss-dark.webp)
@@ -25,15 +25,15 @@ Describe the change with **+ New** in QualityLayer or ask your agent: “Using Q
 
 `01-discuss.md` records your request, the scope and **Done means**: the numbered results you accept the change by. Verify checks each one. You approve it with the Plan; changing it later withdraws that approval.
 
-**Done means** lists the results you will accept, with scope and earlier answers below. Open the full document for the code context.
+The page shows **Done means** first, with scope and earlier answers below. Open the full document for the code context.
 
 ## Too small for a plan {#too-small}
 
 Small requests keep a short Plan and one slice. If you ask for a plain prompt instead, your agent hands one back and closes the task.
 
-## What to build is still open {#prd}
+## Starting without a ticket {#prd}
 
-Without a ticket, the document becomes a PRD with a success measure and a first release. **Copy** exports it.
+When what to build is still open, the document becomes a PRD with a success measure and a first release. **Copy** exports it.
 
 ## A bug {#a-bug}
 
@@ -42,6 +42,8 @@ You agree on when it happens, what goes wrong, what should happen and what must 
 ![Bug diagnosis: when, what happens, what is expected, what must keep working](pathname:///img/diagrams/diagnose-light.svg)
 ![Bug diagnosis: when, what happens, what is expected, what must keep working](pathname:///img/diagrams/diagnose-dark.svg)
 
-At the **Product** level, questions use product words: the problem and first release, then what the user sees, with grey wireframes ([two levels](../intro.md#two-levels)). The page keeps the PRD's sections open, since the file is the PRD.
+## At the Product level {#product-level}
+
+Questions use product words: the problem and first release, then what the user sees, with grey wireframes ([two levels](../intro.md#two-levels)). The page keeps the PRD's sections open, since the file is the PRD.
 
 Next: [Research](research.md).

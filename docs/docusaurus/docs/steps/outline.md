@@ -22,12 +22,10 @@ The Plan says what changes; the Outline says how it is built, slice by slice. Th
 
 On a larger or risky build, a second agent checks that every card can be built.
 
-The build map groups slices by their build order. Open a slice for its tasks and tests. Each **Done means** point links to the scenario and slice that proves it.
-
-Independent slices run side by side. When extra build waves are necessary, the Outline records why. Cards name source files; check output, pictures and other evidence stay in the task’s records.
+The build map groups slices by build order. Open a slice for its tasks and tests. Each **Done means** point links to the scenario and slice that prove it. When extra build waves are needed, the Outline records why. Cards name source files; check output and pictures stay in the task’s records.
 
 ## What you do {#what-you-do}
 
-[Start the build](implement.md#start-implement). You can follow progress or comment on a slice. Missing human-only prerequisites stay unverified for Review while available work continues; they do not create another workflow approval here.
+[Start the build](implement.md#start-implement). You can follow progress or comment on a slice. Human-only prerequisites that are missing stay unverified for Review while available work continues. They create no new approval here.
 
 Next: [Implement](implement.md).

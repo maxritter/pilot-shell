@@ -20,8 +20,8 @@ Polish, Security review and Second opinion start side by side when enabled. Proj
 | Check | What it does |
 | --- | --- |
 | **1. Polish** | Removes dead code, adds missing tests, updates docs |
-| **2. Security review** | When the change touches sign-in, secrets or outside input |
-| **3. Second opinion** | Risky changes: a separate reviewer checks for breakage using the installed agent selected in [Settings](../reference/settings.md#second-opinion); its findings are addressed before Independent review |
+| **2. Security review** | Runs when the change touches sign-in, secrets or outside input |
+| **3. Second opinion** | For risky changes, a separate reviewer checks for breakage, using the agent chosen in [Settings](../reference/settings.md#second-opinion). Its findings are fixed before Independent review |
 | **4. Project checks** | Your tests, types, lint and build |
 | **5. Independent review** | Proves every **Done means** point on the running program |
 | **6. Fix rounds** | Fixes everything found, then reruns what it touched |
@@ -32,13 +32,12 @@ On a change that is not risky, the build session runs the review itself and mark
 
 Each **Done means** point shows its evidence as it comes in: output, a screenshot or a file. Failures are fixed test first, without asking you.
 
-**Done means, checked** shows each result with its evidence. Failed and blocked points come first; open a check for its commands and output. Fix rounds and full review records remain available below.
+**Done means, checked** shows each result with its evidence. Failed and blocked points come first; open a check for its commands and output. Fix rounds and full review records stay below.
 
 ## What reaches Review {#when-it-stops}
 
-Failed checks keep their results and evidence. Human-only prerequisites, unavailable environments and exhausted fix rounds reach Review as unresolved work. They do not become passed checks or ask you to approve another build step.
+Failed checks keep their results and evidence. Human-only prerequisites, unavailable environments and exhausted fix rounds reach Review as unresolved work. They never count as passed, and they ask you to approve no further build step.
 
 In Review, you can request another fix round or decide what to do with the remaining gaps. Your agent's native permissions and your explicit stop or pause still apply.
-
 
 Next: [Review](review.md).

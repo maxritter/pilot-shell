@@ -1,7 +1,7 @@
 ---
 slug: /
 title: Overview
-description: QualityLayer takes your coding agent from a request to a merged pull request in eight steps, and shows you where you decide.
+description: Your agent plans, builds and checks a change in eight steps, from request to merged pull request. You decide at the Plan and at the result.
 ---
 
 <figure class="ql-film">
@@ -9,7 +9,7 @@ description: QualityLayer takes your coding agent from a request to a merged pul
   <figcaption>How QualityLayer works, in about five minutes.</figcaption>
 </figure>
 
-**Quality by design.** QualityLayer is the software factory with you in the loop. Use the **App or browser**, with the task on the left and your agent in the right sidebar. Your agent reads the code and plans each change with you: the architecture as diagrams, the screens as clickable artifacts, every decision in the open. Once you and your team agree on the plan, your agent builds it test first and takes it to a pull request; agents that did not write the code check the result against your request.
+**Quality by design.** QualityLayer is the software factory with you in the loop. The task is on the left and your agent in the right sidebar, in the App or your browser. Your agent reads the code and plans each change with you: architecture as diagrams, screens as clickable artifacts, every decision in the open. You approve the Plan before any code. Your agent then builds test first and opens a pull request, and agents that did not write the code check the result against your request.
 
 ![The visual Plan: request retries, replay and a write-once ledger, with Approve Plan](pathname:///img/app/plan-light.webp)
 ![The visual Plan: request retries, replay and a write-once ledger, with Approve Plan](pathname:///img/app/plan-dark.webp)
@@ -20,7 +20,7 @@ description: QualityLayer takes your coding agent from a request to a merged pul
 
 ## The eight steps {#the-seven-steps}
 
-Each of the first seven steps writes one document. You approve twice: the Plan, and the finished change. After you start the build, your agent continues through Outline, Implement and Verify without workflow questions. Human-only prerequisites and blocked checks stay unverified for Review.
+The first seven steps each write one document. You approve twice: the Plan, then the finished change. After you start the build, your agent runs Outline, Implement and Verify without workflow questions. Anything only you can do waits for Review.
 
 ![The eight steps from Discuss to the pull request; you approve the Plan and the finished change, and merge](pathname:///img/diagrams/flow-pr-light.svg)
 ![The eight steps from Discuss to the pull request; you approve the Plan and the finished change, and merge](pathname:///img/diagrams/flow-pr-dark.svg)
@@ -33,16 +33,20 @@ Each of the first seven steps writes one document. You approve twice: the Plan, 
 | **[Outline](steps/outline.md)** | Your agent cuts the Plan into slices. Nothing to approve |
 | **[Implement](steps/implement.md)** | Your agent builds the approved Plan in small tested slices |
 | **[Verify](steps/verify.md)** | Six checks, including agents that did not write the code |
-| **[Review](steps/review.md)** | You settle what is left and approve; opening a pull request is optional |
+| **[Review](steps/review.md)** | You settle what is left and approve. Opening a pull request is optional |
 | **[Pull request](steps/pull-request.md)** | Your agent fixes failing checks, up to three times. You merge |
 
 ## Who it is for
 
-Use it for medium and large changes, solo or with a team. Claude Code, Codex, Cursor, Grok, Antigravity, Pi and OpenCode run beside your task in the App or browser through [native integrations](agents/native.md). [Other coding agents](agents/other.md) use the same workflow through the CLI. Your agent keeps its own login and provider settings.
+Medium and large changes, alone or with a team.
+
+- **Seven agents** run beside your task through [native integrations](agents/native.md): Claude Code, Codex, Cursor, Grok, Antigravity, Pi and OpenCode.
+- **[Other coding agents](agents/other.md)** use the same workflow through the CLI.
+- Your agent keeps its own login and provider settings.
 
 ## Two levels
 
-Pick a level at **Setup**; change it in **Settings › Workflow**, or per task in the task header until you approve its Plan.
+Pick a level at **Setup**. Change it in **Settings › Workflow**, or per task in the task header until you approve its Plan.
 
 | | Engineering (default) | Product |
 | --- | --- | --- |

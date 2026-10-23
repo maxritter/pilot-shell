@@ -19,11 +19,11 @@ description: Use QualityLayer with any coding agent that can run shell commands,
 ![Plan with Claude Code, approve the Plan, build with another agent, then the same checks and your approval](pathname:///img/diagrams/agents-mix-light.svg)
 ![Plan with Claude Code, approve the Plan, build with another agent, then the same checks and your approval](pathname:///img/diagrams/agents-mix-dark.svg)
 
-Pick **In my terminal** when starting the build and copy its prompt. After you start, it follows Outline, Implement and Verify until human Review. [Settings](../reference/settings.md#defaults) holds the general run controls.
+Pick **In my terminal** when you start the build and copy its prompt. The agent then follows Outline, Implement and Verify until Review. [Settings](../reference/settings.md#defaults) holds the general run controls.
 
 ## Run in your terminal {#app-start}
 
-Choose **In my terminal** and paste the prompt into any coding agent. Conversations in the App or browser are available for the seven supported integrations; another agent does not gain those controls from a copied prompt.
+Choose **In my terminal** and paste the prompt into any coding agent. A copied prompt does not add the App's conversation view or session controls; those belong to the seven supported agents.
 
 ## What changes {#differences}
 
