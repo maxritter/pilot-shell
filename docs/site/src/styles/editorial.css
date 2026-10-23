@@ -78,7 +78,7 @@
 .ed-image-dialog::backdrop{background:rgb(0 0 0 / 70%)}
 .ed-dialog-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:12px}
 .ed-dialog-header h2{flex:1;min-width:0}
-.ed-dialog-header button{flex:none}
+.ed-dialog-header button,.ed-dialog-header a{flex:none}
 .ed-image-dialog img{display:block;width:100%;height:auto;max-height:calc(100dvh - 160px);object-fit:contain}
 .ed-image-dialog>p{margin:12px 0 0;font-size:12px;line-height:1.6;color:var(--mx-ink2)}
 
@@ -95,7 +95,15 @@
   .ed-tabs{gap:6px}
   .ed-tab{padding:0 14px}
 }
-@media(max-width:480px){.ed-image-dialog{padding:12px;width:calc(100vw - 24px);max-width:calc(100vw - 24px)}}
+/* Phones: a tap opens the screenshot full screen, edge to edge, with its actions in a bar that stays on top. */
+@media(max-width:640px){
+  .ed-image-dialog.ed-image-dialog{inset:0;top:0;left:0;translate:none;transform:none;display:block;width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;padding:0;border-radius:0;box-shadow:none;overflow:auto;overscroll-behavior:contain}
+  .ed-image-dialog .ed-dialog-header{position:sticky;top:0;z-index:1;flex-wrap:nowrap;gap:8px;margin:0;padding:8px 12px;background:var(--mx-panel);border-bottom:1px solid var(--mx-line2)}
+  .ed-image-dialog .ed-dialog-header h2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ed-image-dialog img{max-height:none}
+  .ed-image-dialog>p{margin:0;padding:12px 16px 20px}
+  .ed-image-dialog .ed-image-error{margin:12px 16px}
+}
 
 @media(prefers-reduced-motion:reduce){
   .ed-num,.ed-frame img,.ed-enlarge{transition:none}

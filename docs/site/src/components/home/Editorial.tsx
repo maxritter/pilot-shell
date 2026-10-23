@@ -37,7 +37,7 @@ function Picture({ shot, theme, eager, inDialog }: { shot: Shot; theme: "light" 
       <source media={PHONE} srcSet={phoneSrc(shot, theme)} width={780} height={1400} />
       <img src={src(shot, theme)} alt={shot.alt} width="2240" height="1800" loading={eager || inDialog ? undefined : "lazy"} decoding="async" onError={() => setFailed(true)} onLoad={() => setFailed(false)} />
     </picture>
-    {failed ? <span className="ed-image-error">{shot.title} image unavailable. {inDialog ? "Use the full-size image link to retry." : "Open the preview to retry."}</span> : null}
+    {failed ? <span className="ed-image-error">{shot.title} image unavailable. {inDialog ? "Use Full size to retry." : "Open the preview to retry."}</span> : null}
     </>
   );
 }
@@ -46,13 +46,14 @@ function ImageDialog({ shot, theme, onClose, opener }: { shot: Shot; theme: "lig
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent aria-modal="true" className="ed-image-dialog" showCloseButton={false} onCloseAutoFocus={(event) => { event.preventDefault(); opener?.focus(); }}>
+        {/* Both actions sit in the header, so on a phone neither waits below the picture. */}
         <div className="ed-dialog-header">
           <DialogTitle>{shot.title}</DialogTitle>
+          <Button asChild variant="outline" size="xl"><a href={src(shot, theme)} target="_blank" rel="noopener noreferrer" aria-label="Open the full-size image"><ExternalLink size={16} aria-hidden="true" />Full size</a></Button>
           <DialogClose asChild><Button type="button" variant="outline" size="xl" aria-label="Close preview"><X size={18} aria-hidden="true" />Close</Button></DialogClose>
         </div>
         <Picture shot={shot} theme={theme} inDialog />
         <DialogDescription>{shot.id === "memory" ? "Illustrative projects in the Memory settings." : "Example task in the QualityLayer App."}</DialogDescription>
-        <Button asChild variant="outline" size="xl"><a href={src(shot, theme)} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} aria-hidden="true" />Open full-size image</a></Button>
       </DialogContent>
     </Dialog>
   );
