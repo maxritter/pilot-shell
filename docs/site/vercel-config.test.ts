@@ -303,13 +303,15 @@ describe("where the functions run", () => {
     expect(config.regions).toEqual(["fra1"]);
   });
 
-  it("pins every handler to fra1, next to the database and Redis", () => {
+  it("keeps Edge pins and inherited Node regions in Frankfurt, next to the database and Redis", () => {
     const handlers = readdirSync(new URL("./api", import.meta.url), { recursive: true, encoding: "utf8" }).filter(isHandler);
     expect(handlers.length).toBeGreaterThan(0);
     const regions = Object.fromEntries(
       handlers.map((file) => {
         const source = readFileSync(new URL(`./api/${file}`, import.meta.url), "utf8");
-        return [file, /export const config = \{[^}]*regions: (\[[^\]]*\])/.exec(source)?.[1]];
+        const explicit = /export const config = \{[^}]*regions: (\[[^\]]*\])/.exec(source)?.[1];
+        const edge = /export const config = \{[^}]*runtime:\s*["']edge["']/.test(source);
+        return [file, explicit ?? (edge ? undefined : JSON.stringify(config.regions))];
       }),
     );
     expect(regions).toEqual(Object.fromEntries(handlers.map((file) => [file, '["fra1"]'])));

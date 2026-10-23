@@ -41,8 +41,10 @@ The agent wakes once per event, at most 3 times a day per pull request, and not 
 A new review thread or failing check moves the task to **Needs attention**:
 
 1. Ask your agent: “Using QL, review task retry-webhooks”, naming your actual task.
-2. Your agent works through each thread with you and fixes what needs fixing.
+2. Your agent checks each thread against the code and the approved Plan. It fixes a routine, in-scope request itself, test first. It asks you only when a thread would change the scope or design, or when a reply is ready to post.
 3. Press **Push the fix**. Your answers post on GitHub in your name.
+
+For review threads, pushing the fix and replying to reviewers stay yours, and so does merging.
 
 ## Merged or closed {#merged}
 

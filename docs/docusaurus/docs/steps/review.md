@@ -23,7 +23,7 @@ The final approval is always yours. After Outline, Implement and Verify, Review 
 
 Routine build decisions stay under **Decided while building**. Open the record to read them or **Ask why**; they do not each require a confirmation.
 
-When the [Verify rounds](verify.md#rounds) ended with something still open, it stands first. **Fix open items** runs one more round on just those items; you can also approve with the item open or request changes. Anything the build moved on from is listed here too.
+What Verify left open stands first ([two runs](verify.md#rounds)), together with cards the build left unticked and needs it recorded. **Fix open items** runs one more round on just those items; you can also approve with the item open or request changes.
 
 ## The page {#the-page}
 
@@ -80,7 +80,7 @@ QualityLayer stores the team's encrypted comments, the short lines they quote an
 ![When an answer asks for a change, the button reads Send 1 change](pathname:///img/diagrams/comments-light.svg)
 ![When an answer asks for a change, the button reads Send 1 change](pathname:///img/diagrams/comments-dark.svg)
 
-Nothing is pushed or merged without your yes. A task built on your main branch has no branch to open a pull request from ([where the build lands](implement.md#where-it-lands)). Once a pull request is open, your agent [watches the checks](pull-request.md#watch). Teammates comment in their own App ([Change reviews](../team/changes.md)).
+Nothing is pushed or merged without your yes. A task built on your main branch has no branch to open a pull request from ([where the build lands](implement.md#where-it-lands)). Once a pull request is open, your agent [watches the checks](pull-request.md#watch) and works through reviewers' threads ([Pull request](pull-request.md#waits)). Teammates comment in their own App ([Change reviews](../team/changes.md)).
 
 ## Stop, archive or delete a task {#stop-archive-or-delete-a-task}
 

@@ -49,8 +49,8 @@ QualityLayer keeps design decisions and verification visible while your agents w
 | --- | --- |
 | **Your own agent and plan** | Claude Code, Codex, Cursor and four more run on the subscription or API key you already have. QualityLayer never charges for AI usage. |
 | **A design you can review** | Comment on diagrams and clickable screens, then approve the Plan before code changes. |
-| **Small, tested changes** | Your agent builds in slices, each starting with a failing test. |
-| **An independent check** | A fresh agent that did not write the code adds missing tests and checks each point of your request on the running program. Anything it cannot verify stays open for your decision. |
+| **Small, tested changes** | Your agent builds in slices, each starting with a failing test, and fixes what fails itself. |
+| **An independent check** | A fresh agent that did not write the code adds missing tests and rules on each point of your request on the running program. Anything it cannot verify stays open for your decision in Review. |
 | **Code health checks** | Local checks flag complex functions and deeply nested code for your agent to review. Ask for a wider check to find duplication. [Code health](https://qualitylayer.dev/docs/reference/code-health). |
 | **Visible decisions and effort** | Each step records its decisions and results in your repository, with time and estimated model cost shown in the App. |
 
@@ -99,7 +99,7 @@ Run `pilot update` to install QualityLayer v12, or download it directly. Keep Pi
 
 In the App or browser, choose **+ New**, then **Chat**, **Feature** or **Bugfix**. Pick your repository and agent, and describe what you need.
 
-**Chat** opens a full-width conversation with Claude Code or Codex, without workflow steps or approval gates. Answer the agent's clickable questions and follow its task list above the composer. Ask it to save a plan, build in slices, make artifacts, run checks or request an independent review. In a terminal, ask: “Using QualityLayer, chat about retrying failed webhooks.”
+**Chat** opens a full-width conversation with Claude Code or Codex, without workflow steps or approval gates. Answer the agent's clickable questions and follow its task list above the composer when it has one. Ask it to save a plan, build in slices, make artifacts, run checks or request an independent review. In a terminal, ask: “Using QualityLayer, chat about retrying failed webhooks.”
 
 Choose **Start the workflow**, then Feature or Bugfix, when the work needs the full process. The same task enters Discuss with its conversation history, saved plan and artifacts as context. The workflow's Plan approval governs subsequent work. [Chat guide](https://qualitylayer.dev/docs/chat).
 
@@ -142,7 +142,7 @@ Only `ql-workflow` starts the planning and build workflow; the others work on th
 
 <h2 id="features">The Workflow</h2>
 
-Each step writes a Markdown file in your repository. Read questions, decisions and results in the App. You approve the Plan and the finished change; QualityLayer pushes only with your approval and leaves merging to you.
+Each step writes a Markdown file in your repository. Your agent follows a short instruction for each step and decides how to carry it out. Read questions, decisions and results in the App. You approve the Plan and the finished change; QualityLayer pushes only with your approval and leaves merging to you.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/flow-pr-dark.svg">
@@ -155,25 +155,14 @@ Each step writes a Markdown file in your repository. Read questions, decisions a
 | [Research](https://qualitylayer.dev/docs/steps/research) | Agents read how your code works today; a bug is reproduced and diagnosed here |
 | [Plan](https://qualitylayer.dev/docs/steps/plan) | Diagrams, clickable artifacts and checks, **approved by you** |
 | [Outline](https://qualitylayer.dev/docs/steps/outline) | The build session splits the approved Plan into small slices |
-| [Implement](https://qualitylayer.dev/docs/steps/implement) | Each slice starts with a failing test |
-| [Verify](https://qualitylayer.dev/docs/steps/verify) | A fresh agent checks every point of your request, with its evidence |
+| [Implement](https://qualitylayer.dev/docs/steps/implement) | Your agent builds test first, fixes what fails and decides when it is ready |
+| [Verify](https://qualitylayer.dev/docs/steps/verify) | The project checks, then a fresh agent rules on every point of your request, with its evidence |
 | [Review](https://qualitylayer.dev/docs/steps/review) | A walkthrough of the change, **approved by you** |
-| [Pull request](https://qualitylayer.dev/docs/steps/pull-request) | Failing checks fixed; the task stays open until you merge |
+| [Pull request](https://qualitylayer.dev/docs/steps/pull-request) | Failing checks and routine review threads fixed; the task stays open until you merge |
 
 ### Two levels
 
 **Engineering** starts with a technical plan. **Product** starts with a brief that becomes a product requirements document. Choose at Setup or change it in Settings › Workflow or the task header. [How they differ](https://qualitylayer.dev/docs/#two-levels).
-
-## Artifacts
-
-An artifact is a mockup, diagram or clickable page your agent draws, so you can try a flow before any code exists. Click a spot to say what should change; your agent edits the page and answers. Keep the ones every task builds on in your repository. [Artifacts](https://qualitylayer.dev/docs/artifacts).
-
-<a href="docs/site/public/product/artifact-dark.webp">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/artifact-dark.webp">
-    <img src="docs/site/public/product/artifact-light.webp" alt="A queue migration console drawn as an artifact, with pinned comments and the agent's reply beside it. Fictional project." width="1000">
-  </picture>
-</a>
 
 ## QualityLayer App
 
@@ -186,17 +175,27 @@ An artifact is a mockup, diagram or clickable page your agent draws, so you can 
 
 | In the App | What you can do |
 | --- | --- |
-| **Agent workspace** | Read artifacts beside the conversation. Answer questions and pin feedback. |
-| **Run controls** | Choose agent, model, effort, permission mode and branch. Seven agents run in their own terminals, with their own sign-in. |
-| **Plan limits** | See how much of your Claude Code and Codex plans is left, and when each window resets. |
-| **Files and Review** | See the branch and what changed, and open any file in VS Code, Cursor, Zed, Finder or Terminal. |
-| **Settings** | Agents, usage, sessions, notifications, editor, appearance and the update channel. [Settings](https://qualitylayer.dev/docs/reference/settings). |
-| **Project memory** | Reuse lessons across tasks and share them through Git. [Project memory](https://qualitylayer.dev/docs/memory). |
-| **Team review** | Ask teammates over Slack and review shared work with a [Team plan](https://qualitylayer.dev/docs/team/plans). |
+| **Chat or a planned task** | Chat is a direct conversation with Claude Code or Codex. Feature and Bugfix follow the seven-step workflow, with your two approvals. |
+| **Conversation and terminal** | Read the agent's conversation or its terminal beside the task. Answer questions and pin feedback. |
+| **Artifacts** | Try mockups, diagrams and clickable pages before any code exists. |
+| **Checks and code review** | See each step's checks and evidence, then read the change like a pull request and comment on any line. |
+| **Agent controls and usage** | Choose agent, model, effort, permission mode and branch for each run, and see how much of your Claude Code and Codex plans is left. More in [Settings](https://qualitylayer.dev/docs/reference/settings). |
+| **Memory and team** | Reuse lessons across tasks through Git ([Project memory](https://qualitylayer.dev/docs/memory)). Ask teammates over Slack and review shared work with a [Team plan](https://qualitylayer.dev/docs/team/plans). |
 
 QualityLayer keeps task files on your computer and encrypts shared tasks first. Your coding agent uses its own provider. [Files and privacy](https://qualitylayer.dev/docs/reference/files#privacy).
 
 [Explore the App →](https://qualitylayer.dev/docs/app)
+
+## Artifacts
+
+An artifact is a mockup, diagram or clickable page your agent draws, so you can try a flow before any code exists. Click a spot to say what should change; your agent edits the page and answers. Keep the ones every task builds on in your repository. [Artifacts](https://qualitylayer.dev/docs/artifacts).
+
+<a href="docs/site/public/product/artifact-dark.webp">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/artifact-dark.webp">
+    <img src="docs/site/public/product/artifact-light.webp" alt="A queue migration console drawn as an artifact, with pinned comments and the agent's reply beside it. Fictional project." width="1000">
+  </picture>
+</a>
 
 ---
 

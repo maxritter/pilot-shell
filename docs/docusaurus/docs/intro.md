@@ -28,6 +28,13 @@ Choose **Feature** or **Bugfix** for the structured workflow below: agree on the
 
 The first seven steps each write one document. You approve twice: the Plan, then the finished change. After you start the build, your agent runs Outline, Implement and Verify without workflow questions. Anything only you can do waits for Review.
 
+Each step gives your agent a short instruction, and the agent decides how to carry it out. QualityLayer holds only what a text cannot guarantee:
+
+- your two approvals
+- a visible amendment for any change to what you approved
+- recorded evidence for every check and verdict
+- the records the App shows
+
 ![The eight steps from Discuss to the pull request; you approve the Plan and the finished change, and merge](pathname:///img/diagrams/flow-pr-light.svg)
 ![The eight steps from Discuss to the pull request; you approve the Plan and the finished change, and merge](pathname:///img/diagrams/flow-pr-dark.svg)
 
@@ -37,10 +44,10 @@ The first seven steps each write one document. You approve twice: the Plan, then
 | **[Research](steps/research.md)** | Agents read the code; a bug's cause is found here |
 | **[Plan](steps/plan.md)** | The artifact, with diagrams. You approve it before any code |
 | **[Outline](steps/outline.md)** | Your agent cuts the Plan into slices. Nothing to approve |
-| **[Implement](steps/implement.md)** | Your agent builds the approved Plan in small tested slices |
-| **[Verify](steps/verify.md)** | A fresh agent that did not write the code checks every point on the running program |
+| **[Implement](steps/implement.md)** | Your agent builds the approved Plan test first, fixes what fails and decides when it is ready |
+| **[Verify](steps/verify.md)** | The project checks, then a fresh agent that did not write the code rules on every point on the running program |
 | **[Review](steps/review.md)** | You settle what is left and approve. Opening a pull request is optional |
-| **[Pull request](steps/pull-request.md)** | Your agent fixes failing checks, up to three times. You merge |
+| **[Pull request](steps/pull-request.md)** | Your agent fixes failing checks and routine review threads. You reply to reviewers and merge |
 
 ## Who it is for
 

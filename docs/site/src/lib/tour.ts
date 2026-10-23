@@ -89,7 +89,7 @@ export const CHAPTERS: Chapter[] = [
     who: "ag",
     steps: 5,
     title: "It is built in slices, on its own",
-    text: "Once started, your agent works on its own until the final review. One session builds the slices in order, every task starts with a failing test, and it fixes what fails.",
+    text: "Once started, your agent works on its own until the final review. One session builds the slices in order, every task starts with a failing test, and it fixes what fails and decides when the build is ready.",
     bullets: ["Test runs the agent makes through QualityLayer are recorded", "What the agent decided on the way is listed, and you can ask why", "A login or secret waits in Your turn while other slices keep building"],
   },
   {
@@ -99,7 +99,7 @@ export const CHAPTERS: Chapter[] = [
     steps: 7,
     title: "An agent that did not write the code checks every point",
     text: "A security review comes first when the Plan names a trust boundary, then the project checks. An agent that did not write the code adds missing tests and checks every point of Done means against the running program, with its evidence beside it; the agent chip names what runs now.",
-    bullets: ["A risky change also gets a second opinion", "Verify tries up to three times; the build session fixes what fails", "Anything still open, or only you can confirm, goes to Review first"],
+    bullets: ["A risky change also gets a second opinion", "If it finds gaps, your agent fixes them and one more agent rechecks", "Anything still open, or only you can confirm, goes to Review first"],
   },
   {
     id: "review",
@@ -108,7 +108,7 @@ export const CHAPTERS: Chapter[] = [
     steps: 5,
     title: "You read the finished change top to bottom, then approve it",
     text: "Your turn holds only what agents could not settle: a live result only you can confirm, and what the agent decided while building. Below it the change reads top to bottom, from why to how it was checked; approve, and the pull request opens in the same order and stays open until it is merged.",
-    bullets: ["Every changed file is tagged with the task that made it, and any line takes a comment", "Approve and open a pull request, or approve only", "Threads and failing checks on the pull request come back to you"],
+    bullets: ["Every changed file is tagged with the task that made it, and any line takes a comment", "Approve and open a pull request, or approve only", "Your agent fixes routine review threads and failing checks; scope and design changes come back to you"],
   },
   {
     id: "draw",
@@ -174,7 +174,7 @@ export const CHAPTERS: Chapter[] = [
     act: { id: "setup", title: "You stay in charge of models and cost", text: "QualityLayer works inside the coding agents you already pay for, and shows what is left of each plan and what each step costs." },
     title: "See how much of your plan is left, and what each step costs",
     text: "Settings › Usage shows the plan limits of Claude Code and Codex, with the time each window resets. You pick the agent, model and effort when you start a task or a build, so plan with Claude Code and build with Codex if you like. The cost of every step is estimated at list price.",
-    bullets: ["Limits also show in the sidebar and as a warning under the message box", "A build that stops on a limit can continue when the window resets", "On a risky change, an agent that never wrote the code decides whether it passes"],
+    bullets: ["Limits also show in the sidebar and as a warning under the message box", "A build that stops on a limit can continue when the window resets", "Turn the independent review on or off, and choose who gives a second opinion on a risky change"],
   },
   {
     id: "agents",

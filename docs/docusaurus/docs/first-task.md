@@ -6,7 +6,7 @@ description: Choose Chat for a direct conversation, or Feature and Bugfix for a 
 ![Your first task in seven moves: describe the change, answer its questions, approve the Plan, start Implement, agents build and check, settle what is left, approve the change](pathname:///img/diagrams/firsttask-light.svg)
 ![Your first task in seven moves: describe the change, answer its questions, approve the Plan, start Implement, agents build and check, settle what is left, approve the change](pathname:///img/diagrams/firsttask-dark.svg)
 
-Open QualityLayer in the App or browser and choose **+ New**. Pick **Chat** for a direct conversation with Claude Code or Codex. Its conversation fills the task page, with the agent's questions and task list above the composer. Save a plan, build in slices, make artifacts or ask for checks and an independent review when needed. **Start the workflow** carries the same task into Discuss as a Feature or Bugfix. [Chat guide](chat.md).
+Open QualityLayer in the App or browser and choose **+ New**. Pick **Chat** for a direct conversation with Claude Code or Codex. Its conversation fills the task page, with the agent's questions above the composer and its task list when it has one. Save a plan, build in slices, make artifacts or ask for checks and an independent review when needed. **Start the workflow** carries the same task into Discuss as a Feature or Bugfix. [Chat guide](chat.md).
 
 For the structured workflow, pick a medium-sized **Feature** or **Bugfix** in a repository you know. The task is on the left; your agent works in the **Agent** sidebar on the right.
 

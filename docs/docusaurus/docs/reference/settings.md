@@ -47,7 +47,7 @@ Standing instructions for every task in every project: coding standards, things 
 
 ### Independent review {#independent-review}
 
-Whether an agent that never wrote the code checks the change in [Verify](../steps/verify.md): **On** (recommended) or **Off**. When on, it checks every round of every change, small ones included: it adds the missing tests and rules on every **Done means** point. Pick its model for each agent: Opus 5.5 by default in Claude Code, GPT-6.1 Sol in Codex, Pi and OpenCode, Auto in Cursor, Grok 4.7 in Grok and Gemini 3.8 Flash (High) in Antigravity. With the setting off, no fresh agent checks any change and Verify records **Checked without an independent judge**.
+Whether an agent that never wrote the code checks the change in [Verify](../steps/verify.md): **On** (recommended) or **Off**. When on, it checks every change, small ones included, in at most two runs. It adds the missing tests and rules on every **Done means** point. Pick its model for each agent: Opus 5.5 by default in Claude Code, GPT-6.1 Sol in Codex, Pi and OpenCode, Auto in Cursor, Grok 4.7 in Grok and Gemini 3.8 Flash (High) in Antigravity. With the setting off, no fresh agent checks any change and Verify records **Checked without an independent judge**.
 
 ### Second opinion {#second-opinion}
 

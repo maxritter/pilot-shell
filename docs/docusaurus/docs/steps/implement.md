@@ -1,6 +1,6 @@
 ---
 title: Implement
-description: Start the build in the App or your terminal. Your agent works through tested slices until the final review.
+description: Start the build in the App or your terminal. Your agent builds the approved Plan test first and decides when it is ready for Verify.
 ---
 
 ![The eight steps, with Implement highlighted](pathname:///img/diagrams/track-implement-light.svg)
@@ -49,13 +49,13 @@ A new branch or worktree starts from this checkout’s HEAD. The pull request ta
 ![Slices built test first, one after another, then the checks in Verify](pathname:///img/diagrams/slices-light.svg)
 ![Slices built test first, one after another, then the checks in Verify](pathname:///img/diagrams/slices-dark.svg)
 
-One agent session builds the cards of the Outline in their order. Each task starts with a failing test, then the smallest change that makes it pass. When a check fails, the session fixes it and runs it again. It commits its work with Git. For slices that do not depend on each other, it can hand work to its own agent's subagents; nothing requires it, and a session that builds alone gets the same checks. For a large batch of failures it can start one helper to do the fixing.
+One agent session builds the cards of the Outline in their order, the way it would work on its own. Each task starts with a failing test, then the smallest change that makes it pass. The session fixes what fails itself and commits with Git. For slices that do not depend on each other it can use its own agent's subagents; nothing requires it.
 
-Test runs the session makes through QualityLayer are recorded with their commit and exit code. Proving that a test fails before the change is optional; if the session skips it, the reviewer in [Verify](verify.md) is told.
+Test runs the session makes through QualityLayer are recorded with their commit and exit code. The reviewer in [Verify](verify.md) can cite them as evidence.
 
 Follow the slice board to see what is running and what is finished. **Look here** highlights anything only you can supply. Open the recorded checks for their output.
 
-Routine choices appear under **Decided while building**. Outline, Implement and Verify continue without workflow questions until Review.
+Routine choices appear under **Decided while building**. When reality differs from what you approved (a new task, a changed contract or decision), the session records a visible amendment instead of changing it quietly; Review lists each one. Outline, Implement and Verify continue without workflow questions until Review.
 
 A login, secret, account or other human-only prerequisite is recorded with the affected task and stays unverified for Review. Available work continues; blocked checks retain their evidence instead of being marked passed. The App never takes the secret.
 
@@ -63,6 +63,4 @@ Runs start with the agent's own permission settings. You can switch to another o
 
 ## When the build is done {#when-done}
 
-Verify starts when every card is done, or waits on something only you can provide, and the code is committed.
-
-If a step keeps returning the same reply and nothing changes, your agent is told what holds it up. It can record why the build goes on without it. The item stays open and is never marked passed; Review lists the deviation. This never skips the independent review or your approvals.
+The session decides when the build is ready, and Verify starts on what it committed. Cards still unticked and needs still open reach Review as open items. They never count as passed.
