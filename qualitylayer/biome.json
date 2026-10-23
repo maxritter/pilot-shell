@@ -11,6 +11,7 @@
       "!src/workflow/mod",
       "!src/memory-embed/assets",
       "tests/**",
+      "!tests/fixtures/website-preview",
       "scripts/**"
     ]
   },
