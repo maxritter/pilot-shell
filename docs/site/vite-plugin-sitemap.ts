@@ -12,6 +12,7 @@
 import { type Plugin } from "vite";
 import fs from "fs";
 import path from "path";
+import { COMPARISONS, ROUNDUP_PATH } from "./src/lib/comparisons.ts";
 import { PUBLIC_PAGES } from "./src/lib/seo.ts";
 
 const SITE_URL = "https://qualitylayer.dev";
@@ -20,13 +21,21 @@ interface PageEntry {
   loc: string;
   changefreq: "daily" | "weekly" | "monthly";
   priority: string;
+  lastmod?: string;
 }
+
+// A comparison page changes when its sources are checked again; the hub and the roundup with the latest one.
+const CHECKED: Record<string, string> = Object.fromEntries(COMPARISONS.map(({ slug, checked }) => [`/compare/${slug}`, checked]));
+const LATEST_CHECK = COMPARISONS.map(({ checked }) => checked).sort().at(-1)!;
+CHECKED["/compare"] = LATEST_CHECK;
+CHECKED[ROUNDUP_PATH] = LATEST_CHECK;
 
 // Only canonical URLs are listed. Hash-anchor URLs (#installation, #features,
 // ...) share the canonical with "/" and were flagged as "non-canonical pages
 // in sitemap" by SEO crawlers.
 const PAGES: PageEntry[] = Object.keys(PUBLIC_PAGES).map((loc) => ({
   loc, changefreq: loc === "/" ? "weekly" : "monthly", priority: loc === "/" ? "1.0" : "0.6",
+  ...(CHECKED[loc] !== undefined ? { lastmod: CHECKED[loc] } : {}),
 }));
 
 export default function sitemapPlugin(): Plugin {
@@ -45,7 +54,7 @@ export default function sitemapPlugin(): Plugin {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${PAGES.map(
   (p) => `  <url>
-    <loc>${SITE_URL}${p.loc}</loc>
+    <loc>${SITE_URL}${p.loc}</loc>${p.lastmod !== undefined ? `\n    <lastmod>${p.lastmod}</lastmod>` : ""}
     <changefreq>${p.changefreq}</changefreq>
     <priority>${p.priority}</priority>
   </url>`
