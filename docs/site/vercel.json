@@ -8,6 +8,8 @@
   "trailingSlash": false,
   "cleanUrls": true,
   "redirects": [
+    { "source": "/docs/changelog", "destination": "https://github.com/maxritter/qualitylayer/releases", "permanent": true },
+    { "source": "/docs/reference/changelog", "destination": "https://github.com/maxritter/qualitylayer/releases", "permanent": true },
     {
       "source": "/install.ps1",
       "destination": "https://raw.githubusercontent.com/maxritter/qualitylayer/main/install.ps1",
@@ -52,7 +54,7 @@
     { "source": "/docs/phases/outline", "destination": "/docs/steps/plan", "permanent": true },
     { "source": "/docs/phases/handoff", "destination": "/docs/steps/implement#start-implement", "permanent": true },
     { "source": "/docs/phases/build", "destination": "/docs/steps/implement", "permanent": true },
-    { "source": "/docs/phases/checkpoint", "destination": "/docs/steps/implement#checkpoints", "permanent": true },
+    { "source": "/docs/phases/checkpoint", "destination": "/docs/steps/implement#while-the-agent-builds", "permanent": true },
     { "source": "/docs/phases/verify", "destination": "/docs/steps/verify", "permanent": true },
     { "source": "/docs/phases/approve", "destination": "/docs/steps/review", "permanent": true },
     { "source": "/docs/phases/shipped", "destination": "/docs/steps/pull-request#merged", "permanent": true },
@@ -71,7 +73,7 @@
     { "source": "/docs/workflow/build", "destination": "/docs/steps/implement", "permanent": true },
     { "source": "/docs/workflow/build/handoff", "destination": "/docs/steps/implement#start-implement", "permanent": true },
     { "source": "/docs/workflow/build/slices", "destination": "/docs/steps/implement", "permanent": true },
-    { "source": "/docs/workflow/build/checks", "destination": "/docs/steps/implement#checkpoints", "permanent": true },
+    { "source": "/docs/workflow/build/checks", "destination": "/docs/steps/implement#while-the-agent-builds", "permanent": true },
     { "source": "/docs/workflow/build/simplify", "destination": "/docs/steps/verify#live", "permanent": true },
     { "source": "/docs/workflow/check", "destination": "/docs/steps/verify", "permanent": true },
     { "source": "/docs/workflow/check/verify", "destination": "/docs/steps/verify", "permanent": true },

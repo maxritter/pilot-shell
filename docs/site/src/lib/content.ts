@@ -34,7 +34,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "How is this different from plan mode?",
-    "Plan mode gives you a plan in the chat, then one long build that you check yourself. With QualityLayer, your agent asks its questions in one batch. Then it shows one plan with diagrams and clickable mockups, which you comment on and approve before any code is written. It builds the plan in tested slices. Agents that did not write the code check it against what you agreed, and you approve the finished change with its evidence.",
+    "Plan mode gives you a plan in the chat, then one long build that you check yourself. With QualityLayer, your agent asks its questions in one batch; answer in any order, and each answer reaches your agent immediately. Then it shows one plan with diagrams and clickable mockups, which you comment on and approve before any code is written. It builds the plan in tested slices. An agent that did not write the code checks it against what you agreed, and you approve the finished change with its evidence.",
   ),
   CODE_LEAVES,
   faq(
@@ -51,7 +51,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "Is it for product managers as well as engineers?",
-    "Yes. Choose Product or Engineering at Setup or in Settings › Workflow. Product starts with a brief: the problem, how success is measured, the first release and what the user sees, which you can copy as a PRD; the engineering detail stays folded away. Engineering starts with the full technical plan. Each task can switch in its header.",
+    "Yes. Choose Product or Engineering at Setup or in Settings › Workflow. Product starts with a brief: the problem, how success is measured, the first release and what the user sees, which you can copy as a PRD; the engineering detail stays folded away. Engineering starts with the full technical plan. The task header switches the level for one task.",
   ),
   faq(
     "Can I see how much of my plan is left?",

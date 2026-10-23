@@ -15,7 +15,7 @@ type Extra = { id: string; name: string; icon: LucideIcon; line: string; text: s
 
 const EXTRAS: Extra[] = [
   { id: "memory", name: "Memory", icon: BookOpen, line: "Keep useful project lessons", text: "Your agents reuse lessons between tasks, whichever coding agent you use. Share them per repository through Git; search or retire them in Settings.", shot: { id: "memory", title: "Project memory", alt: "The Memory tab with local lessons, per-project sharing and a searchable lesson browser; illustrative project data" }, link: { to: "/docs/memory", label: "Read about project memory" } },
-  { id: "artifacts", name: "Artifacts", icon: Shapes, line: "Comment on the spot", text: "Pin a comment anywhere on an artifact. Your agent replies in the thread and updates the artifact.", shot: { id: "artifact", title: "Artifact", alt: "An interactive billing limits design with current usage, field validation and pinned comments" }, link: { to: "/docs/artifacts", label: "Read about artifacts" } },
+  { id: "artifacts", name: "Artifacts", icon: Shapes, line: "Try the screen before it is built", text: "An artifact is a mockup, diagram or clickable page your agent draws for the task, so you can try a flow before any code exists. Click a spot to say what should change; your agent edits the page and answers you. Keep the ones you reuse for later tasks.", shot: { id: "artifact", title: "Artifact", alt: "A queue migration console drawn as an artifact, with rollout progress, live numbers, job types and their parity checks, a pinned comment and the agent's reply; illustrative data" }, link: { to: "/docs/artifacts", label: "Read about artifacts" } },
   { id: "team", name: "Team", icon: Users, line: "Ask the people who know", text: "Teammates answer plan questions and review the finished change from their own App.", shot: { id: "team", title: "Team", alt: "The Team space with questions about shared plans, replies and the team's tasks" }, link: { to: "/docs/team/plans", label: "Read about team collaboration" } },
   { id: "cost", name: "Home", icon: House, line: "See what needs you", text: "Your tasks that need attention and your running work, with the current step and what happens next.", shot: { id: "home", title: "Home", alt: "Home with personal tasks that need attention and running work" }, link: { to: "/docs/app#home", label: "Read about Home" } },
   { id: "setup", name: "Settings", icon: SlidersHorizontal, line: "Agents, plan limits and reviewers", text: "Check your agents, see how much of each plan is left and choose who reviews your plans and changes. Pick the agent, model and effort when you start a task or build.", shot: { id: "setup", title: "Settings", alt: "Settings with its sections in the sidebar's place, showing plan limits and usage" }, link: { to: "/docs/reference/settings", label: "Read about settings" } },
@@ -37,7 +37,7 @@ function Picture({ shot, theme, eager, inDialog }: { shot: Shot; theme: "light" 
       <source media={PHONE} srcSet={phoneSrc(shot, theme)} width={780} height={1400} />
       <img src={src(shot, theme)} alt={shot.alt} width="2240" height="1800" loading={eager || inDialog ? undefined : "lazy"} decoding="async" onError={() => setFailed(true)} onLoad={() => setFailed(false)} />
     </picture>
-    {failed ? <span className="ed-image-error">{shot.title} image unavailable. {inDialog ? "Use the full-size image link to retry." : "Open the preview to retry."}</span> : null}
+    {failed ? <span className="ed-image-error">{shot.title} image unavailable. {inDialog ? "Use Full size to retry." : "Open the preview to retry."}</span> : null}
     </>
   );
 }
@@ -46,13 +46,14 @@ function ImageDialog({ shot, theme, onClose, opener }: { shot: Shot; theme: "lig
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent aria-modal="true" className="ed-image-dialog" showCloseButton={false} onCloseAutoFocus={(event) => { event.preventDefault(); opener?.focus(); }}>
+        {/* Both actions sit in the header, so on a phone neither waits below the picture. */}
         <div className="ed-dialog-header">
           <DialogTitle>{shot.title}</DialogTitle>
+          <Button asChild variant="outline" size="xl"><a href={src(shot, theme)} target="_blank" rel="noopener noreferrer" aria-label="Open the full-size image"><ExternalLink size={16} aria-hidden="true" />Full size</a></Button>
           <DialogClose asChild><Button type="button" variant="outline" size="xl" aria-label="Close preview"><X size={18} aria-hidden="true" />Close</Button></DialogClose>
         </div>
         <Picture shot={shot} theme={theme} inDialog />
         <DialogDescription>{shot.id === "memory" ? "Illustrative projects in the Memory settings." : "Example task in the QualityLayer App."}</DialogDescription>
-        <Button asChild variant="outline" size="xl"><a href={src(shot, theme)} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} aria-hidden="true" />Open full-size image</a></Button>
       </DialogContent>
     </Dialog>
   );
@@ -69,7 +70,7 @@ function Inline({ shot, theme, eager, onOpen }: { shot: Shot; theme: "light" | "
 }
 
 /**
- * The eight steps, one open at a time, Plan first. On wide screens the open step's screenshot fills
+ * The seven steps and the pull request, one open at a time, Plan first. On wide screens the open step's screenshot fills
  * the pinned stage beside the list; on tablets and phones it sits inside the open step.
  */
 function Tour({ active, onPick, theme, onOpen }: { active: string; onPick: (id: string) => void; theme: "light" | "dark"; onOpen: (shot: Shot, el: HTMLElement) => void }) {
@@ -78,7 +79,7 @@ function Tour({ active, onPick, theme, onOpen }: { active: string; onPick: (id: 
   const current = STEPS.find((step) => step.id === active) ?? STEPS[0];
   return (
     <div className="ed-tour">
-      <ol className="ed-steps" aria-label="The eight steps">
+      <ol className="ed-steps" aria-label="The seven steps and the pull request">
         {STEPS.map((step, i) => {
           const on = step.id === current.id;
           return (
@@ -187,8 +188,8 @@ export default function Editorial() {
     <>
       <section id="tour" className="ed-section mx-wrap" aria-labelledby="ed-workflow-h">
         <div className="ed-head">
-          <h2 id="ed-workflow-h">From prompt to pull request in eight steps</h2>
-          <p>Spec-driven development keeps a human in the loop: you approve the plan, and agents build and check it. Engineers start from a technical plan, product people from a product brief.</p>
+          <h2 id="ed-workflow-h">From prompt to pull request</h2>
+          <p>Spec-driven development with a human in the loop: you approve the plan, agents build and check it, and QualityLayer follows the pull request until it merges. Engineers start from a technical plan, product people from a product brief.</p>
           <ul className="ed-legend" aria-label="Colours">
             {(Object.keys(WHO) as Who[]).map((who) => <li key={who} data-who={who}><span className="ed-dot" aria-hidden="true" />{WHO[who]}</li>)}
           </ul>

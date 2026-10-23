@@ -12,7 +12,7 @@ const sidebars: SidebarsConfig = {
       "app", "artifacts", "reference/code-health", "memory", "team/plans", "team/agents", "team/changes",
     ] },
     { type: "category", label: "Reference", collapsed: false, items: [
-      "reference/commands", "reference/settings", "reference/files", "reference/changelog",
+      "reference/commands", "reference/settings", "reference/files", { type: "link", label: "Changelog", href: "https://github.com/maxritter/qualitylayer/releases" },
     ] },
   ],
 };

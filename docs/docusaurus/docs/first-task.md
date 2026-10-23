@@ -10,35 +10,39 @@ Open QualityLayer in the App or browser and choose **+ New**. Pick **Chat** for 
 
 For the structured workflow, pick a medium-sized **Feature** or **Bugfix** in a repository you know. The task is on the left; your agent works in the **Agent** sidebar on the right.
 
-| | You do | Where |
-| --- | --- | --- |
-| 1 | Choose **+ New** and **Feature** or **Bugfix**. Describe the change, attach files if needed, then choose your agent | App or browser |
-| 2 | **Answer the questions.** They arrive as a batch in **Your turn**; each answer reaches your agent immediately | App or browser |
-| 3 | **Read the Plan**, then **Approve Plan** or **Give feedback** | App or browser |
-| 4 | **Start the build** | App or browser |
-| 5 | Follow Outline, Implement and Verify. Human-only prerequisites and blocked checks are recorded for Review | App or browser |
-| 6 | **Confirm what only you can**, look at the result, approve | App or browser |
-| 7 | **Merge the pull request** | GitHub |
+| | You do |
+| --- | --- |
+| 1 | Choose **+ New** and **Feature** or **Bugfix**. Describe the change, attach files if needed, then choose your agent |
+| 2 | **Answer the questions** in **Your turn**. They arrive as a batch; each answer reaches your agent at once |
+| 3 | **Read the Plan**, then **Approve Plan** or **Give feedback** |
+| 4 | **Start the build** |
+| 5 | Follow Outline, Implement and Verify. Anything only you can do is recorded for Review |
+| 6 | **Confirm what only you can**, look at the result, approve |
+| 7 | **Merge the pull request** on GitHub |
 
-For **Feature** and **Bugfix**, **New task** asks for your request with any files and where the agent runs. **Start the build** asks the same last question.
+Steps 1 to 6 happen in the App or browser.
 
-- **In the App** (recommended): pick the agent (Claude Code, Codex, Cursor, Grok, Antigravity, Pi or OpenCode), model, effort, project and branch. The agent opens in the right sidebar beside the task, and every question and piece of feedback happens in the App.
+## Where your agent runs
+
+For **Feature** and **Bugfix**, **New task** and **Start the build** both ask where the agent runs:
+
+- **In the App** (recommended): pick the agent, model, effort, project and branch. The agent opens beside the task, and every question and piece of feedback happens in the App.
 - **In my terminal**: copy one prompt into any coding agent, app or IDE. Files you attached are listed in the prompt by path. The agent asks its questions and takes your feedback in its own chat.
 
-New task and Start the build open with your last choice. See [Agent runs](app.md#agent-runs).
+Both screens open with your last choice. More in [Agent runs](app.md#agent-runs).
 
-Claude Code, Codex, Cursor, Grok, Antigravity, Pi and OpenCode have [native setup and session controls](agents/native.md). Other coding agents [use the CLI and a copied prompt](agents/other.md). [Settings](reference/settings.md) cover your agents, plan limits, reviewers and appearance; launch choices apply to the current run.
+Seven agents have [native setup and session controls](agents/native.md). Other coding agents [use the CLI and a copied prompt](agents/other.md). [Settings](reference/settings.md) cover agents, plan limits, reviewers and appearance.
 
 <details>
 <summary>Good to know</summary>
 
 - When the agent runs in your terminal, it asks each decision in its own chat. The App shows those questions without answering them.
-- Name QualityLayer or QL when asking it to start work; follow-up answers continue the authorized task. No slash command is needed.
-- Each step's page opens with what needs you, then the gist, then **Look here** for anything only you can still do. The rest opens from its row or in the document ([the step page](app.md#step-pages)).
+- Say QualityLayer or QL when you ask the agent to start work. Follow-up answers continue the authorized task, and no slash command is needed.
+- Each step page opens with what needs you, then the gist, then **Look here** for anything only you can still do ([the step page](app.md#step-pages)).
 - **Skip for now** moves to the next question; **Tell me more** asks for detail.
 - Select a passage to give feedback. It reaches the agent when it next reads the task; a stopped or disconnected agent cannot answer yet.
-- You can stop or pause the run. Your agent's own permission and sign-in prompts still require their normal response.
-- To continue elsewhere, stop the old run if it is still active. Name the same task: “Using QL, continue implementation of task retry-webhooks.” Its recorded stage, approved Plan and evidence are kept.
+- You can stop or pause the run. Your agent's own permission and sign-in prompts still need your response.
+- To continue elsewhere, stop the old run if it is still active. Then name the same task: “Using QL, continue implementation of task retry-webhooks.” Its recorded stage, approved Plan and evidence are kept.
 - With several approved Plans waiting, "Implement this using QualityLayer" lists their commands.
 
 </details>

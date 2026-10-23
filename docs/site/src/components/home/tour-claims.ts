@@ -28,28 +28,28 @@ export const CLAIMS: Record<string, Claim> = {
     always: ["Retry failed webhook deliveries", "Done means", "What happens to a failed delivery", "Contracts", "Reviewed by", "Ready to approve", "Give feedback", "Approve Plan"],
     last: ["1 comment"],
   },
-  // "The build session cuts the Plan into slices": waves, slices, the scenario for each point, nothing to approve
+  // "The build session cuts the Plan into slices": the slices in build order, the scenario for each point, nothing to approve
   outline: {
-    always: ["How the build runs", "Wave 2", "Slices 2 and 3, side by side", "How each point is proved", "scenario 3"],
-    last: ["Checked by a second reader"],
+    always: ["in build order", "Slices", "How each point is proved", "scenario 3"],
+    last: ["Every Done means point has a scenario"],
   },
-  // "One command starts the build": the Build defaults in one line and the command
+  // "One command starts the build": the build session and subagent models in one line and the command
   start: {
-    always: ["Plans each slice", "Builds", "Effort", "Using QualityLayer, implement the approved plan for task retry-webhooks"],
+    always: ["Build session", "Subagents", "Effort", "Using QualityLayer, implement the approved plan for task retry-webhooks"],
     first: ["Copy"],
     last: ["Copied"],
   },
-  // "It is built in slices, on its own": test first, slices that don't overlap side by side
+  // "It is built in slices, on its own": one session, in order, test first
   implement: {
-    always: ["Slices that don’t overlap build side by side", "Every task starts with a failing test", "tasks committed"],
-    first: ["building slices 2 and 3 side by side", "2 of 5 tasks committed", "the test fails first"],
-    last: ["5 of 5 tasks committed", "built side by side with slice", "Checked by agents", "Ask why"],
+    always: ["The slices are built in the Outline’s order", "Every task starts with a failing test", "tasks committed"],
+    first: ["building slice 2", "2 of 5 tasks committed", "the test fails first"],
+    last: ["5 of 5 tasks committed", "Checked by agents", "Ask why"],
   },
-  // "Agents that did not write the code check it": six checks in order, each point with its evidence, the chip names what runs
+  // "An agent that did not write the code checks every point": the checks in order, each point with its evidence, the chip names what runs
   verify: {
     always: [...VERIFY_CHECKS, "each point against the running program"],
-    first: ["running Polish", "delivery.test.ts"],
-    last: ["12 of 12 passed", "Your turn · 2 in Review"],
+    first: ["running Independent review", "delivery.test.ts"],
+    last: ["9 of 9 passed", "Your turn · 2 in Review"],
   },
   // "You read the finished change top to bottom, then approve it": what only you can confirm, what the agent decided, the change in the pull request's order, then Approve; after it the pull request stays open until merged
   review: {

@@ -16,18 +16,16 @@ The Plan says what changes; the Outline says how it is built, slice by slice. Th
 | Part | What it holds |
 | --- | --- |
 | **Slices** | Pieces that each work end to end, thinnest first, with the test to write first |
-| **Build order** | Which slices build side by side; which risky one goes first |
+| **Build order** | The order the slices are built in, and which slices are risky |
 | **Proof** | The scenario that proves each **Done means** point |
 | **Commands** | Every command the build will run. A push or deploy needs the Plan's permission |
 
-On a larger or risky build, a second agent checks that every card can be built.
+The build map lists the slices in the order they are built. Open a slice for its tasks and tests. Each **Done means** point links to the scenario and slice that prove it.
 
-The build map groups slices by their build order. Open a slice for its tasks and tests. Each **Done means** point links to the scenario and slice that proves it.
-
-Independent slices run side by side. When extra build waves are necessary, the Outline records why. Cards name source files; check output, pictures and other evidence stay in the task’s records.
+The build session works through the cards in this order. Cards name source files; a file outside the cards needs no amendment, and Review lists it. Check output and pictures stay in the task’s records.
 
 ## What you do {#what-you-do}
 
-[Start the build](implement.md#start-implement). You can follow progress or comment on a slice. Missing human-only prerequisites stay unverified for Review while available work continues; they do not create another workflow approval here.
+[Start the build](implement.md#start-implement). You can follow progress or comment on a slice. Human-only prerequisites that are missing stay unverified for Review while available work continues. They create no new approval here.
 
 Next: [Implement](implement.md).

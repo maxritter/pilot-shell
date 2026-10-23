@@ -41,7 +41,7 @@ export const PLANS: Plan[] = [
     plus: "Everything one developer needs:",
     highlights: [
       ["plan", "Approve the plan before any code is written"],
-      ["build", "Built test first, every test run recorded"],
+      ["build", "Built test first, with its checks recorded"],
       ["verify", "Checked against your request before you see it"],
       ["review", "Works with any coding agent"],
     ],
@@ -122,8 +122,8 @@ export const COMPARE: CompareGroup[] = [
     hue: "build",
     rows: [
       row("Choose the models that build and check", true, true),
-      row("Every task test first, every test run recorded", true, true),
-      row("Work on separate files builds in parallel", true, true),
+      row("Every task test first, project checks recorded", true, true),
+      row("One session builds every slice, with subagents when useful", true, true),
       row("The cost of every step", true, true, "Estimated at list price"),
     ],
   },
@@ -131,8 +131,8 @@ export const COMPARE: CompareGroup[] = [
     name: "Verify",
     hue: "verify",
     rows: [
-      row("Polish and security review before the final check", true, true, "Security review runs when a change touches outside input, sign-in or secrets"),
-      row("Polished and tested by an agent that did not write the code", true, true, "Risky changes also get an independent review against your request"),
+      row("Security review when a change crosses a trust boundary", true, true, "Runs when the Plan names one, such as outside input, sign-in or secrets"),
+      row("An agent that did not write the code adds tests and checks every point", true, true, "On by default; Settings can turn it off"),
       row("A separate coding agent reviews your plan and risky changes", true, true, "Choose any installed agent: Claude Code, Codex, Cursor, Grok, Antigravity, Pi or OpenCode"),
     ],
   },

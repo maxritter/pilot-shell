@@ -249,9 +249,22 @@ jobs:
         working-directory: docs/site
         run: npm run typecheck
 
+      - name: Setup Bun for the isolated billing service
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
+        with:
+          bun-version: "1.4.2"
+
+      - name: Install the billing test browser
+        working-directory: docs/site
+        run: npx playwright install --with-deps chromium
+
       - name: Test
         working-directory: docs/site
         run: npm test
+
+      - name: Test billing across QualityLayer and legacy Pilot Shell products
+        working-directory: docs/site
+        run: node scripts/test-billing.mjs
 
       - name: Build production pages and App demo with only site dependencies
         working-directory: docs/site

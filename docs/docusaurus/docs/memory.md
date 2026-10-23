@@ -20,14 +20,12 @@ Keep decisions, fixes and constraints for later work. Your agents can search the
 
 | How | What happens |
 | --- | --- |
-| **Session lessons** | With the installed hooks or plugins enabled, Claude Code, Codex, Pi and OpenCode can receive pinned lessons and matches for the first message in a repository.  |
-| **After compaction** | A supported client’s compaction hook can restore that lesson block. If hooks are disabled, unavailable or too slow, automatic delivery can be skipped. |
-| **Search and save tools** | `memory_search`, `memory_read` and `memory_save` let an agent choose what to retrieve or save. Install registers the tools with Claude Code and Codex; Pi and OpenCode expose them through their plugins. Other agents use the [CLI](#command-line). |
-| **Task lessons** | In Review, QualityLayer records decisions, fixed findings and plan amendments. Evidence stays with a lesson when available; missing or failed checks do not become passing evidence. A task’s **Memory** record in Files shows what each step used and saved. |
+| **Session lessons** | With the installed hooks or plugins on, Claude Code, Codex, Pi and OpenCode can receive pinned lessons and matches for the first message in a repository |
+| **After compaction** | A supported client’s compaction hook can restore that lesson block. If hooks are off, unavailable or too slow, delivery can be skipped |
+| **Search and save tools** | `memory_search`, `memory_read` and `memory_save` let an agent retrieve or save what it chooses. Claude Code and Codex get them at install; Pi and OpenCode through their plugins. Other agents use the [CLI](#command-line) |
+| **Task lessons** | In Review, QualityLayer records decisions, fixed findings and plan amendments, with evidence when available. Missing or failed checks never count as passing. A task’s **Memory** record in Files shows what each step used and saved |
 
-Lesson text is labelled as saved reference data. It does not replace your request or the agent’s instructions.
-
-Search with concrete project terms and read an older lesson against the current code before using it.
+Lesson text is labelled as saved reference data. It does not replace your request or the agent’s instructions. Search with concrete project terms, and check an older lesson against the current code before using it.
 
 ## Manage your lessons
 
@@ -54,19 +52,19 @@ Open **Settings → Memory**.
 
 | Part | Where the text goes |
 | --- | --- |
-| **Storage and search** | Lessons and the search model stay on your computer. The bundled model finds meaning locally, without sending lessons to an embedding service. |
-| **Your coding agent** | Lessons supplied to an agent become part of its context. A cloud-based agent may send that context to its provider under its own settings and terms. |
-| **Git sharing** | Only repositories where you enable sharing exchange lesson files. This is separate from encrypted task sharing. |
+| **Storage and search** | Lessons and the search model stay on your computer. The bundled model finds meaning locally; no lesson goes to an embedding service |
+| **Your coding agent** | Lessons given to an agent become part of its context. A cloud agent may send that context to its provider under its own settings and terms |
+| **Git sharing** | Only repositories where you turn sharing on exchange lesson files. This is separate from encrypted task sharing |
 
 ## Share lessons through Git
 
-1. Open **Manage projects** and turn sharing on for a repository. It starts off; the choice is local to this computer.
-2. QualityLayer writes **eligible project lessons** to `.qualitylayer/memories/`. They can include lessons without recorded passing checks; available evidence stays attached.
-3. Review the files, then commit and push them through your normal Git process. Memory exchange itself never commits or pushes.
+1. Open **Manage projects** and turn sharing on for a repository. It starts off and applies to this computer only.
+2. QualityLayer writes **eligible project lessons** to `.qualitylayer/memories/`, with any evidence attached. These can include lessons without recorded passing checks.
+3. Review the files, then commit and push them yourself. Memory exchange never commits or pushes.
 
-Pilot imports and preference lessons stay private. A publication filter checks for credential patterns, email addresses, home paths, prompts and transcripts. Review the files before sharing: filtering is not a guarantee that a lesson contains no sensitive information.
+Pilot imports and preference lessons stay private. A publication filter checks for credential patterns, email addresses, home paths, prompts and transcripts. It is not a guarantee, so review the files before sharing.
 
-Anyone who can read the repository can read these lesson files. Turning sharing off stops exchange; it does not erase files already committed.
+Anyone who can read the repository can read these lessons. Turning sharing off stops exchange; it does not erase files already committed.
 
 ## Import Pilot lessons
 

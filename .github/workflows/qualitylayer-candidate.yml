@@ -708,6 +708,7 @@ jobs:
       # The installers verify a package against its .sha256; the updater verifies the .sig.
       - name: Checksums and the updater's manifest
         env:
+          GH_TOKEN: ${{ github.token }}
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
@@ -719,7 +720,7 @@ jobs:
           bun qualitylayer/scripts/app.ts --latest-json release --version "$VERSION" \
             --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}"
           # The notes ride in the manifest, so the App's update sheet says what the release says.
-          bash .github/scripts/changelog-section.sh "$VERSION" > "${RUNNER_TEMP:?}/release-notes.md"
+          bash .github/scripts/release-notes.sh "$VERSION" > "${RUNNER_TEMP:?}/release-notes.md"
           jq --rawfile notes "${RUNNER_TEMP:?}/release-notes.md" '. + {notes: $notes}' \
             release/latest.json > "${RUNNER_TEMP:?}/latest.json"
           mv "${RUNNER_TEMP:?}/latest.json" release/latest.json

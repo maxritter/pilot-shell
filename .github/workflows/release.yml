@@ -421,10 +421,10 @@ jobs:
             printf 'should_release=%s\nversion=%s\n' "$(jq -r .stage <<< "$selected")" "$(jq -r .version <<< "$selected")" >> "$GITHUB_OUTPUT"
             jq -r .reason <<< "$selected"
           fi
-      - name: The release has notes in CHANGELOG.md
+      - name: The GitHub release draft has notes
         if: steps.check.outputs.should_release == 'true'
-        env: { VERSION: "${{ steps.check.outputs.version }}" }
-        run: bash .github/scripts/changelog-section.sh "$VERSION" > /dev/null
+        env: { VERSION: "${{ steps.check.outputs.version }}", GH_TOKEN: "${{ github.token }}" }
+        run: bash .github/scripts/release-notes.sh "$VERSION" > /dev/null
 
   candidate:
     name: Stage the exact candidate without publication
@@ -773,7 +773,7 @@ jobs:
           if [[ "$VERSION" != *-* ]]; then cd "${DEPLOY_SOURCE:?}/docs/site"; fi
           node scripts/upload-workflow.ts probe "$VERSION" "$DEPLOY_URL"
 
-      # The GitHub release says what the updater's manifest says: one section of CHANGELOG.md.
+      # The manifest carries the GitHub draft's notes, frozen during staging.
       - name: The release notes, from the manifest
         run: |
           if ! jq -ej '.notes | select(length > 0)' release/latest.json > "${RUNNER_TEMP:?}/release-notes.md"; then
@@ -808,24 +808,22 @@ jobs:
           set -euo pipefail
           marker="<!-- qualitylayer-candidate:$CANDIDATE_RUN:$CANDIDATE_ATTEMPT:$MANIFEST_SHA256 -->"
           printf '\n%s\n' "$marker" >> "$RELEASE_NOTES_FILE"
-          release_flags=(--draft --latest=false)
-          case "$VERSION" in *-*) release_flags+=(--prerelease) ;; esac
-          if gh release view "v$VERSION" --json body > "$RUNNER_TEMP/existing-release.json" 2>/dev/null; then
-            jq -e --arg marker "$marker" '.body | contains($marker)' "$RUNNER_TEMP/existing-release.json"
-            if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
-              git fetch --quiet origin "refs/tags/v$VERSION:refs/tags/v$VERSION"
-              [ "$(git rev-parse "v$VERSION^{commit}")" = "$GITHUB_SHA" ]
-            else
-              gh release view "v$VERSION" --json isDraft,targetCommitish | jq -e --arg sha "$GITHUB_SHA" '.isDraft == true and .targetCommitish == $sha'
-            fi
+          # Refuse to overwrite edits made after qualification. A changed draft needs restaging.
+          bash .github/scripts/release-notes.sh "$VERSION" > "$RUNNER_TEMP/current-notes.md"
+          diff -u <(jq -r '.notes | sub("\\s+$"; "")' release/latest.json) "$RUNNER_TEMP/current-notes.md"
+          gh release view "v$VERSION" --json body,isDraft,targetCommitish,assets > "$RUNNER_TEMP/existing-release.json"
+          if jq -e --arg marker "$marker" '.body | contains($marker)' "$RUNNER_TEMP/existing-release.json" >/dev/null; then
+            # A retry may resume only the candidate that owns this draft or published release.
+            jq -e --arg sha "$GITHUB_SHA" '.targetCommitish == $sha' "$RUNNER_TEMP/existing-release.json"
           else
-            # A preexisting tag for other bytes is never moved or overwritten.
-            if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
-              git fetch --quiet origin "refs/tags/v$VERSION:refs/tags/v$VERSION"
-              [ "$(git rev-parse "v$VERSION^{commit}")" = "$GITHUB_SHA" ]
-            fi
-            gh release create "v$VERSION" --title "v$VERSION" --notes-file "$RELEASE_NOTES_FILE" --target "$GITHUB_SHA" "${release_flags[@]}"
+            # Claim only an unpublished, asset-free authoring draft with no earlier candidate marker.
+            jq -e '.isDraft == true and (.assets | length) == 0 and (.body | contains("<!-- qualitylayer-candidate:") | not)' "$RUNNER_TEMP/existing-release.json"
           fi
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
+            git fetch --quiet origin "refs/tags/v$VERSION:refs/tags/v$VERSION"
+            [ "$(git rev-parse "v$VERSION^{commit}")" = "$GITHUB_SHA" ]
+          fi
+          gh release edit "v$VERSION" --target "$GITHUB_SHA" --notes-file "$RELEASE_NOTES_FILE"
 
       - name: Upload assets to the release
         env:
@@ -836,8 +834,6 @@ jobs:
             [ "$i" -eq 12 ] && { echo "Release v${VERSION} was not created"; exit 1; }
             sleep 5
           done
-          # Whoever created the release, its body is the changelog's section.
-          gh release edit "v${VERSION}" --notes-file "$RELEASE_NOTES_FILE"
           # Everything the manifest names goes up first.
           find release -type f ! -name latest.json -print0 | xargs -0 gh release upload "v${VERSION}" --clobber
 

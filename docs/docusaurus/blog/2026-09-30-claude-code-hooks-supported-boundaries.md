@@ -46,4 +46,4 @@ For a check that cannot run in the current environment, report the limitation an
 
 Hooks are most useful when they reduce friction around an understandable process. Keep their scope narrow enough that the same outcome can be verified from the terminal.
 
-Related: [Code review evidence](/blog/claude-text-watermarks-code-review) and [build checkpoints](/docs/steps/implement#checkpoints).
+Related: [Code review evidence](/blog/claude-text-watermarks-code-review) and [how the build runs](/docs/steps/implement#while-the-agent-builds).

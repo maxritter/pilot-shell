@@ -124,7 +124,7 @@ describe("the tour", () => {
     expect(CHAPTERS.find((c) => c.id === "outline")?.title).toMatch(/build session cuts the Plan into slices/);
     expect(CHAPTERS.find((c) => c.id === "discuss")?.text).toMatch(/one batch/);
     expect(CHAPTERS.find((c) => c.id === "plan")?.text).toMatch(/contracts/);
-    expect(CHAPTERS.find((c) => c.id === "verify")?.text).toMatch(/Six checks/);
+    expect(CHAPTERS.find((c) => c.id === "verify")?.text).toMatch(/security review/i);
   });
 
   it("draws Research as agents reading the code with no request in view, then one batch of the choices the code leaves open", async () => {
@@ -138,17 +138,19 @@ describe("the tour", () => {
     expect(asked).toContain("Your turn · 1 choice");
   });
 
-  it("draws the Outline as the Plan cut into waves and slices, with every Done means point proved and nothing to approve", async () => {
+  it("draws the Outline as the Plan cut into slices in build order, with every Done means point proved and nothing to approve", async () => {
     const early = text(await shot("outline", 0));
     expect(early).toContain("The build, slice by slice");
     expect(early).not.toContain("Approve");
     const done = text(await shot("outline", 4));
-    for (const words of ["How the build runs", "Wave 2", "Slices 2 and 3, side by side", "How each point is proved", "Checked by a second reader"]) expect(done).toContain(words);
+    for (const words of ["in build order", "Slices", "How each point is proved", "Every Done means point has a scenario"]) expect(done).toContain(words);
+    expect(done).not.toMatch(/wave|side by side|second reader/i);
   });
 
-  it("names Verify's six checks in the order they run", async () => {
-    const verify = text(await shot("verify", 0));
-    const order = ["Polish", "Security review", "Second opinion", "Project checks", "Independent review", "Fixes"].map((name) => verify.indexOf(name));
+  it("names Verify's checks in the order they run", async () => {
+    const page = text(await shot("verify", 0));
+    const verify = page.slice(page.indexOf("The checks, in order"));
+    const order = ["Security review", "Project checks", "Independent review", "Second opinion"].map((name) => verify.indexOf(name));
     expect(order.every((at) => at >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
   });
@@ -174,7 +176,7 @@ describe("the tour", () => {
   });
 
   it("builds on its own, test first, and counts the committed tasks", async () => {
-    // slice 1 is done when it opens; slices 2 and 3 build side by side
+    // slice 1 is done when it opens; slices 2 and 3 follow in order
     expect([0, 1, 2, 3, 4].map(committedTasks)).toEqual([2, 3, 4, 5, 5]);
     expect(text(await shot("implement", 0))).toContain("2 of 5 tasks committed");
     const build = text(await shot("implement", 4));
@@ -184,10 +186,10 @@ describe("the tour", () => {
   });
 
   it("fills Verify in point by point, then hands what only a person can settle to Review", async () => {
-    expect(checksPassed(99)).toBe(12);
-    expect(text(await shot("verify", 2))).toMatch(/\d+ of 12/);
+    expect(checksPassed(99)).toBe(9);
+    expect(text(await shot("verify", 2))).toMatch(/\d+ of 9/);
     const done = text(await shot("verify", 7));
-    expect(done).toContain("12 of 12 passed");
+    expect(done).toContain("9 of 9 passed");
     expect(done).toContain("Your turn · 2 in Review");
   });
 

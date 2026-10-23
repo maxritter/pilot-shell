@@ -71,7 +71,7 @@ export const CHAPTERS: Chapter[] = [
     who: "ag",
     steps: 3,
     title: "The build session cuts the Plan into slices",
-    text: "After you approve, the build session writes the Outline (what is built first, which slices run side by side, the scenario that proves each Done means point), and a small task can have it ready sooner. Another agent reads a risky or large Outline, and you do not approve it again.",
+    text: "After you approve, the build session writes the Outline: the slices in build order and the scenario that proves each Done means point; a small task can have it ready sooner. You do not approve it again.",
     bullets: ["Every Done means point is tied to a scenario", "Nothing runs that the Plan did not allow", "Fewer, larger tasks: the Outline follows the Plan's size"],
   },
   {
@@ -89,17 +89,17 @@ export const CHAPTERS: Chapter[] = [
     who: "ag",
     steps: 5,
     title: "It is built in slices, on its own",
-    text: "Once started, your agent works on its own until the final review. Every task starts with a failing test, and slices that don’t overlap build side by side.",
-    bullets: ["QualityLayer records every test run itself", "What the agent decided on the way is listed, and you can ask why", "A login or secret waits in Your turn while other slices keep building"],
+    text: "Once started, your agent works on its own until the final review. One session builds the slices in order, every task starts with a failing test, and it fixes what fails.",
+    bullets: ["Test runs the agent makes through QualityLayer are recorded", "What the agent decided on the way is listed, and you can ask why", "A login or secret waits in Your turn while other slices keep building"],
   },
   {
     id: "verify",
     step: "Verify",
     who: "ag",
     steps: 7,
-    title: "Every change is polished and checked",
-    text: "Six checks run in a fixed order. Every point of Done means is checked against the running program, with its evidence beside it, and the agent chip names what runs now.",
-    bullets: ["Polish, security review and, on a risky change, a second opinion come first", "What they find is fixed before the independent review, which runs once", "Anything only you can confirm goes to Review"],
+    title: "An agent that did not write the code checks every point",
+    text: "A security review comes first when the Plan names a trust boundary, then the project checks. An agent that did not write the code adds missing tests and checks every point of Done means against the running program, with its evidence beside it; the agent chip names what runs now.",
+    bullets: ["A risky change also gets a second opinion", "Verify tries up to three times; the build session fixes what fails", "Anything still open, or only you can confirm, goes to Review first"],
   },
   {
     id: "review",
@@ -211,17 +211,20 @@ const DISCUSS_MOMENTS: { answered: number[]; focus: number; picked: boolean; sen
 ];
 export const discussAt = (step: number) => DISCUSS_MOMENTS[Math.min(step, DISCUSS_MOMENTS.length - 1)];
 
-/** How many of the build's 5 tasks are committed at moment `step` of the Implement close-up: slice 1 is done when it opens, slices 2 and 3 build side by side. */
+/** How many of the build's 5 tasks are committed at moment `step` of the Implement close-up: slice 1 is done when it opens, then slices 2 and 3 are built in order. */
 export const committedTasks = (step: number) => 2 + (step >= 1 ? 1 : 0) + (step >= 2 ? 1 : 0) + (step >= 3 ? 1 : 0);
 
-/** The moment each of the Verify checklist's 12 checks passes; a check runs for the moment before. */
-export const PASS_AT = [1, 2, 2, 2, 2, 2, 3, 4, 3, 4, 5, 6];
+/**
+ * The moment each of the Verify checklist's 9 checks passes: the security review, the 4 project
+ * checks and the first Done means point are done when it opens; the second point, the third and
+ * the second opinion follow. The check before them runs for the moment before.
+ */
+export const PASS_AT = [0, 0, 0, 0, 0, 0, 3, 5, 5];
+export const CHECKS_TOTAL = PASS_AT.length;
 export const checksPassed = (step: number) => PASS_AT.filter((when) => step >= when).length;
 
-/** The check that runs at moment `step` of the Verify close-up, in the order the chapter names them. */
-export const VERIFY_CHECKS = ["Polish", "Security review", "Second opinion", "Project checks", "Independent review", "Fixes"];
-export const checkRunning = (step: number) => VERIFY_CHECKS[Math.max(0, Math.min(VERIFY_CHECKS.length - 1, step - 1))];
-
+/** The checks in the order they run. */
+export const VERIFY_CHECKS = ["Security review", "Project checks", "Independent review", "Second opinion"];
 /**
  * Which chapter is in view. Each chapter's first line (its act heading, when it opens a part)
  * counts as read once it has risen past a line down the screen: 72 % down when the close-up is

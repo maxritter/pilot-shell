@@ -100,7 +100,7 @@ function ProofAndReview() {
       <h2 id="proof">How QualityLayer carries proof into review</h2>
       <ul>
         <li><b>Before code</b><span>You approve the Plan: what changes, what stays, and how you will know it works.</span></li>
-        <li><b>After the build</b><span>The <a href="/docs/steps/verify">Verify step</a> records output, screenshots or files for each agreed outcome. Checks that fail or cannot run stay visible in <a href="/docs/steps/review">Review</a>. A low-risk change may be reviewed by the session that built it, marked <em>not independent</em>.</span></li>
+        <li><b>After the build</b><span>The <a href="/docs/steps/verify">Verify step</a> records output, screenshots or files for each agreed outcome. Checks that fail or cannot run stay visible in <a href="/docs/steps/review">Review</a>. An agent that did not write the code checks every change, unless you turn that off in Settings.</span></li>
         <li><b>Until it merges</b><span>With GitHub's <code>gh</code> CLI, QualityLayer <a href="/docs/steps/pull-request">follows the pull request</a> through checks and review. QualityLayer never merges it.</span></li>
       </ul>
     </section>

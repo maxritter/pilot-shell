@@ -1,6 +1,6 @@
 import { ArrowRight, Check, ChevronDown, ChevronRight, Copy, Image, Maximize2, MessageSquare, Plus, Send } from "lucide-react";
 import type { ReactNode } from "react";
-import { CHAPTERS, checkRunning, checksPassed, committedTasks, ARTIFACT, DISCUSS_BATCH, discussAt, REQUEST, STAGES, TASK, VERIFY_CHECKS } from "@/lib/tour";
+import { CHAPTERS, CHECKS_TOTAL, checksPassed, committedTasks, ARTIFACT, DISCUSS_BATCH, discussAt, REQUEST, STAGES, TASK, VERIFY_CHECKS } from "@/lib/tour";
 
 /**
  * One close-up of the QualityLayer App per chapter, at reading size. Each is a crop of the App's
@@ -174,11 +174,11 @@ const QUESTIONS: { title: string; text: string; settles: string; choices: [strin
   { title: "Which endpoints does this cover?", text: "Customers registered their endpoints over several years. Some deliver to a service that no longer exists.", settles: "Done means 1", choices: [["Every endpoint"], ["Only endpoints added from now on"], ["Only the billing endpoints"]] },
 ];
 
-/** The build's slices as the Outline cut them: slice 1 first, then slices 2 and 3 side by side. `run` and `done` are moments of the Implement close-up. */
+/** The build's slices as the Outline cut them, built in this order. `run` and `done` are moments of the Implement close-up. */
 const SLICES = [
   { title: "Failed deliveries go to a retry queue", doing: "", par: "", tasks: ["T1", "T2"], run: 0, done: 0 },
-  { title: "Three tries, then mail the customer", doing: "T3: the test fails first, then it stops after the third try", par: "built side by side with slice 3", tasks: ["T3", "T4"], run: 0, done: 3 },
-  { title: "Retry count in the delivery row", doing: "T5: the test fails first, then each row shows the count", par: "built side by side with slice 2", tasks: ["T5"], run: 0, done: 1 },
+  { title: "Three tries, then mail the customer", doing: "T3: the test fails first, then it stops after the third try", par: "", tasks: ["T3", "T4"], run: 0, done: 2 },
+  { title: "Retry count in the delivery row", doing: "T5: the test fails first, then each row shows the count", par: "", tasks: ["T5"], run: 2, done: 3 },
 ];
 
 /** Each point of Done means, the proof beside it, and the moment of the Verify close-up it passes. */
@@ -252,7 +252,7 @@ function Walkthrough() {
       </div>
       <div className="cu-wr">
         <span className="cu-wk">How it was checked</span>
-        <p className="cu-wchk"><Mk k="check" />12 of 12 checks passed<span className="cu-k">· 3 steps to try it yourself · 1 thing only you can confirm</span></p>
+        <p className="cu-wchk"><Mk k="check" />{CHECKS_TOTAL} of {CHECKS_TOTAL} checks passed<span className="cu-k">· 3 steps to try it yourself · 1 thing only you can confirm</span></p>
       </div>
       <div className="cu-wr">
         <span className="cu-wk">Ship</span>
@@ -396,17 +396,15 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
     }
 
     case "outline": {
-      const waves: [string, string][] = [["Wave 1", "Slice 1 · failed deliveries go to a retry queue"], ["Wave 2", "Slices 2 and 3, side by side"]];
       return (
         <Frame label="Outline"
           top={<TopBar stage={3} chip={at(3) ? waits("the Outline is done") : works("writing the Outline")} activity={<AgentActivity title="Cutting the Plan into slices" note={`${2 + step} min`} sub="You read the Plan meanwhile. Nothing to approve here; the build can start the moment you approve the Plan." />} />}>
           <article className="cu-document" aria-label="Outline document">
             <h4>The build, slice by slice</h4>
-            <p>3 slices and 5 tasks, in 2 waves.</p>
-            <h5>How the build runs</h5><ol>{waves.map(([wave, what]) => <li key={wave}>{wave} · {what}</li>)}</ol>
+            <p>3 slices and 5 tasks, in build order.</p>
             <h5>Slices</h5><ol>{SLICES.map((slice) => <li key={slice.title}>{slice.title} · {slice.tasks.length} {slice.tasks.length === 1 ? "task" : "tasks"}</li>)}</ol>
             <h5>How each point is proved</h5><ol>{POINTS.map(([title], k) => <li key={title}>{title} · scenario {k + 1}</li>)}</ol>
-            {at(2) && (<><h5>Checked by a second reader</h5><p>2 gaps found and fixed. Every Done means point has a scenario.</p></>)}
+            {at(2) && <p>Every Done means point has a scenario.</p>}
           </article>
         </Frame>
       );
@@ -419,7 +417,7 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
           gate={<GateTrack items={[{ label: "Start", state: "cur" }, { label: "Slices · 3" }, { label: "Checked as it builds" }, { label: "Agents check every point" }]} turn="Your turn · start the build" />}>
           <YourTurn kind="Implement" title="Start the build" text="Paste this request into your agent. From then on the build runs on its own until the final review.">
             <span className="cu-seg cu-agent-seg"><span className="on">Claude Code</span><span>Codex</span><span>Cursor</span><span>Grok</span><span>Antigravity</span><span>Pi</span><span>OpenCode</span><span>Another agent</span></span>
-            <p className="cu-defs"><span><span className="cu-k">Plans each slice</span> Opus 5.5</span><span><span className="cu-k">Builds</span> Sonnet 5.5</span><span><span className="cu-k">Effort</span> High</span><span className="cu-lnk">Change</span></p>
+            <p className="cu-defs"><span><span className="cu-k">Build session</span> Opus 5.5</span><span><span className="cu-k">Subagents</span> Sonnet 5.5</span><span><span className="cu-k">Effort</span> High</span><span className="cu-lnk">Change</span></p>
             <div className="cu-cmd"><code>Using QualityLayer, implement the approved plan for task retry-webhooks</code><span className={`cu-btn pri sm${step === 1 ? " press" : ""}`}>{at(2) ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}{at(2) ? "Copied" : "Copy request"}</span></div>
           </YourTurn>
         </Frame>
@@ -431,7 +429,7 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
       const building = slicesDone < SLICES.length;
       return (
         <Frame label="Implement"
-          top={<TopBar stage={4} chip={works(building ? "building slices 2 and 3 side by side" : "recording the proof")} activity={<AgentActivity title={building ? "Building slices 2 and 3 side by side" : "The build is finished"} note={`${10 + step * 3} min`} sub="Every task starts with a failing test. Slices that don’t overlap build side by side."><p className="cu-prog">{done} of 5 tasks committed · every test run recorded</p></AgentActivity>} />}
+          top={<TopBar stage={4} chip={works(building ? `building slice ${slicesDone + 1}` : "recording the proof")} activity={<AgentActivity title={building ? `Building slice ${slicesDone + 1}` : "The build is finished"} note={`${10 + step * 3} min`} sub="Every task starts with a failing test. The slices are built in the Outline’s order."><p className="cu-prog">{done} of 5 tasks committed</p></AgentActivity>} />}
           gate={<GateTrack items={[{ label: "Started 14:02", state: "done" }, { label: `Slices · ${slicesDone} of 3`, state: "cur", pips: [slicesDone, 3] }, { label: "Checked as it builds" }, { label: "Agents check every point" }]} />}>
           <section className="cu-card">
             <p className="cu-cardh"><b>Slices</b><span className="cu-k">{slicesDone} of 3 done · {done} of 5 tasks committed</span></p>
@@ -443,7 +441,7 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
                   <Mk k={state === "done" ? "done" : state === "run" ? "work" : "open"} />
                   <span className="cu-num">{k + 1}</span>
                   <span className="cu-slt">{s.title}{note && <small>{note}</small>}</span>
-                  <span className="cu-k">{state === "done" ? "committed" : state === "run" ? "building" : "after 1"}</span>
+                  <span className="cu-k">{state === "done" ? "committed" : state === "run" ? "building" : "next"}</span>
                 </div>
               );
             })}
@@ -460,10 +458,10 @@ export default function CloseUp({ id, step: asked, tries = 2, onRetry }: { id: s
       const pointsPassed = POINTS.filter(([, , when]) => step >= when).length;
       return (
         <Frame label="Verify"
-          top={<TopBar stage={5} chip={done ? waits("waits for your review") : works(`running ${checkRunning(step)}`)} activity={<AgentActivity title="Agents that did not write the code are checking" note={`${passed} of 12`}><p className="cu-prog">412 tests passed · types, lint and build passed</p></AgentActivity>} />}
-          gate={<GateTrack items={[{ label: "Polish", state: "done" }, { label: "Project checks · 4", state: at(2) ? "done" : "cur" }, { label: `Done means · ${pointsPassed} of 3`, state: at(2) && !done ? "cur" : at(6) ? "done" : undefined, pips: [pointsPassed, 3] }, { label: "Code review", state: at(6) ? "done" : undefined }]} turn={done ? "Your turn · 2 in Review" : undefined} />}>
-          <Checked head="Six checks, in order" facts={VERIFY_CHECKS} />
-          {done && <Checked facts={["12 of 12 passed", "412 tests", "evidence for each point"]} />}
+          top={<TopBar stage={5} chip={done ? waits("waits for your review") : works("running Independent review")} activity={<AgentActivity title="An agent that did not write the code is checking" note={`${passed} of ${CHECKS_TOTAL}`}><p className="cu-prog">412 tests passed · types, lint and build passed</p></AgentActivity>} />}
+          gate={<GateTrack items={[{ label: "Security review", state: "done" }, { label: "Project checks · 4", state: "done" }, { label: `Done means · ${pointsPassed} of 3`, state: at(6) ? "done" : "cur", pips: [pointsPassed, 3] }, { label: "Second opinion", state: at(5) ? "done" : undefined }]} turn={done ? "Your turn · 2 in Review" : undefined} />}>
+          <Checked head="The checks, in order" facts={VERIFY_CHECKS} />
+          {done && <Checked facts={[`${CHECKS_TOTAL} of ${CHECKS_TOTAL} passed`, "412 tests", "evidence for each point"]} />}
           <section className="cu-card">
             <p className="cu-cardh"><b>Done means</b><span className="cu-k">each point against the running program</span></p>
             {POINTS.map(([title, evidence, when], k) => {

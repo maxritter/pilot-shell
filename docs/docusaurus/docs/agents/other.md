@@ -19,11 +19,11 @@ description: Use QualityLayer with any coding agent that can run shell commands,
 ![Plan with Claude Code, approve the Plan, build with another agent, then the same checks and your approval](pathname:///img/diagrams/agents-mix-light.svg)
 ![Plan with Claude Code, approve the Plan, build with another agent, then the same checks and your approval](pathname:///img/diagrams/agents-mix-dark.svg)
 
-Pick **In my terminal** when starting the build and copy its prompt. After you start, it follows Outline, Implement and Verify until human Review. [Settings](../reference/settings.md#defaults) holds the general run controls.
+Pick **In my terminal** when you start the build and copy its prompt. The agent then follows Outline, Implement and Verify until Review. [Settings](../reference/settings.md#defaults) holds the general run controls.
 
 ## Run in your terminal {#app-start}
 
-Choose **In my terminal** and paste the prompt into any coding agent. Conversations in the App or browser are available for the seven supported integrations; another agent does not gain those controls from a copied prompt.
+Choose **In my terminal** and paste the prompt into any coding agent. A copied prompt does not add the App's conversation view or session controls; those belong to the seven supported agents.
 
 ## What changes {#differences}
 
@@ -31,7 +31,7 @@ Choose **In my terminal** and paste the prompt into any coding agent. Conversati
 | --- | --- | --- |
 | Setup | Done when you install | One pasted prompt |
 | Model and effort | Set in QualityLayer | Set in your agent |
-| Building | Workers build slices side by side | One session builds every slice |
+| Building | One session builds the slices; it can use its agent's own subagents | One session builds the slices with its own tools |
 | Sessions | The App's **Agent** sidebar and supported session controls | Your agent's terminal and its own controls |
 | Cost panel | Per step, when the agent's records hold token counts | Not shown |
 | [Second opinion](../reference/settings.md#second-opinion) | Choose an installed native reviewer | Can use an installed native reviewer |

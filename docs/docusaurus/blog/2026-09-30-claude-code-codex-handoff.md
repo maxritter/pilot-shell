@@ -46,7 +46,7 @@ Those reviews are opt-in advice. The producing agent considers the findings, whi
 
 ## Review working software
 
-A builder can follow the plan and still misunderstand an interaction. Try a slice at its [checkpoint](/docs/steps/implement#checkpoints), then read the verification evidence before final approval.
+A builder can follow the plan and still misunderstand an interaction. Try the finished slice on the running program, then read the [verification evidence](/docs/steps/verify) before final approval.
 
 The handoff is useful when it preserves the decisions and makes the result easier to assess. It should not require you to reconstruct a second agent's private conversation.
 

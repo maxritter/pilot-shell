@@ -3,7 +3,7 @@ title: The App
 description: Read the work, answer questions and give feedback beside your agent’s conversation.
 ---
 
-Read the task on the left and work with your agent in the right sidebar. Answer questions, inspect diagrams and give feedback beside its conversation. Use the desktop App on macOS, Windows or Linux, or run `qualitylayer app` to open the same workspace in your browser.
+Read the task on the left and work with your agent in the right sidebar. Use the desktop App on macOS, Windows or Linux, or run `qualitylayer app` to open the same workspace in your browser.
 
 ![A visual billing Plan explains retries, buffering and replay beside Claude Code messages and tool calls in QualityLayer's Conversation view](pathname:///img/app/plan-light.webp)
 ![A visual billing Plan explains retries, buffering and replay beside Claude Code messages and tool calls in QualityLayer's Conversation view](pathname:///img/app/plan-dark.webp)
@@ -12,12 +12,12 @@ Read the task on the left and work with your agent in the right sidebar. Answer 
 
 | Part | What it does |
 | --- | --- |
-| **Sidebar** | A **Search** row, Home, Team, Artifacts and your tasks by project, with your plan limits or usage at the foot. **+ New** starts a task |
+| **Sidebar** | **Search**, Home, Team, Artifacts and your tasks by project. **+ New** starts a task |
 | **Agent status** | The top-bar chip: the agent's mark and whether it is working, needs you, quiet or stopped |
 | **Step track** | Where the task stands. A person icon marks the two steps you approve |
 | **Your turn** | One question or decision that needs you |
 | **Step page** | What needs you, what to look at, then the part of the step's document that matters now ([how it is built](#step-pages)) |
-| **Right sidebar** | the task’s **Agent** conversation, **Files** and **Feedback** |
+| **Right sidebar** | The task’s **Agent** conversation, **Files** and **Feedback** |
 
 ## Chat {#chat}
 
@@ -29,9 +29,7 @@ Ask for a saved plan, slice building, artifacts, checks or an independent review
 
 ## The sidebar {#sidebar}
 
-Tasks sit under their project (a repository on this computer), the ones waiting on you first. A project appears when you start a task in it; the folder button adds one by hand.
-
-Each task row shows its age, a dot while something is unread, its branch, its pull request with the state of its checks and the mark of the agent working on it. **View › Rows** switches to **Two lines** or **One line**; **Detailed** is the default.
+Tasks sit under their project (a repository on this computer), those waiting on you first. A project appears when you start a task in it; the folder button adds one by hand. Each task row shows its age, an unread dot, its branch, its pull request with check state, and its agent's mark. **View › Rows** switches between **Detailed** (default), **Two lines** and **One line**.
 
 | To | Do |
 | --- | --- |
@@ -43,15 +41,17 @@ Each task row shows its age, a dot while something is unread, its branch, its pu
 | Rename, archive or delete a task | Right-click it, or **⋯ More** in its header |
 | Filter or regroup | **View** (sliders button) |
 
-Order, colors, names and hidden projects are stored on the computer that runs the App, so every paired browser shows the same list.
+Project order, colors, names and hidden projects are stored on the computer running the App, so every paired browser shows the same list.
 
 ### Usage at the foot {#limits}
 
-For each agent on a plan that reports its limits (Claude Code and Codex), the foot of the sidebar shows the window with the least left. For an agent billed by use, on an API key or through a gateway, it shows what that agent cost today as an estimate, with the last seven days as a small chart and their total. Billed by use and on a plan are never added together. Open it for every limit window, a marker where an even pace would leave it now, and when it resets; for use billed by a key, the week by agent and by day; for a plan, today's tokens, sessions and most used model. The block is hidden when there is nothing to show. It reads when the sidebar shows, when a turn ends and when you open it, never on a timer. More in [plan limits](agents/native.md#plan-limits) and **Settings › Usage**.
+The foot of the sidebar shows what your agents have used. An agent on a plan (Claude Code and Codex report theirs) shows the limit window with the least left. An agent billed by use, on an API key or through a gateway, shows today's estimated cost and a seven-day chart. The two are never added together.
+
+Open the block for every limit window, when it resets and a breakdown of use. It is hidden when there is nothing to show. More in [plan limits](agents/native.md#plan-limits) and **Settings › Usage**.
 
 ### Search with ⌘K {#command-box}
 
-**⌘K** (**Ctrl+K** elsewhere) opens one box for actions, projects, tasks and the open task's files. Actions come first and name their keys. Projects answer **⌘1** to **⌘9** while the box is open, and each task shows its agent's mark. Type `›` first to see only actions, or `/` to see only the open task's files. **⌘U** opens **Settings › Usage**, **⇧⌘N** starts a task and **⌘P** goes to a file.
+**⌘K** (**Ctrl+K** elsewhere) opens one box for actions, projects, tasks and the open task's files. Type `›` for only actions, or `/` for only files. **⌘1** to **⌘9** pick a project while the box is open. **⌘U** opens **Settings › Usage**, **⇧⌘N** starts a task and **⌘P** goes to a file.
 
 ### The places {#places}
 
@@ -63,7 +63,7 @@ For each agent on a plan that reports its limits (Claude Code and Codex), the fo
 
 ## Answering questions {#questions}
 
-Questions come in Discuss and Research. Independent questions arrive as a batch, and **Your turn** shows one question at a time. Each answer reaches your agent at once.
+Questions come in Discuss and Research. Independent questions arrive as a batch. **Your turn** shows one question at a time, and each answer reaches your agent at once.
 
 | Control | Key | What it does |
 | --- | --- | --- |
@@ -74,7 +74,7 @@ Questions come in Discuss and Research. Independent questions arrive as a batch,
 | **Use the recommendations for all N** | | Answers the rest of the batch |
 | **Change** | | Corrects an earlier answer, under **Decided with you** |
 
-**↑** / **↓** move between questions. Answering never approves anything. Approving the Plan and the change are separate clicks.
+**↑** / **↓** move between questions. Answering never approves anything: approving the Plan and the change are separate clicks.
 
 ## Reading a document {#documents}
 
@@ -90,30 +90,26 @@ Every step writes one Markdown file, shown three ways:
 
 ### The step page {#step-pages}
 
-Questions and approvals appear first. **Look here** points to failures, risks and anything only you can confirm. Below that, read the step's summary and main result: requirements, findings, the Plan, the slice board or checked outcomes.
-
-Open a row for its details, or switch to **Reader** for the complete document. Diagrams and artifacts stay visible where you need them. Both workflow levels use the same page, with more engineering detail at the Engineering level.
+Questions and approvals come first. **Look here** lists anything only you can still do. Below it are the step's summary and main result: requirements, findings, the Plan, the slice board or checked outcomes. Open a row for details, or switch to **Reader** for the whole file.
 
 ## Feedback and artifacts {#comments-and-artifacts}
 
-Select a passage, a line or part of a diagram and choose **Give feedback**. The thread keeps that context with your words. The **To** picker chooses the agent, a named teammate or **Everyone on the task** when access is known. Each recipient keeps its own draft. Person-only feedback is not sent to the agent.
+Select a passage, a line or part of a diagram and choose **Give feedback**. The thread keeps that context with your words. The **To** picker chooses the agent, a named teammate or **Everyone on the task** when access is known. Each recipient keeps its own draft. Person-only feedback never goes to the agent.
 
-Working artifacts are compact entries in **Files**. **Open artifact canvas** opens the full page, its Feedback and its base artifact. The document header opens Files and Feedback; **Agent** opens the task’s conversation. The **Agent status** chip shows current activity. See [Artifacts](artifacts.md).
+Working artifacts are compact entries in **Files**. **Open artifact canvas** opens the full page. See [Artifacts](artifacts.md).
 
 ## Files and Review {#files}
 
-The **Files** tab opens with the task's checkout: its branch and pull request, then what the build changed, each file with its mark, plus and minus counts, and a way into **Review the code**. **Open** opens the checkout in your editor, shown by its mark; the arrow beside it picks VS Code, Cursor, Zed, Finder or Terminal. The choice is saved in **Settings › Git and editor**. Below the card, Files groups Documents, Artifacts, Reviews and Records.
-
-In Review, files carry the same marks in the tree and in their headers, and **Open** uses your editor, shown by its mark.
+The **Files** tab opens with the task's checkout: its branch and pull request, what the build changed (each file with its mark and plus and minus counts) and a way into **Review the code**. **Open** opens the checkout in your editor. The arrow beside it picks VS Code, Cursor, Zed, Finder or Terminal, saved in **Settings › Git and editor**. Below the card, Files groups Documents, Artifacts, Reviews and Records.
 
 ## Home {#home}
 
 ![Home: a Needs you section for your own questions and approvals, followed by a separate Running section for your agents' work](pathname:///img/app/home-light.webp)
 ![Home: a Needs you section for your own questions and approvals, followed by a separate Running section for your agents' work](pathname:///img/app/home-dark.webp)
 
-**Needs you** combines your questions, approvals and tasks you can continue with teammate questions, review requests and replies. Shared rows name the person and open the exact passage, diagram or artifact spot. **Running** is your agents' work, with its current step and activity. Team keeps the shared history.
+**Needs you** lists your questions, approvals and tasks you can continue, plus teammates' questions, review requests and replies. Shared rows name the person and open the exact passage, diagram or artifact spot. **Running** shows your agents' work with its current step. Team keeps the shared history.
 
-Notifications are configured in **Settings › Notifications**. The App notifies you only when you can act:
+Set notifications in **Settings › Notifications**. The App notifies you only when you can act:
 
 ![Who hears about what: the App, Slack and the Claude Code band speak only when a person can act, and agent progress and checks never notify](pathname:///img/diagrams/attention-light.svg)
 ![Who hears about what: the App, Slack and the Claude Code band speak only when a person can act, and agent progress and checks never notify](pathname:///img/diagrams/attention-dark.svg)
@@ -123,48 +119,42 @@ Notifications are configured in **Settings › Notifications**. The App notifies
 ![The cost panel: the total, each step with its time, tokens and cost, and each agent named after its work](pathname:///img/diagrams/cost-light.svg)
 ![The cost panel: the total, each step with its time, tokens and cost, and each agent named after its work](pathname:///img/diagrams/cost-dark.svg)
 
-The **Cost** control in a task's header opens the cost per step and agent, estimated from list prices and your agents' local logs. Dollar amounts stay hidden until you open it. Unpriced usage shows **tokens unpriced**, so an unknown price is never shown as free. Nothing is sent anywhere.
+The **Cost** control in a task's header opens the cost per step and agent, estimated from list prices and your agents' local logs. Amounts stay hidden until you open it. Unpriced usage shows **tokens unpriced**, so an unknown price is never shown as free. Nothing is sent anywhere.
 
 ## Agent runs {#agent-runs}
 
-**New task** offers **Chat**, **Feature** and **Bugfix**. Chat supports Claude Code and Codex ([above](#chat)). For Feature and Bugfix, enter your request and files, then choose where the agent runs. **Start the build** asks the same last question.
+**New task** offers **Chat**, **Feature** and **Bugfix**. Chat supports Claude Code and Codex ([above](#chat)). For Feature and Bugfix, enter your request and files, then choose where the agent runs. **Start the build** asks the same last question. Both open with your last choice.
 
-| Choice | What you do | Where you answer |
-| --- | --- | --- |
-| **In the App** (recommended) | Pick the agent (Claude Code, Codex, Cursor, Grok, Antigravity, Pi or OpenCode, each with its mark), model, effort, project and branch. Its conversation opens in the task’s **Agent** tab | Questions, approvals and feedback happen in the App |
-| **In my terminal** | Copy one prompt into any coding agent, app or IDE. Files you attached are saved on this computer and listed in the prompt by path | The agent asks its questions and takes your feedback in its own chat. The App shows the questions without answering them |
+- **In the App** (recommended): pick the agent (Claude Code, Codex, Cursor, Grok, Antigravity, Pi or OpenCode), model, effort, project and branch. Its conversation opens in the task’s **Agent** tab, and you answer there.
+- **In my terminal**: copy one prompt into any coding agent, app or IDE. Attached files are saved on this computer and listed by path. The agent asks in its own chat; the App shows the questions without answering them.
 
-The branch is **Current branch**, **New branch** or **New worktree**. A worktree takes a name, which gives its folder and its branch; QualityLayer puts the folder next to your project, so other work in the project stays untouched.
+The branch is **Current branch**, **New branch** or **New worktree**. A worktree takes a name that sets its folder and branch, placed next to your project so other work stays untouched.
 
-The prompt for a new task starts with “Using QualityLayer” and says `start feature` or `start bug`, followed by your request. The build’s prompt says `implement the approved task` and names the task. New task and Start the build open with your last choice.
-
-The App checks the local runtime before starting. If it cannot start the selected agent here, it explains why and keeps the terminal option available. Permissions and sign-in prompts still belong to your agent.
+If the App cannot start the agent here, it says why and keeps the terminal option. Permissions and sign-in prompts still belong to your agent.
 
 | To | Do |
 | --- | --- |
 | Read the task beside the conversation | Open **Agent** in the right sidebar; drag the divider to resize it |
-| Keep working elsewhere | Close the sidebar or open another task; this does not stop the run |
+| Keep working elsewhere | Close the sidebar or open another task; the run continues |
 | Type from another window | Use **Take control**; one window types at a time |
 | Interrupt or end the run | Use **Interrupt** or **Stop** in the agent menu |
-| Return to a saved conversation | Use its available **Resume** or **Open the conversation** action |
+| Return to a saved conversation | Use **Resume** or **Open the conversation** |
 | Move to your terminal | **Move to my terminal** gives the supported resume command |
 
-**Settings › Agents** shows each agent's sign-in and how it starts; **Sessions** holds the running agents, other paired browsers and quitting the App; **Appearance** holds the terminal's look. Choose the agent, model, effort and branch when starting a run. See [Settings](reference/settings.md#defaults).
+**Settings › Agents** shows each agent's sign-in and how it starts. **Sessions** holds running agents, other paired browsers and quitting the App. **Appearance** holds the terminal's look ([Settings](reference/settings.md#defaults)).
 
-An agent can wait for a permission, sign-in, answer or approval. A visible running process is not proof that it is making progress; read its current status and conversation. **Stop** and a user pause remain boundaries.
-
-Any other coding agent can take the copied prompt. Terminal output stays local and is not included in shared tasks.
+A running process does not prove progress: an agent can wait for a permission, sign-in, answer or approval. Read its status and conversation. **Stop** and a pause you set are always respected. Terminal output stays on your computer and is never part of a shared task.
 
 ### The conversation {#conversation}
 
-The agent's **Conversation** view reads its session record, and **Terminal** shows the program itself. In the Conversation:
+The **Conversation** view reads the agent's session record. **Terminal** shows the program itself.
 
-- A finished turn folds its thinking and tool calls into one line, such as “Worked for 2 min”. The answer, the workflow's own messages, errors and anything that needs you stay open.
-- A file or commit the agent names becomes a chip. A turn that changed files ends with those files and their plus and minus counts, recorded in QualityLayer's own folder, never in your repository.
-- A strip of marks in the left margin has one mark per turn. Click one, or use the arrow keys, to jump to that turn.
-- A long session opens at its last turns. **Show N earlier messages** loads the rest, and a long tool output opens with **Show more**.
+- A finished turn folds its thinking and tool calls into one line, such as “Worked for 2 min”. The answer, errors and anything that needs you stay open.
+- A file or commit the agent names becomes a chip. A turn that changed files ends with them and their plus and minus counts, recorded outside your repository.
+- A strip of marks in the left margin has one mark per turn. Click one, or use the arrow keys, to jump there.
+- A long session opens at its last turns. **Show N earlier messages** loads the rest.
 
-One row under the message box holds the controls: the **model** with its agent's mark, the **effort** (not shown for an agent that has none), the **permission mode** and the **context** ring. When a plan window runs low, the row warns with “N % left”. The row lists each agent's real [permission modes](agents/native.md#permission-modes); a mode that skips every check asks you to confirm. Subagents are listed above the box.
+The row under the message box holds the **model**, the **effort** (hidden for an agent that has none), the **permission mode** and the **context** ring. It lists each agent's real [permission modes](agents/native.md#permission-modes); a mode that skips every check asks you to confirm. It warns “N % left” when a plan window runs low. Subagents are listed above the box.
 
 ## In Claude Code
 

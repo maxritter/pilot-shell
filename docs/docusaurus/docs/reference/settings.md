@@ -39,7 +39,7 @@ Standing instructions for every task in every project: coding standards, things 
 
 | | How it applies |
 | --- | --- |
-| Who reads it | Your agent once per step, plus helpers, reviewers and the judge. Never copied into a task's documents |
+| Who reads it | Your agent once per step, plus helpers and reviewers. Never copied into a task's documents |
 | Per step | Lines under a step heading (`## Plan`, `## Implement`, `## Verify`, …) apply to that step only; other lines apply to all |
 | Running tasks | An edit applies from the task's next step reply |
 | Team instructions | Come first and win on conflict ([Team](#team-instructions)) |
@@ -47,7 +47,7 @@ Standing instructions for every task in every project: coding standards, things 
 
 ### Independent review {#independent-review}
 
-Who decides whether a change passes [Verify](../steps/verify.md): **Fresh agent: When risky** (recommended) or **Always**, or off. Pick its model for each agent: Opus 5.5 by default in Claude Code, GPT-6.1 Sol in Codex, Pi and OpenCode, Auto in Cursor, Grok 4.7 in Grok and Gemini 3.8 Flash (High) in Antigravity. On a change that is not risky, the build session reviews itself and the page marks it **not independent**.
+Whether an agent that never wrote the code checks the change in [Verify](../steps/verify.md): **On** (recommended) or **Off**. When on, it checks every round of every change, small ones included: it adds the missing tests and rules on every **Done means** point. Pick its model for each agent: Opus 5.5 by default in Claude Code, GPT-6.1 Sol in Codex, Pi and OpenCode, Auto in Cursor, Grok 4.7 in Grok and Gemini 3.8 Flash (High) in Antigravity. With the setting off, no fresh agent checks any change and Verify records **Checked without an independent judge**.
 
 ### Second opinion {#second-opinion}
 
@@ -60,7 +60,7 @@ Cursor and Antigravity review a disposable copy and are stopped if they start a 
 | When | Choices | What it reads |
 | --- | --- | --- |
 | **On the Plan** | **When risky** (recommended) or **Always** | Discuss, Research and the first full Plan draft, before the Plan reaches you |
-| **On the built change** | **When risky** (recommended) or **Always** | The finished code, alongside Polish and Security review in [Verify](../steps/verify.md#lanes) |
+| **On the built change** | **When risky** (recommended) or **Always** | The finished code, beside the independent review in [Verify](../steps/verify.md#lanes) |
 
 Risky means the Plan says so, the change touches sign-in, secrets or outside input, or the Outline marks a slice risky. **Always** adds a few minutes per Plan or change. With one agent installed, a separate reviewer of that agent reads instead (Sonnet 5.5 in Claude Code). **Reviewed by** in the Plan names who read it.
 
@@ -89,7 +89,9 @@ An environment variable such as `QUALITYLAYER_CODEX_BIN` wins over **Command**, 
 
 **Another agent** takes the program and arguments of any coding agent that runs shell commands. It gets the request and the CLI instructions in its own terminal. **Terminal › Shell** sets what a plain Terminal opens in a task or artifact.
 
-The choice of agent, model, effort and branch belongs to each run: New task and Start the build open with your last choice, so Settings has no default for them. Where the agent runs also decides where you answer: **In the App** keeps questions, approvals and artifact feedback in the App or browser, **In my terminal** uses the agent's chat. See [Terminal mode](commands.md#terminal-mode) for CLI controls and document reading.
+The agent, model, effort and branch belong to each run. New task and Start the build open with your last choice, so Settings has no default for them.
+
+Where the agent runs also decides where you answer. **In the App** keeps questions, approvals and artifact feedback in the App or browser; **In my terminal** uses the agent's chat. See [Terminal mode](commands.md#terminal-mode) for CLI controls and document reading.
 
 ## Usage {#usage}
 
@@ -97,9 +99,13 @@ The choice of agent, model, effort and branch belongs to each run: New task and 
 
 **Resume when a limit resets** (on by default) lets a build that stopped on a plan limit continue by itself when the window resets. It only does so if nobody has typed in the session since. You can cancel it on the task.
 
-**What your agents used** adds up the last 7 or 30 days or this month from the session files your agents keep on this computer, and counts each message once. A daily chart shows each agent in its own colour, with the change against the period before. **Where the tokens went** splits the tokens by kind, and **Breakdown** lists every model or every day.
+**What your agents used** adds up the last 7 or 30 days, or this month. It reads the session files your agents keep on this computer and counts each message once. A daily chart shows each agent in its own colour, with the change against the period before. **Where the tokens went** splits the tokens by kind, and **Breakdown** lists every model or every day.
 
-An agent on a plan shows its limits and its tokens, never dollars. Turn on **Show plan use at API prices** to see what that use would cost at list prices, marked as not billed. An agent billed by use, on an API key or through a gateway, shows an estimated cost, by kind of token and by speed, with what the cache saved. Billed by use and on a plan are two figures and are never added together. Dollar amounts are estimates at list prices, and your bill can differ. A model with no listed price has its tokens counted and no cost. Cursor, Grok and Antigravity keep no token counts, so they show no usage.
+- An agent on a plan shows its limits and its tokens, never dollars. Turn on **Show plan use at API prices** to see what that use would cost at list prices, marked as not billed.
+- An agent billed by use (an API key or a gateway) shows an estimated cost, by kind of token and by speed, with what the cache saved.
+- Billed by use and on a plan are two figures and are never added together.
+- Dollar amounts are estimates at list prices, and your bill can differ. A model with no listed price has its tokens counted and no cost.
+- Cursor, Grok and Antigravity keep no token counts, so they show no usage.
 
 ## Sessions {#sessions}
 
@@ -123,7 +129,7 @@ An agent on a plan shows its limits and its tokens, never dollars. Turn on **Sho
 
 **Open files and folders in** picks VS Code, Cursor, Zed, Finder or Terminal. The Files tab, **Review the code** and file chips open there.
 
-**Watch pull requests** (on by default) reads each open pull request every 2 minutes while QualityLayer is open and the task's pull request is open. A failing check, a review asking for changes or a conflict appears in **Needs you** and wakes the task's agent, resuming its session if it stopped: once per event, at most 3 times a day per pull request, and not with less than 10 % of the plan left. Past a limit the event only shows in Needs you and says why the agent was not woken.
+**Watch pull requests** (on by default) reads each open pull request while QualityLayer is open. A failing check, a review asking for changes or a conflict appears in **Needs you** and wakes the task's agent, resuming its session if it stopped. It wakes once per event, at most 3 times a day per pull request, and not with less than 10 % of the plan left. Past a limit, the event only shows in Needs you and says why the agent was not woken.
 
 ## Appearance {#appearance}
 
@@ -171,4 +177,4 @@ The version and **Check now**. Updates come once a day; they download in the bac
 
 ## For one task {#for-one-task}
 
-Tell your agent: "skip security", "run a checkpoint after every slice", "get a second opinion", "no second opinion", "skip polish". A small change skips the second read of its Outline; ask to bring it back. It also has one fresh agent for Polish and the independent review, so it starts no separate Polish helper; "skip polish" or "run the security review" keeps the two apart. No setting turns an approval off.
+Tell your agent: "skip security", "run the security review", "get a second opinion" or "no second opinion". No setting turns an approval off.

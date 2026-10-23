@@ -31,7 +31,7 @@ it("opens actual agent status from its chip while keeping the build document qui
   expect(panel.open).toBe(false);
   fireEvent.click(summary);
   expect(panel.open).toBe(true);
-  expect(panel.textContent).toContain("Building slices 2 and 3 side by side");
+  expect(panel.textContent).toContain("Building slice 2");
   expect(panel.textContent).toContain("2 of 5 tasks committed");
 });
 

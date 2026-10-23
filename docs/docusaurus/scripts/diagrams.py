@@ -167,8 +167,7 @@ def track(here: str):
     return draw
 
 
-# ---------------------------------------------------------------- slices, side by side, then Verify
-# ---------------------------------------------------------------- who does what
+# ---------------------------------------------------------------- slices, then Verify
 
 # ---------------------------------------------------------------- the App window
 
@@ -524,7 +523,7 @@ def flow(c, pr=False):
         b.append(T(cx[i], 30, n, 15, 'text', 700, 'middle', c=c))
         b.append(diamond(c, cx[i], 62, 10) if n in GATES else f'<circle cx="{cx[i]}" cy="62" r="10" fill="{c[col]}"/>')
     you = ['Answer a batch', 'Settle the choices', 'Approve the Plan', None, 'Copy one command', None, 'Approve the change'] + (['Merge it'] if pr else [])
-    agent = ['Asks questions', 'Reads the code', 'Writes the Plan', 'Cuts it into slices', 'Builds test first', 'Agents check it', 'Writes the PR text'] + (['Answers reviews'] if pr else [])
+    agent = ['Asks questions', 'Reads the code', 'Writes the Plan', 'Cuts it into slices', 'Builds test first', 'Fresh agent checks', 'Writes the PR text'] + (['Answers reviews'] if pr else [])
     for row, (label, col, y, cells) in enumerate([('You', 'amber', 100, you), ('Your agent', 'blue', 166, agent)]):
         b.append(T(0, y + 28, label, 15, col, 700, c=c))
         for i, s in enumerate(cells):
@@ -549,64 +548,32 @@ def flow(c, pr=False):
 def slices(c):
     W, H = 1000, 292
     b = []
-    for name, xa, xz, col in [('Implement', 0, 610, 'blue'), ('Verify', 640, 1000, 'violet')]:
+    for name, xa, xz, col in [('Implement', 0, 570, 'blue'), ('Verify', 600, 1000, 'violet')]:
         b.append(f'<rect x="{xa}" y="0" width="{xz - xa}" height="4" rx="2" fill="{c[col]}"/>')
         b.append(T(xa, 26, name, 15, col, 650, c=c))
 
-    def sl(x, y, w, col, title, line2, col2, check):
-        out = [card(c, x, y, w, 80, stroke=col, sw=1.6)]
+    def sl(x, y, w, title, line2, col2, check):
+        out = [card(c, x, y, w, 80, stroke='blue', sw=1.6)]
         out.append(T(x + 14, y + 24, title, 13.5, 'text', 650, c=c))
         out.append(T(x + 14, y + 44, line2, 12, col2, 600 if col2 == 'amber' else 400, c=c))
         out.append(vmark(c, x + 20, y + 61))
         out.append(T(x + 32, y + 66, check, 11, 'blue', 500, mono=True, c=c))
         return ''.join(out)
 
-    b.append(sl(0, 44, 190, 'blue', 'Slice 1 · Export', 'T1, T2, each test first', 'muted', 'check slice 1 · exit 0'))
-    b.append(arrow(c, 192, 84, 214))
-    b.append(sl(216, 44, 214, 'cardline', 'Slice 3 · Large reports', 'Risky: new mail service', 'amber', 'check slice 3 · exit 0'))
-    b.append(arrow(c, 432, 84, 454))
-    b.append(card(c, 456, 44, 154, 80, stroke='amber', fill='amberf', sw=1.6))
-    b.append(T(470, 68, 'Checkpoint', 13.5, 'text', 650, c=c))
-    b.append(T(470, 88, 'Runs slice 3’s', 12, 'muted', c=c))
-    b.append(T(470, 106, 'scenarios', 12, 'muted', c=c))
-    b.append(sl(0, 144, 300, 'blue', 'Slice 2 · Filter the export', 'Side by side: shares no file with slice 1', 'muted', 'check slice 2 · exit 0'))
-    b.append(f'<path d="M610 84 H625 V184 M300 184 H625" fill="none" stroke="{c["muted"]}" stroke-width="1.8"/>')
-    b.append(arrow(c, 625, 84, 644))
-    b.append(arrow(c, 625, 184, 644))
-    b.append(node(c, 646, 44, 170, 80, 'Polish', ['Leftover code,', 'missing tests, docs'], 'cardline'))
-    b.append(node(c, 646, 144, 170, 80, 'Security review', ['Only when it crosses', 'a trust boundary'], 'cardline', dash=True))
-    b.append(curve(c, 816, 84, 838, 134, 'muted'))
-    b.append(curve(c, 816, 184, 838, 134, 'muted', True))
-    b.append(node(c, 838, 94, 154, 80, 'Checking', ['Agents that did not', 'write the code'], 'violet', 'violetf'))
-    b.append(T(W / 2, 258, 'Slices that share no files build side by side, and only a risky slice gets a checkpoint.', 13, 'muted', 400, 'middle', c=c))
-    b.append(T(W / 2, 278, 'Then Polish and the security review run side by side, and agents check every point.', 13, 'muted', 400, 'middle', c=c))
-    return svg(W, H, ''.join(b), 'Implement and Verify: slices built test first, side by side where they share no files, a checkpoint after a risky slice, then Polish and the security review side by side, then agents that did not write the code check every point')
-
-
-def agents(c):
-    W, H = 1000, 352
-    b = []
-    b.append(node(c, 0, 170, 160, 80, 'You', ['Answer, then approve', 'the Plan and change'], 'amber', 'amberf'))
-    b.append(curve(c, 160, 210, 185, 210, 'amberl'))
-    b.append(node(c, 185, 170, 190, 80, 'Your agent', ['Discuss, Research, Plan,', 'Opus 5.5 recommended'], 'blue', 'bluef'))
-    b.append(curve(c, 375, 210, 400, 210, 'blue'))
-    b.append(f'<rect x="400" y="150" width="120" height="120" rx="12" fill="{c["bluef"]}" stroke="{c["blue"]}" stroke-width="2"/>')
-    b.append(T(416, 180, 'The Plan', 15, 'text', 650, c=c))
-    for i in range(4):
-        b.append(f'<rect x="416" y="{196 + i * 15}" width="{[88, 72, 84, 56][i]}" height="6" rx="3" fill="{c["blue"]}" fill-opacity="0.35"/>')
-    b.append(curve(c, 520, 210, 545, 210, 'blue'))
-    b.append(node(c, 545, 170, 190, 80, 'Orchestrator', ['Started with one command,', 'Opus 5.5, writes no code'], 'blue', 'bluef'))
-    right = [(0, 'Workers', ['Sonnet 5.5, each task', 'test first, fixes too'], 'blue'),
-             (88, 'Polish and security', ['Side by side,', 'after the build'], 'violet'),
-             (176, 'Checking', ['Opus 5.5. Agents that did', 'not write the code'], 'violet'),
-             (264, 'Second opinion', ['The other coding agent reads', 'the Plan, and risky changes'], 'violet')]
-    for y, t, s, col in right:
-        b.append(curve(c, 735, 210, 770, y + 39, col, dash=(t == 'Second opinion')))
-        b.append(node(c, 770, y, 230, 78, t, s, 'cardline', dash=(t == 'Second opinion')))
-        b.append(f'<circle cx="{980}" cy="{y + 22}" r="6" fill="{c[col]}"/>')
-    b.append(T(474, 300, 'Every worker starts from the Plan,', 12, 'muted', c=c))
-    b.append(T(474, 316, 'never from your chat', 12, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'Who does what: you and your agent on Opus 5.5 discuss and write the Plan; the orchestrator you start with one command writes no code and hands each slice to workers on Sonnet 5.5; Polish and the security review run side by side; agents that did not write the code check it; a second opinion from the other coding agent reviews risky Plans by itself')
+    b.append(sl(0, 74, 170, 'Slice 1 · Export', 'T1, T2, test first', 'muted', 'tests · exit 0'))
+    b.append(arrow(c, 172, 114, 198))
+    b.append(sl(200, 74, 170, 'Slice 2 · Filter', 'T3, T4, test first', 'muted', 'tests · exit 0'))
+    b.append(arrow(c, 372, 114, 398))
+    b.append(sl(400, 74, 170, 'Slice 3 · Reports', 'Risky: new mail service', 'amber', 'tests · exit 0'))
+    b.append(T(0, 188, 'One session builds the slices in the Outline’s order and fixes what fails.', 12.5, 'muted', c=c))
+    b.append(node(c, 606, 44, 186, 80, 'Security review', ['Only when it crosses', 'a trust boundary'], 'cardline', dash=True))
+    b.append(node(c, 606, 144, 186, 80, 'Project checks', ['Run once on the', 'committed build'], 'cardline'))
+    b.append(curve(c, 792, 84, 812, 134, 'muted'))
+    b.append(curve(c, 792, 184, 812, 134, 'muted'))
+    b.append(node(c, 814, 94, 186, 80, 'Independent review', ['Adds missing tests,', 'checks every point'], 'violet', 'violetf'))
+    b.append(T(W / 2, 258, 'A fresh agent that did not write the code checks every point on the running program.', 13, 'muted', 400, 'middle', c=c))
+    b.append(T(W / 2, 278, 'Up to three rounds; what is still open goes to Review first.', 13, 'muted', 400, 'middle', c=c))
+    return svg(W, H, ''.join(b), 'Implement and Verify: one session builds the slices in order, test first, and fixes what fails; then a security review when the change crosses a trust boundary, the project checks, and a fresh agent that did not write the code adds missing tests and checks every point on the running program; what is still open after three rounds goes to Review first')
 
 
 # ---------------------------------------------------------------- the App window
@@ -842,14 +809,13 @@ def research_ill(c: Theme) -> str:
 
 def outline_ill(c: Theme) -> str:
     return task_example(c, 3, [
-        ('heading', 'Summary'), ('row', '4 slices and 11 tasks, one risky slice, built in 3 waves.'),
-        ('heading', 'How the build runs'), ('row', 'Wave 1 · Slice 1 · Clearer settings'),
-        ('row', 'Wave 2 · Slices 2 and 3, side by side'), ('row', 'Wave 3 · Slice 4 · Links, tried on the program'),
+        ('heading', 'Summary'), ('row', '4 slices and 11 tasks, in build order, one of them risky.'),
         ('heading', 'Slices'), ('row', 'Slice 1 · Clearer settings · 3 tasks ▸'),
         ('row', 'Slice 2 · Sign-in · 2 tasks ▸'),
+        ('row', 'Slice 3 · Large reports · risky · 4 tasks ▸'),
+        ('row', 'Slice 4 · Links, tried on the program · 2 tasks ▸'),
         ('heading', 'How each point is proved'), ('proof', 'Done means 1 · scenario 1 · after slice 1'),
         ('row', 'Done means 2 · scenario 2 · after slice 3'),
-        ('heading', 'Checked by a second reader'), ('proof', '2 gaps found and fixed · read the review'),
     ], [], 'Writing the Outline')
 
 
@@ -921,37 +887,6 @@ def implement_ill(c: Theme) -> str:
     ], 'Building slice 3')
 
 
-def checkpoint_ill(c: Theme) -> str:
-    W, H = 1000, 300
-    b = []
-    top = [(0, 'Slice 1 built', 'cardline', 'bg'), (220, 'Its scenarios run', 'blue', 'bluef'), (440, 'Passed', 'violet', 'bg'),
-           (660, 'Next slice', 'cardline', 'bg')]
-    for x, t, col, fill in top:
-        b.append(card(c, x, 20, 180, 56, stroke=col, fill=fill, sw=1.6 if col != 'cardline' else 1))
-        b.append(T(x + 90, 54, t, 14, 'text', 650, 'middle', c=c))
-    for x in (0, 220, 440):
-        b.append(arrow(c, x + 182, 48, x + 218))
-    b.append(vmark(c, 474, 48))
-    b.append(T(90, 98, 'Risky: new mail service', 12, 'amber', 600, 'middle', c=c))
-    b.append(T(870, 44, 'Output of every run', 12, 'muted', c=c))
-    b.append(T(870, 60, 'is kept', 12, 'muted', c=c))
-    b.append(card(c, 220, 172, 180, 56, stroke='danger', fill='bg', sw=1.6))
-    b.append(mark(c, 250, 200, False))
-    b.append(T(318, 205, 'Failed', 14, 'text', 650, 'middle', c=c))
-    b.append(arrow(c, 310, 78, 310, 170, 'danger'))
-    b.append(f'<path d="M218 200 H150 V112" fill="none" stroke="{c["muted"]}" stroke-width="1.8" stroke-dasharray="4 4"/>')
-    b.append(f'<path d="M145 119 l5 -7 l5 7" fill="none" stroke="{c["muted"]}" stroke-width="1.8"/>')
-    b.append(T(0, 160, 'An agent fixes it,', 12, 'muted', c=c))
-    b.append(T(0, 176, 'then it runs again', 12, 'muted', c=c))
-    b.append(arrow(c, 402, 200, 470))
-    b.append(T(436, 190, 'failed 4 times', 11.5, 'danger', 600, 'middle', c=c))
-    b.append(card(c, 472, 152, 508, 120, stroke='cardline', fill='card'))
-    b.append(T(490, 180, 'Recorded as open: the build goes on', 14, 'text', 650, c=c))
-    b.append(T(490, 200, 'Each try used a different approach; their output is kept.', 12.5, 'muted', c=c))
-    b.append(T(490, 222, 'The final review lists it, in one plain sentence.', 12.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'A checkpoint after a risky slice: its scenarios run on the real program; a failure goes to an agent to fix and runs again with a different approach; after four failed runs the checkpoint is recorded as open, the build goes on, and the final review lists it')
-
-
 # ---------------------------------------------------------------- Verify
 def status(c: Theme, x: float, y: float, state: str) -> str:
     if state == 'passed':
@@ -975,40 +910,6 @@ def verify_ill(c: Theme) -> str:
         ('row', 'Waiting · scenarios 3 and 4'),
         ('heading', 'Project checks and agent reviews'), ('proof', 'Types, lint and tests passed · open the evidence'),
     ], [], 'Checking point 2')
-
-
-def stopped_ill(c: Theme) -> str:
-    W, H = 1000, 490
-    b = [card(c, 0, 0, W, H - 28, stroke='amber', fill='bg')]
-    b.append(T(24, 32, 'Your turn · after two fixing rounds', 12.5, 'muted', 500, c=c))
-    b.append(T(24, 62, 'Verify sent the build back twice', 22, 'text', 650, c=c))
-    b.append(T(24, 86, '4 update tests still fail. Each recorded round so far:', 13.5, 'muted', c=c))
-    b.append(T(24, 117, 'Fixing work', 12, 'muted', 500, c=c))
-    b.append(T(810, 117, 'Time', 12, 'muted', 500, 'end', c=c))
-    b.append(T(976, 117, 'Cost', 12, 'muted', 500, 'end', c=c))
-    rounds = [('Round 1 · fixed 3 failing tests', '48 min', '$11.40'),
-              ('Round 2 · fixed the token retry', '2 h 39 min', '$19.05')]
-    for i, (fixed, minutes, cost) in enumerate(rounds):
-        y = 143 + i * 30
-        b.append(T(24, y, fixed, 13.5, 'text', 500, c=c))
-        b.append(T(810, y, minutes, 13, 'muted', 400, 'end', c=c))
-        b.append(T(976, y, cost, 13, 'text', 500, 'end', c=c))
-    b.append(T(24, 207, 'Still failing · 4 update tests', 13.5, 'danger', 500, c=c))
-    opts = [('One more round', 'Fix and check once; another failure asks you again'),
-            ('Review it as it is', 'Review lists the open tests'),
-            ('Stop here', 'The work and its evidence stay')]
-    for i, (label, hint) in enumerate(opts):
-        y = 227 + i * 48
-        b.append(f'<rect data-choice="{i + 1}" x="24" y="{y}" width="952" height="40" rx="8" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-        b.append(T(40, y + 26, str(i + 1), 12, 'muted', 500, c=c))
-        b.append(T(64, y + 26, label, 13.5, 'text', 600, c=c))
-        b.append(T(310, y + 26, hint, 12.5, 'muted', c=c))
-    b.append(T(24, 391, 'Your own words', 12, 'muted', 500, c=c))
-    b.append(f'<rect data-own-words="true" x="24" y="402" width="852" height="38" rx="6" fill="{c["bg"]}" stroke="{c["cardline"]}"/>')
-    b.append(T(36, 427, 'Or tell the agent what to try…', 12.5, 'dim', c=c))
-    b.append(abtn_svg(c, 892, 402, 'Send', True, 38, 12.5, 84))
-    b.append(T(24, 484, 'Illustration · example fixing work, times and costs', 10.5, 'muted', c=c))
-    return svg(W, H, ''.join(b), 'After the initial review and two recorded fixing rounds, checks still fail. You choose One more round, Review it as it is, or Stop here; each round shows its fixing work, time and cost.')
 
 
 # ---------------------------------------------------------------- Review
@@ -1041,7 +942,7 @@ def comments_ill(c: Theme) -> str:
     b.append(card(c, 660, 0, 340, 326, stroke='cardline'))
     b.append(rside(c, 660, 0, 340, 326, 'comments').replace(f'<line x1="660" y1="0" x2="660" y2="326" stroke="{c["cardline"]}"/>', ''))
     groups = [('Open on Review · 2', 'Settings.tsx · the Links row', 'Yours · goes with Send 1 change', 'amber'),
-              ('', 'Plan · “Workers” only in the App?', 'Anna, 2 h ago · Claude Code answered', 'blue'),
+              ('', 'Plan · “Reviewer” only in the App?', 'Anna, 2 h ago · Claude Code answered', 'blue'),
               ('Resolved · 3', 'Done means · point 4', 'Ben · resolved by you', 'dim')]
     for i, (g, t, s, col) in enumerate(groups):
         y = 54 + i * 86
@@ -1096,7 +997,7 @@ def band_ill(c: Theme) -> str:
     b = [card(c, 0, 0, 1000, 246)]
     b.append(T(18, 28, 'Claude Code', 12, 'dim', 600, c=c))
     rows = [('While it waits for you', 'amber', 'amberf', 'QL · Settings cleanup · Plan · waits for you in the App: Approve the Plan?', None),
-            ('While it builds', 'blue', 'bluef', 'QL · Settings cleanup · Implement · slices 2 and 3 building', None),
+            ('While it builds', 'blue', 'bluef', 'QL · Settings cleanup · Implement · slice 3 building', None),
             ('When a teammate asks', 'amber', 'amberf', 'QL · 2 questions for you · Anna, Ben', None)]
     for i, (label, col, fill, text, _) in enumerate(rows):
         y = 46 + i * 58
@@ -1132,9 +1033,9 @@ def cost_ill(c: Theme) -> str:
         b.append(T(960, y + 24, usd, 13, 'text', 650, 'end', c=c))
         y += 38
         if n == 'Verify':
-            for hn, htm, htk, hu in [('Your session · Opus 5.5', '', '11M', '$4.14'), ('Polish · Sonnet 5.5', '13 min', '9M', '$2.75'),
-                                     ('Checking · part 1 of 3 · Opus 5.5', '9 min', '8M', '$3.19'),
-                                     ('Checking · part 2 of 3 · Opus 5.5', '5 min', '5M', '$2.13'),
+            for hn, htm, htk, hu in [('Your session · Opus 5.5', '', '11M', '$4.14'),
+                                     ('Independent review · round 1 · Opus 5.5', '22 min', '17M', '$5.94'),
+                                     ('Independent review · round 2 · Opus 5.5', '5 min', '5M', '$2.13'),
                                      ('Project checks · 4 full runs', '12 min', '', '$0')]:
                 b.append(T(40, y + 18, hn, 12.5, 'text', 500, c=c))
                 b.append(T(700, y + 18, htm, 12, 'dim', 500, 'end', c=c))
@@ -1528,12 +1429,12 @@ def artifact_open(c: Theme) -> str:
     return svg(W, H, ''.join(b), 'An artifact in the viewer: Back to the Plan, its name and update time, named agent status, Comment, zoom, Jump to and full screen. A pinned comment keeps the agent’s answer beside the spot; a quiet notice reports an update')
 
 
-DRAWINGS = [('architecture', architecture), ('flow-pr', lambda c: flow(c, pr=True)), ('slices', slices), ('agents', agents), ('app', app),
+DRAWINGS = [('architecture', architecture), ('flow-pr', lambda c: flow(c, pr=True)), ('slices', slices), ('app', app),
             ('home', home_ill), ('plan-full', plan_full),
             ('items', items_ill), ('decision', decision_ill),
-            ('implement', implement_ill), ('checkpoint', checkpoint_ill),
+            ('implement', implement_ill),
             ('discuss', discuss_ill), ('research', research_ill), ('diagnose', diagnose_ill), ('plan', plan_ill), ('outline', outline_ill),
-            ('verify', verify_ill), ('stopped', stopped_ill), ('review', review_ill), ('comments', comments_ill),
+            ('verify', verify_ill), ('review', review_ill), ('comments', comments_ill),
             ('pull-request', pull_request_ill), ('band', band_ill), ('cost', cost_ill),
             ('attention', attention_ill), ('feedback', feedback_ill), ('agents-other', agents_other_ill), ('agents-mix', agents_mix_ill),
             ('team', team), ('team-agents', team_agents), ('team-timeline', team_timeline), ('team-change', team_change),

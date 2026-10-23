@@ -1,5 +1,5 @@
-/** Public documentation follows stable main; the generated changelog comes from the repository root. */
+/** Public documentation follows stable main. */
 export function docsSourceUrl(docPath: string): string {
-  const path = docPath === "reference/changelog.md" ? "CHANGELOG.md" : `docs/docusaurus/docs/${docPath}`;
+  const path = `docs/docusaurus/docs/${docPath}`;
   return `https://github.com/maxritter/qualitylayer/blob/main/${path}`;
 }

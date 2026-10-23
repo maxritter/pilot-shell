@@ -17,8 +17,8 @@ export function releasedOn(published: string | null | undefined): string | null 
   return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
 }
 
-/** The changelog at this version's heading; the docs give "## 12.0.0-beta.53" the id "1200-beta53". */
-export const changelogOf = (version: string) => `${CHANGELOG_URL}#${version.toLowerCase().replace(/[^a-z0-9_ -]/g, "").replace(/ /g, "-")}`;
+/** The GitHub release for the version these packages install. */
+export const changelogOf = (version: string) => `${CHANGELOG_URL}/tag/v${encodeURIComponent(version)}`;
 
 export type Card = "macos-arm64" | "macos-x64" | "windows" | "linux";
 

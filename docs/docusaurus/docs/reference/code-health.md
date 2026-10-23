@@ -25,12 +25,12 @@ Checks do not start another agent turn. Findings reach it when the conversation 
 | Previously seen | A finding the tool already reported; it still needs review |
 | Acknowledged | A finding retained with a specific reason; the code has not been repaired |
 
-A changed function, analyzer configuration or duplication counterpart can require a new review. A higher metric can too.
+A finding needs a new review when its function, the analyzer configuration or its duplicate changes, or when its metric goes up.
 
 ## Ask for a broader check
 
 Try “Check this project's duplication” or “Review the complexity of the files we changed.” Your agent can also run your project's enabled linters.
 
-Code health is advisory. Your tests, security checks and release requirements still apply. A failed, skipped or unavailable check gives no passing evidence.
+Code health is advisory. Your tests, security checks and release requirements still apply. A failed, skipped or unavailable check is never counted as passing.
 
 [Commands and setup troubleshooting](commands.md#code-health) · [Supported agents](../agents/native.md)

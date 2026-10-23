@@ -14,7 +14,7 @@ Each task gets a folder in `docs/plans/`: plain Markdown, committed with the cha
 | --- | --- |
 | `chat-plan.md` | The Markdown plan saved on request, opened in the Reader |
 | `chat-slices.md` | The build outline derived from that saved plan, with task cards and validation commands |
-| `artifacts/`, `reviews/`, `records/` | Optional artifacts, independent review reports and slice helper records |
+| `artifacts/`, `reviews/`, `records/` | Optional artifacts, independent review reports and helper records |
 
 The conversation belongs to the agent's local session history. **Start the workflow** keeps the task and conversation, and uses the saved Chat work as Discuss context; it does not treat the Chat plan as an approved workflow Plan.
 
@@ -22,7 +22,7 @@ The conversation belongs to the agent's local session history. **Start the workf
 | --- | --- |
 | **Seven documents** | One per step, readable on GitHub too. The App draws its live parts over sections QualityLayer marks |
 | `artifacts/` | Local artifacts and their revisions. Shared only with **Include artifacts** ([Artifacts](../artifacts.md)) |
-| `reviews/` | What the other agents wrote: the Plan review, the Outline check, the second opinion, when they ran |
+| `reviews/` | What the other agents wrote: the Plan review and the second opinion, when they ran |
 | `records/` | The raw output of every command, and `pull-request-body.md` once Review starts |
 | `evidence/` | Pictures and recordings the checks made |
 
@@ -38,8 +38,8 @@ Each document opens with what you read first, then working sections (code shapes
 | `02-research.md` | **How the code works today:** findings, risks, how it is tested, what you decided. A bug's is **Why it breaks** |
 | `03-plan.md` | **The decided design:** what it rests on, the artifacts and decisions, **Not doing**, **Before the build**, how we will know it works, who reviewed it |
 | `04-outline.md` | **The build, slice by slice:** order, slices, how each point is proved, and every command the build runs |
-| `05-implement.md` | **The build as it runs:** slices and their state, every recorded check, what was decided while building |
-| `06-verify.md` | **What was checked:** the six checks, each point with its evidence, what is still open |
+| `05-implement.md` | **The build as it runs:** slices and their state, the recorded checks, what was decided while building |
+| `06-verify.md` | **What was checked:** the checks and their results, each point with its evidence, what is still open |
 | `07-review.md` | **The change:** first the pull request's description, word for word, then what you settled and how it ships |
 
 ## Lasting artifacts and how projects look {#lasting}

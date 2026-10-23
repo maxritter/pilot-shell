@@ -33,7 +33,6 @@ const config: Config = {
   },
 
   themes: ["@easyops-cn/docusaurus-search-local"],
-  plugins: ["./plugins/changelog.cjs"],
 
   scripts: [
     {
@@ -122,7 +121,7 @@ const config: Config = {
           position: "left",
         },
         {
-          to: "/docs/changelog",
+          href: "https://github.com/maxritter/qualitylayer/releases",
           label: "Changelog",
           position: "left",
         },
@@ -147,7 +146,7 @@ const config: Config = {
             { label: "Install", to: "/docs/install" },
             { label: "Workflow", to: "/docs#the-seven-steps" },
             { label: "Command reference", to: "/docs/reference/commands" },
-            { label: "Changelog", to: "/docs/changelog" },
+            { label: "Changelog", href: "https://github.com/maxritter/qualitylayer/releases" },
             { label: "Blog", to: "/blog" },
           ],
         },

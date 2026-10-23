@@ -180,7 +180,7 @@ function Sections({ share, names, items, drafts, settled, onAnswer, commentsOn, 
             {screen.image ? <ArtifactStill still={{ title: `Artifact ${screen.key}`, image: screen.image }} /> : <p>Artifact picture unavailable.</p>}
             {screen.outcome === "captured" && screen.built ? <ArtifactStill still={{ title: `Built ${screen.key}`, image: screen.built }} /> : <p>No built picture. {screen.outcome}</p>}
           </div>
-          <p><b>Polish</b> {screen.verdict}</p>
+          <p><b>Independent review</b> {screen.verdict}</p>
         </div>)}
       </section> : null}
       {main.map((name) => (

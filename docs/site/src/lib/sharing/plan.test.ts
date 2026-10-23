@@ -4,7 +4,7 @@ import { remarksPayload, parsePlan } from "./sharing";
 
 it("built pairs round-trip the publication allowlist and oversized pairs stay text", () => {
   const png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLttAAAAABJRU5ErkJggg==";
-  const review = "# Review\n\n## Screens compared\n\n- **settings** · 840 px · light · captured · stale\n  - Polish: Field order matches.\n- **large** · 1280 px · dark · captured · current\n  - Polish: No comparison recorded.\n";
+  const review = "# Review\n\n## Screens compared\n\n- **settings** · 840 px · light · captured · stale\n  - Independent review: Field order matches.\n- **large** · 1280 px · dark · captured · current\n  - Independent review: No comparison recorded.\n";
   const plan = parsePlan(JSON.stringify({ docs: { "07-review.md": review }, stills: {
     "screen/settings/840/light": { title: "Settings", image: png, built: png },
     "screen/large/1280/dark": { title: "Large", image: "", outcome: "omitted: size" },

@@ -68,7 +68,7 @@ describe("comparison pages", () => {
     const { body } = await render(`/compare/${c.slug}`);
     const text = plainText(body);
     for (const claim of [c.strengths, c.agents, c.chooseOther, c.chooseQualityLayer]) expect(text).toContain(claim);
-    expect(text).toContain("not independent");
+    expect(text).toContain("An agent that did not write the code checks every change");
     expect(text).toContain("QualityLayer never merges it");
     expect(text).toContain("GitHub's gh CLI");
     for (const { url } of c.sources) expect(body).toContain(`href="${url}"`);

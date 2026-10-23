@@ -47,9 +47,10 @@ QualityLayer keeps design decisions and verification visible while your agents w
 
 | You get | How it works |
 | --- | --- |
+| **Your own agent and plan** | Claude Code, Codex, Cursor and four more run on the subscription or API key you already have. QualityLayer never charges for AI usage. |
 | **A design you can review** | Comment on diagrams and clickable screens, then approve the Plan before code changes. |
 | **Small, tested changes** | Your agent builds in slices, each starting with a failing test. |
-| **An independent check** | Agents that did not write the code check it against your request. Anything they cannot verify stays open for your decision. |
+| **An independent check** | A fresh agent that did not write the code adds missing tests and checks each point of your request on the running program. Anything it cannot verify stays open for your decision. |
 | **Code health checks** | Local checks flag complex functions and deeply nested code for your agent to review. Ask for a wider check to find duplication. [Code health](https://qualitylayer.dev/docs/reference/code-health). |
 | **Visible decisions and effort** | Each step records its decisions and results in your repository, with time and estimated model cost shown in the App. |
 
@@ -122,6 +123,21 @@ To continue elsewhere, stop the active run, then ask: “Using QL, continue veri
 
 QualityLayer runs only when you ask for it. [Your first task](https://qualitylayer.dev/docs/first-task).
 
+### Skills your agent gets
+
+Setup installs six skills into each connected agent. They teach it to drive the `qualitylayer` command line instead of guessing: which step comes next, what needs your approval, and how to reach other agent sessions. Ask in plain language, naming QualityLayer or QL; your agent picks the skill.
+
+| Skill | What it does |
+| --- | --- |
+| `ql-workflow` | Plan, build, verify and review a change |
+| `ql-artifact` | Create and revise mockups, diagrams and clickable pages |
+| `ql-manage` | Find tasks and manage memory, sharing, settings and setup |
+| `ql-peer` | Coordinate other agent sessions on your computer |
+| `ql-quality` | Review code complexity, structure and duplication |
+| `ql-chat` | Start or continue a Chat, a conversation without workflow steps |
+
+Only `ql-workflow` starts the planning and build workflow; the others work on their own. [More about the skills](https://qualitylayer.dev/docs/agents/native#the-six-skills).
+
 ---
 
 <h2 id="features">The Workflow</h2>
@@ -137,10 +153,10 @@ Each step writes a Markdown file in your repository. Read questions, decisions a
 |---|---|
 | [Discuss](https://qualitylayer.dev/docs/steps/discuss) | Settles what done means and clarifies a bug report |
 | [Research](https://qualitylayer.dev/docs/steps/research) | Agents read how your code works today; a bug is reproduced and diagnosed here |
-| [Plan](https://qualitylayer.dev/docs/steps/plan) | Artifact, diagrams and checks, **approved by you** |
+| [Plan](https://qualitylayer.dev/docs/steps/plan) | Diagrams, clickable artifacts and checks, **approved by you** |
 | [Outline](https://qualitylayer.dev/docs/steps/outline) | The build session splits the approved Plan into small slices |
 | [Implement](https://qualitylayer.dev/docs/steps/implement) | Each slice starts with a failing test |
-| [Verify](https://qualitylayer.dev/docs/steps/verify) | Every point of your request, with its evidence |
+| [Verify](https://qualitylayer.dev/docs/steps/verify) | A fresh agent checks every point of your request, with its evidence |
 | [Review](https://qualitylayer.dev/docs/steps/review) | A walkthrough of the change, **approved by you** |
 | [Pull request](https://qualitylayer.dev/docs/steps/pull-request) | Failing checks fixed; the task stays open until you merge |
 
@@ -150,7 +166,14 @@ Each step writes a Markdown file in your repository. Read questions, decisions a
 
 ## Artifacts
 
-Ask your agent for a mockup, diagram or clickable artifact. Compare versions in the App, pin feedback and restore earlier versions. Keep the artifacts every task builds on in your repository. [Artifacts](https://qualitylayer.dev/docs/artifacts).
+An artifact is a mockup, diagram or clickable page your agent draws, so you can try a flow before any code exists. Click a spot to say what should change; your agent edits the page and answers. Keep the ones every task builds on in your repository. [Artifacts](https://qualitylayer.dev/docs/artifacts).
+
+<a href="docs/site/public/product/artifact-dark.webp">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/site/public/product/artifact-dark.webp">
+    <img src="docs/site/public/product/artifact-light.webp" alt="A queue migration console drawn as an artifact, with pinned comments and the agent's reply beside it. Fictional project." width="1000">
+  </picture>
+</a>
 
 ## QualityLayer App
 
