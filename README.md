@@ -53,7 +53,7 @@ QualityLayer keeps design decisions and verification visible while your agents w
 | **Code health checks** | Local checks flag complex functions and deeply nested code for your agent to review. Ask for a wider check to find duplication. [Code health](https://qualitylayer.dev/docs/reference/code-health). |
 | **Visible decisions and effort** | Each step records its decisions and results in your repository, with time and estimated model cost shown in the App. |
 
-Made for medium and large changes. Small requests keep a short Plan and one slice; ask for a ready prompt if you prefer your plain agent.
+Choose **Feature** or **Bugfix** for a change that needs an approved Plan and recorded verification. Choose **Chat** for a direct conversation with Claude Code or Codex, adding QualityLayer tools when you need them.
 
 ---
 
@@ -96,7 +96,13 @@ Run `pilot update` to install QualityLayer v12, or download it directly. Keep Pi
 
 ### First Steps
 
-In the App or browser, choose **+ New**, pick your repository and agent, and describe the change:
+In the App or browser, choose **+ New**, then **Chat**, **Feature** or **Bugfix**. Pick your repository and agent, and describe what you need.
+
+**Chat** opens a full-width conversation with Claude Code or Codex, without workflow steps or approval gates. Answer the agent's clickable questions and follow its task list above the composer. Ask it to save a plan, build in slices, make artifacts, run checks or request an independent review. In a terminal, ask: “Using QualityLayer, chat about retrying failed webhooks.”
+
+Choose **Start the workflow**, then Feature or Bugfix, when the work needs the full process. The same task enters Discuss with its conversation history, saved plan and artifacts as context. The workflow's Plan approval governs subsequent work. [Chat guide](https://qualitylayer.dev/docs/chat).
+
+For a **Feature** or **Bugfix**, describe the change:
 
 ```text
 Plan retries for failed webhooks and stop after a few tries.

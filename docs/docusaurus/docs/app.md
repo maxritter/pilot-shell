@@ -19,6 +19,14 @@ Read the task on the left and work with your agent in the right sidebar. Answer 
 | **Step page** | What needs you, what to look at, then the part of the step's document that matters now ([how it is built](#step-pages)) |
 | **Right sidebar** | the task’s **Agent** conversation, **Files** and **Feedback** |
 
+## Chat {#chat}
+
+**+ New** offers **Chat** beside Feature and Bugfix. Chat starts a direct conversation with Claude Code or Codex. The conversation fills the task page, with **Conversation** and **Terminal** views of the same session and no workflow steps or approval gates.
+
+The agent's own questions appear as clickable choices, with number keys and a typed answer. Its task list shows pending, running and done items above the composer. The same task list also appears in workflow conversations. You can resume or archive a Chat like other tasks.
+
+Ask for a saved plan, slice building, artifacts, checks or an independent review as needed. **Start the workflow** asks Feature or Bugfix and moves this task into Discuss, keeping the conversation and saved work as context. Chat has no team sharing in this release. See [Chat](chat.md) for starting in a terminal and the optional tools.
+
 ## The sidebar {#sidebar}
 
 Tasks sit under their project (a repository on this computer), the ones waiting on you first. A project appears when you start a task in it; the folder button adds one by hand.
@@ -119,7 +127,7 @@ The **Cost** control in a task's header opens the cost per step and agent, estim
 
 ## Agent runs {#agent-runs}
 
-**New task** asks for a **Feature** or **Bugfix**, then your request and files, then where the agent runs. **Start the build** asks the same last question.
+**New task** offers **Chat**, **Feature** and **Bugfix**. Chat supports Claude Code and Codex ([above](#chat)). For Feature and Bugfix, enter your request and files, then choose where the agent runs. **Start the build** asks the same last question.
 
 | Choice | What you do | Where you answer |
 | --- | --- | --- |

@@ -31,7 +31,7 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "What about small changes and bugs?",
-    "QualityLayer is for medium and large changes. For a small one, the agent writes a prompt for your plain agent and offers to run it. Bugs take the same steps, starting with the cause.",
+    "Choose Chat with Claude Code or Codex for a question, an exploration or a small change. Add a saved plan, slices, artifacts or checks when needed. Feature and Bugfix use the structured workflow, with a Plan you approve before implementation.",
   ),
   faq(
     "Is it for product managers as well as engineers?",

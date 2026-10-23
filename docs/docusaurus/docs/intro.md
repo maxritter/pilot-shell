@@ -1,7 +1,7 @@
 ---
 slug: /
 title: Overview
-description: QualityLayer takes your coding agent from a request to a merged pull request in eight steps, and shows you where you decide.
+description: Choose a direct Chat or plan and build a change through QualityLayer's structured workflow.
 ---
 
 <figure class="ql-film">
@@ -16,7 +16,13 @@ description: QualityLayer takes your coding agent from a request to a merged pul
 
 *Example task in a fictional project.*
 
-**Start here:** [Install](install.md) · [Your first task](first-task.md) · [The App](app.md) · [Workflow](steps/discuss.md) · [Artifacts](artifacts.md)
+**Start here:** [Install](install.md) · [Your first task](first-task.md) · [Chat](chat.md) · [The App](app.md) · [Workflow](steps/discuss.md) · [Artifacts](artifacts.md)
+
+## Choose how to work {#choose-how-to-work}
+
+Choose **Chat** for a direct conversation with Claude Code or Codex. It has no workflow steps or approval gates. Ask for a saved plan, slice building, artifacts, checks or an independent review when you need them. **Start the workflow** moves the same task into Discuss as a Feature or Bugfix, keeping its conversation and using its saved work as context. [Chat guide](chat.md).
+
+Choose **Feature** or **Bugfix** for the structured workflow below: agree on the Plan before code, then review the checked result before shipping.
 
 ## The eight steps {#the-seven-steps}
 

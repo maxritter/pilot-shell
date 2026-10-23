@@ -1,7 +1,7 @@
 /** After the hero: the agents QualityLayer works with, what it adds, one engineer's words, and the models you already pay for. */
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight, BadgeCheck, FileText, KeyRound, Laptop, SquareTerminal, Workflow } from "lucide-react";
-import { ENGINEER_QUOTE } from "@/lib/product";
+import { CHAT_GUIDANCE, ENGINEER_QUOTE } from "@/lib/product";
 
 type Chip = [label: string, icon: string];
 
@@ -82,7 +82,8 @@ export default function Intro() {
         <div className="mx-wrap">
           <div className="mx-head">
             <h2 id="pr-h" className="mx-h2">Decided before it is built, proven after</h2>
-            <p className="mx-lead">QualityLayer keeps your agent on every step, in order. You see only what needs you.</p>
+            <p className="mx-lead">Choose Feature or Bugfix for the structured workflow. QualityLayer keeps your agent on every step, in order. You see only what needs you.</p>
+            <p className="mx-lead">{CHAT_GUIDANCE} <a href="/docs/chat">How Chat works.</a> Choose <b>Start the workflow</b> to carry the same task and conversation into Discuss.</p>
           </div>
           <div className="mx-pr3">
             {PRINCIPLES.map(({ who, icon: Glyph, title, lead, text }) => (

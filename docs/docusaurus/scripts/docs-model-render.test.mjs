@@ -45,8 +45,9 @@ function world() {
       writeFileSync(join(model, "copy.json"), `${JSON.stringify({ pages: world.pages }, null, 2)}\n`);
       if (!authored) return;
       for (const [key, text] of Object.entries(world.pages)) {
-        mkdirSync(dirname(join(root, "docs/docusaurus/docs", key)), { recursive: true });
-        writeFileSync(join(root, "docs/docusaurus/docs", key), text);
+        const path = key === "readme.md" ? join(root, "README.md") : join(root, "docs/docusaurus/docs", key);
+        mkdirSync(dirname(path), { recursive: true });
+        writeFileSync(path, text);
       }
     },
     /** Change a page in copy.json only: its generated page and its authored markdown now differ. */
@@ -61,11 +62,15 @@ function world() {
     /** Every real file of the copy except the linked install, by relative path. */
     snapshot() {
       const files = {};
-      for (const entry of readdirSync(root, { recursive: true, withFileTypes: true })) {
-        const path = join(entry.parentPath, entry.name);
-        if (!entry.isFile() || relative(root, path).startsWith(join("qualitylayer", "node_modules"))) continue;
-        files[relative(root, path)] = readFileSync(path).toString("base64");
-      }
+      const visit = (folder) => {
+        for (const entry of readdirSync(folder, { withFileTypes: true })) {
+          const path = join(folder, entry.name);
+          if (entry.isSymbolicLink()) continue;
+          if (entry.isDirectory()) visit(path);
+          else if (entry.isFile()) files[relative(root, path)] = readFileSync(path).toString("base64");
+        }
+      };
+      visit(root);
       return files;
     },
   };
@@ -96,6 +101,16 @@ test("every drifted generated page is named, one per line, not only the first", 
   const checked = w.render();
   assert.equal(checked.status, 1);
   assert.deepEqual(checked.lines, ["Docs model drift: app.html", "Docs model drift: artifacts.html"]);
+});
+
+test("README source checking reads the repository root and preserves its source", () => {
+  const w = world();
+  const readme = join(w.root, "README.md");
+  writeFileSync(readme, "# Changed README\n");
+  const checked = w.render("--check-source", "--pages", "readme.md");
+  assert.equal(checked.status, 1);
+  assert.deepEqual(checked.lines, ["Docs copy drift: readme.md"]);
+  assert.equal(readFileSync(readme, "utf8"), "# Changed README\n");
 });
 
 test("--check-source names every drifted authored page too", () => {

@@ -8,7 +8,15 @@ description: What a task writes into your repository, what stays on your compute
 ![A task folder in docs/plans: seven documents, local interactive artifacts, reviews, command output, and evidence pictures and recordings](pathname:///img/diagrams/files-light.svg)
 ![A task folder in docs/plans: seven documents, local interactive artifacts, reviews, command output, and evidence pictures and recordings](pathname:///img/diagrams/files-dark.svg)
 
-Each task gets a folder in `docs/plans/`: plain Markdown, committed with the change. Uninstalling never touches it.
+Each task gets a folder in `docs/plans/`: plain Markdown, committed with the change. Uninstalling never touches it. Feature and Bugfix tasks use the seven documents below. A [Chat](../chat.md) starts without those workflow documents and saves optional work in its own task folder.
+
+| Chat file | What it holds |
+| --- | --- |
+| `chat-plan.md` | The Markdown plan saved on request, opened in the Reader |
+| `chat-slices.md` | The build outline derived from that saved plan, with task cards and validation commands |
+| `artifacts/`, `reviews/`, `records/` | Optional artifacts, independent review reports and slice helper records |
+
+The conversation belongs to the agent's local session history. **Start the workflow** keeps the task and conversation, and uses the saved Chat work as Discuss context; it does not treat the Chat plan as an approved workflow Plan.
 
 | In the folder | What it holds |
 | --- | --- |

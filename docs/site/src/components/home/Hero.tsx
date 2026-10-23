@@ -81,7 +81,7 @@ function Stations() {
         })}
       </ol>
       <div className="mx-line-cap">
-        <p><strong>Seven steps on every change,</strong> each one a Markdown file in your repository. You answer the questions, approve the plan and review the result; agents do the rest.</p>
+        <p><strong>Seven steps for Feature and Bugfix,</strong> each one a Markdown file in your repository. You answer the questions, approve the plan and review the result; agents do the rest.</p>
         <Link className="mx-line-link" to={`#${FIRST_STEP}`}>See each step in the App<ArrowRight size={16} aria-hidden="true" /></Link>
       </div>
     </nav>

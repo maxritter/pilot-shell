@@ -25,7 +25,25 @@ Ask your agent in natural language, naming **QualityLayer** or **QL**. The same 
 
 **+ New** and **Start the build** offer **In the App** and **In my terminal**. The external option copies a request; choose the model and effort in the agent receiving it. See [App runs](../app.md#agent-runs) for platform support.
 
-Your agent loads `ql-workflow` for workflow execution, `ql-artifact` for artifacts, `ql-peer` for other agent sessions, and `ql-manage` for lookup, memory, sharing, setup and diagnostics. Standalone artifact and administrative requests do not create a workflow task. Each skill uses the current CLI's instructions for the operation.
+Your agent loads `ql-chat` for Chat in Claude Code or Codex, `ql-workflow` for workflow execution, `ql-artifact` for artifacts, `ql-peer` for other agent sessions, and `ql-manage` for lookup, memory, sharing, setup and diagnostics. Standalone artifact and administrative requests do not create a workflow task. Each skill uses the current CLI's instructions for the operation.
+
+## Chat {#chat}
+
+Ask Claude Code or Codex: “Using QualityLayer, chat about retrying failed webhooks.” Chat has no workflow gates. Its optional tools run when you ask for them; see the [Chat guide](../chat.md).
+
+| Command | What it does |
+| --- | --- |
+| `qualitylayer next "start chat: <request>" --json` | Create a Chat and return its instructions |
+| `qualitylayer chat plan save --file <markdown> --json` | Save Markdown as `chat-plan.md`; `--text <markdown>` is the alternative, with exactly one input |
+| `qualitylayer chat build --file <outline-markdown> --json` | Create slice helper briefs from an outline derived from the saved plan |
+| `qualitylayer chat build --json` | Resume unfinished slices; inspect active helpers before starting returned offers |
+| `qualitylayer chat build --stop <slice> --json` | Record a slice stopped after its native helper has been stopped |
+| `qualitylayer chat check [--slice <n>] --json` | Print validation commands for the agent to run; this alone records no passing result |
+| `qualitylayer chat review --json` | Create a brief for a fresh independent reviewer |
+| `qualitylayer chat review --done --id <id> --report <file> --json` | Save that reviewer's report |
+| `qualitylayer chat promote --type feature\|bugfix --json` | Enter Discuss once on the same task, after running helpers finish or are stopped; follow with `qualitylayer next --json` |
+
+Add `--task <slug>` to each command when selecting an existing Chat. Promotion keeps the conversation and carries the request, saved plan, artifacts and changed files into Discuss as context. It does not approve the workflow's Plan.
 
 ## Terminal mode
 

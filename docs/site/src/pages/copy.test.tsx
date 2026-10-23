@@ -51,6 +51,23 @@ describe("the site's copy", () => {
     expect(await textOf(<Sections />)).not.toMatch(/cockpit/i);
   });
 
+  it("explains Chat's supported agents, optional tools and move into the workflow", async () => {
+    const home = await textOf(<Sections />);
+    expect(home).toContain("Choose Chat for a direct conversation with Claude Code or Codex.");
+    expect(home).toContain("Save a plan, build in slices, make artifacts, or ask for checks and an independent review when you need them.");
+    expect(home).toContain("Start the workflow to carry the same task and conversation into Discuss.");
+    expect(home).toContain("Choose Feature or Bugfix for the structured workflow.");
+    expect(await textOf(<Hero />)).toContain("Seven steps for Feature and Bugfix,");
+    expect(await textOf(<Hero />)).not.toContain("Seven steps on every change");
+    expect(home).not.toContain("Available on every task.");
+    const intro = readFileSync(new URL("../components/home/Intro.tsx", import.meta.url), "utf8");
+    expect(intro).toContain('href="/docs/chat"');
+    const guide = readFileSync(new URL("../../../docusaurus/docs/chat.md", import.meta.url), "utf8");
+    expect(guide).toContain("Clickable questions support Claude Code and Codex in this release.");
+    expect(guide).toContain("Chat does not have team sharing.");
+    expect(guide).toContain("a Chat plan is not that approval");
+  });
+
   it("describes the offline licence window enforced by the binary", async () => {
     // Read the real policy without importing the CLI's Bun environment into the website.
     const policy = readFileSync(new URL("../../../../qualitylayer/src/core/licence/constants.ts", import.meta.url), "utf8");
