@@ -97,7 +97,7 @@
 }
 /* Phones: a tap opens the screenshot full screen, edge to edge, with its actions in a bar that stays on top. */
 @media(max-width:640px){
-  .ed-image-dialog.ed-image-dialog{inset:0;top:0;left:0;translate:none;transform:none;display:block;width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;padding:0;border-radius:0;box-shadow:none;overflow:auto;overscroll-behavior:contain}
+  .ed-image-dialog.ed-image-dialog{inset:0;top:0;left:0;--tw-translate-x:0;--tw-translate-y:0;translate:none;transform:none;display:block;width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;padding:0;border-radius:0;box-shadow:none;overflow:auto;overscroll-behavior:contain}
   .ed-image-dialog .ed-dialog-header{position:sticky;top:0;z-index:1;flex-wrap:nowrap;gap:8px;margin:0;padding:8px 12px;background:var(--mx-panel);border-bottom:1px solid var(--mx-line2)}
   .ed-image-dialog .ed-dialog-header h2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .ed-image-dialog img{max-height:none}
