@@ -117,6 +117,20 @@ To continue elsewhere, stop the active run, then ask: “Using QL, continue veri
 
 QualityLayer runs only when you ask for it. [Your first task](https://qualitylayer.dev/docs/first-task).
 
+### Skills your agent gets
+
+Setup installs five skills into each connected agent. They teach it to drive the `qualitylayer` command line instead of guessing: which step comes next, what needs your approval, and how to reach other agent sessions. Ask in plain language, naming QualityLayer or QL; your agent picks the skill.
+
+| Skill | What it does |
+| --- | --- |
+| `ql-workflow` | Plan, build, verify and review a change |
+| `ql-artifact` | Create and revise mockups, diagrams and clickable pages |
+| `ql-manage` | Find tasks and manage memory, sharing, settings and setup |
+| `ql-peer` | Coordinate other agent sessions on your computer |
+| `ql-quality` | Review code complexity, structure and duplication |
+
+Only `ql-workflow` starts a task; the others work on their own. [More about the skills](https://qualitylayer.dev/docs/agents/native#the-five-skills).
+
 ---
 
 <h2 id="features">The Workflow</h2>
