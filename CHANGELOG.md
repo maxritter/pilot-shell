@@ -15,6 +15,12 @@ All notable changes to Pilot Shell will be documented in this file.
 - Repair inline Claude Code tool and thinking details after native auto-updates replace Pilot's patched binary. Session startup now reapplies a locally cached, checksum-verified patch kit for the next session, with `pilot repair-display` as an explicit fallback.
 - Preserve Impeccable's intentional Claude Code and Codex variants during repository asset synchronization instead of treating their provider-native commands and interaction contracts as a merge conflict.
 
+## [11.0.10] - 2026-10-23
+
+### Bug fixes
+
+- Stop repeating the QualityLayer upgrade notice after a completed QualityLayer installation. Pilot still shows genuine 11.x maintenance updates, and incomplete or unavailable QualityLayer installations keep the existing notice.
+
 ## [11.0.1] - 2026-09-08
 
 ### Bug fixes

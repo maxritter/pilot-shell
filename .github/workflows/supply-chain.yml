@@ -2,12 +2,17 @@ name: supply-chain
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, 11.x]
   pull_request:
-    branches: [main]
+    branches: [main, 11.x]
   schedule:
     - cron: '0 3 * * *'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: "Full source SHA; required for manual 11.x qualification"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -26,8 +31,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Validate requested source identity
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && [ "$GITHUB_REF" = refs/heads/11.x ]; then
+            [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          fi
+          if [ -n "$SOURCE_SHA" ]; then
+            [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+            test "$SOURCE_SHA" = "$GITHUB_SHA"
+          fi
+
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
 
       - name: Install git-crypt
         # `launcher/**` and `console/**` are git-crypt encrypted — without

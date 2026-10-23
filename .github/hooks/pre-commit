@@ -127,6 +127,14 @@ launch() { # launch "<display name>" <command…>
 
 have() { command -v "$1" >/dev/null 2>&1; }
 
+run_isolated_tests() (
+  # Hook-local Git paths otherwise redirect fixture init/config writes to this checkout.
+  while IFS= read -r git_env_key; do
+    unset "$git_env_key"
+  done < <(git rev-parse --local-env-vars)
+  "$@"
+)
+
 # --- Check definitions (each is one CI-equivalent job; steps run fail-fast) ---
 job_lint() {
   uv run ruff check launcher installer pilot/hooks || return 1
@@ -141,7 +149,7 @@ job_pytest() { # job_pytest <suite-path>
   # home does not slow the run.
   local fake_home rc
   fake_home="$(mktemp -d)" || return 1
-  env -u CLAUDE_CONFIG_DIR -u CODEX_HOME HOME="$fake_home" uv run pytest "$1" -q
+  run_isolated_tests env -u CLAUDE_CONFIG_DIR -u CODEX_HOME HOME="$fake_home" uv run pytest "$1" -q
   rc=$?
   rm -rf "$fake_home"
   return $rc
@@ -183,7 +191,7 @@ job_console_tests() {
   local fake_home rc
   fake_home="$(mktemp -d)" || return 1
   cd console || { rm -rf "$fake_home"; return 1; }
-  env -u CLAUDE_CONFIG_DIR -u CODEX_HOME HOME="$fake_home" bun test
+  run_isolated_tests env -u CLAUDE_CONFIG_DIR -u CODEX_HOME HOME="$fake_home" bun test
   rc=$?
   rm -rf "$fake_home"
   return $rc

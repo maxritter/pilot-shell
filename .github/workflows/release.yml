@@ -1,14 +1,15 @@
 ---
-name: Release
+name: Pilot 11 Maintenance Release
 
 "on":
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to build binaries for (e.g., 3.3.0)"
+        description: "Prepared stable 11.x version (e.g., 11.0.10)"
+        required: true
+        type: string
+      source_sha:
+        description: "Full reviewed 11.x commit SHA; must equal the dispatch commit"
         required: true
         type: string
       changelog:
@@ -30,52 +31,43 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
+          persist-credentials: false
+          ref: ${{ inputs.source_sha }}
           fetch-depth: 0
 
-      - name: Check commit message
+      - name: Validate prepared maintenance source
         id: check
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          RELEASE_VERSION: ${{ inputs.version }}
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "Manual trigger - proceeding"
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # Scan every commit since the last release tag, not just the tip.
-          # A plain `git merge origin/main` before pushing makes an
-          # auto-generated merge commit ("Merge origin/main into ...") the new
-          # tip -- checking only `git log -1` would then miss a fix:/feat:
-          # commit earlier in the same push and silently skip the release.
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          RANGE="${LAST_TAG:+$LAST_TAG..}HEAD"
-          echo "Checking commits in range: $RANGE"
-
-          COMMIT_MSGS=$(git log "$RANGE" --pretty=%B)
-          echo "Commit messages since last release:"
-          echo "$COMMIT_MSGS"
-
-          # Check for fix: or feat: prefix (first line or squash merge body)
-          if echo "$COMMIT_MSGS" | grep -qE "(^|\* )(fix|feat)(\([^)]*\))?!?:"; then
-            echo "Release commit detected (fix: or feat:) in $RANGE"
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # Check for merge from dev branch
-          if echo "$COMMIT_MSGS" | grep -qE "^Merge (branch 'dev'|pull request .* from .*/dev)"; then
-            echo "Merge from dev detected in $RANGE"
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "No release trigger commit found in $RANGE - skipping"
-          echo "should_run=false" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          test "$GITHUB_EVENT_NAME" = workflow_dispatch
+          test "$GITHUB_REF" = refs/heads/11.x
+          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$SOURCE_SHA" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          git merge-base --is-ancestor "$SOURCE_SHA" origin/11.x
+          [[ "$RELEASE_VERSION" =~ ^11\.[0-9]+\.[0-9]+$ ]]
+          python3 - <<'CHECK_VERSION'
+          import json, os, re
+          from pathlib import Path
+          expected = os.environ["RELEASE_VERSION"]
+          for file in ("installer/__init__.py", "launcher/__init__.py"):
+              match = re.search(r'^__version__ = "([^"]+)"', Path(file).read_text(), re.M)
+              if not match or match[1] != expected:
+                  raise SystemExit(f"Prepare {file} before qualification")
+          for file in ("console/package.json", "pilot/package.json"):
+              if json.loads(Path(file).read_text())["version"] != expected:
+                  raise SystemExit(f"Prepare {file} before qualification")
+          CHECK_VERSION
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
 
   supply-chain-gate:
     # Cross-workflow `needs:` doesn't link supply-chain.yml to this workflow.
     # Poll the Checks API for the `supply-chain` check on the release SHA and
-    # fail when it concludes anything other than `success`. Both workflows
-    # start on the same push, so we wait up to 12 min for it to land.
+    # fail unless the exact pinned SHA passed. 11.x push starts supply-chain;
+    # manual supply-chain dispatch at the same SHA is also supported.
     name: Supply-Chain Gate
     permissions:
       contents: read
@@ -86,6 +78,8 @@ jobs:
     if: needs.check-trigger.outputs.should_run == 'true'
     steps:
       - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
         with:
           script: |
             const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -93,21 +87,21 @@ jobs:
             let last = null;
             while (Date.now() < deadline) {
               const { data } = await github.rest.checks.listForRef({
-                ...context.repo, ref: context.sha
+                ...context.repo, ref: process.env.SOURCE_SHA
               });
               const sc = data.check_runs.find(r => r.name === 'supply-chain');
               last = sc;
               if (sc && sc.status === 'completed') {
                 if (sc.conclusion === 'success') return;
                 core.setFailed(
-                  `supply-chain check concluded ${sc.conclusion} for ${context.sha}; release blocked.`
+                  `supply-chain check concluded ${sc.conclusion} for ${process.env.SOURCE_SHA}; release blocked.`
                 );
                 return;
               }
               await sleep(20000);
             }
             core.setFailed(
-              `supply-chain check did not complete within 12m for ${context.sha} ` +
+              `supply-chain check did not complete within 12m for ${process.env.SOURCE_SHA} ` +
               `(last status: ${last?.status ?? 'missing'}); release blocked.`
             );
 
@@ -124,6 +118,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
 
       - name: Install git-crypt
         run: bash .github/workflows/scripts/install-git-crypt.sh
@@ -189,6 +186,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
 
       - name: Install git-crypt
         run: bash .github/workflows/scripts/install-git-crypt.sh
@@ -240,6 +240,9 @@ jobs:
     if: needs.check-trigger.outputs.should_run == 'true'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
       - name: Install git-crypt
         run: bash .github/workflows/scripts/install-git-crypt.sh
       - name: Unlock repository
@@ -269,6 +272,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
 
       - name: Install git-crypt
         run: bash .github/workflows/scripts/install-git-crypt.sh
@@ -302,6 +308,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
 
       - name: Install git-crypt
         run: bash .github/workflows/scripts/install-git-crypt.sh
@@ -341,6 +350,9 @@ jobs:
         working-directory: console
         run: bun run build:viewer
 
+      - name: Prepared runtime bundles match the qualified source
+        run: git diff --exit-code -- pilot/scripts pilot/ui
+
   lint:
     name: Lint (ruff + vulture + deadcode + import boundary)
     permissions:
@@ -351,6 +363,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
 
       - name: Install git-crypt
         run: bash .github/workflows/scripts/install-git-crypt.sh
@@ -382,11 +397,11 @@ jobs:
       - name: Import boundary (launcher must not import installer, and vice-versa)
         run: lint-imports
 
-  # Determine the version to release (semantic-release dry-run or manual input)
+  # Validate the prepared maintenance version without changing qualified source
   prepare-release:
     name: Prepare Release
     permissions:
-      contents: write
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [check-trigger, supply-chain-gate]
@@ -400,6 +415,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
+          ref: ${{ inputs.source_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -411,55 +427,46 @@ jobs:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
         run: bash .github/workflows/scripts/setup-git-crypt.sh
 
-      - name: Setup Node.js
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
-        with:
-          node-version: "24.22.0"
-
-      - name: Get current version
+      - name: Get previous legacy version
         id: current
         run: |
-          CURRENT=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "0.0.0")
-          echo "Current version: $CURRENT"
-          echo "version=$CURRENT" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          CURRENT=$(git tag --merged HEAD --list 'v11.*' --sort=-version:refname | grep -E '^v11\.[0-9]+\.[0-9]+$' | sed -n '1p')
+          [[ "$CURRENT" =~ ^v11\.[0-9]+\.[0-9]+$ ]]
+          echo "version=${CURRENT#v}" >> "$GITHUB_OUTPUT"
 
-      - name: Check for release
+      - name: Validate patch version and unused release
         id: check
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          PREVIOUS_VERSION: ${{ steps.current.outputs.version }}
         run: |
-          echo "current_version=${{ steps.current.outputs.version }}" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          python3 - <<'CHECK_NEWER'
+          import os
+          parse = lambda value: tuple(map(int, value.split(".")))
+          if parse(os.environ["RELEASE_VERSION"]) <= parse(os.environ["PREVIOUS_VERSION"]):
+              raise SystemExit("The maintenance version must be newer than the previous 11.x tag")
+          CHECK_NEWER
+          {
+            echo "current_version=$PREVIOUS_VERSION"
+            echo "should_release=true"
+            echo "version=$RELEASE_VERSION"
+          } >> "$GITHUB_OUTPUT"
 
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "Manual trigger with version ${{ inputs.version }}"
-            echo "should_release=true" >> "$GITHUB_OUTPUT"
-            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
-          else
-            # Install semantic-release and plugins
-            npm install -g semantic-release \
-              @semantic-release/git \
-              @semantic-release/exec
-
-            # Run dry-run to check if release is needed
-            SR_OUT=/tmp/sr-output.txt
-            if npx semantic-release --dry-run 2>&1 | tee $SR_OUT \
-                | grep -q "Published release"; then
-              VERSION=$(grep "next release version" $SR_OUT \
-                | grep -oP '\d+\.\d+\.\d+' | head -1)
-              if [ -z "$VERSION" ]; then
-                VERSION=$(grep -oP 'Published release \K\d+\.\d+\.\d+' \
-                  $SR_OUT | head -1)
-              fi
-
-              echo "Will release version: $VERSION"
-              echo "should_release=true" >> "$GITHUB_OUTPUT"
-              echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-            else
-              echo "No release needed"
-              echo "should_release=false" >> "$GITHUB_OUTPUT"
-              echo "version=" >> "$GITHUB_OUTPUT"
-            fi
-          fi
+      - name: Refuse an existing release
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        with:
+          script: |
+            try {
+              await github.rest.repos.getReleaseByTag({ ...context.repo, tag: `v${process.env.RELEASE_VERSION}` });
+              core.setFailed("That release already exists; inspect it before any retry.");
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
 
       - name: Generate changelog with git-cliff
         if: steps.check.outputs.should_release == 'true'
@@ -484,6 +491,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
 
       - name: Install git-crypt
         run: bash .github/workflows/scripts/install-git-crypt.sh
@@ -543,6 +553,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
 
       - name: Install git-crypt
         run: bash .github/workflows/scripts/install-git-crypt.sh
@@ -600,6 +613,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
 
       - name: Install git-crypt
         run: brew install git-crypt
@@ -670,6 +686,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
 
       - name: Install git-crypt
         run: brew install git-crypt
@@ -799,8 +818,6 @@ jobs:
     name: Publish Release
     permissions:
       contents: write
-      issues: write
-      pull-requests: write
       id-token: write
       attestations: write
     runs-on: ubuntu-latest
@@ -813,16 +830,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
+          persist-credentials: false
+          ref: ${{ inputs.source_sha }}
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Sync with remote before release
-        if: github.event_name != 'workflow_dispatch'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git reset --hard origin/main
 
       - name: Install git-crypt
         run: bash .github/workflows/scripts/install-git-crypt.sh
@@ -852,103 +862,29 @@ jobs:
             artifacts/pilot-darwin-arm64/pilot-darwin-arm64.so
             artifacts/pilot-linux-x86_64/pilot
 
-      - name: Setup Node.js
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
-        with:
-          node-version: "24.22.0"
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
-        with:
-          bun-version: "1.4.3"
-
-      - name: Install Console dependencies for versioned bundle rebuild
-        working-directory: console
-        run: bun install --frozen-lockfile
-
-      - name: Prepend new release to CHANGELOG.md with git-cliff
-        if: ${{ github.event.inputs.changelog == '' }}
-        uses: orhun/git-cliff-action@e16f179f0be49ecdfe63753837f20b9531642772 # v4
-        with:
-          config: cliff.toml
-          args: --unreleased --tag v${{ needs.prepare-release.outputs.version }} --prepend CHANGELOG.md
+      - name: Create exact legacy tag and non-latest draft
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        id: draft
         env:
-          GITHUB_REPO: ${{ github.repository }}
-
-      - name: Use custom changelog if provided
-        if: ${{ github.event.inputs.changelog != '' }}
-        env:
-          CHANGELOG: ${{ github.event.inputs.changelog }}
-        run: |
-          echo "$CHANGELOG" > CHANGELOG.md
-          echo "Using custom changelog content"
-
-      - name: Create release with semantic-release
-        if: github.event_name != 'workflow_dispatch'
-        id: semantic
-        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
+          RELEASE_VERSION: ${{ needs.prepare-release.outputs.version }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          RELEASE_NOTES: ${{ inputs.changelog || needs.prepare-release.outputs.changelog }}
         with:
-          extra_plugins: |
-            @semantic-release/git
-            @semantic-release/exec
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update version files for manual trigger
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          VERSION="${{ needs.prepare-release.outputs.version }}"
-          echo "Updating version files to ${VERSION}..."
-
-          # Update version in Python files (same as semantic-release prepareCmd)
-          sed -i 's/^__version__ = ".*"/__version__ = "'"${VERSION}"'"/' installer/__init__.py launcher/__init__.py
-
-          # Update version in README.md
-          sed -i "s/export VERSION=[0-9.]*/export VERSION=${VERSION}/g" README.md
-
-          # Keep package and generated runtime versions equivalent to the automatic path.
-          sed -i 's/"version": "[0-9.]*"/"version": "'"${VERSION}"'"/' console/package.json pilot/package.json
-
-          echo "Version files updated:"
-          grep __version__ installer/__init__.py launcher/__init__.py
-          grep "VERSION=" README.md | head -1
-
-      - name: Rebuild versioned runtime bundles for manual trigger
-        if: github.event_name == 'workflow_dispatch'
-        working-directory: console
-        run: bun run build
-
-      - name: Commit and push version updates for manual trigger
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          VERSION="${{ needs.prepare-release.outputs.version }}"
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Stage all updated files
-          git add installer/__init__.py launcher/__init__.py README.md CHANGELOG.md \
-            console/package.json pilot/package.json pilot/scripts/*.cjs pilot/ui
-
-          # Check if there are changes to commit
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "chore(release): ${VERSION} [skip ci]"
-            git push origin main
-            echo "Version updates committed and pushed"
-          fi
-
-      - name: Create release for manual trigger
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION="${{ needs.prepare-release.outputs.version }}"
-          if ! gh release view "v${VERSION}" >/dev/null 2>&1; then
-            echo "Creating release v${VERSION}..."
-            gh release create "v${VERSION}" --title "v${VERSION}" --generate-notes
-          fi
+          script: |
+            const tag = `v${process.env.RELEASE_VERSION}`;
+            const latest = await github.rest.repos.getLatestRelease(context.repo);
+            if (!/^v(?:1[2-9]|[2-9][0-9]+)\./.test(latest.data.tag_name))
+              throw new Error("Expected QualityLayer 12+ to remain the latest stable release.");
+            core.setOutput("latest_id", String(latest.data.id));
+            core.setOutput("latest_tag", latest.data.tag_name);
+            // createRef fails if another publisher already reserved this tag. Never overwrite it.
+            await github.rest.git.createRef({ ...context.repo, ref: `refs/tags/${tag}`, sha: process.env.SOURCE_SHA });
+            const release = await github.rest.repos.createRelease({
+              ...context.repo, tag_name: tag, target_commitish: process.env.SOURCE_SHA,
+              name: `Pilot Shell ${process.env.RELEASE_VERSION}`, body: process.env.RELEASE_NOTES,
+              draft: true, prerelease: false, make_latest: "false", generate_release_notes: false
+            });
+            core.setOutput("release_id", String(release.data.id));
 
       - name: Generate tree.json manifest
         run: |
@@ -971,88 +907,60 @@ jobs:
 
           echo "tree.json generated successfully with $(python3 -c "import json; print(len(json.load(open('tree.json'))['tree']))") files"
 
-      - name: Upload artifacts to release
+      - name: Upload exact assets to the legacy draft
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ needs.prepare-release.outputs.version }}
         run: |
-          VERSION="${{ needs.prepare-release.outputs.version }}"
-          echo "Uploading artifacts for v${VERSION}"
-
-          # Wait for release to exist with retry logic
-          MAX_RETRIES=12
-          RETRY_DELAY=5
-          for ((i = 1; i <= MAX_RETRIES; i++)); do
-            if gh release view "v${VERSION}" >/dev/null 2>&1; then
-              echo "Release v${VERSION} found"
-              break
-            fi
-            if [ "$i" -eq "$MAX_RETRIES" ]; then
-              echo "Release v${VERSION} not found after ${MAX_RETRIES} retries"
-              echo "Creating release manually..."
-              gh release create "v${VERSION}" --title "v${VERSION}" --notes "Release v${VERSION}"
-            fi
-            echo "Waiting for release... (attempt $i/$MAX_RETRIES)"
-            sleep "$RETRY_DELAY"
-          done
-
-          # Upload all .so files and tree.json
-          gh release upload "v${VERSION}" \
+          set -euo pipefail
+          gh release upload "v$RELEASE_VERSION" \
             artifacts/pilot-linux-x86_64/pilot-linux-x86_64.so \
             artifacts/pilot-linux-arm64/pilot-linux-arm64.so \
             artifacts/pilot-darwin-x86_64/pilot-darwin-x86_64.so \
             artifacts/pilot-darwin-arm64/pilot-darwin-arm64.so \
             artifacts/pilot-linux-x86_64/pilot \
-            tree.json \
-            --clobber
+            tree.json
 
-          echo "All artifacts uploaded successfully"
-
-      - name: Output release info
-        run: |
-          echo "Released version: ${{ needs.prepare-release.outputs.version }}"
-          echo "All platform binaries are now available"
-
-  # Deploy website to production in parallel with publish-release (both after approval)
-  deploy-website:
-    name: Deploy Website (Production)
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs:
-      - prepare-release
-      - approve-release
-    if: needs.prepare-release.outputs.should_release == 'true'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Install git-crypt
-        run: bash .github/workflows/scripts/install-git-crypt.sh
-
-      - name: Unlock repository
+      - name: Publish stable legacy release without changing QualityLayer latest
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: bash .github/workflows/scripts/setup-git-crypt.sh
-
-      - name: Setup Node.js
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
+          RELEASE_ID: ${{ steps.draft.outputs.release_id }}
+          RELEASE_VERSION: ${{ needs.prepare-release.outputs.version }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          EXPECTED_LATEST_ID: ${{ steps.draft.outputs.latest_id }}
+          EXPECTED_LATEST_TAG: ${{ steps.draft.outputs.latest_tag }}
         with:
-          node-version: "24.22.0"
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel
-
-      - name: Deploy to Vercel (Production)
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: team_jAsHrk71vRyWK6bCTYGJyp0q
-          VERCEL_PROJECT_ID: prj_TXccrJI83HyNvQUZxqStUFgus9NB
-        run: |
-          # This project also hosts QualityLayer under separate aliases. Build
-          # with production secrets, then move only the Pilot Shell domains.
-          DEPLOY_URL=$(vercel deploy --token="$VERCEL_TOKEN" --prod --skip-domain)
-          for DOMAIN in pilot-shell.com www.pilot-shell.com claude-pilot.com www.claude-pilot.com claude-pilot.vercel.app pilot-shell-maxritter.vercel.app; do
-            vercel alias set "$DEPLOY_URL" "$DOMAIN" --token="$VERCEL_TOKEN"
-          done
-          echo "Deployed to: $DEPLOY_URL"
+          script: |
+            const release_id = Number(process.env.RELEASE_ID);
+            const release = await github.rest.repos.getRelease({ ...context.repo, release_id });
+            const expected = ["pilot", "pilot-linux-x86_64.so", "pilot-linux-arm64.so", "pilot-darwin-x86_64.so", "pilot-darwin-arm64.so", "tree.json"];
+            const assets = release.data.assets;
+            if (release.data.id !== release_id || release.data.tag_name !== `v${process.env.RELEASE_VERSION}` ||
+                !release.data.draft || release.data.prerelease ||
+                expected.length !== assets.length || expected.some(name => !assets.some(asset => asset.name === name && asset.size > 0)))
+              throw new Error("Draft assets or stable-release metadata do not match the qualified set.");
+            const fs = require("node:fs"), crypto = require("node:crypto");
+            const local = {
+              pilot: "artifacts/pilot-linux-x86_64/pilot",
+              "pilot-linux-x86_64.so": "artifacts/pilot-linux-x86_64/pilot-linux-x86_64.so",
+              "pilot-linux-arm64.so": "artifacts/pilot-linux-arm64/pilot-linux-arm64.so",
+              "pilot-darwin-x86_64.so": "artifacts/pilot-darwin-x86_64/pilot-darwin-x86_64.so",
+              "pilot-darwin-arm64.so": "artifacts/pilot-darwin-arm64/pilot-darwin-arm64.so",
+              "tree.json": "tree.json"
+            };
+            for (const name of expected) {
+              const digest = "sha256:" + crypto.createHash("sha256").update(fs.readFileSync(local[name])).digest("hex");
+              if (assets.find(asset => asset.name === name).digest !== digest)
+                throw new Error("Uploaded asset bytes differ from the qualified local set.");
+            }
+            const ref = await github.rest.git.getRef({ ...context.repo, ref: `tags/v${process.env.RELEASE_VERSION}` });
+            if (ref.data.object.type !== "commit" || ref.data.object.sha !== process.env.SOURCE_SHA)
+              throw new Error("The legacy tag no longer matches the qualified source.");
+            const before = await github.rest.repos.getLatestRelease(context.repo);
+            if (String(before.data.id) !== process.env.EXPECTED_LATEST_ID || before.data.tag_name !== process.env.EXPECTED_LATEST_TAG)
+              throw new Error("QualityLayer latest changed during preparation; inspect before publishing.");
+            await github.rest.repos.updateRelease({ ...context.repo, release_id, draft: false, prerelease: false, make_latest: "false" });
+            const after = await github.rest.repos.getLatestRelease(context.repo);
+            if (String(after.data.id) !== process.env.EXPECTED_LATEST_ID || after.data.tag_name !== process.env.EXPECTED_LATEST_TAG)
+              throw new Error("Latest changed unexpectedly; inspect it without automatically repointing it.");
+            core.notice(`Published Pilot Shell ${process.env.RELEASE_VERSION}; QualityLayer latest remains ${after.data.tag_name}.`);

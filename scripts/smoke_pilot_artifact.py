@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import platform
@@ -11,6 +12,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 
@@ -78,6 +80,46 @@ def _run_compiled_formatter(stage: Path, wrapper: Path, *, env: dict[str, str], 
     return result.stdout
 
 
+def _smoke_legacy_notice(stage: Path, wrapper: Path, env: dict[str, str], stdin: str, version: str) -> None:
+    """The actual compiled formatter must recognize the completed QL transition."""
+    home = Path(env["HOME"])
+    cache = home / ".pilot" / "cache" / "update-check.json"
+
+    def notice(latest: str) -> str:
+        cache.write_text(json.dumps({"timestamp": time.time(), "pilot_update": True, "pilot_latest": latest}))
+        return _run_compiled_formatter(stage, wrapper, env=env, stdin=stdin)
+
+    if "12.1.0" not in notice("12.1.0"):
+        raise RuntimeError("The migration notice vanished before QL was installed")
+    binary = home / ".qualitylayer" / "bin" / "qualitylayer"
+    binary.parent.mkdir(parents=True)
+    binary.write_text("#!/bin/sh\nprintf '%s\\n' '12.0.0'\n")
+    binary.chmod(0o755)
+    (binary.parent.parent / "manifest.json").write_text(
+        json.dumps(
+            {
+                "schema": 2,
+                "version": "12.0.0",
+                "installed": int(time.time() * 1000),
+                "kind": "standalone",
+                "dirs": [],
+                "entries": [
+                    {"kind": "file", "path": str(binary), "sha256": hashlib.sha256(binary.read_bytes()).hexdigest()}
+                ],
+            }
+        )
+    )
+    if "12.1.0" in notice("12.1.0"):
+        raise RuntimeError("The compiled notifier repeats an already completed QL transition")
+    major, minor, patch = map(int, version.split("."))
+    maintenance = f"{major}.{minor}.{patch + 1}"
+    if maintenance not in notice(maintenance):
+        raise RuntimeError("The compiled notifier hid a genuine legacy maintenance update")
+    binary.unlink()
+    if "12.1.0" not in notice("12.1.0"):
+        raise RuntimeError("Removing QL did not invalidate the compiled notifier's cached recognition")
+
+
 def smoke(wrapper_source: Path, module_source: Path, expected_version: str) -> None:
     """Stage release assets exactly like install.sh and exercise public commands."""
     with tempfile.TemporaryDirectory(prefix="pilot-release-smoke-") as temp_dir:
@@ -101,6 +143,10 @@ def smoke(wrapper_source: Path, module_source: Path, expected_version: str) -> N
             }
         )
         Path(env["HOME"]).mkdir()
+        # Keep the release fixture offline: all formatter reads use an owned fresh cache.
+        update_cache = Path(env["HOME"]) / ".pilot" / "cache" / "update-check.json"
+        update_cache.parent.mkdir(parents=True)
+        update_cache.write_text(json.dumps({"timestamp": time.time(), "pilot_update": False}))
 
         version_output = _run(wrapper, ["--version"], env=env)
         expected = f"Pilot Shell v{expected_version}"
@@ -122,6 +168,8 @@ def smoke(wrapper_source: Path, module_source: Path, expected_version: str) -> N
         for expected_field in ("release-smoke", "1%", "Pilot"):
             if expected_field not in formatter_output:
                 raise RuntimeError(f"compiled statusline output is missing {expected_field!r}: {formatter_output!r}")
+
+        _smoke_legacy_notice(stage, wrapper, env, statusline_input, expected_version)
 
 
 def main() -> int:
