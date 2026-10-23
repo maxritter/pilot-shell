@@ -683,8 +683,11 @@ jobs:
       - name: Test the prepared stable schema-9 API
         if: ${{ !contains(env.VERSION, '-') }}
         working-directory: ${{ env.DEPLOY_SOURCE }}/docs/site
+        # The schema-9 backend keeps the team hand-over routes for 12.0.0 clients; the current
+        # source no longer calls them, so only their "has a caller" checks are skipped here.
+        # Caller coverage of the current API runs in CI.
         run: |
-          npx vitest run --maxWorkers=2 --dir api
+          npx vitest run --maxWorkers=2 --dir api -t '^(?!.*team/tasks/\[task\]/(claim|handed) has a caller).*$'
           npx vitest run --maxWorkers=2 scripts/db-beta9.test.ts
 
       # The schema of the environment being released to goes first: the new handlers need its
