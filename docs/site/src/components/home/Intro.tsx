@@ -1,9 +1,33 @@
 /** After the hero: the agents QualityLayer works with, what it adds, one engineer's words, and the models you already pay for. */
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight, BadgeCheck, FileText, KeyRound, Laptop, SquareTerminal, Workflow } from "lucide-react";
+import type { NativeAgent } from "@ql/core/agents/ids";
+import { AGENT_LOGOS } from "@ql/ui/kit/marks/agent-logos";
 import { ENGINEER_QUOTE } from "@/lib/product";
 
 type Chip = [label: string, icon: string];
+
+/** The six agents the grid shows, most used first. Grok runs the same way and is named with the others in Install and the questions. */
+const SHOWN: [label: string, agent: NativeAgent][] = [
+  ["Claude Code", "claude-code"],
+  ["Codex", "codex"],
+  ["Cursor", "cursor"],
+  ["Antigravity", "antigravity"],
+  ["Pi", "pi"],
+  ["OpenCode", "opencode"],
+];
+
+/** An agent's own logo, drawn as the App's AgentMark draws it; only the drawings are imported, not the agent registry. */
+const Logo = ({ agent }: { agent: NativeAgent }) => {
+  const logo = AGENT_LOGOS[agent];
+  return (
+    <span className="mx-logo" data-agent={agent} aria-hidden="true">
+      <svg viewBox={logo.viewBox} focusable="false">
+        {logo.paths.map((path) => <path key={path.d} d={path.d} fill="currentColor" fillRule={path.fillRule} opacity={path.soft ? 0.32 : undefined} />)}
+      </svg>
+    </span>
+  );
+};
 
 const AGENTS: Chip[] = [
   ["Claude Code", "ast"],
@@ -45,7 +69,7 @@ const PRINCIPLES: { who: "agent" | "you" | "check"; icon: LucideIcon; title: str
 const CHAIN: { icon: LucideIcon | "mark"; title: string; text: string; chips: string[]; ql?: true }[] = [
   { icon: Laptop, title: "Where you work", text: "Your task on the left, your agent on the right.", chips: ["QualityLayer App", "Browser"] },
   { icon: KeyRound, title: "Your agent, your subscription", text: "On the plan or API key you already pay for.", chips: AGENTS.map(([label]) => label) },
-  { icon: "mark", title: "QualityLayer", text: "Plan, answer and review beside your agent. The CLI also connects external agents.", chips: ["Visual plans", "Agent sidebar"], ql: true },
+  { icon: "mark", title: "QualityLayer", text: "Plan, answer and review beside your agent. The CLI connects any other agent.", chips: ["Visual plans", "Agent sidebar"], ql: true },
   { icon: FileText, title: "Your repository", text: "Every step is a Markdown file you can read, diff and commit.", chips: ["Plan", "Decisions", "Test runs"] },
 ];
 
@@ -69,11 +93,11 @@ export default function Intro() {
       <section id="agents" className="mx-wrap mx-sec mx-with" aria-labelledby="with-h">
         <div>
           <h2 id="with-h" className="mx-h2">Works with the agents you already use</h2>
-          <p className="mx-lead">Run them in the App or browser. Prefer your own terminal or IDE? <a href="/docs/agents/other">The CLI connects other agents too.</a></p>
+          <p className="mx-lead">Run them in the QualityLayer App or your browser. From your own terminal or IDE, <a href="/docs/agents/other">the CLI connects any other agent.</a></p>
         </div>
         <ul className="mx-withg">
-          {AGENTS.map(([label, icon]) => (
-            <li key={label} className="mx-wi"><Icon name={icon} /><b>{label}</b></li>
+          {SHOWN.map(([label, agent]) => (
+            <li key={label} className="mx-wi"><Logo agent={agent} /><b>{label}</b></li>
           ))}
         </ul>
       </section>

@@ -22,8 +22,8 @@ const team = priced("team");
 
 export const FAQS: Faq[] = [
   faq(
-    "Can I use it on my own, or only with a team?",
-    "On your own. One developer runs all eight steps. The Team plan adds questions to teammates, Slack messages and reviewing a change together.",
+    "Can I use the models and subscriptions I already have?",
+    "Yes. Claude Code, Codex, Cursor, Grok, Antigravity, Pi and OpenCode run on the login or API key you already have, with the models your plan offers. QualityLayer charges only for itself, never for AI usage, and the App shows each step's estimated cost.",
   ),
   faq(
     "How is this different from plan mode?",
@@ -42,8 +42,8 @@ export const FAQS: Faq[] = [
     "Yes. Start Claude Code, Codex, Cursor, Grok, Antigravity, Pi or OpenCode from New task or Implement. Your task stays on the left and the agent runs in the right sidebar. Use the desktop App or the browser connected to your local installation. Your own terminal, VS Code and other IDEs remain available.",
   ),
   faq(
-    "What does it cost to run?",
-    "Your agents run on your own subscription. The App shows each step's estimated cost. Settings › Usage adds the tokens and estimated cost of the last 7, 30 or 90 days for Claude Code, Codex, Pi and OpenCode.",
+    "Can I use it on my own, or only with a team?",
+    "On your own. One developer runs all seven steps. The Team plan adds questions to teammates, Slack messages and reviewing a change together.",
   ),
   faq(
     "Can I see how much of my plan is left?",

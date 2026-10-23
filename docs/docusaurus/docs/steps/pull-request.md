@@ -15,7 +15,7 @@ After **Approve and open a pull request** in [Review](review.md#approve), Qualit
 
 ## Following it {#following}
 
-The Review page shows the checks and reviewers. QualityLayer asks `gh` about once a minute while the App is open; without `gh`, the task closes at the approval.
+The Review page shows the checks and reviewers, read through `gh` while the App is open. Without `gh`, the task closes at the approval.
 
 ## Your agent watches the checks {#watch}
 
@@ -34,7 +34,9 @@ It never force-pushes commits that are not its own.
 ![Review threads and failing checks come back to you; you push the fix; you merge](pathname:///img/diagrams/pull-request-light.svg)
 ![Review threads and failing checks come back to you; you push the fix; you merge](pathname:///img/diagrams/pull-request-dark.svg)
 
-QualityLayer reads the pull request every 2 minutes while QualityLayer is open and the task's pull request is open. This **Watch pull requests** switch is on by default, in **Settings › Git and editor**. A failing check, a review asking for changes or a conflict appears in **Needs you** and wakes the task's agent, resuming its session if it stopped: once per event, at most 3 times a day per pull request, and not with less than 10 % of the plan left. Past a limit the event only shows in Needs you and says why the agent was not woken.
+A failing check, a review asking for changes or a conflict appears in **Needs you** and wakes the task's agent, resuming its session if it stopped. This works while the App is open and the pull request is open. The **Watch pull requests** switch in **Settings › Git and editor** is on by default.
+
+The agent wakes once per event, at most 3 times a day per pull request, and not with less than 10 % of the plan left. Past a limit, the event only shows in Needs you, with the reason.
 
 A new review thread or failing check moves the task to **Needs attention**:
 

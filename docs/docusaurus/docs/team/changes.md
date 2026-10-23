@@ -15,10 +15,10 @@ Once Verify passes, your team reads the walkthrough of the change with its proof
 
 ## Reading the code together {#code}
 
-**Ask for review** pushes the task's branch to your team's own Git remote and asks the teammates you pick. It shows the remote and the commits first, and pushes only when you click. The shared task then carries where the code is: the repository, the branch and its commits, encrypted with your team's key.
+**Ask for review** pushes the task's branch to your team's own Git remote and asks the teammates you pick. It shows the remote and the commits first, and pushes only when you click. The shared task then records where the code is (the repository, the branch and its commits), encrypted with your team's key.
 
-- A teammate with a checkout of the same repository reads the code from that checkout and comments on lines. Who can read the code is decided by your Git remote, as today.
+- A teammate with a checkout of the same repository reads the code there and comments on lines. Your Git remote decides who can read the code, as today.
 - A teammate without a checkout, or without access to the remote, sees the walkthrough with file names.
-- Their comments sit on the lines they are about. You stay the one who approves the change.
+- Comments sit on the lines they are about. You stay the one who approves the change.
 
-Pull request threads and failing checks come back the same way ([Pull request](../steps/pull-request.md)). Shared tasks include no source files, diffs or host logs. Code reaches teammates through your Git remote, and a comment can quote a few lines of the code it is about ([What is shared](plans.md#privacy)). Review any text or attachments you add before sending.
+Pull request threads and failing checks come back the same way ([Pull request](../steps/pull-request.md)). Shared tasks include no source files, diffs or host logs. A comment can quote a few lines of the code it is about ([What is shared](plans.md#privacy)). Review any text or attachments you add before sending.
