@@ -386,7 +386,8 @@ jobs:
 
   prepare-release:
     name: Select the version without changing source or tags
-    permissions: { contents: read }
+    # GitHub exposes draft releases only to tokens with push access.
+    permissions: { contents: write }
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [check-trigger, supply-chain-gate]

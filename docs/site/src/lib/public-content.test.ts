@@ -31,7 +31,8 @@ describe("current public illustrations and guides", () => {
 
   it("keeps batch answers immediate in the Discuss guide", () => {
     const discuss = read("docs/docusaurus/docs/steps/discuss.md");
-    expect(discuss).toMatch(/groups (?:related|the) questions into a batch/);
+    expect(discuss).toContain("Independent choices can arrive together");
+    expect(discuss).toContain("a dependent choice follows the answer it needs");
     expect(discuss).toContain("Answer in any order");
     expect(discuss).toMatch(/immediately|at once/);
   });

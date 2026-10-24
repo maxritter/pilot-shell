@@ -29,7 +29,10 @@ describe("FAQ", () => {
     const docs = readFileSync(new URL("../../../docusaurus/docs/reference/files.md", import.meta.url), "utf8");
     expect(docs).toMatch(/feedback/i);
     expect(docs).toMatch(/screenshots/i);
-    expect(docs).toMatch(/diagnostics/i);
+    expect(docs).toMatch(/operating-system and architecture details/i);
+    expect(docs).toContain("Preview public issue");
+    expect(docs).toContain("Private support");
+    expect(docs).toContain("does not add your account name, email, repository paths or terminal logs");
   });
 
   it("distinguishes the coding agent's provider from QualityLayer sharing and feedback", () => {
